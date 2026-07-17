@@ -13,7 +13,8 @@ const HANDLED_SERVER_TYPES = new Set<ServerMessageType>([
   'role_changed', 'figure_owner_changed', 'lobby_ready_changed', 'lobby_settings_change',
   'figure_possessed', 'figure_released', 'figure_type_changed',
   'moderation_state', 'figure_note_changed',
-  'anchor_added', 'anchor_removed', 'zone_added', 'zone_removed',
+  'anchor_added', 'anchor_removed', 'zone_added', 'zone_updated', 'zone_removed',
+  'figure_hidden_changed',
   // ── T000467 ───────────────────────────────────────────────────────────────
   'line_created', 'line_deleted', 'line_type_changed',
   'undo_stack_changed',
@@ -55,7 +56,9 @@ function routeServer(msg: ServerMessage): string {
     case 'anchor_added': return 'anchor_added';
     case 'anchor_removed': return 'anchor_removed';
     case 'zone_added': return 'zone_added';
+    case 'zone_updated': return 'zone_updated';
     case 'zone_removed': return 'zone_removed';
+    case 'figure_hidden_changed': return 'figure_hidden_changed';
     case 'line_created': return 'line_created';
     case 'line_deleted': return 'line_deleted';
     case 'line_type_changed': return 'line_type_changed';
@@ -102,7 +105,9 @@ function routeClient(msg: ClientMessage): string {
     case 'anchor_create': return 'anchor_create';
     case 'anchor_delete': return 'anchor_delete';
     case 'zone_create': return 'zone_create';
+    case 'zone_update': return 'zone_update';
     case 'zone_delete': return 'zone_delete';
+    case 'figure_hide_set': return 'figure_hide_set';
     case 'session_undo': return 'session_undo';
     case 'session_redo': return 'session_redo';
     case 'line_create': return 'line_create';

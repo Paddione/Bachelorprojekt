@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>whisper — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brain-ingest.html">brain-ingest — Brain-Wiki Kompilierung</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/database-specialist.html">database-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/gguf-quantization.html">gguf-quantization</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llama-cpp.html">llama-cpp</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/haniakrim21-everything-claude-code-react-bits.html">react-bits</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/security-specialist.html">security-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/speculative-decoding.html">speculative-decoding</a></li><li class="sidebar-item"><a href="../skills/superpowers-brainstorming.html">superpowers:brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers-executing-plans.html">superpowers:executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers-writing-plans.html">superpowers:writing-plans</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/ui-ux-pro-max.html">ui-ux-pro-max</a></li><li class="sidebar-item"><a href="../skills/unsloth.html">unsloth</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/website-specialist.html">website-specialist</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/whisper.html" aria-current="page">whisper</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">whisper</span></nav>
+    <h1>whisper</h1>
+    <p class="page-desc">OpenAI's general-purpose speech recognition model. Supports 99 languages, transcription, translation to English, and language identification. Six model sizes from tiny (39M params) to large (1550M params). Use for speech-to-text, podcast transcription, or multilingual audio processing. Best for robust, multilingual ASR.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Whisper - Robust Speech Recognition</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#when-to-use-whisper"><span class="toc-num">1.</span> When to use Whisper</a></li>
+<li class="toc-item"><a href="#quick-start"><span class="toc-num">2.</span> Quick start</a></li>
+<li class="toc-item toc-item--h3"><a href="#installation"><span class="toc-num">–</span> Installation</a></li>
+<li class="toc-item toc-item--h3"><a href="#basic-transcription"><span class="toc-num">–</span> Basic transcription</a></li>
+<li class="toc-item"><a href="#model-sizes"><span class="toc-num">3.</span> Model sizes</a></li>
+<li class="toc-item"><a href="#transcription-options"><span class="toc-num">4.</span> Transcription options</a></li>
+<li class="toc-item toc-item--h3"><a href="#language-specification"><span class="toc-num">–</span> Language specification</a></li>
+<li class="toc-item toc-item--h3"><a href="#task-selection"><span class="toc-num">–</span> Task selection</a></li>
+<li class="toc-item toc-item--h3"><a href="#initial-prompt"><span class="toc-num">–</span> Initial prompt</a></li>
+<li class="toc-item toc-item--h3"><a href="#timestamps"><span class="toc-num">–</span> Timestamps</a></li>
+<li class="toc-item toc-item--h3"><a href="#temperature-fallback"><span class="toc-num">–</span> Temperature fallback</a></li>
+<li class="toc-item"><a href="#command-line-usage"><span class="toc-num">5.</span> Command line usage</a></li>
+<li class="toc-item"><a href="#batch-processing"><span class="toc-num">6.</span> Batch processing</a></li>
+<li class="toc-item"><a href="#real-time-transcription"><span class="toc-num">7.</span> Real-time transcription</a></li>
+<li class="toc-item"><a href="#gpu-acceleration"><span class="toc-num">8.</span> GPU acceleration</a></li>
+<li class="toc-item"><a href="#integration-with-other-tools"><span class="toc-num">9.</span> Integration with other tools</a></li>
+<li class="toc-item toc-item--h3"><a href="#subtitle-generation"><span class="toc-num">–</span> Subtitle generation</a></li>
+<li class="toc-item toc-item--h3"><a href="#with-langchain"><span class="toc-num">–</span> With LangChain</a></li>
+<li class="toc-item toc-item--h3"><a href="#extract-audio-from-video"><span class="toc-num">–</span> Extract audio from video</a></li>
+<li class="toc-item"><a href="#best-practices"><span class="toc-num">10.</span> Best practices</a></li>
+<li class="toc-item"><a href="#performance"><span class="toc-num">11.</span> Performance</a></li>
+<li class="toc-item"><a href="#language-support"><span class="toc-num">12.</span> Language support</a></li>
+<li class="toc-item"><a href="#limitations"><span class="toc-num">13.</span> Limitations</a></li>
+<li class="toc-item"><a href="#resources"><span class="toc-num">14.</span> Resources</a></li></ul>
+</div>
+<p>OpenAI's multilingual speech recognition model.</p>
+<h2 id="when-to-use-whisper">When to use Whisper</h2>
+<p><strong>Use when:</strong></p>
+<ul>
+<li>Speech-to-text transcription (99 languages)</li>
+<li>Podcast/video transcription</li>
+<li>Meeting notes automation</li>
+<li>Translation to English</li>
+<li>Noisy audio transcription</li>
+<li>Multilingual audio processing</li>
+</ul>
+<p><strong>Metrics</strong>:</p>
+<ul>
+<li><strong>72,900+ GitHub stars</strong></li>
+<li>99 languages supported</li>
+<li>Trained on 680,000 hours of audio</li>
+<li>MIT License</li>
+</ul>
+<p><strong>Use alternatives instead</strong>:</p>
+<ul>
+<li><strong>AssemblyAI</strong>: Managed API, speaker diarization</li>
+<li><strong>Deepgram</strong>: Real-time streaming ASR</li>
+<li><strong>Google Speech-to-Text</strong>: Cloud-based</li>
+</ul>
+<h2 id="quick-start">Quick start</h2>
+<h3 id="installation">Installation</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Requires Python 3.8-3.11
+pip install -U openai-whisper
+
+# Requires ffmpeg
+# macOS: brew install ffmpeg
+# Ubuntu: sudo apt install ffmpeg
+# Windows: choco install ffmpeg
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="basic-transcription">Basic transcription</h3>
+<div class="code-wrapper"><pre><code class="language-python">import whisper
+
+# Load model
+model = whisper.load_model("base")
+
+# Transcribe
+result = model.transcribe("audio.mp3")
+
+# Print text
+print(result["text"])
+
+# Access segments
+for segment in result["segments"]:
+    print(f"[{segment['start']:.2f}s - {segment['end']:.2f}s] {segment['text']}")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="model-sizes">Model sizes</h2>
+<div class="code-wrapper"><pre><code class="language-python"># Available models
+models = ["tiny", "base", "small", "medium", "large", "turbo"]
+
+# Load specific model
+model = whisper.load_model("turbo")  # Fastest, good quality
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Parameters</th>
+<th>English-only</th>
+<th>Multilingual</th>
+<th>Speed</th>
+<th>VRAM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tiny</td>
+<td>39M</td>
+<td>✓</td>
+<td>✓</td>
+<td>~32x</td>
+<td>~1 GB</td>
+</tr>
+<tr>
+<td>base</td>
+<td>74M</td>
+<td>✓</td>
+<td>✓</td>
+<td>~16x</td>
+<td>~1 GB</td>
+</tr>
+<tr>
+<td>small</td>
+<td>244M</td>
+<td>✓</td>
+<td>✓</td>
+<td>~6x</td>
+<td>~2 GB</td>
+</tr>
+<tr>
+<td>medium</td>
+<td>769M</td>
+<td>✓</td>
+<td>✓</td>
+<td>~2x</td>
+<td>~5 GB</td>
+</tr>
+<tr>
+<td>large</td>
+<td>1550M</td>
+<td>✗</td>
+<td>✓</td>
+<td>1x</td>
+<td>~10 GB</td>
+</tr>
+<tr>
+<td>turbo</td>
+<td>809M</td>
+<td>✗</td>
+<td>✓</td>
+<td>~8x</td>
+<td>~6 GB</td>
+</tr>
+</tbody></table>
+<p><strong>Recommendation</strong>: Use <code>turbo</code> for best speed/quality, <code>base</code> for prototyping</p>
+<h2 id="transcription-options">Transcription options</h2>
+<h3 id="language-specification">Language specification</h3>
+<div class="code-wrapper"><pre><code class="language-python"># Auto-detect language
+result = model.transcribe("audio.mp3")
+
+# Specify language (faster)
+result = model.transcribe("audio.mp3", language="en")
+
+# Supported: en, es, fr, de, it, pt, ru, ja, ko, zh, and 89 more
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="task-selection">Task selection</h3>
+<div class="code-wrapper"><pre><code class="language-python"># Transcription (default)
+result = model.transcribe("audio.mp3", task="transcribe")
+
+# Translation to English
+result = model.transcribe("spanish.mp3", task="translate")
+# Input: Spanish audio → Output: English text
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="initial-prompt">Initial prompt</h3>
+<div class="code-wrapper"><pre><code class="language-python"># Improve accuracy with context
+result = model.transcribe(
+    "audio.mp3",
+    initial_prompt="This is a technical podcast about machine learning and AI."
+)
+
+# Helps with:
+# - Technical terms
+# - Proper nouns
+# - Domain-specific vocabulary
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="timestamps">Timestamps</h3>
+<div class="code-wrapper"><pre><code class="language-python"># Word-level timestamps
+result = model.transcribe("audio.mp3", word_timestamps=True)
+
+for segment in result["segments"]:
+    for word in segment["words"]:
+        print(f"{word['word']} ({word['start']:.2f}s - {word['end']:.2f}s)")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="temperature-fallback">Temperature fallback</h3>
+<div class="code-wrapper"><pre><code class="language-python"># Retry with different temperatures if confidence low
+result = model.transcribe(
+    "audio.mp3",
+    temperature=(0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
+)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="command-line-usage">Command line usage</h2>
+<div class="code-wrapper"><pre><code class="language-bash"># Basic transcription
+whisper audio.mp3
+
+# Specify model
+whisper audio.mp3 --model turbo
+
+# Output formats
+whisper audio.mp3 --output_format txt     # Plain text
+whisper audio.mp3 --output_format srt     # Subtitles
+whisper audio.mp3 --output_format vtt     # WebVTT
+whisper audio.mp3 --output_format json    # JSON with timestamps
+
+# Language
+whisper audio.mp3 --language Spanish
+
+# Translation
+whisper spanish.mp3 --task translate
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="batch-processing">Batch processing</h2>
+<div class="code-wrapper"><pre><code class="language-python">import os
+
+audio_files = ["file1.mp3", "file2.mp3", "file3.mp3"]
+
+for audio_file in audio_files:
+    print(f"Transcribing {audio_file}...")
+    result = model.transcribe(audio_file)
+
+    # Save to file
+    output_file = audio_file.replace(".mp3", ".txt")
+    with open(output_file, "w") as f:
+        f.write(result["text"])
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="real-time-transcription">Real-time transcription</h2>
+<div class="code-wrapper"><pre><code class="language-python"># For streaming audio, use faster-whisper
+# pip install faster-whisper
+
+from faster_whisper import WhisperModel
+
+model = WhisperModel("base", device="cuda", compute_type="float16")
+
+# Transcribe with streaming
+segments, info = model.transcribe("audio.mp3", beam_size=5)
+
+for segment in segments:
+    print(f"[{segment.start:.2f}s -&gt; {segment.end:.2f}s] {segment.text}")
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="gpu-acceleration">GPU acceleration</h2>
+<div class="code-wrapper"><pre><code class="language-python">import whisper
+
+# Automatically uses GPU if available
+model = whisper.load_model("turbo")
+
+# Force CPU
+model = whisper.load_model("turbo", device="cpu")
+
+# Force GPU
+model = whisper.load_model("turbo", device="cuda")
+
+# 10-20× faster on GPU
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="integration-with-other-tools">Integration with other tools</h2>
+<h3 id="subtitle-generation">Subtitle generation</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Generate SRT subtitles
+whisper video.mp4 --output_format srt --language English
+
+# Output: video.srt
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="with-langchain">With LangChain</h3>
+<div class="code-wrapper"><pre><code class="language-python">from langchain.document_loaders import WhisperTranscriptionLoader
+
+loader = WhisperTranscriptionLoader(file_path="audio.mp3")
+docs = loader.load()
+
+# Use transcription in RAG
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+
+vectorstore = Chroma.from_documents(docs, OpenAIEmbeddings())
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="extract-audio-from-video">Extract audio from video</h3>
+<div class="code-wrapper"><pre><code class="language-bash"># Use ffmpeg to extract audio
+ffmpeg -i video.mp4 -vn -acodec pcm_s16le audio.wav
+
+# Then transcribe
+whisper audio.wav
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="best-practices">Best practices</h2>
+<ol>
+<li><strong>Use turbo model</strong> - Best speed/quality for English</li>
+<li><strong>Specify language</strong> - Faster than auto-detect</li>
+<li><strong>Add initial prompt</strong> - Improves technical terms</li>
+<li><strong>Use GPU</strong> - 10-20× faster</li>
+<li><strong>Batch process</strong> - More efficient</li>
+<li><strong>Convert to WAV</strong> - Better compatibility</li>
+<li><strong>Split long audio</strong> - &lt;30 min chunks</li>
+<li><strong>Check language support</strong> - Quality varies by language</li>
+<li><strong>Use faster-whisper</strong> - 4× faster than openai-whisper</li>
+<li><strong>Monitor VRAM</strong> - Scale model size to hardware</li>
+</ol>
+<h2 id="performance">Performance</h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Real-time factor (CPU)</th>
+<th>Real-time factor (GPU)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>tiny</td>
+<td>~0.32</td>
+<td>~0.01</td>
+</tr>
+<tr>
+<td>base</td>
+<td>~0.16</td>
+<td>~0.01</td>
+</tr>
+<tr>
+<td>turbo</td>
+<td>~0.08</td>
+<td>~0.01</td>
+</tr>
+<tr>
+<td>large</td>
+<td>~1.0</td>
+<td>~0.05</td>
+</tr>
+</tbody></table>
+<p><em>Real-time factor: 0.1 = 10× faster than real-time</em></p>
+<h2 id="language-support">Language support</h2>
+<p>Top-supported languages:</p>
+<ul>
+<li>English (en)</li>
+<li>Spanish (es)</li>
+<li>French (fr)</li>
+<li>German (de)</li>
+<li>Italian (it)</li>
+<li>Portuguese (pt)</li>
+<li>Russian (ru)</li>
+<li>Japanese (ja)</li>
+<li>Korean (ko)</li>
+<li>Chinese (zh)</li>
+</ul>
+<p>Full list: 99 languages total</p>
+<h2 id="limitations">Limitations</h2>
+<ol>
+<li><strong>Hallucinations</strong> - May repeat or invent text</li>
+<li><strong>Long-form accuracy</strong> - Degrades on &gt;30 min audio</li>
+<li><strong>Speaker identification</strong> - No diarization</li>
+<li><strong>Accents</strong> - Quality varies</li>
+<li><strong>Background noise</strong> - Can affect accuracy</li>
+<li><strong>Real-time latency</strong> - Not suitable for live captioning</li>
+</ol>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>GitHub</strong>: <a href="https://github.com/openai/whisper">https://github.com/openai/whisper</a> ⭐ 72,900+</li>
+<li><strong>Paper</strong>: <a href="https://arxiv.org/abs/2212.04356">https://arxiv.org/abs/2212.04356</a></li>
+<li><strong>Model Card</strong>: <a href="https://github.com/openai/whisper/blob/main/model-card.md">https://github.com/openai/whisper/blob/main/model-card.md</a></li>
+<li><strong>Colab</strong>: Available in repo</li>
+<li><strong>License</strong>: MIT</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/website-specialist.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">website-specialist</span></a><a class="prevnext-link prevnext-next" href="../skills/superpowers-lab--windows-vm.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">windows-vm</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

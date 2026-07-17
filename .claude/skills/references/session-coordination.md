@@ -118,6 +118,10 @@ Der Reaper läuft automatisch in Step -1 der dev-flow-execute Pipeline und beim
 Session-Start (`bash scripts/agent-lock.sh reap`). Stale Locks werden gelöscht und
 ins `.reap.log` geschrieben (im Lock-Verzeichnis).
 
+> **⚠️ M2-Lesson (T001899):** Parallele Sessions können Claims löschen, die eine andere Session
+> noch aktiv nutzt. Nach jedem Reap-Fenster die eigenen Claims verifizieren:
+> `bash scripts/agent-lock.sh list` — fehlt ein Claim, neu setzten.
+
 ## Freigeben (nach Merge, VOR dem Worktree-Remove)
 
 ```bash

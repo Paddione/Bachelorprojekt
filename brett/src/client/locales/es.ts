@@ -1,0 +1,75 @@
+// brett/src/client/locales/es.ts — Diccionario español (E8). Mismas claves que de.ts.
+const es: Record<string, string> = {
+  // Menú principal
+  'menu.title': 'Tablero sistémico',
+  'menu.create': 'Crear sesión',
+  'menu.join': 'Unirse a la sesión',
+  'menu.template': 'Elegir plantilla',
+  'menu.language': 'Idioma',
+  'menu.settings': 'Ajustes',
+  // Sala
+  'lobby.title': 'Sala de espera',
+  'lobby.ready': 'Listo',
+  'lobby.notReady': 'No listo',
+  'lobby.start': 'Iniciar ronda',
+  'lobby.waiting': 'Esperando a los participantes …',
+  'lobby.participants': 'Participantes',
+  'lobby.leaveConfirm': '¿Seguro que quieres salir de la sesión?',
+  // Barra superior
+  'topbar.share': 'Compartir',
+  'topbar.invite': 'Invitar',
+  'topbar.export': 'Exportar',
+  'topbar.undo': 'Deshacer',
+  'topbar.redo': 'Rehacer',
+  'topbar.leave': 'Salir',
+  'topbar.view2d': 'Vista 2D',
+  'topbar.view3d': 'Vista 3D',
+  'topbar.viewCone': 'Mostrar campo de visión',
+  'topbar.magnet': 'Imán (ajuste)',
+  // Panel de figuras
+  'fig.add': 'Añadir figura',
+  'fig.label': 'Etiqueta',
+  'fig.color': 'Color',
+  'fig.delete': 'Eliminar',
+  'fig.lock': 'Bloquear',
+  'fig.unlock': 'Desbloquear',
+  'fig.opacity': 'Transparencia',
+  'fig.hide': 'Ocultar',
+  'fig.reveal': 'Revelar',
+  'fig.note': 'Nota',
+  'fig.type': 'Tipo de figura',
+  // Apariencia
+  'appearance.title': 'Apariencia',
+  'appearance.face': 'Cara',
+  'appearance.body': 'Cuerpo',
+  'appearance.accessories': 'Accesorios',
+  // Insignias del HUD
+  'hud.spotlight': 'En foco',
+  'hud.dim': 'Atenuada',
+  'hud.freeze': 'Congelada',
+  'hud.hidden': 'Oculta',
+  // Exportar
+  'export.pdf': 'Como PDF',
+  'export.png': 'Como imagen',
+  'export.json': 'Como archivo',
+  'export.done': 'Exportación completada',
+  // Panel de vista interior
+  'pov.title': 'Vista interior',
+  'pov.enter': 'Adoptar la vista interior',
+  'pov.leave': 'Salir de la vista interior',
+  'pov.meta': 'Metaposición',
+  'pov.inner': 'Primera persona',
+  'pov.dialog': 'Modo diálogo',
+  'pov.switch': 'Cambiar de perspectiva',
+  // Editor de zonas
+  'zone.edit': 'Editar área',
+  'zone.size': 'Tamaño',
+  'zone.variantFilled': 'Rellena',
+  'zone.variantFrame': 'Marco',
+  // Introducción
+  'onboarding.welcome': 'Bienvenido al tablero sistémico',
+  'onboarding.next': 'Siguiente',
+  'onboarding.skip': 'Omitir',
+  'onboarding.done': 'Vamos',
+};
+export default es;

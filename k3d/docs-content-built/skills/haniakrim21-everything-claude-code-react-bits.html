@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>react-bits — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brain-ingest.html">brain-ingest — Brain-Wiki Kompilierung</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/database-specialist.html">database-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/gguf-quantization.html">gguf-quantization</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llama-cpp.html">llama-cpp</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/haniakrim21-everything-claude-code-react-bits.html" aria-current="page">react-bits</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/security-specialist.html">security-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/speculative-decoding.html">speculative-decoding</a></li><li class="sidebar-item"><a href="../skills/superpowers-brainstorming.html">superpowers:brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers-executing-plans.html">superpowers:executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers-writing-plans.html">superpowers:writing-plans</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/ui-ux-pro-max.html">ui-ux-pro-max</a></li><li class="sidebar-item"><a href="../skills/unsloth.html">unsloth</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/website-specialist.html">website-specialist</a></li><li class="sidebar-item"><a href="../skills/whisper.html">whisper</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">react-bits</span></nav>
+    <h1>react-bits</h1>
+    <p class="page-desc">Build stunning animated React UIs using the react-bits component library — 110+ free, customizable text animations, UI components, and backgrounds.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">website</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>React Bits</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#installation"><span class="toc-num">1.</span> Installation</a></li>
+<li class="toc-item"><a href="#component-categories"><span class="toc-num">2.</span> Component Categories</a></li>
+<li class="toc-item toc-item--h3"><a href="#-animations-30-components"><span class="toc-num">–</span> 🌀 Animations (30+ components)</a></li>
+<li class="toc-item toc-item--h3"><a href="#-backgrounds-35-components"><span class="toc-num">–</span> 🖼️ Backgrounds (35+ components)</a></li>
+<li class="toc-item toc-item--h3"><a href="#-components-35-components"><span class="toc-num">–</span> 🧩 Components (35+ components)</a></li>
+<li class="toc-item toc-item--h3"><a href="#-text-animations-25-components"><span class="toc-num">–</span> ✍️ Text Animations (25+ components)</a></li>
+<li class="toc-item"><a href="#usage-patterns"><span class="toc-num">3.</span> Usage Patterns</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-1-scroll-triggered-section-reveal"><span class="toc-num">–</span> Pattern 1: Scroll-triggered section reveal</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-2-animated-hero-background"><span class="toc-num">–</span> Pattern 2: Animated hero background</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-3-interactive-card-grid"><span class="toc-num">–</span> Pattern 3: Interactive card grid</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-4-animated-navigation-dock"><span class="toc-num">–</span> Pattern 4: Animated navigation dock</a></li>
+<li class="toc-item toc-item--h3"><a href="#pattern-5-text-scramble-on-hover"><span class="toc-num">–</span> Pattern 5: Text scramble on hover</a></li>
+<li class="toc-item"><a href="#dependencies-by-component"><span class="toc-num">4.</span> Dependencies by Component</a></li>
+<li class="toc-item"><a href="#component-source-urls"><span class="toc-num">5.</span> Component Source URLs</a></li>
+<li class="toc-item"><a href="#creative-tools"><span class="toc-num">6.</span> Creative Tools</a></li></ul>
+</div>
+<p><strong>React Bits</strong> (<a href="https://reactbits.dev">https://reactbits.dev</a>) is the largest open-source library of animated, interactive React components. 110+ components across four categories, fully customizable via props, copy-paste ready.</p>
+<blockquote>
+<p>GitHub: <a href="https://github.com/DavidHDev/react-bits">https://github.com/DavidHDev/react-bits</a> — 35k+ stars</p>
+</blockquote>
+<hr>
+<h2 id="installation">Installation</h2>
+<p>Each component is copy-paste or CLI installable via shadcn/jsrepo. No monolithic package install needed.</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Via shadcn (recommended)
+npx shadcn@latest add @react-bits/&lt;ComponentName&gt;-TS-TW
+
+# Examples
+npx shadcn@latest add @react-bits/BlurText-TS-TW
+npx shadcn@latest add @react-bits/AnimatedContent-TS-TW
+npx shadcn@latest add @react-bits/Aurora-TS-TW
+
+# Via jsrepo
+npx jsrepo add github/DavidHDev/react-bits/src/ts-tailwind/&lt;Category&gt;/&lt;ComponentName&gt;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>4 variants per component</strong> — choose based on your stack:</p>
+<ul>
+<li><code>JS-CSS</code> — JavaScript + plain CSS</li>
+<li><code>JS-TW</code> — JavaScript + Tailwind</li>
+<li><code>TS-CSS</code> — TypeScript + plain CSS</li>
+<li><code>TS-TW</code> — TypeScript + Tailwind (recommended)</li>
+</ul>
+<hr>
+<h2 id="component-categories">Component Categories</h2>
+<h3 id="-animations-30-components">🌀 Animations (30+ components)</h3>
+<p>Scroll-triggered and interactive animation wrappers.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+<th>Key Props</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AnimatedContent</code></td>
+<td>Slide/fade in on scroll (GSAP + ScrollTrigger)</td>
+<td><code>distance</code>, <code>direction</code>, <code>duration</code>, <code>ease</code>, <code>threshold</code></td>
+</tr>
+<tr>
+<td><code>FadeContent</code></td>
+<td>Simple opacity fade on scroll</td>
+<td><code>blur</code>, <code>duration</code>, <code>threshold</code></td>
+</tr>
+<tr>
+<td><code>Magnet</code></td>
+<td>Magnetic cursor attraction</td>
+<td><code>padding</code>, <code>disabled</code>, <code>magnetStrength</code></td>
+</tr>
+<tr>
+<td><code>GlareHover</code></td>
+<td>3D glare effect on hover</td>
+<td><code>glareColor</code>, <code>glareOpacity</code>, <code>glareAngle</code></td>
+</tr>
+<tr>
+<td><code>StarBorder</code></td>
+<td>Animated star border around element</td>
+<td><code>color</code>, <code>speed</code>, <code>thickness</code></td>
+</tr>
+<tr>
+<td><code>ElectricBorder</code></td>
+<td>Electrified animated border</td>
+<td><code>glowColor</code>, <code>animationDuration</code></td>
+</tr>
+<tr>
+<td><code>ClickSpark</code></td>
+<td>Spark particles on click</td>
+<td><code>sparkColor</code>, <code>sparkSize</code>, <code>sparkCount</code></td>
+</tr>
+<tr>
+<td><code>PixelTransition</code></td>
+<td>Pixel dissolve transition</td>
+<td><code>firstContent</code>, <code>secondContent</code>, <code>gridSize</code></td>
+</tr>
+<tr>
+<td><code>ImageTrail</code></td>
+<td>Images follow cursor trail</td>
+<td><code>items</code>, <code>variant</code>, <code>rotationRange</code></td>
+</tr>
+<tr>
+<td><code>LogoLoop</code></td>
+<td>Horizontal logo marquee</td>
+<td><code>items</code>, <code>speed</code>, <code>direction</code></td>
+</tr>
+<tr>
+<td><code>Ribbons</code></td>
+<td>3D ribbon animations</td>
+<td><code>colors</code>, <code>baseSpring</code>, <code>baseFriction</code></td>
+</tr>
+<tr>
+<td><code>MetallicPaint</code></td>
+<td>Metallic paint fluid effect</td>
+<td><code>imageUrl</code>, <code>params</code></td>
+</tr>
+<tr>
+<td><code>StickerPeel</code></td>
+<td>Sticker peel reveal effect</td>
+<td><code>width</code>, <code>height</code>, <code>peelPosition</code></td>
+</tr>
+</tbody></table>
+<h3 id="-backgrounds-35-components">🖼️ Backgrounds (35+ components)</h3>
+<p>Full-screen animated backgrounds.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+<th>Key Props</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Aurora</code></td>
+<td>Northern lights animated gradient</td>
+<td><code>colorStops</code>, <code>blend</code>, <code>amplitude</code>, <code>speed</code></td>
+</tr>
+<tr>
+<td><code>Particles</code></td>
+<td>Canvas particle system</td>
+<td><code>particleColors</code>, <code>particleCount</code>, <code>speed</code>, <code>moveParticlesOnHover</code></td>
+</tr>
+<tr>
+<td><code>Waves</code></td>
+<td>Fluid wave animation</td>
+<td><code>lineColor</code>, <code>backgroundColor</code>, <code>waveSpeedX</code></td>
+</tr>
+<tr>
+<td><code>Silk</code></td>
+<td>Silky fluid shader background</td>
+<td><code>speed</code>, <code>scale</code>, <code>color</code>, <code>noiseIntensity</code></td>
+</tr>
+<tr>
+<td><code>Orb</code></td>
+<td>Glowing orb background</td>
+<td><code>hue</code>, <code>hueSpeed</code>, <code>forceField</code></td>
+</tr>
+<tr>
+<td><code>Iridescence</code></td>
+<td>Rainbow iridescent shader</td>
+<td><code>color</code>, <code>speed</code>, <code>amplitude</code></td>
+</tr>
+<tr>
+<td><code>Hyperspeed</code></td>
+<td>Hyperspace star warp</td>
+<td><code>preset</code> (one of 5 presets)</td>
+</tr>
+<tr>
+<td><code>Galaxy</code></td>
+<td>Animated galaxy background</td>
+<td><code>mouseRepulsion</code>, <code>density</code>, <code>speed</code></td>
+</tr>
+<tr>
+<td><code>LiquidChrome</code></td>
+<td>Chrome liquid shader</td>
+<td><code>baseColor</code>, <code>speed</code>, <code>amplitude</code></td>
+</tr>
+<tr>
+<td><code>Threads</code></td>
+<td>Flowing thread lines</td>
+<td><code>color</code>, <code>amplitude</code>, <code>distance</code>, <code>enableMouseInteraction</code></td>
+</tr>
+<tr>
+<td><code>DotGrid</code></td>
+<td>Animated dot grid</td>
+<td><code>dotColor</code>, <code>glowColor</code>, <code>dotSize</code>, <code>gap</code></td>
+</tr>
+<tr>
+<td><code>GridMotion</code></td>
+<td>Motion grid of items</td>
+<td><code>items</code>, <code>gradientColor</code></td>
+</tr>
+<tr>
+<td><code>Squares</code></td>
+<td>Animated square grid</td>
+<td><code>direction</code>, <code>speed</code>, <code>squareSize</code>, <code>borderColor</code></td>
+</tr>
+<tr>
+<td><code>Balatro</code></td>
+<td>Balatro card game aesthetic</td>
+<td><code>color</code>, <code>mouseInteraction</code></td>
+</tr>
+<tr>
+<td><code>Noise</code></td>
+<td>Static noise texture</td>
+<td><code>patternSize</code>, <code>patternAlpha</code>, <code>grainSpeed</code></td>
+</tr>
+<tr>
+<td><code>Lightning</code></td>
+<td>Lightning bolt background</td>
+<td><code>hue</code>, <code>xOffset</code>, <code>speed</code></td>
+</tr>
+</tbody></table>
+<h3 id="-components-35-components">🧩 Components (35+ components)</h3>
+<p>Interactive UI elements.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+<th>Key Props</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GlassIcons</code></td>
+<td>Glassmorphism icon grid</td>
+<td><code>items</code>, <code>theme</code></td>
+</tr>
+<tr>
+<td><code>TiltedCard</code></td>
+<td>3D tilt card on hover</td>
+<td><code>imageSrc</code>, <code>captionText</code>, <code>containerHeight</code></td>
+</tr>
+<tr>
+<td><code>SpotlightCard</code></td>
+<td>Spotlight follows cursor</td>
+<td><code>spotlightColor</code></td>
+</tr>
+<tr>
+<td><code>Dock</code></td>
+<td>macOS-style dock</td>
+<td><code>items</code>, <code>magnification</code>, <code>panelHeight</code></td>
+</tr>
+<tr>
+<td><code>Carousel</code></td>
+<td>Smooth animated carousel</td>
+<td><code>items</code>, <code>baseWidth</code>, <code>autoplay</code></td>
+</tr>
+<tr>
+<td><code>CircularGallery</code></td>
+<td>3D circular image gallery</td>
+<td><code>items</code>, <code>bend</code>, <code>textColor</code></td>
+</tr>
+<tr>
+<td><code>MagicBento</code></td>
+<td>Animated bento grid layout</td>
+<td><code>textAutoHide</code>, <code>enableStars</code></td>
+</tr>
+<tr>
+<td><code>Masonry</code></td>
+<td>Masonry image grid</td>
+<td><code>items</code>, <code>columns</code>, <code>gap</code></td>
+</tr>
+<tr>
+<td><code>CardSwap</code></td>
+<td>Swipeable card stack</td>
+<td><code>cardDistance</code>, <code>verticalDistance</code>, <code>delay</code></td>
+</tr>
+<tr>
+<td><code>InfiniteMenu</code></td>
+<td>Infinite scroll 3D menu</td>
+<td><code>items</code></td>
+</tr>
+<tr>
+<td><code>FlowingMenu</code></td>
+<td>Flowing animated menu</td>
+<td><code>items</code></td>
+</tr>
+<tr>
+<td><code>ElasticSlider</code></td>
+<td>Elastic spring slider</td>
+<td><code>defaultValue</code>, <code>elasticity</code></td>
+</tr>
+<tr>
+<td><code>Counter</code></td>
+<td>Animated number counter</td>
+<td><code>value</code>, <code>fontSize</code>, <code>places</code></td>
+</tr>
+<tr>
+<td><code>Folder</code></td>
+<td>Interactive file folder</td>
+<td><code>color</code>, <code>items</code>, <code>open</code></td>
+</tr>
+<tr>
+<td><code>Stack</code></td>
+<td>Stacked card interaction</td>
+<td><code>randomRotation</code>, <code>sensitivity</code></td>
+</tr>
+<tr>
+<td><code>ChromaGrid</code></td>
+<td>Chromatic image grid</td>
+<td><code>items</code>, <code>radius</code>, <code>damping</code></td>
+</tr>
+<tr>
+<td><code>ScrollStack</code></td>
+<td>Stack on scroll</td>
+<td><code>items</code>, <code>itemDistance</code></td>
+</tr>
+<tr>
+<td><code>ProfileCard</code></td>
+<td>3D profile card</td>
+<td><code>name</code>, <code>title</code>, <code>avatarUrl</code></td>
+</tr>
+<tr>
+<td><code>GooeyNav</code></td>
+<td>Gooey effect navigation</td>
+<td><code>items</code>, <code>particleCount</code></td>
+</tr>
+<tr>
+<td><code>Stepper</code></td>
+<td>Animated step progress</td>
+<td><code>steps</code>, <code>initialStep</code></td>
+</tr>
+<tr>
+<td><code>FluidGlass</code></td>
+<td>Fluid glass morphism</td>
+<td><code>width</code>, <code>height</code></td>
+</tr>
+</tbody></table>
+<h3 id="-text-animations-25-components">✍️ Text Animations (25+ components)</h3>
+<p>Animated text effects.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+<th>Key Props</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>BlurText</code></td>
+<td>Words/letters blur in</td>
+<td><code>text</code>, <code>delay</code>, <code>animateBy</code>, <code>direction</code></td>
+</tr>
+<tr>
+<td><code>SplitText</code></td>
+<td>Split text animation</td>
+<td><code>text</code>, <code>delay</code>, <code>animationFrom</code>, <code>animationTo</code></td>
+</tr>
+<tr>
+<td><code>GlitchText</code></td>
+<td>Glitch effect on text</td>
+<td><code>speed</code>, <code>enableShadows</code>, <code>enableOnHover</code></td>
+</tr>
+<tr>
+<td><code>GradientText</code></td>
+<td>Animated gradient text</td>
+<td><code>colors</code>, <code>animationSpeed</code>, <code>showBorder</code></td>
+</tr>
+<tr>
+<td><code>ShinyText</code></td>
+<td>Metallic shiny text</td>
+<td><code>text</code>, <code>disabled</code>, <code>speed</code>, <code>className</code></td>
+</tr>
+<tr>
+<td><code>FuzzyText</code></td>
+<td>Fuzzy hover distortion</td>
+<td><code>fontSize</code>, <code>fontWeight</code>, <code>color</code>, <code>enableHover</code></td>
+</tr>
+<tr>
+<td><code>DecryptedText</code></td>
+<td>Matrix-style decrypt</td>
+<td><code>text</code>, <code>speed</code>, <code>revealDirection</code>, <code>sequential</code></td>
+</tr>
+<tr>
+<td><code>ScrambledText</code></td>
+<td>Character scramble effect</td>
+<td><code>radius</code>, <code>duration</code>, <code>speed</code>, <code>scrambleChars</code></td>
+</tr>
+<tr>
+<td><code>TextPressure</code></td>
+<td>Pressure-variable font</td>
+<td><code>text</code>, <code>flex</code>, <code>alpha</code>, <code>stroke</code></td>
+</tr>
+<tr>
+<td><code>RotatingText</code></td>
+<td>Word rotation animation</td>
+<td><code>texts</code>, <code>staggerDuration</code>, <code>transition</code></td>
+</tr>
+<tr>
+<td><code>CountUp</code></td>
+<td>Count up animation</td>
+<td><code>from</code>, <code>to</code>, <code>duration</code>, <code>separator</code></td>
+</tr>
+<tr>
+<td><code>ASCIIText</code></td>
+<td>3D ASCII art text</td>
+<td><code>text</code>, <code>enableWaves</code></td>
+</tr>
+<tr>
+<td><code>ScrollFloat</code></td>
+<td>Text floats on scroll</td>
+<td><code>text</code>, <code>scrollStart</code>, <code>scrollEnd</code></td>
+</tr>
+<tr>
+<td><code>ScrollVelocity</code></td>
+<td>Velocity-based marquee</td>
+<td><code>texts</code>, <code>velocity</code>, <code>damping</code></td>
+</tr>
+<tr>
+<td><code>ScrollReveal</code></td>
+<td>Reveal text on scroll</td>
+<td><code>textColor</code>, <code>fillColor</code>, <code>threshold</code></td>
+</tr>
+<tr>
+<td><code>VariableProximity</code></td>
+<td>Font varies with mouse</td>
+<td><code>label</code>, <code>fromFontVariationSettings</code>, <code>toFontVariationSettings</code></td>
+</tr>
+<tr>
+<td><code>TrueFocus</code></td>
+<td>Focus blur on words</td>
+<td><code>sentence</code>, <code>blurAmount</code>, <code>animationDuration</code></td>
+</tr>
+<tr>
+<td><code>CurvedLoop</code></td>
+<td>Text on curved path</td>
+<td><code>lines</code>, <code>radius</code>, <code>fontSize</code></td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="usage-patterns">Usage Patterns</h2>
+<h3 id="pattern-1-scroll-triggered-section-reveal">Pattern 1: Scroll-triggered section reveal</h3>
+<div class="code-wrapper"><pre><code class="language-tsx">import AnimatedContent from '@/components/ui/AnimatedContent';
+
+export function Section() {
+  return (
+    &lt;AnimatedContent distance={60} direction="vertical" duration={0.7} delay={0.1}&gt;
+      &lt;h2&gt;Your Content&lt;/h2&gt;
+    &lt;/AnimatedContent&gt;
+  );
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="pattern-2-animated-hero-background">Pattern 2: Animated hero background</h3>
+<div class="code-wrapper"><pre><code class="language-tsx">import Aurora from '@/components/ui/Aurora';
+import BlurText from '@/components/ui/BlurText';
+
+export function Hero() {
+  return (
+    &lt;div className="relative h-screen"&gt;
+      &lt;Aurora colorStops={["#3A1C71", "#D76D77", "#FFAF7B"]} blend={0.5} amplitude={1.0} speed={0.5} /&gt;
+      &lt;div className="absolute inset-0 flex items-center justify-center"&gt;
+        &lt;BlurText text="Welcome to the Future" delay={150} animateBy="words" direction="top" className="text-6xl font-bold text-white" /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="pattern-3-interactive-card-grid">Pattern 3: Interactive card grid</h3>
+<div class="code-wrapper"><pre><code class="language-tsx">import TiltedCard from '@/components/ui/TiltedCard';
+
+export function CardGrid() {
+  return (
+    &lt;div className="grid grid-cols-3 gap-6"&gt;
+      {items.map(item =&gt; (
+        &lt;TiltedCard
+          key={item.id}
+          imageSrc={item.image}
+          captionText={item.title}
+          containerHeight="300px"
+          rotateAmplitude={12}
+          scaleOnHover={1.05}
+          showMobileWarning={false}
+        /&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="pattern-4-animated-navigation-dock">Pattern 4: Animated navigation dock</h3>
+<div class="code-wrapper"><pre><code class="language-tsx">import Dock from '@/components/ui/Dock';
+import { Home, Settings, User } from 'lucide-react';
+
+const items = [
+  { icon: &lt;Home size={18} /&gt;, label: 'Home', onClick: () =&gt; {} },
+  { icon: &lt;User size={18} /&gt;, label: 'Profile', onClick: () =&gt; {} },
+  { icon: &lt;Settings size={18} /&gt;, label: 'Settings', onClick: () =&gt; {} },
+];
+
+export function Nav() {
+  return &lt;Dock items={items} magnification={60} distance={100} panelHeight={68} /&gt;;
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="pattern-5-text-scramble-on-hover">Pattern 5: Text scramble on hover</h3>
+<div class="code-wrapper"><pre><code class="language-tsx">import DecryptedText from '@/components/ui/DecryptedText';
+
+export function HoverText() {
+  return (
+    &lt;DecryptedText
+      text="Hover to reveal"
+      speed={50}
+      maxIterations={20}
+      revealDirection="center"
+      enableHoverEffect={true}
+      animateOn="hover"
+      className="text-2xl font-mono"
+    /&gt;
+  );
+}
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="dependencies-by-component">Dependencies by Component</h2>
+<p>Most components use one of these — install as needed:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Motion (most text animations + components)
+npm install motion
+
+# GSAP (AnimatedContent, some animations)
+npm install gsap
+
+# Three.js (3D components: ASCIIText, ModelViewer, Hyperspeed)
+npm install three @types/three
+
+# OGL (shader backgrounds: Silk, Iridescence, LiquidChrome)
+npm install ogl
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="component-source-urls">Component Source URLs</h2>
+<p>Browse and copy source at:</p>
+<ul>
+<li><strong>Docs</strong>: <a href="https://reactbits.dev">https://reactbits.dev</a></li>
+<li><strong>GitHub source</strong>: <code>https://github.com/DavidHDev/react-bits/tree/main/src/ts-tailwind/&lt;Category&gt;/&lt;ComponentName&gt;/</code></li>
+</ul>
+<p>Categories in source: <code>Animations/</code>, <code>Backgrounds/</code>, <code>Components/</code>, <code>TextAnimations/</code></p>
+<hr>
+<h2 id="creative-tools">Creative Tools</h2>
+<p>React Bits also provides free browser-based tools at <a href="https://reactbits.dev/tools">https://reactbits.dev/tools</a>:</p>
+<ul>
+<li><strong>Background Studio</strong> — customize animated backgrounds, export as video/image/code</li>
+<li><strong>Shape Magic</strong> — inner rounded corners between shapes, export SVG/React/clip-path</li>
+<li><strong>Texture Lab</strong> — apply noise, dithering, ASCII effects to images/videos</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/brightdata-plugin--rag-pipeline.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">rag-pipeline</span></a><a class="prevnext-link prevnext-next" href="../skills/references.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">references</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

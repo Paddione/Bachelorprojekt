@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DB-Audit-Playbook (shared-db, beide Brands) — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./architecture.html">Architektur — Living Docs</a></li><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./2026-07-09-index-and-nplus1-audit.html">DB Audit — 2026-07-09</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./adr-001-fleet-konsolidierung.html">ADR-001: Fleet-Konsolidierung — Zusammenführung aller Marken-Cluster (Phase 3)</a></li><li class="sidebar-item"><a href="./adr-002-push-basiertes-deploy.html">ADR-002: Push-basiertes Deploy — kein GitOps-Reconciler im Cluster</a></li><li class="sidebar-item"><a href="./adr-003-brand-namespace-split.html">ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</a></li><li class="sidebar-item"><a href="./adr-004-llm-fail-closed.html">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</a></li><li class="sidebar-item"><a href="./adr-005-merge-equals-abschluss.html">ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./asset-gen-gpu-host.html">Asset-Generierung: GPU-Host einrichten &amp; starten</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item sidebar-item--active"><a href="./db-audit-playbook.html" aria-current="page">DB-Audit-Playbook (shared-db, beide Brands)</a></li><li class="sidebar-item"><a href="./docs-design-standards.html">DOCS-DESIGN-STANDARDS.md</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./gotchas-footguns.html">Gotchas &amp; Footguns Reference</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">DB-Audit-Playbook (shared-db, beide Brands)</span></nav>
+    <h1>DB-Audit-Playbook (shared-db, beide Brands)</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>DB-Audit-Playbook (shared-db, beide Brands)</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#detection-module-alle-read-only"><span class="toc-num">1.</span> Detection-Module (alle read-only)</a></li>
+<li class="toc-item"><a href="#tiering-kriterien-modul-2"><span class="toc-num">2.</span> Tiering-Kriterien (Modul 2)</a></li>
+<li class="toc-item"><a href="#safety-rails-nicht-verhandelbar"><span class="toc-num">3.</span> Safety-Rails (nicht verhandelbar)</a></li>
+<li class="toc-item"><a href="#bekannte-offene-flanke"><span class="toc-num">4.</span> Bekannte offene Flanke</a></li></ul>
+</div>
+<p>Wiederverwendbares Vorgehen für strukturelle Datenbank-Audits (Orphan-Erkennung,
+Index-Hygiene, Cross-Cluster-Drift). Destilliert aus dem ausgeführten Phase-5-Audit
+(2026-05-23, Ergebnisse unter <code>docs/db-audit/2026-05-23-phase5/</code>) für künftige Läufe.
+Vendor-Schemata (keycloak, nextcloud, vaultwarden, docuseal) sind für strukturelle
+Änderungen IMMER out of scope.</p>
+<h2 id="detection-module-alle-read-only">Detection-Module (alle read-only)</h2>
+<ol>
+<li><strong>Orphan-Erkennung</strong> — Feature-Removal-Liste + <code>information_schema.tables</code> + Code-Grep.
+Orphan-Kandidat = Tabellenname passt zu entferntem Feature ODER null Code-Referenzen.</li>
+<li><strong>Runtime-Statistiken</strong> — <code>pg_stat_user_tables</code> / <code>pg_stat_user_indexes</code> snapshoten,
+<code>stats_reset</code> aus <code>pg_stat_database</code> festhalten (Interpretations-Gate, s.u.).</li>
+<li><strong>Strukturelle Integrität</strong> — fehlende FK-Indizes, TEXT-für-UUID, fehlende NOT NULL /
+FK-Constraints, redundante Indizes.</li>
+<li><strong>Schema-Hygiene</strong> — Tabellen in <code>public</code>, die in Domain-Schemata gehören; fehlende
+COMMENTs; Role-Grant-Matrix-Asymmetrien.</li>
+<li><strong>Cross-Cluster-Drift</strong> — Tabellen-/Spalten-/Constraint-/Index-Diff mentolder ↔
+korczewski. Das <code>arena</code>-Schema ist korczewski-only <strong>by design</strong> (erwarteter Drift).</li>
+</ol>
+<h2 id="tiering-kriterien-modul-2">Tiering-Kriterien (Modul 2)</h2>
+<ul>
+<li><strong>Cold table</strong> (DROP-Kandidat, approval): <code>idx_scan == 0</code> AND <code>seq_scan &lt;= 5</code>
+AND <code>n_live_tup &gt; 0</code> AND <code>stats_reset</code> &gt; 30 Tage alt.</li>
+<li><strong>Cold index</strong> (non-PK, non-UNIQUE; autonom droppbar — per DDL reversibel):
+<code>idx_scan == 0</code> AND <code>stats_reset</code> &gt; 30 Tage.</li>
+<li><strong>Empty table</strong> (starker DROP-Kandidat): <code>n_live_tup == 0</code> AND <code>n_tup_ins == 0</code> &gt; 30 Tage.</li>
+<li><strong>Hot table ohne Index</strong> (autonomes CREATE INDEX): <code>seq_tup_read &gt; 100k</code> ohne passenden Index.</li>
+<li><strong>Stats-Reset-Gate:</strong> Ist <code>stats_reset</code> auf EINEM Cluster &lt; 30 Tage alt, sind alle
+Modul-2-DROP-Vorschläge nur advisory — keine DROPs vorschlagen.</li>
+</ul>
+<h2 id="safety-rails-nicht-verhandelbar">Safety-Rails (nicht verhandelbar)</h2>
+<ol>
+<li><strong>Cluster-Kontext-Guard:</strong> psql nur über <code>task workspace:psql ENV=&lt;env&gt;</code> — nie kubectl
+ohne explizites ENV-Mapping.</li>
+<li><strong>Transaktional + idempotent:</strong> Migrationen in <code>BEGIN; … COMMIT;</code> mit
+<code>IF EXISTS</code>/<code>IF NOT EXISTS</code>; Re-Run ist No-op.</li>
+<li><strong>Backup vor DROP:</strong> <code>task workspace:backup</code> pro Cluster VOR dessen DROP-Migration;
+Backup-Timestamp ins Decision-Log. Reihenfolge: backup-mentolder → drop-mentolder →
+verify-mentolder → backup-korczewski → drop-korczewski → verify-korczewski.</li>
+<li><strong>Verifikation pro Migration:</strong> <code>\d &lt;objekt&gt;</code>; bei DROPs bestätigt <code>SELECT count(*)</code>
+den Fehler 42P01; danach <code>task workspace:verify ENV=&lt;env&gt;</code>.</li>
+<li><strong>Re-Grant nach Schema-Arbeit:</strong> Nach <code>CREATE TABLE</code>/Schema-Änderung
+<code>task workspace:fix-tickets-grants ENV=&lt;env&gt;</code> (bzw. Generalisierung) laufen lassen.</li>
+<li><strong>Beide Cluster oder keiner:</strong> Schlägt eine Migration auf korczewski fehl, wird sie
+auf mentolder zurückgerollt oder sofort eskaliert — es gibt keinen
+„korczewski später"-Zustand.</li>
+<li><strong>ER-Diagramm regenerieren:</strong> <code>task db:diagram</code> am Ende; <code>docs/db-schema-diagram.md</code>
+im selben PR committen.</li>
+<li><strong>Mishap-Tracker:</strong> Jede Anomalie (Pod-Zustand, tote Grants, Drift) ins <code>MISHAP_LOG</code>,
+am Ende ticketen.</li>
+<li><strong>Approval-Gate:</strong> DROPs von Tabellen und alle App-Code-berührenden Änderungen
+(TEXT→UUID, Schema-Moves) nur mit expliziter Freigabe pro Item, festgehalten in
+einem <code>decision-log.md</code>.</li>
+</ol>
+<h2 id="bekannte-offene-flanke">Bekannte offene Flanke</h2>
+<p>Migrationen liegen historisch in fünf Verzeichnissen (<code>scripts/migrations/</code>,
+<code>scripts/datamodel/</code>, <code>scripts/one-shot/archive/</code>, <code>website/src/db/migrations/</code>,
+<code>arena-server/src/db/migrations/</code>). Der getrackte Factory-Runner
+(OpenSpec-Change <code>migrations-factory-runner</code>) konsolidiert davon nur
+<code>scripts/migrations/</code> ↔ <code>website/src/db/migrations/</code> — <code>scripts/datamodel/</code> und
+<code>scripts/one-shot/</code> bleiben unkonsolidiert und gehören in jedes künftige Audit.</p>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="./brainstorm-bridge-wsl.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</span></a><a class="prevnext-link prevnext-next" href="./docs-design-standards.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">DOCS-DESIGN-STANDARDS.md</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

@@ -28,7 +28,7 @@
   <!-- Frame -->
   <div class="portrait">
     {#if avatarType === 'image' && avatarSrc}
-      <img src={avatarSrc} alt={`${name}, ${role}`} loading="lazy" />
+      <img src={avatarSrc} alt={`${name}, ${role}`} loading="eager" fetchpriority="high" width="600" height="600" />
       <!-- Duotone wash -->
       <div class="duotone" aria-hidden="true"></div>
       <!-- Brass hairline top -->

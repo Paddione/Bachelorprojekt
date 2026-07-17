@@ -8,10 +8,15 @@ setup() { load 'test_helper.bash'; }
   [[ "$output" == *"Usage"* ]]
 }
 
-@test "FA-SF-70: provider-config.sh set rejects tier=opus" {
+@test "FA-SF-70: provider-config.sh set does not reject tier=opus at validation, warns instead" {
+  # DB-touching: this file is offline (no cluster), so the write itself may
+  # still fail downstream (factory_psql needs a live shared-db pod) — only
+  # assert the pre-DB validation behavior: opus passes argument validation
+  # and emits a warning, instead of being hard-rejected like before.
   run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m
-  [ "$status" -ne 0 ]
+  [[ "$output" == *"WARNING"* ]]
   [[ "$output" == *"opus"* ]]
+  [[ "$output" != *"Usage:"* ]]
 }
 
 @test "FA-SF-70: provider-config.sh set requires all mandatory flags" {

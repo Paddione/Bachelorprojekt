@@ -7,6 +7,9 @@ resources:
   # Security-headers middleware in this namespace (allowCrossNamespace disabled on korczewski)
   - ../website-common/domain-config.yaml
   - website-security-headers.yaml
+  # T000251: bisher untracked Cluster-Drift — dieses Ingress gewinnt das Routing
+  # gegen die IngressRoute, daher trägt es die compress/static-cache-Annotationen.
+  - website-ingress-web.yaml
 patches:
   # Fix HTTPS: add websecure entryPoint + wildcard TLS cert (T000144)
   # Also adds security-headers middleware to the route so SA-01 headers are present (T000171)
@@ -25,8 +28,19 @@ patches:
         path: /spec/tls
         value:
           secretName: korczewski-tls
-      - op: add
+      - op: replace
         path: /spec/routes/0/middlewares
         value:
+          - name: website-compress
+            namespace: website-korczewski
+          - name: website-static-cache
+            namespace: website-korczewski
+          - name: website-security-headers
+            namespace: website-korczewski
+      - op: replace
+        path: /spec/routes/1/middlewares
+        value:
+          - name: website-compress
+            namespace: website-korczewski
           - name: website-security-headers
             namespace: website-korczewski

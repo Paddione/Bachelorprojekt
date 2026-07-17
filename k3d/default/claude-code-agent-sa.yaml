@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"ServiceAccount","metadata":{"annotations":{},"name":"claude-code-agent","namespace":"default"}}
+  creationTimestamp: "2026-06-01T08:16:13Z"
+  name: claude-code-agent
+  namespace: default
+  resourceVersion: "978802"
+  uid: ea75b5bb-2b00-4276-9d54-7ee0bcb1f717

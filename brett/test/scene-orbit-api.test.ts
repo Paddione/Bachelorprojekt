@@ -86,3 +86,22 @@ test('SceneApi interface declares applyOrbitDelta(dTheta, dPhi)', () => {
     'SceneApi must have applyOrbitDelta(dTheta, dPhi)',
   );
 });
+
+// ── E3: camera-modes 2D/3D toggle (T001931) ──────────────────────────────────
+import * as THREE from 'three';
+import * as cameraModes from '../src/client/camera-modes';
+import { setScene } from '../src/client/state';
+
+test('camera-modes: getActiveCamera swaps ortho ⇄ perspective on toggle', () => {
+  const persp = new THREE.PerspectiveCamera(50, 1.5, 0.1, 200);
+  // setScene benötigt einen Renderer nicht real — Dummy reicht für den Singleton.
+  setScene({ renderer: {} as any, scene: new THREE.Scene(), camera: persp, floor: {} as any });
+  cameraModes.initCameraModes(persp, 800, 600);
+  assert.equal(cameraModes.is2D(), false, 'startet in 3D');
+  assert.ok(cameraModes.getActiveCamera() instanceof THREE.PerspectiveCamera, '3D → Perspektive');
+  cameraModes.toggleMode();
+  assert.equal(cameraModes.is2D(), true, 'nach toggle in 2D');
+  assert.ok(cameraModes.getActiveCamera() instanceof THREE.OrthographicCamera, '2D → Ortho');
+  cameraModes.toggleMode();
+  assert.ok(cameraModes.getActiveCamera() instanceof THREE.PerspectiveCamera, 'zurück in 3D → Perspektive');
+});

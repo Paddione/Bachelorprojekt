@@ -785,11 +785,11 @@
   ],
   "T001490": [
     {
-      "slug": "website-db-decouple",
-      "status": "plan_staged"
+      "slug": "2026-07-02-website-db-decouple",
+      "status": "archived"
     },
     {
-      "slug": "2026-07-02-website-db-decouple",
+      "slug": "2026-07-15-website-db-decouple",
       "status": "archived"
     }
   ],
@@ -807,8 +807,8 @@
   ],
   "T001567": [
     {
-      "slug": "brain-auto-memory",
-      "status": "plan_staged"
+      "slug": "2026-07-15-brain-auto-memory",
+      "status": "archived"
     }
   ],
   "T001568": [
@@ -857,21 +857,17 @@
   ],
   "T001586": [
     {
-      "slug": "t001586",
-      "status": "plan_staged"
+      "slug": "2026-07-15-t001586",
+      "status": "archived"
     }
   ],
   "T001588": [
     {
-      "slug": "t001588",
-      "status": "plan_staged"
+      "slug": "2026-07-15-t001588",
+      "status": "archived"
     }
   ],
   "T001590": [
-    {
-      "slug": "t001590",
-      "status": "plan_staged"
-    },
     {
       "slug": "2026-07-03-local-agent-budget-routing",
       "status": "archived"
@@ -879,8 +875,8 @@
   ],
   "T001591": [
     {
-      "slug": "t001591",
-      "status": "plan_staged"
+      "slug": "2026-07-15-t001591",
+      "status": "archived"
     }
   ],
   "T001592": [
@@ -897,14 +893,14 @@
   ],
   "T001609": [
     {
-      "slug": "hermes-agent-mcp-access",
-      "status": "plan_staged"
+      "slug": "2026-07-15-hermes-agent-mcp-access",
+      "status": "archived"
     }
   ],
   "T001610": [
     {
-      "slug": "t001610",
-      "status": "plan_staged"
+      "slug": "2026-07-15-t001610",
+      "status": "archived"
     }
   ],
   "T001611": [
@@ -915,8 +911,8 @@
   ],
   "T001612": [
     {
-      "slug": "agent-guide-harness-badge",
-      "status": "plan_staged"
+      "slug": "2026-07-15-agent-guide-harness-badge",
+      "status": "archived"
     }
   ],
   "T001638": [
@@ -959,14 +955,14 @@
   ],
   "T001677": [
     {
-      "slug": "migrations-factory-runner",
-      "status": "plan_staged"
+      "slug": "2026-07-15-migrations-factory-runner",
+      "status": "archived"
     }
   ],
   "T001733": [
     {
-      "slug": "agent-model-slots",
-      "status": "plan_staged"
+      "slug": "2026-07-15-agent-model-slots",
+      "status": "archived"
     }
   ],
   "T001738": [
@@ -977,14 +973,14 @@
   ],
   "T001739": [
     {
-      "slug": "db-quality-goals",
-      "status": "plan_staged"
+      "slug": "2026-07-15-db-quality-goals",
+      "status": "archived"
     }
   ],
   "T001748": [
     {
-      "slug": "t001748-e2e-page-load-fix",
-      "status": "plan_staged"
+      "slug": "2026-07-15-t001748-e2e-page-load-fix",
+      "status": "archived"
     }
   ],
   "T001754": [
@@ -995,18 +991,18 @@
   ],
   "T001760": [
     {
-      "slug": "t001749-admin-tickets-e2e-seed",
-      "status": "plan_staged"
+      "slug": "2026-07-10-t001749-admin-tickets-e2e-seed",
+      "status": "archived"
     },
     {
-      "slug": "2026-07-10-t001749-admin-tickets-e2e-seed",
+      "slug": "2026-07-15-t001749-admin-tickets-e2e-seed",
       "status": "archived"
     }
   ],
   "T001775": [
     {
-      "slug": "health-goal-latest-image-exclusions",
-      "status": "plan_staged"
+      "slug": "2026-07-15-health-goal-latest-image-exclusions",
+      "status": "archived"
     }
   ],
   "T001780": [
@@ -1053,8 +1049,8 @@
   ],
   "T001803": [
     {
-      "slug": "t001803-pocket-id-dns",
-      "status": "plan_staged"
+      "slug": "2026-07-15-t001803-pocket-id-dns",
+      "status": "archived"
     }
   ],
   "T001805": [
@@ -1095,8 +1091,32 @@
   ],
   "T001858": [
     {
-      "slug": "pipeline-interface-consolidation",
+      "slug": "2026-07-15-pipeline-interface-consolidation",
+      "status": "archived"
+    }
+  ],
+  "T001884": [
+    {
+      "slug": "2026-07-15-brain-ssot-consolidation",
+      "status": "archived"
+    }
+  ],
+  "T001922": [
+    {
+      "slug": "2026-07-17-lighthouse-perf-90",
+      "status": "archived"
+    }
+  ],
+  "T001927": [
+    {
+      "slug": "mishap-t001927",
       "status": "plan_staged"
+    }
+  ],
+  "T001931": [
+    {
+      "slug": "2026-07-17-brett-vollausbau",
+      "status": "archived"
     }
   ],
   "TBD": [

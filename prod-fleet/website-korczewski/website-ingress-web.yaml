@@ -1,0 +1,58 @@
+# T000251: Bringt das bisher nur manuell applizierte Ingress-Objekt unter Git-Tracking.
+# Dieses Ingress gewinnt das Traefik-Routing gegen die IngressRoute `website`
+# (längere Rule: Host && PathPrefix), daher MÜSSEN die Middlewares hier annotiert
+# sein — die middlewares-Patches in kustomization.yaml auf der IngressRoute greifen
+# für den Live-Traffic nicht.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-ingress-web
+  namespace: website-korczewski
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.middlewares: >-
+      website-korczewski-website-compress@kubernetescrd,website-korczewski-website-security-headers@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - web.${PROD_DOMAIN}
+      secretName: korczewski-tls
+  rules:
+    - host: web.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-ingress-astro
+  namespace: website-korczewski
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    traefik.ingress.kubernetes.io/router.middlewares: >-
+      website-korczewski-website-compress@kubernetescrd,website-korczewski-website-static-cache@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - web.${PROD_DOMAIN}
+      secretName: korczewski-tls
+  rules:
+    - host: web.${PROD_DOMAIN}
+      http:
+        paths:
+          - path: /_astro/
+            pathType: Prefix
+            backend:
+              service:
+                name: website
+                port:
+                  number: 80

@@ -57,6 +57,7 @@ Regeln:
 - Wikilinks: [[slug]] zu verwandten Seiten (aus Slug-Liste)
 - source:: Rückverweis: Bachelorprojekt ${SRC_PATH}
 - Max 1500 Wörter, destilliere Kernaussagen
+- \`\`\`mermaid-Codeblöcke UNVERÄNDERT (verbatim) übernehmen — nicht in Prosa auflösen
 - NUR fertiges Markdown ausgeben
 
 Tags: 2-5 Tags. Grund: ${TAG_DEFAULTS}. Füge 1-3 spezifische hinzu.

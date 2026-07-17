@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ui-ux-pro-max — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brain-ingest.html">brain-ingest — Brain-Wiki Kompilierung</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/database-specialist.html">database-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/gguf-quantization.html">gguf-quantization</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/llama-cpp.html">llama-cpp</a></li><li class="sidebar-item"><a href="../skills/llm-ops.html">llm-ops</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/haniakrim21-everything-claude-code-react-bits.html">react-bits</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/security-specialist.html">security-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/speculative-decoding.html">speculative-decoding</a></li><li class="sidebar-item"><a href="../skills/superpowers-brainstorming.html">superpowers:brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers-executing-plans.html">superpowers:executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers-writing-plans.html">superpowers:writing-plans</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/ui-ux-pro-max.html" aria-current="page">ui-ux-pro-max</a></li><li class="sidebar-item"><a href="../skills/unsloth.html">unsloth</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/website-specialist.html">website-specialist</a></li><li class="sidebar-item"><a href="../skills/whisper.html">whisper</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">ui-ux-pro-max</span></nav>
+    <h1>ui-ux-pro-max</h1>
+    <p class="page-desc">UI/UX design intelligence. 50 styles, 21 palettes, 50 font pairings, 20 charts, 8 stacks (React, Next.js, Vue, Svelte, SwiftUI, React Native, Flutter, Tailwind). Actions: plan, build, create, design, implement, review, fix, improve, optimize, enhance, refactor, check UI/UX code. Projects: website, landing page, dashboard, admin panel, e-commerce, SaaS, portfolio, blog, mobile app, .html, .tsx, .vue, .svelte. Elements: button, modal, navbar, sidebar, card, table, form, chart. Styles: glassmorphism, claymorphism, minimalism, brutalism, neumorphism, bento grid, dark mode, responsive, skeuomorphism, flat design. Topics: color palette, accessibility, animation, layout, typography, font pairing, spacing, hover, shadow, gradient.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">website</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>UI/UX Pro Max - Design Intelligence</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#prerequisites"><span class="toc-num">1.</span> Prerequisites</a></li>
+<li class="toc-item"><a href="#how-to-use-this-skill"><span class="toc-num">2.</span> How to Use This Skill</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-1-analyze-user-requirements"><span class="toc-num">–</span> Step 1: Analyze User Requirements</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-2-search-relevant-domains"><span class="toc-num">–</span> Step 2: Search Relevant Domains</a></li>
+<li class="toc-item toc-item--h3"><a href="#step-3-stack-guidelines-default-html-tailwind"><span class="toc-num">–</span> Step 3: Stack Guidelines (Default: html-tailwind)</a></li>
+<li class="toc-item"><a href="#search-reference"><span class="toc-num">3.</span> Search Reference</a></li>
+<li class="toc-item toc-item--h3"><a href="#available-domains"><span class="toc-num">–</span> Available Domains</a></li>
+<li class="toc-item toc-item--h3"><a href="#available-stacks"><span class="toc-num">–</span> Available Stacks</a></li>
+<li class="toc-item"><a href="#example-workflow"><span class="toc-num">4.</span> Example Workflow</a></li>
+<li class="toc-item"><a href="#tips-for-better-results"><span class="toc-num">5.</span> Tips for Better Results</a></li>
+<li class="toc-item"><a href="#common-rules-for-professional-ui"><span class="toc-num">6.</span> Common Rules for Professional UI</a></li>
+<li class="toc-item toc-item--h3"><a href="#icons--visual-elements"><span class="toc-num">–</span> Icons &amp; Visual Elements</a></li>
+<li class="toc-item toc-item--h3"><a href="#interaction--cursor"><span class="toc-num">–</span> Interaction &amp; Cursor</a></li>
+<li class="toc-item toc-item--h3"><a href="#lightdark-mode-contrast"><span class="toc-num">–</span> Light/Dark Mode Contrast</a></li>
+<li class="toc-item toc-item--h3"><a href="#layout--spacing"><span class="toc-num">–</span> Layout &amp; Spacing</a></li>
+<li class="toc-item"><a href="#pre-delivery-checklist"><span class="toc-num">7.</span> Pre-Delivery Checklist</a></li>
+<li class="toc-item toc-item--h3"><a href="#visual-quality"><span class="toc-num">–</span> Visual Quality</a></li>
+<li class="toc-item toc-item--h3"><a href="#interaction"><span class="toc-num">–</span> Interaction</a></li>
+<li class="toc-item toc-item--h3"><a href="#lightdark-mode"><span class="toc-num">–</span> Light/Dark Mode</a></li>
+<li class="toc-item toc-item--h3"><a href="#layout"><span class="toc-num">–</span> Layout</a></li>
+<li class="toc-item toc-item--h3"><a href="#accessibility"><span class="toc-num">–</span> Accessibility</a></li></ul>
+</div>
+<p>Searchable database of UI styles, color palettes, font pairings, chart types, product recommendations, UX guidelines, and stack-specific best practices.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Check if Python is installed:</p>
+<div class="code-wrapper"><pre><code class="language-bash">python3 --version || python --version
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>If Python is not installed, install it based on user's OS:</p>
+<p><strong>macOS:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">brew install python3
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Ubuntu/Debian:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash">sudo apt update &amp;&amp; sudo apt install python3
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Windows:</strong></p>
+<div class="code-wrapper"><pre><code class="language-powershell">winget install Python.Python.3.12
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<hr>
+<h2 id="how-to-use-this-skill">How to Use This Skill</h2>
+<p>When user requests UI/UX work (design, build, create, implement, review, fix, improve), follow this workflow:</p>
+<h3 id="step-1-analyze-user-requirements">Step 1: Analyze User Requirements</h3>
+<p>Extract key information from user request:</p>
+<ul>
+<li><strong>Product type</strong>: SaaS, e-commerce, portfolio, dashboard, landing page, etc.</li>
+<li><strong>Style keywords</strong>: minimal, playful, professional, elegant, dark mode, etc.</li>
+<li><strong>Industry</strong>: healthcare, fintech, gaming, education, etc.</li>
+<li><strong>Stack</strong>: React, Vue, Next.js, or default to <code>html-tailwind</code></li>
+</ul>
+<h3 id="step-2-search-relevant-domains">Step 2: Search Relevant Domains</h3>
+<p>Use <code>search.py</code> multiple times to gather comprehensive information. Search until you have enough context.</p>
+<div class="code-wrapper"><pre><code class="language-bash">python3 .claude/skills/ui-ux-pro-max/scripts/search.py "&lt;keyword&gt;" --domain &lt;domain&gt; [-n &lt;max_results&gt;]
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Recommended search order:</strong></p>
+<ol>
+<li><strong>Product</strong> - Get style recommendations for product type</li>
+<li><strong>Style</strong> - Get detailed style guide (colors, effects, frameworks)</li>
+<li><strong>Typography</strong> - Get font pairings with Google Fonts imports</li>
+<li><strong>Color</strong> - Get color palette (Primary, Secondary, CTA, Background, Text, Border)</li>
+<li><strong>Landing</strong> - Get page structure (if landing page)</li>
+<li><strong>Chart</strong> - Get chart recommendations (if dashboard/analytics)</li>
+<li><strong>UX</strong> - Get best practices and anti-patterns</li>
+<li><strong>Stack</strong> - Get stack-specific guidelines (default: html-tailwind)</li>
+</ol>
+<h3 id="step-3-stack-guidelines-default-html-tailwind">Step 3: Stack Guidelines (Default: html-tailwind)</h3>
+<p>If user doesn't specify a stack, <strong>default to <code>html-tailwind</code></strong>.</p>
+<div class="code-wrapper"><pre><code class="language-bash">python3 .claude/skills/ui-ux-pro-max/scripts/search.py "&lt;keyword&gt;" --stack html-tailwind
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Available stacks: <code>html-tailwind</code>, <code>react</code>, <code>nextjs</code>, <code>vue</code>, <code>svelte</code>, <code>swiftui</code>, <code>react-native</code>, <code>flutter</code></p>
+<hr>
+<h2 id="search-reference">Search Reference</h2>
+<h3 id="available-domains">Available Domains</h3>
+<table>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Use For</th>
+<th>Example Keywords</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>product</code></td>
+<td>Product type recommendations</td>
+<td>SaaS, e-commerce, portfolio, healthcare, beauty, service</td>
+</tr>
+<tr>
+<td><code>style</code></td>
+<td>UI styles, colors, effects</td>
+<td>glassmorphism, minimalism, dark mode, brutalism</td>
+</tr>
+<tr>
+<td><code>typography</code></td>
+<td>Font pairings, Google Fonts</td>
+<td>elegant, playful, professional, modern</td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>Color palettes by product type</td>
+<td>saas, ecommerce, healthcare, beauty, fintech, service</td>
+</tr>
+<tr>
+<td><code>landing</code></td>
+<td>Page structure, CTA strategies</td>
+<td>hero, hero-centric, testimonial, pricing, social-proof</td>
+</tr>
+<tr>
+<td><code>chart</code></td>
+<td>Chart types, library recommendations</td>
+<td>trend, comparison, timeline, funnel, pie</td>
+</tr>
+<tr>
+<td><code>ux</code></td>
+<td>Best practices, anti-patterns</td>
+<td>animation, accessibility, z-index, loading</td>
+</tr>
+<tr>
+<td><code>prompt</code></td>
+<td>AI prompts, CSS keywords</td>
+<td>(style name)</td>
+</tr>
+</tbody></table>
+<h3 id="available-stacks">Available Stacks</h3>
+<table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>html-tailwind</code></td>
+<td>Tailwind utilities, responsive, a11y (DEFAULT)</td>
+</tr>
+<tr>
+<td><code>react</code></td>
+<td>State, hooks, performance, patterns</td>
+</tr>
+<tr>
+<td><code>nextjs</code></td>
+<td>SSR, routing, images, API routes</td>
+</tr>
+<tr>
+<td><code>vue</code></td>
+<td>Composition API, Pinia, Vue Router</td>
+</tr>
+<tr>
+<td><code>svelte</code></td>
+<td>Runes, stores, SvelteKit</td>
+</tr>
+<tr>
+<td><code>swiftui</code></td>
+<td>Views, State, Navigation, Animation</td>
+</tr>
+<tr>
+<td><code>react-native</code></td>
+<td>Components, Navigation, Lists</td>
+</tr>
+<tr>
+<td><code>flutter</code></td>
+<td>Widgets, State, Layout, Theming</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="example-workflow">Example Workflow</h2>
+<p><strong>User request:</strong> "Làm landing page cho dịch vụ chăm sóc da chuyên nghiệp"</p>
+<p><strong>AI should:</strong></p>
+<div class="code-wrapper"><pre><code class="language-bash"># 1. Search product type
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness service" --domain product
+
+# 2. Search style (based on industry: beauty, elegant)
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "elegant minimal soft" --domain style
+
+# 3. Search typography
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "elegant luxury" --domain typography
+
+# 4. Search color palette
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness" --domain color
+
+# 5. Search landing page structure
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "hero-centric social-proof" --domain landing
+
+# 6. Search UX guidelines
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "animation" --domain ux
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "accessibility" --domain ux
+
+# 7. Search stack guidelines (default: html-tailwind)
+python3 .claude/skills/ui-ux-pro-max/scripts/search.py "layout responsive" --stack html-tailwind
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Then:</strong> Synthesize all search results and implement the design.</p>
+<hr>
+<h2 id="tips-for-better-results">Tips for Better Results</h2>
+<ol>
+<li><strong>Be specific with keywords</strong> - "healthcare SaaS dashboard" &gt; "app"</li>
+<li><strong>Search multiple times</strong> - Different keywords reveal different insights</li>
+<li><strong>Combine domains</strong> - Style + Typography + Color = Complete design system</li>
+<li><strong>Always check UX</strong> - Search "animation", "z-index", "accessibility" for common issues</li>
+<li><strong>Use stack flag</strong> - Get implementation-specific best practices</li>
+<li><strong>Iterate</strong> - If first search doesn't match, try different keywords</li>
+</ol>
+<hr>
+<h2 id="common-rules-for-professional-ui">Common Rules for Professional UI</h2>
+<p>These are frequently overlooked issues that make UI look unprofessional:</p>
+<h3 id="icons--visual-elements">Icons &amp; Visual Elements</h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Do</th>
+<th>Don't</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>No emoji icons</strong></td>
+<td>Use SVG icons (Heroicons, Lucide, Simple Icons)</td>
+<td>Use emojis like 🎨 🚀 ⚙️ as UI icons</td>
+</tr>
+<tr>
+<td><strong>Stable hover states</strong></td>
+<td>Use color/opacity transitions on hover</td>
+<td>Use scale transforms that shift layout</td>
+</tr>
+<tr>
+<td><strong>Correct brand logos</strong></td>
+<td>Research official SVG from Simple Icons</td>
+<td>Guess or use incorrect logo paths</td>
+</tr>
+<tr>
+<td><strong>Consistent icon sizing</strong></td>
+<td>Use fixed viewBox (24x24) with w-6 h-6</td>
+<td>Mix different icon sizes randomly</td>
+</tr>
+</tbody></table>
+<h3 id="interaction--cursor">Interaction &amp; Cursor</h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Do</th>
+<th>Don't</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Cursor pointer</strong></td>
+<td>Add <code>cursor-pointer</code> to all clickable/hoverable cards</td>
+<td>Leave default cursor on interactive elements</td>
+</tr>
+<tr>
+<td><strong>Hover feedback</strong></td>
+<td>Provide visual feedback (color, shadow, border)</td>
+<td>No indication element is interactive</td>
+</tr>
+<tr>
+<td><strong>Smooth transitions</strong></td>
+<td>Use <code>transition-colors duration-200</code></td>
+<td>Instant state changes or too slow (&gt;500ms)</td>
+</tr>
+</tbody></table>
+<h3 id="lightdark-mode-contrast">Light/Dark Mode Contrast</h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Do</th>
+<th>Don't</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Glass card light mode</strong></td>
+<td>Use <code>bg-white/80</code> or higher opacity</td>
+<td>Use <code>bg-white/10</code> (too transparent)</td>
+</tr>
+<tr>
+<td><strong>Text contrast light</strong></td>
+<td>Use <code>#0F172A</code> (slate-900) for text</td>
+<td>Use <code>#94A3B8</code> (slate-400) for body text</td>
+</tr>
+<tr>
+<td><strong>Muted text light</strong></td>
+<td>Use <code>#475569</code> (slate-600) minimum</td>
+<td>Use gray-400 or lighter</td>
+</tr>
+<tr>
+<td><strong>Border visibility</strong></td>
+<td>Use <code>border-gray-200</code> in light mode</td>
+<td>Use <code>border-white/10</code> (invisible)</td>
+</tr>
+</tbody></table>
+<h3 id="layout--spacing">Layout &amp; Spacing</h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Do</th>
+<th>Don't</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Floating navbar</strong></td>
+<td>Add <code>top-4 left-4 right-4</code> spacing</td>
+<td>Stick navbar to <code>top-0 left-0 right-0</code></td>
+</tr>
+<tr>
+<td><strong>Content padding</strong></td>
+<td>Account for fixed navbar height</td>
+<td>Let content hide behind fixed elements</td>
+</tr>
+<tr>
+<td><strong>Consistent max-width</strong></td>
+<td>Use same <code>max-w-6xl</code> or <code>max-w-7xl</code></td>
+<td>Mix different container widths</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="pre-delivery-checklist">Pre-Delivery Checklist</h2>
+<p>Before delivering UI code, verify these items:</p>
+<h3 id="visual-quality">Visual Quality</h3>
+<ul>
+<li><input disabled="" type="checkbox"> No emojis used as icons (use SVG instead)</li>
+<li><input disabled="" type="checkbox"> All icons from consistent icon set (Heroicons/Lucide)</li>
+<li><input disabled="" type="checkbox"> Brand logos are correct (verified from Simple Icons)</li>
+<li><input disabled="" type="checkbox"> Hover states don't cause layout shift</li>
+<li><input disabled="" type="checkbox"> Use theme colors directly (bg-primary) not var() wrapper</li>
+</ul>
+<h3 id="interaction">Interaction</h3>
+<ul>
+<li><input disabled="" type="checkbox"> All clickable elements have <code>cursor-pointer</code></li>
+<li><input disabled="" type="checkbox"> Hover states provide clear visual feedback</li>
+<li><input disabled="" type="checkbox"> Transitions are smooth (150-300ms)</li>
+<li><input disabled="" type="checkbox"> Focus states visible for keyboard navigation</li>
+</ul>
+<h3 id="lightdark-mode">Light/Dark Mode</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Light mode text has sufficient contrast (4.5:1 minimum)</li>
+<li><input disabled="" type="checkbox"> Glass/transparent elements visible in light mode</li>
+<li><input disabled="" type="checkbox"> Borders visible in both modes</li>
+<li><input disabled="" type="checkbox"> Test both modes before delivery</li>
+</ul>
+<h3 id="layout">Layout</h3>
+<ul>
+<li><input disabled="" type="checkbox"> Floating elements have proper spacing from edges</li>
+<li><input disabled="" type="checkbox"> No content hidden behind fixed navbars</li>
+<li><input disabled="" type="checkbox"> Responsive at 320px, 768px, 1024px, 1440px</li>
+<li><input disabled="" type="checkbox"> No horizontal scroll on mobile</li>
+</ul>
+<h3 id="accessibility">Accessibility</h3>
+<ul>
+<li><input disabled="" type="checkbox"> All images have alt text</li>
+<li><input disabled="" type="checkbox"> Form inputs have labels</li>
+<li><input disabled="" type="checkbox"> Color is not the only indicator</li>
+<li><input disabled="" type="checkbox"> <code>prefers-reduced-motion</code> respected</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/braintrust--troubleshoot-braintrust-mcp.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">troubleshoot-braintrust-mcp</span></a><a class="prevnext-link prevnext-next" href="../skills/unsloth.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">unsloth</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

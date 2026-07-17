@@ -121,6 +121,7 @@
       bind:value={q}
       oninput={onSearch}
     />
+    <a href="/admin/coaching/sessions/new" class="btn-primary">+ Neue Session</a>
     <a href="/admin/coaching/settings" class="btn-sm">⚙ Einstellungen</a>
   </div>
 

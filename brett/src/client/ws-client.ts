@@ -1,4 +1,4 @@
-import { STATE, activeLocks, getScene, currentUser } from './state';
+import { STATE, activeLocks, getScene, currentUser, getWs, isWsReady } from './state';
 import { initLinesFromSnapshot, applyLineMessage } from './scene-lines';
 import type { ServerMessage } from '../types/messages';
 import type { Phase, Participant } from '../types/state';
@@ -126,10 +126,15 @@ export function onWsMessage(evt: MessageEvent): void {
         if ((f as any).note !== undefined) {
           (fig as any).note = (f as any).note;
         }
+        // E9: hidden/opacity aus Snapshot übernehmen (nur der Leiter erhält
+        // hidden-Figuren überhaupt — der Server filtert sie sonst weg).
+        if ((f as any).hidden) (fig as any).hidden = true;
+        if (typeof (f as any).opacity === 'number') (fig as any).opacity = (f as any).opacity;
         STATE.figures.push(fig);
         if (f.appearance) {
           applyAppearanceToFig(fig, f.appearance);
         }
+        mannequin.updateHiddenBadge(fig);
       }
       if (typeof msg.stiffness === 'number') {
         STATE.stiffness = msg.stiffness;
@@ -248,6 +253,11 @@ export function onWsMessage(evt: MessageEvent): void {
       if (c.appearance !== undefined) {
         applyAppearanceToFig(fig, c.appearance);
       }
+      // E2: Figuren-Opacity live übernehmen (Selektions-Dim berücksichtigen).
+      if ((c as any).opacity !== undefined) {
+        (fig as any).opacity = (c as any).opacity;
+        mannequin.applyFigureOpacity(fig, STATE.selectedId === fig.id ? 1.0 : 0.55);
+      }
       // Export-Cache mit aktuellen STATE.figures synchronisieren:
       updateExportCache({ figures: STATE.figures.map(toExportFig) });
       break;
@@ -355,16 +365,48 @@ export function onWsMessage(evt: MessageEvent): void {
       if (fig) (fig as any)._serverPossessor = msg.playerId;
       // Start POV if it's our own possession
       if (msg.playerId === currentUser.userId) {
-        import('./pov-camera').then(m => m.startPov(msg.figureId));
+        // E5: POV starten und Panel mit unserer Instanzwelt versorgen — das
+        // Panel darf state/pov-camera nicht selbst importieren (der Build
+        // dupliziert diese Module über die Multi-Entry-Chunks; eine
+        // Zweitinstanz sähe currentUser='anon' und leere Figuren).
+        Promise.all([import('./pov-camera'), import('./ui/pov-panel')]).then(([pov, panel]) => {
+          pov.startPov(msg.figureId);
+          panel.refreshPovPanelForOwnPossession(msg.figureId, msg.playerId, {
+            figures: () => STATE.figures.map(f => ({ id: f.id, label: (f as any).label, color: (f as any).color })),
+            sendRelease: (figureId: string) => {
+              const ws = getWs();
+              if (isWsReady() && ws) ws.send(JSON.stringify({ type: 'figure_release', figureId }));
+            },
+            switchPov: (figureId: string) => {
+              const prev = pov.getPovFigureId();
+              pov.switchPov(figureId);
+              const ws = getWs();
+              if (isWsReady() && ws && prev !== figureId) {
+                if (prev) ws.send(JSON.stringify({ type: 'figure_release', figureId: prev }));
+                ws.send(JSON.stringify({ type: 'figure_possess', figureId }));
+              }
+            },
+            setPovMode: pov.setPovMode,
+            isMeta: pov.isMeta,
+            getPovFigureId: pov.getPovFigureId,
+          });
+        });
       }
       break;
     }
     case 'figure_released': {
       const fig = STATE.figures.find(f => f.id === msg.figureId);
       if (fig) (fig as any)._serverPossessor = null;
-      // Stop POV if it was our possession
+      // Stop POV if it was our possession — but only if the released figure
+      // is still the active POV figure (a switchPov releases the OLD figure
+      // after the new POV already started; that echo must not kill it).
       if (msg.playerId === currentUser.userId) {
-        import('./pov-camera').then(m => m.stopPov());
+        Promise.all([import('./pov-camera'), import('./ui/pov-panel')]).then(([pov, panel]) => {
+          if (pov.getPovFigureId() === msg.figureId || pov.getPovFigureId() === null) {
+            pov.stopPov();
+            panel.unmountPovPanel();
+          }
+        });
       }
       break;
     }
@@ -401,6 +443,18 @@ export function onWsMessage(evt: MessageEvent): void {
       break;
     }
 
+    case 'figure_hidden_changed': {
+      // E9: NUR der Leiter erhält diese Message (Server übersetzt sie für
+      // Nicht-Leiter in add/delete). Lokalen hidden-State + Visuals aktualisieren.
+      const fig = STATE.figures.find(f => f.id === msg.figureId);
+      if (fig) {
+        (fig as any).hidden = msg.hidden;
+        mannequin.applyFigureOpacity(fig, STATE.selectedId === fig.id ? 1.0 : 0.55);
+        mannequin.updateHiddenBadge(fig);
+      }
+      break;
+    }
+
     case 'undo_stack_changed':
       applyUndoStateChange(msg.canUndo, msg.canRedo, msg.undoCount, msg.redoCount);
       break;
@@ -414,6 +468,7 @@ export function onWsMessage(evt: MessageEvent): void {
     case 'anchor_added':
     case 'anchor_removed':
     case 'zone_added':
+    case 'zone_updated':
     case 'zone_removed':
       handleGroundMessage(msg);
       break;

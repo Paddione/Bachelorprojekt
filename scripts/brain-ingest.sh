@@ -237,7 +237,7 @@ echo ""
 echo "=== Phase 2b: MOC Generation ==="
 
 # Generate sub-MOCs per group
-for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs; do
+for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams; do
   # Collect all pages in this group from state file
   pages="$(jq -r --arg g "$group" '
     to_entries[] |
@@ -452,7 +452,7 @@ if git remote get-url origin &>/dev/null; then
       --title "chore(ingest): Initial ingest from Bachelorprojekt" \
       --body "Automated initial ingest of $PROCESSED wiki pages from Bachelorprojekt.
 
-**Source groups:** ssot-specs, runbooks, adr, gotchas-footguns, agent-guide-maps, core-docs
+**Source groups:** ssot-specs, runbooks, adr, gotchas-footguns, agent-guide-maps, core-docs, health-goals, diagrams
 **LLM model:** $LM_MODEL
 **Transformation:** Heavy (LLM-assisted summarization + frontmatter + wikilinks)
 **Pilot:** $(if [ "$PILOT" -gt 0 ]; then echo "$PILOT pages"; else echo "full run"; fi)

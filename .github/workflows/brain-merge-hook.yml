@@ -6,6 +6,9 @@ on:
       - openspec/specs/**
       - docs/runbooks/**
       - docs/adr/**
+      - .claude/lib/goals.md
+      - docs/diagrams/**
+      - docs/db-schema-diagram.md
 
 env:
   OPENSPEC_TELEMETRY: '0'
@@ -32,6 +35,14 @@ jobs:
             bachelorprojekt/openspec/specs brain/raw/openspec-specs
           bash bachelorprojekt/scripts/brain-merge-hook.sh \
             bachelorprojekt/docs/runbooks brain/raw/runbooks
+          bash bachelorprojekt/scripts/brain-merge-hook.sh \
+            bachelorprojekt/docs/adr brain/raw/adr
+          bash bachelorprojekt/scripts/brain-merge-hook.sh \
+            bachelorprojekt/.claude/lib/goals.md brain/raw/goals
+          bash bachelorprojekt/scripts/brain-merge-hook.sh \
+            bachelorprojekt/docs/diagrams brain/raw/diagrams
+          bash bachelorprojekt/scripts/brain-merge-hook.sh \
+            bachelorprojekt/docs/db-schema-diagram.md brain/raw/diagrams
 
       - name: Commit and push to brain
         run: |

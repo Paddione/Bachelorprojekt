@@ -2,16 +2,11 @@
 name: dev-flow-plan
 description: Use to choose the development path (feature/fix/chore), run brainstorming, and generate a design spec and implementation plan.
 ---
-
 # dev-flow-plan — Pfad-Wahl, Brainstorming & Plan
-
 ## Wann diese Skill greift
-
 Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 **Sage zu Beginn:** "Ich nutze dev-flow-plan für Pfad-Wahl und Planung."
-
 ## Position im Git-Kreislauf
-
 ```
     ┌──────────────────────────────────────────────────────────┐
     ▼                                                          │
@@ -25,9 +20,7 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will.
 **EINSTIEG:** `main` — synchronisiert, sauberer Stand  
 **AUSSTIEG:** Feature/Fix-Branch mit committiertem Plan auf Remote gepusht, Ticket `plan_staged`  
 **Nächster Schritt:** `dev-flow-execute` — liest Plan aus DB und implementiert
-
 ## Schritt −3: Deep Grilling (optional)
-
 Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für den Fragenkatalog).
 **Nutze `lavish` für die Q/A-Session:** Erstelle `.lavish/<slug>-grilling.html` mit den Fragen als interaktivem Formular (Input-Playbook), öffne es mit `npx -y lavish-axi .lavish/<slug>-grilling.html` und poll auf Antworten. So kann der User strukturiert antworten, annotieren und Feedback geben.
 Falls durchgeführt, erstelle das Grilling-Ticket — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing `external_id|uuid`: siehe [MCP-Tool-Guide](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §ticket-mcp).
@@ -41,15 +34,12 @@ TICKET_RESULT=$(./scripts/ticket.sh create \
   --title "Grilling: <kurzer-titel>" \
   --priority mittel \
   --description "FUNKTIONALE ANFORDERUNGEN:"$'\n'"$GRILLING_REQUIREMENTS"$'\n\n'"ASSETS ZU BESCHAFFEN:"$'\n'"$GRILLING_ASSETS_TODO")
-
 export GRILLING_TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
 export GRILLING_TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 ```
 Hänge Dateien mit `bash scripts/ticket-attach.sh "$GRILLING_TICKET_UUID" <pfade>` an.
 > **Strukturierte Q/A persistieren:** Nach dem Deep-Grilling die Antworten zusätzlich ans Ticket senden — `scripts/ticket.sh grill --id <ext-id> --answer <qid>=<text> …` (akkumulierend, erscheint später im T000737-Panel). Siehe `.claude/skills/references/grilling-to-ticket.md`.
-
 ## Schritt −2: Main-Branch sync (Pull-First)
-
 Führe immer als erstes aus:
 ```bash
 git fetch origin main
@@ -59,9 +49,7 @@ else
   git stash && git pull --rebase origin main && git stash pop
 fi
 ```
-
 ## Schritt −1: Reaper & Stale-Worktree-Audit
-
 Räume tote Sessions/Zombies/stale Worktrees auf und sieh, wer gerade was bearbeitet —
 Lock-Lebenszyklus-SSOT: [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md) [T000510]:
 ```bash
@@ -71,9 +59,7 @@ bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessio
 git worktree list
 # Stale Worktrees ggf. löschen: git worktree remove <path> --force && git branch -D <branch>
 ```
-
 ## Schritt 0: Pfad bestimmen
-
 Wähle einen der Pfade (Feature/Fix/Chore) basierend auf der Anfrage und kläre dies mit dem User ab.
 - **feature**: Neue Funktionen oder UI-Elemente. → diese Skill (Feature-Pfad unten).
 - **fix**: Fehlerbehebung (erfordert Ticket-ID). → diese Skill (Fix-Pfad unten).
@@ -107,9 +93,7 @@ Direkt `openspec:propose` (kein PRD), wenn ALLE zutreffen:
 > **Faustregel:** PRD nur, wenn die Arbeit größer ist als ein einzelner Change — sonst Overhead.
 > Im PRD-Fall: `parse_prd` → N Tickets/Changes → für *jeden* Change wieder dieser normale Pfad.
 > Das PRD bleibt **Upstream-Kontext, wird nie SSOT** (die konsolidierte `openspec/specs/`-Spec ist SSOT).
-
 ## Feature-Pfad
-
 > **Proposal-Konvention:** Die gesamte Proposal-Phase (Brainstorming + `openspec:propose`) läuft
 > auf dem `main`-Branch — erst danach wird der Worktree angelegt. So sieht OpenSpec beim
 > Propose alle SSOT-Specs und committed Proposals auf main, nicht nur das eigene Branch-Delta.
@@ -395,9 +379,7 @@ bash scripts/plan-review/plan-review.sh result
   1 Revisions-Runde, dann erneut rendern und reviewen. Wiederhole bis approve.
 Details siehe [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).
 **STOPP.** Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
-
 ## Fix-Pfad
-
 ### Schritt 1: T-###### Ticket
 Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp):
 > `mcp__ticket-mcp__create_ticket({ type: "bug", brand: "mentolder", title: "<titel>", description: "<beschreibung>", status: "triage", severity: "<critical|major|minor|trivial>", priority: "hoch" })`
@@ -467,14 +449,10 @@ git push -u origin $(git branch --show-current)
 >
 > Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` (siehe `openspec/specs/ci-cd.md`) blockiert jeden Commit mit Implementation-Type, dessen Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen Präfixe. Bypass: `SKIP_COMMIT_VS_DIFF=1 git commit ...` (Notfall).
 **STOPP.** Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
-
 ## Chore-Pfad
-
 Ausgelagert nach `dev-flow-chore` — Chores brauchen keinen Plan und werden dort direkt ausgeführt
 und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier stoppen.
-
 ## Übergabe an dev-flow-execute
-
 **Zustand bei STOPP:**
 - Branch `feature/<slug>` oder `fix/<slug>` auf Remote gepusht
 - Plan `openspec/changes/<slug>/tasks.md` committed
@@ -482,9 +460,7 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 - Branch-Lock aktiv (andere Sessions sehen diesen Branch als belegt)
 **Nächster Schritt im Kreislauf:** `dev-flow-execute` aufrufen.  
 Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) — kein manuelle Pfad-Übergabe nötig.
-
 ## Verwandte Skills
-
 | Skill | Beziehung |
 |-------|-----------|
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
@@ -493,16 +469,11 @@ Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) �
 | `dev-flow-execute` | **Nachfolger im Kreislauf** — implementiert den erstellten Plan |
 | `dev-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
-
 ## Nachbereitung & Mishap Report
-
 Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über `mishap-tracker` (aufrufbar via `bash scripts/hooks/mishap-tracker.sh`).
-
 ## Framework mapping
-
 | Framework | Availability |
 |-----------|-------------|
 | **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
 | **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
-

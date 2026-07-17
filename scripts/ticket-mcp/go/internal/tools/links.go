@@ -37,7 +37,8 @@ func RegisterLinkTools(s *server.MCPServer) {
 				mcp.Enum("pr", "relates_to", "blocks", "blocked_by", "duplicate_of", "fixes", "fixed_by", "child_of"),
 				mcp.Required(),
 			),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -64,7 +65,8 @@ func RegisterLinkTools(s *server.MCPServer) {
 		mcp.NewTool("get_ticket_links",
 			mcp.WithDescription("Gibt alle Dependency-Links eines Tickets zurück: blocks (von diesem Ticket ausgehend), blocked_by (auf dieses Ticket zeigend), relates (symmetrisch), child_of (Elternticket)."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)

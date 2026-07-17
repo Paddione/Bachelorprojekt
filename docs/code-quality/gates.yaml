@@ -121,6 +121,10 @@ s3:
   # are special-purpose configs (CoreDNS rewrite / Proxmox cloud-init) where the host is
   # the resource's own identity. website/src/lib/*.generated.json are emitted from the
   # agent-guide/components registry — the host strings live in doc text, not config.
+  # goals-data.generated.json (T001884) is generated from .claude/lib/goals.md — some
+  # goal `measurement` fields are literal reproduction commands (e.g. G-FE05's Lighthouse
+  # check against https://web.mentolder.de) copied verbatim from the SSOT doc, not a
+  # hardcoded app config value.
   allowlist_files:
     - k3d/configmap-domains.yaml
     - website/src/pages/sitemap.xml.ts
@@ -132,6 +136,7 @@ s3:
     - prod/cloud-init-dev-vm.yaml
     - website/src/lib/agent-guide.generated.json
     - website/src/lib/platform-descriptions.generated.json
+    - website/src/lib/goals-data.generated.json
 
 s4:
   manifest_globs:
@@ -174,7 +179,6 @@ s4:
     - "scripts/weekly-dep-schema-audit.sh"
     # Standalone cron script — registered via crontab, not referenced by project files.
     # One-shot / manual scripts — used ad-hoc, not referenced by Taskfile or docs (T001874).
-    - "scripts/migrate-docs-style.mjs"
     - "scripts/provision-dev-vm.sh"
     - "scripts/seed-lmstudio-ki-config.mjs"
     - "scripts/setup-comfyui.sh"

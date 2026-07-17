@@ -501,6 +501,28 @@ spec:
       targetPort: 4321
 ---
 
+# ── Middlewares: edge compression + immutable static-asset caching (T001922) ──
+# E1: Traefik's default compress excludedContentTypes excludes text/event-stream,
+# so the admin SSE endpoints stay unbuffered.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: website-compress
+  namespace: ${WEBSITE_NAMESPACE}
+spec:
+  compress: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: website-static-cache
+  namespace: ${WEBSITE_NAMESPACE}
+spec:
+  headers:
+    customResponseHeaders:
+      Cache-Control: "public, max-age=31536000, immutable"
+---
+
 # ── IngressRoute ─────────────────────────────────────────────────────────────
 # T001490 Task 9: apex Host(`${WEBSITE_HOST}`) backend is selected by
 # `WEBSITE_PRIMARY_SERVICE`, derived from `PRIMARY_FRONTEND` (astro|react) in
@@ -518,8 +540,20 @@ spec:
   entryPoints:
     - web
   routes:
+    # Content-hashed assets: compress + one-year immutable cache (T001922 E1)
+    - kind: Rule
+      match: Host(`${WEBSITE_HOST}`) && PathPrefix(`/_astro/`)
+      middlewares:
+        - name: website-compress
+        - name: website-static-cache
+      services:
+        - name: ${WEBSITE_PRIMARY_SERVICE}
+          port: 80
+    # Everything else: compress only
     - kind: Rule
       match: Host(`${WEBSITE_HOST}`)
+      middlewares:
+        - name: website-compress
       services:
         - name: ${WEBSITE_PRIMARY_SERVICE}
           port: 80

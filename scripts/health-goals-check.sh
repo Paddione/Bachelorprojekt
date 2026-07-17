@@ -253,6 +253,29 @@ row gate G-AGENTIC17 "$(
   if [ "$cfg" -ge 2 ]; then echo "$orph"; else echo 99; fi
 )" le 0 "Command-Orphans via S4 (Config-Guard)"
 
+# ── Brain-Dokumentation — GATES (G-BRAIN12/13/15; 01–11 leben im brain-Repo) ──
+row gate G-BRAIN12 "$(
+  _wl_err=$(mktemp)
+  if bash scripts/brain-ingest-worklist.sh >/dev/null 2>"$_wl_err"; then
+    grep -c 'hat 0 Treffer' "$_wl_err" || true
+  else echo "-"; fi
+  rm -f "$_wl_err"
+)" eq 0 "Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift)"
+row gate G-BRAIN13 "$(python3 - <<'PY' 2>/dev/null || echo "-"
+import re
+wf=open('.github/workflows/brain-merge-hook.yml').read()
+head=wf.split('jobs:')[0]
+paths=[p.strip() for p in re.findall(r'^\s+- ([^\s].*)$', head, re.M) if '/' in p or p.startswith('.claude')]
+srcs=re.findall(r'brain-merge-hook\.sh \\\n\s+bachelorprojekt/(\S+)', wf)
+norm=lambda p: p.replace('/**','').rstrip('/')
+print(len(set(map(norm,paths)) ^ set(map(norm,srcs))))
+PY
+)" eq 0 "Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler)"
+row gate G-BRAIN15 "$(
+  bash templates/brain/scripts/lint-frontmatter.sh templates/brain >/dev/null 2>&1 \
+    && bash templates/brain/scripts/lint-wikilinks.sh templates/brain >/dev/null 2>&1; echo $?
+)" eq 0 "Brain-Seed-Template-Lint (frontmatter + wikilinks) grün"
+
 # ── DB-Gesundheit — GATES ──
 row gate G-DB06 "$(db_scalar "SELECT
   (SELECT count(*) FROM tickets.ticket_plans p    WHERE p.ticket_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=p.ticket_id))
@@ -275,7 +298,7 @@ row target G-SIZE03 "$( [ -f website/src/lib/website-db.ts ] && wc -l < website/
 # .codebase-memory/graph.db.zst (16.7MB, ehem. PR #2281) ist seit T001717 nicht mehr getrackt
 # (lokal via `task codebase:index` regeneriert, .gitignore) — die frühere Scope-Ausschluss-Policy
 # T001348 ist damit gegenstandslos, da kein >1MB-Binärartefakt mehr im Tree liegt.
-row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null | awk '$1>1048576{c++} END{print c+0}')" le 6 "Dateien >1MB (kein LFS)"
+row target G-GIT03 "$(git ls-files -z 2>/dev/null | xargs -0 wc -c 2>/dev/null | grep -v ' total$' | awk '$1>1048576{c++} END{print c+0}')" le 6 "Dateien >1MB (kein LFS)"
 row target G-IMG01 "$(grep -rhE '^[[:space:]]*-?[[:space:]]*image:[[:space:]]+["'"'"']?[A-Za-z0-9$]' --include='*.yaml' --include='*.yml' k3d/ prod*/ 2>/dev/null | grep -v '@sha256' | grep -vE '^[[:space:]]*#' | grep -vE 'website|brett|videovault|mediaviewer-widget|mentolder-web|WEBSITE_IMAGE|STUDIO_IMAGE|STAGING_IMAGE|paddione' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g; s/[[:space:]]*#.*//' | sort -u | wc -l | tr -d ' ')" le 0 "ungepinnte Fremd-Images"
 row target G-DOC02 "$(wc -l < CLAUDE.md | tr -d ' ')" le 200 "CLAUDE.md Zeilen"
 row target G-AGENTIC01 "$(
@@ -310,44 +333,52 @@ row target G-DB01 "$(db_scalar "WITH fk AS (
   idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
   SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;")" le 0 "FK-Spalten ohne Index"
 row target G-DB03 "$(db_scalar "SELECT
-    (SELECT count(DISTINCT table_schema||'.'||table_name) FROM information_schema.columns
-       WHERE column_name='brand' AND table_schema NOT IN ('pg_catalog','information_schema'))
+    (SELECT count(DISTINCT c.table_schema||'.'||c.table_name) FROM information_schema.columns c
+       JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name
+       WHERE c.column_name='brand' AND c.table_schema NOT IN ('pg_catalog','information_schema') AND t.table_type='BASE TABLE')
   - (SELECT count(DISTINCT conrelid) FROM pg_constraint
-       WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');")" le 0 "brand-Spalten ohne CHECK-Constraint (messen)"
+       WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');")" le 0 "brand-Spalten ohne CHECK-Constraint (messen; VIEWs ausgeschlossen T001906)"
 row target G-DB08 "$(db_scalar "SELECT count(*) FROM pg_stat_user_tables
     WHERE n_live_tup>10000 AND seq_scan>0
       AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;")" le 3 "Tabellen >10k Rows mit Seq-Scan-Anteil >5% (messen)"
-row target G-DB09 "$(db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000")" le 0 "Slow Queries in pg_stat_statements (mean_exec_time > 1s)"
+row target G-DB09 "$(db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %'")" le 0 "Slow Queries in pg_stat_statements (mean_exec_time > 1s, exkl. Backup-COPY T001926)"
 row target G-DB10 "$(db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')")" le 0 "Unused Indexes (idx_scan=0, exkl. PK/Unique)"
 
 # ── CI-TARGETS ──
 row target G-CI03 "$(
-  gh_ok=0; out=$(gh-axi run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt 2>/dev/null) || gh_ok=1
-  if [ "$gh_ok" = 1 ] || [ -z "$out" ]; then echo "-"; else
-    echo "$out" | python3 -c "
+  if [ "$FAST" = 1 ]; then echo "-"; else
+    # gh-axi hat kein --json-Pendant fuer `run list` (nur --fields) — hier bewusst `gh` direkt,
+    # siehe .claude/skills/references/gh-axi.md ("Wann gh statt gh-axi").
+    gh_ok=0; out=$(gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt 2>/dev/null) || gh_ok=1
+    if [ "$gh_ok" = 1 ] || [ -z "$out" ]; then echo "-"; else
+      echo "$out" | python3 -c "
 import json,sys
+from datetime import datetime
 runs=json.load(sys.stdin)
-durations=[(r['updatedAt']-r['createdAt']).total_seconds()/60 for r in runs if 'updatedAt' in r]
+def parse(ts):
+    return datetime.fromisoformat(ts.replace('Z','+00:00'))
+durations=[(parse(r['updatedAt'])-parse(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r]
 durations.sort(); p95=durations[int(len(durations)*0.95)] if durations else 0; print(f'{p95:.0f}')
 " 2>/dev/null || echo "-"
+    fi
   fi
 )" le 12 "CI Pipeline p95 Duration (min, letzte 20 Runs auf main)"
 
 # ── SEC-TARGETS ──
-if command -v kubectl >/dev/null 2>&1 && command -v trivy >/dev/null 2>&1; then
-  row target G-SEC06 "$(trivy image --severity HIGH,CRITICAL --exit-code 0 --format json $(kubectl get pods --all-namespaces -o jsonpath='{range .items[*]}{.spec.containers[*].image}{"\n"}{end}' 2>/dev/null | sort -u | tr '\n' ' ') 2>/dev/null | jq '[.Results[].Vulnerabilities[] | select(.Severity=="HIGH" or .Severity=="CRITICAL")] | length' 2>/dev/null || echo "-")" le 0 "Container Images mit High/Critical CVEs (via Trivy)"
+if [ "$FAST" = 0 ] && command -v kubectl >/dev/null 2>&1 && command -v trivy >/dev/null 2>&1; then
+  row target G-SEC06 "$(trivy image --severity HIGH,CRITICAL --exit-code 0 --format json $(kubectl get pods --all-namespaces -o jsonpath='{range .items[*]}{.spec.containers[*].image}{\"\n\"}{end}' 2>/dev/null | sort -u | tr '\n' ' ') 2>/dev/null | jq '[.Results[].Vulnerabilities[] | select(.Severity=="HIGH" or .Severity=="CRITICAL")] | length' 2>/dev/null || echo "-")" le 0 "Container Images mit High/Critical CVEs (via Trivy)"
 else
   row target G-SEC06 "-" le 0 "Container CVEs (erfordert kubectl + Trivy — nicht messbar)"
 fi
 
 # ── FE-TARGETS ──
-if command -v npx >/dev/null 2>&1 && npx --yes lighthouse-ci --version >/dev/null 2>&1; then
+if [ "$FAST" = 0 ] && command -v npx >/dev/null 2>&1 && npx --yes @lhci/cli --version >/dev/null 2>&1; then
   row target G-FE05 "$(
-    score=$(npx lhci autorun --collect.url=https://mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.performance=0 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
+    score=$(npx @lhci/cli autorun --no-lighthouserc --collect.url=https://web.mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.preset=none 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
     echo "${score:--}"
   )" ge 90 "Lighthouse Performance Score"
 else
-  row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert lighthouse-ci — nicht messbar)"
+  row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert @lhci/cli — nicht messbar)"
 fi
 
 # ── Zusammenfassung ────────────────────────────────────────────────────────────

@@ -63,9 +63,8 @@ const buyerVatId = dbCustomer?.vatNumber ?? null;
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rechnung {inv.number} — {senderName}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,350;0,6..72,400;1,6..72,400&family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/Newsreader-Latin.woff2" as="font" type="font/woff2" crossorigin />
   <style>
     /* ── design tokens ── */
     :root {

@@ -117,3 +117,43 @@ teardown() { rm -rf "$WORK"; }
   [ -f "$WORK/brain/site.Dockerfile" ]
   [ -f "$WORK/brain/.github/workflows/build-site.yml" ]
 }
+
+# --- T001884: Mermaid-Markdown architecture page (E3) ---
+
+@test "build-graph-docs.mjs emits docs/diagrams/architecture.md with mermaid fences, not HTML" {
+  cd "$REPO_ROOT"
+  WORK="$(mktemp -d)"
+  ARCH_OUT="$WORK/architecture.md" run node scripts/build-graph-docs.mjs
+  [ "$status" -eq 0 ] || { echo "FAIL: generator exited non-zero: $output"; rm -rf "$WORK"; return 1; }
+  [ -f "$WORK/architecture.md" ] || { echo "FAIL: architecture.md not written"; rm -rf "$WORK"; return 1; }
+  grep -q '```mermaid' "$WORK/architecture.md" \
+    || { echo "FAIL: no mermaid fence in output"; rm -rf "$WORK"; return 1; }
+  ! grep -q '<html' "$WORK/architecture.md" \
+    || { echo "FAIL: output still contains raw HTML"; rm -rf "$WORK"; return 1; }
+  ! grep -q 'cdn.jsdelivr.net' "$WORK/architecture.md" \
+    || { echo "FAIL: output still references the CDN mermaid script"; rm -rf "$WORK"; return 1; }
+  rm -rf "$WORK"
+}
+
+@test "docs/diagrams/architecture.md is byte-identical across two consecutive generator runs (no embedded timestamp)" {
+  cd "$REPO_ROOT"
+  WORK="$(mktemp -d)"
+  ARCH_OUT="$WORK/architecture.md" run node scripts/build-graph-docs.mjs
+  [ "$status" -eq 0 ]
+  first="$(cat "$WORK/architecture.md")"
+  ARCH_OUT="$WORK/architecture.md" run node scripts/build-graph-docs.mjs
+  [ "$status" -eq 0 ]
+  second="$(cat "$WORK/architecture.md")"
+  [ "$first" = "$second" ] || { echo "FAIL: output differs between consecutive runs — likely an embedded timestamp"; rm -rf "$WORK"; return 1; }
+  rm -rf "$WORK"
+}
+
+# --- T001884: brain-ingest SKILL.md synced to the real pipeline (E7) ---
+
+@test "brain-ingest SKILL.md references the real orchestrator, not a fictional quartz CLI workflow" {
+  skill="$REPO_ROOT/.claude/skills/brain-ingest/SKILL.md"
+  grep -q 'scripts/brain-ingest.sh' "$skill" \
+    || { echo "FAIL: SKILL.md never mentions the real orchestrator script"; return 1; }
+  ! grep -q 'quartz generate --sources' "$skill" \
+    || { echo "FAIL: SKILL.md still describes the never-built quartz CLI workflow"; return 1; }
+}

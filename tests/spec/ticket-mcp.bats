@@ -23,6 +23,21 @@ setup() {
   [ "$status" -eq 2 ]
 }
 
+@test "ticket.sh list accepts --sort desc (default) and asc" {
+  run bash "$REPO/scripts/ticket.sh" list --brand mentolder --sort desc
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "DRY-RESOLVE"
+
+  run bash "$REPO/scripts/ticket.sh" list --brand mentolder --sort asc
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "DRY-RESOLVE"
+}
+
+@test "ticket.sh list rejects unknown --sort value" {
+  run bash "$REPO/scripts/ticket.sh" list --brand mentolder --sort bogus
+  [ "$status" -eq 2 ]
+}
+
 @test "ticket.sh backfill-id --dry-resolve exits 0" {
   run bash "$REPO/scripts/ticket.sh" backfill-id --brand mentolder
   [ "$status" -eq 0 ]

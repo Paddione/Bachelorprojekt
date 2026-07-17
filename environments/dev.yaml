@@ -28,7 +28,10 @@ env_vars:
   MEDIAVIEWER_HOST: mediaviewer.localhost
   VIDEOVAULT_DOMAIN: videovault.localhost
   POCKET_ID_FRONTEND_URL: "http://auth.localhost"
-  POCKET_ID_URL: "http://pocket-id:1411"
+  # FQDN statt Kurzname: brett/src/server/auth.ts akzeptiert http nur für
+  # localhost/*.svc.cluster.local (T001933) — Kurzname 'pocket-id' wirft beim
+  # OIDC-Client-Init.
+  POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
   # CORS allowlist origin for the React SPA (dev)
   REACT_APP_ORIGIN: "http://react.localhost"

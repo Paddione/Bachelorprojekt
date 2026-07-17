@@ -6,6 +6,9 @@
 import * as THREE from 'three';
 import { STATE, getScene } from './state';
 
+export type PovMode = 'first-person' | 'meta';
+let povMode: PovMode = 'first-person';
+
 let povFigureId: string | null = null;
 let lerpState: {
   posStart: THREE.Vector3;
@@ -22,6 +25,15 @@ const _defaultLook = new THREE.Vector3(0, 1, 0);
 
 export function getPovFigureId(): string | null { return povFigureId; }
 export function isInPov(): boolean { return povFigureId !== null && lerpState === null; }
+export function getPovMode(): PovMode { return povMode; }
+/** E4: Metaposition aktiv (Vogelperspektive der besessenen Figur). */
+export function isMeta(): boolean { return povMode === 'meta' && povFigureId !== null; }
+
+/** E4: Innensicht ⇄ Metaposition umschalten und Kamera neu einlerpen. */
+export function setPovMode(mode: PovMode): void {
+  povMode = mode;
+  if (povFigureId) startPov(povFigureId);
+}
 
 export function startPov(figureId: string): void {
   const fig = STATE.figures.find(f => f.id === figureId);
@@ -37,11 +49,20 @@ export function startPov(figureId: string): void {
   fig.root.localToWorld(_facingDir);
   _facingDir.sub(fig.root.position).normalize();
 
-  const lookTarget = _headWorld.clone().add(_facingDir.multiplyScalar(2));
+  let posTarget: THREE.Vector3;
+  let lookTarget: THREE.Vector3;
+  if (povMode === 'meta') {
+    // E4: ~6 Einheiten über der Figur, leicht versetzt, Blick auf die Figur.
+    posTarget = _headWorld.clone().add(new THREE.Vector3(0, 6, 1.5));
+    lookTarget = fig.root.position.clone();
+  } else {
+    posTarget = _headWorld.clone().add(new THREE.Vector3(0, 0.15, 0));
+    lookTarget = _headWorld.clone().add(_facingDir.clone().multiplyScalar(2));
+  }
 
   lerpState = {
     posStart: camera.position.clone(),
-    posTarget: _headWorld.clone().add(new THREE.Vector3(0, 0.15, 0)),
+    posTarget,
     lookTarget,
     startTime: performance.now(),
   };
@@ -57,6 +78,7 @@ export function stopPov(): void {
     startTime: performance.now(),
   };
   povFigureId = null;
+  povMode = 'first-person';
 }
 
 /** Call each frame. Drives the lerp animation. */

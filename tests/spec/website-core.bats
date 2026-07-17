@@ -12,6 +12,13 @@ ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/AdminLayout.astro"
 SIDEBAR_NAV="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminSidebarNav.astro"
 KORE_CSS="$BATS_TEST_DIRNAME/../../website/public/brand/korczewski/kore-app.css"
 ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.css"
+PERF_WEBSITE_YAML="$BATS_TEST_DIRNAME/../../k3d/website.yaml"
+PERF_PORTRAIT="$BATS_TEST_DIRNAME/../../website/src/components/Portrait.svelte"
+PERF_MENTOLDER_TS="$BATS_TEST_DIRNAME/../../website/src/config/brands/mentolder.ts"
+PERF_GLOBAL_CSS="$BATS_TEST_DIRNAME/../../website/src/styles/global.css"
+PERF_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/Layout.astro"
+PERF_MENTOLDER_ING="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/website-ingress-web.yaml"
+PERF_KORCZEWSKI_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-korczewski/kustomization.yaml"
 
 # ── T001433: Token alias layer ───────────────────────────────────────────────
 @test "T001433 alias: admin-foundation.css color-bearing tokens all reference var(--...)" {
@@ -252,4 +259,58 @@ ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.c
   [ "$status" -eq 0 ]
   echo "$output" | grep -qE "secretKeyRef:"
   echo "$output" | grep -qE "name:[[:space:]]*website-content-token"
+}
+
+# ── T001922: Lighthouse perf 60→90 (E1 compression/cache, E2 LCP image, E3 fonts, E4 hydration) ──
+@test "T001922 perf: k3d/website.yaml defines website-compress Middleware" {
+  run grep -Eq '^[[:space:]]*name: website-compress$' "$PERF_WEBSITE_YAML"; [ "$status" -eq 0 ]
+  run grep -Eq 'compress:' "$PERF_WEBSITE_YAML"; [ "$status" -eq 0 ]
+}
+
+@test "T001922 perf: k3d/website.yaml defines website-static-cache Middleware (immutable)" {
+  run grep -Eq '^[[:space:]]*name: website-static-cache$' "$PERF_WEBSITE_YAML"; [ "$status" -eq 0 ]
+  run grep -qi 'immutable' "$PERF_WEBSITE_YAML"; [ "$status" -eq 0 ]
+}
+
+@test "T001922 perf: website IngressRoute binds compress and adds an /_astro/ route" {
+  run grep -q 'middlewares:' "$PERF_WEBSITE_YAML"; [ "$status" -eq 0 ]
+  run grep -q '/_astro/' "$PERF_WEBSITE_YAML"; [ "$status" -eq 0 ]
+}
+
+@test "T001922 perf: Portrait.svelte hero img is eager with fetchpriority + dimensions" {
+  run grep -q 'loading="eager"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
+  run grep -q 'fetchpriority="high"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
+  run grep -q 'width="600"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
+  run grep -q 'height="600"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
+  run grep -q 'loading="lazy"' "$PERF_PORTRAIT"; [ "$status" -ne 0 ]
+}
+
+@test "T001922 perf: mentolder avatarSrc references gerald.webp not gerald.jpg" {
+  run grep -q "avatarSrc: '/gerald.webp'" "$PERF_MENTOLDER_TS"; [ "$status" -eq 0 ]
+  run grep -q "avatarSrc: '/gerald.jpg'" "$PERF_MENTOLDER_TS"; [ "$status" -ne 0 ]
+}
+
+@test "T001922 perf: global.css has no font-provider @import" {
+  run grep -q 'googleapis' "$PERF_GLOBAL_CSS"; [ "$status" -ne 0 ]
+}
+
+@test "T001922 perf: Layout.astro hydrates CookieConsent + PortalSidekick client:idle" {
+  run grep -q '<CookieConsent client:idle' "$PERF_LAYOUT"; [ "$status" -eq 0 ]
+  run grep -q '<PortalSidekick client:idle' "$PERF_LAYOUT"; [ "$status" -eq 0 ]
+  run grep -q '<CookieConsent client:load' "$PERF_LAYOUT"; [ "$status" -ne 0 ]
+  run grep -q '<PortalSidekick client:load' "$PERF_LAYOUT"; [ "$status" -ne 0 ]
+}
+
+@test "T001922 perf: mentolder prod Ingress binds website-compress" {
+  run grep -q 'website-compress' "$PERF_MENTOLDER_ING"; [ "$status" -eq 0 ]
+}
+
+@test "T001922 perf: korczewski overlay binds website-compress to the IngressRoute" {
+  run grep -q 'website-compress' "$PERF_KORCZEWSKI_KUST"; [ "$status" -eq 0 ]
+}
+
+@test "T001929 perf: mentolder content bundle avatarSrc references gerald.webp (live source)" {
+  HOMEPAGE_JSON="$BATS_TEST_DIRNAME/../../website/content/mentolder/homepage.json"
+  run grep -q '"avatarSrc": "/gerald.webp"' "$HOMEPAGE_JSON"; [ "$status" -eq 0 ]
+  run grep -q 'gerald.jpg' "$HOMEPAGE_JSON"; [ "$status" -ne 0 ]
 }

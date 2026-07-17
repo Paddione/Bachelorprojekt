@@ -1,6 +1,39 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.39.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.39.0...brett-v0.39.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **brett:** map OIDC env names to manifests, allow single-label DNS [T001932] ([#2918](https://github.com/Paddione/Bachelorprojekt/issues/2918)) ([89f4e2b](https://github.com/Paddione/Bachelorprojekt/commit/89f4e2b59fcf353779dc508cbe164522955a43b7))
+
+## [0.39.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.38.0...brett-v0.39.0) (2026-07-17)
+
+
+### Features
+
+* **brett:** Systembrett-Vollausbau auf 18 Zielfunktionen [T001931] ([#2915](https://github.com/Paddione/Bachelorprojekt/issues/2915)) ([bc84f03](https://github.com/Paddione/Bachelorprojekt/commit/bc84f038904fcb68c51a2cbb5baa8453b358a3bf))
+
+## [0.38.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.37.0...brett-v0.38.0) (2026-07-15)
+
+
+### Features
+
+* **factory:** replace qwythos-9b-v2 with qwen3.6-14b-a3b-fablevibes ([#2855](https://github.com/Paddione/Bachelorprojekt/issues/2855)) ([de36ec9](https://github.com/Paddione/Bachelorprojekt/commit/de36ec90a4a2b3b0e60a875f9a31204f427f64b7))
+
+
+### Bug Fixes
+
+* weekly audit T001811 ([#2787](https://github.com/Paddione/Bachelorprojekt/issues/2787)) ([d369903](https://github.com/Paddione/Bachelorprojekt/commit/d369903dc64942e19e7e6d4d987c87512245b9de))
+
+## [0.37.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.36.1...brett-v0.37.0) (2026-07-15)
+
+
+### Features
+
+* **factory:** replace qwythos-9b-v2 with qwen3.6-14b-a3b-fablevibes ([#2855](https://github.com/Paddione/Bachelorprojekt/issues/2855)) ([de36ec9](https://github.com/Paddione/Bachelorprojekt/commit/de36ec90a4a2b3b0e60a875f9a31204f427f64b7))
+
 ## [0.36.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.36.0...brett-v0.36.1) (2026-07-14)
 
 

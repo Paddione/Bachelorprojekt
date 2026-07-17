@@ -35,98 +35,6 @@ env:
 
   OPENSPEC_TELEMETRY: '0'
 jobs:
-  # DEPRECATED: replaced by scoped jobs (test-bats, test-spec,
-  # test-manifests, test-factory). Disabled with && false; remove once
-  # all 4 new jobs are confirmed as required checks on main. [T001860]
-  offline-tests:
-    name: "⚠️ Offline Tests (deprecated — see scoped jobs)"
-    if: github.event.action != 'edited' && false  # disabled
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write
-      pull-requests: read
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
-        with:
-          fetch-depth: 0
-          submodules: recursive
-
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Set up pnpm
-        # Needed because tests/spec/*.bats (run via `task test:changed` ->
-        # `task test:factory`) shell out to `pnpm audit` / `pnpm why` for the
-        # G-DEP01 gate. Without this, pnpm is missing from PATH on the
-        # runner and that gate fails even when the lockfile is clean.
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda  # v4.1.0
-        with:
-          version: 10
-
-      - name: Install website dependencies
-        run: |
-          cd website
-          pnpm install --frozen-lockfile
-
-      - uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611  # v2.0.0
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Go
-        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe  # v5.0.0
-        with:
-          go-version-file: 'mcp-task-runner/go.mod'
-          cache: true
-
-      - name: Install kubectl
-        run: |
-          curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
-            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
-
-      - name: Install node dependencies (docs-gen generator + tests)
-        run: npm ci
-
-      - name: Cache factory npm dependencies
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-factory-${{ hashFiles('scripts/factory/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-factory-
-
-      - name: Install factory MCP dependencies
-        run: npm ci --prefix scripts/factory
-
-      - name: Create CI dummy secrets
-        run: bash scripts/ci-dummy-secrets.sh
-
-      - name: Run changed offline tests
-        run: task test:changed
-
-      - name: API auth regression gate
-        run: |
-          git fetch origin main --depth=1
-          git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json 2>/dev/null || echo '{"generatedAt":"","endpoints":[]}' > /tmp/api-map-main.json
-          node scripts/api-auth-check.mjs --regression --main-map /tmp/api-map-main.json
-
-      - name: Ensure freshness artifacts are up to date
-        if: github.event_name == 'pull_request'
-        run: |
-          if ! task freshness:check; then
-            echo ""
-            echo "❌ Freshness / quality gate failed — see above for the specific cause."
-            echo ""
-            echo "   Stale generated artifacts  →  task freshness:regenerate  (then commit + push)"
-            echo "   New code-quality violation →  task quality:check  (then fix or 'task quality:baseline:freeze')"
-            exit 1
-          fi
-          echo "✅ Freshness and quality gates passed"
-
-
   # ── Scoped test jobs (replaces offline-tests monolith) ─────────────
 
   test-bats:
@@ -564,23 +472,18 @@ jobs:
 
       - name: Run Lighthouse audit
         continue-on-error: true
+        env:
+          LHCI_GITHUB_TOKEN: ${{ secrets.LHCI_GITHUB_TOKEN }}
         run: |
-          lhci autorun \
-            --collect.url=https://mentolder.de \
-            --collect.settings.chromeFlags='--headless --no-sandbox' \
-            --assert.preset=lighthouse:recommended \
-            --assert.assertions.performance=error \
-            --budget-path=lighthouse-budget.json \
-            --upload.target=temporary-public-storage \
-            || true
+          lhci autorun || true
 
       - name: Lighthouse summary
         if: always()
         run: |
           echo "### Lighthouse Performance Audit" >> "$GITHUB_STEP_SUMMARY"
-          echo "URL: https://mentolder.de" >> "$GITHUB_STEP_SUMMARY"
-          echo "Budget: lighthouse-budget.json (Performance ≥ 90)" >> "$GITHUB_STEP_SUMMARY"
-          echo "Status: advisory only (does not block CI)" >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: https://web.mentolder.de" >> "$GITHUB_STEP_SUMMARY"
+          echo "Budget: lighthouserc.json assertions (Performance ≥ 90)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Status: advisory only (does not block CI); GitHub status check posted via LHCI_GITHUB_TOKEN" >> "$GITHUB_STEP_SUMMARY"
 
   commit-lint:
     name: Conventional Commits

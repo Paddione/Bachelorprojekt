@@ -1,43 +1,50 @@
-# brain-ingest — Brain-Quartz Wiki Kompilierung
+# brain-ingest — Brain-Wiki Kompilierung
 
 ## Was ist das?
-Initialisiert die Brain-Wiki-Kompilierung via Quartz, generiert die Worklist aus `scripts/brain/ingest-sources.yaml` und führt den ersten Ingest-Lauf durch.
+Orchestriert die vollautomatische Brain-Wiki-Ingestion: generiert die Worklist aus
+`scripts/brain/ingest-sources.yaml`, transformiert jede Quelldatei per LLM
+(`scripts/brain-ingest-transform.sh`) in eine Wiki-Seite und liefert das Ergebnis
+per PR an das externe `Paddione/brain`-Repo aus.
 
 ## Ziel
-Erstelle die erste kompilierte Version der Brain-Quartz-Dokumentations-Wiki mit allen relevanten Quellen (57 SSOT-Specs + Runbooks + Core-Repo-Doku).
+Aktuelle Wiki-Seiten für alle `openspec/specs/*.md` SSOT-Specs + Runbooks + ADRs +
+Gotchas/Footguns + Agent-Guide-Maps + Core-Repo-Doku + Health-Goals + Diagramme
+im `brain`-Repo halten.
 
 ## Schritte
 
-### 1. Worklist generieren
+### 1. Trockenlauf (kein Commit/PR im brain-Repo)
 ```bash
-./scripts/brain-ingest-worklist.sh > brain-worklist.txt
-wc -l brain-worklist.txt  # Erwartet: ~60+ Einträge
+bash scripts/brain-ingest.sh --brain-repo ~/brain --dry-run
 ```
 
-### 2. Quellen prüfen
+### 2. Pilot-Lauf (nur die ersten N Quellen)
 ```bash
-cat brain-worklist.txt | cut -f2 | sort | uniq -c
-# Sollte zeigen: brain-ssot-specs, brain-runbooks, etc.
+bash scripts/brain-ingest.sh --brain-repo ~/brain --pilot 5
 ```
 
-### 3. Initial-Ingest ausführen (beispielsweise mit Quartz CLI)
+### 3. Voller Lauf (per Taskfile.brain.yaml, falls vorhanden)
 ```bash
-quartz generate --sources brain-worklist.txt --output docs/brain/wiki/
+task brain:ingest:dry    # Trockenlauf
+task brain:ingest:pilot  # Pilot
+task brain:ingest:run    # Voller Lauf inkl. PR
 ```
 
-### 4. Qualitätssicherung
-```bash
-find docs/brain/wiki -name "*.md" | wc -l  # Erwartet: ~60+ Dateien
-head -50 docs/brain/wiki/*.md | grep "source:" | head -10  # Verifiziere Citations
-```
+Intern generiert `brain-ingest.sh` die Worklist über
+`scripts/brain-ingest-worklist.sh --root <repo> --manifest scripts/brain/ingest-sources.yaml`
+(TAB-separiert: Pfad, Slug, Gruppe) aus allen `openspec/specs/*.md`-Dateien (Glob, kein
+fixer Count) plus den übrigen Manifest-Gruppen.
 
 ## Artefakte
-- `brain-worklist.txt` (TAB-separated, sortiert nach Priority)
-- `docs/brain/wiki/*.md` (kompilierte Wiki-Seiten mit Citations)
+- `~/.brain-ingest-state.json` (Idempotenz-State: Quellhash → transformierte Seite)
+- `<brain-repo>/wiki/*.md` (transformierte Wiki-Seiten mit Citations, im externen
+  `Paddione/brain`-Repo, nicht in diesem Repo)
+- Ein PR gegen `Paddione/brain` (Phase 4 von `brain-ingest.sh`, übersprungen bei `--dry-run`)
 
 ## Next Steps
 - T001570: CI-Gates (`task test:changed`, `freshness:regenerate`)
-- Brain-Wiki regelmäßig synchronisieren (cron/call-backus)
+- Brain-Wiki regelmäßig synchronisieren (`.github/workflows/brain-merge-hook.yml` deckt
+  Push-getriggerte Teil-Syncs ab; `brain-ingest.sh` ist der volle LLM-Ingest-Lauf)
 
 
 ## Framework mapping

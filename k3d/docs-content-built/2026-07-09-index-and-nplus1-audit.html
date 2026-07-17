@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DB Audit — 2026-07-09 — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="./index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Handbücher</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./readme.html">AI-Agent Operating Guide — Registry (SSOT)</a></li><li class="sidebar-item"><a href="./readme.html">DB Audit Phase 5 — 2026-05-23</a></li><li class="sidebar-item"><a href="./readme.html">dev.mentolder.de — Operator Runbook</a></li><li class="sidebar-item"><a href="./readme.html">Korczewski Visual Design Brief</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Architektur &amp; Bausteine</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./architecture.html">Architektur — Living Docs</a></li><li class="sidebar-item"><a href="./30-bausteine.html">Bausteine — Was läuft auf der Plattform?</a></li><li class="sidebar-item"><a href="./bereitstellungsdetails.html">Bereitstellungsdetails und Server-Topologie</a></li><li class="sidebar-item"><a href="./db-schema.html">Shared DB — Schema Reference &amp; Normalization Audit</a></li><li class="sidebar-item"><a href="./00-anleitung.html">Was will ich tun?</a></li><li class="sidebar-item"><a href="./20-werkzeuge.html">Werkzeuge — Tools und Agents</a></li><li class="sidebar-item"><a href="./10-ziele.html">Ziele — Was will ich tun?</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Audits &amp; Reports</summary><ul class="sidebar-list"><li class="sidebar-item sidebar-item--active"><a href="./2026-07-09-index-and-nplus1-audit.html" aria-current="page">DB Audit — 2026-07-09</a></li><li class="sidebar-item"><a href="./findings.html">DB Audit Phase 5 — Findings</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Entscheidungen</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./decision-log.html">Phase 5 DROP Decision Log</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Referenz</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="./adr-001-fleet-konsolidierung.html">ADR-001: Fleet-Konsolidierung — Zusammenführung aller Marken-Cluster (Phase 3)</a></li><li class="sidebar-item"><a href="./adr-002-push-basiertes-deploy.html">ADR-002: Push-basiertes Deploy — kein GitOps-Reconciler im Cluster</a></li><li class="sidebar-item"><a href="./adr-003-brand-namespace-split.html">ADR-003: Brand-Namespace-Split — Multi-Mandanten via Kubernetes-Namespaces</a></li><li class="sidebar-item"><a href="./adr-004-llm-fail-closed.html">ADR-004: LLM-Embedding-Architektur — fail-closed, kein Cross-Space-Fallback</a></li><li class="sidebar-item"><a href="./adr-005-merge-equals-abschluss.html">ADR-005: Merge = Abschluss — Ticketmodell ohne awaiting_deploy-Happy-Path</a></li><li class="sidebar-item"><a href="./alert-email-test.html">Alert-E-Mail-Test (synthetisch)</a></li><li class="sidebar-item"><a href="./api-surface.html">API Surface Map</a></li><li class="sidebar-item"><a href="./asset-gen-gpu-host.html">Asset-Generierung: GPU-Host einrichten &amp; starten</a></li><li class="sidebar-item"><a href="./audit-log-retention.html">Audit-Log Retention — DSGVO-Dokumentation</a></li><li class="sidebar-item"><a href="./blast-radius.html">Blast-Radius-Report</a></li><li class="sidebar-item"><a href="./brainstorm-bridge-wsl.html">Brainstorm-Bridge (WSL) — Visuals &amp; Auswahl an den Nutzer kommunizieren</a></li><li class="sidebar-item"><a href="./db-audit-playbook.html">DB-Audit-Playbook (shared-db, beide Brands)</a></li><li class="sidebar-item"><a href="./docs-design-standards.html">DOCS-DESIGN-STANDARDS.md</a></li><li class="sidebar-item"><a href="./envsubst-variable-management.html">envsubst Variable Management — Referenz</a></li><li class="sidebar-item"><a href="./fleet-stage2-cutover-runbook.html">Fleet Stage 2 — Cutover Runbook</a></li><li class="sidebar-item"><a href="./fleet-2026-05-31-what-changed.html">Fleet-Konsolidierung — was sich am 2026-05-31 geändert hat</a></li><li class="sidebar-item"><a href="./gotchas-footguns.html">Gotchas &amp; Footguns Reference</a></li><li class="sidebar-item"><a href="./secrets-architecture.html">Secrets-Dateiarchitektur</a></li><li class="sidebar-item"><a href="./shared-infrastructure-security.html">Shared Infrastructure Security — Cross-Brand Analysis</a></li><li class="sidebar-item"><a href="./overview.html">Skills Overview</a></li><li class="sidebar-item"><a href="./factory-usage.html">Software Factory — Usage Guide</a></li><li class="sidebar-item"><a href="./systemtest-fragebogen.html">Systemtest-Protokoll — Workspace Collaboration Platform</a></li><li class="sidebar-item"><a href="./wsl-bootstrap.html">WSL Bootstrapping Gotchas</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="./index.html">Übersicht</a> <span class="sep">/</span> <a href="./docs.html">Docs</a> <span class="sep">/</span> <span class="crumb-current">DB Audit — 2026-07-09</span></nav>
+    <h1>DB Audit — 2026-07-09</h1>
+    <p class="page-desc"></p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>DB Audit — 2026-07-09</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#1-applied-status-aller-scriptsmigrationssql-cross-brand"><span class="toc-num">1.</span> 1. Applied-Status aller scripts/migrations/*.sql (cross-brand)</a></li>
+<li class="toc-item toc-item--h3"><a href="#1a-luecken--nachzieh-empfehlung-nicht-durch-dieses-pr-umgesetzt"><span class="toc-num">–</span> 1a. Lücken → Nachzieh-Empfehlung (NICHT durch dieses PR umgesetzt)</a></li>
+<li class="toc-item"><a href="#2-stufe-b--phase-2-drop-vorbedingungen-beide-brands-verifiziert"><span class="toc-num">2.</span> 2. Stufe B — Phase-2-Drop (Vorbedingungen, beide Brands verifiziert)</a></li>
+<li class="toc-item"><a href="#3-pool-konsolidierung-stufe-c1"><span class="toc-num">3.</span> 3. Pool-Konsolidierung (Stufe C1)</a></li>
+<li class="toc-item toc-item--h3"><a href="#3a-verifikation-der-databaseurlsessionsdatabaseurl-gleichheit-t001678--abgeschlossen"><span class="toc-num">–</span> 3a. Verifikation der DATABASE_URL/SESSIONS_DATABASE_URL-Gleichheit (T001678 — abgeschlossen)</a></li>
+<li class="toc-item"><a href="#4-index-audit-stufe-c2--explain-driven"><span class="toc-num">4.</span> 4. Index-Audit (Stufe C2 — EXPLAIN-driven)</a></li>
+<li class="toc-item toc-item--h3"><a href="#4a-questionnaireassignments-703-zeilen"><span class="toc-num">–</span> 4a. questionnaire_assignments (703 Zeilen)</a></li>
+<li class="toc-item toc-item--h3"><a href="#4b-factoryphaseevents-958-zeilen"><span class="toc-num">–</span> 4b. factory_phase_events (958 Zeilen)</a></li>
+<li class="toc-item toc-item--h3"><a href="#4c-ticketlinks-96-zeilen"><span class="toc-num">–</span> 4c. ticket_links (96 Zeilen)</a></li>
+<li class="toc-item"><a href="#5-n1-audit-stufe-c4--stichprobe"><span class="toc-num">5.</span> 5. N+1-Audit (Stufe C4 — Stichprobe)</a></li>
+<li class="toc-item"><a href="#6-ungenutzte-indizes-stufe-c3--empfehlung-kein-drop"><span class="toc-num">6.</span> 6. Ungenutzte Indizes (Stufe C3 — Empfehlung, kein DROP)</a></li>
+<li class="toc-item"><a href="#7-vacuumanalyze-hygiene-stufe-c4"><span class="toc-num">7.</span> 7. VACUUM/ANALYZE-Hygiene (Stufe C4)</a></li>
+<li class="toc-item"><a href="#8-evidence-files-roh-queries"><span class="toc-num">8.</span> 8. Evidence-Files (Roh-Queries)</a></li>
+<li class="toc-item"><a href="#9-tickets--follow-ups"><span class="toc-num">9.</span> 9. Tickets / Follow-ups</a></li></ul>
+</div>
+<p><strong>Scope:</strong> <code>shared-db</code> (mentolder + korczewski), <code>website</code> DB. Companion zu T001676
+(<code>db-legacy-cleanup-optimize</code>).</p>
+<p><strong>Spec / Plan:</strong> <code>openspec/changes/db-legacy-cleanup-optimize/specs/database.md</code>,
+<code>openspec/changes/db-legacy-cleanup-optimize/tasks.md</code>.</p>
+<p><strong>Methodik:</strong> Per-Migration Existenzabfrage gegen <strong>beide</strong> Brand-DBs
+(<code>workspace</code> + <code>workspace-korczewski</code>); <code>EXPLAIN (ANALYZE, BUFFERS)</code> auf den real
+ausgeführten Queries der „Seq-Scan-Hotspots" aus <code>intel.json</code>; <code>pg_stat_user_indexes</code>
+für ungenutzte Indizes. Reine Doku-/Empfehlungs-Sammlung — <strong>kein DROP, kein ALTER
+durch dieses Audit</strong>; DDL-Änderungen (Phase-2-Drop) leben in
+<code>scripts/migrations/2026-07-09-coaching-phase2-drop-legacy.sql</code>.</p>
+<h2 id="1-applied-status-aller-scriptsmigrationssql-cross-brand">1. Applied-Status aller <code>scripts/migrations/*.sql</code> (cross-brand)</h2>
+<p>Abgefragt: Existenz des Zielobjekts (Tabelle / View / Spalte / Seed-Row) in beiden
+Brand-DBs. <code>t</code> = vorhanden, <code>f</code> = fehlt.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Migration</th>
+<th>Zielobjekt</th>
+<th>mentolder</th>
+<th>korczewski</th>
+<th>Differenz?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><code>2026-05-19-ai-question-human-answer</code></td>
+<td><code>tickets.tickets.ai_question</code></td>
+<td>t</td>
+<td>t (nachgezogen T001680)</td>
+<td>behoben</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>2026-05-19-ai-question-human-answer</code></td>
+<td><code>tickets.tickets.human_answer</code></td>
+<td>t</td>
+<td>t (nachgezogen T001680)</td>
+<td>behoben</td>
+</tr>
+<tr>
+<td>3</td>
+<td><del><code>2026-05-19-central-dashboard-view</code></del> (entfernt in T001680)</td>
+<td><code>tickets.v_central_dashboard</code></td>
+<td>f</td>
+<td>f</td>
+<td><strong>obsolet</strong> — kein Code-Konsument (nur Design-Spec <code>docs/superpowers/specs/2026-05-15-central-db-view-design.md</code>), abgelöst durch <code>tickets.v_cockpit_rollup</code> (Zeile 17, existiert bereits auf beiden Brands). Migrationsdatei gelöscht statt nachgezogen.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>2026-06-10-provider-routing</code></td>
+<td><code>tickets.provider_config</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>2026-06-10-provider-routing</code></td>
+<td><code>tickets.provider_health</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>2026-06-14-coaching-data-migrate</code></td>
+<td><code>tickets.provider_config</code> mit <code>source='coaching'</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>2026-06-14-coaching-data-migrate</code></td>
+<td><code>coaching.ki_config_id_map</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>2026-06-14-coaching-data-migrate</code></td>
+<td><code>sessions_ki_config_id_fkey</code> → <code>tickets.provider_config</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>2026-06-14-coaching-deepseek-seed</code></td>
+<td><code>provider_config</code> row <code>coaching / deepseek</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>2026-06-14-factory-run-budget</code></td>
+<td><code>tickets.factory_run_budget</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>2026-06-14-llm-availability-seed</code></td>
+<td><code>provider_config</code> rows <code>assistant-chat: deepseek@1, local-cluster@2</code></td>
+<td>t (nachgezogen T001680)</td>
+<td>t</td>
+<td>behoben — <strong>Achtung:</strong> mentolder + korczewski hatten beide bereits manuell nachjustierte Rows (mentolder: zusätzlich <code>priority=10</code>; korczewski: <code>ticket-triage priority=1</code> auf <code>local-cluster</code> statt <code>deepseek</code> umgestellt). Die Migration wurde auf mentolder wie geschrieben angewendet (<code>ON CONFLICT DO UPDATE</code>) — dabei wurde <code>ticket-triage priority=1</code> auf mentolder von <code>local-cluster</code> auf <code>deepseek</code> <strong>überschrieben</strong> (Live-Routing-Änderung, nicht nur additiv). korczewski wurde nicht angefasst.</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>2026-06-14-provider-config-unify</code></td>
+<td><code>tickets.provider_config.brand</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>2026-06-14-provider-config-unify</code></td>
+<td><code>tickets.provider_config.is_active</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>2026-06-15-cockpit-feature-suggest</code></td>
+<td><code>tickets.tickets.next_step</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>2026-06-15-cockpit-feature-suggest</code></td>
+<td><code>tickets.tickets.discarded</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>2026-06-15-cockpit-feature-suggest</code></td>
+<td><code>tickets.tickets.major_feature</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>17</td>
+<td><code>2026-06-15-cockpit-rollup-view</code></td>
+<td><code>tickets.v_cockpit_rollup</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>18</td>
+<td><code>2026-06-15-grilling-answers</code></td>
+<td><code>tickets.tickets.grilling_answers</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>19</td>
+<td><code>2026-06-17-scout-drift</code></td>
+<td><code>tickets.tickets.scout_drift</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>2026-06-17-scout-drift</code></td>
+<td><code>tickets.tickets.scout_drift_at</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>21</td>
+<td><code>2026-06-17-triage-columns</code></td>
+<td><code>tickets.tickets.triaged_at</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>22</td>
+<td><code>2026-06-17-triage-columns</code></td>
+<td><code>tickets.tickets.grilling_meta</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>23</td>
+<td><code>2026-06-17-triage-columns</code></td>
+<td><code>tickets.tickets.areas</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>24</td>
+<td><code>2026-06-17-triage-columns</code></td>
+<td><code>tickets.tickets.component</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>25</td>
+<td><code>2026-07-03-context-budget</code></td>
+<td><code>tickets.provider_config.context_window + context_budget</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>26</td>
+<td><code>2026-07-03-context-budget</code></td>
+<td><code>tickets.provider_health.reserved_tokens</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>27</td>
+<td><code>2026-07-03-local-qwen35-seed</code></td>
+<td><code>provider_config</code> rows für <code>factory-scout</code>/<code>factory-plan</code>/<code>lavish-artifact</code> (<code>provider='local-qwen35'</code>)</td>
+<td><strong>f</strong></td>
+<td><strong>f</strong></td>
+<td>(beide) — weiterhin ausstehend, nur diese 3 Sources; nutzt zudem eine veraltete hartcodierte wg-gpu-IP statt Service-DNS (siehe Zeile 29).</td>
+</tr>
+<tr>
+<td>28</td>
+<td><code>2026-07-08-coaching-is-test-data</code></td>
+<td><code>coaching.sessions.is_test_data</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok</td>
+</tr>
+<tr>
+<td>29</td>
+<td><code>2026-07-09-ticket-triage-local-qwen35</code></td>
+<td><code>provider_config</code> row <code>ticket-triage/haiku priority=1, provider='local-qwen35'</code></td>
+<td>t</td>
+<td>t</td>
+<td>ok — live via <code>kubectl exec</code>+<code>psql</code> angewendet, dann als Migrationsdatei nachgezogen (T001680-Folge). base_url ist zwingend brand-different (K8s-Service-DNS je Namespace), verwendet daher <code>-v base_url=...</code> statt hartcodierter IP. Zusätzlich: mentolder-<code>llm-gateway-lmstudio</code>-Endpoints-IP war auf <code>172.17.0.1</code> (Dev-Bridge) statt <code>192.168.100.10</code> (Prod-WireGuard) verdriftet — per <code>kubectl patch</code> korrigiert (reiner Live-Cluster-Zustand, kein Manifest-Fix nötig, <code>environments/mentolder.yaml</code> hatte den korrekten Wert bereits).</td>
+</tr>
+</tbody></table>
+<h3 id="1a-luecken--nachzieh-empfehlung-nicht-durch-dieses-pr-umgesetzt">1a. Lücken → Nachzieh-Empfehlung (NICHT durch dieses PR umgesetzt)</h3>
+<p>Folgende Migrationen sind in mindestens einer Brand-DB <strong>nicht</strong> angewendet. Die
+Anwendung ist <strong>kein</strong> DROP/ALTER im Sinne des Audit-Tasks A2 — gemäß Guardrail
+(Task A2 ist „rein lesend/dokumentierend") werden sie hier nur als Nachzieh-Empfehlung
+dokumentiert. Verantwortlich für die Ausführung pro Brand ist der Operator nach Merge
+(jeder Lauf ist idempotent und nicht-blockierend):</p>
+<table>
+<thead>
+<tr>
+<th>Migration</th>
+<th>Mentolder</th>
+<th>Korczewski</th>
+<th>Empfehlung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>2026-05-19-ai-question-human-answer</code></td>
+<td>✓</td>
+<td><strong>fehlt</strong></td>
+<td>Korczewski nachziehen (ADD COLUMN IF NOT EXISTS, risikolos)</td>
+</tr>
+<tr>
+<td><code>2026-05-19-central-dashboard-view</code></td>
+<td><strong>fehlt</strong></td>
+<td><strong>fehlt</strong></td>
+<td>Beide nachziehen (CREATE OR REPLACE VIEW, risikolos)</td>
+</tr>
+<tr>
+<td><code>2026-06-14-llm-availability-seed</code></td>
+<td><strong>fehlt</strong></td>
+<td>✓</td>
+<td><strong>Operator-Review vor Anwendung</strong> (Seed verändert <code>provider_config.priority</code>; ON CONFLICT DO UPDATE, aber Verhalten muss bewusst freigegeben werden)</td>
+</tr>
+<tr>
+<td><code>2026-07-03-local-qwen35-seed</code></td>
+<td><strong>fehlt</strong></td>
+<td><strong>fehlt</strong></td>
+<td><strong>Operator-Review vor Anwendung</strong> (demoted andere Prio-1-Rows; Production-Auswirkung)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Hinweis:</strong> Die Phase-2-Drop-Migration (<code>2026-07-09-coaching-phase2-drop-legacy.sql</code>)
+ist <strong>unabhängig</strong> von den oben genannten Lücken — ihr Guard prüft nur die FK-Remap
+(<code>coaching.sessions.ki_config_id_fkey</code> → <code>tickets.provider_config</code>) und die
+Vollständigkeit der Daten-Migration (kein orphan ki_config_id), beides ist in beiden
+Brands gegeben.</p>
+</blockquote>
+<h2 id="2-stufe-b--phase-2-drop-vorbedingungen-beide-brands-verifiziert">2. Stufe B — Phase-2-Drop (Vorbedingungen, beide Brands verifiziert)</h2>
+<table>
+<thead>
+<tr>
+<th>Bedingung</th>
+<th>mentolder</th>
+<th>korczewski</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>coaching.ki_config</code> existiert (vor Drop)</td>
+<td>t</td>
+<td>t</td>
+</tr>
+<tr>
+<td><code>coaching.ki_config_id_map</code> existiert (vor Drop)</td>
+<td>t</td>
+<td>t</td>
+</tr>
+<tr>
+<td><code>coaching.sessions.ki_config_id</code> (Spalte) bleibt unangetastet</td>
+<td>t</td>
+<td>t</td>
+</tr>
+<tr>
+<td><code>sessions_ki_config_id_fkey</code> zeigt auf <code>tickets.provider_config</code></td>
+<td>t</td>
+<td>t</td>
+</tr>
+<tr>
+<td>Orphan <code>ki_config_id</code> in <code>coaching.sessions</code> (ohne Match in <code>tickets.provider_config</code>)</td>
+<td><strong>0</strong></td>
+<td><strong>0</strong></td>
+</tr>
+</tbody></table>
+<p>→ Drop-Migration in beiden Brands gefahrlos anwendbar.</p>
+<h2 id="3-pool-konsolidierung-stufe-c1">3. Pool-Konsolidierung (Stufe C1)</h2>
+<p>Kanonischer geteilter Pool: <code>website/src/lib/db-pool.ts</code> (<code>pool</code>, <code>platformPool</code>).
+Nutzt <code>SESSIONS_DATABASE_URL</code> (Fallback auf die <code>website</code>-DB), <code>nodeLookup</code> DNS-Workaround,
+<code>statement_timeout=2000ms</code>, <code>connectionTimeoutMillis=2000ms</code>,
+<code>idleTimeoutMillis=30000ms</code>. Pro Aufrufer begründet:</p>
+<table>
+<thead>
+<tr>
+<th>Datei</th>
+<th>Env-Var</th>
+<th>Alter Pool</th>
+<th>Entscheidung</th>
+<th>Begründung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>website/src/lib/codesearch-db.ts</code></td>
+<td><code>SESSIONS_DATABASE_URL</code></td>
+<td>eigener Pool + <code>nodeLookup</code></td>
+<td><strong>KONSOLIDIEREN</strong></td>
+<td>identische DB/Config; gewinnt DNS-Workaround + fail-soft Timeouts. Embedding-Queries sind reine SELECTs auf indizierten Spalten → bleiben unter 2s. N+1 in <code>searchCodeAugmented</code> (s. §5) wird beim Refactor mit behoben (<code>= ANY($1)</code>).</td>
+</tr>
+<tr>
+<td><code>website/src/lib/knowledge-db.ts</code></td>
+<td><code>SESSIONS_DATABASE_URL</code></td>
+<td>eigener Pool + <code>nodeLookup</code></td>
+<td><strong>KONSOLIDIEREN</strong></td>
+<td>identische DB/Config. Bulk-Pfad in <code>ingestJsonChunks</code> lebt in einem <strong>separaten</strong> Modul (<code>pages/api/admin/knowledge/import/json.ts</code>, s. nächste Zeile) und nutzt dort seinen eigenen Pool — das <code>knowledge-db.ts</code> selbst macht keine Bulk-Inserts, die das <code>statement_timeout</code> sprengen.</td>
+</tr>
+<tr>
+<td><code>website/src/pages/api/cron/notify-unread.ts</code></td>
+<td><code>SESSIONS_DATABASE_URL</code></td>
+<td>eigener Pool, <strong>ohne</strong> <code>nodeLookup</code>/Timeouts</td>
+<td><strong>KONSOLIDIEREN</strong></td>
+<td>identische DB; Cron-Query ist ein einzelnes Read + Mail-Versand → 2s ausreichend. Gewinnt DNS-Workaround + fail-soft Timeouts.</td>
+</tr>
+<tr>
+<td><code>website/src/lib/ai-metrics.ts</code></td>
+<td><code>SESSIONS_DATABASE_URL</code> (nach T001678)</td>
+<td>konsolidiert auf <code>db-pool.ts</code></td>
+<td><strong>KONSOLIDIERT</strong></td>
+<td>Verifikation (T001678, s. §3a) ergab: <code>DATABASE_URL</code> ist in Prod (beide Brands, Namespaces <code>website</code>/<code>website-korczewski</code>) <strong>überhaupt nicht gesetzt</strong> (kein env-Eintrag, kein ConfigMap-Key, kein <code>PG*</code>-Fallback) — <code>new Pool({ connectionString: undefined })</code> fiel auf pg-Library-Defaults (<code>localhost:5432</code>) zurück, was im Pod nicht existiert. <code>ai_call_log</code>-Inserts scheiterten seit Einführung lautlos (Bug T001679). Fix: Modul auf den gehärteten <code>db-pool.ts</code> (<code>SESSIONS_DATABASE_URL</code>, nodeLookup + Timeouts) umgestellt.</td>
+</tr>
+<tr>
+<td><code>website/src/pages/api/admin/ai-quality.ts</code></td>
+<td><code>SESSIONS_DATABASE_URL</code> (nach T001678)</td>
+<td>konsolidiert auf <code>db-pool.ts</code></td>
+<td><strong>KONSOLIDIERT</strong></td>
+<td>Gleicher Root Cause wie <code>ai-metrics.ts</code> (teilt den <code>AiWorkflow</code>-Typ) — gemeinsam mit <code>ai-metrics.ts</code> in T001678/T001679 konsolidiert.</td>
+</tr>
+<tr>
+<td><code>website/src/pages/api/admin/knowledge/import/json.ts</code></td>
+<td><code>SESSIONS_DATABASE_URL</code></td>
+<td>eigener Pool, kein Timeout</td>
+<td><strong>KEEP als Sonder-Pool</strong></td>
+<td>Bulk-Import (<code>ingestJsonChunks</code>). Der 2s-<code>statement_timeout</code> des geteilten Pools würde große Importe abbrechen. Falls der Bulk-Pfad in den geteilten Pool soll: betroffene Aufrufe explizit mit <code>SET LOCAL statement_timeout</code> in einer Transaktion überschreiben — Aufwand &gt; Nutzen für die einzige Bulk-Stelle.</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>DB-Pool-Sonderfall <code>platformPool</code>:</strong> <code>db-pool.ts</code> exportiert <code>platformPool = pool</code>.
+Der ehemalige Versuch, korczewski → mentolder (<code>workspace</code>) umzuleiten, wurde
+aufgegeben (korczewski-website-pod kann <code>shared-db.workspace</code> clusterintern nicht
+erreichen → ECONNREFUSED). Jede Brand nutzt ihr eigenes <code>shared-db</code>. Diese
+Sonderheit ist in <code>db-pool.ts:49-53</code> dokumentiert.</p>
+</blockquote>
+<h3 id="3a-verifikation-der-databaseurlsessionsdatabaseurl-gleichheit-t001678--abgeschlossen">3a. Verifikation der <code>DATABASE_URL</code>/<code>SESSIONS_DATABASE_URL</code>-Gleichheit (T001678 — abgeschlossen)</h3>
+<p>Verifikationsschritte (Kontext <code>fleet</code>, Namespaces <code>website</code> + <code>website-korczewski</code> — <strong>nicht</strong>
+<code>workspace</code>/<code>workspace-korczewski</code>, die Website läuft in eigenen Namespaces):</p>
+<div class="code-wrapper"><pre><code class="language-bash">for NS in website website-korczewski; do
+  kubectl get deploy website -n "$NS" --context fleet \
+    -o jsonpath='{.spec.template.spec.containers[0].env}' \
+    | jq '[.[] | select(.name|test("^(DATABASE|SESSIONS_DATABASE)_URL$")) | {name, value: (.value // ("fromSecret:" + .valueFrom.secretKeyRef.name + "/" + .valueFrom.secretKeyRef.key))}]'
+done
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Befund:</strong> <code>DATABASE_URL</code> ist in <strong>keinem</strong> der beiden Deployments gesetzt — weder als
+direkter <code>env</code>-Eintrag noch im <code>envFrom</code>-ConfigMap <code>website-config</code> noch als <code>PG*</code>-Fallback
+(pg-Library-Default wäre sonst gegriffen). Nur <code>SESSIONS_DATABASE_URL</code> ist vorhanden
+(je Brand auf das jeweils eigene <code>shared-db.&lt;namespace&gt;.svc.cluster.local</code>). Damit war die
+angenommene Prämisse ("evtl. andere DB") falsch — es gab <strong>gar keine</strong> funktionierende DB für
+<code>ai-metrics.ts</code>/<code>ai-quality.ts</code> in Prod. Root-Cause- und Fix-Details: Bug T001679.
+<code>ai-metrics.ts</code> + <code>ai-quality.ts</code> wurden in T001678 auf <code>db-pool.ts</code>/<code>SESSIONS_DATABASE_URL</code>
+konsolidiert (s. Tabelle oben).</p>
+<h2 id="4-index-audit-stufe-c2--explain-driven">4. Index-Audit (Stufe C2 — EXPLAIN-driven)</h2>
+<p>Drei Tabellen aus <code>intel.json</code> mit vermeintlichen Seq-Scan-„Hotspots". Stichprobe
+gegen <code>website</code> (mentolder), ausgeführt am 2026-07-09. Status: <strong>alle drei sind
+Kleintabellen mit unter 1000 Zeilen — Postgres wählt korrekt Seq Scan</strong>.</p>
+<h3 id="4a-questionnaireassignments-703-zeilen">4a. <code>questionnaire_assignments</code> (703 Zeilen)</h3>
+<p>EXPLAIN-Output für <code>SELECT id, status, customer_id FROM questionnaire_assignments WHERE customer_id = $1</code>:</p>
+<div class="code-wrapper"><pre><code>Seq Scan on questionnaire_assignments  (cost=0.00..21.79 rows=1 width=41) (actual time=0.176..0.176 rows=0 loops=1)
+  Filter: (customer_id = '…'::uuid)
+  Rows Removed by Filter: 703
+  Buffers: shared hit=13
+Execution Time: 0.219 ms
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>EXPLAIN-Output für <code>SELECT * FROM questionnaire_assignments WHERE status = 'pending' LIMIT 50</code>:</p>
+<div class="code-wrapper"><pre><code>Limit  (cost=0.00..21.79 rows=1 width=147) (actual time=0.449..0.450 rows=0 loops=1)
+  Buffers: shared read=13
+  -&gt;  Seq Scan on questionnaire_assignments  (cost=0.00..21.79 rows=1 width=147) (actual time=0.447..0.448 rows=0 loops=1)
+        Filter: (status = 'pending'::text)
+        Rows Removed by Filter: 703
+        Buffers: shared read=13
+Execution Time: 0.593 ms
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Entscheidung: KEIN Index-Add.</strong> Ausführungszeit &lt;0.6 ms bei 703 Zeilen; ein
+Index-Lookup würde die Few-Row-Filter nicht beschleunigen (Plan-Wechsel findet
+bei <code>~5000+</code> Zeilen statt, nicht bei &lt;1000). Indiziert werden sollte erst, wenn
+die Tabelle regelmäßig <code>&gt;10k</code> Zeilen erreicht.</p>
+<h3 id="4b-factoryphaseevents-958-zeilen">4b. <code>factory_phase_events</code> (958 Zeilen)</h3>
+<p>EXPLAIN-Output für <code>SELECT … FROM tickets.factory_phase_events WHERE ticket_id = $1 ORDER BY at DESC LIMIT 1</code> (Hot-Path in <code>factory-floor.ts:392</code>):</p>
+<div class="code-wrapper"><pre><code>Limit  (cost=0.28..8.29 rows=1 width=54) (actual time=0.017..0.017 rows=0 loops=1)
+  Buffers: shared hit=2
+  -&gt;  Index Scan using factory_phase_events_ticket_at_idx on factory_phase_events  …
+        Index Cond: (ticket_id = '…'::uuid)
+Execution Time: 0.247 ms
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Bereits optimal</strong>: existierender Composite-Index <code>(ticket_id, at DESC)</code> greift.</p>
+<p>EXPLAIN-Output für <code>SELECT COALESCE(MAX(at)::text, '') FROM tickets.factory_phase_events</code>
+(<code>pages/api/factory-floor/stream.ts:29</code>):</p>
+<div class="code-wrapper"><pre><code>Aggregate  (cost=25.55..25.57 rows=1 width=32) (actual time=0.744..0.745 rows=1 loops=1)
+  Buffers: shared hit=14 dirtied=1
+  -&gt;  Seq Scan on factory_phase_events  (cost=0.00..23.24 rows=924 width=8) (actual time=0.018..0.422 rows=958 loops=1)
+Execution Time: 0.857 ms
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Entscheidung: KEIN Index-Add.</strong> MAX über alle Zeilen ist mit Seq Scan korrekt
+(kein <code>WHERE</code>); ein partieller Index nur für <code>at</code> würde nichts bringen, da der
+Planner bei einer Tabellenseite pro Tupel-Block schneller scannt.</p>
+<h3 id="4c-ticketlinks-96-zeilen">4c. <code>ticket_links</code> (96 Zeilen)</h3>
+<p>EXPLAIN-Output für <code>SELECT pr_number FROM tickets.ticket_links WHERE from_id = $1 AND kind = 'fixes' AND pr_number IS NOT NULL ORDER BY created_at DESC LIMIT 1</code>:</p>
+<div class="code-wrapper"><pre><code>Limit  (cost=3.99..3.99 rows=1 width=12) (actual time=0.168..0.170 rows=0 loops=1)
+  Buffers: shared hit=5
+  -&gt;  Sort  (cost=3.99..3.99 rows=1 width=12) (actual time=0.166..0.167 rows=0 loops=0)
+        Sort Method: quicksort  Memory: 25kB
+        -&gt;  Seq Scan on ticket_links  (cost=0.00..3.98 rows=1 width=12) (actual time=0.053..0.053 rows=0 loops=1)
+              Filter: ((pr_number IS NOT NULL) AND (from_id = '…') AND (kind = 'fixes'))
+              Rows Removed by Filter: 97
+Execution Time: 0.216 ms
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Entscheidung: KEIN Index-Add.</strong> Mit 96 Zeilen ist Seq Scan + in-Memory-Sort der
+schnellste Pfad. Hinweis: die Schema-Migration legt bereits
+<code>ticket_links_from_idx (from_id, kind)</code> und <code>ticket_links_pr_idx (pr_number) WHERE pr_number IS NOT NULL</code> an (siehe <code>tickets/tables/tickets.ts:112-114</code>); der
+hier nachgefragte Query kombiniert Filter, die der existierende <code>(from_id, kind)</code>
+Index nicht abdeckt (kein <code>pr_number IS NOT NULL</code> im Index), aber bei &lt;1000 Zeilen
+lohnt der zusätzliche Index nicht.</p>
+<h2 id="5-n1-audit-stufe-c4--stichprobe">5. N+1-Audit (Stufe C4 — Stichprobe)</h2>
+<p>Stichprobenartig gescannt: <code>website/src/lib/*-db.ts</code> und Konsorten auf
+<code>await …query</code> innerhalb <code>for … of …</code> / <code>forEach</code> / <code>Promise.all</code> über
+Einzel-IDs / Rows. Befunde:</p>
+<table>
+<thead>
+<tr>
+<th>Datei</th>
+<th>Zeile</th>
+<th>Pattern</th>
+<th>Schwere</th>
+<th>Empfehlung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>website/src/lib/codesearch-db.ts</code></td>
+<td>86–101</td>
+<td><code>for (const row of neighbors.rows) { await p().query(... per row) }</code></td>
+<td>mittel (typisch 0–10 Iterationen, gelegentlich mehr)</td>
+<td><strong>In diesem PR gefixt</strong>: <code>= ANY($1)</code> Batch-Lookup (siehe Refactor).</td>
+</tr>
+<tr>
+<td><code>website/src/lib/knowledge-db.ts</code></td>
+<td>165–171 (<code>upsertChunks</code>)</td>
+<td>per-chunk INSERT in Schleife</td>
+<td>mittel (n=Anzahl Chunks, oft 10–50)</td>
+<td>Follow-up: Sammel-INSERT via <code>unnest($1::int[], $2::uuid[], …)</code>. Größte Wirkung im Bulk-Import-Pfad.</td>
+</tr>
+<tr>
+<td><code>website/src/lib/knowledge-db.ts</code></td>
+<td>332–354 (<code>mergeCollections</code>)</td>
+<td>doc-insert in doppelter Schleife (srcId × docs)</td>
+<td>mittel (typisch klein)</td>
+<td>Follow-up: ein Bulk-INSERT pro Source-Collection via <code>unnest</code>.</td>
+</tr>
+<tr>
+<td><code>website/src/lib/invoice-storno.ts</code></td>
+<td>68–75</td>
+<td>per-line INSERT in Schleife (Billing-Storno)</td>
+<td>niedrig (typisch &lt;20 Zeilen)</td>
+<td>Follow-up: optional <code>unnest</code> — Risiko-Nutzen schlecht (seltener Pfad, immer &lt;50 Lines).</td>
+</tr>
+<tr>
+<td><code>website/src/lib/coaching-session-db.ts</code></td>
+<td>387–393</td>
+<td>per-field INSERT in Schleife (session-audit-log)</td>
+<td>niedrig (typisch 1–3 Felder)</td>
+<td>Follow-up: optional Multi-Row INSERT.</td>
+</tr>
+<tr>
+<td><code>website/src/lib/platform-db.ts</code></td>
+<td>60, 66</td>
+<td>per-slug INSERT (Plattform-Bootstrap)</td>
+<td>nichtig (einmaliger Bootstrapping)</td>
+<td>Nicht ändern.</td>
+</tr>
+<tr>
+<td><code>website/src/lib/schema/coaching-migrate.ts</code></td>
+<td>26–50</td>
+<td>per-row INSERT/SELECT</td>
+<td>tot (Datei wird in Stufe B gelöscht)</td>
+<td>Resolved durch Delete.</td>
+</tr>
+</tbody></table>
+<p><strong>In diesem PR umgesetzt:</strong> der N+1 in <code>codesearch-db.ts:86–101</code> (Hot-Path
+<code>searchCodeAugmented</code>) wird beim Pool-Refactor auf einen Batch-Query
+<code>SELECT file_path, chunk_index, content FROM code_embeddings WHERE file_path = ANY($1) LIMIT 1</code> pro <code>file_path</code> umgestellt. Damit fällt die <code>chunkRes</code>-Schleife
+weg.</p>
+<h2 id="6-ungenutzte-indizes-stufe-c3--empfehlung-kein-drop">6. Ungenutzte Indizes (Stufe C3 — Empfehlung, <strong>kein</strong> DROP)</h2>
+<p><code>pg_stat_user_indexes</code> mit <code>idx_scan = 0</code>. Achtung: Momentaufnahme aus nur einer
+DB; ein Index kann durchaus in Wartungs- oder Monatsende-Routine-Läufen genutzt
+werden, die zwischen den Stat-Resets liegen. <strong>Empfehlung:</strong> vor jedem <code>DROP INDEX</code>
+eine zweite Momentaufnahme beider Brand-DBs (gleicher Wochentag, gleicher Monat,
+nach <code>ANALYZE</code>).</p>
+<p>Die folgenden Indizes sind im aktuellen Snapshot ungenutzt (mentolder zuerst,
+korczewski-Spalte zeigt nur die Indizes, die in beiden fehlen oder sich unterscheiden).
+Vollständige Liste in <code>evidence/unused-indexes-mentolder.csv</code> und
+<code>evidence/unused-indexes-korczewski.csv</code> (siehe §8).</p>
+<p><strong>Größte Brocken (&gt;100 kB), mentolder:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tabelle</th>
+<th>Index</th>
+<th>Größe</th>
+<th>Bewertung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>knowledge.chunks</code></td>
+<td><code>chunks_embedding_hnsw</code> (HNSW)</td>
+<td>133 MB</td>
+<td><strong>KEEP</strong> — wird für RAG-Suche gebraucht; <code>idx_scan=0</code> ist verdächtig (kein Query-Plan?), in Korczewski aktiv (siehe HNSW-Nutzung in <code>knowledge-db.ts:226-230</code>) — prüfen, ob der Planer in mentolder den Index wegen fehlender <code>ANALYZE</code>-Stats übersieht (siehe §7).</td>
+</tr>
+<tr>
+<td><code>knowledge.chunks</code></td>
+<td><code>chunks_pkey</code></td>
+<td>712 kB</td>
+<td><strong>KEEP</strong> — PK, notwendig für FK-Enforcement.</td>
+</tr>
+</tbody></table>
+<p><strong>Auffällige Brand-Asymmetrie</strong> (Index in einer Brand genutzt, in der anderen nicht):</p>
+<table>
+<thead>
+<tr>
+<th>Tabelle</th>
+<th>Index</th>
+<th>mentolder</th>
+<th>korczewski</th>
+<th>Bemerkung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tickets.provider_config</code></td>
+<td><code>provider_config_coaching_active</code></td>
+<td>0 scans</td>
+<td>(siehe CSV)</td>
+<td>Partielle Index für aktive Coaching-Provider; evtl. Brand-spezifische Last.</td>
+</tr>
+<tr>
+<td><code>tickets.provider_config</code></td>
+<td><code>provider_config_coaching_brand_provider</code></td>
+<td>0 scans</td>
+<td>(siehe CSV)</td>
+<td>Lookup-Pfad in <code>coaching-ki-config-db.ts:108</code> — verdächtig.</td>
+</tr>
+<tr>
+<td><code>tickets.ticket_embeddings</code></td>
+<td><code>ticket_embeddings_hnsw_idx</code></td>
+<td>0 scans</td>
+<td>0 scans</td>
+<td>HNSW — siehe oben, ggf. ANALYZE-Stats.</td>
+</tr>
+<tr>
+<td><code>tickets.tickets</code></td>
+<td><code>tickets_attention_mode_idx</code></td>
+<td>0 scans</td>
+<td>0 scans</td>
+<td>Cockpit-Lane; wird möglicherweise durch den Cockpit-Rollup entlastet.</td>
+</tr>
+<tr>
+<td><code>tickets.tickets</code></td>
+<td><code>tickets_component_idx</code></td>
+<td>0 scans</td>
+<td>0 scans</td>
+<td>Cockpit-Komponenten-Sicht.</td>
+</tr>
+<tr>
+<td><code>public.messages</code></td>
+<td><code>idx_messages_thread</code></td>
+<td>0 scans</td>
+<td>0 scans</td>
+<td>Verdächtig bei hoher Tabellen-Last.</td>
+</tr>
+<tr>
+<td><code>public.billing_invoice_line_items</code></td>
+<td>PK</td>
+<td>0 scans</td>
+<td>0 scans</td>
+<td>PK — KEEP.</td>
+</tr>
+<tr>
+<td><code>public.billing_invoices</code></td>
+<td><code>billing_invoices_number_key</code></td>
+<td>0 scans</td>
+<td>0 scans</td>
+<td>Eindeutigkeits-Constraint — KEEP.</td>
+</tr>
+</tbody></table>
+<p><strong>Aktion: KEIN DROP in diesem PR.</strong> Die Indizes werden in der nächsten
+DB-Audit-Phase (Empfehlung: nach 30+ Tagen Postgres-Uptime beider Cluster) erneut
+bewertet. Bis dahin sind die Speicher­kosten (~200 kB pro nicht-HNSW-Index)
+gegen den DROP-Risiko (Falsch-Negativ in der Momentaufnahme) nicht zu rechtfertigen.</p>
+<h2 id="7-vacuumanalyze-hygiene-stufe-c4">7. VACUUM/ANALYZE-Hygiene (Stufe C4)</h2>
+<p>Nach dem Phase-2-Drop von <code>coaching.ki_config</code> (9 Zeilen) und
+<code>coaching.ki_config_id_map</code> (9 Zeilen) ist eine <code>VACUUM (ANALYZE)</code> der
+<code>coaching</code>-Schemas empfehlenswert, damit der Planner die geänderte
+Katalog-Größe in seinen Kosten-Schätzungen berücksichtigt:</p>
+<div class="code-wrapper"><pre><code class="language-sql">VACUUM (ANALYZE) coaching.sessions;
+VACUUM (ANALYZE) coaching.session_audit_log;
+VACUUM (ANALYZE) coaching.session_steps;
+VACUUM (ANALYZE) coaching.books;
+VACUUM (ANALYZE) coaching.chunks;
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>Analog nach dem Pool-Refactor in Stufe C1: ein <code>ANALYZE tickets.factory_phase_events</code>
+ist sinnvoll, falls die Index-Stats durch den Conn-Pool-Wechsel eine andere
+Planer-Heuristik triggern. Diese Empfehlungen sind <strong>Ops-Notizen für nach dem
+Merge</strong> — kein Bestandteil dieses PRs.</p>
+<p>Zusätzlich: das Fehlen einiger HNSW-Index-Scans (siehe §6) deutet darauf hin,
+dass <code>knowledge.chunks</code> und <code>tickets.ticket_embeddings</code> möglicherweise nie
+<code>ANALYZE</code> gelaufen sind. Einmaliges <code>ANALYZE knowledge.chunks</code> und
+<code>ANALYZE tickets.ticket_embeddings</code> (ggf. mit erhöhtem <code>statistics_target</code> für
+die <code>embedding</code>-Spalte) wird empfohlen, <strong>vor</strong> dem nächsten DB-Audit-Fenster.</p>
+<h2 id="8-evidence-files-roh-queries">8. Evidence-Files (Roh-Queries)</h2>
+<table>
+<thead>
+<tr>
+<th>Datei</th>
+<th>Inhalt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>evidence/applied-status-mentolder.csv</code></td>
+<td>§1-Resultate mentolder (28 Zeilen)</td>
+</tr>
+<tr>
+<td><code>evidence/applied-status-korczewski.csv</code></td>
+<td>§1-Resultate korczewski (28 Zeilen)</td>
+</tr>
+<tr>
+<td><code>evidence/seq-scan-hotspots.csv</code></td>
+<td><code>pg_stat_user_tables</code> für die drei Hotspot-Tabellen</td>
+</tr>
+<tr>
+<td><code>evidence/explain-questionnaire_assignments.txt</code></td>
+<td>§4a EXPLAIN-Auszüge</td>
+</tr>
+<tr>
+<td><code>evidence/explain-factory_phase_events.txt</code></td>
+<td>§4b EXPLAIN-Auszüge</td>
+</tr>
+<tr>
+<td><code>evidence/explain-ticket_links.txt</code></td>
+<td>§4c EXPLAIN-Auszüge</td>
+</tr>
+<tr>
+<td><code>evidence/unused-indexes-mentolder.csv</code></td>
+<td>§6 Snapshot mentolder</td>
+</tr>
+<tr>
+<td><code>evidence/unused-indexes-korczewski.csv</code></td>
+<td>§6 Snapshot korczewski</td>
+</tr>
+</tbody></table>
+<p>Re-Erzeugung:</p>
+<div class="code-wrapper"><pre><code class="language-bash"># Applied-Status (mentolder via mcp-postgres; korczewski via kubectl)
+BRAND=mentolder  bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql -c "SELECT '\''...'\'' AS migration, … FROM …"'
+BRAND=korczewski bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql -c "SELECT '\''...'\'' AS migration, … FROM …"'
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h2 id="9-tickets--follow-ups">9. Tickets / Follow-ups</h2>
+<table>
+<thead>
+<tr>
+<th>Ticket</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>T001676</strong> (dieser PR)</td>
+<td>Phase-2-Drop, Orphan-Migration, Pool-Konsolidierung (Codesearch/Knowledge/Notify), Index-Audit-Doku, N+1 in <code>codesearch-db.ts</code> gefixt.</td>
+</tr>
+<tr>
+<td><strong>T001677</strong> (Folge, in Triage)</td>
+<td>Migrations-System-Konsolidierung: <code>scripts/migrations/*.sql</code> unter einen getrackten Runner analog <code>website/src/db/migrate.ts</code> (<code>public.schema_migrations</code>) bringen.</td>
+</tr>
+<tr>
+<td><strong>T001678</strong> (Folge, done)</td>
+<td>Verifikation <code>DATABASE_URL</code>/<code>SESSIONS_DATABASE_URL</code> (siehe §3a) + <code>ai-metrics.ts</code>/<code>ai-quality.ts</code> Pool-Konsolidierung. Ergab Bug T001679 (DATABASE_URL in Prod nie gesetzt).</td>
+</tr>
+<tr>
+<td><strong>T001679</strong> (Bug, gefixt in T001678)</td>
+<td><code>ai-metrics.ts</code>/<code>ai-quality.ts</code> verbanden sich in Prod mit <code>connectionString: undefined</code> (pg-Default <code>localhost</code>) statt der echten DB — <code>ai_call_log</code>-Inserts scheiterten lautlos seit Feature-Einführung.</td>
+</tr>
+<tr>
+<td><strong>T001680</strong> (Folge, done)</td>
+<td>Operator-Nachzug für 3 Migrationslücken aus §1 (Zeilen 1-3, 11): <code>ai-question-human-answer</code> auf korczewski nachgezogen, <code>central-dashboard-view</code> als obsolet entfernt (kein Code-Konsument, abgelöst durch <code>v_cockpit_rollup</code>), <code>llm-availability-seed</code> auf mentolder nachgezogen (überschreibt dabei <code>ticket-triage priority=1</code> von <code>local-cluster</code> auf <code>deepseek</code> — Live-Routing-Änderung, siehe Zeile 33). <code>local-qwen35-seed</code> (Zeile 49, fehlt auf beiden Brands) bewusst nicht mit-nachgezogen.</td>
+</tr>
+<tr>
+<td><strong>T001680-Folge</strong> (done)</td>
+<td><code>ticket-triage</code> explizit auf <code>local-qwen35</code>/<code>qwen3.5-9b@iq4_xs</code> umgestellt (Priorität 1, beide Brands) — siehe Zeile 29. Zusätzlich mentolder-<code>llm-gateway-lmstudio</code>-Endpoints-IP-Drift (<code>172.17.0.1</code> statt <code>192.168.100.10</code>) per <code>kubectl patch</code> behoben.</td>
+</tr>
+<tr>
+<td><strong>TBD</strong> (Folge)</td>
+<td><code>knowledge-db.ts</code> <code>upsertChunks</code> + <code>mergeCollections</code> N+1 → <code>unnest</code>-Batch-INSERTs.</td>
+</tr>
+<tr>
+<td><strong>TBD</strong> (Folge)</td>
+<td><code>unused-indexes</code>-Re-Audit nach ≥30d Postgres-Uptime, dann DROP-Entscheidung pro Index.</td>
+</tr>
+<tr>
+<td><strong>TBD</strong> (Ops)</td>
+<td><code>VACUUM (ANALYZE) coaching.*</code> + <code>ANALYZE knowledge.chunks</code> + <code>ANALYZE tickets.ticket_embeddings</code> nach dem Merge.</td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><span class="prevnext-spacer"></span><a class="prevnext-link prevnext-next" href="./findings.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">DB Audit Phase 5 — Findings</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="./app.js"></script>
+</body>
+</html>

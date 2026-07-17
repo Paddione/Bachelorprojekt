@@ -39,7 +39,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithString("detail", mcp.Description("Optionaler Detailtext")),
 			mcp.WithString("driver", mcp.Description("factory|devflow (default: factory)"),
 				mcp.Enum("factory", "devflow")),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -65,7 +66,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithString("answers", mcp.Description("Antworten, eine pro Zeile: qid=text"), mcp.Required()),
 			mcp.WithString("questionnaire", mcp.Description("default: coaching-sessions-v1")),
 			mcp.WithBoolean("no_comment", mcp.Description("Kein Timeline-Kommentar (default false)")),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -94,7 +96,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("branch", mcp.Description("Feature/Fix-Branch"), mcp.Required()),
 			mcp.WithString("plan", mcp.Description("Plan-Datei-Pfad"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -113,7 +116,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 				mcp.Enum("bug", "feature", "task", "project"), mcp.Required()),
 			mcp.WithString("title", mcp.Description("Ticket-Titel"), mcp.Required()),
 			mcp.WithString("description", mcp.Description("Beschreibung (Pflicht in create.sh)"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 			mcp.WithString("priority", mcp.Description("hoch|mittel|niedrig (default mittel)"),
 				mcp.Enum("hoch", "mittel", "niedrig")),
 			mcp.WithString("severity", mcp.Description("critical|major|minor|trivial"),
@@ -146,7 +150,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("branch", mcp.Description("Optionaler Branch")),
 			mcp.WithString("plan", mcp.Description("Optionaler Plan-Pfad")),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -168,7 +173,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithDescription("Setzt die touched_files eines Tickets (Konflikt-/Scope-Tracking)."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("files", mcp.Description("Komma- oder Whitespace-getrennte Pfade (wie ticket.sh erwartet)"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -184,7 +190,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithDescription("Lädt die Attachments eines Tickets in ein Zielverzeichnis (out_dir Pflicht)."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("out_dir", mcp.Description("Zielverzeichnis (wird angelegt)"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -203,7 +210,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithString("branch", mcp.Description("Feature/Fix-Branch"), mcp.Required()),
 			mcp.WithString("plan_file", mcp.Description("Pfad zur Plan-Datei"), mcp.Required()),
 			mcp.WithString("pr", mcp.Description("Optionale PR-Nummer (integer)")),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -225,7 +233,8 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithDescription("Verknüpft eine PR-Nummer mit einem Ticket (tickets.ticket_links kind=pr)."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("pr", mcp.Description("PR-Nummer (integer)"), mcp.Required()),
-			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)")),
+			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
+				mcp.Enum("mentolder", "korczewski")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)

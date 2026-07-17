@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.39.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.38.0...brett-v0.39.0) (2026-07-17)
+
+
+### Features
+
+* **brett:** Systembrett-Vollausbau auf 18 Zielfunktionen [T001931] ([#2915](https://github.com/Paddione/Bachelorprojekt/issues/2915)) ([bc84f03](https://github.com/Paddione/Bachelorprojekt/commit/bc84f038904fcb68c51a2cbb5baa8453b358a3bf))
+
 ## [0.38.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.37.0...brett-v0.38.0) (2026-07-15)
 
 

@@ -28,9 +28,9 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
-@test "sessions overview does not contain Neue Session link" {
+@test "sessions overview contains Neue Session link (T001938: studio route is gone, sessions list is the only entry point)" {
   run grep -qF "+ Neue Session" "$WEB/components/admin/coaching/SessionsOverview.svelte"
-  [ "$status" -ne 0 ]
+  [ "$status" -eq 0 ]
 }
 
 @test "coaching studio page wrapper was removed with the dead route" {

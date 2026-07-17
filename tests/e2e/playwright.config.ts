@@ -222,6 +222,8 @@ export default defineConfig({
         '**/brett-mannequin.spec.ts',  // mannequin focus
         '**/brett-roles.spec.ts',      // C7 role enforcement (opens its own contexts)
         '**/brett-share-link.spec.ts', // T000608 public view-only share link
+        '**/brett-session-lifecycle.spec.ts', // session-active/round-phases/kick/handoff (opens its own contexts)
+        '**/brett-hidden-figures.spec.ts',    // E9 verdecktes Arbeiten — role-filter security test (opens its own contexts)
       ],
       use: {
         ...devices['Desktop Chrome'],

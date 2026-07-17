@@ -270,10 +270,38 @@ export function applyMutation(room: string, msg: any): void {
       }
       break;
     }
+    case 'zone_update': {
+      // E1: verschieben/skalieren/umstylen einer bestehenden Zone. Shallow-Merge
+      // NUR der definierten Felder — unbekannte zoneId ist ein No-op (keine
+      // Phantom-Zone). Server-autoritativ, leiter-gated via ADMIN_TYPES.
+      if (typeof msg.zoneId === 'string') {
+        const existing: any[] = figs.get('__zones__')?.zones ?? [];
+        let changed = false;
+        const updated = existing.map((z: any) => {
+          if (z.id !== msg.zoneId) return z;
+          changed = true;
+          const patch: any = {};
+          for (const k of ['x', 'z', 'width', 'height', 'radius', 'label', 'opacity', 'variant'] as const) {
+            if (msg[k] !== undefined) patch[k] = msg[k];
+          }
+          return { ...z, ...patch };
+        });
+        if (changed) figs.set('__zones__', { id: '__zones__', zones: updated });
+      }
+      break;
+    }
     case 'zone_delete': {
       if (typeof msg.zoneId === 'string') {
         const existing: any[] = figs.get('__zones__')?.zones ?? [];
         figs.set('__zones__', { id: '__zones__', zones: existing.filter((z: any) => z.id !== msg.zoneId) });
+      }
+      break;
+    }
+    case 'figure_hide_set': {
+      // E9: verdecktes Arbeiten. Setzt Figure.hidden. Existierende Figur nötig
+      // (kein Phantom). Filterung passiert am Broadcast-/Snapshot-Rand.
+      if (typeof msg.figureId === 'string' && figs.has(msg.figureId)) {
+        figs.set(msg.figureId, { ...figs.get(msg.figureId), hidden: !!msg.hidden });
       }
       break;
     }

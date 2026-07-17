@@ -16,6 +16,7 @@ import {
 } from './ws-handler';
 import { handleAdminMessage } from './ws-admin-commands';
 import { handleFigurePossess, handleFigureRelease, handleFigureNoteSet } from './ws-figure-commands';
+import { filterSnapshotFigures, broadcastFigureAware } from './hidden-filter';
 import * as undoStack from './undo-stack';
 
 export function handleDisconnect(ws: any, deps: WsDeps): void {
@@ -147,7 +148,12 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
               role: persistedRoles[p.userId],
             }));
             const locks = deps.listFigureLocks(room);
-            const snaps = Object.values(freshState.figures);
+            // E9: hidden-Figuren nur für den Leiter im Snapshot — jede andere
+            // Rolle (inkl. Guest/Zuschauer) erhält sie nie.
+            const recipientRole: any = (ws._isGuest || ws._isZuschauer)
+              ? 'zuschauer'
+              : deps.resolveRole(ws, persistedRoles);
+            const snaps = filterSnapshotFigures(Object.values(freshState.figures) as any, recipientRole);
             try {
               ws.send(JSON.stringify({
                 type: 'snapshot',
@@ -265,7 +271,10 @@ export function attachWsServer(wss: WebSocketServer, deps: WsDeps): void {
           }
 
           deps.applyMutation(room, msg);
-          deps.broadcast(room, msg, ws);
+          // E9: figurenbezogene Relays role-aware broadcasten, damit Mutationen an
+          // hidden-Figuren Nicht-Leiter nie erreichen. Nicht-Figuren-Relays
+          // (clear/stiffness/snapshot) reicht translateBroadcastForRole unverändert durch.
+          broadcastFigureAware(deps, room, msg, ws);
 
           if (deps.logEvent) {
             const { type: _type, ...safePayload } = msg;

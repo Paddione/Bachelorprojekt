@@ -147,6 +147,7 @@ const wsDeps = {
   joinRoom: rooms.joinRoom,
   leaveRoom: rooms.leaveRoom,
   broadcast: rooms.broadcast,
+  broadcastRoleAware: rooms.broadcastRoleAware,
   broadcastInfo: rooms.broadcastInfo,
   addParticipant: rooms.addParticipant,
   removeParticipant: rooms.removeParticipant,

@@ -40,6 +40,30 @@ export function broadcast(room: string, msg: any, exclude?: any): void {
   }
 }
 
+/**
+ * E9 — Role-aware Broadcast. Iteriert die Peers, löst pro Peer die Rolle auf
+ * (`resolveRoleForWs`), übersetzt die Message (`translate`) und sendet nur
+ * non-null-Ergebnisse. Der Filter-Rand für verdecktes Arbeiten: hidden-Daten
+ * verlassen den Server nur an den Leiter. `translate` liefert `null` → kein Send.
+ */
+export function broadcastRoleAware(
+  room: string,
+  msg: any,
+  resolveRoleForWs: (ws: any) => any,
+  translate: (msg: any, role: any) => any | null,
+  exclude?: any,
+): void {
+  const peers = rooms.get(room);
+  if (!peers) return;
+  for (const peer of peers) {
+    if (peer === exclude || peer.readyState !== WebSocket.OPEN) continue;
+    const role = resolveRoleForWs(peer);
+    const out = translate(msg, role);
+    if (out == null) continue;
+    peer.send(JSON.stringify(out));
+  }
+}
+
 export function broadcastInfo(room: string): void {
   const count = rooms.get(room)?.size ?? 0;
   broadcast(room, { type: 'info', count });

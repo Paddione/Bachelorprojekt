@@ -1,5 +1,6 @@
 import type { WsDeps } from './ws-handler';
 import { resolvePlayerId } from './ws-handler';
+import { broadcastFigureAware } from './hidden-filter';
 
 function getModerationState(deps: Pick<WsDeps, 'figureMaps'>, room: string): { spotlight: string | null; dim: string | null; freeze: boolean } {
   const entry = deps.figureMaps.get(room)?.get('__moderation__');
@@ -355,6 +356,24 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       deps.schedulePersist(adminRoom);
       return;
     }
+    case 'zone_update': {
+      // E1: verschieben/skalieren/umstylen. Zone muss existieren.
+      if (typeof msg.zoneId !== 'string') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid_zone_id' })); } catch {}
+        return;
+      }
+      const zonesBefore: any[] = deps.buildStateFromMutations(adminRoom)?.zones ?? [];
+      if (!zonesBefore.some((z: any) => z.id === msg.zoneId)) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
+        return;
+      }
+      deps.applyMutation(adminRoom, { type: 'zone_update', ...msg });
+      const zonesAfter: any[] = deps.buildStateFromMutations(adminRoom)?.zones ?? [];
+      const updatedZone = zonesAfter.find((z: any) => z.id === msg.zoneId);
+      if (updatedZone) deps.broadcast(adminRoom, { type: 'zone_updated', zone: updatedZone });
+      deps.schedulePersist(adminRoom);
+      return;
+    }
     case 'zone_delete': {
       if (typeof msg.zoneId !== 'string') {
         try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid_zone_id' })); } catch {}
@@ -362,6 +381,23 @@ export async function handleAdminMessage(ws: any, msg: any, adminRoom: string, d
       }
       deps.applyMutation(adminRoom, { type: 'zone_delete', zoneId: msg.zoneId });
       deps.broadcast(adminRoom, { type: 'zone_removed', zoneId: msg.zoneId });
+      deps.schedulePersist(adminRoom);
+      return;
+    }
+    case 'figure_hide_set': {
+      // E9: verdecktes Arbeiten. Setzt Figure.hidden und broadcastet die
+      // Transition role-aware (Nicht-Leiter erhalten add/delete statt hidden-Daten).
+      if (typeof msg.figureId !== 'string') {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'invalid_figure_id' })); } catch {}
+        return;
+      }
+      if (!deps.figureMaps.get(adminRoom)?.has(msg.figureId)) {
+        try { ws.send(JSON.stringify({ type: 'error', reason: 'not-found' })); } catch {}
+        return;
+      }
+      const hidden = !!msg.hidden;
+      deps.applyMutation(adminRoom, { type: 'figure_hide_set', figureId: msg.figureId, hidden });
+      broadcastFigureAware(deps, adminRoom, { type: 'figure_hidden_changed', figureId: msg.figureId, hidden });
       deps.schedulePersist(adminRoom);
       return;
     }

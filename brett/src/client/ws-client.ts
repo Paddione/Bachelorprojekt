@@ -361,6 +361,8 @@ export function onWsMessage(evt: MessageEvent): void {
       // Start POV if it's our own possession
       if (msg.playerId === currentUser.userId) {
         import('./pov-camera').then(m => m.startPov(msg.figureId));
+        // E5: POV-Panel für Innensicht-Wechsel/Dialog/Meta einblenden.
+        import('./ui/pov-panel').then(m => m.refreshPovPanelForOwnPossession(msg.figureId, msg.playerId));
       }
       break;
     }
@@ -370,6 +372,7 @@ export function onWsMessage(evt: MessageEvent): void {
       // Stop POV if it was our possession
       if (msg.playerId === currentUser.userId) {
         import('./pov-camera').then(m => m.stopPov());
+        import('./ui/pov-panel').then(m => m.unmountPovPanel());
       }
       break;
     }

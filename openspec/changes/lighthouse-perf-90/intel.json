@@ -1,0 +1,68 @@
+{
+  "meta": {
+    "slug": "lighthouse-perf-90",
+    "ticket_id": "T001922",
+    "created": "2026-07-17",
+    "spec": "docs/superpowers/specs/2026-07-17-lighthouse-perf-90-design.md",
+    "target_spec": "website-core"
+  },
+  "impact_files": [
+    { "path": "k3d/website.yaml", "loc": 826, "s1_limit": 0, "s1_baseline": null, "s1_budget": null, "note": "ungated (.yaml) — IngressRoute Zeile ~510-525, Middlewares ergänzen" },
+    { "path": "website/src/layouts/Layout.astro", "loc": 104, "s1_limit": 400, "s1_baseline": null, "s1_budget": 296, "note": "client:load→client:idle für CookieConsent (Z.101) + PortalSidekick (Z.102)" },
+    { "path": "website/src/components/Portrait.svelte", "loc": 272, "s1_limit": 500, "s1_baseline": null, "s1_budget": 228, "note": "img Z.31: loading=lazy → eager + fetchpriority + width/height" },
+    { "path": "website/src/config/brands/mentolder.ts", "loc": 428, "s1_limit": 600, "s1_baseline": null, "s1_budget": 172, "note": "avatarSrc Z.81: /gerald.jpg → /gerald.webp" },
+    { "path": "website/src/styles/global.css", "loc": 412, "s1_limit": 0, "s1_baseline": null, "s1_budget": null, "note": "ungated (.css) — Google-Fonts-@import Z.2 entfernen" },
+    { "path": "tests/spec/website-core.bats", "loc": null, "s1_limit": 0, "s1_baseline": null, "s1_budget": null, "note": "existiert ggf. noch nicht — Struktur-Tests rot→grün hier ergänzen" }
+  ],
+  "symbols": [
+    {
+      "name": "Portrait <img>",
+      "file": "website/src/components/Portrait.svelte",
+      "line": 31,
+      "signature": "<img src={avatarSrc} alt={`${name}, ${role}`} loading=\"lazy\" />",
+      "type_text": "Svelte-Template-Element; Props: avatarSrc: string, name: string, role: string"
+    },
+    {
+      "name": "avatarSrc (mentolder brand config)",
+      "file": "website/src/config/brands/mentolder.ts",
+      "line": 81,
+      "signature": "avatarSrc: '/gerald.jpg'",
+      "type_text": "string — Pfad relativ zu website/public/; Typ definiert in website/src/config/types.ts"
+    },
+    {
+      "name": "Layout head fonts",
+      "file": "website/src/layouts/Layout.astro",
+      "line": 83,
+      "signature": "<link href=\"https://fonts.googleapis.com/css2?family=Newsreader:...&family=Geist:...&family=Geist+Mono:...&display=swap\" rel=\"stylesheet\" />",
+      "type_text": "einzige verbleibende Font-Quelle nach E3; preconnect Z.81-82 vorhanden"
+    },
+    {
+      "name": "Layout body islands",
+      "file": "website/src/layouts/Layout.astro",
+      "line": 101,
+      "signature": "<CookieConsent client:load />\\n<PortalSidekick client:load />",
+      "type_text": "Svelte-Islands; Ziel: client:idle"
+    },
+    {
+      "name": "website IngressRoute",
+      "file": "k3d/website.yaml",
+      "line": 510,
+      "signature": "kind: IngressRoute (traefik.io/v1alpha1) — Service Port 80→4321, keine middlewares-Liste",
+      "type_text": "Traefik CRD; Middleware-Referenzen unter routes[].middlewares: [{name: ...}]"
+    }
+  ],
+  "call_graph": [],
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [
+    {
+      "library": "traefik.io/v1alpha1 Middleware",
+      "note": "compress: {} — excludedContentTypes default schließt text/event-stream aus (SSE sicher); headers.customResponseHeaders für Cache-Control"
+    }
+  ],
+  "risks": [
+    { "severity": "warn", "text": "Live-Score erst nach Merge+Prod-Deploy messbar — Offline-Verify nur strukturell (BATS + kustomize build)" },
+    { "severity": "warn", "text": "SSE-Endpoints (/api/admin/ops/server-logs/stream) nach Compress-Middleware live gegentesten" },
+    { "severity": "info", "text": "Baseline T001911: Score 60, FCP 6.0s, LCP 7.5s, TTI 7.5s, TBT 0, CLS 0; Opportunities: text-compression ~622KiB, unused-js ~278KiB, responsive-images ~146KiB" }
+  ]
+}

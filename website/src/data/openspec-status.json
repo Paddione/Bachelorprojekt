@@ -1101,6 +1101,12 @@
       "status": "archived"
     }
   ],
+  "T001922": [
+    {
+      "slug": "lighthouse-perf-90",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

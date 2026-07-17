@@ -308,3 +308,9 @@ PERF_KORCZEWSKI_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-korczewski/kus
 @test "T001922 perf: korczewski overlay binds website-compress to the IngressRoute" {
   run grep -q 'website-compress' "$PERF_KORCZEWSKI_KUST"; [ "$status" -eq 0 ]
 }
+
+@test "T001929 perf: mentolder content bundle avatarSrc references gerald.webp (live source)" {
+  HOMEPAGE_JSON="$BATS_TEST_DIRNAME/../../website/content/mentolder/homepage.json"
+  run grep -q '"avatarSrc": "/gerald.webp"' "$HOMEPAGE_JSON"; [ "$status" -eq 0 ]
+  run grep -q 'gerald.jpg' "$HOMEPAGE_JSON"; [ "$status" -ne 0 ]
+}

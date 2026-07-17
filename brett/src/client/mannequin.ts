@@ -410,7 +410,7 @@ export function disposeMannequin(fig: { root: THREE.Object3D }): void {
 // Re-exports für Rückwärtskompatibilität
 export { tickSpring, startJump, resolveCollisions, _floorClampScratch } from './mannequin-physics';
 export {
-  updatePossessionVisuals, clearPossessionVisuals, applyFigureOpacity,
+  updatePossessionVisuals, clearPossessionVisuals, applyFigureOpacity, updateHiddenBadge,
   updateModerationVisuals, clearModerationVisuals,
   type ModerationVisualState,
 } from './mannequin-visuals';

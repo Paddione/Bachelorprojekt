@@ -126,10 +126,15 @@ export function onWsMessage(evt: MessageEvent): void {
         if ((f as any).note !== undefined) {
           (fig as any).note = (f as any).note;
         }
+        // E9: hidden/opacity aus Snapshot übernehmen (nur der Leiter erhält
+        // hidden-Figuren überhaupt — der Server filtert sie sonst weg).
+        if ((f as any).hidden) (fig as any).hidden = true;
+        if (typeof (f as any).opacity === 'number') (fig as any).opacity = (f as any).opacity;
         STATE.figures.push(fig);
         if (f.appearance) {
           applyAppearanceToFig(fig, f.appearance);
         }
+        mannequin.updateHiddenBadge(fig);
       }
       if (typeof msg.stiffness === 'number') {
         STATE.stiffness = msg.stiffness;
@@ -405,6 +410,18 @@ export function onWsMessage(evt: MessageEvent): void {
             }
           }).catch(() => {});
         }
+      }
+      break;
+    }
+
+    case 'figure_hidden_changed': {
+      // E9: NUR der Leiter erhält diese Message (Server übersetzt sie für
+      // Nicht-Leiter in add/delete). Lokalen hidden-State + Visuals aktualisieren.
+      const fig = STATE.figures.find(f => f.id === msg.figureId);
+      if (fig) {
+        (fig as any).hidden = msg.hidden;
+        mannequin.applyFigureOpacity(fig, STATE.selectedId === fig.id ? 1.0 : 0.55);
+        mannequin.updateHiddenBadge(fig);
       }
       break;
     }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.186.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.1...website-v1.186.2) (2026-07-17)
+
+
+### Bug Fixes
+
+* **website:** switch live avatarSrc content source to gerald.webp [T001929] ([#2903](https://github.com/Paddione/Bachelorprojekt/issues/2903)) ([523622b](https://github.com/Paddione/Bachelorprojekt/commit/523622b7451d8fa7d560cff1e0ae20e83d9bd41c))
+
 ## [1.186.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.186.0...website-v1.186.1) (2026-07-17)
 
 

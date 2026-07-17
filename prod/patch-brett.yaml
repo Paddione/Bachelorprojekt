@@ -8,5 +8,8 @@ spec:
       containers:
         - name: brett
           env:
-            - name: POCKET_ID_PUBLIC_URL
+            # T001933: brett/src/server/auth.ts liest POCKET_ID_FRONTEND_URL —
+            # der alte Name POCKET_ID_PUBLIC_URL wurde nie gelesen (Issuer-
+            # Mismatch bei der Discovery → /auth/login 500 auf beiden Brands).
+            - name: POCKET_ID_FRONTEND_URL
               value: "https://auth.${PROD_DOMAIN}"

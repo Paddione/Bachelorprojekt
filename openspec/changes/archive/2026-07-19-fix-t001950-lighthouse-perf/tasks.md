@@ -1,3 +1,16 @@
+---
+title: Plan: Fix T001950 — Lighthouse Performance 74→≥90
+ticket_id: T001950
+domains: [website, ops]
+status: completed
+pr_number: 2948
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: null
+depends_on_plans: []
+---
+
 # Plan: Fix T001950 — Lighthouse Performance 74→≥90
 
 ## Context

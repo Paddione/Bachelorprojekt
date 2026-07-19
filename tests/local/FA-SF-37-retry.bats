@@ -112,9 +112,17 @@ BLS="$BATS_TEST_DIRNAME/../../scripts/factory/build-loop.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: pipeline.js hat BL.require" {
-  run grep -qE "require.*build-loop" "$PJS"
+@test "FA-SF-37-retry: pipeline.js inlines its own runTaskVerifyLoop (no require, sandbox mode)" {
+  # The Workflow sandbox has no require()/Node API — pipeline.js can no longer
+  # `require('./build-loop.cjs')` for BL.resolveAgentModel/runTaskVerifyLoop.
+  # It now inlines runTaskVerifyLoop directly and routes every agent() call
+  # through the fixed FACTORY_MODEL (local LM Studio) instead of per-call
+  # provider-tier routing. build-loop.cjs itself still exports the function
+  # for callers that DO have Node API access (e.g. pipeline-runner.js).
+  run grep -qE "^async function runTaskVerifyLoop" "$PJS"
   [ "$status" -eq 0 ]
+  run grep -qE "require\(" "$PJS"
+  [ "$status" -ne 0 ]
 }
 
 @test "FA-SF-37-retry: pipeline.js nutzt runTaskVerifyLoop" {

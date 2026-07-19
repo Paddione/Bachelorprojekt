@@ -75,13 +75,17 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   [[ "$output" -ge 2 ]]
 }
 
-@test "SCS-4: pipeline.js has SCS query in Scout phase" {
-  run grep -c 'codesearch' "$PROJECT_DIR/scripts/factory/pipeline.js"
+@test "SCS-4: pipeline-runner.js has SCS query in Scout phase" {
+  # The Workflow sandbox has no fetch-from-Node-with-Node-API concerns as such,
+  # but ALL Scout-phase logic (including the SCS codesearch call) lives in the
+  # host-side pipeline-runner.js now — pipeline.js only spawns an agent that
+  # shells out to it (see runRunner('scout', ...) in pipeline.js).
+  run grep -c 'codesearch' "$PROJECT_DIR/scripts/factory/pipeline-runner.js"
   [[ "$output" -ge 1 ]]
 }
 
-@test "SCS-4: pipeline.js SCS has graceful degradation (try/catch)" {
-  run grep -c 'graceful degradation' "$PROJECT_DIR/scripts/factory/pipeline.js"
+@test "SCS-4: pipeline-runner.js SCS has graceful degradation (try/catch)" {
+  run grep -c 'graceful degradation' "$PROJECT_DIR/scripts/factory/pipeline-runner.js"
   [[ "$output" -ge 1 ]]
 }
 

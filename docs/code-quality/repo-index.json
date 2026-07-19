@@ -2848,7 +2848,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 510,
+      "file_count": 511,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3318,6 +3318,7 @@
         "scripts/ticket-mcp/go/internal/tools/mishap_test.go",
         "scripts/ticket-mcp/go/internal/tools/planning.go",
         "scripts/ticket-mcp/go/internal/tools/triage.go",
+        "scripts/ticket-mcp/go/internal/tools/triage_test.go",
         "scripts/ticket-mcp/go/internal/tools/workflow.go",
         "scripts/ticket-mcp/go/internal/tools/workflow_test.go",
         "scripts/ticket-status-validate.sh",

@@ -96,7 +96,7 @@
     "priority": "B",
     "direction": "lower",
     "baseline": 17,
-    "current": 17,
+    "current": 0,
     "target": 0,
     "unit": "",
     "status": "unknown",

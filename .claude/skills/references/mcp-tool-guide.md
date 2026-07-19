@@ -22,6 +22,13 @@ Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencod
 > MCP-Read-Tool. Ticket-Lifecycle-Writes gehen über die `ticket-mcp`-Wrapper (die shellen zu
 > `ticket.sh`, dem sanktionierten Write-Pfad) — nicht über `mcp-postgres`.
 
+> **Prod-Write-Guard [T001954].** Schreibende SQL-Operationen (CREATE, INSERT, UPDATE, DELETE,
+> ALTER, DROP, TRUNCATE) gegen Produktions-Namespaces (`mentolder`, `workspace-korczewski`) sind
+> für Subagenten verboten. Der Guard `scripts/prod-write-guard.sh check <namespace> <sql>`
+> prüft vor jeder Schreiboperation. Main-Session-Operatoren können mit
+> `--confirm-prod-write` überschreiben (wird geloggt). Subagenten haben keinen Zugriff auf
+> dieses Flag (bash-Write-Permission fehlt).
+
 ### Verfügbarkeits-Check (Portforward-Guard — vor MCP-Nutzung prüfen)
 
 Das MCP-Tool ist direkt verfügbar, wenn der Server läuft. Schneller Health-Check (Beispiel
@@ -57,6 +64,10 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
   psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
   ```
+- ⚠️ **Prod-Write-Guard:** Vor jedem schreibenden `psql()`-Aufruf gegen prod-Namespaces
+  (`mentolder`, `workspace-korczewski`) den Guard aufrufen:
+  `bash scripts/prod-write-guard.sh check <namespace> "<SQL>"`. Subagenten werden automatisch
+  blockiert; Main-Operatoren nutzen `--confirm-prod-write` für bewusste Overrides.
 - ⚠️ `tickets.ticket_plans`: nie `SELECT *` oder die `content`-Spalte über die ganze Tabelle (MB-Transfer
   über `kubectl exec` → Timeout). Immer Metadaten (`id`, `ticket_id`, `slug`, `branch`, `pr_number`,
   `archived_at`) oder gezielt nach `ticket_id`/`slug` filtern.

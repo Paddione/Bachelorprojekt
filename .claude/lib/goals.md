@@ -129,7 +129,7 @@ pro Tabelle vor einem Drop. Volle Klassifikation → Nachfolgeticket T001928.
 
 > **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908, verbleibende 8 nicht Teil des Scopes) → Nachfolger **T001948**
 
-## G-SEC06 — Container Images mit High/Critical CVEs: 39 🔴 (Ziel 0)
+## G-SEC06 — Container Images mit High/Critical CVEs: 8 🟡 (Ziel 0)
 
 **Was:** Zählt unique Container-Images im aktiven Deployment mit bekannten CVEs der
 Severity `HIGH` oder `CRITICAL`. Trivy-Scan ist jetzt in CI integriert (`.github/workflows/ci.yml`
@@ -139,11 +139,27 @@ nicht gescannt (Build-Zeitpunkt variiert).
 
 Erster Scan (2026-07-17): **39 CRITICAL / 706 HIGH** über alle 14 Images — Details und CVE-Triage
 in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17-trivy-cve-baseline.md).
-Alle CRITICAL-Funde sind fixable (kein False-Positive), konzentriert auf `alpine/k8s:1.34.0`
-(23/39). Fix erfordert Image-Pin-Refresh mit Rollout-Test — separates Folgeticket vorgeschlagen,
-bewusst nicht Teil dieses Baseline-Chores. Im selben Zug wurde ein Bug in `trivy-scan.sh` behoben
-(fehlender `ghcr.io/`-Prefix beim pocket-id-Image ließ den Scan für dieses Image still auf 0
-CVEs fallen statt zu fehlschlagen).
+
+**Image-Pin-Refresh (2026-07-19, T001949): 39 → 8 CRITICAL (−79 %).** Vier Images gebumpt:
+`alpine/k8s:1.34.0 → 1.36.2` (23→4 CRITICAL — der Baseline-Report ging fälschlich von
+`registry.gitlab.com/alpine/k8s` aus; das Manifest referenziert tatsächlich das **Docker-Hub**-Image
+`alpine/k8s`, das aktiv gepflegt wird und Tags bis `1.36.x` führt), `pgvector/pgvector:0.8.0-pg16 →
+0.8.5-pg16` (8→1), `nats:2.10-alpine → 2.12-alpine` (3→0), `livekit/egress:v1.9.0 → v1.13.0` (2→0).
+Alle vier Digest-Bumps mit `trivy image --severity CRITICAL` einzeln verifiziert vor dem Merge.
+
+**Verbleibende 8 CRITICAL sind aktuell nicht per Tag-Bump behebbar** (jeweils bereits neuester
+verfügbarer Tag geprüft):
+- `postgres:16-alpine` (1): `CVE-2025-68121` in vendored `usr/local/bin/gosu`-Binary (alte
+  Go-Toolchain) — Digest von `16-alpine`/`16-alpine3.24` ist bereits identisch mit dem gepinnten Stand.
+- `pgvector/pgvector:0.8.5-pg16` (1): dieselbe `gosu`-Ursache wie postgres — Upstream-Image nutzt
+  denselben Base-Layer.
+- `alpine/k8s:1.36.2` (4): `CVE-2026-33186` (vendored `grpc-go` in `kustomize`) + `CVE-2025-68121`
+  (Go stdlib) — bereits neuester Tag.
+- `livekit/ingress:v1.5.0` (2): `CVE-2026-33186` (`grpc-go`) — `v1.5.0` ist der neueste verfügbare
+  Tag auf Docker Hub (livekit/egress hat seither v1.13.0 erreicht, ingress stagniert bei v1.5.x).
+
+Alle vier Restfälle brauchen ein Upstream-Release (gosu-Rebuild bzw. grpc-go-Bump), kein
+Repo-seitiger Fix. Follow-up bei nächstem Upstream-Release erneut prüfen.
 
 ```bash
 # Messung (lokal):
@@ -151,7 +167,11 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 # CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)
 ```
 
-> **B · Baseline:** 39 · **Target:** 0 · **Aufwand:** mittel (Image-Pin-Refresh für 6 betroffene Images, siehe Audit-Report) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (**done ohne Messwert-Fix** — nur Baseline-Scan, Nachfolger von T001840) → Nachfolger **T001949**
+> **B · Baseline:** 39 → 8 (Image-Pin-Refresh für 4 von 6 im Audit-Report benannten Images; die
+> übrigen 2 [postgres, livekit/ingress] hatten keinen fixenden Tag verfügbar) · **Target:** 0 ·
+> **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001949
+> (**gefixt, Target nicht erreicht** — 8 CRITICAL sind Upstream-blockiert, kein Folgeticket bis
+> neue Upstream-Releases vorliegen — Nachfolger von T001909)
 
 ## G-FE05 — Lighthouse Performance Score < 90: n/a → ≥ 90
 
@@ -169,7 +189,7 @@ npx @lhci/cli autorun \
   --assert.performance=0.9
 ```
 
-> **B · Baseline:** 60 → 74 (Messung 2026-07-17 nach T001922-Deploy, 3× `npx @lhci/cli autorun` gegen `https://web.mentolder.de`, Score konstant 74/100; FCP 3.9s, LCP 4.2s, TBT 0ms, CLS 0. T001922/PR #2899+#2902+#2903 lieferte: Traefik-Kompression + immutable `/_astro/`-Cache beide Brands, LCP-Bild → 17-KB-WebP eager/fetchpriority, Font-Doppel-Ladung entfernt, CookieConsent/PortalSidekick → client:idle. Verbleibende Hebel: Google-Fonts-Self-Hosting — 248 KB Third-Party + 806 ms render-blockend —, `sidekick-panels.css` aus dem Critical Path — 423 ms —, ~80 KB unused JS. WSL-Gotcha: `CHROME_PATH=/usr/bin/google-chrome` setzen, sonst startet LHCI den Windows-Chrome via Interop und scheitert am Port-Bind) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · T001930 (Stufe 2, **done ohne Messwert-Fix** — Font-Self-Hosting + Critical-CSS noch offen) → Nachfolger **T001950**
+> **B · Baseline:** 60 → 74 (Messung 2026-07-17 nach T001922-Deploy, 3× `npx @lhci/cli autorun` gegen `https://web.mentolder.de`, Score konstant 74/100; FCP 3.9s, LCP 4.2s, TBT 0ms, CLS 0. T001922/PR #2899+#2902+#2903 lieferte: Traefik-Kompression + immutable `/_astro/`-Cache beide Brands, LCP-Bild → 17-KB-WebP eager/fetchpriority, Font-Doppel-Ladung entfernt, CookieConsent/PortalSidekick → client:idle. Verbleibende Hebel: Google-Fonts-Self-Hosting — 248 KB Third-Party + 806 ms render-blockend —, `sidekick-panels.css` aus dem Critical Path — 423 ms —, ~80 KB unused JS. WSL-Gotcha: `CHROME_PATH=/usr/bin/google-chrome` setzen, sonst startet LHCI den Windows-Chrome via Interop und scheitert am Port-Bind) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · T001930 (Stufe 2, **done ohne Messwert-Fix** — Font-Self-Hosting + Critical-CSS noch offen) · T001950 (Stufe 3 — `sidekick-panels.css` async statt render-blocking, `PortalSidekick`-Drawer-Subviews dynamic-import statt eager Bundle; lokale Vorher/Nachher-Messung 68→77, Live-Messung erfordert Post-Merge-Deploy)
 
 ## G-BRAIN14 — Brain-Ingest-Backlog: 17 → 0
 
@@ -338,7 +358,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-DB03 | T001906 | **gefixt** (Messmethode korrigiert — 3 VIEWs ausgeschlossen, echter Bestand 41 Basistabellen; kein einheitlicher Wertebereich [Wildcard `'*'` + NULL-Ausnahmen] → Nachfolger T001925) |
 | G-DB09 | T001907 | offen (Slow Queries, erster Scan + Optimierung — Nachfolger von T001838) |
 | G-DB10 | T001908 | **gefixt** (Baseline 93 gemessen, 1 zweifelsfreier Drop [`idx_customers_email`] via Migration umgesetzt — Nachfolger T001928 für die restlichen 92 Kandidaten, Nachfolger von T001839) |
-| G-SEC06 | T001909 | offen (Container CVEs, Baseline 39 CRITICAL erfasst — Fix erfordert Image-Pin-Refresh, Folgeticket vorgeschlagen — Nachfolger von T001840) |
+| G-SEC06 | T001909 | **gefixt** (Image-Pin-Refresh 39→8 CRITICAL, Rest Upstream-blockiert [gosu/grpc-go] — Nachfolger von T001840) → Nachfolger **T001949** |
 | G-CI03 | T001910 | **gefixt** (CI p95 = 7 min ✅ ≤12, Messscript-Bug behoben — Nachfolger von T001841) |
 | G-FE05 | T001911 | **gemessen** (Baseline 60/100, Target 90 — Optimierung als Follow-up-Ticket ausgelagert) |
 | G-BRAIN14 | T001912 | **gefixt** (Nachfolger T001951, 2026-07-19: 15 Backlog-Seiten ingested, Backlog 17→0, PR Paddione/brain#8 gemergt — zurück nach Prio C) |
@@ -402,5 +422,9 @@ Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-
 **Baseline-Update 2026-07-17 (T001910 — G-CI03 erster Messlauf):** G-CI03 n/a→7 min p95 ✅ (Ziel ≤12 min; Messscript-Bug behoben — `gh-axi run list` unterstützt kein `--json` (nur `--fields`), Python-Auswertung parste ISO-Timestamps nicht als datetime — beide Stellen auf `gh` direkt + `datetime.fromisoformat` korrigiert).
 
 **Baseline-Update 2026-07-19 (T001952 — Prio-B Ticket-Backfill):** Alle Tracking-Tickets der 10 Prio-B-Ziele waren via Merge=Abschluss-Konvention bereits `done`, ohne dass die zugrundeliegenden Health-Goals ihr Target erreicht hätten (T001280→T001347-Stil-Churn). Für die 7 Ziele mit weiterhin verfehltem Target wurden neue Nachfolge-Tickets angelegt: G-SIZE02 → T001945, G-DB01 → T001946, G-DB03 → T001947, G-DB10 → T001948, G-SEC06 → T001949, G-FE05 → T001950, G-BRAIN14 → T001951. Die 3 Ziele, deren Wert bereits am oder über dem Target liegt (G-AGENTIC09 0≤0, G-DB09 0=0, G-CI03 7≤12), wurden redaktionell von Prio B in die Prio-C Green-Gates-Tabelle verschoben — kein neues Ticket, da kein offener Arbeitsbedarf besteht.
+
+**Baseline-Update 2026-07-19 (T001949 — G-SEC06 Image-Pin-Refresh):** G-SEC06 39→8 CRITICAL (−79%). alpine/k8s 1.34.0→1.36.2, pgvector 0.8.0-pg16→0.8.5-pg16, nats 2.10-alpine→2.12-alpine, livekit/egress v1.9.0→v1.13.0 — je mit `trivy image --severity CRITICAL` vor Merge verifiziert. Wichtiger Messfehler in der Baseline korrigiert: `alpine/k8s` im Manifest ist ein Docker-Hub-Image (nicht `registry.gitlab.com/alpine/k8s`, das für anonyme Pulls gesperrt ist) — Docker Hub führt aktiv gepflegte Tags bis 1.36.x. Verbleibende 8 CRITICAL (postgres, pgvector, alpine/k8s, livekit/ingress) sind Upstream-blockiert (vendored gosu/grpc-go in bereits neuesten Tags) — kein Folgeticket bis neue Upstream-Releases erscheinen.
+
+**Baseline-Update 2026-07-19 (T001950 — Lighthouse Stufe 3):** G-FE05 Live-Baseline neu vermessen (3× `npx @lhci/cli autorun --collect.numberOfRuns=3` gegen `https://web.mentolder.de`, `CHROME_PATH=/usr/bin/google-chrome` gesetzt): aktueller Prod-Stand (vor diesem Fix) misst konstant **89/100** (FCP 2.0s, LCP 3.1s, SI 4.5s über alle 3 Läufe) — höher als der am 2026-07-17 dokumentierte Wert von 74, vermutlich durch zwischenzeitliche CDN-/Cache-Warmup-Effekte, aber weiterhin unter Target 90. Root-Cause-Analyse via `pnpm build` + manuellem Dist-Vergleich: `sidekick-panels.css` (~180 KB) wurde von Vite mit `global.css` in einen gemeinsamen Chunk gebündelt und war in `Layout.astro` (der öffentlichen Homepage-Layout-Datei, für beide Brands) ein render-blockendes `<link rel="stylesheet">`, obwohl es nur Styles für `PortalSidekick`-Drawer-Subviews liefert, die erst nach FAB-Klick sichtbar werden. `PortalSidekick.svelte` selbst importierte alle 9 Subviews (SupportView, QuestionnaireView, HelpView, AgentGuideView, MediaviewerPanel, TerminalSessionIframe, CockpitSidekickView, AiQualitySidekickView, LogsSidekickView) statisch, wodurch der über `client:idle` geladene Chunk auf 246 KB anwuchs (Lighthouse: 117 KB "unused JavaScript" allein hier). Fix: (1) `sidekick-panels.css` per `?url`-Import + `<link rel="preload" as="style" onload="this.rel='stylesheet'">`+`<noscript>`-Fallback asynchron nachgeladen (bleibt in `PortalLayout.astro`/`AdminLayout.astro` weiterhin eager, dort ist der Sidekick primäre UI); (2) die 9 Subviews in `PortalSidekick.svelte` auf `{#await import(...)}`-Dynamic-Imports umgestellt → PortalSidekick-Chunk 246 KB→84 KB, 9 neue On-Demand-Chunks (5–36 KB je View). Lokale Vorher/Nachher-Messung (`pnpm build` + `pnpm preview`-Server, `npx lighthouse`, gleiche unkomprimierte Dev-Umgebung ohne Traefik-Kompression, daher nicht direkt mit der Prod-Zahl vergleichbar, aber intern konsistent): Performance-Score **68→77** (+9), FCP 4.1s→2.8s, LCP 6.2s→5.0s. Live-Bestätigung gegen `https://web.mentolder.de` ist erst nach Merge + Deploy von `build-website.yml`/`build-website-korczewski.yml` möglich — Folge-Messung dort ausstehend (kein neues Ticket nötig, Messung ist Teil des Post-Merge-Verify-Schritts).
 
 **Baseline-Update 2026-07-19 (T001951 — G-BRAIN14 Ingest-Backlog gefixt):** Backlog 17→0. `bash scripts/brain-ingest-worklist.sh` gegen `~/.brain-ingest-state.json` zeigte real noch 15 offene Seiten (2 der ursprünglichen 17 waren zwischenzeitlich bereits ingested). Ingest-Pool-Blocker gefunden und umschifft: der dokumentierte Default `LM_STUDIO_URL=http://localhost:8095` (`start-qwen36-ingest-pool.ps1`) war nicht aktiv — stattdessen lief unter einem Zufallsport (`127.0.0.1:52875`) eine von LM Studio selbst verwaltete Backend-Instanz mit `--api-key` (401 Invalid API Key, da `brain-ingest-transform.sh` keinen Authorization-Header sendet). Fix: `LM_STUDIO_URL=http://127.0.0.1:1234` (LM Studios öffentlicher Endpunkt, kein API-Key, Modell `qwen3.6-14b-a3b-fablevibes` bereits geladen) statt des dedizierten Standalone-Pools verwendet — funktioniert, aber nur `--parallel 1` (LM Studios eigene Server-Instanz), daher `MAX_PARALLEL=2` statt 6 für den Lauf gewählt. Alle 15 Seiten erfolgreich transformiert (0 Failed), Wikilink-Lint-Autofix lief durch, PR [Paddione/brain#8](https://github.com/Paddione/brain/pull/8) erstellt und gemergt. Re-Messung bestätigt Backlog 0. G-BRAIN14 damit von Prio B nach Prio C (Green Gates) verschoben — kein Code-Fix in `Bachelorprojekt` nötig (reiner Ops-Ingest-Lauf), daher kein PR gegen dieses Repo.

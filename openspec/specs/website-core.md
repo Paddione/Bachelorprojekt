@@ -548,6 +548,27 @@ least 0.9 (90/100) on the homepage, verified by LHCI after production deploy.
 - **WHEN** LHCI runs its assertion pass against the homepage
 - **THEN** the reported performance score is at least 0.9
 
+### Requirement: PortalSidekick Drawer Assets Deferred from Critical Path
+
+`sidekick-panels.css` and the `PortalSidekick` drawer sub-views (Support,
+Questionnaire, Help, AgentGuide, Mediaviewer, Terminal, Cockpit, AiQuality,
+Logs) SHALL NOT be part of the public homepage's render-blocking critical
+path or its eagerly-hydrated JavaScript chunk, since none of them are
+visible until the user opens the FAB drawer and navigates to a specific
+view.
+
+#### Scenario: Sidekick panel styles load asynchronously on the public layout
+
+- **GIVEN** the public `Layout.astro` renders the homepage
+- **WHEN** the document head is emitted
+- **THEN** `sidekick-panels.css` is referenced via `<link rel="preload" as="style">` with an `onload` swap (plus a `<noscript>` fallback), not a blocking `<link rel="stylesheet">`
+
+#### Scenario: Drawer sub-views load on demand
+
+- **GIVEN** `PortalSidekick` is hydrated with `client:idle` on the public homepage
+- **WHEN** the FAB drawer has not been opened yet
+- **THEN** none of the 9 drawer sub-view components are present in `PortalSidekick`'s initial JavaScript chunk — each loads via a dynamic `import()` only once its view is selected
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -920,3 +941,5 @@ The `website/pnpm-workspace.yaml` MAY include an `overrides` block to pin transi
 <!-- merged from change delta website-core.md (02c8df9ce8f7) -->
 
 <!-- merged from change delta website-core.md (cb0c0be38183) -->
+
+<!-- merged from change delta website-core.md (1699b8f9d628) -->

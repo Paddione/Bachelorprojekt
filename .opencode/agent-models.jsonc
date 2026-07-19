@@ -92,7 +92,7 @@
     "qwen35-iq4": {
       "description": "PREFERRED FIRST CHOICE for subagent delegation: Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) on LM Studio - serialized (1 at a time). Try this first for subagent dispatch.",
       "mode": "subagent",
-      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
+      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes@262k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#0EA5E9",
       "temperature": 0.7,
@@ -101,7 +101,7 @@
     "qwen3-14b": {
       "description": "Single-session implementation/planning agent: Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) on LM Studio",
       "mode": "subagent",
-      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
+      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes@262k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.7,
@@ -110,7 +110,7 @@
     "qwen35": {
       "description": "Subagent using Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) on LM Studio - serialized (1 at a time)",
       "mode": "subagent",
-      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
+      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes@262k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22C55E",
       "temperature": 0.7,
@@ -119,7 +119,7 @@
     "qwen35-hq": {
       "description": "Subagent using Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) on LM Studio - serialized (1 at a time), use when max per-call context matters more than concurrency",
       "mode": "subagent",
-      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes",
+      "model": "lmstudio/qwen3.6-14b-a3b-fablevibes@262k",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#16A34A",
       "temperature": 0.7,

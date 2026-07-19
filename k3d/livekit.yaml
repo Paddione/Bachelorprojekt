@@ -455,7 +455,7 @@ spec:
     spec:
       containers:
         - name: egress
-          image: livekit/egress:v1.9.0@sha256:d62f515668d56df24082ec722a7a78134bc14ff331a2c0402ac90e8fe0fe0067
+          image: livekit/egress:v1.13.0@sha256:980ff439431df2c773573721ab6da19e15bdc1f049ab7cb80e87470bf174c12f
           env:
             - name: EGRESS_CONFIG_BODY
               value: |

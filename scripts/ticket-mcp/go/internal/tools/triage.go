@@ -15,7 +15,7 @@ import (
 func RegisterTriageTools(s *server.MCPServer) {
 	s.AddTool(
 		mcp.NewTool("triage_ticket",
-			mcp.WithDescription("Setzt Triage-Felder eines Tickets: type, severity, priority, attention_mode, status."),
+			mcp.WithDescription("Setzt Triage-Felder eines Tickets: type, severity, priority, attention_mode, status, component."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
@@ -28,6 +28,7 @@ func RegisterTriageTools(s *server.MCPServer) {
 			mcp.WithString("attention_mode", mcp.Description("auto, ai_ready, needs_human"),
 				mcp.Enum("auto", "ai_ready", "needs_human")),
 			mcp.WithString("status", mcp.Description("Ziel-Status z.B. triage, planning, backlog")),
+			mcp.WithString("component", mcp.Description("Betroffene Komponente, z.B. website, infra, scripts")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -40,6 +41,7 @@ func RegisterTriageTools(s *server.MCPServer) {
 			severity, _ := a["severity"].(string)
 			priority, _ := a["priority"].(string)
 			attentionMode, _ := a["attention_mode"].(string)
+			component, _ := a["component"].(string)
 			status, _ := a["status"].(string)
 			if status == "" {
 				status = "triage"
@@ -62,19 +64,7 @@ func RegisterTriageTools(s *server.MCPServer) {
 				return mcp.NewToolResultError(fmt.Sprintf("Ungültiger attention_mode: %s. Erlaubt: %s", attentionMode, strings.Join(validAttentionModes, ", "))), nil
 			}
 
-			args := []string{"triage", "--id", id, "--status", status, "--apply", "--no-comment"}
-			if priority != "" {
-				args = append(args, "--priority", priority)
-			}
-			if severity != "" {
-				args = append(args, "--severity", severity)
-			}
-			if mtype != "" {
-				args = append(args, "--type", mtype)
-			}
-			if attentionMode != "" {
-				args = append(args, "--attention-mode", attentionMode)
-			}
+			args := buildTriageArgs(id, status, priority, severity, mtype, attentionMode, component)
 
 			raw, err := runner.RunTicket(args, map[string]string{"BRAND": brand, "VDA_NONINTERACTIVE": "1"})
 			if err != nil {
@@ -107,4 +97,28 @@ func RegisterTriageTools(s *server.MCPServer) {
 			return mcp.NewToolResultText(text), nil
 		},
 	)
+}
+
+// buildTriageArgs assembles the CLI args for `vda.sh ticket triage` from the
+// optional triage fields. Only non-empty fields are passed through, so a
+// partial triage_ticket call never clobbers unrelated ticket fields (the CLI
+// itself only updates columns whose flag was explicitly provided).
+func buildTriageArgs(id, status, priority, severity, mtype, attentionMode, component string) []string {
+	args := []string{"triage", "--id", id, "--status", status, "--apply", "--no-comment"}
+	if priority != "" {
+		args = append(args, "--priority", priority)
+	}
+	if severity != "" {
+		args = append(args, "--severity", severity)
+	}
+	if mtype != "" {
+		args = append(args, "--type", mtype)
+	}
+	if attentionMode != "" {
+		args = append(args, "--attention-mode", attentionMode)
+	}
+	if component != "" {
+		args = append(args, "--component", component)
+	}
+	return args
 }

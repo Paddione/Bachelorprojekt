@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.193.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.0...website-v1.193.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* **infra:** paginate pocket-id-client-seed find_client_id() across all pages [T001996] ([#2991](https://github.com/Paddione/Bachelorprojekt/issues/2991)) ([d4824bc](https://github.com/Paddione/Bachelorprojekt/commit/d4824bcf13919c561f10c9f34689e1cddf2a3b36))
+
 ## [1.193.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.192.0...website-v1.193.0) (2026-07-19)
 
 

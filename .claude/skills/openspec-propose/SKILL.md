@@ -66,15 +66,25 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
         - `outputPath`: Where to write the artifact
         - `dependencies`: Completed artifacts to read for context
       - Read any completed dependency files for context
-      - **For the `specs` artifact specifically**: before writing the file, check whether
-        this change is a sub-feature of an existing capability (consult
-        `openspec/component-map.yaml` for a matching file-path prefix, or ask the user if
-        ambiguous). If it is a sub-feature of an existing capability with SSOT spec
-        `openspec/specs/<parent-slug>.md`, write the Delta-Spec to
-        `openspec/changes/<name>/specs/<parent-slug>.md` (Parent-SSOT-Slug) instead of the
-        `outputPath` filename returned by `openspec instructions`. If this is a genuinely
-        new capability with no existing SSOT spec, use the `outputPath` filename unchanged.
-        See CLAUDE.md "Delta-Spec-Konvention (T001304)".
+- **For the `specs` artifact specifically**: before writing the file, check whether
+  this change is a sub-feature of an existing capability (consult
+  `openspec/component-map.yaml` for a matching file-path prefix, or ask the user if
+  ambiguous). If it is a sub-feature of an existing capability with SSOT spec
+  `openspec/specs/<parent-slug>.md`, write the Delta-Spec to
+  `openspec/changes/<name>/specs/<parent-slug>.md` (Parent-SSOT-Slug) instead of the
+  `outputPath` filename returned by `openspec instructions`. If this is a genuinely
+  new capability with no existing SSOT spec, use the `outputPath` filename unchanged.
+  See CLAUDE.md "Delta-Spec-Konvention (T001304)".
+
+> **Spec-Directory Pflicht-Inhalt (T001974 Mishap 3).** Jeder Change-Ordner
+> unter `openspec/changes/<slug>/specs/` muss mindestens **eine** `.md`-Datei
+> mit gültigem Delta-Spec-Format enthalten (`## ADDED Requirements` +
+> `### Requirement:`-Blöcke). `openspec:validate` schlägt fehl, wenn das
+> Verzeichnis leer ist oder nur Löschungen (`## REMOVED Requirements`) ohne
+> Hinzufügungen enthält. Löschen einer ungültigen Spec-Datei ohne Ersatz
+> erzeugt einen leeren `specs/`-Ordner — das schlägt ebenfalls fehl. Vor
+> dem Commit: `bash scripts/openspec-validate.sh` (oder
+> `openspec validate <slug>`) ausführen.
       - Create the artifact file using `template` as the structure
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file
       - Show brief progress: "Created <artifact-id>"

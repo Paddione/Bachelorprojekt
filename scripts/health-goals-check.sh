@@ -366,7 +366,7 @@ durations.sort(); p95=durations[int(len(durations)*0.95)] if durations else 0; p
 
 # ── SEC-TARGETS ──
 if [ "$FAST" = 0 ] && command -v kubectl >/dev/null 2>&1 && command -v trivy >/dev/null 2>&1; then
-  row target G-SEC06 "$(trivy image --severity HIGH,CRITICAL --exit-code 0 --format json $(kubectl get pods --all-namespaces -o jsonpath='{range .items[*]}{.spec.containers[*].image}{\"\n\"}{end}' 2>/dev/null | sort -u | tr '\n' ' ') 2>/dev/null | jq '[.Results[].Vulnerabilities[] | select(.Severity=="HIGH" or .Severity=="CRITICAL")] | length' 2>/dev/null || echo "-")" le 0 "Container Images mit High/Critical CVEs (via Trivy)"
+  row target G-SEC06 "$(timeout 60 trivy image --severity HIGH,CRITICAL --exit-code 0 --format json $(timeout 10 kubectl get pods --all-namespaces --request-timeout=5s -o jsonpath='{range .items[*]}{.spec.containers[*].image}{\"\n\"}{end}' 2>/dev/null | sort -u | tr '\n' ' ') 2>/dev/null | jq '[.Results[].Vulnerabilities[] | select(.Severity=="HIGH" or .Severity=="CRITICAL")] | length' 2>/dev/null || echo "-")" le 0 "Container Images mit High/Critical CVEs (via Trivy)"
 else
   row target G-SEC06 "-" le 0 "Container CVEs (erfordert kubectl + Trivy — nicht messbar)"
 fi
@@ -374,7 +374,7 @@ fi
 # ── FE-TARGETS ──
 if [ "$FAST" = 0 ] && command -v npx >/dev/null 2>&1 && npx --yes @lhci/cli --version >/dev/null 2>&1; then
   row target G-FE05 "$(
-    score=$(npx @lhci/cli autorun --no-lighthouserc --collect.url=https://web.mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.preset=none 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
+    score=$(timeout 60 npx @lhci/cli autorun --no-lighthouserc --collect.url=https://web.mentolder.de --collect.settings.chromeFlags='--headless --no-sandbox' --assert.preset=none 2>/dev/null | grep -oP 'Performance: \K[0-9]+' | head -1)
     echo "${score:--}"
   )" ge 90 "Lighthouse Performance Score"
 else

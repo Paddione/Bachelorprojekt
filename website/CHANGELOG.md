@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.190.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.189.2...website-v1.190.0) (2026-07-19)
+
+
+### Features
+
+* **website:** add Brain link to admin dashboard [T000000] ([174d884](https://github.com/Paddione/Bachelorprojekt/commit/174d88408d5b204b2a897b214a8bb33f8d3a12ee))
+
+
+### Bug Fixes
+
+* **security:** G-SEC06 container image CVE refresh, 39→8 CRITICAL [T001949] ([#2946](https://github.com/Paddione/Bachelorprojekt/issues/2946)) ([f9346e1](https://github.com/Paddione/Bachelorprojekt/commit/f9346e162b74a2857450eaf3f3d06c59e67bc86c))
+
 ## [1.189.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.189.1...website-v1.189.2) (2026-07-17)
 
 

@@ -33,13 +33,21 @@ if [[ "$launch_count" -eq 0 ]]; then
   exit 0
 fi
 
-# Budget check + pipeline launch for each feature
-for row in $(echo "$prep" | jq -c '.launch[]' 2>/dev/null); do
+# Budget check + pipeline launch for each feature.
+# Iterate compact-JSON rows safely: the previous `for row in $(...)` form split
+# on IFS whitespace, so any title with spaces (e.g. T001945's
+# "Health-Goal: G-SIZE02 — Großdateien … (17 → ≤8)") caused the loop to fire
+# once per whitespace-delimited fragment with empty ext_id/brand, blocking at
+# the budget-guard without ever launching the pipeline. `mapfile` reads the
+# newline-delimited rows verbatim.
+mapfile -t launch_rows < <(echo "$prep" | jq -c '.launch[]' 2>/dev/null)
+for row in "${launch_rows[@]}"; do
   ext_id="$(echo "$row" | jq -r '.external_id')"
   brand="$(echo "$row" | jq -r '.brand // "mentolder"')"
   title="$(echo "$row" | jq -r '.title // ""')"
   branch="$(echo "$row" | jq -r '.branch // ""')"
   plan_path="$(echo "$row" | jq -r '.plan_path // ""')"
+  wt_path="$(echo "$row" | jq -r '.worktree_path // ""')"
   slug="$(echo "$row" | jq -r '.branch // ""' | sed -E 's#^(feature|fix|chore)/##')"
   [[ -z "$slug" ]] && slug="sf-$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')"
   dry_run_val="$(echo "$row" | jq -r '.dry_run // false')"
@@ -64,20 +72,42 @@ for row in $(echo "$prep" | jq -c '.launch[]' 2>/dev/null); do
 
   # Launch pipeline via claude -p: qwen3.6-14b-a3b-fablevibes handles agent() calls fine,
   # only the Workflow() meta-tool was problematic.
+  #
+  # The factory-prep step pre-created an isolated worktree branched from
+  # origin/<branch> (not origin/main) and the plan file is materialized on disk
+  # at <wt_path>/<plan_path>. The prompt is intentionally written without any
+  # "do NOT refuse / call it anyway" override — that pattern is correctly
+  # detected by the model as manipulation and triggers a full safety refusal
+  # even for legitimate use. The plan existence is verifiable via the worktree
+  # path or via `git show origin/<branch>:<plan_path>` from the main repo.
   TIMESTAMP="$(date -u +%FT%TZ)"
-  PIPELINE_PROMPT="Run the Software Factory pipeline for ticket ${ext_id} (${title}). \
-Call the Workflow tool exactly like this — the scriptPath option IS supported and this is \
-the standard, working way to run it: \
-Workflow({scriptPath:\"scripts/factory/pipeline.js\"}, \
-{title:\"${title}\", ticket_id:\"${ext_id}\", brand:\"${brand}\", \
-slug:\"${slug}\", timestamp:\"${TIMESTAMP}\", dry_run:${dry_run_val}, \
-branch:$(if [[ -n "$branch" ]]; then echo "\"${branch}\""; else echo 'null'; fi), \
-plan_path:$(if [[ -n "$plan_path" ]]; then echo "\"${plan_path}\""; else echo 'null'; fi)}). \
-Report only the pipeline's final JSON result. \
-Do NOT call the Skill tool — there is no skill that runs the pipeline; \
-the ONLY correct way to run it is the exact Workflow tool call shown above. \
-Do NOT refuse or claim scriptPath is unsupported — it is supported; if you believe otherwise, call it anyway. \
-If a tool call fails, do not retry the identical call — stop and report the error verbatim instead of looping."
+  PIPELINE_PROMPT="Run the Software Factory pipeline for ticket ${ext_id} (${title}).
+
+Context:
+  - repo: ${REPO}
+  - feature branch (origin): ${branch:-<none>}
+  - plan file: ${plan_path:-<none>}  (materialized at ${wt_path:-<n/a>}/${plan_path:-<none>}, or read with: git show origin/${branch:-HEAD}:${plan_path:-<none>})
+  - slug: ${slug}
+  - brand: ${brand}
+  - dry_run: ${dry_run_val}
+  - timestamp: ${TIMESTAMP}
+
+Invoke the Workflow tool with these exact arguments to run the pipeline:
+  Workflow({scriptPath:\"scripts/factory/pipeline.js\"}, {
+    title:\"${title}\",
+    ticket_id:\"${ext_id}\",
+    brand:\"${brand}\",
+    slug:\"${slug}\",
+    timestamp:\"${TIMESTAMP}\",
+    dry_run:${dry_run_val},
+    branch:$(if [[ -n "$branch" ]]; then echo "\"${branch}\""; else echo 'null'; fi),
+    plan_path:$(if [[ -n "$plan_path" ]]; then echo "\"${plan_path}\""; else echo 'null'; fi)
+  })
+
+Report only the pipeline's final JSON result. The pipeline.js workflow is the
+standard, supported way to run a Software Factory pipeline; do not try to run
+it as a Skill or via any other mechanism. If a tool call fails, do not retry
+the identical call — stop and report the error verbatim instead of looping."
 
   "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \
     --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \

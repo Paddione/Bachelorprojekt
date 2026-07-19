@@ -11,8 +11,16 @@
 # OPENSPEC_ROOT overrides the openspec/ root (used by tests against fixtures).
 set -euo pipefail
 
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$(cd "$HERE/.." && pwd)"
+# T001997: anchor REPO on the CALLER's cwd (git toplevel), not on the
+# physical path this script file was invoked with. A wrong relative
+# invocation path (e.g. `../../scripts/openspec.sh` from inside a worktree)
+# used to resolve REPO to whatever directory the path landed in -- silently
+# writing openspec/changes/<slug>/ into the wrong checkout even though $PWD
+# was correct. Anchoring on `git rev-parse --show-toplevel` makes the
+# invocation path irrelevant: as long as $PWD is the intended checkout,
+# that's where REPO points.
+REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "ERROR: openspec.sh must be run from inside a git worktree (cwd is not a git repository)" >&2; exit 1; }
+HERE="$REPO/scripts"
 OPENSPEC_ROOT="${OPENSPEC_ROOT:-$REPO/openspec}"
 TICKET_SH="$REPO/scripts/ticket.sh"
 

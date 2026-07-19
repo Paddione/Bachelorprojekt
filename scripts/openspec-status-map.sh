@@ -4,8 +4,11 @@
 # OPENSPEC_ROOT overrides the default openspec/ directory (used in tests).
 set -euo pipefail
 
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$(cd "$HERE/.." && pwd)"
+# T001997: anchor REPO on the CALLER's cwd (git toplevel), not on the
+# physical path this script file was invoked with -- see scripts/openspec.sh
+# for the full rationale (same fix, same footgun).
+REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "ERROR: openspec-status-map.sh must be run from inside a git worktree (cwd is not a git repository)" >&2; exit 1; }
+HERE="$REPO/scripts"
 OPENSPEC_ROOT="${OPENSPEC_ROOT:-$REPO/openspec}"
 OUT="$REPO/website/src/data/openspec-status.json"
 CHANGES="$OPENSPEC_ROOT/changes"

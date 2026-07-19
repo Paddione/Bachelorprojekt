@@ -62,14 +62,27 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
 > da ~9+ Datei-Splits kein "no behavior change"-Chore sind; **done ohne Messwert-Fix**) →
 > Nachfolger **T001945**
 
-## G-DB01 — FK-Spalten ohne Index: 4 → 0
+## G-DB01 — FK-Spalten ohne Index: 34/49 → 0 (Baseline-Korrektur T001946)
 
-**Was:** Zählt FK-Spalten mit Single-Column-FK, die keinen passenden Index haben. Live-Wert 4
-(3 Tabellen mit je einem fehlenden Index, plus eine Wiederholung): `public.onboarding_state.brand`,
+**Was:** Zählt FK-Spalten mit Single-Column-FK, die keinen passenden Index haben. Die "4"
+aus T001905 war die Baseline zum Zeitpunkt 2026-07-15 — Live-Re-Messung am 2026-07-19
+(T001946, gegen `fleet`, beide Brand-DBs, identische Query) ergab **34** (mentolder,
+`workspace`) bzw. **49** (korczewski, `workspace-korczewski`) fehlende Indizes, da seither
+neue Tabellen (u. a. `public.billing_*`, `public.questionnaire_*`, `tickets.*`,
+`coaching.drafts`/`snippet_clusters`) hinzukamen. Zusätzlicher Befund: die vier
+ursprünglichen T001905-Spalten (`public.onboarding_state.brand`,
 `sessions.templates.created_from_template_id`, `studio.sessions.client_id`,
-`studio.sessions.template_of`. Fix als Migration `website/src/db/migrations/20260717_add_missing_fk_indexes.sql`
-erstellt (T001905); wird beim nächsten `task workspace:deploy` (push-based) automatisch über
-`pnpm --dir website db:migrate` angewendet — Live-Wert aktualisiert sich erst nach Deploy.
+`studio.sessions.template_of`) waren auf der mentolder-DB trotz als "applied" getrackter
+`schema_migrations`-Zeile für `20260717_add_missing_fk_indexes.sql` weiterhin unindiziert —
+ein manueller Re-Run derselben SQL lief fehlerfrei durch und erzeugte sie sofort (Migration
+selbst korrekt; Ursache der Tracking/Wirkung-Diskrepanz nicht abschließend geklärt, kein
+Postmortem-Scope). Neue Migration
+`website/src/db/migrations/20260719_add_missing_fk_indexes_batch2.sql` (T001946) deckt die
+Vereinigungsmenge aus beiden Brand-Messungen ab (58 Statements) — mit einer bewussten
+Ausnahme: `arena.match_players.brand` gehört einem Fremd-Owner-Schema (`arena_app`-Rolle,
+nicht `website`) und kann vom `website`-Migrationsrunner nicht indiziert werden (Dry-Run-Fund,
+`ERROR: must be owner of table match_players`) — bleibt als dokumentierter Restwert 1
+(Follow-up außerhalb dieses Tickets).
 
 ```bash
 WITH fk AS (
@@ -80,7 +93,7 @@ idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
 SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;
 ```
 
-> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (4 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (**done ohne Messwert-Fix** — Migration erstellt, Anwendung erfolgt beim nächsten Deploy; Nachfolger von T001739) → Nachfolger **T001946**
+> **B · Baseline:** 34 (mentolder) / 49 (korczewski) · **Target:** 0 (bzw. 1 dokumentierter Fremd-Owner-Restwert `arena.match_players.brand`) · **Aufwand:** gering (Migration, additiv & idempotent) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001946 (plan_staged — Nachfolger von T001905/T001739, Baseline-Korrektur da T001905 den echten Live-Wert nie neu maß)
 
 ## G-DB03 — brand-Spalten ohne CHECK-Constraint: 41 → 16
 

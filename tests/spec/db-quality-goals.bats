@@ -31,3 +31,51 @@ setup() {
   done
   [ "$missing" -eq 0 ]
 }
+
+# ── T001946: G-DB01-Nachfolger — Live-Baseline war 34/49 statt der in T001905 ──
+# angenommenen 4 (siehe .claude/lib/goals.md#G-DB01). Die Migration muss alle am
+# 2026-07-19 live gemessenen fehlenden FK-Indizes abdecken (Vereinigungsmenge aus
+# mentolder + korczewski), inkl. der vier urspruenglichen T001905-Spalten, die trotz
+# "applied"-Tracking auf mentolder weiterhin unindiziert waren.
+FK_BATCH2_MIGRATION="website/src/db/migrations/20260719_add_missing_fk_indexes_batch2.sql"
+
+@test "20260719_add_missing_fk_indexes_batch2.sql existiert" {
+  [ -f "$FK_BATCH2_MIGRATION" ]
+}
+
+@test "batch2-Migration reicht die 4 urspruenglichen T001905-Indizes erneut ein (idempotent)" {
+  run grep -qF "idx_onboarding_state_brand" "$FK_BATCH2_MIGRATION"
+  [ "$status" -eq 0 ]
+  run grep -qF "idx_sessions_templates_created_from_template_id" "$FK_BATCH2_MIGRATION"
+  [ "$status" -eq 0 ]
+  run grep -qF "idx_studio_sessions_client_id" "$FK_BATCH2_MIGRATION"
+  [ "$status" -eq 0 ]
+  run grep -qF "idx_studio_sessions_template_of" "$FK_BATCH2_MIGRATION"
+  [ "$status" -eq 0 ]
+}
+
+@test "batch2-Migration deckt neu gefundene FK-Spalten aus beiden Brands ab" {
+  for needle in \
+    "idx_billing_customers_customers_id" \
+    "idx_document_assignments_template_id" \
+    "idx_tickets_tickets_brand" \
+    "idx_tickets_tickets_reporter_id" \
+    "idx_questionnaire_questions_template_id" \
+    "idx_coaching_drafts_resulting_snippet_id"; do
+    run grep -qF "$needle" "$FK_BATCH2_MIGRATION"
+    [ "$status" -eq 0 ]
+  done
+}
+
+@test "batch2-Migration guardet jeden Block mit to_regclass (brand-uebergreifende Sicherheit)" {
+  run grep -c "IF to_regclass(" "$FK_BATCH2_MIGRATION"
+  [ "$status" -eq 0 ]
+  [ "$output" -gt 0 ]
+}
+
+@test "batch2-Migration nimmt arena.match_players bewusst aus (Fremd-Owner-Schema)" {
+  # arena.* gehoert der Rolle arena_app, nicht website — website:db:migrate hat dort
+  # kein CREATE INDEX-Privileg (per Dry-Run waehrend T001946-Planung verifiziert).
+  run grep -qF "arena.match_players" "$FK_BATCH2_MIGRATION"
+  [ "$status" -ne 0 ]
+}

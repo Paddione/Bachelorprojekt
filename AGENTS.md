@@ -94,6 +94,11 @@ task feature:deploy  # fan-out to both brands
 
 ## Quality Gates
 
+- **`task factory:eval:replay`** — nach jeder Änderung am Agenten-Setup
+  (`.opencode/agent-models.jsonc`, `scripts/factory/review-*.prompt.md`,
+  `scripts/factory/provider-router.js`, `AGENTS.md`) lokal ausführen und die
+  Scorecard (`docs/factory-eval/latest.json`) vor dem Merge dokumentieren. CI
+  warnt nur advisory (`::warning::`), weil CI-Runner keine GPU/LM-Studio haben.
 - **`task test:changed`** — smart selection based on `git diff` against `origin/main`. Falls back to vitest run if no domain detected.
 - **`task freshness:check`** — all generated artifacts (test-inventory, route-manifest, learning-assets, quality-index, agent-guide maps) must be committed. Pre-commit hook auto-regenerates via `task freshness:regenerate`.
 - **`task test:code-quality`** — file-size caps, import-cycle detection (`madge`), hardcoded-hostname scan, orphan-asset check.

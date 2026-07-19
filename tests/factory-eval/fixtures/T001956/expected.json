@@ -1,0 +1,17 @@
+{
+  "files": [
+    "openspec/changes/fix-e2e-kontaktformular/proposal.md",
+    "openspec/changes/fix-e2e-kontaktformular/specs/fix-e2e-kontaktformular.md",
+    "openspec/changes/fix-e2e-kontaktformular/tasks.md",
+    "tests/e2e/specs/fa-10-website.spec.ts"
+  ],
+  "forbidden": [
+    "k3d/configmap-domains.yaml",
+    "environments/*.yaml"
+  ],
+  "tests": [
+    "node --check tests/e2e/specs/fa-10-website.spec.ts"
+  ],
+  "min_recall": 0.25,
+  "min_precision": 0.3
+}

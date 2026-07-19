@@ -491,6 +491,7 @@ if (tasks.length && !A.batch_mode) {
 
 phase('Verify')
 phaseEvent('verify', 'entered', 'Tests + Freshness')
+const evalCtx = (() => { try { return require('./eval-context.cjs').buildEvalContext(String(A.ticket_id), { fixturesDir: `${REPO}/tests/factory-eval/fixtures`, outDir: `${REPO}/docs/factory-eval` }) } catch { return null } })()
 const cleanDiff = (await agent(
   `cd ${WORK_WT} (HEAD=${WORK_BRANCH}) then run \`bash ${REPO}/scripts/factory/filter-diff.sh origin/main...HEAD\`. Return its raw stdout ONLY (empty = all-noise diff).`,
   { label: 'verify:filter', phase: 'Verify' },
@@ -499,7 +500,7 @@ let reviews = []
 let coordinatorVerdict = null
 if (!cleanDiff || !String(cleanDiff).trim()) {
   log('Verify: filtered diff is empty (noise-only) — skipping review lenses.')
-  phaseEvent('verify', 'done', 'noise-only')
+  phaseEvent('verify', 'done', evalCtx || 'noise-only')
 } else {
   const tierJson = (await agent(
     `cd ${WORK_WT} then run \`bash ${REPO}/scripts/factory/classify-risk.sh origin/main...HEAD\`. Return its raw JSON stdout ONLY.`,
@@ -622,7 +623,7 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
     phaseEvent('verify', 'blocked', (blocking.length || 1) + ' blocking finding(s)')
     return { status: 'blocked', reason: 'review-findings', blocking, verdict: coordinatorVerdict }
   }
-  phaseEvent('verify', 'done', 'Tests ✓')
+  phaseEvent('verify', 'done', evalCtx || 'Tests ✓')
 }
 
 phase('Deploy')

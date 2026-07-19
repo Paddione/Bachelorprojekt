@@ -183,6 +183,13 @@ jobs:
       - name: MCP tooling guardrail
         run: ./tests/unit/lib/bats-core/bin/bats tests/spec/mcp-tooling.bats
 
+      - name: Agent setup replay reminder
+        run: |
+          changed=$(git diff --name-only origin/main...HEAD || true)
+          if echo "$changed" | grep -Eq '^(.opencode/agent-models.jsonc|scripts/factory/review-[^/]+\.prompt\.md|scripts/factory/provider-router\.js|AGENTS\.md)$'; then
+            echo "::warning::Agenten-Setup geändert — lokal 'task factory:eval:replay' ausführen"
+          fi
+
   # ── End scoped test jobs ──────────────────────────────────────────
 
   security-scan:

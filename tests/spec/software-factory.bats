@@ -3030,6 +3030,110 @@ REG="scripts/factory/service-registry.sh"
   grep -Eq '60000, *180000' "$f"
 }
 
+# ── FA-SF-72-eval-replay ────────────────────────────────────────#
+# FA-SF-72: Eval replay, fixture generator, and eval-context helper (offline-safe)
+
+@test "FA-SF-72: eval-context helper builds compact JSON for a known fixture" {
+  run node scripts/factory/eval.mjs --dry-run --out-dir "$TEST_TMP_DIR/evalctx-out"
+  [ "$status" -eq 0 ]
+
+  run node -e "
+    const { buildEvalContext } = require('./scripts/factory/eval-context.cjs');
+    const ctx = buildEvalContext('T000725', { fixturesDir: './tests/factory-eval/fixtures', outDir: '$TEST_TMP_DIR/evalctx-out' });
+    console.log('ctx:', ctx);
+    const obj = JSON.parse(ctx);
+    if (obj.fixture !== 'T000725') process.exit(1);
+    if (obj.mode !== 'live') process.exit(2);
+    if (typeof obj.pass !== 'boolean') process.exit(3);
+    if (typeof obj.score !== 'number') process.exit(4);
+  "
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "ctx:" ]]
+}
+
+@test "FA-SF-72: eval-context helper returns null for unknown fixture" {
+  run node -e "
+    const { buildEvalContext } = require('./scripts/factory/eval-context.cjs');
+    const ctx = buildEvalContext('T999999', { fixturesDir: './tests/factory-eval/fixtures', outDir: '$TEST_TMP_DIR/evalctx-out2' });
+    console.log('ctx:', ctx);
+    if (ctx !== null) process.exit(1);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-72: eval.mjs --replay --dry-run records mode=replay and touches no LLM" {
+  local fid="T000FAKE"
+  mkdir -p "$TEST_TMP_DIR/factory-eval-fixtures/$fid"
+  cat > "$TEST_TMP_DIR/factory-eval-fixtures/$fid/ticket.json" <<'EOF'
+{"title":"Replay fixture","description":"fake","type":"bug","external_id":"T000FAKE","brand":"mentolder","area":"factory"}
+EOF
+  cat > "$TEST_TMP_DIR/factory-eval-fixtures/$fid/expected.json" <<'EOF'
+{"files":["scripts/factory/eval.mjs"],"forbidden":[],"tests":[],"min_recall":0,"min_precision":0}
+EOF
+  local base_commit
+  base_commit=$(git rev-parse HEAD)
+  cat > "$TEST_TMP_DIR/factory-eval-fixtures/$fid/meta.json" <<EOF
+{"base_commit":"$base_commit","pr_number":9999,"generated_at":"2026-07-19T00:00:00Z","source":"test"}
+EOF
+
+  run node scripts/factory/eval.mjs \
+    --replay --fixture "$fid" \
+    --dry-run \
+    --fixtures-dir "$TEST_TMP_DIR/factory-eval-fixtures" \
+    --out-dir "$TEST_TMP_DIR/replay-out"
+  echo "exit=$status output=$output"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "replay" ]]
+  [[ -f "$TEST_TMP_DIR/replay-out/latest.json" ]]
+  run jq -r '.scores[0].mode' "$TEST_TMP_DIR/replay-out/latest.json"
+  [ "$status" -eq 0 ]
+  [ "$output" = "replay" ]
+  run jq -r '.scores[0].base_commit' "$TEST_TMP_DIR/replay-out/latest.json"
+  [ "$status" -eq 0 ]
+  [ "$output" = "$base_commit" ]
+}
+
+@test "FA-SF-72: task factory:eval:gen refuses to overwrite existing fixture" {
+  run task factory:eval:gen -- T000725
+  echo "exit=$status output=$output"
+  [ "$status" -ne 0 ]
+  [[ "$output" =~ "Refusing to overwrite" ]]
+  [[ "$output" =~ "tests/factory-eval/fixtures/T000725" ]]
+}
+
+@test "FA-SF-72: Taskfile eval:gen and eval:replay targets are resolvable" {
+  run task --list-all factory:eval:gen factory:eval:replay
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "factory:eval:gen" ]]
+  [[ "$output" =~ "factory:eval:replay" ]]
+}
+
+@test "FA-SF-72: CI advisory step references factory:eval:replay and agent-setup paths" {
+  run grep -A6 "Agent setup replay reminder" .github/workflows/ci.yml
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "factory:eval:replay" ]]
+  [[ "$output" =~ "agent-models.jsonc" ]]
+  [[ "$output" =~ "review-" ]]
+  [[ "$output" =~ "provider-router" ]]
+  [[ "$output" =~ "AGENTS" ]]
+}
+
+@test "FA-SF-72: README documents Eval workflow and replay advisory" {
+  run grep -F "Eval / Private Benchmark" scripts/factory/README.md
+  [ "$status" -eq 0 ]
+  run grep -F "task factory:eval:replay" scripts/factory/README.md
+  [ "$status" -eq 0 ]
+  run grep -F "Overfitting-Caveat" scripts/factory/README.md
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-72: AGENTS.md documents replay advisory mandatory step" {
+  run grep -F "task factory:eval:replay" AGENTS.md
+  [ "$status" -eq 0 ]
+  run grep -F "agent-models.jsonc" AGENTS.md
+  [ "$status" -eq 0 ]
+}
+
 
 # ── T001433 admin-redesign: Factory Floor conveyor-only (FA-SF-FLOOR) ─────────
 @test "FA-SF-FLOOR: FactoryFloor.svelte has no ff-view/kanban toggle" {

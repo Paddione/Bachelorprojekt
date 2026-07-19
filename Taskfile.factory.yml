@@ -47,6 +47,16 @@ tasks:
     cmds:
       - node scripts/factory/eval.mjs
 
+  eval:gen:
+    desc: "Generate a curatable fixture proposal from a merged ticket. Usage: task factory:eval:gen -- <TICKET_EXT_ID>"
+    cmds:
+      - node scripts/factory/eval-gen.mjs {{.CLI_ARGS}}
+
+  eval:replay:
+    desc: "Replay a fixture against the current agent setup. Usage: task factory:eval:replay -- --fixture <id> [--dry-run]"
+    cmds:
+      - node scripts/factory/eval.mjs --replay {{.CLI_ARGS}}
+
   autopilot:install:
     desc: |
       Install the persistent Software Factory dispatcher: symlink the systemd

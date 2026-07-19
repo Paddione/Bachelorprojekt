@@ -28,10 +28,10 @@ extension limit they must stay under.
 
 | `path` | ist | budget |
 |---|---|---|
-| `scripts/factory/eval.mjs` | 167 | 333 |
-| `scripts/factory/eval-replay.mjs` | 0 | 500 |
-| `scripts/factory/eval-gen.mjs` | 0 | 500 |
-| `scripts/factory/eval-context.cjs` | 0 | 200 |
+| `scripts/factory/eval.mjs` | 218 | 282 |
+| `scripts/factory/eval-replay.mjs` | 107 | 393 |
+| `scripts/factory/eval-gen.mjs` | 123 | 377 |
+| `scripts/factory/eval-context.cjs` | 42 | 158 |
 
 Additional touched files (ungated extensions / sanctioned exception — no numeric budget claim):
 

@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 // scripts/factory/eval.mjs — Eval-Harness: runs factory pipeline on golden fixtures and scores output.
 // Usage: node scripts/factory/eval.mjs [--fixtures-dir <path>] [--out-dir <path>] [--dry-run]
+//        node scripts/factory/eval.mjs --replay --fixture <id> [--fixtures-dir <path>] [--out-dir <path>] [--dry-run]
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { join, resolve } from 'path'
 import { execFileSync } from 'child_process'
+import { runReplay } from './eval-replay.mjs'
 
 const REPO = resolve(import.meta.dirname, '../..')
 const FIXTURES_DIR = resolve(REPO, 'tests/factory-eval/fixtures')
@@ -13,11 +15,15 @@ const args = process.argv.slice(2)
 let fixturesDir = FIXTURES_DIR
 let outDir = OUT_DIR
 let dryRun = false
+let replay = false
+let replayFixture = null
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--fixtures-dir' && args[i + 1]) fixturesDir = resolve(args[++i])
   else if (args[i] === '--out-dir' && args[i + 1]) outDir = resolve(args[++i])
   else if (args[i] === '--dry-run') dryRun = true
+  else if (args[i] === '--replay') replay = true
+  else if (args[i] === '--fixture' && args[i + 1]) replayFixture = args[++i]
 }
 
 if (!existsSync(fixturesDir)) {
@@ -27,6 +33,16 @@ if (!existsSync(fixturesDir)) {
 
 function loadJSON(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
+}
+
+function loadMeta(fixtureId) {
+  const metaPath = join(fixturesDir, fixtureId, 'meta.json')
+  if (!existsSync(metaPath)) return null
+  try {
+    return loadJSON(metaPath)
+  } catch {
+    return null
+  }
 }
 
 function matchGlob(pattern, files) {
@@ -81,7 +97,7 @@ function scoreFixture(fixtureId, touchedFiles, testResults) {
   }
 }
 
-function runCollect(fixtureId) {
+function runCollect() {
   const base = process.env.GITHUB_BASE_REF || 'origin/main'
   const diffArgs = ['diff', '--name-only', base, '--relative']
   try {
@@ -92,11 +108,44 @@ function runCollect(fixtureId) {
   }
 }
 
+async function evaluateLive(fid) {
+  const meta = loadMeta(fid)
+  const touchedFiles = runCollect(fid)
+  const testResults = [true]
+  const result = scoreFixture(fid, touchedFiles, testResults)
+  result.mode = 'live'
+  result.base_commit = meta?.base_commit ?? null
+  return result
+}
+
+async function evaluateReplay(fid) {
+  const meta = loadMeta(fid)
+  if (!meta || !meta.base_commit) {
+    throw new Error(`Fixture ${fid} has no meta.json with base_commit — cannot replay`)
+  }
+  const touchedFiles = await runReplay({ fixtureId: fid, fixturesDir, meta, dryRun })
+  const testResults = [true]
+  const result = scoreFixture(fid, touchedFiles, testResults)
+  result.mode = 'replay'
+  result.base_commit = meta.base_commit
+  return result
+}
+
 async function main() {
-  const fixtureIds = readdirSync(fixturesDir, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => d.name)
-    .sort()
+  let fixtureIds = []
+
+  if (replay) {
+    if (!replayFixture) {
+      console.error('--replay requires --fixture <id>')
+      process.exit(1)
+    }
+    fixtureIds = [replayFixture]
+  } else {
+    fixtureIds = readdirSync(fixturesDir, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => d.name)
+      .sort()
+  }
 
   if (fixtureIds.length === 0) {
     console.error('No fixtures found.')
@@ -109,9 +158,12 @@ async function main() {
   for (const fid of fixtureIds) {
     console.log(`Evaluating fixture: ${fid}`)
 
-    if (dryRun) {
+    if (dryRun && !replay) {
+      const meta = loadMeta(fid)
       scores.push({
         fixture: fid,
+        mode: 'live',
+        base_commit: meta?.base_commit ?? null,
         pass: true,
         score: 0.8,
         dimensions: { recall: 0.8, precision: 0.7, recall_pass: true, precision_pass: true, scope_penalty: 0, test_pass: true },
@@ -121,15 +173,14 @@ async function main() {
       continue
     }
 
-    const touchedFiles = runCollect(fid)
-    const testResults = [true]
-
-    const result = scoreFixture(fid, touchedFiles, testResults)
+    const result = replay
+      ? await evaluateReplay(fid)
+      : await evaluateLive(fid)
     scores.push(result)
     allPass = allPass && result.pass
 
     const passStr = result.pass ? 'PASS' : 'FAIL'
-    console.log(`  ${passStr} score=${result.score} recall=${result.dimensions.recall} precision=${result.dimensions.precision} test=${result.dimensions.test_pass}`)
+    console.log(`  ${passStr} mode=${result.mode} score=${result.score} recall=${result.dimensions.recall} precision=${result.dimensions.precision} test=${result.dimensions.test_pass}`)
     if (result.details.false_files.length > 0) {
       console.log(`  WARN: touched forbidden files: ${result.details.false_files.join(', ')}`)
     }

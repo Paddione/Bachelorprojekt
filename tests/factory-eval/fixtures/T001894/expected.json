@@ -1,0 +1,14 @@
+{
+  "files": [
+    ".claude/lib/goals.md"
+  ],
+  "forbidden": [
+    "k3d/configmap-domains.yaml",
+    "environments/*.yaml"
+  ],
+  "tests": [
+    "test -f .claude/lib/goals.md"
+  ],
+  "min_recall": 1.0,
+  "min_precision": 0.3
+}

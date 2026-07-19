@@ -1,0 +1,82 @@
+{
+  "change": "factory-eval-scale",
+  "ticket": "T001980",
+  "generated": "2026-07-19",
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/eval.mjs::scoreFixture",
+      "source": "Read",
+      "signature": "scoreFixture(expected, touchedFiles, testResults) -> {recall, precision, scopePenalty, overall, pass}",
+      "location": "scripts/factory/eval.mjs:41-82",
+      "note": "overall = clamp(recall*0.3 + precision*0.2 + testScore*0.4 - scopePenalty); pass = testPass && recall>=min_recall && precision>=min_precision && !forbidden"
+    },
+    {
+      "qualified_name": "scripts/factory/eval.mjs::runCollect",
+      "source": "Read",
+      "signature": "runCollect() -> string[] (git diff --name-only $GITHUB_BASE_REF|origin/main)",
+      "location": "scripts/factory/eval.mjs:84-93",
+      "note": "Heute Live-Diff; testResults hartcodiert [true] in Z.125. Optionen --fixtures-dir --out-dir --dry-run (Z.17-21). Scorecard nach docs/factory-eval/scorecard-<ts>.json + latest.json (Z.150-155), Exit 1 wenn nicht alle pass (Z.161)."
+    },
+    {
+      "qualified_name": "scripts/factory/pipeline.js::phaseEvent",
+      "source": "Read",
+      "signature": "phaseEvent(ph, state, detail) — shellt scripts/ticket.sh phase <ext> <ph> <state> --detail ... --driver factory",
+      "location": "scripts/factory/pipeline.js:79-88",
+      "note": "Verify-Block: phase('Verify') Z.492-493, noise-only Z.502, Review-Lenses Z.512-532, qa-lens ab Z.563 — Ankerpunkt für Eval-Kontext-Event"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh::cmd_phase",
+      "source": "Read",
+      "signature": "ticket.sh phase <ext_id> <phase> <state> [--detail <text>] [--driver factory|devflow]",
+      "location": "scripts/ticket.sh:477-503"
+    },
+    {
+      "qualified_name": "scripts/lib/ticket-links.sh::cmd_add_pr_link",
+      "source": "Read",
+      "signature": "add_pr_link: self-link to_id=from_id, kind='pr', pr_number, ON CONFLICT DO UPDATE",
+      "location": "scripts/lib/ticket-links.sh:11-56",
+      "note": "Generator liest pr_number über ticket_links WHERE kind='pr' AND pr_number IS NOT NULL"
+    }
+  ],
+  "call_graph": [
+    {
+      "note": "task factory:eval (Taskfile.factory.yml:45-48) -> node scripts/factory/eval.mjs. pipeline.js (Workflow-Skript) -> phaseEvent -> ticket.sh phase -> INSERT tickets.factory_phase_events. Floor liest: website/src/lib/factory-floor.ts getTicketDetail Z.383-395 (SELECT phase,state,detail,driver,at ... ORDER BY at DESC) — detail-String erscheint ohne Frontend-Änderung."
+    }
+  ],
+  "db_tables": [
+    {
+      "table": "tickets.factory_phase_events",
+      "source": "website/src/lib/tickets/tables/factory-control.ts:22-23",
+      "columns": "id BIGSERIAL PK, ticket_id UUID FK ON DELETE CASCADE, phase TEXT CHECK IN ('scout','design','plan','implement','verify','deploy'), state TEXT CHECK IN ('entered','done','blocked'), detail TEXT, driver TEXT DEFAULT 'factory' CHECK IN ('factory','devflow'), at TIMESTAMPTZ DEFAULT now()",
+      "note": "detail ist TEXT, KEIN JSONB — Score als kompakter JSON-String einbetten, keine Migration (Design-Entscheidung E5)"
+    },
+    {
+      "table": "tickets.tickets.touched_files",
+      "source": "website/src/lib/tickets/tables/tickets.ts (Migration); scripts/ticket.sh:256-271 set-touched-files",
+      "columns": "touched_files TEXT[]"
+    },
+    {
+      "table": "tickets.ticket_links",
+      "source": "website/src/lib/tickets/tables/tickets.ts:100-114",
+      "columns": "kind='pr', pr_number; ein PR-Link pro Ticket (ON CONFLICT from_id,to_id,kind)"
+    }
+  ],
+  "api_contracts": [],
+  "external_types": [],
+  "impact_files": [
+    { "path": "scripts/factory/eval-gen.mjs", "current_lines": 0, "ext_limit": 500, "s1_budget": 500, "status": "neu; Ziel ~120-160 Z." },
+    { "path": "scripts/factory/eval.mjs", "current_lines": 167, "ext_limit": 500, "s1_budget": 333, "status": "nicht-baselined; --replay + meta.json-Support; ggf. Modul-Split (eval-replay.mjs) wenn >~400 Z. würde" },
+    { "path": "scripts/factory/pipeline.js", "current_lines": 767, "ext_limit": 600, "s1_budget": 0, "status": "NICHT-baselined und BEREITS über .js-Limit (767>600) — effektives Budget <=0: zeilenneutral arbeiten oder echt verkleinern (plan-lint B1b verlangt Split/Shrink-Step, falls Netto-Wachstum); Eval-Kontext-Logik NICHT inline aufblähen, sondern in Helper-Modul auslagern" },
+    { "path": "Taskfile.factory.yml", "current_lines": 134, "ext_limit": 0, "s1_budget": "ungated (.yml)", "status": "factory:eval:gen + factory:eval:replay, Muster Z.45-48 + CLI_ARGS-Muster Z.38-43" },
+    { "path": ".github/workflows/ci.yml", "current_lines": 521, "ext_limit": 0, "s1_budget": "ungated (.yml)", "status": "advisory Hinweis-Step (::warning::) bei Agenten-Setup-Pfaden" },
+    { "path": "scripts/factory/README.md", "current_lines": 243, "ext_limit": 0, "s1_budget": "ungated (.md)", "status": "Eval-Sektion neu (fehlt heute)" },
+    { "path": "AGENTS.md", "current_lines": 258, "ext_limit": 0, "s1_budget": "ungated (.md)", "status": "advisory Pflicht-Schritt dokumentieren" },
+    { "path": "tests/spec/software-factory.bats", "current_lines": 3520, "ext_limit": 0, "s1_budget": "ungated (.bats)", "status": "FA-SF-58 (Z.2415-2510) deckt eval.mjs heute; neue Tests als FA-SF-Block gemäß Konvention (tests/local/FA-SF-*.bats -> aggregiert)" },
+    { "path": "tests/factory-eval/fixtures/", "current_lines": 0, "ext_limit": 0, "s1_budget": "ungated (.json)", "status": "~5 neue kuratierte Fixtures: ticket.json + expected.json + meta.json; bestehende 3 (T000725, T000726, T000925) unverändert gültig" }
+  ],
+  "risks": [
+    { "severity": "warn", "text": "pipeline.js Budget <=0 (767 Z. bei Limit 600, nicht gebaselined) — Plan MUSS zeilenneutral planen oder Shrink/Extract-Step enthalten (B1b)." },
+    { "severity": "warn", "text": "Replay-Worktrees + git-crypt: detached read-only Worktree kann am Smudge-Filter scheitern — worktree-create.sh-Semantik prüfen oder GIT_CRYPT-sicheren Pfad (kein Checkout verschlüsselter Pfade nötig) wählen." },
+    { "severity": "info", "text": "eval.mjs Default-Pfad ist durch FA-SF-58 (software-factory.bats:2415-2510) abgedeckt — Verhalten ohne --replay darf sich nicht ändern." }
+  ]
+}

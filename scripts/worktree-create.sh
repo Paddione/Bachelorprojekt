@@ -122,14 +122,19 @@ trap _rollback EXIT
 WT_GITDIR="$(git -C "$WT_PATH" rev-parse --absolute-git-dir)"
 
 if [ -f "$KEY_SRC" ]; then
-    # Unlocked: give the worktree its own copy of the key → real decryption.
-    # Also neutralize clean/required so `git commit` of a git-crypt-managed file
-    # never fails on a broken clean filter in the worktree gitdir. [T000925]
+    # Unlocked: give the worktree its own copy of the key → real decryption AND
+    # real encryption. clean MUST be the real git-crypt filter: the former
+    # clean=cat neutralization [T000925] silently committed PLAINTEXT secrets
+    # whenever a merge/add touched a git-crypt-managed file (T001977 — happened
+    # 2026-07-19 in the t001946 worktree). With the key copied into the worktree
+    # gitdir, git-crypt clean works fine; required=true makes any regression
+    # fail the commit loudly instead of falling back to plaintext passthrough.
     mkdir -p "$WT_GITDIR/git-crypt/keys"
     cp "$KEY_SRC" "$WT_GITDIR/git-crypt/keys/default"
     git -C "$WT_PATH" config extensions.worktreeConfig true
-    git -C "$WT_PATH" config --worktree filter.git-crypt.clean    cat
-    git -C "$WT_PATH" config --worktree filter.git-crypt.required false
+    git -C "$WT_PATH" config --worktree --unset filter.git-crypt.smudge 2>/dev/null || true
+    git -C "$WT_PATH" config --worktree --unset filter.git-crypt.clean  2>/dev/null || true
+    git -C "$WT_PATH" config --worktree filter.git-crypt.required true
     git -C "$WT_PATH" checkout
 else
     # Locked (no key): neutralize git-crypt filters worktree-locally so checkout
@@ -159,8 +164,12 @@ if [ "$BRANCH_EXISTS" -eq 1 ] && [ -f "$KEY_SRC" ]; then
     mkdir -p "$WT_GITDIR/git-crypt/keys"
     cp "$KEY_SRC" "$WT_GITDIR/git-crypt/keys/default"
     git -C "$WT_PATH" config extensions.worktreeConfig true
-    git -C "$WT_PATH" config --worktree filter.git-crypt.clean    cat
-    git -C "$WT_PATH" config --worktree filter.git-crypt.required false
+    # Drop the stale worktree-local smudge=cat too — without this the forced
+    # checkout below still runs with the cat passthrough and the
+    # "re-initialized" worktree stays encrypted-at-rest. [T001977]
+    git -C "$WT_PATH" config --worktree --unset filter.git-crypt.smudge 2>/dev/null || true
+    git -C "$WT_PATH" config --worktree --unset filter.git-crypt.clean  2>/dev/null || true
+    git -C "$WT_PATH" config --worktree filter.git-crypt.required true
     git -C "$WT_PATH" checkout --force
   fi
 fi

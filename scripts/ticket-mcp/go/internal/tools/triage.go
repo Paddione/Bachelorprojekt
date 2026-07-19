@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 
@@ -66,6 +67,9 @@ func RegisterTriageTools(s *server.MCPServer) {
 
 			args := buildTriageArgs(id, status, priority, severity, mtype, attentionMode, component)
 
+			if status == "triage" {
+				fmt.Fprintf(os.Stderr, "[triage_ticket debug] id=%s component=%q args=%v\n", id, component, args)
+			}
 			raw, err := runner.RunTicket(args, map[string]string{"BRAND": brand, "VDA_NONINTERACTIVE": "1"})
 			if err != nil {
 				return nil, err

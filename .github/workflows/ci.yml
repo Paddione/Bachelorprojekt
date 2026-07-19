@@ -109,6 +109,15 @@ jobs:
           fi
           echo "✅ Freshness and quality gates passed"
 
+      - name: OpenSpec spec-drift advisory gate [T001979]
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Advisory Phase 1: drift => exit 0 (warnings only). exit >=2 means the
+          # script itself broke and MUST fail CI — so NO continue-on-error here.
+          bash scripts/openspec-drift-check.sh
+
   test-manifests:
     # kustomize manifest validation — the ONLY job that needs kubectl.
     # Very fast setup (~1 min) + ~5s test execution. [T001860]

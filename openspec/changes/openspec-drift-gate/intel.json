@@ -1,0 +1,52 @@
+{
+  "change": "openspec-drift-gate",
+  "ticket": "T001979",
+  "generated": "2026-07-19",
+  "symbols": [
+    {
+      "qualified_name": "scripts/openspec-context.sh::yaml-parser+prefix-match",
+      "source": "grep/Read",
+      "signature": "Bash: PREFIX_TO_SPEC assoc array + PREFIX_ORDER; Match [[ \"$f\" == \"$prefix\"* ]]",
+      "location": "scripts/openspec-context.sh:41-72",
+      "note": "Wiederzuverwendende Parser-/Match-Semantik für component-map.yaml (Longest-Prefix, Reihenfolge = Präzedenz)"
+    },
+    {
+      "qualified_name": "scripts/openspec-context.sh::changed-files",
+      "source": "grep/Read",
+      "signature": "BASE=$(git merge-base HEAD origin/main); git diff --name-only \"$BASE\" HEAD",
+      "location": "scripts/openspec-context.sh:31-35"
+    },
+    {
+      "qualified_name": "scripts/check-commit-vs-diff.sh::self-test",
+      "source": "grep/Read",
+      "signature": "--self-test mit assert_allows/assert_blocks; Exit-Codes dokumentiert im Header",
+      "location": "scripts/check-commit-vs-diff.sh:36-126",
+      "note": "Struktur-Vorbild für das neue Gate-Skript"
+    },
+    {
+      "qualified_name": ".github/workflows/post-merge.yml::feat-fix-case",
+      "source": "grep/Read",
+      "signature": "case \"$COMMIT_TITLE\" in feat:*|fix:*) ;; *) exit 0 ;; esac",
+      "location": ".github/workflows/post-merge.yml:152-157",
+      "note": "Vorbild für feat/fix-vs-chore-Weiche"
+    }
+  ],
+  "call_graph": [
+    {
+      "note": "Bash-Skripte, kein codebase-memory-Graph nötig. CI-Kette: ci.yml test-bats-Job → neuer Step → scripts/openspec-drift-check.sh → liest openspec/component-map.yaml + git diff. Einziger bisheriger component-map-Konsument: scripts/openspec-context.sh:14."
+    }
+  ],
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "impact_files": [
+    { "path": "scripts/openspec-drift-check.sh", "current_lines": 0, "ext_limit": 500, "s1_budget": 500, "status": "neu; Ziel ~150-190 Z." },
+    { "path": ".github/workflows/ci.yml", "current_lines": 521, "ext_limit": 0, "s1_budget": "ungated (.yml nicht in s1.limits)", "status": "nicht-baselined; +1 Step im test-bats-Job (nach ci.yml:110, Muster ci.yml:459-468)" },
+    { "path": "tests/spec/ci-cd.bats", "current_lines": 324, "ext_limit": 0, "s1_budget": "ungated (.bats nicht in s1.limits)", "status": "nicht-baselined; neue @test-Blöcke anhängen" },
+    { "path": "openspec/changes/openspec-drift-gate/specs/ci-cd.md", "current_lines": 0, "ext_limit": 0, "s1_budget": "ungated (.md)", "status": "Delta-Spec, Parent-SSOT ci-cd (openspec/specs/ci-cd.md, 1120 Z.)" }
+  ],
+  "risks": [
+    { "severity": "info", "text": "Kein Label-Override-Mechanismus in ci.yml vorhanden — Bypass bewusst als env-Var SKIP_SPEC_DRIFT=1 (Repo-Konvention), Label ist Phase 2." },
+    { "severity": "warn", "text": "Exit-Code-Vertrag beachten: 0 = ok/advisory, 1 = nur bei DRIFT_CHECK_ENFORCE=1, >=2 = Skript-Fehler (CI-Step failt NUR bei >=2, kein continue-on-error)." }
+  ]
+}

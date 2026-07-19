@@ -322,3 +322,34 @@ EOF
 
   [ "$status" -eq 0 ]
 }
+
+# --- G-CD03: advisory OpenSpec spec-drift gate (T001979) ---
+@test "G-CD03: openspec-drift-check.sh exists and is executable" {
+  [ -x "$REPO_ROOT/scripts/openspec-drift-check.sh" ]
+}
+
+@test "G-CD03: drift gate --self-test passes" {
+  run bash "$REPO_ROOT/scripts/openspec-drift-check.sh" --self-test
+  [ "$status" -eq 0 ]
+}
+
+@test "G-CD03: SKIP_SPEC_DRIFT=1 bypasses with exit 0" {
+  run env SKIP_SPEC_DRIFT=1 bash "$REPO_ROOT/scripts/openspec-drift-check.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"skipped"* ]]
+}
+
+@test "G-CD03: chore titles are skipped (no drift evaluation)" {
+  run env PR_TITLE="chore: housekeeping" bash "$REPO_ROOT/scripts/openspec-drift-check.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"skipped"* ]]
+}
+
+@test "G-CD03: script emits greppable DRIFT: lines and honours enforce switch" {
+  grep -qE 'DRIFT: ' "$REPO_ROOT/scripts/openspec-drift-check.sh"
+  grep -q 'DRIFT_CHECK_ENFORCE' "$REPO_ROOT/scripts/openspec-drift-check.sh"
+}
+
+@test "G-CD03: ci.yml wires the advisory drift step (pull_request only)" {
+  grep -q 'openspec-drift-check.sh' "$REPO_ROOT/.github/workflows/ci.yml"
+}

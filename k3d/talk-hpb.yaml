@@ -30,7 +30,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: nats
-          image: nats:2.10-alpine@sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927
+          image: nats:2.12-alpine@sha256:2ca98656a279b2d88cfdf2b8c3f0d5d7f3941ae9dc2ab12ebaa92d83e0f4ccdb
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

@@ -104,7 +104,7 @@ spec:
         # TLS opportunistisch aus. NetworkPolicies (Default-Deny-Ingress)
         # bilden die primäre Vertrauensgrenze.
         - name: generate-tls-cert
-          image: pgvector/pgvector:0.8.0-pg16@sha256:a132765ec351c65111b5b675928a3a0515a466a40f97277329db8b8209ad8bc9
+          image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -134,7 +134,7 @@ spec:
               mountPath: /etc/postgresql/certs
       containers:
         - name: postgres
-          image: pgvector/pgvector:0.8.0-pg16@sha256:a132765ec351c65111b5b675928a3a0515a466a40f97277329db8b8209ad8bc9
+          image: pgvector/pgvector:0.8.5-pg16@sha256:1d533553fefe4f12e5d80c7b80622ba0c382abb5758856f52983d8789179f0fb
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

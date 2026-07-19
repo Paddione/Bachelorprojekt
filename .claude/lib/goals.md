@@ -343,7 +343,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC17** | Command-Orphans via S4 | 0 ✓ | ≤ 0 | `S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99` |
 | **G-AGENTIC01** | Ungescopte Agenten (security/infra/db ohne `tools:`) | 0 ✓ | ≤ 0 | `awk-Frontmatter-Check über .claude/agents/bachelorprojekt-{security,infra,db}.md` |
 | **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent` |
-| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 1 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
+| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 8 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | n/a | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `website/src/lib` | 85 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |

@@ -1291,9 +1291,18 @@ BLS="$BATS_TEST_DIRNAME/../../scripts/factory/build-loop.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: pipeline.js hat BL.require" {
-  run grep -qE "require.*build-loop" "$PJS"
+@test "FA-SF-37-retry: pipeline.js inlines its own runTaskVerifyLoop (no require, sandbox mode)" {
+  # The Workflow sandbox has no require()/Node API — pipeline.js can no longer
+  # `require('./build-loop.cjs')` for BL.resolveAgentModel/runTaskVerifyLoop.
+  # It now inlines runTaskVerifyLoop directly and routes every agent() call
+  # through the fixed FACTORY_MODEL (local LM Studio) instead of per-call
+  # provider-tier routing. build-loop.cjs itself still exports the function
+  # (see the "build-loop.cjs exportiert runTaskVerifyLoop" test) for callers
+  # that DO have Node API access (e.g. pipeline-runner.js).
+  run grep -qE "^async function runTaskVerifyLoop" "$PJS"
   [ "$status" -eq 0 ]
+  run grep -qE "require\(" "$PJS"
+  [ "$status" -ne 0 ]
 }
 
 @test "FA-SF-37-retry: pipeline.js nutzt runTaskVerifyLoop" {
@@ -3008,10 +3017,18 @@ REG="scripts/factory/service-registry.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-71: pipeline.js inline clone threads ctx to release-slot.sh" {
-  grep -Eq 'function releaseSlotSync\(slotId, success, ctx' scripts/factory/pipeline.js
-  grep -Eq 'release-slot.sh.*String\(ctx' scripts/factory/pipeline.js
-  grep -Eq 'releaseSlotSync\(planRoute.slotId, plan != null, planRoute.ctx\)' scripts/factory/pipeline.js
+@test "FA-SF-71: pipeline.js has no per-call provider-slot routing (sandbox mode uses fixed FACTORY_MODEL)" {
+  # routeProviderSync()/releaseSlotSync() (route-provider.sh + factory_model_slots
+  # reservation/release) were the old per-agent-call provider-tier routing
+  # mechanism. Sandbox mode (FACTORY_MODEL fixed to the local LM Studio model
+  # for every agent() call) has no tiers/slots left to release — this is an
+  # intentional architecture change, not a regression.
+  run grep -q "releaseSlotSync" scripts/factory/pipeline.js
+  [ "$status" -ne 0 ]
+  run grep -q "routeProviderSync" scripts/factory/pipeline.js
+  [ "$status" -ne 0 ]
+  run grep -q "FACTORY_MODEL" scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-71: node --test provider-router budget suite passes" {
@@ -3671,12 +3688,18 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
 }
 
 @test "FA-SF-QA: pipeline.js wires qa-lens into the full-tier verify branch" {
-  run grep -n "qa-lens.mjs" "$PJS"
+  # pipeline.js (the Workflow sandbox script) delegates the actual qa-lens.mjs
+  # spawn to pipeline-runner.js (host-side, has Node API access); pipeline.js
+  # itself only gates the 'run-qa-lens' runner command behind tier === 'full'.
+  local runner="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline-runner.js"
+  run grep -n "run-qa-lens" "$PJS"
+  [ "$status" -eq 0 ]
+  run grep -n "qa-lens.mjs" "$runner"
   [ "$status" -eq 0 ]
   # the qa-lens spawn must live after the `tier === 'full'` guard opens
   local tier_line qa_line
   tier_line=$(grep -n "tier === 'full'" "$PJS" | head -1 | cut -d: -f1)
-  qa_line=$(grep -n "qa-lens.mjs" "$PJS" | head -1 | cut -d: -f1)
+  qa_line=$(grep -n "run-qa-lens" "$PJS" | head -1 | cut -d: -f1)
   [ -n "$tier_line" ]
   [ -n "$qa_line" ]
 }

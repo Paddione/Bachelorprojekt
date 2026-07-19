@@ -2868,7 +2868,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 518,
+      "file_count": 519,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3126,6 +3126,7 @@
         "scripts/factory/pipeline-decompose.cjs",
         "scripts/factory/pipeline-decompose.test.cjs",
         "scripts/factory/pipeline-pattern.md",
+        "scripts/factory/pipeline-runner.js",
         "scripts/factory/pipeline.js",
         "scripts/factory/prep-simple.sh",
         "scripts/factory/provider-config.sh",

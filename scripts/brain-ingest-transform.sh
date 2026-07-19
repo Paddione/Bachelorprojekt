@@ -53,7 +53,7 @@ PROMPT="Transformiere diese Quelldatei in eine brain-Wiki-Seite.
 
 Regeln:
 - Frontmatter: type: ${TYPE}, tags: [...], status: active
-- Deutsch-Prosa, englische Fachbegriffe
+- Sprachregel: durchgängig deutsche Prosa ODER englische Original-Passagen unverändert belassen — NIEMALS Wort-für-Wort-Mischübersetzung (Denglisch)
 - Wikilinks: [[slug]] zu verwandten Seiten (aus Slug-Liste)
 - source:: Rückverweis: Bachelorprojekt ${SRC_PATH}
 - Max 1500 Wörter, destilliere Kernaussagen
@@ -71,35 +71,64 @@ ${CONTENT}
 
 Gib NUR das fertige Markdown aus:"
 
-# Call LM Studio API with optimized settings
-RESPONSE="$(curl -sf --max-time 90 "${LM_URL}/v1/chat/completions" \
-  -H "Content-Type: application/json" \
-  -d "$(jq -n \
-    --arg model "$LM_MODEL" \
-    --arg prompt "$PROMPT" \
-    '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: 2048, top_p: 0.9}')" 2>&1)" || {
-  echo "error: LM Studio API call failed" >&2
-  echo "$RESPONSE" >&2
-  exit 1
+# Call LM Studio API with optimized settings, populating $OUTPUT.
+call_llm() {
+  local prompt="$1" response
+  response="$(curl -sf --max-time 90 "${LM_URL}/v1/chat/completions" \
+    -H "Content-Type: application/json" \
+    -d "$(jq -n \
+      --arg model "$LM_MODEL" \
+      --arg prompt "$prompt" \
+      '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: 3072, top_p: 0.9}')" 2>&1)" || {
+    echo "error: LM Studio API call failed" >&2
+    echo "$response" >&2
+    exit 1
+  }
+
+  OUTPUT="$(echo "$response" | jq -r '.choices[0].message.content // empty')"
+  if [ -z "$OUTPUT" ]; then
+    echo "error: empty response from LM Studio" >&2
+    echo "$response" >&2
+    exit 1
+  fi
+
+  # Strip markdown code fences if present (LLM sometimes wraps output)
+  OUTPUT="$(echo "$OUTPUT" | sed '/^```markdown$/d; /^```$/d')"
+
+  # Validate output has frontmatter
+  if ! echo "$OUTPUT" | head -5 | grep -q '^---'; then
+    echo "error: output missing frontmatter delimiter" >&2
+    echo "$OUTPUT" | head -10 >&2
+    exit 1
+  fi
 }
 
-# Extract content from response
-OUTPUT="$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty')"
+# Fail-closed validation (D3, T001963): every page must carry a source::
+# back-reference and at least one [[wikilink]] in its body.
+validate_output() {
+  local out="$1"
+  if ! echo "$out" | grep -q '^source:: '; then
+    echo "validation: missing source:: line" >&2
+    return 1
+  fi
+  local body
+  body="$(echo "$out" | awk 'BEGIN{fm=0} /^---[[:space:]]*$/{fm++; next} fm>=2{print}')"
+  if ! echo "$body" | grep -q '\[\['; then
+    echo "validation: no [[wikilink]] in body" >&2
+    return 1
+  fi
+}
 
-if [ -z "$OUTPUT" ]; then
-  echo "error: empty response from LM Studio" >&2
-  echo "$RESPONSE" >&2
-  exit 1
-fi
+call_llm "$PROMPT"
+if ! validate_output "$OUTPUT"; then
+  RETRY_HINT="
 
-# Strip markdown code fences if present (LLM sometimes wraps output)
-OUTPUT="$(echo "$OUTPUT" | sed '/^```markdown$/d; /^```$/d')"
-
-# Validate output has frontmatter
-if ! echo "$OUTPUT" | head -5 | grep -q '^---'; then
-  echo "error: output missing frontmatter delimiter" >&2
-  echo "$OUTPUT" | head -10 >&2
-  exit 1
+WICHTIG — dein vorheriger Versuch war ungültig. Pflicht: eine Zeile 'source:: Bachelorprojekt ${SRC_PATH}' UND mindestens ein [[wikilink]] aus der Slug-Liste im Fließtext."
+  call_llm "${PROMPT}${RETRY_HINT}"
+  if ! validate_output "$OUTPUT"; then
+    echo "error: output invalid after retry (source::/wikilink)" >&2
+    exit 1
+  fi
 fi
 
 # Output the transformed content

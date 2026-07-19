@@ -57,22 +57,10 @@ git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
 > gefixt, echter Bestand bleibt 17) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:**
 > pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001903 (Nachfolger von T001556,
 > archiviert ohne Messwert-Fix — dessen Plan referenzierte nicht-existente Pfade wie
-> `VideoVault/src/lib/upload.ts`, daher blieben alle Tasks wirkungslos) → Nachfolger **T001920**
+> `VideoVault/src/lib/upload.ts`, daher blieben alle Tasks wirkungslos) → Nachfolger T001920
 > (echtes VideoVault-Refactoring mit den 14 realen Dateipfaden, über `dev-flow-plan` statt Chore,
-> da ~9+ Datei-Splits kein "no behavior change"-Chore sind)
-
-## G-AGENTIC09 — SKILL.md > 500 Zeilen: 0 ✅ (Ziel ≤ 0)
-
-**Was:** Kein Skill überschreitet mehr die 500-Zeilen-Empfehlung. `dev-flow-plan` war zuletzt bei
-508 Zeilen (Whitespace-Kompression → 479, T001904).
-Längere Skills sind schwerer zu warten und erhöhen den Prompt-Token-Verbrauch bei Dispatch.
-Ein Split in Sub-Skills oder ausgelagerte Referenz-Dokumente würde die Lesbarkeit verbessern.
-
-```bash
-find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
-```
-
-> **B · Baseline:** 3 (dev-flow-execute 662, infra-ops 595, dev-flow-plan 580) → 1 (dev-flow-plan 508) · **Target:** 0 · **Aufwand:** mittel (je Skill ~2–4h Refactoring) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Kein Gate** — Reduktionsziel · **Ticket:** T001904 (Nachfolger von T001559)
+> da ~9+ Datei-Splits kein "no behavior change"-Chore sind; **done ohne Messwert-Fix**) →
+> Nachfolger **T001945**
 
 ## G-DB01 — FK-Spalten ohne Index: 4 → 0
 
@@ -92,7 +80,7 @@ idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
 SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;
 ```
 
-> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (4 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (Nachfolger von T001739; Migration erstellt, Anwendung erfolgt beim nächsten Deploy)
+> **B · Baseline:** 4 · **Target:** 0 · **Aufwand:** gering (4 Indizes via Migration) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001905 (**done ohne Messwert-Fix** — Migration erstellt, Anwendung erfolgt beim nächsten Deploy; Nachfolger von T001739) → Nachfolger **T001946**
 
 ## G-DB03 — brand-Spalten ohne CHECK-Constraint: 41 → 16
 
@@ -115,30 +103,7 @@ SELECT
        WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');
 ```
 
-> **B · Baseline:** 41 → 16 (25 CHECK-Constraints via T001925/PR #2907; 16 verbleibende: 2 Views, 14 Tabellen mit gemischten/NULL-Werten) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001925 (**gefixt** — PR #2907)
-
-## G-DB09 — Slow Queries in pg_stat_statements: n/a → 0
-
-**Was:** Zählt Queries in `pg_stat_statements` mit `mean_exec_time > 1000ms`.
-`pg_stat_statements` ist seit Einrichtung von `k3d/shared-db.yaml` via `shared_preload_libraries`
-geladen, wird aber nirgendwo ausgelesen. Langsame Queries sind der häufigste Grund für
-schlechte API-Antwortzeiten und werden aktuell nur von Nutzern oder gelegentlichem
-pgAdmin-Blick entdeckt.
-
-```bash
-db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000"
-```
-
-Erster Scan (2026-07-17): **1 Treffer** — `COPY knowledge.chunks (id, document_id, collection_id,
-"position", text, embedding, metadata) TO stdout`, 52 calls, mean 9170ms, max 16751ms, 533291
-rows/call. Root cause: der nächtliche `pg_dump -Fc`-Backup-CronJob (`k3d/backup-cronjob.yaml`)
-dumpt die komplette DB inkl. `knowledge.chunks` (Vector-Embeddings-Tabelle) — der `COPY`-Befehl
-ist pg_dump-intern, keine App-seitige Query. Die Latenz ist erwartetes Backup-I/O, kein
-User-facing Performance-Problem und kein Kandidat für einen Index-Fix (Full-Table-Dump).
-Kein risikoarmer Chore-Fix möglich — Messmethode müsste zwischen Backup-COPY und echten
-App-Queries unterscheiden (analog VIEW-Ausschluss bei G-DB03/T001906). Nachfolgeticket T001926.
-
-> **B · Baseline:** 1 → 0 (Backup-COPY ausgeschlossen via `query NOT ILIKE 'COPY %'`) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001926 (**gefixt** — PR #2909)
+> **B · Baseline:** 41 → 16 (25 CHECK-Constraints via T001925/PR #2907; 16 verbleibende: 2 Views, 14 Tabellen mit gemischten/NULL-Werten) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001925 (**gefixt** — PR #2907, verbleibende 16 nicht Teil des Scopes) → Nachfolger **T001947**
 
 ## G-DB10 — Unused Indexes (idx_scan = 0): 93 → 8
 
@@ -162,7 +127,7 @@ sonst zählt sie unlöschbare Indizes mit (Messmethoden-Korrektur analog G-DB03/
 (~83, plus 2 HNSW-Vektorindizes mit seltener aber legitimer Nutzung) braucht Einzelfallprüfung
 pro Tabelle vor einem Drop. Volle Klassifikation → Nachfolgeticket T001928.
 
-> **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908)
+> **B · Baseline:** 93 → 8 (89 Indizes gedroppt via T001928; 8 verbleibende sind UNIQUE Business-Invariants) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001928 (**gefixt** — PR #2908, verbleibende 8 nicht Teil des Scopes) → Nachfolger **T001948**
 
 ## G-SEC06 — Container Images mit High/Critical CVEs: 39 🔴 (Ziel 0)
 
@@ -186,41 +151,7 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 # CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)
 ```
 
-> **B · Baseline:** 39 · **Target:** 0 · **Aufwand:** mittel (Image-Pin-Refresh für 6 betroffene Images, siehe Audit-Report) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (Nachfolger von T001840)
-
-## G-CI03 — CI Pipeline p95 Duration: 7 min ✅ (Ziel ≤ 12 min)
-
-**Was:** Misst die p95-Dauer der letzten 20 CI-Runs auf `main` (von `createdAt` bis
-`updatedAt`). CI-Latenz ist ein direkter Hebel für Developer Velocity — je länger der
-Rückmeldungszyklus, desto geringer die Deployment Frequency. Der CI-Timeouts liegen
-bei 15 min für Tests; p95 sollte darunter bleiben. Messung ist in
-`scripts/health-goals-check.sh` implementiert.
-
-```bash
-# gh-axi hat kein --json fuer `run list` (nur --fields) — hier `gh` direkt (siehe gh-axi.md).
-gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \
-  | python3 -c "
-import json,sys
-from datetime import datetime
-runs=json.load(sys.stdin)
-def parse(ts): return datetime.fromisoformat(ts.replace('Z','+00:00'))
-durations=[(parse(r['updatedAt'])-parse(r['createdAt'])).total_seconds()/60 for r in runs if 'updatedAt' in r]
-durations.sort()
-p95=durations[int(len(durations)*0.95)]
-print(f'{p95:.1f}')
-"
-```
-
-Erster Scan (2026-07-17): **p95 = 6.9 min** (gerundet 7) über die letzten 20 `main`-CI-Runs
-(Range 0.4–6.9 min, Median 4.0 min) — deutlich unter dem 12-min-Ziel, kein Handlungsbedarf.
-Beim Messlauf wurde ein Bug im Messscript selbst gefunden und gefixt: `gh-axi run list` kennt
-kein `--json`-Flag (nur `--fields`, siehe `.claude/skills/references/gh-axi.md`) — der Aufruf in
-`scripts/health-goals-check.sh` lief seit T001841 ins Leere und lieferte "n/a" statt einer
-Messung. Zusätzlich subtrahierte die Python-Auswertung ISO-Timestamp-Strings direkt statt sie zu
-parsen (`TypeError`, ebenfalls still verschluckt). Beide Stellen jetzt auf `gh` (statt `gh-axi`)
-und `datetime.fromisoformat` korrigiert — Messung ist erstmals tatsächlich reproduzierbar gelaufen.
-
-> **B · Baseline:** 7 min (p95) ✅ · **Target:** ≤ 12 min (p95) · **Aufwand:** gering (Messung via `gh`) · **Messzyklus:** täglich · **Reproduzierbar:** ja · **Ticket:** T001910 (**gefixt** — Baseline gemessen, Messscript-Bug behoben; Nachfolger von T001841)
+> **B · Baseline:** 39 · **Target:** 0 · **Aufwand:** mittel (Image-Pin-Refresh für 6 betroffene Images, siehe Audit-Report) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001909 (**done ohne Messwert-Fix** — nur Baseline-Scan, Nachfolger von T001840) → Nachfolger **T001949**
 
 ## G-FE05 — Lighthouse Performance Score < 90: n/a → ≥ 90
 
@@ -238,7 +169,7 @@ npx @lhci/cli autorun \
   --assert.performance=0.9
 ```
 
-> **B · Baseline:** 60 → 74 (Messung 2026-07-17 nach T001922-Deploy, 3× `npx @lhci/cli autorun` gegen `https://web.mentolder.de`, Score konstant 74/100; FCP 3.9s, LCP 4.2s, TBT 0ms, CLS 0. T001922/PR #2899+#2902+#2903 lieferte: Traefik-Kompression + immutable `/_astro/`-Cache beide Brands, LCP-Bild → 17-KB-WebP eager/fetchpriority, Font-Doppel-Ladung entfernt, CookieConsent/PortalSidekick → client:idle. Verbleibende Hebel: Google-Fonts-Self-Hosting — 248 KB Third-Party + 806 ms render-blockend —, `sidekick-panels.css` aus dem Critical Path — 423 ms —, ~80 KB unused JS. WSL-Gotcha: `CHROME_PATH=/usr/bin/google-chrome` setzen, sonst startet LHCI den Windows-Chrome via Interop und scheitert am Port-Bind) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · **Follow-up:** T001930 (Stufe 2: Font-Self-Hosting + Critical-CSS; Vorgänger T001922 shipped)
+> **B · Baseline:** 60 → 74 (Messung 2026-07-17 nach T001922-Deploy, 3× `npx @lhci/cli autorun` gegen `https://web.mentolder.de`, Score konstant 74/100; FCP 3.9s, LCP 4.2s, TBT 0ms, CLS 0. T001922/PR #2899+#2902+#2903 lieferte: Traefik-Kompression + immutable `/_astro/`-Cache beide Brands, LCP-Bild → 17-KB-WebP eager/fetchpriority, Font-Doppel-Ladung entfernt, CookieConsent/PortalSidekick → client:idle. Verbleibende Hebel: Google-Fonts-Self-Hosting — 248 KB Third-Party + 806 ms render-blockend —, `sidekick-panels.css` aus dem Critical Path — 423 ms —, ~80 KB unused JS. WSL-Gotcha: `CHROME_PATH=/usr/bin/google-chrome` setzen, sonst startet LHCI den Windows-Chrome via Interop und scheitert am Port-Bind) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · T001930 (Stufe 2, **done ohne Messwert-Fix** — Font-Self-Hosting + Critical-CSS noch offen) → Nachfolger **T001950**
 
 ## G-BRAIN14 — Brain-Ingest-Backlog: 17 → 0
 
@@ -262,7 +193,7 @@ for line in sys.stdin:
 print(todo)"
 ```
 
-> **B · Baseline:** 17 · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912
+> **B · Baseline:** 17 · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912 (**done ohne Messwert-Fix**) → Nachfolger **T001951**
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -311,6 +242,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SPEC02** | Changes >30 Tage | 0 ✓ | 0 | `for d in openspec/changes/*/; do ... done` |
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
+| **G-DB09** | Slow Queries in pg_stat_statements (COPY-bereinigt) | 0 ✓ | 0 | `db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %'"` — T001926: Backup-COPY (pg_dump-intern) aus dem Mess-Scope ausgeschlossen |
 | **G-DOC01** | Defekte interne Doc-Links | 0 ✓ | 0 | `python3 scripts/check-links.py` |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 190 ✓ | ≤ 200 | `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
@@ -318,6 +250,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DOC06** | Agent Guide Index | 30 ✓ | ≥ 30 | `find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md \| wc -l` |
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 95 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
+| **G-CI03** | CI Pipeline p95 Duration (min) | 7 ✓ | ≤ 12 | `gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \| python3 -c "..p95.."` (T001910: Messscript-Bug in `gh-axi run list --json` behoben, jetzt `gh` direkt) |
 | **G-RH03** | OpenSpec-BATS-Abdeckung | 82 % ✓ | ≥ 60 % | `SPECS=$(ls openspec/specs/*.md \| wc -l); BATS=$(ls tests/spec/*.bats \| wc -l); echo "$BATS/$SPECS"` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
 | **G-DORA01** | Deployment Frequency | Elite ✓ | ≥ 5/Wo | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
@@ -334,6 +267,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills \| grep -c '/SKILL\.md$'` (nur getrackte — market-cli-Installationen zählen nicht, T001783) |
 | **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in git ls-files; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` (nur getrackte) |
 | **G-AGENTIC08** | Tote Script-Pfade in SKILL.md | 0 ✓ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' .claude/skills \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives) |
+| **G-AGENTIC09** | SKILL.md > 500 Zeilen | 0 ✓ | 0 | `find .claude/skills -name SKILL.md -exec wc -l {} + \| awk '$2!="total"&&$1>500{c++} END{print c+0}'` — T001904: `dev-flow-plan` 508→479 Zeilen |
 | **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
 | **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
 | **G-AGENTIC13** | Tote MCP-Server-Refs in SKILL.md | 0 ✓ | 0 | `grep -rhoE 'mcp__...__\|mcp-..._browser_' .claude/skills \| gegen registrierte Server` |
@@ -365,7 +299,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
 - **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05, G-BRAIN12, G-BRAIN13, G-BRAIN15
-- **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14
+- **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14, G-AGENTIC09
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
@@ -466,3 +400,5 @@ gefolgt von unused-javascript ~278 KiB und responsive Images ~146 KiB). Score li
 Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-Ticket T001922 angelegt.
 
 **Baseline-Update 2026-07-17 (T001910 — G-CI03 erster Messlauf):** G-CI03 n/a→7 min p95 ✅ (Ziel ≤12 min; Messscript-Bug behoben — `gh-axi run list` unterstützt kein `--json` (nur `--fields`), Python-Auswertung parste ISO-Timestamps nicht als datetime — beide Stellen auf `gh` direkt + `datetime.fromisoformat` korrigiert).
+
+**Baseline-Update 2026-07-19 (T001952 — Prio-B Ticket-Backfill):** Alle Tracking-Tickets der 10 Prio-B-Ziele waren via Merge=Abschluss-Konvention bereits `done`, ohne dass die zugrundeliegenden Health-Goals ihr Target erreicht hätten (T001280→T001347-Stil-Churn). Für die 7 Ziele mit weiterhin verfehltem Target wurden neue Nachfolge-Tickets angelegt: G-SIZE02 → T001945, G-DB01 → T001946, G-DB03 → T001947, G-DB10 → T001948, G-SEC06 → T001949, G-FE05 → T001950, G-BRAIN14 → T001951. Die 3 Ziele, deren Wert bereits am oder über dem Target liegt (G-AGENTIC09 0≤0, G-DB09 0=0, G-CI03 7≤12), wurden redaktionell von Prio B in die Prio-C Green-Gates-Tabelle verschoben — kein neues Ticket, da kein offener Arbeitsbedarf besteht.

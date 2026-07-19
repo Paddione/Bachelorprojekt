@@ -96,7 +96,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#0EA5E9",
       "temperature": 0.2,
-      "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "qwen3-14b": {
       "description": "Single-session implementation/planning agent: Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, MXFP4_MOE, 262k ctx) on LM Studio",
@@ -105,7 +105,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.2,
-      "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "qwen35": {
       "description": "Subagent using Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, MXFP4_MOE, 262k ctx) on LM Studio - serialized (1 at a time)",
@@ -114,7 +114,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#22C55E",
       "temperature": 0.2,
-      "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "qwen35-hq": {
       "description": "Subagent using Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, MXFP4_MOE, 262k ctx) on LM Studio - serialized (1 at a time), use when max per-call context matters more than concurrency",
@@ -123,7 +123,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#16A34A",
       "temperature": 0.2,
-      "permission": { "edit": "deny", "write": "deny", "bash": "deny" }
+      "permission": { "edit": "deny", "write": "deny", "bash": "deny", "webfetch": "deny", "websearch": "deny" }
     }
   }
 }

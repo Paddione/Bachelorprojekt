@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.191.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.191.1...website-v1.191.2) (2026-07-19)
+
+
+### Bug Fixes
+
+* **scripts:** worktree-create keeps real git-crypt clean filter — no more plaintext commits [T001977] ([#2971](https://github.com/Paddione/Bachelorprojekt/issues/2971)) ([6b210c2](https://github.com/Paddione/Bachelorprojekt/commit/6b210c281931ebb6d07d9acf9b03c8f9cf845220))
+
 ## [1.191.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.191.0...website-v1.191.1) (2026-07-19)
 
 

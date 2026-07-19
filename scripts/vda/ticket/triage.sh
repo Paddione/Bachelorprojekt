@@ -105,7 +105,7 @@ UPDATE tickets.tickets SET
   priority=COALESCE(NULLIF(:'p',''), priority),
   severity=COALESCE(NULLIF(:'s',''), severity),
   status=COALESCE(NULLIF(:'st',''), status),
-  component=NULLIF(:'c',''),
+  component=COALESCE(NULLIF(:'c',''), component),
   type=COALESCE(NULLIF(:'tp',''), type),
   attention_mode=COALESCE(NULLIF(:'attn',''), attention_mode)
 WHERE external_id=:'ext_id';

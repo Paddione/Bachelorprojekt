@@ -118,7 +118,13 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
   }
 
   lines.push('', marker)
-  writeFileSync(ssotPath, lines.join('\n').replace(/\n{3,}/g, '\n\n'))
+  const merged = lines.join('\n').replace(/\n{3,}/g, '\n\n')
+
+  if (createNew && !/^### Requirement:/m.test(merged)) {
+    fail(`--create-new but no ### Requirement: block merged into ${basename(ssotPath)} — check that the delta has '## ADDED Requirements' with at least one '### Requirement: …' child.`)
+  }
+
+  writeFileSync(ssotPath, merged)
   return 0
 }
 

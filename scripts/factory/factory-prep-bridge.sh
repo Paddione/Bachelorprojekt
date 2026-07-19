@@ -137,6 +137,24 @@ for brand in mentolder korczewski; do
       continue
     fi
 
+    # Pre-create the worktree at the same path pipeline.js will use, branched
+    # from origin/<branch> (not origin/main) so the plan file is materialized
+    # on disk before the launched `claude -p` session runs its safety-check.
+    # Without this, the LLM refuses to invoke Workflow because
+    # $plan_path doesn't exist in the main checkout (only on the feature branch),
+    # the prompt override is correctly flagged as manipulation, and the pipeline
+    # exits immediately — leaving the slot held, watchdog reset, cycle repeats.
+    wt_path=null
+    wt_slug=$(echo "${branch}" | sed -E 's#^(feature|fix|chore)/##')
+    wt_path="${REPO}/.worktrees/${wt_slug}-reuse"
+    if ! bash "$REPO/scripts/worktree-create.sh" "${branch}" "${wt_path}" "origin/${branch}" >/dev/null 2>&1; then
+      log "SKIP reason=worktree_failed ticket=$ext_id (pre-create at ${wt_path} failed)"
+      BRAND="$brand" bash "$REPO/scripts/ticket.sh" release-slot --id "$ext_id" >/dev/null 2>&1 || true
+      skipped=$(echo "$skipped" | jq -c --arg b "$brand" --arg r "worktree_failed" '. + [{"brand":$b,"reason":$r}]')
+      continue
+    fi
+    log "pre-created worktree for $ext_id at ${wt_path}"
+
     launch=$(echo "$launch" | jq -c \
       --arg b "$brand" \
       --arg e "$ext_id" \
@@ -144,8 +162,9 @@ for brand in mentolder korczewski; do
       --arg t "$title" \
       --arg br "${branch:-null}" \
       --arg p "${plan_path:-null}" \
+      --arg w "${wt_path}" \
       --argjson dr "$dr" \
-      '. + [{"brand":$b, "external_id":$e, "slot":$s, "title":$t, "branch":$br, "plan_path":$p, "dry_run":$dr}]')
+      '. + [{"brand":$b, "external_id":$e, "slot":$s, "title":$t, "branch":$br, "plan_path":$p, "worktree_path":$w, "dry_run":$dr}]')
   done
 done
 

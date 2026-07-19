@@ -177,6 +177,37 @@ spec:
               AUTH="X-API-KEY: ${POCKET_ID_API_KEY}"
               CT="Content-Type: application/json"
 
+              # RETRY on every curl call below (T001327): pocket-id:1411
+              # intermittently refuses connections for a few seconds at a
+              # time (observed live, root cause unconfirmed). Without
+              # --retry-connrefused, one refused connection makes curl -f
+              # exit non-zero, which (under `set -e`) kills the container;
+              # restartPolicy: OnFailure then restarts the SAME container
+              # from the top of this script. --retry-all-errors is
+              # deliberately NOT used — a real 4xx from a genuine script bug
+              # must fail fast, not burn the whole retry budget retrying a
+              # deterministic error. </dev/null avoids the curl processes
+              # inheriting the while-read loop's stdin further down.
+              CURL_RETRY="--retry 15 --retry-delay 2 --retry-connrefused --connect-timeout 5"
+
+              # T001995: verify the API key BEFORE touching any client row.
+              # Without this, an invalid key (401/403 on every call) is
+              # silently swallowed by find_client_id()'s `|| true` and
+              # treated as "client not found" -- upsert() then attempts a
+              # POST (create) for every single row before `set -e` finally
+              # kills the script, and restartPolicy: OnFailure repeats this
+              # on every retry, each time adding more zombie oidc_clients
+              # rows (T001992). Only a genuine 401/403 aborts here --
+              # $CURL_RETRY (incl. --retry-connrefused) still covers
+              # transient connection refusals during pod startup (T001327).
+              auth_check_code=$(curl -fsS $CURL_RETRY -o /dev/null -w '%{http_code}' -H "$AUTH" "${API}/api/oidc/clients" </dev/null 2>/dev/null || echo "000")
+              case "$auth_check_code" in
+                401|403)
+                  echo "ERROR: POCKET_ID_API_KEY rejected by Pocket-ID (HTTP ${auth_check_code}) -- aborting before processing any client row. Check for API-key drift (see T001992)." >&2
+                  exit 1
+                  ;;
+              esac
+
               # client rows: id|secretEnv|secretKey|callbackUrl
               # secretKey is the literal key in the workspace-secrets k8s
               # Secret -- used to write a newly-generated secret back on
@@ -215,19 +246,7 @@ spec:
               # immediately followed by `name` per object (verified live) —
               # matched with a plain grep/sed pair since this image ships no
               # jq. Returns empty (not found) rather than failing.
-              #
-              # RETRY on every curl call below (T001327): pocket-id:1411
-              # intermittently refuses connections for a few seconds at a
-              # time (observed live, root cause unconfirmed). Without
-              # --retry-connrefused, one refused connection makes curl -f
-              # exit non-zero, which (under `set -e`) kills the container;
-              # restartPolicy: OnFailure then restarts the SAME container
-              # from the top of this script. --retry-all-errors is
-              # deliberately NOT used — a real 4xx from a genuine script bug
-              # must fail fast, not burn the whole retry budget retrying a
-              # deterministic error. </dev/null avoids the curl processes
-              # inheriting the while-read loop's stdin further down.
-              CURL_RETRY="--retry 15 --retry-delay 2 --retry-connrefused --connect-timeout 5"
+              # ($CURL_RETRY is defined above, next to the T001995 auth check.)
               find_client_id() {
                 name="$1"
                 page=1

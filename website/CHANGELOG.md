@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.191.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.191.2...website-v1.191.3) (2026-07-19)
+
+
+### Bug Fixes
+
+* **factory:** pre-create feature worktree before launching pipeline [T001983] ([#2980](https://github.com/Paddione/Bachelorprojekt/issues/2980)) ([e9aaa15](https://github.com/Paddione/Bachelorprojekt/commit/e9aaa156ae20ddc90bb6f4e531b434d569789a5f))
+
 ## [1.191.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.191.1...website-v1.191.2) (2026-07-19)
 
 

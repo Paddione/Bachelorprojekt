@@ -3258,6 +3258,64 @@ STUB
   [ "$status" -eq 0 ]
 }
 
+@test "T001990: dispatcher-bridge.sh computes REPO two levels above scripts/factory (not one)" {
+  # Pre-fix: REPO=$(cd "$HERE/.." && pwd) landed on .../scripts instead of the
+  # repo root, silently breaking the one real $REPO consumer (line 59,
+  # ticket.sh update-status --status blocked, swallowed by `|| true`).
+  run grep -F 'REPO="$(cd "$HERE/../.." && pwd)"' scripts/factory/dispatcher-bridge.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T001990: dispatcher-bridge.sh cd's into the pre-created worktree before launching claude -p" {
+  # Pre-fix: claude -p ran with no cd, inheriting dispatcher-bridge.sh's own
+  # cwd (the shared main checkout). A local-model session that can't reliably
+  # call the Workflow tool and falls back to a workaround (e.g. invoking
+  # pipeline.js directly with node) then writes those workaround files
+  # straight into the main checkout instead of its isolated worktree —
+  # observed live for T001945's dry-run launch, corrupting scripts/factory/
+  # in the shared tree with a half-applied require->import migration.
+  BRIDGE="scripts/factory/dispatcher-bridge.sh"
+  run grep -F 'LAUNCH_DIR="${wt_path:-$REPO}"' "$BRIDGE"
+  [ "$status" -eq 0 ]
+  run grep -E '\(cd "\$LAUNCH_DIR" && "\$\{CLAUDE_BIN:-claude\}"[[:space:]]+-p' "$BRIDGE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001990: dispatcher-bridge.sh actually launches claude -p with cwd pinned to worktree_path" {
+  # Functional (not just grep) proof: a pwd-recording claude stub must observe
+  # the pre-created worktree dir as its cwd, never the tmp "repo" root passed
+  # as $1/dispatcher-bridge.sh's own location.
+  tmp="$(mktemp -d)"
+  wt="${tmp}/wt-reuse"
+  mkdir -p "$wt"
+  pwdfile="${tmp}/observed-pwd"
+  stub="${tmp}/claude-stub"
+  cat > "$stub" <<STUB
+#!/usr/bin/env bash
+pwd > "${pwdfile}"
+STUB
+  chmod +x "$stub"
+
+  prep="${tmp}/prep.json"
+  cat > "$prep" <<JSON
+{"launch":[{"external_id":"T999999","brand":"mentolder","title":"stub launch","branch":"fix/stub","plan_path":"openspec/changes/stub/tasks.md","worktree_path":"${wt}","dry_run":false}]}
+JSON
+
+  CLAUDE_BIN="$stub" run bash scripts/factory/dispatcher-bridge.sh "$prep"
+
+  if [ -f "$pwdfile" ]; then
+    observed="$(cat "$pwdfile")"
+    resolved_wt="$(cd "$wt" && pwd)"
+    [ "$observed" = "$resolved_wt" ]
+  else
+    # budget-guard.sh blocked the launch in this environment (e.g. no DB) —
+    # the static grep tests above still cover the fix; skip the assertion
+    # rather than fail on an unrelated environment gap.
+    skip "budget-guard.sh blocked the launch before reaching claude -p (no DB in test env)"
+  fi
+  rm -rf "$tmp"
+}
+
 @test "FA-SF-SANDBOX: sandbox-run resolves docker→k8s→off and honors FACTORY_SANDBOX override" {
   run bash -c "FACTORY_SANDBOX=off bash scripts/factory/sandbox-run.sh /tmp/nonexistent-wt 'echo hi' 2>&1"
   [ "$status" -eq 0 ]

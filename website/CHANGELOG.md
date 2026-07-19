@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.190.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.190.1...website-v1.190.2) (2026-07-19)
+
+
+### Documentation
+
+* **goals:** G-FE05 live post-deploy confirmation — target reached (90/100) [T001950] ([#2951](https://github.com/Paddione/Bachelorprojekt/issues/2951)) ([d85305a](https://github.com/Paddione/Bachelorprojekt/commit/d85305a50b496482a70bf4b26e7c5af391a456ea))
+
 ## [1.190.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.190.0...website-v1.190.1) (2026-07-19)
 
 

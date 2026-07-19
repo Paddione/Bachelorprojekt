@@ -325,6 +325,8 @@ spec:
         # Waits until occ app:install notify_push has placed the binary,
         # then runs it. Reads DB + Redis config from the shared app PVC.
         # Apache in the main container proxies /push/ → localhost:7867.
+        # zz-db.config.php resolves dbpassword via getenv('POSTGRES_PASSWORD'),
+        # so this sidecar needs the same DB env as the main/cron containers.
         - name: notify-push
           image: nextcloud:33-apache@sha256:476228e615088e7d2de4bd9a87187961dfbff1577a96ff07955ec35dbe18f3c9
           imagePullPolicy: Always
@@ -351,6 +353,18 @@ spec:
                 sleep 10
               done
               exec "$$BIN" /var/www/html/config/config.php
+          env:
+            - name: POSTGRES_HOST
+              value: nextcloud-db
+            - name: POSTGRES_DB
+              value: nextcloud
+            - name: POSTGRES_USER
+              value: nextcloud
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: NEXTCLOUD_DB_PASSWORD
           volumeMounts:
             - name: app
               mountPath: /var/www/html

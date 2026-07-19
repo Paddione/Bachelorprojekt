@@ -80,7 +80,7 @@
       },
       "models": {
         "qwen3.6-14b-a3b-fablevibes@262k": {
-          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx, concurrent)",
+          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, MXFP4_MOE, 262k ctx, concurrent)",
           "limit": {
             "context": 262000,
             "output": 8192

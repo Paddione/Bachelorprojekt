@@ -46,6 +46,28 @@ since git-crypt landed (PR #1303): it runs the git-crypt smudge filter against a
 key-less worktree gitdir. [T000426] The manual equivalents below are kept as
 reference for any tool that bypasses the helper.
 
+### 0. Detached-HEAD trap when passing a remote ref (T001974 Mishap 1)
+
+`git worktree add <path> <remote-ref>` (e.g. `git worktree add .worktrees/foo
+origin/feature/foo`) creates a worktree on a **detached HEAD**, not on the
+branch. Any commits made there float as unreachable objects — `git push`
+returns "Everything up-to-date" because the commit is on detached HEAD, not
+on the branch.
+
+**Always check out the named branch immediately after worktree creation,
+before the first commit:**
+
+```bash
+git worktree add .worktrees/foo origin/feature/foo
+cd .worktrees/foo
+git checkout feature/foo            # detach → branch; commits now anchor here
+git submodule update --init --recursive
+```
+
+The project helper `scripts/worktree-create.sh <branch> <path>` does this
+correctly (it derives the branch from the name and switches into it). Use it
+in preference to bare `git worktree add`.
+
 ### 1. Initialize BATS submodules (T000387 / T000107)
 
 `task test:unit` / `task test:all` fails with `bats-core/bin/bats not found` in

@@ -29,6 +29,21 @@ else
 fi
 ```
 
+> **Branch-Switch + Stash Race (T001974 Mishap 2).** Niemals
+> `git checkout -b <branch> && git stash pop` in einer einzigen Pipeline
+> verketten. Der `stash pop` kann ausgeführt werden, bevor der
+> Branch-Switch abgeschlossen ist, sodass der Commit auf dem falschen Branch
+> (z. B. `main`) landet. Stattdessen explizit sequenziell mit Error-Check:
+>
+> ```bash
+> git checkout -b fix/my-branch || exit 1   # Branch-Switch abwarten
+> git stash pop || { echo "stash pop failed"; exit 1; }
+> ```
+>
+> Das gleiche Muster gilt für `git reset --soft` → `git stash` →
+> `git checkout -b` → `git stash pop`: jeder Schritt muss den Abschluss des
+> vorherigen abwarten.
+
 ---
 
 ## Schritt 1 — Verifikation & Freshness Guard (vor dem Commit)

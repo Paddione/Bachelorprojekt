@@ -3,7 +3,7 @@
 # Transforms Bachelorprojekt source files into brain wiki pages via LLM,
 # delivers via PR to Paddione/brain.
 #
-# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>]
+# Usage: brain-ingest.sh --brain-repo <path> [--pilot N] [--dry-run] [--state <path>] [--branch <name>] [--prune]
 #
 # Env:
 #   LM_STUDIO_URL    — llama-server ingest-pool API URL (default:
@@ -30,6 +30,7 @@ source "$HERE/brain-group-match.sh"
 BRAIN_REPO=""
 DRY_RUN=0
 PILOT=0
+PRUNE=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://localhost:8095}"
@@ -50,6 +51,7 @@ while [[ $# -gt 0 ]]; do
     --pilot)      PILOT="${2:?--pilot requires a number}"; shift ;;
     --state)      STATE_FILE="${2:?--state requires a path}"; shift ;;
     --branch)     BRANCH="${2:?--branch requires a name}"; shift ;;
+    --prune)      PRUNE=1 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
@@ -352,6 +354,16 @@ done
 
 echo "$index_content" > "$BRAIN_REPO/index.md"
 echo "  Updated index.md"
+
+# ============================================================
+# Phase 2c: Prune (Deletion-Sync, T001963) — default dry, --prune schaltet scharf
+# ============================================================
+echo ""
+echo "=== Phase 2c: Prune ==="
+PRUNE_FLAG=""
+[ "$PRUNE" -eq 1 ] && [ "$DRY_RUN" -eq 0 ] && PRUNE_FLAG="--prune"
+bash "$HERE/brain-ingest-prune.sh" --brain-repo "$BRAIN_REPO" --root "$REPO_ROOT" \
+  --state "$STATE_FILE" $PRUNE_FLAG
 
 # ============================================================
 # Phase 3: Quality Gates

@@ -2,15 +2,8 @@
   import type { HelpContext } from '../lib/helpContent';
   import SidekickHeader from './assistant/SidekickHeader.svelte';
   import SidekickHome from './assistant/SidekickHome.svelte';
-  import SupportView from './assistant/SupportView.svelte';
-  import QuestionnaireView from './assistant/QuestionnaireView.svelte';
-  import HelpView from './assistant/HelpView.svelte';
-  import AgentGuideView from './assistant/AgentGuideView.svelte';
-  import MediaviewerPanel from './MediaviewerPanel.svelte';
-  import TerminalSessionIframe from './terminal/TerminalSessionIframe.svelte';
-  import CockpitSidekickView from './assistant/CockpitSidekickView.svelte';
-  import AiQualitySidekickView from './assistant/AiQualitySidekickView.svelte';
-  import LogsSidekickView from './assistant/LogsSidekickView.svelte';
+  // T001950: drawer sub-views below are dynamic-import()ed, not statically
+  // imported — keeps them out of this client:idle chunk (public homepage).
   import { resolveHelpVideos } from '../lib/help-videos';
   import { parseNavigateEvent } from '../lib/assistant/sidekick-nudge';
   import { registerBrowserLogCapture } from '../lib/logging/browser-collector';
@@ -280,23 +273,23 @@
         {aiErrorCount}
       />
     {:else if view === 'support'}
-      <SupportView onCloseView={() => { view = 'home'; }} />
+      {#await import('./assistant/SupportView.svelte') then { default: V }}<V onCloseView={() => { view = 'home'; }} />{/await}
     {:else if view === 'questionnaire'}
-      <QuestionnaireView onCloseView={() => { view = 'home'; }} />
+      {#await import('./assistant/QuestionnaireView.svelte') then { default: V }}<V onCloseView={() => { view = 'home'; }} />{/await}
     {:else if view === 'help'}
-      <HelpView section={helpSection} context={helpContext} />
+      {#await import('./assistant/HelpView.svelte') then { default: V }}<V section={helpSection} context={helpContext} />{/await}
     {:else if view === 'agent-guide'}
-      <AgentGuideView jumpTo={pendingJump} />
+      {#await import('./assistant/AgentGuideView.svelte') then { default: V }}<V jumpTo={pendingJump} />{/await}
     {:else if view === 'mediaviewer'}
-      <MediaviewerPanel {mediaviewerHost} videos={mediaviewerVideos} />
+      {#await import('./MediaviewerPanel.svelte') then { default: V }}<V {mediaviewerHost} videos={mediaviewerVideos} />{/await}
     {:else if view === 'terminal'}
-      <TerminalSessionIframe {terminalHost} />
+      {#await import('./terminal/TerminalSessionIframe.svelte') then { default: V }}<V {terminalHost} />{/await}
     {:else if view === 'cockpit'}
-      <CockpitSidekickView />
+      {#await import('./assistant/CockpitSidekickView.svelte') then { default: V }}<V />{/await}
     {:else if view === 'ai-quality'}
-      <AiQualitySidekickView />
+      {#await import('./assistant/AiQualitySidekickView.svelte') then { default: V }}<V />{/await}
     {:else if view === 'logs'}
-      <LogsSidekickView />
+      {#await import('./assistant/LogsSidekickView.svelte') then { default: V }}<V />{/await}
     {:else if view === 'agent-settings'}
       <div class="agent-settings">
         {#if settingsLoading}

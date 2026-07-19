@@ -8,13 +8,16 @@ describe('PortalSidekick — mediaviewer view', () => {
   });
 
   it('opens the drawer and shows the Mediaviewer iframe after navigating', async () => {
-    const { getByLabelText, getByText, getByTitle } = render(PortalSidekick, {
+    const { getByLabelText, getByText, findByTitle } = render(PortalSidekick, {
       helpContext: 'portal',
       mediaviewerHost: 'mediaviewer.localhost',
     });
     await fireEvent.click(getByLabelText('Sidekick öffnen'));
     await fireEvent.click(getByText('Mediaviewer'));
-    const iframe = getByTitle('Mediaviewer') as HTMLIFrameElement;
+    // T001950: MediaviewerPanel is now lazy-loaded via dynamic import() to
+    // keep it out of PortalSidekick's eagerly-hydrated (client:idle) chunk,
+    // so it's no longer in the DOM synchronously after the click — wait for it.
+    const iframe = await findByTitle('Mediaviewer') as HTMLIFrameElement;
     expect(iframe.getAttribute('src')).toBe('https://mediaviewer.localhost/embed.html?v=mediaviewer.localhost');
   });
 });
@@ -25,13 +28,14 @@ describe('PortalSidekick — terminal view', () => {
   });
 
   it('shows the Terminal iframe when navigating to terminal view', async () => {
-    const { getByLabelText, getByText, getByTitle } = render(PortalSidekick, {
+    const { getByLabelText, getByText, findByTitle } = render(PortalSidekick, {
       helpContext: 'admin',
       terminalHost: 'terminal.localhost',
     });
     await fireEvent.click(getByLabelText('Sidekick öffnen'));
     await fireEvent.click(getByText('Agentic Terminal'));
-    const iframe = getByTitle('Agentic Terminal') as HTMLIFrameElement;
+    // T001950: TerminalSessionIframe is now lazy-loaded via dynamic import().
+    const iframe = await findByTitle('Agentic Terminal') as HTMLIFrameElement;
     expect(iframe.getAttribute('src')).toBe('https://terminal.localhost/');
   });
 });

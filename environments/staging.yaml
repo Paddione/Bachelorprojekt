@@ -44,6 +44,7 @@ env_vars:
   DOCS_URL: "https://docs.staging.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.staging.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.staging.korczewski.de"
+  BRAIN_EXTERNAL_URL: "https://brain.staging.korczewski.de"
   WHITEBOARD_EXTERNAL_URL: "https://files.staging.korczewski.de/apps/files"
   TRAEFIK_EXTERNAL_URL: "https://traefik.staging.korczewski.de"
   MAIL_EXTERNAL_URL: "https://mail.staging.korczewski.de"

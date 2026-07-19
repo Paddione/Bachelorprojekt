@@ -1143,6 +1143,24 @@
       "status": "plan_staged"
     }
   ],
+  "T001947": [
+    {
+      "slug": "2026-07-19-db-brand-check-constraints",
+      "status": "archived"
+    }
+  ],
+  "T001954": [
+    {
+      "slug": "2026-07-19-prod-write-guard",
+      "status": "archived"
+    }
+  ],
+  "T001963": [
+    {
+      "slug": "2026-07-19-brain-wiki-quality",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

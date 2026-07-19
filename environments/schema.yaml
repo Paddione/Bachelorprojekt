@@ -241,6 +241,10 @@ env_vars:
     required: false
     default_dev: "http://vault.localhost"
 
+  - name: BRAIN_EXTERNAL_URL
+    required: false
+    default_dev: "http://brain.localhost"
+
   - name: WHITEBOARD_EXTERNAL_URL
     required: false
     default_dev: "http://board.localhost"

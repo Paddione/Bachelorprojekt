@@ -5,7 +5,16 @@ import CookieConsent from '../components/CookieConsent.svelte';
 import PortalSidekick from '../components/PortalSidekick.svelte';
 import '../styles/fonts.css';
 import '../styles/global.css';
-import '../styles/sidekick-panels.css';
+// T001950: sidekick-panels.css (~180KB) styles PortalSidekick's drawer
+// sub-views (help, questionnaire, agent-guide, ...) which only render after
+// the user opens the FAB. On the public homepage it was previously a
+// render-blocking <link>, adding ~180KB to the critical rendering path for
+// UI that is never visible on first paint. Import it as a plain asset URL
+// (no auto-injected blocking <link>) and swap it in async via the
+// preload+onload pattern below. It stays eagerly loaded (blocking) in
+// PortalLayout.astro / AdminLayout.astro, where the sidekick is core,
+// above-the-fold UI.
+import sidekickPanelsCssUrl from '../styles/sidekick-panels.css?url';
 import { config } from '../config/index';
 import { getEffectiveNavigation } from '../lib/content';
 import { t, type Locale } from '../i18n/index';
@@ -86,6 +95,13 @@ const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
     {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
     {isKore && <link rel="stylesheet" href="/brand/korczewski/app.css" />}
     {isKore && <link rel="stylesheet" href="/brand/korczewski/kore-website.css" />}
+    <link
+      rel="preload"
+      as="style"
+      href={sidekickPanelsCssUrl}
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript><link rel="stylesheet" href={sidekickPanelsCssUrl} /></noscript>
   </head>
   <body class={`min-h-screen flex flex-col${isKore ? ' kore' : ''}`} style="background:var(--ink-900); color:var(--fg);">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded" style="background:var(--brass); color:var(--ink-900); font-weight:600;">

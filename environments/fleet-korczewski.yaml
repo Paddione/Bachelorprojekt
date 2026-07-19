@@ -44,7 +44,7 @@ env_vars:
   DOCS_URL: "https://docs.korczewski.de"
   AUTH_EXTERNAL_URL: "https://auth.korczewski.de"
   VAULT_EXTERNAL_URL: "https://vault.korczewski.de"
-  BRAIN_EXTERNAL_URL: "https://brain.korczewski.de"
+  BRAIN_EXTERNAL_URL: "https://brain.mentolder.de"
   WHITEBOARD_EXTERNAL_URL: "https://files.korczewski.de/apps/files"
   TRAEFIK_EXTERNAL_URL: "https://traefik.korczewski.de"
   MAIL_EXTERNAL_URL: "https://mail.korczewski.de"

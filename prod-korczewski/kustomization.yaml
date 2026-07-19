@@ -75,6 +75,13 @@ patches:
       kind: Service
       metadata:
         name: oauth2-proxy-brain
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress, name: workspace-ingress-brain }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: workspace-ingress-brain
 
   # livekit-recordings-pvc uses the base manifest's storage class (local-path),
   # tied to the livekit pin-node (pk-hetzner-6). Acceptable because livekit-* are

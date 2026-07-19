@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.193.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.2...website-v1.193.3) (2026-07-19)
+
+
+### Bug Fixes
+
+* **infra:** anchor openspec.sh REPO on cwd git-toplevel, not script path [T001997] ([#2995](https://github.com/Paddione/Bachelorprojekt/issues/2995)) ([b30caa0](https://github.com/Paddione/Bachelorprojekt/commit/b30caa0f9d7fda6d69558f28645b5363847bed3a))
+
 ## [1.193.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.1...website-v1.193.2) (2026-07-19)
 
 

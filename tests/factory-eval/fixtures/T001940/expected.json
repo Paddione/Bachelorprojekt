@@ -1,0 +1,17 @@
+{
+  "files": [
+    "openspec/changes/fix-t001940-coaching-generate-502/proposal.md",
+    "openspec/changes/fix-t001940-coaching-generate-502/specs/capability.md",
+    "openspec/changes/fix-t001940-coaching-generate-502/tasks.md",
+    "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts"
+  ],
+  "forbidden": [
+    "k3d/configmap-domains.yaml",
+    "environments/*.yaml"
+  ],
+  "tests": [
+    "node --check website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts"
+  ],
+  "min_recall": 0.25,
+  "min_precision": 0.3
+}

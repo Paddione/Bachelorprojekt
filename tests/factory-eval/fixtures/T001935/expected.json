@@ -1,0 +1,17 @@
+{
+  "files": [
+    "brett/src/client/ws-client.ts",
+    "openspec/changes/fix-t001935-brett-admin-session/proposal.md",
+    "openspec/changes/fix-t001935-brett-admin-session/specs/capability.md",
+    "openspec/changes/fix-t001935-brett-admin-session/tasks.md"
+  ],
+  "forbidden": [
+    "k3d/configmap-domains.yaml",
+    "environments/*.yaml"
+  ],
+  "tests": [
+    "node --check brett/src/client/ws-client.ts"
+  ],
+  "min_recall": 0.25,
+  "min_precision": 0.3
+}

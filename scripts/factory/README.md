@@ -131,6 +131,64 @@ gehaltene Verbindung — s. `lib.sh:31-35`, `dispatcher.js:15`).
 claude.ai und haben **kein Repo-Checkout, keinen git-crypt-Key, kein fleet-Kubeconfig
 und kein Workflow-Tool**. Der WSL-Host-Timer ist der einzige Locus mit allen vier.
 
+## Eval / Private Benchmark
+
+Ein deterministischer Golden-Fixture-Scorer misst das aktuelle Agenten-Setup gegen
+gemergte Factory-Tickets. Fixtures liegen unter `tests/factory-eval/fixtures/<TICKET>/`
+und enthalten:
+
+- `ticket.json` — Ticket-Titel, Typ, Brand (keine Description, die wird kuratiert).
+- `expected.json` — Erwartete Dateien (`files`), `forbidden`, `tests`,
+  `min_recall`/`min_precision`.
+- `meta.json` (optional, aber für Replay nötig) — `base_commit`, `pr_number`,
+  `generated_at`, `source: "eval-gen"`.
+
+### Workflow
+
+1. **Fixture vorschlagen** (halbauotmatisch):
+   ```bash
+   task factory:eval:gen -- <TICKET_EXT_ID>
+   ```
+   Liest Ticket + verlinkten PR, baut `expected.json.files` aus `gh pr diff --name-only`,
+   setzt `meta.base_commit` auf den PR-Merge-Base. Der Mensch kuratiert danach
+   `min_recall`/`min_precision`/`forbidden`/`tests`.
+
+2. **Live-Diff scoren** (Default):
+   ```bash
+   task factory:eval
+   ```
+   Bewertet `git diff --name-only origin/main...HEAD` gegen alle Fixtures.
+   Funktioniert offline und in CI.
+
+3. **Replay** (lokal, GPU nötig):
+   ```bash
+   task factory:eval:replay -- --fixture <TICKET_EXT_ID> --dry-run
+   task factory:eval:replay -- --fixture <TICKET_EXT_ID>
+   ```
+   Erzeugt einen ephemeren Worktree auf `meta.base_commit`, lässt das aktuelle
+   Agenten-Setup das Ticket implementieren, und bewertet den entstehenden Diff.
+
+### Wann Replay Pflicht ist
+
+Änderungen am Agenten-Setup — `.opencode/agent-models.jsonc`,
+`scripts/factory/review-*.prompt.md`, `scripts/factory/provider-router.js`,
+`AGENTS.md` — müssen **vor dem Merge** lokal mit `task factory:eval:replay`
+gemessen und der Scorecard dokumentiert werden. CI gibt nur einen
+`::warning::`-Hinweis aus; der Replay selbst läuft nicht im CI-Runner
+(kenine GPU/LM-Studio).
+
+### Bekannte Lücken
+
+- Die `tests`-Kommandos in `expected.json` werden noch **nicht ausgeführt**;
+  `test_results` ist im Scorer noch hartcodiert `[true]`.
+- Replay benötigt einen lokalen `claude`-Binary mit gültigen Credentials.
+
+### Overfitting-Caveat
+
+Fixtures sind ein grober File-Set-Proxy. Ein hoher Score ersetzt **kein**
+Trace-Reading — nachträgliche Code-Reviews der tatsächlichen Änderungen bleiben
+Pflicht.
+
 ## OpenTelemetry / Observability
 
 Jeder Tick exportiert OTLP-Telemetrie an den on-prem OTel-Collector

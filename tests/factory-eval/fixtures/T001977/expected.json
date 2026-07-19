@@ -1,0 +1,17 @@
+{
+  "files": [
+    "docs/code-quality/repo-index.json",
+    "scripts/worktree-create.sh",
+    "tests/unit/worktree-create.bats",
+    "website/src/lib/goals-data.generated.json"
+  ],
+  "forbidden": [
+    "k3d/configmap-domains.yaml",
+    "environments/*.yaml"
+  ],
+  "tests": [
+    "bash -n scripts/worktree-create.sh"
+  ],
+  "min_recall": 0.25,
+  "min_precision": 0.3
+}

@@ -1185,6 +1185,12 @@
       "status": "archived"
     }
   ],
+  "T001980": [
+    {
+      "slug": "factory-eval-scale",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

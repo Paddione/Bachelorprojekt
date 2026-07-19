@@ -94,7 +94,7 @@ EOF
 }
 
 # cmd_get_ticket_links --id <ext_id>
-# Returns JSON: {"blocks": [...], "blocked_by": [...], "relates": [...], "child_of": [...]}
+# Returns JSON: {"blocks": [...], "blocked_by": [...], "relates": [...], "child_of": [...], "pr": [{"external_id": ..., "pr_number": ...}]}
 # Refuses offline reads (exits 9 with TICKET_OFFLINE=1).
 cmd_get_ticket_links() {
   local id=""
@@ -146,6 +146,18 @@ SELECT jsonb_build_object(
     JOIN tickets.tickets t2 ON t2.id = tl.to_id
     WHERE tl.from_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
       AND tl.kind = 'child_of'
+  ), '[]'::jsonb),
+  'pr', COALESCE((
+    SELECT jsonb_agg(jsonb_build_object('external_id', t2.external_id, 'pr_number', tl.pr_number) ORDER BY tl.pr_number)
+    FROM tickets.ticket_links tl
+    JOIN tickets.tickets t2 ON t2.id = CASE
+      WHEN tl.from_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id') THEN tl.to_id
+      ELSE tl.from_id
+    END
+    WHERE tl.kind = 'pr'
+      AND tl.pr_number IS NOT NULL
+      AND (tl.from_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id')
+           OR tl.to_id = (SELECT id FROM tickets.tickets WHERE external_id = :'ext_id'))
   ), '[]'::jsonb)
 ) AS links;
 EOF

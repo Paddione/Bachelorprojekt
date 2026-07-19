@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.193.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.192.0...website-v1.193.0) (2026-07-19)
+
+
+### Features
+
+* **factory:** eval replay, generator, context helper + fixtures + tests [T001980] ([#2985](https://github.com/Paddione/Bachelorprojekt/issues/2985)) ([5340ef4](https://github.com/Paddione/Bachelorprojekt/commit/5340ef4c1400ea36db7bd98886c12aa10f545bba))
+
 ## [1.192.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.191.3...website-v1.192.0) (2026-07-19)
 
 

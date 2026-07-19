@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.191.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.191.0...website-v1.191.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* **db:** add remaining missing FK indexes for G-DB01 [T001946] ([#2967](https://github.com/Paddione/Bachelorprojekt/issues/2967)) ([1837176](https://github.com/Paddione/Bachelorprojekt/commit/18371767160a12c41559aa79b6398ac6fb04972a))
+
 ## [1.191.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.190.2...website-v1.191.0) (2026-07-19)
 
 

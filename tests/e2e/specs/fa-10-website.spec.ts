@@ -114,7 +114,11 @@ test.describe('FA-10: Unternehmenswebsite (Astro) & Kontaktformular', { tag: ['@
     await waitForHydration(page);
     // Use data-testid for robust selection instead of computed accessible name.
     await page.getByTestId('tab-nachricht').click();
-    await page.getByLabel(/name/i).fill('[TEST] E2E User');
+    // Wait for the ContactForm to render after tab switch — the conditional
+    // {#if activeMode === 'message'} needs a tick on slow live sites.
+    const nameField = page.getByLabel(/name/i);
+    await nameField.waitFor({ state: 'visible', timeout: 15_000 });
+    await nameField.fill('[TEST] E2E User');
     await page.getByLabel(/e-?mail/i).fill('test-e2e@example.invalid');
     await page.getByLabel(/ihre nachricht/i).fill('Dies ist eine automatisierte Testnachricht.');
     await page.getByRole('button', { name: /nachricht senden/i }).click();

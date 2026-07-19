@@ -9,7 +9,7 @@
 #   <prep_file>  path to the factory-prep JSON (launch array)
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$(cd "$HERE/.." && pwd)"
+REPO="$(cd "$HERE/../.." && pwd)"
 PREP_FILE="${1:-}"; shift || true
 DRY_RUN=false
 for arg; do case "$arg" in --dry-run) DRY_RUN=true;; esac; done
@@ -109,9 +109,15 @@ standard, supported way to run a Software Factory pipeline; do not try to run
 it as a Skill or via any other mechanism. If a tool call fails, do not retry
 the identical call — stop and report the error verbatim instead of looping."
 
-  "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \
+  # Run the session rooted in the pre-created worktree (T001990) — without an
+  # explicit cd, the process inherits dispatcher-bridge.sh's own cwd (the main
+  # checkout), so any file write the agent makes (including a workaround like
+  # invoking pipeline.js directly with node instead of the Workflow tool)
+  # lands in the shared main checkout instead of the isolated worktree.
+  LAUNCH_DIR="${wt_path:-$REPO}"
+  (cd "$LAUNCH_DIR" && "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \
     --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \
-    --dangerously-skip-permissions 2>&1 | sed "s/^/[pipeline:${ext_id}] /" >&2 &
+    --dangerously-skip-permissions 2>&1) | sed "s/^/[pipeline:${ext_id}] /" >&2 &
 done
 
 # Wait for all background pipelines to finish

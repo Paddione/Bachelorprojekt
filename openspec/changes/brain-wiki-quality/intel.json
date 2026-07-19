@@ -1,0 +1,56 @@
+{
+  "change": "brain-wiki-quality",
+  "ticket": "T001963",
+  "generated": "2026-07-19",
+  "symbols": [
+    {
+      "name": "brain-ingest.sh CLI",
+      "file": "scripts/brain-ingest.sh",
+      "signature": "bash scripts/brain-ingest.sh --brain-repo <path> [--dry-run] [--pilot N]",
+      "notes": "4 Phasen: worklist → transform → write → PR. Keine Prune-/Delete-Phase vorhanden (grep delete|remove|prune|stale = 0 Treffer). 474 Zeilen."
+    },
+    {
+      "name": "brain-ingest-transform.sh",
+      "file": "scripts/brain-ingest-transform.sh",
+      "signature": "brain-ingest-transform.sh <source-file> <type> <tag-defaults> <slugs-json> (env: LM_URL, LM_MODEL, MAX_SOURCE_CHARS)",
+      "notes": "106 Zeilen. Prompt Z.52-72, curl an ${LM_URL}/v1/chat/completions mit temperature 0.2, max_tokens 2048 (Z.80). Output-Validierung NUR: frontmatter-Delimiter vorhanden (Z.99). KEINE source::-/Wikilink-Prüfung, KEIN Retry."
+    },
+    {
+      "name": "brain-ingest-worklist.sh",
+      "file": "scripts/brain-ingest-worklist.sh",
+      "signature": "brain-ingest-worklist.sh --root <repo> --manifest scripts/brain/ingest-sources.yaml → TSV (pfad\\tslug\\tgruppe)",
+      "notes": "132 Zeilen, fail-loud bei 0-Match-Gruppen (T001884). Nur lesend genutzt für Prune-Sollmenge."
+    }
+  ],
+  "call_graph": [
+    "brain-ingest.sh → brain-ingest-worklist.sh (Worklist-TSV)",
+    "brain-ingest.sh → brain-ingest-transform.sh (pro Quelldatei)",
+    "brain-ingest.sh → ~/.brain-ingest-state.json (Idempotenz: Quellhash→Seite, aktuell 434 Einträge)",
+    "brain-merge-hook.yml (Paddione/Bachelorprojekt) → Teil-Sync push-getriggert ins brain-Repo (BRAIN_PAT)"
+  ],
+  "db_tables": [],
+  "api_contracts": [
+    {
+      "name": "LM Studio Chat Completions",
+      "endpoint": "POST ${LM_URL}/v1/chat/completions",
+      "shape": "{model, messages:[{role:'user',content}], temperature, max_tokens, top_p} → .choices[0].message.content"
+    }
+  ],
+  "external_types": [],
+  "external_repo": {
+    "name": "Paddione/brain",
+    "local_checkout": "~/brain",
+    "relevant": "wiki/*.md (468 Seiten, 338 stale mit source:: docs/superpowers/specs/*), scripts/lint-frontmatter.sh, scripts/lint-wikilinks.sh, scripts/build-mocs.sh, log.md, index.md"
+  },
+  "impact_files": [
+    {"path": "scripts/brain-ingest.sh", "lines": 474, "baseline": "nicht-baselined", "ext_limit": 500, "s1_budget": 26, "note": "Budget knapp — Prune-Logik als NEUE Datei scripts/brain-ingest-prune.sh auslagern, brain-ingest.sh nur Flag-Parsing + Aufruf (≤26 Netto-Zeilen)"},
+    {"path": "scripts/brain-ingest-prune.sh", "lines": 0, "baseline": "neu", "ext_limit": 500, "s1_budget": 500, "note": "NEU — Prune-Logik (Kandidaten-Ermittlung source::/State-Reverse-Map, dry/scharf). S4: Referenz in docs/** oder Taskfile/Skill nötig (openspec/specs zählt NICHT als reference_source)"},
+    {"path": "scripts/brain-ingest-transform.sh", "lines": 106, "baseline": "nicht-baselined", "ext_limit": 500, "s1_budget": 394, "note": "Validierung + Retry + Prompt-Schärfung passt locker"},
+    {"path": "tests/spec/brain-foundation.bats", "lines": 159, "baseline": "nicht-baselined", "ext_limit": 0, "s1_budget": 0, "note": ".bats ist ungated (keine Extension in s1.limits)"}
+  ],
+  "risks": [
+    {"severity": "warn", "text": "Prune löscht in externem Repo (~/brain) — default-dry Pflicht (D2); Meta-Seiten-Exemption (source self/fehlend + kein State-Eintrag) muss getestet sein bevor --prune scharf läuft"},
+    {"severity": "warn", "text": "150 Seiten ohne source:: nur über State-File-Reverse-Map zuordenbar; Rest bleibt für Orphan-Audit liegen (D1)"},
+    {"severity": "info", "text": "brain-Repo-Änderungen (Purge, Lints) laufen als separater PR (Dual-Target D4) — nicht Teil des Bachelorprojekt-CI"}
+  ]
+}

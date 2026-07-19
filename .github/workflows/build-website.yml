@@ -134,6 +134,11 @@ jobs:
           RIGGER_PORT: "8190"
           POCKET_ID_FRONTEND_URL: https://auth.mentolder.de
           POCKET_ID_URL: http://pocket-id.workspace.svc.cluster.local:1411
+          BRAIN_EXTERNAL_URL: https://brain.mentolder.de
+          # Arena is optional (mentolder-only, schema default "") — empty disables it.
+          ARENA_WS_URL: ""
+          NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
+          PRIMARY_FRONTEND: astro
         run: |
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
@@ -150,15 +155,35 @@ jobs:
           POCKET_ID_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
           REACT_APP_ORIGIN="https://react.${PROD_DOMAIN}"
           RIGGER_HOST_IP="${COMFY_HOST_IP}"
-          export WEBSITE_HOST WEBSITE_SITE_URL POCKET_ID_FRONTEND_URL REACT_APP_ORIGIN RIGGER_HOST_IP
+          case "${PRIMARY_FRONTEND}" in
+            react) WEBSITE_PRIMARY_SERVICE="mentolder-web" ;;
+            *)     WEBSITE_PRIMARY_SERVICE="website" ;;
+          esac
+          export WEBSITE_HOST WEBSITE_SITE_URL POCKET_ID_FRONTEND_URL REACT_APP_ORIGIN RIGGER_HOST_IP WEBSITE_PRIMARY_SERVICE
 
           # Apply full website overlay (ConfigMap + networking + Deployment with :latest).
           # The sed step adds YAML string quotes around unquoted ${VAR} placeholders so
           # server-side apply doesn't reject boolean/integer fields as wrong types.
-          kustomize build prod-fleet/website-mentolder --load-restrictor=LoadRestrictionsNone \
-            | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
-            | envsubst '$WEBSITE_IMAGE $BRAND_ID $BRAND_NAME $CONTACT_EMAIL $CONTACT_NAME $CONTACT_PHONE $CONTACT_CITY $LEGAL_STREET $LEGAL_ZIP $LEGAL_JOBTITLE $LEGAL_UST_ID $LEGAL_WEBSITE $SMTP_FROM $SMTP_USER $SMTP_HOST $SMTP_PORT $SMTP_SECURE $WEBSITE_HOST $WEBSITE_SITE_URL $REACT_APP_ORIGIN $NEXTCLOUD_EXTERNAL_URL $DOCS_URL $AUTH_EXTERNAL_URL $VAULT_EXTERNAL_URL $WHITEBOARD_EXTERNAL_URL $TRAEFIK_EXTERNAL_URL $MAIL_EXTERNAL_URL $BRETT_DOMAIN $LIVEKIT_DOMAIN $STREAM_DOMAIN $PROD_DOMAIN $CLUSTER_ENV $WEBSITE_NAMESPACE $WORKSPACE_NAMESPACE $SYSTEMTEST_LOOP_ENABLED $LLM_ENABLED $LLM_RERANK_ENABLED $LLM_ROUTER_URL $LLM_EMBED_URL $COMFY_HOST_IP $COMFY_PORT $RIGGER_HOST_IP $RIGGER_PORT $POCKET_ID_FRONTEND_URL $POCKET_ID_URL' \
-            | sed -E 's/\$\$([a-zA-Z0-9_\{])/$\1/g' \
+          # The envsubst variable list is derived from the rendered manifest itself and
+          # every referenced variable must be set (fail-closed) — a hardcoded allowlist
+          # here drifted from the Taskfile deploy path and shipped literal ${VAR}
+          # strings to prod (T001993).
+          RENDERED=$(kustomize build prod-fleet/website-mentolder --load-restrictor=LoadRestrictionsNone \
+            | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g')
+          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u)
+          MISSING=""
+          for v in $VARS; do if [[ -z "${!v+x}" ]]; then MISSING="$MISSING $v"; fi; done
+          if [[ -n "$MISSING" ]]; then
+            echo "::error::manifest placeholders without a set env var:$MISSING — add them to this job's env block"
+            exit 1
+          fi
+          SUBSTITUTED=$(envsubst "$(printf '$%s ' $VARS)" <<<"$RENDERED")
+          if grep -qE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED"; then
+            echo "::error::unexpanded \${VAR} placeholders remain after envsubst:"
+            grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED" | sort -u
+            exit 1
+          fi
+          sed -E 's/\$\$([a-zA-Z0-9_\{])/$\1/g' <<<"$SUBSTITUTED" \
             | kubectl apply --server-side --force-conflicts -f -
 
           # Pin to the exact SHA-tagged image to guarantee the freshly built version rolls out.
@@ -253,6 +278,11 @@ jobs:
           RIGGER_PORT: "8190"
           POCKET_ID_FRONTEND_URL: https://auth.korczewski.de
           POCKET_ID_URL: http://pocket-id.workspace-korczewski.svc.cluster.local:1411
+          BRAIN_EXTERNAL_URL: https://brain.mentolder.de
+          # Arena is optional (mentolder-only, schema default "") — empty disables it.
+          ARENA_WS_URL: ""
+          NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
+          PRIMARY_FRONTEND: astro
         run: |
           curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
@@ -269,15 +299,35 @@ jobs:
           POCKET_ID_FRONTEND_URL="https://auth.${PROD_DOMAIN}"
           REACT_APP_ORIGIN="https://react.${PROD_DOMAIN}"
           RIGGER_HOST_IP="${COMFY_HOST_IP}"
-          export WEBSITE_HOST WEBSITE_SITE_URL POCKET_ID_FRONTEND_URL REACT_APP_ORIGIN RIGGER_HOST_IP
+          case "${PRIMARY_FRONTEND}" in
+            react) WEBSITE_PRIMARY_SERVICE="mentolder-web" ;;
+            *)     WEBSITE_PRIMARY_SERVICE="website" ;;
+          esac
+          export WEBSITE_HOST WEBSITE_SITE_URL POCKET_ID_FRONTEND_URL REACT_APP_ORIGIN RIGGER_HOST_IP WEBSITE_PRIMARY_SERVICE
 
           # Apply full website overlay (ConfigMap + networking + Deployment with :latest).
           # The sed step adds YAML string quotes around unquoted ${VAR} placeholders so
           # server-side apply doesn't reject boolean/integer fields as wrong types.
-          kustomize build prod-fleet/website-korczewski --load-restrictor=LoadRestrictionsNone \
-            | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
-            | envsubst '$WEBSITE_IMAGE $BRAND_ID $BRAND_NAME $CONTACT_EMAIL $CONTACT_NAME $CONTACT_PHONE $CONTACT_CITY $LEGAL_STREET $LEGAL_ZIP $LEGAL_JOBTITLE $LEGAL_UST_ID $LEGAL_WEBSITE $SMTP_FROM $SMTP_USER $SMTP_HOST $SMTP_PORT $SMTP_SECURE $WEBSITE_HOST $WEBSITE_SITE_URL $REACT_APP_ORIGIN $NEXTCLOUD_EXTERNAL_URL $DOCS_URL $AUTH_EXTERNAL_URL $VAULT_EXTERNAL_URL $WHITEBOARD_EXTERNAL_URL $TRAEFIK_EXTERNAL_URL $MAIL_EXTERNAL_URL $BRETT_DOMAIN $LIVEKIT_DOMAIN $STREAM_DOMAIN $PROD_DOMAIN $CLUSTER_ENV $WEBSITE_NAMESPACE $WORKSPACE_NAMESPACE $SYSTEMTEST_LOOP_ENABLED $LLM_ENABLED $LLM_RERANK_ENABLED $LLM_ROUTER_URL $LLM_EMBED_URL $COMFY_HOST_IP $COMFY_PORT $RIGGER_HOST_IP $RIGGER_PORT $POCKET_ID_FRONTEND_URL $POCKET_ID_URL' \
-            | sed -E 's/\$\$([a-zA-Z0-9_\{])/$\1/g' \
+          # The envsubst variable list is derived from the rendered manifest itself and
+          # every referenced variable must be set (fail-closed) — a hardcoded allowlist
+          # here drifted from the Taskfile deploy path and shipped literal ${VAR}
+          # strings to prod (T001993).
+          RENDERED=$(kustomize build prod-fleet/website-korczewski --load-restrictor=LoadRestrictionsNone \
+            | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g')
+          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u)
+          MISSING=""
+          for v in $VARS; do if [[ -z "${!v+x}" ]]; then MISSING="$MISSING $v"; fi; done
+          if [[ -n "$MISSING" ]]; then
+            echo "::error::manifest placeholders without a set env var:$MISSING — add them to this job's env block"
+            exit 1
+          fi
+          SUBSTITUTED=$(envsubst "$(printf '$%s ' $VARS)" <<<"$RENDERED")
+          if grep -qE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED"; then
+            echo "::error::unexpanded \${VAR} placeholders remain after envsubst:"
+            grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED" | sort -u
+            exit 1
+          fi
+          sed -E 's/\$\$([a-zA-Z0-9_\{])/$\1/g' <<<"$SUBSTITUTED" \
             | kubectl apply --server-side --force-conflicts -f -
 
           # Pin to the exact SHA-tagged image to guarantee the freshly built version rolls out.

@@ -230,8 +230,21 @@ spec:
               CURL_RETRY="--retry 15 --retry-delay 2 --retry-connrefused --connect-timeout 5"
               find_client_id() {
                 name="$1"
-                list=$(curl -fsS $CURL_RETRY -H "$AUTH" "${API}/api/oidc/clients" </dev/null 2>/dev/null || true)
-                echo "$list" | grep -o "\"id\":\"[^\"]*\",\"name\":\"${name}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/'
+                page=1
+                while :; do
+                  list=$(curl -fsS $CURL_RETRY -H "$AUTH" "${API}/api/oidc/clients?pagination%5Bpage%5D=${page}" </dev/null 2>/dev/null || true)
+                  id=$(echo "$list" | grep -o "\"id\":\"[^\"]*\",\"name\":\"${name}\"" | head -1 | sed -E 's/"id":"([^"]*)".*/\1/')
+                  if [ -n "$id" ]; then
+                    echo "$id"
+                    return
+                  fi
+                  total_pages=$(echo "$list" | grep -o '"totalPages":[0-9]*' | head -1 | sed -E 's/"totalPages":([0-9]*)/\1/')
+                  if [ -z "$total_pages" ] || [ "$page" -ge "$total_pages" ]; then
+                    echo ""
+                    return
+                  fi
+                  page=$((page + 1))
+                done
               }
 
               # Write a newly pocket-id-generated client secret back into the

@@ -353,3 +353,92 @@ EOF
 @test "G-CD03: ci.yml wires the advisory drift step (pull_request only)" {
   grep -q 'openspec-drift-check.sh' "$REPO_ROOT/.github/workflows/ci.yml"
 }
+
+# --- T001994: envsubst-Allowlist-Drift-Guard für Taskfile-Deploy-Pfade ---
+# Nachwehen von T001993: envsubst laesst ungelistete Variablen still als
+# literale ${VAR}-Strings stehen. Drift-Kriterium: Ein Platzhalter im
+# gerenderten Prod-Overlay, der in der env_vars:-Sektion von
+# environments/schema.yaml registriert ist (Deploy-Zeit-Config), aber in der
+# Allowlist des jeweiligen Apply-Pfads fehlt. Runtime-Platzhalter
+# (secrets:-Sektion, Shell-Variablen in Container-Skripten) sind absichtlich
+# literal und werden ignoriert.
+
+_schema_env_vars() {
+  awk '/^env_vars:/{f=1;next} /^secrets:/{f=0} f' "$REPO_ROOT/environments/schema.yaml" \
+    | grep -E '^[[:space:]]+- name: [A-Z0-9_]+' | awk '{print $3}' | sort -u
+}
+
+# ENVSUBST_VARS-Zeilen eines Taskfile-Tasks (bis zur naechsten Task-Definition).
+_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)
+  awk -v task="  $1:" '
+    $0 == task {in_task=1; next}
+    in_task && /^  [a-zA-Z0-9:_-]+:$/ {exit}
+    in_task && /ENVSUBST_VARS=/ {print}
+  ' "$REPO_ROOT/Taskfile.yml" | grep -oE '\\\$[A-Z0-9_]+' | tr -d '\\$' | sort -u
+}
+
+# Inline-envsubst-Liste des website:deploy-Tasks (Zeilen mit $WEBSITE_IMAGE-Liste).
+_website_deploy_list() {
+  awk '
+    $0 == "  website:deploy:" {in_task=1; next}
+    in_task && /^  [a-zA-Z0-9:_-]+:$/ {exit}
+    in_task && /envsubst "\\\$WEBSITE_IMAGE/ {print}
+  ' "$REPO_ROOT/Taskfile.yml" | grep -oE '\\\$[A-Z0-9_]+' | tr -d '\\$' | sort -u
+}
+
+_render_placeholders() { # $1 = overlay dir
+  kubectl kustomize "$REPO_ROOT/$1" --load-restrictor=LoadRestrictionsNone 2>/dev/null \
+    | grep -oE '\$\{[A-Za-z0-9_]+\}' | tr -d '${}' | sort -u
+}
+
+# Kern-Assertion: (Platzhalter − Allowlist) ∩ Schema-env_vars muss leer sein.
+_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)
+  local ph drift
+  ph="$(_render_placeholders "$1")"
+  [ -n "$ph" ] || skip "kustomize render leer/nicht verfuegbar fuer $1"
+  drift="$(comm -12 <(comm -23 <(echo "$ph") <(echo "$2")) <(_schema_env_vars))"
+  if [ -n "$drift" ]; then
+    echo "envsubst-Allowlist-Drift in $1 — fehlende Config-Vars: $drift"
+    return 1
+  fi
+}
+
+@test "T001994: Taskfile-Extraktion liefert nicht-leere Allowlists (Guard-Selbsttest)" {
+  [ "$(_taskfile_envsubst_list workspace:deploy | wc -l)" -gt 20 ]
+  [ "$(_taskfile_envsubst_list workspace:partial-deploy | wc -l)" -gt 20 ]
+  [ "$(_website_deploy_list | wc -l)" -gt 20 ]
+}
+
+@test "T001994: workspace:deploy Allowlist deckt prod-fleet/mentolder ab" {
+  _assert_no_config_drift prod-fleet/mentolder "$(_taskfile_envsubst_list workspace:deploy)"
+}
+
+@test "T001994: workspace:deploy Allowlist deckt prod-fleet/korczewski ab" {
+  _assert_no_config_drift prod-fleet/korczewski "$(_taskfile_envsubst_list workspace:deploy)"
+}
+
+@test "T001994: workspace:partial-deploy Allowlist deckt prod-fleet/mentolder ab" {
+  _assert_no_config_drift prod-fleet/mentolder "$(_taskfile_envsubst_list workspace:partial-deploy)"
+}
+
+@test "T001994: workspace:partial-deploy Allowlist deckt prod-fleet/korczewski ab" {
+  _assert_no_config_drift prod-fleet/korczewski "$(_taskfile_envsubst_list workspace:partial-deploy)"
+}
+
+@test "T001994: website:deploy Allowlist deckt prod-fleet/website-mentolder ab" {
+  _assert_no_config_drift prod-fleet/website-mentolder "$(_website_deploy_list)"
+}
+
+@test "T001994: website:deploy Allowlist deckt prod-fleet/website-korczewski ab" {
+  _assert_no_config_drift prod-fleet/website-korczewski "$(_website_deploy_list)"
+}
+
+@test "T001994: website:deploy Allowlist deckt k3d/website.yaml (dev) ab" {
+  local ph drift
+  ph="$(grep -oE '\$\{[A-Za-z0-9_]+\}' "$REPO_ROOT/k3d/website.yaml" | tr -d '${}' | sort -u)"
+  drift="$(comm -12 <(comm -23 <(echo "$ph") <(_website_deploy_list)) <(_schema_env_vars))"
+  if [ -n "$drift" ]; then
+    echo "envsubst-Allowlist-Drift in k3d/website.yaml — fehlende Config-Vars: $drift"
+    return 1
+  fi
+}

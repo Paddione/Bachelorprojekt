@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 574,
+      "file_count": 575,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -356,6 +356,7 @@
         "tests/spec/agent-lock-session-identity.bats",
         "tests/spec/art-library-webapp.bats",
         "tests/spec/auth-sso.bats",
+        "tests/spec/background-agents-fallback.bats",
         "tests/spec/backup-pipeline.bats",
         "tests/spec/brain-auto-memory.bats",
         "tests/spec/brain-foundation.bats",

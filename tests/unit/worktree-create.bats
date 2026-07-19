@@ -90,27 +90,30 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -eq 0 ]
 }
 
-# ── Friction 1 (T000925): unlocked worktree neutralizes clean/required ───
+# ── T001977: unlocked worktree keeps REAL clean filter (encrypts on commit) ───
+# The former clean=cat neutralization [T000925] silently committed PLAINTEXT
+# secrets on merge/add. With the key copied into the worktree gitdir, the real
+# clean filter works — and required=true makes a regression fail loudly.
 
-@test "T000925: unlocked worktree neutralizes git-crypt clean and required, keeps smudge real" {
+@test "T001977: unlocked worktree keeps real clean/smudge filters and required=true" {
   run bash -c "cd '$MAIN' && bash '$HELPER' fix/friction1 '$TMP/wt-f1' HEAD"
   [ "$status" -eq 0 ]
 
-  WT_GD="$(git -C "$TMP/wt-f1" rev-parse --absolute-git-dir)"
-  # clean is cat (passthrough) so commits of git-crypt-managed files don't fail
+  # clean has NO worktree-local override — the real (shared) filter applies,
+  # so commits of git-crypt-managed files store ENCRYPTED blobs
   run git -C "$TMP/wt-f1" config --worktree filter.git-crypt.clean
-  [ "$status" -eq 0 ]
-  [ "$output" = "cat" ]
-  # required is false so a missing/broken filter does not block the commit
+  [ "$status" -ne 0 ]
+  # required is true so a broken filter blocks the commit instead of silently
+  # committing plaintext
   run git -C "$TMP/wt-f1" config --worktree filter.git-crypt.required
   [ "$status" -eq 0 ]
-  [ "$output" = "false" ]
-  # smudge is NOT neutralized — real decryption works because the key is present
-  run git -C "$TMP/wt-f1" config --worktree filter.git-crypt.smudge 2>/dev/null
-  [ "$status" -ne 0 ] || [ "$output" != "cat" ]
+  [ "$output" = "true" ]
+  # smudge has no worktree-local override either — real decryption via the key
+  run git -C "$TMP/wt-f1" config --worktree filter.git-crypt.smudge
+  [ "$status" -ne 0 ]
 }
 
-@test "T000925: git commit of a managed file succeeds in unlocked worktree" {
+@test "T001977: git commit of a managed file succeeds in unlocked worktree (clean has key)" {
   run bash -c "cd '$MAIN' && bash '$HELPER' fix/f1c '$TMP/wt-f1c' HEAD"
   [ "$status" -eq 0 ]
   # Modify a git-crypt-managed file and commit — must not fail on the clean filter
@@ -157,16 +160,15 @@ teardown() { rm -rf "$TMP"; }
 
 # ── Rollback: a failure AFTER the --no-checkout skeleton must not leave junk ──
 
-@test "T000925: broken smudge filter does not abort checkout with required=false" {
-  # With the T000925 fix (required=false), a failing smudge filter no longer
-  # causes checkout failure — git falls back to unfiltered content. This is
-  # the safety net that prevents silent commit failures.
+@test "T001977: broken smudge filter fails worktree creation LOUDLY and rolls back" {
+  # With required=true (T001977), a broken filter aborts the checkout instead of
+  # silently falling back to unfiltered content (which previously meant secrets
+  # could round-trip as plaintext). The rollback trap must clean up the
+  # half-created worktree so a retry does not hit "<path> already exists".
   mkdir -p "$MAIN/.git/git-crypt/keys"
   printf 'FAKEKEY\n' > "$MAIN/.git/git-crypt/keys/default"
   git -C "$MAIN" config filter.git-crypt.smudge false
-  run bash -c "cd '$MAIN' && bash '$HELPER' fix/smudge-ok '$TMP/wt-smudge' HEAD"
-  [ "$status" -eq 0 ]
-  # worktree exists and follow-up git ops work
-  run git -C "$TMP/wt-smudge" status --porcelain
-  [ "$status" -eq 0 ]
+  run bash -c "cd '$MAIN' && bash '$HELPER' fix/smudge-broken '$TMP/wt-smudge' HEAD"
+  [ "$status" -ne 0 ]
+  [ ! -d "$TMP/wt-smudge" ]
 }

@@ -59,7 +59,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611  # v2.0.0
+      - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -149,7 +149,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611  # v2.0.0
+      - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -432,7 +432,7 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
           fetch-depth: 0
-      - uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825  # v5.5.3
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50  # v6.1.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.193.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.1...website-v1.193.2) (2026-07-19)
+
+
+### Bug Fixes
+
+* **infra:** abort pocket-id-client-seed early on invalid API key [T001995] ([#2993](https://github.com/Paddione/Bachelorprojekt/issues/2993)) ([873c2f6](https://github.com/Paddione/Bachelorprojekt/commit/873c2f6cbbe537e9a07ae40c4f97388c836930ae))
+
 ## [1.193.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.0...website-v1.193.1) (2026-07-19)
 
 

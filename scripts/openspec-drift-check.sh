@@ -163,7 +163,14 @@ else
   esac
 fi
 
+# --- fail closed if the mapping itself is missing (script error, not advisory) ---
+[[ -f "$MAP_FILE" ]] || { echo "openspec-drift-check: mapping file not found: $MAP_FILE" >&2; exit 2; }
+
 # --- changed files vs main + component-map parsing (mirrors openspec-context.sh) ---
+# origin/main isn't guaranteed to be a fresh tracking ref after checkout (CI
+# convention: see the "API auth regression gate" step in ci.yml, which fetches
+# it explicitly for the same reason) — refresh it defensively, best-effort.
+git fetch origin main --depth=1 2>/dev/null || true
 BASE=$(git merge-base HEAD origin/main 2>/dev/null || git rev-parse origin/main 2>/dev/null || echo "HEAD^")
 mapfile -t CHANGED < <(git diff --name-only "$BASE" HEAD 2>/dev/null || true)
 

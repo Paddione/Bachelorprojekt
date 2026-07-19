@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.190.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.190.0...website-v1.190.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* **website:** defer sidekick-panels.css + lazy-load drawer subviews [T001950] ([#2948](https://github.com/Paddione/Bachelorprojekt/issues/2948)) ([56b8d6a](https://github.com/Paddione/Bachelorprojekt/commit/56b8d6a74dd41f6ada2f9714488c79f265058cee))
+
 ## [1.190.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.189.2...website-v1.190.0) (2026-07-19)
 
 

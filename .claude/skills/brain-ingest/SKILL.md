@@ -35,10 +35,21 @@ Intern generiert `brain-ingest.sh` die Worklist über
 (TAB-separiert: Pfad, Slug, Gruppe) aus allen `openspec/specs/*.md`-Dateien (Glob, kein
 fixer Count) plus den übrigen Manifest-Gruppen.
 
+### 4. Prune (Deletion-Sync)
+Listet Wiki-Seiten, deren Bachelorprojekt-Quelle gelöscht wurde (default dry):
+```bash
+bash scripts/brain-ingest-prune.sh --brain-repo ~/brain
+bash scripts/brain-ingest.sh --brain-repo ~/brain --prune   # scharf, inkl. State-Cleanup
+```
+Meta-Seiten (source `self` oder ohne Bachelorprojekt-Präfix und ohne State-Eintrag)
+werden nie gelöscht.
+
 ## Artefakte
 - `~/.brain-ingest-state.json` (Idempotenz-State: Quellhash → transformierte Seite)
 - `<brain-repo>/wiki/*.md` (transformierte Wiki-Seiten mit Citations, im externen
   `Paddione/brain`-Repo, nicht in diesem Repo)
+- `scripts/brain-ingest-prune.sh` (Deletion-Sync: entfernt Wiki-Seiten ohne lebende
+  Bachelorprojekt-Quelle, default dry-run, siehe Schritt 4)
 - Ein PR gegen `Paddione/brain` (Phase 4 von `brain-ingest.sh`, übersprungen bei `--dry-run`)
 
 ## Next Steps

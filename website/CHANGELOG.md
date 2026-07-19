@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.191.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.190.2...website-v1.191.0) (2026-07-19)
+
+
+### Features
+
+* **brain:** wiki quality uplift — prune deletion-sync + fail-closed transform validation [T001963] ([#2958](https://github.com/Paddione/Bachelorprojekt/issues/2958)) ([2bf40d4](https://github.com/Paddione/Bachelorprojekt/commit/2bf40d406a14a9249510fd6a6ac4c45542f144ee))
+
 ## [1.190.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.190.1...website-v1.190.2) (2026-07-19)
 
 

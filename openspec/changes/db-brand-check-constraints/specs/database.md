@@ -2,7 +2,7 @@
 
 Ensures data integrity by adding CHECK constraints to all brand columns across the database schema.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: brand column CHECK constraint coverage
 Every table with a `brand` column SHALL have a CHECK constraint that restricts the column to valid brand values. The constraint SHALL use the naming convention `chk_brand_<table_name>`. Tables that already have CHECK constraints are excluded.

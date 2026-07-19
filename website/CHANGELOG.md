@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.192.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.191.3...website-v1.192.0) (2026-07-19)
+
+
+### Features
+
+* **ci:** advisory OpenSpec spec-drift gate [T001979] ([#2982](https://github.com/Paddione/Bachelorprojekt/issues/2982)) ([d296a57](https://github.com/Paddione/Bachelorprojekt/commit/d296a5730ffa84fbb01abdc4efc805acde5170b5))
+
 ## [1.191.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.191.2...website-v1.191.3) (2026-07-19)
 
 

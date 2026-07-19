@@ -2,6 +2,16 @@
 # Regenerate freshness artifacts after a merge to prevent stale CI failures. [T000513]
 set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
+
+# Suppress regen while a rebase/merge/stash sequence is in flight [T001973]
+# (otherwise `git pull --rebase` collides with hook-regenerated artifacts and
+# produces an unresolvable "would be overwritten" state in the working tree).
+_gd="$(git rev-parse --absolute-git-dir 2>/dev/null || true)"
+if [ "${FRESHNESS_HOOK_DISABLED:-0}" = "1" ] \
+   || [ -d "$_gd/rebase-merge" ] || [ -d "$_gd/rebase-apply" ] \
+   || [ -f "$_gd/MERGE_HEAD" ]; then
+  exit 0  # [T001973] skip regen + loc-budget-restore + codebase-memory-reindex mid-rebase
+fi
 if [ -d "$repo_root/node_modules" ]; then
   task -d "$repo_root" freshness:regenerate 2>/dev/null || true
 fi

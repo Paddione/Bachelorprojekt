@@ -58,18 +58,28 @@ _FRESHNESS_FILES=(
   docs/generated/graph.json
   k3d/docs-content-built/
 )
-if command -v task >/dev/null 2>&1 && task --version 2>&1 | grep -q "Task version"; then
-  if (cd "$repo_root" && task freshness:regenerate > /dev/null 2>&1); then
-    _staged=0
-    for _f in "${_FRESHNESS_FILES[@]}"; do
-      if ! git -C "$repo_root" diff --quiet -- "$_f" 2>/dev/null; then
-        git -C "$repo_root" add -- "$_f"
-        echo "  ↻ freshness: auto-staged $_f"
-        _staged=$((_staged + 1))
+# Suppress freshness auto-stage while a rebase/merge is in flight [T001973].
+# The whole hook is NOT skipped — secret-/agent-lock-checks above must still
+# run during `git rebase --continue`. Opt-out: FRESHNESS_HOOK_DISABLED=1.
+if [ "${FRESHNESS_HOOK_DISABLED:-0}" != "1" ]; then
+  _gd="$(git rev-parse --absolute-git-dir 2>/dev/null || true)"
+  if [ -z "$_gd" ] || { [ ! -d "$_gd/rebase-merge" ] && [ ! -d "$_gd/rebase-apply" ] && [ ! -f "$_gd/MERGE_HEAD" ]; }; then
+    if command -v task >/dev/null 2>&1 && task --version 2>&1 | grep -q "Task version"; then
+      if (cd "$repo_root" && task freshness:regenerate > /dev/null 2>&1); then
+        _staged=0
+        for _f in "${_FRESHNESS_FILES[@]}"; do
+          if ! git -C "$repo_root" diff --quiet -- "$_f" 2>/dev/null; then
+            git -C "$repo_root" add -- "$_f"
+            echo "  ↻ freshness: auto-staged $_f"
+            _staged=$((_staged + 1))
+          fi
+        done
+        [ "$_staged" -gt 0 ] && echo "  ↻ freshness: $_staged artifact(s) updated — included in this commit."
+      else
+        echo "  ⚠ freshness:regenerate failed — verify generated artifacts are current." >&2
       fi
-    done
-    [ "$_staged" -gt 0 ] && echo "  ↻ freshness: $_staged artifact(s) updated — included in this commit."
+    fi
   else
-    echo "  ⚠ freshness:regenerate failed — verify generated artifacts are current." >&2
+    echo "  ↻ freshness: suppressed (rebase/merge in flight, FRESHNESS_HOOK_DISABLED=1 to force) [T001973]"
   fi
 fi

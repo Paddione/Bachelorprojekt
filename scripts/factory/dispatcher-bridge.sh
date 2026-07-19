@@ -115,6 +115,9 @@ the identical call — stop and report the error verbatim instead of looping."
   # invoking pipeline.js directly with node instead of the Workflow tool)
   # lands in the shared main checkout instead of the isolated worktree.
   LAUNCH_DIR="${wt_path:-$REPO}"
+  if [[ "$LAUNCH_DIR" == "null" || ! -d "$LAUNCH_DIR" ]]; then
+    LAUNCH_DIR="$REPO"
+  fi
   (cd "$LAUNCH_DIR" && "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \
     --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \
     --dangerously-skip-permissions 2>&1) | sed "s/^/[pipeline:${ext_id}] /" >&2 &

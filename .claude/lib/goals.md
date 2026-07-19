@@ -193,7 +193,7 @@ for line in sys.stdin:
 print(todo)"
 ```
 
-> **B · Baseline:** 17 · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912 (**done ohne Messwert-Fix**) → Nachfolger **T001951**
+> **B · Baseline:** 17 → 0 ✅ · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912 (**done ohne Messwert-Fix**) → **T001951 gefixt** (2026-07-19, PR Paddione/brain#8: 15 verbleibende Backlog-Seiten via LM Studio :1234 (Qwen3.6-14B-A3B-FableVibes) ingested + gemerged; Target 0 erreicht)
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -341,7 +341,7 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 | G-SEC06 | T001909 | offen (Container CVEs, Baseline 39 CRITICAL erfasst — Fix erfordert Image-Pin-Refresh, Folgeticket vorgeschlagen — Nachfolger von T001840) |
 | G-CI03 | T001910 | **gefixt** (CI p95 = 7 min ✅ ≤12, Messscript-Bug behoben — Nachfolger von T001841) |
 | G-FE05 | T001911 | **gemessen** (Baseline 60/100, Target 90 — Optimierung als Follow-up-Ticket ausgelagert) |
-| G-BRAIN14 | T001912 | offen (Ingest-Backlog 17/86; voller kuratierter Ingest = Follow-up zu PR #2851) |
+| G-BRAIN14 | T001912 | **gefixt** (Nachfolger T001951, 2026-07-19: 15 Backlog-Seiten ingested, Backlog 17→0, PR Paddione/brain#8 gemergt — zurück nach Prio C) |
 | G-DB04 | T001739 | gruen (1h, Target ≤26h — Root-Cause-Fix nicht verifiziert, Regressionswache bleibt täglich) |
 | G-DB06 | T001739 | gruen (Gate, halten) |
 | G-IMG01 | T001766 | **gefixt** (Regression 0→2→0, Helm-Digest-Drift Loki/Promtail behoben — zurück nach Prio C) |
@@ -402,3 +402,5 @@ Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-
 **Baseline-Update 2026-07-17 (T001910 — G-CI03 erster Messlauf):** G-CI03 n/a→7 min p95 ✅ (Ziel ≤12 min; Messscript-Bug behoben — `gh-axi run list` unterstützt kein `--json` (nur `--fields`), Python-Auswertung parste ISO-Timestamps nicht als datetime — beide Stellen auf `gh` direkt + `datetime.fromisoformat` korrigiert).
 
 **Baseline-Update 2026-07-19 (T001952 — Prio-B Ticket-Backfill):** Alle Tracking-Tickets der 10 Prio-B-Ziele waren via Merge=Abschluss-Konvention bereits `done`, ohne dass die zugrundeliegenden Health-Goals ihr Target erreicht hätten (T001280→T001347-Stil-Churn). Für die 7 Ziele mit weiterhin verfehltem Target wurden neue Nachfolge-Tickets angelegt: G-SIZE02 → T001945, G-DB01 → T001946, G-DB03 → T001947, G-DB10 → T001948, G-SEC06 → T001949, G-FE05 → T001950, G-BRAIN14 → T001951. Die 3 Ziele, deren Wert bereits am oder über dem Target liegt (G-AGENTIC09 0≤0, G-DB09 0=0, G-CI03 7≤12), wurden redaktionell von Prio B in die Prio-C Green-Gates-Tabelle verschoben — kein neues Ticket, da kein offener Arbeitsbedarf besteht.
+
+**Baseline-Update 2026-07-19 (T001951 — G-BRAIN14 Ingest-Backlog gefixt):** Backlog 17→0. `bash scripts/brain-ingest-worklist.sh` gegen `~/.brain-ingest-state.json` zeigte real noch 15 offene Seiten (2 der ursprünglichen 17 waren zwischenzeitlich bereits ingested). Ingest-Pool-Blocker gefunden und umschifft: der dokumentierte Default `LM_STUDIO_URL=http://localhost:8095` (`start-qwen36-ingest-pool.ps1`) war nicht aktiv — stattdessen lief unter einem Zufallsport (`127.0.0.1:52875`) eine von LM Studio selbst verwaltete Backend-Instanz mit `--api-key` (401 Invalid API Key, da `brain-ingest-transform.sh` keinen Authorization-Header sendet). Fix: `LM_STUDIO_URL=http://127.0.0.1:1234` (LM Studios öffentlicher Endpunkt, kein API-Key, Modell `qwen3.6-14b-a3b-fablevibes` bereits geladen) statt des dedizierten Standalone-Pools verwendet — funktioniert, aber nur `--parallel 1` (LM Studios eigene Server-Instanz), daher `MAX_PARALLEL=2` statt 6 für den Lauf gewählt. Alle 15 Seiten erfolgreich transformiert (0 Failed), Wikilink-Lint-Autofix lief durch, PR [Paddione/brain#8](https://github.com/Paddione/brain/pull/8) erstellt und gemergt. Re-Messung bestätigt Backlog 0. G-BRAIN14 damit von Prio B nach Prio C (Green Gates) verschoben — kein Code-Fix in `Bachelorprojekt` nötig (reiner Ops-Ingest-Lauf), daher kein PR gegen dieses Repo.

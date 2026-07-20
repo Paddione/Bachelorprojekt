@@ -13,14 +13,12 @@ Typsichere Entwicklung im Astro-Website-Projekt durch kontinuierliche statische 
 
 `astro check` muss ohne Fehler (`0 errors`) durchlaufen. Warnungen und Hints dürfen vorkommen, werden aber auf 0 angestrebt.
 
-**Scenarios:**
+#### Scenario: astro check passes with zero errors
 
-```
-GIVEN the website project with all TypeScript source files
-WHEN running `cd website && npx astro check`
-THEN the output shows "0 errors"
-AND the process exits with code 0
-```
+- **GIVEN** the website project with all TypeScript source files
+- **WHEN** running `cd website && npx astro check`
+- **THEN** the output shows "0 errors"
+- **AND** the process exits with code 0
 
 ### Requirement: Fixture Factory for Cockpit Types
 
@@ -29,14 +27,12 @@ AND the process exits with code 0
 
 Eine zentrale Fixture-Factory `website/src/lib/tickets/__tests__/fixtures.ts` stellt typsichere Default-Objekte für `RollupMetrics`, `FeatureNode`, `ProductNode` und `PortfolioPayload` bereit.
 
-**Scenarios:**
+#### Scenario: Fixture factory provides typed defaults with overrides
 
-```
-GIVEN a test file that needs a RollupMetrics test object
-WHEN the test imports `makeRollup` from the fixtures module
-THEN calling `makeRollup()` returns a valid RollupMetrics with all required fields
-AND calling `makeRollup({ awaitingDeploy: 5 })` overrides only that field
-```
+- **GIVEN** a test file that needs a RollupMetrics test object
+- **WHEN** the test imports `makeRollup` from the fixtures module
+- **THEN** calling `makeRollup()` returns a valid RollupMetrics with all required fields
+- **AND** calling `makeRollup({ awaitingDeploy: 5 })` overrides only that field
 
 ### Requirement: Check Script
 
@@ -45,13 +41,11 @@ AND calling `makeRollup({ awaitingDeploy: 5 })` overrides only that field
 
 `website/package.json` enthält ein `"astro:check": "astro check"` Script für lokale Entwickler.
 
-**Scenarios:**
+#### Scenario: Local check script runs astro check
 
-```
-GIVEN a developer working on the website project
-WHEN running `cd website && pnpm astro:check`
-THEN astro check runs and reports any TypeScript errors
-```
+- **GIVEN** a developer working on the website project
+- **WHEN** running `cd website && pnpm astro:check`
+- **THEN** astro check runs and reports any TypeScript errors
 
 ### Requirement: CI Advisory Gate
 
@@ -60,12 +54,10 @@ THEN astro check runs and reports any TypeScript errors
 
 Ein neuer CI-Job `Astro TypeScript Check` in `.github/workflows/ci.yml` führt `astro check` bei jedem PR aus.
 
-**Scenarios:**
+#### Scenario: CI job passes on a clean PR
 
-```
-GIVEN a pull request with zero TypeScript errors
-WHEN CI runs
-THEN the "Astro TypeScript Check" job passes
-```
+- **GIVEN** a pull request with zero TypeScript errors
+- **WHEN** CI runs
+- **THEN** the "Astro TypeScript Check" job passes
 
 <!-- merged from change delta astro-type-check.md on 2026-06-28 -->

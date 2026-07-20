@@ -37,12 +37,32 @@ The system SHALL provide `tests/spec/fleet-operations.bats` (BATS) that reads `e
 
 The system SHALL annotate all keys that are intentionally only in the legacy sealed-secrets files with `legacy_only: true` in `environments/schema.yaml` (e.g. the 12 WG Mesh keys, the 3 MCP Keycloak keys for korczewski-legacy). The annotation SHALL be parseable by the BATS fleet-completeness guard.
 
+#### Scenario: Guard parses the legacy_only annotation
+
+- **GIVEN** `environments/schema.yaml` marks a key (e.g. a WG Mesh key) with `legacy_only: true`
+- **WHEN** the BATS fleet-completeness guard parses the schema
+- **THEN** the key is recognized as legacy-only and excluded from the fleet-superset assertion
+
 ### Requirement: Reference-Doc zur SealedSecret-Architektur
 
 The system SHALL provide `docs/superpowers/references/secrets-architecture.md` documenting the sealed-secrets file topology (`fleet-*.yaml` is the source of truth, `*.yaml` is the legacy location, the sync rule is one-way: `fleet-*.yaml` ⊇ `*.yaml` minus `legacy_only: true`).
 
+#### Scenario: Reference doc exists and states the sync rule
+
+- **GIVEN** the repository working tree
+- **WHEN** reading `docs/superpowers/references/secrets-architecture.md`
+- **THEN** the file exists
+- **AND** documents `fleet-*.yaml` as source of truth and the one-way sync rule (`fleet-*.yaml` ⊇ `*.yaml` minus `legacy_only: true`)
+
 ### Requirement: Security-Agent Verweis auf SealedSecret-Architektur
 
 The system SHALL add a §Secrets-Dateiarchitektur section in `.claude/agents/bachelorprojekt-security.md` pointing at the reference doc.
+
+#### Scenario: Security agent links the architecture reference
+
+- **GIVEN** the agent definition `.claude/agents/bachelorprojekt-security.md`
+- **WHEN** searching it for a Secrets-Dateiarchitektur section
+- **THEN** the section exists
+- **AND** references `docs/superpowers/references/secrets-architecture.md`
 
 <!-- from archive/2026-06-21-secrets-deploy-automation/tasks.md lines 1-100 -->

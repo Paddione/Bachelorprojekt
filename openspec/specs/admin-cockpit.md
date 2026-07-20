@@ -762,17 +762,45 @@ The system SHALL render the ticket title in `TicketRow.svelte` as an `<a class="
 
 The system SHALL NOT define or pass an `onOpenDrawer` prop on `TicketRow` or `CockpitTable`; the corresponding test for the title-click drawer flow MUST be removed.
 
+#### Scenario: No onOpenDrawer prop remains in the table components
+
+- **GIVEN** the components `TicketRow.svelte` and `CockpitTable.svelte`
+- **WHEN** searching their source for `onOpenDrawer`
+- **THEN** there are zero matches
+- **AND** no unit test asserts a title-click drawer flow
+
 ### Requirement: Cockpit mountet keinen TicketDrawer mehr
 
 The system SHALL NOT mount a `TicketDrawer` component in `Cockpit.svelte`, SHALL NOT import `TicketDrawer`, and SHALL NOT track `drawerTicket` / `drawerOpen` state. The `TicketCreateModal` mount is preserved.
+
+#### Scenario: Cockpit renders without drawer state
+
+- **GIVEN** `Cockpit.svelte`
+- **WHEN** searching its source for `TicketDrawer`, `drawerTicket`, or `drawerOpen`
+- **THEN** there are zero matches
+- **AND** the `TicketCreateModal` mount is still present
 
 ### Requirement: cockpitStore enthält keine aktive-Ticket-State
 
 The system SHALL NOT export a `setActiveTicket` function or carry an `activeTicket: string | null` field on `CockpitState`; the corresponding unit tests SHALL be removed.
 
+#### Scenario: cockpitStore exposes no active-ticket API
+
+- **GIVEN** the cockpit store module
+- **WHEN** searching its exports for `setActiveTicket` and `CockpitState` for an `activeTicket` field
+- **THEN** neither exists
+- **AND** no unit test references them
+
 ### Requirement: TicketDrawer-Dateien sind gelöscht
 
 The system SHALL delete `website/src/components/admin/TicketDrawer.svelte` and its unit-test file, and `website/src/components/admin/TicketDrawerContent.svelte` if it exists; no import of `TicketDrawer` SHALL remain in any `.svelte`, `.ts`, or `.astro` file.
+
+#### Scenario: Drawer component files no longer exist
+
+- **GIVEN** the repository working tree
+- **WHEN** checking `website/src/components/admin/` for `TicketDrawer.svelte` and `TicketDrawerContent.svelte`
+- **THEN** neither file exists
+- **AND** `grep -r "TicketDrawer" website/src --include='*.svelte' --include='*.ts' --include='*.astro'` returns no matches
 
 ---
 

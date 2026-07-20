@@ -1153,6 +1153,13 @@ using three independent CI jobs: one shared build job and two parallel, independ
 
 **Migration:** Tests in `tests/unit/website-ci-deploy.bats` wurden auf `build-website.yml` umgezeigt (T001229). Keine weitere Migration nötig.
 
+#### Scenario: Standalone korczewski workflow stays removed
+
+- **GIVEN** the repository working tree
+- **WHEN** listing `.github/workflows/`
+- **THEN** `build-website-korczewski.yml` does not exist
+- **AND** `build-website.yml` contains the korczewski deploy job that replaced it
+
 <!-- merged from change delta ci-cd.md on 2026-06-28 -->
 
 ### Requirement: PR-Gate — Offline Tests (bestehend)
@@ -1161,6 +1168,13 @@ _Modification:_ Die vormalige LOC-Budget-Gate (S6, `task loc:check` als Teil
 von `task test:code-quality`) wurde entfernt. `docs/code-quality/loc-budget.json`
 und `scripts/check-loc-budget.mjs` wurden gelöscht; `task test:code-quality`
 läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
+
+#### Scenario: LOC budget gate stays removed from the offline test suite
+
+- **GIVEN** the repository working tree
+- **WHEN** inspecting `task test:code-quality` and the files `docs/code-quality/loc-budget.json` / `scripts/check-loc-budget.mjs`
+- **THEN** neither file exists
+- **AND** `task test:code-quality` runs only the S1-S4 gates from `task quality:check` (no `task loc:check` step)
 
 <!-- merged from change delta ci-cd.md on 2026-06-30 -->
 

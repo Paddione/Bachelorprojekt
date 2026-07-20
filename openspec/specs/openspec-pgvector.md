@@ -39,12 +39,38 @@ The system SHALL provide `GET /api/openspec/search?q=<query>&limit=<n>` which em
 
 The system SHALL add a `--semantic <query>` flag to `scripts/plan-context.sh` that queries `/api/openspec/search` and emits a `## semantically similar` section. If the API is unreachable, the script SHALL silently fall back to the grep-only output (exit 0).
 
+#### Scenario: Semantic section appears when the API is reachable
+
+- **GIVEN** `/api/openspec/search` is reachable and returns at least one result
+- **WHEN** `bash scripts/plan-context.sh infra --semantic "sealed secrets"` runs
+- **THEN** the output contains a `## semantically similar` section listing the results
+
+#### Scenario: Unreachable API falls back to grep-only output
+
+- **GIVEN** `/api/openspec/search` is unreachable
+- **WHEN** `bash scripts/plan-context.sh infra --semantic "sealed secrets"` runs
+- **THEN** the script exits 0
+- **AND** emits the grep-only output without a `## semantically similar` section
+
 ### Requirement: MCP-Tool openspec_find_similar
 
 The system SHALL expose an MCP tool `openspec_find_similar` (registered in `scripts/factory/mcp-server.mjs`) that wraps `/api/openspec/search` for agent-side discovery.
 
+#### Scenario: Agent finds similar specs via MCP
+
+- **GIVEN** the factory MCP server is running and `knowledge.chunks` contains indexed OpenSpec chunks
+- **WHEN** an agent calls `openspec_find_similar` with a query string
+- **THEN** the tool returns the `/api/openspec/search` results (slug, path, score, snippet) as structured output
+
 ### Requirement: Embedding-Modell-Konsistenz ohne Mixed-Model-Error
 
 The system SHALL store exactly one `embedding_model` value per `knowledge.collections` row, mirrored from `createCollection`'s default (`bge-m3` when `LLM_ENABLED=true`, else `voyage-multilingual-2`). Re-indexing SHALL use the same model as the existing collection — no mixed-model inserts.
+
+#### Scenario: Re-indexing keeps the collection's embedding model
+
+- **GIVEN** the `specs_plans` collection exists with `embedding_model='bge-m3'`
+- **WHEN** `node scripts/openspec-embed.mjs` re-indexes documents into that collection
+- **THEN** all new chunks are embedded with `bge-m3`
+- **AND** no row in the collection ends up with a different `embedding_model` value
 
 <!-- from archive/2026-06-21-openspec-pgvector/tasks.md lines 1-180 -->

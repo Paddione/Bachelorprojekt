@@ -641,3 +641,15 @@ The system SHALL pass all steps of System-Test 10 (Externe Dienste & öffentlich
 
 The system SHALL provide an authenticated coaching-studio service for the coach to run
 KI-supported 10-level systemic coaching sessions with international clients.
+
+#### Scenario: Authenticated coach reaches the studio
+
+- **GIVEN** a user with a valid coach session
+- **WHEN** they open the coaching-studio entry point in the portal
+- **THEN** the studio loads and allows starting a KI-supported 10-level systemic coaching session
+
+#### Scenario: Unauthenticated access is rejected
+
+- **GIVEN** a visitor without a valid session
+- **WHEN** they request a coaching-studio URL directly
+- **THEN** the request is rejected or redirected to login (no studio content is served)

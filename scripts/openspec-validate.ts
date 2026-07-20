@@ -119,6 +119,7 @@ export function validateChange(changeDir: string, specsRoot?: string): ChangeVal
  *   - `## Purpose` H2 header is present
  *   - `## Requirements` H2 header is present
  *   - at least one `### Requirement:` H3 entry is present under Requirements
+ *   - every `### Requirement:` declares at least one `#### Scenario:` (ratchet, T002004)
  */
 export function validateSpec(specFile: string): Pick<ValidationResult, 'errors'> {
   const content = readFileSync(specFile, 'utf-8')
@@ -135,6 +136,12 @@ export function validateSpec(specFile: string): Pick<ValidationResult, 'errors'>
   }
   if (/^## Requirement: /m.test(content)) {
     errors.push(`${specFile}: uses H2 '## Requirement:' (must be H3 '### Requirement:')`)
+  }
+  for (const block of content.split(/^### Requirement: /m).slice(1)) {
+    const name = block.split('\n', 1)[0].trim()
+    if (!/^#### Scenario: /m.test(block)) {
+      errors.push(`${specFile}: requirement '${name}' has no '#### Scenario:' entry`)
+    }
   }
 
   return { errors }

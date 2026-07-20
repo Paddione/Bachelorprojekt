@@ -56,3 +56,10 @@ The system SHALL route `/api/mcp/svc/*` traffic through `BUSINESS_TOKEN`/`CLUSTE
 ### Requirement: Secret-Rotation für MCP_KEYCLOAK_CLIENT_SECRET
 
 The system SHALL provide `task secret-rotation:rotate ENV=korczewski TARGET=mcp-keycloak` as the documented rotation path, followed by `kubectl --context fleet rollout restart deploy/mcp-auth-proxy -n workspace-korczewski` to pick up the new secret without a full cluster restart.
+
+#### Scenario: Rotation path updates the secret without cluster restart
+
+- **GIVEN** an operator needs to rotate `MCP_KEYCLOAK_CLIENT_SECRET` for the korczewski brand
+- **WHEN** they run `task secret-rotation:rotate ENV=korczewski TARGET=mcp-keycloak` followed by `kubectl --context fleet rollout restart deploy/mcp-auth-proxy -n workspace-korczewski`
+- **THEN** the deployment restarts with the new secret value
+- **AND** no other workload in the namespace is restarted

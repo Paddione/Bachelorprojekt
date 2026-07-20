@@ -510,6 +510,26 @@ but contains no `### Requirement:` heading.
 
 ---
 
+### Requirement: SSOT-Requirement ohne Szenario schlägt fail-closed fehl
+<!-- bats: openspec-workflow.bats -->
+
+The system SHALL exit non-zero when any `### Requirement:` in an SSOT spec under
+`openspec/specs/` declares no `#### Scenario:` entry before the next requirement header
+(scenario-coverage ratchet, T002004). Archived one-off specs under `openspec/specs/archive/`
+are exempt (directory entries are not validated as components).
+
+#### Scenario: Requirement ohne Szenario wird vom Validator gemeldet *(BATS)*
+- **GIVEN** eine temporäre SSOT-Spec mit `## Purpose`, `## Requirements` und einem `### Requirement:` ohne `#### Scenario:`
+- **WHEN** `validateSpec` aus `scripts/openspec-validate.ts` auf die Datei läuft
+- **THEN** enthält das Ergebnis einen Fehler mit `has no '#### Scenario:' entry`
+
+#### Scenario: Vollständig szenarierte Spec passiert den Validator *(BATS)*
+- **GIVEN** eine SSOT-Spec, in der jedes `### Requirement:` mindestens ein `#### Scenario:` deklariert
+- **WHEN** `validateSpec` auf die Datei läuft
+- **THEN** liefert es keine Szenario-Fehler
+
+---
+
 ### Requirement: openspec weist unbekannte Verben mit Fehler und Usage ab
 <!-- bats: openspec.bats -->
 

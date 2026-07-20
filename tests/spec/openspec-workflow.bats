@@ -247,3 +247,68 @@ YAML
   run bash -c "cd '$REPO' && npx tsx -e \"import {validateTree} from './scripts/openspec-validate.ts'; const r=validateTree('openspec'); process.exit(r.ok?0:1)\""
   [ "$status" -eq 0 ]
 }
+
+# ── T002004: scenario-coverage ratchet ───────────────────────────────#
+
+@test "T002004: validateSpec rejects a requirement without a scenario" {
+  local tmp
+  tmp="$(mktemp -d)"
+  cat > "$tmp/spec.md" <<'EOF'
+# demo
+
+## Purpose
+
+Demo.
+
+## Requirements
+
+### Requirement: Hat kein Szenario
+
+The system SHALL do something.
+EOF
+  run bash -c "cd '$REPO' && npx tsx -e 'import {validateSpec} from \"./scripts/openspec-validate.ts\"; const r=validateSpec(process.argv[1]); if(r.errors.length){console.error(r.errors.join(\"\n\")); process.exit(1)}' '$tmp/spec.md'"
+  rm -rf "$tmp"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"has no '#### Scenario:' entry"* ]]
+}
+
+@test "T002004: validateSpec passes a fully scenario-covered spec" {
+  local tmp
+  tmp="$(mktemp -d)"
+  cat > "$tmp/spec.md" <<'EOF'
+# demo
+
+## Purpose
+
+Demo.
+
+## Requirements
+
+### Requirement: Hat ein Szenario
+
+The system SHALL do something.
+
+#### Scenario: Es passiert
+
+- **GIVEN** a
+- **WHEN** b
+- **THEN** c
+EOF
+  run bash -c "cd '$REPO' && npx tsx -e 'import {validateSpec} from \"./scripts/openspec-validate.ts\"; const r=validateSpec(process.argv[1]); if(r.errors.length){console.error(r.errors.join(\"\n\")); process.exit(1)}' '$tmp/spec.md'"
+  rm -rf "$tmp"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002004: every SSOT requirement in openspec/specs/ declares a scenario" {
+  local missing=0 f
+  for f in "$REPO"/openspec/specs/*.md; do
+    if awk '/^### Requirement:/{if(name && scen==0){print FILENAME": "name; bad=1} name=$0; scen=0; next}
+            /^#### Scenario:/{scen=1}
+            END{if(name && scen==0){print FILENAME": "name; bad=1} exit bad}' "$f"; then
+      :
+    else
+      missing=1
+    fi
+  done
+  [ "$missing" -eq 0 ]
+}

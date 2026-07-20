@@ -598,6 +598,13 @@ with exit code 0; it SHALL return exit code 1 when the events file is absent or 
 
 The system SHALL provide `website/migrations/20260621_create_ai_call_log.sql` creating a `public.ai_call_log` table with columns `id, ts, workflow, model, prompt_tokens, completion_tokens, latency_ms, error, user_sub, metadata` and indexes `ai_call_log_ts` (DESC) and `ai_call_log_workflow` (workflow, ts DESC). The migration SHALL be idempotent (`IF NOT EXISTS`).
 
+#### Scenario: Migration is idempotent on re-run
+
+- **GIVEN** the `ai_call_log` migration has already been applied
+- **WHEN** `website/migrations/20260621_create_ai_call_log.sql` is executed again
+- **THEN** it completes without error (`IF NOT EXISTS` guards table and indexes)
+- **AND** the table keeps its columns and the `ai_call_log_ts` / `ai_call_log_workflow` indexes
+
 ### Requirement: ai-metrics Pure Module
 
 The system SHALL provide `website/src/lib/ai-metrics.ts` exporting two functions: `withAiMetrics(workflow, fn, modelHint?)` for Anthropic-Form call-sites (auto-extracts `result.usage.{input,output}_tokens` and `result.model`), and `logAiCall(metrics)` for non-Anthropic call-sites (RAG/embeddings). Both SHALL be fire-and-forget (Insert-Fehler werden auf stderr geloggt, Exit 0). `ai-metrics.ts` SHALL NOT import `assistant/llm.ts` (no import cycles).
@@ -620,6 +627,19 @@ The system SHALL provide `website/src/lib/ai-metrics.ts` exporting two functions
 
 The system SHALL provide `GET /api/admin/ai-quality` (admin-only via `getSession` + `isAdmin` pattern, 401 ohne Admin-Session) that aggregates `ai_call_log` rows into `{ health: {ok, total, errors_24h, p95_latency_ms}, last24h: { calls, tokens, cost_usd, by_workflow: [...] }, recentErrors: [...] }`. Cost SHALL be computed at query time (tokens × model price/1k).
 
+#### Scenario: Admin receives aggregated AI-quality payload
+
+- **GIVEN** an authenticated admin session and existing `ai_call_log` rows
+- **WHEN** `GET /api/admin/ai-quality` is called
+- **THEN** the response is HTTP 200 with `health`, `last24h` (including `by_workflow`), and `recentErrors` sections
+- **AND** `cost_usd` is computed at query time from tokens × model price/1k
+
+#### Scenario: Non-admin request is rejected
+
+- **GIVEN** a request without an admin session
+- **WHEN** `GET /api/admin/ai-quality` is called
+- **THEN** the endpoint responds with HTTP 401 and no aggregation data
+
 ### Requirement: AiQualitySidekickView Svelte-Komponente
 
 The system SHALL provide `website/src/components/assistant/AiQualitySidekickView.svelte` rendering health indicator, 24h summary, cost chart, and recent error list. The view SHALL be registered as a Sidekick view in `sidekick-nudge.ts` (`'ai-quality'` to `View` union + `KNOWN_VIEWS`).
@@ -637,24 +657,38 @@ The system SHALL provide `website/src/components/assistant/AiQualitySidekickView
 
 The system SHALL NOT render the SidekickHome items for `tickets`, `inbox`, `pipeline` or `loslernen`. The remaining items (coaching, source, container, ai-quality) SHALL be renumbered 01-N in the order they appear.
 
-### Requirement: PortalSidekick.svelte ohne View-Branches für entfernte Views
-
-The system SHALL NOT include the `tickets`, `inbox`, or `pipeline` view branches in `PortalSidekick.svelte`. The `View` union, `titleMap`, and `decideBanner`/`shouldShowLearnDot` references SHALL be cleaned up accordingly. The `learning/summary`, `tickets`, and `inbox` API fetches SHALL be removed (only `container-count` remains).
-
-### Requirement: sidekick-nudge.ts ohne Banner/LearnDot
-
-The system SHALL NOT export `decideBanner`, `BannerDecision`, `BannerInput`, or `shouldShowLearnDot` from `website/src/lib/assistant/sidekick-nudge.ts`. `SidekickView` and `KNOWN_VIEWS` SHALL be reduced to the post-cleanup view set.
-
-### Requirement: mediaviewer-bridge.ts Session-Protokoll
-
-The system SHALL extend `HostInbound.setMode.mode` to accept `'brainstorm'`, and SHALL add `sessionStarted` and `sessionProgress` events to `HostOutbound` in `mediaviewer-bridge.ts`. The `buildSetModeMessage` and `parseOutbound` helpers SHALL be updated accordingly, with tests covering the new cases.
-
 #### Scenario: Removed View wird im Sidekick nicht gerendert
 
 - **GIVEN** `tickets`, `inbox`, `pipeline` sind aus `KNOWN_VIEWS` entfernt
 - **WHEN** PortalSidekick mounted
 - **THEN** ist keiner der drei Einträge in der Sidekick-Item-Liste sichtbar
 - **AND** `grep -nE 'progressSub|summary|banner|pendingTickets|pendingInbox|loslernen' website/src/components/assistant/SidekickHome.svelte` ist leer
+
+### Requirement: PortalSidekick.svelte ohne View-Branches für entfernte Views
+
+The system SHALL NOT include the `tickets`, `inbox`, or `pipeline` view branches in `PortalSidekick.svelte`. The `View` union, `titleMap`, and `decideBanner`/`shouldShowLearnDot` references SHALL be cleaned up accordingly. The `learning/summary`, `tickets`, and `inbox` API fetches SHALL be removed (only `container-count` remains).
+
+#### Scenario: PortalSidekick keeps only the container-count fetch
+
+- **GIVEN** `PortalSidekick.svelte`
+- **WHEN** searching its source for the `tickets`, `inbox`, or `pipeline` view branches and the `learning/summary`, `tickets`, `inbox` API fetches
+- **THEN** none of them exist
+- **AND** the only remaining API fetch is `container-count`
+
+### Requirement: sidekick-nudge.ts ohne Banner/LearnDot
+
+The system SHALL NOT export `decideBanner`, `BannerDecision`, `BannerInput`, or `shouldShowLearnDot` from `website/src/lib/assistant/sidekick-nudge.ts`. `SidekickView` and `KNOWN_VIEWS` SHALL be reduced to the post-cleanup view set.
+
+#### Scenario: Banner/LearnDot exports are gone from sidekick-nudge
+
+- **GIVEN** `website/src/lib/assistant/sidekick-nudge.ts`
+- **WHEN** searching its exports for `decideBanner`, `BannerDecision`, `BannerInput`, or `shouldShowLearnDot`
+- **THEN** none of them is exported
+- **AND** `SidekickView` / `KNOWN_VIEWS` contain only the post-cleanup view set
+
+### Requirement: mediaviewer-bridge.ts Session-Protokoll
+
+The system SHALL extend `HostInbound.setMode.mode` to accept `'brainstorm'`, and SHALL add `sessionStarted` and `sessionProgress` events to `HostOutbound` in `mediaviewer-bridge.ts`. The `buildSetModeMessage` and `parseOutbound` helpers SHALL be updated accordingly, with tests covering the new cases.
 
 #### Scenario: Session-Protokoll für Brainstorm-View
 

@@ -155,3 +155,41 @@ setup() {
   run grep -E "__brettFeatures" "${BRETT}/public/index.html"
   [ "$status" -eq 0 ]
 }
+
+# ── T002006: Controls-Rework (brett-controls-rework) ─────────────────────────
+
+@test "T002006: admin templates route resolves brand from BRETT_BRAND" {
+  run grep -E 'BRETT_BRAND' "${SRC}/server/routes/admin.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002006: dblclick floor action is a pure, testable module" {
+  [ -s "${SRC}/client/board-dblclick.ts" ]
+  run grep -E 'export function dblclickFloorAction' "${SRC}/client/board-dblclick.ts"
+  [ "$status" -eq 0 ]
+  run grep -E "board-dblclick" "${SRC}/client/board-boot.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002006: lobby template dropdown surfaces empty and error feedback" {
+  run grep -E 'Keine Vorlagen vorhanden' "${SRC}/client/ui/lobby.ts"
+  [ "$status" -eq 0 ]
+  run grep -E 'Vorlagen konnten nicht geladen werden' "${SRC}/client/ui/lobby.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002006: shared styleSelect primitive is used by hud, topbar and zone-editor" {
+  run grep -E 'export function styleSelect' "${SRC}/client/ui/primitives.ts"
+  [ "$status" -eq 0 ]
+  run grep -E 'styleSelect' "${SRC}/client/ui/hud.ts"
+  [ "$status" -eq 0 ]
+  run grep -E 'styleSelect' "${SRC}/client/ui/topbar-participants.ts"
+  [ "$status" -eq 0 ]
+  run grep -E 'styleSelect' "${SRC}/client/ui/zone-editor.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002006: fig-panel spawn without open WS surfaces user feedback" {
+  run grep -E 'spawnOfflineNotice' "${SRC}/client/ui/fig-panel.ts"
+  [ "$status" -eq 0 ]
+}

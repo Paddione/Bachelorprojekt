@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.40.2](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.40.1...brett-v0.40.2) (2026-07-20)
+
+
+### Bug Fixes
+
+* **brett:** controls rework — multi-spawn, template dropdown, select styling [T002006] ([#3000](https://github.com/Paddione/Bachelorprojekt/issues/3000)) ([c2124ee](https://github.com/Paddione/Bachelorprojekt/commit/c2124ee09a2d8f9164808e653248916a9831b0f1))
+
 ## [0.40.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.40.0...brett-v0.40.1) (2026-07-17)
 
 

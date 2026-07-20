@@ -7,6 +7,7 @@
 import type { Role } from '../../types/state';
 import type { ClientMessage } from '../../types/messages';
 import type { LobbyState } from '../lobby-store';
+import { styleSelect } from './primitives';
 
 export interface ParticipantRow {
   userId: string;
@@ -131,6 +132,7 @@ export function mountParticipantsButton(
           if (opt.value === row.role) o.selected = true;
           sel.appendChild(o);
         }
+        styleSelect(sel);
         sel.addEventListener('change', () => {
           deps.sendClient(buildAssignRoleMessage(row.userId, sel.value as Role));
         });

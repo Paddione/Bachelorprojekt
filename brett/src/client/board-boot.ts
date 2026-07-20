@@ -38,6 +38,7 @@ import { mountParticipantsButton } from './ui/topbar-participants';
 import { showLateJoinToast } from './ui/late-join-toast';
 import { initExportToast } from './ui/export-toast';
 import { mountFilterInput, getFilterQuery, updateFilterVisuals } from './ui/topbar-filter';
+import { dblclickFloorAction } from './board-dblclick';
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
@@ -321,26 +322,6 @@ export async function bootBoard(): Promise<void> {
     mannequin.pickMannequinBody(e);
   });
 
-  function easeFigure(fig: any, tx: number, tz: number, durationMs: number) {
-    const sx = fig.root.position.x, sz = fig.root.position.z;
-    const start = performance.now();
-    function step() {
-      const t = Math.min(1, (performance.now() - start) / durationMs);
-      const e = 1 - Math.pow(1 - t, 3); // ease-out-cubic
-      fig.root.position.x = sx + (tx - sx) * e;
-      fig.root.position.z = sz + (tz - sz) * e;
-      if (t < 1) { requestAnimationFrame(step); }
-      else {
-        fig.root.position.x = tx; fig.root.position.z = tz;
-        const ws = getWs();
-        if (isWsReady() && ws) {
-          ws.send(JSON.stringify({ type: 'move', id: fig.id, x: tx, z: tz, facingY: fig.facingY }));
-        }
-      }
-    }
-    requestAnimationFrame(step);
-  }
-
   renderer.domElement.addEventListener('dblclick', (e) => {
     // Feature 2: dblclick on a figure → open the appearance drawer directly.
     const contact = mannequin.pickContact(e);
@@ -355,18 +336,14 @@ export async function bootBoard(): Promise<void> {
       }
       return;
     }
-    // No figure hit → existing behavior: move selected figure / add a new one.
+    // No figure hit → D1: dblclick on free floor always spawns a new figure.
     const floorPt = mannequin.pickFloor(e);
     if (!floorPt) return;
-    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
-    // E7: Magnet snappt auch den Doppelklick-Teleport/-Platzierungspunkt.
+    // E7: Magnet snappt auch den Doppelklick-Platzierungspunkt.
     const others = STATE.figures.filter(f => f.id !== STATE.selectedId).map(f => ({ x: f.x, z: f.z }));
     const target = snapping.snap({ x: floorPt.x, z: floorPt.z }, others);
-    if (fig) {
-      easeFigure(fig, target.x, target.z, 300);
-    } else {
-      figPanel.addFigure({ x: target.x, z: target.z });
-    }
+    const action = dblclickFloorAction(target);
+    figPanel.addFigure({ x: action.x, z: action.z });
   });
 
   document.addEventListener('keydown', (e) => {

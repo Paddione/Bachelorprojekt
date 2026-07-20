@@ -90,6 +90,25 @@ export function Drawer(opts: { open?: boolean; children?: (HTMLElement | string)
   return el;
 }
 
+/**
+ * Shared token-based styling for native `<select>` elements (T002006/D4) — the
+ * `.brett-lobby__select` look, applied inline so ad-hoc selects outside lobby.ts
+ * (hud.ts, topbar-participants.ts, zone-editor.ts) get consistent theming. Also
+ * darkens each `<option>` so the native dropdown list stays readable on dark UI.
+ */
+export function styleSelect(el: HTMLSelectElement): void {
+  el.style.background = 'var(--brett-ink-850)';
+  el.style.color = 'var(--brett-fg)';
+  el.style.border = '1px solid var(--brett-line-2)';
+  el.style.borderRadius = '8px';
+  el.style.padding = '4px 8px';
+  el.style.fontFamily = 'var(--brett-font-sans)';
+  for (const opt of Array.from(el.options)) {
+    opt.style.background = 'var(--brett-ink-850)';
+    opt.style.color = 'var(--brett-fg)';
+  }
+}
+
 // ── Styles ──────────────────────────────────────────────────────────
 
 const PRIMITIVES_STYLE_ID = 'brett-primitives';

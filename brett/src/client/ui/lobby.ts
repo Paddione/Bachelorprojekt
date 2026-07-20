@@ -157,7 +157,7 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
         handlers.onSetTemplate!(tplSelect.value);
       }
     });
-    fetch('/api/templates')
+    const templatesFetch = fetch('/api/templates')
       .then((r) => (r.ok ? r.json() : []))
       .then((list: Array<{ id: string; name?: string; label?: string }>) => {
         for (const t of Array.isArray(list) ? list : []) {
@@ -168,8 +168,8 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
           tplSelect.appendChild(opt);
         }
       })
-      .catch(() => { /* leave placeholder only */ });
-    fetch(`/api/board-templates?brand=${new URLSearchParams(location.search).get('brand') || 'mentolder'}`)
+      .catch(() => { appendNotice(tplSelect, 'Vorlagen konnten nicht geladen werden'); });
+    const boardTemplatesFetch = fetch(`/api/board-templates?brand=${new URLSearchParams(location.search).get('brand') || 'mentolder'}`)
       .then(r => r.ok ? r.json() : [])
       .then((list: any[]) => {
         if (!Array.isArray(list)) return;
@@ -186,7 +186,11 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
         if (systemGroup.children.length) tplSelect.appendChild(systemGroup);
         if (customGroup.children.length) tplSelect.appendChild(customGroup);
       })
-      .catch(() => {});
+      .catch(() => { appendNotice(tplSelect, 'Vorlagen konnten nicht geladen werden'); });
+    Promise.allSettled([templatesFetch, boardTemplatesFetch]).then(() => {
+      const hasSelectable = Array.from(tplSelect.options).some((o) => !o.disabled && o.value !== '');
+      if (!hasSelectable) appendNotice(tplSelect, 'Keine Vorlagen vorhanden');
+    });
     settingsPanel.appendChild(settingControl('Vorlage', tplSelect));
 
     const skySelect = document.createElement('select');
@@ -291,6 +295,19 @@ export function mountLobby(container: HTMLElement, vm: LobbyViewModel, handlers:
   grid.append(rosterPanel, settingsPanel);
 
   container.append(header, grid, footer);
+}
+
+const NOTICE_ATTR = 'data-notice';
+
+/** Adds a disabled `<option>` notice to `select`, replacing any prior notice. */
+function appendNotice(select: HTMLSelectElement, text: string): void {
+  const prev = select.querySelector(`option[${NOTICE_ATTR}]`);
+  prev?.remove();
+  const opt = document.createElement('option');
+  opt.disabled = true;
+  opt.textContent = text;
+  opt.setAttribute(NOTICE_ATTR, '1');
+  select.appendChild(opt);
 }
 
 function settingRow(label: string, value: string): HTMLElement {

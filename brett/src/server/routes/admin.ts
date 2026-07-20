@@ -53,7 +53,7 @@ adminRouter.get('/api/customers', asyncHandler(async (_req: any, res: any) => {
 // Coaching-step templates surfaced in the lobby. Public read (no admin gate) —
 // they contain only generic coaching prompts, no client data.
 adminRouter.get('/api/templates', asyncHandler(async (_req: any, res: any) => {
-  const brand = process.env.BRAND || 'mentolder';
+  const brand = process.env.BRETT_BRAND || process.env.BRAND || 'mentolder';
   const rows = await listCoachingTemplates(db.getPool() as any, brand);
   res.json(rows);
 }));

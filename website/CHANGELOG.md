@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.193.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.3...website-v1.193.4) (2026-07-20)
+
+
+### Bug Fixes
+
+* **brett:** controls rework — multi-spawn, template dropdown, select styling [T002006] ([#3000](https://github.com/Paddione/Bachelorprojekt/issues/3000)) ([c2124ee](https://github.com/Paddione/Bachelorprojekt/commit/c2124ee09a2d8f9164808e653248916a9831b0f1))
+
 ## [1.193.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.2...website-v1.193.3) (2026-07-19)
 
 

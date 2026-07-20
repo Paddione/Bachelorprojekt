@@ -8,6 +8,7 @@ import type { Zone } from '../../types/state';
 import { getWs, isWsReady, getScene } from '../state';
 import { zoneMeshes } from '../ground-objects';
 import { t } from '../i18n';
+import { styleSelect } from './primitives';
 
 interface ZoneEditRefs {
   renderer: { domElement: HTMLElement };
@@ -98,6 +99,7 @@ export function openZoneEditor(zone: Zone): void {
     if ((zone.variant ?? 'filled') === val) o.selected = true;
     variantSel.appendChild(o);
   }
+  styleSelect(variantSel);
   box.appendChild(mkRow('zone.variantFilled', variantSel));
 
   const apply = (): void => {

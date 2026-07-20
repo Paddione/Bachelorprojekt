@@ -2,17 +2,29 @@ import { STATE, ui } from '../state';
 import { makeMannequin, recolorFigure, applyFigureOpacity } from '../mannequin';
 import { sendAddFigure, sendUpdate, sendClient } from '../ws-client';
 import { t } from '../i18n';
+import { showExportToast } from './export-toast';
+
+/**
+ * D5: user-visible notice when a figure is spawned while the WebSocket is not
+ * OPEN — the figure stays local-only and would otherwise silently disappear on
+ * the next server snapshot.
+ */
+export function spawnOfflineNotice(): void {
+  showExportToast('Figur noch nicht synchronisiert – Verbindung wird aufgebaut', 'error');
+}
 
 export function addFigure(position: { x: number; z: number }): any {
   const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('f-' + Math.random().toString(36).slice(2,10));
   const fig = makeMannequin(id, position);
   STATE.figures.push(fig);
   selectFigure(id);
-  
+
   const ws = (window as any).__brettWS;
   const wsReady = ws && ws.readyState === WebSocket.OPEN;
   if (wsReady) {
     sendAddFigure(fig);
+  } else {
+    spawnOfflineNotice();
   }
   return fig;
 }

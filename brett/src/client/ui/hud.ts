@@ -3,6 +3,7 @@ import { STATE, ui, lockSprites, noteSprites, activeLocks, currentUser, getWs, i
 import { lockBadgeStyle, type VarGetter } from './skin';
 import { LANGS, getLang, setLang } from '../i18n';
 import { isFreeFly } from '../free-fly-camera';
+import { styleSelect } from './primitives';
 
 const pillEl = document.getElementById('status-pill')!;
 
@@ -72,15 +73,16 @@ export function mountLangSelect(): HTMLSelectElement | null {
   const sel = document.createElement('select');
   sel.id = 'lang-select';
   sel.title = 'Sprache / Language';
-  Object.assign(sel.style, { fontSize: '11px', background: 'transparent', color: 'inherit', border: '1px solid rgba(200,169,110,0.4)', borderRadius: '6px', padding: '2px 4px', cursor: 'pointer' });
   for (const lang of LANGS) {
     const opt = document.createElement('option');
     opt.value = lang;
     opt.textContent = lang.toUpperCase();
-    opt.style.color = '#000';
     if (lang === getLang()) opt.selected = true;
     sel.appendChild(opt);
   }
+  styleSelect(sel);
+  sel.style.fontSize = '11px';
+  sel.style.cursor = 'pointer';
   sel.addEventListener('change', () => {
     setLang(sel.value as Parameters<typeof setLang>[0]);
     location.reload();

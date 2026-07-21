@@ -2,7 +2,7 @@
 title: "Plan: Spec-BATS Coverage (Billing & Business Workflows)"
 ticket_id: "T002011"
 domains: [infrastructure, tests]
-status: "planning"
+status: "completed"
 ---
 
 # spec-bats-billing-business — Implementation Plan

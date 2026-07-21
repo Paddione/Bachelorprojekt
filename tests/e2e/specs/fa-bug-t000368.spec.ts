@@ -5,10 +5,10 @@ const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
+import { loginViaE2E } from '../lib/auth';
+
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin/tickets`);
-  // Handle Keycloak login
-  await page.waitForURL(/\/admin\/tickets/, { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/tickets');
 }
 
 test.describe('Bug T000368 Reproduction', () => {

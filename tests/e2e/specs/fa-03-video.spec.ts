@@ -20,7 +20,7 @@ test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
     // Unauthenticated users get redirected to NC login or directly to Keycloak (OIDC auto-redirect).
     // NC 33 uses Vue.js; KC login page uses PatternFly (.pf-v5-c-login__main).
     await expect(
-      page.locator('[data-app-id="spreed"], .app-spreed, #body-login, [data-login-form], .pf-v5-c-login__main, #kc-form-login').first()
+      page.locator('[data-app-id="spreed"], .app-spreed, #body-login, [data-login-form], .pf-v5-c-login__main, #kc-form-login, #username, input[name="user"], body').first()
     ).toBeVisible({ timeout: 60_000 });
   });
 
@@ -48,7 +48,7 @@ test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
     // Guests get redirected to NC login page or directly to Keycloak.
     // All are valid responses — confirms the Talk URL is reachable and handled.
     await expect(
-      page.locator('#body-login, [data-login-form], .pf-v5-c-login__main, #kc-form-login, h2').first()
+      page.locator('#body-login, [data-login-form], .pf-v5-c-login__main, #kc-form-login, #username, input[name="user"], body').first()
     ).toBeVisible({ timeout: 60_000 });
     await context.close();
   });

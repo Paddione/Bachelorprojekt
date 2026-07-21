@@ -10,6 +10,14 @@ vi.mock('../../../lib/website-db', () => ({ pool: {} }));
 vi.mock('../../../lib/coaching-ki-config-db', () => ({
   getActiveProvider: vi.fn(),
 }));
+vi.mock('../../../lib/provider-config', () => ({
+  getProviderByName: vi.fn().mockImplementation(async (name: string) => ({
+    name,
+    apiKey: null,
+    baseUrl: 'http://localhost:1234/v1',
+    modelId: 'hermes-3',
+  })),
+}));
 import { getActiveProvider } from '../../../lib/coaching-ki-config-db';
 import { POST } from './coaching-sim';
 
@@ -33,7 +41,10 @@ const validBody = {
 };
 
 describe('POST /api/demo/coaching-sim', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.COACHING_SIM_ENABLED = 'true';
+  });
   afterEach(() => {
     delete process.env.COACHING_SIM_ENABLED;
   });

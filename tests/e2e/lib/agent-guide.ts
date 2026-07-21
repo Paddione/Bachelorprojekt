@@ -159,13 +159,8 @@ export async function openAgentGuide(page: Page) {
     localStorage.setItem('cookie_consent_v1', 'all');
   });
 
-  // PortalSidekick is no longer on public Layout.astro — go to /admin instead
-  await page.goto('/admin');
-
-  const { user, pass } = getAdminCredentials();
-  if (pass) {
-    await loginViaE2E(page, getBaseUrl(), user, '/admin');
-  }
+  const { user } = getAdminCredentials();
+  await loginViaE2E(page, getBaseUrl(), user, '/admin');
 
   await page.waitForLoadState('networkidle');
 

@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           fetch-tags: false
           submodules: recursive
           token: ${{ secrets.GH_PAT }}

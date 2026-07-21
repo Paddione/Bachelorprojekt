@@ -16,8 +16,6 @@
     iconSpriteId?: string;
     /** Brand-id segment for the sprite path (default `korczewski`). */
     iconSpriteBrand?: string;
-    /** @deprecated direct buy buttons removed; kept for backwards compat */
-    stripeServiceKey?: string;
   }
 
   let {

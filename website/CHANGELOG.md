@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.196.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.196.2...website-v1.196.3) (2026-07-21)
+
+
+### Code Refactoring
+
+* centralize LLM provider routing to DB SSOT (ternary-bonsai-27b only) [T002015] ([#3009](https://github.com/Paddione/Bachelorprojekt/issues/3009)) ([be3a76e](https://github.com/Paddione/Bachelorprojekt/commit/be3a76e4ef23dc916e9bc04e39e8a7a292b57f59))
+
 ## [1.196.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.196.1...website-v1.196.2) (2026-07-21)
 
 

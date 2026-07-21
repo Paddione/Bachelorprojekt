@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.196.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.195.2...website-v1.196.0) (2026-07-21)
+
+
+### Features
+
+* **tickets:** product-taxonomy backfill + product_id API [T002016] ([#3022](https://github.com/Paddione/Bachelorprojekt/issues/3022)) ([be1f8d2](https://github.com/Paddione/Bachelorprojekt/commit/be1f8d288d0097f17253b5105f576e8281862369))
+
 ## [1.195.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.195.1...website-v1.195.2) (2026-07-21)
 
 

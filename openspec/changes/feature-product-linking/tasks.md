@@ -158,15 +158,15 @@ Einmaliger, zur Implementierungszeit erzeugter Datensatz (kein Live-LLM-Call im 
 
 ## Task 5 — Final Verification (Pflicht-Gates)
 
-- [ ] Test-Inventar regenerieren (neue BATS-/Vitest-Tests) und mitcommitten:
+- [x] Test-Inventar regenerieren (neue BATS-/Vitest-Tests) und mitcommitten:
 
       ```bash
       task test:inventory
       git add website/src/data/test-inventory.json
       ```
 
-- [ ] Go-Tool-Build validieren (ticket-mcp): `cd scripts/ticket-mcp/go && go build ./...`
-- [ ] Die drei mandatory CI-Gates:
+- [x] Go-Tool-Build validieren (ticket-mcp): `cd scripts/ticket-mcp/go && go build ./...`
+- [x] Die drei mandatory CI-Gates:
 
       ```bash
       task test:changed
@@ -174,5 +174,5 @@ Einmaliger, zur Implementierungszeit erzeugter Datensatz (kein Live-LLM-Call im 
       task freshness:check
       ```
 
-- [ ] Vor Commit: OpenSpec-Validierung grün — `bash scripts/openspec.sh validate`
+- [x] Vor Commit: OpenSpec-Validierung grün — `bash scripts/openspec.sh validate`
       (bzw. `task test:openspec`).

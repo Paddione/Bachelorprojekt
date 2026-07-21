@@ -134,3 +134,66 @@ child steps before parent sessions.
 - **AND** sessions with `is_test_data = false` remain untouched
 
 <!-- merged from change delta coaching-sessions-polish-guide.md (2461914c4774) -->
+
+<!-- consolidated from micro-spec coaching-studio-empty-customer-fallback [T002014] -->
+
+### Requirement: coaching-studio Workspace bleibt bei leerem CUSTOMERS-Array stabil
+
+Das statische coaching-studio-Prototyp (`website/public/coaching-studio/`) SHALL nicht
+abstürzen, wenn `CUSTOMERS` (in `data.jsx`) leer ist. Screens, die
+`customer || CUSTOMERS[0]` als Fallback nutzen, SHALL zusätzlich auf ein
+`EMPTY_CUSTOMER`-Platzhalterobjekt zurückfallen (`customer || CUSTOMERS[0] || EMPTY_CUSTOMER`),
+sodass `Workspace()`, `Kundenakte()`, `ProfileEditor()` und `CompareView()` immer ein
+definiertes Objekt mit allen von diesen Screens gelesenen Feldern erhalten
+(`name`, `initials`, `since`, `lang`, `category`, `aktiv`, `pausiert`, `fertig`, `sessions`).
+
+#### Scenario: Klick auf "Neue Session" bei leerer Kundenliste crasht nicht
+
+- **GIVEN** `CUSTOMERS` ist ein leeres Array (Standardzustand seit T001560)
+- **WHEN** im coaching-studio-Prototyp auf "Neue Session" (Dashboard oder TopBar) geklickt wird
+- **THEN** wird kein uncaught `pageerror` ausgelöst und die Workspace-Ansicht rendert
+  (`.ws`-Container / "Ebene 01"-Überschrift)
+
+<!-- consolidated from micro-spec studio-sessions-reorganize [T002014] -->
+
+### Requirement: Unified Sessions navigation entry
+
+The admin sidebar SHALL expose exactly one coaching navigation entry labeled "Sessions" that links to `/admin/coaching/studio` and highlights for both `/admin/coaching/studio` and `/admin/fragebogen`. There SHALL be no separate sidebar entry for `/admin/coaching/sessions`.
+
+#### Scenario: Sidebar shows single Sessions entry
+
+- **GIVEN** an admin views any admin page
+- **WHEN** the sidebar renders
+- **THEN** it contains one item labeled "Sessions" with href `/admin/coaching/studio`
+- **AND** no sidebar item links to `/admin/coaching/sessions`
+
+### Requirement: Sessions list reachable via tab bar
+
+The list-based sessions view at `/admin/coaching/sessions` SHALL remain reachable through the tab bar on the sessions pages: a "Sessions-Liste" tab links to `/admin/coaching/sessions` and a "Sessions" tab links to `/admin/coaching/studio`. The former "Projekte" tab SHALL NOT be present.
+
+#### Scenario: Tab bar navigation
+
+- **GIVEN** an admin opens `/admin/coaching/sessions`
+- **WHEN** the tab bar renders
+- **THEN** it offers tabs linking to `/admin/coaching/sessions` and `/admin/coaching/studio`
+- **AND** it contains no link to `/admin/coaching/projekte`
+
+### Requirement: Studio page titled Coaching Sessions
+
+The studio Astro wrapper SHALL use the page title "Coaching Sessions", and the studio React application SHALL show the sub-brand "Coaching Sessions" with a "Sessions-Liste" navigation button linking to `/admin/coaching/sessions`.
+
+#### Scenario: Studio page titles
+
+- **GIVEN** an admin opens `/admin/coaching/studio`
+- **WHEN** the page renders
+- **THEN** the layout title is "Coaching Sessions" and the app header shows "Coaching Sessions"
+
+### Requirement: No redundant new-session action in list view
+
+The sessions list overview SHALL NOT render a "+ Neue Session" action; new sessions are initiated from the studio context.
+
+#### Scenario: List view has no create button
+
+- **GIVEN** an admin opens the sessions list overview
+- **WHEN** the component renders
+- **THEN** no "+ Neue Session" link or button is present

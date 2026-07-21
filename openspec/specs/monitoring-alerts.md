@@ -182,3 +182,21 @@ The system SHALL allow an authenticated admin to walk all 5 steps of System-Test
 - **GIVEN** ein Admin-Passwort ist gesetzt und der Benutzer ist authentifiziert
 - **WHEN** alle 5 Schritte von System-Test 9 per Template-Walker ausgeführt und das Formular abgesendet wird
 - **THEN** wird der Test ohne Fehler abgeschlossen
+
+<!-- consolidated from micro-spec dora-dashboard [T002014] -->
+
+### Requirement: DORA UI Removed (Stub)
+
+The DORA dashboard UI SHALL NOT be re-introduced. Historical DORA metrics
+(deployment frequency, lead time, change-failure rate, MTTR) remain available
+through the CLI gate `vda.sh cfr` and direct `tickets.pr_events` queries.
+
+#### Scenario: No DORA UI surface
+
+- **GIVEN** an authenticated admin on `/admin`
+- **WHEN** the sidebar or shortcuts render
+- **THEN** no link to `/admin/dora` is present, the redirect stub page
+  (`website/src/pages/admin/dora.astro`) has been removed, and the URL
+  returns a 301 redirect to `/admin/pipeline?tab=analytics` (handled by the
+  `redirectMiddleware` / `REDIRECT_MAP` in `website/src/middleware/redirect-map.ts`,
+  independent of the deleted stub page)

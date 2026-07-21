@@ -1,259 +1,271 @@
-/**
- * Centralized LRU cache for thumbnail images with memory-aware eviction.
- * Manages thumbnail lifecycle and prevents memory bloat.
- */
-
-interface CacheEntry {
-  dataUrl: string;
-  timestamp: number;
-  priority: number; // Higher = more important to keep
-  size: number; // Estimated size in bytes
-}
-
-interface PreloadRequest {
-  videoId: string;
-  priority: number;
-}
-
-const DEFAULT_MAX_ENTRIES = 200;
-const MEMORY_THRESHOLD_MB = 250; // Start evicting aggressively above this
-const PRELOAD_DELAY_MS = 100; // Delay before starting preload
+import type { VideoThumbnail } from '../types/video';
+import { DirectoryHandleRegistry } from './directory-handle-registry';
 
 export class ThumbnailCache {
-  private cache = new Map<string, CacheEntry>();
-  private preloadQueue: PreloadRequest[] = [];
-  private preloadTimer: number | null = null;
-  private maxEntries: number;
+  generatePlaceholderThumbnail(filename: string): VideoThumbnail {
+    const canvas = document.createElement('canvas');
+    canvas.width = 320;
+    canvas.height = 180;
+    const ctx = canvas.getContext('2d');
 
-  constructor(maxEntries = DEFAULT_MAX_ENTRIES) {
-    this.maxEntries = maxEntries;
-  }
+    if (ctx) {
+      const gradient = ctx.createLinearGradient(0, 0, 320, 180);
+      gradient.addColorStop(0, '#f3f4f6');
+      gradient.addColorStop(1, '#e5e7eb');
 
-  /**
-   * Get a thumbnail from cache
-   */
-  get(videoId: string): string | null {
-    const entry = this.cache.get(videoId);
-    if (entry) {
-      // Update timestamp and boost priority on access
-      entry.timestamp = Date.now();
-      entry.priority = Math.min(10, entry.priority + 1);
-      return entry.dataUrl;
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 320, 180);
+
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '48px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎬', 160, 100);
+
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      const displayName = filename.length > 25 ? filename.substring(0, 25) + '...' : filename;
+      ctx.fillText(displayName, 160, 140);
     }
-    return null;
-  }
 
-  /**
-   * Store a thumbnail in cache
-   */
-  set(videoId: string, dataUrl: string, priority = 1): void {
-    // Estimate size from data URL length
-    const size = dataUrl.length;
-
-    const entry: CacheEntry = {
-      dataUrl,
-      timestamp: Date.now(),
-      priority,
-      size,
+    return {
+      dataUrl: canvas.toDataURL('image/jpeg', 0.8),
+      generated: false,
+      timestamp: new Date().toISOString(),
     };
-
-    this.cache.set(videoId, entry);
-
-    // Check if we need to evict
-    this.maybeEvict();
   }
 
-  /**
-   * Remove a thumbnail from cache and revoke blob URL if applicable
-   */
-  remove(videoId: string): void {
-    const entry = this.cache.get(videoId);
-    if (entry) {
-      // Revoke blob URL if it's a blob
-      if (entry.dataUrl.startsWith('blob:')) {
+  async tryReadExternalThumbnail(
+    parentDirHandle: FileSystemDirectoryHandle,
+    filename: string,
+  ): Promise<VideoThumbnail | null> {
+    try {
+      const base = filename.replace(/\.[^.]+$/, '');
+      console.log(`[Thumbnail] Looking for thumbnails for: ${filename} (base: ${base})`);
+
+      const sameDirCandidates = [
+        `${base}_thumb.jpg`,
+        `${base}-thumb.jpg`,
+        `${base}_2.jpg`,
+        `${base}-2.jpg`,
+        `${base}_1.jpg`,
+        `${base}-1.jpg`,
+        `${base}_3.jpg`,
+        `${base}-3.jpg`,
+        `${base}_2.png`,
+        `${base}-2.png`,
+        `${base}_1.png`,
+        `${base}-1.png`,
+        `${base}_3.png`,
+        `${base}-3.png`,
+      ];
+
+      for (const name of sameDirCandidates) {
         try {
-          URL.revokeObjectURL(entry.dataUrl);
-        } catch (e) {
-          // Ignore errors
+          const fh = await (parentDirHandle as any).getFileHandle?.(name, { create: false });
+          if (fh) {
+            console.log(`[Thumbnail] ✓ Found thumbnail: ${name}`);
+            const file: File = await fh.getFile();
+            const dataUrl = await this.readFileAsDataUrl(file);
+            return {
+              dataUrl,
+              generated: true,
+              timestamp: new Date().toISOString(),
+            };
+          }
+        } catch (_e) {}
+      }
+
+      try {
+        const thumbsDir = await (parentDirHandle as any).getDirectoryHandle?.('Thumbnails', {
+          create: false,
+        });
+        if (thumbsDir) {
+          const thumbCandidates = [`${base}_thumb.jpg`, `${base}-thumb.jpg`];
+          for (const name of thumbCandidates) {
+            const fh = await thumbsDir.getFileHandle?.(name, { create: false });
+            if (fh) {
+              const file: File = await fh.getFile();
+              const dataUrl = await this.readFileAsDataUrl(file);
+              return {
+                dataUrl,
+                generated: true,
+                timestamp: new Date().toISOString(),
+              };
+            }
+          }
         }
-      }
-      this.cache.delete(videoId);
+      } catch (_e) {}
+
+      const subdirCandidates = [
+        `${base}-2.jpg`,
+        `${base}-1.jpg`,
+        `${base}-3.jpg`,
+        `${base}-2.png`,
+        `${base}-1.png`,
+        `${base}-3.png`,
+      ];
+
+      try {
+        const thumbnailsDir = await (parentDirHandle as any).getDirectoryHandle?.('thumbnails', {
+          create: false,
+        });
+        if (thumbnailsDir) {
+          for (const name of subdirCandidates) {
+            try {
+              const fh = await thumbnailsDir.getFileHandle?.(name, { create: false });
+              if (fh) {
+                const file: File = await fh.getFile();
+                const dataUrl = await this.readFileAsDataUrl(file);
+                return {
+                  dataUrl,
+                  generated: true,
+                  timestamp: new Date().toISOString(),
+                };
+              }
+            } catch (_e) {}
+          }
+        }
+      } catch (_e) {}
+
+      return null;
+    } catch (_e) {
+      return null;
     }
   }
 
-  /**
-   * Check if a thumbnail exists in cache
-   */
-  has(videoId: string): boolean {
-    return this.cache.has(videoId);
-  }
+  async tryReadExternalSprite(
+    parentDirHandle: FileSystemDirectoryHandle,
+    filename: string,
+  ): Promise<string | null> {
+    try {
+      const base = filename.replace(/\.[^.]+$/, '');
+      const candidates = [
+        `${base}_sprite.jpg`,
+        `${base}-sprite.jpg`,
+        `${base}_sprite.png`,
+        `${base}-sprite.png`,
+      ];
 
-  /**
-   * Queue a thumbnail for preloading
-   */
-  queuePreload(videoId: string, priority = 1): void {
-    // Don't queue if already in cache
-    if (this.has(videoId)) {
-      return;
-    }
-
-    // Add to queue if not already there
-    const existing = this.preloadQueue.find((req) => req.videoId === videoId);
-    if (!existing) {
-      this.preloadQueue.push({ videoId, priority });
-      this.schedulePreload();
-    }
-  }
-
-  /**
-   * Cancel preload for a video
-   */
-  cancelPreload(videoId: string): void {
-    this.preloadQueue = this.preloadQueue.filter((req) => req.videoId !== videoId);
-  }
-
-  /**
-   * Clear all preload requests
-   */
-  clearPreloadQueue(): void {
-    this.preloadQueue = [];
-    if (this.preloadTimer !== null) {
-      window.clearTimeout(this.preloadTimer);
-      this.preloadTimer = null;
-    }
-  }
-
-  /**
-   * Get current cache size
-   */
-  getSize(): number {
-    return this.cache.size;
-  }
-
-  /**
-   * Get estimated memory usage in MB
-   */
-  getMemoryUsageMB(): number {
-    let totalSize = 0;
-    for (const entry of Array.from(this.cache.values())) {
-      totalSize += entry.size;
-    }
-    return totalSize / (1024 * 1024);
-  }
-
-  /**
-   * Clear entire cache
-   */
-  clear(): void {
-    // Revoke all blob URLs
-    for (const [videoId] of Array.from(this.cache.entries())) {
-      this.remove(videoId);
-    }
-    this.cache.clear();
-    this.clearPreloadQueue();
-  }
-
-  /**
-   * Schedule preload processing
-   */
-  private schedulePreload(): void {
-    if (this.preloadTimer !== null) {
-      return;
-    }
-
-    this.preloadTimer = window.setTimeout(() => {
-      this.preloadTimer = null;
-      this.processPreloadQueue();
-    }, PRELOAD_DELAY_MS);
-  }
-
-  /**
-   * Process preload queue (to be implemented by consumer)
-   * This is a hook for the application to actually load thumbnails
-   */
-  private processPreloadQueue(): void {
-    // Sort by priority (higher first)
-    this.preloadQueue.sort((a, b) => b.priority - a.priority);
-
-    // Take top items (limit to avoid overwhelming)
-    const toPreload = this.preloadQueue.splice(0, 5);
-
-    // Emit event for consumers to handle
-    if (toPreload.length > 0 && typeof window !== 'undefined') {
-      window.dispatchEvent(
-        new CustomEvent('thumbnail-preload-requested', {
-          detail: { requests: toPreload },
-        }),
-      );
-    }
-  }
-
-  /**
-   * Evict entries if cache is too large or memory pressure is high
-   */
-  private maybeEvict(): void {
-    const shouldEvict = this.cache.size > this.maxEntries || this.isMemoryPressureHigh();
-
-    if (!shouldEvict) {
-      return;
-    }
-
-    // Calculate how many to remove
-    const targetSize = Math.floor(this.maxEntries * 0.8); // Remove 20% when evicting
-    const toRemove = Math.max(1, this.cache.size - targetSize);
-
-    // Sort by priority (lower first) and timestamp (older first)
-    const entries = Array.from(this.cache.entries()).sort((a, b) => {
-      const [, entryA] = a;
-      const [, entryB] = b;
-
-      // Priority is primary sort
-      if (entryA.priority !== entryB.priority) {
-        return entryA.priority - entryB.priority;
+      for (const name of candidates) {
+        try {
+          const fh = await (parentDirHandle as any).getFileHandle?.(name, { create: false });
+          if (fh) {
+            console.log(`[Sprite] ✓ Found sprite sheet: ${name}`);
+            const file: File = await fh.getFile();
+            return await this.readFileAsDataUrl(file);
+          }
+        } catch (_e) {}
       }
 
-      // Timestamp is secondary sort (older first)
-      return entryA.timestamp - entryB.timestamp;
+      try {
+        const thumbsDir = await (parentDirHandle as any).getDirectoryHandle?.('Thumbnails', {
+          create: false,
+        });
+        if (thumbsDir) {
+          for (const name of candidates) {
+            try {
+              const fh = await thumbsDir.getFileHandle?.(name, { create: false });
+              if (fh) {
+                const file: File = await fh.getFile();
+                return await this.readFileAsDataUrl(file);
+              }
+            } catch (_e) {}
+          }
+        }
+      } catch (_e) {}
+
+      return null;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  async tryReadExternalThumbnailsForVideo(
+    videoId: string,
+    filename: string,
+  ): Promise<string[]> {
+    try {
+      const info = DirectoryHandleRegistry.getParentForFile(videoId);
+      if (!info) return [];
+      const base = filename.replace(/\.[^.]+$/, '');
+      const names = [
+        `${base}_1.jpg`,
+        `${base}-1.jpg`,
+        `${base}_2.jpg`,
+        `${base}-2.jpg`,
+        `${base}_3.jpg`,
+        `${base}-3.jpg`,
+        `${base}_1.png`,
+        `${base}-1.png`,
+        `${base}_2.png`,
+        `${base}-2.png`,
+        `${base}_3.png`,
+        `${base}-3.png`,
+      ];
+
+      const out: string[] = [];
+
+      for (const n of names) {
+        try {
+          const fh = await (info.parent as any).getFileHandle?.(n, { create: false });
+          if (fh) {
+            const file: File = await fh.getFile();
+            const dataUrl = await this.readFileAsDataUrl(file);
+            out.push(dataUrl);
+          }
+        } catch (_e) {}
+      }
+
+      if (out.length > 0) return out;
+
+      try {
+        const thumbDirs = ['Thumbnails', 'thumbnails'];
+        for (const dirName of thumbDirs) {
+          const thumbsDir = await (info.parent as any).getDirectoryHandle?.(dirName, {
+            create: false,
+          });
+          if (!thumbsDir) continue;
+          for (const n of names) {
+            try {
+              const fh = await thumbsDir.getFileHandle?.(n, { create: false });
+              if (fh) {
+                const file: File = await fh.getFile();
+                const dataUrl = await this.readFileAsDataUrl(file);
+                out.push(dataUrl);
+              }
+            } catch (_e) {}
+          }
+          if (out.length > 0) break;
+        }
+      } catch (_e) {}
+
+      return out;
+    } catch (_e) {
+      return [];
+    }
+  }
+
+  readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      try {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(reader.error || new Error('Failed to read file as data URL'));
+        reader.readAsDataURL(file);
+      } catch (e) {
+        reject(e);
+      }
     });
-
-    // Remove lowest priority/oldest entries
-    for (let i = 0; i < toRemove && i < entries.length; i++) {
-      const [videoId] = entries[i];
-      this.remove(videoId);
-    }
   }
 
-  /**
-   * Check if memory pressure is high
-   */
-  private isMemoryPressureHigh(): boolean {
-    if (typeof performance === 'undefined' || !('memory' in performance)) {
-      return false;
-    }
-
-    const memory = (performance as any).memory;
-    if (!memory || typeof memory.usedJSHeapSize !== 'number') {
-      return false;
-    }
-
-    const usedMB = memory.usedJSHeapSize / (1024 * 1024);
-    return usedMB > MEMORY_THRESHOLD_MB;
+  determineQuality(width: number, height: number): string {
+    if (width >= 3840 && height >= 2160) return '4K';
+    if (width >= 1920 && height >= 1080) return 'HD';
+    if (width >= 1280 && height >= 720) return '720p';
+    if (width >= 854 && height >= 480) return '480p';
+    return 'SD';
   }
 }
 
-// Singleton instance
-let instance: ThumbnailCache | null = null;
-
-export function getThumbnailCache(): ThumbnailCache {
-  if (!instance) {
-    instance = new ThumbnailCache();
-  }
-  return instance;
-}
-
-export function resetThumbnailCache(): void {
-  if (instance) {
-    instance.clear();
-  }
-  instance = null;
-}
+export const thumbnailCache = new ThumbnailCache();

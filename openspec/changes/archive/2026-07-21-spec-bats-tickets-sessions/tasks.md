@@ -2,7 +2,7 @@
 title: "Plan: Spec-BATS Coverage (Ticket System & Sessions)"
 ticket_id: "T002010"
 domains: [infrastructure, tests]
-status: "planning"
+status: "completed"
 ---
 
 # spec-bats-tickets-sessions — Implementation Plan

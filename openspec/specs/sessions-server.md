@@ -76,6 +76,18 @@ The system SHALL replace an existing registry entry (not duplicate it) when a se
 
 ---
 
+### Requirement: BATS Placeholder Test Coverage
+
+The system SHALL have a dedicated BATS spec file (`tests/spec/sessions-server.bats`) that establishes
+initial, spec-linked test coverage for the sessions-server SSOT spec, per the "one BATS file per
+OpenSpec SSOT spec" convention.
+
+#### Scenario: Placeholder test passes
+
+- **GIVEN** the BATS suite `tests/spec/sessions-server.bats` exists
+- **WHEN** `bats tests/spec/sessions-server.bats` is run
+- **THEN** the placeholder test `sessions-server spec covered` passes
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -208,3 +220,5 @@ The system SHALL respond to requests at `brainstorm.mentolder.de` with HTTP 200/
 - **GIVEN** das Produktions-Cluster ist erreichbar (`PROD_DOMAIN` gesetzt) und sish läuft
 - **WHEN** ein Browser `https://brainstorm.mentolder.de` aufruft
 - **THEN** der HTTP-Status ist einer von 200, 301, 302, 404 oder 502 — nicht 500, 503 oder 504
+
+<!-- merged from change delta sessions-server.md (f8b3cb8ac079) -->

@@ -1,6 +1,5 @@
 # projekttickets-cockpit
 
-
 <!-- merged from change delta projekttickets-cockpit.md on 2026-06-21 -->
 
 ## Purpose
@@ -88,3 +87,17 @@ Das System SHALL im Sidekick-Home für den Admin-Kontext einen Eintrag „Projek
 - **GIVEN** ein nicht-Admin ruft `GET /api/admin/cockpit/container-count` auf
 - **WHEN** die Route ausgewertet wird
 - **THEN** antwortet sie mit Status 403
+
+### Requirement: BATS Placeholder Test Coverage
+
+The system SHALL have a dedicated BATS spec file (`tests/spec/projekttickets-cockpit.bats`) that
+establishes initial, spec-linked test coverage for the projekttickets-cockpit SSOT spec, per the
+"one BATS file per OpenSpec SSOT spec" convention.
+
+#### Scenario: Placeholder test passes
+
+- **GIVEN** the BATS suite `tests/spec/projekttickets-cockpit.bats` exists
+- **WHEN** `bats tests/spec/projekttickets-cockpit.bats` is run
+- **THEN** the placeholder test `projekttickets-cockpit spec covered` passes
+
+<!-- merged from change delta projekttickets-cockpit.md (b2b75e76b58d) -->

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.194.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.4...website-v1.194.0) (2026-07-21)
+
+
+### Features
+
+* code-split VideoVault large files to satisfy G-SIZE02 [T001945] ([#3004](https://github.com/Paddione/Bachelorprojekt/issues/3004)) ([13aead1](https://github.com/Paddione/Bachelorprojekt/commit/13aead1a0de434717822e94e60d213b9f1557ce3))
+
 ## [1.193.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.3...website-v1.193.4) (2026-07-20)
 
 

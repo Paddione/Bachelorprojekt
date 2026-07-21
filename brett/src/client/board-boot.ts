@@ -39,6 +39,7 @@ import { showLateJoinToast } from './ui/late-join-toast';
 import { initExportToast } from './ui/export-toast';
 import { mountFilterInput, getFilterQuery, updateFilterVisuals } from './ui/topbar-filter';
 import { dblclickFloorAction } from './board-dblclick';
+import { initFigureDrag } from './figure-drag';
 
 export async function bootBoard(): Promise<void> {
   // ── Scene ──────────────────────────────────────────────────────────
@@ -219,101 +220,43 @@ export async function bootBoard(): Promise<void> {
       e.preventDefault();
       return;
     }
-    if (e.button !== 0 || e.shiftKey) {
+    if (e.shiftKey && povCamera.isInPov()) {
       // D-spec: Shift+Click while in POV → exit POV for orbit
-      if (e.shiftKey && povCamera.isInPov()) {
-        povCamera.stopPov();
-      }
+      povCamera.stopPov();
       return;
     }
-    const sphere = mannequin.pickContact(e);
-    if (sphere) {
-      const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
-      if (!fig) return;
-
-      const lock = activeLocks.get(fig.id);
-      if (lock && lock.userId !== currentUser.userId) {
-        e.preventDefault();
-        return; // block!
-      }
-
-      // T000471: Freeze-Gate on client — show visual feedback, don't start drag
-      if (currentModerationState.freeze) {
-        // Leiter-check: fetch role from lobby roster
-        const myRole = wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role;
-        if (myRole !== 'leiter') {
+    if (e.button === 0 && !e.shiftKey) {
+      // D-spec: click on a free figure → possess it instead of locking (figure-drag
+      // handles the lock/drag path for already-possessed/free-but-owned figures).
+      const sphere = mannequin.pickContact(e);
+      if (sphere) {
+        const fig = STATE.figures.find(f => f.id === sphere.userData.figureId);
+        const isFree = fig && !(fig as any)._serverPossessor && !activeLocks.get(fig.id);
+        const frozenAndNotLeiter = currentModerationState.freeze &&
+          wsClient.getLobbyState()?.roster?.[currentUser.userId]?.role !== 'leiter';
+        if (fig && isFree && !frozenAndNotLeiter) {
+          figPanel.selectFigure(fig.id);
+          const ws = getWs();
+          if (isWsReady() && ws) {
+            ws.send(JSON.stringify({ type: 'figure_possess', figureId: fig.id }));
+          }
           e.preventDefault();
-          return; // Server will also reject; client skips drag start
         }
       }
-
-      // D-spec: click on a free figure → possess it instead of locking
-      const isFree = !(fig as any)._serverPossessor && !activeLocks.get(fig.id);
-      if (isFree) {
-        figPanel.selectFigure(fig.id);
-        const ws = getWs();
-        if (isWsReady() && ws) {
-          ws.send(JSON.stringify({ type: 'figure_possess', figureId: fig.id }));
-        }
-        e.preventDefault();
-        return;
-      }
-
-      figPanel.selectFigure(fig.id);
-      const ws = getWs();
-      if (isWsReady() && ws) {
-        ws.send(JSON.stringify({ type: "figure_lock", id: fig.id, color: currentUser.color }));
-      }
-
-      const worldPos = new THREE.Vector3();
-      sphere.getWorldPosition(worldPos);
-      const camDir = new THREE.Vector3();
-      camera.getWorldDirection(camDir);
-      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(camDir, worldPos);
-      ui.dragging = { figId: fig.id, boneName: sphere.userData.boneName, plane };
-      e.preventDefault();
     }
   });
 
-  window.addEventListener('mousemove', (e) => {
-    if (!ui.dragging) {
-      const fig = mannequin.pickMannequinBody(e);
-      STATE.hoveredId = fig ? fig.id : null;
-      return;
-    }
-    mannequin.setNdc(e);
-    const { ndc } = mannequin.getTickRefs();
-    raycaster.setFromCamera(ndc, cameraModes.getActiveCamera());
-    const target = new THREE.Vector3();
-    raycaster.ray.intersectPlane(ui.dragging.plane, target);
-    if (!target) return;
-    const fig = STATE.figures.find(f => f.id === ui.dragging!.figId);
-    if (!fig) return;
-    mannequin.ccdIK(fig, ui.dragging.boneName, target, 6);
-    wsClient.sendUpdate(fig, { boneOverrides: fig.boneOverrides });
-    const now = performance.now();
-    if (now - (fig._lastCollisionCheck || 0) > 33) {
-      fig._lastCollisionCheck = now;
-      mannequin.resolveCollisions(fig, mannequin.BOUNCE_K_DRAG);
-    }
-  });
-
-  window.addEventListener('mouseup', () => {
-    if (!ui.dragging) return;
-    const fig = STATE.figures.find(f => f.id === ui.dragging!.figId);
-    if (fig) {
-      const chain = mannequin.IK_CHAINS[ui.dragging.boneName] || [];
-      for (const b of chain) delete fig.boneOverrides[b];
-      delete fig.boneOverrides[ui.dragging.boneName];
-      wsClient.sendUpdate(fig, { boneOverrides: fig.boneOverrides });
-      // E7: bei aktivem Magnet die Figur aufs Raster/Achsen einrasten (+ move).
-      snapping.finishDrag(fig);
-      const ws = getWs();
-      if (isWsReady() && ws) {
-        ws.send(JSON.stringify({ type: "figure_unlock", id: fig.id }));
-      }
-    }
-    ui.dragging = null;
+  // Task 3 (T002050): bone/body/rotate drag orchestration extracted into a
+  // dedicated module to keep board-boot.ts under its S1 line budget.
+  initFigureDrag({
+    renderer,
+    getCamera: () => cameraModes.getActiveCamera(),
+    raycaster,
+    mannequin,
+    wsClient,
+    figPanel,
+    snapping,
+    getModerationState: () => currentModerationState,
   });
 
   renderer.domElement.addEventListener('click', (e) => {

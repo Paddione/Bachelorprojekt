@@ -193,6 +193,18 @@ export function makeMannequin(id?: string, position = { x: 0, z: 0 }, opts: any 
   ring.rotation.x = -Math.PI / 2; ring.position.y = 0.01; ring.visible = false;
   root.add(ring);
 
+  // T002050: invisible, wider rotate-ring hit region — a child of root so it
+  // tracks the figure. Sits just outside the thin visible selection ring so
+  // grabbing the ring area starts a 360° facing rotation rather than a body
+  // drag. Reuses the same DoubleSide RingGeometry shape, just larger + invisible.
+  const rotateRingGeo = new THREE.RingGeometry(0.62, 0.85, 32);
+  const rotateRingMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, visible: false });
+  const rotateRing = new THREE.Mesh(rotateRingGeo, rotateRingMat);
+  rotateRing.rotation.x = -Math.PI / 2; rotateRing.position.y = 0.01;
+  rotateRing.userData.isRotateRing = true;
+  rotateRing.userData.figureId = id;
+  root.add(rotateRing);
+
   // Possession indicator ring (dashed brass torus — shown for free/possessed figures)
   const possessionRingGeo = new THREE.TorusGeometry(0.52, 0.025, 8, 48);
   const possessionRingMat = new THREE.MeshBasicMaterial({
@@ -305,6 +317,23 @@ export function pickContact(ev: { clientX: number; clientY: number }): any {
   for (const fig of STATE.figures) {
     fig.root.traverse((o: any) => { if (o.userData && o.userData.isContact) meshes.push(o); });
   }
+  const hit = raycaster.intersectObjects(meshes, false)[0];
+  return hit ? hit.object : null;
+}
+
+/**
+ * T002050: picks the invisible rotate-ring hit region of the currently
+ * SELECTED figure only (mirrors pickContact but limited to that one figure's
+ * ring, so an unselected figure's ring never intercepts a body-drag click).
+ */
+export function pickRotateRing(ev: { clientX: number; clientY: number }): any {
+  setNdc(ev);
+  const { camera } = getScene();
+  raycaster.setFromCamera(ndc, camera);
+  const selected = STATE.figures.find(f => f.id === STATE.selectedId);
+  if (!selected) return null;
+  const meshes: any[] = [];
+  selected.root.traverse((o: any) => { if (o.userData && o.userData.isRotateRing) meshes.push(o); });
   const hit = raycaster.intersectObjects(meshes, false)[0];
   return hit ? hit.object : null;
 }

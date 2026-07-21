@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Warn (never block) on a branch-switch in the MAIN checkout while another
 # session holds the main-checkout lock. [T000510]
+# Regenerate freshness artifacts on branch switch in worktrees. [T002039]
 set -uo pipefail
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 # $3 == 1 means a branch checkout (not a file checkout)
@@ -11,4 +12,17 @@ case "$_al_cd" in /*) : ;; *) _al_cd="$(cd "$_al_cd" 2>/dev/null && pwd || echo 
 if [ -n "$_al_gd" ] && [ "$_al_gd" = "$_al_cd" ]; then
   bash "$repo_root/scripts/agent-lock.sh" guard-postcheckout || true
 fi
+
+# Freshness regeneration: only in worktrees (git-dir != common-dir) [T002039]
+# Running in the main checkout would dirty generated files during
+# `git checkout main` / `git pull --rebase`. Worktrees are isolated.
+if [ -n "$_al_gd" ] && [ "$_al_gd" != "$_al_cd" ]; then
+  _gd="$(git rev-parse --absolute-git-dir 2>/dev/null || true)"
+  if [ -z "$_gd" ] || { [ ! -d "$_gd/rebase-merge" ] && [ ! -d "$_gd/rebase-apply" ] && [ ! -f "$_gd/MERGE_HEAD" ]; }; then
+    if command -v task >/dev/null 2>&1 && task --version 2>&1 | grep -q "Task version"; then
+      task -d "$repo_root" freshness:regenerate 2>/dev/null || true
+    fi
+  fi
+fi
+
 exit 0

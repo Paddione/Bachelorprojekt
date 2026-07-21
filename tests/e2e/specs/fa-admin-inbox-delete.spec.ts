@@ -31,9 +31,10 @@ const ADMIN_USER  = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
 const CRON_SECRET = process.env.CRON_SECRET;
 
+import { loginViaE2E } from '../lib/auth';
+
 async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void> {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/\/admin\/inbox/, { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 
 /**

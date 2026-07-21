@@ -24,7 +24,8 @@ export async function loginViaE2E(
   returnTo = '/admin',
 ): Promise<void> {
   const cleanBase = baseUrl.replace(/\/$/, '');
-  const url = `${cleanBase}/api/auth/e2e-login?username=${encodeURIComponent(user)}&returnTo=${encodeURIComponent(returnTo)}`;
+  const token = CRON_SECRET ? `&token=${encodeURIComponent(CRON_SECRET)}` : '';
+  const url = `${cleanBase}/api/auth/e2e-login?username=${encodeURIComponent(user)}&returnTo=${encodeURIComponent(returnTo)}${token}`;
 
   await page.goto(url, {
     waitUntil: 'domcontentloaded',

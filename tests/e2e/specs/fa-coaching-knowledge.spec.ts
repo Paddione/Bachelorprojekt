@@ -5,7 +5,7 @@ const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 test.describe('FA: Coaching Knowledge — phase 1', () => {
   test('T1: /admin/knowledge/books redirects unauthenticated users', async ({ page }) => {
     await page.goto(`${BASE}/admin/knowledge/books`);
-    await expect(page).not.toHaveURL(`${BASE}/admin/knowledge/books`);
+    await page.waitForURL(url => !url.toString().endsWith('/admin/knowledge/books'), { timeout: 10_000 });
   });
 
   test('T2: GET /api/admin/coaching/books returns 401 without auth', async ({ request }) => {

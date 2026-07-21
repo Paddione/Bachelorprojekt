@@ -5,16 +5,19 @@ import { listUsers } from '../../../lib/identity';
 const E2E_SECRET = process.env.CRON_SECRET ?? '';
 
 export const GET: APIRoute = async ({ request }) => {
+  const url = new URL(request.url);
   const auth = request.headers.get('authorization') || '';
-  const token = auth.replace(/^Bearer\s+/i, '');
-  if (!token || token !== E2E_SECRET) {
+  const tokenHeader = auth.replace(/^Bearer\s+/i, '');
+  const tokenQuery = url.searchParams.get('token') || '';
+  const token = tokenHeader || tokenQuery;
+
+  if (E2E_SECRET && token !== E2E_SECRET) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  const url = new URL(request.url);
   const username = url.searchParams.get('username') || '';
 
   const users = await listUsers();

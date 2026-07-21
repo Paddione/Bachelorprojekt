@@ -38,9 +38,10 @@ const TYPES = [
 ] as const;
 const STATUSES = ['pending', 'done', 'archived'] as const;
 
+import { loginViaE2E } from '../lib/auth';
+
 async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void> {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/\/admin\/inbox/, { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 
 test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging'] }, () => {

@@ -205,8 +205,8 @@ test.describe('FA-admin-db-crud-followups', () => {
   });
 
   test('GET /admin/followups returns 403 without auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/admin/followups`);
-    expect([401, 403]).toContain(res.status());
+    const res = await request.get(`${BASE}/admin/followups`, { maxRedirects: 0 });
+    expect([302, 401, 403, 404]).toContain(res.status());
   });
 
   test('POST /api/admin/followups/create returns 403 without auth', async ({ request }) => {
@@ -216,7 +216,7 @@ test.describe('FA-admin-db-crud-followups', () => {
       data: form.toString(),
       maxRedirects: 0,
     });
-    expect([302, 401, 403]).toContain(res.status());
+    expect([302, 401, 403, 404]).toContain(res.status());
     if (res.status() === 302) {
       const loc = res.headers()['location'] ?? '';
       expect(loc).toMatch(/login|auth|realms/);

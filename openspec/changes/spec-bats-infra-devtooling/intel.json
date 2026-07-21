@@ -1,0 +1,25 @@
+{
+  "symbols": [],
+  "call_graph": [],
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "impact_files": [
+    {"file": "tests/spec/agent-skills.bats", "s1_budget": 0},
+    {"file": "tests/spec/agentic-tooling-quality-goals.bats", "s1_budget": 0},
+    {"file": "tests/spec/astro-type-check.bats", "s1_budget": 0},
+    {"file": "tests/spec/e2e-test-infrastructure.bats", "s1_budget": 0},
+    {"file": "tests/spec/grilling-flow.bats", "s1_budget": 0},
+    {"file": "tests/spec/llm-local-dev.bats", "s1_budget": 0},
+    {"file": "tests/spec/llm-pipeline.bats", "s1_budget": 0},
+    {"file": "tests/spec/mcp-gateway.bats", "s1_budget": 0},
+    {"file": "tests/spec/mcp-skill-integration.bats", "s1_budget": 0},
+    {"file": "tests/spec/monitoring-alerts.bats", "s1_budget": 0},
+    {"file": "tests/spec/openspec-pgvector.bats", "s1_budget": 0},
+    {"file": "tests/spec/openspec-upstream-cli.bats", "s1_budget": 0},
+    {"file": "tests/spec/security.bats", "s1_budget": 0},
+    {"file": "tests/spec/sidekick-assistant.bats", "s1_budget": 0},
+    {"file": "tests/spec/archive.bats", "s1_budget": 0}
+  ],
+  "risks": []
+}

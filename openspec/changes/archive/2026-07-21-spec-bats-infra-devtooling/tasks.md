@@ -2,7 +2,7 @@
 title: "Plan: Spec-BATS Coverage (Platform Infrastructure & DevTooling)"
 ticket_id: "T002013"
 domains: [infrastructure, tests]
-status: "planning"
+status: "completed"
 ---
 
 # spec-bats-infra-devtooling — Implementation Plan

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.9...website-v1.197.10) (2026-07-21)
+
+
+### Bug Fixes
+
+* **e2e:** repair E2E login auth, unit test assertions, and test robustness ([#3079](https://github.com/Paddione/Bachelorprojekt/issues/3079)) ([569db98](https://github.com/Paddione/Bachelorprojekt/commit/569db983836b626313da8cd16872c3e002b01f2e))
+
 ## [1.197.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.8...website-v1.197.9) (2026-07-21)
 
 

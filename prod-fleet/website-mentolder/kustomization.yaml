@@ -6,4 +6,6 @@ resources:
   - ../../k3d/website-seller-config.yaml
   # mentolder HTTPS Ingress (tracked here to survive cluster rebuilds — T000146)
   - ../website-common/domain-config.yaml
+  # T002052: website-scoped security-headers (no noindex) — keeps the public site crawlable
+  - website-security-headers.yaml
   - website-ingress-web.yaml

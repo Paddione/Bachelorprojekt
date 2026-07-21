@@ -19,7 +19,13 @@ spec:
     stsIncludeSubdomains: true
     forceSTSHeader: true
 ---
-# ── Security-HTTP-Header (alle Production-Services) ──────────────
+# ── Security-HTTP-Header (interne Production-Services) ──────────────
+# X-Robots-Tag: noindex hält interne Dienste (Keycloak, Nextcloud, Vaultwarden, …)
+# aus Suchmaschinen. Die öffentliche Website nutzt bewusst NICHT diese Middleware,
+# sondern eine website-scoped Variante ohne noindex (siehe
+# prod-fleet/website-{mentolder,korczewski}/website-security-headers.yaml, T002052).
+# Der noindex MUSS hier explizit stehen, sonst entfernt ein workspace:deploy den
+# live vorhandenen Header und macht interne Login-Seiten indexierbar.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -33,6 +39,7 @@ spec:
       X-XSS-Protection: "1; mode=block"
       Referrer-Policy: "strict-origin-when-cross-origin"
       Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"
+      X-Robots-Tag: "noindex"
 ---
 # ── Security-Header-Variante für eingebettete Widgets (iframe-kompatibel) ──
 # Verwendet für: mediaviewer.${PROD_DOMAIN} (im Admin-Sidekick als iframe)

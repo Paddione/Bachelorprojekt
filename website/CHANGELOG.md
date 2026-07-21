@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.1...website-v1.197.2) (2026-07-21)
+
+
+### Bug Fixes
+
+* **website:** inline critical CSS + lazy-load GoalsDashboard to cut render-blocking [T002057] ([#3057](https://github.com/Paddione/Bachelorprojekt/issues/3057)) ([de7f72a](https://github.com/Paddione/Bachelorprojekt/commit/de7f72a25e10dbfb5a64ee203cbfd5e5c96f4215))
+
 ## [1.197.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.0...website-v1.197.1) (2026-07-21)
 
 

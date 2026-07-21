@@ -16,7 +16,7 @@
 import { test as setup, expect } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
-import { loginViaKeycloak, verifySession } from '../lib/auth';
+import { loginViaE2E, verifySession } from '../lib/auth';
 import { assertReachable } from '../lib/health-assertions';
 
 const WEBSITE_URL  = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
@@ -46,7 +46,7 @@ setup('authenticate mentolder website admin', async ({ page, request }, testInfo
   // Verify the website is reachable before attempting login
   await assertReachable(request, WEBSITE_URL, { label: 'mentolder website' }, testInfo);
 
-  await loginViaKeycloak(page, WEBSITE_URL, ADMIN_USER, ADMIN_PASS, '/admin');
+  await loginViaE2E(page, WEBSITE_URL, ADMIN_USER, '/admin');
 
   const me = await verifySession(page.request, WEBSITE_URL);
   expect(me.authenticated, 'mentolder website session should be authenticated').toBe(true);
@@ -65,7 +65,7 @@ setup('authenticate mentolder portal user', async ({ page }) => {
     return;
   }
 
-  await loginViaKeycloak(page, WEBSITE_URL, USER, USER_PASS, '/portal');
+  await loginViaE2E(page, WEBSITE_URL, USER, '/portal');
 
   const me = await verifySession(page.request, WEBSITE_URL);
   expect(me.authenticated, 'mentolder portal session should be authenticated').toBe(true);

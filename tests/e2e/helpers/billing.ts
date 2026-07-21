@@ -1,31 +1,13 @@
 import { Page, APIRequestContext, expect } from '@playwright/test';
-import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 const ADMIN_USER = process.env.ADMIN_USER || process.env.E2E_ADMIN_USER || 'paddione';
-const ADMIN_PASS = process.env.ADMIN_PASS || process.env.E2E_ADMIN_PASS || '';
 
 export async function adminLogin(page: Page, request?: APIRequestContext, testInfo?: any) {
-  if (request) {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/admin/rechnungen`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin invoices' },
-      testInfo
-    );
-  }
-  // Use the OIDC login redirect — works for both local dev and prod.
-  await page.goto(`${BASE}/api/auth/login?returnTo=/admin/rechnungen`);
-
-  // Wait for Pocket ID login page (URL contains /authorize or /auth/).
-  await page.waitForURL(/\/auth\//, { timeout: 60_000 });
-
-  // Fill Keycloak credentials.
-  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
-  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
-  await page.locator('#kc-login, input[type="submit"]').first().click();
-
-  // Wait until we're back on the website.
+  await page.goto(
+    `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/rechnungen')}`,
+    { waitUntil: 'domcontentloaded' },
+  );
   await page.waitForURL(/\/admin/, { timeout: 60_000 });
 }
 

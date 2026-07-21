@@ -58,11 +58,7 @@ async function mailpitReachable(request: import('@playwright/test').APIRequestCo
 }
 
 async function loginAsAdmin(page: import('@playwright/test').Page): Promise<void> {
-  await page.goto(`${BASE}/api/auth/login?returnTo=/admin/bugs`);
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
-  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
-  await page.locator('#kc-login, input[type="submit"]').first().click();
+  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin/bugs`);
   // /admin/bugs is a 301 redirect to /admin/tickets; both match /\/admin/.
   await page.waitForURL(/\/admin/, { timeout: 60_000 });
 }

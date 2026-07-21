@@ -13,11 +13,7 @@ const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? 'p.korczewski@gmail.com';
 const isProd = BASE.includes('mentolder.de') || BASE.includes('korczewski.de');
 
 async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
-  await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
-  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
-  await page.locator('#kc-login, input[type="submit"]').first().click();
+  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}`);
   await page.waitForURL(new RegExp(returnTo.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')), { timeout: 20_000 });
 }
 

@@ -138,7 +138,7 @@ test.describe('Korczewski: Service subpages', () => {
 // ── OIDC auth flow ────────────────────────────────────────────────────────────
 
 test.describe('Korczewski: OIDC auth', () => {
-  test('T1: /api/auth/login redirects to Keycloak', async ({ request }) => {
+  test('T1: /api/auth/login redirects to Pocket ID', async ({ request }) => {
     const res = await request.get(`${BASE}/api/auth/login`, { maxRedirects: 0 });
     expect(res.status()).toBe(302);
     const location = res.headers()['location'] ?? '';

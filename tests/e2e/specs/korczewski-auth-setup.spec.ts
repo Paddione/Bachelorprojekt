@@ -50,20 +50,11 @@ setup('authenticate korczewski website admin', async ({ page, request }, testInf
     return;
   }
 
-  // The website login flow: /api/auth/login → Keycloak → /api/auth/callback → /admin or /portal
-  await page.goto(`${WEBSITE_URL}/api/auth/login?returnTo=/admin`, { waitUntil: 'domcontentloaded' });
-
-  // Should redirect to Keycloak
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-
-  await page.locator('#username').fill(ADMIN_USER);
-  await page.locator('#password').fill(ADMIN_PASS);
-  await page.locator('#kc-login').click();
-
-  // Wait for the post-auth redirect back to the website and for the page to fully load.
-  // waitForURL fires as soon as the URL matches (even on the /api/auth/callback URL), so
-  // page.request.get() would queue indefinitely while the subsequent /admin redirect is
-  // still in flight. waitForLoadState('load') waits for the final page to settle first.
+  // E2E login via /api/auth/e2e-login (bypasses Pocket ID passkey flow)
+  await page.goto(
+    `${WEBSITE_URL}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin`,
+    { waitUntil: 'domcontentloaded' },
+  );
   await page.waitForURL(new RegExp(WEBSITE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), { timeout: 60_000 });
   await page.waitForLoadState('load', { timeout: 60_000 });
 
@@ -91,22 +82,8 @@ setup('authenticate korczewski brett', async ({ page, request }, testInfo) => {
     return;
   }
 
-  // Navigate to brett — oauth2-proxy redirects unauthenticated requests to Keycloak
-  await page.goto(BRETT_URL, { waitUntil: 'domcontentloaded' });
-
-  // Wait for Keycloak redirect
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-
-  await page.locator('#username').fill(ADMIN_USER);
-  await page.locator('#password').fill(ADMIN_PASS);
-  await page.locator('#kc-login').click();
-
-  // oauth2-proxy redirects back to brett after the /oauth2/callback exchange
-  await page.waitForURL(new RegExp(BRETT_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), { timeout: 20_000 });
-
-  // Verify we landed on brett (not another redirect)
-  expect(page.url()).toMatch(new RegExp(BRETT_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-
-  await page.context().storageState({ path: BRETT_ADMIN_STATE });
-  console.log('[korczewski-setup] saved korczewski-brett.json');
+  // Pocket ID has no password form — oauth2-proxy services need one-time access code flow (T003163)
+  testInfo.fixme(true, 'brett oauth2-proxy → Pocket ID needs passkey/one-time-code auth');
+  fs.writeFileSync(BRETT_ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
+  console.log('[korczewski-setup] skipped brett login — Pocket ID migration pending');
 });

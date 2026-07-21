@@ -12,14 +12,8 @@ test.describe('FA-29 Projekt-Cockpit', () => {
   test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS nicht gesetzt — überspringe Auth-Test');
 
   async function login(page: any) {
-    await page.goto(`${WEBSITE_URL}/admin/cockpit`);
-    const userField = page.locator('#username, input[name="username"]').first();
-    if (await userField.isVisible({ timeout: 10_000 }).catch(() => false)) {
-      await userField.fill(ADMIN_USER);
-      await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
-      await page.locator('#kc-login, input[type="submit"]').first().click();
-      await page.waitForURL(/\/admin\/cockpit/);
-    }
+    await page.goto(`${WEBSITE_URL}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/cockpit')}`);
+    await page.waitForURL(/\/admin\/cockpit/);
   }
 
   test('loads sidebar and table', async ({ page }) => {

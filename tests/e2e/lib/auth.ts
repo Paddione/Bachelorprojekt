@@ -1,40 +1,44 @@
-// tests/e2e/lib/auth.ts
-// Centralized Keycloak OIDC auth helpers shared across setup specs.
-
 import type { Page, APIRequestContext } from '@playwright/test';
 
-/**
- * Performs real Keycloak OIDC login via the website's /api/auth/login endpoint.
- * Returns after the post-auth redirect lands back on baseUrl.
- */
-export async function loginViaKeycloak(
+export function getAdminCredentials(): { user: string; pass: string } {
+  const isKorczewski = (process.env.WEBSITE_URL ?? '').includes('korczewski.de');
+  const user = isKorczewski
+    ? (process.env.TEST_ADMIN_USER ?? process.env.E2E_ADMIN_USER ?? 'test-admin')
+    : (process.env.E2E_ADMIN_USER ?? 'paddione');
+  const pass = isKorczewski
+    ? (process.env.TEST_ADMIN_PASSWORD ?? process.env.E2E_ADMIN_PASS ?? '')
+    : (process.env.E2E_ADMIN_PASS ?? '');
+  return { user, pass };
+}
+
+export function getBaseUrl(): string {
+  return (process.env.WEBSITE_URL ?? 'http://localhost:4321').replace(/\/$/, '');
+}
+
+const CRON_SECRET = process.env.CRON_SECRET ?? '';
+
+export async function loginViaE2E(
   page: Page,
   baseUrl: string,
   user: string,
-  pass: string,
   returnTo = '/admin',
 ): Promise<void> {
   const cleanBase = baseUrl.replace(/\/$/, '');
-  await page.goto(`${cleanBase}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`, {
+  const url = `${cleanBase}/api/auth/e2e-login?username=${encodeURIComponent(user)}&returnTo=${encodeURIComponent(returnTo)}`;
+
+  await page.goto(url, {
     waitUntil: 'domcontentloaded',
   });
 
-  // Wait for redirect to Keycloak realm login page
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-
-  await page.locator('#username').fill(user);
-  await page.locator('#password').fill(pass);
-  await page.locator('#kc-login').click();
-
-  // Wait for post-auth redirect back to website
-  const escapedBase = cleanBase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  await page.waitForURL(new RegExp(escapedBase), { timeout: 20_000 });
+  const escaped = returnTo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await page.waitForURL(new RegExp(escaped), { timeout: 30_000 });
 }
 
-/**
- * Verifies the current session is active via /api/auth/me.
- * Returns the parsed JSON body.
- */
+export async function loginAsAdmin(page: Page, returnTo = '/admin'): Promise<void> {
+  const { user } = getAdminCredentials();
+  await loginViaE2E(page, getBaseUrl(), user, returnTo);
+}
+
 export async function verifySession(
   request: APIRequestContext,
   baseUrl: string,

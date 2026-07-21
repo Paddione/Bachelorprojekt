@@ -10,11 +10,12 @@ export const ADMIN_PASS = isKorczewski
   : process.env.E2E_ADMIN_PASS;
 
 export async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/api/auth/login?returnTo=/admin/wissensquellen`);
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
-  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
-  await page.locator('#kc-login, input[type="submit"]').first().click();
+  const CRON_SECRET = process.env.CRON_SECRET ?? '';
+  if (!CRON_SECRET) throw new Error('CRON_SECRET unset — Wissensquellen login requires CRON_SECRET');
+  await page.goto(
+    `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/wissensquellen')}`,
+    { waitUntil: 'domcontentloaded' },
+  );
   await page.waitForURL(/\/admin\/wissensquellen/, { timeout: 60_000 });
 }
 

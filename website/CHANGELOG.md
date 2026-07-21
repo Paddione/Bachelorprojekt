@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.5...website-v1.197.6) (2026-07-21)
+
+
+### Bug Fixes
+
+* **e2e:** replace Keycloak login with Pocket ID e2e-login endpoint [T003163] ([#3068](https://github.com/Paddione/Bachelorprojekt/issues/3068)) ([0f41e99](https://github.com/Paddione/Bachelorprojekt/commit/0f41e99e315ff2c80eb59f781c3233d6c582e347))
+
 ## [1.197.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.4...website-v1.197.5) (2026-07-21)
 
 

@@ -21,3 +21,20 @@ gh-axi setup hooks               # Optionale Agent-Session-Hooks installieren
 ### Wann `gh` statt `gh-axi`
 
 `gh-axi` deckt die häufigen read/view-Flows ab. Für Operationen ohne `gh-axi`-Pendant (z. B. `gh pr create`, `gh pr merge`, `gh api`) direkt `gh` nutzen — die SessionStart-Hook-Ausgabe zeigt den verfügbaren Befehlssatz.
+
+### Achtung: `gh pr edit --title` — GraphQL-Deprecation [T002042, T002048]
+
+`gh pr edit --title` scheitert an einer Projects-Classic-GraphQL-Deprecation-Warning, die GitHub CLI
+unbehandelt durchreicht — der Title-Change wird **silent no-op**.
+
+**Stattdessen die REST API direkt nutzen:**
+```bash
+# Fehlanfällig (vermeiden):
+gh pr edit <N> --title "neuer Titel"
+
+# REST-API-Fallback (immer):
+gh api repos/{owner}/{repo}/pulls/<N> -X PATCH -f title="neuer Titel"
+```
+
+**Label-Edit (`--add-label`):** nicht betroffen (eigener GraphQL-Endpunkt ohne Deprecation), kann
+weiter `gh pr edit` nutzen.

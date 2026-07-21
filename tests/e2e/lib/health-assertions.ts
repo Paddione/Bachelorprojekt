@@ -110,8 +110,9 @@ export async function assertReachable(
 /**
  * Assert that an authenticated endpoint is reachable.
  *
- * First checks that E2E_ADMIN_PASS is set. Then delegates to assertReachable.
- * Use for any test that requires admin authentication.
+ * First checks that CRON_SECRET is set (used as token for e2e-login).
+ * Then delegates to assertReachable. Use for any test that requires admin
+ * authentication against the live site.
  */
 export async function assertAuthenticatedReachable(
   request: APIRequestContext,
@@ -119,11 +120,11 @@ export async function assertAuthenticatedReachable(
   opts: ReachableOpts = {},
   testInfo?: TestInfo
 ): Promise<APIResponse> {
-  const adminPass = process.env.E2E_ADMIN_PASS;
-  if (!adminPass) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
     skipOrFail(
       testInfo,
-      `E2E_ADMIN_PASS not set — cannot reach authenticated endpoint: ${url}`
+      `CRON_SECRET not set — cannot reach authenticated endpoint: ${url}`
     );
   }
   return assertReachable(request, url, opts, testInfo);

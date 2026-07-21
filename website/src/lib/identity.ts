@@ -17,7 +17,9 @@ async function piApi(method: string, path: string, body?: unknown): Promise<Resp
   const res = await fetch(`${PI_URL}${path}`, {
     method,
     headers: {
-      Authorization: `Bearer ${PI_API_KEY}`,
+      // Pocket ID v2.9.0 requires X-API-KEY, not Authorization: Bearer
+      // (verified live, T001355 / pocket-id-client-seed.yaml).
+      'X-API-KEY': PI_API_KEY,
       'Content-Type': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,

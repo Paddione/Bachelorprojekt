@@ -1,15 +1,11 @@
 <script lang="ts">
-  let {
-    terminalHost = 'terminal.localhost',
-  }: {
-    terminalHost?: string;
-  } = $props();
+  let { terminalHost = 'terminal.localhost' } = $props();
 </script>
 
 <div class="terminal-wrapper">
   <iframe
     title="Agentic Terminal"
-    src="https://{terminalHost}/"
+    src="{ `https://${terminalHost}/` }"
     sandbox="allow-scripts allow-same-origin"
     class="terminal-iframe"
   ></iframe>

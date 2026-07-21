@@ -6,25 +6,25 @@ vi.mock('./logger', () => ({
 }));
 
 vi.mock('pg', () => {
-  const store = new Map<string, any>();
+  const store = new Map<string, unknown>();
   function MockPool() {
     return {
-      query: vi.fn(async (sql: string, params?: any[]) => {
+      query: vi.fn(async (sql: string, params?: unknown[]) => {
         if (sql.includes('CREATE TABLE')) return { rows: [] };
         if (sql.includes('INSERT INTO web_sessions')) {
-          store.set(params![0], JSON.parse(params![1]));
+          store.set(String(params![0]), JSON.parse(String(params![1])));
           return { rows: [] };
         }
         if (sql.includes('SELECT data FROM web_sessions')) {
-          const data = store.get(params![0]);
+          const data = store.get(String(params![0]));
           return { rows: data ? [{ data }] : [] };
         }
         if (sql.includes('UPDATE web_sessions')) {
-          store.set(params![2], JSON.parse(params![0]));
+          store.set(String(params![2]), JSON.parse(String(params![0])));
           return { rows: [] };
         }
         if (sql.includes('DELETE FROM web_sessions')) {
-          store.delete(params![0]);
+          store.delete(String(params![0]));
           return { rows: [] };
         }
         return { rows: [] };

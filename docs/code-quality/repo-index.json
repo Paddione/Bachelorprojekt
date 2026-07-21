@@ -640,7 +640,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 43,
+      "file_count": 44,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -684,14 +684,15 @@
         "scripts/migrations/2026-07-08-coaching-is-test-data.sql",
         "scripts/migrations/2026-07-09-coaching-phase2-drop-legacy.sql",
         "scripts/migrations/2026-07-09-factory-model-slots.sql",
-        "scripts/migrations/2026-07-09-ticket-triage-local-qwen35.sql"
+        "scripts/migrations/2026-07-09-ticket-triage-local-qwen35.sql",
+        "scripts/migrations/2026-07-21-provider-config-bonsai-only.sql"
       ]
     },
     {
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1742,
+      "file_count": 1741,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -1819,7 +1820,6 @@
         "website/src/lib/tickets/reporter-link.ts",
         "website/src/lib/tickets/suggest-prompt.test.ts",
         "website/src/lib/tickets/suggest-prompt.ts",
-        "website/src/lib/tickets/suggest-providers.ts",
         "website/src/lib/tickets/tables/factory-control.ts",
         "website/src/lib/tickets/tables/factory-model-slots.ts",
         "website/src/lib/tickets/tables/systemtest-linkback.ts",
@@ -2905,7 +2905,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 524,
+      "file_count": 523,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3168,7 +3168,6 @@
         "scripts/factory/pipeline.mjs",
         "scripts/factory/prep-simple.sh",
         "scripts/factory/provider-config.sh",
-        "scripts/factory/provider-router.js",
         "scripts/factory/provider-router.test.mjs",
         "scripts/factory/provision.js",
         "scripts/factory/provision.test.mjs",

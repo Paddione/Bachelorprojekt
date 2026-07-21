@@ -12,15 +12,15 @@ test.describe('Integration Smoke Tests', () => {
 
   // ── Service Reachability ──────────────────────────────────────────────
 
-  test('@smoke Keycloak OIDC discovery is reachable', async ({ request }, testInfo) => {
+  test('@smoke Pocket ID OIDC discovery is reachable', async ({ request }, testInfo) => {
     const res = await assertReachable(
       request,
-      `https://auth.${DOMAIN}/realms/workspace/.well-known/openid-configuration`,
-      { label: 'Keycloak OIDC' },
+      `https://auth.${DOMAIN}/.well-known/openid-configuration`,
+      { label: 'Pocket ID OIDC' },
       testInfo
     );
     const body = await res.json();
-    expect(body.issuer).toContain(DOMAIN);
+    expect(body.issuer).toBe(`https://auth.${DOMAIN}`);
     expect(body.authorization_endpoint).toBeTruthy();
     expect(body.token_endpoint).toBeTruthy();
   });
@@ -91,16 +91,16 @@ test.describe('Integration Smoke Tests', () => {
 
   // ── SSO Login Flow ────────────────────────────────────────────────────
 
-  test('@smoke Keycloak login page is reachable', async ({ page }) => {
-    await page.goto(`https://auth.${DOMAIN}/realms/workspace/account/`);
-    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 60_000 });
+  test('@smoke Pocket ID login page is reachable', async ({ page }) => {
+    await page.goto(`https://auth.${DOMAIN}/login`);
+    await expect(page).toHaveURL(/auth\./, { timeout: 60_000 });
   });
 
-  test('@smoke Nextcloud shows Keycloak login button', async ({ page }) => {
+  test('@smoke Nextcloud shows OIDC login button', async ({ page }) => {
     await page.goto(`https://files.${DOMAIN}/login`);
-    const atKC = /realms\/workspace/.test(page.url());
-    if (atKC) {
-      return; // Auto-redirect to KC proves OIDC SSO is configured
+    const atPI = page.url().includes(`auth.${DOMAIN}`);
+    if (atPI) {
+      return; // Auto-redirect to Pocket ID proves OIDC SSO is configured
     }
     const oidcButton = page.locator('a[href*="oidc"], a[href*="keycloak"], .oidc-button, .alternative-logins a[href*="social"]');
     const fallback = page.getByRole('link', { name: /keycloak|anmelden|openid|sso/i });

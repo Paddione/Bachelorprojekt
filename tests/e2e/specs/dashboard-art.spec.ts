@@ -36,7 +36,7 @@ test('admin portal redirects unauthenticated users to login', async ({ page }) =
   // Without auth the website should either show a login page or redirect
   const url = page.url();
   const isRedirectedToAuth = url.includes('/anmelden') || url.includes('/login') ||
-    url.includes('auth.korczewski') || url.includes('realms/workspace') || url.includes('/portal');
+    url.includes('auth.korczewski') || url.includes('/portal');
   // Also accept: the admin page itself returns 200 but shows "Anmelden" nav link
   if (!isRedirectedToAuth) {
     await expect(page.getByRole('link', { name: /anmelden/i })).toBeVisible({ timeout: 60_000 });
@@ -121,7 +121,7 @@ test('mentolder context shows a populated art library', async ({ browser }) => {
   const page = await ctx.newPage();
   try {
     await page.goto(MENTOLDER_URL, { waitUntil: 'domcontentloaded' });
-    const redirected = page.url().includes('auth.') || page.url().includes('realms/workspace');
+    const redirected = page.url().includes('auth.');
     if (redirected) { test.skip(); return; }
     const artBtn = page.locator('button, a').filter({ hasText: /Art Library|Bibliothek/i }).first();
     const hasArtTab = await artBtn.isVisible({ timeout: 5_000 }).catch(() => false);

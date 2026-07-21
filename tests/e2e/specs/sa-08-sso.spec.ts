@@ -27,11 +27,11 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
     await context.close();
   });
 
-  test('T15: Keycloak Login via OIDC', async () => {
-    await page.goto(`${KC_URL}/realms/workspace/account/`);
+  test('T15: Pocket ID Login via OIDC', async () => {
+    await page.goto(`${KC_URL}/login`);
 
-    // Should be on Keycloak login page
-    await expect(page).toHaveURL(/.*realms\/workspace.*/, { timeout: 60_000 });
+    // Should be on Pocket ID login page
+    await expect(page).toHaveURL(/auth\./, { timeout: 60_000 });
 
     await page.locator('#username, input[name="username"]').fill(KC_USER);
     await page.locator('#password, input[name="password"]').fill(KC_PASS);
@@ -58,9 +58,9 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
 
     await page.goto(`${NC_URL}/login`);
 
-    // NC 33 may auto-redirect to Keycloak (OIDC auto-login configured).
-    // If already at KC after goto, skip the SSO button click — we're already in the SSO flow.
-    const atKC = /realms\/workspace/.test(page.url());
+    // NC 33 may auto-redirect to Pocket ID (OIDC auto-login configured).
+    // If already at Pocket ID after goto, skip the SSO button click — we're already in the SSO flow.
+    const atKC = page.url().includes(KC_URL);
     if (!atKC) {
       // NC shows its own login with an OIDC button — click it
       const ssoBtn = page.locator('a[href*="oidc"], button:has-text("Keycloak")').first()
@@ -69,19 +69,19 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
       await ssoBtn.click();
     }
 
-    // Check for KC redirect_uri mismatch error (redirect_uri not registered for this hostname)
+    // Check for Pocket ID redirect_uri mismatch error (redirect_uri not registered for this hostname)
     const bodyText = await page.locator('body').textContent().catch(() => '');
     if (/Invalid parameter|We are sorry|redirect_uri/i.test(bodyText || '')) {
-      test.skip(true, 'KC OIDC config mismatch: redirect_uri not registered for localhost in KC client');
+      test.skip(true, 'Pocket ID OIDC config mismatch: redirect_uri not registered');
       return;
     }
 
-    // Now at Keycloak login — may auto-login (session from T15) or show login form
+    // Now at Pocket ID login — may auto-login (session from T15) or show login form
     const kcLogin = page.locator('#kc-login, input[name="username"]');
     try {
       await page.waitForURL(/.*\/(files|apps\/dashboard).*/, { timeout: 8_000 });
     } catch {
-      // Session didn't carry — fill Keycloak login
+      // Session didn't carry — fill Pocket ID login
       if (await kcLogin.first().isVisible().catch(() => false)) {
         await page.locator('#username, input[name="username"]').fill(KC_USER);
         await page.locator('#password, input[name="password"]').fill(KC_PASS);

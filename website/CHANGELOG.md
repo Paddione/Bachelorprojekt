@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.195.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.195.1...website-v1.195.2) (2026-07-21)
+
+
+### Tests
+
+* add spec BATS coverage for billing & business workflows [T002011] ([#3018](https://github.com/Paddione/Bachelorprojekt/issues/3018)) ([20d9779](https://github.com/Paddione/Bachelorprojekt/commit/20d97797975b6f1a85b1b5ea8c00f5c8f9a76a81))
+* Spec-BATS coverage for Ticket System & Sessions (4 specs) [T002010] ([#3016](https://github.com/Paddione/Bachelorprojekt/issues/3016)) ([247478b](https://github.com/Paddione/Bachelorprojekt/commit/247478b55a49c5f792b6ba15141efdee24cdf880))
+
 ## [1.195.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.195.0...website-v1.195.1) (2026-07-21)
 
 

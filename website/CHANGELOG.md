@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.3...website-v1.197.4) (2026-07-21)
+
+
+### Bug Fixes
+
+* **website:** remove PortalSidekick from public layout + revert global.css inline [T002058] ([#3062](https://github.com/Paddione/Bachelorprojekt/issues/3062)) ([7975a96](https://github.com/Paddione/Bachelorprojekt/commit/7975a9662b6e2e6a169d82f1a09589f8f4dd2b42))
+
 ## [1.197.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.2...website-v1.197.3) (2026-07-21)
 
 

@@ -373,12 +373,19 @@ KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage
   [ "$status" -ne 0 ]
 }
 
-@test "T002057 perf: KoreHomepage.svelte lazy-loads GoalsDashboard (no static top-level import)" {
-  # static top-level import would pull GoalsDashboard.css into the homepage entry graph
-  run grep -Eq "^[[:space:]]*import GoalsDashboard from" "$KORE_HOMEPAGE"
+@test "T002059 move: KoreHomepage.svelte no longer renders GoalsDashboard (moved to /admin/repohealth)" {
+  # GoalsDashboard moved to the admin panel; the public Kore homepage must not
+  # import or render it (its CSS was render-blocking and leaked onto mentolder).
+  run grep -q "GoalsDashboard.svelte" "$KORE_HOMEPAGE"
   [ "$status" -ne 0 ]
-  # must be loaded dynamically instead
-  run grep -q "import('../GoalsDashboard.svelte')" "$KORE_HOMEPAGE"
+  run grep -q "<GoalsDashboard" "$KORE_HOMEPAGE"
+  [ "$status" -ne 0 ]
+}
+
+@test "T002059 move: AdminSidebarNav has a /admin/repohealth entry labelled Repo Health" {
+  run grep -Eq "href:[[:space:]]*'/admin/repohealth'" "$SIDEBAR_NAV"
+  [ "$status" -eq 0 ]
+  run grep -Eq "label:[[:space:]]*'Repo Health'" "$SIDEBAR_NAV"
   [ "$status" -eq 0 ]
 }
 

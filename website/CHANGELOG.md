@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.0...website-v1.197.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* **website:** drop redundant brand-link aria-label [T002053] ([#3046](https://github.com/Paddione/Bachelorprojekt/issues/3046)) ([4c1d9f2](https://github.com/Paddione/Bachelorprojekt/commit/4c1d9f2cfa6b8fc51c3837b4ba0acb3738142190))
+
 ## [1.197.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.196.4...website-v1.197.0) (2026-07-21)
 
 

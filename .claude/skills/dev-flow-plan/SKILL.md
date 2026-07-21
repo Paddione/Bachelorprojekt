@@ -165,21 +165,22 @@ Der Implementierungsplan wird **ausschließlich** in `openspec/changes/<slug>/ta
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
 ### Phase B: Worktree anlegen + Artefakte übertragen
 #### Schritt B.1: Worktree anlegen
+
+> **Ticket-vor-Branch-Check (T001917, T002050):** Prüfe vor der Worktree-Anlage, ob bereits ein Ticket existiert oder in Schritt 4.5 ein neues angelegt wird. Ist `TICKET_EXT_ID` bekannt, benenne den Branch **immer** mit Ticket-ID-Suffix (z.B. `feature/<slug>-t002050` statt `feature/<slug>`). Falls noch kein Ticket existiert, erstelle das Ticket VOR der Worktree-Anlage (siehe Schritt 4.5), um dessen `TICKET_EXT_ID` direkt in den Branch-Namen aufzunehmen. Sonst schlägt `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss nachträglich umbenannt werden.
+
 Erstelle den Worktree NACH dem Propose (niemals `.claude/worktrees/` verwenden!):
 ```bash
 # git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
-bash scripts/worktree-create.sh feature/<slug> .worktrees/<slug>
+bash scripts/worktree-create.sh feature/<slug>-t<id> .worktrees/<slug>
 
 # Doppelarbeit verhindern: Branch claimen (Session-Koordination [T000510]).
-bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
+bash scripts/agent-lock.sh claim branch "feature/<slug>-t<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
   || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet — koordinieren oder anderen slug wählen."; exit 1; }
 
-# Ticket-Claim (Session-Koordination [T000510]) — nur falls die Ticket-ID schon bekannt
-# ist (z. B. von feature-intake übergeben). Ist noch keine Ticket-ID bekannt, holt
-# Schritt 4.5 den Claim nach, sobald das Ticket dort angelegt/wiederverwendet wird. [T001386]
+# Ticket-Claim (Session-Koordination [T000510])
 if [[ -n "${TICKET_EXT_ID:-}" ]]; then
   bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
-    --branch "feature/<slug>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
+    --branch "feature/<slug>-t<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
     || { echo "🛑 Ticket wird bereits von einer anderen Session bearbeitet — koordinieren."; exit 1; }
 fi
 ```

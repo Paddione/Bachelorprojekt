@@ -70,3 +70,11 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
   [ "$status" -eq 0 ]
   [ "$output" = "freshness" ]
 }
+
+@test "FA-SF-33: harmless log with word manifest does not classify as manifest" {
+  printf 'Checking route-manifest.json... ok\nAll checks passed cleanly\n' > "$TMPLOG"
+  run _cf
+  [ "$status" -eq 0 ]
+  [ "$output" != "manifest" ]
+}
+

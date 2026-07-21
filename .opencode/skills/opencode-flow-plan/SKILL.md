@@ -66,11 +66,15 @@ Validiere lokal mit `jq`. Bei nicht erreichbaren Quellen: `risks[]`-Eintrag setz
 
 Wenn ein Design-Handoff existiert, lege Assets in `openspec/changes/<slug>/assets/` im main-Checkout an.
 
-#### Schritt A.3: Brainstorming
+#### Schritt A.3: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
 
-Starte strukturiertes Brainstorming mit dem User. Stelle Fragen als Plain-Text-Fragen im Chat (keine Tool-Fragen). Tracke Fortschritt mit einer Plain-Text-Checkliste im Reply. Verwende `lavish` (via `bash scripts/lavish-axi.sh`) für visuelle Boards.
+Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings.
 
-#### Schritt A.4: OpenSpec-Change anlegen — AUF MAIN
+#### Schritt A.4: Brainstorming ⚡ IMMER
+
+Starte strukturiertes Brainstorming mit dem User. Nutze das `lavish`-Board aus A.3 für visuelle Dokumentation und strukturiertes Feedback. Tracke Fortschritt mit einer Plain-Text-Checkliste. Verwende einen read-only Subagenten (`delegate(prompt, agent)`) für Code-Exploration (Architektur/Code-Pfade).
+
+#### Schritt A.5: OpenSpec-Change anlegen — AUF MAIN
 
 ```bash
 # upstream OpenSpec CLI (preferred):
@@ -81,7 +85,7 @@ Starte strukturiertes Brainstorming mit dem User. Stelle Fragen als Plain-Text-F
 
 Übertrage Brainstorming-Output nach `openspec/changes/<slug>/proposal.md`. Der Implementierungsplan kommt in `openspec/changes/<slug>/tasks.md`.
 
-#### Schritt A.5: Ticket anlegen — VOR Plan-Schreibung ⚡
+#### Schritt A.6: Ticket anlegen — VOR Plan-Schreibung ⚡
 
 Erstelle das Ticket **jetzt** (nach dem Propose, vor dem Plan-Schreiben), damit die
 Ticket-ID für den Rest des Flows verfügbar ist und `stage_plan` sofort nach der

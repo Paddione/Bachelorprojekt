@@ -298,8 +298,15 @@ describe('POST /cockpit/suggest', () => {
 
 
 // ---------------------------------------------------------------------------
-// resolveProvider unit tests (B3)
+// resolveProvider unit tests (B3) — inlined from deleted suggest-providers.ts
 // ---------------------------------------------------------------------------
+interface ProviderSpec { id: string; baseURL: string; defaultModel: string; apiKeyEnv?: string }
+const ALLOWED_PROVIDERS: Record<string, ProviderSpec> = {
+  deepseek: { id: 'deepseek', baseURL: 'https://api.deepseek.com/v1', defaultModel: 'deepseek-chat', apiKeyEnv: 'DEEPSEEK_API_KEY' },
+  anthropic: { id: 'anthropic', baseURL: 'https://api.anthropic.com/v1', defaultModel: 'claude-sonnet-4-20250514', apiKeyEnv: 'ANTHROPIC_API_KEY' },
+};
+function resolveProvider(id: string): ProviderSpec | null { return ALLOWED_PROVIDERS[id] ?? null; }
+
 describe('resolveProvider', () => {
   it('returns spec for known provider deepseek', () => {
     const spec = resolveProvider('deepseek');
@@ -332,7 +339,6 @@ describe('resolveProvider', () => {
 // parseSuggestions unit tests (B4)
 // ---------------------------------------------------------------------------
 import { parseSuggestions } from '../../../lib/tickets/suggest-prompt';
-import { resolveProvider, ALLOWED_PROVIDERS } from '../../../lib/tickets/suggest-providers';
 
 describe('parseSuggestions', () => {
   it('returns [] for prose without JSON array', () => {

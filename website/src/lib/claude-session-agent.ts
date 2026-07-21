@@ -7,6 +7,7 @@ import {
   searchCoachingKnowledgeTool,
   draftSessionReportTool,
 } from './session-tools';
+import { getProviderByName } from './provider-config';
 
 const MAX_TOOL_ROUNDS = 3;
 
@@ -15,11 +16,13 @@ const MAX_TOOL_ROUNDS = 3;
 export const DEFAULT_CLAUDE_SESSION_MODEL = 'claude-haiku-4-5-20251001';
 
 export class ClaudeSessionAgent implements SessionAgent {
-  private buildClient(kiConfig: GenerateOptions['kiConfig']): Anthropic {
-    const apiKey = kiConfig.apiKey ?? process.env.ANTHROPIC_API_KEY;
+  private async buildClient(kiConfig: GenerateOptions['kiConfig']): Promise<Anthropic> {
+    const cfg = await getProviderByName(kiConfig.provider);
+    const apiKey = kiConfig.apiKey ?? cfg.apiKey;
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY nicht konfiguriert');
     const opts: ConstructorParameters<typeof Anthropic>[0] = { apiKey };
-    if (kiConfig.apiEndpoint) opts.baseURL = kiConfig.apiEndpoint;
+    const baseURL = kiConfig.apiEndpoint ?? cfg.baseUrl;
+    if (baseURL) opts.baseURL = baseURL;
     return new Anthropic(opts);
   }
 
@@ -45,7 +48,7 @@ export class ClaudeSessionAgent implements SessionAgent {
 
   async generate(options: GenerateOptions): Promise<GenerateResult> {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt, sessionId } = options;
-    const client = this.buildClient(kiConfig);
+    const client = await this.buildClient(kiConfig);
     const model = kiConfig.modelName ?? DEFAULT_CLAUDE_SESSION_MODEL;
     const startMs = Date.now();
 
@@ -96,7 +99,7 @@ export class ClaudeSessionAgent implements SessionAgent {
 
   async *stream(options: GenerateOptions): AsyncIterable<string> {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt } = options;
-    const client = this.buildClient(kiConfig);
+    const client = await this.buildClient(kiConfig);
     const model = kiConfig.modelName ?? DEFAULT_CLAUDE_SESSION_MODEL;
 
     const messages: MessageParam[] = [

@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { GenerateOptions } from './session-agent';
 import type { KiConfig } from './coaching-ki-config-db';
 
+const { getProviderByNameMock } = vi.hoisted(() => ({
+  getProviderByNameMock: vi.fn(),
+}));
+vi.mock('./provider-config', () => ({
+  getProviderByName: (...a: unknown[]) => getProviderByNameMock(...a),
+}));
+
 const mockKiConfig: KiConfig = {
   id: 1, brand: 'mentolder', provider: 'claude', isActive: true,
   modelName: 'claude-haiku-4-5-20251001', displayName: 'Claude Haiku',
@@ -26,9 +33,15 @@ const baseOpts = (): GenerateOptions => ({
 });
 
 describe('ClaudeSessionAgent', () => {
-  beforeEach(() => { vi.resetModules(); vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.resetModules(); vi.clearAllMocks();
+    getProviderByNameMock.mockReset();
+  });
 
   it('returns text response when Claude responds with text directly', async () => {
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'claude', modelId: 'claude-haiku-4-5-20251001', baseUrl: null, apiKey: 'test-key',
+    });
     vi.doMock('@anthropic-ai/sdk', () => ({
       default: vi.fn().mockImplementation(function () {
         return {
@@ -48,16 +61,19 @@ describe('ClaudeSessionAgent', () => {
     expect(result.provider).toBe('claude');
   });
 
-  it('throws if ANTHROPIC_API_KEY is missing', async () => {
+  it('throws if provider is disabled in DB and no apiKey override', async () => {
+    getProviderByNameMock.mockRejectedValue(new Error("Provider 'claude' is not enabled in provider_config"));
     vi.doMock('@anthropic-ai/sdk', () => ({ default: vi.fn().mockImplementation(function () { return {}; }) }));
     const { ClaudeSessionAgent } = await import('./claude-session-agent');
     const agent = new ClaudeSessionAgent();
     const opts = { ...baseOpts(), kiConfig: { ...mockKiConfig, apiKey: null } };
-    delete process.env.ANTHROPIC_API_KEY;
-    await expect(agent.generate(opts)).rejects.toThrow('ANTHROPIC_API_KEY');
+    await expect(agent.generate(opts)).rejects.toThrow('not enabled');
   });
 
   it('stops tool loop after 3 rounds and returns last text', async () => {
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'claude', modelId: 'claude-haiku-4-5-20251001', baseUrl: null, apiKey: 'test-key',
+    });
     let callCount = 0;
     const mockCreate = vi.fn().mockImplementation(() => {
       callCount++;
@@ -91,6 +107,9 @@ describe('ClaudeSessionAgent', () => {
   });
 
   it('stops at MAX_TOOL_ROUNDS and returns empty response if never text', async () => {
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'claude', modelId: 'claude-haiku-4-5-20251001', baseUrl: null, apiKey: 'test-key',
+    });
     vi.doMock('@anthropic-ai/sdk', () => ({
       default: vi.fn().mockImplementation(function () {
         return {

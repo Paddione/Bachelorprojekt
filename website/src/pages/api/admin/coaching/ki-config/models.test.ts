@@ -10,6 +10,12 @@ vi.mock('../../../../../lib/coaching-ki-config-db', () => ({
 vi.mock('../../../../../lib/website-db', () => ({
   pool: {},
 }));
+const { getProviderByNameMock } = vi.hoisted(() => ({
+  getProviderByNameMock: vi.fn(),
+}));
+vi.mock('../../../../../lib/provider-config', () => ({
+  getProviderByName: (...a: unknown[]) => getProviderByNameMock(...a),
+}));
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { getKiProviderById } from '../../../../../lib/coaching-ki-config-db';
 import type { KiConfig } from '../../../../../lib/coaching-ki-config-db';
@@ -72,6 +78,9 @@ describe('GET /api/admin/coaching/ki-config/models', () => {
     vi.mocked(getSession).mockResolvedValue(adminSession);
     vi.mocked(isAdmin).mockReturnValue(true);
     vi.mocked(getKiProviderById).mockResolvedValue(mkConfig());
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'local-lmstudio', modelId: 'qwen2.5-7b', baseUrl: 'http://localhost:1234/v1', apiKey: 'not-required',
+    });
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: vi.fn().mockResolvedValue({ data: [{ id: 'qwen2.5-7b' }, { id: 'mistral-7b' }] }),

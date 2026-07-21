@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
+import { getProviderByName } from './provider-config';
 
 const CLASSIFIER_VERSION = 'v1-2026-05-10';
 const DEFAULT_MODEL = process.env.COACHING_CLASSIFIER_MODEL || 'claude-haiku-4-5-20251001';
@@ -70,12 +71,24 @@ interface ClassifyOpts {
 }
 
 export async function classifyChunk(chunkText: string, opts: ClassifyOpts = {}): Promise<ClassifierResult> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  let apiKey: string | undefined;
+  let resolvedModel: string | undefined;
+
+  if (!opts.client) {
+    try {
+      const cfg = await getProviderByName('anthropic');
+      apiKey = cfg.apiKey || undefined;
+      resolvedModel = cfg.modelId;
+    } catch {
+      // fallback: env var for backwards compat
+      apiKey = process.env.ANTHROPIC_API_KEY;
+    }
+  }
   if (!opts.client && !apiKey) {
     throw new Error('ANTHROPIC_API_KEY missing — set it in environments/.secrets/<env>.yaml or pass an injected client');
   }
   const client = opts.client ?? new Anthropic({ apiKey });
-  const model = opts.model ?? DEFAULT_MODEL;
+  const model = opts.model ?? resolvedModel ?? DEFAULT_MODEL;
   const maxTokens = opts.maxTokens ?? 600;
 
   const userMsg = `Chunk:\n"""\n${chunkText.slice(0, 6000)}\n"""`;

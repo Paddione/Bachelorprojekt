@@ -17,6 +17,13 @@ const FALLBACK: Omit<ProviderChoice, 'apiKey'> = {
   contextWindow: null, contextBudget: null,
 };
 
+export class DisabledProviderError extends Error {
+  constructor(providerName: string) {
+    super(`Provider '${providerName}' is not enabled in provider_config`);
+    this.name = 'DisabledProviderError';
+  }
+}
+
 export function apiKeyForProvider(provider: string): string {
   if (provider === 'deepseek') return process.env.DEEPSEEK_API_KEY || '';
   if (provider === 'anthropic') return process.env.ANTHROPIC_API_KEY || '';
@@ -58,6 +65,25 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
     logger.error({ err }, '[provider-config] DB lookup failed, falling back to anthropic');
   }
   return { ...FALLBACK, apiKey: process.env.ANTHROPIC_API_KEY || '' };
+}
+
+export async function getProviderByName(providerName: string, _brand?: string): Promise<ProviderChoice> {
+  const { rows } = await pool.query(
+    `SELECT provider, model_id, base_url, api_key, context_window, context_budget
+       FROM tickets.provider_config
+      WHERE provider = $1 AND enabled = true
+      LIMIT 1`,
+    [providerName],
+  );
+  if (!rows.length) {
+    throw new DisabledProviderError(providerName);
+  }
+  const { provider, model_id, base_url, api_key, context_window, context_budget } = rows[0];
+  const apiKey = (typeof api_key === 'string' && api_key) ? api_key : apiKeyForProvider(provider);
+  return {
+    provider, modelId: model_id, baseUrl: base_url ?? null, apiKey,
+    contextWindow: context_window ?? null, contextBudget: context_budget ?? null,
+  };
 }
 
 /**

@@ -17,7 +17,7 @@ set -euo pipefail
 FLEET_NODE_IPS=("204.168.244.104" "37.27.251.38" "62.238.23.79")
 # A-record prefix allowlist. "" = root @, "*" = wildcard. NO mail prefixes, ever.
 ROOTLIKE_PREFIXES=("" "*")
-SERVICE_PREFIXES=("livekit" "stream" "turn")
+SERVICE_PREFIXES=("stream" "turn")
 
 IPV64_API="${IPV64_API:-https://ipv64.net/api}"
 STATE_DIR="${FLEET_DNS_STATE_DIR:-/tmp}"
@@ -29,20 +29,16 @@ require() { [ -n "${!1:-}" ] || { echo "ERROR: $1 not set" >&2; exit 1; }; }
 # apply_record() maps "@" back to the empty praefix the ipv64 API expects.
 build_change_set() {
   require PROD_DOMAIN
-  require LIVEKIT_PIN_IP
   local p ip label
   for p in "${ROOTLIKE_PREFIXES[@]}"; do
     label="${p:-@}"
     for ip in "${FLEET_NODE_IPS[@]}"; do echo "A|${label}|${ip}"; done
   done
-  # turn (coturn/Janus) and livekit/stream may live on DIFFERENT fleet nodes
-  # (e.g. korczewski: livekit→pk-6, shared coturn/Janus→pk-4). Pin turn to
-  # TURN_PUBLIC_IP when set; fall back to LIVEKIT_PIN_IP for the co-located case.
   for p in "${SERVICE_PREFIXES[@]}"; do
     if [ "$p" = "turn" ]; then
-      echo "A|${p}|${TURN_PUBLIC_IP:-$LIVEKIT_PIN_IP}"
+      echo "A|${p}|${TURN_PUBLIC_IP:-204.168.244.104}"
     else
-      echo "A|${p}|${LIVEKIT_PIN_IP}"
+      echo "A|${p}|${STREAM_PIN_IP:-204.168.244.104}"
     fi
   done
 }
@@ -105,14 +101,14 @@ capture_rollback_state() {
 cmd_plan() {
   # Validate in the main shell: build_change_set's require runs inside the
   # process-substitution subshell below, whose exit can't abort cmd_plan.
-  require PROD_DOMAIN; require LIVEKIT_PIN_IP
+  require PROD_DOMAIN
   echo "DNS cutover plan for ${PROD_DOMAIN:-<unset>} (DRY-RUN — no API calls):"
   local line
   while IFS= read -r line; do echo "CHANGE: ${line}"; done < <(build_change_set)
 }
 
 cmd_cutover() {
-  require PROD_DOMAIN; require LIVEKIT_PIN_IP; require IPV64_API_KEY
+  require PROD_DOMAIN; require IPV64_API_KEY
   capture_rollback_state
   local type label ip seen=" "
   while IFS='|' read -r type label ip; do

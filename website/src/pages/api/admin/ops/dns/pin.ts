@@ -65,7 +65,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const results: string[] = [];
-  for (const sub of ['livekit', 'stream']) {
+  for (const sub of ['stream']) {
     const fqdn = `${sub}.${cfg.domain}`;
     const resp = await ipv64Get(`/update.php?key=${encodeURIComponent(hash)}&domain=${encodeURIComponent(fqdn)}&ip=${encodeURIComponent(cfg.pinIp)}`);
     results.push(`${fqdn} → ${cfg.pinIp}: ${resp}`);

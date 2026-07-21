@@ -103,15 +103,6 @@ tasks:
     desc: "Rebuild + redeploy brett on BOTH prod clusters"
     cmds:
       - task: brett:deploy:all-prods
-
-  feature:livekit:
-    desc: "Re-pin livekit/stream → LiveKit node and turn → TURN node on BOTH prod clusters"
-    cmds:
-      - task: livekit:dns-pin
-        vars: { ENV: "mentolder", APPLY: "true" }
-      - task: livekit:dns-pin
-        vars: { ENV: "korczewski", APPLY: "true" }
-
   feature:promote:
     desc: "Promote a service dev → prod with Playwright smoke gate (SERVICE=website|brett|docs TARGET=mentolder|korczewski|both; prompts if unset)"
     interactive: true
@@ -2832,13 +2823,7 @@ tasks:
           else
             echo "⏭  SKIP_TALK_SETUP=true — deferring coturn:sync-secret + talk-setup (fleet:shared-services + fleet:talk-setup:brand handle it)"
           fi
-          # Re-pin LiveKit DNS after every prod deploy so the livekit/stream
-          # subdomains always resolve to the livekit node (nodeAffinity pin).
-          # Without pinning, round-robin DNS routes ~66 % of signalling WS
-          # connections through cross-node Traefik, causing NegotiationError.
-          if [ "{{.ENV}}" = "mentolder" ]; then
-            task livekit:dns-pin ENV="{{.ENV}}" APPLY=true || true
-          fi
+
           bash scripts/post-deploy-watch.sh "{{.ENV}}" || true
         fi
       - 'echo "✓ Workspace deployed to {{.ENV}}"'
@@ -3936,139 +3921,7 @@ tasks:
 
 
 
-  # ─────────────────────────────────────────────
-  # LiveKit (Livestream — Browser-Publishing + OBS RTMP)
-  # ─────────────────────────────────────────────
-  livekit:status:
-    desc: "Show LiveKit pods, services, ingress, and recordings (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX_FLAG=""
-        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        echo "=== Pods ===" && kubectl $CTX_FLAG -n "$NS" get pods \
-          -l 'app in (livekit-server,livekit-ingress,livekit-egress,livekit-redis)' -o wide
-        echo "=== Service / Ingress ===" && kubectl $CTX_FLAG -n "$NS" get svc,ingress,ingressroute,middleware \
-          -l 'app in (livekit-server,livekit-ingress)' 2>/dev/null
-        kubectl $CTX_FLAG -n "$NS" get svc livekit-server livekit-ingress-rtmp 2>/dev/null || true
-        kubectl $CTX_FLAG -n "$NS" get ingressroute/livekit-server middleware/livekit-cors 2>/dev/null || true
-        echo "=== Recordings PVC ===" && kubectl $CTX_FLAG -n "$NS" get pvc livekit-recordings-pvc 2>/dev/null || true
-        echo "=== Recordings count ==="
-        kubectl $CTX_FLAG -n "$NS" exec deployment/livekit-egress -- sh -c 'ls /recordings/ 2>/dev/null | wc -l' 2>/dev/null \
-          || echo "(egress pod not ready)"
 
-  livekit:logs:
-    desc: "Tail LiveKit logs (ENV=dev|mentolder|korczewski; CLI_ARGS = server|ingress|egress|redis, default: server)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-      COMP: '{{.CLI_ARGS | default "server"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX_FLAG=""
-        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        case "{{.COMP}}" in
-          server|ingress|egress|redis) DEPLOY="livekit-{{.COMP}}" ;;
-          *) echo "Unknown component: {{.COMP}} (use server|ingress|egress|redis)" >&2; exit 1 ;;
-        esac
-        kubectl $CTX_FLAG -n "$NS" logs deployment/$DEPLOY --tail=200 -f
-
-  livekit:recordings:
-    desc: "List recorded streams in the egress PVC (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX_FLAG=""
-        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        kubectl $CTX_FLAG -n "$NS" exec deployment/livekit-egress -- ls -lh /recordings/
-
-  livekit:end-stream:
-    desc: "Forcibly end the active livestream — restarts livekit-server, which closes the room and disconnects all publishers (ENV=dev|mentolder|korczewski)"
-    vars:
-      ENV: '{{.ENV | default "dev"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        CTX_FLAG=""
-        [ "{{.ENV}}" != "dev" ] && CTX_FLAG="--context ${ENV_CONTEXT}"
-        NS="${WORKSPACE_NAMESPACE:-workspace}"
-        # Preferred path is POST /api/stream/end via the Admin UI (deletes
-        # ingresses + removes publishers without dropping subscribers). This
-        # task is the in-cluster fallback when the website is unreachable —
-        # restarting livekit-server closes every room cleanly. Re-establishes
-        # in <30s via Redis-persisted room state.
-        echo "Restarting livekit-server — all active sessions will be terminated."
-        kubectl $CTX_FLAG -n "$NS" rollout restart deployment/livekit-server
-        kubectl $CTX_FLAG -n "$NS" rollout status deployment/livekit-server --timeout=120s
-
-  livekit:dns-pin:
-    desc: "Print the ipv64 API calls that pin livekit/stream → LIVEKIT_PIN_IP and turn → TURN_PUBLIC_IP (run with APPLY=true to actually invoke). ENV=dev|mentolder|korczewski. PIN_IP overrides livekit/stream only; turn always tracks TURN_PUBLIC_IP."
-    vars:
-      ENV: '{{.ENV | default "mentolder"}}'
-      PIN_IP: '{{.PIN_IP | default ""}}'
-      APPLY: '{{.APPLY | default "false"}}'
-    cmds:
-      - |
-        source scripts/env-resolve.sh "{{.ENV}}"
-        SECRETS="environments/.secrets/{{.ENV}}.yaml"
-        [ -f "$SECRETS" ] || { echo "Plaintext secrets not found at $SECRETS — cannot read IPV64_UPDATE_HASH" >&2; exit 1; }
-        KEY=$(awk -F': ' '/^IPV64_UPDATE_HASH:/ {gsub(/"/,"",$2); print $2}' "$SECRETS")
-        [ -n "$KEY" ] || { echo "IPV64_UPDATE_HASH missing from $SECRETS (this is the domain_update_hash from ipv64.net, not the account API key)" >&2; exit 1; }
-        LK_IP="{{.PIN_IP}}"
-        LK_IP="${LK_IP:-${LIVEKIT_PIN_IP:-204.168.244.104}}"
-        TURN_IP="${TURN_PUBLIC_IP:-}"
-        echo "Pinning livekit.${PROD_DOMAIN} and stream.${PROD_DOMAIN} → ${LK_IP}"
-        if [ -n "$TURN_IP" ]; then
-          echo "Pinning turn.${PROD_DOMAIN} → ${TURN_IP}"
-        else
-          echo "Skipping turn.${PROD_DOMAIN} (TURN_PUBLIC_IP unset for ENV={{.ENV}})"
-        fi
-        echo "(set APPLY=true to actually run the calls; otherwise this just prints them)"
-        pin_one() {
-          local sub="$1" ip="$2"
-          [ -z "$ip" ] && return 0
-          local url="https://ipv64.net/update.php?key=$KEY&domain=${sub}.${PROD_DOMAIN}&ip=${ip}"
-          local redacted="${url/key=$KEY/key=***REDACTED***}"
-          echo "  curl -sS \"$redacted\""
-          if [ "{{.APPLY}}" = "true" ]; then
-            curl -sS "$url"
-            echo
-          fi
-        }
-        pin_one livekit "$LK_IP"
-        pin_one stream  "$LK_IP"
-        pin_one turn    "$TURN_IP"
-        if [ "{{.APPLY}}" != "true" ]; then
-          echo ""
-          echo "Re-run with APPLY=true to invoke."
-        fi
-
-  livekit:firewall-open:
-    desc: "Open LiveKit ports (7880/tcp, 7881/tcp, 50000-60000/udp, 30000-40000/udp) on a Hetzner node via SSH (NODE=<ip>)"
-    vars:
-      NODE: '{{.NODE}}'
-      SSH_KEY: '{{.SSH_KEY | default "$HOME/.ssh/id_ed25519_hetzner"}}'
-    preconditions:
-      - sh: '[ -n "{{.NODE}}" ]'
-        msg: "Usage: task livekit:firewall-open NODE=<ip>"
-      - sh: '[ -f "{{.SSH_KEY}}" ]'
-        msg: "SSH key not found at {{.SSH_KEY}}"
-    cmds:
-      - |
-        ssh -i {{.SSH_KEY}} -o StrictHostKeyChecking=accept-new root@{{.NODE}} '
-          ufw allow 7880/tcp comment "LiveKit signaling (HTTP/WS)" &&
-          ufw allow 7881/tcp comment "LiveKit RTC TCP fallback" &&
-          ufw allow 50000:60000/udp comment "LiveKit RTC media range" &&
-          ufw allow 30000:40000/udp comment "LiveKit TURN relay range" &&
-          ufw status numbered | grep -E "7880|7881|50000|30000"
-        '
 
   # ─────────────────────────────────────────────
   # CoreDNS resilience — replicas:2 + topology spread (T000371)

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-21T22:03:47.391Z",
+  "generatedAt": "2026-07-21T23:09:11.134Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -3277,14 +3277,6 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/stream/status.ts"
-    },
-    {
-      "path": "/api/stream/token",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/stream/token.ts"
     },
     {
       "path": "/api/stripe/checkout",

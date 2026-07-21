@@ -80,10 +80,10 @@ test.describe('Integration Smoke Tests', () => {
 
   test('@smoke Mailpit responds', async ({ request }, testInfo) => {
     // 200 = accessible; 302/401 = behind oauth2-proxy (alive)
-    // 404/500 were accepted before but are real errors — removed (T000480)
+    // HTTP returns 404 (Traefik has no HTTP router for mail.*), HTTPS returns 401
     await assertReachable(
       request,
-      `http://mail.${DOMAIN}`,
+      `https://mail.${DOMAIN}`,
       { acceptableStatuses: [200, 302, 401], label: 'Mailpit' },
       testInfo
     );
@@ -144,22 +144,12 @@ test.describe('Integration Smoke Tests', () => {
 
   test('@smoke Document signing API is reachable', async ({ request }, testInfo) => {
     // The signing system is built into the website (PR #1485, T000557).
-    // /api/signing/confirm must reject unauthenticated requests — 401/403/302.
+    // /api/signing/confirm is POST-only — GET returns 404 from Astro.
+    // POST with empty body returns 400 (Invalid JSON) or 401 (unauthorized).
     await assertReachable(
       request,
       `https://web.${DOMAIN}/api/signing/confirm`,
-      { acceptableStatuses: [401, 403, 302, 405], label: 'Signing API' },
+      { method: 'POST', acceptableStatuses: [400, 401, 403, 405], label: 'Signing API' },
       testInfo
     );
-  });
-
-  test('@smoke LiveKit server ingress is reachable', async ({ request }, testInfo) => {
-    // LiveKit returns 404/426 on HTTP root — both confirm the ingress is alive
-    await assertReachable(
-      request,
-      `https://livekit.${DOMAIN}/`,
-      { acceptableStatuses: [200, 404, 426], timeout: 10_000, label: 'LiveKit' },
-      testInfo
-    );
-  });
 });

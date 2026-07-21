@@ -1,10 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('livekit-server-sdk', () => ({
-  RoomServiceClient: class {
-    listParticipants = vi.fn().mockResolvedValue([]);
-  },
-}));
+
 
 const listActiveCallRooms = vi.fn();
 const listAllMeetings = vi.fn();

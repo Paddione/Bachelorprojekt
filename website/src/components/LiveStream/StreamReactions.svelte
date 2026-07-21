@@ -1,24 +1,11 @@
 <!-- website/src/components/LiveStream/StreamReactions.svelte -->
 <script lang="ts">
-  import type { Room } from 'livekit-client';
-  import { RoomEvent } from 'livekit-client';
-
-  let { room }: { room: Room } = $props();
+  let { room = null }: { room?: any } = $props();
 
   type FloatingEmoji = { id: string; emoji: string; x: number };
   let floating = $state<FloatingEmoji[]>([]);
 
   const EMOJIS = ['👍', '❤️', '🔥', '😂', '👏'];
-
-  $effect(() => {
-    const handler = (payload: Uint8Array) => {
-      const msg = JSON.parse(new TextDecoder().decode(payload));
-      if (msg.type !== 'reaction') return;
-      addFloat(msg.emoji);
-    };
-    room.on(RoomEvent.DataReceived, handler);
-    return () => { room.off(RoomEvent.DataReceived, handler); };
-  });
 
   function addFloat(emoji: string) {
     const id = crypto.randomUUID();
@@ -27,8 +14,6 @@
   }
 
   function react(emoji: string) {
-    const payload = new TextEncoder().encode(JSON.stringify({ type: 'reaction', emoji }));
-    room.localParticipant.publishData(payload, { reliable: false });
     addFloat(emoji);
   }
 </script>

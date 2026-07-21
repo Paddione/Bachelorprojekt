@@ -41,22 +41,9 @@ export function deriveLiveState(data: LiveCockpitData): LiveState {
 
 import { listActiveCallRooms } from './nextcloud-talk-db';
 import { listAllMeetings, pool } from './website-db';
-import { RoomServiceClient } from 'livekit-server-sdk';
-
-const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY || 'devlivekit';
-const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET || 'devlivekitsecret1234567890abcdef';
-const LIVEKIT_URL = process.env.LIVEKIT_SERVICE_URL || `http://${process.env.LIVEKIT_DOMAIN || 'livekit.localhost'}`;
-const ROOM_NAME = 'main-stream';
 
 async function fetchStreamStatus(): Promise<StreamLiveStatus> {
-  const client = new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
-  try {
-    const participants = await client.listParticipants(ROOM_NAME);
-    const live = participants.some((p) => (p.tracks ?? []).length > 0);
-    return { live, recording: false, recordingStartedAt: null };
-  } catch {
-    return { live: false, recording: false, recordingStartedAt: null };
-  }
+  return { live: false, recording: false, recordingStartedAt: null };
 }
 
 async function fetchActivePoll(): Promise<ActivePoll | null> {

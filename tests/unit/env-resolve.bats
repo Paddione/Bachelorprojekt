@@ -155,9 +155,6 @@ env_vars:
   - name: BRETT_DOMAIN
     required: true
     default_dev: "brett.localhost"
-  - name: LIVEKIT_DOMAIN
-    required: true
-    default_dev: "livekit.localhost"
   - name: STREAM_DOMAIN
     required: true
     default_dev: "stream.localhost"
@@ -228,7 +225,6 @@ env_vars:
   TURN_PUBLIC_IP: "127.0.0.1"
   TURN_NODE: pk-hetzner-4
   BRETT_DOMAIN: brett.staging.example.test
-  LIVEKIT_DOMAIN: livekit.staging.example.test
   STREAM_DOMAIN: stream.staging.example.test
   RECOVER_DOMAIN: recover.staging.example.test
   OTEL_DOMAIN: otel.staging.example.test

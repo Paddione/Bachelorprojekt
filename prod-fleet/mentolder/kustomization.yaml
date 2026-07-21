@@ -48,31 +48,6 @@ patches:
       kind: NetworkPolicy
       metadata: { name: allow-devnode-hostnet-to-shared-db-ingress }
 
-  # ── node-affinity repoints to fleet pk nodes (Task 8 empirical findings) ──
-  # The blanket prod-mentolder NotIn [home workers] is already satisfied on the
-  # fleet pk nodes, so most workloads schedule fine. These are the only ones
-  # In-pinned to nodes that do NOT exist on fleet (server-side dry-run + scan):
-  #   livekit-server -> gekko-hetzner-3, whisper -> k3s home workers.
-  # Repoint to the fleet pk pool so they schedule.
-  # (Kept in the mentolder wrapper, NOT fleet-common: korczewski deliberately
-  # pins livekit-server to pk-hetzner-6 for its hostNetwork DNS-pin and must not
-  # be broadened.) livekit-server keeps a single-node pin (hostNetwork).
-  - patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: livekit-server
-      spec:
-        template:
-          spec:
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                    - matchExpressions:
-                        - key: kubernetes.io/hostname
-                          operator: In
-                          values: [pk-hetzner-4]
   # whisper needs a GPU node on mentolder (k3s home workers); fleet pk nodes have
   # no GPU, so transcription is best-effort here — repoint so the pod at least
   # schedules instead of staying Pending (flag for Phase 2b capacity review).
@@ -92,10 +67,3 @@ patches:
                         - key: kubernetes.io/hostname
                           operator: In
                           values: [pk-hetzner-4, pk-hetzner-6, pk-hetzner-8]
-  - patch: |-
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: livekit-ingress-rtmp
-        annotations:
-          svccontroller.k3s.cattle.io/nodeselector: "kubernetes.io/hostname=pk-hetzner-4"

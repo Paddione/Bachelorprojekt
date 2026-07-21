@@ -123,7 +123,7 @@ export async function openTestRunFailureTicket(
 ): Promise<string | null> {
   await ensureTicketsSchema();
 
-  // Dedup: any OPEN ticket for this (run_id, test_id) wins. The partial
+  // Dedup: an OPEN ticket for this (run_id, test_id) wins. The partial
   // unique index `tickets_one_open_per_test_run_test_uq` is the race guard.
   const existing = await pool.query<{ id: string }>(
     `SELECT id FROM tickets.tickets

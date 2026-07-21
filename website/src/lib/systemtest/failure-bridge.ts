@@ -176,7 +176,7 @@ export async function openFailureTicket(
     return null;
   }
 
-  // Dedup at the ticket level: any OPEN ticket for this question wins. This
+  // Dedup at the ticket level: an OPEN ticket for this question wins. This
   // is the single source of truth — `last_failure_ticket_id` is a hint that
   // can drift out of sync (no row, mismatched assignment, etc.).
   const existingOpen = await pool.query<{ id: string }>(

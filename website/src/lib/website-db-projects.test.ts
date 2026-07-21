@@ -250,8 +250,7 @@ vi.mock('pg', () => {
   const { Pool: MemPool } = mem.adapters.createPg();
 
   // pg-mem's generated Client class has no exported type (require()'d dynamically above).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function wrapClientQuery(client: any) {
+  function wrapClientQuery(client: { query: (...args: unknown[]) => unknown }) {
     const orig = client.query.bind(client);
     client.query = (text: unknown, params?: unknown) => {
       if (typeof text === 'string' && isDdlOrTxControl(text)) {

@@ -32,7 +32,7 @@ type ChunkType = 'summary' | 'spec' | 'decision' | 'lesson';
 
 /**
  * Embed a ticket's text into tickets.ticket_embeddings, tagged with the
- * env-derived model. BEST-EFFORT: any embedding/insert failure is swallowed
+ * env-derived model. BEST-EFFORT: all embedding/insert failures are swallowed
  * (logged) and returns the number of rows actually written — ticket
  * creation must never be coupled to GPU-host uptime.
  */

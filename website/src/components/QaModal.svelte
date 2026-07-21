@@ -22,10 +22,10 @@
   }
 
   $: checkedCount = criteria.filter((c) => checked[c.key]).length;
-  $: anyUnchecked = criteria.some((c) => !checked[c.key]);
+  $: hasUnchecked = criteria.some((c) => !checked[c.key]);
   $: allChecked = criteria.length > 0 && criteria.every((c) => checked[c.key]);
   $: canApprove = allChecked && !submitting;
-  $: canReject = anyUnchecked && notes.trim().length > 0 && !submitting;
+  $: canReject = hasUnchecked && notes.trim().length > 0 && !submitting;
 
   function relTime(iso: string | null): string {
     if (!iso) return '?';
@@ -102,7 +102,7 @@
       {/each}
     </section>
 
-    {#if anyUnchecked}
+    {#if hasUnchecked}
       <section class="feedback">
         <div class="section-label">Kommentar <span class="required">*</span></div>
         <textarea

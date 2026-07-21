@@ -245,10 +245,10 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-TEST02** | Vitest `.only` | 0 ✓ | 0 | `grep -rnE '\.only\b' website/src --include='*.test.ts' \| wc -l` |
 | **G-TEST03** | Vitest Skipped/Todo-Suiten | 0 ✓ | 0 | `grep -rnE "(describe\|it\|test)\.(skip\|todo)\b" website/src --include="*.ts" \| wc -l` |
 | **G-TEST04** | Test-Inventory-Drift | 0 ✓ | 0 | `git status --porcelain website/src/data/test-inventory.json \| wc -l` |
-| **G-CQ02** | Explizite `any`-Verwendungen | 8 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
+| **G-CQ02** | Explizite `any`-Verwendungen | 0 ✓ | ≤ 280 | `grep -rn ': any\|<any>\|as any' website/src --include=*.ts --include=*.svelte --include=*.astro \| wc -l` |
 | **G-CQ04** | FIXME/HACK/XXX (echt) | 3 ✓ | ≤4 | `grep -rnE '\b(FIXME\|HACK\|XXX)\b' ... \| wc -l` |
 | **G-CQ05** | Echte TODO-Marker | 0 ✓ | ≤ 1 | `grep -rnE "\bTODO\b" --include=*.ts ... website/src scripts tests k3d brett/src \| wc -l` |
-| **G-CQ06** | `@deprecated`-Symbole | 1 ✓ | ≤ 1 | `grep -rnE '@deprecated' website/src \| wc -l` |
+| **G-CQ06** | `@deprecated`-Symbole | 0 ✓ | ≤ 1 | `grep -rnE '@deprecated' website/src \| wc -l` |
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
@@ -444,4 +444,4 @@ Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-
 
 **Baseline-Update 2026-07-19 (T001950 — Live-Bestätigung nach Deploy):** G-FE05 **89→90 ✅ Target erreicht.** Nach Merge von PR #2948 (Auto-Deploy via `build-website.yml`, beide Brand-Jobs `Deploy Website (mentolder)`/`Deploy Website (korczewski)` grün) erneut 3× `npx @lhci/cli autorun --collect.numberOfRuns=3` gegen `https://web.mentolder.de` gemessen: Performance-Score konstant **90/100** über alle 3 Läufe (FCP 2.0s, LCP 3.0–3.1s). Live-HTML bestätigt den Fix: `sidekick-panels.css` wird per `<link rel="preload" as="style" onload="this.rel='stylesheet'">` + `<noscript>`-Fallback geladen, keine blockierende `<link rel="stylesheet">`-Variante mehr im `<head>`. G-FE05 wechselt von Prio B/A nach Prio C (Green Gate).
 
-**Baseline-Update 2026-07-21:** G-AGENTIC08 1→0 (toter Script-Pfad `scripts/openspec-validate.sh` in `openspec-propose/SKILL.md` zu `scripts/openspec.sh validate` korrigiert); G-DB04 1h→13h (Backup-Alter 13h, weiterhin im Target ≤26h); alle Prio-C-Gates grün via `scripts/health-goals-check.sh` verifiziert.
+**Baseline-Update 2026-07-21:** G-AGENTIC08 1→0 (toter Script-Pfad `scripts/openspec-validate.sh` in `openspec-propose/SKILL.md` zu `scripts/openspec.sh validate` korrigiert); G-DB04 1h→13h (Backup-Alter 13h, weiterhin im Target ≤26h); G-DEP04 2→0 (package.json engines korrigiert, Gate grün); G-CQ06 1→0 (@deprecated stripeServiceKey entfernt); G-CQ02 8→0 (any-Typen und comment-false-positives behoben); alle Prio-C-Gates grün via `scripts/health-goals-check.sh` verifiziert.

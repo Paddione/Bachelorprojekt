@@ -1,18 +1,4 @@
-/**
- * scripts/factory/pipeline.js — Workflow script. Harness-injected globals:
- * agent, parallel, pipeline, phase, log, args.
- * args: { title, description, slug, ticket_id, brand, timestamp, batch_mode?, sub_features? }
- * Offline: node --check.
- *
- * The Workflow sandbox has no filesystem/Node-API access (no require/fs/child_process
- * — this is why we do NOT use args.timestamp for anything time-sensitive here beyond
- * pass-through, and never Date.now()/Math.random()). Anything that needs those APIs
- * (execFileSync, fs read/write, plan-lint, scout.sh, etc.) runs host-side in
- * pipeline-runner.js and is reached via runRunner(), which spawns an agent that shells
- * out to it and returns raw stdout.
- */
-
-module.exports.meta = {
+export const meta = {
   name: 'software-factory-pipeline',
   description: 'Phase-1 single-feature pipeline: Scout → Design → Plan → Implement → Verify → Deploy',
   phases: [
@@ -28,6 +14,9 @@ module.exports.meta = {
 if (typeof process !== 'undefined' && !process.env.TICKET_PHASE_DRIVER) process.env.TICKET_PHASE_DRIVER = 'factory'
 
 // Sandbox local routing — use qwythos-9b-v2.
+// This replaces the old per-call provider-tier routing/slot-release
+// machinery (opus/sonnet/haiku via route-provider.sh + factory_model_slots) —
+// the factory now always runs against the local LM Studio model.
 const FACTORY_MODEL = {
   provider: 'lmstudio',
   modelId: 'qwythos-9b-v2',
@@ -39,13 +28,11 @@ const FACTORY_MODEL = {
 // its raw stdout. `command` picks the branch inside pipeline-runner.js's main().
 async function runRunner(agentFn, command, payload) {
   const payloadStr = JSON.stringify(payload).replace(/'/g, "'\\''")
-  const prompt = `EXECUTE ONLY — do NOT read files, grep, or do any research.
-Run exactly this bash command and return ONLY its raw stdout. Nothing else.
-\`\`\`
+  const prompt = `CRITICAL: Run this EXACT shell command via Bash tool. Return ONLY its raw stdout. No explanation, no commentary, no file reads, no grep, no research.
+Command:
 node scripts/factory/pipeline-runner.js ${command} '${payloadStr}'
-\`\`\`
-Return the command's stdout verbatim. If it fails, return the stderr. Do not explain or add commentary.`
-  const result = await agentFn(prompt)
+Return the stdout verbatim. If the command fails, return the stderr string.`
+  const result = await agentFn(prompt, { model: FACTORY_MODEL })
   return result ? result.trim() : ''
 }
 
@@ -322,7 +309,7 @@ if (REUSE) {
 }
 
 let implemented = []
-if (tasks.length && !A.batch_mode) {
+if (tasks && tasks.length && !A.batch_mode) {
   phase('Implement')
   await phaseEvent('implement', 'entered', 'Implementierung gestartet')
 
@@ -626,5 +613,5 @@ return { status: deployStatus, reason: deployReason, pr: deploy, reviews: review
 }
 }
 
-export default main
-await main()
+const result = await main()
+if (result) console.log(JSON.stringify(result))

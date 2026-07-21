@@ -19,7 +19,7 @@ if [[ -z "$PHASE" ]]; then
   esac
 fi
 
-OPUS_MODEL="qwen3.6-14b-a3b-fablevibes"
+OPUS_MODEL="qwythos-9b-v2"
 OPUS_BASE_URL="http://127.0.0.1:1234"
 if [[ "$TIER" == "opus" ]]; then
   printf '{"provider":"lmstudio","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"emergency":false}\n' "$OPUS_MODEL" "$OPUS_BASE_URL"
@@ -74,4 +74,4 @@ SQL
 done <<< "$CANDS"
 
 # Emergency fallback: local Qwen3.6, no slot claimed.
-printf '{"provider":"lmstudio","modelId":"qwen3.6-14b-a3b-fablevibes","baseUrl":"http://127.0.0.1:1234","slotId":null,"ctx":0,"emergency":true}\n'
+printf '{"provider":"lmstudio","modelId":"qwythos-9b-v2","baseUrl":"http://127.0.0.1:1234","slotId":null,"ctx":0,"emergency":true}\n'

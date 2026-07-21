@@ -70,7 +70,7 @@ for row in "${launch_rows[@]}"; do
     continue
   fi
 
-  # Launch pipeline via claude -p: qwen3.6-14b-a3b-fablevibes handles agent() calls fine,
+  # Launch pipeline via claude -p: qwythos-9b-v2 handles agent() calls fine,
   # only the Workflow() meta-tool was problematic.
   #
   # The factory-prep step pre-created an isolated worktree branched from
@@ -93,7 +93,7 @@ Context:
   - timestamp: ${TIMESTAMP}
 
 Invoke the Workflow tool with these exact arguments to run the pipeline:
-  Workflow({scriptPath:\"scripts/factory/pipeline.js\"}, {
+  Workflow({scriptPath:\"${REPO}/scripts/factory/pipeline.mjs\"}, {
     title:\"${title}\",
     ticket_id:\"${ext_id}\",
     brand:\"${brand}\",

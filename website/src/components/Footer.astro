@@ -48,7 +48,7 @@ const extraCols = effectiveFooter?.columns ?? config.footer.columns ?? [];
 
       <!-- Kontakt col -->
       <div>
-        <h5>Kontakt</h5>
+        <h3 class="footer-heading">Kontakt</h3>
         <ul>
           {footerPhone && (
             <li><a href={`tel:${footerPhone}`} class="footer-link">{footerPhone}</a></li>
@@ -61,7 +61,7 @@ const extraCols = effectiveFooter?.columns ?? config.footer.columns ?? [];
       <!-- Angebote col -->
       {footerServices.length > 0 && (
         <div>
-          <h5>Angebote</h5>
+          <h3 class="footer-heading">Angebote</h3>
           <ul>
             {footerServices.map((s) => (
               <li><a href={`/${s.slug}`} class="footer-link">{s.title}</a></li>
@@ -73,7 +73,7 @@ const extraCols = effectiveFooter?.columns ?? config.footer.columns ?? [];
       <!-- Brand-config columns (Rechtliches, …) -->
       {extraCols.map((col) => (
         <div>
-          <h5>{col.heading}</h5>
+          <h3 class="footer-heading">{col.heading}</h3>
           <ul>
             {col.links.map((link) => (
               <li><a href={link.href} class="footer-link">{link.label}</a></li>
@@ -128,7 +128,7 @@ const extraCols = effectiveFooter?.columns ?? config.footer.columns ?? [];
   .brand-word { font-family: var(--serif); font-size: 18px; letter-spacing: -0.01em; color: var(--fg); }
   .brand-dot { color: var(--brass, var(--copper, #d97706)); }
   .brand-sub { font-size: 14px; color: var(--fg-soft); max-width: 32ch; line-height: 1.6; margin: 0; }
-  .site-foot-grid h5 {
+  .site-foot-grid .footer-heading {
     font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
     text-transform: uppercase; color: var(--brass, var(--copper, #d97706)); margin: 0 0 18px;
   }

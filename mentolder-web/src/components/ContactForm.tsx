@@ -9,9 +9,7 @@ const schema = z.object({
   phone: z.string().optional(),
   type: z.string().min(1, 'Bitte Anliegen wählen'),
   message: z.string().min(10, 'Nachricht zu kurz (min. 10 Zeichen)'),
-  consent: z.literal(true, {
-    errorMap: () => ({ message: 'Bitte Datenschutzhinweis bestätigen' }),
-  }),
+  consent: z.literal(true, { message: 'Bitte Datenschutzhinweis bestätigen' }),
 });
 
 type FormValues = z.infer<typeof schema>;

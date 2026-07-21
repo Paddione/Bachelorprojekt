@@ -46,83 +46,11 @@ const CONFIG = {
 // Category schema from CategoryExtractor
 const CATEGORY_PATTERNS = {
   age: ['teen', '18yo', '19yo', 'young', 'mature', 'milf', 'cougar', 'older'],
-  physical: [
-    'blonde',
-    'brunette',
-    'redhead',
-    'petite',
-    'busty',
-    'big_tits',
-    'small_tits',
-    'skinny',
-    'curvy',
-    'thick',
-    'slim',
-    'tall',
-    'short',
-    'athletic',
-    'chubby',
-  ],
-  ethnicity: [
-    'asian',
-    'russian',
-    'italian',
-    'british',
-    'japanese',
-    'chinese',
-    'korean',
-    'indian',
-    'latina',
-    'ebony',
-    'white',
-    'european',
-    'american',
-  ],
-  relationship: [
-    'step',
-    'stepsis',
-    'stepmom',
-    'stepdad',
-    'stepson',
-    'stepdaughter',
-    'mom',
-    'dad',
-    'sister',
-    'brother',
-    'gf',
-    'girlfriend',
-    'wife',
-    'husband',
-  ],
-  acts: [
-    'anal',
-    'oral',
-    'creampie',
-    'facial',
-    'dp',
-    'gangbang',
-    'threesome',
-    'solo',
-    'masturbation',
-    'fingering',
-    'squirting',
-    'orgasm',
-  ],
-  setting: [
-    'hotel',
-    'bedroom',
-    'bathroom',
-    'kitchen',
-    'office',
-    'outdoor',
-    'car',
-    'public',
-    'beach',
-    'pool',
-    'shower',
-    'amateur',
-    'homemade',
-  ],
+  physical: ['blonde', 'brunette', 'redhead', 'petite', 'busty', 'big_tits', 'small_tits', 'skinny', 'curvy', 'thick', 'slim', 'tall', 'short', 'athletic', 'chubby'],
+  ethnicity: ['asian', 'russian', 'italian', 'british', 'japanese', 'chinese', 'korean', 'indian', 'latina', 'ebony', 'white', 'european', 'american'],
+  relationship: ['step', 'stepsis', 'stepmom', 'stepdad', 'stepson', 'stepdaughter', 'mom', 'dad', 'sister', 'brother', 'gf', 'girlfriend', 'wife', 'husband'],
+  acts: ['anal', 'oral', 'creampie', 'facial', 'dp', 'gangbang', 'threesome', 'solo', 'masturbation', 'fingering', 'squirting', 'orgasm'],
+  setting: ['hotel', 'bedroom', 'bathroom', 'kitchen', 'office', 'outdoor', 'car', 'public', 'beach', 'pool', 'shower', 'amateur', 'homemade'],
   quality: ['4k', 'hd', '1080p', '720p', '480p', 'uhd', 'fhd'],
   performer: [],
 };
@@ -197,53 +125,23 @@ function extractBaseFilename(filepath) {
 // ============================================================================
 
 async function getDurationSeconds(filePath) {
-  const args = [
-    '-v',
-    'error',
-    '-select_streams',
-    'v:0',
-    '-show_entries',
-    'format=duration',
-    '-of',
-    'default=noprint_wrappers=1:nokey=1',
-    filePath,
-  ];
-  const { stdout } = await run('ffprobe', args);
+  const { stdout } = await run('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', filePath]);
   const sec = parseFloat(stdout);
-  if (!Number.isFinite(sec) || sec <= 0) {
-    throw new Error(`Invalid duration from ffprobe: ${stdout}`);
-  }
+  if (!Number.isFinite(sec) || sec <= 0) throw new Error(`Invalid duration from ffprobe: ${stdout}`);
   return sec;
 }
 
 async function extractFrames(videoPath, outputDir) {
   const duration = await getDurationSeconds(videoPath);
   const framePaths = [];
-
   logger.info('Extracting frames', { videoPath, duration, frameCount: CONFIG.FRAME_COUNT });
 
   for (let i = 1; i <= CONFIG.FRAME_COUNT; i++) {
     const timestamp = (duration * i) / CONFIG.FRAME_COUNT;
     const framePath = path.join(outputDir, `frame_${i}.jpg`);
-
-    const args = [
-      '-ss',
-      timestamp.toFixed(2),
-      '-i',
-      videoPath,
-      '-vframes',
-      '1',
-      '-vf',
-      `scale=${CONFIG.FRAME_WIDTH}:-1`,
-      '-q:v',
-      '2',
-      framePath,
-    ];
-
-    await run('ffmpeg', args);
+    await run('ffmpeg', ['-ss', timestamp.toFixed(2), '-i', videoPath, '-vframes', '1', '-vf', `scale=${CONFIG.FRAME_WIDTH}:-1`, '-q:v', '2', framePath]);
     framePaths.push(framePath);
   }
-
   logger.info('Frames extracted successfully', { count: framePaths.length });
   return framePaths;
 }
@@ -251,45 +149,17 @@ async function extractFrames(videoPath, outputDir) {
 async function extractVideoMetadata(videoPath) {
   const duration = await getDurationSeconds(videoPath);
   const stats = await fs.stat(videoPath);
-
-  // Get video dimensions
-  const probeArgs = [
-    '-v',
-    'error',
-    '-select_streams',
-    'v:0',
-    '-show_entries',
-    'stream=width,height,codec_name',
-    '-of',
-    'json',
-    videoPath,
-  ];
-
-  const { stdout } = await run('ffprobe', probeArgs);
+  const { stdout } = await run('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height,codec_name', '-of', 'json', videoPath]);
   const probeData = JSON.parse(stdout);
   const stream = probeData.streams?.[0] || {};
-
   const width = stream.width || 1920;
   const height = stream.height || 1080;
   const codec = stream.codec_name || 'h264';
-
-  // Calculate aspect ratio
   const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
   const divisor = gcd(width, height);
   const aspectRatio = `${width / divisor}:${height / divisor}`;
-
-  // Estimate bitrate
-  const bitrate = Math.round((stats.size * 8) / duration / 1000); // kbps
-
-  return {
-    duration,
-    width,
-    height,
-    bitrate,
-    codec,
-    fps: 30, // default, can't easily extract from all formats
-    aspectRatio,
-  };
+  const bitrate = Math.round((stats.size * 8) / duration / 1000);
+  return { duration, width, height, bitrate, codec, fps: 30, aspectRatio };
 }
 
 // ============================================================================
@@ -327,49 +197,14 @@ async function stitchFrames(framePaths) {
 // ============================================================================
 
 function buildPrompt(originalFilename) {
-  const categoryList = Object.entries(CATEGORY_PATTERNS)
-    .map(([type, values]) => `- ${type}: ${values.join(', ')}`)
-    .join('\n');
-
-  return `Analyze these 10 video frames and suggest metadata.
-
-CATEGORIES (select all that apply):
-${categoryList}
-
-RESPOND IN STRICT JSON FORMAT (no markdown, no explanation):
-{
-  "suggestedFilename": "descriptive_name_here",
-  "categories": {
-    "age": ["value1"],
-    "physical": ["value1", "value2"],
-    "ethnicity": [],
-    "relationship": [],
-    "acts": ["value1"],
-    "setting": ["value1"],
-    "quality": ["value1"],
-    "performer": []
-  }
-}
-
-Original filename for reference: ${originalFilename}`;
+  const categoryList = Object.entries(CATEGORY_PATTERNS).map(([type, values]) => `- ${type}: ${values.join(', ')}`).join('\n');
+  return `Analyze these 10 video frames and suggest metadata.\n\nCATEGORIES:\n${categoryList}\n\nRESPOND IN STRICT JSON FORMAT:\n{\n  "suggestedFilename": "descriptive_name_here",\n  "categories": { "age": [], "physical": [], "ethnicity": [], "relationship": [], "acts": [], "setting": [], "quality": [], "performer": [] }\n}\n\nOriginal filename: ${originalFilename}`;
 }
 
 async function analyzeWithLLaVA(framePaths, originalFilename) {
   if (CONFIG.MOCK_AI) {
     logger.info('Using mock AI response');
-    return {
-      suggestedFilename: `mock_${Date.now()}`,
-      categories: {
-        age: ['young'],
-        physical: ['blonde'],
-        ethnicity: [],
-        relationship: [],
-        acts: ['solo'],
-        setting: ['bedroom'],
-        quality: ['hd'],
-        performer: [],
-      },
-    };
+    return { suggestedFilename: `mock_${Date.now()}`, categories: { age: ['young'], physical: ['blonde'], ethnicity: [], relationship: [], acts: ['solo'], setting: ['bedroom'], quality: ['hd'], performer: [] } };
   }
 
   logger.info('Analyzing with Ollama LLaVA', { frameCount: framePaths.length });

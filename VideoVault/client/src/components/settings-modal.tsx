@@ -1,45 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppSettingsService } from '@/services/app-settings';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { AuthService } from '@/services/auth';
 import { ApiClient } from '@/services/api-client';
 import { VideoDatabase } from '@/services/video-database';
-import {
-  Settings,
-  Save,
-  RotateCcw,
-  FileVideo,
-  Keyboard,
-  Monitor,
-  Palette,
-  ShieldAlert,
-  LogIn,
-  LogOut,
-  Languages,
-  Trash2,
-  Loader2,
-  RefreshCw,
-} from 'lucide-react';
+import { Settings, Save, RotateCcw, FileVideo, Keyboard, Monitor, Palette, ShieldAlert, LogIn, LogOut, Languages, Trash2, Loader2, RefreshCw } from 'lucide-react';
 
 interface Settings {
   // File scanning preferences
@@ -100,17 +72,12 @@ export function SettingsModal({ isOpen, onClose, onSettingsChange }: SettingsMod
     void (async () => {
       try {
         const saved = await AppSettingsService.get<Settings>('vv.settings');
-        if (saved && typeof saved === 'object') {
-          setSettings({ ...DEFAULT_SETTINGS, ...saved });
-        }
+        if (saved && typeof saved === 'object') setSettings({ ...DEFAULT_SETTINGS, ...saved });
       } catch { }
     })();
-    // also refresh auth state
     void AuthService.refresh();
     const unsub = AuthService.subscribe(setIsAdmin);
-    return () => {
-      unsub?.();
-    };
+    return () => unsub?.();
   }, []);
 
   // Check for changes compared to server-synced baseline
@@ -119,9 +86,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsChange }: SettingsMod
       try {
         const saved = await AppSettingsService.get<Settings>('vv.settings');
         if (saved) {
-          setHasChanges(
-            JSON.stringify(settings) !== JSON.stringify({ ...DEFAULT_SETTINGS, ...saved }),
-          );
+          setHasChanges(JSON.stringify(settings) !== JSON.stringify({ ...DEFAULT_SETTINGS, ...saved }));
           return;
         }
       } catch { }
@@ -129,9 +94,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsChange }: SettingsMod
     })();
   }, [settings]);
 
-  const handleSettingChange = <K extends keyof Settings>(key: K, value: Settings[K]) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  };
+  const handleSettingChange = <K extends keyof Settings>(key: K, value: Settings[K]) => setSettings((prev) => ({ ...prev, [key]: value }));
 
   const handleExtensionsChange = (value: string) => {
     const extensions = value.split(',').map((ext) => ext.trim().toLowerCase().replace(/^\./, ''));
@@ -150,10 +113,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsChange }: SettingsMod
   };
 
   const handleCleanupMissing = async () => {
-    if (!confirm(t('settings.confirmCleanup'))) {
-      return;
-    }
-
+    if (!confirm(t('settings.confirmCleanup'))) return;
     setIsCleaning(true);
     try {
       const result = await VideoDatabase.cleanupMissingVideos();
@@ -190,13 +150,8 @@ export function SettingsModal({ isOpen, onClose, onSettingsChange }: SettingsMod
   };
 
   const handleClose = () => {
-    if (hasChanges) {
-      if (confirm(t('settings.unsavedChanges'))) {
-        onClose();
-      }
-    } else {
-      onClose();
-    }
+    if (hasChanges && !confirm(t('settings.unsavedChanges'))) return;
+    onClose();
   };
 
   return (
@@ -223,9 +178,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsChange }: SettingsMod
           <div className="flex items-center gap-2">
             {!isAdmin ? (
               <button
-                onClick={() => {
-                  void AuthService.promptAndLogin();
-                }}
+                onClick={() => { void AuthService.promptAndLogin(); }}
                 className="text-primary text-sm inline-flex items-center gap-1"
                 data-testid="button-admin-login-inline"
               >
@@ -233,9 +186,7 @@ export function SettingsModal({ isOpen, onClose, onSettingsChange }: SettingsMod
               </button>
             ) : (
               <button
-                onClick={() => {
-                  void AuthService.logout();
-                }}
+                onClick={() => { void AuthService.logout(); }}
                 className="text-muted-foreground text-sm inline-flex items-center gap-1"
                 data-testid="button-admin-logout-inline"
               >
@@ -630,13 +581,9 @@ export function SettingsModal({ isOpen, onClose, onSettingsChange }: SettingsMod
           </Button>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleClose}>
-              {t('common.cancel')}
-            </Button>
+            <Button variant="outline" onClick={handleClose}>{t('common.cancel')}</Button>
             <Button
-              onClick={() => {
-                void handleSave();
-              }}
+              onClick={() => { void handleSave(); }}
               disabled={!hasChanges}
               className="flex items-center gap-2"
             >

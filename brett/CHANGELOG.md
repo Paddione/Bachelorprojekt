@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.40.3](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.40.2...brett-v0.40.3) (2026-07-21)
+
+
+### Bug Fixes
+
+* **website:** resolve remaining Lighthouse audit issues ([e8ab944](https://github.com/Paddione/Bachelorprojekt/commit/e8ab944c1ef6cadb7b8b4ecb164d9b3436d4f30b))
+
 ## [0.40.2](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.40.1...brett-v0.40.2) (2026-07-20)
 
 

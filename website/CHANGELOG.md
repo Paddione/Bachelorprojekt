@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.196.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.196.3...website-v1.196.4) (2026-07-21)
+
+
+### Bug Fixes
+
+* **website:** resolve remaining Lighthouse audit issues ([e8ab944](https://github.com/Paddione/Bachelorprojekt/commit/e8ab944c1ef6cadb7b8b4ecb164d9b3436d4f30b))
+
 ## [1.196.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.196.2...website-v1.196.3) (2026-07-21)
 
 

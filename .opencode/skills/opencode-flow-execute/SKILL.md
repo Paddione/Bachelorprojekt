@@ -149,6 +149,17 @@ task freshness:regenerate
 task freshness:check
 ```
 
+## Schritt 4: Code Review Gate
+
+Vor dem PR-Merge: delegate an einen Review-Subagenten via `delegate()` oder nutze `gh-axi pr review` für eine automatische Code-Review-Prüfung. Behebe alle gefundenen Probleme.
+
+```bash
+# Autoren-Code-Review: delegate an explore-Subagenten
+delegate(prompt: "Review this PR's changes for bugs, security issues, and style. PR: $(gh-axi pr view --json url -q '.url')", agent: "explore")
+```
+
+Der User muss die Review-Ergebnisse bestätigen, bevor der PR gemergt wird.
+
 ## Schritt 5: PR erstellen
 
 Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
@@ -167,17 +178,50 @@ bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 
 ## Schritt 6: Auto-Merge wenn CI grün
 
+Phase-Chain-Gate (fail-closed):
 ```bash
 bash scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
+```
+
+Auto-Merge aktivieren (Voraussetzung: mindestens ein Implementierungs-Commit liegt auf dem Branch, nicht nur der Plan-Stage-Commit — T001899):
+```bash
 (cd "$MAIN_REPO" && gh-axi pr merge --auto --squash --delete-branch)
 ```
 
-## Schritt 6.4/6.5: Auf Merge warten + Ticket schließen
+## Schritt 6.4: Auf Merge warten (Poll-Schleife)
 
-Warte auf Merge (poll `gh-axi pr view`), dann:
+`gh-axi pr merge --auto` kehrt sofort zurück — der eigentliche Merge passiert asynchron.
+Warte, bis der Merge tatsächlich durch ist, bevor das Ticket geschlossen wird:
+
+```bash
+PR_NUM=$(gh-axi pr view --json number -q '.number')
+MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
+WAIT_START=$(date +%s)
+
+echo "⏳ Warte auf Merge von PR #$PR_NUM (max ${MAX_MERGE_WAIT_MIN}min) ..."
+while true; do
+  MERGE_STATE=$(gh-axi pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
+  STATE="${MERGE_STATE%%|*}"
+  case "$STATE" in
+    MERGED) echo "✅ PR #$PR_NUM ist gemergt."; break ;;
+    CLOSED) echo "❌ PR #$PR_NUM wurde geschlossen ohne Merge." >&2; exit 2 ;;
+  esac
+  ELAPSED=$(( $(date +%s) - WAIT_START ))
+  if (( ELAPSED > MAX_MERGE_WAIT_MIN * 60 )); then
+    echo "❌ PR #$PR_NUM nach ${MAX_MERGE_WAIT_MIN}min nicht gemergt (state=$STATE)." >&2
+    exit 3
+  fi
+  sleep 15
+done
+```
+
+## Schritt 6.5: Ticket abschließen
+
+Merge = Abschluss (T001092). Ticket schließen:
 ```
 ticket-mcp: add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })
 ticket-mcp: transition_status({ id: "$TICKET_ID", status: "done", resolution: "shipped" })
+ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })
 ```
 
 ## Schritt 7: Plan archivieren
@@ -197,6 +241,16 @@ git worktree remove .worktrees/<slug> --force
 git branch -D feature/<slug>
 ```
 
+## Schritt 8: Post-Merge Deploy & Verify
+
+Führe den Deployment-Schritt nur aus, wenn die geänderten Dateien deploy-pflichtige Bereiche betreffen:
+
+```bash
+bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
+```
+
+**Deploy-Mapping (SSOT):** Pfad→Task-Tabelle und Pod-Verify-Schleife in `.claude/skills/references/deploy-routing.md`.
+
 ## Verwandte Skills
 
 | Skill | Beziehung |
@@ -205,6 +259,8 @@ git branch -D feature/<slug>
 | `opencode-git-workflow` | **SSOT für Commit/PR/Merge/Cleanup** |
 | `background-agents.ts` | Subagent-Routing (read-only vs write-capable) |
 | `scripts/worktree-create.sh` | Git-crypt-safe worktree creator |
+| `scripts/devflow-post-merge-deploy.sh` | Schritt 8 — Post-Merge Deploy |
+| `references/deploy-routing` | Deploy-Mapping (SSOT) |
 
 
 ## Framework mapping

@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-09T19:30:06.214Z
+> Generated at 2026-07-21T22:03:47.391Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -322,6 +322,7 @@
 | `/api/assistant/transcribe` | POST | 🔑 session | `website/src/pages/api/assistant/transcribe.ts` |
 | `/api/auth/callback` | GET | 🔐 admin | `website/src/pages/api/auth/callback.ts` |
 | `/api/auth/delete-account` | POST | 🔑 session | `website/src/pages/api/auth/delete-account.ts` |
+| `/api/auth/e2e-login` | GET | 🔐 admin | `website/src/pages/api/auth/e2e-login.ts` |
 | `/api/auth/login` | GET | ❓ unclassified | `website/src/pages/api/auth/login.ts` |
 | `/api/auth/logout` | GET | ❓ unclassified | `website/src/pages/api/auth/logout.ts` |
 | `/api/auth/magic` | GET | ❓ unclassified | `website/src/pages/api/auth/magic.ts` |

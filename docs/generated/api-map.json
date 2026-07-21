@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-09T19:30:06.214Z",
+  "generatedAt": "2026-07-21T22:03:47.391Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2604,6 +2604,14 @@
       ],
       "auth": "session",
       "file": "website/src/pages/api/auth/delete-account.ts"
+    },
+    {
+      "path": "/api/auth/e2e-login",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/auth/e2e-login.ts"
     },
     {
       "path": "/api/auth/login",

@@ -352,6 +352,14 @@ The system SHALL maintain strict namespace-level isolation between brands (`work
 
 ---
 
+### Requirement: Spec-BATS smoke coverage
+The system SHALL provide an initial BATS test file covering the nextcloud-integration specification so that CI tracks its test presence.
+
+#### Scenario: Initial smoke test passes
+- **GIVEN** the `tests/spec/nextcloud-integration.bats` file exists
+- **WHEN** `bats tests/spec/nextcloud-integration.bats` runs
+- **THEN** the smoke test exits successfully
+
 ## Testszenarien
 
 <!-- merged from Playwright e2e tests -->
@@ -450,3 +458,5 @@ The system SHALL complete all steps of System-Test 3 (Kommunikation) — coverin
 - **GIVEN** ein Admin-Passwort ist als Umgebungsvariable gesetzt (`ADMIN_PASSWORD`)
 - **WHEN** der Systemtest-Runner alle 5 Schritte von Template 3 (Chat-Widget, Inbox, E-Mail) durchläuft
 - **THEN** werden alle Schritte erfolgreich ausgeführt und das Systemtest-Formular abgesendet
+
+<!-- merged from change delta nextcloud-integration.md (0e31d98f8905) -->

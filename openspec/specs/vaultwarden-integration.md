@@ -183,6 +183,14 @@ Secret (`VAULTWARDEN_ADMIN_TOKEN`) gesichert.
 
 ---
 
+### Requirement: Spec-BATS smoke coverage
+The system SHALL provide an initial BATS test file covering the vaultwarden-integration specification so that CI tracks its test presence.
+
+#### Scenario: Initial smoke test passes
+- **GIVEN** the `tests/spec/vaultwarden-integration.bats` file exists
+- **WHEN** `bats tests/spec/vaultwarden-integration.bats` runs
+- **THEN** the smoke test exits successfully
+
 ## Testszenarien
 
 <!-- merged from Playwright e2e tests -->
@@ -233,3 +241,5 @@ The system SHALL enforce a Keycloak password policy that includes at minimum a l
 - **GIVEN** Keycloak läuft unter `KEYCLOAK_URL` (Standard: `http://auth.localhost`)
 - **WHEN** der Well-Known-Endpunkt `/realms/workspace/.well-known/openid-configuration` abgerufen wird
 - **THEN** antwortet Keycloak mit HTTP 200 und einer JSON-Antwort, die `issuer` und `token_endpoint` enthält
+
+<!-- merged from change delta vaultwarden-integration.md (0b9c7adb5c00) -->

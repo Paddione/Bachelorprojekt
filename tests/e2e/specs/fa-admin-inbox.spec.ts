@@ -40,7 +40,7 @@ const STATUSES = ['pending', 'done', 'archived'] as const;
 
 async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void> {
   await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+  await page.waitForURL(/authorize/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();

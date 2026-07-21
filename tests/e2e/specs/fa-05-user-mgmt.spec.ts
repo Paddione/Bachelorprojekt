@@ -32,6 +32,6 @@ test.describe('FA-05: Nutzerverwaltung', () => {
     const res = await request.get(`${BASE}/api/auth/login`, { maxRedirects: 0 });
     expect(res.status()).toBe(302);
     const location = res.headers()['location'] || '';
-    expect(location).toContain('openid-connect/auth');
+    expect(location).toContain('/authorize');
   });
 });

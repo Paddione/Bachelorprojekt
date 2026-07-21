@@ -8,7 +8,12 @@ import { openAgentGuide, expandCardByTitle, loadGuideData, ensureMapOpen, showFi
 
 const FILM = !!process.env.AG_FILM;
 const FILM_PAUSE = 1500;
+const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 const { goals, tools, taxonomy, themes, glossary, map } = loadGuideData();
+
+test.beforeEach(() => {
+  test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS not set — PortalSidekick only on authenticated layouts');
+});
 
 test('öffnet die Agent-Anleitung und zeigt den Titel', async ({ page }) => {
   await openAgentGuide(page);

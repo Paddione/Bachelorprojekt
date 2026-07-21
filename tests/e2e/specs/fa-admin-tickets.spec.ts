@@ -46,7 +46,7 @@ async function mailpitReachable(request: import('@playwright/test').APIRequestCo
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/tickets`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+  await page.waitForURL(/authorize/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();

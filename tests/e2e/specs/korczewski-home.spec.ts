@@ -142,7 +142,7 @@ test.describe('Korczewski: OIDC auth', () => {
     const res = await request.get(`${BASE}/api/auth/login`, { maxRedirects: 0 });
     expect(res.status()).toBe(302);
     const location = res.headers()['location'] ?? '';
-    expect(location).toContain('openid-connect/auth');
+    expect(location).toContain('/authorize');
     expect(location).toContain('client_id=website');
   });
 

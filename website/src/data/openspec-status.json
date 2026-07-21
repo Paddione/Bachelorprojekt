@@ -1137,6 +1137,12 @@
       "status": "archived"
     }
   ],
+  "T001945": [
+    {
+      "slug": "g-size02-large-files-reduction",
+      "status": "plan_staged"
+    }
+  ],
   "T001946": [
     {
       "slug": "g-db01-fk-index-remediation",
@@ -1206,6 +1212,12 @@
   "T001997": [
     {
       "slug": "openspec-worktree-anchor",
+      "status": "plan_staged"
+    }
+  ],
+  "T002003": [
+    {
+      "slug": "factory-scout-backoff",
       "status": "plan_staged"
     }
   ],

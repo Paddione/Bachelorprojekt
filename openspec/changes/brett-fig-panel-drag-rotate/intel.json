@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "slug": "brett-fig-panel-drag-rotate",
+    "ticket_id": "T002050",
+    "generated_from": "main@de20a0432",
+    "domains": ["brett", "frontend"],
+    "intel_sources": ["grep", "Read", "baseline.json", "plan-lint-selftest"]
+  },
+  "impact_files": [
+    { "path": "brett/public/index.html", "language": "html", "loc": 482, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "brett/src/client/ui/fig-panel.ts", "language": "typescript", "loc": 255, "s1_limit": 600, "s1_baseline": null, "s1_budget": 345 },
+    { "path": "brett/src/client/board-boot.ts", "language": "typescript", "loc": 526, "s1_limit": 600, "s1_baseline": null, "s1_budget": 74 },
+    { "path": "brett/src/client/mannequin.ts", "language": "typescript", "loc": 417, "s1_limit": 600, "s1_baseline": null, "s1_budget": 183 },
+    { "path": "brett/src/client/state.ts", "language": "typescript", "loc": 73, "s1_limit": 600, "s1_baseline": null, "s1_budget": 527 },
+    { "path": "brett/src/client/snapping.ts", "language": "typescript", "loc": 90, "s1_limit": 600, "s1_baseline": null, "s1_budget": 510 },
+    { "path": "brett/src/client/ws-connection-client.ts", "language": "typescript", "loc": 120, "s1_limit": 600, "s1_baseline": null, "s1_budget": 480 },
+    { "path": "brett/src/client/touch-handler.ts", "language": "typescript", "loc": 211, "s1_limit": 600, "s1_baseline": null, "s1_budget": 389 },
+    { "path": "brett/src/types/messages.ts", "language": "typescript", "loc": 108, "s1_limit": 600, "s1_baseline": null, "s1_budget": 492 }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "brett/src/client/ui/fig-panel.ts:addFigure",
+      "kind": "function",
+      "file": "brett/src/client/ui/fig-panel.ts",
+      "signature": "export function addFigure(position: { x: number; z: number }): any",
+      "type_text": "(position: { x: number; z: number }) => any",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/ui/fig-panel.ts:closeFigPanel",
+      "kind": "function",
+      "file": "brett/src/client/ui/fig-panel.ts",
+      "signature": "export function closeFigPanel(): void",
+      "type_text": "() => void",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/ui/fig-panel.ts:openFigPanel",
+      "kind": "function",
+      "file": "brett/src/client/ui/fig-panel.ts",
+      "signature": "export function openFigPanel(): void",
+      "type_text": "() => void",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/ui/fig-panel.ts:selectFigure",
+      "kind": "function",
+      "file": "brett/src/client/ui/fig-panel.ts",
+      "signature": "export function selectFigure(id: string | null): void",
+      "type_text": "(id: string | null) => void",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/ui/fig-panel.ts:syncPanelToSelection",
+      "kind": "function",
+      "file": "brett/src/client/ui/fig-panel.ts",
+      "signature": "export function syncPanelToSelection(id: string | null): void",
+      "type_text": "(id: string | null) => void",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/mannequin.ts:pickContact",
+      "kind": "function",
+      "file": "brett/src/client/mannequin.ts",
+      "signature": "export function pickContact(ev: { clientX: number; clientY: number }): any",
+      "type_text": "(ev: { clientX: number; clientY: number }) => any",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/mannequin.ts:pickMannequinBody",
+      "kind": "function",
+      "file": "brett/src/client/mannequin.ts",
+      "signature": "export function pickMannequinBody(ev: { clientX: number; clientY: number }): any",
+      "type_text": "(ev: { clientX: number; clientY: number }) => any",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/mannequin.ts:pickFloor",
+      "kind": "function",
+      "file": "brett/src/client/mannequin.ts",
+      "signature": "export function pickFloor(ev: { clientX: number; clientY: number }): THREE.Vector3 | null",
+      "type_text": "(ev: { clientX: number; clientY: number }) => THREE.Vector3 | null",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/mannequin.ts:ccdIK",
+      "kind": "function",
+      "file": "brett/src/client/mannequin.ts",
+      "signature": "export function ccdIK(fig: any, endBoneName: string, targetWorld: THREE.Vector3, iterations = 8): void",
+      "type_text": "(fig: any, endBoneName: string, targetWorld: THREE.Vector3, iterations?: number) => void",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/ws-connection-client.ts:sendMove",
+      "kind": "function",
+      "file": "brett/src/client/ws-connection-client.ts",
+      "signature": "export function sendMove(id: string, x: number, z: number, facingY: number): void",
+      "type_text": "(id: string, x: number, z: number, facingY: number) => void",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/ws-connection-client.ts:sendUpdate",
+      "kind": "function",
+      "file": "brett/src/client/ws-connection-client.ts",
+      "signature": "export function sendUpdate(fig: any, changes: any): void",
+      "type_text": "(fig: any, changes: any) => void",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/snapping.ts:snap",
+      "kind": "function",
+      "file": "brett/src/client/snapping.ts",
+      "signature": "export function snap(pos: { x: number; z: number }, others: { x: number; z: number }[] = []): SnapResult",
+      "type_text": "(pos: { x: number; z: number }, others?: { x: number; z: number }[]) => SnapResult",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/snapping.ts:finishDrag",
+      "kind": "function",
+      "file": "brett/src/client/snapping.ts",
+      "signature": "export function finishDrag(fig: any): void",
+      "type_text": "(fig: any) => void",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "brett/src/client/state.ts:STATE.ui.dragging",
+      "kind": "property",
+      "file": "brett/src/client/state.ts",
+      "signature": "dragging: null | { figId: string; boneName: string; plane: THREE.Plane }",
+      "type_text": "null | { figId: string; boneName: string; plane: THREE.Plane }",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "brett/src/client/board-boot.ts:mousedown-handler",
+      "brett/src/client/ui/fig-panel.ts:addFigure"
+    ],
+    "edges": [
+      { "from": "board-boot.ts:mousedown-handler", "to": "mannequin.ts:pickContact", "kind": "calls" },
+      { "from": "board-boot.ts:mousedown-handler", "to": "mannequin.ts:pickFloor", "kind": "calls" },
+      { "from": "board-boot.ts:mousedown-handler", "to": "fig-panel.ts:addFigure", "kind": "calls" },
+      { "from": "board-boot.ts:mousemove-handler", "to": "mannequin.ts:ccdIK", "kind": "calls" },
+      { "from": "board-boot.ts:mousemove-handler", "to": "mannequin.ts:pickMannequinBody", "kind": "calls" },
+      { "from": "board-boot.ts:mouseup-handler", "to": "snapping.ts:finishDrag", "kind": "calls" },
+      { "from": "snapping.ts:finishDrag", "to": "ws-connection-client.ts:sendMove", "kind": "calls" },
+      { "from": "fig-panel.ts:addFigure", "to": "fig-panel.ts:selectFigure", "kind": "calls" },
+      { "from": "fig-panel.ts:addFigure", "to": "ws-connection-client.ts:sendAddFigure", "kind": "calls" },
+      { "from": "fig-panel.ts:selectFigure", "to": "fig-panel.ts:syncPanelToSelection", "kind": "calls" },
+      { "from": "ws-client.ts:onWsMessage(case move)", "to": "fig.root.rotation.y = fig.facingY", "kind": "data_flow" },
+      { "from": "server/rooms.ts:case move", "to": "msg.facingY pass-through", "kind": "data_flow" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [
+    {
+      "name": "THREE.Plane / THREE.Raycaster / THREE.Vector3",
+      "source_note": "three.js — bereits projektweit in brett/src/client verwendet; keine neuen Dependencies"
+    }
+  ],
+  "risks": [
+    {
+      "note": "codebase-memory-mcp wurde nicht als Quelle genutzt (brett evtl. nicht indexiert); Signaturen stammen aus direktem grep/Read auf main@de20a0432 und sind verbatim.",
+      "severity": "info"
+    },
+    {
+      "note": "brett/public/index.html ist S1-ungated (.html, limit 0) — CSS-Wachstum dort trippt kein Ratchet, trotzdem kompakt halten.",
+      "severity": "info"
+    },
+    {
+      "note": "board-boot.ts hat nur 74 Zeilen S1-Budget — neue Drag-/Rotations-Logik MUSS in ein neues Modul (brett/src/client/figure-drag.ts) statt board-boot.ts wachsen zu lassen.",
+      "severity": "warn"
+    }
+  ]
+}

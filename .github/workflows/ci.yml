@@ -428,6 +428,11 @@ jobs:
     needs: [vitest-website]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # LHCI posts an advisory commit status; the built-in GITHUB_TOKEN needs
+    # statuses:write to do so (no more expiring personal access token to maintain).
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -444,7 +449,9 @@ jobs:
       - name: Run Lighthouse audit
         continue-on-error: true
         env:
-          LHCI_GITHUB_TOKEN: ${{ secrets.LHCI_GITHUB_TOKEN }}
+          # Built-in Actions token (statuses:write above) — replaces the expired
+          # personal access token that caused "GitHub responded with 401".
+          LHCI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           lhci autorun || true
 

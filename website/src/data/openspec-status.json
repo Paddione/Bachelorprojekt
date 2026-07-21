@@ -1227,6 +1227,12 @@
       "status": "archived"
     }
   ],
+  "T002010": [
+    {
+      "slug": "spec-bats-tickets-sessions",
+      "status": "plan_staged"
+    }
+  ],
   "T002011": [
     {
       "slug": "spec-bats-billing-business",

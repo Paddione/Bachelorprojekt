@@ -371,6 +371,14 @@ The system SHALL join every new fleet node to the `wg-fleet` WireGuard mesh (10.
 
 ---
 
+### Requirement: Spec-BATS smoke coverage
+The system SHALL provide an initial BATS test file covering the livekit-integration specification so that CI tracks its test presence.
+
+#### Scenario: Initial smoke test passes
+- **GIVEN** the `tests/spec/livekit-integration.bats` file exists
+- **WHEN** `bats tests/spec/livekit-integration.bats` runs
+- **THEN** the smoke test exits successfully
+
 ## Testszenarien
 
 <!-- merged from Playwright e2e tests -->
@@ -551,3 +559,5 @@ The system SHALL support walking all 7 steps of System-Test 11 (LiveKit & Stream
 - **GIVEN** Admin-Zugangsdaten sind gesetzt (`ADMIN_PASSWORD`) und die Website läuft
 - **WHEN** `walkSystemtestByTemplate(page, 11)` alle 7 Schritte des Templates durchläuft
 - **THEN** werden alle Schritte abgehakt und das Systemtest-Formular erfolgreich abgesendet (Timeout: 180 s)
+
+<!-- merged from change delta livekit-integration.md (547097423a63) -->

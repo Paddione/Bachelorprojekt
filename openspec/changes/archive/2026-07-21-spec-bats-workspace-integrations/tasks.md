@@ -2,7 +2,7 @@
 title: "Plan: Spec-BATS Coverage (Workspace Integrations)"
 ticket_id: "T002012"
 domains: [infrastructure, tests]
-status: "planning"
+status: "completed"
 ---
 
 # spec-bats-workspace-integrations — Implementation Plan

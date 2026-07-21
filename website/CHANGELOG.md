@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.6...website-v1.197.7) (2026-07-21)
+
+
+### Bug Fixes
+
+* **website:** resolve E2E login timeouts, auth redirects, and test assertions ([#3070](https://github.com/Paddione/Bachelorprojekt/issues/3070)) ([721bc52](https://github.com/Paddione/Bachelorprojekt/commit/721bc523ead80f3f91ae7590504444dcdefede3e))
+
 ## [1.197.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.5...website-v1.197.6) (2026-07-21)
 
 

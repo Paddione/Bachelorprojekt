@@ -1,0 +1,14 @@
+{
+  "symbols": [],
+  "call_graph": [],
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "impact_files": [
+    {"file": "tests/spec/billing-pipeline.bats", "s1_budget": 0},
+    {"file": "tests/spec/datev-export.bats", "s1_budget": 0},
+    {"file": "tests/spec/newsletter-system.bats", "s1_budget": 0},
+    {"file": "tests/spec/questionnaire-system.bats", "s1_budget": 0}
+  ],
+  "risks": []
+}

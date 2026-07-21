@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.8...website-v1.197.9) (2026-07-21)
+
+
+### Bug Fixes
+
+* **website:** use X-API-KEY header for Pocket ID admin API [T003163] ([#3077](https://github.com/Paddione/Bachelorprojekt/issues/3077)) ([5bc8163](https://github.com/Paddione/Bachelorprojekt/commit/5bc816320b36aa5eb8cb1b284d3cc3e14034cd1a))
+
 ## [1.197.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.7...website-v1.197.8) (2026-07-21)
 
 

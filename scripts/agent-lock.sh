@@ -259,6 +259,46 @@ cmd_check() {
   echo "held"; cat "$f"; return 3
 }
 
+# Atomic check-and-claim for ticket scope. Avoids the TOCTOU window between
+# cmd_check (advisory) and cmd_claim (lock). Returns same exit codes as claim
+# (0=ok, 1=held by other) but never writes a lock if the ticket-status DB check
+# signals the ticket is already done/merged. [T002038]
+cmd_check_and_claim() {
+  local scope="$1" id="${2:-}"; shift 2 2>/dev/null || shift $#
+  # --status-check <path> is optional: point to a script that returns 0 iff the
+  # ticket is still live (plan_staged) and not yet done/merged.
+  local status_check_script=""
+  while [ $# -gt 0 ]; do case "$1" in
+    --status-check) status_check_script="$2"; shift 2;;
+    --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;
+    --branch) BRANCH="$2"; shift 2;; --ticket) TICKET="$2"; shift 2;;
+    *) shift;; esac; done
+
+  # 1) Optional external status-check (e.g. ticket.sh get --id + jq).
+  #    If the ticket is already done/merged/archived, refuse the claim.
+  if [ -n "$status_check_script" ]; then
+    if ! bash "$status_check_script" "$id" 2>/dev/null; then
+      echo "AGENT-LOCK: Ticket $id status check FAILED (done/merged?) — refusing claim." >&2
+      return 2
+    fi
+  fi
+
+  # 2) Check first (advisory, no lock) for early exit: if held by another
+  #    session, don't bother writing.
+  local f; f="$(_lock_file "$scope" "$id")"
+  if [ -f "$f" ] && ! _reapable "$f"; then
+    if [ "$(_lock_field "$f" owner_sid)" != "$(_my_sid)" ]; then
+      echo "AGENT-LOCK: $scope/$id bereits $(_holder_msg "$f")" >&2
+      return 1
+    fi
+    # Our own lock — refresh via cmd_claim (which re-reads existing fields).
+  fi
+
+  # 3) Atomic claim under flock. Only cmd_claim acquires the registry lock, so
+  #    two concurrent check-and-claim calls serialize here.
+  cmd_claim "$scope" "$id" --label "$LABEL" --worktree "$WT" --branch "$BRANCH" --ticket "$TICKET"
+}
+
 cmd_list() {
   local d; d="$(_lock_dir)"; [ -d "$d" ] || { echo "(keine aktiven Claims)"; return 0; }
   printf '%-14s %-24s %-8s %-10s %-6s %s\n' SCOPE ID TOOL SID STATE LABEL
@@ -361,12 +401,13 @@ main() {
     refresh) cmd_refresh "$@";;
     release) cmd_release "$@";;
     check)   cmd_check "$@";;
+    check-and-claim) cmd_check_and_claim "$@";;
     list)    cmd_list "$@";;
     reap)    cmd_reap "$@";;
     mine)    _my_sid;;
     guard-precommit)    cmd_guard_precommit "$@";;
     guard-postcheckout) cmd_guard_postcheckout "$@";;
-    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
+    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
   esac
 }
 main "$@"

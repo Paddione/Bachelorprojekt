@@ -102,7 +102,7 @@
       {/each}
     </section>
 
-    {#if anyUnchecked}
+    {#if hasUnchecked}
       <section class="feedback">
         <div class="section-label">Kommentar <span class="required">*</span></div>
         <textarea

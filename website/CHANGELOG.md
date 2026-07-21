@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.4...website-v1.197.5) (2026-07-21)
+
+
+### Code Refactoring
+
+* **website:** move GoalsDashboard from public Kore homepage to admin sidebar [T002059] ([#3065](https://github.com/Paddione/Bachelorprojekt/issues/3065)) ([fa495ec](https://github.com/Paddione/Bachelorprojekt/commit/fa495ecf102a0205068800aa1bd1e201c7f87991))
+
 ## [1.197.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.3...website-v1.197.4) (2026-07-21)
 
 

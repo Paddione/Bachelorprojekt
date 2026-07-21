@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1920 Abhängigkeitskanten · 408 API-Endpoints
+92 Services · 1920 Abhängigkeitskanten · 409 API-Endpoints
 
 ## Service-Map
 
@@ -2410,6 +2410,7 @@ flowchart TB
 | `/api/assistant/transcribe` | POST | ❓ session |
 | `/api/auth/callback` | GET | 🔐 admin |
 | `/api/auth/delete-account` | POST | ❓ session |
+| `/api/auth/e2e-login` | GET | 🔐 admin |
 | `/api/auth/login` | GET | ❓ unclassified |
 | `/api/auth/logout` | GET | ❓ unclassified |
 | `/api/auth/magic` | GET | ❓ unclassified |

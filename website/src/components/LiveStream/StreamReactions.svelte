@@ -1,6 +1,6 @@
 <!-- website/src/components/LiveStream/StreamReactions.svelte -->
 <script lang="ts">
-  let { room = null }: { room?: any } = $props();
+  let { _room = null }: { _room?: unknown } = $props();
 
   type FloatingEmoji = { id: string; emoji: string; x: number };
   let floating = $state<FloatingEmoji[]>([]);

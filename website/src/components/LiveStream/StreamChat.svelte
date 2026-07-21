@@ -1,6 +1,6 @@
 <!-- website/src/components/LiveStream/StreamChat.svelte -->
 <script lang="ts">
-  let { room = null }: { room?: any } = $props();
+  let { _room = null }: { _room?: unknown } = $props();
 
   type ChatMessage = { id: string; sender: string; text: string; at: number };
   let messages = $state<ChatMessage[]>([]);

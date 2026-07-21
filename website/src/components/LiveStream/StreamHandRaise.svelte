@@ -1,6 +1,6 @@
 <!-- website/src/components/LiveStream/StreamHandRaise.svelte -->
 <script lang="ts">
-  let { room = null, isHost = false }: { room?: any; isHost?: boolean } = $props();
+  let { _room = null, isHost = false }: { _room?: unknown; isHost?: boolean } = $props();
 
   let raised = $state(false);
   type RaiseRequest = { userId: string; userName: string };

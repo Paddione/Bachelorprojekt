@@ -281,9 +281,17 @@ describe('createAdminTicket', () => {
     ).rejects.toThrow(/parentId not found in brand/);
   });
 
+  it('throws when parentId does not resolve to type=\'project\'', async () => {
+    const m = await loadModule();
+    queue.push({ rows: [{ brand: 'mentolder', type: 'task' }] }); // parent lookup: wrong type
+    await expect(
+      m.createAdminTicket({ brand: 'mentolder', type: 'task', title: 'Bad parent type', parentId: 'task-parent', actor: baseActor }),
+    ).rejects.toThrow(/parentId must reference a project ticket/);
+  });
+
   it('creates a ticket with a valid same-brand parentId and an actor.id', async () => {
     const m = await loadModule();
-    queue.push({ rows: [{ brand: 'mentolder' }] }); // parent lookup: ok
+    queue.push({ rows: [{ brand: 'mentolder', type: 'project' }] }); // parent lookup: ok
     queue.push({ rows: [{ id: 'new-ticket-id' }] }); // INSERT ... RETURNING id
     const id = await m.createAdminTicket({
       brand: 'mentolder', type: 'task', title: 'Child ticket', parentId: 'parent-1', actor: baseActor,

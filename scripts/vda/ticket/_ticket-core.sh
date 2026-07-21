@@ -48,3 +48,30 @@ _ticket_offline_refuse_read() {
   fi
   return 1
 }
+
+# _resolve_product_id <pod> <product_id-or-external_id> <brand>
+# Resolves --product-id (create.sh, set-parent.sh) to a parent_id UUID.
+# Fails (exit 2) when: not found, type <> 'project', or brand mismatch.
+# Prints the resolved UUID to stdout on success.
+_resolve_product_id() {
+  local pod="$1" ref="$2" brand="$3"
+  local row type_val row_brand uuid
+  row=$(_exec_sql "$pod" -v ref="$ref" <<'EOF'
+SELECT type, brand, id FROM tickets.tickets WHERE id::text = :'ref' OR external_id = :'ref';
+EOF
+)
+  if [[ -z "$row" ]]; then
+    echo "ERROR: --product-id '$ref' not found" >&2
+    return 2
+  fi
+  IFS='|' read -r type_val row_brand uuid <<<"$row"
+  if [[ "$type_val" != "project" ]]; then
+    echo "ERROR: --product-id '$ref' must reference a project ticket (got type=$type_val)" >&2
+    return 2
+  fi
+  if [[ "$row_brand" != "$brand" ]]; then
+    echo "ERROR: --product-id '$ref' belongs to brand '$row_brand', not '$brand'" >&2
+    return 2
+  fi
+  echo "$uuid"
+}

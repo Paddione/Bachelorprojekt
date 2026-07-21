@@ -129,6 +129,7 @@ func RegisterPlanningTools(s *server.MCPServer) {
 				mcp.Enum("klein", "mittel", "gross")),
 			mcp.WithString("areas", mcp.Description("Komma-separierte Bereiche z.B. auth,chat")),
 			mcp.WithString("depends_on", mcp.Description("Komma-separierte Ticket-IDs z.B. T000100,T000101")),
+			mcp.WithString("product_id", mcp.Description("Optional: UUID oder external_id eines type='project'-Tickets im selben Brand — setzt parent_id via ticket.sh set-parent")),
 			mcp.WithBoolean("spec_skizziert", mcp.Description("Readiness-Flag")),
 			mcp.WithBoolean("abhaengigkeiten_klar", mcp.Description("Readiness-Flag")),
 			mcp.WithBoolean("offene_fragen_geklaert", mcp.Description("Readiness-Flag")),
@@ -145,6 +146,7 @@ func RegisterPlanningTools(s *server.MCPServer) {
 			effort, _ := a["effort"].(string)
 			areas, _ := a["areas"].(string)
 			dependsOn, _ := a["depends_on"].(string)
+			productID, _ := a["product_id"].(string)
 			attentionMode, _ := a["attention_mode"].(string)
 			specSkizziert, specOk := a["spec_skizziert"].(bool)
 			abhaengigkeitenKlar, abhOk := a["abhaengigkeiten_klar"].(bool)
@@ -155,6 +157,18 @@ func RegisterPlanningTools(s *server.MCPServer) {
 			env := map[string]string{"BRAND": brand}
 
 			// priority/severity are declared for caller convenience but plan-meta does not accept them, so they are intentionally not forwarded.
+
+			if productID != "" {
+				r, err := runner.RunTicket(
+					[]string{"set-parent", "--id", id, "--product-id", productID},
+					env,
+				)
+				if err != nil {
+					logLines = append(logLines, fmt.Sprintf("FEHLER set-parent: %s", err.Error()))
+				} else {
+					logLines = append(logLines, strings.TrimSpace(r))
+				}
+			}
 
 			metaArgs := []string{"plan-meta", "set", "--id", id}
 			if valueProp != "" {

@@ -166,7 +166,6 @@ export default defineConfig({
         '**/fa-35-*.spec.ts',    // LLM MixedEmbeddingModelError
         '**/fa-36-*.spec.ts',    // Rerank-Endpunkt
         '**/fa-37-*.spec.ts',    // workspace-chat Roundtrip
-        '**/fa-livekit.spec.ts', // LiveKit / Livestream auth-gating
         '**/sa-01-*.spec.ts',    // Transportverschlüsselung (TLS + security headers)
         '**/sa-02-*.spec.ts',    // Authentication (wrong password → Keycloak error)
         '**/sa-03-*.spec.ts',    // Passwörter (Hash, Policy, kein Klartext)

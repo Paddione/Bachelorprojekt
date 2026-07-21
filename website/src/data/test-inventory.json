@@ -360,12 +360,6 @@
     "kind": "playwright"
   },
   {
-    "id": "E2E:fa-livekit",
-    "file": "tests/e2e/specs/fa-livekit.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
     "id": "E2E:fa-m3-onboarding-flow",
     "file": "tests/e2e/specs/fa-m3-onboarding-flow.spec.ts",
     "category": "E2E",
@@ -542,12 +536,6 @@
   {
     "id": "E2E:systemtest-10-externe",
     "file": "tests/e2e/specs/systemtest-10-externe.spec.ts",
-    "category": "E2E",
-    "kind": "playwright"
-  },
-  {
-    "id": "E2E:systemtest-11-livekit",
-    "file": "tests/e2e/specs/systemtest-11-livekit.spec.ts",
     "category": "E2E",
     "kind": "playwright"
   },

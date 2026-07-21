@@ -303,14 +303,6 @@ env_vars:
     validate: "^[a-z0-9.-]+$"
     description: "Public hostname of the OTel collector OTLP ingress (otel.<domain>)"
 
-  - name: LIVEKIT_DOMAIN
-    required: true
-    default_dev: "livekit.localhost"
-
-  - name: LIVEKIT_PIN_IP
-    required: false
-    default_dev: "127.0.0.1"
-
   - name: STREAM_DOMAIN
     required: true
     default_dev: "stream.localhost"
@@ -1044,30 +1036,6 @@ secrets:
     generate: true
     length: 32
     description: "Internal token for the monitoring webhook — random by default."
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
-
-  - name: LIVEKIT_API_KEY
-    required: true
-    generate: true
-    length: 16
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
-
-  - name: LIVEKIT_API_SECRET
-    required: true
-    generate: true
-    length: 32
-    extra_namespaces:
-      - namespace: website
-        secret: website-secrets
-
-  - name: LIVEKIT_RTMP_KEY
-    required: true
-    generate: true
-    length: 16
     extra_namespaces:
       - namespace: website
         secret: website-secrets

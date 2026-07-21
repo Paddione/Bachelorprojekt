@@ -33,7 +33,6 @@ data:
   BRAINSTORM_DOMAIN: "brainstorm.localhost"
   AI_DOMAIN: "ai.localhost"
   OTEL_DOMAIN: "otel.localhost"
-  LIVEKIT_DOMAIN: "livekit.localhost"
   STREAM_DOMAIN: "stream.localhost"
   MEDIAVIEWER_HOST: "mediaviewer.localhost"
   TERMINAL_HOST: "terminal.localhost"

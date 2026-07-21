@@ -52,8 +52,6 @@ resources:
   - cronjob-monthly-billing.yaml
   - cronjob-dunning-detection.yaml
   - einvoice-sidecar.yaml
-  # LiveKit — self-hosted WebRTC livestreaming
-  - livekit.yaml
   # Systemisches Brett
   - brett.yaml
   # mentolder.de React-Site (react.mentolder.de / react.localhost)

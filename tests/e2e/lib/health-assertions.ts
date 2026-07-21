@@ -25,6 +25,8 @@ export interface ReachableOpts {
   allow404AsNotDeployed?: boolean;
   /** Label for the service in error messages (e.g. "DocuSeal") */
   label?: string;
+  /** HTTP method (default: GET) */
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD';
 }
 
 export interface HealthResult {
@@ -77,7 +79,12 @@ export async function assertReachable(
 
   let res: APIResponse;
   try {
-    res = await request.get(url, { timeout });
+    const method = (opts.method || 'GET').toLowerCase() as 'get' | 'post';
+    if (method === 'post') {
+      res = await request.post(url, { timeout });
+    } else {
+      res = await request.get(url, { timeout });
+    }
   } catch (err: any) {
     const detail = err?.message || String(err);
     skipOrFail(testInfo, `${label}: request failed — ${detail}`);

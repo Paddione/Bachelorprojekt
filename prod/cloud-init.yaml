@@ -126,13 +126,6 @@ runcmd:
   - ufw allow 21117/tcp     # RustDesk hbbr relay
   - ufw allow from 10.20.0.0/16 to any port 21118,21119 proto tcp  # RustDesk web-client (hbbs/hbbr WS) — wg-fleet overlay only, never public
   - ufw allow 2379:2380/tcp
-  # LiveKit ports — Hetzner host firewall blocks inter-node traffic on every
-  # port except 80/443 by default. Without these the host-network livekit-server
-  # pod is unreachable from Traefik on other nodes (see k3d/livekit.yaml).
-  - ufw allow 7880/tcp     # LiveKit signaling (HTTP/WS)
-  - ufw allow 7881/tcp     # LiveKit RTC TCP fallback
-  - ufw allow 50000:60000/udp  # LiveKit RTC media range
-  - ufw allow 30000:40000/udp  # LiveKit TURN relay range
   # ── dev.mentolder.de — sish SSH (2222/tcp) ─────────────────────────
   # Deny-by-default. Explicit allow rules are applied per-CIDR from
   # DEV_SSH_ALLOWLIST by `task dev:firewall:open` (Taskfile.dev-stack.yml)

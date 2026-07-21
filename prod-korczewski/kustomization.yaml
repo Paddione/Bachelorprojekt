@@ -83,11 +83,6 @@ patches:
       metadata:
         name: workspace-ingress-brain
 
-  # livekit-recordings-pvc uses the base manifest's storage class (local-path),
-  # tied to the livekit pin-node (pk-hetzner-6). Acceptable because livekit-* are
-  # pinned to that node anyway via patch-livekit.yaml. (Longhorn IS available on
-  # fleet — see patch-data-pvc-storage.yaml — but livekit recordings stay local.)
-  - path: patch-livekit.yaml
   # Brain (T001569) is mentolder-only — exclude all brain resources via
   # $patch: delete. Inline `target:` form (not a single multi-document
   # `path:` file — CI's kubectl v1.31.0 bundles kustomize v5.4.2, which

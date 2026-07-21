@@ -1,44 +1,16 @@
 <!-- website/src/components/LiveStream/StreamHandRaise.svelte -->
 <script lang="ts">
-  import type { Room } from 'livekit-client';
-  import { RoomEvent } from 'livekit-client';
-
-  let { room, isHost = false }: { room: Room; isHost?: boolean } = $props();
+  let { _room = null, isHost = false }: { _room?: unknown; isHost?: boolean } = $props();
 
   let raised = $state(false);
   type RaiseRequest = { userId: string; userName: string };
   let queue = $state<RaiseRequest[]>([]);
 
-  $effect(() => {
-    const handler = (payload: Uint8Array) => {
-      const msg = JSON.parse(new TextDecoder().decode(payload));
-      if (msg.type === 'raise') {
-        if (isHost) {
-          queue = [...queue.filter(r => r.userId !== msg.userId), { userId: msg.userId, userName: msg.userName }];
-        }
-      }
-      if (msg.type === 'lower') {
-        queue = queue.filter(r => r.userId !== msg.userId);
-      }
-    };
-    room.on(RoomEvent.DataReceived, handler);
-    return () => { room.off(RoomEvent.DataReceived, handler); };
-  });
-
   function toggleRaise() {
     raised = !raised;
-    const type = raised ? 'raise' : 'lower';
-    const payload = new TextEncoder().encode(JSON.stringify({
-      type,
-      userId: room.localParticipant.identity,
-      userName: room.localParticipant.name ?? 'Unbekannt',
-    }));
-    room.localParticipant.publishData(payload, { reliable: true });
   }
 
   function grantMic(userId: string) {
-    const payload = new TextEncoder().encode(JSON.stringify({ type: 'grant', userId }));
-    room.localParticipant.publishData(payload, { reliable: true });
     queue = queue.filter(r => r.userId !== userId);
   }
 </script>

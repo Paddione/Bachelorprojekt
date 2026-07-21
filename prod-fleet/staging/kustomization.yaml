@@ -33,40 +33,6 @@ patches:
       apiVersion: cert-manager.io/v1
       kind: Certificate
       metadata: { name: workspace-wildcard }
-  # ── LiveKit disable — hostNetwork slot on pk-hetzner-4 is occupied by prod
-  #     mentolder's livekit-server. Scale staging LiveKit to 0 to avoid Pending.
-  - target: { group: apps, version: v1, kind: Deployment, name: livekit-server }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: livekit-server
-      spec:
-        replicas: 0
-  - target: { group: apps, version: v1, kind: Deployment, name: livekit-ingress-rtmp }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: livekit-ingress-rtmp
-      spec:
-        replicas: 0
-  - target: { group: apps, version: v1, kind: Deployment, name: livekit-ingress-whip }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: livekit-ingress-whip
-      spec:
-        replicas: 0
-  - target: { group: apps, version: v1, kind: Deployment, name: livekit-egress }
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: livekit-egress
-      spec:
-        replicas: 0
   # ── Node-affinity repoints for fleet pk nodes ──
   #     Most workloads schedule fine via NotIn on home workers (from prod-mentolder).
   #     whisper needs a fleet node (no GPU, but at least schedules instead of Pending).

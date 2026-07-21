@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1920 Abhängigkeitskanten · 409 API-Endpoints
+88 Services · 1668 Abhängigkeitskanten · 408 API-Endpoints
 
 ## Service-Map
 
@@ -38,10 +38,6 @@ flowchart LR
   knowledge_ingest_markdown["knowledge-ingest-markdown"]:::default
   knowledge_ingest_bugs["knowledge-ingest-bugs"]:::default
   knowledge_reindex_all["knowledge-reindex-all"]:::default
-  livekit_redis["livekit-redis"]:::default
-  livekit_server["livekit-server"]:::default
-  livekit_ingress["livekit-ingress"]:::default
-  livekit_egress["livekit-egress"]:::default
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
   mentolder_web["mentolder-web"]:::default
@@ -133,13 +129,8 @@ flowchart LR
   knowledge_ingest_bugs -->|"PGDATABASE"| website
   knowledge_reindex_all -->|"PGHOST"| shared_db
   knowledge_reindex_all -->|"PGDATABASE"| website
-  livekit_server -->|"configmap:livekit-…"| livekit
-  livekit_server -->|"configmap:livekit-…"| coturn
-  livekit_ingress -->|"INGRESS_CONFIG_BODY"| livekit_server
-  livekit_egress -->|"EGRESS_CONFIG_BODY"| livekit_server
   nextcloud -->|"SMTP_HOST"| mailpit
   nextcloud -->|"configmap:domain-c…"| brett
-  nextcloud -->|"configmap:domain-c…"| livekit
   nextcloud -->|"configmap:domain-c…"| traefik
   nextcloud -->|"configmap:nextclou…"| spreed_signaling
   notify_unread -->|"command"| website
@@ -147,7 +138,6 @@ flowchart LR
   oauth2_proxy_traefik -->|"command"| traefik
   pocket_id -->|"DB_CONNECTION_STRING"| shared_db
   pocket_id -->|"configmap:domain-c…"| brett
-  pocket_id -->|"configmap:domain-c…"| livekit
   pocket_id -->|"configmap:domain-c…"| traefik
   pvc_backup -->|"command"| nextcloud
   pvc_backup -->|"command"| vaultwarden
@@ -169,14 +159,11 @@ flowchart LR
   vaultwarden -->|"DATABASE_URL"| shared_db
   vaultwarden -->|"SMTP_HOST"| mailpit
   vaultwarden -->|"configmap:domain-c…"| brett
-  vaultwarden -->|"configmap:domain-c…"| livekit
   vaultwarden -->|"configmap:domain-c…"| traefik
   videovault -->|"DATABASE_URL"| shared_db
   website -->|"SESSIONS_DATABASE_…"| shared_db
-  website -->|"LIVEKIT_SERVICE_URL"| livekit_server
   website -->|"configmap:website-…"| nextcloud
   website -->|"configmap:website-…"| brett
-  website -->|"configmap:website-…"| livekit
   website -->|"configmap:domain-c…"| traefik
   whiteboard -->|"NEXTCLOUD_URL"| nextcloud
   tls_sync -->|"command"| coturn
@@ -208,7 +195,6 @@ flowchart LR
   traefik -->|"ingress"| oauth2_proxy_studio
   traefik -->|"ingress"| oauth2_proxy_rustdesk_web
   traefik -->|"ingress"| oauth2_proxy_terminal
-  traefik -->|"ingress"| livekit_server
   traefik -->|"ingress"| oauth2_proxy_mailpit
   traefik -->|"ingress"| mailpit
   traefik -->|"ingress"| monitoring_grafana
@@ -279,12 +265,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| admin_actions_cleanup
-  admin_actions_cleanup -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| admin_actions_cleanup
-  admin_actions_cleanup -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| admin_actions_cleanup
-  admin_actions_cleanup -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| admin_actions_cleanup
   admin_actions_cleanup -->|"secret:workspace-s…"| notify_unread
@@ -358,12 +338,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| admin_actions_prune
-  admin_actions_prune -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| admin_actions_prune
-  admin_actions_prune -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| admin_actions_prune
-  admin_actions_prune -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| admin_actions_prune
   admin_actions_prune -->|"secret:workspace-s…"| notify_unread
@@ -435,12 +409,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| sessions_purge
-  sessions_purge -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| sessions_purge
-  sessions_purge -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| sessions_purge
-  sessions_purge -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| sessions_purge
   sessions_purge -->|"secret:workspace-s…"| notify_unread
@@ -511,12 +479,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| db_backup
-  db_backup -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| db_backup
-  db_backup -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| db_backup
-  db_backup -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| db_backup
   nextcloud -->|"secret:workspace-s…"| db_backup
   db_backup -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| db_backup
@@ -582,12 +544,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| brett
-  brett -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| brett
-  brett -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| brett
-  brett -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| brett
   brett -->|"secret:workspace-s…"| nextcloud
   brett -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| brett
@@ -648,12 +604,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| billing_dunning_detection
-  billing_dunning_detection -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| billing_dunning_detection
-  billing_dunning_detection -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| billing_dunning_detection
-  billing_dunning_detection -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| billing_dunning_detection
   billing_dunning_detection -->|"secret:workspace-s…"| notify_unread
@@ -718,12 +668,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| monthly_billing
-  monthly_billing -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| monthly_billing
-  monthly_billing -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| monthly_billing
-  monthly_billing -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| monthly_billing
   monthly_billing -->|"secret:workspace-s…"| notify_unread
@@ -786,12 +730,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| scheduled_publish
-  scheduled_publish -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| scheduled_publish
-  scheduled_publish -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| scheduled_publish
-  scheduled_publish -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| scheduled_publish
   scheduled_publish -->|"secret:workspace-s…"| notify_unread
@@ -852,12 +790,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| oauth2_proxy_dev
-  oauth2_proxy_dev -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_dev
-  oauth2_proxy_dev -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_dev
-  oauth2_proxy_dev -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_dev
   oauth2_proxy_dev -->|"secret:workspace-s…"| notify_unread
@@ -916,12 +848,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| error_log_retention
-  error_log_retention -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| error_log_retention
-  error_log_retention -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| error_log_retention
-  error_log_retention -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| error_log_retention
   error_log_retention -->|"secret:workspace-s…"| notify_unread
@@ -978,12 +904,6 @@ flowchart LR
   knowledge_ingest_bugs -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| knowledge_ingest_prs
-  knowledge_ingest_prs -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| knowledge_ingest_prs
-  knowledge_ingest_prs -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| knowledge_ingest_prs
-  knowledge_ingest_prs -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_prs -->|"secret:workspace-s…"| notify_unread
@@ -1037,12 +957,6 @@ flowchart LR
   ddns_updater -->|"secret:workspace-s…"| knowledge_ingest_prs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| knowledge_ingest_bugs
-  knowledge_ingest_bugs -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| knowledge_ingest_bugs
-  knowledge_ingest_bugs -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| knowledge_ingest_bugs
-  knowledge_ingest_bugs -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| notify_unread
@@ -1094,12 +1008,6 @@ flowchart LR
   talk_transcriber -->|"secret:workspace-s…"| knowledge_ingest_bugs
   knowledge_ingest_bugs -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| knowledge_ingest_bugs
-  knowledge_reindex_all -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| knowledge_reindex_all
-  knowledge_reindex_all -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| knowledge_reindex_all
-  knowledge_reindex_all -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| notify_unread
@@ -1151,166 +1059,6 @@ flowchart LR
   talk_transcriber -->|"secret:workspace-s…"| knowledge_reindex_all
   knowledge_reindex_all -->|"secret:workspace-s…"| ddns_updater
   ddns_updater -->|"secret:workspace-s…"| knowledge_reindex_all
-  livekit_server -->|"secret:workspace-s…"| livekit_ingress
-  livekit_server -->|"secret:workspace-s…"| livekit_egress
-  livekit_server -->|"secret:workspace-s…"| nextcloud
-  nextcloud -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| notify_unread
-  notify_unread -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_brett
-  oauth2_proxy_brett -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_comfy
-  oauth2_proxy_comfy -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_downloads
-  oauth2_proxy_downloads -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_mailpit
-  oauth2_proxy_mailpit -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
-  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
-  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_studio
-  oauth2_proxy_studio -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_terminal
-  oauth2_proxy_terminal -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_traefik
-  oauth2_proxy_traefik -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_videovault
-  oauth2_proxy_videovault -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| pocket_id
-  pocket_id -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| oauth2_proxy_recovery
-  oauth2_proxy_recovery -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| shared_db
-  shared_db -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| studio_server
-  studio_server -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| spreed_signaling
-  spreed_signaling -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| talk_recording
-  talk_recording -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| vaultwarden
-  vaultwarden -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| videovault
-  videovault -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| whiteboard
-  whiteboard -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| dev_db_refresh
-  dev_db_refresh -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| talk_transcriber
-  talk_transcriber -->|"secret:workspace-s…"| livekit_server
-  livekit_server -->|"secret:workspace-s…"| ddns_updater
-  ddns_updater -->|"secret:workspace-s…"| livekit_server
-  livekit_ingress -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| nextcloud
-  nextcloud -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| notify_unread
-  notify_unread -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_brett
-  oauth2_proxy_brett -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_comfy
-  oauth2_proxy_comfy -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_downloads
-  oauth2_proxy_downloads -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_mailpit
-  oauth2_proxy_mailpit -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
-  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
-  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_studio
-  oauth2_proxy_studio -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_terminal
-  oauth2_proxy_terminal -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_traefik
-  oauth2_proxy_traefik -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_videovault
-  oauth2_proxy_videovault -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| pocket_id
-  pocket_id -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| oauth2_proxy_recovery
-  oauth2_proxy_recovery -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| shared_db
-  shared_db -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| studio_server
-  studio_server -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| spreed_signaling
-  spreed_signaling -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| talk_recording
-  talk_recording -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| vaultwarden
-  vaultwarden -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| videovault
-  videovault -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| whiteboard
-  whiteboard -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| dev_db_refresh
-  dev_db_refresh -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| talk_transcriber
-  talk_transcriber -->|"secret:workspace-s…"| livekit_ingress
-  livekit_ingress -->|"secret:workspace-s…"| ddns_updater
-  ddns_updater -->|"secret:workspace-s…"| livekit_ingress
-  livekit_egress -->|"secret:workspace-s…"| nextcloud
-  nextcloud -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| notify_unread
-  notify_unread -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_brain
-  oauth2_proxy_brain -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_brett
-  oauth2_proxy_brett -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_comfy
-  oauth2_proxy_comfy -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_docs
-  oauth2_proxy_docs -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_downloads
-  oauth2_proxy_downloads -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_mailpit
-  oauth2_proxy_mailpit -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_mediaviewer
-  oauth2_proxy_mediaviewer -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_rustdesk_web
-  oauth2_proxy_rustdesk_web -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_studio
-  oauth2_proxy_studio -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_terminal
-  oauth2_proxy_terminal -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_traefik
-  oauth2_proxy_traefik -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_videovault
-  oauth2_proxy_videovault -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| pocket_id
-  pocket_id -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| oauth2_proxy_recovery
-  oauth2_proxy_recovery -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| shared_db
-  shared_db -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| studio_server
-  studio_server -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| spreed_signaling
-  spreed_signaling -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| talk_recording
-  talk_recording -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| vaultwarden
-  vaultwarden -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| videovault
-  videovault -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| whiteboard
-  whiteboard -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| dev_db_refresh
-  dev_db_refresh -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| talk_transcriber
-  talk_transcriber -->|"secret:workspace-s…"| livekit_egress
-  livekit_egress -->|"secret:workspace-s…"| ddns_updater
-  ddns_updater -->|"secret:workspace-s…"| livekit_egress
   nextcloud -->|"secret:workspace-s…"| notify_unread
   notify_unread -->|"secret:workspace-s…"| nextcloud
   nextcloud -->|"secret:workspace-s…"| oauth2_proxy_brain
@@ -1991,10 +1739,6 @@ flowchart TB
     knowledge_ingest_markdown(["knowledge-ingest-markdown"])
     knowledge_ingest_bugs(["knowledge-ingest-bugs"])
     knowledge_reindex_all(["knowledge-reindex-all"])
-    livekit_redis["livekit-redis"]
-    livekit_server["livekit-server"]
-    livekit_ingress["livekit-ingress"]
-    livekit_egress["livekit-egress"]
     mailpit["mailpit"]
     mediaviewer_widget["mediaviewer-widget"]
     mentolder_web["mentolder-web"]
@@ -2493,7 +2237,6 @@ flowchart TB
 | `/api/stream/end` | POST | 🔐 admin |
 | `/api/stream/recording` | POST | 🔐 admin |
 | `/api/stream/status` | GET | ❓ unclassified |
-| `/api/stream/token` | POST | 🔐 admin |
 | `/api/stripe/checkout` | POST | ❓ unclassified |
 | `/api/stripe/invoice-payment-intent` | POST | ❓ unclassified |
 | `/api/stripe/webhook` | POST | ❓ unclassified |

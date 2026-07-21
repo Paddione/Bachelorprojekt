@@ -82,8 +82,6 @@ data:
   # Brett
   BRETT_DOMAIN: "${BRETT_DOMAIN}"
   BRETT_INTERNAL_URL: "http://brett.${WORKSPACE_NAMESPACE}.svc.cluster.local:3000"
-  # LiveKit
-  LIVEKIT_DOMAIN: "livekit.${PROD_DOMAIN}"
   STREAM_DOMAIN: "stream.${PROD_DOMAIN}"
   # Arena (last-man-standing game server; same host on both brands — mentolder only)
   ARENA_WS_URL: "${ARENA_WS_URL}"
@@ -349,28 +347,11 @@ spec:
                 configMapKeyRef:
                   name: website-config
                   key: STREAM_DOMAIN
-            - name: LIVEKIT_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: LIVEKIT_API_KEY
-            - name: LIVEKIT_API_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: LIVEKIT_API_SECRET
-            - name: LIVEKIT_RTMP_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: website-secrets
-                  key: LIVEKIT_RTMP_KEY
             - name: INTERNAL_API_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: website-secrets
                   key: INTERNAL_API_TOKEN
-            - name: LIVEKIT_SERVICE_URL
-              value: "http://livekit-server.${WORKSPACE_NAMESPACE}.svc.cluster.local:7880"
             - name: ARENA_WS_URL
               valueFrom:
                 configMapKeyRef:
@@ -382,10 +363,6 @@ spec:
                   name: website-secrets
                   key: IPV64_API_KEY
                   optional: true
-            - name: LIVEKIT_PIN_IP_MENTOLDER
-              value: "204.168.244.104"
-            - name: LIVEKIT_PIN_IP_KORCZEWSKI
-              value: "37.27.251.38"
             - name: ANTHROPIC_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -752,25 +729,6 @@ spec:
         cidr: 10.43.0.0/16
 ---
 
-# LiveKit management port: kube-router enforces egress NetworkPolicies AFTER iptables DNAT.
-# livekit-server uses hostNetwork so its endpoint IP is the node IP (not in pod/service CIDR).
-# Allowing port 7880 by port (not destination) covers the post-DNAT node IP.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-livekit-management-egress
-  namespace: ${WEBSITE_NAMESPACE}
-  labels:
-    app: website
-spec:
-  podSelector: {}
-  policyTypes:
-  - Egress
-  egress:
-  - ports:
-    - port: 7880
-      protocol: TCP
----
 
 # SMTP Egress: Website-Pod darf externen SMTP-Server erreichen (Mailpit dev / mailbox.org prod)
 apiVersion: networking.k8s.io/v1

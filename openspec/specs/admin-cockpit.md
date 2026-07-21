@@ -983,3 +983,73 @@ The Platform Control Center SHALL be visually consistent with the Cockpit: the p
 - **AND** no raw `bg-gray-*`, `text-gray-*`, `text-green-*`, `text-yellow-*`, or `text-red-*` color utilities remain in `LogsTab.svelte` or `DienstTab.svelte`
 
 <!-- merged from change delta admin-cockpit.md on 2026-07-02 -->
+
+<!-- consolidated from micro-spec admin-content-db [T002014] -->
+
+### Requirement: Content-DB-Übersichtsseite
+Das Admin-System MUSS eine Seite `/admin/content-db` bereitstellen, die alle schriftlichen Content-Assets in einer aggregierten Ansicht zeigt: Fragebögen-Templates, Vorlagen (Knowledge Templates) und Verträge (DocuSeal Templates).
+
+#### Scenario: Alle Content-Typen sichtbar
+- **WHEN** the admin navigates to `/admin/content-db`
+- **THEN** they see a list/table containing entries from all three sources (questionnaire templates, vorlagen, contracts) with type badges
+
+#### Scenario: Filter nach Typ
+- **WHEN** the admin selects a type filter (e.g. "Fragebögen")
+- **THEN** only entries of that type are shown
+
+#### Scenario: Link zu Detail-Page
+- **WHEN** the admin clicks an entry in the Content-DB
+- **THEN** they are navigated to the respective detail/edit page for that content type
+
+### Requirement: Content-DB ohne DB-Schema-Änderung
+Die Content-DB-Seite MUSS Daten aus drei bestehenden Quellen aggregieren ohne DB-Schema-Änderungen: `questionnaire-db.ts`, `website-db.ts` (templates), und DocuSeal API.
+
+#### Scenario: Parallele Daten-Aggregation
+- **WHEN** the `/admin/content-db` page loads
+- **THEN** data is fetched from all three sources in parallel and merged into a single list
+
+<!-- consolidated from micro-spec admin-nav-accordion [T002014] -->
+
+### Requirement: Werkstatt-Akkordeon in Admin-Sidebar
+Die Admin-Sidebar MUSS alle Werkstatt-Tools (Content Hub, Wissensbasis, Assets, 3D Generator, App-Katalog, KI-Konfig., Prompts, Systemtest, Content-DB) hinter einem einzigen aufklappbaren Akkordeon-Button gruppieren. Der Button trägt das Label "Werkstatt".
+
+#### Scenario: Akkordeon standardmäßig zugeklappt
+- **WHEN** the admin loads any page not matching a Werkstatt sub-path
+- **THEN** the Werkstatt accordion is collapsed and sub-items are not visible
+
+#### Scenario: Akkordeon aufgeklappt bei aktivem Pfad
+- **WHEN** the admin navigates to any Werkstatt sub-path (e.g. `/admin/inhalte`, `/admin/content-db`)
+- **THEN** the Werkstatt accordion starts expanded so the active item is visible
+
+#### Scenario: Toggle-Verhalten
+- **WHEN** the admin clicks the "Werkstatt" accordion button
+- **THEN** the sub-items toggle between visible and hidden
+
+### Requirement: Akkordeon ohne Framework-Abhängigkeit
+Das Akkordeon MUSS ohne Svelte-Island implementiert werden — nur via `<script>`-Block in `AdminSidebarNav.astro` mit `classList.toggle`.
+
+#### Scenario: Kein Hydration-Overhead
+- **WHEN** the admin sidebar is rendered
+- **THEN** no Svelte hydration script is loaded for the accordion behavior
+
+### Requirement: Sessions-Eintrag in Sidebar-Sektion Geschäft
+
+The admin sidebar SHALL expose a dedicated "Sessions" nav item in the
+"Geschäft" section that links to `/admin/coaching/sessions` and is highlighted
+active on that path. The existing "Studio" nav item MUST NOT claim
+`/admin/coaching/sessions` in its `matches` array, so only one item is marked
+active on the session list path.
+
+#### Scenario: Sessions item highlights on the session list
+
+- **GIVEN** an admin viewing `/admin/coaching/sessions`
+- **WHEN** the sidebar renders
+- **THEN** the "Sessions" item in the "Geschäft" section is marked active
+- **AND** the "Studio" item is not marked active
+
+#### Scenario: Studio item highlights on its own paths
+
+- **GIVEN** an admin viewing `/admin/coaching/studio`
+- **WHEN** the sidebar renders
+- **THEN** the "Studio" item is marked active
+- **AND** the "Sessions" item is not marked active

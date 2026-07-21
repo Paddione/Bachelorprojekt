@@ -193,3 +193,45 @@ setup() {
   run grep -E 'spawnOfflineNotice' "${SRC}/client/ui/fig-panel.ts"
   [ "$status" -eq 0 ]
 }
+
+# ── T002050: fig-panel edge-drawer + whole-figure drag & 360° rotation ───────
+
+@test "T002050: figure-drag.ts exists and exports body/rotation helpers" {
+  [ -s "${SRC}/client/figure-drag.ts" ]
+  run grep -E 'export function edgeTabVisible\b' "${SRC}/client/figure-drag.ts"
+  [ "$status" -eq 0 ]
+  run grep -E 'export function rotateFacing\b' "${SRC}/client/figure-drag.ts"
+  [ "$status" -eq 0 ]
+  run grep -E 'export function applyGrabOffset\b' "${SRC}/client/figure-drag.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002050: state.ts dragging supports body and rotate drag kinds" {
+  run grep -E "kind: 'body'" "${SRC}/client/state.ts"
+  [ "$status" -eq 0 ]
+  run grep -E "kind: 'rotate'" "${SRC}/client/state.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002050: fig-panel auto-closes on addFigure and syncs the edge-tab" {
+  run grep -E 'syncEdgeTab' "${SRC}/client/ui/fig-panel.ts"
+  [ "$status" -eq 0 ]
+  run grep -E 'closeFigPanel\(\)' "${SRC}/client/ui/fig-panel.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002050: index.html adds the edge-tab and rotation slider" {
+  run grep -E 'id="fig-panel-edge-tab"' "${BRETT}/public/index.html"
+  [ "$status" -eq 0 ]
+  run grep -E '#fig-panel-edge-tab' "${BRETT}/public/index.html"
+  [ "$status" -eq 0 ]
+  run grep -E 'id="fig-rotate-slider"' "${BRETT}/public/index.html"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002050: board-boot delegates figure drag/rotate to figure-drag module" {
+  run grep -E "from './figure-drag'" "${SRC}/client/board-boot.ts"
+  [ "$status" -eq 0 ]
+  run grep -E 'initFigureDrag' "${SRC}/client/board-boot.ts"
+  [ "$status" -eq 0 ]
+}

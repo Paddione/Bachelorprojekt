@@ -43,14 +43,34 @@
     }
     #fig-panel-btn:hover, #fig-panel-btn.open { background: rgba(231,234,208,0.12); }
 
+    /* T002050: fig-panel is a viewport-edge drawer (fixed, not anchored to the
+       ＋Figur button) so the contextual edge-tab can open it from anywhere on
+       the board while a figure is selected. */
     #fig-panel {
-      position: absolute; top: calc(100% + 8px); right: 0;
+      position: fixed; top: 44px; right: 12px;
       z-index: 200;
       background: var(--brett-surface, #101826); border: 1px solid var(--brett-line-2, rgba(255,255,255,0.12));
       border-radius: 10px; padding: 12px 14px;
-      width: 240px; display: flex; flex-direction: column; gap: 10px;
+      width: 240px; max-height: calc(100vh - 60px); overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.6);
     }
+
+    /* T002050: edge-tab — shown when a figure is selected but the drawer is
+       closed; clicking it re-opens the drawer without hunting for the topbar
+       ＋Figur button. */
+    #fig-panel-edge-tab {
+      position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+      z-index: 199;
+      background: var(--brett-brass, oklch(0.80 0.09 75)); color: var(--brett-ink-900, #0b111c);
+      border: none; border-radius: 8px 0 0 8px;
+      padding: 10px 6px; font-size: 11px; font-weight: 600;
+      writing-mode: vertical-rl; text-orientation: mixed;
+      cursor: pointer; box-shadow: -2px 0 10px rgba(0,0,0,0.35);
+    }
+    #fig-panel-edge-tab:hover { filter: brightness(1.1); }
+
+    #fig-rotate-slider { width: 100%; accent-color: #c8a96e; }
 
     #fig-panel-header {
       display: flex; justify-content: space-between; align-items: center;
@@ -140,6 +160,14 @@
       #topbar::-webkit-scrollbar { display: none; }
       #stiffness { width: 90px; }
       #status-pill { font-size: 11px; padding: 6px 10px; }
+      /* T002050: edge-drawer fits narrow viewports — reduced width, bottom-anchored
+         above the status pill instead of spanning most of the screen height. */
+      #fig-panel {
+        top: auto; bottom: 64px; right: 6px;
+        width: min(200px, calc(100vw - 12px));
+        max-height: calc(100vh - 120px);
+      }
+      #fig-panel-edge-tab { padding: 8px 5px; font-size: 10px; }
     }
 
     /* ── Appearance Drawer ─────────────────────────────── */
@@ -360,6 +388,8 @@
             <input type="range" id="fig-scale-slider" min="0.3" max="2.5" step="0.05" value="1.0" />
             <span id="fig-scale-val">1.0×</span>
           </div>
+          <span class="fig-panel-label" data-i18n-skip>Drehung</span>
+          <input id="fig-rotate-slider" type="range" min="0" max="360" step="1" value="0" />
           <span class="fig-panel-label">Personen</span>
           <div id="fig-panel-persons" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;"></div>
           <span class="fig-panel-label">Name</span>
@@ -372,6 +402,7 @@
           <button id="fig-panel-add">＋ Klick auf Brett zum Platzieren</button>
         </div>
       </div>
+      <button id="fig-panel-edge-tab" hidden aria-controls="fig-panel">Figur bearbeiten</button>
       <button id="appearance-btn" disabled title="Aussehen bearbeiten">✦ Aussehen</button>
       <div id="topbar-filter-slot"></div>
       <div id="topbar-participants-slot"></div>

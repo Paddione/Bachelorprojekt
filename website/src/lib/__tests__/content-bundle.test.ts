@@ -32,6 +32,6 @@ describe('content-bundle', () => {
     // now the git-tracked SSOT for this field — pin the value so any
     // future re-export (or manual edit) that loses it fails CI.
     const hp = loadDomain('mentolder', 'homepage');
-    expect(hp.avatarSrc).toBe('/gerald.jpg');
+    expect(hp.avatarSrc).toBe('/gerald.webp');
   });
 });

@@ -31,13 +31,13 @@ CHANGED=false
 
 # 1. Schema audit: check ${VAR} refs in manifests vs schema.yaml
 SCHEMA_VARS=$(grep -E '^\s+- name: ' environments/schema.yaml | sed 's/.*name: //' | sort -u)
-UNREGISTERED=$(grep -rnoP '\$\{([A-Z_][A-Z0-9_]*)\}' k3d/ prod-fleet/ --include='*.yaml' --include='*.yml' 2>/dev/null | sed 's/.*${\([A-Z_][A-Z0-9_]*\)}.*/\1/' | sort -u | while read var; do
+UNREGISTERED=$(grep -rnoP '\$\{([A-Z_][A-Z0-9_]*)\}' k3d/ prod-fleet/ prod-mentolder/ prod-korczewski/ --include='*.yaml' --include='*.yml' 2>/dev/null | sed 's/.*${\([A-Z_][A-Z0-9_]*\)}.*/\1/' | sort -u | while read var; do
   if ! echo "$SCHEMA_VARS" | grep -qx "$var"; then
     echo "$var"
   fi
 done)
 
-NEW_MISSING=$(echo "$UNREGISTERED" | grep -v -E '^(API|ARCH|ARENA_WS_URL|AUTH|BACKUP_DIR|BRAND|CLIENTS_INTERNALSECRET|COLLABORA_INGRESS_MIDDLEWARES|COLLABORA_INGRESS_MIDDLEWARES_2|COLLABORA_TLS_SECRET_2|DOCS|DUMP|FAILED|FILEN_DEFAULT_UPLOAD_PATH|FILEN_PATH|KC|LABEL|MOUNTER|NC|OFFICE|OUT|PASS|SCHEME|SESSION_BLOCKKEY|SESSION_HASHKEY|SIZE|SRC|STAMP|SUFFIX|TURN_APIKEY|UPLOAD_PATH|VAR|VW_AFFINITY|VW_CLAIM|WEB)$' || true)
+NEW_MISSING=$(echo "$UNREGISTERED" | grep -v -E '^(API|ARCH|ARENA_WS_URL|AUTH|BACKUP_DIR|BRAND|CLIENTS_INTERNALSECRET|COLLABORA_INGRESS_MIDDLEWARES|COLLABORA_INGRESS_MIDDLEWARES_2|COLLABORA_TLS_SECRET_2|DOCS|DOMAIN|DUMP|FAILED|FILEN_DEFAULT_UPLOAD_PATH|FILEN_PATH|IP|IP_4|IP_6|IP_8|KC|KSA_DIR|LABEL|MOUNTER|NC|OFFICE|OUT|PASS|POCKET_ID_SMTP_TLS|SCHEME|SESSION_BLOCKKEY|SESSION_HASHKEY|SIZE|SRC|STAMP|STATUS|SUFFIX|TURN_APIKEY|UPLOAD_PATH|VAR|VW_AFFINITY|VW_CLAIM|WEB|WEBSITE_PRIMARY_SERVICE)$' || true)
 
 if [ -n "$NEW_MISSING" ]; then
   echo "New unregistered vars found: $NEW_MISSING"

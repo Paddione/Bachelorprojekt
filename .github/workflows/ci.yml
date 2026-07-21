@@ -459,7 +459,10 @@ jobs:
   commit-lint:
     name: Conventional Commits
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # 5min was too tight for the full-history checkout below on a repo with
+    # many short-lived feature/chore branches — observed cancellations
+    # ("The operation was canceled") mid-fetch on PR #3029 [T002049].
+    timeout-minutes: 15
     if: github.event_name == 'pull_request'
     steps:
       # Checkout IS needed here despite the PR-title check above being pure

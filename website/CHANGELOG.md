@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.195.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.195.0...website-v1.195.1) (2026-07-21)
+
+
+### CI/CD
+
+* add fetch-tags: false to all checkout steps to speed up CI runs ([#3012](https://github.com/Paddione/Bachelorprojekt/issues/3012)) ([b2a757e](https://github.com/Paddione/Bachelorprojekt/commit/b2a757e137a697797a4732be1adc09b911bf2b0c))
+
 ## [1.195.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.194.0...website-v1.195.0) (2026-07-21)
 
 

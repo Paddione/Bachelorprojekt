@@ -38,15 +38,15 @@ test.describe('AK-03: Technische Machbarkeit', () => {
     await expect(page.locator('body')).not.toContainText('503 Service Unavailable');
   });
 
-  test('T3e: Im Browser — Keycloak-Login-Seite rendert', async ({ page }) => {
+  test('T3e: Im Browser — Pocket-ID-Login-Seite rendert', async ({ page }) => {
     const KC_URL =
       process.env.KEYCLOAK_URL ??
       (process.env.PROD_DOMAIN
         ? `https://auth.${process.env.PROD_DOMAIN}`
         : 'http://auth.localhost');
-    await page.goto(`${KC_URL}/realms/workspace/account`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${KC_URL}/login`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('body')).toBeVisible();
-    // Keycloak redirects to its login page — verify it's a Keycloak page (not an error)
+    // Pocket ID redirects to its login page — verify it's a Pocket ID page (not an error)
     await expect(page.locator('body')).not.toContainText('502 Bad Gateway');
   });
 

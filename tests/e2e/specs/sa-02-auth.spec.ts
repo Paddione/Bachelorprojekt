@@ -12,7 +12,7 @@ test.describe('SA-02: Authentifizierung — Browser (Pocket ID)', () => {
     // Pocket ID's login form lives at /login (or /authorize — depends on the
     // client config). We assert we left the website origin and landed on
     // an id.* / Pocket ID page.
-    await expect(page).toHaveURL(/id\.|pocket-id/, { timeout: 60_000 });
+    await expect(page).toHaveURL(/authorize/, { timeout: 60_000 });
 
     // Pocket ID uses standard form fields; the passkey-first flow may
     // present a "Sign in with passkey" button. Click whichever credential
@@ -40,8 +40,8 @@ test.describe('SA-02: Authentifizierung — Browser (Pocket ID)', () => {
     await page.goto(`${baseURL}/login`);
 
     // /login redirects directly to Pocket ID (force-SSO) — verify by
-    // matching the Pocket ID origin (id.<domain>) or cluster service.
-    await expect(page).toHaveURL(/id\.|pocket-id/, { timeout: 60_000 });
+    // matching the Pocket ID authorize endpoint.
+    await expect(page).toHaveURL(/authorize/, { timeout: 60_000 });
     await context.close();
   });
 });

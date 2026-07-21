@@ -11,7 +11,7 @@ export const ADMIN_PASS = isKorczewski
 
 export async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/wissensquellen`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+  await page.waitForURL(/authorize/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();

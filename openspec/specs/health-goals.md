@@ -85,3 +85,15 @@ first-number/last-number extraction rather than rejected.
 - **THEN** it exits `0` and extracts the first number found as the `baseline` value
 
 <!-- merged from change delta health-goals.md (a840a7f1cb8b) -->
+
+### Requirement: Maximum file size cap for VideoVault
+
+The system SHALL enforce that VideoVault source files outside gate scope do not exceed 600 lines for more than 8 files.
+
+#### Scenario: Verify VideoVault file size limit
+
+- **GIVEN** the VideoVault codebase and tests/spec/g-size02-large-files.bats
+- **WHEN** BATS runs the file size verification test
+- **THEN** the number of files exceeding 600 lines MUST be less than or equal to 8.
+
+<!-- merged from change delta health-goals.md (818aa74cfa1d) -->

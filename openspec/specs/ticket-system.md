@@ -669,6 +669,18 @@ than its current `last_value`, preventing a concurrent schema-init reseed from r
 - **WHEN** die Reseed-Anweisung auf ihr SQL-Muster geprüft wird
 - **THEN** enthält sie `GREATEST(` und referenziert sowohl `MAX(CAST(SUBSTRING(external_id FROM 2) AS BIGINT))` aus der Tabelle als auch `last_value FROM tickets.external_id_seq` (den aktuellen Sequenzstand), sodass der Reseed niemals einen niedrigeren Wert setzt als den, den die Sequenz bereits erreicht hat
 
+### Requirement: BATS Placeholder Test Coverage
+
+The system SHALL have a dedicated BATS spec file (`tests/spec/ticket-system.bats`) that establishes
+initial, spec-linked test coverage for the ticket-system SSOT spec, per the "one BATS file per
+OpenSpec SSOT spec" convention.
+
+#### Scenario: Placeholder test passes
+
+- **GIVEN** the BATS suite `tests/spec/ticket-system.bats` exists
+- **WHEN** `bats tests/spec/ticket-system.bats` is run
+- **THEN** the placeholder test `ticket-system spec covered` passes
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1316,3 +1328,5 @@ than the baselined 1096 (frozen at commit `8b581ebe` per
 - **WHEN** the implementer runs `wc -l website/src/lib/tickets-db.ts`
   on the merged branch
 - **THEN** the reported line count is strictly less than 1096.
+
+<!-- merged from change delta ticket-system.md (f9a918942754) -->

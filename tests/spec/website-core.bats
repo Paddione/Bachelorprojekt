@@ -298,11 +298,11 @@ KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage
   run grep -q 'googleapis' "$PERF_GLOBAL_CSS"; [ "$status" -ne 0 ]
 }
 
-@test "T001922 perf: Layout.astro hydrates CookieConsent + PortalSidekick client:idle" {
+@test "T001922 perf: Layout.astro hydrates CookieConsent client:idle" {
+  # T002058: PortalSidekick was removed from the public Layout (its island CSS was
+  # render-blocking) — see the dedicated T002058 test below. CookieConsent stays.
   run grep -q '<CookieConsent client:idle' "$PERF_LAYOUT"; [ "$status" -eq 0 ]
-  run grep -q '<PortalSidekick client:idle' "$PERF_LAYOUT"; [ "$status" -eq 0 ]
   run grep -q '<CookieConsent client:load' "$PERF_LAYOUT"; [ "$status" -ne 0 ]
-  run grep -q '<PortalSidekick client:load' "$PERF_LAYOUT"; [ "$status" -ne 0 ]
 }
 
 @test "T001922 perf: mentolder prod Ingress binds website-compress" {
@@ -358,23 +358,18 @@ KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage
   echo "$output" | grep -qi 'noindex'
 }
 
-# ── T002057: cut render-blocking CSS on the public homepage ──────────────────
-# global.css is critical CSS (:root vars, html/body base, typography) — deferring
-# it would cause FOUC, so it is INLINED into the <head> via a ?inline import + an
-# is:inline <style> block instead of an auto-injected blocking <link>. If Tailwind
-# v4 cannot process ?inline cleanly the fallback keeps the blocking import — in
-# that case global.css stays a legitimate blocking critical-CSS <link> and this
-# first test is flipped to assert the documented blocking import.
+# ── T002057/T002058: cut render-blocking CSS on the public homepage ──────────
+# global.css is critical CSS (:root vars, html/body base, typography). T002057
+# tried a ?inline import, but that inlined the FULL Tailwind output (~95KB) into
+# every page for zero measured FCP/LCP gain (render-blocking cost is 0ms in
+# traces). T002058 reverts it to a plain side-effect import — a small (~20KB)
+# blocking critical-CSS <link> is correct here.
 
-@test "T002057 perf: Layout.astro inlines global.css (?inline import + is:inline style block)" {
-  run grep -Eq "import .* from '\.\./styles/global\.css\?inline'" "$PERF_LAYOUT"
-  [ "$status" -eq 0 ]
-  run grep -q 'set:html=' "$PERF_LAYOUT"
-  [ "$status" -eq 0 ]
-  run grep -q 'is:inline' "$PERF_LAYOUT"
-  [ "$status" -eq 0 ]
-  # the old blocking side-effect import must be gone
+@test "T002058 perf: Layout.astro imports global.css as a plain blocking side-effect (no ?inline bloat)" {
   run grep -Eq "^import '\.\./styles/global\.css';" "$PERF_LAYOUT"
+  [ "$status" -eq 0 ]
+  # the ?inline import + is:inline style block must be gone (they inlined ~95KB)
+  run grep -Eq "styles/global\.css\?inline" "$PERF_LAYOUT"
   [ "$status" -ne 0 ]
 }
 
@@ -385,4 +380,16 @@ KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage
   # must be loaded dynamically instead
   run grep -q "import('../GoalsDashboard.svelte')" "$KORE_HOMEPAGE"
   [ "$status" -eq 0 ]
+}
+
+@test "T002058 perf: public Layout.astro does not render PortalSidekick (Astro hoists island CSS render-blocking)" {
+  # Astro eagerly links ALL CSS reachable from a client island into the <head>,
+  # so the sidekick's drawer-view CSS blocked render on every public page. The
+  # sidekick lives in PortalLayout/AdminLayout (authenticated) — not the public one.
+  # match actual import/render, not comment mentions of the name
+  run grep -Eq "<PortalSidekick|import PortalSidekick" "$PERF_LAYOUT"
+  [ "$status" -ne 0 ]
+  # its ~180KB sidekick-panels.css preload machinery must be gone too
+  run grep -q "sidekick-panels\.css" "$PERF_LAYOUT"
+  [ "$status" -ne 0 ]
 }

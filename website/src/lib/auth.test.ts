@@ -5,6 +5,40 @@ vi.mock('./logger', () => ({
   createRequestLogger: vi.fn(() => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() })),
 }));
 
+vi.mock('pg', () => {
+  const store = new Map<string, unknown>();
+  function MockPool() {
+    return {
+      query: vi.fn(async (sql: string, params?: unknown[]) => {
+        if (sql.includes('CREATE TABLE')) return { rows: [] };
+        if (sql.includes('INSERT INTO web_sessions')) {
+          store.set(String(params![0]), JSON.parse(String(params![1])));
+          return { rows: [] };
+        }
+        if (sql.includes('SELECT data FROM web_sessions')) {
+          const data = store.get(String(params![0]));
+          return { rows: data ? [{ data }] : [] };
+        }
+        if (sql.includes('UPDATE web_sessions')) {
+          store.set(String(params![2]), JSON.parse(String(params![0])));
+          return { rows: [] };
+        }
+        if (sql.includes('DELETE FROM web_sessions')) {
+          store.delete(String(params![0]));
+          return { rows: [] };
+        }
+        return { rows: [] };
+      }),
+    };
+  }
+  return {
+    default: {
+      Pool: MockPool,
+    },
+    Pool: MockPool,
+  };
+});
+
 const ORIGINAL_POCKET = process.env.POCKET_ID_FRONTEND_URL;
 const ORIGINAL_INTERNAL = process.env.POCKET_ID_URL;
 const ORIGINAL_SECRET = process.env.POCKET_ID_WEBSITE_SECRET;
@@ -104,6 +138,24 @@ describe('getSession (in-memory session lookup)', () => {
     const m = await loadModule();
     expect(await m.getSession('foo=bar')).toBeNull();
     expect(await m.getSession(null)).toBeNull();
+  });
+
+  it('retrieves synthetic/e2e sessions with empty tokens without attempting refresh', async () => {
+    const m = await loadModule();
+    const sessionId = await m.issueSession({
+      sub: 'test-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      preferred_username: 'paddione',
+      realmRoles: ['admin'],
+      brand: null,
+      access_token: '',
+      refresh_token: '',
+      expires_at: Date.now() + 3600000,
+    });
+    const session = await m.getSession(`workspace_session=${sessionId}`);
+    expect(session).not.toBeNull();
+    expect(session?.preferred_username).toBe('paddione');
   });
 });
 

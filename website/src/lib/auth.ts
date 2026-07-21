@@ -234,9 +234,9 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
     const ACCESS_TOKEN_BUFFER_MS = 60 * 1000;
     const accessClaims = decodeJwtPayload(session.access_token);
     const accessExpMs = typeof accessClaims?.exp === 'number' ? accessClaims.exp * 1000 : 0;
-    const accessExpired = accessExpMs - Date.now() < ACCESS_TOKEN_BUFFER_MS;
+    const accessExpired = accessExpMs > 0 && accessExpMs - Date.now() < ACCESS_TOKEN_BUFFER_MS;
     const webSessionExpiring = session.expires_at - Date.now() < ACCESS_TOKEN_BUFFER_MS;
-    if (accessExpired || webSessionExpiring) {
+    if (session.refresh_token && (accessExpired || webSessionExpiring)) {
       const refreshed = await refreshTokens(session.refresh_token);
       if (refreshed) {
         const newExpiry = Date.now() + SESSION_TTL_MS;

@@ -28,7 +28,12 @@
   <!-- Frame -->
   <div class="portrait">
     {#if avatarType === 'image' && avatarSrc}
-      <img src={avatarSrc} alt={`${name}, ${role}`} loading="eager" fetchpriority="high" width="600" height="600" />
+      {@const baseName = avatarSrc.replace(/\.\w+$/, '')}
+      <picture>
+        <source srcset={`${baseName}.avif 600w, ${baseName}-400.avif 400w`} sizes="(max-width: 720px) 400px, 600px" type="image/avif" />
+        <source srcset={`${baseName}-400.webp 400w`} sizes="(max-width: 720px) 400px, 600px" type="image/webp" />
+        <img src={avatarSrc} alt={`${name}, ${role}`} loading="eager" fetchpriority="high" width="600" height="600" />
+      </picture>
       <!-- Duotone wash -->
       <div class="duotone" aria-hidden="true"></div>
       <!-- Brass hairline top -->
@@ -44,14 +49,14 @@
     {/if}
 
     <!-- Tag plate -->
-    <div class="tag" aria-label={tagText}>
+    <div class="tag" aria-hidden="true">
       <span class="tag-dot" aria-hidden="true"></span>
       {tagText}
     </div>
   </div>
 
   <!-- Caption plate -->
-  <div class="caption">
+  <div class="caption" aria-hidden="true">
     <span class="caption-num">GK · 01</span>
     <div class="caption-identity">
       <span class="caption-name">{name}</span>

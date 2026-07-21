@@ -55,7 +55,7 @@
             <li class="point">
               <span class="point-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <div>
-                <h4>{point.title}</h4>
+                <h3>{point.title}</h3>
                 <p>{point.text}</p>
               </div>
             </li>
@@ -178,7 +178,7 @@
     padding-bottom: 2px;
   }
 
-  .point h4 {
+  .point h3 {
     font-family: var(--sans);
     font-size: 17px;
     font-weight: 600;

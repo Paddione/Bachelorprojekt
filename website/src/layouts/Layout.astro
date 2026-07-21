@@ -3,7 +3,6 @@ import Navigation from '../components/Navigation.svelte';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.svelte';
 import PortalSidekick from '../components/PortalSidekick.svelte';
-import '../styles/fonts.css';
 import '../styles/global.css';
 // T001950: sidekick-panels.css (~180KB) styles PortalSidekick's drawer
 // sub-views (help, questionnaire, agent-guide, ...) which only render after
@@ -15,6 +14,7 @@ import '../styles/global.css';
 // PortalLayout.astro / AdminLayout.astro, where the sidekick is core,
 // above-the-fold UI.
 import sidekickPanelsCssUrl from '../styles/sidekick-panels.css?url';
+import fontsCssUrl from '../styles/fonts.css?url';
 import { config } from '../config/index';
 import { getEffectiveNavigation } from '../lib/content';
 import { t, type Locale } from '../i18n/index';
@@ -91,6 +91,8 @@ const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
     <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/Newsreader-Latin.woff2" as="font" type="font/woff2" crossorigin />
     {isKore && <link rel="preload" href="/fonts/InstrumentSerif-Latin.woff2" as="font" type="font/woff2" crossorigin />}
+    <link rel="preload" as="style" href={fontsCssUrl} onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href={fontsCssUrl} /></noscript>
     <title>{pageTitle}</title>
     {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
     {isKore && <link rel="stylesheet" href="/brand/korczewski/app.css" />}

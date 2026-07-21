@@ -29,6 +29,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+        with:
+          fetch-tags: false
 
       - name: Download + pin-verify official RustDesk MSI
         shell: pwsh

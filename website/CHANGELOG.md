@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.7...website-v1.197.8) (2026-07-21)
+
+
+### Bug Fixes
+
+* **website:** prevent invalidating synthetic e2e sessions in getSession [T000752] ([#3074](https://github.com/Paddione/Bachelorprojekt/issues/3074)) ([ba9f0b4](https://github.com/Paddione/Bachelorprojekt/commit/ba9f0b4ffd1658c4e68bc54a0d5e3e91c81a9759))
+
 ## [1.197.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.6...website-v1.197.7) (2026-07-21)
 
 

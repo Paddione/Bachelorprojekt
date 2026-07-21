@@ -2,7 +2,7 @@
 title: "feature-product-linking — Implementation Plan"
 ticket_id: T002016
 domains: [website, db, ops, test, security]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

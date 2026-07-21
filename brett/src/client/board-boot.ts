@@ -218,6 +218,12 @@ export async function bootBoard(): Promise<void> {
       document.body.classList.remove('placing-figure');
       hud.updateStatusPill();
       e.preventDefault();
+      // T002050: this listener is registered BEFORE initFigureDrag()'s own
+      // mousedown listener on the same element — stopImmediatePropagation()
+      // is required (not just preventDefault/return) so the placement click
+      // can't also fall through into figure-drag's pick chain and start an
+      // errant bone/body/rotate drag on the figure that was just placed.
+      e.stopImmediatePropagation();
       return;
     }
     if (e.shiftKey && povCamera.isInPov()) {
@@ -241,6 +247,10 @@ export async function bootBoard(): Promise<void> {
             ws.send(JSON.stringify({ type: 'figure_possess', figureId: fig.id }));
           }
           e.preventDefault();
+          // T002050: possess (not lock+drag) — stop figure-drag's listener
+          // from also picking this same contact sphere and starting a bone
+          // drag on the same mousedown (see note above).
+          e.stopImmediatePropagation();
         }
       }
     }

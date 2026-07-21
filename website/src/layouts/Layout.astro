@@ -2,23 +2,12 @@
 import Navigation from '../components/Navigation.svelte';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.svelte';
-import PortalSidekick from '../components/PortalSidekick.svelte';
-// T002057: global.css is critical CSS (:root vars, html/body base, typography
-// .t-*, .prose). Deferring it would cause FOUC. Instead of Astro auto-emitting a
-// render-blocking <link> for this side-effect import, import the fully-processed
-// CSS as a string (?inline) and inline it into the <head> as the first critical
-// style block below — same styles, zero extra render-blocking requests.
-import globalCss from '../styles/global.css?inline';
-// T001950: sidekick-panels.css (~180KB) styles PortalSidekick's drawer
-// sub-views (help, questionnaire, agent-guide, ...) which only render after
-// the user opens the FAB. On the public homepage it was previously a
-// render-blocking <link>, adding ~180KB to the critical rendering path for
-// UI that is never visible on first paint. Import it as a plain asset URL
-// (no auto-injected blocking <link>) and swap it in async via the
-// preload+onload pattern below. It stays eagerly loaded (blocking) in
-// PortalLayout.astro / AdminLayout.astro, where the sidekick is core,
-// above-the-fold UI.
-import sidekickPanelsCssUrl from '../styles/sidekick-panels.css?url';
+// global.css is critical CSS (:root vars, html/body base, typography .t-*,
+// .prose). It stays a small (~20KB) render-blocking <link> emitted by Astro for
+// this side-effect import. T002057 tried ?inline, but that inlined the FULL
+// Tailwind output (~95KB) into every page for zero measured FCP/LCP gain — the
+// render-blocking cost of this stylesheet is 0ms in traces (T002058). Reverted.
+import '../styles/global.css';
 import fontsCssUrl from '../styles/fonts.css?url';
 import { config } from '../config/index';
 import { getEffectiveNavigation } from '../lib/content';
@@ -58,7 +47,6 @@ const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
-    <style set:html={globalCss} is:inline></style>
     <link rel="alternate" hreflang="de" href={`${siteDomain}${dePath}`} />
     <link rel="alternate" hreflang="en" href={`${siteDomain}${enPath}`} />
     <link rel="alternate" hreflang="x-default" href={`${siteDomain}${dePath}`} />
@@ -103,13 +91,6 @@ const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
     {isKore && <link rel="stylesheet" href="/brand/korczewski/colors_and_type.css" />}
     {isKore && <link rel="stylesheet" href="/brand/korczewski/app.css" />}
     {isKore && <link rel="stylesheet" href="/brand/korczewski/kore-website.css" />}
-    <link
-      rel="preload"
-      as="style"
-      href={sidekickPanelsCssUrl}
-      onload="this.onload=null;this.rel='stylesheet'"
-    />
-    <noscript><link rel="stylesheet" href={sidekickPanelsCssUrl} /></noscript>
   </head>
   <body class={`min-h-screen flex flex-col${isKore ? ' kore' : ''}`} style="background:var(--ink-900); color:var(--fg);">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded" style="background:var(--brass); color:var(--ink-900); font-weight:600;">
@@ -123,6 +104,10 @@ const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
     <Footer />
 
     <CookieConsent client:idle />
-    <PortalSidekick client:idle />
+    {/* T002058: PortalSidekick removed from the public Layout. Astro eagerly links
+        ALL CSS reachable from a client island (regardless of client:idle/only), so
+        the sidekick's drawer-view CSS was render-blocking on every public page for a
+        FAB anonymous visitors rarely use. It stays in PortalLayout/AdminLayout where
+        it is core, authenticated UI. */}
   </body>
 </html>

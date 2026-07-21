@@ -345,6 +345,14 @@ non-2xx response, or Brett's validation rejects the GLB with a 422.
 
 ---
 
+### Requirement: Spec-BATS smoke coverage
+The system SHALL provide an initial BATS test file covering the mediaviewer specification so that CI tracks its test presence.
+
+#### Scenario: Initial smoke test passes
+- **GIVEN** the `tests/spec/mediaviewer.bats` file exists
+- **WHEN** `bats tests/spec/mediaviewer.bats` runs
+- **THEN** the smoke test exits successfully
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -404,3 +412,5 @@ erhält.
 - **GIVEN** `k3d/website.yaml` enthält das Website-Deployment-Manifest
 - **WHEN** die Umgebungsvariablen-Sektion des Containers nach `MEDIAVIEWER_HOST` durchsucht wird
 - **THEN** ist ein `configMapKeyRef`-Eintrag mit `key: MEDIAVIEWER_HOST` vorhanden, der den Wert aus `domain-config` injiziert
+
+<!-- merged from change delta mediaviewer.md (0f5b19ec3b79) -->

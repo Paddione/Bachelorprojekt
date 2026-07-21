@@ -1269,6 +1269,12 @@
       "status": "archived"
     }
   ],
+  "T002050": [
+    {
+      "slug": "brett-fig-panel-drag-rotate",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

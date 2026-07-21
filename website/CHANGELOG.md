@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.195.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.194.0...website-v1.195.0) (2026-07-21)
+
+
+### Features
+
+* **openspec:** consolidate 10 micro-specs into SSOT parent-specs [T002014] ([#3010](https://github.com/Paddione/Bachelorprojekt/issues/3010)) ([55db1bc](https://github.com/Paddione/Bachelorprojekt/commit/55db1bc34bb9e24ceff8ffa8085ed497d73bbd02))
+
 ## [1.194.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.193.4...website-v1.194.0) (2026-07-21)
 
 

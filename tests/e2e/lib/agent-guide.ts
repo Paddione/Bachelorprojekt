@@ -149,16 +149,31 @@ export async function expandCardByTitle(page: Page, title: string) {
 }
 
 
-/** Navigates to the homepage, dismisses cookie consent, opens the PortalSidekick,
+/** Navigates to the admin page (PortalSidekick was removed from public
+ *  Layout.astro in T002058), logs in if needed, opens the PortalSidekick,
  *  and navigates to the Agent-Anleitung view. Returns the `.ag-body` locator. */
 export async function openAgentGuide(page: Page) {
+  const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
+  const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
+
   // Pre-set cookie consent so the banner doesn't block the FAB
   await page.addInitScript(() => {
     localStorage.setItem('cookie_consent_v1', 'all');
   });
 
-  await page.goto('/');
-  // Wait for Astro/Svelte hydration — networkidle ensures client:load components have hydrated
+  // PortalSidekick is no longer on public Layout.astro — go to /admin instead
+  await page.goto('/admin');
+
+  // If the auth login page appears, log in
+  const loginField = page.locator('#username, input[name="username"]').first();
+  if (ADMIN_PASS && await loginField.isVisible({ timeout: 5_000 }).catch(() => false)) {
+    await loginField.fill(ADMIN_USER);
+    await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
+    await page.locator('#kc-login, input[type="submit"]').first().click();
+  }
+
+  // Wait for admin page to load (must be the actual page path, not a returnTo param)
+  await page.waitForURL(/\/admin(\/|$|\?)/, { timeout: 30_000 });
   await page.waitForLoadState('networkidle');
 
   const fab = page.locator('button.fab');

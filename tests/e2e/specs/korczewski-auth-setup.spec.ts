@@ -54,7 +54,7 @@ setup('authenticate korczewski website admin', async ({ page, request }, testInf
   await page.goto(`${WEBSITE_URL}/api/auth/login?returnTo=/admin`, { waitUntil: 'domcontentloaded' });
 
   // Should redirect to Keycloak
-  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+  await page.waitForURL(/authorize/, { timeout: 60_000 });
 
   await page.locator('#username').fill(ADMIN_USER);
   await page.locator('#password').fill(ADMIN_PASS);
@@ -95,7 +95,7 @@ setup('authenticate korczewski brett', async ({ page, request }, testInfo) => {
   await page.goto(BRETT_URL, { waitUntil: 'domcontentloaded' });
 
   // Wait for Keycloak redirect
-  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+  await page.waitForURL(/authorize/, { timeout: 60_000 });
 
   await page.locator('#username').fill(ADMIN_USER);
   await page.locator('#password').fill(ADMIN_PASS);

@@ -13,11 +13,11 @@ test.describe('FA-29 Projekt-Cockpit', () => {
 
   async function login(page: any) {
     await page.goto(`${WEBSITE_URL}/admin/cockpit`);
-    const userField = page.locator('input[name="username"]');
+    const userField = page.locator('#username, input[name="username"]').first();
     if (await userField.isVisible({ timeout: 10_000 }).catch(() => false)) {
       await userField.fill(ADMIN_USER);
-      await page.fill('input[name="password"]', ADMIN_PASS);
-      await page.click('input[type="submit"]');
+      await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
+      await page.locator('#kc-login, input[type="submit"]').first().click();
       await page.waitForURL(/\/admin\/cockpit/);
     }
   }

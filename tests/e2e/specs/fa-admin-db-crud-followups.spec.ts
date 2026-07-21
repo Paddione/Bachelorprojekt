@@ -15,7 +15,7 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/api/auth/login?returnTo=/admin/followups`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+  await page.waitForURL(/authorize/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();
@@ -109,7 +109,7 @@ test.describe('FA-admin-db-crud-followups', () => {
 
     // Re-authenticate to /admin/projekte for this sub-test
     await page.goto(`${BASE}/api/auth/login?returnTo=/admin/projekte`);
-    await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+    await page.waitForURL(/authorize/, { timeout: 60_000 });
     await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
     await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
     await page.locator('#kc-login, input[type="submit"]').first().click();

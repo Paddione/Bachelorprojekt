@@ -14,7 +14,7 @@ const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAndGo(page: import('@playwright/test').Page, path: string) {
   await page.goto(`${BASE}/api/auth/login?returnTo=${path}`);
-  await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+  await page.waitForURL(/authorize/, { timeout: 60_000 });
   await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
   await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
   await page.locator('#kc-login, input[type="submit"]').first().click();

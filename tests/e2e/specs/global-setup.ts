@@ -25,7 +25,7 @@ setup('authenticate', async ({ page }) => {
   if (await ssoButton.isVisible()) {
     // SSO flow: click the OIDC button → Keycloak login page
     await ssoButton.click();
-    await page.waitForURL(/\/realms\/|\/auth\//, { timeout: 60_000 });
+    await page.waitForURL(/authorize/, { timeout: 60_000 });
 
     // Fill in Keycloak login form
     const kcUser = page.locator('#username');

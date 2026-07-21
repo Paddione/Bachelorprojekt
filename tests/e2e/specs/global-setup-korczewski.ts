@@ -47,7 +47,7 @@ async function oidcLogin(
     }
 
     // Wait for Keycloak login page (should redirect there)
-    await page.waitForURL(/realms\/workspace/, { timeout: 60_000 });
+    await page.waitForURL(/authorize/, { timeout: 60_000 });
 
     const kcUser = page.locator('#username');
     const kcPass = page.locator('#password');

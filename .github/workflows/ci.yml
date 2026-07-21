@@ -60,7 +60,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
 
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
@@ -160,7 +160,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
 
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v3.0.0
@@ -271,7 +271,7 @@ jobs:
           fetch-tags: false
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: brett/package-lock.json
       - run: npm ci --prefix brett
@@ -308,35 +308,56 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'pnpm'
           cache-dependency-path: website/pnpm-lock.yaml
 
       - name: Install website dependencies
+        run: cd website && pnpm install --frozen-lockfile
+
+      - name: Fetch origin/main for --changed diffing
+        run: git fetch --no-tags --prune --depth=1 origin main:refs/remotes/origin/main
+
+      - name: Check coverage relevance
+        id: check-cov
         run: |
-          cd website
-          pnpm install --frozen-lockfile
+          CHANGED=$(git diff --name-only origin/main...HEAD 2>/dev/null || true)
+          if echo "$CHANGED" | grep -q "^website/src/lib/"; then
+            echo "run-coverage=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run-coverage=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Run ESLint (--max-warnings 0 fail-closed gate)
-        run: |
-          cd website
-          pnpm lint
+        run: cd website && pnpm lint
 
-      - name: Run website unit tests (with coverage, --changed)
-        # Mirrors the local `task test:changed` smart selection: only run
-        # the tests affected by files changed in this PR (vitest --changed).
-        # On a chore / config-only PR (no website/ source touched) the run
-        # exits 0 with zero tests, producing a coverage report with
-        # pct: "Unknown" — the gate step below treats that as a pass
-        # because there is no source delta to regress.
+      - name: Run vitest + Astro check + Knip (parallel)
+        # Mirrors the local `task test:changed` smart selection via explicit
+        # --changed origin/main (requires fetch-origin-main step above).
+        # Astro typecheck and Knip dead-code analysis run concurrently with
+        # vitest to shave ~2-3 min off wall-clock time.
+        # --coverage is conditional: only added when the PR touches
+        # website/src/lib/ (where coverage gates apply), so trivial PRs
+        # skip instrumentation overhead. The coverage gate step below
+        # handles the missing-report case gracefully. [T003164]
         # Default 5s per-test timeout is too tight for DB-heavy tests
         # (e.g. tickets/cockpit-db.test.ts seeds 1005 rows) when vitest
-        # runs ~243 files in parallel on shared CI runners.
-        # --coverage is on by default here so the suite runs once, not twice —
-        # it also feeds the coverage gate step below. [T001336, T001651]
+        # runs ~243 files in parallel on shared CI runners. [T001336, T001651]
         run: |
           cd website
-          pnpm exec vitest run --changed --coverage --testTimeout=30000
+          ARGS="run --changed origin/main --testTimeout=30000"
+          [[ "${{ steps.check-cov.outputs.run-coverage }}" == "true" ]] && ARGS="$ARGS --coverage"
+          pnpm exec vitest $ARGS &
+          V=$!
+          pnpm run astro:check &
+          A=$!
+          pnpm exec knip --no-exit-code || true &
+          K=$!
+          EXIT=0
+          wait $V || EXIT=$?
+          wait $A || EXIT=$?
+          wait $K || true
+          exit $EXIT
 
       - name: Upload Vitest JUnit report
         # Runs even if the tests above failed, so a red PR still gets a
@@ -350,20 +371,17 @@ jobs:
           if-no-files-found: ignore
 
       - name: Vitest line coverage gate (>= 60% on src/lib)
-        # G-TEST05 — vitest's built-in thresholds block on regression below
-        # 60% lines (see website/vitest.config.ts coverage.thresholds.lines).
-        # Belt-and-braces second check against the coverage-summary.json
-        # produced by the run above, so a misconfigured reporter cannot
-        # silently bypass the gate. Does NOT re-run vitest. [T001336]
-        # Skip when --changed produced zero tests (pct: "Unknown"): there
-        # is no website source delta to regress on a chore / config-only
-        # PR. We still run vitest above (so the required check reports
-        # green and junit.xml is produced), we just don't penalise the
-        # 0% "no tests ran" coverage artifact. [T001651]
+        # G-TEST05 — belt-and-braces check against the coverage-summary.json
+        # produced by the run above. Does NOT re-run vitest. [T001336]
+        # Skipped gracefully when:
+        #   a) no coverage report exists (--coverage wasn't passed because
+        #      the PR doesn't touch src/lib/), or
+        #   b) --changed found zero website/ source changes (pct: "Unknown").
+        # In both cases there is no source delta to regress. [T001651, T003164]
         run: |
           cd website
           if [ ! -f coverage/coverage-summary.json ]; then
-            echo "::notice::No coverage-summary.json (--changed produced no report) — skipping gate"
+            echo "::notice::No coverage-summary.json (--coverage not needed / no report) — skipping gate"
             exit 0
           fi
           COV=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
@@ -374,21 +392,8 @@ jobs:
           echo "Total line coverage: ${COV}%"
           awk -v cov="$COV" 'BEGIN { if (cov + 0 < 60) { print "::error::Coverage gate failed: " cov "% < 60%"; exit 1 } else { print "::notice::Coverage gate passed: " cov "% >= 60%" } }'
 
-      - name: Astro TypeScript check
-        run: |
-          cd website
-          pnpm run astro:check
-
-      - name: Knip dead-code report (advisory)
-        continue-on-error: true
-        run: |
-          cd website
-          pnpm exec knip --no-exit-code || true
-
       - name: Build website
-        run: |
-          cd website
-          pnpm build
+        run: cd website && pnpm build
 
       - name: Upload website dist artifact
         uses: actions/upload-artifact@v7
@@ -410,7 +415,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
 
       - name: Download website dist artifact
@@ -440,7 +445,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install Lighthouse CI

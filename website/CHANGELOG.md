@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.196.4...website-v1.197.0) (2026-07-21)
+
+
+### Features
+
+* **brett:** fig-panel edge-drawer + figure drag & 360° rotation [T002050] ([#3040](https://github.com/Paddione/Bachelorprojekt/issues/3040)) ([b41e16f](https://github.com/Paddione/Bachelorprojekt/commit/b41e16fbfba7c9d60a5d5e4fad94bb71603a314d))
+
 ## [1.196.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.196.3...website-v1.196.4) (2026-07-21)
 
 

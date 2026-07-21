@@ -28,7 +28,7 @@ test.describe('FA-05: Nutzerverwaltung', () => {
     await expect(page.getByRole('heading', { name: /registrieren/i })).toBeVisible();
   });
 
-  test('T6: /api/auth/login redirects to Keycloak (SSO)', async ({ request }) => {
+  test('T6: /api/auth/login redirects to Pocket ID (SSO)', async ({ request }) => {
     const res = await request.get(`${BASE}/api/auth/login`, { maxRedirects: 0 });
     expect(res.status()).toBe(302);
     const location = res.headers()['location'] || '';

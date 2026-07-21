@@ -2,14 +2,14 @@
 // M3 — Geführtes Onboarding: portal-onboarding-sequence trigger + mark-step API
 
 import { test, expect, type Page } from '@playwright/test';
-import { loginViaKeycloak } from '../lib/auth';
+import { loginViaE2E } from '../lib/auth';
 
 const BASE        = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const GEKKO_USER  = process.env.E2E_GEKKO_USER ?? 'gekko';
 const GEKKO_PASS  = process.env.E2E_GEKKO_PASS ?? '';
 
 async function loginAsGekko(page: Page): Promise<void> {
-  await loginViaKeycloak(page, BASE, GEKKO_USER, GEKKO_PASS, '/portal');
+  await loginViaE2E(page, BASE, GEKKO_USER, '/portal');
 }
 
 // ── M3-01: Portal nudge endpoint returns onboarding nudge after first login ──

@@ -32,11 +32,7 @@ const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
 const CRON_SECRET = process.env.CRON_SECRET;
 
 async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void> {
-  await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
-  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
-  await page.locator('#kc-login, input[type="submit"]').first().click();
+  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}`);
   await page.waitForURL(/\/admin\/inbox/, { timeout: 60_000 });
 }
 

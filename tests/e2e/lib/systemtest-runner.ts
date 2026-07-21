@@ -90,15 +90,10 @@ export function ensureAdminPasswordOrSkip(testInfo: { skip: (cond: boolean, msg?
 }
 
 export async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
-  if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS unset');
-  await page.goto(`${BASE}/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
-  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS);
-  await page.locator('#kc-login, input[type="submit"]').first().click();
-  // Keycloak may bounce through the OIDC dance — wait until we land back on
-  // the website. We use a permissive matcher rather than re-encoding returnTo
-  // since the path may carry query params after the redirect.
+  const CRON_SECRET = process.env.CRON_SECRET ?? '';
+  if (!CRON_SECRET) throw new Error('CRON_SECRET unset');
+  const url = `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}`;
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForURL(url => url.toString().startsWith(BASE), { timeout: 60_000 });
 }
 

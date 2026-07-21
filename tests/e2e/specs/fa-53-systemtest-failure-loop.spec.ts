@@ -33,11 +33,7 @@ const ADMIN_PASS = isKorczewski
 const COLUMN_TITLES = ['Offen', 'Fix in PR', 'Retest ausstehend', 'Grün (7 Tage)'];
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/api/auth/login?returnTo=/admin/systemtest/board`);
-  await page.waitForURL(/authorize/, { timeout: 60_000 });
-  await page.locator('#username, input[name="username"]').first().fill(ADMIN_USER);
-  await page.locator('#password, input[name="password"]').first().fill(ADMIN_PASS!);
-  await page.locator('#kc-login, input[type="submit"]').first().click();
+  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin/systemtest/board`);
   await page.waitForURL(/\/admin\/systemtest\/board/, { timeout: 60_000 });
 }
 

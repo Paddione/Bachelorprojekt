@@ -2,7 +2,7 @@
 title: "brett-fig-panel-drag-rotate — Implementation Plan"
 ticket_id: T002050
 domains: [brett, frontend]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -83,7 +83,7 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
 > Verzeichnis leer ist oder nur Löschungen (`## REMOVED Requirements`) ohne
 > Hinzufügungen enthält. Löschen einer ungültigen Spec-Datei ohne Ersatz
 > erzeugt einen leeren `specs/`-Ordner — das schlägt ebenfalls fehl. Vor
-> dem Commit: `bash scripts/openspec-validate.sh` (oder
+> dem Commit: `bash scripts/openspec.sh validate` (oder
 > `openspec validate <slug>`) ausführen.
       - Create the artifact file using `template` as the structure
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file

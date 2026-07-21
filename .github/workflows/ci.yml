@@ -51,9 +51,12 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           fetch-tags: false
           submodules: recursive
+
+      - name: Fetch origin/main for diffing (shallow)
+        run: git fetch --no-tags --prune --depth=1 origin main:refs/remotes/origin/main
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
@@ -93,7 +96,6 @@ jobs:
 
       - name: API auth regression gate
         run: |
-          git fetch origin main --depth=1
           git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json 2>/dev/null || echo '{"generatedAt":"","endpoints":[]}' > /tmp/api-map-main.json
           node scripts/api-auth-check.mjs --regression --main-map /tmp/api-map-main.json
 
@@ -460,6 +462,10 @@ jobs:
     timeout-minutes: 5
     if: github.event_name == 'pull_request'
     steps:
+      # Checkout IS needed here despite the PR-title check above being pure
+      # API — the later "Validate individual commit messages" and
+      # "commit-vs-diff consistency" steps diff every commit in the PR range
+      # locally and need those commit objects present.
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
         with:
           fetch-depth: 0

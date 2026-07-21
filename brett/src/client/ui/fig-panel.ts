@@ -1,8 +1,9 @@
 import { STATE, ui } from '../state';
 import { makeMannequin, recolorFigure, applyFigureOpacity } from '../mannequin';
-import { sendAddFigure, sendUpdate, sendClient } from '../ws-client';
+import { sendAddFigure, sendUpdate, sendClient, sendMove } from '../ws-client'; // sendMove re-exported from ws-connection-client.ts
 import { t } from '../i18n';
 import { showExportToast } from './export-toast';
+import { edgeTabVisible, degToRad, radToDeg } from '../figure-drag';
 
 /**
  * D5: user-visible notice when a figure is spawned while the WebSocket is not
@@ -26,6 +27,9 @@ export function addFigure(position: { x: number; z: number }): any {
   } else {
     spawnOfflineNotice();
   }
+  // T002050: spawned figures land on the board immediately, closing the
+  // drawer so the edge-tab (not the ＋Figur panel) becomes the edit entrypoint.
+  closeFigPanel();
   return fig;
 }
 
@@ -33,11 +37,24 @@ export function addFigure(position: { x: number; z: number }): any {
 let opacitySlider: HTMLInputElement | null = null;
 let hideToggle: HTMLButtonElement | null = null;
 
+/**
+ * T002050: shows the viewport-edge tab whenever a figure is selected but the
+ * (now edge-anchored) drawer is closed — the tab is the re-entry point back
+ * into the editor without hunting for the topbar ＋Figur button.
+ */
+export function syncEdgeTab(): void {
+  const tab = document.getElementById('fig-panel-edge-tab');
+  const panel = document.getElementById('fig-panel');
+  if (!tab || !panel) return;
+  tab.hidden = !edgeTabVisible(STATE.selectedId, panel.hidden);
+}
+
 export function syncPanelToSelection(id: string | null): void {
   const title  = document.getElementById('fig-panel-title');
   const addBtn = document.getElementById('fig-panel-add');
   const input  = document.getElementById('fig-label-input') as HTMLInputElement | null;
   const noteArea = document.getElementById('fig-note-textarea') as HTMLTextAreaElement | null;
+  const rotateSlider = document.getElementById('fig-rotate-slider') as HTMLInputElement | null;
   if (!title) return;
   const fig = STATE.figures.find(f => f.id === id);
   if (fig) {
@@ -47,13 +64,16 @@ export function syncPanelToSelection(id: string | null): void {
     if (noteArea) noteArea.value = (fig as any).note || '';
     if (opacitySlider) opacitySlider.value = String((fig as any).opacity ?? 1);
     if (hideToggle) hideToggle.textContent = (fig as any).hidden ? t('fig.reveal') : t('fig.hide');
+    if (rotateSlider) rotateSlider.value = String(Math.round(radToDeg(fig.facingY || 0)));
   } else {
     title.textContent = 'NEUE FIGUR';
     if (addBtn) addBtn.hidden = false;
     if (input) input.value = '';
     if (noteArea) noteArea.value = '';
     if (opacitySlider) opacitySlider.value = '1';
+    if (rotateSlider) rotateSlider.value = '0';
   }
+  syncEdgeTab();
 }
 
 /**
@@ -128,12 +148,14 @@ export function openFigPanel(): void {
   figPanelBtn.classList.add('open');
   figPanelBtn.setAttribute('aria-expanded', 'true');
   syncPanelToSelection(STATE.selectedId);
+  syncEdgeTab();
 }
 
 export function closeFigPanel(): void {
   figPanel.hidden = true;
   figPanelBtn.classList.remove('open');
   figPanelBtn.setAttribute('aria-expanded', 'false');
+  syncEdgeTab();
 }
 
 export function cancelDragFor(figureId: string): void {
@@ -225,6 +247,22 @@ export function initFigPanel(): void {
 
   // ── E2: Transparenz-Slider + E9: Verdecken-Toggle (leiter-only) ─────────────
   buildFigureControls();
+
+  // T002050: viewport-edge tab re-opens the drawer for the selected figure.
+  const edgeTab = document.getElementById('fig-panel-edge-tab');
+  edgeTab?.addEventListener('click', () => openFigPanel());
+
+  // T002050: 360° rotation slider — mirrors the ring-drag facingY convention
+  // (degToRad/radToDeg), streamed live via sendMove (same as body/rotate drag).
+  const rotateSlider = document.getElementById('fig-rotate-slider') as HTMLInputElement | null;
+  rotateSlider?.addEventListener('input', () => {
+    const fig = STATE.figures.find(f => f.id === STATE.selectedId);
+    if (!fig) return;
+    const facingY = degToRad(parseFloat(rotateSlider.value));
+    fig.facingY = facingY;
+    fig.root.rotation.y = facingY;
+    sendMove(fig.id, fig.root.position.x, fig.root.position.z, facingY);
+  });
 
   // Add button — enters placing mode
   document.getElementById('fig-panel-add')!.addEventListener('click', () => {

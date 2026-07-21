@@ -52,6 +52,10 @@ export interface TouchDeps {
   applyOrbitDelta: (dTheta: number, dPhi: number) => void;
   capturePointer: (pointerId: number) => void;
   releasePointer: (pointerId: number) => void;
+  /** T002050: rotate-ring hit region — single-finger touch parity for 360° facing rotation. */
+  pickRotateRingAt?: (clientX: number, clientY: number) => any | null;
+  /** T002050: figure body-mesh hit — single-finger touch parity for whole-figure floor drag. */
+  pickBodyAt?: (clientX: number, clientY: number) => any | null;
 }
 
 type Mode = 'orbit' | 'figure' | 'pinch' | null;
@@ -98,10 +102,27 @@ export function _onPointerDown(
   if (sphere && deps.canDragFigure(sphere)) {
     mode = 'figure';
     deps.startFigureDrag(sphere, e.clientX, e.clientY);
-  } else {
-    mode = 'orbit';
-    orbitLast = { x: e.clientX, y: e.clientY };
+    return;
   }
+
+  // T002050: single-finger touch parity — miss on the IK contact sphere
+  // falls back to rotate-ring, then figure-body, before giving up to orbit.
+  const ring = deps.pickRotateRingAt?.(e.clientX, e.clientY);
+  if (ring && deps.canDragFigure(ring)) {
+    mode = 'figure';
+    deps.startFigureDrag(ring, e.clientX, e.clientY);
+    return;
+  }
+
+  const body = deps.pickBodyAt?.(e.clientX, e.clientY);
+  if (body && deps.canDragFigure(body)) {
+    mode = 'figure';
+    deps.startFigureDrag(body, e.clientX, e.clientY);
+    return;
+  }
+
+  mode = 'orbit';
+  orbitLast = { x: e.clientX, y: e.clientY };
 }
 
 export function _onPointerMove(

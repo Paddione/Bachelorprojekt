@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ACTIVE_GOALS, GREEN_GATES, CATEGORIES, healthPercent } from '../lib/goals-data';
+  import { GOALS, ACTIVE_GOALS, GREEN_GATES, CATEGORIES, healthPercent } from '../lib/goals-data';
   import type { HealthGoal } from '../lib/goals-data';
 
   let selectedCategory = 'Alle';
@@ -59,7 +59,7 @@
   <header class="dashboard-header">
     <h2 class="dashboard-title">Repo Health Dashboard</h2>
     <p class="dashboard-subtitle">
-      Mess-Stichtag: <strong>2026-06-28</strong> ·
+      Mess-Stichtag: <strong>{GOALS[0]?.measured_at ?? '2026-07-01'}</strong> ·
       {ACTIVE_GOALS.filter(g => g.status === 'critical').length} kritisch ·
       {ACTIVE_GOALS.filter(g => g.status === 'at_risk').length} gefährdet ·
       {GREEN_GATES.length} Gates grün

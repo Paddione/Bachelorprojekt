@@ -120,8 +120,11 @@ function main() {
   const errors = [];
   const goals = [];
 
+  const updateMatches = [...content.matchAll(/\*\*Baseline-Update\s+([\d-]+)/g)];
   const dateMatch = content.match(/\*\*Baseline-Stichtag:\*\*\s*`([\d-]+)`/);
-  const measuredAt = dateMatch ? dateMatch[1] : '';
+  const measuredAt = updateMatches.length > 0
+    ? updateMatches[updateMatches.length - 1][1]
+    : (dateMatch ? dateMatch[1] : '');
 
   // --- 1. H2-section entries (Prio A/B) ---
   // Fenced code blocks can contain shell comment lines ("# ...") that look

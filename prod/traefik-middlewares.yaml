@@ -33,7 +33,6 @@ spec:
       X-XSS-Protection: "1; mode=block"
       Referrer-Policy: "strict-origin-when-cross-origin"
       Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"
-      X-Robots-Tag: "noindex"
 ---
 # ── Security-Header-Variante für eingebettete Widgets (iframe-kompatibel) ──
 # Verwendet für: mediaviewer.${PROD_DOMAIN} (im Admin-Sidekick als iframe)
@@ -52,7 +51,6 @@ spec:
       X-XSS-Protection: "1; mode=block"
       Referrer-Policy: "strict-origin-when-cross-origin"
       Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"
-      X-Robots-Tag: "noindex"
       Content-Security-Policy: "frame-ancestors 'self' https://web.${PROD_DOMAIN}"
 ---
 # ── Embed-Headers für Agentic Terminal (iframe in Admin-Sidekick) ───
@@ -71,7 +69,6 @@ spec:
       X-XSS-Protection: "1; mode=block"
       Referrer-Policy: "strict-origin-when-cross-origin"
       Permissions-Policy: ""
-      X-Robots-Tag: "noindex"
       Content-Security-Policy: "frame-ancestors 'self' https://web.${PROD_DOMAIN}"
 ---
 # ── Rate-Limiting: Keycloak (Brute-Force-Schutz) ──────────────────

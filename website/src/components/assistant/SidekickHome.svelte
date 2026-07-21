@@ -66,7 +66,6 @@
           onmouseleave={() => hover = null}
           onclick={() => onClose?.()}
           role="listitem"
-          aria-label="{item.title} — {item.sub}"
         >
           <span class="sk-no" class:sk-no--active={hover === item.id}>{item.no}</span>
           <span class="sk-body">
@@ -92,7 +91,6 @@
           onmouseleave={() => hover = null}
           onclick={() => onNavigate(item.id)}
           role="listitem"
-          aria-label="{item.title} — {item.sub}"
         >
           <span class="sk-no" class:sk-no--active={hover === item.id}>{item.no}</span>
 

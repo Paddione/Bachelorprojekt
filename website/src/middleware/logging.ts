@@ -34,6 +34,12 @@ export async function loggingMiddleware(
   // Clone headers before mutating — Astro's Node.js adapter may return a
   // Response whose headers are immutable (already committed to the stream).
   const headers = new Headers(response.headers);
+
+  // Allow search-engine indexing for all public pages
+  if (statusCode < 400) {
+    headers.set('X-Robots-Tag', 'index, follow');
+  }
+
   headers.set(REQUEST_ID_HEADER, requestId);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }

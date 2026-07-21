@@ -47,13 +47,15 @@ function setupDomMocks() {
     head: { appendChild: () => {} },
     getElementById: () => null,
   };
-  (global as any).URL = {
-    createObjectURL: (blob: any) => {
-      _blobs.push(blob.type ?? 'unknown');
+  const OrigURL = globalThis.URL;
+  (globalThis as any).URL = class URL extends OrigURL {
+    static createObjectURL(blob: any) {
+      _blobs.push(blob?.type ?? 'unknown');
       return 'blob:mock';
-    },
-    revokeObjectURL: (url: string) => { _revokeUrls.push(url); },
-  };
+    }
+    static revokeObjectURL(url: string) { _revokeUrls.push(url); }
+    constructor(url: string | URL, base?: string | URL) { super(url, base); }
+  } as unknown as typeof URL;
   (global as any).Blob = class {
     type: string;
     constructor(_parts: any[], opts: any) { this.type = opts?.type ?? ''; }

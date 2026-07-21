@@ -18,13 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout bachelorprojekt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: bachelorprojekt
           fetch-tags: false
 
       - name: Checkout brain
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Paddione/brain
           path: brain

@@ -56,7 +56,7 @@ jobs:
       MM_TEST_PASS: ${{ secrets.MM_TEST_PASS }}
 
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: false
@@ -73,7 +73,7 @@ jobs:
             echo "No E2E-relevant files changed, skipping tests"
           fi
 
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
+      - uses: actions/setup-node@v7
         if: steps.filter.outputs.run_e2e == 'true'
         with:
           node-version: "22"
@@ -88,7 +88,7 @@ jobs:
       - name: Cache Playwright browsers
         if: steps.filter.outputs.run_e2e == 'true'
         id: playwright-cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('tests/e2e/package-lock.json') }}
@@ -188,7 +188,7 @@ jobs:
 
       - name: Upload Ergebnisse (Traces + JSON)
         if: always() && steps.filter.outputs.run_e2e == 'true'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-pr-results-${{ github.run_id }}
           path: tests/results
@@ -197,7 +197,7 @@ jobs:
 
       - name: Kommentar bei Fehler
         if: failure() && steps.playwright.outcome == 'failure'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7
+        uses: actions/github-script@v9
         with:
           script: |
             const tag = '${{ steps.tag.outputs.feature_tag }}' || 'smoke';

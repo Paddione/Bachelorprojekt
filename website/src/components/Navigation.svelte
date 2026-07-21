@@ -62,7 +62,7 @@
 <header class="topbar" aria-label={t(locale, 'nav.aria-main')}>
   <div class="wrap">
     <!-- Brand mark -->
-    <a href="/" class="brand" aria-label={`${brandWord} ${t(locale, 'nav.startpage')}`}>
+    <a href="/" class="brand" aria-label={`${brandWord}.`}>
       <div class="mark" aria-hidden="true">
         <svg class="mark-m" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <text x="16" y="22" text-anchor="middle" fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="18">m</text>

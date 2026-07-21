@@ -1227,6 +1227,12 @@
       "status": "archived"
     }
   ],
+  "T002013": [
+    {
+      "slug": "spec-bats-infra-devtooling",
+      "status": "plan_staged"
+    }
+  ],
   "T002014": [
     {
       "slug": "micro-spec-consolidation",

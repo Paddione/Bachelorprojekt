@@ -2010,6 +2010,24 @@
     "kind": "shell"
   },
   {
+    "id": "REQ-ASTRO-TC-002",
+    "file": "tests/spec/astro-type-check.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-ASTRO-TC-003",
+    "file": "tests/spec/astro-type-check.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
+    "id": "REQ-ASTRO-TC-004",
+    "file": "tests/spec/astro-type-check.bats",
+    "category": "REQ",
+    "kind": "shell"
+  },
+  {
     "id": "SA-01",
     "file": "tests/local/SA-01.bats",
     "category": "SA",

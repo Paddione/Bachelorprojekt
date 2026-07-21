@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.41.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.40.3...brett-v0.41.0) (2026-07-21)
+
+
+### Features
+
+* **brett:** fig-panel edge-drawer + figure drag & 360° rotation [T002050] ([#3040](https://github.com/Paddione/Bachelorprojekt/issues/3040)) ([b41e16f](https://github.com/Paddione/Bachelorprojekt/commit/b41e16fbfba7c9d60a5d5e4fad94bb71603a314d))
+
 ## [0.40.3](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.40.2...brett-v0.40.3) (2026-07-21)
 
 

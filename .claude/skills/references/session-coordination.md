@@ -122,6 +122,65 @@ ins `.reap.log` geschrieben (im Lock-Verzeichnis).
 > noch aktiv nutzt. Nach jedem Reap-Fenster die eigenen Claims verifizieren:
 > `bash scripts/agent-lock.sh list` — fehlt ein Claim, neu setzten.
 
+## Factory vs Interactive Race — Pre-Flight Claim-Pattern [T002038]
+
+### Die Race
+
+Eine interaktive `dev-flow-execute`-Session kann mit der Factory-Pipeline um
+dasselbe Ticket `plan_staged` konkurrieren:
+
+```
+Zeit │ Factory PREP                    │ Interaktive Session
+─────┼──────────────────────────────────┼────────────────────────
+  t1 │ check agent-lock → "free"       │
+  t2 │ launcht claude-Session          │
+  t3 │ (Session startet)               │
+  t4 │                                 │ dev-flow-execute startet
+  t5 │ (lädt Plan, erzeugt Worktree)   │ Schritt -1: Reap + Sync
+  t6 │                                 │ Schritt 0: Worktree
+  t7 │                                 │ Schritt 1: Plan laden
+  t8 │ claim ticket → "held by other"  │
+  t9 │ ❌ STOP (Doppelarbeit erkannt)   │ Schritt 1.4: claim → OK
+     │                                 │ ... aber Factory hat bis t8
+     │                                 │ bereits implementiert + gemergt!
+```
+
+**Problem:** Der Claim kam zu spät (Schritt 1.4). Die Factory hatte den
+gesamten Workflow (implement→PR→merge→close) abgeschlossen, während die
+interaktive Session noch in der Startup-Phase war.
+
+### Die Lösung: Pre-Flight Claim in Schritt −1
+
+Seit [T002038] wird der Ticket-Claim + Status-Check **vor** jeder
+Git-Operation in einem dedizierten Pre-Flight-Schritt (−1) platziert:
+
+1. **Ticket-Status prüfen** — `vda.sh ticket get --id $TICKET_ID` → wenn
+   `done`/`archived`/`merged`, sofort abbrechen.
+2. **Atomischer Claim** — `agent-lock.sh check-and-claim ticket $TICKET_ID`
+   (neues Kommando seit T002038, kombiniert Check + Claim unter flock).
+3. **Ankündigung broadcasten** — `agent-msg.sh post "dev-flow-execute startet
+   Arbeit an Ticket $TICKET_ID" --to all`
+
+### Aufbau der Pre-Flight-Schritte
+
+Siehe `dev-flow-execute/SKILL.md` Schritte `−1.0` bis `−1.3` (Claude Code)
+bzw. `opencode-flow-execute/SKILL.md` Schritt `−1.0` bis `−1.2` (opencode).
+
+### check-and-claim — atomische Operation
+
+`agent-lock.sh check-and-claim` führt drei Prüfungen in einem Aufruf aus:
+
+1. **Status-Check (optional):** Ein externes Skript (`--status-check <pfad>`)
+   wird mit der Ticket-ID als Argument aufgerufen. Return-Code 0 = Ticket noch
+   gültig (plan_staged), non-zero = Claim verweigert (exit 2).
+2. **Advisory Check:** Falls der Lock bereits von einer ANDEREN Session
+   gehalten wird, sofortiger Abbruch (exit 1) — ohne den Lock zu schreiben.
+3. **Atomic Claim:** Unter `flock` (`.registry.lock`) wird der Lock
+   geschrieben — serialisiert gegen alle anderen `claim`/`check-and-claim`-
+   Aufrufe.
+
+Exit-Codes: 0=claimed, 1=held by other, 2=status-check refused.
+
 ## Freigeben (nach Merge, VOR dem Worktree-Remove)
 
 ```bash

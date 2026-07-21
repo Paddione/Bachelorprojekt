@@ -1239,6 +1239,12 @@
       "status": "archived"
     }
   ],
+  "T002012": [
+    {
+      "slug": "spec-bats-workspace-integrations",
+      "status": "plan_staged"
+    }
+  ],
   "T002013": [
     {
       "slug": "2026-07-21-spec-bats-infra-devtooling",

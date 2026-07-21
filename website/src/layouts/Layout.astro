@@ -3,7 +3,12 @@ import Navigation from '../components/Navigation.svelte';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.svelte';
 import PortalSidekick from '../components/PortalSidekick.svelte';
-import '../styles/global.css';
+// T002057: global.css is critical CSS (:root vars, html/body base, typography
+// .t-*, .prose). Deferring it would cause FOUC. Instead of Astro auto-emitting a
+// render-blocking <link> for this side-effect import, import the fully-processed
+// CSS as a string (?inline) and inline it into the <head> as the first critical
+// style block below — same styles, zero extra render-blocking requests.
+import globalCss from '../styles/global.css?inline';
 // T001950: sidekick-panels.css (~180KB) styles PortalSidekick's drawer
 // sub-views (help, questionnaire, agent-guide, ...) which only render after
 // the user opens the FAB. On the public homepage it was previously a
@@ -53,6 +58,7 @@ const siteDomain = prodDomain ? `https://web.${prodDomain}` : '';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <style set:html={globalCss} is:inline></style>
     <link rel="alternate" hreflang="de" href={`${siteDomain}${dePath}`} />
     <link rel="alternate" hreflang="en" href={`${siteDomain}${enPath}`} />
     <link rel="alternate" hreflang="x-default" href={`${siteDomain}${dePath}`} />

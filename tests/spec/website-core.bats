@@ -22,6 +22,7 @@ PERF_KORCZEWSKI_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-korczewski/kus
 MENTOLDER_SEC_HEADERS="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/website-security-headers.yaml"
 MENTOLDER_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/kustomization.yaml"
 SHARED_MIDDLEWARES="$BATS_TEST_DIRNAME/../../prod/traefik-middlewares.yaml"
+KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage.svelte"
 
 # ── T001433: Token alias layer ───────────────────────────────────────────────
 @test "T001433 alias: admin-foundation.css color-bearing tokens all reference var(--...)" {
@@ -355,4 +356,33 @@ SHARED_MIDDLEWARES="$BATS_TEST_DIRNAME/../../prod/traefik-middlewares.yaml"
   [ "$status" -eq 0 ]
   echo "$output" | grep -qi 'X-Robots-Tag'
   echo "$output" | grep -qi 'noindex'
+}
+
+# ── T002057: cut render-blocking CSS on the public homepage ──────────────────
+# global.css is critical CSS (:root vars, html/body base, typography) — deferring
+# it would cause FOUC, so it is INLINED into the <head> via a ?inline import + an
+# is:inline <style> block instead of an auto-injected blocking <link>. If Tailwind
+# v4 cannot process ?inline cleanly the fallback keeps the blocking import — in
+# that case global.css stays a legitimate blocking critical-CSS <link> and this
+# first test is flipped to assert the documented blocking import.
+
+@test "T002057 perf: Layout.astro inlines global.css (?inline import + is:inline style block)" {
+  run grep -Eq "import .* from '\.\./styles/global\.css\?inline'" "$PERF_LAYOUT"
+  [ "$status" -eq 0 ]
+  run grep -q 'set:html=' "$PERF_LAYOUT"
+  [ "$status" -eq 0 ]
+  run grep -q 'is:inline' "$PERF_LAYOUT"
+  [ "$status" -eq 0 ]
+  # the old blocking side-effect import must be gone
+  run grep -Eq "^import '\.\./styles/global\.css';" "$PERF_LAYOUT"
+  [ "$status" -ne 0 ]
+}
+
+@test "T002057 perf: KoreHomepage.svelte lazy-loads GoalsDashboard (no static top-level import)" {
+  # static top-level import would pull GoalsDashboard.css into the homepage entry graph
+  run grep -Eq "^[[:space:]]*import GoalsDashboard from" "$KORE_HOMEPAGE"
+  [ "$status" -ne 0 ]
+  # must be loaded dynamically instead
+  run grep -q "import('../GoalsDashboard.svelte')" "$KORE_HOMEPAGE"
+  [ "$status" -eq 0 ]
 }

@@ -691,7 +691,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1739,
+      "file_count": 1742,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -905,6 +905,9 @@
         "website/public/fonts/JetBrainsMono-Latin.woff2",
         "website/public/fonts/Newsreader-Latin-Italic.woff2",
         "website/public/fonts/Newsreader-Latin.woff2",
+        "website/public/gerald-400.avif",
+        "website/public/gerald-400.webp",
+        "website/public/gerald.avif",
         "website/public/gerald.jpg",
         "website/public/gerald.webp",
         "website/public/learning-assets/THIRD-PARTY-ASSETS.md",

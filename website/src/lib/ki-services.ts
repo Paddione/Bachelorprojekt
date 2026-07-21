@@ -15,6 +15,8 @@ export const SOURCE = {
   ticketTriage: 'ticket-triage',
   lavishArtifact: 'lavish-artifact',
   coaching: 'coaching',
+  coachingClassifier: 'coaching-classifier',
+  coachingSessionComplete: 'coaching-session-complete',
 } as const;
 
 export interface ServiceDef {

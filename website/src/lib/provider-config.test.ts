@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const { queryMock } = vi.hoisted(() => ({ queryMock: vi.fn() }));
 vi.mock('./website-db', () => ({ pool: { query: queryMock } }));
 
-import { getProviderConfig, apiKeyForProvider } from './provider-config';
+import { getProviderConfig, getProviderByName, DisabledProviderError, apiKeyForProvider } from './provider-config';
 
 describe('getProviderConfig', () => {
   beforeEach(() => { queryMock.mockReset(); process.env.ANTHROPIC_API_KEY = 'k'; });
@@ -46,5 +46,47 @@ describe('getProviderConfig', () => {
     expect(apiKeyForProvider('openrouter')).toBe('or-key');
     expect(apiKeyForProvider('google-gemini')).toBe('gm-key');
     expect(apiKeyForProvider('local-qwen35')).toBe('not-required');
+  });
+});
+
+describe('getProviderByName', () => {
+  beforeEach(() => { queryMock.mockReset(); process.env.ANTHROPIC_API_KEY = 'test-key'; });
+
+  it('returns the enabled provider row for a given name', async () => {
+    queryMock.mockResolvedValueOnce({ rows: [
+      { provider: 'ternary-bonsai-27b', model_id: 'ternary-bonsai-27b', base_url: 'http://127.0.0.1:18235', api_key: null, context_window: null, context_budget: null },
+    ]});
+    const c = await getProviderByName('ternary-bonsai-27b');
+    expect(c.provider).toBe('ternary-bonsai-27b');
+    expect(c.modelId).toBe('ternary-bonsai-27b');
+    expect(c.baseUrl).toBe('http://127.0.0.1:18235');
+  });
+
+  it('uses apiKeyForProvider when row has no api_key', async () => {
+    queryMock.mockResolvedValueOnce({ rows: [
+      { provider: 'deepseek', model_id: 'deepseek-chat', base_url: 'https://api.deepseek.com/v1', api_key: null, context_window: null, context_budget: null },
+    ]});
+    process.env.DEEPSEEK_API_KEY = 'ds-key';
+    const c = await getProviderByName('deepseek');
+    expect(c.apiKey).toBe('ds-key');
+  });
+
+  it('prefers row api_key over apiKeyForProvider', async () => {
+    queryMock.mockResolvedValueOnce({ rows: [
+      { provider: 'deepseek', model_id: 'deepseek-chat', base_url: 'https://api.deepseek.com/v1', api_key: 'row-key', context_window: null, context_budget: null },
+    ]});
+    process.env.DEEPSEEK_API_KEY = 'env-key';
+    const c = await getProviderByName('deepseek');
+    expect(c.apiKey).toBe('row-key');
+  });
+
+  it('throws DisabledProviderError when provider is not enabled', async () => {
+    queryMock.mockResolvedValueOnce({ rows: [] });
+    await expect(getProviderByName('nonexistent')).rejects.toThrow(DisabledProviderError);
+  });
+
+  it('DisabledProviderError message includes the provider name', async () => {
+    queryMock.mockResolvedValueOnce({ rows: [] });
+    await expect(getProviderByName('old-cloud')).rejects.toThrow('old-cloud');
   });
 });

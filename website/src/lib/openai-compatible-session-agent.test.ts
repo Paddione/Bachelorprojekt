@@ -11,6 +11,13 @@ vi.mock('./session-tools', () => ({
   searchCoachingKnowledgeTool: vi.fn().mockResolvedValue([]),
 }));
 
+const { getProviderByNameMock } = vi.hoisted(() => ({
+  getProviderByNameMock: vi.fn(),
+}));
+vi.mock('./provider-config', () => ({
+  getProviderByName: (...a: unknown[]) => getProviderByNameMock(...a),
+}));
+
 import type { KiConfig } from './coaching-ki-config-db';
 import { OpenAICompatibleSessionAgent } from './openai-compatible-session-agent';
 
@@ -56,10 +63,14 @@ const baseOptions = () => ({
 
 beforeEach(() => {
   mockCreate.mockReset();
+  getProviderByNameMock.mockReset();
 });
 
 describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
   it('generate: uses apiEndpoint when provided', async () => {
+    getProviderByNameMock.mockResolvedValueOnce({
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+    });
     mockCreate.mockResolvedValueOnce({ choices: [{ message: { content: 'pong' } }] });
     const out = await new OpenAICompatibleSessionAgent().generate({
       ...baseOptions(),
@@ -69,49 +80,31 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
     expect(out.provider).toBe('deepseek');
   });
 
-  it('generate: throws when apiEndpoint missing and provider has no default', async () => {
+  it('generate: throws when provider is disabled in DB', async () => {
+    getProviderByNameMock.mockRejectedValueOnce(new Error("Provider 'mystery' is not enabled in provider_config"));
     await expect(new OpenAICompatibleSessionAgent().generate({
       ...baseOptions(),
       kiConfig: baseConfig({ provider: 'mystery' as unknown as KiConfig['provider'] }),
-    })).rejects.toThrow(/apiEndpoint fehlt/);
+    })).rejects.toThrow(/not enabled/);
   });
 
-  it('generate: falls back to DEEPSEEK_API_KEY env when config apiKey is null', async () => {
-    const ORIGINAL = process.env.DEEPSEEK_API_KEY;
-    process.env.DEEPSEEK_API_KEY = 'sk-from-env';
-    try {
-      mockCreate.mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
-      const out = await new OpenAICompatibleSessionAgent().generate({
-        ...baseOptions(),
-        kiConfig: baseConfig({ provider: 'deepseek', apiKey: null }),
-      });
-      expect(out.aiResponse).toBe('ok');
-    } finally {
-      if (ORIGINAL === undefined) delete process.env.DEEPSEEK_API_KEY;
-      else process.env.DEEPSEEK_API_KEY = ORIGINAL;
-    }
-  });
-
-  it('generate: defaults apiKey to "not-required" for unknown providers', async () => {
-    const ORIGINAL = process.env.DEEPSEEK_API_KEY;
-    const ORIGINAL_AK = process.env.ANTHROPIC_API_KEY;
-    delete process.env.DEEPSEEK_API_KEY;
-    delete process.env.ANTHROPIC_API_KEY;
-    try {
-      mockCreate.mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
-      await new OpenAICompatibleSessionAgent().generate({
-        ...baseOptions(),
-        kiConfig: baseConfig({ provider: 'mystery' as unknown as KiConfig['provider'], apiEndpoint: 'http://x' }),
-      });
-      expect(mockCreate).toHaveBeenCalled();
-    } finally {
-      if (ORIGINAL !== undefined) process.env.DEEPSEEK_API_KEY = ORIGINAL;
-      if (ORIGINAL_AK !== undefined) process.env.ANTHROPIC_API_KEY = ORIGINAL_AK;
-    }
+  it('generate: uses DB api_key when config apiKey is null', async () => {
+    getProviderByNameMock.mockResolvedValueOnce({
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'db-key',
+    });
+    mockCreate.mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
+    const out = await new OpenAICompatibleSessionAgent().generate({
+      ...baseOptions(),
+      kiConfig: baseConfig({ provider: 'deepseek', apiKey: null }),
+    });
+    expect(out.aiResponse).toBe('ok');
   });
 
   it('generate: uses explicit modelName when provided', async () => {
     let captured = '';
+    getProviderByNameMock.mockResolvedValueOnce({
+      provider: 'local-ollama', modelId: 'qwen2.5', baseUrl: 'http://localhost:11434/v1', apiKey: 'not-required',
+    });
     mockCreate.mockImplementationOnce((req: { model: string }) => {
       captured = req.model;
       return Promise.resolve({ choices: [{ message: { content: 'm' } }] });
@@ -123,8 +116,11 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
     expect(captured).toBe('my-custom-7b');
   });
 
-  it('generate: defaults model to "deepseek-chat" for deepseek', async () => {
+  it('generate: defaults model from DB row when no explicit modelName', async () => {
     let captured = '';
+    getProviderByNameMock.mockResolvedValueOnce({
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+    });
     mockCreate.mockImplementationOnce((req: { model: string }) => {
       captured = req.model;
       return Promise.resolve({ choices: [{ message: { content: 'm' } }] });
@@ -136,24 +132,10 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
     expect(captured).toBe('deepseek-chat');
   });
 
-  it('generate: falls back to llama3 for unknown provider with no modelName', async () => {
-    let captured = '';
-    mockCreate.mockImplementationOnce((req: { model: string }) => {
-      captured = req.model;
-      return Promise.resolve({ choices: [{ message: { content: 'm' } }] });
-    });
-    await new OpenAICompatibleSessionAgent().generate({
-      ...baseOptions(),
-      kiConfig: baseConfig({
-        provider: 'mystery' as unknown as KiConfig['provider'],
-        apiEndpoint: 'http://x',
-        modelName: null,
-      }),
-    });
-    expect(captured).toBe('llama3');
-  });
-
   it('stream: yields delta text fragments as they arrive', async () => {
+    getProviderByNameMock.mockResolvedValueOnce({
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+    });
     mockCreate.mockResolvedValueOnce(
       (async function* () {
         yield { choices: [{ delta: { content: 'hello ' } }] };
@@ -168,6 +150,9 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
 
   it('generate: forwards the assembled history (system + history + user)', async () => {
     let captured: { messages: { role: string; content: string }[] } = { messages: [] };
+    getProviderByNameMock.mockResolvedValueOnce({
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+    });
     mockCreate.mockImplementationOnce((req: { messages: { role: string; content: string }[] }) => {
       captured = req;
       return Promise.resolve({ choices: [{ message: { content: 'x' } }] });
@@ -185,6 +170,9 @@ describe('OpenAICompatibleSessionAgent (resolve* via public API)', () => {
   });
 
   it('generate: returns a durationMs that is >= 0', async () => {
+    getProviderByNameMock.mockResolvedValueOnce({
+      provider: 'deepseek', modelId: 'deepseek-chat', baseUrl: 'https://api.deepseek.com/v1', apiKey: 'test',
+    });
     mockCreate.mockResolvedValueOnce({ choices: [{ message: { content: 'ok' } }] });
     const out = await new OpenAICompatibleSessionAgent().generate(baseOptions());
     expect(out.durationMs).toBeGreaterThanOrEqual(0);

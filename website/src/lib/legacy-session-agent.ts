@@ -1,4 +1,5 @@
 import type { SessionAgent, GenerateOptions, GenerateResult } from './session-agent';
+import { getProviderByName } from './provider-config';
 
 export class LegacySessionAgent implements SessionAgent {
   async generate(options: GenerateOptions): Promise<GenerateResult> {
@@ -6,10 +7,12 @@ export class LegacySessionAgent implements SessionAgent {
     const provider = kiConfig.provider;
     const startMs = Date.now();
     let aiResponse: string;
-    const model = kiConfig.modelName ?? (provider === 'openai' ? 'gpt-4o-mini' : 'mistral-small-latest');
+
+    const cfg = await getProviderByName(provider);
+    const model = kiConfig.modelName ?? cfg.modelId;
 
     if (provider === 'openai') {
-      const apiKey = kiConfig.apiKey ?? process.env.OPENAI_API_KEY;
+      const apiKey = kiConfig.apiKey ?? cfg.apiKey;
       if (!apiKey) throw new Error('OPENAI_API_KEY nicht konfiguriert');
       const { default: OpenAI } = await import('openai');
       const clientOpts: ConstructorParameters<typeof OpenAI>[0] = { apiKey };
@@ -33,7 +36,7 @@ export class LegacySessionAgent implements SessionAgent {
       aiResponse = resp.choices[0]?.message.content ?? '';
 
     } else if (provider === 'mistral') {
-      const apiKey = kiConfig.apiKey ?? process.env.MISTRAL_API_KEY;
+      const apiKey = kiConfig.apiKey ?? cfg.apiKey;
       if (!apiKey) throw new Error('MISTRAL_API_KEY nicht konfiguriert');
       const { Mistral } = await import('@mistralai/mistralai');
       const clientOpts: ConstructorParameters<typeof Mistral>[0] = { apiKey };
@@ -58,12 +61,12 @@ export class LegacySessionAgent implements SessionAgent {
     } else if (provider === 'claude' || provider === 'lumo' || provider.startsWith('custom_')) {
       // OpenAI-compatible path: used for local llm-router (claude), Lumo, and custom endpoints.
       // apiEndpoint in the config must point to an OpenAI-compatible /v1 base URL.
-      const apiKey = kiConfig.apiKey ?? 'not-required';
+      const apiKey = kiConfig.apiKey ?? cfg.apiKey;
       const endpoint = kiConfig.apiEndpoint;
       if (!endpoint) throw new Error(`Provider '${provider}': apiEndpoint muss gesetzt sein`);
       const { default: OpenAI } = await import('openai');
       const client = new OpenAI({ apiKey, baseURL: endpoint });
-      const resolvedModel = kiConfig.modelName ?? 'llama3';
+      const resolvedModel = model;
       const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
         { role: 'system', content: effectiveSystemPrompt },
         ...history.map(t => ({ role: t.role as 'user' | 'assistant', content: t.content })),

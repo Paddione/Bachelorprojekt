@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { getKiProviderById } from '../../../../../lib/coaching-ki-config-db';
 import { pool } from '../../../../../lib/website-db';
-import { resolveEndpoint } from '../../../../../lib/openai-compatible-session-agent';
+import { getProviderByName } from '../../../../../lib/provider-config';
 import { fetchModelIds } from '../../../../../lib/llm-models-probe';
 
 export const prerender = false;
@@ -20,7 +20,10 @@ export const GET: APIRoute = async ({ request, url }) => {
   if (!config) return json({ reachable: false, models: [] }, 200);
 
   let baseUrl: string;
-  try { baseUrl = resolveEndpoint(config); }
+  try {
+    const cfg = await getProviderByName(config.provider);
+    baseUrl = config.apiEndpoint ?? cfg.baseUrl ?? '';
+  }
   catch { return json({ reachable: false, models: [] }, 200); }
 
   return json(await fetchModelIds(baseUrl, 2000), 200);

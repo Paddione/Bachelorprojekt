@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { GenerateOptions } from './session-agent';
 import type { KiConfig } from './coaching-ki-config-db';
 
+const { getProviderByNameMock } = vi.hoisted(() => ({
+  getProviderByNameMock: vi.fn(),
+}));
+vi.mock('./provider-config', () => ({
+  getProviderByName: (...a: unknown[]) => getProviderByNameMock(...a),
+}));
+
 const baseKiConfig = (provider: string): KiConfig => ({
   id: 1, brand: 'mentolder', provider, isActive: true,
   modelName: provider === 'openai' ? 'gpt-4o-mini' : 'mistral-small-latest',
@@ -29,9 +36,12 @@ const baseOptions = (provider: string): GenerateOptions => ({
 });
 
 describe('LegacySessionAgent - OpenAI', () => {
-  beforeEach(() => { vi.resetModules(); vi.clearAllMocks(); });
+  beforeEach(() => { vi.resetModules(); vi.clearAllMocks(); getProviderByNameMock.mockReset(); });
 
   it('calls OpenAI chat.completions.create with history prepended', async () => {
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'openai', modelId: 'gpt-4o-mini', baseUrl: null, apiKey: 'test-key',
+    });
     const mockCreate = vi.fn().mockResolvedValue({
       choices: [{ message: { content: 'OpenAI antwort' } }],
     });
@@ -53,19 +63,23 @@ describe('LegacySessionAgent - OpenAI', () => {
     expect(call.messages[3]).toEqual({ role: 'user', content: 'Klient M0001: Schritt 3' });
   });
 
-  it('throws if OpenAI API key is missing', async () => {
+  it('throws if provider is disabled in DB and no apiKey override', async () => {
+    getProviderByNameMock.mockRejectedValue(new Error("Provider 'openai' is not enabled"));
     vi.doMock('openai', () => ({ default: vi.fn().mockImplementation(function () { return {}; }) }));
     const { LegacySessionAgent } = await import('./legacy-session-agent');
     const agent = new LegacySessionAgent();
     const opts = { ...baseOptions('openai'), kiConfig: { ...baseKiConfig('openai'), apiKey: null } };
-    await expect(agent.generate(opts)).rejects.toThrow('OPENAI_API_KEY');
+    await expect(agent.generate(opts)).rejects.toThrow('not enabled');
   });
 });
 
 describe('LegacySessionAgent - Mistral', () => {
-  beforeEach(() => { vi.resetModules(); vi.clearAllMocks(); });
+  beforeEach(() => { vi.resetModules(); vi.clearAllMocks(); getProviderByNameMock.mockReset(); });
 
   it('calls Mistral chat.complete with history prepended', async () => {
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'mistral', modelId: 'mistral-small-latest', baseUrl: null, apiKey: 'test-key',
+    });
     const mockComplete = vi.fn().mockResolvedValue({
       choices: [{ message: { content: 'Mistral antwort' } }],
     });

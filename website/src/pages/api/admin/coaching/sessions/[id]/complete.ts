@@ -4,6 +4,7 @@ import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getSession as getCoachingSession, completeSession } from '../../../../../../lib/coaching-session-db';
 import { DEFAULT_CLAUDE_SESSION_MODEL } from '../../../../../../lib/claude-session-agent';
 import { pool } from '../../../../../../lib/website-db';
+import { getProviderByName } from '../../../../../../lib/provider-config';
 
 export const prerender = false;
 
@@ -26,8 +27,17 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   }
 
   // Legacy fallback: generate report inline (non-Claude providers or tool not called)
-  const apiKey = process.env.ANTHROPIC_API_KEY;
   let report = '# Abschlussbericht\n\n*(KI nicht verfügbar — bitte manuell ergänzen)*';
+
+  let apiKey: string | undefined;
+  let resolvedModel: string | undefined;
+  try {
+    const cfg = await getProviderByName('anthropic');
+    apiKey = cfg.apiKey || undefined;
+    resolvedModel = cfg.modelId;
+  } catch {
+    apiKey = process.env.ANTHROPIC_API_KEY;
+  }
 
   if (apiKey) {
     const stepsText = coachingSession.steps
@@ -38,7 +48,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     try {
       const client = new Anthropic({ apiKey });
       const msg = await client.messages.create({
-        model: process.env.COACHING_SESSION_MODEL || DEFAULT_CLAUDE_SESSION_MODEL,
+        model: resolvedModel ?? process.env.COACHING_SESSION_MODEL ?? DEFAULT_CLAUDE_SESSION_MODEL,
         max_tokens: 1200,
         system: `Du bist ein Coaching-Protokollant. Erstelle aus den 10 Schritten einer Coaching-Session eine strukturierte Zusammenfassung auf Deutsch.
 Abschnitte: ## Ausgangslage, ## Analyse, ## Lösungsansatz, ## Vereinbarte Schritte, ## Bewertung.

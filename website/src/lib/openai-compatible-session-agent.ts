@@ -1,37 +1,15 @@
 import type { SessionAgent, GenerateOptions, GenerateResult } from './session-agent';
 import type { KiConfig } from './coaching-ki-config-db';
 import { searchCoachingKnowledgeTool } from './session-tools';
+import { getProviderByName } from './provider-config';
 
-export function resolveEndpoint(kiConfig: KiConfig): string {
-  if (kiConfig.apiEndpoint) return kiConfig.apiEndpoint;
-  const gpuBase = process.env.LLM_HOST_IP?.trim() || 'localhost';
-  const defaults: Record<string, string> = {
-    'deepseek': 'https://api.deepseek.com/v1',
-    'anthropic': process.env.LLM_GATEWAY_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234/v1',
-    'local-cluster': process.env.LLM_ROUTER_URL ?? `http://${gpuBase}:1234/v1`,
-    'local-lmstudio': `http://${gpuBase}:1234/v1`,
-    'local-ollama': `http://${gpuBase}:1234/v1`,
+async function resolveProvider(kiConfig: KiConfig) {
+  const cfg = await getProviderByName(kiConfig.provider);
+  return {
+    endpoint: kiConfig.apiEndpoint ?? cfg.baseUrl,
+    apiKey: kiConfig.apiKey ?? cfg.apiKey,
+    model: kiConfig.modelName ?? cfg.modelId,
   };
-  const url = defaults[kiConfig.provider];
-  if (!url) throw new Error(`OpenAICompatibleSessionAgent: apiEndpoint fehlt für provider '${kiConfig.provider}'`);
-  return url;
-}
-
-function resolveApiKey(kiConfig: KiConfig): string {
-  if (kiConfig.apiKey) return kiConfig.apiKey;
-  if (kiConfig.provider === 'deepseek') return process.env.DEEPSEEK_API_KEY ?? 'not-required';
-  if (kiConfig.provider === 'anthropic') return process.env.ANTHROPIC_API_KEY ?? 'not-required';
-  return 'not-required';
-}
-
-function resolveModel(kiConfig: KiConfig): string {
-  if (kiConfig.modelName) return kiConfig.modelName;
-  const defaults: Record<string, string> = {
-    'deepseek': 'deepseek-chat',
-    'local-lmstudio': 'qwen2.5-7b',
-    'local-ollama': 'qwen2.5',
-  };
-  return defaults[kiConfig.provider] ?? 'llama3';
 }
 
 async function buildEnrichedSystemPrompt(
@@ -56,11 +34,11 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt } = options;
     const startMs = Date.now();
 
-    const endpoint = resolveEndpoint(kiConfig);
+    const { endpoint, apiKey, model } = await resolveProvider(kiConfig);
     const enrichedSystem = await buildEnrichedSystemPrompt(effectiveSystemPrompt, assembledUserPrompt);
 
     const { default: OpenAI } = await import('openai');
-    const client = new OpenAI({ apiKey: resolveApiKey(kiConfig), baseURL: endpoint });
+    const client = new OpenAI({ apiKey, baseURL: endpoint ?? undefined });
 
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: enrichedSystem },
@@ -68,7 +46,6 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
       { role: 'user', content: assembledUserPrompt },
     ];
 
-    const model = resolveModel(kiConfig);
     const resp = await client.chat.completions.create({
       model,
       max_tokens: kiConfig.maxTokens ?? 800,
@@ -84,11 +61,11 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
   async *stream(options: GenerateOptions): AsyncIterable<string> {
     const { kiConfig, history, effectiveSystemPrompt, assembledUserPrompt } = options;
 
-    const endpoint = resolveEndpoint(kiConfig);
+    const { endpoint, apiKey, model } = await resolveProvider(kiConfig);
     const enrichedSystem = await buildEnrichedSystemPrompt(effectiveSystemPrompt, assembledUserPrompt);
 
     const { default: OpenAI } = await import('openai');
-    const client = new OpenAI({ apiKey: resolveApiKey(kiConfig), baseURL: endpoint });
+    const client = new OpenAI({ apiKey, baseURL: endpoint ?? undefined });
 
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: enrichedSystem },
@@ -97,7 +74,7 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
     ];
 
     const stream = await client.chat.completions.create({
-      model: resolveModel(kiConfig),
+      model,
       max_tokens: kiConfig.maxTokens ?? 800,
       temperature: kiConfig.temperature ?? undefined,
       top_p: kiConfig.topP ?? undefined,

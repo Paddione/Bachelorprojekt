@@ -34,22 +34,36 @@ func envOr(key, def string) string {
 
 func repo() string   { return envOr("FACTORY_REPO", "/home/patrick/Bachelorprojekt") }
 func port() string   { return envOr("FACTORY_MCP_PORT", "13003") }
-func llmURL() string { return envOr("FACTORY_LLM_URL", "http://192.168.100.10:1234/v1") }
-func llmModel() string {
-	// Default to hermes-3-llama-3.1-8b: it returns real content in ~3s on
-	// the project's LMStudio host, while qwen/qwen3.5-9b is a reasoning
-	// variant that often returns empty content and takes 60s+. Override
-	// via FACTORY_LLM_MODEL if you specifically want the reasoning model.
-	return envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b")
-}
 func llmKey() string { return envOr("FACTORY_LLM_API_KEY", "lmstudio") }
 
-// isQwenReasoningModel reports whether model is a Qwen3-family hybrid
-// reasoner, which needs enable_thinking:false to avoid burning max_tokens
-// on the reasoning_content trace before ever emitting a final answer.
-func isQwenReasoningModel(model string) bool {
-	return strings.Contains(strings.ToLower(model), "qwen")
+// resolveLLM calls route-provider.sh to get baseUrl + modelId from provider_config DB.
+func resolveLLM() (baseURL, model string) {
+	script := repo() + "/scripts/factory/route-provider.sh"
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, "bash", script, "factory-ask", "haiku").Output()
+	if err != nil {
+		// Fallback: env overrides (backwards compat for local dev)
+		return envOr("FACTORY_LLM_URL", "http://192.168.100.10:1234/v1"),
+			envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b")
+	}
+	var route struct {
+		Provider string  `json:"provider"`
+		ModelID  string  `json:"modelId"`
+		BaseURL  *string `json:"baseUrl"`
+	}
+	if err := json.Unmarshal(bytes.TrimSpace(out), &route); err != nil || route.BaseURL == nil || *route.BaseURL == "" {
+		return envOr("FACTORY_LLM_URL", "http://192.168.100.10:1234/v1"),
+			envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b")
+	}
+	// Ensure base URL ends with /v1 for OpenAI-compatible chat/completions path
+	u := strings.TrimRight(*route.BaseURL, "/")
+	if !strings.HasSuffix(u, "/v1") {
+		u += "/v1"
+	}
+	return u, route.ModelID
 }
+
 func openspecURL() string {
 	return envOr("OPENSPEC_SEARCH_URL", "http://website.website.svc.cluster.local:4321")
 }
@@ -132,8 +146,7 @@ func main() {
 	})
 	mux.HandleFunc("/mcp", handleMCP)
 	addr := "127.0.0.1:" + port()
-	log.Printf("factory-mcp listening on %s (repo=%s llm=%s model=%s)",
-		addr, repo(), llmURL(), llmModel())
+	log.Printf("factory-mcp listening on %s (repo=%s)", addr, repo())
 	srv := &http.Server{
 		Addr:              addr,
 		Handler:           mux,
@@ -442,7 +455,7 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	if q == "" {
 		return "", true, fmt.Errorf("question is required")
 	}
-	model := llmModel()
+	llmBase, model := resolveLLM()
 	body := map[string]any{
 		"model": model,
 		"messages": []map[string]string{
@@ -452,18 +465,13 @@ func toolFactoryAsk(question string) (string, bool, error) {
 		"temperature": 0.2,
 		"max_tokens":  1500,
 	}
-	if isQwenReasoningModel(model) {
-		// Hard switch (not the soft "/no_think" prompt convention): forces
-		// the Jinja chat template to skip the <think> turn entirely, so the
-		// full max_tokens budget goes to the visible answer. Without this,
-		// Qwen3.5 frequently exhausts max_tokens mid-reasoning and returns
-		// an empty content field (see extractAnswerFromReasoning fallback).
+	if strings.Contains(strings.ToLower(model), "qwen") {
 		body["chat_template_kwargs"] = map[string]any{"enable_thinking": false}
 	}
 	bb, _ := json.Marshal(body)
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
-	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, llmURL()+"/chat/completions", bytes.NewReader(bb))
+	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, llmBase+"/chat/completions", bytes.NewReader(bb))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+llmKey())
 	resp, err := http.DefaultClient.Do(req)
@@ -488,7 +496,7 @@ func toolFactoryAsk(question string) (string, bool, error) {
 		return "", true, fmt.Errorf("llm parse: %w (body: %s)", err, truncate(string(raw), 500))
 	}
 	if len(parsed.Choices) == 0 {
-		return `{"answer":"(empty)","model":"` + llmModel() + `"}`, false, nil
+		return `{"answer":"(empty)","model":"` + model + `"}`, false, nil
 	}
 	msg := parsed.Choices[0].Message
 	ans := strings.TrimSpace(msg.Content)
@@ -505,7 +513,7 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	}
 	out := map[string]any{
 		"answer": ans,
-		"model":  llmModel(),
+		"model":  model,
 		"source": src,
 	}
 	b, _ := json.Marshal(out)

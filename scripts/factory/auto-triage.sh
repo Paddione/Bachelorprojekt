@@ -163,34 +163,23 @@ PROMPT
     return 1
   fi
 
-  # Resolve API endpoint and key
+  # Resolve API endpoint and key from route-provider output
   local api_url api_key
+  api_url="${base_url}"
+  if [[ -z "$api_url" ]]; then
+    echo "auto-triage: route-provider returned empty baseUrl" >&2
+    return 1
+  fi
+  # Append default path suffix if baseUrl has no path
+  case "$api_url" in
+    */v1/*|*/chat/completions|*/messages) ;;  # already has path
+    *) api_url="${api_url%/}/v1/chat/completions" ;;
+  esac
   case "$provider" in
-    deepseek)
-      api_url="${base_url:-https://api.deepseek.com}"
-      api_url="${api_url%/}/chat/completions"
-      api_key="${DEEPSEEK_API_KEY:-}"
-      ;;
-    anthropic)
-      api_url="${base_url:-https://api.anthropic.com}"
-      api_url="${api_url%/}/v1/messages"
-      api_key="${ANTHROPIC_API_KEY:-}"
-      ;;
-    openai)
-      api_url="${base_url:-https://api.openai.com}"
-      api_url="${api_url%/}/v1/chat/completions"
-      api_key="${OPENAI_API_KEY:-}"
-      ;;
-    ollama)
-      api_url="${base_url:-http://localhost:11434}"
-      api_url="${api_url%/}/v1/chat/completions"
-      api_key=""
-      ;;
-    *)
-      api_url="${base_url:-https://api.${provider}.com}"
-      api_url="${api_url%/}/v1/chat/completions"
-      api_key=""
-      ;;
+    deepseek)  api_key="${DEEPSEEK_API_KEY:-}" ;;
+    anthropic) api_key="${ANTHROPIC_API_KEY:-}" ;;
+    openai)    api_key="${OPENAI_API_KEY:-}" ;;
+    *)         api_key="" ;;
   esac
 
   local tmp_req tmp_resp

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import OpenAI from 'openai';
+import { getProviderByName } from '../../../lib/provider-config';
 import { getActiveProvider } from '../../../lib/coaching-ki-config-db';
 import { getStepDef } from '../../../lib/coaching-session-prompts';
 import { pool } from '../../../lib/website-db';
@@ -109,19 +110,29 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   }
   const body: SimBody = parsed;
 
-  const config = await getActiveProvider(pool, process.env.BRAND ?? 'mentolder');
-  if (!config) {
+  const activeConfig = await getActiveProvider(pool, process.env.BRAND ?? 'mentolder');
+  if (!activeConfig) {
     return new Response(
       JSON.stringify({ error: 'Kein KI-Provider konfiguriert' }),
       { status: 503, headers: { 'Content-Type': 'application/json' } },
     );
   }
 
+  let providerCfg;
+  try {
+    providerCfg = await getProviderByName(activeConfig.provider);
+  } catch {
+    return new Response(
+      JSON.stringify({ error: `Provider '${activeConfig.provider}' ist nicht aktiv` }),
+      { status: 503, headers: { 'Content-Type': 'application/json' } },
+    );
+  }
+
   const client = new OpenAI({
-    apiKey: config.apiKey ?? 'not-required',
-    baseURL: config.apiEndpoint ?? undefined,
+    apiKey: providerCfg.apiKey || 'not-required',
+    baseURL: providerCfg.baseUrl || undefined,
   });
-  const model = config.modelName ?? 'hermes-3';
+  const model = providerCfg.modelId;
 
   try {
     let result: string;
@@ -164,12 +175,12 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       const completion = await client.chat.completions.create({
         model,
         messages: [
-          { role: 'system', content: config.systemPrompt ?? COACH_BASE },
+          { role: 'system', content: activeConfig.systemPrompt ?? COACH_BASE },
           ...history,
           { role: 'user', content: filledPrompt },
         ],
-        max_tokens: config.maxTokens ?? 600,
-        temperature: config.temperature ?? 0.7,
+        max_tokens: activeConfig.maxTokens ?? 600,
+        temperature: activeConfig.temperature ?? 0.7,
       });
       result = completion.choices[0]?.message?.content ?? '';
     }

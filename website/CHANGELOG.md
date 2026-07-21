@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.196.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.196.0...website-v1.196.1) (2026-07-21)
+
+
+### Tests
+
+* add 5 spec BATS files for workspace integrations [T002012] ([#3019](https://github.com/Paddione/Bachelorprojekt/issues/3019)) ([25e5e6c](https://github.com/Paddione/Bachelorprojekt/commit/25e5e6c7f7c347d7caa88390fc26ae431ddbe422))
+
 ## [1.196.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.195.2...website-v1.196.0) (2026-07-21)
 
 

@@ -4,7 +4,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
-  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" attention_mode="" is_test="false" areas=""
+  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" attention_mode="" is_test="false" areas="" product_id=""
   # Tolerate an optional leading "create" subcommand token so this script can
   # be invoked either standalone (`create.sh create --type ...`) or via the
   # ticket.sh dispatcher (which already shifts the subcommand off before
@@ -20,6 +20,7 @@ main() {
       --status)         status="$2"; shift 2 ;;
       --attention-mode) attention_mode="$2"; shift 2 ;;
       --areas)          areas="$2"; shift 2 ;;
+      --product-id)     product_id="$2"; shift 2 ;;
       --is-test-data)   is_test="true"; shift ;;
       *)                echo "Unknown create option: $1" >&2; exit 2 ;;
     esac; done
@@ -40,6 +41,10 @@ main() {
     esac
   fi
   local pod; pod=$(_pgpod)
+  local parent_uuid=""
+  if [[ -n "$product_id" ]]; then
+    parent_uuid=$(_resolve_product_id "$pod" "$product_id" "$brand") || exit 2
+  fi
   local result ext_id
   result=$(_exec_sql "$pod" \
     -v type="$type" \
@@ -51,9 +56,10 @@ main() {
     -v prio="$priority" \
     -v attn="$attention_mode" \
     -v is_test="$is_test" \
-    -v areas="$areas" <<'EOF'
-INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, attention_mode, is_test_data, areas)
-VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', COALESCE(NULLIF(:'attn', ''), 'auto'), :'is_test'::boolean, CASE WHEN :'areas'='' THEN NULL ELSE string_to_array(:'areas',',') END)
+    -v areas="$areas" \
+    -v parent="$parent_uuid" <<'EOF'
+INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, attention_mode, is_test_data, areas, parent_id)
+VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', COALESCE(NULLIF(:'attn', ''), 'auto'), :'is_test'::boolean, CASE WHEN :'areas'='' THEN NULL ELSE string_to_array(:'areas',',') END, NULLIF(:'parent', '')::uuid)
 RETURNING external_id || '|' || id;
 EOF
 )

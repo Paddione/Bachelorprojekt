@@ -1,0 +1,1814 @@
+[
+  {
+    "external_id": "T001022",
+    "brand": "korczewski",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001198",
+    "brand": "korczewski",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001327",
+    "brand": "korczewski",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001328",
+    "brand": "korczewski",
+    "product_slug": "auth-security",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000029",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000382",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000415",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000429",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000431",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000435",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000459",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000465",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000466",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000467",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000468",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000469",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000470",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000471",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000472",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000477",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000478",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000479",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000480",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000510",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000520",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000524",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000532",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000534",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000540",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000544",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000574",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000575",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000580",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000581",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000582",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000583",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000588",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000589",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000590",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000591",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000592",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000593",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000594",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000595",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000597",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000598",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000599",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000600",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000601",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000602",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000605",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000606",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000607",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000608",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000609",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000610",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000611",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000612",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000613",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000614",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000615",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000616",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000617",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000618",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000619",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000620",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000621",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000622",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000625",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000626",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000627",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000628",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000629",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000630",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000631",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000632",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000633",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000634",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000635",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000636",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000637",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000638",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000639",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000640",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000641",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000652",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000653",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000654",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000655",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000656",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000661",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000663",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000665",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000666",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000667",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000668",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000675",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000687",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000703",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000704",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000705",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000706",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000707",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000711",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000716",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000718",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000720",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000721",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000722",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000723",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000724",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000725",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000726",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000729",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000730",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000737",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000738",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000739",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000741",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000748",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000749",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000750",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000751",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000752",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000756",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000784",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000785",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000786",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000788",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000792",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000840",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000842",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000858",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000862",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000864",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000865",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000866",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000873",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000877",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000879",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000882",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000883",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000884",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000885",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000886",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000887",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000893",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000895",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000896",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000897",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000898",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000899",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000900",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000901",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000902",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000903",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000904",
+    "brand": "mentolder",
+    "product_slug": "auth-security",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000905",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000906",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000907",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000909",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000910",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000911",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000914",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000915",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000919",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000920",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000921",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000922",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000924",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000925",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000928",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000929",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000930",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000931",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000932",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000933",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000937",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000938",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000939",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000940",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000941",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000942",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000943",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000948",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000950",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000951",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000953",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000955",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000956",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000959",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000962",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000964",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000965",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000967",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000968",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000975",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000978",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000980",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000987",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000988",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000989",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000990",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000991",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T000992",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T000993",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T000994",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001002",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001008",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001025",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001026",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001033",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001034",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001043",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001054",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001056",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001065",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001068",
+    "brand": "mentolder",
+    "product_slug": "auth-security",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001078",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001080",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001087",
+    "brand": "mentolder",
+    "product_slug": "auth-security",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001092",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001120",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001160",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001208",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001210",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001211",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001216",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001224",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001229",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001233",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001242",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001261",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001262",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001263",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001265",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001266",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001267",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001268",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001269",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001272",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001274",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001288",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001302",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001304",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001310",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001316",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001317",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001323",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001331",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001366",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001367",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001381",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001402",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001409",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001423",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001427",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001429",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001436",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001439",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001440",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001442",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001444",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001448",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001449",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001471",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001572",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001594",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001638",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001641",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001659",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001704",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001733",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001800",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001805",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001813",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001828",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001829",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001830",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001831",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001837",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001838",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001839",
+    "brand": "mentolder",
+    "product_slug": "sonstiges",
+    "confidence": 0.3
+  },
+  {
+    "external_id": "T001840",
+    "brand": "mentolder",
+    "product_slug": "auth-security",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001841",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001842",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001860",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001861",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001930",
+    "brand": "mentolder",
+    "product_slug": "website",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001931",
+    "brand": "mentolder",
+    "product_slug": "infra",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T001963",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001979",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T001980",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T002008",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T002009",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T002010",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T002011",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T002012",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T002013",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T002014",
+    "brand": "mentolder",
+    "product_slug": "dev-tooling",
+    "confidence": 0.8
+  },
+  {
+    "external_id": "T002015",
+    "brand": "mentolder",
+    "product_slug": "ai-factory",
+    "confidence": 0.6
+  },
+  {
+    "external_id": "T002016",
+    "brand": "mentolder",
+    "product_slug": "ticket-system",
+    "confidence": 0.8
+  }
+]

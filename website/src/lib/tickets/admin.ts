@@ -419,13 +419,12 @@ export async function createAdminTicket(p: {
   if (p.type === 'project' && !p.customerId) {
     throw new Error('createAdminTicket: customerId is required for type=project');
   }
-  // If parentId is given, it must belong to the same brand.
+  // If parentId is given, it must belong to the same brand and be type='project'.
   if (p.parentId) {
-    const par = await pool.query<{ brand: string }>(
-      `SELECT brand FROM tickets.tickets WHERE id = $1`, [p.parentId]);
-    if (par.rows.length === 0 || par.rows[0].brand !== p.brand) {
-      throw new Error('createAdminTicket: parentId not found in brand');
-    }
+    const par = await pool.query<{ brand: string; type: string }>(
+      `SELECT brand, type FROM tickets.tickets WHERE id = $1`, [p.parentId]);
+    if (par.rows.length === 0 || par.rows[0].brand !== p.brand) throw new Error('createAdminTicket: parentId not found in brand');
+    if (par.rows[0].type !== 'project') throw new Error('createAdminTicket: parentId must reference a project ticket');
   }
 
   const client = await pool.connect();

@@ -126,6 +126,7 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			mcp.WithString("attention_mode", mcp.Description("auto|ai_ready|needs_human"),
 				mcp.Enum("auto", "ai_ready", "needs_human")),
 			mcp.WithString("areas", mcp.Description("Komma-separierte Bereiche z.B. auth,chat")),
+			mcp.WithString("product_id", mcp.Description("Optional: UUID oder external_id eines type='project'-Tickets im selben Brand — setzt parent_id")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
@@ -134,7 +135,7 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			title, _ := a["title"].(string)
 			desc, _ := a["description"].(string)
 			args := []string{"create", "--type", typ, "--title", title, "--description", desc, "--brand", brand}
-			for flag, key := range map[string]string{"--priority": "priority", "--severity": "severity", "--status": "status", "--attention-mode": "attention_mode", "--areas": "areas"} {
+			for flag, key := range map[string]string{"--priority": "priority", "--severity": "severity", "--status": "status", "--attention-mode": "attention_mode", "--areas": "areas", "--product-id": "product_id"} {
 				if v, _ := a[key].(string); v != "" {
 					args = append(args, flag, v)
 				}

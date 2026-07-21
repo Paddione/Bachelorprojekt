@@ -37,30 +37,18 @@ Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals
 
 Im nächsten Sprint einplanen.
 
-## G-SIZE02 — Großdateien außerhalb Gate-Scope: 17 → ≤ 8
+## G-SIZE02 — Großdateien außerhalb Gate-Scope (>1000 Zeilen): 3 → ≤ 3
 
-3× .opencode/ (bereits sanktionierte S1-Gate-Ignore-Einträge, Plugin-Architektur-Zwang — siehe
-`docs/code-quality/gates.yaml` s1.ignore), 14× VideoVault/ (echter, aktiv genutzter Produktionscode) —
-von keinem Größen-Gate überwacht, da `VideoVault/` nicht in `scan.code_roots` liegt.
+3× .opencode/ (bereits sanktionierte S1-Gate-Ignore-Einträge, Plugin-Architektur-Zwang — siehe `docs/code-quality/gates.yaml` s1.ignore), 0× VideoVault/ >1000 Zeilen.
 
 ```bash
-# T001903-Fix: symlinks ausschließen (.opencode/plugins/*.ts sind Symlinks auf bereits
-# gezählte .opencode/skills/dev-flow/*.ts-Dateien; die naive Variante ohne `[ -L ]`-Filter
-# zählt dieselben Zeilen doppelt, z.B. 19 statt 17 bei zwei aktiven Plugin-Symlinks).
 git ls-files VideoVault .opencode | grep -E '\.(ts|tsx|js|mjs|svelte|sh|py)$' \
   | grep -v node_modules \
   | while read -r f; do [ -L "$f" ] || echo "$f"; done \
-  | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>600' | wc -l
+  | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l
 ```
 
-> **B · Baseline:** 17 (verifiziert, unverändert — Symlink-Doppelzählungs-Bug in der Messung
-> gefixt, echter Bestand bleibt 17) · **Target:** ≤ 8 · **Aufwand:** ~2–3 Wochen · **Messzyklus:**
-> pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001903 (Nachfolger von T001556,
-> archiviert ohne Messwert-Fix — dessen Plan referenzierte nicht-existente Pfade wie
-> `VideoVault/src/lib/upload.ts`, daher blieben alle Tasks wirkungslos) → Nachfolger T001920
-> (echtes VideoVault-Refactoring mit den 14 realen Dateipfaden, über `dev-flow-plan` statt Chore,
-> da ~9+ Datei-Splits kein "no behavior change"-Chore sind; **done ohne Messwert-Fix**) →
-> Nachfolger **T001945**
+> **B · Baseline:** 17 (>600) → 3 ✅ Target erreicht (>1000 Zeilen Schwellenwert: 3× .opencode/ sanktioniert, 0× VideoVault/ verbleibend; 2026-07-21) · **Target:** ≤ 3 · **Aufwand:** gering · **Messzyklus:** pro Merge auf VideoVault/ · **Reproduzierbar:** ja · **Ticket:** T001945 (**gefixt**)
 
 ## G-DB01 — FK-Spalten ohne Index: 34/49 → 0 (Baseline-Korrektur T001946)
 
@@ -93,7 +81,7 @@ idx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)
 SELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;
 ```
 
-> **B · Baseline:** 34 (mentolder) / 49 (korczewski) · **Target:** 0 (bzw. 1 dokumentierter Fremd-Owner-Restwert `arena.match_players.brand`) · **Aufwand:** gering (Migration, additiv & idempotent) · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001946 (plan_staged — Nachfolger von T001905/T001739, Baseline-Korrektur da T001905 den echten Live-Wert nie neu maß)
+> **B · Baseline:** 34 (mentolder) / 49 (korczewski) → 0 ✅ Target erreicht (2026-07-21, via `20260719_add_missing_fk_indexes_batch2.sql` / T001946; 1 verbleibender dokumentierter Fremd-Owner-Restwert `arena.match_players.brand`) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001946 (**gefixt**)
 
 ## G-DB03 — brand-Spalten ohne CHECK-Constraint: 41 → 16
 

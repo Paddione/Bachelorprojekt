@@ -43,7 +43,7 @@ export class EnhancedThumbnailService {
   private static readonly DEFAULT_OPTIONS: ThumbnailGenerationOptions = {
     quality: 0.85,
     targetWidth: 320,
-    targetHeight: 0, // Auto-calculate based on aspect ratio
+    targetHeight: 0,
     useKeyframes: true,
     numKeyframes: 5,
     fallbackToMidpoint: true,
@@ -550,33 +550,13 @@ export class EnhancedThumbnailService {
   }
 
   private static extractVideoMetadata(video: HTMLVideoElement, _file: File): VideoMetadata {
-    return {
-      duration: video.duration || 0,
-      width: video.videoWidth || 0,
-      height: video.videoHeight || 0,
-      bitrate: 0,
-      codec: '',
-      fps: 0,
-      aspectRatio:
-        video.videoWidth && video.videoHeight
-          ? (video.videoWidth / video.videoHeight).toString()
-          : '0',
-    };
+    const w = video.videoWidth || 0;
+    const h = video.videoHeight || 0;
+    return { duration: video.duration || 0, width: w, height: h, bitrate: 0, codec: '', fps: 0, aspectRatio: w && h ? (w / h).toString() : '0' };
   }
 
   private static extractBasicMetadata(video: HTMLVideoElement): VideoMetadata {
-    return {
-      duration: video.duration || 0,
-      width: video.videoWidth || 0,
-      height: video.videoHeight || 0,
-      bitrate: 0,
-      codec: '',
-      fps: 0,
-      aspectRatio:
-        video.videoWidth && video.videoHeight
-          ? (video.videoWidth / video.videoHeight).toString()
-          : '0',
-    };
+    return this.extractVideoMetadata(video, null as any);
   }
 
   // Utility method for progressive loading

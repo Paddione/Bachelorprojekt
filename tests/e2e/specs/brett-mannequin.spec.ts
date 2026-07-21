@@ -1,10 +1,26 @@
 import { test, expect, type Page } from '@playwright/test';
+import * as path from 'path';
+import * as fs from 'fs';
 
 const BRETT_URL = process.env.BRETT_URL
   ?? (process.env.PROD_DOMAIN ? `https://brett.${process.env.PROD_DOMAIN}` : 'http://brett.localhost');
 
+const BRETT_AUTH_STATE = path.join(__dirname, '..', '.auth', 'mentolder-brett.json');
+
+function hasAuthState(): boolean {
+  if (!fs.existsSync(BRETT_AUTH_STATE)) return false;
+  try {
+    const raw = JSON.parse(fs.readFileSync(BRETT_AUTH_STATE, 'utf-8'));
+    return Array.isArray(raw?.cookies) && raw.cookies.length > 0;
+  } catch { return false; }
+}
+
 test.describe('Brett Mannequin Focus', () => {
   test.beforeEach(async ({ page }) => {
+    if (!hasAuthState()) {
+      test.skip(true, 'brett auth state empty — Pocket ID migration pending (T003163)');
+      return;
+    }
     // We use a unique room for each test to avoid interference
     const room = `e2e-mannequin-${Math.random().toString(36).slice(2, 7)}`;
     await page.goto(`${BRETT_URL}?room=${room}`);

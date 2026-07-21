@@ -12,8 +12,9 @@ export const ADMIN_PASS = isKorczewski
 export async function loginAsAdmin(page: import('@playwright/test').Page) {
   const CRON_SECRET = process.env.CRON_SECRET ?? '';
   if (!CRON_SECRET) throw new Error('CRON_SECRET unset — Wissensquellen login requires CRON_SECRET');
+  const token = encodeURIComponent(CRON_SECRET);
   await page.goto(
-    `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/wissensquellen')}`,
+    `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/wissensquellen')}&token=${token}`,
     { waitUntil: 'domcontentloaded' },
   );
   await page.waitForURL(/\/admin\/wissensquellen/, { timeout: 60_000 });

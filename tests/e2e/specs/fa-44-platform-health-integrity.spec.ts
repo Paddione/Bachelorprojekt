@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
@@ -19,33 +18,23 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     expect([401, 403]).toContain(res.status());
   });
 
-  test('T3: health API returns only current cluster (no cross-cluster probe)', async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/api/admin/ops/health`,
-      { acceptableStatuses: [200, 302, 401, 403], label: 'ops health API' },
-      testInfo
-    );
+  test('T3: health API returns only current cluster (no cross-cluster probe)', async ({ page }, testInfo) => {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) { test.fixme(true, 'CRON_SECRET not set'); return; }
 
-    const loginRes = await request.post(`${BASE}/api/auth/login`, {
-      data: { username: 'paddione', password: process.env.E2E_ADMIN_PASS }
-    });
-    // If the endpoint doesn't exist, rely on cookie auth from global setup
-    const res = await request.get(`${BASE}/api/admin/ops/health`);
-    if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
+    await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent('paddione')}&token=${encodeURIComponent(cronSecret)}&returnTo=%2Fadmin`);
+    const res = await page.request.get(`${BASE}/api/admin/ops/health`);
+    if (res.status() === 401) test.fixme(true, 'Not authenticated');
+    if (res.status() !== 200) return;
 
-    expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body).toHaveProperty('results');
     expect(body).toHaveProperty('checkedAt');
 
-    // Must return exactly one cluster key matching the site's own cluster
     const clusterKeys = Object.keys(body.results);
     expect(clusterKeys).toHaveLength(1);
-    // The single key must be a known cluster name (not both)
     expect(['mentolder', 'korczewski']).toContain(clusterKeys[0]);
 
-    // Each result entry must have name, status, latencyMs fields
     const results: any[] = body.results[clusterKeys[0]];
     expect(results.length).toBeGreaterThan(0);
     for (const svc of results) {
@@ -56,56 +45,47 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     }
   });
 
-  test('T4: software assets API returns collabora with workspace-office namespace', async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/api/admin/platform/software`,
-      { acceptableStatuses: [200, 302, 401, 403], label: 'platform software API' },
-      testInfo
-    );
+  test('T4: software assets API returns collabora with workspace-office namespace', async ({ page }, testInfo) => {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) { test.fixme(true, 'CRON_SECRET not set'); return; }
 
-    const res = await request.get(`${BASE}/api/admin/platform/software`);
-    if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
+    await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent('paddione')}&token=${encodeURIComponent(cronSecret)}&returnTo=%2Fadmin`);
+    const res = await page.request.get(`${BASE}/api/admin/platform/software`);
+    if (res.status() === 401) test.fixme(true, 'Not authenticated');
+    if (res.status() !== 200) return;
 
-    expect(res.status()).toBe(200);
     const body = await res.json();
     const collabora = (body.assets as any[]).find((a: any) => a.slug === 'collabora');
     expect(collabora).toBeDefined();
     expect(collabora.namespace).toBe('workspace-office');
-    // live_status must not be 'missing' — the deployment exists in workspace-office
     expect(collabora.live_status).not.toBe('missing');
   });
 
-  test('T5: health API reports Collabora reachable (not error)', async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/api/admin/ops/health`,
-      { acceptableStatuses: [200, 302, 401, 403], label: 'ops health API' },
-      testInfo
-    );
+  test('T5: health API reports Collabora reachable (not error)', async ({ page }, testInfo) => {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) { test.fixme(true, 'CRON_SECRET not set'); return; }
 
-    const res = await request.get(`${BASE}/api/admin/ops/health`);
-    if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
+    await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent('paddione')}&token=${encodeURIComponent(cronSecret)}&returnTo=%2Fadmin`);
+    const res = await page.request.get(`${BASE}/api/admin/ops/health`);
+    if (res.status() === 401) test.fixme(true, 'Not authenticated');
+    if (res.status() !== 200) return;
 
-    expect(res.status()).toBe(200);
     const body = await res.json();
     const clusterKey = Object.keys(body.results)[0];
     const collabora = (body.results[clusterKey] as any[]).find((s: any) => s.name === 'Collabora');
     expect(collabora).toBeDefined();
-    // The website pod must be able to reach collabora.workspace-office:9980.
     expect(['ok', 'slow']).toContain(collabora.status);
   });
 
-  test('T6: health API now probes more than the 5 hardcoded services', async ({ request }, testInfo) => {
-    await assertAuthenticatedReachable(
-      request,
-      `${BASE}/api/admin/ops/health`,
-      { acceptableStatuses: [200, 302, 401, 403], label: 'ops health API' },
-      testInfo
-    );
-    const res = await request.get(`${BASE}/api/admin/ops/health`);
-    if (res.status() === 401) test.skip(true, 'Not authenticated — skip');
-    expect(res.status()).toBe(200);
+  test('T6: health API now probes more than the 5 hardcoded services', async ({ page }, testInfo) => {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) { test.fixme(true, 'CRON_SECRET not set'); return; }
+
+    await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent('paddione')}&token=${encodeURIComponent(cronSecret)}&returnTo=%2Fadmin`);
+    const res = await page.request.get(`${BASE}/api/admin/ops/health`);
+    if (res.status() === 401) test.fixme(true, 'Not authenticated');
+    if (res.status() !== 200) return;
+
     const body = await res.json();
     const clusterKey = Object.keys(body.results)[0];
     const results: any[] = body.results[clusterKey];

@@ -444,7 +444,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Lighthouse CI
-        run: npm install -g @lhci/cli
+        run: npm install -g @lhci/cli --loglevel=error
 
       - name: Run Lighthouse audit
         continue-on-error: true

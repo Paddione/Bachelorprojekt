@@ -962,6 +962,13 @@ tasks:
     cmds:
       # node_modules may be absent in a fresh worktree (scripts/worktree-create.sh
       # ships no root node_modules). No-op in CI / installed trees. [T000427]
+      #
+      # NOTE: Concurrent branches that both regenerate freshness artifacts will
+      # collide on rebase (the generated files differ in both branches).  To
+      # avoid git merge conflict noise, all freshness output files are registered
+      # in .gitattributes with merge=ours — CI's freshness-regen.yml will
+      # overwrite the canonical version post-merge.  If you add a new output
+      # artifact to this list, add a matching .gitattributes entry.
       - '[ -d node_modules ] || npm ci'
       - task: test:inventory
       - task: routes:manifest

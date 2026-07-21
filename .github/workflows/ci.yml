@@ -462,8 +462,14 @@ jobs:
     timeout-minutes: 5
     if: github.event_name == 'pull_request'
     steps:
-      # No checkout needed — this job only validates github.event.pull_request.title
-      # via the GitHub API and reads $PR_TITLE from the event payload below.
+      # Checkout IS needed here despite the PR-title check above being pure
+      # API — the later "Validate individual commit messages" and
+      # "commit-vs-diff consistency" steps diff every commit in the PR range
+      # locally and need those commit objects present.
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+        with:
+          fetch-depth: 0
+          fetch-tags: false
       - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50  # v6.1.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

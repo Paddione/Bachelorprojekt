@@ -19,14 +19,15 @@ main() {
 UPDATE tickets.tickets SET status='plan_staged' WHERE external_id = :'ext_id';
 EOF
   _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
+DELETE FROM tickets.ticket_comments c
+ USING tickets.tickets t
+ WHERE t.external_id = :'ext_id'
+   AND c.ticket_id = t.id
+   AND c.body LIKE 'FACTORY-PLAN-REF %';
 INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
 SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
   FROM tickets.tickets t
- WHERE t.external_id = :'ext_id'
-   AND NOT EXISTS (
-     SELECT 1 FROM tickets.ticket_comments c
-      WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'
-   );
+ WHERE t.external_id = :'ext_id';
 EOF
   local driver="${TICKET_PHASE_DRIVER:-devflow}"
   case "$driver" in factory|devflow) ;; *) driver="devflow" ;; esac

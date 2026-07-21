@@ -1,6 +1,10 @@
 <script lang="ts">
   import Timeline from '../Timeline.svelte';
-  import GoalsDashboard from '../GoalsDashboard.svelte';
+  // T002057: GoalsDashboard (with its GoalsDashboard.css) only renders in the Kore
+  // branch. A static top-level import pulled its CSS into the shared homepage entry
+  // graph, making GoalsDashboard.css render-blocking on the mentolder homepage where
+  // this component is never rendered. Load it dynamically so its CSS lands in its own
+  // async chunk and drops out of the static homepage graph.
   import type { DaySlots } from '../../lib/caldav';
   import type { BrandConfig, FooterConfig, HomepageService } from '../../config/types';
 
@@ -349,7 +353,9 @@
     <h2>Repo Health, <em>gemessen.</em></h2>
     <span class="hint">Mess-Stichtag: 2026-06-28</span>
   </div>
-  <GoalsDashboard />
+  {#await import('../GoalsDashboard.svelte') then { default: GoalsDashboard }}
+    <GoalsDashboard />
+  {/await}
 </section>
 
 <!-- ═══════════════════════════════ FOOTER ════════════════════════════════ -->

@@ -1,0 +1,19 @@
+# Security-headers Middleware for the website namespace (mentolder brand).
+# Mirrors prod/traefik-middlewares.yaml's shared security-headers, but WITHOUT
+# X-Robots-Tag: noindex — the public website must be crawlable (T002052).
+# The shared workspace/security-headers keeps noindex for internal services
+# (Keycloak, Nextcloud, …); only the public site opts out via this override.
+# Analogous to prod-fleet/website-korczewski/website-security-headers.yaml.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: website-security-headers
+  namespace: website
+spec:
+  headers:
+    customResponseHeaders:
+      X-Frame-Options: "SAMEORIGIN"
+      X-Content-Type-Options: "nosniff"
+      X-XSS-Protection: "1; mode=block"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+      Permissions-Policy: "camera=(self), microphone=(self), geolocation=(), payment=()"

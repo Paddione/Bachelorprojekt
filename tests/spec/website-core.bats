@@ -19,6 +19,9 @@ PERF_GLOBAL_CSS="$BATS_TEST_DIRNAME/../../website/src/styles/global.css"
 PERF_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/Layout.astro"
 PERF_MENTOLDER_ING="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/website-ingress-web.yaml"
 PERF_KORCZEWSKI_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-korczewski/kustomization.yaml"
+MENTOLDER_SEC_HEADERS="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/website-security-headers.yaml"
+MENTOLDER_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/kustomization.yaml"
+SHARED_MIDDLEWARES="$BATS_TEST_DIRNAME/../../prod/traefik-middlewares.yaml"
 
 # ── T001433: Token alias layer ───────────────────────────────────────────────
 @test "T001433 alias: admin-foundation.css color-bearing tokens all reference var(--...)" {
@@ -313,4 +316,43 @@ PERF_KORCZEWSKI_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-korczewski/kus
   HOMEPAGE_JSON="$BATS_TEST_DIRNAME/../../website/content/mentolder/homepage.json"
   run grep -q '"avatarSrc": "/gerald.webp"' "$HOMEPAGE_JSON"; [ "$status" -eq 0 ]
   run grep -q 'gerald.jpg' "$HOMEPAGE_JSON"; [ "$status" -ne 0 ]
+}
+
+# ── T002052: web.mentolder.de crawlability — noindex must not reach the public site ──
+# The shared workspace/security-headers middleware sets X-Robots-Tag: noindex (correct for
+# internal services like Keycloak/Nextcloud). The public website must NOT inherit it, or it
+# is deindexed from search engines (Lighthouse is-crawlable = 0). mentolder must use its own
+# website-scoped security-headers middleware without noindex — mirroring website-korczewski.
+
+@test "T002052 crawlable: mentolder website ingress does NOT reference the shared noindex security-headers" {
+  run grep -q 'workspace-security-headers@kubernetescrd' "$PERF_MENTOLDER_ING"
+  [ "$status" -ne 0 ]
+}
+
+@test "T002052 crawlable: mentolder website ingress references its own website-scoped security-headers" {
+  run grep -q 'website-website-security-headers@kubernetescrd' "$PERF_MENTOLDER_ING"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002052 crawlable: mentolder has a website-scoped security-headers middleware without noindex" {
+  [ -f "$MENTOLDER_SEC_HEADERS" ]
+  run grep -q 'name: website-security-headers' "$MENTOLDER_SEC_HEADERS"
+  [ "$status" -eq 0 ]
+  # must NOT set an X-Robots-Tag header line (comments mentioning noindex are fine)
+  run grep -Ei '^[[:space:]]*X-Robots-Tag:' "$MENTOLDER_SEC_HEADERS"
+  [ "$status" -ne 0 ]
+}
+
+@test "T002052 crawlable: mentolder kustomization wires the website-security-headers middleware" {
+  run grep -q 'website-security-headers.yaml' "$MENTOLDER_KUST"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002052 drift-guard: shared security-headers explicitly sets X-Robots-Tag noindex for internal services" {
+  # Keep internal services noindexed even after workspace:deploy — the noindex must be
+  # explicit in git, not live-only drift that a redeploy would silently remove.
+  run grep -A12 '^  name: security-headers$' "$SHARED_MIDDLEWARES"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qi 'X-Robots-Tag'
+  echo "$output" | grep -qi 'noindex'
 }

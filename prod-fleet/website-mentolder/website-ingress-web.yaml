@@ -4,8 +4,10 @@ metadata:
   name: website-ingress-web
   namespace: website
   annotations:
+    # T002052: use the website-scoped security-headers (no noindex) so the public
+    # site stays crawlable. Internal services keep workspace-security-headers (noindex).
     traefik.ingress.kubernetes.io/router.middlewares: >-
-      workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,workspace-security-headers@kubernetescrd,workspace-rate-limit-web@kubernetescrd,website-website-compress@kubernetescrd
+      workspace-redirect-https@kubernetescrd,workspace-hsts-headers@kubernetescrd,website-website-security-headers@kubernetescrd,workspace-rate-limit-web@kubernetescrd,website-website-compress@kubernetescrd
 spec:
   ingressClassName: traefik
   tls:

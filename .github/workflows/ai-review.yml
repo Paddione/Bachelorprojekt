@@ -21,11 +21,14 @@ jobs:
       pull-requests: write
       contents: read
     steps:
-      - name: Checkout (full history)
+      - name: Checkout
         uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           fetch-tags: false
+
+      - name: Fetch origin/main for diffing (shallow)
+        run: git fetch --no-tags --prune --depth=1 origin main:refs/remotes/origin/main
 
       - name: Setup Node
         uses: actions/setup-node@v7

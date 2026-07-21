@@ -12,7 +12,7 @@ SCRIPT="scripts/factory/pipeline.js"
   for p in Scout Design Plan Implement Verify Deploy; do
     run grep -q "phase('$p')" "$SCRIPT"; [ "$status" -eq 0 ]
   done
-  run grep -Eq "export const meta" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -Eq "export const meta|module\.exports\.meta" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-20: wires the existing factory parts (conflict-check, review prompts, ticket.sh, scout.sh)" {

@@ -13,7 +13,7 @@ test('decideOpus returns hardcoded local Qwen3.6 with a no-op releaseSlot', asyn
 
 test('EMERGENCY_FALLBACK is local Qwen3.6', () => {
   assert.equal(EMERGENCY_FALLBACK.provider, 'lmstudio')
-  assert.equal(EMERGENCY_FALLBACK.modelId, 'qwen3.6-14b-a3b-fablevibes')
+  assert.equal(EMERGENCY_FALLBACK.modelId, 'qwythos-9b-v2')
   assert.equal(EMERGENCY_FALLBACK.baseUrl, 'http://127.0.0.1:1234')
 })
 

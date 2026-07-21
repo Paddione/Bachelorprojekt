@@ -129,12 +129,12 @@ test('resolveAgentModel: passes through a valid harness tier unchanged', () => {
 test('resolveAgentModel: passes through baseUrl model as object', () => {
   const logs = []
   const model = BL.resolveAgentModel(
-    { provider: 'lmstudio', modelId: 'qwen3.6-14b-a3b-fablevibes', baseUrl: 'http://127.0.0.1:1234' },
+    { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234' },
     'sonnet',
     (m) => logs.push(m)
   )
   assert.equal(model.provider, 'lmstudio')
-  assert.equal(model.modelId, 'qwen3.6-14b-a3b-fablevibes')
+  assert.equal(model.modelId, 'qwythos-9b-v2')
   assert.equal(model.baseUrl, 'http://127.0.0.1:1234')
   assert.equal(logs.length, 1)
   assert.ok(logs[0].includes('baseUrl passthrough'))

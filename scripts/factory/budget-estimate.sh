@@ -83,9 +83,9 @@ resolved AS (
   FROM phases p
 )
 SELECT phase || '|' || COALESCE(config, CASE 
-  WHEN tier = 'opus' THEN 'lmstudio|qwen3.6-14b-a3b-fablevibes'
-  WHEN tier = 'sonnet' THEN 'lmstudio|qwen3.6-14b-a3b-fablevibes'
-  ELSE 'lmstudio|qwen3.6-14b-a3b-fablevibes'
+  WHEN tier = 'opus' THEN 'lmstudio|qwythos-9b-v2'
+  WHEN tier = 'sonnet' THEN 'lmstudio|qwythos-9b-v2'
+  ELSE 'lmstudio|qwythos-9b-v2'
 END) FROM resolved;
 SQL
 )
@@ -93,7 +93,7 @@ SQL
 TOTAL_TOKENS_EST=0
 TOTAL_COST_EST="0.000000"
 MAIN_PROVIDER="lmstudio"
-MAIN_MODEL_ID="qwen3.6-14b-a3b-fablevibes"
+MAIN_MODEL_ID="qwythos-9b-v2"
 
 SQL_CMDS="BEGIN;"
 
@@ -124,7 +124,7 @@ while read -r line; do
   PRICE_IN="0.00"
   PRICE_OUT="0.00"
   
-  if [[ "$PROVIDER" == *"lmstudio"* || "$PROVIDER" == *"local"* || "$PROVIDER" == *"fablevibes"* ]]; then
+  if [[ "$PROVIDER" == *"lmstudio"* || "$PROVIDER" == *"local"* || "$PROVIDER" == *"qwythos"* ]]; then
     PRICE_IN="0.00"
     PRICE_OUT="0.00"
   elif [[ "$PROVIDER" == *"deepseek"* ]]; then

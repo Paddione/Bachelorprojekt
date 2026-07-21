@@ -92,7 +92,8 @@ export function ensureAdminPasswordOrSkip(testInfo: { skip: (cond: boolean, msg?
 export async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
   const CRON_SECRET = process.env.CRON_SECRET ?? '';
   if (!CRON_SECRET) throw new Error('CRON_SECRET unset');
-  const url = `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}`;
+  const token = encodeURIComponent(CRON_SECRET);
+  const url = `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}&token=${token}`;
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForURL(url => url.toString().startsWith(BASE), { timeout: 60_000 });
 }

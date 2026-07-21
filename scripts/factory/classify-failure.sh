@@ -32,7 +32,7 @@ classify_failure() {
   if grep -qiE 'sealedsecret|no key could decrypt|could not decrypt|sealed-secrets' "$log"; then
     echo "secret"; return 0
   fi
-  if grep -qiE 'kustomize build|kubectl apply.*error|error validating data|unable to recognize|manifest' "$log"; then
+  if grep -qiE 'kustomize build|kubectl apply.*error|error validating data|unable to recognize|manifest error|invalid manifest|manifest validation' "$log"; then
     echo "manifest"; return 0
   fi
   # Generic build classes.

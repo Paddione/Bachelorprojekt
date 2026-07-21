@@ -473,6 +473,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: false
+          filter: blob:none
       - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50  # v6.1.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -14,7 +14,7 @@
 //     resolution flip slip through in the gap.
 //
 // `runReconciler` is an idempotent single-statement UPDATE that catches those
-// drifters: any ticket whose `resolution = 'fixed'` AND whose status row still
+// drifters: every ticket whose `resolution = 'fixed'` AND whose status row still
 // has `retest_pending_at IS NULL` gets stamped now. Subsequent calls are
 // no-ops because the WHERE clause filters those rows out.
 //

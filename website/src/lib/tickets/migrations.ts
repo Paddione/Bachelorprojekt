@@ -114,7 +114,7 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
       FOR EACH ROW EXECUTE FUNCTION tickets.fn_assign_external_id()
   `);
 
-  // Idempotent backfill: any ticket whose external_id is NULL or not in T-format
+  // Idempotent backfill: a ticket whose external_id is NULL or not in T-format
   // gets a fresh T-number, allocated GLOBALLY above the current global max so it
   // can never collide with an existing id. Ordered by created_at for stable
   // numbering. This only touches NULL / non-T-format rows — it never renumbers a

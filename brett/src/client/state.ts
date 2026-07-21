@@ -68,7 +68,7 @@ export const noteSprites = new Map<string, THREE.Sprite>();
 export const ui = {
   dragging: null as null
     | { kind: 'bone'; figId: string; boneName: string; plane: THREE.Plane }
-    | { kind: 'body'; figId: string; plane: THREE.Plane; grabOffset: { x: number; z: number } }
+    | { kind: 'body'; figId: string; grabOffset: { x: number; z: number } }
     | { kind: 'rotate'; figId: string; startAngle: number; startFacing: number },
   placingMode: false,
   panelColor: '#b8c0a8',

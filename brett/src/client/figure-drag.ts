@@ -149,8 +149,7 @@ export function initFigureDrag(deps: FigureDragDeps): void {
       lockAndSelect(deps, bodyFig.id);
       const root = { x: bodyFig.root.position.x, z: bodyFig.root.position.z };
       const grabOffset = computeGrabOffset({ x: floorHit.x, z: floorHit.z }, root);
-      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-      ui.dragging = { kind: 'body', figId: bodyFig.id, plane, grabOffset };
+      ui.dragging = { kind: 'body', figId: bodyFig.id, grabOffset };
       e.preventDefault();
     }
   });

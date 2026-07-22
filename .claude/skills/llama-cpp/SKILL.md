@@ -248,6 +248,7 @@ cat prompts.txt | ./llama-cli \
 - **[Quantization Guide](references/quantization.md)** - GGUF formats, conversion, quality comparison
 - **[Server Deployment](references/server.md)** - API endpoints, Docker, monitoring
 - **[Optimization](references/optimization.md)** - Performance tuning, hybrid CPU+GPU
+- **[Bonsai-Server (Windows)](references/bonsai-server-windows.md)** - repo-specific Ternary-Bonsai-27B server on `:8093` (Factory implement/review substrate, T002074): access via `powershell.exe`, health checks, `-np 4` slot budget (3 workers + 1 orchestrator), `provider-register-bonsai.sh`
 
 ## Resources
 

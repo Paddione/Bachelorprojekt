@@ -106,6 +106,24 @@ for proposal_file in "$CHANGES_DIR"/*/proposal.md; do
         echo "#### Implementation tasks"
         cat "$tasks_file"
     fi
+    # T002074: emit tasks.d/ partials (disjoint per-partial plans) and the
+    # co-located design.md as additional plan context, when present. Partials
+    # carry no frontmatter of their own — _parse_yaml_domains still falls back to
+    # tasks.md, so this is purely additive.
+    change_dir="$(dirname "$proposal_file")"
+    if [[ -d "$change_dir/tasks.d" ]]; then
+        for partial in "$change_dir"/tasks.d/*.md; do
+            [[ -f "$partial" ]] || continue
+            echo
+            echo "#### Partial: $(basename "$partial" .md)"
+            cat "$partial"
+        done
+    fi
+    if [[ -f "$change_dir/design.md" ]]; then
+        echo
+        echo "#### Design"
+        cat "$change_dir/design.md"
+    fi
     echo
     found=$((found+1))
 done

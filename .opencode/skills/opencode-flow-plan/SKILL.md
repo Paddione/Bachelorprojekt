@@ -92,7 +92,7 @@ Ticket-ID für den Rest des Flows verfügbar ist und `stage_plan` sofort nach de
 Plan-Erstellung ausgeführt werden kann (kein Fenster für Plan-Verlagerung):
 
 ```
-ticket-mcp: create_ticket({ type: "task", brand: "mentolder", title: "<slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: docs/superpowers/specs/<date>-<slug>-design.md" })
+ticket-mcp: create_ticket({ type: "task", brand: "mentolder", title: "<slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: openspec/changes/<slug>/design.md" })
 ```
 
 Setze `TICKET_EXT_ID` (Feld 1) und `TICKET_UUID` (Feld 2) aus der Rückgabe.
@@ -118,17 +118,25 @@ cd "${WT}"
 ```
 
 ### Phase C: Im Worktree — Plan-Phase
-#### Schritt 3.7: Plan-Erstellung an Subagenten delegieren
+#### Schritt 3.7: Plan-Erstellung — zweistufig: Decompose → Fan-out (T002074)
 
-Delegiere das Plan-Schreiben an einen read-only Subagenten via `background-agents.ts`:
+Die Plan-Phase ist **zweistufig** (symmetrisch zu `dev-flow-plan`):
 
-```
-delegate(prompt: "<plan-writing task mit Spec + intel.json>", agent: "explore")
-```
+**(a) Decompose** — erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest**:
+1–3 Partials mit disjunkten `target_files`-Listen; das **letzte Partial ist IMMER die
+Tests-Rolle** (`tests`, trägt den STRUCT2-Failing-Test-Step). Faustregel: 1 Partial bei
+< 5 `impact_files` / einem Subsystem, sonst Schnitt nach Subsystem, Tests separat. Keine
+Datei in zwei Partials (D1 — `plan-lint.sh` erzwingt das im Partial-Modus).
 
-Ergebnis mit `delegation_read(id)` abrufen. Falls `background-agents.ts` nicht verfügbar (opencode oder agy ohne Plugin), schreibe den Plan inline.
+**(b) Fan-out** — N parallele Plan-Subagenten via `background-agents.ts`
+(`delegate(prompt, agent="explore")`, Ergebnis via `delegation_read(id)`; ohne Plugin
+inline). Kontext pro Subagent NUR: `openspec/changes/<slug>/proposal.md`, sein
+Manifest-Eintrag, `bash scripts/plan-intel-filter.sh <slug> <target_files...>`
+(deterministisch gefilterte `intel.json`) und die Plan-Quality-Gates. Jeder schreibt
+seine `openspec/changes/<slug>/tasks.d/pX-<name>.md`; der Orchestrator schreibt den
+`tasks.md`-Index mit `## Partials`-Manifest, `## File Structure` und finalem Verify-Task.
 
-Der Subagent MUSS die Spec + `openspec/changes/<slug>/intel.json` als Kontext erhalten und die Plan-Qualitäts-Gates einhalten: S1-Budget pro Datei, `plan-lint.sh`-Konformität (F1/F2/STRUCT1-3/P1), drei verify-Commands im letzten Task.
+Jeder Subagent MUSS die Spec + `openspec/changes/<slug>/intel.json`(-Subset) als Kontext erhalten und die Plan-Qualitäts-Gates einhalten: S1-Budget pro Datei, `plan-lint.sh`-Konformität (F1/F2/STRUCT1-3/P1), drei verify-Commands im letzten Task.
 
 #### Schritt 3.8: Plan-Qualitäts-Gate
 
@@ -145,6 +153,12 @@ Plan stagen — `stage_plan` setzt automatisch `status=plan_staged` und die
 ```
 ticket-mcp: stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md" })
 ```
+
+Partial-Anzahl fürs Gang-Gating mitgeben (T002074) — via `set_plan_meta`, sonst Fallback
+`bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "feature/<slug>" --plan "openspec/changes/<slug>/tasks.md" --partials N`
+(N = Partials aus dem Manifest, 1..3; `--partials` lebt in `scripts/vda/ticket/stage-plan.sh`,
+`ticket.sh` bleibt unberührt). Danach den Change nach pgvector indizieren
+(Hybrid-Kontext-Transfer Teil 2): `node scripts/openspec-embed.mjs --slug <slug>`.
 
 #### Schritt 5: Commit & Push — dann STOPP
 

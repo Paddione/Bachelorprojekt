@@ -12,7 +12,7 @@ show_help() {
   echo "Commands:"
   echo "  oracle                     Task oracle integration"
   echo "  promote                    Promote service to environment"
-  echo "  frontmatter                Plan frontmatter hook"
+  echo "  frontmatter                Plan/spec frontmatter hook (--spec: openspec/changes/<slug>/design.md)"
   echo "  backup                     Database backup operations"
   echo "  ticket                     Ticket operations (CRUD / pipeline)"
   echo "  factory                    Factory operations (slots, …)"

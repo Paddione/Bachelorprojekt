@@ -528,9 +528,9 @@ eingehalten).
   `slot_count` frei; Merge = Abschluss (T001092) bleibt wie es ist.
 
 **Akzeptanz:**
-- [ ] `grep -F "partial-done" scripts/factory/pipeline.js` trifft (Task-2-Assertion).
-- [ ] `detail` ist parsebares JSON mit `partial`, `files`, `tests`.
-- [ ] Rotation startet erst, wenn ALLE impl-Partials `partial-done` gemeldet haben; Review nutzt den p3-Kontext ohne Modellwechsel (Design Entscheidung 4).
+- [x] `grep -F "partial-done" scripts/factory/pipeline.js` trifft (Task-2-Assertion).
+- [x] `detail` ist parsebares JSON mit `partial`, `files`, `tests`.
+- [x] Rotation startet erst, wenn ALLE impl-Partials `partial-done` gemeldet haben; Review nutzt den p3-Kontext ohne Modellwechsel (Design Entscheidung 4).
 
 ### Task 10: `provider-register-bonsai.sh` — idempotente Registrierung
 
@@ -621,9 +621,9 @@ Code-Änderung dort nötig. Slot-Budget-Konvention: `-np 4` am Server = 3 Worker
 5. Branch-/Worktree-/Commit-Konventionen unverändert (ein Branch, ein Worktree).
 
 **Akzeptanz:**
-- [ ] Beide Skills beschreiben (a)+(b) inkl. Tests-Partial-Pflicht und Disjunktheits-Regel.
-- [ ] Kein `docs/superpowers/specs/`-Pfad mehr in den beiden Plan-Skills (Alt-Referenzen in anderen Skills bleiben unangetastet — Scope-Grenze).
-- [ ] `openspec-embed.mjs`- und `plan-intel-filter.sh`-Aufrufe wörtlich enthalten (S4-Anker für Task 7).
+- [x] Beide Skills beschreiben (a)+(b) inkl. Tests-Partial-Pflicht und Disjunktheits-Regel.
+- [x] Kein `docs/superpowers/specs/`-Pfad mehr in den beiden Plan-Skills (Alt-Referenzen in anderen Skills bleiben unangetastet — Scope-Grenze).
+- [x] `openspec-embed.mjs`- und `plan-intel-filter.sh`-Aufrufe wörtlich enthalten (S4-Anker für Task 7).
 
 ### Task 12: Tooling-Nachzug — `vda frontmatter` + `plan-context.sh`
 
@@ -646,9 +646,9 @@ Risiko aus design.md §Risiken: Tooling-Abhängigkeiten auf
   — tasks.d/-Partials tolerieren").
 
 **Akzeptanz:**
-- [ ] `bash scripts/plan-context.sh orchestrator` auf einem Change mit `tasks.d/` emittiert Index + alle Partials + design.md ohne Fehler; ohne `tasks.d/` unverändertes Verhalten.
-- [ ] `bash scripts/vda.sh frontmatter --spec openspec/changes/<slug>/design.md` prependet idempotent das Spec-Frontmatter.
-- [ ] `bash -n` für alle drei Dateien grün.
+- [x] `bash scripts/plan-context.sh orchestrator` auf einem Change mit `tasks.d/` emittiert Index + alle Partials + design.md ohne Fehler; ohne `tasks.d/` unverändertes Verhalten.
+- [x] `bash scripts/vda.sh frontmatter --spec openspec/changes/<slug>/design.md` prependet idempotent das Spec-Frontmatter.
+- [x] `bash -n` für alle drei Dateien grün.
 
 ### Task 13: llama-cpp-Skill-Referenz „Bonsai-Server (Windows)"
 
@@ -674,8 +674,8 @@ hier wird NUR dokumentiert):
   `references/bonsai-server-windows.md` ergänzen.
 
 **Akzeptanz:**
-- [ ] Referenz enthält Reboot-Kommando, Port, Health-Check, Slot-Budget und den `provider-register-bonsai.sh`-Verweis.
-- [ ] Keine Brand-Domain-Literale (S3 betrifft `k3d/`, `prod*/`, `website/src/` ohnehin nicht — trotzdem env-neutral formulieren).
+- [x] Referenz enthält Reboot-Kommando, Port, Health-Check, Slot-Budget und den `provider-register-bonsai.sh`-Verweis.
+- [x] Keine Brand-Domain-Literale (S3 betrifft `k3d/`, `prod*/`, `website/src/` ohnehin nicht — trotzdem env-neutral formulieren).
 
 ### Task 14: PR-Gate — PR erst nach lokalem Grün + abgeschlossenem Review
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.12...website-v1.197.13) (2026-07-22)
+
+
+### Bug Fixes
+
+* **e2e:** auth case-insensitivity, PROD_DOMAIN isolation, oauth2-proxy healthz, notify_push probe, korczewski assertions [T002068] ([#3096](https://github.com/Paddione/Bachelorprojekt/issues/3096)) ([5315669](https://github.com/Paddione/Bachelorprojekt/commit/53156697c1eeb9595e69e70763e453662e244c07))
+
 ## [1.197.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.11...website-v1.197.12) (2026-07-22)
 
 

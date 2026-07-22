@@ -2908,7 +2908,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 528,
+      "file_count": 529,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3222,6 +3222,7 @@
         "scripts/fix-archive-plan-status.sh",
         "scripts/fix-tickets-grants.mjs",
         "scripts/fleet-dns-cutover.sh",
+        "scripts/flux-render-artifact.sh",
         "scripts/gen-goals-data.mjs",
         "scripts/gen-platform-descriptions.mjs",
         "scripts/gh-branch-protection.sh",

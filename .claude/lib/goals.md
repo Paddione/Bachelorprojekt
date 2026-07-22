@@ -48,6 +48,34 @@ gh run list --workflow e2e.yml --limit 14 --json conclusion \
 
 ---
 
+## G-AGENTIC09 — SKILL.md > 500 Zeilen: 2 → 0
+
+**Was:** Zählt SKILL.md-Dateien mit mehr als 500 Zeilen. T001904 hatte `dev-flow-plan` von
+508 auf 479 Zeilen komprimiert — seitdem sind weitere Skills über die Schwelle gewachsen
+(Regressions-Check via `health-goals-check.sh`).
+
+```bash
+find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
+```
+
+> **A · Baseline:** 0 → 2 (2026-07-22, Regressions-Check) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** TBD
+
+---
+
+## G-DB09 — Slow Queries in pg_stat_statements (COPY-bereinigt): 1 → 0
+
+**Was:** Zählt Abfragen in `pg_stat_statements` mit `mean_exec_time > 1s`. T001926 hatte
+Backup-COPY aus dem Mess-Scope ausgeschlossen — seitdem ist eine weitere Slow Query
+aufgetaucht.
+
+```bash
+db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %'"
+```
+
+> **A · Baseline:** 0 → 1 (2026-07-22, Regressions-Check) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** TBD
+
+---
+
 # Priorität B — Offene Ziele {#prio-b}
 
 Im nächsten Sprint einplanen.
@@ -95,7 +123,7 @@ for ns in ('workspace','workspace-korczewski'):
 print(n)"
 ```
 
-> **B · Baseline:** 3 (2026-07-22) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
+> **B · Baseline:** 3 → 2 (2026-07-22, Re-Messung) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
 
 ## G-DB11 — Tage seit letztem erfolgreichem Restore-Verify: n/a → ≤ 30
 
@@ -278,7 +306,7 @@ npx @lhci/cli autorun \
   --assert.performance=0.9
 ```
 
-> **B · Baseline:** 60 → 90 ✅ Target erreicht (2026-07-19, siehe Baseline-Update unten; ursprünglich Messung 2026-07-17 nach T001922-Deploy, 3× `npx @lhci/cli autorun` gegen `https://web.mentolder.de`, Score konstant 74/100; FCP 3.9s, LCP 4.2s, TBT 0ms, CLS 0. T001922/PR #2899+#2902+#2903 lieferte: Traefik-Kompression + immutable `/_astro/`-Cache beide Brands, LCP-Bild → 17-KB-WebP eager/fetchpriority, Font-Doppel-Ladung entfernt, CookieConsent/PortalSidekick → client:idle. Verbleibende Hebel: Google-Fonts-Self-Hosting — 248 KB Third-Party + 806 ms render-blockend —, `sidekick-panels.css` aus dem Critical Path — 423 ms —, ~80 KB unused JS. WSL-Gotcha: `CHROME_PATH=/usr/bin/google-chrome` setzen, sonst startet LHCI den Windows-Chrome via Interop und scheitert am Port-Bind) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · T001930 (Stufe 2, **done ohne Messwert-Fix** — Font-Self-Hosting + Critical-CSS noch offen) · T001950 (Stufe 3 — `sidekick-panels.css` async statt render-blocking, `PortalSidekick`-Drawer-Subviews dynamic-import statt eager Bundle; lokale Vorher/Nachher-Messung 68→77, Live-Messung erfordert Post-Merge-Deploy)
+> **C · Baseline:** 60 → 90 ✅ Target erreicht (2026-07-19, siehe Baseline-Update unten; ursprünglich Messung 2026-07-17 nach T001922-Deploy, 3× `npx @lhci/cli autorun` gegen `https://web.mentolder.de`, Score konstant 74/100; FCP 3.9s, LCP 4.2s, TBT 0ms, CLS 0. T001922/PR #2899+#2902+#2903 lieferte: Traefik-Kompression + immutable `/_astro/`-Cache beide Brands, LCP-Bild → 17-KB-WebP eager/fetchpriority, Font-Doppel-Ladung entfernt, CookieConsent/PortalSidekick → client:idle. Verbleibende Hebel: Google-Fonts-Self-Hosting — 248 KB Third-Party + 806 ms render-blockend —, `sidekick-panels.css` aus dem Critical Path — 423 ms —, ~80 KB unused JS. WSL-Gotcha: `CHROME_PATH=/usr/bin/google-chrome` setzen, sonst startet LHCI den Windows-Chrome via Interop und scheitert am Port-Bind) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001911 (Nachfolger von T001842) · T001930 (Stufe 2, **done ohne Messwert-Fix** — Font-Self-Hosting + Critical-CSS noch offen) · T001950 (Stufe 3 — `sidekick-panels.css` async statt render-blocking, `PortalSidekick`-Drawer-Subviews dynamic-import statt eager Bundle; lokale Vorher/Nachher-Messung 68→77, Live-Messung erfordert Post-Merge-Deploy)
 
 ## G-BRAIN14 — Brain-Ingest-Backlog: 17 → 0
 
@@ -302,7 +330,7 @@ for line in sys.stdin:
 print(todo)"
 ```
 
-> **B · Baseline:** 17 → 0 ✅ · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912 (**done ohne Messwert-Fix**) → **T001951 gefixt** (2026-07-19, PR Paddione/brain#8: 15 verbleibende Backlog-Seiten via LM Studio :1234 (Qwen3.6-14B-A3B-FableVibes) ingested + gemerged; Target 0 erreicht)
+> **C · Baseline:** 17 → 0 ✅ · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912 (**done ohne Messwert-Fix**) → **T001951 gefixt** (2026-07-19, PR Paddione/brain#8: 15 verbleibende Backlog-Seiten via LM Studio :1234 (Qwen3.6-14B-A3B-FableVibes) ingested + gemerged; Target 0 erreicht)
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -351,7 +379,6 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SPEC02** | Changes >30 Tage | 0 ✓ | 0 | `for d in openspec/changes/*/; do ... done` |
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
-| **G-DB09** | Slow Queries in pg_stat_statements (COPY-bereinigt) | 0 ✓ | 0 | `db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %'"` — T001926: Backup-COPY (pg_dump-intern) aus dem Mess-Scope ausgeschlossen |
 | **G-DOC01** | Defekte interne Doc-Links | 0 ✓ | 0 | `python3 scripts/check-links.py` |
 | **G-DOC02** | Root-CLAUDE.md Zeilen | 190 ✓ | ≤ 200 | `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
@@ -376,7 +403,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills \| grep -c '/SKILL\.md$'` (nur getrackte — market-cli-Installationen zählen nicht, T001783) |
 | **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in git ls-files; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` (nur getrackte) |
 | **G-AGENTIC08** | Tote Script-Pfade in SKILL.md | 0 ✓ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' .claude/skills \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives) |
-| **G-AGENTIC09** | SKILL.md > 500 Zeilen | 0 ✓ | 0 | `find .claude/skills -name SKILL.md -exec wc -l {} + \| awk '$2!="total"&&$1>500{c++} END{print c+0}'` — T001904: `dev-flow-plan` 508→479 Zeilen |
+
 | **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
 | **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
 | **G-AGENTIC13** | Tote MCP-Server-Refs in SKILL.md | 0 ✓ | 0 | `grep -rhoE 'mcp__...__\|mcp-..._browser_' .claude/skills \| gegen registrierte Server` |
@@ -386,14 +413,14 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC17** | Command-Orphans via S4 | 0 ✓ | ≤ 0 | `S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99` |
 | **G-AGENTIC01** | Ungescopte Agenten (security/infra/db ohne `tools:`) | 0 ✓ | ≤ 0 | `awk-Frontmatter-Check über .claude/agents/bachelorprojekt-{security,infra,db}.md` |
 | **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent` |
-| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 8 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
-| **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | n/a | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
+| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 22 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
+| **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 1 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `website/src/lib` | 85 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
 | **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 1 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
-| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 37 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
+| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 36 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
 
 ---
 
@@ -550,3 +577,12 @@ Das website-Backup ist damit nachweislich wieder restaurierbar. Nebenbei entdeck
 (T002066, PR #3091): `RECOVER_DOMAIN` war im Schema required, fehlte aber in allen vier
 Brand-Env-Dateien — blockierte jeden `workspace:deploy`. OpenSpec-Change
 `fix-t002064-shared-db-dev-shm` archiviert (Delta in `backup-pipeline`-SSOT gemergt).
+
+**Baseline-Update 2026-07-22:** Prio-C-Tabellenwerte mit `health-goals-check.sh` synchronisiert:
+G-DB04 8→22 (Backup-Alter steigt, weiterhin im Target ≤26h); G-OPS03 37→36 (TLS-Restlaufzeit
+sinkt mit der Zeit korrekt); G-DB08 n/a→1 (Seq-Scan-Quote erstmals gemessen, 1 Tabelle >5 %
+Seq-Scan-Anteil, 1 ≤3 ✓); G-OPS01 3→2 (Baseline-Korrektur: `test-pod` debris zwischenzeitlich
+gelöscht, nur noch `livekit-egress` + `oauth2-proxy-terminal` Pending). **Regressionen:**
+G-AGENTIC09 0→2 (Prio C → Prio A: zwei SKILL.md >500 Zeilen, Target=0) — Nachfolger TBD.
+G-DB09 0→1 (Prio C → Prio A: eine Slow Query in pg_stat_statements, Target=0) — Nachfolger TBD.
+`website/src/lib/goals-data.generated.json` via `node scripts/gen-goals-data.mjs` neu generiert.

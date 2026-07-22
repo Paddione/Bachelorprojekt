@@ -267,7 +267,7 @@ cmd_check_and_claim() {
   local scope="$1" id="${2:-}"; shift 2 2>/dev/null || shift $#
   # --status-check <path> is optional: point to a script that returns 0 iff the
   # ticket is still live (plan_staged) and not yet done/merged.
-  local status_check_script=""
+  local status_check_script="" LABEL="" WT="" BRANCH="" TICKET=""
   while [ $# -gt 0 ]; do case "$1" in
     --status-check) status_check_script="$2"; shift 2;;
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;

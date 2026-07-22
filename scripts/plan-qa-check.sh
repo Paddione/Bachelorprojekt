@@ -58,7 +58,7 @@ fi
 
 # === Prompt ===
 SYSTEM_PROMPT="Du bist ein Quality-Assurance-Bot für Implementierungspläne in einem Softwareprojekt. \
-Du prüfst, ob der Plan die folgenden 5 Kriterien erfüllt. \
+Du prüfst, ob der Plan die folgenden 6 Kriterien erfüllt. \
 Antworte ausschließlich im folgenden JSON-Format (kein Präfix, kein Suffix, keine Markdown-Codeblöcke):
 
 {
@@ -72,9 +72,10 @@ Kriterien:
 2. Mindestens ein Task enthält einen konkreten Test-Schritt (BATS, Vitest, Playwright oder Verifikationskommando).
 3. Keine offenen Platzhalter: TODO, TBD, FIXME, ???, <ausfüllen> oder ähnliche.
 4. Pro geänderter Datei mit bekannter Zeilenzahl ein S1-Budget-Kommentar (Ist X - Baseline Y -> Budget Z) oder Markierung als neue Datei.
-5. Der letzte Task enthält task test:all, task freshness:regenerate und task freshness:check als Steps."
+5. Der letzte Task enthält task test:changed, task freshness:regenerate und task freshness:check als Steps.
+6. Shell-Snippets im Plan sind frei von bekannten Syntax- und Argument-Fallen (z.B. jq --args darf nicht mit Input-Dateien als Positional-Arg kombiniert werden; stattdessen stdin-Umleitung `< file` nutzen)."
 
-USER_PROMPT_PREFIX="Prüfe den folgenden Implementierungsplan gegen die 5 Kriterien und gib PASS/FAIL zurück:"
+USER_PROMPT_PREFIX="Prüfe den folgenden Implementierungsplan gegen die 6 Kriterien und gib PASS/FAIL zurück:"
 
 # === Backup ===
 BACKUP_HASH=$(md5sum "$PLAN_FILE" | cut -d' ' -f1)

@@ -23,11 +23,23 @@ NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"
 
-case "${BRAND:-}" in
+# If BRAND is unset, attempt to infer from ticket ID args (e.g. T00xxxx / mentolder or korczewski prefix)
+# or require explicit BRAND/TICKET_NS. Default to mentolder (workspace) if not inferable.
+if [[ -z "${BRAND:-}" ]]; then
+  # Look for ticket ID in arguments
+  for arg in "$@"; do
+    case "$arg" in
+      korczewski*|KORCZEWSKI*|*KORCZEWSKI*) BRAND="korczewski"; break ;;
+      mentolder*|MENTOLDER*|*MENTOLDER*)   BRAND="mentolder"; break ;;
+    esac
+  done
+  BRAND="${BRAND:-mentolder}"
+fi
+
+case "$BRAND" in
   mentolder)   NS="workspace" ;;
   korczewski)  NS="workspace-korczewski" ;;
-  "")          : ;;  # no BRAND given — keep TICKET_NS default
-  *)           echo "ERROR: unknown BRAND (use mentolder|korczewski)" >&2; exit 2 ;;
+  *)           echo "ERROR: unknown BRAND '$BRAND' (use mentolder|korczewski)" >&2; exit 2 ;;
 esac
 
 # If context is a dev cluster, append -dev to namespace

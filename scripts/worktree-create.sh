@@ -130,9 +130,11 @@ if [ -f "$KEY_SRC" ]; then
     # gitdir, git-crypt clean works fine.
     mkdir -p "$WT_GITDIR/git-crypt/keys"
     cp "$KEY_SRC" "$WT_GITDIR/git-crypt/keys/default"
-    git -C "$WT_PATH" checkout
     git -C "$WT_PATH" config extensions.worktreeConfig true
+    git -C "$WT_PATH" config --worktree filter.git-crypt.smudge "git-crypt smudge"
+    git -C "$WT_PATH" config --worktree filter.git-crypt.clean "git-crypt clean"
     git -C "$WT_PATH" config --worktree filter.git-crypt.required true
+    git -C "$WT_PATH" checkout
 else
     # Locked (no key): neutralize git-crypt filters worktree-locally so checkout
     # and all later git ops use cat (passthrough). extensions.worktreeConfig must
@@ -161,6 +163,8 @@ if [ "$BRANCH_EXISTS" -eq 1 ] && [ -f "$KEY_SRC" ]; then
     mkdir -p "$WT_GITDIR/git-crypt/keys"
     cp "$KEY_SRC" "$WT_GITDIR/git-crypt/keys/default"
     git -C "$WT_PATH" config extensions.worktreeConfig true
+    git -C "$WT_PATH" config --worktree filter.git-crypt.smudge "git-crypt smudge"
+    git -C "$WT_PATH" config --worktree filter.git-crypt.clean "git-crypt clean"
     # Drop the stale worktree-local smudge=cat too — without this the forced
     # checkout below still runs with the cat passthrough and the
     # "re-initialized" worktree stays encrypted-at-rest. [T001977]

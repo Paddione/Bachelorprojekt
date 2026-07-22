@@ -177,7 +177,7 @@ jobs:
       - name: Factory BATS
         run: |
           ./tests/unit/lib/bats-core/bin/bats \
-            tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
+            tests/spec/software-factory.bats tests/local/FA-AR-*.bats
 
       - name: OpenSpec validation
         run: npm run test:openspec

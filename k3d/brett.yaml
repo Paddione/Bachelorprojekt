@@ -31,7 +31,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: brett
-          image: ghcr.io/paddione/workspace-brett:latest
+          image: ghcr.io/paddione/workspace-brett:${BRETT_IMAGE}
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

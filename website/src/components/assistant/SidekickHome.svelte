@@ -1,5 +1,5 @@
 <script lang="ts">
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs' | 'agent-settings';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs' | 'agent-settings' | 'llm-proxy';
 
   let {
     onNavigate,
@@ -29,11 +29,12 @@
     { id: 'ai-quality',    no: '03', title: 'KI-Qualität', sub: 'Latenz · Kosten · Fehler', badge: aiErrorCount > 0 ? aiErrorCount : undefined, show: isAdmin },
     { id: 'logs',          no: '04', title: 'Logs', sub: 'Server · Browser · Pods', show: isAdmin },
     { id: 'agent-settings', no: '05', title: 'Agenten-Einstellungen', sub: 'Token-Budget, Spawn Harness & Review', show: isAdmin },
-    { id: 'questionnaire', no: isAdmin ? '06' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
-    { id: 'support',       no: isAdmin ? '07' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
-    { id: 'agent-guide',   no: isAdmin ? '08' : '03', title: 'Agent-Anleitung', sub: 'Lernen, wie alles funktioniert', show: true },
-    { id: 'mediaviewer',   no: isAdmin ? '09' : '04', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
-    { id: 'help',          no: isAdmin ? '10' : '05', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
+    { id: 'llm-proxy',     no: '06', title: 'LLM-Proxy', sub: 'Backends · Modelle · Routing', show: isAdmin },
+    { id: 'questionnaire', no: isAdmin ? '07' : '01', title: 'Fragebögen', sub: 'Aufgaben beantworten', badge: pendingQuestionnaires > 0 ? pendingQuestionnaires : undefined, show: true },
+    { id: 'support',       no: isAdmin ? '08' : '02', title: 'Feedback & Support', sub: 'Fehler melden, Ideen teilen', show: true },
+    { id: 'agent-guide',   no: isAdmin ? '09' : '03', title: 'Agent-Anleitung', sub: 'Lernen, wie alles funktioniert', show: true },
+    { id: 'mediaviewer',   no: isAdmin ? '10' : '04', title: 'Mediaviewer', sub: 'Hilfe- & Onboarding-Videos', show: true },
+    { id: 'help',          no: isAdmin ? '11' : '05', title: 'Hilfe',        sub: 'Kontexthilfe für diese Seite', show: !!helpSection },
   ].filter(i => i.show));
 
   let hover = $state<string | null>(null);

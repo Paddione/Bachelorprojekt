@@ -3071,9 +3071,8 @@ REG="scripts/factory/service-registry.sh"
 @test "FA-SF-70: route-provider.sh emits valid JSON keys for opus without DB" {
   run bash scripts/factory/route-provider.sh factory-plan opus
   [ "$status" -eq 0 ]
-  # Post qwythos-9b-v2 migration: opus routes to local lmstudio, not Anthropic
-  # cloud (mirrors tests/local/FA-SF-70-provider-router.bats). [T001847]
-  echo "$output" | jq -e '.modelId and (.provider=="lmstudio")'
+  # Post local-llm-proxy migration: opus routes to ternary-bonsai-27b on :18235 [T002081]
+  echo "$output" | jq -e '.modelId and (.provider=="ternary-bonsai-27b")'
 }
 
 @test "FA-SF-70: route-provider.sh requires source and tier args" {

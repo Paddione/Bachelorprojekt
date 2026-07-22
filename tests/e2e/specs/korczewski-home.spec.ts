@@ -1,10 +1,24 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, APIRequestContext } from '@playwright/test';
 
 const BASE = process.env.KORCZEWSKI_URL?.replace(/\/$/, '') ?? 'https://web.korczewski.de';
 
-// ── Homepage ─────────────────────────────────────────────────────────────────
+// Shared connectivity guard — caches the result so the preflight only fires once
+// per worker. Each describe block calls `guard(request)` in beforeAll.
+let reachable: boolean | null = null;
+async function guard(request: APIRequestContext) {
+  if (reachable !== null) return;
+  try {
+    const res = await request.get(BASE, { timeout: 10_000, maxRedirects: 0 });
+    reachable = res.status() < 500;
+  } catch {
+    reachable = false;
+  }
+  if (!reachable) test.skip(true, `${BASE} unreachable — skipping korczewski suite`);
+}
 
 test.describe('Korczewski: Homepage', () => {
+  test.beforeAll(async ({ request }) => guard(request));
+
   test('T1: page loads with correct title', async ({ page }) => {
     const res = await page.goto(`${BASE}/`);
     expect(res?.status()).toBe(200);
@@ -81,6 +95,8 @@ test.describe('Korczewski: Homepage', () => {
 // ── Public pages ──────────────────────────────────────────────────────────────
 
 test.describe('Korczewski: Public pages', () => {
+  test.beforeAll(async ({ request }) => guard(request));
+
   const publicPages = [
     { path: '/kontakt',          title: /30 Minuten.*wissen wir.*ob es passt/i },
     { path: '/ueber-mich',       title: /IT-Management|Security|über mich/i },
@@ -117,6 +133,8 @@ test.describe('Korczewski: Public pages', () => {
 // ── Service subpages ──────────────────────────────────────────────────────────
 
 test.describe('Korczewski: Service subpages', () => {
+  test.beforeAll(async ({ request }) => guard(request));
+
   const servicePages = [
     { path: '/ki-beratung',    heading: /KI/i },
     { path: '/software-dev',   heading: /software/i },
@@ -139,6 +157,8 @@ test.describe('Korczewski: Service subpages', () => {
 // ── OIDC auth flow ────────────────────────────────────────────────────────────
 
 test.describe('Korczewski: OIDC auth', () => {
+  test.beforeAll(async ({ request }) => guard(request));
+
   test('T1: /api/auth/login redirects to Pocket ID', async ({ request }) => {
     const res = await request.get(`${BASE}/api/auth/login`, { maxRedirects: 0 });
     expect(res.status()).toBe(302);
@@ -163,6 +183,8 @@ test.describe('Korczewski: OIDC auth', () => {
 // ── Contact page ──────────────────────────────────────────────────────────────
 
 test.describe('Korczewski: Kontakt page', () => {
+  test.beforeAll(async ({ request }) => guard(request));
+
   test('T1: page loads', async ({ page }) => {
     const res = await page.goto(`${BASE}/kontakt`);
     expect(res?.status()).toBe(200);

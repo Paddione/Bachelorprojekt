@@ -6,9 +6,13 @@
 import { test, expect } from '@playwright/test';
 import { assertReachable } from '../lib/health-assertions';
 
-const DOMAIN = process.env.PROD_DOMAIN || 'localhost';
+const DOMAIN = process.env.PROD_DOMAIN;
+const SKIP_REASON = 'PROD_DOMAIN not set — smoke tests require a live cluster domain';
 
 test.describe('Integration Smoke Tests', () => {
+  test.beforeAll(() => {
+    if (!DOMAIN) test.skip(true, SKIP_REASON);
+  });
 
   // ── Service Reachability ──────────────────────────────────────────────
 

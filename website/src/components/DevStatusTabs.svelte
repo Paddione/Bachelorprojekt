@@ -5,6 +5,7 @@
   import ControlPanel from './factory/ControlPanel.svelte';
   import FactoryModelSlots from './factory/FactoryModelSlots.svelte';
   import KiRoutingPanel from './factory/KiRoutingPanel.svelte';
+  import LlmProxyPanel from './factory/LlmProxyPanel.svelte';
   import FactoryKpiGrid from './factory/FactoryKpiGrid.svelte';
   import FactoryThroughputChart from './factory/FactoryThroughputChart.svelte';
   import FactoryPhaseHeatmap from './factory/FactoryPhaseHeatmap.svelte';
@@ -169,7 +170,7 @@
   </div>
 {:else if activeTab === 'control'}
   <ControlPanel />
-  <div class="control-extras"><FactoryModelSlots /><KiRoutingPanel /></div>
+  <div class="control-extras"><FactoryModelSlots /><KiRoutingPanel /><LlmProxyPanel /></div>
 {:else if activeTab === 'analytics'}
   <div class="analytics-tab-wrap">
     <AnalyticsWindowFilter value={analyticsWindow} onchange={(w) => (analyticsWindow = w)} />

@@ -1,9 +1,9 @@
 // tests/e2e/lib/health-assertions.test.ts
 //
 // Unit tests for the health-assertions library.
-// Uses Playwright's built-in test runner with a mock APIRequestContext.
+// Runs under vitest — pure mock tests, no browser.
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import type { APIRequestContext, APIResponse, TestInfo } from '@playwright/test';
 import {
   assertReachable,
@@ -190,34 +190,34 @@ test.describe('assertAuthenticatedReachable', () => {
     else delete process.env.PROD_DOMAIN;
   });
 
-  test('without E2E_ADMIN_PASS → fixme/fail', async () => {
-    const oldPass = process.env.E2E_ADMIN_PASS;
-    delete process.env.E2E_ADMIN_PASS;
+  test('without CRON_SECRET → fixme/fail', async () => {
+    const oldSecret = process.env.CRON_SECRET;
+    delete process.env.CRON_SECRET;
     const { mock: mockTestInfo, getCalls } = createMockTestInfo();
     try {
       const request = mockRequest(() => mockResponse(200, 'ok'));
       await assertAuthenticatedReachable(request, 'https://admin.local', {}, mockTestInfo);
       expect(true).toBe(false);
     } catch (err: any) {
-      expect(err.message).toContain('E2E_ADMIN_PASS not set');
+      expect(err.message).toContain('CRON_SECRET not set');
       const calls = getCalls();
       expect(calls.length).toBe(1);
       expect(calls[0].cond).toBe(true);
     } finally {
-      if (oldPass) process.env.E2E_ADMIN_PASS = oldPass;
+      if (oldSecret) process.env.CRON_SECRET = oldSecret;
     }
   });
 
-  test('with E2E_ADMIN_PASS → calls assertReachable', async () => {
-    const oldPass = process.env.E2E_ADMIN_PASS;
-    process.env.E2E_ADMIN_PASS = 'test123';
+  test('with CRON_SECRET → calls assertReachable', async () => {
+    const oldSecret = process.env.CRON_SECRET;
+    process.env.CRON_SECRET = 'test-secret';
     try {
       const request = mockRequest(() => mockResponse(200, 'ok'));
       const res = await assertAuthenticatedReachable(request, 'https://admin.local');
       expect(res.status()).toBe(200);
     } finally {
-      if (oldPass) process.env.E2E_ADMIN_PASS = oldPass;
-      else delete process.env.E2E_ADMIN_PASS;
+      if (oldSecret) process.env.CRON_SECRET = oldSecret;
+      else delete process.env.CRON_SECRET;
     }
   });
 });

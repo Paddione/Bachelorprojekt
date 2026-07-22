@@ -98,6 +98,9 @@ env_vars:
     default_dev: "localhost"
 
   - name: WEBSITE_IMAGE
+  - name: BRETT_IMAGE
+    required: false
+    default_dev: "latest"
   - name: DOCS_IMAGE
     required: true
     default_dev: "workspace-website"

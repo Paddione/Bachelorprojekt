@@ -10,7 +10,7 @@
   import { addEntry } from '../lib/logging/log-store';
   import { browserLogger } from '../lib/browser-logger';
 
-  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs' | 'agent-settings';
+  type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs' | 'agent-settings' | 'llm-proxy';
 
   let {
     helpSection = '',
@@ -59,6 +59,7 @@
     'ai-quality': 'KI-Qualität',
     logs: 'Logs',
     'agent-settings': 'Agenten-Einstellungen',
+    'llm-proxy': 'LLM-Proxy',
   };
 
   // Capture client-side errors into the central log bus (admin sessions only),
@@ -290,6 +291,8 @@
       {#await import('./assistant/AiQualitySidekickView.svelte') then { default: V }}<V />{/await}
     {:else if view === 'logs'}
       {#await import('./assistant/LogsSidekickView.svelte') then { default: V }}<V />{/await}
+    {:else if view === 'llm-proxy'}
+      {#await import('./assistant/LlmProxyView.svelte') then { default: V }}<V />{/await}
     {:else if view === 'agent-settings'}
       <div class="agent-settings">
         {#if settingsLoading}

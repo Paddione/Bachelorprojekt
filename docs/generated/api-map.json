@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-22T10:53:23.469Z",
+  "generatedAt": "2026-07-22T14:00:56.374Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1396,6 +1396,40 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/legal/retokenize.ts"
+    },
+    {
+      "path": "/api/admin/llm-proxy/backends",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/llm-proxy/backends.ts"
+    },
+    {
+      "path": "/api/admin/llm-proxy/backends/{id}",
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/llm-proxy/backends/[id].ts"
+    },
+    {
+      "path": "/api/admin/llm-proxy/reload",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/llm-proxy/reload.ts"
+    },
+    {
+      "path": "/api/admin/llm-proxy/status",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/llm-proxy/status.ts"
     },
     {
       "path": "/api/admin/meetings",

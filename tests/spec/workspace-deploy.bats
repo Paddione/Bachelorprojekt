@@ -264,3 +264,130 @@ _website_deploy_block() {
   run bash -c '_wd() { sed -n "/^  website:deploy:\$/,/^  website:dev:\$/p" "'"$TASKFILE"'"; }; _wd | grep -E "!= \"dev\" \] && CTX_ARG="'
   [ "$status" -eq 0 ]
 }
+
+# ── T002083: fluxcd-gitops — pull-based GitOps Render- & Manifest-Verträge ──
+FLUX_RENDER="${PROJECT_DIR}/scripts/flux-render-artifact.sh"
+FLUX_CLUSTER_DIR="${PROJECT_DIR}/flux/clusters/fleet"
+
+@test "T002083: scripts/flux-render-artifact.sh exists and is executable" {
+  [ -f "$FLUX_RENDER" ]
+  [ -x "$FLUX_RENDER" ]
+}
+
+@test "T002083: flux-render-artifact.sh is shellcheck-clean" {
+  if ! command -v shellcheck >/dev/null 2>&1; then
+    skip "shellcheck not installed in this context"
+  fi
+  run shellcheck -S warning "$FLUX_RENDER"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002083: flux-render-artifact.sh renders a placeholder-free tree (no bare \${VAR})" {
+  # Non-secret fixture env (same shape as the T001411 offline render test);
+  # secret-backed values live in SealedSecrets and are never envsubst-substituted.
+  local out
+  out="$(mktemp -d)"
+  export SMTP_PORT=587 SMTP_HOST=smtp.example.org SMTP_USER=x POCKET_ID_SMTP_TLS=starttls
+  export POCKET_ID_FRONTEND_URL=https://auth.example POCKET_ID_URL=http://pocket-id:1411 POCKET_ID_DOMAIN=id.example
+  # Contract (p1): `flux-render-artifact.sh --out <dir>` renders every component tree
+  # offline (kustomize|sed|envsubst|sed) without cluster/secret access.
+  run bash "$FLUX_RENDER" --out "$out"
+  [ "$status" -eq 0 ]
+  # No unsubstituted ${...} placeholder from the allowlist may survive in any rendered manifest.
+  local leftover
+  leftover="$(grep -rE '\$\{(PROD_DOMAIN|BRAND_NAME|CONTACT_EMAIL|INFRA_NAMESPACE|TLS_SECRET_NAME|SMTP_FROM|SMTP_HOST|SMTP_PORT|SMTP_USER|MAIL_FROM_LOCAL|MAIL_FROM_DOMAIN|POCKET_ID_SMTP_TLS|WEBSITE_IMAGE|BRETT_IMAGE|TURN_PUBLIC_IP|TURN_NODE|TURN_OVERLAY_IP|TERMINAL_OVERLAY_IP|BRAND_ID|KC_USER1_USERNAME|KC_USER1_EMAIL|KC_USER2_USERNAME|KC_USER2_EMAIL|BRETT_DOMAIN|BRAIN_EXTERNAL_URL|LIVEKIT_DOMAIN|STREAM_DOMAIN|RECOVER_DOMAIN|OTEL_DOMAIN|STUDIO_DOMAIN|STUDIO_IMAGE|STUDIO_IMAGE_DIGEST|WHISPER_URL|WORKSPACE_NAMESPACE|WEBSITE_NAMESPACE|SYSTEMTEST_LOOP_ENABLED|LLM_HOST_IP|LLM_ENABLED|LLM_RERANK_ENABLED|LLM_ROUTER_URL|LLM_EMBED_URL|COMFY_HOST_IP|COMFY_PORT|RIGGER_HOST_IP|RIGGER_PORT|NTFY_BASE_URL|AGENT_PUSH_API|AGENT_PUSH_LINK_BASE|DEV_DOMAIN|DEV_NODE|DEV_WEBSITE_HOST|DEV_BRETT_HOST|POCKET_ID_DOMAIN|POCKET_ID_FRONTEND_URL|POCKET_ID_URL)\}' "$out" || true)"
+  rm -rf "$out"
+  [ -z "$leftover" ]
+}
+
+@test "T002083: flux/clusters/fleet manifests all parse as valid YAML" {
+  run python3 - "$FLUX_CLUSTER_DIR" <<'PY'
+import sys, pathlib, yaml
+d = pathlib.Path(sys.argv[1])
+files = list(d.rglob('*.yaml')) + list(d.rglob('*.yml'))
+assert files, 'no manifests under flux/clusters/fleet'
+errs = []
+for f in files:
+    try:
+        list(yaml.safe_load_all(f.read_text()))
+    except yaml.YAMLError as e:
+        errs.append(f'{f.name}: {e}')
+assert not errs, 'YAML parse errors: ' + '; '.join(errs)
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "T002083: FluxInstance is fluxcd.controlplane.io/v1, kind FluxInstance, name flux" {
+  run bash -c "grep -rIl 'kind:[[:space:]]*FluxInstance' '$FLUX_CLUSTER_DIR'"
+  [ "$status" -eq 0 ]
+  local f="$output"
+  grep -qE '^apiVersion:[[:space:]]*fluxcd\.controlplane\.io/v1' "$f"
+  grep -qE '^[[:space:]]*name:[[:space:]]*flux[[:space:]]*$' "$f"
+}
+
+@test "T002083: FluxInstance syncs from an OCIRepository source" {
+  run bash -c "grep -rIl 'kind:[[:space:]]*FluxInstance' '$FLUX_CLUSTER_DIR'"
+  [ "$status" -eq 0 ]
+  grep -qE 'kind:[[:space:]]*OCIRepository' "$output"
+}
+
+@test "T002083: cluster CRs form a Kustomization dependsOn chain (kustomize.toolkit.fluxcd.io)" {
+  run python3 - "$FLUX_CLUSTER_DIR" <<'PY'
+import sys, pathlib, yaml
+d = pathlib.Path(sys.argv[1])
+ks = []
+for f in list(d.rglob('*.yaml')) + list(d.rglob('*.yml')):
+    for doc in yaml.safe_load_all(f.read_text()):
+        if not doc:
+            continue
+        if doc.get('kind') == 'Kustomization' and str(doc.get('apiVersion','')).startswith('kustomize.toolkit.fluxcd.io'):
+            ks.append(doc)
+names = {k.get('metadata', {}).get('name') for k in ks}
+assert 'flux-sealed-secrets' in names, f'flux-sealed-secrets Kustomization missing (have {sorted(n for n in names if n)})'
+assert 'flux-platform' in names, f'flux-platform Kustomization missing (have {sorted(n for n in names if n)})'
+# At least one dependsOn edge must wire the chain together.
+assert any(k.get('spec', {}).get('dependsOn') for k in ks), 'no Kustomization declares dependsOn'
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "T002083: flux-sealed-secrets Kustomization sets prune: false (secrets never auto-pruned)" {
+  run python3 - "$FLUX_CLUSTER_DIR" <<'PY'
+import sys, pathlib, yaml
+d = pathlib.Path(sys.argv[1])
+found = None
+for f in list(d.rglob('*.yaml')) + list(d.rglob('*.yml')):
+    for doc in yaml.safe_load_all(f.read_text()):
+        if not doc:
+            continue
+        if doc.get('kind') == 'Kustomization' and doc.get('metadata', {}).get('name') == 'flux-sealed-secrets':
+            found = doc
+assert found is not None, 'flux-sealed-secrets Kustomization not found'
+assert found.get('spec', {}).get('prune') is False, 'flux-sealed-secrets must set spec.prune: false'
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "T002083: flux/clusters/fleet CRs carry no unsubstituted \${VAR} placeholders" {
+  # The cluster-side CRs are committed static (not envsubst-rendered) → must be literal.
+  # Note: bootstrap/ directory resources (e.g. ingressroute-flux-webhook) are templated at bootstrap time.
+  local leftover
+  leftover="$(find "$FLUX_CLUSTER_DIR" -maxdepth 1 -name "*.yaml" -exec grep -l '\${' {} + || true)"
+  [ -z "$leftover" ]
+}
+
+@test "T002083: flux CLI schema-validates the cluster manifests (when the subcommand exists)" {
+  if ! command -v flux >/dev/null 2>&1; then
+    skip "flux CLI not installed in this context"
+  fi
+  # flux v2.8.8 has no `schema`/`validate` subcommand — skip until a CLI provides one.
+  if flux schema --help >/dev/null 2>&1; then
+    run flux schema validate --path "$FLUX_CLUSTER_DIR"
+  elif flux validate --help >/dev/null 2>&1; then
+    run flux validate --path "$FLUX_CLUSTER_DIR"
+  else
+    skip "installed flux CLI ($(flux version --client 2>/dev/null | head -1)) has no schema/validate subcommand"
+  fi
+  [ "$status" -eq 0 ]
+}
+

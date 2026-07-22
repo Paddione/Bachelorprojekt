@@ -108,3 +108,38 @@ tasks:
             -H 'Content-Type: application/json' ${KEY:+-H 'Authorization: Bearer '"$KEY"'} \
             -d '{\"model\":\"workspace-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"Sag Hallo auf Deutsch.\"}],\"max_tokens\":20}' \
             | jq '.choices[0].message.content'" || true
+
+  proxy:start:
+    desc: "Start the local LLM proxy (scripts/llm-proxy, Port 18235) detached with PID/log file"
+    cmds:
+      - |
+        set -e
+        DIR="$HOME/.local/state/llm-proxy"; mkdir -p "$DIR"
+        PIDF="$DIR/proxy.pid"; LOGF="$DIR/proxy.log"
+        if [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null; then
+          echo "llm-proxy already running (pid $(cat "$PIDF"))"; exit 0
+        fi
+        nohup node scripts/llm-proxy/server.mjs >> "$LOGF" 2>&1 &
+        echo $! > "$PIDF"
+        echo "✓ llm-proxy started (pid $(cat "$PIDF"), log $LOGF)"
+
+  proxy:stop:
+    desc: "Stop the local LLM proxy via PID file"
+    cmds:
+      - |
+        PIDF="$HOME/.local/state/llm-proxy/proxy.pid"
+        [ -f "$PIDF" ] && kill "$(cat "$PIDF")" 2>/dev/null && rm -f "$PIDF" && echo "✓ stopped" || echo "not running"
+
+  proxy:status:
+    desc: "Show LLM proxy health + discovered backends/models"
+    cmds:
+      - |
+        PORT="${LLM_PROXY_PORT:-18235}"
+        curl -fsS "http://127.0.0.1:$PORT/health" >/dev/null 2>&1 \
+          && curl -fsS "http://127.0.0.1:$PORT/admin/state" | jq . \
+          || echo "llm-proxy offline — Start: task llm:proxy:start"
+
+  proxy:logs:
+    desc: "Tail the local LLM proxy log"
+    cmds:
+      - tail -n 100 -f "$HOME/.local/state/llm-proxy/proxy.log"

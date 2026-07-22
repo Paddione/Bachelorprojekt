@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "slug": "fluxcd-gitops",
+    "ticket_id": "T002083",
+    "generated_from": "dev-flow-plan A.1.5 (Explore-Subagent + flux-schema-catalog MCP + wc -l/baseline)",
+    "domains": ["infra", "ci"],
+    "intel_sources": ["explore-subagent", "flux-schema-catalog-mcp", "wc-l+baseline.json", "gates.yaml", "kubectl --context fleet"]
+  },
+  "impact_files": [
+    { "path": "Taskfile.yml", "language": "yaml", "loc": 4651, "s1_limit": 0, "s1_budget": null, "note": "ungated ext (.yml); workspace:deploy 2584-2883, ENVSUBST_VARS 2757-2786, fleet:* 2439-2560, sealed-secrets:install 4120-4141; neue Tasks flux:render/flux:bootstrap" },
+    { "path": "scripts/flux-render-artifact.sh", "language": "bash", "loc": 0, "s1_limit": 500, "s1_budget": 500, "note": "NEU — render sed|envsubst|sed pro Komponente nach out/, wiederverwendet von CI + lokal" },
+    { "path": "scripts/env-resolve.sh", "language": "bash", "loc": 115, "s1_limit": 500, "s1_budget": 385, "note": "ggf. CI-tauglicher no-secrets-Modus" },
+    { "path": ".github/workflows/post-merge.yml", "language": "yaml", "loc": 176, "s1_limit": 0, "s1_budget": null, "note": "deploy-manifests-Job (58-109) → render+push+receiver-ping" },
+    { "path": ".github/workflows/deploy-sealed-secrets.yml", "language": "yaml", "loc": 115, "s1_limit": 0, "s1_budget": null, "note": "ENTFÄLLT — Flux reconciled sealed-secrets/-Pfad" },
+    { "path": ".github/workflows/build-website.yml", "language": "yaml", "loc": 372, "s1_limit": 0, "s1_budget": null, "note": "set image :193 + Overlay-Apply 167-190 → Re-Render-Trigger (workflow_call) mit SHA-Tag" },
+    { "path": ".github/workflows/build-brett.yml", "language": "yaml", "loc": 112, "s1_limit": 0, "s1_budget": null, "note": "rollout restart :87,:111 → Re-Render-Trigger" },
+    { "path": "flux/clusters/fleet/", "language": "yaml", "loc": 0, "s1_limit": 0, "s1_budget": null, "note": "NEU — FluxInstance, Kustomization-CRs (sealed-secrets/platform/brands/websites), Receiver, IngressRoute, ghcr-auth SealedSecret" },
+    { "path": "openspec/specs/ci-cd.md", "language": "markdown", "loc": 1182, "s1_limit": 0, "s1_budget": null, "note": "Delta: 'Flux SHALL NOT be tracked' (1055-1070) umkehren" },
+    { "path": "openspec/specs/workspace-deploy.md", "language": "markdown", "loc": 1502, "s1_limit": 0, "s1_budget": null, "note": "Delta: push-based-Requirements (677-700) um pull-based-Pfad ergänzen; workspace:deploy → break-glass/deprecated" }
+  ],
+  "symbols": [
+    { "qualified_name": "workspace:deploy", "kind": "task", "file": "Taskfile.yml", "signature": "task workspace:deploy ENV=<brand>", "type_text": "kustomize build $overlay --load-restrictor=LoadRestrictionsNone | sed -E 's/: \\$\\{...\\}$/: \"${\\1}\"/g' | envsubst \"$ENVSUBST_VARS\" | sed -E 's/\\$\\$(...)/$\\1/g' | kubectl apply --server-side --force-conflicts -f - (Taskfile.yml:2832-2836); davor SealedSecret-Apply 2670-2722, shared-db 2724-2746, website:migrate 2749; danach Einzeldateien 2837-2851, post-steps 2853-2879", "source": "explore-subagent" },
+    { "qualified_name": "env-resolve", "kind": "script", "file": "scripts/env-resolve.sh", "signature": "source scripts/env-resolve.sh <env>", "type_text": "exportiert ENV_CONTEXT, ENV_DOMAIN, ENV_OVERLAY + alle env_vars/setup_vars aus environments/<env>.yaml gegen environments/schema.yaml (Zeilen 77-107)", "source": "explore-subagent" },
+    { "qualified_name": "FluxInstance.spec.sync", "kind": "crd-field", "file": "fluxcd.controlplane.io/v1 FluxInstance (flux-operator v0.55.0)", "signature": "sync: {kind: OCIRepository|GitRepository|Bucket (required), url (required), ref (required), path (required), pullSecret?, interval? default 1m, provider? enum generic|aws|azure|gcp|github}", "type_text": "pullSecret für OCI: Secret type kubernetes.io/dockerconfigjson; erzeugt OCIRepository+Kustomization namens flux-system", "source": "flux-schema-catalog-mcp" },
+    { "qualified_name": "Kustomization", "kind": "crd", "file": "kustomize.toolkit.fluxcd.io/v1", "signature": "spec: {sourceRef, path, interval, prune, wait, timeout, retryInterval, dependsOn[], ignore?, postBuild?}", "type_text": "dependsOn nur auf andere Kustomizations; prune löscht nur von Flux gelabelte Ressourcen", "source": "gitops-knowledge-skill" },
+    { "qualified_name": "Receiver", "kind": "crd", "file": "notification.toolkit.fluxcd.io/v1", "signature": "spec: {type: generic|github|..., secretRef, resources[]}", "type_text": "resources[]: Ziel-Objekte (OCIRepository flux-system) deren Reconcile getriggert wird; Webhook-Pfad aus status.webhookPath", "source": "gitops-knowledge-skill" },
+    { "qualified_name": "cicd-kubeconfig-gen", "kind": "script", "file": "scripts/cicd-kubeconfig-gen.sh", "signature": "erzeugt FLEET_KUBECONFIG aus cicd-deploy-SA-Token (--duration=87600h)", "type_text": "SA-Manifest k3d/cicd-deploy-sa.yaml; bleibt für imperative Post-Steps (website:migrate, talk-setup) in Stufe 1", "source": "explore-subagent" }
+  ],
+  "call_graph": {
+    "entrypoints": ["task workspace:deploy", ".github/workflows/post-merge.yml:deploy-manifests", ".github/workflows/build-*.yml"],
+    "edges": [
+      { "from": "post-merge.yml:deploy-manifests", "to": "task workspace:deploy ENV=mentolder|korczewski", "kind": "calls" },
+      { "from": "workspace:deploy", "to": "scripts/env-resolve.sh", "kind": "sources" },
+      { "from": "workspace:deploy", "to": "kubectl apply (fleet)", "kind": "push-deploy" },
+      { "from": "build-website.yml", "to": "kubectl set image + kustomize apply prod-fleet/website-*", "kind": "push-deploy" },
+      { "from": "build-brett.yml", "to": "kubectl rollout restart (workspace, workspace-korczewski)", "kind": "push-deploy" },
+      { "from": "deploy-sealed-secrets.yml", "to": "kubectl apply environments/sealed-secrets/fleet-*.yaml", "kind": "push-deploy" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [
+    { "name": "flux-operator Helm chart", "source": "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator", "note": "Installation via helm upgrade --install, analog sealed-secrets:install (Taskfile.yml:4120-4141)" },
+    { "name": "flux CLI", "source": "lokal v2.8.8 installiert", "note": "flux push artifact / flux schema validate verfügbar" }
+  ],
+  "risks": [
+    { "note": "ENVSUBST_VARS-Audit gegen environments/schema.yaml nötig: kein Platzhalter darf einen secret-Wert in gerenderte Manifeste ziehen (sonst Leak ins OCI-Artefakt).", "severity": "warn" },
+    { "note": "GHCR-Package fleet-manifests muss privat sein (Topologie-Leak).", "severity": "warn" },
+    { "note": "openspec/specs/ci-cd.md:1055-1070 + workspace-deploy.md:677-700 verbieten Flux aktuell explizit — Spec-Deltas sind Pflichtteil, sonst rote Tests.", "severity": "warn" },
+    { "note": "Einzeln applizierte Manifeste (Taskfile.yml:2837-2851: tests-retention-cronjob, cicd-deploy-sa, pocket-id-client-seed-website-rbac, cronjob-systemtest-cleanup) müssen ins Artefakt inventarisiert werden.", "severity": "warn" },
+    { "note": "codebase-memory/LSP für Taskfile-YAML nicht anwendbar — symbols aus Explore-Subagent (Read/grep) statt Graph.", "severity": "info" }
+  ]
+}

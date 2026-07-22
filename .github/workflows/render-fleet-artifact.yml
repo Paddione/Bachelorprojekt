@@ -1,0 +1,104 @@
+name: Render Fleet Artifact
+on:
+  workflow_call:
+    inputs:
+      website_image_tag:
+        description: 'SHA-Tag für das Website-Image (leer = latest aus Overlay)'
+        required: false
+        type: string
+        default: ''
+      brett_image_tag:
+        description: 'SHA-Tag für das Brett-Image (leer = latest aus Overlay)'
+        required: false
+        type: string
+        default: ''
+  push:
+    branches: [main]
+    paths:
+      - 'k3d/**'
+      - 'prod/**'
+      - 'prod-fleet/**'
+      - 'prod-mentolder/**'
+      - 'prod-korczewski/**'
+      - 'environments/sealed-secrets/**'
+      - 'flux/clusters/**'
+
+concurrency:
+  group: render-fleet-artifact-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  OPENSPEC_TELEMETRY: '0'
+
+jobs:
+  render-push-ping:
+    name: Render, push OCI artifact, ping receiver
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_call' || vars.FLUX_ENABLED == 'true'
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-tags: false
+
+      - uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611  # v2.0.0
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install kustomize + flux CLI
+        run: |
+          rm -f /usr/local/bin/kustomize
+          curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
+            | bash -s -- 5.4.3 /usr/local/bin
+          curl -sSL https://fluxcd.io/install.sh | sudo bash
+
+      - name: Provide CI dummy secrets for render
+        run: bash scripts/ci-dummy-secrets.sh
+
+      - name: Render fleet manifests to out/
+        env:
+          WEBSITE_IMAGE_TAG: ${{ inputs.website_image_tag }}
+          BRETT_IMAGE_TAG: ${{ inputs.brett_image_tag }}
+        run: task flux:render
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push OCI artifact
+        run: |
+          set -euo pipefail
+          flux push artifact \
+            oci://ghcr.io/paddione/fleet-manifests:latest \
+            --path=./out \
+            --source="$(git config --get remote.origin.url)" \
+            --revision="${GITHUB_REF_NAME}@sha1:${GITHUB_SHA}"
+
+      - name: Ping Flux receiver (immediate reconcile)
+        if: success()
+        env:
+          FLUX_WEBHOOK_URL: ${{ secrets.FLUX_WEBHOOK_URL }}
+          FLUX_WEBHOOK_TOKEN: ${{ secrets.FLUX_WEBHOOK_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${FLUX_WEBHOOK_URL:-}" ]]; then
+            echo "FLUX_WEBHOOK_URL not configured — skipping receiver ping (Flux will pick up on its 10m interval)."
+            exit 0
+          fi
+          payload='{}'
+          sig="sha256=$(printf '%s' "$payload" \
+            | openssl dgst -sha256 -hmac "$FLUX_WEBHOOK_TOKEN" -hex | awk '{print $2}')"
+          curl --fail --show-error --silent \
+            -X POST "$FLUX_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            -H "X-Signature: $sig" \
+            --data "$payload" \
+            || { echo "Receiver ping failed (non-fatal) — Flux reconciles on its interval."; exit 0; }

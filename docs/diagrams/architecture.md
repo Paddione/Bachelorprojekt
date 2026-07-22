@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-88 Services · 1668 Abhängigkeitskanten · 410 API-Endpoints
+88 Services · 1668 Abhängigkeitskanten · 414 API-Endpoints
 
 ## Service-Map
 
@@ -2006,6 +2006,10 @@ flowchart TB
 | `/api/admin/kore-flags/save` | POST | 🔐 admin |
 | `/api/admin/legal/{key}/save` | POST | 🔐 admin |
 | `/api/admin/legal/retokenize` | POST | 🔐 admin |
+| `/api/admin/llm-proxy/backends` | GET, POST | 🔐 admin |
+| `/api/admin/llm-proxy/backends/{id}` | PUT, DELETE | 🔐 admin |
+| `/api/admin/llm-proxy/reload` | POST | 🔐 admin |
+| `/api/admin/llm-proxy/status` | GET | 🔐 admin |
 | `/api/admin/meetings` | GET | 🔐 admin |
 | `/api/admin/meetings/{id}` | GET, PATCH | 🔐 admin |
 | `/api/admin/meetings/create` | POST | 🔐 admin |

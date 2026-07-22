@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.202.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.201.0...website-v1.202.0) (2026-07-22)
+
+
+### Features
+
+* **ops:** local LLM proxy with DB registry + admin GUI [T002081] ([#3113](https://github.com/Paddione/Bachelorprojekt/issues/3113)) ([e7ec202](https://github.com/Paddione/Bachelorprojekt/commit/e7ec202f0339b29a0dff45541105765825cf5f84))
+
 ## [1.201.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.200.0...website-v1.201.0) (2026-07-22)
 
 

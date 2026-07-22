@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const query = vi.fn();
 vi.mock('./website-db', () => ({ pool: { query: (...a: unknown[]) => query(...a) } }));
 
-import { createBackend, deleteBackend, LLM_PROXY_KINDS, LLM_PROXY_FIXUPS } from './llm-proxy-db';
+import { createBackend, deleteBackend, LLM_PROXY_KINDS } from './llm-proxy-db';
 
 beforeEach(() => query.mockReset());
 

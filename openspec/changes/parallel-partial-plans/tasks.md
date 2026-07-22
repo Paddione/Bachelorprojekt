@@ -291,9 +291,9 @@ external_id=:id AND pipeline_slot IS NULL AND status IN
    greift auf den usage-String zu). Legacy-`claim` bleibt für Alt-Pfade erhalten.
 
 **Akzeptanz:**
-- [ ] `claim-gang` bei `SUM(slot_count)+n <= FACTORY_SLOTS_PER_BRAND` erfolgreich, sonst Exit 1 und keine Zeile geändert (all-or-nothing per Konstruktion — Single-Statement, kein separates BEGIN/COMMIT nötig).
-- [ ] Die Literale `SUM(slot_count)`, `COALESCE(SUM(slot_count),0)`, `slot_count=1`, `claim-gang` stehen exakt so im Skript (FA-SF-GANG-Assertions aus Task 2).
-- [ ] `bash -n scripts/factory/slots.sh` grün; Datei bleibt weit unter 500 Zeilen.
+- [x] `claim-gang` bei `SUM(slot_count)+n <= FACTORY_SLOTS_PER_BRAND` erfolgreich, sonst Exit 1 und keine Zeile geändert (all-or-nothing per Konstruktion — Single-Statement, kein separates BEGIN/COMMIT nötig).
+- [x] Die Literale `SUM(slot_count)`, `COALESCE(SUM(slot_count),0)`, `slot_count=1`, `claim-gang` stehen exakt so im Skript (FA-SF-GANG-Assertions aus Task 2).
+- [x] `bash -n scripts/factory/slots.sh` grün; Datei bleibt weit unter 500 Zeilen.
 
 ### Task 4: `schedule.sh` — Head-of-Line-Blocking + slot_count-Lookup
 
@@ -332,10 +332,10 @@ Single-Claim). Die `global_used`-Berechnung am Kopf bleibt und nutzt das
 SUM-Accounting aus Task 3 automatisch mit.
 
 **Akzeptanz:**
-- [ ] Vorderster Kandidat mit `needed > free` → `break` (kein nachrangiges Ticket wird in diesem Tick geclaimt).
-- [ ] Kommentar-Literal `head-of-line` und Aufruf `claim-gang` vorhanden (Task-2-Assertions).
-- [ ] JSON-Ausgabeform `[{brand,external_id,slot}]` bleibt kompatibel (Dispatcher-Kontrakt unverändert; `slot` trägt jetzt die Gang-Größe).
-- [ ] `bash -n` grün; Budget 425 weit eingehalten.
+- [x] Vorderster Kandidat mit `needed > free` → `break` (kein nachrangiges Ticket wird in diesem Tick geclaimt).
+- [x] Kommentar-Literal `head-of-line` und Aufruf `claim-gang` vorhanden (Task-2-Assertions).
+- [x] JSON-Ausgabeform `[{brand,external_id,slot}]` bleibt kompatibel (Dispatcher-Kontrakt unverändert; `slot` trägt jetzt die Gang-Größe).
+- [x] `bash -n` grün; Budget 425 weit eingehalten.
 
 ### Task 5: `stage-plan --partials N` ohne ticket.sh-Wachstum
 
@@ -370,9 +370,9 @@ notieren die Skills (Task 11) den Fallback `bash scripts/ticket.sh stage-plan
 weitere Plan-Metadaten (reale Tools aus intel.json `symbols`).
 
 **Akzeptanz:**
-- [ ] `--partials` validiert 1..3, Default 1 (voll rückwärtskompatibel).
-- [ ] `slot_count` wird in derselben Stage-Query gesetzt (das Gang-Gating aus Task 4 liest genau dieses Feld).
-- [ ] `git diff --stat` zeigt KEINE Änderung an `scripts/ticket.sh` (Task-2-Assertion: `grep -- --partials scripts/ticket.sh` bleibt leer).
+- [x] `--partials` validiert 1..3, Default 1 (voll rückwärtskompatibel).
+- [x] `slot_count` wird in derselben Stage-Query gesetzt (das Gang-Gating aus Task 4 liest genau dieses Feld).
+- [x] `git diff --stat` zeigt KEINE Änderung an `scripts/ticket.sh` (Task-2-Assertion: `grep -- --partials scripts/ticket.sh` bleibt leer).
 
 ### Task 6: `plan-lint.sh` — Partial-Modus mit D1-Disjunktheit
 
@@ -412,9 +412,9 @@ wider Erwarten größer geraten, wird der Partial-Modus als
 Zusammenziehen).
 
 **Akzeptanz:**
-- [ ] Fixture `duplicate` (Task 2) → Exit 1 mit `D1`-Meldung; Fixture `ok` → Exit 0.
-- [ ] Single-Plan ohne `tasks.d/` verhält sich identisch zu heute (dieser Plan hier PASSt weiterhin).
-- [ ] Tests-Partial-Pflicht: Manifest ohne `tests`-Rolle in der letzten Zeile → Hard-Fail.
+- [x] Fixture `duplicate` (Task 2) → Exit 1 mit `D1`-Meldung; Fixture `ok` → Exit 0.
+- [x] Single-Plan ohne `tasks.d/` verhält sich identisch zu heute (dieser Plan hier PASSt weiterhin).
+- [x] Tests-Partial-Pflicht: Manifest ohne `tests`-Rolle in der letzten Zeile → Hard-Fail.
 
 ### Task 7: `plan-intel-filter.sh` — deterministischer jq-Kontext-Filter
 
@@ -440,9 +440,9 @@ jq --args '
 ```
 
 **Akzeptanz:**
-- [ ] BATS-Assertion aus Task 2 grün (a.sh drin, b.sh raus).
-- [ ] `db_tables`/`api_contracts`/`risks`/`meta` werden ungefiltert durchgereicht (klein + korrektheitskritisch).
-- [ ] S4: referenziert aus beiden Plan-Skills (Task 11) — kein Orphan.
+- [x] BATS-Assertion aus Task 2 grün (a.sh drin, b.sh raus).
+- [x] `db_tables`/`api_contracts`/`risks`/`meta` werden ungefiltert durchgereicht (klein + korrektheitskritisch).
+- [x] S4: referenziert aus beiden Plan-Skills (Task 11) — kein Orphan.
 
 ### Task 8: `pipeline-partials.cjs` + `pipeline.js`-Extraktion (Netto-Shrink)
 
@@ -493,10 +493,10 @@ die Datei MUSS netto schrumpfen (auf ≤600 Zeilen):
   Deploy unverändert).
 
 **Akzeptanz:**
-- [ ] `node --check` grün für `pipeline-partials.cjs`, `pipeline-runner.js`, `pipeline.js`.
-- [ ] `wc -l scripts/factory/pipeline.js` ≤ 600 (S1-Ratchet: Baseline darf nicht wachsen — echter Extract, kein Zusammenziehen).
-- [ ] `wc -l scripts/factory/pipeline-partials.cjs` ≤ 200.
-- [ ] FA-SF-GANG-Assertions (require-Kante, `read-partials`) grün.
+- [x] `node --check` grün für `pipeline-partials.cjs`, `pipeline-runner.js`, `pipeline.js`.
+- [x] `wc -l scripts/factory/pipeline.js` ≤ 600 (S1-Ratchet: Baseline darf nicht wachsen — echter Extract, kein Zusammenziehen).
+- [x] `wc -l scripts/factory/pipeline-partials.cjs` ≤ 200.
+- [x] FA-SF-GANG-Assertions (require-Kante, `read-partials`) grün.
 
 ### Task 9: Rotation + `partial-done`-Phase-Events
 
@@ -581,9 +581,9 @@ Code-Änderung dort nötig. Slot-Budget-Konvention: `-np 4` am Server = 3 Worker
 (`max_concurrent=3`) + 1 Orchestrator (Design Entscheidung 5).
 
 **Akzeptanz:**
-- [ ] Zweifacher Lauf hintereinander: identischer Endzustand, keine Duplikate (ON CONFLICT).
-- [ ] `bash -n` grün; FA-SF-GANG-Assertions (`ON CONFLICT`, `http://127.0.0.1:8093/v1`) grün.
-- [ ] S4: referenziert aus `.claude/skills/llama-cpp/references/bonsai-server-windows.md` (Task 13) — kein Orphan.
+- [x] Zweifacher Lauf hintereinander: identischer Endzustand, keine Duplikate (ON CONFLICT).
+- [x] `bash -n` grün; FA-SF-GANG-Assertions (`ON CONFLICT`, `http://127.0.0.1:8093/v1`) grün.
+- [x] S4: referenziert aus `.claude/skills/llama-cpp/references/bonsai-server-windows.md` (Task 13) — kein Orphan.
 
 ### Task 11: Skill-Updates — Schritt 3.7 zweistufig + design.md-Konvention
 
@@ -731,9 +731,9 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats --filter "pr-
 ```
 
 **Akzeptanz:**
-- [ ] Ohne `verify`/`pr-ready`-Event: kein `gh pr create` — nur Branch-Push, Pipeline-Ergebnis `pending-pr-gate`.
-- [ ] `pr-ready` wird NUR nach lokal grünem `task test:all && task freshness:check` UND abgeschlossenem p3-Review emittiert.
-- [ ] `wc -l scripts/factory/pipeline.js` ≤ 600 und `wc -l scripts/factory/pipeline-partials.cjs` ≤ 200 bleiben eingehalten.
+- [x] Ohne `verify`/`pr-ready`-Event: kein `gh pr create` — nur Branch-Push, Pipeline-Ergebnis `pending-pr-gate`.
+- [x] `pr-ready` wird NUR nach lokal grünem `task test:all && task freshness:check` UND abgeschlossenem p3-Review emittiert.
+- [x] `wc -l scripts/factory/pipeline.js` ≤ 600 und `wc -l scripts/factory/pipeline-partials.cjs` ≤ 200 bleiben eingehalten.
 
 ### Task 15: CI-Babysit-Loop (ticket-scoped) — `pr-babysit-ticket.sh`
 
@@ -800,10 +800,10 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats --filter "pr-
 ```
 
 **Akzeptanz:**
-- [ ] Kein Requeue mit bekannt-rotem Check: der `--auto`-Requeue-Aufruf steht NACH dem vollständigen Re-Check-Schritt (Code-Reihenfolge + Kommentar).
-- [ ] Fix-Subagent-Dispatch enthält Check-Name, Log-Auszug und betroffene Dateien; das Skript wartet synchron auf die Rückkehr.
-- [ ] `babysit-prs.sh`, `devflow-ci-watch.sh`, `build-loop.sh` bleiben diff-frei (Ergänzung, kein Ersatz).
-- [ ] `bash -n` grün; Datei ≤ 500 Zeilen.
+- [x] Kein Requeue mit bekannt-rotem Check: der `--auto`-Requeue-Aufruf steht NACH dem vollständigen Re-Check-Schritt (Code-Reihenfolge + Kommentar).
+- [x] Fix-Subagent-Dispatch enthält Check-Name, Log-Auszug und betroffene Dateien; das Skript wartet synchron auf die Rückkehr.
+- [x] `babysit-prs.sh`, `devflow-ci-watch.sh`, `build-loop.sh` bleiben diff-frei (Ergänzung, kein Ersatz).
+- [x] `bash -n` grün; Datei ≤ 500 Zeilen.
 
 ### Task 16: GREEN + finale Verifikation
 

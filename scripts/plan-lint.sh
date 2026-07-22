@@ -100,12 +100,57 @@ case "$dom" in ""|"[]"|"null") hard "F2: domains is empty (role injection needs 
 grep -qE '^#.*Implementation Plan' "$PLAN" || hard "STRUCT1: missing '# … Implementation Plan' header"
 grep -qiE '^#+ +File Structure' "$PLAN" || hard "STRUCT1: missing 'File Structure' section"
 
+# === Partial-mode detection (T002074): a tasks.md index next to a tasks.d/ dir ===
+# Degenerates cleanly: without tasks.d/, everything below is the single-plan mode.
+PLAN_DIR="$(cd "$(dirname "$PLAN")" && pwd)"
+PARTIAL_MODE=0
+STRUCT2_FILE="$PLAN"   # single mode: the plan itself carries the failing-test step
+declare -a PARTIAL_FILES=() PARTIAL_ROLES=() ALL_PARTIAL_TARGETS=()
+if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
+  PARTIAL_MODE=1
+  # Parse the `## Partials` manifest table rows:
+  #   | <id> | tasks.d/pX-<name>.md | impl|tests | <target_files, comma-sep> |
+  manifest_rows="$(awk '/^##[[:space:]]+Partials/{f=1;next} f&&/^##[[:space:]]/{f=0} f&&/^\|/{print}' "$PLAN")"
+  while IFS= read -r row; do
+    [[ "$row" == *tasks.d/* ]] || continue
+    row_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row")"
+    IFS='|' read -r c_id c_file c_role c_targets <<<"$row_stripped"
+    c_file="$(printf '%s' "$c_file" | tr -d ' `')"
+    c_role="$(printf '%s' "$c_role" | tr -d ' ')"
+    PARTIAL_FILES+=("$c_file")
+    PARTIAL_ROLES+=("$c_role")
+    IFS=',' read -ra _tgs <<<"$c_targets"
+    for _t in "${_tgs[@]}"; do
+      _t="$(printf '%s' "$_t" | sed -E 's/^ *//; s/ *$//; s/`//g')"
+      [[ -n "$_t" ]] && ALL_PARTIAL_TARGETS+=("$_t")
+    done
+  done <<<"$manifest_rows"
+
+  if [[ ${#PARTIAL_FILES[@]} -eq 0 ]]; then
+    hard "STRUCT-PARTIAL: tasks.d/ present but no '## Partials' manifest table rows found in $PLAN"
+  else
+    for pf in "${PARTIAL_FILES[@]}"; do
+      [[ -f "$PLAN_DIR/$pf" ]] || hard "STRUCT-PARTIAL: manifest references missing partial file: $pf"
+    done
+    last_role="${PARTIAL_ROLES[${#PARTIAL_ROLES[@]}-1]}"
+    [[ "$last_role" == "tests" ]] || hard "STRUCT-PARTIAL: last manifest row must have role 'tests' (found '${last_role}')"
+    tests_file="${PARTIAL_FILES[${#PARTIAL_FILES[@]}-1]}"
+    [[ -f "$PLAN_DIR/$tests_file" ]] && STRUCT2_FILE="$PLAN_DIR/$tests_file"
+    # D1 (NEU, Hard): validateDisjoint-Logik — keine Datei in zwei Partials.
+    if [[ ${#ALL_PARTIAL_TARGETS[@]} -gt 0 ]]; then
+      dupes=$(printf '%s\n' "${ALL_PARTIAL_TARGETS[@]}" | sort | uniq -d)
+      [[ -n "$dupes" ]] && hard "D1: file(s) assigned to multiple partials: $(echo "$dupes" | tr '\n' ' ')"
+    fi
+  fi
+fi
+
 # === STRUCT2: at least one failing-test step (fail phrase + a real test-runner) ===
 # The phrase alone is cheap to fake and is pre-seeded by the `openspec propose`
 # skeleton, so we ALSO require an actual test-runner invocation (bats/vitest/pytest/…).
 # The final `task test:*` gate does NOT count — every plan has it for STRUCT3 (T001791 #2).
-if grep -qiE 'expected:? *fail|verify (it|test).*fail|to verify (it|they) fail' "$PLAN"; then
-  if grep -qiE '\b(bats|vitest|pytest|jest|mocha|go test|playwright test)\b' "$PLAN"; then
+# Partial mode: STRUCT2 is checked against the mandatory tests partial (STRUCT2_FILE).
+if grep -qiE 'expected:? *fail|verify (it|test).*fail|to verify (it|they) fail' "$STRUCT2_FILE"; then
+  if grep -qiE '\b(bats|vitest|pytest|jest|mocha|go test|playwright test)\b' "$STRUCT2_FILE"; then
     :
   else
     hard "STRUCT2: failing-test phrase present but no test-runner invocation (bats/vitest/pytest/…) — the final 'task test:*' gate does not count as the failing test"

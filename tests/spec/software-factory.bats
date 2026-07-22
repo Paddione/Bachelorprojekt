@@ -725,7 +725,7 @@ DEPLOY_TRANSITION="scripts/factory/deploy-transition.cjs"
   run grep -F 'claim-gang' scripts/factory/slots.sh
   [ "$status" -eq 0 ]
   # atomic pool check: running SUM(slot_count) + n must fit SLOTS_PER_BRAND
-  run grep -F "+ :'n'::integer <= \${SLOTS_PER_BRAND}" scripts/factory/slots.sh
+  run grep -F "LEAST(:'n'::integer, \${SLOTS_PER_BRAND}" scripts/factory/slots.sh
   [ "$status" -eq 0 ]
   # only claims a free ticket (race-free WHERE pipeline_slot IS NULL)
   run grep -F 'pipeline_slot IS NULL' scripts/factory/slots.sh

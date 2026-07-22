@@ -31,8 +31,8 @@ restore`) desselben Dumps — das website-Backup ist de facto nicht restaurierba
 `k3d/shared-db.yaml` (Base, vererbt an k3d-dev, staging, prod-fleet/mentolder+korczewski):
 
 - Volume `dev-shm`: `emptyDir: {medium: Memory, sizeLimit: 512Mi}`
-- VolumeMount `/dev/shm` **nur** im `postgres`-Container (Exporter-Sidecar mit 64Mi-Limit
-  bleibt unangetastet).
+- VolumeMount `/dev/shm` **nur** im `postgres`-Container (der `generate-tls-cert`-initContainer
+  mit 64Mi-Limit bleibt unangetastet).
 
 **Sizing-Begründung:** Der fehlgeschlagene Build wollte ~64MB; 512Mi ist 8× Headroom und
 bleibt sicher unter dem Prod-Memory-Limit von 2Gi (`prod/patch-shared-db.yaml`) — Memory-backed

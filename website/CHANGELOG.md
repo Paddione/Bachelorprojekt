@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.203.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.202.0...website-v1.203.0) (2026-07-22)
+
+
+### Features
+
+* **factory:** dependency-based partial scheduling [T002082] ([#3112](https://github.com/Paddione/Bachelorprojekt/issues/3112)) ([28c7cc3](https://github.com/Paddione/Bachelorprojekt/commit/28c7cc374b7d97ac8722d0cee0bca2d046d96628))
+
 ## [1.202.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.201.0...website-v1.202.0) (2026-07-22)
 
 

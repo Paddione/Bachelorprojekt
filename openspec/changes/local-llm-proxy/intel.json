@@ -1,0 +1,59 @@
+{
+  "ticket": "T002081",
+  "slug": "local-llm-proxy",
+  "generated": "2026-07-22",
+  "symbols": [
+    { "qualified_name": "website/src/lib/provider-config.ts:getProviderConfig", "signature": "export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku' | 'opus'): Promise<ProviderChoice>", "line": 38 },
+    { "qualified_name": "website/src/lib/provider-config.ts:getProviderByName", "signature": "export async function getProviderByName(providerName: string, _brand?: string): Promise<ProviderChoice>", "line": 70 },
+    { "qualified_name": "website/src/lib/provider-config.ts:apiKeyForProvider", "signature": "export function apiKeyForProvider(provider: string): string", "line": 27 },
+    { "qualified_name": "website/src/lib/provider-config.ts:DisabledProviderError", "signature": "export class DisabledProviderError extends Error", "line": 20 },
+    { "qualified_name": "website/src/lib/ki-config-db.ts:listProviders", "signature": "export async function listProviders(): Promise<ProviderConfigEntry[]>", "line": 49 },
+    { "qualified_name": "website/src/lib/ki-config-db.ts:listHealth", "signature": "export async function listHealth(): Promise<ProviderHealth[]>", "line": 58 },
+    { "qualified_name": "website/src/lib/ki-config-db.ts:createProvider", "signature": "export async function createProvider(p: NewProvider): Promise<number>", "line": 90 },
+    { "qualified_name": "website/src/lib/ki-config-db.ts:updateProvider", "signature": "export async function updateProvider(id, patch): Promise<...>", "line": 106 },
+    { "qualified_name": "website/src/components/PortalSidekick.svelte:View", "signature": "type View = 'home' | 'support' | 'questionnaire' | 'help' | 'agent-guide' | 'mediaviewer' | 'terminal' | 'cockpit' | 'ai-quality' | 'logs' | 'agent-settings'", "line": 13, "note": "neuer Wert 'llm-proxy' + titleMap-Eintrag (Z.50-56) + Lazy-Import-Zweig (Z.265-293)" },
+    { "qualified_name": "website/src/components/assistant/SidekickHome.svelte:items", "signature": "const items = $derived<Item[]>([...])  // Item = { id: View; no; title; sub; badge?; show?; href? }", "line": 24 },
+    { "qualified_name": "website/src/components/DevStatusTabs.svelte:TAB_KEYS", "signature": "Tab-Union + TAB_KEYS: factory|planung|analytics|kosten|control|abhaengigkeiten|parallel; Steuerung-Render Z.170-172: <ControlPanel/> + control-extras mit <FactoryModelSlots/><KiRoutingPanel/>", "line": 20 },
+    { "qualified_name": "website/src/pages/admin/pipeline.astro:Tab", "signature": "Tab-Union + ALLOWED, ?tab= aus URL", "line": 21 },
+    { "qualified_name": "scripts/factory/route-provider.sh", "signature": "route-provider.sh <source> <tier> [phase] -> JSON {provider,modelId,baseUrl,slotId,ctx,emergency}; prueft tickets.factory_model_slots zuerst; OPUS-Hardcode Z.22-23: qwythos-9b-v2@http://127.0.0.1:1234", "line": 1 }
+  ],
+  "api_contracts": [
+    { "route": "GET/POST /api/admin/ki/providers", "file": "website/src/pages/api/admin/ki/providers.ts", "note": "Referenzmuster: isAdmin-Guard, json()-Helper, Whitelist-Validierung, prerender=false" },
+    { "route": "PUT/DELETE /api/admin/ki/providers/[id]", "file": "website/src/pages/api/admin/ki/providers/[id].ts", "note": "Whitelist patchbarer Felder Z.20; Letzter-aktiver-Provider-Schutz" },
+    { "route": "GET /api/admin/ki/catalog", "file": "website/src/pages/api/admin/ki/catalog.ts", "note": "liefert KI_CATALOG + KI_SERVICES fuer Dropdowns" },
+    { "route": "GET/POST /api/factory-model-slots", "file": "website/src/pages/api/factory-model-slots.ts", "note": "von FactoryModelSlots.svelte genutzt (Z.27/52)" }
+  ],
+  "db_tables": [
+    { "table": "tickets.provider_config", "columns": "id, source, tier, priority, provider, model_id, base_url, api_key(nullable), max_concurrent, enabled, context_window, context_budget", "note": "SSOT Zweck->Provider; enabled-Zeilen zeigen heute gemischt auf :18235 und (Drift!) :8093/v1" },
+    { "table": "tickets.provider_health", "columns": "provider, cooldown_until, fail_count, ...", "note": "Circuit-Breaker, bleibt unveraendert" },
+    { "table": "tickets.factory_model_slots", "columns": "phase, provider, model_id, base_url, set_by, updated_at", "note": "implement/verify zeigen direkt auf http://127.0.0.1:8093/v1 (Drift), plan auf :18235" },
+    { "table": "tickets.llm_proxy_backends (NEU)", "columns": "id, name UNIQUE, kind(llamacpp|lmstudio|openai-remote), base_url, api_key_env, enabled bool, priority int, fixups jsonb, model_aliases jsonb, created_at, updated_at", "note": "neue Migration scripts/migrations/2026-07-22-llm-proxy-backends.sql, idempotent, beide Brands" }
+  ],
+  "external_types": [
+    { "name": "OpenAI-compatible /v1/models", "shape": "{ object:'list', data:[{id, object:'model', ...}] }", "note": "llama.cpp, LM Studio (:1234, zusaetzlich /api/v0/models mit loaded-Status), DeepSeek, opencode-zen alle OpenAI-kompatibel" }
+  ],
+  "impact_files": [
+    { "path": "scripts/llm-proxy/server.mjs", "status": "new", "lines": 0, "s1_limit": 500, "s1_budget": 500 },
+    { "path": "scripts/llm-proxy/backends.mjs", "status": "new", "lines": 0, "s1_limit": 500, "s1_budget": 500 },
+    { "path": "scripts/llm-proxy/discovery.mjs", "status": "new", "lines": 0, "s1_limit": 500, "s1_budget": 500 },
+    { "path": "scripts/migrations/2026-07-22-llm-proxy-backends.sql", "status": "new", "lines": 0 },
+    { "path": "scripts/factory/route-provider.sh", "status": "modified", "lines": 77, "s1_limit": 500, "s1_budget": 423 },
+    { "path": "Taskfile.llm.yml", "status": "modified", "note": "task llm:proxy:start|stop|status" },
+    { "path": "website/src/components/factory/LlmProxyPanel.svelte", "status": "new", "lines": 0, "s1_limit": 500, "s1_budget": 500 },
+    { "path": "website/src/components/assistant/LlmProxyView.svelte", "status": "new", "lines": 0, "s1_limit": 500, "s1_budget": 500 },
+    { "path": "website/src/pages/api/admin/llm-proxy/backends.ts", "status": "new", "lines": 0, "s1_limit": 600, "s1_budget": 600 },
+    { "path": "website/src/pages/api/admin/llm-proxy/backends/[id].ts", "status": "new", "lines": 0, "s1_limit": 600, "s1_budget": 600 },
+    { "path": "website/src/pages/api/admin/llm-proxy/status.ts", "status": "new", "lines": 0, "s1_limit": 600, "s1_budget": 600 },
+    { "path": "website/src/lib/llm-proxy-db.ts", "status": "new", "lines": 0, "s1_limit": 600, "s1_budget": 600 },
+    { "path": "website/src/components/DevStatusTabs.svelte", "status": "modified", "lines": 328, "s1_limit": 500, "s1_budget": 172 },
+    { "path": "website/src/components/PortalSidekick.svelte", "status": "modified", "lines": 551, "s1_baseline": 578, "s1_budget": 27, "note": "ENG: nur View-Union + titleMap + Lazy-Import-Zweig, ca. 8-12 Zeilen" },
+    { "path": "website/src/components/assistant/SidekickHome.svelte", "status": "modified", "lines": 306, "s1_limit": 500, "s1_budget": 194 },
+    { "path": "tests/spec/local-llm-proxy.bats", "status": "new", "lines": 0 },
+    { "path": "scripts/llm-proxy/server.test.mjs", "status": "new", "lines": 0 }
+  ],
+  "risks": [
+    { "severity": "warn", "note": "Der laufende Ad-hoc-Fixup-Proxy :18235 (ausserhalb des Repos) muss beim Rollout gestoppt werden, bevor task llm:proxy:start denselben Port bindet." },
+    { "severity": "warn", "note": "Website im Fleet-Cluster erreicht 127.0.0.1:18235 nicht — Status-API muss offline-tolerant sein (Proxy offline != API-500)." },
+    { "severity": "info", "note": "LM Studio bietet /api/v0/models mit loaded-Status — reicher als /v1/models; optional fuer kind=lmstudio nutzen." }
+  ]
+}

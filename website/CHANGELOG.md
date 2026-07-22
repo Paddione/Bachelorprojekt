@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.201.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.200.0...website-v1.201.0) (2026-07-22)
+
+
+### Features
+
+* **infra:** add FluxCD GitOps pull-based pipeline [T002083] ([#3115](https://github.com/Paddione/Bachelorprojekt/issues/3115)) ([1d323be](https://github.com/Paddione/Bachelorprojekt/commit/1d323be5410a7d5264a6e29e938e47b882f99a3c))
+
 ## [1.200.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.199.0...website-v1.200.0) (2026-07-22)
 
 

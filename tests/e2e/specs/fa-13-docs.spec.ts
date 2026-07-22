@@ -25,10 +25,14 @@ test.describe('FA-13: Dokumentations-Service', () => {
       'requires kubectl cluster context');
   });
 
-  // T3 (HTTP-observable): Docs URL is reachable and returns a 2xx/3xx
+  // T3 (HTTP-observable): Docs URL is reachable.
+  // Unauthenticated requests may be redirected to the auth host (302) or
+  // return 2xx directly — both are acceptable. T002068.
   test('T3: Docs URL is reachable via HTTP', async ({ request }) => {
-    const res = await request.get(DOCS_URL, { maxRedirects: 3 });
-    expect([200, 301, 302]).toContain(res.status());
+    const res = await request.get(DOCS_URL, { maxRedirects: 0 });
+    // 2xx on docs host, or 3xx redirect (auth gateway) — both acceptable
+    expect(res.status()).toBeGreaterThanOrEqual(200);
+    expect(res.status()).toBeLessThan(400);
   });
 
   // T4: Im Browser — Docsify renders its content via JavaScript

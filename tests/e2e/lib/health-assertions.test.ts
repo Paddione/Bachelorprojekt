@@ -65,6 +65,19 @@ function createMockTestInfo(): { mock: TestInfo; getCalls: () => Array<{ cond: b
 // ── assertReachable ────────────────────────────────────────────────────────
 
 test.describe('assertReachable', () => {
+  // T002068: Isolate PROD_DOMAIN — Dev-Mode tests must not accidentally run
+  // in Prod mode when the env var is set by the runner.
+  let savedProdDomain: string | undefined;
+
+  test.beforeEach(() => {
+    savedProdDomain = process.env.PROD_DOMAIN;
+    delete process.env.PROD_DOMAIN;
+  });
+
+  test.afterEach(() => {
+    if (savedProdDomain !== undefined) process.env.PROD_DOMAIN = savedProdDomain;
+    else delete process.env.PROD_DOMAIN;
+  });
 
   test('200 → returns response', async () => {
     const request = mockRequest(() => mockResponse(200, 'ok'));
@@ -165,6 +178,17 @@ test.describe('assertReachable', () => {
 // ── assertAuthenticatedReachable ────────────────────────────────────────────
 
 test.describe('assertAuthenticatedReachable', () => {
+  let savedProdDomain: string | undefined;
+
+  test.beforeEach(() => {
+    savedProdDomain = process.env.PROD_DOMAIN;
+    delete process.env.PROD_DOMAIN;
+  });
+
+  test.afterEach(() => {
+    if (savedProdDomain !== undefined) process.env.PROD_DOMAIN = savedProdDomain;
+    else delete process.env.PROD_DOMAIN;
+  });
 
   test('without E2E_ADMIN_PASS → fixme/fail', async () => {
     const oldPass = process.env.E2E_ADMIN_PASS;
@@ -201,6 +225,17 @@ test.describe('assertAuthenticatedReachable', () => {
 // ── assertHealth ────────────────────────────────────────────────────────────
 
 test.describe('assertHealth', () => {
+  let savedProdDomain: string | undefined;
+
+  test.beforeEach(() => {
+    savedProdDomain = process.env.PROD_DOMAIN;
+    delete process.env.PROD_DOMAIN;
+  });
+
+  test.afterEach(() => {
+    if (savedProdDomain !== undefined) process.env.PROD_DOMAIN = savedProdDomain;
+    else delete process.env.PROD_DOMAIN;
+  });
 
   test('passing health check → resolves', async () => {
     const request = mockRequest(() => mockResponse(200, '{"installed":true}'));

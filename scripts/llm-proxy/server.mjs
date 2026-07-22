@@ -63,4 +63,5 @@ const server = http.createServer((req, res) => {
   })().catch((err) => sendJson(res, 502, { error: { code: 'proxy_error', message: err.message } }));
 });
 
+await discovery.probeNow();
 server.listen(PORT, '127.0.0.1', () => console.log(`[llm-proxy] listening on 127.0.0.1:${PORT}`));

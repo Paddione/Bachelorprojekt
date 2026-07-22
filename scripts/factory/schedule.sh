@@ -73,15 +73,16 @@ SQL
   used=$(BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" count)
   free=$(( ${FACTORY_SLOTS_PER_BRAND:-3} - ${used:-0} ))
 
-  # head-of-line blocking: passt der vorderste Gang-Kandidat nicht, werden KEINE
-  # nachrangigen Tickets vorgezogen (sonst Gang-Starvation) — break, kein continue.
-  if [[ "$needed" -gt "$free" || $(( global_used + needed )) -gt "$GLOBAL_CAP" ]]; then
+  # head-of-line blocking: nur bei erschöpfter Kapazität (free == 0) breaken,
+  # nicht bei unzureichendem Slot-Bedarf (T002082: dependency-basiertes Scheduling).
+  if [[ "$free" -lt 1 || $(( global_used + 1 )) -gt "$GLOBAL_CAP" ]]; then
     break
   fi
-
-  if BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" claim-gang "$ext_id" "$needed" >/dev/null 2>&1; then
-    plan=$(echo "$plan" | jq -c --arg b "$BRAND" --arg e "$ext_id" --argjson s "$needed" '. + [{brand:$b, external_id:$e, slot:$s}]')
-    global_used=$((global_used + needed))
+  want=$(( needed < free ? needed : free ))
+  (( global_used + want > GLOBAL_CAP )) && want=$(( GLOBAL_CAP - global_used ))
+  if BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" claim-gang "$ext_id" "$want" 1 >/dev/null 2>&1; then
+    plan=$(echo "$plan" | jq -c --arg b "$BRAND" --arg e "$ext_id" --argjson s "$want" '. + [{brand:$b, external_id:$e, slot:$s}]')
+    global_used=$((global_used + want))
   fi
 done
 echo "$plan"

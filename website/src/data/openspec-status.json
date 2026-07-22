@@ -1311,6 +1311,12 @@
       "status": "archived"
     }
   ],
+  "T002082": [
+    {
+      "slug": "partial-dependency-scheduling",
+      "status": "plan_staged"
+    }
+  ],
   "T002083": [
     {
       "slug": "fluxcd-gitops",

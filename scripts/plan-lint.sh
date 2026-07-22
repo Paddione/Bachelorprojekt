@@ -114,7 +114,7 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
   while IFS= read -r row; do
     [[ "$row" == *tasks.d/* ]] || continue
     row_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row")"
-    IFS='|' read -r c_id c_file c_role c_targets <<<"$row_stripped"
+    IFS='|' read -r c_id c_file c_role c_targets c_deps <<<"$row_stripped"
     c_file="$(printf '%s' "$c_file" | tr -d ' `')"
     c_role="$(printf '%s' "$c_role" | tr -d ' ')"
     PARTIAL_FILES+=("$c_file")
@@ -140,6 +140,70 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     if [[ ${#ALL_PARTIAL_TARGETS[@]} -gt 0 ]]; then
       dupes=$(printf '%s\n' "${ALL_PARTIAL_TARGETS[@]}" | sort | uniq -d)
       [[ -n "$dupes" ]] && hard "D1: file(s) assigned to multiple partials: $(echo "$dupes" | tr '\n' ' ')"
+    fi
+    # D2 (NEU, Hard): depends_on — validate references and acyclicity.
+    declare -A PARTIAL_IDS=()
+    declare -A PARTIAL_DEPS=()
+    manifest_data_rows="$(grep 'tasks\.d/' <<<"$manifest_rows" || true)"
+    for idx in "${!PARTIAL_FILES[@]}"; do
+      row_line=$(sed -n "$((idx+1))p" <<<"$manifest_data_rows")
+      rl_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row_line")"
+      IFS='|' read -r _rid _rfile _rrole _rtargets _rdeps <<<"$rl_stripped"
+      _rid="$(printf '%s' "$_rid" | tr -d ' `')"
+      _rdeps="$(printf '%s' "$_rdeps" | tr -d ' `')"
+      PARTIAL_IDS["$_rid"]=1
+      PARTIAL_DEPS["$_rid"]="${_rdeps}"
+    done
+    for pid in "${!PARTIAL_DEPS[@]}"; do
+      deps_str="${PARTIAL_DEPS[$pid]}"
+      [[ -z "$deps_str" ]] && continue
+      IFS=',' read -ra _dep_arr <<<"$deps_str"
+      for _dep in "${_dep_arr[@]}"; do
+        _dep="$(printf '%s' "$_dep" | tr -d ' ')"
+        [[ -z "$_dep" ]] && continue
+        [[ -z "${PARTIAL_IDS[$_dep]+x}" ]] && hard "D2: unknown depends_on id: $_dep"
+      done
+    done
+    # D2 cycle check: iterative Kahn
+    declare -A _indeg=()
+    declare -A _adj=()
+    for pid in "${!PARTIAL_IDS[@]}"; do _indeg["$pid"]=0; _adj["$pid"]=""; done
+    for pid in "${!PARTIAL_DEPS[@]}"; do
+      deps_str="${PARTIAL_DEPS[$pid]}"
+      [[ -z "$deps_str" ]] && continue
+      IFS=',' read -ra _dep_arr <<<"$deps_str"
+      for _dep in "${_dep_arr[@]}"; do
+        _dep="$(printf '%s' "$_dep" | tr -d ' ')"
+        [[ -z "$_dep" ]] && continue
+        _adj["$_dep"]="${_adj[$_dep]:-} $pid"
+        _indeg["$pid"]=$(( ${_indeg[$pid]} + 1 ))
+      done
+    done
+    _queue=()
+    for pid in "${!_indeg[@]}"; do
+      [[ "${_indeg[$pid]}" -eq 0 ]] && _queue+=("$pid")
+    done
+    _sorted=0
+    _q_idx=0
+    while [[ $_q_idx -lt ${#_queue[@]} ]]; do
+      _q="${_queue[$_q_idx]}"
+      _q_idx=$((_q_idx + 1))
+      _sorted=$((_sorted + 1))
+      for _n in ${_adj[$_q]:-}; do
+        [[ -z "$_n" ]] && continue
+        _indeg["$_n"]=$(( ${_indeg[$_n]} - 1 ))
+        [[ "${_indeg[$_n]}" -eq 0 ]] && _queue+=("$_n")
+      done
+    done
+    _total=${#PARTIAL_IDS[@]}
+    if [[ $_sorted -ne $_total && $_total -gt 0 ]]; then
+      _remaining=""
+      for pid in "${!PARTIAL_IDS[@]}"; do
+        _found=0
+        for _q in "${_queue[@]}"; do [[ "$_q" == "$pid" ]] && _found=1; done
+        [[ "$_found" -eq 0 ]] && _remaining="${_remaining:+$_remaining -> }$pid"
+      done
+      hard "D2: dependency cycle: $_remaining"
     fi
   fi
 fi

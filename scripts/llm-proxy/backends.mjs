@@ -11,6 +11,9 @@ const SQL = `SELECT name||E'\\t'||kind||E'\\t'||base_url||E'\\t'||COALESCE(api_k
 
 /** @returns {Backend[]} */
 export function loadBackendsOnce() {
+  if (process.env.LLM_PROXY_BACKENDS_JSON) {
+    return JSON.parse(process.env.LLM_PROXY_BACKENDS_JSON);
+  }
   const script = 'source scripts/factory/lib.sh; factory_resolve; factory_psql';
   const out = execFileSync('bash', ['-c', script], {
     input: SQL, encoding: 'utf8',

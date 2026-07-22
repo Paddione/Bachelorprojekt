@@ -2919,7 +2919,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 534,
+      "file_count": 536,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3174,6 +3174,8 @@
         "scripts/factory/otel-emit.test.cjs",
         "scripts/factory/package-lock.json",
         "scripts/factory/package.json",
+        "scripts/factory/partial-order.cjs",
+        "scripts/factory/partial-order.test.mjs",
         "scripts/factory/pipeline-decompose.cjs",
         "scripts/factory/pipeline-decompose.test.cjs",
         "scripts/factory/pipeline-partials.cjs",

@@ -28,8 +28,8 @@ setup() { load 'test_helper.bash'; }
 @test "FA-SF-70: route-provider.sh emits valid JSON keys for opus without DB" {
   run bash scripts/factory/route-provider.sh factory-plan opus
   [ "$status" -eq 0 ]
-  # Post qwythos-9b-v2 migration: opus routes to local lmstudio, not Anthropic cloud.
-  echo "$output" | jq -e '.modelId and (.provider=="lmstudio")'
+  # Post ternary-bonsai-27b migration: opus routes to local proxy ternary-bonsai-27b, not Anthropic cloud or lmstudio.
+  echo "$output" | jq -e '.modelId and (.provider=="ternary-bonsai-27b")'
 }
 
 @test "FA-SF-70: route-provider.sh requires source and tier args" {

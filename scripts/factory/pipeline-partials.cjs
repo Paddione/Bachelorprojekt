@@ -33,7 +33,8 @@ function parsePartialsManifest(indexMd) {
     const target_files = cells[3].split(',')
       .map((t) => t.replace(/`/g, '').trim())
       .filter(Boolean)
-    rows.push({ id: cells[0], file: cells[1].replace(/`/g, ''), role: cells[2], target_files })
+    const depends_on = (cells[4] || '').split(',').map((s) => s.trim()).filter(Boolean)
+    rows.push({ id: cells[0], file: cells[1].replace(/`/g, ''), role: cells[2], target_files, depends_on })
   }
   return rows
 }
@@ -59,6 +60,7 @@ function readPartials(changeDir) {
       role: m.role,
       description,
       assignedFiles: m.target_files,
+      depends_on: m.depends_on || [],
     }
   })
   validateDisjoint(sub_features) // throws on a file assigned to two partials

@@ -1,0 +1,32 @@
+{
+  "ticket": "T002082",
+  "slug": "partial-dependency-scheduling",
+  "generated": "2026-07-22",
+  "symbols": [
+    { "qualified_name": "scripts/factory/schedule.sh", "signature": "Gang-Bedarf Z.68-71 (SELECT COALESCE(slot_count,1)); free-Berechnung Z.74-75; Head-of-line-break Z.79-81 (needed > free || global_used+needed > GLOBAL_CAP -> break); claim-gang-Aufruf Z.82-85", "line": 60 },
+    { "qualified_name": "scripts/factory/slots.sh:claim-gang", "signature": "claim-gang <ext_id> <n> — atomarer UPDATE, all-or-nothing: SUM(slot_count) laufender Tickets + n <= SLOTS_PER_BRAND, setzt pipeline_slot + slot_count=n + status='in_progress'", "line": 34 },
+    { "qualified_name": "scripts/factory/slots.sh:release", "signature": "release <ext_id> — pipeline_slot=NULL, slot_count=1", "line": 43 },
+    { "qualified_name": "scripts/factory/pipeline.js:read-partials", "signature": "REUSE-Zweig Z.309-333: runRunner('read-partials', {slug, changeDir}) -> {partials, sub_features:[{id, assignedFiles, prompt}]}; tasks = sub_features.map(...); sequenzielle for-Schleife Z.353-375 mit runTaskVerifyLoop + phaseEvent('implement','partial-done', {partial, files, tests})", "line": 309 },
+    { "qualified_name": "scripts/plan-lint.sh:partial-mode", "signature": "Z.103-151: Manifest-Parse via awk auf '## Partials'-Tabelle, Zeilenform | id | tasks.d/pX.md | role | target_files |; D1-Disjunktheit Z.139-142; STRUCT2_FILE = tests-Partial", "line": 103 },
+    { "qualified_name": "scripts/vda/ticket/stage-plan.sh", "signature": "Z.18: case \"$partials\" in 1|2|3) ;; *) ERROR 1..3; Z.20-21: UPDATE tickets.tickets SET status='plan_staged', slot_count=:partials", "line": 7 }
+  ],
+  "db_tables": [
+    { "table": "tickets.tickets", "columns": "external_id, status, pipeline_slot, slot_count, ...", "note": "slot_count = Gang-Bedarf (von stage-plan --partials); pipeline_slot = belegter Slot" },
+    { "table": "tickets.factory_phase_events", "columns": "phase, event, detail(jsonb/text), ...", "note": "phaseEvent('implement','partial-done', JSON mit partial-id) = Fortschritts-SSOT fuer Resume-Skip" }
+  ],
+  "impact_files": [
+    { "path": "scripts/factory/schedule.sh", "status": "modified", "lines": 87, "s1_limit": 500, "s1_budget": 413 },
+    { "path": "scripts/factory/slots.sh", "status": "modified", "lines": 51, "s1_limit": 500, "s1_budget": 449 },
+    { "path": "scripts/factory/pipeline.js", "status": "modified", "lines": 594, "s1_limit": 600, "s1_budget": 6, "note": "ENG! Dependency-/Topo-Logik in neues Modul extrahieren, pipeline.js nur Aufruf-Delta (netto <= +6 oder negativ)" },
+    { "path": "scripts/factory/partial-order.mjs", "status": "new", "lines": 0, "s1_limit": 500, "s1_budget": 500, "note": "neues Modul: Manifest-depends_on-Parse, Topo-Sort, ready-Filter, done-Skip" },
+    { "path": "scripts/plan-lint.sh", "status": "modified", "lines": 287, "s1_limit": 500, "s1_budget": 213 },
+    { "path": "scripts/vda/ticket/stage-plan.sh", "status": "modified", "lines": 53, "s1_limit": 500, "s1_budget": 447 },
+    { "path": ".claude/skills/dev-flow-plan/SKILL.md", "status": "modified", "lines": 518, "note": "Markdown, kein S1-Limit — Decompose-Guidance 1-3 -> Faustregel" },
+    { "path": "tests/spec/software-factory.bats", "status": "modified", "lines": 3903, "note": ".bats ohne S1-Extension-Limit; neue @test-Bloecke ans Spec-File anhaengen" }
+  ],
+  "risks": [
+    { "severity": "warn", "note": "read-partials ist ein runner (scripts/factory/runners/?) — Plan-Agent muss den runner finden und pruefen, ob depends_on dort mitgeparst werden muss (5. Manifest-Spalte)." },
+    { "severity": "warn", "note": "Backward-Kompat: bestehende 4-Spalten-Manifeste (z.B. local-llm-proxy T002081) muessen ohne Aenderung weiter funktionieren." },
+    { "severity": "info", "note": "pipeline.js verarbeitet Partials sequenziell in EINEM Prozess — Teilclaim k<N ist reine Kapazitaets-Buchhaltung; echter Live-Gang-Claim bleibt Follow-up (T002074-Memory)." }
+  ]
+}

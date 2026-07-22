@@ -40,6 +40,15 @@ _is_merged() {
   "$GH" pr view "$PR" --json state -q '.state' 2>/dev/null | grep -qi merged
 }
 
+# Merge = Abschluss (T001092): on a confirmed merge, close the ticket
+# done/resolution=shipped and record the verify pass. Best-effort.
+_on_merged() {
+  echo "pr-babysit: PR #$PR merged — closing ticket $TICKET_ID"
+  bash "$REPO/scripts/ticket.sh" add-pr-link --id "$TICKET_ID" --pr "$PR" || true
+  bash "$REPO/scripts/ticket.sh" update-status --id "$TICKET_ID" --status done --resolution shipped || true
+  bash "$REPO/scripts/ticket.sh" phase "$TICKET_ID" verify done --driver factory --detail "gate=ci result=pass" || true
+}
+
 # Queue auto-merge (squash). Only ever called AFTER a full re-check confirms no
 # known-red check remains (green or pending are ok).
 _queue_automerge() {
@@ -49,11 +58,11 @@ _queue_automerge() {
 attempt=0
 _queue_automerge   # queue once up front; requeued only after fixes + re-check
 while (( attempt < MAX_CI_ATTEMPTS )); do
-  if _is_merged; then echo "pr-babysit: PR #$PR merged"; exit 0; fi
+  if _is_merged; then _on_merged; exit 0; fi
   if ! _has_red; then
     # nothing known-red — wait for pending checks / the merge to land.
     if [[ -z "$(_red_or_pending_checks)" ]]; then
-      _is_merged && { echo "pr-babysit: PR #$PR merged"; exit 0; }
+      _is_merged && { _on_merged; exit 0; }
     fi
     sleep "$POLL_INTERVAL"; continue
   fi

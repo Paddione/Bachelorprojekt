@@ -18,6 +18,10 @@ PROVISION_SUITE="scripts/factory/provision.test.mjs"
 DECOMPOSE_MOD="scripts/factory/pipeline-decompose.cjs"
 DECOMPOSE_SUITE="scripts/factory/pipeline-decompose.test.cjs"
 PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
+# T002074: the Deploy-phase prompt moved into pipeline-partials.cjs (buildDeployPrompt)
+# and the CI retry loop into pr-babysit-ticket.sh — deploy-contract greps span these.
+PARTIALS_MOD="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline-partials.cjs"
+PRBABYSIT="$BATS_TEST_DIRNAME/../../scripts/factory/pr-babysit-ticket.sh"
 BLS="$BATS_TEST_DIRNAME/../../scripts/factory/build-loop.sh"
 WAKEUP="${BATS_TEST_DIRNAME}/../../scripts/factory/wakeup.sh"
 BABYSIT="${BATS_TEST_DIRNAME}/../../scripts/factory/babysit-prs.sh"
@@ -508,7 +512,8 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-20: Deploy phase merges from MAIN repo and deploys BOTH brands with explicit ENV" {
-  run grep -q "feature:" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
+  # deployStepCmd (both-brand deploy) stays in pipeline.js; ENV= is explicit.
+  run grep -Eq "workspace:deploy|workspace:partial-deploy" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
   run grep -Eq "ENV=mentolder|ENV=korczewski|ENV=fleet-" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
 }
 
@@ -519,7 +524,9 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-20: Deploy phase enforces WORK_BRANCH regex feature/*|fix/* + diff-size guard" {
-  run grep -Eq "feature/.*\|fix/|guard_check_diff_size" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
+  # The branch-regex + diff-size guard live in buildDeployPrompt (pipeline-partials.cjs);
+  # FACTORY_MAX_DIFF is still threaded through pipeline.js as the maxDiff payload.
+  run grep -Eq "feature/.*\|fix/|guard_check_diff_size" "$PIPELINE_SCRIPT" "$PARTIALS_MOD"; [ "$status" -eq 0 ]
   run grep -q "FACTORY_MAX_DIFF" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
 }
 
@@ -594,7 +601,8 @@ DEPLOY_TRANSITION="scripts/factory/deploy-transition.cjs"
 }
 
 @test "FA-SF-22: pipeline.js closes the ticket with --status done --resolution shipped" {
-  run bash -c "grep -Eq -- '--status[[:space:]]+done' \"$PIPELINE_SCRIPT\" && grep -Eq -- '--resolution[[:space:]]+shipped' \"$PIPELINE_SCRIPT\""
+  # Merge = Abschluss: the close now happens in pr-babysit-ticket.sh on confirmed merge.
+  run bash -c "grep -Eq -- '--status[[:space:]]+done' \"$PRBABYSIT\" && grep -Eq -- '--resolution[[:space:]]+shipped' \"$PRBABYSIT\""
   [ "$status" -eq 0 ]
 }
 
@@ -1193,25 +1201,27 @@ PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
   [ "$status" -ne 0 ]
 }
 
-@test "FA-SF-37-retry: reads retry_count via ticket.sh (no raw SQL)" {
-  run grep -qE 'ticket\.sh retry-count get' "$PJS"
+@test "FA-SF-37-retry: CI retry loop is delegated to pr-babysit-ticket.sh (T002074)" {
+  # The inline retry loop was replaced by the ticket-scoped babysit script (Task 15).
+  run grep -qE 'pr-babysit-ticket\.sh' "$PJS" "$PARTIALS_MOD"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: two-gated classification (failure-class AND path-class)" {
-  run grep -qE 'classify-failure\.sh' "$PJS"
-  [ "$status" -eq 0 ]
-  run grep -qE 'paths_are_escalate_class|classify-paths\.sh' "$PJS"
+@test "FA-SF-37-retry: pr-babysit reuses classify-failure.sh (no duplication)" {
+  run grep -qE 'classify-failure\.sh' "$PRBABYSIT"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: auto-fix gated to ci/test/lint only" {
-  run grep -qE 'ci.*test.*lint|\{ci,test,lint\}|ci/test/lint' "$PJS"
+@test "FA-SF-37-retry: pr-babysit re-checks before requeue + bounds attempts" {
+  # Re-check before requeue (no requeue with a known-red check) + attempt cap.
+  run grep -qiE 'Re-check BEFORE requeue' "$PRBABYSIT"
+  [ "$status" -eq 0 ]
+  run grep -qE 'MAX_CI_ATTEMPTS' "$PRBABYSIT"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: at retry_count>=2 → blocked + PushNotification" {
-  run grep -qE 'retry_count.*2|retry-count.*incr' "$PJS"
+@test "FA-SF-37-retry: attempts exhausted → non-zero exit + PushNotification escalation" {
+  run grep -qE 'exit 1' "$PRBABYSIT"
   [ "$status" -eq 0 ]
   run grep -qE 'PushNotification' "$PJS"
   [ "$status" -eq 0 ]
@@ -1516,7 +1526,8 @@ PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-39-wire: Deploy invokes observe_prod per brand" {
-  run grep -qE 'observe_prod' "$PJS"
+  # observe_prod lives in buildDeployPrompt (pipeline-partials.cjs) since T002074.
+  run grep -qE 'observe_prod' "$PJS" "$PARTIALS_MOD"
   [ "$status" -eq 0 ]
 }
 
@@ -1906,7 +1917,8 @@ ROUTE="${BATS_TEST_DIRNAME}/../../website/src/pages/api/factory-metrics.ts"
 }
 
 @test "FA-SF-44: diff-size guard is passed the feature branch ref" {
-  run grep -Eq 'guard_check_diff_size \$\{process\.env\.FACTORY_MAX_DIFF \?\? .800.\} \$\{WORK_BRANCH\}' scripts/factory/pipeline.js
+  # buildDeployPrompt (pipeline-partials.cjs) parameterises the guard: maxDiff + workBranch.
+  run grep -Eq 'guard_check_diff_size \$\{c\.maxDiff \|\| .800.\} \$\{c\.workBranch\}' scripts/factory/pipeline-partials.cjs
   [ "$status" -eq 0 ]
 }
 
@@ -2010,14 +2022,16 @@ STUB
 }
 
 @test "FA-SF-52: pipeline.js deploy guard admits chore branches" {
-  run grep -Fq '^(feature|fix|chore)/' scripts/factory/pipeline.js
+  # The branch-regex guard moved into buildDeployPrompt (pipeline-partials.cjs).
+  run grep -Fq '^(feature|fix|chore)/' scripts/factory/pipeline-partials.cjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-52: pipeline.js PR title uses chore prefix for chore branches" {
+  # titlePrefix is still computed in pipeline.js; the PR-title template moved to buildDeployPrompt.
   run grep -Fq "WORK_BRANCH.startsWith('chore/') ? 'chore' : 'feat'" scripts/factory/pipeline.js
   [ "$status" -eq 0 ]
-  run grep -Fq '${titlePrefix}(${slug})' scripts/factory/pipeline.js
+  run grep -Fq '${c.titlePrefix}(${c.slug})' scripts/factory/pipeline-partials.cjs
   [ "$status" -eq 0 ]
 }
 

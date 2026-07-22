@@ -27,10 +27,7 @@ opencode uses the `background-agents.ts` plugin which reads agents from `agent-m
 
 | Agent | Model | Permissions | Use case |
 |-------|-------|-------------|----------|
-| `qwen35-iq4` | Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) | read-only | **Preferred first choice** for delegation |
-| `qwen35` | Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) | read-only | General subagent, 1 at a time |
-| `qwen35-hq` | Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) | read-only | When max per-call context matters |
-| `qwen3-14b` | Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, Q4_K_M, 262k ctx) | read-only | Single-session planning |
+| `bonsai-27b` | Ternary-Bonsai-27B (Q2_0, 130k ctx per slot) | write-capable | **Preferred single choice** for delegation (up to 2 parallel slots on port 8093) |
 | `explore` | built-in | read-only | Fast codebase exploration |
 | `general` | built-in | read-only | General research tasks |
 

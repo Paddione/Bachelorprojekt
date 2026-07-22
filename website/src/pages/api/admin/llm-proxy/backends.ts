@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import {
-  listBackends, createBackend, BACKEND_KINDS, KNOWN_FIXUPS,
+  listBackends, createBackend, LLM_PROXY_KINDS, LLM_PROXY_FIXUPS,
   type NewBackend, type BackendKind, type Fixup,
 } from '../../../../lib/llm-proxy-db';
 
@@ -22,13 +22,13 @@ function parseNew(body: Record<string, unknown>): { error: string } | { value: N
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const base_url = typeof body.base_url === 'string' ? body.base_url.trim() : '';
   if (!name || !base_url) return { error: 'name und base_url sind erforderlich' };
-  if (!BACKEND_KINDS.includes(body.kind as BackendKind))
+  if (!LLM_PROXY_KINDS.includes(body.kind as BackendKind))
     return { error: 'kind muss llamacpp, lmstudio oder openai-remote sein' };
   const priority = Number(body.priority);
   if (!Number.isInteger(priority) || priority < 0)
     return { error: 'priority muss eine nicht-negative Ganzzahl sein' };
   const fixupsRaw = Array.isArray(body.fixups) ? body.fixups : [];
-  if (!fixupsRaw.every((f) => KNOWN_FIXUPS.includes(f as Fixup)))
+  if (!fixupsRaw.every((f) => LLM_PROXY_FIXUPS.includes(f as Fixup)))
     return { error: 'fixups enthält einen unbekannten Wert' };
   const aliasesRaw = body.model_aliases;
   const model_aliases =

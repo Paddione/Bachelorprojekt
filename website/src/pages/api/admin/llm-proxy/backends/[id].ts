@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import {
   updateBackend, deleteBackend, getBackend, countEnabledLocal,
-  BACKEND_KINDS, KNOWN_FIXUPS, type BackendKind, type Fixup,
+  LLM_PROXY_KINDS, LLM_PROXY_FIXUPS, type BackendKind, type Fixup,
 } from '../../../../../lib/llm-proxy-db';
 
 export const prerender = false;
@@ -25,7 +25,7 @@ function parsePatch(body: Record<string, unknown>): { error: string } | { patch:
     if (!(k in body)) continue;
     const v = body[k];
     if (k === 'kind') {
-      if (!BACKEND_KINDS.includes(v as BackendKind)) return { error: 'ungültiger kind-Wert' };
+      if (!LLM_PROXY_KINDS.includes(v as BackendKind)) return { error: 'ungültiger kind-Wert' };
       patch[k] = v;
     } else if (k === 'priority') {
       const n = Number(v);
@@ -34,7 +34,7 @@ function parsePatch(body: Record<string, unknown>): { error: string } | { patch:
     } else if (k === 'enabled') {
       patch[k] = Boolean(v);
     } else if (k === 'fixups') {
-      if (!Array.isArray(v) || !v.every((f) => KNOWN_FIXUPS.includes(f as Fixup)))
+      if (!Array.isArray(v) || !v.every((f) => LLM_PROXY_FIXUPS.includes(f as Fixup)))
         return { error: 'fixups enthält einen unbekannten Wert' };
       patch[k] = v;
     } else if (k === 'model_aliases') {

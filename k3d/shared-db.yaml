@@ -247,6 +247,11 @@ spec:
             - name: tls-certs
               mountPath: /etc/postgresql/certs
               readOnly: true
+            # PG16 parallel index builds (pgvector HNSW) allocate dynamic shared
+            # memory under /dev/shm; the containerd default of 64Mi breaks
+            # pg_restore of the website dump (T002064).
+            - name: dev-shm
+              mountPath: /dev/shm
           readinessProbe:
             exec:
               command: ["pg_isready", "-U", "postgres"]
@@ -276,6 +281,13 @@ spec:
             name: website-schema
         - name: tls-certs
           emptyDir: {}
+        # 512Mi = 8x the failed 64MB DSM request, safely below the smallest
+        # effective postgres memory limit (2Gi via prod/patch-shared-db.yaml);
+        # Memory-backed emptyDir counts against the pod memory cgroup.
+        - name: dev-shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi
 ---
 
 # Primary service name — used by MCP and direct access

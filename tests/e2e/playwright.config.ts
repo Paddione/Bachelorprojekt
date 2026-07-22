@@ -1,6 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
+import { execSync } from 'child_process';
 
 const websiteURL = process.env.WEBSITE_URL || 'http://localhost:4321';
+
+// Detect webkit availability — the ios project requires it. If not installed,
+// skip the project entirely instead of failing every test with "binary not found".
+let webkitInstalled = false;
+try {
+  execSync('npx playwright install --list webkit 2>/dev/null', { stdio: 'ignore', timeout: 5_000 });
+  webkitInstalled = true;
+} catch { /* webkit not available */ }
 
 export default defineConfig({
   testDir: './specs',
@@ -277,14 +286,14 @@ export default defineConfig({
     // ── ios: iPhone WebKit (Safari) simulation ───────────────────
     // Run: playwright test --project=ios
     // Requires: playwright install webkit
-    {
+    ...(webkitInstalled ? [{
       name: 'ios',
       testMatch: ['**/fa-03-*.spec.ts', '**/fa-ios-*.spec.ts'],
       use: {
         ...devices['iPhone 15'],
         baseURL: websiteURL,
       },
-    },
+    }] : []),
 
     // ── android: Pixel 5 Chromium (mobile, touch, 393×851) ───────
     // Run: playwright test --project=android
@@ -324,14 +333,8 @@ export default defineConfig({
       },
     },
 
-    // ── unit: pure-function tests in tests/e2e/lib/*.test.ts ─────
-    // Run: playwright test --project=unit
-    {
-      name: 'unit',
-      testDir: './lib',
-      testMatch: ['*.test.ts'],
-      use: {},
-    },
+    // NOTE: Pure-function unit tests (health-assertions, systemtest-runner)
+    // migrated to vitest. Run with: npx vitest run
   ],
 
   outputDir: '../results/playwright-traces',

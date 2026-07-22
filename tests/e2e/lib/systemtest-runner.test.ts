@@ -1,9 +1,9 @@
 // tests/e2e/lib/systemtest-runner.test.ts
 //
 // Unit test for deriveOptionsFromSeed — pure function, no browser, no real
-// seed import. Picked up by the playwright.config.ts `unit` project.
+// seed import. Runs under vitest.
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'vitest';
 import { deriveOptionsFromSeed, computeComplianceScore, buildOutcomeFile } from './systemtest-runner';
 
 test.describe('deriveOptionsFromSeed', () => {

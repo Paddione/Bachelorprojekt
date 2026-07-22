@@ -6,7 +6,7 @@ const NC_URL = process.env.TEST_NC_URL || (process.env.NC_DOMAIN
 
 const SIGNALING_URL = process.env.TEST_SIGNALING_URL || (process.env.SIGNALING_DOMAIN
   ? `https://${process.env.SIGNALING_DOMAIN}`
-  : 'http://signaling.localhost');
+  : null);
 
 test.describe('FA-03: Videokonferenzen (Nextcloud Talk)', () => {
   test('T1: Talk-Oberfläche öffnen', async ({ page }) => {

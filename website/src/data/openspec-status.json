@@ -1275,6 +1275,12 @@
       "status": "archived"
     }
   ],
+  "T002064": [
+    {
+      "slug": "fix-t002064-shared-db-dev-shm",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

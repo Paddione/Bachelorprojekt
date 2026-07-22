@@ -486,15 +486,15 @@ PY
   [ "$status" -eq 0 ]
 }
 
-@test "T002083: build-website.yml no longer runs kubectl set image" {
-  run grep -nE 'kubectl[[:space:]]+set[[:space:]]+image' "$BUILD_WF"
-  [ "$status" -ne 0 ]
+@test "T002083: build-website.yml wires render-artifact job for FluxCD" {
+  run grep -E 'uses:[[:space:]]*\./\.github/workflows/render-fleet-artifact\.yml' "$BUILD_WF"
+  [ "$status" -eq 0 ]
 }
 
-@test "T002083: build-brett.yml no longer runs an imperative kubectl rollout restart" {
+@test "T002083: build-brett.yml wires render-artifact job for FluxCD" {
   local brett_wf="$REPO_ROOT/.github/workflows/build-brett.yml"
   [ -f "$brett_wf" ]
-  run grep -nE 'kubectl[[:space:]]+rollout[[:space:]]+restart' "$brett_wf"
-  [ "$status" -ne 0 ]
+  run grep -E 'uses:[[:space:]]*\./\.github/workflows/render-fleet-artifact\.yml' "$brett_wf"
+  [ "$status" -eq 0 ]
 }
 

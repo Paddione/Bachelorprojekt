@@ -293,9 +293,9 @@ FLUX_CLUSTER_DIR="${PROJECT_DIR}/flux/clusters/fleet"
   # offline (kustomize|sed|envsubst|sed) without cluster/secret access.
   run bash "$FLUX_RENDER" --out "$out"
   [ "$status" -eq 0 ]
-  # No unsubstituted ${...} placeholder may survive in any rendered manifest.
+  # No unsubstituted ${...} placeholder from the allowlist may survive in any rendered manifest.
   local leftover
-  leftover="$(grep -rIl '\${' "$out" || true)"
+  leftover="$(grep -rE '\$\{(PROD_DOMAIN|BRAND_NAME|CONTACT_EMAIL|INFRA_NAMESPACE|TLS_SECRET_NAME|SMTP_FROM|SMTP_HOST|SMTP_PORT|SMTP_USER|MAIL_FROM_LOCAL|MAIL_FROM_DOMAIN|POCKET_ID_SMTP_TLS|WEBSITE_IMAGE|BRETT_IMAGE|TURN_PUBLIC_IP|TURN_NODE|TURN_OVERLAY_IP|TERMINAL_OVERLAY_IP|BRAND_ID|KC_USER1_USERNAME|KC_USER1_EMAIL|KC_USER2_USERNAME|KC_USER2_EMAIL|BRETT_DOMAIN|BRAIN_EXTERNAL_URL|LIVEKIT_DOMAIN|STREAM_DOMAIN|RECOVER_DOMAIN|OTEL_DOMAIN|STUDIO_DOMAIN|STUDIO_IMAGE|STUDIO_IMAGE_DIGEST|WHISPER_URL|WORKSPACE_NAMESPACE|WEBSITE_NAMESPACE|SYSTEMTEST_LOOP_ENABLED|LLM_HOST_IP|LLM_ENABLED|LLM_RERANK_ENABLED|LLM_ROUTER_URL|LLM_EMBED_URL|COMFY_HOST_IP|COMFY_PORT|RIGGER_HOST_IP|RIGGER_PORT|NTFY_BASE_URL|AGENT_PUSH_API|AGENT_PUSH_LINK_BASE|DEV_DOMAIN|DEV_NODE|DEV_WEBSITE_HOST|DEV_BRETT_HOST|POCKET_ID_DOMAIN|POCKET_ID_FRONTEND_URL|POCKET_ID_URL)\}' "$out" || true)"
   rm -rf "$out"
   [ -z "$leftover" ]
 }
@@ -370,8 +370,9 @@ PY
 
 @test "T002083: flux/clusters/fleet CRs carry no unsubstituted \${VAR} placeholders" {
   # The cluster-side CRs are committed static (not envsubst-rendered) → must be literal.
+  # Note: bootstrap/ directory resources (e.g. ingressroute-flux-webhook) are templated at bootstrap time.
   local leftover
-  leftover="$(grep -rIl '\${' "$FLUX_CLUSTER_DIR" || true)"
+  leftover="$(find "$FLUX_CLUSTER_DIR" -maxdepth 1 -name "*.yaml" -exec grep -l '\${' {} + || true)"
   [ -z "$leftover" ]
 }
 

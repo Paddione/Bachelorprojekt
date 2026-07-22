@@ -2589,6 +2589,10 @@ tasks:
       - task: env:validate
         vars: { ENV: "{{.ENV}}" }
       - |
+        # ⚠️ DEPRECATED: Direct push-based workspace:deploy is deprecated under FluxCD GitOps.
+        # Pull-based reconciliation via Flux is the primary deployment path on fleet.
+        # Direct workspace:deploy is retained for Break-Glass use. Before using Break-Glass
+        # imperative deploys, suspend Flux reconciliation via: `flux suspend kustomization <name>`.
         source scripts/env-resolve.sh "{{.ENV}}"
 
         if [ "{{.ENV}}" != "dev" ]; then
@@ -2756,7 +2760,7 @@ tasks:
           export MAIL_FROM_DOMAIN="${SMTP_FROM#*@}"
           ENVSUBST_VARS="\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$SMTP_USER \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN \$POCKET_ID_SMTP_TLS"
-          ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$TURN_OVERLAY_IP \$TERMINAL_OVERLAY_IP \$BRAND_ID"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$BRETT_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$TURN_OVERLAY_IP \$TERMINAL_OVERLAY_IP \$BRAND_ID"
           ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
           ENVSUBST_VARS="$ENVSUBST_VARS \$BRAIN_EXTERNAL_URL"
@@ -2922,7 +2926,7 @@ tasks:
         export MAIL_FROM_DOMAIN="${SMTP_FROM#*@}"
         ENVSUBST_VARS="\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$INFRA_NAMESPACE \$TLS_SECRET_NAME"
         ENVSUBST_VARS="$ENVSUBST_VARS \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$SMTP_USER \$MAIL_FROM_LOCAL \$MAIL_FROM_DOMAIN \$POCKET_ID_SMTP_TLS"
-        ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$TURN_OVERLAY_IP \$TERMINAL_OVERLAY_IP \$BRAND_ID"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$WEBSITE_IMAGE \$BRETT_IMAGE \$TURN_PUBLIC_IP \$TURN_NODE \$TURN_OVERLAY_IP \$TERMINAL_OVERLAY_IP \$BRAND_ID"
         ENVSUBST_VARS="$ENVSUBST_VARS \$KC_USER1_USERNAME \$KC_USER1_EMAIL \$KC_USER2_USERNAME \$KC_USER2_EMAIL"
         ENVSUBST_VARS="$ENVSUBST_VARS \$BRETT_DOMAIN"
         ENVSUBST_VARS="$ENVSUBST_VARS \$BRAIN_EXTERNAL_URL"
@@ -4645,6 +4649,46 @@ tasks:
     desc: "Seede (und optional erstelle/pushe) das brain-Wiki-Fundament. Usage: task brain:bootstrap -- <target-dir>|--create-remote --collaborator <handle>"
     cmds:
       - bash scripts/brain-bootstrap.sh {{.CLI_ARGS}}
+
+  # ─────────────────────────────────────────────
+  # FluxCD GitOps tasks (T002083)
+  # ─────────────────────────────────────────────
+  flux:render:
+    desc: "Render fleet-Komponenten + Flux-CRs nach out/ (kein Apply)"
+    cmds:
+      - bash scripts/flux-render-artifact.sh --out "{{.OUT | default \"out\"}}"
+
+  flux:bootstrap:
+    desc: "Einmalig: flux-operator via Helm + FluxInstance + Receiver/IngressRoute/ghcr-auth (imperativ)"
+    vars:
+      ENV: '{{.ENV | default "fleet-mentolder"}}'
+    cmds:
+      - |
+        source scripts/env-resolve.sh "{{.ENV}}"
+        export FLUX_WEBHOOK_HOST="${FLUX_WEBHOOK_HOST:-flux-webhook.${PROD_DOMAIN}}"
+        helm upgrade --install flux-operator \
+          oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator \
+          --namespace flux-system --create-namespace \
+          --kube-context "$ENV_CONTEXT"
+        kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/ghcr-auth-sealedsecret.yaml
+        kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/flux-webhook-token-sealedsecret.yaml
+        kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/flux-instance.yaml
+        kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/receiver.yaml
+        envsubst "\$FLUX_WEBHOOK_HOST \$TLS_SECRET_NAME" \
+          < flux/clusters/fleet/bootstrap/ingressroute-flux-webhook.yaml \
+          | kubectl --context "$ENV_CONTEXT" apply -f -
+        flux check --context "$ENV_CONTEXT" || true
+
+  flux:push:
+    desc: "Render + flux push artifact (privates GHCR) + Receiver-Ping"
+    cmds:
+      - |
+        task flux:render OUT=out
+        flux push artifact \
+          oci://ghcr.io/paddione/fleet-manifests:latest \
+          --path=out \
+          --source="$(git config --get remote.origin.url)" \
+          --revision="main@sha1:$(git rev-parse HEAD)"
 
   # ─────────────────────────────────────────────
   # End of tasks

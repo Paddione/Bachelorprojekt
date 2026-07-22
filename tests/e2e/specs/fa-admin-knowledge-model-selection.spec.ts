@@ -10,7 +10,7 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
   await page.waitForURL(/\/admin\/wissensquellen/, { timeout: 60_000 });
 }
 
-test.describe('Wissensquellen admin — Embedding Model Selection', () => {
+test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@admin'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
     await assertAuthenticatedReachable(
       request,

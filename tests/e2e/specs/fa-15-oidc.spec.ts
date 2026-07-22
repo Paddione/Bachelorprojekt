@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
-test.describe('FA-15: OIDC Website Login (Pocket ID)', () => {
+test.describe('FA-15: OIDC Website Login (Pocket ID)', { tag: ['@website'] }, () => {
   test('T1: /api/auth/login redirects to Pocket ID', async ({ request }) => {
     const res = await request.get(`${BASE}/api/auth/login`, {
       maxRedirects: 0,

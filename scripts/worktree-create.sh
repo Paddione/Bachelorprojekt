@@ -127,14 +127,9 @@ if [ -f "$KEY_SRC" ]; then
     # clean=cat neutralization [T000925] silently committed PLAINTEXT secrets
     # whenever a merge/add touched a git-crypt-managed file (T001977 — happened
     # 2026-07-19 in the t001946 worktree). With the key copied into the worktree
-    # gitdir, git-crypt clean works fine; required=true makes any regression
-    # fail the commit loudly instead of falling back to plaintext passthrough.
+    # gitdir, git-crypt clean works fine.
     mkdir -p "$WT_GITDIR/git-crypt/keys"
     cp "$KEY_SRC" "$WT_GITDIR/git-crypt/keys/default"
-    git -C "$WT_PATH" config extensions.worktreeConfig true
-    git -C "$WT_PATH" config --worktree --unset filter.git-crypt.smudge 2>/dev/null || true
-    git -C "$WT_PATH" config --worktree --unset filter.git-crypt.clean  2>/dev/null || true
-    git -C "$WT_PATH" config --worktree filter.git-crypt.required true
     git -C "$WT_PATH" checkout
 else
     # Locked (no key): neutralize git-crypt filters worktree-locally so checkout

@@ -50,6 +50,7 @@ env_vars:
   MEDIAVIEWER_HOST: mediaviewer.korczewski.de
   VIDEOVAULT_DOMAIN: videovault.korczewski.de
   OTEL_DOMAIN: otel.korczewski.de
+  RECOVER_DOMAIN: recover.korczewski.de
   STREAM_DOMAIN: stream.korczewski.de
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
   WEBSITE_HOST: web.korczewski.de

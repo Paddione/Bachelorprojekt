@@ -48,6 +48,7 @@ env_vars:
   MEDIAVIEWER_HOST: mediaviewer.mentolder.de
   VIDEOVAULT_DOMAIN: videovault.mentolder.de
   OTEL_DOMAIN: otel.mentolder.de
+  RECOVER_DOMAIN: recover.mentolder.de
   STREAM_DOMAIN: stream.mentolder.de
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace.svc.cluster.local
   WEBSITE_HOST: web.mentolder.de

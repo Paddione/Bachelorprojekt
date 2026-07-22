@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.198.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.13...website-v1.198.0) (2026-07-22)
+
+
+### Features
+
+* **factory:** parallel partial-plan pipeline — gang scheduling, partials, bonsai provider [T002074] ([#3100](https://github.com/Paddione/Bachelorprojekt/issues/3100)) ([b181358](https://github.com/Paddione/Bachelorprojekt/commit/b181358f3575c33fb4c1d53d96f229f01249e694))
+
 ## [1.197.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.12...website-v1.197.13) (2026-07-22)
 
 

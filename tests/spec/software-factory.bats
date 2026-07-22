@@ -3699,3 +3699,111 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
   [ -n "$tier_line" ]
   [ -n "$qa_line" ]
 }
+
+# ── FA-SF-GANG: Gang-Scheduling für Partialpläne (T002074) ───────────────────
+@test "FA-SF-GANG: slots.sh usage-Kontrakt kennt claim-gang" {
+  run env BRAND=mentolder FACTORY_DRY_RESOLVE= bash scripts/factory/slots.sh bogus
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"claim-gang"* ]]
+}
+
+@test "FA-SF-GANG: claim-gang prueft SUM(slot_count) atomar gegen den Brand-Pool" {
+  run grep -Fq 'SUM(slot_count)' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: release setzt slot_count auf 1 zurueck" {
+  run grep -Fq 'slot_count=1' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: count-Accounting summiert slot_count statt Zeilen zu zaehlen" {
+  run grep -Fq 'COALESCE(SUM(slot_count),0)' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: schedule.sh blockt head-of-line (break, kein Vorziehen)" {
+  run grep -Fq 'head-of-line' scripts/factory/schedule.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'claim-gang' scripts/factory/schedule.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: Migration fuegt slot_count idempotent hinzu" {
+  run grep -Fq 'ADD COLUMN IF NOT EXISTS slot_count' scripts/migrations/2026-07-22-slot-count-gang.sql
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: stage-plan traegt --partials in die Stage-Query (ticket.sh unberuehrt)" {
+  run grep -Fq -- '--partials' scripts/vda/ticket/stage-plan.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq -- '--partials' scripts/ticket.sh
+  [ "$status" -eq 1 ]
+}
+
+@test "FA-SF-GANG: plan-lint Partial-Modus — D1 Hard-Fail bei Datei in zwei Partials" {
+  chg="$BATS_TEST_TMPDIR/chg"; mkdir -p "$chg/tasks.d"
+  bash "$REPO_ROOT/tests/spec/fixtures/make-partial-plan.sh" "$chg" duplicate
+  run bash "$REPO_ROOT/scripts/plan-lint.sh" "$chg/tasks.md"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"D1"* ]]
+}
+
+@test "FA-SF-GANG: plan-lint Partial-Modus — disjunkte Partials mit Tests-Partial PASSen" {
+  chg="$BATS_TEST_TMPDIR/chg-ok"; mkdir -p "$chg/tasks.d"
+  bash "$REPO_ROOT/tests/spec/fixtures/make-partial-plan.sh" "$chg" ok
+  run bash "$REPO_ROOT/scripts/plan-lint.sh" "$chg/tasks.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: pipeline-partials.cjs ist valides CJS und wird vom Runner ge-require-t" {
+  run node --check scripts/factory/pipeline-partials.cjs
+  [ "$status" -eq 0 ]
+  run grep -Fq "pipeline-partials.cjs" scripts/factory/pipeline-runner.js
+  [ "$status" -eq 0 ]
+  run grep -Fq 'read-partials' scripts/factory/pipeline-runner.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: pipeline.js emittiert partial-done-Phase-Events" {
+  run grep -Fq "partial-done" scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: provider-register-bonsai.sh idempotent (ON CONFLICT) auf :8093" {
+  run bash -n scripts/factory/provider-register-bonsai.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'ON CONFLICT' scripts/factory/provider-register-bonsai.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'http://127.0.0.1:8093/v1' scripts/factory/provider-register-bonsai.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: plan-intel-filter.sh filtert impact_files nach target_files" {
+  tmp="$BATS_TEST_TMPDIR/intel.json"
+  printf '%s' '{"meta":{"slug":"x"},"impact_files":[{"path":"a.sh"},{"path":"b.sh"}],"symbols":[{"name":"s","file":"a.sh"}],"db_tables":[]}' > "$tmp"
+  run bash scripts/plan-intel-filter.sh "$tmp" a.sh
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"a.sh"'* ]]
+  [[ "$output" != *'"b.sh"'* ]]
+}
+
+@test "FA-SF-GANG: Deploy-Phase kennt das pr-ready-Gate" {
+  run grep -Fq "pr-ready" scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  run grep -Fq "pending-pr-gate" scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  run grep -Fq "pr-gate" scripts/factory/pipeline-runner.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: pr-babysit-ticket.sh reuse statt Duplikation" {
+  run bash -n scripts/factory/pr-babysit-ticket.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'classify-failure.sh' scripts/factory/pr-babysit-ticket.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq -- '--squash --auto' scripts/factory/pr-babysit-ticket.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'pr-babysit-ticket.sh' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}

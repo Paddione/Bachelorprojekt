@@ -132,9 +132,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS factory_model_slots_phase_key
 ```
 
 **Akzeptanz:**
-- [ ] `ADD COLUMN IF NOT EXISTS` (doppelt anwendbar ohne Fehler; Spaltentyp exakt wie intel.json `db_tables`: `slot_count int NOT NULL DEFAULT 1`).
-- [ ] Header dokumentiert die Both-Brands-Anwendung (getrennte per-Brand-DBs).
-- [ ] Kein Diff an `scripts/migrate-factory.mjs`.
+- [x] `ADD COLUMN IF NOT EXISTS` (doppelt anwendbar ohne Fehler; Spaltentyp exakt wie intel.json `db_tables`: `slot_count int NOT NULL DEFAULT 1`).
+- [x] Header dokumentiert die Both-Brands-Anwendung (getrennte per-Brand-DBs).
+- [x] Kein Diff an `scripts/migrate-factory.mjs`.
 
 ### Task 2: BATS-Tests zuerst — RED (Failing-Test-Step)
 
@@ -253,8 +253,8 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats --filter "FA-
 ```
 
 **Akzeptanz:**
-- [ ] Alle FA-SF-GANG-Tests laufen und schlagen VOR den Tasks 3–10 fehl (expected: FAIL).
-- [ ] Kein bestehender Test verändert; neue Tests folgen dem Offline-Muster (kein Live-DB-Zwang).
+- [x] Alle FA-SF-GANG-Tests laufen und schlagen VOR den Tasks 3–10 fehl (expected: FAIL).
+- [x] Kein bestehender Test verändert; neue Tests folgen dem Offline-Muster (kein Live-DB-Zwang).
 
 ### Task 3: `slots.sh` — claim-gang, SUM-Accounting, Release-Reset
 

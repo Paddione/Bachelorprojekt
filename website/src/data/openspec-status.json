@@ -1287,6 +1287,12 @@
       "status": "archived"
     }
   ],
+  "T002069": [
+    {
+      "slug": "local-llm-proxy",
+      "status": "plan_staged"
+    }
+  ],
   "T002074": [
     {
       "slug": "2026-07-22-parallel-partial-plans",
@@ -1297,6 +1303,12 @@
     {
       "slug": "2026-07-22-factory-parallel-status",
       "status": "archived"
+    }
+  ],
+  "T002080": [
+    {
+      "slug": "website-e2e-fixes",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

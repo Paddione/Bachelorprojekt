@@ -230,10 +230,7 @@ interface DelegationRecord {
 	title?: string
 	description?: string
 	result?: string
-	/** [T001978] Original delegation id when this is a fallback; undefined for the initial attempt. */
-	fallbackFor?: string
-	/** [T001978] True when this delegation has already triggered its qwen35-hq fallback (prevents re-trigger). */
-	fallbackTriggered?: boolean
+	// fallbackFor/fallbackTriggered removed 2026-07-22 — qwen35-iq4/hq agents deleted
 }
 
 const DEFAULT_MAX_RUN_TIME_MS = 25 * 60 * 1000 // 25 minutes [T001969 Mishap 3 — qwen35-iq4 empty output at 15min]
@@ -248,8 +245,6 @@ interface DelegateInput {
 	parentAgent: string
 	prompt: string
 	agent: string
-	/** [T001978] Original delegation id when this is a fallback; propagated to DelegationRecord.fallbackFor. */
-	fallbackFor?: string
 }
 
 interface DelegationListItem {
@@ -580,7 +575,6 @@ class DelegationManager {
 			artifact: {
 				filePath: input.artifactPath,
 			},
-			fallbackFor: input.fallbackFor, // [T001978]
 		}
 
 		this.delegations.set(delegation.id, delegation)
@@ -1024,77 +1018,9 @@ class DelegationManager {
 		const resolvedResult = await this.resolveDelegationResult(delegation)
 		delegation.result = resolvedResult
 
-		// [T001978] Empty-Output-Fallback — qwen35-iq4 returning no text triggers
-		// a one-shot retry with qwen35-hq (higher context tolerance). The original
-		// delegation is reset to "running", a child delegation is created with
-		// `fallbackFor: <origId>`, and the parent notification is deferred until
-		// the fallback terminates. If the fallback ALSO returns empty, the
-		// delegation is marked "error" with reason "empty_output_after_fallback".
-		if (
-			status === "complete" &&
-			delegation.agent === "qwen35-iq4" &&
-			resolvedResult.trim().length === 0 &&
-			!delegation.fallbackTriggered
-		) {
-			delegation.fallbackTriggered = true
-			// Reset to running so the next finalize (from the fallback) re-runs
-			// the metadata/persist/notify path with the fallback's output.
-			delegation.status = "running"
-			delegation.completedAt = undefined
-			delegation.error = undefined
-			delegation.updatedAt = new Date()
-			// Re-arm the timeout for the fallback run.
-			this.clearTimeoutTimer(delegation.id)
-			this.scheduleTimeout(delegation.id)
-			this.terminalWaiters.delete(delegation.id)
-
-			await this.debugLog(
-				`[T001978] qwen35-iq4 returned empty text for ${delegation.id} — dispatching qwen35-hq fallback`,
-			)
-			try {
-				await this.delegate({
-					parentSessionID: delegation.parentSessionID,
-					parentMessageID: delegation.parentMessageID,
-					parentAgent: delegation.parentAgent,
-					prompt: delegation.prompt,
-					agent: "qwen35-hq",
-					fallbackFor: delegation.id,
-				})
-			} catch (fallbackError) {
-				await this.debugLog(
-					`[T001978] fallback dispatch failed for ${delegation.id}: ${
-						fallbackError instanceof Error ? fallbackError.message : "Unknown"
-					}`,
-				)
-				// Fallback failed to even start — mark original as terminal error
-				// with the resolved (empty) result so the parent still gets a
-				// notification rather than waiting forever.
-				this.markTerminal(delegation.id, "error", "empty_output_after_fallback: dispatch failed")
-				delegation.result = resolvedResult
-				await this.persistOutput(delegation, resolvedResult)
-				await this.notifyParent(delegation.id)
-			}
-			return
-		}
-
-		// [T001978] Fallback itself returned empty → mark the original delegation
-		// (which is now in "running" state, mid-fallback) as terminal error.
-		if (
-			status === "complete" &&
-			delegation.fallbackFor !== undefined &&
-			resolvedResult.trim().length === 0
-		) {
-			const original = this.delegations.get(delegation.fallbackFor)
-			if (original && !isTerminalStatus(original.status)) {
-				await this.debugLog(
-					`[T001978] qwen35-hq fallback ${delegation.id} also returned empty — marking original ${original.id} as error`,
-				)
-				this.markTerminal(original.id, "error", "empty_output_after_fallback")
-				original.result = resolvedResult
-				await this.persistOutput(original, resolvedResult)
-				await this.notifyParent(original.id)
-			}
-		}
+		// [T001978] Empty-output fallback removed 2026-07-22 — qwen35-iq4/hq agents
+		// deleted; bonsai-27b is the sole subagent. If it returns empty, treat as
+		// a normal completion (empty result) rather than retrying with a removed agent.
 
 		if (resolvedResult.trim().length > 0) {
 			const metadata = await this.metadataGenerator(
@@ -1210,7 +1136,6 @@ class DelegationManager {
 			prompt: input.prompt,
 			agent: input.agent,
 			artifactPath,
-			fallbackFor: input.fallbackFor, // [T001978] propagate fallback linkage
 		})
 
 		await this.debugLog(`Registered delegation ${delegation.id} before execution`)

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.200.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.199.0...website-v1.200.0) (2026-07-22)
+
+
+### Features
+
+* **factory:** [T002069] update local subagent configuration for bonsai-27b ([#3108](https://github.com/Paddione/Bachelorprojekt/issues/3108)) ([73af297](https://github.com/Paddione/Bachelorprojekt/commit/73af297cb8a5c1523c7334a3459271a6043c0a89))
+
 ## [1.199.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.198.0...website-v1.199.0) (2026-07-22)
 
 

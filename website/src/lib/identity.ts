@@ -38,7 +38,8 @@ export interface CreateUserParams {
 export async function createUser(params: CreateUserParams): Promise<{ success: boolean; userId?: string; error?: string }> {
   const existing = await piApi('GET', `/api/users?search=${encodeURIComponent(params.email)}`);
   if (existing.ok) {
-    const users = (await existing.json()) as Array<{ id: string; email?: string }>;
+    const body = (await existing.json()) as { data: Array<{ id: string; email?: string }> };
+    const users = body.data ?? [];
     if (users.length > 0) {
       return { success: false, error: 'Ein Benutzer mit dieser E-Mail-Adresse existiert bereits.' };
     }
@@ -116,7 +117,8 @@ export interface PiUser {
 export async function listUsers(): Promise<PiUser[]> {
   const res = await piApi('GET', '/api/users');
   if (!res.ok) throw new Error(`Failed to list Pocket ID users: ${res.status}`);
-  return res.json() as Promise<PiUser[]>;
+  const body = (await res.json()) as { data: PiUser[] };
+  return body.data ?? [];
 }
 
 export async function getUserById(userId: string): Promise<PiUser | null> {

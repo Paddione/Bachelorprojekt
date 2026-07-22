@@ -713,6 +713,61 @@ DEPLOY_TRANSITION="scripts/factory/deploy-transition.cjs"
   [ "$status" -eq 0 ]
 }
 
+# ── FA-SF-73-slots-gang ──────────────────────────────────────────#
+# FA-SF-73: slots.sh gang-claim logic (slot_count/claim-gang), previously
+# untested. Offline assertions always run; live claim/release runs only
+# when a dev cluster is reachable (FACTORY_CTX/FACTORY_NS set to dev).
+
+@test "FA-SF-73: slots.sh claim-gang is an all-or-nothing brand-pool guard (offline)" {
+  run bash -n scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+  # claim-gang subcommand exists
+  run grep -F 'claim-gang' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+  # atomic pool check: running SUM(slot_count) + n must fit SLOTS_PER_BRAND
+  run grep -F "+ :'n'::integer <= \${SLOTS_PER_BRAND}" scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+  # only claims a free ticket (race-free WHERE pipeline_slot IS NULL)
+  run grep -F 'pipeline_slot IS NULL' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-73: count sums slot_count so a gang ticket occupies n slots (offline)" {
+  run grep -F 'SUM(slot_count)' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-73: claim-gang claims n slots atomically; count reflects the gang; release resets to 1" {
+  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  local brand="${TEST_BRAND:-korczewski}"
+  ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-gang-$$-a.txt")
+  before=$(env BRAND="$brand" bash scripts/factory/slots.sh count)
+  run env BRAND="$brand" bash scripts/factory/slots.sh claim-gang "$ext" 2
+  [ "$status" -eq 0 ]
+  after=$(env BRAND="$brand" bash scripts/factory/slots.sh count)
+  [ "$after" -eq $(( before + 2 )) ]
+  # second gang claim on the same ticket fails (already slotted, all-or-nothing)
+  run env BRAND="$brand" bash scripts/factory/slots.sh claim-gang "$ext" 1
+  [ "$status" -eq 1 ]
+  run env BRAND="$brand" bash scripts/factory/slots.sh release "$ext"
+  [ "$status" -eq 0 ]
+  # release reset slot_count to 1 → count returns to the pre-gang baseline
+  [ "$(env BRAND="$brand" bash scripts/factory/slots.sh count)" -eq "$before" ]
+}
+
+@test "FA-SF-73: claim-gang rejects a gang larger than the free pool (nothing claimed)" {
+  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  local brand="${TEST_BRAND:-korczewski}"
+  ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-gang-$$-big.txt")
+  before=$(env BRAND="$brand" bash scripts/factory/slots.sh count)
+  # request more slots than the brand pool (default 3) can ever hold → exit 1
+  run env BRAND="$brand" bash scripts/factory/slots.sh claim-gang "$ext" 99
+  [ "$status" -eq 1 ]
+  # nothing was claimed: count is unchanged
+  [ "$(env BRAND="$brand" bash scripts/factory/slots.sh count)" -eq "$before" ]
+  env BRAND="$brand" bash scripts/factory/slots.sh release "$ext" >/dev/null || true
+}
+
 # ── FA-SF-24-queue ──────────────────────────────────────────────#
 # FA-SF-24: queue.sh lists backlog features as ordered JSON.
 
@@ -1824,6 +1879,31 @@ STUB
 @test "FA-SF-41: wakeup.sh skips idle-retick when FACTORY_IDLE_RETICK_ENABLED=false" {
   run grep -E 'IDLE_RETICK.*true' "$WAKEUP"
   [ "$status" -eq 0 ]   # confirms the break path exists when disabled
+}
+
+# ── FA-SF-73-force-tick ──────────────────────────────────────────#
+# FA-SF-73: STRUCT2 rot→grün-Beweis für die parallele Gang-Status-Anzeige
+# [T002079]. Vor P1 enthält wakeup.sh weder 'force-tick-requested' noch
+# 'last-tick-at' (grep -c = 0) — die zwei Blöcke unten sind rot bis P1
+# das Flag-Handling (lesen+räumen) und last-tick-at (schreiben) verdrahtet.
+
+@test "FA-SF-73: wakeup.sh consumes and clears the force-tick-requested flag" {
+  # expected: FAIL until P1 wires force-tick flag consumption into wakeup.sh.
+  # RED proof: 'force-tick-requested' is absent from wakeup.sh before P1.
+  run bash -n "$WAKEUP"
+  [ "$status" -eq 0 ]
+  # reads the control flag at tick start
+  run grep -F 'force-tick-requested' "$WAKEUP"
+  [ "$status" -eq 0 ]
+  # clears it after reading (idempotent one-shot, not a sticky flag)
+  run grep -E 'DELETE|force-tick-requested.*clear|clear.*force-tick-requested' "$WAKEUP"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-73: wakeup.sh records last-tick-at into factory_control at tick end" {
+  # expected: FAIL until P1 writes the last-tick-at control key.
+  run grep -F 'last-tick-at' "$WAKEUP"
+  [ "$status" -eq 0 ]
 }
 
 # ── FA-SF-42-dashboard-route ────────────────────────────────────#

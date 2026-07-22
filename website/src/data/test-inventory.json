@@ -1614,6 +1614,12 @@
     "kind": "shell"
   },
   {
+    "id": "FA-SF-73",
+    "file": "tests/spec/software-factory.bats",
+    "category": "FA",
+    "kind": "shell"
+  },
+  {
     "id": "HWS-1",
     "file": "tests/spec/harness-workflow-split.bats",
     "category": "HWS",

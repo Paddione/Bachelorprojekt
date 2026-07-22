@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-21T23:09:11.134Z
+> Generated at 2026-07-22T10:53:23.469Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -355,6 +355,8 @@
 | `/api/factory-metrics` | GET | 🔐 admin | `website/src/pages/api/factory-metrics.ts` |
 | `/api/factory-model-slots` | GET, PUT | 🔐 admin | `website/src/pages/api/factory-model-slots.ts` |
 | `/api/factory-observability` | GET | 🔐 admin | `website/src/pages/api/factory-observability.ts` |
+| `/api/factory/force-tick` | POST | 🔐 admin | `website/src/pages/api/factory/force-tick.ts` |
+| `/api/factory/parallel-status` | GET | 🔐 admin | `website/src/pages/api/factory/parallel-status.ts` |
 | `/api/health` | GET | ❓ unclassified | `website/src/pages/api/health.ts` |
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified | `website/src/pages/api/homepage.ts` |
 | `/api/internal/tickets/notify-close` | POST | 🔒 internal | `website/src/pages/api/internal/tickets/notify-close.ts` |

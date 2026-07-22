@@ -18,8 +18,8 @@ const brand = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 let initial = null;
 try { initial = await getFloor(slotsCap); } catch { initial = null; }
 
-type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten';
-const ALLOWED: Tab[] = ['factory', 'planung', 'analytics', 'kosten', 'control', 'abhaengigkeiten'];
+type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten' | 'parallel';
+const ALLOWED: Tab[] = ['factory', 'planung', 'analytics', 'kosten', 'control', 'abhaengigkeiten', 'parallel'];
 const raw = Astro.url.searchParams.get('tab') ?? '';
 const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
 ---

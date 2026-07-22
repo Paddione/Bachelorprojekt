@@ -16,8 +16,8 @@
   import AnalyticsWindowFilter from './factory/AnalyticsWindowFilter.svelte';
   import type { FloorPayload } from '../lib/factory-floor-types';
 
-  type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten';
-  const TAB_KEYS: Tab[] = ['factory', 'planung', 'analytics', 'kosten', 'control', 'abhaengigkeiten'];
+  type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten' | 'parallel';
+  const TAB_KEYS: Tab[] = ['factory', 'planung', 'analytics', 'kosten', 'control', 'abhaengigkeiten', 'parallel'];
 
   let { initial, initialTab, brand }: {
     initial: FloorPayload | null;
@@ -47,6 +47,89 @@
       if (t && TAB_KEYS.includes(t)) activeTab = t;
     });
   });
+
+  // --- Parallel-Status-Panel (inline, T002079) ---
+  interface ParallelStatus {
+    gangTickets: number;
+    slotsClaimed: number;
+    slotsPerBrand: number;
+    nextTickAt: string | null;
+  }
+
+  let parallel = $state<ParallelStatus | null>(null);
+  let parallelError = $state<string | null>(null);
+  let parallelLoading = $state(false);
+  let forcing = $state(false);
+  let nowMs = $state(Date.now());
+  let tickTimer: ReturnType<typeof setInterval> | null = null;
+  let refetchArmed = false;
+
+  async function loadParallel() {
+    try {
+      parallelLoading = true;
+      const res = await fetch('/api/factory/parallel-status');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      parallel = (await res.json()) as ParallelStatus;
+      parallelError = null;
+      refetchArmed = false;
+    } catch (err) {
+      parallelError = err instanceof Error ? err.message : 'Laden fehlgeschlagen';
+      parallel = null;
+    } finally {
+      parallelLoading = false;
+    }
+  }
+
+  async function forceTick() {
+    try {
+      forcing = true;
+      const res = await fetch('/api/factory/force-tick', { method: 'POST' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await loadParallel();
+    } catch (err) {
+      parallelError = err instanceof Error ? err.message : 'Force-Tick fehlgeschlagen';
+    } finally {
+      forcing = false;
+    }
+  }
+
+  // Restsekunden bis nextTickAt (≤ 0 → Tick fällig); null wenn kein Tick geplant.
+  const remainingSec = $derived(
+    parallel?.nextTickAt
+      ? Math.floor((new Date(parallel.nextTickAt).getTime() - nowMs) / 1000)
+      : null,
+  );
+
+  function fmtCountdown(sec: number): string {
+    const s = Math.max(0, sec);
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+  }
+
+  // Beim Aktivieren des Tabs: einmal fetchen + 1-Sekunden-Timer starten.
+  // Cleanup (Tab-Wechsel/Unmount) räumt den Timer auf — kein Leak.
+  $effect(() => {
+    if (activeTab !== 'parallel') return;
+    loadParallel();
+    tickTimer = setInterval(() => {
+      nowMs = Date.now();
+    }, 1000);
+    return () => {
+      if (tickTimer) {
+        clearInterval(tickTimer);
+        tickTimer = null;
+      }
+    };
+  });
+
+  // Countdown kreuzt 0 → genau einmal auto-refetchen (refetchArmed entschärft Refetch-Sturm).
+  $effect(() => {
+    if (activeTab === 'parallel' && parallel && remainingSec !== null && remainingSec <= 0 && !refetchArmed) {
+      refetchArmed = true;
+      loadParallel();
+    }
+  });
 </script>
 
 <div class="dev-status-tabs">
@@ -58,6 +141,7 @@
       { id: 'kosten', label: 'Kosten' },
       { id: 'control', label: 'Steuerung' },
       { id: 'abhaengigkeiten', label: 'Abhängigkeiten' },
+      { id: 'parallel', label: 'Parallel' },
     ]}
     active={activeTab}
     onselect={(id) => switchTab(id as Tab)}
@@ -88,6 +172,44 @@
   <div class="dag-tab-wrap">
     <DependencyGraph />
   </div>
+{:else if activeTab === 'parallel'}
+  <div class="parallel-tab-wrap">
+    {#if parallelError}
+      <div class="parallel-panel__error">
+        <p>Parallel-Status nicht ladbar: {parallelError}</p>
+        <button onclick={loadParallel} disabled={parallelLoading}>Erneut laden</button>
+      </div>
+    {:else if parallel}
+      <div class="parallel-panel__grid">
+        <div class="parallel-stat">
+          <span class="parallel-stat__num">{parallel.gangTickets}</span>
+          <span class="parallel-stat__label">Gang-Tickets</span>
+        </div>
+        <div class="parallel-stat">
+          <span class="parallel-stat__num">{parallel.slotsClaimed}</span>
+          <span class="parallel-stat__label">Slots belegt</span>
+        </div>
+        <div class="parallel-stat">
+          <span class="parallel-stat__num">{parallel.slotsPerBrand}</span>
+          <span class="parallel-stat__label">Slots / Brand</span>
+        </div>
+      </div>
+      <div class="parallel-panel__tick">
+        {#if remainingSec !== null && remainingSec <= 0}
+          <span class="parallel-panel__due">Tick fällig</span>
+        {:else if remainingSec !== null}
+          <span class="parallel-panel__countdown">Nächster Tick in {fmtCountdown(remainingSec)}</span>
+        {:else}
+          <span class="parallel-panel__countdown">Kein Tick geplant</span>
+        {/if}
+        <button class="parallel-panel__force" onclick={forceTick} disabled={forcing}>
+          {forcing ? 'Wird ausgelöst…' : 'Force next tick'}
+        </button>
+      </div>
+    {:else}
+      <div class="parallel-panel__loading">Lade Parallel-Status…</div>
+    {/if}
+  </div>
 {/if}
 
 <style>
@@ -110,5 +232,84 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+  }
+
+  .parallel-tab-wrap {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .parallel-panel__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .parallel-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem;
+    background: var(--admin-surface, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--admin-border, rgba(255, 255, 255, 0.07));
+    border-radius: var(--admin-radius-md, 8px);
+  }
+
+  .parallel-stat__num {
+    font-size: 1.75rem;
+    font-family: var(--admin-font-mono);
+    color: var(--admin-text-primary);
+  }
+
+  .parallel-stat__label {
+    font-size: var(--admin-text-sm, 0.85rem);
+    color: var(--admin-text-secondary);
+  }
+
+  .parallel-panel__tick {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--admin-font-mono);
+    color: var(--admin-text-secondary);
+  }
+
+  .parallel-panel__due {
+    color: var(--admin-error);
+    font-weight: 600;
+  }
+
+  .parallel-panel__force {
+    padding: 0.5rem 1.25rem;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-md);
+    color: var(--admin-text-primary);
+    cursor: pointer;
+    font-family: var(--admin-font-mono);
+  }
+
+  .parallel-panel__force:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .parallel-panel__error p {
+    margin: 0 0 1rem;
+    color: var(--admin-error);
+  }
+
+  .parallel-panel__loading {
+    padding: 1.5rem;
+    font-family: var(--admin-font-mono);
+    color: var(--admin-text-secondary);
+  }
+
+  @media (max-width: 768px) {
+    .parallel-panel__grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

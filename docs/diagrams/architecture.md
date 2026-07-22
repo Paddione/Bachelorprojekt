@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-88 Services · 1668 Abhängigkeitskanten · 408 API-Endpoints
+88 Services · 1668 Abhängigkeitskanten · 410 API-Endpoints
 
 ## Service-Map
 
@@ -2187,6 +2187,8 @@ flowchart TB
 | `/api/factory-metrics` | GET | 🔐 admin |
 | `/api/factory-model-slots` | GET, PUT | 🔐 admin |
 | `/api/factory-observability` | GET | 🔐 admin |
+| `/api/factory/force-tick` | POST | 🔐 admin |
+| `/api/factory/parallel-status` | GET | 🔐 admin |
 | `/api/health` | GET | ❓ unclassified |
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified |
 | `/api/internal/tickets/notify-close` | POST | ❓ internal |

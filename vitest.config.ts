@@ -8,7 +8,7 @@ export default defineConfig({
   // self-contained scripts/tsconfig.json, which oxc resolves as the nearest
   // tsconfig for scripts/**/*.test.ts. [T001360, supersedes T001323's esbuild trick]
   test: {
-    include: ['scripts/**/*.test.ts'],
+    include: ['scripts/**/*.test.ts', 'tests/e2e/lib/*.test.ts'],
     environment: 'node',
   },
 })

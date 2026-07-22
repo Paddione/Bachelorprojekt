@@ -93,7 +93,7 @@ const resultsUrl = `/poll/${id}/results`;
     )}
   </div>
 
-  <script define:vars={{ pollId: id, pollKind: poll?.kind ?? 'text', isLocked }}>
+  <script is:inline define:vars={{ pollId: id, pollKind: poll?.kind ?? 'text', isLocked }}>
     // Prevent duplicate submission in the same browser session
     if (!isLocked && sessionStorage.getItem('poll_submitted_' + pollId)) {
       const card = document.getElementById('card');

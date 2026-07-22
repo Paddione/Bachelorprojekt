@@ -30,19 +30,19 @@ describe('getEffectiveFuehrung', () => {
   afterEach(() => mockGet.mockReset());
 
   it('returns defaults when no service override exists', async () => {
-    mockGet.mockResolvedValue([]);
+    mockGet.mockReturnValue([]);
     const out = await getEffectiveFuehrung('mentolder');
     expect(out.headline).toBe(DEFAULT.headline);
   });
 
   it('returns defaults when the fuehrung slug is not in the override list', async () => {
-    mockGet.mockResolvedValue([{ slug: 'other', pageContent: { headline: 'X' } }]);
+    mockGet.mockReturnValue([{ slug: 'other', pageContent: { headline: 'X' } }]);
     const out = await getEffectiveFuehrung('mentolder');
     expect(out.headline).toBe(DEFAULT.headline);
   });
 
   it('applies headline/intro/forWhom/faq from the override', async () => {
-    mockGet.mockResolvedValue([
+    mockGet.mockReturnValue([
       {
         slug: 'fuehrung-persoenlichkeit',
         pageContent: {
@@ -61,7 +61,7 @@ describe('getEffectiveFuehrung', () => {
   });
 
   it('derives process steps from sections when sections is non-empty', async () => {
-    mockGet.mockResolvedValue([
+    mockGet.mockReturnValue([
       {
         slug: 'fuehrung-persoenlichkeit',
         pageContent: {
@@ -78,7 +78,7 @@ describe('getEffectiveFuehrung', () => {
   });
 
   it('falls back to defaults when sections is empty', async () => {
-    mockGet.mockResolvedValue([
+    mockGet.mockReturnValue([
       { slug: 'fuehrung-persoenlichkeit', pageContent: { sections: [] } },
     ]);
     const out = await getEffectiveFuehrung('mentolder');
@@ -86,7 +86,7 @@ describe('getEffectiveFuehrung', () => {
   });
 
   it('returns defaults when DB throws', async () => {
-    mockGet.mockRejectedValue(new Error('boom'));
+    mockGet.mockImplementation(() => { throw new Error('boom'); });
     const out = await getEffectiveFuehrung('mentolder');
     expect(out.headline).toBe(DEFAULT.headline);
   });

@@ -54,7 +54,7 @@ const DEFAULT_COACHING: CoachingContent = {
  */
 export async function getEffectiveCoaching(brand: string): Promise<CoachingContent> {
   try {
-    const overrides = await getServiceConfig(brand);
+    const overrides = getServiceConfig(brand);
     const svc = overrides?.find(o => o.slug === SLUG);
     const pc = svc?.pageContent;
 

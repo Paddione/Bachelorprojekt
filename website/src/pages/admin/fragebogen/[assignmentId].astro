@@ -355,7 +355,7 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
   <div id="replay-drawer-mount"></div>
 </AdminLayout>
 
-<script define:vars={{ assignmentId }}>
+<script is:inline define:vars={{ assignmentId }}>
   const notesEl = document.getElementById('coach-notes');
   const msgEl = document.getElementById('notes-msg');
 

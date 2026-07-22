@@ -32,7 +32,7 @@ it('generates a non-empty PDF buffer', async () => {
     },
   });
   expect(buf.length).toBeGreaterThan(1000);
-  expect(buf.slice(0,4).toString()).toBe('%PDF');
+  expect(buf.subarray(0,4).toString()).toBe('%PDF');
 });
 
 it('includes reverse charge notice when supplyType is eu_b2b_services', async () => {
@@ -108,7 +108,7 @@ it('generates a Zahlungserinnerung (level 1, no fees) as a valid PDF', async () 
     customer: dunningCustomer,
     seller: dunningSeller,
   });
-  expect(buf.slice(0, 4).toString()).toBe('%PDF');
+  expect(buf.subarray(0, 4).toString()).toBe('%PDF');
   const text = await extractText(buf);
   expect(text).toContain('ZAHLUNGSERINNERUNG');
 });
@@ -124,7 +124,7 @@ it('generates a Mahnung (level 2+) with fees and interest included in the total'
     customer: dunningCustomer,
     seller: { ...dunningSeller, email: undefined, phone: undefined },
   });
-  expect(buf.slice(0, 4).toString()).toBe('%PDF');
+  expect(buf.subarray(0, 4).toString()).toBe('%PDF');
   const text = await extractText(buf);
   expect(text).toContain('MAHNUNG');
   // Mahngebühren/Verzugszinsen rows are only rendered when > 0
@@ -156,7 +156,7 @@ it('generateInvoicePdf covers optional fields: multi-line items, service period,
       outroText: 'Mit freundlichen Grüßen',
     },
   });
-  expect(buf.slice(0, 4).toString()).toBe('%PDF');
+  expect(buf.subarray(0, 4).toString()).toBe('%PDF');
   const text = await extractText(buf);
   expect(text).toContain('Erika GmbH');
   expect(text).toContain('Reisekosten');
@@ -169,5 +169,5 @@ it('generateInvoicePdf renders a single service period date when no end date is 
     customer: { name: 'Max Mustermann', email: 'max@test.de', country: 'DE' },
     seller: dunningSeller,
   });
-  expect(buf.slice(0, 4).toString()).toBe('%PDF');
+  expect(buf.subarray(0, 4).toString()).toBe('%PDF');
 });

@@ -58,7 +58,7 @@ const { ticket, timeline } = Astro.props;
   <TicketActivityTimeline client:load entries={timeline} />
 </div>
 
-<script define:vars={{ ticketId: ticket.id }}>
+<script is:inline define:vars={{ ticketId: ticket.id }}>
   document.querySelectorAll('.unlink-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!confirm('Verknüpfung entfernen?')) return;

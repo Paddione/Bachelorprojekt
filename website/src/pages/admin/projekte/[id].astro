@@ -797,7 +797,7 @@ const tasksJson = JSON.stringify(allTasksFlat.map(t => ({
   </dialog>
 </AdminLayout>
 
-<script define:vars={{ spJson, tasksJson }}>
+<script is:inline define:vars={{ spJson, tasksJson }}>
   const subProjects = JSON.parse(spJson);
   const allTasks    = JSON.parse(tasksJson);
 

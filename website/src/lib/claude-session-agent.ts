@@ -107,7 +107,7 @@ export class ClaudeSessionAgent implements SessionAgent {
       { role: 'user', content: assembledUserPrompt },
     ];
 
-    const stream = await client.messages.stream({
+    const stream = client.messages.stream({
       model,
       max_tokens: kiConfig.maxTokens ?? 600,
       system: effectiveSystemPrompt,

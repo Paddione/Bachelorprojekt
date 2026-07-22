@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-22T10:53:23.469Z
+> Generated at 2026-07-22T14:00:56.374Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -174,6 +174,10 @@
 | `/api/admin/kore-flags/save` | POST | 🔐 admin | `website/src/pages/api/admin/kore-flags/save.ts` |
 | `/api/admin/legal/{key}/save` | POST | 🔐 admin | `website/src/pages/api/admin/legal/[key]/save.ts` |
 | `/api/admin/legal/retokenize` | POST | 🔐 admin | `website/src/pages/api/admin/legal/retokenize.ts` |
+| `/api/admin/llm-proxy/backends` | GET, POST | 🔐 admin | `website/src/pages/api/admin/llm-proxy/backends.ts` |
+| `/api/admin/llm-proxy/backends/{id}` | PUT, DELETE | 🔐 admin | `website/src/pages/api/admin/llm-proxy/backends/[id].ts` |
+| `/api/admin/llm-proxy/reload` | POST | 🔐 admin | `website/src/pages/api/admin/llm-proxy/reload.ts` |
+| `/api/admin/llm-proxy/status` | GET | 🔐 admin | `website/src/pages/api/admin/llm-proxy/status.ts` |
 | `/api/admin/meetings` | GET | 🔐 admin | `website/src/pages/api/admin/meetings/index.ts` |
 | `/api/admin/meetings/{id}` | GET, PATCH | 🔐 admin | `website/src/pages/api/admin/meetings/[id].ts` |
 | `/api/admin/meetings/create` | POST | 🔐 admin | `website/src/pages/api/admin/meetings/create.ts` |

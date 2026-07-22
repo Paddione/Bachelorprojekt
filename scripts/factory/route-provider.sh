@@ -19,10 +19,10 @@ if [[ -z "$PHASE" ]]; then
   esac
 fi
 
-OPUS_MODEL="qwythos-9b-v2"
-OPUS_BASE_URL="http://127.0.0.1:1234"
+OPUS_MODEL="ternary-bonsai-27b"
+OPUS_BASE_URL="http://127.0.0.1:18235"
 if [[ "$TIER" == "opus" ]]; then
-  printf '{"provider":"lmstudio","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"emergency":false}\n' "$OPUS_MODEL" "$OPUS_BASE_URL"
+  printf '{"provider":"ternary-bonsai-27b","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"emergency":false}\n' "$OPUS_MODEL" "$OPUS_BASE_URL"
   exit 0
 fi
 

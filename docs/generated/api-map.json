@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-21T23:09:11.134Z",
+  "generatedAt": "2026-07-22T10:53:23.469Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2871,6 +2871,22 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/factory-observability.ts"
+    },
+    {
+      "path": "/api/factory/force-tick",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory/force-tick.ts"
+    },
+    {
+      "path": "/api/factory/parallel-status",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/factory/parallel-status.ts"
     },
     {
       "path": "/api/health",

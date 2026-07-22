@@ -1,0 +1,130 @@
+{
+  "meta": {
+    "slug": "factory-parallel-status",
+    "ticket": "T002079",
+    "parent_spec": "software-factory",
+    "captured_at_ref": "main@dca85e563",
+    "note": "Intel via code-explorer subagent + grep/Read + wc/jq. codebase-memory-mcp nicht separat abgefragt; Signaturen aus realen Datei-Zitaten."
+  },
+  "impact_files": [
+    { "path": "website/src/pages/api/factory/parallel-status.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600, "status": "net-new", "partial": "p1" },
+    { "path": "website/src/pages/api/factory/force-tick.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600, "status": "net-new", "partial": "p1" },
+    { "path": "website/src/lib/parallel-status.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600, "status": "net-new", "partial": "p1" },
+    { "path": "scripts/factory/wakeup.sh", "language": "bash", "loc": 195, "s1_limit": 500, "s1_baseline": null, "s1_budget": 305, "status": "edit", "partial": "p1" },
+    { "path": "website/src/components/DevStatusTabs.svelte", "language": "svelte", "loc": 114, "s1_limit": 500, "s1_baseline": null, "s1_budget": 386, "status": "edit", "partial": "p2" },
+    { "path": "website/src/pages/admin/pipeline.astro", "language": "astro", "loc": 32, "s1_limit": 400, "s1_baseline": null, "s1_budget": 368, "status": "edit", "partial": "p2" },
+    { "path": "website/src/lib/parallel-status.test.ts", "language": "typescript", "loc": 0, "s1_limit": null, "s1_baseline": null, "s1_budget": null, "status": "net-new", "partial": "p3", "note": "test file — S1-exempt" },
+    { "path": "tests/spec/software-factory.bats", "language": "bats", "loc": 3823, "s1_limit": null, "s1_baseline": null, "s1_budget": null, "status": "edit", "partial": "p3", "note": "test file — S1-exempt (not baselined despite size)" }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "website/src/lib/auth.ts:isAdmin",
+      "kind": "function",
+      "file": "website/src/lib/auth.ts",
+      "signature": "export function isAdmin(session: UserSession): boolean (Zeile 202)",
+      "type_text": "session-role guard; true wenn Admin",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/auth.ts:getSession",
+      "kind": "function",
+      "file": "website/src/lib/auth.ts",
+      "signature": "export async function getSession(cookieHeader: string | null): Promise<UserSession | null> (Zeile 210)",
+      "type_text": "liest Session aus Cookie-Header; null wenn keine",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/website-db.ts:pool",
+      "kind": "value",
+      "file": "website/src/lib/website-db.ts",
+      "signature": "export { pool } from './db-pool' (Zeile 53-55) — pg.Pool",
+      "type_text": "pg Pool; pool.query(text, params) => Promise<QueryResult>",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/factory-floor.ts:writeControl",
+      "kind": "function",
+      "file": "website/src/lib/factory-floor.ts",
+      "signature": "export async function writeControl(key: string, value: string, setBy = 'admin-ui'): Promise<void> (Zeile 79)",
+      "type_text": "UPSERT in tickets.factory_control (key, brand=NULL, value, set_by, updated_at)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/factory-floor.ts:readControl",
+      "kind": "function",
+      "file": "website/src/lib/factory-floor.ts",
+      "signature": "async function readControl(key: string, fallback: string): Promise<string> (Zeile 88, modul-privat)",
+      "type_text": "SELECT value FROM tickets.factory_control WHERE key=$1 AND brand IS NULL LIMIT 1; nicht exportiert — parallel-status muss eigene read-Query nutzen oder Export ergänzen",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/components/DevStatusTabs.svelte:Tab",
+      "kind": "type",
+      "file": "website/src/components/DevStatusTabs.svelte",
+      "signature": "type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten' (Zeile 19); TAB_KEYS: Tab[] (Zeile 20)",
+      "type_text": "string-literal union; 'parallel' hinzuzufügen — in Tab, TAB_KEYS (svelte) UND Tab, ALLOWED (pipeline.astro Zeile 21-22)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/pages/api/admin/factory-control.ts:authGuard",
+      "kind": "function",
+      "file": "website/src/pages/api/admin/factory-control.ts",
+      "signature": "function authGuard(session): Response | null (Zeile 68-82) — 401 wenn !session, 403 wenn !isAdmin",
+      "type_text": "Vorlage 1:1 für parallel-status.ts + force-tick.ts; GET-Kopf Zeile 84-90",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "note": "parallel-status.ts (GET) -> authGuard -> pool.query(aggregate) + readControl('last-tick-at') -> deriveParallelStatus/deriveNextTickAt (lib/parallel-status.ts). force-tick.ts (POST) -> authGuard -> writeControl('force-tick-requested'). wakeup.sh -> read/clear 'force-tick-requested', write 'last-tick-at' (via psql/factory_control).",
+    "consumers": ["DevStatusTabs.svelte (client fetch)"]
+  },
+  "db_tables": [
+    {
+      "table": "tickets.tickets",
+      "columns_used": ["slot_count int NOT NULL DEFAULT 1", "pipeline_slot (NULL=frei)", "status"],
+      "source": "scripts/migrations/2026-07-22-slot-count-gang.sql:6-11, scripts/factory/slots.sh:23"
+    },
+    {
+      "table": "tickets.factory_control",
+      "columns_used": ["key", "brand (NULL für global)", "value", "set_by", "updated_at"],
+      "source": "website/src/lib/factory-floor.ts:79-90",
+      "new_keys": ["force-tick-requested (ISO ts)", "last-tick-at (ISO ts)"]
+    }
+  ],
+  "api_contracts": [
+    {
+      "route": "GET /api/factory/parallel-status",
+      "auth": "admin-guard (401/403)",
+      "response": "{ gangTickets: number, slotsClaimed: number, slotsPerBrand: number, nextTickAt: string|null }",
+      "status": "net-new"
+    },
+    {
+      "route": "POST /api/factory/force-tick",
+      "auth": "admin-guard (401/403)",
+      "response": "{ ok: true, requestedAt: string }",
+      "status": "net-new"
+    },
+    {
+      "route": "GET /api/factory-control (Vorlage)",
+      "file": "website/src/pages/api/admin/factory-control.ts",
+      "note": "Referenz-Pattern für authGuard + pool.query + error handling"
+    }
+  ],
+  "external_types": [
+    {
+      "name": "APIRoute",
+      "from": "astro",
+      "usage": "export const GET: APIRoute = async ({ request, locals }) => {...}; export const prerender = false;",
+      "source": "context7/astro + factory-control.ts:1-7"
+    }
+  ],
+  "env_config": [
+    { "name": "FACTORY_SLOTS_PER_BRAND", "default": "3", "source": "scripts/factory/slots.sh:17", "usage": "slotsPerBrand cap" },
+    { "name": "FACTORY_TICK_INTERVAL_SEC", "default": "300", "source": "net-new (dieser Change)", "usage": "nextTickAt = last-tick-at + interval" }
+  ],
+  "risks": [
+    { "note": "readControl in factory-floor.ts ist modul-privat (nicht exportiert). parallel-status.ts braucht entweder einen kleinen read-Helper in lib/parallel-status.ts (direkt pool.query) ODER einen Export-Zusatz. Empfehlung: eigene read-Query in P1, um factory-floor.ts nicht zu koppeln (bleibt disjunkt).", "severity": "warn" },
+    { "note": "wakeup.sh schreibt factory_control per psql/SQL, nicht über die TS-Bridge. P1 muss das SQL-Pattern (psql helper der Factory-Skripte) statt writeControl nutzen — beide schreiben dieselbe Tabelle.", "severity": "warn" },
+    { "note": "Countdown-Timer: Zeit als Argument an pure Funktion übergeben (kein Date.now im Kern), sonst vitest-Zeit-Mocking nötig.", "severity": "info" }
+  ]
+}

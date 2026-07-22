@@ -57,6 +57,31 @@ fi
 bash "${REPO}/scripts/agent-msg.sh" read --unread 2>/dev/null || true
 AGENT_MSG_LABEL=factory bash "${REPO}/scripts/agent-msg.sh" post "factory-tick: starting (dry_run=${DRY_RUN})" 2>/dev/null || true
 
+# ── factory_control helper (best-effort, per brand) ───────────────────────────
+# Runs factory_psql for BRAND=$1 in a subshell so lib.sh's `set -euo pipefail`
+# and factory_resolve's `exit 2` can never abort this tick. SQL on stdin, extra
+# args forwarded (mirrors factory_psql). Stdout is the query result (may be empty).
+_control_psql() {
+  local brand="$1"; shift
+  ( set +e; BRAND="$brand" source "${REPO}/scripts/factory/lib.sh"; factory_resolve; \
+    factory_psql "$@" ) 2>/dev/null || true
+}
+
+# ── Force-Tick flag: read + clear (both brands) ───────────────────────────────
+# The admin "Force next tick" button writes factory_control.force-tick-requested
+# (brand IS NULL). We log if present and delete it so it is consumed exactly once.
+for _ft_brand in mentolder korczewski; do
+  _forced="$(printf '%s' \
+    "SELECT value FROM tickets.factory_control WHERE key='force-tick-requested' AND brand IS NULL LIMIT 1;" \
+    | _control_psql "$_ft_brand")"
+  if [[ -n "${_forced}" ]]; then
+    echo "wakeup.sh: forced tick requested (${_ft_brand} @ ${_forced}) — consuming flag" >&2
+    printf '%s' \
+      "DELETE FROM tickets.factory_control WHERE key='force-tick-requested' AND brand IS NULL;" \
+      | _control_psql "$_ft_brand" >/dev/null
+  fi
+done
+
 # ── git-crypt: a locked secrets file starts with the \0GITCRYPT\0 magic ───────
 # We probe one known-encrypted file; if it is still ciphertext, unlock the tree.
 CRYPT_PROBE="environments/.secrets/mentolder.yaml"
@@ -191,5 +216,17 @@ while true; do
 
   echo "wakeup.sh: idle-retick — queue empty after tick #${TICK}, exiting (timer handles future work)" >&2
   break
+done
+
+# ── record last-tick-at (both brands, best-effort) ────────────────────────────
+# parallel-status.ts derives nextTickAt = last-tick-at + FACTORY_TICK_INTERVAL_SEC.
+# Written after the loop so it reflects the moment this wakeup finished its work.
+_last_tick_at="$(date -u +%FT%TZ)"
+for _lt_brand in mentolder korczewski; do
+  printf '%s' \
+    "INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+       VALUES ('last-tick-at', NULL, :'ts', 'wakeup.sh', now())
+     ON CONFLICT (key, brand) DO UPDATE SET value = :'ts', set_by = 'wakeup.sh', updated_at = now();" \
+    | _control_psql "$_lt_brand" -v ts="${_last_tick_at}" >/dev/null
 done
 AGENT_MSG_LABEL=factory bash "${REPO}/scripts/agent-msg.sh" post "factory-tick: done" 2>/dev/null || true

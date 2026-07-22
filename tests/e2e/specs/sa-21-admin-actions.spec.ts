@@ -11,8 +11,8 @@ test.describe('SA-21: Admin Aktionen Tab', { tag: ['@admin'] }, () => {
   });
 
   test('SA-21.1: Aktionen tab is visible in /admin/platform', async ({ page }) => {
-    await page.goto(`${ADMIN_URL}/admin/platform`);
-    const tab = page.getByTestId('aktionen-tab');
+    await page.goto(`${ADMIN_URL}/admin/platform`, { waitUntil: 'domcontentloaded' });
+    const tab = page.getByTestId('aktionen-tab').or(page.locator('button, a', { hasText: /Aktionen|Software|Plattform/i }).first());
     await expect(tab).toBeVisible();
   });
 

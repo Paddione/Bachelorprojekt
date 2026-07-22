@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Planungsbüro', { tag: ['@admin', '@planungsbuero'] }, () => {
-  test.beforeEach(async ({ page }) => { await page.goto('/admin/planungsbuero'); });
+  test.beforeEach(async ({ page }) => { await page.goto('/admin/pipeline?tab=planung', { waitUntil: 'domcontentloaded' }); });
 
   test('legt eine Idee an und zeigt sie in der Liste', async ({ page }) => {
     await page.getByTestId('office-add-title').fill('E2E Testidee');

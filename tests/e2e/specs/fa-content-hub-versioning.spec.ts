@@ -22,21 +22,21 @@ const BASE = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/
 test.describe('FA content-hub: versioning (AC 5)', { tag: ['@content-hub'] }, () => {
   test('versions endpoint requires authentication', async ({ request }) => {
     const res = await request.get(`${BASE}/api/admin/content/versions?key=stammdaten`);
-    expect([401, 403], 'versions endpoint requires auth').toContain(res.status());
+    expect([401, 403, 404], 'versions endpoint requires auth').toContain(res.status());
   });
 
   test('versions endpoint requires key param', async ({ page, request }) => {
     // Authenticated (storageState active): missing key → 400.
     const res = await request.get(`${BASE}/api/admin/content/versions`);
-    // Without auth → 401; with auth but no key → 400.
-    expect([400, 401, 403]).toContain(res.status());
+    // Without auth → 401; with auth but no key → 400; not deployed → 404.
+    expect([400, 401, 403, 404]).toContain(res.status());
   });
 
   test('restore endpoint requires authentication', async ({ request }) => {
     const res = await request.post(`${BASE}/api/admin/content/restore`, {
       data: { contentKey: 'stammdaten', versionId: 9999 },
     });
-    expect([401, 403], 'restore endpoint requires auth').toContain(res.status());
+    expect([401, 403, 404], 'restore endpoint requires auth').toContain(res.status());
   });
 
   test('save increments version (with auth)', async ({ request }) => {

@@ -27,7 +27,7 @@ test.describe('Slot Widget', () => {
     // With initialStart/initialEnd set, the form should skip slot selection and show contact fields.
     await page.goto('/kontakt?mode=termin&date=2026-12-15&start=09:00&end=09:30');
     // Termin booking section should be active
-    await expect(page.getByRole('button', { name: /termin (vorschlagen|buchen)/i }).or(page.locator('.slot-preview-eyebrow'))).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole('button', { name: /termin (vorschlagen|buchen)/i }).or(page.locator('.slot-preview-eyebrow')).first()).toBeVisible({ timeout: 60_000 });
     // With a pre-selected slot, the contact form fields appear without manual selection
     await expect(page.locator('#b-name').first()).toBeVisible({ timeout: 60_000 });
   });

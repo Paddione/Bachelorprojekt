@@ -5,7 +5,7 @@ const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
 async function openSidekick(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/admin`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   const fab = page.locator('button.fab');
   await expect(fab).toBeVisible({ timeout: 30_000 });
   await fab.click();

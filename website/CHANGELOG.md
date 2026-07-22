@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.197.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.11...website-v1.197.12) (2026-07-22)
+
+
+### Bug Fixes
+
+* **website:** resolve 22 typecheck/lint warnings [vitest-cleanup] ([#3092](https://github.com/Paddione/Bachelorprojekt/issues/3092)) ([6b1fbcf](https://github.com/Paddione/Bachelorprojekt/commit/6b1fbcfdb2a16b844ecbdd0bfe3d2b9dc76cd4a0))
+
 ## [1.197.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.10...website-v1.197.11) (2026-07-22)
 
 

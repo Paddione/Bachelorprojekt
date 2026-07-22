@@ -203,6 +203,29 @@ spec:
         - name: pocket-id
           image: ghcr.io/pocket-id/pocket-id:v2.9.0@sha256:a2a38a96699d7483d65b5849b015d954f294938306a03a9c0699bc5b79554e86
           imagePullPolicy: IfNotPresent
+          # Retry wrapper (T002067): Pocket ID's Go binary only retries DB
+          # connection 3 times (~9s) before exiting. shared-db uses
+          # strategy: Recreate, which kills the old pod before the new one
+          # is ready — the window is longer than 9s, causing a crash loop.
+          # This wrapper retries up to 30 times (~90s) and handles SIGTERM
+          # so k8s can cleanly terminate the pod during rolling updates.
+          command:
+            - sh
+            - -c
+            - |
+              trap 'echo "SIGTERM received — exiting"; exit 0' TERM
+              for i in $(seq 1 30); do
+                /app/docker/entrypoint.sh /app/pocket-id &
+                pid=$!
+                wait $pid
+                rc=$?
+                if [ $rc -eq 0 ]; then exit 0; fi
+                if [ $rc -eq 143 ] || [ $rc -eq 130 ]; then exit 0; fi
+                echo "pocket-id exited ($rc), retrying in 3s (attempt $i/30)..."
+                sleep 3
+              done
+              echo "pocket-id failed after 30 attempts"
+              exit 1
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true

@@ -114,7 +114,7 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
   while IFS= read -r row; do
     [[ "$row" == *tasks.d/* ]] || continue
     row_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row")"
-    IFS='|' read -r c_id c_file c_role c_targets <<<"$row_stripped"
+    IFS='|' read -r c_id c_file c_role c_targets c_deps <<<"$row_stripped"
     c_file="$(printf '%s' "$c_file" | tr -d ' `')"
     c_role="$(printf '%s' "$c_role" | tr -d ' ')"
     PARTIAL_FILES+=("$c_file")
@@ -144,11 +144,9 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     # D2 (NEU, Hard): depends_on — validate references and acyclicity.
     declare -A PARTIAL_IDS=()
     declare -A PARTIAL_DEPS=()
+    manifest_data_rows="$(grep 'tasks\.d/' <<<"$manifest_rows" || true)"
     for idx in "${!PARTIAL_FILES[@]}"; do
-      local row_stripped="${manifest_rows}"
-      local row_line
-      row_line=$(sed -n "$((idx+1))p" <<<"$manifest_rows")
-      local rl_stripped
+      row_line=$(sed -n "$((idx+1))p" <<<"$manifest_data_rows")
       rl_stripped="$(sed -E 's/^\| *//; s/ *\| *$//' <<<"$row_line")"
       IFS='|' read -r _rid _rfile _rrole _rtargets _rdeps <<<"$rl_stripped"
       _rid="$(printf '%s' "$_rid" | tr -d ' `')"
@@ -157,7 +155,7 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
       PARTIAL_DEPS["$_rid"]="${_rdeps}"
     done
     for pid in "${!PARTIAL_DEPS[@]}"; do
-      local deps_str="${PARTIAL_DEPS[$pid]}"
+      deps_str="${PARTIAL_DEPS[$pid]}"
       [[ -z "$deps_str" ]] && continue
       IFS=',' read -ra _dep_arr <<<"$deps_str"
       for _dep in "${_dep_arr[@]}"; do
@@ -171,34 +169,38 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     declare -A _adj=()
     for pid in "${!PARTIAL_IDS[@]}"; do _indeg["$pid"]=0; _adj["$pid"]=""; done
     for pid in "${!PARTIAL_DEPS[@]}"; do
-      local deps_str="${PARTIAL_DEPS[$pid]}"
+      deps_str="${PARTIAL_DEPS[$pid]}"
       [[ -z "$deps_str" ]] && continue
       IFS=',' read -ra _dep_arr <<<"$deps_str"
       for _dep in "${_dep_arr[@]}"; do
         _dep="$(printf '%s' "$_dep" | tr -d ' ')"
         [[ -z "$_dep" ]] && continue
-        _adj["$_dep"]="${_adj[$_dep]} $pid"
+        _adj["$_dep"]="${_adj[$_dep]:-} $pid"
         _indeg["$pid"]=$(( ${_indeg[$pid]} + 1 ))
       done
     done
-    local _queue=""
+    _queue=()
     for pid in "${!_indeg[@]}"; do
-      [[ "${_indeg[$pid]}" -eq 0 ]] && _queue="$_queue $pid"
+      [[ "${_indeg[$pid]}" -eq 0 ]] && _queue+=("$pid")
     done
-    local _sorted=0
-    for _q in $_queue; do
+    _sorted=0
+    _q_idx=0
+    while [[ $_q_idx -lt ${#_queue[@]} ]]; do
+      _q="${_queue[$_q_idx]}"
+      _q_idx=$((_q_idx + 1))
       _sorted=$((_sorted + 1))
-      for _n in ${_adj[$_q]}; do
+      for _n in ${_adj[$_q]:-}; do
+        [[ -z "$_n" ]] && continue
         _indeg["$_n"]=$(( ${_indeg[$_n]} - 1 ))
-        [[ "${_indeg[$_n]}" -eq 0 ]] && _queue="$_queue $_n"
+        [[ "${_indeg[$_n]}" -eq 0 ]] && _queue+=("$_n")
       done
     done
-    local _total=${#PARTIAL_IDS[@]}
+    _total=${#PARTIAL_IDS[@]}
     if [[ $_sorted -ne $_total && $_total -gt 0 ]]; then
-      local _remaining=""
+      _remaining=""
       for pid in "${!PARTIAL_IDS[@]}"; do
-        local _found=0
-        for _q in $_queue; do [[ "$_q" == "$pid" ]] && _found=1; done
+        _found=0
+        for _q in "${_queue[@]}"; do [[ "$_q" == "$pid" ]] && _found=1; done
         [[ "$_found" -eq 0 ]] && _remaining="${_remaining:+$_remaining -> }$pid"
       done
       hard "D2: dependency cycle: $_remaining"

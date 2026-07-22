@@ -11,6 +11,7 @@ overrides:
   ws: 8.21.0
   js-yaml: ^4.1.2
   '@babel/core': '>=7.29.1'
+  adm-zip: ^0.6.0
 
 importers:
 
@@ -1944,9 +1945,9 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  adm-zip@0.5.18:
-    resolution: {integrity: sha512-ufJnssQGbxzLNS1Ho9bCtX4rQKCCvoVuDLHoJyc3F9dOGDB4BkWs2Ci0kv53lqocAEQ/Cbi+I2XCsNYGqVYqng==}
-    engines: {node: '>=12.0'}
+  adm-zip@0.6.0:
+    resolution: {integrity: sha512-XleryMhbuksdKtofnWZ9Sk+4CUTbms4Mb/EU32SZwToAyZ5RgVos/ki8n+yr0LWHOGKuakbXTuuYNHLQjhddgg==}
+    engines: {node: '>=14.0'}
 
   ajv-draft-04@1.0.0:
     resolution: {integrity: sha512-mv00Te6nmYbRp5DCwclxtt7yV/joXJPGS7nM+97GdxvuttCOfgI3K4U25zboyeX0O+myI8ERluxQe5wljMmVIw==}
@@ -6027,7 +6028,7 @@ snapshots:
 
   acorn@8.17.0: {}
 
-  adm-zip@0.5.18: {}
+  adm-zip@0.6.0: {}
 
   ajv-draft-04@1.0.0(ajv@8.20.0):
     optionalDependencies:
@@ -6627,7 +6628,7 @@ snapshots:
 
   epub2@3.0.2(ts-toolbelt@9.6.0):
     dependencies:
-      adm-zip: 0.5.18
+      adm-zip: 0.6.0
       array-hyper-unique: 2.1.8
       bluebird: 3.7.2
       crlf-normalize: 1.0.20(ts-toolbelt@9.6.0)

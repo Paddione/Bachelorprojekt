@@ -24,7 +24,7 @@ _start_stub() {
         res.statusCode=404; res.end("{}");
       });
     }).listen(Number(port),"127.0.0.1");
-  ' "$port" "$label" "$model" &
+  ' "$port" "$label" "$model" >/dev/null 2>&1 &
   echo $!
 }
 
@@ -51,7 +51,7 @@ teardown() {
 }
 
 _start_proxy() {
-  node "${REPO_ROOT}/${PROXY_MOD}" & PROXY_PID=$!
+  node "${REPO_ROOT}/${PROXY_MOD}" >/dev/null 2>&1 & PROXY_PID=$!
   for _ in $(seq 1 40); do
     curl -sf "http://127.0.0.1:${PROXY_PORT}/health" >/dev/null 2>&1 && return 0
     sleep 0.25

@@ -1,11 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin } from '../lib/auth';
 
-const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
+const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 async function openSidekick(page: import('@playwright/test').Page) {
   await page.goto(`${BASE}/admin`);
-  await page.waitForLoadState('domcontentloaded');
   const fab = page.locator('button.fab');
   await expect(fab).toBeVisible({ timeout: 30_000 });
   await fab.click();
@@ -16,7 +15,6 @@ async function openSidekick(page: import('@playwright/test').Page) {
 test.describe('FA-51: Sidekick-Navigation (T000965)', { tag: ['@website'] }, () => {
   test('T1: Sidekick FAB (.fab) is present and accessible on admin', async ({ page }) => {
     await loginAsAdmin(page);
-    await page.waitForLoadState('networkidle');
     const fab = page.locator('button.fab');
     await expect(fab).toBeVisible({ timeout: 30_000 });
     await expect(fab).toHaveAttribute('aria-expanded', 'false');

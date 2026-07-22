@@ -15,7 +15,7 @@ async function loginAsGekko(page: Page): Promise<void> {
 // ── M3-01: Portal nudge endpoint returns onboarding nudge after first login ──
 
 test.describe('M3 Onboarding Flow', () => {
-  test('M3-01: /api/assistant/nudges returns portal-onboarding-sequence nudge for logged-in user', async ({ page, request }) => {
+  test('M3-01: /api/assistant/nudges returns portal-onboarding-sequence nudge for logged-in user', async ({ page }) => {
     await loginAsGekko(page);
 
     // First: ensure portal-first-login has fired by visiting /portal
@@ -23,7 +23,7 @@ test.describe('M3 Onboarding Flow', () => {
     await expect(page.locator('body')).not.toContainText('500');
 
     // Fetch nudges for the portal profile
-    const res = await request.get(`${BASE}/api/assistant/nudges?profile=portal`);
+    const res = await page.request.get(`${BASE}/api/assistant/nudges?profile=portal`);
     expect(res.ok()).toBe(true);
 
     const body = await res.json() as { nudges?: Array<{ triggerId: string }> };
@@ -41,11 +41,11 @@ test.describe('M3 Onboarding Flow', () => {
 
   // ── M3-02: Primary action on first onboarding nudge is non-empty ────────────
 
-  test('M3-02: First onboarding nudge has a non-empty primaryAction kickoff', async ({ page, request }) => {
+  test('M3-02: First onboarding nudge has a non-empty primaryAction kickoff', async ({ page }) => {
     await loginAsGekko(page);
     await page.goto(`${BASE}/portal`, { waitUntil: 'domcontentloaded' });
 
-    const res = await request.get(`${BASE}/api/assistant/nudges?profile=portal`);
+    const res = await page.request.get(`${BASE}/api/assistant/nudges?profile=portal`);
     expect(res.ok()).toBe(true);
 
     const body = await res.json() as {
@@ -66,11 +66,11 @@ test.describe('M3 Onboarding Flow', () => {
 
   // ── M3-05: mark-step API persists an onboarding step ────────────────────────
 
-  test('M3-05: POST /api/portal/onboarding/mark-step persists step and returns ok', async ({ page, request }) => {
+  test('M3-05: POST /api/portal/onboarding/mark-step persists step and returns ok', async ({ page }) => {
     await loginAsGekko(page);
 
     // Mark the sidekick-intro step as complete
-    const res = await request.post(`${BASE}/api/portal/onboarding/mark-step`, {
+    const res = await page.request.post(`${BASE}/api/portal/onboarding/mark-step`, {
       data: { stepId: 'sidekick-intro' },
     });
     expect(res.ok()).toBe(true);
@@ -79,7 +79,7 @@ test.describe('M3 Onboarding Flow', () => {
     expect(body.ok).toBe(true);
 
     // After marking sidekick-intro, the sequence should advance to agent-guide-intro
-    const nudgeRes = await request.get(`${BASE}/api/assistant/nudges?profile=portal`);
+    const nudgeRes = await page.request.get(`${BASE}/api/assistant/nudges?profile=portal`);
     expect(nudgeRes.ok()).toBe(true);
 
     const nudgeBody = await nudgeRes.json() as {
@@ -96,8 +96,8 @@ test.describe('M3 Onboarding Flow', () => {
 
   // ── Auth guard: unauthenticated calls to mark-step return 401 ───────────────
 
-  test('M3-auth: POST /api/portal/onboarding/mark-step → 401 when unauthenticated', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/portal/onboarding/mark-step`, {
+  test('M3-auth: POST /api/portal/onboarding/mark-step → 401 when unauthenticated', async ({ page }) => {
+    const res = await page.request.post(`${BASE}/api/portal/onboarding/mark-step`, {
       data: { stepId: 'sidekick-intro' },
     });
     expect(res.status()).toBe(401);

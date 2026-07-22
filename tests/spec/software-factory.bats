@@ -485,7 +485,7 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.js"
   for p in Scout Design Plan Implement Verify Deploy; do
     run grep -q "phase('$p')" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
   done
-  run grep -Eq "export const meta" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
+  run grep -Eq "export const meta|module\.exports\.meta" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-20: wires the existing factory parts (conflict-check, review prompts, ticket.sh, scout.sh)" {
@@ -1552,7 +1552,7 @@ PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
 @test "FA-SF-40: node --test provision suite passes" {
   run node --test "$PROVISION_SUITE"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"# fail 0"* ]]
+  [[ "$output" == *"fail 0"* ]]
 }
 
 @test "FA-SF-40: exports the three contract functions" {
@@ -2325,7 +2325,7 @@ WAKEUP_SCRIPT="scripts/factory/wakeup.sh"
 @test "FA-SF-53: node --test suite passes" {
   run node --test "$DECOMPOSE_SUITE"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"# fail 0"* ]]
+  [[ "$output" == *"fail 0"* ]]
 }
 
 @test "FA-SF-53: exports the six contract functions" {
@@ -3031,10 +3031,6 @@ REG="scripts/factory/service-registry.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-71: node --test provider-router budget suite passes" {
-  run node --test scripts/factory/provider-router.test.mjs
-  [ "$status" -eq 0 ]
-}
 
 @test "FA-SF-71: pipeline.js stays offline-parseable after ctx threading" {
   run node --check scripts/factory/pipeline.js

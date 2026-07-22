@@ -12,7 +12,7 @@ SUITE="scripts/factory/pipeline-decompose.test.cjs"
 @test "FA-SF-53: node --test suite passes" {
   run node --test "$SUITE"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"# fail 0"* ]]
+  [[ "$output" == *"fail 0"* ]]
 }
 
 @test "FA-SF-53: exports the six contract functions" {

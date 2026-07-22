@@ -74,20 +74,20 @@ aufgerufen, nicht geändert).
 
 | Datei | Ist | S1-Budget |
 |---|---|---|
-| `scripts/factory/slots.sh` | 37 | 463 |
-| `scripts/factory/schedule.sh` | 75 | 425 |
-| `scripts/factory/pipeline.js` | 630 | -30 |
+| `scripts/factory/slots.sh` | 51 | 449 |
+| `scripts/factory/schedule.sh` | 87 | 413 |
+| `scripts/factory/pipeline.js` | 594 | 6 |
 | `scripts/factory/pipeline-decompose.cjs` | 137 | 63 |
 | `scripts/factory/dispatcher.js` | 210 | 390 |
-| `scripts/plan-lint.sh` | 242 | 258 |
+| `scripts/plan-lint.sh` | 287 | 213 |
 | `scripts/ticket.sh` | 850 | -350 |
 | `scripts/migrate-factory.mjs` | 100 | 400 |
 | `scripts/openspec-embed.mjs` | 241 | 259 |
 | `scripts/vda.sh` | 96 | 404 |
-| `scripts/plan-context.sh` | 145 | 355 |
-| `scripts/vda/ticket/stage-plan.sh` | 50 | 450 |
-| `scripts/vda/frontmatter.sh` | 239 | 261 |
-| `scripts/factory/pipeline-runner.js` | 308 | 292 |
+| `scripts/plan-context.sh` | 163 | 337 |
+| `scripts/vda/ticket/stage-plan.sh` | 53 | 447 |
+| `scripts/vda/frontmatter.sh` | 245 | 255 |
+| `scripts/factory/pipeline-runner.js` | 349 | 251 |
 
 Neue Dateien (existieren noch nicht, statisches Limit gilt):
 `scripts/plan-intel-filter.sh` Limit 500 · `scripts/factory/pipeline-partials.cjs`

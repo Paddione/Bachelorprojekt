@@ -87,6 +87,10 @@ spec:
               ENC="/backups/${TS}/${DB}.dump.enc"
               [ -f "\$ENC" ] || { echo "ERROR: \$ENC not found"; exit 1; }
               TMP=${DB}_verify_$$
+              # Cleanup auch bei pg_restore-Abbruch — sonst bleibt die Wegwerf-DB als
+              # Leiche auf shared-db zurück (Vorfall 2026-07-22: website_verify_781884)
+              cleanup() { PGPASSWORD="\$SHARED_DB_PASSWORD" dropdb -h shared-db -U postgres --if-exists "\$TMP"; rm -f /tmp/${DB}.dump; }
+              trap cleanup EXIT
               openssl enc -d -aes-256-cbc -pbkdf2 -in "\$ENC" -out /tmp/${DB}.dump -pass env:BACKUP_PASSPHRASE
               PGPASSWORD="\$SHARED_DB_PASSWORD" createdb -h shared-db -U postgres "\$TMP"
               PGPASSWORD="\$SHARED_DB_PASSWORD" pg_restore -h shared-db -U postgres -d "\$TMP" --no-owner --exit-on-error /tmp/${DB}.dump
@@ -117,6 +121,13 @@ YAML
     echo "    ✗ ${DB} dump FAILED to restore — backup is NOT trustworthy"; $KC logs -n "$NS" -l "job-name=${JOB}" --tail=50 2>/dev/null || true; exit 1
   fi
   $KC logs -n "$NS" -l "job-name=${JOB}" 2>/dev/null || true
+  # Erfolg persistent stempeln — Mess-Anker für Health-Goal G-DB11 (der Job selbst
+  # verschwindet nach ttlSecondsAfterFinished=600 und hinterlässt sonst keine Spur)
+  $KC create configmap recovery-verify-status -n "$NS" \
+    --from-literal=last_success="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --from-literal=db="$DB" --from-literal=backup_ts="$TS" \
+    --dry-run=client -o yaml | $KC apply -n "$NS" -f - >/dev/null \
+    || echo "    (Warnung: recovery-verify-status ConfigMap konnte nicht aktualisiert werden — G-DB11-Messung bleibt stale)"
 }
 
 cmd_recovery_browse() {

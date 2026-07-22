@@ -54,10 +54,13 @@ const CATEGORY_MAP = {
   CFG: 'Konfiguration',
   DORA: 'CI/CD',
   FE: 'Frontend',
+  E2E: 'Test-Health',
+  OPS: 'Infrastruktur',
 };
 
 function categoryFor(id) {
-  const m = id.match(/^G-([A-Za-z]+)/);
+  // Non-greedy + \d*$ erlaubt Ziffern im Präfix selbst (G-E2E01 → "E2E", nicht "E")
+  const m = id.match(/^G-([A-Za-z][A-Za-z0-9]*?)\d*$/);
   return (m && CATEGORY_MAP[m[1]]) || 'Sonstige';
 }
 

@@ -253,9 +253,9 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
     await expect(root).toBeVisible({ timeout: 60_000 });
 
     // Filter to user_message via the sidebar.
-    await root
-      .locator('[data-testid="inbox-sidebar-item"][data-type="user_message"]')
-      .click();
+    const filterRow = root.locator('[data-testid="inbox-sidebar-item"][data-type="user_message"]');
+    await expect(filterRow).toBeVisible({ timeout: 30_000 });
+    await filterRow.click();
     await page.waitForTimeout(200);
 
     const userMsgRow = root

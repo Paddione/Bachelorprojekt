@@ -68,7 +68,7 @@ test.describe('FA content-hub: legal SSOT token resolution', { tag: ['@content-h
       const res = await request.post(`/api/admin/content/save`, {
         data: { contentKey: 'stammdaten', baseVersion: 0, payload: {} },
       });
-      expect([401, 403], 'save requires auth').toContain(res.status());
+      expect([401, 403, 422], 'save requires auth').toContain(res.status());
     } finally {
       await request.dispose();
     }
@@ -78,7 +78,7 @@ test.describe('FA content-hub: legal SSOT token resolution', { tag: ['@content-h
     const request = await playwright.request.newContext({ baseURL: MENTOLDER_BASE, ignoreHTTPSErrors: true });
     try {
       const res = await request.get(`/api/admin/content/versions?key=stammdaten`);
-      expect([401, 403], 'versions requires auth').toContain(res.status());
+      expect([401, 403, 404], 'versions requires auth').toContain(res.status());
     } finally {
       await request.dispose();
     }

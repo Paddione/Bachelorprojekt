@@ -162,7 +162,7 @@ export async function openAgentGuide(page: Page) {
   const { user } = getAdminCredentials();
   await loginViaE2E(page, getBaseUrl(), user, '/admin');
 
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   const fab = page.locator('button.fab');
   await expect(fab).toBeVisible({ timeout: 30_000 });

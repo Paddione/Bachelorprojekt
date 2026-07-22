@@ -103,10 +103,10 @@ test.describe('M3 Onboarding Flow', () => {
     expect(res.status()).toBe(401);
   });
 
-  test('M3-validation: POST /api/portal/onboarding/mark-step → 400 when stepId missing', async ({ page, request }) => {
+  test('M3-validation: POST /api/portal/onboarding/mark-step → 400 when stepId missing', async ({ page }) => {
     await loginAsGekko(page);
 
-    const res = await request.post(`${BASE}/api/portal/onboarding/mark-step`, {
+    const res = await page.request.post(`${BASE}/api/portal/onboarding/mark-step`, {
       data: {},
     });
     expect(res.status()).toBe(400);

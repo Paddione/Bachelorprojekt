@@ -4,7 +4,7 @@ test.use({ viewport: { width: 375, height: 812 } });
 
 test.describe('FA-MOBILE: Factory Floor mobile parity', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/admin/pipeline?tab=factory', { waitUntil: 'networkidle' });
+    await page.goto('/admin/pipeline?tab=factory', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('[data-testid="factory-floor"]', { timeout: 45_000 });
   });
 

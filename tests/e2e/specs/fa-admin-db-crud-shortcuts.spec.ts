@@ -53,7 +53,6 @@ test.describe('FA-admin-db-crud-shortcuts', () => {
 
     // ── 2. Navigate to /admin and verify the shortcut label appears ──
     await page.goto(`${BASE}/admin`);
-    await page.waitForLoadState('networkidle');
     // The AdminShortcuts Svelte island hydrates with client:load — wait for the label
     await expect(page.locator(`text="${label}"`).first()).toBeVisible({ timeout: 60_000 });
 

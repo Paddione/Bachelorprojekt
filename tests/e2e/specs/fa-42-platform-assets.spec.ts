@@ -53,7 +53,7 @@ test.describe('FA-42: Platform Asset Inventory', () => {
     await page.goto('/admin/platform');
     await page.click('button:has-text("Software")');
 
-    const keycloakCard = page.locator('.admin-card', { hasText: 'Keycloak' });
+    const keycloakCard = page.locator('.admin-card', { hasText: 'Keycloak' }).first();
     await expect(keycloakCard).toBeVisible();
     const openLink = keycloakCard.locator('a:has-text("Öffnen")');
     await expect(openLink).toBeVisible();

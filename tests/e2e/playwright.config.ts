@@ -26,11 +26,6 @@ export default defineConfig({
     trace: 'retain-on-failure',
     locale: 'de-DE',
     timezoneId: 'Europe/Berlin',
-    launchOptions: {
-      args: [
-        '--host-resolver-rules=MAP brett.dev.korczewski.de 127.0.0.1, MAP web.dev.korczewski.de 127.0.0.1, MAP auth.localhost 127.0.0.1, MAP files.localhost 127.0.0.1'
-      ],
-    },
   },
 
   projects: [

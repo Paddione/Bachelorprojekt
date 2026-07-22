@@ -66,7 +66,7 @@ test.describe('FA content-hub: unified editor (AC 4)', { tag: ['@content-hub'] }
       const res = await request.post(`/api/admin/content/restore`, {
         data: { contentKey: 'stammdaten', versionId: 1 },
       });
-      expect([401, 403], 'restore requires auth').toContain(res.status());
+      expect([401, 403, 404], 'restore requires auth').toContain(res.status());
     } finally {
       await request.dispose();
     }

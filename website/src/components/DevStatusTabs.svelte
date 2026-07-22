@@ -15,6 +15,7 @@
   import KostenTab from './factory/KostenTab.svelte';
   import AnalyticsWindowFilter from './factory/AnalyticsWindowFilter.svelte';
   import type { FloorPayload } from '../lib/factory-floor-types';
+  import { deriveCountdownSec } from '../lib/parallel-status';
 
   type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten' | 'parallel';
   const TAB_KEYS: Tab[] = ['factory', 'planung', 'analytics', 'kosten', 'control', 'abhaengigkeiten', 'parallel'];
@@ -62,7 +63,10 @@
   let forcing = $state(false);
   let nowMs = $state(Date.now());
   let tickTimer: ReturnType<typeof setInterval> | null = null;
-  let refetchArmed = false;
+  // Keyed on the observed nextTickAt: we auto-refetch once per *distinct* tick
+  // target. A boolean guard would be reset by loadParallel() and re-fire every
+  // second while a tick stays overdue (factory idle) — a 1 req/s storm.
+  let lastRefetchedTickAt: string | null = null;
 
   async function loadParallel() {
     try {
@@ -71,7 +75,6 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       parallel = (await res.json()) as ParallelStatus;
       parallelError = null;
-      refetchArmed = false;
     } catch (err) {
       parallelError = err instanceof Error ? err.message : 'Laden fehlgeschlagen';
       parallel = null;
@@ -93,10 +96,11 @@
     }
   }
 
-  // Restsekunden bis nextTickAt (≤ 0 → Tick fällig); null wenn kein Tick geplant.
+  // Restsekunden bis nextTickAt (0 → Tick fällig); null wenn kein Tick geplant.
+  // Nutzt die getestete pure Funktion (clamped ≥ 0) statt inline-Duplikat.
   const remainingSec = $derived(
     parallel?.nextTickAt
-      ? Math.floor((new Date(parallel.nextTickAt).getTime() - nowMs) / 1000)
+      ? deriveCountdownSec(parallel.nextTickAt, new Date(nowMs).toISOString())
       : null,
   );
 
@@ -123,10 +127,19 @@
     };
   });
 
-  // Countdown kreuzt 0 → genau einmal auto-refetchen (refetchArmed entschärft Refetch-Sturm).
+  // Countdown erreicht 0 → genau einmal pro Tick-Ziel auto-refetchen. Der Guard
+  // vergleicht den beobachteten nextTickAt: bleibt ein Tick überfällig (Factory
+  // idle, unveränderter nextTickAt), feuert der Refetch NICHT erneut — erst ein
+  // echter neuer Tick-Zeitpunkt (frisches last-tick-at) armt wieder.
   $effect(() => {
-    if (activeTab === 'parallel' && parallel && remainingSec !== null && remainingSec <= 0 && !refetchArmed) {
-      refetchArmed = true;
+    if (
+      activeTab === 'parallel' &&
+      parallel?.nextTickAt &&
+      remainingSec !== null &&
+      remainingSec <= 0 &&
+      parallel.nextTickAt !== lastRefetchedTickAt
+    ) {
+      lastRefetchedTickAt = parallel.nextTickAt;
       loadParallel();
     }
   });

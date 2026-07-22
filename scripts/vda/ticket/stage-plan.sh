@@ -15,7 +15,7 @@ main() {
   if [[ -z "$id"     ]]; then echo "ERROR: --id is required."     >&2; exit 2; fi
   if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
   if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
-  case "$partials" in 1|2|3) ;; *) echo "ERROR: --partials must be 1..3" >&2; exit 2 ;; esac
+  case "$partials" in [1-9]) ;; *) echo "ERROR: --partials must be 1..9" >&2; exit 2 ;; esac
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v partials="$partials" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer

@@ -304,11 +304,39 @@ async function main() {
   } else if (command === 'read-partials') {
     // tasks.d/ partial fan-out (T002074): parse the change's partial manifest
     // and emit the batch sub_features form (with per-partial implement prompts).
+    // T002082: dependency-based scheduling — order by depends_on, skip done partials.
     const { slug, changeDir, ctx } = payload;
     try {
       const dir = changeDir || path.join(REPO, 'openspec/changes', String(slug || ''));
       const res = P.readPartials(dir);
       if (res.partials) {
+        // Read done partial IDs from factory_phase_events (partial-done with tests:'pass')
+        let doneIds = [];
+        try {
+          const { orderAndFilter } = await import('./partial-order.cjs');
+          const sql = "SELECT detail FROM tickets.factory_phase_events e "
+            + "JOIN tickets.tickets t ON t.id = e.ticket_id "
+            + "WHERE t.external_id = :'ext_id' AND e.phase = 'implement' AND e.state = 'partial-done';";
+          const raw = execFileSync('bash', ['-c',
+            `source ${REPO}/scripts/factory/lib.sh; factory_resolve; factory_psql -v ext_id="$1"`,
+            'bash', String(ctx?.ticketId || slug || '')],
+            { input: sql, encoding: 'utf8', timeout: 15000, env: { ...process.env, BRAND: ctx?.brand || 'mentolder' } }).trim();
+          const events = JSON.parse(raw || '[]');
+          for (const ev of events) {
+            try {
+              const detail = typeof ev.detail === 'string' ? JSON.parse(ev.detail) : ev.detail;
+              if (detail?.tests === 'pass' && detail?.partial) doneIds.push(detail.partial);
+            } catch { /* skip malformed */ }
+          }
+        } catch { /* partial-order.cjs not available or DB error — fall through to unfiltered */ }
+
+        try {
+          const { orderAndFilter } = await import('./partial-order.cjs');
+          res.sub_features = orderAndFilter(res.sub_features, doneIds)
+            .map((id) => res.sub_features.find((sf) => sf.id === id))
+            .filter(Boolean);
+        } catch { /* keep original order on D2 errors — pipeline falls back to LLM decompose */ }
+
         res.sub_features = res.sub_features.map((sf) => ({
           ...sf,
           prompt: P.buildPartialPrompt(sf, ctx || {}),

@@ -32,12 +32,11 @@ case "$cmd" in
     echo "$out"
     ;;
   claim-gang)
-    ext_id="${1:?usage: claim-gang <ext_id> <n>}"; n="${2:?usage: claim-gang <ext_id> <n>}"
-    # Atomar: claimt nur, wenn SUM(slot_count) der laufenden Tickets + n in den
-    # Brand-Pool passt — sonst 0 rows, Exit 1, NICHTS geclaimt (all-or-nothing).
-    out=$(printf '%s' "UPDATE tickets.tickets SET pipeline_slot = sub.next_slot, slot_count = :'n'::integer, status='in_progress' FROM (SELECT COALESCE(min(s.n),0) AS next_slot FROM generate_series(1,${SLOTS_PER_BRAND}) s(n) WHERE s.n NOT IN (SELECT pipeline_slot FROM tickets.tickets WHERE pipeline_slot IS NOT NULL AND status='in_progress')) sub WHERE external_id = :'ext_id' AND pipeline_slot IS NULL AND status IN ('backlog','triage','plan_staged') AND (SELECT COALESCE(SUM(slot_count),0) FROM tickets.tickets WHERE pipeline_slot IS NOT NULL AND status='in_progress') + :'n'::integer <= ${SLOTS_PER_BRAND} RETURNING pipeline_slot;" \
-      | factory_psql -v ext_id="$ext_id" -v n="$n")
-    if [[ -z "$out" ]]; then echo "claim-gang failed (pool < n, already slotted, or wrong status): $ext_id n=$n" >&2; exit 1; fi
+    ext_id="${1:?usage: claim-gang <ext_id> <n> [min_n]}"; n="${2:?usage: claim-gang <ext_id> <n> [min_n]}"; min_n="${3:-$n}"
+    # T002082: partial claim — claim min(n, free) >= min_n (default min_n=n = all-or-nothing).
+    out=$(printf '%s' "UPDATE tickets.tickets SET pipeline_slot = sub.next_slot, slot_count = sub.actual_n, status='in_progress' FROM (SELECT COALESCE(min(s.n),0) AS next_slot, GREATEST(0, LEAST(:'n'::integer, ${SLOTS_PER_BRAND} - (SELECT COALESCE(SUM(slot_count),0) FROM tickets.tickets WHERE pipeline_slot IS NOT NULL AND status='in_progress'))) AS actual_n FROM generate_series(1,${SLOTS_PER_BRAND}) s(n) WHERE s.n NOT IN (SELECT pipeline_slot FROM tickets.tickets WHERE pipeline_slot IS NOT NULL AND status='in_progress')) sub WHERE external_id = :'ext_id' AND pipeline_slot IS NULL AND status IN ('backlog','triage','plan_staged') AND sub.actual_n >= :'min_n'::integer RETURNING pipeline_slot;" \
+      | factory_psql -v ext_id="$ext_id" -v n="$n" -v min_n="$min_n")
+    if [[ -z "$out" ]]; then echo "claim-gang failed (pool < min_n, already slotted, or wrong status): $ext_id n=$n min_n=$min_n" >&2; exit 1; fi
     echo "$out"
     ;;
   release)

@@ -216,16 +216,18 @@ bash scripts/ticket-attach.sh "$TICKET_UUID" \
 ### Schritt 3.7: Plan-Erstellung — zweistufig: Decompose → paralleler Fan-out (T002074)
 Die Plan-Phase ist **zweistufig**. Bei kleinen Änderungen bleibt es faktisch bei
 einem einzigen Partial (= klassischer Single-Plan, unten). Bei mehreren Subsystemen
-zerlegst du VOR dem Plan-Schreiben in 1–3 disjunkte Partialpläne und fächerst
+zerlegst du VOR dem Plan-Schreiben in disjunkte Partialpläne und fächerst
 parallele Plan-Subagenten aus:
 
 **(a) Decompose** — der Orchestrator erzeugt aus `intel.json` (`impact_files`) das
-**Partial-Manifest**: 1–3 Partials mit disjunkten `target_files`-Listen; das
+**Partial-Manifest**: Partials mit disjunkten `target_files`-Listen; das
 **letzte Partial ist IMMER die Tests-Rolle** (`tests`) und trägt den
-STRUCT2-Failing-Test-Step (`expected: FAIL` + Testrunner). Faustregel: **1 Partial**
-bei < 5 `impact_files` oder einem einzigen Subsystem; sonst Schnitt nach Subsystem,
-Tests immer separat. Keine Datei darf in zwei Partials liegen (D1 —
-`scripts/plan-lint.sh` erzwingt das im Partial-Modus).
+STRUCT2-Failing-Test-Step (`expected: FAIL` + Testrunner). Faustregel: **1 Partial je
+disjunktem Subsystem, Tests immer separat**; mehr als 3 nur bei echt disjunkten
+Dateimengen; Obergrenze 9 (`--partials`-Cap). Keine Datei darf in zwei Partials
+liegen (D1 — `scripts/plan-lint.sh` erzwingt das im Partial-Modus). Partials
+können über die optionale 5. Manifest-Spalte `depends_on` Abhängigkeiten
+deklarieren (D2 — `scripts/plan-lint.sh` validiert Referenzen und Azyklizität).
 
 **(b) Fan-out** — N parallele Plan-Subagenten (Claude Code: `Task`-Tool; opencode:
 `delegate(...)`). Kontext pro Subagent NUR: `openspec/changes/<slug>/proposal.md`,
@@ -235,7 +237,7 @@ gefilterte `intel.json` für genau seine Dateien) und die
 [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)-Referenz.
 Jeder schreibt SEINE `openspec/changes/<slug>/tasks.d/pX-<name>.md`; der Orchestrator
 schreibt den `tasks.md`-**Index** mit der `## Partials`-Manifest-Tabelle
-(`| id | tasks.d/pX-*.md | impl|tests | <target_files> |`), der `## File Structure`
+(`| id | tasks.d/pX-*.md | impl|tests | <target_files> | <depends_on, optional> |`), der `## File Structure`
 (Union aller Partials) und dem finalen Verify-Task (STRUCT3). `plan-lint.sh` aktiviert
 den Partial-Modus über die Existenz von `tasks.d/` automatisch.
 
@@ -324,7 +326,7 @@ Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execu
 **Partial-Anzahl mitgeben (T002074):** Bei einem Multi-Partial-Plan die Slot-Zahl
 für das Gang-Gating durchreichen — MCP-seitig via `set_plan_meta`, sonst per Fallback
 `bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "feature/<slug>" --plan "openspec/changes/<slug>/tasks.md" --partials N`
-(N = Anzahl der Partials aus dem `## Partials`-Manifest, 1..3; Default 1). `--partials`
+(N = Anzahl der Partials aus dem `## Partials`-Manifest, 1..9; Default 1). `--partials`
 lebt in `scripts/vda/ticket/stage-plan.sh` — `scripts/ticket.sh` bleibt unberührt.
 
 **Embedding-Index (Hybrid-Kontext-Transfer Teil 2):** Direkt nach dem Stage, vor

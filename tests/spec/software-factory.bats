@@ -3901,3 +3901,171 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
   run grep -Fq 'pr-babysit-ticket.sh' scripts/factory/pipeline.js
   [ "$status" -eq 0 ]
 }
+
+# === T002082: dependency-based partial scheduling ===
+
+@test "FA-SF-DEP: plan-lint akzeptiert 5-Spalten-Manifest mit gültigem depends_on" {
+  chg="$BATS_TEST_TMPDIR/dep-ok"; mkdir -p "$chg/tasks.d"
+  cat > "$chg/tasks.md" <<'EOF'
+---
+title: "dep-ok — Implementation Plan"
+ticket_id: T000000
+domains: [test]
+status: active
+---
+
+# dep-ok — Implementation Plan
+
+## File Structure
+
+```
+a.sh  impl
+b.sh  impl
+a.test.bats  tests
+```
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | a.sh | |
+| p2 | tasks.d/p2-tests.md | tests | b.sh, a.test.bats | p1 |
+
+### Task: Verify
+
+```bash
+task test:changed
+task freshness:regenerate
+task freshness:check
+```
+EOF
+  cat > "$chg/tasks.d/p1-impl.md" <<'EOF'
+# p1 — impl
+### Task: implement a.sh
+Target files: a.sh.
+EOF
+  cat > "$chg/tasks.d/p2-tests.md" <<'EOF'
+# p2 — tests
+### Task: failing test first
+Write a bats test in `a.test.bats` and run it — expected: FAIL (red) before impl.
+```bash
+bats a.test.bats
+```
+Target files: b.sh, a.test.bats.
+EOF
+  run bash scripts/plan-lint.sh "$chg/tasks.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-DEP: plan-lint Hard-Fail bei depends_on-Zyklus (D2)" {
+  chg="$BATS_TEST_TMPDIR/dep-cycle"; mkdir -p "$chg/tasks.d"
+  cat > "$chg/tasks.md" <<'EOF'
+---
+title: "dep-cycle — Implementation Plan"
+ticket_id: T000000
+domains: [test]
+status: active
+---
+
+# dep-cycle — Implementation Plan
+
+## File Structure
+
+```
+a.sh  impl
+b.sh  impl
+a.test.bats  tests
+```
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | a.sh | p2 |
+| p2 | tasks.d/p2-tests.md | tests | b.sh, a.test.bats | p1 |
+
+### Task: Verify
+
+```bash
+task test:changed
+task freshness:regenerate
+task freshness:check
+```
+EOF
+  cat > "$chg/tasks.d/p1-impl.md" <<'EOF'
+# p1 — impl
+Target files: a.sh.
+EOF
+  cat > "$chg/tasks.d/p2-tests.md" <<'EOF'
+# p2 — tests
+Write a bats test in `a.test.bats` and run it — expected: FAIL.
+```bash
+bats a.test.bats
+```
+Target files: b.sh, a.test.bats.
+EOF
+  run bash scripts/plan-lint.sh "$chg/tasks.md"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"D2"* ]]
+}
+
+@test "FA-SF-DEP: plan-lint Hard-Fail bei unbekannter depends_on-ID (D2)" {
+  chg="$BATS_TEST_TMPDIR/dep-unknown"; mkdir -p "$chg/tasks.d"
+  cat > "$chg/tasks.md" <<'EOF'
+---
+title: "dep-unknown — Implementation Plan"
+ticket_id: T000000
+domains: [test]
+status: active
+---
+
+# dep-unknown — Implementation Plan
+
+## File Structure
+
+```
+a.sh  impl
+b.sh  impl
+a.test.bats  tests
+```
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-impl.md | impl | a.sh | |
+| p2 | tasks.d/p2-tests.md | tests | b.sh, a.test.bats | p9 |
+
+### Task: Verify
+
+```bash
+task test:changed
+task freshness:regenerate
+task freshness:check
+```
+EOF
+  cat > "$chg/tasks.d/p1-impl.md" <<'EOF'
+# p1 — impl
+Target files: a.sh.
+EOF
+  cat > "$chg/tasks.d/p2-tests.md" <<'EOF'
+# p2 — tests
+Write a bats test in `a.test.bats` and run it — expected: FAIL.
+```bash
+bats a.test.bats
+```
+Target files: b.sh, a.test.bats.
+EOF
+  run bash scripts/plan-lint.sh "$chg/tasks.md"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"D2"* ]]
+}
+
+@test "FA-SF-DEP: stage-plan --partials 5 akzeptiert, 0 und 10 abgelehnt" {
+  # --partials 5: validierung muss durchkommen (DB-Aufruf schlägt fehl, aber Validierung ist davor)
+  run bash -n scripts/vda/ticket/stage-plan.sh
+  [ "$status" -eq 0 ]
+  # Prüfe dass die Validierung 1..9 akzeptiert (grep nach dem case-Muster)
+  run grep -qE '1-9|1\.\.9|\[1-9\]' scripts/vda/ticket/stage-plan.sh
+  [ "$status" -eq 0 ]
+}

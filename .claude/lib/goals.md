@@ -31,11 +31,97 @@ Ein Ziel ohne reproduzierbaren Mess-Befehl ist kein Ziel, sondern ein Wunsch.
 Sofort angehen. Ticket-Erstellung ist **bewusst manuell** (`scripts/health-goals-update.sh
 --suggest-tickets`, dedupliziert gegen offene Tickets) — kein Ziel erzeugt automatisch ein Ticket.
 
+## G-E2E01 — Nightly-E2E-Erfolgsrate (e2e.yml, letzte 14 Läufe): 0 % → ≥ 90 %
+
+**Was:** Anteil erfolgreicher Läufe des nächtlichen Playwright-E2E-Workflows (`e2e.yml`,
+beide Brands auf fleet) über die letzten 14 Läufe. G-CI01–03 messen ausschließlich `ci.yml` —
+die E2E-Suite lief zum Aufnahme-Zeitpunkt **14/14 rot** (Auth-Token/CRON_SECRET-Drift, Fix
+in Arbeit auf `fix/e2e-auth-token-and-cron-secret`), ohne dass irgendein Goal es sichtbar
+machte. Genau diese Lücke schließt das Ziel.
+
+```bash
+gh run list --workflow e2e.yml --limit 14 --json conclusion \
+  | python3 -c "import json,sys; r=[x['conclusion'] for x in json.load(sys.stdin) if x.get('conclusion')]; print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else 'n/a')"
+```
+
+> **A · Baseline:** 0 (0/14 grün, 2026-07-22) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 (Aufnahme; Suite-Fix läuft separat über `fix/e2e-auth-token-and-cron-secret`)
+
 ---
 
 # Priorität B — Offene Ziele {#prio-b}
 
 Im nächsten Sprint einplanen.
+
+## G-E2E02 — E2E-Testdaten-Leak in Prod (is_test_data-Rows): 2 → 0
+
+**Was:** Summe aller Rows mit `is_test_data=true` über sämtliche Basistabellen mit dieser
+Spalte, je Brand-DB. Playwright bracketet Testdaten via
+`/api/admin/systemtest/purge-all-test-data` (globalSetup + globalTeardown), aber ein
+abgebrochener Lauf oder ein Purge-Fehler (Präzedenz T001453) lässt Testdaten in Prod
+zurück. Baseline 2026-07-22: je 1 Row in `public.inbox_items` (mentolder und korczewski).
+Während eines aktiven Nightly-E2E-Laufs sind transiente Treffer erwartbar — Messzeitpunkt
+tagsüber. Korczewski via `HG_DB_NS=workspace-korczewski` messen.
+
+```sql
+SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format(
+  'SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name),
+  false, true, '')))[1]::text::int), 0)
+FROM information_schema.columns c
+JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name
+WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE';
+```
+
+> **B · Baseline:** 2 (1 mentolder + 1 korczewski, jeweils public.inbox_items, 2026-07-22) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
+
+## G-OPS01 — Pods nicht Running/Ready (fleet, beide Brand-Namespaces): 3 → 0
+
+**Was:** Zählt Pods in `workspace` + `workspace-korczewski`, deren Phase nicht
+Running/Succeeded ist oder deren Container nicht ready sind. Alle G-K8S-Goals prüfen nur
+Manifeste (YAML) — dieses Ziel schaut erstmals auf den Live-Zustand des Clusters.
+Baseline 2026-07-22: `workspace/livekit-egress-…` (Pending), `workspace/test-pod`
+(Failed — Debris), `workspace-korczewski/oauth2-proxy-terminal-…` (Pending).
+
+```bash
+python3 -c "
+import json,subprocess
+n=0
+for ns in ('workspace','workspace-korczewski'):
+    d=json.loads(subprocess.check_output(['kubectl','get','pods','-n',ns,'--context','fleet','-o','json']))
+    for p in d['items']:
+        ph=p['status'].get('phase')
+        if ph=='Succeeded': continue
+        cs=p['status'].get('containerStatuses',[])
+        if ph!='Running' or any(not c.get('ready') for c in cs): n+=1
+print(n)"
+```
+
+> **B · Baseline:** 3 (2026-07-22) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
+
+## G-DB11 — Tage seit letztem erfolgreichem Restore-Verify: n/a → ≤ 30
+
+**Was:** G-DB04 misst nur das *Alter* des letzten Backups — ob ein Backup tatsächlich
+restaurierbar ist, prüft `bash scripts/backup-restore.sh verify <timestamp> <db>`
+(spielt das verschlüsselte Dump in eine Wegwerf-DB ein, zählt Tabellen, dropt sie).
+Der Verify-Job stempelt seit T002063 bei Erfolg den ConfigMap `recovery-verify-status`
+(`last_success`, ISO-UTC) im Workspace-Namespace; gemessen wird dessen Alter in Tagen.
+Ein Backup, das nie probeweise restauriert wurde, ist nach der eigenen Maxime dieses
+Dokuments kein Backup, sondern ein Wunsch.
+
+```bash
+ts=$(kubectl get configmap recovery-verify-status -n workspace --context fleet \
+  -o jsonpath='{.data.last_success}' 2>/dev/null)
+[ -n "$ts" ] && echo $(( ($(date -u +%s) - $(date -u -d "$ts" +%s)) / 86400 )) || echo n/a
+```
+
+**Erster Verify-Lauf (2026-07-22, Backup `20260722-000016`, website): FEHLGESCHLAGEN.**
+`pg_restore` bricht beim `CREATE INDEX chunks_embedding_hnsw` (pgvector HNSW auf
+`knowledge.chunks`) ab — `could not resize shared memory segment … 64000064 bytes: No space
+left on device`. Das shared-db-`/dev/shm` ist das 64M-k8s-Default; das website-Backup ist
+damit aktuell **nicht vollständig restaurierbar** → Bug **T002064**. Nebenbefund gefixt:
+der Verify-Job ließ bei Abbruch die Wegwerf-DB (`website_verify_781884`) zurück —
+cleanup-`trap` in `backup-restore-lib.sh` ergänzt, Leiche manuell gedroppt.
+
+> **B · Baseline:** n/a · **Target:** ≤ 30 · **Aufwand:** gering (monatlicher `verify`-Lauf, ~2–10 min Job-Laufzeit) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Ticket:** T002063 · Verify-Blocker: **T002064** (shared-db /dev/shm)
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope (>1000 Zeilen): 3 → ≤ 3
 
@@ -304,6 +390,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
 | **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
+| **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 1 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
+| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 37 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
 
 ---
 
@@ -319,8 +407,8 @@ bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
 **Messzyklus:**
 - **Pro Merge (CI-Gate):** G-RH02/07, G-TEST02/04, G-CQ04, G-SEC01/02, G-K8S04, G-CFG01, G-CI02, G-GIT02, G-SPEC01
 - **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03
-- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05, G-BRAIN12, G-BRAIN13, G-BRAIN15
-- **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14, G-AGENTIC09
+- **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05, G-BRAIN12, G-BRAIN13, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
+- **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14, G-AGENTIC09, G-DB11
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 
@@ -433,3 +521,21 @@ Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-
 **Baseline-Update 2026-07-19 (T001950 — Live-Bestätigung nach Deploy):** G-FE05 **89→90 ✅ Target erreicht.** Nach Merge von PR #2948 (Auto-Deploy via `build-website.yml`, beide Brand-Jobs `Deploy Website (mentolder)`/`Deploy Website (korczewski)` grün) erneut 3× `npx @lhci/cli autorun --collect.numberOfRuns=3` gegen `https://web.mentolder.de` gemessen: Performance-Score konstant **90/100** über alle 3 Läufe (FCP 2.0s, LCP 3.0–3.1s). Live-HTML bestätigt den Fix: `sidekick-panels.css` wird per `<link rel="preload" as="style" onload="this.rel='stylesheet'">` + `<noscript>`-Fallback geladen, keine blockierende `<link rel="stylesheet">`-Variante mehr im `<head>`. G-FE05 wechselt von Prio B/A nach Prio C (Green Gate).
 
 **Baseline-Update 2026-07-21:** G-AGENTIC08 1→0 (toter Script-Pfad `scripts/openspec-validate.sh` in `openspec-propose/SKILL.md` zu `scripts/openspec.sh validate` korrigiert); G-DB04 1h→13h (Backup-Alter 13h, weiterhin im Target ≤26h); G-DEP04 2→0 (package.json engines korrigiert, Gate grün); G-CQ06 1→0 (@deprecated stripeServiceKey entfernt); G-CQ02 8→0 (any-Typen und comment-false-positives behoben); alle Prio-C-Gates grün via `scripts/health-goals-check.sh` verifiziert.
+
+**Baseline-Update 2026-07-22 (T002063 — neue Scopes E2E/OPS/Restore):** Drei neue Goal-Scopes
+aufgenommen, die die Laufzeit-Perspektive abdecken (bisher maßen nur die G-DB-Goals gegen
+Live-Systeme): **G-E2E01** Nightly-E2E-Erfolgsrate `e2e.yml` — Baseline **0 % (0/14 grün)**,
+direkte Prio A (aktive Verletzung; Fix läuft über `fix/e2e-auth-token-and-cron-secret`).
+**G-E2E02** E2E-Testdaten-Leak (is_test_data-Rows in Prod) — Baseline 2 (je 1×
+`public.inbox_items` in beiden Brand-DBs), Prio B. **G-OPS01** Pods nicht Running/Ready —
+Baseline 3 (`livekit-egress` Pending, `test-pod` Failed/Debris, `oauth2-proxy-terminal`
+Pending), Prio B. **G-OPS02** Container-Restarts <24h — 1 ≤ 3 ✓ (Green Gate). **G-OPS03**
+Live-TLS-Cert-Restlaufzeit — 37 Tage ≥ 14 ✓ (Green Gate; erste Messung gegen
+`web.korczewski.de` schlug transient fehl → Messung mit Retry). **G-DB11** Tage seit letztem
+Restore-Verify — n/a (Marker-ConfigMap `recovery-verify-status` wird ab jetzt von
+`backup-restore-lib.sh cmd_recovery_verify` bei Erfolg gestempelt; erster `verify`-Lauf
+ausstehend), Prio B. Alle sechs in `scripts/health-goals-check.sh` verdrahtet
+(kubectl/gh/openssl-Checks SKIPpen bei `--fast` oder fehlender Erreichbarkeit).
+Der erste G-DB11-Verify-Lauf schlug direkt fehl (shared-db `/dev/shm` 64M zu klein für den
+HNSW-Index-Build — website-Backup aktuell nicht vollständig restaurierbar, Bug **T002064**);
+Nebenbefund Wegwerf-DB-Leiche bei Job-Abbruch via cleanup-`trap` gefixt.

@@ -117,6 +117,70 @@ db_backup_age_h() {
   now=$(date -u +%s)
   echo $(( (now - epoch) / 3600 ))
 }
+restore_verify_age_d() { # G-DB11 — Alter des recovery-verify-status-Stempels in Tagen
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  command -v kubectl >/dev/null 2>&1 || { echo "-"; return; }
+  local ts epoch
+  ts=$(kubectl get configmap recovery-verify-status -n "$DB_NS" --context "$DB_CTX" \
+         --request-timeout=5s -o jsonpath='{.data.last_success}' 2>/dev/null)
+  [ -n "$ts" ] || { echo "-"; return; }
+  epoch=$(date -u -d "$ts" +%s 2>/dev/null) || { echo "-"; return; }
+  echo $(( ($(date -u +%s) - epoch) / 86400 ))
+}
+
+# ── Cluster-Runtime-Mess-Helfer (read-only; SKIP bei --fast oder Cluster unerreichbar) ──
+OPS_CTX="${HG_OPS_CTX:-fleet}"; OPS_NS_LIST="${HG_OPS_NS:-workspace workspace-korczewski}"
+ops_kubectl_count() { # $1=not_ready|restarts_24h — zählt über alle OPS-Namespaces
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  command -v kubectl >/dev/null 2>&1 || { echo "-"; return; }
+  python3 - "$1" "$OPS_CTX" $OPS_NS_LIST <<'PY' 2>/dev/null || echo "-"
+import json,subprocess,sys,datetime
+mode,ctx=sys.argv[1],sys.argv[2]
+now=datetime.datetime.now(datetime.timezone.utc); n=0
+for ns in sys.argv[3:]:
+    d=json.loads(subprocess.check_output(
+        ["kubectl","get","pods","-n",ns,"--context",ctx,"--request-timeout=10s","-o","json"],
+        stderr=subprocess.DEVNULL))
+    for p in d["items"]:
+        ph=p["status"].get("phase")
+        cs=p["status"].get("containerStatuses",[])
+        if mode=="not_ready":
+            if ph=="Succeeded": continue
+            if ph!="Running" or any(not c.get("ready") for c in cs): n+=1
+        else:
+            for c in cs:
+                t=c.get("lastState",{}).get("terminated",{}).get("finishedAt")
+                if t and (now-datetime.datetime.fromisoformat(t.replace('Z','+00:00'))).total_seconds()<86400: n+=1
+print(n)
+PY
+}
+tls_min_days() { # G-OPS03 — min. Restlaufzeit über beide Brand-Frontends, 1 Retry pro Host
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  command -v openssl >/dev/null 2>&1 || { echo "-"; return; }
+  local d exp days try min=""
+  for d in ${HG_TLS_HOSTS:-web.mentolder.de web.korczewski.de}; do
+    exp=""
+    for try in 1 2; do # Retry: Multi-A-Record-Setups antworten transient nicht (2026-07-22)
+      exp=$(echo | timeout 10 openssl s_client -servername "$d" -connect "$d":443 2>/dev/null \
+              | openssl x509 -enddate -noout 2>/dev/null | cut -d= -f2)
+      [ -n "$exp" ] && break
+    done
+    [ -n "$exp" ] || { echo "-"; return; }
+    days=$(( ($(date -d "$exp" +%s) - $(date +%s)) / 86400 ))
+    if [ -z "$min" ] || [ "$days" -lt "$min" ]; then min=$days; fi
+  done
+  echo "${min:--}"
+}
+e2e_success_rate() { # G-E2E01 — %-Erfolgsrate der letzten 14 e2e.yml-Läufe
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  command -v gh >/dev/null 2>&1 || { echo "-"; return; }
+  local out; out=$(gh run list --workflow e2e.yml --limit 14 --json conclusion 2>/dev/null)
+  [ -n "$out" ] || { echo "-"; return; }
+  echo "$out" | python3 -c "
+import json,sys
+r=[x['conclusion'] for x in json.load(sys.stdin) if x.get('conclusion')]
+print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else '-')" 2>/dev/null || echo "-"
+}
 
 [ "$QUIET" = 0 ] && printf "%sRepository-Health — reproduzierbare Ziele (.claude/lib/goals.md)%s\n\n" "$C_B" "$C_X"
 
@@ -283,6 +347,10 @@ row gate G-DB06 "$(db_scalar "SELECT
 + (SELECT count(*) FROM tickets.ticket_links l    WHERE l.from_id  IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tickets.tickets t WHERE t.id=l.from_id));")" eq 0 "Orphan-Rows (ticket_plans/comments/links → tickets)"
 row gate G-DB04 "$(db_backup_age_h)" le 26 "Backup-Alter (h) seit letztem erfolgr. db-backup-Job — T001738"
 
+# ── Cluster-Runtime — GATES (G-OPS02/03; G-OPS01 ist Prio B → TARGET unten) ──
+row gate G-OPS02 "$(ops_kubectl_count restarts_24h)" le 3 "Container-Restarts <24h (fleet, beide Brand-Namespaces)"
+row gate G-OPS03 "$(tls_min_days)" ge 14 "Live-TLS-Cert-Restlaufzeit (Tage, min beider Brand-Frontends)"
+
 # ── TARGETS (Reduktionsziele in Arbeit) ────────────────────────────────────────
 [ "$QUIET" = 0 ] && printf "\n%sTARGETS (Reduktion)%s\n" "$C_B" "$C_X"
 
@@ -344,6 +412,12 @@ row target G-DB08 "$(db_scalar "SELECT count(*) FROM pg_stat_user_tables
       AND (seq_scan::numeric/NULLIF(seq_scan+idx_scan,0))>0.05;")" le 3 "Tabellen >10k Rows mit Seq-Scan-Anteil >5% (messen)"
 row target G-DB09 "$(db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %'")" le 0 "Slow Queries in pg_stat_statements (mean_exec_time > 1s, exkl. Backup-COPY T001926)"
 row target G-DB10 "$(db_scalar "SELECT count(*) FROM pg_stat_user_indexes WHERE idx_scan = 0 AND indisready AND NOT indisprimary AND indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')")" le 0 "Unused Indexes (idx_scan=0, exkl. PK/Unique)"
+row target G-DB11 "$(restore_verify_age_d)" le 30 "Tage seit letztem erfolgreichem Restore-Verify (recovery-verify-status)"
+
+# ── E2E-/OPS-TARGETS (T002063) ──
+row target G-E2E01 "$(e2e_success_rate)" ge 90 "Nightly-E2E-Erfolgsrate e2e.yml (%, letzte 14 Läufe)"
+row target G-E2E02 "$(db_scalar "SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format('SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name), false, true, '')))[1]::text::int), 0) FROM information_schema.columns c JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE'")" eq 0 "E2E-Testdaten-Leak (is_test_data=true Rows, Brand-DB via HG_DB_NS)"
+row target G-OPS01 "$(ops_kubectl_count not_ready)" le 0 "Pods nicht Running/Ready (fleet, beide Brand-Namespaces)"
 
 # ── CI-TARGETS ──
 row target G-CI03 "$(

@@ -1277,8 +1277,8 @@
   ],
   "T002064": [
     {
-      "slug": "fix-t002064-shared-db-dev-shm",
-      "status": "plan_staged"
+      "slug": "2026-07-22-fix-t002064-shared-db-dev-shm",
+      "status": "archived"
     }
   ],
   "TBD": [

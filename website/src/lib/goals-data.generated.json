@@ -51,7 +51,7 @@
     "priority": "B",
     "direction": "lower",
     "baseline": null,
-    "current": null,
+    "current": 0,
     "target": 30,
     "unit": "",
     "status": "unknown",

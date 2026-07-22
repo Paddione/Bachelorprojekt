@@ -114,14 +114,16 @@ ts=$(kubectl get configmap recovery-verify-status -n workspace --context fleet \
 ```
 
 **Erster Verify-Lauf (2026-07-22, Backup `20260722-000016`, website): FEHLGESCHLAGEN.**
-`pg_restore` bricht beim `CREATE INDEX chunks_embedding_hnsw` (pgvector HNSW auf
+`pg_restore` brach beim `CREATE INDEX chunks_embedding_hnsw` (pgvector HNSW auf
 `knowledge.chunks`) ab — `could not resize shared memory segment … 64000064 bytes: No space
-left on device`. Das shared-db-`/dev/shm` ist das 64M-k8s-Default; das website-Backup ist
-damit aktuell **nicht vollständig restaurierbar** → Bug **T002064**. Nebenbefund gefixt:
-der Verify-Job ließ bei Abbruch die Wegwerf-DB (`website_verify_781884`) zurück —
-cleanup-`trap` in `backup-restore-lib.sh` ergänzt, Leiche manuell gedroppt.
+left on device`. Das shared-db-`/dev/shm` war das 64M-k8s-Default → Bug **T002064**,
+**gefixt** via PR #3089 (dev-shm `emptyDir medium=Memory sizeLimit=512Mi` im
+postgres-Container) + Deploy. Zweiter Verify-Lauf desselben Backups danach **erfolgreich**
+(93 Tabellen, inkl. HNSW-Build) — `recovery-verify-status` gestempelt, Messwert 0 Tage.
+Nebenbefund gefixt: der Verify-Job ließ bei Abbruch die Wegwerf-DB
+(`website_verify_781884`) zurück — cleanup-`trap` in `backup-restore-lib.sh` ergänzt.
 
-> **B · Baseline:** n/a · **Target:** ≤ 30 · **Aufwand:** gering (monatlicher `verify`-Lauf, ~2–10 min Job-Laufzeit) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Ticket:** T002063 · Verify-Blocker: **T002064** (shared-db /dev/shm)
+> **B · Baseline:** n/a → 0 ✅ Target erreicht (2026-07-22, nach T002064-Fix + Verify-Lauf) · **Target:** ≤ 30 · **Aufwand:** gering (monatlicher `verify`-Lauf, ~2–10 min Job-Laufzeit) · **Messzyklus:** monatlich · **Reproduzierbar:** ja · **Ticket:** T002063 · Verify-Blocker T002064 (**gefixt** — PR #3089)
 
 ## G-SIZE02 — Großdateien außerhalb Gate-Scope (>1000 Zeilen): 3 → ≤ 3
 
@@ -539,3 +541,12 @@ ausstehend), Prio B. Alle sechs in `scripts/health-goals-check.sh` verdrahtet
 Der erste G-DB11-Verify-Lauf schlug direkt fehl (shared-db `/dev/shm` 64M zu klein für den
 HNSW-Index-Build — website-Backup aktuell nicht vollständig restaurierbar, Bug **T002064**);
 Nebenbefund Wegwerf-DB-Leiche bei Job-Abbruch via cleanup-`trap` gefixt.
+
+**Baseline-Update 2026-07-22 (T002064 — G-DB11 Verify-Blocker gefixt):** G-DB11 n/a → **0 ✅**.
+shared-db bekam via PR #3089 ein Memory-backed `/dev/shm` (512Mi, nur postgres-Container);
+nach Deploy lief der Restore-Verify des Backups `20260722-000016` (website) vollständig durch
+(93 Tabellen, inkl. `chunks_embedding_hnsw`-HNSW-Build) und stempelte `recovery-verify-status`.
+Das website-Backup ist damit nachweislich wieder restaurierbar. Nebenbei entdeckt + gefixt
+(T002066, PR #3091): `RECOVER_DOMAIN` war im Schema required, fehlte aber in allen vier
+Brand-Env-Dateien — blockierte jeden `workspace:deploy`. OpenSpec-Change
+`fix-t002064-shared-db-dev-shm` archiviert (Delta in `backup-pipeline`-SSOT gemergt).

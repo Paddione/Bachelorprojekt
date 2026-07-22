@@ -289,9 +289,11 @@ The stage step SHALL persist the partial count on the ticket for gang gating:
 <path> --partials N` writes `slot_count = N` (validated 1..3, default 1) in the
 same staging query, implemented in `scripts/vda/ticket/stage-plan.sh` without
 growing `scripts/ticket.sh`. Immediately after staging and before commit/push,
-the skills SHALL run `node scripts/openspec-embed.mjs --slug <slug>` so the
-change is indexed into pgvector as the embedding-side context transfer for the
-execute/factory phase (retrieved via factory-mcp `openspec_find_similar`).
+the skills SHALL run `bash scripts/openspec-embed-local.sh <slug> "$(pwd)"`
+(the fail-visible wrapper — not the bare `openspec-embed.mjs`, which skips
+silently on missing env) so the change is indexed into pgvector as the
+embedding-side context transfer for the execute/factory phase (retrieved via
+factory-mcp `openspec_find_similar`).
 
 #### Scenario: Staging a three-partial plan sets slot_count
 
@@ -303,6 +305,6 @@ execute/factory phase (retrieved via factory-mcp `openspec_find_similar`).
 
 - **GIVEN** the plan was just staged
 - **WHEN** the skill continues to the commit step
-- **THEN** `node scripts/openspec-embed.mjs --slug <slug>` has been invoked for the change before the plan commit is pushed
+- **THEN** `bash scripts/openspec-embed-local.sh <slug> "$(pwd)"` has been invoked for the change before the plan commit is pushed
 
 <!-- merged from change delta dev-flow-plan.md (2c84896a552a) -->

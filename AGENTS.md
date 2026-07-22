@@ -2,7 +2,7 @@
 
 Loaded via `.opencode/opencode.jsonc` (and its alias `.agents/settings.json`, which is a symlink to it) → `"instructions": ["AGENTS.md"]`. Comprehensive reference: `CLAUDE.md`.
 
-> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — **Claude Code only** reads these via its native `task` tool dispatch. **opencode does NOT read `.agents/agents/`** — it uses its own agent definitions in `.opencode/agent-models.jsonc` (local LLM subagents: `qwen35-iq4`, `qwen35`, `qwen35-hq`, `qwen3-14b`). Edit domain agents at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
+> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — **Claude Code only** reads these via its native `task` tool dispatch. **opencode does NOT read `.agents/agents/`** — it uses its own agent definitions in `.opencode/agent-models.jsonc` (local LLM subagents: `bonsai-27b`). Edit domain agents at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
 
 ## Agent Routing
 

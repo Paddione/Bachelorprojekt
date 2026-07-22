@@ -112,7 +112,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#0EA5E9",
       "temperature": 0.2,
-      "permission": { "edit": "allow", "write": "allow", "bash": "deny", "webfetch": "deny", "websearch": "deny" }
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "webfetch": "deny", "websearch": "deny" }
     }
   }
 }

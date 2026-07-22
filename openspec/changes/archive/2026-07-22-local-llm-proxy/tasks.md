@@ -2,7 +2,7 @@
 title: "local-llm-proxy — Implementation Plan"
 ticket_id: T002081
 domains: [factory, website, infra, db]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

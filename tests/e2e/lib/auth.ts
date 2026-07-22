@@ -1,7 +1,8 @@
 import type { Page, APIRequestContext } from '@playwright/test';
 
 export function getAdminCredentials(): { user: string; pass: string } {
-  const isKorczewski = (process.env.WEBSITE_URL ?? '').includes('korczewski.de');
+  const brand = process.env.E2E_BRAND ?? ((process.env.WEBSITE_URL ?? '').includes('korczewski.de') ? 'korczewski' : 'mentolder');
+  const isKorczewski = brand === 'korczewski';
   const user = isKorczewski
     ? (process.env.TEST_ADMIN_USER ?? process.env.E2E_ADMIN_USER ?? 'test-admin')
     : (process.env.E2E_ADMIN_USER ?? 'paddione');

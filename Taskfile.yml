@@ -802,6 +802,10 @@ tasks:
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
         echo "$CHANGED" | grep -qE "^openspec/" && RUN_OPENSPEC=true || true
+        echo "$CHANGED" | grep -qE "^website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true
+        echo "$CHANGED" | grep -qE "^brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
+        echo "$CHANGED" | grep -qE "^(k3d/|environments/|VideoVault/)" && RUN_E2E_SERVICES=true || true
+        echo "$CHANGED" | grep -qE "(korczewski)" && RUN_E2E_KORCZEWSKI=true || true
         if [ "$RUN_WEBSITE" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ website changes: pnpm vitest run --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ mentolder-web changes: pnpm --filter mentolder-web test"; pnpm --filter mentolder-web test; fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
@@ -836,8 +840,13 @@ tasks:
         if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_UNIT" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
-        
-        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ]; then
+
+        if [ "$RUN_E2E_WEBSITE" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e website changes: task test:e2e:website"; task test:e2e:website; fi
+        if [ "$RUN_E2E_SERVICES" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e services changes: task test:e2e:services"; task test:e2e:services; fi
+        if [ "$RUN_E2E_BRETT" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e brett changes: task test:e2e:brett"; task test:e2e:brett; fi
+        if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
+
+        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
         fi
         echo "→ quality gate (always)"; task test:code-quality
@@ -1150,6 +1159,48 @@ tasks:
         vars: { ENV: "korczewski", VIEWPORT: "mobile" }
       - dir: tests/e2e
         cmd: node lib/build-gallery.mjs
+
+  # ── Per-project e2e subset targets ─────────────────────────────
+  # Run a specific Playwright project. By default targets localhost:4321.
+  # For prod: set WEBSITE_URL + CRON_SECRET in the env.
+  # For korczewski: set KORCZEWSKI_URL (or it defaults to https://web.korczewski.de).
+
+  test:e2e:website:
+    desc: "Run Playwright website project against WEBSITE_URL (default localhost:4321)"
+    dir: tests/e2e
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright test --project=website {{.CLI_ARGS}}
+
+  test:e2e:services:
+    desc: "Run Playwright services project (infrastructure) against WEBSITE_URL"
+    dir: tests/e2e
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright test --project=services {{.CLI_ARGS}}
+
+  test:e2e:brett:
+    desc: "Run Playwright brett-mentolder project against WEBSITE_URL"
+    dir: tests/e2e
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        ./node_modules/.bin/playwright test --project=brett-mentolder {{.CLI_ARGS}}
+
+  test:e2e:korczewski:
+    desc: "Run Playwright korczewski project against KORCZEWSKI_URL (default https://web.korczewski.de)"
+    dir: tests/e2e
+    cmds:
+      - |
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        KORCZEWSKI_URL="${KORCZEWSKI_URL:-https://web.korczewski.de}" \
+          ./node_modules/.bin/playwright test --project=korczewski {{.CLI_ARGS}}
 
   a11y:axe:
     desc: "axe-core a11y-Scan der Kern-Routen gegen ENV=mentolder|korczewski (G-FE01, T001361)"

@@ -227,6 +227,7 @@ export default defineConfig({
         '**/brett-undo-redo.spec.ts',         // session_undo/session_redo (opens its own contexts)
         '**/brett-ground-annotations.spec.ts',// anchors/zones/lines incl. leiter-only gate (opens its own contexts)
         '**/brett-figure-ownership.spec.ts',  // figure_type_set/admin_assign_figure/lobby settings (opens its own contexts)
+        '**/fa-27-brett.spec.ts',     // T002068: data API tests (authenticated subset)
       ],
       use: {
         ...devices['Desktop Chrome'],

@@ -18,8 +18,10 @@ test.describe('FA-iOS: Nextcloud Talk + notify_push (iPhone WebKit)', () => {
 
   test('T2: notify_push endpoint antwortet', async ({ request }) => {
     test.skip(!NC_URL, 'TEST_NC_URL nicht gesetzt');
-    // notify_push exposes /push on the Nextcloud domain; a 200 or 405 confirms it's alive
-    const resp = await request.get(`${NC_URL}/push`);
+    // T002068: /push/test/cookie is the real notify_push endpoint (Apache
+    // ProxyPass: /push/ → 127.0.0.1:7867 in k3d/nextcloud.yaml). Responds
+    // without session with 400 or 200 — both prove the daemon is alive.
+    const resp = await request.get(`${NC_URL}/push/test/cookie`);
     expect([200, 400, 405]).toContain(resp.status());
   });
 

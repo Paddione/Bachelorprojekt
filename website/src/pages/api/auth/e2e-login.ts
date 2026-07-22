@@ -21,9 +21,15 @@ export const GET: APIRoute = async ({ request }) => {
   const username = url.searchParams.get('username') || '';
 
   const users = await listUsers();
-  const user = users.find(
-    u => u.username === username || u.email === username,
-  );
+  // Exact match first, then case-insensitive fallback (T002068: Pocket-ID
+  // stores `Paddione`, e2e harness sends `paddione`).
+  const user =
+    users.find(u => u.username === username || u.email === username) ??
+    users.find(
+      u =>
+        u.username.toLowerCase() === username.toLowerCase() ||
+        (u.email?.toLowerCase() ?? '') === username.toLowerCase(),
+    );
   if (!user) {
     return new Response(JSON.stringify({ error: `user "${username}" not found` }), {
       status: 404,

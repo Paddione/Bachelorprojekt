@@ -29,15 +29,42 @@
     },
     "llama-bonsai-server": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp (Ternary-Bonsai-27B)",
+      "name": "llama.cpp (Ternary-Bonsai-8B)",
       "options": {
         "baseURL": "http://127.0.0.1:8093/v1"
       },
       "models": {
-        "Ternary-Bonsai-27B-Q2_0.gguf": {
-          "name": "Ternary-Bonsai-27B (Q2_0, 130k ctx per slot)",
+        // 2026-07-22: 27B komplett entladen, KEIN Skript laedt es mehr - Port
+        // 8093 bedient jetzt in beiden Modi Ternary-Bonsai-8B: entweder
+        // start-bonsai-server.ps1 (2 Slots x 65536 = max Kontext pro Slot,
+        // gepaart mit Bonsai-Image) oder start-bonsai-parallel.ps1
+        // (VRAM-abhaengig viele Slots, kein Bild-Gen). Modell ist in beiden
+        // Faellen identisch, nur -np/-c unterscheiden sich.
+        "Ternary-Bonsai-8B-Q2_0.gguf": {
+          "name": "Ternary-Bonsai-8B (Q2_0, 65k ctx/Slot)",
           "limit": {
-            "context": 130000,
+            "context": 65536,
+            "output": 8192
+          }
+        }
+      }
+    },
+    // OpenCode Zen/Go: Key aus ~/.config/opencode/secrets.env (chmod 600, nicht
+    // in git). "opencode-go" statt "opencode" (Zen) - Subscription-Tier ($10/mo),
+    // deepseek-v4-flash ist Teil des Go-Katalogs (verifiziert per curl gegen
+    // https://opencode.ai/zen/go/v1/chat/completions, cost:"0" = im Abo enthalten).
+    "opencode-go": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OpenCode Go (Subscription, deepseek-v4-flash)",
+      "options": {
+        "baseURL": "https://opencode.ai/zen/go/v1",
+        "apiKey": "{env:OPENCODE_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash (OpenCode Go, 1M ctx, MoE 284B/13B active)",
+          "limit": {
+            "context": 1000000,
             "output": 8192
           }
         }
@@ -105,13 +132,27 @@
     }
   },
   "agent": {
-    "bonsai-27b": {
-      "description": "PRIMARY SUBAGENT: Ternary-Bonsai-27B (130k context per slot, up to 2 parallel slots via llama-server on port 8093)",
+    "bonsai-8b": {
+      "description": "PRIMARY SUBAGENT (Quality-Modus, start-bonsai-server.ps1): Ternary-Bonsai-8B (65k context per slot, up to 2 parallel slots via llama-server on port 8093, paired with Bonsai-Image on the same GPU). 2026-07-22: replaces the former bonsai-27b agent - 27B is no longer loaded by any script.",
       "mode": "subagent",
-      "model": "llama-bonsai-server/Ternary-Bonsai-27B-Q2_0.gguf",
+      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#0EA5E9",
       "temperature": 0.2,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "webfetch": "deny", "websearch": "deny" }
+    },
+    // Eskalationsstufe fuer Parallel-Agenten (start-bonsai-parallel.ps1), NACH
+    // lokaler Kontext-Kompaktierung/Retry und opencodes eigener Kompaktierung -
+    // erst wenn beides nicht reicht, wird hier dispatcht. Laeuft ueber die
+    // OpenCode-Go-Subscription (kein Pay-per-Token, s. "opencode-go"-Provider
+    // oben), nicht ueber eine direkte DeepSeek-API-Abrechnung.
+    "deepseek-helper": {
+      "description": "ESCALATION: DeepSeek V4 Flash via OpenCode Go (1M ctx) - dispatch when a local parallel subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed",
+      "mode": "subagent",
+      "model": "opencode-go/deepseek-v4-flash",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#F97316",
+      "temperature": 0.3,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "webfetch": "deny", "websearch": "deny" }
     }
   }

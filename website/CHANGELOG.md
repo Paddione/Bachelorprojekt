@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.199.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.198.0...website-v1.199.0) (2026-07-22)
+
+
+### Features
+
+* **factory:** parallel-status panel + force-tick [T002079] ([#3104](https://github.com/Paddione/Bachelorprojekt/issues/3104)) ([d010013](https://github.com/Paddione/Bachelorprojekt/commit/d010013a584b992f1ef3fbdedc7fa3a9cf184262))
+
 ## [1.198.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.13...website-v1.198.0) (2026-07-22)
 
 

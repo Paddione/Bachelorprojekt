@@ -2901,7 +2901,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 522,
+      "file_count": 523,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3207,6 +3207,7 @@
         "scripts/factory/wakeup.sh",
         "scripts/factory/watchdog.sh",
         "scripts/feature-promote.sh",
+        "scripts/find-changed-e2e-tests.sh",
         "scripts/find-changed-tests.sh",
         "scripts/fix-archive-plan-status.sh",
         "scripts/fix-tickets-grants.mjs",

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('FA-14: User Registration Flow', () => {
+test.describe('FA-14: User Registration Flow', { tag: ['@website'] }, () => {
   test('should load registration page and show form', async ({ page }) => {
     await page.goto('/registrieren');
     

@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 
 const ADMIN_URL = process.env.E2E_BASE_URL ?? 'https://web.mentolder.de';
 
-test.describe('SA-21: Admin Aktionen Tab', () => {
+test.describe('SA-21: Admin Aktionen Tab', { tag: ['@admin'] }, () => {
   test.beforeEach(async ({ page }) => {
     // Tests assume admin session is already authenticated
     // (handled by global setup or cookie injection)

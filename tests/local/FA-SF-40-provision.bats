@@ -13,7 +13,7 @@ SUITE="scripts/factory/provision.test.mjs"
 @test "FA-SF-40: node --test provision suite passes" {
   run node --test "$SUITE"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"# fail 0"* ]]
+  [[ "$output" == *"fail 0"* ]]
 }
 
 @test "FA-SF-40: exports the three contract functions" {

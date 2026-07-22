@@ -6,7 +6,7 @@ const BASE        = process.env.WEBSITE_URL || 'http://localhost:4321';
 // The bug report widget is rendered inside AdminLayout (admin-only UI).
 // These tests exercise the public /api/bug-report endpoint directly.
 
-test.describe('FA-26: Bug report API', () => {
+test.describe('FA-26: Bug report API', { tag: ['@admin'] }, () => {
   test('POST /api/bug-report without description returns 400', async ({ request }) => {
     const form = new FormData();
     form.append('email', 'test@example.de');

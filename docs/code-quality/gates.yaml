@@ -186,6 +186,10 @@ s4:
     - "scripts/seed-lmstudio-ki-config.mjs"
     - "scripts/setup-comfyui.sh"
     - "scripts/api-auth-check.test.mjs"
+    # E2E test-selection helper — used ad-hoc, not referenced by Taskfile or docs.
+    # The bucket system (task test:changed) handles automatic selection; this script
+    # provides per-file precision via test-inventory.json for manual use (T001???).
+    - "scripts/find-changed-e2e-tests.sh"
 
 s5:
   rules:

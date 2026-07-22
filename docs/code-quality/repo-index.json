@@ -2457,7 +2457,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 454,
+      "file_count": 455,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -2480,6 +2480,7 @@
         ".opencode/plugins/kdco-primitives/with-timeout.ts",
         ".opencode/plugins/worktree",
         ".opencode/plugins/worktree.ts",
+        ".opencode/prompts/deepseek-helper.md",
         ".opencode/prompts/local-subagent.md",
         ".opencode/skills/dev-flow/DEV-FLOW.SKILL.md",
         ".opencode/skills/dev-flow/background-agents.SKILL.md",

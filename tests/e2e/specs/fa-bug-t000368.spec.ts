@@ -1,14 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
+import { loginViaE2E } from '../lib/auth';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
-import { loginViaE2E } from '../lib/auth';
-
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/tickets');
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin');
 }
 
 test.describe('Bug T000368 Reproduction', () => {

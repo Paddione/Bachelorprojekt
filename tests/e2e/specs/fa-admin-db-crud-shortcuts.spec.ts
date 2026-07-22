@@ -67,7 +67,7 @@ test.describe('FA-admin-db-crud-shortcuts', () => {
 
     // ── 4. Reload /admin and verify the updated label is visible ──
     await page.goto(`${BASE}/admin`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${updatedLabel}"`).first()).toBeVisible({ timeout: 60_000 });
     // Old label should no longer appear
     await expect(page.locator(`text="${label}"`).first()).toHaveCount(0);
@@ -83,7 +83,7 @@ test.describe('FA-admin-db-crud-shortcuts', () => {
 
     // ── 6. Reload /admin and verify shortcut is gone ──
     await page.goto(`${BASE}/admin`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.locator(`text="${updatedLabel}"`)).toHaveCount(0);
   });
 

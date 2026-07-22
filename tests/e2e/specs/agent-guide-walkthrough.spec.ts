@@ -236,7 +236,7 @@ test('Karte einklappen bleibt nach Reload erhalten', async ({ page }) => {
   await page.locator('.ag-map-toggle').click();                    // collapse
   await expect(page.locator('.ag-map')).toHaveCount(0);
   await page.reload();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   // re-open drawer + guide after reload, then assert the map stayed collapsed
   await openAgentGuide(page);
   await expect(page.locator('.ag-map-toggle')).toHaveAttribute('aria-expanded', 'false');

@@ -22,7 +22,7 @@
 // /api/admin/systemtest/purge-all-test-data, which (after PR #608) sweeps
 // inbox_items WHERE is_test_data=true. Even if this spec aborts mid-flight,
 // the next run's globalSetup wipes the seeded row.
-
+//
 import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
@@ -46,6 +46,7 @@ async function loginAsAdmin(page: Page, returnTo = '/admin/inbox'): Promise<void
  *      ID round-trip (since /api/contact returns 200 with no body).
  *
  * Returns the unique seed name we used so the test can locate the row.
+ *
  */
 async function seedTestContactRow(api: APIRequestContext): Promise<string> {
   const seedName = `[TEST] inbox-delete ${Date.now()}-${Math.floor(Math.random() * 1e6)}`;

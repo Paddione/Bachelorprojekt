@@ -10,15 +10,11 @@
 // admin session. They skip gracefully when E2E_ADMIN_PASS is unset
 // (e.g. CI without secrets, local runs without credentials).
 //
-// 401 coverage for `GET /api/admin/inbox` already lives in
-// fa-admin-crm.spec.ts and is intentionally NOT duplicated here
-// (per spec §11.2 final bullet).
-//
 // Robustness: this suite asserts conditionally on data presence.
 // The live inbox can be empty — we never seed test items, so each
 // assertion gates on "if at least one row exists" before drilling in.
 // No clean-up step is required because nothing is created.
-
+//
 import { test, expect, type Page } from '@playwright/test';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
@@ -26,7 +22,6 @@ const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
-// All six item types from spec §4.3 + the synthetic "all" pseudo-type.
 const TYPES = [
   'all',
   'registration',

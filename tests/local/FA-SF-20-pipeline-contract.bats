@@ -1,6 +1,8 @@
 #!/usr/bin/env bats
 # FA-SF-20: structural contract for the runnable factory pipeline (offline, no cluster).
 SCRIPT="scripts/factory/pipeline.js"
+# T002074: deploy prompt moved into buildDeployPrompt (pipeline-partials.cjs).
+PARTIALS_MOD="scripts/factory/pipeline-partials.cjs"
 
 @test "FA-SF-20: pipeline.js exists and is syntactically valid JS" {
   [ -f "$SCRIPT" ]
@@ -35,7 +37,7 @@ SCRIPT="scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-20: Deploy phase merges from MAIN repo and deploys BOTH brands with explicit ENV" {
-  run grep -q "feature:" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -Eq "workspace:deploy|workspace:partial-deploy" "$SCRIPT"; [ "$status" -eq 0 ]
   run grep -Eq "ENV=mentolder|ENV=korczewski|ENV=fleet-" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 
@@ -46,7 +48,7 @@ SCRIPT="scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-20: Deploy phase enforces WORK_BRANCH regex feature/*|fix/* + diff-size guard" {
-  run grep -Eq "feature/.*\|fix/|guard_check_diff_size" "$SCRIPT"; [ "$status" -eq 0 ]
+  run grep -Eq "feature/.*\|fix/|guard_check_diff_size" "$SCRIPT" "$PARTIALS_MOD"; [ "$status" -eq 0 ]
   run grep -q "FACTORY_MAX_DIFF" "$SCRIPT"; [ "$status" -eq 0 ]
 }
 

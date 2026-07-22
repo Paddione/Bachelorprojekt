@@ -87,7 +87,6 @@ for (const w of timeWindowsList) {
   windowsByDate.get(w.date)!.push(w);
 }
 
-const totalWindows = timeWindowsList.length;
 const upcomingBookings = bookings.filter(b => b.start >= now && b.status !== 'CANCELLED');
 const pastBookings = bookings.filter(b => b.start < now || b.status === 'CANCELLED');
 

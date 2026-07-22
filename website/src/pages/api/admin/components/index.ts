@@ -12,7 +12,7 @@ const CreateBody = z.object({
   area:     z.string().min(1).max(50),
   status:   z.enum(['active', 'inactive', 'deprecated']).optional(),
   cluster:  z.enum(['mentolder', 'korczewski', 'both']).optional(),
-  url:      z.string().url().nullable().optional(),
+  url:      z.url().nullable().optional(),
   hostname: z.string().max(100).nullable().optional(),
   notes:    z.string().max(500).nullable().optional(),
 });

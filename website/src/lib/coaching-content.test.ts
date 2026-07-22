@@ -34,14 +34,14 @@ describe('getEffectiveCoaching', () => {
   });
 
   it('returns defaults when no service override exists', async () => {
-    mockGetServiceConfig.mockResolvedValue([]);
+    mockGetServiceConfig.mockReturnValue([]);
     const out = await getEffectiveCoaching('mentolder');
     expect(out.headline).toBe(DEFAULT.headline);
     expect(out.ctaHref).toBe('/termin');
   });
 
   it('returns defaults when the coaching slug is not present in the override list', async () => {
-    mockGetServiceConfig.mockResolvedValue([
+    mockGetServiceConfig.mockReturnValue([
       { slug: 'something-else', pageContent: { headline: 'X' } },
     ]);
     const out = await getEffectiveCoaching('mentolder');
@@ -49,7 +49,7 @@ describe('getEffectiveCoaching', () => {
   });
 
   it('applies headline, intro, forWhom, faq from the override when present', async () => {
-    mockGetServiceConfig.mockResolvedValue([
+    mockGetServiceConfig.mockReturnValue([
       {
         slug: 'coaching',
         pageContent: {
@@ -68,7 +68,7 @@ describe('getEffectiveCoaching', () => {
   });
 
   it('derives process steps from sections when sections is non-empty', async () => {
-    mockGetServiceConfig.mockResolvedValue([
+    mockGetServiceConfig.mockReturnValue([
       {
         slug: 'coaching',
         pageContent: {
@@ -87,7 +87,7 @@ describe('getEffectiveCoaching', () => {
   });
 
   it('falls back to defaults when sections is empty', async () => {
-    mockGetServiceConfig.mockResolvedValue([
+    mockGetServiceConfig.mockReturnValue([
       { slug: 'coaching', pageContent: { headline: 'X', sections: [] } },
     ]);
     const out = await getEffectiveCoaching('mentolder');
@@ -96,7 +96,7 @@ describe('getEffectiveCoaching', () => {
   });
 
   it('returns defaults when the DB call throws', async () => {
-    mockGetServiceConfig.mockRejectedValue(new Error('db down'));
+    mockGetServiceConfig.mockImplementation(() => { throw new Error('db down'); });
     const out = await getEffectiveCoaching('mentolder');
     expect(out.headline).toBe(DEFAULT.headline);
   });

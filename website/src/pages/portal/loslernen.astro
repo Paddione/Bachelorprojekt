@@ -128,7 +128,7 @@ const sortedThemes = [...themes].sort((a, b) => a.order - b.order);
     </div>
   </div>
 
-  <script define:vars={{ done: summary.done, total: summary.total }}>
+  <script is:inline define:vars={{ done: summary.done, total: summary.total }}>
     // (a) In-page CTA → open the Sidekick on the Agent-Anleitung + scroll the card.
     document.querySelectorAll('[data-jump-domid]').forEach((btn) => {
       btn.addEventListener('click', () => {

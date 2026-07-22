@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
 
   try {
     // Load existing service_config overrides
-    const existing = await getServiceConfig(BRAND) ?? [];
+    const existing = getServiceConfig(BRAND) ?? [];
     const staticSvc = config.services.find(s => s.slug === SLUG);
 
     // Build the pageContent from CoachingContent fields

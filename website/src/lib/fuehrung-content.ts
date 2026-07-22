@@ -59,7 +59,7 @@ const DEFAULT_FUEHRUNG: FuehrungContent = {
  */
 export async function getEffectiveFuehrung(brand: string): Promise<FuehrungContent> {
   try {
-    const overrides = await getServiceConfig(brand);
+    const overrides = getServiceConfig(brand);
     const svc = overrides?.find(o => o.slug === SLUG);
     const staticSvc = config.services.find(s => s.slug === SLUG);
     const pc = svc?.pageContent;

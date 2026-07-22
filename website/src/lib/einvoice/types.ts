@@ -10,14 +10,14 @@ const SellerConfigSchema = z.object({
   country: z.string().length(2),
   vatId: z.string().optional(),
   taxNumber: z.string().optional(),
-  contactEmail: z.string().email(),
+  contactEmail: z.email(),
   iban: z.string().min(15),
   bic: z.string().optional(),
 });
 
 const BuyerConfigSchema = z.object({
   name: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   address: z.string().optional(),
   postalCode: z.string().optional(),
   city: z.string().optional(),

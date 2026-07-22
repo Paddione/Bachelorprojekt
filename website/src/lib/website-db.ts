@@ -52,7 +52,7 @@ import { isConflict as detectConflict, nextVersion as bumpVersion } from './admi
 // that imports these names from website-db.
 import { pool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
 export { pool, ensureSchemaOnce, __resetSchemaInitCacheForTests } from './db-pool';
-export { platformPool } from './db-pool';
+export { pool as platformPool } from './db-pool';
 import type { Pool, PoolClient } from 'pg';
 
 // listAllCustomers / listAdminUsers / getCustomerByEmail moved to

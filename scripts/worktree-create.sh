@@ -131,6 +131,8 @@ if [ -f "$KEY_SRC" ]; then
     mkdir -p "$WT_GITDIR/git-crypt/keys"
     cp "$KEY_SRC" "$WT_GITDIR/git-crypt/keys/default"
     git -C "$WT_PATH" checkout
+    git -C "$WT_PATH" config extensions.worktreeConfig true
+    git -C "$WT_PATH" config --worktree filter.git-crypt.required true
 else
     # Locked (no key): neutralize git-crypt filters worktree-locally so checkout
     # and all later git ops use cat (passthrough). extensions.worktreeConfig must

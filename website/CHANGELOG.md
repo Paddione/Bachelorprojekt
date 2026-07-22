@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.197.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.10...website-v1.197.11) (2026-07-22)
+
+
+### Bug Fixes
+
+* **infra:** shared-db /dev/shm Memory-Mount — website-Backup wieder restaurierbar [T002064] ([#3089](https://github.com/Paddione/Bachelorprojekt/issues/3089)) ([a67fa30](https://github.com/Paddione/Bachelorprojekt/commit/a67fa30ea5d5bcc7c69d089065b800c79d2cdeae))
+* **website:** unwrap Pocket ID v2 paginated response in listUsers and createUser ([#3088](https://github.com/Paddione/Bachelorprojekt/issues/3088)) ([a2823fd](https://github.com/Paddione/Bachelorprojekt/commit/a2823fd935a49398e362ed9639c4aa84352dac83))
+
 ## [1.197.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.197.9...website-v1.197.10) (2026-07-21)
 
 

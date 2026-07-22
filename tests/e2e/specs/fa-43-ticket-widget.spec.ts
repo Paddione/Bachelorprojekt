@@ -6,6 +6,7 @@
 // shows in portal (showCreate defaults to true).
 
 import { test, expect } from '@playwright/test';
+import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
@@ -13,8 +14,7 @@ const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAndGo(page: import('@playwright/test').Page, path: string) {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${path}`);
-  await page.waitForURL(new RegExp(path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), { timeout: 20_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, path);
 }
 
 test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {

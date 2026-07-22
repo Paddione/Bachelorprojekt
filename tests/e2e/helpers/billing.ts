@@ -1,14 +1,11 @@
 import { Page, APIRequestContext, expect } from '@playwright/test';
+import { loginViaE2E, getAdminCredentials } from '../lib/auth';
 
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
-const ADMIN_USER = process.env.ADMIN_USER || process.env.E2E_ADMIN_USER || 'paddione';
 
 export async function adminLogin(page: Page, request?: APIRequestContext, testInfo?: any) {
-  await page.goto(
-    `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/rechnungen')}`,
-    { waitUntil: 'domcontentloaded' },
-  );
-  await page.waitForURL(/\/admin/, { timeout: 60_000 });
+  const { user } = getAdminCredentials();
+  await loginViaE2E(page, BASE, user, '/admin/rechnungen');
 }
 
 export async function createTestInvoice(page: Page, opts: { gross: number }) {

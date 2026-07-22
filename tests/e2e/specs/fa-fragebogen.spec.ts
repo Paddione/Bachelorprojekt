@@ -1,5 +1,6 @@
 // tests/e2e/specs/fa-fragebogen.spec.ts
 import { test, expect, type Page } from '@playwright/test';
+import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 import { Pool } from 'pg';
 
@@ -13,8 +14,7 @@ const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? 'p.korczewski@gmail.com';
 const isProd = BASE.includes('mentolder.de') || BASE.includes('korczewski.de');
 
 async function loginAsAdmin(page: Page, returnTo: string): Promise<void> {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(new RegExp(returnTo.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')), { timeout: 20_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 
 // ── Auth gating ─────────────────────────────────────────────────────────────

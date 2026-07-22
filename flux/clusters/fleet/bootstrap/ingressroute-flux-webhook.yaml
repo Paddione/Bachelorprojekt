@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: flux-webhook
+  namespace: flux-system
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`${FLUX_WEBHOOK_HOST}`)
+      kind: Rule
+      services:
+        - name: notification-controller
+          port: 80
+  tls:
+    secretName: ${TLS_SECRET_NAME}

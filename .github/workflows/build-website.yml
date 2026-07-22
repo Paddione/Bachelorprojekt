@@ -78,10 +78,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  render-artifact:
+    name: Re-render fleet artifact (pins website SHA)
+    needs: [build-image]
+    if: vars.FLUX_ENABLED == 'true'
+    uses: ./.github/workflows/render-fleet-artifact.yml
+    with:
+      website_image_tag: ${{ needs.build-image.outputs.sha_tag }}
+    secrets: inherit
+
   deploy-mentolder:
     name: Deploy Website (mentolder)
     runs-on: ubuntu-latest
     needs: [build-image]
+    if: vars.FLUX_ENABLED != 'true'
     permissions:
       contents: read
 
@@ -229,6 +239,7 @@ jobs:
     name: Deploy Website (korczewski)
     runs-on: ubuntu-latest
     needs: [build-image]
+    if: vars.FLUX_ENABLED != 'true'
     permissions:
       contents: read
 

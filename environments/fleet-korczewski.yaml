@@ -21,6 +21,7 @@ env_vars:
   LEGAL_UST_ID: "Kleinunternehmer gem. § 19 Abs. 1 UStG"
   LEGAL_WEBSITE: korczewski.de
   WEBSITE_IMAGE: website
+  BRETT_IMAGE: latest
   DOCS_IMAGE: korczewski-docs
   WEBSITE_NAMESPACE: website-korczewski
   WORKSPACE_NAMESPACE: workspace-korczewski

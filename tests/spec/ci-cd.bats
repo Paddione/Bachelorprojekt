@@ -442,3 +442,59 @@ _assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)
     return 1
   fi
 }
+
+# ── T002083: fluxcd-gitops — push→pull CI-Rückbau (SSOT: openspec/specs/ci-cd.md) ──
+
+@test "T002083: deploy-sealed-secrets.yml workflow no longer exists" {
+  [ ! -f "$REPO_ROOT/.github/workflows/deploy-sealed-secrets.yml" ]
+}
+
+@test "T002083: post-merge.yml has no unguarded task workspace:deploy in deploy-manifests" {
+  # After the rebuild the deploy-manifests job is removed or only keeps a
+  # FLUX_ENABLED break-glass fallback. Any surviving unguarded step fails.
+  run python3 - "$WF" <<'PY'
+import sys, re, yaml
+doc = yaml.safe_load(open(sys.argv[1])) or {}
+job = (doc.get('jobs', {}) or {}).get('deploy-manifests', {}) or {}
+offenders = []
+for s in (job.get('steps', []) or []):
+    run = s.get('run', '') or ''
+    if re.search(r'task\s+workspace:deploy', run):
+        guard = (s.get('if', '') or '') + run
+        if 'FLUX_ENABLED' not in guard:
+            offenders.append(s.get('name', run[:40]))
+assert not offenders, f'unguarded workspace:deploy steps remain: {offenders}'
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "T002083: render-fleet-artifact.yml workflow exists" {
+  [ -f "$REPO_ROOT/.github/workflows/render-fleet-artifact.yml" ]
+}
+
+@test "T002083: render-fleet-artifact.yml pushes an OCI artifact via flux push artifact" {
+  run grep -E 'flux[[:space:]]+push[[:space:]]+artifact' \
+    "$REPO_ROOT/.github/workflows/render-fleet-artifact.yml"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002083: render-fleet-artifact.yml pings the Flux Receiver webhook after push" {
+  # Receiver ping: a POST to the flux-webhook hook path (host resolved from config,
+  # never a brand-domain literal in the workflow).
+  run grep -iE 'flux-webhook|/hook/|receiver' \
+    "$REPO_ROOT/.github/workflows/render-fleet-artifact.yml"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002083: build-website.yml wires render-artifact job for FluxCD" {
+  run grep -E 'uses:[[:space:]]*\./\.github/workflows/render-fleet-artifact\.yml' "$BUILD_WF"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002083: build-brett.yml wires render-artifact job for FluxCD" {
+  local brett_wf="$REPO_ROOT/.github/workflows/build-brett.yml"
+  [ -f "$brett_wf" ]
+  run grep -E 'uses:[[:space:]]*\./\.github/workflows/render-fleet-artifact\.yml' "$brett_wf"
+  [ "$status" -eq 0 ]
+}
+

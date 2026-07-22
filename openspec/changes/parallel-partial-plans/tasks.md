@@ -842,5 +842,5 @@ task freshness:check
 Testabdeckung läuft vollständig über BATS (tests/spec/software-factory.bats). -->
 
 **Akzeptanz:**
-- [ ] Alle drei STRUCT3-Kommandos grün; S1-Ratchet bestätigt `pipeline.js` ≤ 600 und keine Baseline-Neueinträge.
-- [ ] `task test:inventory`-Artefakt aktuell.
+- [x] Alle drei STRUCT3-Kommandos grün; S1-Ratchet bestätigt `pipeline.js` ≤ 600 und keine Baseline-Neueinträge.
+- [x] `task test:inventory`-Artefakt aktuell.

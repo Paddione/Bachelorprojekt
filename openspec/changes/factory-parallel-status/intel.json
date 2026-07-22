@@ -7,12 +7,12 @@
     "note": "Intel via code-explorer subagent + grep/Read + wc/jq. codebase-memory-mcp nicht separat abgefragt; Signaturen aus realen Datei-Zitaten."
   },
   "impact_files": [
-    { "path": "website/src/pages/api/factory/parallel-status.ts", "language": "typescript", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500, "status": "net-new", "partial": "p1" },
-    { "path": "website/src/pages/api/factory/force-tick.ts", "language": "typescript", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500, "status": "net-new", "partial": "p1" },
-    { "path": "website/src/lib/parallel-status.ts", "language": "typescript", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500, "status": "net-new", "partial": "p1" },
+    { "path": "website/src/pages/api/factory/parallel-status.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600, "status": "net-new", "partial": "p1" },
+    { "path": "website/src/pages/api/factory/force-tick.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600, "status": "net-new", "partial": "p1" },
+    { "path": "website/src/lib/parallel-status.ts", "language": "typescript", "loc": 0, "s1_limit": 600, "s1_baseline": null, "s1_budget": 600, "status": "net-new", "partial": "p1" },
     { "path": "scripts/factory/wakeup.sh", "language": "bash", "loc": 195, "s1_limit": 500, "s1_baseline": null, "s1_budget": 305, "status": "edit", "partial": "p1" },
     { "path": "website/src/components/DevStatusTabs.svelte", "language": "svelte", "loc": 114, "s1_limit": 500, "s1_baseline": null, "s1_budget": 386, "status": "edit", "partial": "p2" },
-    { "path": "website/src/pages/admin/pipeline.astro", "language": "astro", "loc": 32, "s1_limit": 500, "s1_baseline": null, "s1_budget": 468, "status": "edit", "partial": "p2" },
+    { "path": "website/src/pages/admin/pipeline.astro", "language": "astro", "loc": 32, "s1_limit": 400, "s1_baseline": null, "s1_budget": 368, "status": "edit", "partial": "p2" },
     { "path": "website/src/lib/parallel-status.test.ts", "language": "typescript", "loc": 0, "s1_limit": null, "s1_baseline": null, "s1_budget": null, "status": "net-new", "partial": "p3", "note": "test file — S1-exempt" },
     { "path": "tests/spec/software-factory.bats", "language": "bats", "loc": 3823, "s1_limit": null, "s1_baseline": null, "s1_budget": null, "status": "edit", "partial": "p3", "note": "test file — S1-exempt (not baselined despite size)" }
   ],

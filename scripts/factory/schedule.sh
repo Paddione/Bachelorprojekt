@@ -64,12 +64,24 @@ SQL
   set -e
   [[ "$rc" -eq 1 ]] && continue
 
-  slot=$(BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" next)
-  [[ -z "$slot" ]] && continue   # brand pool full
+  # Gang-Bedarf des Kandidaten (Design §3): slot_count wird von stage-plan
+  # --partials gesetzt; Default 1 = Single-Slot wie bisher.
+  needed=$(printf '%s' "SELECT COALESCE(slot_count,1) FROM tickets.tickets WHERE external_id = :'ext_id';" \
+    | BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" factory_psql -v ext_id="$ext_id")
+  needed="${needed:-1}"
 
-  if BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" claim "$ext_id" "$slot" >/dev/null 2>&1; then
-    plan=$(echo "$plan" | jq -c --arg b "$BRAND" --arg e "$ext_id" --argjson s "$slot" '. + [{brand:$b, external_id:$e, slot:$s}]')
-    global_used=$((global_used + 1))
+  used=$(BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" count)
+  free=$(( ${FACTORY_SLOTS_PER_BRAND:-3} - ${used:-0} ))
+
+  # head-of-line blocking: passt der vorderste Gang-Kandidat nicht, werden KEINE
+  # nachrangigen Tickets vorgezogen (sonst Gang-Starvation) — break, kein continue.
+  if [[ "$needed" -gt "$free" || $(( global_used + needed )) -gt "$GLOBAL_CAP" ]]; then
+    break
+  fi
+
+  if BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" claim-gang "$ext_id" "$needed" >/dev/null 2>&1; then
+    plan=$(echo "$plan" | jq -c --arg b "$BRAND" --arg e "$ext_id" --argjson s "$needed" '. + [{brand:$b, external_id:$e, slot:$s}]')
+    global_used=$((global_used + needed))
   fi
 done
 echo "$plan"

@@ -10,7 +10,8 @@ setup() { load 'test_helper.bash'; }
 }
 
 @test "FA-SF-39-wire: Deploy invokes observe_prod per brand" {
-  run grep -qE 'observe_prod' "$PJS"
+  # observe_prod lives in buildDeployPrompt (pipeline-partials.cjs) since T002074.
+  run grep -qE 'observe_prod' "$PJS" "$BATS_TEST_DIRNAME/../../scripts/factory/pipeline-partials.cjs"
   [ "$status" -eq 0 ]
 }
 

@@ -16,7 +16,8 @@
 }
 
 @test "FA-SF-44: diff-size guard is passed the feature branch ref" {
-  run grep -Eq 'guard_check_diff_size \$\{process\.env\.FACTORY_MAX_DIFF \?\? .800.\} \$\{WORK_BRANCH\}' scripts/factory/pipeline.js
+  # buildDeployPrompt (pipeline-partials.cjs) parameterises the guard: maxDiff + workBranch.
+  run grep -Eq 'guard_check_diff_size \$\{c\.maxDiff \|\| .800.\} \$\{c\.workBranch\}' scripts/factory/pipeline-partials.cjs
   [ "$status" -eq 0 ]
 }
 

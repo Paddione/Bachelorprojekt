@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 # FA-SF-37-retry — structured ≤2 self-healing retry loop in pipeline.js
 PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
+# T002074: CI retry loop moved to pr-babysit-ticket.sh; deploy prompt to pipeline-partials.cjs.
+PARTIALS_MOD="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline-partials.cjs"
+PRBABYSIT="$BATS_TEST_DIRNAME/../../scripts/factory/pr-babysit-ticket.sh"
 
 setup() { load 'test_helper.bash'; }
 
@@ -14,25 +17,25 @@ setup() { load 'test_helper.bash'; }
   [ "$status" -ne 0 ]
 }
 
-@test "FA-SF-37-retry: reads retry_count via ticket.sh (no raw SQL)" {
-  run grep -qE 'ticket\.sh retry-count get' "$PJS"
+@test "FA-SF-37-retry: CI retry loop is delegated to pr-babysit-ticket.sh (T002074)" {
+  run grep -qE 'pr-babysit-ticket\.sh' "$PJS" "$PARTIALS_MOD"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: two-gated classification (failure-class AND path-class)" {
-  run grep -qE 'classify-failure\.sh' "$PJS"
-  [ "$status" -eq 0 ]
-  run grep -qE 'paths_are_escalate_class|classify-paths\.sh' "$PJS"
+@test "FA-SF-37-retry: pr-babysit reuses classify-failure.sh (no duplication)" {
+  run grep -qE 'classify-failure\.sh' "$PRBABYSIT"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: auto-fix gated to ci/test/lint only" {
-  run grep -qE 'ci.*test.*lint|\{ci,test,lint\}|ci/test/lint' "$PJS"
+@test "FA-SF-37-retry: pr-babysit re-checks before requeue + bounds attempts" {
+  run grep -qiE 'Re-check BEFORE requeue' "$PRBABYSIT"
+  [ "$status" -eq 0 ]
+  run grep -qE 'MAX_CI_ATTEMPTS' "$PRBABYSIT"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: at retry_count>=2 → blocked + PushNotification" {
-  run grep -qE 'retry_count.*2|retry-count.*incr' "$PJS"
+@test "FA-SF-37-retry: attempts exhausted → non-zero exit + PushNotification escalation" {
+  run grep -qE 'exit 1' "$PRBABYSIT"
   [ "$status" -eq 0 ]
   run grep -qE 'PushNotification' "$PJS"
   [ "$status" -eq 0 ]

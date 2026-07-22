@@ -62,6 +62,20 @@ async function runTaskVerifyLoop(agentFn, t, maxLoop, WORK_WT, WORK_BRANCH, slug
   return null
 }
 
+// Shared worktree bootstrap (used by the batch path and the single-task path).
+// Returns { ok, detail }; the caller escalates on !ok.
+async function setupWorktree(agentFn, REPO, WORK_BRANCH, WORK_WT, ticket_id, label) {
+  const wtSetup = await agentFn(
+    `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${ticket_id}\`.
+     From ${REPO}, create the isolated worktree:
+       bash ${REPO}/scripts/worktree-create.sh ${WORK_BRANCH} ${WORK_WT} origin/main
+     Report the FULL stdout. A success line contains "ready on".`,
+    { label: `${label}:worktree-setup`, phase: 'Implement', model: FACTORY_MODEL },
+  )
+  const s = String(wtSetup ?? '')
+  return /ready on/.test(s) ? { ok: true } : { ok: false, detail: s.slice(0, 400) }
+}
+
 async function main() {
 
 const A = args ?? {}
@@ -131,46 +145,33 @@ if (A.batch_mode === true && Array.isArray(A.sub_features)) {
   phase('Implement')
   await phaseEvent('implement', 'entered', `Batch: ${A.sub_features.length} sub-features`)
 
-  const wtSetup = await agent(
-    `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
-     From ${REPO}, create the isolated worktree for this batch feature:
-       bash ${REPO}/scripts/worktree-create.sh ${WORK_BRANCH} ${WORK_WT} origin/main
-     Report the FULL stdout and success/fail.`,
-    { label: 'impl:batch-worktree', phase: 'Implement', model: FACTORY_MODEL },
-  )
-  if (!/ready on/.test(String(wtSetup ?? ''))) {
+  const bwt = await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'impl:batch')
+  if (!bwt.ok) {
     await agent(
       `Batch worktree could not be created for ${A.ticket_id}.
-       Record: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
-       Then PushNotification is DEFERRED: \`ToolSearch select:PushNotification\`, then:
-         title "Factory batch worktree failed: ${A.ticket_id}"
-         message "worktree-create.sh did not report success. ${String(wtSetup ?? '').slice(0, 240)}"
-       Report what was notified.`,
+       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+       PushNotification: \`ToolSearch select:PushNotification\`, title "Factory batch worktree failed: ${A.ticket_id}", message "${bwt.detail.slice(0, 200)}".`,
       { label: 'impl:batch-worktree-escalate', phase: 'Implement', model: FACTORY_MODEL },
     )
     await phaseEvent('implement', 'blocked', 'batch-worktree')
-    return { status: 'blocked', reason: 'worktree-setup', detail: String(wtSetup ?? '').slice(0, 400) }
+    return { status: 'blocked', reason: 'worktree-setup', detail: bwt.detail }
   }
 
+  // Partial fan-out (T002074): sub_features may carry a pre-built implement
+  // prompt (from pipeline-runner.js read-partials / buildPartialPrompt); the
+  // dispatcher batch path falls back to a compact inline prompt. Each partial
+  // emits a partial-done phase event so the Factory Floor sees rotation progress.
   const subResults = await parallel(A.sub_features.map((sf) => async () => {
-    const sfProvJson = await runRunner(agent, 'provision', { complexity: sf.complexity || 'medium', role: 'implement', risk: (sf.assignedFiles?.some((f) => /\.sql$|^k3d\/|^environments\/|realm.*\.json/.test(f)) ? 'high' : 'low'), budgetRemaining: 1, ticketId: A.ticket_id, touchedFiles: sf.assignedFiles || [], gpuEmbeddings: false })
-    let sfProv = {}
-    try { sfProv = JSON.parse(sfProvJson) } catch {}
     const injections = await consumeInjections('implement')
-
-    return agent(
-      `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
-       Implement sub-feature ${sf.id} — ${sf.title} in the shared worktree ${WORK_WT}
-       (branch ${WORK_BRANCH}, already exists — do NOT run \`git worktree add\` again).
-       Target files: ${(sf.assignedFiles || []).join(', ')}.
-       Description: ${sf.description}.
-       ${sf.shared_changes ? 'NOTE: shared files (configmap/schema/kustomization) — apply changes idempotently.' : ''}
-       Follow TDD (red-green). DARK-LAUNCH: gate new user-visible behavior behind isFeatureEnabled('${brand}', '${slug}').
-       After implementing: bash ${REPO}/scripts/factory/sandbox-run.sh ${WORK_WT} 'task workspace:validate && task test:all && task freshness:regenerate'
-       Then commit: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${sf.id} [batch-factory]`)}
-       Return a summary of the diff and local test result.` + injections,
-      { label: `batch:${sf.id}`, phase: 'Implement', model: FACTORY_MODEL },
-    )
+    const p = sf.prompt || `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
+       Implement sub-feature ${sf.id} — ${sf.title} in ${WORK_WT} (branch ${WORK_BRANCH}, exists — no git worktree add).
+       Target files: ${(sf.assignedFiles || []).join(', ')}. Description: ${sf.description}.
+       Follow TDD (red-green). DARK-LAUNCH: gate behind isFeatureEnabled('${brand}', '${slug}').
+       After: bash ${REPO}/scripts/factory/sandbox-run.sh ${WORK_WT} 'task workspace:validate && task test:all && task freshness:regenerate'
+       Then: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${sf.id} [batch-factory]`)}. Return diff + test result.`
+    const r = await agent(p + injections, { label: `batch:${sf.id}`, phase: 'Implement', model: FACTORY_MODEL })
+    if (r != null) await phaseEvent('implement', 'partial-done', JSON.stringify({ partial: sf.id, files: sf.assignedFiles || [], tests: /\bfail/i.test(String(r)) ? 'fail' : 'pass' }))
+    return r
   }))
 
   const succeeded = subResults.filter(Boolean)
@@ -308,17 +309,27 @@ if (!isSimple) {
 if (REUSE) {
   phase('Plan')
   await phaseEvent('plan', 'entered', 'Plan-Reuse')
-  const injections = await consumeInjections('plan')
-  const reuse = await agent(
-    `A human already planned this feature via dev-flow on ${WORK_BRANCH}.
-     Read the plan file (git show "origin/${WORK_BRANCH}:${REUSE_PLAN}") and
-     decompose into independent tasks where no two tasks touch the same file:
-     each { id, target_files:[...], acceptance_criteria:[...] }.
-     Do NOT write a new plan. Return { tasks: [...] }.` + injections,
-    { label: 'plan:reuse', phase: 'Plan', model: FACTORY_MODEL, schema: { type: 'object', required: ['tasks'], properties: { tasks: { type: 'array', items: { type: 'object', required: ['id', 'target_files', 'acceptance_criteria'], properties: { id: { type: 'string' }, target_files: { type: 'array', items: { type: 'string' } }, acceptance_criteria: { type: 'array', items: { type: 'string' } } } } } } } },
-  )
-  tasks = reuse.tasks
-  await phaseEvent('plan', 'done', `${(tasks || []).length} Tasks (reuse)`)
+  // T002074: if the plan ships tasks.d/ partials (disjoint file lists decided at
+  // plan time), use them directly instead of a runtime LLM decompose.
+  let partials = {}
+  try { partials = JSON.parse(await runRunner(agent, 'read-partials', { slug: safeSlug, changeDir: `${WORK_WT}/openspec/changes/${safeSlug}`, ctx: { repo: REPO, workWt: WORK_WT, workBranch: WORK_BRANCH, brand, slug: safeSlug, ticketId: A.ticket_id } })) } catch {}
+  if (partials.partials && Array.isArray(partials.sub_features)) {
+    tasks = partials.sub_features.map((sf) => ({ id: sf.id, target_files: sf.assignedFiles || [], acceptance_criteria: [`partial ${sf.id} implemented; local tests pass`], prompt: sf.prompt }))
+    log(`Plan-Reuse: ${tasks.length} tasks.d/ partials (gang) — skipping LLM decompose`)
+    await phaseEvent('plan', 'done', `${tasks.length} Partials (reuse)`)
+  } else {
+    const injections = await consumeInjections('plan')
+    const reuse = await agent(
+      `A human already planned this feature via dev-flow on ${WORK_BRANCH}.
+       Read the plan file (git show "origin/${WORK_BRANCH}:${REUSE_PLAN}") and
+       decompose into independent tasks where no two tasks touch the same file:
+       each { id, target_files:[...], acceptance_criteria:[...] }.
+       Do NOT write a new plan. Return { tasks: [...] }.` + injections,
+      { label: 'plan:reuse', phase: 'Plan', model: FACTORY_MODEL, schema: { type: 'object', required: ['tasks'], properties: { tasks: { type: 'array', items: { type: 'object', required: ['id', 'target_files', 'acceptance_criteria'], properties: { id: { type: 'string' }, target_files: { type: 'array', items: { type: 'string' } }, acceptance_criteria: { type: 'array', items: { type: 'string' } } } } } } } },
+    )
+    tasks = reuse.tasks
+    await phaseEvent('plan', 'done', `${(tasks || []).length} Tasks (reuse)`)
+  }
 }
 
 let implemented = []
@@ -326,30 +337,22 @@ if (tasks.length && !A.batch_mode) {
   phase('Implement')
   await phaseEvent('implement', 'entered', 'Implementierung gestartet')
 
-  const wtSetup = await agent(
-    `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
-     From ${REPO}, create the isolated worktree:
-       bash ${REPO}/scripts/worktree-create.sh ${WORK_BRANCH} ${WORK_WT} origin/main
-     Report the FULL stdout and exit code. A success line contains "ready on".`,
-    { label: 'impl:worktree-setup', phase: 'Implement', model: FACTORY_MODEL },
-  )
-  if (!/ready on/.test(String(wtSetup ?? ''))) {
+  const iwt = await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'impl')
+  if (!iwt.ok) {
     await agent(
       `Worktree could not be created for ${A.ticket_id}.
-       Record: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
-       Then PushNotification is DEFERRED: \`ToolSearch select:PushNotification\`, then:
-         title "Factory worktree failed: ${A.ticket_id} (${brand})"
-         message "worktree-create.sh did not report success. ${String(wtSetup ?? '').slice(0, 240)}"
-       Report what was notified.`,
+       bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+       PushNotification: \`ToolSearch select:PushNotification\`, title "Factory worktree failed: ${A.ticket_id} (${brand})", message "${iwt.detail.slice(0, 200)}".`,
       { label: 'impl:worktree-escalate', phase: 'Implement', model: FACTORY_MODEL },
     )
     await phaseEvent('implement', 'blocked', 'worktree-setup')
-    return { status: 'blocked', reason: 'worktree-setup', detail: String(wtSetup ?? '').slice(0, 400) }
+    return { status: 'blocked', reason: 'worktree-setup', detail: iwt.detail }
   }
 
   for (const t of tasks) {
     const injections = await consumeInjections('implement')
     const impl = await agent(
+      (t.prompt /* partial fan-out prompt (T002074) */ ||
       `/goal Implement task ${t.id} for ticket ${A.ticket_id}.
        Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
        Implement task ${t.id} on ${WORK_BRANCH} in the shared worktree at ${WORK_WT}
@@ -359,13 +362,15 @@ if (tasks.length && !A.batch_mode) {
        DARK-LAUNCH: gate new behavior behind isFeatureEnabled('${brand}', '${slug}') (default OFF).
        After implementing: bash ${REPO}/scripts/factory/sandbox-run.sh ${WORK_WT} 'task workspace:validate && task test:all && task freshness:regenerate'
        Then commit: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
-       Return a summary of the diff and local test result (pass/fail).` + injections,
+       Return a summary of the diff and local test result (pass/fail).`) + injections,
       { label: `impl:${t.id}`, phase: 'Implement', model: FACTORY_MODEL },
     )
     if (impl == null) continue
 
     const vr = await runTaskVerifyLoop(agent, t, parseInt(process.env.FACTORY_BUILD_LOOP_MAX || '3'), WORK_WT, WORK_BRANCH, slug)
     if (vr) implemented.push(vr)
+    // T002074: emit a partial-done event per task so gang rotation is observable.
+    await phaseEvent('implement', 'partial-done', JSON.stringify({ partial: t.id, files: t.target_files || [], tests: vr ? 'pass' : 'fail' }))
   }
   await phaseEvent('implement', 'done', `${tasks.length} Tasks implementiert`)
 }
@@ -488,8 +493,20 @@ if (!cleanDiff || !String(cleanDiff).trim()) {
   await phaseEvent('verify', 'done', evalCtx || 'Tests ✓')
 }
 
+// PR-Gate (Design §4b / T002074): local verify + review passed → authorise the PR.
+await phaseEvent('verify', 'pr-ready', JSON.stringify({ tests: 'pass', freshness: 'pass', review: 'done' }))
+
 phase('Deploy')
 await phaseEvent('deploy', 'entered', 'PR erstellt · CI watch')
+// Gate the PR on the pr-ready event: without it, only push the branch (no PR).
+if (!DRY_RUN) {
+  const gate = JSON.parse((await runRunner(agent, 'pr-gate', { ticket_id: A.ticket_id, brand })) || '{}')
+  if (!gate.pr_ready) {
+    await agent(`cd ${WORK_WT} && git push -u origin ${WORK_BRANCH}`, { label: 'deploy:branch-push', phase: 'Deploy', model: FACTORY_MODEL })
+    await phaseEvent('deploy', 'pending', 'pending-pr-gate')
+    return { status: 'pending-pr-gate', ticket: A.ticket_id }
+  }
+}
 if (DRY_RUN) {
   const report = await agent(
     `DRY RUN — do NOT push, merge, or deploy. Work from WORKTREE (HEAD=${WORK_BRANCH}):
@@ -518,63 +535,10 @@ await phaseEvent('deploy', partialServices ? 'partial' : 'full', partialServices
 const resolvedPlanFile = planFilePath || await runRunner(agent, 'resolve-task-source', { slug })
 const injections = await consumeInjections('deploy')
 
-const deploy = await agent(
-  `/goal Deploy feature branch ${WORK_BRANCH} to both brands.
-   Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
-   Deploy to both brands. Operate from MAIN repo ${REPO} (NOT ${WORK_WT}).
-
-   HARD GUARDS — STOP on any failure:
-   a. Branch: WORK_BRANCH must match ^(feature|fix|chore)/ .
-      printf '%s' "${WORK_BRANCH}" | grep -Eq '^(feature|fix|chore)/' || { echo "BLOCK: WORK_BRANCH ${WORK_BRANCH} not feature/*|fix/*|chore/*"; exit 1; }
-   b. Diff-size cap: source ${REPO}/scripts/factory/guards.sh
-      GUARDS_REPO=${REPO} guard_check_diff_size ${process.env.FACTORY_MAX_DIFF ?? '800'} ${WORK_BRANCH}
-   c. CWD: every command MUST run from ${REPO}, never ${WORK_WT} (T000342).
-   d. Explicit ENV: use ENV=mentolder/ENV=korczewski — never bare kubectl.
-
-   If guard (a) or (b) fails: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
-   then PushNotification: title "Factory Deploy blocked: ${A.ticket_id}", message which guard failed.
-   Return JSON: { "status": "blocked", "reason": "deploy-guard" }.
-
-   Steps:
-   1. git push -u origin ${WORK_BRANCH}
-   2. Open PR: gh pr create --title "${titlePrefix}(${slug}): ${A.title}" --base main
-      PR=$(gh pr view --json number -q .number); bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} --body "Factory: PR #$PR opened (phase=Deploy)."
-      bash ${REPO}/scripts/ticket.sh add-pr-link --id ${A.ticket_id} --pr "$PR"
-   3. SELF-HEALING RETRY LOOP (≤2 fixes, NO raw SQL):
-      a) gh pr checks "$PR" --watch --interval 20 --fail-fast > /tmp/factory-ci-${A.ticket_id}.status 2>&1; CI_RC=$?
-         RC=$(bash ${REPO}/scripts/ticket.sh retry-count get --id ${A.ticket_id})
-         If RC -ge 2 -> STOP: blocked, notify, return.
-      b) gh run view --log-failed > /tmp/factory-ci-${A.ticket_id}.log 2>&1 || gh run view --log > /tmp/factory-ci-${A.ticket_id}.log 2>&1
-      b2) Freshness fast-path: source ${REPO}/scripts/factory/classify-failure.sh; CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log)
-          If CLASS == freshness (first time only): cd ${WORK_WT} && task freshness:regenerate && git commit -am 'chore: refresh (factory)' && git push; re-run CI without incrementing retry.
-      c) TWO-GATED auto-fix: source ${REPO}/scripts/factory/classify-failure.sh; CLASS=$(classify_failure /tmp/factory-ci-${A.ticket_id}.log)
-         Gate 1: CLASS must be ci|test|lint. Gate 2: source ${REPO}/scripts/factory/classify-paths.sh; paths_are_escalate_class "${featureTouchedFiles.join(',')}" must exit 1.
-         If EITHER fails -> blocked, notify, return.
-      d) If both pass: make smallest fix for CLASS=${'${CLASS}'}, commit + push, then:
-         bash ${REPO}/scripts/ticket.sh retry-count incr --id ${A.ticket_id}
-         bash ${REPO}/scripts/ticket.sh add-comment --id ${A.ticket_id} \\
-           --body "$(printf 'Factory retry %s/2 (class=%s)\\n--- diff ---\\n%s\\n--- ci log tail ---\\n%s' "$RC" "$CLASS" "$(git diff HEAD~1 --shortstat)" "$(tail -30 /tmp/factory-ci-${A.ticket_id}.log)")"
-         Then re-run CI from (a).
-      If RC -ge 2 or a gate failed: bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked; bash ${REPO}/scripts/ticket.sh phase ${A.ticket_id} verify blocked --driver factory --detail "gate=ci result=fail" || true; add-comment "CI red after retries"; return.
-   4. gh pr merge "$PR" --squash --delete-branch --auto
-   5. PR_NUM=$(gh pr view "$PR" --json number -q '.number' 2>/dev/null || echo "$PR")
-      bash ${REPO}/scripts/ticket.sh add-pr-link --id ${A.ticket_id} --pr "$PR_NUM" || true
-      bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status done --resolution shipped
-      bash ${REPO}/scripts/ticket.sh phase ${A.ticket_id} verify done --driver factory --detail "gate=ci result=pass" || true
-      bash ${REPO}/scripts/ticket.sh archive-plan --id ${A.ticket_id} --slug ${slug} --branch ${WORK_BRANCH} --plan-file ${resolvedPlanFile}
-   5b. bash ${REPO}/scripts/ticket.sh feature-flag set --brand mentolder --key ${slug} --enabled false --set-by factory
-       bash ${REPO}/scripts/ticket.sh feature-flag set --brand korczewski --key ${slug} --enabled false --set-by factory
-   6. ${deployStepCmd}
-   7. kubectl --context fleet rollout status deployment/website -n website --timeout=300s
-      kubectl --context fleet rollout status deployment/website -n website-korczewski --timeout=300s
-   8. LAYER-4 CANARY per brand (mentolder korczewski):
-      SERVICE=website TARGET=<brand> source ${REPO}/scripts/feature-promote.sh
-      observe_prod <brand> "$(svc_image_repo website <brand>):${A.timestamp}"
-      If RED: output CANARY_RED <brand>
-
-   Report the merged PR number and deploy outputs.` + injections,
-  { label: 'deploy', phase: 'Deploy', model: FACTORY_MODEL },
-)
+// Deploy prompt is built host-side (pipeline-partials.cjs buildDeployPrompt) —
+// the CI retry loop now lives in pr-babysit-ticket.sh (Task 15).
+const deployPrompt = await runRunner(agent, 'deploy-prompt', { repo: REPO, workBranch: WORK_BRANCH, workWt: WORK_WT, ticketId: A.ticket_id, maxDiff: process.env.FACTORY_MAX_DIFF ?? '800', titlePrefix, slug, title: A.title, deployStepCmd, resolvedPlanFile, timestamp: A.timestamp })
+const deploy = await agent(deployPrompt + injections, { label: 'deploy', phase: 'Deploy', model: FACTORY_MODEL })
 
 if (typeof deploy === 'string' && /blocked/i.test(deploy)) {
   if (deploy.includes('deploy-guard') || deploy.includes('BLOCK: WORK_BRANCH') || deploy.includes('diff exceeds FACTORY_MAX_DIFF')) {

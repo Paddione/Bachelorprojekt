@@ -10,6 +10,7 @@ import path from 'path';
 import { execFileSync, execSync } from 'child_process';
 
 const D = await import('./pipeline-decompose.cjs');
+const P = await import('./pipeline-partials.cjs');
 const SQ = await import('./scout-quality-check.cjs');
 const _msgBridge = await import('./agent-msg-bridge.cjs');
 const ACIModule = await import('./aci.cjs');
@@ -298,6 +299,46 @@ async function main() {
       console.log(pathVal);
     } catch (e) {
       console.log('');
+    }
+
+  } else if (command === 'read-partials') {
+    // tasks.d/ partial fan-out (T002074): parse the change's partial manifest
+    // and emit the batch sub_features form (with per-partial implement prompts).
+    const { slug, changeDir, ctx } = payload;
+    try {
+      const dir = changeDir || path.join(REPO, 'openspec/changes', String(slug || ''));
+      const res = P.readPartials(dir);
+      if (res.partials) {
+        res.sub_features = res.sub_features.map((sf) => ({
+          ...sf,
+          prompt: P.buildPartialPrompt(sf, ctx || {}),
+        }));
+      }
+      console.log(JSON.stringify(res));
+    } catch (e) {
+      console.log(JSON.stringify({ partials: false, error: String(e.message || e) }));
+    }
+
+  } else if (command === 'deploy-prompt') {
+    // Deploy-phase prompt builder (extracted from pipeline.js — T002074).
+    console.log(P.buildDeployPrompt(payload || {}));
+
+  } else if (command === 'pr-gate') {
+    // PR-gate (Design §4b): read the ticket's phase events host-side and answer
+    // whether a verify/pr-ready event authorises PR creation.
+    const { ticket_id, brand } = payload;
+    try {
+      const sql = "SELECT COALESCE(json_agg(json_build_object('phase',e.phase,'state',e.state)),'[]') "
+        + 'FROM tickets.factory_phase_events e JOIN tickets.tickets t ON t.id = e.ticket_id '
+        + "WHERE t.external_id = :'ext_id';";
+      const raw = execFileSync('bash', ['-c',
+        `source ${REPO}/scripts/factory/lib.sh; factory_resolve; factory_psql -v ext_id="$1"`,
+        'bash', String(ticket_id)],
+        { input: sql, encoding: 'utf8', timeout: 15000, env: { ...process.env, BRAND: brand || 'mentolder' } }).trim();
+      const events = JSON.parse(raw || '[]');
+      console.log(JSON.stringify({ pr_ready: P.prGateSatisfied(events) }));
+    } catch (e) {
+      console.log(JSON.stringify({ pr_ready: false }));
     }
   }
 }

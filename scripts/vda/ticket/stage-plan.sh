@@ -4,19 +4,22 @@
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
-  local id="" branch="" plan=""
+  local id="" branch="" plan="" partials="1"
   while [[ $# -gt 0 ]]; do case "$1" in
-      --id)     id="$2"; shift 2 ;;
-      --branch) branch="$2"; shift 2 ;;
-      --plan)   plan="$2"; shift 2 ;;
-      *)        echo "Unknown stage-plan option: $1" >&2; exit 2 ;;
+      --id)       id="$2"; shift 2 ;;
+      --branch)   branch="$2"; shift 2 ;;
+      --plan)     plan="$2"; shift 2 ;;
+      --partials) partials="$2"; shift 2 ;;
+      *)          echo "Unknown stage-plan option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id"     ]]; then echo "ERROR: --id is required."     >&2; exit 2; fi
   if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
   if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
+  case "$partials" in 1|2|3) ;; *) echo "ERROR: --partials must be 1..3" >&2; exit 2 ;; esac
   local pod; pod=$(_pgpod)
-  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
-UPDATE tickets.tickets SET status='plan_staged' WHERE external_id = :'ext_id';
+  _exec_sql "$pod" -v ext_id="$id" -v partials="$partials" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer
+ WHERE external_id = :'ext_id';
 EOF
   _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
 DELETE FROM tickets.ticket_comments c

@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "slug": "parallel-partial-plans",
+    "ticket_id": "T002074",
+    "created": "2026-07-22",
+    "sources": ["wc -l", "docs/code-quality/gates.yaml", "docs/code-quality/baseline.json", "mcp-postgres information_schema", "Read/grep der Zieldateien"]
+  },
+  "impact_files": [
+    {"path": "scripts/factory/slots.sh", "loc": 37, "s1_limit": 500, "s1_baseline": null, "s1_budget": 463, "note": "claim-gang + SUM(slot_count)-Accounting hierhin"},
+    {"path": "scripts/factory/schedule.sh", "loc": 75, "s1_limit": 500, "s1_baseline": null, "s1_budget": 425, "note": "Head-of-Line-Blocking + partials-Lookup"},
+    {"path": "scripts/factory/pipeline.js", "loc": 630, "s1_limit": 600, "s1_baseline": null, "s1_budget": -30, "note": "B1b: Budget<0 — Partial-Pfad als neues Modul extrahieren, pipeline.js netto verkleinern"},
+    {"path": "scripts/factory/pipeline-decompose.cjs", "loc": 137, "s1_limit": 200, "s1_baseline": null, "s1_budget": 63, "note": "validateDisjoint wird von plan-lint D1 mitgenutzt"},
+    {"path": "scripts/factory/dispatcher.js", "loc": 210, "s1_limit": 600, "s1_baseline": null, "s1_budget": 390, "note": "release muss slot_count nullen"},
+    {"path": "scripts/plan-lint.sh", "loc": 242, "s1_limit": 500, "s1_baseline": null, "s1_budget": 258, "note": "Partial-Modus: Index-Checks, STRUCT2-im-Tests-Partial, D1-Disjunktheit"},
+    {"path": "scripts/ticket.sh", "loc": 850, "s1_limit": 500, "s1_baseline": null, "s1_budget": -350, "note": "B1b: NICHT vergroessern — partials-Meta via ticket-mcp set_plan_meta oder eigenes Mini-Skript"},
+    {"path": "scripts/migrate-factory.mjs", "loc": 100, "s1_limit": 500, "s1_baseline": null, "s1_budget": 400, "note": "Migration: ALTER TABLE tickets.tickets ADD COLUMN slot_count int NOT NULL DEFAULT 1"},
+    {"path": ".claude/skills/dev-flow-plan/SKILL.md", "loc": 480, "s1_limit": 0, "s1_baseline": null, "s1_budget": null, "note": "ungated (.md) — Schritt 3.7 zweistufig, design.md-Konvention"},
+    {"path": ".opencode/skills/opencode-flow-plan/SKILL.md", "loc": 181, "s1_limit": 0, "s1_baseline": null, "s1_budget": null, "note": "ungated (.md) — symmetrisch zu dev-flow-plan"},
+    {"path": "tests/spec/software-factory.bats", "loc": 3701, "s1_limit": 0, "s1_baseline": null, "s1_budget": null, "note": "ungated (.bats) — Gang-Claim/HoL/plan-lint-Partial-Tests hier anfuegen"},
+    {"path": "scripts/openspec-embed.mjs", "loc": 241, "s1_limit": 500, "s1_baseline": null, "s1_budget": 259, "note": "nach stage-plan pro Slug aufrufen (bestehende CLI --slug)"},
+    {"path": "scripts/vda.sh", "loc": 96, "s1_limit": 500, "s1_baseline": null, "s1_budget": 404, "note": "frontmatter-Subcommand auf design.md-Pfade erweitern"},
+    {"path": "scripts/plan-context.sh", "loc": 145, "s1_limit": 500, "s1_baseline": null, "s1_budget": 355, "note": "liest Plan-Frontmatter — tasks.d/-Partials tolerieren"},
+    {"path": "scripts/plan-intel-filter.sh", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500, "note": "NEU: jq-Filter intel.json -> Partial-Subset nach target_files"},
+    {"path": "scripts/factory/pipeline-partials.cjs", "loc": 0, "s1_limit": 200, "s1_baseline": null, "s1_budget": 200, "note": "NEU: tasks.d/-Parser + Partial-Fanout + Rotation, von pipeline.js require()d (CJS, kein ESM — Workflow-Constraint)"},
+    {"path": "scripts/factory/provider-register-bonsai.sh", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500, "note": "NEU: idempotente provider_config/factory_model_slots-Registrierung llamacpp @ :8093"}
+  ],
+  "symbols": [
+    {"name": "slots.sh count|next|claim|release", "signature": "BRAND=<b> slots.sh claim <ext_id> <n> — UPDATE tickets.tickets SET pipeline_slot=:slot, status='in_progress' WHERE external_id=:id AND pipeline_slot IS NULL AND status IN ('backlog','triage','plan_staged') RETURNING pipeline_slot", "file": "scripts/factory/slots.sh", "note": "claim ist single-slot; Gang-Variante muss SUM(slot_count)+n <= FACTORY_SLOTS_PER_BRAND atomar pruefen"},
+    {"name": "schedule.sh", "signature": "BRAND=<b> FACTORY_GLOBAL_CAP=3 schedule.sh -> JSON [{brand,external_id,slot}]", "file": "scripts/factory/schedule.sh", "note": "iteriert queue.sh-Kandidaten; bricht bei global_used>=GLOBAL_CAP; 'continue' bei vollem Brand-Pool = KEIN Head-of-Line-Blocking heute"},
+    {"name": "assignFiles(subFeatures, touchedFiles, sharedFileList)", "signature": "-> subFeatures mit assignedFiles[], disjunkt", "file": "scripts/factory/pipeline-decompose.cjs"},
+    {"name": "validateDisjoint(subFeatures)", "signature": "throws Error bei Datei in 2 Sub-Features", "file": "scripts/factory/pipeline-decompose.cjs"},
+    {"name": "pipeline.js batch_mode", "signature": "args {batch_mode?, sub_features?} — Zeile 130ff: ein Worktree, parallel(sub_features.map(...agent()))", "file": "scripts/factory/pipeline.js", "note": "Verallgemeinerungs-Basis fuer tasks.d/-Partials; plan:decompose (Z.279ff) bleibt Fallback"},
+    {"name": "effective_threshold(path)", "signature": "max(_ext_limit, baseline.metric); 0 = ungated", "file": "scripts/plan-lint.sh"},
+    {"name": "route-provider.sh", "signature": "route-provider.sh <source> <tier> [phase] -> {provider,modelId,baseUrl,slotId,emergency}", "file": "scripts/factory/route-provider.sh", "note": "factory_model_slots (phase-pin) gewinnt vor provider_config-Kandidaten; atomarer provider_health-Claim"},
+    {"name": "ticket-mcp set_plan_meta", "signature": "MCP-Tool — Plan-Metadaten am Ticket; Kandidat fuer partials=N ohne ticket.sh-Wachstum", "file": "extern (ticket-mcp)"},
+    {"name": "openspec-embed.mjs", "signature": "node scripts/openspec-embed.mjs --slug <slug> [--dry-run] — indiziert Change nach pgvector", "file": "scripts/openspec-embed.mjs"},
+    {"name": "factory-mcp openspec_find_similar", "signature": "MCP-Tool — Embedding-Suche ueber indizierte Changes/Specs", "file": "scripts/factory/mcp-server.mjs:57"}
+  ],
+  "db_tables": [
+    {"table": "tickets.tickets", "columns": {"external_id": "text", "status": "text default 'triage'", "pipeline_slot": "integer NULL", "touched_files": "text[]", "depends_on": "text[]"}, "note": "NEU: slot_count int NOT NULL DEFAULT 1 (Migration via migrate-factory.mjs)"},
+    {"table": "tickets.factory_model_slots", "columns": {"phase": "text", "provider": "text", "model_id": "text", "base_url": "text", "set_by": "text", "updated_at": "timestamptz"}},
+    {"table": "tickets.provider_config", "columns": {"source": "text", "tier": "text", "priority": "int", "provider": "text", "model_id": "text", "base_url": "text", "max_concurrent": "int default 3", "enabled": "bool", "context_window": "int", "context_budget": "int"}, "note": "UNIQUE(source,tier,priority) — Registrierung idempotent via ON CONFLICT"},
+    {"table": "tickets.factory_phase_events", "columns": {"ticket_id": "uuid", "phase": "text", "state": "text", "detail": "text", "driver": "text default 'factory'", "at": "timestamptz"}, "note": "partial-done-Events: phase='implement', state='partial-done', detail=JSON {partial,files,tests}"}
+  ],
+  "api_contracts": [],
+  "external_types": [],
+  "call_graph": [
+    "dispatcher.js -> schedule.sh -> queue.sh + conflict-check.sh + slots.sh(claim) -> pipeline-runner.js -> pipeline.js",
+    "pipeline.js -> require(pipeline-decompose.cjs) [assignFiles/validateDisjoint]",
+    "pipeline-runner.js + dispatcher.js -> ticket.sh release-slot -> slots.sh release"
+  ],
+  "risks": [
+    {"severity": "warn", "note": "Bonsai-27B Q2_0 Implementierqualitaet auf ~37k-Factory-Prompts unerprobt — E2E-Lauf ist der Test; Fallback Circuit-Breaker/naechster Provider"},
+    {"severity": "warn", "note": "codebase-memory/LSP nicht konsultiert (Bash/JS-Skripte, kein TS-Typraum) — Signaturen stammen aus direktem Read der Dateien"},
+    {"severity": "warn", "note": "docs/superpowers/specs-Abhaengigkeiten (vda.sh frontmatter, plan-context.sh, GH-Action plan-frontmatter) muessen bei design.md-Umstellung mitgezogen werden"}
+  ]
+}

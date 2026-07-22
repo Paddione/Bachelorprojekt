@@ -9,6 +9,12 @@
 #                                 fields (title/ticket_id/pr_number) and any
 #                                 deliberate non-active status are preserved.
 # Usage: scripts/plan-frontmatter-hook.sh [--activate|--spec] <plan.md>
+#
+# --spec: prepend the spec frontmatter (ticket_id/plan_ref/status/date). Path
+# convention (T002074): the design spec now lives at
+#   openspec/changes/<slug>/design.md   (SSOT co-located with the change)
+# not under docs/superpowers/specs/ any more (Alt-Bestand bleibt gültig). Both
+# path worlds are accepted here — the mode only cares that the file exists.
 set -euo pipefail
 
 FORCE_ACTIVE=0

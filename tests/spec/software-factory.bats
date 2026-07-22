@@ -18,6 +18,10 @@ PROVISION_SUITE="scripts/factory/provision.test.mjs"
 DECOMPOSE_MOD="scripts/factory/pipeline-decompose.cjs"
 DECOMPOSE_SUITE="scripts/factory/pipeline-decompose.test.cjs"
 PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
+# T002074: the Deploy-phase prompt moved into pipeline-partials.cjs (buildDeployPrompt)
+# and the CI retry loop into pr-babysit-ticket.sh — deploy-contract greps span these.
+PARTIALS_MOD="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline-partials.cjs"
+PRBABYSIT="$BATS_TEST_DIRNAME/../../scripts/factory/pr-babysit-ticket.sh"
 BLS="$BATS_TEST_DIRNAME/../../scripts/factory/build-loop.sh"
 WAKEUP="${BATS_TEST_DIRNAME}/../../scripts/factory/wakeup.sh"
 BABYSIT="${BATS_TEST_DIRNAME}/../../scripts/factory/babysit-prs.sh"
@@ -508,7 +512,8 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-20: Deploy phase merges from MAIN repo and deploys BOTH brands with explicit ENV" {
-  run grep -q "feature:" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
+  # deployStepCmd (both-brand deploy) stays in pipeline.js; ENV= is explicit.
+  run grep -Eq "workspace:deploy|workspace:partial-deploy" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
   run grep -Eq "ENV=mentolder|ENV=korczewski|ENV=fleet-" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
 }
 
@@ -519,7 +524,9 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-20: Deploy phase enforces WORK_BRANCH regex feature/*|fix/* + diff-size guard" {
-  run grep -Eq "feature/.*\|fix/|guard_check_diff_size" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
+  # The branch-regex + diff-size guard live in buildDeployPrompt (pipeline-partials.cjs);
+  # FACTORY_MAX_DIFF is still threaded through pipeline.js as the maxDiff payload.
+  run grep -Eq "feature/.*\|fix/|guard_check_diff_size" "$PIPELINE_SCRIPT" "$PARTIALS_MOD"; [ "$status" -eq 0 ]
   run grep -q "FACTORY_MAX_DIFF" "$PIPELINE_SCRIPT"; [ "$status" -eq 0 ]
 }
 
@@ -594,7 +601,8 @@ DEPLOY_TRANSITION="scripts/factory/deploy-transition.cjs"
 }
 
 @test "FA-SF-22: pipeline.js closes the ticket with --status done --resolution shipped" {
-  run bash -c "grep -Eq -- '--status[[:space:]]+done' \"$PIPELINE_SCRIPT\" && grep -Eq -- '--resolution[[:space:]]+shipped' \"$PIPELINE_SCRIPT\""
+  # Merge = Abschluss: the close now happens in pr-babysit-ticket.sh on confirmed merge.
+  run bash -c "grep -Eq -- '--status[[:space:]]+done' \"$PRBABYSIT\" && grep -Eq -- '--resolution[[:space:]]+shipped' \"$PRBABYSIT\""
   [ "$status" -eq 0 ]
 }
 
@@ -1193,25 +1201,27 @@ PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
   [ "$status" -ne 0 ]
 }
 
-@test "FA-SF-37-retry: reads retry_count via ticket.sh (no raw SQL)" {
-  run grep -qE 'ticket\.sh retry-count get' "$PJS"
+@test "FA-SF-37-retry: CI retry loop is delegated to pr-babysit-ticket.sh (T002074)" {
+  # The inline retry loop was replaced by the ticket-scoped babysit script (Task 15).
+  run grep -qE 'pr-babysit-ticket\.sh' "$PJS" "$PARTIALS_MOD"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: two-gated classification (failure-class AND path-class)" {
-  run grep -qE 'classify-failure\.sh' "$PJS"
-  [ "$status" -eq 0 ]
-  run grep -qE 'paths_are_escalate_class|classify-paths\.sh' "$PJS"
+@test "FA-SF-37-retry: pr-babysit reuses classify-failure.sh (no duplication)" {
+  run grep -qE 'classify-failure\.sh' "$PRBABYSIT"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: auto-fix gated to ci/test/lint only" {
-  run grep -qE 'ci.*test.*lint|\{ci,test,lint\}|ci/test/lint' "$PJS"
+@test "FA-SF-37-retry: pr-babysit re-checks before requeue + bounds attempts" {
+  # Re-check before requeue (no requeue with a known-red check) + attempt cap.
+  run grep -qiE 'Re-check BEFORE requeue' "$PRBABYSIT"
+  [ "$status" -eq 0 ]
+  run grep -qE 'MAX_CI_ATTEMPTS' "$PRBABYSIT"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-37-retry: at retry_count>=2 → blocked + PushNotification" {
-  run grep -qE 'retry_count.*2|retry-count.*incr' "$PJS"
+@test "FA-SF-37-retry: attempts exhausted → non-zero exit + PushNotification escalation" {
+  run grep -qE 'exit 1' "$PRBABYSIT"
   [ "$status" -eq 0 ]
   run grep -qE 'PushNotification' "$PJS"
   [ "$status" -eq 0 ]
@@ -1516,7 +1526,8 @@ PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-39-wire: Deploy invokes observe_prod per brand" {
-  run grep -qE 'observe_prod' "$PJS"
+  # observe_prod lives in buildDeployPrompt (pipeline-partials.cjs) since T002074.
+  run grep -qE 'observe_prod' "$PJS" "$PARTIALS_MOD"
   [ "$status" -eq 0 ]
 }
 
@@ -1906,7 +1917,8 @@ ROUTE="${BATS_TEST_DIRNAME}/../../website/src/pages/api/factory-metrics.ts"
 }
 
 @test "FA-SF-44: diff-size guard is passed the feature branch ref" {
-  run grep -Eq 'guard_check_diff_size \$\{process\.env\.FACTORY_MAX_DIFF \?\? .800.\} \$\{WORK_BRANCH\}' scripts/factory/pipeline.js
+  # buildDeployPrompt (pipeline-partials.cjs) parameterises the guard: maxDiff + workBranch.
+  run grep -Eq 'guard_check_diff_size \$\{c\.maxDiff \|\| .800.\} \$\{c\.workBranch\}' scripts/factory/pipeline-partials.cjs
   [ "$status" -eq 0 ]
 }
 
@@ -2010,14 +2022,16 @@ STUB
 }
 
 @test "FA-SF-52: pipeline.js deploy guard admits chore branches" {
-  run grep -Fq '^(feature|fix|chore)/' scripts/factory/pipeline.js
+  # The branch-regex guard moved into buildDeployPrompt (pipeline-partials.cjs).
+  run grep -Fq '^(feature|fix|chore)/' scripts/factory/pipeline-partials.cjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-52: pipeline.js PR title uses chore prefix for chore branches" {
+  # titlePrefix is still computed in pipeline.js; the PR-title template moved to buildDeployPrompt.
   run grep -Fq "WORK_BRANCH.startsWith('chore/') ? 'chore' : 'feat'" scripts/factory/pipeline.js
   [ "$status" -eq 0 ]
-  run grep -Fq '${titlePrefix}(${slug})' scripts/factory/pipeline.js
+  run grep -Fq '${c.titlePrefix}(${c.slug})' scripts/factory/pipeline-partials.cjs
   [ "$status" -eq 0 ]
 }
 
@@ -3698,4 +3712,112 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
   qa_line=$(grep -n "run-qa-lens" "$PJS" | head -1 | cut -d: -f1)
   [ -n "$tier_line" ]
   [ -n "$qa_line" ]
+}
+
+# ── FA-SF-GANG: Gang-Scheduling für Partialpläne (T002074) ───────────────────
+@test "FA-SF-GANG: slots.sh usage-Kontrakt kennt claim-gang" {
+  run env BRAND=mentolder FACTORY_DRY_RESOLVE= bash scripts/factory/slots.sh bogus
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"claim-gang"* ]]
+}
+
+@test "FA-SF-GANG: claim-gang prueft SUM(slot_count) atomar gegen den Brand-Pool" {
+  run grep -Fq 'SUM(slot_count)' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: release setzt slot_count auf 1 zurueck" {
+  run grep -Fq 'slot_count=1' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: count-Accounting summiert slot_count statt Zeilen zu zaehlen" {
+  run grep -Fq 'COALESCE(SUM(slot_count),0)' scripts/factory/slots.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: schedule.sh blockt head-of-line (break, kein Vorziehen)" {
+  run grep -Fq 'head-of-line' scripts/factory/schedule.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'claim-gang' scripts/factory/schedule.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: Migration fuegt slot_count idempotent hinzu" {
+  run grep -Fq 'ADD COLUMN IF NOT EXISTS slot_count' scripts/migrations/2026-07-22-slot-count-gang.sql
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: stage-plan traegt --partials in die Stage-Query (ticket.sh unberuehrt)" {
+  run grep -Fq -- '--partials' scripts/vda/ticket/stage-plan.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq -- '--partials' scripts/ticket.sh
+  [ "$status" -eq 1 ]
+}
+
+@test "FA-SF-GANG: plan-lint Partial-Modus — D1 Hard-Fail bei Datei in zwei Partials" {
+  chg="$BATS_TEST_TMPDIR/chg"; mkdir -p "$chg/tasks.d"
+  bash "$REPO_ROOT/tests/spec/fixtures/make-partial-plan.sh" "$chg" duplicate
+  run bash "$REPO_ROOT/scripts/plan-lint.sh" "$chg/tasks.md"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"D1"* ]]
+}
+
+@test "FA-SF-GANG: plan-lint Partial-Modus — disjunkte Partials mit Tests-Partial PASSen" {
+  chg="$BATS_TEST_TMPDIR/chg-ok"; mkdir -p "$chg/tasks.d"
+  bash "$REPO_ROOT/tests/spec/fixtures/make-partial-plan.sh" "$chg" ok
+  run bash "$REPO_ROOT/scripts/plan-lint.sh" "$chg/tasks.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: pipeline-partials.cjs ist valides CJS und wird vom Runner ge-require-t" {
+  run node --check scripts/factory/pipeline-partials.cjs
+  [ "$status" -eq 0 ]
+  run grep -Fq "pipeline-partials.cjs" scripts/factory/pipeline-runner.js
+  [ "$status" -eq 0 ]
+  run grep -Fq 'read-partials' scripts/factory/pipeline-runner.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: pipeline.js emittiert partial-done-Phase-Events" {
+  run grep -Fq "partial-done" scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: provider-register-bonsai.sh idempotent (ON CONFLICT) auf :8093" {
+  run bash -n scripts/factory/provider-register-bonsai.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'ON CONFLICT' scripts/factory/provider-register-bonsai.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'http://127.0.0.1:8093/v1' scripts/factory/provider-register-bonsai.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: plan-intel-filter.sh filtert impact_files nach target_files" {
+  tmp="$BATS_TEST_TMPDIR/intel.json"
+  printf '%s' '{"meta":{"slug":"x"},"impact_files":[{"path":"a.sh"},{"path":"b.sh"}],"symbols":[{"name":"s","file":"a.sh"}],"db_tables":[]}' > "$tmp"
+  run bash scripts/plan-intel-filter.sh "$tmp" a.sh
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"a.sh"'* ]]
+  [[ "$output" != *'"b.sh"'* ]]
+}
+
+@test "FA-SF-GANG: Deploy-Phase kennt das pr-ready-Gate" {
+  run grep -Fq "pr-ready" scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  run grep -Fq "pending-pr-gate" scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
+  run grep -Fq "pr-gate" scripts/factory/pipeline-runner.js
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: pr-babysit-ticket.sh reuse statt Duplikation" {
+  run bash -n scripts/factory/pr-babysit-ticket.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'classify-failure.sh' scripts/factory/pr-babysit-ticket.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq -- '--squash --auto' scripts/factory/pr-babysit-ticket.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq 'pr-babysit-ticket.sh' scripts/factory/pipeline.js
+  [ "$status" -eq 0 ]
 }

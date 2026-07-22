@@ -143,10 +143,11 @@ Rufe `superpowers:brainstorming` auf (Claude Code — built-in) oder führe die 
 direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; lies die Spec und
 arbeite die Schritte A.3→A.5 ohne Skill-Load durch).
 Nutze das `lavish`-Board (aus Schritt A.3) für visuelle Dokumentation und strukturiertes Feedback.
-Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
-Nach dem Schreiben der Spec das Frontmatter setzen (siehe
-`docs/superpowers/specs/spec-frontmatter-standard.md`):
-`bash scripts/vda.sh frontmatter --spec docs/superpowers/specs/<date>-<slug>-design.md`
+Ergebnis: Design-Spec **im Change-Ordner** unter `openspec/changes/<slug>/design.md`
+(SSOT-Konvention T002074 — `mkdir -p openspec/changes/<slug>` falls `/opsx:propose`
+in A.5 den Ordner noch nicht angelegt hat; kein Doppel mehr im alten Spec-Verzeichnis).
+Nach dem Schreiben der Spec das Frontmatter setzen:
+`bash scripts/vda.sh frontmatter --spec openspec/changes/<slug>/design.md`
 und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
 #### Schritt A.5: OpenSpec-Change anlegen — AUF MAIN ⚡
 Lege den OpenSpec-Change-Ordner **auf dem main-Branch** an (seedet `proposal.md` + `tasks.md` +
@@ -189,13 +190,11 @@ Die Artefakte aus Phase A befinden sich noch im main-Checkout — jetzt in den f
 ```bash
 WT=".worktrees/<slug>"
 
-# OpenSpec-Change-Ordner (proposal.md, tasks.md, ggf. assets/)
+# OpenSpec-Change-Ordner (proposal.md, tasks.md, design.md, ggf. assets/) — der
+# ganze Ordner wandert mit, die Design-Spec (design.md) liegt schon darin (T002074);
+# KEIN separater Spec-mv mehr nötig.
 mkdir -p "${WT}/openspec/changes/"
 mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
-
-# Brainstorming-Spec
-mv "${REPO_ROOT}/docs/superpowers/specs/<date>-<slug>-design.md" \
-   "${WT}/docs/superpowers/specs/"
 
 # Plan Intel Bundle (aus A.1.5) in den Change-Ordner verschieben (falls separat gehalten)
 [ -f "${REPO_ROOT}/intel.json" ] && \
@@ -214,14 +213,42 @@ bash scripts/ticket-attach.sh "$TICKET_UUID" \
   openspec/changes/<slug>/assets/new/*.svg
 ```
 ### Phase C: Im Worktree — Plan-Phase
-### Schritt 3.7: Plan-Erstellung an einen passend provisionierten Subagenten delegieren
+### Schritt 3.7: Plan-Erstellung — zweistufig: Decompose → paralleler Fan-out (T002074)
+Die Plan-Phase ist **zweistufig**. Bei kleinen Änderungen bleibt es faktisch bei
+einem einzigen Partial (= klassischer Single-Plan, unten). Bei mehreren Subsystemen
+zerlegst du VOR dem Plan-Schreiben in 1–3 disjunkte Partialpläne und fächerst
+parallele Plan-Subagenten aus:
+
+**(a) Decompose** — der Orchestrator erzeugt aus `intel.json` (`impact_files`) das
+**Partial-Manifest**: 1–3 Partials mit disjunkten `target_files`-Listen; das
+**letzte Partial ist IMMER die Tests-Rolle** (`tests`) und trägt den
+STRUCT2-Failing-Test-Step (`expected: FAIL` + Testrunner). Faustregel: **1 Partial**
+bei < 5 `impact_files` oder einem einzigen Subsystem; sonst Schnitt nach Subsystem,
+Tests immer separat. Keine Datei darf in zwei Partials liegen (D1 —
+`scripts/plan-lint.sh` erzwingt das im Partial-Modus).
+
+**(b) Fan-out** — N parallele Plan-Subagenten (Claude Code: `Task`-Tool; opencode:
+`delegate(...)`). Kontext pro Subagent NUR: `openspec/changes/<slug>/proposal.md`,
+sein Manifest-Eintrag, die Ausgabe von
+`bash scripts/plan-intel-filter.sh <slug> <target_files...>` (deterministisch
+gefilterte `intel.json` für genau seine Dateien) und die
+[plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)-Referenz.
+Jeder schreibt SEINE `openspec/changes/<slug>/tasks.d/pX-<name>.md`; der Orchestrator
+schreibt den `tasks.md`-**Index** mit der `## Partials`-Manifest-Tabelle
+(`| id | tasks.d/pX-*.md | impl|tests | <target_files> |`), der `## File Structure`
+(Union aller Partials) und dem finalen Verify-Task (STRUCT3). `plan-lint.sh` aktiviert
+den Partial-Modus über die Existenz von `tasks.d/` automatisch.
+
+Der folgende Single-Plan-Ablauf gilt für den 1-Partial-Fall (und ist der Prompt-Kern,
+den jeder Fan-out-Subagent für sein Partial bekommt):
+
 Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verlieren), committe die Spec und delegiere das Plan-Schreiben an einen **frischen Subagenten** — der hat per Konstruktion einen sauberen Kontext und bekommt ein **zur Plan-Komplexität passendes Modell + Effort**. Du selbst behältst den vollen Brainstorming-Kontext.
 1. Committe und pushe die Spec-Datei auf den Feature-Branch.
 2. Spawne einen Subagenten, provisioniert gemäß [subagent-provisioning](file:///home/patrick/Bachelorprojekt/.claude/skills/references/subagent-provisioning.md):
    - **Claude Code:** Über das `Agent`/`Task`-Tool (`subagent_type: general-purpose`) — Plan-Schreiben ist reasoning-lastige Meta-Arbeit: Modell-Default `opus` (triviale chore-artige Pläne: `sonnet`), Effort high; bei großen multi-subsystem-Specs die ultra-Stufe (`Workflow`-Fan-out).
    - **opencode:** Über `delegate(prompt, agent="researcher")` für read-only oder native write-capable Delegation. Effort-Formulierungen, Worktree-`cd`-Pflicht und Eskalations-Rubrik stehen in der Reference (SSOT, nicht hier wiederholen).
    - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
-     - Spec-Pfad: `docs/superpowers/specs/<date>-<slug>-design.md`
+     - Spec-Pfad: `openspec/changes/<slug>/design.md`
      - **Design-Bundle** (falls Schritt A.2 lief): `openspec/changes/<slug>/assets/` —
        der Plan MUSS `intent.md` als Design-Quelle referenzieren, die finalen Asset-Zielpfade
        (z. B. unter `website/src/...`) in die Task-`target_files` aufnehmen und die T000756-
@@ -289,10 +316,21 @@ Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurüc
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
 Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
 **MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen (Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp).
-> `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: docs/superpowers/specs/<date>-<slug>-design.md\n<grilling-ref>" })`
+> `mcp__ticket-mcp__create_ticket({ type: "task", brand: "mentolder", title: "Plan: <slug>", priority: "mittel", description: "Branch: feature/<slug>\nPlan: openspec/changes/<slug>/tasks.md\nSpec: openspec/changes/<slug>/design.md\n<grilling-ref>" })`
 Bei vorhandenem Ticket stattdessen die UUID lesen: `mcp__ticket-mcp__get_ticket({ id: "$TICKET_EXT_ID" })` → `.id` ist die UUID.
 Plan stagen (Branch + Plan-Pfad im Ticket verankern — SSOT für dev-flow-execute) — **MCP-first**:
 > `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md" })`
+
+**Partial-Anzahl mitgeben (T002074):** Bei einem Multi-Partial-Plan die Slot-Zahl
+für das Gang-Gating durchreichen — MCP-seitig via `set_plan_meta`, sonst per Fallback
+`bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "feature/<slug>" --plan "openspec/changes/<slug>/tasks.md" --partials N`
+(N = Anzahl der Partials aus dem `## Partials`-Manifest, 1..3; Default 1). `--partials`
+lebt in `scripts/vda/ticket/stage-plan.sh` — `scripts/ticket.sh` bleibt unberührt.
+
+**Embedding-Index (Hybrid-Kontext-Transfer Teil 2):** Direkt nach dem Stage, vor
+Commit/Push, den Change nach pgvector indizieren, damit die Execute-/Factory-Phase
+ihn per factory-mcp `openspec_find_similar` abrufen kann:
+`node scripts/openspec-embed.mjs --slug <slug>`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
 # Falls TICKET_EXT_ID bereits gesetzt ist (von feature-intake oder User-Input),
@@ -309,7 +347,7 @@ if [[ -z "${TICKET_EXT_ID:-}" ]]; then
     --brand mentolder \
     --title "Plan: <slug>" \
     --priority mittel \
-    --description "Branch: feature/<slug>"$'\n'"Plan: openspec/changes/<slug>/tasks.md"$'\n'"Spec: docs/superpowers/specs/<date>-<slug>-design.md"$GRILLING_REF)
+    --description "Branch: feature/<slug>"$'\n'"Plan: openspec/changes/<slug>/tasks.md"$'\n'"Spec: openspec/changes/<slug>/design.md"$GRILLING_REF)
 
   TICKET_EXT_ID=$(echo "$TICKET_RESULT" | cut -d'|' -f1)
   TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
@@ -415,7 +453,7 @@ Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Root-Cause, Fix-Ansatz, Sub
 ### Schritt 2.8: Brainstorming ⚡ IMMER — kein Überspringen
 Rufe `superpowers:brainstorming` auf. Nutze das `lavish`-Board für visuelle Root-Cause-Dokumentation.
 Fokus: Root-Cause-Analyse, Fix-Ansatz, betroffene Subsysteme, Edge-Cases.
-Ergebnis: Spec-Datei in `docs/superpowers/specs/<date>-<slug>-design.md`.
+Ergebnis: Spec-Datei in `openspec/changes/<slug>/design.md`.
 Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch den Plan (Schritt 4) —
 kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 ### Schritt 3: Failing Test schreiben

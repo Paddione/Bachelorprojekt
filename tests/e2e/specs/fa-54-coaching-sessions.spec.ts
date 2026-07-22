@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE        = process.env.WEBSITE_URL    ?? 'https://web.mentolder.de';
@@ -15,8 +16,7 @@ const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page, returnTo = '/admin/coaching/sessions'): Promise<void> {
   if (!ADMIN_PASS) throw new Error('E2E_ADMIN_PASS is not set');
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}`);
-  await page.waitForURL(url => url.toString().startsWith(BASE), { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, returnTo);
 }
 
 test.describe('FA-54: Coaching-Sessions', () => {

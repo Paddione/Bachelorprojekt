@@ -10,6 +10,7 @@
 // Skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
 import { test, expect } from '@playwright/test';
+import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
@@ -17,8 +18,7 @@ const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin/clients`);
-  await page.waitForURL(/\/admin\/clients/, { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/clients');
 }
 
 test.describe('FA-admin-db-crud-clients', () => {

@@ -3,6 +3,7 @@
 // feature selection filters tickets, inline status edit + bulk edit work.
 // Requires E2E_ADMIN_USER + E2E_ADMIN_PASS. Runs against live prod (WEBSITE_URL).
 import { test, expect } from '@playwright/test';
+import { loginViaE2E } from '../lib/auth';
 
 const WEBSITE_URL = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -12,8 +13,7 @@ test.describe('FA-29 Projekt-Cockpit', () => {
   test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS nicht gesetzt — überspringe Auth-Test');
 
   async function login(page: any) {
-    await page.goto(`${WEBSITE_URL}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/cockpit')}`);
-    await page.waitForURL(/\/admin\/cockpit/);
+    await loginViaE2E(page as import('@playwright/test').Page, WEBSITE_URL, ADMIN_USER, '/admin/cockpit');
   }
 
   test('loads sidebar and table', async ({ page }) => {

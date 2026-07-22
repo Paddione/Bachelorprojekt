@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
@@ -6,8 +7,7 @@ const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin/wissensquellen`);
-  await page.waitForURL(/\/admin\/wissensquellen/, { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/wissensquellen');
 }
 
 test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@admin'] }, () => {

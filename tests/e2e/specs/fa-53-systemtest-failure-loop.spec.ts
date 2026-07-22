@@ -19,6 +19,7 @@
 // The test skips gracefully when E2E_ADMIN_PASS is unset (CI without secrets).
 
 import { test, expect } from '@playwright/test';
+import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
@@ -33,8 +34,7 @@ const ADMIN_PASS = isKorczewski
 const COLUMN_TITLES = ['Offen', 'Fix in PR', 'Retest ausstehend', 'Grün (7 Tage)'];
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin/systemtest/board`);
-  await page.waitForURL(/\/admin\/systemtest\/board/, { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/systemtest/board');
 }
 
 test.describe('FA-53: System-test failure loop kanban', () => {

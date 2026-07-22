@@ -19,6 +19,7 @@
 import { test as setup, expect } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
+import { loginViaE2E } from '../lib/auth';
 import { assertReachable } from '../lib/health-assertions';
 
 const WEBSITE_URL = (process.env.KORCZEWSKI_URL ?? 'https://web.korczewski.de').replace(/\/$/, '');
@@ -51,11 +52,7 @@ setup('authenticate korczewski website admin', async ({ page, request }, testInf
   }
 
   // E2E login via /api/auth/e2e-login (bypasses Pocket ID passkey flow)
-  await page.goto(
-    `${WEBSITE_URL}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin`,
-    { waitUntil: 'domcontentloaded' },
-  );
-  await page.waitForURL(new RegExp(WEBSITE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), { timeout: 60_000 });
+  await loginViaE2E(page, WEBSITE_URL, ADMIN_USER, '/admin');
   await page.waitForLoadState('load', { timeout: 60_000 });
 
   // Verify we have a session (the /api/auth/me endpoint returns { authenticated: true })

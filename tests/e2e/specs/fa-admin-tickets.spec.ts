@@ -22,6 +22,7 @@
 // immediately so the next test starts clean.
 
 import { test, expect } from '@playwright/test';
+import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 import { seedAdminTicket, cleanupSeedTicket, seedAvailable } from '../lib/e2e-seed';
 
@@ -45,8 +46,7 @@ async function mailpitReachable(request: import('@playwright/test').APIRequestCo
 }
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin/tickets`);
-  await page.waitForURL(/\/admin\/tickets/, { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/tickets');
 }
 
 test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {

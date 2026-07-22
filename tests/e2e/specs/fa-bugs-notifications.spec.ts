@@ -32,6 +32,7 @@
 
 import { test, expect } from '@playwright/test';
 import { Pool } from 'pg';
+import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 import { markerAvailable } from '../lib/e2e-marker';
 
@@ -58,9 +59,7 @@ async function mailpitReachable(request: import('@playwright/test').APIRequestCo
 }
 
 async function loginAsAdmin(page: import('@playwright/test').Page): Promise<void> {
-  await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=/admin/bugs`);
-  // /admin/bugs is a 301 redirect to /admin/tickets; both match /\/admin/.
-  await page.waitForURL(/\/admin/, { timeout: 60_000 });
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/bugs');
 }
 
 test.describe('FA-bug-notify', () => {

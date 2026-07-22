@@ -1305,6 +1305,12 @@
       "status": "archived"
     }
   ],
+  "T002080": [
+    {
+      "slug": "website-e2e-fixes",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

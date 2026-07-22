@@ -158,7 +158,11 @@ Partial-Anzahl fürs Gang-Gating mitgeben (T002074) — via `set_plan_meta`, son
 `bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "feature/<slug>" --plan "openspec/changes/<slug>/tasks.md" --partials N`
 (N = Partials aus dem Manifest, 1..3; `--partials` lebt in `scripts/vda/ticket/stage-plan.sh`,
 `ticket.sh` bleibt unberührt). Danach den Change nach pgvector indizieren
-(Hybrid-Kontext-Transfer Teil 2): `node scripts/openspec-embed.mjs --slug <slug>`.
+(Hybrid-Kontext-Transfer Teil 2) — über den fail-visible Wrapper, NICHT das nackte
+`openspec-embed.mjs` (skippt bei fehlender Env still):
+`bash scripts/openspec-embed-local.sh <slug> "$(pwd)"` — Exit ≠ 0 ⇒ Embedding fehlt,
+beheben statt ignorieren (Erfolg = Ausgabe `indexed slug='<slug>'`; Wrapper löst
+DB-URL per kubectl auf und probt das TEI-Backend vorab).
 
 #### Schritt 5: Commit & Push — dann STOPP
 

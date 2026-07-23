@@ -142,55 +142,120 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 Der Implementierungsplan wird **ausschließlich** in `openspec/changes/<slug>/tasks.md` geschrieben.
 #### Schritt A.6: Playwright-Projekt-Gate (optional)
 Falls neue E2E-Tests geplant sind, weise das passende Playwright-Projekt zu (siehe [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md) für Zuordnungstabelle).
-### Phase B: Worktree anlegen + Artefakte übertragen
-#### Schritt B.1: Worktree anlegen
+### Phase B: Worktree anlegen + Branch pushen (Pipeline-Start)
+
+🚨 **Pipeline-Prinzip:** Der Branch und Worktree werden JETZT angelegt und gepusht,
+damit Partial-Pläne sofort in die Factory enqueued werden können, während der Planner
+weiterarbeitet. Die Factory beginnt mit der Ausführung eines Partials, sobald es
+enqueued ist — parallel zum Schreiben des nächsten Partials.
 
 > **Ticket-vor-Branch-Check (T001917, T002050):** Prüfe vor der Worktree-Anlage, ob bereits ein Ticket existiert oder in Schritt 4.5 ein neues angelegt wird. Ist `TICKET_EXT_ID` bekannt, benenne den Branch **immer** mit Ticket-ID-Suffix (z.B. `feature/<slug>-t002050` statt `feature/<slug>`). Falls noch kein Ticket existiert, erstelle das Ticket VOR der Worktree-Anlage (siehe Schritt 4.5), um dessen `TICKET_EXT_ID` direkt in den Branch-Namen aufzunehmen. Sonst schlägt `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss nachträglich umbenannt werden.
 
-Erstelle den Worktree NACH dem Propose (niemals `.claude/worktrees/` verwenden!):
+#### Schritt B.1: Worktree anlegen (git-crypt-safe)
+
 ```bash
-# git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
 bash scripts/worktree-create.sh feature/<slug>-t<id> .worktrees/<slug>
 
-# Doppelarbeit verhindern: Branch claimen (Session-Koordination [T000510]).
+# Branch claimen (Session-Koordination [T000510])
 bash scripts/agent-lock.sh claim branch "feature/<slug>-t<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
-  || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet — koordinieren oder anderen slug wählen."; exit 1; }
+  || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet."; exit 1; }
 
-# Ticket-Claim (Session-Koordination [T000510])
-if [[ -n "${TICKET_EXT_ID:-}" ]]; then
-  bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
-    --branch "feature/<slug>-t<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
-    || { echo "🛑 Ticket wird bereits von einer anderen Session bearbeitet — koordinieren."; exit 1; }
-fi
+# Ticket-Claim
+bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
+  --branch "feature/<slug>-t<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
+  || { echo "🛑 Ticket wird bereits von einer anderen Session bearbeitet."; exit 1; }
 ```
-#### Schritt B.2: Proposal-Artefakte in den Worktree verschieben
-Die Artefakte aus Phase A befinden sich noch im main-Checkout — jetzt in den frischen Worktree verschieben:
+
+#### Schritt B.2: Artefakte in den Worktree verschieben
+
 ```bash
 WT=".worktrees/<slug>"
-
-# OpenSpec-Change-Ordner (proposal.md, tasks.md, design.md, ggf. assets/) — der
-# ganze Ordner wandert mit, die Design-Spec (design.md) liegt schon darin (T002074);
-# KEIN separater Spec-mv mehr nötig.
 mkdir -p "${WT}/openspec/changes/"
 mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
-
-# Plan Intel Bundle (aus A.1.5) in den Change-Ordner verschieben (falls separat gehalten)
-[ -f "${REPO_ROOT}/intel.json" ] && \
-  mv "${REPO_ROOT}/intel.json" "${WT}/openspec/changes/<slug>/intel.json" 2>/dev/null || true
-
-# Lavish-Board (falls vorhanden)
-[ -f "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" ] && \
-  mv "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" "${WT}/.lavish/" 2>/dev/null || true
-
+[ -f "${REPO_ROOT}/intel.json" ] && mv "${REPO_ROOT}/intel.json" "${WT}/openspec/changes/<slug>/intel.json" 2>/dev/null || true
+[ -f "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" ] && mv "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" "${WT}/.lavish/" 2>/dev/null || true
 cd "${WT}"
 ```
-Schlüsseldateien ans Ticket hängen (falls Design-Bundle, Schritt A.2):
+
+#### Schritt B.3: Scaffold-Commit + Push (Branch ist live für Factory)
+
 ```bash
-bash scripts/ticket-attach.sh "$TICKET_UUID" \
-  "openspec/changes/<slug>/assets/intent.md" \
-  openspec/changes/<slug>/assets/new/*.svg
+git add openspec/changes/<slug>/
+git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
+git push -u origin $(git branch --show-current)
 ```
-### Phase C: Im Worktree — Plan-Phase
+
+### Phase C: Im Worktree — Pipeline-Plan-Phase (Partial-Dispatch)
+
+#### Schritt C.1: Decompose — Partial-Manifest erstellen
+Erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest** — Partials mit disjunkten
+`target_files`-Listen; das **letzte Partial ist IMMER die Tests-Rolle** (`tests`) und trägt den
+STRUCT2-Failing-Test-Step. Keine Datei in zwei Partials (D1). Obergrenze 9 (`--partials`-Cap).
+
+#### Schritt C.2: Pipeline-Loop — Pro Partial: Plan → Stage → Enqueue → Factory
+
+Führe für **jedes Partial in Reihenfolge** aus (außer Tests-Partial, das erst am Ende):
+
+```
+FOR each partial pX (p1, p2, ...):
+  │
+  ├─► Schritt C.2a: Partial-Plan schreiben
+  │     Spawne Plan-Subagenten (Task-Tool) — Kontext: proposal.md, intel.json-Subset.
+  │     Schreibt `tasks.d/pX-<name>.md`.
+  │
+  ├─► Schritt C.2b: tasks.md-Index aktualisieren
+  │     Orchestrator schreibt/updated tasks.md mit Partial-Manifest + File Structure.
+  │
+  ├─► Schritt C.2c: Commit + Push
+  │     git add openspec/changes/<slug>/
+  │     git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
+  │     git push origin feature/<slug>-t<id>
+  │
+  ├─► Schritt C.2d: Plan stagen (slot_count setzen)
+  │     bash scripts/ticket.sh stage-plan \
+  │       --id "$TICKET_EXT_ID" --branch "feature/<slug>-t<id>" \
+  │       --plan "openspec/changes/<slug>/tasks.md" --partials N
+  │
+  ├─► Schritt C.2e: Readiness-Flags setzen
+  │     ticket-mcp: set_readiness_flag({id, flag:"spec_skizziert", value:true})
+  │     ticket-mcp: set_readiness_flag({id, flag:"abhaengigkeiten_klar", value:true})
+  │     ticket-mcp: set_readiness_flag({id, flag:"offene_fragen_geklaert", value:true})
+  │     ticket-mcp: set_readiness_flag({id, flag:"aufwand_geschaetzt", value:true})
+  │
+  ├─► Schritt C.2f: In Factory enqueuen ⚡
+  │     ticket-mcp: enqueue_ticket({ id: "$TICKET_EXT_ID" })
+  │     # Factory startet SOFORT mit pX — Planner fährt parallel mit p(X+1) fort
+  │
+  └─► Nächstes Partial (oder STOPP wenn alle geschrieben)
+
+NACH dem letzten Partial (Tests):
+  ├─► Schritt C.3: Plan-Qualitäts-Gate  
+  │     bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
+  │     bash scripts/openspec.sh validate
+  │
+  ├─► Schritt C.4: Pgvector-Index
+  │     bash scripts/openspec-embed-local.sh <slug> "$(pwd)"
+  │
+  └─► Schritt C.5: Finaler Commit + Push
+        git add openspec/changes/<slug>/
+        git commit -m "chore(plans): finalize <slug> plan [$TICKET_EXT_ID]"
+        git push origin $(git branch --show-current)
+```
+
+### Pipeline-Fluss (visuell)
+```
+Zeit │
+     │ Planner: [p1] → [p2] → [p3(Tests)] → fertig
+     │ Factory:  ╰─► p1 ╰─► p2 ╰─► p3
+     │           (parallel zum Planner!)
+     ▼
+```
+
+### Race-Condition-Schutz
+- **Slot-Gating:** `stage-plan --partials N` setzt `slot_count`. Factory dispatcht nur bis zu dieser Grenze.
+- **Plan-Staleness:** Wenn Factory schneller ist als Planner → Dispatcher pausiert (kein Ticket in backlog). Sobald nächstes Partial enqueued ist, läuft Tick weiter.
+- **Plan-Mutation:** Sobald ein Partial enqueued ist, darf der Planner es nicht mehr ändern.
+
 ### Schritt 3.7: Plan-Erstellung — zweistufig: Decompose → paralleler Fan-out (T002074)
 Die Plan-Phase ist **zweistufig**. Bei kleinen Änderungen bleibt es faktisch bei
 einem einzigen Partial (= klassischer Single-Plan, unten). Bei mehreren Subsystemen

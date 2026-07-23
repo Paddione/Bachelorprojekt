@@ -98,10 +98,14 @@ ticket-mcp: create_ticket({ type: "task", brand: "mentolder", title: "<slug>", p
 Setze `TICKET_EXT_ID` (Feld 1) und `TICKET_UUID` (Feld 2) aus der Rückgabe.
 Claims: `agent-lock.sh claim ticket` + `claim branch` mit Label `opencode-flow-plan`.
 
-### Phase B: Worktree anlegen + Artefakte übertragen
-#### Schritt B.1: Worktree anlegen
+### Phase B: Worktree anlegen + Branch pushen (vor Plan-Schreibung)
 
-Da `worktree.ts`'s `worktree_create` keine git-crypt-Filter-Neutralisierung hat (bekannte Limitation — siehe opencode-git-workflow), immer das Wrapper-Skript verwenden:
+🚨 **Pipeline-Prinzip:** Der Branch und Worktree werden JETZT angelegt und gepusht,
+damit Partial-Pläne sofort in die Factory enqueued werden können, während der Planner
+weiterarbeitet. Die Factory beginnt mit der Ausführung eines Partials, sobald es
+enqueued ist — parallel zum Schreiben des nächsten Partials.
+
+#### Schritt B.1: Worktree anlegen
 
 ```bash
 bash scripts/worktree-create.sh feature/<slug> .worktrees/<slug>
@@ -117,64 +121,97 @@ mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
 cd "${WT}"
 ```
 
-### Phase C: Im Worktree — Plan-Phase
-#### Schritt 3.7: Plan-Erstellung — zweistufig: Decompose → Fan-out (T002074)
+#### Schritt B.3: Leeren Branch pushen (Grundlage für Factory-Dispatch)
 
-Die Plan-Phase ist **zweistufig** (symmetrisch zu `dev-flow-plan`):
+```bash
+git add openspec/changes/<slug>/
+git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
+git push -u origin feature/<slug>
+```
 
-**(a) Decompose** — erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest**:
-1–3 Partials mit disjunkten `target_files`-Listen; das **letzte Partial ist IMMER die
+### Phase C: Im Worktree — Pipeline-Plan-Phase (Partial-Dispatch)
+
+#### Schritt C.1: Decompose — Partial-Manifest erstellen
+
+Erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest**:
+1–N Partials mit disjunkten `target_files`-Listen; das **letzte Partial ist IMMER die
 Tests-Rolle** (`tests`, trägt den STRUCT2-Failing-Test-Step). Faustregel: 1 Partial bei
 < 5 `impact_files` / einem Subsystem, sonst Schnitt nach Subsystem, Tests separat. Keine
 Datei in zwei Partials (D1 — `plan-lint.sh` erzwingt das im Partial-Modus).
 
-**(b) Fan-out** — N parallele Plan-Subagenten via `background-agents.ts`
-(`delegate(prompt, agent="explore")`, Ergebnis via `delegation_read(id)`; ohne Plugin
-inline). Kontext pro Subagent NUR: `openspec/changes/<slug>/proposal.md`, sein
-Manifest-Eintrag, `bash scripts/plan-intel-filter.sh <slug> <target_files...>`
-(deterministisch gefilterte `intel.json`) und die Plan-Quality-Gates. Jeder schreibt
-seine `openspec/changes/<slug>/tasks.d/pX-<name>.md`; der Orchestrator schreibt den
-`tasks.md`-Index mit `## Partials`-Manifest, `## File Structure` und finalem Verify-Task.
+#### Schritt C.2: Pipeline-Loop — Pro Partial: Plan → Stage → Enqueue → Factory
 
-Jeder Subagent MUSS die Spec + `openspec/changes/<slug>/intel.json`(-Subset) als Kontext erhalten und die Plan-Qualitäts-Gates einhalten: S1-Budget pro Datei, `plan-lint.sh`-Konformität (F1/F2/STRUCT1-3/P1), drei verify-Commands im letzten Task.
+Führe für **jedes Partial** in Reihenfolge aus (außer das letzte Tests-Partial, das erst
+nach allen anderen gestaged wird):
 
-#### Schritt 3.8: Plan-Qualitäts-Gate
+```
+FOR each partial pX (p1, p2, ...):
+  │
+  ├─► Schritt C.2a: Partial-Plan schreiben
+  │     Fan-out Subagent via `delegate(prompt, agent="explore")` — Kontext: proposal.md,
+  │     intel.json-Subset, Quality-Gates. Schreibt `tasks.d/pX-<name>.md`.
+  │
+  ├─► Schritt C.2b: tasks.md-Index aktualisieren
+  │     Der Orchestrator updated `tasks.md` mit dem neuen Partial-Eintrag im Manifest
+  │     und der aktualisierten File Structure.
+  │
+  ├─► Schritt C.2c: Commit + Push (Partial ist im Branch sichtbar)
+  │     git add openspec/changes/<slug>/
+  │     git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
+  │     git push origin feature/<slug>
+  │
+  ├─► Schritt C.2d: Plan stagen (plan_staged + slot_count setzen)
+  │     bash scripts/ticket.sh stage-plan \
+  │       --id "$TICKET_EXT_ID" \
+  │       --branch "feature/<slug>" \
+  │       --plan "openspec/changes/<slug>/tasks.md" \
+  │       --partials N
+  │
+  ├─► Schritt C.2e: Readiness-Flags setzen (damit auto-enqueue greift)
+  │     ticket-mcp: set_readiness_flag({ id: "$TICKET_EXT_ID", flag: "spec_skizziert", value: true })
+  │     ticket-mcp: set_readiness_flag({ id: "$TICKET_EXT_ID", flag: "abhaengigkeiten_klar", value: true })
+  │     ticket-mcp: set_readiness_flag({ id: "$TICKET_EXT_ID", flag: "offene_fragen_geklaert", value: true })
+  │     ticket-mcp: set_readiness_flag({ id: "$TICKET_EXT_ID", flag: "aufwand_geschaetzt", value: true })
+  │
+  ├─► Schritt C.2f: In Factory enqueuen ⚡
+  │     ticket-mcp: enqueue_ticket({ id: "$TICKET_EXT_ID" })
+  │     # Factory dispatcher startet jetzt WORK an diesem Partial!
+  │     # Der Planner fährt parallel mit dem nächsten Partial fort.
+  │
+  └─► Nächstes Partial (oder STOPP wenn alle geschrieben)
 
-```bash
-bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
-bash scripts/openspec.sh validate
+NACH dem letzten Partial (Tests):
+  ├─► Schritt C.3: Plan-Qualitäts-Gate
+  │     bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
+  │     bash scripts/openspec.sh validate
+  │
+  ├─► Schritt C.4: Pgvector-Index aktualisieren
+  │     bash scripts/openspec-embed-local.sh <slug> "$(pwd)"
+  │
+  └─► Schritt C.5: Finaler Commit + Push
+        git add openspec/changes/<slug>/
+        git commit -m "chore(plans): finalize <slug> plan [$TICKET_EXT_ID]"
+        git push origin feature/<slug>
 ```
 
-#### Schritt 4: Plan stagen (Ticket existiert bereits aus Schritt A.5)
+### Pipeline-Fluss (visuell)
 
-Ticket-ID muss aus Schritt A.5 im Kontext sein (`$TICKET_EXT_ID`).
-Plan stagen — `stage_plan` setzt automatisch `status=plan_staged` und die
-`FACTORY-PLAN-REF`-Comment:
 ```
-ticket-mcp: stage_plan({ id: "$TICKET_EXT_ID", branch: "feature/<slug>", plan: "openspec/changes/<slug>/tasks.md" })
-```
-
-Partial-Anzahl fürs Gang-Gating mitgeben (T002074) — via `set_plan_meta`, sonst Fallback
-`bash scripts/ticket.sh stage-plan --id "$TICKET_EXT_ID" --branch "feature/<slug>" --plan "openspec/changes/<slug>/tasks.md" --partials N`
-(N = Partials aus dem Manifest, 1..3; `--partials` lebt in `scripts/vda/ticket/stage-plan.sh`,
-`ticket.sh` bleibt unberührt). Danach den Change nach pgvector indizieren
-(Hybrid-Kontext-Transfer Teil 2) — über den fail-visible Wrapper, NICHT das nackte
-`openspec-embed.mjs` (skippt bei fehlender Env still):
-`bash scripts/openspec-embed-local.sh <slug> "$(pwd)"` — Exit ≠ 0 ⇒ Embedding fehlt,
-beheben statt ignorieren (Erfolg = Ausgabe `indexed slug='<slug>'`; Wrapper löst
-DB-URL per kubectl auf und probt das TEI-Backend vorab).
-
-#### Schritt 5: Commit & Push — dann STOPP
-
-Pre-Commit Guard: nicht auf main, sauberer Status, Branch-Lock-Check.
-
-```bash
-git add openspec/changes/<slug>/
-git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
-git push -u origin $(git branch --show-current)
+Zeit │
+     │ Planner:      [p1 schreiben] → [p2 schreiben] → [p3(Tests) schreiben] → fertig
+     │ Factory:       ╰─► p1 ausführen ╰─► p2 ausführen ╰─► p3(Tests) ausführen
+     │                (parallel zum Planner!)       (parallel zum Planner!)
+     ▼
 ```
 
-**STOPP.** Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: `opencode-flow-execute`.
+### Wichtig — Race-Condition-Schutz
+
+- **Slot-Gating:** `stage-plan --partials N` setzt `slot_count` in der DB. Der Factory-Dispatcher reserviert slots nur bis zu dieser Grenze und erzeugt keinen Leerlauf durch Überdispatch.
+- **Plan-Staleness:** Wenn die Factory ein Partial schneller abarbeitet als der Planner das nächste schreibt, pausiert der Dispatcher (kein Ticket in `plan_staged`/`backlog`). Sobald das nächste Partial enqueued ist, läuft der Tick weiter.
+- **Ticket-Status:** Während der Pipeline bleibt das Ticket `plan_staged` → `backlog` → `in_progress`. Der Planner muss vor jedem Enqueue prüfen, ob die Factory das Ticket bereits bearbeitet (`in_progress`) — dann kurz pausieren und warten.
+- **Plan-Mutation:** Sobald ein Partial enqueued ist, darf der Planner den Plan für dieses Partial NICHT mehr ändern (Factory hat bereits begonnen). Neue Erkenntnisse fließen via `design.md`-Updates in spätere Partials.
+
+### Fix-Pfad
 
 ## Fix-Pfad
 

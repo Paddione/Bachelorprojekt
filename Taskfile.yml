@@ -183,6 +183,11 @@ tasks:
     cmds:
       - REBUILD={{.REBUILD}} CONFIRM={{.CONFIRM}} CLUSTER_NAME={{.CLUSTER_NAME}} bash scripts/dev-reset.sh
 
+  dev:setup-signing:
+    desc: "Configure local commit/tag signing (SSH key, G-SEC05 gate) — one-time per developer checkout"
+    cmds:
+      - bash scripts/setup-dev-env.sh {{.CLI_ARGS}}
+
   workspace:dsgvo-check:
     desc: Run DSGVO compliance verification (NFA-01 data sovereignty proof)
     vars:

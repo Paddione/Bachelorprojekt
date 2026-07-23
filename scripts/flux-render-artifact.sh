@@ -64,6 +64,17 @@ render_component() {
     | envsubst "$envsubst_vars" \
     | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
     > "$out"
+
+  # FAIL-CLOSED: after substitution, check for any remaining unsubstituted ${VAR}
+  # references. If any exist, the build fails instead of silently shipping a broken
+  # manifest with literal placeholders (secret-exposure risk / fail-open).
+  if grep -qE '\$\{[A-Za-z0-9_]+\}' "$out"; then
+    echo "ERROR: Unsubstituted variable references remain in $out after envsubst." >&2
+    echo "       The following vars were not defined in the environment:" >&2
+    grep -oE '\$\{[A-Za-z0-9_]+\}' "$out" | sort -u >&2
+    echo "       Ensure all referenced env vars are set or add them to the allowlist." >&2
+    exit 1
+  fi
 }
 
 cd "$PROJECT_DIR"

@@ -112,16 +112,22 @@ tasks:
   proxy:start:
     desc: "Start the local LLM proxy (scripts/llm-proxy, Port 18235) detached with PID/log file"
     cmds:
+      # go-task's embedded shell (mvdan.cc/sh) doesn't populate $! with a real
+      # OS PID for backgrounded processes (returns a synthetic job id like
+      # "g1") - the idempotency check below silently never worked. Running
+      # under a real `bash -c` fixes $! (verified: plain bash gives the actual PID).
       - |
-        set -e
-        DIR="$HOME/.local/state/llm-proxy"; mkdir -p "$DIR"
-        PIDF="$DIR/proxy.pid"; LOGF="$DIR/proxy.log"
-        if [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null; then
-          echo "llm-proxy already running (pid $(cat "$PIDF"))"; exit 0
-        fi
-        nohup node scripts/llm-proxy/server.mjs >> "$LOGF" 2>&1 &
-        echo $! > "$PIDF"
-        echo "✓ llm-proxy started (pid $(cat "$PIDF"), log $LOGF)"
+        bash -c '
+          set -e
+          DIR="$HOME/.local/state/llm-proxy"; mkdir -p "$DIR"
+          PIDF="$DIR/proxy.pid"; LOGF="$DIR/proxy.log"
+          if [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null; then
+            echo "llm-proxy already running (pid $(cat "$PIDF"))"; exit 0
+          fi
+          nohup node scripts/llm-proxy/server.mjs >> "$LOGF" 2>&1 &
+          echo $! > "$PIDF"
+          echo "✓ llm-proxy started (pid $(cat "$PIDF"), log $LOGF)"
+        '
 
   proxy:stop:
     desc: "Stop the local LLM proxy via PID file"

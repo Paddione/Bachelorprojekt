@@ -34,10 +34,12 @@
         "baseURL": "http://127.0.0.1:18235/v1"
       },
       "models": {
-        // Ternary-Bonsai-8B on port 8093: up to 4 parallel slots x 65536 ctx
-        // each, combined KV cache. start-bonsai-parallel.ps1 configures -np 4.
+        // Ternary-Bonsai-8B on port 8093: single slot, full 65536 ctx,
+        // exclusive per request (-np 1, no shared KV). Concurrent bonsai-8b-*
+        // dispatches serialize in the llm-proxy queue (scripts/llm-proxy),
+        // not on the server - see T002102-Folgevorfall (2026-07-23).
         "Ternary-Bonsai-8B-TQ2_0.gguf": {
-          "name": "Ternary-Bonsai-8B (Q2_0, 4x65k parallel, combined KV)",
+          "name": "Ternary-Bonsai-8B (Q2_0, serialized, 65k exclusive ctx)",
           "limit": {
             "context": 65536,
             "output": 8192
@@ -122,7 +124,7 @@
     // `task`-Ziele parallel dispatchen kann, statt sich auf undokumentiertes
     // Verhalten bei mehrfachem `task` auf denselben Agent-Namen zu verlassen.
     "bonsai-8b-1": {
-      "description": "Write-capable subagent 1/3 on Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, shared KV pool with bonsai-8b-2/3, port 8093). Preferred for all write-capable delegation. Dispatch up to 3 of these in parallel via `task`.",
+      "description": "Write-capable subagent 1/3 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
       "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -132,7 +134,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow" }
     },
     "bonsai-8b-2": {
-      "description": "Write-capable subagent 2/3 on Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, shared KV pool with bonsai-8b-1/3, port 8093). Preferred for all write-capable delegation. Dispatch up to 3 of these in parallel via `task`.",
+      "description": "Write-capable subagent 2/3 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
       "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -142,7 +144,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow" }
     },
     "bonsai-8b-3": {
-      "description": "Write-capable subagent 3/3 on Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, shared KV pool with bonsai-8b-1/2, port 8093). Preferred for all write-capable delegation. Dispatch up to 3 of these in parallel via `task`.",
+      "description": "Write-capable subagent 3/3 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
       "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",

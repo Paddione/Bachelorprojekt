@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "slug": "unified-llm-gateway",
+    "ticket_id": "T002102",
+    "domains": ["llm-proxy", "software-factory", "agent-tooling", "tests"],
+    "generated_from": "dev-flow-plan A.1.5 — 5-agent recon workflow (wf_367b616f, 2026-07-23) + live factory_psql checks + plan-lint budget math",
+    "intel_sources": ["grep", "recon-subagents", "factory_psql", "plan-lint _ext_limit/baseline"]
+  },
+  "impact_files": [
+    { "path": "scripts/llm-proxy/fixups.mjs", "language": "javascript", "loc": 32, "s1_limit": 500, "s1_baseline": null, "s1_budget": 468 },
+    { "path": "scripts/llm-proxy/discovery.mjs", "language": "javascript", "loc": 99, "s1_limit": 500, "s1_baseline": null, "s1_budget": 401 },
+    { "path": "scripts/llm-proxy/server.mjs", "language": "javascript", "loc": 67, "s1_limit": 500, "s1_baseline": null, "s1_budget": 433 },
+    { "path": "scripts/llm-proxy/backends.mjs", "language": "javascript", "loc": 50, "s1_limit": 500, "s1_baseline": null, "s1_budget": 450 },
+    { "path": "scripts/llm-proxy/server.test.mjs", "language": "javascript", "loc": 67, "s1_limit": 500, "s1_baseline": null, "s1_budget": 433 },
+    { "path": "scripts/llm-proxy/cutover.sh", "language": "bash", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500 },
+    { "path": "scripts/llm-proxy/llm-proxy.service", "language": "ini", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "Taskfile.llm.yml", "language": "yaml", "loc": 145, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/factory/provider-register-bonsai.sh", "language": "bash", "loc": 32, "s1_limit": 500, "s1_baseline": null, "s1_budget": 468 },
+    { "path": "scripts/factory/route-provider.sh", "language": "bash", "loc": 77, "s1_limit": 500, "s1_baseline": null, "s1_budget": 423 },
+    { "path": "scripts/factory/dispatcher-bridge.sh", "language": "bash", "loc": 135, "s1_limit": 500, "s1_baseline": null, "s1_budget": 365 },
+    { "path": "scripts/factory/wakeup.sh", "language": "bash", "loc": 232, "s1_limit": 500, "s1_baseline": null, "s1_budget": 268 },
+    { "path": "scripts/factory/pipeline.mjs", "language": "javascript", "loc": 617, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/factory/factory-forcetick.service", "language": "ini", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/factory/factory-forcetick.timer", "language": "ini", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/factory/forcetick-poll.sh", "language": "bash", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500 },
+    { "path": "scripts/vda/ticket/stage-plan.sh", "language": "bash", "loc": 53, "s1_limit": 500, "s1_baseline": null, "s1_budget": 447 },
+    { "path": "scripts/migrations/2026-07-23-unified-llm-gateway.sql", "language": "sql", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "AGENTS.md", "language": "markdown", "loc": 263, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".opencode/agent-models.jsonc", "language": "jsonc", "loc": 155, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/references/mcp-tool-guide.md", "language": "markdown", "loc": 138, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/llama-cpp/references/bonsai-server-windows.md", "language": "markdown", "loc": 61, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "docs/agent-guide/registry/tools.yaml", "language": "yaml", "loc": 320, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/local-llm-proxy.bats", "language": "bats", "loc": 116, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/software-factory.bats", "language": "bats", "loc": 4070, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 }
+  ],
+  "symbols": [
+    { "qualified_name": "scripts/llm-proxy/fixups.mjs:applyFixups", "kind": "function", "file": "scripts/llm-proxy/fixups.mjs", "signature": "applyFixups(body, fixupNames[]) -> body", "type_text": "(body: object, fixups: string[]) => object — currently only 'bonsai-system-role-fixup' (role rewrite + WRONG '[system] ' prefix); Fix 2 (billing-header) missing", "source": "grep" },
+    { "qualified_name": "scripts/llm-proxy/discovery.mjs:resolveModel", "kind": "function", "file": "scripts/llm-proxy/discovery.mjs", "signature": "resolveModel(requestedId, backends) -> {backend, model, substituted} | null", "type_text": "step1 exact match, step2 per-backend modelAliases[requestedId], step3 SILENT first-healthy-any-model fallback (to be gated behind LLM_PROXY_LOOSE_FALLBACK=1)", "source": "grep" },
+    { "qualified_name": "scripts/llm-proxy/discovery.mjs:probeBackends", "kind": "function", "file": "scripts/llm-proxy/discovery.mjs", "signature": "probe every 30s: GET {baseUrl}/models timeout 2500ms; failure -> healthy=false + 15s backoff; lmstudio also {host}/api/v0/models", "type_text": "() => void (mutates backend.healthy, backend.models)", "source": "grep" },
+    { "qualified_name": "scripts/llm-proxy/backends.mjs:loadBackends", "kind": "function", "file": "scripts/llm-proxy/backends.mjs", "signature": "env LLM_PROXY_BACKENDS_JSON (test) | factory_psql SELECT name,kind,base_url,api_key_env,enabled,priority,fixups,model_aliases FROM tickets.llm_proxy_backends WHERE enabled ORDER BY priority", "type_text": "poll 30s; on failure keep last-known-good cache (add degraded flag)", "source": "grep" },
+    { "qualified_name": "scripts/llm-proxy/server.mjs:routes", "kind": "module", "file": "scripts/llm-proxy/server.mjs", "signature": "GET /health (liveness) | GET /v1/models (union healthy) | GET /admin/state | POST /admin/reload | POST /v1/* (fixups+resolve, SSE via Readable.fromWeb); headers x-llm-proxy-backend, x-llm-proxy-served-model; port env LLM_PROXY_PORT default 18235, binds 127.0.0.1", "type_text": "node:http server", "source": "grep" },
+    { "qualified_name": "scripts/factory/pipeline.mjs:FACTORY_MODEL", "kind": "const", "file": "scripts/factory/pipeline.mjs", "signature": "const FACTORY_MODEL = {provider:'lmstudio', modelId:'qwythos-9b-v2', baseUrl:'http://127.0.0.1:1234'} (lines 16-24)", "type_text": "{provider: string, modelId: string, baseUrl: string} — passed as {model: FACTORY_MODEL} at ~25 call sites; make env-driven, keep call sites untouched", "source": "grep" },
+    { "qualified_name": "scripts/factory/route-provider.sh:opus-hardcode", "kind": "function", "file": "scripts/factory/route-provider.sh", "signature": "lines 22-26: tier=opus -> ternary-bonsai-27b @ http://127.0.0.1:18235 (bypasses DB); lines 76-77: emergency fallback lmstudio qwythos-9b-v2 @ 127.0.0.1:1234", "type_text": "resolve {provider,modelId,baseUrl,slotId} from tickets.provider_config/factory_model_slots with claim/circuit-breaker in tickets.provider_health", "source": "grep" },
+    { "qualified_name": "scripts/factory/dispatcher-bridge.sh:per-ticket-loop", "kind": "function", "file": "scripts/factory/dispatcher-bridge.sh", "signature": "lines 44-124: iterate prep-JSON .launch[]; lines 56-61 budget-guard.sh call (health gate goes immediately BEFORE this); then background claude -p in ticket worktree", "type_text": "bash loop; env from autopilot.env already sourced by wakeup.sh", "source": "grep" },
+    { "qualified_name": "scripts/factory/wakeup.sh:env-source", "kind": "function", "file": "scripts/factory/wakeup.sh", "signature": "lines 33-38: set -a source ~/.config/factory/autopilot.env; lines 70-83: read+log+delete force-tick flag (audit only); lines 120-179 prep chain; RETICK_DELAY=5s idle loop", "type_text": "ANTHROPIC_BASE_URL=http://localhost:18235 enters here", "source": "grep" },
+    { "qualified_name": "scripts/vda/ticket/stage-plan.sh:main", "kind": "script", "file": "scripts/vda/ticket/stage-plan.sh", "signature": "lines 20-47: UPDATE tickets SET status='plan_staged', slot_count; INSERT ticket_comment FACTORY-PLAN-REF; INSERT factory_phase_events scout/design/plan done. Wake trigger goes after line 47 before final echo", "type_text": "bash; --partials N already supported", "source": "grep" },
+    { "qualified_name": "website/src/pages/api/factory/force-tick.ts:POST", "kind": "route", "file": "website/src/pages/api/factory/force-tick.ts", "signature": "admin-only (session+isAdmin, lines 8-22) -> writeControl('force-tick-requested', ISOts, username) upsert into tickets.factory_control (brand IS NULL)", "type_text": "flag is currently write-only telemetry; forcetick timer makes it real — route itself stays unchanged", "source": "grep" }
+  ],
+  "call_graph": {
+    "entrypoints": ["scripts/vda/ticket/stage-plan.sh", "scripts/factory/factory.timer", "website/src/pages/api/factory/force-tick.ts"],
+    "edges": [
+      { "from": "stage-plan.sh", "to": "tickets.tickets/factory_phase_events (DB)", "kind": "data_flow" },
+      { "from": "stage-plan.sh", "to": "systemctl --user start factory.service", "kind": "calls (NEW D6)" },
+      { "from": "factory.timer", "to": "wakeup.sh", "kind": "calls" },
+      { "from": "factory-forcetick.timer (NEW)", "to": "forcetick-poll.sh -> factory.service", "kind": "calls" },
+      { "from": "wakeup.sh", "to": "~/.config/factory/autopilot.env", "kind": "data_flow (set -a source)" },
+      { "from": "wakeup.sh", "to": "dispatcher-bridge.sh", "kind": "calls" },
+      { "from": "dispatcher-bridge.sh", "to": "GET :18235/healthz", "kind": "calls (NEW D4 gate, before budget-guard.sh)" },
+      { "from": "dispatcher-bridge.sh", "to": "claude -p (outer orchestrator)", "kind": "calls" },
+      { "from": "claude -p", "to": "ANTHROPIC_BASE_URL=:18235", "kind": "data_flow" },
+      { "from": "pipeline.mjs agent()", "to": "FACTORY_MODEL.baseUrl (today :1234, target :18235 via FACTORY_LLM_BASE_URL)", "kind": "data_flow" },
+      { "from": "server.mjs", "to": "backends.mjs loadBackends -> factory_psql -> tickets.llm_proxy_backends", "kind": "data_flow" },
+      { "from": "server.mjs", "to": "discovery.mjs probe -> backend /models", "kind": "calls" },
+      { "from": "route-provider.sh", "to": "tickets.provider_config/factory_model_slots/provider_health", "kind": "data_flow (only auto-triage.sh, scout-llm-fallback.sh, mcp-go)" }
+    ]
+  },
+  "db_tables": [
+    { "table": "tickets.llm_proxy_backends", "columns": ["name", "kind", "base_url", "api_key_env", "enabled", "priority", "fixups jsonb", "model_aliases jsonb"], "notes": "EXISTS + seeded (verified 2026-07-23): llamacpp-bonsai http://127.0.0.1:8093/v1 prio 1, lmstudio http://127.0.0.1:1234/v1 prio 2, deepseek prio 90, opencode-zen prio 91. D5 adds model_aliases {\"ternary-bonsai\":\"*\"} on llamacpp-bonsai." },
+    { "table": "tickets.factory_model_slots", "columns": ["phase", "provider", "model_id", "base_url"], "notes": "Live rows (verified): implement|llamacpp|ternary-bonsai-27b|http://127.0.0.1:18235, plan|ternary-bonsai-27b|..., verify|llamacpp|... — model_id stale, migrate to 'ternary-bonsai'." },
+    { "table": "tickets.provider_config", "columns": ["id", "source", "tier", "priority", "provider", "model_id", "base_url", "max_concurrent", "enabled", "updated_at", "brand", "is_active", "display_name", "api_key", "api_endpoint"], "notes": "Enabled rows all :18235 with stale model_id ternary-bonsai-27b (tiers sonnet/haiku/coaching/cheap/flash) + one 'anthropic|m||opus' row with empty base_url. Migration renames model_id/provider values ternary-bonsai-27b -> ternary-bonsai." },
+    { "table": "tickets.factory_control", "columns": ["key", "value", "brand"], "notes": "force-tick-requested flag (brand IS NULL); wakeup.sh reads+logs+deletes; forcetick-poll.sh SELECTs it (read-only) to decide systemctl start." }
+  ],
+  "api_contracts": [
+    { "route": "POST /api/factory/force-tick", "notes": "admin session guard; writeControl upsert. Unchanged by this change — becomes effective via factory-forcetick.timer." },
+    { "route": "GET/POST /api/admin/llm-proxy/{backends,status,reload}", "notes": "Existing T002081 admin API over llm_proxy_backends — unchanged; GUI panel reads it." },
+    { "route": "Gateway :18235 — GET /health (liveness), GET /healthz (NEW aggregated: 200 iff >=1 healthy backend; body {healthy_backends,total_backends,registry_poll_age_s,degraded}), GET /v1/models, GET /admin/state, POST /admin/reload, POST /v1/*", "notes": "Response headers x-llm-proxy-backend / x-llm-proxy-served-model on proxied calls." }
+  ],
+  "external_types": [],
+  "risks": [
+    { "note": "recon host-state subagent returned a placeholder result; its facts (port owner PID 396, no ~/.local/state/llm-proxy, autopilot.env contents) were independently confirmed by the other three recon agents and direct DB queries", "severity": "info" },
+    { "note": "scripts/factory/pipeline.mjs is on the s1.ignore list (sanctioned monolith, T000460) — budget shown as 0/ungated; keep the diff to the FACTORY_MODEL constant block only", "severity": "info" },
+    { "note": "~/.config/factory/autopilot.env and ~/.config/opencode/opencode.jsonc are HOST files (not repo-tracked) — their updates are cutover-runbook steps printed by cutover.sh, not repo diffs", "severity": "warn" },
+    { "note": "intel gathered via grep/recon-subagents, not codebase-memory graph (JS/bash scripts are thin; signatures verified by direct reads)", "severity": "info" }
+  ]
+}

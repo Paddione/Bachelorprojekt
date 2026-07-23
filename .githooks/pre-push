@@ -36,9 +36,15 @@ URL="$2"
 _commit_msg_failed=0
 while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
   [[ "$LOCAL_SHA" == "0000000000000000000000000000000000000000" ]] && continue
-  BASE="${REMOTE_SHA:-}"
+  # Immer gegen origin/main validieren, nicht gegen den alten Remote-Branch-Tip
+  # (REMOTE_SHA): nach einem `git rebase origin/main` (der in git-workflow als
+  # Standardweg fuer CONFLICTING-PRs dokumentiert ist) liegt REMOTE_SHA nicht
+  # mehr auf der Ahnenlinie des neuen HEAD - "REMOTE_SHA..LOCAL_SHA" zieht dann
+  # bereits gemergte main-Commits mit rein (die eigene, laengst validierte
+  # Historie) und blockt den Push mit fremden Commit-Messages [T002104-Folgebefund].
+  BASE=$(git rev-parse --verify "origin/main" 2>/dev/null || echo "${REMOTE_SHA:-}")
   if [[ -z "$BASE" || "$BASE" == "0000000000000000000000000000000000000000" ]]; then
-    BASE=$(git rev-parse --verify "origin/main" 2>/dev/null || git rev-parse --verify "HEAD~1" 2>/dev/null || true)
+    BASE=$(git rev-parse --verify "HEAD~1" 2>/dev/null || true)
   fi
   [[ -z "$BASE" ]] && continue
 

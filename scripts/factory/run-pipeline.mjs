@@ -50,36 +50,53 @@ function runRunnerLocal(command, payload) {
 }
 
 // Spawn a claude -p sub-agent for LLM operations.
-function runClaudeSubagent(prompt, label) {
-  console.error(`[subagent] spawning claude -p for: ${label || prompt.slice(0, 80)}`);
+function runClaudeSubagent(prompt, label, sessionId) {
+  const args = ['-p', prompt, '--dangerously-skip-permissions'];
+  if (sessionId) {
+    args.push('--resume', sessionId);
+  }
+  console.error(`[subagent] spawning claude -p for: ${label || prompt.slice(0, 80)}${sessionId ? ` (resume ${sessionId})` : ''}`);
   try {
-    const result = spawnSync(CLAUDE_BIN, ['-p', prompt, '--dangerously-skip-permissions'], {
+    const result = spawnSync(CLAUDE_BIN, args, {
       encoding: 'utf8',
       timeout: 600000,
       cwd: REPO,
       env: { ...process.env }
     });
     if (result.error) {
+      if (sessionId && (result.error.message.includes('session') || result.error.code === 'ETIMEDOUT')) {
+        console.warn(`[subagent] Session ${sessionId} lost, falling back to fresh spawn`);
+        return runClaudeSubagent(prompt, label, null);
+      }
       console.error(`[subagent] error:`, result.error.message);
       return null;
     }
     const stdout = result.stdout?.trim() || '';
+    const sessionMatch = stdout.match(/"session_id"\s*:\s*"([^"]+)"/);
+    const newSessionId = sessionMatch?.[1] || sessionId;
     // Try to extract JSON from the output — sub-agents often wrap JSON in text.
     const jsonMatch = stdout.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         const parsed = JSON.parse(jsonMatch[0]);
         console.error(`[subagent] returned JSON: ${JSON.stringify(parsed).slice(0, 200)}`);
-        return parsed;
+        return { output: parsed, sessionId: newSessionId };
       } catch { /* not JSON, return raw */ }
     }
     console.error(`[subagent] raw output (${stdout.length} chars): ${stdout.slice(0, 200)}`);
-    return stdout || null;
+    return { output: stdout || null, sessionId: newSessionId };
   } catch (e) {
+    if (sessionId && (e.message.includes('session') || e.code === 'ETIMEDOUT')) {
+      console.warn(`[subagent] Session ${sessionId} lost, falling back to fresh spawn`);
+      return runClaudeSubagent(prompt, label, null);
+    }
     console.error(`[subagent] error:`, e.message);
     return null;
   }
 }
+
+// Session reuse state threaded through pipeline phases.
+let currentSessionId = null;
 
 // The agent function that pipeline.mjs will call.
 globalThis.agent = async (prompt, opts) => {
@@ -90,11 +107,18 @@ globalThis.agent = async (prompt, opts) => {
     return runRunnerLocal(parsed.command, parsed.payload);
   }
 
-  // Otherwise: LLM operation — spawn a claude sub-agent.
+  // Otherwise: LLM operation — spawn a claude sub-agent with session reuse.
   const label = opts?.label || opts?.phase || 'llm-op';
-  console.error(`[agent] LLM: ${label} (phase=${opts?.phase || 'none'})`);
-  return runClaudeSubagent(prompt, label);
+  console.error(`[agent] LLM: ${label} (phase=${opts?.phase || 'none'}, session=${currentSessionId || 'new'})`);
+  const result = runClaudeSubagent(prompt, label, currentSessionId);
+  if (result && result.sessionId) {
+    currentSessionId = result.sessionId;
+  }
+  return result?.output ?? result;
 };
+
+export function setSessionId(id) { currentSessionId = id; }
+export { runClaudeSubagent };
 
 globalThis.parallel = async (fns) => Promise.all(fns.map(fn => fn()));
 globalThis.pipeline = async (items, ...stages) => {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.206.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.205.1...website-v1.206.0) (2026-07-23)
+
+
+### Features
+
+* **scripts:** format-preserving whitelist + drift report + LLM fill [T002107] ([#3141](https://github.com/Paddione/Bachelorprojekt/issues/3141)) ([d1cd912](https://github.com/Paddione/Bachelorprojekt/commit/d1cd912ce85911e66a926ca4abfd0bbb8f27ecdc))
+
 ## [1.205.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.205.0...website-v1.205.1) (2026-07-23)
 
 

@@ -1,24 +1,36 @@
 # Bonsai-Server (Windows) — repo-spezifische llama.cpp-Referenz
 
-Ternary-Bonsai-27B läuft als OpenAI-kompatibler `llama-server` auf dem Windows-Host
+Ternary-Bonsai läuft als OpenAI-kompatibler `llama-server` auf dem Windows-Host
 (nicht in k8s). Er ist das physische Substrat der parallelen Partialplan-Pipeline
 (T002074): Implement- und Review-Partials routen auf dieses Modell.
 
-> Das Server-Setup ist bereits erledigt (2026-07-22). Diese Referenz dokumentiert
-> nur Zugriff, Health-Checks und die Slot-Budget-Konvention — sie richtet nichts ein.
+> Das Server-Setup ist bereits erledigt. Diese Referenz dokumentiert nur Zugriff,
+> Health-Checks und die Betriebskonventionen — sie richtet nichts ein.
+
+## Ist-Zustand (verifiziert 2026-07-23)
+
+| Was | Wert |
+|---|---|
+| Modell | `prism-ml/Ternary-Bonsai-8B-gguf/Ternary-Bonsai-8B-Q2_0.gguf` (2,03 GB) |
+| Build | `C:\Users\PatrickKorczewski\llama-bonsai-cuda13.3\bin\llama-server.exe` (PrismML-Fork) |
+| Startskript | `C:\Users\PatrickKorczewski\.lmstudio\start-bonsai-parallel.ps1` |
+| Slots | `-np 1` — **ein** Slot mit dem vollen Kontext exklusiv |
+| Kontext | `-c 65536` |
+| Weitere Flags | `-ngl 99 -fa on -ctk q4_0 -ctv q4_0 --jinja --metrics --cache-ram 24576` |
+| Durchsatz | pp ~6.300 tok/s, tg ~185 tok/s (RTX 5070 Ti) |
+
+`start-bonsai-server.ps1` (Ternary-Bonsai-**27B** + Vision-Tower, „Quality-Modus")
+existiert weiterhin als Alternative. Die beiden Skripte schließen sich gegenseitig
+aus — jedes killt beim Start alles auf Port 8093.
 
 ## Zugriff (aus WSL)
 
-Der Server läuft auf dem Windows-Host; aus WSL via `powershell.exe` steuerbar.
-Reboot/Neustart des Servers:
-
 ```bash
-powershell.exe -NoProfile -File 'C:\Users\PatrickKorczewski\.lmstudio\start-bonsai-server.ps1'
+powershell.exe -NoProfile -File 'C:\Users\PatrickKorczewski\.lmstudio\start-bonsai-parallel.ps1'
 ```
 
-Das PS1-Skript entfernt den Vision-Tower (`--mmproj`), setzt `-c 262144` (voller
-kv-Pool, `--kv-unified`) und `-np 4` (Slot-Parallelität). Log-Pfade schreibt das
-Skript neben sich ins `.lmstudio`-Verzeichnis (`start-bonsai-server*.log`).
+Logs schreibt das Skript neben den Build: `bonsai-parallel-out.log` /
+`bonsai-parallel-err.log` in `llama-bonsai-cuda13.3\bin\`.
 
 ## Port & Base-URL
 
@@ -27,23 +39,27 @@ Skript neben sich ins `.lmstudio`-Verzeichnis (`start-bonsai-server*.log`).
 - `networkingMode=mirrored` (WSL teilt den Windows-Netzstack) → der Windows-Listener
   ist direkt auf WSL-`localhost` erreichbar.
 
-## Health-/Props-Checks
+## Health-/Props-/Metrics-Checks
 
 ```bash
 curl -s http://127.0.0.1:8093/health
-curl -s http://127.0.0.1:8093/props | jq '.default_generation_settings.n_ctx'   # erwartet: 262144
+curl -s http://127.0.0.1:8093/props | jq '.default_generation_settings.n_ctx'   # erwartet: 65536
+curl -s http://127.0.0.1:8093/metrics | head                                    # braucht --metrics
 ```
 
-## Slot-Budget-Konvention (Design Entscheidung 5)
+## Parallelität sitzt im llm-proxy, nicht am Server
 
-`-np 4` am Server = **3 Factory-Worker + 1 Orchestrator**:
+Bis 2026-07-23 lief der Server mit `-np 4` (+ `--kv-unified`) und einer
+„3 Worker + 1 Orchestrator"-Slot-Konvention. **Das gilt nicht mehr.** Unter echter
+3-4×-Last blieben fertig generierte Slots wiederholt unfreigegeben (der Scheduler
+kam bei einem gleichzeitig wachsenden Riesen-Prompt nicht dazu, andere Slots
+abzuschließen), einmal mit stillem Server-Crash.
 
-- Die 3 Worker sind der Factory-DB-Pool (`FACTORY_SLOTS_PER_BRAND=3`,
-  `provider_config.max_concurrent=3`).
-- Der 4. Slot bleibt dem Orchestrator (opencode-Hauptsession: Scout/Decompose/
-  Eskalation) vorbehalten, damit er nicht mit den Workern um Slots konkurriert.
+Jetzt: `-np 1` am Server, Serialisierung per FIFO-Queue in
+`scripts/llm-proxy/server.mjs` (Port `18235`, eine In-Flight-Anfrage pro Backend).
+Mehrfachdispatch — z. B. 3 opencode-Subagenten — wartet dort, nicht am Server.
 
-Registrierung der DB-Provider-Zeilen (idempotent, beide Brands):
+Die DB-Provider-Zeilen registriert weiterhin (idempotent, beide Brands):
 
 ```bash
 bash scripts/factory/provider-register-bonsai.sh
@@ -52,10 +68,73 @@ bash scripts/factory/provider-register-bonsai.sh
 Das Skript upsertet `tickets.provider_config` (`factory-implement`/`factory-review`
 → `llamacpp @ http://127.0.0.1:8093/v1`, `max_concurrent=3`) und pinnt
 `tickets.factory_model_slots` für `implement`/`verify`. `route-provider.sh` bevorzugt
-`factory_model_slots` (phase-pin) vor `provider_config` — kein weiterer Code-Eingriff.
+`factory_model_slots` (phase-pin) vor `provider_config`.
 
-## Risiko: kv-unified-Kontention
+> `max_concurrent=3` in der DB beschreibt die Worker-Parallelität der Factory,
+> **nicht** Server-Slots. Die drei Worker teilen sich den einen Serverslot über die
+> Proxy-Queue.
 
-Vier gleichzeitig sehr lange Sequenzen drosseln die effektive Kontextlänge pro Slot
-(gemeinsamer 262k-Pool). Das 3+1-Slot-Budget mildert das; bei ~37k-Factory-Prompts
-mit 4 parallelen Läufen ist die effektive Länge pro Slot der begrenzende Faktor.
+## Gotcha: `-ngl 99` garantiert keine GPU-Inferenz (T002111)
+
+Fehlt dem Build der CUDA-Kernel für das Quantisierungsformat, schiebt `ggml-sched`
+jeden Matmul still auf die CPU — ohne Fehlermeldung, mit belegtem VRAM und
+plausibel aussehendem Log.
+
+Am 2026-07-23 lief der Server so mit `Ternary-Bonsai-8B-TQ2_0.gguf`:
+
+| | TQ2_0 | Q2_0 |
+|---|---|---|
+| Prompt processing | 54 tok/s | **6.355 tok/s** |
+| Generierung | 12,8 tok/s | **184,7 tok/s** |
+| GPU | 10–12 %, 80 W | 91 %, 265 W |
+| CPU | 7,73 von 8 Threads | 0,17 Kerne |
+
+Gleiche Gewichte, gleicher Build, gleiche GPU — nur das Format unterschied sich.
+Der PrismML-Fork hat CUDA-Kernel für sein eigenes `Q2_0`, aber keine für das
+Upstream-Ternärformat `TQ2_0`.
+
+**Prüfung vor jedem Formatwechsel** (statisch, kostet Sekunden):
+
+```bash
+SRC=/mnt/c/Users/PatrickKorczewski/llama-bonsai-src/ggml/src
+grep -ril "TQ2_0" $SRC/ggml-cuda/ | wc -l   # 0  -> laeuft auf der CPU
+grep -ril "Q2_0"  $SRC/ggml-cuda/ | wc -l   # 8  -> GPU-Kernel vorhanden
+```
+
+**Prüfung nach jedem Start** (empirisch, entlarvt jede stille Regression):
+
+```bash
+# Unter Last: GPU muss hoch, CPU muss niedrig sein.
+nvidia-smi --query-gpu=utilization.gpu,power.draw --format=csv,noheader
+```
+
+Ist die CPU am Anschlag und die GPU unter 20 %, läuft die Inferenz auf der CPU —
+unabhängig davon, was das Startskript ins Log schreibt. Dessen VRAM-Budget-Logik
+prüft nur *freien Speicher*, nie *Kernel-Verfügbarkeit*, und meldet deshalb auch
+im CPU-Notbetrieb „GPU mode".
+
+## Gotcha: mcp-kubernetes killt die Tool-Call-Grammatik (T002112)
+
+`mcp-kubernetes` liefert JSON-Schema-`pattern` mit der Zeichenklasse
+`[/_.\-A-Za-z0-9=, ()!]`. In Regex ist `\-` ein gültiges Escape, in GBNF nicht —
+llama.cpp verwirft daraufhin die **komplette** generierte Grammatik:
+
+```
+parse: error parsing grammar: unknown escape at \-A-Za-z0-9=, ()!])+) "\"" space
+E failed to parse grammar
+```
+
+Der Slot startet dann ohne Grammatik: constrained tool-call decoding ist für den
+gesamten Request aus. Betroffen sind `pods_list`, `pods_list_in_namespace`,
+`resources_list` (je `labelSelector`/`fieldSelector`) sowie `nodes_top` und
+`pods_top` (`label_selector`).
+
+Symptom im Log: `E failed to parse grammar` direkt vor `launch_slot_`. Wer
+malformte Tool-Calls und Retries sieht, sucht zuerst hier — nicht am Modell.
+
+## Risiko: langer Einzelkontext
+
+Mit `-np 1` gibt es keine Slot-Kontention mehr, aber ein einzelner sehr langer
+Request blockiert die Queue für alle anderen. Der Proxy loggt Wartezeiten über
+250 ms als `[queue] … waited Xms behind an in-flight request` — das ist das
+Frühwarnsignal für zu große Prompts, nicht für zu wenige Slots.

@@ -281,7 +281,6 @@ tasks:
   test:unit:
     desc: Run BATS unit tests (assertion lib, scripts, configs) in parallel
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - |
         JOBS=$(nproc 2>/dev/null || echo 2)
         ALL_FILES=$(find tests/unit -maxdepth 1 -name "*.bats" | sort)
@@ -586,6 +585,7 @@ tasks:
         tests/unit/planungsbuero-stats.bats
         tests/unit/ticket-triage.bats
         tests/unit/T000617-alert-rules.bats
+        tests/unit/vendored-bats.bats
 
   test:unit:coverage-guard:
     internal: true
@@ -606,14 +606,12 @@ tasks:
   test:art-library:
     desc: "Validate every art-library/sets/* manifest"
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - cd art-library/_tooling && npm install --silent
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/test_art_library_manifest.bats
 
   test:manifests:
     desc: Validate kustomize output structure (no cluster needed)
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats
 
   test:menu-gate:
@@ -684,7 +682,6 @@ tasks:
   test:factory:
     desc: "Run the offline-safe Software Factory regression bats (tests/local/FA-SF-* + FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
 
   test:spec:build-mcp-runner:
@@ -715,7 +712,6 @@ tasks:
   test:spec:
     desc: "Run the offline-safe spec bats (tests/spec/*). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - task: test:spec:build-mcp-runner
       - ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files tests/spec/*.bats
 
@@ -782,7 +778,6 @@ tasks:
   test:agent-lock:
     desc: "Run the offline agent-lock session-coordination bats (tests/local/AGENT-LOCK-*)."
     cmds:
-      - '[ -f ./tests/unit/lib/bats-core/bin/bats ] || git submodule update --init --recursive'
       - ./tests/unit/lib/bats-core/bin/bats tests/local/AGENT-LOCK-*.bats
 
   test:all:

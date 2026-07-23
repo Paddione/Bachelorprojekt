@@ -76,7 +76,7 @@ einen Cron-Job ein. **STOPP hier.**
 
 Regulärer Pfad (Default für alles außer dem Test-only-Kurzpfad oben):
 ```bash
-# git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
+# git-crypt-safe: creates the worktree, handles git-crypt
 bash scripts/worktree-create.sh chore/<slug> .worktrees/<slug>
 cd .worktrees/<slug>
 bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label dev-flow-chore

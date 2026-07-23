@@ -11,7 +11,6 @@
 # failures on git-crypt-managed files), or (b) neutralizes ALL git-crypt filters
 # worktree-locally so checkout and later git ops pass encrypted blobs through
 # verbatim, no key needed (locked repo). [T000925]
-# Finally it inits submodules (the BATS runner lives in one).
 #
 # Usage: scripts/worktree-create.sh <branch> <path> [<base>]
 #   <branch>  branch name, e.g. fix/foo. If it already exists (locally or on
@@ -108,7 +107,7 @@ else
 fi
 
 # Roll back the half-created worktree (+ the branch ONLY if we created it) if any
-# later step fails (cp, checkout, submodule). Otherwise a retry hits a misleading
+# later step fails (cp, checkout). Otherwise a retry hits a misleading
 # "branch already exists" / "<path> already exists" that hides the original error.
 _ok=0
 _rollback() {
@@ -207,22 +206,10 @@ if [ -f "$KEY_SRC" ]; then
   fi
 fi
 
-# Pre-compute MAIN_ROOT (needed by submodule fallback and node_modules symlink).
+# Pre-compute MAIN_ROOT (needed by the node_modules symlink).
 MAIN_ROOT="$(dirname "$COMMON_DIR")"
 
-# 2) Init submodules (git worktree add does NOT; the BATS runner lives in one).
-git -C "$WT_PATH" submodule update --init --recursive --quiet || {
-    echo "worktree-create: submodule update failed — attempting local copy fallback" >&2
-    for sm in tests/unit/lib/bats-core tests/unit/lib/bats-file tests/unit/lib/bats-support tests/unit/lib/bats-assert; do
-        if [ -d "$MAIN_ROOT/$sm" ]; then
-            rm -rf "$WT_PATH/$sm"
-            cp -r "$MAIN_ROOT/$sm" "$WT_PATH/$sm"
-        fi
-    done
-}
-
-
-# 3) node_modules: git worktrees don't share the gitignored root node_modules,
+# 2) node_modules: git worktrees don't share the gitignored root node_modules,
 #    and several `task test:all` subtasks (test:docs-gen, test:agent-guide) import
 #    third-party packages from it. Symlink the base checkout's node_modules so the
 #    worktree resolves deps instantly — no 536M reinstall, and the Taskfile's

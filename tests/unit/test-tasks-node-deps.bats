@@ -2,7 +2,7 @@
 # Regression test for T000427.
 #
 # A fresh git worktree created by scripts/worktree-create.sh has NO root
-# node_modules (the wrapper inits submodules but never installs JS deps). When
+# node_modules (the wrapper never installs JS deps). When
 # `task test:all` then runs its dep `test:agent-guide`, that task executes node
 # scripts which `import ... from 'yaml'` — a third-party package that lives in
 # the root node_modules. So the offline suite dies on a fresh checkout with

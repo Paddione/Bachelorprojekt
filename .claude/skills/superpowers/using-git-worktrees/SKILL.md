@@ -34,7 +34,7 @@ Falls `git stash pop` Konflikte meldet: dem User anzeigen und Klärung einholen.
 ## Worktree creation (MANDATORY for this repo)
 
 Always create worktrees with the project helper — it is git-crypt-safe and runs
-the post-create steps (git-crypt key/secret handling + submodule init) for you:
+the post-create steps (git-crypt key/secret handling + node_modules symlink) for you:
 
 ```bash
 bash scripts/worktree-create.sh <branch> <path> [<base>]   # base defaults to origin/main
@@ -61,24 +61,18 @@ before the first commit:**
 git worktree add .worktrees/foo origin/feature/foo
 cd .worktrees/foo
 git checkout feature/foo            # detach → branch; commits now anchor here
-git submodule update --init --recursive
 ```
 
 The project helper `scripts/worktree-create.sh <branch> <path>` does this
 correctly (it derives the branch from the name and switches into it). Use it
 in preference to bare `git worktree add`.
 
-### 1. Initialize BATS submodules (T000387 / T000107)
+### 1. BATS libs are vendored in-tree (T002135)
 
-`task test:unit` / `task test:all` fails with `bats-core/bin/bats not found` in
-any fresh worktree because `git worktree add` does NOT initialize submodules.
-
-```bash
-git submodule update --init --recursive
-```
-
-This populates `tests/unit/lib/bats-core`, `bats-assert`, `bats-file`, and
-`bats-support`.
+The bats libraries (`tests/unit/lib/bats-core`, `bats-assert`, `bats-file`,
+`bats-support`) are ordinary tracked files since T002135 — formerly git
+submodules (T000387 / T000107). They arrive with every checkout; no
+`git submodule update` step exists anymore.
 
 ### 2. Secrets are materialized by the helper — do NOT symlink (T000426)
 
@@ -93,7 +87,7 @@ masks the tracked files and makes git report them deleted.
 ### Verification
 
 ```bash
-# Submodules OK
+# Vendored BATS libs OK
 ./tests/unit/lib/bats-core/bin/bats --version
 
 # Secrets present (decrypted when the repo is unlocked)
@@ -119,9 +113,9 @@ your first commit.
 ## Automation note
 
 `scripts/worktree-create.sh` is the single source of truth for worktree creation:
-submodule init AND git-crypt handling happen inside it, for every agent (Claude
-Code, Gemini CLI, the Software Factory). There is no PostToolUse dependency — call
-the helper explicitly. `dev-flow-plan` (feature + fix paths) and the Software
+git-crypt handling and the node_modules symlink happen inside it, for every agent
+(Claude Code, Gemini CLI, the Software Factory). There is no PostToolUse dependency —
+call the helper explicitly. `dev-flow-plan` (feature + fix paths) and the Software
 Factory pipeline all invoke it.
 
 ## Concurrent-Session Safety (T000350)

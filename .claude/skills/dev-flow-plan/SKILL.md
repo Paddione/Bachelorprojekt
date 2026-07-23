@@ -442,7 +442,7 @@ TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 ```
 ### Schritt 2: Worktree anlegen
 ```bash
-# git-crypt-safe: creates the worktree, handles git-crypt, inits submodules
+# git-crypt-safe: creates the worktree, handles git-crypt
 bash scripts/worktree-create.sh fix/<slug> .worktrees/<slug>
 cd .worktrees/<slug>
 ```

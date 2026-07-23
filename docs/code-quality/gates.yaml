@@ -35,6 +35,10 @@ scan:
     # or locked (CI), causing the LOC baseline to drift without tracked-file changes.
     # These are deployment secrets, not source code — exclude from the LOC budget.
     - "environments/.secrets/**"
+    # Vendored third-party BATS libraries (bats-core/support/assert/file), checked
+    # in in-tree since T002135 (formerly git submodules). Upstream code is not
+    # subject to our size/orphan gates and must not perturb repo-index.json.
+    - "tests/unit/lib/**"
 
 s1:
   limits:

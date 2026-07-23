@@ -23,7 +23,6 @@ jobs:
         with:
           fetch-depth: 1
           fetch-tags: false
-          submodules: recursive
           token: ${{ secrets.GH_PAT }}
 
       - uses: actions/setup-node@v7

@@ -111,7 +111,6 @@ fi
 ```bash
 git fetch origin main
 git rebase origin/main
-git submodule update --init --recursive
 # Falls push fehlschlägt, wende --force-with-lease an
 ```
 

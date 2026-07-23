@@ -581,3 +581,48 @@ sys.exit(0 if p.get('packages')=='write' else 1)
 "
   [ "$status" -eq 0 ]
 }
+
+# T002121: `task website:migrate` ruft intern `pnpm --dir website db:migrate`
+# auf. Ein Job, der den Task ohne pnpm-Setup startet, stirbt mit
+# '"pnpm": executable file not found in $PATH' (exit 127). In post-merge.yml
+# riss das zusaetzlich den Schritt "Mark ticket done" mit, der im selben Job
+# liegt — "Merge = Abschluss" (T001092) blieb dadurch kaputt, obwohl der
+# Workflow nach dem T002118-Fix wieder startete.
+@test "T002121: jeder Job mit 'task website:migrate' richtet pnpm ein" {
+  run python3 - "$REPO_ROOT" <<'PY'
+import glob, os, sys, yaml
+wf = os.path.join(sys.argv[1], ".github/workflows")
+bad = []
+for f in sorted(glob.glob(os.path.join(wf, "*.yml"))):
+    try: doc = yaml.safe_load(open(f)) or {}
+    except Exception: continue
+    for job, spec in (doc.get("jobs") or {}).items():
+        steps = spec.get("steps") if isinstance(spec, dict) else None
+        if not steps: continue
+        runs = " ".join(str(s.get("run", "")) for s in steps)
+        if "website:migrate" not in runs and "pnpm" not in runs: continue
+        if "website:migrate" not in runs: continue
+        uses = " ".join(str(s.get("uses", "")) for s in steps)
+        if "pnpm/action-setup" not in uses:
+            bad.append(f"{os.path.basename(f)} job '{job}'")
+if bad:
+    print("Jobs rufen 'task website:migrate' ohne pnpm/action-setup:")
+    for b in bad: print("  " + b)
+    sys.exit(1)
+print("alle website:migrate-Jobs richten pnpm ein")
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "T002121: 'Mark ticket done' haengt an always(), nicht an success()" {
+  # Closure trackt laut T001092 den MERGE, nicht Prod-Live. Eine
+  # fehlgeschlagene Migration darf das Ticket nicht offen halten.
+  run python3 -c "
+import yaml,sys
+d=yaml.safe_load(open('$REPO_ROOT/.github/workflows/post-merge.yml'))
+steps=d['jobs']['post-deploy-imperative']['steps']
+s=[x for x in steps if x.get('name')=='Mark ticket done']
+sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
+"
+  [ "$status" -eq 0 ]
+}

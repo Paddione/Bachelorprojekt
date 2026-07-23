@@ -1269,6 +1269,12 @@
       "status": "archived"
     }
   ],
+  "T002044": [
+    {
+      "slug": "plan-ref-lifecycle-fixes",
+      "status": "plan_staged"
+    }
+  ],
   "T002050": [
     {
       "slug": "2026-07-21-brett-fig-panel-drag-rotate",

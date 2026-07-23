@@ -192,13 +192,34 @@ fi
 BRANCH=$(echo "$PLAN_REF" | sed -n 's/.*branch=\([^ ]*\).*/\1/p')
 PLAN_FILE=$(echo "$PLAN_REF" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
 
-if [[ -z "$PLAN_FILE" || ! -f "$PLAN_FILE" ]]; then
-  echo "🛑 Plan-Datei '$PLAN_FILE' existiert nicht (Branch: $BRANCH)."
-  echo "   → Worktree prüfen: git worktree list"
+if [[ -z "$PLAN_FILE" ]]; then
+  echo "🛑 Plan-Datei-Pfad leer im FACTORY-PLAN-REF für Ticket $TICKET_ID."
+  echo "   → Re-run dev-flow-plan für dieses Ticket."
+  exit 1
+fi
+
+# Validate the plan file exists in the current git tree (not just filesystem)
+if ! git cat-file -e "HEAD:$PLAN_FILE" 2>/dev/null; then
+  echo "🛑 Plan-Datei '$PLAN_FILE' existiert nicht im Git-Tree (Branch: $BRANCH)."
+  echo "   → Re-run dev-flow-plan für dieses Ticket, oder prüfe den Worktree: git worktree list"
   exit 1
 fi
 
 echo "✅ Plan geladen: $PLAN_FILE (Branch: $BRANCH)"
+
+# Validate OpenSpec delta artifacts exist (required by task test:openspec)
+SLUG=$(basename "$PLAN_FILE" .md)
+CHANGE_DIR="openspec/changes/$SLUG"
+if [[ -d "$CHANGE_DIR" ]]; then
+  if [[ ! -d "$CHANGE_DIR/specs" ]]; then
+    echo "⚠️  $CHANGE_DIR/specs/ fehlt — Delta-Specs werden von test:openspec erwartet."
+  fi
+  if [[ ! -f "$CHANGE_DIR/.ticket" ]]; then
+    echo "⚠️  $CHANGE_DIR/.ticket fehlt — Ticket-Reference wird von test:openspec erwartet."
+  fi
+else
+  echo "⚠️  $CHANGE_DIR/ fehlt — OpenSpec-Change-Verzeichnis wurde nicht von dev-flow-plan angelegt."
+fi
 ```
 
 ## Schritt 1.4: Doppelarbeit-Guard (Verifikation — Claim bereits in Schritt −1)

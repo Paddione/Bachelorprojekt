@@ -1,41 +1,33 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# llm-gpu: external GPU peer — LM Studio + TEI
+# llm-gpu: external GPU peer — zwei persistente llama.cpp-Server (Windows)
 #
-# LM Studio (Windows) läuft auf port 1234. K8s-Pods erreichen den Host
-# direkt via wg-mesh IP (192.168.100.0/24). Docker-Bridge funktioniert im Dev
-# Kein socat nötig — Service-Port ist 1234 (kein Proxy-Port mehr).
+# Zwei llama.cpp-Server auf dem Windows-GPU-Host, direkt via wg-gpu erreichbar:
+#   - bge-m3 Embedding (Port 8095): /v1/embeddings, pooling CLS, 1024-dim
+#   - bge-reranker-v2-m3 Rerank (Port 8096): /v1/rerank
 #
-# Modelle im LM Studio:
-#   text-embedding-bge-m3          → /v1/embeddings
-#   text-embedding-bge-reranker-v2-m3  → /v1/rerank  (via llm-gateway-rerank)
-#   text-embedding-nomic-embed-text-v1.5 → /v1/embeddings
-#   qwen/qwen3.5-9b                → /v1/chat/completions  (coding)
-#   google/gemma-4-12b-qat         → /v1/chat/completions  (chat)
-#
-# TEI (Docker — läuft als Fallback für rerank falls LM Studio das nicht hat):
-#   llm-gateway-tei-embed  :8081  (bge-m3 via TEI, optional)
-#   llm-gateway-tei-rerank :8083  (bge-reranker-v2-m3 via TEI)
+# Kein socat, kein Proxy, kein LM Studio, kein TEI mehr. Die Server laufen
+# als Windows Scheduled Tasks und starten automatisch beim Systemstart.
 #
 # ${LLM_HOST_IP}: 192.168.100.10 (wg-mesh — dev + prod fleet)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── LM Studio — alle Modelle auf port 1234 (Windows, kein socat) ─────────────
+# ── bge-m3 Embedding (llama.cpp, Port 8095) ──────────────────────────────
 apiVersion: v1
 kind: Service
 metadata:
-  name: llm-gateway-lmstudio
+  name: llm-gateway-embed
   labels:
     app: llm-gateway
 spec:
   ports:
     - name: http
-      port: 1234
-      targetPort: 1234
+      port: 8095
+      targetPort: 8095
 ---
 apiVersion: v1
 kind: Endpoints
 metadata:
-  name: llm-gateway-lmstudio
+  name: llm-gateway-embed
   labels:
     app: llm-gateway
 subsets:
@@ -43,25 +35,25 @@ subsets:
       - ip: ${LLM_HOST_IP}
     ports:
       - name: http
-        port: 1234
+        port: 8095
 ---
-# ── TEI Embeddings (Fallback — bge-m3 via Docker TEI) ───────────────────────
+# ── bge-reranker-v2-m3 Rerank (llama.cpp, Port 8096) ─────────────────────
 apiVersion: v1
 kind: Service
 metadata:
-  name: llm-gateway-tei-embed
+  name: llm-gateway-rerank
   labels:
     app: llm-gateway
 spec:
   ports:
     - name: http
-      port: 8081
-      targetPort: 8081
+      port: 8096
+      targetPort: 8096
 ---
 apiVersion: v1
 kind: Endpoints
 metadata:
-  name: llm-gateway-tei-embed
+  name: llm-gateway-rerank
   labels:
     app: llm-gateway
 subsets:
@@ -69,30 +61,4 @@ subsets:
       - ip: ${LLM_HOST_IP}
     ports:
       - name: http
-        port: 8081
----
-# ── TEI Reranking (bge-reranker-v2-m3, port 8083) ───────────────────────────
-apiVersion: v1
-kind: Service
-metadata:
-  name: llm-gateway-tei-rerank
-  labels:
-    app: llm-gateway
-spec:
-  ports:
-    - name: http
-      port: 8083
-      targetPort: 8083
----
-apiVersion: v1
-kind: Endpoints
-metadata:
-  name: llm-gateway-tei-rerank
-  labels:
-    app: llm-gateway
-subsets:
-  - addresses:
-      - ip: ${LLM_HOST_IP}
-    ports:
-      - name: http
-        port: 8083
+        port: 8096

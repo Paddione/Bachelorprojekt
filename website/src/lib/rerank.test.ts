@@ -1,32 +1,31 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { rerankCandidates } from './rerank';
+import * as loggerModule from './logger';
 
 const ORIGINAL_FETCH = global.fetch;
 const ORIGINAL_ENABLED = process.env.LLM_RERANK_ENABLED;
-const ORIGINAL_URL = process.env.LLM_ROUTER_URL;
 const ORIGINAL_RERANKER_URL = process.env.LLM_RERANKER_URL;
 
 describe('rerank client', () => {
   beforeEach(() => {
     process.env.LLM_RERANK_ENABLED = 'true';
-    process.env.LLM_ROUTER_URL = 'http://llm-router.test:4000';
     process.env.LLM_RERANKER_URL = 'http://llm-router.test:4000';
     global.fetch = ORIGINAL_FETCH;
   });
   afterEach(() => {
     process.env.LLM_RERANK_ENABLED = ORIGINAL_ENABLED;
-    process.env.LLM_ROUTER_URL = ORIGINAL_URL;
     process.env.LLM_RERANKER_URL = ORIGINAL_RERANKER_URL;
   });
 
   test('returns docs sorted descending by score on happy path', async () => {
-    // LM Studio port migration: rerank endpoint serves the bare array with
-    // {index, score} (no `results` wrapper, no `relevance_score` field).
-    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify([
-      { index: 1, score: 0.9 },
-      { index: 0, score: 0.4 },
-      { index: 2, score: 0.1 },
-    ]), { status: 200 }));
+    // llama.cpp rerank response: {results: [{index, relevance_score}]}
+    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      results: [
+        { index: 1, relevance_score: 0.9 },
+        { index: 0, relevance_score: 0.4 },
+        { index: 2, relevance_score: 0.1 },
+      ],
+    }), { status: 200 }));
     const out = await rerankCandidates('q', ['a', 'b', 'c']);
     expect(out).toEqual([
       { doc: 'b', score: 0.9 },
@@ -43,10 +42,16 @@ describe('rerank client', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  test('on router 503 returns input docs with score=0 (graceful)', async () => {
+  test('on router 503 returns input docs with score=0 (graceful) and logs warning', async () => {
+    const warnSpy = vi.spyOn(loggerModule.logger, 'warn').mockReturnValue(undefined);
     global.fetch = vi.fn().mockResolvedValue(new Response('down', { status: 503 }));
     const out = await rerankCandidates('q', ['a', 'b']);
     expect(out).toEqual([{ doc: 'a', score: 0 }, { doc: 'b', score: 0 }]);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 503 }),
+      expect.stringContaining('[rerank]'),
+    );
+    warnSpy.mockRestore();
   });
 
   test('empty docs returns empty array without calling fetch', async () => {

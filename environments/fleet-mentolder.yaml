@@ -59,7 +59,6 @@ env_vars:
   WEBSITE_HOST: web.mentolder.de
   WEBSITE_SITE_URL: "https://web.mentolder.de"
   POCKET_ID_FRONTEND_URL: "https://auth.mentolder.de"
-  POCKET_ID_FRONTEND_URL: "https://auth.mentolder.de"
   POCKET_ID_DOMAIN: "auth.mentolder.de"
   POCKET_ID_URL: "http://pocket-id:1411"
   # System-test failure loop master kill-switch.
@@ -70,8 +69,8 @@ env_vars:
   TERMINAL_OVERLAY_IP: "10.20.0.10"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
-  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
-  LLM_EMBED_URL: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
+  LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace.svc.cluster.local:8096"
+  LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8095"
 
   STUDIO_DOMAIN: studio.mentolder.de
   STUDIO_IMAGE: ghcr.io/paddione/studio-server

@@ -355,49 +355,35 @@ env_vars:
   - name: LLM_HOST_IP
     required: false
     default_dev: ""
-    description: "Mesh IP of the GPU host running TEI embed + LM Studio. Required when LLM_ENABLED=true. The dev env sets this explicitly in environments/dev.yaml."
+    description: "Mesh IP of the GPU host (Windows) running llama.cpp-Embed (bge-m3, :8095) and llama.cpp-Rerank (bge-reranker-v2-m3, :8096). Required when LLM_ENABLED=true. The dev env sets this explicitly in environments/dev.yaml."
 
   - name: LLM_ENABLED
     required: true
     default_dev: "false"
-    description: "If true, bge-m3 embeddings go to llm-gateway-embed (TEI) and chat goes to llm-gateway-lmstudio (Windows). If false, embeddings.ts calls Voyage directly."
+    description: "If true, bge-m3 embeddings go to llm-gateway-embed (llama.cpp, port 8095) and rerank goes to llm-gateway-rerank (llama.cpp, port 8096). If false, embeddings.ts calls Voyage directly."
     validate: "^(true|false)$"
 
   - name: LLM_RERANK_ENABLED
     required: true
     default_dev: "true"
-    description: "If true, knowledge query path reranks results via LLM_RERANKER_URL (TEI bge-reranker-v2-m3 on port 8083)."
+    description: "If true, knowledge query path reranks results via LLM_RERANKER_URL (llama.cpp bge-reranker-v2-m3 on port 8096)."
     validate: "^(true|false)$"
 
   - name: LLM_RERANKER_URL
     required: false
-    default_dev: "http://llm-gateway-tei-rerank:8083"
-    description: "Base URL of the TEI reranker service (used when LLM_RERANK_ENABLED=true)."
+    default_dev: "http://llm-gateway-rerank:8096"
+    description: "Base URL of the llama.cpp reranker service (used when LLM_RERANK_ENABLED=true)."
 
-  - name: LLM_LMSTUDIO_URL
-    required: false
-    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
-    description: "Cluster-internal URL of LM Studio (all models via OpenAI-compat API). direkt auf port 1234."
-
-  - name: LLM_CHAT_MODEL
-    required: false
-    default_dev: "hermes-3-llama-3.1-8b"
-    description: "LM Studio model ID for general chat completions."
-
-  - name: LLM_CODING_MODEL
-    required: false
-    default_dev: "qwen/qwen3.5-9b"
-    description: "LM Studio model ID for coding tasks."
+  # LLM_LMSTUDIO_URL removed — LM Studio abgeschaltet.
+  # LLM_CHAT_MODEL removed — kein Consumer; LM Studio abgeschaltet.
+  # LLM_CODING_MODEL removed — kein Consumer; LM Studio abgeschaltet.
 
   - name: LLM_EMBED_MODEL
     required: false
-    default_dev: "text-embedding-bge-m3"
-    description: "LM Studio model ID for embeddings (used when LLM_EMBED_URL points to LM Studio)."
+    default_dev: "bge-m3"
+    description: "Model ID for llama.cpp embedding server (bge-m3). llama-server ignoriert das Feld im Single-Model-Betrieb; Dokumentationswert."
 
-  - name: LLM_EMBED_MODEL_NOMIC
-    required: false
-    default_dev: "text-embedding-nomic-embed-text-v1.5"
-    description: "LM Studio model ID for nomic embeddings (English-optimised alternative)."
+  # LLM_EMBED_MODEL_NOMIC removed — kein Consumer; nomic-embed-text-v1.5 hat kein GGUF im Bestand.
 
   - name: COMFY_HOST_IP
     required: false
@@ -419,15 +405,12 @@ env_vars:
     default_dev: "8190"
     description: "Port the Rigger FastAPI service listens on. Default 8190."
 
-  - name: LLM_ROUTER_URL
-    required: true
-    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
-    description: "Cluster-internal URL of LM Studio chat backend (direkt port 1234). Namespace-aware."
+  # LLM_ROUTER_URL removed — kein Consumer im Produktionscode.
 
   - name: LLM_EMBED_URL
     required: true
-    default_dev: "http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234"
-    description: "Cluster-internal URL for embeddings — LM Studio port 1234 (bge-m3 or nomic via /v1/embeddings)."
+    default_dev: "http://llm-gateway-embed:8095"
+    description: "Cluster-internal URL for embeddings — llama.cpp bge-m3 server port 8095 (via /v1/embeddings)."
 
   # ─────────────────────────────────────────────────────────────────
   # Collabora (office-stack) — all five derived from PROD_DOMAIN inside

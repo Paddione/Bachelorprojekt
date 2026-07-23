@@ -47,22 +47,19 @@ describe('embeddings client', () => {
 
 describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
   const ORIGINAL_ENV = process.env.LLM_ENABLED;
-  const ORIGINAL_URL = process.env.LLM_ROUTER_URL;
   const ORIGINAL_EMBED_URL = process.env.LLM_EMBED_URL;
 
   beforeEach(() => {
     process.env.LLM_ENABLED = 'true';
-    process.env.LLM_ROUTER_URL = 'http://llm-router.test:4000';
     process.env.LLM_EMBED_URL = 'http://llm-router.test:4000';
     global.fetch = ORIGINAL_FETCH;
   });
   afterEach(() => {
     process.env.LLM_ENABLED = ORIGINAL_ENV;
-    process.env.LLM_ROUTER_URL = ORIGINAL_URL;
     process.env.LLM_EMBED_URL = ORIGINAL_EMBED_URL;
   });
 
-  test('routes bge-m3 query to LLM_ROUTER_URL with X-LLM-Purpose=query', async () => {
+  test('routes bge-m3 query to LLM_EMBED_URL with X-LLM-Purpose=query', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(
       JSON.stringify({ data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 8 } }),
       { status: 200 },
@@ -79,10 +76,10 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
     // LM Studio port migration: bge-m3 is routed via resolveModelId() to the
     // upstream model name `text-embedding-bge-m3`. TEI ignores the model field,
     // LM Studio routes by it.
-    expect(body.model).toBe('text-embedding-bge-m3');
+    expect(body.model).toBe('bge-m3');
   });
 
-  test('routes voyage-multilingual-2 model through the router (no direct voyage call)', async () => {
+  test('routes voyage-multilingual-2 model through the embed URL (no direct voyage call)', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(
       JSON.stringify({ data: [{ embedding: Array(1024).fill(0.03) }], usage: { total_tokens: 9 } }),
       { status: 200 },

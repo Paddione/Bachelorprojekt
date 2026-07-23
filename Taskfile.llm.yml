@@ -3,34 +3,28 @@
 # Local-first LLM pipeline operations.
 # Included from Taskfile.yml under the "llm" namespace.
 #
-# Post-#895: the in-cluster LiteLLM router Deployment was removed. Apps call
-# the in-cluster gateway Services (`llm-gateway-embed`, `llm-gateway-lmstudio`)
-# directly. `llm:deploy` therefore only applies `k3d/llm-gpu.yaml` (gateway
-# Services+Endpoints). `llm:status` and `llm:test` query those Services via
-# debug-pod `kubectl exec` curls, not a router pod.
+# Drei llama.cpp-Server auf dem Windows GPU-Host (via wg-gpu):
+#   - Bonsai (Port 8093): Factory-Orchestrator, 4 Slots
+#   - Embed (Port 8095): bge-m3, Text-Embeddings
+#   - Rerank (Port 8096): bge-reranker-v2-m3, Text-Reranking
+#
+# `llm:deploy` applies `k3d/llm-gpu.yaml` (gateway Services+Endpoints).
+# `llm:status` and `llm:test` query those Services via debug-pod curls.
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3"
 
 tasks:
 
   bootstrap-host:
-    desc: "Bootstrap the GPU host (Docker, systemd units, ufw). HOST=<wg-mesh-ip>"
+    desc: "Bootstrap the GPU host (ufw, wg-mesh reachability). HOST=<wg-mesh-ip>"
     preconditions:
       - sh: '[ -n "{{.HOST}}" ]'
         msg: "HOST=<wg-mesh-ip> is required."
     cmds:
       - scripts/llm-host-setup.sh {{.HOST}}
 
-  pull-models:
-    desc: "Pull all 4 Ollama models + warm TEI HF cache. HOST=<wg-mesh-ip>"
-    preconditions:
-      - sh: '[ -n "{{.HOST}}" ]'
-        msg: "HOST=<wg-mesh-ip> is required."
-    cmds:
-      - scripts/llm-pull-models.sh {{.HOST}}
-
   deploy:
-    desc: "Apply llm-gateway Services + Endpoints (embed + lmstudio) to ENV={{.ENV}}"
+    desc: "Apply llm-gateway Services + Endpoints (embed + rerank) to ENV={{.ENV}}"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -39,10 +33,10 @@ tasks:
         : "${LLM_HOST_IP:?LLM_HOST_IP unset — configure in environments/{{.ENV}}.yaml}"
         envsubst '$LLM_HOST_IP' < k3d/llm-gpu.yaml \
           | kubectl --context "$ENV_CONTEXT" -n "${WORKSPACE_NAMESPACE:-workspace}" apply -f -
-        echo "✓ llm-gateway-embed + llm-gateway-lmstudio applied (ENV={{.ENV}})"
+        echo "✓ llm-gateway-embed + llm-gateway-rerank applied (ENV={{.ENV}})"
 
   status:
-    desc: "Show LLM pipeline status (gateway endpoints, GPU host reachability, model availability). ENV=<env>"
+    desc: "Show LLM pipeline status (gateway endpoints, GPU host reachability). ENV=<env>"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -51,38 +45,23 @@ tasks:
         source scripts/env-resolve.sh "{{.ENV}}"
         ns="${WORKSPACE_NAMESPACE:-workspace}"
         echo "── llm-gateway endpoints ──"
-        kubectl --context "$ENV_CONTEXT" -n "$ns" get endpoints llm-gateway-embed llm-gateway-lmstudio
-        echo "── llm-gateway-embed health (TEI) ──"
+        kubectl --context "$ENV_CONTEXT" -n "$ns" get endpoints llm-gateway-embed llm-gateway-rerank
+        echo "── llm-gateway-embed health (llama.cpp bge-m3) ──"
         kubectl --context "$ENV_CONTEXT" -n "$ns" run llm-debug-$$ --rm -it --restart=Never \
           --image=curlimages/curl:8.7.1 --quiet -- \
-          curl -fsS "http://llm-gateway-embed.${ns}.svc.cluster.local:8081/health" || true
-        echo "── llm-gateway-lmstudio models (Windows) ──"
+          curl -fsS -X POST "http://llm-gateway-embed.${ns}.svc.cluster.local:8095/v1/embeddings" \
+            -H "Content-Type: application/json" \
+            -d '{"model":"bge-m3","input":"test"}' | jq '.data[0].embedding | length' || true
+        echo "── llm-gateway-rerank health (llama.cpp bge-reranker) ──"
         kubectl --context "$ENV_CONTEXT" -n "$ns" run llm-debug-$$ --rm -it --restart=Never \
           --image=curlimages/curl:8.7.1 --quiet -- \
-          curl -fsS "http://llm-gateway-lmstudio.${ns}.svc.cluster.local:1234/v1/models" || true
-
-  preload-embeddings:
-    desc: "Pin all 3 embedding models in LM Studio VRAM permanently (ttl=-1, 1.26 GB total)"
-    cmds:
-      - bash scripts/lmstudio-preload.sh embeddings
-
-  coding-session:
-    desc: "Pre-load Qwen3.5-9B + embedding models into VRAM before a big coding task"
-    cmds:
-      - bash scripts/lmstudio-preload.sh coding
-
-  chat-session:
-    desc: "Pre-load Hermes + embedding models into VRAM for a chat session"
-    cmds:
-      - bash scripts/lmstudio-preload.sh chat
-
-  model-status:
-    desc: "Show which LM Studio models are currently loaded in VRAM"
-    cmds:
-      - bash scripts/lmstudio-preload.sh status
+          curl -fsS -X POST "http://llm-gateway-rerank.${ns}.svc.cluster.local:8096/v1/rerank" \
+            -H "Content-Type: application/json" \
+            -d '{"model":"bge-reranker-v2-m3","query":"test","documents":["doc1","doc2"]}' \
+            | jq '.results | length' || true
 
   test:
-    desc: "Smoke-test the gateway Services directly (embed bge-m3 + LM Studio chat). Voyage hits the cloud API. ENV=<env>"
+    desc: "Smoke-test the gateway Services directly (embed + rerank). ENV=<env>"
     vars:
       ENV: '{{.ENV | default "mentolder"}}'
     cmds:
@@ -93,21 +72,16 @@ tasks:
         echo "── bge-m3 embed via llm-gateway-embed ──"
         kubectl --context "$ENV_CONTEXT" -n "$ns" run llm-debug-$$ --rm -it --restart=Never \
           --image=curlimages/curl:8.7.1 --quiet -- \
-          curl -fsS -X POST "http://llm-gateway-embed.${ns}.svc.cluster.local:8081/v1/embeddings" \
+          curl -fsS -X POST "http://llm-gateway-embed.${ns}.svc.cluster.local:8095/v1/embeddings" \
             -H "Content-Type: application/json" \
             -d '{"model":"bge-m3","input":"hallo welt"}' | jq '.data[0].embedding | length'
-        echo "── LM Studio chat via llm-gateway-lmstudio ──"
-        # LLM_ROUTER_API_KEY is sealed into website-secrets; pull it for the test
-        KEY=$(kubectl --context "$ENV_CONTEXT" -n "$ns" get secret website-secrets -o jsonpath='{.data.LLM_ROUTER_API_KEY}' 2>/dev/null | base64 -d || echo "")
-        if [[ -z "$KEY" ]]; then
-          echo "  (LLM_ROUTER_API_KEY not found in website-secrets — running chat test unauthenticated)"
-        fi
+        echo "── bge-reranker via llm-gateway-rerank ──"
         kubectl --context "$ENV_CONTEXT" -n "$ns" run llm-debug-$$ --rm -it --restart=Never \
           --image=curlimages/curl:8.7.1 --quiet -- \
-          sh -c "curl -fsS -X POST 'http://llm-gateway-lmstudio.${ns}.svc.cluster.local:1234/v1/chat/completions' \
-            -H 'Content-Type: application/json' ${KEY:+-H 'Authorization: Bearer '"$KEY"'} \
-            -d '{\"model\":\"workspace-chat\",\"messages\":[{\"role\":\"user\",\"content\":\"Sag Hallo auf Deutsch.\"}],\"max_tokens\":20}' \
-            | jq '.choices[0].message.content'" || true
+          curl -fsS -X POST "http://llm-gateway-rerank.${ns}.svc.cluster.local:8096/v1/rerank" \
+            -H "Content-Type: application/json" \
+            -d '{"model":"bge-reranker-v2-m3","query":"capital of germany","documents":["paris","berlin","hamburg"]}' \
+            | jq '.results | sort_by(-.relevance_score) | .[0].index'
 
   proxy:start:
     desc: "Start the local LLM proxy (scripts/llm-proxy, Port 18235) detached with PID/log file"
@@ -149,3 +123,38 @@ tasks:
     desc: "Tail the local LLM proxy log"
     cmds:
       - tail -n 100 -f "$HOME/.local/state/llm-proxy/proxy.log"
+
+  measure-equivalence:
+    desc: "Measure embedding equivalence between TEI and new llama.cpp endpoint"
+    cmds:
+      - node scripts/llm/measure-embedding-equivalence.mjs
+
+  register-scheduled-tasks:
+    desc: "Register Windows Scheduled Tasks for llama.cpp servers (run on GPU host)"
+    cmds:
+      - echo "Run this on the Windows GPU host (e.g. via RDP):"
+      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/register-scheduled-tasks.ps1"
+
+  start-embed:
+    desc: "Start the bge-m3 embedding server interactively (Windows GPU host)"
+    cmds:
+      - echo "Run on Windows GPU host:"
+      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/start-embed-server.ps1"
+
+  start-rerank:
+    desc: "Start the bge-reranker-v2-m3 rerank server interactively (Windows GPU host)"
+    cmds:
+      - echo "Run on Windows GPU host:"
+      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/start-rerank-server.ps1"
+
+  start-bonsai:
+    desc: "Start the Ternary-Bonsai-8B server with 4 slots (Windows GPU host)"
+    cmds:
+      - echo "Run on Windows GPU host:"
+      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/start-bonsai-server.ps1"
+
+  lmstudio-preload:
+    desc: "DEPRECATED — replaced by llama.cpp Scheduled Tasks. Use scripts/llm/register-scheduled-tasks.ps1 instead."
+    cmds:
+      - echo "LM Studio (lmstudio-preload.sh) is deprecated since T002110. Use Windows Scheduled Tasks instead."
+      - echo "  See powershell -ExecutionPolicy Bypass -File ./scripts/llm/register-scheduled-tasks.ps1"

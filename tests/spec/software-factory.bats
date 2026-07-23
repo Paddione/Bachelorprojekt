@@ -4070,3 +4070,69 @@ EOF
   run grep -qE '1-9|1\.\.9|\[1-9\]' scripts/vda/ticket/stage-plan.sh
   [ "$status" -eq 0 ]
 }
+
+@test "FA-SF-GANG: stage-plan schreibt force-tick-requested Flag (T002128-p1)" {
+  # p1: stage-plan.sh enthaelt den force-tick-Upsert + factory.service-Kick
+  run grep -c "force-tick-requested" scripts/vda/ticket/stage-plan.sh
+  [ "$output" -ge 1 ]
+  run grep -c "systemctl --user start factory.service" scripts/vda/ticket/stage-plan.sh
+  [ "$output" -eq 1 ]
+  # Beide Trigger sind non-fatal (Warnung >&2, kein Abbruch)
+  run grep "WARN: stage-plan: force-tick flag write failed" scripts/vda/ticket/stage-plan.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "FA-SF-GANG: dispatcher-bridge hat FACTORY_EXECUTOR-Verzweigung (T002128-p2)" {
+  # p2: Executor-Branching vorhanden, claude-Spawn byte-identisch
+  run bash -n scripts/factory/dispatcher-bridge.sh
+  [ "$status" -eq 0 ]
+  run grep -c "FACTORY_EXECUTOR" scripts/factory/dispatcher-bridge.sh
+  [ "$output" -ge 1 ]
+  run grep -c "opencode-exec.sh" scripts/factory/dispatcher-bridge.sh
+  [ "$output" -eq 1 ]
+  # claude-Spawn mit --dangerously-skip-permissions genau einmal (unverändert)
+  run grep -c -- "--dangerously-skip-permissions" scripts/factory/dispatcher-bridge.sh
+  [ "$output" -eq 1 ]
+}
+
+@test "FA-SF-GANG: opencode-exec.sh ist valide und ausfuehrbar (T002128-p2)" {
+  run bash -n scripts/factory/opencode-exec.sh
+  [ "$status" -eq 0 ]
+  [ -x scripts/factory/opencode-exec.sh ]
+  # Positionale ticket.sh phase-Form (kein --id/--phase/--state)
+  run grep -n 'phase.*EXT_ID.*implement' scripts/factory/opencode-exec.sh
+  [ "$status" -eq 0 ]
+  # Kein claude -p Fallback (kein CLAUDE_BIN oder claude als Kommando in Code)
+  run grep -c '${CLAUDE_BIN:-claude}' scripts/factory/opencode-exec.sh
+  [ "$output" -eq 0 ]
+}
+
+@test "FA-SF-GANG: backends.mjs max_inflight aus DB und JSON-Seam (T002128-p4)" {
+  # Typedef enthaelt maxInflight
+  run grep "maxInflight:number" scripts/llm-proxy/backends.mjs
+  [ "$status" -eq 0 ]
+  # SQL SELECT enthaelt max_inflight
+  run grep "max_inflight" scripts/llm-proxy/backends.mjs
+  [ "$status" -eq 0 ]
+  # JSON-Seam gibt maxInflight durch (node -e mit --input-type=module fuer ESM)
+  run bash -c 'LLM_PROXY_BACKENDS_JSON='\''[{"name":"b","kind":"llamacpp","baseUrl":"x","apiKeyEnv":null,"enabled":true,"priority":1,"fixups":[],"modelAliases":{},"maxInflight":4}]'\'' node --input-type=module -e "import('\''./scripts/llm-proxy/backends.mjs'\'').then(m => { m.startRegistryPoll(999999); const b = m.getBackends()[0]; process.stdout.write(String(b.maxInflight)); })"'
+  [ "$output" = "4" ]
+}
+
+@test "FA-SF-GANG: llm-proxy server.mjs Semaphor und /admin/state (T002128-p4)" {
+  run node --check scripts/llm-proxy/server.mjs
+  [ "$status" -eq 0 ]
+  # Semaphor-Funktionen vorhanden
+  run grep -c "function acquire" scripts/llm-proxy/server.mjs
+  [ "$output" -eq 1 ]
+  run grep -c "function release" scripts/llm-proxy/server.mjs
+  [ "$output" -eq 1 ]
+  run grep -c "function enqueue" scripts/llm-proxy/server.mjs
+  [ "$output" -eq 1 ]
+  # enqueue hat 3 Parameter (name, limit, fn)
+  run grep "function enqueue(name, limit, fn)" scripts/llm-proxy/server.mjs
+  [ "$status" -eq 0 ]
+  # /admin/state mit inflight/max_inflight Anreicherung
+  run grep -c "inflightOf" scripts/llm-proxy/server.mjs
+  [ "$output" -ge 2 ]
+}

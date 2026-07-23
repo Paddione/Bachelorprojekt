@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "slug": "factory-flash-bonsai-gang",
+    "ticket_id": "T002128",
+    "generated_from": "main@b55c4f0b4",
+    "domains": ["factory", "llm-infra", "dev-tooling"],
+    "intel_sources": ["grep", "read", "mcp-postgres", "baseline.json", "explorer-recon-2026-07-23"]
+  },
+  "impact_files": [
+    { "path": "scripts/vda/ticket/stage-plan.sh", "language": "bash", "loc": 58, "s1_limit": 500, "s1_baseline": null, "s1_budget": 442 },
+    { "path": "scripts/factory/dispatcher-bridge.sh", "language": "bash", "loc": 135, "s1_limit": 500, "s1_baseline": null, "s1_budget": 365 },
+    { "path": "scripts/factory/opencode-exec.sh", "language": "bash", "loc": 0, "s1_limit": 500, "s1_baseline": null, "s1_budget": 500 },
+    { "path": ".opencode/agent-models.jsonc", "language": "jsonc", "loc": 171, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".opencode/prompts/orchestrator.md", "language": "markdown", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "AGENTS.md", "language": "markdown", "loc": 147, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/llm-proxy/server.mjs", "language": "javascript", "loc": 169, "s1_limit": 500, "s1_baseline": null, "s1_budget": 331 },
+    { "path": "scripts/llm-proxy/backends.mjs", "language": "javascript", "loc": 50, "s1_limit": 500, "s1_baseline": null, "s1_budget": 450 },
+    { "path": "scripts/migrations/2026-07-23-llm-proxy-max-inflight.sql", "language": "sql", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/software-factory.bats", "language": "bats", "loc": 4072, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:cmd_stage_plan",
+      "kind": "script-body",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "stage-plan --id <ext-id> --branch <branch> --plan <path> [--partials N] (Z.25-28 UPDATE plan_staged+slot_count; Z.29-39 FACTORY-PLAN-REF-Upsert; Z.40-52 Phase-Event-Backfill; ENDE Z.53 — Auto-Tick-Insert kommt NACH Z.52)",
+      "type_text": "(argv) => exit 0|1",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/dispatcher-bridge.sh:launch_loop",
+      "kind": "script-body",
+      "file": "scripts/factory/dispatcher-bridge.sh",
+      "signature": "Loop über launch_rows (Z.43-124); Budget-Guard Z.57-61; Prompt Z.84-110; Spawn Z.121-123: ${CLAUDE_BIN:-claude} -p \"$PIPELINE_PROMPT\" --allowedTools ... & — Executor-Verzweigung ersetzt Z.121-123",
+      "type_text": "(launch_json) => background pids; wait Z.127",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/wakeup.sh:force_tick_consumer",
+      "kind": "script-block",
+      "file": "scripts/factory/wakeup.sh",
+      "signature": "Z.70-83: SELECT+DELETE factory_control key='force-tick-requested' AND brand IS NULL — existierender Konsument, p1 schreibt NUR das Flag",
+      "type_text": "() => tick-now|timer-wait",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:backendQueue",
+      "kind": "module-state",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "Z.28-35: FIFO-Queue pro Backend-Name, genau 1 In-Flight-Request — p4 ersetzt durch Semaphor bis max_inflight; Bind 127.0.0.1 Z.169; /health Z.159 immer ok",
+      "type_text": "Map<backendName, {queue: Request[], inflight: number}>",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/backends.mjs:loadBackends",
+      "kind": "function",
+      "file": "scripts/llm-proxy/backends.mjs",
+      "signature": "Z.8-33: lädt tickets.llm_proxy_backends alle 30s (Polling) — p4 ergänzt max_inflight im SELECT",
+      "type_text": "() => Promise<Backend[]>",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/ticket.sh:cmd_phase",
+      "kind": "function",
+      "file": "scripts/ticket.sh",
+      "signature": "Z.495-520: phase --id --phase scout|design|plan|implement|verify|deploy --state entered|done|blocked [--detail JSON] — p2-Telemetrie nutzt state=done/blocked + detail-JSON, KEINE neuen States (T002130)",
+      "type_text": "(argv) => INSERT tickets.factory_phase_events",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/opencode-sync-agents.sh:sync",
+      "kind": "script-body",
+      "file": "scripts/opencode-sync-agents.sh",
+      "signature": "Z.28-32: target.agent = source.agent (KOMPLETT-Überschreibung aus .opencode/agent-models.jsonc) — p3 muss orchestrator+bonsai-8b-4 in die QUELLE legen",
+      "type_text": "(repo jsonc) => ~/.config/opencode/opencode.jsonc",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "opencode-cli:run",
+      "kind": "cli-contract",
+      "file": "scripts/factory/pr-babysit-ticket.sh",
+      "signature": "opencode run --agent <name> [--format json] \"<prompt>\" — verifizierte Aufrufform (pr-babysit-ticket.sh:83, vda/oracle.sh:443)",
+      "type_text": "(agent, prompt) => stdout text|json",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "scripts/vda/ticket/stage-plan.sh",
+      "scripts/factory/wakeup.sh"
+    ],
+    "edges": [
+      { "from": "stage-plan.sh", "to": "tickets.factory_control(force-tick-requested)", "kind": "data_flow" },
+      { "from": "stage-plan.sh", "to": "systemctl --user start factory.service", "kind": "calls" },
+      { "from": "wakeup.sh", "to": "factory-prep.sh", "kind": "calls" },
+      { "from": "factory-prep.sh", "to": "schedule.sh", "kind": "calls" },
+      { "from": "schedule.sh", "to": "slots.sh:claim-gang", "kind": "calls" },
+      { "from": "wakeup.sh", "to": "dispatcher-bridge.sh", "kind": "calls" },
+      { "from": "dispatcher-bridge.sh", "to": "opencode-exec.sh", "kind": "calls" },
+      { "from": "opencode-exec.sh", "to": "opencode run --agent orchestrator", "kind": "calls" },
+      { "from": "orchestrator", "to": "bonsai-8b-1..4 (task-Dispatch)", "kind": "calls" },
+      { "from": "bonsai-8b-*", "to": "llm-proxy :18235 -> llama.cpp :8093", "kind": "data_flow" },
+      { "from": "opencode-exec.sh", "to": "ticket.sh phase (implement, detail-JSON)", "kind": "data_flow" }
+    ]
+  },
+  "db_tables": [
+    {
+      "table": "tickets.factory_control",
+      "columns": [
+        { "name": "key", "type": "text NOT NULL" },
+        { "name": "brand", "type": "text NULL — force-tick-requested nutzt brand IS NULL" },
+        { "name": "value", "type": "text NOT NULL" },
+        { "name": "set_by", "type": "text NULL" },
+        { "name": "updated_at", "type": "timestamptz DEFAULT now()" }
+      ],
+      "source": "mcp-postgres information_schema 2026-07-23"
+    },
+    {
+      "table": "tickets.llm_proxy_backends",
+      "columns": [
+        { "name": "id", "type": "integer PK" },
+        { "name": "name", "type": "text NOT NULL" },
+        { "name": "kind", "type": "text NOT NULL" },
+        { "name": "base_url", "type": "text NOT NULL" },
+        { "name": "api_key_env", "type": "text NULL" },
+        { "name": "enabled", "type": "boolean NOT NULL DEFAULT true" },
+        { "name": "priority", "type": "integer NOT NULL DEFAULT 100" },
+        { "name": "fixups", "type": "jsonb NOT NULL DEFAULT []" },
+        { "name": "model_aliases", "type": "jsonb NOT NULL DEFAULT {}" },
+        { "name": "created_at", "type": "timestamptz NOT NULL DEFAULT now()" },
+        { "name": "updated_at", "type": "timestamptz NOT NULL DEFAULT now()" },
+        { "name": "max_inflight", "type": "NEU (p4): integer NOT NULL DEFAULT 1" }
+      ],
+      "source": "mcp-postgres information_schema 2026-07-23"
+    },
+    {
+      "table": "tickets.factory_phase_events",
+      "columns": [
+        { "name": "id", "type": "bigint PK" },
+        { "name": "ticket_id", "type": "uuid NOT NULL" },
+        { "name": "phase", "type": "text NOT NULL — Whitelist scout|design|plan|implement|verify|deploy (ticket.sh:508)" },
+        { "name": "state", "type": "text NOT NULL — Whitelist entered|done|blocked (ticket.sh:509, partial-done NICHT erlaubt → T002130)" },
+        { "name": "detail", "type": "text NULL — strukturiertes JSON (T001092)" },
+        { "name": "driver", "type": "text NOT NULL DEFAULT 'factory'" },
+        { "name": "at", "type": "timestamptz NOT NULL DEFAULT now()" }
+      ],
+      "source": "mcp-postgres information_schema 2026-07-23"
+    }
+  ],
+  "api_contracts": [
+    {
+      "endpoint": "GET llm-proxy 127.0.0.1:18235/admin/state",
+      "shape": "Backend-Status inkl. Health je Backend (discovery.mjs getState); p4 ergänzt {inflight, max_inflight} pro Backend — Gang-Gating-Quelle (NICHT /health, das liefert immer ok)",
+      "source": "read scripts/llm-proxy/server.mjs+discovery.mjs"
+    }
+  ],
+  "external_types": [],
+  "risks": [
+    { "note": "opencode run headless im Factory-Kontext (systemd-User-Service-Env, secrets.env-Verfügbarkeit für opencode-go-Subscription) ist ungetestet — p2-Task muss einen manuellen Smoke-Run vor dem BATS-GREEN vorsehen", "severity": "warn" },
+    { "note": "Bonsai-Server läuft seit 2026-07-23 -np 1 (Crash-Historie unter 3-4x-Last); max_inflight>1 erst nach Host-Stabilisierung setzen (D4) — Cutover-Runbook, kein Repo-Diff", "severity": "warn" },
+    { "note": "tests/spec/software-factory.bats hat 4072 Zeilen — kein S1-Limit für .bats, aber Konvention: neue @test-Blöcke in DIESE Datei (keine Ticket-Dateien)", "severity": "info" },
+    { "note": "deepseek-v4-flash ist Cloud-API (DSGVO): Repo-Code verlässt On-Prem; opt-in-Executor begrenzt Exposition, im Design dokumentiert und akzeptiert", "severity": "info" },
+    { "note": "provider_config max_concurrent-Drift (Skript=1, Live-DB=3, Doku=3) — betrifft NUR den claude-Autopilot-Pfad, nicht den opencode-Executor; nicht in diesem Change fixen", "severity": "info" }
+  ]
+}

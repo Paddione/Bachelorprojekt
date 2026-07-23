@@ -38,7 +38,7 @@
         // exclusive per request (-np 1, no shared KV). Concurrent bonsai-8b-*
         // dispatches serialize in the llm-proxy queue (scripts/llm-proxy),
         // not on the server - see T002102-Folgevorfall (2026-07-23).
-        "Ternary-Bonsai-8B-TQ2_0.gguf": {
+        "Ternary-Bonsai-8B-Q2_0.gguf": {
           "name": "Ternary-Bonsai-8B (Q2_0, serialized, 65k exclusive ctx)",
           "limit": {
             "context": 65536,
@@ -116,17 +116,18 @@
     }
   },
   "agent": {
-    // 3 gleich konfigurierte Agent-Namen statt einem "bonsai-8b" - alle drei
-    // reden mit demselben llama-server (:8093, --kv-unified, -np 3: 2
-    // physische + 1 oversubscribed Slot). Der Server selbst balanciert jede
-    // eingehende Chat-Completion auf einen freien Slot; die 3 Namen sind
-    // dafuer da, dass der Orchestrator sie explizit als 3 unabhaengige
-    // `task`-Ziele parallel dispatchen kann, statt sich auf undokumentiertes
+    // 4 gleich konfigurierte Agent-Namen statt einem "bonsai-8b" - alle reden
+    // mit demselben llama-server (:8093, -np 1: EIN Slot, exklusiver 65k-Kontext,
+    // kein shared KV). Konkurrierende bonsai-8b-* serialisieren in der llm-proxy-
+    // Queue (scripts/llm-proxy); physische Parallelitaet ist per Backend-Spalte
+    // max_inflight konfigurierbar (Default 1 = seriell, s. factory-flash-bonsai-
+    // gang p4). Die 4 Namen existieren, damit der Orchestrator sie explizit als
+    // unabhaengige `task`-Ziele dispatchen kann, statt sich auf undokumentiertes
     // Verhalten bei mehrfachem `task` auf denselben Agent-Namen zu verlassen.
     "bonsai-8b-1": {
-      "description": "Write-capable subagent 1/3 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+      "description": "Write-capable subagent 1/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
-      "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
+      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -134,9 +135,9 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "bonsai-8b-2": {
-      "description": "Write-capable subagent 2/3 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+      "description": "Write-capable subagent 2/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
-      "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
+      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F97316",
       "temperature": 0.4,
@@ -144,11 +145,21 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "bonsai-8b-3": {
-      "description": "Write-capable subagent 3/3 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+      "description": "Write-capable subagent 3/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
-      "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
+      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#EA580C",
+      "temperature": 0.4,
+      "steps": 4,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
+    },
+    "bonsai-8b-4": {
+      "description": "Write-capable subagent 4/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+      "mode": "subagent",
+      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#D97706",
       "temperature": 0.4,
       "steps": 4,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
@@ -166,6 +177,21 @@
       "color": "#F97316",
       "temperature": 0.3,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    "orchestrator": {
+      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the bonsai-8b gang (up to 4 task-parallel streams) for implementation. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      "mode": "primary",
+      "model": "opencode-go/deepseek-v4-flash",
+      "prompt": "{file:./prompts/orchestrator.md}",
+      "color": "#8B5CF6",
+      "temperature": 0.2,
+      "steps": 50,
+      "permission": {
+        "task": {
+          "bonsai-8b-*": "allow",
+          "deepseek-helper": "allow"
+        }
+      }
     }
   }
 }

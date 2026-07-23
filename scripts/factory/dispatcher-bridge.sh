@@ -118,9 +118,26 @@ the identical call — stop and report the error verbatim instead of looping."
   if [[ "$LAUNCH_DIR" == "null" || ! -d "$LAUNCH_DIR" ]]; then
     LAUNCH_DIR="$REPO"
   fi
-  (cd "$LAUNCH_DIR" && "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \
-    --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \
-    --dangerously-skip-permissions 2>&1) | sed "s/^/[pipeline:${ext_id}] /" >&2 &
+
+  # Executor branch (T002128, D3): opt-in opencode orchestrator vs. default claude -p.
+  # Unknown value warns and falls back to claude (safe default). Both branches keep the
+  # same [pipeline:${ext_id}] sed prefix and the trailing & so the outer `wait` (below)
+  # still joins them. The claude branch is byte-identical to the pre-T002128 spawn.
+  executor="${FACTORY_EXECUTOR:-claude}"
+  case "$executor" in
+    claude|opencode) ;;
+    *) echo "dispatcher-bridge: unknown FACTORY_EXECUTOR='$executor' — falling back to claude" >&2
+       executor=claude ;;
+  esac
+
+  if [[ "$executor" == "opencode" ]]; then
+    ( bash "$HERE/opencode-exec.sh" "$ext_id" "$LAUNCH_DIR" "$branch" "$plan_path" 2>&1 ) \
+      | sed "s/^/[pipeline:${ext_id}] /" >&2 &
+  else
+    (cd "$LAUNCH_DIR" && "${CLAUDE_BIN:-claude}" -p "$PIPELINE_PROMPT" \
+      --allowedTools "Workflow,Bash(bash scripts/factory/*),Bash(bash scripts/ticket.sh*),Bash(bash scripts/vda.sh*),ToolSearch,PushNotification" \
+      --dangerously-skip-permissions 2>&1) | sed "s/^/[pipeline:${ext_id}] /" >&2 &
+  fi
 done
 
 # Wait for all background pipelines to finish

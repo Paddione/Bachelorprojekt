@@ -11,28 +11,50 @@ const POLL_MS = 30_000;
 startRegistryPoll(POLL_MS);
 const discovery = startDiscovery(getBackends, POLL_MS);
 
-// Serialisierung + Kontext-Budget (T002102-Folgevorfall, 2026-07-23): mehrere
-// gleichzeitige Requests an DENSELBEN Backend teilten sich zuvor server-seitig
-// einen KV-Pool (--kv-unified) und liessen sich unter Last nicht mehr sauber
-// abschliessen (fertige Slots blieben haengen, einmal voller Server-Crash).
-// Der Proxy serialisiert jetzt selbst - pro Backend genau ein Request zur
-// selben Zeit, alle weiteren warten in einer FIFO-Queue - und deckelt
-// max_tokens pro Request auf das, was nach Abzug des tatsaechlichen
-// Prompt-Umfangs vom Backend-Kontext realistisch noch reinpasst, statt
-// blind den Client-Wert (oder ein globales Maximum) durchzureichen.
+// Serialisierung + Kontext-Budget (T002102-Folgevorfall, 2026-07-23; erweitert
+// um per-Backend-Semaphor T002128-p4): mehrere gleichzeitige Requests an DENSELBEN
+// Backend serialisiert der Proxy in einem per-Backend-Semaphor. Default max_inflight=1
+// => byte-identisch zur bisherigen Promise-Kette (genau 1 in-flight, strikte FIFO).
+// max_inflight >1 erlaubt echte Parallelitaet pro Backend (z. B. fuer die Bonsai-
+// Gang). Die max_tokens-Deckelung (Context-Budget) bleibt unveraendert erhalten.
 const CTX_MARGIN = Number(process.env.LLM_PROXY_CTX_MARGIN || 1024); // Chat-Template/Tool-Schema-Overhead, den /tokenize nicht sieht
 const SAFETY_MARGIN = Number(process.env.LLM_PROXY_SAFETY_MARGIN || 256);
 const MIN_OUTPUT_BUDGET = Number(process.env.LLM_PROXY_MIN_OUTPUT || 64);
 const PROPS_CACHE_MS = 60_000;
 
-const queues = new Map(); // backend.name -> Promise (Ende der Warteschlange)
-function enqueue(key, fn) {
-  const prev = queues.get(key) || Promise.resolve();
+// Per-Backend-Semaphor: bis zu `limit` Requests gleichzeitig in-flight, ueberzaehlige warten FIFO.
+// limit=1 ist aequivalent zur bisherigen Promise-Ketten-Serialisierung (genau 1 in-flight, strikte
+// FIFO) — damit bleibt das Default-Verhalten byte-identisch. Stale Eintraege (Backend faellt aus der
+// Registry) laufen auf inflight=0 aus und schaden nicht; kein aktives Cleanup noetig.
+const sems = new Map(); // backend.name -> { inflight:number, waiters: Array<() => void> }
+
+function semFor(name) {
+  let s = sems.get(name);
+  if (!s) { s = { inflight: 0, waiters: [] }; sems.set(name, s); }
+  return s;
+}
+
+function acquire(name, limit) {
+  const s = semFor(name);
+  if (s.inflight < limit) { s.inflight++; return Promise.resolve(); }
+  return new Promise((resolve) => s.waiters.push(resolve)); // FIFO: hinten anstellen
+}
+
+function release(name) {
+  const s = semFor(name);
+  const next = s.waiters.shift();     // FIFO: vorne entnehmen
+  if (next) next();                   // Slot direkt an den naechsten Wartenden weiterreichen (inflight konstant)
+  else if (s.inflight > 0) s.inflight--;
+}
+
+function enqueue(name, limit, fn) {
   const queuedAt = Date.now();
-  const run = prev.then(fn, fn);
-  queues.set(key, run.catch(() => {}));
+  const run = acquire(name, limit).then(fn).finally(() => release(name));
   return { run, queuedAt };
 }
+
+// exportiert fuer /admin/state (Task 4): aktueller In-Flight-Zaehler eines Backends
+function inflightOf(name) { return sems.get(name)?.inflight ?? 0; }
 
 const ctxCache = new Map(); // backend.name -> { ctx, fetchedAt }
 async function getBackendCtx(backend) {
@@ -124,7 +146,7 @@ async function proxyV1(req, res, subpath) {
   const budgetedBody = applyFixups(backend.fixups, await applyContextBudget(backend, sanitized));
   if (substituted) console.log(`[route] ${body.model} → ${backend.name}:${servedModel}`);
 
-  const { run, queuedAt } = enqueue(backend.name, () => forwardToBackend(backend, servedModel, subpath, budgetedBody));
+  const { run, queuedAt } = enqueue(backend.name, backend.maxInflight ?? 1, () => forwardToBackend(backend, servedModel, subpath, budgetedBody));
   const waitMs = Date.now() - queuedAt;
   if (waitMs > 250) console.log(`[queue] ${backend.name}: request waited ${waitMs}ms behind an in-flight request`);
   const upstream = await run;
@@ -158,7 +180,16 @@ const server = http.createServer((req, res) => {
   (async () => {
     if (path === '/health') return sendJson(res, 200, { status: 'ok' });
     if (path === '/v1/models' && method === 'GET') return sendJson(res, 200, aggregateModels());
-    if (path === '/admin/state' && method === 'GET') return sendJson(res, 200, getState(getBackends));
+    if (path === '/admin/state' && method === 'GET') {
+      const state = getState(getBackends);
+      const limits = new Map(getBackends().map((b) => [b.name, b.maxInflight ?? 1]));
+      state.backends = state.backends.map((b) => ({
+        ...b,
+        inflight: inflightOf(b.name),
+        max_inflight: limits.get(b.name) ?? 1,
+      }));
+      return sendJson(res, 200, state);
+    }
     if (path === '/admin/reload' && method === 'POST') { await discovery.probeNow(); return sendJson(res, 200, { reloaded: true }); }
     if (path.startsWith('/v1/') && method === 'POST') return proxyV1(req, res, path.slice(3));
     return sendJson(res, 404, { error: { code: 'not_found', message: path } });

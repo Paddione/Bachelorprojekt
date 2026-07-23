@@ -86,6 +86,7 @@ data:
   # Arena (last-man-standing game server; same host on both brands — mentolder only)
   ARENA_WS_URL: "${ARENA_WS_URL}"
   # Site
+  # T002139: no-op touch to retrigger render-fleet-artifact.yml after FLUX_ENABLED cutover
   SITE_URL: "${WEBSITE_SITE_URL}"
   # CORS allowlist for the React SPA (react.<brand>); empty → fail-closed (no React app)
   REACT_APP_ORIGIN: "${REACT_APP_ORIGIN}"

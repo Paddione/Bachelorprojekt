@@ -524,3 +524,60 @@ PY
   [ "$status" -eq 0 ]
 }
 
+
+# T002118: Ein via `uses:` aufgerufener reusable workflow darf nie mehr Rechte
+# verlangen, als der aufrufende Job besitzt — sonst lehnt GitHub den GESAMTEN
+# Workflow mit startup_failure ab, bevor ein einziger Job startet. Die
+# Validierung laeuft VOR der if:-Auswertung, der Job muss also nicht einmal
+# ausgefuehrt werden. post-merge.yml war so 37 Merges lang tot (2026-07-22/23):
+# kein Ticket-Closure, kein deploy-legacy, 14 undeployte Manifest-Aenderungen.
+@test "T002118: jeder reusable-workflow-Aufruf deckt die Permissions des Callees" {
+  run python3 - "$REPO_ROOT" <<'PY'
+import glob, os, sys, yaml
+root = sys.argv[1]
+wf = os.path.join(root, ".github/workflows")
+RANK = {"none": 0, "read": 1, "write": 2}
+
+declared = {}
+for f in glob.glob(os.path.join(wf, "*.yml")):
+    try: declared[os.path.basename(f)] = (yaml.safe_load(open(f)) or {}).get("permissions") or {}
+    except Exception: pass
+
+bad = []
+for f in sorted(glob.glob(os.path.join(wf, "*.yml"))):
+    try: doc = yaml.safe_load(open(f)) or {}
+    except Exception: continue
+    top = doc.get("permissions")
+    for job, spec in (doc.get("jobs") or {}).items():
+        if not isinstance(spec, dict): continue
+        uses = spec.get("uses", "")
+        if not (isinstance(uses, str) and uses.startswith("./.github/workflows/")): continue
+        jobperm = spec.get("permissions")
+        # Ohne JEDEN expliziten permissions-Block greift der Repo-Default
+        # (hier: write). Statisch nicht pruefbar und nicht das Fehlerbild.
+        if top is None and jobperm is None: continue
+        have = {**(top or {}), **(jobperm or {})}
+        need = declared.get(os.path.basename(uses), {})
+        missing = {k: v for k, v in need.items()
+                   if RANK.get(have.get(k, "none"), 0) < RANK.get(v, 0)}
+        if missing:
+            bad.append(f"{os.path.basename(f)} job '{job}' -> {os.path.basename(uses)}: fehlt {missing}")
+
+if bad:
+    print("Permissions-Konflikt (fuehrt zu startup_failure):")
+    for b in bad: print("  " + b)
+    sys.exit(1)
+print("alle reusable-workflow-Aufrufe decken die Callee-Permissions")
+PY
+  [ "$status" -eq 0 ]
+}
+
+@test "T002118: post-merge.yml render-artifact-Job gewaehrt packages: write" {
+  run python3 -c "
+import yaml,sys
+d=yaml.safe_load(open('$REPO_ROOT/.github/workflows/post-merge.yml'))
+p=(d['jobs']['render-artifact'].get('permissions') or {})
+sys.exit(0 if p.get('packages')=='write' else 1)
+"
+  [ "$status" -eq 0 ]
+}

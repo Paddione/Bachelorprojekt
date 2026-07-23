@@ -78,6 +78,16 @@ jobs:
     name: Render fleet artifact (GitOps)
     needs: [mark-awaiting, detect]
     if: vars.FLUX_ENABLED == 'true' && needs.detect.outputs.manifests_changed == 'true'
+    # render-fleet-artifact.yml verlangt packages: write (docker/login-action →
+    # ghcr). Ein via `uses:` aufgerufener Workflow darf nie mehr Rechte
+    # anfordern als der Aufrufer — sonst lehnt GitHub den GESAMTEN Workflow mit
+    # startup_failure ab, bevor auch nur ein Job startet. Diese Validierung
+    # laeuft VOR der if:-Auswertung, der Job muss dafuer also nicht einmal
+    # ausgefuehrt werden. Genau das passierte 37 Merges lang (T002118).
+    # Das Recht bleibt bewusst auf diesen Job begrenzt statt workflowweit.
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/render-fleet-artifact.yml
     secrets: inherit
 

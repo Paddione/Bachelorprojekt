@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 629,
+      "file_count": 630,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -577,6 +577,7 @@
         "tests/unit/scripts.bats",
         "tests/unit/scripts/dev-reset.test.sh",
         "tests/unit/scripts/software-history-classify.bats",
+        "tests/unit/scripts/stage-plan.bats",
         "tests/unit/scs-index.bats",
         "tests/unit/scs-search.bats",
         "tests/unit/secret-task-guards.bats",

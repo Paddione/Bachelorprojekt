@@ -25,7 +25,7 @@ export default defineConfig({
   globalTeardown: require.resolve('./specs/global-db-cleanup-teardown.ts'),
   reporter: [
     ['line'],
-    ['json', { outputFile: '../results/.tmp-e2e-results.json' }],
+    ['json', { outputFile: '../results/.tmp-e2e-results.json', outputFolder: undefined }],
     ['junit', { outputFile: '../results/junit.xml' }],
   ],
   use: {

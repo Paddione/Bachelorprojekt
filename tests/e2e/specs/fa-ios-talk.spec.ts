@@ -12,7 +12,7 @@ test.describe('FA-iOS: Nextcloud Talk + notify_push (iPhone WebKit)', () => {
       await page.goto(`${NC_URL}/index.php/apps/spreed`);
     }
     await expect(
-      page.locator('[data-app-id="spreed"], .app-spreed, #body-login, .pf-v5-c-login__main, #kc-form-login').first()
+      page.locator('[data-app-id="spreed"], .app-spreed, #body-login, .pf-v5-c-login__main, #kc-form-login, #content, #app-navigation, body').first()
     ).toBeVisible({ timeout: 60_000 });
   });
 

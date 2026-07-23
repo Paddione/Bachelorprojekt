@@ -32,8 +32,11 @@ export async function loginViaE2E(
     waitUntil: 'domcontentloaded',
   });
 
-  const escaped = returnTo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  await page.waitForURL(new RegExp(escaped), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForFunction(
+    (expected: string) => window.location.pathname.startsWith(expected) || window.location.href.includes(expected),
+    returnTo,
+    { timeout: 60_000 },
+  );
 }
 
 export async function loginAsAdmin(page: Page, returnTo = '/admin'): Promise<void> {

@@ -17,7 +17,10 @@ export async function loginAsAdmin(page: import('@playwright/test').Page) {
     `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent('/admin/wissensquellen')}&token=${token}`,
     { waitUntil: 'domcontentloaded' },
   );
-  await page.waitForURL(/\/admin\/wissensquellen/, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForFunction(
+    () => window.location.pathname.includes('/admin/wissensquellen'),
+    { timeout: 60_000 },
+  );
 }
 
 export async function getCookieString(page: import('@playwright/test').Page): Promise<string> {

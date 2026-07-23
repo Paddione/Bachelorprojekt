@@ -1,0 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: fleet-manifests
+  namespace: flux-system
+spec:
+  interval: 10m
+  url: oci://ghcr.io/paddione/fleet-manifests
+  ref:
+    tag: latest
+  secretRef:
+    name: ghcr-auth

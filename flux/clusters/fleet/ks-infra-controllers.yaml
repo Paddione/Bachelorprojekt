@@ -12,7 +12,7 @@ spec:
     - name: flux-sealed-secrets-korczewski
   sourceRef:
     kind: OCIRepository
-    name: flux-system
+    name: fleet-manifests
   path: ./platform
   prune: true
   wait: true

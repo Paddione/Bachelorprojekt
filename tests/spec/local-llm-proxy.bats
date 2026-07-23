@@ -114,3 +114,84 @@ _skip_if_no_db() {
   echo "$output" | grep -q '"baseUrl":"http://127.0.0.1:18235"'
   ! echo "$output" | grep -q ':8093'
 }
+
+# ── GBNF-Escape-Sanitizer (T002112) ───────────────────────────────────────────
+# mcp-kubernetes liefert JSON-Schema-"pattern" mit \- in einer Zeichenklasse.
+# In GBNF ist das kein gueltiges Escape -> llama.cpp verwirft die KOMPLETTE
+# Tool-Call-Grammatik ("unknown escape") und der Slot laeuft unconstrained.
+
+_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
+  node -e '
+    import("./scripts/llm-proxy/fixups.mjs").then(m => {
+      process.stdout.write(m.sanitizeGbnfPattern(process.argv[1]));
+    });
+  ' "$1" 2>/dev/null
+}
+
+@test "sanitizeGbnfPattern: \\- in Zeichenklasse wandert ans Klassenende" {
+  run _sanitize '^[/_.\-A-Za-z0-9=, ()!]+$'
+  [ "$status" -eq 0 ]
+  [ "$output" = '^[/_.A-Za-z0-9=, ()!-]+$' ]
+}
+
+@test "sanitizeGbnfPattern: erzeugt KEINE ungewollte Range (.-A)" {
+  run _sanitize '^[/_.\-A-Za-z0-9=, ()!]+$'
+  # Ein naives \- -> - haette '[/_.-A...' erzeugt: .-A waere eine Range 0x2E-0x41.
+  ! echo "$output" | grep -q '\.-A'
+}
+
+@test "sanitizeGbnfPattern: \\- ausserhalb einer Klasse wird zum Literal -" {
+  run _sanitize 'a\-b'
+  [ "$output" = 'a-b' ]
+}
+
+@test "sanitizeGbnfPattern: Pattern ohne \\- bleibt unveraendert" {
+  run _sanitize '^[a-z0-9-]+$'
+  [ "$output" = '^[a-z0-9-]+$' ]
+}
+
+@test "sanitizeGbnfPattern: andere Escapes bleiben erhalten" {
+  run _sanitize '^\d+\.\d+[\w\-]$'
+  [ "$output" = '^\d+\.\d+[\w-]$' ]
+}
+
+@test "sanitizeGbnfPattern: negierte Klasse behaelt ^ und bekommt - ans Ende" {
+  run _sanitize '[^\-a]'
+  [ "$output" = '[^a-]' ]
+}
+
+@test "sanitizeToolSchemaPatterns: patcht verschachtelte tools[].pattern" {
+  # node assertiert selbst und exit-codet - erspart das Escaping des
+  # Erwartungswerts durch bash/bats hindurch.
+  run node --input-type=module -e '
+    import assert from "node:assert";
+    import { sanitizeToolSchemaPatterns } from "./scripts/llm-proxy/fixups.mjs";
+    const BS = String.fromCharCode(92);
+    const pat = "^[/_." + BS + "-A-Za-z0-9=]+$";
+    const body = { tools: [{ type: "function", function: { name: "pods_list",
+      parameters: { type: "object", properties: {
+        labelSelector: { type: "string", pattern: pat } } } } }] };
+    const out = sanitizeToolSchemaPatterns(body);
+    const got = out.tools[0].function.parameters.properties.labelSelector.pattern;
+    assert.strictEqual(got, "^[/_.A-Za-z0-9=-]+$", "Pattern nicht korrekt entschaerft");
+    assert.strictEqual(body.tools[0].function.parameters.properties.labelSelector.pattern,
+      pat, "Original-Body wurde mutiert");
+  ' 2>/dev/null
+  [ "$status" -eq 0 ]
+}
+
+@test "sanitizeToolSchemaPatterns: Body ohne tools bleibt unangetastet" {
+  run node -e '
+    import("./scripts/llm-proxy/fixups.mjs").then(m => {
+      const body = { messages:[{role:"user",content:"hi"}] };
+      process.stdout.write(JSON.stringify(m.sanitizeToolSchemaPatterns(body)));
+    });
+  '
+  [ "$output" = '{"messages":[{"role":"user","content":"hi"}]}' ]
+}
+
+@test "server.mjs wendet den Sanitizer unbedingt an (nicht als DB-Opt-in)" {
+  # Ein Korrektheits-Fix, den man erst in llm_proxy_backends.fixups aktivieren
+  # muss, ist genau dann aus, wenn er gebraucht wird.
+  grep -q 'sanitizeToolSchemaPatterns' "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+}

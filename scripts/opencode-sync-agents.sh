@@ -27,9 +27,18 @@ trap 'rm -f "$TEMP_OUT"' EXIT
 
 jq -s '
   .[1].agent = .[0].agent |
-  .[1].provider.lmstudio.models = (.[1].provider.lmstudio.models // {}) + .[0].provider.lmstudio.models |
+  .[1].provider = (.[1].provider * .[0].provider) |
   .[1]
 ' <(echo "$CLEAN_SRC") <(echo "$CLEAN_TGT") > "$TEMP_OUT"
 
 mv "$TEMP_OUT" "$TARGET_FILE"
 echo "Successfully synced agent models to $TARGET_FILE"
+
+PROMPTS_SRC="$REPO_DIR/.opencode/prompts"
+PROMPTS_TGT="$(dirname "$TARGET_FILE")/prompts"
+if [[ -d "$PROMPTS_SRC" ]]; then
+  mkdir -p "$PROMPTS_TGT"
+  cp -f "$PROMPTS_SRC"/*.md "$PROMPTS_TGT"/ 2>/dev/null || true
+  echo "Successfully synced prompt files to $PROMPTS_TGT"
+fi
+

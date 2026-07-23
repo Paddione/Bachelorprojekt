@@ -1700,13 +1700,14 @@ You have tools for parallel background work:
 
 Agents route based on their permissions:
 
-| Agent Type | Tool | Why |
-|------------|------|-----|
-| Read-only sub-agents (edit/write/bash denied) | \`delegate\` | Background session, async |
-| Write-capable sub-agents (any write permission) | \`task\` | Native task, preserves undo/branching |
+| Agent | Tool | Why |
+|-------|------|-----|
+| Read-only sub-agents (explore, general, scout) | \`delegate\` | Background session, async |
+| Write-capable sub-agents (bonsai-8b, deepseek-helper) | \`task\` | Native task, preserves undo/branching |
 
 **Read-only sub-agents** have edit="deny", write="deny", bash={"*":"deny"}.
 **Write-capable sub-agents** have any write tool enabled.
+Preferred: \`bonsai-8b\` for all write-capable delegation (local, 4 parallel slots).
 
 ## How It Works
 

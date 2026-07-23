@@ -31,7 +31,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama.cpp (Ternary-Bonsai-8B)",
       "options": {
-        "baseURL": "http://127.0.0.1:8093/v1"
+        "baseURL": "http://127.0.0.1:18235/v1"
       },
       "models": {
         // Ternary-Bonsai-8B on port 8093: up to 4 parallel slots x 65536 ctx
@@ -109,33 +109,47 @@
             "context": 150000,
             "output": 8192
           }
-        },
-        "qwen3.6-14b-a3b-fablevibes": {
-          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, MXFP4_MOE, 32k ctx, 4 parallel slots)",
-          "limit": {
-            "context": 32768,
-            "output": 8192
-          }
-        },
-        "qwen3.6-14b-a3b-fablevibes@262k": {
-          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, MXFP4_MOE, 262k ctx, concurrent/single-session)",
-          "limit": {
-            "context": 262000,
-            "output": 8192
-          }
         }
       }
     }
   },
   "agent": {
-    "bonsai-8b": {
-      "description": "PRIMARY SUBAGENT: Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, max 4 parallel slots via llama-server on port 8093, combined KV cache).",
+    // 3 gleich konfigurierte Agent-Namen statt einem "bonsai-8b" - alle drei
+    // reden mit demselben llama-server (:8093, --kv-unified, -np 3: 2
+    // physische + 1 oversubscribed Slot). Der Server selbst balanciert jede
+    // eingehende Chat-Completion auf einen freien Slot; die 3 Namen sind
+    // dafuer da, dass der Orchestrator sie explizit als 3 unabhaengige
+    // `task`-Ziele parallel dispatchen kann, statt sich auf undokumentiertes
+    // Verhalten bei mehrfachem `task` auf denselben Agent-Namen zu verlassen.
+    "bonsai-8b-1": {
+      "description": "Write-capable subagent 1/3 on Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, shared KV pool with bonsai-8b-2/3, port 8093). Preferred for all write-capable delegation. Dispatch up to 3 of these in parallel via `task`.",
       "mode": "subagent",
       "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#0EA5E9",
-      "temperature": 0.2,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "webfetch": "deny", "websearch": "deny" }
+      "color": "#F59E0B",
+      "temperature": 0.4,
+      "steps": 4,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow" }
+    },
+    "bonsai-8b-2": {
+      "description": "Write-capable subagent 2/3 on Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, shared KV pool with bonsai-8b-1/3, port 8093). Preferred for all write-capable delegation. Dispatch up to 3 of these in parallel via `task`.",
+      "mode": "subagent",
+      "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#F97316",
+      "temperature": 0.4,
+      "steps": 4,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow" }
+    },
+    "bonsai-8b-3": {
+      "description": "Write-capable subagent 3/3 on Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, shared KV pool with bonsai-8b-1/2, port 8093). Preferred for all write-capable delegation. Dispatch up to 3 of these in parallel via `task`.",
+      "mode": "subagent",
+      "model": "llama-bonsai-server/Ternary-Bonsai-8B-TQ2_0.gguf",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#EA580C",
+      "temperature": 0.4,
+      "steps": 4,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow" }
     },
     // Eskalationsstufe fuer Parallel-Agenten (start-bonsai-parallel.ps1), NACH
     // lokaler Kontext-Kompaktierung/Retry und opencodes eigener Kompaktierung -

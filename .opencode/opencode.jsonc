@@ -1,6 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "lmstudio/qwen3.6-14b-a3b-fablevibes@262k",
+  // Bonsai-8B (Ternary, ~50 tok/s Prefill) ist als Primary-Modell mit dem
+  // vollen MCP-Tool-Katalog (6 aktive Server + Built-ins) ungeeignet: ~30k
+  // Token System-Prompt braucht dort ~10min Prefill, weit ueber jedes Client-
+  // Timeout (T002102-Vorfall, 2026-07-23). Bonsai bleibt ueber den bonsai-8b-
+  // Subagenten (agent-models.jsonc) fuer delegierte Write-Tasks nutzbar, wo
+  // lokale Kontext-Kompaktierung die Prompt-Groesse klein haelt.
+  "model": "opencode-go/deepseek-v4-flash",
   "permission": {
     "read": "allow",
     "edit": "allow",
@@ -62,7 +68,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama.cpp MTP (Windows)",
       "options": {
-        "baseURL": "http://127.0.0.1:8091/v1",
+        "baseURL": "http://127.0.0.1:8093/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
@@ -82,15 +88,7 @@
       "options": {
         "baseURL": "http://127.0.0.1:1234/v1"
       },
-      "models": {
-        "qwen3.6-14b-a3b-fablevibes@262k": {
-          "name": "Qwen3.6-14B-A3B FableVibes (14B-A3B MoE, MXFP4_MOE, 262k ctx, concurrent)",
-          "limit": {
-            "context": 262000,
-            "output": 8192
-          }
-        }
-      }
+      "models": {}
     }
   },
   "mcp": {
@@ -180,22 +178,37 @@
     // true setzen.
     "docfork": {
       "type": "local",
-      "command": ["npx", "-y", "docfork"],
+      "command": [
+        "npx",
+        "-y",
+        "docfork"
+      ],
       "enabled": false
     },
     "sequential-thinking": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "enabled": false
     },
     "playwright": {
       "type": "local",
-      "command": ["npx", "@playwright/mcp@latest"],
+      "command": [
+        "npx",
+        "@playwright/mcp@latest"
+      ],
       "enabled": false
     },
     "webresearch": {
       "type": "local",
-      "command": ["npx", "-y", "@mzxrai/mcp-webresearch@latest"],
+      "command": [
+        "npx",
+        "-y",
+        "@mzxrai/mcp-webresearch@latest"
+      ],
       "enabled": false
     }
   }

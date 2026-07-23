@@ -58,6 +58,10 @@ Dispatcher vorbei — dupliziert Slot-Logik, Race-Gefahr.
 
 ## Entscheidungen
 
+**User-bestätigt via Lavish-Board-Submit am 2026-07-23** (alle fünf Empfehlungen angenommen).
+Out-of-Scope-Punkte auf User-Anweisung vollständig geticketet: T002129 (Gang-Drift),
+T002130 (partial-done-Whitelist), T002131 (Host-`-np`-Restabilisierung).
+
 | # | Entscheidung | Begründung / Trade-off |
 |---|---|---|
 | D1 | Auto-Tick feuert **beim Stagen** (`stage-plan.sh`) | Deckt die User-Direktive wörtlich; Enqueue folgt im Pipeline-Loop ohnehin unmittelbar. Idempotentes Flag ⇒ Doppel-Ticks harmlos. |

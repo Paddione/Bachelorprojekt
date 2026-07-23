@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.207.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.206.0...website-v1.207.0) (2026-07-23)
+
+
+### Features
+
+* **factory:** session reuse for subagent pipeline [T002072] ([#3144](https://github.com/Paddione/Bachelorprojekt/issues/3144)) ([d7dd1bd](https://github.com/Paddione/Bachelorprojekt/commit/d7dd1bd327b916aa314a3e30e5749b3d3799c7f5))
+
 ## [1.206.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.205.1...website-v1.206.0) (2026-07-23)
 
 

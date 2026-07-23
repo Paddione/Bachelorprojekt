@@ -2,7 +2,7 @@
 # llm-gpu: external GPU peer — LM Studio + TEI
 #
 # LM Studio (Windows) läuft auf port 1234. K8s-Pods erreichen den Host
-# direkt via wg-mesh IP (prod) oder Docker-Bridge 172.17.0.1 (dev k3d).
+# direkt via wg-mesh IP (192.168.100.0/24). Docker-Bridge funktioniert im Dev
 # Kein socat nötig — Service-Port ist 1234 (kein Proxy-Port mehr).
 #
 # Modelle im LM Studio:
@@ -16,7 +16,7 @@
 #   llm-gateway-tei-embed  :8081  (bge-m3 via TEI, optional)
 #   llm-gateway-tei-rerank :8083  (bge-reranker-v2-m3 via TEI)
 #
-# ${LLM_HOST_IP}: 172.17.0.1 (dev k3d) | wg-mesh IP (prod fleet)
+# ${LLM_HOST_IP}: 192.168.100.10 (wg-mesh — dev + prod fleet)
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── LM Studio — alle Modelle auf port 1234 (Windows, kein socat) ─────────────

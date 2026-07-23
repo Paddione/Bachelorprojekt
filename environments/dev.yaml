@@ -21,7 +21,10 @@ env_vars:
   LLM_CODING_MODEL: "qwen/qwen3.5-9b"
   LLM_EMBED_MODEL: "text-embedding-bge-m3"
   LLM_EMBED_MODEL_NOMIC: "text-embedding-nomic-embed-text-v1.5"
-  LLM_HOST_IP: "172.17.0.1"
+  # wg-gpu-Adresse des WSL-Hosts — derselbe GPU-Peer, den die Prod-Envs adressieren.
+  # Docker-Bridge-Adressen funktionieren hier nicht: Docker Desktop fährt den Daemon in
+  # einer eigenen Distro, k3d vergibt pro Cluster ein zufälliges Subnetz. [T002109]
+  LLM_HOST_IP: "192.168.100.10"
   TURN_OVERLAY_IP: "172.17.0.1"
   TERMINAL_OVERLAY_IP: "172.17.0.1"
 

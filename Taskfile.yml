@@ -4666,7 +4666,7 @@ tasks:
   flux:render:
     desc: "Render fleet-Komponenten + Flux-CRs nach out/ (kein Apply)"
     cmds:
-      - bash scripts/flux-render-artifact.sh --out "{{.OUT | default \"out\"}}"
+      - bash scripts/flux-render-artifact.sh --out "{{.OUT | default "out"}}"
 
   flux:bootstrap:
     desc: "Einmalig: flux-operator via Helm + FluxInstance + Receiver/IngressRoute/ghcr-auth (imperativ)"

@@ -1323,6 +1323,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002095": [
+    {
+      "slug": "db-slow-query",
+      "status": "plan_staged"
+    }
+  ],
   "T002096": [
     {
       "slug": "e2e-testdata-leak",

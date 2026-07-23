@@ -31,7 +31,7 @@
   },
   {
     "id": "G-DB09",
-    "title": "Slow Queries in pg_stat_statements (COPY-bereinigt)",
+    "title": "Slow Queries in pg_stat_statements (COPY+DDL-bereinigt)",
     "category": "Datenbank",
     "priority": "A",
     "direction": "lower",

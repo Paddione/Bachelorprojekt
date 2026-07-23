@@ -8,10 +8,11 @@ spec:
   retryInterval: 2m
   timeout: 5m
   dependsOn:
-    - name: flux-sealed-secrets
+    - name: flux-sealed-secrets-mentolder
+    - name: flux-sealed-secrets-korczewski
   sourceRef:
-    kind: ExternalArtifact
-    name: infrastructure
+    kind: OCIRepository
+    name: flux-system
   path: ./platform
   prune: true
   wait: true

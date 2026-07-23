@@ -141,9 +141,13 @@ cd "$PROJECT_DIR"
 )
 
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
-mkdir -p "${OUT_DIR}/sealed-secrets"
-cp environments/sealed-secrets/fleet-mentolder.yaml "${OUT_DIR}/sealed-secrets/fleet-mentolder.yaml"
-cp environments/sealed-secrets/fleet-korczewski.yaml "${OUT_DIR}/sealed-secrets/fleet-korczewski.yaml"
+# Nested per-brand: both files carry a SealedSecret for the shared
+# grafana-oidc secret (namespace monitoring), so a single flat kustomize
+# build across both would collide on that resource id. Separate
+# directories give kustomize-controller one independent build per brand.
+mkdir -p "${OUT_DIR}/sealed-secrets/mentolder" "${OUT_DIR}/sealed-secrets/korczewski"
+cp environments/sealed-secrets/fleet-mentolder.yaml "${OUT_DIR}/sealed-secrets/mentolder/fleet-mentolder.yaml"
+cp environments/sealed-secrets/fleet-korczewski.yaml "${OUT_DIR}/sealed-secrets/korczewski/fleet-korczewski.yaml"
 
 # 7. Cluster CRs (top-level only under flux/clusters/fleet/, excluding bootstrap/)
 mkdir -p "${OUT_DIR}/clusters/fleet"

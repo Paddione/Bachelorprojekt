@@ -89,3 +89,30 @@ _render_korczewski() {
 @test "orphaned templates/brain/prod-korczewski subtree is gone" {
   [ ! -d templates/brain/prod-korczewski ] || { echo "FAIL: templates/brain/prod-korczewski still exists"; return 1; }
 }
+# T002122: oauth2-proxy v7.9.0 kennt nur --skip-auth-route (Singular). Der
+# Plural laesst den Container mit "unknown flag" und der vollen Usage
+# aussteigen -> CrashLoopBackOff. In prod stand er im Overlay-Patch
+# (prod/patch-oauth2-proxy-brett-deployment.yaml), waehrend die Basis bereits
+# korrigiert war - das Patch ueberschreibt den args-Block, also gewann der
+# kaputte Flag. Folge: Flux konnte beide Brand-Kustomizations 15h lang nicht
+# reconcilen, weil das Deployment nie healthy wurde.
+#
+# Geprueft wird das GERENDERTE Overlay, nicht die Quelldateien - nur dort
+# zeigt sich, welcher Flag nach dem Patch-Merge tatsaechlich in prod landet.
+@test "T002122: gerendertes mentolder-Overlay nutzt kein --skip-auth-routes" {
+  run _render_mentolder
+  [ "$status" -eq 0 ]
+  ! echo "$output" | grep -q -- '--skip-auth-routes'
+}
+
+@test "T002122: gerendertes korczewski-Overlay nutzt kein --skip-auth-routes" {
+  run _render_korczewski
+  [ "$status" -eq 0 ]
+  ! echo "$output" | grep -q -- '--skip-auth-routes'
+}
+
+@test "T002122: oauth2-proxy-brett behaelt den healthz-Bypass (Singular)" {
+  run _render_mentolder
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q -- '--skip-auth-route=GET=\^/healthz'
+}

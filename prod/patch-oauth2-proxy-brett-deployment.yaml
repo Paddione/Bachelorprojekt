@@ -35,7 +35,7 @@ spec:
             - "--email-domain=*"
             - "--allowed-group=workspace-users"
             # T002068: allow unauthenticated access to data-free routes
-            - "--skip-auth-routes=GET=^/healthz$|GET=^/three\\.min\\.js$"
+            - "--skip-auth-route=GET=^/healthz$|GET=^/three\\.min\\.js$"
           env:
             - name: POCKET_ID_BRETT_SECRET
               valueFrom:

@@ -159,11 +159,14 @@ jobs:
           MATRIX_CLUSTER: ${{ matrix.cluster }}
         run: |
           if [ -z "${INGEST_TOKEN}" ]; then
-            echo "::warning::E2E_INGEST_TOKEN not set; skipping ingest. Add the token in repo secrets to enable auto-ticketing."
+            echo "::error::E2E_INGEST_TOKEN secret missing — results will NOT be ingested. Set it in GitHub repo secrets to enable auto-ticketing."
+            echo "::warning::Skipping ingest (missing token)."
             exit 0
           fi
           if [ ! -s "${REPORT}" ]; then
-            echo "::warning::Playwright JSON report not found at ${REPORT}; skipping ingest."
+            echo "::error::Playwright JSON report not found at ${REPORT} — check playwright.config.ts JSON reporter outputFile."
+            echo "::warning::Skipping ingest (no report at ${REPORT})."
+            ls -la "$(dirname "${REPORT}")" 2>/dev/null || echo "(results dir not found)"
             exit 0
           fi
           echo "POST ${INGEST_URL} (run=${GH_RUN_ID}, cluster=${MATRIX_CLUSTER})"

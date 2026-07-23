@@ -95,7 +95,11 @@ export async function loginAsAdmin(page: Page, returnTo: string): Promise<void> 
   const token = encodeURIComponent(CRON_SECRET);
   const url = `${BASE}/api/auth/e2e-login?username=${encodeURIComponent(ADMIN_USER)}&returnTo=${encodeURIComponent(returnTo)}&token=${token}`;
   await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.waitForURL(url => url.toString().startsWith(BASE), { timeout: 60_000 });
+  await page.waitForFunction(
+    (base: string) => window.location.href.startsWith(base),
+    BASE,
+    { timeout: 60_000 },
+  );
 }
 
 interface TemplateRow {
@@ -111,9 +115,12 @@ interface ClientRow {
 }
 
 async function findTemplate(page: Page, prefix: string): Promise<TemplateRow> {
-  const res = await page.request.get(`${BASE}/api/admin/questionnaires/templates`);
-  expect(res.ok(), `GET /api/admin/questionnaires/templates -> ${res.status()}`).toBe(true);
-  const all = (await res.json()) as TemplateRow[];
+  const res = await page.evaluate(async (base: string) => {
+    const r = await fetch(`${base}/api/admin/questionnaires/templates`, { credentials: 'same-origin' });
+    return { ok: r.ok, status: r.status, data: await r.json() };
+  }, BASE);
+  expect(res.ok, `GET /api/admin/questionnaires/templates -> ${res.status}`).toBe(true);
+  const all = res.data as TemplateRow[];
   const tpl = all.find(t => t.is_system_test && t.title.startsWith(prefix) && t.status === 'published');
   if (!tpl) {
     const titles = all.filter(t => t.is_system_test).map(t => t.title);

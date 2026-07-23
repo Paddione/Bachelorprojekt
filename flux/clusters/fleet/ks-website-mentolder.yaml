@@ -8,10 +8,10 @@ spec:
   retryInterval: 2m
   timeout: 5m
   dependsOn:
-    - name: flux-infra-configs
+    - name: flux-infra-controllers
   sourceRef:
-    kind: ExternalArtifact
-    name: apps
+    kind: OCIRepository
+    name: flux-system
   path: ./website-mentolder
   prune: true
   wait: true

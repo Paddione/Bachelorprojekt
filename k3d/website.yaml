@@ -87,6 +87,8 @@ data:
   ARENA_WS_URL: "${ARENA_WS_URL}"
   # Site
   # T002139: no-op touch to retrigger render-fleet-artifact.yml after FLUX_ENABLED cutover
+  # (retrigger attempt 2 — attempt 1 in #3171 failed because render-fleet-artifact.yml
+  # itself was broken; that's fixed now in T002146/#3172)
   SITE_URL: "${WEBSITE_SITE_URL}"
   # CORS allowlist for the React SPA (react.<brand>); empty → fail-closed (no React app)
   REACT_APP_ORIGIN: "${REACT_APP_ORIGIN}"

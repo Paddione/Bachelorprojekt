@@ -131,7 +131,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
-      "steps": 4,
+      "steps": 10,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "bonsai-8b-2": {
@@ -141,7 +141,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F97316",
       "temperature": 0.4,
-      "steps": 4,
+      "steps": 10,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "bonsai-8b-3": {
@@ -151,7 +151,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#EA580C",
       "temperature": 0.4,
-      "steps": 4,
+      "steps": 10,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     "bonsai-8b-4": {
@@ -161,7 +161,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#D97706",
       "temperature": 0.4,
-      "steps": 4,
+      "steps": 10,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
     },
     // Eskalationsstufe fuer Parallel-Agenten (start-bonsai-parallel.ps1), NACH

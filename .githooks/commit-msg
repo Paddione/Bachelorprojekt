@@ -28,3 +28,22 @@ if ! bash "$repo_root/scripts/check-commit-vs-diff.sh" "$1"; then
   echo "         'chore(plan):' for plan-only commits." >&2
   exit 1
 fi
+
+# Conventional-Commit-Header hier pruefen, nicht erst im pre-push [T002115].
+# pre-push validiert den ganzen Range und blockiert damit erst, wenn die Commits
+# schon stehen — ein unbekannter Scope kostet dann ein `git commit --amend` oder
+# ein interaktives Rebase. Hier abgefangen ist die Meldung sofort da und die
+# Nachricht noch aenderbar. pre-push bleibt als Backstop (faengt Commits, die
+# ohne installierte Hooks entstanden sind).
+# Bypass (nur im Notfall): SKIP_COMMIT_MSG_LINT=1 git commit ...
+if [[ "${SKIP_COMMIT_MSG_LINT:-0}" == "1" ]]; then
+  echo "⚠  commit-msg: SKIP_COMMIT_MSG_LINT=1 — bypassing conventional-commit check" >&2
+  exit 0
+fi
+
+if ! bash "$repo_root/scripts/validate-commit-msg.sh" message "$1"; then
+  echo "" >&2
+  echo "💡 Erlaubte Scopes: bash scripts/validate-commit-msg.sh scopes" >&2
+  echo "   Ticket-Scopes (T000123) und Health-Goal-Scopes (G-SIZE02) sind immer gueltig." >&2
+  exit 1
+fi

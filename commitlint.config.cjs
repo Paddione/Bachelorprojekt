@@ -56,6 +56,7 @@ const NAMED_SCOPES = [
   'wg',
   'auto',
   'opencode',
+  'skills',
 ];
 
 const TICKET_SCOPE_RE = /^T\d{6}$/;

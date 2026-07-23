@@ -43,8 +43,11 @@ render_component() {
   local rendered
   rendered="$(kustomize build "$overlay" --load-restrictor=LoadRestrictionsNone)"
   
+  # grep exits 1 when the overlay has no ${VAR} refs at all; that's a valid outcome
+  # (handled by the -z "$vars" branch below), not a script failure — || true keeps
+  # set -e from aborting on the "no matches" case.
   local vars
-  vars="$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$rendered" | tr -d '${}' | sort -u | tr '\n' ' ')"
+  vars="$(grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' <<<"$rendered" | tr -d '${}' | sort -u | tr '\n' ' ')" || true
   
   if [[ -z "$vars" ]]; then
     # No vars to substitute — write as-is
@@ -68,10 +71,10 @@ render_component() {
   # FAIL-CLOSED: after substitution, check for any remaining unsubstituted ${VAR}
   # references. If any exist, the build fails instead of silently shipping a broken
   # manifest with literal placeholders (secret-exposure risk / fail-open).
-  if grep -qE '\$\{[A-Za-z0-9_]+\}' "$out"; then
+  if grep -qE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$out"; then
     echo "ERROR: Unsubstituted variable references remain in $out after envsubst." >&2
     echo "       The following vars were not defined in the environment:" >&2
-    grep -oE '\$\{[A-Za-z0-9_]+\}' "$out" | sort -u >&2
+    grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$out" | sort -u >&2
     echo "       Ensure all referenced env vars are set or add them to the allowlist." >&2
     exit 1
   fi

@@ -25,21 +25,30 @@ const ADMIN_PASS   = process.env.E2E_ADMIN_PASS ?? '';
 const USER         = process.env.E2E_USER ?? 'test-user';
 const USER_PASS    = process.env.E2E_USER_PASS ?? '';
 
-const AUTH_DIR           = path.join(__dirname, '..', '.auth');
-const ADMIN_STATE        = path.join(AUTH_DIR, 'mentolder-website-admin.json');
-const USER_STATE         = path.join(AUTH_DIR, 'mentolder-website-user.json');
+const ROOT_AUTH_DIR = path.resolve(process.cwd(), '.auth');
+const SPECS_AUTH_DIR = path.resolve(__dirname, '..', '.auth');
 
-function ensureAuthDir(): void {
-  if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
+function saveStorageState(page: any, filename: string): void {
+  [ROOT_AUTH_DIR, SPECS_AUTH_DIR].forEach((dir) => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const target = path.join(dir, filename);
+    page.context().storageState({ path: target });
+  });
+}
+
+function writeEmptyState(filename: string): void {
+  [ROOT_AUTH_DIR, SPECS_AUTH_DIR].forEach((dir) => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const target = path.join(dir, filename);
+    fs.writeFileSync(target, JSON.stringify({ cookies: [], origins: [] }));
+  });
 }
 
 // ── Admin login ──────────────────────────────────────────────────────────────
 setup('authenticate mentolder website admin', async ({ page, request }, testInfo) => {
-  ensureAuthDir();
-
   if (!ADMIN_PASS) {
     console.warn('[mentolder-setup] E2E_ADMIN_PASS not set — writing empty state (admin tests will use test.fixme)');
-    fs.writeFileSync(ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
+    writeEmptyState('mentolder-website-admin.json');
     return;
   }
 
@@ -48,28 +57,36 @@ setup('authenticate mentolder website admin', async ({ page, request }, testInfo
 
   await loginViaE2E(page, WEBSITE_URL, ADMIN_USER, '/admin');
 
-  const me = await verifySession(page.request, WEBSITE_URL);
+  const me = await page.evaluate(async (baseUrl) => {
+    const res = await fetch(`${baseUrl}/api/auth/me`);
+    if (!res.ok) return { authenticated: false };
+    return res.json();
+  }, WEBSITE_URL);
+
   expect(me.authenticated, 'mentolder website session should be authenticated').toBe(true);
 
-  await page.context().storageState({ path: ADMIN_STATE });
+  saveStorageState(page, 'mentolder-website-admin.json');
   console.log(`[mentolder-setup] saved mentolder-website-admin.json (user=${me.username})`);
 });
 
 // ── Portal user login ────────────────────────────────────────────────────────
 setup('authenticate mentolder portal user', async ({ page }) => {
-  ensureAuthDir();
-
   if (!USER_PASS) {
     console.log('[mentolder-setup] E2E_USER_PASS not set — skipping portal user state');
-    fs.writeFileSync(USER_STATE, JSON.stringify({ cookies: [], origins: [] }));
+    writeEmptyState('mentolder-website-user.json');
     return;
   }
 
   await loginViaE2E(page, WEBSITE_URL, USER, '/portal');
 
-  const me = await verifySession(page.request, WEBSITE_URL);
+  const me = await page.evaluate(async (baseUrl) => {
+    const res = await fetch(`${baseUrl}/api/auth/me`);
+    if (!res.ok) return { authenticated: false };
+    return res.json();
+  }, WEBSITE_URL);
+
   expect(me.authenticated, 'mentolder portal session should be authenticated').toBe(true);
 
-  await page.context().storageState({ path: USER_STATE });
+  saveStorageState(page, 'mentolder-website-user.json');
   console.log(`[mentolder-setup] saved mentolder-website-user.json (user=${me.username})`);
 });

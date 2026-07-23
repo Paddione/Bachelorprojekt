@@ -31,8 +31,6 @@
   const MOBILE_COL_COUNT = 11;
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
-  let isMobile = $state(false);
-
   $effect(() => {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(max-width: 767px)');
@@ -40,6 +38,12 @@
     const handler = (e: MediaQueryListEvent) => { isMobile = e.matches; };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
+  });
+
+  onMount(() => {
+    const handler = (e: CustomEvent) => { if (e.detail) data = e.detail; };
+    window.addEventListener('floor-stub-update', handler as EventListener);
+    return () => window.removeEventListener('floor-stub-update', handler as EventListener);
   });
 
   function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }

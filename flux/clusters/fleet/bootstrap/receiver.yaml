@@ -9,5 +9,5 @@ spec:
     name: flux-webhook-token
   resources:
     - kind: OCIRepository
-      name: flux-system
+      name: fleet-manifests
       namespace: flux-system

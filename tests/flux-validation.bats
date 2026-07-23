@@ -6,9 +6,15 @@
 # never actually deployed (source-watcher operator/CRDs never installed) and had
 # a broken sourceRef (FluxInstance.spec.sync.ref must be a string, not a map) that
 # left flux-system's self-management stuck since it was merged. T002147 reverted
-# the cluster CR layer to the OCIRepository/flux-system source that
-# render-fleet-artifact.yml (T002083) actually produces and that is verified
-# working end-to-end.
+# the cluster CR layer to the OCIRepository source that render-fleet-artifact.yml
+# (T002083) actually produces and that is verified working end-to-end.
+#
+# That source is named "fleet-manifests", not "flux-system": once the sync.ref fix
+# let FluxInstance actually manage its own top-level sync resource, it created a
+# GitRepository named "flux-system" (matching spec.sync.kind) and garbage-collected
+# the pre-existing, imperatively-created OCIRepository of the same name — which every
+# app Kustomization's sourceRef still pointed at. Recreating the OCIRepository under
+# a name FluxInstance doesn't also want to own avoids the collision permanently.
 
 setup() {
   cd "$(git rev-parse --show-toplevel)"
@@ -26,13 +32,34 @@ setup() {
   done
 }
 
-@test "Brand/website/dev Kustomizations use OCIRepository/flux-system source" {
+@test "Brand/website/dev Kustomizations use OCIRepository/fleet-manifests source" {
   for f in flux/clusters/fleet/ks-{mentolder,korczewski,website-mentolder,website-korczewski,dev}.yaml; do
     run grep -q "kind: OCIRepository" "$f"
     [ "$status" -eq 0 ]
-    run grep -q "name: flux-system" "$f"
+    run grep -q "name: fleet-manifests" "$f"
     [ "$status" -eq 0 ]
   done
+}
+
+@test "No sourceRef still points at the colliding flux-system OCIRepository name" {
+  run grep -A1 "kind: OCIRepository" flux/clusters/fleet/ks-*.yaml
+  [ "$status" -eq 0 ]
+  ! printf '%s\n' "$output" | grep -q "name: flux-system$"
+}
+
+@test "fleet-manifests OCIRepository is committed with GHCR pull credentials" {
+  [ -f flux/clusters/fleet/oci-source.yaml ]
+  run grep -q "name: fleet-manifests" flux/clusters/fleet/oci-source.yaml
+  [ "$status" -eq 0 ]
+  run grep -q "url: oci://ghcr.io/paddione/fleet-manifests" flux/clusters/fleet/oci-source.yaml
+  [ "$status" -eq 0 ]
+  run grep -q "name: ghcr-auth" flux/clusters/fleet/oci-source.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Webhook receiver targets the renamed OCIRepository" {
+  run grep -q "name: fleet-manifests" flux/clusters/fleet/bootstrap/receiver.yaml
+  [ "$status" -eq 0 ]
 }
 
 @test "No ExternalArtifact sourceRef references remain in Kustomization CRDs" {

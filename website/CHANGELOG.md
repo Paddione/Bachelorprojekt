@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.204.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.204.0...website-v1.204.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **ci:** add always()-guarded post-run test-data purge to e2e.yml [T002096] ([#3125](https://github.com/Paddione/Bachelorprojekt/issues/3125)) ([8f273c7](https://github.com/Paddione/Bachelorprojekt/commit/8f273c77d7c4a93ed166c799163e3d9b94ae51f0))
+* **db:** exclude CREATE INDEX DDL from G-DB09 slow-query measurement [T002095] ([#3126](https://github.com/Paddione/Bachelorprojekt/issues/3126)) ([8593c0c](https://github.com/Paddione/Bachelorprojekt/commit/8593c0c82793b0553c9bfcbc33cde8b5ae1f4800))
+
 ## [1.204.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.203.0...website-v1.204.0) (2026-07-22)
 
 

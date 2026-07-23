@@ -10,7 +10,7 @@ opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents b
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `bonsai-8b` | Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, 4 parallel slots, port 8093) | **Preferred** for all write-capable delegation (max 4 parallel) |
+| `bonsai-8b-1..4` | Ternary-Bonsai-8B (Q2_0, 65k ctx, port 8093, server `-np 1` ⇒ serialized via llm-proxy; physical parallelism configurable via `max_inflight`) | **Preferred** for all write-capable delegation (4 dispatchable names, serial by default) |
 | `deepseek-helper` | DeepSeek V4 Flash (OpenCode Go, 1M ctx) | Escalation: local agent stuck or context exhausted |
 | `explore` | built-in | Read-only codebase exploration |
 | `general` | built-in | Read-only general research |

@@ -1,3 +1,10 @@
+<!-- SUPERSEDED (partial, D2): Tasks 1, 4 and 5 of this partial (stage-plan force-tick
+     writer, forcetick-poll.sh, factory-forcetick.service/.timer) are SUPERSEDED by
+     factory-flash-bonsai-gang / p1-stage-auto-tick (T002128, REQ-SF-AUTOTICK-001),
+     which wires the stage->tick wake directly in stage-plan.sh (flag + factory.service
+     kick, no poll timer). Do NOT implement Tasks 1/4/5 from here. Tasks 2 (dispatcher
+     /healthz gate) and 3 (FACTORY_MODEL env split-brain fix) remain valid and stay with
+     unified-llm-gateway. -->
 # p3-factory-wake — Factory-Wake, Pre-Dispatch-Gate & Single-Egress
 
 Rolle: `impl`. Verdrahtet die Factory-Aufwach- und Schutz-Pfade rund um das Gateway `:18235`

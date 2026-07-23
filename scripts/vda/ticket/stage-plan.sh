@@ -50,6 +50,25 @@ WHERE t.external_id = :'ext_id'
      WHERE e.ticket_id = t.id AND e.phase = p.phase AND e.state = 'done'
   );
 EOF
+  # Auto-tick wake (REQ-SF-AUTOTICK-001; supersedes T002102-p3 Task 1/4/5, D2):
+  # after a successful stage, request a force-tick and kick factory.service so the
+  # staged plan is picked up now instead of on the next factory.timer interval.
+  # Both triggers are best-effort — a DB or systemd failure degrades to the timer
+  # path (warn, non-fatal, exit stays 0). Flag mirrors writeControl()
+  # (website/src/lib/factory-floor.ts): key='force-tick-requested', brand NULL,
+  # ON CONFLICT (key, brand). The consumer (scripts/factory/wakeup.sh:70-83) reads
+  # LIMIT 1 and DELETEs all matching rows, so a repeated stage is harmless even
+  # when a NULL-brand row is not deduped by the unique index.
+  if ! _exec_sql "$pod" -v setby='stage-plan' <<'EOF' >/dev/null 2>&1
+INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+VALUES ('force-tick-requested', NULL, now()::text, :'setby', now())
+ON CONFLICT (key, brand) DO UPDATE
+  SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
+EOF
+  then
+    echo "WARN: stage-plan: force-tick flag write failed — factory will tick on the next factory.timer interval" >&2
+  fi
+  systemctl --user start factory.service 2>/dev/null || true
   echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
 }
 

@@ -3,7 +3,7 @@ import http from 'node:http';
 import { Readable } from 'node:stream';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState } from './discovery.mjs';
-import { applyFixups } from './fixups.mjs';
+import { applyFixups, sanitizeToolSchemaPatterns } from './fixups.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
@@ -115,7 +115,13 @@ async function proxyV1(req, res, subpath) {
   if (!routed) return sendJson(res, 503, { error: { code: 'no_backend', message: 'no healthy backend' } });
 
   const { backend, servedModel, substituted } = routed;
-  const budgetedBody = applyFixups(backend.fixups, await applyContextBudget(backend, body));
+  // sanitizeToolSchemaPatterns laeuft UNBEDINGT, nicht als benannter Fixup:
+  // ein GBNF-untaugliches Escape zerlegt die Tool-Call-Grammatik jedes
+  // llama.cpp-Backends (T002112). Ein Korrektheits-Fix, den man erst in
+  // llm_proxy_backends.fixups aktivieren muss, ist genau dann aus, wenn er
+  // gebraucht wird. Ohne betroffenes Pattern ist der Aufruf ein No-op.
+  const sanitized = sanitizeToolSchemaPatterns(body);
+  const budgetedBody = applyFixups(backend.fixups, await applyContextBudget(backend, sanitized));
   if (substituted) console.log(`[route] ${body.model} → ${backend.name}:${servedModel}`);
 
   const { run, queuedAt } = enqueue(backend.name, () => forwardToBackend(backend, servedModel, subpath, budgetedBody));

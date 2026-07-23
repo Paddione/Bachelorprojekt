@@ -183,13 +183,16 @@ agy is **not explicitly covered** in most skill files. The rule of thumb: **trea
 
 ### Current skill → agent map
 
-Only skills with an explicit `agent:` field in their SKILL.md frontmatter are dispatched as subagents. The rest are coordination skills loaded inline. As of 2026-06-22, exactly three skills declare an `agent:` field:
+Only skills with an explicit `agent:` field in their SKILL.md frontmatter are dispatched as subagents. The rest are coordination skills loaded inline. As of 2026-07-23, six skills declare an `agent:` field:
 
 | Skill | Agent | Why subagent |
 |-------|-------|--------------|
 | `dev-flow-e2e` | `bachelorprojekt-test` | FA-/SA-/NFA- test IDs, runner.sh, permanently-skipped set |
 | `incident-response` | `bachelorprojekt-ops` | Diagnose-first, fail-loud output-trust rules |
 | `infra-ops` | `bachelorprojekt-infra` | `fleet`-only context, k3d base, overlay cake — consolidates the archived `cluster-deployment`, `database-ops`, `host-node-networking`, `keycloak-realm-sync`, `llm-ops`, `secret-rotation`, `workspace-deploy` skills (see `infra-ops` for the umbrella runbook) |
+| `database-specialist` | `bachelorprojekt-db` | Schema migrations, backup/restore, index/query tuning — `mcp-postgres` access |
+| `security-specialist` | `bachelorprojekt-security` | SealedSecrets/Keycloak/OIDC/DSGVO — credential-handling isolation |
+| `website-specialist` | `bachelorprojekt-website` | Astro/Svelte frontend work, brand-specific components |
 
 When a new skill is added: pick an agent from the routing table, add `agent: bachelorprojekt-<role>` to frontmatter, and add a row to this table. (Optional follow-up: add a `task skills:validate` that asserts every `agent:` value resolves to an existing `.claude/agents/<name>.md` and that every agent has at least one skill referring to it — currently no such gate exists.)
 

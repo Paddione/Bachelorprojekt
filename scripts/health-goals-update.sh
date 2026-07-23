@@ -8,29 +8,34 @@
 # fortschreiben kann. Zellen, die kein einfaches Integer-Format haben (Brüche wie "0/30",
 # "Exit 0", Freitext wie "Elite"), werden übersprungen und zur manuellen Prüfung aufgelistet.
 #
-# Usage: bash scripts/health-goals-update.sh [--dry-run] [--full] [--suggest-tickets]
+# Usage: bash scripts/health-goals-update.sh [--dry-run] [--full] [--suggest-tickets] [--drift]
 #   --dry-run          zeigt die Diffs, schreibt aber nicht in goals.md
 #   --full             läuft ohne --fast (inkl. env:validate, Vitest-Coverage) — langsamer, mehr Abdeckung
 #   --suggest-tickets  zeigt Ticket-Create-Befehle für offene Ziele (opt-in, NICHT der Default —
 #                      s. AGENTS.md "Updating the Health Baseline": Ticket-Erstellung ist eine
 #                      bewusste, manuelle Entscheidung, keine Automatik). Filtert Ziele heraus,
 #                      für die bereits ein nicht-done Ticket mit der G-ID im Titel existiert.
+#   --drift            Read-only Drift-Report: dokumentierte current-Werte (goals-data.generated.json)
+#                      vs. frische Messung. Gruppenausgabe nach Priorität. Kein Schreiben.
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "kein git-Repo" >&2; exit 2; }
 
 DRY_RUN=0
 SUGGEST_TICKETS=0
+DRIFT_MODE=0
 CHECK_ARGS=(--fast --quiet)
 for a in "$@"; do case "$a" in
   --dry-run) DRY_RUN=1 ;;
   --full) CHECK_ARGS=(--quiet) ;;
   --suggest-tickets) SUGGEST_TICKETS=1 ;;
+  --drift) DRIFT_MODE=1 ;;
   -h|--help) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
   *) echo "unbekanntes Flag: $a" >&2; exit 2 ;;
 esac; done
 
 GOALS_FILE="${HG_GOALS_FILE:-.claude/lib/goals.md}"
+GEN_JSON="${HG_GEN_JSON:-website/src/lib/goals-data.generated.json}"
 CLEANUP_FILES=()
 trap 'rm -f "${CLEANUP_FILES[@]}"' EXIT
 
@@ -47,6 +52,71 @@ fi
 if [ ! -s "$VALUES_FILE" ]; then
   echo "keine Messwerte erhalten — abgebrochen" >&2
   exit 1
+fi
+
+# --drift mode (D2, T002107): Read-only Report, kein Schreiben.
+if [ "$DRIFT_MODE" = "1" ]; then
+  if [ ! -f "$GEN_JSON" ]; then
+    echo "⚠ $GEN_JSON nicht gefunden — Drift-Report nicht möglich." >&2
+    exit 0
+  fi
+  # Staleness guard: wenn JSON älter als goals.md → Warnung
+  if [ "$GEN_JSON" -ot "$GOALS_FILE" ] 2>/dev/null; then
+    echo "⚠ $GEN_JSON ist älter als $GOALS_FILE — ggf. veraltete Werte. Regeneriere mit 'task freshness:regenerate'." >&2
+  fi
+  python3 - "$GOALS_FILE" "$VALUES_FILE" "$GEN_JSON" <<'PY_DRIFT'
+import json, sys
+
+goals_file, values_file, gen_json_file = sys.argv[1], sys.argv[2], sys.argv[3]
+
+values = {}
+with open(values_file) as f:
+    for line in f:
+        parts = line.split()
+        if len(parts) != 4: continue
+        gid, actual, cmp_op, target = parts
+        values[gid] = (actual, cmp_op, target)
+
+with open(gen_json_file) as f:
+    gen_data = json.load(f)
+
+# Build documented-current lookup
+doc_current = {}  # gid -> {current, priority, title}
+for entry in gen_data:
+    gid = entry.get("id")
+    if gid:
+        doc_current[gid] = {
+            "current": str(entry.get("current") or ""),
+            "priority": entry.get("priority", "?"),
+            "title": entry.get("title", ""),
+        }
+
+drifts = []  # (priority_sort_key, gid, documented, actual, title)
+for gid, (actual, cmp_op, target) in values.items():
+    dc = doc_current.get(gid)
+    if dc is None:
+        continue
+    if str(dc["current"]) != actual:
+        priority = dc["priority"]
+        sort_key = {"A": 1, "B": 2, "C": 3}.get(priority, 9)
+        drifts.append((sort_key, gid, dc["current"], actual, dc["title"]))
+
+drifts.sort(key=lambda x: (x[0], x[1]))
+
+if not drifts:
+    print("✅ Kein Drift — alle dokumentierten Werte entsprechen der Messung.")
+else:
+    current_priority = None
+    for sort_key, gid, documented, actual, title in drifts:
+        prio_label = {1: "A", 2: "B", 3: "C"}.get(sort_key, "?")
+        if prio_label != current_priority:
+            current_priority = prio_label
+            print(f"\n# Priorität {prio_label}")
+        print(f"  {gid}: dokumentiert {documented} · gemessen {actual} [DRIFT]")
+
+print("\n--drift: Read-only — keine Dateien geschrieben.")
+PY_DRIFT
+  exit 0
 fi
 
 # Dedup-Check nur bei explizitem --suggest-tickets: G-IDs, die bereits in einem
@@ -105,7 +175,17 @@ with open(goals_file) as f:
 
 # Prio-C-Tabellenzeile: "| **ID** | Ziel | Aktuell | Target | Basis-Messung |"
 row_re = re.compile(r'^\|\s*\*\*(G-[A-Z0-9]+)\*\*\s*\|([^|]*)\|([^|]*)\|([^|]*)\|(.*)\|\s*$')
-bare_int_re = re.compile(r'^\s*([+-]?\d+)\s*(?:✓|⚠)?\s*$')
+
+# Format-whitelist (D1, T002107): geordnete Liste; erster Treffer gewinnt.
+# Jeder Eintrag: (name, regex, format_name_for_rewrite)
+FMT_MATCHERS = [
+    ("bare",    re.compile(r'^\s*([+-]?\d+)\s*(?:[✓⚠])?\s*$'),                   "bare"),
+    ("percent", re.compile(r'^\s*([+-]?\d+)\s*%\s*(?:[✓⚠])?\s*$'),               "percent"),
+    ("exit",    re.compile(r'^\s*Exit\s+([+-]?\d+)\s*(?:[✓⚠])?\s*$'),            "exit"),
+    ("unit",    re.compile(r'^\s*~?\s*([+-]?\d+)\s+([A-Za-zÄÖÜäöü]+)\s*(?:[✓⚠])?\s*$'), "unit"),
+    ("frac",    re.compile(r'^\s*([+-]?\d+)\s*/\s*([+-]?\d+)\s*(?:[✓⚠])?\s*$'),  "frac"),
+    ("na",      re.compile(r'^\s*n/a\s*(?:[✓⚠])?\s*$'),                          "na"),
+]
 
 # Bekannte ID-Kollisionen: dieselbe ID misst in health-goals-check.sh (Skript) etwas anderes
 # als in der goals.md-Tabelle beschrieben. Aktuell keine offenen Fälle (T001369 hat die
@@ -128,11 +208,26 @@ for i, line in enumerate(lines):
         continue
     actual, cmp_op, target = values[gid]
     ziel_cell, aktuell_cell, target_cell, rest_cell = m.group(2), m.group(3), m.group(4), m.group(5)
-    cm = bare_int_re.match(aktuell_cell)
-    if not cm:
+
+    old_val = None
+    suffix = None
+    fmt_key = None
+    cm = None
+    for fmt_key, fmt_re, _ in FMT_MATCHERS:
+        cm = fmt_re.match(aktuell_cell)
+        if cm:
+            if fmt_key == "na":
+                old_val = None
+            else:
+                old_val = cm.group(1)
+            if fmt_key in ("unit", "frac"):
+                suffix = cm.group(2)
+            break
+
+    if cm is None:
         skipped_format.append(gid)
         continue
-    old_val = cm.group(1)
+
     ok = {
         "le": int(actual) <= int(target),
         "ge": int(actual) >= int(target),
@@ -141,9 +236,25 @@ for i, line in enumerate(lines):
     marker = "✓" if ok else "⚠"
     if not ok:
         open_goals.append((gid, ziel_cell.strip(), actual, cmp_op, target))
-    if old_val == actual:
+
+    # n/a: old_val is None → immer schreiben
+    if old_val is not None and old_val == actual:
         continue
-    lines[i] = f"| **{gid}** |{ziel_cell}| {actual} {marker} |{target_cell}|{rest_cell}|\n"
+
+    if fmt_key == "bare":
+        rewrite = f"{actual} {marker}"
+    elif fmt_key == "percent":
+        rewrite = f"{actual} % {marker}"
+    elif fmt_key == "exit":
+        rewrite = f"Exit {actual} {marker}"
+    elif fmt_key == "unit":
+        rewrite = f"{actual} {suffix} {marker}"
+    elif fmt_key == "frac":
+        rewrite = f"{actual}/{suffix} {marker}"
+    elif fmt_key == "na":
+        rewrite = f"{actual} {marker}"
+
+    lines[i] = f"| **{gid}** |{ziel_cell}| {rewrite} |{target_cell}|{rest_cell}|\n"
     changed.append((gid, old_val, actual, ok))
 
 if changed:

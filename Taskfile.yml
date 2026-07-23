@@ -3237,6 +3237,16 @@ tasks:
     cmds:
       - node scripts/gen-goals-data.mjs
 
+  health:goals:drift:
+    desc: "Read-only Drift-Report: dokumentierte current-Werte (goals-data.generated.json) vs. frische Messung. Kein Schreiben. Flags nach --."
+    cmds:
+      - bash scripts/health-goals-update.sh --drift {{.CLI_ARGS}}
+
+  health:goals:llm-fill:
+    desc: "LLM-gestützter Fill für deterministisch nicht abgedeckte Ziele via T002102-Gateway. Default report-only; --apply schreibt nur Prio-C-Aktuell mit (LLM)-Marker. Flags nach --."
+    cmds:
+      - bash scripts/health-goals-llm-fill.sh {{.CLI_ARGS}}
+
   agent:orchestrator:
     desc: "T001588: local agent orchestration (start/stop/status/submit) via worktrees — see scripts/agent-orchestrator.sh --help"
     cmds:

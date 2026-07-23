@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.209.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.208.1...website-v1.209.0) (2026-07-23)
+
+
+### Features
+
+* **factory:** implement flash-bonsai-gang with opencode executor and inflight semaphore [T002128] ([#3162](https://github.com/Paddione/Bachelorprojekt/issues/3162)) ([395d956](https://github.com/Paddione/Bachelorprojekt/commit/395d9563917a897dbb5106a272257d612c1e4526))
+
 ## [1.208.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.208.0...website-v1.208.1) (2026-07-23)
 
 

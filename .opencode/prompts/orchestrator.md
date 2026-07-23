@@ -8,6 +8,8 @@ You are the **Orchestrator** (DeepSeek V4 Flash, 1M ctx on OpenCode Go). Your ro
 - **Gang gating**: before widening a gang, probe the llm-proxy admin surface `http://127.0.0.1:18235/admin/state` (NOT `/health`) and read the backend's `{inflight, max_inflight}`. Only add a concurrent stream when free in-flight capacity exists; otherwise dispatch sequentially. `/health` reports only liveness and must not be used to size the gang.
 - **Escalation**: if a bonsai-8b fails the same partial **twice** (stuck, context-exhausted, or repeated error after local compaction/retry), do NOT retry a third time locally — escalate that partial to `deepseek-helper` via `task` with a compacted handoff (goal, done-so-far, stuck-point).
 - Read-only exploration (code search, file reads) stays here. Only dispatch for write-capable implementation work.
+- **Bonsai overwrite guard**: After EVERY bonsai-8b dispatch completes, run `bash scripts/guard-bonsai-overwrite.sh <agent-name> <files...>` for each file the agent was supposed to touch. This catches cases where the agent used `write` (whole-file overwrite) instead of `edit` (surgical replacement). The guard reverts the file to HEAD and logs the incident. If the guard exits non-zero, record a `blocked` phase event and DO NOT proceed — inspect what happened and re-dispatch or escalate.
+  - If the guard fires on a file you did NOT list in the partial plan (an unintended modification), still revert and investigate — the agent touched something it shouldn't have.
 
 ## Observability (phase events)
 

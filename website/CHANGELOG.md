@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.205.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.204.2...website-v1.205.0) (2026-07-23)
+
+
+### Features
+
+* **scripts:** serialize Bonsai LLM proxy, single-slot server, drop shared KV [T002102] ([#3135](https://github.com/Paddione/Bachelorprojekt/issues/3135)) ([b791c40](https://github.com/Paddione/Bachelorprojekt/commit/b791c4082fa815676cbe36422987a5b7c4adf546))
+
 ## [1.204.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.204.1...website-v1.204.2) (2026-07-23)
 
 

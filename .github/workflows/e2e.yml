@@ -133,6 +133,17 @@ jobs:
           PLAYWRIGHT_WORKERS: "4"
         run: npx playwright test
 
+      # G-E2E02 / T002096: defense-in-depth post-run purge (covers timeout kill)
+      - name: Post-run test-data purge (defense-in-depth)
+        working-directory: tests/e2e
+        if: always() && steps.gate.outputs.skip != 'true'
+        run: |
+          if [ -z "${CRON_SECRET:-}" ]; then echo "::warning::CRON_SECRET not set; skipping."; exit 0; fi
+          curl -fsS -X POST "${{ matrix.website_url }}/api/admin/systemtest/purge-all-test-data" \
+            -H "X-Cron-Secret: ${CRON_SECRET}" || true
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
       # Ingest Playwright JSON into the website's test_runs/test_results +
       # auto-file bug tickets for failures (PR #599 wired the endpoint to
       # accept Bearer token auth + X-Github-Run-Id for ticket linkage).

@@ -35,70 +35,33 @@ done
 mkdir -p "${OUT_DIR}"
 OUT_DIR="$(cd "${OUT_DIR}" && pwd)"
 
-# ENVSUBST Allowlist for offline render (non-secret vars only)
-FLUX_RENDER_ENVSUBST_VARS='
-$AGENT_PUSH_API
-$AGENT_PUSH_LINK_BASE
-$BRAIN_EXTERNAL_URL
-$BRAND_ID
-$BRAND_NAME
-$BRETT_DOMAIN
-$BRETT_IMAGE
-$COMFY_HOST_IP
-$COMFY_PORT
-$CONTACT_EMAIL
-$DEV_BRETT_HOST
-$DEV_DOMAIN
-$DEV_NODE
-$DEV_WEBSITE_HOST
-$INFRA_NAMESPACE
-$KC_USER1_EMAIL
-$KC_USER1_USERNAME
-$KC_USER2_EMAIL
-$KC_USER2_USERNAME
-$LIVEKIT_DOMAIN
-$LLM_EMBED_URL
-$LLM_ENABLED
-$LLM_HOST_IP
-$LLM_RERANK_ENABLED
-$LLM_ROUTER_URL
-$MAIL_FROM_DOMAIN
-$MAIL_FROM_LOCAL
-$NTFY_BASE_URL
-$OTEL_DOMAIN
-$POCKET_ID_DOMAIN
-$POCKET_ID_FRONTEND_URL
-$POCKET_ID_SMTP_TLS
-$POCKET_ID_URL
-$PROD_DOMAIN
-$RECOVER_DOMAIN
-$RIGGER_HOST_IP
-$RIGGER_PORT
-$SMTP_FROM
-$SMTP_HOST
-$SMTP_PORT
-$SMTP_USER
-$STREAM_DOMAIN
-$STUDIO_DOMAIN
-$STUDIO_IMAGE
-$STUDIO_IMAGE_DIGEST
-$SYSTEMTEST_LOOP_ENABLED
-$TERMINAL_OVERLAY_IP
-$TLS_SECRET_NAME
-$TURN_NODE
-$TURN_OVERLAY_IP
-$TURN_PUBLIC_IP
-$WEBSITE_IMAGE
-$WEBSITE_NAMESPACE
-$WHISPER_URL
-$WORKSPACE_NAMESPACE
-'
-
 render_component() {
   local overlay="$1" out="$2"
-  kustomize build "$overlay" --load-restrictor=LoadRestrictionsNone \
-    | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
-    | envsubst "$FLUX_RENDER_ENVSUBST_VARS" \
+  # Dynamically extract ALL ${VAR} references from kustomize output.
+  # This is the same proven pattern as .github/workflows/build-website.yml (lines ~184-192)
+  # and ensures the allowlist never drifts.
+  local rendered
+  rendered="$(kustomize build "$overlay" --load-restrictor=LoadRestrictionsNone)"
+  
+  local vars
+  vars="$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$rendered" | tr -d '${}' | sort -u | tr '\n' ' ')"
+  
+  if [[ -z "$vars" ]]; then
+    # No vars to substitute — write as-is
+    echo "$rendered" > "$out"
+    return
+  fi
+  
+  # Build envsubst variable list (space-separated, each prefixed with $)
+  local envsubst_vars=""
+  for v in $vars; do
+    envsubst_vars="${envsubst_vars}\$${v} "
+  done
+  
+  # Wrap bare ${VAR} at end of line in double quotes (envsubst needs quoting context),
+  # then substitute, then unwrap any $$ escaping envsubst introduced.
+  sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' <<<"$rendered" \
+    | envsubst "$envsubst_vars" \
     | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
     > "$out"
 }

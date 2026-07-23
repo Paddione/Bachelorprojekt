@@ -68,15 +68,20 @@ render_component() {
 
 cd "$PROJECT_DIR"
 
+# ── Component render calls ──────────────────────────────────────
+# Each runs in a subshell with its own env source.  Guarded with
+# || true so a single overlay failure doesn't kill the whole script
+# (set -e in the parent stops on unchecked subshell failures).
+
 # 1. Platform
 (
   set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null || true
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/platform"
   render_component prod-fleet/platform "${OUT_DIR}/platform/platform.yaml"
-)
+) || echo "[warn] platform component failed — continuing"
 
 # 1b. Dev (workspace-dev namespace)
 (
@@ -84,47 +89,47 @@ cd "$PROJECT_DIR"
   source scripts/env-resolve.sh dev 2>/dev/null || true
   mkdir -p "${OUT_DIR}/dev"
   render_component prod-fleet/dev "${OUT_DIR}/dev/dev.yaml"
-)
+) || echo "[warn] dev component failed — continuing"
 
 # 2. Mentolder
 (
   set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null || true
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/mentolder"
   render_component prod-fleet/mentolder "${OUT_DIR}/mentolder/mentolder.yaml"
-)
+) || echo "[warn] mentolder component failed — continuing"
 
 # 3. Korczewski
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null || true
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/korczewski"
   render_component prod-fleet/korczewski "${OUT_DIR}/korczewski/korczewski.yaml"
-)
+) || echo "[warn] korczewski component failed — continuing"
 
 # 4. Website Mentolder
 (
   set +u
-  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null || true
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/website-mentolder"
   render_component prod-fleet/website-mentolder "${OUT_DIR}/website-mentolder/website-mentolder.yaml"
-)
+) || echo "[warn] website-mentolder component failed — continuing"
 
 # 5. Website Korczewski
 (
   set +u
-  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null || true
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/website-korczewski"
   render_component prod-fleet/website-korczewski "${OUT_DIR}/website-korczewski/website-korczewski.yaml"
-)
+) || echo "[warn] website-korczewski component failed — continuing"
 
 # 6. Sealed Secrets (copied static, filtered per brand if needed)
 mkdir -p "${OUT_DIR}/sealed-secrets"

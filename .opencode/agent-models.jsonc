@@ -34,14 +34,10 @@
         "baseURL": "http://127.0.0.1:8093/v1"
       },
       "models": {
-        // 2026-07-22: 27B komplett entladen, KEIN Skript laedt es mehr - Port
-        // 8093 bedient jetzt in beiden Modi Ternary-Bonsai-8B: entweder
-        // start-bonsai-server.ps1 (2 Slots x 65536 = max Kontext pro Slot,
-        // gepaart mit Bonsai-Image) oder start-bonsai-parallel.ps1
-        // (VRAM-abhaengig viele Slots, kein Bild-Gen). Modell ist in beiden
-        // Faellen identisch, nur -np/-c unterscheiden sich.
+        // Ternary-Bonsai-8B on port 8093: up to 4 parallel slots x 65536 ctx
+        // each, combined KV cache. start-bonsai-parallel.ps1 configures -np 4.
         "Ternary-Bonsai-8B-Q2_0.gguf": {
-          "name": "Ternary-Bonsai-8B (Q2_0, 65k ctx/Slot)",
+          "name": "Ternary-Bonsai-8B (Q2_0, 4x65k parallel, combined KV)",
           "limit": {
             "context": 65536,
             "output": 8192
@@ -133,7 +129,7 @@
   },
   "agent": {
     "bonsai-8b": {
-      "description": "PRIMARY SUBAGENT (Quality-Modus, start-bonsai-server.ps1): Ternary-Bonsai-8B (65k context per slot, up to 2 parallel slots via llama-server on port 8093, paired with Bonsai-Image on the same GPU). 2026-07-22: replaces the former bonsai-27b agent - 27B is no longer loaded by any script.",
+      "description": "PRIMARY SUBAGENT: Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, max 4 parallel slots via llama-server on port 8093, combined KV cache).",
       "mode": "subagent",
       "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",

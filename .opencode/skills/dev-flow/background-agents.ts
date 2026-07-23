@@ -1018,9 +1018,8 @@ class DelegationManager {
 		const resolvedResult = await this.resolveDelegationResult(delegation)
 		delegation.result = resolvedResult
 
-		// [T001978] Empty-output fallback removed 2026-07-22 — qwen35-iq4/hq agents
-		// deleted; bonsai-27b is the sole subagent. If it returns empty, treat as
-		// a normal completion (empty result) rather than retrying with a removed agent.
+		// [T001978] Empty-output fallback removed 2026-07-22. If bonsai-8b returns
+		// empty, treat as a normal completion rather than retrying.
 
 		if (resolvedResult.trim().length > 0) {
 			const metadata = await this.metadataGenerator(

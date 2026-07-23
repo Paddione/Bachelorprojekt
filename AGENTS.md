@@ -2,7 +2,7 @@
 
 Loaded via `.opencode/opencode.jsonc` (and its alias `.agents/settings.json`, which is a symlink to it) → `"instructions": ["AGENTS.md"]`. Comprehensive reference: `CLAUDE.md`.
 
-> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — **Claude Code only** reads these via its native `task` tool dispatch. **opencode does NOT read `.agents/agents/`** — it uses its own agent definitions in `.opencode/agent-models.jsonc` (local LLM subagents: `bonsai-27b`). Edit domain agents at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
+> **Subagent file layout:** `.claude/agents/bachelorprojekt-*.md` is the canonical source. `.agents/agents` is a directory symlink to `../.claude/agents` — **Claude Code only** reads these via its native `task` tool dispatch. **opencode does NOT read `.agents/agents/`** — it uses its own agent definitions in `.opencode/agent-models.jsonc` (local LLM subagents: `bonsai-8b`). Edit domain agents at `.claude/agents/<name>.md` (or its `.agents/agents/<name>.md` alias).
 
 ## Agent Routing
 
@@ -27,11 +27,11 @@ opencode uses the `background-agents.ts` plugin which reads agents from `agent-m
 
 | Agent | Model | Permissions | Use case |
 |-------|-------|-------------|----------|
-| `bonsai-27b` | Ternary-Bonsai-27B (Q2_0, 130k ctx per slot) | write-capable | **Preferred single choice** for delegation (up to 2 parallel slots on port 8093) |
+| `bonsai-8b` | Ternary-Bonsai-8B (Q2_0, 65k ctx/slot, 4 parallel slots, combined KV) | write-capable | **Preferred single choice** for delegation (max 4 parallel, port 8093) |
 | `explore` | built-in | read-only | Fast codebase exploration |
 | `general` | built-in | read-only | General research tasks |
 
-Read-only agents use `delegate(prompt, agent)`. Write-capable work stays in the main session (no write-capable subagents defined).
+Read-only agents use `delegate(prompt, agent)`. Write-capable work (e.g. `bonsai-8b`) uses `task` with the agent name.
 
 ## Core Commands
 

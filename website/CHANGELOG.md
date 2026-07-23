@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.209.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.209.0...website-v1.209.1) (2026-07-23)
+
+
+### Documentation
+
+* dokumentiere Alt-Worktrees-Cleanup nach Submodul-Abschaffung [T002137] ([#3168](https://github.com/Paddione/Bachelorprojekt/issues/3168)) ([ed9bab1](https://github.com/Paddione/Bachelorprojekt/commit/ed9bab1a2ec94f5739bfb6cabef12034e2dc583d))
+
 ## [1.209.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.208.1...website-v1.209.0) (2026-07-23)
 
 

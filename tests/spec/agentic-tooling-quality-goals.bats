@@ -3,6 +3,7 @@
 # SSOT: openspec/specs/agentic-tooling-quality-goals.md
 #
 # Covers: G-AGENTIC01–05: agent frontmatter, routing table, library reachability.
+# Covers: G-AGENTIC09: SKILL.md > 500 lines (T002094).
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
@@ -74,4 +75,12 @@ setup() {
   local count
   count=$(find "$REPO/.claude/agents" -name 'bachelorprojekt-*.md' 2>/dev/null | wc -l)
   [ "$count" -eq 6 ]
+}
+
+# ── G-AGENTIC09: God-Skill line budget ────────────────────────────────
+
+@test "G-AGENTIC09: zero SKILL.md files exceed 500 lines" {
+  local count
+  count=$(find "$REPO/.claude/skills" -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}')
+  [ "$count" -eq 0 ]
 }

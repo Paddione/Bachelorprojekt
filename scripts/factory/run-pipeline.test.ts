@@ -21,7 +21,7 @@ describe('run-pipeline session reuse', () => {
       execFileSync: vi.fn().mockReturnValue('{}'),
     }));
 
-    const { runClaudeSubagent } = await import('../../../scripts/factory/run-pipeline.mjs');
+    const { runClaudeSubagent } = await import('./run-pipeline.mjs');
     const result = runClaudeSubagent('test prompt', 'test-label', 'lost-session-456');
     expect(result).toBeDefined();
     expect(result.sessionId).toBe('new-session-123');
@@ -38,7 +38,7 @@ describe('run-pipeline session reuse', () => {
       execFileSync: vi.fn().mockReturnValue('{}'),
     }));
 
-    const { runClaudeSubagent } = await import('../../../scripts/factory/run-pipeline.mjs');
+    const { runClaudeSubagent } = await import('./run-pipeline.mjs');
     const result = runClaudeSubagent('test prompt', 'test-label');
     expect(result).toBeDefined();
     expect(result.output).toBeDefined();

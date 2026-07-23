@@ -78,14 +78,9 @@ elif [[ "$_commit_msg_failed" -ne 0 ]]; then
 fi
 
 # ── 3. Advisory: Branch + PR naming convention [T002093] ────────────────────
-# Warn if branch doesn't follow type/slug-T000XXX — PR title must include [T000XXX].
+# Warn if branch doesn't follow type/slug-T000XXX — PR title MUST include [T000XXX].
 # This is advisory (not blocking) because the pre-commit hook already enforces branch naming.
-_push_branch=""
-for _ref in "$@"; do
-  _local_ref="${_ref%% *}"
-  _push_branch="${_local_ref#refs/heads/}"
-  break
-done
+_push_branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 if [[ -n "$_push_branch" && "$_push_branch" != "main" && "$_push_branch" != "develop" ]]; then
   case "$_push_branch" in
     release-please--*|dependabot/*|renovate/*) ;;

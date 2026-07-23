@@ -145,14 +145,26 @@ else
     echo "worktree-create: repo is git-crypt LOCKED — secrets left encrypted-at-rest in $WT_PATH" >&2
 fi
 
-# T001331/T001332: Post-checkout stale-smudge detection for BRANCH_EXISTS=1 path.
-# If the worktree was originally created in locked mode (smudge=cat) but the
-# main checkout now has a key, the checkout above ran with the stale smudge
-# filter — secrets are encrypted-at-rest in the worktree. Detect and fix.
+# T001331/T001332/T002114: Post-checkout stale-smudge detection.
+# If the checkout above ran with a broken or stale smudge filter, secrets are
+# encrypted-at-rest in the worktree. Detect and fix.
 # Also checks .claude/settings.json as fallback canary when .secrets dir is
 # empty — that file is git-crypt-managed and surfaces the same stale smudge. [T001332]
-if [ "$BRANCH_EXISTS" -eq 1 ] && [ -f "$KEY_SRC" ]; then
-  canary="$(find "$WT_PATH/environments/.secrets" -type f 2>/dev/null | head -1)"
+#
+# Runs for EVERY unlocked worktree, not just BRANCH_EXISTS=1 [T002114]. Die
+# alte Einschraenkung ging davon aus, dass nur wiederverwendete Worktrees einen
+# veralteten Filter erben koennen. Am 2026-07-23 kam der Defekt aber aus der
+# GETEILTEN .git/config des Hauptcheckouts (filter.git-crypt.clean/.smudge
+# standen dort auf LEEREN Strings) — damit trifft es auch frisch angelegte
+# Branches, und zwar lautlos: git ueberspringt den Filter dank stat-Cache, bis
+# irgendetwas einen git-crypt-Pfad anfasst. Danach stirbt jeder `git status`
+# mit "clean filter 'git-crypt' failed".
+if [ -f "$KEY_SRC" ]; then
+  # `|| canary=""` ist Pflicht: fehlt das Verzeichnis, gibt find 1 zurueck, und
+  # unter `set -o pipefail` reicht das die 1 durch head hindurch — die Zuweisung
+  # schluege fehl und `set -e` wuerde die Worktree-Erstellung abbrechen. Solange
+  # dieser Block auf BRANCH_EXISTS=1 beschraenkt war, fiel das nie auf. [T002114]
+  canary="$(find "$WT_PATH/environments/.secrets" -type f 2>/dev/null | head -1)" || canary=""
   if [ -z "$canary" ] && [ -f "$WT_PATH/.claude/settings.json" ]; then
     canary="$WT_PATH/.claude/settings.json"
   fi
@@ -167,7 +179,31 @@ if [ "$BRANCH_EXISTS" -eq 1 ] && [ -f "$KEY_SRC" ]; then
     git -C "$WT_PATH" config --worktree --unset filter.git-crypt.smudge 2>/dev/null || true
     git -C "$WT_PATH" config --worktree --unset filter.git-crypt.clean  2>/dev/null || true
     git -C "$WT_PATH" config --worktree filter.git-crypt.required true
-    git -C "$WT_PATH" checkout --force
+    # Non-fatal: schlaegt der Checkout am kaputten Filter fehl, soll die
+    # Diagnose unten laufen statt dass `set -e` mit einer nichtssagenden
+    # Rollback-Meldung abbricht. [T002114]
+    checkout_rc=0
+    git -C "$WT_PATH" checkout --force || checkout_rc=$?
+
+    # Nachpruefen statt hoffen [T002114]. Die Reparatur oben fasst nur
+    # worktree-lokale Config an — sitzt die Ursache in der geteilten
+    # .git/config, bleibt sie wirkungslos. Dann lieber laut abbrechen als
+    # einen Worktree zurueckgeben, der beim ersten `git status` explodiert
+    # (oder schlimmer: Klartext-Secrets stageable macht).
+    if [ "$checkout_rc" -ne 0 ] \
+       || bash "$(dirname "$0")/git-crypt-guard.sh" is-encrypted "$canary" 2>/dev/null; then
+      echo "worktree-create: FEHLER — Secrets sind nach der Reparatur immer noch verschluesselt." >&2
+      echo "  Canary: $canary" >&2
+      echo "  Wahrscheinliche Ursache: kaputte git-crypt-Filter in der GETEILTEN Config" >&2
+      echo "  ($COMMON_DIR/config). Pruefen mit:" >&2
+      echo "    git config --show-origin --get-regexp 'filter\\.git-crypt'" >&2
+      echo "  Erwartet: smudge='git-crypt smudge', clean='git-crypt clean', required=true." >&2
+      echo "  Leere Werte reparieren mit:" >&2
+      echo "    git config filter.git-crypt.smudge 'git-crypt smudge'" >&2
+      echo "    git config filter.git-crypt.clean  'git-crypt clean'" >&2
+      echo "    git config filter.git-crypt.required true" >&2
+      exit 1
+    fi
   fi
 fi
 

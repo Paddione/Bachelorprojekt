@@ -172,3 +172,65 @@ teardown() { rm -rf "$TMP"; }
   [ "$status" -ne 0 ]
   [ ! -d "$TMP/wt-smudge" ]
 }
+
+# ── T002114: leere git-crypt-Filter in der GETEILTEN .git/config ──────────────
+# Am 2026-07-23 standen filter.git-crypt.clean/.smudge im Hauptcheckout auf
+# LEEREN Strings. Folge: der Checkout entschluesselt nicht, die Secrets liegen
+# verschluesselt im Worktree — und weil git dank stat-Cache den Filter zunaechst
+# ueberspringt, faellt es erst auf, wenn irgendetwas einen git-crypt-Pfad
+# anfasst. Danach stirbt jeder `git status` mit "clean filter 'git-crypt' failed".
+# Die alte Reparaturlogik fasst nur worktree-lokale Config an, kann diesen Defekt
+# also gar nicht beheben — sie muss ihn erkennen und laut abbrechen.
+
+# Eigene Fixture: der HEAD-Blob traegt die ECHTE git-crypt-Magic, damit
+# git-crypt-guard.sh is-encrypted anschlaegt (das Fake-git-crypt der Suite oben
+# ist ein reiner Passthrough und erzeugt keine Magic).
+_setup_empty_filter_repo() {
+  BROKEN="$TMP/broken"
+  mkdir -p "$BROKEN/environments/.secrets"
+  git init -q -b main "$BROKEN"
+  git -C "$BROKEN" config user.email t@example.com
+  git -C "$BROKEN" config user.name  Tester
+  printf 'environments/.secrets/** filter=git-crypt diff=git-crypt\n' > "$BROKEN/.gitattributes"
+  # Blob mit der echten Magic \0GITCRYPT\0 committen, ohne aktiven Filter
+  printf '\000GITCRYPT\000BINARY-CIPHERTEXT' > "$BROKEN/environments/.secrets/test.yaml"
+  git -C "$BROKEN" add -A
+  git -C "$BROKEN" commit -qm init
+  # Key installieren -> das Skript nimmt den "unlocked"-Zweig
+  mkdir -p "$BROKEN/.git/git-crypt/keys"
+  printf 'FAKEKEY\n' > "$BROKEN/.git/git-crypt/keys/default"
+  # DER DEFEKT: leere Filter in der geteilten Config
+  git -C "$BROKEN" config filter.git-crypt.smudge ""
+  git -C "$BROKEN" config filter.git-crypt.clean  ""
+  git -C "$BROKEN" config filter.git-crypt.required false
+}
+
+@test "T002114: leere Filter in der geteilten Config -> Abbruch statt kaputtem Worktree" {
+  _setup_empty_filter_repo
+  run bash -c "cd '$BROKEN' && bash '$HELPER' fix/empty-filter '$TMP/wt-broken' HEAD"
+  [ "$status" -ne 0 ]
+  echo "$output" | grep -q 'immer noch verschluesselt'
+}
+
+@test "T002114: die Fehlermeldung nennt die geteilte Config als Ursache" {
+  _setup_empty_filter_repo
+  run bash -c "cd '$BROKEN' && bash '$HELPER' fix/empty-filter2 '$TMP/wt-broken2' HEAD"
+  [ "$status" -ne 0 ]
+  # muss auf die GETEILTE Config zeigen, nicht auf die worktree-lokale
+  echo "$output" | grep -qi 'geteilten Config'
+  echo "$output" | grep -q "filter.git-crypt.smudge 'git-crypt smudge'"
+}
+
+@test "T002114: der kaputte Worktree wird zurueckgerollt, nicht liegengelassen" {
+  _setup_empty_filter_repo
+  run bash -c "cd '$BROKEN' && bash '$HELPER' fix/empty-filter3 '$TMP/wt-broken3' HEAD"
+  [ "$status" -ne 0 ]
+  [ ! -d "$TMP/wt-broken3" ]
+}
+
+@test "T002114: die Canary-Pruefung laeuft auch fuer NEU angelegte Branches" {
+  # Vorher war sie auf BRANCH_EXISTS=1 beschraenkt — frische Branches (der
+  # Normalfall) liefen ungeprueft durch.
+  run grep -n 'BRANCH_EXISTS" -eq 1 \] && \[ -f "\$KEY_SRC"' "$HELPER"
+  [ "$status" -ne 0 ]
+}

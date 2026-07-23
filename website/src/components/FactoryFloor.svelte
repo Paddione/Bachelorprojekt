@@ -3,6 +3,7 @@
   import type { Phase } from '../lib/factory-floor-types';
   import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
   export { MOBILE_COL_INDEX }; // eslint-disable-line no-import-assign
+  export const MOBILE_COL_COUNT = 11;
   export const STATIONS: { key: Phase; label: string }[] =
     PHASE_ORDER.map((key) => ({ key, label: key.charAt(0).toUpperCase() + key.slice(1) }));
 </script>
@@ -28,7 +29,7 @@
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
-  const MOBILE_COL_COUNT = 11;
+  let isMobile = $state(false);
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
   $effect(() => {
@@ -41,9 +42,12 @@
   });
 
   onMount(() => {
-    const handler = (e: CustomEvent) => { if (e.detail) data = e.detail; };
-    window.addEventListener('floor-stub-update', handler as EventListener);
-    return () => window.removeEventListener('floor-stub-update', handler as EventListener);
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) data = customEvent.detail;
+    };
+    window.addEventListener('floor-stub-update', handler);
+    return () => window.removeEventListener('floor-stub-update', handler);
   });
 
   function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }

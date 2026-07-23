@@ -83,3 +83,38 @@ if [ "${FRESHNESS_HOOK_DISABLED:-0}" != "1" ]; then
     echo "  ↻ freshness: suppressed (rebase/merge in flight, FRESHNESS_HOOK_DISABLED=1 to force) [T001973]"
   fi
 fi
+
+# --- branch-naming: enforce type/slug-T000XXX convention [T002093] ---
+# Every feature/fix/chore branch must:
+#   1. Start with a valid type prefix: feature/, fix/, chore/, docs/
+#   2. Contain a ticket ID (T000XXX) to prevent WIP separation from its ticket
+# Format: type/<optional-scope>-<slug>-T000XXX
+# Exemptions: main, develop, release-please--*, dependabot/*, renovate/*
+# Bypass: SKIP_BRANCH_CHECK=1 git commit ...
+if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
+  _bn="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
+  if [ -n "$_bn" ]; then
+    case "$_bn" in
+      main|develop|master|release-please--*|dependabot/*|renovate/*) ;;
+      *)
+        _has_ticket=0
+        _has_type=0
+        [[ "$_bn" =~ ^feature/|^fix/|^chore/|^docs/ ]] && _has_type=1
+        [[ "$_bn" =~ T[0-9]{6,} ]] && _has_ticket=1
+        if [ "$_has_type" -eq 0 ] || [ "$_has_ticket" -eq 0 ]; then
+          echo "✗  pre-commit: branch '$_bn' does not follow naming convention." >&2
+          echo "" >&2
+          echo "  Required: type/<slug>-T000XXX" >&2
+          echo "  Examples:" >&2
+          echo "    feature/flux-gaps-brainless-T002093" >&2
+          echo "    fix/pocket-id-retry-T001234" >&2
+          echo "    chore/deps-bump-T001500" >&2
+          echo "" >&2
+          echo "  Why: ticket ID links WIP to its ticket and subsequent PR." >&2
+          echo "  To bypass (emergency only): SKIP_BRANCH_CHECK=1 git commit" >&2
+          exit 1
+        fi
+        ;;
+    esac
+  fi
+fi

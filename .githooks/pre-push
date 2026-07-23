@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # pre-push: fast quality gate (blockierend) + Conventional-Commit-Gate (blockierend)
-#            + BATS-Konsistenz-Advisory (warn-only).
+#            + BATS-Konsistenz-Advisory (warn-only) + Branch/PR naming advisory.
 #
 # Blockierend (exit 1):
 #   task quality:check (S1-S4 Ratchet, ~3s)
@@ -9,6 +9,7 @@
 #
 # Advisory (exit 0, nur Warnung):
 #   BATS-Dateien geändert aber repo-index.json/test-inventory.json fehlen im Push
+#   Branch-Name ohne Ticket-ID (PR muss [T000XXX] enthalten) [T002093]
 set -uo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
@@ -74,6 +75,28 @@ elif [[ "$_commit_msg_failed" -ne 0 ]]; then
   err "Fix the commit message(s) above (git commit --amend / rebase -i), then push again."
   err "To bypass (emergency only): SKIP_CI_CHECK=1 git push"
   exit 1
+fi
+
+# ── 3. Advisory: Branch + PR naming convention [T002093] ────────────────────
+# Warn if branch doesn't follow type/slug-T000XXX — PR title must include [T000XXX].
+# This is advisory (not blocking) because the pre-commit hook already enforces branch naming.
+_push_branch=""
+for _ref in "$@"; do
+  _local_ref="${_ref%% *}"
+  _push_branch="${_local_ref#refs/heads/}"
+  break
+done
+if [[ -n "$_push_branch" && "$_push_branch" != "main" && "$_push_branch" != "develop" ]]; then
+  case "$_push_branch" in
+    release-please--*|dependabot/*|renovate/*) ;;
+    *)
+      if [[ ! "$_push_branch" =~ T[0-9]{6,} ]]; then
+        warn "Branch '$_push_branch' has no ticket ID — PR title MUST include [T000XXX]."
+        warn "Format: <type>(<scope>): <description> [T000XXX]"
+        warn "Example: feat(flux): implement ArtifactGenerator [T002093]"
+      fi
+      ;;
+  esac
 fi
 
 exit 0

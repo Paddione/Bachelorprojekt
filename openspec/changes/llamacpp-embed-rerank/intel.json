@@ -1,0 +1,155 @@
+{
+  "meta": {
+    "slug": "llamacpp-embed-rerank",
+    "ticket_id": "T002110",
+    "domains": ["infra", "website", "llm"],
+    "generated_from": "dev-flow-plan Schritt A.1.5, 2026-07-23",
+    "intel_sources": ["grep", "Read", "live-host-probe", "llama-server --help", "nvidia-smi", "systemctl", "ss"]
+  },
+  "impact_files": [
+    { "path": "website/src/lib/rerank.ts", "language": "ts", "loc": 31, "s1_limit": 600, "s1_baseline": null, "s1_budget": 569 },
+    { "path": "website/src/lib/embeddings.ts", "language": "ts", "loc": 179, "s1_limit": 600, "s1_baseline": null, "s1_budget": 421 },
+    { "path": "website/src/lib/rerank.test.ts", "language": "ts", "loc": 58, "s1_limit": 600, "s1_baseline": null, "s1_budget": 542 },
+    { "path": "website/src/lib/embeddings.test.ts", "language": "ts", "loc": 153, "s1_limit": 600, "s1_baseline": null, "s1_budget": 447 },
+    { "path": "environments/schema.yaml", "language": "yaml", "loc": 1406, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "environments/dev.yaml", "language": "yaml", "loc": 48, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "environments/mentolder.yaml", "language": "yaml", "loc": 136, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "environments/korczewski.yaml", "language": "yaml", "loc": 110, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "environments/staging.yaml", "language": "yaml", "loc": 101, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "k3d/llm-gpu.yaml", "language": "yaml", "loc": 98, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "scripts/openspec-embed-local.sh", "language": "sh", "loc": 91, "s1_limit": 500, "s1_baseline": null, "s1_budget": 409 },
+    { "path": "scripts/llm-host-setup.sh", "language": "sh", "loc": 80, "s1_limit": 500, "s1_baseline": null, "s1_budget": 420 },
+    { "path": "tests/spec/llm-pipeline.bats", "language": "bats", "loc": 84, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "scripts/llm/start-embed-server.ps1", "language": "ps1", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "scripts/llm/start-rerank-server.ps1", "language": "ps1", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "scripts/llm/start-bonsai-server.ps1", "language": "ps1", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": null },
+    { "path": "scripts/llm/register-scheduled-tasks.ps1", "language": "ps1", "loc": 0, "s1_limit": 0, "s1_baseline": null, "s1_budget": null }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "rerankCandidates",
+      "kind": "function",
+      "file": "website/src/lib/rerank.ts",
+      "signature": "export async function rerankCandidates(query: string, docs: string[], opts: { signal?: AbortSignal } = {}): Promise<RerankResult[]>",
+      "type_text": "Ruft heute POST `${LLM_RERANKER_URL}/rerank` mit Body {query, texts} und erwartet ein FLACHES Array [{index, score}] (TEI-Dialekt). Muss auf POST /v1/rerank mit {model, query, documents} und Antwort {results:[{index, relevance_score}]} umgestellt werden. Der catch-Block gibt derzeit STILL score:0 zurueck - hier fehlt logger.warn.",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "RerankResult",
+      "kind": "interface",
+      "file": "website/src/lib/rerank.ts",
+      "signature": "export interface RerankResult { doc: string; score: number; }",
+      "type_text": "Oeffentlicher Rueckgabetyp - bleibt unveraendert, damit Consumer nicht angefasst werden muessen. Nur die interne Zuordnung relevance_score -> score aendert sich.",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "callRouter",
+      "kind": "function",
+      "file": "website/src/lib/embeddings.ts",
+      "signature": "async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'model' | 'purpose'>> & EmbedOpts)",
+      "type_text": "Ruft POST `${embedUrl()}/v1/embeddings` mit Body {model: resolveModelId(opts.model), input: inputs} und liest {data:[{embedding}], usage?:{total_tokens?}}. Dieses Wire-Format passt BEREITS exakt zu llama-server - kein Umbau noetig.",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "embedUrl",
+      "kind": "function",
+      "file": "website/src/lib/embeddings.ts",
+      "signature": "const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234'",
+      "type_text": "Default zeigt auf den ABGESCHALTETEN LM-Studio-Service. Muss auf llm-gateway-embed.workspace.svc.cluster.local:8095 zeigen.",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "MODEL_ID_MAP",
+      "kind": "const",
+      "file": "website/src/lib/embeddings.ts",
+      "signature": "const MODEL_ID_MAP: Record<string, string> = { 'bge-m3': process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3', 'voyage-multilingual-2': 'voyage-multilingual-2' }",
+      "type_text": "Der Kommentar darueber ('TEI ignores this field; LM Studio routes by it') ist nach dem Change falsch - llama-server akzeptiert das Feld und ignoriert es bei Single-Model-Betrieb.",
+      "source": "Read"
+    },
+    {
+      "qualified_name": "EmbeddingModel",
+      "kind": "type",
+      "file": "website/src/lib/embeddings.ts",
+      "signature": "export type EmbeddingModel = 'bge-m3' | 'voyage-multilingual-2'",
+      "type_text": "Unveraendert. Der Voyage-Fallback-Pfad bleibt vollstaendig erhalten.",
+      "source": "Read"
+    }
+  ],
+  "call_graph": {
+    "notes": "rerankCandidates wird aus dem Knowledge-Query-Pfad aufgerufen; embedQuery/embedBatch aus website/src/lib/{knowledge-db,tickets-db,codesearch-db,ingest-json-core}.ts, website/scripts/backfill-ticket-embeddings.mjs und scripts/index-repo.ts. Keiner dieser Consumer aendert sich, weil die oeffentlichen Signaturen stabil bleiben."
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [
+    {
+      "library": "llama.cpp llama-server",
+      "symbol": "--pooling",
+      "signature": "--pooling {none,mean,cls,last,rank}   pooling type for embeddings, use model default if unspecified",
+      "source": "llama-server.exe --help (Build b9957, verifiziert 2026-07-23)"
+    },
+    {
+      "library": "llama.cpp llama-server",
+      "symbol": "--embedding",
+      "signature": "--embedding, --embeddings   restrict to only support embedding use case",
+      "source": "llama-server.exe --help (Build b9957, verifiziert 2026-07-23)"
+    },
+    {
+      "library": "llama.cpp llama-server",
+      "symbol": "--reranking",
+      "signature": "--rerank, --reranking   enable reranking endpoint on server (default: disabled)",
+      "source": "llama-server.exe --help (Build b9957, verifiziert 2026-07-23)"
+    },
+    {
+      "library": "llama.cpp llama-server",
+      "symbol": "--parallel",
+      "signature": "-np, --parallel N   number of server slots (default: -1, -1 = auto)",
+      "source": "llama-server.exe --help (Build b9957, verifiziert 2026-07-23)"
+    },
+    {
+      "library": "llama.cpp llama-server",
+      "symbol": "--embd-normalize",
+      "signature": "--embd-normalize N   normalisation for embeddings (default: 2)  [2 = L2, deckt sich mit TEI normalize:true]",
+      "source": "llama-server.exe --help (Build b9957, verifiziert 2026-07-23)"
+    },
+    {
+      "library": "TEI text-embeddings-inference",
+      "symbol": "GET /info (Ist-Zustand bge-m3)",
+      "signature": "{\"model_id\":\"BAAI/bge-m3\",\"model_dtype\":\"float32\",\"model_type\":{\"embedding\":{\"pooling\":\"cls\"}},\"max_input_length\":8192,\"version\":\"1.9.3\"}",
+      "source": "curl http://127.0.0.1:9081/info (live, 2026-07-23)"
+    }
+  ],
+  "risks": [
+    {
+      "severity": "error",
+      "note": "float32-ONNX -> Q8_0-GGUF ist nicht vektor-neutral. Ohne bestandene Aequivalenzmessung (mittlere Kosinus-Aehnlichkeit >= 0.99 gegen 127.0.0.1:9081) darf KEIN Env-Var umgestellt werden. Der TEI-Container bleibt bis dahin die einzige Referenz und wird erst nach bestandener Messung abgeschaltet."
+    },
+    {
+      "severity": "error",
+      "note": "T002109 (fix/k3d-dev-llm-bridge, Status in_review, Branch NICHT gepusht, letzte Aktivitaet 2026-07-23) aendert environments/dev.yaml, environments/schema.yaml, k3d/llm-gpu.yaml und tests/spec/llm-pipeline.bats - dieselben Dateien. dev-flow-execute erst nach dessen Merge starten und von frischem main branchen."
+    },
+    {
+      "severity": "warn",
+      "note": "--pooling MUSS explizit auf cls gesetzt werden. Ohne das Flag nutzt llama-server den Modell-Default aus der GGUF-Metadata; weicht der von cls ab, werden alle bestehenden pgvector-Eintraege inkompatibel."
+    },
+    {
+      "severity": "warn",
+      "note": "llama.cpp kann Embedding (pooling CLS) und Reranking (pooling RANK) NICHT in einem Prozess bedienen. Zwei getrennte Server sind zwingend, kein Konsolidierungsspielraum."
+    },
+    {
+      "severity": "warn",
+      "note": "llama.cpp teilt -c gleichmaessig auf die -np Slots auf. -np 4 bei unveraendertem -c 65536 ergaebe 16k pro Slot - zu wenig fuer Factory-Prompts (~37k). -c muss mitwachsen; Zielwert per VRAM-Messreihe bestimmen, nicht schaetzen."
+    },
+    {
+      "severity": "warn",
+      "note": "Auf dem Host existiert derzeit KEIN Autostart-Mechanismus fuer llama-server (kein Scheduled Task, kein Dienst, kein Startup-Eintrag, kein Startskript). Ohne den Persistenz-Teil des Changes waere die Verfuegbarkeit schlechter als beim heutigen systemd-verwalteten TEI-Docker."
+    },
+    {
+      "severity": "warn",
+      "note": "llama-server.exe liegt im neuesten Build llama-b10090-13.3 FLACH im Wurzelverzeichnis, nicht unter bin/ wie bei b9957-cuda13.3. Startskripte muessen den korrekten Pfad verwenden."
+    },
+    {
+      "severity": "warn",
+      "note": "codebase-memory-mcp wurde fuer dieses Bundle nicht abgefragt; alle Symbol-Signaturen stammen aus direktem Read der Quelldateien und sind damit verifiziert, aber der Call-Graph ist per grep hergeleitet statt per trace_path."
+    }
+  ]
+}

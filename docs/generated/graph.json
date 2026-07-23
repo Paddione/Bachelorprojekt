@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T09:35:11.277Z",
+  "generatedAt": "2026-07-23T12:23:40.297Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -174,6 +174,12 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "knowledge-reindex-all"
+    },
+    {
+      "id": "livekit-egress",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "livekit-egress"
     },
     {
       "id": "mailpit",
@@ -528,6 +534,12 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "livekit"
+    },
+    {
+      "id": "livekit-server",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "livekit-server"
     }
   ],
   "edges": [
@@ -788,6 +800,12 @@
       "to": "website",
       "via": "configmap:knowledge-scripts",
       "kind": "configmap"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "livekit-server",
+      "via": "env:EGRESS_CONFIG_BODY",
+      "kind": "env"
     },
     {
       "from": "nextcloud",
@@ -1673,6 +1691,18 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2141,6 +2171,18 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2597,6 +2639,18 @@
     },
     {
       "from": "sessions-purge",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "sessions-purge",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sessions-purge",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3041,6 +3095,18 @@
     },
     {
       "from": "db-backup",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3473,6 +3539,18 @@
     },
     {
       "from": "brett",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3893,6 +3971,18 @@
     },
     {
       "from": "billing-dunning-detection",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4301,6 +4391,18 @@
     },
     {
       "from": "monthly-billing",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4697,6 +4799,18 @@
     },
     {
       "from": "scheduled-publish",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5081,6 +5195,18 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5453,6 +5579,18 @@
     },
     {
       "from": "oauth2-proxy-dev",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5813,6 +5951,18 @@
     },
     {
       "from": "oauth2-proxy-session-hub",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-session-hub",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-session-hub",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6161,6 +6311,18 @@
     },
     {
       "from": "error-log-retention",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "error-log-retention",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "error-log-retention",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6497,6 +6659,18 @@
     },
     {
       "from": "knowledge-ingest-prs",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6821,6 +6995,18 @@
     },
     {
       "from": "knowledge-ingest-bugs",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7133,6 +7319,18 @@
     },
     {
       "from": "knowledge-reindex-all",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7440,6 +7638,318 @@
     {
       "from": "ddns-updater",
       "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-docs",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-downloads",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-downloads",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-studio",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-studio",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-terminal",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-terminal",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "pocket-id",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "pocket-id",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "studio-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "studio-server",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "livekit-egress",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "livekit-egress",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "livekit-egress",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

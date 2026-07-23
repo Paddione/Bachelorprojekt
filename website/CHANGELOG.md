@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.204.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.204.1...website-v1.204.2) (2026-07-23)
+
+
+### Bug Fixes
+
+* **devflow:** plan-ref pre-flight validation + superseding pattern [T002044] ([#3127](https://github.com/Paddione/Bachelorprojekt/issues/3127)) ([65c51c0](https://github.com/Paddione/Bachelorprojekt/commit/65c51c09ff2fc285094e9831fbd32bfb50a0b2aa))
+
 ## [1.204.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.204.0...website-v1.204.1) (2026-07-23)
 
 

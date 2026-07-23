@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 629,
+      "file_count": 630,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -231,6 +231,7 @@
         "tests/fixtures/openspec/delta-renamed.md",
         "tests/fixtures/openspec/delta-stub.md",
         "tests/fixtures/openspec/ssot-sample.md",
+        "tests/flux-validation.bats",
         "tests/integration/brett-templates.bats",
         "tests/lib/assert.sh",
         "tests/lib/factory-test-fixtures.sh",
@@ -2457,7 +2458,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 455,
+      "file_count": 456,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -2817,6 +2818,7 @@
         "mcp-browser/Dockerfile",
         "prod-fleet/components/fleet-common/kustomization.yaml",
         "prod-fleet/components/fleet-common/netpol-deny-cross-brand.yaml",
+        "prod-fleet/dev/kustomization.yaml",
         "prod-fleet/korczewski/kustomization.yaml",
         "prod-fleet/mentolder/kustomization.yaml",
         "prod-fleet/mentolder/sessions-server.yaml",

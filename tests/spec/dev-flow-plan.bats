@@ -100,3 +100,12 @@ _exec_step2_block() {
   _exec_step2_block | grep -q 'intel\.json' \
     || { echo "MISSING intel.json in dev-flow-execute Step 2 block"; return 1; }
 }
+
+# ── T002137: Alt-Worktrees nach T002135 — cleanup documented ──
+@test "mishap-t002137: gotchas-footguns.md enthält Alt-Worktrees-Abschnitt" {
+  FOOTGUNS="$REPO/docs/superpowers/references/gotchas-footguns.md"
+  grep -q "Alt-Worktrees nach T002135" "$FOOTGUNS" \
+    || { echo "MISSING section title: Alt-Worktrees nach T002135"; return 1; }
+  grep -q "\.git/worktrees/<name>/modules" "$FOOTGUNS" \
+    || { echo "MISSING path pattern: .git/worktrees/<name>/modules"; return 1; }
+}

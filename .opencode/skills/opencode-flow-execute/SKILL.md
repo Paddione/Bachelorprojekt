@@ -130,9 +130,46 @@ ticket-mcp: transition_status({ id: "$TICKET_ID", status: "in_progress" })
 ticket-mcp: set_touched_files({ id: "$TICKET_ID", files: "<dateien aus plan>" })
 ```
 
+## Schritt 1.6: Pipeline-Modus erkennen
+
+Prüfe, ob das Ticket im Pipeline-Modus (Partial-Dispatch) oder Single-Shot gestaged wurde:
+
+```bash
+TICKET_STRUCT=$(./scripts/vda.sh ticket get --id "$TICKET_ID" --json 2>/dev/null || echo '{}')
+SLOT_COUNT=$(echo "$TICKET_STRUCT" | jq -r '.slot_count // 1')
+TICKET_STATUS=$(echo "$TICKET_STRUCT" | jq -r '.status // empty')
+echo "ℹ️  Ticket $TICKET_ID: status=$TICKET_STATUS, slot_count=$SLOT_COUNT"
+```
+
+- **slot_count > 1:** Pipeline-Modus — die Factory hat bereits mit der Arbeit begonnen (vom Planner enqueued). Warte auf vollständige Partial-Dispatches (siehe Schritt 2.1).
+- **slot_count = 1:** Single-Shot — normale sequentielle Ausführung.
+
 ## Schritt 2: Implementierung delegieren
 
-Implementiere in-context (oder delegiere an write-capable Subagent — siehe `background-agents.ts` Routing: write-capable agents nutzen opencodes native write-capable Delegation, nicht `delegate()`).
+### Schritt 2.1: Pipeline-Modus — Auf Partial-Vollständigkeit warten
+
+Wenn `slot_count > 1` und Factory bereits läuft (`status == 'in_progress'`):
+
+```bash
+# Poll-Schleife: warte bis alle N Partials committed sind (vom Planner)
+# oder der Planner fertig ist (letztes Partial ist Tests)
+for wait_min in $(seq 1 30); do
+  # Prüfe ob Branch neue Partials hat
+  git fetch origin "$(git branch --show-current)"
+  PLAN_COUNT=$(grep -c '^| p[0-9]' "$PLAN_FILE" 2>/dev/null || echo 0)
+  if [ "$PLAN_COUNT" -ge "$SLOT_COUNT" ]; then
+    echo "✅ Alle $SLOT_COUNT Partials sind im Branch sichtbar."
+    break
+  fi
+  echo "⏳ Warte auf Partial $PLAN_COUNT/$SLOT_COUNT ..."
+  git pull --rebase origin "$(git branch --show-current)"
+  sleep 30
+done
+```
+
+Dann normal rebasen und alle Partials in der richtigen Reihenfolge abarbeiten.
+
+### Schritt 2.2: Implementierung (Single-Shot oder nach Warte-Schleife)
 
 - Lies den Plan aus `$PLAN_FILE`
 - Lies `openspec/changes/<slug>/intel.json` für Typen-Wahrheit

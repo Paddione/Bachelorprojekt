@@ -183,6 +183,41 @@ bash scripts/agent-lock.sh check ticket "$TICKET_ID" | head -1 | grep -q '^mine$
 Prüfe zusätzlich den Registry-Overlap für geteilte Hochfrequenz-Dateien (SSOT:
 [session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)):
 
+## Schritt 1.4.5: Pipeline-Modus erkennen (T002110)
+
+Prüfe in der DB, ob das Ticket im Pipeline-Modus (Partial-Dispatch) gestaged wurde:
+
+```bash
+TICKET_STRUCT=$(./scripts/vda.sh ticket get --id "$TICKET_ID" 2>/dev/null || echo '{}')
+SLOT_COUNT=$(echo "$TICKET_STRUCT" | jq -r '.slot_count // 1')
+TICKET_STATUS=$(echo "$TICKET_STRUCT" | jq -r '.status // empty')
+echo "ℹ️  Ticket $TICKET_ID: status=$TICKET_STATUS, slot_count=$SLOT_COUNT"
+```
+
+- **slot_count > 1:** Pipeline-Modus — die Factory hat bereits mit der Arbeit begonnen (vom Planner enqueued). Warte auf vollständige Partial-Dispatches (siehe Schritt 2.1).
+- **slot_count = 1:** Single-Shot — normale sequentielle Ausführung.
+
+### Schritt 1.4.6: Pipeline-Modus — Auf Partial-Vollständigkeit warten
+
+Wenn `slot_count > 1` und Factory bereits läuft (`status == 'in_progress'`):
+
+```bash
+# Poll-Schleife: warte bis alle N Partials im Branch sichtbar sind
+for wait_min in $(seq 1 30); do
+  git fetch origin "$(git branch --show-current)"
+  PLAN_COUNT=$(grep -c '^| p[0-9]' "$PLAN_FILE" 2>/dev/null || echo 0)
+  if [ "$PLAN_COUNT" -ge "$SLOT_COUNT" ]; then
+    echo "✅ Alle $SLOT_COUNT Partials sind im Branch sichtbar."
+    break
+  fi
+  echo "⏳ Warte auf Partial $PLAN_COUNT/$SLOT_COUNT ..."
+  git pull --rebase origin "$(git branch --show-current)"
+  sleep 30
+done
+```
+
+Dann normal rebasen und alle Partials implementieren.
+
 ## Schritt 1.5: Ticket auf `in_progress` setzen und touched_files registrieren
 
 > **Optional:** Wenn der Plan via `dev-flow-plan` auf `plan_staged` steht, kannst du vor diesem

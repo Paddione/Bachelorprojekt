@@ -30,8 +30,9 @@ task workspace:validate                          # Kustomize dry-run
 ## Workflow Rules
 
 - Branches: `feature/*`, `fix/*`, `chore/*`, `docs/*`. All changes via PRs → squash-merge. No direct pushes to `main`.
-- `dev-flow-plan` (brainstorm→spec→plan→push) then `dev-flow-execute` (implement→PR→deploy).
-- CI gate: `task test:changed` + `task freshness:check` + `task workspace:validate`.
+- **Pipeline-Prinzip:** Planning-Agents (opencode-flow-plan) legen Worktree + Branch sofort an und enqueuen jedes Partial-Plan einzeln in die Factory, sobald es geschrieben ist. Die Factory beginnt mit der Ausführung, während der Planner das nächste Partial schreibt. Siehe `opencode-flow-plan` SKILL.md Phase B/C.
+- `dev-flow-plan` (brainstorm→spec→partial-plan→stage→enqueue→factory-executes→next-partial) dann `dev-flow-execute` (PR→deploy).
+- CI gate: `task test:changed` + `task freshness:check` + `task workspace:validate` — **vor** PR-Create lokal laufen lassen, nicht erst in CI.
 - **Merge = closure** (T001092): ticket closes on green auto-merge. Prod deploy is decoupled (push-based).
 
 ## Architecture (30-second view)

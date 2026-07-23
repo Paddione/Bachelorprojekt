@@ -85,7 +85,7 @@ spec:
             # (healthz for probes, three.min.js for canvas). Data APIs
             # (/api/state, /api/snapshots, /api/customers, /presets) stay
             # behind auth.
-            - --skip-auth-routes=GET=^/healthz$|GET=^/three\.min\.js$
+            - --skip-auth-route=GET=^/healthz$|GET=^/three\.min\.js$
           env:
             - name: POCKET_ID_BRETT_SECRET
               valueFrom:

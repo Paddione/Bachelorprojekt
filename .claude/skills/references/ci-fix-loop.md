@@ -124,3 +124,43 @@ Wichtig: git add <changed-paths> (kein git add -A — git-crypt-Schutz, T001210)
 ```
 
 Modell: `sonnet`, Effort: `low` für Freshness-Fehler, `medium` für TS/BATS.
+
+## PR-Merge-Wait-Loop
+
+Genutzt von `dev-flow-execute` (Schritt 6.4). `gh pr merge --auto` kehrt sofort zurück — der eigentliche Merge passiert asynchron im Hintergrund. Warten, bis der Merge tatsächlich durch ist, bevor das Ticket geschlossen wird (vermeidet Drift T001149-M1).
+
+```bash
+PR_NUM=$(gh pr view --json number -q '.number')
+PR_URL="https://github.com/Paddione/Bachelorprojekt/pull/$PR_NUM"
+MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
+WAIT_START=$(date +%s)
+
+echo "⏳ Warte auf Merge von PR #$PR_NUM (max ${MAX_MERGE_WAIT_MIN}min) ..."
+MERGE_STATE=""
+while true; do
+  MERGE_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
+  STATE="${MERGE_STATE%%|*}"
+  MS="${MERGE_STATE##*|}"
+
+  case "$STATE" in
+    MERGED)
+      echo "✅ PR #$PR_NUM ist gemergt — fahre mit Ticket-Abschluss fort."
+      break
+      ;;
+    CLOSED)
+      echo "❌ PR #$PR_NUM wurde geschlossen ohne Merge — breche ab." >&2
+      exit 2
+      ;;
+  esac
+
+  ELAPSED=$(( $(date +%s) - WAIT_START ))
+  if (( ELAPSED > MAX_MERGE_WAIT_MIN * 60 )); then
+    echo "❌ PR #$PR_NUM nach ${MAX_MERGE_WAIT_MIN}min noch nicht gemergt (state=$STATE mergeStateStatus=$MS)." >&2
+    echo "   CI rot? Branch-Protection blockiert? Manuell prüfen:" >&2
+    echo "   gh pr view $PR_NUM --json mergeStateStatus,statusCheckRollup,reviewDecision" >&2
+    exit 3
+  fi
+
+  sleep 15
+done
+```

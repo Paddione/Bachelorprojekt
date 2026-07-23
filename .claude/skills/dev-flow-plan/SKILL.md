@@ -67,32 +67,10 @@ Wähle einen der Pfade (Feature/Fix/Chore) basierend auf der Anfrage und kläre 
 > Diese Skill plant nur (Feature/Fix) und stoppt vor der Umsetzung. Die Umsetzung übernimmt
 > `dev-flow-execute`. Chores laufen vollständig in `dev-flow-chore`.
 ### Artefakt-Ebene: braucht der Request ein PRD davor?
-Die feature/fix/chore-Wahl oben ist die *Pfad*-Wahl durch diese Skill. Davor steht die
-*Artefakt*-Wahl: die meisten Requests steigen direkt auf Change-Proposal-Ebene ein (Feature-Pfad
-→ Schritt 3.1 `/opsx:propose`). Ein PRD ist das **schwerste** Artefakt und nur für
-Epic-große Arbeit gedacht — ein PRD pro Feature kollabiert die Abstraktionsebenen und erzeugt
-Mehrfach-SSOT.
-| Gestalt der Arbeit | Artefakt | Bei dir konkret |
-|---|---|---|
-| Großes, unscharfes Produktziel, viele Features | **PRD** | `parse_prd` (task-master) — Bootstrap/Epic-Zerlegung |
-| Architektur-/Technologieentscheidung | **ADR** | `manage_adr` / OpenSpec |
-| *Ein* konkretes Feature, Intent klar | **Change-Proposal** | `/opsx:propose <slug>` (Feature-Pfad, Schritt 3.1) |
-| Feature, aber Design noch offen | **Brainstorming → Spec** | diese Skill, Feature-Pfad |
-| Wartung, kein Verhaltenswechsel | **Chore-Ticket** | `dev-flow-chore` |
-| Regression | **Fix + failing test** | diese Skill, Fix-Pfad |
-**Checkliste — PRD davor, oder direkt `openspec:propose`?**
-PRD davorschalten, wenn MINDESTENS EINE zutrifft:
-- **Mehrere Capabilities** — der Request zerfällt in >1 OpenSpec-Change (Epic).
-- **„Warum" strittig** — Problem/Zielgruppe/Erfolgsmetrik offen, nicht nur das „Wie".
-- **Neues Teilprodukt/Service** — net-new Surface, keine bestehende Spec zum Anknüpfen.
-- **Cross-Brand/Cross-Subsystem** mit echtem Priorisierungsbedarf.
-Direkt `openspec:propose` (kein PRD), wenn ALLE zutreffen:
-- Genau **eine** Capability betroffen.
-- Intent klar, nur das „Wie" offen → klärt das Brainstorming (Schritt 3) ohnehin.
-- Es gibt eine bestehende Spec in `openspec/specs/`, in die der Delta einfließt (oder klar genau eine neue).
-> **Faustregel:** PRD nur, wenn die Arbeit größer ist als ein einzelner Change — sonst Overhead.
-> Im PRD-Fall: `parse_prd` → N Tickets/Changes → für *jeden* Change wieder dieser normale Pfad.
-> Das PRD bleibt **Upstream-Kontext, wird nie SSOT** (die konsolidierte `openspec/specs/`-Spec ist SSOT).
+Die feature/fix/chore-Wahl oben ist die *Pfad*-Wahl durch diese Skill; davor steht die
+*Artefakt*-Wahl (PRD vs. ADR vs. Change-Proposal vs. Chore-Ticket). Entscheidungstabelle +
+PRD-Checkliste: [plan-artifact-level](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-artifact-level.md).
+
 ## Feature-Pfad
 > **Proposal-Konvention:** Die gesamte Proposal-Phase (Brainstorming + `openspec:propose`) läuft
 > auf dem `main`-Branch — erst danach wird der Worktree angelegt. So sieht OpenSpec beim
@@ -409,23 +387,9 @@ git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
 ### Schritt 6: Optionaler Plan-Review (interaktiv)
-Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Plan
-annotierbar rendern und im Browser reviewen (additiv/optional; der bestehende
-STOP-Text in Schritt 5 bleibt der Default):
-```bash
-bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md
-```
-Im Browser: Text markieren → annotieren (Durchstreichen/Ersetzen/Einfügen/Kommentar) →
-✓ Approve oder ↺ Änderungen anfordern. Danach das Ergebnis einlesen:
-```bash
-bash scripts/plan-review/plan-review.sh result
-```
-- **approve**: `{verdict:"approve"}` → fahre mit Schritt 6 fort (Ausführungsoptionen).
-- **request-changes**: `{verdict:"request-changes", annotations:[…]}` → die
-  Annotationen als Änderungsauftrag an einen Plan-Schreib-Agenten übergeben,
-  1 Revisions-Runde, dann erneut rendern und reviewen. Wiederhole bis approve.
-Details siehe [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).
+Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Plan annotierbar rendern (`bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md`) und im Browser reviewen. Details: [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).
 **STOPP.** Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
+
 ## Fix-Pfad
 ### Schritt 1: T-###### Ticket
 Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp):

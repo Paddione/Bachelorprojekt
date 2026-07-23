@@ -34,7 +34,7 @@ afterEach(() => {
 describe('createUser', () => {
   it('returns "exists" error when a user with the email is already present', async () => {
     globalThis.fetch = (async () =>
-      new Response(JSON.stringify([{ id: 'u1', email: 'a@b.c' }]), { status: 200 })) as typeof fetch;
+      new Response(JSON.stringify({ data: [{ id: 'u1', email: 'a@b.c' }] }), { status: 200 })) as typeof fetch;
     const out = await createUser({ email: 'a@b.c', firstName: 'A', lastName: 'B' });
     expect(out).toEqual({ success: false, error: expect.stringMatching(/existiert/) });
   });
@@ -44,7 +44,7 @@ describe('createUser', () => {
     globalThis.fetch = (async (_url: unknown, _init?: RequestInit) => {
       callCount++;
       if (callCount === 1) {
-        return new Response('[]', { status: 200 });
+        return new Response(JSON.stringify({ data: [] }), { status: 200 });
       }
       return new Response('{}', { status: 201, headers: { Location: '/api/users/abc-123' } });
     }) as typeof fetch;
@@ -57,7 +57,7 @@ describe('createUser', () => {
     let callCount = 0;
     globalThis.fetch = (async () => {
       callCount++;
-      if (callCount === 1) return new Response('[]', { status: 200 });
+      if (callCount === 1) return new Response(JSON.stringify({ data: [] }), { status: 200 });
       return new Response('forbidden', { status: 403 });
     }) as typeof fetch;
     const out = await createUser({ email: 'x@y.z', firstName: 'X', lastName: 'Y' });
@@ -91,7 +91,7 @@ describe('sendPasswordResetEmail', () => {
 describe('listUsers / getUserById / deleteUser / updateUser', () => {
   it('listUsers returns the parsed array', async () => {
     globalThis.fetch = (async () =>
-      new Response(JSON.stringify([{ id: 'u1', email: 'a@b.c' }]), { status: 200 })) as typeof fetch;
+      new Response(JSON.stringify({ data: [{ id: 'u1', email: 'a@b.c' }] }), { status: 200 })) as typeof fetch;
     const out = await listUsers();
     expect(out).toHaveLength(1);
     expect(out[0].id).toBe('u1');

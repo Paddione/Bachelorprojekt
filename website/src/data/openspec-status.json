@@ -1323,6 +1323,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002096": [
+    {
+      "slug": "e2e-testdata-leak",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

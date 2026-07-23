@@ -7,6 +7,32 @@ setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   WF="$REPO_ROOT/.github/workflows/post-merge.yml"
   BUILD_WF="$REPO_ROOT/.github/workflows/build-website.yml"
+  E2E_WF="$REPO_ROOT/.github/workflows/e2e.yml"
+}
+
+# ── G-E2E02 (T002096): e2e.yml calls `npx playwright test` directly, bypassing
+#    the Taskfile's `test:e2e` pre-/post-run curl purge defense-in-depth. If
+#    the job hits its 45min timeout mid-suite, GitHub Actions kills the
+#    process before Playwright's own globalTeardown can fire, leaving
+#    is_test_data=true rows behind in prod (observed: public.inbox_items,
+#    1 row per brand, baseline 2026-07-22). This is expected: FAIL — the
+#    post-run purge fallback step does not exist yet in e2e.yml.
+
+@test "G-E2E02: e2e.yml has an always()-guarded post-run test-data purge step" {
+  run grep -c 'if: always()' "$E2E_WF"
+  [ "$status" -eq 0 ]
+  # post-merge.yml/build-website.yml aren't in scope here — just assert the
+  # purge endpoint is invoked from an always()-guarded step in e2e.yml.
+  run grep -B5 'purge-all-test-data' "$E2E_WF"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"always()"* ]]
+}
+
+@test "G-E2E02: e2e.yml post-run purge step posts X-Cron-Secret against the matrix website_url" {
+  run grep -A6 'purge-all-test-data' "$E2E_WF"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"X-Cron-Secret"* ]]
+  [[ "$output" == *'matrix.website_url'* ]]
 }
 
 @test "G-CD02: post-merge.yml deklariert eine top-level concurrency-Group" {

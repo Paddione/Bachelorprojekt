@@ -58,7 +58,6 @@ env_vars:
   STREAM_DOMAIN: stream.staging.korczewski.de
   WEBSITE_HOST: web.staging.korczewski.de
   WEBSITE_SITE_URL: "https://web.staging.korczewski.de"
-  POCKET_ID_FRONTEND_URL: "https://auth.staging.korczewski.de"
 
   PRIMARY_FRONTEND: astro
   TURN_OVERLAY_IP: "10.20.0.1"
@@ -75,8 +74,8 @@ env_vars:
   # addresses, never routed). ComfyUI/Rigger features are effectively disabled.
   COMFY_HOST_IP: "192.0.2.1"
   COMFY_PORT: "8189"
-  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-staging.svc.cluster.local:1234"
-  LLM_EMBED_URL: "http://llm-gateway-lmstudio.workspace-staging.svc.cluster.local:1234"
+  LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace-staging.svc.cluster.local:8096"
+  LLM_EMBED_URL: "http://llm-gateway-embed.workspace-staging.svc.cluster.local:8095"
   # System-test failure loop disabled on staging
   SYSTEMTEST_LOOP_ENABLED: "false"
   STUDIO_DOMAIN: studio.staging.korczewski.de

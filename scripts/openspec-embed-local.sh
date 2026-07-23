@@ -39,24 +39,18 @@ probe_embed() {
     -X POST "$1/v1/embeddings" -H 'Content-Type: application/json' \
     -d '{"input":["ping"],"model":"bge-m3"}' 2>/dev/null || echo 000
 }
-EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:8081}"
+EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:8095}"
 if [[ "$(probe_embed "$EMBED_URL")" != "200" ]]; then
-  if [[ "$(probe_embed "http://127.0.0.1:9081")" == "200" ]]; then
-    EMBED_URL="http://127.0.0.1:9081"
-  else
-    cat >&2 <<'EOF'
-[openspec-embed-local] FEHLER: kein Embedding-Backend erreichbar (weder :8081 noch :9081).
-Remediation (WSL-Host, TEI läuft als Docker-Container — die systemd-Unit
-tei-embed.service scheitert unter Docker Desktop an "docker.service not found"):
-  docker rm -f tei-embed 2>/dev/null
-  docker run -d --name tei-embed -p 127.0.0.1:9081:80 \
-    -v /var/lib/llm/hf-cache:/data \
-    ghcr.io/huggingface/text-embeddings-inference:cpu-1.9 \
-    --model-id BAAI/bge-m3 --port 80 --max-client-batch-size 64 --max-batch-tokens 16384
-  # dann warten bis: curl -s http://127.0.0.1:9081/health -> 200
+  cat >&2 <<'EOF'
+[openspec-embed-local] FEHLER: kein Embedding-Backend erreichbar (:8095).
+Remediation (Windows GPU Host — llama.cpp läuft als Scheduled Task):
+  Stelle sicher, dass der Windows Scheduled Task "LlamaEmbedServer" läuft:
+    schtasks /run /tn LlamaEmbedServer
+  Oder starte den Server manuell via PowerShell:
+    powershell -ExecutionPolicy Bypass -File .\scripts\llm\start-embed-server.ps1
+  Prüfe dann: curl -s http://127.0.0.1:8095/v1/embeddings -H 'Content-Type: application/json' -d '{"model":"bge-m3","input":["test"]}'
 EOF
     exit 1
-  fi
 fi
 
 # --- 2. DB-URL beschaffen (nie ausgeben!) -----------------------------------

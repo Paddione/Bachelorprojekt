@@ -68,8 +68,8 @@ env_vars:
   TERMINAL_OVERLAY_IP: "10.20.0.10"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "false"
-  LLM_ROUTER_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234"
-  LLM_EMBED_URL: "http://llm-gateway-lmstudio.workspace-korczewski.svc.cluster.local:1234"
+  LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace-korczewski.svc.cluster.local:8096"
+  LLM_EMBED_URL: "http://llm-gateway-embed.workspace-korczewski.svc.cluster.local:8095"
 
   STUDIO_DOMAIN: studio.korczewski.de
   STUDIO_IMAGE: ghcr.io/paddione/studio-server

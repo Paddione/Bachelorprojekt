@@ -1,7 +1,14 @@
 import { test, expect } from '@playwright/test';
 
+const base = process.env.WEBSITE_URL ?? 'http://localhost:4321';
+const defaultBrett = base.includes('mentolder.de')
+  ? 'https://brett.mentolder.de'
+  : base.includes('korczewski.de')
+  ? 'https://brett.korczewski.de'
+  : 'http://brett.localhost';
+
 const BRETT_URL = process.env.BRETT_URL
-  ?? (process.env.PROD_DOMAIN ? `https://brett.${process.env.PROD_DOMAIN}` : 'http://brett.localhost');
+  ?? (process.env.PROD_DOMAIN ? `https://brett.${process.env.PROD_DOMAIN}` : defaultBrett);
 
 test.describe('FA-27: Systemisches Brett', { tag: ['@brett'] }, () => {
   // ── Unauthenticated probes (services project) ───────────────────────────

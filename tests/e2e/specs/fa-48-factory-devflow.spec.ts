@@ -32,6 +32,28 @@ function stubPayload(hall: HallItem[]) {
   };
 }
 
+async function gotoDevStatusWithStub(page: any, payload: any) {
+  await page.route('**/api/factory-floor', (route: any) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(payload),
+    }),
+  );
+
+  await page.route('**/admin/pipeline*', async (route: any) => {
+    const response = await route.fetch();
+    let body = await response.text();
+    const payloadStr = JSON.stringify(payload);
+    // Replace initial: null or initial: {...} inside props attribute in Astro island
+    body = body.replace(/"initial":null/g, `"initial":${payloadStr}`);
+    body = body.replace(/"initial":\{.*?\}/g, `"initial":${payloadStr}`);
+    route.fulfill({ response, body });
+  });
+
+  await page.goto('/dev-status');
+}
+
 test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {
   test.beforeEach(async ({ page }) => {
     // Stub SSE endpoint to avoid real connection / error logs
@@ -39,12 +61,7 @@ test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {
   });
 
   test('T1: devflow workpiece hat data-driver="devflow" und kein goldenes bg', async ({ page }) => {
-    await page.route('**/api/factory-floor', (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(
-        stubPayload([...FACTORY_HALL, ...DEVFLOW_HALL])
-      ) }),
-    );
-    await page.goto('/dev-status');
+    await gotoDevStatusWithStub(page, stubPayload([...FACTORY_HALL, ...DEVFLOW_HALL]));
     await expect(page.getByTestId('factory-floor')).toBeVisible();
 
     const devflowWps = page.getByTestId('floor-workpiece').filter({ hasText: 'T000582' });
@@ -56,12 +73,7 @@ test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {
   });
 
   test('T2: devflow workpiece im deploy-Phase zeigt CI-Badge mit ciStatus', async ({ page }) => {
-    await page.route('**/api/factory-floor', (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(
-        stubPayload(DEVFLOW_HALL)
-      ) }),
-    );
-    await page.goto('/dev-status');
+    await gotoDevStatusWithStub(page, stubPayload(DEVFLOW_HALL));
 
     const badge = page.getByTestId('floor-ci-badge');
     await expect(badge).toBeVisible();
@@ -70,24 +82,14 @@ test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {
 
   test('T3: devflow workpiece ohne ciStatus zeigt kein CI-Badge', async ({ page }) => {
     // Nur die pending-devflow (ohne ciStatus)
-    await page.route('**/api/factory-floor', (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(
-        stubPayload([DEVFLOW_HALL[1]]) // T000583, ciStatus=null
-      ) }),
-    );
-    await page.goto('/dev-status');
+    await gotoDevStatusWithStub(page, stubPayload([DEVFLOW_HALL[1]]));
 
     await expect(page.getByTestId('floor-workpiece').filter({ hasText: 'T000583' })).toBeVisible();
     await expect(page.getByTestId('floor-ci-badge')).toHaveCount(0);
   });
 
   test('T4: factory workpiece hat kein blue border / bg', async ({ page }) => {
-    await page.route('**/api/factory-floor', (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(
-        stubPayload(FACTORY_HALL)
-      ) }),
-    );
-    await page.goto('/dev-status');
+    await gotoDevStatusWithStub(page, stubPayload(FACTORY_HALL));
 
     const wp = page.getByTestId('floor-workpiece').filter({ hasText: 'T000459' });
     await expect(wp).toHaveAttribute('data-driver', 'factory');
@@ -98,12 +100,7 @@ test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {
   });
 
   test('T5: devflow workpiece anzeige zeigt 👨‍💻 Emoji im Label', async ({ page }) => {
-    await page.route('**/api/factory-floor', (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(
-        stubPayload(DEVFLOW_HALL)
-      ) }),
-    );
-    await page.goto('/dev-status');
+    await gotoDevStatusWithStub(page, stubPayload(DEVFLOW_HALL));
 
     await expect(page.getByTestId('floor-workpiece').filter({ hasText: '👨‍💻' })).toBeVisible();
   });

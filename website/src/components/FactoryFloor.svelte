@@ -3,6 +3,7 @@
   import type { Phase } from '../lib/factory-floor-types';
   import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
   export { MOBILE_COL_INDEX }; // eslint-disable-line no-import-assign
+  export const MOBILE_COL_COUNT = 11;
   export const STATIONS: { key: Phase; label: string }[] =
     PHASE_ORDER.map((key) => ({ key, label: key.charAt(0).toUpperCase() + key.slice(1) }));
 </script>
@@ -28,11 +29,9 @@
 
   let { initial }: { initial: FloorPayload | null } = $props();
 
-  const MOBILE_COL_COUNT = 11;
+  let isMobile = $state(false);
   let mobileColIndex = $state(0);
   let touchStartX = $state(0);
-  let isMobile = $state(false);
-
   $effect(() => {
     if (typeof window === 'undefined') return;
     const mq = window.matchMedia('(max-width: 767px)');
@@ -40,6 +39,15 @@
     const handler = (e: MediaQueryListEvent) => { isMobile = e.matches; };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
+  });
+
+  onMount(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) data = customEvent.detail;
+    };
+    window.addEventListener('floor-stub-update', handler);
+    return () => window.removeEventListener('floor-stub-update', handler);
   });
 
   function mobileNext() { if (mobileColIndex < MOBILE_COL_COUNT - 1) mobileColIndex++; }

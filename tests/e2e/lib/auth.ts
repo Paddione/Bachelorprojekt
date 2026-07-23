@@ -28,9 +28,26 @@ export async function loginViaE2E(
   const token = CRON_SECRET ? `&token=${encodeURIComponent(CRON_SECRET)}` : '';
   const url = `${cleanBase}/api/auth/e2e-login?username=${encodeURIComponent(user)}&returnTo=${encodeURIComponent(returnTo)}${token}`;
 
-  await page.goto(url, {
-    waitUntil: 'domcontentloaded',
-  });
+  let attempts = 0;
+  while (attempts < 3) {
+    try {
+      attempts++;
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15_000 });
+      break;
+    } catch (err: any) {
+      if (attempts >= 3) throw err;
+      await page.waitForTimeout(1000);
+    }
+  }
+
+  if (page.url().includes('/404')) {
+    // Retry with title-cased username variant (e.g. paddione -> Paddione)
+    const titleUser = user.charAt(0).toUpperCase() + user.slice(1);
+    if (titleUser !== user) {
+      const retryUrl = `${cleanBase}/api/auth/e2e-login?username=${encodeURIComponent(titleUser)}&returnTo=${encodeURIComponent(returnTo)}${token}`;
+      await page.goto(retryUrl, { waitUntil: 'domcontentloaded' });
+    }
+  }
 
   await page.waitForFunction(
     (expected: string) => window.location.pathname.startsWith(expected) || window.location.href.includes(expected),

@@ -1,7 +1,14 @@
 import { test, expect } from '@playwright/test';
 
+const base = process.env.WEBSITE_URL ?? 'http://localhost:4321';
+const defaultDocs = base.includes('mentolder.de')
+  ? 'https://docs.mentolder.de'
+  : base.includes('korczewski.de')
+  ? 'https://docs.korczewski.de'
+  : 'http://docs.localhost';
+
 const DOCS_URL = process.env.DOCS_URL
-  ?? (process.env.PROD_DOMAIN ? `https://docs.${process.env.PROD_DOMAIN}` : 'http://docs.localhost');
+  ?? (process.env.PROD_DOMAIN ? `https://docs.${process.env.PROD_DOMAIN}` : defaultDocs);
 
 /**
  * FA-13: Dokumentations-Service

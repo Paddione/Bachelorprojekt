@@ -2924,7 +2924,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 536,
+      "file_count": 537,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3248,6 +3248,7 @@
         "scripts/git-safe-push.sh",
         "scripts/harness.ts",
         "scripts/health-goals-check.sh",
+        "scripts/health-goals-llm-fill.sh",
         "scripts/health-goals-update.sh",
         "scripts/hermes-delegate.sh",
         "scripts/hermes-mcp-provision.sh",

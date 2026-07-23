@@ -67,32 +67,10 @@ Wähle einen der Pfade (Feature/Fix/Chore) basierend auf der Anfrage und kläre 
 > Diese Skill plant nur (Feature/Fix) und stoppt vor der Umsetzung. Die Umsetzung übernimmt
 > `dev-flow-execute`. Chores laufen vollständig in `dev-flow-chore`.
 ### Artefakt-Ebene: braucht der Request ein PRD davor?
-Die feature/fix/chore-Wahl oben ist die *Pfad*-Wahl durch diese Skill. Davor steht die
-*Artefakt*-Wahl: die meisten Requests steigen direkt auf Change-Proposal-Ebene ein (Feature-Pfad
-→ Schritt 3.1 `/opsx:propose`). Ein PRD ist das **schwerste** Artefakt und nur für
-Epic-große Arbeit gedacht — ein PRD pro Feature kollabiert die Abstraktionsebenen und erzeugt
-Mehrfach-SSOT.
-| Gestalt der Arbeit | Artefakt | Bei dir konkret |
-|---|---|---|
-| Großes, unscharfes Produktziel, viele Features | **PRD** | `parse_prd` (task-master) — Bootstrap/Epic-Zerlegung |
-| Architektur-/Technologieentscheidung | **ADR** | `manage_adr` / OpenSpec |
-| *Ein* konkretes Feature, Intent klar | **Change-Proposal** | `/opsx:propose <slug>` (Feature-Pfad, Schritt 3.1) |
-| Feature, aber Design noch offen | **Brainstorming → Spec** | diese Skill, Feature-Pfad |
-| Wartung, kein Verhaltenswechsel | **Chore-Ticket** | `dev-flow-chore` |
-| Regression | **Fix + failing test** | diese Skill, Fix-Pfad |
-**Checkliste — PRD davor, oder direkt `openspec:propose`?**
-PRD davorschalten, wenn MINDESTENS EINE zutrifft:
-- **Mehrere Capabilities** — der Request zerfällt in >1 OpenSpec-Change (Epic).
-- **„Warum" strittig** — Problem/Zielgruppe/Erfolgsmetrik offen, nicht nur das „Wie".
-- **Neues Teilprodukt/Service** — net-new Surface, keine bestehende Spec zum Anknüpfen.
-- **Cross-Brand/Cross-Subsystem** mit echtem Priorisierungsbedarf.
-Direkt `openspec:propose` (kein PRD), wenn ALLE zutreffen:
-- Genau **eine** Capability betroffen.
-- Intent klar, nur das „Wie" offen → klärt das Brainstorming (Schritt 3) ohnehin.
-- Es gibt eine bestehende Spec in `openspec/specs/`, in die der Delta einfließt (oder klar genau eine neue).
-> **Faustregel:** PRD nur, wenn die Arbeit größer ist als ein einzelner Change — sonst Overhead.
-> Im PRD-Fall: `parse_prd` → N Tickets/Changes → für *jeden* Change wieder dieser normale Pfad.
-> Das PRD bleibt **Upstream-Kontext, wird nie SSOT** (die konsolidierte `openspec/specs/`-Spec ist SSOT).
+Die feature/fix/chore-Wahl oben ist die *Pfad*-Wahl durch diese Skill; davor steht die
+*Artefakt*-Wahl (PRD vs. ADR vs. Change-Proposal vs. Chore-Ticket). Entscheidungstabelle +
+PRD-Checkliste: [plan-artifact-level](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-artifact-level.md).
+
 ## Feature-Pfad
 > **Proposal-Konvention:** Die gesamte Proposal-Phase (Brainstorming + `openspec:propose`) läuft
 > auf dem `main`-Branch — erst danach wird der Worktree angelegt. So sieht OpenSpec beim
@@ -264,41 +242,9 @@ Statt deinen eigenen Kontext zurückzusetzen (das ließe dich den Faden verliere
        DB-Spalten/API-Contracts aus den `db_tables`/`api_contracts`-Sektionen zitieren. Format/Quellen:
        [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
     - **plan-lint Hard Rules (PFLICHT — vom Subagenten verbatim zu befolgen):**
-      Vollständige SSOT in [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)
-      §plan-lint — der Subagent MUSS die Datei lesen und die tasks.md dagegen schreiben
-      (`scripts/plan-lint.sh` ist das maschinelle Gate dazu). Kurzfassung, damit ein
-      frischer Subagent nicht raten muss:
-      - **F1 Frontmatter:** YAML-Frontmatter am Anfang mit den vier Pflicht-Keys
-        `title`, `ticket_id`, `domains`, `status` (alle nicht-leer).
-      - **F2 domains:** `domains:` ist eine non-empty YAML-Liste (`[a, b, …]`),
-        kein leerer String und kein `[]`.
-      - **STRUCT1 Plan-Shape:** Die Datei beginnt (nach Frontmatter) mit
-        `# <slug> — Implementation Plan` als H1, gefolgt von einer H2-Sektion
-        `## File Structure`, die die geänderten/neuen Dateien auflistet.
-      - **STRUCT2 Failing-Test-Step:** Mindestens ein Task enthält einen
-        rot→grün-Failing-Test-Step mit der wortwörtlichen Phrase
-        `expected: FAIL` (regex tolerant: `expected:? *fail`) — **UND** einen
-        echten Testrunner-Aufruf (`bats`/`vitest`/`pytest`/`jest`/`mocha`/
-        `go test`/`playwright test`) im selben oder einem anderen Task. Die
-        Phrase allein reicht NICHT (billig zu faken, vom `openspec propose`-
-        Skeleton vorgeseedet); der finale `task test:*`-Verify-Task (STRUCT3)
-        zählt NICHT als dieser Failing-Test-Step (T001791 #2).
-      - **STRUCT3 Verify-Task:** Der letzte Task listet die drei mandatory
-        Verify-Commands: `task test:changed`, `task freshness:regenerate`,
-        `task freshness:check` (regex `task[[:space:]]+<cmd>`).
-      - **P1 Placeholder-Verbot:** In Prosa (außerhalb von ```-Fences und
-        `inline code`) dürfen die Tokens `TBD`, `TODO`, `FIXME`, `???`,
-        `<ausfüllen>` und `similar to Task <N>` NICHT vorkommen.
-      - **B1a Budget-Integrität:** Jeder im Plan behauptete Budget-Wert für
-        eine bereits im Repo existierende Datei muss exakt dem vom Linter
-        berechneten effektiven Budget entsprechen (Baseline vs. Limit) —
-        sonst Hard-Fail.
-      - **B1b Split/Shrink bei Budget ≤ 0:** Ist das effektive Budget einer
-        referenzierten Datei ≤ 0, MUSS der Plan einen Split-/Shrink-Schritt
-        enthalten (Stichwörter: `split`, `extract`, `verkleiner`, `shrink`,
-        `aufteil`) — sonst Warnung (kosmetisches Zusammenziehen reicht nicht).
-      - **Auftrag:** „**PFLICHT — Worktree-Isolation:** Beginne deinen Prompt mit `cd .worktrees/<slug>` — der Subagent hat keinen impliziten CWD-Kontext und schreibt sonst ins Haupt-Checkout. Alle folgenden Dateipfade sind relativ zu diesem Worktree.
-     Dann: Lies die Spec UND `.claude/skills/references/plan-quality-gates.md`. Rufe `superpowers:writing-plans` auf und schreibe den Implementierungsplan **ausschließlich** nach `openspec/changes/<slug>/tasks.md` (OpenSpec-Format: H2-Operationsheader im Delta, H3-Requirement, H4-Scenario im `specs/<capability>.md`). Der finale Verifikations-Task des Plans MUSS `task test:changed`, `task freshness:regenerate` und `task freshness:check` als Steps enthalten (CI-Äquivalent inkl. S1–S4-Ratchet); nach Test-Änderungen zusätzlich `task test:inventory` + Commit des Inventars. Vor dem Commit: `task test:openspec` (oder `bash scripts/openspec.sh validate`) — muss grün sein. **Test-Assertion-Konsistenz:** Verifiziere vor Finalisierung, dass jede im Plan-Task vorgegebene Test-Regex/Erwartung tatsächlich die im selben Task referenzierten Implementierungs-Snippets matchen kann — bei Diskrepanz wähle eine semantisch äquivalente Assertion-Form, die zum Snippet passt. Starte KEINE Implementierung (nur Plan schreiben, dann STOPP). Gib den Plan-Pfad (`openspec/changes/<slug>/tasks.md`) und eine 3-Zeilen-Zusammenfassung zurück."
+      SSOT: [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)
+      §"plan-lint Hard Rules" — der Subagent MUSS die Datei lesen (F1/F2/STRUCT1–3/P1/B1a/B1b)
+      und die tasks.md dagegen schreiben (`scripts/plan-lint.sh` ist das maschinelle Gate dazu).
 ### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)
 Führe ZUERST den deterministischen, fail-closed Linter auf den Plan-Pfad aus, den der
 Subagent zurückgegeben hat — das ist das **harte Gate**:
@@ -409,23 +355,9 @@ git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
 ```
 ### Schritt 6: Optionaler Plan-Review (interaktiv)
-Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Plan
-annotierbar rendern und im Browser reviewen (additiv/optional; der bestehende
-STOP-Text in Schritt 5 bleibt der Default):
-```bash
-bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md
-```
-Im Browser: Text markieren → annotieren (Durchstreichen/Ersetzen/Einfügen/Kommentar) →
-✓ Approve oder ↺ Änderungen anfordern. Danach das Ergebnis einlesen:
-```bash
-bash scripts/plan-review/plan-review.sh result
-```
-- **approve**: `{verdict:"approve"}` → fahre mit Schritt 6 fort (Ausführungsoptionen).
-- **request-changes**: `{verdict:"request-changes", annotations:[…]}` → die
-  Annotationen als Änderungsauftrag an einen Plan-Schreib-Agenten übergeben,
-  1 Revisions-Runde, dann erneut rendern und reviewen. Wiederhole bis approve.
-Details siehe [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).
+Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Plan annotierbar rendern (`bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md`) und im Browser reviewen. Details: [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).
 **STOPP.** Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
+
 ## Fix-Pfad
 ### Schritt 1: T-###### Ticket
 Frage den User nach der Ticket-ID. Falls keins vorhanden ist, lege ein neues Ticket an — **MCP-first** (`ticket-mcp`; Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp):

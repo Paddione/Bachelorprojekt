@@ -1329,6 +1329,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002094": [
+    {
+      "slug": "agentic-skillmd-size",
+      "status": "plan_staged"
+    }
+  ],
   "T002095": [
     {
       "slug": "db-slow-query",

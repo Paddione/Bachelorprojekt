@@ -40,71 +40,18 @@ Bei mehreren staged plans den User via `AskUserQuestion` (Claude Code) oder `que
 
 ## Schritt −1: Pre-Flight — Ticket-Lock & Status (vor allen Git-Operationen) [T002038]
 
-Bevor irgendeine Git-Operation oder Worktree-Erzeugung läuft, MUSS die Session
-das Ticket als erstes sichern. Dieses frühe Claimen verhindert die Race
-zwischen dev-flow-execute und der Factory-Pipeline: die Factory PREP prüft
-`agent-lock.sh check` auf "held" und überspringt das Ticket, wenn eine
-interaktive Session es bereits claimed hat — ABER nur wenn der Claim VOR dem
-ersten Factory-Check platziert ist. [T002038-M1]
-
-### Schritt −1.0: Ticket aus dem Branch-Namen oder Kontext ermitteln
-
-Falls `TICKET_ID` noch nicht bekannt ist (steht normalerweise im Branch-Namen
-oder im Kontext): Query `plan_staged` Tickets aus der DB oder frage den User.
-
-### Schritt −1.1: Ticket-Status aus der DB prüfen (vor dem Claim)
-
+Vor jeder Git-Operation MUSS das Ticket atomisch geclaimed werden (verhindert die Race
+zwischen dev-flow-execute und der Factory-Pipeline — Claim VOR dem ersten Factory-Check).
+Vollständige Mechanik (Status-Check, `check-and-claim`, Exit-Code-Semantik, Broadcast):
+[ticket-preflight-lock](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-preflight-lock.md).
 ```bash
 TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID" 2>/dev/null || echo '{}')
-TICKET_STATUS=$(echo "$TICKET_JSON" | jq -r '.status // empty')
-case "$TICKET_STATUS" in
-  done|archived|merged)
-    echo "🛑 Ticket $TICKET_ID ist bereits $TICKET_STATUS — kein dev-flow-execute nötig." >&2
-    exit 1
-    ;;
-  in_progress)
-    echo "⚠️ Ticket $TICKET_ID ist bereits in_progress. Ein anderes Cluster arbeitet evtl. parallel."
-    echo "   Fortsetzung auf eigenes Risiko. Abbruch: exit 1"
-    ;;
-  plan_staged)
-    echo "✅ Ticket $TICKET_ID ist plan_staged — fortfahren."
-    ;;
-  *)
-    echo "⚠️ Ticket $TICKET_ID hat Status '$TICKET_STATUS' — unerwartet, aber nicht blockierend."
-    ;;
-esac
-```
-
-### Schritt −1.2: Ticket atomic claimen (check-and-claim) [T002038-M2]
-
-Verwendet das neue `check-and-claim` Kommando, das atomisch prüft (kein
-TOCTOU) und den Claim setzt — in einem Schritt:
-
-```bash
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-bash scripts/agent-lock.sh check-and-claim ticket "$TICKET_ID" \
-  --branch "$CURRENT_BRANCH" \
-  --label dev-flow-execute
-RET=$?
-case $RET in
-  0) echo "✅ Ticket $TICKET_ID erfolgreich geclaimed." ;;
-  1) echo "🛑 Ticket $TICKET_ID wird bereits von einer anderen Session bearbeitet." >&2
-     echo "   → Mit paralleler Session koordinieren:" >&2
-     echo "     bash scripts/agent-msg.sh read --mine --unread" >&2
-     exit 1 ;;
-  2) echo "🛑 Ticket $TICKET_ID ist bereits done/merged — Status-Check verweigert Claim." >&2
-     exit 1 ;;
-esac
-```
-
-### Schritt −1.3: Ankündigung broadcasten [T002038-M3]
-
-Sende eine Nachricht an alle aktiven Sessions, damit andere sehen, wer an
-diesem Ticket arbeitet:
-
-```bash
+bash scripts/agent-lock.sh check-and-claim ticket "$TICKET_ID" --branch "$CURRENT_BRANCH" --label dev-flow-execute \
+  || { echo "🛑 siehe ticket-preflight-lock.md für Exit-Code-Behandlung"; exit 1; }
 bash scripts/agent-msg.sh post "dev-flow-execute startet Arbeit an Ticket $TICKET_ID" --to all
 ```
+
 
 ## Schritt 0: Main-Branch im Haupt-Repo synchronisieren (Pull-First)
 
@@ -410,46 +357,13 @@ zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann m
 ```
 
 ## Schritt 6.4: Warte auf PR-Merge (vor Ticket-Abschluss)
+`gh pr merge --auto` kehrt sofort zurück — der Merge passiert asynchron. Warte, bis er
+tatsächlich durch ist, bevor das Ticket geschlossen wird (vermeidet Ticket=done bei
+PR=OPEN+CONFLICTING Drift, Mishap T001149-M1). Voller Poll-Loop mit Timeout/State-Handling
+(`MERGED`/`CLOSED`/Timeout-Exit-Codes): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md)
+§"PR-Merge-Wait-Loop" — der Subagent MUSS die Datei lesen und den Loop von dort ausführen
+(nicht aus dem Gedächtnis rekonstruieren).
 
-`gh pr merge --auto` kehrt sofort zurück — der eigentliche Merge passiert asynchron im Hintergrund.
-Bisher hat Schritt 6.5 das Ticket direkt nach `--auto` auf `done` gesetzt, was zu Drift führte
-(s. Mishap T001149-M1, T001145/PR #2101: Ticket `done`, PR aber OPEN+CONFLICTING).
-Jetzt: **warten, bis der Merge tatsächlich durch ist**, bevor das Ticket geschlossen wird.
-```bash
-PR_NUM=$(gh pr view --json number -q '.number')
-PR_URL="https://github.com/Paddione/Bachelorprojekt/pull/$PR_NUM"
-MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
-WAIT_START=$(date +%s)
-
-echo "⏳ Warte auf Merge von PR #$PR_NUM (max ${MAX_MERGE_WAIT_MIN}min) ..."
-MERGE_STATE=""
-while true; do
-  MERGE_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
-  STATE="${MERGE_STATE%%|*}"
-  MS="${MERGE_STATE##*|}"
-
-  case "$STATE" in
-    MERGED)
-      echo "✅ PR #$PR_NUM ist gemergt — fahre mit Ticket-Abschluss fort."
-      break
-      ;;
-    CLOSED)
-      echo "❌ PR #$PR_NUM wurde geschlossen ohne Merge — breche ab." >&2
-      exit 2
-      ;;
-  esac
-
-  ELAPSED=$(( $(date +%s) - WAIT_START ))
-  if (( ELAPSED > MAX_MERGE_WAIT_MIN * 60 )); then
-    echo "❌ PR #$PR_NUM nach ${MAX_MERGE_WAIT_MIN}min noch nicht gemergt (state=$STATE mergeStateStatus=$MS)." >&2
-    echo "   CI rot? Branch-Protection blockiert? Manuell prüfen:" >&2
-    echo "   gh pr view $PR_NUM --json mergeStateStatus,statusCheckRollup,reviewDecision" >&2
-    exit 3
-  fi
-
-  sleep 15
-done
-```
 
 ## Schritt 6.5: Ticket abschließen
 
@@ -477,63 +391,11 @@ Fallback (ticket-mcp nicht erreichbar; die `verify`-Zeile bleibt Pflicht, der Re
 
 ## Schritt 7: Plan & OpenSpec archivieren
 
-Zwei Schritte: (1) `tasks.md` nach postgres, (2) den gesamten OpenSpec-Change-Ordner ins Archiv.
-```bash
-SLUG="<slug>"
-BRANCH="feature/<slug>" # oder fix/<slug>
-PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
+Zwei Schritte: (1) `tasks.md` nach postgres (`ticket-mcp` `archive_plan` bzw. `ticket.sh archive-plan`),
+(2) der gesamte OpenSpec-Change-Ordner ins Archiv via `scripts/openspec.sh archive` — inkl.
+Push-Verification (T001268) und PR-Creation-Verification (T001331). Vollständige Mechanik:
+[plan-archive-steps](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-archive-steps.md).
 
-# 1. Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird:
-sed -E -i 's/^status: (active|plan_staged|in_progress)$/status: completed/' "$PLAN_FILE"
-```
-2. tasks.md → postgres (`tickets.ticket_plans`) — **MCP-first** (`ticket-mcp`):
-> `mcp__ticket-mcp__archive_plan({ id: "$TICKET_ID", slug: "$SLUG", branch: "$BRANCH", plan_file: "$PLAN_FILE", pr: "$PR_NUM" })`
-Fallback (ticket-mcp nicht erreichbar):
-```bash
-./scripts/ticket.sh archive-plan \
-  --id "$TICKET_ID" \
-  --slug "$SLUG" \
-  --branch "$BRANCH" \
-  --plan-file "$PLAN_FILE" \
-  --pr "$PR_NUM"
-```
-3. OpenSpec-Change archivieren: `openspec/changes/<slug>/` → `openspec/changes/archive/<date>-<slug>/`. Verschiebt proposal.md, tasks.md, specs/, assets/ ins Archiv und aktualisiert den SSOT-Delta.
-```bash
-bash scripts/openspec.sh archive "$SLUG"
-# Alternativ: task openspec:archive -- "$SLUG"
-
-# 4. Archivierung committen und via PR mergen (wegen Branch-Protection)
-git add openspec/changes/ openspec/changes/archive/
-git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
-
-ARCHIVE_BRANCH="chore/plan-archive-${SLUG//\//-}"
-git checkout -b "$ARCHIVE_BRANCH"
-
-# Push-Verification Checkpoint (PFLICHT — Schritt 7) [T001268]:
-# Bevor der archive commit als "erledigt" gilt, MUSS der Subagent beweisen, dass
-# der Commit auf origin ist. Wir prüfen via `git ls-remote origin`, dass der
-# remote SHA gleich dem lokalen HEAD ist. `push_verified:<sha>` ist ein
-# Pflicht-Feld im Subagent-Return-Contract — der Orchestrator darf ohne dieses
-# Feld weder mergen noch das Ticket schließen.
-git push -u origin "$ARCHIVE_BRANCH" || { echo "FATAL: archive push fehlgeschlagen" >&2; exit 1; }
-LOCAL_SHA="$(git rev-parse HEAD)"
-REMOTE_SHA="$(git ls-remote origin "refs/heads/$ARCHIVE_BRANCH" | awk '{print $1}')"
-[ "$LOCAL_SHA" = "$REMOTE_SHA" ] || { echo "FATAL: push_verified mismatch — local=$LOCAL_SHA remote=$REMOTE_SHA" >&2; exit 1; }
-echo "push_verified:$LOCAL_SHA"
-
-gh pr create --title "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]" --base main
-
-# PR Creation Verification (T001331): Confirm the PR was actually created.
-# The subagent must return pr_created:<pr-number> alongside push_verified:<sha>.
-# The orchestrator must not proceed without both fields.
-PR_NUM="$(gh pr view --json number -q '.number' 2>/dev/null || echo '')"
-if [ -z "$PR_NUM" ]; then
-  echo "FATAL: gh pr create did not produce a visible PR — orphan branch left behind." >&2
-  exit 1
-fi
-echo "pr_created:$PR_NUM"
-gh pr merge --auto --squash --delete-branch
-```
 
 ## Schritt 7.5: Worktree & Branch bereinigen
 

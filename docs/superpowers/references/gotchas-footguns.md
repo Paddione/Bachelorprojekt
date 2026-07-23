@@ -18,6 +18,7 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 12. [Local-first LLM pipeline](#local-first-llm-pipeline) — GPU host; vector space isolation; LM Studio
 13. [dev.mentolder.de stack](#devmentolderde-stack) — devc decommissioned; WSL bootstrap caveats
 14. [Brett](#brett) — stub; reserved for future use
+15. [Alt-Worktrees nach T002135 — Submodul-Gitdir-Reste](#alt-worktrees-nach-t002135--submodul-gitdir-reste) — cleanup orphaned submodule gitdirs in pre-merge worktrees
 
 ---
 
@@ -130,3 +131,16 @@ The env var is `BRAND` in the Kubernetes ConfigMap (`k3d/website.yaml`) and `BRA
 ### Brett
 
 (stub — reserved for future use)
+
+### Alt-Worktrees nach T002135 — Submodul-Gitdir-Reste
+
+Seit T002135 / PR #3167 sind die bats-Support-Libs vendort statt als Git-Submodule eingebunden. Worktrees, die **vor** dem 2026-07-23-Merge angelegt wurden, enthalten noch verwaiste per-Worktree-Submodul-Gitdirs unter `.git/worktrees/<name>/modules/`. Diese verhindern `git worktree remove` mit der Meldung „working trees containing submodules cannot be moved or removed" — obwohl der aktuelle Index keine Submodule mehr referenziert.
+
+Zum sauberen Entfernen (ohne `--force`):
+
+```bash
+rm -rf .git/worktrees/<name>/modules   # verwaiste Submodul-Gitdirs
+git worktree remove .worktrees/<name>  # geht dann ohne --force
+```
+
+Das Problem erledigt sich mit der Zeit, sobald alle VOR-T002135-Worktrees abgeräumt sind.

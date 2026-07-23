@@ -181,6 +181,7 @@ Covered sub-topics (reference file, not repeated here):
 - **Kore design system** — korczewski brand uses website/src/components/kore/
 - **Local-first LLM pipeline** — GPU host; vector space isolation; LM Studio
 - **dev.mentolder.de stack** — devc decommissioned; WSL bootstrap caveats
+- **Alt-Worktrees nach T002135** — cleanup orphaned submodule gitdirs (`docs/superpowers/references/gotchas-footguns.md#alt-worktrees-nach-t002135--submodul-gitdir-reste`)
 
 ### Bug-Triage-Konvention (CFR-Gate G-DORA03)
 

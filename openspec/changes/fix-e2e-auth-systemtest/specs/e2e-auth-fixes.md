@@ -1,23 +1,37 @@
----
-source: proposal.md
-status: implemented
-target: tests/e2e/
----
+## MODIFIED Requirements
 
-# E2E Auth Fixes
+### Requirement: E2E Auth Token Refresh
 
-## Änderungen
+The E2E auth flow SHALL refresh tokens reliably without returning 401 errors during system tests.
 
-- Fix auth token refresh in E2E tests
-- Handle 401 responses in system-test-runner gracefully
-- Fix talk selector for iOS tests
-- Update Playwright config for reliable CI runs
+#### Scenario: Auth token refresh succeeds
 
-## Betroffene Dateien
+- **GIVEN** an E2E test session with an expiring auth token
+- **WHEN** the auth token approaches expiration
+- **THEN** the token SHALL be refreshed before the next API call
 
-- `.github/workflows/e2e.yml`
-- `tests/e2e/lib/auth.ts`
-- `tests/e2e/lib/systemtest-runner.ts`
-- `tests/e2e/lib/wissensquellen-fixtures.ts`
-- `tests/e2e/playwright.config.ts`
-- `tests/e2e/specs/fa-ios-talk.spec.ts`
+#### Scenario: System-test handles 401 gracefully
+
+- **GIVEN** a system test runner making authenticated API calls
+- **WHEN** a 401 response is received
+- **THEN** the runner SHALL retry with a fresh token
+
+### Requirement: Talk Selector for iOS E2E
+
+The talk selector SHALL work correctly in iOS E2E tests.
+
+#### Scenario: iOS talk selector works
+
+- **GIVEN** an iOS E2E test session
+- **WHEN** the talk selector is used
+- **THEN** the correct talk SHALL be selected
+
+### Requirement: Reliable Playwright CI Configuration
+
+The Playwright configuration SHALL be tuned for reliable CI execution.
+
+#### Scenario: CI Playwright runs are stable
+
+- **GIVEN** a CI environment running Playwright E2E tests
+- **WHEN** tests are executed
+- **THEN** they SHALL complete without timeout or flaky failures

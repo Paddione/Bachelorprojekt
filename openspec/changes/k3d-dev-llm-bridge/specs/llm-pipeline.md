@@ -6,7 +6,7 @@ Update LLM_HOST_IP for the dev k3d environment from the unreachable Docker bridg
 (172.17.0.1) to the wg-mesh address (192.168.100.10) that all prod environments
 already use. Documentation fixes in k3d/llm-gpu.yaml and environments/schema.yaml.
 
-## CHANGED Requirements
+## MODIFIED Requirements
 
 ### Requirement: LLM-PIPELINE-001 — Dev LLM_HOST_IP is reachable from k3d pods
 

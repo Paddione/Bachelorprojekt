@@ -1,7 +1,7 @@
-# Design Spec: Fix E2E Test Failures
+# Design Spec: Fix E2E Test Failures & CI Result Ingest
 
 ## Intent & Requirements
-Fix recurring flaky/failing E2E tests identified in the recent test suite run:
+Fix recurring flaky/failing E2E tests and ensure test results are properly ingested and displayed in CI:
 1. **Admin / E2E Login Timeout (`wissensquellen`, `agent-guide-walkthrough`, `fa-admin-inbox`)**:
    - `loginViaE2E` and `loginAsAdmin` in test helpers wait for navigation via `page.waitForURL(...)` after navigating to `/api/auth/e2e-login`.
    - On redirect or fast navigation, `domcontentloaded` event or URL transition might already be finished before `waitForURL` evaluates, or query params / session cookies timing causes timeouts.
@@ -14,3 +14,7 @@ Fix recurring flaky/failing E2E tests identified in the recent test suite run:
 3. **Nextcloud Talk WebKit Visibility Selector (`fa-ios-talk.spec.ts`)**:
    - `locator('[data-app-id="spreed"], .app-spreed, #body-login, .pf-v5-c-login__main, #kc-form-login').first()` times out when Nextcloud login form or Talk app loads with different layout containers.
    - Fix: Add resilient fallback selectors matching Nextcloud Talk's current login/app container DOM structure.
+
+4. **CI Ingest Token & Report Path Verification (`.github/workflows/e2e.yml`)**:
+   - Ingest step in `.github/workflows/e2e.yml` requires `E2E_INGEST_TOKEN` repo secret and checks for `tests/results/.tmp-e2e-results.json`.
+   - Fix: Verify reporter output path alignment between `playwright.config.ts` (`../results/.tmp-e2e-results.json` relative to `tests/e2e/`) so `tests/results/.tmp-e2e-results.json` is reliably created even when tests fail or time out.

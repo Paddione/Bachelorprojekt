@@ -1,6 +1,6 @@
 ---
-title: Fix E2E Auth, System-Test 401s, and Talk Selector
-ticket_id: T002075
+title: Fix E2E Auth, System-Test 401s, Talk Selector, and CI Ingest Report
+ticket_id: T002103
 domains: [website, test]
 status: staged
 ---
@@ -12,6 +12,8 @@ status: staged
 - `tests/e2e/lib/wissensquellen-fixtures.ts`
 - `tests/e2e/lib/systemtest-runner.ts`
 - `tests/e2e/specs/fa-ios-talk.spec.ts`
+- `.github/workflows/e2e.yml`
+- `tests/e2e/playwright.config.ts`
 
 ## Tasks
 
@@ -26,7 +28,11 @@ status: staged
 ### Task 3: Expand locator selectors in Nextcloud Talk spec
 - Update `tests/e2e/specs/fa-ios-talk.spec.ts` with fallback selectors for Nextcloud login and Talk interface (`body`, `#content`, `#app-navigation`, etc.).
 
-### Task 4: Run test verification suite
+### Task 4: Verify CI JSON report creation & ingest token handling
+- Ensure `playwright.config.ts` JSON reporter always writes to `tests/results/.tmp-e2e-results.json` even when suites time out or exit abruptly.
+- Update `.github/workflows/e2e.yml` ingest step logging to highlight missing `E2E_INGEST_TOKEN` or report path issues.
+
+### Task 5: Run test verification suite
 - Run `task test:changed`
 - Run `task freshness:regenerate`
 - Run `task freshness:check`

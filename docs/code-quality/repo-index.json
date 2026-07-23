@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 627,
+      "file_count": 628,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -413,6 +413,7 @@
         "tests/spec/e2e-testing.bats",
         "tests/spec/env-seal-empty-value-keys.bats",
         "tests/spec/factory-branch-switch-guard.bats",
+        "tests/spec/factory-merge-hooks.bats",
         "tests/spec/feature-product-linking.bats",
         "tests/spec/fixtures/make-partial-plan.sh",
         "tests/spec/fleet-operations.bats",
@@ -2922,7 +2923,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 545,
+      "file_count": 546,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3171,6 +3172,7 @@
         "scripts/factory/mcp-go/go.mod",
         "scripts/factory/mcp-go/main.go",
         "scripts/factory/mcp-server.mjs",
+        "scripts/factory/merge-hooks.sh",
         "scripts/factory/metrics.sh",
         "scripts/factory/opencode-exec.sh",
         "scripts/factory/otel-emit.cjs",

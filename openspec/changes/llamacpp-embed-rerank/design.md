@@ -1,6 +1,6 @@
 ---
-ticket_id: null
-plan_ref: null
+ticket_id: T002110
+plan_ref: openspec/changes/llamacpp-embed-rerank/tasks.md
 status: active
 date: 2026-07-23
 ---

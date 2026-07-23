@@ -16,6 +16,11 @@ main() {
   if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
   if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
   case "$partials" in [1-9]) ;; *) echo "ERROR: --partials must be 1..9" >&2; exit 2 ;; esac
+  # Pre-flight: verify the plan file exists in git or local file system (prevents silent staging of broken refs)
+  if ! git cat-file -e "HEAD:${plan}" 2>/dev/null && ! [[ -f "${plan}" ]]; then
+    echo "ERROR: Plan file '${plan}' does not exist in git. Re-run dev-flow-plan to generate a valid plan." >&2
+    exit 1
+  fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" -v partials="$partials" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer

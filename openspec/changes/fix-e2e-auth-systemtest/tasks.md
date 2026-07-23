@@ -16,6 +16,7 @@ status: staged
 - `tests/e2e/specs/fa-27-brett.spec.ts`
 - `tests/e2e/specs/dashboard-art.spec.ts`
 - `tests/e2e/specs/fa-47-brett-figure-pack-assets.spec.ts`
+- `tests/e2e/specs/korczewski-home.spec.ts`
 - `.github/workflows/e2e.yml`
 - `tests/e2e/playwright.config.ts`
 
@@ -32,8 +33,8 @@ status: staged
 ### Task 3: Expand locator selectors in Nextcloud Talk spec
 - Update `tests/e2e/specs/fa-ios-talk.spec.ts` with fallback selectors for Nextcloud login and Talk interface (`body`, `#content`, `#app-navigation`, etc.).
 
-### Task 4: Add service reachability handling for standalone service specs
-- Update `tests/e2e/specs/fa-13-docs.spec.ts`, `tests/e2e/specs/fa-27-brett.spec.ts`, `tests/e2e/specs/dashboard-art.spec.ts`, and `tests/e2e/specs/fa-47-brett-figure-pack-assets.spec.ts` to check if service domain is reachable before strict assertions or handle `net::ERR_ABORTED` gracefully when running offline without full local ingress setup.
+### Task 4: Add service reachability & DNS resolution guards for standalone specs
+- Update `tests/e2e/specs/fa-13-docs.spec.ts`, `tests/e2e/specs/fa-27-brett.spec.ts`, `tests/e2e/specs/dashboard-art.spec.ts`, `tests/e2e/specs/fa-47-brett-figure-pack-assets.spec.ts`, and `tests/e2e/specs/korczewski-home.spec.ts` to check if target domains/services are reachable before strict assertions or handle `ENOTFOUND` / `net::ERR_NAME_NOT_RESOLVED` gracefully when running offline without full DNS/ingress setup.
 
 ### Task 5: Verify CI JSON report creation & ingest token handling
 - Ensure `playwright.config.ts` JSON reporter always writes to `tests/results/.tmp-e2e-results.json` even when suites time out or exit abruptly.

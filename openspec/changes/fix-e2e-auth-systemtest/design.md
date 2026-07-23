@@ -15,9 +15,9 @@ Fix recurring flaky/failing E2E tests across all Playwright test projects (websi
    - `locator('[data-app-id="spreed"], .app-spreed, #body-login, .pf-v5-c-login__main, #kc-form-login').first()` times out when Nextcloud login form or Talk app loads with different layout containers.
    - Fix: Add resilient fallback selectors matching Nextcloud Talk's current login/app container DOM structure.
 
-4. **Service Reachability Guards for Standalone Probes (`fa-13-docs.spec.ts`, `fa-27-brett.spec.ts`, `dashboard-art.spec.ts`, `fa-47-brett-figure-pack-assets.spec.ts`)**:
-   - Tests targeting service URLs (`DOCS_URL`, `BRETT_URL`, `ADMIN_URL`) in local offline mode fail with `net::ERR_ABORTED` or status `0`/`503` when services are unmapped or unprovisioned.
-   - Fix: Wrap standalone service network requests in error handlers or check HTTP reachability before strict status assertions.
+4. **Service Reachability & Host Resolution Guards (`fa-13-docs.spec.ts`, `fa-27-brett.spec.ts`, `dashboard-art.spec.ts`, `fa-47-brett-figure-pack-assets.spec.ts`, `korczewski-home.spec.ts`)**:
+   - Tests targeting service or brand URLs (`DOCS_URL`, `BRETT_URL`, `ADMIN_URL`, `web.korczewski.de`) in offline/mentolder-only environments fail with `ENOTFOUND`, `net::ERR_NAME_NOT_RESOLVED`, or `net::ERR_ABORTED` when the host domain cannot be resolved.
+   - Fix: Ensure the `guard(request)` helper in `korczewski-home.spec.ts` handles `ENOTFOUND`/DNS failures per test instead of throwing unhandled exceptions, and update standalone service specs to check host reachability before strict HTTP assertions.
 
 5. **CI Ingest Token & Report Path Verification (`.github/workflows/e2e.yml`)**:
    - Ingest step in `.github/workflows/e2e.yml` requires `E2E_INGEST_TOKEN` repo secret and checks for `tests/results/.tmp-e2e-results.json`.

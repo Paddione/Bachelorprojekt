@@ -118,3 +118,14 @@ if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
     esac
   fi
 fi
+
+# --- bonsai-write-guard: detect and revert whole-file overwrites [T002137] ---
+# Catches bonsai-8b agents that used write instead of edit. Lightweight:
+# only checks staged modified files for suspicious line-count reduction.
+# Bypass: SKIP_BONSAI_GUARD=1 git commit ...
+if [ "${SKIP_BONSAI_GUARD:-0}" != "1" ]; then
+  if ! bash "$repo_root/scripts/guard-bonsai-overwrite.sh" check "pre-commit"; then
+    echo "  Bypass: SKIP_BONSAI_GUARD=1 git commit ..." >&2
+    exit 1
+  fi
+fi

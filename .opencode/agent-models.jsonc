@@ -132,7 +132,10 @@
       "color": "#F59E0B",
       "temperature": 0.4,
       "steps": 10,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
+      // write=deny: bonsai-8b überschreibt sonst ganze Dateien statt surgical edit
+      // (beobachtet 2026-07-23, T002137: 3/3 bonsai löschten existierende Files).
+      // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "bonsai-8b-2": {
       "description": "Write-capable subagent 2/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
@@ -142,7 +145,7 @@
       "color": "#F97316",
       "temperature": 0.4,
       "steps": 10,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "bonsai-8b-3": {
       "description": "Write-capable subagent 3/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
@@ -152,7 +155,7 @@
       "color": "#EA580C",
       "temperature": 0.4,
       "steps": 10,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "bonsai-8b-4": {
       "description": "Write-capable subagent 4/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
@@ -162,7 +165,7 @@
       "color": "#D97706",
       "temperature": 0.4,
       "steps": 10,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny" }
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     // Eskalationsstufe fuer Parallel-Agenten (start-bonsai-parallel.ps1), NACH
     // lokaler Kontext-Kompaktierung/Retry und opencodes eigener Kompaktierung -

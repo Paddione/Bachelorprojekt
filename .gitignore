@@ -185,6 +185,8 @@ assets-inbox/docs/superpowers/specs/.gaps/
 
 # Mishap tracker local log (gitignored; use --ticket for persistent records)
 .mishaps.log
+# Bonsai write guard log (local incident tracking, never committed)
+.bonsai-write-guard.log
 .worktrees/
 
 # mcp-task-runner build artifacts

@@ -1,0 +1,39 @@
+apiVersion: source.extensions.fluxcd.io/v1beta1
+kind: ArtifactGenerator
+metadata:
+  name: fleet-manifests
+  namespace: flux-system
+spec:
+  sources:
+    - alias: monorepo
+      kind: GitRepository
+      name: flux-system
+  artifacts:
+    - name: infrastructure
+      originRevision: "@monorepo"
+      copy:
+        - from: "@monorepo/prod-fleet/platform/**"
+          to: "@artifact/"
+        - from: "@monorepo/prod-fleet/components/**"
+          to: "@artifact/components/"
+        - from: "@monorepo/prod-fleet/staging/**"
+          to: "@artifact/staging/"
+    - name: apps
+      originRevision: "@monorepo"
+      copy:
+        - from: "@monorepo/prod-fleet/mentolder/**"
+          to: "@artifact/mentolder/"
+        - from: "@monorepo/prod-fleet/korczewski/**"
+          to: "@artifact/korczewski/"
+        - from: "@monorepo/prod-fleet/website-mentolder/**"
+          to: "@artifact/website-mentolder/"
+        - from: "@monorepo/prod-fleet/website-korczewski/**"
+          to: "@artifact/website-korczewski/"
+        - from: "@monorepo/k3d/**"
+          to: "@artifact/k3d/"
+        - from: "@monorepo/prod/**"
+          to: "@artifact/prod/"
+        - from: "@monorepo/prod-mentolder/**"
+          to: "@artifact/prod-mentolder/"
+        - from: "@monorepo/prod-korczewski/**"
+          to: "@artifact/prod-korczewski/"

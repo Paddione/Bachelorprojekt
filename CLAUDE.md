@@ -97,7 +97,7 @@ Services: Traefik → Keycloak (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotur
 - **`fleet`**: The unified cluster — **3 CP nodes** (pk-hetzner-4/6/8) + **3 worker nodes** (gekko-hetzner-2/3/4). Both brands at **26/26** pods in `workspace` and `workspace-korczewski`. All kubeconfig contexts other than `fleet` and `k3d-mentolder-dev` are dead. Single source of truth for all production workloads.
 
 ### Key components
-- **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the base that `task workspace:deploy` (push) applies in prod. Deployment is **push-based** — there is no in-cluster GitOps reconciler (no Flux/Argo) on the fleet cluster.
+- **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the base that both `task workspace:deploy` (push, legacy/break-glass) and the **Flux GitOps pipeline** (pull-based, primary) apply in prod. Deployment is **pull-based via FluxCD** on the fleet cluster — the OCI artifact at `ghcr.io/paddione/fleet-manifests` is rendered by `.github/workflows/render-fleet-artifact.yml` on every `main` push, then reconciled by Flux (see `flux/clusters/fleet/`). `task workspace:deploy` exists as break-glass fallback.
 - **`prod/`** -- Shared production patches (TLS, resource limits, replicas, DDNS) consumed by the env-specific overlays. Never apply directly.
 - **`prod-fleet/mentolder/`, `prod-fleet/korczewski/`** -- The per-brand overlays **actually applied in prod**, referenced by `ENV_OVERLAY` (the `overlay:` key) in `environments/mentolder.yaml` / `environments/korczewski.yaml`. Each *wraps* the legacy brand overlay (`resources: ../../prod-mentolder` / `../../prod-korczewski`) and layers the `fleet-common` component + fleet node-affinity repoints on top. `task workspace:deploy ENV=<brand>` builds `prod-fleet/<brand>`.
 - **`prod-mentolder/`, `prod-korczewski/`** -- Legacy standalone-cluster brand overlays. **No longer applied directly** — they survive only as the inner base the `prod-fleet/*` wrappers reuse. Don't apply these standalone.
@@ -154,7 +154,7 @@ This ensures that the Infrastructure and Dev workflows correctly identify these 
 
 ## Development Rules
 
-1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base). Prod is deployed **push-based** via `task workspace:deploy ENV=<brand>` / `task feature:*` — there is no GitOps reconciler on fleet.
+1. Only deploy via k3d/k3s with Kustomize (`k3d/` is the base). Prod is deployed **pull-based via FluxCD GitOps** (primary path: `.github/workflows/render-fleet-artifact.yml` → OCI artifact → Flux reconciliation on fleet). The legacy `task workspace:deploy ENV=<brand>` / `task feature:*` push-based path exists as **break-glass fallback** only — prefer Flux reconciliation.
 2. All changes via Pull Requests -- no direct pushes to `main`.
 3. Use **squash-and-merge** to keep `main` history clean.
 4. CI must be green before merge.

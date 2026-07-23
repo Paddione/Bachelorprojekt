@@ -588,29 +588,61 @@ sys.exit(0 if p.get('packages')=='write' else 1)
 # riss das zusaetzlich den Schritt "Mark ticket done" mit, der im selben Job
 # liegt — "Merge = Abschluss" (T001092) blieb dadurch kaputt, obwohl der
 # Workflow nach dem T002118-Fix wieder startete.
-@test "T002121: jeder Job mit 'task website:migrate' richtet pnpm ein" {
-  run python3 - "$REPO_ROOT" <<'PY'
-import glob, os, sys, yaml
-wf = os.path.join(sys.argv[1], ".github/workflows")
+@test "T002124: jeder Job, der (auch indirekt) pnpm braucht, richtet es ein" {
+  # Loest die Task-Kette aus Taskfile.yml auf statt nur Workflow-Text zu
+  # greppen. deploy-legacy ruft `task workspace:deploy`, das intern
+  # `task website:migrate` startet, das `pnpm` braucht — im Workflow steht
+  # davon nichts. Der urspruengliche Guard (T002121) suchte nur nach der
+  # woertlichen Nennung von website:migrate und uebersah den Job deshalb.
+  run python3 - "$REPO_ROOT" <<'PYEOF'
+import glob, os, re, sys, yaml
+
+root = sys.argv[1]
+taskfile = open(os.path.join(root, "Taskfile.yml"), encoding="utf-8").read()
+
+# Fixpunkt: welche Tasks ziehen (transitiv) website:migrate nach sich?
+needs_pnpm = {"website:migrate"}
+starts = [(m.group(1), m.start()) for m in re.finditer(r"^  ([a-z0-9:_-]+):\s*$", taskfile, re.M)]
+bodies = {}
+for i, (name, pos) in enumerate(starts):
+    endpos = starts[i + 1][1] if i + 1 < len(starts) else len(taskfile)
+    bodies[name] = taskfile[pos:endpos]
+
+changed = True
+while changed:
+    changed = False
+    for name, body in bodies.items():
+        if name in needs_pnpm:
+            continue
+        if any(re.search(r"task\s+" + re.escape(t) + r"\b", body) for t in needs_pnpm):
+            needs_pnpm.add(name)
+            changed = True
+
 bad = []
-for f in sorted(glob.glob(os.path.join(wf, "*.yml"))):
-    try: doc = yaml.safe_load(open(f)) or {}
-    except Exception: continue
+for f in sorted(glob.glob(os.path.join(root, ".github/workflows/*.yml"))):
+    try:
+        doc = yaml.safe_load(open(f, encoding="utf-8")) or {}
+    except Exception:
+        continue
     for job, spec in (doc.get("jobs") or {}).items():
         steps = spec.get("steps") if isinstance(spec, dict) else None
-        if not steps: continue
+        if not steps:
+            continue
         runs = " ".join(str(s.get("run", "")) for s in steps)
-        if "website:migrate" not in runs and "pnpm" not in runs: continue
-        if "website:migrate" not in runs: continue
+        hit = [t for t in needs_pnpm if re.search(r"task\s+" + re.escape(t) + r"\b", runs)]
+        if not hit:
+            continue
         uses = " ".join(str(s.get("uses", "")) for s in steps)
         if "pnpm/action-setup" not in uses:
-            bad.append(f"{os.path.basename(f)} job '{job}'")
+            bad.append(f"{os.path.basename(f)} job '{job}' ruft {sorted(hit)} ohne pnpm-Setup")
+
 if bad:
-    print("Jobs rufen 'task website:migrate' ohne pnpm/action-setup:")
-    for b in bad: print("  " + b)
+    print("Jobs brauchen pnpm (direkt oder ueber die Task-Kette), richten es aber nicht ein:")
+    for b in bad:
+        print("  " + b)
     sys.exit(1)
-print("alle website:migrate-Jobs richten pnpm ein")
-PY
+print(f"OK - {len(needs_pnpm)} pnpm-pflichtige Tasks geprueft")
+PYEOF
   [ "$status" -eq 0 ]
 }
 

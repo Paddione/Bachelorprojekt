@@ -116,6 +116,23 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # `task workspace:deploy` ruft INTERN `task website:migrate` auf
+      # (Taskfile.yml:2629/:2758), das wiederum `pnpm --dir website db:migrate`
+      # startet. Die pnpm-Abhaengigkeit ist hier also indirekt ueber die
+      # Task-Kette und im Workflow-Text nicht sichtbar — genau deshalb hat der
+      # Guard aus T002121 diesen Job uebersehen. [T002124]
+      - name: Set up pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda  # v4.1.0
+        with:
+          version: 10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: website/pnpm-lock.yaml
+      - name: Install website dependencies
+        run: cd website && pnpm install --frozen-lockfile
+
       - name: Set up kubeconfig
         env:
           FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}

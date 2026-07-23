@@ -1383,6 +1383,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002129": [
+    {
+      "slug": "fix-factory-gang-drift",
+      "status": "plan_staged"
+    }
+  ],
   "T002130": [
     {
       "slug": "fix-phase-event-whitelist",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.208.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.208.0...website-v1.208.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **e2e:** resolve E2E test failures and auth storageState path resolution [T002117] ([#3148](https://github.com/Paddione/Bachelorprojekt/issues/3148)) ([5056447](https://github.com/Paddione/Bachelorprojekt/commit/5056447d4846d3722ec5e925dbbe56a7858fe477))
+
 ## [1.208.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.207.0...website-v1.208.0) (2026-07-23)
 
 

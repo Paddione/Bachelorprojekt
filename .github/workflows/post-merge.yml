@@ -146,6 +146,21 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      # `task website:migrate` ruft intern `pnpm --dir website db:migrate` auf.
+      # Ohne diese drei Schritte stirbt der Job mit
+      # '"pnpm": executable file not found in $PATH' (exit 127) — und riss
+      # damit auch "Mark ticket done" mit, das im selben Job liegt. [T002121]
+      - name: Set up pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda  # v4.1.0
+        with:
+          version: 10
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: website/pnpm-lock.yaml
+      - name: Install website dependencies
+        run: cd website && pnpm install --frozen-lockfile
       - name: Set up kubeconfig
         env:
           FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
@@ -161,7 +176,11 @@ jobs:
 
       - name: Mark ticket done
         id: close
-        if: success()
+        # always() statt success(): Closure trackt laut T001092 den MERGE, nicht
+        # Prod-Live — der Deploy ist ausdruecklich entkoppelt. Eine
+        # fehlgeschlagene Migration darf das Ticket also nicht offen halten.
+        # Vorher riss jeder Fehler im Migrationsschritt die Closure mit. [T002121]
+        if: always()
         env:
           FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
         run: |

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.208.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.207.0...website-v1.208.0) (2026-07-23)
+
+
+### Features
+
+* **scripts:** migrate bge-m3/reranker from TEI to llama.cpp, 4-slot Bonsai [T002110] ([#3150](https://github.com/Paddione/Bachelorprojekt/issues/3150)) ([6f528c3](https://github.com/Paddione/Bachelorprojekt/commit/6f528c34c2b89bfe8862a8e634537dff8e71d772))
+
 ## [1.207.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.206.0...website-v1.207.0) (2026-07-23)
 
 

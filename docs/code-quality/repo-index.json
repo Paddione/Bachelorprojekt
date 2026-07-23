@@ -644,7 +644,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 46,
+      "file_count": 47,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -691,7 +691,8 @@
         "scripts/migrations/2026-07-09-ticket-triage-local-qwen35.sql",
         "scripts/migrations/2026-07-21-provider-config-bonsai-only.sql",
         "scripts/migrations/2026-07-22-llm-proxy-backends.sql",
-        "scripts/migrations/2026-07-22-slot-count-gang.sql"
+        "scripts/migrations/2026-07-22-slot-count-gang.sql",
+        "scripts/migrations/2026-07-23-llm-proxy-max-inflight.sql"
       ]
     },
     {
@@ -2459,7 +2460,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 457,
+      "file_count": 458,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -2484,6 +2485,7 @@
         ".opencode/plugins/worktree.ts",
         ".opencode/prompts/deepseek-helper.md",
         ".opencode/prompts/local-subagent.md",
+        ".opencode/prompts/orchestrator.md",
         ".opencode/skills/dev-flow/DEV-FLOW.SKILL.md",
         ".opencode/skills/dev-flow/background-agents.SKILL.md",
         ".opencode/skills/dev-flow/background-agents.ts",
@@ -2924,7 +2926,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 543,
+      "file_count": 544,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3174,6 +3176,7 @@
         "scripts/factory/mcp-go/main.go",
         "scripts/factory/mcp-server.mjs",
         "scripts/factory/metrics.sh",
+        "scripts/factory/opencode-exec.sh",
         "scripts/factory/otel-emit.cjs",
         "scripts/factory/otel-emit.sh",
         "scripts/factory/otel-emit.test.cjs",

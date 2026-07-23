@@ -221,6 +221,18 @@ matrix, and SHALL ingest test results into the website's test-tracking API.
 - **THEN** sendet er ein POST-Request mit dem JSON-Report an `/api/admin/tests/ingest-e2e`
   und setzt nur eine `::warning::` bei HTTP ≠ 200 — der Workflow-Status bleibt unberührt
 
+#### Scenario: Post-Run-Purge läuft auch nach Timeout/Crash des Playwright-Steps
+
+- **GIVEN** der `e2e`-Workflow ruft `npx playwright test` direkt auf (nicht über
+  `task test:e2e`, das einen eigenen Pre-/Post-Run-curl-Purge als
+  Defense-in-Depth hat) und der Job hat ein `timeout-minutes`-Limit
+- **WHEN** der Playwright-Step durch den Job-Timeout gekillt wird oder anderweitig
+  abstürzt, bevor sein in-process `globalTeardown`-Hook feuert
+- **THEN** läuft danach trotzdem ein `if: always()`-Schritt, der
+  `POST /api/admin/systemtest/purge-all-test-data` mit `X-Cron-Secret: $CRON_SECRET`
+  gegen die Matrix-`website_url` aufruft, sodass `is_test_data=true`-Zeilen aus
+  einem abgebrochenen Lauf nicht in Prod liegen bleiben (G-E2E02, T002096)
+
 ---
 
 ### Requirement: Freshness-Auto-Regenerierung nach main-Push

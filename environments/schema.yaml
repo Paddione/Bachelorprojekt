@@ -355,7 +355,7 @@ env_vars:
   - name: LLM_HOST_IP
     required: false
     default_dev: ""
-    description: "Mesh IP of the GPU host running TEI embed + LM Studio. Required when LLM_ENABLED=true. Empty in dev."
+    description: "Mesh IP of the GPU host running TEI embed + LM Studio. Required when LLM_ENABLED=true. The dev env sets this explicitly in environments/dev.yaml."
 
   - name: LLM_ENABLED
     required: true

@@ -62,11 +62,15 @@ find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c
 
 ---
 
-## G-DB09 — Slow Queries in pg_stat_statements (COPY-bereinigt): 1 → 0
+## G-DB09 — Slow Queries in pg_stat_statements (COPY+DDL-bereinigt): 1 → 0
 
 **Was:** Zählt Abfragen in `pg_stat_statements` mit `mean_exec_time > 1s`. T001926 hatte
-Backup-COPY aus dem Mess-Scope ausgeschlossen — seitdem ist eine weitere Slow Query
-aufgetaucht.
+Backup-COPY aus dem Mess-Scope ausgeschlossen. T002095 (2026-07-23) fand die seitdem
+aufgetauchte neue Slow Query: eine einmalige `CREATE INDEX chunks_embedding_hnsw ON
+knowledge.chunks USING hnsw (...)`-DDL (calls=1, mean_exec_time=13123ms) — ein legitimer
+Vektorindex-Build, keine wiederholte Applikations-Query. Fix: `NOT ILIKE 'CREATE INDEX%`
+zusätzlich zu `NOT ILIKE 'COPY %'` im Mess-Query ausgeschlossen (bewusst eng auf
+`CREATE INDEX` begrenzt statt breiter DDL-Blockliste).
 
 ```bash
 db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %'"

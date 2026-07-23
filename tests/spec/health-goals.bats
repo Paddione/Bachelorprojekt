@@ -155,3 +155,30 @@ MD
   measurement="$(jq -r '.[0].measurement' "$WORK/out.json")"
   [[ "$measurement" == "git log --oneline | wc -l" ]] || { echo "FAIL: measurement truncated/mangled: '$measurement'"; return 1; }
 }
+
+# --- T002095: G-DB09 regression — CREATE INDEX DDL pollutes slow-query measurement ---
+# Root cause: pg_stat_statements records DDL execution time (e.g. one-time
+# `CREATE INDEX ... USING hnsw` vector index builds) alongside DML/SELECT.
+# A single legitimate but expensive CREATE INDEX maintenance statement was
+# tripping G-DB09's "slow application query" measurement. Same class of gap
+# as the COPY-backup exclusion fixed in T001926 — extend the G-DB09 db_scalar
+# query with an additional `NOT ILIKE 'CREATE INDEX%'` exclusion.
+
+# Extract the exact G-DB09 db_scalar SQL string from the script so the test
+# fails (red) against the pre-fix query (missing CREATE INDEX exclusion) and
+# passes (green) once the exclusion is added.
+g_db09_query() {
+  grep -oE "db_scalar \"SELECT count\(\*\) FROM pg_stat_statements WHERE mean_exec_time > 1000[^\"]*\"" "$SCRIPT" | head -1
+}
+
+@test "G-DB09: measurement query excludes COPY backup statements (T001926, regression guard)" {
+  query=$(g_db09_query)
+  [ -n "$query" ]
+  [[ "$query" == *"NOT ILIKE 'COPY %'"* ]]
+}
+
+@test "G-DB09: measurement query excludes CREATE INDEX DDL statements (T002095)" {
+  query=$(g_db09_query)
+  [ -n "$query" ]
+  [[ "$query" == *"NOT ILIKE 'CREATE INDEX%'"* ]]
+}

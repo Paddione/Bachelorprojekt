@@ -1293,6 +1293,12 @@
       "status": "archived"
     }
   ],
+  "T002072": [
+    {
+      "slug": "factory-session-reuse",
+      "status": "plan_staged"
+    }
+  ],
   "T002074": [
     {
       "slug": "2026-07-22-parallel-partial-plans",

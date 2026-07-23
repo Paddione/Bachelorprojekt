@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.205.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.205.0...website-v1.205.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **dev-flow:** refactor dev-flow-plan and dev-flow-execute SKILL.md under 500 lines [T002094] ([#3133](https://github.com/Paddione/Bachelorprojekt/issues/3133)) ([b27c165](https://github.com/Paddione/Bachelorprojekt/commit/b27c1658ea4a3f2820ecbc7ef37f739be1906c77))
+
 ## [1.205.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.204.2...website-v1.205.0) (2026-07-23)
 
 

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livekit-egress
+  namespace: workspace
+  labels:
+    app: livekit
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: livekit
+  template:
+    metadata:
+      labels:
+        app: livekit
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values: [k3s-1, k3s-2, k3s-3, k3w-1, k3w-2, k3w-3]
+      containers:
+        - name: egress
+          image: livekit/egress:v1.13.0@sha256:980ff439431df2c773573721ab6da19e15bdc1f049ab7cb80e87470bf174c12f
+          env:
+            - name: EGRESS_CONFIG_BODY
+              value: |
+                api_key: $(API_KEY)
+                api_secret: $(API_SECRET)
+                ws_url: ws://livekit-server:7880
+                redis:
+                  address: livekit-redis:6379
+                health_port: 9090
+                log_level: info
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef: { name: workspace-secrets, key: LIVEKIT_API_KEY }
+            - name: API_SECRET
+              valueFrom:
+                secretKeyRef: { name: workspace-secrets, key: LIVEKIT_API_SECRET }
+          resources:
+            limits: { cpu: "2", memory: 2Gi }
+            requests: { cpu: "0", memory: "0" }
+          securityContext:
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - { name: recordings, mountPath: /recordings }
+      volumes:
+        - name: recordings
+          persistentVolumeClaim:
+            claimName: livekit-recordings-pvc

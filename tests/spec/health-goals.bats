@@ -182,3 +182,119 @@ g_db09_query() {
   [ -n "$query" ]
   [[ "$query" == *"NOT ILIKE 'CREATE INDEX%'"* ]]
 }
+
+# ═══════════════════════════════════════════════════════════════════
+# G-OPS01: Pods nicht Running/Ready (fleet, beide Brand-Namespaces)
+# SSOT: openspec/changes/ops-pods-not-ready/tasks.md [T002097]
+#
+# Beide Tests sind statisch (kein Live-Cluster nötig, CI-lauffähig) und
+# decken die zwei in Scope stehenden Root Causes der 2026-07-23-Re-Messung
+# ab: fehlender Secret-Key (korczewski) und ein nicht getracktes Deployment
+# mit RWO-PVC-inkompatibler RollingUpdate-Strategie (livekit-egress).
+# ═══════════════════════════════════════════════════════════════════
+
+# Collect every secretKeyRef.key whose secretName == "workspace-secrets"
+# from a given k3d/*.yaml file.
+required_workspace_secret_keys() {
+  python3 - "$1" <<'PY'
+import sys, yaml
+file = sys.argv[1]
+keys = set()
+with open(file) as fh:
+    for doc in yaml.safe_load_all(fh):
+        if not doc:
+            continue
+        spec = doc.get("spec", {})
+        tpl = spec.get("template") or {}
+        tpl_spec = tpl.get("spec", {})
+        for c in tpl_spec.get("containers", []) or []:
+            for e in c.get("env", []) or []:
+                v = (e.get("valueFrom") or {}).get("secretKeyRef") or {}
+                if v.get("name") == "workspace-secrets" and v.get("key"):
+                    keys.add(v["key"])
+for k in sorted(keys):
+    print(k)
+PY
+}
+
+# Extract the top-level plaintext keys defined in an environments/.secrets/*.yaml
+# file (a flat `KEY: "value"` list, no live cluster / git-crypt-decrypt needed —
+# the working tree copy is already the plaintext form).
+secrets_file_keys() {
+  python3 - "$1" <<'PY'
+import sys, yaml
+file = sys.argv[1]
+with open(file) as fh:
+    data = yaml.safe_load(fh) or {}
+for k in sorted(data.keys()):
+    print(k)
+PY
+}
+
+@test "G-OPS01a: korczewski secrets file has every workspace-secrets key oauth2-proxy-terminal requires" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  local required_file="${REPO_ROOT}/k3d/oauth2-proxy-terminal.yaml"
+  local secrets_file="${REPO_ROOT}/environments/.secrets/korczewski.yaml"
+  [ -f "$required_file" ] || { echo "SKIP: $required_file not found"; skip; }
+  [ -f "$secrets_file" ] || { echo "SKIP: $secrets_file not found"; skip; }
+
+  local missing=()
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    if ! secrets_file_keys "$secrets_file" | grep -qx "$key"; then
+      missing+=("$key")
+    fi
+  done < <(required_workspace_secret_keys "$required_file")
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "k3d/oauth2-proxy-terminal.yaml requires these workspace-secrets keys but environments/.secrets/korczewski.yaml is missing them:"
+    printf '  %s\n' "${missing[@]}"
+    return 1
+  fi
+}
+
+@test "G-OPS01a: fleet-korczewski secrets file has every workspace-secrets key oauth2-proxy-terminal requires" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  local required_file="${REPO_ROOT}/k3d/oauth2-proxy-terminal.yaml"
+  local secrets_file="${REPO_ROOT}/environments/.secrets/fleet-korczewski.yaml"
+  [ -f "$required_file" ] || { echo "SKIP: $required_file not found"; skip; }
+  [ -f "$secrets_file" ] || { echo "SKIP: $secrets_file not found"; skip; }
+
+  local missing=()
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    if ! secrets_file_keys "$secrets_file" | grep -qx "$key"; then
+      missing+=("$key")
+    fi
+  done < <(required_workspace_secret_keys "$required_file")
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "k3d/oauth2-proxy-terminal.yaml requires these workspace-secrets keys but environments/.secrets/fleet-korczewski.yaml is missing them:"
+    printf '  %s\n' "${missing[@]}"
+    return 1
+  fi
+}
+
+@test "G-OPS01b: livekit-egress is tracked as a Kustomize manifest with a Recreate rollout strategy" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  local manifest="${REPO_ROOT}/k3d/livekit-egress.yaml"
+
+  [ -f "$manifest" ] || { echo "FAIL: $manifest does not exist — livekit-egress Deployment is unmanaged infra drift (kubectl apply only, no git source)"; return 1; }
+
+  run python3 - "$manifest" <<'PY'
+import sys, yaml
+file = sys.argv[1]
+with open(file) as fh:
+    docs = [d for d in yaml.safe_load_all(fh) if d]
+deploys = [d for d in docs if d.get("kind") == "Deployment" and d.get("metadata", {}).get("name") == "livekit-egress"]
+if not deploys:
+    print("no Deployment named livekit-egress found")
+    sys.exit(1)
+strategy_type = (deploys[0].get("spec", {}).get("strategy") or {}).get("type")
+if strategy_type != "Recreate":
+    print(f"strategy.type = {strategy_type!r}, expected 'Recreate' (RollingUpdate races with the RWO livekit-recordings-pvc across nodes)")
+    sys.exit(1)
+print("ok")
+PY
+  [ "$status" -eq 0 ] || { echo "FAIL: $output"; return 1; }
+}

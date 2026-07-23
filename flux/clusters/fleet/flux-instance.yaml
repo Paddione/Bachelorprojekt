@@ -9,15 +9,17 @@ spec:
     registry: "ghcr.io/fluxcd"
   components:
     - source-controller
+    - source-watcher
     - kustomize-controller
+    - helm-controller
     - notification-controller
   cluster:
     type: kubernetes
     networkPolicy: true
   sync:
-    kind: OCIRepository
-    url: "oci://ghcr.io/paddione/fleet-manifests"
-    ref: latest
-    path: clusters/fleet
-    pullSecret: ghcr-auth
+    kind: GitRepository
+    url: https://github.com/Paddione/Bachelorprojekt
+    ref:
+      branch: main
+    path: flux/clusters/fleet
     interval: 10m

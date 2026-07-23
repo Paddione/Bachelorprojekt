@@ -161,43 +161,6 @@ spec:
             items:
               - key: allowed-emails
                 path: allowed-emails
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            runAsUser: 65534
-            capabilities:
-              drop: [ALL]
-            seccompProfile:
-              type: RuntimeDefault
-          ports:
-            - containerPort: 4180
-          readinessProbe:
-            httpGet:
-              path: /ping
-              port: 4180
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /ping
-              port: 4180
-            initialDelaySeconds: 10
-            periodSeconds: 30
-          resources:
-            requests:
-              memory: 64Mi
-              cpu: "50m"
-            limits:
-              memory: 128Mi
-              cpu: "200m"
-          volumeMounts:
-            - name: oauth2-config
-              mountPath: /run/config
-              readOnly: true
-      volumes:
-        - name: oauth2-config
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

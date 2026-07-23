@@ -1,7 +1,7 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: flux-website-korczewski
+  name: flux-dev
   namespace: flux-system
 spec:
   interval: 10m
@@ -12,6 +12,6 @@ spec:
   sourceRef:
     kind: ExternalArtifact
     name: apps
-  path: ./website-korczewski
+  path: ./dev
   prune: true
   wait: true

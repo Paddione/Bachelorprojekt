@@ -115,6 +115,14 @@ cd "$PROJECT_DIR"
   render_component prod-fleet/platform "${OUT_DIR}/platform/platform.yaml"
 )
 
+# 1b. Dev (workspace-dev namespace)
+(
+  set +u
+  source scripts/env-resolve.sh dev 2>/dev/null || true
+  mkdir -p "${OUT_DIR}/dev"
+  render_component prod-fleet/dev "${OUT_DIR}/dev/dev.yaml"
+)
+
 # 2. Mentolder
 (
   set +u

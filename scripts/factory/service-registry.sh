@@ -15,6 +15,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/nextcloud-redis.yaml]="nextcloud"
   [k3d/shared-db.yaml]="shared-db"
   [k3d/livekit.yaml]="livekit"
+  [k3d/livekit-egress.yaml]="livekit"
   [k3d/vaultwarden.yaml]="vaultwarden"
   [k3d/vaultwarden-seed-job.yaml]="vaultwarden"
   [k3d/vaultwarden-seed-credentials.yaml]="vaultwarden"

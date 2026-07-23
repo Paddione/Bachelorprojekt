@@ -1353,6 +1353,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002107": [
+    {
+      "slug": "health-goals-scan-streamline",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

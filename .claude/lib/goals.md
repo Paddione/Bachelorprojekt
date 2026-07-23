@@ -435,6 +435,9 @@ bash scripts/health-goals-check.sh           # Ampel-Report (✅/🟡/🔴)
 bash scripts/health-goals-check.sh --strict  # exit 1 bei verfehlten Targets
 bash scripts/health-goals-check.sh --fast    # überspringt langsame Checks
 bash scripts/health-goals-check.sh --only=G-RH01,G-CQ02
+bash scripts/health-goals-update.sh --drift        # Drift-Report dokumentiert vs. gemessen
+bash scripts/health-goals-llm-fill.sh              # LLM-Fill (report-only) für nicht abgedeckte Ziele
+bash scripts/health-goals-llm-fill.sh --apply      # schreibt Prio-C-Aktuell mit (LLM)-Marker
 ```
 
 **Messzyklus:**

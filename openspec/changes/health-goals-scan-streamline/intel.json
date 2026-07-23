@@ -1,0 +1,109 @@
+{
+  "change": "health-goals-scan-streamline",
+  "ticket": "T002107",
+  "generated_at": "2026-07-23",
+  "symbols": [
+    {
+      "qualified_name": "scripts/health-goals-check.sh::row",
+      "signature": "row <kind:gate|target> <id> <actual|-> <cmp:le|ge|eq> <target> <desc...>",
+      "type_text": "Bash-Funktion; actual='-' => SKIP; schreibt bei gesetztem HG_VALUES_FILE die Zeile '<id> <actual> <cmp> <target>' an die Datei an (health-goals-check.sh:45-71). NICHT ANFASSEN (S1-Budget 29).",
+      "source": "Read scripts/health-goals-check.sh:45-71"
+    },
+    {
+      "qualified_name": "scripts/health-goals-update.sh::PY-main",
+      "signature": "python3 - GOALS_FILE VALUES_FILE DRY_RUN SUGGEST_TICKETS EXISTING_GOAL_IDS_FILE <<PY",
+      "type_text": "Python-Heredoc; row_re matcht '| **G-ID** | Ziel | Aktuell | Target | Messung |'; bare_int_re = ^\\s*([+-]?\\d+)\\s*(?:\\u2713|\\u26a0)?\\s*$ (Zeile 108) — einzige akzeptierte Zellform; Nicht-Matches -> skipped_format. Schreibt lines[i] formatiert zurück (Zeile 146).",
+      "source": "Read scripts/health-goals-update.sh:78-215"
+    },
+    {
+      "qualified_name": "scripts/health-goals-update.sh::seams",
+      "signature": "env HG_VALUES_FILE=<path> HG_GOALS_FILE=<path>",
+      "type_text": "Testability-Seams: vorbefülltes HG_VALUES_FILE wird verbatim genutzt (Zeile 39-45); HG_GOALS_FILE überschreibt .claude/lib/goals.md (Zeile 33).",
+      "source": "Read scripts/health-goals-update.sh:33-45"
+    },
+    {
+      "qualified_name": "scripts/gen-goals-data.mjs::output",
+      "signature": "emit website/src/lib/goals-data.generated.json: Array<HealthGoal>",
+      "type_text": "HealthGoal = {id,title,category,priority:'A'|'B'|'C',direction,baseline:number|null,current,target,unit,status,measurement,source,measured_at,note?} — 'current' ist für ALLE Ziele (auch Prio A/B) geparst; Parser-SSOT (REQ-HEALTH-GOALS-002). Freshness-gated via task health:goals:emit (REQ-HEALTH-GOALS-003).",
+      "source": "openspec/specs/health-goals.md REQ-002/003 + Read gen-goals-data.mjs (263 Zeilen)"
+    }
+  ],
+  "call_graph": [
+    "health-goals-update.sh -> bash scripts/health-goals-check.sh (--fast --quiet, HG_VALUES_FILE-Export) -> python3-Heredoc (Tabellen-Rewrite)",
+    "Taskfile.yml health:goals:update -> bash scripts/health-goals-update.sh {{.CLI_ARGS}} (Taskfile.yml:3230-3233)",
+    "Taskfile.yml health:goals:emit (freshness:regenerate-Mitglied) -> node scripts/gen-goals-data.mjs",
+    "NEU: health-goals-llm-fill.sh -> health-goals-check.sh (Messlauf) + goals-data.generated.json (Kandidaten) + curl Gateway"
+  ],
+  "db_tables": [],
+  "api_contracts": [
+    {
+      "name": "Unified-LLM-Gateway (T002102)",
+      "endpoint": "POST http://localhost:18235/v1/chat/completions (OpenAI-kompatibel); GET /v1/models",
+      "notes": "scripts/llm-proxy/server.mjs: PORT=env LLM_PROXY_PORT||18235; serialisiert Requests pro Backend (FIFO-Queue) und deckelt max_tokens gegen Backend-Kontext — Client braucht KEINE eigene Parallel-/Budget-Steuerung. Backends aus tickets.llm_proxy_backends (Bonsai llama.cpp u. a.).",
+      "source": "Read scripts/llm-proxy/server.mjs:1-60, backends.mjs:1-40"
+    },
+    {
+      "name": "HG_VALUES_FILE-Zeilenformat",
+      "endpoint": "Datei, Zeilen '<G-ID> <actual:int> <cmp:le|ge|eq> <target:int>'",
+      "notes": "Nur gemessene (nicht-SKIP) Ziele erscheinen; SKIP-Ziele fehlen komplett — Kandidaten-Ermittlung für llm-fill = generated.json-IDs minus VALUES_FILE-IDs.",
+      "source": "Read scripts/health-goals-check.sh:19-22,60"
+    }
+  ],
+  "external_types": [],
+  "impact_files": [
+    {
+      "path": "scripts/health-goals-update.sh",
+      "lines": 215,
+      "s1_limit": 500,
+      "s1_baselined": false,
+      "s1_budget": 285,
+      "change": "D1 Zell-Parser-Whitelist (Prozent/Exit/Einheit/Bruch/n-a) + D2 --drift-Modus"
+    },
+    {
+      "path": "scripts/health-goals-llm-fill.sh",
+      "lines": 0,
+      "s1_limit": 500,
+      "s1_baselined": false,
+      "s1_budget": 500,
+      "change": "NEU — D3 LLM-Fill via Gateway, report-only Default, --apply mit (LLM)-Provenance"
+    },
+    {
+      "path": "Taskfile.yml",
+      "lines": 4700,
+      "s1_limit": null,
+      "s1_baselined": false,
+      "s1_budget": null,
+      "change": "D4 Targets health:goals:drift + health:goals:llm-fill (.yml nicht in s1.limits -> kein Budget)"
+    },
+    {
+      "path": "tests/spec/health-goals.bats",
+      "lines": 184,
+      "s1_limit": null,
+      "s1_baselined": false,
+      "s1_budget": null,
+      "change": "BATS-Tests neue Zellformate + drift + llm-fill Mock-Gateway (.bats nicht S1-gated)"
+    },
+    {
+      "path": ".claude/lib/goals.md",
+      "lines": 592,
+      "s1_limit": null,
+      "s1_baselined": false,
+      "s1_budget": null,
+      "change": "Mess-Werkzeug-Sektion: 2 neue Kommandos dokumentieren; ACHTUNG: zieht health:goals:emit-Regeneration nach sich (Freshness-Gate)"
+    }
+  ],
+  "risks": [
+    {
+      "severity": "warn",
+      "note": "codebase-memory/LSP für Bash nicht aussagekräftig — Symbole via Read/grep erhoben (Fallback-Pfad laut plan-intel-bundle)."
+    },
+    {
+      "severity": "warn",
+      "note": "scripts/health-goals-check.sh hat nur 29 Zeilen S1-Budget (471/500) — Plan darf diese Datei NICHT erweitern (Design D-Verworfen #2)."
+    },
+    {
+      "severity": "info",
+      "note": "Wird goals.md editiert, MUSS task freshness:regenerate laufen, sonst schlägt REQ-HEALTH-GOALS-003 (freshness:check) fehl."
+    }
+  ]
+}

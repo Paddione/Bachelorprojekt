@@ -298,3 +298,112 @@ print("ok")
 PY
   [ "$status" -eq 0 ] || { echo "FAIL: $output"; return 1; }
 }
+
+# --- D1 whitelist parser (T002107) ---
+setup_hg() {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  UPD="$REPO_ROOT/scripts/health-goals-update.sh"
+  WORK="$(mktemp -d)"
+  GOALS="$WORK/goals.md"; VALUES="$WORK/values"
+}
+teardown_hg() { rm -rf "$WORK"; }
+
+@test "health-goals-update D1: percent cell keeps its % suffix (T002107)" {
+  setup_hg
+  cat > "$GOALS" <<'MD'
+# Priorität C — Green Gates {#prio-c}
+
+| ID | Ziel | Aktuell | Target | Basis-Messung |
+|----|------|---------|--------|---------------|
+| **G-PCT01** | Prozent-Gate | 90 % ✓ | 95 | `echo 95` |
+MD
+  printf 'G-PCT01 95 ge 95\n' > "$VALUES"
+  HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" run bash "$UPD"
+  [ "$status" -eq 0 ]
+  run grep -E '\| 95 % (✓|⚠) \|' "$GOALS"
+  [ "$status" -eq 0 ]
+  teardown_hg
+}
+
+@test "health-goals-update D1: fraction cell updates numerator, keeps denominator (T002107)" {
+  setup_hg
+  cat > "$GOALS" <<'MD'
+# Priorität C — Green Gates {#prio-c}
+
+| ID | Ziel | Aktuell | Target | Basis-Messung |
+|----|------|---------|--------|---------------|
+| **G-FRC01** | Bruch-Gate | 0/34 ✓ | 0 | `echo 3` |
+MD
+  printf 'G-FRC01 3 le 0\n' > "$VALUES"
+  HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" run bash "$UPD"
+  [ "$status" -eq 0 ]
+  run grep -E '\| 3/34 (✓|⚠) \|' "$GOALS"
+  [ "$status" -eq 0 ]
+  teardown_hg
+}
+
+@test "health-goals-update D1: non-whitelisted cell stays fail-safe skipped (T002107)" {
+  setup_hg
+  cat > "$GOALS" <<'MD'
+# Priorität C — Green Gates {#prio-c}
+
+| ID | Ziel | Aktuell | Target | Basis-Messung |
+|----|------|---------|--------|---------------|
+| **G-ELT01** | Qualitativ | Elite | 0 | `echo Elite` |
+MD
+  printf 'G-ELT01 0 le 0\n' > "$VALUES"
+  HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" run bash "$UPD"
+  [ "$status" -eq 0 ]
+  run grep -F 'Elite' "$GOALS"
+  [ "$status" -eq 0 ]
+  teardown_hg
+}
+
+# --- D2 drift mode (T002107) ---
+@test "health-goals-update D2: --drift reports divergence and never writes goals.md (T002107)" {
+  setup_hg
+  GEN="$WORK/goals-data.generated.json"
+  cat > "$GOALS" <<'MD'
+# Priorität C — Green Gates {#prio-c}
+
+| ID | Ziel | Aktuell | Target | Basis-Messung |
+|----|------|---------|--------|---------------|
+| **G-DRF01** | Drift-Gate | 5 ✓ | 0 | `echo 8` |
+MD
+  printf '[{"id":"G-DRF01","priority":"C","current":"5"}]\n' > "$GEN"
+  printf 'G-DRF01 8 le 0\n' > "$VALUES"
+  before="$(md5sum "$GOALS")"
+  HG_GOALS_FILE="$GOALS" HG_VALUES_FILE="$VALUES" HG_GEN_JSON="$GEN" \
+    run bash "$UPD" --drift
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"G-DRF01"* && "$output" == *"DRIFT"* ]]
+  after="$(md5sum "$GOALS")"
+  [ "$before" = "$after" ]
+  teardown_hg
+}
+
+# --- D3 LLM-Fill (T002107) ---
+@test "health-goals-llm-fill D3: candidate set = generated-IDs minus measured-IDs (T002107)" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  FILL="$REPO_ROOT/scripts/health-goals-llm-fill.sh"
+  WORK="$(mktemp -d)"; GEN="$WORK/gen.json"; VALUES="$WORK/values"
+  printf '[{"id":"G-A","priority":"C","current":"0"},{"id":"G-B","priority":"C","current":"0"}]\n' > "$GEN"
+  printf 'G-A 0 le 0\n' > "$VALUES"
+  HG_GEN_JSON="$GEN" HG_VALUES_FILE="$VALUES" HG_LLM_URL="http://127.0.0.1:1/v1" \
+    run bash "$FILL"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"G-B"* ]]
+  rm -rf "$WORK"
+}
+
+@test "health-goals-llm-fill D3: unreachable gateway exits 1 under --strict (T002107)" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  FILL="$REPO_ROOT/scripts/health-goals-llm-fill.sh"
+  WORK="$(mktemp -d)"; GEN="$WORK/gen.json"; VALUES="$WORK/values"
+  printf '[{"id":"G-B","priority":"C","current":"0"}]\n' > "$GEN"
+  printf 'G-A 0 le 0\n' > "$VALUES"
+  HG_GEN_JSON="$GEN" HG_VALUES_FILE="$VALUES" HG_LLM_URL="http://127.0.0.1:1/v1" \
+    run bash "$FILL" --strict
+  [ "$status" -eq 1 ]
+  rm -rf "$WORK"
+}

@@ -146,3 +146,42 @@ teardown() {
   run "${BATS_TEST_DIRNAME}/../../scripts/register-scope.sh" "Not_Valid!"
   [ "$status" -ne 0 ]
 }
+
+# ── T002115: Header-Pruefung im commit-msg-Hook statt erst im pre-push ────────
+# pre-push validiert den ganzen Range und blockiert erst, wenn die Commits schon
+# stehen — ein unbekannter Scope kostet dann ein --amend oder ein interaktives
+# Rebase. Genau das passierte mit chore(skills): der Scope fehlte in
+# NAMED_SCOPES und die Ablehnung kam erst beim Push.
+
+HOOK="${BATS_TEST_DIRNAME}/../../.githooks/commit-msg"
+
+@test "T002115: 'skills' ist ein registrierter Scope" {
+  run bash "$SCRIPT" scopes
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qx 'skills'
+}
+
+@test "T002115: commit-msg-Hook lehnt einen unbekannten Scope ab" {
+  echo "chore(bogusscope): test" > "$TMP_MSG"
+  run bash "$HOOK" "$TMP_MSG"
+  [ "$status" -eq 1 ]
+  echo "$output" | grep -q "unknown scope 'bogusscope'"
+}
+
+@test "T002115: commit-msg-Hook laesst chore(skills) durch" {
+  echo "chore(skills): Bonsai-Referenz aktualisieren" > "$TMP_MSG"
+  run bash "$HOOK" "$TMP_MSG"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002115: commit-msg-Hook nennt den Weg zur Scope-Liste" {
+  echo "chore(bogusscope): test" > "$TMP_MSG"
+  run bash "$HOOK" "$TMP_MSG"
+  echo "$output" | grep -q 'validate-commit-msg.sh scopes'
+}
+
+@test "T002115: SKIP_COMMIT_MSG_LINT=1 umgeht die Pruefung" {
+  echo "chore(bogusscope): test" > "$TMP_MSG"
+  SKIP_COMMIT_MSG_LINT=1 run bash "$HOOK" "$TMP_MSG"
+  [ "$status" -eq 0 ]
+}

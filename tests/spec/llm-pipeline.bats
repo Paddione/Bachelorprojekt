@@ -82,3 +82,70 @@ dev_llm_host_ip() {
   run grep -q '192\.168\.100\.0/24' "$REPO/k3d/network-policies.yaml"
   [ "$status" -eq 0 ]
 }
+
+# ── llama.cpp infrastructure [T002110] ──────────────────────────
+
+@test "k3d/llm-gpu.yaml defines llm-gateway-embed service on port 8095" {
+  run grep -q 'name: llm-gateway-embed' "$REPO/k3d/llm-gpu.yaml"
+  [ "$status" -eq 0 ]
+  run grep -q 'port: 8095' "$REPO/k3d/llm-gpu.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "k3d/llm-gpu.yaml defines llm-gateway-rerank service on port 8096" {
+  run grep -q 'name: llm-gateway-rerank' "$REPO/k3d/llm-gpu.yaml"
+  [ "$status" -eq 0 ]
+  run grep -q 'port: 8096' "$REPO/k3d/llm-gpu.yaml"
+  [ "$status" -eq 0 ]
+}
+
+@test "no environment file references old llm-gateway-tei-embed service" {
+  run grep -r 'llm-gateway-tei-embed' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "no environment file references old llm-gateway-tei-rerank service" {
+  run grep -r 'llm-gateway-tei-rerank' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "no environment file references old llm-gateway-lmstudio service" {
+  run grep -r 'llm-gateway-lmstudio' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "no schema or env file contains dead var LLM_LMSTUDIO_URL" {
+  run grep -r 'LLM_LMSTUDIO_URL' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "no schema or env file contains dead var LLM_CHAT_MODEL" {
+  run grep -r 'LLM_CHAT_MODEL' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "no schema or env file contains dead var LLM_CODING_MODEL" {
+  run grep -r 'LLM_CODING_MODEL' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "no schema or env file contains dead var LLM_EMBED_MODEL_NOMIC" {
+  run grep -r 'LLM_EMBED_MODEL_NOMIC' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "scripts/llm/start-embed-server.ps1 exists and contains --pooling cls" {
+  [ -f "$REPO/scripts/llm/start-embed-server.ps1" ]
+  run grep -q '--pooling cls' "$REPO/scripts/llm/start-embed-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "scripts/llm/start-rerank-server.ps1 exists and contains --reranking" {
+  [ -f "$REPO/scripts/llm/start-rerank-server.ps1" ]
+  run grep -q '\--reranking' "$REPO/scripts/llm/start-rerank-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "scripts/llm/register-scheduled-tasks.ps1 exists" {
+  [ -f "$REPO/scripts/llm/register-scheduled-tasks.ps1" ]
+}

@@ -35,12 +35,12 @@ const voyageKey = () => {
 };
 
 const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
-const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234';
+const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8095';
 
 // Maps internal model type to the actual model ID sent to the API.
-// TEI ignores this field; LM Studio routes by it.
+// llama.cpp accepts the model field (ignored in single-model mode).
 const MODEL_ID_MAP: Record<string, string> = {
-  'bge-m3': process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3',
+  'bge-m3': process.env.LLM_EMBED_MODEL ?? 'bge-m3',
   'voyage-multilingual-2': 'voyage-multilingual-2',
 };
 const resolveModelId = (m: string) => MODEL_ID_MAP[m] ?? m;

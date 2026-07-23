@@ -1365,6 +1365,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002110": [
+    {
+      "slug": "llamacpp-embed-rerank",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

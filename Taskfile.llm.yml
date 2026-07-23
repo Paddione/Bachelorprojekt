@@ -133,22 +133,28 @@ tasks:
     desc: "Register Windows Scheduled Tasks for llama.cpp servers (run on GPU host)"
     cmds:
       - echo "Run this on the Windows GPU host (e.g. via RDP):"
-      - echo "  powershell -ExecutionPolicy Bypass -File .\scripts\llm\register-scheduled-tasks.ps1"
+      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/register-scheduled-tasks.ps1"
 
   start-embed:
     desc: "Start the bge-m3 embedding server interactively (Windows GPU host)"
     cmds:
       - echo "Run on Windows GPU host:"
-      - echo "  powershell -ExecutionPolicy Bypass -File .\scripts\llm\start-embed-server.ps1"
+      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/start-embed-server.ps1"
 
   start-rerank:
     desc: "Start the bge-reranker-v2-m3 rerank server interactively (Windows GPU host)"
     cmds:
       - echo "Run on Windows GPU host:"
-      - echo "  powershell -ExecutionPolicy Bypass -File .\scripts\llm\start-rerank-server.ps1"
+      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/start-rerank-server.ps1"
 
   start-bonsai:
     desc: "Start the Ternary-Bonsai-8B server with 4 slots (Windows GPU host)"
     cmds:
       - echo "Run on Windows GPU host:"
-      - echo "  powershell -ExecutionPolicy Bypass -File .\scripts\llm\start-bonsai-server.ps1"
+      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/start-bonsai-server.ps1"
+
+  lmstudio-preload:
+    desc: "DEPRECATED — replaced by llama.cpp Scheduled Tasks. Use scripts/llm/register-scheduled-tasks.ps1 instead."
+    cmds:
+      - echo "LM Studio (lmstudio-preload.sh) is deprecated since T002110. Use Windows Scheduled Tasks instead."
+      - echo "  See powershell -ExecutionPolicy Bypass -File ./scripts/llm/register-scheduled-tasks.ps1"

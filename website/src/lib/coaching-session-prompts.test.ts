@@ -81,6 +81,18 @@ describe('buildUserPrompt', () => {
   });
 });
 
+describe('Beat model (P1)', () => {
+  it('step 1 exposes a non-empty beats sequence', () => {
+    expect(STEP_DEFINITIONS[0].beats.length).toBeGreaterThan(0);
+  });
+
+  it('every step has at least one ki_prompt beat', () => {
+    for (const s of STEP_DEFINITIONS) {
+      expect(s.beats.some((b) => b.kind === 'ki_prompt')).toBe(true);
+    }
+  });
+});
+
 describe('rate limit helper', () => {
   it('blocks after LIMIT requests from same IP within window', () => {
     const rateMap = new Map<string, { count: number; reset: number }>();

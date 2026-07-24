@@ -28,7 +28,7 @@ Understand the repository before diving into specifics.
 
 1. Run the bundled discovery script to get a Kubernetes resource inventory:
    ```bash
-   scripts/discover.sh -d <repo-root>
+   .claude/skills/gitops-repo-audit/scripts/discover.sh -d <repo-root>
    ```
    The script wraps `flux-schema discover` and outputs JSON with a top-level `inventory`
    object (alongside `kind`/`apiVersion`/`$schema`) containing: a `summary` (file, resource,
@@ -50,7 +50,7 @@ the same machine must not overwrite each other's bundles. If tmp is not writable
 
 ```bash
 bundle="$(mktemp "${TMPDIR:-/tmp}/flux-audit-bundle.XXXXXX" 2>/dev/null || true)"
-scripts/validate.sh -d <repo-root> ${bundle:+-b "$bundle"}
+.claude/skills/gitops-repo-audit/scripts/validate.sh -d <repo-root> ${bundle:+-b "$bundle"}
 ```
 
 It validates every manifest and the rendered output of each Kustomize overlay,
@@ -68,7 +68,7 @@ Check for deprecated Flux API versions.
 
 1. Run the bundled check script:
    ```
-   scripts/check-deprecated.sh -d <repo-root>
+   .claude/skills/gitops-repo-audit/scripts/check-deprecated.sh -d <repo-root>
    ```
    The script runs `flux migrate -f . --dry-run` and outputs exact file paths,
    line numbers, resource kinds, and the required version migration for each

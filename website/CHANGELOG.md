@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.210.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.209.1...website-v1.210.0) (2026-07-24)
+
+
+### Features
+
+* **website:** Coaching-Session-Beat-Choreographie nach Geißler (Beat-Modell) [T002138] ([#3177](https://github.com/Paddione/Bachelorprojekt/issues/3177)) ([e495799](https://github.com/Paddione/Bachelorprojekt/commit/e495799c4a5f0d37633806ded936bb9a484331c8))
+
 ## [1.209.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.209.0...website-v1.209.1) (2026-07-23)
 
 

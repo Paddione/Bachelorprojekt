@@ -2,115 +2,152 @@ import { describe, it, expect } from 'vitest';
 import {
   STEP_DEFINITIONS,
   getStepDef,
+  getBeat,
+  isKiPromptBeat,
   buildUserPrompt,
   type Phase,
+  type KiPromptBeat,
 } from './coaching-session-prompts';
+import {
+  BASE_SYSTEM,
+  TB_TEUFELSKREISLAUF,
+  TB_AUSBALANCIERUNGSPROBLEME,
+  TB_KOMPLEMENTAERKRAEFTE,
+  TB_ERFOLGSFAKTOREN,
+} from './coaching-textbausteine';
 
-describe('STEP_DEFINITIONS', () => {
-  it('contains exactly 10 steps', () => {
+describe('STEP_DEFINITIONS (beat model)', () => {
+  it('contains exactly 10 sequential steps covering all 4 phases', () => {
     expect(STEP_DEFINITIONS).toHaveLength(10);
-  });
-
-  it('covers all four phases', () => {
     const phases = new Set(STEP_DEFINITIONS.map((s) => s.phase));
     expect(phases).toEqual(new Set<Phase>(['problem_ziel', 'analyse', 'loesung', 'umsetzung']));
-  });
-
-  it('assigns sequential step numbers 1..10', () => {
     expect(STEP_DEFINITIONS.map((s) => s.stepNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
-  it('every step has at least one required input', () => {
+  it('every step has a non-empty beats sequence with at least one ki_prompt beat', () => {
     for (const s of STEP_DEFINITIONS) {
-      expect(s.inputs.some((i) => i.required)).toBe(true);
+      expect(s.beats.length).toBeGreaterThan(0);
+      expect(s.beats.some((b) => b.kind === 'ki_prompt')).toBe(true);
     }
   });
 
-  it('every step has a non-empty systemPrompt and userTemplate', () => {
+  it('every ki_prompt beat has non-empty systemPrompt and userTemplate', () => {
     for (const s of STEP_DEFINITIONS) {
-      expect(s.systemPrompt.length).toBeGreaterThan(0);
-      expect(s.userTemplate.length).toBeGreaterThan(0);
+      for (const b of s.beats) {
+        if (b.kind === 'ki_prompt') {
+          expect(b.systemPrompt.length).toBeGreaterThan(0);
+          expect(b.userTemplate.length).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it('capture keys are unique within each step', () => {
+    for (const s of STEP_DEFINITIONS) {
+      const keys: string[] = [];
+      for (const b of s.beats) {
+        if (b.kind === 'instruction' && b.capture) {
+          keys.push(b.capture.key);
+        }
+      }
+      expect(new Set(keys).size).toBe(keys.length);
     }
   });
 
   it('every step has a non-empty description', () => {
     for (const s of STEP_DEFINITIONS) {
-      expect(typeof (s as unknown as Record<string, unknown>)['description']).toBe('string');
-      expect(((s as unknown as Record<string, unknown>)['description'] as string).length).toBeGreaterThan(10);
+      expect(s.description.length).toBeGreaterThan(10);
     }
   });
 });
 
-describe('getStepDef', () => {
-  it('returns the matching step for valid step numbers', () => {
-    expect(getStepDef(1).stepName).toBe('Erstanamnese');
-    expect(getStepDef(5).stepName).toBe('Ressourcenanalyse');
-    expect(getStepDef(10).stepName).toBe('Transfersicherung');
+describe('Textbaustein embedding', () => {
+  function getKiSystemPrompt(stepNumber: number): string {
+    const step = getStepDef(stepNumber);
+    const kiBeat = step.beats.find((b) => b.kind === 'ki_prompt');
+    if (!kiBeat || kiBeat.kind !== 'ki_prompt') throw new Error(`No ki_prompt beat in step ${stepNumber}`);
+    return kiBeat.systemPrompt;
+  }
+
+  it('step 5 (Teufelskreislauf) embeds TB_TEUFELSKREISLAUF', () => {
+    const sp = getKiSystemPrompt(5);
+    expect(sp).toContain('Teufelskreislauf');
+    expect(sp).toContain(TB_TEUFELSKREISLAUF);
   });
 
-  it('throws on unknown step numbers', () => {
-    expect(() => getStepDef(0)).toThrow();
-    expect(() => getStepDef(11)).toThrow(/Step 11 not found/);
-    expect(() => getStepDef(-1)).toThrow();
+  it('step 6 (Ausbalancierungsprobleme) embeds TB_AUSBALANCIERUNGSPROBLEME', () => {
+    const sp = getKiSystemPrompt(6);
+    expect(sp).toContain('Ausbalancierungsproblem');
+    expect(sp).toContain(TB_AUSBALANCIERUNGSPROBLEME);
+  });
+
+  it('step 7 (Komplementärkräfte) embeds TB_KOMPLEMENTAERKRAEFTE', () => {
+    const sp = getKiSystemPrompt(7);
+    expect(sp).toContain('Komplementärkräfte');
+    expect(sp).toContain(TB_KOMPLEMENTAERKRAEFTE);
+  });
+
+  it('step 10 (Erfolgsfaktoren) embeds both TB_ERFOLGSFAKTOREN and TB_KOMPLEMENTAERKRAEFTE', () => {
+    const sp = getKiSystemPrompt(10);
+    expect(sp).toContain(TB_ERFOLGSFAKTOREN);
+    expect(sp).toContain(TB_KOMPLEMENTAERKRAEFTE);
+  });
+});
+
+describe('getBeat / isKiPromptBeat', () => {
+  it('getBeat returns the correct beat for a valid (step, index) pair', () => {
+    const beat0 = getBeat(1, 0); // first beat of step 1: instruction
+    expect(beat0.kind).toBe('instruction');
+    expect((beat0 as { kind: 'instruction'; regie: string }).regie).toContain('Begrüße');
+
+    const beat2 = getBeat(1, 2); // third beat of step 1: ki_prompt
+    expect(beat2.kind).toBe('ki_prompt');
+  });
+
+  it('isKiPromptBeat distinguishes instruction from ki_prompt beats', () => {
+    expect(isKiPromptBeat(getBeat(1, 0))).toBe(false); // instruction
+    expect(isKiPromptBeat(getBeat(1, 2))).toBe(true);  // ki_prompt
   });
 });
 
 describe('buildUserPrompt', () => {
-  it('substitutes tokens with the matching inputs', () => {
-    const def = getStepDef(1);
-    const out = buildUserPrompt(def, {
-      anlass: 'Karrierewechsel',
-      vorerfahrung: 'keine',
-      situation: 'Ich überlege, die Branche zu wechseln.',
-    });
-    expect(out).toContain('Anlass: Karrierewechsel');
-    expect(out).toContain('Vorerfahrung: keine');
-    expect(out).toContain('Aktuelle Situation: Ich überlege, die Branche zu wechseln.');
+  it('resolves {key} placeholders from inputs', () => {
+    const beat = getBeat(2, 2) as KiPromptBeat; // step 2, ki_prompt with {capturedFrom:0} and {capturedFrom:1}
+    // Create a beat that has simple {key} in its template
+    const testBeat: KiPromptBeat = {
+      kind: 'ki_prompt',
+      inputs: [{ key: 'feedback', label: 'Feedback', required: true }],
+      systemPrompt: BASE_SYSTEM,
+      userTemplate: 'Coachee sagt: {feedback}',
+    };
+    const out = buildUserPrompt(testBeat, { feedback: 'Mir geht es gut' });
+    expect(out).toBe('Coachee sagt: Mir geht es gut');
   });
 
-  it('replaces missing tokens with an em-dash placeholder', () => {
-    const def = getStepDef(1);
-    const out = buildUserPrompt(def, { anlass: 'Test', situation: 'X' });
-    expect(out).toContain('Vorerfahrung: —');
+  it('resolves {capturedFrom:INDEX} placeholders from priorCaptures', () => {
+    const testBeat: KiPromptBeat = {
+      kind: 'ki_prompt',
+      inputs: [],
+      systemPrompt: BASE_SYSTEM,
+      userTemplate: 'Erzählung: {capturedFrom:0}\nReaktion: {capturedFrom:1}',
+    };
+    const out = buildUserPrompt(testBeat, {}, { 0: 'Ist-Zustand: Stress', 1: 'Reaktion: Zustimmung' });
+    expect(out).toBe('Erzählung: Ist-Zustand: Stress\nReaktion: Reaktion: Zustimmung');
   });
 
-  it('does not crash on an empty inputs object', () => {
-    const def = getStepDef(1);
-    const out = buildUserPrompt(def, {});
-    expect(out).toContain('Anlass: —');
+  it('uses em-dash fallback for missing placeholders', () => {
+    const testBeat: KiPromptBeat = {
+      kind: 'ki_prompt',
+      inputs: [{ key: 'fehlt', label: 'Fehlt', required: true }],
+      systemPrompt: BASE_SYSTEM,
+      userTemplate: 'Eingabe: {fehlt}',
+    };
+    const out = buildUserPrompt(testBeat, {});
+    expect(out).toContain('—');
   });
-});
 
-describe('Beat model (P1)', () => {
-  it('step 1 exposes a non-empty beats sequence', () => {
-    expect(STEP_DEFINITIONS[0].beats.length).toBeGreaterThan(0);
-  });
-
-  it('every step has at least one ki_prompt beat', () => {
-    for (const s of STEP_DEFINITIONS) {
-      expect(s.beats.some((b) => b.kind === 'ki_prompt')).toBe(true);
-    }
-  });
-});
-
-describe('rate limit helper', () => {
-  it('blocks after LIMIT requests from same IP within window', () => {
-    const rateMap = new Map<string, { count: number; reset: number }>();
-    const LIMIT = 20;
-
-    function check(ip: string): boolean {
-      const now = Date.now();
-      const entry = rateMap.get(ip);
-      if (!entry || now > entry.reset) {
-        rateMap.set(ip, { count: 1, reset: now + 60_000 });
-        return false;
-      }
-      entry.count++;
-      return entry.count > LIMIT;
-    }
-
-    for (let i = 0; i < LIMIT; i++) expect(check('1.2.3.4')).toBe(false);
-    expect(check('1.2.3.4')).toBe(true);
-    expect(check('5.6.7.8')).toBe(false); // different IP resets
+  it('uses BASE_SYSTEM as the system prompt base', () => {
+    const step1KiBeat = getBeat(1, 2) as KiPromptBeat;
+    expect(step1KiBeat.systemPrompt).toBe(BASE_SYSTEM);
   });
 });

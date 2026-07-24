@@ -60,7 +60,7 @@ env_vars:
   WEBSITE_SITE_URL: "https://web.mentolder.de"
   POCKET_ID_FRONTEND_URL: "https://auth.mentolder.de"
   POCKET_ID_DOMAIN: "auth.mentolder.de"
-  POCKET_ID_URL: "http://pocket-id:1411"
+  POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
   # System-test failure loop master kill-switch.
   SYSTEMTEST_LOOP_ENABLED: "true"
   LLM_HOST_IP: "192.168.100.10"

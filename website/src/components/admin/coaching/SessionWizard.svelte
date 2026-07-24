@@ -1,90 +1,125 @@
 <script lang="ts">
   import { STEP_DEFINITIONS } from '../../../lib/coaching-session-prompts';
   import type { Session, SessionStep } from '../../../lib/coaching-session-db';
+  import type { BeatState } from '../../../lib/coaching-session-beats-db';
+  import InstructionBeatView from './InstructionBeatView.svelte';
+  import KiPromptBeatView from './KiPromptBeatView.svelte';
 
-  let { sessionId, initialSession, providerName = 'claude' }: { sessionId: string; initialSession: Session; providerName?: string } = $props();
+  let { sessionId, initialSession, providerName = 'claude' }:
+    { sessionId: string; initialSession: Session; providerName?: string } = $props();
 
   const PHASE_COLORS: Record<string, string> = {
-    problem_ziel: 'bg-blue-500',
-    analyse:      'bg-orange-500',
-    loesung:      'bg-green-500',
-    umsetzung:    'bg-purple-500',
+    problem_ziel: 'bg-blue-500', analyse: 'bg-orange-500', loesung: 'bg-green-500', umsetzung: 'bg-purple-500',
   };
   const PHASE_TEXT: Record<string, string> = {
-    problem_ziel: 'text-blue-400',
-    analyse:      'text-orange-400',
-    loesung:      'text-green-400',
-    umsetzung:    'text-purple-400',
+    problem_ziel: 'text-blue-400', analyse: 'text-orange-400', loesung: 'text-green-400', umsetzung: 'text-purple-400',
   };
 
   let session = $state<Session>(initialSession);
   let currentStep = $state(getInitialStep());
-  let inputs = $state<Record<string, string>>(getStepInputs(getInitialStep()));
-  let coachNotes = $state(getStepNotes(getInitialStep()));
+  let currentBeatIndex = $state(0);
   let loading = $state(false);
   let error = $state('');
   let streamingResponse = $state('');
   const isClaudeProvider = $derived(providerName === 'claude');
+  const isCompleted = $derived(session.status === 'completed');
+
+  const def = $derived(STEP_DEFINITIONS.find((s) => s.stepNumber === currentStep)!);
+  const beats = $derived(def.beats);
+  const activeBeat = $derived(beats[currentBeatIndex]);
+  const stepData = $derived(session.steps.find((s) => s.stepNumber === currentStep));
 
   function getInitialStep(): number {
-    const firstPending = initialSession.steps.find(s => s.status === 'pending' || s.status === 'generated');
+    const firstPending = initialSession.steps.find((s) => s.status === 'pending' || s.status === 'generated');
     return firstPending?.stepNumber ?? 1;
   }
 
-  function getStepInputs(stepNum: number): Record<string, string> {
-    const s = initialSession.steps.find(st => st.stepNumber === stepNum);
-    return s?.coachInputs ? { ...s.coachInputs } : {};
+  function beatState(i: number): BeatState | undefined {
+    return stepData?.beats?.find((b) => b.beatIndex === i);
   }
 
-  function getStepNotes(stepNum: number): string {
-    return initialSession.steps.find(st => st.stepNumber === stepNum)?.coachNotes ?? '';
+  function prevKiResponse(): string | null {
+    for (let i = currentBeatIndex - 1; i >= 0; i--) {
+      if (beats[i].kind === 'ki_prompt') return beatState(i)?.aiResponse ?? null;
+    }
+    return null;
   }
 
-  function getStepData(n: number): SessionStep | undefined {
-    return session.steps.find(s => s.stepNumber === n);
+  function firstUnfinishedBeat(n: number): number {
+    const s = session.steps.find((st) => st.stepNumber === n);
+    const b = STEP_DEFINITIONS.find((st) => st.stepNumber === n)!.beats;
+    for (let i = 0; i < b.length; i++) {
+      const st = s?.beats?.find((x) => x.beatIndex === i);
+      if (st?.status !== 'accepted' && st?.status !== 'skipped') return i;
+    }
+    return 0;
   }
 
-  function navigateTo(n: number) {
+  function navigateToStep(n: number) {
     currentStep = n;
-    const step = session.steps.find(s => s.stepNumber === n);
-    inputs = step?.coachInputs ? { ...step.coachInputs } : {};
-    coachNotes = step?.coachNotes ?? '';
+    currentBeatIndex = firstUnfinishedBeat(n);
+    error = '';
+    streamingResponse = '';
   }
 
-  const def = $derived(STEP_DEFINITIONS.find(s => s.stepNumber === currentStep)!);
-  const stepData = $derived(getStepData(currentStep));
-  const canGenerate = $derived(
-    def?.inputs.filter(i => i.required).every(i => (inputs[i.key] ?? '').trim().length > 0) ?? false
-  );
-  const isCompleted = $derived(session.status === 'completed');
+  function applyStep(updated: SessionStep) {
+    session = {
+      ...session,
+      steps: session.steps.find((s) => s.stepNumber === updated.stepNumber)
+        ? session.steps.map((s) => (s.stepNumber === updated.stepNumber ? updated : s))
+        : [...session.steps, updated],
+    };
+  }
 
-  async function saveInputs() {
-    await fetch(`/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}`, {
+  async function patchBeat(patch: {
+    beatIndex?: number; captured?: string; inputs?: Record<string, string>;
+    beatStatus?: BeatState['status']; status?: SessionStep['status'];
+  }): Promise<void> {
+    const res = await fetch(`/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ coachInputs: inputs, coachNotes }),
+      body: JSON.stringify(patch),
     });
+    const json = await res.json();
+    if (res.ok && json.step) applyStep(json.step);
   }
 
-  async function generate() {
+  async function advanceBeat() {
+    if (currentBeatIndex < beats.length - 1) { currentBeatIndex += 1; error = ''; return; }
+    await patchBeat({ status: 'accepted' });
+    if (currentStep < 10) navigateToStep(currentStep + 1);
+  }
+
+  function goBackBeat() {
+    error = '';
+    if (currentBeatIndex > 0) { currentBeatIndex -= 1; return; }
+    if (currentStep > 1) {
+      const prev = currentStep - 1;
+      currentStep = prev;
+      currentBeatIndex = STEP_DEFINITIONS.find((s) => s.stepNumber === prev)!.beats.length - 1;
+    }
+  }
+
+  async function onInstructionAdvance(captured?: string) {
+    loading = true; error = '';
+    try {
+      await patchBeat({ beatIndex: currentBeatIndex, captured, beatStatus: 'accepted' });
+      await advanceBeat();
+    } catch { error = 'Fehler beim Speichern'; }
+    finally { loading = false; }
+  }
+
+  async function onGenerate(inputs: Record<string, string>) {
     loading = true; error = ''; streamingResponse = '';
     try {
-      await saveInputs();
-
       const url = `/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}/generate${isClaudeProvider ? '?stream=true' : ''}`;
-
+      const body = JSON.stringify({ beatIndex: currentBeatIndex, inputs });
       if (isClaudeProvider) {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ coachInputs: inputs }),
-        });
+        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
         if (!res.ok || !res.body) { error = 'Fehler bei KI-Anfrage'; return; }
-
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
-
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -94,95 +129,54 @@
           for (const line of lines) {
             if (!line.startsWith('data: ')) continue;
             try {
-              const event = JSON.parse(line.slice(6)) as { chunk?: string; done?: boolean; step?: SessionStep; error?: string };
-              if (event.chunk) {
-                streamingResponse += event.chunk;
-              } else if (event.done && event.step) {
-                session = {
-                  ...session,
-                  steps: session.steps.find(s => s.stepNumber === currentStep)
-                    ? session.steps.map(s => s.stepNumber === currentStep ? event.step! : s)
-                    : [...session.steps, event.step!],
-                };
-                streamingResponse = '';
-              } else if (event.error) {
-                error = event.error;
-              }
-            } catch { /* skip malformed event */ }
+              const ev = JSON.parse(line.slice(6)) as { chunk?: string; done?: boolean; step?: SessionStep; error?: string };
+              if (ev.chunk) streamingResponse += ev.chunk;
+              else if (ev.done && ev.step) { applyStep(ev.step); streamingResponse = ''; }
+              else if (ev.error) error = ev.error;
+            } catch { /* skip malformed */ }
           }
         }
       } else {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ coachInputs: inputs }),
-        });
+        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
         const json = await res.json();
         if (!res.ok) { error = json.error ?? 'Fehler bei KI-Anfrage'; return; }
-        session = {
-          ...session,
-          steps: session.steps.find(s => s.stepNumber === currentStep)
-            ? session.steps.map(s => s.stepNumber === currentStep ? json.step : s)
-            : [...session.steps, json.step],
-        };
+        applyStep(json.step);
       }
     } catch { error = 'Verbindungsfehler'; }
     finally { loading = false; }
   }
 
-  async function accept() {
+  async function onAccept(inputs: Record<string, string>) {
     loading = true; error = '';
     try {
-      await fetch(`/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coachInputs: inputs, coachNotes, status: 'accepted' }),
-      });
-      session = {
-        ...session,
-        steps: session.steps.map(s => s.stepNumber === currentStep ? { ...s, status: 'accepted', coachNotes } : s),
-      };
-      if (currentStep < 10) { navigateTo(currentStep + 1); }
+      await patchBeat({ beatIndex: currentBeatIndex, inputs, beatStatus: 'accepted' });
+      await advanceBeat();
     } catch { error = 'Fehler beim Speichern'; }
     finally { loading = false; }
   }
 
-  async function reject() {
-    loading = true; error = '';
-    const prev = session.steps.find(s => s.stepNumber === currentStep);
-    session = {
-      ...session,
-      steps: session.steps.map(s => s.stepNumber === currentStep ? { ...s, status: 'pending' as const, aiResponse: null } : s),
-    };
+  async function onReject() {
+    loading = true; error = ''; streamingResponse = '';
     try {
-      await fetch(`/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coachInputs: inputs, status: 'pending' }),
-      });
-    } catch {
-      if (prev) {
-        session = { ...session, steps: session.steps.map(s => s.stepNumber === currentStep ? prev : s) };
-      }
-      error = 'Fehler beim Verwerfen';
-    } finally {
-      loading = false;
-    }
+      await patchBeat({ beatIndex: currentBeatIndex, beatStatus: 'seen' });
+    } catch { error = 'Fehler beim Verwerfen'; }
+    finally { loading = false; }
   }
 
-  async function skip() {
-    loading = true;
+  async function onSkipBeat() {
+    loading = true; error = '';
     try {
-      await fetch(`/api/admin/coaching/sessions/${sessionId}/steps/${currentStep}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coachInputs: inputs, coachNotes, status: 'skipped' }),
-      });
-      session = {
-        ...session,
-        steps: session.steps.map(s => s.stepNumber === currentStep ? { ...s, status: 'skipped' } : s),
-      };
-      if (currentStep < 10) { navigateTo(currentStep + 1); }
+      await patchBeat({ beatIndex: currentBeatIndex, beatStatus: 'skipped' });
+      await advanceBeat();
+    } catch { error = 'Fehler'; }
+    finally { loading = false; }
+  }
+
+  async function skipStep() {
+    loading = true; error = '';
+    try {
+      await patchBeat({ status: 'skipped' });
+      if (currentStep < 10) navigateToStep(currentStep + 1);
     } catch { error = 'Fehler'; }
     finally { loading = false; }
   }
@@ -200,141 +194,59 @@
 
   function stepStatus(n: number): 'done' | 'current' | 'pending' {
     if (n === currentStep) return 'current';
-    const s = getStepData(n);
+    const s = session.steps.find((st) => st.stepNumber === n);
     if (s?.status === 'accepted' || s?.status === 'skipped') return 'done';
     return 'pending';
   }
+
+  const allBeatsResolved = $derived(
+    beats.every((_, i) => { const st = beatState(i); return st?.status === 'accepted' || st?.status === 'skipped'; }),
+  );
+  const canGoBack = $derived(currentBeatIndex > 0 || currentStep > 1);
 </script>
 
 <div class="wizard">
-  <!-- Fortschrittsbalken -->
   <div class="progress-bar" aria-label="Fortschritt">
     {#each STEP_DEFINITIONS as s}
       {@const status = stepStatus(s.stepNumber)}
-      <button
-        class="progress-step {PHASE_COLORS[s.phase]} {status === 'current' ? 'ring-2 ring-white scale-110' : ''} {status !== 'pending' ? 'opacity-100' : 'opacity-40'}"
-        onclick={() => { navigateTo(s.stepNumber); }}
+      <button class="progress-step {PHASE_COLORS[s.phase]} {status === 'current' ? 'ring-2 ring-white scale-110' : ''} {status !== 'pending' ? 'opacity-100' : 'opacity-40'}"
+        onclick={() => { navigateToStep(s.stepNumber); }}
         title="Schritt {s.stepNumber}: {s.stepName}"
         aria-current={status === 'current' ? 'step' : undefined}
-      >
-        {#if status === 'done'}&#x2713;{:else}{s.stepNumber}{/if}
-      </button>
+      >{#if status === 'done'}&#x2713;{:else}{s.stepNumber}{/if}</button>
     {/each}
   </div>
 
-  <!-- Schritt-Header -->
   <div class="step-header">
     <span class="phase-label {PHASE_TEXT[def.phase]}">{def.phaseLabel}</span>
     <span class="step-description">{def.description}</span>
-    <h2 class="step-title">Schritt {currentStep}/10 &mdash; {def.stepName}</h2>
+    <div class="step-title-row">
+      <h2 class="step-title">Schritt {currentStep}/10 &mdash; {def.stepName}</h2>
+      <span class="beat-indicator">Beat {currentBeatIndex + 1}/{beats.length}</span>
+    </div>
   </div>
 
-  {#if error}
-    <div class="error-box">{error}</div>
-  {/if}
+  {#if error}<div class="error-box">{error}</div>{/if}
 
-  <!-- Eingabefelder -->
-  <div class="inputs-section">
-    {#each def.inputs as input}
-      <div class="input-group">
-        <label class="input-label" for={input.key}>
-          {input.label}{#if input.required}<span class="required">*</span>{/if}
-        </label>
-        {#if input.multiline}
-          <textarea
-            id={input.key}
-            bind:value={inputs[input.key]}
-            rows={3}
-            class="input-field"
-            placeholder={input.required ? 'Pflichtfeld' : 'Optional'}
-            disabled={isCompleted}
-          ></textarea>
-        {:else}
-          <input
-            id={input.key}
-            type="text"
-            bind:value={inputs[input.key]}
-            class="input-field"
-            placeholder={input.required ? 'Pflichtfeld' : 'Optional'}
-            disabled={isCompleted}
-          />
-        {/if}
-      </div>
-    {/each}
-  </div>
-
-  <!-- KI befragen Button -->
-  {#if !isCompleted && stepData?.status !== 'accepted'}
-    <button
-      class="btn-primary"
-      onclick={generate}
-      disabled={!canGenerate || loading}
-    >
-      {loading ? 'KI antwortet…' : 'KI befragen →'}
-    </button>
-  {/if}
-
-  <!-- Streaming-Vorschau -->
-  {#if streamingResponse}
-    <div class="ai-response-box streaming">
-      <p class="ai-label">KI generiert…</p>
-      <p class="ai-text">{streamingResponse}</p>
-    </div>
-  {/if}
-
-  <!-- KI-Antwort -->
-  {#if stepData?.aiResponse}
-    <div class="ai-response-box">
-      <p class="ai-label">KI-Vorschlag</p>
-      <p class="ai-text">{stepData.aiResponse}</p>
-    </div>
-
-    <!-- Notizfeld -->
-    <div class="input-group">
-      <label class="input-label" for="coach-notes">Meine Notiz (optional)</label>
-      <textarea
-        id="coach-notes"
-        bind:value={coachNotes}
-        rows={2}
-        class="input-field"
-        placeholder="Eigene Gedanken, Ergänzungen, Korrekturen…"
-        disabled={isCompleted}
-      ></textarea>
-    </div>
-
-    <!-- Aktions-Buttons -->
-    {#if !isCompleted && stepData.status !== 'accepted'}
-      <div class="action-buttons">
-        {#if currentStep > 1}
-          <button class="btn-secondary" onclick={() => { navigateTo(currentStep - 1); }}>&larr; Zurück</button>
-        {/if}
-        <button class="btn-ghost" onclick={reject} disabled={loading}>Verwerfen &amp; neu</button>
-        <button class="btn-ghost" onclick={skip} disabled={loading}>Überspringen</button>
-        <button class="btn-primary" onclick={accept} disabled={loading}>Akzeptieren &rarr;</button>
-      </div>
-    {/if}
-  {:else if stepData?.status !== 'accepted'}
-    <div class="action-buttons">
-      {#if currentStep > 1}
-        <button class="btn-secondary" onclick={() => { navigateTo(currentStep - 1); }}>&larr; Zurück</button>
+  {#if !isCompleted}
+    {#key `${currentStep}:${currentBeatIndex}`}
+      {#if activeBeat.kind === 'instruction'}
+        <InstructionBeatView beat={activeBeat} beatState={beatState(currentBeatIndex)} disabled={loading} {canGoBack} onAdvance={onInstructionAdvance} onBack={goBackBeat} />
+      {:else}
+        <KiPromptBeatView beat={activeBeat} beatState={beatState(currentBeatIndex)} prevKiResponse={prevKiResponse()} disabled={loading} {loading} {streamingResponse} {canGoBack} {onGenerate} {onAccept} onReject={onReject} onSkip={onSkipBeat} onBack={goBackBeat} />
       {/if}
-      <button class="btn-ghost" onclick={skip} disabled={loading || isCompleted}>Schritt überspringen</button>
-    </div>
-  {:else}
-    <!-- Schritt abgeschlossen -->
-    <div class="accepted-badge">&#x2713; Abgeschlossen</div>
-    <div class="action-buttons">
-      {#if currentStep > 1}
-        <button class="btn-secondary" onclick={() => { navigateTo(currentStep - 1); }}>&larr; Zurück</button>
-      {/if}
-      {#if currentStep < 10}
-        <button class="btn-primary" onclick={() => { navigateTo(currentStep + 1); }}>Weiter &rarr;</button>
-      {:else if !isCompleted}
+    {/key}
+
+    <div class="step-footer">
+      <button class="btn-ghost" onclick={skipStep} disabled={loading}>Schritt überspringen</button>
+      {#if currentStep === 10 && allBeatsResolved}
         <button class="btn-complete" onclick={completeSession} disabled={loading}>
-          {loading ? 'Bericht wird erstellt…' : 'Session abschließen &amp; Bericht generieren'}
+          {loading ? 'Bericht wird erstellt…' : 'Session abschließen & Bericht generieren'}
         </button>
       {/if}
     </div>
+  {:else}
+    <div class="accepted-badge">&#x2713; Session abgeschlossen</div>
   {/if}
 </div>
 
@@ -345,20 +257,10 @@
   .step-header { border-bottom: 1px solid var(--line); padding-bottom: 0.75rem; display: flex; flex-direction: column; gap: 0.2rem; }
   .phase-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
   .step-description { font-size: 0.82rem; color: var(--mute); font-style: italic; }
+  .step-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
   .step-title { font-family: var(--serif); font-size: 1.5rem; font-weight: 400; letter-spacing: -0.015em; color: var(--fg); margin: 0.15rem 0 0; }
-  .inputs-section { display: flex; flex-direction: column; gap: 1rem; }
-  .input-group { display: flex; flex-direction: column; gap: 0.3rem; }
-  .input-label { font-size: 0.8rem; color: var(--mute); }
-  .required { color: #f87171; margin-left: 0.2rem; }
-  .input-field { background: var(--ink-800); border: 1px solid var(--line); border-radius: 6px; padding: 0.6rem 0.75rem; color: var(--fg); font-size: 0.9rem; width: 100%; resize: vertical; font-family: var(--sans); }
-  .input-field:focus { outline: none; border-color: var(--brass); }
-  .ai-response-box { background: var(--ink-800); border: 1px solid var(--brass); border-radius: 8px; padding: 1rem; }
-  .ai-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--brass); margin: 0 0 0.5rem; }
-  .ai-text { color: var(--fg); font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; margin: 0; }
-  .action-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
-  .btn-primary { padding: 0.6rem 1.4rem; background: var(--brass); color: #111; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-family: var(--sans); }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary { padding: 0.5rem 1rem; background: transparent; color: var(--mute); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-family: var(--sans); }
+  .beat-indicator { font-size: 0.78rem; color: var(--mute); background: var(--ink-800); padding: 0.2rem 0.6rem; border-radius: 4px; white-space: nowrap; }
+  .step-footer { border-top: 1px solid var(--line); padding-top: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; justify-content: space-between; }
   .btn-ghost { padding: 0.5rem 1rem; background: transparent; color: var(--mute); border: none; cursor: pointer; font-size: 0.85rem; text-decoration: underline; font-family: var(--sans); }
   .btn-complete { padding: 0.7rem 1.6rem; background: var(--success); color: #111; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; font-family: var(--sans); }
   .btn-complete:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -52,7 +52,7 @@ einen Cron-Job ein. **STOPP hier.**
 > **Ticket-vor-Branch-Check (T001917):** Bevor der Branch-Slug feststeht, prüfen ob für diese
 > Chore bereits ein Ticket existiert (`TICKET_EXT_ID` gesetzt oder in `./scripts/ticket.sh list`
 > auffindbar?). Existiert noch keines, **zuerst das Ticket anlegen** (Block in Schritt 1 unten)
-> und dessen ID sofort in den Branch-Slug aufnehmen (z.B. `chore/lighthouse-ci-token-t001913`
+> und dessen ID sofort in den Branch-Slug aufnehmen (z.B. `chore/lighthouse-ci-token-T001913`
 > statt `chore/lighthouse-ci-token`) — nicht erst nach dem Worktree. Sonst schlägt
 > `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss
 > nachträglich umbenannt werden (Zeitverlust, siehe T001913).
@@ -83,7 +83,7 @@ bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label
 ```
 
 > Enthält `<slug>` eine wiederverwendete `TICKET_EXT_ID` (z.B. `T001869`), sollte deren Ticketnummer
-> im Slug vorkommen (z.B. `doc-cleanup-t001869`) — `preflight-pr-scope.sh` prüft das PR-Titel↔Branch-
+> im Slug vorkommen (z.B. `doc-cleanup-T001869`) — `preflight-pr-scope.sh` prüft das PR-Titel↔Branch-
 > Matching case-insensitiv (T001873), Groß-/Kleinschreibung im Slug spielt also keine Rolle.
 
 Claim-Semantik, main-checkout-Sonderfall (`claim main-checkout`) und Release:

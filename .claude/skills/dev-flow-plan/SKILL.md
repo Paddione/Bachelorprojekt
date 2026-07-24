@@ -149,20 +149,20 @@ damit Partial-Pläne sofort in die Factory enqueued werden können, während der
 weiterarbeitet. Die Factory beginnt mit der Ausführung eines Partials, sobald es
 enqueued ist — parallel zum Schreiben des nächsten Partials.
 
-> **Ticket-vor-Branch-Check (T001917, T002050):** Prüfe vor der Worktree-Anlage, ob bereits ein Ticket existiert oder in Schritt 4.5 ein neues angelegt wird. Ist `TICKET_EXT_ID` bekannt, benenne den Branch **immer** mit Ticket-ID-Suffix (z.B. `feature/<slug>-t002050` statt `feature/<slug>`). Falls noch kein Ticket existiert, erstelle das Ticket VOR der Worktree-Anlage (siehe Schritt 4.5), um dessen `TICKET_EXT_ID` direkt in den Branch-Namen aufzunehmen. Sonst schlägt `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss nachträglich umbenannt werden.
+> **Ticket-vor-Branch-Check (T001917, T002050):** Prüfe vor der Worktree-Anlage, ob bereits ein Ticket existiert oder in Schritt 4.5 ein neues angelegt wird. Ist `TICKET_EXT_ID` bekannt, benenne den Branch **immer** mit Ticket-ID-Suffix (z.B. `feature/<slug>-T002050` statt `feature/<slug>`). Falls noch kein Ticket existiert, erstelle das Ticket VOR der Worktree-Anlage (siehe Schritt 4.5), um dessen `TICKET_EXT_ID` direkt in den Branch-Namen aufzunehmen. Sonst schlägt `preflight-pr-scope.sh` beim PR fehl (PR-Titel-Ticket-ID ≠ Branch-Name) und der Branch muss nachträglich umbenannt werden.
 
 #### Schritt B.1: Worktree anlegen (git-crypt-safe)
 
 ```bash
-bash scripts/worktree-create.sh feature/<slug>-t<id> .worktrees/<slug>
+bash scripts/worktree-create.sh feature/<slug>-T<id> .worktrees/<slug>
 
 # Branch claimen (Session-Koordination [T000510])
-bash scripts/agent-lock.sh claim branch "feature/<slug>-t<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
+bash scripts/agent-lock.sh claim branch "feature/<slug>-T<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
   || { echo "🛑 Branch wird bereits von einer anderen Session bearbeitet."; exit 1; }
 
 # Ticket-Claim
 bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
-  --branch "feature/<slug>-t<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
+  --branch "feature/<slug>-T<id>" --worktree ".worktrees/<slug>" --label dev-flow-plan \
   || { echo "🛑 Ticket wird bereits von einer anderen Session bearbeitet."; exit 1; }
 ```
 
@@ -209,11 +209,11 @@ FOR each partial pX (p1, p2, ...):
   ├─► Schritt C.2c: Commit + Push
   │     git add openspec/changes/<slug>/
   │     git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
-  │     git push origin feature/<slug>-t<id>
+  │     git push origin feature/<slug>-T<id>
   │
   ├─► Schritt C.2d: Plan stagen (slot_count setzen)
   │     bash scripts/ticket.sh stage-plan \
-  │       --id "$TICKET_EXT_ID" --branch "feature/<slug>-t<id>" \
+  │       --id "$TICKET_EXT_ID" --branch "feature/<slug>-T<id>" \
   │       --plan "openspec/changes/<slug>/tasks.md" --partials N
   │
   ├─► Schritt C.2e: Readiness-Flags setzen

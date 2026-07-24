@@ -17,8 +17,26 @@ _Ticket: T002148_
 ## File Structure
 
 ```
-<author fills this in — list of new/changed files>
+scripts/health-goals-check.sh                          (edit: G-AGENTIC02+G-DB09+G-E2E01 robustness)
+.claude/skills/OVERVIEW.md                              (edit: skill counter + gitops-* references)
+.claude/skills/gitops-repo-audit/SKILL.md               (edit: 3 script path prefixes)
+.claude/skills/dev-flow-plan/SKILL.md                   (edit: trim to <=500 lines)
+.claude/skills/dev-flow-plan/references/*.md            (new: extracted content, exact name by author)
+.github/workflows/e2e.yml                               (edit: purge-step failure visibility)
+openspec/changes/e2e-testdata-leak/ -> openspec/changes/archive/e2e-testdata-leak/  (git mv)
+tests/spec/health-goals-remediation.bats                (new)
 ```
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-health-goals-check-script.md | impl | scripts/health-goals-check.sh | |
+| p2 | tasks.d/p2-skill-overview-registry.md | impl | .claude/skills/OVERVIEW.md | |
+| p3 | tasks.d/p3-gitops-repo-audit-paths.md | impl | .claude/skills/gitops-repo-audit/SKILL.md | |
+| p4 | tasks.d/p4-dev-flow-plan-trim.md | impl | .claude/skills/dev-flow-plan/SKILL.md | |
+| p5 | tasks.d/p5-e2e-purge-visibility.md | impl | .github/workflows/e2e.yml | |
+| p6 | tasks.d/p6-tests.md | tests | tests/spec/health-goals-remediation.bats | p1,p2,p3,p4,p5 |
 
 ## Verify (RED → GREEN)
 

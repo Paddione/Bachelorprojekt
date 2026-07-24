@@ -101,4 +101,17 @@ describe('POST /api/demo/coaching-sim', () => {
     expect(json.result).toBe('{"feld":"ok"}');
     expect(mockCreate).toHaveBeenCalledOnce();
   });
+
+  it('coach mode fills first ki_prompt beat template (no raw placeholder leaks)', async () => {
+    vi.mocked(getActiveProvider).mockResolvedValue({
+      provider: 'local-lmstudio', apiKey: null, apiEndpoint: 'http://localhost:1234/v1',
+      modelName: 'hermes-3', temperature: 0.7, maxTokens: null, systemPrompt: null,
+    } as unknown as Awaited<ReturnType<typeof getActiveProvider>>);
+    mockCreate.mockResolvedValue({ choices: [{ message: { content: 'ok' } }] });
+    const res = await call({ mode: 'coach', stepNumber: 1, stepName: 'Anliegen', coachInputs: {}, previousSteps: [] });
+    expect(res.status).toBe(200);
+    const sent = mockCreate.mock.calls[0][0] as { messages: Array<{ role: string; content: string }> };
+    const userMsg = sent.messages[sent.messages.length - 1].content;
+    expect(userMsg).not.toContain('{capturedFrom');
+  });
 });

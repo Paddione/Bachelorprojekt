@@ -3,14 +3,15 @@ import { getSession, isAdmin } from '../../../../../../../../lib/auth';
 import { getSession as getCoachingSession, upsertStep, appendAuditLog } from '../../../../../../../../lib/coaching-session-db';
 import { getActiveProvider, getKiProviderById } from '../../../../../../../../lib/coaching-ki-config-db';
 import { getStepTemplate, buildPromptFromTemplate } from '../../../../../../../../lib/coaching-templates-db';
-import { getStepDef, buildUserPrompt } from '../../../../../../../../lib/coaching-session-prompts';
+import { getStepDef, getBeat, isKiPromptBeat, buildUserPrompt } from '../../../../../../../../lib/coaching-session-prompts';
+import type { BeatState } from '../../../../../../../../lib/coaching-session-beats-db';
 import { getProject } from '../../../../../../../../lib/coaching-project-db';
 import { pool } from '../../../../../../../../lib/website-db';
 import { scrubClientPii } from '../../../../../../../../lib/prompt-scrubber';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request, params , locals }) => {
+export const POST: APIRoute = async ({ request, params, locals }) => {
   const session = await getSession(request.headers.get('cookie'));
   if (!session || !isAdmin(session)) return new Response('Unauthorized', { status: 401 });
 
@@ -20,15 +21,23 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     return new Response(JSON.stringify({ error: 'Invalid step number' }), { status: 400, headers: { 'content-type': 'application/json' } });
   }
 
-  let body: { coachInputs: Record<string, string> };
+  let body: { beatIndex: number; inputs: Record<string, string> };
   try { body = await request.json(); } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'content-type': 'application/json' } });
   }
 
+  const { beatIndex, inputs } = body;
+  if (typeof beatIndex !== 'number' || !Number.isInteger(beatIndex) || beatIndex < 0) {
+    return new Response(JSON.stringify({ error: 'Invalid beatIndex' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+
   const brand = process.env.BRAND || 'mentolder';
-  
+
   const coachingSession = await getCoachingSession(pool, sessionId);
-  
+  if (!coachingSession) {
+    return new Response(JSON.stringify({ error: 'Session not found' }), { status: 404, headers: { 'content-type': 'application/json' } });
+  }
+
   let customerNumber: string | null = null;
   let projectKiContext: string | null = null;
   if (coachingSession?.projectId) {
@@ -47,6 +56,22 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   }
   const providerName = activeProvider.provider;
 
+  // Resolve beat definition
+  const beat = getBeat(stepNumber, beatIndex);
+  if (!isKiPromptBeat(beat)) {
+    return new Response(JSON.stringify({ error: 'Only ki_prompt beats support generation' }), { status: 400, headers: { 'content-type': 'application/json' } });
+  }
+
+  // Build priorCaptures from step beats
+  const stepBeats: BeatState[] = coachingSession.steps.find((s) => s.stepNumber === stepNumber)?.beats ?? [];
+  const priorCaptures: Record<number, string> = {};
+  for (const sb of stepBeats) {
+    if (sb.beatIndex < beatIndex && sb.captured) {
+      priorCaptures[sb.beatIndex] = sb.captured;
+    }
+  }
+
+  const def = getStepDef(stepNumber);
   const dbTemplate = await getStepTemplate(pool, brand, stepNumber);
   let systemPrompt: string;
   let userPrompt: string;
@@ -55,27 +80,26 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
 
   if (dbTemplate) {
     systemPrompt = dbTemplate.systemPrompt;
-    userPrompt = buildPromptFromTemplate(dbTemplate, body.coachInputs);
+    userPrompt = buildPromptFromTemplate(dbTemplate, inputs);
     stepName = dbTemplate.stepName;
     phase = dbTemplate.phase;
   } else {
-    const def = getStepDef(stepNumber);
-    systemPrompt = def.systemPrompt;
-    userPrompt = buildUserPrompt(def, body.coachInputs);
+    systemPrompt = beat.systemPrompt;
+    userPrompt = buildUserPrompt(beat, inputs, priorCaptures);
     stepName = def.stepName;
     phase = def.phase;
   }
 
   let effectiveSystem = activeProvider?.systemPrompt || systemPrompt;
-  
-  // DSGVO-konformer Scrubber: Ersetze PII durch customerNumber mit name/email sources
+
+  // DSGVO-konformer Scrubber: Ersetze PII durch customerNumber with name/email sources
   let piiSources: { names: string[]; emails: string[] } | null = null;
   if (customerNumber) {
-    const pii: { names: string[]; emails: string[] } = { 
-      names: coachingSession?.clientName ? [coachingSession.clientName] : [], 
-      emails: [] as string[] 
+    const pii: { names: string[]; emails: string[] } = {
+      names: coachingSession?.clientName ? [coachingSession.clientName] : [],
+      emails: [] as string[],
     };
-    
+
     // Collect client name PII sources from linked customer record
     if (coachingSession?.clientId) {
       try {
@@ -85,16 +109,16 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
         if (row?.email) pii.emails.push(row.email);
       } catch { /* customer lookup must not block generation */ }
     }
-    
+
     piiSources = pii;
   }
 
   // Apply scrubber to effectiveSystem and userPrompt before agent call
   let anonymizedUserPromptFinal: string;
-  
+
   if (customerNumber) {
     const replacement = customerNumber ?? '[KLIENT]';
-    
+
     try {
       if (piiSources!.names.length || piiSources!.emails.length) {
         effectiveSystem = scrubClientPii(effectiveSystem, { names: piiSources!.names, emails: piiSources!.emails, replacement });
@@ -118,11 +142,11 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   // Update userPrompt to include prefix if we scrubbed with replacement
   if (customerNumber && piiSources!.names.length) {
     const prefix = `Klient ${customerNumber}:`;
-    userPrompt = !anonymizedUserPromptFinal.startsWith(prefix) 
+    userPrompt = !anonymizedUserPromptFinal.startsWith(prefix)
       ? `${prefix}\n${anonymizedUserPromptFinal}`
       : anonymizedUserPromptFinal;
   }
-  
+
   if (projectKiContext && !effectiveSystem.includes(projectKiContext)) {
     effectiveSystem = `${projectKiContext}\n\n${effectiveSystem}`;
   }
@@ -135,6 +159,12 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   const history = await buildSessionHistory(sessionId, stepNumber);
   const agent = createSessionAgent(activeProvider);
 
+  /** Merge a new BeatState into existing beats array. */
+  function withBeat(existing: BeatState[], patch: BeatState): BeatState[] {
+    return [...existing.filter((b) => b.beatIndex !== patch.beatIndex), patch]
+      .sort((a, b) => a.beatIndex - b.beatIndex);
+  }
+
   if (wantsStream && agent.stream) {
     const encoder = new TextEncoder();
     const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
@@ -145,7 +175,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
       let fullResponse = '';
       try {
         for await (const chunk of agent.stream!({
-          sessionId, stepNumber, coachInputs: body.coachInputs,
+          sessionId, stepNumber, coachInputs: inputs,
           kiConfig: activeProvider, brand, history,
           effectiveSystemPrompt: effectiveSystem,
           assembledUserPrompt: anonymizedUserPromptFinal,
@@ -155,11 +185,12 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
           await writer.write(encoder.encode(`data: ${JSON.stringify({ chunk })}\n\n`));
         }
         const durationMs = Date.now() - streamStart;
+        const mergedBeats = withBeat(stepBeats, {
+          beatIndex, inputs, aiResponse: fullResponse, status: 'generated',
+        });
         const step = await upsertStep(pool, {
           sessionId, stepNumber, stepName, phase,
-          coachInputs: body.coachInputs,
-          aiPrompt: anonymizedUserPromptFinal,
-          aiResponse: fullResponse,
+          beats: mergedBeats,
           status: 'generated',
         });
         await appendAuditLog(pool, {
@@ -190,7 +221,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   const startMs = Date.now();
   try {
     const result = await agent.generate({
-      sessionId, stepNumber, coachInputs: body.coachInputs,
+      sessionId, stepNumber, coachInputs: inputs,
       kiConfig: activeProvider, brand, history,
       effectiveSystemPrompt: effectiveSystem,
       assembledUserPrompt: anonymizedUserPromptFinal,
@@ -214,10 +245,13 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   }
 
   const durationMs = Date.now() - startMs;
+  const mergedBeats = withBeat(stepBeats, {
+    beatIndex, inputs, aiResponse, status: 'generated',
+  });
 
   const step = await upsertStep(pool, {
     sessionId, stepNumber, stepName, phase,
-    coachInputs: body.coachInputs, aiPrompt: anonymizedUserPromptFinal, aiResponse, status: 'generated',
+    beats: mergedBeats, status: 'generated',
   });
 
   await appendAuditLog(pool, {

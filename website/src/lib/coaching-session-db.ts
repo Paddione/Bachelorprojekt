@@ -1,4 +1,6 @@
 import type { Pool } from 'pg';
+import type { BeatState } from './coaching-session-beats-db';
+import { serializeBeats, deserializeBeats } from './coaching-session-beats-db';
 
 export interface Session {
   id: string;
@@ -51,10 +53,7 @@ export interface SessionStep {
   stepNumber: number;
   stepName: string;
   phase: string;
-  coachInputs: Record<string, string>;
-  aiPrompt: string | null;
-  aiResponse: string | null;
-  coachNotes: string | null;
+  beats: BeatState[];
   status: 'pending' | 'generated' | 'accepted' | 'skipped';
   generatedAt: Date | null;
 }
@@ -76,10 +75,7 @@ interface UpsertStepArgs {
   stepNumber: number;
   stepName: string;
   phase: string;
-  coachInputs?: Record<string, string>;
-  aiPrompt?: string | null;
-  aiResponse?: string | null;
-  coachNotes?: string | null;
+  beats?: BeatState[];
   status?: 'pending' | 'generated' | 'accepted' | 'skipped';
 }
 
@@ -110,10 +106,7 @@ function rowToStep(row: Record<string, unknown>): SessionStep {
     stepNumber: row.step_number as number,
     stepName: row.step_name as string,
     phase: row.phase as string,
-    coachInputs: (row.coach_inputs as Record<string, string>) ?? {},
-    aiPrompt: (row.ai_prompt as string | null) ?? null,
-    aiResponse: (row.ai_response as string | null) ?? null,
-    coachNotes: (row.coach_notes as string | null) ?? null,
+    beats: deserializeBeats(row.coach_inputs),
     status: row.status as SessionStep['status'],
     generatedAt: (row.generated_at as Date | null) ?? null,
   };
@@ -211,24 +204,22 @@ export async function listSessions(
 }
 
 export async function upsertStep(pool: Pool, args: UpsertStepArgs): Promise<SessionStep> {
+  const beats = args.beats ?? [];
+  const hasAi = beats.some((b) => b.aiResponse);
   const r = await pool.query(
     `INSERT INTO coaching.session_steps
        (session_id, step_number, step_name, phase, coach_inputs, ai_prompt, ai_response, coach_notes, status, generated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     VALUES ($1, $2, $3, $4, $5, NULL, NULL, NULL, $6, $7)
      ON CONFLICT (session_id, step_number) DO UPDATE SET
-       coach_inputs  = EXCLUDED.coach_inputs,
-       ai_prompt     = CASE WHEN EXCLUDED.ai_prompt IS NOT NULL THEN EXCLUDED.ai_prompt ELSE coaching.session_steps.ai_prompt END,
-       ai_response   = CASE WHEN EXCLUDED.ai_response IS NOT NULL THEN EXCLUDED.ai_response ELSE coaching.session_steps.ai_response END,
-       coach_notes   = CASE WHEN EXCLUDED.coach_notes IS NOT NULL THEN EXCLUDED.coach_notes ELSE coaching.session_steps.coach_notes END,
-       status        = EXCLUDED.status,
-       generated_at  = CASE WHEN EXCLUDED.generated_at IS NOT NULL THEN EXCLUDED.generated_at ELSE coaching.session_steps.generated_at END
+       coach_inputs = EXCLUDED.coach_inputs,
+       status       = EXCLUDED.status,
+       generated_at = CASE WHEN EXCLUDED.generated_at IS NOT NULL THEN EXCLUDED.generated_at ELSE coaching.session_steps.generated_at END
      RETURNING *`,
     [
       args.sessionId, args.stepNumber, args.stepName, args.phase,
-      JSON.stringify(args.coachInputs ?? {}),
-      args.aiPrompt ?? null, args.aiResponse ?? null, args.coachNotes ?? null,
+      serializeBeats(beats),
       args.status ?? 'pending',
-      args.aiResponse ? new Date() : null,
+      hasAi ? new Date() : null,
     ],
   );
   return rowToStep(r.rows[0]);
@@ -250,24 +241,18 @@ export async function completeSession(pool: Pool, sessionId: string, reportMarkd
       `UPDATE coaching.sessions SET status = 'completed', completed_at = now() WHERE id = $1`,
       [sessionId],
     );
+    const reportBeats: BeatState[] = [
+      { beatIndex: 0, aiResponse: reportMarkdown, status: 'accepted' },
+    ];
     await client.query(
       `INSERT INTO coaching.session_steps
          (session_id, step_number, step_name, phase, coach_inputs, ai_prompt, ai_response, coach_notes, status, generated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       VALUES ($1, 0, 'Abschlussbericht', 'umsetzung', $2, NULL, NULL, NULL, 'accepted', now())
        ON CONFLICT (session_id, step_number) DO UPDATE SET
-         coach_inputs  = EXCLUDED.coach_inputs,
-         ai_prompt     = CASE WHEN EXCLUDED.ai_prompt IS NOT NULL THEN EXCLUDED.ai_prompt ELSE coaching.session_steps.ai_prompt END,
-         ai_response   = CASE WHEN EXCLUDED.ai_response IS NOT NULL THEN EXCLUDED.ai_response ELSE coaching.session_steps.ai_response END,
-         coach_notes   = CASE WHEN EXCLUDED.coach_notes IS NOT NULL THEN EXCLUDED.coach_notes ELSE coaching.session_steps.coach_notes END,
-         status        = EXCLUDED.status,
-         generated_at  = CASE WHEN EXCLUDED.generated_at IS NOT NULL THEN EXCLUDED.generated_at ELSE coaching.session_steps.generated_at END`,
-      [
-        sessionId, 0, 'Abschlussbericht', 'umsetzung',
-        JSON.stringify({}),
-        null, reportMarkdown, null,
-        'accepted',
-        new Date(),
-      ],
+         coach_inputs = EXCLUDED.coach_inputs,
+         status       = EXCLUDED.status,
+         generated_at = now()`,
+      [sessionId, serializeBeats(reportBeats)],
     );
     await client.query('COMMIT');
   } catch (e) {

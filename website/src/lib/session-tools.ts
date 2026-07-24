@@ -2,6 +2,8 @@ import type { Pool } from 'pg';
 import type { Tool } from '@anthropic-ai/sdk/resources/messages';
 import { pool as defaultPool } from './website-db';
 import { queryNearest } from './knowledge-db';
+import type { BeatState } from './coaching-session-beats-db';
+import { deserializeBeats } from './coaching-session-beats-db';
 
 let _pool: Pool | null = null;
 export function __setPoolForTests(p: Pool): void { _pool = p; }
@@ -10,21 +12,22 @@ function p(): Pool { return _pool ?? defaultPool; }
 export async function getSessionStepTool(
   sessionId: string,
   stepNumber: number,
-): Promise<{ found: boolean; stepName?: string; coachInputs?: Record<string, string>; aiResponse?: string; coachNotes?: string; status?: string }> {
+): Promise<{ found: boolean; stepName?: string; beats?: BeatState[]; aiResponse?: string; status?: string }> {
   const r = await p().query(
-    `SELECT step_name, coach_inputs, ai_response, coach_notes, status
+    `SELECT step_name, coach_inputs, status
        FROM coaching.session_steps
       WHERE session_id = $1 AND step_number = $2`,
     [sessionId, stepNumber],
   );
   if (!r.rows[0]) return { found: false };
   const row = r.rows[0];
+  const beats = deserializeBeats(row.coach_inputs);
+  const lastAi = [...beats].reverse().find((b) => b.aiResponse)?.aiResponse;
   return {
     found: true,
     stepName: row.step_name as string,
-    coachInputs: row.coach_inputs as Record<string, string>,
-    aiResponse: (row.ai_response as string | null) ?? undefined,
-    coachNotes: (row.coach_notes as string | null) ?? undefined,
+    beats,
+    aiResponse: lastAi ?? undefined,
     status: row.status as string,
   };
 }
@@ -56,7 +59,7 @@ export async function draftSessionReportTool(
   _format: 'markdown' | 'structured',
 ): Promise<{ stepsText: string; error?: string }> {
   const r = await p().query(
-    `SELECT step_number, step_name, coach_inputs, ai_response, coach_notes
+    `SELECT step_number, step_name, coach_inputs
        FROM coaching.session_steps
       WHERE session_id = $1 AND step_number > 0 AND status IN ('accepted', 'skipped')
       ORDER BY step_number`,
@@ -66,8 +69,12 @@ export async function draftSessionReportTool(
     return { stepsText: '', error: 'Keine abgeschlossenen Schritte gefunden' };
   }
   const stepsText = r.rows
-    .map((s: { step_number: number; step_name: string; coach_inputs: Record<string, string>; ai_response: string | null; coach_notes: string | null }) =>
-      `## Schritt ${s.step_number}: ${s.step_name}\n**Eingaben:** ${JSON.stringify(s.coach_inputs)}\n**KI:** ${s.ai_response ?? '—'}\n**Coach-Notiz:** ${s.coach_notes ?? '—'}`)
+    .map((s: { step_number: number; step_name: string; coach_inputs: unknown }) => {
+      const beats = deserializeBeats(s.coach_inputs);
+      const captured = beats.map((b) => b.captured).filter(Boolean).join('; ');
+      const aiParts = beats.map((b) => b.aiResponse).filter(Boolean).join('; ');
+      return `## Schritt ${s.step_number}: ${s.step_name}\n**Eingaben:** ${captured || '—'}\n**KI:** ${aiParts || '—'}`;
+    })
     .join('\n\n');
   return { stepsText };
 }

@@ -112,7 +112,6 @@ describe('getBeat / isKiPromptBeat', () => {
 
 describe('buildUserPrompt', () => {
   it('resolves {key} placeholders from inputs', () => {
-    const beat = getBeat(2, 2) as KiPromptBeat; // step 2, ki_prompt with {capturedFrom:0} and {capturedFrom:1}
     // Create a beat that has simple {key} in its template
     const testBeat: KiPromptBeat = {
       kind: 'ki_prompt',

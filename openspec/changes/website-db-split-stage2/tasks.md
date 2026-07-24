@@ -17,8 +17,24 @@ _Ticket: T002150_
 ## File Structure
 
 ```
-<author fills this in — list of new/changed files>
+website/src/lib/website-db.ts               (edit: remove Stage-2 functions, add re-exports; builds on merged Stage 1)
+website/src/lib/website-db-ops.ts           (new, ~530 lines: Time-Entries/Client-Notes/Onboarding/Follow-ups)
+website/src/lib/website-db-admin-ops.ts     (new, ~263 lines: Bug-Ticket-List/Admin-Shortcuts/DSGVO/Invoice-Counter/Brett)
+website/src/lib/website-db-content-store.ts (new, ~328 lines: Custom-Sections/Content-Store)
+tests/... (extend existing website-db test files as needed, no behavior change)
 ```
+
+A single `website-db-ops.ts` would land at ~1080 lines (79% over the 600-line unbaselined `.ts` S1
+budget) and hard-fail the CI ratchet as a brand-new file, so the second-half extraction is split
+across three sibling modules instead of one — still a single `impl` partial (p1), just multiple new
+files, all re-exported from `website-db.ts` under their original names.
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-extract-stage2-module.md | impl | website/src/lib/website-db.ts, website/src/lib/website-db-ops.ts, website/src/lib/website-db-admin-ops.ts, website/src/lib/website-db-content-store.ts | |
+| p2 | tasks.d/p2-tests.md | tests | website/src/lib/website-db.time-entries.test.ts | p1 |
 
 ## Verify (RED → GREEN)
 

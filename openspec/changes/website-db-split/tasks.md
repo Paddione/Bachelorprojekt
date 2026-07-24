@@ -17,8 +17,17 @@ _Ticket: T002149_
 ## File Structure
 
 ```
-<author fills this in — list of new/changed files>
+website/src/lib/website-db.ts       (edit: remove Stage-1 functions, add re-exports)
+website/src/lib/website-db-core.ts  (new: Customer/Bug-Ticket/Site-Settings/Vacation/Legal-Pages)
+tests/... (extend existing website-db test files as needed, no behavior change)
 ```
+
+## Partials
+
+| id | file | role | target_files | depends_on |
+|----|------|------|--------------|------------|
+| p1 | tasks.d/p1-extract-stage1-module.md | impl | website/src/lib/website-db.ts, website/src/lib/website-db-core.ts | |
+| p2 | tasks.d/p2-tests.md | tests | website/src/lib/website-db.test.ts | p1 |
 
 ## Verify (RED → GREEN)
 

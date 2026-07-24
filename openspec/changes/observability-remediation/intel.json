@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "slug": "observability-remediation",
+    "ticket_id": "T002151",
+    "generated_from": "main@67b4eb681",
+    "domains": ["observability", "logging", "monitoring", "agent-tooling"],
+    "intel_sources": ["read", "mcp-postgres", "gates.yaml", "baseline.json", "local-dts", "tool-search-mcp-introspection", "wc-l"]
+  },
+  "impact_files": [
+    {
+      "path": "k3d/monitoring/promtail-rendered.yaml",
+      "language": "yaml",
+      "loc": 285,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": -285
+    },
+    {
+      "path": "k3d/monitoring/grafana-dashboards/log-explorer.json",
+      "language": "json",
+      "loc": 37,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": -37
+    },
+    {
+      "path": "k3d/monitoring/grafana-dashboards/api-errors.json",
+      "language": "json",
+      "loc": 44,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": -44
+    },
+    {
+      "path": "scripts/factory/otel-emit.cjs",
+      "language": "javascript",
+      "loc": 91,
+      "s1_limit": 200,
+      "s1_baseline": null,
+      "s1_budget": 109
+    },
+    {
+      "path": "website/src/pages/api/admin/ops/health.ts",
+      "language": "typescript",
+      "loc": 80,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 520
+    },
+    {
+      "path": "website/src/db/migrations/20260724_create_service_health.sql",
+      "language": "sql",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "k3d/service-health-check-cronjob.yaml",
+      "language": "yaml",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "website/src/pages/api/admin/ops/health-goals.ts",
+      "language": "typescript",
+      "loc": 0,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 600
+    },
+    {
+      "path": "website/src/components/admin/platform/HealthTab.svelte",
+      "language": "svelte",
+      "loc": 84,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 416
+    },
+    {
+      "path": ".opencode/plugins/agent-tracer.ts",
+      "language": "typescript",
+      "loc": 0,
+      "s1_limit": 600,
+      "s1_baseline": null,
+      "s1_budget": 600
+    },
+    {
+      "path": ".opencode/agent-models.jsonc",
+      "language": "jsonc",
+      "loc": 259,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": -259
+    },
+    {
+      "path": ".claude/skills/references/agent-config-standard.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "environments/.secrets/mentolder.yaml",
+      "language": "yaml",
+      "loc": 126,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": -126
+    },
+    {
+      "path": "environments/sealed-secrets/mentolder.yaml",
+      "language": "yaml",
+      "loc": 331,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": -331
+    },
+    {
+      "path": "tests/spec/centralized-logging.bats",
+      "language": "bats",
+      "loc": 78,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": -78
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "website/src/pages/api/admin/ops/health.ts:checkUrl",
+      "kind": "function",
+      "file": "website/src/pages/api/admin/ops/health.ts",
+      "signature": "function checkUrl(url: string, timeoutMs = 5000): Promise<{ latencyMs: number; ok: boolean }>",
+      "type_text": "(url: string, timeoutMs?: number) => Promise<{ latencyMs: number; ok: boolean }>",
+      "source": "read"
+    },
+    {
+      "qualified_name": "website/src/lib/auth.ts:getSession",
+      "kind": "function",
+      "file": "website/src/lib/auth.ts",
+      "signature": "export async function getSession(cookieHeader: string | null): Promise<UserSession | null>",
+      "type_text": "(cookieHeader: string | null) => Promise<UserSession | null>",
+      "source": "read"
+    },
+    {
+      "qualified_name": "website/src/lib/auth.ts:isAdmin",
+      "kind": "function",
+      "file": "website/src/lib/auth.ts",
+      "signature": "export function isAdmin(session: UserSession): boolean",
+      "type_text": "(session: UserSession) => boolean",
+      "source": "read"
+    },
+    {
+      "qualified_name": "website/src/lib/logging/error-log-store.ts:persistError",
+      "kind": "function",
+      "file": "website/src/lib/logging/error-log-store.ts",
+      "signature": "export async function persistError(entry: ErrorLogEntry): Promise<void>",
+      "type_text": "(entry: ErrorLogEntry) => Promise<void>",
+      "source": "read — reference pattern for Partial 2's service_health_checks insert function (lazy dedicated pg.Pool, best-effort catch, no throw)"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["website/src/pages/api/admin/ops/health.ts:GET"],
+    "edges": [
+      { "from": "website/src/pages/api/admin/ops/health.ts:GET", "to": "website/src/pages/api/admin/ops/health.ts:checkUrl", "kind": "calls" }
+    ]
+  },
+  "db_tables": [
+    {
+      "name": "platform.software_assets",
+      "columns": [
+        { "name": "id", "type": "uuid", "nullable": false, "default": "gen_random_uuid()", "constraints": ["PRIMARY KEY"] },
+        { "name": "slug", "type": "text", "nullable": false, "default": null, "constraints": ["UNIQUE"] },
+        { "name": "name", "type": "text", "nullable": false, "default": null, "constraints": [] },
+        { "name": "description", "type": "text", "nullable": true, "default": null, "constraints": [] },
+        { "name": "category", "type": "text", "nullable": false, "default": "'other'::text", "constraints": [] },
+        { "name": "emoji", "type": "text", "nullable": false, "default": "'📦'::text", "constraints": [] },
+        { "name": "clusters", "type": "ARRAY", "nullable": false, "default": "'{}'::text[]", "constraints": [] },
+        { "name": "namespace", "type": "text", "nullable": true, "default": null, "constraints": [] },
+        { "name": "deployment_name", "type": "text", "nullable": true, "default": null, "constraints": [] },
+        { "name": "image_tag", "type": "text", "nullable": true, "default": null, "constraints": [] },
+        { "name": "url", "type": "text", "nullable": true, "default": null, "constraints": [] },
+        { "name": "base_status", "type": "text", "nullable": false, "default": "'live'::text", "constraints": [] },
+        { "name": "sort_order", "type": "integer", "nullable": false, "default": "0", "constraints": [] },
+        { "name": "created_at", "type": "timestamp with time zone", "nullable": false, "default": "now()", "constraints": [] },
+        { "name": "updated_at", "type": "timestamp with time zone", "nullable": false, "default": "now()", "constraints": [] },
+        { "name": "subdomain", "type": "text", "nullable": true, "default": null, "constraints": [] },
+        { "name": "health_url", "type": "text", "nullable": true, "default": null, "constraints": [] }
+      ]
+    }
+  ],
+  "api_contracts": [
+    {
+      "route": "/api/admin/ops/health",
+      "method": "GET",
+      "request_type": "none — auth via `cookie` request header (workspace_session), no body/query params",
+      "response_type": "200: { results: Record<string, ServiceCheck[]>; checkedAt: string } where ServiceCheck = { name: string; slug: string; url: string; status: 'ok'|'slow'|'error'|'optional'; latencyMs: number|null; optional: boolean; error?: string } — keyed by BRAND_ID/BRAND cluster name, filtered to assets with non-empty health_url whose clusters[] includes the current cluster. 401: { error: 'Unauthorized' } when no session or !isAdmin(session). 503: { error: string } when listSoftwareAssets() throws (DB unreachable).",
+      "file": "website/src/pages/api/admin/ops/health.ts"
+    }
+  ],
+  "external_types": [
+    {
+      "library": "@opencode-ai/plugin",
+      "symbol": "Plugin",
+      "signature": "export type Plugin = (input: PluginInput, options?: PluginOptions) => Promise<Hooks>",
+      "source": ".opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts (local .d.ts, read directly — package IS present under .opencode/node_modules)"
+    },
+    {
+      "library": "@opencode-ai/plugin",
+      "symbol": "Hooks['tool.execute.before']",
+      "signature": "\"tool.execute.before\"?: (input: { tool: string; sessionID: string; callID: string }, output: { args: any }) => Promise<void>",
+      "source": ".opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts"
+    },
+    {
+      "library": "@opencode-ai/plugin",
+      "symbol": "Hooks['event']",
+      "signature": "event?: (input: { event: Event }) => Promise<void> — there is NO dedicated 'session.idle'/'session.deleted' hook key in Hooks; those are dispatched through this generic `event` hook and discriminated via `event.type` (confirmed live precedent: ~/.config/opencode/plugins/loop-guard.ts lines 108-113)",
+      "source": ".opencode/node_modules/@opencode-ai/plugin/dist/index.d.ts + cross-check against loop-guard.ts usage"
+    },
+    {
+      "library": "codebase-memory-mcp (MCP tool)",
+      "symbol": "ingest_traces",
+      "signature": "ingest_traces(params: { traces: object[]; project: string }) — both fields required, no further param-level typing exposed by the tool schema",
+      "source": "ToolSearch tool-schema introspection (mcp__codebase-memory-mcp__ingest_traces)"
+    }
+  ],
+  "risks": [
+    { "note": "otel-collector root cause is not yet diagnosed (only the symptom — 9 boot lines in 25 days, no payload — is confirmed live per design.md). Partial 1 must diagnose (factory-pipeline call site, endpoint config, NetworkPolicy) before it can fix; effort is not yet bounded.", "severity": "warn" },
+    { "note": "Task brief named the log-explorer dashboard file as 'k3d/monitoring/grafana-dashboard-log-explorer.yaml'; the real path is 'k3d/monitoring/grafana-dashboards/log-explorer.json' (plural 'dashboards' dir, .json not .yaml). Corrected in impact_files; the spec (centralized-logging.md) also requires the sibling 'api-errors.json' dashboard, which was added alongside it.", "severity": "info" },
+    { "note": "Promtail's exact brand-relabel rule order/semantics (which rule wins, action: replace vs keep) is explicitly flagged in design.md as unverified against the live config — the plan-subagent must re-verify against k3d/monitoring/promtail-rendered.yaml's live-applied ConfigMap before writing the exact correction; this intel bundle only pre-computes the file's S1 budget, not the relabel fix itself.", "severity": "warn" },
+    { "note": "service_health_checks / service_health_goals (Partial 2) do not exist yet — db_tables only contains the live-queried FK target platform.software_assets (PK: id uuid, UNIQUE: slug). The new tables' exact DDL must still be authored by the plan-subagent per specs/service-health-goals.md; not independently verified against a live migration.", "severity": "info" },
+    { "note": "Migration filename 'website/src/db/migrations/20260724_create_service_health.sql' is a suggested placeholder following the repo's observed <YYYYMMDD>_description.sql convention (e.g. 20260719_add_missing_fk_indexes_batch2.sql) — the plan-subagent must confirm the actual date at write time, not reuse this literal filename if it is stale.", "severity": "info" },
+    { "note": "No call_graph edges were added for the not-yet-existing Partial 2/3 files (health-goals.ts, agent-tracer.ts) since codebase-memory/trace_path cannot trace symbols that don't exist yet; their intended data flow (CronJob → trigger route → checkUrl → insert; tool.execute.before → accumulate → event(session.idle/deleted) → ingest_traces) is documented narratively in design.md instead.", "severity": "info" }
+  ]
+}

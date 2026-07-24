@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { newDb, DataType } from 'pg-mem';
 import type { Pool } from 'pg';
+import type { BeatState } from './coaching-session-beats-db';
 import {
   createSession,
   getSession,
@@ -113,12 +114,11 @@ describe('getSession', () => {
     });
     await upsertStep(pool, {
       sessionId: s.id, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel',
-      coachInputs: { anlass: 'Stress' },
+      beats: [{ beatIndex: 0, captured: 'Stress', status: 'accepted' }],
     });
     const result = await getSession(pool, s.id);
     expect(result).not.toBeNull();
-    expect(result!.steps).toHaveLength(1);
-    expect(result!.steps[0].coachInputs).toEqual({ anlass: 'Stress' });
+    expect(result!.steps[0].beats).toEqual([{ beatIndex: 0, captured: 'Stress', status: 'accepted' }]);
   });
 });
 
@@ -129,15 +129,20 @@ describe('upsertStep', () => {
     });
     await upsertStep(pool, {
       sessionId: s.id, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel',
-      coachInputs: { anlass: 'alt' },
+      beats: [{ beatIndex: 0, captured: 'alt', status: 'accepted' }],
     });
     await upsertStep(pool, {
       sessionId: s.id, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel',
-      coachInputs: { anlass: 'neu' }, aiResponse: 'KI sagt...', status: 'generated',
+      beats: [
+        { beatIndex: 0, captured: 'neu', status: 'accepted' },
+        { beatIndex: 1, aiResponse: 'KI sagt...', status: 'generated' },
+      ],
+      status: 'generated',
     });
     const step = await getStep(pool, s.id, 1);
-    expect(step!.coachInputs).toEqual({ anlass: 'neu' });
-    expect(step!.aiResponse).toBe('KI sagt...');
+    expect(step!.beats[0].captured).toBe('neu');
+    expect(step!.beats[1].aiResponse).toBe('KI sagt...');
+    expect(step!.beats[1].status).toBe('generated');
     expect(step!.status).toBe('generated');
   });
 });
@@ -152,7 +157,7 @@ describe('completeSession', () => {
     expect(result!.status).toBe('completed');
     expect(result!.completedAt).not.toBeNull();
     const report = result!.steps.find(s => s.stepNumber === 0);
-    expect(report!.aiResponse).toContain('Zusammenfassung');
+    expect(report!.beats[0].aiResponse).toContain('Zusammenfassung');
   });
 });
 
@@ -273,7 +278,7 @@ describe('updateSessionFields', () => {
     });
     await upsertStep(pool, {
       sessionId: s.id, stepNumber: 1, stepName: 'Schritt 1', phase: 'problem_ziel',
-      coachInputs: {}, status: 'pending',
+      beats: [], status: 'pending',
     });
     const updated = await updateSessionFields(pool, s.id, { title: 'Geändert' }, 'coach');
     expect(updated?.steps).toHaveLength(1);
@@ -295,6 +300,53 @@ describe('deleteSession', () => {
   it('gibt false zurück bei unbekannter id', async () => {
     const result = await deleteSession(pool, '00000000-0000-4000-8000-000000000099');
     expect(result).toBe(false);
+  });
+});
+
+describe('BeatState persistence round-trip', () => {
+  it('serializes mixed BeatState[] (instruction/ki_prompt/skipped), upserts and reads back deep equal', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'BeatState-Roundtrip', createdBy: 'coach1', mode: 'live',
+    });
+    const mixedBeats: BeatState[] = [
+      { beatIndex: 0, captured: 'Ich fühle mich gestresst', status: 'accepted' },
+      { beatIndex: 1, aiResponse: 'Hier ist die KI-Analyse...', status: 'generated' },
+      { beatIndex: 2, status: 'skipped' },
+    ];
+    await upsertStep(pool, {
+      sessionId: s.id, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel',
+      beats: mixedBeats, status: 'generated',
+    });
+    const step = await getStep(pool, s.id, 1);
+    expect(step!.beats).toEqual(mixedBeats);
+    expect(step!.status).toBe('generated');
+  });
+
+  it('persists empty beats when none provided', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'Empty-Beats', createdBy: 'coach1', mode: 'live',
+    });
+    await upsertStep(pool, {
+      sessionId: s.id, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel',
+      beats: [],
+    });
+    const step = await getStep(pool, s.id, 1);
+    expect(step!.beats).toEqual([]);
+  });
+
+  it('completeSession stores report as step 0 with one accepted BeatState', async () => {
+    const s = await createSession(pool, {
+      brand: 'mentolder', title: 'Report-BeatState', createdBy: 'coach1', mode: 'live',
+    });
+    await completeSession(pool, s.id, '# Abschlussbericht\nZusammenfassung...');
+    const result = await getSession(pool, s.id);
+    expect(result).not.toBeNull();
+    expect(result!.status).toBe('completed');
+    const report = result!.steps.find(st => st.stepNumber === 0);
+    expect(report).toBeDefined();
+    expect(report!.beats).toHaveLength(1);
+    expect(report!.beats[0].aiResponse).toContain('Abschlussbericht');
+    expect(report!.beats[0].status).toBe('accepted');
   });
 });
 

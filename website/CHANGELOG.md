@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.211.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.210.0...website-v1.211.0) (2026-07-24)
+
+
+### Features
+
+* **website:** [T002149] website-db.ts Stage 1 split — extract Customer/Bug/SiteSettings/Vacation/Legal to website-core-db.ts ([#3182](https://github.com/Paddione/Bachelorprojekt/issues/3182)) ([718f723](https://github.com/Paddione/Bachelorprojekt/commit/718f723f566bd2566099456a5aca605a08d6578b))
+
 ## [1.210.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.209.1...website-v1.210.0) (2026-07-24)
 
 

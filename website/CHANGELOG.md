@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.0...website-v1.214.1) (2026-07-25)
+
+
+### Bug Fixes
+
+* **infra:** POCKET_ID_URL-FQDN-Guard + checksum/config-Rollout-Trigger [T002154] ([#3199](https://github.com/Paddione/Bachelorprojekt/issues/3199)) ([297ada4](https://github.com/Paddione/Bachelorprojekt/commit/297ada4106bc9316157bec944a8940dd0476acef))
+
 ## [1.214.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.213.0...website-v1.214.0) (2026-07-25)
 
 

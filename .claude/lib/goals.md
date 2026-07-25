@@ -44,7 +44,7 @@ gh run list --workflow e2e.yml --limit 14 --json conclusion \
   | python3 -c "import json,sys; r=[x['conclusion'] for x in json.load(sys.stdin) if x.get('conclusion')]; print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else 'n/a')"
 ```
 
-> **A · Baseline:** 0 (0/14 grün, 2026-07-22) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 (Aufnahme; Suite-Fix läuft separat über `fix/e2e-auth-token-and-cron-secret`)
+> **A · Baseline:** 0 (0/14 grün, 2026-07-22) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 (Aufnahme; Suite-Fix läuft separat über `fix/e2e-auth-token-and-cron-secret`) — **Root-Cause 2026-07-25:** DNS-Auflösung `EAI_AGAIN web.korczewski.de` in CI-Runnern (globalSetup/globalTeardown `fetch` schlägt fehl); zweitens 401 auf Ingest-Endpoint (`INGEST_TOKEN`-Secret prüfen)
 
 ---
 
@@ -336,6 +336,20 @@ print(todo)"
 
 > **C · Baseline:** 17 → 0 ✅ · **Target:** 0 · **Aufwand:** gering (manueller Ingest-Lauf via `scripts/brain-ingest.sh`, GPU-Host-gebunden) · **Messzyklus:** monatlich · **Reproduzierbar:** eingeschränkt (lokales State-File + GPU-Host) · **Ticket:** T001912 (**done ohne Messwert-Fix**) → **T001951 gefixt** (2026-07-19, PR Paddione/brain#8: 15 verbleibende Backlog-Seiten via LM Studio :1234 (Qwen3.6-14B-A3B-FableVibes) ingested + gemerged; Target 0 erreicht)
 
+## G-IMG01 — Fremd-Image-Versions-Drift: 1 → 0
+
+**Was:** Zählt unique Container-Images im Deployment, deren Tag nicht dem gepinnten Stand
+in den Kustomize-Manifesten entspricht. Ein Drift bedeutet, dass ein Image nach einem
+Deploy manuell geändert wurde (z.B. via `kubectl set image`) oder ein Helm-Chart-Digest
+nicht nachgezogen wurde. T001766 hatte 2 Drifts (Loki/Promtail-Helm-Digests) gefixt —
+seitdem ist ein neuer Drift aufgetreten.
+
+```bash
+grep -rhE 'image:' k3d/ prod*/ | grep -v '#' | sed 's/.*image:\s*//' | sort -u | awk -F'\t' '{c[$1]++} END{for(k in c) if(c[k]>1) print k}'
+```
+
+> **B · Baseline:** 2 → 0 (T001766 gefixt) → 1 (Regressions-Check 2026-07-25) → 0 (2026-07-25, `alpine/k8s:1.28.2` in `health-goals-cronjob.yaml` auf `1.36.2@sha256:...` gepinnt) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** TBD (**gefixt**)
+
 
 # Priorität C — Green Gates {#prio-c}
 
@@ -368,7 +382,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
 | **G-DEP05** | Renovate-PR-Backlog | 0 ✓ | ≤ 3 | `gh pr list --state open --json author,labels \| python3 -c "..renovate.."` |
 | **G-DEP02** | Veraltete Major-Deps | 2 ✓ | ≤ 3 | `cd website && pnpm outdated` (Major-Sprünge zählen: aktuell nur eslint-plugin-astro 1→2, knip 5→6) |
-| **G-IMG01** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B) |
+| **G-IMG01** | Fremd-Image-Versions-Drift | 0 ✓ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml) |
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 3/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |
 | **G-K8S03** | Deployments ohne securityContext | 0 ✓ | 0 | `python3 -c "..securityContext.." k3d/*.yaml` |

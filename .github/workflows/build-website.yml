@@ -182,7 +182,10 @@ jobs:
           # strings to prod (T001993).
           RENDERED=$(kustomize build prod-fleet/website-mentolder --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g')
-          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u)
+          # T002154: WEBSITE_CONFIG_SHA ist bewusst KEIN Job-Env — der Wert entsteht
+          # erst aus dem substituierten Manifest (siehe unten) und wird deshalb aus
+          # dieser Runde ausgenommen. Alle uebrigen Variablen bleiben fail-closed.
+          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u | sed '/^WEBSITE_CONFIG_SHA$/d')
           MISSING=""
           for v in $VARS; do if [[ -z "${!v+x}" ]]; then MISSING="$MISSING $v"; fi; done
           if [[ -n "$MISSING" ]]; then
@@ -190,6 +193,13 @@ jobs:
             exit 1
           fi
           SUBSTITUTED=$(envsubst "$(printf '$%s ' $VARS)" <<<"$RENDERED")
+          # T002154: Hash NACH envsubst ueber die eingesetzten WERTE bilden. Aendert
+          # sich z.B. POCKET_ID_URL, aendert sich der Hash und das Deployment rollt
+          # neu aus — ohne diese Annotation friert envFrom den alten Wert im Pod ein.
+          # Ein Kustomize-configMapGenerator-Hash waere wirkungslos, weil Kustomize
+          # nur den unsubstituierten Platzhalter sieht.
+          export WEBSITE_CONFIG_SHA="$(sha256sum <<<"$SUBSTITUTED" | cut -c1-16)"
+          SUBSTITUTED=$(envsubst '$WEBSITE_CONFIG_SHA' <<<"$SUBSTITUTED")
           if grep -qE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED"; then
             echo "::error::unexpanded \${VAR} placeholders remain after envsubst:"
             grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED" | sort -u
@@ -329,7 +339,10 @@ jobs:
           # strings to prod (T001993).
           RENDERED=$(kustomize build prod-fleet/website-korczewski --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g')
-          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u)
+          # T002154: WEBSITE_CONFIG_SHA ist bewusst KEIN Job-Env — der Wert entsteht
+          # erst aus dem substituierten Manifest (siehe unten) und wird deshalb aus
+          # dieser Runde ausgenommen. Alle uebrigen Variablen bleiben fail-closed.
+          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u | sed '/^WEBSITE_CONFIG_SHA$/d')
           MISSING=""
           for v in $VARS; do if [[ -z "${!v+x}" ]]; then MISSING="$MISSING $v"; fi; done
           if [[ -n "$MISSING" ]]; then
@@ -337,6 +350,13 @@ jobs:
             exit 1
           fi
           SUBSTITUTED=$(envsubst "$(printf '$%s ' $VARS)" <<<"$RENDERED")
+          # T002154: Hash NACH envsubst ueber die eingesetzten WERTE bilden. Aendert
+          # sich z.B. POCKET_ID_URL, aendert sich der Hash und das Deployment rollt
+          # neu aus — ohne diese Annotation friert envFrom den alten Wert im Pod ein.
+          # Ein Kustomize-configMapGenerator-Hash waere wirkungslos, weil Kustomize
+          # nur den unsubstituierten Platzhalter sieht.
+          export WEBSITE_CONFIG_SHA="$(sha256sum <<<"$SUBSTITUTED" | cut -c1-16)"
+          SUBSTITUTED=$(envsubst '$WEBSITE_CONFIG_SHA' <<<"$SUBSTITUTED")
           if grep -qE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED"; then
             echo "::error::unexpanded \${VAR} placeholders remain after envsubst:"
             grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED" | sort -u

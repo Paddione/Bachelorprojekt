@@ -143,24 +143,28 @@ _render_korczewski() {
 
 @test "T002154: jeder POCKET_ID_URL-Fallback rendert zu einem FQDN" {
   local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
-  local defaults; defaults="$(grep -o 'POCKET_ID_URL:-[^}"]*' "${repo_root}/Taskfile.yml" | sed 's/^POCKET_ID_URL:-//')"
-  [ -n "$defaults" ] || skip "kein POCKET_ID_URL-Fallback im Taskfile"
+  # Ganze Zuweisung extrahieren (bis zum schließenden "), damit verschachtelte
+  # Defaults wie ${WORKSPACE_NAMESPACE:-workspace} nicht mitten drin abgeschnitten werden.
+  local assignments; assignments="$(grep -o 'POCKET_ID_URL="[^"]*"' "${repo_root}/Taskfile.yml" | sort -u)"
+  [ -n "$assignments" ] || skip "keine POCKET_ID_URL-Zuweisung im Taskfile"
 
-  local d resolved
-  while IFS= read -r d; do
-    [ -n "$d" ] || continue
-    # Fallback mit realistischem Namespace auflösen, wie es der Deploy täte
-    resolved="$(WORKSPACE_NAMESPACE=workspace eval "echo \"$d\"")"
+  local a resolved
+  while IFS= read -r a; do
+    [ -n "$a" ] || continue
+    # Zuweisung real auswerten, wie es der Deploy täte: POCKET_ID_URL ungesetzt.
+    # WORKSPACE_NAMESPACE bewusst LEER — deckt environments/dev.yaml ab, das die
+    # Variable nicht setzt, und erzwingt damit einen inneren Default im Ausdruck.
+    resolved="$(unset POCKET_ID_URL; WORKSPACE_NAMESPACE=""; eval "$a"; echo "$POCKET_ID_URL")"
     echo "$resolved" | grep -q '\.svc\.cluster\.local' || {
-      echo "FAIL: Fallback '$d' rendert zu '$resolved' — kein FQDN, cross-namespace nicht auflösbar"
+      echo "FAIL: '$a' rendert zu '$resolved' — kein FQDN, cross-namespace nicht auflösbar"
       return 1
     }
     # Leeres Namespace-Segment (pocket-id..svc) ist genauso kaputt
-    echo "$resolved" | grep -q 'pocket-id\.\.svc' && {
-      echo "FAIL: Fallback '$d' rendert zu '$resolved' — leeres Namespace-Segment"
+    ! echo "$resolved" | grep -q 'pocket-id\.\.svc' || {
+      echo "FAIL: '$a' rendert zu '$resolved' — leeres Namespace-Segment"
       return 1
     }
-  done <<< "$defaults"
+  done <<< "$assignments"
 }
 
 # Zweite Lücke desselben Incidents: website-config hängt per `envFrom` am

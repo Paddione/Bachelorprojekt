@@ -44,7 +44,7 @@ gh run list --workflow e2e.yml --limit 14 --json conclusion \
   | python3 -c "import json,sys; r=[x['conclusion'] for x in json.load(sys.stdin) if x.get('conclusion')]; print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else 'n/a')"
 ```
 
-> **A · Baseline:** 0 (0/14 grün, 2026-07-22) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 (Aufnahme; Suite-Fix läuft separat über `fix/e2e-auth-token-and-cron-secret`) — **Root-Cause 2026-07-25:** DNS-Auflösung `EAI_AGAIN web.korczewski.de` in CI-Runnern (globalSetup/globalTeardown `fetch` schlägt fehl); zweitens 401 auf Ingest-Endpoint (`INGEST_TOKEN`-Secret prüfen)
+> **A · Baseline:** 0 (0/14 grün, 2026-07-22) · **Target:** ≥ 90 · **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063 (Aufnahme; Suite-Fix läuft separat über `fix/e2e-auth-token-and-cron-secret`) — **Root-Cause 2026-07-25:** DNS-Auflösung `EAI_AGAIN web.korczewski.de` in CI-Runnern (globalSetup/globalTeardown `fetch` schlägt fehl); zweitens 401 auf Ingest-Endpoint (`INGEST_TOKEN`-Secret prüfen) — **Fix 2026-07-25:** PR #3207 gefixt (global-db-cleanup.ts fängt Network-Errors ab; ingest-e2e.ts akzeptiert E2E_INGEST_TOKEN)
 
 ---
 
@@ -103,7 +103,9 @@ JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_na
 WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE';
 ```
 
-> **B · Baseline:** 2 (1 mentolder + 1 korczewski, jeweils public.inbox_items, 2026-07-22) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
+> **B · Baseline:** 22 (21 mentolder + 1 korczewski, 2026-07-25) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
+
+**Baseline-Update 2026-07-25 (T002063):** G-E2E02 Baseline 2→22 (21× mentolder: 18× coaching.sessions + 3× public.inbox_items; 1× korczewski: public.inbox_items). Root cause: abgebrochene Nightly-E2E-Läufe (DNS-Fehler EAI_AGAIN web.korczewski.de) verhinderten den globalTeardown-Purge. Fix: `global-db-cleanup.ts` fängt Network-Errors ab (PR #3207).
 
 ## G-OPS01 — Pods nicht Running/Ready (fleet, beide Brand-Namespaces): 3 → 0
 

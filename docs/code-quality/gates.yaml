@@ -193,6 +193,8 @@ s4:
     # The bucket system (task test:changed) handles automatic selection; this script
     # provides per-file precision via test-inventory.json for manual use (T001???).
     - "scripts/find-changed-e2e-tests.sh"
+    - "scripts/agent-tracing.mjs"
+    - "scripts/reseed-alertmanager-secret.sh"
 
 s5:
   rules:

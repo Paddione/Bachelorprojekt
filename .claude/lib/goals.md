@@ -84,7 +84,7 @@ db_scalar "SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 A
 
 Im nächsten Sprint einplanen.
 
-## G-E2E02 — E2E-Testdaten-Leak in Prod (is_test_data-Rows): 2 → 0
+## G-E2E02 — E2E-Testdaten-Leak in Prod (is_test_data-Rows): 24 → 0
 
 **Was:** Summe aller Rows mit `is_test_data=true` über sämtliche Basistabellen mit dieser
 Spalte, je Brand-DB. Playwright bracketet Testdaten via
@@ -103,9 +103,9 @@ JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_na
 WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE';
 ```
 
-> **B · Baseline:** 22 (21 mentolder + 1 korczewski, 2026-07-25) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
+> **B · Baseline:** 24 (21 mentolder + 3 korczewski, 2026-07-25) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002063
 
-**Baseline-Update 2026-07-25 (T002063):** G-E2E02 Baseline 2→22 (21× mentolder: 18× coaching.sessions + 3× public.inbox_items; 1× korczewski: public.inbox_items). Root cause: abgebrochene Nightly-E2E-Läufe (DNS-Fehler EAI_AGAIN web.korczewski.de) verhinderten den globalTeardown-Purge. Fix: `global-db-cleanup.ts` fängt Network-Errors ab (PR #3207).
+**Baseline-Update 2026-07-25 (T002063):** G-E2E02 Baseline 2→24 (21× mentolder: 18× coaching.sessions + 3× public.inbox_items; 3× korczewski: public.inbox_items). Root cause: abgebrochene Nightly-E2E-Läufe (DNS-Fehler EAI_AGAIN web.korczewski.de) verhinderten den globalTeardown-Purge. Fix: `global-db-cleanup.ts` fängt Network-Errors ab (PR #3207).
 
 ## G-OPS01 — Pods nicht Running/Ready (fleet, beide Brand-Namespaces): 3 → 0
 

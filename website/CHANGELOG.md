@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.213.0...website-v1.214.0) (2026-07-25)
+
+
+### Features
+
+* **ops:** [T002151] observability remediation ([#3195](https://github.com/Paddione/Bachelorprojekt/issues/3195)) ([c5b1caf](https://github.com/Paddione/Bachelorprojekt/commit/c5b1caf71c3bc835b34a903e8fb85d09b163dd65))
+
 ## [1.213.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.212.0...website-v1.213.0) (2026-07-25)
 
 

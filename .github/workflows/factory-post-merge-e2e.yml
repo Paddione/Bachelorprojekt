@@ -2,11 +2,21 @@
 # Lücke 6.1: E2E-Trigger nach Factory-PR-Merge. [T000730]
 # Triggert auf push zu main wenn der Merge-Commit einen T###### Ticket-Bezeichner enthält.
 # Das schließt normale chore/fix Commits aus (die kein Ticket im Titel tragen).
+#
+# COOLDOWN (T002155): verhindert Sekundentakt-E2E-Läufe gegen Produktion bei
+# raschen Factory-Merges. Prüft vor Dispatch, ob eine e2e.yml-Run innerhalb der
+# letzten 15 min auf main gestartet wurde — überspringt den Dispatch, wenn der
+# Cooldown noch aktiv ist. Damit feuert die Suite maximal 4×/h statt bei jedem
+# Push (beobachtet: bis zu 15 s zwischen Factory-Merges).
 name: Factory Post-Merge E2E
 
 on:
   push:
     branches: [main]
+
+concurrency:
+  group: factory-post-merge-e2e
+  cancel-in-progress: true
 
 env:
   OPENSPEC_TELEMETRY: '0'
@@ -15,7 +25,7 @@ jobs:
   trigger-e2e:
     runs-on: ubuntu-latest
     permissions:
-      actions: write   # gh workflow run braucht write auf actions
+      actions: write   # gh workflow run + gh run list brauchen write
       contents: read
     steps:
       - uses: actions/checkout@v7
@@ -33,13 +43,52 @@ jobs:
             echo "No T###### in merge commit — skipping E2E trigger."
             echo "is_factory=false" >> "$GITHUB_OUTPUT"
           else
-            echo "Factory merge detected: $TICKET_ID — triggering E2E."
+            echo "Factory merge detected: $TICKET_ID."
             echo "is_factory=true" >> "$GITHUB_OUTPUT"
             echo "ticket_id=$TICKET_ID" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Trigger E2E workflow
+      # T002155: Cooldown — prüft ob in den letzten 15 Minuten bereits eine
+      # e2e.yml-Run auf main gestartet wurde. Verhindert Sekundentakt-Dispatch
+      # bei rascher Factory-Merge-Folge (bis zu 15 s zwischen Merges beobachtet).
+      - name: Cooldown — skip if E2E was triggered recently
+        id: cooldown
         if: steps.factory-check.outputs.is_factory == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COOLDOWN_MINUTES: 15
+        run: |
+          set -euo pipefail
+
+          LAST_RUN="$(gh run list \
+            --workflow e2e.yml \
+            --branch main \
+            --limit 1 \
+            --json createdAt \
+            --jq '.[0].createdAt' 2>/dev/null || true)"
+
+          if [[ -z "$LAST_RUN" || "$LAST_RUN" == "null" ]]; then
+            echo "No previous E2E run found — proceeding."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # gh run list returns ISO 8601 (e.g. 2026-07-25T19:57:17Z).
+          # GNU date -d parses it correctly on ubuntu-latest.
+          LAST_EPOCH="$(date -d "$LAST_RUN" +%s 2>/dev/null)"
+          NOW_EPOCH="$(date +%s)"
+          DIFF=$(( (NOW_EPOCH - LAST_EPOCH) / 60 ))
+
+          if [[ "$DIFF" -lt "$COOLDOWN_MINUTES" ]]; then
+            echo "E2E was triggered ${DIFF}m ago (cooldown: ${COOLDOWN_MINUTES}m) — skipping dispatch."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "E2E was triggered ${DIFF}m ago (≥${COOLDOWN_MINUTES}m cooldown) — proceeding with dispatch."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger E2E workflow
+        if: steps.factory-check.outputs.is_factory == 'true' && steps.cooldown.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}

@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "ticket_id": "T002131",
+  "slug": "bonsai-server-parallelism",
+  "impact_files": [
+    {
+      "path": "scripts/llm/start-bonsai-server.ps1",
+      "s1_budget": 50
+    },
+    {
+      "path": "scripts/llm-host-setup.sh",
+      "s1_budget": 50
+    },
+    {
+      "path": "scripts/llm-proxy/fixups.mjs",
+      "s1_budget": 50
+    },
+    {
+      "path": "scripts/migrations/2026-07-23-llm-proxy-max-inflight.sql",
+      "s1_budget": 30
+    }
+  ]
+}

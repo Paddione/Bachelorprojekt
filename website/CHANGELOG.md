@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.2...website-v1.214.3) (2026-07-25)
+
+
+### Bug Fixes
+
+* **e2e:** handle DNS errors and accept E2E_INGEST_TOKEN [T002063] ([#3207](https://github.com/Paddione/Bachelorprojekt/issues/3207)) ([65fd2bd](https://github.com/Paddione/Bachelorprojekt/commit/65fd2bd74bbd3e2b76b3dd8aceb9dfabcbe886af))
+
 ## [1.214.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.1...website-v1.214.2) (2026-07-25)
 
 

@@ -49,10 +49,25 @@ async function callPurge(label: 'setup' | 'teardown'): Promise<void> {
     );
   }
   const url = purgeUrl();
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'X-Cron-Secret': secret },
-  });
+  
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'X-Cron-Secret': secret },
+    });
+  } catch (err) {
+    // Handle network errors (DNS resolution, connection refused, etc.)
+    // Don't throw — log warning and continue. The test suite should still
+    // run even if the purge endpoint is unreachable from CI runners.
+    const errMsg = err instanceof Error ? err.message : String(err);
+    // eslint-disable-next-line no-console
+    console.warn(`[global-db-cleanup:${label}] ⚠ Network error calling ${url}: ${errMsg}`);
+    // eslint-disable-next-line no-console
+    console.warn(`[global-db-cleanup:${label}] Continuing without prod DB purge.`);
+    return;
+  }
+  
   const text = await res.text();
   if (!res.ok) {
     throw new Error(

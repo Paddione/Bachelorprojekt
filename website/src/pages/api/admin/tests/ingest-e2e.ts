@@ -67,18 +67,27 @@ function flattenSpecs(
 /**
  * Auth: either an admin browser session (oauth2-proxy → Keycloak), OR a
  * shared bearer token used by GitHub Actions nightly e2e and any future
- * out-of-band ingest. Token reuses the existing INTERNAL_API_TOKEN secret
- * so we don't expand the SealedSecret surface for one new caller.
+ * out-of-band ingest. Accepts either INTERNAL_API_TOKEN or E2E_INGEST_TOKEN
+ * so the GitHub Actions workflow can use its dedicated secret.
  */
 function isInternalCallerAuthorized(request: Request): boolean {
-  const internalToken = process.env.INTERNAL_API_TOKEN;
-  if (!internalToken) return false;
+  // Accept either token — INTERNAL_API_TOKEN is the general-purpose internal
+  // secret, E2E_INGEST_TOKEN is the dedicated secret for E2E workflow ingest.
+  const tokens = [
+    process.env.INTERNAL_API_TOKEN,
+    process.env.E2E_INGEST_TOKEN,
+  ].filter(Boolean);
+  
+  if (tokens.length === 0) return false;
+  
   const auth = request.headers.get('authorization') ?? '';
-  if (auth.startsWith('Bearer ') && auth.slice('Bearer '.length).trim() === internalToken) {
-    return true;
+  if (auth.startsWith('Bearer ')) {
+    const token = auth.slice('Bearer '.length).trim();
+    if (tokens.includes(token)) return true;
   }
   // Allow x-internal-token too — same convention as notify-close.ts.
-  if (request.headers.get('x-internal-token') === internalToken) return true;
+  const xToken = request.headers.get('x-internal-token');
+  if (xToken && tokens.includes(xToken)) return true;
   return false;
 }
 

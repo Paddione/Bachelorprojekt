@@ -471,3 +471,71 @@ export async function saveLegalPage(brand: string, pageKey: string, contentHtml:
     [brand, pageKey, contentHtml]
   );
 }
+
+// ── Bug Ticket List ───────────────────────────────────────────────────────────
+//
+// Admin-facing list of all bug tickets. The DB read path stays — bug
+// tickets are admin-managed, not public-page content.
+export async function listBugTickets(filters: {
+  status?: string;
+  category?: string;
+  brand?: string;
+  q?: string;
+  limit?: number;
+}): Promise<BugTicketRow[]> {
+  await initTicketsSchema();
+  const where: string[] = [`t.type = 'bug'`];
+  const vals: unknown[] = [];
+  if (filters.brand) {
+    vals.push(filters.brand);
+    where.push(`t.brand = $${vals.length}`);
+  }
+  if (filters.status) {
+    // Map legacy filter values back to new status set
+    const map: Record<string, string[]> = {
+      open:     ['triage','backlog','in_progress','in_review','blocked'],
+      resolved: ['done'],
+      archived: ['archived'],
+    };
+    const list = map[filters.status] ?? [filters.status];
+    vals.push(list);
+    where.push(`t.status = ANY($${vals.length}::text[])`);
+  }
+  if (filters.category) {
+    vals.push(`kind:${filters.category}`);
+    where.push(`EXISTS (SELECT 1 FROM tickets.ticket_tags tt
+                          JOIN tickets.tags g ON g.id = tt.tag_id
+                         WHERE tt.ticket_id = t.id AND g.name = $${vals.length})`);
+  }
+  if (filters.q) {
+    vals.push(filters.q);
+    where.push(`(t.description ILIKE '%' || $${vals.length} || '%'
+                 OR t.reporter_email ILIKE '%' || $${vals.length} || '%')`);
+  }
+  vals.push(filters.limit ?? 200);
+  const limitClause = `LIMIT $${vals.length}`;
+  const sql = `
+    SELECT t.external_id   AS "ticketId",
+           COALESCE((SELECT SPLIT_PART(g.name, ':', 2) FROM tickets.ticket_tags tt JOIN tickets.tags g ON g.id = tt.tag_id WHERE tt.ticket_id = t.id AND g.name LIKE 'kind:%' LIMIT 1), '') AS category,
+           t.reporter_email AS "reporterEmail",
+           t.description,
+           t.url,
+           t.brand,
+           CASE t.status WHEN 'done' THEN 'resolved'
+                         WHEN 'archived' THEN 'archived' ELSE 'open' END AS status,
+           t.created_at    AS "createdAt",
+           t.done_at       AS "resolvedAt",
+           NULL            AS "resolutionNote",
+           (SELECT pr_number FROM tickets.ticket_links
+              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1) AS "fixedInPr",
+           (SELECT created_at FROM tickets.ticket_links
+              WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
+              ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
+      FROM tickets.tickets t
+     WHERE ${where.join(' AND ')}
+     ORDER BY t.created_at DESC ${limitClause}`;
+  const r = await pool.query(sql, vals);
+  return r.rows;
+}
+

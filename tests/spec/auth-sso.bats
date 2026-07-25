@@ -116,3 +116,64 @@ _render_korczewski() {
   [ "$status" -eq 0 ]
   echo "$output" | grep -q -- '--skip-auth-route=GET=\^/healthz'
 }
+
+# ── T002154: POCKET_ID_URL muss ein cross-namespace auflösbarer FQDN sein ─────
+#
+# Incident 2026-07-25: Der Website-Login brach auf BEIDEN Brands, obwohl Pocket ID
+# den Passkey akzeptierte. Der serverseitige Token-Exchange scheiterte mit
+# "TypeError: fetch failed" (undici, Verbindungsebene) — es folgte nie ein
+# POST /api/oidc/token. Ursache: POCKET_ID_URL=http://pocket-id:1411 (Kurzname).
+# Die Website läuft in ns `website`, Pocket ID in ns `workspace`; der Kurzname
+# löst nur INNERHALB von workspace auf. Im Prod-Pod gemessen: Kurzname 5/5
+# ENOTFOUND, FQDN HTTP 200.
+#
+# Geprüft wird der WIRKSAME Fallback-Wert im Taskfile, nicht nur die Existenz
+# einer Zeile — damit deckt der Test auch ab, dass der Default bei leerem
+# WORKSPACE_NAMESPACE kein kaputtes `pocket-id..svc` erzeugt.
+
+@test "T002154: kein bare Kurzname als POCKET_ID_URL-Fallback im Taskfile" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  run grep -n 'POCKET_ID_URL:-http://pocket-id:1411' "${repo_root}/Taskfile.yml"
+  [ "$status" -ne 0 ] || {
+    echo "FAIL: bare Kurzname 'pocket-id:1411' als Fallback — cross-namespace nicht auflösbar:"
+    echo "$output"
+    return 1
+  }
+}
+
+@test "T002154: jeder POCKET_ID_URL-Fallback rendert zu einem FQDN" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  local defaults; defaults="$(grep -o 'POCKET_ID_URL:-[^}"]*' "${repo_root}/Taskfile.yml" | sed 's/^POCKET_ID_URL:-//')"
+  [ -n "$defaults" ] || skip "kein POCKET_ID_URL-Fallback im Taskfile"
+
+  local d resolved
+  while IFS= read -r d; do
+    [ -n "$d" ] || continue
+    # Fallback mit realistischem Namespace auflösen, wie es der Deploy täte
+    resolved="$(WORKSPACE_NAMESPACE=workspace eval "echo \"$d\"")"
+    echo "$resolved" | grep -q '\.svc\.cluster\.local' || {
+      echo "FAIL: Fallback '$d' rendert zu '$resolved' — kein FQDN, cross-namespace nicht auflösbar"
+      return 1
+    }
+    # Leeres Namespace-Segment (pocket-id..svc) ist genauso kaputt
+    echo "$resolved" | grep -q 'pocket-id\.\.svc' && {
+      echo "FAIL: Fallback '$d' rendert zu '$resolved' — leeres Namespace-Segment"
+      return 1
+    }
+  done <<< "$defaults"
+}
+
+# Zweite Lücke desselben Incidents: website-config hängt per `envFrom` am
+# Deployment. envFrom-Werte werden nur beim Containerstart kopiert (anders als
+# gemountete CM-Volumes) — ohne Checksum-Annotation im Pod-Template löst eine
+# ConfigMap-Korrektur KEINEN Rollout aus. Live war auf beiden Brands: CM = FQDN
+# (korrekt), Pod-Env = Kurzname (kaputt), Pod lief so 37h.
+@test "T002154: Website-Pod-Template trägt eine checksum/config-Annotation" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  run grep -q 'checksum/config' "${repo_root}/k3d/website.yaml"
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: k3d/website.yaml hat keine checksum/config-Annotation im Pod-Template —"
+    echo "      ConfigMap-Änderungen erreichen laufende Pods nicht (envFrom friert Werte beim Start ein)."
+    return 1
+  }
+}

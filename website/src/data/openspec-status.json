@@ -1419,6 +1419,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002154": [
+    {
+      "slug": "pocket-id-url-fqdn-guard",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

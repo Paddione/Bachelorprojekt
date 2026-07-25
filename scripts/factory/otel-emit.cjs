@@ -4,7 +4,7 @@
 
 function endpoint() {
   if (process.env.OTEL_SDK_DISABLED === 'true') return null;
-  const e = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
+  const e = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || process.env.OTEL_COLLECTOR_URL || 'http://otel-collector.monitoring.svc:4318';
   return e ? e.replace(/\/+$/, '') : null;
 }
 
@@ -54,16 +54,21 @@ function buildPayload(metrics, resourceAttrs) {
 async function post(payload) {
   const base = endpoint();
   if (!base) return { skipped: true };
-  try {
-    const res = await fetch(`${base}/v1/metrics`, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify(payload),
-    });
-    return { skipped: false, ok: !!(res && res.ok), status: res && res.status };
-  } catch {
-    return { skipped: false, ok: false };
+  let attempts = 0;
+  while (attempts < 3) {
+    attempts++;
+    try {
+      const res = await fetch(`${base}/v1/metrics`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      });
+      if (res && res.ok) return { skipped: false, ok: true, status: res.status };
+    } catch (err) {
+      if (attempts >= 3) return { skipped: false, ok: false, error: err.message };
+    }
   }
+  return { skipped: false, ok: false };
 }
 
 // Generic single counter/gauge.

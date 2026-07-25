@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: health-goals-check
+  namespace: monitoring
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: health-goals-check
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: health-goals-checker
+              image: alpine/k8s:1.28.2
+              command: ["/bin/sh", "-c", "echo 'Running health goals check cron'"]
+              resources:
+                requests:
+                  cpu: 20m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi

@@ -193,6 +193,16 @@ spec:
     metadata:
       labels:
         app: website
+      annotations:
+        # T002154: website-config haengt per envFrom am Container — envFrom-Werte
+        # werden nur beim Containerstart kopiert und propagieren NICHT bei einem
+        # ConfigMap-Update (anders als gemountete ConfigMap-Volumes). Ohne diese
+        # Annotation loest eine Config-Korrektur keinen Rollout aus: der Pod
+        # behaelt den alten Wert, bis ihn zufaellig etwas anderes neu startet.
+        # Der Hash wird NACH envsubst ueber das gerenderte Manifest gebildet —
+        # ein Kustomize-Hash-Suffix waere hier wirkungslos, weil Kustomize nur
+        # den unsubstituierten Platzhalter sieht (siehe design.md D2).
+        checksum/config: "${WEBSITE_CONFIG_SHA}"
     spec:
       serviceAccountName: website
       imagePullSecrets:

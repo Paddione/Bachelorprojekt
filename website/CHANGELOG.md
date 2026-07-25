@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.1...website-v1.214.2) (2026-07-25)
+
+
+### Bug Fixes
+
+* **ci:** add goals.md trigger + conditional skip-ci for repohealth [T002158] ([#3206](https://github.com/Paddione/Bachelorprojekt/issues/3206)) ([4b9de64](https://github.com/Paddione/Bachelorprojekt/commit/4b9de644d5bf0dd36ac9bc9999fb0e69582c23b9))
+
 ## [1.214.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.0...website-v1.214.1) (2026-07-25)
 
 

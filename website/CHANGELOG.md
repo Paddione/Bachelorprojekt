@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.213.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.212.0...website-v1.213.0) (2026-07-25)
+
+
+### Features
+
+* **website:** [T002150] website-db.ts split stage 2 ([#3194](https://github.com/Paddione/Bachelorprojekt/issues/3194)) ([9165057](https://github.com/Paddione/Bachelorprojekt/commit/9165057f399e782f7e13f27cc042139f77b468f4))
+
 ## [1.212.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.211.0...website-v1.212.0) (2026-07-24)
 
 

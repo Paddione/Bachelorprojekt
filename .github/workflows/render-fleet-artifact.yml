@@ -12,6 +12,7 @@ on:
         required: false
         type: string
         default: ''
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -22,6 +23,13 @@ on:
       - 'prod-korczewski/**'
       - 'environments/sealed-secrets/**'
       - 'flux/clusters/**'
+      # T002157: die Render-Logik selbst gehoert in die Trigger-Pfade. Ohne sie
+      # aendert ein Fix am Renderer das Artefakt NICHT — es bleibt stale, bis
+      # zufaellig ein Manifest angefasst wird, und Flux rollt weiter den alten
+      # Stand aus. Genau so blieb der T002156-Fix nach dem Merge wirkungslos.
+      - 'scripts/flux-render-artifact.sh'
+      - 'scripts/website-config-sha.sh'
+      - 'Taskfile.yml'
 
 concurrency:
   group: render-fleet-artifact-${{ github.ref }}

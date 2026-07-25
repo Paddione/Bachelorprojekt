@@ -193,12 +193,16 @@ jobs:
             exit 1
           fi
           SUBSTITUTED=$(envsubst "$(printf '$%s ' $VARS)" <<<"$RENDERED")
-          # T002154: Hash NACH envsubst ueber die eingesetzten WERTE bilden. Aendert
-          # sich z.B. POCKET_ID_URL, aendert sich der Hash und das Deployment rollt
-          # neu aus — ohne diese Annotation friert envFrom den alten Wert im Pod ein.
-          # Ein Kustomize-configMapGenerator-Hash waere wirkungslos, weil Kustomize
-          # nur den unsubstituierten Platzhalter sieht.
-          export WEBSITE_CONFIG_SHA="$(sha256sum <<<"$SUBSTITUTED" | cut -c1-16)"
+          # T002154/T002156: Hash NACH envsubst ueber den website-config-data-Block.
+          # Der gemeinsame Helper stellt sicher, dass dieser Job, der Taskfile-Pfad
+          # und der Flux-Renderer denselben Wert berechnen — bei pfadabhaengigen
+          # Hashes (z.B. ueber das ganze Manifest inkl. Image-Tag) wuerden sie sich
+          # gegenseitig ueberschreiben und bei jedem Reconcile neu ausrollen.
+          export WEBSITE_CONFIG_SHA="$(bash scripts/website-config-sha.sh <<<"$SUBSTITUTED")"
+          if [[ -z "$WEBSITE_CONFIG_SHA" ]]; then
+            echo "::error::website-config-sha.sh returned an empty checksum"
+            exit 1
+          fi
           SUBSTITUTED=$(envsubst '$WEBSITE_CONFIG_SHA' <<<"$SUBSTITUTED")
           if grep -qE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED"; then
             echo "::error::unexpanded \${VAR} placeholders remain after envsubst:"
@@ -350,12 +354,16 @@ jobs:
             exit 1
           fi
           SUBSTITUTED=$(envsubst "$(printf '$%s ' $VARS)" <<<"$RENDERED")
-          # T002154: Hash NACH envsubst ueber die eingesetzten WERTE bilden. Aendert
-          # sich z.B. POCKET_ID_URL, aendert sich der Hash und das Deployment rollt
-          # neu aus — ohne diese Annotation friert envFrom den alten Wert im Pod ein.
-          # Ein Kustomize-configMapGenerator-Hash waere wirkungslos, weil Kustomize
-          # nur den unsubstituierten Platzhalter sieht.
-          export WEBSITE_CONFIG_SHA="$(sha256sum <<<"$SUBSTITUTED" | cut -c1-16)"
+          # T002154/T002156: Hash NACH envsubst ueber den website-config-data-Block.
+          # Der gemeinsame Helper stellt sicher, dass dieser Job, der Taskfile-Pfad
+          # und der Flux-Renderer denselben Wert berechnen — bei pfadabhaengigen
+          # Hashes (z.B. ueber das ganze Manifest inkl. Image-Tag) wuerden sie sich
+          # gegenseitig ueberschreiben und bei jedem Reconcile neu ausrollen.
+          export WEBSITE_CONFIG_SHA="$(bash scripts/website-config-sha.sh <<<"$SUBSTITUTED")"
+          if [[ -z "$WEBSITE_CONFIG_SHA" ]]; then
+            echo "::error::website-config-sha.sh returned an empty checksum"
+            exit 1
+          fi
           SUBSTITUTED=$(envsubst '$WEBSITE_CONFIG_SHA' <<<"$SUBSTITUTED")
           if grep -qE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED"; then
             echo "::error::unexpanded \${VAR} placeholders remain after envsubst:"

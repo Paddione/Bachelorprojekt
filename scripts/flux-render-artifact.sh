@@ -48,7 +48,17 @@ render_component() {
   # set -e from aborting on the "no matches" case.
   local vars
   vars="$(grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' <<<"$rendered" | tr -d '${}' | sort -u | tr '\n' ' ')" || true
-  
+
+  # T002156: WEBSITE_CONFIG_SHA wird NICHT aus der Umgebung substituiert — der
+  # Wert entsteht erst aus dem fertig substituierten Manifest (siehe unten).
+  # Ohne diese Ausnahme setzt envsubst den ungesetzten Wert auf "" und die
+  # Annotation ist dauerhaft leer: genau so ging T002154 live kaputt.
+  local wants_config_sha=0
+  if [[ " $vars " == *" WEBSITE_CONFIG_SHA "* ]]; then
+    wants_config_sha=1
+    vars="$(tr ' ' '\n' <<<"$vars" | sed '/^WEBSITE_CONFIG_SHA$/d;/^$/d' | tr '\n' ' ')"
+  fi
+
   if [[ -z "$vars" ]]; then
     # No vars to substitute — write as-is
     echo "$rendered" > "$out"
@@ -67,6 +77,33 @@ render_component() {
     | envsubst "$envsubst_vars" \
     | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
     > "$out"
+
+  # T002156: checksum/config NACH envsubst aus dem website-config-data-Block
+  # bilden. Der gemeinsame Helper garantiert, dass alle drei Render-Pfade
+  # (dieser hier, Taskfile website:deploy, build-website.yml) denselben Wert
+  # berechnen — sonst ueberschreiben sie sich gegenseitig und loesen bei jedem
+  # Flux-Reconcile einen unnoetigen Rollout aus.
+  if (( wants_config_sha )); then
+    local config_sha
+    config_sha="$(WEBSITE_CONFIG_SHA="" "${SCRIPT_DIR}/website-config-sha.sh" < "$out")"
+    if [[ -z "$config_sha" ]]; then
+      echo "ERROR: website-config-sha.sh returned an empty checksum for $out." >&2
+      exit 1
+    fi
+    WEBSITE_CONFIG_SHA="$config_sha" envsubst '$WEBSITE_CONFIG_SHA' < "$out" > "${out}.tmp"
+    mv "${out}.tmp" "$out"
+  fi
+
+  # FAIL-CLOSED (T002156): eine LEER substituierte checksum/config ist genauso
+  # kaputt wie ein uebrig gebliebener Platzhalter — der Check unten faengt nur
+  # letzteres. `checksum/config: ""` bedeutet: die Annotation aendert sich nie,
+  # loest also nie einen Rollout aus, und ueberschreibt still den Wert, den ein
+  # anderer Render-Pfad gesetzt hat.
+  if grep -qE '^\s*checksum/config: *("")?\s*$' "$out"; then
+    echo "ERROR: checksum/config is empty in $out — the annotation would never" >&2
+    echo "       change and would silently override other render paths." >&2
+    exit 1
+  fi
 
   # FAIL-CLOSED: after substitution, check for any remaining unsubstituted ${VAR}
   # references. If any exist, the build fails instead of silently shipping a broken

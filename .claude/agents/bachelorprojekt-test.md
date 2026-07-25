@@ -5,6 +5,7 @@ description: >
   lifecycle (automated ticket processing) in the Bachelorprojekt project.
   Triggers on: test, FA-*, SA-*, NFA-*, AK-*, BATS, Playwright, runner.sh,
   "test failing", "test case", "write a test", factory:, autopilot, FA-SF.
+model: sonnet
 ---
 
 ## Library

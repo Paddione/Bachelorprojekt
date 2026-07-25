@@ -3,14 +3,19 @@
     "llamacpp-mtp": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama.cpp b9553 (Gemma4 QAT 12B + MTP draft, speculative decoding)",
+      // Einzige Definitionsstelle dieses Provider-Keys im Repo. scripts/opencode-sync-agents.sh
+      // synct sie nach ~/.config/opencode/opencode.jsonc; .opencode/opencode.jsonc darf sie
+      // NICHT erneut definieren, sonst driftet der Wert projekt-lokal ab (T002159).
       "options": {
-        "baseURL": "http://127.0.0.1:8091/v1"
+        "baseURL": "http://127.0.0.1:8091/v1",
+        "timeout": 600000,
+        "chunkTimeout": 120000
       },
       "models": {
         "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": {
-          "name": "Gemma4 12B QAT (UD-Q4_K_XL) + MTP-draft Q8_0 (raw llama.cpp b9553+CUDA13.3, speculative decoding via --spec-type draft-mtp --spec-draft-n-max 6, -np 4 parallel slots over -c 16384 total ctx = 4096 ctx/slot, Q8_0 KV cache, -fit auto-VRAM-fit, auto-sleeps GPU after 20min idle and reloads on next request in ~6s) - start via Desktop\\start-gemma4-mtp-server.bat first",
+          "name": "Gemma4 12B QAT (UD-Q4_K_XL) + MTP-draft Q8_0 (raw llama.cpp + CUDA 13.3, speculative decoding via --spec-type draft-mtp --spec-draft-n-max 2, -ngl 999, -c 16384 auf EINEM Slot (kein -np), --jinja) - vorher starten: C:\\Users\\PatrickKorczewski\\.lmstudio\\start-gemma4-12b-mtp.ps1",
           "limit": {
-            "context": 4096,
+            "context": 16384,
             "output": 4096
           }
         }

@@ -6,6 +6,7 @@ description: >
   (GPU host status, model management, Ollama/TEI/LiteLLM) on the Bachelorprojekt clusters.
   Triggers on: pod, logs, status, restart, crash, health, kubectl, "what's wrong",
   "why is X failing", "is X running", llm:, GPU, Ollama, model, LiveKit.
+model: sonnet
 tools: [Bash, Read, Glob, Grep]
 ---
 

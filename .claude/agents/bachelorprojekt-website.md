@@ -5,6 +5,7 @@ description: >
   brand-specific layouts, and the /api/* backend endpoints in the Bachelorprojekt
   website. Triggers on: website/, Astro, Svelte, component, homepage, kore,
   mentolder brand, CSS, UI, frontend, design.
+model: sonnet
 ---
 
 ## Library

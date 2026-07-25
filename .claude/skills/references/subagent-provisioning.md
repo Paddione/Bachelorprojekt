@@ -17,9 +17,25 @@ Klassifiziere die Aufgabe nach **Komplexität × Risiko × Rolle**:
 | Standard: normale Feature-/Fix-Implementierung, mehrere Dateien, klarer Plan | `sonnet` |
 | Komplex/riskant: systemübergreifend, Architektur, Security, DB-/Schema-Migration, Nebenläufigkeit, Auto-Deploy | `opus` |
 | Reasoning-lastige Meta-Arbeit: Plan-Schreiben, Design/Architektur, adversariale Review | `opus` (immer) |
+| Orchestrierung mit hohem Durchsatz: viele Subagenten koordinieren, Fan-out steuern, Zwischenergebnisse einsammeln | `fable` |
 
-Im Zweifel **eine Stufe höher**. Wenn unsicher, ob ein Spezial-Modell überhaupt passt: **`model` weglassen**
-→ der Subagent erbt das Main-Loop-Modell (fast immer korrekt).
+Im Zweifel **eine Stufe höher**.
+
+> **⚠ Modellgeneration Claude 5 (ab 2026-07-25, T002153):** Die frühere Empfehlung „unsicher →
+> `model` weglassen, der Subagent erbt das Main-Loop-Modell" gilt **nicht mehr pauschal**. Der
+> Main Loop läuft auf dem User-Default (aktuell Opus 5 mit 1M-Kontext) — `model` weglassen heißt
+> also, dass auch ein Grep-Sweep auf Opus läuft. **Setze `model` bewusst.** Weglassen ist nur
+> noch dann richtig, wenn die Aufgabe tatsächlich Main-Loop-Niveau verlangt.
+>
+> Die sechs Domain-Agenten (`.claude/agents/bachelorprojekt-*.md`) tragen das Tiering seit
+> T002153 im **Frontmatter** (`model: sonnet` für ops/db/test/website, `model: opus` für
+> infra/security) — bei einem Dispatch an diese Agenten ist die Modellwahl damit bereits
+> getroffen und muss nicht pro Call wiederholt werden.
+>
+> **1M-Kontext ist ein Budget, kein Freibrief.** Ein größeres Fenster senkt die Delegationsschwelle
+> nicht: Recherche-Dumps, CI-Logs und Volltext-Reads gehören weiterhin in einen Subagenten, der
+> **verdichtet** zurückmeldet. Der Orchestrator-Kontext ist das teuerste Gut der Session — er
+> bleibt für Entscheidungen reserviert, nicht für Rohdaten.
 
 > **Tier 0 — `hermes-delegate` (lokal, vor `haiku`):** Für Prompts, die reine Textgenerierung ohne
 > Dateizugriff, Werkzeugnutzung oder mehrschrittiges Reasoning sind, ruf statt eines `haiku`-Subagenten

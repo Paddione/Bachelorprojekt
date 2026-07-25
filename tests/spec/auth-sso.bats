@@ -181,3 +181,114 @@ _render_korczewski() {
     return 1
   }
 }
+
+# ── T002156: checksum/config muss in ALLEN Render-Pfaden echt gefuellt sein ────
+#
+# T002154 fuehrte die checksum/config-Annotation ein, deckte aber nur zwei der
+# DREI Render-Pfade ab. Der primaere Pfad ist pull-based via Flux:
+#   render-fleet-artifact.yml -> task flux:render -> scripts/flux-render-artifact.sh
+#   -> OCI-Artefakt -> Flux-Kustomization (interval 10m)
+# Der Flux-Renderer leitet seine envsubst-Liste dynamisch ab und substituierte
+# WEBSITE_CONFIG_SHA daher mit dem ungesetzten (= leeren) Wert. Live stand auf
+# beiden Brands {"checksum/config":""} — wirkungslos, und schlimmer: Flux drehte
+# den von build-website.yml gesetzten Hash alle 10 min auf "" zurueck.
+#
+# Zweiter Defekt: T002154 hashte das GESAMTE Manifest inkl. Image-Tag, der sich
+# je Pfad unterscheidet — die Pfade haetten sich gegenseitig ueberschrieben.
+# Gehasht wird deshalb nur der data-Block der website-config-ConfigMap.
+
+@test "T002156: website-config-sha Helper existiert und ist ausfuehrbar" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  [ -x "${repo_root}/scripts/website-config-sha.sh" ] || {
+    echo "FAIL: scripts/website-config-sha.sh fehlt oder ist nicht ausfuehrbar —"
+    echo "      ohne gemeinsamen Helper driftet die Hash-Logik zwischen den 3 Pfaden."
+    return 1
+  }
+}
+
+@test "T002156: Hash ignoriert den Image-Tag (pfadunabhaengig)" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  local helper="${repo_root}/scripts/website-config-sha.sh"
+  [ -x "$helper" ] || skip "Helper noch nicht vorhanden"
+
+  local base='apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+data:
+  POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website
+spec:
+  template:
+    spec:
+      containers:
+        - name: website
+          image: ghcr.io/paddione/website:IMGTAG'
+
+  local a b
+  a="$(sed 's/IMGTAG/sha-aaaaaaa/' <<<"$base" | bash "$helper")"
+  b="$(sed 's/IMGTAG/sha-bbbbbbb/' <<<"$base" | bash "$helper")"
+  [ "$a" = "$b" ] || {
+    echo "FAIL: Hash haengt vom Image-Tag ab ($a != $b) — die Render-Pfade wuerden"
+    echo "      sich gegenseitig ueberschreiben und Rollouts ausloesen."
+    return 1
+  }
+  [ -n "$a" ] || { echo "FAIL: Hash ist leer"; return 1; }
+}
+
+@test "T002156: Hash reagiert auf eine geaenderte Config" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  local helper="${repo_root}/scripts/website-config-sha.sh"
+  [ -x "$helper" ] || skip "Helper noch nicht vorhanden"
+
+  local tmpl='apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+data:
+  POCKET_ID_URL: "VALUE"'
+
+  local a b
+  a="$(sed 's|VALUE|http://pocket-id:1411|' <<<"$tmpl" | bash "$helper")"
+  b="$(sed 's|VALUE|http://pocket-id.workspace.svc.cluster.local:1411|' <<<"$tmpl" | bash "$helper")"
+  [ "$a" != "$b" ] || {
+    echo "FAIL: Hash aendert sich nicht bei geaenderter Config ($a) — kein Rollout-Trigger."
+    return 1
+  }
+}
+
+@test "T002156: Flux-Renderer setzt checksum/config (primaerer Deploy-Pfad)" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  grep -q 'WEBSITE_CONFIG_SHA' "${repo_root}/scripts/flux-render-artifact.sh" || {
+    echo "FAIL: scripts/flux-render-artifact.sh kennt WEBSITE_CONFIG_SHA nicht."
+    echo "      Das ist der PRIMAERE (pull-based) Deploy-Pfad — ohne ihn bleibt die"
+    echo "      Annotation leer und Flux ueberschreibt die anderen Pfade alle 10 min."
+    return 1
+  }
+}
+
+@test "T002156: Flux-Renderer lehnt eine leer substituierte checksum/config ab" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  grep -qE 'checksum/config: *""|checksum_config_empty|EMPTY_CHECKSUM' "${repo_root}/scripts/flux-render-artifact.sh" || {
+    echo "FAIL: Der fail-closed-Check prueft nur auf UEBRIG GEBLIEBENE \${VAR},"
+    echo "      nicht auf LEER substituierte — genau dadurch ging T002154 kaputt live."
+    return 1
+  }
+}
+
+@test "T002156: alle drei Render-Pfade nutzen den gemeinsamen Helper" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  local missing=""
+  grep -q 'website-config-sha.sh' "${repo_root}/scripts/flux-render-artifact.sh"        || missing="$missing flux-render-artifact.sh"
+  grep -q 'website-config-sha.sh' "${repo_root}/Taskfile.yml"                            || missing="$missing Taskfile.yml"
+  grep -q 'website-config-sha.sh' "${repo_root}/.github/workflows/build-website.yml"     || missing="$missing build-website.yml"
+  [ -z "$missing" ] || {
+    echo "FAIL: Pfade ohne gemeinsamen Helper:$missing"
+    echo "      Duplizierte Hash-Logik driftet (vgl. T001993 envsubst-Allowlist)."
+    return 1
+  }
+}

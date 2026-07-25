@@ -87,12 +87,21 @@ setup() {
 # gesyncten Wert projekt-lokal und driftet unbemerkt ab.
 
 @test "opencode.jsonc defines no duplicate llamacpp-mtp provider" {
-  run grep -q '"llamacpp-mtp"' "$REPO/.opencode/opencode.jsonc"
-  [ "$status" -ne 0 ]
+  # Semantische Pruefung statt Textsuche: erklaerende Kommentare duerfen den
+  # Provider-Namen nennen, nur eine echte Definition im provider-Objekt ist verboten.
+  run node -e "
+    const s = require('fs').readFileSync('$REPO/.opencode/opencode.jsonc','utf8');
+    const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
+    const o = JSON.parse(j);
+    process.exit('llamacpp-mtp' in (o.provider || {}) ? 1 : 0);
+  "
+  [ "$status" -eq 0 ]
 }
 
 @test "no .opencode config points a baseURL at the Bonsai port 8093" {
-  run bash -c "grep -hE '\"baseURL\": *\"https?://[^\"]*:8093' \"$REPO\"/.opencode/*.jsonc"
+  # Kommentarzeilen ausgenommen — der Bonsai-Port darf dokumentiert werden,
+  # nur nicht als aktive baseURL gesetzt sein.
+  run bash -c "grep -hE '\"baseURL\": *\"https?://[^\"]*:8093' \"$REPO\"/.opencode/*.jsonc | grep -vE '^\s*//'"
   [ -z "$output" ]
 }
 

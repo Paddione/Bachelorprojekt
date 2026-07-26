@@ -2944,7 +2944,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 549,
+      "file_count": 550,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3431,6 +3431,7 @@
         "scripts/talk-hpb-setup.sh",
         "scripts/task-oracle.sh",
         "scripts/terminal-sidekick-host.sh",
+        "scripts/test-dev-flow-execute-sync.sh",
         "scripts/tests/brainstorm-submit-smoke.sh",
         "scripts/tests/prod-write-guard.bats",
         "scripts/tests/systembrett-template.test.sh",

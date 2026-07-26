@@ -115,3 +115,4 @@ Test-IDs: `FA-01`…`FA-29` (funktional), `SA-01`…`SA-10` (Sicherheit), `NFA-0
 4. Domains zentral in `k3d/configmap-domains.yaml`; keine hartkodierten Hostnamen.
 5. Prod-Secrets als SealedSecrets in `environments/sealed-secrets/`; niemals Klartext committen.
 6. Detaillierte Konventionen, Gotchas und Tasks: siehe [CLAUDE.md](CLAUDE.md) und [CONTRIBUTING.md](CONTRIBUTING.md).
+

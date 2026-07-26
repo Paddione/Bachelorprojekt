@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion';
 import type { ProcessProps } from '@/blocks/schema';
 
 export function ProcessBlock(props: ProcessProps) {

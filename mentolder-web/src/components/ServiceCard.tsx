@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion';
 import { Link } from 'react-router-dom';
 
 interface ServiceCardProps {

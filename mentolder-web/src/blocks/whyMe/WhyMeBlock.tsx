@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion';
 import type { WhyMeProps } from '@/blocks/schema';
 
 export function WhyMeBlock(props: WhyMeProps) {

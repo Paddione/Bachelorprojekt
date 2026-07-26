@@ -29,8 +29,20 @@ setup() {
 # ── Mishap 2: dev-flow-execute missing PR creation ─────────────────────────
 
 @test "T001331: dev-flow-execute SKILL.md has post-PR-creation verification (pr_created)" {
+  # T002181: gesucht wurde der wörtliche Rückgabe-Marker 'pr_created:' im
+  # SKILL.md. Den gibt es nirgends mehr im Repo — die Verifikation ist nach
+  # references/plan-archive-steps.md gewandert und dort als Assert bei der
+  # PR-Erstellung umgesetzt (T001331). Zweck der Anforderung ist unverändert:
+  # ein Subagent darf einen PR nicht als erstellt melden, ohne dass es geprüft
+  # wurde. Geprüft wird deshalb die Kette statt des alten Markers.
   [ -f "$REPO/.claude/skills/dev-flow-execute/SKILL.md" ]
-  run grep -F 'pr_created:' "$REPO/.claude/skills/dev-flow-execute/SKILL.md"
+  local archive_ref="$REPO/.claude/skills/references/plan-archive-steps.md"
+  [ -f "$archive_ref" ] || archive_ref="$REPO/.agents/skills/references/plan-archive-steps.md"
+
+  run grep -qF 'T001331' "$REPO/.claude/skills/dev-flow-execute/SKILL.md"
+  [ "$status" -eq 0 ]
+  [ -f "$archive_ref" ]
+  run grep -qE 'T001331|PR-Erstellung mit Assert' "$archive_ref"
   [ "$status" -eq 0 ]
 }
 

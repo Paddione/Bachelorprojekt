@@ -42,8 +42,18 @@ OC_SKILLS='opencode-flow-plan opencode-flow-execute opencode-flow-chore opencode
 }
 
 @test "HWS-8: AGENTS.md Skill Dispatch Protocol is opencode-native" {
-  # extract the '## Skill Dispatch Protocol' section body (up to the next H2)
-  local awkp='/^## Skill Dispatch Protocol/{f=1;next} f&&/^## /{f=0} f'
+  # T002181: der Abschnitt hiess einmal '## Skill Dispatch Protocol'. Seit dem
+  # AGENTS.md-Umbau auf Quick-Start liegen die Referenzteile in <details>-Blöcken
+  # ("read on-demand, do not frontload") — die H2-Extraktion lief ins Leere und
+  # prüfte damit einen leeren String. Inhalt und Anforderung sind unverändert.
+  # Extrahiert wird jetzt vom <summary>-Marker bis zum schliessenden </details>.
+  local awkp='/<summary>Skill Dispatch Protocol/{f=1;next} f&&/<\/details>/{f=0} f'
+
+  # Guard gegen die alte Falle: ist der Abschnitt leer, hat der Test nichts
+  # geprüft und muss rot werden statt still durchzulaufen.
+  run bash -c "awk '$awkp' AGENTS.md | grep -c ."
+  [ "$status" -eq 0 ]
+  [ "$output" -gt 0 ]
   run bash -c "awk '$awkp' AGENTS.md | grep -nE '$FORBIDDEN'"
   [ "$status" -ne 0 ]   # no Claude-only tokens in the section
   run bash -c "awk '$awkp' AGENTS.md | grep -qF 'background-agents.ts'"

@@ -326,9 +326,13 @@ PY
 }
 
 @test "T002083: FluxInstance syncs from an OCIRepository source" {
+  # T002181: der Test erwartete `kind: OCIRepository` in derselben Datei wie die
+  # FluxInstance. Real sind die CRs auf flux-instance.yaml und oci-source.yaml
+  # aufgeteilt — die Quelle existiert, nur nicht dort, wo gesucht wurde.
   run bash -c "grep -rIl 'kind:[[:space:]]*FluxInstance' '$FLUX_CLUSTER_DIR'"
   [ "$status" -eq 0 ]
-  grep -qE 'kind:[[:space:]]*OCIRepository' "$output"
+  run bash -c "grep -rIlE 'kind:[[:space:]]*OCIRepository' '$FLUX_CLUSTER_DIR'"
+  [ "$status" -eq 0 ]
 }
 
 @test "T002083: cluster CRs form a Kustomization dependsOn chain (kustomize.toolkit.fluxcd.io)" {
@@ -343,8 +347,14 @@ for f in list(d.rglob('*.yaml')) + list(d.rglob('*.yml')):
         if doc.get('kind') == 'Kustomization' and str(doc.get('apiVersion','')).startswith('kustomize.toolkit.fluxcd.io'):
             ks.append(doc)
 names = {k.get('metadata', {}).get('name') for k in ks}
-assert 'flux-sealed-secrets' in names, f'flux-sealed-secrets Kustomization missing (have {sorted(n for n in names if n)})'
-assert 'flux-platform' in names, f'flux-platform Kustomization missing (have {sorted(n for n in names if n)})'
+# T002181: erwartet wurden die Einzelnamen 'flux-sealed-secrets' und
+# 'flux-platform'. Die Kustomizations sind inzwischen brand-spezifisch
+# aufgeteilt (…-mentolder / …-korczewski) und die Plattform-Schicht heisst
+# flux-infra-controllers. Geprüft wird jetzt über Präfixe, damit ein künftiger
+# dritter Brand automatisch mit abgedeckt ist.
+sealed = {n for n in names if n and n.startswith('flux-sealed-secrets')}
+assert sealed, f'no flux-sealed-secrets* Kustomization (have {sorted(n for n in names if n)})'
+assert 'flux-infra-controllers' in names, f'flux-infra-controllers Kustomization missing (have {sorted(n for n in names if n)})'
 # At least one dependsOn edge must wire the chain together.
 assert any(k.get('spec', {}).get('dependsOn') for k in ks), 'no Kustomization declares dependsOn'
 PY
@@ -355,15 +365,27 @@ PY
   run python3 - "$FLUX_CLUSTER_DIR" <<'PY'
 import sys, pathlib, yaml
 d = pathlib.Path(sys.argv[1])
-found = None
+# T002181: geprüft wurde nur die Kustomization mit dem exakten Namen
+# 'flux-sealed-secrets'. Die gibt es nicht mehr — real existieren
+# flux-sealed-secrets-mentolder und -korczewski. Der Test lief damit gegen
+# einen Namen ins Leere, obwohl beide prune: false korrekt setzen.
+# Jetzt strenger: JEDE flux-sealed-secrets*-Kustomization muss prune: false
+# tragen, nicht nur eine.
+found = []
 for f in list(d.rglob('*.yaml')) + list(d.rglob('*.yml')):
     for doc in yaml.safe_load_all(f.read_text()):
         if not doc:
             continue
-        if doc.get('kind') == 'Kustomization' and doc.get('metadata', {}).get('name') == 'flux-sealed-secrets':
-            found = doc
-assert found is not None, 'flux-sealed-secrets Kustomization not found'
-assert found.get('spec', {}).get('prune') is False, 'flux-sealed-secrets must set spec.prune: false'
+        name = doc.get('metadata', {}).get('name') or ''
+        if doc.get('kind') == 'Kustomization' and name.startswith('flux-sealed-secrets'):
+            found.append(doc)
+assert found, 'no flux-sealed-secrets* Kustomization found'
+offenders = [
+    d_.get('metadata', {}).get('name')
+    for d_ in found
+    if d_.get('spec', {}).get('prune') is not False
+]
+assert not offenders, f'these flux-sealed-secrets* Kustomizations must set spec.prune: false — {offenders}'
 PY
   [ "$status" -eq 0 ]
 }

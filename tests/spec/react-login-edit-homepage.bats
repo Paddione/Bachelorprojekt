@@ -17,6 +17,11 @@
 # ── File-level variables ──────────────────────────────────────────────────────
 WEBSITE_SRC="$BATS_TEST_DIRNAME/../../website/src"
 REACT_SRC="$BATS_TEST_DIRNAME/../../mentolder-web/src"
+# T002181: die Requirement-2-Tests grepten auf "$WEBSITE_SRC/api/callback.ts" —
+# diesen Pfad gibt es nicht, die Astro-Route liegt unter pages/api/auth/.
+# Ein Test gegen eine nicht existierende Datei ist immer rot und hat nie
+# etwas geprüft.
+CALLBACK_TS="$WEBSITE_SRC/pages/api/auth/callback.ts"
 
 # ── Requirement 1: CORS helper for allowlisted React-Origin ─────────────────────
 @test "cors.ts sets Access-Control-Allow-Origin for allowlisted origin" {
@@ -39,8 +44,24 @@ REACT_SRC="$BATS_TEST_DIRNAME/../../mentolder-web/src"
 }
 
 @test "cors.ts is fail-closed for unknown origins" {
-  run grep -qF "fail-closed" "$WEBSITE_SRC/lib/cors.ts"
+  # T002181: war `grep -qF "fail-closed"` — case-sensitiv (die Datei schreibt
+  # "Fail-closed" gross) UND inhaltlich wertlos: ein Grep auf den Kommentartext
+  # bliebe grün, wenn jemand die Implementierung auf fail-open umbaut und das
+  # Wort stehen lässt. Jetzt strukturell: die Grant-Header dürfen erst NACH dem
+  # isAllowedOrigin-Guard gesetzt werden.
+  run grep -qE 'function isAllowedOrigin' "$WEBSITE_SRC/lib/cors.ts"
   [ "$status" -eq 0 ]
+
+  local guard_line grant_origin grant_creds
+  guard_line=$(grep -n 'if (isAllowedOrigin' "$WEBSITE_SRC/lib/cors.ts" | head -1 | cut -d: -f1)
+  grant_origin=$(grep -n "headers\['Access-Control-Allow-Origin'\]" "$WEBSITE_SRC/lib/cors.ts" | head -1 | cut -d: -f1)
+  grant_creds=$(grep -n "headers\['Access-Control-Allow-Credentials'\]" "$WEBSITE_SRC/lib/cors.ts" | head -1 | cut -d: -f1)
+
+  [ -n "$guard_line" ]
+  [ -n "$grant_origin" ]
+  [ -n "$grant_creds" ]
+  [ "$grant_origin" -gt "$guard_line" ]
+  [ "$grant_creds" -gt "$guard_line" ]
 }
 
 @test "cors.ts supports comma-separated REACT_APP_ORIGIN" {
@@ -50,19 +71,23 @@ REACT_SRC="$BATS_TEST_DIRNAME/../../mentolder-web/src"
 
 # ── Requirement 2: callback.ts returnTo-Allowlist ──────────────────────────────
 @test "callback.ts accepts absolute React URL in returnTo" {
-  run grep -qF "returnTo" "$WEBSITE_SRC/api/callback.ts"
+  [ -f "$CALLBACK_TS" ]
+  run grep -qF "returnTo" "$CALLBACK_TS"
   [ "$status" -eq 0 ]
 }
 
 @test "callback.ts has Allowlist check for absolute URLs" {
-  run grep -qF "Allowlist" "$WEBSITE_SRC/api/callback.ts" || \
-  run grep -qF "ALLOWLIST" "$WEBSITE_SRC/api/callback.ts" || \
-  run grep -qF "allowed" "$WEBSITE_SRC/api/callback.ts"
+  # T002181: die alte Fassung kettete drei `run grep || run grep` — dabei
+  # überschreibt jeder Lauf $status, sodass am Ende nur der letzte zählte.
+  # Jetzt explizit: mindestens eine der Allowlist-Schreibweisen muss vorkommen,
+  # UND die Origin-Prüfung muss tatsächlich stattfinden.
+  grep -qE 'Allowlist|ALLOWLIST|allowed' "$CALLBACK_TS"
+  run grep -qE 'allowedReturnOrigins\(\)\.includes\(' "$CALLBACK_TS"
   [ "$status" -eq 0 ]
 }
 
 @test "callback.ts returns to state parameter" {
-  run grep -qF "state" "$WEBSITE_SRC/api/callback.ts"
+  run grep -qF "state" "$CALLBACK_TS"
   [ "$status" -eq 0 ]
 }
 

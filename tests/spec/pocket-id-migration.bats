@@ -335,10 +335,18 @@ migrated_oauth2_manifests() {
   done
 }
 
-@test "pocket-id: website/src/lib/identity.ts calls Pocket ID Admin API with Bearer POCKET_ID_API_KEY" {
-  grep -q 'Authorization' "${WEBSITE}/src/lib/identity.ts"
-  grep -q 'Bearer ' "${WEBSITE}/src/lib/identity.ts"
+@test "pocket-id: website/src/lib/identity.ts calls Pocket ID Admin API with X-API-KEY header" {
+  # T002181: die Assertion verlangte 'Authorization: Bearer '. Das war nie
+  # erfüllbar — Pocket ID v2.9.0 akzeptiert kein Bearer-Token auf der Admin-API
+  # und identity.ts setzt deshalb bewusst X-API-KEY (siehe Kommentar dort).
+  # Der Testname trug denselben Irrtum und ist mitgezogen: er hatte bei der
+  # Triage zur Fehleinordnung als Sicherheitslücke geführt.
+  grep -q 'X-API-KEY' "${WEBSITE}/src/lib/identity.ts"
   grep -q 'POCKET_ID_API_KEY' "${WEBSITE}/src/lib/identity.ts"
+  # Gegenprobe: kein Rückfall auf den nicht unterstützten Bearer-Header.
+  # Gezielt auf die Header-Zuweisung, nicht auf freien Text — der erklärende
+  # Kommentar in identity.ts nennt "Authorization: Bearer" absichtlich.
+  ! grep -qE "^[[:space:]]*'Authorization'[[:space:]]*:" "${WEBSITE}/src/lib/identity.ts"
 }
 
 @test "pocket-id: website/src/lib/auth.ts no longer references KEYCLOAK_URL/KEYCLOAK_REALM" {

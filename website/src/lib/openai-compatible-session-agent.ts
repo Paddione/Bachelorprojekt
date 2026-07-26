@@ -3,10 +3,20 @@ import type { KiConfig } from './coaching-ki-config-db';
 import { searchCoachingKnowledgeTool } from './session-tools';
 import { getProviderByName } from './provider-config';
 
+// T001672: der `anthropic`-Provider hat in provider-config.ts `baseUrl: null`.
+// environments/schema.yaml dokumentiert LLM_GATEWAY_URL als OpenAI-kompatiblen
+// Gateway-Endpoint für genau diesen Provider — gelesen wurde die Variable aber
+// nirgends, sie war also dokumentiert und wirkungslos (T002181).
+// Präzedenz: explizite KI-Config > in der DB hinterlegte base_url > Env-Gateway.
+function gatewayOverrideFor(provider: string): string | null {
+  if (provider !== 'anthropic') return null;
+  return process.env.LLM_GATEWAY_URL || null;
+}
+
 async function resolveProvider(kiConfig: KiConfig) {
   const cfg = await getProviderByName(kiConfig.provider);
   return {
-    endpoint: kiConfig.apiEndpoint ?? cfg.baseUrl,
+    endpoint: kiConfig.apiEndpoint ?? cfg.baseUrl ?? gatewayOverrideFor(cfg.provider),
     apiKey: kiConfig.apiKey ?? cfg.apiKey,
     model: kiConfig.modelName ?? cfg.modelId,
   };

@@ -52,7 +52,7 @@ export function resolveReturnTo(rawState: string, fallback: string): string {
   return fallback;
 }
 
-// Keycloak redirects here after successful login.
+// Pocket ID redirects here after successful login.
 // Exchanges the authorization code for tokens and creates a session.
 export const GET: APIRoute = async ({ url, locals }) => {
   const code = url.searchParams.get('code');

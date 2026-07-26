@@ -20,10 +20,13 @@ ADMIN_UI_DIR="$BATS_TEST_DIRNAME/../../website/src/components/admin"
 
 # ── Requirement 1: AdminModal uses native <dialog> ──────────────────────────────
 @test "AdminModal is a native <dialog> element with stable data-testid" {
-  run grep -qF "AdminModal\.svelte" "$ADMIN_UI_DIR"
-  [ "$status" -eq 0 ]
-  # The file should exist
+  # T002181: der Test grepte gegen $ADMIN_UI_DIR — ein VERZEICHNIS. Das schlägt
+  # immer fehl und hat das eigentliche Kriterium (natives <dialog>) nie geprüft.
   [ -f "$ADMIN_UI/AdminModal.svelte" ]
+  run grep -qF "<dialog" "$ADMIN_UI/AdminModal.svelte"
+  [ "$status" -eq 0 ]
+  run grep -qF 'data-testid="admin-modal"' "$ADMIN_UI/AdminModal.svelte"
+  [ "$status" -eq 0 ]
 }
 
 @test "AdminModal dialog has data-testid" {
@@ -32,9 +35,19 @@ ADMIN_UI_DIR="$BATS_TEST_DIRNAME/../../website/src/components/admin"
 }
 
 @test "AdminModal dialog has aria-labelledby referencing heading" {
-  run grep -qE "aria-labelledby" "$ADMIN_UI/AdminModal.svelte"
+  # T002181: die zweite Assertion war `aria-labelledby.*id` — case-sensitiv
+  # gegen `aria-labelledby={headingId}` (grosses I), also immer rot. Die
+  # a11y-Anforderung selbst ist erfüllt. Jetzt wird die Referenz wirklich
+  # nachverfolgt: das Attribut nennt einen Bezeichner, und ein Element im
+  # selben File trägt genau diese id.
+  run grep -qE 'aria-labelledby=\{([A-Za-z0-9_]+)\}' "$ADMIN_UI/AdminModal.svelte"
   [ "$status" -eq 0 ]
-  run grep -qE "aria-labelledby.*id" "$ADMIN_UI/AdminModal.svelte"
+
+  local ref
+  ref=$(grep -oE 'aria-labelledby=\{([A-Za-z0-9_]+)\}' "$ADMIN_UI/AdminModal.svelte" \
+        | head -1 | sed -E 's/.*\{([A-Za-z0-9_]+)\}/\1/')
+  [ -n "$ref" ]
+  run grep -qE "id=\{${ref}\}" "$ADMIN_UI/AdminModal.svelte"
   [ "$status" -eq 0 ]
 }
 
@@ -47,7 +60,11 @@ ADMIN_UI_DIR="$BATS_TEST_DIRNAME/../../website/src/components/admin"
 }
 
 @test "AdminModal uses bindable open prop" {
-  run grep -qF "bind:open" "$ADMIN_UI/AdminModal.svelte"
+  # T002181: gesucht wurde `bind:open` — das ist die AUFRUFER-Syntax. In der
+  # Komponente selbst deklariert Svelte 5 ein bindbares Prop als
+  # `open = $bindable(false)`. Der Test suchte also auf der falschen Seite der
+  # Schnittstelle.
+  run grep -qE 'open[[:space:]]*=[[:space:]]*\$bindable\(' "$ADMIN_UI/AdminModal.svelte"
   [ "$status" -eq 0 ]
 }
 

@@ -114,29 +114,41 @@ dev_llm_host_ip() {
   [ "$status" -eq 1 ]
 }
 
-@test "no schema or env file contains dead var LLM_LMSTUDIO_URL" {
-  run grep -r 'LLM_LMSTUDIO_URL' "$REPO/environments/"
+# T002181: die vier folgenden Negativ-Assertions grepten über die ganze Datei und
+# trafen damit die Grabstein-Kommentare ("# LLM_LMSTUDIO_URL removed — …"), die
+# dokumentieren WARUM die Variable entfernt wurde. Die Variablen selbst sind
+# längst weg. Geprüft wird jetzt gezielt die aktive YAML-Deklaration
+# (`- name: <VAR>`); die erklärenden Kommentare dürfen bleiben.
+assert_var_not_declared() {
+  local var="$1"
+  run grep -rE "^[[:space:]]*-[[:space:]]*name:[[:space:]]*${var}[[:space:]]*$" "$REPO/environments/"
   [ "$status" -eq 1 ]
+}
+
+@test "no schema or env file contains dead var LLM_LMSTUDIO_URL" {
+  assert_var_not_declared LLM_LMSTUDIO_URL
 }
 
 @test "no schema or env file contains dead var LLM_CHAT_MODEL" {
-  run grep -r 'LLM_CHAT_MODEL' "$REPO/environments/"
-  [ "$status" -eq 1 ]
+  assert_var_not_declared LLM_CHAT_MODEL
 }
 
 @test "no schema or env file contains dead var LLM_CODING_MODEL" {
-  run grep -r 'LLM_CODING_MODEL' "$REPO/environments/"
-  [ "$status" -eq 1 ]
+  assert_var_not_declared LLM_CODING_MODEL
 }
 
 @test "no schema or env file contains dead var LLM_EMBED_MODEL_NOMIC" {
-  run grep -r 'LLM_EMBED_MODEL_NOMIC' "$REPO/environments/"
-  [ "$status" -eq 1 ]
+  assert_var_not_declared LLM_EMBED_MODEL_NOMIC
 }
 
 @test "scripts/llm/start-embed-server.ps1 exists and contains --pooling cls" {
+  # T002181: der Test suchte '--pooling cls' als zusammenhängenden String. Das
+  # Skript ist PowerShell und übergibt Argumente als Array-Elemente:
+  #   "--pooling", "cls"
+  # Der Flag-Wert war also immer korrekt gesetzt, nur die Schreibweise im Test
+  # passte nicht zur Sprache der Datei.
   [ -f "$REPO/scripts/llm/start-embed-server.ps1" ]
-  run grep -q '--pooling cls' "$REPO/scripts/llm/start-embed-server.ps1"
+  run grep -qE '"--pooling",[[:space:]]*"cls"' "$REPO/scripts/llm/start-embed-server.ps1"
   [ "$status" -eq 0 ]
 }
 

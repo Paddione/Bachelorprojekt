@@ -185,6 +185,20 @@ jobs:
       - name: MCP tooling guardrail
         run: ./tests/unit/lib/bats-core/bin/bats tests/spec/mcp-tooling.bats
 
+      # T002163: ci-cd.bats holds the guards for post-merge serialisation, website
+      # deploy brand parity, Flux artifact rendering, freshness-regen and the
+      # envsubst allowlists — but ran in no required check, so it enforced nothing.
+      # Three T001994 assertions sat red on main for weeks and only surfaced during
+      # a local `task test:changed` on an unrelated PR. Same blind spot let
+      # openspec:validate go red on main (T002167). Guards that CI never executes
+      # are documentation, not gates.
+      # PyYAML is needed by the G-CD01 assertions, which parse build-website.yml.
+      - name: Install PyYAML for CI-CD guard assertions
+        run: python3 -m pip install --quiet pyyaml
+
+      - name: CI/CD pipeline guardrail
+        run: ./tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd.bats
+
       - name: Agent setup replay reminder
         run: |
           changed=$(git diff --name-only origin/main...HEAD || true)

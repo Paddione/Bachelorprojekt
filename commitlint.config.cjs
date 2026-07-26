@@ -25,7 +25,6 @@ const NAMED_SCOPES = [
   'janus',
   'keycloak',
   'portal',
-  'livekit',
   'whiteboard',
   'nextcloud',
   'openclaw',
@@ -57,6 +56,7 @@ const NAMED_SCOPES = [
   'auto',
   'opencode',
   'skills',
+  'k3d',
 ];
 
 const TICKET_SCOPE_RE = /^T\d{6}$/;

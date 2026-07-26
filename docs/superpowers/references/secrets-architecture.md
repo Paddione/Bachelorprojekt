@@ -29,12 +29,11 @@ Alle vier `.secrets/`-Dateien folgen dieser strikten Reihenfolge:
 6. Session- & Signing-Secrets
 7. Pocket ID OIDC-Secrets (T001068)
 8. Keycloak OIDC-Secrets (legacy — abgelöst durch Pocket ID)
-9. LiveKit
-10. Brett
-11. Arena (korczewski only)
-12. DB Connection Strings
-13. SSH-Schlüssel
-14. WireGuard-Mesh
+9. Brett
+10. Arena (korczewski only)
+11. DB Connection Strings
+12. SSH-Schlüssel
+13. WireGuard-Mesh
 15. Dev-only Overrides
 
 ## Sealed-Secrets-Lifecycle

@@ -52,10 +52,7 @@ env_vars:
   MEDIAVIEWER_HOST: mediaviewer.staging.korczewski.de
   VIDEOVAULT_DOMAIN: videovault.staging.korczewski.de
   RECOVER_DOMAIN: recover.staging.korczewski.de
-  LIVEKIT_DOMAIN: livekit.staging.korczewski.de
   OTEL_DOMAIN: otel.staging.korczewski.de
-  LIVEKIT_PIN_IP: ""
-  STREAM_DOMAIN: stream.staging.korczewski.de
   WEBSITE_HOST: web.staging.korczewski.de
   WEBSITE_SITE_URL: "https://web.staging.korczewski.de"
 

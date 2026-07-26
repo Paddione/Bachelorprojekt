@@ -11,7 +11,6 @@ export const KNOWN_SERVICES = [
   'brett',
   'tracking',
   'docuseal',
-  'livekit',
   'coturn',
   'traefik',
   'mailpit',
@@ -19,7 +18,6 @@ export const KNOWN_SERVICES = [
   'mcp-server',
   'spreed-signaling',
   'janus-gateway',
-  'livekit-server',
   'recovery-browser',
   'nats',
   'janus',
@@ -171,7 +169,7 @@ export function buildServiceMap(graph) {
     if (seen.has(key)) continue;
     seen.add(key);
     if (!allIds.has(edge.from) && edge.from !== 'traefik') continue;
-    if (!allIds.has(edge.to) && !['shared-db', 'keycloak', 'nextcloud', 'collabora', 'vaultwarden', 'website', 'brett', 'tracking', 'docuseal', 'livekit', 'coturn', 'traefik', 'mailpit'].includes(edge.to)) continue;
+    if (!allIds.has(edge.to) && !['shared-db', 'keycloak', 'nextcloud', 'collabora', 'vaultwarden', 'website', 'brett', 'tracking', 'docuseal', 'coturn', 'traefik', 'mailpit'].includes(edge.to)) continue;
     const fromId = mermaidId(edge.from);
     const toId = mermaidId(edge.to);
     const via = edge.via.replace('initContainer:', '').replace('env:', '');

@@ -37,7 +37,6 @@ describe('NavMobile.svelte', () => {
     pathname: '/',
     user: null,
     authChecked: false,
-    streamLive: false,
   };
 
   it('renders the link list when open is true', () => {

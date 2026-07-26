@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-22T14:00:56.374Z",
+  "generatedAt": "2026-07-26T19:25:42.025Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1663,14 +1663,6 @@
       "file": "website/src/pages/api/admin/ops/deployments/list.ts"
     },
     {
-      "path": "/api/admin/ops/dns/pin",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/dns/pin.ts"
-    },
-    {
       "path": "/api/admin/ops/error-log",
       "methods": [
         "POST",
@@ -2956,14 +2948,6 @@
       "file": "website/src/pages/api/leistungen.ts"
     },
     {
-      "path": "/api/live/state",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/live/state.ts"
-    },
-    {
       "path": "/api/meeting/finalize",
       "methods": [
         "POST"
@@ -3319,14 +3303,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/stream/recording.ts"
-    },
-    {
-      "path": "/api/stream/status",
-      "methods": [
-        "GET"
-      ],
-      "auth": "unclassified",
-      "file": "website/src/pages/api/stream/status.ts"
     },
     {
       "path": "/api/stripe/checkout",

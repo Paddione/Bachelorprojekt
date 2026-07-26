@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-22T14:00:56.374Z
+> Generated at 2026-07-26T19:25:42.025Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -206,7 +206,6 @@
 | `/api/admin/ops/deployments/{ns}/{name}/restart` | POST | 🔐 admin | `website/src/pages/api/admin/ops/deployments/[ns]/[name]/restart.ts` |
 | `/api/admin/ops/deployments/{ns}/{name}/scale` | POST | 🔐 admin | `website/src/pages/api/admin/ops/deployments/[ns]/[name]/scale.ts` |
 | `/api/admin/ops/deployments/list` | GET | 🔐 admin | `website/src/pages/api/admin/ops/deployments/list.ts` |
-| `/api/admin/ops/dns/pin` | POST | 🔐 admin | `website/src/pages/api/admin/ops/dns/pin.ts` |
 | `/api/admin/ops/error-log` | POST, GET | 🔐 admin | `website/src/pages/api/admin/ops/error-log.ts` |
 | `/api/admin/ops/health` | GET | 🔐 admin | `website/src/pages/api/admin/ops/health.ts` |
 | `/api/admin/ops/log-stream/stream` | GET | 🔐 admin | `website/src/pages/api/admin/ops/log-stream/stream.ts` |
@@ -365,7 +364,6 @@
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified | `website/src/pages/api/homepage.ts` |
 | `/api/internal/tickets/notify-close` | POST | 🔒 internal | `website/src/pages/api/internal/tickets/notify-close.ts` |
 | `/api/leistungen` | GET | ❓ unclassified | `website/src/pages/api/leistungen.ts` |
-| `/api/live/state` | GET | 🔐 admin | `website/src/pages/api/live/state.ts` |
 | `/api/meeting/finalize` | POST | ❓ unclassified | `website/src/pages/api/meeting/finalize.ts` |
 | `/api/meeting/release` | POST | 🔐 admin | `website/src/pages/api/meeting/release.ts` |
 | `/api/meeting/save-transcript` | POST | ❓ unclassified | `website/src/pages/api/meeting/save-transcript.ts` |
@@ -410,7 +408,6 @@
 | `/api/status` | GET | ❓ unclassified | `website/src/pages/api/status.ts` |
 | `/api/stream/end` | POST | 🔐 admin | `website/src/pages/api/stream/end.ts` |
 | `/api/stream/recording` | POST | 🔐 admin | `website/src/pages/api/stream/recording.ts` |
-| `/api/stream/status` | GET | ❓ unclassified | `website/src/pages/api/stream/status.ts` |
 | `/api/stripe/checkout` | POST | ❓ unclassified | `website/src/pages/api/stripe/checkout.ts` |
 | `/api/stripe/invoice-payment-intent` | POST | ❓ unclassified | `website/src/pages/api/stripe/invoice-payment-intent.ts` |
 | `/api/stripe/webhook` | POST | ❓ unclassified | `website/src/pages/api/stripe/webhook.ts` |

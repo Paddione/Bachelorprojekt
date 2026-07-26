@@ -27,7 +27,6 @@
   { "path": "/api/poll/{id}/results", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/register", "methods": ["POST"], "reason": "baseline — not individually audited" },
   { "path": "/api/status", "methods": ["GET"], "reason": "baseline — not individually audited" },
-  { "path": "/api/stream/status", "methods": ["GET"], "reason": "baseline — not individually audited" },
   { "path": "/api/stripe/checkout", "methods": ["POST"], "reason": "deprecated — tombstone, returns HTTP 410" },
   { "path": "/api/stripe/invoice-payment-intent", "methods": ["POST"], "reason": "baseline — not individually audited" },
   { "path": "/api/stripe/webhook", "methods": ["POST"], "reason": "baseline — not individually audited" },

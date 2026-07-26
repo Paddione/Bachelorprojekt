@@ -307,10 +307,6 @@ env_vars:
     validate: "^[a-z0-9.-]+$"
     description: "Public hostname of the OTel collector OTLP ingress (otel.<domain>)"
 
-  - name: STREAM_DOMAIN
-    required: true
-    default_dev: "stream.localhost"
-
   - name: WEBSITE_HOST
     required: true
     default_dev: "web.localhost"

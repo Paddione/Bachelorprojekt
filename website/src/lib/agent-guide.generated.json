@@ -1905,35 +1905,6 @@
       "sensitivity": "caution",
       "url": null
     },
-    "livekit": {
-      "slug": "livekit",
-      "kind": "software",
-      "name": "LiveKit Server",
-      "emoji": "📡",
-      "summary_de": "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen).",
-      "sensitivity": "assisted",
-      "url": null,
-      "area": "dienste",
-      "theme": "betrieb"
-    },
-    "livekit-ingress": {
-      "slug": "livekit-ingress",
-      "kind": "software",
-      "name": "LiveKit Ingress",
-      "emoji": "📺",
-      "summary_de": "Nimmt eingehende Video-Streams an (RTMP) und gibt sie an LiveKit weiter.",
-      "sensitivity": "caution",
-      "url": null
-    },
-    "livekit-egress": {
-      "slug": "livekit-egress",
-      "kind": "software",
-      "name": "LiveKit Egress",
-      "emoji": "🔴",
-      "summary_de": "Nimmt Live-Streams auf und speichert sie als Aufzeichnung.",
-      "sensitivity": "caution",
-      "url": null
-    },
     "whisper": {
       "slug": "whisper",
       "kind": "software",
@@ -2240,15 +2211,6 @@
             "name": "DocuSeal",
             "emoji": "📝",
             "sensitivity": "caution",
-            "theme": "betrieb",
-            "accent": "#7e9aa6",
-            "relatesTo": []
-          },
-          {
-            "slug": "livekit",
-            "name": "LiveKit Server",
-            "emoji": "📡",
-            "sensitivity": "assisted",
             "theme": "betrieb",
             "accent": "#7e9aa6",
             "relatesTo": []

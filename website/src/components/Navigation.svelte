@@ -29,8 +29,6 @@
   let menuEl = $state<HTMLElement | null>(null);
   let user = $state<{ name: string; email: string; isAdmin?: boolean } | null>(null);
   let authChecked = $state(false);
-  let streamLive = $state(false);
-
   if (typeof window !== 'undefined') {
     fetch('/api/auth/me')
       .then((r) => r.json())
@@ -39,11 +37,6 @@
         authChecked = true;
       })
       .catch(() => { authChecked = true; });
-
-    fetch('/api/stream/status')
-      .then((r) => r.json())
-      .then((data) => { streamLive = data.live ?? false; })
-      .catch(() => {});
   }
 
   onMount(() => {
@@ -158,22 +151,6 @@
                   </a>
                 {/if}
 
-                <a
-                  href="/portal/stream"
-                  class="user-dropdown-item"
-                  onclick={() => (menuOpen = false)}
-                  role="menuitem"
-                >
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="8" cy="8" r="6"/>
-                    <polygon points="6.5,5.5 11,8 6.5,10.5" fill="currentColor" stroke="none"/>
-                  </svg>
-                  {t(locale, 'nav.livestream')}
-                  {#if streamLive}
-                    <span class="live-badge" aria-label="Live">{t(locale, 'nav.live')}</span>
-                  {/if}
-                </a>
-
                 <div class="user-dropdown-divider"></div>
 
                 <a href="/api/auth/logout" class="user-dropdown-item logout" role="menuitem">
@@ -224,7 +201,6 @@
     {locale}
     {user}
     {authChecked}
-    {streamLive}
     {pathname}
   />
 </header>

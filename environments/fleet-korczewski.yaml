@@ -38,7 +38,7 @@ env_vars:
   TURN_OVERLAY_IP: "10.20.0.1"
   # Talk HPB (coturn + Janus SFU) is the SHARED fleet:shared-services stack on
   # pk-hetzner-4 — NOT co-located with this brand's LiveKit edge (pk-hetzner-6).
-  # turn.korczewski.de must therefore pin to pk-4, while LIVEKIT_PIN_IP stays pk-6.
+  # LiveKit entfernt per T002184.
   TURN_PUBLIC_IP: "204.168.244.104"
   TURN_NODE: "pk-hetzner-4"
   NEXTCLOUD_EXTERNAL_URL: "https://files.korczewski.de"
@@ -54,7 +54,6 @@ env_vars:
   VIDEOVAULT_DOMAIN: videovault.korczewski.de
   OTEL_DOMAIN: otel.korczewski.de
   RECOVER_DOMAIN: recover.korczewski.de
-  STREAM_DOMAIN: stream.korczewski.de
   NEXTCLOUD_DB_HOST: nextcloud-db.workspace-korczewski.svc.cluster.local
   WEBSITE_HOST: web.korczewski.de
   WEBSITE_SITE_URL: "https://web.korczewski.de"

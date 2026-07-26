@@ -14,7 +14,6 @@ in `prod-fleet/<brand>/` extend it; never apply base or `prod/` directly.
 | `ingress.yaml` | Traefik IngressRoutes for all services |
 | `website.yaml` | Website Deployment + Service |
 | `brett.yaml` | Systembrett Node.js Deployment |
-| `livekit.yaml` | LiveKit server (hostNetwork, pinned to pk-hetzner-4) |
 | `llm-gpu.yaml` | LLM gateway Services pointing to GPU host |
 
 ## Sub-directories

@@ -555,49 +555,6 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
     ],
   },
   {
-    title: 'System-Test 11: LiveKit & Streaming',
-    description: 'Prüft den vollständigen LiveKit-WebRTC-Streaming-Stack: Admin-Steuerseite (Stream-Start/Stop, Token-Generierung), Viewer-Portal aus Testnutzer-Sicht, RTMP-Ingress-Status für OBS/externe Quellen, Recordings-Liste im PVC sowie Pod-Stabilität im Kubernetes-Cluster. Dieser Test verifiziert die Anforderungen FA-18 (LiveKit-Streaming), FA-19 (RTMP-Ingress), NFA-07 (Stream-Latenz) und NFA-08 (Recording-Persistenz). Voraussetzung: livekit-server Pod auf gekko-hetzner-3 in Status Running, DNS auf Pin-Node gepinnt (livekit/stream), ufw-Ports 7880/7881/tcp + 50000-60000/udp geöffnet, Testnutzer-Account aktiv.',
-    instructions: 'Schritte 1, 2, 4, 5, 6 und 7 im Admin-Browser (Profil A). Schritt 2 startet den Stream — danach sofort Schritt 3 im Testnutzer-Browser (Profil B) ausführen. Schritt 6 beendet den Stream — danach Schritt 3 erneut öffnen um „kein Stream"-Meldung zu verifizieren. Trage bei Schritt 3 die Verbindungszeit (in Sekunden bis Player lädt) im Detailfeld ein.',
-    steps: [
-      {
-        question_text: 'Öffne die Admin-Stream-Seite (Link) — prüfe ob der Stream-Status „offline" angezeigt wird und die Seite ohne Fehler lädt.',
-        expected_result: 'Seite lädt; Stream-Status „offline"; keine Fehlermeldungen.',
-        test_function_url: '/admin/stream', test_menu_path: 'Admin-Bereich → Stream-Steuerung', test_role: 'admin',
-      },
-      {
-        question_text: 'Klicke auf der Admin-Stream-Seite (Link) den Start-Button — prüfe ob der Status auf „live" wechselt und ein Stream-Token generiert wird.',
-        expected_result: 'Status wechselt auf „live"; Stream-Token sichtbar.',
-        test_function_url: '/admin/stream', test_menu_path: 'Admin-Bereich → Stream-Steuerung', test_role: 'admin',
-      },
-      {
-        question_text: 'Öffne das Viewer-Portal (Link) im Testnutzer-Browser während der Stream läuft — prüfe ob der Stream-Player sichtbar ist und keine Verbindungsfehler erscheinen. → Nutzer: zweites Browser-Profil.',
-        expected_result: 'Stream-Player sichtbar; Verbindung aufgebaut; kein Fehler im Browser.',
-        test_function_url: '/portal/stream', test_menu_path: 'Portal → Stream-Ansicht', test_role: 'user',
-        agent_notes: 'Zweites Browser-Profil (Testnutzer) erforderlich. Stream muss laufen (Schritt 2 abgeschlossen).',
-      },
-      {
-        question_text: 'Öffne die Admin-Stream-Seite (Link) — prüfe ob der RTMP-Ingress-Status und die RTMP-URL angezeigt werden.',
-        expected_result: 'RTMP-URL sichtbar; Ingress-Status angezeigt (aktiv oder bereit).',
-        test_function_url: '/admin/stream', test_menu_path: 'Admin-Bereich → Stream-Steuerung', test_role: 'admin',
-      },
-      {
-        question_text: 'Öffne die Admin-Stream-Seite (Link) → klicke „Aufnahmen" oder scrolle zur Recordings-Liste — prüfe ob vorhandene MP4-Dateien aufgelistet werden oder eine leere Liste ohne Fehler erscheint.',
-        expected_result: 'Recordings-Liste lädt; MP4-Dateien sichtbar oder leere Liste ohne Fehler.',
-        test_function_url: '/admin/stream', test_menu_path: 'Admin-Bereich → Stream-Steuerung', test_role: 'admin',
-      },
-      {
-        question_text: 'Klicke auf der Admin-Stream-Seite (Link) den Stop-Button — prüfe ob der Status auf „offline" wechselt und das Viewer-Portal „kein Stream" anzeigt.',
-        expected_result: 'Status wechselt auf „offline"; Viewer-Portal zeigt „kein Stream aktiv".',
-        test_function_url: '/admin/stream', test_menu_path: 'Admin-Bereich → Stream-Steuerung', test_role: 'admin',
-      },
-      {
-        question_text: 'Öffne Monitoring (Link) — prüfe ob der `livekit-server` Pod im Status „Running" ist und kein CrashLoop vorliegt.',
-        expected_result: '`livekit-server` Pod im Status „Running"; kein CrashLoop.',
-        test_function_url: '/admin/monitoring', test_menu_path: 'Admin-Bereich → Monitoring', test_role: 'admin',
-      },
-    ],
-  },
-  {
     title: 'System-Test 12: Projektmanagement',
     description: 'Prüft den vollständigen Lebenszyklus des Projektmanagement-Moduls: Projekt anlegen und einem Client zuordnen, Teilprojekte strukturieren, Aufgaben mit Prioritäten und Statustransitionen verwalten, Zeiterfassung pro Projekt führen, Meetings mit Projekten verknüpfen und das Projekt in die Archiv-Ansicht überführen. Dieser Test verifiziert die Anforderungen FA-20 (Projektstruktur), FA-21 (Aufgabenverwaltung), FA-22 (Zeiterfassung) und FA-23 (Meeting-Verknüpfung). Voraussetzung: Admin-Account aktiv, mindestens ein Client und ein Meeting in der Datenbank vorhanden.',
     instructions: 'Alle Schritte im Admin-Browser (Profil A). Öffne jeweils den Link im Schritt. Die Schritte bauen aufeinander auf — in Reihenfolge abarbeiten. Lege für den Test ein dediziertes Testprojekt an (nicht ein Produktionsprojekt verwenden). Notiere Projekt-ID und Counter-Werte nach jedem Schritt im Detailfeld zur Nachvollziehbarkeit.',
@@ -646,7 +603,7 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
   },
   {
     title: 'System-Test Gesamt: Vollständiger End-to-End-Test aller Module',
-    description: 'Konsolidierter Gesamttest aller 12 System-Test-Bereiche: Authentifizierung, Admin-CRM, Kommunikation, Fragebogen, Dokumente, Steuer-Modus, Rechnungserstellung, Buchhaltung, Monitoring, Externe Dienste, LiveKit und Projektmanagement. Dieser Test deckt alle Anforderungen in einem einzigen Durchlauf ab.',
+    description: 'Konsolidierter Gesamttest aller System-Test-Bereiche: Authentifizierung, Admin-CRM, Kommunikation, Fragebogen, Dokumente, Steuer-Modus, Rechnungserstellung, Buchhaltung, Monitoring, Externe Dienste und Projektmanagement. Dieser Test deckt alle Anforderungen in einem einzigen Durchlauf ab.',
     instructions: 'Führe alle Schritte der Reihe nach aus. Verwende zwei Browser-Profile (Admin + Testnutzer) — der jeweilige Schritt gibt an, welches Profil aktiv sein muss. Schritte mit „→ Nutzer:" erfordern einen Wechsel in das Testnutzer-Profil. Terminale Schritte sind als solche markiert. Trage pro Schritt das Ergebnis und Auffälligkeiten in das Detailfeld ein.',
     steps: [
       // ── ST-1: Authentifizierung & SSO ──────────────────────────────────────
@@ -1111,43 +1068,6 @@ export const SYSTEM_TEST_TEMPLATES: SystemTestTemplate[] = [
         question_text: '[ST-10: Extern] Öffne Brett / Systembrett (Link) — prüfe ob das 3D-Board lädt, du Elemente verschieben kannst und Speichern funktioniert.',
         expected_result: '3D-Board lädt; Demo-Konstellation manipulierbar; Speichern funktioniert.',
         test_function_url: `https://brett.${D}`, test_role: 'user',
-      },
-      // ── ST-11: LiveKit & Streaming ─────────────────────────────────────────
-      {
-        question_text: '[ST-11: LiveKit] Öffne die Admin-Stream-Seite (Link) — prüfe ob der Stream-Status „offline" angezeigt wird und die Seite ohne Fehler lädt.',
-        expected_result: 'Seite lädt; Stream-Status „offline"; keine Fehlermeldungen.',
-        test_function_url: '/admin/stream', test_role: 'admin',
-      },
-      {
-        question_text: '[ST-11: LiveKit] Klicke auf der Admin-Stream-Seite (Link) den Start-Button — prüfe ob der Status auf „live" wechselt und ein Stream-Token generiert wird.',
-        expected_result: 'Status wechselt auf „live"; Stream-Token sichtbar.',
-        test_function_url: '/admin/stream', test_role: 'admin',
-      },
-      {
-        question_text: '[ST-11: LiveKit] Öffne das Viewer-Portal (Link) im Testnutzer-Browser während der Stream läuft — prüfe ob der Stream-Player sichtbar ist und keine Verbindungsfehler erscheinen. → Nutzer: zweites Browser-Profil.',
-        expected_result: 'Stream-Player sichtbar; Verbindung aufgebaut; kein Fehler im Browser.',
-        test_function_url: '/portal/stream', test_role: 'user',
-        agent_notes: 'Zweites Browser-Profil (Testnutzer) erforderlich. Stream muss laufen (vorheriger Schritt abgeschlossen).',
-      },
-      {
-        question_text: '[ST-11: LiveKit] Öffne die Admin-Stream-Seite (Link) — prüfe ob der RTMP-Ingress-Status und die RTMP-URL angezeigt werden.',
-        expected_result: 'RTMP-URL sichtbar; Ingress-Status angezeigt (aktiv oder bereit).',
-        test_function_url: '/admin/stream', test_role: 'admin',
-      },
-      {
-        question_text: '[ST-11: LiveKit] Öffne die Admin-Stream-Seite (Link) → klicke „Aufnahmen" oder scrolle zur Recordings-Liste — prüfe ob vorhandene MP4-Dateien aufgelistet werden oder eine leere Liste ohne Fehler erscheint.',
-        expected_result: 'Recordings-Liste lädt; MP4-Dateien sichtbar oder leere Liste ohne Fehler.',
-        test_function_url: '/admin/stream', test_role: 'admin',
-      },
-      {
-        question_text: '[ST-11: LiveKit] Klicke auf der Admin-Stream-Seite (Link) den Stop-Button — prüfe ob der Status auf „offline" wechselt und das Viewer-Portal „kein Stream" anzeigt.',
-        expected_result: 'Status wechselt auf „offline"; Viewer-Portal zeigt „kein Stream aktiv".',
-        test_function_url: '/admin/stream', test_role: 'admin',
-      },
-      {
-        question_text: '[ST-11: LiveKit] Öffne Monitoring (Link) — prüfe ob der `livekit-server` Pod im Status „Running" ist und kein CrashLoop vorliegt.',
-        expected_result: '`livekit-server` Pod im Status „Running"; kein CrashLoop.',
-        test_function_url: '/admin/monitoring', test_role: 'admin',
       },
       // ── ST-12: Projektmanagement ───────────────────────────────────────────
       {

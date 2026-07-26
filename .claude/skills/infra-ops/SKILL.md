@@ -1,6 +1,6 @@
 ---
 name: infra-ops
-description: Explicit-invoke-only infrastructure runbook. DO NOT auto-trigger. Use when the user asks about: cluster setup or reset, workspace deploy, host node networking (Hetzner/WireGuard/UFW/LiveKit), Pocket ID/SSO/OIDC client seeding, LLM pipeline and GPU host, secret/SealedSecret rotation, or database migrations and backup/restore.
+description: Explicit-invoke-only infrastructure runbook. DO NOT auto-trigger. Use when the user asks about: cluster setup or reset, workspace deploy, host node networking (Hetzner/WireGuard/UFW), Pocket ID/SSO/OIDC client seeding, LLM pipeline and GPU host, secret/SealedSecret rotation, or database migrations and backup/restore.
 agent: bachelorprojekt-infra
 ---
 
@@ -15,7 +15,7 @@ Sieben frühere Einzel-Skills sind hier konsolidiert. Nur bei explizitem Bedarf 
 |------|-----------|
 | Neuen Cluster aufsetzen / Environment deployen | [§1 Cluster Deployment](#1--cluster-deployment) |
 | Workspace-Platform deployen (alle Services) | [§2 Workspace Deploy](#2--workspace-deploy) |
-| Host-Netzwerk, WireGuard, UFW, LiveKit, OpenClaw | [§3 Host Node Networking](#3--host-node-networking) |
+| Host-Netzwerk, WireGuard, UFW, OpenClaw | [§3 Host Node Networking](#3--host-node-networking) |
 | Pocket ID / SSO / OIDC-Clients konfigurieren | [§4 Pocket ID OIDC Client Seeding](#4--pocket-id-oidc-client-seeding) |
 | LLM-Pipeline / GPU-Host / Embeddings | [§5 LLM Ops](#5--llm-ops) |
 | Secrets rotieren / SealedSecrets | [§6 Secret Rotation](#6--secret-rotation) |
@@ -167,14 +167,13 @@ task workspace:vaultwarden:seed-logs ENV=<env> # Logs prüfen
 | Nextcloud | `files.<domain>` | `workspace:deploy` |
 | Vaultwarden | `vault.<domain>` | `workspace:deploy` |
 | DocuSeal | `sign.<domain>` | `workspace:deploy` |
-| LiveKit | `livekit.`, `stream.<domain>` | `workspace:deploy` |
 | Collabora | `office.<domain>` | `workspace:office:deploy` |
 | CoTURN | UDP TURN/STUN | `workspace:coturn:deploy` (prod only) |
 | Website | `web.<domain>` | `website:deploy` |
 
 ## §3 — Host Node Networking
 
-Hetzner-Provisioning, WireGuard-Mesh, UFW-Firewall, LiveKit-WebRTC, OpenClaw.
+Hetzner-Provisioning, WireGuard-Mesh, UFW-Firewall, OpenClaw.
 ### Network Architecture
 ```
 [ Fleet Cluster: pk-hetzner-4/6/8 (CP) + gekko-hetzner-2/3/4 (Worker) ]
@@ -193,31 +192,16 @@ OpenClaw-Setup: [`references/wsl-openclaw.md`](references/wsl-openclaw.md)
 | UDP | 51820 | WireGuard |
 | TCP/UDP | 3478, 5349 | CoTURN |
 | UDP | 49152-49252 | CoTURN relay |
-| TCP | 7880 | LiveKit signaling |
-| TCP | 7881 | LiveKit RTC fallback |
-| UDP | 50000-60000 | LiveKit RTC |
-| UDP | 30000-40000 | LiveKit Ingress/Egress |
+# LiveKit ports (7880/7881/50000-60000/30000-40000) removed per T002184
 ```bash
 ssh patrick@<node-ip> "sudo ufw allow <port>/<proto> && sudo ufw reload"
-```
-### Phase 3 — LiveKit WebRTC
-```bash
-# Node-Pin prüfen
-kubectl get nodes --context fleet --show-labels | grep pk-hetzner-4
-# Pin-Label setzen falls fehlend:
-kubectl label node pk-hetzner-4 livekit-pin-node=true --context fleet
-
-# DNS-Pin prüfen
-dig livekit.mentolder.de +short
-# Falls falsch:
-task livekit:dns-pin ENV=mentolder APPLY=true
 ```
 ### Troubleshooting
 | Symptom | Fix |
 |---------|-----|
 | WireGuard Handshake fehlt | Public-Key-Mismatch — `echo <PRIV_KEY> | wg pubkey` |
 | Pod-to-Pod fails trotz Node Ready | UFW blockiert Flannel — UDP 8472 + 51820 freigeben |
-| LiveKit ICE fails / Audio muted | DNS nicht auf pin-node; Chrome braucht User-Gesture |
+# LiveKit ICE (removed per T002184)
 | OpenClaw 503 | Ollama auf `10.10.0.3` prüfen; WireGuard-Tunnel aktiv? |
 
 ## §4 — Pocket ID OIDC Client Seeding

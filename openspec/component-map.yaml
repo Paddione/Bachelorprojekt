@@ -59,10 +59,7 @@ mappings:
     spec: website-core
 
   # Kubernetes — Kern-Services
-  - prefix: k3d/livekit
-    spec: livekit-integration
-  - prefix: prod/livekit
-    spec: livekit-integration
+  # LiveKit stack removed per T002184
   - prefix: k3d/nextcloud
     spec: nextcloud-integration
   - prefix: k3d/collabora

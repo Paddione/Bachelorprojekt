@@ -84,18 +84,6 @@
       "de": "Ein lokaler KI-Assistent-Dienst auf dem GPU-Rechner (spricht direkt mit LM Studio).",
       "en": "OpenClaw AI assistant daemon on WSL GPU host (talks to LM Studio 10.10.0.3:1234/v1)"
     },
-    "livekit": {
-      "de": "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen).",
-      "en": "WebRTC server (hostNetwork, pinned to pk-hetzner-4)"
-    },
-    "livekit-ingress": {
-      "de": "Nimmt eingehende Video-Streams an (RTMP) und gibt sie an LiveKit weiter.",
-      "en": "RTMP ingest endpoint"
-    },
-    "livekit-egress": {
-      "de": "Nimmt Live-Streams auf und speichert sie als Aufzeichnung.",
-      "en": "Stream recording"
-    },
     "whisper": {
       "de": "Wandelt gesprochene Sprache in Text um (Spracherkennung, OpenAI Whisper).",
       "en": "OpenAI Whisper speech-to-text transcription"

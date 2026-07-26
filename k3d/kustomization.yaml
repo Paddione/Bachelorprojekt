@@ -20,7 +20,6 @@ resources:
   - talk-hpb.yaml
   - whiteboard
   - talk-recording.yaml
-  - livekit-egress.yaml
   - vaultwarden.yaml
   # Buchhaltung
   - oauth2-proxy-docs.yaml

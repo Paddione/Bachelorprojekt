@@ -115,7 +115,7 @@ The fleet cluster has brand workloads deployed (Phase 2a done). Remaining prereq
 1. Confirm `fleet-korczewski` deployed clean (§0) with empty/fresh databases; run any
    first-run seed/setup (Keycloak realm, website content, OIDC clients) as for a new env.
 2. DNS cleanup: `task fleet:dns:cutover ENV=fleet-korczewski ACTION=cutover`
-   (drops stray `14.249.175.67`, ensures pk-4/6/8 on `@`/`*`, livekit/stream/turn pinned).
+   (drops stray `14.249.175.67`, ensures pk-4/6/8 on `@`/`*`, stream/turn pinned).
    mailbox.org / mail records frozen by construction. See ticket T000339 (DNS drift).
 3. Verify `web.korczewski.de` serves a real Let's Encrypt cert (not TRAEFIK DEFAULT CERT)
    and returns 200; smoke the brand.

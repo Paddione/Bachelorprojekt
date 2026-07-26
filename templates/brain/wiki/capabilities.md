@@ -52,12 +52,8 @@ Digitales 3D-Aufstellungsboard (Systembrett) für systemische Familien- und Orga
 ## 🎨 9. Whiteboard
 Kollaborative Echtzeit-Zeichenfläche für Brainstorming und visuelle Skizzen.
 
-## 📡 10. LiveKit Stack
-Hochperformante Audio/Video-Infrastruktur für Streaming-Dienste.
-* **WebRTC Server:** Ermöglicht Live-Übertragungen und Raum-Verwaltung.
-* **Ingress / Egress:** RTMP- und WHIP-Einspeisung sowie automatisierte Aufzeichnung (Egress) und Ablage von Streams.
-
-## 🤖 11. Claude Code MCP Gateway
+## 🤖 10. Claude Code MCP Gateway
+<!-- Section 10 (LiveKit) removed per T002184 -->
 Schnittstelle für KI-Assistenten (Model Context Protocol).
 * **Tool-Integration:** Bietet sicheren Zugriff für LLMs auf Cluster-Metadaten, PostgreSQL shared-db, Kubernetes-Ressourcen und Aufgaben (mcp-task-runner).
 

@@ -19,7 +19,6 @@ import * as keycloak from '../../../../lib/identity';
 import authOnly from '../../../../lib/systemtest-seeds/auth-only';
 import bookingFlow from '../../../../lib/systemtest-seeds/booking-flow';
 import coachingProject from '../../../../lib/systemtest-seeds/coaching-project';
-import livestreamViewer from '../../../../lib/systemtest-seeds/livestream-viewer';
 import type { SeedFn, SeedRole } from '../../../../lib/systemtest/seed-context';
 
 
@@ -27,7 +26,6 @@ const REGISTRY: Record<string, SeedFn> = {
   'auth-only': authOnly,
   'booking-flow': bookingFlow,
   'coaching-project': coachingProject,
-  'livestream-viewer': livestreamViewer,
 };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

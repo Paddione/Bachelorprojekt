@@ -1,6 +1,6 @@
 # Workspace MVP
 
-Kubernetes-basierte Kollaborationsplattform für kleine Teams (Bachelorprojekt). Nextcloud (Dateien + Talk), Keycloak (SSO), Collabora (Office), Vaultwarden (Passwörter), DocuSeal (Verträge), Whiteboard, Brett (Systembrett), LiveKit (Streaming), eine Astro+Svelte Website mit eingebautem Chat — alles auf k3d/k3s mit Traefik Ingress. DSGVO-konform, alle Daten on-premises.
+Kubernetes-basierte Kollaborationsplattform für kleine Teams (Bachelorprojekt). Nextcloud (Dateien + Talk), Keycloak (SSO), Collabora (Office), Vaultwarden (Passwörter), DocuSeal (Verträge), Whiteboard, Brett (Systembrett), eine Astro+Svelte Website mit eingebautem Chat — alles auf k3d/k3s mit Traefik Ingress. DSGVO-konform, alle Daten on-premises.
 
 ## Schnellstart (Dev / k3d)
 
@@ -47,8 +47,7 @@ Cluster-Topologie, Footguns und Operations-Befehle siehe **[CLAUDE.md](CLAUDE.md
 | DocuSeal | http://sign.localhost | E-Signaturen |
 | Docs | http://docs.localhost | Docsify-Dokumentation |
 | Mailpit | http://mail.localhost | Dev-Mailserver |
-| LiveKit | http://livekit.localhost | WebRTC Server (Streaming) |
-
+# LiveKit removed per T002184
 In Produktion ersetzt `*.mentolder.de` / `*.korczewski.de` die `*.localhost`-Adressen.
 
 ## Architektur
@@ -68,9 +67,6 @@ graph TB
         MP[Mailpit]
         DOCS[Docs]
         DS[DocuSeal]
-        LK[LiveKit Server]
-        LKI[LiveKit Ingress RTMP]
-        LKE[LiveKit Egress]
         DB[(PostgreSQL 16 shared-db)]
     end
 
@@ -78,7 +74,7 @@ graph TB
         WEB[Website Astro + Chat]
     end
 
-    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & WEB & LK & LKI
+    Traefik --> KC & NC & CO & HPB & VW & WB & BRETT & MP & DOCS & DS & WEB
     KC -. OIDC .-> NC & VW & WEB & DS & BRETT
     NC --> CO
     NC --> HPB

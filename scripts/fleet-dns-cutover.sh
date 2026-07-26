@@ -2,12 +2,12 @@
 # fleet-dns-cutover.sh — surgically flip a brand's cluster A-records onto the
 # fleet nodes via the ipv64.net Bearer REST API, with rollback-state capture.
 #
-# Touches ONLY A records for the fixed prefix allowlist (@, *, livekit, stream,
+# Touches ONLY A records for the fixed prefix allowlist (@, *,
 # turn). It never references MX / TXT / CNAME (mail) records, so email keeps
 # working across the cutover — this safety is structural, not conditional.
 #
 # Usage (env vars come from `source scripts/env-resolve.sh <env>`):
-#   PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+#   PROD_DOMAIN=mentolder.de \
 #       bash scripts/fleet-dns-cutover.sh plan       # dry-run, prints change set
 #   ... IPV64_API_KEY=xxx fleet-dns-cutover.sh cutover    # capture state + apply
 #   ... IPV64_API_KEY=xxx fleet-dns-cutover.sh rollback   # restore from state file
@@ -17,7 +17,7 @@ set -euo pipefail
 FLEET_NODE_IPS=("204.168.244.104" "37.27.251.38" "62.238.23.79")
 # A-record prefix allowlist. "" = root @, "*" = wildcard. NO mail prefixes, ever.
 ROOTLIKE_PREFIXES=("" "*")
-SERVICE_PREFIXES=("stream" "turn")
+SERVICE_PREFIXES=("turn")
 
 IPV64_API="${IPV64_API:-https://ipv64.net/api}"
 STATE_DIR="${FLEET_DNS_STATE_DIR:-/tmp}"

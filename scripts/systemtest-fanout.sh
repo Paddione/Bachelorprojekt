@@ -6,7 +6,7 @@
 #   1 -> System-Test 1, 2, 3   (Auth, Admin/CRM, Kommunikation)
 #   2 -> System-Test 4, 5, 6   (Fragebogen, DocuSeal, Steuer-Modus)
 #   3 -> System-Test 7, 8, 9   (Rechnungen, EÜR, Monitoring)
-#   4 -> System-Test 10, 11, 12 (Externe Dienste, LiveKit, Projektmanagement)
+#   4 -> System-Test 10, 12 (Externe Dienste, Projektmanagement)
 #
 # Usage:
 #   bash scripts/systemtest-fanout.sh <cycle> [env]
@@ -29,7 +29,7 @@ case "$CYCLE" in
   1) PACKAGES=("01-auth" "02-admin-crm" "03-kommunikation") ;;
   2) PACKAGES=("04-fragebogen" "05-docuseal" "06-steuer") ;;
   3) PACKAGES=("07-rechnungen" "08-buchhaltung" "09-monitoring") ;;
-  4) PACKAGES=("10-externe" "11-livekit" "12-projektmanagement") ;;
+   4) PACKAGES=("10-externe" "12-projektmanagement") ;;
   *) echo "ERROR: cycle must be 1..4 (got '$CYCLE')" >&2; exit 2 ;;
 esac
 

@@ -15,9 +15,7 @@ VALUES
   ('wireguard',      'WireGuard (wg-mesh)',   'VPN mesh overlay connecting all mentolder cluster nodes',           'other',    '🔗', '{mentolder}',            NULL,               NULL,                  NULL,       'live',     190),
   ('tei',            'TEI (Text Embeddings)', 'Text Embeddings Inference — bge-m3 via GPU host on wg-mesh',       'other',    '🦾', '{mentolder}',            NULL,               NULL,                  NULL,       'optional', 200),
   ('openclaw',       'OpenClaw',              'OpenClaw AI assistant daemon on WSL GPU host (Ollama 10.10.0.3)',   'other',    '🦅', '{mentolder}',            NULL,               NULL,                  NULL,       'live',     210),
-  ('livekit',        'LiveKit Server',        'WebRTC server (hostNetwork, pinned to gekko-hetzner-3)',            'messaging','📡', '{mentolder}',            'workspace',        'livekit-server',      ':latest',  'live',     220),
-  ('livekit-ingress','LiveKit Ingress',       'RTMP ingest endpoint',                                             'messaging','📺', '{mentolder}',            'workspace',        'livekit-ingress',     ':latest',  'optional', 230),
-  ('livekit-egress', 'LiveKit Egress',        'Stream recording',                                                 'messaging','🔴', '{mentolder}',            'workspace',        'livekit-egress',      ':latest',  'optional', 240),
+  -- livekit/livekit-ingress/livekit-egress removed per T002184
   ('whisper',        'Whisper',               'OpenAI Whisper speech-to-text transcription',                       'other',    '🎙️', '{mentolder}',            'workspace',        'whisper',             ':latest',  'optional', 250),
   ('talk-transcriber','Talk Transcriber',     'Nextcloud Talk auto-transcription bot',                            'messaging','📝', '{mentolder}',            'workspace',        'talk-transcriber',    ':latest',  'optional', 260),
   ('mcp',            'MCP Monolith',          'Claude Code MCP proxy (auth + ops pods, mentolder only)',           'dev',      '🤖', '{mentolder}',            'workspace',        'claude-code-mcp-auth',':latest',  'live',     270),

@@ -143,8 +143,6 @@ jobs:
           TRAEFIK_EXTERNAL_URL: https://traefik.mentolder.de
           MAIL_EXTERNAL_URL: https://mail.mentolder.de
           BRETT_DOMAIN: brett.mentolder.de
-          LIVEKIT_DOMAIN: livekit.mentolder.de
-          STREAM_DOMAIN: stream.mentolder.de
           CLUSTER_ENV: fleet-mentolder
 
           LLM_ENABLED: "true"
@@ -305,8 +303,6 @@ jobs:
           TRAEFIK_EXTERNAL_URL: https://traefik.korczewski.de
           MAIL_EXTERNAL_URL: https://mail.korczewski.de
           BRETT_DOMAIN: brett.korczewski.de
-          LIVEKIT_DOMAIN: livekit.korczewski.de
-          STREAM_DOMAIN: stream.korczewski.de
           CLUSTER_ENV: korczewski
           LLM_ENABLED: "true"
           LLM_RERANK_ENABLED: "false"

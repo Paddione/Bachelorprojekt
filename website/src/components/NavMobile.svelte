@@ -9,7 +9,6 @@
     /** Optional auth state forwarded from the parent Navigation component. */
     user?: { name: string; email: string; isAdmin?: boolean } | null;
     authChecked?: boolean;
-    streamLive?: boolean;
     pathname: string;
   }
 
@@ -19,7 +18,6 @@
     locale,
     user = null,
     authChecked = false,
-    streamLive = false,
     pathname: _pathname,
   }: Props = $props();
 
@@ -55,12 +53,6 @@
         {#if user.isAdmin}
           <a href="/portal" onclick={() => (open = false)}>{t(locale, 'nav.view-as-user')}</a>
         {/if}
-        <a href="/portal/stream" onclick={() => (open = false)} class="mobile-stream-link">
-          {t(locale, 'nav.livestream')}
-          {#if streamLive}
-            <span class="live-badge" aria-label="Live">{t(locale, 'nav.live')}</span>
-          {/if}
-        </a>
         <a href="/api/auth/logout" onclick={() => (open = false)} class="mobile-logout">
           {t(locale, 'nav.logout')}
         </a>
@@ -157,45 +149,6 @@
 
   .mobile-logout {
     color: var(--mute) !important;
-  }
-
-  .mobile-stream-link {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .live-badge {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #dc2626;
-    color: #fff;
-    font-family: var(--mono);
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    padding: 2px 6px;
-    border-radius: 4px;
-    line-height: 1.4;
-    flex-shrink: 0;
-  }
-
-  .live-badge::before {
-    content: '';
-    display: inline-block;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #fff;
-    animation: live-pulse 1.4s ease-in-out infinite;
-    flex-shrink: 0;
-  }
-
-  @keyframes live-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
   }
 
   .mobile-cta {

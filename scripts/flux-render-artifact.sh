@@ -8,6 +8,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 OUT_DIR="out"
+# WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
+# WEBSITE_IMAGE_TAG steuert den Image-Tag — getrennte Konzepte, nicht koppeln (T002209).
+# Siehe Task 2.2 fuer die Default-Werte des Tags.
 WEBSITE_IMAGE_OVERRIDE=""
 BRETT_IMAGE_OVERRIDE=""
 
@@ -34,6 +37,15 @@ done
 
 mkdir -p "${OUT_DIR}"
 OUT_DIR="$(cd "${OUT_DIR}" && pwd)"
+
+# T002209: envsubst kennt kein ${VAR:-default} — nicht gesetzte Variablen werden
+# zur leeren Zeichenkette substituiert. Ohne Default wuerde WEBSITE_IMAGE_TAG leer
+# gerendert (image: ghcr.io/paddione/website:). Der Flux-Render-Pfad (render-fleet-
+# artifact.yml) setzt WEBSITE_IMAGE_TAG aus dem Build-SHA, der Break-glass-Pfad und
+# der Dev-Modus brauchen einen sicheren Fallback.
+: "${WEBSITE_IMAGE_TAG:=latest}"
+: "${BRETT_IMAGE_TAG:=latest}"
+export WEBSITE_IMAGE_TAG BRETT_IMAGE_TAG
 
 # T002174: environments/schema.yaml ist die autoritative Spezifikation und definiert für
 # einzelne optionale Variablen ein Verhalten im leeren Fall. Der Taskfile-Render-Pfad

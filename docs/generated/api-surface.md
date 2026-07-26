@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-26T19:03:18.359Z
+> Generated at 2026-07-26T19:16:38.335Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -364,7 +364,6 @@
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified | `website/src/pages/api/homepage.ts` |
 | `/api/internal/tickets/notify-close` | POST | 🔒 internal | `website/src/pages/api/internal/tickets/notify-close.ts` |
 | `/api/leistungen` | GET | ❓ unclassified | `website/src/pages/api/leistungen.ts` |
-| `/api/live/state` | GET | 🔐 admin | `website/src/pages/api/live/state.ts` |
 | `/api/meeting/finalize` | POST | ❓ unclassified | `website/src/pages/api/meeting/finalize.ts` |
 | `/api/meeting/release` | POST | 🔐 admin | `website/src/pages/api/meeting/release.ts` |
 | `/api/meeting/save-transcript` | POST | ❓ unclassified | `website/src/pages/api/meeting/save-transcript.ts` |

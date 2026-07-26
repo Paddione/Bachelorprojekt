@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-26T19:03:18.359Z",
+  "generatedAt": "2026-07-26T19:16:38.335Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2946,14 +2946,6 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/leistungen.ts"
-    },
-    {
-      "path": "/api/live/state",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/live/state.ts"
     },
     {
       "path": "/api/meeting/finalize",

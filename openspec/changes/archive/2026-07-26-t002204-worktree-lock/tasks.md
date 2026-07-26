@@ -2,7 +2,7 @@
 title: "t002204-worktree-lock — Implementation Plan"
 ticket_id: T002204
 domains: [devtooling]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

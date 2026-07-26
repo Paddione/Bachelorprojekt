@@ -741,14 +741,27 @@ SCOPE_ANNOTATIONS = ('sealedsecrets.bitnami.com/namespace-wide',
 identities = defaultdict(set)
 sites = defaultdict(list)
 
+unparseable = []
+
 for path in files:
     if not path:
         continue
+    full = os.path.join(ROOT, path)
     try:
-        with open(os.path.join(ROOT, path)) as fh:
-            docs = list(yaml.safe_load_all(fh))
-    except (yaml.YAMLError, OSError, UnicodeDecodeError):
-        continue          # Templates/envsubst-Platzhalter sind kein valides YAML
+        with open(full) as fh:
+            raw = fh.read()
+    except (OSError, UnicodeDecodeError):
+        continue
+    if 'SealedSecret' not in raw:
+        continue          # billiger Vorfilter — 447 YAMLs, nur ~10 sind SealedSecrets
+    try:
+        docs = list(yaml.safe_load_all(raw))
+    except yaml.YAMLError as exc:
+        # NICHT still überspringen: eine unparsbare Datei, die textuell nach
+        # SealedSecret aussieht, wäre ein blinder Fleck genau in der Klasse, die
+        # dieser Guard abdecken soll.
+        unparseable.append(f'{path}: {type(exc).__name__}')
+        continue
     for doc in docs:
         if not isinstance(doc, dict) or doc.get('kind') != 'SealedSecret':
             continue
@@ -762,6 +775,13 @@ for path in files:
                 continue
             identities[ct].add(ident)
             sites[ct].append(f'{path} [{ident[0]}/{ident[1]}] key={key}')
+
+if unparseable:
+    print('FAIL: Dateien mit SealedSecret-Bezug sind nicht parsebar — der Guard')
+    print('      koennte sie nicht pruefen (blinder Fleck):')
+    for u in unparseable:
+        print(f'  {u}')
+    sys.exit(1)
 
 shared = {ct: ids for ct, ids in identities.items() if len(ids) > 1}
 if shared:

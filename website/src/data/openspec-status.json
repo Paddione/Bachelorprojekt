@@ -1497,6 +1497,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002186": [
+    {
+      "slug": "t002186-ci-watch",
+      "status": "plan_staged"
+    }
+  ],
   "T002188": [
     {
       "slug": "t002188-dev-flow-plan-fix",

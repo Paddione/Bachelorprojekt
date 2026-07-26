@@ -28,6 +28,7 @@ export interface TransitionParams {
   noteVisibility?: 'internal' | 'public';
   actor: { id?: string; label: string };
   prNumber?: number;
+  request?: Request;
 }
 
 export interface TransitionResult {
@@ -126,7 +127,7 @@ export async function transitionTicket(
         reporterEmail: after.reporter_email,
         resolution: after.resolution,
         note: p.noteVisibility === 'public' ? p.note : undefined,
-      });
+      }, p.request);
     }
 
     if (becomingDone) {

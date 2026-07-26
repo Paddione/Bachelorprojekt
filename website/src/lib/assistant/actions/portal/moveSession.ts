@@ -61,7 +61,7 @@ registerAction({
       name: ctx.email,
       newStart,
       newEnd,
-    }).catch(() => {});
+    }, ctx.request).catch(() => {});
 
     const newStartStr = newStart.toLocaleString('de-DE', {
       timeZone: 'Europe/Berlin',

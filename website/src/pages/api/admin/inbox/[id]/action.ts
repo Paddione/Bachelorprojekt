@@ -216,7 +216,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
         }
         const p = item.payload as { ticketId: string; reporterEmail: string; brand: string };
         await resolveBugTicket(p.ticketId, resolveNote,
-          { label: session.preferred_username });
+          { label: session.preferred_username }, request);
         // No manual sendEmail() here — transitionTicket() handles the close-mail.
         await updateInboxItemStatus(id, 'actioned', session.preferred_username);
         return new Response(JSON.stringify({ success: true }),

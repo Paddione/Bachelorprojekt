@@ -25,6 +25,7 @@ import { test, expect } from '@playwright/test';
 import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
 import { seedAdminTicket, cleanupSeedTicket, seedAvailable } from '../lib/e2e-seed';
+import { markerHeaders, markerAvailable } from '../lib/e2e-marker';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const MAILPIT    = process.env.MAILPIT_URL ?? 'http://localhost:8025';
@@ -54,6 +55,8 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
     test.skip(!seedAvailable(),
       'CRON_SECRET oder SESSIONS_DATABASE_URL fehlt — DB-Seed würde Prod-Tracker verschmutzen oder scheitern');
     test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS fehlt — Admin-Login nicht möglich');
+
+    const e2eHeaders = markerAvailable() ? markerHeaders()! : {};
 
     await assertAuthenticatedReachable(
       request,
@@ -92,14 +95,14 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
       // ── 4. Internal comment ──
       const internalRes = await page.request.post(
         `${BASE}/api/admin/tickets/${ticketUuid}/comments`,
-        { headers: { 'Content-Type': 'application/json' },
+        { headers: { 'Content-Type': 'application/json', ...e2eHeaders },
           data: JSON.stringify({ body: 'PR4 internal comment', visibility: 'internal' }) });
       expect(internalRes.ok()).toBeTruthy();
 
       // ── 5. Public comment → reporter mail ──
       const publicRes = await page.request.post(
         `${BASE}/api/admin/tickets/${ticketUuid}/comments`,
-        { headers: { 'Content-Type': 'application/json' },
+        { headers: { 'Content-Type': 'application/json', ...e2eHeaders },
           data: JSON.stringify({ body: 'PR4 public reply for the reporter', visibility: 'public' }) });
       expect(publicRes.ok()).toBeTruthy();
 
@@ -116,7 +119,7 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
       // ── 6. Transition to done → close-mail ──
       const transRes = await page.request.post(
         `${BASE}/api/admin/tickets/${ticketUuid}/transition`,
-        { headers: { 'Content-Type': 'application/json' },
+        { headers: { 'Content-Type': 'application/json', ...e2eHeaders },
           data: JSON.stringify({ status: 'done', resolution: 'fixed', note: 'PR4 done', noteVisibility: 'internal' }) });
       expect(transRes.ok()).toBeTruthy();
 

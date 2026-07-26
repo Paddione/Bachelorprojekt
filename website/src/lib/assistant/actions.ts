@@ -7,6 +7,7 @@ export interface ActionContext {
   preferredUsername?: string;
   email?: string;
   payload: Record<string, unknown>;
+  request?: Request;
 }
 
 export interface ActionDescriptor {

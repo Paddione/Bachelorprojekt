@@ -71,6 +71,18 @@ RUN chmod +x tests/runner.sh tests/lib/*.sh tests/local/*.sh 2>/dev/null || true
 COPY scripts/knowledge/ /app/scripts/knowledge/
 RUN cd /app/scripts/knowledge && npm install --production 2>/dev/null || true
 
+# Build provenance (T002202). ARG is per-stage, so these must live in the
+# runtime stage — an ARG declared only in the build stage would be invisible
+# here and the --build-arg values would silently become no-ops (which is
+# exactly what happened to this Dockerfile once before; see build-website.yml).
+# The SHA rides the image rather than a manifest: the website has three render
+# paths (Flux OCI artifact, task workspace:deploy, legacy CI deploy jobs) and a
+# manifest-carried value would have to be correct in all three.
+ARG GIT_SHA=unknown
+ARG BUILT_AT=unknown
+ENV GIT_SHA=${GIT_SHA}
+ENV BUILT_AT=${BUILT_AT}
+
 ENV HOST=0.0.0.0
 ENV PORT=4321
 EXPOSE 4321

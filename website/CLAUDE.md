@@ -63,7 +63,8 @@ A section with `title: '__introNote__'` renders as an italic personal note block
 - **First save after deploy**: new pages in `mentolder.ts` need one Admin save to activate DB-override
 - **CONTACT_CITY in workflow**: `.github/workflows/build-website.yml` must have `"Lüneburg, Hamburg und Umgebung"` — not just `"Hamburg"`
 - **Brand name**: always `mentolder` (lowercase m), never `Mentolder` except at sentence start
-- **Runtime vs admin values**: `CONTACT_EMAIL`, `LEGAL_*` etc. are read at runtime from `process.env` (ConfigMap, envsubst'd in the deploy step) — `website/Dockerfile` has no `ARG` line, so the workflow `--build-arg`s are no-ops and nothing is baked at build time; `footerCity`, tagline, copyright stay admin-overridable at runtime
+- **Runtime vs admin values**: `CONTACT_EMAIL`, `LEGAL_*` etc. are read at runtime from `process.env` (ConfigMap, envsubst'd in the deploy step) — no *brand* config is baked at build time; `footerCity`, tagline, copyright stay admin-overridable at runtime
+- **Build-time exception — `GIT_SHA`/`BUILT_AT`** (T002202): these two ARE baked in, via `ARG`/`ENV` in the Dockerfile's **runtime** stage plus matching `build-args` in `build-website.yml`. They describe the image, not a brand, and `/api/health` serves them so E2E runs can tell code drift from deploy drift. `ARG` is per-stage — declaring it only in the build stage makes the `--build-arg` a silent no-op, which is exactly what this Dockerfile did before T002202. Adding a build-time value means touching **both** files.
 - **New image takes ~3-4 min** after merge; check in incognito to avoid cache
 
 ## Content Standards

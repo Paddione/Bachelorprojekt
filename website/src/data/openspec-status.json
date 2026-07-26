@@ -1497,6 +1497,12 @@
       "status": "archived"
     }
   ],
+  "T002209": [
+    {
+      "slug": "flux-render-image-tag",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -57,18 +57,91 @@ mapfile -t SLUG_PARTS < <(
     | awk 'length>2'
 )
 
+# ── Phase 1b: N-gram generation (T002241) ────────────────────────────────────
+# Bigrams: consecutive word pairs from title, max 20.
+BIGRAMS=()
+if [[ ${#TITLE_WORDS[@]} -ge 2 ]]; then
+  for ((i=0; i<${#TITLE_WORDS[@]}-1 && i<20; i++)); do
+    BIGRAMS+=("${TITLE_WORDS[i]}-${TITLE_WORDS[i+1]}")
+  done
+fi
+
+# Trigrams: consecutive word triples from title, max 10, only if ≥3 words.
+TRIGRAMS=()
+if [[ ${#TITLE_WORDS[@]} -ge 3 ]]; then
+  for ((i=0; i<${#TITLE_WORDS[@]}-2 && i<10; i++)); do
+    TRIGRAMS+=("${TITLE_WORDS[i]}-${TITLE_WORDS[i+1]}-${TITLE_WORDS[i+2]}")
+  done
+fi
+
+# CamelCase splitting: detect camelCase/PascalCase in title and split.
+# E.g. "OIDCClientConfig" → "OIDC", "Client", "Config"
+CAMEL_PARTS=()
+for word in $(printf '%s' "$TITLE" | tr '[:space:]' '\n'); do
+  if printf '%s' "$word" | grep -qE '[a-z][A-Z]|[A-Z]{2,}[a-z]'; then
+    # Split on camelCase boundaries
+    while IFS= read -r -d '' part; do
+      [[ -n "$part" ]] && CAMEL_PARTS+=("$(printf '%s' "$part" | tr '[:upper:]' '[:lower:]')")
+    done < <(printf '%s' "$word" | sed 's/\([a-z]\)\([A-Z]\)/\1\n\2/g; s/\([A-Z]\)\([A-Z][a-z]\)/\1\n\2/g' | tr '\n' '\0')
+  fi
+done
+# Deduplicate camel parts
+if [[ ${#CAMEL_PARTS[@]} -gt 0 ]]; then
+  mapfile -t CAMEL_PARTS < <(printf '%s\n' "${CAMEL_PARTS[@]}" | sort -u)
+fi
+
+# Filename-stem matching: extract filenames without extension from title words.
+# E.g. title "scout-drift setup" matches file "scout-drift.cjs" via stem "scout-drift"
+FILENAME_STEMS=()
+for word in $(printf '%s' "$TITLE" | tr '[:upper:]' '[:lower:]'); do
+  [[ ${#word} -gt 2 ]] && FILENAME_STEMS+=("$word")
+done
+
+# ── Phase 1c: Drift-cache read (T002241) — before file discovery ─────────────
+# Read brand-keyed drift from /tmp/scout-drift-cache.json.
+# If drift > 0.5, switch grep to -E regex mode for broader matching.
+# If drift > 0.7, apply 1.5× file-count multiplier before complexity.
+# When no cache exists, drift defaults to 0 (first run / evicted cache).
+SCOUT_DRIFT=0
+SCOUT_GREP_FLAGS="-rliFi"
+SCOUT_FILE_MULTIPLIER=1.0
+DRIFT_CACHE_FILE="/tmp/scout-drift-cache.json"
+DRIFT_BRAND="${BRAND:-mentolder}"
+if [[ -f "$DRIFT_CACHE_FILE" ]]; then
+  cached_drift="$(jq -r --arg b "$DRIFT_BRAND" '.[$b] // 0' "$DRIFT_CACHE_FILE" 2>/dev/null || echo 0)"
+  if [[ -n "$cached_drift" ]] && awk "BEGIN {exit !($cached_drift > 0)}" 2>/dev/null; then
+    SCOUT_DRIFT="$cached_drift"
+    if awk "BEGIN {exit !($SCOUT_DRIFT > 0.5)}" 2>/dev/null; then
+      # Drift > 0.5: expand grep to regex -E mode for broader matching
+      SCOUT_GREP_FLAGS="-rliE"
+      echo "scout.sh: drift=$SCOUT_DRIFT > 0.5, using -E regex mode" >&2
+    fi
+    if awk "BEGIN {exit !($SCOUT_DRIFT > 0.7)}" 2>/dev/null; then
+      # Drift > 0.7: apply 1.5× file-count multiplier before complexity
+      SCOUT_FILE_MULTIPLIER=1.5
+      echo "scout.sh: drift=$SCOUT_DRIFT > 0.7, applying 1.5× multiplier" >&2
+    fi
+  fi
+else
+  # No cache file: drift defaults to 0 (T002241 4.5)
+  SCOUT_DRIFT=0
+fi
+
 # ── Phase 2: File discovery (three strategies) ───────────────────────────────
 SRC_DIRS=("$REPO/website/src" "$REPO/scripts" "$REPO/brett" "$REPO/k3d" "$REPO/environments" "$REPO/tests" "$REPO/docs" "$REPO/openspec")
 tmp_hits="$(mktemp)"
 trap 'rm -f "$tmp_hits"' EXIT
 
 # Strategy A — keyword grep (semantic proximity). One keyword at a time so a
-# missing keyword doesn't blank the whole result. -F = fixed string, safe.
-for kw in "${TITLE_WORDS[@]:-}"; do
+# missing keyword doesn't blank the whole result. Flags adapt to drift:
+#   SCOUT_GREP_FLAGS="-rliFi" (default, fixed-string)
+#   SCOUT_GREP_FLAGS="-rliE" (drift > 0.5, regex mode for broader matching)
+ALL_KEYWORDS=("${TITLE_WORDS[@]}" "${BIGRAMS[@]}" "${TRIGRAMS[@]}" "${CAMEL_PARTS[@]}")
+for kw in "${ALL_KEYWORDS[@]:-}"; do
   [[ -z "$kw" ]] && continue
   for d in "${SRC_DIRS[@]}"; do
     [[ -d "$d" ]] || continue
-    grep -rliFi \
+    grep $SCOUT_GREP_FLAGS \
       --include="*.ts" --include="*.js" --include="*.mjs" --include="*.cjs" \
       --include="*.svelte" --include="*.astro" \
       --include="*.yaml" --include="*.yml" --include="*.sh" \
@@ -78,14 +151,15 @@ for kw in "${TITLE_WORDS[@]:-}"; do
 done >> "$tmp_hits"
 
 # Strategy B — filename pattern (structural proximity).
-if [[ ${#SLUG_PARTS[@]} -gt 0 ]]; then
-  slug_re="$(printf '%s|' "${SLUG_PARTS[@]}")"; slug_re="${slug_re%|}"
+FNAME_PARTS=("${SLUG_PARTS[@]}" "${FILENAME_STEMS[@]}")
+if [[ ${#FNAME_PARTS[@]} -gt 0 ]]; then
+  fname_re="$(printf '%s|' "${FNAME_PARTS[@]}")"; fname_re="${fname_re%|}"
   for d in "${SRC_DIRS[@]}"; do
     [[ -d "$d" ]] || continue
     find "$d" -type f \
       \( -name "*.ts" -o -name "*.js" -o -name "*.mjs" -o -name "*.cjs" \
          -o -name "*.svelte" -o -name "*.astro" \) \
-      2>/dev/null | grep -iE -- "$slug_re" | head -20
+      2>/dev/null | grep -iE -- "$fname_re" | head -20
   done >> "$tmp_hits"
 fi
 
@@ -115,15 +189,28 @@ if [[ ${#TOUCHED[@]} -gt 30 ]]; then
 fi
 
 # ── Phase 2b: LLM fallback (hybrid scout) ─────────────────────────────────────
-# When deterministic discovery finds fewer than SCOUT_LLM_MIN_FILES (default 4)
-# and the fallback is not explicitly disabled, invoke DeepSeek for additional paths.
+# When deterministic discovery finds fewer than SCOUT_LLM_MIN_FILES (default 2,
+# lowered from 4 in T002241) and the fallback is not explicitly disabled, invoke
+# DeepSeek for additional paths.
 # Fail-soft: on any error the deterministic result stays untainted.
 SCOUT_LLM_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ ${#TOUCHED[@]} -lt ${SCOUT_LLM_MIN_FILES:-4} && "${SCOUT_LLM_ENABLED:-}" != "false" ]]; then
+# Build discovered paths list and keyword stats for LLM context (T002241 2.2-2.3)
+DISCOVERED_PATHS_ARG=""
+if [[ ${#TOUCHED[@]} -gt 0 ]]; then
+  DISCOVERED_PATHS_ARG="--discovered-paths $(printf '%s\n' "${TOUCHED[@]}" | head -5 | tr '\n' '|')"
+fi
+# Keyword stats: how many hits per keyword (from tmp_hits if available)
+KEYWORD_STATS_ARG=""
+if [[ -f "$tmp_hits" ]]; then
+  total_hits=$(wc -l < "$tmp_hits" 2>/dev/null || echo 0)
+  KEYWORD_STATS_ARG="--keyword-stats \"${#ALL_KEYWORDS[@]} keywords, ${total_hits} total matches\""
+fi
+if [[ ${#TOUCHED[@]} -lt ${SCOUT_LLM_MIN_FILES:-2} && "${SCOUT_LLM_ENABLED:-}" != "false" ]]; then
   if [[ -x "$SCOUT_LLM_ROOT/scout-llm-fallback.sh" ]]; then
     mapfile -t LLM_PATHS < <(
       bash "$SCOUT_LLM_ROOT/scout-llm-fallback.sh" \
         --title "$TITLE" --slug "$SLUG" --description "$DESCRIPTION" --repo "$REPO" \
+        $DISCOVERED_PATHS_ARG $KEYWORD_STATS_ARG \
         2>/dev/null || true
     )
     for llm_p in "${LLM_PATHS[@]:-}"; do
@@ -143,6 +230,10 @@ fi
 
 # ── Phase 3: Complexity classification ───────────────────────────────────────
 FILE_COUNT=${#TOUCHED[@]}
+# Apply drift-based file-count multiplier (T002241 4.4)
+if awk "BEGIN {exit !($SCOUT_FILE_MULTIPLIER > 1.0)}" 2>/dev/null; then
+  FILE_COUNT=$(awk "BEGIN {printf \"%d\", $FILE_COUNT * $SCOUT_FILE_MULTIPLIER}" 2>/dev/null || echo "$FILE_COUNT")
+fi
 if [[ $FILE_COUNT -gt 0 ]]; then
   SUBSYSTEMS=$(printf '%s\n' "${TOUCHED[@]}" | sed "s|^$REPO/||" | cut -d/ -f1 \
     | sort -u | grep -c .)

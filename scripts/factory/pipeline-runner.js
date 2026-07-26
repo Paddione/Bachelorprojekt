@@ -33,6 +33,31 @@ async function main() {
   if (command === 'scout') {
     const { ticket_id, title, slug, description, brand } = payload;
 
+    // ── Pre-gate: spec quality check before scout.sh invocation ─────────
+    // If spec <300 chars and LLM fallback cannot salvage, return SCOUT_WEAK
+    // immediately without invoking scout.sh (T002241).
+    const specContent = `${title || ''}\n${description || ''}`;
+    const preGateResult = SQ.evaluateSpecPreGate(specContent, {
+      llmEnabled: process.env.SCOUT_LLM_ENABLED === 'true',
+      title: title || '',
+      slug: slug || '',
+    });
+    if (preGateResult.weak) {
+      const reason = preGateResult.reasons[0] || 'spec_too_short';
+      console.log(JSON.stringify({ sqGateResult: { status: 'scout_weak', ticket_id: String(ticket_id), reasons: [reason] } }));
+      try {
+        const phaseEvent = (ph, state, detail) => {
+          try {
+            const a = [path.join(REPO, 'scripts/ticket.sh'), 'phase', String(ticket_id), ph, state, '--driver', 'factory'];
+            if (detail) a.push('--detail', String(detail).slice(0, 240));
+            execFileSync('bash', a, { stdio: 'ignore', timeout: 15000, env: { ...process.env, BRAND: brand } });
+          } catch {}
+        };
+        phaseEvent('scout', 'blocked', `scout_weak: ${reason}`);
+      } catch {}
+      return;
+    }
+
     const scoutJson = execFileSync('bash', [
       path.join(REPO, 'scripts/factory/scout.sh'),
       '--ticket-id', String(ticket_id),

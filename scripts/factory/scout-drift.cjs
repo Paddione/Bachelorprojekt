@@ -1,7 +1,8 @@
 /**
  * scripts/factory/scout-drift.cjs
- * Pure helper — Jaccard distance and noise filter for scout drift calculation.
- * No require() on DB/pipeline modules (S2).  100% testable via node -e "require(...)".
+ * Pure helper — Jaccard distance, noise filter, and running average for scout
+ * drift calculation.  No require() on DB/pipeline modules (S2).
+ * 100% testable via node -e "require(...)".
  */
 const NOISE_PATTERNS = [
   'docs/generated/',
@@ -43,4 +44,26 @@ function jaccardDistance(predicted, actual) {
   return 1 - intersect / union
 }
 
-module.exports = { jaccardDistance, filterNoise }
+/**
+ * Compute a running average over an array of numbers with a given window size.
+ * Returns an array of the same length; the first (windowSize-1) elements use
+ * whatever window is available (1, 2, ..., windowSize-1).
+ *
+ * @param {number[]} values  Input values
+ * @param {number} [windowSize=3]  Smoothing window (default 3)
+ * @returns {number[]}  Smoothed values
+ */
+function runningAverage(values, windowSize) {
+  if (windowSize == null || windowSize < 1) windowSize = 3
+  if (!Array.isArray(values) || values.length === 0) return []
+  const result = []
+  for (let i = 0; i < values.length; i++) {
+    const start = Math.max(0, i - windowSize + 1)
+    const slice = values.slice(start, i + 1)
+    const sum = slice.reduce((a, b) => a + b, 0)
+    result.push(sum / slice.length)
+  }
+  return result
+}
+
+module.exports = { jaccardDistance, filterNoise, runningAverage }

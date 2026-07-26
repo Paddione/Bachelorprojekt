@@ -157,13 +157,22 @@
   ],
 
   // Kubernetes manager: scan image references in k3d and prod manifests.
+  // managerFilePatterns replaces the deprecated fileMatch (T002170) — it was the
+  // remaining item behind Renovate's "Config needs migrating" warning after
+  // T002165 handled matchPackagePatterns. Regexes are slash-wrapped, same as the
+  // matchPackageNames migration.
+  //
+  // NOTE: the kubernetes manager ships NO default patterns — without these it
+  // matches nothing at all and every k8s image silently stops being updated
+  // (Vaultwarden, Pocket ID, postgres, …). Verify against the Dependency
+  // Dashboard after changing them, not just against a green workflow run.
   "kubernetes": {
-    "fileMatch": [
-      "^k3d/.+\\.yaml$",
-      "^prod/.+\\.yaml$",
-      "^prod-mentolder/.+\\.yaml$",
-      "^prod-korczewski/.+\\.yaml$",
-      "^prod-fleet/.+\\.yaml$"
+    "managerFilePatterns": [
+      "/^k3d/.+\\.yaml$/",
+      "/^prod/.+\\.yaml$/",
+      "/^prod-mentolder/.+\\.yaml$/",
+      "/^prod-korczewski/.+\\.yaml$/",
+      "/^prod-fleet/.+\\.yaml$/"
     ],
     // pinDigests: automatically update @sha256 digests on every update.
     "pinDigests": true

@@ -920,3 +920,37 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
     return 1
   }
 }
+
+# ── T002170: Restposten der Renovate-Config-Migration. fileMatch ist deprecated
+#    und wurde durch managerFilePatterns ersetzt (slash-gekapselte Regexes, wie
+#    schon bei matchPackageNames in T002165). Wichtig: der kubernetes-Manager hat
+#    KEINE Default-Patterns — ohne diese Liste matcht er nichts und jedes k8s-Image
+#    hoert still auf, Updates zu bekommen.
+
+@test "T002170: renovate.json5 nutzt managerFilePatterns statt deprecated fileMatch" {
+  local cfg="$REPO_ROOT/renovate.json5"
+  ! grep -qE '"fileMatch"' "$cfg" || {
+    echo "FAIL: renovate.json5 verwendet noch den deprecated Key fileMatch."
+    echo "      Ersatz: managerFilePatterns mit slash-gekapselten Regexes,"
+    echo "      z.B. \"/^k3d/.+\\\\.yaml\$/\"."
+    return 1
+  }
+  grep -qE '"managerFilePatterns"' "$cfg" || {
+    echo "FAIL: kein managerFilePatterns im kubernetes-Manager."
+    echo "      Der Manager hat KEINE Default-Patterns — ohne Liste matcht er"
+    echo "      nichts und alle k8s-Images bleiben ungepflegt."
+    return 1
+  }
+}
+
+@test "T002170: kubernetes-managerFilePatterns deckt alle vier Manifest-Baeume ab" {
+  local cfg="$REPO_ROOT/renovate.json5"
+  for tree in k3d prod prod-mentolder prod-korczewski prod-fleet; do
+    grep -qE "\"/\^${tree}/" "$cfg" || {
+      echo "FAIL: kein managerFilePatterns-Eintrag fuer '${tree}/'."
+      echo "      Fehlt ein Baum, uebersieht Renovate dessen Images vollstaendig —"
+      echo "      ohne Fehlermeldung, der Run bleibt gruen."
+      return 1
+    }
+  done
+}

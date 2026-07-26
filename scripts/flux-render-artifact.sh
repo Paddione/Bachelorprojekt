@@ -290,6 +290,28 @@ for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mento
   # Check the file is valid multi-document YAML with apiVersion on each doc
   if python3 -c "
 import yaml, sys
+
+# [T002236] Upstream CRDs carry YAML 1.1 value-key scalars that PyYAML's
+# SafeLoader has no constructor for. The kube-prometheus-stack AlertManager
+# matchType enum is one: a bare '=' among quoted operators.
+#
+#     enum:
+#     - '!='
+#     - =        <-- tag:yaml.org,2002:value
+#     - =~
+#     - '!~'
+#
+# Go-YAML — what kubectl, kustomize and Flux actually parse with — reads this
+# without complaint, so the manifest is correct and must not be reformatted;
+# it is vendored upstream content, not hand-written YAML. Only this validator
+# rejected it, and because the gate is fail-closed it aborted the artifact push
+# for BOTH brands on every main push from 2026-07-26 18:19 onward, silently
+# freezing prod at the last good artifact.
+#
+# Treat the tag as the plain scalar it is and keep the rest of the gate strict.
+yaml.SafeLoader.add_constructor(
+    'tag:yaml.org,2002:value', lambda loader, node: loader.construct_scalar(node))
+
 with open('${manifest}') as f:
     docs = list(yaml.safe_load_all(f))
 if not docs:

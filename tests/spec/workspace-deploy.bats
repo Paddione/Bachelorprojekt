@@ -282,6 +282,72 @@ FLUX_CLUSTER_DIR="${PROJECT_DIR}/flux/clusters/fleet"
   [ "$status" -eq 0 ]
 }
 
+@test "T002236: flux-render-artifact.sh validation gate accepts YAML 1.1 value-key scalars" {
+  # Regression guard. The gate added in T002207 used a bare yaml.safe_load_all,
+  # which has no constructor for tag:yaml.org,2002:value — the unquoted `=` in the
+  # vendored kube-prometheus-stack AlertManager matchType enum. Because the gate is
+  # fail-closed, every main push from 2026-07-26 18:19 aborted the artifact push for
+  # both brands and silently froze prod at the last good artifact.
+  #
+  # This is asserted separately from the placeholder test below on purpose: that test
+  # also checks [ "$status" -eq 0 ], so a render abort surfaced there under a name
+  # about placeholders, which sent the first investigation down the wrong path.
+  local out
+  out="$(mktemp -d)"
+  export SMTP_PORT=587 SMTP_HOST=smtp.example.org SMTP_USER=x POCKET_ID_SMTP_TLS=starttls
+  export POCKET_ID_FRONTEND_URL=https://auth.example POCKET_ID_URL=http://pocket-id:1411 POCKET_ID_DOMAIN=id.example
+  run bash "$FLUX_RENDER" --out "$out"
+  rm -rf "$out"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"validation gate passed"* ]]
+  [[ "$output" != *"VALIDATION FAILED"* ]]
+  [[ "$output" != *"could not determine a constructor"* ]]
+}
+
+@test "T002236: the validation gate still rejects a manifest doc without apiVersion" {
+  # The value-key constructor must not soften the rest of the gate. A doc missing
+  # apiVersion has to keep failing, otherwise the fix would trade one silent
+  # deploy freeze for silently pushing a broken artifact.
+  run python3 -c "
+import yaml, sys
+yaml.SafeLoader.add_constructor(
+    'tag:yaml.org,2002:value', lambda loader, node: loader.construct_scalar(node))
+docs = list(yaml.safe_load_all('kind: ConfigMap\nmetadata:\n  name: x\n'))
+for i, doc in enumerate(docs):
+    if doc is None:
+        continue
+    if not doc.get('apiVersion'):
+        print('ERROR: doc %d has no apiVersion' % i, file=sys.stderr)
+        sys.exit(1)
+"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"no apiVersion"* ]]
+}
+
+@test "T002236: the value-key constructor parses the upstream matchType enum" {
+  # Pin the exact upstream shape that broke the gate, so a future loader swap that
+  # reintroduces the strictness fails here rather than in the post-merge workflow.
+  run python3 -c "
+import yaml
+yaml.SafeLoader.add_constructor(
+    'tag:yaml.org,2002:value', lambda loader, node: loader.construct_scalar(node))
+doc = yaml.safe_load('''
+apiVersion: v1
+matchType:
+  enum:
+  - '!='
+  - =
+  - =~
+  - '!~'
+''')
+vals = doc['matchType']['enum']
+assert len(vals) == 4, vals
+print('parsed:', vals)
+"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"parsed:"* ]]
+}
+
 @test "T002083: flux-render-artifact.sh renders a placeholder-free tree (no bare \${VAR})" {
   # Non-secret fixture env (same shape as the T001411 offline render test);
   # secret-backed values live in SealedSecrets and are never envsubst-substituted.

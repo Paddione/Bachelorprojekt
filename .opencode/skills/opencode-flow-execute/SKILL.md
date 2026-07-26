@@ -90,7 +90,7 @@ else
 fi
 ```
 
-> **Hinweis:** Diese Änderung verhindert, dass `git pull --rebase` versehentlich einen Remote-Branch rebast, wenn der Hauptcheckout nicht auf `main` liegt.
+> **Hinweis:** Diese Änderung verhindert, dass `git pull --rebase` versehentlich einen Remote-Branch rebast, wenn der Hauptcheckout nicht auf `main` liegt. Verifikation: `bash scripts/test-dev-flow-execute-sync.sh`.
 
 ## Schritt 0: Worktree-Konsistenz
 

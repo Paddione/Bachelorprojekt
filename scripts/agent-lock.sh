@@ -112,10 +112,11 @@ _reap_log() {  # <lock-file> <reason>
 
 # 0 = reapable (clearly dead). A confirmed-alive SID is NEVER reapable.
 _reapable() {
-  local f="$1" sid wt hb ct now age pid
+  local f="$1" sid wt hb ct now age pid br
   [ -f "$f" ] || return 0
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
   hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
+  br="$(_lock_field "$f" branch)"
   # Age reference for the pid-dead/sid-dead grace checks below: prefer the
   # heartbeat (reflects the last confirmed-live refresh) and fall back to
   # created_at only for old claim files that predate the heartbeat_at field.
@@ -126,6 +127,18 @@ _reapable() {
   #    or missing, a live session owns the claim. Reapability only kicks in
   #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
   if [ -n "$sid" ] && _sid_alive "$sid"; then return 1; fi
+  # 0b) Worktree+branch match beats a dead/mismatched SID: a session RESUME
+  #     starts a new process with a different SID (and possibly a different
+  #     PID), which would otherwise fall through to the pid-dead/sid-dead reap
+  #     paths below and delete a claim that is still very much live — the
+  #     worktree is sitting right there, checked out on the exact branch the
+  #     claim recorded. Verify liveness via that filesystem/git state instead
+  #     of trusting the volatile SID. [T002204]
+  if [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] && [ -n "$br" ]; then
+    local wt_branch
+    wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
+    [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ] && return 1
+  fi
   # 1) Dead PID + past grace → reap with reason "pid-dead" (auditable cause). [T001415]
   pid="$(_lock_field "$f" owner_pid)"
   if [ -n "$pid" ]; then

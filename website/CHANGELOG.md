@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.3...website-v1.214.4) (2026-07-26)
+
+
+### Bug Fixes
+
+* **ci:** give Renovate an explicit repository work list, migrate deprecated matchers [T002165] ([#3216](https://github.com/Paddione/Bachelorprojekt/issues/3216)) ([c9eda37](https://github.com/Paddione/Bachelorprojekt/commit/c9eda37f7b3e4963042aa88cc465e2451e49b430))
+
 ## [1.214.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.2...website-v1.214.3) (2026-07-25)
 
 

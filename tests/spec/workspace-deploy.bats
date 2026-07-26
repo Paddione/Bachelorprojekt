@@ -472,3 +472,95 @@ WEBSITE_MANIFEST="${PROJECT_DIR}/k3d/website.yaml"
   run grep -qE 'WEBSITE_IMAGE_TAG:?[=-]' "$RENDER_SCRIPT"
   [ "$status" -eq 0 ]
 }
+
+# ── Blast-Radius-Eingrenzung (T002207) ─────────────────────────────────
+#
+# Flux-Health-Gate: ein kaputter Workload soll nicht die gesamte Marken-
+# Kustomization blockieren. Diese Tests stellen die Invarianten sicher,
+# nachdem die Jobs aus dem App-Stack entfernt, healthChecks explizit
+# gesetzt und der Renderer erweitert wurde.
+
+FLUX_CLUSTER_DIR="${PROJECT_DIR}/flux/clusters/fleet"
+
+@test "T002207: brand Kustomization does not set bare wait:true (requires healthChecks)" {
+  for ks in ks-mentolder.yaml ks-korczewski.yaml; do
+    run grep -q '^\s*wait:\s*true$' "${FLUX_CLUSTER_DIR}/${ks}"
+    [ "$status" -ne 0 ] || {
+      echo "FAIL: ${ks} still sets bare wait:true without healthChecks"
+      return 1
+    }
+  done
+}
+
+@test "T002207: brand Kustomization declares healthChecks list" {
+  for ks in ks-mentolder.yaml ks-korczewski.yaml; do
+    run grep -q 'healthChecks:' "${FLUX_CLUSTER_DIR}/${ks}"
+    [ "$status" -eq 0 ] || {
+      echo "FAIL: ${ks} has no healthChecks"
+      return 1
+    }
+  done
+}
+
+@test "T002207: jobs Kustomization exists for each brand" {
+  for ks in ks-jobs-mentolder.yaml ks-jobs-korczewski.yaml; do
+    [ -f "${FLUX_CLUSTER_DIR}/${ks}" ] || {
+      echo "FAIL: ${FLUX_CLUSTER_DIR}/${ks} does not exist"
+      return 1
+    }
+  done
+}
+
+@test "T002207: jobs Kustomization has dependsOn: [flux-<brand>] and force:true" {
+  for brand in mentolder korczewski; do
+    local ks="${FLUX_CLUSTER_DIR}/ks-jobs-${brand}.yaml"
+    [ -f "$ks" ] || continue  # skip if not yet created (RED phase fails earlier)
+    run grep -q "dependsOn:" "$ks"
+    [ "$status" -eq 0 ] || { echo "FAIL: ${ks} missing dependsOn"; return 1; }
+    run grep -q "force:\s*true" "$ks"
+    [ "$status" -eq 0 ] || { echo "FAIL: ${ks} missing force:true"; return 1; }
+  done
+}
+
+@test "T002207: no kind: Job in rendered brand component trees" {
+  # Render the artifact tree and check that brand dirs contain no Job
+  local out_dir
+  out_dir="$(mktemp -d)"
+  bash "${RENDER_SCRIPT}" --out "$out_dir" 2>/dev/null || true
+  for brand in mentolder korczewski; do
+    local manifest="${out_dir}/${brand}/${brand}.yaml"
+    if [ -f "$manifest" ]; then
+      run grep -c "^kind: Job" "$manifest"
+      [ "$output" -eq 0 ] || {
+        echo "FAIL: ${brand} overlay contains $output Job(s) — should be 0"
+        return 1
+      }
+    fi
+  done
+  rm -rf "$out_dir"
+}
+
+@test "T002207: rendered jobs component trees contain kind: Job" {
+  local out_dir
+  out_dir="$(mktemp -d)"
+  bash "${RENDER_SCRIPT}" --out "$out_dir" 2>/dev/null || true
+  for brand in mentolder korczewski; do
+    local manifest="${out_dir}/${brand}-jobs/${brand}-jobs.yaml"
+    if [ -f "$manifest" ]; then
+      run grep -c "^kind: Job" "$manifest"
+      [ "$output" -ge 1 ] || {
+        echo "FAIL: ${brand}-jobs overlay contains 0 Jobs — expected at least 1"
+        return 1
+      }
+    fi
+  done
+  rm -rf "$out_dir"
+}
+
+@test "T002207: render script has validation gate before push" {
+  run grep -qE 'validate|dry.?run|kubeval|schema' "$RENDER_SCRIPT"
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: render script has no validation gate"
+    return 1
+  }
+}

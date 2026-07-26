@@ -48,6 +48,17 @@ patches:
       kind: NetworkPolicy
       metadata: { name: allow-devnode-hostnet-to-shared-db-ingress }
 
+  # T002207: remove all one-shot Jobs from the brand overlay — they now
+  # live in flux-<brand>-jobs Kustomization with force:true and wait:false,
+  # preventing a broken Job from gating the entire brand deploy.
+  - target: { group: batch, version: v1, kind: Job }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: any-job
+
   # whisper needs a GPU node on mentolder (k3s home workers); fleet pk nodes have
   # no GPU, so transcription is best-effort here — repoint so the pod at least
   # schedules instead of staying Pending (flag for Phase 2b capacity review).

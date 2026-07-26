@@ -217,6 +217,28 @@ EOF
   render_component prod-fleet/korczewski "${OUT_DIR}/korczewski/korczewski.yaml"
 )
 
+# 3b. Mentolder Jobs (T002207)
+(
+  set +u
+  source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
+  if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
+  if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
+  mkdir -p "${OUT_DIR}/mentolder-jobs"
+  render_component prod-fleet/mentolder-jobs "${OUT_DIR}/mentolder-jobs/mentolder-jobs.yaml"
+)
+
+# 3c. Korczewski Jobs (T002207)
+(
+  set +u
+  source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  apply_schema_defaults
+  if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
+  if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
+  mkdir -p "${OUT_DIR}/korczewski-jobs"
+  render_component prod-fleet/korczewski-jobs "${OUT_DIR}/korczewski-jobs/korczewski-jobs.yaml"
+)
+
 # 4. Website Mentolder
 (
   set +u
@@ -251,5 +273,46 @@ cp environments/sealed-secrets/fleet-korczewski.yaml "${OUT_DIR}/sealed-secrets/
 # 7. Cluster CRs (top-level only under flux/clusters/fleet/, excluding bootstrap/)
 mkdir -p "${OUT_DIR}/clusters/fleet"
 find flux/clusters/fleet -maxdepth 1 -name "*.yaml" -exec cp {} "${OUT_DIR}/clusters/fleet/" \;
+
+# 8. Validation gate — check rendered YAML is parseable before the
+# artifact is pushed. Catches empty renders, envsubst-corrupted output,
+# and YAML structural issues that would make Flux dry-run fail.
+# (T002207)
+echo "flux-render: running validation gate..."
+VALIDATION_FAILED=0
+for tree_dir in "${OUT_DIR}/mentolder" "${OUT_DIR}/korczewski" "${OUT_DIR}/mentolder-jobs" "${OUT_DIR}/korczewski-jobs" "${OUT_DIR}/platform" "${OUT_DIR}/website-mentolder" "${OUT_DIR}/website-korczewski"; do
+  manifest="${tree_dir}/$(basename "${tree_dir}").yaml"
+  if [ ! -f "$manifest" ]; then
+    # Empty component trees (e.g. dev with DEV_DOMAIN="") write a
+    # kustomization.yaml instead of a combined .yaml — skip those.
+    continue
+  fi
+  # Check the file is valid multi-document YAML with apiVersion on each doc
+  if python3 -c "
+import yaml, sys
+with open('${manifest}') as f:
+    docs = list(yaml.safe_load_all(f))
+if not docs:
+    print('ERROR: empty document', file=sys.stderr)
+    sys.exit(1)
+for i, doc in enumerate(docs):
+    if doc is None:
+        continue
+    if not doc.get('apiVersion'):
+        print(f'ERROR: doc {i} in ${manifest} has no apiVersion', file=sys.stderr)
+        sys.exit(1)
+print(f'OK: {len(docs)} docs')
+" 2>&1; then
+    : # valid
+  else
+    echo "VALIDATION FAILED: ${manifest}" >&2
+    VALIDATION_FAILED=1
+  fi
+done
+if [ "$VALIDATION_FAILED" -ne 0 ]; then
+  echo "ERROR: Render validation failed — aborting artifact push." >&2
+  exit 1
+fi
+echo "flux-render: validation gate passed."
 
 echo "Successfully rendered Flux OCI artifact tree to ${OUT_DIR}"

@@ -4730,6 +4730,11 @@ tasks:
           --source="$(git config --get remote.origin.url)" \
           --revision="main@sha1:$(git rev-parse HEAD)"
 
+  flux:stalled:
+    desc: "Read-only: check for stalled (long-term Ready=False) Flux Kustomizations (T002207)"
+    cmds:
+      - bash scripts/flux-stalled-check.sh --context fleet --threshold 30m
+
   # ─────────────────────────────────────────────
   # End of tasks
   # ─────────────────────────────────────────────

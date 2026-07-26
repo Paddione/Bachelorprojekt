@@ -298,13 +298,14 @@ data:
 
 _repo_root() { cd "${BATS_TEST_DIRNAME}/../.." && pwd; }
 
-@test "T002205: Realm-Import-Skripte existieren nicht mehr" {
+@test "T002205: Realm-Import-Skripte und -Helper existieren nicht mehr" {
   local root; root="$(_repo_root)"
-  local found=""
-  [ ! -e "${root}/scripts/import-entrypoint.sh" ] || found="$found scripts/import-entrypoint.sh"
-  [ ! -e "${root}/prod/import-entrypoint.sh" ]    || found="$found prod/import-entrypoint.sh"
+  local found="" f
+  for f in scripts/import-entrypoint.sh prod/import-entrypoint.sh scripts/lib/keycloak-helpers.sh; do
+    [ ! -e "${root}/${f}" ] || found="$found $f"
+  done
   [ -z "$found" ] || {
-    echo "FAIL: Keycloak-Realm-Import-Skripte wieder da:$found"
+    echo "FAIL: Keycloak-Realm-Import-Artefakte wieder da:$found"
     return 1
   }
 }

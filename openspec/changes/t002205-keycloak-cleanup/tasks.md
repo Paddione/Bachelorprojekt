@@ -2,7 +2,7 @@
 title: "t002205-keycloak-cleanup — Implementation Plan"
 ticket_id: T002205
 domains: [infra, security]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

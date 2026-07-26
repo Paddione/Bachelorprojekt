@@ -2928,7 +2928,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 549,
+      "file_count": 548,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3288,7 +3288,6 @@
         "scripts/knowledge/search-similar.mjs",
         "scripts/lib/export.sh",
         "scripts/lib/google-import.sh",
-        "scripts/lib/keycloak-helpers.sh",
         "scripts/lib/nextcloud-api.sh",
         "scripts/lib/notify.sh",
         "scripts/lib/post-deploy-watch.sh",

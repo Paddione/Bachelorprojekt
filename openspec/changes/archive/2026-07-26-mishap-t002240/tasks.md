@@ -2,7 +2,7 @@
 title: "mishap-t002240 — Implementation Plan"
 ticket_id: T002240
 domains: [test, plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

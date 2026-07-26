@@ -1,0 +1,50 @@
+# ═══════════════════════════════════════════════════════════════════
+# T002187 — Pocket-ID DB init SQL (ausgelagert aus pocket-id.yaml).
+#
+# Diese ConfigMap enthält das DB-/Rollen-Bootstrap-SQL für Pocket ID.
+# Auslagerung aus dem command:-Block löst das $$-Escaping-Problem
+# (RC-2): envsubst/Flux-rendering zerstörte $$ → $ in SQL-Here-Docs,
+# was zu PostgreSQL-Syntax-Fehlern führte ("syntax error at or near
+# '$'"). Stattdessen wird die Datei via Volume-Mount + -f /sql/init.sql
+# direkt von psql gelesen — keine Shell-Escaping-Ebene dazwischen.
+#
+# Wichtig: Das Passwort wird via psql-Variable :'pw' übergeben, NICHT
+# in die ConfigMap geschrieben. Das Secret POCKET_ID_DB_PASSWORD bleibt
+# im workspace-secrets k8s Secret und wird per env + -v pw=... an psql
+# gereicht — es landet nie im YAML.
+# ═══════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pocket-id-db-init-sql
+  labels:
+    app: pocket-id
+data:
+  init.sql: |
+    -- T002187: DB-/Rollen-Bootstrap (idempotent).
+    -- Aufgerufen via psql -v ON_ERROR_STOP=1 -v pw="$POCKET_ID_DB_PASSWORD" -f /sql/init.sql
+    -- Das Passwort :'pw' kommt aus dem env, NIEMALS aus dem YAML oder einer
+    -- undefinierten psql-Variablen (RC-2b).
+
+    -- 1) Datenbank anlegen (idempotent)
+    SELECT 'CREATE DATABASE pocket_id'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'pocket_id')\gexec
+
+    -- 2) ROLE anlegen (idempotent)
+    DO $$
+    BEGIN
+      CREATE ROLE pocket_id;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$;
+
+    -- 3) Passwort setzen/rotieren (konvergent — RC-4)
+    --    :'pw' wird von psql belegt via -v pw=... Das Secret kommt aus
+    --    workspace-secrets.POCKET_ID_DB_PASSWORD und darf nie geloggt werden.
+    ALTER ROLE pocket_id WITH LOGIN PASSWORD :'pw';
+
+    -- 4) Grants
+    GRANT ALL PRIVILEGES ON DATABASE pocket_id TO pocket_id;
+
+    -- 5) Schema-Grant (eigenes Statement, eigener DB-Connect)
+    \c pocket_id
+    GRANT ALL ON SCHEMA public TO pocket_id;

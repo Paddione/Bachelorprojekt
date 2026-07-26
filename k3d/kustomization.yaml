@@ -95,6 +95,7 @@ resources:
   # Pocket ID — passkey-first OIDC provider on auth.<domain>, sole OIDC
   # issuer of the platform (T001068).
   - pocket-id.yaml
+  - pocket-id-db-init-sql.yaml
   # OIDC client seed Job (T001087) — idempotently registers the 16 clients
   - pocket-id-client-seed.yaml
   # RBAC for the seed Job to write generated secrets back into

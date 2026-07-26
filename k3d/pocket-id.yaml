@@ -63,6 +63,10 @@ spec:
               drop: [ALL]
             seccompProfile:
               type: RuntimeDefault
+          volumeMounts:
+            - name: init-sql
+              mountPath: /sql
+              readOnly: true
           env:
             - name: PGPASSWORD
               valueFrom:
@@ -83,20 +87,19 @@ spec:
             - /bin/sh
             - -ec
             - |
-              psql -v ON_ERROR_STOP=0 --username postgres --host shared-db <<'EOSQL'
-              SELECT 'CREATE DATABASE pocket_id'
-                WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'pocket_id')
-                \gexec
-              DO $$ BEGIN
-                CREATE ROLE pocket_id LOGIN PASSWORD :'pocket_id_pw';
-              EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-              GRANT ALL PRIVILEGES ON DATABASE pocket_id TO pocket_id;
-              EOSQL
-              psql -v ON_ERROR_STOP=0 --username postgres --host shared-db --dbname pocket_id <<'EOSQL'
-              GRANT ALL ON SCHEMA public TO pocket_id;
-              EOSQL
+              # ═══════════════════════════════════════════════════════════
+              # T002187: DB/Rollen-Bootstrap aus ConfigMap.
+              # SQL liegt in pocket-id-db-init-sql.yaml (ConfigMap,
+              # Key init.sql) — wird via Volume /sql gemounted.
+              # Kein $$-Escaping im command:-Block (RC-2): psql liest
+              # die Datei direkt, keine Shell-Escaping-Ebene.
+              # ═══════════════════════════════════════════════════════════
+              psql -v ON_ERROR_STOP=1 -v pw="$POCKET_ID_DB_PASSWORD" \
+                --username postgres --host shared-db \
+                -f /sql/init.sql
+              echo "DB init complete — schema+roles convergent"
 
-              # T001853: idempotent Pocket-ID admin bootstrap (admin user +
+              # T002187: idempotent Pocket-ID admin bootstrap (admin user +
               # seed-deploy api_keys row). Closes a chicken-and-egg: the
               # pocket-id-client-seed Job authenticates with
               # workspace-secrets.POCKET_ID_API_KEY, but that key was
@@ -124,18 +127,32 @@ spec:
                 echo "SKIP: pocket_id.api_keys table not present after ~120s — Pocket-ID app hasn't migrated yet. Bootstrap skipped (non-fatal)."
                 exit 0
               fi
-              psql -v ON_ERROR_STOP=0 --username postgres --host shared-db --dbname pocket_id <<EOSQL
+              # T002187: Admin-Bootstrap mit realem User-Lookup (keine
+              # hardcodierte UUID a0000000-... — RC-4). Die Admin-ID wird
+              # via SELECT aus der users-Tabelle aufgelöst. api_keys-INSERT
+              # nur, wenn ein Admin gefunden wurde; sonst SKIP-Meldung.
+              psql -v ON_ERROR_STOP=1 --username postgres --host shared-db --dbname pocket_id \
+                -v admin_user="paddione" <<EOSQL
+              -- Admin-User idempotent anlegen (nur wenn nicht vorhanden)
               INSERT INTO users (id, created_at, username, email, first_name, last_name, is_admin, display_name, email_verified)
-              VALUES ('a0000000-0000-4000-8000-000000000001', now(), 'paddione', 'admin@bootstrap.invalid', 'Admin', 'Bootstrap', true, 'Admin (Bootstrap)', true)
-              ON CONFLICT (username) DO NOTHING;
+              SELECT gen_random_uuid(), now(), 'paddione', 'admin@bootstrap.invalid', 'Admin', 'Bootstrap', true, 'Admin (Bootstrap)', true
+              WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'paddione');
 
+              -- API-Key nur anlegen, wenn der Admin-User existiert (RC-4)
+              WITH admin AS (
+                SELECT id FROM users WHERE username = :'admin_user' AND is_admin LIMIT 1
+              )
               INSERT INTO api_keys (id, name, key, description, expires_at, created_at, user_id)
-              VALUES (gen_random_uuid(), 'seed-deploy',
-                      encode(sha256(convert_to('$POCKET_ID_API_KEY', 'UTF8')), 'hex'),
-                      'bootstrap key for pocket-id-client-seed (sha256 of workspace-secrets.POCKET_ID_API_KEY)',
-                      '4051-01-01T00:00:00Z', now(), 'a0000000-0000-4000-8000-000000000001')
+              SELECT gen_random_uuid(), 'seed-deploy',
+                     encode(sha256(convert_to('$POCKET_ID_API_KEY', 'UTF8')), 'hex'),
+                     'bootstrap key for pocket-id-client-seed (sha256 of workspace-secrets.POCKET_ID_API_KEY)',
+                     '4051-01-01T00:00:00Z', now(), admin.id
+              FROM admin
+              WHERE admin.id IS NOT NULL
               ON CONFLICT (key) DO NOTHING;
               EOSQL
+              # T002187: Erfolgsmeldung nur bei erfolgreicher Ausführung
+              # (ON_ERROR_STOP=1 bricht bei Fehlern ab — sonst hier OK)
               echo "✓ Pocket-ID admin bootstrap complete"
           resources:
             requests:
@@ -144,6 +161,10 @@ spec:
             limits:
               cpu: "200m"
               memory: "128Mi"
+      volumes:
+        - name: init-sql
+          configMap:
+            name: pocket-id-db-init-sql
 ---
 # Pocket ID Deployment — runs the stonith404/pocket-id server on port 1411.
 # Env is built from:

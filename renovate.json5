@@ -36,7 +36,20 @@
     // HTML files with intentional hidden Unicode characters (soft hyphens,
     // non-breaking spaces, zero-width joiners) that Renovate flags as
     // "Hidden Unicode characters" warnings. These are legitimate content
-    // characters, not smuggling attempts. [TBD]
+    // characters, not smuggling attempts.
+    //
+    // The warning still fires after these entries (T002246). A full scan of all
+    // tracked files found 15 hits, only 6 of which are listed here; the other 9
+    // are Markdown/JSON/JSX/TS/Svelte files across docs/, openspec/changes/archive/,
+    // tests/e2e/ and website/src/. Every hit is U+00AD (soft hyphen, German
+    // hyphenation), U+200B (zero-width space) or U+200C/U+200D (ZWJ inside emoji
+    // sequences) — no bidirectional overrides (U+202A–U+202E), so there is no
+    // Trojan-Source exposure. Whether ignorePaths gates the Unicode scanner at all
+    // is unverified: one hit sits under the already-ignored tests/e2e/**, but the
+    // 8 remaining unignored files would trigger the warning regardless. Confirming
+    // that needs a LOG_LEVEL=debug run, which lists the offending files.
+    // Reproduce the scan with:
+    //   git ls-files -z | xargs -0 grep -lIP '[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2064}\x{FEFF}\x{00AD}]'
     "docs/legacy-html/systembrett.html",
     "environments/korczewski/KERN Logo Design.html",
     "environments/mentolder/ui_kits/website/index.html",
@@ -152,12 +165,19 @@
     // alternative matchPackagePatterns is deprecated in Renovate v43+ and would
     // trigger "Config needs migrating".
     //
-    // Known cosmetic WARN: "Error obtaining docker token" for bare "paddione"
-    // (NAME_INVALID on ghcr.io) still appears because Renovate does a
-    // registry-level token request before evaluating the disable rule. The
-    // warning is harmless — no updates are proposed for these packages.
+    // The bare "paddione" entry is NOT a typo (T002246). k3d/website.yaml uses
+    //   image: ghcr.io/paddione/${WEBSITE_IMAGE}:${WEBSITE_IMAGE_TAG}
+    // and the kubernetes manager does not resolve envsubst placeholders — it
+    // drops them and extracts the dep as bare "paddione". That name is invalid
+    // on ghcr.io, so the lookup produced
+    //   WARN: Error obtaining docker token … NAME_INVALID
+    //   WARN: No docker auth found - returning
+    // on every run. The regex above only matches "ghcr.io/paddione/<something>"
+    // and therefore never covered it. An earlier comment here claimed the warning
+    // was unavoidable because the token request precedes rule evaluation — that
+    // was wrong: enabled:false drops the dep before the datasource lookup runs.
     {
-      "matchPackageNames": ["/^ghcr.io/paddione//"],
+      "matchPackageNames": ["/^ghcr.io/paddione//", "paddione"],
       "enabled": false
     },
 

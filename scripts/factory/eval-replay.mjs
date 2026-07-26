@@ -46,17 +46,32 @@ export async function runReplay({ fixtureId, fixturesDir, meta, dryRun }) {
   const branch = `eval-replay-${fixtureId.toLowerCase()}-${ts}`
   const worktreePath = resolve(REPO, '.worktrees', branch)
 
+  // A dry run asserts only that the fixture is replayable — it never invokes the
+  // implementer, so the worktree it used to create was pure overhead AND the
+  // suite's one source of shared, mutable state [T002240]. worktree-create.sh
+  // touches the *whole repository*: its divergence guard fast-forwards local
+  // `main` via `git fetch origin main:main`, which git refuses whenever `main` is
+  // checked out in another worktree. FA-SF-72 therefore failed or passed
+  // depending on whether origin/main had moved since the last local sync —
+  // "flaky" in a full run, green in isolation, with nothing in the test itself
+  // to explain it. Validate the base commit locally instead; no repo mutation,
+  // no dependence on the state of any other checkout.
+  if (dryRun) {
+    try {
+      exec('git', ['cat-file', '-e', `${baseCommit}^{commit}`], { cwd: REPO, stdio: 'pipe' })
+    } catch {
+      throw new Error(`Fixture ${fixtureId}: base_commit ${baseCommit} not found in this repo`)
+    }
+    console.log(`  [replay dry-run] base commit ${baseCommit} resolvable — no worktree created`)
+    return []
+  }
+
   let created = false
   try {
     // Use worktree-create.sh for git-crypt-safe skeleton creation.
     // Pass a synthetic branch name so the helper creates a new branch from baseCommit.
     exec('bash', [WORKTREE_CREATE, branch, worktreePath, baseCommit], { cwd: REPO })
     created = true
-
-    if (dryRun) {
-      console.log(`  [replay dry-run] worktree ready at ${baseCommit}`)
-      return []
-    }
 
     const ticketPath = join(fixturesDir, fixtureId, 'ticket.json')
     const ticket = existsSync(ticketPath) ? JSON.parse(exec('cat', [ticketPath], { cwd: REPO })) : {}

@@ -3199,7 +3199,6 @@ REG="scripts/factory/service-registry.sh"
 }
 
 @test "FA-SF-72: eval.mjs --replay --dry-run records mode=replay and touches no LLM" {
-  skip "Pre-existing regression — eval fixture path differs in CI context"
   local fid="T000FAKE"
   mkdir -p "$TEST_TMP_DIR/factory-eval-fixtures/$fid"
   cat > "$TEST_TMP_DIR/factory-eval-fixtures/$fid/ticket.json" <<'EOF'
@@ -3229,6 +3228,55 @@ EOF
   run jq -r '.scores[0].base_commit' "$TEST_TMP_DIR/replay-out/latest.json"
   [ "$status" -eq 0 ]
   [ "$output" = "$base_commit" ]
+}
+
+# T002240: the test above was order-/state-dependently flaky (and got skipped on
+# main as "pre-existing regression"). Cause: the dry run shelled out to
+# worktree-create.sh, whose divergence guard mutates the SHARED repository —
+# `git fetch origin main:main` fails whenever local main is behind origin/main
+# and main is checked out elsewhere. These two assertions pin the isolation so a
+# future edit re-introducing the worktree in dry-run mode fails a test instead of
+# a random CI run.
+@test "FA-SF-72: eval replay dry-run creates no worktree and no branch [T002240]" {
+  local fid="T000FAKE2"
+  mkdir -p "$TEST_TMP_DIR/factory-eval-fixtures/$fid"
+  cat > "$TEST_TMP_DIR/factory-eval-fixtures/$fid/ticket.json" <<'EOF'
+{"title":"Replay fixture","description":"fake","type":"bug","external_id":"T000FAKE2","brand":"mentolder","area":"factory"}
+EOF
+  cat > "$TEST_TMP_DIR/factory-eval-fixtures/$fid/expected.json" <<'EOF'
+{"files":["scripts/factory/eval.mjs"],"forbidden":[],"tests":[],"min_recall":0,"min_precision":0}
+EOF
+  local base_commit
+  base_commit=$(git rev-parse HEAD)
+  cat > "$TEST_TMP_DIR/factory-eval-fixtures/$fid/meta.json" <<EOF
+{"base_commit":"$base_commit","pr_number":9999,"generated_at":"2026-07-19T00:00:00Z","source":"test"}
+EOF
+
+  local worktrees_before branches_before
+  worktrees_before=$(git worktree list | wc -l)
+  branches_before=$(git branch --list 'eval-replay-*' | wc -l)
+
+  run node scripts/factory/eval.mjs \
+    --replay --fixture "$fid" --dry-run \
+    --fixtures-dir "$TEST_TMP_DIR/factory-eval-fixtures" \
+    --out-dir "$TEST_TMP_DIR/replay-out2"
+  echo "exit=$status output=$output"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"no worktree created"* ]]
+
+  # no residue in the shared repo — this is the isolation that fixes the flake
+  [ "$(git worktree list | wc -l)" -eq "$worktrees_before" ]
+  [ "$(git branch --list 'eval-replay-*' | wc -l)" -eq "$branches_before" ]
+}
+
+@test "FA-SF-72: eval-replay.mjs does not call worktree-create.sh in dry-run mode [T002240]" {
+  # The dry-run early return must sit BEFORE the worktree-create.sh invocation.
+  local dry_line wt_line
+  dry_line=$(grep -n 'if (dryRun)' scripts/factory/eval-replay.mjs | head -1 | cut -d: -f1)
+  wt_line=$(grep -n 'WORKTREE_CREATE' scripts/factory/eval-replay.mjs | tail -1 | cut -d: -f1)
+  [ -n "$dry_line" ]
+  [ -n "$wt_line" ]
+  [ "$dry_line" -lt "$wt_line" ]
 }
 
 @test "FA-SF-72: task factory:eval:gen refuses to overwrite existing fixture" {

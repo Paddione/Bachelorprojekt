@@ -49,6 +49,7 @@ Diese Pfadliste lebt NUR hier (wartungskritisch — bei neuen Generatoren hier e
 ```bash
 git add \
   website/src/data/test-inventory.json \
+  website/src/data/openspec-status.json \
   website/src/data/route-manifest.json \
   website/src/lib/learning-assets.generated.json \
   "website/public/learning-assets/THIRD-PARTY-ASSETS.md" \

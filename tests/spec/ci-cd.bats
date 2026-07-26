@@ -738,3 +738,82 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
     return 1
   }
 }
+
+# ── T002161: Renovate lief seit Einfuehrung nie (5/5 Cron-Runs failure).
+#    RC1: Repo-Secret RENOVATE_TOKEN existiert nicht.
+#    RC2: Die Anleitung in renovate.yml:6-9 ist strukturell unmoeglich — ein
+#         GitHub-App-Installation-Token hat 1h TTL und kann nicht als statisches
+#         Repo-Secret hinterlegt werden. Fix: actions/create-github-app-token
+#         praegt pro Run einen frischen Token aus App-Client-ID + Private Key.
+#    RC3: auto-enable-automerge.yml setzt --auto auf JEDER Nicht-Draft-PR und
+#         hebelt damit Renovates gestufte automerge-Policy aus (main hat
+#         reviews: null). Fix: label-basierte Ausnahme + platformAutomerge.
+#    Alle vier Tests sind erwartet: FAIL — der Fix ist noch nicht implementiert.
+
+@test "T002161-A: renovate.yml praegt den Token via create-github-app-token (SHA-gepinnt)" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  grep -qE 'uses: actions/create-github-app-token@[0-9a-f]{40}' "$wf" || {
+    echo "FAIL: kein SHA-gepinnter actions/create-github-app-token-Step in renovate.yml."
+    echo "      Ein GitHub-App-Installation-Token hat 1h TTL und kann NICHT als"
+    echo "      statisches Repo-Secret hinterlegt werden — der Workflow muss pro Run"
+    echo "      einen frischen Token aus RENOVATE_APP_CLIENT_ID + RENOVATE_APP_PRIVATE_KEY"
+    echo "      praegen. SHA-Pin ist Pflicht (Konvention renovate.yml: nie @latest fuer"
+    echo "      secret-tragende Third-Party-Actions)."
+    return 1
+  }
+}
+
+@test "T002161-A: renovate.yml nutzt client-id (nicht das in v3 deprecated app-id)" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  grep -qE '^\s+client-id:' "$wf" || {
+    echo "FAIL: create-github-app-token wird ohne client-id:-Input aufgerufen."
+    echo "      In v3 ist app-id: deprecated ('Use client-id instead.'), siehe"
+    echo "      action.yml der Action. Erwartet: client-id mit dem Secret"
+    echo "      RENOVATE_APP_CLIENT_ID."
+    return 1
+  }
+}
+
+@test "T002161-B: renovate.yml uebergibt den gepraegten App-Token, nicht ein statisches Secret" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  grep -qE 'steps\.[a-z-]+\.outputs\.token' "$wf" || {
+    echo "FAIL: renovatebot/github-action bekommt keinen Token aus dem"
+    echo "      create-github-app-token-Step (steps.<id>.outputs.token)."
+    echo "      Ein direkt referenziertes secrets.RENOVATE_TOKEN ist leer (nie gesetzt)"
+    echo "      und laesst Renovate bei der Platform-Auth abbrechen — genau die"
+    echo "      Ursache der 5 fehlgeschlagenen Cron-Runs 2026-06-22..2026-07-20."
+    return 1
+  }
+}
+
+@test "T002161-C: auto-enable-automerge.yml nimmt Renovate-PRs (dependencies-Label) aus" {
+  local wf="$REPO_ROOT/.github/workflows/auto-enable-automerge.yml"
+  grep -q "labels.\*.name" "$wf" && grep -q "dependencies" "$wf" || {
+    echo "FAIL: auto-enable-automerge.yml prueft das dependencies-Label nicht."
+    echo "      Der Workflow setzt --auto --squash auf JEDER Nicht-Draft-PR gegen main,"
+    echo "      und main hat reviews: null (keine Review-Pflicht). Damit mergen auch"
+    echo "      Renovate-PRs durch, fuer die renovate.json5 bewusst automerge: false"
+    echo "      setzt (major, prod-minor, kubernetes-major) — z.B. ein Vaultwarden-"
+    echo "      Minor-Bump, der via Flux auf beide Prod-Brands ausgerollt wird."
+    echo "      Erwartet: label-basierter Guard (nicht Bot-Name — der haengt am"
+    echo "      frei waehlbaren App-Namen)."
+    return 1
+  }
+}
+
+@test "T002161-D: renovate.json5 labelt seine PRs und setzt platformAutomerge" {
+  local cfg="$REPO_ROOT/renovate.json5"
+  grep -qE '"labels"\s*:\s*\[' "$cfg" || {
+    echo "FAIL: renovate.json5 setzt kein labels: [...]. Ohne Label kann"
+    echo "      auto-enable-automerge.yml Renovate-PRs nicht von eigenen PRs"
+    echo "      unterscheiden (siehe T002161-C)."
+    return 1
+  }
+  grep -qE '"platformAutomerge"\s*:\s*true' "$cfg" || {
+    echo "FAIL: renovate.json5 setzt platformAutomerge nicht explizit auf true."
+    echo "      Sobald auto-enable-automerge.yml Renovate-PRs auslaesst, muss"
+    echo "      Renovate das Auto-Merge-Flag selbst setzen — aber nur fuer die PRs,"
+    echo "      die seine eigene Policy erlaubt (patch + devDependencies)."
+    return 1
+  }
+}

@@ -16,10 +16,31 @@
 #   - namespace PSA: privileged (so the caps are admissible)
 #   - securityContext.capabilities.add: [SYS_ADMIN, MKNOD]
 #   - no runAsUser override (coolwsd refuses to start as root)
-ARG UPSTREAM_TAG=25.04.9.4.1
+#
+# Multi-stage build: upstream images >=26.04 are distroless (no /bin/sh),
+# so we install setcap in a builder stage and copy the needed binaries
+# into the upstream image so we can run setcap.
+ARG UPSTREAM_TAG=26.04.2.3.1
+
+# ── Stage 1: builder with setcap ────────────────────────────────
+FROM debian:bookworm-slim AS builder
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libcap2-bin \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Stage 2: final image (upstream Collabora) ───────────────────
 FROM collabora/code:${UPSTREAM_TAG}
 
 USER root
+
+# Copy setcap and its dependencies from builder to work around distroless base
+COPY --from=builder /usr/sbin/setcap /usr/sbin/setcap
+COPY --from=builder /usr/sbin/getcap /usr/sbin/getcap
+COPY --from=builder /bin/sh /bin/sh
+COPY --from=builder /lib/x86_64-linux-gnu/libcap.so.2 /lib/x86_64-linux-gnu/libcap.so.2
+COPY --from=builder /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
+COPY --from=builder /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2
+
 # The upstream image ships two forkit binaries:
 #   /usr/bin/coolforkit-caps — uses CAP_SYS_ADMIN directly to bind-mount
 #                              /opt/cool/systemplate into each jail.
@@ -40,13 +61,13 @@ USER root
 # picks the caps path, and also setcap coolwsd itself so its own
 # startup bind-mount self-test passes (needed before coolwsd will
 # mark bind-mounting as usable at all).
-RUN setcap cap_chown,cap_fowner,cap_mknod,cap_sys_admin,cap_sys_chroot=ep \
+RUN /usr/sbin/setcap cap_chown,cap_fowner,cap_mknod,cap_sys_admin,cap_sys_chroot=ep \
         /usr/bin/coolforkit-caps \
-    && setcap cap_chown,cap_fowner,cap_mknod,cap_sys_admin,cap_sys_chroot,cap_setuid,cap_setgid=ep \
+    && /usr/sbin/setcap cap_chown,cap_fowner,cap_mknod,cap_sys_admin,cap_sys_chroot,cap_setuid,cap_setgid=ep \
         /usr/bin/coolforkit-ns \
-    && setcap cap_sys_admin,cap_mknod,cap_setuid,cap_setgid=eip \
+    && /usr/sbin/setcap cap_sys_admin,cap_mknod,cap_setuid,cap_setgid=eip \
         /usr/bin/coolwsd \
-    && getcap /usr/bin/coolforkit-caps /usr/bin/coolforkit-ns /usr/bin/coolwsd
+    && /usr/sbin/getcap /usr/bin/coolforkit-caps /usr/bin/coolforkit-ns /usr/bin/coolwsd
 
 # Collabora's own entrypoint refuses to start as root, so we flip back
 # to the image's original user (uid 1001, cool). File capabilities

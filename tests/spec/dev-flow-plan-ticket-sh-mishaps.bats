@@ -41,33 +41,62 @@ _step37_block() {
   ' "$REPO/.agents/skills/dev-flow-plan/SKILL.md"
 }
 
-@test "M1: dev-flow-plan SKILL.md step 3.7 prompt mentions the F1 frontmatter key 'title'" {
+# T002181: Die M1-Tests grepten ausschliesslich im Step-3.7-Block des SKILL.md.
+# Seit der Umstellung auf Referenz-SSOT zählt der Block die Hard Rules nicht mehr
+# auf, sondern verweist verbindlich auf references/plan-quality-gates.md ("der
+# Subagent MUSS die Datei lesen"). Die Anforderung — ein frischer Subagent muss
+# die Regeln kennen, ohne zu raten — besteht unverändert; sie wird nur über eine
+# Kette erfüllt statt über eine Kopie.
+#
+# Geprüft wird deshalb der *wirksame* Prompt-Text: der Block selbst PLUS der
+# Inhalt jeder Referenzdatei, die er verbindlich einbindet. Ein Verweis ins Leere
+# fällt damit weiterhin auf, eine Auslagerung nicht mehr.
+_step37_effective_text() {
+  local block gates
   block="$(_step37_block)"
+  printf '%s\n' "$block"
+
+  # Der Block bindet plan-quality-gates.md verbindlich ein ("der Subagent MUSS
+  # die Datei lesen"). Zwei Bedingungen müssen gelten, sonst zeigt der Verweis
+  # ins Leere und die Kette trägt nicht:
+  #   (a) der Block nennt die Referenz überhaupt,
+  #   (b) die referenzierte Datei existiert.
+  gates="$REPO/.claude/skills/references/plan-quality-gates.md"
+  [ -f "$gates" ] || gates="$REPO/.agents/skills/references/plan-quality-gates.md"
+
+  printf '%s\n' "$block" | grep -q 'plan-quality-gates' || return 1
+  [ -f "$gates" ] || return 1
+
+  cat "$gates"
+}
+
+@test "M1: dev-flow-plan SKILL.md step 3.7 prompt mentions the F1 frontmatter key 'title'" {
+  block="$(_step37_effective_text)"
   echo "$block" | grep -Eq '\btitle\b' || { echo "MISSING title key in Step 3.7 prompt"; return 1; }
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt mentions the F1 frontmatter key 'ticket_id'" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   echo "$block" | grep -Eq '\bticket_id\b' || { echo "MISSING ticket_id key in Step 3.7 prompt"; return 1; }
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt mentions the F1 frontmatter key 'domains'" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   echo "$block" | grep -Eq '\bdomains\b' || { echo "MISSING domains key in Step 3.7 prompt"; return 1; }
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt mentions the F1 frontmatter key 'status'" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   echo "$block" | grep -Eq '\bstatus\b' || { echo "MISSING status key in Step 3.7 prompt"; return 1; }
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt requires the '## File Structure' section" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   echo "$block" | grep -Eq 'File Structure' || { echo "MISSING 'File Structure' requirement in Step 3.7 prompt"; return 1; }
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt requires a failing-test step with the 'expected: FAIL' phrase" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   # The plan-lint STRUCT2 regex matches `expected:? *fail` (case-insensitive).
   # We require the author-side phrase to appear verbatim in the prompt.
   echo "$block" | grep -Eqi 'expected: *FAIL|expected:? *fail' || {
@@ -77,7 +106,7 @@ _step37_block() {
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt forbids open placeholders (TBD/TODO/FIXME) in plan prose" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   # The P1 rule strips fenced code blocks + inline code, then bans TBD/TODO/FIXME
   # in the remaining prose. The prompt must warn the author about this.
   echo "$block" | grep -Eqi 'TBD|TODO|FIXME' || {
@@ -87,7 +116,7 @@ _step37_block() {
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt requires 'task test:changed' in the verify task" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   echo "$block" | grep -Eq 'task[[:space:]]+test:changed' || {
     echo "MISSING 'task test:changed' requirement in Step 3.7 prompt"
     return 1
@@ -95,7 +124,7 @@ _step37_block() {
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt requires 'task freshness:regenerate' in the verify task" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   echo "$block" | grep -Eq 'task[[:space:]]+freshness:regenerate' || {
     echo "MISSING 'task freshness:regenerate' requirement in Step 3.7 prompt"
     return 1
@@ -103,7 +132,7 @@ _step37_block() {
 }
 
 @test "M1: dev-flow-plan SKILL.md step 3.7 prompt requires 'task freshness:check' in the verify task" {
-  block="$(_step37_block)"
+  block="$(_step37_effective_text)"
   echo "$block" | grep -Eq 'task[[:space:]]+freshness:check' || {
     echo "MISSING 'task freshness:check' requirement in Step 3.7 prompt"
     return 1

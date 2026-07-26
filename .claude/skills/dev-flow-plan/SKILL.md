@@ -327,7 +327,9 @@ bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
 ### Schritt 4: Plan prüfen & übernehmen
 Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurückgegebenen Plan und prüfe ihn gegen die im Brainstorming getroffenen Entscheidungen. Prüfe zusätzlich die Gate-Konformität (Checkliste in [plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)): S1-Budgets gegen die **wirksame Schwelle** (Baseline-Wert falls gebaselined, sonst Limit) pro Datei notiert — und bei Budget≈0 ein echter Verkleinerungs-/Split-Schritt statt kosmetischem Zusammenziehen? Finaler Verifikations-Task enthält `task test:changed` + `task freshness:regenerate` + `task freshness:check`? Keine Brand-Domain-Literale in den Code-Snippets? Bei Lücken oder Abweichungen delegiere erneut (Schritt 3.7) mit konkreten Korrektur-Hinweisen. Erst wenn der Plan passt, weiter zu Schritt 4.5.
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
-SSOT für Ticket-Anlage, Stage und Embedding: [ticket-stage-procedure](file:///home/patrick/Bachelorprojekt/.worktrees/agentic-skill-hygiene-T002143/.claude/skills/references/ticket-stage-procedure.md)
+SSOT für Ticket-Anlage, Stage und Embedding: [ticket-stage-procedure](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-stage-procedure.md)
+
+Dort steht auch der Ticket-Claim für diesen Schritt (`bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" …`, Session-Koordination [T000510]) — er muss laufen, bevor der Pre-Commit-Guard in Schritt 5 die Lock-Datei liest.
 ### Schritt 5: Commit & Push — dann STOPP
 **Pre-Commit Guard (PFLICHT — Schritt 5) [T001268]:**
 Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:

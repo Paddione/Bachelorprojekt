@@ -87,8 +87,16 @@ WEB="$BATS_TEST_DIRNAME/../../website/src"
 }
 
 @test "admin-nav-accordion: AdminSidebarNav toggles collapse state on click" {
-  run grep -qF "addEventListener.*click" "$ADMIN_SIDEBAR" || \
-  run grep -qF "addEventListener" "$ADMIN_SIDEBAR"
+  # T002181: `grep -qF "addEventListener.*click"` nahm `.*` als Literal (-F) und
+  # fand nie etwas. Der `|| run …`-Fallback griff nie, weil `run` selbst immer
+  # mit 0 zurückkehrt — die zweite Prüfung war toter Code. Jetzt wird der
+  # Mechanismus wirklich geprüft: Click-Handler UND Zustandsumschaltung.
+  run grep -qE "addEventListener\(['\"]click['\"]" "$ADMIN_SIDEBAR"
+  [ "$status" -eq 0 ]
+  run grep -qE "classList\.toggle\(" "$ADMIN_SIDEBAR"
+  [ "$status" -eq 0 ]
+  # a11y: der Toggle muss seinen Zustand auch bekanntgeben.
+  run grep -qF "aria-expanded" "$ADMIN_SIDEBAR"
   [ "$status" -eq 0 ]
 }
 

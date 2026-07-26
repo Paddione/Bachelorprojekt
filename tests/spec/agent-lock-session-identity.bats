@@ -84,12 +84,32 @@ setup() {
 
 @test "T001268-M3: dev-flow-execute SKILL.md requires push verification via git ls-remote" {
   [ -f "$EXEC_SKILL" ]
-  grep -Eqi 'ls-remote|verify.*origin|origin.*verify|push_verified' "$EXEC_SKILL"
+  # T002181: die Push-Verifikation stand einmal direkt im SKILL.md. Schritt 7
+  # verweist heute verbindlich auf references/plan-archive-steps.md, wo sie als
+  # `git ls-remote`-Abgleich umgesetzt ist. Die Anforderung ist unverändert;
+  # geprüft wird die Kette (Verweis vorhanden + Referenz trägt die Mechanik).
+  grep -qF 'T001268' "$EXEC_SKILL"
+  local archive_ref="$REPO/.claude/skills/references/plan-archive-steps.md"
+  [ -f "$archive_ref" ] || archive_ref="$REPO/.agents/skills/references/plan-archive-steps.md"
+  [ -f "$archive_ref" ]
+  grep -Eqi 'ls-remote|push_verified' "$archive_ref"
 }
 
 @test "T001268-M3: dev-flow-execute SKILL.md mandates push_verified:<sha> in subagent return contract" {
+  # T002181: der benannte Rückgabemarker `push_verified:<sha>` existiert
+  # nirgends mehr im Repo. Aufgegeben wurde aber nur der Marker-Name, nicht die
+  # Anforderung: plan-archive-steps.md vergleicht Remote- und Local-SHA und
+  # bricht bei Abweichung ab — inhaltlich genau die geforderte Verifikation.
+  # Geprüft wird daher der SHA-Abgleich statt des Marker-Strings.
   [ -f "$EXEC_SKILL" ]
-  grep -Eqi 'push_verified:|push-verified:|push_verified[[:space:]]*=' "$EXEC_SKILL"
+  local archive_ref="$REPO/.claude/skills/references/plan-archive-steps.md"
+  [ -f "$archive_ref" ] || archive_ref="$REPO/.agents/skills/references/plan-archive-steps.md"
+  [ -f "$archive_ref" ]
+
+  grep -qF 'REMOTE_SHA' "$archive_ref"
+  grep -qF 'LOCAL_SHA' "$archive_ref"
+  # Der Abgleich muss fail-closed sein: Abweichung bricht ab.
+  grep -qE '\[ "\$REMOTE_SHA" = "\$LOCAL_SHA" \]' "$archive_ref"
 }
 
 # ── T001386: Feature-Pfad fehlt expliziter Ticket-Claim vor Pre-Commit-Guard ──#

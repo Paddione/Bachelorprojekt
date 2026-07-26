@@ -47,8 +47,9 @@ env_vars:
     default_dev: ""
 
   # LLM_GATEWAY_URL: OpenAI-kompatibler Gateway-Endpoint für den Provider 'anthropic'
-  # in lib/openai-compatible-session-agent.ts; Fallback ist der Cluster-DNS
-  # llm-gateway-lmstudio.workspace.svc.cluster.local:1234/v1.
+  # in lib/openai-compatible-session-agent.ts. Der frühere Fallback auf den
+  # Cluster-DNS des LM-Studio-Gateways ist entfallen — der Dienst wurde
+  # abgeschaltet (T002102, unified llm-proxy).
   - name: LLM_GATEWAY_URL
     required: false
     default_dev: ""

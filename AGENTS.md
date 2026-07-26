@@ -72,10 +72,15 @@ bash scripts/agent-escalate.sh --agent "bachelorprojekt-<role>" --reason "<what>
 Use `codebase-memory-mcp` tools first (before grep/glob):
 - `search_graph(name_pattern=…)`, `trace_path(function_name=…)`, `get_code_snippet(qualified_name=…)`, `query_graph(query=…)`, `get_architecture(aspects=…)`, `search_code(pattern=…)`
 
-## OpenSpec
+## OpenSpec conventions
 
 - Proposals/specs under `openspec/`. Lifecycle: `/opsx:propose <slug>` → `/opsx:apply <slug>` → `/opsx:archive <slug>`.
 - Language: Purpose in German; Requirements/Scenarios in English (GIVEN/WHEN/THEN).
+- Delta files in `openspec/changes/<slug>/specs/` are named after the **parent SSOT slug**, not the change slug (`openspec.sh propose <change-slug> --ticket T… --target-spec <parent-slug>`). A genuinely new component needs `archive --create-new`.
+
+## Dev experience
+
+- After installing the OpenSpec CLI, run `openspec completion install` once to enable shell completions (bash/zsh/fish/powershell).
 
 ---
 

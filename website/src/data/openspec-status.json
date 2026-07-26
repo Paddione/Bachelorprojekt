@@ -1413,6 +1413,30 @@
       "status": "plan_staged"
     }
   ],
+  "T002142": [
+    {
+      "slug": "agentic-routing-frontmatter-drift",
+      "status": "plan_staged"
+    }
+  ],
+  "T002143": [
+    {
+      "slug": "agentic-skill-hygiene",
+      "status": "plan_staged"
+    }
+  ],
+  "T002144": [
+    {
+      "slug": "ops-resolve-nonready-pods",
+      "status": "plan_staged"
+    }
+  ],
+  "T002145": [
+    {
+      "slug": "ops-db-slow-query-and-e2e-failures",
+      "status": "plan_staged"
+    }
+  ],
   "T002149": [
     {
       "slug": "website-db-split",

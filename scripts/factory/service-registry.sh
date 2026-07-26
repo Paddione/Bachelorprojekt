@@ -73,6 +73,7 @@ declare -A SERVICE_REGISTRY=(
   [k3d/videovault.yaml]="videovault"
   # Pocket ID migration (#2042/#2057) + new services — classified to match app: labels
   [k3d/pocket-id.yaml]="pocket-id"
+  [k3d/pocket-id-db-init-sql.yaml]="pocket-id"
   [k3d/pocket-id-client-seed.yaml]="pocket-id"
   [k3d/pocket-id-client-seed-rbac.yaml]="pocket-id"
   [k3d/pocket-id-client-seed-website-rbac.yaml]="pocket-id"

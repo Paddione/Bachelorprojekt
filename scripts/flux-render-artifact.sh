@@ -8,8 +8,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 OUT_DIR="out"
-WEBSITE_IMAGE_OVERRIDE="${WEBSITE_IMAGE_TAG:-}"
-BRETT_IMAGE_OVERRIDE="${BRETT_IMAGE_TAG:-}"
+# WEBSITE_IMAGE_OVERRIDE steuert den Image-NAMEN (--website-image CLI-Flag),
+# WEBSITE_IMAGE_TAG steuert den Image-Tag — getrennte Konzepte, nicht koppeln (T002209).
+# Siehe Task 2.2 fuer die Default-Werte des Tags.
+WEBSITE_IMAGE_OVERRIDE=""
+BRETT_IMAGE_OVERRIDE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in

@@ -6,37 +6,37 @@
 
 Vaultwarden ist der self-hosted Bitwarden-kompatible Passwort-Manager der Workspace-Plattform.
 Diese Spec beschreibt den Integrationsvertrag zwischen Vaultwarden und den umgebenden
-Plattformdiensten: Keycloak (SSO-Login-Flow), PostgreSQL (Datenbank), SMTP (E-Mail-Benachrichtigungen),
+Plattformdiensten: Pocket ID (SSO-Login-Flow), PostgreSQL (Datenbank), SMTP (E-Mail-Benachrichtigungen),
 dem Bitwarden-CLI (Seed-Job), sowie der Backup-Pipeline.
 
 ---
 
 ## Requirements
 
-### Requirement: SSO-Only-Login via Keycloak OIDC
+### Requirement: SSO-Only-Login via Pocket ID OIDC
 
-The system SHALL authenticate all Vaultwarden users exclusively via Keycloak OIDC using PKCE;
+The system SHALL authenticate all Vaultwarden users exclusively via Pocket ID OIDC using PKCE;
 direct password-based logins SHALL be disabled (`SSO_ONLY=true`) so that kein lokaler
-Account-Bypass möglich ist. Der OIDC-Client `vaultwarden` ist als confidential client im
-Keycloak-Realm `workspace` registriert.
+Account-Bypass möglich ist. Der OIDC-Client `vaultwarden` wird vom `pocket-id-client-seed`-Job
+als confidential client in `pocket_id.oidc_clients` provisioniert.
 
 #### Scenario: Normaler Login-Flow via SSO
 - **GIVEN** ein Nutzer ruft `https://vault.<PROD_DOMAIN>` auf
 - **WHEN** er auf "Log in with SSO" klickt
-- **THEN** wird er zum Keycloak-Realm `workspace` unter `https://auth.<PROD_DOMAIN>/realms/workspace` umgeleitet
-- **AND** nach erfolgreichem Login leitet Keycloak zurück auf `/identity/connect/oidc-signin`; die E-Mail aus dem OIDC-Token wird als Vaultwarden-Account-Identität verwendet
+- **THEN** wird er zu Pocket ID unter `https://auth.<PROD_DOMAIN>` umgeleitet
+- **AND** nach erfolgreichem Login leitet Pocket ID zurück auf `/identity/connect/oidc-signin`; die E-Mail aus dem OIDC-Token wird als Vaultwarden-Account-Identität verwendet
 
 #### Scenario: PKCE-Absicherung des Auth-Flows
 - **GIVEN** `SSO_PKCE=true` und `SSO_SCOPES=email profile` sind konfiguriert
-- **WHEN** Vaultwarden die OIDC-Authorization-Anfrage an Keycloak sendet
+- **WHEN** Vaultwarden die OIDC-Authorization-Anfrage an Pocket ID sendet
 - **THEN** enthält die Anfrage einen `code_challenge`-Parameter (S256)
-- **AND** Keycloak lehnt Requests ohne gültigen `code_verifier` beim Token-Austausch ab
+- **AND** Pocket ID lehnt Requests ohne gültigen `code_verifier` beim Token-Austausch ab
 
 #### Scenario: Dev vs. Prod OIDC-Endpoint
 - **GIVEN** der Deployment-Context ist `dev` (k3d)
 - **WHEN** Vaultwarden die `SSO_AUTHORITY` liest
-- **THEN** zeigt sie auf `http://keycloak:8080/realms/workspace` (cluster-intern, kein TLS)
-- **AND** in Prod (fleet) zeigt `SSO_AUTHORITY` auf `https://auth.<PROD_DOMAIN>/realms/workspace` (via prod-Patch `patch-vaultwarden.yaml`)
+- **THEN** zeigt sie auf `http://pocket-id:1411` (cluster-intern, kein TLS)
+- **AND** in Prod (fleet) zeigt `SSO_AUTHORITY` auf `https://auth.<PROD_DOMAIN>` (via prod-Patch `patch-vaultwarden.yaml`) — in beiden Fällen ohne Realm-Präfix im Pfad
 
 ---
 
@@ -124,14 +124,14 @@ verwendet, in Prod ein externer SMTP-Server mit STARTTLS auf Port 587.
 ### Requirement: Initialer Seed von Workspace-Service-URLs
 
 The system SHALL beim ersten Einrichten des Passwort-Tresors eine vordefinierte Sammlung
-von Workspace-Dienst-URLs (Nextcloud, Collabora, Keycloak, Portal, Docs) als Login-Items
+von Workspace-Dienst-URLs (Nextcloud, Collabora, Pocket ID, Portal, Docs) als Login-Items
 anlegen; dies erfolgt einmalig über einen Kubernetes-Job, der die Bitwarden-CLI verwendet.
 
 #### Scenario: Seed-Job Ausführung
 - **GIVEN** ein Vaultwarden-Account (`BW_EMAIL`, `BW_PASSWORD`) existiert bereits
 - **WHEN** `task workspace:vaultwarden:seed` den Job startet
 - **THEN** erstellt der Job die Ordner `Infrastructure`, `Services` und `MCP Keys`
-- **AND** jeder Workspace-Dienst (Nextcloud, Collabora, Keycloak, Portal, Docs) erscheint als Login-Item mit korrekter URL aus `domain-config`
+- **AND** jeder Workspace-Dienst (Nextcloud, Collabora, Pocket ID, Portal, Docs) erscheint als Login-Item mit korrekter URL aus `domain-config`
 
 #### Scenario: Idempotentes Upsert
 - **GIVEN** der Seed-Job wurde bereits einmal ausgeführt
@@ -151,6 +151,8 @@ gesichert.
 #### Scenario: Datenbank-Backup
 - **GIVEN** der `backup-cronjob` läuft
 - **WHEN** die Backup-Schleife über `(keycloak nextcloud vaultwarden website docuseal)` iteriert
+  (wörtliches Zitat aus `scripts/backup-restore-db.sh:66` — die Liste führt `keycloak` weiterhin,
+  obwohl der Provider abgelöst ist; siehe Cleanup-Ticket T002205)
 - **THEN** wird `pg_dump -Fc` mit `VAULTWARDEN_DB_PASSWORD` aus `workspace-secrets` ausgeführt
 - **AND** das Dump-File landet im verschlüsselten Backup-Archiv auf dem Remote-Storage
 
@@ -222,24 +224,22 @@ The system SHALL serve the Vaultwarden web vault login page with HTTP 200 and pr
 
 ---
 
-### Requirement: Keycloak Passwort-Policy und Klartext-Schutz
+### Requirement: Klartext-Schutz für Anmeldedaten
 <!-- e2e: sa-03-passwords.spec.ts -->
 
-The system SHALL enforce a Keycloak password policy that includes at minimum a length rule and an additional hardening rule (specialChars, digits, upperCase, or lowerCase), and SHALL never log passwords in plaintext.
+The system SHALL never log passwords in plaintext.
 
-#### Scenario: Passwort-Policy enthält Längen-Regel *(E2E)*
-- **GIVEN** Keycloak Admin-Credentials (`KC_ADMIN_PASS`) sind verfügbar
-- **WHEN** die Realm-Konfiguration für `workspace` via Admin-API abgefragt wird
-- **THEN** ist `passwordPolicy` gesetzt und enthält die Regel `length`
+Pocket ID is passkey-first and exposes no `passwordPolicy` API, so there is no provider-side
+password policy to assert against. The two policy scenarios that this requirement carried
+under Keycloak (minimum length rule, additional hardening rule via `passwordPolicy`) have been
+dropped rather than renamed: their subject does not exist in the current provider.
+`sa-03-passwords.spec.ts` marks the corresponding checks `test.skip` for the same reason, and
+the remaining hash- and log-inspection checks are documented there as manual (they need psql
+and kubectl access).
 
-#### Scenario: Passwort-Policy enthält Härtungs-Regel *(E2E)*
-- **GIVEN** Keycloak Admin-Credentials (`KC_ADMIN_PASS`) sind verfügbar
-- **WHEN** die `passwordPolicy` des Realms `workspace` ausgelesen wird
-- **THEN** enthält sie mindestens eine Härtungs-Regel (`specialChars`, `digits`, `upperCase` oder `lowerCase`)
-
-#### Scenario: Keycloak OIDC-Discovery erreichbar *(E2E)*
-- **GIVEN** Keycloak läuft unter `KEYCLOAK_URL` (Standard: `http://auth.localhost`)
-- **WHEN** der Well-Known-Endpunkt `/realms/workspace/.well-known/openid-configuration` abgerufen wird
-- **THEN** antwortet Keycloak mit HTTP 200 und einer JSON-Antwort, die `issuer` und `token_endpoint` enthält
+#### Scenario: Pocket-ID OIDC-Discovery erreichbar *(E2E)*
+- **GIVEN** Pocket ID läuft unter `auth.<PROD_DOMAIN>` (lokal: `http://auth.localhost`)
+- **WHEN** der Well-Known-Endpunkt `/.well-known/openid-configuration` abgerufen wird — ohne Realm-Präfix im Pfad
+- **THEN** antwortet Pocket ID mit HTTP 200 und einer JSON-Antwort, die `issuer` und `token_endpoint` enthält
 
 <!-- merged from change delta vaultwarden-integration.md (0b9c7adb5c00) -->

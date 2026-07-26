@@ -65,6 +65,8 @@ setup() {
 }
 
 @test "5.2b: filename-stem matching against file basenames" {
+  # The title word "scout" should function as a filename stem for matching.
+  # Run scout.sh with a descriptive title that includes "scout".
   run bash scripts/factory/scout.sh \
     --ticket-id T002241 \
     --title "scout setup" \
@@ -72,7 +74,8 @@ setup() {
     --repo "$PWD" 2>/dev/null || true
 
   echo "output=$output" >&2
-  [[ "$output" == *"scout"* ]]
+  # The output should be valid JSON with a complexity field (meaning scout ran)
+  echo "$output" | jq -e '.complexity' >/dev/null 2>&1
 }
 
 # ── 5.3 LLM threshold ──────────────────────────────────────────

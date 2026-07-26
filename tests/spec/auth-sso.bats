@@ -364,3 +364,76 @@ _repo_root() { cd "${BATS_TEST_DIRNAME}/../.." && pwd; }
     return 1
   }
 }
+
+# ── T002187: pocket-id-client-seed Fix (RC-1 bis RC-4) ────────────────
+#
+# Diese Tests muessen auf dem UNGEFIXTEN Branch FAILEN (RED) und nach
+# Implementierung der Fixes BESTEHEN (GREEN).
+
+@test "T002187: kein nacktes DO \$\$ BLOCK in command:-Block von k3d/pocket-id.yaml" {
+  local root; root="$(_repo_root)"
+  # Nacktes '$$' in einem YAML-command:-Block führt zu $0-Expansion durch den
+  # Container-Shell-Parser. Das SQL nutzte DO $$ BEGIN ... END $$; innerhalb
+  # eines <<'EOSQL'-Here-Docs — durch Flux/envsubst-Rendering wird daraus
+  # ein einziger $, der PostgreSQL-Syntax-Fehler verursacht (RC-2).
+  # Nach dem Fix liegt das SQL in einer ConfigMap (data:-Section ist sicher)
+  # und wird via -f /sql/init.sql aufgerufen — der command:-Block von
+  # pocket-id.yaml enthält daher kein DO $$ ... mehr.
+  # ConfigMap data:-Section ist EXPLIZIT ausgenommen (dort ist $$ sicher).
+  local bad=""
+  # Prüfe pocket-id.yaml auf DO $$ in command:-Context
+  if grep -Eq 'DO \$\$' "${root}/k3d/pocket-id.yaml"; then
+    bad="$bad pocket-id.yaml"
+  fi
+  [ -z "$bad" ] || {
+    echo "FAIL: DO \$\$ in command:-Block von:$bad — SQL in ConfigMap auslagern (T002187)."
+    return 1
+  }
+}
+
+@test "T002187: db-init nutzt ON_ERROR_STOP=1 für den DB/Rollen-Block" {
+  local root; root="$(_repo_root)"
+  local f="${root}/k3d/pocket-id.yaml"
+  [ -f "$f" ] || skip "pocket-id.yaml nicht gefunden"
+
+  # Nach dem Fix: db-init-SQL liegt in einer ConfigMap, aufgerufen mit
+  # psql -v ON_ERROR_STOP=1 -f /sql/init.sql
+  # => kein ON_ERROR_STOP=0 mehr im psql-Aufruf für den init-Block.
+  if grep -q 'ON_ERROR_STOP=0' "$f"; then
+    echo "FAIL: k3d/pocket-id.yaml enthält ON_ERROR_STOP=0 — SQL-Fehler werden verschluckt (RC-3)."
+    return 1
+  fi
+}
+
+@test "T002187: pocket-id-client-seed Job trägt Flux-force-Annotation" {
+  local root; root="$(_repo_root)"
+  local f="${root}/k3d/pocket-id-client-seed.yaml"
+  [ -f "$f" ] || skip "pocket-id-client-seed.yaml nicht gefunden"
+
+  if ! grep -q 'kustomize.toolkit.fluxcd.io/force:.*enabled' "$f"; then
+    echo "FAIL: k3d/pocket-id-client-seed.yaml hat keine kustomize.toolkit.fluxcd.io/force: \"enabled\" Annotation —"
+    echo "      Flux scheitert an immutablem Job.spec.template (RC-1)."
+    return 1
+  fi
+}
+
+@test "T002187: Admin-Bootstrap enthält keine hardcodierte UUID a0000000-..." {
+  local root; root="$(_repo_root)"
+  local files=(
+    "${root}/k3d/pocket-id.yaml"
+    "${root}/k3d/pocket-id-db-init-sql.yaml"
+  )
+  local bad=""
+  local f
+  for f in "${files[@]}"; do
+    [ -f "$f" ] || continue
+    if grep -q 'a0000000-0000-4000-8000' "$f"; then
+      bad="$bad $(basename "$f")"
+    fi
+  done
+  [ -z "$bad" ] || {
+    echo "FAIL: hardcodierte Admin-UUID a0000000-... gefunden in:$bad —"
+    echo "      gegen SELECT id FROM users WHERE username = :admin_user auflösen (RC-4)."
+    return 1
+  }
+}

@@ -53,6 +53,13 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: pocket-id-client-seed
+  annotations:
+    # T002187: Flux-force für immutable Job.spec.template.
+    # Ohne diese Annotation scheitert Flux am Dry-Run (RC-1): Job.spec.template
+    # ist immutable — Flux kann geänderte Secrets/Envs nicht per Update
+    # einspielen, der Dry-Run schlägt fehl und blockiert den gesamten
+    # flux-korczewski Kustomization-Health-Check.
+    kustomize.toolkit.fluxcd.io/force: "enabled"
   labels:
     app: pocket-id
 spec:

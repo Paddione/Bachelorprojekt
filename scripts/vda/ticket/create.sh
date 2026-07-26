@@ -40,6 +40,12 @@ main() {
         ;;
     esac
   fi
+  # [T002224] create was the only cluster-write path that never consulted the
+  # offline guard — every mutating subcommand in scripts/ticket.sh does (see
+  # update-status, add-comment, archive-plan, …). Callers that cannot reach a
+  # cluster therefore had no way to say so, which is why tests resorted to
+  # PATH tricks to fake it.
+  if _ticket_offline_skip "create" "--type" "$type" "--title" "$title"; then exit 0; fi
   local pod; pod=$(_pgpod)
   local parent_uuid=""
   if [[ -n "$product_id" ]]; then

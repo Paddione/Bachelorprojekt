@@ -8,6 +8,25 @@
 : "${DB:=website}"
 USER="website"
 
+# [T002224] Fail-closed test guard. A BATS test that reaches this file must have
+# stubbed the cluster itself (the repo idiom: prepend a mock `kubectl` to PATH,
+# see tests/spec/feature-product-linking.bats). When it has not, the real
+# kubectl is still on PATH and every write lands in the LIVE ticket database.
+#
+# That is not hypothetical: tests/spec/t001582-mishap-bundle.bats tried to block
+# the cluster with PATH="/nonexistent-dir:$PATH" — which only *prepends* an empty
+# directory and leaves the real kubectl resolvable. The test wrote a real
+# `title=x, description=y` bug ticket on every suite run and produced ~130 rows
+# between 2026-07-03 and 2026-07-26 before anyone traced them back here.
+#
+# So under BATS we repoint CTX at a sentinel context that cannot resolve. A
+# stubbed kubectl ignores the value (mocks answer regardless of --context) and
+# keeps passing; the real kubectl finds no pod and _pgpod exits 1 with its normal
+# error. Set TICKET_TEST_DB_OK=1 to opt a test back into real cluster access.
+if [[ -n "${BATS_TEST_NAME:-}${BATS_VERSION:-}" && "${TICKET_TEST_DB_OK:-0}" != "1" ]]; then
+  CTX="bats-no-cluster-t002224"
+fi
+
 _pgpod() {
   local pod
   pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)

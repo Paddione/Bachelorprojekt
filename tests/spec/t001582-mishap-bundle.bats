@@ -72,21 +72,73 @@ setup() {
 
 @test "T001582-M2: create.sh rejects an invalid --severity value before any DB access" {
   [ -f "$CREATE_SH" ]
-  run env PATH="/nonexistent-path-so-kubectl-cannot-be-found:$PATH" \
+  # [T002224] TICKET_OFFLINE=1 is the sanctioned way to keep a write off the
+  # cluster. The previous PATH="/nonexistent-…:$PATH" only prepended an empty
+  # directory and left the real kubectl resolvable — see the sibling test below.
+  run env TICKET_OFFLINE=1 \
     bash "$CREATE_SH" create --type bug --title "x" --description "y" --severity hoch
   [ "$status" -eq 2 ]
   [[ "$output" == *"critical"* && "$output" == *"major"* && "$output" == *"minor"* && "$output" == *"trivial"* ]]
+  # The severity check must still run ahead of the offline guard, so no
+  # "OFFLINE: skipped" may appear — the call is rejected on validation alone.
+  [[ "$output" != *"OFFLINE: skipped"* ]]
 }
 
 @test "T001582-M2: create.sh still allows an empty --severity (optional field)" {
   [ -f "$CREATE_SH" ]
-  # No --severity at all must never trip the new validation (it must only run
-  # when the flag is present with a non-matching value). We can't exercise a
-  # real DB write offline, so assert the validation step itself doesn't reject
-  # the call before reaching the (expected, offline) _pgpod failure.
-  run env PATH="/nonexistent-path-so-kubectl-cannot-be-found:$PATH" \
-    bash "$CREATE_SH" create --type bug --title "x" --description "y"
+  # No --severity at all must never trip the validation (it must only run when
+  # the flag is present with a non-matching value). Past the validation the call
+  # must stop at the offline guard and never touch the database.
+  #
+  # [T002224] This test used to write a real `title=x, description=y` bug ticket
+  # into the live database on every single suite run — ~130 rows accumulated
+  # between 2026-07-03 and 2026-07-26. The guard was
+  # PATH="/nonexistent-path-so-kubectl-cannot-be-found:$PATH", which prepends a
+  # directory that does not exist but keeps $PATH intact, so /usr/local/bin/kubectl
+  # stayed resolvable and create.sh reached _pgpod and INSERTed for real.
+  run env TICKET_OFFLINE=1 bash "$CREATE_SH" create --type bug --title "x" --description "y"
+  [ "$status" -eq 0 ]
   [[ "$output" != *"Invalid --severity"* ]]
+  [[ "$output" == *"OFFLINE: skipped create"* ]]
+}
+
+@test "T002224: create.sh honours TICKET_OFFLINE=1 and performs no cluster write" {
+  # Regression guard for the ~130 stray x/y tickets. A mock kubectl records any
+  # invocation; with TICKET_OFFLINE=1 the recorder must stay empty, proving
+  # create.sh short-circuits before _pgpod rather than relying on kubectl being
+  # absent from PATH.
+  local mockdir cap
+  mockdir="$(mktemp -d)"; cap="$mockdir/invoked"
+  cat > "$mockdir/kubectl" <<'MOCKEOF'
+#!/usr/bin/env bash
+echo "kubectl $*" >> "$CAP"
+echo "pod/shared-db-0"
+exit 0
+MOCKEOF
+  chmod +x "$mockdir/kubectl"
+  run env PATH="$mockdir:$PATH" CAP="$cap" TICKET_OFFLINE=1 \
+    bash "$CREATE_SH" create --type bug --title "x" --description "y"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OFFLINE: skipped create"* ]]
+  [ ! -s "$cap" ]
+  rm -rf "$mockdir"
+}
+
+@test "T002224: _ticket-core repoints CTX away from the live cluster under BATS" {
+  # Fail-closed backstop: even a future test that forgets TICKET_OFFLINE must not
+  # reach the real cluster. Under BATS (and without TICKET_TEST_DB_OK=1) the
+  # sourced core rewrites CTX to a sentinel that cannot resolve.
+  run bash -c "source '$REPO/scripts/vda/ticket/_ticket-core.sh'; echo \"\$CTX\""
+  [ "$status" -eq 0 ]
+  [[ "$output" == "bats-no-cluster-t002224" ]]
+  [[ "$output" != "fleet" ]]
+}
+
+@test "T002224: TICKET_TEST_DB_OK=1 opts a test back into the configured context" {
+  run env TICKET_TEST_DB_OK=1 TICKET_CTX=fleet \
+    bash -c "source '$REPO/scripts/vda/ticket/_ticket-core.sh'; echo \"\$CTX\""
+  [ "$status" -eq 0 ]
+  [[ "$output" == "fleet" ]]
 }
 
 @test "T001582-M2: ticket.sh usage text lists the valid --severity enum values" {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.0...website-v1.216.1) (2026-07-26)
+
+
+### Bug Fixes
+
+* **scripts:** worktree node_modules linking + agent-lock reap worktree-branch guard [T002204] ([#3270](https://github.com/Paddione/Bachelorprojekt/issues/3270)) ([c174060](https://github.com/Paddione/Bachelorprojekt/commit/c1740605992a13182820fdbd29035de0fb65a4bb))
+
 ## [1.216.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.215.1...website-v1.216.0) (2026-07-26)
 
 

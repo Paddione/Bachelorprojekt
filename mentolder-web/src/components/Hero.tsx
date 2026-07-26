@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion';
 import { Link } from 'react-router-dom';
 import { KickerBar } from './KickerBar';
 import { Portrait } from './Portrait';

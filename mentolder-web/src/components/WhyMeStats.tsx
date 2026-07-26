@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useInView } from 'framer-motion';
+import { useInView } from 'motion';
 import { Link } from 'react-router-dom';
 
 export interface Stat {

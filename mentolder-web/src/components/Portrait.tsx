@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion } from 'motion';
 
 interface PortraitProps {
   avatarType?: 'image' | 'initials';

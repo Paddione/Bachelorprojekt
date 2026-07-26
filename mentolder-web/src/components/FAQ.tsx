@@ -1,5 +1,5 @@
 import { useState, useId } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion';
 
 export interface FAQItem {
   question: string;

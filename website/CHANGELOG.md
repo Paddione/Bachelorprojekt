@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.1...website-v1.216.2) (2026-07-26)
+
+
+### Bug Fixes
+
+* **infra:** db-init SQL extraction, ALTER ROLE, admin UUID lookup, Flux-force for pocket-id [T002187] ([#3277](https://github.com/Paddione/Bachelorprojekt/issues/3277)) ([25f4640](https://github.com/Paddione/Bachelorprojekt/commit/25f4640e3f3ab4749738db8f064404944a81f872))
+
 ## [1.216.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.0...website-v1.216.1) (2026-07-26)
 
 

@@ -403,12 +403,18 @@ _taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)
   ' "$REPO_ROOT/Taskfile.yml" | grep -oE '\\\$[A-Z0-9_]+' | tr -d '\\$' | sort -u
 }
 
-# Inline-envsubst-Liste des website:deploy-Tasks (Zeilen mit $WEBSITE_IMAGE-Liste).
+# Inline-envsubst-Allowlist des website:deploy-Tasks — Union ueber ALLE
+# envsubst-Aufrufe des Tasks, nicht nur die grosse $WEBSITE_IMAGE-Liste.
+# Der Task substituiert in mehreren separaten Aufrufen (T002163): die Hauptliste,
+# je einen fuer $WEBSITE_CONFIG_SHA (T002154/T002156) und mehrere fuer
+# $WEBSITE_NAMESPACE. Ein Extraktor, der nur die Hauptliste liest, meldet die
+# uebrigen Variablen als "Drift", obwohl der Deploy sie korrekt substituiert —
+# genau dieses False Positive hielt drei T001994-Assertions dauerhaft rot.
 _website_deploy_list() {
   awk '
     $0 == "  website:deploy:" {in_task=1; next}
     in_task && /^  [a-zA-Z0-9:_-]+:$/ {exit}
-    in_task && /envsubst "\\\$WEBSITE_IMAGE/ {print}
+    in_task && /envsubst "/ {print}
   ' "$REPO_ROOT/Taskfile.yml" | grep -oE '\\\$[A-Z0-9_]+' | tr -d '\\$' | sort -u
 }
 
@@ -872,6 +878,45 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
     echo "      keine quay.io/keycloak-Image-Referenz mehr in den Manifesten. Eine"
     echo "      packageRule fuer ein nicht mehr vorhandenes Image ist toter Ballast"
     echo "      und suggeriert eine Komponente, die es nicht mehr gibt."
+    return 1
+  }
+}
+
+# ── T002163: Die drei website:deploy-Allowlist-Assertions (T001994) waren auf main
+#    dauerhaft rot — ein False Positive: _website_deploy_list() las nur den
+#    envsubst-Aufruf mit der grossen $WEBSITE_IMAGE-Liste und uebersah die
+#    separaten Aufrufe fuer $WEBSITE_CONFIG_SHA (T002154/T002156) und
+#    $WEBSITE_NAMESPACE. Aufgefallen ist es NICHT durch CI, sondern beim lokalen
+#    task test:changed eines voellig unbeteiligten PRs (T002161) — weil diese
+#    Datei in keinem Required Check lief. Beide Luecken werden hier geschlossen.
+
+@test "T002163: _website_deploy_list erfasst ALLE envsubst-Aufrufe des Tasks" {
+  local list; list="$(_website_deploy_list)"
+  # Die drei Variablen stammen aus drei verschiedenen envsubst-Aufrufen des
+  # website:deploy-Tasks. Fehlt eine, ist der Extraktor wieder zu eng gefasst
+  # und meldet korrekt substituierte Variablen als Allowlist-Drift.
+  for v in WEBSITE_IMAGE WEBSITE_CONFIG_SHA WEBSITE_NAMESPACE; do
+    grep -qx "$v" <<< "$list" || {
+      echo "FAIL: $v fehlt in der extrahierten website:deploy-Allowlist."
+      echo "      _website_deploy_list() muss die Union ueber alle envsubst-Aufrufe"
+      echo "      des Tasks bilden, nicht nur die \$WEBSITE_IMAGE-Hauptliste."
+      echo "      Extrahiert wurde:"; sed 's/^/        /' <<< "$list"
+      return 1
+    }
+  done
+}
+
+@test "T002163: ci.yml fuehrt tests/spec/ci-cd.bats in einem Required Check aus" {
+  local ci="$REPO_ROOT/.github/workflows/ci.yml"
+  grep -q 'tests/spec/ci-cd.bats' "$ci" || {
+    echo "FAIL: ci.yml ruft tests/spec/ci-cd.bats nicht auf."
+    echo "      Diese Datei enthaelt die Guards fuer post-merge-Serialisierung,"
+    echo "      Brand-Parity im Website-Deploy, Flux-Artefakt-Rendering,"
+    echo "      freshness-regen und die envsubst-Allowlists. Laeuft sie in keinem"
+    echo "      Required Check, verhindert sie nichts — sie faellt nur dem auf, der"
+    echo "      zufaellig lokal verifiziert. Genau so blieben drei rote T001994-"
+    echo "      Assertions und ein rotes openspec:validate (T002167) unentdeckt"
+    echo "      auf main liegen, bis der naechste PR darueber stolperte."
     return 1
   }
 }

@@ -66,9 +66,9 @@ Validiere lokal mit `jq`. Bei nicht erreichbaren Quellen: `risks[]`-Eintrag setz
 
 Wenn ein Design-Handoff existiert, lege Assets in `openspec/changes/<slug>/assets/` im main-Checkout an.
 
-#### Schritt A.3: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
+#### Schritt A.3: Lavish-Board starten ⚡ empfohlenes Werkzeug — vor Brainstorming
 
-Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings.
+Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings. Lavish ist ein empfohlenes, aber kein verpflichtendes Werkzeug — nur aktivieren, wenn im Scope und User-Consent vorhanden (`opencode.jsonc` → `lavish.enabled`).
 
 #### Schritt A.4: Brainstorming ⚡ IMMER
 
@@ -216,6 +216,7 @@ Zeit │
 ## Fix-Pfad
 
 - Lege Bug-Ticket an (via ticket-mcp `create_ticket`), schreibe failing Test, erstelle Plan, stage, commit und push.
+- Hinweis: Erstelle zusätzlich zu `design.md` auch `openspec/changes/<slug>/specs/<parent-ssot-slug>.md` nach der T001304-Delta-Konvention.
 
 ## Verwandte Skills
 

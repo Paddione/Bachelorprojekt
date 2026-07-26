@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.5...website-v1.216.6) (2026-07-26)
+
+
+### Bug Fixes
+
+* **dev-flow:** filter generierte Artefakte aus Diff-Selektion, haerte Archiv-Ablauf [T002255] ([#3305](https://github.com/Paddione/Bachelorprojekt/issues/3305)) ([a0efb87](https://github.com/Paddione/Bachelorprojekt/commit/a0efb871207e5146d0fe995e8b5db89998300636))
+
 ## [1.216.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.4...website-v1.216.5) (2026-07-26)
 
 

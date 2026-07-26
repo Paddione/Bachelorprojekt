@@ -1,10 +1,20 @@
 name: Auto-enable Auto-Merge
 
-# Aktiviert Squash-Auto-Merge auf jeder neuen Nicht-Draft-PR gegen main.
+# Aktiviert Squash-Auto-Merge auf jeder neuen Nicht-Draft-PR gegen main, die
+# NICHT das Label `dependencies` trägt.
 # Der Merge selbst passiert erst, wenn alle Required-Checks grün sind und
 # Branch-Protection erfüllt ist — diese Action setzt nur das --auto-Flag,
 # das bislang manuell via `gh pr merge --auto` gesetzt werden musste.
 # Repo-Voraussetzung: allow_auto_merge ist aktiviert.
+#
+# `dependencies`-Label = Renovate-PR (T002161): Renovate setzt das Auto-Merge-Flag
+# dort selbst via platformAutomerge, aber NUR für Updates, die seine gestaffelte
+# Policy in renovate.json5 freigibt (patch + devDependencies). Ohne diese Ausnahme
+# würde das pauschale --auto jene Policy aushebeln — main verlangt keine Reviews,
+# ein major- oder produktiver minor-Bump ginge also ungeprüft nach main und über
+# Flux auf beide Prod-Brands. Die Ausnahme greift label-basiert, nicht über
+# pull_request.user.login: der App-Slug hängt am frei gewählten App-Namen und
+# wäre beim Umbenennen eine stille Bruchstelle.
 # E2E PR is intentionally not a required check — see scripts/gh-branch-protection.sh
 # and task gh:branch-protection:status. Required checks: Offline Tests (Manifests, Configs, Unit),
 # Security Scan, Brett TypeScript, Conventional Commits.
@@ -26,7 +36,10 @@ jobs:
   enable-automerge:
     name: Enable Auto-Merge
     # Drafts ausnehmen — "fertig, aber nicht mergen" bleibt über Draft-Status möglich.
-    if: github.event.pull_request.draft == false
+    # Renovate-PRs (Label `dependencies`) ausnehmen — Begründung im Dateikopf.
+    if: |
+      github.event.pull_request.draft == false &&
+      !contains(github.event.pull_request.labels.*.name, 'dependencies')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

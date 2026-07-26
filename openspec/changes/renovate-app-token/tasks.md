@@ -58,12 +58,15 @@ Schritte:
      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
      id: app-token
      with:
-       client-id: ${{ secrets.RENOVATE_APP_CLIENT_ID }}
+       app-id: ${{ secrets.RENOVATE_APP_ID }}
        private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
    ```
 
-   `client-id` statt `app-id`: letzteres ist in v3 deprecated (`action.yml`: *„Use 'client-id'
-   instead."*). Kein `owner`/`repositories`-Input — Default ist das aktuelle Repository.
+   `app-id` mit dem gesetzten Secret `RENOVATE_APP_ID` (hält die numerische App ID). Der Input
+   ist in v3 deprecated (`action.yml`: *„Use 'client-id' instead."*), funktioniert aber
+   unverändert; eine Migration auf `client-id` erfordert zusätzlich einen neuen Secret-Wert und
+   wird als Workflow-Kommentar vermerkt. Kein `owner`/`repositories`-Input — Default ist das
+   aktuelle Repository.
 
 2. Im Renovate-Step beide Token-Referenzen auf den Step-Output umstellen:
    `RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}` (env) und
@@ -76,7 +79,7 @@ Schritte:
 
 4. Header-Kommentar (Zeilen 6-9) korrigieren: statt *„a dedicated GitHub App token must be
    stored as repo secret RENOVATE_TOKEN"* die tatsächliche Anforderung dokumentieren — zwei
-   Secrets `RENOVATE_APP_CLIENT_ID` + `RENOVATE_APP_PRIVATE_KEY`, App-Permissions
+   Secrets `RENOVATE_APP_ID` + `RENOVATE_APP_PRIVATE_KEY`, App-Permissions
    Contents RW / Pull requests RW / **Workflows RW** / Metadata RO, und der Hinweis, dass ein
    Installation-Token 1 h TTL hat und deshalb nicht statisch hinterlegt werden kann.
 
@@ -128,12 +131,16 @@ bisher), also entsteht durch die Reihenfolge kein zusätzliches Risiko.
 1. App unter https://github.com/settings/apps/new anlegen: Webhook deaktiviert, Installation
    *Only on this account*, Permissions Contents RW / Pull requests RW / Workflows RW /
    Metadata RO.
-2. **Client ID** notieren, Private Key generieren, App auf `Paddione/Bachelorprojekt` installieren.
+2. **App ID** notieren, Private Key generieren, App auf `Paddione/Bachelorprojekt` installieren.
 3. Secrets setzen:
    ```bash
-   gh secret set RENOVATE_APP_CLIENT_ID --body "<client-id>"
+   gh secret set RENOVATE_APP_ID --body "<app-id>"
    gh secret set RENOVATE_APP_PRIVATE_KEY < <pfad>.private-key.pem
    ```
+
+**Status: erledigt** (2026-07-26). Beide Secrets sind gesetzt — `RENOVATE_APP_ID` (11:09 UTC)
+und `RENOVATE_APP_PRIVATE_KEY` (11:11 UTC), verifiziert via `gh secret list`. Der hinterlegte
+Wert ist die numerische App ID, weshalb Task 2 den Input `app-id` statt `client-id` verwendet.
 
 ## Task 6 — Verifikation
 

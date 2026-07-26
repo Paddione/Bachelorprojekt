@@ -8,8 +8,8 @@ The system SHALL run self-hosted Renovate weekly (montags 07:00 UTC) to open PRs
 dependencies, authenticating via a **per-run minted GitHub App installation token** — never
 `GITHUB_TOKEN`, and never a statically stored installation token. Because a GitHub App
 installation token expires after one hour, the workflow SHALL mint a fresh token on every run
-using a SHA-pinned `actions/create-github-app-token` step whose `client-id` and `private-key`
-inputs read the long-lived secrets `RENOVATE_APP_CLIENT_ID` and `RENOVATE_APP_PRIVATE_KEY`. The
+using a SHA-pinned `actions/create-github-app-token` step whose `app-id` and `private-key`
+inputs read the long-lived secrets `RENOVATE_APP_ID` and `RENOVATE_APP_PRIVATE_KEY`. The
 App installation SHALL carry the `Workflows: write` permission in addition to Contents and
 Pull requests, because the `github-actions` manager with `pinDigests: true` modifies files under
 `.github/workflows/`.
@@ -30,7 +30,7 @@ Pull requests, because the `github-actions` manager with `pinDigests: true` modi
 
 #### Scenario: Fehlende App-Secrets sind als Ausfallursache erkennbar
 
-- **GIVEN** `RENOVATE_APP_CLIENT_ID` oder `RENOVATE_APP_PRIVATE_KEY` ist nicht gesetzt
+- **GIVEN** `RENOVATE_APP_ID` oder `RENOVATE_APP_PRIVATE_KEY` ist nicht gesetzt
 - **WHEN** der Workflow läuft
 - **THEN** schlägt der Token-Step fehl, bevor Renovate startet — der Fehler benennt das fehlende
   App-Credential statt eines undurchsichtigen `docker … exit code 1` aus dem Renovate-Container

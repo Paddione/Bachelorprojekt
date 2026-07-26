@@ -75,9 +75,11 @@ und wird im Post-Step automatisch revoked.
 - **Version:** v3.2.0, SHA-gepinnt auf `bcd2ba49218906704ab6c1aa796996da409d3eb1` — gemäß der
   in `renovate.yml:44` dokumentierten Konvention für secret-tragende Third-Party-Actions
   (*„nie @latest"*).
-- **Input `client-id:`**, **nicht** `app-id:` — letzteres ist in v3 deprecated
-  (`action.yml`: *„Use 'client-id' instead."*). Entsprechend heißt das Secret
-  `RENOVATE_APP_CLIENT_ID`.
+- **Input `app-id:`** mit dem Secret `RENOVATE_APP_ID`, das die **numerische App ID** hält.
+  `app-id` ist in v3 deprecated (`action.yml`: *„Use 'client-id' instead."*), funktioniert aber
+  unverändert. Eine Migration auf `client-id` braucht **beides**: den Secret-Wert auf die
+  Client ID umstellen *und* den Input umbenennen — deshalb hier bewusst in einem Schritt
+  belassen und als Kommentar im Workflow vermerkt.
 - **Output:** `steps.app-token.outputs.token`.
 - **Kein `owner`/`repositories`-Input** — Default ist das aktuelle Repository, was genau dem
   Installationsumfang entspricht.
@@ -153,11 +155,11 @@ S1-Limits (`docs/code-quality/gates.yaml:44-58`) gelten ausschließlich für Cod
 
 ## Manueller Anteil (nicht automatisierbar)
 
-Patrick legt die GitHub App im UI an (Permissions s. o.), notiert die **Client ID**, generiert
+Patrick legt die GitHub App im UI an (Permissions s. o.), notiert die **App ID**, generiert
 den Private Key, installiert die App auf `Paddione/Bachelorprojekt` und setzt:
 
 ```bash
-gh secret set RENOVATE_APP_CLIENT_ID --body "<client-id>"
+gh secret set RENOVATE_APP_ID --body "<app-id>"
 gh secret set RENOVATE_APP_PRIVATE_KEY < <pfad>.private-key.pem
 ```
 

@@ -3,10 +3,21 @@ name: Renovate
 # Self-hosted Renovate dependency update bot.
 # Spec:  docs/superpowers/specs/2026-06-17-t000898-design.md
 # Plan:  docs/superpowers/plans/2026-06-17-t000898.md
-# Setup: A dedicated GitHub App token must be stored as repo secret RENOVATE_TOKEN.
-#        See PR description for setup steps. Without the secret, this workflow fails.
 #
-# First run: trigger manually via workflow_dispatch after setting RENOVATE_TOKEN.
+# Setup (T002161): TWO repo secrets are required — RENOVATE_APP_ID and
+#   RENOVATE_APP_PRIVATE_KEY. A GitHub App *installation* token expires after one
+#   hour and therefore CANNOT be stored as a static secret; the token is minted
+#   fresh on every run by the create-github-app-token step below. The App needs
+#   Contents: write, Pull requests: write, Metadata: read AND — because the
+#   github-actions manager runs with pinDigests: true and thus edits files under
+#   .github/workflows/ — Workflows: write. Without the Workflows permission
+#   GitHub rejects the push ("refusing to allow a GitHub App to create or update
+#   workflow ...") while npm and kubernetes bumps keep working, which reads as a
+#   partial, hard-to-diagnose failure.
+#
+# NOT the opencode.yml pattern: that workflow uses id-token: write, and the
+#   OIDC-to-installation-token exchange is a feature of the opencode action.
+#   renovatebot/github-action has no such exchange and expects a ready token.
 
 on:
   schedule:
@@ -28,9 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
-      # Required: Renovate opens/updates PRs and writes to branches.
-      contents: write
-      pull-requests: write
+      # Only the checkout needs GITHUB_TOKEN. Renovate's write access comes from
+      # the App installation token minted below, not from GITHUB_TOKEN — so no
+      # contents/pull-requests write here. No id-token either: there is no OIDC
+      # flow in this workflow.
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -40,16 +53,31 @@ jobs:
           fetch-tags: false
           persist-credentials: false
 
+      - name: Create GitHub App token
+        # SHA-gepinnt (Supply-Chain: Action erhaelt den App Private Key).
+        # v3.2.0 (2026-07). Bump via Review / Renovate selbst; nie @latest
+        # fuer secret-tragende Third-Party-Actions.
+        #
+        # app-id ist in v3 deprecated ("Use 'client-id' instead."), funktioniert
+        # aber unveraendert — RENOVATE_APP_ID haelt die numerische App ID. Eine
+        # spaetere Migration braucht BEIDES: Secret-Wert auf die Client ID
+        # umstellen UND diesen Input auf client-id umbenennen.
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        id: app-token
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+
       - name: Self-hosted Renovate
         # SHA-gepinnt (Supply-Chain: Action erhaelt RENOVATE_TOKEN).
         # v46.1.15 (2026-06). Bump via Review / Renovate selbst; nie @latest
         # fuer secret-tragende Third-Party-Actions.
         uses: renovatebot/github-action@8217b3fc286df088d7c27f3255fe8414463bc0fd  # v46.1.15
         env:
-          # Dedicated GitHub App installation token.
-          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          # Freshly minted App installation token (1h TTL, revoked post-job).
+          RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}
           # Log level for debugging.
           LOG_LEVEL: ${{ vars.RENOVATE_LOG_LEVEL || 'info' }}
         with:
           configurationFile: renovate.json5
-          token: ${{ secrets.RENOVATE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}

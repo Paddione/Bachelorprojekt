@@ -756,20 +756,26 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
     echo "FAIL: kein SHA-gepinnter actions/create-github-app-token-Step in renovate.yml."
     echo "      Ein GitHub-App-Installation-Token hat 1h TTL und kann NICHT als"
     echo "      statisches Repo-Secret hinterlegt werden — der Workflow muss pro Run"
-    echo "      einen frischen Token aus RENOVATE_APP_CLIENT_ID + RENOVATE_APP_PRIVATE_KEY"
+    echo "      einen frischen Token aus RENOVATE_APP_ID + RENOVATE_APP_PRIVATE_KEY"
     echo "      praegen. SHA-Pin ist Pflicht (Konvention renovate.yml: nie @latest fuer"
     echo "      secret-tragende Third-Party-Actions)."
     return 1
   }
 }
 
-@test "T002161-A: renovate.yml nutzt client-id (nicht das in v3 deprecated app-id)" {
+@test "T002161-A: renovate.yml liest die App-Identitaet aus RENOVATE_APP_ID" {
   local wf="$REPO_ROOT/.github/workflows/renovate.yml"
-  grep -qE '^\s+client-id:' "$wf" || {
-    echo "FAIL: create-github-app-token wird ohne client-id:-Input aufgerufen."
-    echo "      In v3 ist app-id: deprecated ('Use client-id instead.'), siehe"
-    echo "      action.yml der Action. Erwartet: client-id mit dem Secret"
-    echo "      RENOVATE_APP_CLIENT_ID."
+  grep -qE '^\s+app-id: \$\{\{ secrets\.RENOVATE_APP_ID \}\}' "$wf" || {
+    echo "FAIL: create-github-app-token wird nicht mit app-id aus dem Secret"
+    echo "      RENOVATE_APP_ID aufgerufen. Das gesetzte Repo-Secret haelt die"
+    echo "      numerische App ID, also ist app-id der passende Input — in v3 zwar"
+    echo "      deprecated ('Use client-id instead.'), aber funktionsfaehig. Eine"
+    echo "      Migration auf client-id braucht BEIDES: neuen Secret-Wert (Client ID)"
+    echo "      UND umbenannten Input."
+    return 1
+  }
+  grep -qE '^\s+private-key: \$\{\{ secrets\.RENOVATE_APP_PRIVATE_KEY \}\}' "$wf" || {
+    echo "FAIL: private-key liest nicht aus dem Secret RENOVATE_APP_PRIVATE_KEY."
     return 1
   }
 }

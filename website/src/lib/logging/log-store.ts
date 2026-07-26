@@ -39,7 +39,10 @@ export function filterEntries(entries: LogEntry[], f: LogFilters): LogEntry[] {
   return entries.filter((e) => {
     if (!f.levels.has(e.level)) return false;
     if (!f.sources.has(e.source)) return false;
-    if (t && !e.message.toLowerCase().includes(t)) return false;
+    if (t && !e.message.toLowerCase().includes(t)) {
+      const metaStr = e.meta ? JSON.stringify(e.meta).toLowerCase() : '';
+      if (!metaStr.includes(t)) return false;
+    }
     return true;
   });
 }

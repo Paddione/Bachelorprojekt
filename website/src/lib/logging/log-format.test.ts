@@ -7,6 +7,7 @@ import {
   levelLabel,
   parsePinoLine,
   parsePodLine,
+  formatMetaInline,
 } from './log-format';
 
 describe('pinoLevelToLevel', () => {
@@ -72,5 +73,22 @@ describe('parsePodLine', () => {
   it('uses heuristic for plain pod stdout', () => {
     expect(parsePodLine('container started, no errors')).toMatchObject({ level: 'error', source: 'pod' });
     expect(parsePodLine('all good')).toMatchObject({ level: 'info', source: 'pod' });
+  });
+});
+
+describe('formatMetaInline', () => {
+  it('returns empty string for undefined/empty meta', () => {
+    expect(formatMetaInline(undefined)).toBe('');
+    expect(formatMetaInline({})).toBe('');
+  });
+
+  it('formats request.end meta with prioritised field order', () => {
+    const meta = { requestId: 'r1', statusCode: 200, durationMs: 42, method: 'GET', path: '/api/admin' };
+    expect(formatMetaInline(meta)).toBe('statusCode=200 method=GET path=/api/admin durationMs=42 requestId=r1');
+  });
+
+  it('sorts unknown fields alphabetically after prioritised ones', () => {
+    const meta = { statusCode: 500, foo: 'bar', alpha: 1, durationMs: 10 };
+    expect(formatMetaInline(meta)).toBe('statusCode=500 durationMs=10 alpha=1 foo=bar');
   });
 });

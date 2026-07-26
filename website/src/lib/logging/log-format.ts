@@ -66,6 +66,18 @@ export function parsePinoLine(raw: string, source: LogSource = 'server'): LogEnt
  * Pod container stdout — the website pod emits pino JSON, other pods emit plain
  * text. Try JSON first (→ real numeric level), otherwise heuristic text level.
  */
+const META_ORDER = ['statusCode', 'method', 'path', 'durationMs', 'requestId'];
+
+export function formatMetaInline(meta?: Record<string, unknown>): string {
+  if (!meta || Object.keys(meta).length === 0) return '';
+  const entries = Object.entries(meta);
+  const sorted = [
+    ...META_ORDER.filter(k => k in meta).map(k => [k, meta[k]] as const),
+    ...entries.filter(([k]) => !META_ORDER.includes(k)).sort(([a], [b]) => a.localeCompare(b)),
+  ];
+  return sorted.map(([k, v]) => `${k}=${typeof v === 'number' ? v : String(v)}`).join(' ');
+}
+
 export function parsePodLine(raw: string): LogEntry {
   const trimmed = raw.trim();
   if (trimmed.startsWith('{')) return parsePinoLine(trimmed, 'pod');

@@ -1473,6 +1473,12 @@
       "status": "planning"
     }
   ],
+  "T002179": [
+    {
+      "slug": "specs-keycloak-pocketid",
+      "status": "plan_staged"
+    }
+  ],
   "T002180": [
     {
       "slug": "spec-security-gaps",

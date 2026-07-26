@@ -7,9 +7,12 @@ description: >
   workspace. Triggers on: k3d/, prod*/, manifest, kustomize, overlay, Taskfile,
   ENV=, environments/, deploy (when referring to k8s resources), workspace:setup.
 model: opus
-tools:
-  - mcp_kubernetes_*
-  - task
+# [T002221] No `tools:` key on purpose — see bachelorprojekt-db.md for the full
+# reasoning. The previous list named `mcp_kubernetes_*` and `task`: wildcards are
+# never expanded, and the real names are `mcp__mcp-kubernetes__pods_list` and
+# friends. Neither entry resolved, so every dispatch to this agent failed and had
+# to fall back to general-purpose — which also lost the `opus` tier this agent
+# carries precisely because its domain is cross-system and irreversible.
 ---
 
 ## Library

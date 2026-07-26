@@ -5,11 +5,12 @@ description: >
   compliance checks, and secret rotation in the Bachelorprojekt platform. Triggers on:
   SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret.
 model: opus
-tools:
-  - mcp_postgres_query
-  - mcp_kubernetes_pods_*
-  - mcp_kubernetes_resources_*
-  - ticket_mcp_*
+# [T002221] No `tools:` key on purpose — see bachelorprojekt-db.md for the full
+# reasoning. All four previous entries were invented names (`mcp_postgres_query`,
+# `mcp_kubernetes_pods_*`, `mcp_kubernetes_resources_*`, `ticket_mcp_*`): single
+# underscores instead of the `mcp__<server>__<tool>` form, plus wildcards that are
+# never expanded. The list resolved to nothing and every dispatch failed, dropping
+# the `opus` tier this agent needs for secret and OIDC work.
 ---
 
 ## Library

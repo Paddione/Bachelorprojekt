@@ -710,15 +710,74 @@ if missing:
 # UND fleet-korczewski.yaml — gleicher namespace/name, gleicher Key.
 # Ein blanker "kein Duplikat"-Test wäre dort falsch-positiv.
 #
-# TODO(Patrick): Guard implementieren. Zu entscheiden:
-#   1. Reichweite — nur flux/clusters/fleet/bootstrap/ (eng, kein
-#      Falsch-Positiv-Risiko) oder repo-weit über alle SealedSecrets
-#      (fängt mehr, braucht dann die namespace/name-Ausnahme oben)?
-#   2. Vergleichsschlüssel — Duplikat melden nur wenn sich metadata.name
-#      ODER metadata.namespace unterscheiden.
-#   3. Granularität — pro encryptedData-Key vergleichen oder pro Dokument?
-# Helper _flux_bootstrap_sealedsecrets() liefert die Dateiliste; die beiden
-# Tests oben zeigen das Fehlermeldungs-Format (FAIL: + Begründung + Fix-Hinweis).
-@test "T002251: no two Flux bootstrap SealedSecrets share a ciphertext" {
-  skip "TODO(Patrick): Guard implementieren — siehe Kommentar oben"
+# Entschiedene Policy (2026-07-27):
+#   1. Reichweite  — repo-weit über alle getrackten SealedSecrets. Die Bug-Klasse
+#      ist nicht bootstrap-spezifisch; ein kopierter Blob ist überall still
+#      halb-kaputt.
+#   2. Schlüssel   — Identität ist (metadata.namespace, metadata.name). Ein
+#      geteilter Ciphertext ist NUR bei abweichender Identität ein Fehler; damit
+#      sind die 6 brand-übergreifenden Secrets sauber ausgenommen.
+#   3. Granularität — pro encryptedData-Wert, denn dort entsteht der Ciphertext.
+#   4. Ausnahme    — Dokumente mit namespace-wide/cluster-wide Scope-Annotation.
+#      Dort ist der Ciphertext NICHT an den Namen gebunden, ein Reuse also legitim.
+#      Aktuell sind alle 25 SealedSecrets strict; die Ausnahme ist Vorsorge.
+@test "T002251: no two SealedSecrets with different identities share a ciphertext" {
+  run env PROJECT_DIR="$PROJECT_DIR" python3 - <<'PY'
+import os, subprocess, sys, yaml
+from collections import defaultdict
+
+# Explizit an PROJECT_DIR gebunden — 'git ls-files' waere sonst cwd-abhaengig und
+# der Test wuerde je nach Aufrufort eine andere Dateimenge scannen.
+ROOT = os.environ['PROJECT_DIR']
+files = subprocess.run(
+    ['git', '-C', ROOT, 'ls-files', '-z', '*.yaml', '*.yml'],
+    capture_output=True, text=True, check=True,
+).stdout.split('\0')
+
+SCOPE_ANNOTATIONS = ('sealedsecrets.bitnami.com/namespace-wide',
+                     'sealedsecrets.bitnami.com/cluster-wide')
+
+# ciphertext -> {(namespace, name)} und ciphertext -> [Fundstelle]
+identities = defaultdict(set)
+sites = defaultdict(list)
+
+for path in files:
+    if not path:
+        continue
+    try:
+        with open(os.path.join(ROOT, path)) as fh:
+            docs = list(yaml.safe_load_all(fh))
+    except (yaml.YAMLError, OSError, UnicodeDecodeError):
+        continue          # Templates/envsubst-Platzhalter sind kein valides YAML
+    for doc in docs:
+        if not isinstance(doc, dict) or doc.get('kind') != 'SealedSecret':
+            continue
+        md = doc.get('metadata') or {}
+        ann = md.get('annotations') or {}
+        if any(str(ann.get(a, '')).lower() == 'true' for a in SCOPE_ANNOTATIONS):
+            continue      # non-strict scope: Reuse über Namen hinweg ist erlaubt
+        ident = (md.get('namespace') or '<none>', md.get('name') or '<none>')
+        for key, ct in ((doc.get('spec') or {}).get('encryptedData') or {}).items():
+            if not isinstance(ct, str) or not ct:
+                continue
+            identities[ct].add(ident)
+            sites[ct].append(f'{path} [{ident[0]}/{ident[1]}] key={key}')
+
+shared = {ct: ids for ct, ids in identities.items() if len(ids) > 1}
+if shared:
+    for ct, ids in shared.items():
+        print('FAIL: derselbe Ciphertext unter verschiedenen Identitaeten:')
+        for site in sorted(set(sites[ct])):
+            print(f'  {site}')
+        print('      Sealed-secrets bindet den Ciphertext im Default-Modus (strict')
+        print('      scope) an namespace/name. Er kann daher fuer hoechstens EINE')
+        print('      dieser Identitaeten entschluesseln — der Rest bleibt still kaputt.')
+        print('      Jede Identitaet einzeln sealen:')
+        print('        kubectl -n <ns> get secret <name> -o yaml | kubeseal --cert <cert> --format yaml')
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || {
+    echo "$output"
+    return 1
+  }
 }

@@ -77,7 +77,9 @@ assert d['spec']['template']['metadata']['name'] == 'ghcr-auth'
 assert d['spec']['template']['type'] == 'kubernetes.io/dockerconfigjson'
 ct = d['spec']['encryptedData']['.dockerconfigjson']
 assert not ct.startswith('AgD_dummy'), 'placeholder survived'
-base64.b64decode(ct[3:], validate=True)
+# GANZEN String dekodieren — das 'Ag'-Präfix ist Teil des Base64, kein davor
+# gestelltes Literal. Ein Slice wie ct[3:] zerstört das 4-Byte-Alignment.
+base64.b64decode(ct, validate=True)
 print('ok', len(ct))
 "
 ```

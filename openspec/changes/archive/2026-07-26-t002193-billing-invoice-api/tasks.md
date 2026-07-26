@@ -2,7 +2,7 @@
 title: "t002193-billing-invoice-api — Implementation Plan"
 ticket_id: T002193
 domains: [billing, api]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

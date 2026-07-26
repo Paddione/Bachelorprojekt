@@ -2462,7 +2462,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 460,
+      "file_count": 461,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -2778,6 +2778,7 @@
         "k3d/pocket-id-client-seed-rbac.yaml",
         "k3d/pocket-id-client-seed-website-rbac.yaml",
         "k3d/pocket-id-client-seed.yaml",
+        "k3d/pocket-id-db-init-sql.yaml",
         "k3d/pocket-id.yaml",
         "k3d/pvc-backup-cronjob.yaml",
         "k3d/pvc-backup-rbac.yaml",

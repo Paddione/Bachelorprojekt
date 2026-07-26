@@ -148,15 +148,16 @@
     // ── Disabled packages ──────────────────────────────────────────────────
 
     // Own ghcr.io/paddione images are rebuilt on release via CI, not bumped by
-    // Renovate. Using matchPackagePatterns (not matchPackageNames) — regex
-    // pattern without // wrapping, cleaner in Renovate v43+.
+    // Renovate. Using matchPackageNames with slash-wrapped regex syntax — the
+    // alternative matchPackagePatterns is deprecated in Renovate v43+ and would
+    // trigger "Config needs migrating".
     //
     // Known cosmetic WARN: "Error obtaining docker token" for bare "paddione"
     // (NAME_INVALID on ghcr.io) still appears because Renovate does a
     // registry-level token request before evaluating the disable rule. The
     // warning is harmless — no updates are proposed for these packages.
     {
-      "matchPackagePatterns": ["^ghcr\\.io/paddione/"],
+      "matchPackageNames": ["/^ghcr.io/paddione//"],
       "enabled": false
     },
 

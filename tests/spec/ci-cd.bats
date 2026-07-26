@@ -771,13 +771,11 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
 
 @test "T002161-A: renovate.yml liest die App-Identitaet aus RENOVATE_APP_ID" {
   local wf="$REPO_ROOT/.github/workflows/renovate.yml"
-  grep -qE '^\s+app-id: \$\{\{ secrets\.RENOVATE_APP_ID \}\}' "$wf" || {
-    echo "FAIL: create-github-app-token wird nicht mit app-id aus dem Secret"
-    echo "      RENOVATE_APP_ID aufgerufen. Das gesetzte Repo-Secret haelt die"
-    echo "      numerische App ID, also ist app-id der passende Input — in v3 zwar"
-    echo "      deprecated ('Use client-id instead.'), aber funktionsfaehig. Eine"
-    echo "      Migration auf client-id braucht BEIDES: neuen Secret-Wert (Client ID)"
-    echo "      UND umbenannten Input."
+  grep -qE '^\s+client-id: \$\{\{ secrets\.RENOVATE_APP_ID \}\}' "$wf" || {
+    echo "FAIL: create-github-app-token wird nicht mit client-id aus dem Secret"
+    echo "      RENOVATE_APP_ID aufgerufen. In v3 wurde app-id durch client-id"
+    echo "      ersetzt ('Use client-id instead.'). Der Input-Name wurde migriert,"
+    echo "      der Secret-Wert ist weiterhin die numerische App ID."
     return 1
   }
   grep -qE '^\s+private-key: \$\{\{ secrets\.RENOVATE_APP_PRIVATE_KEY \}\}' "$wf" || {

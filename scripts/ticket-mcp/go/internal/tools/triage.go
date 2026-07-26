@@ -3,7 +3,6 @@ package tools
 import (
 	"context"
 	"fmt"
-	"os"
 	"slices"
 	"strings"
 
@@ -44,9 +43,6 @@ func RegisterTriageTools(s *server.MCPServer) {
 			attentionMode, _ := a["attention_mode"].(string)
 			component, _ := a["component"].(string)
 			status, _ := a["status"].(string)
-			if status == "" {
-				status = "triage"
-			}
 
 			validTypes := []string{"bug", "feature", "task", "project"}
 			if mtype != "" && !slices.Contains(validTypes, mtype) {
@@ -67,9 +63,6 @@ func RegisterTriageTools(s *server.MCPServer) {
 
 			args := buildTriageArgs(id, status, priority, severity, mtype, attentionMode, component)
 
-			if status == "triage" {
-				fmt.Fprintf(os.Stderr, "[triage_ticket debug] id=%s component=%q args=%v\n", id, component, args)
-			}
 			raw, err := runner.RunTicket(args, map[string]string{"BRAND": brand, "VDA_NONINTERACTIVE": "1"})
 			if err != nil {
 				return nil, err
@@ -108,7 +101,10 @@ func RegisterTriageTools(s *server.MCPServer) {
 // partial triage_ticket call never clobbers unrelated ticket fields (the CLI
 // itself only updates columns whose flag was explicitly provided).
 func buildTriageArgs(id, status, priority, severity, mtype, attentionMode, component string) []string {
-	args := []string{"triage", "--id", id, "--status", status, "--apply", "--no-comment"}
+	args := []string{"triage", "--id", id, "--apply", "--no-comment"}
+	if status != "" {
+		args = append(args, "--status", status)
+	}
 	if priority != "" {
 		args = append(args, "--priority", priority)
 	}

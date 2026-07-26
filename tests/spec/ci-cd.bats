@@ -954,3 +954,61 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
     }
   done
 }
+# --- T002174: flux-render-artifact.sh ignoriert die dokumentierte Leer-Semantik ---
+# environments/schema.yaml ist die autoritative Spezifikation und definiert fuer beide
+# betroffenen Variablen ein Verhalten fuer den leeren Fall:
+#   RIGGER_HOST_IP (schema.yaml:403) "Defaults to COMFY_HOST_IP when empty."
+#   DEV_DOMAIN     (schema.yaml:466) "Empty disables the dev stack."
+# Der Taskfile-Pfad implementiert den Rigger-Fallback (Taskfile.yml:2831/2961/3641),
+# der Flux-Renderer implementierte KEINEN der beiden Vertraege: er substituierte stumpf
+# den leeren Wert. Ergebnis auf fleet: Endpoints rigger-gateway mit ip:"" und Ingress
+# workspace-ingress-dev mit host:"*." — beide liessen ihre Flux-Kustomization dauerhaft
+# rot werden, wodurch Flux den GESAMTEN Satz darin nicht mehr applizierte.
+#
+# Kein generischer "leere Variable = Fehler"-Check: ueber alle vier Overlays gibt es
+# dutzende legitim leerer Referenzen (Shell-Vars in ConfigMap-Skripten, Grafana-Template-
+# Variablen, Secret-Platzhalter aus SealedSecrets). Geprueft wird der konkrete Vertrag.
+
+flux_render_script() {
+  echo "$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)/scripts/flux-render-artifact.sh"
+}
+
+@test "T002174: flux-render implementiert den RIGGER_HOST_IP-auf-COMFY_HOST_IP-Fallback" {
+  S="$(flux_render_script)"
+  [ -f "$S" ]
+  grep -qE 'RIGGER_HOST_IP=.*RIGGER_HOST_IP:-.*COMFY_HOST_IP' "$S" || {
+    echo "FAIL: kein Fallback RIGGER_HOST_IP -> COMFY_HOST_IP in flux-render-artifact.sh."
+    echo "      schema.yaml:403 spezifiziert 'Defaults to COMFY_HOST_IP when empty';"
+    echo "      ohne den Fallback rendert prod/rigger-gpu.yaml Endpoints mit ip: \"\"."
+    return 1
+  }
+}
+
+@test "T002174: flux-render rendert den dev-Stack nicht, wenn DEV_DOMAIN leer ist" {
+  S="$(flux_render_script)"
+  [ -f "$S" ]
+  # schema.yaml:466 — "Empty disables the dev stack". Der Renderer muss den leeren Fall
+  # abfangen, statt host:"*." zu erzeugen.
+  grep -qE 'DEV_DOMAIN' "$S" || {
+    echo "FAIL: flux-render-artifact.sh prueft DEV_DOMAIN ueberhaupt nicht."
+    echo "      schema.yaml:466 spezifiziert 'Empty disables the dev stack'."
+    return 1
+  }
+  awk '/# 1b\. Dev/,/^\)/' "$S" | grep -qE '(-z .*DEV_DOMAIN|DEV_DOMAIN.*-z)' || {
+    echo "FAIL: der dev-Renderblock hat keinen Leer-Guard auf DEV_DOMAIN."
+    return 1
+  }
+}
+
+@test "T002174: der dev-Renderblock verschluckt env-resolve-Fehler nicht per '|| true'" {
+  S="$(flux_render_script)"
+  [ -f "$S" ]
+  # Schlug env-resolve fehl, lief der Render mit LEERER Umgebung weiter und schrieb
+  # ein Manifest voller leer substituierter Werte ins Artefakt.
+  awk '/# 1b\. Dev/,/^\)/' "$S" | grep -qE 'env-resolve\.sh dev.*\|\| true' && {
+    echo "FAIL: 'source scripts/env-resolve.sh dev ... || true' im dev-Renderblock —"
+    echo "      ein Fehlschlag rendert stillschweigend mit leerer Umgebung weiter."
+    return 1
+  }
+  return 0
+}

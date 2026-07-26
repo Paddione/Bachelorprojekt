@@ -630,3 +630,95 @@ FLUX_CLUSTER_DIR="${PROJECT_DIR}/flux/clusters/fleet"
     return 1
   }
 }
+
+# ═══════════════════════════════════════════════════════════════════
+# T002251: Flux-Bootstrap-SealedSecrets müssen echte, entschlüsselbare
+# Ciphertexte tragen. In main standen dort die Platzhalter aus der
+# T002083-Bootstrap-PR (AgD_dummy_encrypted_…) — der Controller auf fleet
+# scheiterte mit "illegal base64 data at input byte 3" (das '_' ist kein
+# Base64-Zeichen), beide Ressourcen SYNCED=False.
+#
+# Die Tests prüfen FORM, nicht Entschlüsselbarkeit: die Ciphertexte gelten
+# nur für den aktuellen Controller-Key, ein Cert-Rotate würde einen
+# Decrypt-Test rot machen ohne echten Bug. Live-Verifikation (SYNCED=True)
+# läuft im Verify-Task gegen den Cluster.
+# ═══════════════════════════════════════════════════════════════════
+
+FLUX_BOOTSTRAP_DIR="${PROJECT_DIR}/flux/clusters/fleet/bootstrap"
+
+# Listet alle SealedSecret-Dateien im Bootstrap-Verzeichnis.
+_flux_bootstrap_sealedsecrets() {
+  find "$FLUX_BOOTSTRAP_DIR" -maxdepth 1 -name '*sealedsecret*.yaml' -type f | sort
+}
+
+@test "T002251: no Flux bootstrap SealedSecret carries a placeholder ciphertext" {
+  local found=0 f
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    if grep -qE ':[[:space:]]*AgD_dummy' "$f"; then
+      echo "FAIL: $(basename "$f") trägt einen Platzhalter-Ciphertext:"
+      grep -nE ':[[:space:]]*AgD_dummy' "$f" | sed 's/^/  /'
+      echo "      Der Sealed-Secrets-Controller kann das nicht dekodieren"
+      echo "      ('illegal base64 data at input byte 3' — das '_' ist kein Base64)."
+      echo "      Neu sealen: kubectl --context fleet -n flux-system get secret <name> -o yaml"
+      echo "                  | kubeseal --cert environments/certs/fleet-mentolder.pem --format yaml"
+      found=1
+    fi
+  done < <(_flux_bootstrap_sealedsecrets)
+  [ "$found" -eq 0 ]
+}
+
+@test "T002251: every Flux bootstrap SealedSecret declares spec.template.metadata" {
+  # PyYAML statt grep: ein SealedSecret hat ZWEI metadata-Blöcke (metadata und
+  # spec.template.metadata). Ein flaches grep zählt beide und meldet fälschlich
+  # "vorhanden", wenn nur der äußere existiert.
+  local f
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    run python3 -c "
+import sys, yaml
+doc = yaml.safe_load(open(sys.argv[1]))
+tmpl = ((doc or {}).get('spec') or {}).get('template') or {}
+md = tmpl.get('metadata') or {}
+missing = [k for k in ('name', 'namespace') if not md.get(k)]
+if missing:
+    print('missing: ' + ', '.join('spec.template.metadata.' + m for m in missing))
+    sys.exit(1)
+" "$f"
+    [ "$status" -eq 0 ] || {
+      echo "FAIL: $(basename "$f") — $output"
+      echo "      Ohne template.metadata kann der Controller das Ziel-Secret"
+      echo "      nicht erzeugen. kubeseal --format yaml schreibt den Block mit."
+      return 1
+    }
+  done < <(_flux_bootstrap_sealedsecrets)
+}
+
+# ── Copy-Paste-Guard ────────────────────────────────────────────────
+# Motivation: im geretteten Stash (rescue/flux-bootstrap-secrets-stash11)
+# stand in BEIDEN Bootstrap-Dateien derselbe Ciphertext (SHA256 identisch,
+# je 936 Zeichen). Sealed-secrets bindet den Ciphertext im Default-Modus
+# (strict scope) an namespace/name — derselbe Blob kann also für höchstens
+# eines der beiden Secrets entschlüsseln. Wäre das gemergt worden, hätte es
+# genau so ausgesehen wie ein Fix und wäre zur Hälfte still kaputt geblieben.
+#
+# ACHTUNG bei der Reichweite: identische Ciphertexte sind NICHT per se falsch.
+# Die 6 brand-übergreifenden Secrets (monitoring/grafana-oidc,
+# alertmanager-smtp, alertmanager-pushover, otel-collector-auth,
+# cert-manager/ipv64-api-key, workspace-office/collabora-secrets) stehen
+# legitim byte-identisch in environments/sealed-secrets/fleet-mentolder.yaml
+# UND fleet-korczewski.yaml — gleicher namespace/name, gleicher Key.
+# Ein blanker "kein Duplikat"-Test wäre dort falsch-positiv.
+#
+# TODO(Patrick): Guard implementieren. Zu entscheiden:
+#   1. Reichweite — nur flux/clusters/fleet/bootstrap/ (eng, kein
+#      Falsch-Positiv-Risiko) oder repo-weit über alle SealedSecrets
+#      (fängt mehr, braucht dann die namespace/name-Ausnahme oben)?
+#   2. Vergleichsschlüssel — Duplikat melden nur wenn sich metadata.name
+#      ODER metadata.namespace unterscheiden.
+#   3. Granularität — pro encryptedData-Key vergleichen oder pro Dokument?
+# Helper _flux_bootstrap_sealedsecrets() liefert die Dateiliste; die beiden
+# Tests oben zeigen das Fehlermeldungs-Format (FAIL: + Begründung + Fix-Hinweis).
+@test "T002251: no two Flux bootstrap SealedSecrets share a ciphertext" {
+  skip "TODO(Patrick): Guard implementieren — siehe Kommentar oben"
+}

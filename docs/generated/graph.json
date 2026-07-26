@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T12:23:40.297Z",
+  "generatedAt": "2026-07-25T16:52:20.529Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -198,6 +198,12 @@
       "namespace": "mentolder",
       "type": "Deployment",
       "name": "mentolder-web"
+    },
+    {
+      "id": "health-goals-check",
+      "namespace": "monitoring",
+      "type": "CronJob",
+      "name": "health-goals-check"
     },
     {
       "id": "monitoring-grafana",

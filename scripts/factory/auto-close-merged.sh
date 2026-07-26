@@ -61,6 +61,13 @@ echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
     continue
   fi
 
+  # Check partial plan completeness guard (T002105):
+  # Skip auto-closing multi-partial plans if partial tasks remain unimplemented.
+  if ! bash "$(dirname "${BASH_SOURCE[0]}")/merge-hooks.sh" "$ticket" "$HERE/../.."; then
+    echo "auto-close-merged [T002105]: $ticket (PR #$pr_num, branch: $branch) — SKIP (incomplete multi-partial plan)" >&2
+    continue
+  fi
+
   # Look up the ticket's current status and type. SQL is read-only.
   row=$(cat <<SQL | factory_psql 2>/dev/null
 SELECT status, type FROM tickets.tickets WHERE external_id = '$ticket' LIMIT 1;

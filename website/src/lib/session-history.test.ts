@@ -54,19 +54,19 @@ describe('buildSessionHistory', () => {
   });
 
   it('includes accepted and skipped steps as user+assistant turns', async () => {
-    await upsertStep(pool, { sessionId: SID, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel', coachInputs: { anlass: 'Stress' }, aiPrompt: 'Klient M0001: Stress', aiResponse: 'Schritt-1-Antwort', status: 'accepted' });
-    await upsertStep(pool, { sessionId: SID, stepNumber: 2, stepName: 'Schlüsselemotion', phase: 'problem_ziel', coachInputs: { emotion: 'Angst' }, aiPrompt: 'Klient M0001: Angst', aiResponse: 'Schritt-2-Antwort', status: 'skipped' });
+    await upsertStep(pool, { sessionId: SID, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel', beats: [{ beatIndex: 0, inputs: { anlass: 'Stress' }, aiResponse: 'Schritt-1-Antwort', status: 'accepted' }], status: 'accepted' });
+    await upsertStep(pool, { sessionId: SID, stepNumber: 2, stepName: 'Schlüsselemotion', phase: 'problem_ziel', beats: [{ beatIndex: 0, inputs: { emotion: 'Angst' }, aiResponse: 'Schritt-2-Antwort', status: 'skipped' }], status: 'skipped' });
     const hist = await buildSessionHistory(SID, 3);
     expect(hist).toHaveLength(4);
-    expect(hist[0]).toEqual({ role: 'user', content: 'Klient M0001: Stress' });
+    expect(hist[0]).toEqual({ role: 'user', content: 'anlass: Stress' });
     expect(hist[1]).toEqual({ role: 'assistant', content: 'Schritt-1-Antwort' });
-    expect(hist[2]).toEqual({ role: 'user', content: 'Klient M0001: Angst' });
+    expect(hist[2]).toEqual({ role: 'user', content: 'emotion: Angst' });
     expect(hist[3]).toEqual({ role: 'assistant', content: 'Schritt-2-Antwort' });
   });
 
   it('excludes generated and pending steps', async () => {
     const SID2 = '00000000-0000-4000-8000-000000000002';
-    await upsertStep(pool, { sessionId: SID2, stepNumber: 1, stepName: 'S1', phase: 'p', coachInputs: {}, aiPrompt: 'prompt', aiResponse: 'resp', status: 'generated' });
+    await upsertStep(pool, { sessionId: SID2, stepNumber: 1, stepName: 'S1', phase: 'p', beats: [], status: 'generated' });
     const hist = await buildSessionHistory(SID2, 2);
     expect(hist).toHaveLength(0);
   });

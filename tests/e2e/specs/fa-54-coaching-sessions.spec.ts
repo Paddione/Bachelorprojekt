@@ -10,7 +10,7 @@ const ADMIN_PASS  = process.env.E2E_ADMIN_PASS;
  * FA-54: Coaching-Sessions — Grundfunktionen
  *
  * Prüft: Zugriffskontrolle, Seitenstruktur, Session-Anlage, Wizard-Schritte,
- * Skip-Navigation und Session-Meta-Bearbeitung.
+ * Beat-Navigation und Session-Meta-Bearbeitung.
  * KI-Generierung ist bewusst nicht getestet (erfordert gültigen Anthropic-API-Key).
  */
 
@@ -75,7 +75,7 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await expect(page.locator('#submit-btn')).toBeVisible();
     });
 
-    // ── Session-Wizard ──────────────────────────────────────────────────────────
+    // ── Session-Wizard (Beat-Modell) ────────────────────────────────────────────
     test('T7: wizard shows 10 step buttons in the progress bar', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
       await page.waitForURL(/\/new$/, { timeout: 20_000 });
@@ -89,29 +89,22 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await expect(buttons).toHaveCount(10);
     });
 
-    test('T8: wizard step 1 shows Erstanamnese with required inputs and disabled KI button', async ({ page }) => {
+    test('T8: wizard step 1 shows beat-based UI with greeting beat, Weiter button, no flat inputs', async ({ page }) => {
       await loginAsAdmin(page, '/admin/coaching/sessions/new');
       await page.waitForURL(/\/new$/, { timeout: 20_000 });
       await page.locator('#title').fill(`FA-54 E2E T8 ${Date.now()}`);
       await page.locator('#submit-btn').click();
       await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
 
-      await expect(page.getByRole('heading', { name: /Schritt 1\/10.*Erstanamnese/ })).toBeVisible();
-      await expect(page.locator('#anlass')).toBeVisible();
-      await expect(page.locator('#situation')).toBeVisible();
-      await expect(page.getByRole('button', { name: /KI befragen/ })).toBeDisabled();
-    });
-
-    test('T9: KI button enables when required fields are filled', async ({ page }) => {
-      await loginAsAdmin(page, '/admin/coaching/sessions/new');
-      await page.waitForURL(/\/new$/, { timeout: 20_000 });
-      await page.locator('#title').fill(`FA-54 E2E T9 ${Date.now()}`);
-      await page.locator('#submit-btn').click();
-      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
-
-      await page.locator('#anlass').fill('Führungsproblem im Team');
-      await page.locator('#situation').fill('Konflikt zwischen Mitarbeitern, schlechte Stimmung');
-      await expect(page.getByRole('button', { name: /KI befragen/ })).toBeEnabled();
+      await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
+      await expect(page.getByText(/Erste Problem- und Zielbeschreibung/)).toBeVisible();
+      // Beat indicator should show current beat out of total (e.g. "Beat 1/3")
+      await expect(page.getByText(/Beat\s+1/i)).toBeVisible();
+      // Beat 1 is a greeting / instruction beat — a Weiter button should be present
+      await expect(page.getByRole('button', { name: /Weiter/i })).toBeVisible();
+      // No flat #anlass input in beat mode
+      await expect(page.locator('#anlass')).toHaveCount(0);
+      await expect(page.locator('#situation')).toHaveCount(0);
     });
 
     test('T10: skip advances wizard to the next step', async ({ page }) => {
@@ -123,7 +116,8 @@ test.describe('FA-54: Coaching-Sessions', () => {
 
       await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
       await page.getByRole('button', { name: 'Schritt überspringen' }).click();
-      await expect(page.getByRole('heading', { name: /Schritt 2\/10.*Schlüsselaffekt/ })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible();
+      await expect(page.getByText(/Fokussierung Schlüsselsituation/)).toBeVisible();
     });
 
     test('T11: back button returns to previous step', async ({ page }) => {
@@ -137,6 +131,38 @@ test.describe('FA-54: Coaching-Sessions', () => {
       await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible();
       await page.getByRole('button', { name: '← Zurück' }).click();
       await expect(page.getByRole('heading', { name: /Schritt 1\/10/ })).toBeVisible();
+    });
+
+    test('T13: full step-1 beat walkthrough: greeting → capture → ki_prompt → step 2', async ({ page }) => {
+      test.setTimeout(120_000);
+      await loginAsAdmin(page, '/admin/coaching/sessions/new');
+      await page.waitForURL(/\/new$/, { timeout: 20_000 });
+      await page.locator('#title').fill(`FA-54 E2E T13 ${Date.now()}`);
+      await page.locator('#submit-btn').click();
+      await page.waitForURL(/\/sessions\/[a-f0-9-]{36}$/, { timeout: 20_000 });
+
+      // Beat 1 — instruction / greeting: click Weiter
+      await expect(page.getByText(/Beat\s+1/i)).toBeVisible();
+      await page.getByRole('button', { name: /Weiter/i }).click();
+
+      // Beat 2 — instruction with capture: fill textbox and click Weiter
+      await expect(page.getByText(/Beat\s+2/i)).toBeVisible();
+      const captureInput = page.locator('textarea, input[type="text"]').first();
+      await expect(captureInput).toBeVisible();
+      await captureInput.fill('Ich fühle mich im Team überfordert und möchte eine bessere Zusammenarbeit.');
+      await page.getByRole('button', { name: /Weiter/i }).click();
+
+      // Beat 3 — ki_prompt: click KI befragen → wait for Akzeptieren → click
+      await expect(page.getByText(/Beat\s+3/i)).toBeVisible();
+      await expect(page.getByRole('button', { name: /KI befragen/i })).toBeVisible();
+
+      // KI befragen triggers an actual API call — wait for the response
+      await page.getByRole('button', { name: /KI befragen/i }).click();
+      await expect(page.getByRole('button', { name: /Akzeptieren/i })).toBeVisible({ timeout: 60_000 });
+      await page.getByRole('button', { name: /Akzeptieren/i }).click();
+
+      // After accepting, we should advance to step 2
+      await expect(page.getByRole('heading', { name: /Schritt 2\/10/ })).toBeVisible();
     });
 
     test('T12: session-info box shows title and edit button', async ({ page }) => {

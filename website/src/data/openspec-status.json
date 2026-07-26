@@ -1359,6 +1359,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002105": [
+    {
+      "slug": "t002105-mishap-bundle",
+      "status": "plan_staged"
+    }
+  ],
   "T002107": [
     {
       "slug": "health-goals-scan-streamline",
@@ -1398,6 +1404,30 @@
   "T002137": [
     {
       "slug": "mishap-t002137",
+      "status": "plan_staged"
+    }
+  ],
+  "T002138": [
+    {
+      "slug": "coaching-session-beat-choreography",
+      "status": "plan_staged"
+    }
+  ],
+  "T002150": [
+    {
+      "slug": "t002150-website-db-split-stage-2",
+      "status": "plan_staged"
+    }
+  ],
+  "T002154": [
+    {
+      "slug": "2026-07-25-pocket-id-url-fqdn-guard",
+      "status": "archived"
+    }
+  ],
+  "T002158": [
+    {
+      "slug": "repohealth-goals-trigger",
       "status": "plan_staged"
     }
   ],

@@ -13,13 +13,16 @@ config:
         replacement: "korczewski"
       - source_labels:
           - namespace
-        regex: ".*"
+        regex: "workspace"
         target_label: brand
         replacement: "mentolder"
     pipelineStages:
       - json:
           expressions:
             level: level
+      - template:
+          source: level
+          template: '{{ if eq .Value "50" }}error{{ else if eq .Value "40" }}warn{{ else if eq .Value "30" }}info{{ else }}{{ .Value }}{{ end }}'
       - labels:
           level:
       - match:

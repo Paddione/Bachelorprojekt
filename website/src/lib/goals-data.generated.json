@@ -50,8 +50,8 @@
     "category": "Test-Health",
     "priority": "B",
     "direction": "lower",
-    "baseline": 2,
-    "current": 2,
+    "baseline": 24,
+    "current": 24,
     "target": 0,
     "unit": "",
     "status": "unknown",
@@ -192,6 +192,21 @@
     "status": "unknown",
     "measurement": "bash scripts/brain-ingest-worklist.sh 2>/dev/null | python3 -c \"\nimport sys, json, hashlib\nstate=json.load(open('$HOME/.brain-ingest-state.json'))\ntodo=0\nfor line in sys.stdin:\n    path=line.split('\\t')[0].strip()\n    if not path: continue\n    st=state.get(path)\n    if not st or hashlib.sha256(open(path,'rb').read()).hexdigest()!=st['hash']: todo+=1\nprint(todo)\"",
     "source": ".claude/lib/goals.md · G-BRAIN14",
+    "measured_at": "2026-07-22"
+  },
+  {
+    "id": "G-IMG01",
+    "title": "Fremd-Image-Versions-Drift",
+    "category": "Dependencies",
+    "priority": "B",
+    "direction": "lower",
+    "baseline": 2,
+    "current": 0,
+    "target": 0,
+    "unit": "",
+    "status": "unknown",
+    "measurement": "grep -rhE 'image:' k3d/ prod*/ | grep -v '#' | sed 's/.*image:\\s*//' | sort -u | awk -F'\\t' '{c[$1]++} END{for(k in c) if(c[k]>1) print k}'",
+    "source": ".claude/lib/goals.md · G-IMG01",
     "measured_at": "2026-07-22"
   },
   {
@@ -580,7 +595,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "grep -rhE 'image:' k3d/ prod*/ | ... sort -u | awk -F'\\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B)",
+    "measurement": "grep -rhE 'image:' k3d/ prod*/ | ... sort -u | awk -F'\\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml)",
     "source": ".claude/lib/goals.md · G-IMG01",
     "measured_at": "2026-07-22"
   },

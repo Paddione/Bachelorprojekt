@@ -658,3 +658,83 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
 "
   [ "$status" -eq 0 ]
 }
+
+# ── T002157: render-fleet-artifact muss auf seine eigenen Eingaben triggern ────
+#
+# Der Workflow triggerte nur auf Manifest-Pfade (k3d/**, prod*/**, flux/clusters/**),
+# nicht auf scripts/** — obwohl scripts/flux-render-artifact.sh DER RENDERER ist.
+# Folge: T002156 aenderte die Render-Logik, das OCI-Artefakt wurde nie neu gebaut,
+# und Flux lieferte weiter den alten Stand mit leerer checksum/config aus. Ohne
+# workflow_dispatch gab es zudem keine Moeglichkeit, einen Rebuild anzustossen.
+
+@test "T002157: render-fleet-artifact triggert auf den Renderer selbst" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  local wf="${repo_root}/.github/workflows/render-fleet-artifact.yml"
+  local missing=""
+  for input in flux-render-artifact.sh website-config-sha.sh Taskfile.yml; do
+    grep -q "$input" "$wf" || missing="$missing $input"
+  done
+  [ -z "$missing" ] || {
+    echo "FAIL: render-fleet-artifact.yml triggert nicht auf:$missing"
+    echo "      Diese Dateien bestimmen den Inhalt des OCI-Artefakts — ohne Trigger"
+    echo "      bleibt das Artefakt stale und Flux rollt eine veraltete Version aus."
+    return 1
+  }
+}
+
+@test "T002157: render-fleet-artifact ist manuell ausloesbar" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  grep -qE '^\s*workflow_dispatch:' "${repo_root}/.github/workflows/render-fleet-artifact.yml" || {
+    echo "FAIL: kein workflow_dispatch — ein Artefakt-Rebuild laesst sich nicht gezielt"
+    echo "      ausloesen, nur ueber einen Dummy-Commit in einem getriggerten Pfad."
+    return 1
+  }
+}
+
+# ── T002158: das Repohealth-Dashboard muss auf Goals-Aenderungen neu gebaut werden ──
+#
+# Gleiche Klasse wie T002157: website/src/lib/goals-data.generated.json wird per
+# statischem ESM-Import (website/src/lib/goals-data.ts:1) ins Astro-Bundle gebacken.
+# Neue Health-Goal-Werte erreichen /admin/repohealth also nur ueber ein neues
+# Website-Image. Zwei Trigger-Bruechen verhinderten das:
+#   A) build-website.yml triggerte nicht auf .claude/lib/goals.md — die Datenquelle.
+#   B) freshness-regen.yml haengte [skip ci] unbedingt an; genau dieser Bot-Commit
+#      ist der einzige Ort, an dem der Website-JSON ausserhalb eines PRs
+#      fortgeschrieben wird, also der einzige Pfad, der den Build ausloesen WUERDE.
+# Folge: das Dashboard wurde nur zufaellig aktuell, wenn ein fremder PR nebenbei
+# einen website/**-Pfad anfasste (letzter Fall: d1cd912ce).
+
+@test "T002158-A: build-website triggert auf die Repohealth-Datenquelle goals.md" {
+  grep -q "\.claude/lib/goals\.md" "$BUILD_WF" || {
+    echo "FAIL: build-website.yml triggert nicht auf .claude/lib/goals.md"
+    echo "      Diese Datei ist der SSOT von website/src/lib/goals-data.generated.json,"
+    echo "      das per statischem Import ins Bundle gebacken wird. Ohne Trigger baut"
+    echo "      eine goals-only-Aenderung kein Image und /admin/repohealth bleibt stale."
+    return 1
+  }
+}
+
+@test "T002158-B: freshness-regen setzt [skip ci] nicht unbedingt im Bot-Commit" {
+  local wf="$REPO_ROOT/.github/workflows/freshness-regen.yml"
+  # Ein hart im commit -m eingebautes [skip ci] unterdrueckt build-website auch dann,
+  # wenn der Regen-Commit ein website/**-Artefakt enthaelt.
+  ! grep -qE 'git commit -m "[^"]*\[skip ci\]"' "$wf" || {
+    echo "FAIL: freshness-regen.yml haengt [skip ci] unbedingt an den Commit-Titel."
+    echo "      Enthaelt der Regen-Commit website/**-Artefakte (z.B."
+    echo "      goals-data.generated.json), unterdrueckt das den Website-Build und"
+    echo "      der ausgelieferte Dashboard-Stand bleibt permanent veraltet."
+    echo "      Erwartet: [skip ci] nur wenn KEIN website/**-Pfad betroffen ist."
+    return 1
+  }
+}
+
+@test "T002158-B: freshness-regen prueft den Regen-Diff auf website/-Pfade" {
+  local wf="$REPO_ROOT/.github/workflows/freshness-regen.yml"
+  grep -q '\^website/' "$wf" || {
+    echo "FAIL: kein am Zeilenanfang verankerter website/-Check im Commit-Step."
+    echo "      Erwartet: git diff --cached --name-only | grep -q '^website/' —"
+    echo "      steuert, ob [skip ci] angehaengt wird. Der Anker verhindert, dass"
+    echo "      z.B. docs/website-notes.md faelschlich als Website-Artefakt zaehlt."
+    return 1
+  }
+}

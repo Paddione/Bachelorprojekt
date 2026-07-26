@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'website/**'
+      # T002158: SSOT von website/src/lib/goals-data.generated.json. Der JSON wird per
+      # statischem ESM-Import (website/src/lib/goals-data.ts) ins Bundle gebacken —
+      # ohne diesen Trigger baut eine goals-only-Änderung kein Image und
+      # /admin/repohealth bleibt stale (gleiche Klasse wie T002157).
+      - '.claude/lib/goals.md'
       - '.github/workflows/build-website.yml'
   workflow_dispatch:
 
@@ -182,7 +187,10 @@ jobs:
           # strings to prod (T001993).
           RENDERED=$(kustomize build prod-fleet/website-mentolder --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g')
-          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u)
+          # T002154: WEBSITE_CONFIG_SHA ist bewusst KEIN Job-Env — der Wert entsteht
+          # erst aus dem substituierten Manifest (siehe unten) und wird deshalb aus
+          # dieser Runde ausgenommen. Alle uebrigen Variablen bleiben fail-closed.
+          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u | sed '/^WEBSITE_CONFIG_SHA$/d')
           MISSING=""
           for v in $VARS; do if [[ -z "${!v+x}" ]]; then MISSING="$MISSING $v"; fi; done
           if [[ -n "$MISSING" ]]; then
@@ -190,6 +198,17 @@ jobs:
             exit 1
           fi
           SUBSTITUTED=$(envsubst "$(printf '$%s ' $VARS)" <<<"$RENDERED")
+          # T002154/T002156: Hash NACH envsubst ueber den website-config-data-Block.
+          # Der gemeinsame Helper stellt sicher, dass dieser Job, der Taskfile-Pfad
+          # und der Flux-Renderer denselben Wert berechnen — bei pfadabhaengigen
+          # Hashes (z.B. ueber das ganze Manifest inkl. Image-Tag) wuerden sie sich
+          # gegenseitig ueberschreiben und bei jedem Reconcile neu ausrollen.
+          export WEBSITE_CONFIG_SHA="$(bash scripts/website-config-sha.sh <<<"$SUBSTITUTED")"
+          if [[ -z "$WEBSITE_CONFIG_SHA" ]]; then
+            echo "::error::website-config-sha.sh returned an empty checksum"
+            exit 1
+          fi
+          SUBSTITUTED=$(envsubst '$WEBSITE_CONFIG_SHA' <<<"$SUBSTITUTED")
           if grep -qE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED"; then
             echo "::error::unexpanded \${VAR} placeholders remain after envsubst:"
             grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED" | sort -u
@@ -329,7 +348,10 @@ jobs:
           # strings to prod (T001993).
           RENDERED=$(kustomize build prod-fleet/website-korczewski --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g')
-          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u)
+          # T002154: WEBSITE_CONFIG_SHA ist bewusst KEIN Job-Env — der Wert entsteht
+          # erst aus dem substituierten Manifest (siehe unten) und wird deshalb aus
+          # dieser Runde ausgenommen. Alle uebrigen Variablen bleiben fail-closed.
+          VARS=$(grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$RENDERED" | tr -d '${}' | sort -u | sed '/^WEBSITE_CONFIG_SHA$/d')
           MISSING=""
           for v in $VARS; do if [[ -z "${!v+x}" ]]; then MISSING="$MISSING $v"; fi; done
           if [[ -n "$MISSING" ]]; then
@@ -337,6 +359,17 @@ jobs:
             exit 1
           fi
           SUBSTITUTED=$(envsubst "$(printf '$%s ' $VARS)" <<<"$RENDERED")
+          # T002154/T002156: Hash NACH envsubst ueber den website-config-data-Block.
+          # Der gemeinsame Helper stellt sicher, dass dieser Job, der Taskfile-Pfad
+          # und der Flux-Renderer denselben Wert berechnen — bei pfadabhaengigen
+          # Hashes (z.B. ueber das ganze Manifest inkl. Image-Tag) wuerden sie sich
+          # gegenseitig ueberschreiben und bei jedem Reconcile neu ausrollen.
+          export WEBSITE_CONFIG_SHA="$(bash scripts/website-config-sha.sh <<<"$SUBSTITUTED")"
+          if [[ -z "$WEBSITE_CONFIG_SHA" ]]; then
+            echo "::error::website-config-sha.sh returned an empty checksum"
+            exit 1
+          fi
+          SUBSTITUTED=$(envsubst '$WEBSITE_CONFIG_SHA' <<<"$SUBSTITUTED")
           if grep -qE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED"; then
             echo "::error::unexpanded \${VAR} placeholders remain after envsubst:"
             grep -oE '\$\{[A-Za-z0-9_]+\}' <<<"$SUBSTITUTED" | sort -u

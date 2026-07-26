@@ -341,8 +341,13 @@ env_vars:
 
   - name: POCKET_ID_URL
     required: false
-    default_dev: "http://pocket-id:1411"
-    description: "Cluster-internal URL of the Pocket ID service (pocket-id:1411). Used by website/brett/nextcloud/grafana as the OIDC discovery base."
+    default_dev: "http://pocket-id.workspace.svc.cluster.local:1411"
+    description: "Cluster-internal URL of the Pocket ID service. MUST be an FQDN (T002154): the website runs in namespace `website`, pocket-id in `workspace` — the bare short name `pocket-id:1411` only resolves inside `workspace` and breaks the OIDC token exchange cross-namespace. Used by website/brett/nextcloud/grafana as the OIDC discovery base."
+
+  - name: WEBSITE_CONFIG_SHA
+    required: false
+    default_dev: "unset"
+    description: "T002154: content hash of the rendered website-config ConfigMap, injected as the pod-template annotation `checksum/config`. Computed AFTER envsubst by the deploy path (Taskfile / build-website.yml) so a config change actually triggers a rollout — envFrom values are frozen at container start and do not propagate on ConfigMap updates."
 
   - name: POCKET_ID_DOMAIN
     required: true

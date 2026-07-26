@@ -2,7 +2,8 @@ import type { APIRoute } from 'astro';
 import OpenAI from 'openai';
 import { getProviderByName } from '../../../lib/provider-config';
 import { getActiveProvider } from '../../../lib/coaching-ki-config-db';
-import { getStepDef } from '../../../lib/coaching-session-prompts';
+import { getStepDef, isKiPromptBeat, buildUserPrompt } from '../../../lib/coaching-session-prompts';
+import type { StepDefinition, KiPromptBeat } from '../../../lib/coaching-session-prompts';
 import { pool } from '../../../lib/website-db';
 
 export const prerender = false;
@@ -68,6 +69,12 @@ Gib deine Antwort als JSON-Objekt zurück — ausschließlich die geforderten Fe
 const COACH_BASE = `Du bist ein erfahrener Coaching-Assistent (Triadisches KI-Coaching nach Geißler).
 Deine Aufgabe: basierend auf den Coach-Eingaben eine präzise, handlungsorientierte Gesprächsintervention vorschlagen.
 Sprache: Deutsch. Maximal 250 Wörter. Kein wörtliches Buchzitat. Keine allgemeinen Ratschläge — konkret zur Situation.`;
+
+function firstKiPromptBeat(stepDef: StepDefinition): KiPromptBeat {
+  const beat = stepDef.beats.find(isKiPromptBeat);
+  if (!beat) throw new Error(`Step ${stepDef.stepNumber} has no ki_prompt beat`);
+  return beat;
+}
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   if (process.env.COACHING_SIM_ENABLED === 'false') {
@@ -139,7 +146,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     if (body.mode === 'client') {
       const stepDef = getStepDef(body.stepNumber);
-      const fieldKeys = stepDef.inputs
+      const beat = firstKiPromptBeat(stepDef);
+      const fieldKeys = beat.inputs
         .map(i => `"${i.key}": "${i.label} (kurz, authentisch)"`)
         .join(',\n  ');
       const userMsg = `Du bist in Coaching-Schritt "${body.stepName}". Beantworte als Andrea K. folgende Felder:\n{\n  ${fieldKeys}\n}\nGib nur das JSON zurück.`;
@@ -162,10 +170,8 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       result = completion.choices[0]?.message?.content ?? '{}';
     } else {
       const stepDef = getStepDef(body.stepNumber);
-      const filledPrompt = stepDef.userTemplate.replace(
-        /\{(\w+)\}/g,
-        (_, key) => body.coachInputs[key] ?? '—',
-      );
+      const beat = firstKiPromptBeat(stepDef);
+      const filledPrompt = buildUserPrompt(beat, body.coachInputs, {});
 
       const history = body.previousSteps.flatMap(s => [
         { role: 'user' as const, content: `[${s.stepName}] ${JSON.stringify(s.inputs)}` },

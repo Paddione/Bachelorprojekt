@@ -5,6 +5,8 @@ import { getSession as getCoachingSession, completeSession } from '../../../../.
 import { DEFAULT_CLAUDE_SESSION_MODEL } from '../../../../../../lib/claude-session-agent';
 import { pool } from '../../../../../../lib/website-db';
 import { getProviderByName } from '../../../../../../lib/provider-config';
+import { buildProtocol, buildExecutiveSummaryInput } from '../../../../../../lib/coaching-report';
+import { STEP_DEFINITIONS } from '../../../../../../lib/coaching-session-prompts';
 
 export const prerender = false;
 
@@ -18,11 +20,11 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
     return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'content-type': 'application/json' } });
   }
 
-  // Step 0 aiResponse wird nur von completeSession selbst geschrieben — dieser Branch greift
+  // Step 0 report wird nur von completeSession selbst geschrieben — dieser Branch greift
   // also nur bei einem wiederholten Complete-Aufruf und macht ihn idempotent (kein zweiter LLM-Call).
-  const existingReport = coachingSession.steps.find(s => s.stepNumber === 0 && s.aiResponse);
-  if (existingReport?.aiResponse) {
-    await completeSession(pool, sessionId, existingReport.aiResponse);
+  const existingReport = coachingSession.steps.find(s => s.stepNumber === 0);
+  if (existingReport?.beats?.[0]?.aiResponse) {
+    await completeSession(pool, sessionId, existingReport.beats[0].aiResponse);
     return new Response(JSON.stringify({ ok: true, sessionId }), { headers: { 'content-type': 'application/json' } });
   }
 
@@ -40,10 +42,7 @@ export const POST: APIRoute = async ({ request, params , locals }) => {
   }
 
   if (apiKey) {
-    const stepsText = coachingSession.steps
-      .filter(s => s.stepNumber > 0)
-      .map(s => `## Schritt ${s.stepNumber}: ${s.stepName}\n**Eingaben:** ${JSON.stringify(s.coachInputs)}\n**KI:** ${s.aiResponse ?? '—'}\n**Coach-Notiz:** ${s.coachNotes ?? '—'}`)
-      .join('\n\n');
+    const stepsText = buildExecutiveSummaryInput(buildProtocol(coachingSession.steps, STEP_DEFINITIONS));
 
     try {
       const client = new Anthropic({ apiKey });

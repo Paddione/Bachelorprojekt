@@ -15,7 +15,7 @@ cd "$ROOT"
 allowlist="tests/unit/.coverage-allowlist"
 missing=()
 
-for f in tests/unit/*.bats; do
+while IFS= read -r f; do
   b="$(basename "$f" .bats)"
   # Referenced by a test task (subtasks invoke `tests/unit/<name>.bats`)?
   if grep -qF "${b}.bats" Taskfile.yml; then
@@ -26,7 +26,7 @@ for f in tests/unit/*.bats; do
     continue
   fi
   missing+=("$b")
-done
+done < <(find tests/unit -maxdepth 1 -name '*.bats' | sort)
 
 if (( ${#missing[@]} > 0 )); then
   {

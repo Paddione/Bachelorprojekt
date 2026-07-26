@@ -213,8 +213,8 @@ def fm(p):
     m=re.search(r'[Tt]riggers on:\s*(.*)',d); return toks(m.group(1)) if m else set()
 rows={}; seg=False
 for line in open('AGENTS.md').read().splitlines():
-    if re.match(r'^## Agent Routing',line): seg=True; continue
-    if seg and re.match(r'^## ',line): break
+    if re.match(r'^<summary>Claude Code Domain Agents',line): seg=True; continue
+    if seg and re.match(r'^</details>',line): break
     if seg:
         m=re.match(r'\|(.*?)\|\s*`(bachelorprojekt-[a-z]+)`\s*\|\s*$',line)
         if m: rows[m.group(2)]=toks(m.group(1))

@@ -4,6 +4,7 @@ description: >
   Use for SealedSecrets management, Keycloak realm configuration, OIDC setup, DSGVO
   compliance checks, and secret rotation in the Bachelorprojekt platform. Triggers on:
   SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret.
+model: opus
 tools:
   - mcp_postgres_query
   - mcp_kubernetes_pods_*

@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Agent Routing
 
 Before responding to any request, check these signals and delegate to the named agent. The signal lists below mirror the routing table in [`AGENTS.md`](AGENTS.md) — which is the single source of truth (it matches each agent's `description:` frontmatter in `.agents/agents/<name>.md`).
@@ -40,7 +42,14 @@ Also: after `superpowers:writing-plans` skill creates a new plan file, run `bash
 
 **Cross-cutting requests** (e.g. a feature spanning both website and k8s) stay with the main orchestrator, which coordinates multiple agents in sequence.
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+### Session model & delegation (T002153)
+
+The main loop runs on the **user's default model** — `.claude/settings.json` deliberately pins **no** `model:` key, so `/model` (currently Opus 5, 1M context) decides. Model tiering lives where the dispatch happens:
+
+- **Domain agents** carry it in their frontmatter: `bachelorprojekt-ops/-db/-test/-website` → `sonnet` (mechanical recon, queries, tests, UI), `bachelorprojekt-infra`/`-security` → `opus` (cross-system, risky, irreversible).
+- **Ad-hoc subagents** get an explicit `model` per dispatch — inheriting the main loop now means inheriting Opus. See [`subagent-provisioning.md`](.claude/skills/references/subagent-provisioning.md).
+
+**The 1M context window is a budget, not a licence.** Bulk reads (CI logs, research sweeps, multi-file recon) still belong in a subagent that reports back *condensed*; the orchestrator context stays reserved for decisions.
 
 ## Default Workflow
 
@@ -94,7 +103,7 @@ Services: Traefik → Keycloak (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotur
 ### Cluster Topology & Nodes (Fleet Stage 3 — FULLY CONSOLIDATED 2026-05-31)
 - **mentolder (BRAND)**: DNS for `mentolder.de` routes to the **`fleet`** cluster (pk-hetzner-4/6/8 IPs: 204.168.244.104/37.27.251.38/62.238.23.79). The mentolder-standalone cluster has been **DECOMMISSIONED** — all k3s software uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers. Use `ENV=mentolder` or `ENV=fleet-mentolder` (aliases) with context `fleet`, namespace `workspace`. Both the old `mentolder` and `korczewski` kubeconfig contexts are **DEAD**. `k3s-1` has been permanently **DECOMMISSIONED** (memory corruption 2026-05-31). Local development runs via k3d on the WSL host (context: `k3d-mentolder-dev`).
 - **korczewski (BRAND)**: The standalone korczewski cluster has been **TORN DOWN** (intentional, PR #1189). Its hosts `pk-hetzner-4/6/8` now run the unified **`fleet`** k3s cluster. DNS for `korczewski.de` routes to fleet. Operate the korczewski brand via the **`fleet`** context, namespace `workspace-korczewski` (`ENV=fleet-korczewski` or `ENV=korczewski`).
-- **`fleet`**: The unified cluster — **3 CP nodes** (pk-hetzner-4/6/8) + **3 worker nodes** (gekko-hetzner-2/3/4). Both brands at **26/26** pods in `workspace` and `workspace-korczewski`. All kubeconfig contexts other than `fleet` and `k3d-mentolder-dev` are dead. Single source of truth for all production workloads.
+- **`fleet`**: The unified cluster — **3 CP nodes** (pk-hetzner-4/6/8) + **3 worker nodes** (gekko-hetzner-2/3/4). Both brands at **26/26** pods in `workspace` and `workspace-korczewski`. Single source of truth for all production workloads — `fleet` is the only live **prod** context. Locally there are additionally the k3d dev contexts `k3d-mentolder-dev` and `k3d-korczewski-dev`; any other context still listed by `kubectl config get-contexts` (`devc`, `gekko-hetzner-2-dev`, …) points at decommissioned hardware.
 
 ### Key components
 - **`k3d/`** -- All base Kubernetes manifests (Kustomize). This is the base that both `task workspace:deploy` (push, legacy/break-glass) and the **Flux GitOps pipeline** (pull-based, primary) apply in prod. Deployment is **pull-based via FluxCD** on the fleet cluster — the OCI artifact at `ghcr.io/paddione/fleet-manifests` is rendered by `.github/workflows/render-fleet-artifact.yml` on every `main` push, then reconciled by Flux (see `flux/clusters/fleet/`). `task workspace:deploy` exists as break-glass fallback.

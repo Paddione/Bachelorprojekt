@@ -48,10 +48,11 @@ const SID = '00000000-0000-4000-8000-000000000010';
 
 describe('getSessionStepTool', () => {
   it('returns step data for an existing accepted step', async () => {
-    await upsertStep(pool, { sessionId: SID, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel', coachInputs: { anlass: 'Burnout' }, aiPrompt: 'prompt', aiResponse: 'antwort', status: 'accepted' });
+    await upsertStep(pool, { sessionId: SID, stepNumber: 1, stepName: 'Erstanamnese', phase: 'problem_ziel', beats: [{ beatIndex: 0, captured: 'Konflikt im Team', status: 'accepted' }, { beatIndex: 1, aiResponse: 'antwort', status: 'accepted' }], status: 'accepted' });
     const result = await getSessionStepTool(SID, 1);
     expect(result.found).toBe(true);
     expect(result.stepName).toBe('Erstanamnese');
+    expect(result.beats?.length).toBe(2);
     expect(result.aiResponse).toBe('antwort');
   });
 
@@ -69,8 +70,8 @@ describe('draftSessionReportTool', () => {
 
   it('assembles text from accepted steps for report prompt', async () => {
     const SID2 = '00000000-0000-4000-8000-000000000011';
-    await upsertStep(pool, { sessionId: SID2, stepNumber: 1, stepName: 'S1', phase: 'p', coachInputs: {}, aiPrompt: 'p1', aiResponse: 'r1', status: 'accepted' });
-    await upsertStep(pool, { sessionId: SID2, stepNumber: 2, stepName: 'S2', phase: 'p', coachInputs: {}, aiPrompt: 'p2', aiResponse: 'r2', status: 'accepted' });
+    await upsertStep(pool, { sessionId: SID2, stepNumber: 1, stepName: 'S1', phase: 'p', beats: [{ beatIndex: 0, aiResponse: 'r1', status: 'accepted' }], status: 'accepted' });
+    await upsertStep(pool, { sessionId: SID2, stepNumber: 2, stepName: 'S2', phase: 'p', beats: [{ beatIndex: 0, aiResponse: 'r2', status: 'accepted' }], status: 'accepted' });
     const result = await draftSessionReportTool(SID2, 'markdown');
     expect(result.stepsText).toContain('S1');
     expect(result.stepsText).toContain('r1');

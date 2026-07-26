@@ -116,3 +116,179 @@ _render_korczewski() {
   [ "$status" -eq 0 ]
   echo "$output" | grep -q -- '--skip-auth-route=GET=\^/healthz'
 }
+
+# ── T002154: POCKET_ID_URL muss ein cross-namespace auflösbarer FQDN sein ─────
+#
+# Incident 2026-07-25: Der Website-Login brach auf BEIDEN Brands, obwohl Pocket ID
+# den Passkey akzeptierte. Der serverseitige Token-Exchange scheiterte mit
+# "TypeError: fetch failed" (undici, Verbindungsebene) — es folgte nie ein
+# POST /api/oidc/token. Ursache: POCKET_ID_URL=http://pocket-id:1411 (Kurzname).
+# Die Website läuft in ns `website`, Pocket ID in ns `workspace`; der Kurzname
+# löst nur INNERHALB von workspace auf. Im Prod-Pod gemessen: Kurzname 5/5
+# ENOTFOUND, FQDN HTTP 200.
+#
+# Geprüft wird der WIRKSAME Fallback-Wert im Taskfile, nicht nur die Existenz
+# einer Zeile — damit deckt der Test auch ab, dass der Default bei leerem
+# WORKSPACE_NAMESPACE kein kaputtes `pocket-id..svc` erzeugt.
+
+@test "T002154: kein bare Kurzname als POCKET_ID_URL-Fallback im Taskfile" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  run grep -n 'POCKET_ID_URL:-http://pocket-id:1411' "${repo_root}/Taskfile.yml"
+  [ "$status" -ne 0 ] || {
+    echo "FAIL: bare Kurzname 'pocket-id:1411' als Fallback — cross-namespace nicht auflösbar:"
+    echo "$output"
+    return 1
+  }
+}
+
+@test "T002154: jeder POCKET_ID_URL-Fallback rendert zu einem FQDN" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  # Ganze Zuweisung extrahieren (bis zum schließenden "), damit verschachtelte
+  # Defaults wie ${WORKSPACE_NAMESPACE:-workspace} nicht mitten drin abgeschnitten werden.
+  local assignments; assignments="$(grep -o 'POCKET_ID_URL="[^"]*"' "${repo_root}/Taskfile.yml" | sort -u)"
+  [ -n "$assignments" ] || skip "keine POCKET_ID_URL-Zuweisung im Taskfile"
+
+  local a resolved
+  while IFS= read -r a; do
+    [ -n "$a" ] || continue
+    # Zuweisung real auswerten, wie es der Deploy täte: POCKET_ID_URL ungesetzt.
+    # WORKSPACE_NAMESPACE bewusst LEER — deckt environments/dev.yaml ab, das die
+    # Variable nicht setzt, und erzwingt damit einen inneren Default im Ausdruck.
+    resolved="$(unset POCKET_ID_URL; WORKSPACE_NAMESPACE=""; eval "$a"; echo "$POCKET_ID_URL")"
+    echo "$resolved" | grep -q '\.svc\.cluster\.local' || {
+      echo "FAIL: '$a' rendert zu '$resolved' — kein FQDN, cross-namespace nicht auflösbar"
+      return 1
+    }
+    # Leeres Namespace-Segment (pocket-id..svc) ist genauso kaputt
+    ! echo "$resolved" | grep -q 'pocket-id\.\.svc' || {
+      echo "FAIL: '$a' rendert zu '$resolved' — leeres Namespace-Segment"
+      return 1
+    }
+  done <<< "$assignments"
+}
+
+# Zweite Lücke desselben Incidents: website-config hängt per `envFrom` am
+# Deployment. envFrom-Werte werden nur beim Containerstart kopiert (anders als
+# gemountete CM-Volumes) — ohne Checksum-Annotation im Pod-Template löst eine
+# ConfigMap-Korrektur KEINEN Rollout aus. Live war auf beiden Brands: CM = FQDN
+# (korrekt), Pod-Env = Kurzname (kaputt), Pod lief so 37h.
+@test "T002154: Website-Pod-Template trägt eine checksum/config-Annotation" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  run grep -q 'checksum/config' "${repo_root}/k3d/website.yaml"
+  [ "$status" -eq 0 ] || {
+    echo "FAIL: k3d/website.yaml hat keine checksum/config-Annotation im Pod-Template —"
+    echo "      ConfigMap-Änderungen erreichen laufende Pods nicht (envFrom friert Werte beim Start ein)."
+    return 1
+  }
+}
+
+# ── T002156: checksum/config muss in ALLEN Render-Pfaden echt gefuellt sein ────
+#
+# T002154 fuehrte die checksum/config-Annotation ein, deckte aber nur zwei der
+# DREI Render-Pfade ab. Der primaere Pfad ist pull-based via Flux:
+#   render-fleet-artifact.yml -> task flux:render -> scripts/flux-render-artifact.sh
+#   -> OCI-Artefakt -> Flux-Kustomization (interval 10m)
+# Der Flux-Renderer leitet seine envsubst-Liste dynamisch ab und substituierte
+# WEBSITE_CONFIG_SHA daher mit dem ungesetzten (= leeren) Wert. Live stand auf
+# beiden Brands {"checksum/config":""} — wirkungslos, und schlimmer: Flux drehte
+# den von build-website.yml gesetzten Hash alle 10 min auf "" zurueck.
+#
+# Zweiter Defekt: T002154 hashte das GESAMTE Manifest inkl. Image-Tag, der sich
+# je Pfad unterscheidet — die Pfade haetten sich gegenseitig ueberschrieben.
+# Gehasht wird deshalb nur der data-Block der website-config-ConfigMap.
+
+@test "T002156: website-config-sha Helper existiert und ist ausfuehrbar" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  [ -x "${repo_root}/scripts/website-config-sha.sh" ] || {
+    echo "FAIL: scripts/website-config-sha.sh fehlt oder ist nicht ausfuehrbar —"
+    echo "      ohne gemeinsamen Helper driftet die Hash-Logik zwischen den 3 Pfaden."
+    return 1
+  }
+}
+
+@test "T002156: Hash ignoriert den Image-Tag (pfadunabhaengig)" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  local helper="${repo_root}/scripts/website-config-sha.sh"
+  [ -x "$helper" ] || skip "Helper noch nicht vorhanden"
+
+  local base='apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+data:
+  POCKET_ID_URL: "http://pocket-id.workspace.svc.cluster.local:1411"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website
+spec:
+  template:
+    spec:
+      containers:
+        - name: website
+          image: ghcr.io/paddione/website:IMGTAG'
+
+  local a b
+  a="$(sed 's/IMGTAG/sha-aaaaaaa/' <<<"$base" | bash "$helper")"
+  b="$(sed 's/IMGTAG/sha-bbbbbbb/' <<<"$base" | bash "$helper")"
+  [ "$a" = "$b" ] || {
+    echo "FAIL: Hash haengt vom Image-Tag ab ($a != $b) — die Render-Pfade wuerden"
+    echo "      sich gegenseitig ueberschreiben und Rollouts ausloesen."
+    return 1
+  }
+  [ -n "$a" ] || { echo "FAIL: Hash ist leer"; return 1; }
+}
+
+@test "T002156: Hash reagiert auf eine geaenderte Config" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  local helper="${repo_root}/scripts/website-config-sha.sh"
+  [ -x "$helper" ] || skip "Helper noch nicht vorhanden"
+
+  local tmpl='apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: website-config
+data:
+  POCKET_ID_URL: "VALUE"'
+
+  local a b
+  a="$(sed 's|VALUE|http://pocket-id:1411|' <<<"$tmpl" | bash "$helper")"
+  b="$(sed 's|VALUE|http://pocket-id.workspace.svc.cluster.local:1411|' <<<"$tmpl" | bash "$helper")"
+  [ "$a" != "$b" ] || {
+    echo "FAIL: Hash aendert sich nicht bei geaenderter Config ($a) — kein Rollout-Trigger."
+    return 1
+  }
+}
+
+@test "T002156: Flux-Renderer setzt checksum/config (primaerer Deploy-Pfad)" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  grep -q 'WEBSITE_CONFIG_SHA' "${repo_root}/scripts/flux-render-artifact.sh" || {
+    echo "FAIL: scripts/flux-render-artifact.sh kennt WEBSITE_CONFIG_SHA nicht."
+    echo "      Das ist der PRIMAERE (pull-based) Deploy-Pfad — ohne ihn bleibt die"
+    echo "      Annotation leer und Flux ueberschreibt die anderen Pfade alle 10 min."
+    return 1
+  }
+}
+
+@test "T002156: Flux-Renderer lehnt eine leer substituierte checksum/config ab" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  grep -qE 'checksum/config: *""|checksum_config_empty|EMPTY_CHECKSUM' "${repo_root}/scripts/flux-render-artifact.sh" || {
+    echo "FAIL: Der fail-closed-Check prueft nur auf UEBRIG GEBLIEBENE \${VAR},"
+    echo "      nicht auf LEER substituierte — genau dadurch ging T002154 kaputt live."
+    return 1
+  }
+}
+
+@test "T002156: alle drei Render-Pfade nutzen den gemeinsamen Helper" {
+  local repo_root; repo_root="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
+  local missing=""
+  grep -q 'website-config-sha.sh' "${repo_root}/scripts/flux-render-artifact.sh"        || missing="$missing flux-render-artifact.sh"
+  grep -q 'website-config-sha.sh' "${repo_root}/Taskfile.yml"                            || missing="$missing Taskfile.yml"
+  grep -q 'website-config-sha.sh' "${repo_root}/.github/workflows/build-website.yml"     || missing="$missing build-website.yml"
+  [ -z "$missing" ] || {
+    echo "FAIL: Pfade ohne gemeinsamen Helper:$missing"
+    echo "      Duplizierte Hash-Logik driftet (vgl. T001993 envsubst-Allowlist)."
+    return 1
+  }
+}

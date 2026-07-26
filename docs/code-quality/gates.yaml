@@ -66,10 +66,6 @@ s1:
     # pipeline.mjs is the ESM twin of pipeline.js — same monolithic Workflow-script
     # constraint (T000460). Cannot be split due to meta-first + no-dynamic-import rules.
     - "scripts/factory/pipeline.mjs"
-    # website-db.ts was split as part of G-SIZE03 (T001293): 4436→2890 lines.
-    # The G-SIZE03 target (≤3000) is achieved; further domain splits are tracked
-    # in future goals. Remains in s1.ignore until it reaches ≤600 lines.
-    - "website/src/lib/website-db.ts"
     # billing-db.ts extracted from website-db.ts (G-SIZE03 / T001293): collects all
     # billing schema-init DDL. At 618 lines it slightly exceeds the 600-line limit;
     # future goal can reduce further if needed.
@@ -197,6 +193,8 @@ s4:
     # The bucket system (task test:changed) handles automatic selection; this script
     # provides per-file precision via test-inventory.json for manual use (T001???).
     - "scripts/find-changed-e2e-tests.sh"
+    - "scripts/agent-tracing.mjs"
+    - "scripts/reseed-alertmanager-secret.sh"
 
 s5:
   rules:

@@ -63,25 +63,14 @@
     }
   },
   "lsp": true,
+  // Der Provider "llamacpp-mtp" wird bewusst NICHT hier definiert, sondern
+  // ausschliesslich in .opencode/agent-models.jsonc — von dort synct
+  // scripts/opencode-sync-agents.sh (Taskfile.yml) ihn nach
+  // ~/.config/opencode/opencode.jsonc. Eine zweite Definition an dieser Stelle
+  // wuerde den gesyncten Wert projekt-lokal ueberschreiben und unbemerkt
+  // abdriften — genau so zeigte er auf den Bonsai-Port 8093 statt auf 8091
+  // (T002159).
   "provider": {
-    "llamacpp-mtp": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp MTP (Windows)",
-      "options": {
-        "baseURL": "http://127.0.0.1:8093/v1",
-        "timeout": 600000,
-        "chunkTimeout": 120000
-      },
-      "models": {
-        "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": {
-          "name": "Gemma4 12B QAT (UD-Q4_K_XL) + MTP-draft Q8_0 (raw llama.cpp b9553+CUDA13.3, speculative decoding via --spec-type draft-mtp --spec-draft-n-max 6, -np 4 parallel slots over -c 16384 total ctx = 4096 ctx/slot, Q8_0 KV cache, -fit auto-VRAM-fit, auto-sleeps GPU after 20min idle and reloads on next request in ~6s) - start via Desktop\\start-gemma4-mtp-server.bat first",
-          "limit": {
-            "context": 4096,
-            "output": 4096
-          }
-        }
-      }
-    },
     "lmstudio": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "LM Studio (local)",

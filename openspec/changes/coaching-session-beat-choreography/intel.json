@@ -1,0 +1,78 @@
+{
+  "impact_files": [
+    {
+      "path": "website/src/lib/coaching-session-prompts.ts",
+      "current_lines": 226,
+      "ext_limit": 600,
+      "baseline": "nicht-baselined",
+      "s1_budget": 374,
+      "note": "Beat-Modell fuer 10 Schritte + 4 Textbaustein-Konstanten werden das Budget wahrscheinlich sprengen. Echten Split einplanen: z.B. coaching-session-beats.ts (Beat-Typen + STEP_DEFINITIONS-Array) getrennt von coaching-textbausteine.ts (die 4 Konstanten), statt alles in einer Datei."
+    },
+    {
+      "path": "website/src/lib/coaching-session-db.ts",
+      "current_lines": 478,
+      "ext_limit": 600,
+      "baseline": "nicht-baselined",
+      "s1_budget": 122,
+      "note": "SessionStep.coachInputs/aiPrompt/aiResponse/coachNotes -> beats: BeatState[]. Enges Budget - Serialisierungs-Helfer ggf. in eigenes Modul (coaching-session-beats-db.ts) auslagern statt anzuhaengen."
+    },
+    {
+      "path": "website/src/components/admin/coaching/SessionWizard.svelte",
+      "current_lines": 367,
+      "ext_limit": 500,
+      "baseline": "nicht-baselined",
+      "s1_budget": 133,
+      "note": "Beat-Player-Umbau ist umfangreich. Sehr enges Budget - InstructionBeat- und KiPromptBeat-Rendering als eigene Sub-Komponenten (z.B. InstructionBeat.svelte, KiPromptBeat.svelte) auslagern statt alles inline in SessionWizard.svelte zu belassen."
+    },
+    {
+      "path": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts",
+      "current_lines": 230,
+      "ext_limit": 600,
+      "baseline": "nicht-baselined",
+      "s1_budget": 370
+    },
+    {
+      "path": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/index.ts",
+      "current_lines": 27,
+      "ext_limit": 600,
+      "baseline": "nicht-baselined",
+      "s1_budget": 573
+    },
+    {
+      "path": "website/src/pages/admin/coaching/sessions/[id].astro",
+      "current_lines": 260,
+      "ext_limit": 400,
+      "baseline": "nicht-baselined",
+      "s1_budget": 140,
+      "note": "Strukturierte Protokoll-Ansicht braucht wahrscheinlich eine ausgelagerte Komponente statt Inline-Markup, z.B. SessionReport.svelte oder eine Astro-Komponente."
+    },
+    {
+      "path": "website/src/pages/api/admin/coaching/sessions/[id]/complete.ts",
+      "current_lines": 66,
+      "ext_limit": 600,
+      "baseline": "nicht-baselined",
+      "s1_budget": 534
+    }
+  ],
+  "symbols": {
+    "StepDefinition": {
+      "file": "website/src/lib/coaching-session-prompts.ts",
+      "current_shape": "{ stepNumber, stepName, phase, phaseLabel, description, inputs: StepInput[], systemPrompt, userTemplate }",
+      "target_shape": "{ stepNumber, stepName, phase, phaseLabel, description, beats: Beat[] } -- inputs/systemPrompt/userTemplate wandern in KiPromptBeat"
+    },
+    "SessionStep": {
+      "file": "website/src/lib/coaching-session-db.ts",
+      "current_shape": "{ id, sessionId, stepNumber, stepName, phase, coachInputs: Record<string,string>, aiPrompt: string|null, aiResponse: string|null, coachNotes: string|null, status, generatedAt }",
+      "target_shape": "{ id, sessionId, stepNumber, stepName, phase, beats: BeatState[], status, generatedAt } -- coachInputs/aiPrompt/aiResponse/coachNotes ersetzt durch beats"
+    },
+    "getStepDef": { "file": "website/src/lib/coaching-session-prompts.ts", "signature": "(stepNumber: number) => StepDefinition" },
+    "buildUserPrompt": { "file": "website/src/lib/coaching-session-prompts.ts", "signature": "(def: StepDefinition, inputs: Record<string,string>) => string -- muss auf Beat-Ebene verschoben werden (buildUserPrompt(beat, inputs, priorCaptures))" }
+  },
+  "db_tables": {
+    "coaching_session_steps": {
+      "columns_used_today": ["coach_inputs (jsonb)", "ai_prompt (text)", "ai_response (text)", "coach_notes (text)", "status", "generated_at"],
+      "change": "coach_inputs und ai_response werden zu einem Array-Wert umgeformt (Beat-States). Keine Schema-Migration noetig (JSONB-Spalten bleiben), nur Anwendungs-Typwechsel. Keine Bestandsdaten-Migration (siehe design.md Out-of-Scope)."
+    }
+  },
+  "risks": []
+}

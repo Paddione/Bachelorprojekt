@@ -1,5 +1,61 @@
 # Changelog
 
+## [1.214.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.2...website-v1.214.3) (2026-07-25)
+
+
+### Bug Fixes
+
+* **e2e:** handle DNS errors and accept E2E_INGEST_TOKEN [T002063] ([#3207](https://github.com/Paddione/Bachelorprojekt/issues/3207)) ([65fd2bd](https://github.com/Paddione/Bachelorprojekt/commit/65fd2bd74bbd3e2b76b3dd8aceb9dfabcbe886af))
+
+## [1.214.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.1...website-v1.214.2) (2026-07-25)
+
+
+### Bug Fixes
+
+* **ci:** add goals.md trigger + conditional skip-ci for repohealth [T002158] ([#3206](https://github.com/Paddione/Bachelorprojekt/issues/3206)) ([4b9de64](https://github.com/Paddione/Bachelorprojekt/commit/4b9de644d5bf0dd36ac9bc9999fb0e69582c23b9))
+
+## [1.214.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.0...website-v1.214.1) (2026-07-25)
+
+
+### Bug Fixes
+
+* **infra:** POCKET_ID_URL-FQDN-Guard + checksum/config-Rollout-Trigger [T002154] ([#3199](https://github.com/Paddione/Bachelorprojekt/issues/3199)) ([297ada4](https://github.com/Paddione/Bachelorprojekt/commit/297ada4106bc9316157bec944a8940dd0476acef))
+
+## [1.214.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.213.0...website-v1.214.0) (2026-07-25)
+
+
+### Features
+
+* **ops:** [T002151] observability remediation ([#3195](https://github.com/Paddione/Bachelorprojekt/issues/3195)) ([c5b1caf](https://github.com/Paddione/Bachelorprojekt/commit/c5b1caf71c3bc835b34a903e8fb85d09b163dd65))
+
+## [1.213.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.212.0...website-v1.213.0) (2026-07-25)
+
+
+### Features
+
+* **website:** [T002150] website-db.ts split stage 2 ([#3194](https://github.com/Paddione/Bachelorprojekt/issues/3194)) ([9165057](https://github.com/Paddione/Bachelorprojekt/commit/9165057f399e782f7e13f27cc042139f77b468f4))
+
+## [1.212.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.211.0...website-v1.212.0) (2026-07-24)
+
+
+### Features
+
+* **website:** [T002149] website-db.ts Stage 1 split — extract Customer/Bug/SiteSettings/Vacation/Legal to website-core-db.ts ([#3188](https://github.com/Paddione/Bachelorprojekt/issues/3188)) ([ddbdc27](https://github.com/Paddione/Bachelorprojekt/commit/ddbdc27b5e98da50723633ab0908fb6804da653c))
+
+## [1.211.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.210.0...website-v1.211.0) (2026-07-24)
+
+
+### Features
+
+* **website:** [T002149] website-db.ts Stage 1 split — extract Customer/Bug/SiteSettings/Vacation/Legal to website-core-db.ts ([#3182](https://github.com/Paddione/Bachelorprojekt/issues/3182)) ([718f723](https://github.com/Paddione/Bachelorprojekt/commit/718f723f566bd2566099456a5aca605a08d6578b))
+
+## [1.210.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.209.1...website-v1.210.0) (2026-07-24)
+
+
+### Features
+
+* **website:** Coaching-Session-Beat-Choreographie nach Geißler (Beat-Modell) [T002138] ([#3177](https://github.com/Paddione/Bachelorprojekt/issues/3177)) ([e495799](https://github.com/Paddione/Bachelorprojekt/commit/e495799c4a5f0d37633806ded936bb9a484331c8))
+
 ## [1.209.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.209.0...website-v1.209.1) (2026-07-23)
 
 

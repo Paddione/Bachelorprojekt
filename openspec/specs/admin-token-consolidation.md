@@ -17,6 +17,14 @@ block SHALL redeclare any of the 17 migrated base names (`--brass`, `--brass-2`,
 `--sans`, `--serif`) with a literal value. Shorthand names remain available only
 as thin `var(--color-*)` aliases in `global.css`.
 
+The regression guard for this requirement (`tests/spec/admin-token-consolidation.bats`)
+MUST point `ADMIN_LAYOUT` at the real file
+(`website/src/layouts/AdminLayout.astro`, not a nonexistent
+`website/src/components/admin/AdminLayout.astro`) and MUST use grep invocations
+that actually exercise the assertion instead of silently passing regardless of
+file content — a wrong path or a broken `grep` pipeline is a false-green test
+that hides an incomplete migration.
+
 #### Scenario: factory-tokens.css is dissolved
 
 - **GIVEN** the admin stylesheet chain loaded by `AdminLayout.astro`
@@ -31,6 +39,14 @@ as thin `var(--color-*)` aliases in `global.css`.
 - **THEN** neither `@import "./factory-tokens.css"` nor
   `import '../styles/factory-tokens.css'` remains
 
+#### Scenario: the regression guard resolves the real AdminLayout file
+
+- **GIVEN** `tests/spec/admin-token-consolidation.bats`
+- **WHEN** `ADMIN_LAYOUT` is read
+- **THEN** it points at `website/src/layouts/AdminLayout.astro`, the file that
+  Astro actually renders, so an import of `factory-tokens.css` there fails the
+  test instead of being silently missed
+
 ### Requirement: Admin semantic color tokens are thin @theme aliases
 
 The system SHALL declare each of the 16 semantic admin color tokens
@@ -40,7 +56,8 @@ The system SHALL declare each of the 16 semantic admin color tokens
 `--admin-text-disabled`, `--admin-success`, `--admin-danger`, `--admin-info`,
 `--admin-warning`) exactly once, in `global.css`, with a value that is a single
 `var(--color-*)` reference into the `@theme` layer. The tokens SHALL NOT be
-duplicated in `admin-foundation.css`.
+duplicated in `admin-foundation.css`, and MUST NOT remain declared in
+`factory-tokens.css`.
 
 #### Scenario: each admin token aliases a @theme color
 
@@ -86,3 +103,5 @@ considered done.
   screenshot baseline is intentionally regenerated and reviewed
 
 <!-- merged from change delta admin-token-consolidation.md (f82bfa9388d1) -->
+
+<!-- merged from change delta admin-token-consolidation.md (3d5ba62bdeb4) -->

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.4...website-v1.216.5) (2026-07-26)
+
+
+### Bug Fixes
+
+* **secrets:** seal real ciphertexts for the fleet bootstrap secrets [T002251] ([#3300](https://github.com/Paddione/Bachelorprojekt/issues/3300)) ([8d3b9d3](https://github.com/Paddione/Bachelorprojekt/commit/8d3b9d32eb595721089041b8d80e07046fc5f0ff))
+
 ## [1.216.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.3...website-v1.216.4) (2026-07-26)
 
 

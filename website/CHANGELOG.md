@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.7...website-v1.214.8) (2026-07-26)
+
+
+### Bug Fixes
+
+* **e2e:** make website auth setup fail closed instead of degrading [T002199] ([#3240](https://github.com/Paddione/Bachelorprojekt/issues/3240)) ([97a1276](https://github.com/Paddione/Bachelorprojekt/commit/97a1276651d4eb054e3042e9c7a627135f00aa15))
+
 ## [1.214.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.6...website-v1.214.7) (2026-07-26)
 
 

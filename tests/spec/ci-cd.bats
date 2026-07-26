@@ -1210,3 +1210,27 @@ MOCKEOF
   run grep -nE '\|\| FAILED_TASKS|deploy blocked|deploy failed' "$REPO_ROOT/scripts/devflow-post-merge-deploy.sh"
   [ "$status" -eq 0 ]
 }
+
+# ── T002252: freshness:check muss vor dem Diff regenerieren ─────────
+# Ohne diesen Schritt prueft `git diff --exit-code` den Artefakt-Stand nur gegen
+# sich selbst: auf einem frischen CI-Checkout ist der Baum immer sauber, die Gate
+# also strukturell gruen — auch wenn die Artefakte gegenueber ihren Quellen
+# veraltet sind. Belegt gegen c792d6f85: `task freshness:check` -> 0, aber
+# `task quality:index && task freshness:check` -> 201.
+@test "T002252: freshness:check regeneriert die Artefakte vor dem Diff-Check" {
+  # cmds-Block von freshness:check bis zum naechsten Top-Level-Task extrahieren
+  local block
+  block=$(awk '/^  freshness:check:/{f=1} f&&/^  [a-z][a-z0-9:-]*:$/&&!/^  freshness:check:/{exit} f' \
+    "$REPO_ROOT/Taskfile.yml")
+
+  # Der Regenerate-Schritt muss existieren ...
+  [[ "$block" =~ task:[[:space:]]*freshness:regenerate ]]
+
+  # ... und VOR der Diff-Schleife stehen, sonst diffed er gegen den alten Stand.
+  local regen_line diff_line
+  regen_line=$(grep -n 'task:[[:space:]]*freshness:regenerate' <<<"$block" | head -1 | cut -d: -f1)
+  diff_line=$(grep -n 'git diff --exit-code' <<<"$block" | head -1 | cut -d: -f1)
+  [ -n "$regen_line" ]
+  [ -n "$diff_line" ]
+  [ "$regen_line" -lt "$diff_line" ]
+}

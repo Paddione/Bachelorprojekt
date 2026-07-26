@@ -2,7 +2,7 @@
 title: "mishap-t002242 — Implementation Plan"
 ticket_id: T002242
 domains: [dev-flow-execute, software-factory, ci-cd]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

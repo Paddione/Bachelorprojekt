@@ -684,7 +684,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1769,
+      "file_count": 1770,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -2250,6 +2250,7 @@
         "website/src/pages/api/admin/testdata/purge.ts",
         "website/src/pages/api/admin/testdata/seed.ts",
         "website/src/pages/api/admin/tests/flake.ts",
+        "website/src/pages/api/admin/tests/ingest-e2e.test.ts",
         "website/src/pages/api/admin/tests/ingest-e2e.ts",
         "website/src/pages/api/admin/tests/playwright-report.ts",
         "website/src/pages/api/admin/tests/report.ts",

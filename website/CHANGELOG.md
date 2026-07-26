@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.214.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.5...website-v1.214.6) (2026-07-26)
+
+
+### Bug Fixes
+
+* **ci:** measure health goals nightly and fix measured_at parsing [T002162] ([#3222](https://github.com/Paddione/Bachelorprojekt/issues/3222)) ([94b9528](https://github.com/Paddione/Bachelorprojekt/commit/94b95286a9b2975dce2622d413182a0f57374893))
+* **website:** thread request through all email call chains for E2E guard ([#3223](https://github.com/Paddione/Bachelorprojekt/issues/3223)) ([d7b317c](https://github.com/Paddione/Bachelorprojekt/commit/d7b317c256ce27acb1473e56dac93504e8ed7f03))
+
 ## [1.214.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.4...website-v1.214.5) (2026-07-26)
 
 

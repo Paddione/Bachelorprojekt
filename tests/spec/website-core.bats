@@ -7,7 +7,7 @@
 
 # ── File-level variables ──────────────────────────────────────────────────────
 ADMIN_FOUNDATION="$BATS_TEST_DIRNAME/../../website/src/styles/admin-foundation.css"
-FACTORY_TOKENS="$BATS_TEST_DIRNAME/../../website/src/styles/factory-tokens.css"
+GLOBAL_CSS="$BATS_TEST_DIRNAME/../../website/src/styles/global.css"
 ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/AdminLayout.astro"
 SIDEBAR_NAV="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminSidebarNav.astro"
 KORE_CSS="$BATS_TEST_DIRNAME/../../website/public/brand/korczewski/kore-app.css"
@@ -30,18 +30,18 @@ KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage
                --admin-border --admin-border-bright --admin-primary --admin-primary-muted \
                --admin-accent --admin-text --admin-text-mute --admin-text-disabled \
                --admin-success --admin-danger --admin-info --admin-warning; do
-    run grep -E "^[[:space:]]*${token}[[:space:]]*:[[:space:]]*var\(--" "$FACTORY_TOKENS"
+    run grep -E "^[[:space:]]*${token}[[:space:]]*:[[:space:]]*var\(--" "$GLOBAL_CSS"
     [ "$status" -eq 0 ] || { echo "missing alias for ${token}"; return 1; }
   done
 }
 
-@test "T001433 alias: AdminLayout.astro loads factory-tokens.css before admin-foundation.css" {
-  run grep -n "factory-tokens.css\|admin-foundation.css" "$ADMIN_LAYOUT"
+@test "T001433 alias: AdminLayout.astro loads global.css before admin-foundation.css" {
+  run grep -n "global.css\|admin-foundation.css" "$ADMIN_LAYOUT"
   [ "$status" -eq 0 ]
-  tokens_line=$(echo "$output" | grep -n "factory-tokens.css" | head -1 | cut -d: -f1)
+  global_line=$(echo "$output" | grep -n "global.css" | head -1 | cut -d: -f1)
   foundation_line=$(echo "$output" | grep -n "admin-foundation.css" | head -1 | cut -d: -f1)
-  [ -n "$tokens_line" ] && [ -n "$foundation_line" ]
-  [ "$tokens_line" -lt "$foundation_line" ]
+  [ -n "$global_line" ] && [ -n "$foundation_line" ]
+  [ "$global_line" -lt "$foundation_line" ]
 }
 
 @test "T001433 alias: kore-app.css overrides --admin-primary with copper" {

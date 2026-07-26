@@ -36,7 +36,7 @@ The system SHALL scan `environments/.secrets/<env>.yaml` for dev-prefix values, 
 
 #### Scenario: Dev value detected in prod secrets file
 
-- **GIVEN** `environments/.secrets/mentolder.yaml` contains `KEYCLOAK_DB_PASSWORD: "devkeycloakdb"`
+- **GIVEN** `environments/.secrets/mentolder.yaml` contains a dev-prefixed value such as `NEXTCLOUD_DB_PASSWORD: "devnextclouddb"`
 - **WHEN** `task env:seal ENV=mentolder` runs without `--force`
 - **THEN** it exits non-zero, listing the offending keys, and writes no `environments/sealed-secrets/mentolder.yaml`
 
@@ -299,25 +299,33 @@ The system SHALL exit non-zero when `scripts/wait-for-sealed-secret.sh` polls fo
 
 ---
 
-### Requirement: keycloak-sync fail-closed in non-dev environments
-<!-- bats: secret-task-guards.bats -->
+### Requirement: OIDC-Client-Secrets werden vom Seed-Job verwaltet, nicht von Hand
 
-The system SHALL treat `keycloak-sync.sh` as fail-closed for prod brands unless `KEYCLOAK_SYNC_SOFT=1` is explicitly set, and SHALL be open (permissive) for `ENV=dev`.
+The system SHALL treat the `pocket-id-client-seed` Job as the single source of truth for OIDC
+client secrets: the Job provisions the clients through the Pocket ID Admin REST API and writes
+the resulting secrets back into `workspace-secrets`. Manual edits in the Pocket ID UI SHALL NOT
+be relied upon — the next deploy overwrites them.
 
-#### Scenario: kc_should_fail_closed TRUE für prod ohne Override *(BATS)*
-- **GIVEN** `KEYCLOAK_SYNC_SOFT` ist nicht gesetzt und `ENV=mentolder`
-- **WHEN** `kc_should_fail_closed` in `keycloak-sync.sh` aufgerufen wird
-- **THEN** gibt die Funktion `CLOSED` zurück
+> **Hinweis (T002179):** An dieser Stelle standen zuvor sieben Requirements zu
+> `scripts/keycloak-sync.sh` (fail-closed-Verhalten, `KEYCLOAK_SYNC_SOFT`-Override, Warnung bei
+> leerem `WEBSITE_OIDC_SECRET`, Realm-Passwort-Policy) — teils in drei nahezu identischen
+> Fassungen. Das Skript **existiert nicht mehr** und wird nirgends aufgerufen; die Requirements
+> beschrieben also das Verhalten eines Programms, das es nicht gibt. Sie wurden ersatzlos
+> entfernt (117 Zeilen) und durch dieses Requirement ersetzt, das den heutigen Weg beschreibt.
 
-#### Scenario: kc_should_fail_closed FALSE für ENV=dev *(BATS)*
-- **GIVEN** `ENV=dev`
-- **WHEN** `kc_should_fail_closed` aufgerufen wird
-- **THEN** gibt die Funktion `OPEN` zurück
+#### Scenario: Client-Secret nach Deploy verfügbar
 
-#### Scenario: kc_should_fail_closed FALSE mit KEYCLOAK_SYNC_SOFT=1 *(BATS)*
-- **GIVEN** `ENV=mentolder` und `KEYCLOAK_SYNC_SOFT=1`
-- **WHEN** `kc_should_fail_closed` aufgerufen wird
-- **THEN** gibt die Funktion `OPEN` zurück (Soft-Override aktiv)
+- **GIVEN** ein OIDC-Client ist in der Seed-Konfiguration hinterlegt
+- **WHEN** `task workspace:deploy` den `pocket-id-client-seed`-Job ausführt
+- **THEN** liegt das zugehörige Client-Secret anschliessend in `workspace-secrets`
+- **AND** der konsumierende Dienst liest es von dort, nicht aus einer manuell gepflegten Quelle
+
+#### Scenario: Handänderung in der Oberfläche hält nicht
+
+- **GIVEN** ein Administrator ändert ein Client-Secret direkt in der Pocket-ID-Oberfläche
+- **WHEN** der nächste Deploy den Seed-Job ausführt
+- **THEN** wird die Handänderung überschrieben
+- **AND** die Konfiguration entspricht wieder dem Stand des Seed-Jobs
 
 ---
 
@@ -392,23 +400,6 @@ The system SHALL, via the `claude-code:rotate-tokens` Taskfile task, annotate th
 #### Scenario: rotate-tokens Task enthält token-version Annotation *(BATS)*
 - **GIVEN** `Taskfile.yml` enthält den Task `claude-code:rotate-tokens`
 - **WHEN** der Taskblock nach `token-version` oder `annotate` durchsucht wird
-- **THEN** mindestens ein Treffer ist vorhanden
-
----
-
-### Requirement: keycloak-sync warns on missing WEBSITE_OIDC_SECRET
-<!-- bats: secret-task-guards.bats -->
-
-The system SHALL log a loud warning in `scripts/keycloak-sync.sh` when the fetched `WEBSITE_OIDC_SECRET` from `website-secrets` is empty or missing, and the `env:seal` task description SHALL note the co-rotation of `website-secrets`.
-
-#### Scenario: keycloak-sync warnt bei leerem WEBSITE_OIDC_SECRET *(BATS)*
-- **GIVEN** `scripts/keycloak-sync.sh` ist vorhanden
-- **WHEN** der Dateiinhalt nach Warnmeldungen für `WEBSITE_OIDC_SECRET` durchsucht wird
-- **THEN** mindestens ein Warn-Hinweis ist vorhanden
-
-#### Scenario: env:seal Task-Beschreibung erwähnt website-secrets Co-Rotation *(BATS)*
-- **GIVEN** `Taskfile.yml` enthält den Task `env:seal`
-- **WHEN** der Taskblock nach `website-secrets` oder `WEBSITE_OIDC` durchsucht wird
 - **THEN** mindestens ein Treffer ist vorhanden
 
 ---
@@ -492,23 +483,6 @@ The system SHALL provide `scripts/git-crypt-guard.sh` with an `is-encrypted` sub
 
 ---
 
-### Requirement: Keycloak password policy enforced in workspace realm
-<!-- e2e: sa-03-passwords.spec.ts -->
-
-The system SHALL configure the Keycloak `workspace` realm with a `passwordPolicy` that includes at minimum a minimum-length rule and at least one hardening rule (`specialChars` or `digits`).
-
-#### Scenario: passwordPolicy enthält Längen-Regel *(E2E)*
-- **GIVEN** Keycloak ist erreichbar und `KC_ADMIN_PASS` ist gesetzt
-- **WHEN** die Realm-Konfiguration via Admin-API (`GET /admin/realms/workspace`) abgerufen wird
-- **THEN** `realm.passwordPolicy` ist definiert und enthält `"length"`
-
-#### Scenario: passwordPolicy enthält Härtungs-Regel *(E2E)*
-- **GIVEN** Keycloak ist erreichbar und `KC_ADMIN_PASS` ist gesetzt
-- **WHEN** die Realm-Konfiguration via Admin-API abgerufen wird
-- **THEN** `realm.passwordPolicy` enthält `"specialChars"` oder `"digits"`
-
----
-
 ### Requirement: Fail-closed SealedSecret decrypt-wait
 
 The system SHALL wait for the controller-decrypted `workspace-secrets` Secret via a pure, testable helper (`scripts/wait-for-sealed-secret.sh`) that fails closed on timeout, and `workspace:deploy` SHALL abort the deploy when the Secret never appears. The helper SHALL read `${KUBECTL:-kubectl}` so tests can inject a fake, accept `--context/--namespace/--secret/--timeout`, and default to a generous timeout (≥ 60s).
@@ -524,22 +498,6 @@ The system SHALL wait for the controller-decrypted `workspace-secrets` Secret vi
 - **GIVEN** a deploy where the controller decrypts the SealedSecret within the timeout
 - **WHEN** the helper polls
 - **THEN** it exits zero as soon as the Secret is present and the deploy continues
-
-### Requirement: keycloak-sync fail-closed in non-dev
-
-The system SHALL abort `keycloak-sync.sh` with a non-zero exit when, in a non-dev run, Keycloak is not ready, the admin token cannot be obtained, or any client/group sync FAILED. A documented soft-override `KEYCLOAK_SYNC_SOFT=1` SHALL downgrade these hard-fails to warnings. In `ENV=dev` the script SHALL stay soft.
-
-#### Scenario: Non-dev unreadiness aborts the deploy step
-
-- **GIVEN** `ENV=mentolder` and Keycloak is not HTTP-ready (or `FAILED>0` after PUTs)
-- **WHEN** `keycloak-sync.sh` runs as part of `workspace:deploy`
-- **THEN** it exits non-zero so the deploy fails loudly instead of leaving an OIDC-secret/realm-DB mismatch
-
-#### Scenario: dev and soft-override stay soft
-
-- **GIVEN** `ENV=dev`, or `ENV=mentolder` with `KEYCLOAK_SYNC_SOFT=1`
-- **WHEN** Keycloak is unready
-- **THEN** the script warns and exits zero (no deploy abort)
 
 ### Requirement: env-seal fail-closed on sealing-cert drift
 
@@ -612,16 +570,6 @@ The system SHALL refuse to write placeholder secret files unless `CI=true` or `E
 - **GIVEN** `CI=true` (any ENV) or `ENV=dev`
 - **WHEN** the script runs
 - **THEN** it writes the placeholder files as before
-
-### Requirement: keycloak-sync warns on empty website-secrets
-
-The system SHALL emit a loud stderr warning when the `website-secrets` `WEBSITE_OIDC_SECRET` fetch is empty (since `env:seal` of `workspace-secrets` does not co-rotate it), and the `env:seal` task SHALL document the co-rotation requirement. The KV-map emitted on stdout SHALL be unchanged.
-
-#### Scenario: website-secrets fetch is empty
-
-- **GIVEN** a non-dev sync where `website-secrets/WEBSITE_OIDC_SECRET` cannot be read
-- **WHEN** `keycloak-sync.sh` builds its KV-map
-- **THEN** it warns on stderr that the website SSO client is not co-synced, without polluting the stdout KV-map
 
 ### Requirement: git-crypt-guard detects encrypted vs. plaintext files
 
@@ -721,26 +669,6 @@ The system SHALL provide a testable `scripts/wait-for-sealed-secret.sh` helper t
 - **WHEN** `KUBECTL=<fake> bash scripts/wait-for-sealed-secret.sh --context fake --namespace workspace --secret workspace-secrets --timeout 2` ausgeführt wird
 - **THEN** exit code ist 0 (happy path)
 
-### Requirement: keycloak-sync fail-closed in non-dev (BATS-Abdeckung)
-<!-- bats: secret-task-guards.bats -->
-
-The system SHALL expose a testable `kc_should_fail_closed` helper in `keycloak-sync.sh` that returns true for prod-Brands und false for dev or KEYCLOAK_SYNC_SOFT=1.
-
-#### Scenario: Prod-Brand ohne Soft-Override → fail-closed TRUE *(BATS)*
-- **GIVEN** `ENV=mentolder` und `KEYCLOAK_SYNC_SOFT` ist nicht gesetzt
-- **WHEN** `kc_should_fail_closed` im sourced Kontext aufgerufen wird
-- **THEN** gibt `CLOSED` zurück (fail-closed ist aktiv)
-
-#### Scenario: ENV=dev → fail-closed FALSE *(BATS)*
-- **GIVEN** `ENV=dev`
-- **WHEN** `kc_should_fail_closed` aufgerufen wird
-- **THEN** gibt `OPEN` zurück (dev-Ergonomik)
-
-#### Scenario: KEYCLOAK_SYNC_SOFT=1 → fail-closed FALSE *(BATS)*
-- **GIVEN** `ENV=mentolder` und `KEYCLOAK_SYNC_SOFT=1`
-- **WHEN** `kc_should_fail_closed` aufgerufen wird
-- **THEN** gibt `OPEN` zurück (Soft-Override aktiv)
-
 ### Requirement: env-seal cert-fingerprint comparison (BATS-Abdeckung)
 <!-- bats: secret-task-guards.bats -->
 
@@ -804,21 +732,6 @@ The system SHALL stamp a `token-version` annotation in the `claude-code:rotate-t
 #### Scenario: rotate-tokens-Task annotiert die Deployment-Version *(BATS)*
 - **GIVEN** `Taskfile.yml` mit dem `claude-code:rotate-tokens:`-Task
 - **WHEN** nach `token-version` oder `annotate` gesucht wird
-- **THEN** mindestens ein Treffer existiert
-
-### Requirement: keycloak-sync warns on empty website-secrets (BATS-Abdeckung)
-<!-- bats: secret-task-guards.bats -->
-
-The system SHALL warn loudly when `WEBSITE_OIDC_SECRET` is missing and the `env:seal` task description SHALL document co-rotation.
-
-#### Scenario: keycloak-sync.sh warnt bei leerem WEBSITE_OIDC_SECRET *(BATS)*
-- **GIVEN** `scripts/keycloak-sync.sh` im Repository
-- **WHEN** nach Warnmustern für leeren/fehlenden `WEBSITE_OIDC_SECRET` gesucht wird
-- **THEN** mindestens ein Treffer existiert (Warnung ist implementiert)
-
-#### Scenario: env:seal-Task dokumentiert website-secrets Co-Rotation *(BATS)*
-- **GIVEN** `Taskfile.yml` mit dem `env:seal:`-Task
-- **WHEN** nach `website-secrets` oder `WEBSITE_OIDC` gesucht wird
 - **THEN** mindestens ein Treffer existiert
 
 ### Requirement: git-crypt-guard detects encrypted vs. plaintext files (BATS-Abdeckung)

@@ -34,7 +34,7 @@ spec:
           # pg_isready checks actual PostgreSQL readiness (not just TCP open).
           # nc -z only verifies TCP — shared-db accepts connections before it
           # can serve queries, so pocket-id would crash on its 3-retry startup.
-          image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+          image: postgres:18-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
           command: ['sh', '-c', 'until pg_isready -h shared-db -p 5432 -U pocket_id -d pocket_id -q; do echo "waiting for shared-db..."; sleep 2; done']
           securityContext:
             allowPrivilegeEscalation: false
@@ -53,7 +53,7 @@ spec:
               memory: "64Mi"
       containers:
         - name: psql
-          image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+          image: postgres:18-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -182,7 +182,7 @@ spec:
           # pg_isready checks actual PostgreSQL readiness (not just TCP open).
           # nc -z only verifies TCP — shared-db accepts connections before it
           # can serve queries, so pocket-id would crash on its 3-retry startup.
-          image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+          image: postgres:18-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
           command: ['sh', '-c', 'until pg_isready -h shared-db -p 5432 -U pocket_id -d pocket_id -q; do echo "waiting for shared-db..."; sleep 2; done']
           securityContext:
             allowPrivilegeEscalation: false

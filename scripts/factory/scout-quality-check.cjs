@@ -22,6 +22,39 @@ function evaluateScoutQuality(scoutResult) {
 }
 
 /**
+ * Pre-gate that checks spec quality BEFORE invoking scout.sh.
+ * Returns { weak: true, reasons: [...] } if the spec is too short and the
+ * LLM fallback is not available to salvage it.
+ *
+ * @param {string} specContent  The spec/content text to check
+ * @param {{ llmEnabled?: boolean, title?: string, slug?: string }} [options]
+ * @returns {{ weak: boolean, reasons: string[] }}
+ */
+function evaluateSpecPreGate(specContent, options) {
+  const reasons = []
+  const opts = options || {}
+  const content = typeof specContent === 'string' ? specContent : String(specContent || '')
+
+  // Spec length check: min 300 chars
+  if (content.length < 300) {
+    // Allow bypass if LLM fallback is enabled — the LLM can salvage short specs
+    // if the title+slug are descriptive enough
+    if (opts.llmEnabled || process.env.SCOUT_LLM_ENABLED === 'true') {
+      // Check if title or slug is descriptive enough for LLM fallback
+      const title = opts.title || ''
+      const slug = opts.slug || ''
+      if (title.length > 20 || slug.length > 10) {
+        // Descriptive enough — pass through
+        return { weak: false, reasons: [] }
+      }
+    }
+    reasons.push('spec_too_short')
+  }
+
+  return { weak: reasons.length > 0, reasons }
+}
+
+/**
  * Run the Scout quality gate with side effects.
  * Returns a scout_weak result object if weak (pipeline should return it), or null if ok.
  * @param {object} scout  Scout output (touched_files, etc.)
@@ -51,4 +84,4 @@ function runScoutGate(scout, ticketId, repo, cp, log, phaseEvent) {
   return { status: 'scout_weak', ticket_id: ticketId, reasons: sq.reasons }
 }
 
-module.exports = { evaluateScoutQuality, runScoutGate }
+module.exports = { evaluateScoutQuality, runScoutGate, evaluateSpecPreGate }

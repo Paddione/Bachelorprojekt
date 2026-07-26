@@ -85,6 +85,26 @@ bash "$TICKET_SH" set-scout-drift --id "$TICKET" --drift "$drift" 2>/dev/null ||
   warn "set-scout-drift failed (non-fatal)"; exit 0
 }
 
+# ── Drift-cache JSON (T002241: consumed by scout.sh Phase 6) ────────────────
+# Write brand-keyed drift to /tmp for scout.sh to read during file discovery.
+# Fail-soft: if writing fails, next scout will fall back to drift=0.
+CACHE_FILE="/tmp/scout-drift-cache.json"
+BRAND="${BRAND:-mentolder}"
+if command -v jq >/dev/null 2>&1; then
+  # Read existing cache, merge new drift value for this brand
+  if [[ -f "$CACHE_FILE" ]]; then
+    new_cache="$(jq --arg b "$BRAND" --argjson d "$drift" '.[$b] = $d' "$CACHE_FILE" 2>/dev/null)" || new_cache="{}"
+  else
+    new_cache="{}"
+  fi
+  printf '%s' "$new_cache" | jq --arg b "$BRAND" --argjson d "$drift" '.[$b] = $d' > "$CACHE_FILE" 2>/dev/null || \
+    warn "drift-cache write failed (non-fatal)"
+else
+  # Fallback: simple JSON with echo
+  printf '{"%s":%s}\n' "$BRAND" "$drift" > "$CACHE_FILE" 2>/dev/null || \
+    warn "drift-cache fallback write failed (non-fatal)"
+fi
+
 # ── Threshold warning ───────────────────────────────────────────────────────
 THRESHOLD="${SCOUT_DRIFT_THRESHOLD:-0.9}"
 if awk "BEGIN {exit !($drift > $THRESHOLD)}" 2>/dev/null; then

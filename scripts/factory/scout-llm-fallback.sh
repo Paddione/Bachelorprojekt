@@ -16,12 +16,17 @@
 set -uo pipefail
 
 TITLE=""; SLUG=""; DESCRIPTION=""; REPO=""
+# Additional context from scout.sh (T002241): paths already discovered + keyword stats
+DISCOVERED_PATHS="${SCOUT_DISCOVERED_PATHS:-}"
+KEYWORD_STATS="${SCOUT_KEYWORD_STATS:-}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --title)       TITLE="${2:-}"; shift 2 ;;
     --slug)        SLUG="${2:-}"; shift 2 ;;
     --description) DESCRIPTION="${2:-}"; shift 2 ;;
     --repo)        REPO="${2:-}"; shift 2 ;;
+    --discovered-paths) DISCOVERED_PATHS="${2:-}"; shift 2 ;;
+    --keyword-stats)    KEYWORD_STATS="${2:-}"; shift 2 ;;
     *)             shift ;;
   esac
 done
@@ -94,7 +99,17 @@ fi
 FILE_TREE=$(find "$REPO" -type f \( -name '*.ts' -o -name '*.js' -o -name '*.svelte' -o -name '*.astro' -o -name '*.yaml' -o -name '*.yml' -o -name '*.sh' \) ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/dist/*' 2>/dev/null | sed "s|^$REPO/||" | head -200)
 slug_line=""
 [[ -n "$SLUG" ]] && slug_line="Feature Slug: $SLUG\n"
-prompt="You are a software factory scout. Given a feature ticket, list the likely files (relative paths) that will be touched during implementation. Output ONLY one file path per line, no commentary, no markdown, no code fences. Choose paths that actually exist on disk from the repo file listing below.\n\nRepo file listing:\n$FILE_TREE\n\n---\n\nTitle: $TITLE\n${slug_line}Description: $DESCRIPTION\n\nLikely changed files:"
+# Include already-discovered paths from deterministic phase (T002241)
+discovered_section=""
+if [[ -n "$DISCOVERED_PATHS" ]]; then
+  discovered_section="Already-discovered files (add more if relevant):\n$DISCOVERED_PATHS\n\n"
+fi
+# Include grep keyword match statistics (T002241)
+stats_section=""
+if [[ -n "$KEYWORD_STATS" ]]; then
+  stats_section="Grep keyword match statistics (use this to guide file selection):\n$KEYWORD_STATS\n\n"
+fi
+prompt="You are a software factory scout. Given a feature ticket, list the likely files (relative paths) that will be touched during implementation. Output ONLY one file path per line, no commentary, no markdown, no code fences. Choose paths that actually exist on disk from the repo file listing below.\n\nRepo file listing:\n$FILE_TREE\n\n---\n\nTitle: $TITLE\n${slug_line}Description: $DESCRIPTION\n\n${discovered_section}${stats_section}Likely changed files:"
 
 tmp_req="$(mktemp)"
 tmp_resp="$(mktemp)"

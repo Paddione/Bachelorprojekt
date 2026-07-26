@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.2...website-v1.216.3) (2026-07-26)
+
+
+### Bug Fixes
+
+* **website:** repair 6 API endpoint status regressions — rate-limit, booking, finalize, admin 403, publish 404, test skip [T002196] ([#3281](https://github.com/Paddione/Bachelorprojekt/issues/3281)) ([da30ef1](https://github.com/Paddione/Bachelorprojekt/commit/da30ef1513cd66d03d8449c864aff8fea38b6eed))
+
 ## [1.216.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.1...website-v1.216.2) (2026-07-26)
 
 

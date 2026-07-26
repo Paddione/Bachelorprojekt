@@ -2681,7 +2681,7 @@ tasks:
           LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
           LLM_HOST_IP="${LLM_HOST_IP:-172.17.0.1}" \
           LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}" \
-          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8081}" \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
           POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://id.localhost}" \
           POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id.${WORKSPACE_NAMESPACE:-workspace}.svc.cluster.local:1411}" \
           POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-id.localhost}" \
@@ -2864,7 +2864,7 @@ tasks:
           export LLM_ENABLED="${LLM_ENABLED:-false}"
           export LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}"
           export LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}"
-          export LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8081}"
+          export LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}"
           export COMFY_HOST_IP="${COMFY_HOST_IP:-}"
           export COMFY_PORT="${COMFY_PORT:-}"
           export RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}"
@@ -2994,7 +2994,7 @@ tasks:
         export LLM_ENABLED="${LLM_ENABLED:-false}"
         export LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}"
         export LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}"
-        export LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8081}"
+        export LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}"
         export COMFY_HOST_IP="${COMFY_HOST_IP:-}"
         export COMFY_PORT="${COMFY_PORT:-}"
         export RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}"
@@ -3681,7 +3681,7 @@ tasks:
           LLM_ENABLED="${LLM_ENABLED:-false}" \
           LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
           LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-router.workspace.svc.cluster.local:4000}" \
-          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8081}" \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
           COMFY_HOST_IP="${COMFY_HOST_IP:-}" \
           COMFY_PORT="${COMFY_PORT:-}" \
           RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}" \
@@ -3713,7 +3713,7 @@ tasks:
           LLM_ENABLED="${LLM_ENABLED:-false}" \
           LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
           LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-router.workspace.svc.cluster.local:4000}" \
-          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8081}" \
+          LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
           COMFY_HOST_IP="${COMFY_HOST_IP:-}" \
           COMFY_PORT="${COMFY_PORT:-}" \
           RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}" \

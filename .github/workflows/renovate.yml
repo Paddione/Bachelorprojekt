@@ -49,7 +49,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
-          fetch-depth: 1
+          # Full clone (fetch-depth: 0) so Renovate can properly detect its own
+          # generated PR branches without aborting with "Repository has changed
+          # during renovation". Shallow clones (fetch-depth: 1) make this
+          # detection overly sensitive. [TBD]
+          fetch-depth: 0
           fetch-tags: false
           persist-credentials: false
 
@@ -58,14 +62,14 @@ jobs:
         # v5.2.0 (2026-07). Bump via Review / Renovate selbst; nie @latest
         # fuer secret-tragende Third-Party-Actions.
         #
-        # app-id ist in v3 deprecated ("Use 'client-id' instead."), funktioniert
-        # aber unveraendert — RENOVATE_APP_ID haelt die numerische App ID. Eine
-        # spaetere Migration braucht BEIDES: Secret-Wert auf die Client ID
-        # umstellen UND diesen Input auf client-id umbenennen.
+        # client-id ersetzt das deprecated app-id (v3+). RENOVATE_APP_ID haelt
+        # aktuell die numerische App ID; die Action akzeptiert diese auch unter
+        # dem neuen Key. Ein zukuenftiger Breaking Change der Action braucht
+        # den UUID-Client-ID-Wert im Secret.
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v5.2.0
         id: app-token
         with:
-          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          client-id: ${{ secrets.RENOVATE_APP_ID }}
           private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
 
       - name: Self-hosted Renovate

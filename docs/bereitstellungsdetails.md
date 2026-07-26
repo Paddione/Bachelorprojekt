@@ -231,23 +231,8 @@ Jeder hier beschriebene Service läuft als K8s-Workload (Kubernetes Deployment) 
 ### 4.20 OpenClaw (`openclaw`)
 * **Beschreibung:** Ein lokaler KI-Assistent-Dienst (Daemon), der direkt auf dem Windows/WSL2-GPU-Host läuft und mit Ollama kommuniziert. Er wird über das `openclaw`-CLI verwaltet.
 
-### 4.21 LiveKit Server (`livekit`)
-* **Beschreibung:** Echtzeit-Audio- und Video-Server (WebRTC) für interaktive Video-Streams. Läuft im Host-Netzwerk (`hostNetwork: true`) und ist aus Performance-Gründen fest an den Knoten `pk-hetzner-4` (bzw. im Dev-Fall `gekko-hetzner-3`) gebunden.
-* **K8s-Deployment-Name:** `livekit-server`
-* **K8s-Namespace:** `workspace`
-* **Produktions-URLs:** `livekit.mentolder.de`, `livekit.korczewski.de`
-
-### 4.22 LiveKit Ingress (`livekit-ingress`)
-* **Beschreibung:** Video-Eingangsschnittstelle. Empfängt externe Video-Feeds (z. B. RTMP-Stream aus OBS) und leitet sie in einen LiveKit-Raum weiter.
-* **K8s-Deployment-Name:** `livekit-ingress`
-* **K8s-Namespace:** `workspace`
-
-### 4.23 LiveKit Egress (`livekit-egress`)
-* **Beschreibung:** Video-Ausgangsschnittstelle. Zeichnet LiveKit-Sitzungen auf und speichert sie als Videodatei im Backup-Speicher ab.
-* **K8s-Deployment-Name:** `livekit-egress`
-* **K8s-Namespace:** `workspace`
-
 ### 4.24 Whisper (`whisper`)
+<!-- Sections 4.21-4.23 (LiveKit Server/Ingress/Egress) removed per T002184 -->
 * **Beschreibung:** Ein Spracherkennungsmodell (OpenAI Whisper), welches auf dem GPU-Host ausgeführt wird. Es wandelt gesprochene Sprache aus Audioaufnahmen in Text um.
 * **K8s-Deployment-Name:** `whisper`
 * **K8s-Namespace:** `workspace`

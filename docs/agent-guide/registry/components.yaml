@@ -236,37 +236,37 @@
   what_for_de: "Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Cloud."
   url: null
   links: []
-- slug: livekit
-  kind: software
-  name: "LiveKit Server"
-  emoji: "📡"
-  sensitivity: assisted
-  placeholder_en: "WebRTC server (hostNetwork, pinned to pk-hetzner-4)"
-  summary_de: "Der WebRTC-Server für Live-Video und Streaming (z. B. Bühnen-Übertragungen)."
-  what_for_de: "Echtzeit-Video-Server; läuft im Host-Netz und ist an einen festen Knoten gebunden."
-  url: null
-  links: []
-  area: dienste
-  theme: betrieb
-- slug: livekit-ingress
-  kind: software
-  name: "LiveKit Ingress"
-  emoji: "📺"
-  sensitivity: caution
-  placeholder_en: "RTMP ingest endpoint"
-  summary_de: "Nimmt eingehende Video-Streams an (RTMP) und gibt sie an LiveKit weiter."
-  what_for_de: "Eingangstor für externe Streams (z. B. aus OBS) in eine LiveKit-Übertragung."
-  url: null
-  links: []
-- slug: livekit-egress
-  kind: software
-  name: "LiveKit Egress"
-  emoji: "🔴"
-  sensitivity: caution
-  placeholder_en: "Stream recording"
-  summary_de: "Nimmt Live-Streams auf und speichert sie als Aufzeichnung."
-  what_for_de: "Zeichnet LiveKit-Räume auf, damit sie später angesehen werden können."
-  url: null
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
+# LiveKit stack removed per T002184
   links: []
 - slug: whisper
   kind: software

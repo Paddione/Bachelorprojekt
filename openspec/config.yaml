@@ -8,7 +8,7 @@ context: |
   Conventions: Conventional Commits, squash-merge, Branches: feature/* fix/* chore/*
   Deploy: push-basiert via `task workspace:deploy ENV=<brand>` — kein GitOps-Reconciler
   Testing: BATS (unit), Playwright (E2E), task test:all = CI-Gate
-  Services: Traefik, Keycloak, Nextcloud+Talk, Collabora, Vaultwarden, DocuSeal, LiveKit, Website, Brett, Sidekick, Software-Factory
+  Services: Traefik, Keycloak, Nextcloud+Talk, Collabora, Vaultwarden, DocuSeal, Website, Brett, Sidekick, Software-Factory
   LLM: lokaler GPU-Host (RTX 5070 Ti) via Ollama + TEI — beide Brands geteilt, kollektions-isoliert
   Secrets: SealedSecrets (prod) / k3d/secrets.yaml (dev)
 rules:

@@ -12,9 +12,9 @@
 #     loki-rendered.yaml, promtail-rendered.yaml) sind deterministisch aus
 #     dem Upstream-Chart → werden ausgeschlossen.
 #
-# Aktuelle kanonische Pins (2026-07-03):
+# Aktuelle kanonische Pins (2026-07-26):
 #   busybox:1.38.0
-#   curlimages/curl:8.7.1   (zusätzlich: 8.7.1@sha256:… bleibt erlaubt)
+#   curlimages/curl:8.21.0   (zusätzlich: 8.21.0@sha256:… bleibt erlaubt)
 #   kiwigrid/k8s-sidecar:2.7.3   (nur in helm-rendered; derzeit ausgeschlossen)
 
 setup() {
@@ -30,10 +30,10 @@ setup() {
   [ "$drift" -eq 0 ]
 }
 
-@test "G-IMG02: keine curlimages/curl Drift-Tags (außer 8.7.1 + sha256-Pin) in hand-editierten Manifesten" {
+@test "G-IMG02: keine curlimages/curl Drift-Tags (außer 8.21.0 + sha256-Pin) in hand-editierten Manifesten" {
   drift=$(grep -rhE 'image:[[:space:]]+["'"'"']?curlimages/curl:' \
     "$REPO_ROOT/k3d/" "$REPO_ROOT/prod/" "$REPO_ROOT/prod-korczewski/" 2>/dev/null \
-    | grep -vE 'curlimages/curl:8\.7\.1(@sha256|\s|$|")' \
+    | grep -vE 'curlimages/curl:8\.21\.0(@sha256|\s|$|")' \
     | wc -l)
   [ "$drift" -eq 0 ]
 }

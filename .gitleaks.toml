@@ -28,6 +28,13 @@
     "(?i)package-lock\\.json",
     # Test fixtures with placeholder values
     "(?i)tests/.*fixtures/.*",
+    "(?i)tests/spec/brain-auto-memory\\.bats",
+    # Docs with German compound words matching token patterns (e.g. "sk-Automatisierungstool")
+    "(?i)docs/bereitstellungsdetails\\.md",
+    # Archived plans with test data patterns
+    "(?i)openspec/changes/archive/.*",
+    # Skill references with YAML examples containing fake private keys
+    "(?i)\\.claude/skills/gitops-knowledge/references/.*",
     ".gitattributes",
     ".gitignore",
   ]

@@ -7,11 +7,17 @@
 #
 # Env:
 #   LM_STUDIO_URL    — llama-server ingest-pool API URL (default:
-#                      http://localhost:8095 — standalone llama-server.exe,
+#                      http://localhost:8093 — standalone llama-server.exe,
 #                      NOT LM Studio's :1234 despite the var name; kept for
 #                      backward compat with existing callers/CI config)
+#                      T002258: was :8095 — that port now serves the bge-m3
+#                      EMBEDDING model (T002110/PR #3150), not a chat model.
+#                      Port map (scripts/llm/register-scheduled-tasks.ps1):
+#                        8093 = Bonsai chat / ingest pool (-np 4)
+#                        8095 = bge-m3 embeddings
+#                        8096 = bge-reranker-v2-m3 rerank
 #   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
-#   MAX_PARALLEL     — Concurrent process_page() jobs (default: 6, matching
+#   MAX_PARALLEL     — Concurrent process_page() jobs (default: 4, matching
 #                      the ingest-pool server's -np slot count — raising this
 #                      above the server's slot count just queues requests)
 #   BRAIN_INGEST_STATE — State file path (default: ~/.brain-ingest-state.json)
@@ -33,9 +39,9 @@ PILOT=0
 PRUNE=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
-LM_URL="${LM_STUDIO_URL:-http://localhost:8095}"
+LM_URL="${LM_STUDIO_URL:-http://localhost:8093}"
 LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
-MAX_PARALLEL="${MAX_PARALLEL:-6}"
+MAX_PARALLEL="${MAX_PARALLEL:-4}"
 # transform.sh runs as a child process per page — it needs its own copy of
 # these, not just brain-ingest.sh's local vars (was previously unset here,
 # so a caller who didn't export LM_STUDIO_URL got transform.sh's own

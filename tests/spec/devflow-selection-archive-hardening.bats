@@ -170,7 +170,11 @@ setup() {
 # plan-archive-steps.md nennt heute BEIDE Wege (MCP-first Zeile 15,
 # ticket.sh-Fallback Zeile 18). Der Fix kehrt die Reihenfolge um.
 @test "T002256-B3: plan-archive-steps empfiehlt archive_plan nicht mehr als MCP-first" {
-  run bash -c "grep -n 'MCP-first' '$ARCHIVE_REF'"
+  # Geprueft wird die EMPFEHLUNG, nicht die Erwaehnung: eine Begruendung
+  # ("Warum nicht MCP-first ...") gehoert in die Datei und steht per Konvention
+  # im Warn-Blockquote. Verboten ist "MCP-first" im Fliesstext, wo es als
+  # Handlungsanweisung gelesen wird.
+  run bash -c "grep -nE '^[^>]*MCP-first' '$ARCHIVE_REF'"
   [ "$status" -ne 0 ]
 }
 

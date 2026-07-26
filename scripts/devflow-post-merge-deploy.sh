@@ -5,7 +5,11 @@ set -u
 
 TICKET_ID="${1:-}"
 MERGE_COMMIT=$(git log origin/main -1 --format="%H")
-CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT")
+# Generierte Artefakte (linguist-generated in .gitattributes) aus der Deploy-Routing-
+# Selektion nehmen: website/src/data/openspec-status.json & Co. liegen im Merge-Diff jedes
+# Changes mit OpenSpec-Artefakt und loesten sonst einen Deploy ohne Website-Bezug aus
+# (T002255). SSOT des Routings: .claude/skills/references/deploy-routing.md
+CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh)
 
 DEPLOY_WEBSITE=false
 DEPLOY_BRETT=false
@@ -27,18 +31,24 @@ if [[ "$DEPLOY_WEBSITE" == false && "$DEPLOY_BRETT" == false \
 fi
 
 FAILED_TASKS=()
+
+# Container-Images werden NICHT lokal gebaut (T002255). Prod laeuft pull-based via Flux,
+# die Images baut GitHub Actions; ein lokaler Build braucht einen GHCR-Login, den der
+# Agent nicht haelt. Zuvor scheiterte er reproduzierbar mit
+#   ERROR: failed to build: failed to solve: error getting credentials
+# und wurde als deploy/blocked gemeldet, obwohl der CI-Build fuer denselben SHA gruen war
+# — das verfaelschte die DORA-Auswertung (beobachtet: T002251 / PR #3300).
 if [[ "$DEPLOY_WEBSITE" == true ]]; then
-  echo "🚀 Deploye Website (beide Brands)..."
-  task feature:website || { rc=$?; FAILED_TASKS+=("feature:website=$rc"); }
+  echo "ℹ Website-Image: .github/workflows/build-website.yml baut+rollt aus (pull-based via Flux) — kein lokaler Build."
 fi
 if [[ "$DEPLOY_BRETT" == true ]]; then
-  echo "🚀 Deploye Brett (beide Brands)..."
-  task feature:brett || { rc=$?; FAILED_TASKS+=("feature:brett=$rc"); }
+  echo "ℹ Brett-Image: .github/workflows/build-brett.yml baut+rollt aus — kein lokaler Build."
 fi
 if [[ "$DEPLOY_DOCS" == true ]]; then
-  echo "🚀 Deploye Docs..."
-  task docs:deploy || { rc=$?; FAILED_TASKS+=("docs:deploy=$rc"); }
+  echo "ℹ Docs-Image: .github/workflows/build-docs.yml baut — kein lokaler Build."
 fi
+
+# Break-Glass bleibt: `kubectl apply` braucht keinen Registry-Login.
 if [[ "$DEPLOY_K8S" == true ]]; then
   echo "🚀 Deploye K8s-Manifeste (beide Brands)..."
   task feature:deploy || { rc=$?; FAILED_TASKS+=("feature:deploy=$rc"); }

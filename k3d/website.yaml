@@ -220,7 +220,7 @@ spec:
         kubernetes.io/arch: amd64
       containers:
         - name: website
-          image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest
+          image: ghcr.io/paddione/${WEBSITE_IMAGE}:${WEBSITE_IMAGE_TAG}
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

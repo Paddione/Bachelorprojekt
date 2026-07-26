@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.11...website-v1.214.12) (2026-07-26)
+
+
+### Bug Fixes
+
+* **infra:** make WEBSITE_IMAGE_TAG reach the rendered manifest — envsubst decoupling + allowlist fix [T002209] ([#3251](https://github.com/Paddione/Bachelorprojekt/issues/3251)) ([cb1c70f](https://github.com/Paddione/Bachelorprojekt/commit/cb1c70fe6ff0c8e54846217fc2a630b1b9c5c745))
+
 ## [1.214.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.10...website-v1.214.11) (2026-07-26)
 
 

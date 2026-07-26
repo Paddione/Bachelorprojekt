@@ -4,10 +4,11 @@
 // füllt die Klärungsfelder aus, speichert, und der DoR-Zähler der Karte steigt.
 
 import { test, expect } from '@playwright/test';
-import { ensureAdminPasswordOrSkip } from '../lib/systemtest-runner';
 
 test.describe('Planungsbüro: Inline-Klärungsrunde', () => {
-  test.beforeEach(({}, info) => ensureAdminPasswordOrSkip(info));
+  test.beforeEach(({}, info) => {
+    if (!process.env.E2E_ADMIN_PASS) info.skip(true, 'E2E_ADMIN_PASS not set');
+  });
   test.setTimeout(120_000);
 
   test('expand a card, answer clarification fields, save, DoR increases', async ({ page }) => {

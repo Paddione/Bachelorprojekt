@@ -58,7 +58,7 @@ export default defineConfig({
         '**/fa-26-*.spec.ts',      // bug report form
         '**/fa-28-*.spec.ts',      // Website-Messaging (internes Chat-System)
         '**/fa-poll.spec.ts',      // live poll
-        '**/fa-fragebogen.spec.ts',           // consolidated questionnaire E2E
+
         '**/fa-coaching-drafts.spec.ts',      // coaching drafts auth-gates
         '**/fa-coaching-knowledge.spec.ts',   // knowledge collections CRUD
         '**/fa-coaching-publish.spec.ts',     // coaching publish flow
@@ -310,31 +310,7 @@ export default defineConfig({
       },
     },
 
-    // ── systemtest: cycle fan-out (12 system-test packages) ──────
-    // Each spec walks one System-Test template via the
-    // QuestionnaireWizard. The runner is headed-friendly so the
-    // operator can watch and take over for steps marked with
-    // agent_notes (real signatures, threshold crossings, etc.).
-    //
-    // Fan-out: run three specs concurrently, one per package, e.g.
-    //   E2E_ADMIN_PASS=… playwright test --project=systemtest \
-    //     --headed -g "System-Test 4" &
-    //   E2E_ADMIN_PASS=… playwright test --project=systemtest \
-    //     --headed -g "System-Test 5" &
-    //   E2E_ADMIN_PASS=… playwright test --project=systemtest \
-    //     --headed -g "System-Test 6" &
-    {
-      name: 'systemtest',
-      testMatch: ['**/systemtest-*.spec.ts'],
-      timeout: 300_000,
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: websiteURL,
-      },
-    },
-
-    // NOTE: Pure-function unit tests (health-assertions, systemtest-runner)
-    // migrated to vitest. Run with: npx vitest run
+    // NOTE: Pure-function unit tests migrated to vitest. Run with: npx vitest run
   ],
 
   outputDir: '../results/playwright-traces',

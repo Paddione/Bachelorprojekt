@@ -157,6 +157,11 @@ jobs:
           REPORT: tests/results/.tmp-e2e-results.json
           GH_RUN_ID: ${{ github.run_id }}
           MATRIX_CLUSTER: ${{ matrix.cluster }}
+          # The commit the suite was run FROM. The endpoint compares it against
+          # the commit it was BUILT from and refuses to auto-file tickets when
+          # they disagree (T002202) — a drifted run cannot attribute failures
+          # to the source tree.
+          TESTED_SHA: ${{ github.sha }}
         run: |
           if [ -z "${INGEST_TOKEN}" ]; then
             echo "::error::E2E_INGEST_TOKEN secret missing — results will NOT be ingested. Set it in GitHub repo secrets to enable auto-ticketing."
@@ -175,7 +180,8 @@ jobs:
           # the envelope to pin runId and cluster explicitly.
           jq --arg cluster "${MATRIX_CLUSTER}" \
              --arg runId "gh-${GH_RUN_ID}-${MATRIX_CLUSTER}" \
-             '. + {cluster: $cluster, runId: $runId}' \
+             --arg testedSha "${TESTED_SHA}" \
+             '. + {cluster: $cluster, runId: $runId, testedSha: $testedSha}' \
              "${REPORT}" > /tmp/ingest-payload.json
           http_code=$(curl -s -o /tmp/ingest-response.json -w '%{http_code}' \
             -X POST \

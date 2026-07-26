@@ -1491,6 +1491,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002202": [
+    {
+      "slug": "e2e-deploy-drift",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

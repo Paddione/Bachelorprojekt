@@ -591,119 +591,28 @@ endpoint is missing from the allowlist.
 
 ---
 
-### Requirement: Prod-Entrypoint $$-Escaping — Push-Deploy-Pipeline-Kontrakt
-<!-- bats: (T002179) frühere Zuordnung auf keycloak-entrypoint-escaping.bats zeigte ins Leere — Datei existiert nicht -->
-
-The system SHALL double-escape shell variable expansions in `prod/import-entrypoint.sh`
-so that the push-deploy pipeline's sed collapse produces a valid single-`$` shell script.
-
-#### Scenario: Push-sed-Collapse ergibt gültige indirekte Shell-Expansion *(BATS)*
-- **GIVEN** `prod/import-entrypoint.sh` enthält `$$`-doppelte Variablen-Expansionen
-- **WHEN** `sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g'` auf die Datei angewendet wird
-- **THEN** enthält der kollabierte Output die Zeile `eval val="${${var}:-}"` (korrekte indirekte Expansion)
-
-#### Scenario: Prod-Entrypoint enthält den $$-Escape-Kontrakt *(BATS)*
-- **GIVEN** `prod/import-entrypoint.sh` ist die gültige Datei im Repository
-- **WHEN** nach `eval val="\$${$${var}:-}"` gesucht wird
-- **THEN** findet `grep` diese Zeile ($$-Double-Escaping ist vorhanden, kein Regression-Einzel-$)
-
-#### Scenario: Kollabierter Prod-Entrypoint ist syntaktisch valides POSIX sh *(BATS)*
-- **GIVEN** `prod/import-entrypoint.sh` nach Push-sed-Collapse
-- **WHEN** der kollabierte Output durch `sh -n` geprüft wird
-- **THEN** meldet `sh -n` keinen Syntaxfehler (Exit-Code 0)
-
-#### Scenario: Kollabierter Prod-Entrypoint ist semantisch äquivalent zum Dev-Entrypoint *(BATS)*
-- **GIVEN** `prod/import-entrypoint.sh` ($$-Form) und `k3d/realm-import-entrypoint.sh` (single-$-Form)
-- **WHEN** der Prod-Entrypoint durch die Push-sed-Pipeline kollabiert wird
-- **THEN** enthält sowohl der kollabierte Prod-Output als auch der Dev-Entrypoint die Zeile `eval val="${${var}:-}"`
-- **AND** beide enthalten die gleiche In-Place-Substitutionszeile `sed -i "s|\${${var}}|${val}|g"`
-
----
-
-### Requirement: Placeholder-Substitution in Realm-Template-Helpers
-<!-- bats: (T002179) frühere Zuordnung auf keycloak-sync.bats zeigte ins Leere — Datei existiert nicht -->
-
-The system SHALL provide `kc_substitute_placeholders` to correctly replace single and
-multiple `${VAR}` placeholders, leave unknown placeholders untouched, and handle values
-with special characters (slashes, pipes, ampersands) without corruption.
-
-#### Scenario: Einzelner Platzhalter wird korrekt ersetzt *(BATS)*
-- **GIVEN** ein Template-String `hello ${FOO} world` und Substitutionsliste `FOO=bar`
-- **WHEN** `kc_substitute_placeholders` aufgerufen wird
-- **THEN** ist der Output `hello bar world` (Exit-Code 0)
-
-#### Scenario: Mehrere verschiedene Variablen werden ersetzt *(BATS)*
-- **GIVEN** ein Template `${A}/${B}/${A}` und Substitutionsliste `A=x`, `B=y`
-- **WHEN** `kc_substitute_placeholders` aufgerufen wird
-- **THEN** ist der Output `x/y/x`
-
-#### Scenario: Unbekannte Variablen bleiben unverändert *(BATS)*
-- **GIVEN** ein Template `keep ${UNKNOWN}` und Substitutionsliste `FOO=bar`
-- **WHEN** `kc_substitute_placeholders` aufgerufen wird
-- **THEN** ist der Output `keep ${UNKNOWN}` (unbekannte Platzhalter werden nicht verändert)
-
-#### Scenario: Werte mit Slashes und Pipes werden sicher eingesetzt *(BATS)*
-- **GIVEN** ein Template `url=${URL}` und Substitutionsliste `URL=https://auth.localhost/path|q`
-- **WHEN** `kc_substitute_placeholders` aufgerufen wird
-- **THEN** ist der Output `url=https://auth.localhost/path|q` (keine sed-Interpretation)
-
-#### Scenario: Werte mit `&` werden sicher eingesetzt *(BATS)*
-- **GIVEN** ein Template `greet=${MSG}` und Substitutionsliste `MSG=hello & goodbye`
-- **WHEN** `kc_substitute_placeholders` aufgerufen wird
-- **THEN** ist der Output `greet=hello & goodbye` (kein Shell-Sonderzeichen-Escape-Problem)
-
----
-
-### Requirement: Erkennung verbleibender Platzhalter nach Substitution
-<!-- bats: (T002179) frühere Zuordnung auf keycloak-sync.bats zeigte ins Leere — Datei existiert nicht -->
-
-The system SHALL provide `kc_assert_no_placeholders` returning exit code 0 when no
-`${...}` patterns remain, and a non-zero code listing all unresolved variable names
-(sorted, deduplicated) when any placeholder remains.
-
-#### Scenario: Vollständig aufgelöster String besteht die Prüfung *(BATS)*
-- **GIVEN** der String `fully resolved string` enthält keine `${VAR}`-Muster
-- **WHEN** `kc_assert_no_placeholders` aufgerufen wird
-- **THEN** ist der Exit-Code 0 ohne Ausgabe
-
-#### Scenario: Verbleibender Platzhalter führt zu Non-Zero Exit und Ausgabe *(BATS)*
-- **GIVEN** der String `still has ${LEFTOVER}` enthält einen unaufgelösten Platzhalter
-- **WHEN** `kc_assert_no_placeholders` aufgerufen wird
-- **THEN** ist der Exit-Code ungleich 0 und der Output enthält `LEFTOVER`
-
-#### Scenario: Mehrere verbleibende Platzhalter werden sortiert und dedupliziert ausgegeben *(BATS)*
-- **GIVEN** der String `${B} and ${A} and ${B}` enthält zwei verschiedene Platzhalter (B doppelt)
-- **WHEN** `kc_assert_no_placeholders` aufgerufen wird
-- **THEN** ist der Exit-Code ungleich 0 und der Output enthält sowohl `${A}` als auch `${B}` (je genau einmal)
-
----
-
-### Requirement: Extraktion von Clients und Gruppen aus Realm-Template als NDJSON
-<!-- bats: (T002179) frühere Zuordnung auf keycloak-sync.bats zeigte ins Leere — Datei existiert nicht -->
-
-The system SHALL provide `kc_extract_clients_from_template` and
-`kc_extract_groups_from_template` emitting one compact JSON line per entry, producing no
-output for empty or absent arrays.
-
-#### Scenario: Clients werden als NDJSON extrahiert (je eine Zeile pro Client) *(BATS)*
-- **GIVEN** eine Realm-JSON-Datei enthält ein `clients`-Array mit den Einträgen `alpha` und `beta`
-- **WHEN** `kc_extract_clients_from_template` auf die Datei angewendet wird
-- **THEN** gibt die Funktion genau zwei Zeilen aus: Zeile 1 enthält `"clientId":"alpha"`, Zeile 2 `"clientId":"beta"`
-
-#### Scenario: Leeres `clients`-Array ergibt leere Ausgabe *(BATS)*
-- **GIVEN** eine Realm-JSON-Datei hat ein leeres `clients`-Array (`"clients": []`)
-- **WHEN** `kc_extract_clients_from_template` aufgerufen wird
-- **THEN** ist die Ausgabe leer und der Exit-Code ist 0
-
-#### Scenario: Einzelne Gruppe wird als NDJSON extrahiert *(BATS)*
-- **GIVEN** eine Realm-JSON-Datei enthält `"groups": [{"name":"recovery-access","path":"/recovery-access"}]`
-- **WHEN** `kc_extract_groups_from_template` aufgerufen wird
-- **THEN** enthält der Output `"name":"recovery-access"`
-
-#### Scenario: Fehlende `groups`-Feld ergibt leere Ausgabe *(BATS)*
-- **GIVEN** eine Realm-JSON-Datei hat kein `groups`-Feld
-- **WHEN** `kc_extract_groups_from_template` aufgerufen wird
-- **THEN** ist die Ausgabe leer und der Exit-Code ist 0
+> **Gestrichen (T002179).** Hier standen vier Requirements, die Helfer für den
+> Keycloak-Realm-Import als Systemanforderung führten: das `$$`-Escaping in
+> `prod/import-entrypoint.sh`, `kc_substitute_placeholders`,
+> `kc_assert_no_placeholders` sowie `kc_extract_clients_from_template` /
+> `kc_extract_groups_from_template`.
+>
+> Sie sind ersatzlos entfallen, nicht auf Pocket ID umgeschrieben — es gibt kein
+> Äquivalent, weil Pocket ID keine Realm-Templates importiert. Belegkette:
+>
+> - `scripts/lib/keycloak-helpers.sh` enthält die vier `kc_*`-Funktionen weiterhin, ihr
+>   einziger Konsument ist jedoch `docs/archive/keycloak-realms/keycloak-sync.sh:48` —
+>   archivierter Code. Kein lebender Aufrufer im Repository.
+> - Das Äquivalenz-Szenario verglich `prod/import-entrypoint.sh` gegen
+>   `k3d/realm-import-entrypoint.sh`. Diese Datei existiert nicht; das Szenario war
+>   unerfüllbar.
+> - Die zugehörigen BATS-Dateien (`keycloak-sync.bats`,
+>   `keycloak-entrypoint-escaping.bats`) existieren ebenfalls nicht — die
+>   `<!-- bats: -->`-Zuordnungen zeigten ins Leere.
+>
+> Die Entfernung der verbliebenen Skripte (`scripts/lib/keycloak-helpers.sh`,
+> `scripts/import-entrypoint.sh`, `prod/import-entrypoint.sh`) gehört in das
+> Cleanup-Ticket T002205, nicht in eine Spec-Bereinigung.
 
 ---
 

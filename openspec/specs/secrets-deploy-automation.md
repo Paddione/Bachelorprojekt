@@ -35,7 +35,7 @@ The system SHALL provide `tests/spec/fleet-operations.bats` (BATS) that reads `e
 
 ### Requirement: legacy_only-Annotation in environments/schema.yaml
 
-The system SHALL annotate all keys that are intentionally only in the legacy sealed-secrets files with `legacy_only: true` in `environments/schema.yaml` (e.g. the 12 WG Mesh keys, the 3 MCP Keycloak keys for korczewski-legacy). The annotation SHALL be parseable by the BATS fleet-completeness guard.
+The system SHALL annotate all keys that are intentionally only in the legacy sealed-secrets files with `legacy_only: true` in `environments/schema.yaml` (e.g. the WG Mesh keys). The annotation SHALL be parseable by the BATS fleet-completeness guard.
 
 #### Scenario: Guard parses the legacy_only annotation
 

@@ -27,7 +27,7 @@ for templates that are not in `published` status.
 #### Scenario: Zuweisung einer veröffentlichten Vorlage
 
 - **GIVEN** ein Admin ruft `POST /api/admin/questionnaires/assign` mit einer `published`-Vorlage auf
-- **WHEN** der Keycloak-Nutzer existiert und hat eine E-Mail-Adresse
+- **WHEN** der Pocket-ID-Nutzer existiert und hat eine E-Mail-Adresse
 - **THEN** wird eine neue Zuweisung mit Status `pending` angelegt und eine Benachrichtigungsmail an den Kunden gesendet
 
 ---

@@ -46,15 +46,15 @@ The system SHALL resolve page content by applying DB overrides (Admin-gespeicher
 
 ---
 
-### Requirement: OIDC-Authentifizierung via Keycloak (Authorization Code Flow)
+### Requirement: OIDC-Authentifizierung via Pocket ID (Authorization Code Flow)
 
-The system SHALL implement the OIDC Authorization Code Flow against the konfigurierten Keycloak-Realm, session tokens in einer PostgreSQL-Tabelle (`web_sessions`) persistieren, und jede Portal-Seite gegen einen gültigen, nicht abgelaufenen Token absichern.
+The system SHALL implement the OIDC Authorization Code Flow against Pocket ID, session tokens in einer PostgreSQL-Tabelle (`web_sessions`) persistieren, und jede Portal-Seite gegen einen gültigen, nicht abgelaufenen Token absichern.
 
 #### Scenario: Nicht eingeloggter Nutzer ruft Portal auf
 
 - **GIVEN** ein Nutzer ist nicht eingeloggt (kein gültiges `workspace_session`-Cookie)
 - **WHEN** er `/portal` aufruft
-- **THEN** leitet der Server zum Keycloak-Auth-Endpoint weiter (mit `client_id=website`, `response_type=code`, `scope=openid email profile`)
+- **THEN** leitet der Server zum Pocket-ID-Auth-Endpoint `${POCKET_ID_FRONTEND_URL}/authorize` weiter (`website/src/lib/auth.ts:23`; mit `client_id=website`, `response_type=code`, `scope=openid email profile`)
 
 #### Scenario: Session ist abgelaufen
 
@@ -124,7 +124,7 @@ The system SHALL render das Portal-Layout (PortalLayout.astro) nur für authenti
 
 #### Scenario: Admin-Nutzer öffnet Portal
 
-- **GIVEN** der eingeloggte Nutzer hat die Keycloak-Rolle `admin` (oder `realm-admin`)
+- **GIVEN** der eingeloggte Nutzer trägt den Claim `isAdmin` und erhält daraus die synthetische Rolle `admin` (`website/src/lib/auth.ts:60`, `identity.ts:171-178` — Pocket ID kennt keine Realm-Rollen, `realm-admin` existiert nicht)
 - **WHEN** `/portal` gerendert wird
 - **THEN** erscheint in der Sidebar ein "Admin"-Link (`/admin`); reguläre Nutzer sehen diesen Link nicht
 
@@ -731,7 +731,7 @@ The system SHALL remain reachable (HTTP 200/301/302) after a potential pod resta
 ### Requirement: Performance — Ladezeiten unter Schwellwerten (NFA-02)
 <!-- e2e: nfa-02-performance.spec.ts -->
 
-The system SHALL respond to HTTP requests for the website within 5 000 ms, render the page visibly in the browser within 5 000 ms, serve the Keycloak health endpoint `/health/ready` within 1 000 ms (prod) or 3 000 ms (dev), and serve Vaultwarden within 3 000 ms.
+The system SHALL respond to HTTP requests for the website within 5 000 ms, render the page visibly in the browser within 5 000 ms, serve the Pocket ID health endpoint `/.well-known/openid-configuration` within 1 000 ms (prod) or 3 000 ms (dev) — Pocket ID hat keinen `/health/ready`-Pfad, dieser Endpunkt ist zugleich seine Liveness-/Readiness-Probe (`k3d/pocket-id.yaml:293`), and serve Vaultwarden within 3 000 ms.
 
 #### Scenario: Website lädt per HTTP in unter 5 Sekunden *(E2E)*
 - **GIVEN** die Website ist unter `WEBSITE_URL` erreichbar

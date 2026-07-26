@@ -95,7 +95,9 @@ Coaching-facing UI copy SHALL use "Session"/"Sessions" instead of
 "Sitzung"/"Sitzungen". This applies strictly to the three coaching strings
 (admin dashboard tile, help content for coaching, and the Brett auto-post chat
 message). Authentication- and cookie-related "Sitzung" wording (login sessions,
-DSGVO cookie copy, Keycloak strings) MUST remain unchanged.
+DSGVO cookie copy, Keycloak strings) MUST remain unchanged. (Die i18n-Keys
+`cookie.keycloak-purpose` und `cookie.keycloak-duration` existieren unverändert in
+`website/src/i18n/de.ts:51-52` und `en.ts:51-52` — der Verweis ist korrekt, T002179.)
 
 #### Scenario: Coaching copy reads "Session"
 

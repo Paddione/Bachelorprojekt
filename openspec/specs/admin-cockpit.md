@@ -553,6 +553,14 @@ The system SHALL display a categorised asset inventory (software and hardware) o
 - **WHEN** der „Software"-Tab angeklickt wird
 - **THEN** sind die Kacheln „Website" und „Keycloak" sichtbar, und jede Kachel zeigt ein k8s-Status-Badge mit dem Text „ready" oder „failing"
 
+> **Kategorie 4 (T002179):** Die Kachel heißt im UI weiterhin „Keycloak", weil sie aus der
+> Zeile `slug = 'keycloak'` in `platform.software_assets` stammt (siehe
+> `website/src/lib/platform-db.ensure.test.ts:18`). Deren `health_url` zeigt auf
+> `http://keycloak.{ns}.svc.cluster.local:8080/health/ready` — einen Dienst, den es nicht
+> mehr gibt; das Status-Badge kann für diese Kachel folglich nicht „ready" melden. Der
+> Spec-Text beschreibt das UI korrekt und bleibt; die Asset-Zeile umzubenennen ist eine
+> Datenmigration und gehört nach T002205.
+
 #### Scenario: Hardware-Assets werden tabellarisch angezeigt *(E2E)*
 - **GIVEN** ein eingeloggter Admin ruft `/admin/platform` auf
 - **WHEN** der „Hardware"-Tab angeklickt wird

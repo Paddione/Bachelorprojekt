@@ -151,9 +151,9 @@ The system SHALL expose HTTP health endpoints for all core workspace services th
 - **WHEN** `GET https://web.<domain>/api/health` aufgerufen wird
 - **THEN** antwortet der Server mit HTTP 200 und `{ ok: true }` im JSON-Body
 
-#### Scenario: Keycloak OIDC Discovery erreichbar *(E2E)*
-- **GIVEN** `PROD_DOMAIN` ist gesetzt und Keycloak läuft
-- **WHEN** `GET https://auth.<domain>/realms/workspace/.well-known/openid-configuration` aufgerufen wird
+#### Scenario: Pocket ID OIDC Discovery erreichbar *(E2E)*
+- **GIVEN** `PROD_DOMAIN` ist gesetzt und Pocket ID läuft
+- **WHEN** `GET https://auth.<domain>/.well-known/openid-configuration` aufgerufen wird — ohne Realm-Präfix im Pfad
 - **THEN** antwortet der Server mit HTTP 200 und ein JSON mit `issuer` und `authorization_endpoint`
 
 #### Scenario: Nextcloud /status.php meldet installed:true *(E2E)*

@@ -26,7 +26,7 @@ The system SHALL configure the `oauth2-proxy-dev` with a `--skip-auth-route` arg
 
 - **GIVEN** die `k3d/dev-stack/oauth2-proxy-dev.yaml` enthält das `--skip-auth-route`-Argument nicht
 - **WHEN** ein lokaler MCP-Client eine Verbindung aufbaut
-- **THEN** scheitert die Verbindung am OIDC-Gate mit HTTP 302 (Redirect zu Keycloak)
+- **THEN** scheitert die Verbindung am OIDC-Gate mit HTTP 302 (Redirect zu Pocket ID)
 
 ---
 

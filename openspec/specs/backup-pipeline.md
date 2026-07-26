@@ -17,14 +17,14 @@ via `scripts/backup-restore.sh`.
 ### Requirement: Tägliche verschlüsselte PostgreSQL-Dumps
 
 The system SHALL produce daily encrypted PostgreSQL dumps for all four service databases
-(keycloak, nextcloud, vaultwarden, website) at 02:00 UTC using `pg_dump -Fc` format,
+(nextcloud, vaultwarden, website) at 02:00 UTC using `pg_dump -Fc` format,
 with each dump encrypted via AES-256-CBC + PBKDF2 before writing to `backup-pvc`.
 
 #### Scenario: Erfolgreicher nächtlicher DB-Backup
 
 - **GIVEN** `shared-db` ist erreichbar und alle Service-Passwörter sind in `workspace-secrets` vorhanden
 - **WHEN** der `db-backup` CronJob um 02:00 UTC feuert
-- **THEN** werden vier `.dump.enc`-Dateien (keycloak, nextcloud, vaultwarden, website) im Verzeichnis `/backups/<YYYYMMDD-HHMMSS>/` auf `backup-pvc` abgelegt
+- **THEN** werden drei `.dump.enc`-Dateien (nextcloud, vaultwarden, website) im Verzeichnis `/backups/<YYYYMMDD-HHMMSS>/` auf `backup-pvc` abgelegt
 
 #### Scenario: Dump-Validierung verhindert Encrypt-then-publish von Garbage
 
@@ -264,7 +264,7 @@ leave the recovery Ingress host set to the dev value `recover.localhost`.
 
 - **GIVEN** `Taskfile.yml` definiert `ENVSUBST_VARS` für den Prod-Deploy
 - **WHEN** die Variable auf Vollständigkeit geprüft wird
-- **THEN** enthält `ENVSUBST_VARS` den Eintrag `RECOVER_DOMAIN`, sodass domain-config und Realm-Template korrekt substituiert werden
+- **THEN** enthält `ENVSUBST_VARS` den Eintrag `RECOVER_DOMAIN`, sodass domain-config korrekt substituiert wird
 
 ---
 
@@ -503,12 +503,12 @@ The system SHALL idempotently ensure every service role AND database exists on e
 #### Scenario: postStart-Hook erstellt alle Service-Datenbanken idempotent *(BATS)*
 - **GIVEN** `k3d/shared-db.yaml` enthält einen postStart-Lifecycle-Hook
 - **WHEN** der Hook auf CREATE-DATABASE-Schleife geprüft wird
-- **THEN** enthält der Hook `for db in keycloak nextcloud vaultwarden website pentest videovault; do` und `CREATE DATABASE`
+- **THEN** enthält der Hook `for db in nextcloud vaultwarden website pentest videovault pocket_id; do` und `CREATE DATABASE`
 
 #### Scenario: postStart-Hook erstellt alle Service-Rollen via CREATE USER … NOT EXISTS *(BATS)*
 - **GIVEN** `k3d/shared-db.yaml` enthält den postStart-Hook
 - **WHEN** der Hook auf Rollen-Erstellung für alle Services geprüft wird
-- **THEN** enthält der Hook für jede Rolle (`keycloak`, `nextcloud`, `vaultwarden`, `website`, `pentest`) eine `NOT EXISTS`-Prüfung vor `CREATE USER`
+- **THEN** enthält der Hook für jede Rolle (`nextcloud`, `vaultwarden`, `website`, `pentest`, `videovault`, `pocket_id`) eine `NOT EXISTS`-Prüfung vor `CREATE USER`
 
 #### Scenario: DB-Existenzprüfung geht der CREATE DATABASE voran (Idempotenz) *(BATS)*
 - **GIVEN** `k3d/shared-db.yaml` enthält den postStart-Hook

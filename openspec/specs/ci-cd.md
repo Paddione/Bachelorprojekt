@@ -1045,6 +1045,14 @@ The system SHALL generate `docs/generated/graph.json` via `node scripts/build-gr
 - **THEN** enthält die Datei den String "shared-db"
 
 #### Scenario: graph.json enthält keycloak Node *(BATS)*
+
+> **Kategorie 4 (T002179):** Dieser Node ist real und der Test grün. `scripts/build-graph.mjs`
+> leitet ihn aus lebenden Manifesten ab: `docs/generated/graph.json` führt
+> `{"id":"keycloak","type":"Service"}` mit zwei Env-Kanten (`claude-code-mcp-monolith` via
+> `KC_URL`, `studio-server` via `KEYCLOAK_ISSUER_MENTOLDER`). Der Graph enthält daneben
+> einen eigenen `pocket-id`-Node. Der Spec-Text zitiert `tests/unit/build-graph.bats:25`
+> korrekt und bleibt unverändert — zu bereinigen sind die Manifest-Reste (T002205), nicht
+> die Spec.
 - **GIVEN** `scripts/build-graph.mjs` wurde ausgeführt
 - **WHEN** `docs/generated/graph.json` auf "keycloak" durchsucht wird
 - **THEN** enthält die Datei den String "keycloak"

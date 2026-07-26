@@ -2,7 +2,7 @@
 title: "t002200-admin-design-token — Implementation Plan"
 ticket_id: T002200
 domains: [website, admin]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

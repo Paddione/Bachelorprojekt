@@ -219,10 +219,32 @@ if [ -d "$MAIN_ROOT/node_modules" ] && [ ! -e "$WT_PATH/node_modules" ]; then
     ln -s "$MAIN_ROOT/node_modules" "$WT_PATH/node_modules"
     echo "worktree-create: linked node_modules → $MAIN_ROOT/node_modules" >&2
 fi
-# website uses pnpm — symlink its node_modules too so worktree skips full reinstall
-if [ -d "$MAIN_ROOT/website/node_modules" ] && [ ! -e "$WT_PATH/website/node_modules" ]; then
-    ln -s "$MAIN_ROOT/website/node_modules" "$WT_PATH/website/node_modules"
-    echo "worktree-create: linked website/node_modules → $MAIN_ROOT/website/node_modules" >&2
+# Workspace packages (pnpm): each such package (website/, brett/, mentolder-web/,
+# ...) has its own pnpm-workspace.yaml AND its own node_modules, neither of which
+# is covered by the root symlink above. T002204: the old hardcoded website-only
+# symlink left every OTHER pnpm-managed package without deps in the worktree,
+# breaking `task test:changed` (vitest "module not found") whenever the touched
+# package wasn't website/. Discover every such package by its pnpm-workspace.yaml
+# marker and link its node_modules too.
+while IFS= read -r -d '' _ws_file; do
+    _pkg_dir="$(dirname "$_ws_file")"
+    _pkg_rel="${_pkg_dir#"$MAIN_ROOT"/}"
+    [ "$_pkg_rel" = "$_pkg_dir" ] && continue  # not under MAIN_ROOT — skip defensively
+    if [ -d "$MAIN_ROOT/$_pkg_rel/node_modules" ] && [ ! -e "$WT_PATH/$_pkg_rel/node_modules" ]; then
+        mkdir -p "$WT_PATH/$_pkg_rel"
+        ln -s "$MAIN_ROOT/$_pkg_rel/node_modules" "$WT_PATH/$_pkg_rel/node_modules"
+        echo "worktree-create: linked $_pkg_rel/node_modules → $MAIN_ROOT/$_pkg_rel/node_modules" >&2
+    fi
+done < <(find "$MAIN_ROOT" -maxdepth 2 -name pnpm-workspace.yaml -not -path '*/node_modules/*' -print0 2>/dev/null)
+
+# Branch-warning: the node_modules symlinked above reflect whatever the SOURCE
+# checkout (MAIN_ROOT) currently has installed for ITS checked-out branch. If
+# that differs from the branch this worktree now sits on, the linked deps may
+# be stale/incompatible for this branch's package.json / lockfile — surface it
+# instead of failing silently on a dependency mismatch later. [T002204]
+_source_branch="$(git -C "$MAIN_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+if [ -n "$_source_branch" ] && [ "$_source_branch" != "HEAD" ] && [ "$_source_branch" != "$BRANCH" ]; then
+    echo "worktree-create: WARNUNG — Quell-Checkout ($MAIN_ROOT) steht auf Branch '$_source_branch', dieser Worktree auf '$BRANCH'. Verlinkte node_modules koennen von diesem Branch abweichen." >&2
 fi
 
 _ok=1   # reached a clean finish — disarm the rollback trap

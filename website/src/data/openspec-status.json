@@ -1527,6 +1527,12 @@
       "status": "archived"
     }
   ],
+  "T002204": [
+    {
+      "slug": "t002204-worktree-lock",
+      "status": "plan_staged"
+    }
+  ],
   "T002205": [
     {
       "slug": "2026-07-26-t002205-keycloak-cleanup",

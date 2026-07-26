@@ -430,7 +430,7 @@ describe('addComment', () => {
     expect(out).toEqual({ id: 12, emailSent: true });
     expect(sendPublicCommentEmail).toHaveBeenCalledWith({
       externalId: 'T1', reporterEmail: 'reporter@example.com', body: 'public reply',
-    });
+    }, undefined);
   });
 
   it('does not send an email for a public comment on a non-bug ticket type', async () => {
@@ -459,6 +459,7 @@ describe('addComment', () => {
     expect(out.emailSent).toBe(true);
     expect(sendPublicCommentEmail).toHaveBeenCalledWith(
       expect.objectContaining({ externalId: 'uuid-1' }),
+      undefined,
     );
   });
 });

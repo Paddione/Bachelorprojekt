@@ -2,6 +2,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
+import { markerHeaders, markerAvailable } from '../lib/e2e-marker';
 import { Pool } from 'pg';
 
 const BASE       = process.env.WEBSITE_URL         ?? 'http://localhost:4321';
@@ -163,9 +164,10 @@ test.describe('FA-Fragebogen: Fill flow', { tag: ['@fragebogen'] }, () => {
     const cookies = await page.context().cookies();
     const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');
 
+    const e2eHeaders = markerAvailable() ? markerHeaders()! : {};
     const res = await request.post(`${BASE}/api/portal/questionnaires/${a}/submit`, {
       data: {},
-      headers: { Cookie: cookieHeader },
+      headers: { Cookie: cookieHeader, ...e2eHeaders },
     });
     expect(res.status()).toBe(200);
 
@@ -422,7 +424,9 @@ test.describe('FA-Fragebogen: Real-user handoff', { tag: ['@fragebogen'] }, () =
     // Log in as admin — page.request shares the browser context's cookies automatically
     await loginAsAdmin(page, '/admin/fragebogen');
 
+    const e2eHeaders = markerAvailable() ? markerHeaders()! : {};
     const res = await page.request.post(`${BASE}/api/admin/questionnaires/assign`, {
+      headers: { ...e2eHeaders },
       data: { templateId, keycloakUserId },
     });
     expect(res.status()).toBe(201);

@@ -37,6 +37,7 @@ export const POST: APIRoute = async ({ request, params }) => {
       note:  typeof body.note  === 'string' ? body.note  : undefined,
       noteVisibility: body.noteVisibility === 'public' ? 'public' : 'internal',
       actor: { label: session.preferred_username },
+      request,
     });
     return new Response(JSON.stringify({ ok: true, result }), {
       status: 200, headers: { 'Content-Type': 'application/json' },

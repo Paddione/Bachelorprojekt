@@ -50,7 +50,7 @@ registerAction({
     }
 
     // Send confirmation email — non-blocking (fire-and-forget on error)
-    sendBookingConfirmation({ to: ctx.email, name: ctx.email, start, end }).catch(() => {});
+    sendBookingConfirmation({ to: ctx.email, name: ctx.email, start, end }, ctx.request).catch(() => {});
 
     const startStr = start.toLocaleString('de-DE', {
       timeZone: 'Europe/Berlin',

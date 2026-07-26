@@ -62,7 +62,7 @@ export async function sendPublicCommentEmail(p: {
   externalId: string;
   reporterEmail: string;
   body: string;
-}): Promise<boolean> {
+}, request?: Request): Promise<boolean> {
   const BRAND_NAME    = process.env.BRAND_NAME    ?? 'mentolder';
   const PROD_DOMAIN   = process.env.PROD_DOMAIN   ?? 'mentolder.de';
   const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? `info@${PROD_DOMAIN}`;
@@ -83,7 +83,7 @@ Antworten Sie einfach auf diese E-Mail, um zurückzuschreiben.
 
 Mit freundlichen Grüßen
 ${BRAND_NAME}`,
-    });
+    }, request);
     return true;
   } catch (err) {
     logger.error({ err }, '[sendPublicCommentEmail] failed');

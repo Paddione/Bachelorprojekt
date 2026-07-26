@@ -540,6 +540,7 @@ export async function addComment(p: {
   visibility: 'internal' | 'public';
   actor: { id?: string; label: string };
   kind?: 'comment' | 'status_change' | 'system';
+  request?: Request;
 }): Promise<{ id: number; emailSent: boolean }> {
   await initTicketsSchema();
   const guard = await pool.query<{ brand: string; reporter_email: string | null; external_id: string | null; type: string }>(
@@ -565,7 +566,7 @@ export async function addComment(p: {
       externalId: guard.rows[0].external_id ?? p.ticketId,
       reporterEmail: guard.rows[0].reporter_email,
       body: trimmed,
-    });
+    }, p.request);
   }
   return { id: r.rows[0].id, emailSent };
 }

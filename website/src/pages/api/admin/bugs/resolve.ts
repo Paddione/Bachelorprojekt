@@ -48,7 +48,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
   }
 
   try {
-    await resolveBugTicket(ticketId, resolutionNote, { label: session.preferred_username });
+    await resolveBugTicket(ticketId, resolutionNote, { label: session.preferred_username }, request);
   } catch (err) {
     locals.requestLogger.error({ err }, '[bugs/resolve] DB error:');
     if (isJson) {

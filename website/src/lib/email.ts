@@ -282,7 +282,7 @@ export async function sendBookingConfirmation(params: {
   name: string;
   start: Date;
   end: Date;
-}): Promise<boolean> {
+}, request?: Request): Promise<boolean> {
   const dateStr = formatDe(params.start);
   return sendEmail({
     to: params.to,
@@ -293,14 +293,14 @@ Ihr Termin am ${dateStr} ist bestätigt.
 
 Mit freundlichen Grüßen
 ${FROM_NAME}`,
-  });
+  }, request);
 }
 
 export async function sendCancellationNotification(params: {
   to: string;
   name: string;
   start: Date;
-}): Promise<boolean> {
+}, request?: Request): Promise<boolean> {
   const dateStr = formatDe(params.start);
   return sendEmail({
     to: params.to,
@@ -311,7 +311,7 @@ Ihr Termin am ${dateStr} wurde erfolgreich abgesagt.
 
 Mit freundlichen Grüßen
 ${FROM_NAME}`,
-  });
+  }, request);
 }
 
 export async function sendRescheduleNotification(params: {
@@ -319,7 +319,7 @@ export async function sendRescheduleNotification(params: {
   name: string;
   newStart: Date;
   newEnd: Date;
-}): Promise<boolean> {
+}, request?: Request): Promise<boolean> {
   const dateStr = formatDe(params.newStart);
   return sendEmail({
     to: params.to,
@@ -330,5 +330,5 @@ Ihr Termin wurde auf ${dateStr} verschoben.
 
 Mit freundlichen Grüßen
 ${FROM_NAME}`,
-  });
+  }, request);
 }

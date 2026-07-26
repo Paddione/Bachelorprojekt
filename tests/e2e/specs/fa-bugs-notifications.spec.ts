@@ -34,7 +34,7 @@ import { test, expect } from '@playwright/test';
 import { Pool } from 'pg';
 import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
-import { markerAvailable } from '../lib/e2e-marker';
+import { markerAvailable, markerHeaders } from '../lib/e2e-marker';
 
 const BASE       = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const MAILPIT    = process.env.MAILPIT_URL  ?? 'http://localhost:8025';
@@ -122,9 +122,11 @@ test.describe('FA-bug-notify', () => {
 
     // ── Step 3: Resolve ticket via API with admin session cookies ───
     // Use page.request so Playwright sends the session cookies from the
-    // logged-in browser context.
+    // logged-in browser context. The X-E2E-Test + X-Cron-Secret headers
+    // tell the server to skip the real SMTP send (isE2ETestRequest guard).
+    const e2eHeaders = markerAvailable() ? markerHeaders()! : {};
     const resolveRes = await page.request.post(`${BASE}/api/admin/bugs/resolve`, {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...e2eHeaders },
       data: JSON.stringify({
         ticketId,
         resolutionNote: 'fixed in E2E plan — Playwright FA-bug-notify',

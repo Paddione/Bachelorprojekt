@@ -50,7 +50,7 @@ registerAction({
         to: ctx.email,
         name: ctx.email,
         start: bookingStart,
-      }).catch(() => {});
+      }, ctx.request).catch(() => {});
     }
 
     return {

@@ -196,7 +196,8 @@ async function ticketIdByExternal(externalId: string): Promise<string | null> {
 export async function resolveBugTicket(
   ticketId: string,
   resolutionNote: string,
-  actor: { id?: string; label: string } = { label: 'admin' }
+  actor: { id?: string; label: string } = { label: 'admin' },
+  request?: Request,
 ): Promise<void> {
   const id = await ticketIdByExternal(ticketId);
   if (!id) throw new Error(`bug ${ticketId} not found`);
@@ -204,6 +205,7 @@ export async function resolveBugTicket(
     status: 'done', resolution: 'fixed',
     note: resolutionNote, noteVisibility: 'public',
     actor,
+    request,
   });
 }
 

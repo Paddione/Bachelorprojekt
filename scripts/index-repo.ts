@@ -16,6 +16,12 @@ const BATCH_SIZE = 16;
 const IGNORE_DIRS = new Set([
   'node_modules', 'dist', '.git', 'docs-content-built',
   'k3d/docs-content-built', '.svelte-kit', '.astro', 'build',
+  // T002259: dev-flow arbeitet in .worktrees/<slug>. Ohne diesen Eintrag
+  // indexiert walkDir jeden gleichzeitig existierenden Worktree als weitere
+  // Voll-Kopie des Repos — Duplikate unter fremden Pfaden in
+  // code_embeddings, Treffer aus Feature-Branches konkurrieren mit main,
+  // und die Laufzeit vervielfacht sich (ein DB-Roundtrip pro Datei).
+  '.worktrees',
 ]);
 
 const INDEXABLE_EXTS = new Set([
@@ -26,8 +32,8 @@ const INDEXABLE_EXTS = new Set([
 // This script runs both in-cluster (CronJob) and on a developer's host (git hook,
 // `task scs:index`) where cluster-internal DNS never resolves. Resolve the
 // cluster hostname once; on failure fall back to the local dev stack
-// (LM Studio direct on :1234, port-forwarded/local Postgres) instead of
-// silently hanging or failing every commit. Explicit env vars always win.
+// (llama-server embedding pool direct on :8095, port-forwarded/local Postgres)
+// instead of silently hanging or failing every commit. Explicit env vars always win.
 async function clusterDnsResolves(hostname: string): Promise<boolean> {
   try {
     await dnsLookup(hostname);
@@ -41,18 +47,21 @@ let EMBED_URL: string;
 let EMBED_MODEL: string;
 
 async function resolveEmbedConfig(): Promise<void> {
-  const clusterHost = 'llm-gateway-lmstudio.workspace.svc.cluster.local';
+  // T002258: was llm-gateway-lmstudio:1234 (LM Studio). bge-m3 moved to a
+  // dedicated llama-server on :8095 with T002110/PR #3150; the Service in
+  // k3d/llm-gpu.yaml is `llm-gateway-embed` on port 8095 and LM Studio is gone.
+  const clusterHost = 'llm-gateway-embed.workspace.svc.cluster.local';
   if (process.env.LLM_EMBED_URL) {
     EMBED_URL = process.env.LLM_EMBED_URL;
   } else {
     EMBED_URL = (await clusterDnsResolves(clusterHost))
-      ? `http://${clusterHost}:1234`
-      : 'http://localhost:1234';
+      ? `http://${clusterHost}:8095`
+      : 'http://localhost:8095';
   }
-  // Model IDs are not a stable contract across LM Studio setups — override
-  // locally with LLM_EMBED_MODEL if your loaded model uses a different ID
-  // (e.g. `bge` instead of `text-embedding-bge-m3`).
-  EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3';
+  // llama-server serves a single model and ignores the `model` field, so this
+  // is cosmetic there — it still matters for any OpenAI-compatible router in
+  // front. Keep it aligned with website/src/lib/embeddings.ts ('bge-m3').
+  EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'bge-m3';
 }
 
 async function makePool(): Promise<pg.Pool> {

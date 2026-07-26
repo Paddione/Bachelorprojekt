@@ -2914,6 +2914,7 @@
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
       "file_count": 549,
+      "file_count": 546,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3299,8 +3300,6 @@
         "scripts/llm/start-bonsai-server.ps1",
         "scripts/llm/start-embed-server.ps1",
         "scripts/llm/start-rerank-server.ps1",
-        "scripts/llm/tei-embed.service",
-        "scripts/llm/tei-rerank.service",
         "scripts/lmstudio-preload.sh",
         "scripts/mcp-gateway/mcp-gateway.service",
         "scripts/merge-domains.mjs",

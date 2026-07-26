@@ -68,3 +68,48 @@ setup() {
   run grep -qi 'pushover' "$ALERTMANAGER"
   [ "$status" -eq 0 ]
 }
+
+# ── Resource Registration in kustomization.yaml ─────────────────────────
+
+@test "no unregistered resource manifests in k3d/monitoring" {
+  local kustomize="$REPO/k3d/monitoring/kustomization.yaml"
+  local errors=0
+
+  # Extract resource filenames from the resources: block (lines following "resources:" indented with "  - ")
+  local resources
+  resources=$(awk '/^resources:/{flag=1; next} /^[a-z]/{flag=0} flag && /^  - /{sub(/^  - /,""); print}' "$kustomize")
+
+  # Extract patch filenames from the patches: block (lines with "  - path: ...")
+  local patches
+  patches=$(awk '/^patches:/{flag=1; next} /^[a-z]/{flag=0} flag && /^  - path: /{sub(/^  - path: /,""); print}' "$kustomize")
+
+  for f in "$REPO"/k3d/monitoring/*.yaml; do
+    [ -f "$f" ] || continue
+    local base
+    base=$(basename "$f")
+
+    # Skip kustomization.yaml itself
+    [ "$base" = "kustomization.yaml" ] && continue
+
+    # Skip files that are template stubs (contain ${} variable substitution)
+    if grep -qF '${' "$f" 2>/dev/null; then
+      continue
+    fi
+
+    # Only check files with a top-level kind: field (i.e. Kubernetes resources)
+    if grep -q '^kind:' "$f" 2>/dev/null; then
+      # Check if listed in resources or patches
+      if ! echo "$resources" | grep -qxF "$base" && ! echo "$patches" | grep -qxF "$base"; then
+        echo "FAIL: $base is a Kubernetes resource (kind: field) but is not listed in kustomization.yaml resources or patches"
+        errors=$((errors + 1))
+      fi
+    fi
+  done
+  [ "$errors" -eq 0 ]
+}
+
+@test "health-goals-cronjob.yaml does not exist" {
+  # Health-goals measurement is owned by .github/workflows/health-goals.yml,
+  # NOT by an in-cluster CronJob. Assert the dead manifest is absent.
+  [ ! -f "$REPO/k3d/monitoring/health-goals-cronjob.yaml" ]
+}

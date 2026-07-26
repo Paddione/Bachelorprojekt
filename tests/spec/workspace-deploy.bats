@@ -413,3 +413,62 @@ PY
   [ "$status" -eq 0 ]
 }
 
+
+# ── Image-Tag reaches the rendered manifest (T002209) ──────────────────
+#
+# render-fleet-artifact.yml passes the freshly built SHA tag as the env var
+# WEBSITE_IMAGE_TAG, but flux-render-artifact.sh only ever read the CLI flag
+# --website-image, and Taskfile's flux:render passes only --out. The value
+# arrived and was never consumed, so the manifest kept :latest — and because
+# the manifest content never changed between builds, Flux had nothing to
+# apply. Green build, green render, no rollout.
+#
+# Same class as T001396/T001400 above: a value supplied on one side and not
+# read on the other. It does not fail, it defaults.
+
+RENDER_SCRIPT="${PROJECT_DIR}/scripts/flux-render-artifact.sh"
+WEBSITE_MANIFEST="${PROJECT_DIR}/k3d/website.yaml"
+
+@test "website manifest does not hardcode the image tag" {
+  # ghcr.io/paddione/${WEBSITE_IMAGE}:latest makes only the NAME variable.
+  # An override would then replace the name, turning a tag like
+  # sha-20260726-abc into ghcr.io/paddione/sha-20260726-abc:latest.
+  run grep -c 'image: ghcr.io/paddione/${WEBSITE_IMAGE}:latest' "$WEBSITE_MANIFEST"
+  [ "$output" -eq 0 ]
+}
+
+@test "website manifest templates the image tag" {
+  run grep -q 'WEBSITE_IMAGE_TAG' "$WEBSITE_MANIFEST"
+  [ "$status" -eq 0 ]
+}
+
+@test "flux render script reads WEBSITE_IMAGE_TAG from the environment" {
+  run grep -q 'WEBSITE_IMAGE_TAG' "$RENDER_SCRIPT"
+  [ "$status" -eq 0 ]
+}
+
+@test "flux render script reads BRETT_IMAGE_TAG from the environment" {
+  # Identical wiring defect on the brett side (--brett-image).
+  run grep -q 'BRETT_IMAGE_TAG' "$RENDER_SCRIPT"
+  [ "$status" -eq 0 ]
+}
+
+@test "every envsubst list carrying WEBSITE_IMAGE also carries WEBSITE_IMAGE_TAG" {
+  # The allowlists are fail-closed (T001993): a placeholder missing from the
+  # list renders to an empty string, producing "image: ghcr.io/paddione/website:".
+  # That is the notify_push/bin/$/ failure mode in a different file.
+  local missing=0
+  while IFS= read -r line; do
+    case "$line" in
+      *'$WEBSITE_IMAGE_TAG'*) ;;
+      *) echo "MISSING WEBSITE_IMAGE_TAG in: ${line:0:110}"; missing=1 ;;
+    esac
+  done < <(grep -h 'WEBSITE_IMAGE' "${PROJECT_DIR}/Taskfile.yml" | grep -E 'ENVSUBST_VARS|envsubst')
+  [ "$missing" -eq 0 ]
+}
+
+@test "the tag placeholder always has a value so it never renders empty" {
+  # envsubst has no ${VAR:-default}; the default must be set by the caller.
+  run grep -qE 'WEBSITE_IMAGE_TAG:?[=-]' "$RENDER_SCRIPT"
+  [ "$status" -eq 0 ]
+}

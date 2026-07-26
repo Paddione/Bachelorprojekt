@@ -312,3 +312,12 @@ EOF
   done
   [ "$missing" -eq 0 ]
 }
+
+# ── T002243: --create-new documentation for mishap bundles ────────────#
+
+@test "T002243: plan-archive-steps.md documents --create-new for mishap bundles" {
+  local f="$REPO/.claude/skills/references/plan-archive-steps.md"
+  [ -f "$f" ]
+  grep -q -- '--create-new' "$f"
+  grep -qi 'mishap' "$f"
+}

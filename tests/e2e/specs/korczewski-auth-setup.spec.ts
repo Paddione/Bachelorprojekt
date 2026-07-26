@@ -8,7 +8,11 @@
 //
 // Env vars (export manually or load from the K8s Secret):
 //   TEST_ADMIN_USER      (default: test-admin)
-//   TEST_ADMIN_PASSWORD  — required for authenticated tests; skips if absent
+//   CRON_SECRET          — REQUIRED. loginViaE2E authenticates via
+//                          /api/auth/e2e-login?token=$CRON_SECRET; without it the
+//                          website admin setup fails hard so Playwright skips the
+//                          dependent `korczewski` project instead of running it
+//                          unauthenticated (T002199).
 //   TEST_USER            (default: test-user) — reserved for portal tests
 //
 // Extract from the in-cluster Secret:
@@ -25,8 +29,8 @@ import { assertReachable } from '../lib/health-assertions';
 const WEBSITE_URL = (process.env.KORCZEWSKI_URL ?? 'https://web.korczewski.de').replace(/\/$/, '');
 const BRETT_URL   = (process.env.BRETT_URL ?? 'https://brett.korczewski.de').replace(/\/$/, '');
 
-const ADMIN_USER  = process.env.TEST_ADMIN_USER     ?? 'test-admin';
-const ADMIN_PASS  = process.env.TEST_ADMIN_PASSWORD ?? '';
+const ADMIN_USER  = process.env.TEST_ADMIN_USER ?? 'test-admin';
+const CRON_SECRET = process.env.CRON_SECRET ?? '';
 
 const AUTH_DIR               = path.join(__dirname, '..', '.auth');
 const WEBSITE_ADMIN_STATE    = path.join(AUTH_DIR, 'korczewski-website-admin.json');
@@ -40,16 +44,19 @@ function ensureAuthDir(): void {
 setup('authenticate korczewski website admin', async ({ page, request }, testInfo) => {
   ensureAuthDir();
 
-  // Verify the website is reachable before attempting login
-  if (ADMIN_PASS) {
-    await assertReachable(request, WEBSITE_URL, { label: 'korczewski website' }, testInfo);
+  // Fail closed — an empty storageState here would silently run the whole
+  // dependent `korczewski` project without a session (T002199).
+  if (!CRON_SECRET) {
+    throw new Error(
+      '[korczewski-setup] CRON_SECRET is not set. loginViaE2E authenticates via ' +
+      '/api/auth/e2e-login?token=$CRON_SECRET, so the admin session cannot be ' +
+      'established without it. Export CRON_SECRET (CI: secrets.CRON_SECRET) or ' +
+      'run only the unauthenticated projects.',
+    );
   }
 
-  if (!ADMIN_PASS) {
-    console.warn('[korczewski-setup] E2E_ADMIN_PASS not set — writing empty state (admin tests will use test.fixme)');
-    fs.writeFileSync(WEBSITE_ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
-    return;
-  }
+  // Verify the website is reachable before attempting login
+  await assertReachable(request, WEBSITE_URL, { label: 'korczewski website' }, testInfo);
 
   // E2E login via /api/auth/e2e-login (bypasses Pocket ID passkey flow)
   await loginViaE2E(page, WEBSITE_URL, ADMIN_USER, '/admin');
@@ -68,18 +75,10 @@ setup('authenticate korczewski website admin', async ({ page, request }, testInf
 setup('authenticate korczewski brett', async ({ page, request }, testInfo) => {
   ensureAuthDir();
 
-  // Verify brett is reachable before attempting login
-  if (ADMIN_PASS) {
-    await assertReachable(request, BRETT_URL, { label: 'korczewski brett' }, testInfo);
-  }
-
-  if (!ADMIN_PASS) {
-    console.warn('[korczewski-setup] E2E_ADMIN_PASS not set — writing empty state (admin tests will use test.fixme)');
-    fs.writeFileSync(BRETT_ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
-    return;
-  }
-
-  // Pocket ID has no password form — oauth2-proxy services need one-time access code flow (T003163)
+  // Pocket ID has no password form — oauth2-proxy services need one-time access
+  // code flow (T003163). The login is genuinely unimplemented, so this is marked
+  // fixme unconditionally: an honest "not supported yet" rather than a silent
+  // empty state that lets dependent tests run unauthenticated (T002199).
   testInfo.fixme(true, 'brett oauth2-proxy → Pocket ID needs passkey/one-time-code auth');
   fs.writeFileSync(BRETT_ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
   console.log('[korczewski-setup] skipped brett login — Pocket ID migration pending');

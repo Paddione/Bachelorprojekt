@@ -9,31 +9,37 @@
 // Env vars:
 //   WEBSITE_URL       (default: https://web.mentolder.de)
 //   E2E_ADMIN_USER    (default: paddione)
-//   E2E_ADMIN_PASS    — required for admin tests; writes empty state if absent
+//   CRON_SECRET       — REQUIRED. loginViaE2E authenticates via
+//                       /api/auth/e2e-login?token=$CRON_SECRET; without it the
+//                       admin setup fails hard so Playwright skips the
+//                       dependent `mentolder` project instead of running it
+//                       unauthenticated (T002199).
 //   E2E_USER          (default: test-user)
 //   E2E_USER_PASS     — required for portal user tests; skipped if absent
 
 import { test as setup, expect } from '@playwright/test';
 import * as path from 'path';
 import * as fs from 'fs';
-import { loginViaE2E, verifySession } from '../lib/auth';
+import { loginViaE2E } from '../lib/auth';
 import { assertReachable } from '../lib/health-assertions';
 
 const WEBSITE_URL  = (process.env.WEBSITE_URL ?? 'https://web.mentolder.de').replace(/\/$/, '');
 const ADMIN_USER   = process.env.E2E_ADMIN_USER ?? 'paddione';
-const ADMIN_PASS   = process.env.E2E_ADMIN_PASS ?? '';
+const CRON_SECRET  = process.env.CRON_SECRET ?? '';
 const USER         = process.env.E2E_USER ?? 'test-user';
 const USER_PASS    = process.env.E2E_USER_PASS ?? '';
 
 const ROOT_AUTH_DIR = path.resolve(process.cwd(), '.auth');
 const SPECS_AUTH_DIR = path.resolve(__dirname, '..', '.auth');
 
-function saveStorageState(page: any, filename: string): void {
-  [ROOT_AUTH_DIR, SPECS_AUTH_DIR].forEach((dir) => {
+// storageState() is async — awaiting it matters. Un-awaited the write races the
+// context teardown at test end and can leave a truncated or missing file (T002199).
+async function saveStorageState(page: any, filename: string): Promise<void> {
+  for (const dir of [ROOT_AUTH_DIR, SPECS_AUTH_DIR]) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     const target = path.join(dir, filename);
-    page.context().storageState({ path: target });
-  });
+    await page.context().storageState({ path: target });
+  }
 }
 
 function writeEmptyState(filename: string): void {
@@ -46,10 +52,16 @@ function writeEmptyState(filename: string): void {
 
 // ── Admin login ──────────────────────────────────────────────────────────────
 setup('authenticate mentolder website admin', async ({ page, request }, testInfo) => {
-  if (!ADMIN_PASS) {
-    console.warn('[mentolder-setup] E2E_ADMIN_PASS not set — writing empty state (admin tests will use test.fixme)');
-    writeEmptyState('mentolder-website-admin.json');
-    return;
+  // Fail closed. Degrading to an empty storageState here used to leave this
+  // test green while every dependent `mentolder` test ran without a session —
+  // 33 locator timeouts that read like product defects (T002199).
+  if (!CRON_SECRET) {
+    throw new Error(
+      '[mentolder-setup] CRON_SECRET is not set. loginViaE2E authenticates via ' +
+      '/api/auth/e2e-login?token=$CRON_SECRET, so the admin session cannot be ' +
+      'established without it. Export CRON_SECRET (CI: secrets.CRON_SECRET) or ' +
+      'run only the unauthenticated projects (--project=website, --project=services).',
+    );
   }
 
   // Verify the website is reachable before attempting login
@@ -65,7 +77,7 @@ setup('authenticate mentolder website admin', async ({ page, request }, testInfo
 
   expect(me.authenticated, 'mentolder website session should be authenticated').toBe(true);
 
-  saveStorageState(page, 'mentolder-website-admin.json');
+  await saveStorageState(page, 'mentolder-website-admin.json');
   console.log(`[mentolder-setup] saved mentolder-website-admin.json (user=${me.username})`);
 });
 
@@ -87,6 +99,6 @@ setup('authenticate mentolder portal user', async ({ page }) => {
 
   expect(me.authenticated, 'mentolder portal session should be authenticated').toBe(true);
 
-  saveStorageState(page, 'mentolder-website-user.json');
+  await saveStorageState(page, 'mentolder-website-user.json');
   console.log(`[mentolder-setup] saved mentolder-website-user.json (user=${me.username})`);
 });

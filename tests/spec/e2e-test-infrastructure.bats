@@ -88,14 +88,33 @@ project_block() {
   done
 }
 
-@test "admin auth-setup specs gate on CRON_SECRET, the value loginViaE2E actually uses" {
-  for f in mentolder-auth-setup korczewski-auth-setup brett-mentolder-auth-setup; do
+@test "website admin auth-setups gate on CRON_SECRET, the value loginViaE2E actually uses" {
+  # Only the website setups can actually log in. The brett setups are fixme by
+  # design (oauth2-proxy → Pocket ID passkey flow, T003163), so gating them on a
+  # credential would be theatre.
+  for f in mentolder-auth-setup korczewski-auth-setup; do
     run grep -q 'CRON_SECRET' "$SPECS/$f.spec.ts"
     [ "$status" -eq 0 ] || {
       echo "$f.spec.ts does not reference CRON_SECRET — it gates on the wrong variable"
       return 1
     }
   done
+}
+
+@test "brett auth-setups mark themselves fixme instead of returning silently" {
+  # A bare `return` leaves the setup green and lets the dependent brett project
+  # run without a session; testInfo.fixme skips it visibly instead.
+  for f in brett-mentolder-auth-setup korczewski-auth-setup; do
+    run grep -q 'testInfo.fixme(true' "$SPECS/$f.spec.ts"
+    [ "$status" -eq 0 ] || {
+      echo "$f.spec.ts has no unconditional testInfo.fixme for the brett login"
+      return 1
+    }
+  done
+  # …and no code path still reads the password variable the login never used.
+  # (A comment mentioning it for historical context is fine — only code counts.)
+  run grep -n 'process.env.E2E_ADMIN_PASS' "$SPECS/brett-mentolder-auth-setup.spec.ts"
+  [ "$status" -ne 0 ]
 }
 
 @test "mentolder auth-setup awaits the storageState write" {

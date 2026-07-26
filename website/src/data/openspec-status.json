@@ -1479,6 +1479,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002199": [
+    {
+      "slug": "e2e-auth-setup-fail-closed",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

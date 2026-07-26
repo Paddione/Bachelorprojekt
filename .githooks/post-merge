@@ -6,6 +6,12 @@ repo_root="$(git rev-parse --show-toplevel)"
 # Suppress regen while a rebase/merge/stash sequence is in flight [T001973]
 # (otherwise `git pull --rebase` collides with hook-regenerated artifacts and
 # produces an unresolvable "would be overwritten" state in the working tree).
+#
+# NOTE: After the regen below the tree WILL have dirty generated files — this
+# hook restores them to HEAD after the fact. Leaving them dirty was the
+# T002239-M1 mishap: every following `git pull --ff-only` aborted with
+# "cannot pull with rebase: You have unstaged changes", requiring manual
+# stash/cleanup in every session that touched main.
 _gd="$(git rev-parse --absolute-git-dir 2>/dev/null || true)"
 if [ "${FRESHNESS_HOOK_DISABLED:-0}" = "1" ] \
    || [ -d "$_gd/rebase-merge" ] || [ -d "$_gd/rebase-apply" ] \
@@ -15,6 +21,13 @@ fi
 if [ -d "$repo_root/node_modules" ]; then
   task -d "$repo_root" freshness:regenerate 2>/dev/null || true
 fi
+# The docs-content-built and mermaid-snapshots paths are generated during
+# freshness:regenerate. They are tracked artifacts whose canonical version
+# lives in CI (build-docs.yml / freshness-regen.yml) — restore them to HEAD
+# so a plain `git pull` doesn't leave the tree dirty. [T002239-M1]
+git -C "$repo_root" checkout -- k3d/docs-content-built/ 2>/dev/null || true
+git -C "$repo_root" checkout -- docs/mermaid-snapshots/ 2>/dev/null || true
+
 # loc-budget.json always gets a fresh `commit`/`measured_at` stamp from
 # freshness:regenerate — that alone is diff noise, not a real LOC change.
 # Restore it unless total_lines/file_count actually drifted from HEAD, so a

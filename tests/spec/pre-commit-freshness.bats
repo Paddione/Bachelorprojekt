@@ -155,6 +155,42 @@ setup_t001973() {
     || { echo "guard does not appear to exit 0 cleanly in $POST_MERGE"; return 1; }
 }
 
+# ────────────────────────────────────────────────────────────────────────────
+# T002239-M1: post-merge hook must restore docs-generated files after
+# freshness:regenerate, so a plain `git pull` does not leave the tree dirty
+# (mishap: every following `git pull --ff-only` aborted with "cannot pull with
+# rebase: You have unstaged changes"). [T002239]
+# ────────────────────────────────────────────────────────────────────────────
+
+setup_t002239_m1() {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  POST_MERGE="$REPO_ROOT/.githooks/post-merge"
+}
+
+@test "T002239-M1: post-merge hook restores k3d/docs-content-built/ after regen" {
+  setup_t002239_m1
+  [ -f "$POST_MERGE" ] || { echo "MISSING hook: $POST_MERGE"; return 1; }
+  grep -qE 'checkout.*docs-content-built' "$POST_MERGE" \
+    || { echo "MISSING 'checkout -- k3d/docs-content-built/' in $POST_MERGE"; return 1; }
+}
+
+@test "T002239-M1: post-merge hook restores docs/mermaid-snapshots/ after regen" {
+  setup_t002239_m1
+  [ -f "$POST_MERGE" ] || { echo "MISSING hook: $POST_MERGE"; return 1; }
+  grep -qE 'checkout.*mermaid-snapshots' "$POST_MERGE" \
+    || { echo "MISSING 'checkout -- docs/mermaid-snapshots/' in $POST_MERGE"; return 1; }
+}
+
+# Control test: post-merge hook must still call freshness:regenerate
+# (the guard must not over-suppress regeneration).
+@test "T002239-M1: post-merge hook still calls freshness:regenerate (control test)" {
+  setup_t002239_m1
+  [ -f "$POST_MERGE" ] || { echo "MISSING hook: $POST_MERGE"; return 1; }
+  grep -qE 'freshness:regenerate' "$POST_MERGE" \
+    || { echo "MISSING 'task freshness:regenerate' in $POST_MERGE — guard over-suppressed!"; return 1; }
+}
+
+# ────────────────────────────────────────────────────────────────────────────
 # Control test: pre-commit's freshness block (T001388 auto-stage) must still
 # be triggered when no rebase/merge is in flight and FRESHNESS_HOOK_DISABLED
 # is unset. Drift-Guard: confirms the guard does not over-suppress.

@@ -144,3 +144,34 @@ _init_main_with_workspace_pkg() {
   [[ "$output" != *"t002204-m2-stale"* ]]
   rm -rf "$AGENT_LOCK_DIR"
 }
+
+# ── Mishap 3: pnpm install Guard (scripts/guard-pnpm-install.sh) ─────────#
+
+@test "T002239-M3: guard-pnpm-install.sh exists and is executable" {
+  [ -f "$REPO/scripts/guard-pnpm-install.sh" ] \
+    || { echo "scripts/guard-pnpm-install.sh not found"; return 1; }
+  [ -x "$REPO/scripts/guard-pnpm-install.sh" ] \
+    || { echo "scripts/guard-pnpm-install.sh is not executable"; return 1; }
+}
+
+@test "T002239-M3: guard refuses pnpm install when node_modules is a symlink" {
+  M3_TMP="$(mktemp -d)"
+  mkdir -p "$M3_TMP/website/node_modules/.pnpm"
+  # real node_modules → guard passes (pass the package dir, not the repo root)
+  run bash "$REPO/scripts/guard-pnpm-install.sh" "$M3_TMP/website"
+  [ "$status" -eq 0 ]
+
+  # symlink node_modules → guard refuses
+  rm -rf "$M3_TMP/website/node_modules"
+  mkdir -p "$M3_TMP/real-nm"
+  ln -s "$M3_TMP/real-nm" "$M3_TMP/website/node_modules"
+  run bash "$REPO/scripts/guard-pnpm-install.sh" "$M3_TMP/website"
+  [ "$status" -ne 0 ] || { echo "guard did not refuse (exit 0)"; return 1; }
+  echo "$output" | grep -qi "refus" || { echo "guard output missing 'refus': $output"; return 1; }
+  rm -rf "$M3_TMP"
+}
+
+@test "T002239-M3: worktree-create.sh source references guard-pnpm-install.sh" {
+  grep -q 'guard-pnpm-install' "$REPO/scripts/worktree-create.sh" \
+    || { echo "worktree-create.sh does not mention guard-pnpm-install.sh"; return 1; }
+}

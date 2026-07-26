@@ -23,6 +23,12 @@ MENTOLDER_SEC_HEADERS="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/web
 MENTOLDER_KUST="$BATS_TEST_DIRNAME/../../prod-fleet/website-mentolder/kustomization.yaml"
 SHARED_MIDDLEWARES="$BATS_TEST_DIRNAME/../../prod/traefik-middlewares.yaml"
 KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage.svelte"
+# T002239-M2: source-of-truth branding files (assets/branding/ — synced by
+# scripts/assets-sync.sh to website/public/brand/). The source must carry
+# the override so a sync does not silently drop it. [T002239-M2]
+KORE_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/korczewski/kore-app.css"
+KORE_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/korczewski/colors_and_type.css"
+MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colors_and_type.css"
 
 # ── T001433: Token alias layer ───────────────────────────────────────────────
 @test "T001433 alias: admin-foundation.css color-bearing tokens all reference var(--...)" {
@@ -52,6 +58,29 @@ KORE_HOMEPAGE="$BATS_TEST_DIRNAME/../../website/src/components/kore/KoreHomepage
   override_block=$(awk '/^[[:space:]]*body\.kore[[:space:]]*\{/{buf=""} {buf=buf"\n"$0} /^[[:space:]]*\}[[:space:]]*$/{last=buf} END{print last}' "$KORE_CSS")
   echo "$override_block" | grep -q "body\.kore[[:space:]]*{"
   echo "$override_block" | grep -qE -- "--admin-primary:[[:space:]]+var\(--copper\)"
+}
+
+# ── T002239-M2: Brand source files must carry the override (DSGVO-safe) ─────
+@test "T002239-M2: source kore-app.css carries --admin-primary copper override (assets/branding/)" {
+  [ -f "$KORE_SOURCE" ] || { echo "MISSING source: $KORE_SOURCE"; return 1; }
+  grep -qE -- "--admin-primary:[[:space:]]+var\(--copper\)" "$KORE_SOURCE" \
+    || { echo "MISSING --admin-primary: var(--copper) override in source $KORE_SOURCE"; return 1; }
+}
+
+@test "T002239-M2: source korczewski colors_and_type.css has no Google Fonts CDN import" {
+  [ -f "$KORE_COLORS_SOURCE" ] || { echo "MISSING source: $KORE_COLORS_SOURCE"; return 1; }
+  if grep -q 'googleapis' "$KORE_COLORS_SOURCE"; then
+    echo "Google Fonts CDN import found in $KORE_COLORS_SOURCE — DSGVO regression risk"
+    return 1
+  fi
+}
+
+@test "T002239-M2: source mentolder colors_and_type.css has no Google Fonts CDN import" {
+  [ -f "$MENTOLDER_COLORS_SOURCE" ] || { echo "MISSING source: $MENTOLDER_COLORS_SOURCE"; return 1; }
+  if grep -q 'googleapis' "$MENTOLDER_COLORS_SOURCE"; then
+    echo "Google Fonts CDN import found in $MENTOLDER_COLORS_SOURCE — DSGVO regression risk"
+    return 1
+  fi
 }
 
 # ── T001433: Sidebar ─────────────────────────────────────────────────────────

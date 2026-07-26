@@ -76,6 +76,14 @@ jobs:
         env:
           # Freshly minted App installation token (1h TTL, revoked post-job).
           RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Work list. Without it self-hosted Renovate runs GREEN but processes
+          # nothing at all ("WARN: No repositories found - did you want to run
+          # with flag --autodiscover?") — no PR, no Dependency Dashboard issue.
+          # The action does not forward github.repository on its own. Explicit
+          # instead of RENOVATE_AUTODISCOVER so the run stays deterministic
+          # regardless of how widely the GitHub App happens to be installed.
+          # [T002165]
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
           # Log level for debugging.
           LOG_LEVEL: ${{ vars.RENOVATE_LOG_LEVEL || 'info' }}
         with:

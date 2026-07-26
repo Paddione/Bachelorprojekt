@@ -5,7 +5,11 @@
   // Schema: https://docs.renovatebot.com/renovate-schema.json
   //
   // Executed weekly by .github/workflows/renovate.yml (self-hosted GitHub Action).
-  // Runs as a dedicated GitHub App with RENOVATE_TOKEN repo secret.
+  // Auth: a per-run GitHub App installation token, minted from the secrets
+  // RENOVATE_APP_ID + RENOVATE_APP_PRIVATE_KEY (T002161 — an installation token
+  // has a 1h TTL and cannot be stored statically). The workflow also passes
+  // RENOVATE_REPOSITORIES, without which Renovate runs green but processes no
+  // repository at all (T002165).
 
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
 
@@ -94,25 +98,25 @@
     // references in k3d/prod manifests).
 
     // LiveKit image family.
+    // matchPackageNames with slash-wrapped regex — matchPackagePatterns is
+    // deprecated upstream ("Config needs migrating", T002165).
     {
       "matchManagers": ["kubernetes"],
-      "matchPackagePatterns": ["^livekit/"],
+      "matchPackageNames": ["/^livekit//"],
       "groupName": "livekit images"
     },
 
     // Nextcloud image family.
     {
       "matchManagers": ["kubernetes"],
-      "matchPackagePatterns": ["^nextcloud", "^ghcr.io/nextcloud"],
+      "matchPackageNames": ["/^nextcloud/", "/^ghcr.io/nextcloud/"],
       "groupName": "nextcloud images"
     },
 
-    // Keycloak image family.
-    {
-      "matchManagers": ["kubernetes"],
-      "matchPackagePatterns": ["^quay.io/keycloak"],
-      "groupName": "keycloak images"
-    },
+    // No Keycloak rule: the platform migrated from Keycloak to Pocket ID, and no
+    // quay.io/keycloak image remains in any manifest (T002165). Pocket ID gets no
+    // group of its own — it is a single image (ghcr.io/pocket-id/pocket-id), and
+    // groups exist to bundle image *families*.
 
     // Kubernetes major: never automerge.
     {
@@ -141,7 +145,7 @@
 
     // Own ghcr.io images are rebuilt on release via CI, not bumped by Renovate.
     {
-      "matchPackagePatterns": ["^ghcr.io/paddione/"],
+      "matchPackageNames": ["/^ghcr.io/paddione//"],
       "enabled": false
     },
 

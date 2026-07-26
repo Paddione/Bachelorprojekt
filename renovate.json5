@@ -165,19 +165,28 @@
     // alternative matchPackagePatterns is deprecated in Renovate v43+ and would
     // trigger "Config needs migrating".
     //
-    // The bare "paddione" entry is NOT a typo (T002246). k3d/website.yaml uses
+    // The second, slash-less entry is NOT a typo. k3d/website.yaml uses
     //   image: ghcr.io/paddione/${WEBSITE_IMAGE}:${WEBSITE_IMAGE_TAG}
     // and the kubernetes manager does not resolve envsubst placeholders — it
-    // drops them and extracts the dep as bare "paddione". That name is invalid
-    // on ghcr.io, so the lookup produced
-    //   WARN: Error obtaining docker token … NAME_INVALID
+    // drops the whole placeholder segment and extracts the dep as
+    //   depName/packageName: "ghcr.io/paddione"   (currentValue: undefined)
+    // A single-segment path is invalid on ghcr.io, so the lookup produced
+    //   WARN: Error obtaining docker token … NAME_INVALID (dockerRepository: "paddione")
     //   WARN: No docker auth found - returning
-    // on every run. The regex above only matches "ghcr.io/paddione/<something>"
-    // and therefore never covered it. An earlier comment here claimed the warning
-    // was unavoidable because the token request precedes rule evaluation — that
-    // was wrong: enabled:false drops the dep before the datasource lookup runs.
+    // on every run. The regex above requires a trailing slash and therefore
+    // never covered it.
+    //
+    // T002246 tried to fix this with a bare "paddione" entry, on the assumption
+    // that the dep is extracted under that name. It is not — matchPackageNames
+    // compares against the full packageName "ghcr.io/paddione", so the exact
+    // match never fired and the warning survived (T002257). Verified with
+    //   docker run --rm -v "$PWD":/repo:ro -w /repo \
+    //     -e RENOVATE_PLATFORM=local -e RENOVATE_DRY_RUN=lookup \
+    //     ghcr.io/renovatebot/renovate:43
+    // which reproduces the warning before and no longer emits it after.
+    // enabled:false does drop the dep before the datasource lookup runs.
     {
-      "matchPackageNames": ["/^ghcr.io/paddione//", "paddione"],
+      "matchPackageNames": ["/^ghcr.io/paddione//", "ghcr.io/paddione"],
       "enabled": false
     },
 

@@ -4,7 +4,23 @@
 
 ## Purpose
 
-Plattform-weite Security-Policy: SSO via Keycloak, mTLS für interne Cluster-Traffic, SealedSecrets für Out-of-Cluster-Secret-Lifecycle, DSGVO-konforme Session-Timeouts, Hybrid-Auth-Modell (Service-zu-Service-Token + Keycloak-OIDC) für die `claude-code-mcp-monolith`-Workloads beider Brands.
+Plattform-weite Security-Policy: SSO via Pocket ID, mTLS für internen Cluster-Traffic, SealedSecrets für Out-of-Cluster-Secret-Lifecycle, DSGVO-konforme Session-Timeouts.
+
+Der frühere zweite Bestandteil dieser Policy — das Hybrid-Auth-Modell (Service-zu-Service-Token + Keycloak-OIDC) für die `claude-code-mcp-monolith`-Workloads — ist mit dem MCP-Monolith-Decommission entfallen; siehe den Hinweis im nächsten Abschnitt.
+
+> **Dekommissioniert (T002179).** Beide nachfolgenden Requirements beschreiben den
+> `mcp-auth-proxy` des korczewski-MCP-Monolithen. Die Komponente existiert nicht mehr:
+> `k3d/claude-code-mcp-auth-proxy.yaml` wurde mit dem MCP-Monolith-Decommission
+> (#2052/#2061) gelöscht — festgehalten in `tests/spec/pocket-id-migration.bats:255`
+> und `:180`. Ebenfalls nicht im Repository vorhanden: das Secret
+> `MCP_KEYCLOAK_CLIENT_SECRET`, der Task `secret-rotation:rotate` (kein
+> `secret-rotation`-Namespace im Taskfile) und die Routen `/api/mcp/svc/*` /
+> `/api/mcp/user/*`.
+>
+> Der Text ist bewusst **nicht** auf Pocket ID umgeschrieben worden: das hätte eine
+> entfernte Komponente mit dem aktuellen Provider beschrieben und wäre falscher
+> gewesen als der veraltete Stand. Die Nennungen von Keycloak unterhalb dieser Zeile
+> beschreiben historisches Verhalten und sind in diesem Sinne korrekt.
 
 ## Hybrid auth model — korczewski monolith (T001022)
 

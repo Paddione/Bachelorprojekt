@@ -6,7 +6,7 @@
 
 ### Requirement: Authenticated message thread per customer
 
-The system SHALL maintain exactly one `message_thread` per customer (identified by Keycloak user ID).
+The system SHALL maintain exactly one `message_thread` per customer (identified by the `customers.keycloak_user_id`-Spalte — der Spaltenname ist Migrations-Altlast, ihr Inhalt ist die Pocket-ID-Subject-ID).
 When a logged-in portal user sends their first message the system SHALL create the thread automatically;
 subsequent messages SHALL append to the existing thread. Unauthenticated requests SHALL be rejected with HTTP 401.
 
@@ -272,7 +272,7 @@ The system SHALL redirect or block unauthenticated users attempting to access po
 #### Scenario: Portal root redirects unauthenticated user away from chat *(E2E)*
 - **GIVEN** no valid session
 - **WHEN** the user navigates to `/portal`
-- **THEN** the user is either redirected to Keycloak/login, or if still on `/portal` the chat compose UI ("Nachrichten senden") is not rendered
+- **THEN** the user is either redirected to Pocket ID/login, or if still on `/portal` the chat compose UI ("Nachrichten senden") is not rendered
 
 ---
 

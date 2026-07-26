@@ -15,15 +15,15 @@ betrieben wird.
 
 ### Requirement: Service Isolation via Separate Databases
 
-The system SHALL provide a dedicated PostgreSQL database and role per service (keycloak,
-nextcloud, vaultwarden, website, videovault) so that no service can read or write another
+The system SHALL provide a dedicated PostgreSQL database and role per service (pocket_id,
+nextcloud, vaultwarden, website, videovault, pentest) so that no service can read or write another
 service's data through normal DB connections.
 
 #### Scenario: Service connects to own database only
 
 - **GIVEN** the shared-db pod is running
 - **WHEN** a service authenticates with its own role credentials (e.g. `website`/`WEBSITE_DB_PASSWORD`)
-- **THEN** it is connected to its own database (`website`) and has no access to `keycloak`, `nextcloud`, or `vaultwarden` databases
+- **THEN** it is connected to its own database (`website`) and has no access to `pocket_id`, `nextcloud`, or `vaultwarden` databases
 
 #### Scenario: Idempotent initialization on re-deploy
 
@@ -139,7 +139,7 @@ and uploads the encrypted archives to Filen cloud storage.
 
 - **GIVEN** shared-db is reachable and `BACKUP_PASSPHRASE` is set
 - **WHEN** the `db-backup` CronJob runs
-- **THEN** four encrypted `.dump.enc` files (keycloak, nextcloud, vaultwarden, website) are uploaded to Filen; plaintext dumps are deleted from disk before upload
+- **THEN** three encrypted `.dump.enc` files (nextcloud, vaultwarden, website) are uploaded to Filen; plaintext dumps are deleted from disk before upload
 
 #### Scenario: Corrupt or empty dump aborts backup
 
@@ -226,13 +226,13 @@ The system SHALL check for the existence of each service role and database befor
 
 - **GIVEN** `shared-db.yaml` enthält den `postStart` Hook
 - **WHEN** der Hook prüft, ob Datenbanken existieren
-- **THEN** enthält das Manifest eine Schleife über alle Services (`keycloak nextcloud vaultwarden website pentest videovault`) mit `CREATE DATABASE` und einer vorgelagerten `SELECT 1 FROM pg_database WHERE datname='$db'`-Prüfung
+- **THEN** enthält das Manifest eine Schleife über alle Services (`nextcloud vaultwarden website pentest videovault pocket_id`) mit `CREATE DATABASE` und einer vorgelagerten `SELECT 1 FROM pg_database WHERE datname='$db'`-Prüfung
 
 #### Scenario: Rollen werden mit NOT-EXISTS-Guard angelegt
 
 - **GIVEN** `shared-db.yaml` enthält den `postStart` Hook
 - **WHEN** der Hook Rollen anlegt
-- **THEN** enthält das Manifest für jeden Service-Role (`keycloak`, `nextcloud`, `vaultwarden`, `website`, `pentest`) eine Existenzprüfung via `rolname='<role>'` vor dem `CREATE USER`-Befehl
+- **THEN** enthält das Manifest für jeden Service-Role (`nextcloud`, `vaultwarden`, `website`, `pentest`, `videovault`, `pocket_id`) eine Existenzprüfung via `rolname='<role>'` vor dem `CREATE USER`-Befehl
 
 ---
 
@@ -875,14 +875,14 @@ The system SHALL provide a `graph.ts` API endpoint, an `architektur.astro` page,
 
 ---
 
-### Requirement: Admin Client CRUD Lifecycle Persists Through Keycloak and Website DB
+### Requirement: Admin Client CRUD Lifecycle Persists Through Pocket ID and Website DB
 <!-- e2e: fa-admin-db-crud-clients.spec.ts -->
 
-The system SHALL allow an authenticated admin to create a Keycloak-backed client, view it in the client list, navigate to its detail page, add and delete client notes, and finally delete the client, with all changes reflected in both Keycloak and the website database.
+The system SHALL allow an authenticated admin to create a Pocket-ID-backed client, view it in the client list, navigate to its detail page, add and delete client notes, and finally delete the client, with all changes reflected in both Pocket ID and the website database.
 
 #### Scenario: Client erstellen, Detail aufrufen, Notiz anlegen und löschen, Client löschen *(E2E)*
 
-- **GIVEN** ein Admin-Benutzer ist über Keycloak SSO am Admin-Bereich angemeldet
+- **GIVEN** ein Admin-Benutzer ist über Pocket ID SSO am Admin-Bereich angemeldet
 - **WHEN** ein neuer Client per `POST /api/admin/clients/create` mit E-Mail, Vorname und Nachname erstellt wird, danach die Client-Liste aufgerufen wird, der Client-Detail-Tab für Notizen navigiert wird, eine Notiz erstellt und gelöscht wird, und schließlich der Client über die Delete-API entfernt wird
 - **THEN** gibt `POST /api/admin/clients/create` HTTP 201 mit `{ ok: true, userId }` zurück; der neue Client erscheint mit vollständigem Namen in der Liste (`data-testid="admin-client-item"`); Notizen sind in der Datenbank persistiert und nach dem Löschen nicht mehr sichtbar; der Client ist nach dem Löschen nicht mehr in der Liste vorhanden
 
@@ -895,7 +895,7 @@ The system SHALL allow an authenticated admin to create a follow-up with a reaso
 
 #### Scenario: Follow-up erstellen, als erledigt markieren, löschen *(E2E)*
 
-- **GIVEN** ein Admin ist via Keycloak angemeldet und die Follow-up-Liste (`/admin/followups`) ist erreichbar
+- **GIVEN** ein Admin ist via Pocket ID angemeldet und die Follow-up-Liste (`/admin/followups`) ist erreichbar
 - **WHEN** ein Follow-up per `POST /api/admin/followups/create` mit Reason und Fälligkeitsdatum erstellt wird, danach per `POST /api/admin/followups/update` mit `done=true` als erledigt markiert wird, anschließend `/admin/followups?done=1` aufgerufen wird, und schließlich das Follow-up per Delete-Formular entfernt wird
 - **THEN** erscheint das Follow-up nach Erstellung in der Liste mit dem angegebenen Reason-Text; nach dem Done-Update ist es in der erledigten Ansicht als erledigt dargestellt; nach dem Löschen ist es nicht mehr in der Liste sichtbar
 
@@ -908,7 +908,7 @@ The system SHALL allow an authenticated admin to create a project, navigate to i
 
 #### Scenario: Projekt erstellen, bearbeiten, Subprojekt anlegen, löschen *(E2E)*
 
-- **GIVEN** ein Admin ist via Keycloak angemeldet und die Projekte-Liste (`/admin/projekte`) ist erreichbar
+- **GIVEN** ein Admin ist via Pocket ID angemeldet und die Projekte-Liste (`/admin/projekte`) ist erreichbar
 - **WHEN** ein Projekt per `POST /api/admin/projekte/create` mit Name, Status `entwurf` und Priority `mittel` erstellt wird, der Name per `POST /api/admin/projekte/update` geändert wird, ein Subprojekt erstellt wird, und schließlich das Projekt gelöscht wird
 - **THEN** erscheint das Projekt nach Erstellung in der Liste; nach dem Update ist der neue Name sichtbar; das Subprojekt erscheint auf der Detailseite; nach dem Löschen ist das Projekt nicht mehr in der Liste vorhanden
 
@@ -921,7 +921,7 @@ The system SHALL allow an authenticated admin to create a shortcut with a URL an
 
 #### Scenario: Shortcut erstellen, Label aktualisieren, löschen *(E2E)*
 
-- **GIVEN** ein Admin ist via Keycloak angemeldet und das Admin-Dashboard (`/admin`) ist erreichbar
+- **GIVEN** ein Admin ist via Pocket ID angemeldet und das Admin-Dashboard (`/admin`) ist erreichbar
 - **WHEN** ein Shortcut per `POST /api/admin/shortcuts/create` mit URL und Label erstellt wird, das Label per `PATCH /api/admin/shortcuts/update` geändert wird, und der Shortcut per `DELETE /api/admin/shortcuts/delete` entfernt wird
 - **THEN** gibt `POST /api/admin/shortcuts/create` ein JSON-Objekt mit `id`, `label` und `url` zurück; das ursprüngliche Label erscheint im Admin-Dashboard via `AdminShortcuts`-Svelte-Island; nach dem Update ist das neue Label sichtbar und das alte verschwunden; nach dem Löschen ist der Shortcut nicht mehr im Dashboard vorhanden
 

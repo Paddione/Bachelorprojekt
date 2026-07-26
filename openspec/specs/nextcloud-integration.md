@@ -6,7 +6,7 @@
 
 Nextcloud ist die zentrale Dateiablage und Videokonferenz-Plattform der Workspace-Plattform.
 Diese Spec beschreibt den Integrationsvertrag zwischen Nextcloud (Files + Talk) und den
-umgebenden Plattformdiensten: Keycloak (SSO), Redis (Cache/Locking), PostgreSQL (Daten),
+umgebenden Plattformdiensten: Pocket ID (SSO), Redis (Cache/Locking), PostgreSQL (Daten),
 Collabora (Office), spreed-signaling/HPB (Talk-Signaling), CoTURN (TURN/ICE), dem
 Talk-Transcriber und dem Talk-Recording-Backend.
 
@@ -14,20 +14,20 @@ Talk-Transcriber und dem Talk-Recording-Backend.
 
 ## Requirements
 
-### Requirement: OIDC-SSO via Keycloak
+### Requirement: OIDC-SSO via Pocket ID
 
-The system SHALL authenticate all Nextcloud users exclusively via Keycloak OIDC, mapping
+The system SHALL authenticate all Nextcloud users exclusively via Pocket ID OIDC, mapping
 `preferred_username` as user ID and `roles` as group attribute; the local password form
 MUST remain hidden in production but MAY remain visible in dev.
 
-#### Scenario: Erstzugang eines Keycloak-Benutzers
-- **GIVEN** ein Nutzer ist in Keycloak im Realm `workspace` mit der Rolle `user` vorhanden
+#### Scenario: Erstzugang eines Pocket-ID-Benutzers
+- **GIVEN** ein Nutzer ist in Pocket ID angelegt
 - **WHEN** er `https://<NC_DOMAIN>` aufruft
-- **THEN** wird er automatisch zu Keycloak umgeleitet (`oidc_login_auto_redirect = true`)
+- **THEN** wird er automatisch zu Pocket ID umgeleitet (`oidc_login_auto_redirect = true`, Provider-URL `http://pocket-id:1411`)
 - **AND** nach erfolgreichem Login wird sein Nextcloud-Account mit `preferred_username` als ID und `email`/`name` aus dem Token angelegt
 
-#### Scenario: Admin-Gruppe aus Keycloak
-- **GIVEN** ein Keycloak-Benutzer hat die Rolle `admin`
+#### Scenario: Admin-Gruppe aus dem `isAdmin`-Claim
+- **GIVEN** ein Pocket-ID-Benutzer trägt den Claim `isAdmin` mit dem Wert `true` (`oidc_login_groups_attribute => 'isAdmin'`, `oidc_login_admin_group => 'true'`) — es gibt keine Realm-Rolle `admin` mehr
 - **WHEN** er sich via OIDC anmeldet
 - **THEN** wird er der Nextcloud-Administratorengruppe zugeordnet (`oidc_login_admin_group = 'admin'`)
 - **AND** er kann nicht selbst seinen Displaynamen ändern (`allow_user_to_change_display_name = false`)
@@ -35,7 +35,7 @@ MUST remain hidden in production but MAY remain visible in dev.
 #### Scenario: Logout-Redirect
 - **GIVEN** ein authentifizierter Nutzer klickt auf "Abmelden"
 - **WHEN** Nextcloud den Logout-URL aufruft
-- **THEN** wird die Session bei Keycloak beendet und der Browser kehrt zur Nextcloud-Startseite zurück (`post_logout_redirect_uri`)
+- **THEN** wird die Session bei Pocket ID über `/api/oidc/end-session?client_id=nextcloud` beendet und der Browser kehrt zur Nextcloud-Startseite zurück (`post_logout_redirect_uri`)
 
 ---
 
@@ -318,7 +318,7 @@ The system SHALL apply cross-cutting changes (DB password rotation, OIDC client 
 
 #### Scenario: OIDC-Client-Anpassung für beide Brands
 
-- **GIVEN** eine Änderung an der Keycloak OIDC-Client-Konfiguration für Nextcloud wird durchgeführt (z. B. Redirect-URL hinzufügen)
+- **GIVEN** eine Änderung an der Pocket-ID-OIDC-Client-Konfiguration für Nextcloud wird durchgeführt (z. B. Redirect-URL hinzufügen)
 - **WHEN** `task workspace:post-setup ENV=mentolder` und anschließend `task workspace:post-setup ENV=korczewski` ausgeführt werden
 - **THEN** ist die OIDC-Konfiguration in beiden Namespaces (`workspace` und `workspace-korczewski`) konsistent aktualisiert
 - **AND** ein einzelner `ENV=mentolder`-Aufruf allein hinterließe den korczewski-Namespace mit der alten Konfiguration
@@ -334,7 +334,7 @@ The system SHALL apply cross-cutting changes (DB password rotation, OIDC client 
 
 ### Requirement: Cross-Brand Shared Infrastructure Isolation
 
-The system SHALL maintain strict namespace-level isolation between brands (`workspace` for mentolder, `workspace-korczewski` for korczewski) on the shared fleet cluster, even though both brands share cluster-level infrastructure (cert-manager, Sealed Secrets controller, shared-db, Keycloak realm); each brand's Nextcloud instance SHALL operate exclusively within its own namespace and SHALL NOT access resources of the other brand's namespace.
+The system SHALL maintain strict namespace-level isolation between brands (`workspace` for mentolder, `workspace-korczewski` for korczewski) on the shared fleet cluster, even though both brands share cluster-level infrastructure (cert-manager, Sealed Secrets controller, shared-db); each brand's Nextcloud instance SHALL operate exclusively within its own namespace and SHALL NOT access resources of the other brand's namespace.
 
 #### Scenario: Shared-DB mit namespace-getrennten Nextcloud-Instanzen
 
@@ -343,12 +343,12 @@ The system SHALL maintain strict namespace-level isolation between brands (`work
 - **THEN** greift jede Instanz ausschließlich auf ihre eigene Datenbank (`nextcloud` vs. `nextcloud_korczewski` o. ä.) zu
 - **AND** ein Datenbankpasswort-Wechsel muss in beiden Namespaces via SealedSecret (`environments/sealed-secrets/mentolder.yaml` und `korczewski.yaml`) durchgeführt werden
 
-#### Scenario: Keycloak-Realm-Konfiguration je Brand
+#### Scenario: OIDC-Client-Konfiguration je Brand
 
-- **GIVEN** Keycloak als zentraler OIDC-Provider läuft auf dem fleet-Cluster ohne Brand-spezifische Trennung auf Cluster-Ebene
+- **GIVEN** jede Brand betreibt eine eigene Pocket-ID-Instanz in ihrem Namespace (`workspace` bzw. `workspace-korczewski`) — es gibt keinen brandübergreifend geteilten Provider auf Cluster-Ebene
 - **WHEN** OIDC-Clients für Nextcloud konfiguriert werden
-- **THEN** erhält jede Brand-Instanz einen eigenen OIDC-Client mit brand-spezifischen `redirect_uris` (z. B. `https://cloud.mentolder.de` vs. `https://cloud.korczewski.de`)
-- **AND** ein Token, der für mentolder ausgestellt wurde, wird von der korczewski-Nextcloud-Instanz abgelehnt
+- **THEN** seedet der `pocket-id-client-seed`-Job in jeder Instanz den Client `nextcloud` mit brand-spezifischer `redirect_uri` (`${SUFFIX}` aus der jeweiligen Brand-Domain)
+- **AND** ein Token, der von der mentolder-Instanz ausgestellt wurde, wird von der korczewski-Nextcloud-Instanz abgelehnt (unterschiedliche Issuer)
 
 ---
 
@@ -367,7 +367,7 @@ The system SHALL provide an initial BATS test file covering the nextcloud-integr
 ### Requirement: Talk UI Accessibility
 <!-- e2e: fa-03-video.spec.ts | e2e: fa-ios-talk.spec.ts -->
 
-The system SHALL serve the Nextcloud Talk (`/apps/spreed`) interface reachably for authenticated users and redirect unauthenticated users to the login flow (Nextcloud login page or Keycloak OIDC auto-redirect).
+The system SHALL serve the Nextcloud Talk (`/apps/spreed`) interface reachably for authenticated users and redirect unauthenticated users to the login flow (Nextcloud login page or Pocket ID OIDC auto-redirect).
 
 #### Scenario: Talk-Oberfläche öffnen *(E2E)*
 - **GIVEN** `TEST_NC_URL` ist gesetzt und Nextcloud ist erreichbar

@@ -176,17 +176,13 @@ entries in production to keep volume manageable.
 
 ---
 
-### Requirement: Keycloak JSON console logging
-
-The system SHALL configure Keycloak to emit JSON-formatted console logs at
-`INFO` level, with `org.keycloak.events` raised to `DEBUG` so login and admin events
-are queryable in Loki.
-
-#### Scenario: Keycloak events are queryable in Loki
-
-- **GIVEN** Keycloak is running with `KC_LOG_CONSOLE_FORMAT=json` and `KC_LOG_LEVEL=INFO,org.keycloak.events:DEBUG`
-- **WHEN** a user performs a login
-- **THEN** the resulting events appear under `{app="keycloak"}` with a `level` label
+> **Gestrichen (T002179).** Hier stand ein Requirement „Keycloak JSON console logging"
+> (`KC_LOG_CONSOLE_FORMAT=json`, `KC_LOG_LEVEL=INFO,org.keycloak.events:DEBUG`,
+> Loki-Stream `{app="keycloak"}`). Es ist ersatzlos entfallen und nicht auf Pocket ID
+> übertragen worden: `k3d/pocket-id.yaml` setzt keinerlei Log-Level- oder
+> Log-Format-Variablen, es gibt also kein Äquivalent, das man belegen könnte. Ein
+> Auth-Audit-Stream für Pocket ID wäre neue Funktionalität und gehört in ein eigenes
+> Ticket, nicht in eine Spec-Bereinigung.
 
 ---
 
@@ -219,6 +215,10 @@ traefik access log analytics view, and a keycloak audit trail.
 - **GIVEN** the `keycloak-audit` dashboard is mounted
 - **WHEN** an operator opens it
 - **THEN** it shows login success/failure timeseries, a failed-auth table (user, clientId, ipAddress, time), and a panel for more than 5 failed logins in 5 minutes
+- **AND** die Panels bleiben leer: das Dashboard ist weiterhin über
+  `k3d/monitoring/grafana-dashboards/kustomization.yaml:44` eingebunden, fragt aber den
+  Loki-Stream `{app="keycloak"}` ab, den seit der Pocket-ID-Migration kein Workload mehr
+  befüllt (T002179). Dashboard-Datei und Einbindung zu entfernen gehört nach T002205.
 
 ### Requirement: Astro middleware entry point chains the logging middleware
 

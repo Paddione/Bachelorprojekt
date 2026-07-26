@@ -16,14 +16,14 @@ verursacht Backend-Abfragen.
 
 ### Requirement: Authentifizierungspflicht
 
-The system SHALL redirect unauthenticated requests to `/portal` to the Keycloak login page
+The system SHALL redirect unauthenticated requests to `/portal` to the Pocket ID login page
 and SHALL preserve the original target URL as post-login redirect destination.
 
 #### Scenario: Direktzugriff ohne Session
 
 - **GIVEN** ein Nutzer ist nicht eingeloggt
 - **WHEN** er `/portal` oder `/portal?section=dateien` aufruft
-- **THEN** wird er zum Keycloak-Authorization-Endpoint umgeleitet, mit dem Portal-Pfad als `redirect_uri`
+- **THEN** wird er zum Pocket-ID-Authorization-Endpoint `${POCKET_ID_FRONTEND_URL}/authorize` umgeleitet (`website/src/lib/auth.ts:23`), mit dem Portal-Pfad als `redirect_uri`
 
 #### Scenario: Zugriff nach Login
 
@@ -36,7 +36,7 @@ and SHALL preserve the original target URL as post-login redirect destination.
 ### Requirement: Customer-Upsert bei erstem Portal-Aufruf
 
 The system SHALL create or update a customer record in the local database on every portal
-page load, using the Keycloak user's name, email, and subject identifier.
+page load, using the Pocket ID user's name, email, and subject identifier.
 
 #### Scenario: Kein Kundendatensatz vorhanden
 
@@ -196,15 +196,15 @@ include brand-specific services.
 
 ### Requirement: Konto-Sektion mit DSGVO-Zugang
 
-The system SHALL provide the authenticated user with access to their Keycloak account
+The system SHALL provide the authenticated user with access to their Pocket ID account
 management page (password, email, 2FA) and SHALL link to the DSGVO data management page
 (`/meine-daten`) directly from the `konto` section.
 
 #### Scenario: Konto-Verwaltungslink
 
-- **GIVEN** `KEYCLOAK_FRONTEND_URL` und `KEYCLOAK_REALM` sind konfiguriert
+- **GIVEN** `POCKET_ID_FRONTEND_URL` ist konfiguriert (die früheren `KEYCLOAK_FRONTEND_URL`/`KEYCLOAK_REALM` sind aus `environments/schema.yaml` entfernt)
 - **WHEN** der Nutzer `?section=konto` aufruft
-- **THEN** wird ein Link zu `{keycloakBase}/realms/{realm}/account/` angezeigt, der in einem neuen Tab öffnet
+- **THEN** wird ein Link auf die Pocket-ID-Root `{pocketIdBase}/` angezeigt, der in einem neuen Tab öffnet (`website/src/components/portal/KontoSection.astro:13`) — Pocket ID hat keinen `/realms/<realm>/account/`-Pfad
 
 #### Scenario: DSGVO-Datenauskunft
 
@@ -428,7 +428,7 @@ The system SHALL map Kubernetes namespace names to the brand-specific equivalent
 
 #### Scenario: Health-URL-Template {ns} wird korrekt je Brand ersetzt
 
-- **GIVEN** eine Health-URL mit dem Platzhalter `{ns}` (z. B. `http://keycloak.{ns}.svc.cluster.local:8080/health/ready`)
+- **GIVEN** eine Health-URL mit dem Platzhalter `{ns}` (z. B. `http://pocket-id.{ns}.svc.cluster.local:1411/.well-known/openid-configuration`)
 - **WHEN** `resolveHealthUrl()` für `mentolder` bzw. `korczewski` aufgerufen wird
 - **THEN** `{ns}` wird für `mentolder` zu `workspace` aufgelöst und für `korczewski` zu `workspace-korczewski`
 - **AND** URLs ohne `{ns}` (z. B. Collabora auf `workspace-office`) bleiben für beide Brands unverändert

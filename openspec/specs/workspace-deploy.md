@@ -83,7 +83,7 @@ the raw `k3d/` base directly for `ENV=dev`.
 - **WHEN** `task workspace:deploy ENV=mentolder` den Kustomize-Build ausführt
 - **THEN** wird `kustomize build prod-fleet/mentolder/` gebaut
 - **AND** das Ergebnis enthält TLS-Konfiguration, wildcard-certificate, Traefik-Middlewares
-  und die prod-spezifischen Realm/OIDC-ConfigMaps, nicht die dev-Platzhalter aus `k3d/`
+  und die prod-spezifischen OIDC-ConfigMaps, nicht die dev-Platzhalter aus `k3d/`
 
 #### Scenario: Dev-Deploy nutzt k3d-Basis ohne Overlay
 
@@ -149,7 +149,7 @@ manifests (shell-internal variables, script-local vars) are never accidentally e
 
 The system SHALL deploy and wait for the `shared-db` Deployment to reach a ready state
 (rollout status, timeout 120s) before applying the remaining workspace manifests, to prevent
-crash-loops in Keycloak, Nextcloud, Vaultwarden, and other database-dependent services.
+crash-loops in Pocket ID, Nextcloud, Vaultwarden, and other database-dependent services.
 
 #### Scenario: Erstmaliger Cluster-Start
 
@@ -193,10 +193,13 @@ fleet cluster without cross-contaminating resources.
 
 ### Requirement: Automatische Nachbehandlung nach Prod-Deploy
 
-The system SHALL, after a successful prod manifest apply, automatically run `keycloak:sync`,
-`workspace:sync-db-passwords`, and `workspace:coturn:sync-secret` + `workspace:talk-setup`
-(unless `SKIP_TALK_SETUP=true`), so that Keycloak realm, database passwords, and Nextcloud
-Talk signaling config are always in sync with the current `workspace-secrets` Secret.
+The system SHALL, after a successful prod manifest apply, automatically run
+`workspace:sync-db-passwords` and `workspace:coturn:sync-secret` + `workspace:talk-setup`
+(unless `SKIP_TALK_SETUP=true`), so that database passwords and Nextcloud Talk signaling
+config are always in sync with the current `workspace-secrets` Secret. OIDC client
+provisioning is NOT part of this chain: the `pocket-id-client-seed` Job is deleted before
+the manifest apply and re-created by it, so it re-runs against the Pocket ID Admin REST API
+on every deploy.
 
 #### Scenario: Rotierte DB-Passwörter nach env:seal
 
@@ -328,10 +331,10 @@ condition is violated.
 #### Scenario: SealedSecret fehlt Pflicht-Key
 
 - **GIVEN** `sealed-secrets/partial.yaml` enthält `SHARED_DB_PASSWORD` aber nicht
-  `KEYCLOAK_ADMIN_PASSWORD` (das in `schema.yaml` als `required: true` markiert ist)
+  `NEXTCLOUD_DB_PASSWORD` (das in `schema.yaml` als `required: true` markiert ist)
 - **WHEN** `bash scripts/env-validate.sh --env partial-sealed --schema-only` ausgeführt wird
 - **THEN** schlägt die Validierung fehl
-- **AND** die Ausgabe nennt `KEYCLOAK_ADMIN_PASSWORD` als fehlenden Key
+- **AND** die Ausgabe nennt `NEXTCLOUD_DB_PASSWORD` als fehlenden Key
 
 ---
 
@@ -353,17 +356,17 @@ other and the schema.
 ### Requirement: Kustomize-Basis enthält alle erwarteten Core-Ressourcen
 
 The system SHALL produce a Kustomize build (`kubectl kustomize k3d/`) that contains
-Deployments for `keycloak`, `nextcloud`, `shared-db`, `collabora`, `vaultwarden`, and
-`mailpit`, at least one Ingress resource, a `domain-config` ConfigMap, a `realm-template`
-ConfigMap, a `nextcloud-oidc-config` ConfigMap, and Pod Security Standards labels on the
-`workspace` Namespace.
+Deployments for `pocket-id`, `nextcloud`, `shared-db`, `collabora`, `vaultwarden`, and
+`mailpit`, at least one Ingress resource, a `domain-config` ConfigMap, a
+`nextcloud-oidc-config` ConfigMap, a `pocket-id-data` PVC, and Pod Security Standards
+labels on the `workspace` Namespace.
 
 #### Scenario: Vollständiger Basis-Build
 
 - **GIVEN** `k3d/kustomization.yaml` referenziert alle Core-Manifests und `k3d/secrets.yaml`
   existiert mit dev-Platzhaltern
 - **WHEN** `kubectl kustomize k3d/` ausgeführt wird
-- **THEN** enthält das Ergebnis Deployments `keycloak`, `nextcloud`, `shared-db`,
+- **THEN** enthält das Ergebnis Deployments `pocket-id`, `nextcloud`, `shared-db`,
   `vaultwarden`, `mailpit`, `collabora` sowie Ingress-Regeln für `auth.*`, `files.*`,
   `office.*`, `vault.*`, `mail.*`
 - **AND** das `workspace`-Namespace-Objekt trägt `pod-security.kubernetes.io`-Labels
@@ -776,7 +779,7 @@ Optional (`required: false`) secrets MAY have empty values.
 
 #### Scenario: Dev-Präfix und Platzhalter-Suffixe werden abgelehnt
 
-- **GIVEN** `mysecrets.yaml` enthält `KEYCLOAK_DB_PASSWORD: "devkeycloakdb"` oder
+- **GIVEN** `mysecrets.yaml` enthält `SHARED_DB_PASSWORD: "devshareddb"` oder
   `GITHUB_PAT: "ghp_dev_placeholder"` oder `STRIPE_SECRET_KEY: "sk_test_placeholder"`
 - **WHEN** `bash scripts/env-seal.sh --_test-dev-scan mysecrets.yaml` ausgeführt wird
 - **THEN** schlägt der Check fehl (Exit != 0)
@@ -784,7 +787,7 @@ Optional (`required: false`) secrets MAY have empty values.
 
 #### Scenario: --force überspringt Check mit Warnung; required:false darf leer sein
 
-- **GIVEN** `mysecrets.yaml` enthält `KEYCLOAK_DB_PASSWORD: "devkeycloakdb"`
+- **GIVEN** `mysecrets.yaml` enthält `SHARED_DB_PASSWORD: "devshareddb"`
 - **WHEN** `--force` übergeben wird
 - **THEN** besteht der Check (Exit 0) und die Ausgabe enthält `WARNING`
 - **AND** ein leerer Wert für ein `required: false`-Secret (z.B. `BRAINSTORM_OIDC_SECRET`)
@@ -800,10 +803,10 @@ and SHALL verify completeness against the schema (all `required: true` secrets a
 
 #### Scenario: Duplikat-Key wird abgelehnt
 
-- **GIVEN** `mysecrets.yaml` enthält `KEYCLOAK_DB_PASSWORD` zweimal
+- **GIVEN** `mysecrets.yaml` enthält `SHARED_DB_PASSWORD` zweimal
 - **WHEN** `bash scripts/env-seal.sh --_test-dup-check mysecrets.yaml` ausgeführt wird
 - **THEN** schlägt der Check fehl
-- **AND** die Ausgabe enthält `KEYCLOAK_DB_PASSWORD` und `Duplicate keys`
+- **AND** die Ausgabe enthält `SHARED_DB_PASSWORD` und `Duplicate keys`
 
 #### Scenario: Fehlender Pflicht-Secret-Key wird abgelehnt
 
@@ -954,11 +957,11 @@ The system SHALL require that cross-cutting infrastructure changes (database pas
 - **THEN** nutzt das korczewski-`shared-db` weiterhin das alte Passwort aus seinem `workspace-secrets`-Secret
 - **AND** nach einem `rollout restart` der korczewski-Services scheitern Datenbankverbindungen, weil das Passwort nicht übereinstimmt
 
-#### Scenario: OIDC-Client-Änderung im Keycloak-Realm
+#### Scenario: OIDC-Client-Änderung nur für eine Brand geseedet
 
-- **GIVEN** eine Änderung am OIDC-Client-Redirect-URI wird in beide Realm-JSON-Dateien eingetragen (`prod-fleet/mentolder/realm-workspace-mentolder.json` und `prod-fleet/korczewski/realm-workspace-korczewski.json`)
-- **WHEN** `task workspace:deploy ENV=mentolder` läuft, aber `ENV=korczewski` ausgelassen wird
-- **THEN** ist nur der mentolder-Keycloak-Realm aktualisiert
+- **GIVEN** eine Änderung am OIDC-Client-Redirect-URI wird in der gemeinsamen `ROWS`-Tabelle in `k3d/pocket-id-client-seed.yaml` eingetragen (die Callback-Hosts werden über `${SUFFIX}` je Brand-Domain aufgelöst)
+- **WHEN** `task workspace:deploy ENV=mentolder` läuft — und damit der `pocket-id-client-seed`-Job im Namespace `workspace` —, aber `ENV=korczewski` ausgelassen wird
+- **THEN** ist nur die mentolder-Pocket-ID-Instanz aktualisiert; die korczewski-Instanz behält den alten Eintrag in ihrer `pocket_id.oidc_clients`-Tabelle
 - **AND** korczewski-Nutzer erhalten `invalid_redirect_uri`-Fehler beim Login
 
 ---
@@ -1072,11 +1075,11 @@ The system SHALL produce a non-empty, syntactically valid Kustomize build from `
 ### Requirement: Alle Core-Deployments im Basis-Build enthalten
 <!-- bats: manifests.bats -->
 
-The system SHALL render Deployments for `keycloak`, `nextcloud`, `shared-db`, `collabora`, `vaultwarden`, and `mailpit` in the base Kustomize build.
+The system SHALL render Deployments for `pocket-id`, `nextcloud`, `shared-db`, `collabora`, `vaultwarden`, and `mailpit` in the base Kustomize build.
 
-#### Scenario: Keycloak-Deployment vorhanden *(BATS)*
+#### Scenario: Pocket-ID-Deployment vorhanden *(BATS)*
 - **GIVEN** vollständiger Basis-Build aus `k3d/`
-- **WHEN** Output nach `name: keycloak` und `kind: Deployment` gesucht wird
+- **WHEN** Output nach `name: pocket-id` und `kind: Deployment` gesucht wird
 - **THEN** sind beide Strings vorhanden
 
 #### Scenario: Alle weiteren Core-Deployments vorhanden *(BATS)*
@@ -1103,15 +1106,23 @@ The system SHALL define at least one Ingress resource in the base build covering
 
 ---
 
-### Requirement: ConfigMaps für Realm, Nextcloud-OIDC und Domains vorhanden
+### Requirement: ConfigMaps für Nextcloud-OIDC und Domains sowie Pocket-ID-Storage vorhanden
 <!-- bats: manifests.bats -->
 
-The system SHALL render a `realm-template`, a `nextcloud-oidc-config`, and a `domain-config` ConfigMap in the base build.
+The system SHALL render a `nextcloud-oidc-config` and a `domain-config` ConfigMap plus a
+`pocket-id-data` PersistentVolumeClaim in the base build. Pocket ID keeps its OIDC clients
+in its own database rather than in an imported template ConfigMap, so the PVC — not a
+ConfigMap — carries the provider state.
 
-#### Scenario: Alle drei Pflicht-ConfigMaps vorhanden *(BATS)*
+#### Scenario: Beide Pflicht-ConfigMaps vorhanden *(BATS)*
 - **GIVEN** Basis-Build aus `k3d/`
-- **WHEN** Output nach `name: realm-template`, `name: nextcloud-oidc-config` und `name: domain-config` gesucht wird
-- **THEN** sind alle drei Namen im Output vorhanden
+- **WHEN** Output nach `name: nextcloud-oidc-config` und `name: domain-config` gesucht wird
+- **THEN** sind beide Namen im Output vorhanden
+
+#### Scenario: Pocket-ID-Datenvolume vorhanden *(BATS)*
+- **GIVEN** Basis-Build aus `k3d/`
+- **WHEN** Output nach `name: pocket-id-data` gesucht wird
+- **THEN** ist der Name im Output vorhanden
 
 ---
 
@@ -1220,12 +1231,8 @@ The system SHALL ensure every `*.sh` file under `scripts/` starts with a `#!/` s
 ### Requirement: Konfigurationsdateien bestehen Syntax-Checks
 <!-- bats: scripts.bats -->
 
-The system SHALL ensure that `k3d/realm-workspace-dev.json` is valid JSON, `k3d/nextcloud-oidc-dev.php` passes PHP lint, and `k3d/kustomization.yaml` is valid YAML.
-
-#### Scenario: realm-workspace-dev.json valides JSON *(BATS)*
-- **GIVEN** `k3d/realm-workspace-dev.json` existiert
-- **WHEN** `python3 -c "import json; json.load(open(...))"` ausgeführt wird
-- **THEN** wird kein Fehler geworfen
+The system SHALL ensure that `k3d/nextcloud-oidc-dev.php` passes PHP lint and
+`k3d/kustomization.yaml` is valid YAML.
 
 #### Scenario: kustomization.yaml valides YAML *(BATS)*
 - **GIVEN** `k3d/kustomization.yaml` existiert
@@ -1406,7 +1413,7 @@ The system SHALL maintain a `prod/` directory, a `prod-mentolder/` overlay direc
 ### Requirement: Kernservices nach Prod-Deploy erreichbar
 <!-- e2e: nfa-03-availability.spec.ts | integration-smoke.spec.ts -->
 
-The system SHALL ensure that Keycloak, Vaultwarden, and the Website respond with HTTP 200/301/302 after a successful production deployment, and the Website body SHALL NOT contain 502/503/504 gateway error messages.
+The system SHALL ensure that Pocket ID, Vaultwarden, and the Website respond with HTTP 200/301/302 after a successful production deployment, and the Website body SHALL NOT contain 502/503/504 gateway error messages.
 
 #### Scenario: Vaultwarden antwortet auf /alive *(E2E)*
 - **GIVEN** `task workspace:deploy ENV=mentolder` wurde erfolgreich ausgeführt
@@ -1419,22 +1426,22 @@ The system SHALL ensure that Keycloak, Vaultwarden, and the Website respond with
 - **THEN** antwortet der Endpunkt mit HTTP 200, 301 oder 302
 - **AND** der `<body>` enthält keine Texte `502 Bad Gateway`, `503 Service Unavailable` oder `504 Gateway Timeout`
 
-#### Scenario: Keycloak erreichbar *(E2E)*
-- **GIVEN** `keycloak`-Deployment läuft im Namespace `workspace`
+#### Scenario: Pocket ID erreichbar *(E2E)*
+- **GIVEN** `pocket-id`-Deployment läuft im Namespace `workspace`
 - **WHEN** GET `https://auth.<PROD_DOMAIN>` gesendet wird
 - **THEN** antwortet der Endpunkt mit HTTP 200, 301 oder 302
 
 ---
 
-### Requirement: Keycloak OIDC Discovery und Nextcloud-Status nach Deploy valide
+### Requirement: Pocket ID OIDC Discovery und Nextcloud-Status nach Deploy valide
 <!-- e2e: integration-smoke.spec.ts -->
 
-The system SHALL ensure that after a successful production deployment the Keycloak OIDC discovery endpoint returns a valid configuration document, and Nextcloud reports `installed: true`, `maintenance: false`, and `needsDbUpgrade: false`.
+The system SHALL ensure that after a successful production deployment the Pocket ID OIDC discovery endpoint returns a valid configuration document, and Nextcloud reports `installed: true`, `maintenance: false`, and `needsDbUpgrade: false`.
 
-#### Scenario: Keycloak OIDC Discovery valide *(E2E)*
-- **GIVEN** Keycloak läuft und der Realm `workspace` ist konfiguriert
-- **WHEN** GET `https://auth.<PROD_DOMAIN>/realms/workspace/.well-known/openid-configuration` gesendet wird
-- **THEN** antwortet der Endpunkt mit HTTP 200 und einem JSON-Body, der `issuer` (enthält die Domain), `authorization_endpoint` und `token_endpoint` enthält
+#### Scenario: Pocket ID OIDC Discovery valide *(E2E)*
+- **GIVEN** Pocket ID läuft und der `pocket-id-client-seed`-Job hat die OIDC-Clients provisioniert
+- **WHEN** GET `https://auth.<PROD_DOMAIN>/.well-known/openid-configuration` gesendet wird — Pocket ID legt das Discovery-Dokument auf die Root des Auth-Hosts, es gibt kein Realm-Präfix im Pfad
+- **THEN** antwortet der Endpunkt mit HTTP 200 und einem JSON-Body, dessen `issuer` exakt `https://auth.<PROD_DOMAIN>` ist und der `authorization_endpoint` und `token_endpoint` enthält
 
 #### Scenario: Nextcloud installiert und betriebsbereit *(E2E)*
 - **GIVEN** Nextcloud-Deployment läuft und die Datenbank ist initialisiert

@@ -435,7 +435,7 @@ The system SHALL validate environment configs against the schema (required keys,
 - **THEN** Exit-Code ungleich 0; Ausgabe nennt jeweils den verletzenden Wert oder Schlüssel
 
 #### Scenario: Fehlende oder unvollständige SealedSecret-Datei schlägt Validierung *(BATS)*
-- **GIVEN** `no-sealed.yaml` referenziert `sealed-secrets/nonexistent.yaml`; `partial-sealed.yaml` fehlt `KEYCLOAK_ADMIN_PASSWORD`
+- **GIVEN** `no-sealed.yaml` referenziert `sealed-secrets/nonexistent.yaml`; `partial-sealed.yaml` fehlt `NEXTCLOUD_DB_PASSWORD`
 - **WHEN** `env-validate.sh --env no-sealed --schema-only` bzw. `--env partial-sealed --schema-only` ausgeführt wird
 - **THEN** Exit-Code ungleich 0; Ausgabe nennt den fehlenden Dateipfad bzw. Key
 
@@ -449,7 +449,7 @@ The system SHALL validate environment configs against the schema (required keys,
 ### Requirement: Kustomize Manifest-Struktur
 <!-- bats: manifests.bats -->
 
-The system SHALL produce a valid, non-empty kustomize output that declares all core deployments (Keycloak, Nextcloud, Collabora, Vaultwarden, Mailpit, shared-db), an Ingress with hosts for auth/files/office/vault/mail, no :latest tags on non-exempted images, namespace consistency (workspace or cluster-scoped), and required ConfigMaps.
+The system SHALL produce a valid, non-empty kustomize output that declares all core deployments (Pocket ID, Nextcloud, Collabora, Vaultwarden, Mailpit, shared-db), an Ingress with hosts for auth/files/office/vault/mail, no :latest tags on non-exempted images, namespace consistency (workspace or cluster-scoped), and required ConfigMaps.
 
 #### Scenario: kustomize build erfolgreich und nicht leer *(BATS)*
 - **GIVEN** `k3d/` enthält eine gültige `kustomization.yaml` und `secrets.yaml` (oder ein Dummy)
@@ -458,7 +458,7 @@ The system SHALL produce a valid, non-empty kustomize output that declares all c
 
 #### Scenario: Alle Core-Deployments und Ingress-Hosts sind vorhanden *(BATS)*
 - **GIVEN** das gerenderte Manifest-Set liegt vor
-- **WHEN** nach Deployment-Namen (keycloak, nextcloud, shared-db, collabora, vaultwarden, mailpit) und Ingress-Hosts (auth, files, office, vault, mail) gesucht wird
+- **WHEN** nach Deployment-Namen (pocket-id, nextcloud, shared-db, collabora, vaultwarden, mailpit) und Ingress-Hosts (auth, files, office, vault, mail) gesucht wird
 - **THEN** sind alle genannten Namen und Hosts in der Ausgabe vorhanden
 
 #### Scenario: Keine Core-Images mit :latest-Tag *(BATS)*
@@ -476,11 +476,11 @@ The system SHALL produce a valid, non-empty kustomize output that declares all c
 ### Requirement: Service-Verfügbarkeit im Fleet-Cluster (NFA-03)
 <!-- e2e: nfa-03-availability.spec.ts -->
 
-The system SHALL serve Vaultwarden, the website, and Keycloak with HTTP 200/301/302 responses and SHALL not produce 502/503/504 gateway errors on the website root.
+The system SHALL serve Vaultwarden, the website, and Pocket ID with HTTP 200/301/302 responses and SHALL not produce 502/503/504 gateway errors on the website root.
 
-#### Scenario: Vaultwarden, Website und Keycloak sind erreichbar *(E2E)*
-- **GIVEN** der Fleet-Cluster ist deployt; `VAULTWARDEN_URL`, `WEBSITE_URL` und `KEYCLOAK_URL` zeigen auf die konfigurierten Endpunkte
-- **WHEN** GET-Requests auf `/alive` (Vaultwarden), `/` (Website) und Keycloak-Root gesendet werden
+#### Scenario: Vaultwarden, Website und Pocket ID sind erreichbar *(E2E)*
+- **GIVEN** der Fleet-Cluster ist deployt; `VAULTWARDEN_URL`, `WEBSITE_URL` und `KEYCLOAK_URL` zeigen auf die konfigurierten Endpunkte (der Variablenname `KEYCLOAK_URL` ist eine Migrations-Altlast und wird in `tests/e2e/specs/nfa-03-availability.spec.ts:31` weiterhin so gelesen; sein Wert zeigt auf Pocket ID)
+- **WHEN** GET-Requests auf `/alive` (Vaultwarden), `/` (Website) und die Pocket-ID-Root gesendet werden
 - **THEN** sind die HTTP-Status-Codes jeweils 200, 301 oder 302; der Website-Body enthält keine `502 Bad Gateway`-, `503`- oder `504`-Texte
 
 ---
@@ -488,11 +488,11 @@ The system SHALL serve Vaultwarden, the website, and Keycloak with HTTP 200/301/
 ### Requirement: Skalierbarkeit — parallele Request-Verarbeitung (NFA-04)
 <!-- e2e: nfa-04-scalability.spec.ts -->
 
-The system SHALL handle at least 3 concurrent HTTP requests to the website and to Keycloak's health endpoint without returning errors.
+The system SHALL handle at least 3 concurrent HTTP requests to the website and to Pocket ID's health endpoint without returning errors.
 
-#### Scenario: Website und Keycloak verarbeiten 3 parallele Requests *(E2E)*
-- **GIVEN** der Fleet-Cluster ist deployt; Keycloak-Health-Endpoint `/health/ready` ist aktiv
-- **WHEN** 3 simultane GET-Requests auf Website-Root bzw. Keycloak-Health gesendet werden
+#### Scenario: Website und Pocket ID verarbeiten 3 parallele Requests *(E2E)*
+- **GIVEN** der Fleet-Cluster ist deployt; Pocket ID beantwortet `/.well-known/openid-configuration` — Pocket ID hat keinen `/health/ready`-Endpunkt, dieser Pfad ist auch die Liveness-/Readiness-Probe des Deployments (`k3d/pocket-id.yaml:293`, `:300`)
+- **WHEN** 3 simultane GET-Requests auf Website-Root bzw. den Pocket-ID-Health-Pfad gesendet werden
 - **THEN** antworten alle 3 Requests jeweils mit Status 200, 301 oder 302
 
 ---
@@ -516,7 +516,7 @@ The system SHALL serve the korczewski brand (website root, TLS, OIDC discovery, 
 
 #### Scenario: korczewski Website, TLS-Handshake, OIDC-Discovery und Arena auf Fleet *(E2E)*
 - **GIVEN** `KORCZEWSKI_URL` zeigt auf `https://web.korczewski.de`; Fleet-Cluster ist hochgefahren (prod-URLs aktiv)
-- **WHEN** GET-Requests auf Website-Root, OIDC-Discovery-Endpoint (`/realms/workspace/.well-known/openid-configuration`), `/healthz` (Arena) gesendet werden; TLS-Handshake wird ohne `ignoreHTTPSErrors` durchgeführt
+- **WHEN** GET-Requests auf Website-Root, OIDC-Discovery-Endpoint (`/.well-known/openid-configuration`), `/healthz` (Arena) gesendet werden; TLS-Handshake wird ohne `ignoreHTTPSErrors` durchgeführt
 - **THEN** Website-Root und TLS-Handshake liefern Status < 500; OIDC-Discovery liefert 200 und `body.issuer` enthält `korczewski`; Arena `/healthz` liefert 200
 
 ---
@@ -524,39 +524,39 @@ The system SHALL serve the korczewski brand (website root, TLS, OIDC discovery, 
 ### Requirement: System-weiter Service-Health-Sweep (NFA-INFRA)
 <!-- e2e: nfa-infra-health-sweep.spec.ts -->
 
-The system SHALL respond to HTTP health probes on all 17 workspace services (website, Keycloak, Nextcloud, Collabora, Vaultwarden, Mailpit, and others) with the expected status codes when PROD_DOMAIN is set.
+The system SHALL respond to HTTP health probes on all 17 workspace services (website, Pocket ID, Nextcloud, Collabora, Vaultwarden, Mailpit, and others) with the expected status codes when PROD_DOMAIN is set.
 
 #### Scenario: Alle Core-Services antworten auf HTTP-Health-Probes *(E2E)*
 - **GIVEN** `PROD_DOMAIN` ist auf `mentolder.de` (oder eine andere Produktivdomain) gesetzt; alle Services sind deployt
-- **WHEN** GET-Requests auf `web.<domain>/`, `web.<domain>/api/health`, `auth.<domain>/realms/workspace/.well-known/openid-configuration`, `files.<domain>/status.php`, `office.<domain>/hosting/discovery`, `vault.<domain>/alive` und `mail.<domain>/` gesendet werden
+- **WHEN** GET-Requests auf `web.<domain>/`, `web.<domain>/api/health`, `auth.<domain>/.well-known/openid-configuration`, `files.<domain>/status.php`, `office.<domain>/hosting/discovery`, `vault.<domain>/alive` und `mail.<domain>/` gesendet werden
 - **THEN** Website liefert 200; `/api/health` liefert `{ok: true}`; OIDC-Discovery liefert 200 mit `issuer` und `authorization_endpoint`; Nextcloud liefert `installed: true`; Collabora liefert 200 mit XML/text Content-Type; Vaultwarden liefert 200; Mailpit liefert Status < 500
 
 ---
 
-### Requirement: Multi-Brand Health und Realm-Isolation (SA-15)
+### Requirement: Multi-Brand Health und Provider-Isolation (SA-15)
 <!-- e2e: sa-15-cross-cluster-health.spec.ts -->
 
-The system SHALL serve both brands (mentolder and korczewski) independently from the unified fleet cluster, with each brand exposing its own Keycloak realm (issuer containing the brand name), valid TLS certificates, and brand-specific services (Arena on korczewski).
+The system SHALL serve both brands (mentolder and korczewski) independently from the unified fleet cluster, with each brand running its own Pocket ID instance in its own namespace (issuer containing the brand domain), valid TLS certificates, and brand-specific services (Arena on korczewski).
 
 #### Scenario: mentolder Website, OIDC und Nextcloud auf Fleet *(E2E)*
 - **GIVEN** `WEBSITE_URL` zeigt auf `https://web.mentolder.de`; Fleet-Cluster ist hochgefahren (prod-URLs aktiv)
 - **WHEN** GET-Requests auf Website-Root, OIDC-Discovery (`auth.mentolder.de`) und Nextcloud (`files.mentolder.de/status.php`) gesendet werden; TLS-Handshake wird ohne `ignoreHTTPSErrors` durchgeführt
 - **THEN** Website-Root liefert 200; OIDC-Discovery liefert 200 und `body.issuer` enthält `mentolder`; Nextcloud liefert `installed: true`; kein TLS-Zertifikatsfehler
 
-#### Scenario: korczewski Website, OIDC, Brett und Arena auf Fleet — Realm-Isolation *(E2E)*
+#### Scenario: korczewski Website, OIDC, Brett und Arena auf Fleet — Provider-Isolation *(E2E)*
 - **GIVEN** `KORCZEWSKI_URL` zeigt auf `https://web.korczewski.de`; korczewski-Brand ist auf Fleet deployt (korczewskiUp-Vorprüfung erfolgreich)
 - **WHEN** GET-Requests auf Website-Root, OIDC-Discovery (`auth.korczewski.de`), Brett-Root und Arena `/healthz` gesendet werden; TLS-Handshake ohne `ignoreHTTPSErrors`
 - **THEN** Website-Root liefert 200; OIDC-Discovery liefert 200 und `body.issuer` enthält `korczewski`; Brett-Root liefert Status < 500; Arena liefert 200; kein TLS-Zertifikatsfehler
-- **AND** der korczewski-Issuer enthält NICHT `mentolder` (Realm-Isolation)
+- **AND** der korczewski-Issuer enthält NICHT `mentolder` (Isolation über getrennte Pocket-ID-Instanzen in `workspace` und `workspace-korczewski`, nicht über Realms innerhalb einer Instanz)
 
 ---
 
 ### Requirement: Integration Smoke — Vollständige Service-Erreichbarkeit
 <!-- e2e: integration-smoke.spec.ts -->
 
-The system SHALL pass smoke tests for Keycloak OIDC discovery (issuer, endpoints), Nextcloud (installed, not maintenance, no DB upgrade needed), Collabora (WOPI discovery XML), Nextcloud Talk signaling, Vaultwarden (/alive), and the Docs site (200/302/401 acceptable).
+The system SHALL pass smoke tests for Pocket ID OIDC discovery (issuer, endpoints), Nextcloud (installed, not maintenance, no DB upgrade needed), Collabora (WOPI discovery XML), Nextcloud Talk signaling, Vaultwarden (/alive), and the Docs site (200/302/401 acceptable).
 
-#### Scenario: Keycloak OIDC, Nextcloud, Collabora, Talk, Vaultwarden und Docs im Smoke-Test *(E2E)*
+#### Scenario: Pocket ID OIDC, Nextcloud, Collabora, Talk, Vaultwarden und Docs im Smoke-Test *(E2E)*
 - **GIVEN** `PROD_DOMAIN` ist gesetzt; alle genannten Services sind deployt
 - **WHEN** Smoke-Requests auf OIDC-Discovery, `files.<domain>/status.php`, `office.<domain>/hosting/discovery`, `signaling.<domain>/api/v1/welcome`, `vault.<domain>/alive` und `docs.<domain>/` gesendet werden
 - **THEN** OIDC liefert `issuer` und `authorization_endpoint` mit Domainbezug; Nextcloud ist `installed: true`, `maintenance: false`, `needsDbUpgrade: false`; Collabora-Response enthält `wopi-discovery`; Talk antwortet mit 200 (503 gilt als fixme-bekannt); Vaultwarden ist erreichbar; Docs liefert 200, 302 oder 401

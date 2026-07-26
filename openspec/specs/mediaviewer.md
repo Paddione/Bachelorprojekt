@@ -5,7 +5,7 @@
 ## Purpose
 
 Der Mediaviewer ist ein iframe-eingebettetes SPA-Widget (`mediaviewer-widget`), das im
-Admin-Sidekick der Website läuft. Es wird über einen dedizierten Keycloak-OIDC-OAuth2-Proxy
+Admin-Sidekick der Website läuft. Es wird über einen dedizierten Pocket-ID-OIDC-OAuth2-Proxy
 authentifiziert und kommuniziert ausschließlich per `postMessage`-Bridge mit dem einbettenden
 Fenster. Das Widget unterstützt zwei Modi: **video** (VideoVault-Hilfsvideos) und
 **grilling** (Final-Grilling-Fragebogen für ein Ticket).
@@ -16,13 +16,13 @@ Fenster. Das Widget unterstützt zwei Modi: **video** (VideoVault-Hilfsvideos) u
 
 ### Requirement: OIDC-Authentifizierungs-Gate
 
-The system SHALL require a valid Keycloak OIDC session before serving any mediaviewer
-content, and SHALL redirect unauthenticated requests to the Keycloak login page via the
+The system SHALL require a valid Pocket ID OIDC session before serving any mediaviewer
+content, and SHALL redirect unauthenticated requests to the Pocket ID login page via the
 `oauth2-proxy-mediaviewer` sidecar.
 
 #### Scenario: Authentifizierter Aufruf
 
-- **GIVEN** ein Nutzer mit gültiger Keycloak-Session öffnet `mediaviewer.<domain>`
+- **GIVEN** ein Nutzer mit gültiger Pocket-ID-Session öffnet `mediaviewer.<domain>`
 - **WHEN** der oauth2-proxy den Request prüft
 - **THEN** wird die Anfrage an das `mediaviewer-widget`-Backend weitergeleitet und das SPA ausgeliefert
 
@@ -30,7 +30,7 @@ content, and SHALL redirect unauthenticated requests to the Keycloak login page 
 
 - **GIVEN** ein Nutzer ohne Session öffnet `mediaviewer.<domain>`
 - **WHEN** der oauth2-proxy den Request prüft
-- **THEN** wird der Nutzer zur Keycloak-Login-URL umgeleitet (`--skip-provider-button=true`, kein Zwischendialog)
+- **THEN** wird der Nutzer zur Pocket-ID-Login-URL umgeleitet (`--skip-provider-button=true`, kein Zwischendialog)
 
 ---
 

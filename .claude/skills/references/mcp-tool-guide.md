@@ -106,6 +106,28 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 > braucht `slug`+`branch`+`plan_file`. `report_mishap` akzeptiert `type ∈ {broken, degraded,
 > suspicious, security, drift, process}`.
 
+> **⚠ `stage_plan` und `archive_plan` funktionieren NICHT aus einem Worktree (T002256).**
+> Beide lösen den Plan-Pfad relativ zum **Haupt-Checkout** auf, wo der Change-Ordner nur auf
+> dem Branch existiert — nicht im Arbeitsverzeichnis des Aufrufers. Symptome trotz
+> vorhandener, nicht-leerer Datei im Worktree:
+>
+> | Tool | Fehlermeldung |
+> |---|---|
+> | `stage_plan` | `... does not exist in git` |
+> | `archive_plan` | `plan file does not exist or is empty: openspec/changes/<slug>/tasks.md` |
+>
+> **Regelweg aus einem Worktree ist das Skript** — nicht den MCP-Call debuggen:
+>
+> ```bash
+> bash scripts/ticket.sh stage-plan   --id "$TICKET_ID" --branch "$BRANCH" --plan "$PLAN_FILE"
+> bash scripts/ticket.sh archive-plan --id "$TICKET_ID" --slug "$SLUG" --branch "$BRANCH" \
+>   --plan-file "$PLAN_FILE" --pr "$PR_NUM"
+> ```
+>
+> Da `dev-flow-plan` und `dev-flow-execute` praktisch immer in `.worktrees/*` laufen, ist der
+> Skript-Aufruf für diese beiden Tools der Normalfall und der MCP-Call die Ausnahme. Aus dem
+> Haupt-Checkout heraus funktionieren beide MCP-Tools regulär.
+
 ## `factory-mcp` — Software-Factory (HTTP, Daemon erforderlich)
 
 - **Endpoint:** `http://localhost:13003/mcp` (StreamableHTTP), Health: `GET http://127.0.0.1:13003/health`.

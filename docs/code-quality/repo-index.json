@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 619,
+      "file_count": 620,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -393,6 +393,7 @@
         "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
         "tests/spec/dev-flow-plan-ticket-sh-mishaps.bats",
         "tests/spec/dev-flow-plan.bats",
+        "tests/spec/devflow-selection-archive-hardening.bats",
         "tests/spec/divergence-guard.bats",
         "tests/spec/docker-build-speedup.bats",
         "tests/spec/dora-dashboard.bats",
@@ -2912,6 +2913,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
+      "file_count": 549,
       "file_count": 546,
       "files": [
         "scripts/README.md",
@@ -3225,6 +3227,7 @@
         "scripts/factory/wakeup.sh",
         "scripts/factory/watchdog.sh",
         "scripts/feature-promote.sh",
+        "scripts/filter-generated.sh",
         "scripts/find-changed-e2e-tests.sh",
         "scripts/find-changed-tests.sh",
         "scripts/fix-archive-plan-status.sh",

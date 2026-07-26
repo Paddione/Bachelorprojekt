@@ -809,7 +809,11 @@ tasks:
     cmds:
       - |
         set -e
-        CHANGED=$( (git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null; git diff --name-only HEAD) | sort -u || true)
+        # Generierte Artefakte (linguist-generated in .gitattributes) vor der Selektion
+        # entfernen: sie liegen im Diff JEDES Changes mit OpenSpec-Artefakt und wuerden
+        # sonst Playwright fuer Changes ohne Website-Bezug starten (T002255).
+        # freshness:check filtert bewusst NICHT — dort sind diese Pfade der Pruefgegenstand.
+        CHANGED=$( (git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null; git diff --name-only HEAD) | sort -u | bash scripts/filter-generated.sh || true)
         RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false
         echo "$CHANGED" | grep -qE "^website/" && RUN_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^mentolder-web/" && RUN_MENTOLDER_WEB=true || true

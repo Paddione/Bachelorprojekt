@@ -1,0 +1,147 @@
+# .github/workflows/health-goals.yml
+# Nightly repository-health measurement [T002162].
+#
+# Closes link [1] of the health-goal data chain. Before this workflow existed the
+# chain was:
+#
+#   [1] task health:goals:update  ->  .claude/lib/goals.md          (no trigger!)
+#   [2] task health:goals:emit    ->  goals-data.generated.json     freshness-regen.yml
+#   [3] build-website.yml         ->  image -> Flux -> prod
+#
+# gen-goals-data.mjs does not measure anything, it parses goals.md. With nothing
+# ever updating goals.md the nightly regenerate produced bit-identical output, saw
+# no diff and committed nothing — a fully green pipeline serving frozen numbers.
+# Four Prio-C green gates were displayed as "0 ✓" on /admin/repohealth while a fresh
+# measurement showed them broken.
+#
+# Runs at 01:00 UTC, one hour before quality-loop.yml (02:00), so the CQ-GATE tickets
+# it derives are based on freshly measured values rather than the last manual edit.
+name: health-goals
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "1 = measure and print the diff, write nothing"
+        required: false
+        default: "0"
+
+# Never cancel a running measurement — an aborted job could leave a partial commit.
+concurrency:
+  group: health-goals-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  OPENSPEC_TELEMETRY: '0'
+
+jobs:
+  measure:
+    name: Measure health goals and update the SSOT
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          fetch-tags: false
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install root npm deps
+        run: npm ci
+
+      - uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611  # v2.0.0
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The DB/cluster goals (G-DB*, G-OPS*) reach the live cluster. Without a
+      # kubeconfig every db_scalar call returns the "-" sentinel and the goal is
+      # skipped — safe, but it would leave those values permanently stale.
+      - name: Set up kubectl + fleet kubeconfig
+        env:
+          KUBECONFIG_DATA: ${{ secrets.FLEET_KUBECONFIG }}
+        run: |
+          curl -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
+            -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: "Guard: kubeconfig context must be fleet"
+        run: |
+          ctx="$(kubectl config current-context)"
+          if [[ "$ctx" != "fleet" ]]; then
+            echo "ERROR: expected context 'fleet', got '${ctx}'"
+            exit 1
+          fi
+
+      # env:validate (part of the non-fast measurement path) reads the git-crypt'd
+      # secret files, which stay encrypted on a CI runner. Same treatment as in
+      # freshness-regen.yml. These files are never staged below.
+      - name: Create CI dummy secrets
+        run: bash scripts/ci-dummy-secrets.sh
+
+      # --full, never --fast: db_scalar() opens with
+      #   [ "$FAST" = 1 ] && { echo "-"; return; }
+      # so --fast would silently skip every database goal and leave its documented
+      # value untouched. Measurements that genuinely cannot run still return the "-"
+      # sentinel, and row() drops those before they reach HG_VALUES_FILE — a failed
+      # measurement can never write a false "green".
+      #
+      # Not installed here on purpose: trivy (G-SEC06). health-goals-check.sh guards
+      # it with `command -v trivy` and skips cleanly, so that goal keeps its documented
+      # value instead of being wrongly reset.
+      - name: Measure health goals
+        id: measure
+        env:
+          # Via env: rather than inline ${{ }} — keeps the dispatch input out of the
+          # shell command string (workflow-injection hardening).
+          DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+        run: |
+          if [[ "$DRY_RUN" == "1" ]]; then
+            task health:goals:update -- --full --dry-run
+            echo "dry=true" >> "$GITHUB_OUTPUT"
+          else
+            task health:goals:update -- --full
+            echo "dry=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Emit in the SAME job so goals.md and the generated artifact land in ONE
+      # commit. Splitting them (leaving the emit to freshness-regen.yml) would open
+      # a window on main where task freshness:check fails — inside the CI of other
+      # people's PRs, pointing at a file they never touched.
+      - name: Regenerate the website artifact
+        if: steps.measure.outputs.dry == 'false'
+        run: task health:goals:emit
+
+      - name: Check for changes
+        id: diff
+        if: steps.measure.outputs.dry == 'false'
+        run: |
+          if git diff --quiet -- .claude/lib/goals.md website/src/lib/goals-data.generated.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Deliberately no [skip ci]: the commit touches website/**, which is what
+      # build-website.yml triggers on. Suppressing CI here would leave the dashboard
+      # on the old image despite fresh data — exactly the T002158 failure mode.
+      - name: Commit and push if changed
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .claude/lib/goals.md website/src/lib/goals-data.generated.json
+          git commit -m "chore(goals): refresh health goal measurements"
+          git push

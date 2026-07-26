@@ -472,6 +472,13 @@ hg_workflow() {
   echo "$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)/.github/workflows/health-goals.yml"
 }
 
+# Effektive Konfiguration ohne YAML-Kommentarzeilen. Der Workflow begruendet in
+# Kommentaren, warum --fast und [skip ci] NICHT verwendet werden — ein naives grep
+# ueber die ganze Datei wuerde genau diese Dokumentation als Verstoss werten.
+hg_workflow_config() {
+  grep -v '^[[:space:]]*#' "$(hg_workflow)"
+}
+
 @test "health-goals.yml: nightly workflow exists and runs at 01:00 UTC, before quality-loop" {
   WF="$(hg_workflow)"
   [ -f "$WF" ] || { echo "FAIL: $WF fehlt — die Messung wird nicht automatisch angestossen"; return 1; }
@@ -489,11 +496,11 @@ hg_workflow() {
 @test "health-goals.yml: measures with --full, never --fast (db_scalar skips every DB goal in fast mode)" {
   WF="$(hg_workflow)"
   [ -f "$WF" ] || { echo "FAIL: $WF fehlt"; return 1; }
-  grep -q -- '--fast' "$WF" && {
+  hg_workflow_config | grep -q -- '--fast' && {
     echo "FAIL: --fast im Workflow — db_scalar liefert dann fuer alle DB-Ziele '-' und sie werden stumm uebersprungen"
     return 1
   }
-  grep -q -- '--full' "$WF" || { echo "FAIL: kein --full im Workflow"; return 1; }
+  hg_workflow_config | grep -q -- '--full' || { echo "FAIL: kein --full im Workflow"; return 1; }
 }
 
 @test "health-goals.yml: commits goals.md and generated.json atomically (no freshness-check window on main)" {
@@ -514,7 +521,7 @@ hg_workflow() {
 @test "health-goals.yml: does not mark its commit [skip ci] (build-website must pick up the new values)" {
   WF="$(hg_workflow)"
   [ -f "$WF" ] || { echo "FAIL: $WF fehlt"; return 1; }
-  grep -q '\[skip ci\]' "$WF" && {
+  hg_workflow_config | grep -q '\[skip ci\]' && {
     echo "FAIL: [skip ci] im Commit — build-website.yml triggert auf website/** und wuerde uebersprungen; das Dashboard bliebe auf dem alten Image"
     return 1
   }

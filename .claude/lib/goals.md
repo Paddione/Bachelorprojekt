@@ -376,7 +376,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ07** | S2 Import-Zyklen | 0 ✓ | 0 | `python3 -c "..S2-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ09** | S3 hartkodierte Hostnames | 0 ✓ | ≤ 10 | `python3 -c "..S3-Gate.." < docs/code-quality/baseline.json` |
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
-| **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 1939 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
+| **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 311 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
 | **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 6 ✓ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json 2>/dev/null \| python3 -c "..."` |
@@ -400,13 +400,13 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
 | **G-DOC01** | Defekte interne Doc-Links | 0 ✓ | 0 | `python3 scripts/check-links.py` |
-| **G-DOC02** | Root-CLAUDE.md Zeilen | 190 ✓ | ≤ 200 | `wc -l < CLAUDE.md` |
+| **G-DOC02** | Root-CLAUDE.md Zeilen | 200 ✓ | ≤ 200 | `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-DOC04** | Architektur-ADRs | 5 ✓ | ≥ 5 | `find docs -ipath '*adr*' -name '*.md' \| wc -l` |
 | **G-DOC06** | Agent Guide Index | 30 ✓ | ≥ 30 | `find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md \| wc -l` |
 | **G-CI01** | main CI-Erfolgsrate (letzte 20) | 95 % ✓ | ≥ 95 % | `gh-axi run list --workflow ci.yml --branch main --limit 20 \| grep -oE 'completed,(success\|failure\|cancelled)' \| sort \| uniq -c` (19/20, 1 cancelled) |
 | **G-CI02** | Rote main-HEAD-Läufe | 0 ✓ | 0 | `gh-axi run list --workflow ci.yml --branch main --limit 5 \| grep -c failure` |
-| **G-CI03** | CI Pipeline p95 Duration (min) | 7 ✓ | ≤ 12 | `gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \| python3 -c "..p95.."` (T001910: Messscript-Bug in `gh-axi run list --json` behoben, jetzt `gh` direkt) |
+| **G-CI03** | CI Pipeline p95 Duration (min) | 5 ✓ | ≤ 12 | `gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt \| python3 -c "..p95.."` (T001910: Messscript-Bug in `gh-axi run list --json` behoben, jetzt `gh` direkt) |
 | **G-RH03** | OpenSpec-BATS-Abdeckung | 82 % ✓ | ≥ 60 % | `SPECS=$(ls openspec/specs/*.md \| wc -l); BATS=$(ls tests/spec/*.bats \| wc -l); echo "$BATS/$SPECS"` |
 | **G-CD02** | post-merge.yml-Rate | 100 % ✓ | ≥ 95 % | `gh-axi run list --workflow post-merge.yml --branch main --limit 15 \| ...` |
 | **G-DORA01** | Deployment Frequency | Elite ✓ | ≥ 5/Wo | `git log --since="4 weeks ago" --first-parent --oneline main \| wc -l` |
@@ -433,14 +433,14 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC17** | Command-Orphans via S4 | 0 ✓ | ≤ 0 | `S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99` |
 | **G-AGENTIC01** | Ungescopte Agenten (security/infra/db ohne `tools:`) | 0 ✓ | ≤ 0 | `awk-Frontmatter-Check über .claude/agents/bachelorprojekt-{security,infra,db}.md` |
 | **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent` |
-| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 22 ✓ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
+| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 35 ⚠ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 1 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
-| **G-TEST05** | Vitest Line-Coverage `website/src/lib` | 85 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
+| **G-TEST05** | Vitest Line-Coverage `website/src/lib` | 86 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
 | **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
 | **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 1 ✓ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
-| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 36 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
+| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 33 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
 
 ---
 
@@ -609,3 +609,28 @@ gelöscht, nur noch `livekit-egress` + `oauth2-proxy-terminal` Pending). **Regre
 G-AGENTIC09 0→2 (Prio C → Prio A: zwei SKILL.md >500 Zeilen, Target=0) — Nachfolger TBD.
 G-DB09 0→1 (Prio C → Prio A: eine Slow Query in pg_stat_statements, Target=0) — Nachfolger TBD.
 `website/src/lib/goals-data.generated.json` via `node scripts/gen-goals-data.mjs` neu generiert.
+
+**Baseline-Update 2026-07-26 (T002162 — erste automatisierte Messung):** Ab heute schreibt
+`.github/workflows/health-goals.yml` (cron `0 1 * * *`) die Prio-C-Werte nächtlich fort. Bis
+hierher lief die Messung ausschließlich manuell: `gen-goals-data.mjs` misst nichts, es parst
+diese Datei — änderte sie niemand, erzeugte der nächtliche `freshness-regen`-Lauf bitgleiche
+Ausgabe, sah keinen Diff und committete nichts. Die Pipeline war durchgehend grün und lieferte
+trotzdem eingefrorene Zahlen. T002158 (PR #3206) hatte zuvor die *Publish*-Kette repariert
+(`build-website.yml` triggert auf `.claude/lib/goals.md`, bedingtes `[skip ci]`); dieses Ticket
+schließt die verbleibende Lücke davor — die Messung selbst.
+
+Werte aus dem ersten vollständigen Lauf (`health-goals-update.sh --full`, gegen `fleet`):
+**G-SIZE03 1939→311** — der auffälligste Posten. `website/src/lib/website-db.ts` wurde in
+T002149/T002150 (PRs #3182, #3194) zweistufig zerlegt; das Dashboard zeigte tagelang weiter
+1939. Ein ungemessenes Ziel verdeckt nicht nur Regressionen, sondern auch erreichte Ziele.
+G-DOC02 190→200 (CLAUDE.md exakt am Target ≤200 — nächste Ergänzung kippt das Gate);
+G-CI03 7→5 min p95; G-TEST05 85→86 %; G-OPS03 36→33 Tage TLS-Restlaufzeit.
+**Regression:** G-DB04 22→35 h — das letzte erfolgreiche `db-backup`-Job liegt 35 h zurück und
+verletzt damit Target ≤26 h. Erster Befund dieses Laufs, der ohne die Automatisierung
+unentdeckt geblieben wäre; Ursachenklärung als eigenes Ticket, nicht in diesem Change.
+
+Ebenfalls in T002162 behoben: `gen-goals-data.mjs` las `measured_at` aus dem **letzten**
+`Baseline-Update`-Marker in Dokument-Reihenfolge. Die Marker stehen hier aber thematisch
+sortiert (Prio-A-Abschnitt oben, Prio-B/C-Historie unten), nicht chronologisch — der
+2026-07-25-Eintrag auf Zeile 108 verlor deshalb gegen die 2026-07-22-Einträge weiter unten,
+und alle 95 Ziele trugen einen vier Tage alten Mess-Stichtag. Jetzt gewinnt das jüngste Datum.

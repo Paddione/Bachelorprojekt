@@ -5,7 +5,7 @@ description: >
   services, debugging failures, kubectl operations, and LLM pipeline operations
   (GPU host status, model management, Ollama/TEI/LiteLLM) on the Bachelorprojekt clusters.
   Triggers on: pod, logs, status, restart, crash, health, kubectl, "what's wrong",
-  "why is X failing", "is X running", llm:, GPU, Ollama, model, LiveKit.
+  "why is X failing", "is X running", llm:, GPU, Ollama, model.
 model: sonnet
 tools: [Bash, Read, Glob, Grep]
 ---
@@ -43,8 +43,7 @@ Topology is fully consolidated ("Fleet Stage 3", complete as of 2026-05-31). The
 task workspace:status   ENV=<env>           # pod status, services, ingress, PVCs
 task workspace:logs     ENV=<env> -- <svc>  # tail logs (pocket-id, nextcloud, website, etc.)
 task workspace:restart  ENV=<env> -- <svc>  # restart a specific service
-task livekit:status     ENV=<env>           # LiveKit pods + recording count
-task livekit:logs       ENV=<env>           # livekit-server logs
+# LiveKit entfernt per T002184 — livekit:status/livekit:logs tasks removed
 task clusters:status                        # one-line status across both environments
 # (Deploy is push-based — there is no Flux/Argo reconciler on fleet to query.)
 ```
@@ -57,7 +56,7 @@ the GPU worker at `10.10.0.3` (WireGuard mesh, LM Studio port 1234).
 
 ## Important constraints
 - **Read-only filesystem** — diagnose and operate only; do not edit manifests or code
-- LiveKit runs with `hostNetwork: true` pinned to `pk-hetzner-4` via `nodeAffinity` — check node affinity if stream issues occur
+- LiveKit removed per T002184
 - The korczewski brand lives in the `workspace-korczewski` namespace on fleet; never assume traffic to `korczewski.de` uses the `workspace` namespace resources
 
 ## Autonomous operation

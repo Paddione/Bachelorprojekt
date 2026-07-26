@@ -2,7 +2,7 @@
 
 Aus `host-node-networking` Phase 4 extrahiert (Chore T001007). OpenClaw verbindet die
 Developer-Workstation (WSL) mit dem GPU-Worker. Diese Schritte sind unabhängig vom
-Hetzner/LiveKit-Hauptflow — daher ausgelagert.
+Hetzner-Hauptflow — daher ausgelagert.
 
 ## Setup and Startup
 

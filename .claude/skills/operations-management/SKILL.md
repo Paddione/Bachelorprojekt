@@ -25,7 +25,7 @@ Is a core service DOWN or DEGRADED right now?
 
 | Situation | Skill |
 |-----------|-------|
-| Pocket ID/Nextcloud/Website/Brett/LiveKit/DB is down or crashing | `incident-response` |
+| Pocket ID/Nextcloud/Website/Brett/DB is down or crashing | `incident-response` |
 | Triage open tickets, mark AI-fixable or needs-human | `ticket-ops` |
 | Clean up stale worktrees and branches | `ticket-ops` |
 | Review & merge open PRs, close linked tickets | `ticket-ops` |

@@ -58,7 +58,7 @@ Ermittle daraus:
 | `website/src/**` | `https://web.mentolder.de` | `website` |
 | `brett/**` | `https://brett.mentolder.de` | `services`, `brett-mentolder` |
 | `k3d/nextcloud*.yaml` | `https://files.mentolder.de` | `services` |
-| `k3d/livekit*.yaml` | `https://livekit.mentolder.de` | `services` |
+# LiveKit removed per T002184
 | korczewski-spezifisch (fleet cluster) | `https://web.korczewski.de` | `korczewski` |
 | Übergreifender Smoke-Test | — | `smoke` |
 | System-Test (DB, Config, API) | — | `systemtest` |

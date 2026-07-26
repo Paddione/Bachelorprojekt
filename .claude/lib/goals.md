@@ -112,7 +112,7 @@ WHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE';
 **Was:** Zählt Pods in `workspace` + `workspace-korczewski`, deren Phase nicht
 Running/Succeeded ist oder deren Container nicht ready sind. Alle G-K8S-Goals prüfen nur
 Manifeste (YAML) — dieses Ziel schaut erstmals auf den Live-Zustand des Clusters.
-Baseline 2026-07-22: `workspace/livekit-egress-…` (Pending), `workspace/test-pod`
+Baseline 2026-07-22: `workspace/[livekit-egress — removed T002184]` (Pending), `workspace/test-pod`
 (Failed — Debris), `workspace-korczewski/oauth2-proxy-terminal-…` (Pending).
 
 ```bash
@@ -267,7 +267,7 @@ in [`docs/audits/2026-07-17-trivy-cve-baseline.md`](../../docs/audits/2026-07-17
 `alpine/k8s:1.34.0 → 1.36.2` (23→4 CRITICAL — der Baseline-Report ging fälschlich von
 `registry.gitlab.com/alpine/k8s` aus; das Manifest referenziert tatsächlich das **Docker-Hub**-Image
 `alpine/k8s`, das aktiv gepflegt wird und Tags bis `1.36.x` führt), `pgvector/pgvector:0.8.0-pg16 →
-0.8.5-pg16` (8→1), `nats:2.10-alpine → 2.12-alpine` (3→0), `livekit/egress:v1.9.0 → v1.13.0` (2→0).
+ 0.8.5-pg16` (8→1), `nats:2.10-alpine → 2.12-alpine` (3→0), `[livekit/egress — removed T002184]` (2→0).
 Alle vier Digest-Bumps mit `trivy image --severity CRITICAL` einzeln verifiziert vor dem Merge.
 
 **Verbleibende 8 CRITICAL sind aktuell nicht per Tag-Bump behebbar** (jeweils bereits neuester
@@ -278,8 +278,7 @@ verfügbarer Tag geprüft):
   denselben Base-Layer.
 - `alpine/k8s:1.36.2` (4): `CVE-2026-33186` (vendored `grpc-go` in `kustomize`) + `CVE-2025-68121`
   (Go stdlib) — bereits neuester Tag.
-- `livekit/ingress:v1.5.0` (2): `CVE-2026-33186` (`grpc-go`) — `v1.5.0` ist der neueste verfügbare
-  Tag auf Docker Hub (livekit/egress hat seither v1.13.0 erreicht, ingress stagniert bei v1.5.x).
+- `[livekit/ingress — removed T002184]` (2): `CVE-2026-33186` (`grpc-go`).
 
 Alle vier Restfälle brauchen ein Upstream-Release (gosu-Rebuild bzw. grpc-go-Bump), kein
 Repo-seitiger Fix. Follow-up bei nächstem Upstream-Release erneut prüfen.
@@ -291,7 +290,7 @@ bash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'
 ```
 
 > **B · Baseline:** 39 → 8 (Image-Pin-Refresh für 4 von 6 im Audit-Report benannten Images; die
-> übrigen 2 [postgres, livekit/ingress] hatten keinen fixenden Tag verfügbar) · **Target:** 0 ·
+> übrigen 2 [postgres, livekit/ingress — removed T002184] hatten keinen fixenden Tag verfügbar) · **Target:** 0 ·
 > **Aufwand:** mittel · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T001949
 > (**gefixt, Target nicht erreicht** — 8 CRITICAL sind Upstream-blockiert, kein Folgeticket bis
 > neue Upstream-Releases vorliegen — Nachfolger von T001909)
@@ -564,7 +563,7 @@ Target 90 — echte Optimierung ist bewusst nicht Teil dieses Chores; Follow-up-
 
 **Baseline-Update 2026-07-19 (T001952 — Prio-B Ticket-Backfill):** Alle Tracking-Tickets der 10 Prio-B-Ziele waren via Merge=Abschluss-Konvention bereits `done`, ohne dass die zugrundeliegenden Health-Goals ihr Target erreicht hätten (T001280→T001347-Stil-Churn). Für die 7 Ziele mit weiterhin verfehltem Target wurden neue Nachfolge-Tickets angelegt: G-SIZE02 → T001945, G-DB01 → T001946, G-DB03 → T001947, G-DB10 → T001948, G-SEC06 → T001949, G-FE05 → T001950, G-BRAIN14 → T001951. Die 3 Ziele, deren Wert bereits am oder über dem Target liegt (G-AGENTIC09 0≤0, G-DB09 0=0, G-CI03 7≤12), wurden redaktionell von Prio B in die Prio-C Green-Gates-Tabelle verschoben — kein neues Ticket, da kein offener Arbeitsbedarf besteht.
 
-**Baseline-Update 2026-07-19 (T001949 — G-SEC06 Image-Pin-Refresh):** G-SEC06 39→8 CRITICAL (−79%). alpine/k8s 1.34.0→1.36.2, pgvector 0.8.0-pg16→0.8.5-pg16, nats 2.10-alpine→2.12-alpine, livekit/egress v1.9.0→v1.13.0 — je mit `trivy image --severity CRITICAL` vor Merge verifiziert. Wichtiger Messfehler in der Baseline korrigiert: `alpine/k8s` im Manifest ist ein Docker-Hub-Image (nicht `registry.gitlab.com/alpine/k8s`, das für anonyme Pulls gesperrt ist) — Docker Hub führt aktiv gepflegte Tags bis 1.36.x. Verbleibende 8 CRITICAL (postgres, pgvector, alpine/k8s, livekit/ingress) sind Upstream-blockiert (vendored gosu/grpc-go in bereits neuesten Tags) — kein Folgeticket bis neue Upstream-Releases erscheinen.
+**Baseline-Update 2026-07-19 (T001949 — G-SEC06 Image-Pin-Refresh):** G-SEC06 39→8 CRITICAL (−79%). alpine/k8s 1.34.0→1.36.2, pgvector 0.8.0-pg16→0.8.5-pg16, nats 2.10-alpine→2.12-alpine, [livekit/egress — removed T002184] — je mit `trivy image --severity CRITICAL` vor Merge verifiziert. Wichtiger Messfehler in der Baseline korrigiert: `alpine/k8s` im Manifest ist ein Docker-Hub-Image (nicht `registry.gitlab.com/alpine/k8s`, das für anonyme Pulls gesperrt ist) — Docker Hub führt aktiv gepflegte Tags bis 1.36.x. Verbleibende CRITICAL nach LiveKit-Entfernung (T002184) reduziert.
 
 **Baseline-Update 2026-07-19 (T001950 — Lighthouse Stufe 3):** G-FE05 Live-Baseline neu vermessen (3× `npx @lhci/cli autorun --collect.numberOfRuns=3` gegen `https://web.mentolder.de`, `CHROME_PATH=/usr/bin/google-chrome` gesetzt): aktueller Prod-Stand (vor diesem Fix) misst konstant **89/100** (FCP 2.0s, LCP 3.1s, SI 4.5s über alle 3 Läufe) — höher als der am 2026-07-17 dokumentierte Wert von 74, vermutlich durch zwischenzeitliche CDN-/Cache-Warmup-Effekte, aber weiterhin unter Target 90. Root-Cause-Analyse via `pnpm build` + manuellem Dist-Vergleich: `sidekick-panels.css` (~180 KB) wurde von Vite mit `global.css` in einen gemeinsamen Chunk gebündelt und war in `Layout.astro` (der öffentlichen Homepage-Layout-Datei, für beide Brands) ein render-blockendes `<link rel="stylesheet">`, obwohl es nur Styles für `PortalSidekick`-Drawer-Subviews liefert, die erst nach FAB-Klick sichtbar werden. `PortalSidekick.svelte` selbst importierte alle 9 Subviews (SupportView, QuestionnaireView, HelpView, AgentGuideView, MediaviewerPanel, TerminalSessionIframe, CockpitSidekickView, AiQualitySidekickView, LogsSidekickView) statisch, wodurch der über `client:idle` geladene Chunk auf 246 KB anwuchs (Lighthouse: 117 KB "unused JavaScript" allein hier). Fix: (1) `sidekick-panels.css` per `?url`-Import + `<link rel="preload" as="style" onload="this.rel='stylesheet'">`+`<noscript>`-Fallback asynchron nachgeladen (bleibt in `PortalLayout.astro`/`AdminLayout.astro` weiterhin eager, dort ist der Sidekick primäre UI); (2) die 9 Subviews in `PortalSidekick.svelte` auf `{#await import(...)}`-Dynamic-Imports umgestellt → PortalSidekick-Chunk 246 KB→84 KB, 9 neue On-Demand-Chunks (5–36 KB je View). Lokale Vorher/Nachher-Messung (`pnpm build` + `pnpm preview`-Server, `npx lighthouse`, gleiche unkomprimierte Dev-Umgebung ohne Traefik-Kompression, daher nicht direkt mit der Prod-Zahl vergleichbar, aber intern konsistent): Performance-Score **68→77** (+9), FCP 4.1s→2.8s, LCP 6.2s→5.0s. Live-Bestätigung gegen `https://web.mentolder.de` ist erst nach Merge + Deploy von `build-website.yml`/`build-website-korczewski.yml` möglich — Folge-Messung dort ausstehend (kein neues Ticket nötig, Messung ist Teil des Post-Merge-Verify-Schritts).
 
@@ -580,7 +579,7 @@ Live-Systeme): **G-E2E01** Nightly-E2E-Erfolgsrate `e2e.yml` — Baseline **0 % 
 direkte Prio A (aktive Verletzung; Fix läuft über `fix/e2e-auth-token-and-cron-secret`).
 **G-E2E02** E2E-Testdaten-Leak (is_test_data-Rows in Prod) — Baseline 2 (je 1×
 `public.inbox_items` in beiden Brand-DBs), Prio B. **G-OPS01** Pods nicht Running/Ready —
-Baseline 3 (`livekit-egress` Pending, `test-pod` Failed/Debris, `oauth2-proxy-terminal`
+Baseline 3 (`[livekit-egress — removed T002184]` Pending, `test-pod` Failed/Debris, `oauth2-proxy-terminal`
 Pending), Prio B. **G-OPS02** Container-Restarts <24h — 1 ≤ 3 ✓ (Green Gate). **G-OPS03**
 Live-TLS-Cert-Restlaufzeit — 37 Tage ≥ 14 ✓ (Green Gate; erste Messung gegen
 `web.korczewski.de` schlug transient fehl → Messung mit Retry). **G-DB11** Tage seit letztem
@@ -605,7 +604,7 @@ Brand-Env-Dateien — blockierte jeden `workspace:deploy`. OpenSpec-Change
 G-DB04 8→22 (Backup-Alter steigt, weiterhin im Target ≤26h); G-OPS03 37→36 (TLS-Restlaufzeit
 sinkt mit der Zeit korrekt); G-DB08 n/a→1 (Seq-Scan-Quote erstmals gemessen, 1 Tabelle >5 %
 Seq-Scan-Anteil, 1 ≤3 ✓); G-OPS01 3→2 (Baseline-Korrektur: `test-pod` debris zwischenzeitlich
-gelöscht, nur noch `livekit-egress` + `oauth2-proxy-terminal` Pending). **Regressionen:**
+gelöscht, nur noch `[livekit-egress — removed T002184]` + `oauth2-proxy-terminal` Pending). **Regressionen:**
 G-AGENTIC09 0→2 (Prio C → Prio A: zwei SKILL.md >500 Zeilen, Target=0) — Nachfolger TBD.
 G-DB09 0→1 (Prio C → Prio A: eine Slow Query in pg_stat_statements, Target=0) — Nachfolger TBD.
 `website/src/lib/goals-data.generated.json` via `node scripts/gen-goals-data.mjs` neu generiert.

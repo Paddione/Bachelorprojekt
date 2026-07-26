@@ -29,7 +29,7 @@ die `psql -c`-Aufrufe unten setzen diesen Helper voraus.
 ## Step 1 — Scope the Incident (< 2 min)
 
 Determine:
-1. **Affected Service:** Pocket ID, Nextcloud, Website, Brett, Arena, Vaultwarden, Docs, LiveKit, or Shared-DB.
+1. **Affected Service:** Pocket ID, Nextcloud, Website, Brett, Arena, Vaultwarden, Docs, or Shared-DB.
 2. **Target Cluster:** `mentolder` brand (fleet cluster), `korczewski` brand (fleet cluster), or both.
 3. **Onset Time:** Since when has it been failing? Check git log or deployment status.
 4. **Blast Radius:** All users or a subset of features?

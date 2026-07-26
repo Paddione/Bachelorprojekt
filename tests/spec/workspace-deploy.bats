@@ -630,3 +630,174 @@ FLUX_CLUSTER_DIR="${PROJECT_DIR}/flux/clusters/fleet"
     return 1
   }
 }
+
+# ═══════════════════════════════════════════════════════════════════
+# T002251: Flux-Bootstrap-SealedSecrets müssen echte, entschlüsselbare
+# Ciphertexte tragen. In main standen dort die Platzhalter aus der
+# T002083-Bootstrap-PR (AgD_dummy_encrypted_…) — der Controller auf fleet
+# scheiterte mit "illegal base64 data at input byte 3" (das '_' ist kein
+# Base64-Zeichen), beide Ressourcen SYNCED=False.
+#
+# Die Tests prüfen FORM, nicht Entschlüsselbarkeit: die Ciphertexte gelten
+# nur für den aktuellen Controller-Key, ein Cert-Rotate würde einen
+# Decrypt-Test rot machen ohne echten Bug. Live-Verifikation (SYNCED=True)
+# läuft im Verify-Task gegen den Cluster.
+# ═══════════════════════════════════════════════════════════════════
+
+FLUX_BOOTSTRAP_DIR="${PROJECT_DIR}/flux/clusters/fleet/bootstrap"
+
+# Listet alle SealedSecret-Dateien im Bootstrap-Verzeichnis.
+_flux_bootstrap_sealedsecrets() {
+  find "$FLUX_BOOTSTRAP_DIR" -maxdepth 1 -name '*sealedsecret*.yaml' -type f | sort
+}
+
+@test "T002251: no Flux bootstrap SealedSecret carries a placeholder ciphertext" {
+  local found=0 f
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    if grep -qE ':[[:space:]]*AgD_dummy' "$f"; then
+      echo "FAIL: $(basename "$f") trägt einen Platzhalter-Ciphertext:"
+      grep -nE ':[[:space:]]*AgD_dummy' "$f" | sed 's/^/  /'
+      echo "      Der Sealed-Secrets-Controller kann das nicht dekodieren"
+      echo "      ('illegal base64 data at input byte 3' — das '_' ist kein Base64)."
+      echo "      Neu sealen: kubectl --context fleet -n flux-system get secret <name> -o yaml"
+      echo "                  | kubeseal --cert environments/certs/fleet-mentolder.pem --format yaml"
+      found=1
+    fi
+  done < <(_flux_bootstrap_sealedsecrets)
+  [ "$found" -eq 0 ]
+}
+
+@test "T002251: every Flux bootstrap SealedSecret declares spec.template.metadata" {
+  # PyYAML statt grep: ein SealedSecret hat ZWEI metadata-Blöcke (metadata und
+  # spec.template.metadata). Ein flaches grep zählt beide und meldet fälschlich
+  # "vorhanden", wenn nur der äußere existiert.
+  local f
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    run python3 -c "
+import sys, yaml
+doc = yaml.safe_load(open(sys.argv[1]))
+tmpl = ((doc or {}).get('spec') or {}).get('template') or {}
+md = tmpl.get('metadata') or {}
+missing = [k for k in ('name', 'namespace') if not md.get(k)]
+if missing:
+    print('missing: ' + ', '.join('spec.template.metadata.' + m for m in missing))
+    sys.exit(1)
+" "$f"
+    [ "$status" -eq 0 ] || {
+      echo "FAIL: $(basename "$f") — $output"
+      echo "      Ohne template.metadata kann der Controller das Ziel-Secret"
+      echo "      nicht erzeugen. kubeseal --format yaml schreibt den Block mit."
+      return 1
+    }
+  done < <(_flux_bootstrap_sealedsecrets)
+}
+
+# ── Copy-Paste-Guard ────────────────────────────────────────────────
+# Motivation: im geretteten Stash (rescue/flux-bootstrap-secrets-stash11)
+# stand in BEIDEN Bootstrap-Dateien derselbe Ciphertext (SHA256 identisch,
+# je 936 Zeichen). Sealed-secrets bindet den Ciphertext im Default-Modus
+# (strict scope) an namespace/name — derselbe Blob kann also für höchstens
+# eines der beiden Secrets entschlüsseln. Wäre das gemergt worden, hätte es
+# genau so ausgesehen wie ein Fix und wäre zur Hälfte still kaputt geblieben.
+#
+# ACHTUNG bei der Reichweite: identische Ciphertexte sind NICHT per se falsch.
+# Die 6 brand-übergreifenden Secrets (monitoring/grafana-oidc,
+# alertmanager-smtp, alertmanager-pushover, otel-collector-auth,
+# cert-manager/ipv64-api-key, workspace-office/collabora-secrets) stehen
+# legitim byte-identisch in environments/sealed-secrets/fleet-mentolder.yaml
+# UND fleet-korczewski.yaml — gleicher namespace/name, gleicher Key.
+# Ein blanker "kein Duplikat"-Test wäre dort falsch-positiv.
+#
+# Entschiedene Policy (2026-07-27):
+#   1. Reichweite  — repo-weit über alle getrackten SealedSecrets. Die Bug-Klasse
+#      ist nicht bootstrap-spezifisch; ein kopierter Blob ist überall still
+#      halb-kaputt.
+#   2. Schlüssel   — Identität ist (metadata.namespace, metadata.name). Ein
+#      geteilter Ciphertext ist NUR bei abweichender Identität ein Fehler; damit
+#      sind die 6 brand-übergreifenden Secrets sauber ausgenommen.
+#   3. Granularität — pro encryptedData-Wert, denn dort entsteht der Ciphertext.
+#   4. Ausnahme    — Dokumente mit namespace-wide/cluster-wide Scope-Annotation.
+#      Dort ist der Ciphertext NICHT an den Namen gebunden, ein Reuse also legitim.
+#      Aktuell sind alle 25 SealedSecrets strict; die Ausnahme ist Vorsorge.
+@test "T002251: no two SealedSecrets with different identities share a ciphertext" {
+  run env PROJECT_DIR="$PROJECT_DIR" python3 - <<'PY'
+import os, subprocess, sys, yaml
+from collections import defaultdict
+
+# Explizit an PROJECT_DIR gebunden — 'git ls-files' waere sonst cwd-abhaengig und
+# der Test wuerde je nach Aufrufort eine andere Dateimenge scannen.
+ROOT = os.environ['PROJECT_DIR']
+files = subprocess.run(
+    ['git', '-C', ROOT, 'ls-files', '-z', '*.yaml', '*.yml'],
+    capture_output=True, text=True, check=True,
+).stdout.split('\0')
+
+SCOPE_ANNOTATIONS = ('sealedsecrets.bitnami.com/namespace-wide',
+                     'sealedsecrets.bitnami.com/cluster-wide')
+
+# ciphertext -> {(namespace, name)} und ciphertext -> [Fundstelle]
+identities = defaultdict(set)
+sites = defaultdict(list)
+
+unparseable = []
+
+for path in files:
+    if not path:
+        continue
+    full = os.path.join(ROOT, path)
+    try:
+        with open(full) as fh:
+            raw = fh.read()
+    except (OSError, UnicodeDecodeError):
+        continue
+    if 'SealedSecret' not in raw:
+        continue          # billiger Vorfilter — 447 YAMLs, nur ~10 sind SealedSecrets
+    try:
+        docs = list(yaml.safe_load_all(raw))
+    except yaml.YAMLError as exc:
+        # NICHT still überspringen: eine unparsbare Datei, die textuell nach
+        # SealedSecret aussieht, wäre ein blinder Fleck genau in der Klasse, die
+        # dieser Guard abdecken soll.
+        unparseable.append(f'{path}: {type(exc).__name__}')
+        continue
+    for doc in docs:
+        if not isinstance(doc, dict) or doc.get('kind') != 'SealedSecret':
+            continue
+        md = doc.get('metadata') or {}
+        ann = md.get('annotations') or {}
+        if any(str(ann.get(a, '')).lower() == 'true' for a in SCOPE_ANNOTATIONS):
+            continue      # non-strict scope: Reuse über Namen hinweg ist erlaubt
+        ident = (md.get('namespace') or '<none>', md.get('name') or '<none>')
+        for key, ct in ((doc.get('spec') or {}).get('encryptedData') or {}).items():
+            if not isinstance(ct, str) or not ct:
+                continue
+            identities[ct].add(ident)
+            sites[ct].append(f'{path} [{ident[0]}/{ident[1]}] key={key}')
+
+if unparseable:
+    print('FAIL: Dateien mit SealedSecret-Bezug sind nicht parsebar — der Guard')
+    print('      koennte sie nicht pruefen (blinder Fleck):')
+    for u in unparseable:
+        print(f'  {u}')
+    sys.exit(1)
+
+shared = {ct: ids for ct, ids in identities.items() if len(ids) > 1}
+if shared:
+    for ct, ids in shared.items():
+        print('FAIL: derselbe Ciphertext unter verschiedenen Identitaeten:')
+        for site in sorted(set(sites[ct])):
+            print(f'  {site}')
+        print('      Sealed-secrets bindet den Ciphertext im Default-Modus (strict')
+        print('      scope) an namespace/name. Er kann daher fuer hoechstens EINE')
+        print('      dieser Identitaeten entschluesseln — der Rest bleibt still kaputt.')
+        print('      Jede Identitaet einzeln sealen:')
+        print('        kubectl -n <ns> get secret <name> -o yaml | kubeseal --cert <cert> --format yaml')
+    sys.exit(1)
+PY
+  [ "$status" -eq 0 ] || {
+    echo "$output"
+    return 1
+  }
+}

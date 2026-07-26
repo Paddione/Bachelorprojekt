@@ -91,6 +91,34 @@ function isInternalCallerAuthorized(request: Request): boolean {
   return false;
 }
 
+/**
+ * Whether an E2E run measured a build other than the one it was tested from.
+ *
+ * This endpoint runs INSIDE the deployed build, so it knows its own commit
+ * without an HTTP round-trip — there is no race between "ask for the SHA" and
+ * "submit the results", and a misconfigured workflow step cannot bypass the
+ * check. The gate belongs where the consequence is, not where the symptom
+ * shows up.
+ *
+ * Fails CLOSED: a missing, empty or literal `unknown` value on either side
+ * counts as drift. A gate that waves through a missing value is exactly the
+ * T002199 mistake in new clothes — and build-website.yml records that this
+ * build-arg chain has already snapped once. The price (no auto-tickets while
+ * the chain is broken) is the right failure mode: better no tickets than false
+ * ones.
+ *
+ * Comparison is exact after trimming and lowercasing. No prefix matching —
+ * that would silently tolerate a truncated SHA.
+ */
+export function isDeployDrift(testedSha?: string | null, deployedSha?: string | null): boolean {
+  const norm = (s?: string | null) => (s ?? '').trim().toLowerCase();
+  const tested = norm(testedSha);
+  const deployed = norm(deployedSha);
+  if (!tested || !deployed) return true;
+  if (tested === 'unknown' || deployed === 'unknown') return true;
+  return tested !== deployed;
+}
+
 export const POST: APIRoute = async ({ request }) => {
   let authorized = false;
   if (isInternalCallerAuthorized(request)) {
@@ -107,6 +135,8 @@ export const POST: APIRoute = async ({ request }) => {
     runId?: string;
     githubRunId?: string;
     cluster?: string;
+    /** Commit the suite was run from; compared against this build's GIT_SHA. */
+    testedSha?: string;
   };
   const stats = report.stats;
   if (!stats || typeof stats.startTime !== 'string' || typeof stats.duration !== 'number') {
@@ -181,10 +211,18 @@ export const POST: APIRoute = async ({ request }) => {
   const githubRunId = report.githubRunId ?? headerGhRunId ?? null;
   const source: 'github' | 'admin' | 'cli' = githubRunId ? 'github' : 'admin';
 
+  // Deploy-drift gate (T002202). A run whose tested SHA differs from the SHA
+  // this build was made from measured the deploy, not the source tree — its
+  // failures are not attributable to the repo and must not become tickets.
+  // test_results are still persisted above, so trend and flake data survive.
+  const deployedSha = process.env.GIT_SHA ?? null;
+  const drifted = isDeployDrift(report.testedSha, deployedSha);
+
   // Auto-file a ticket per failing result. Best-effort: errors route to the
   // outbox so the ingest response is never blocked by ticket creation.
   let ticketsOpened = 0;
   for (const row of rows) {
+    if (drifted) break;
     if (!row.isFail) continue;
     const key = `${row.testId}|${row.status}|${row.message ?? ''}`;
     const resultId = idByKey.get(key) ?? null;
@@ -208,7 +246,18 @@ export const POST: APIRoute = async ({ request }) => {
     rows.map((r) => ({ testId: r.testId, status: r.status === 'pass' ? 'pass' : r.status === 'skip' ? 'skip' : 'fail' })),
   );
 
-  return new Response(JSON.stringify({ ok: true, runId, count: rows.length, ticketsOpened, ticketsClosed }), {
+  return new Response(JSON.stringify({
+    ok: true,
+    runId,
+    count: rows.length,
+    ticketsOpened,
+    ticketsClosed,
+    ...(drifted ? {
+      reason: 'deploy-drift',
+      testedSha: report.testedSha ?? 'unknown',
+      deployedSha: deployedSha ?? 'unknown',
+    } : {}),
+  }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });

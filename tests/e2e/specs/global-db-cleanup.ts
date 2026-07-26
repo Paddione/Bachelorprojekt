@@ -23,6 +23,7 @@
 // doesn't mask a real test failure.
 
 import type { FullConfig } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 
 const PURGE_PATH = '/api/admin/systemtest/purge-all-test-data';
 
@@ -82,8 +83,83 @@ async function callPurge(label: 'setup' | 'teardown'): Promise<void> {
   console.log(`[global-db-cleanup:${label}] ${url} ← 200`, counts);
 }
 
+// ── Deploy-drift detection (T002202) ─────────────────────────────────────────
+//
+// A run against prod measures two things at once: the code and the deploy
+// state. On 2026-07-26 a nightly run filed T002192 against /api/poll/:id
+// returning HTML on 404 — the source on main set Content-Type: application/json
+// the whole time, only the deployed build lagged. The ticket described a bug
+// that never existed in the repository.
+//
+// This warns and continues rather than throwing. Flux reconciles every 10
+// minutes, so drift is frequently transient; aborting would forfeit an entire
+// nightly run — including the trend and flake data, which stays valid under
+// drift — over a deploy that was a few minutes behind. The authoritative gate
+// lives server-side in /api/admin/tests/ingest-e2e, which knows its own build
+// SHA and refuses to open tickets for a drifted run.
+
+function healthUrl(): string {
+  const base = process.env.E2E_BASE_URL
+    || process.env.WEBSITE_URL
+    || 'https://web.mentolder.de';
+  return base.replace(/\/+$/, '') + '/api/health';
+}
+
+/** SHA under test: GITHUB_SHA in CI, the local HEAD otherwise. */
+function testedSha(): string {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  try {
+    return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  } catch {
+    return 'unknown';
+  }
+}
+
+async function reportDeployDrift(): Promise<void> {
+  if (process.env.SKIP_DRIFT_CHECK === '1') return;
+
+  const url = healthUrl();
+  let deployed = 'unknown';
+  try {
+    const res = await fetch(url);
+    if (res.ok) {
+      const body = await res.json() as { commit?: string };
+      // A missing field must not read as "no drift" — keep it 'unknown'.
+      deployed = (body?.commit ?? '').trim() || 'unknown';
+    }
+  } catch {
+    // Unreachable health endpoint is treated as unknown, not as absence of
+    // drift. Failing open here would defeat the whole point.
+    deployed = 'unknown';
+  }
+
+  const tested = testedSha();
+  const norm = (s: string) => s.trim().toLowerCase();
+  const drifted =
+    !norm(tested) || !norm(deployed)
+    || norm(tested) === 'unknown' || norm(deployed) === 'unknown'
+    || norm(tested) !== norm(deployed);
+
+  if (!drifted) {
+    // eslint-disable-next-line no-console
+    console.log(`[deploy-drift] deployed commit matches tested SHA (${tested})`);
+    return;
+  }
+
+  /* eslint-disable no-console */
+  console.warn('');
+  console.warn('  ⚠  DEPLOY_DRIFT — this run does not measure the code under test alone.');
+  console.warn(`     tested   = ${tested}`);
+  console.warn(`     deployed = ${deployed}  (${url})`);
+  console.warn('     Failures from this run are NOT attributable to the source tree');
+  console.warn('     and will not be auto-ticketed by the ingest endpoint.');
+  console.warn('');
+  /* eslint-enable no-console */
+}
+
 export default async function globalSetup(_config: FullConfig): Promise<void> {
   await callPurge('setup');
+  await reportDeployDrift();
 }
 
 export async function teardown(_config: FullConfig): Promise<void> {

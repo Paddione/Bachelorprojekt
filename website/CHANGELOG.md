@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.214.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.10...website-v1.214.11) (2026-07-26)
+
+
+### Bug Fixes
+
+* **e2e:** distinguish code state from deploy state in prod runs [T002202] ([#3247](https://github.com/Paddione/Bachelorprojekt/issues/3247)) ([8e2e50c](https://github.com/Paddione/Bachelorprojekt/commit/8e2e50ccc146295b53de50251cba473904327486))
+
+## [1.214.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.9...website-v1.214.10) (2026-07-26)
+
+
+### Bug Fixes
+
+* **test:** repair 40 rotten spec assertions across 12 files [T002181] ([#3244](https://github.com/Paddione/Bachelorprojekt/issues/3244)) ([0101fc8](https://github.com/Paddione/Bachelorprojekt/commit/0101fc8bfb0e21560136c661290e7d02e961b923))
+
 ## [1.214.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.8...website-v1.214.9) (2026-07-26)
 
 

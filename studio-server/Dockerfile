@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 # Multi-stage: deps → build (tsc + vite) → runtime (node dist/index.js)
-ARG NODE_IMAGE=node:22-bookworm-slim
+ARG NODE_IMAGE=node:24-bookworm-slim
 
 FROM ${NODE_IMAGE} AS deps
 WORKDIR /app
@@ -19,7 +19,7 @@ RUN npx tsc -p tsconfig.json && npx tsc -p tsconfig.web.json && npx vite build
 FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-# node user already exists in base image node:22
+# node user already exists in base image node:24
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json

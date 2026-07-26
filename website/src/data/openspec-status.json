@@ -1485,6 +1485,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002193": [
+    {
+      "slug": "t002193-billing-invoice-api",
+      "status": "plan_staged"
+    }
+  ],
   "T002199": [
     {
       "slug": "e2e-auth-setup-fail-closed",

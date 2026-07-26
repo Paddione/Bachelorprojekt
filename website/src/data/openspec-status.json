@@ -1491,6 +1491,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002182": [
+    {
+      "slug": "t002182-spec-tests-gate",
+      "status": "plan_staged"
+    }
+  ],
   "T002183": [
     {
       "slug": "t002183-triage-fix",

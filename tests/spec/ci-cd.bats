@@ -906,17 +906,39 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   done
 }
 
-@test "T002163: ci.yml fuehrt tests/spec/ci-cd.bats in einem Required Check aus" {
+@test "T002163: ci.yml fuehrt alle spec tests via task test:spec in einem Required Check" {
   local ci="$REPO_ROOT/.github/workflows/ci.yml"
-  grep -q 'tests/spec/ci-cd.bats' "$ci" || {
-    echo "FAIL: ci.yml ruft tests/spec/ci-cd.bats nicht auf."
-    echo "      Diese Datei enthaelt die Guards fuer post-merge-Serialisierung,"
-    echo "      Brand-Parity im Website-Deploy, Flux-Artefakt-Rendering,"
-    echo "      freshness-regen und die envsubst-Allowlists. Laeuft sie in keinem"
-    echo "      Required Check, verhindert sie nichts — sie faellt nur dem auf, der"
-    echo "      zufaellig lokal verifiziert. Genau so blieben drei rote T001994-"
-    echo "      Assertions und ein rotes openspec:validate (T002167) unentdeckt"
-    echo "      auf main liegen, bis der naechste PR darueber stolperte."
+  grep -qE 'task test:spec|tests/spec/\*\.bats' "$ci" || {
+    echo "FAIL: ci.yml ruft task test:spec nicht auf (laedt alle spec-tests)."
+    echo "      Wenn ci-cd.bats nicht im Required Check laeuft, verhindert es"
+    echo "      nichts — genau so blieben drei rote T001994-Assertions und ein"
+    echo "      rotes openspec:validate (T002167) unentdeckt auf main."
+    return 1
+  }
+}
+
+# ── T002182: CI-Gate — test-factory job invokes full tests/spec/*.bats glob ──
+# Regression guard: the factory job must NOT enumerate a hand-picked subset of
+# spec files, because any file not in the list runs in no required check and
+# can rot on main undetected (observed: T002163, T002167, image-drift).
+
+@test "T002182: ci.yml test-factory job uses task test:spec (full glob)" {
+  local ci="$REPO_ROOT/.github/workflows/ci.yml"
+  # Extract the test-factory job steps between its header and the next job
+  local block
+  block=$(awk '/^  test-factory:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
+  # Must invoke task test:spec, not enumerate individual .bats files
+  echo "$block" | grep -qE 'task test:spec|tests/spec/\*\.bats' || {
+    echo "FAIL: test-factory job does not use task test:spec or tests/spec/*.bats glob."
+    echo "      Every tests/spec/*.bats file must run in this required check."
+    echo "      Current block:"
+    echo "$block" | sed 's/^/  /'
+    return 1
+  }
+  # Must NOT list individual .bats filenames in a way that excludes others
+  ! echo "$block" | grep -qE 'tests/spec/[a-z].*\.bats' || {
+    echo "FAIL: test-factory job still enumerates individual spec files."
+    echo "      Use 'task test:spec' to run the full tests/spec/*.bats glob."
     return 1
   }
 }

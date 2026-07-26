@@ -11,7 +11,7 @@ Before responding to any request, check these signals and delegate to the named 
 | Signals | Agent | MCP-Primär (Claude Code) |
 |---------|-------|--------------------------|
 | `website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
-| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model, LiveKit | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
+| pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
 | `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
 | test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `mcp-postgres` (localhost:13001) — Ticket-Queries |
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001) |
@@ -98,7 +98,7 @@ Routes to local Ollama (at `localhost:11434`) → Opencode/OpenClaw `task-runner
 
 All services run as Kubernetes Deployments in the `workspace` namespace, fronted by Traefik (built-in k3s ingress). There is no docker-compose.
 
-Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+coturn+Janus, Vaultwarden, Whiteboard, Brett, Mailpit, Docs (oauth2-proxy), DocuSeal, Tracking, LiveKit+Ingress+Egress, Website (separate `website` ns). All except Website share `workspace` ns. Shared PostgreSQL 16 (`shared-db`). Pocket ID provides SSO for Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code and the oauth2-proxy-gated services.
+Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+coturn+Janus, Vaultwarden, Whiteboard, Brett, Mailpit, Docs (oauth2-proxy), DocuSeal, Tracking, Website (separate `website` ns). All except Website share `workspace` ns. Shared PostgreSQL 16 (`shared-db`). Pocket ID provides SSO for Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code and the oauth2-proxy-gated services. LiveKit removed per T002184.
 
 ### Cluster Topology & Nodes (Fleet Stage 3 — FULLY CONSOLIDATED 2026-05-31)
 - **mentolder (BRAND)**: DNS for `mentolder.de` routes to the **`fleet`** cluster (pk-hetzner-4/6/8 IPs: 204.168.244.104/37.27.251.38/62.238.23.79). The mentolder-standalone cluster has been **DECOMMISSIONED** — all k3s software uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers. Use `ENV=mentolder` or `ENV=fleet-mentolder` (aliases) with context `fleet`, namespace `workspace`. Both the old `mentolder` and `korczewski` kubeconfig contexts are **DEAD**. `k3s-1` has been permanently **DECOMMISSIONED** (memory corruption 2026-05-31). Local development runs via k3d on the WSL host (context: `k3d-mentolder-dev`).
@@ -182,13 +182,13 @@ Covered sub-topics (reference file, not repeated here):
 - **security-guidance rewake** — never git-restore after a commit rewake
 - **Session-Koordination** — agent-lock.sh claim/release/reap protocol
 - **Environment targeting** — ENV= is always explicit; WORKSPACE_NAMESPACE
-- **Cluster node placement** — wg-fleet flannel-iface; LiveKit node-pin
+- **Cluster node placement** — wg-fleet flannel-iface; LiveKit node-pin (removed T002184)
 - **Kustomize overlays** — prod-fleet/* only; never bare prod/; $patch:delete
 - **Scripts & env** — env-resolve.sh must be sourced; envsubst lists
 - **Database queries** — never SELECT * on ticket_plans.content
 - **Cluster reset order** — sealed-secrets → fetch-cert → seal → cert → deploy
 - **Operational** — push-based; pull-first; CONFLICTING PR suppresses CI
-- **Staging (ENV=staging)** — workspace-staging ns; LiveKit disabled
+- **Staging (ENV=staging)** — workspace-staging ns; LiveKit removed per T002184
 - **Kore design system** — korczewski brand uses website/src/components/kore/
 - **Local-first LLM pipeline** — GPU host; vector space isolation; LM Studio
 - **dev.mentolder.de stack** — devc decommissioned; WSL bootstrap caveats

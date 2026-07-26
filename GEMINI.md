@@ -14,7 +14,7 @@ Kubernetes-based self-hosted collaboration platform (bachelor thesis). Beide Mar
 *   **Vaultwarden:** Password manager (Bitwarden-kompatibel)
 *   **DocuSeal:** E-Signature
 *   **Whiteboard / Brett (Systembrett):** Kollaborative Tools
-*   **LiveKit (Server + Ingress + Egress):** Streaming + Recording
+*   **LiveKit (removed per T002184):** Streaming + Recording — stack deleted
 *   **Website:** Astro + Svelte (Brand-aware: mentolder + korczewski via `BRAND_ID`)
 *   **Claude Code MCP Monolith:** AI-Tooling
 *   **Traefik:** Ingress Controller

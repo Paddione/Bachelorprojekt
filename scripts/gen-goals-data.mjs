@@ -123,10 +123,17 @@ function main() {
   const errors = [];
   const goals = [];
 
-  const updateMatches = [...content.matchAll(/\*\*Baseline-Update\s+([\d-]+)/g)];
+  // Baseline-Update markers are ordered thematically in goals.md (Prio-A section
+  // first, Prio-B/C history further down), NOT chronologically — so the last match
+  // in document order is not the newest one. Take the maximum instead; ISO dates
+  // sort lexicographically in chronological order, so no Date parsing is needed.
+  // [T002162: every goal carried a four-day-old measured_at because the
+  // 2026-07-25 marker sits above the 2026-07-22 ones.]
+  const updateDates = [...content.matchAll(/\*\*Baseline-Update\s+(\d{4}-\d{2}-\d{2})/g)]
+    .map(m => m[1]);
   const dateMatch = content.match(/\*\*Baseline-Stichtag:\*\*\s*`([\d-]+)`/);
-  const measuredAt = updateMatches.length > 0
-    ? updateMatches[updateMatches.length - 1][1]
+  const measuredAt = updateDates.length > 0
+    ? updateDates.reduce((newest, d) => (d > newest ? d : newest))
     : (dateMatch ? dateMatch[1] : '');
 
   // --- 1. H2-section entries (Prio A/B) ---

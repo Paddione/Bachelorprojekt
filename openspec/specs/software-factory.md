@@ -1884,11 +1884,11 @@ The system SHALL render a grouped, searchable, collapsible Agent Guide UI access
 ### Requirement: AK-03: Technische Machbarkeit
 <!-- source: ak-03-technical.spec.ts -->
 
-The system SHALL demonstrate technical feasibility by being reachable via HTTP/S for Keycloak, the main website, and Vaultwarden, and the website SHALL render without server-side errors.
+The system SHALL demonstrate technical feasibility by being reachable via HTTP/S for Pocket ID, the main website, and Vaultwarden, and the website SHALL render without server-side errors.
 
-#### Scenario: T3a: Keycloak ist erreichbar
-- **GIVEN** ein Keycloak-Dienst ist unter der konfigurierten URL betrieben
-- **WHEN** eine HTTP-GET-Anfrage an die Keycloak-URL gestellt wird
+#### Scenario: T3a: Pocket ID ist erreichbar
+- **GIVEN** ein Pocket-ID-Dienst ist unter der konfigurierten URL betrieben
+- **WHEN** eine HTTP-GET-Anfrage an die Pocket-ID-URL gestellt wird
 - **THEN** antwortet der Server mit einem HTTP-Statuscode 200, 301 oder 302
 
 #### Scenario: T3b: Website ist erreichbar
@@ -1906,9 +1906,9 @@ The system SHALL demonstrate technical feasibility by being reachable via HTTP/S
 - **WHEN** die Basis-URL im Browser aufgerufen wird
 - **THEN** ist der Body sichtbar und enthält keinen Text wie „Internal Server Error", „502 Bad Gateway" oder „503 Service Unavailable"
 
-#### Scenario: T3e: Im Browser — Keycloak-Login-Seite rendert
-- **GIVEN** Keycloak ist erreichbar und der Realm „workspace" ist konfiguriert
-- **WHEN** die Keycloak-Account-Seite im Browser aufgerufen wird
+#### Scenario: T3e: Im Browser — Pocket-ID-Login-Seite rendert
+- **GIVEN** Pocket ID ist erreichbar und die OIDC-Clients sind geseedet
+- **WHEN** die Pocket-ID-Oberfläche im Browser aufgerufen wird
 - **THEN** ist der Body sichtbar und enthält nicht den Text „502 Bad Gateway"
 
 ---
@@ -1963,7 +1963,7 @@ The system SHALL restrict access to the app catalog admin page to authenticated 
 #### Scenario: T1: /admin/app-catalog requires authentication (unauthenticated)
 - **GIVEN** ein nicht authentifizierter Nutzer
 - **WHEN** die URL `/admin/app-catalog` direkt aufgerufen wird
-- **THEN** erfolgt eine Weiterleitung weg von `/admin/app-catalog` (z. B. zur Login- oder Keycloak-Seite)
+- **THEN** erfolgt eine Weiterleitung weg von `/admin/app-catalog` (z. B. zur Login- oder Pocket-ID-Seite)
 
 #### Scenario: T2: /admin/app-catalog page loads and renders catalog for authenticated admins
 - **GIVEN** ein authentifizierter Administrator ist eingeloggt
@@ -1975,11 +1975,11 @@ The system SHALL restrict access to the app catalog admin page to authenticated 
 ### Requirement: Arena Mentolder Auth Setup
 <!-- source: arena-mentolder-auth-setup.spec.ts -->
 
-The system SHALL support OIDC-based authentication for the Arena service via Keycloak so that a persistent browser session can be saved for subsequent test runs.
+The system SHALL support OIDC-based authentication for the Arena service via Pocket ID so that a persistent browser session can be saved for subsequent test runs.
 
 #### Scenario: authenticate mentolder arena admin
 - **GIVEN** die Umgebungsvariable `E2E_ADMIN_PASS` ist gesetzt und der Arena-Server ist erreichbar
-- **WHEN** ein Login über Keycloak für den Arena-Admin-Nutzer durchgeführt wird
+- **WHEN** ein Login über Pocket ID für den Arena-Admin-Nutzer durchgeführt wird
 - **THEN** ist die Session authentifiziert und der Storage-State wird in `.auth/mentolder-arena-admin.json` gespeichert
 
 ---
@@ -2056,10 +2056,10 @@ The system SHALL provide a fully usable mobile portal experience on Android-clas
 
 The system SHALL gate Brett behind SSO authentication and, when the art library feature is present, SHALL load a character manifest and correctly attach Sprite meshes to placed figures.
 
-#### Scenario: Brett redirects unauthenticated users to Keycloak
+#### Scenario: Brett redirects unauthenticated users to Pocket ID
 - **GIVEN** ein Browser ohne Auth-State (kein eingeloggter Nutzer)
 - **WHEN** die Brett-URL direkt aufgerufen wird
-- **THEN** wird der Browser zur Keycloak-Auth-URL (`auth.` oder `realms/workspace`) weitergeleitet
+- **THEN** wird der Browser zur Pocket-ID-Auth-URL (`auth.` oder `authorize`) weitergeleitet
 
 #### Scenario: Brett loads art manifest and exposes character ids
 - **GIVEN** ein authentifizierter Nutzer und das bereitgestellte Brett-Image unterstützt die Art-Library-Funktion
@@ -2118,11 +2118,11 @@ The system SHALL provide a 3D mannequin board where figures can be added, select
 ### Requirement: Brett Mentolder Authentication Setup
 <!-- source: brett-mentolder-auth-setup.spec.ts -->
 
-The system SHALL authenticate users against brett.mentolder.de via Keycloak OIDC (oauth2-proxy) and persist a valid session state for subsequent test runs.
+The system SHALL authenticate users against brett.mentolder.de via Pocket ID OIDC (oauth2-proxy) and persist a valid session state for subsequent test runs.
 
 #### Scenario: authenticate mentolder brett admin
 - **GIVEN** der Brett-Healthcheck-Endpunkt ist erreichbar und gültige Admin-Zugangsdaten sind vorhanden
-- **WHEN** der Admin-Benutzer sich über den Keycloak-OIDC-Flow einloggt
+- **WHEN** der Admin-Benutzer sich über den Pocket-ID-OIDC-Flow einloggt
 - **THEN** gibt `/healthz` den HTTP-Status 200 zurück und der Session-State wird als JSON-Datei gespeichert
 
 ---
@@ -2132,10 +2132,10 @@ The system SHALL authenticate users against brett.mentolder.de via Keycloak OIDC
 
 The system SHALL render the Brett 3D board correctly on mobile viewports, handle touch events without errors, and enforce OAuth2 authentication for unauthenticated mobile users.
 
-#### Scenario: T1: unauthenticated visit redirects to Keycloak
+#### Scenario: T1: unauthenticated visit redirects to Pocket ID
 - **GIVEN** ein unauthentifizierter Browser ohne gespeicherten Session-State
 - **WHEN** die Brett-URL direkt aufgerufen wird
-- **THEN** wird der Nutzer zu einer Keycloak-Authentifizierungsseite weitergeleitet (URL enthält `auth.` oder `realms/workspace`)
+- **THEN** wird der Nutzer zu einer Pocket-ID-Authentifizierungsseite weitergeleitet (URL enthält `auth.` oder `authorize`)
 
 #### Scenario: T2: page has data-URI favicon (browser never requests /favicon.ico)
 - **GIVEN** ein authentifizierter Browser mit gespeichertem Session-State
@@ -2337,7 +2337,7 @@ The system SHALL make the Nextcloud Talk interface reachable, redirect unauthent
 #### Scenario: T1: Talk-Oberfläche öffnen
 - **GIVEN** die Nextcloud-URL ist konfiguriert
 - **WHEN** `/apps/spreed` (oder `/index.php/apps/spreed`) aufgerufen wird
-- **THEN** ist ein Talk-, Login- oder Keycloak-Authentifizierungselement auf der Seite sichtbar
+- **THEN** ist ein Talk-, Login- oder Pocket-ID-Authentifizierungselement auf der Seite sichtbar
 
 #### Scenario: T4: HPB Signaling-Server erreichbar
 - **GIVEN** die Signaling-Server-URL ist konfiguriert und der NATS-Backend-Dienst ist verfügbar
@@ -2347,7 +2347,7 @@ The system SHALL make the Nextcloud Talk interface reachable, redirect unauthent
 #### Scenario: T5: Talk-Link ohne Login aufrufbar (Gast)
 - **GIVEN** ein unauthentifizierter Browser und die Nextcloud-URL ist konfiguriert
 - **WHEN** `/apps/spreed` (oder `/index.php/apps/spreed`) aufgerufen wird
-- **THEN** wird eine Login-Seite oder ein Keycloak-Authentifizierungsformular angezeigt, was bestätigt dass die URL erreichbar und korrekt behandelt wird
+- **THEN** wird eine Login-Seite oder ein Pocket-ID-Authentifizierungsformular angezeigt, was bestätigt dass die URL erreichbar und korrekt behandelt wird
 
 ---
 
@@ -2386,7 +2386,7 @@ The system SHALL enforce authentication and authorization on all project file ma
 ### Requirement: FA-05: Nutzerverwaltung
 <!-- source: fa-05-user-mgmt.spec.ts -->
 
-The system SHALL protect all client management API endpoints behind admin authentication and provide SSO-based login by redirecting to Keycloak.
+The system SHALL protect all client management API endpoints behind admin authentication and provide SSO-based login by redirecting to Pocket ID.
 
 #### Scenario: T1: /api/admin/clients/create requires admin auth
 - **GIVEN** ein nicht authentifizierter HTTP-Client
@@ -2413,7 +2413,7 @@ The system SHALL protect all client management API endpoints behind admin authen
 - **WHEN** die URL `/registrieren` aufgerufen wird
 - **THEN** ist eine Überschrift mit dem Text „Registrieren" sichtbar
 
-#### Scenario: T6: /api/auth/login redirects to Keycloak (SSO)
+#### Scenario: T6: /api/auth/login redirects to Pocket ID (SSO)
 - **GIVEN** ein nicht authentifizierter HTTP-Client ohne Weiterleitungsfolgen
 - **WHEN** ein GET-Request an `/api/auth/login` gesendet wird
 - **THEN** antwortet der Server mit HTTP 302 und einem `Location`-Header, der `openid-connect/auth` enthält
@@ -2544,7 +2544,7 @@ The system SHALL expose an authentication status endpoint that correctly reports
 #### Scenario: T6: /admin page does not return Internal Server Error
 - **GIVEN** ein Browser ohne aktive Sitzung
 - **WHEN** die URL `/admin` aufgerufen wird
-- **THEN** enthält die Seite weder den Text „Internal Server Error" noch „500" (Weiterleitung zu Keycloak ist zulässig)
+- **THEN** enthält die Seite weder den Text „Internal Server Error" noch „500" (Weiterleitung zu Pocket ID ist zulässig)
 
 ---
 
@@ -2595,9 +2595,9 @@ The system SHALL provide a user-facing registration page with all required form 
 ### Requirement: FA-15: OIDC Website Login
 <!-- source: fa-15-oidc.spec.ts -->
 
-The system SHALL implement OIDC-based authentication for the website by redirecting login requests to Keycloak, exposing a session status endpoint, and displaying the correct navigation elements based on authentication state.
+The system SHALL implement OIDC-based authentication for the website by redirecting login requests to Pocket ID, exposing a session status endpoint, and displaying the correct navigation elements based on authentication state.
 
-#### Scenario: T1: /api/auth/login redirects to Keycloak
+#### Scenario: T1: /api/auth/login redirects to Pocket ID
 - **GIVEN** ein nicht authentifizierter HTTP-Client
 - **WHEN** ein GET-Request an `/api/auth/login` ohne Weiterleitung gesendet wird
 - **THEN** antwortet das System mit HTTP 302 und einer `Location`-Header, der `openid-connect/auth` und `client_id=website` enthält
@@ -2784,7 +2784,7 @@ The system SHALL manage invoice payment lifecycle correctly by transitioning sta
 ### Requirement: FA-23: Vaultwarden Passwort-Manager
 <!-- source: fa-23-vaultwarden.spec.ts -->
 
-The system SHALL host a functioning Vaultwarden instance that serves its login UI, provides an email input field, exposes an SSO login button for Keycloak integration, and responds to its health endpoint with HTTP 200.
+The system SHALL host a functioning Vaultwarden instance that serves its login UI, provides an email input field, exposes an SSO login button for Pocket ID integration, and responds to its health endpoint with HTTP 200.
 
 #### Scenario: T1: Vaultwarden login page loads
 - **GIVEN** die Vaultwarden-Instanz ist im Cluster erreichbar

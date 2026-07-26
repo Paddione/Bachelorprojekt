@@ -40,13 +40,13 @@ docs/diagrams/architecture.md                 merge=ours linguist-generated=true
 
 # ── git-crypt-managed secrets (encrypted at rest in this PUBLIC repo) ──
 # NOTE: environments/certs/*.pem are PUBLIC sealing certs — intentionally NOT listed here.
+# SSOT: dev-tools.yaml lives under environments/.secrets/ (wildcard below catches it)
 environments/.secrets/**            filter=git-crypt diff=git-crypt
-deploy/mcp/claude-code-secrets.yaml filter=git-crypt diff=git-crypt
+# deploy/mcp/claude-code-secrets.yaml — REMOVED (file never existed on main)
+# dotfiles/opencode/config.json — REMOVED: secrets now only in SSOT (environments/.secrets/dev-tools.yaml)
+# dotfiles/agy/settings.json      — REMOVED: secrets now only in SSOT (environments/.secrets/dev-tools.yaml)
 # .claude/settings.json ist NICHT mehr git-crypt-verschluesselt (T002213): die
 # beiden einzigen Secrets (GITHUB_PERSONAL_ACCESS_TOKEN, BRAINTRUST_API_KEY)
-# liegen jetzt in ~/.claude/settings.json (User-Scope). Der Rest der Datei ist
-# Team-Konfiguration und soll lesbar sein. Traegst du dort wieder ein Secret ein,
-# gehoert es nach ~/.claude/settings.json oder .claude/settings.local.json
-# (gitignored) — NICHT hierher zurueck.
-dotfiles/opencode/config.json       filter=git-crypt diff=git-crypt
-dotfiles/agy/settings.json          filter=git-crypt diff=git-crypt
+# liegen jetzt in ~/.claude/settings.json (User-Scope) — injected by dotfiles/install.sh.
+# Traegst du dort wieder ein Secret ein, gehoert es nach environments/.secrets/dev-tools.yaml
+# (SSOT) — NICHT hierher zurueck.

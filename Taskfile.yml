@@ -175,6 +175,11 @@ tasks:
       - echo "=== Resource Usage ==="
       - docker stats --no-stream --format "table {{`{{.Name}}`}}\t{{`{{.CPUPerc}}`}}\t{{`{{.MemUsage}}`}}" $(docker ps -q --filter "label=app=k3d") 2>/dev/null || true
 
+  dev:bootstrap:
+    desc: "Install harness configs + inject secrets from SSOT (environments/.secrets/dev-tools.yaml)"
+    cmds:
+      - bash dotfiles/install.sh
+
   dev:reset:
     desc: "One-Click-Reset des dev-k3d-Clusters (REBUILD=1 baut Images neu, CONFIRM=yes überspringt Prompt)"
     vars:

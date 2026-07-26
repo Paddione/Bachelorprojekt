@@ -1,0 +1,99 @@
+# .gitleaks.toml — gitleaks configuration for the Bachelorprojekt monorepo
+#
+# Git-crypt managed paths are explicitly allowlisted because encrypted blobs
+# have maximum entropy — they trigger false positives on every entropy-based
+# rule. The canonical protection for those paths is git-crypt (encrypted at rest,
+# verified via scripts/git-crypt-guard.sh in CI and the pre-commit hook). This
+# config focuses on everything OUTSIDE the git-crypt boundary.
+#
+# If you add a new git-crypt-managed path, add it to both:
+#   - .gitattributes  (filter=git-crypt diff=git-crypt)
+#   - allowlist.paths below
+#   - scripts/git-crypt-guard.sh is_managed()
+
+# Base path for allowlist — repo root
+[allowlist]
+  description = "git-crypt encrypted blobs are excluded (they have max entropy = false positives)"
+  paths = [
+    # git-crypt managed — encrypted at rest, verified by git-crypt-guard.sh
+    "(?i)environments/\\.secrets/.*",
+    "(?i)deploy/mcp/claude-code-secrets\\.yaml",
+    "(?i)dotfiles/opencode/config\\.json",
+    "(?i)dotfiles/agy/settings\\.json",
+    # Generated artifacts that look like secrets but aren't
+    "(?i)docs/generated/.*",
+    "(?i)k3d/docs-content-built/.*",
+    # Lock files with integrity hashes (often match entropy/token patterns)
+    "(?i)pnpm-lock\\.yaml",
+    "(?i)package-lock\\.json",
+    # Test fixtures with placeholder values
+    "(?i)tests/.*fixtures/.*",
+    "(?i)tests/spec/brain-auto-memory\\.bats",
+    # Docs with German compound words matching token patterns (e.g. "sk-Automatisierungstool")
+    "(?i)docs/bereitstellungsdetails\\.md",
+    # Archived plans with test data patterns
+    "(?i)openspec/changes/archive/.*",
+    # Skill references with YAML examples containing fake private keys
+    "(?i)\\.claude/skills/gitops-knowledge/references/.*",
+    ".gitattributes",
+    ".gitignore",
+  ]
+
+# ── Standard rules ─────────────────────────────────────────────────────
+
+# High-confidence tokens based on known formats
+[[rules]]
+  id = "github-token"
+  description = "GitHub Personal Access Token"
+  regex = '''(?:ghp_|gho_|ghu_|ghs_|ghr_)[A-Za-z0-9_]{36,}'''
+  tags = ["key", "github"]
+
+[[rules]]
+  id = "github-app-token"
+  description = "GitHub App Installation Token"
+  regex = '''(?:ghs_)[A-Za-z0-9_]{36,}'''
+  tags = ["key", "github"]
+
+[[rules]]
+  id = "slack-token"
+  description = "Slack Bot/Legacy Token"
+  regex = '''xox[baprs]-[0-9a-zA-Z]{10,}'''
+  tags = ["key", "slack"]
+
+[[rules]]
+  id = "slack-webhook"
+  description = "Slack Webhook URL"
+  regex = '''https://hooks\.slack\.com/services/[A-Za-z0-9+/]{44,}'''
+  tags = ["key", "slack"]
+
+[[rules]]
+  id = "openai-api-key"
+  description = "OpenAI API Key"
+  regex = '''sk-[A-Za-z0-9]{20,}'''
+  tags = ["key", "openai"]
+
+[[rules]]
+  id = "google-api-key"
+  description = "Google API Key"
+  regex = '''AIza[0-9A-Za-z\-_]{35,}'''
+  tags = ["key", "google"]
+
+[[rules]]
+  id = "aws-access-key"
+  description = "AWS Access Key ID"
+  regex = '''AKIA[0-9A-Z]{16}'''
+  tags = ["key", "aws"]
+
+# Private key markers
+[[rules]]
+  id = "private-key"
+  description = "Private/secret key file content"
+  regex = '''-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'''
+  tags = ["key", "private"]
+
+# JWT-like tokens
+[[rules]]
+  id = "jwt-token"
+  description = "JSON Web Token (JWT)"
+  regex = '''eyJ[A-Za-z0-9\-_]+\.eyJ[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+'''
+  tags = ["key", "jwt"]

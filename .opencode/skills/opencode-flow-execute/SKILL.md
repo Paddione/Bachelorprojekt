@@ -82,8 +82,15 @@ bash scripts/agent-msg.sh post "dev-flow-execute startet Arbeit an Ticket $TICKE
 ```bash
 bash scripts/agent-lock.sh reap
 bash scripts/agent-msg.sh read --unread
-git fetch origin main && git pull --rebase origin main
+MAIN_BRANCH=$(cd "$MAIN_REPO" && git rev-parse --abbrev-ref HEAD)
+if [ "$MAIN_BRANCH" = "main" ]; then
+  (cd "$MAIN_REPO" && git fetch origin main && git pull --rebase origin main)
+else
+  (cd "$MAIN_REPO" && git fetch origin main:main) || echo "Hauptcheckout auf $MAIN_BRANCH - nur fetch, kein pull"
+fi
 ```
+
+> **Hinweis:** Diese Änderung verhindert, dass `git pull --rebase` versehentlich einen Remote-Branch rebast, wenn der Hauptcheckout nicht auf `main` liegt. Verifikation: `bash scripts/test-dev-flow-execute-sync.sh`.
 
 ## Schritt 0: Worktree-Konsistenz
 

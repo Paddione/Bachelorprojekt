@@ -19,7 +19,6 @@ resources:
 components:
   - ../components/fleet-common
 
-# realm-template removed — Keycloak decommissioned
 generatorOptions:
   disableNameSuffixHash: true
 

@@ -292,3 +292,74 @@ data:
     return 1
   }
 }
+
+# ── T002205: Keycloak-Abschaltung vollstaendig ──────────────────────────
+# SSOT: openspec/specs/auth-sso.md → "Single-Sign-On für alle Platform-Services"
+
+_repo_root() { cd "${BATS_TEST_DIRNAME}/../.." && pwd; }
+
+@test "T002205: Realm-Import-Skripte existieren nicht mehr" {
+  local root; root="$(_repo_root)"
+  local found=""
+  [ ! -e "${root}/scripts/import-entrypoint.sh" ] || found="$found scripts/import-entrypoint.sh"
+  [ ! -e "${root}/prod/import-entrypoint.sh" ]    || found="$found prod/import-entrypoint.sh"
+  [ -z "$found" ] || {
+    echo "FAIL: Keycloak-Realm-Import-Skripte wieder da:$found"
+    return 1
+  }
+}
+
+@test "T002205: deploy.sh legt keine keycloak-import-script ConfigMap an" {
+  local root; root="$(_repo_root)"
+  ! grep -qE 'keycloak-import-script|import-entrypoint\.sh' "${root}/k3d/deploy.sh" || {
+    echo "FAIL: k3d/deploy.sh verdrahtet wieder den Keycloak-Realm-Import."
+    return 1
+  }
+}
+
+@test "T002205: Kustomize-Bases referenzieren keine Keycloak-Generatoren" {
+  local root; root="$(_repo_root)"
+  local bad=""
+  local f
+  for f in k3d/kustomization.yaml prod/kustomization.yaml \
+           prod-mentolder/kustomization.yaml prod-korczewski/kustomization.yaml \
+           prod-fleet/staging/kustomization.yaml; do
+    ! grep -qE 'realm-template|keycloak-import-script' "${root}/${f}" || bad="$bad $f"
+  done
+  [ -z "$bad" ] || { echo "FAIL: Keycloak-Generator-Referenzen in:$bad"; return 1; }
+}
+
+@test "T002205: KEYCLOAK_*-Keys sind aus Schema und Secrets entfernt" {
+  local root; root="$(_repo_root)"
+  local bad=""
+  local f
+  for f in "${root}/environments/schema.yaml" "${root}"/environments/.secrets/*.yaml; do
+    [ -f "$f" ] || continue
+    # git-crypt-gesperrte Dateien sind Binaerblobs — nicht auswertbar, ueberspringen
+    grep -Iq . "$f" 2>/dev/null || continue
+    ! grep -qE '^[[:space:]]*KEYCLOAK_(DB|ADMIN)_PASSWORD:' "$f" || bad="$bad $(basename "$f")"
+  done
+  [ -z "$bad" ] || {
+    echo "FAIL: KEYCLOAK_*_PASSWORD wieder vorhanden in:$bad"
+    echo "      Keycloak ist decommissioned — Key nicht re-seeden (siehe environments/schema.yaml)."
+    return 1
+  }
+}
+
+@test "T002205: Backup-Restore kennt kein keycloak-Ziel mehr" {
+  local root; root="$(_repo_root)"
+  local bad=""
+  local f
+  for f in scripts/backup-restore-lib.sh scripts/backup-restore-db.sh scripts/backup-restore.sh; do
+    ! grep -qi 'keycloak' "${root}/${f}" || bad="$bad $f"
+  done
+  [ -z "$bad" ] || { echo "FAIL: keycloak-Backup-Ziel noch verdrahtet in:$bad"; return 1; }
+}
+
+@test "T002205: shared-db exportiert keinen keycloak-db Alias-Service" {
+  local root; root="$(_repo_root)"
+  ! grep -qE '^[[:space:]]*name:[[:space:]]*keycloak-db[[:space:]]*$' "${root}/k3d/shared-db.yaml" || {
+    echo "FAIL: Alias-Service keycloak-db in k3d/shared-db.yaml wieder vorhanden."
+    return 1
+  }
+}

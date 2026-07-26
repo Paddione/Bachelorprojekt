@@ -176,11 +176,17 @@ project_block() {
   echo "$output" | grep -qE '^ENV BUILT_AT'
 }
 
-@test "both website build workflows pass GIT_SHA as a build-arg" {
-  for wf in build-website.yml build-website-korczewski.yml; do
-    run grep -q 'GIT_SHA=' "$REPO/.github/workflows/$wf"
-    [ "$status" -eq 0 ]
-  done
+@test "the website build workflow passes GIT_SHA as a build-arg" {
+  # One brand-neutral image feeds both the mentolder and korczewski deploy
+  # jobs (T001229/T001276), so there is a single build workflow to patch —
+  # CLAUDE.md still names a build-website-korczewski.yml that does not exist.
+  run grep -q 'GIT_SHA=' "$REPO/.github/workflows/build-website.yml"
+  [ "$status" -eq 0 ]
+}
+
+@test "the website build workflow passes BUILT_AT as a build-arg" {
+  run grep -q 'BUILT_AT=' "$REPO/.github/workflows/build-website.yml"
+  [ "$status" -eq 0 ]
 }
 
 @test "health endpoint reports the built commit" {

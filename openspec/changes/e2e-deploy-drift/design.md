@@ -69,7 +69,7 @@ ENV GIT_SHA=${GIT_SHA}
 ENV BUILT_AT=${BUILT_AT}
 ```
 
-Beide Build-Workflows (`build-website.yml`, `build-website-korczewski.yml`) übergeben sie im `docker/build-push-action`-Step:
+Der Build-Workflow `build-website.yml` übergibt sie im `docker/build-push-action`-Step:
 
 ```yaml
 build-args: |
@@ -164,7 +164,6 @@ An automated test SHALL fail when an auth-setup that calls `loginViaE2E()` does 
 |---|---|
 | `website/Dockerfile` | `ARG`/`ENV` für `GIT_SHA` + `BUILT_AT` in Runtime-Stage |
 | `.github/workflows/build-website.yml` | `built_at`-Output in `compute-tags`; `build-args` im Build-Step |
-| `.github/workflows/build-website-korczewski.yml` | dito |
 | `website/src/pages/api/health.ts` | `commit` + `builtAt` ergänzen |
 | `tests/e2e/specs/global-db-cleanup.ts` | Drift-Check im `globalSetup` |
 | `website/src/pages/api/admin/tests/ingest-e2e.ts` | Ticket-Gate bei Drift |

@@ -187,10 +187,10 @@ g_db09_query() {
 # G-OPS01: Pods nicht Running/Ready (fleet, beide Brand-Namespaces)
 # SSOT: openspec/changes/ops-pods-not-ready/tasks.md [T002097]
 #
-# Beide Tests sind statisch (kein Live-Cluster nötig, CI-lauffähig) und
-# decken die zwei in Scope stehenden Root Causes der 2026-07-23-Re-Messung
-# ab: fehlender Secret-Key (korczewski) und ein nicht getracktes Deployment
-# mit RWO-PVC-inkompatibler RollingUpdate-Strategie (livekit-egress).
+# Der Test ist statisch (kein Live-Cluster nötig, CI-lauffähig) und
+# deckt den in Scope stehenden Root Cause der 2026-07-23-Re-Messung
+# ab: fehlender Secret-Key (korczewski). livekit-egress-Test G-OPS01b
+# entfernt per T002184.
 # ═══════════════════════════════════════════════════════════════════
 
 # Collect every secretKeyRef.key whose secretName == "workspace-secrets"
@@ -273,30 +273,6 @@ PY
     printf '  %s\n' "${missing[@]}"
     return 1
   fi
-}
-
-@test "G-OPS01b: livekit-egress is tracked as a Kustomize manifest with a Recreate rollout strategy" {
-  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
-  local manifest="${REPO_ROOT}/k3d/livekit-egress.yaml"
-
-  [ -f "$manifest" ] || { echo "FAIL: $manifest does not exist — livekit-egress Deployment is unmanaged infra drift (kubectl apply only, no git source)"; return 1; }
-
-  run python3 - "$manifest" <<'PY'
-import sys, yaml
-file = sys.argv[1]
-with open(file) as fh:
-    docs = [d for d in yaml.safe_load_all(fh) if d]
-deploys = [d for d in docs if d.get("kind") == "Deployment" and d.get("metadata", {}).get("name") == "livekit-egress"]
-if not deploys:
-    print("no Deployment named livekit-egress found")
-    sys.exit(1)
-strategy_type = (deploys[0].get("spec", {}).get("strategy") or {}).get("type")
-if strategy_type != "Recreate":
-    print(f"strategy.type = {strategy_type!r}, expected 'Recreate' (RollingUpdate races with the RWO livekit-recordings-pvc across nodes)")
-    sys.exit(1)
-print("ok")
-PY
-  [ "$status" -eq 0 ] || { echo "FAIL: $output"; return 1; }
 }
 
 # --- D1 whitelist parser (T002107) ---

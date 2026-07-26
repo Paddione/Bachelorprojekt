@@ -81,7 +81,7 @@ EOF
   _make_fake_curl
   FIXTURE_GET_DOMAINS="$(mktemp)"; echo '{"record_info":[]}' > "$FIXTURE_GET_DOMAINS"
   run env PATH="$FAKE_BIN:$PATH" \
-      PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+      PROD_DOMAIN=mentolder.de FLEET_NODE_IP=204.168.244.104 \
       IPV64_API_KEY=testkey FLEET_DNS_STATE_DIR="$BATS_TEST_TMPDIR" \
       bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" cutover
   assert_success
@@ -93,7 +93,7 @@ EOF
   _make_fake_curl
   FIXTURE_GET_DOMAINS="$(mktemp)"; echo '{"record_info":[]}' > "$FIXTURE_GET_DOMAINS"
   env PATH="$FAKE_BIN:$PATH" \
-      PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+      PROD_DOMAIN=mentolder.de FLEET_NODE_IP=204.168.244.104 \
       IPV64_API_KEY=testkey FLEET_DNS_STATE_DIR="$BATS_TEST_TMPDIR" \
       bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" cutover
   [ -f "$BATS_TEST_TMPDIR/fleet-dns-rollback-mentolder.de.state" ]
@@ -103,10 +103,10 @@ EOF
   _make_fake_curl
   cat > "$BATS_TEST_TMPDIR/fleet-dns-rollback-mentolder.de.state" <<'STATE'
 A|@|46.225.125.59
-A|livekit|46.225.125.59
+
 STATE
   run env PATH="$FAKE_BIN:$PATH" \
-      PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+      PROD_DOMAIN=mentolder.de FLEET_NODE_IP=204.168.244.104 \
       IPV64_API_KEY=testkey FLEET_DNS_STATE_DIR="$BATS_TEST_TMPDIR" \
       bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" rollback
   assert_success
@@ -117,7 +117,7 @@ STATE
 @test "rollback: fails loudly when no state file exists" {
   _make_fake_curl
   run env PATH="$FAKE_BIN:$PATH" \
-      PROD_DOMAIN=mentolder.de LIVEKIT_PIN_IP=204.168.244.104 \
+      PROD_DOMAIN=mentolder.de FLEET_NODE_IP=204.168.244.104 \
       IPV64_API_KEY=testkey FLEET_DNS_STATE_DIR="$BATS_TEST_TMPDIR" \
       bash "$REPO_ROOT/scripts/fleet-dns-cutover.sh" rollback
   assert_failure

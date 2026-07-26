@@ -862,8 +862,8 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   ! grep -qE '"matchPackagePatterns"' "$cfg" || {
     echo "FAIL: renovate.json5 verwendet noch matchPackagePatterns (deprecated)."
     echo "      Renovate meldet 'Config needs migrating'. Neue Syntax kapselt den"
-    echo "      Regex in Slashes, z.B. matchPackageNames: [\"/^livekit//\"]."
-    echo "      Betroffen sind die Gruppierungen livekit/nextcloud/keycloak und die"
+    echo "      Regex in Slashes, z.B. matchPackageNames: [\"/^example//\"]."
+    echo "      Betroffen sind die Gruppierungen nextcloud/keycloak und die"
     echo "      Deaktivierung von ghcr.io/paddione/* — verschwindet die Option in"
     echo "      einem Major, greifen diese Regeln still nicht mehr."
     return 1

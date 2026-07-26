@@ -25,7 +25,6 @@ const NAMED_SCOPES = [
   'janus',
   'keycloak',
   'portal',
-  'livekit',
   'whiteboard',
   'nextcloud',
   'openclaw',

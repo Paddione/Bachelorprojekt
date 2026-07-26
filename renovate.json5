@@ -99,13 +99,6 @@
 
     // LiveKit image family.
     // matchPackageNames with slash-wrapped regex — matchPackagePatterns is
-    // deprecated upstream ("Config needs migrating", T002165).
-    {
-      "matchManagers": ["kubernetes"],
-      "matchPackageNames": ["/^livekit//"],
-      "groupName": "livekit images"
-    },
-
     // Nextcloud image family.
     {
       "matchManagers": ["kubernetes"],

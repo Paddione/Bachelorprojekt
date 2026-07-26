@@ -67,8 +67,14 @@ while true; do
     continue
   fi
 
+  TOTAL_CHECKS=$(gh api "repos/Paddione/Bachelorprojekt/commits/$(git rev-parse HEAD)/check-runs" -q '.total_count' 2>/dev/null || echo "0")
+  if [[ "$TOTAL_CHECKS" -eq 0 ]]; then
+    echo "⚠ Keine CI-Checks gefunden (total_count=0) — CI wurde nie gestartet oder läuft noch."
+    exit 5
+  fi
+
   if [[ -z "$FAILED_CHECKS" ]]; then
-    echo "✅ Alle CI-Checks grün."
+    echo "✅ $TOTAL_CHECKS CI-Checks, alle grün."
     exit 0
   fi
 

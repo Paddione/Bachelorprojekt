@@ -1012,3 +1012,66 @@ flux_render_script() {
   }
   return 0
 }
+
+# ── T002186: devflow-ci-watch.sh soll bei 0 CI-Checks mit Code 5 abbrechen ──
+# Regression: devflow-ci-watch.sh meldete "Alle CI-Checks grün" auch dann,
+# wenn gar keine Checks vorhanden waren (total_count=0). Das maskiert einen
+# fehlgeschlagenen oder noch nicht gestarteten CI-Lauf.
+
+@test "T002186: devflow-ci-watch: 0 check-runs exits with code 5" {
+  # Mock: simulate zero check-runs
+  local mockdir
+  mockdir="$(mktemp -d)"
+  
+  # Der Mock muss HERMETISCH sein: kein Fall darf auf das echte `gh`
+  # durchfallen. `devflow-ci-watch.sh` ruft u.a. `gh pr checks --watch` auf —
+  # ohne Mock blockiert das unbegrenzt gegen die echte GitHub-API und wuergt
+  # den ganzen CI-Job ab, statt den Test fehlschlagen zu lassen.
+  cat > "$mockdir/gh" <<'MOCKEOF'
+#!/usr/bin/env bash
+# Mock gh fuer den T002186-Test — deckt JEDEN Aufruf ab, kein Passthrough.
+case "$*" in
+  *"pr view"*"--json statusCheckRollup"*)
+    # Keine fehlgeschlagenen Checks
+    echo ""
+    ;;
+  *"api"*"check-runs"*)
+    # Der zu testende Zustand: null Check-Runs.
+    # Das Skript ruft `gh api … -q '.total_count'` auf — der echte gh liefert
+    # also den extrahierten Wert, nicht das JSON-Objekt.
+    echo "0"
+    ;;
+  *"pr view"*"--json number"*)
+    echo "123"
+    ;;
+  *"pr view"*"--json mergeStateStatus"*)
+    echo "CLEAN"
+    ;;
+  *"pr view"*"--json mergeable"*)
+    echo "MERGEABLE"
+    ;;
+  *"pr checks"*)
+    # Wuerde sonst mit --watch blockieren
+    ;;
+  *)
+    # Catch-All: still und erfolgreich, NIEMALS an das echte gh delegieren
+    ;;
+esac
+exit 0
+MOCKEOF
+  chmod +x "$mockdir/gh"
+
+  # timeout als Sicherheitsnetz: haengt das Skript trotz Mock, soll der Test
+  # fehlschlagen (124) statt den CI-Job ins Job-Timeout laufen zu lassen.
+  run env PATH="$mockdir:$PATH" MAX_CI_ATTEMPTS=1 \
+    timeout 60 bash "$REPO_ROOT/scripts/devflow-ci-watch.sh" T002186 "http://example.com/pr/1"
+
+  # Clean up
+  rm -rf "$mockdir"
+  
+  # Assert exit code 5
+  [ "$status" -eq 5 ]
+  
+  # Assert error message contains "Keine CI-Checks"
+  [[ "$output" =~ "Keine CI-Checks" ]]
+}

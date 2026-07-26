@@ -34,14 +34,19 @@
     if (amount === 0) { error = 'Betrag darf nicht 0 sein.'; return; }
     if (amount < 0 && !notes) { error = 'Negative Buchung erfordert Notiz.'; return; }
     saving = true; error = '';
-    const res = await fetch(`/api/admin/billing/${invoiceId}/payments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paidAt, amount, method, reference, notes }),
-    });
-    saving = false;
-    if (!res.ok) { error = await res.text(); return; }
-    onSaved();
+    try {
+      const res = await fetch(`/api/admin/billing/${invoiceId}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paidAt, amount, method, reference, notes }),
+      });
+      saving = false;
+      if (!res.ok) { error = await res.text(); return; }
+      onSaved();
+    } catch (e) {
+      saving = false;
+      error = 'Netzwerkfehler — Zahlung konnte nicht gespeichert werden.';
+    }
   }
 </script>
 

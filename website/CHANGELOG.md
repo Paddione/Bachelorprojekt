@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.3...website-v1.216.4) (2026-07-26)
+
+
+### Bug Fixes
+
+* **ci:** replace enumerated spec tests with task test:spec full glob in test-factory job [T002182] ([#3285](https://github.com/Paddione/Bachelorprojekt/issues/3285)) ([f0b5b6a](https://github.com/Paddione/Bachelorprojekt/commit/f0b5b6a69b923603703f134ad7465ce1856df227))
+
 ## [1.216.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.2...website-v1.216.3) (2026-07-26)
 
 

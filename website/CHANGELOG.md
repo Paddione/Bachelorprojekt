@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.215.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.13...website-v1.215.0) (2026-07-26)
+
+
+### Features
+
+* **admin:** migrate 16 admin-* tokens from factory-tokens.css to global.css, fix false-green test [T002200] ([#3257](https://github.com/Paddione/Bachelorprojekt/issues/3257)) ([0ee23f1](https://github.com/Paddione/Bachelorprojekt/commit/0ee23f1972fbd751fb6c66aa5e53c87e51b75a70))
+
+
+### Bug Fixes
+
+* **billing:** handle fetch rejection in RecordPaymentModal to prevent stuck saving state [T002193] ([#3255](https://github.com/Paddione/Bachelorprojekt/issues/3255)) ([6a6953a](https://github.com/Paddione/Bachelorprojekt/commit/6a6953a374a7a48b5716a99d11fa4b28645bfd1c))
+
 ## [1.214.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.12...website-v1.214.13) (2026-07-26)
 
 

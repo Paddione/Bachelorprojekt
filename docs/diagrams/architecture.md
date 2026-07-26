@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-91 Services · 1911 Abhängigkeitskanten · 414 API-Endpoints
+90 Services · 1911 Abhängigkeitskanten · 414 API-Endpoints
 
 ## Service-Map
 
@@ -44,7 +44,6 @@ flowchart LR
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
   mentolder_web["mentolder-web"]:::default
-  health_goals_check["health-goals-check"]:::default
   monitoring_grafana["monitoring-grafana"]:::default
   monitoring_kube_state_metrics["monitoring-kube-state-metrics"]:::default
   monitoring_operator["monitoring-operator"]:::default
@@ -2051,7 +2050,6 @@ flowchart TB
     oauth2_proxy_dev["oauth2-proxy-dev"]
   end
   subgraph monitoring["monitoring"]
-    health_goals_check(["health-goals-check"])
     monitoring_grafana["monitoring-grafana"]
     monitoring_kube_state_metrics["monitoring-kube-state-metrics"]
     monitoring_operator["monitoring-operator"]

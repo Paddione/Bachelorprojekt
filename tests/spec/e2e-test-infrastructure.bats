@@ -146,3 +146,136 @@ project_block() {
   [ "$status" -eq 0 ]
   ! echo "$output" | grep -q 'fa-51'
 }
+
+# ══ Deploy-drift detection (T002202) ═══════════════════════════════════
+#
+# An E2E run against prod measures two things at once: the code and the
+# deploy state. Without telling them apart it files tickets against bugs
+# that do not exist in the repo (T002192). These tests pin the machinery
+# that makes the deployed commit observable and blocks auto-ticketing when
+# the tested SHA and the deployed SHA disagree.
+
+# ── R1: the deployed commit is observable ─────────────────────────────
+
+@test "website Dockerfile declares GIT_SHA in the runtime stage" {
+  # ARG is per-stage: an ARG in the build stage alone is invisible at runtime.
+  # build-website.yml already warns that this Dockerfile once had no ARG line,
+  # which silently turned --build-arg values into no-ops.
+  local dockerfile="$REPO/website/Dockerfile"
+  run awk '/^FROM .* AS runtime/ { inside = 1 } inside' "$dockerfile"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qE '^ARG GIT_SHA'
+  echo "$output" | grep -qE '^ENV GIT_SHA'
+}
+
+@test "website Dockerfile declares BUILT_AT in the runtime stage" {
+  local dockerfile="$REPO/website/Dockerfile"
+  run awk '/^FROM .* AS runtime/ { inside = 1 } inside' "$dockerfile"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qE '^ARG BUILT_AT'
+  echo "$output" | grep -qE '^ENV BUILT_AT'
+}
+
+@test "both website build workflows pass GIT_SHA as a build-arg" {
+  for wf in build-website.yml build-website-korczewski.yml; do
+    run grep -q 'GIT_SHA=' "$REPO/.github/workflows/$wf"
+    [ "$status" -eq 0 ]
+  done
+}
+
+@test "health endpoint reports the built commit" {
+  local health="$REPO/website/src/pages/api/health.ts"
+  run grep -q 'GIT_SHA' "$health"
+  [ "$status" -eq 0 ]
+  run grep -q 'commit' "$health"
+  [ "$status" -eq 0 ]
+}
+
+@test "health endpoint falls back to 'unknown' rather than omitting commit" {
+  # A missing field would let a consumer read it as undefined and treat the
+  # run as drift-free. The value must always be present.
+  run grep -q "unknown" "$REPO/website/src/pages/api/health.ts"
+  [ "$status" -eq 0 ]
+}
+
+# ── R2: drift is visible during the run ───────────────────────────────
+
+@test "globalSetup compares deployed commit against tested SHA" {
+  local gs="$SPECS/global-db-cleanup.ts"
+  run grep -q 'DEPLOY_DRIFT' "$gs"
+  [ "$status" -eq 0 ]
+  run grep -qE 'GITHUB_SHA|/api/health' "$gs"
+  [ "$status" -eq 0 ]
+}
+
+# ── R3: drifted runs cannot open tickets ──────────────────────────────
+
+@test "ingest endpoint gates ticket creation on deploy drift" {
+  local ingest="$REPO/website/src/pages/api/admin/tests/ingest-e2e.ts"
+  run grep -q 'testedSha' "$ingest"
+  [ "$status" -eq 0 ]
+  run grep -q 'deploy-drift' "$ingest"
+  [ "$status" -eq 0 ]
+}
+
+@test "ingest drift gate treats an unknown SHA as drifted" {
+  # Fail closed. A gate that waves through a missing value is exactly the
+  # T002199 mistake in new clothes: build-website.yml documents that this
+  # build-arg chain has already snapped once.
+  run grep -q "unknown" "$REPO/website/src/pages/api/admin/tests/ingest-e2e.ts"
+  [ "$status" -eq 0 ]
+}
+
+@test "e2e workflow submits the tested SHA to the ingest endpoint" {
+  run grep -q 'testedSha' "$REPO/.github/workflows/e2e.yml"
+  [ "$status" -eq 0 ]
+}
+
+# ── R4: setup gates check the variable the code actually reads ────────
+#
+# T002199: the admin gate checked E2E_ADMIN_PASS while loginViaE2E()
+# authenticates with CRON_SECRET. The run HAD the credentials and threw
+# them away.
+#
+# Note a naive formulation of this test would NOT have caught it:
+# auth.ts does reference E2E_ADMIN_PASS — in getAdminCredentials(), a
+# different code path than the one the setup calls. The invariant has to
+# be per-function, not per-file.
+
+@test "loginViaE2E still authenticates via CRON_SECRET" {
+  # Guards the assumption the next test relies on. If loginViaE2E ever
+  # switches credentials, this fails first and points at the mapping
+  # instead of letting the gate test silently check the wrong variable.
+  local auth="$REPO/tests/e2e/lib/auth.ts"
+  run grep -q "const CRON_SECRET = process.env.CRON_SECRET" "$auth"
+  [ "$status" -eq 0 ]
+  run grep -q 'export async function loginViaE2E' "$auth"
+  [ "$status" -eq 0 ]
+}
+
+@test "auth setups calling loginViaE2E gate on CRON_SECRET" {
+  # Match the CALL, not the import: brett-mentolder-auth-setup.spec.ts
+  # imports loginViaE2E without ever calling it (it fixmes unconditionally
+  # because the oauth2-proxy login is unimplemented), so a filename-wide
+  # grep for the bare identifier would flag it wrongly.
+  local found=0
+  for f in "$SPECS"/*-auth-setup.spec.ts; do
+    grep -q 'loginViaE2E(' "$f" || continue
+    found=1
+    grep -q 'CRON_SECRET' "$f" \
+      || { echo "FAIL: $f calls loginViaE2E but never gates on CRON_SECRET"; return 1; }
+  done
+  [ "$found" -gt 0 ]
+}
+
+@test "no auth setup gates on a credential loginViaE2E does not read" {
+  # E2E_ADMIN_PASS belongs to getAdminCredentials(), not loginViaE2E().
+  # Gating the e2e-login path on it is the T002199 defect.
+  for f in "$SPECS"/*-auth-setup.spec.ts; do
+    grep -q 'loginViaE2E(' "$f" || continue
+    if grep -qE 'if \(!\s*ADMIN_PASS\s*\)|if \(!process\.env\.E2E_ADMIN_PASS\)' "$f"; then
+      echo "FAIL: $f gates the e2e-login path on E2E_ADMIN_PASS"
+      return 1
+    fi
+  done
+}

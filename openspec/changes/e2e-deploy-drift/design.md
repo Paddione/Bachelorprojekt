@@ -115,9 +115,18 @@ Bewusst in Kauf genommener Preis: Bricht die Build-Arg-Kette, entstehen keine Au
 
 ### K5 — Env-Var-Konsistenz (Erkenntnis 1)
 
-BATS-Test in `tests/spec/e2e-test-infrastructure.bats`: Jede `process.env.*`-Variable, die in einem `tests/e2e/specs/*-auth-setup.spec.ts`-Gate geprüft wird, muss auch in `tests/e2e/lib/auth.ts` konsumiert werden.
+BATS-Test in `tests/spec/e2e-test-infrastructure.bats`. Die Invariante muss **funktionsbezogen** sein, nicht dateibezogen:
 
-Verhindert die T002199-Klasse strukturell: Ein Gate, das eine andere Variable prüft als der Code darunter liest, ist kein Gate.
+> Ein Setup, das `loginViaE2E()` aufruft, muss auf `CRON_SECRET` gaten — der Variable, die genau diese Funktion liest.
+
+**Warum die naheliegende Formulierung nicht trägt.** Ein Test nach dem Muster „jede Gate-Variable muss irgendwo in `auth.ts` vorkommen" wäre bei `E2E_ADMIN_PASS` **grün** gewesen und hätte T002199 nicht gefangen: `auth.ts` referenziert die Variable sehr wohl — in `getAdminCredentials()`, einem anderen Code-Pfad als dem, den das Setup aufruft. Die Zuordnung Gate → Variable muss an der aufgerufenen Funktion hängen.
+
+Zwei Fallstricke, die beim Testbau auffielen und die die Implementierung beachten muss:
+
+- **Aufruf statt Import matchen.** `brett-mentolder-auth-setup.spec.ts` importiert `loginViaE2E`, ruft es aber nie auf — es macht unbedingt `testInfo.fixme(true, …)`, weil der oauth2-proxy-Login noch nicht implementiert ist. Ein grep auf den bloßen Bezeichner meldet es falsch-rot. Der Test muss auf `loginViaE2E(` prüfen.
+- **Nur der Admin-Pfad.** `mentolder-auth-setup.spec.ts` enthält einen zweiten `setup()`-Block für den Portal-User, in dem `writeEmptyState` legitim ist (fehlendes `E2E_USER_PASS` skippt nur die Portal-Tests). Ein Test, der die Datei als Ganzes betrachtet, erfasst ihn fälschlich mit.
+
+Ein **Meta-Test** sichert die Zuordnung selbst ab: Er prüft, dass `loginViaE2E` in `auth.ts` weiterhin `CRON_SECRET` liest. Wechselt die Funktion je ihre Credentials, schlägt er zuerst fehl und zeigt auf die Zuordnung — statt das Gate-Gate still die falsche Variable prüfen zu lassen.
 
 ## Requirements
 
@@ -140,10 +149,14 @@ The E2E `globalSetup` SHALL fetch the deployed commit per target host and compar
 
 **Scenario:** Given either side's SHA is missing or `"unknown"`, when ingest runs, then the run is treated as drifted and no tickets are opened.
 
-### R4 — Setup gates check the variable the code reads
-An automated test SHALL fail when an auth-setup gate checks a `process.env` variable that the underlying auth helper does not consume.
+### R4 — Setup gates check the variable the called function reads
+An automated test SHALL fail when an auth-setup that calls `loginViaE2E()` does not gate on `CRON_SECRET`, or gates the e2e-login path on a credential that `loginViaE2E()` does not read.
 
-**Scenario:** Given a setup gate checks `E2E_ADMIN_PASS` while `tests/e2e/lib/auth.ts` reads only `CRON_SECRET`, when the spec suite runs, then the test fails naming the mismatched variable.
+**Scenario:** Given a setup calls `loginViaE2E()` and gates on `E2E_ADMIN_PASS`, when the spec suite runs, then the test fails naming the file and the mismatched variable.
+
+**Scenario:** Given a setup imports `loginViaE2E` without calling it and fixmes unconditionally, when the spec suite runs, then the test does not flag it.
+
+**Scenario:** Given `loginViaE2E()` in `tests/e2e/lib/auth.ts` stops reading `CRON_SECRET`, when the spec suite runs, then the meta-test guarding the mapping fails.
 
 ## Betroffene Dateien
 

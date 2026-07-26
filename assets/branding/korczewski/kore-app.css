@@ -9,6 +9,9 @@ body.kore {
   background: var(--ink-900);
   color: var(--fg);
   font-family: var(--sans);
+  /* Override the mentolder-brass admin accent (factory-tokens.css) with the
+     korczewski copper accent for admin/portal surfaces. [T001846] */
+  --admin-primary: var(--copper);
 }
 
 /* Film grain on logged-in surfaces too */

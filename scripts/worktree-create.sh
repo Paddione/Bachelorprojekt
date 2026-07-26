@@ -247,6 +247,14 @@ if [ -n "$_source_branch" ] && [ "$_source_branch" != "HEAD" ] && [ "$_source_br
     echo "worktree-create: WARNUNG — Quell-Checkout ($MAIN_ROOT) steht auf Branch '$_source_branch', dieser Worktree auf '$BRANCH'. Verlinkte node_modules koennen von diesem Branch abweichen." >&2
 fi
 
+# T002239-M3: Guard reminder — warn that pnpm install inside a worktree
+# with symlinked node_modules breaks the main checkout's pnpm config.
+if [ -n "$(find "$WT_PATH" -maxdepth 3 -name pnpm-workspace.yaml -not -path '*/node_modules/*' -print -quit 2>/dev/null)" ]; then
+    echo "worktree-create: HINWEIS — 'pnpm install' in diesem Worktree wuerde die" >&2
+    echo "  Haupt-Checkout-Konfiguration von pnpm zerstoeren (symlink-bug T002239-M3)." >&2
+    echo "  Nutze 'scripts/guard-pnpm-install.sh' als Pre-Check vor pnpm install." >&2
+fi
+
 _ok=1   # reached a clean finish — disarm the rollback trap
 if [ "$BRANCH_EXISTS" -eq 1 ]; then
     echo "worktree-create: $WT_PATH ready on existing branch $BRANCH"

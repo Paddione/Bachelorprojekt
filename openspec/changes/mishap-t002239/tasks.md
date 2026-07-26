@@ -2,7 +2,7 @@
 title: "mishap-t002239 — Implementation Plan"
 ticket_id: T002239
 domains: [infra, test, website]
-status: active
+status: in_progress
 file_locks: []
 shared_changes: false
 batch_id: null

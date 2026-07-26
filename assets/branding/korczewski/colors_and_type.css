@@ -3,7 +3,7 @@
    Drop-in stylesheet. Loads fonts and exposes all design tokens.
    ========================================================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+/* Fonts are self-hosted via src/styles/fonts.css (T001930) */
 
 :root {
   /* ---------- Color · Aubergine Ink (deep purple-black) ------------------ */

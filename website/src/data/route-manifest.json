@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 114,
+  "count": 112,
   "routes": [
     {
       "route": "/",
@@ -317,14 +317,6 @@
     },
     {
       "route": "/admin/knowledge/templates",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/live",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -910,14 +902,6 @@
       "authTier": "portal",
       "brand": "both",
       "dynamic": true,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/portal/stream",
-      "authTier": "portal",
-      "brand": "both",
-      "dynamic": false,
       "excludeFromSweep": false,
       "media": false
     },

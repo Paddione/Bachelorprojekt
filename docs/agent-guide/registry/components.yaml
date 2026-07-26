@@ -236,38 +236,6 @@
   what_for_de: "Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Cloud."
   url: null
   links: []
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-# LiveKit stack removed per T002184
-  links: []
 - slug: whisper
   kind: software
   name: "Whisper"

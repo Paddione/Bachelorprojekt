@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-22T14:00:56.374Z
+> Generated at 2026-07-26T19:03:18.359Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -206,7 +206,6 @@
 | `/api/admin/ops/deployments/{ns}/{name}/restart` | POST | 🔐 admin | `website/src/pages/api/admin/ops/deployments/[ns]/[name]/restart.ts` |
 | `/api/admin/ops/deployments/{ns}/{name}/scale` | POST | 🔐 admin | `website/src/pages/api/admin/ops/deployments/[ns]/[name]/scale.ts` |
 | `/api/admin/ops/deployments/list` | GET | 🔐 admin | `website/src/pages/api/admin/ops/deployments/list.ts` |
-| `/api/admin/ops/dns/pin` | POST | 🔐 admin | `website/src/pages/api/admin/ops/dns/pin.ts` |
 | `/api/admin/ops/error-log` | POST, GET | 🔐 admin | `website/src/pages/api/admin/ops/error-log.ts` |
 | `/api/admin/ops/health` | GET | 🔐 admin | `website/src/pages/api/admin/ops/health.ts` |
 | `/api/admin/ops/log-stream/stream` | GET | 🔐 admin | `website/src/pages/api/admin/ops/log-stream/stream.ts` |

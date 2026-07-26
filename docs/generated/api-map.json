@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-22T14:00:56.374Z",
+  "generatedAt": "2026-07-26T19:03:18.359Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -1661,14 +1661,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/ops/deployments/list.ts"
-    },
-    {
-      "path": "/api/admin/ops/dns/pin",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/dns/pin.ts"
     },
     {
       "path": "/api/admin/ops/error-log",

@@ -18,7 +18,7 @@ UPDATE platform.software_assets SET subdomain = 'mail'       WHERE slug = 'mailp
 UPDATE platform.software_assets SET subdomain = 'docs'       WHERE slug = 'docs';
 UPDATE platform.software_assets SET subdomain = 'brett'      WHERE slug = 'brett';
 UPDATE platform.software_assets SET subdomain = 'brainstorm' WHERE slug = 'brainstorm';
-UPDATE platform.software_assets SET subdomain = 'livekit'    WHERE slug = 'livekit';
+-- livekit removed per T002184
 UPDATE platform.software_assets SET subdomain = 'web'        WHERE slug = 'website';
 UPDATE platform.software_assets SET subdomain = 'sign'       WHERE slug = 'docuseal';
 

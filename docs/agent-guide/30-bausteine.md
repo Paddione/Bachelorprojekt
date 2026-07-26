@@ -138,24 +138,6 @@ Erzeugt Embeddings für die semantische Suche; nur verfügbar, solange der GPU-H
 
 Daemon auf dem WSL-GPU-Host; nutzt lokale Modelle über LM Studio, ohne Cloud.
 
-### 📡 LiveKit Server
-
-🟠 **Nur mit Hilfe**
-
-Echtzeit-Video-Server; läuft im Host-Netz und ist an einen festen Knoten gebunden.
-
-### 📺 LiveKit Ingress
-
-🟡 **Vorsicht**
-
-Eingangstor für externe Streams (z. B. aus OBS) in eine LiveKit-Übertragung.
-
-### 🔴 LiveKit Egress
-
-🟡 **Vorsicht**
-
-Zeichnet LiveKit-Räume auf, damit sie später angesehen werden können.
-
 ### 🎙️ Whisper
 
 🟡 **Vorsicht**

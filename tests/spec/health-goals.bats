@@ -407,3 +407,116 @@ MD
   [ "$status" -eq 1 ]
   rm -rf "$WORK"
 }
+
+# --- T002162: Repo-Health-Dashboard liefert eingefrorene Werte ---
+# RC2: gen-goals-data.mjs nimmt den letzten "**Baseline-Update <datum>"-Treffer in
+# DOKUMENT-Reihenfolge statt das juengste Datum. In .claude/lib/goals.md stehen die
+# Marker thematisch (Prio-A-Abschnitt oben, Prio-B/C-Historie unten), nicht
+# chronologisch — der 2026-07-25-Marker auf Zeile 108 verliert deshalb gegen die
+# 2026-07-22-Marker auf Zeile 577/595/604. Alle 95 Ziele tragen dadurch einen
+# vier Tage alten measured_at, den das Dashboard als "Mess-Stichtag" anzeigt.
+
+@test "gen-goals-data.mjs: measured_at picks the newest Baseline-Update date, not the last in document order" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  setup_gen
+  cat > "$WORK/goals.md" <<'MD'
+# Repository Health Goals
+
+**Baseline-Stichtag:** `2026-07-01`
+
+**Baseline-Update 2026-07-25 (T002063):** neuester Stand, steht aber weit oben im Dokument.
+
+# Priorität C — Green Gates {#prio-c}
+
+| ID | Ziel | Aktuell | Target | Basis-Messung |
+|----|------|---------|--------|---------------|
+| **G-TABLE03** | Beispiel-Gate | 0 ✓ | 0 | `echo 0` |
+
+**Baseline-Update 2026-07-22:** aelterer Stand, steht aber weiter unten im Dokument.
+MD
+  GOALS_MD_PATH="$WORK/goals.md" GOALS_JSON_OUT="$WORK/out.json" run node "$GEN"
+  [ "$status" -eq 0 ] || { echo "FAIL: $output"; return 1; }
+  measured="$(jq -r '.[0].measured_at' "$WORK/out.json")"
+  [ "$measured" = "2026-07-25" ] || {
+    echo "FAIL: measured_at = '$measured', erwartet '2026-07-25' (juengstes Datum, nicht letzter Dokument-Treffer)"
+    teardown_gen; return 1
+  }
+  teardown_gen
+}
+
+@test "gen-goals-data.mjs: measured_at falls back to Baseline-Stichtag when no update marker exists" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  setup_gen
+  cat > "$WORK/goals.md" <<'MD'
+# Repository Health Goals
+
+**Baseline-Stichtag:** `2026-07-01`
+
+# Priorität C — Green Gates {#prio-c}
+
+| ID | Ziel | Aktuell | Target | Basis-Messung |
+|----|------|---------|--------|---------------|
+| **G-TABLE04** | Beispiel-Gate | 0 ✓ | 0 | `echo 0` |
+MD
+  GOALS_MD_PATH="$WORK/goals.md" GOALS_JSON_OUT="$WORK/out.json" run node "$GEN"
+  [ "$status" -eq 0 ] || { echo "FAIL: $output"; return 1; }
+  [ "$(jq -r '.[0].measured_at' "$WORK/out.json")" = "2026-07-01" ] || { teardown_gen; return 1; }
+  teardown_gen
+}
+
+# RC1: Glied [1] der Datenkette (die Messung selbst) lief nirgends automatisch.
+# Die folgenden Tests pinnen die Eigenschaften des neuen nightly Workflows fest,
+# die still brechen koennten, ohne dass irgendetwas rot wird.
+
+hg_workflow() {
+  echo "$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)/.github/workflows/health-goals.yml"
+}
+
+@test "health-goals.yml: nightly workflow exists and runs at 01:00 UTC, before quality-loop" {
+  WF="$(hg_workflow)"
+  [ -f "$WF" ] || { echo "FAIL: $WF fehlt — die Messung wird nicht automatisch angestossen"; return 1; }
+  grep -qE '^\s*-\s*cron:\s*"0 1 \* \* \*"' "$WF" || {
+    echo "FAIL: kein cron '0 1 * * *' in health-goals.yml"; return 1
+  }
+  # quality-loop.yml laeuft 02:00 und leitet CQ-GATE-Tickets aus den Werten ab —
+  # die Messung muss davor liegen, sonst arbeitet es auf dem Vortagsstand.
+  QL="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)/.github/workflows/quality-loop.yml"
+  grep -qE '^\s*-\s*cron:\s*"0 2 \* \* \*"' "$QL" || {
+    echo "FAIL: quality-loop.yml laeuft nicht mehr um 02:00 — Reihenfolge-Annahme gebrochen"; return 1
+  }
+}
+
+@test "health-goals.yml: measures with --full, never --fast (db_scalar skips every DB goal in fast mode)" {
+  WF="$(hg_workflow)"
+  [ -f "$WF" ] || { echo "FAIL: $WF fehlt"; return 1; }
+  grep -q -- '--fast' "$WF" && {
+    echo "FAIL: --fast im Workflow — db_scalar liefert dann fuer alle DB-Ziele '-' und sie werden stumm uebersprungen"
+    return 1
+  }
+  grep -q -- '--full' "$WF" || { echo "FAIL: kein --full im Workflow"; return 1; }
+}
+
+@test "health-goals.yml: commits goals.md and generated.json atomically (no freshness-check window on main)" {
+  WF="$(hg_workflow)"
+  [ -f "$WF" ] || { echo "FAIL: $WF fehlt"; return 1; }
+  # Wuerde der Workflow nur goals.md committen und generated.json der
+  # freshness-regen.yml ueberlassen, haette main ein Fenster, in dem
+  # task freshness:check fehlschlaegt — und zwar in der CI fremder PRs.
+  grep -q 'health:goals:emit' "$WF" || {
+    echo "FAIL: kein health:goals:emit — generated.json wuerde erst spaeter nachgezogen (Inkonsistenz-Fenster auf main)"
+    return 1
+  }
+  grep -q 'goals-data.generated.json' "$WF" || {
+    echo "FAIL: generated.json wird nicht explizit mit-committet"; return 1
+  }
+}
+
+@test "health-goals.yml: does not mark its commit [skip ci] (build-website must pick up the new values)" {
+  WF="$(hg_workflow)"
+  [ -f "$WF" ] || { echo "FAIL: $WF fehlt"; return 1; }
+  grep -q '\[skip ci\]' "$WF" && {
+    echo "FAIL: [skip ci] im Commit — build-website.yml triggert auf website/** und wuerde uebersprungen; das Dashboard bliebe auf dem alten Image"
+    return 1
+  }
+  return 0
+}

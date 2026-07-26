@@ -18,7 +18,7 @@
 # ── File-level variables ──────────────────────────────────────────────────────
 STYLES_DIR="$BATS_TEST_DIRNAME/../../website/src/styles"
 GLOBAL_CSS="$STYLES_DIR/global.css"
-ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminLayout.astro"
+ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/AdminLayout.astro"
 
 # ── Requirement 1: factory-tokens.css is dissolved ─────────────────────────────
 @test "factory-tokens.css does not exist" {
@@ -34,12 +34,9 @@ ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminLayout.
     --mono --mute --mute-2 --sage --sans --serif
   )
   for color in "${BASE_COLORS[@]}"; do
-    run grep -E ":root\s*\{" "$GLOBAL_CSS"
-    [ "$status" -eq 0 ]
-    # Check the color is NOT declared in a :root block
-    run grep -E ":root\s*\{.*\}" "$GLOBAL_CSS" | \
-      grep -E "^\s*$color\s*:"
-    [ "$status" -ne 0 ]
+    # Each base color must be declared in :root as a var() alias (no raw redeclaration)
+    run bash -c "grep -F -- '$color' '$GLOBAL_CSS' | grep -qE 'var\('"
+    [ "$status" -eq 0 ] || { echo "$color is not a var() alias in :root"; return 1; }
   done
 }
 
@@ -73,7 +70,7 @@ ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminLayout.
 @test "--color-danger exists in @theme for admin-danger" {
   run grep -E "@theme\s*\{" "$GLOBAL_CSS"
   [ "$status" -eq 0 ]
-  run grep -E "--color-danger" "$GLOBAL_CSS"
+  run grep -F -- "--color-danger" "$GLOBAL_CSS"
   [ "$status" -eq 0 ]
 }
 

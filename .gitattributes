@@ -42,6 +42,11 @@ docs/diagrams/architecture.md                 merge=ours linguist-generated=true
 # NOTE: environments/certs/*.pem are PUBLIC sealing certs — intentionally NOT listed here.
 environments/.secrets/**            filter=git-crypt diff=git-crypt
 deploy/mcp/claude-code-secrets.yaml filter=git-crypt diff=git-crypt
-.claude/settings.json               filter=git-crypt diff=git-crypt
+# .claude/settings.json ist NICHT mehr git-crypt-verschluesselt (T002213): die
+# beiden einzigen Secrets (GITHUB_PERSONAL_ACCESS_TOKEN, BRAINTRUST_API_KEY)
+# liegen jetzt in ~/.claude/settings.json (User-Scope). Der Rest der Datei ist
+# Team-Konfiguration und soll lesbar sein. Traegst du dort wieder ein Secret ein,
+# gehoert es nach ~/.claude/settings.json oder .claude/settings.local.json
+# (gitignored) — NICHT hierher zurueck.
 dotfiles/opencode/config.json       filter=git-crypt diff=git-crypt
 dotfiles/agy/settings.json          filter=git-crypt diff=git-crypt

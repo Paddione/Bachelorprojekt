@@ -32,7 +32,7 @@ CHANGES_DIR="$REPO_ROOT/openspec/changes"
 _role_allowlist() {
     case "$1" in
         bachelorprojekt-website)   echo "website frontend design ui svelte astro css brett" ;;
-        bachelorprojekt-ops)       echo "ops llm k8s observability livekit monitoring" ;;
+        bachelorprojekt-ops)       echo "ops llm k8s observability monitoring" ;;
         bachelorprojekt-infra)     echo "infra deploy k3d kustomize prod environments taskfile" ;;
         bachelorprojekt-test)      echo "test tests bats playwright factory qa" ;;
         bachelorprojekt-db)        echo "db postgres tracking timeline database" ;;

@@ -101,9 +101,7 @@ check_service "Collabora"      "office"     "/"            "200,301,302"
 check_service "Whiteboard"     "board"      "/"            "200,301,302"
 check_service "Talk Signaling" "signaling"  "/"            "200,301,302,404"
 check_service "Mailpit"        "mail"       "/"            "200,301,302,401"
-# comfy/livekit are behind oauth2-proxy or serve a health root; accept broad codes.
-check_service "ComfyUI"        "comfy"      "/"            "200,301,302,401,403"
-check_service "LiveKit"        "livekit"    "/"            "200,204,301,302,404"
+
 
 section "Infrastructure"
 check_service "Traefik"        "traefik"    "/"            "200,301,302,401,404"

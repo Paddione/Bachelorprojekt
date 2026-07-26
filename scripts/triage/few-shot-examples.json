@@ -54,8 +54,8 @@
     "manual_severity": "high"
   },
   {
-    "title": "LiveKit Deployment selector drift — immutable field errors on deploy",
-    "description": "k3d/livekit.yaml manifests use selector app: livekit but running fleet deployments have app: livekit-server, app: livekit-egress, app: livekit-ingress, app: livekit-redis. This causes 'field is immutable' errors during kustomize apply (Deployment.apps livekit-*). Pods run fine (15d uptime) but manif",
+    "title": "[REMOVED per T002184] LiveKit Deployment selector drift — immutable field errors on deploy",
+    "description": "[REMOVED per T002184] k3d/livekit.yaml manifests use selector drift — LiveKit stack removed.",
     "areas": "",
     "manual_severity": "low"
   },

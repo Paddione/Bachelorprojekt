@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-26T19:16:38.335Z
+> Generated at 2026-07-26T19:25:42.025Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -408,7 +408,6 @@
 | `/api/status` | GET | ❓ unclassified | `website/src/pages/api/status.ts` |
 | `/api/stream/end` | POST | 🔐 admin | `website/src/pages/api/stream/end.ts` |
 | `/api/stream/recording` | POST | 🔐 admin | `website/src/pages/api/stream/recording.ts` |
-| `/api/stream/status` | GET | ❓ unclassified | `website/src/pages/api/stream/status.ts` |
 | `/api/stripe/checkout` | POST | ❓ unclassified | `website/src/pages/api/stripe/checkout.ts` |
 | `/api/stripe/invoice-payment-intent` | POST | ❓ unclassified | `website/src/pages/api/stripe/invoice-payment-intent.ts` |
 | `/api/stripe/webhook` | POST | ❓ unclassified | `website/src/pages/api/stripe/webhook.ts` |

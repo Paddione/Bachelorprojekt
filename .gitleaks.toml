@@ -80,19 +80,6 @@
   regex = '''(?i)(?:api[_-]?key|apikey|secret|token|password)[\s"'"':=]+[0-9a-zA-Z\-_]{16,}'''
   tags = ["key", "generic"]
 
-# Generic high-entropy string detection (base64, hex, etc.)
-[[rules]]
-  id = "base64-high-entropy"
-  description = "High-entropy base64 string (potential secret)"
-  regex = '''(?:[A-Za-z0-9+/]{40,}={0,2})'''
-  tags = ["entropy", "base64"]
-
-[[rules]]
-  id = "hex-high-entropy"
-  description = "High-entropy hex string (potential secret)"
-  regex = '''(?:[0-9a-f]{40,})'''
-  tags = ["entropy", "hex"]
-
 # Private key markers
 [[rules]]
   id = "private-key"

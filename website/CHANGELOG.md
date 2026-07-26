@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.12...website-v1.214.13) (2026-07-26)
+
+
+### Documentation
+
+* **specs:** openspec/specs von Keycloak auf Pocket ID umstellen [T002179] ([#3254](https://github.com/Paddione/Bachelorprojekt/issues/3254)) ([004a554](https://github.com/Paddione/Bachelorprojekt/commit/004a554915d5bd0ab692939ddcc0e73fff175ff4))
+
 ## [1.214.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.11...website-v1.214.12) (2026-07-26)
 
 

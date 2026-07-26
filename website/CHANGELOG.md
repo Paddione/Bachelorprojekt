@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.4...website-v1.214.5) (2026-07-26)
+
+
+### Bug Fixes
+
+* **assistant:** show meta fields inline in sidekick log stream [T002168] ([#3218](https://github.com/Paddione/Bachelorprojekt/issues/3218)) ([e6d3d4b](https://github.com/Paddione/Bachelorprojekt/commit/e6d3d4b9b2960e9b80f51e43f94612725e2dbce4))
+
 ## [1.214.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.3...website-v1.214.4) (2026-07-26)
 
 

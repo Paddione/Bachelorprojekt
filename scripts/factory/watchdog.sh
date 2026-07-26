@@ -50,8 +50,13 @@ for row in "${stale[@]}"; do
     | awk -v p1="refs/heads/feature/sf-$ext_lc" -v p2="refs/heads/chore/sf-$ext_lc" '
         /^worktree /{w=$2} $0=="branch "p1 || $0=="branch "p2{print w}')"
   if [[ -n "$stale_wt" ]]; then
-    git worktree remove --force "$stale_wt" 2>/dev/null || rm -rf "$stale_wt" 2>/dev/null || true
-    git worktree prune 2>/dev/null || true
+    if git -C "$stale_wt" status --short 2>/dev/null | grep -q .; then
+      bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
+        --body "Watchdog: zombie worktree $stale_wt has uncommitted changes — skipped force-remove, needs manual review" >/dev/null 2>&1 || true
+    else
+      git worktree remove --force "$stale_wt" 2>/dev/null || rm -rf "$stale_wt" 2>/dev/null || true
+      git worktree prune 2>/dev/null || true
+    fi
   fi
   escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
 done

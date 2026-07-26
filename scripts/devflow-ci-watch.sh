@@ -75,6 +75,10 @@ while true; do
 
   if [[ -z "$FAILED_CHECKS" ]]; then
     echo "✅ $TOTAL_CHECKS CI-Checks, alle grün."
+    if ! ./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"; then
+      echo "❌ Phase-Chain nicht vollständig — siehe Meldungen oben." >&2
+      exit 6
+    fi
     exit 0
   fi
 

@@ -874,6 +874,11 @@ process.stdout.write(a+'/'+b)"
   [ "$st" = "triage" ]
 }
 
+@test "T002242-M2: watchdog zombie-worktree cleanup prueft git status vor Force-Remove" {
+  run grep -n "status --short" "$REPO_ROOT/scripts/factory/watchdog.sh"
+  [ "$status" -eq 0 ]
+}
+
 # ── FA-SF-27-metrics ────────────────────────────────────────────#
 # FA-SF-27: metrics.sh summarizes v_factory_metrics and posts a comment.
 

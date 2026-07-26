@@ -1095,3 +1095,15 @@ MOCKEOF
   # Assert error message contains "Keine CI-Checks"
   [[ "$output" =~ "Keine CI-Checks" ]]
 }
+
+# ── T002242-M1: Phase-Chain-Gate vor CI-Grün-Exit ──────────────────
+@test "T002242-M1: devflow-ci-watch.sh ruft assert-phase-chain vor dem gruenen Exit auf" {
+  run grep -n "assert-phase-chain" "$REPO_ROOT/scripts/devflow-ci-watch.sh"
+  [ "$status" -eq 0 ]
+}
+
+# ── T002242-M3: Exit-Code-Collection im Post-Merge-Deploy ───────────
+@test "T002242-M3: devflow-post-merge-deploy.sh sammelt Exit-Codes und schlaegt fail-closed fehl" {
+  run grep -nE '\|\| FAILED_TASKS|deploy blocked|deploy failed' "$REPO_ROOT/scripts/devflow-post-merge-deploy.sh"
+  [ "$status" -eq 0 ]
+}

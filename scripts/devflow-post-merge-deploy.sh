@@ -26,10 +26,31 @@ if [[ "$DEPLOY_WEBSITE" == false && "$DEPLOY_BRETT" == false \
   exit 0
 fi
 
-if [[ "$DEPLOY_WEBSITE" == true ]]; then echo "🚀 Deploye Website (beide Brands)..."; task feature:website; fi
-if [[ "$DEPLOY_BRETT"   == true ]]; then echo "🚀 Deploye Brett (beide Brands)...";   task feature:brett; fi
-if [[ "$DEPLOY_DOCS"    == true ]]; then echo "🚀 Deploye Docs...";                   task docs:deploy; fi
-if [[ "$DEPLOY_K8S"     == true ]]; then echo "🚀 Deploye K8s-Manifeste (beide Brands)..."; task feature:deploy; fi
+FAILED_TASKS=()
+if [[ "$DEPLOY_WEBSITE" == true ]]; then
+  echo "🚀 Deploye Website (beide Brands)..."
+  task feature:website || { rc=$?; FAILED_TASKS+=("feature:website=$rc"); }
+fi
+if [[ "$DEPLOY_BRETT" == true ]]; then
+  echo "🚀 Deploye Brett (beide Brands)..."
+  task feature:brett || { rc=$?; FAILED_TASKS+=("feature:brett=$rc"); }
+fi
+if [[ "$DEPLOY_DOCS" == true ]]; then
+  echo "🚀 Deploye Docs..."
+  task docs:deploy || { rc=$?; FAILED_TASKS+=("docs:deploy=$rc"); }
+fi
+if [[ "$DEPLOY_K8S" == true ]]; then
+  echo "🚀 Deploye K8s-Manifeste (beide Brands)..."
+  task feature:deploy || { rc=$?; FAILED_TASKS+=("feature:deploy=$rc"); }
+fi
 
-./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow \
-  --detail "deployed (post-merge)" 2>/dev/null || true
+if [[ ${#FAILED_TASKS[@]} -eq 0 ]]; then
+  ./scripts/ticket.sh phase "$TICKET_ID" deploy done --driver devflow \
+    --detail "deployed (post-merge)" 2>/dev/null || true
+else
+  DETAIL="deploy blocked: $(IFS=,; echo "${FAILED_TASKS[*]}")"
+  ./scripts/ticket.sh phase "$TICKET_ID" deploy blocked --driver devflow \
+    --detail "$DETAIL" 2>/dev/null || true
+  echo "❌ $DETAIL" >&2
+  exit 1
+fi

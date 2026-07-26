@@ -8,11 +8,11 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.4</version>
+    <version>3.5.16</version>
   </parent>
   <properties>
     <java.version>21</java.version>
-    <mustangproject.version>2.16.1</mustangproject.version>
+    <mustangproject.version>2.24.0</mustangproject.version>
   </properties>
   <dependencies>
     <dependency>

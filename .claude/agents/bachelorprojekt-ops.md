@@ -41,7 +41,7 @@ Topology is fully consolidated ("Fleet Stage 3", complete as of 2026-05-31). The
 ## Key commands
 ```bash
 task workspace:status   ENV=<env>           # pod status, services, ingress, PVCs
-task workspace:logs     ENV=<env> -- <svc>  # tail logs (keycloak, nextcloud, website, etc.)
+task workspace:logs     ENV=<env> -- <svc>  # tail logs (pocket-id, nextcloud, website, etc.)
 task workspace:restart  ENV=<env> -- <svc>  # restart a specific service
 task livekit:status     ENV=<env>           # LiveKit pods + recording count
 task livekit:logs       ENV=<env>           # livekit-server logs

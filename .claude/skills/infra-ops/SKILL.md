@@ -1,6 +1,6 @@
 ---
 name: infra-ops
-description: Explicit-invoke-only infrastructure runbook. DO NOT auto-trigger. Use when the user asks about: cluster setup or reset, workspace deploy, host node networking (Hetzner/WireGuard/UFW/LiveKit), Keycloak/SSO/OIDC realm sync, LLM pipeline and GPU host, secret/SealedSecret rotation, or database migrations and backup/restore.
+description: Explicit-invoke-only infrastructure runbook. DO NOT auto-trigger. Use when the user asks about: cluster setup or reset, workspace deploy, host node networking (Hetzner/WireGuard/UFW/LiveKit), Pocket ID/SSO/OIDC client seeding, LLM pipeline and GPU host, secret/SealedSecret rotation, or database migrations and backup/restore.
 agent: bachelorprojekt-infra
 ---
 
@@ -16,7 +16,7 @@ Sieben frühere Einzel-Skills sind hier konsolidiert. Nur bei explizitem Bedarf 
 | Neuen Cluster aufsetzen / Environment deployen | [§1 Cluster Deployment](#1--cluster-deployment) |
 | Workspace-Platform deployen (alle Services) | [§2 Workspace Deploy](#2--workspace-deploy) |
 | Host-Netzwerk, WireGuard, UFW, LiveKit, OpenClaw | [§3 Host Node Networking](#3--host-node-networking) |
-| Keycloak / SSO / OIDC Realm konfigurieren | [§4 Keycloak Realm Sync](#4--keycloak-realm-sync) |
+| Pocket ID / SSO / OIDC-Clients konfigurieren | [§4 Pocket ID OIDC Client Seeding](#4--pocket-id-oidc-client-seeding) |
 | LLM-Pipeline / GPU-Host / Embeddings | [§5 LLM Ops](#5--llm-ops) |
 | Secrets rotieren / SealedSecrets | [§6 Secret Rotation](#6--secret-rotation) |
 | DB-Migrationen / Backup / Restore | [§7 Database Ops](#7--database-ops) |
@@ -140,7 +140,7 @@ task workspace:post-setup ENV=<env>
 | Symptom | Fix |
 |---------|-----|
 | `user_oidc` not configured | `task workspace:post-setup ENV=<env>` nochmal |
-| OIDC login loop | `task keycloak:sync ENV=<env>` dann post-setup |
+| OIDC login loop | Seed-Job neu ausführen (§4 Phase 3), dann post-setup |
 ### Phase 3 — `workspace:talk-setup`
 Konfiguriert Talk-HPB-Signaling und CoTURN-Credentials.
 ```bash
@@ -156,14 +156,14 @@ task workspace:transcriber-setup ENV=<env>
 ```
 ### Phase 6 — Optional Provisioning
 ```bash
-task workspace:admin-users-setup ENV=<env>    # SSO-Admin-User in Keycloak
+task workspace:admin-users-setup ENV=<env>    # ⚠️ T002171: Skript nutzt noch KC_*-Variablen (Keycloak) — kann so nicht funktionieren
 task workspace:vaultwarden:seed ENV=<env>      # Secret-Templates
 task workspace:vaultwarden:seed-logs ENV=<env> # Logs prüfen
 ```
 ### Service Inventory
 | Service | Ingress | Deployed by |
 |---------|---------|-------------|
-| Keycloak | `auth.<domain>` | `workspace:deploy` |
+| Pocket ID | `auth.<domain>` | `workspace:deploy` |
 | Nextcloud | `files.<domain>` | `workspace:deploy` |
 | Vaultwarden | `vault.<domain>` | `workspace:deploy` |
 | DocuSeal | `sign.<domain>` | `workspace:deploy` |
@@ -220,47 +220,55 @@ task livekit:dns-pin ENV=mentolder APPLY=true
 | LiveKit ICE fails / Audio muted | DNS nicht auf pin-node; Chrome braucht User-Gesture |
 | OpenClaw 503 | Ollama auf `10.10.0.3` prüfen; WireGuard-Tunnel aktiv? |
 
-## §4 — Keycloak Realm Sync
+## §4 — Pocket ID OIDC Client Seeding
 
-Keycloak-Realm aus JSON reconcilen — OIDC-Clients, Gruppen, Mapper, SSO-Login-Fehler.
-### Realm JSON Locations
-| Env | File | Quelle |
-|-----|------|--------|
-| dev | `k3d/realm-workspace-dev.json` | ConfigMap `realm-template` |
-| prod base | `prod/realm-workspace-prod.json` | **Live SoT** — Pocket-ID OIDC via `pocket-id-client-seed` Job |
-| mentolder | `prod-mentolder/realm-workspace-mentolder.json` | `register-oidc-client.mjs` only |
-| korczewski | `prod-korczewski/realm-workspace-korczewski.json` | `register-oidc-client.mjs` only |
-> **Nie** Realm-State direkt im Keycloak-Admin-UI ändern ohne das JSON zu updaten — Sync überschreibt UI-Änderungen.
+OIDC-Clients reconcilen — Redirect-URIs, Client-Secrets, SSO-Login-Fehler.
+
+> **Es gibt keine Realm-JSONs und keinen `task keycloak:sync`** (T002169). Die Plattform ist von
+> Keycloak auf **Pocket ID** migriert: kein `realm-workspace-*.json` existiert mehr, und kein
+> `quay.io/keycloak`-Image wird von einem Manifest referenziert. Wer nach Realm-Dateien sucht oder
+> `task keycloak:sync` aufruft, läuft ins Leere.
+
+### Wo der Client-State lebt
+| Ebene | Ort |
+|-------|-----|
+| Provider | `k3d/pocket-id.yaml` (`ghcr.io/pocket-id/pocket-id`), eigene Postgres-Instanz |
+| Client-State | **DB** `pocket_id.oidc_clients` — keine Datei, kein Git-Artefakt |
+| Provisionierung | Job `pocket-id-client-seed` (`k3d/pocket-id-client-seed.yaml`) via Pocket-ID Admin REST API, läuft bei **jedem** `task workspace:deploy` |
+| Secret-Rückschreibung | `workspace-secrets`; der **website**-Client zusätzlich in `website-secrets` (andere Namespace, T001435 — RBAC: `k3d/pocket-id-client-seed-website-rbac.yaml`) |
+
+> **Nie** Clients direkt im Pocket-ID-Admin-UI anlegen/ändern — der nächste Deploy-Seed
+> überschreibt UI-Änderungen. Änderungen gehören in den Seed-Job.
+
 ### Phases
-> **Status-Reads MCP-first:** Pod-Status/Logs bevorzugt über `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` / `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<keycloak-pod>" })` (read-only); die `task workspace:status`/`logs`-Aufrufe unten sind der Fallback. Mutations (`task secrets:sync`, `register-oidc-client.mjs`, deploys) bleiben unverändert.
+> **Status-Reads MCP-first:** Pod-Status/Logs bevorzugt über `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` / `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<pocket-id-pod>" })` (read-only); die `task workspace:status`/`logs`-Aufrufe unten sind der Fallback. Mutations (`task secrets:sync`, deploys) bleiben unverändert.
 ```bash
-# Phase 1: Pre-sync check (Fallback — siehe MCP-first oben)
-task workspace:status ENV=<env>  # keycloak pod: 1/1 Running?
-task workspace:logs ENV=<env> -- keycloak
+# Phase 1: Pre-check (Fallback — siehe MCP-first oben)
+task workspace:status ENV=<env>  # pocket-id pod: 1/1 Running?
+task workspace:logs ENV=<env> -- pocket-id
 
-# Phase 2: Realm-JSON editieren (falls nötig)
-# Dann validieren:
-python3 -c "import json; json.load(open('prod/realm-workspace-prod.json'))" && echo "valid"
+# Phase 2: Seed-Job-Definition anpassen (falls Client-Config sich ändert)
+#   k3d/pocket-id-client-seed.yaml — Clients, Redirect-URIs, Secret-Keys
 
-# Phase 3: OIDC-Client-Seed (Pocket-ID)
-# Der pocket-id-client-seed Job wird beim workspace:deploy ausgeführt.
-# Manuelles Neustarten bei Änderungen an den OIDC-Client-Konfigurationen:
+# Phase 3: Seed neu ausführen
+# Der Job hat einen stabilen Namen und wird beim Deploy angelegt; zum Erzwingen löschen:
 kubectl --context fleet -n workspace delete job pocket-id-client-seed --ignore-not-found=true
 kubectl --context fleet -n workspace-korczewski delete job pocket-id-client-seed --ignore-not-found=true
+# danach: task workspace:deploy ENV=<brand>
 
-# Phase 4: OIDC Clients verifizieren (Pocket-ID Admin UI):
-# id.<domain>/admin → Applications → redirect URIs prüfen
+# Phase 4: Clients verifizieren (Pocket-ID Admin UI):
+# auth.<domain>/admin → Applications → Redirect-URIs prüfen
 
 # Phase 5: SSO-Flow testen (Browser, Inkognito)
 ```
 ### Troubleshooting
 | Error | Fix |
 |-------|-----|
-| `401 Unauthorized` | Admin-Credentials prüfen, Keycloak warten |
-| `409 Conflict` | Client existiert bereits — Script auf update prüfen |
-| Website login loop | `webOrigins` in `website`-Client prüfen |
+| `401 Unauthorized` | `POCKET_ID_API_KEY` in `workspace-secrets` prüfen; pocket-id-Pod ready? |
+| `409 Conflict` | Client existiert bereits — Seed-Skript muss auf update gehen, nicht create |
+| Website login loop | Redirect-URIs des `website`-Clients prüfen |
 | Nextcloud OIDC error | Client-Secret re-seal + redeploy; `secret-rotation` Skill |
-| "Invalid client secret" | `secret-rotation` Skill — Secrets neu alignen |
+| "Invalid client secret" | Klassiker (T001327): Seed generierte ein neues Secret, die App liest den alten Wert aus dem k8s-Secret → `secret-rotation` Skill, Secrets neu alignen |
 
 ## §5 — LLM Ops
 
@@ -367,11 +375,11 @@ task workspace:deploy ENV=mentolder && task workspace:deploy ENV=korczewski
 ### Verification
 Status-Reads — **MCP-first** (`mcp-kubernetes`, read-only):
 > `mcp__mcp-kubernetes__pods_list_in_namespace({ namespace: "workspace" })` — alle Pods 1/1 Running?
-> `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<keycloak|nextcloud|website>-pod" })`
+> `mcp__mcp-kubernetes__pods_log({ namespace: "workspace", name: "<pocket-id|nextcloud|website>-pod" })`
 Fallback (mcp-kubernetes nicht erreichbar):
 ```bash
 task workspace:status ENV=<env>
-task workspace:logs ENV=<env> -- keycloak
+task workspace:logs ENV=<env> -- pocket-id
 task workspace:logs ENV=<env> -- nextcloud
 task workspace:logs ENV=<env> -- website
 ```
@@ -467,7 +475,7 @@ Nach Abschluss aller Schritte `mishap-tracker` mit dem akkumulierten `MISHAP_LOG
 Diese Skills sind in `infra-ops` aufgegangen. Ihre Verzeichnisse und Referenz-Dateien bleiben erhalten:
 - `.claude/skills/cluster-deployment/` — Hetzner + Proxmox provisioning references
 - `.claude/skills/host-node-networking/` — WireGuard + OpenClaw references
-- `.claude/skills/keycloak-realm-sync/`
+- `k3d/pocket-id-client-seed.yaml` (Seed-Job; es gibt kein `keycloak-realm-sync`-Skill mehr)
 - `.claude/skills/llm-ops/`
 - `.claude/skills/secret-rotation/`
 - `.claude/skills/workspace-deploy/`

@@ -73,7 +73,7 @@ BASE_URL="https://web.mentolder.de"   # anpassen falls nötig
 ### Credentials: korczewski-Projekt
 
 Das `korczewski`-Projekt verwendet einen dedizierten `test-admin`-User auf dem
-Korczewski-Keycloak. Das Passwort ist in `environments/.secrets/korczewski.yaml`
+Korczewski-Pocket-ID. Das Passwort ist in `environments/.secrets/korczewski.yaml`
 unter dem Key `E2E_TEST_ADMIN_PASSWORD` gespeichert. Siehe details in [dev-flow-gotchas](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
 
 ---

@@ -1,6 +1,6 @@
 ---
 name: security-specialist
-description: Use for SealedSecrets lifecycle, key generation/rotation, Keycloak realm configuration, OIDC setup, SSO integration testing, DSGVO compliance checks, and credential management in the Bachelorprojekt platform. Triggers on: sealed-secret generate rotate, keycloak realm create update, OIDC configure test, DSGVO audit, password rotation, certificate renewal.
+description: Use for SealedSecrets lifecycle, key generation/rotation, Pocket ID OIDC client configuration, OIDC setup, SSO integration testing, DSGVO compliance checks, and credential management in the Bachelorprojekt platform. Triggers on: sealed-secret generate rotate, pocket-id oidc client create update, OIDC configure test, DSGVO audit, password rotation, certificate renewal.
 agent: bachelorprojekt-security
 category: devflow
 ---
@@ -36,14 +36,22 @@ The unified **`fleet`** context serves both brands:
 - **mentolder brand**: namespace `workspace`, ENV `mentolder`
 - **korczewski brand**: namespace `workspace-korczewski`, ENV `korczewski`
 
-Each brand has its own SealedSecrets, Keycloak realm, and shared-db instance. Legacy standalone clusters (mentolder/korczewski contexts) are DECOMMISSIONED — use `fleet` for everything.
+Each brand has its own SealedSecrets, Pocket ID instance, and shared-db instance. Legacy standalone clusters (mentolder/korczewski contexts) are DECOMMISSIONED — use `fleet` for everything.
 
-## Keycloak realm files
-- Dev: `k3d/realm-workspace-dev.json`
-- Prod mentolder: `prod-mentolder/realm-workspace-mentolder.json`
-- Prod korczewski: `prod-korczewski/realm-workspace-korczewski.json`
+## Pocket ID OIDC clients
 
-All OIDC consumers (Nextcloud, Vaultwarden, DocuSeal, Website, Claude Code) authenticate via Keycloak. Tracking pipeline was removed (PRs #788/#993).
+**No realm JSON files exist** — the platform migrated from Keycloak to Pocket ID (T002169). Client
+state lives in the DB `pocket_id.oidc_clients` and is provisioned by the `pocket-id-client-seed`
+Job (`k3d/pocket-id-client-seed.yaml`) through the Pocket ID Admin REST API on every
+`task workspace:deploy`. Provider manifest: `k3d/pocket-id.yaml`, reachable at `auth.<domain>`.
+
+Client secrets are written back into `workspace-secrets`; the **website** client additionally into
+`website-secrets` in the `website` namespace (cross-namespace, T001435). Hand-editing clients in the
+Admin UI drifts and is overwritten by the next deploy.
+
+All OIDC consumers — around 20 seeded clients including Nextcloud, Vaultwarden, DocuSeal, Website,
+Brett, Grafana, Studio, Videovault and Claude Code — authenticate via Pocket ID; services without
+native OIDC sit behind an `oauth2-proxy` gate. Tracking pipeline was removed (PRs #788/#993).
 
 ## DSGVO compliance
 ```bash

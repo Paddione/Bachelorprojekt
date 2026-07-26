@@ -15,7 +15,7 @@ Before responding to any request, check these signals and delegate to the named 
 | `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
 | test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `mcp-postgres` (localhost:13001) — Ticket-Queries |
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001) |
-| SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
+| SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
 > **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `mcp-kubernetes`, `mcp-postgres`, `factory-mcp`, `codebase-memory-mcp`, `mcp-task-runner`, `ticket-mcp`, `task-master-ai`, `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
@@ -66,7 +66,7 @@ Ein Ticket wird bei **grünem Auto-Merge nach `main` direkt geschlossen** (`done
 
 ## Project Overview
 
-**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Keycloak (SSO/OIDC), Collabora (office suite), Claude Code (AI), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
+**Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Pocket ID (SSO/OIDC), Collabora (office suite), Claude Code (AI), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
 
 Prerequisites: Docker, k3d, kubectl, `task` (go-task).
 
@@ -98,7 +98,7 @@ Routes to local Ollama (at `localhost:11434`) → Opencode/OpenClaw `task-runner
 
 All services run as Kubernetes Deployments in the `workspace` namespace, fronted by Traefik (built-in k3s ingress). There is no docker-compose.
 
-Services: Traefik → Keycloak (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+coturn+Janus, Vaultwarden, Whiteboard, Brett, Mailpit, Docs (oauth2-proxy), DocuSeal, Tracking, LiveKit+Ingress+Egress, Website (separate `website` ns). All except Website share `workspace` ns. Shared PostgreSQL 16 (`shared-db`). Keycloak provides SSO for Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code.
+Services: Traefik → Pocket ID (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+coturn+Janus, Vaultwarden, Whiteboard, Brett, Mailpit, Docs (oauth2-proxy), DocuSeal, Tracking, LiveKit+Ingress+Egress, Website (separate `website` ns). All except Website share `workspace` ns. Shared PostgreSQL 16 (`shared-db`). Pocket ID provides SSO for Nextcloud, Vaultwarden, DocuSeal, Tracking, Website, Claude Code and the oauth2-proxy-gated services.
 
 ### Cluster Topology & Nodes (Fleet Stage 3 — FULLY CONSOLIDATED 2026-05-31)
 - **mentolder (BRAND)**: DNS for `mentolder.de` routes to the **`fleet`** cluster (pk-hetzner-4/6/8 IPs: 204.168.244.104/37.27.251.38/62.238.23.79). The mentolder-standalone cluster has been **DECOMMISSIONED** — all k3s software uninstalled from gekko-hetzner-2/3/4; those nodes joined fleet as workers. Use `ENV=mentolder` or `ENV=fleet-mentolder` (aliases) with context `fleet`, namespace `workspace`. Both the old `mentolder` and `korczewski` kubeconfig contexts are **DEAD**. `k3s-1` has been permanently **DECOMMISSIONED** (memory corruption 2026-05-31). Local development runs via k3d on the WSL host (context: `k3d-mentolder-dev`).
@@ -129,9 +129,9 @@ Services: Traefik → Keycloak (OIDC), Nextcloud+Talk, Collabora, Talk-HPB+cotur
 - **Per-env config**: `PROD_DOMAIN`, `BRAND_NAME`, `CONTACT_EMAIL`, `ENV_CONTEXT`, `ENV_OVERLAY`, SMTP, etc. live in `environments/<env>.yaml`. `scripts/env-resolve.sh` exports them; tasks then `envsubst` them into manifests.
 - **Prod secrets**: plaintext in `environments/.secrets/<env>.yaml` (git-crypt-encrypted at-rest, tracked) → `task env:seal ENV=<env>` → committed SealedSecret in `environments/sealed-secrets/<env>.yaml`. `workspace:deploy` applies the SealedSecret before manifests.
 - **Dev secrets**: `k3d/secrets.yaml` (dev values only — never commit real credentials). The `prod/` overlay strips this via `$patch: delete` so sealed secrets survive.
-- **Keycloak realm**: dev uses `k3d/realm-workspace-dev.json`; each prod overlay provides its own `realm-workspace-<env>.json`.
-- **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (dev) / `prod/nextcloud-oidc-prod.php` (prod), both loaded as ConfigMap.
-- **SSO flow**: Keycloak is the OIDC provider; Nextcloud, Vaultwarden, DocuSeal, Tracking, the website, and Claude Code all authenticate through it.
+- **Pocket ID OIDC clients**: there are **no realm JSON files** — Pocket ID keeps its clients in its own PostgreSQL database (`pocket_id.oidc_clients`). They are provisioned by the `pocket-id-client-seed` Job (`k3d/pocket-id-client-seed.yaml`) via the Pocket ID Admin REST API on every `task workspace:deploy`. Client secrets are written back into `workspace-secrets` (and, for the website client only, additionally into `website-secrets` in the `website` namespace — see `k3d/pocket-id-client-seed-website-rbac.yaml`). Editing clients by hand in the UI causes drift the next deploy will overwrite.
+- **Nextcloud OIDC**: `k3d/nextcloud-oidc-dev.php` (dev) / `prod/nextcloud-oidc-prod.php` (prod), both loaded as ConfigMap. They point at Pocket ID (`oidc_login_provider_url` → `http://pocket-id:1411` in dev).
+- **SSO flow**: **Pocket ID** (`ghcr.io/pocket-id/pocket-id`, `k3d/pocket-id.yaml`) is the OIDC provider. Around 20 clients are seeded, including website, nextcloud, vaultwarden, brett, docs, downloads, grafana, mediaviewer, studio, videovault, brain, comfy, terminal, traefik, mail, rustdesk-web, session-hub and claude-code. Services without native OIDC sit behind an `oauth2-proxy` gate (20 manifests reference it) rather than talking to the provider directly.
 
 ## CI/CD
 

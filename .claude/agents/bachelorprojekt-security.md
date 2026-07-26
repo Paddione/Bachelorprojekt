@@ -1,9 +1,9 @@
 ---
 name: bachelorprojekt-security
 description: >
-  Use for SealedSecrets management, Keycloak realm configuration, OIDC setup, DSGVO
+  Use for SealedSecrets management, Pocket ID OIDC client configuration, OIDC setup, DSGVO
   compliance checks, and secret rotation in the Bachelorprojekt platform. Triggers on:
-  SealedSecret, Keycloak realm, OIDC, DSGVO, credentials, rotate, certificate, secret.
+  SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret.
 model: opus
 tools:
   - mcp_postgres_query
@@ -46,13 +46,27 @@ einzigen aktiven Prod-Dateien. Legacy-Dateien (`mentolder.yaml`, `korczewski.yam
 existieren nur als Referenz für den decommissionten Standalone-Cluster.
 Jeder neue Secret-Block muss in die fleet-Dateien (außer `legacy_only: true`).
 
-## Keycloak realm files
-- Dev: `k3d/realm-workspace-dev.json`
-- Prod mentolder: `prod-mentolder/realm-workspace-mentolder.json`
-- Prod korczewski (fleet cluster, ns `workspace-korczewski`): `prod-korczewski/realm-workspace-korczewski.json`
-- SSO consumers: Nextcloud, Vaultwarden, DocuSeal, Website, Claude Code (all OIDC via Keycloak). Note: Tracking pipeline was fully removed (PRs #788/#993) — Tracking is no longer an active SSO consumer.
+## Pocket ID OIDC clients
 
-> **Two brands, two of everything (Fleet Stage 3).** Both brands run on the unified `fleet` cluster (context `fleet`), each with its own SealedSecrets, Keycloak realm, and `shared-db` instance in its own namespace. Secret rotation and realm sync span both namespaces (`workspace` for mentolder, `workspace-korczewski` for korczewski) but always via `--context fleet`. The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for everything.
+**There are no realm JSON files.** The platform migrated from Keycloak to Pocket ID; no
+`realm-workspace-*.json` exists anymore, and no `quay.io/keycloak` image is referenced by any
+manifest. Anything describing realm exports is stale.
+
+- Provider: `k3d/pocket-id.yaml` (`ghcr.io/pocket-id/pocket-id`), own PostgreSQL instance.
+- Clients live in the DB (`pocket_id.oidc_clients`), provisioned by the `pocket-id-client-seed`
+  Job (`k3d/pocket-id-client-seed.yaml`) through the Pocket ID Admin REST API on **every**
+  `task workspace:deploy`. Hand-editing clients in the UI creates drift the next deploy
+  overwrites.
+- Secret write-back: generated client secrets go into `workspace-secrets`. The **website** client
+  additionally needs `website-secrets` in the `website` namespace (cross-namespace, T001435) —
+  RBAC for that is in `k3d/pocket-id-client-seed-website-rbac.yaml`.
+- SSO consumers (~20 seeded clients): website, nextcloud, vaultwarden, brett, docs, downloads,
+  grafana, mediaviewer, studio, videovault, brain, brainstorm, comfy, terminal, traefik, mail,
+  rustdesk-web, session-hub, recovery, claude-code. Services without native OIDC sit behind an
+  `oauth2-proxy` gate instead of talking to the provider directly. Note: the Tracking pipeline
+  was fully removed (PRs #788/#993) — Tracking is no longer an active SSO consumer.
+
+> **Two brands, two of everything (Fleet Stage 3).** Both brands run on the unified `fleet` cluster (context `fleet`), each with its own SealedSecrets, Pocket ID instance, and `shared-db` in its own namespace. Secret rotation and OIDC-client seeding span both namespaces (`workspace` for mentolder, `workspace-korczewski` for korczewski) but always via `--context fleet`. The old `mentolder` and `korczewski` kubeconfig contexts are DEAD — use `fleet` for everything.
 
 ## DSGVO compliance
 ```bash

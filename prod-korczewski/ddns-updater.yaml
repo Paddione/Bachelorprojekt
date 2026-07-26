@@ -99,13 +99,10 @@ spec:
                   [ "$STATUS" = "200" ] || [ "$STATUS" = "201" ] && echo "  ✓ korczewski.de -> ${IP_8}" || { echo "  WARN: HTTP ${STATUS} for korczewski.de -> ${IP_8}" >&2; FAILED=$((FAILED + 1)); }
                   set_records "*.korczewski.de" "$IP_4" "$IP_6" "$IP_8"
 
-                  echo "=== LiveKit edge → pk-hetzner-6 · Talk TURN → pk-hetzner-4 ==="
-                  # Specific records override the wildcard for these pinned services.
-                  set_records "livekit.korczewski.de" "$IP_6"
-                  set_records "stream.korczewski.de"  "$IP_6"
-                  # coturn/Janus (Talk HPB) is the SHARED fleet:shared-services stack
-                  # on pk-hetzner-4 (IP_4) — NOT this brand's LiveKit node (IP_6).
-                  set_records "turn.korczewski.de"    "$IP_4"
+                   echo "=== Talk TURN → pk-hetzner-4 ==="
+                   # LiveKit edge (livekit.korczewski.de + stream.korczewski.de)
+                   # removed per T002184. coturn/Janus (Talk HPB) remains on pk-hetzner-4.
+                   set_records "turn.korczewski.de"    "$IP_4"
 
                   if [ "$FAILED" -gt 0 ]; then
                     echo "ERROR: ${FAILED} API call(s) failed — check ipv64 account/quota" >&2

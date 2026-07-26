@@ -35,9 +35,7 @@ generatorOptions:
 # which had to delete them to avoid SharedResourceWarning with the
 # mentolder workspace-hetzner overlay.
 #
-# livekit-server / livekit-redis / livekit-egress / livekit-ingress are
-# pinned to pk-hetzner-6 by patch-livekit.yaml (hostNetwork + STUN
-# discovers the real public IP via TURN_PUBLIC_IP=37.27.251.38).
+# LiveKit entfernt per T002184.
 patches:
   # Fix mailpit-auth forwardAuth namespace (base hardcodes "workspace", korczewski
   # uses "workspace-korczewski", causing Traefik 500 on unauthenticated requests).

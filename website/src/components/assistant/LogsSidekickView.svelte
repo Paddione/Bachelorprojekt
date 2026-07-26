@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from 'svelte';
   import { logEntries, clearLog, filterEntries, type LogFilters } from '../../lib/logging/log-store';
-  import { levelClass, levelLabel } from '../../lib/logging/log-format';
+  import { levelClass, levelLabel, formatMetaInline } from '../../lib/logging/log-format';
   import { openServerLogStream, openPodLogStream, type StreamHandle } from '../../lib/logging/log-streams';
   import { postError, podLineToError, fetchErrorHistory } from '../../lib/logging/error-report.js';
   import { browserLogger } from '../../lib/browser-logger.js';
@@ -147,7 +147,7 @@
   {#if errorMode === 'live'}
     <div class="log-list" bind:this={logEl}>
       {#if !filtered.length}<p class="empty">Keine Logs</p>{/if}
-      {#each filtered as e}<div class="line {levelClass(e.level)}"><span class="ts">{new Date(e.ts).toLocaleTimeString('de-DE')}</span><span class="src-tag src-{e.source}">{SOURCE_LABEL[e.source]}</span><span class="msg">{e.message}</span></div>{/each}
+      {#each filtered as e}<div class="line {levelClass(e.level)}"><span class="ts">{new Date(e.ts).toLocaleTimeString('de-DE')}</span><span class="src-tag src-{e.source}">{SOURCE_LABEL[e.source]}</span><span class="msg">{e.message}{#if e.meta} <span class="meta">{formatMetaInline(e.meta)}</span>{/if}</span></div>{/each}
     </div>
   {:else if errorMode === 'history'}
     <div class="log-list" bind:this={logEl}>
@@ -191,6 +191,6 @@
 .link{background:none;border:none;color:#5b8def;cursor:pointer;text-decoration:underline}
 .log-list{flex:1;min-height:12rem;max-height:45vh;overflow-y:auto;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.5rem;font-family:var(--mono,monospace);font-size:.72rem;line-height:1.45}
 .empty{color:#6b7280;white-space:nowrap}.line{display:grid;grid-template-columns:auto auto 1fr;gap:.5rem;padding:.1rem;color:inherit}
-.ts{color:#6b7280}.src-tag{font-size:.62rem;text-transform:uppercase}.msg{min-width:0}
+.ts{color:#6b7280}.src-tag{font-size:.62rem;text-transform:uppercase}.msg{min-width:0}.meta{opacity:.55;font-size:.66rem}
 .count{font-size:.68rem;color:#6b7280;text-align:right;white-space:nowrap;margin-top:.3rem}
 </style>

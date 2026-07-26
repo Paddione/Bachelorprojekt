@@ -76,4 +76,12 @@ describe('filterEntries', () => {
   it('returns nothing when all chips are off', () => {
     expect(filterEntries(entries, allFilters({ levels: new Set() }))).toHaveLength(0);
   });
+
+  it('filters by meta field content via text', () => {
+    const withMeta = entry({ message: 'request.end', meta: { statusCode: 500, path: '/api/admin' } });
+    const withoutMeta = entry({ message: 'request.end', meta: { statusCode: 200 } });
+    const out = filterEntries([withMeta, withoutMeta], allFilters({ text: '500' }));
+    expect(out).toHaveLength(1);
+    expect(out[0].meta?.statusCode).toBe(500);
+  });
 });

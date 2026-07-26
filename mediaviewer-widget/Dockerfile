@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # ── Build stage ───────────────────────────────────────────────
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 # Source-only Player-Package zuerst (wird per Alias konsumiert)
 COPY packages/videovault-player ./packages/videovault-player

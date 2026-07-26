@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 # ── Build stage ───────────────────────────────────────────────────────────────
 # Build context is repo root so that tests/ can be copied into the runtime stage.
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 # T001224/T001276: website migrated to pnpm — `website/package-lock.json` was
 # deleted, only `website/pnpm-lock.yaml` exists. Corepack is bundled with
-# node 22, so we enable pnpm@10 (matches `.github/workflows/ci.yml` +
+# node 24, so we enable pnpm@10 (matches `.github/workflows/ci.yml` +
 # `.github/workflows/build-mentolder-web.yml`).
 ENV PNPM_HOME=/pnpm
 ENV PATH=/pnpm:$PATH
@@ -32,7 +32,7 @@ RUN pnpm run build
 RUN pnpm install --prod
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
-FROM node:22-alpine AS runtime
+FROM node:24-alpine AS runtime
 WORKDIR /app
 
 # Tools needed by test runner scripts

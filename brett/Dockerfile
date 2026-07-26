@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Stage 1: build Vite client bundle
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
@@ -10,7 +10,7 @@ COPY vite.config.ts tsconfig.json tsconfig.client.json tsconfig.server.json ./
 RUN npm run build
 
 # Stage 2: runtime (tsx server + built client)
-FROM node:22-alpine
+FROM node:24-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev

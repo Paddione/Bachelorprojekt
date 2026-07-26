@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 617,
+      "file_count": 618,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -485,6 +485,7 @@
         "tests/spec/ts-suppression.bats",
         "tests/spec/vaultwarden-integration.bats",
         "tests/spec/website-core.bats",
+        "tests/spec/website-interfaces.bats",
         "tests/spec/workspace-deploy-secrets-scope.bats",
         "tests/spec/workspace-deploy.bats",
         "tests/sql/software-history.sql",

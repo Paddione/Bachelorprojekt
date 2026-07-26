@@ -111,7 +111,27 @@ kann — ohne menschliche Zwischenstation.
    `classifyBundle` → `severity=major` bei `broken`/`security`) und funktioniert zusätzlich
    offline. Falls `has_critical` → **stop**: Ticket bleibt bei `status=triage` für manuelle
    Triage (heutiges Verhalten). Sonst weiter.
-2. **Slug.** `slug="mishap-$(echo "<ext-id>" | tr '[:upper:]' '[:lower:]')"`.
+2. **Slug UND Branch — zwei verschiedene Werte [T002240].**
+
+   ```bash
+   # Verzeichnis-Slug: KOMPLETT lowercase (openspec/changes/<slug>-Konvention)
+   slug="mishap-$(echo "<ext-id>" | tr '[:upper:]' '[:lower:]')"   # -> mishap-t002239
+   # Branch-Name: Ticket-ID UNVERAENDERT, grosses T (NICHT aus dem Slug ableiten!)
+   branch="chore/mishap-<ext-id>"                                  # -> chore/mishap-T002239
+   ```
+
+   > ⚠️ **Falle (2026-07-26 live gestolpert):** `.githooks/pre-commit` erzwingt eine
+   > **case-sensitive** Ticket-ID im Branch-Namen (`[[ "$_bn" =~ T[0-9]{6,} ]]`).
+   > `chore/mishap-t002239` mit kleinem `t` matcht diese Regex **nicht** — der Commit
+   > wird abgelehnt und Schritt 3.5 kann so nie durchlaufen. Den lowercase-Slug also
+   > **ausschliesslich** fuer `openspec/changes/<slug>` verwenden, den Branch-Namen
+   > immer aus der unveraenderten `<ext-id>` bauen. Den Branch-Namen aus dem
+   > lowercase-Slug abzuleiten ist genau der Bug — nicht wieder einfuehren.
+   >
+   > Und weil ein abgelehnter Commit den nachfolgenden Push **nicht** verhindert,
+   > wenn beide auf getrennten Zeilen stehen: `git commit … && git push …` immer
+   > `&&`-verketten (siehe Schritt 7) und danach `git log --oneline -1` pruefen.
+
 3. `bash scripts/openspec.sh propose "$slug" --ticket <ext-id>` — seedet das
    plan-lint-konforme `openspec/changes/$slug/tasks.md`-Skelett (headless; kein Brainstorming).
 4. **Authoring an einen frischen Subagenten delegieren** (Provisionierung gemäß
@@ -131,12 +151,16 @@ kann — ohne menschliche Zwischenstation.
    Linter-Output erneut delegieren (max. 2 Retries). Bleibt es rot: **kein** Aufruf von
    `stage-plan`; Ticket bleibt bei `status=triage`, Lint-Fehler im Summary melden (kein
    Rollback nötig — nichts wurde gestaged).
-6. `./scripts/ticket.sh stage-plan --id <ext-id> --branch "chore/$slug" --plan "openspec/changes/$slug/tasks.md"`
-   — setzt `status=plan_staged`, schreibt den `FACTORY-PLAN-REF branch=chore/$slug plan=…`-
+6. `./scripts/ticket.sh stage-plan --id <ext-id> --branch "$branch" --plan "openspec/changes/$slug/tasks.md"`
+   — setzt `status=plan_staged`, schreibt den `FACTORY-PLAN-REF branch=$branch plan=…`-
    Kommentar und markiert scout/design/plan-Phase-Events als done (bestehendes
-   `stage-plan.sh`-Verhalten).
-7. Commit + Push des `chore/$slug`-Branches:
-   `git add openspec/changes/$slug && git commit -m "chore(plans): stage $slug for factory [<ext-id>]" && git push -u origin "chore/$slug"`.
+   `stage-plan.sh`-Verhalten). `--branch` bekommt den **Branch** aus Schritt 2, nicht den Slug.
+7. Commit + Push des `$branch`-Branches — beide Kommandos **`&&`-verkettet** in einem Aufruf:
+   `git add openspec/changes/$slug && git commit -m "chore(plans): stage $slug for factory [<ext-id>]" && git push -u origin "$branch"`.
+   Danach `git log --oneline -1` pruefen: HEAD muss den neuen Commit zeigen. (Ohne `&&`
+   laeuft der Push auch nach einem abgelehnten Commit und legt einen **leeren Branch** an;
+   `.githooks/pre-push` blockt diesen Fall inzwischen, das ist aber der Backstop, nicht die
+   Regel.)
    Ab hier erkennt die Software Factory (queue.sh/slots.sh/pipeline.js/dispatcher-bridge.sh)
    den `FACTORY-PLAN-REF` automatisch, schedult das Ticket und treibt es bis zum Merge.
 
@@ -162,7 +186,7 @@ Report:
 - Ob ein Bundle-Ticket ausgelöst wurde (und welches `T000xxx`)
 - Ob Buffer-Flush am Ende nötig war
 - Bei nicht-kritischem Bundle zusätzlich: ob ein Auto-Chore-Plan gestaged wurde
-  (Branch `chore/$slug`, `status=plan_staged`) oder übersprungen wurde
+  (Branch `$branch` = `chore/mishap-<ext-id>`, `status=plan_staged`) oder übersprungen wurde
   (Lint-Fehler → `status=triage`)
 
 ---

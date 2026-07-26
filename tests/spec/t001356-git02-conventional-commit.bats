@@ -186,3 +186,104 @@ HOOK="${BATS_TEST_DIRNAME}/../../.githooks/commit-msg"
   SKIP_COMMIT_MSG_LINT=1 run bash "$HOOK" "$TMP_MSG"
   [ "$status" -eq 0 ]
 }
+
+# ── T002240 M1: "did you mean" nearest-scope suggestion ──────────────────────
+# Mishap 2026-07-26: `fix(agents): …` was rejected with only a pointer to
+# `validate-commit-msg.sh scopes` (94 entries). `agents` is a plain prefix of
+# the valid scope `agent-guide`; the rejection should say so instead of costing
+# a round trip. Two sightings ended with an empty branch on the remote because
+# the `git push` was not `&&`-chained behind the rejected `git commit`.
+
+@test "T002240: unknown scope 'agents' suggests the nearest valid scope" {
+  echo "fix(agents): drop invented tool names" > "$TMP_MSG"
+  run bash "$SCRIPT" message "$TMP_MSG"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"unknown scope 'agents'"* ]]
+  [[ "$output" == *"did you mean"* ]]
+  [[ "$output" == *"agent-guide"* ]]
+}
+
+@test "T002240: unknown scope with no near match emits no bogus suggestion" {
+  echo "chore(zzzzznope): test" > "$TMP_MSG"
+  run bash "$SCRIPT" message "$TMP_MSG"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"unknown scope 'zzzzznope'"* ]]
+  [[ "$output" != *"did you mean"* ]]
+}
+
+@test "T002240: the suggestion is a scope that actually validates" {
+  echo "fix(agents): x" > "$TMP_MSG"
+  run bash "$SCRIPT" message "$TMP_MSG"
+  local suggested
+  suggested="$(printf '%s\n' "$output" | sed -n "s/.*did you mean '\([^']*\)'.*/\1/p" | head -1)"
+  [ -n "$suggested" ]
+  echo "fix(${suggested}): x" > "$TMP_MSG"
+  run bash "$SCRIPT" message "$TMP_MSG"
+  [ "$status" -eq 0 ]
+}
+
+# ── T002240 M1: pre-push must not silently publish an empty branch ───────────
+
+@test "T002240: pre-push hook has an empty-branch guard" {
+  run grep -F 'T002240' "${BATS_TEST_DIRNAME}/../../.githooks/pre-push"
+  [ "$status" -eq 0 ]
+  run grep -E 'rev-list --count' "${BATS_TEST_DIRNAME}/../../.githooks/pre-push"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002240: pre-push empty-branch guard is bypassable and documented" {
+  run grep -F 'SKIP_EMPTY_BRANCH_CHECK' "${BATS_TEST_DIRNAME}/../../.githooks/pre-push"
+  [ "$status" -eq 0 ]
+}
+
+# ── T002240 M3: mishap-tracker slug vs. pre-commit branch-name regex ─────────
+# .githooks/pre-commit requires a CASE-SENSITIVE T[0-9]{6,} in the branch name.
+# mishap-tracker Step 3.5 lowercased the whole external id into the slug AND
+# used that slug as the branch name -> `chore/mishap-t002239` was rejected and
+# Step 3.5 could never complete as written.
+
+MISHAP_SKILL="${BATS_TEST_DIRNAME}/../../.claude/skills/mishap-tracker/SKILL.md"
+PRE_COMMIT_HOOK="${BATS_TEST_DIRNAME}/../../.githooks/pre-commit"
+
+@test "T002240: pre-commit branch check is case-sensitive on the ticket ID" {
+  run grep -F 'T[0-9]{6,}' "$PRE_COMMIT_HOOK"
+  [ "$status" -eq 0 ]
+  # a lowercase ticket id must NOT satisfy the hook's regex
+  run bash -c '[[ "chore/mishap-t002239" =~ T[0-9]{6,} ]]'
+  [ "$status" -ne 0 ]
+  run bash -c '[[ "chore/mishap-T002239" =~ T[0-9]{6,} ]]'
+  [ "$status" -eq 0 ]
+}
+
+@test "T002240: mishap-tracker never derives the branch name from the lowercased slug" {
+  [ -f "$MISHAP_SKILL" ]
+  # `chore/$slug` as a branch name is exactly the M3 bug — it must be gone.
+  run grep -n 'chore/\$slug' "$MISHAP_SKILL"
+  [ "$status" -ne 0 ]
+}
+
+@test "T002240: mishap-tracker defines a branch variable that keeps the ticket ID uppercase" {
+  run grep -E '^\s*branch="chore/mishap-<ext-id>"' "$MISHAP_SKILL"
+  [ "$status" -eq 0 ]
+  # and still keeps the directory slug lowercase (openspec convention)
+  run grep -F "tr '[:upper:]' '[:lower:]'" "$MISHAP_SKILL"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002240: mishap-tracker spells out the case-sensitivity trap" {
+  run grep -F 'pre-commit' "$MISHAP_SKILL"
+  [ "$status" -eq 0 ]
+  run grep -F 'T[0-9]{6,}' "$MISHAP_SKILL"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002240: the branch mishap-tracker prescribes satisfies the pre-commit check" {
+  # Derive the branch exactly as the skill prescribes, for a sample ext-id.
+  local ext_id="T002239"
+  local slug branch
+  slug="mishap-$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')"
+  branch="chore/mishap-${ext_id}"
+  [ "$slug" = "mishap-t002239" ]                 # directory slug stays lowercase
+  [[ "$branch" =~ ^feature/|^fix/|^chore/|^docs/ ]]
+  [[ "$branch" =~ T[0-9]{6,} ]]                  # the pre-commit:117 regex
+}

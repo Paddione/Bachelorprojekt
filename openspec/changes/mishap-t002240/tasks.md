@@ -36,7 +36,7 @@ tests/spec/software-factory.bats                     # M2 — flake instrumentat
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the failing assertions to the existing spec
+- [x] **Failing-Test-Step (RED).** Add the failing assertions to the existing spec
       files above — the BATS convention in CLAUDE.md forbids new ticket-numbered
       spec files, and both topics already have an owner:
       `t001356-git02-conventional-commit.bats` owns `validate-commit-msg.sh`, and
@@ -53,7 +53,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/t001356-git02-conventional-commit.b
 # expected: FAIL (red — neither the scope suggestion nor the slug contract exists yet)
 ```
 
-- [ ] **M1 Fix-Step (GREEN) — a rejected commit must not leave an empty pushed branch.**
+- [x] **M1 Fix-Step (GREEN) — a rejected commit must not leave an empty pushed branch.**
       Two sightings on 2026-07-26, both with `git commit` and `git push` as separate
       lines of one shell block rather than `&&`-chained. The commit was rejected by a
       pre-commit gate; the push ran regardless and published a branch pointing at the
@@ -83,7 +83,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/t001356-git02-conventional-commit.b
       `agent-guide` is a plain prefix match. Add a "did you mean" line via
       prefix/substring matching against the scope list.
 
-- [ ] **M2 Fix-Step (GREEN) — FA-SF-72 is order-dependently flaky.**
+- [x] **M2 Fix-Step (GREEN) — FA-SF-72 is order-dependently flaky.**
       `FA-SF-72: eval.mjs --replay --dry-run records mode=replay and touches no LLM`
       failed in one full run of `tests/spec/software-factory.bats` and was green in
       isolation, green on `main`, and green in a second full run. The branch under
@@ -105,7 +105,24 @@ tests/unit/lib/bats-core/bin/bats tests/spec/t001356-git02-conventional-commit.b
       Once the shared state is identified, isolate it per test (own temp dir, own
       fixture copy) rather than adding a retry.
 
-- [ ] **M3 Fix-Step (GREEN) — the mishap-tracker slug cannot satisfy the branch check.**
+      **Befund (2026-07-26).** Die Vermutung „geschriebene Fixture-Datei" war falsch —
+      und der Test war zum Zeitpunkt der Umsetzung auf `main` bereits per
+      `skip "Pre-existing regression"` stillgelegt (eingefuehrt in f0b5b6a69 / T002182).
+      Der geteilte Zustand ist nicht eine Datei, sondern **das Repository selbst**:
+      `runReplay()` rief auch im `--dry-run` `scripts/worktree-create.sh` auf, dessen
+      Divergenz-Guard bei „local main hinter origin/main" ein
+      `git fetch origin main:main` versucht. Das verweigert git, sobald `main` in einem
+      anderen Worktree ausgecheckt ist — der Test faellt also genau dann um, wenn
+      zwischenzeitlich etwas auf `origin/main` gelandet ist. Messung: nach `skip`-Entfernung
+      zunaechst 1/1 gruen in Isolation, danach 1/1 rot im Vollauf **und** 1/1 rot in
+      Isolation, nachdem `origin/main` waehrend des Laufs weitergewandert war (f0b5b6a69
+      → 28df5850c) — also kein Reihenfolgeeffekt, sondern Abhaengigkeit von externem
+      Repo-Zustand. Fix: der `--dry-run`-Pfad legt keinen Worktree mehr an, sondern prueft
+      den `base_commit` mit `git cat-file -e`. Danach 3/3 gruen (Isolation, FA-SF-72-Block,
+      Vollauf), `skip` entfernt, plus zwei neue Assertions gegen Worktree-/Branch-Rueckstaende.
+      `scripts/worktree-create.sh` blieb unangetastet (gehoert zum parallelen T002239).
+
+- [x] **M3 Fix-Step (GREEN) — the mishap-tracker slug cannot satisfy the branch check.**
       `.githooks/pre-commit:117` requires an uppercase ticket ID in the branch name:
 
           [[ "$_bn" =~ T[0-9]{6,} ]] && _has_ticket=1
@@ -128,7 +145,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/t001356-git02-conventional-commit.b
       into the same trap, and add the assertion from the RED step so a future edit
       to either the hook regex or the skill breaks a test instead of a session.
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

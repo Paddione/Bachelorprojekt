@@ -54,6 +54,40 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
     fi
   fi
 
+  # ── Empty-branch guard [T002240] ────────────────────────────────────────────
+  # Mishap 2026-07-26 (x2): `git commit` and `git push` on separate lines of one
+  # shell block. A pre-commit/commit-msg gate rejected the commit, the push ran
+  # anyway, and a branch pointing at the same commit as main landed on origin:
+  #     ✗ unknown scope 'agents': …
+  #      * [new branch]  fix/T002221-agent-tools-frontmatter -> …
+  # A PR opened from such a branch is empty and its CI is green.
+  # Blocking only for the unambiguous accident — a BRAND-NEW remote branch
+  # (REMOTE_SHA all-zeros) with zero commits ahead of origin/main. That
+  # combination has no legitimate use. An already-existing remote branch that
+  # happens to be fully merged only gets a warning, and a new branch that does
+  # carry commits pushes normally.
+  # Bypass (emergency only): SKIP_EMPTY_BRANCH_CHECK=1 git push
+  if [[ "${SKIP_EMPTY_BRANCH_CHECK:-0}" != "1" && "${SKIP_CI_CHECK:-0}" != "1" ]]; then
+    _ahead=""
+    if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+      _ahead=$(git rev-list --count "origin/main..$LOCAL_SHA" 2>/dev/null || echo "")
+    fi
+    case "$REMOTE_REF" in refs/heads/main|refs/heads/develop|refs/tags/*) _ahead="" ;; esac
+    if [[ "$_ahead" == "0" ]]; then
+      if [[ "${REMOTE_SHA:-}" == "0000000000000000000000000000000000000000" ]]; then
+        err "refusing to create '$REMOTE_REF' — it has no commits ahead of origin/main."
+        err "This is the signature of a rejected commit followed by an unchained push:"
+        err "  the branch would land empty and any PR from it would be a no-op."
+        err "Check with: git log --oneline -1   (did your commit actually happen?)"
+        err "Then chain them: git commit -m '…' && git push -u origin <branch>"
+        err "To bypass (emergency only): SKIP_EMPTY_BRANCH_CHECK=1 git push"
+        exit 1
+      else
+        warn "'$REMOTE_REF' has no commits ahead of origin/main — nothing new is being pushed."
+      fi
+    fi
+  fi
+
   CHANGED_BATS=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep '\.bats$' || true)
   [[ -z "$CHANGED_BATS" ]] && continue
 

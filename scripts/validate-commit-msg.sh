@@ -65,6 +65,58 @@ load_allowed_scopes() {
 
 ALLOWED_SCOPES="$(load_allowed_scopes)"
 
+# "Did you mean" — find the nearest valid scope for an unknown one [T002240].
+# With ~94 named scopes, "unknown scope 'agents'" plus a pointer to another
+# command costs a round trip for what is usually a plain prefix typo
+# (agents -> agent-guide). Matching is deliberately conservative: only
+# prefix/substring relationships count, so a genuinely novel scope produces no
+# misleading suggestion at all.
+suggest_scope() {
+  local unknown="$1" s
+  local lc_unknown
+  lc_unknown="$(printf '%s' "$unknown" | tr '[:upper:]' '[:lower:]')"
+  [ -z "$lc_unknown" ] && return 1
+
+  # Pass 1: one is a prefix of the other (websitex -> website, doc -> docs).
+  for s in $ALLOWED_SCOPES; do
+    case "$s" in "$lc_unknown"*) printf '%s' "$s"; return 0 ;; esac
+    case "$lc_unknown" in "$s"*) printf '%s' "$s"; return 0 ;; esac
+  done
+
+  # Pass 2: longest shared prefix. This is the case that actually bit us —
+  # `agents` is not a prefix of `agent-guide` and `agent-guide` is not a prefix
+  # of `agents`; they share the stem `agent`. Require a shared prefix of at
+  # least 4 chars AND at least half the unknown scope's length, so an unrelated
+  # scope can never produce a suggestion.
+  local best="" best_len=0
+  local min_len=4
+  local half=$(( (${#lc_unknown} + 1) / 2 ))
+  [ "$half" -gt "$min_len" ] && min_len="$half"
+  for s in $ALLOWED_SCOPES; do
+    local i=0 n=${#s}
+    [ "${#lc_unknown}" -lt "$n" ] && n=${#lc_unknown}
+    while [ "$i" -lt "$n" ] && [ "${s:$i:1}" = "${lc_unknown:$i:1}" ]; do
+      i=$((i + 1))
+    done
+    if [ "$i" -ge "$min_len" ] && [ "$i" -gt "$best_len" ]; then
+      best="$s"
+      best_len="$i"
+    fi
+  done
+  if [ -n "$best" ]; then
+    printf '%s' "$best"
+    return 0
+  fi
+
+  # Pass 3: substring, but only for stems long enough to be meaningful.
+  if [ "${#lc_unknown}" -ge 4 ]; then
+    for s in $ALLOWED_SCOPES; do
+      case "$s" in *"$lc_unknown"*) printf '%s' "$s"; return 0 ;; esac
+    done
+  fi
+  return 1
+}
+
 # Validate a single subject line. Prints a diagnostic and returns 1 on violation.
 validate_subject() {
   local subject="$1" sha="${2:-}"
@@ -109,6 +161,10 @@ validate_subject() {
       done
       if [ "$ok" -ne 0 ]; then
         echo "  ✗ ${label}unknown scope '${scope}': ${subject}" >&2
+        local _suggestion
+        if _suggestion="$(suggest_scope "$scope")" && [ -n "$_suggestion" ]; then
+          echo "    ↳ did you mean '${_suggestion}'?" >&2
+        fi
         return 1
       fi
     fi

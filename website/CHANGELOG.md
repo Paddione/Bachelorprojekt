@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.214.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.6...website-v1.214.7) (2026-07-26)
+
+
+### Bug Fixes
+
+* **secrets:** add POCKET_ID_TERMINAL_SECRET, fix livekit-egress Recreate, patch brace-expansion [T002180] ([#3232](https://github.com/Paddione/Bachelorprojekt/issues/3232)) ([06119e4](https://github.com/Paddione/Bachelorprojekt/commit/06119e40e67843e28bfc83076a90c7a1613809c0))
+
 ## [1.214.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.5...website-v1.214.6) (2026-07-26)
 
 

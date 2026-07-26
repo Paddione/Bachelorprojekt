@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.215.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.215.0...website-v1.215.1) (2026-07-26)
+
+
+### Bug Fixes
+
+* **infra:** Keycloak-Abschaltung vollenden — tote Import-Skripte, Secrets, Docs [T002205] ([#3261](https://github.com/Paddione/Bachelorprojekt/issues/3261)) ([6f62ec5](https://github.com/Paddione/Bachelorprojekt/commit/6f62ec5759cc93c82220eef50b628a6953fd13e8))
+
 ## [1.215.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.214.13...website-v1.215.0) (2026-07-26)
 
 

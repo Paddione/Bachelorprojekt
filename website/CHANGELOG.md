@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.215.1...website-v1.216.0) (2026-07-26)
+
+
+### Features
+
+* **secrets:** centralize dev-tool secrets to SSOT with gitleaks guard [T002214] ([#3262](https://github.com/Paddione/Bachelorprojekt/issues/3262)) ([10690f5](https://github.com/Paddione/Bachelorprojekt/commit/10690f513e61314e29f636f4fdd25856b8fb20b4))
+
 ## [1.215.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.215.0...website-v1.215.1) (2026-07-26)
 
 

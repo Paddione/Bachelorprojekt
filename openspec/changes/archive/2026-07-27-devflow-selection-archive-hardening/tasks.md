@@ -2,7 +2,7 @@
 title: "devflow-selection-archive-hardening — Implementation Plan"
 ticket_id: T002255
 domains: [plan-authoring, ci-cd, scripts]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -943,6 +943,74 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   }
 }
 
+# ── T002245: the factory job may scope the spec suite to the diff on PRs, but
+# the full-glob path MUST stay reachable for push-to-main. Without it, scoping
+# reintroduces exactly the T002182 failure mode: a spec file that no required
+# check ever runs, rotting on main undetected.
+
+@test "T002245: test-factory keeps a non-PR full-suite path for the spec bats" {
+  local ci="$REPO_ROOT/.github/workflows/ci.yml"
+  local block
+  block=$(awk '/^  test-factory:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
+
+  # Scoping is optional; if present it must be gated on the event being a PR.
+  if echo "$block" | grep -qF 'task test:spec:changed'; then
+    echo "$block" | grep -qF "github.event_name == 'pull_request'" || {
+      echo "FAIL: scoped spec run is not gated on github.event_name == 'pull_request'."
+      echo "      Push-to-main must still run the full suite."
+      return 1
+    }
+    # ...and the unscoped fallback must survive alongside it.
+    echo "$block" | grep -qE '^\s+(task )?test:spec\s*$|task test:spec$' || {
+      echo "FAIL: no bare 'task test:spec' fallback left in the test-factory job."
+      echo "      Current block:"; echo "$block" | sed 's/^/  /'
+      return 1
+    }
+  fi
+
+  # origin/main must be fetched, otherwise the diff is empty and the scoped
+  # selection silently resolves to zero spec files.
+  echo "$block" | grep -qF 'origin main:refs/remotes/origin/main' || {
+    echo "FAIL: test-factory does not fetch origin/main — a diff-scoped run"
+    echo "      would select nothing and report green."
+    return 1
+  }
+}
+
+@test "T002245: find-changed-tests.sh spec maps openspec slugs and widens on harness changes" {
+  local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
+  local tmp="$BATS_TEST_TMPDIR/finder-repo"
+  mkdir -p "$tmp/scripts" "$tmp/tests/spec/helpers" "$tmp/openspec/specs/alpha"
+  cp "$finder" "$tmp/scripts/find-changed-tests.sh"
+  : > "$tmp/tests/spec/alpha.bats"
+  : > "$tmp/tests/spec/beta.bats"
+  : > "$tmp/tests/spec/helpers/shared.bash"
+  : > "$tmp/openspec/specs/alpha/spec.md"
+
+  cd "$tmp"
+  git init -q -b main .
+  git -c user.email=t@t -c user.name=t commit -q --allow-empty -m base
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
+  git update-ref refs/remotes/origin/main HEAD
+
+  # The finder diffs HEAD against origin/main, so changes must be committed.
+  # openspec/specs/alpha/** → tests/spec/alpha.bats, and nothing else
+  git checkout -q -b topic
+  echo change >> openspec/specs/alpha/spec.md
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m openspec
+  run bash scripts/find-changed-tests.sh spec
+  [ "$status" -eq 0 ]
+  [ "$output" = "tests/spec/alpha.bats" ]
+
+  # shared harness → full suite (both files)
+  git checkout -q main && git checkout -q -b topic2
+  echo change >> tests/spec/helpers/shared.bash
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m harness
+  run bash scripts/find-changed-tests.sh spec
+  [ "$status" -eq 0 ]
+  [ "$(echo "$output" | wc -l)" -eq 2 ]
+}
+
 # ── T002170: Restposten der Renovate-Config-Migration. fileMatch ist deprecated
 #    und wurde durch managerFilePatterns ersetzt (slash-gekapselte Regexes, wie
 #    schon bei matchPackageNames in T002165). Wichtig: der kubernetes-Manager hat

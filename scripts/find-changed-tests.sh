@@ -76,6 +76,22 @@ while IFS= read -r file; do
     continue
   fi
 
+  # tests/spec/*.bats are named after their OpenSpec SSOT spec slug, so an
+  # openspec/ change maps straight onto the same-named spec bats. [T002245]
+  if [ "$TYPE" = "spec" ] && [[ "$file" == openspec/* ]]; then
+    slug=$(printf '%s\n' "$file" | cut -d/ -f3)
+    if [ -n "$slug" ] && [ -f "$BASE_DIR/$slug.bats" ]; then
+      CANDIDATES+=("$BASE_DIR/$slug.bats")
+    fi
+    continue
+  fi
+
+  # Shared spec harness (helpers/fixtures) can break any spec file. [T002245]
+  if [ "$TYPE" = "spec" ] && { [[ "$file" == tests/spec/helpers/* ]] || [[ "$file" == tests/spec/fixtures/* ]] || [[ "$file" == tests/spec/test_helper.bash ]]; }; then
+    RUN_ALL=true
+    continue
+  fi
+
   # If workflow, configs, or test helper libraries changed, run all tests for safety
   if [[ "$file" == .github/workflows/* ]] || [[ "$file" == Taskfile* ]] || [[ "$file" == tests/unit/lib/* ]] || [[ "$file" == package.json ]]; then
     RUN_ALL=true

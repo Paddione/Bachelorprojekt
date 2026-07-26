@@ -8,3 +8,14 @@ resources:
   - ../../prod/monitoring
 components:
   - ../components/fleet-common
+
+# T002207: remove all one-shot Jobs from the brand overlay — they now
+# live in flux-<brand>-jobs Kustomization with force:true and wait:false.
+patches:
+  - target: { group: batch, version: v1, kind: Job }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: any-job

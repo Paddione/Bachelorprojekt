@@ -6,7 +6,7 @@ metadata:
 spec:
   interval: 10m
   retryInterval: 2m
-  timeout: 5m
+  timeout: 10m
   dependsOn:
     - name: flux-infra-controllers
   sourceRef:
@@ -14,4 +14,16 @@ spec:
     name: fleet-manifests
   path: ./mentolder
   prune: true
-  wait: true
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: shared-db
+      namespace: workspace
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: pocket-id
+      namespace: workspace
+    - apiVersion: apps/v1
+      kind: Deployment
+      name: traefik
+      namespace: workspace

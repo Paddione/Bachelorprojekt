@@ -1,0 +1,163 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# korczewski-jobs — isolated one-shot bootstrap/seed Jobs, decoupled from
+# the brand application stack (T002207). Uses the same base overlay as the
+# brand so Job manifests render identically (same namespace, envsubst).
+#
+# Only kind: Job resources survive — everything else is deleted via
+# $patch: delete below.
+namespace: workspace-korczewski
+resources:
+  - ../../prod-korczewski
+components:
+  - ../components/fleet-common
+
+# ── Remove everything that is NOT a batch/v1 Job ─────────────────
+patches:
+  - target: { version: v1, kind: Deployment }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Deployment
+      metadata:
+        name: delete-deployment
+  - target: { version: v1, kind: Service }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: delete-service
+  - target: { version: v1, kind: ConfigMap }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: delete-configmap
+  - target: { version: v1, kind: Secret }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: delete-secret
+  - target: { version: v1, kind: ServiceAccount }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: delete-sa
+  - target: { group: rbac.authorization.k8s.io, version: v1, kind: ClusterRole }
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: delete-cr
+  - target: { group: rbac.authorization.k8s.io, version: v1, kind: ClusterRoleBinding }
+    patch: |-
+      $patch: delete
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: delete-crb
+  - target: { group: apps, version: v1, kind: StatefulSet }
+    patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: delete-sts
+  - target: { group: networking.k8s.io, version: v1, kind: Ingress }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: delete-ingress
+  - target: { group: networking.k8s.io, version: v1, kind: IngressRoute }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: IngressRoute
+      metadata:
+        name: delete-ir
+  - target: { group: traefik.containo.us, version: v1alpha1, kind: Middleware }
+    patch: |-
+      $patch: delete
+      apiVersion: traefik.containo.us/v1alpha1
+      kind: Middleware
+      metadata:
+        name: delete-mw
+  - target: { group: batch, version: v1, kind: CronJob }
+    patch: |-
+      $patch: delete
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: delete-cronjob
+  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy }
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: delete-np
+  - target: { group: policy, version: v1, kind: PodDisruptionBudget }
+    patch: |-
+      $patch: delete
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      metadata:
+        name: delete-pdb
+  - target: { group: autoscaling, version: v2, kind: HorizontalPodAutoscaler }
+    patch: |-
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: delete-hpa
+  - target: { group: monitoring.coreos.com, version: v1, kind: ServiceMonitor }
+    patch: |-
+      $patch: delete
+      apiVersion: monitoring.coreos.com/v1
+      kind: ServiceMonitor
+      metadata:
+        name: delete-sm
+  - target: { group: monitoring.coreos.com, version: v1, kind: PrometheusRule }
+    patch: |-
+      $patch: delete
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      metadata:
+        name: delete-rule
+  - target: { group: helm.toolkit.fluxcd.io, version: v2beta1, kind: HelmRelease }
+    patch: |-
+      $patch: delete
+      apiVersion: helm.toolkit.fluxcd.io/v2beta1
+      kind: HelmRelease
+      metadata:
+        name: delete-helmrelease
+  - target: { group: source.toolkit.fluxcd.io, version: v1beta2, kind: HelmRepository }
+    patch: |-
+      $patch: delete
+      apiVersion: source.toolkit.fluxcd.io/v1beta2
+      kind: HelmRepository
+      metadata:
+        name: delete-helmrepo
+  - target: { group: cert-manager.io, version: v1, kind: Certificate }
+    patch: |-
+      $patch: delete
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: delete-cert
+  - target: { version: v1, kind: PersistentVolumeClaim }
+    patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: delete-pvc

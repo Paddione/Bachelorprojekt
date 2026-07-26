@@ -1002,7 +1002,27 @@ tasks:
   freshness:check:
     desc: "Fail if any generated artifact is stale or violates invariants (CI gate + local pre-commit safety)"
     cmds:
-      # --- Phase 1: regenerate everything, then diff-check each file ---
+      # --- Phase 0: regenerate, THEN diff-check (T002252) ---
+      # Without this step the diff below compares the artifacts against
+      # themselves: on a fresh checkout the tree is clean by definition, so the
+      # gate was structurally green even for stale artifacts. Verified against
+      # merge commit c792d6f85 (brett file_count 366, actual 365):
+      #   task freshness:check                       -> exit 0   (green, wrong)
+      #   task quality:index && task freshness:check -> exit 201 (drift caught)
+      # Consequence of the blind gate: nearly every PR left stale artifacts on
+      # main and freshness-regen.yml healed them with a bot commit afterwards
+      # (21 such commits on 2026-07-26 alone), which keeps main moving and is one
+      # of the reasons Renovate's ~150s run aborts with repository-changed
+      # (T002249).
+      #
+      # Yes, this makes a "check" mutate the working tree — it rewrites exactly
+      # the generated files the error message below already tells you to
+      # regenerate and commit, same as `gofmt -l` / `cargo fmt --check` flows.
+      # Safe to do so because regeneration is deterministic: two consecutive runs
+      # from an identical tree produce zero changed files, and none of the 16
+      # artifacts embed a wall-clock timestamp. Costs ~9s.
+      - task: freshness:regenerate
+      # --- Phase 1: diff-check each file ---
       - |
         ERRORS=0
         FILES="

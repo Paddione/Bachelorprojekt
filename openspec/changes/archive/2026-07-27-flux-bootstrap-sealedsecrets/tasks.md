@@ -2,7 +2,7 @@
 title: "flux-bootstrap-sealedsecrets — Implementation Plan"
 ticket_id: T002251
 domains: [infra, security]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

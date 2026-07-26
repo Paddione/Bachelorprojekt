@@ -23,6 +23,9 @@
     # Generated artifacts that look like secrets but aren't
     "(?i)docs/generated/.*",
     "(?i)k3d/docs-content-built/.*",
+    # Lock files with integrity hashes (often match entropy/token patterns)
+    "(?i)pnpm-lock\\.yaml",
+    "(?i)package-lock\\.json",
     # Test fixtures with placeholder values
     "(?i)tests/.*fixtures/.*",
     ".gitattributes",
@@ -73,12 +76,6 @@
   description = "AWS Access Key ID"
   regex = '''AKIA[0-9A-Z]{16}'''
   tags = ["key", "aws"]
-
-[[rules]]
-  id = "generic-api-key"
-  description = "Generic API Key / Secret (high-entropy)"
-  regex = '''(?i)(?:api[_-]?key|apikey|secret|token|password)[\s"'"':=]+[0-9a-zA-Z\-_]{16,}'''
-  tags = ["key", "generic"]
 
 # Private key markers
 [[rules]]

@@ -143,9 +143,10 @@ jobs:
             tests/unit/manifests.bats tests/unit/changed-manifests.bats
 
   test-factory:
-    # Full tests/spec/*.bats suite + OpenSpec validation + setup-go for
+    # tests/spec/*.bats + OpenSpec validation + setup-go for the
     # mcp-task-runner build (needed by test:spec). All spec tests skip
     # live-DB cases without a cluster (CI-safe). [T002182]
+    # Scoped to the changed specs on PRs, full suite on push-to-main. [T002245]
     name: Factory + OpenSpec + Guards
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
@@ -153,7 +154,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          fetch-depth: 1
           fetch-tags: false
+
+      - name: Fetch origin/main for diffing (shallow)
+        run: git fetch --no-tags --prune --depth=1 origin main:refs/remotes/origin/main
 
       - uses: actions/setup-node@v7
         with:
@@ -175,12 +180,24 @@ jobs:
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 
-      # T002182: Run ALL tests/spec/*.bats via task test:spec (builds mcp-task-runner
-      # if Go is available). Previously only 4 files were enumerated explicitly, which
-      # let pre-existing regressions (image-drift, T002163, T002167) rot on main
-      # undetected — any file not in the explicit list ran in no required check.
-      - name: Spec BATS suite (full tests/spec/*.bats)
-        run: task test:spec
+      # T002245: On PRs run only the spec bats matching the diff (task
+      # test:spec:changed → scripts/find-changed-tests.sh spec), the same
+      # scoping the unit job uses. NOT the pre-T002182 hardcoded file list —
+      # the shared-harness/workflow/Taskfile fallbacks widen to the full suite,
+      # and push-to-main still runs ALL of tests/spec/*.bats, so a regression
+      # cannot rot undetected on main (the T002182 failure mode).
+      # Fail closed: if origin/main is unreachable the diff would be empty and
+      # silently select nothing — run everything instead.
+      - name: Spec BATS suite
+        env:
+          IS_PR: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if [ "$IS_PR" = "true" ] && git rev-parse --verify -q refs/remotes/origin/main >/dev/null; then
+            task test:spec:changed
+          else
+            echo "→ Full spec suite (push-to-main or origin/main unavailable)"
+            task test:spec
+          fi
 
       - name: OpenSpec validation
         run: npm run test:openspec

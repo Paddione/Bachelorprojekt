@@ -29,6 +29,20 @@ if ! bash "$repo_root/scripts/git-crypt-guard.sh" check-staged; then
   exit 1
 fi
 
+# --- gitleaks: supplemental secret scan [T002214] ---
+# Fail-open if gitleaks binary is not installed (warn, exit 0).
+# Fail-closed if binary exists but finds leaks.
+if command -v gitleaks >/dev/null 2>&1; then
+  if ! gitleaks detect --config "$repo_root/.gitleaks.toml" --no-git --redact 2>/dev/null; then
+    echo "ERROR: gitleaks detected potential secrets in the working tree." >&2
+    echo "  Review the findings above. If they are false positives," >&2
+    echo "  add an allowlist entry to .gitleaks.toml." >&2
+    exit 1
+  fi
+else
+  echo "  ⚠ gitleaks binary not found — skipping secret scan (CI runs fail-closed)" >&2
+fi
+
 # --- freshness: auto-regenerate generated artifacts before commit [T000581] ---
 # Prevents CI freshness failures by capturing every regen-produced file in
 # the same commit (see T001388). Keep this list in sync with `task

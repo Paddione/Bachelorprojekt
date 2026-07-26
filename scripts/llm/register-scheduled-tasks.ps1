@@ -34,13 +34,20 @@ $Tasks = @(
     Name = "LlamaEmbedServer"
     Description = "bge-m3 Embedding-Server (Port 8095)"
     Exe = "$env:UserProfile\llama-b10090-13.3\llama-server.exe"
-    Args = "-m `"$env:UserProfile\.lmstudio\models\gpustack\bge-m3-GGUF\bge-m3-Q8_0.gguf`" --embedding --pooling cls --embd-normalize 2 -c 8192 -ngl 99 -fa on --host 0.0.0.0 --port 8095"
+    # T002260: -b/-ub 8192 sind PFLICHT. bge-m3 ist nicht-kausal, llama.cpp kann
+    # eine Sequenz nicht ueber mehrere physische Batches splitten -> ohne -ub
+    # gilt der Default 512 und jeder laengere Input scheitert mit
+    # "input (N tokens) is too large to process". -c allein genuegt NICHT.
+    Args = "-m `"$env:UserProfile\.lmstudio\models\gpustack\bge-m3-GGUF\bge-m3-Q8_0.gguf`" --embedding --pooling cls --embd-normalize 2 -c 8192 -b 8192 -ub 8192 -ngl 99 -fa on --host 0.0.0.0 --port 8095"
   }
   @{
     Name = "LlamaRerankServer"
     Description = "bge-reranker-v2-m3 Rerank-Server (Port 8096)"
     Exe = "$env:UserProfile\llama-b10090-13.3\llama-server.exe"
-    Args = "-m `"$env:UserProfile\.lmstudio\models\gpustack\bge-reranker-v2-m3-GGUF\bge-reranker-v2-m3-Q8_0.gguf`" --reranking -c 8192 -ngl 99 -fa on --host 0.0.0.0 --port 8096"
+    # T002260: -b/-ub 8192 sind PFLICHT, gleiche Begruendung wie beim
+    # Embed-Server. Beim Cross-Encoder gilt die Grenze fuer Query+Dokument
+    # zusammen — realistische Dokumente ab ~1500 Zeichen reissen 512 Tokens.
+    Args = "-m `"$env:UserProfile\.lmstudio\models\gpustack\bge-reranker-v2-m3-GGUF\bge-reranker-v2-m3-Q8_0.gguf`" --reranking -c 8192 -b 8192 -ub 8192 -ngl 99 -fa on --host 0.0.0.0 --port 8096"
   }
 )
 
@@ -49,7 +56,12 @@ $SchTasks = "$env:SystemRoot\System32\schtasks.exe"
 foreach ($Task in $Tasks) {
   $Name = $Task.Name
   $Desc = $Task.Description
-  $Exe = $Task.Expr
+  # T002264: stand hier als $Task.Expr — ein Key dieses Namens existiert nicht,
+  # PowerShell liefert dafuer still $null (kein Set-StrictMode). Jede Task wurde
+  # damit als /tr "" <args> registriert, also mit LEEREM Executable-Pfad, und
+  # konnte nichts starten. Das ist der Grund, warum es faktisch keine
+  # Server-Persistenz gab, obwohl das Skript existierte.
+  $Exe = $Task.Exe
   $Args = $Task.Args
 
   # Prüfe ob Task bereits existiert

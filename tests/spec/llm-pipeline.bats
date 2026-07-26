@@ -161,3 +161,54 @@ assert_var_not_declared() {
 @test "scripts/llm/register-scheduled-tasks.ps1 exists" {
   [ -f "$REPO/scripts/llm/register-scheduled-tasks.ps1" ]
 }
+
+# ── Physischer Batch (T002260) ────────────────────────────────────────
+# bge-m3 und bge-reranker-v2-m3 sind nicht-kausal (XLM-RoBERTa). llama.cpp kann
+# eine solche Sequenz NICHT über mehrere physische Batches aufteilen — ohne
+# -b/-ub gilt der Default n_ubatch=512 und jeder längere Input scheitert mit
+# "input (N tokens) is too large to process". Das gesetzte -c 8192 hilft nicht.
+# Der Ausfall ist unsichtbar: Kurztext-Smoke-Tests bleiben grün, und
+# website/src/lib/rerank.ts verschluckt Rerank-Fehler zu score: 0. Diese Tests
+# sind der Regressionsschutz — die Flags dürfen nicht wieder verschwinden.
+# Schreibweise wie bei --pooling (s. T002181-Kommentar oben): PowerShell
+# übergibt Array-Elemente, nicht zusammenhängende Strings.
+
+@test "start-embed-server.ps1 sets -b and -ub to the full context length (T002260)" {
+  run grep -qE '"-b",[[:space:]]*"8192"' "$REPO/scripts/llm/start-embed-server.ps1"
+  [ "$status" -eq 0 ]
+  run grep -qE '"-ub",[[:space:]]*"8192"' "$REPO/scripts/llm/start-embed-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "start-rerank-server.ps1 sets -b and -ub to the full context length (T002260)" {
+  run grep -qE '"-b",[[:space:]]*"8192"' "$REPO/scripts/llm/start-rerank-server.ps1"
+  [ "$status" -eq 0 ]
+  run grep -qE '"-ub",[[:space:]]*"8192"' "$REPO/scripts/llm/start-rerank-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+# Hier ist die Inline-String-Form korrekt — register-scheduled-tasks.ps1 baut die
+# Argumente als eine zusammenhaengende Kommandozeile fuer schtasks.exe.
+@test "register-scheduled-tasks.ps1 passes -b/-ub 8192 to the embed server (T002260)" {
+  run grep -qE 'bge-m3-Q8_0\.gguf.*-b 8192 -ub 8192' "$REPO/scripts/llm/register-scheduled-tasks.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "register-scheduled-tasks.ps1 passes -b/-ub 8192 to the rerank server (T002260)" {
+  run grep -qE 'bge-reranker-v2-m3-Q8_0\.gguf.*-b 8192 -ub 8192' "$REPO/scripts/llm/register-scheduled-tasks.ps1"
+  [ "$status" -eq 0 ]
+}
+
+# T002264: der Zugriff stand auf $Task.Expr, ein Key dieses Namens existiert nicht.
+# PowerShell liefert dafür still $null, also wurde jede Scheduled Task mit leerem
+# Executable-Pfad registriert (/tr "" <args>) und konnte nichts starten — der
+# Grund, warum es faktisch keine Server-Persistenz gab.
+@test "register-scheduled-tasks.ps1 reads \$Task.Exe, not a nonexistent key (T002264)" {
+  run grep -qE '\$Exe[[:space:]]*=[[:space:]]*\$Task\.Exe' "$REPO/scripts/llm/register-scheduled-tasks.ps1"
+  [ "$status" -eq 0 ]
+  # Kein CODE-Zugriff auf einen Key, den die Hashtable nicht definiert.
+  # PowerShell-Kommentarzeilen (#) vorher wegfiltern — der Fix ist dort mitsamt
+  # des alten, falschen Namens dokumentiert, und das soll so bleiben.
+  run bash -c "grep -vE '^[[:space:]]*#' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -qE '\\\$Task\\.Expr'"
+  [ "$status" -ne 0 ]
+}

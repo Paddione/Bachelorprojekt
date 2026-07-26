@@ -35,6 +35,22 @@ done
 mkdir -p "${OUT_DIR}"
 OUT_DIR="$(cd "${OUT_DIR}" && pwd)"
 
+# T002174: environments/schema.yaml ist die autoritative Spezifikation und definiert für
+# einzelne optionale Variablen ein Verhalten im leeren Fall. Der Taskfile-Render-Pfad
+# implementiert diese Verträge (Taskfile.yml:2831, 2961, 3641), der Flux-Pfad tat es nicht
+# und substituierte stattdessen den leeren Wert — was aus "Default anwenden" ein kaputtes
+# Manifest machte (Endpoints rigger-gateway mit ip: "" ließ flux-mentolder dauerhaft rot
+# stehen, wodurch Flux den gesamten Satz darin nicht mehr applizierte).
+#
+# Bewusst KEIN generischer "leere Variable = Fehler"-Check: über die vier Overlays hinweg
+# gibt es dutzende legitim leerer ${VAR}-Referenzen — Shell-Variablen in ConfigMap-
+# Skriptblöcken, Grafana-Dashboard-Templates und Platzhalter, die aus SealedSecrets
+# stammen. Nur explizit spezifizierte Verträge gehören hierher.
+apply_schema_defaults() {
+  # schema.yaml:403 — "Defaults to COMFY_HOST_IP when empty."
+  export RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}"
+}
+
 render_component() {
   local overlay="$1" out="$2"
   # Dynamically extract ALL ${VAR} references from kustomize output.
@@ -123,6 +139,7 @@ cd "$PROJECT_DIR"
 (
   set +u
   source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/platform"
@@ -130,17 +147,47 @@ cd "$PROJECT_DIR"
 )
 
 # 1b. Dev (workspace-dev namespace)
+#
+# T002174: environments/schema.yaml:466 spezifiziert für DEV_DOMAIN
+# "Empty disables the dev stack." Der Renderer setzte den leeren Wert stattdessen
+# stumpf ein, wodurch k3d/dev-stack/dev-ingress.yaml als `host: "*."` und
+# `tls.hosts[0]: ""` im Artefakt landete. Beides ist für die Kubernetes-API ungültig,
+# die flux-dev-Kustomization scheiterte am Dry-Run — und Flux appliziert dann den
+# GESAMTEN Satz darin nicht mehr, nicht nur das kaputte Ingress.
+# Aus einer Abschaltung wurde so eine Fehlkonfiguration.
 (
   set +u
-  source scripts/env-resolve.sh dev 2>/dev/null || true
+  # Kein `|| true`: schlug env-resolve fehl, lief der Render mit leerer Umgebung
+  # weiter und schrieb ein Manifest voller leer substituierter Werte ins Artefakt.
+  if ! source scripts/env-resolve.sh dev 2>/dev/null; then
+    echo "ERROR: env-resolve.sh dev failed — refusing to render the dev stack with" >&2
+    echo "       an empty environment (would emit empty-substituted manifests)." >&2
+    exit 1
+  fi
   mkdir -p "${OUT_DIR}/dev"
-  render_component prod-fleet/dev "${OUT_DIR}/dev/dev.yaml"
+  if [[ -z "${DEV_DOMAIN:-}" ]]; then
+    # Leeres, gültiges Kustomize-Verzeichnis statt gar keines: die flux-dev
+    # Kustomization zeigt fest auf path=./dev mit prune=true. Fehlte das Verzeichnis,
+    # scheiterte sie an "path not found" — also wieder rot, nur mit anderem Text.
+    # So wird sie Ready, appliziert nichts und prunt einen etwaigen Altbestand sauber weg.
+    echo "flux-render: DEV_DOMAIN is empty — rendering an empty dev stack (schema.yaml contract)."
+    cat > "${OUT_DIR}/dev/kustomization.yaml" <<'EOF'
+# Rendered empty by scripts/flux-render-artifact.sh: DEV_DOMAIN is unset for this
+# environment, and environments/schema.yaml defines that as "Empty disables the dev stack".
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: []
+EOF
+  else
+    render_component prod-fleet/dev "${OUT_DIR}/dev/dev.yaml"
+  fi
 )
 
 # 2. Mentolder
 (
   set +u
   source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/mentolder"
@@ -151,6 +198,7 @@ cd "$PROJECT_DIR"
 (
   set +u
   source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/korczewski"
@@ -161,6 +209,7 @@ cd "$PROJECT_DIR"
 (
   set +u
   source scripts/env-resolve.sh fleet-mentolder 2>/dev/null
+  apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/website-mentolder"
@@ -171,6 +220,7 @@ cd "$PROJECT_DIR"
 (
   set +u
   source scripts/env-resolve.sh fleet-korczewski 2>/dev/null
+  apply_schema_defaults
   if [[ -n "$WEBSITE_IMAGE_OVERRIDE" ]]; then export WEBSITE_IMAGE="$WEBSITE_IMAGE_OVERRIDE"; fi
   if [[ -n "$BRETT_IMAGE_OVERRIDE" ]]; then export BRETT_IMAGE="$BRETT_IMAGE_OVERRIDE"; fi
   mkdir -p "${OUT_DIR}/website-korczewski"

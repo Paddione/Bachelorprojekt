@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Two projects so Svelte component/store tests get a browser (jsdom) environment
 // without forcing jsdom + browser export-conditions onto node-oriented tests
-// (jose/livekit JWT signing, pdf-lib, etc. break under jsdom/browser conditions).
+// (jose, pdf-lib, etc. break under jsdom/browser conditions).
 const COMPONENT_TESTS = [
   'src/components/**/*.{test,spec}.ts',
   'src/lib/stores/cockpitStore.test.ts',

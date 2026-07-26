@@ -399,27 +399,6 @@ export const helpContent: Record<HelpContext, Record<string, HelpSection>> = {
         },
       ],
     },
-    live: {
-      title: 'Live-Stream',
-      description: 'Livestream starten, Zuschauer verwalten und Aufzeichnungen herunterladen.',
-      actions: [
-        'Stream starten und stoppen',
-        'Stream-Titel und -Beschreibung setzen',
-        'Aufzeichnung herunterladen',
-        'Zuschauer-Link teilen',
-      ],
-      guides: [
-        {
-          title: 'Stream starten',
-          steps: [
-            'Stelle sicher, dass OBS oder dein Stream-Tool konfiguriert ist.',
-            'Klicke auf „Stream starten" — LiveKit erstellt einen neuen Raum.',
-            'Teile den Zuschauer-Link unter /portal/stream.',
-            'Klicke auf „Stream beenden" wenn du fertig bist.',
-          ],
-        },
-      ],
-    },
     zeiterfassung: {
       title: 'Zeiterfassung',
       description: 'Arbeitsstunden für Projekte und Klienten erfassen und Berichte erstellen.',

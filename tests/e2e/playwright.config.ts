@@ -95,7 +95,6 @@ export default defineConfig({
         '**/fa-m3-*.spec.ts',                        // M3 onboarding flow
         '**/fa-admin-backup-ops.spec.ts',            // admin backup ops auth guards
         '**/fa-50-*.spec.ts',                        // request correlation / X-Request-ID (T000964)
-        '**/fa-51-*.spec.ts',                        // sidekick navigation + grilling/mediaviewer views (T000965)
         '**/a11y-axe.spec.ts',                       // axe-core a11y-Scan der Kern-Routen (G-FE01, T001206)
         '**/coaching-studio-empty-customer.spec.ts', // coaching-studio Workspace-Crash bei leerem CUSTOMERS (T001656)
       ],
@@ -140,6 +139,9 @@ export default defineConfig({
         '**/fa-admin-knowledge-model-selection.spec.ts', // embedding model selection (admin-gated)
         '**/fa-mobile-factory.spec.ts',           // FA-MOBILE-01..06 mobile factory parity (admin-gated)
         '**/sa-21-*.spec.ts',             // admin Aktionen tab (admin-gated)
+        '**/fa-51-*.spec.ts',             // sidekick navigation (T000965) — hits /admin, so it
+                                          // needs the admin session; in the unauthenticated
+                                          // `website` project the FAB never renders (T002199)
         '**/factory-qs-abnahme.spec.ts',  // QS-Abnahme-Flow /dev-status (T000730)
       ],
       use: {

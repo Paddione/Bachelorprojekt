@@ -2911,7 +2911,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 547,
+      "file_count": 548,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3237,6 +3237,7 @@
         "scripts/git-crypt-guard.sh",
         "scripts/git-safe-push.sh",
         "scripts/guard-bonsai-overwrite.sh",
+        "scripts/guard-pnpm-install.sh",
         "scripts/harness.ts",
         "scripts/health-goals-check.sh",
         "scripts/health-goals-llm-fill.sh",

@@ -205,8 +205,16 @@ list from the live portfolio, and parses the model response into a typed `Sugges
 ### Requirement: Reporter-Verlinkung mit Kundenprofil ist idempotent
 
 The system SHALL automatically link a bug ticket's `reporter_email` to an existing `customers`
-record (via `reporter_id`) whenever a matching Keycloak-authenticated customer exists, and SHALL
+record (via `reporter_id`) whenever a matching SSO-authenticated customer exists, and SHALL
 guarantee the link operation is safe to call multiple times without side effects.
+
+> **Zum Spaltennamen `keycloak_user_id` (T002179):** Die Spalte heißt in `customers`
+> weiterhin so und wird von den API-Routen unverändert gelesen und geschrieben (u. a.
+> `website/src/pages/api/portal/onboarding/update.ts:18`,
+> `api/admin/clients/update-crm.ts:19`). Der Name ist eine Migrations-Altlast; sein
+> Inhalt ist heute die Pocket-ID-Subject-ID. Wo diese Spec ihn nennt, ist der Text
+> korrekt und wurde bewusst nicht umbenannt — eine Umbenennung wäre eine
+> Schema-Migration mit Aufrufer-Anpassung, kein Spec-Thema.
 
 #### Scenario: Link wird beim Bug-Abschluss gesetzt
 

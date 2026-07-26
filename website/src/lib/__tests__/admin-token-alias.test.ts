@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
@@ -16,18 +16,14 @@ const COLOR_TOKENS = [
 ];
 
 describe('admin color tokens alias the Tailwind @theme layer', () => {
-  const factoryCss = readFileSync(resolve(stylesDir, 'factory-tokens.css'), 'utf8');
+  const globalCss = readFileSync(resolve(stylesDir, 'global.css'), 'utf8');
 
   for (const token of COLOR_TOKENS) {
-    it(`${token} aliases a @theme --color-* var in factory-tokens.css`, () => {
-      const m = factoryCss.match(new RegExp(`${token}\\s*:\\s*([^;]+);`));
-      expect(m, `${token} must be declared in factory-tokens.css`).toBeTruthy();
+    it(`${token} aliases a @theme --color-* var in global.css`, () => {
+      const m = globalCss.match(new RegExp(`${token}\\s*:\\s*([^;]+);`));
+      expect(m, `${token} must be declared in global.css`).toBeTruthy();
       const value = (m![1] ?? '').trim();
       expect(value).toMatch(/^var\(--color-[a-z0-9-]+\)$/);
     });
   }
-
-  it('factory-tokens.css exists', () => {
-    expect(existsSync(resolve(stylesDir, 'factory-tokens.css'))).toBe(true);
-  });
 });

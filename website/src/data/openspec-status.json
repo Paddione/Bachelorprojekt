@@ -1503,6 +1503,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002200": [
+    {
+      "slug": "t002200-admin-design-token",
+      "status": "plan_staged"
+    }
+  ],
   "T002202": [
     {
       "slug": "2026-07-26-e2e-deploy-drift",

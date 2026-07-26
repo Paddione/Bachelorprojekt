@@ -10,26 +10,26 @@ Systemisches Brett ist ein browserbasiertes 3D-Konstellationsboard für systemis
 
 ## Requirements
 
-### Requirement: Keycloak-SSO-Authentifizierung via OAuth2-Proxy
+### Requirement: Pocket-ID-SSO-Authentifizierung via OAuth2-Proxy
 
-The system SHALL gate all access to the board UI behind a Keycloak OIDC authentication flow, enforced by a dedicated `oauth2-proxy-brett` sidecar deployment, so that no unauthenticated request reaches the brett application pod.
+The system SHALL gate all access to the board UI behind a Pocket ID OIDC authentication flow, enforced by a dedicated `oauth2-proxy-brett` sidecar deployment, so that no unauthenticated request reaches the brett application pod.
 
 #### Scenario: Unauthentifizierter Aufruf wird weitergeleitet
 
-- **GIVEN** ein Nutzer ruft `brett.localhost/` auf, ohne aktive Keycloak-Session
+- **GIVEN** ein Nutzer ruft `brett.localhost/` auf, ohne aktive Pocket-ID-Session
 - **WHEN** der OAuth2-Proxy empfängt die Anfrage
-- **THEN** leitet er den Browser auf den Keycloak-Login-Endpunkt weiter; nach erfolgreichem Login wird er zurück zu brett weitergeleitet
+- **THEN** leitet er den Browser auf den Pocket-ID-Login-Endpunkt weiter (`--login-url`, `k3d/oauth2-proxy-brett.yaml:67`); nach erfolgreichem Login wird er zurück zu brett weitergeleitet
 
 #### Scenario: Authentifizierter Nutzer erhält Zugang
 
-- **GIVEN** ein Nutzer hat eine gültige Keycloak-Session (Realm `workspace`, Client `brett-app`)
+- **GIVEN** ein Nutzer hat eine gültige Pocket-ID-Session (Client `brett`, geseedet in `pocket_id.oidc_clients`)
 - **WHEN** er `/` aufruft
 - **THEN** liefert der brett-Pod `index.html` aus und setzt ein HttpOnly-Session-Cookie (`_oauth2_proxy_brett`)
 
 #### Scenario: View-only Share-Link umgeht OIDC
 
 - **GIVEN** ein Admin hat einen Share-Token erstellt und teilt `/share/<token>` mit einem Dritten
-- **WHEN** der Dritte den Link öffnet (ohne Keycloak-Account)
+- **WHEN** der Dritte den Link öffnet (ohne Pocket-ID-Account)
 - **THEN** erhält er lesenden Zugang (`_isGuest=true`) und kann keine Figuren mutieren
 
 ---
@@ -220,7 +220,7 @@ The system SHALL record all state-mutating WebSocket events per room and session
 
 ### Requirement: Movable and reshapeable board zones
 
-The system SHALL support leader-driven, persistent zones that can be moved, resized, re-labelled and re-styled after creation via a `zone_update` WebSocket message, and SHALL support a `variant` discriminator on `Zone` distinguishing a filled surface (`'filled'`) from an outline-only movable frame (`'frame'`). The `zone_update` message MUST be a member of `ADMIN_TYPES` and MUST additionally require the `leiter` role (or a Keycloak admin), matching the existing `zone_create`/`zone_delete` gating. Zone geometry (`x`, `z`, `width`, `height`, `radius`), `label`, `opacity` and `variant` ride the existing `brett_rooms.state` JSONB under the `__zones__` sentinel; no schema migration is introduced.
+The system SHALL support leader-driven, persistent zones that can be moved, resized, re-labelled and re-styled after creation via a `zone_update` WebSocket message, and SHALL support a `variant` discriminator on `Zone` distinguishing a filled surface (`'filled'`) from an outline-only movable frame (`'frame'`). The `zone_update` message MUST be a member of `ADMIN_TYPES` and MUST additionally require the `leiter` role (or a Pocket-ID admin), matching the existing `zone_create`/`zone_delete` gating. Zone geometry (`x`, `z`, `width`, `height`, `radius`), `label`, `opacity` and `variant` ride the existing `brett_rooms.state` JSONB under the `__zones__` sentinel; no schema migration is introduced.
 
 #### Scenario: Leiter moves and resizes a zone
 
@@ -535,7 +535,7 @@ The system SHALL ship a valid art-library manifest for every figure set, with ev
 - **THEN** enthält jede Kategorie mindestens einen Eintrag
 
 #### Scenario: Brett lädt Art-Manifest und exponiert Character-IDs *(E2E)*
-- **GIVEN** ein authentifizierter Nutzer öffnet den Brett-Client (Keycloak-Session vorhanden) und das deployete Image unterstützt die Art-Library-Feature (`window.__ART_READY__`)
+- **GIVEN** ein authentifizierter Nutzer öffnet den Brett-Client (Pocket-ID-Session vorhanden) und das deployete Image unterstützt die Art-Library-Feature (`window.__ART_READY__`)
 - **WHEN** die Seite vollständig geladen ist
 - **THEN** ist `window.__ART_READY__` truthy und `window.characterIds` enthält mindestens `['figure-01', 'figure-02', 'figure-03', 'figure-04']`
 
@@ -545,12 +545,12 @@ The system SHALL ship a valid art-library manifest for every figure set, with ev
 - **THEN** enthält das Figure-Mesh ein Sprite-Kind-Objekt mit dem zugewiesenen Textur-Asset
 
 #### Scenario: `placement_spec.json` wird korrekt ausgeliefert *(E2E)*
-- **GIVEN** ein authentifizierter Nutzer (Keycloak-Session) ruft `/assets/figure-pack/placement_spec.json` auf
+- **GIVEN** ein authentifizierter Nutzer (Pocket-ID-Session) ruft `/assets/figure-pack/placement_spec.json` auf
 - **WHEN** die Datei vom Brett-Server ausgeliefert wird
 - **THEN** antwortet der Server mit HTTP 200; das JSON registriert alle erwarteten Gesichter (`neutral`, `relieved`, `defiant`, `fearful`) und Accessoires (`shawl`, `scarf`, `spectacles`) unter den richtigen Pfaden
 
 #### Scenario: Figure-Pack-PNG-Assets sind per HTTP abrufbar *(E2E)*
-- **GIVEN** ein authentifizierter Nutzer (Keycloak-Session)
+- **GIVEN** ein authentifizierter Nutzer (Pocket-ID-Session)
 - **WHEN** er einzelne PNG-Asset-URLs aus dem Figure-Pack abruft (`assets/figure-pack/faces/*.png`, `assets/figure-pack/accessories/*.png`)
 - **THEN** antworten alle URLs mit HTTP 200 und Content-Type `image/png`
 
@@ -559,22 +559,34 @@ The system SHALL ship a valid art-library manifest for every figure set, with ev
 ### Requirement: Authentifizierung und SSO-Integration
 <!-- e2e: brett-art.spec.ts, brett-mentolder-auth-setup.spec.ts, brett-mobile.spec.ts, fa-27-brett.spec.ts, fa-47-brett-figure-pack-assets.spec.ts -->
 
-The system SHALL redirect unauthenticated users to the Keycloak OIDC login, persist the authenticated session via oauth2-proxy cookies, and respond to `/healthz` with HTTP 200 for authenticated requests.
+The system SHALL redirect unauthenticated users to the Pocket ID OIDC login, persist the authenticated session via oauth2-proxy cookies, and respond to `/healthz` with HTTP 200 for authenticated requests.
 
-#### Scenario: Unauthentifizierter Desktop-Nutzer wird zu Keycloak weitergeleitet *(E2E)*
-- **GIVEN** ein Nutzer ohne gültige Keycloak-Session öffnet den Brett-Client
+#### Scenario: Unauthentifizierter Desktop-Nutzer wird zu Pocket ID weitergeleitet *(E2E)*
+- **GIVEN** ein Nutzer ohne gültige Pocket-ID-Session öffnet den Brett-Client
 - **WHEN** der Browser `brett.<domain>/` lädt
-- **THEN** wird die URL zu `auth.<domain>/realms/workspace` (Keycloak-Login) weitergeleitet (Timeout 15 s)
+- **THEN** wird die URL auf den Pocket-ID-Host `auth.<domain>` weitergeleitet (Timeout 15 s)
 
-#### Scenario: Unauthentifizierter mobiler Nutzer wird zu Keycloak weitergeleitet *(E2E)*
-- **GIVEN** ein mobiler Browser (Android/Pixel-5-Viewport) ohne Keycloak-Session
+#### Scenario: Unauthentifizierter mobiler Nutzer wird zu Pocket ID weitergeleitet *(E2E)*
+- **GIVEN** ein mobiler Browser (Android/Pixel-5-Viewport) ohne Pocket-ID-Session
 - **WHEN** der Brett-Client aufgerufen wird
-- **THEN** wird der Browser auf die Keycloak-Login-URL weitergeleitet
+- **THEN** wird der Browser auf die Pocket-ID-Login-URL weitergeleitet
 
-#### Scenario: Mentolder-Admin-Login via Keycloak schreibt Auth-State *(E2E)*
+#### Scenario: Mentolder-Admin-Login schreibt Auth-State *(E2E — derzeit nicht erfüllt)*
 - **GIVEN** `E2E_ADMIN_PASS` ist gesetzt und `brett.mentolder.de` ist erreichbar
-- **WHEN** der Setup-Schritt `loginViaKeycloak` mit Admin-Credentials ausgeführt wird
+- **WHEN** der Setup-Schritt einen Admin-Login gegen `brett.mentolder.de` ausführt
 - **THEN** speichert Playwright den Session-State unter `.auth/mentolder-brett.json`; ein anschließender Request auf `/healthz` liefert HTTP 200
+
+> **Offen, nicht erfüllt.** Dieses Szenario beschreibt einen Sollzustand, den der aktuelle
+> Provider noch nicht hergibt. Pocket ID hat kein Passwort-Formular, das ein
+> Credential-basierter Playwright-Login ansteuern könnte;
+> `tests/e2e/specs/brett-mentolder-auth-setup.spec.ts:42` markiert den Schritt entsprechend
+> als `fixme` („brett oauth2-proxy → Pocket ID needs passkey/one-time-code auth"), und
+> `brett-mannequin.spec.ts:21` überspringt die Folgetests mit leerem Auth-State. Der früher
+> hier genannte Setup-Schritt `loginViaKeycloak` existiert nicht mehr — die Auth-Helper der
+> Website nutzen `loginViaE2E` (`tests/e2e/lib/auth.ts`), das über `CRON_SECRET` und nicht
+> über den OIDC-Provider authentifiziert und für die oauth2-proxy-gegateten Dienste nicht
+> greift. Das Szenario bleibt als Anforderung stehen und wird nicht auf Pocket ID
+> umgeschrieben, solange der Flow nicht existiert.
 
 #### Scenario: Brett Health-Endpunkt antwortet mit 200 *(E2E)*
 - **GIVEN** der Brett-Pod läuft
@@ -647,14 +659,14 @@ The system SHALL enforce role-based permissions on the server side, so that a pa
 
 ---
 
-### Requirement: Share-Link (View-only-Zugang ohne Keycloak)
+### Requirement: Share-Link (View-only-Zugang ohne Pocket-ID-Konto)
 <!-- e2e: brett-share-link.spec.ts -->
 
-The system SHALL allow a session leader to generate a share link (`/share/<token>`) that grants read-only board access to users without a Keycloak account, and SHALL display an error for invalid or expired tokens.
+The system SHALL allow a session leader to generate a share link (`/share/<token>`) that grants read-only board access to users without a Pocket ID account, and SHALL display an error for invalid or expired tokens.
 
 #### Scenario: Leiter erstellt Share-Link; Gast sieht Board im Read-only-Modus *(E2E)*
 - **GIVEN** ein authentifizierter Leiter hat eine Session erstellt und klickt den Share-Button
-- **WHEN** der generierte Link von einem Nutzer ohne Keycloak-Session geöffnet wird
+- **WHEN** der generierte Link von einem Nutzer ohne Pocket-ID-Session geöffnet wird
 - **THEN** sieht der Gast ein `#view-only-badge` und das 3D-Canvas; der `#fig-panel-btn` (Mutationsschaltfläche) ist nicht vorhanden
 
 #### Scenario: Ungültiger Share-Token zeigt Fehlermeldung *(E2E)*

@@ -1009,6 +1009,41 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   [ "$(echo "$output" | wc -l)" -eq 2 ]
 }
 
+@test "T002245: find-changed-tests.sh spec picks the deepest path-referencing spec" {
+  local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
+  local tmp="$BATS_TEST_TMPDIR/probe-repo"
+  mkdir -p "$tmp/scripts" "$tmp/tests/spec" "$tmp/website/src/pages/admin"
+  cp "$finder" "$tmp/scripts/find-changed-tests.sh"
+  # deep.bats names the exact directory, shallow.bats only a broader prefix,
+  # toplevel.bats only the bare top-level segment (must never win).
+  echo '# covers website/src/pages/admin' > "$tmp/tests/spec/deep.bats"
+  echo '# covers website/src' > "$tmp/tests/spec/shallow.bats"
+  echo '# covers website' > "$tmp/tests/spec/toplevel.bats"
+  : > "$tmp/website/src/pages/admin/dora.astro"
+  : > "$tmp/website/loose.txt"
+
+  cd "$tmp"
+  git init -q -b main .
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
+  git update-ref refs/remotes/origin/main HEAD
+
+  # Deepest match wins: the admin spec, not the broader website/src one.
+  git checkout -q -b topic
+  echo change >> website/src/pages/admin/dora.astro
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m deep
+  run bash scripts/find-changed-tests.sh spec
+  [ "$status" -eq 0 ]
+  [ "$output" = "tests/spec/deep.bats" ]
+
+  # Floor: a top-level-only reference must not drag in the whole domain.
+  git checkout -q main && git checkout -q -b topic2
+  echo change >> website/loose.txt
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m floor
+  run bash scripts/find-changed-tests.sh spec
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
 # ── T002170: Restposten der Renovate-Config-Migration. fileMatch ist deprecated
 #    und wurde durch managerFilePatterns ersetzt (slash-gekapselte Regexes, wie
 #    schon bei matchPackageNames in T002165). Wichtig: der kubernetes-Manager hat

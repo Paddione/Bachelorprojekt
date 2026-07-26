@@ -17,6 +17,7 @@ fi
 
 CANDIDATES=()
 RUN_ALL=false
+declare -A PROBE_CACHE=()  # path-prefix → matching spec bats (grep memoisation)
 
 is_excluded() {
   local bats_file="$1"
@@ -95,6 +96,32 @@ while IFS= read -r file; do
   # If workflow, configs, or test helper libraries changed, run all tests for safety
   if [[ "$file" == .github/workflows/* ]] || [[ "$file" == Taskfile* ]] || [[ "$file" == tests/unit/lib/* ]] || [[ "$file" == package.json ]]; then
     RUN_ALL=true
+    continue
+  fi
+
+  # Last resort for spec selection: a spec bats that mentions the changed path
+  # is the one asserting about it. Probes the full path first, then walks up the
+  # ancestor directories, deepest match wins — so website/src/pages/admin/x.astro
+  # picks the admin specs rather than every spec that mentions website/src.
+  # Floors above the top-level segment (never probes a bare "website"). Without
+  # this, whole domains (website/**, k3d/**, flux/**) matched no rule above and
+  # a diff-scoped run selected nothing for them. [T002245]
+  if [ "$TYPE" = "spec" ] && [ "$RUN_ALL" != "true" ]; then
+    probe="$file"
+    matched=""
+    while [[ "$probe" == */* ]]; do
+      if [ -n "${PROBE_CACHE[$probe]+set}" ]; then
+        matched="${PROBE_CACHE[$probe]}"
+      else
+        matched=$(grep -lF -- "$probe" "$BASE_DIR"/*.bats 2>/dev/null || true)
+        PROBE_CACHE["$probe"]="$matched"
+      fi
+      [ -n "$matched" ] && break
+      probe="${probe%/*}"
+    done
+    while IFS= read -r m; do
+      [ -n "$m" ] && CANDIDATES+=("$m")
+    done <<< "$matched"
   fi
 done <<< "$CHANGED"
 

@@ -43,7 +43,7 @@
       saving = false;
       if (!res.ok) { error = await res.text(); return; }
       onSaved();
-    } catch (e) {
+    } catch {
       saving = false;
       error = 'Netzwerkfehler — Zahlung konnte nicht gespeichert werden.';
     }

@@ -1,29 +1,15 @@
 import type { APIRoute } from 'astro';
 import { getBugTicketStatus } from '../../lib/website-db';
+import { checkRateLimit, getClientIp } from '../../lib/rate-limit';
 
 const TICKET_RE = /^(T\d{6,}|BR-\d{8}-[0-9a-f]{4})$/;
 
-// Simple in-memory rate limiting: max 10 requests per minute per IP
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || entry.resetAt < now) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + 60_000 });
-    return false;
-  }
-  if (entry.count >= 10) return true;
-  entry.count++;
-  return false;
-}
-
 export const GET: APIRoute = async ({ request , locals }) => {
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim()
-    ?? request.headers.get('x-real-ip')
-    ?? 'unknown';
+  const ip = getClientIp(request);
 
-  if (isRateLimited(ip)) {
+  // Scope rate-limit key to this endpoint so unrelated E2E traffic cannot
+  // exhaust the /api/status budget for a legitimate follow-up request.
+  if (!checkRateLimit(`status:${ip}`, 10, 60_000)) {
     return new Response(
       JSON.stringify({ error: 'Zu viele Anfragen. Bitte warten Sie eine Minute.' }),
       { status: 429, headers: { 'Content-Type': 'application/json' } }

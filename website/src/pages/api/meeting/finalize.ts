@@ -5,6 +5,7 @@ import { getWhiteboardArtifacts, extractWhiteboardText } from '../../../lib/whit
 import {
   upsertCustomer, createMeeting, updateMeetingStatus,
   saveTranscript, saveArtifact, saveInsight, getMeetingByRoomToken,
+  initMeetingsDb,
 } from '../../../lib/website-db';
 import { generateMeetingInsights } from '../../../lib/claude';
 
@@ -21,6 +22,9 @@ export const POST: APIRoute = async ({ request , locals }) => {
   const results: string[] = [];
 
   try {
+    // Ensure meetings table exists before using it.
+    await initMeetingsDb().catch(() => {});
+
     const {
       customerName: _customerName,
       customerEmail,

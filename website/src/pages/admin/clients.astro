@@ -9,7 +9,7 @@ import { listPendingEnrollments, type PendingEnrollment } from '../../lib/websit
 import { listAllCustomers } from '../../lib/projects-db';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!session) return (Astro.request.headers.get('Accept') ?? '').includes('text/html') ? Astro.redirect(getLoginUrl(Astro.url.pathname)) : new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 let users: KcUser[] = [];

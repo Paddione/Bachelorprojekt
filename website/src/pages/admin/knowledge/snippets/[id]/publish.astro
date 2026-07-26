@@ -11,11 +11,21 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const id = Astro.params.id as string;
 
-const snippets = await listSnippets(pool, {});
-const snippet = snippets.find((s) => s.id === id);
+let snippet: Awaited<ReturnType<typeof listSnippets>>[number] | undefined;
+try {
+  const snippets = await listSnippets(pool, {});
+  snippet = snippets.find((s) => s.id === id);
+} catch {
+  // DB or coaching schema unavailable — treat as not-found
+}
 if (!snippet) return new Response('Snippet not found', { status: 404 });
 
-const book = await getBook(pool, snippet.bookId);
+let book: Awaited<ReturnType<typeof getBook>> | null = null;
+try {
+  book = await getBook(pool, snippet.bookId);
+} catch {
+  // DB unavailable
+}
 if (!book) return new Response('Book not found', { status: 404 });
 ---
 <AdminLayout title={`Veröffentlichen: ${snippet.title}`}>

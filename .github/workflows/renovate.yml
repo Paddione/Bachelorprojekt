@@ -55,14 +55,14 @@ jobs:
 
       - name: Create GitHub App token
         # SHA-gepinnt (Supply-Chain: Action erhaelt den App Private Key).
-        # v3.2.0 (2026-07). Bump via Review / Renovate selbst; nie @latest
+        # v5.2.0 (2026-07). Bump via Review / Renovate selbst; nie @latest
         # fuer secret-tragende Third-Party-Actions.
         #
         # app-id ist in v3 deprecated ("Use 'client-id' instead."), funktioniert
         # aber unveraendert — RENOVATE_APP_ID haelt die numerische App ID. Eine
         # spaetere Migration braucht BEIDES: Secret-Wert auf die Client ID
         # umstellen UND diesen Input auf client-id umbenennen.
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v5.2.0
         id: app-token
         with:
           app-id: ${{ secrets.RENOVATE_APP_ID }}
@@ -70,9 +70,9 @@ jobs:
 
       - name: Self-hosted Renovate
         # SHA-gepinnt (Supply-Chain: Action erhaelt RENOVATE_TOKEN).
-        # v46.1.15 (2026-06). Bump via Review / Renovate selbst; nie @latest
+        # v56.1.15 (2026-06). Bump via Review / Renovate selbst; nie @latest
         # fuer secret-tragende Third-Party-Actions.
-        uses: renovatebot/github-action@8217b3fc286df088d7c27f3255fe8414463bc0fd  # v46.1.15
+        uses: renovatebot/github-action@3064367f740a1a91cca218698a63902689cce200  # v56.1.15
         env:
           # Freshly minted App installation token (1h TTL, revoked post-job).
           RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}

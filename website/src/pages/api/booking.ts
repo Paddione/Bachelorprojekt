@@ -43,7 +43,12 @@ export const POST: APIRoute = async ({ request , locals }) => {
 
     // Validate that the requested slot falls within an admin-defined time window.
     if (!isCallback && slotStart && slotEnd) {
-      const valid = await isSlotInAnyWindow(BRAND, new Date(slotStart), new Date(slotEnd));
+      let valid = false;
+      try {
+        valid = await isSlotInAnyWindow(BRAND, new Date(slotStart), new Date(slotEnd));
+      } catch {
+        // DB/table unavailable — treat slot as not whitelisted → 409 below
+      }
       if (!valid) {
         return new Response(
           JSON.stringify({ error: 'Dieser Termin ist leider nicht mehr verfügbar.' }),

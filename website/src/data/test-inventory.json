@@ -2080,5 +2080,41 @@
     "file": "tests/local/SA-22.sh",
     "category": "SA",
     "kind": "shell"
+  },
+  {
+    "id": "T002196-1",
+    "file": "tests/spec/website-interfaces.bats",
+    "category": "T002196",
+    "kind": "shell"
+  },
+  {
+    "id": "T002196-2",
+    "file": "tests/spec/website-interfaces.bats",
+    "category": "T002196",
+    "kind": "shell"
+  },
+  {
+    "id": "T002196-3",
+    "file": "tests/spec/website-interfaces.bats",
+    "category": "T002196",
+    "kind": "shell"
+  },
+  {
+    "id": "T002196-4",
+    "file": "tests/spec/website-interfaces.bats",
+    "category": "T002196",
+    "kind": "shell"
+  },
+  {
+    "id": "T002196-5",
+    "file": "tests/spec/website-interfaces.bats",
+    "category": "T002196",
+    "kind": "shell"
+  },
+  {
+    "id": "T002196-6",
+    "file": "tests/spec/website-interfaces.bats",
+    "category": "T002196",
+    "kind": "shell"
   }
 ]

@@ -76690,7 +76690,7 @@ spec:
       serviceAccountName: monitoring-prometheus-node-exporter
       containers:
         - name: node-exporter
-          image: quay.io/prometheus/node-exporter:v1.11.1-distroless@sha256:6112664fd761bb964d8a2d3d0119d6c8402618a89edbb3a43c8f7b4090fb53c9
+          image: quay.io/prometheus/node-exporter:v1.12.1-distroless@sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0
           imagePullPolicy: IfNotPresent
           args:
             - --path.procfs=/host/proc
@@ -76922,7 +76922,7 @@ spec:
             - name: sc-datasources-volume
               mountPath: "/etc/grafana/provisioning/datasources"
         - name: grafana
-          image: "docker.io/grafana/grafana:13.0.1-security-01@sha256:2d1f9ae67c1778d33e291d4c3c759cd8b650e67491f02533499eb950e075eeb5"
+          image: "docker.io/grafana/grafana:13.1.1@sha256:7cb8c64c4d57a57e734073f3cc94620adb24a0acb929bd80ba9f14017e3a975b"
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -77067,7 +77067,7 @@ spec:
         - --port=8080
         - --resources=certificatesigningrequests,configmaps,cronjobs,daemonsets,deployments,endpointslices,horizontalpodautoscalers,ingresses,jobs,leases,limitranges,mutatingwebhookconfigurations,namespaces,networkpolicies,nodes,persistentvolumeclaims,persistentvolumes,poddisruptionbudgets,pods,replicasets,replicationcontrollers,resourcequotas,secrets,services,statefulsets,storageclasses,validatingwebhookconfigurations,volumeattachments
         imagePullPolicy: IfNotPresent
-        image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.19.0@sha256:6b2f0b6f2f86ac5b1aa883a033a8dd55bb96c16d191ec973393bdaadaddac914
+        image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.19.1@sha256:85108987d044b18a098126732f98602df408888c0f7d456241f5abefb9744bc1
         ports:
         - containerPort: 8080
           name: http
@@ -77342,7 +77342,7 @@ metadata:
     release: "monitoring"
     heritage: "Helm"
 spec:
-  image: "quay.io/prometheus/alertmanager:v0.32.2@sha256:b85533a2eb45865835315810315f6951331b2dbc8c93a6cf9a51e156a006a706"
+  image: "quay.io/prometheus/alertmanager:v0.33.1@sha256:9e082985f56f4c8c9f724e18f2288c6708f472e56a5286b8863d080434ea065d"
   imagePullPolicy: "IfNotPresent"
   version: "v0.32.2"
   replicas: 1
@@ -77413,7 +77413,7 @@ spec:
         port: http-web
         pathPrefix: "/"
         apiVersion: v2
-  image: "quay.io/prometheus/prometheus:v3.12.0-distroless@sha256:f39df5334dee301b885f77e0ff1159f5d8a43bf9db518f885544594799a1e3c2"
+  image: "quay.io/prometheus/prometheus:v3.13.1-distroless@sha256:3c42b892cf723fa54d2f262c37a0e1f80aa8c8ddb1da7b9b0df9455a35a7f893"
   imagePullPolicy: "IfNotPresent"
   version: "v3.12.0-distroless"
   externalUrl: http://monitoring-prometheus.monitoring:9090
@@ -78175,7 +78175,7 @@ spec:
     spec:
       containers:
         - name: create
-          image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.3@sha256:8ce13c365c8e9ced0aad5ef350a53c50b7ca5817f99d856b9eec895db1056728
+          image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.5@sha256:d0e80b2f62fe43bb5e1b96adc692132fb4522e802f4cf673c09b1f94722b8cb6
           imagePullPolicy: IfNotPresent
           args:
             - create
@@ -78242,7 +78242,7 @@ spec:
     spec:
       containers:
         - name: patch
-          image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.3@sha256:8ce13c365c8e9ced0aad5ef350a53c50b7ca5817f99d856b9eec895db1056728
+          image: ghcr.io/jkroepke/kube-webhook-certgen:1.8.5@sha256:d0e80b2f62fe43bb5e1b96adc692132fb4522e802f4cf673c09b1f94722b8cb6
           imagePullPolicy: IfNotPresent
           args:
             - patch

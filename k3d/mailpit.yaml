@@ -24,7 +24,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: mailpit
-          image: axllent/mailpit:v1.29@sha256:757f22b56c1da03570afdb3d259effe5091018008a81bbedc8158cee7e16fdbc
+          image: axllent/mailpit:v1.30@sha256:b868afa176bfd6cce2323ea316cd99ccad77915e51e595748f6d786700ecf109
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

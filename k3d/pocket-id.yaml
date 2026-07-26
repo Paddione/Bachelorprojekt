@@ -34,7 +34,7 @@ spec:
           # pg_isready checks actual PostgreSQL readiness (not just TCP open).
           # nc -z only verifies TCP — shared-db accepts connections before it
           # can serve queries, so pocket-id would crash on its 3-retry startup.
-          image: postgres:16-alpine@sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb
+          image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
           command: ['sh', '-c', 'until pg_isready -h shared-db -p 5432 -U pocket_id -d pocket_id -q; do echo "waiting for shared-db..."; sleep 2; done']
           securityContext:
             allowPrivilegeEscalation: false
@@ -53,7 +53,7 @@ spec:
               memory: "64Mi"
       containers:
         - name: psql
-          image: postgres:16-alpine@sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb
+          image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
@@ -182,7 +182,7 @@ spec:
           # pg_isready checks actual PostgreSQL readiness (not just TCP open).
           # nc -z only verifies TCP — shared-db accepts connections before it
           # can serve queries, so pocket-id would crash on its 3-retry startup.
-          image: postgres:16-alpine@sha256:e013e867e712fec275706a6c51c966f0bb0c93cfa8f51000f85a15f9865a28cb
+          image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
           command: ['sh', '-c', 'until pg_isready -h shared-db -p 5432 -U pocket_id -d pocket_id -q; do echo "waiting for shared-db..."; sleep 2; done']
           securityContext:
             allowPrivilegeEscalation: false
@@ -201,7 +201,7 @@ spec:
               memory: "64Mi"
       containers:
         - name: pocket-id
-          image: ghcr.io/pocket-id/pocket-id:v2.9.0@sha256:a2a38a96699d7483d65b5849b015d954f294938306a03a9c0699bc5b79554e86
+          image: ghcr.io/pocket-id/pocket-id:v2.11.0@sha256:b7c37ab3044e53fd29b5f7295eebff5fdc0367dc043f36b41bcbe1815fcd965d
           imagePullPolicy: IfNotPresent
           # Retry wrapper (T002067): Pocket ID's Go binary only retries DB
           # connection 3 times (~9s) before exiting. shared-db uses

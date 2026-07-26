@@ -47,7 +47,22 @@ main() {
     -v detail="auto: update-status $status" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET
   status = :'status',
-  resolution = NULLIF(:'res', ''),
+  -- [T002230] resolution used to be `NULLIF(:'res','')` unconditionally, so every
+  -- caller that omitted --resolution wiped an existing one — including the
+  -- post-merge automation, which never passes it. Tickets ended up on
+  -- `done/null`: correct-looking in lists, but dropped from every report that
+  -- groups by resolution, notably `vda.sh cfr` and /admin/dora.
+  --
+  -- This mirrors website/src/lib/tickets/transition.ts:79, the other write path,
+  -- which had it right all along: a resolution only means anything for a terminal
+  -- status. So keep the existing value when none is supplied, let an explicit one
+  -- override, and still clear it on a non-terminal transition — `openspec.sh`
+  -- (→ planning) and `factory/pipeline.mjs` (→ backlog) rely on that clearing, so
+  -- a blanket COALESCE would strand a stale `fixed` on a reopened ticket.
+  resolution = CASE
+    WHEN :'status' IN ('done','archived') THEN COALESCE(NULLIF(:'res', ''), resolution)
+    ELSE NULL
+  END,
   done_at = CASE WHEN :'status' = 'done' THEN now() ELSE done_at END,
   -- Release the pipeline slot on a terminal transition so the ledger never leaks (T000525).
   pipeline_slot = CASE WHEN :'status' IN ('done','archived') THEN NULL ELSE pipeline_slot END,

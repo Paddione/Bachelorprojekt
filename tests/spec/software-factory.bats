@@ -583,6 +583,37 @@ DEPLOY_TRANSITION="scripts/factory/deploy-transition.cjs"
   [ "$output" = "done" ]
 }
 
+@test "T002230: decideDeployTransition has exactly one implementation" {
+  # T000909 created deploy-transition.cjs AND deploy-transition.mjs together, both
+  # returning awaiting_deploy for non-website tickets. T001092 fixed only the .cjs.
+  # The .mjs sat dead for four weeks with the stale pre-T001092 semantics plus a
+  # test asserting them — and that is what T002230's first diagnosis read, naming
+  # deploy-transition.mjs:15 as the cause of live awaiting_deploy flips that the
+  # live .cjs path cannot produce. A second copy of this decision is a trap, not
+  # redundancy: keep one.
+  local n
+  n=$(ls scripts/factory/deploy-transition.* 2>/dev/null | grep -vc '\.test\.' || true)
+  [ "$n" -eq 1 ] || {
+    echo "expected exactly 1 deploy-transition implementation, found $n:"
+    ls scripts/factory/deploy-transition.*
+    return 1
+  }
+  [ -f scripts/factory/deploy-transition.cjs ]
+}
+
+@test "T002230: decideDeployTransition ignores isWebsite — both close as done" {
+  # Merge = Abschluss (T001092) applies regardless of what changed. scripts/, infra
+  # and manifest changes are not "less merged" than website changes; splitting on
+  # that axis is what put T002204 and T002193 on awaiting_deploy, where the factory
+  # floor hides the lane and openspec.sh archive is fail-closed on status=done.
+  run node -e "const {decideDeployTransition}=require('./scripts/factory/deploy-transition.cjs');
+const a=decideDeployTransition({isWebsite:true,  deployOutput:'PR #1 merged'}).status;
+const b=decideDeployTransition({isWebsite:false, deployOutput:'PR #1 merged'}).status;
+process.stdout.write(a+'/'+b)"
+  [ "$status" -eq 0 ]
+  [ "$output" = "done/done" ]
+}
+
 @test "FA-SF-22: decideDeployTransition still blocks on a deploy-guard signal" {
   run node -e "const {decideDeployTransition}=require('./scripts/factory/deploy-transition.cjs'); const r=decideDeployTransition({isWebsite:false, deployOutput:'BLOCK: WORK_BRANCH'}); process.stdout.write(r.status)"
   [ "$status" -eq 0 ]

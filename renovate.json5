@@ -31,7 +31,18 @@
     "scripts/coaching/**",
     "scripts/knowledge/**",
     "tests/e2e/**",
-    "tests/unit/**"
+    "tests/unit/**",
+
+    // HTML files with intentional hidden Unicode characters (soft hyphens,
+    // non-breaking spaces, zero-width joiners) that Renovate flags as
+    // "Hidden Unicode characters" warnings. These are legitimate content
+    // characters, not smuggling attempts. [TBD]
+    "docs/legacy-html/systembrett.html",
+    "environments/korczewski/KERN Logo Design.html",
+    "environments/mentolder/ui_kits/website/index.html",
+    "k3d/docs-content-built/2026-07-09-index-and-nplus1-audit.html",
+    "k3d/docs-content-built/systembrett.html",
+    "openspec/changes/archive/2026-06-21-coaching-studio/assets/new/coaching_studio/Praesentation.html"
   ],
 
   // Rate limiting to prevent PR floods on first run.
@@ -136,9 +147,16 @@
 
     // ── Disabled packages ──────────────────────────────────────────────────
 
-    // Own ghcr.io images are rebuilt on release via CI, not bumped by Renovate.
+    // Own ghcr.io/paddione images are rebuilt on release via CI, not bumped by
+    // Renovate. Using matchPackagePatterns (not matchPackageNames) — regex
+    // pattern without // wrapping, cleaner in Renovate v43+.
+    //
+    // Known cosmetic WARN: "Error obtaining docker token" for bare "paddione"
+    // (NAME_INVALID on ghcr.io) still appears because Renovate does a
+    // registry-level token request before evaluating the disable rule. The
+    // warning is harmless — no updates are proposed for these packages.
     {
-      "matchPackageNames": ["/^ghcr.io/paddione//"],
+      "matchPackagePatterns": ["^ghcr\\.io/paddione/"],
       "enabled": false
     },
 

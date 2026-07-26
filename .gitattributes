@@ -40,6 +40,7 @@ docs/diagrams/architecture.md                 merge=ours linguist-generated=true
 
 # ── git-crypt-managed secrets (encrypted at rest in this PUBLIC repo) ──
 # NOTE: environments/certs/*.pem are PUBLIC sealing certs — intentionally NOT listed here.
+# SSOT: dev-tools.yaml lives under environments/.secrets/ (wildcard below catches it)
 environments/.secrets/**            filter=git-crypt diff=git-crypt
 deploy/mcp/claude-code-secrets.yaml filter=git-crypt diff=git-crypt
 # .claude/settings.json ist NICHT mehr git-crypt-verschluesselt (T002213): die

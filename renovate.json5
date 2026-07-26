@@ -41,6 +41,17 @@
   // Renovate will use chore(deps): / fix(deps): prefixes.
   "semanticCommits": "enabled",
 
+  // PR label (T002161). auto-enable-automerge.yml skips PRs carrying this label,
+  // so the blanket "--auto on every non-draft PR" no longer overrides the staged
+  // automerge policy in packageRules below. Label-based rather than bot-name-based:
+  // the App slug depends on the freely chosen App name.
+  "labels": ["dependencies"],
+
+  // Renovate sets the GitHub auto-merge flag itself — but only on PRs its own
+  // packageRules release for automerge (patch + devDependencies). major, prod
+  // minor and kubernetes major stay open as review PRs.
+  "platformAutomerge": true,
+
   "packageRules": [
     // ── npm (pnpm workspaces) ─────────────────────────────────────────────
 

@@ -23,7 +23,7 @@ You are a database specialist for the Bachelorprojekt platform.
 
 ## Shared PostgreSQL instance
 - Service: `shared-db` (PostgreSQL 16)
-- Databases: `keycloak`, `nextcloud`, `vaultwarden`, `website`, `docuseal`
+- Databases: `pocket_id`, `nextcloud`, `vaultwarden`, `website`, `docuseal` (no `keycloak` DB — the platform migrated to Pocket ID, T002169)
 - Access: `task workspace:psql ENV=<env> -- <db>`
 - Port-forward to localhost:5432: `task workspace:port-forward ENV=<env>`
 

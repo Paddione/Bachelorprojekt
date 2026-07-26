@@ -98,7 +98,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 |---|---|---|
 | [`website-specialist`](website-specialist/SKILL.md) | Astro/Svelte frontend development, component creation, page routing, content management, UI implementation. Dispatched as subagent via `bachelorprojekt-website`. |
 | [`host-node-networking`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/host-node-networking.html) | Host server provisioning (Hetzner, cloud-init, Rescue Mode resets), WireGuard mesh network topology ("netplan"), host UFW firewall ports, LiveKit WebRTC networking, and WSL OpenClaw local gateway setup. |
-| [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), or operate the dev.mentolder.de stack. Also covers cross-brand fleet operations: `task feature:*` fan-out, `feature:promote` smoke gate, SealedSecrets/Keycloak per-brand independence (Phase 5). |
+| [`cluster-deployment`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/cluster-deployment.html) | Stand up a brand-new Kubernetes environment, deploy resources, diagnose cluster degraded state (gap analysis), or operate the dev.mentolder.de stack. Also covers cross-brand fleet operations: `task feature:*` fan-out, `feature:promote` smoke gate, SealedSecrets/Pocket-ID per-brand independence (Phase 5). |
 | [`gitops-cluster-debug`](gitops-cluster-debug/SKILL.md), [`gitops-knowledge`](gitops-knowledge/SKILL.md), [`gitops-repo-audit`](gitops-repo-audit/SKILL.md) | Flux CD GitOps — debug live clusters, generate manifests, audit repos. Dispatched as subagents. |
 
 ---
@@ -108,8 +108,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 | Skill | When to use |
 |---|---|
 | [`secret-rotation`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/secret-rotation.html) | Rotate DB passwords, API keys, SealedSecrets keypair (post-reset), Claude Code tokens, or service credentials across both brands on the fleet cluster. |
-| [`keycloak-realm-sync`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/keycloak-realm-sync.html) | Reconcile Keycloak realm JSON → push OIDC client changes, group mappings, mappers, SSO login fixes. |
-| [`security-specialist`](security-specialist/SKILL.md) | SealedSecrets lifecycle, Keycloak realm config, OIDC setup, DSGVO compliance, credential management. Dispatched as subagent via `bachelorprojekt-security`. |
+| [`security-specialist`](security-specialist/SKILL.md) | SealedSecrets lifecycle, Pocket ID OIDC client config, OIDC setup, DSGVO compliance, credential management. Dispatched as subagent via `bachelorprojekt-security`. |
 
 ---
 
@@ -220,7 +219,7 @@ graph TD
 | Cluster aufsetzen / Workspace deployen | `infra-ops` §1–2 | Produktions-Cluster + alle Services |
 | DB-Migration / Backup | `infra-ops` §7 + `dev-flow-execute` (Schema-Change) | Gemergte Migration |
 | Secret rotieren | `infra-ops` §6 | Rotierte Secrets |
-| Keycloak / SSO | `infra-ops` §4 | Reconcilter Realm |
+| Pocket ID / SSO | `infra-ops` §4 | Re-seed OIDC clients |
 | LLM / GPU | `infra-ops` §5 | GPU-Pipeline operativ |
 | Abhängigkeiten updaten | Biweekly Cloud-Routine (auto) | Aktualisierte Packages per PR |
 

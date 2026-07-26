@@ -67,7 +67,7 @@ nicht kosmetisch Zeilen zusammenziehen.
 
 - **Header ≤ 100 Zeichen** (commitlint-Regel)
 - `type`: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`
-- `scope`: betroffenes Modul / Verzeichnis (z. B. `website`, `k3d`, `scripts`, `keycloak`)
+- `scope`: betroffenes Modul / Verzeichnis (z. B. `website`, `k3d`, `scripts`, `pocket-id`)
 - `TICKET_EXT_ID`: z. B. `T001026` — **immer anhängen** wenn ein Ticket existiert
 - Body-Zeilen ebenfalls < 100 Zeichen
 
@@ -75,7 +75,7 @@ Beispiele:
 
 ```
 feat(website): add React mentolder rebuild [T001026]
-fix(keycloak): rotate stale oauth2-proxy secret [T000950]
+fix(pocket-id): rotate stale oauth2-proxy secret [T000950]
 chore(k3d): bump TEI embed port 9081 [T000978]
 ```
 

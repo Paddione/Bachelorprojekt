@@ -33,7 +33,7 @@ task workspace:psql ENV=<env> -- <database>
 task workspace:port-forward ENV=<env>
 
 # Schema introspection
-task workspace:psql ENV=mentolder -- keycloak -c "\d+"
+task workspace:psql ENV=mentolder -- pocket_id -c "\d+"
 ```
 
 ## Tracking schema (legacy)
@@ -55,8 +55,8 @@ task workspace:db:restore -- all <timestamp>          # restore all DBs from one
 2. Review with `EXPLAIN ANALYZE <query>` for performance impact
 3. Apply to both namespaces:
    ```bash
-   task workspace:psql ENV=mentolder -- keycloak -f scripts/db/migrations/XX-something.sql
-   task workspace:psql ENV=korczewski -- keycloak -f scripts/db/migrations/XX-something.sql
+   task workspace:psql ENV=mentolder -- pocket_id -f scripts/db/migrations/XX-something.sql
+   task workspace:psql ENV=korczewski -- pocket_id -f scripts/db/migrations/XX-something.sql
    ```
 
 ## Password drift warning
@@ -68,13 +68,13 @@ ALTER ROLE <username> PASSWORD '<new_password>';
 ## Performance troubleshooting
 ```bash
 # Find slow queries in pg_stat_statements
-task workspace:psql ENV=mentolder -- keycloak -c "SELECT query, calls, total_exec_time FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 10;"
+task workspace:psql ENV=mentolder -- pocket_id -c "SELECT query, calls, total_exec_time FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 10;"
 
 # Explain plan for specific query
 EXPLAIN ANALYZE SELECT * FROM features WHERE id = $1;
 
 # Vacuum and analyze
-VACUUM ANALYZE keycloak;
+VACUUM ANALYZE oidc_clients;
 ```
 
 ## Autonomous operation

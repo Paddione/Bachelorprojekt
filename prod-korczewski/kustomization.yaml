@@ -17,7 +17,6 @@ resources:
   # a whisper backend, and whisper only lives on korczewski.
   - talk-transcriber.yaml
 
-# realm-template removed — Keycloak decommissioned
 configMapGenerator:
   - name: nextcloud-extra-config
     behavior: replace

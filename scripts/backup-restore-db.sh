@@ -63,7 +63,7 @@ cmd_db_restore() {
 
   local DBS=()
   if [[ "$DB" == "all" ]]; then
-    DBS=(keycloak nextcloud vaultwarden website docuseal)
+    DBS=(nextcloud vaultwarden website docuseal)
   else
     _db_pass_key "$DB" >/dev/null  # validate name early
     DBS=("$DB")

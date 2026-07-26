@@ -10,7 +10,6 @@ resources:
   - shared-db.yaml
   - website-schema.yaml
   # Kerndienste
-  # keycloak.yaml — REMOVED: Keycloak replaced by Pocket ID (auth.* domain)
   - nextcloud.yaml
   - nextcloud-redis.yaml
   # Nextcloud Talk HPB + Whiteboard
@@ -93,9 +92,8 @@ resources:
   - llm-gpu.yaml
   # Pentest Flags (CTF)
   - pentest-flags.yaml
-  # Pocket ID — passkey-first OIDC provider, replaces Keycloak for new
-  # OIDC clients (Welle 0 of T001068). Keycloak stays on auth.<domain>
-  # for the Welle 1-2 transition; Welle 3 drops it.
+  # Pocket ID — passkey-first OIDC provider on auth.<domain>, sole OIDC
+  # issuer of the platform (T001068).
   - pocket-id.yaml
   # OIDC client seed Job (T001087) — idempotently registers the 16 clients
   - pocket-id-client-seed.yaml
@@ -126,7 +124,6 @@ resources:
 
 # ConfigMaps aus lokalen Dateien (dev-spezifisch)
 configMapGenerator:
-  # realm-template and keycloak-import-script removed — Keycloak decommissioned
   - name: nextcloud-oidc-config
     files:
       - oidc.config.php=nextcloud-oidc-dev.php
@@ -137,6 +134,6 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 
-# Hinweis: ConfigMaps aus dem Eltern-Verzeichnis (import-entrypoint.sh,
-# userinfo-proxy.conf, adapter.ts) werden in deploy.sh per kubectl erstellt,
-# da Kustomize keine Dateien außerhalb des Basis-Verzeichnisses referenzieren darf.
+# Hinweis: ConfigMaps aus dem Eltern-Verzeichnis (z. B. userinfo-proxy.conf,
+# adapter.ts) werden in deploy.sh per kubectl erstellt, da Kustomize keine
+# Dateien außerhalb des Basis-Verzeichnisses referenzieren darf.

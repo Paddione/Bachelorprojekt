@@ -511,9 +511,9 @@ secrets:
 
   # KEYCLOAK_DB_PASSWORD and KEYCLOAK_ADMIN_PASSWORD removed — Keycloak decommissioned
   # (pocket-id-migration Welle 3, 2026-06-22). Point of no return reached — do NOT
-  # re-seal or re-add. The Keycloak Postgres DBs must be dropped manually via:
-  #   kubectl exec deploy/shared-db -n workspace -- psql -U postgres -c "DROP DATABASE IF EXISTS keycloak;"
-  #   kubectl exec deploy/shared-db -n workspace-korczewski -- psql -U postgres -c "DROP DATABASE IF EXISTS keycloak;"
+  # re-seal or re-add. The keys were also purged from environments/.secrets/*.yaml and
+  # the Postgres `keycloak` databases and roles were dropped in workspace,
+  # workspace-korczewski and workspace-staging (T002205, 2026-07-26).
 
   - name: NEXTCLOUD_DB_PASSWORD
     required: true
@@ -1187,7 +1187,7 @@ secrets:
     required: false
     generate: true
     length: 40
-    description: "Confidential client secret for the workspace-dev Keycloak client."
+    description: "Confidential client secret for the workspace-dev OIDC client (Pocket ID)."
 
   - name: DEV_SISH_AUTHORIZED_KEYS
     required: false

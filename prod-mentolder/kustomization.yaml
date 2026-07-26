@@ -17,7 +17,6 @@ resources:
   - whisper.yaml
   - talk-transcriber.yaml
 
-# realm-template removed — Keycloak decommissioned
 configMapGenerator:
   # ── dev.mentolder.de — mount scripts/dev-db-refresh.sh as ConfigMap ──
   - name: dev-db-refresh-script

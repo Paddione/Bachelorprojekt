@@ -23,7 +23,7 @@ Commands (database):
   list                       List available DB backup timestamps
   trigger                    Trigger an immediate DB backup now
   restore <db> <timestamp>   Restore database(s) from a backup
-    db:        keycloak | nextcloud | vaultwarden | website | docuseal | all
+    db:        nextcloud | vaultwarden | website | docuseal | all
     timestamp: directory from 'list' (e.g. 20260427-020001)
 
 Commands (PVC file data):

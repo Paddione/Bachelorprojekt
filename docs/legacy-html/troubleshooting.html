@@ -31,7 +31,7 @@
   <div class="toc-title">Auf dieser Seite</div>
   <ul class="toc-list"><li class="toc-item"><a href="#allgemeine-diagnose"><span class="toc-num">1.</span>&nbsp;Allgemeine Diagnose</a></li>
 <li class="toc-item"><a href="#haeufige-probleme"><span class="toc-num">2.</span>&nbsp;Haeufige Probleme</a></li>
-<li class="toc-item"><a href="#keycloak--sso-probleme"><span class="toc-num">3.</span>&nbsp;Keycloak / SSO-Probleme</a></li>
+<li class="toc-item"><a href="#pocket-id--sso-probleme"><span class="toc-num">3.</span>&nbsp;Pocket ID / SSO-Probleme</a></li>
 <li class="toc-item"><a href="#nextcloud"><span class="toc-num">4.</span>&nbsp;Nextcloud</a></li>
 <li class="toc-item"><a href="#talk-hpb--video"><span class="toc-num">5.</span>&nbsp;Talk HPB / Video</a></li>
 <li class="toc-item"><a href="#vaultwarden"><span class="toc-num">6.</span>&nbsp;Vaultwarden</a></li>
@@ -110,28 +110,20 @@ task workspace:restart -- &lt;service&gt;
 scripts/check-connectivity.sh --local
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
-<h2 id="keycloak--sso-probleme">Keycloak / SSO-Probleme</h2>
-<h3>Keycloak Login funktioniert nicht</h3>
+<h2 id="pocket-id--sso-probleme">Pocket ID / SSO-Probleme</h2>
+<h3>SSO-Login funktioniert nicht</h3>
 <p><strong>Symptom:</strong> Redirect-Loop oder 502 beim SSO-Login.</p>
 <p><strong>Diagnose:</strong></p>
-<div class="code-wrapper"><pre><code class="language-bash"># Keycloak-Logs pruefen
-task workspace:logs -- keycloak
-
-# Realm importiert?
-kubectl exec -n workspace deploy/keycloak -- \
-  /opt/keycloak/bin/kcadm.sh get realms \
-  --server http://localhost:8080 \
-  --realm master \
-  --user admin \
-  --password devadmin
+<div class="code-wrapper"><pre><code class="language-bash"># Pocket-ID-Logs pruefen
+task workspace:logs -- pocket-id
 
 # oauth2-proxy-Logs (Docs SSO)
 kubectl logs -n workspace deploy/oauth2-proxy-docs
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <p><strong>Haeufige Ursachen:</strong></p>
 <ul>
-<li><strong>Realm nicht importiert:</strong> <code>import-entrypoint.sh</code>-Logs pruefen. Keycloak neu starten: <code>task workspace:restart -- keycloak</code></li>
-<li><strong>OIDC-Client nicht konfiguriert:</strong> In Keycloak Admin → Clients pruefen, ob Redirect-URIs korrekt sind</li>
+<li><strong>OIDC-Client nicht konfiguriert:</strong> Der <code>pocket-id-client-seed</code>-Job legt alle Clients bei jedem <code>task workspace:deploy</code> neu an. Logs pruefen: <code>kubectl logs -n workspace job/pocket-id-client-seed</code></li>
+<li><strong>Redirect-URI-Drift:</strong> Clients wurden von Hand in der Pocket-ID-Admin-UI geaendert — der naechste Deploy ueberschreibt sie wieder.</li>
 </ul>
 <h3>Nextcloud OIDC Login fehlerhaft</h3>
 <p><strong>Diagnose:</strong></p>
@@ -144,10 +136,6 @@ task workspace:logs -- nextcloud
 <p><strong>Loesung:</strong></p>
 <div class="code-wrapper"><pre><code class="language-bash"># OIDC-Plugin und Nextcloud-Apps neu konfigurieren
 task workspace:post-setup
-</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
-<h3>SSO-Secrets synchronisieren</h3>
-<p>Falls OIDC-Client-Secrets in Keycloak und Kubernetes-Secrets nicht uebereinstimmen:</p>
-<div class="code-wrapper"><pre><code class="language-bash">bash scripts/keycloak-sync.sh
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <hr>
 <h2 id="nextcloud">Nextcloud</h2>
@@ -234,7 +222,7 @@ kubectl get pods -n workspace -l app=shared-db
 
 # psql-Shell oeffnen
 task workspace:psql -- website
-task workspace:psql -- keycloak
+task workspace:psql -- nextcloud
 task workspace:psql -- nextcloud
 
 # Port-Forward fuer externe Tools (DBeaver, pgAdmin)
@@ -258,10 +246,10 @@ task website:logs
 <div class="code-wrapper"><pre><code class="language-bash">task website:redeploy
 </code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
 <h3>Website-Admin-Panel zeigt 403</h3>
-<p>Keycloak-Rolle <code>workspace-admins</code> fuer den Benutzer pruefen:</p>
+<p>Pocket-ID-Gruppe <code>workspace-admins</code> fuer den Benutzer pruefen:</p>
 <ol>
-<li><code>auth.{DOMAIN}/admin</code> aufrufen</li>
-<li>Realm workspace → Benutzer → Rollen/Gruppen pruefen</li>
+<li><code>auth.{DOMAIN}/settings/admin</code> aufrufen</li>
+<li>Users → Benutzer waehlen → Groups pruefen</li>
 <li>Benutzer der Gruppe <code>workspace-admins</code> zuweisen</li>
 </ol>
 <hr>

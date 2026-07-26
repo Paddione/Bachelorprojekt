@@ -20,12 +20,11 @@ _render_recovery_browser() {
 
 _db_pass_key() {
   case "$1" in
-    keycloak)    echo KEYCLOAK_DB_PASSWORD ;;
     nextcloud)   echo NEXTCLOUD_DB_PASSWORD ;;
     vaultwarden) echo VAULTWARDEN_DB_PASSWORD ;;
     website)     echo WEBSITE_DB_PASSWORD ;;
     docuseal)    echo DOCUSEAL_DB_PASSWORD ;;
-    *) _die "unknown database '$1' (valid: keycloak nextcloud vaultwarden website docuseal all)" ;;
+    *) _die "unknown database '$1' (valid: nextcloud vaultwarden website docuseal all)" ;;
   esac
 }
 
@@ -40,7 +39,7 @@ _pvc_service_mount() {
 
 _target_kind() {
   case "$1" in
-    keycloak|nextcloud|vaultwarden|website|docuseal) echo db ;;
+    nextcloud|vaultwarden|website|docuseal) echo db ;;
     nextcloud-files|vaultwarden-data|docuseal-data)  echo service ;;
     *) _die "unknown stage target '$1'" ;;
   esac
@@ -136,7 +135,7 @@ cmd_recovery_browse() {
   echo "Bringing up the recovery filebrowser (read-only over recovery-pvc:/recovery)..."
   _render_recovery_browser | $KC apply -n "$NS" -f -
   local DOM; DOM=$($KC get configmap domain-config -n "$NS" -o jsonpath='{.data.RECOVER_DOMAIN}' 2>/dev/null || echo "recover.localhost")
-  echo "✓ Browse at: https://${DOM}  (Keycloak login, group /recovery-access). Tear down with: backup-restore.sh unbrowse"
+  echo "✓ Browse at: https://${DOM}  (Pocket ID login, group /recovery-access). Tear down with: backup-restore.sh unbrowse"
 }
 
 cmd_recovery_unbrowse() {
@@ -185,7 +184,7 @@ spec:
           args:
             - |
               set -e
-              for db in keycloak nextcloud vaultwarden website docuseal; do
+              for db in nextcloud vaultwarden website docuseal; do
                 PGPASSWORD="\$SHARED_DB_PASSWORD" dropdb -h shared-db -U postgres --if-exists \${db}_recovery
               done
               rm -rf "/recovery/${TS}" 2>/dev/null || true

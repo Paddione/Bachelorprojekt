@@ -21,7 +21,6 @@ resources:
   - mail-ingressroute.yaml
 
 # Production ConfigMaps (override base OIDC config)
-# realm-template and keycloak-import-script removed — Keycloak decommissioned
 configMapGenerator:
   - name: nextcloud-oidc-config
     behavior: replace

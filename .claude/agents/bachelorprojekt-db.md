@@ -6,8 +6,13 @@ description: >
   database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline,
   bachelorprojekt.features, v_timeline.
 model: sonnet
-tools:
-  - mcp_postgres_query
+# [T002221] No `tools:` key on purpose — the agent inherits every tool, as
+# bachelorprojekt-test and -website already do. The previous list named
+# `mcp_postgres_query`, which is not a real tool: MCP tools resolve as
+# `mcp__mcp-postgres__query` (double underscore, server name in the middle).
+# The list resolved to the empty set and every dispatch died with
+# "would be spawned with zero tools - refusing", taking the opus/sonnet tiering
+# down with it. Inheriting all tools also survives future MCP renames.
 ---
 
 ## Library

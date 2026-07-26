@@ -80,7 +80,7 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
 
   if (!existsSync(ssotPath)) {
     if (!createNew) {
-      fail(`Target '${ssotPath}' does not exist. Point the delta at an existing spec, or pass --create-new for a genuinely new component.`)
+      fail(`Target '${ssotPath}' does not exist. Point the delta at an existing spec, or pass --create-new for a genuinely new component (e.g. a cross-cutting mishap bundle with no parent SSOT spec).`)
     }
     const newSlug = basename(ssotPath, '.md')
     if (/^(t[0-9]{6}|g-[a-z0-9]+[0-9]{2})/.test(newSlug) && !forceNewComponent) {

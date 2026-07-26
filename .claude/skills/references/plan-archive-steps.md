@@ -28,6 +28,14 @@ Fallback (ticket-mcp nicht erreichbar):
 bash scripts/openspec.sh archive "$SLUG"
 # Alternativ: task openspec:archive -- "$SLUG"
 
+> **Querschnittliche Changes ohne Parent-SSOT-Spec (insbesondere Mishap-Bundles):** archivieren mit
+> `bash scripts/openspec.sh archive "$SLUG" --create-new`. Ohne das Flag
+> bricht `_merge_delta` in `openspec-merge.mjs` mit "Target '...' does not exist" ab, weil ein
+> Mishap-Bundle per Definition keine Parent-SSOT-Spec hat. Die resultierende Spec
+> `openspec/specs/$SLUG.md` wandert bei der nächsten Archivierung durch
+> `mv "$dir" "$dest"` nach `openspec/specs/archive/` (analog zu den bestehenden
+> `openspec/specs/archive/*mishap*.md`-Präzedenzfällen).
+
 # 4. Archivierung committen und via PR mergen (wegen Branch-Protection)
 git add openspec/changes/ openspec/changes/archive/
 git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"

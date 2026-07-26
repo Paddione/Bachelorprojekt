@@ -823,3 +823,55 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
     return 1
   }
 }
+
+# ── T002165: Nach dem T002161-Fix lief renovate.yml erstmals gruen durch
+#    (Run 30201269297), bearbeitete aber KEIN Repository:
+#      WARN: No repositories found - did you want to run with flag --autodiscover?
+#    Self-hosted Renovate braucht die Arbeitsliste explizit; die Action
+#    renovatebot/github-action leitet github.repository NICHT weiter. Der
+#    Token-Step war korrekt ("Creating token for this repository"). Das ist der
+#    vierte Konfigurationsfehler aus T000898 — er konnte nie auffallen, weil die
+#    Auth-Fehler (T002161 RC1/RC2) ihn maskierten.
+#    Zusaetzlich: "WARN: Config needs migrating" — matchPackagePatterns ist
+#    deprecated; verschwindet es in einem Major, greifen die betroffenen
+#    packageRules still nicht mehr.
+#    Beide Tests sind erwartet: FAIL vor dem Fix.
+
+@test "T002165: renovate.yml gibt Renovate die Repo-Arbeitsliste explizit mit" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  grep -qE 'RENOVATE_REPOSITORIES: \$\{\{ github\.repository \}\}' "$wf" || {
+    echo "FAIL: renovate.yml setzt RENOVATE_REPOSITORIES nicht auf github.repository."
+    echo "      Ohne Arbeitsliste laeuft der Job GRUEN durch, bearbeitet aber kein"
+    echo "      Repo ('WARN: No repositories found') — kein PR, kein Dashboard-Issue."
+    echo "      Explizit statt RENOVATE_AUTODISCOVER, damit der Lauf unabhaengig vom"
+    echo "      Installationsumfang der GitHub App deterministisch bleibt."
+    return 1
+  }
+}
+
+@test "T002165: renovate.json5 nutzt kein deprecated matchPackagePatterns" {
+  local cfg="$REPO_ROOT/renovate.json5"
+  # Auf den JSON-Key pruefen, nicht auf das Wort: der erklaerende Kommentar zur
+  # Migration darf den alten Namen nennen (alle Keys der Datei sind gequotet).
+  ! grep -qE '"matchPackagePatterns"' "$cfg" || {
+    echo "FAIL: renovate.json5 verwendet noch matchPackagePatterns (deprecated)."
+    echo "      Renovate meldet 'Config needs migrating'. Neue Syntax kapselt den"
+    echo "      Regex in Slashes, z.B. matchPackageNames: [\"/^livekit//\"]."
+    echo "      Betroffen sind die Gruppierungen livekit/nextcloud/keycloak und die"
+    echo "      Deaktivierung von ghcr.io/paddione/* — verschwindet die Option in"
+    echo "      einem Major, greifen diese Regeln still nicht mehr."
+    return 1
+  }
+}
+
+@test "T002165: renovate.json5 hat keine Keycloak-Regel mehr (Plattform nutzt Pocket ID)" {
+  local cfg="$REPO_ROOT/renovate.json5"
+  ! grep -qE '"matchPackageNames".*keycloak|"matchPackagePatterns".*keycloak' "$cfg" || {
+    echo "FAIL: renovate.json5 gruppiert noch keycloak-Images."
+    echo "      Die Plattform ist von Keycloak auf Pocket ID migriert; es existiert"
+    echo "      keine quay.io/keycloak-Image-Referenz mehr in den Manifesten. Eine"
+    echo "      packageRule fuer ein nicht mehr vorhandenes Image ist toter Ballast"
+    echo "      und suggeriert eine Komponente, die es nicht mehr gibt."
+    return 1
+  }
+}

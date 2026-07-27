@@ -69,14 +69,14 @@ Endzustand, `scripts/factory/reconcile-ticket-status.sh` ist der Verdächtige, n
 
 ## Schritte
 
-- [ ] **RED zuerst.**
+- [x] **RED zuerst.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/openspec-workflow.bats
 # expected: FAIL (rot — propose kennt --resume nicht und meldet beim Abbruch keinen Datei-Zustand)
 ```
 
-- [ ] **Schritt 1 — Zustandsbericht beim Abbruch.** Bevor `propose` ohne `--resume` mit `die`
+- [x] **Schritt 1 — Zustandsbericht beim Abbruch.** Bevor `propose` ohne `--resume` mit `die`
       abbricht, gibt es je Datei im Ordner aus, ob sie Skelett oder befüllt ist. Erkennung über
       die Platzhalter-Marker, die `propose` selbst seedet — die Liste gehört als Konstante an eine
       Stelle, damit sie mit dem Seed-Code nicht auseinanderläuft.
@@ -84,14 +84,18 @@ tests/unit/lib/bats-core/bin/bats tests/spec/openspec-workflow.bats
       Dieser Schritt allein löst schon den teuersten Teil des Mishaps: man muss nicht mehr jede
       Datei von Hand inspizieren, um zu entscheiden, was übernommen werden darf.
 
-- [ ] **Schritt 2 — `--resume`.** Mit `--resume` seedet `propose` nur Dateien, die fehlen oder
+- [x] **Schritt 2 — `--resume`.** Mit `--resume` seedet `propose` nur Dateien, die fehlen oder
       ausschließlich Platzhalter enthalten. Bestehender Inhalt bleibt **unangetastet**. Der Lauf
       meldet je Datei, was er getan hat (`seeded` / `kept`).
 
       Ohne `--resume` bleibt das Verhalten wie bisher (Abbruch), nur um den Bericht aus Schritt 1
       reicher. Kein `--force`: Überschreiben bleibt eine bewusste manuelle Handlung.
 
-- [ ] **Schritt 3 — Statusübergang prüfen, dann ändern.** Zuerst **belegen**, ob
+- [x] **Schritt 3 — Statusübergang prüfen, dann ändern.** _(BEFUND: `reconcile-ticket-status.sh`
+      enthält **keinen** `in_progress`-Write — der Verdächtige ist entlastet. Der tatsächliche
+      Schreiber ist `scripts/factory/slots.sh` (`claim_slot`), und dort ist es korrektes
+      Verhalten. Gemäß der Vorgabe dieses Schritts wurde **nichts geändert**; der Befund ist als
+      Regressions-Guard in `tests/spec/openspec-workflow.bats` festgehalten.)_ Zuerst **belegen**, ob
       `reconcile-ticket-status.sh` ein Ticket mit gesetztem `plan_ref` und existierendem Branch
       auf `in_progress` hebt, ohne zu unterscheiden, ob auf dem Branch Production-Code liegt oder
       nur Plan- und RED-Test-Artefakte.
@@ -104,14 +108,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/openspec-workflow.bats
       das Mishap als "Ursache nicht in diesem Skript" geschlossen. Eine Änderung an einem Skript,
       das den Fehler nicht verursacht, macht die Sache schlimmer, nicht besser.
 
-- [ ] **Schritt 4 — `plan-archive-steps.md`.** Zwei Regeln aufnehmen:
+- [x] **Schritt 4 — `plan-archive-steps.md`.** Zwei Regeln aufnehmen:
       (a) Ein Change editiert `openspec/specs/**` nicht direkt; Änderungen an der SSOT gehören
       ausschließlich ins Delta unter `openspec/changes/<slug>/specs/`. Wird beides gepflegt, ist
       der Delta-Marker zwangsläufig falsch und der Fehler fällt erst nach dem Merge auf.
       (b) `## REMOVED Requirements` listet **ganze Requirement-Namen**. Ein einzelnes Szenario wird
       dort nicht entfernt, sondern als Prosa-Hinweis im zugehörigen `MODIFIED`-Requirement geführt.
 
-- [ ] **Schritt 5 — Tests.** Fixture-Ordner in `$BATS_TEST_TMPDIR` mit gemischtem Zustand
+- [x] **Schritt 5 — Tests.** Fixture-Ordner in `$BATS_TEST_TMPDIR` mit gemischtem Zustand
       (eine befüllte Datei, eine reine Skelettdatei). Geprüft wird: `--resume` lässt die befüllte
       unangetastet und seedet die fehlende; ohne `--resume` bricht der Lauf ab **und** nennt je
       Datei den Zustand.

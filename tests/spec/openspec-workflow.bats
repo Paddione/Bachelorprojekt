@@ -346,3 +346,61 @@ EOF
   [ -n "$regen" ] || { echo "kein 'task freshness:regenerate' in $f"; return 1; }
   [ "$regen" -lt "$commit" ] || { echo "freshness:regenerate steht NACH dem Archiv-Commit"; return 1; }
 }
+
+# ── [T002375-p5] OpenSpec-Lifecycle: Resume statt blindem Abbruch ──────#
+
+_p5_repo() { cd "$BATS_TEST_DIRNAME/../.." && pwd; }
+
+@test "T002375-p5: propose ohne --resume nennt je Datei Skelett oder befuellt" {
+  local repo; repo="$(_p5_repo)"
+  local root="$BATS_TEST_TMPDIR/os1"; mkdir -p "$root/changes"
+  TICKET_OFFLINE=1 OPENSPEC_ROOT="$root" bash "$repo/scripts/openspec.sh" propose probe --ticket T099999 >/dev/null 2>&1
+  printf '# Design\n\nEchte Substanz.\n' > "$root/changes/probe/design.md"
+
+  run bash -c "TICKET_OFFLINE=1 OPENSPEC_ROOT='$root' bash '$repo/scripts/openspec.sh' propose probe --ticket T099999 2>&1"
+  [ "$status" -ne 0 ] || { echo "propose brach nicht ab"; false; }
+  [[ "$output" == *"[befuellt] design.md"* ]] || { echo "design.md nicht als befuellt gemeldet: $output"; false; }
+  [[ "$output" == *"[Skelett ] tasks.md"* ]] || { echo "tasks.md nicht als Skelett gemeldet: $output"; false; }
+}
+
+@test "T002375-p5: --resume laesst befuellte Dateien unangetastet und seedet fehlende" {
+  local repo; repo="$(_p5_repo)"
+  local root="$BATS_TEST_TMPDIR/os2"; mkdir -p "$root/changes"
+  TICKET_OFFLINE=1 OPENSPEC_ROOT="$root" bash "$repo/scripts/openspec.sh" propose probe --ticket T099999 >/dev/null 2>&1
+  printf '# Proposal: probe\n\n## Why\n\nEchter Grund.\n\n## What\n\nEchter Inhalt.\n' > "$root/changes/probe/proposal.md"
+  rm -f "$root/changes/probe/tasks.md"
+
+  run bash -c "TICKET_OFFLINE=1 OPENSPEC_ROOT='$root' bash '$repo/scripts/openspec.sh' propose probe --ticket T099999 --resume 2>&1"
+  [ "$status" -eq 0 ] || { echo "--resume schlug fehl: $output"; false; }
+
+  # Positiv-Anker ZUERST: die Substanz muss noch da sein. Ohne ihn bestuende der Test
+  # auch dann, wenn --resume gar nichts taete.
+  run grep -c 'Echter Grund' "$root/changes/probe/proposal.md"
+  [ "$output" = "1" ] || { echo "--resume hat befuellten Inhalt ueberschrieben"; false; }
+  [ -f "$root/changes/probe/tasks.md" ] || { echo "--resume hat die fehlende tasks.md nicht geseedet"; false; }
+}
+
+@test "T002375-p5: reconcile-ticket-status.sh setzt KEIN in_progress (Befund, kein Fix)" {
+  # T002356-M2 markierte dieses Skript als Verdaechtigen — ausdruecklich [UNVERIFIED].
+  # Die Pruefung entlastet es: es enthaelt keinen einzigen in_progress-Write. Der
+  # tatsaechliche Schreiber ist scripts/factory/slots.sh (claim_slot), und dort ist es
+  # korrektes Verhalten: wer einen Slot belegt, arbeitet. Geaendert wurde deshalb
+  # nichts — eine Aenderung an einem Skript, das den Fehler nicht verursacht, macht es
+  # schlimmer. Dieser Test haelt den Befund fest, damit die Suche nicht von vorn beginnt.
+  local repo; repo="$(_p5_repo)"
+  run bash -c "grep -cE \"status *= *'in_progress'|--status in_progress\" '$repo/scripts/factory/reconcile-ticket-status.sh' || true"
+  [ "$output" = "0" ] || { echo "reconcile-ticket-status.sh schreibt jetzt in_progress — der Befund von T002375-p5 gilt nicht mehr"; false; }
+
+  # Gegenprobe, damit der Test nicht vakuos ist: der echte Schreiber existiert.
+  run bash -c "grep -c \"status='in_progress'\" '$repo/scripts/factory/slots.sh'"
+  [ "$output" -ge 1 ] || { echo "slots.sh schreibt kein in_progress mehr — Befund neu pruefen"; false; }
+}
+
+@test "T002375-p5: plan-archive-steps.md verbietet den SSOT-Direktedit im Change" {
+  local repo; repo="$(_p5_repo)"
+  local ref="$repo/.claude/skills/references/plan-archive-steps.md"
+  run bash -c "grep -c 'Delta-Disziplin' '$ref'"
+  [ "$output" = "1" ] || { echo "Delta-Disziplin fehlt"; false; }
+  run bash -c "grep -c 'REMOVED Requirements. listet ganze Requirement-Namen' '$ref'"
+  [ "$output" -ge 1 ] || { echo "die REMOVED-Regel fehlt"; false; }
+}

@@ -32,25 +32,98 @@ _embed_slug() {
   node "$REPO/scripts/openspec-embed.mjs" --slug "$slug" >/dev/null 2>&1 || true
 }
 
+# [T002375-p5] Platzhalter-Marker. EINE Liste, weil sie mit dem Seed-Code unten
+# uebereinstimmen muss — zwei Listen laufen auseinander und der Resume-Pfad haelt dann
+# eine Skelettdatei faelschlich fuer befuellt (oder umgekehrt).
+_OPENSPEC_PLACEHOLDERS=(
+  '<author fills this in'
+  '### Requirement: TODO'
+  '#### Scenario: TODO'
+  'expected: FAIL (red — the fix is not yet implemented)'
+)
+
+# Ist die Datei leer, fehlend oder enthaelt sie AUSSCHLIESSLICH Geruest? Heuristik:
+# eine Datei gilt als Skelett, wenn sie mindestens einen Marker traegt und ausser den
+# geseedeten Ueberschriften/Markern keine Substanz hat.
+_is_placeholder_file() {
+  local f="$1"
+  [[ -f "$f" ]] || return 0
+  [[ -s "$f" ]] || return 0
+  local m
+  for m in "${_OPENSPEC_PLACEHOLDERS[@]}"; do
+    grep -qF -- "$m" "$f" && return 0
+  done
+  # proposal.md hat keine Marker: leere Why/What-Abschnitte sind sein Skelett-Zustand.
+  if [[ "$(basename "$f")" == "proposal.md" ]]; then
+    local body
+    body="$(sed -e '/^#/d' -e '/^_Ticket:/d' -e '/^[[:space:]]*$/d' "$f")"
+    [[ -z "$body" ]] && return 0
+  fi
+  return 1
+}
+
+_propose_state_report() {
+  local dir="$1" f rel
+  echo "openspec propose: '$dir' existiert bereits — Zustand je Datei:"
+  while IFS= read -r f; do
+    rel="${f#"$dir"/}"
+    if _is_placeholder_file "$f"; then
+      printf '  [Skelett ] %s (%s Bytes)\n' "$rel" "$(wc -c < "$f" | tr -d ' ')"
+    else
+      printf '  [befuellt] %s (%s Bytes) — wird von --resume NICHT angetastet\n' \
+        "$rel" "$(wc -c < "$f" | tr -d ' ')"
+    fi
+  done < <(find "$dir" -type f -name '*.md' | sort)
+}
+
+# Seedet nur, wenn die Datei fehlt oder reines Skelett ist. Ohne --resume ist der
+# Aufruf der bisherige Weg (der Ordner existierte ja nicht). Kein --force: Ueberschreiben
+# bestehender Substanz bleibt eine bewusste manuelle Handlung.
+_seed_if_placeholder() {
+  local f="$1" resume="$2" content="$3"
+  if [[ "$resume" == "1" ]] && [[ -f "$f" ]] && ! _is_placeholder_file "$f"; then
+    echo "  kept   $(basename "$f") (befuellt)" >&2
+    return 0
+  fi
+  printf '%s\n' "$content" > "$f"
+  [[ "$resume" == "1" ]] && echo "  seeded $(basename "$f")" >&2
+  return 0
+}
+
 cmd_propose() {
   local slug="${1:-}"; shift || true
   local ticket=""
   local target_spec=""
+  local resume=0
   while [[ $# -gt 0 ]]; do case "$1" in
     --ticket) ticket="$2"; shift 2 ;;
     --target-spec) target_spec="$2"; shift 2 ;;
+    --resume) resume=1; shift ;;
     *) die "Unknown propose option: $1" ;;
   esac; done
   [[ -n "$slug" ]]   || die "propose requires <slug>"
   [[ -n "$ticket" ]] || die "propose requires --ticket <ext-id>"
   local dir="$OPENSPEC_ROOT/changes/$slug"
-  [[ -e "$dir" ]] && die "change '$slug' already exists at $dir"
+  if [[ -e "$dir" && "$resume" != "1" ]]; then
+    # [T002375-p5] Vor dem Abbruch berichten, WAS im Ordner steht. Bis hierher brach
+    # `propose` blind ab, sobald der Ordner existierte — unabhaengig davon, ob er
+    # echten Inhalt oder nur das Skelett enthaelt. Im Ursprungsfall (T002356-M3) lag
+    # ein gemischter Zustand vor: design.md mit Root-Cause und Live-Messung (8390
+    # Bytes), proposal.md mit leeren Why/What, tasks.md das reine Skelett. Ohne diesen
+    # Bericht muss man jede Datei von Hand inspizieren, um zu entscheiden, was
+    # uebernommen werden darf — und ein blindes Ueberschreiben vernichtet genau die
+    # Arbeit einer vorherigen Session.
+    _propose_state_report "$dir" >&2
+    die "change '$slug' already exists at $dir — mit --resume nur fehlende/leere Dateien seeden"
+  fi
   mkdir -p "$dir/specs"
-  printf '# Proposal: %s\n\n## Why\n\n## What\n\n_Ticket: %s_\n' "$slug" "$ticket" > "$dir/proposal.md"
+  _seed_if_placeholder "$dir/proposal.md" "$resume" \
+    "$(printf '# Proposal: %s\n\n## Why\n\n## What\n\n_Ticket: %s_\n' "$slug" "$ticket")"
   # Seed a plan-lint-PASS tasks.md skeleton so the plan author only fills in
   # the body, not the frontmatter + section shape + verify-task gates. See
   # T001242 (Mishap 2). Quoted heredoc → no shell expansion inside the fences.
-  cat > "$dir/tasks.md" <<OUTER_EOF
+  local _tasks_skeleton
+  _tasks_skeleton="$(cat <<OUTER_EOF
 ---
 title: "$slug — Implementation Plan"
 ticket_id: $ticket
@@ -96,8 +169,11 @@ task freshness:regenerate
 task freshness:check
 \`\`\`
 OUTER_EOF
+)"
+  _seed_if_placeholder "$dir/tasks.md" "$resume" "$_tasks_skeleton"
   local delta_spec_name="${target_spec:-$slug}"
-  printf '## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n\n#### Scenario: TODO\n\n- **GIVEN** …\n- **WHEN** …\n- **THEN** …\n' > "$dir/specs/$delta_spec_name.md"
+  _seed_if_placeholder "$dir/specs/$delta_spec_name.md" "$resume" \
+    "$(printf '## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n\n#### Scenario: TODO\n\n- **GIVEN** …\n- **WHEN** …\n- **THEN** …')"
   echo "$ticket" > "$dir/.ticket"
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
     bash "$TICKET_SH" update-status --id "$ticket" --status planning >/dev/null
@@ -105,7 +181,11 @@ OUTER_EOF
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
     bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
   fi
-  echo "proposed: $dir (ticket $ticket, status planning)"
+  if [[ "$resume" == "1" ]]; then
+    echo "resumed: $dir (ticket $ticket) — befuellte Dateien blieben unangetastet"
+  else
+    echo "proposed: $dir (ticket $ticket, status planning)"
+  fi
 }
 
 cmd_apply() {

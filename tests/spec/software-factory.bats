@@ -3107,8 +3107,15 @@ REG="scripts/factory/service-registry.sh"
 @test "FA-SF-70: route-provider.sh emits valid JSON keys for opus without DB" {
   run bash scripts/factory/route-provider.sh factory-plan opus
   [ "$status" -eq 0 ]
-  # Post local-llm-proxy migration: opus routes to ternary-bonsai-27b on :18235 [T002081]
-  echo "$output" | jq -e '.modelId and (.provider=="ternary-bonsai-27b")'
+  # T002277: opus liest jetzt provider_config statt eines hardcodierten Modells.
+  # Ohne Cluster faellt es auf den eingebauten Default zurueck - beide Wege muessen
+  # dieselbe Invariante erfuellen: gueltiges JSON, das auf den LOKALEN Proxy zeigt
+  # und keinen Slot claimt (opus hat beim Aufrufer keinen Release-Pfad).
+  # Auf modelId wird bewusst nicht hart geprueft: welches Modell hinter dem Proxy
+  # steht, entscheidet die Registry und darf sich ohne Testaenderung verschieben.
+  # Die letzte Zeile isolieren - ohne DB schreibt das Skript eine Warnung auf stderr,
+  # und `run` fuehrt stdout und stderr in $output zusammen.
+  echo "${lines[${#lines[@]}-1]}" | jq -e '.modelId and (.baseUrl | test("127.0.0.1:18235")) and (.slotId == null)'
 }
 
 @test "FA-SF-70: route-provider.sh requires source and tier args" {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.220.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.219.1...website-v1.220.0) (2026-07-27)
+
+
+### Features
+
+* **skills:** skill quality pass with fail-closed 250-line gate [T002303] ([#3377](https://github.com/Paddione/Bachelorprojekt/issues/3377)) ([db7349d](https://github.com/Paddione/Bachelorprojekt/commit/db7349dd9cd2d6893bd1483b62c76c21ea935b48))
+
 ## [1.219.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.219.0...website-v1.219.1) (2026-07-27)
 
 

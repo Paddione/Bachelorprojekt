@@ -829,34 +829,29 @@ an explanatory message for an invalid scope, and exit 2 when the workflow file i
 
 #### Scenario: Gültiger Scope besteht Validierung *(BATS)*
 - **GIVEN** ci.yml enthält die Allowlist-Scopes `website`, `admin`, `db`, `ops`, `factory`
-- **WHEN** `bash scripts/preflight-pr-scope.sh "feat(admin): add dashboard" ci.yml` ausgeführt wird
+- **WHEN** `bash scripts/preflight-pr-scope.sh "feat(website): add dashboard"` ausgeführt wird
 - **THEN** endet der Befehl mit Exit-Code 0
 
 #### Scenario: Ungültiger Scope wird mit Fehlermeldung abgewiesen *(BATS)*
 - **GIVEN** `cockpit` ist nicht in der Allowlist
-- **WHEN** `bash scripts/preflight-pr-scope.sh "feat(cockpit): add view" ci.yml` ausgeführt wird
+- **WHEN** `bash scripts/preflight-pr-scope.sh "feat(cockpit): add view"` ausgeführt wird
 - **THEN** endet der Befehl mit Exit-Code ungleich 0
 - **AND** die Ausgabe enthält `NOT in the semantic-PR allowlist` und listet gültige Scopes auf
 
 #### Scenario: Titel ohne Scope besteht Validierung *(BATS)*
 - **GIVEN** ein PR-Titel ohne `(scope)`-Klammer (`docs: update readme`)
-- **WHEN** `bash scripts/preflight-pr-scope.sh "docs: update readme" ci.yml` ausgeführt wird
+- **WHEN** `bash scripts/preflight-pr-scope.sh "docs: update readme"` ausgeführt wird
 - **THEN** endet der Befehl mit Exit-Code 0
 - **AND** die Ausgabe enthält einen Hinweis auf fehlenden Scope
 
-#### Scenario: Fehlende Workflow-Datei ergibt Exit-Code 2 *(BATS)*
-- **GIVEN** der Pfad `/nonexistent/ci.yml` existiert nicht
-- **WHEN** `bash scripts/preflight-pr-scope.sh "feat(admin): x" /nonexistent/ci.yml` ausgeführt wird
-- **THEN** endet der Befehl mit Exit-Code 2
-
-#### Scenario: Scope mit Bindestrichen wird korrekt erkannt *(BATS)*
+#### Scenario: Domänen-Scope wird korrekt erkannt *(BATS)*
 - **GIVEN** `ops` ist in der Allowlist
-- **WHEN** `bash scripts/preflight-pr-scope.sh "fix(ops): restart pod" ci.yml` ausgeführt wird
+- **WHEN** `bash scripts/preflight-pr-scope.sh "fix(ops): restart pod"` ausgeführt wird
 - **THEN** endet der Befehl mit Exit-Code 0
 
 #### Scenario: Breaking-Change-Marker lässt gültigen Scope passieren *(BATS)*
 - **GIVEN** `db` ist in der Allowlist
-- **WHEN** `bash scripts/preflight-pr-scope.sh "feat(db)!: breaking schema" ci.yml` ausgeführt wird
+- **WHEN** `bash scripts/preflight-pr-scope.sh "feat(db)!: breaking schema"` ausgeführt wird
 - **THEN** endet der Befehl mit Exit-Code 0
 
 ---

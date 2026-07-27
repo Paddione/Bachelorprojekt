@@ -2,7 +2,7 @@
 title: "fix-stage-plan-branch-ref-T002263 — Implementation Plan"
 ticket_id: T002263
 domains: [infra]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

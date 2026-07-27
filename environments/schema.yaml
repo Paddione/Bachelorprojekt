@@ -99,6 +99,12 @@ env_vars:
     default_dev: "localhost"
 
   - name: WEBSITE_IMAGE
+
+  - name: WEBSITE_IMAGE_TAG
+    required: false
+    default_dev: "latest"
+    description: "Docker image tag for the website; set by CI (render-fleet-artifact.yml) or defaults to latest."
+
   - name: BRETT_IMAGE
     required: false
     default_dev: "latest"

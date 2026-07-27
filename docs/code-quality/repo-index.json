@@ -3318,6 +3318,7 @@
         "scripts/llm/start-rerank-server.ps1",
         "scripts/lmstudio-preload.sh",
         "scripts/mcp-gateway/mcp-gateway.service",
+        "scripts/mcp-sync.sh",
         "scripts/merge-domains.mjs",
         "scripts/migrate-bugs-to-tickets.mjs",
         "scripts/migrate-eur-on-payment.ts",

@@ -1707,6 +1707,12 @@
       "status": "archived"
     }
   ],
+  "T002300": [
+    {
+      "slug": "mcp-registry-ssot",
+      "status": "plan_staged"
+    }
+  ],
   "T002302": [
     {
       "slug": "2026-07-27-skill-inventory-cleanup",

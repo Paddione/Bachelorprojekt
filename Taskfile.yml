@@ -234,6 +234,20 @@ tasks:
     cmds:
       - bash scripts/agent-model-select.sh
 
+  # ── MCP Registry SSOT ────────────────────────────────────────────────────
+  # Verwaltet die drei Harness-Konfigurationen aus einer Registry (SSOT).
+  # Siehe docs/agent-guide/registry/mcp.yaml und scripts/mcp-sync.sh.
+
+  mcp:sync:
+    desc: "Regenerate .mcp.json, .opencode/opencode.jsonc, and ~/.gemini/config/mcp_config.json from the SSOT registry (docs/agent-guide/registry/mcp.yaml)"
+    cmds:
+      - bash scripts/mcp-sync.sh render
+
+  mcp:check:
+    desc: "Verify that the three target configs match the SSOT registry (exit != 0 on drift; never writes)"
+    cmds:
+      - bash scripts/mcp-sync.sh check
+
   # ─────────────────────────────────────────────
   # Configuration Management
   # ─────────────────────────────────────────────

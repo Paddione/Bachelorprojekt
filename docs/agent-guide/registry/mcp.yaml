@@ -1,0 +1,246 @@
+# docs/agent-guide/registry/mcp.yaml
+# SSOT MCP Server Registry — single source of truth for MCP server
+# definitions across all three agent harnesses (Claude Code, agy, opencode).
+#
+# Two top-level sections:
+#   clients:  MCP client/harness configuration (per-server)
+#   cluster:  In-cluster monolith infrastructure (5 containers)
+---
+clients:
+  mcp-kubernetes:
+    transport: http
+    endpoint: http://localhost:18080/mcp
+    harness:
+      claude_code:
+        type: http
+        url: http://localhost:18080/mcp
+      agy:
+        serverUrl: http://localhost:18080/mcp
+      opencode:
+        type: remote
+        url: http://localhost:18080/mcp
+        enabled: true
+
+  mcp-postgres:
+    transport: http
+    endpoint: http://localhost:13001/mcp
+    harness:
+      claude_code:
+        type: http
+        url: http://localhost:13001/mcp
+      agy:
+        serverUrl: http://localhost:13001/mcp
+      opencode:
+        type: remote
+        url: http://localhost:13001/mcp
+        enabled: true
+
+  factory-mcp:
+    transport: http
+    endpoint: http://localhost:13003/mcp
+    harness:
+      claude_code:
+        type: http
+        url: http://localhost:13003/mcp
+      agy:
+        serverUrl: http://localhost:13003/mcp
+      opencode:
+        type: remote
+        url: http://localhost:13003/mcp
+        enabled: true
+
+  # task-master-ai:
+  #   claude_code: npx -y task-master-ai (portable)
+  #   agy:         /home/patrick/.npm-global/bin/task-master-ai (absoluter Pfad, NICHT portabel)
+  #   opencode:    npx -y task-master-ai, aber enabled: false
+  # Resolution: npx -y ist die portable Form (P1.2).
+  task-master-ai:
+    transport: stdio
+    command: npx
+    args:
+      - -y
+      - task-master-ai
+    env:
+      OLLAMA_BASE_URL: http://localhost:11434/api
+      TASK_MASTER_TOOLS: all
+    harness:
+      claude_code:
+        command: npx
+        args: [-y, task-master-ai]
+        env:
+          OLLAMA_BASE_URL: http://localhost:11434/api
+          TASK_MASTER_TOOLS: all
+      agy:
+        command: /home/patrick/.npm-global/bin/task-master-ai
+        note: "Absoluter Pfad — nicht portabel. npx -y waere portabel, aber agy setzt den globalen Installationspfad."
+        env:
+          OLLAMA_BASE_URL: http://localhost:11434/api
+          TASK_MASTER_TOOLS: all
+      opencode:
+        type: local
+        command: [npx, -y, task-master-ai]
+        enabled: false
+        environment:
+          OLLAMA_BASE_URL: http://localhost:11434/api
+          TASK_MASTER_TOOLS: all
+
+  mcp-task-runner:
+    transport: stdio
+    command: mcp-task-runner
+    args:
+      - --otel-endpoint
+      - localhost:4317
+      - --taskfile
+      - /home/patrick/Bachelorprojekt/Taskfile.yml
+    # Absoluter taskfile-Pfad: nicht portabel, wird durch MCPB-Bundle ersetzt (T002301)
+    harness:
+      claude_code:
+        command: mcp-task-runner
+        args: [--otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+      agy:
+        command: mcp-task-runner
+        args: [--otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+      opencode:
+        type: local
+        command: [mcp-task-runner, --otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+        enabled: true
+
+  # ticket-mcp: absoluter Pfad /home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go
+  # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
+  ticket-mcp:
+    transport: stdio
+    command: /home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go
+    harness:
+      claude_code:
+        command: /home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go
+      agy:
+        command: /home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go
+      opencode:
+        type: local
+        command: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go]
+        enabled: true
+
+  # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp
+  # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
+  codebase-memory-mcp:
+    transport: stdio
+    command: /home/patrick/.local/bin/codebase-memory-mcp
+    harness:
+      claude_code:
+        command: /home/patrick/.local/bin/codebase-memory-mcp
+      agy:
+        command: /home/patrick/.local/bin/codebase-memory-mcp
+      opencode:
+        type: local
+        command: [/home/patrick/.local/bin/codebase-memory-mcp]
+        enabled: true
+
+  # ── Disabled in opencode, absent in claude_code + agy ──────
+  # Diese Server existieren nur in opencode als Disabled-Overrides.
+  # Sie haben kein Gegenstück in claude_code oder agy und werden hier
+  # nur für die Registry-Vollständigkeit dokumentiert.
+
+  github-mcp:
+    transport: stdio
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-github"
+    env:
+      GITHUB_TOKEN: "{env:GITHUB_TOKEN}"
+    harness:
+      opencode:
+        type: local
+        command: [npx, -y, "@modelcontextprotocol/server-github"]
+        environment:
+          GITHUB_TOKEN: "{env:GITHUB_TOKEN}"
+        enabled: false
+    note: "Nur in opencode (disabled). gh-axi ist der mandatierte GitHub-Pfad."
+
+  playwright:
+    transport: stdio
+    command: npx
+    args:
+      - "@playwright/mcp@latest"
+    harness:
+      opencode:
+        type: local
+        command: [npx, "@playwright/mcp@latest"]
+        enabled: false
+    note: "Nur in opencode (disabled). Nicht project-relevant."
+
+  docfork:
+    transport: stdio
+    command: npx
+    args:
+      - -y
+      - docfork
+    harness:
+      opencode:
+        type: local
+        command: [npx, -y, docfork]
+        enabled: false
+    note: "Nur in opencode (disabled). Vermeidet Kontext-Bloat."
+
+  sequential-thinking:
+    transport: stdio
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-sequential-thinking"
+    harness:
+      opencode:
+        type: local
+        command: [npx, -y, "@modelcontextprotocol/server-sequential-thinking"]
+        enabled: false
+    note: "Nur in opencode (disabled)."
+
+  webresearch:
+    transport: stdio
+    command: npx
+    args:
+      - -y
+      - "@mzxrai/mcp-webresearch@latest"
+    harness:
+      opencode:
+        type: local
+        command: [npx, -y, "@mzxrai/mcp-webresearch@latest"]
+        enabled: false
+    note: "Nur in opencode (disabled)."
+
+cluster:
+  # In-Cluster-Monolith: k3d/default/claude-code-mcp-monolith-{deploy,svc}.yaml
+  # Namespace: default, Context: fleet
+  # Port-forward-Bruecke (systemd user unit):
+  #   scripts/mcp-gateway/mcp-gateway.service
+  #   Taskfile.agents.yml -> mcp-gateway:start
+  #   kubectl port-forward svc/claude-code-mcp-monolith 18080:8080 13000:3000 13001:3001 13002:3002
+  # Bekannte Defekte:
+  #   T002312: Der SSOT-Spec behauptet, dieser Monolith sei dekommissioniert (falsch)
+  note: "5/5 Running, 55 Restarts. Service 56d alt, Pod 18d alt."
+  containers:
+    - name: kubernetes
+      image: quay.io/containers/kubernetes_mcp_server@sha256:ef1ede0fd73ce975de1850b7f19090d0850c4ce3e7d21d795f21de3ee8d1452c
+      port: 8080
+      forwarded_port: 18080
+      status: live
+    - name: postgres
+      image: node:20-alpine (supergateway)
+      port: 3001
+      forwarded_port: 13001
+      status: live
+    - name: keycloak
+      image: quay.io/sshaaf/keycloak-mcp-server@sha256:12dd5199862055eb38b5f8162cabcc27c1324471b53416389098be263ea14a46
+      port: 8081
+      status: defekt
+      ticket: T002311
+    - name: playwright
+      image: mcr.microsoft.com/playwright:v1.50.1-jammy
+      port: 3000
+      forwarded_port: 13000
+      status: live
+    - name: github
+      image: node:20-alpine (supergateway)
+      port: 3002
+      forwarded_port: 13002
+      status: live

@@ -29,25 +29,45 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-# ── MCP Server Registration ───────────────────────────────────────────
+# ── MCP Registry SSOT (abgelöst: hartcodierte .mcp.json-Tests) ──────────
 
-@test ".mcp.json exists with MCP server definitions" {
-  [ -f "$REPO/.mcp.json" ]
+@test "SSOT registry mcp.yaml exists with clients and cluster" {
+  [ -f "$REPO/docs/agent-guide/registry/mcp.yaml" ]
+  run bash -c "node -e \"const fs=require('fs'),y=require('yaml');const d=y.parse(fs.readFileSync('$REPO/docs/agent-guide/registry/mcp.yaml','utf8'));console.log(Object.keys(d.clients).length,Object.keys(d.cluster).length)\""
+  echo "output: $output"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ ^[0-9]+[[:space:]]+[0-9]+ ]]
 }
 
-@test ".mcp.json registers factory-mcp server" {
-  run grep -q 'factory-mcp' "$REPO/.mcp.json"
+@test "mcp-sync.sh check passes (registry matches generated configs)" {
+  run bash "$REPO/scripts/mcp-sync.sh" check
+  echo "output: $output"
   [ "$status" -eq 0 ]
 }
 
-@test ".mcp.json registers mcp-kubernetes server" {
-  run grep -q 'mcp-kubernetes' "$REPO/.mcp.json"
-  [ "$status" -eq 0 ]
+@test "mcp-sync.sh check is read-only (never writes)" {
+  local before_sum after_sum
+  before_sum=$(md5sum "$REPO/.mcp.json" "$REPO/.opencode/opencode.jsonc" 2>/dev/null | md5sum)
+  run bash "$REPO/scripts/mcp-sync.sh" check
+  after_sum=$(md5sum "$REPO/.mcp.json" "$REPO/.opencode/opencode.jsonc" 2>/dev/null | md5sum)
+  echo "before: $before_sum after: $after_sum"
+  [ "$before_sum" = "$after_sum" ]
 }
 
-@test ".mcp.json registers mcp-postgres server" {
-  run grep -q 'mcp-postgres' "$REPO/.mcp.json"
+@test "mcp-sync.sh check skips agy target with visible message" {
+  if [ -f "$HOME/.gemini/config/mcp_config.json" ]; then
+    skip "agy target exists on this machine — test only applies in CI"
+  fi
+  run bash "$REPO/scripts/mcp-sync.sh" check
+  echo "output: $output"
+  [[ "$output" =~ skipped ]]
+}
+
+@test "cluster container names match deployment manifest" {
+  run grep -c '"name": "keycloak"\|"name": "playwright"\|"name": "github"' \
+    "$REPO/k3d/default/claude-code-mcp-monolith-deploy.yaml"
   [ "$status" -eq 0 ]
+  [ "$output" -ge 3 ]
 }
 
 # ── Ops Agent Output-Trust Guardrails ─────────────────────────────────

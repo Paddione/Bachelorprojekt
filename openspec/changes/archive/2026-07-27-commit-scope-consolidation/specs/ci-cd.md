@@ -25,16 +25,14 @@ The system SHALL validate PR title scopes against the named-scope list in `commi
 - **WHEN** `scripts/preflight-pr-scope.sh` aufgerufen wird
 - **THEN** liefert das Skript Exit-Code 0 — der Breaking-Change-Marker beeinflusst die Scope-Validierung nicht
 
-## REMOVED Requirements
-
-### Requirement: Preflight-PR-Scope-Validierung — Scenario "Fehlende Workflow-Datei liefert Exit-Code 2"
-
-Das Szenario prüfte einen Exit-Code, den es nur gab, weil `scripts/preflight-pr-scope.sh` einen
-ci.yml-Pfad als zweites Argument entgegennahm. Der Parameter entfällt mit T002328 ersatzlos —
-die Allowlist kommt ausschließlich aus `commitlint.config.cjs`. Ein Parameter, der etwas
-annimmt und wegwirft, wäre genau die Halbwahrheit, aus der der ursprüngliche Drift entstand.
-
-## ADDED Requirements
+> **Entfallenes Szenario (T002328):** Das frühere Szenario „Fehlende Workflow-Datei liefert
+> Exit-Code 2" ist mit diesem Change ersatzlos gestrichen. Den Exit-Code gab es nur, weil
+> `scripts/preflight-pr-scope.sh` einen ci.yml-Pfad als zweites Argument entgegennahm. Der
+> Parameter entfällt vollständig — die Allowlist kommt ausschließlich aus
+> `commitlint.config.cjs`. Ein Parameter, der etwas annimmt und wegwirft, wäre genau die
+> Halbwahrheit, aus der der ursprüngliche Drift entstand. Die Streichung steckt in der
+> MODIFIED-Fassung oben (das Szenario fehlt dort); ein `## REMOVED Requirements`-Block wäre
+> hier falsch, weil OpenSpec dort ganze Requirements erwartet, keine einzelnen Szenarien.
 
 ### Requirement: Konsolidierte Scope-Namen nennen ihr Ziel
 <!-- bats: ci-cd.bats -->

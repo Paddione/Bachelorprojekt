@@ -963,7 +963,14 @@ The system SHALL validate PR title scopes against the named-scope list in `commi
 - **WHEN** `scripts/preflight-pr-scope.sh` aufgerufen wird
 - **THEN** liefert das Skript Exit-Code 0 — der Breaking-Change-Marker beeinflusst die Scope-Validierung nicht
 
----
+> **Entfallenes Szenario (T002328):** Das frühere Szenario „Fehlende Workflow-Datei liefert
+> Exit-Code 2" ist mit diesem Change ersatzlos gestrichen. Den Exit-Code gab es nur, weil
+> `scripts/preflight-pr-scope.sh` einen ci.yml-Pfad als zweites Argument entgegennahm. Der
+> Parameter entfällt vollständig — die Allowlist kommt ausschließlich aus
+> `commitlint.config.cjs`. Ein Parameter, der etwas annimmt und wegwirft, wäre genau die
+> Halbwahrheit, aus der der ursprüngliche Drift entstand. Die Streichung steckt in der
+> MODIFIED-Fassung oben (das Szenario fehlt dort); ein `## REMOVED Requirements`-Block wäre
+> hier falsch, weil OpenSpec dort ganze Requirements erwartet, keine einzelnen Szenarien.
 
 ### Requirement: Konsolidierte Scope-Namen nennen ihr Ziel
 <!-- bats: ci-cd.bats -->
@@ -984,8 +991,6 @@ The system SHALL reject a commit scope that was consolidated into another scope 
 - **GIVEN** der konsolidierte Scope-Name `admin`
 - **WHEN** `scripts/register-scope.sh admin` aufgerufen wird
 - **THEN** liefert das Skript einen Exit-Code ungleich 0 und trägt den Namen nicht in `commitlint.config.cjs` ein
-
----
 
 ### Requirement: Website-CI-Deploy via kubectl set image
 <!-- bats: website-ci-deploy.bats -->
@@ -1285,3 +1290,5 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (7f483188c829) -->
 
 <!-- merged from change delta ci-cd.md (f45c51b682b5) -->
+
+<!-- merged from change delta ci-cd.md (8eaacfc8ebd8) -->

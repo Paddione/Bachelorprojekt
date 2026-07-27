@@ -1779,6 +1779,12 @@
       "status": "archived"
     }
   ],
+  "T002333": [
+    {
+      "slug": "queue-dispatch-bug-type",
+      "status": "plan_staged"
+    }
+  ],
   "T002336": [
     {
       "slug": "llm-proxy-readiness",

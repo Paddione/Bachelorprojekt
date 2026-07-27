@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.219.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.219.0...website-v1.219.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* **website:** point code search at llm-gateway-embed and rerank results [T002317] ([#3372](https://github.com/Paddione/Bachelorprojekt/issues/3372)) ([ab85fa0](https://github.com/Paddione/Bachelorprojekt/commit/ab85fa06f18d22af3b3cb219fe27a86c01de2a23))
+
 ## [1.219.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.218.0...website-v1.219.0) (2026-07-27)
 
 

@@ -21,6 +21,12 @@ Registriert in `.mcp.json` (Claude Code) und `.opencode/opencode.jsonc` (opencod
 > delete, Sealed Secrets, RBAC) laufen über `kubectl exec … psql` bzw. `kubectl`, **nie** über ein
 > MCP-Read-Tool. Ticket-Lifecycle-Writes gehen über die `ticket-mcp`-Wrapper (die shellen zu
 > `ticket.sh`, dem sanktionierten Write-Pfad) — nicht über `mcp-postgres`.
+>
+> **Konkret laufen dort auf [T002307]:** `ALTER USER`, `ALTER ROLE` und `GRANT` — sie scheitern mit
+> `ERROR: cannot execute ALTER ROLE in a read-only transaction`. `mcp-postgres` klammert **jede**
+> Query in eine `READ ONLY`-Transaktion; der Fehler ist also kein Rechte-, sondern ein
+> Transaktionsmodus-Problem und tritt unabhängig vom DB-User auf. Der read-only-Zwang wird bewusst
+> **nicht** gelockert — solche Statements gehören über `kubectl exec … psql` als `postgres`.
 
 > **Prod-Write-Guard [T001954].** Schreibende SQL-Operationen (CREATE, INSERT, UPDATE, DELETE,
 > ALTER, DROP, TRUNCATE) gegen Produktions-Namespaces (`mentolder`, `workspace-korczewski`) sind
@@ -67,7 +73,10 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   Statements (INSERT/UPDATE/DELETE) laufen immer über diesen `psql()`-Helper (SSOT — Skills
   verlinken hierher statt ihn zu duplizieren):
   ```bash
-  PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
+  # --field-selector ist Pflicht [T002307]: ohne ihn kann ein Completed-Pod vorne einsortiert
+  # werden und jeder folgende exec stirbt an "cannot exec into a container in a completed pod".
+  PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db \
+    --field-selector status.phase=Running -o name | head -1)
   psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
   ```
 - ⚠️ **kubectl exec Timeout [T002261]:** Schreibende `psql()`-Aufrufe über `kubectl exec` gegen
@@ -94,8 +103,19 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 - **Wann bevorzugen:** strukturierte Status-/Read-Operationen (Pod-Liste, Logs, Describe, Events).
 - **Fallback:** `task workspace:status` / `task workspace:logs` bzw. `kubectl get/logs/describe`.
 - **Mutations bleiben kubectl:** `pods_delete`, `resources_create_or_update`, `resources_scale`,
-  `resources_delete` existieren, aber Manifest-Mutationen laufen bewusst über `kubectl apply` /
-  Taskfile-Deploys (siehe globale Invariante).
+  `resources_delete`, `pods_exec`, `pods_run` existieren, aber Manifest-Mutationen laufen bewusst
+  über `kubectl apply` / Taskfile-Deploys (siehe globale Invariante).
+- ⚠️ **`pods_exec`/`pods_run` scheitern mit `cannot create resource pods/exec` — das ist das
+  erwartete Ergebnis, keine Fehlkonfiguration [T002307].** Der Server läuft in-cluster unter der
+  ServiceAccount `claude-code-agent`, deren ClusterRole
+  (`k3d/default/claude-code-agent-clusterrole.yaml`) ausschließlich `get`/`list`/`watch` gewährt;
+  erreichbar ist er über `kubectl port-forward` auf `svc/claude-code-mcp-monolith` in `default`.
+  Der Weg für Exec ist `kubectl exec` mit der eigenen kubeconfig-Identität. Nachprüfbar mit:
+  ```bash
+  kubectl --context fleet auth can-i create pods/exec \
+    --as=system:serviceaccount:default:claude-code-agent -n workspace
+  ```
+  Es wird bewusst **keine** RBAC-Regel ergänzt — Least Privilege ist hier die Absicht.
 
 ## `ticket-mcp` — Ticket-Lifecycle (Go-Adapter über `ticket.sh`)
 

@@ -438,6 +438,11 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/flux-render-runtime-vars.bats
 
+  test:unit:flux-healthchecks:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/flux-healthchecks.bats
+
   test:unit:fleet-phase2b:
     internal: true
     cmds:

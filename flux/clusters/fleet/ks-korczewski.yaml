@@ -14,6 +14,10 @@ spec:
     name: fleet-manifests
   path: ./korczewski
   prune: true
+  # T002313: Hier stehen NUR Workloads, die diese Kustomization selbst ausrollt.
+  # Begruendung und Vorfall siehe ks-mentolder.yaml — Deployment/traefik existiert
+  # im Brand-Namespace nicht; das echte traefik laeuft Helm-verwaltet in
+  # kube-system und gehoert nicht in dieses Gate.
   healthChecks:
     - apiVersion: apps/v1
       kind: Deployment
@@ -22,8 +26,4 @@ spec:
     - apiVersion: apps/v1
       kind: Deployment
       name: pocket-id
-      namespace: workspace-korczewski
-    - apiVersion: apps/v1
-      kind: Deployment
-      name: traefik
       namespace: workspace-korczewski

@@ -4,34 +4,18 @@ import { join, relative, extname, resolve, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lookup as dnsLookup } from 'node:dns/promises';
 import pg from 'pg';
+// T002315: Chunking liegt in scripts/lib/scs-chunking.ts. Re-Export, damit
+// scripts/index-repo.test.ts und andere Aufrufer ihren Importpfad behalten.
+import { chunkCode } from './lib/scs-chunking.js';
+export { estimateTokens, chunkCode, chunkYaml, chunkSource } from './lib/scs-chunking.js';
 
 const { Pool } = pg;
 
 const REPO_ROOT = resolve(import.meta.dirname ?? process.cwd(), '..');
 const EMBED_DIM = 1024;
-const CHUNK_MAX_TOKENS = 512;
-const CHUNK_OVERLAP = 64;
 const BATCH_SIZE = 16;
 
-// T002266: estimateTokens rechnete mit 4 Zeichen/Token. Das gilt fuer Prosa —
-// Code und YAML tokenisieren dichter. Gemessen am laufenden bge-m3-Server:
-// 2000 Zeichen Code = 774 echte Tokens, 4000 Zeichen YAML = 1253. Das sind
-// ~2.6 Zeichen/Token, die Schaetzung war also rund 1.5x zu optimistisch und
-// die nominell "512-Token"-Chunks enthielten real bis zu ~774 Tokens.
-const CHARS_PER_TOKEN = 2.6;
 
-// Harter Backstop in ZEICHEN, unabhaengig von jeder Schaetzung. Er greift genau
-// dort, wo die zeilenweise Token-Logik strukturell nicht greifen kann:
-//   - eine einzelne ueberlange Zeile (minifiziert, Base64, eingebettetes JSON)
-//     wurde nie gesplittet, weil nur ZWISCHEN Zeilen umgebrochen wurde;
-//   - chunkYaml kannte ueberhaupt keine Obergrenze und splittete nur an
-//     Top-Level-Keys. Gemessen 2026-07-27 ueber das ganze Repo: 298 von 3385
-//     YAML-Chunks lagen ueber 512 Tokens, 31 sogar ueber 8192 (dem
-//     max_position_embeddings des Modells), der groesste bei 318.500 Tokens
-//     (k3d/monitoring/kube-prometheus-stack-rendered.yaml). Solche Chunks
-//     werden vom Embedding-Server mit HTTP 500 abgelehnt und landen still im
-//     catch von main() als SKIP.
-const CHUNK_MAX_CHARS = Math.floor(CHUNK_MAX_TOKENS * CHARS_PER_TOKEN);
 
 // Helm-Renders und vergleichbare generierte Mega-Manifeste. Sie gehoeren nicht
 // in einen semantischen CODE-Index: sie sind Ausgabe, nicht Quelle, und
@@ -187,93 +171,6 @@ function walkDir(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-export function estimateTokens(text: string): number {
-  return Math.ceil(text.length / CHARS_PER_TOKEN);
-}
-
-export function chunkCode(content: string, filePath: string): string[] {
-  const ext = extname(filePath);
-  if (ext === '.yaml' || ext === '.yml') return chunkYaml(content);
-  return chunkSource(content);
-}
-
-// Zerlegt eine einzelne Zeile, die allein schon zu gross ist. Ohne das bleibt
-// jede Token-Rechnung wirkungslos, denn umgebrochen wurde nur ZWISCHEN Zeilen.
-function splitOversizedLine(line: string): string[] {
-  if (line.length <= CHUNK_MAX_CHARS) return [line];
-  const parts: string[] = [];
-  for (let i = 0; i < line.length; i += CHUNK_MAX_CHARS) {
-    parts.push(line.slice(i, i + CHUNK_MAX_CHARS));
-  }
-  return parts;
-}
-
-// Gemeinsamer Kern beider Chunker: akkumuliert zeilenweise und deckelt sowohl
-// die geschaetzten Tokens ALS AUCH die Zeichen. Der Zeichendeckel ist die
-// Garantie — er haengt an keiner Schaetzung.
-function boundedChunks(text: string): string[] {
-  const chunks: string[] = [];
-  let current: string[] = [];
-  let currentTokens = 0;
-  let currentChars = 0;
-
-  for (const rawLine of text.split('\n')) {
-    for (const line of splitOversizedLine(rawLine)) {
-      const lineTokens = estimateTokens(line);
-      const lineChars = line.length + 1; // +1 fuer das \n beim Join
-      const wouldExceed =
-        currentTokens + lineTokens > CHUNK_MAX_TOKENS ||
-        currentChars + lineChars > CHUNK_MAX_CHARS;
-
-      if (wouldExceed && current.length > 0) {
-        chunks.push(current.join('\n'));
-        // Overlap uebernehmen (Kontext ueber die Chunk-Grenze hinweg).
-        // Durch CHUNK_OVERLAP << CHUNK_MAX_TOKENS bleibt der Overlap immer
-        // deutlich unter dem Deckel, ein Endlos-Flush ist damit ausgeschlossen.
-        const overlapLines: string[] = [];
-        let overlapTokens = 0;
-        for (let i = current.length - 1; i >= 0; i--) {
-          const t = estimateTokens(current[i]);
-          if (overlapTokens + t > CHUNK_OVERLAP) break;
-          overlapLines.unshift(current[i]);
-          overlapTokens += t;
-        }
-        current = overlapLines;
-        currentTokens = overlapTokens;
-        currentChars = overlapLines.reduce((acc, l) => acc + l.length + 1, 0);
-      }
-
-      current.push(line);
-      currentTokens += lineTokens;
-      currentChars += lineChars;
-    }
-  }
-  if (current.length > 0) chunks.push(current.join('\n'));
-  return chunks.filter(c => c.trim().length > 20);
-}
-
-// YAML behaelt die semantische Gruppierung an Top-Level-Keys, jeder Block wird
-// danach aber zwingend auf die Obergrenze gebracht. Vorher fehlte dieser zweite
-// Schritt vollstaendig — ein Manifest mit einem Top-Level-Key wurde zu EINEM
-// Chunk in Dateigroesse.
-export function chunkYaml(content: string): string[] {
-  const blocks: string[] = [];
-  let current: string[] = [];
-  for (const line of content.split('\n')) {
-    if (/^[^\s#]/.test(line) && current.length > 0) {
-      blocks.push(current.join('\n'));
-      current = [line];
-    } else {
-      current.push(line);
-    }
-  }
-  if (current.length > 0) blocks.push(current.join('\n'));
-  return blocks.flatMap(b => boundedChunks(b));
-}
-
-export function chunkSource(content: string): string[] {
-  return boundedChunks(content);
-}
 
 function extractImports(content: string, filePath: string): string[] {
   const ext = extname(filePath);
@@ -339,25 +236,56 @@ async function ensureSchema(pool: pg.Pool): Promise<void> {
       PRIMARY KEY (from_path, to_path)
     )
   `);
+  // T002315: Die Pruefung lief frueher ueber `indexname LIKE '%ivfflat%'` und
+  // traf damit NIE zu: Postgres benennt einen namenlosen CREATE INDEX nach der
+  // Tabelle und Spalte (code_embeddings_embedding_idx, _idx1, _idx2 …), nie
+  // nach der Zugriffsmethode. Jeder Lauf legte deshalb einen weiteren Index an
+  // — am 2026-07-27 lagen drei identische ivfflat-Indizes auf der Tabelle, die
+  // jeden INSERT verdreifachten. Jetzt wird ueber pg_index/relam geprueft, also
+  // ueber die tatsaechliche Zugriffsmethode statt ueber den Namen.
   const idxCheck = await pool.query(
-    `SELECT indexname FROM pg_indexes WHERE tablename = 'code_embeddings' AND indexname LIKE '%ivfflat%'`
+    `SELECT 1 FROM pg_index i
+       JOIN pg_class c ON c.oid = i.indexrelid
+       JOIN pg_am am ON am.oid = c.relam
+      WHERE i.indrelid = 'code_embeddings'::regclass
+        AND am.amname IN ('hnsw', 'ivfflat')
+      LIMIT 1`
   );
   if (idxCheck.rows.length === 0) {
     const countRes = await pool.query(`SELECT COUNT(*)::int AS n FROM code_embeddings`);
     if (countRes.rows[0].n >= 100) {
-      await pool.query(`CREATE INDEX ON code_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)`);
+      // HNSW statt ivfflat (T002315): bei ~18.5k Vektoren lieferte ivfflat mit
+      // lists=100 spuerbar schlechteren Recall — die Faustregel waere rows/1000
+      // gewesen, der Wert war also fuer den gewachsenen Bestand zu niedrig.
+      // HNSW braucht diese Kalibrierung nicht, bleibt beim Wachsen gueltig und
+      // baute den Bestand in 20 Sekunden auf.
+      await pool.query(
+        `CREATE INDEX code_embeddings_embedding_hnsw ON code_embeddings
+           USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64)`);
     }
   }
 }
 
+// T002315: Frueher lief hier ein eigener INSERT — und damit ein eigener
+// Netzwerk-Roundtrip — pro Chunk. Gemessen am 2026-07-27: ~30 ms je Roundtrip,
+// bei 18.549 Chunks also rund neun Minuten reine Wartezeit. Das Einbetten
+// derselben Menge dauert auf der GPU ~110 Sekunden. Der Flaschenhals lag also
+// nie beim Modell, sondern in dieser Schleife. Mit gebuendelten Inserts sank
+// der Voll-Lauf auf 158 Sekunden.
+const INSERT_BATCH = 200;
+
 async function upsertFile(pool: pg.Pool, filePath: string, fileHash: string, chunks: string[], embeddings: number[][]): Promise<void> {
   await pool.query(`DELETE FROM code_embeddings WHERE file_path = $1`, [filePath]);
-  for (let i = 0; i < chunks.length; i++) {
+  for (let start = 0; start < chunks.length; start += INSERT_BATCH) {
+    const slice = chunks.slice(start, start + INSERT_BATCH);
+    const values = slice.map((_, i) =>
+      `($${i * 5 + 1},$${i * 5 + 2},$${i * 5 + 3},$${i * 5 + 4},$${i * 5 + 5})`).join(',');
+    const params: unknown[] = [];
+    slice.forEach((chunk, i) =>
+      params.push(filePath, start + i, chunk, fileHash, vecLiteral(embeddings[start + i])));
     await pool.query(
       `INSERT INTO code_embeddings (file_path, chunk_index, content, file_hash, embedding)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [filePath, i, chunks[i], fileHash, vecLiteral(embeddings[i])],
-    );
+       VALUES ${values}`, params);
   }
 }
 
@@ -373,6 +301,13 @@ async function upsertDependencies(pool: pg.Pool, filePath: string, deps: string[
 
 async function indexFile(pool: pg.Pool, filePath: string, relPath: string): Promise<number> {
   const content = readFileSync(filePath, 'utf8');
+  // T002315: NUL-Bytes sind in einer TEXT-Spalte strukturell unzulaessig —
+  // Postgres lehnt sie mit "invalid byte sequence for encoding UTF8: 0x00" ab,
+  // unabhaengig vom Encoding. Betroffen sind generierte und minifizierte
+  // Dateien (2026-07-27: scripts/docs-gen/graph-data.mjs und graph-layout.mjs).
+  // Vorher aussortieren statt sie am INSERT scheitern zu lassen: der Fehler ist
+  // vorhersagbar und keine Diagnose wert.
+  if (content.indexOf('\u0000') !== -1) return 0;
   const fileHash = sha256(content);
 
   const existing = await pool.query(
@@ -434,7 +369,17 @@ async function main(): Promise<void> {
     let unchangedFiles = 0;
     let failedFiles = 0;
 
-    for (const absPath of files) {
+    // T002315: Der Embedding-Server bedient mehrere Anfragen gleichzeitig
+    // (llama-server meldet seine Slots unter /props als total_slots). Gemessen
+    // am 2026-07-27: mit 4 Workern lief ein Voll-Index von 18.549 Chunks in
+    // 158 Sekunden statt in Stunden.
+    //
+    // Default ist trotzdem 1: der Regelfall ist der inkrementelle Lauf aus dem
+    // git-Hook oder mit --file, bei dem Nebenlaeufigkeit nichts bringt und die
+    // Ausgabe nur verschachtelt. SCS_WORKERS=4 lohnt beim Voll-Neuaufbau.
+    const workers = Math.max(1, Number(process.env.SCS_WORKERS ?? 1));
+
+    const indexOne = async (absPath: string): Promise<void> => {
       const relPath = relative(REPO_ROOT, absPath);
       try {
         const chunks = await indexFile(pool, absPath, relPath);
@@ -457,6 +402,19 @@ async function main(): Promise<void> {
         process.stderr.write(`[SCS] SKIP ${relPath}: ${err instanceof Error ? err.message : err}\n`);
         failedFiles++;
       }
+    };
+
+    if (workers === 1) {
+      for (const absPath of files) await indexOne(absPath);
+    } else {
+      // Round-Robin statt zusammenhaengender Bloecke: grosse YAML-Manifeste und
+      // kleine Quelldateien liegen verzeichnisweise beieinander, ein blockweises
+      // Aufteilen liefe deshalb unausgewogen.
+      const shards: string[][] = Array.from({ length: workers }, () => []);
+      files.forEach((f, i) => shards[i % workers].push(f));
+      await Promise.all(shards.map(async shard => {
+        for (const absPath of shard) await indexOne(absPath);
+      }));
     }
 
     const countRes = await pool.query(`SELECT COUNT(*)::int AS n FROM code_embeddings`);

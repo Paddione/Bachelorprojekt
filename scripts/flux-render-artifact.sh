@@ -87,9 +87,30 @@ render_component() {
     vars="$(tr ' ' '\n' <<<"$vars" | sed '/^WEBSITE_CONFIG_SHA$/d;/^$/d' | tr '\n' ' ')"
   fi
 
+  # T002306: Variablen, die im Manifest bewusst als $${VAR} geschrieben sind,
+  # sind LAUFZEIT-Variablen — die Shell IM Container soll sie expandieren, nicht
+  # der Renderer. Der Extraktions-Regex oben sieht durch das $$ hindurch und
+  # nimmt sie sonst in ihre EIGENE Ersetzungsliste auf; envsubst macht aus einer
+  # nicht gesetzten Variable dann "" und uebrig bleibt das erste Dollarzeichen.
+  # Der fail-closed-Check unten faengt das nicht, weil substituiert ja WURDE.
+  #
+  # Genau so gingen am 2026-07-27 die shared-db-Passwoerter verloren: aus
+  #   ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';
+  # wurde  ... PASSWORD '$';  — nextcloud, vaultwarden, videovault und pocket_id
+  # waren aus ihrer eigenen Datenbank ausgesperrt, SSO plattformweit down.
+  # Die klammerlose Form $$VAR war nie betroffen, weil der Regex sie nicht sieht.
+  local runtime_vars
+  runtime_vars="$(grep -oE '\$\$\{[A-Za-z_][A-Za-z0-9_]*\}' <<<"$rendered" \
+    | sed -E 's/^\$\$\{//; s/\}$//' | sort -u | tr '\n' ' ')" || true
+  local rv
+  for rv in $runtime_vars; do
+    vars="$(tr ' ' '\n' <<<"$vars" | sed "/^${rv}\$/d;/^\$/d" | tr '\n' ' ')"
+  done
+
   if [[ -z "$vars" ]]; then
-    # No vars to substitute — write as-is
-    echo "$rendered" > "$out"
+    # Nichts zu substituieren — aber das $$-Unwrapping muss trotzdem laufen,
+    # sonst blieben $${VAR}/$$VAR als Doppel-Dollar im Manifest stehen.
+    sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' <<<"$rendered" > "$out"
     return
   fi
   
@@ -136,11 +157,20 @@ render_component() {
   # FAIL-CLOSED: after substitution, check for any remaining unsubstituted ${VAR}
   # references. If any exist, the build fails instead of silently shipping a broken
   # manifest with literal placeholders (secret-exposure risk / fail-open).
-  if grep -qE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$out"; then
+  # T002306: Die als $${VAR} markierten Laufzeit-Variablen stehen nach dem
+  # Unwrapping als ${VAR} im Manifest — genau so sollen sie dort stehen. Sie
+  # sind hier deshalb ausgenommen; alles andere bleibt ein harter Fehler.
+  local leftover
+  leftover="$(grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$out" | sort -u)" || true
+  for rv in $runtime_vars; do
+    leftover="$(grep -vxF "\${${rv}}" <<<"$leftover" || true)"
+  done
+  if [[ -n "$leftover" ]]; then
     echo "ERROR: Unsubstituted variable references remain in $out after envsubst." >&2
     echo "       The following vars were not defined in the environment:" >&2
-    grep -oE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$out" | sort -u >&2
-    echo "       Ensure all referenced env vars are set or add them to the allowlist." >&2
+    echo "$leftover" >&2
+    echo "       Set them, add them to the allowlist, or — if the container shell" >&2
+    echo "       is meant to expand them at runtime — write them as \$\${VAR}." >&2
     exit 1
   fi
 }

@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-  Registriert Windows Scheduled Tasks für die drei llama.cpp-Server.
+  Registriert Windows Scheduled Tasks fuer die drei llama.cpp-Server.
 .DESCRIPTION
-  Erstellt/aktualisiert drei Scheduled Tasks für den automatischen Start der
+  Erstellt/aktualisiert drei Scheduled Tasks fuer den automatischen Start der
   Embedding-, Rerank- und Bonsai-Server beim Systemstart. Idempotent: bereits
   vorhandene Tasks werden aktualisiert statt dupliziert.
-  Tasks laufen als SYSTEM mit höchsten Rechten und werden bei Fehlern bis zu
+  Tasks laufen als SYSTEM mit hoechsten Rechten und werden bei Fehlern bis zu
   3 Mal im Abstand von 1 Minute neu gestartet.
 .TASK 1
   Name: LlamaBonsaiServer
@@ -76,7 +76,7 @@ $Tasks = @(
     Exe = "$env:UserProfile\llama-b10090-13.3\llama-server.exe"
     # T002260: -b/-ub 8192 sind PFLICHT, gleiche Begruendung wie beim
     # Embed-Server. Beim Cross-Encoder gilt die Grenze fuer Query+Dokument
-    # zusammen — realistische Dokumente ab ~1500 Zeichen reissen 512 Tokens.
+    # zusammen - realistische Dokumente ab ~1500 Zeichen reissen 512 Tokens.
     Args = "-m `"$env:UserProfile\.lmstudio\models\gpustack\bge-reranker-v2-m3-GGUF\bge-reranker-v2-m3-Q8_0.gguf`" --reranking -c 8192 -b 8192 -ub 8192 -ngl 99 -fa on --host 0.0.0.0 --port 8096"
   }
 )
@@ -86,7 +86,7 @@ $SchTasks = "$env:SystemRoot\System32\schtasks.exe"
 foreach ($Task in $Tasks) {
   $Name = $Task.Name
   $Desc = $Task.Description
-  # T002264: stand hier als $Task.Expr — ein Key dieses Namens existiert nicht,
+  # T002264: stand hier als $Task.Expr - ein Key dieses Namens existiert nicht,
   # PowerShell liefert dafuer still $null (kein Set-StrictMode). Jede Task wurde
   # damit als /tr "" <args> registriert, also mit LEEREM Executable-Pfad, und
   # konnte nichts starten. Das ist der Grund, warum es faktisch keine
@@ -94,7 +94,7 @@ foreach ($Task in $Tasks) {
   $Exe = $Task.Exe
   $Args = $Task.Args
 
-  # Prüfe ob Task bereits existiert
+  # Pruefe ob Task bereits existiert
   $Existing = & $SchTasks /query /tn "Llama\$Name" /fo LIST 2>$null
   if ($LASTEXITCODE -eq 0) {
     Write-Host "Updating existing task: Llama\$Name..."
@@ -110,12 +110,12 @@ foreach ($Task in $Tasks) {
     & $SchTasks /change /tn "Llama\$Name" /rl HIGHEST /DELAY 0000:30 2>&1 | Out-Null
   }
 
-  # Restart-Einstellungen (gelten für Neu- und Update-Fall)
-  # Maximale Ausführungsdauer: 1 Tag (damit Task nicht nach 72h stirbt)
+  # Restart-Einstellungen (gelten fuer Neu- und Update-Fall)
+  # Maximale Ausfuehrungsdauer: 1 Tag (damit Task nicht nach 72h stirbt)
   & $SchTasks /change /tn "Llama\$Name" /Z 1:00:00 2>&1 | Out-Null
 
   # Restart bei Fehler: 3 Versuche, 1 Min Abstand
-  # schtasks /change hat kein direktes Restart-Interface — via XML
+  # schtasks /change hat kein direktes Restart-Interface - via XML
   $TaskXml = @"
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
@@ -132,7 +132,7 @@ foreach ($Task in $Tasks) {
   & $SchTasks /change /tn "Llama\$Name" /XML $XmlPath 2>&1 | Out-Null
   Remove-Item $XmlPath -Force
 
-  Write-Host "  ✓ Llama\$Name registered. Next start: At system startup."
+  Write-Host "  [ok] Llama\$Name registered. Next start: At system startup."
   Write-Host "  Executable: $Exe"
 }
 

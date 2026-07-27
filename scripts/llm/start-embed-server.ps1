@@ -1,24 +1,24 @@
 <#
 .SYNOPSIS
-  Startet llama-server.exe im Embedding-Modus für bge-m3 (Port 8095).
+  Startet llama-server.exe im Embedding-Modus fuer bge-m3 (Port 8095).
 .DESCRIPTION
-  Startet eine persistente llama.cpp-Instanz für Text-Embeddings (bge-m3 Q8_0)
+  Startet eine persistente llama.cpp-Instanz fuer Text-Embeddings (bge-m3 Q8_0)
   auf Port 8095. Der Server wird mit Flash Attention und GPU-Offload betrieben.
   VRAM-Notausstieg via Umgebungsvariable LLM_EMBED_NGL (Default 99).
 
-  T002260 — WARUM -b/-ub 8192 gesetzt sein MUSS:
+  T002260 - WARUM -b/-ub 8192 gesetzt sein MUSS:
   bge-m3 ist ein nicht-kausales Modell (XLM-RoBERTa). llama.cpp kann eine solche
-  Sequenz NICHT über mehrere physische Batches aufteilen — jede Sequenz muss
+  Sequenz NICHT ueber mehrere physische Batches aufteilen - jede Sequenz muss
   komplett in einen n_ubatch passen. Ohne -b/-ub gilt der Default n_ubatch=512,
-  und der Server lehnt jeden längeren Input ab:
+  und der Server lehnt jeden laengeren Input ab:
     "input (734 tokens) is too large to process.
      increase the physical batch size (current batch size: 512)"
   Das gesetzte -c 8192 hilft nicht: /props meldet n_ctx 8192, nutzbar sind 512.
   Gemessen 2026-07-27: 2000 Zeichen Code = 774 Tokens -> HTTP 500.
-  Die abgelöste TEI-Instanz konnte 8192 (max_position_embeddings 8194), der
-  Cutover T002110 hatte die nutzbare Eingabelänge also unbemerkt auf 512
-  reduziert. Beim Ändern dieser Werte immer mit einem LANGTEXT nachprüfen —
-  ein "Hallo Welt"-Smoke-Test bleibt in jedem Fall grün.
+  Die abgeloeste TEI-Instanz konnte 8192 (max_position_embeddings 8194), der
+  Cutover T002110 hatte die nutzbare Eingabelaenge also unbemerkt auf 512
+  reduziert. Beim Aendern dieser Werte immer mit einem LANGTEXT nachpruefen -
+  ein "Hallo Welt"-Smoke-Test bleibt in jedem Fall gruen.
 .PARAMETER LlamaDir
   Verzeichnis mit llama-server.exe. Default: C:\Users\PatrickKorczewski\llama-b10090-13.3
 .EXAMPLE
@@ -41,7 +41,12 @@ if (-not (Test-Path $Model)) {
   exit 1
 }
 
-$Ngl = [int]::TryParse([Environment]::GetEnvironmentVariable("LLM_EMBED_NGL"), [ref]$null) ? [Environment]::GetEnvironmentVariable("LLM_EMBED_NGL") : "99"
+# T002275: stand hier als Ternary (cond ? a : b). Den gibt es erst ab
+# PowerShell 7 - unter 5.1 (dem einzigen auf diesem Host installierten
+# PowerShell) ist das ein Parse-Fehler: 'Unerwartetes Token "?"'. Das Skript
+# war damit nie ausfuehrbar. if/else ist versionsunabhaengig.
+$Ngl = "99"
+if ($env:LLM_EMBED_NGL) { $Ngl = $env:LLM_EMBED_NGL }
 
 Write-Host "Starting bge-m3 embedding server on port 8095..."
 Write-Host "  Model: $Model"
@@ -73,7 +78,7 @@ Write-Host "Embedding server started (Job ID: $($Job.Id))"
 Write-Host "Endpoint: http://127.0.0.1:8095/v1/embeddings"
 Write-Host ""
 Write-Host ""
-Write-Host "Test (T002260 — MIT LANGTEXT pruefen, ein Kurztext bleibt auch bei"
+Write-Host "Test (T002260 - MIT LANGTEXT pruefen, ein Kurztext bleibt auch bei"
 Write-Host "kaputtem -ub gruen und verdeckt die 512-Token-Kappung):"
 Write-Host '  $long = "kubernetes deployment reconciliation " * 120   # ~600+ Tokens'
 Write-Host '  $body = @{ model = "bge-m3"; input = @($long) } | ConvertTo-Json'

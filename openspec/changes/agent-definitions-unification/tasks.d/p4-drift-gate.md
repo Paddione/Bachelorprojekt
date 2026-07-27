@@ -9,6 +9,25 @@ Der Test ist der eigentliche Ertrag dieses Changes. Registry und Karte beschreib
 — nur das Gate hält ihn. Genau dieses Gate fehlte, weshalb `CLAUDE.md` vom 2026-07-22 bis zum
 2026-07-27 vier gelöschte Agenten nannte, ohne dass etwas fehlschlug.
 
+**Vorhandene Nachbarschaft beachten.** `tests/spec/agent-library.bats` (119 Zeilen) prüft bereits
+`.claude/agents/*.md` gegen die Routing-Tabelle in `AGENTS.md` und enthält die T002221-Zusicherungen
+über das `tools:`-Feld (keine Wildcards, MCP-Namen in der Form `mcp__<server>__<tool>`,
+`bachelorprojekt-db/-infra/-security` deklarieren kein `tools`). Diese Zusicherungen **nicht
+duplizieren**. `agent-roster.bats` ist trotzdem eine eigene Datei, weil die BATS-Konvention eine
+Datei je SSOT-Spec vorsieht und `agent-roster` ein neuer Spec ist — aber der Zuschnitt ist
+komplementär: `agent-library.bats` prüft die Agenten-Dateien **gegen AGENTS.md**,
+`agent-roster.bats` prüft **Registry gegen Repo-Ist-Zustand und gegen CLAUDE.md**. Vor dem
+Schreiben die vorhandenen `@test`-Titel lesen:
+
+```bash
+grep -n '^@test' tests/spec/agent-library.bats
+```
+
+**Löschungen sind hier keine im Spiel** — dieser Change entfernt keinen Spec und keine BATS-Datei.
+Der Fehlermodus aus T002309 (`find-changed-tests.sh` emittiert gelöschte `.bats`-Pfade, BATS
+scheitert mit `not ok 1 bats-gather-tests`) kann daher nicht auftreten. Sollte `test:spec:changed`
+trotzdem mit diesem Fehler abbrechen, ist T002309 die Ursache, nicht dieser Plan.
+
 ## Aufgaben
 
 - [ ] **P4.1 — RED: Test anlegen, der jetzt fehlschlägt.** Die dritte Assertion (CLAUDE.md gegen

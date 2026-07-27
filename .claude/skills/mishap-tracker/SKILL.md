@@ -74,26 +74,46 @@ mcp__ticket-mcp__report_mishap({
 ```
 
 **Rückmeldung auswerten:**
-- `"2/3 bis zum automatischen Bundle-Ticket"` → weiter melden, Buffer sammelt
+- `"Mishap gespeichert (2/10). Noch 8 bis zum automatischen Bundle-Ticket."` → weiter melden, Buffer sammelt
 - `"Bundle-Ticket angelegt: T000xxx"` → Ticket existiert, Factory-Tick übernimmt
 
 ---
 
-## Step 3: Buffer am Ende flushen
+## Step 3: Buffer am Session-Ende liegen lassen
 
-Nach dem letzten `report_mishap`-Aufruf immer prüfen, ob noch Einträge im Buffer liegen:
+Nach dem letzten `report_mishap`-Aufruf den Buffer-Stand ansehen — **aber nicht flushen**:
 
 ```
 mcp__ticket-mcp__get_mishap_buffer()
 ```
 
-Wenn Einträge vorhanden und weniger als 3 (kein Auto-Trigger):
+**Restliche Einträge bleiben liegen. Das ist der Normalfall, kein Fehlerzustand.**
+
+Der Buffer ist dateibasiert (`mishap-buffer.json` im gemeinsamen Git-Verzeichnis, aufgelöst über
+`git rev-parse --git-common-dir`) und damit **persistent**: er überlebt Sessionwechsel,
+Worktrees und Neustarts. Ein liegen gebliebener Eintrag wird vom nächsten `report_mishap`
+mitgezählt und geht nicht verloren.
+
+> **Warum hier früher ein erzwungener Flush stand — und warum er weg ist (T002383):**
+> Der Flush erzeugte Bundle-Tickets aus 1–2 Einträgen. Jedes Bundle-Ticket verbraucht seinerseits
+> einen dev-flow-Zyklus, der wieder in diesem Schritt endet. Bei ≥ 1 Bundle pro Zyklus ist der
+> Rückstand per Konstruktion nicht abbaubar — am 27.07.2026 entstanden so 32 Bundles, 19 blieben
+> offen. Den Flush aus Sorge vor Datenverlust wiederherzustellen ist der Rückfall in genau dieses
+> Verhalten; die Sorge ist unbegründet (siehe Persistenz oben).
+
+Gebündelt wird stattdessen auf zwei Wegen, beide ohne Session-Bezug:
+
+| Weg | Auslöser |
+|---|---|
+| Schwelle | `report_mishap` bündelt automatisch ab **10** Einträgen |
+| Alters-Schnitt | Der Factory-Tick (`scripts/factory/wakeup.sh`) ruft periodisch `ticket-mcp-go --flush-stale-mishaps` auf und bündelt, sobald der älteste Eintrag ≥ 7 Tage alt ist |
+
+`flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfügbar — z. B. wenn ein
+Befund sofort ein Ticket braucht. Es ist kein Pflichtschritt dieses Skills mehr:
 
 ```
 mcp__ticket-mcp__flush_mishap_buffer({ brand: "<brand>" })
 ```
-
-Dies erzwingt ein Bundle-Ticket auch bei 1–2 Einträgen, damit am Session-Ende nichts verloren geht.
 
 ---
 
@@ -184,7 +204,7 @@ Typ | Titel | Komponente | Beschreibung
 Report:
 - Anzahl gemeldeter Mishaps
 - Ob ein Bundle-Ticket ausgelöst wurde (und welches `T000xxx`)
-- Ob Buffer-Flush am Ende nötig war
+- Wie viele Einträge im Buffer liegen bleiben (Normalfall — kein Flush)
 - Bei nicht-kritischem Bundle zusätzlich: ob ein Auto-Chore-Plan gestaged wurde
   (Branch `$branch` = `chore/mishap-<ext-id>`, `status=plan_staged`) oder übersprungen wurde
   (Lint-Fehler → `status=triage`)

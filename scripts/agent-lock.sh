@@ -278,6 +278,7 @@ cmd_release() {
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
   if [ -n "$force" ] || [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then rm -f "$f"; return 0; fi
+  echo "release: lock owned by SID $(_lock_field "$f" owner_sid), current SID $(_my_sid) — use --force" >&2
   return 1
 }
 

@@ -15,6 +15,8 @@
 #   touch --id <external_id>
 #   plan-meta set --id <external_id> [--value-prop ..] [--effort klein|mittel|gross] [--areas a,b] [--depends-on T-1,T-2] [--rank N] [--readiness k=true,..]
 #   plan-meta get --id <external_id>
+# BRAND resolution: --brand flag > BRAND env > TICKET_NS env > default mentolder.
+# Never inferred from free-text --title/--description content (T002280).
 
 set -euo pipefail
 
@@ -23,18 +25,40 @@ NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"
 
-# If BRAND is unset, attempt to infer from ticket ID args (e.g. T00xxxx / mentolder or korczewski prefix)
-# or require explicit BRAND/TICKET_NS. Default to mentolder (workspace) if not inferable.
+# Consume top-level-only --resolve-ns-only flag (test/diagnosis hook, no cluster access) [T002280]
+_RESOLVE_NS_ONLY=false
+_rest=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --resolve-ns-only) _RESOLVE_NS_ONLY=true; shift ;;
+    *) _rest+=("$1"); shift ;;
+  esac
+done
+set -- "${_rest[@]}"
+
+# BRAND resolution (priority): --brand CLI flag > BRAND env > TICKET_NS env > default mentolder
+# NEVER inferred from free-text --title/--description content [T002280]
+_CLI_BRAND=""
+_found_brand=false
+for _arg in "$@"; do
+  if $_found_brand; then
+    _CLI_BRAND="$_arg"
+    break
+  fi
+  [[ "$_arg" == "--brand" ]] && _found_brand=true
+done
+
 if [[ -z "${BRAND:-}" ]]; then
-  # Look for ticket ID in arguments
-  for arg in "$@"; do
-    case "$arg" in
-      korczewski*|KORCZEWSKI*|*KORCZEWSKI*) BRAND="korczewski"; break ;;
-      mentolder*|MENTOLDER*|*MENTOLDER*)   BRAND="mentolder"; break ;;
-    esac
-  done
-  BRAND="${BRAND:-mentolder}"
+  BRAND="${_CLI_BRAND:-}"
 fi
+if [[ -z "${BRAND:-}" && -n "${TICKET_NS:-}" ]]; then
+  case "$TICKET_NS" in
+    workspace)            BRAND="mentolder" ;;
+    workspace-korczewski) BRAND="korczewski" ;;
+  esac
+fi
+BRAND="${BRAND:-mentolder}"
+export BRAND
 
 case "$BRAND" in
   mentolder)   NS="workspace" ;;
@@ -49,6 +73,12 @@ if [[ "$CTX" == k3d-* || "$CTX" == *-dev ]]; then
   elif [[ "$NS" == "workspace-korczewski" ]]; then
     NS="workspace-korczewski-dev"
   fi
+fi
+
+# --resolve-ns-only: print resolved NS and exit (test/diagnosis hook, no cluster access) [T002280]
+if "$_RESOLVE_NS_ONLY"; then
+  echo "NS=$NS"
+  exit 0
 fi
 
 source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/_ticket-core.sh"

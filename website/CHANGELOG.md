@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.217.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.2...website-v1.217.3) (2026-07-27)
+
+
+### Bug Fixes
+
+* **tickets:** mishap-bundle — get.sh projection, Ein-Ebenen-Regel, pre-commit Leer-Diff-Warnung [T002284] ([#3338](https://github.com/Paddione/Bachelorprojekt/issues/3338)) ([780d257](https://github.com/Paddione/Bachelorprojekt/commit/780d257ad070945af9efb2ea98854b5c76a21f82))
+
 ## [1.217.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.1...website-v1.217.2) (2026-07-27)
 
 

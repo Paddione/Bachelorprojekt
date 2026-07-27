@@ -641,7 +641,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 49,
+      "file_count": 50,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -691,6 +691,7 @@
         "scripts/migrations/2026-07-22-slot-count-gang.sql",
         "scripts/migrations/2026-07-23-llm-proxy-max-inflight.sql",
         "scripts/migrations/2026-07-27-llm-proxy-gemma-backend.sql",
+        "scripts/migrations/2026-07-27-provider-fallback-cascade.sql",
         "scripts/migrations/2026-07-27-provider-health-integrity.sql"
       ]
     },
@@ -2923,7 +2924,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 556,
+      "file_count": 557,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3312,6 +3313,7 @@
         "scripts/llm/measure-embedding-equivalence.mjs",
         "scripts/llm/ollama.service",
         "scripts/llm/register-scheduled-tasks.ps1",
+        "scripts/llm/routing-check.sh",
         "scripts/llm/start-embed-server.ps1",
         "scripts/llm/start-gemma-server.ps1",
         "scripts/llm/start-gptoss-server.ps1",

@@ -346,7 +346,7 @@
      homepage graph (render-blocking, and leaking onto the mentolder homepage). -->
 
 <!-- ═══════════════════════════════ FOOTER ════════════════════════════════ -->
-<footer class="w-foot">
+<div class="w-foot">
   <div class="w-foot-inner">
     <div>
       <div class="brand">
@@ -376,7 +376,7 @@
       <a href="/datenschutz" style="color:inherit;text-decoration:none">Datenschutz</a>
     </span>
   </div>
-</footer>
+</div>
 
 <style>
   /* Timeline section — Kore-styled wrapper */

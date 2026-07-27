@@ -27,7 +27,12 @@ test.describe('Korczewski: Homepage', () => {
 
   test('T2: nav brand wordmark is "korczewski."', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    const brand = page.getByRole('link', { name: /korczewski startseite/i });
+    // T000254: the brand link <a href="/" class="brand"> carries no aria-label
+    // (T002053 deliberately removed one to avoid axe label-content-name-mismatch —
+    // the decorative mark SVG is aria-hidden, so the accessible name derives
+    // purely from the visible text "korczewski."). Match that content-derived
+    // name directly instead of a string that was never in the DOM.
+    const brand = page.getByRole('link', { name: /^korczewski\.$/i });
     await expect(brand).toBeVisible();
     await expect(brand).toContainText('korczewski.');
   });
@@ -86,9 +91,12 @@ test.describe('Korczewski: Homepage', () => {
     await expect(page.getByRole('link', { name: /anfrage senden/i })).toBeVisible();
   });
 
-  test('T15: footer shows copyright line with "Korczewski"', async ({ page }) => {
+  test('T15: footer shows copyright line with "korczewski"', async ({ page }) => {
     await page.goto(`${BASE}/`);
-    await expect(page.getByRole('contentinfo')).toContainText('Korczewski');
+    // T000254: the sole remaining contentinfo landmark (the layout footer) spells
+    // the brand lowercase ("korczewski."); the former w-foot block that used the
+    // capitalised spelling is no longer a landmark, so match case-insensitively.
+    await expect(page.getByRole('contentinfo')).toContainText(/korczewski/i);
   });
 });
 
@@ -99,7 +107,9 @@ test.describe('Korczewski: Public pages', () => {
 
   const publicPages = [
     { path: '/kontakt',          title: /30 Minuten.*wissen wir.*ob es passt/i },
-    { path: '/ueber-mich',       title: /IT-Management|Security|über mich/i },
+    // T000254: /ueber-mich was rebuilt as a personal portrait page in the Kore
+    // redesign; the h1 is the name, not a role/topic heading anymore.
+    { path: '/ueber-mich',       title: /Patrick Korczewski/i },
     { path: '/leistungen',       title: /leistungen/i },
     { path: '/registrieren',     title: /registrieren/i },
     { path: '/agb',              title: /agb|geschäftsbedingungen/i },

@@ -44,7 +44,13 @@ KORCZEWSKI_SPEC="${BATS_TEST_DIRNAME}/../e2e/specs/korczewski-home.spec.ts"
 }
 
 @test "T000254: the brand link is addressable by an accessible name" {
-  # Either the link carries an aria-label, or the spec stops relying on one.
+  # T2 must not key off a string that was never in the DOM (see proposal.md):
+  # the accessible name of <a class="brand"> is content-derived ("korczewski."),
+  # T002053 deliberately keeps it aria-label-free.
   run grep -n 'korczewski startseite' "$KORCZEWSKI_SPEC"
   [ "$status" -ne 0 ]
+  # And T2 must still actually select the brand link via role+name, not just
+  # drop the assertion — a deleted test would satisfy the check above too.
+  run grep -n "getByRole('link', { name: /\^korczewski" "$KORCZEWSKI_SPEC"
+  [ "$status" -eq 0 ]
 }

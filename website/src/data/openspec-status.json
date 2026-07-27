@@ -1,4 +1,10 @@
 {
+  "T000254": [
+    {
+      "slug": "fix-korczewski-e2e-text-T000254",
+      "status": "plan_staged"
+    }
+  ],
   "T000737": [
     {
       "slug": "2026-06-20-grilling-ui-multichoice",

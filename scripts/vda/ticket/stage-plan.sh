@@ -4,12 +4,13 @@
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
-  local id="" branch="" plan="" partials="1"
+  local id="" branch="" plan="" partials="1" hold=0
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)       id="$2"; shift 2 ;;
       --branch)   branch="$2"; shift 2 ;;
       --plan)     plan="$2"; shift 2 ;;
       --partials) partials="$2"; shift 2 ;;
+      --hold)     hold=1; shift ;;
       *)          echo "Unknown stage-plan option: $1" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id"     ]]; then echo "ERROR: --id is required."     >&2; exit 2; fi
@@ -32,6 +33,12 @@ main() {
 UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer
  WHERE external_id = :'ext_id';
 EOF
+  if [[ "$hold" == "1" ]]; then
+    _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":false}'::jsonb
+ WHERE external_id = :'ext_id';
+EOF
+  fi
   _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
 DELETE FROM tickets.ticket_comments c
  USING tickets.tickets t
@@ -65,17 +72,23 @@ EOF
   # ON CONFLICT (key, brand). The consumer (scripts/factory/wakeup.sh:70-83) reads
   # LIMIT 1 and DELETEs all matching rows, so a repeated stage is harmless even
   # when a NULL-brand row is not deduped by the unique index.
-  if ! _exec_sql "$pod" -v setby='stage-plan' <<'EOF' >/dev/null 2>&1
+  if [[ "$hold" != "1" ]]; then
+    if ! _exec_sql "$pod" -v setby='stage-plan' <<'EOF' >/dev/null 2>&1
 INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
 VALUES ('force-tick-requested', NULL, now()::text, :'setby', now())
 ON CONFLICT (key, brand) DO UPDATE
   SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
 EOF
-  then
-    echo "WARN: stage-plan: force-tick flag write failed — factory will tick on the next factory.timer interval" >&2
+    then
+      echo "WARN: stage-plan: force-tick flag write failed — factory will tick on the next factory.timer interval" >&2
+    fi
+    systemctl --user start factory.service 2>/dev/null || true
   fi
-  systemctl --user start factory.service 2>/dev/null || true
-  echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
+  if [[ "$hold" == "1" ]]; then
+    echo "Ticket $id staged in Kommissionierung (status=plan_staged, execution held)"
+  else
+    echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

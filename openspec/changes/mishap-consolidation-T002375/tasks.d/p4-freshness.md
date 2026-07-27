@@ -73,14 +73,14 @@ blind weitermachen, oder Zeit mit einem Umgebungsproblem verbrennen.
 
 ## Schritte
 
-- [ ] **RED zuerst.**
+- [x] **RED zuerst.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd.bats
 # expected: FAIL (rot — test:changed hat keinen Reachability-Check, freshness:check unterscheidet die Faelle nicht)
 ```
 
-- [ ] **Schritt 1 — Untracked mitzählen.** In `emit-index.mjs` das Datei-Universum um
+- [x] **Schritt 1 — Untracked mitzählen.** In `emit-index.mjs` das Datei-Universum um
       `git ls-files --others --exclude-standard` erweitern. Die Semantik-Änderung gehört als
       Kommentar in die Datei: der Index beschreibt ab jetzt den **Arbeitsbaum ohne ignorierte
       Dateien**, nicht den getrackten Stand.
@@ -91,7 +91,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd.bats
       sonst zählt der Index sich selbst und ändert sich bei jedem Lauf. Das ist der einzige Weg,
       auf dem dieser Schritt echten Schaden anrichten kann.
 
-- [ ] **Schritt 2 — Freshness-Meldung differenzieren.** Im `freshness:check`-Task unterscheiden:
+- [x] **Schritt 2 — Freshness-Meldung differenzieren.** Im `freshness:check`-Task unterscheiden:
       ist die Datei im Arbeitsverzeichnis aktuell, aber nicht committet, lautet die Meldung
       `regenerated but not committed — run 'git add <datei>'`. Ist sie wirklich veraltet, bleibt
       die bisherige Meldung.
@@ -99,7 +99,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd.bats
       Der Unterschied ist mechanisch feststellbar: regenerieren, dann den Arbeitsbaum-Stand gegen
       den committeten Stand vergleichen statt nur den committeten gegen die Erwartung.
 
-- [ ] **Schritt 3 — Reachability-Check vor E2E.** In `test:changed` vor dem Aufruf von
+- [x] **Schritt 3 — Reachability-Check vor E2E.** In `test:changed` vor dem Aufruf von
       `test:e2e:services` prüfen, ob auf `localhost:4321` etwas lauscht. Wenn nicht: die Gruppe
       mit **sichtbarer** Meldung überspringen, nicht still.
 
@@ -111,12 +111,12 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd.bats
       einen Dev-Stack laufen hat, soll die Gruppe weiterhin bekommen; der Fehler war die
       Bedingungslosigkeit, nicht die Zugehörigkeit.
 
-- [ ] **Schritt 4 — `verification-block.md`.** Beide Fälle benennen: (a) bei **neuen Dateien** erst
+- [x] **Schritt 4 — `verification-block.md`.** Beide Fälle benennen: (a) bei **neuen Dateien** erst
       `git add`, dann `quality:index`, dann `freshness:check` — bleibt als Netz stehen, auch wenn
       Schritt 1 den Regelfall beseitigt; (b) rote E2E-Services bei reinen Manifest-Änderungen sind
       kein PR-Blocker, und die CI-äquivalenten Kommandos werden genannt.
 
-- [ ] **Schritt 5 — Tests.** Je ein `@test` für: Skip-Meldung bei nicht erreichbarem Port,
+- [x] **Schritt 5 — Tests.** Je ein `@test` für: Skip-Meldung bei nicht erreichbarem Port,
       Ausführung bei erreichbarem Port (Positiv-Anker — ohne ihn prüft der Skip-Test nichts),
       `regenerated but not committed` gegen `is stale`.
 

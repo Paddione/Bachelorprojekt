@@ -1736,3 +1736,67 @@ MOCKEOF
   run bash -c 'bash scripts/find-changed-tests.sh spec 2>&1 >/dev/null | grep -c "FULL spec suite"'
   [ "$output" = "1" ] || { echo "erwartet genau 1 Hinweis, bekam: $output"; false; }
 }
+
+# ── [T002375-p4] Freshness und Test-Selektion melden, was wirklich los ist ──#
+#
+# Drei Mishaps mit derselben Rechnung: ein Agent befolgt die Pflicht-Verifikation
+# woertlich, sieht Rot, und verbrennt Zeit mit der Diagnose eines Nicht-Fehlers.
+
+@test "T002375-p4: test:changed prueft die Erreichbarkeit, bevor es E2E-Services startet" {
+  # Positiv-Anker: der Aufruf existiert ueberhaupt noch — ohne ihn pruefte der
+  # Negativteil nichts. Bewusst NICHT entfernt: wer einen Dev-Stack laufen hat, soll
+  # die Gruppe weiterhin bekommen. Der Fehler war die Bedingungslosigkeit.
+  run grep -c 'task test:e2e:services' "$REPO_ROOT/Taskfile.yml"
+  [ "$output" -ge 1 ] || { echo "der e2e:services-Aufruf ist ganz verschwunden"; false; }
+
+  # Der Reachability-Check muss im selben Block stehen.
+  run bash -c "awk '/RUN_E2E_SERVICES.*=.*true.*npx/,/^        fi\$/' '$REPO_ROOT/Taskfile.yml' | grep -c '4321'"
+  [ "$output" -ge 1 ] || { echo "kein Erreichbarkeits-Check auf 4321 vor test:e2e:services"; false; }
+}
+
+@test "T002375-p4: der Skip nennt sich sichtbar und als Nicht-Blocker" {
+  # Ein stiller Skip verschiebt die Frage nur eine Ebene weiter.
+  run bash -c "grep -c 'e2e services uebersprungen' '$REPO_ROOT/Taskfile.yml'"
+  [ "$output" = "1" ] || { echo "keine sichtbare Skip-Meldung"; false; }
+  run bash -c "grep 'e2e services uebersprungen' '$REPO_ROOT/Taskfile.yml' | grep -c 'Kein PR-Blocker'"
+  [ "$output" = "1" ] || { echo "die Skip-Meldung sagt nicht, dass es kein PR-Blocker ist"; false; }
+}
+
+@test "T002375-p4: freshness:check unterscheidet 'nicht gestaged' von 'nicht committet'" {
+  # Phase 0 laesst freshness:regenerate laufen — der Arbeitsbaum ist danach per
+  # Konstruktion aktuell. 'is stale' war deshalb strukturell die falsche Diagnose und
+  # las sich wie ein fehlgeschlagenes regenerate; T002352-M3 beschreibt die Schleife,
+  # in die man daraufhin laeuft.
+  run bash -c "grep -c 'regenerated but not staged' '$REPO_ROOT/Taskfile.yml'"
+  [ "$output" = "1" ] || { echo "die 'nicht gestaged'-Meldung fehlt"; false; }
+  run bash -c "grep -c 'staged but not committed' '$REPO_ROOT/Taskfile.yml'"
+  [ "$output" = "1" ] || { echo "die 'nicht committet'-Meldung fehlt"; false; }
+  # Die alte, irrefuehrende Formulierung darf nicht zurueckkommen.
+  run bash -c "grep -c \"is stale — run 'task freshness:regenerate' locally and commit\" '$REPO_ROOT/Taskfile.yml'"
+  [ "$output" = "0" ] || { echo "die alte 'is stale'-Meldung steht noch da"; false; }
+}
+
+@test "T002375-p4: das Scan-Universum zaehlt untracked-aber-nicht-ignorierte Dateien mit" {
+  # Ohne das war eine frisch angelegte Datei beim ERSTEN freshness:regenerate noch
+  # untracked und fiel heraus; erst nach git add erschien sie und aenderte den Index
+  # ein zweites Mal — zwei Durchlaeufe des ~9s-Gates plus Commit-Amend
+  # (T002255: file_count 548 -> 549; T002267 identisch).
+  run grep -Fq -- '--exclude-standard' "$REPO_ROOT/scripts/code-quality/scan.mjs"
+  [ "$status" -eq 0 ] || { echo "scan.mjs zaehlt weiterhin nur getrackte Dateien"; false; }
+
+  # Verhaltensbeweis statt Textsuche: eine ungetrackte Datei unter einem code_root
+  # muss im Universum landen. Sandbox, damit der echte Arbeitsbaum unberuehrt bleibt.
+  local probe="$REPO_ROOT/scripts/t002375-p4-universe-probe.sh"
+  [ ! -e "$probe" ] || skip "Probe-Pfad existiert bereits"
+  printf '#!/usr/bin/env bash\n' > "$probe"
+  run bash -c "cd '$REPO_ROOT' && node -e \"
+    import('./scripts/code-quality/scan.mjs').then(async (m) => {
+      const { loadGates } = await import('./scripts/code-quality/load.mjs');
+      const u = m.scanUniverse('.', loadGates('docs/code-quality'));
+      console.log(u.includes('scripts/t002375-p4-universe-probe.sh') ? 'IN' : 'OUT');
+    });
+  \""
+  local verdict="$output"
+  rm -f "$probe"
+  [[ "$verdict" == *"IN"* ]] || { echo "ungetrackte Datei fehlt im Scan-Universum: $verdict"; false; }
+}

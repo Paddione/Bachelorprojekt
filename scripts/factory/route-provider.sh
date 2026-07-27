@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/factory/route-provider.sh <source> <tier>
 # Emits JSON: {"provider":..,"modelId":..,"baseUrl":..|null,"slotId":..|null,"emergency":bool}
-# opus → hardcoded Anthropic, no DB. Used by dev-flow AND inlined into pipeline.js.
+# opus → provider_config lookup without slot claim (T002277). Used by dev-flow AND inlined into pipeline.js.
 # slotId == provider name (slots are per-provider counters, not per-claim UUIDs).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,10 +19,47 @@ if [[ -z "$PHASE" ]]; then
   esac
 fi
 
-OPUS_MODEL="ternary-bonsai-27b"
-OPUS_BASE_URL="http://127.0.0.1:18235"
+# Tier "opus": Modell aus der Registry, aber OHNE Slot-Claim.
+#
+# T002277: hier stand ein hardcodiertes ternary-bonsai-27b, das die DB komplett
+# umging. Nach dem Gemma-Cutover (2026-07-27) existiert dieses Modell auf keinem
+# Backend mehr - der Aufruf lief nur deshalb noch, weil resolveModel() im
+# llm-proxy unbekannte Modelle still auf das erste gesunde Backend umbiegt. Ein
+# Routing, das von einem Fallback lebt, ist keins.
+#
+# WARUM KEIN SLOT-CLAIM: opus lieferte immer slotId:null, es gibt fuer diesen Tier
+# also keinen Release-Pfad beim Aufrufer. Ginge er jetzt durch die normale
+# Claim-Kette weiter unten, wuerde jeder Aufruf provider_health.active_agents
+# erhoehen, ohne ihn je zu senken - der Provider waere nach max_concurrent
+# Aufrufen dauerhaft blockiert. Daher eigener Zweig mit reinem Lookup.
+#
+# WARUM DER FALLBACK BLEIBT: der alte Hardcode hatte eine Eigenschaft, die nicht
+# verloren gehen darf - opus routete OHNE Cluster. factory_psql geht ueber
+# `kubectl exec` in den shared-db-Pod; ohne erreichbaren Cluster (CI, offline
+# arbeitendes dev-flow) waere ein reiner DB-Lookup ein harter Abbruch. Die DB
+# gewinnt, wenn sie antwortet; sonst greift der Default unten. Er ist bewusst
+# derselbe Wert, den die Migration in die Registry schreibt - weicht er ab, ist
+# das ein Bug, kein Feature.
+OPUS_FALLBACK=$'llamacpp\tgemma-4-12b\thttp://127.0.0.1:18235'
 if [[ "$TIER" == "opus" ]]; then
-  printf '{"provider":"ternary-bonsai-27b","modelId":"%s","baseUrl":"%s","slotId":null,"ctx":0,"emergency":false}\n' "$OPUS_MODEL" "$OPUS_BASE_URL"
+  OPUS_ROW=$(factory_psql -v src="$SOURCE" 2>/dev/null <<'SQL' || true
+SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')
+FROM tickets.provider_config
+WHERE (source=:'src' OR source='*') AND tier='opus' AND enabled=true
+ORDER BY (source=:'src') DESC, priority ASC
+LIMIT 1;
+SQL
+)
+  if [[ -z "$OPUS_ROW" ]]; then
+    echo "route-provider: provider_config fuer tier=opus nicht lesbar oder leer (source=$SOURCE)." >&2
+    echo "  Fallback auf den eingebauten Default. Bei erreichbarem Cluster:" >&2
+    echo "  scripts/migrations/2026-07-27-llm-proxy-gemma-backend.sql anwenden." >&2
+    OPUS_ROW="$OPUS_FALLBACK"
+  fi
+  IFS=$'\t' read -r opus_prov opus_model opus_burl <<< "$OPUS_ROW"
+  OPUS_BJSON=$([[ -n "$opus_burl" ]] && printf '"%s"' "$opus_burl" || printf 'null')
+  printf '{"provider":"%s","modelId":"%s","baseUrl":%s,"slotId":null,"ctx":0,"emergency":false}\n' \
+    "$opus_prov" "$opus_model" "$OPUS_BJSON"
   exit 0
 fi
 

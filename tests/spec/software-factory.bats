@@ -4694,8 +4694,12 @@ MOCKEOF
 @test "T002390: auto-chore-plan chains commit and push with &&" {
   # Ein abgelehnter Commit verhindert einen Push auf eigener Zeile NICHT — der
   # Branch waere dann ohne Plan gepusht und das Ticket zeigte auf Leeres.
-  run grep -Eq 'git commit[^&]*&&[[:space:]]*git push|commit .* && .* push' \
-    "$REPO_ROOT/scripts/factory/auto-chore-plan.sh"
+  # Zeilenfortsetzungen (\ am Zeilenende) vorher aufloesen — die Verkettung darf
+  # ueber mehrere Zeilen gehen, das ist die lesbarere Form. Ohne das Zusammen-
+  # ziehen wuerde der Test die korrekte Schreibweise faelschlich ablehnen.
+  run bash -c "sed -e ':a' -e 'N;\$!ba' -e 's/\\\\\\n[[:space:]]*/ /g' \
+    '$REPO_ROOT/scripts/factory/auto-chore-plan.sh' \
+    | grep -Eq 'git commit.*&&.*git push'"
   [ "$status" -eq 0 ]
 }
 

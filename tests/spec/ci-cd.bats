@@ -1477,3 +1477,87 @@ after = [s for s in steps[idx + 1:] if 'chown' in s.get('run', '')]
 assert after, "kein chown-Step NACH dem Renovate-Step (actions/cache kann nicht packen)"
 PY
 }
+
+# ── T002328: Commit-Scope-Konsolidierung ──────────────────────────────────
+# Die Scope-Allowlist in commitlint.config.cjs ist auf 95 Eintraege gewachsen
+# (37 davon nie benutzte Synthetik-Codes), waehrend 279 Scopes real im Umlauf
+# sind und KEIN Konsument im Repo den Scope auswertet — release-please
+# gruppiert nach type, release-notes.sh verwirft die Scope-Capture, die
+# Tracking-Pipeline ist seit PR #788/#993 entfernt. Das Gate erzeugt also nur
+# noch Reibung.
+#
+# Konsolidierung auf 14 Scopes entlang der Agent-Routing-Domaenen aus
+# CLAUDE.md; alte Namen werden zu Aliassen mit gezielter Diagnose statt einer
+# generischen "unknown scope"-Meldung.
+#
+# Zusaetzlich: scripts/preflight-pr-scope.sh parst einen `scopes: |`-Block aus
+# ci.yml, den es dort seit der Umstellung nicht mehr gibt (ci.yml sagt selbst
+# "Scopes are NOT enforced here"). Der awk-Parser liefert immer leer; nur der
+# Fallback auf validate-commit-msg.sh haelt das Skript funktionsfaehig.
+#
+# expected: FAIL — weder der reduzierte Scope-Satz noch die Alias-Maps
+# existieren, und der tote ci.yml-Parser steht noch drin.
+
+@test "T002328: die Scope-Allowlist umfasst hoechstens 15 Eintraege" {
+  run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" scopes
+  [ "$status" -eq 0 ]
+  count="$(printf '%s\n' "$output" | grep -c .)"
+  [ "$count" -le 15 ]
+}
+
+@test "T002328: 'agents' ist ein gueltiger Scope" {
+  run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" scopes
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qx 'agents'
+}
+
+@test "T002328: kein Synthetik-Scope (cq0X/sec0X/dora0X/…) ist mehr registriert" {
+  run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" scopes
+  [ "$status" -eq 0 ]
+  run bash -c "printf '%s\n' \"$output\" | grep -cE '^[a-z]+[0-9]{2}$'"
+  [ "$output" = "0" ]
+}
+
+@test "T002328: konsolidierter Scope 'admin' nennt sein Ziel 'website' in der Diagnose" {
+  msg="$BATS_TEST_TMPDIR/msg-admin"
+  printf 'feat(admin): add dashboard\n' > "$msg"
+  run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$msg"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"website"* ]]
+}
+
+@test "T002328: konsolidierter Scope 'skills' nennt sein Ziel 'agents' in der Diagnose" {
+  msg="$BATS_TEST_TMPDIR/msg-skills"
+  printf 'chore(skills): tidy up\n' > "$msg"
+  run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$msg"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"agents"* ]]
+}
+
+@test "T002328: entfallener Scope 'tracking' wird als entfernt gemeldet, nicht auf ein Ziel gemappt" {
+  msg="$BATS_TEST_TMPDIR/msg-tracking"
+  printf 'feat(tracking): add import\n' > "$msg"
+  run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$msg"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"entfallen"* ]]
+}
+
+@test "T002328: register-scope.sh weigert sich, einen konsolidierten Scope neu anzulegen" {
+  run bash "$REPO_ROOT/scripts/register-scope.sh" admin --config "$BATS_TEST_TMPDIR/nonexistent.cjs"
+  [ "$status" -ne 0 ]
+  run bash "$REPO_ROOT/scripts/register-scope.sh" admin
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"website"* ]]
+}
+
+@test "T002328: preflight-pr-scope.sh bezieht die Allowlist nicht mehr aus ci.yml" {
+  run grep -c 'CI_WORKFLOW' "$REPO_ROOT/scripts/preflight-pr-scope.sh"
+  [ "$output" = "0" ]
+}
+
+@test "T002328: ci-cd.md schreibt commitlint.config.cjs als Allowlist-Quelle fest" {
+  run grep -n 'semantic-PR allowlist from `ci.yml`' "$REPO_ROOT/openspec/specs/ci-cd.md"
+  [ "$status" -ne 0 ]
+  run grep -c 'commitlint.config.cjs' "$REPO_ROOT/openspec/specs/ci-cd.md"
+  [ "$output" -ge 1 ]
+}

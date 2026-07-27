@@ -9,7 +9,7 @@ BASE_DIR="tests/${TYPE}"
 ALLOWLIST="tests/unit/.coverage-allowlist"
 
 # Get the list of changed files against main
-CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)
+CHANGED=$(git diff --name-only --diff-filter=d HEAD origin/main 2>/dev/null || git diff --name-only --diff-filter=d HEAD 2>/dev/null || true)
 
 if [ -z "$CHANGED" ]; then
   exit 0

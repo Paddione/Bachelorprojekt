@@ -23,6 +23,12 @@ if [[ "$MERGE_STATE" == "DIRTY" ]]; then
   echo "⚠ PR mergeStateStatus=DIRTY — Rebase gegen origin/main vor dem CI-Poll ..."
   git fetch origin main 2>/dev/null || true
   if git rebase origin/main; then
+    echo "↻ Freshness-Artefakte nach Rebase regenerieren ..."
+    task freshness:regenerate || echo "⚠ freshness:regenerate fehlgeschlagen — Push läuft ohne Regeneration weiter." >&2
+    if [[ -n "$(git status --porcelain)" ]]; then
+      git add -A
+      git commit -m "chore(ci): regenerate freshness artifacts after auto-rebase [${TICKET_ID}]"
+    fi
     if ! git push --force-with-lease; then
       echo "❌ push nach Rebase fehlgeschlagen (force-with-lease abgelehnt oder Netzwerkfehler) — manuelles Eingreifen nötig." >&2
       exit 3

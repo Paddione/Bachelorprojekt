@@ -68,6 +68,30 @@ _ticket_offline_refuse_read() {
   return 1
 }
 
+# _ticket_lock_guard <external_id> — Durchsetzung der bisher rein advisory
+# agent-lock.sh-Claims im Schreibpfad. Dispatch-Gates (dispatcher-prep.sh,
+# factory-prep-bridge.sh, babysit-prs.sh) fragen den Lock vor dem Dispatch ab,
+# der Status-Write tat es nie — deshalb konnte eine zweite Session den Status
+# eines fremd gelockten Tickets überschreiben (beobachtet bei T002270). [T002282]
+#
+# TICKET_LOCK_OVERRIDE=1 = expliziter Escape-Hatch für Automationspfade, die
+# bereits vor dem Dispatch gated wurden und selbst keinen Claim halten.
+_ticket_lock_guard() {
+  local id="$1"
+  [[ "${TICKET_LOCK_OVERRIDE:-0}" == "1" ]] && return 0
+  local lock_sh out rc
+  lock_sh="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/agent-lock.sh"
+  [[ -x "$lock_sh" || -f "$lock_sh" ]] || return 0
+  out="$(bash "$lock_sh" check ticket "$id" 2>/dev/null)"; rc=$?
+  if [[ $rc -eq 3 ]]; then
+    echo "ERROR: Ticket $id ist durch eine andere Session gesperrt (agent-lock) — Status-Schreibvorgang verweigert." >&2
+    echo "       Halter: $(printf '%s' "$out" | tr '\n' ' ')" >&2
+    echo "       Override nur bewusst: TICKET_LOCK_OVERRIDE=1" >&2
+    return 7
+  fi
+  return 0
+}
+
 # _resolve_product_id <pod> <product_id-or-external_id> <brand>
 # Resolves --product-id (create.sh, set-parent.sh) to a parent_id UUID.
 # Fails (exit 2) when: not found, type <> 'project', or brand mismatch.

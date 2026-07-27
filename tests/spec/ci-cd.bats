@@ -1602,3 +1602,68 @@ PY
     [ "$status" -eq 0 ] || { echo "Alias-Ziel '$t' wird vom Guard abgelehnt"; return 1; }
   done
 }
+
+# ── T002282-M1: Auto-Rebase muss Freshness-Artefakte regenerieren ─────
+# devflow-ci-watch.sh rebased bei mergeStateStatus=DIRTY selbstständig auf
+# origin/main und pusht sofort mit --force-with-lease (Zeilen 22-35). Ein Rebase
+# verschiebt HEAD auf eine neue Basis — jeder generierte Artefakt-Snapshot
+# (repo-index.json, openspec-status.json, test-inventory.json, …) kann danach
+# gegenüber dieser Basis stale sein. `task freshness:check` regeneriert im CI
+# selbst und diff't gegen den Commit-Stand, schlägt also fehl, wenn niemand vor
+# dem Push regeneriert hat. Erwartung: `task freshness:regenerate` läuft nach
+# dem erfolgreichen Rebase und VOR `git push`.
+@test "T002282-M1: devflow-ci-watch regeneriert Freshness vor dem Push nach Auto-Rebase" {
+  local mockdir log
+  mockdir="$(mktemp -d)"
+  log="$mockdir/calls.log"
+  : > "$log"
+
+  # Hermetischer gh-Mock (gleiche Regel wie T002186: kein Passthrough auf das
+  # echte gh, sonst blockiert `pr checks --watch` gegen die echte API).
+  cat > "$mockdir/gh" <<'MOCKEOF'
+#!/usr/bin/env bash
+echo "gh $*" >> "$CALL_LOG"
+case "$*" in
+  *"pr view"*"--json mergeStateStatus"*) echo "DIRTY" ;;
+  *"pr view"*"--json mergeable"*)        echo "MERGEABLE" ;;
+  *"pr view"*"--json number"*)           echo "123" ;;
+  *"pr view"*"--json statusCheckRollup"*) echo "" ;;
+  *"api"*"check-runs"*)                  echo "0" ;;   # -> Exit 5, beendet den Loop
+  *) ;;
+esac
+exit 0
+MOCKEOF
+
+  # git-Mock: protokolliert jeden Aufruf, Rebase/Push gelingen immer.
+  cat > "$mockdir/git" <<'MOCKEOF'
+#!/usr/bin/env bash
+echo "git $*" >> "$CALL_LOG"
+case "$1" in
+  rev-parse) echo "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef" ;;
+  status|diff) ;;   # sauberer Baum: kein Extra-Commit nötig
+esac
+exit 0
+MOCKEOF
+
+  # task-Mock: der eigentliche Prüfpunkt.
+  cat > "$mockdir/task" <<'MOCKEOF'
+#!/usr/bin/env bash
+echo "task $*" >> "$CALL_LOG"
+exit 0
+MOCKEOF
+  chmod +x "$mockdir/gh" "$mockdir/git" "$mockdir/task"
+
+  run env PATH="$mockdir:$PATH" CALL_LOG="$log" MAX_CI_ATTEMPTS=1 TICKET_OFFLINE=1 \
+    timeout 60 bash "$REPO_ROOT/scripts/devflow-ci-watch.sh" T002282 "http://example.com/pr/1"
+
+  local calls regen push
+  calls="$(cat "$log")"
+  rm -rf "$mockdir"
+
+  regen=$(printf '%s\n' "$calls" | grep -n '^task .*freshness:regenerate' | head -1 | cut -d: -f1)
+  push=$(printf '%s\n' "$calls" | grep -n '^git push' | head -1 | cut -d: -f1)
+
+  [ -n "$push" ] || { echo "kein 'git push' im Mock-Log — Rebase-Zweig wurde nicht durchlaufen:"; echo "$calls"; return 1; }
+  [ -n "$regen" ] || { echo "kein 'task freshness:regenerate' im Mock-Log:"; echo "$calls"; return 1; }
+  [ "$regen" -lt "$push" ] || { echo "freshness:regenerate lief NACH dem Push:"; echo "$calls"; return 1; }
+}

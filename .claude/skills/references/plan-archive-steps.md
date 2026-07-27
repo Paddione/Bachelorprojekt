@@ -56,7 +56,14 @@ bash scripts/openspec.sh archive "$SLUG"
 > gecherry-picked; der Archiv-PR zeigt dann garantiert nur die Archiv-Änderungen im Diff.
 
 ```bash
-git add openspec/changes/ openspec/changes/archive/
+# scripts/openspec.sh cmd_archive schreibt website/src/data/openspec-status.json
+# NACH dem `mv "$dir" "$dest"` neu. Ohne die Regeneration + das explizite Staging
+# bleibt die Datei unstaged, der Archiv-Commit trägt sie nie mit und CI meldet sie
+# als stale. Regeneration ist idempotent; die Dateiliste folgt Taskfile
+# `freshness:check` Phase 1 (T002252), damit keine zweite Quelle entsteht.
+task freshness:regenerate
+git add openspec/changes/ openspec/changes/archive/ website/src/data/openspec-status.json
+git add -u -- website/src/data website/src/lib website/public/learning-assets docs
 git commit -m "chore(plans): archive $SLUG → postgres + openspec/archive [$TICKET_ID]"
 ARCHIVE_COMMIT=$(git rev-parse HEAD)
 

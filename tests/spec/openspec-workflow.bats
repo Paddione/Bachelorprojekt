@@ -321,3 +321,28 @@ EOF
   grep -q -- '--create-new' "$f"
   grep -qi 'mishap' "$f"
 }
+
+# ── T002282: Archiv-Commit muss die regenerierten Freshness-Artefakte tragen ──
+# `scripts/openspec.sh cmd_archive` schreibt website/src/data/openspec-status.json
+# NACH dem `mv "$dir" "$dest"` neu (openspec.sh:154-156). Schritt 4 von
+# plan-archive-steps.md staged aber nur `openspec/changes/` — die regenerierte
+# JSON-Datei bleibt unstaged und fällt erst im CI als stale auf. Der Bash-Block
+# in der .md IST die ausführbare Prozedur, daher ein Konventions-Check auf sie.
+
+@test "T002282-M2: plan-archive-steps.md Schritt 4 staged website/src/data/openspec-status.json" {
+  local f="$REPO/.claude/skills/references/plan-archive-steps.md"
+  [ -f "$f" ]
+  run grep -Fq 'website/src/data/openspec-status.json' "$f"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002282-M2: plan-archive-steps.md regeneriert Freshness vor dem Archiv-Commit" {
+  local f="$REPO/.claude/skills/references/plan-archive-steps.md"
+  [ -f "$f" ]
+  local regen commit
+  regen=$(grep -n 'task freshness:regenerate' "$f" | head -1 | cut -d: -f1)
+  commit=$(grep -n 'git commit -m "chore(plans): archive' "$f" | head -1 | cut -d: -f1)
+  [ -n "$commit" ] || { echo "Archiv-Commit-Zeile nicht gefunden in $f"; return 1; }
+  [ -n "$regen" ] || { echo "kein 'task freshness:regenerate' in $f"; return 1; }
+  [ "$regen" -lt "$commit" ] || { echo "freshness:regenerate steht NACH dem Archiv-Commit"; return 1; }
+}

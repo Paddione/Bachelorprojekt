@@ -64,6 +64,14 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   PGPOD=$(kubectl get pod -n workspace --context fleet -l app=shared-db -o name | head -1)
   psql() { kubectl exec "$PGPOD" -n workspace --context fleet -c postgres -- psql -U website -d website "$@"; }
   ```
+- ⚠️ **kubectl exec Timeout [T002261]:** Schreibende `psql()`-Aufrufe über `kubectl exec` gegen
+  `fleet` brauchen großzügige Timeouts (≥120s) — der Verbindungsabbau über WireGuard dauert
+  messbar länger als lokaler `psql`. Ein Exit-Code 143 (SIGTERM/Timeout) bedeutet **nicht**, dass
+  das `UPDATE` fehlgeschlagen sein muss — oft war das Statement bereits committed, bevor der
+  Timeout den Session-Abbau trifft. Ergebnis deshalb grundsätzlich per separatem `SELECT`
+  verifizieren, **nicht** am Exit-Code festmachen. Bei idempotenten
+  `UPDATE … SET x = <konstante>` ist ein Wiederholungsversuch harmlos; bei `INSERT`,
+  `UPDATE … SET n = n + 1` oder DDL kann er Daten verderben.
 - ⚠️ **Prod-Write-Guard:** Vor jedem schreibenden `psql()`-Aufruf gegen prod-Namespaces
   (`mentolder`, `workspace-korczewski`) den Guard aufrufen:
   `bash scripts/prod-write-guard.sh check <namespace> "<SQL>"`. Subagenten werden automatisch

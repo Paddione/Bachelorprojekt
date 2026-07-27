@@ -68,3 +68,22 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   run grep 'UNIQUE(file_path, chunk_index)' "$PROJECT_DIR/scripts/index-repo.ts"
   [[ "$status" -eq 0 ]]
 }
+
+# ── T002261-M2: index-repo-incremental.sh must not suppress errors ────#
+#
+# The incremental reindex script must not silently swallow errors via
+# `2>/dev/null` or `|| true`. Errors should be logged with a warning
+# (matching the pattern in .githooks/post-commit-index) so operators
+# can see when reindexing fails.
+
+@test "T002261-M2: index-repo-incremental.sh does not suppress stderr with 2>/dev/null" {
+  # The npx tsx call must NOT redirect stderr to /dev/null
+  run grep -n '2>/dev/null' "$PROJECT_DIR/scripts/index-repo-incremental.sh"
+  [[ "$status" -ne 0 ]]
+}
+
+@test "T002261-M2: index-repo-incremental.sh does not discard exit codes with || true" {
+  # The npx tsx call must NOT be followed by || true to discard failures
+  run grep -n '|| true' "$PROJECT_DIR/scripts/index-repo-incremental.sh"
+  [[ "$status" -ne 0 ]]
+}

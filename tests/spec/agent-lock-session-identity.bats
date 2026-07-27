@@ -152,3 +152,32 @@ setup() {
   awk '/^### Schritt 5:/{flag=1} /^### Schritt 6:/{flag=0} flag' "$PLAN_SKILL" \
     | grep -Eqi '\-f[[:space:]]+"?\$LOCK_FILE"?|kein[[:space:]]+ticket-scoped[[:space:]]+agent-lock'
 }
+
+# ── T002261-M1: cmd_release schweigt bei SID-Mismatch ────────────────#
+#
+# When `cmd_release` is called with a SID that does not match the lock
+# owner, it must emit a diagnostic line to stderr so the operator knows
+# why the release failed and how to force it. Currently it returns 1
+# silently — the operator has no indication of the cause.
+
+@test "T002261-M1: cmd_release emits stderr diagnostic on SID mismatch" {
+  AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  # Claim the lock as "session-A"
+  export CLAUDE_SESSION_ID="session-A"
+  unset AGENT_LOCK_SID
+  bash "$LOCK" claim ticket T002261-m1 --label test-release
+  [ -f "$AGENT_LOCK_DIR/ticket__T002261-m1.json" ]
+
+  # Switch to a different session and try release
+  export CLAUDE_SESSION_ID="session-B"
+  run bash "$LOCK" release ticket T002261-m1
+  [ "$status" -eq 1 ]
+
+  # stderr must NOT be empty — the fix adds a diagnostic message
+  [[ -n "$output" ]]
+
+  # Lock file must still exist (release was refused)
+  [ -f "$AGENT_LOCK_DIR/ticket__T002261-m1.json" ]
+
+  rm -rf "$AGENT_LOCK_DIR"
+}

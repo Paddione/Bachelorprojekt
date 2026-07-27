@@ -6,6 +6,7 @@
   Anmelden die Startskripte aufruft:
     start-embed-server.ps1   (bge-m3,             Port 8095)
     start-rerank-server.ps1  (bge-reranker-v2-m3, Port 8096)
+    start-gemma-server.ps1   (Gemma 4 12B QAT,    Port 8091)
 
   WARUM NICHT SCHEDULED TASKS (T002276):
   Auf diesem Host schlaegt der Task-Weg aus drei Gruenden fehl, alle gemessen am
@@ -31,12 +32,18 @@
   Einzelplatz-Workstation ist das ausreichend - die Modelle liegen ohnehin im
   Benutzerprofil, und die GPU wird interaktiv genutzt.
 
-  UMFANG: nur Embedding und Rerank. Ein Chat-Modell wird bewusst NICHT
-  mitgestartet - welches die Factory nutzt, entscheidet
-  tickets.factory_model_slots, und die Chat-Server unterscheiden sich stark im
-  VRAM-Bedarf (gpt-oss-20b 12,1 GB; Gemma-4-12B laeuft mit "-fit on" und nimmt
-  alles freie VRAM). Ein pauschaler Autostart wuerde dem Embedding-Stack den
-  Speicher wegnehmen.
+  UMFANG: Embedding, Rerank und Gemma - in dieser Reihenfolge. Gemma kam mit
+  T002286 dazu, nachdem sein Startskript von "-fit on" auf den festen Deckel
+  "-c 65536 -fit off" umgestellt wurde. Vorher nahm sich der Server ALLES freie
+  VRAM und haette dem Embedding-Stack den Speicher weggenommen; jetzt ist sein
+  Bedarf deterministisch (rund 13,0 GB von 16,3 GB, gemessen 2026-07-27), sodass
+  bge-m3 und der Reranker mit zusammen ~1,7 GB daneben passen. Die Reihenfolge
+  bleibt trotzdem embed -> rerank -> gemma: scheitert der groesste Brocken,
+  steht der Embedding-Stack wenigstens.
+
+  WEITERHIN NICHT IM AUTOSTART: gpt-oss-20b (:8097, 12,1 GB). Welches Chat-Modell
+  die Factory nutzt, entscheidet tickets.factory_model_slots - zwei Chat-Server
+  gleichzeitig passen nicht auf die Karte.
 .PARAMETER Uninstall
   Entfernt den Startup-Eintrag wieder.
 .PARAMETER RepoRoot
@@ -77,7 +84,7 @@ if (-not (Test-Path $llmDir)) {
 # damit kein Umweg ueber eine .lnk mit Zielpfad-Escaping noetig ist.
 # -WindowStyle Hidden, damit beim Anmelden kein Fenster aufpoppt; die
 # Startskripte protokollieren selbst in <build>\*-out.log / *-err.log.
-$scripts = @('start-embed-server.ps1', 'start-rerank-server.ps1')
+$scripts = @('start-embed-server.ps1', 'start-rerank-server.ps1', 'start-gemma-server.ps1')
 $lines = @(
   '@echo off',
   'rem Erzeugt von scripts/llm/install-startup-autostart.ps1 [T002276].',

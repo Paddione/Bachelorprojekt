@@ -84,6 +84,14 @@ enqueued ist — parallel zum Schreiben des nächsten Partials.
 
 #### Schritt B.1: Worktree anlegen (git-crypt-safe)
 
+> **Ab hier trägt jeder Datei-Tool-Pfad den Worktree-Präfix [T002357].** `cd` und
+> `worktree-create.sh` wirken nur auf Bash; Read/Write/Edit nehmen absolute Pfade und haben
+> keinerlei Bezug zum Bash-cwd. Ein Pfad, der vor der Worktree-Anlage korrekt war
+> (`<repo>/tests/spec/x.bats`), bleibt danach syntaktisch gültig und trifft still den
+> Hauptcheckout — der Verstoß gegen "Mutierende Tasks nie im Hauptcheckout" fällt erst beim
+> `git status` auf (Mishap T002350, Ursprung T001880). Prüfbefehl bei Verdacht, im
+> Hauptcheckout auszuführen: `git -C <repo-root> status --porcelain` muss leer bleiben.
+
 ```bash
 bash scripts/worktree-create.sh feature/<slug>-T<id> .worktrees/<slug>
 
@@ -266,6 +274,10 @@ TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 bash scripts/worktree-create.sh fix/<slug> .worktrees/<slug>
 cd .worktrees/<slug>
 ```
+
+> **Das `cd` wirkt nur auf Bash [T002357].** Read/Write/Edit nehmen absolute Pfade ohne Bezug
+> zum Bash-cwd — ab hier muss jeder Datei-Tool-Pfad explizit unter `.worktrees/<slug>/` liegen,
+> sonst trifft er still den Hauptcheckout (Mishap T002350).
 ### Schritt 2.5: Ticket & Branch claimen (Session-Koordination [T000510])
 ```bash
 bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \

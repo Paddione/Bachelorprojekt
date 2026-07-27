@@ -210,6 +210,194 @@ pg_memory_limit() {
   [ "${BASH_REMATCH[1]}" -lt 2048 ]
 }
 
+# ── Reaper Candidate Selection (T002350) ──────────────────────────────
+#
+# Regress aus T002321: die Auswahl lief als Substring-Grep ueber die volle
+# cmdline und traf damit PID 1 (supergateway fuehrt den Namen in seinem
+# --stdio-Argument) sowie die Reaper-Subshell (erbt die Startskript-cmdline).
+# Die Tests oben pruefen nur, DASS 'reap'/'child' im Startkommando steht —
+# ein falsch selektierender Reaper ist davon nicht unterscheidbar. Diese
+# Tests pruefen die AUSWAHL selbst.
+
+# Legt einen Fixture-Prozesseintrag an: mk_proc <root> <pid> <ppid> <starttime> <argv...>
+mk_proc() {
+  local root="$1" pid="$2" ppid="$3" start="$4"; shift 4
+  local d="$root/$pid" a i
+  mkdir -p "$d"
+  : > "$d/cmdline"
+  for a in "$@"; do printf '%s\0' "$a" >> "$d/cmdline"; done
+  # /proc/<pid>/stat: Feld 1=pid 2=comm 3=state 4=ppid … 22=starttime
+  { printf '%s (node) S %s' "$pid" "$ppid"
+    for i in $(seq 5 21); do printf ' 0'; done
+    printf ' %s\n' "$start"
+  } > "$d/stat"
+  printf 'VmRSS:\t13000 kB\n' > "$d/status"
+}
+
+# Bildet den am 2026-07-27 real gemessenen Prozessbaum nach.
+mk_fixture() {
+  local root="$1"
+  # PID 1 — supergateway-Parent: traegt den gesuchten Namen erst in argv[2]
+  mk_proc "$root" 1 0 100 \
+    node /usr/local/bin/supergateway --stdio 'mcp-server-postgres "postgresql://x"'
+  # PID 19 — Reaper-Subshell: hat die komplette Startskript-cmdline geerbt
+  mk_proc "$root" 19 1 110 \
+    /bin/sh -c 'reap_stale_children() { … mcp-server-postgres … }; reap_stale_children &'
+  # echte Children: argv[1] ist der Server selbst, ppid=1
+  mk_proc "$root" 4711 1 200 node /usr/local/bin/mcp-server-postgres 'postgresql://x'
+  mk_proc "$root" 4712 1 210 node /usr/local/bin/mcp-server-postgres 'postgresql://x'
+}
+
+# Schneidet die Auswahlfunktion aus dem Startkommando des Manifests.
+reaper_selection_fn() {
+  pg_container_args | sed -n '/^list_reap_candidates()/,/^}/p'
+}
+
+# Laedt die Auswahlfunktion und laesst sie gegen das Fixture laufen.
+# Ausgabe-Kontrakt: je Kandidat eine Zeile "<starttime> <pid>", aeltester zuerst.
+run_selection() {  # <fixture> <self_pid>
+  local fixture="$1" self="$2" fn
+  fn="$(bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn")"
+  [ -n "$fn" ] || return 127
+  bash -c "$fn
+PROC_ROOT='$fixture' SELF_PID='$self' list_reap_candidates"
+}
+
+# Nur die PID-Spalte der Kandidatenliste.
+selected_pids() {  # <fixture> <self_pid>
+  run_selection "$1" "$2" | awk '{print $2}' | tr '\n' ' ' | sed 's/ $//'
+}
+
+# Positiv-Anker fuer die Negativtests. Ohne ihn wuerde "PID 1 ist nicht in der
+# Liste" trivial gelten, solange die Funktion fehlt und die Liste leer ist —
+# also genau die vakuose Gruenfaerbung, an der T002321 gescheitert ist.
+assert_selection_alive() {  # <kandidatenliste>
+  [ -n "$1" ] \
+    || { echo "Kandidatenliste ist leer — Auswahlfunktion fehlt oder selektiert nichts; der Negativtest waere vakuos gruen"; return 1; }
+  case " $1 " in
+    *" 4711 "*) ;;
+    *) echo "erwartetes Child 4711 fehlt in [$1] — Positiv-Anker nicht erfuellt"; return 1 ;;
+  esac
+}
+
+@test "T002350: reaper exposes a pure selection function (no kill) that a test can load" {
+  run bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn"
+  [ "$status" -eq 0 ]
+  [ -n "$output" ] \
+    || { echo "list_reap_candidates() fehlt im Startkommando — die Auswahl ist nicht isoliert und damit nicht pruefbar"; return 1; }
+}
+
+@test "T002350: list_reap_candidates returns only genuine children" {
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 19)"
+  rm -rf "$fixture"
+  [ "$got" = "4711 4712" ] \
+    || { echo "Kandidaten: [$got] — erwartet [4711 4712]"; return 1; }
+}
+
+@test "T002350: list_reap_candidates never returns PID 1" {
+  # PID 1 ist der supergateway-Parent; er fuehrt den gesuchten Namen in argv[2].
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 19)"
+  rm -rf "$fixture"
+  assert_selection_alive "$got" || return 1
+  case " $got " in
+    *" 1 "*) echo "PID 1 (supergateway-Parent) steht in der Kandidatenliste: [$got]"; return 1 ;;
+  esac
+}
+
+@test "T002350: list_reap_candidates never returns the reaper's own subshell" {
+  # PID 19 hat die komplette Startskript-cmdline geerbt — genau der Selbstmord aus #3397.
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 19)"
+  rm -rf "$fixture"
+  assert_selection_alive "$got" || return 1
+  case " $got " in
+    *" 19 "*) echo "die Reaper-Subshell steht in der Kandidatenliste: [$got]"; return 1 ;;
+  esac
+}
+
+@test "T002350: candidates are ordered oldest first" {
+  # Stufe 2 killt die aeltesten zuerst — die Reihenfolge ist Teil des Kontrakts.
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 19)"
+  rm -rf "$fixture"
+  # 4711 hat starttime 200, 4712 hat 210 — der aeltere muss zuerst stehen.
+  [ "${got%% *}" = "4711" ] \
+    || { echo "aeltester Kandidat steht nicht vorn: [$got]"; return 1; }
+}
+
+@test "T002350: list_reap_candidates honours an explicit self-PID exclusion" {
+  # Wird SELF_PID auf ein echtes Child gesetzt, muss dieses verschwinden — Beleg,
+  # dass der Self-Guard wirkt und nicht bloss zufaellig nichts trifft.
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 4711)"
+  rm -rf "$fixture"
+  [ "$got" = "4712" ] \
+    || { echo "SELF_PID=4711 wurde nicht ausgeschlossen: [$got]"; return 1; }
+}
+
+@test "T002350: reaper reads a configurable proc root so production keeps /proc" {
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'PROC_ROOT:-/proc'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002350: reaper derives its own pid from /proc/self, not from \$\$" {
+  # In POSIX-sh expandiert $$ auch in der Subshell zur PID der Ur-Shell (hier 1),
+  # die Reaper-Subshell bliebe damit ungeschuetzt.
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq '/proc/self/stat'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002350: reaper caps live children so a request burst cannot outrun the age threshold" {
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'MCP_PG_CHILD_MAX_COUNT'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002350: age threshold stays above the statement_timeout" {
+  args="$(pg_container_args)"
+  age="$(printf '%s' "$args" | grep -Eo 'MCP_PG_CHILD_MAX_AGE_SECONDS:-[0-9]+' | head -1 | grep -Eo '[0-9]+$')"
+  timeout_ms="$(jq -r '.spec.template.spec.containers[] | select(.name=="postgres") | .env[] | select(.name=="PGOPTIONS") | .value' \
+    "$REPO/$MONOLITH_MANIFEST_REL" | grep -Eo 'statement_timeout=[0-9]+' | grep -Eo '[0-9]+$')"
+  [ -n "$age" ] || { echo "keine Altersschwelle gefunden"; return 1; }
+  [ -n "$timeout_ms" ] || { echo "kein statement_timeout gefunden"; return 1; }
+  [ "$age" -gt "$(( timeout_ms / 1000 ))" ] \
+    || { echo "Altersschwelle ${age}s liegt nicht ueber statement_timeout $(( timeout_ms / 1000 ))s"; return 1; }
+}
+
+@test "T002350: selection holds against real procfs, not just the fixture" {
+  # Ein Fixture aus regulaeren Dateien kann procfs-Semantik nicht abbilden:
+  # /proc/<pid>/cmdline meldet st_size=0 trotz Inhalt. Ein groessenbasierter
+  # Guard liefe im Fixture gruen und selektierte im Container stumm nichts.
+  command -v docker >/dev/null 2>&1 || skip "docker nicht verfuegbar"
+  docker image inspect node:20-alpine >/dev/null 2>&1 || skip "node:20-alpine nicht lokal vorhanden"
+
+  fn="$(bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn")"
+  [ -n "$fn" ] || { echo "keine Auswahlfunktion im Manifest"; return 1; }
+
+  script="$(mktemp)"
+  {
+    printf '%s\n' '#!/bin/sh'
+    printf '%s\n' 'printf "#!/usr/bin/env node\nsetTimeout(()=>{},9e5)\n" > /usr/local/bin/mcp-server-postgres'
+    printf '%s\n' 'chmod +x /usr/local/bin/mcp-server-postgres'
+    printf '%s\n' 'mcp-server-postgres "postgresql://x" & child=$!'
+    printf '%s\n' 'sleep 2'
+    printf '%s\n' "$fn"
+    printf '%s\n' 'read -r self _ < /proc/self/stat'
+    printf '%s\n' 'cand="$(list_reap_candidates | awk "{print \$2}" | tr "\n" " ")"'
+    printf '%s\n' 'echo "candidates=[$cand] child=$child"'
+    printf '%s\n' 'case " $cand " in *" $child "*) ;; *) echo "FAIL: echtes Child nicht selektiert"; exit 1 ;; esac'
+    printf '%s\n' 'case " $cand " in *" 1 "*) echo "FAIL: PID 1 selektiert"; exit 1 ;; esac'
+    printf '%s\n' 'echo OK'
+  } > "$script"
+
+  run docker run --rm -v "$script:/smoke.sh:ro" node:20-alpine sh /smoke.sh
+  rm -f "$script"
+  echo "$output"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OK"* ]]
+}
+
 # ── MCP Monolith Deployment Reality In SSOT (T002321) ──────────────────
 
 @test "mcp-gateway spec does not claim the monolith is decommissioned while its manifest ships" {

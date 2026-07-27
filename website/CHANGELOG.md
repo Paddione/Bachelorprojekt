@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.219.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.218.0...website-v1.219.0) (2026-07-27)
+
+
+### Features
+
+* **mcp:** MCP Registry SSOT — single generator renders three harness configs [T002300] ([#3369](https://github.com/Paddione/Bachelorprojekt/issues/3369)) ([f118d2b](https://github.com/Paddione/Bachelorprojekt/commit/f118d2b6759938d891ceba152f21254e57bd0213))
+
 ## [1.218.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.6...website-v1.218.0) (2026-07-27)
 
 

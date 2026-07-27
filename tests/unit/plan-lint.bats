@@ -185,3 +185,24 @@ setup() {
     return 1
   }
 }
+
+# --- T002270: s1.ignore awareness -------------------------------------------
+# gates.yaml has two S1 sections: `s1.limits` (per-extension line limits) and
+# `s1.ignore` (files the gate deliberately does not measure). plan-lint read
+# only the first, so for an ignored file it still computed a budget against the
+# static limit — deeply negative, because those files are on the ignore list
+# precisely BECAUSE they exceed it. B1b then demanded a split for files whose
+# gates.yaml comment says "do not split".
+
+@test "T002270: residual_budget is empty for a file listed under s1.ignore" {
+  # scripts/ticket.sh is a sanctioned single-file CLI on the s1.ignore list.
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" residual_budget "scripts/ticket.sh"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}
+
+@test "T002270: a plan touching an s1-ignored file triggers no B1b split demand" {
+  run bash "$LINT" "$FIX/s1-ignored-file.md"
+  [ "$status" -eq 0 ]
+  ! echo "$output" | grep -q 'B1b'
+}

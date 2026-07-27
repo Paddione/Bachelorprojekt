@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.220.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.220.0...website-v1.220.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* **scripts:** BRAND-Resolution aus Freitext entfernen, top-level --brand als SSOT [T002280] ([#3380](https://github.com/Paddione/Bachelorprojekt/issues/3380)) ([84d7539](https://github.com/Paddione/Bachelorprojekt/commit/84d7539dfd1098816ec1a252f3afed7fd14cff0e))
+
 ## [1.220.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.219.1...website-v1.220.0) (2026-07-27)
 
 

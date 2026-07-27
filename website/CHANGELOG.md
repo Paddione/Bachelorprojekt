@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.221.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.3...website-v1.221.4) (2026-07-27)
+
+
+### Bug Fixes
+
+* **factory:** Dry-Run-Livelock durch Attempt-Zaehler und unfactory begrenzen [T002361] ([#3411](https://github.com/Paddione/Bachelorprojekt/issues/3411)) ([0269e40](https://github.com/Paddione/Bachelorprojekt/commit/0269e403f059333083fbcf867fb47a6a0b34e74e))
+
 ## [1.221.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.2...website-v1.221.3) (2026-07-27)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.220.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.220.1...website-v1.220.2) (2026-07-27)
+
+
+### Bug Fixes
+
+* **docs:** correct root instruction files and gate them fail-closed [T002305] ([#3383](https://github.com/Paddione/Bachelorprojekt/issues/3383)) ([6779046](https://github.com/Paddione/Bachelorprojekt/commit/6779046a8aafa123d618669cfc698d6c129f6ea2))
+
 ## [1.220.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.220.0...website-v1.220.1) (2026-07-27)
 
 

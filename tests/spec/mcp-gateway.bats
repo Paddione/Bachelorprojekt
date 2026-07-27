@@ -90,3 +90,38 @@ setup() {
   run grep -q 'kubectl get nodes' "$REPO/.claude/agents/bachelorprojekt-ops.md"
   [ "$status" -eq 0 ]
 }
+
+# ── repo-built MCP servers: PATH name, not absolute path (T002301) ────
+
+@test "T002301: no repo-built MCP server is referenced by an absolute home path" {
+  local reg="$REPO/docs/agent-guide/registry/mcp.yaml"
+  [ -f "$reg" ]
+  # Nur Server, die AUS DIESEM REPO gebaut werden — sie koennen per Build-Task auf den
+  # PATH installiert werden. Fremde Server (task-master-ai = npm-Paket, codebase-memory-mcp
+  # = extern nach ~/.local/bin installiert) sind ausgenommen: ihr Pfad ist nicht durch
+  # einen Build-Schritt dieses Repos beeinflussbar.
+  local server fail=0
+  for server in ticket-mcp mcp-task-runner factory-mcp; do
+    local block hits
+    block="$(awk -v s="^  ${server}:$" '$0 ~ s {f=1; next} f && /^  [a-z]/ {exit} f' "$reg")"
+    hits="$(printf '%s\n' "$block" | grep -nE '^\s*command: */home/' || true)"
+    [ -z "$hits" ] || { echo "$server wird ueber einen absoluten Home-Pfad gestartet:"; echo "$hits"; fail=1; }
+  done
+  [ "$fail" -eq 0 ]
+}
+
+@test "T002301: ticket-mcp is referenced by PATH name" {
+  local reg="$REPO/docs/agent-guide/registry/mcp.yaml"
+  run grep -A3 '^  ticket-mcp:' "$reg"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"command: ticket-mcp-go"* ]] \
+    || { echo "ticket-mcp wird nicht ueber den PATH-Namen referenziert:"; echo "$output"; return 1; }
+}
+
+@test "T002301: ticket-mcp:build installs onto the PATH like mcp-task-runner" {
+  # Ohne Install-Schritt bleibt das Binary im Repo liegen und der PATH-Name greift ins Leere.
+  run grep -A12 '^  ticket-mcp:build:' "$REPO/Taskfile.yml"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"/usr/local/bin"* ]] \
+    || { echo "ticket-mcp:build installiert nicht auf den PATH:"; echo "$output"; return 1; }
+}

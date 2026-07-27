@@ -105,19 +105,19 @@ clients:
         command: [mcp-task-runner, --otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
         enabled: true
 
-  # ticket-mcp: absoluter Pfad /home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go
-  # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
+  # ticket-mcp: ueber den PATH-Namen referenziert (T002301). Installiert von
+  # `task ticket-mcp:build` nach /usr/local/bin, analog mcp-task-runner.
   ticket-mcp:
     transport: stdio
-    command: /home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go
+    command: ticket-mcp-go
     harness:
       claude_code:
-        command: /home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go
+        command: ticket-mcp-go
       agy:
-        command: /home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go
+        command: ticket-mcp-go
       opencode:
         type: local
-        command: [/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go]
+        command: [ticket-mcp-go]
         enabled: true
 
   # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp

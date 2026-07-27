@@ -482,13 +482,19 @@ if (DRY_RUN) {
     `DRY RUN — do NOT push, merge, or deploy. Work from WORKTREE (HEAD=${WORK_BRANCH}):
      1. Show planned diff: git -C ${WORK_WT} diff origin/main...HEAD --stat
      2. Summarise review findings (${reviews.length} lens result(s)).
-     3. Mark dry-run-checked, release slot, return to queue:
-        bash ${REPO}/scripts/ticket.sh dryrun-mark --id ${A.ticket_id}
+     3. Release slot, return to queue:
         bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}
         bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status backlog
      Report the diff stat + one-line verdict. Take NO other action.`,
     { label: 'deploy:dry-run', phase: 'Deploy', model: FACTORY_MODEL },
   )
+  // T002361: the dry-run-first marker is set HERE, as its own program step, not as a
+  // bullet in the prompt above. T001816 added it to the prompt, which made the only
+  // exit from the dry-run-first loop depend on the model executing one line among
+  // several. If the agent call above throws (e.g. ANTHROPIC_BASE_URL refuses the
+  // connection) we never reach this line and the marker correctly stays unset — the
+  // watchdog's factory_attempt counter bounds the repetition from there.
+  await runRunner(agent, 'dryrun-mark', { ticket_id: A.ticket_id, brand })
   await phaseEvent('deploy', 'done', 'dry-run')
   return { status: 'dry-run', report, reviews: reviews.length, tasks: tasks.length }
 }

@@ -4344,3 +4344,76 @@ SH
       | grep -vc -- '--no-block'"
   [ "$output" = "0" ]
 }
+
+# ── T002361-livelock-breaker ─────────────────────────────────────#
+# T002361: a dry-run that aborts before setting its marker must not loop forever.
+# The watchdog counts consecutive fruitless resets, resets the counter on real
+# phase progress, and escalates to `unfactory` (permanent dispatch exclusion).
+
+@test "T002361: watchdog counts attempts in factory_control under a non-NULL brand" {
+  # T000474: factory_control has UNIQUE (key, brand) and Postgres treats NULL as
+  # distinct, so ON CONFLICT never fires for a NULL-brand row. A counter written
+  # with brand=NULL would accumulate duplicates and increment meaninglessly.
+  run grep -c "factory_attempt" "$REPO_ROOT/scripts/factory/watchdog.sh"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -A12 'factory_attempt' '$REPO_ROOT/scripts/factory/watchdog.sh' | grep -c 'brand'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002361: watchdog resets the attempt counter on real phase progress" {
+  # Real progress = a factory_phase_events row newer than the counter's own
+  # updated_at. tickets.updated_at is NOT usable: fn_lifecycle_ts bumps it on
+  # every row write, so a bare touch would look like progress.
+  run bash -c "grep -c 'factory_phase_events' '$REPO_ROOT/scripts/factory/watchdog.sh'"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -A20 'factory_attempt' '$REPO_ROOT/scripts/factory/watchdog.sh' | grep -c 'updated_at'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002361: watchdog escalates to unfactory at FACTORY_MAX_ATTEMPTS" {
+  run grep -c "FACTORY_MAX_ATTEMPTS" "$REPO_ROOT/scripts/factory/watchdog.sh"
+  [ "$status" -eq 0 ]
+  run grep -c "unfactory" "$REPO_ROOT/scripts/factory/watchdog.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002361: ticket.sh exposes an unfactory subcommand" {
+  run bash -c "bash '$REPO_ROOT/scripts/ticket.sh' 2>&1 | grep '^Commands:' | grep -c 'unfactory'"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+}
+
+@test "T002361: unfactory sets status, attention_mode and the factory_excluded flag" {
+  run bash -c "grep -A25 'cmd_unfactory()' '$REPO_ROOT/scripts/ticket.sh' | grep -c 'factory_excluded'"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -A25 'cmd_unfactory()' '$REPO_ROOT/scripts/ticket.sh' | grep -c 'needs_human'"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -A25 'cmd_unfactory()' '$REPO_ROOT/scripts/ticket.sh' | grep -c 'blocked'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002361: queue.sh excludes factory_excluded tickets in BOTH dispatch branches" {
+  # One gate per branch (feature/backlog and task/plan_staged) — a single
+  # occurrence would leave one dispatch path open.
+  run bash -c "grep -c 'factory_excluded' '$REPO_ROOT/scripts/factory/queue.sh'"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 2 ]
+}
+
+@test "T002361: pipeline.mjs calls dryrun-mark outside the DRY_RUN agent prompt" {
+  # pipeline.mjs is the LIVE workflow (dispatcher-bridge.sh launches it via
+  # Workflow({scriptPath}); run-pipeline.mjs imports it). pipeline.js is a stale
+  # near-duplicate that nothing dispatches.
+  #
+  # T001816 put the marker INSIDE the agent prompt, i.e. it only fires if the
+  # headless session lives AND the model complies. It must be deterministic code
+  # after the agent() call returns.
+  local body
+  body=$(sed -n '/^if (DRY_RUN) {/,/^}/p' "$REPO_ROOT/scripts/factory/pipeline.mjs")
+  [ -n "$body" ]
+  # The prompt is the template literal handed to agent(); the marker must not be in it.
+  run bash -c "printf '%s' \"\$(sed -n '/^if (DRY_RUN) {/,/^  )\$/p' '$REPO_ROOT/scripts/factory/pipeline.mjs')\" | grep -c 'dryrun-mark'"
+  [ "$output" -eq 0 ]
+  # But the DRY_RUN block as a whole must still set the marker.
+  printf '%s' "$body" | grep -q 'dryrun-mark'
+}

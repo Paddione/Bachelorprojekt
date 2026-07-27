@@ -15,15 +15,26 @@ FROM (
   SELECT external_id, title, priority, touched_files, created_at
   FROM tickets.tickets
   WHERE (
+      -- factory_excluded (T002361) gates BOTH branches below. It is the durable half
+      -- of `ticket.sh unfactory`: status='blocked' alone already keeps a ticket out of
+      -- these two branches, but the flag survives a later status change, so moving an
+      -- unfactored ticket back to backlog/plan_staged by hand or by another script does
+      -- NOT silently re-expose it to dispatch. Clearing it is a deliberate human act
+      -- (`ticket.sh plan-meta set --readiness factory_excluded=false`).
+      -- Default false: an absent flag must never exclude a ticket — same convention as
+      -- lastenheft_locked (default false) and execution_released (default true).
+      --
       -- Feature backlog: Lastenheft-locked (requirements firm = AI-ready).
       (type='feature' AND status='backlog'
-       AND COALESCE((readiness->>'lastenheft_locked')::boolean, false) = true)
+       AND COALESCE((readiness->>'lastenheft_locked')::boolean, false) = true
+       AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false)
       -- Staged chore/task tickets (e.g. mishap-tracker auto-plans): the plan is
       -- already authored + lint-gated by stage-plan, so no lastenheft gate applies.
       -- execution_released=true is the default (backward-compatible: only tickets
       -- explicitly held via stage-plan --hold are excluded from dispatch).
       OR (type='task' AND status='plan_staged'
-          AND COALESCE((readiness->>'execution_released')::boolean, true) = true)
+          AND COALESCE((readiness->>'execution_released')::boolean, true) = true
+          AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false)
     )
   ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 END, created_at
 ) q;

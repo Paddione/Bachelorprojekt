@@ -214,7 +214,20 @@ pg_memory_limit() {
 
 @test "mcp-gateway spec does not claim the monolith is decommissioned while its manifest ships" {
   if [ -f "$REPO/$MONOLITH_MANIFEST_REL" ]; then
-    run grep -Eq 'dekommissioniert|decommissioned' "$REPO/openspec/specs/mcp-gateway.md"
+    # Nur normative Prosa pruefen. Scenario-Bloecke beschreiben die Pruefbedingung
+    # und duerfen das Wort tragen: nach dem Archivieren des Changes steht der
+    # GIVEN-Text ("trug die Notiz, ... sei dekommissioniert") im SSOT und wuerde
+    # einen Grep ueber das ganze Dokument dauerhaft rot faerben.
+    # Ein Scenario-Block endet bei der ersten Zeile, die weder leer noch eine
+    # Bullet-Zeile noch deren eingerueckte Fortsetzung ist — NICHT erst bei der
+    # naechsten Ueberschrift, sonst verschluckt der Filter den gesamten Rest der
+    # Datei nach dem letzten Scenario.
+    run bash -c "awk '
+      /^#### Scenario:/                  { in_s = 1; next }
+      in_s && /^([[:space:]]*\$|[[:space:]]+|- )/ { next }
+      { in_s = 0 }
+      !in_s
+    ' \"$REPO/openspec/specs/mcp-gateway.md\" | grep -Eq 'dekommissioniert|decommissioned'"
     [ "$status" -ne 0 ]
   fi
 }

@@ -44,18 +44,18 @@ data:
 
     # Sync passwords to match current secrets (works on first run and re-runs)
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
-      -c "ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';" \
-      -c "ALTER USER vaultwarden WITH PASSWORD '$${VAULTWARDEN_DB_PASSWORD}';" \
-      -c "ALTER USER website WITH PASSWORD '$${WEBSITE_DB_PASSWORD}';" \
+      -c "ALTER USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';" \
+      -c "ALTER USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';" \
+      -c "ALTER USER website WITH PASSWORD '${WEBSITE_DB_PASSWORD}';" \
       -c "ALTER USER pentest WITH PASSWORD 'pentest_access_2026';" \
-      -c "ALTER USER videovault WITH PASSWORD '$${VIDEOVAULT_DB_PASSWORD}';"
+      -c "ALTER USER videovault WITH PASSWORD '${VIDEOVAULT_DB_PASSWORD}';"
 
     # Create databases if not exists
     for db_user in nextcloud vaultwarden website pentest videovault; do
       psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-        SELECT 'CREATE DATABASE $${db_user} OWNER $${db_user}'
-        WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$${db_user}')\gexec
-        GRANT ALL PRIVILEGES ON DATABASE $${db_user} TO $${db_user};
+        SELECT 'CREATE DATABASE ${db_user} OWNER ${db_user}'
+        WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${db_user}')\gexec
+        GRANT ALL PRIVILEGES ON DATABASE ${db_user} TO ${db_user};
     EOSQL
     done
 
@@ -214,15 +214,15 @@ spec:
                       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='pocket_id')  THEN CREATE USER pocket_id;  END IF;
                     END \$\$;"
                     for db in nextcloud vaultwarden website pentest videovault pocket_id; do
-                      psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$$db'" | grep -q 1 \
-                        || psql -U postgres -c "CREATE DATABASE \"$$db\" OWNER \"$$db\";"
+                      psql -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$db'" | grep -q 1 \
+                        || psql -U postgres -c "CREATE DATABASE \"$db\" OWNER \"$db\";"
                     done
                     psql -U postgres \
-                      -c "ALTER USER nextcloud WITH PASSWORD '$${NEXTCLOUD_DB_PASSWORD}';" \
-                      -c "ALTER USER vaultwarden WITH PASSWORD '$${VAULTWARDEN_DB_PASSWORD}';" \
-                      -c "ALTER USER website WITH PASSWORD '$${WEBSITE_DB_PASSWORD}';" \
-                      -c "ALTER USER videovault WITH PASSWORD '$${VIDEOVAULT_DB_PASSWORD}';" \
-                      -c "ALTER USER pocket_id WITH PASSWORD '$${POCKET_ID_DB_PASSWORD}';"
+                      -c "ALTER USER nextcloud WITH PASSWORD '${NEXTCLOUD_DB_PASSWORD}';" \
+                      -c "ALTER USER vaultwarden WITH PASSWORD '${VAULTWARDEN_DB_PASSWORD}';" \
+                      -c "ALTER USER website WITH PASSWORD '${WEBSITE_DB_PASSWORD}';" \
+                      -c "ALTER USER videovault WITH PASSWORD '${VIDEOVAULT_DB_PASSWORD}';" \
+                      -c "ALTER USER pocket_id WITH PASSWORD '${POCKET_ID_DB_PASSWORD}';"
 
                     bash /scripts/ensure-knowledge-schema.sh || true
                     bash /scripts/ensure-meetings-schema.sh || true

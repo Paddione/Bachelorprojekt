@@ -3,38 +3,33 @@
 ### Requirement: The Factory resumes a partially implemented plan instead of replaying it
 
 When the Software Factory picks up a ticket whose plan was staged by a human (`FACTORY-PLAN-REF`
-present, REUSE path), the pipeline SHALL determine which plan tasks are already complete on the
-work branch and SHALL skip them. A task counts as complete when its plan checkbox is ticked in the
-plan file on the branch, or when a commit reachable from the branch head carries that task's
-partial identifier in its subject. The pipeline SHALL log the skipped task identifiers so the
-decision is auditable, and SHALL proceed normally when no task is complete.
+present, REUSE path), the pipeline SHALL skip the plan partials that are already complete. The
+authority for completeness SHALL remain the existing `partial-done` entries in
+`tickets.factory_phase_events` as evaluated by `read-partials`; no second progress mechanism SHALL
+be introduced. The pipeline SHALL log the skipped partial identifiers so the decision is auditable,
+and SHALL proceed with the full task list when no partial is complete.
 
 #### Scenario: A branch with two finished partials resumes at the third
 
-- **GIVEN** a `plan_staged` ticket whose `FACTORY-PLAN-REF` points at a branch carrying commits for
-  partials `p1` and `p2` of a four-partial plan
-- **WHEN** `scripts/factory/pipeline.js` enters the Implement phase on the REUSE path
-- **THEN** it implements only `p3` and `p4`, and logs that `p1` and `p2` were skipped as complete
+- **GIVEN** a `plan_staged` ticket whose plan ships four partials and whose ticket carries
+  `partial-done` phase events for `p1` and `p2`
+- **WHEN** `scripts/factory/pipeline.js` enters the Plan-Reuse step
+- **THEN** the resulting task list contains only `p3` and `p4`, and the skipped identifiers `p1` and
+  `p2` are logged
 
 #### Scenario: An untouched staged branch runs the full plan
 
-- **GIVEN** a `plan_staged` ticket whose branch carries only the plan-stage commit
-- **WHEN** the pipeline enters the Implement phase
-- **THEN** every task of the plan is implemented and no task is reported as skipped
-
-#### Scenario: Resume detection failure does not silently replay work
-
-- **GIVEN** the plan file cannot be read from the work branch
-- **WHEN** the pipeline attempts resume detection
-- **THEN** it records a `phase-event` noting that resume detection was unavailable rather than
-  proceeding as if no task were complete
+- **GIVEN** a `plan_staged` ticket with no `partial-done` phase events
+- **WHEN** the pipeline enters the Plan-Reuse step
+- **THEN** every partial of the plan is scheduled and no partial is reported as skipped
 
 ### Requirement: The partial manifest is read after the work tree exists
 
 The pipeline SHALL read the `tasks.d/` partial manifest of a reused plan only once the work tree
 for the reuse branch is present, so that a plan shipping partials drives the fan-out directly
 instead of falling back to a runtime LLM decompose. When no partial manifest exists, the LLM
-decompose SHALL remain the documented fallback.
+decompose SHALL remain the documented fallback, and the pipeline SHALL log that the fallback was
+taken so a silent regression to full-replay behaviour is visible in the run output.
 
 #### Scenario: A plan with partials uses them rather than an LLM decompose
 
@@ -47,7 +42,8 @@ decompose SHALL remain the documented fallback.
 
 - **GIVEN** a reused plan with no `tasks.d/` directory
 - **WHEN** the pipeline runs the Plan-Reuse step
-- **THEN** the LLM decompose produces the task list as before
+- **THEN** the LLM decompose produces the task list as before, and the run output states that the
+  partial manifest was absent
 
 ### Requirement: A branch owned by another work tree is deferred, not blocked
 

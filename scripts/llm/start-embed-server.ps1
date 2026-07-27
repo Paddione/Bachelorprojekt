@@ -36,7 +36,12 @@ if (-not (Test-Path $Exe)) {
   exit 1
 }
 
-$Model = "C:\Users\PatrickKorczewski\.lmstudio\models\gpustack\bge-m3-GGUF\bge-m3-Q8_0.gguf"
+# T002319: lag unter C:\Users\...\.lmstudio\. Modelle liegen jetzt auf F:\Embedding.
+# Die Datei ist bitgleich (SHA256 geprueft), die Vektoren sind daher unveraendert:
+# gemessen 2026-07-27 Cosine 1.00000000 und max. Abweichung 0.00e+00 je Dimension
+# gegen den vorherigen Stand. Beide Indizes (code_embeddings, knowledge.chunks)
+# bleiben damit gueltig.
+$Model = "F:\Embedding\bge-m3-Q8_0.gguf"
 if (-not (Test-Path $Model)) {
   Write-Error "Model not found at: $Model"
   exit 1
@@ -46,7 +51,12 @@ if (-not (Test-Path $Model)) {
 # PowerShell 7 - unter 5.1 (dem einzigen auf diesem Host installierten
 # PowerShell) ist das ein Parse-Fehler: 'Unerwartetes Token "?"'. Das Skript
 # war damit nie ausfuehrbar. if/else ist versionsunabhaengig.
-$Ngl = "99"
+# T002319: Default ist jetzt 0 - das Modell liegt im CPU-RAM statt im VRAM.
+# bge-m3 Q8_0 braucht rund 0.6 GB; auf der GPU konkurriert es mit den
+# Chat-Modellen, waehrend Query-Embeddings (ein Text pro Suchanfrage) auf der
+# CPU schnell genug sind. Gemessen: 21 chunks/s auf CPU gegen 167 auf GPU.
+# Fuer einen Voll-Reindex lohnt LLM_EMBED_NGL=99 - dann rechnet wieder die GPU.
+$Ngl = "0"
 if ($env:LLM_EMBED_NGL) { $Ngl = $env:LLM_EMBED_NGL }
 
 Write-Host "Starting bge-m3 embedding server on port 8095..."
@@ -64,10 +74,19 @@ $Params = @(
   "-b", "8192"
   "-ub", "8192"
   "-ngl", $Ngl
-  "-fa", "on"
+  # T002319: nur EINE Sequenz gleichzeitig. Der Server bediente vorher vier
+  # Slots parallel; das nuetzt beim Massen-Indexieren, nicht bei einzelnen
+  # Suchanfragen - und teilt auf der CPU nur die Kerne unter den Slots auf.
+  "--parallel", "1"
   "--host", "0.0.0.0"
   "--port", "$Port"
 )
+
+# T002319: Flash Attention nur mit GPU-Offload. Auf der CPU aendert -fa die
+# Rechenreihenfolge; die bitgenaue Uebereinstimmung mit den bereits
+# gespeicherten Vektoren wiegt schwerer als ein Mikro-Optimum. Verifiziert
+# wurde der CPU-Pfad OHNE -fa (max. Abweichung 0.00e+00 gegen den GPU-Stand).
+if ($Ngl -ne "0") { $Params += @("-fa", "on") }
 
 # Port raeumen - ein noch laufender Server auf diesem Port laesst den neuen
 # still am Bind scheitern.

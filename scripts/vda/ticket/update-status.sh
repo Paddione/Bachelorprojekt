@@ -30,6 +30,8 @@ main() {
   local driver="${TICKET_PHASE_DRIVER:-devflow}"
   case "$driver" in factory|devflow) ;; *) driver="devflow" ;; esac
 
+  _ticket_lock_guard "$id" || exit 7
+
   local pod
   pod=$(_pgpod)
 

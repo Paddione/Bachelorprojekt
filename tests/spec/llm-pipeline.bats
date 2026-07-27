@@ -203,6 +203,40 @@ assert_var_not_declared() {
 # PowerShell liefert dafür still $null, also wurde jede Scheduled Task mit leerem
 # Executable-Pfad registriert (/tr "" <args>) und konnte nichts starten — der
 # Grund, warum es faktisch keine Server-Persistenz gab.
+# ── gpt-oss-20b als Factory-Kandidat (T002268) ────────────────────────
+# Der Kandidat muss INERT bleiben, bis jemand bewusst umschaltet. Zwei
+# Invarianten sichern das ab: priority 1 (Bonsai steht auf 0, route-provider.sh
+# sortiert priority ASC) und KEIN Schreiben in tickets.factory_model_slots — das
+# ist der Phase-Pin, den route-provider.sh gegenueber provider_config bevorzugt.
+
+@test "start-gptoss-server.ps1 exists and serves port 8097 (T002268)" {
+  [ -f "$REPO/scripts/llm/start-gptoss-server.ps1" ]
+  run grep -qE '"--port",[[:space:]]*"8097"' "$REPO/scripts/llm/start-gptoss-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "start-gptoss-server.ps1 passes --jinja for tool_calls (T002268)" {
+  # Ohne --jinja liefert llama-server keine strukturierten tool_calls - und genau
+  # dafuer wurde dieser Kandidat ausgewaehlt (ifstruct-v1.0 91.95).
+  run grep -q '"--jinja"' "$REPO/scripts/llm/start-gptoss-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "provider-register-gptoss.sh registers at priority 1, not 0 (T002268)" {
+  [ -f "$REPO/scripts/factory/provider-register-gptoss.sh" ]
+  run grep -qE '^PRIORITY=1$' "$REPO/scripts/factory/provider-register-gptoss.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "provider-register-gptoss.sh does NOT write factory_model_slots (T002268)" {
+  # Es wird auf echtes DML geprueft, nicht auf die bloesse Erwaehnung des
+  # Tabellennamens: das Skript dokumentiert den Verzicht im Kommentar UND gibt
+  # am Ende einen Hinweis aus, wo man bewusst umschalten wuerde. Beides soll
+  # bleiben duerfen - nur ein INSERT/UPDATE/DELETE waere der Fehler.
+  run bash -c "grep -iE '(INSERT INTO|UPDATE|DELETE FROM)[[:space:]]+tickets\.factory_model_slots' '$REPO/scripts/factory/provider-register-gptoss.sh'"
+  [ "$status" -ne 0 ]
+}
+
 @test "register-scheduled-tasks.ps1 reads \$Task.Exe, not a nonexistent key (T002264)" {
   run grep -qE '\$Exe[[:space:]]*=[[:space:]]*\$Task\.Exe' "$REPO/scripts/llm/register-scheduled-tasks.ps1"
   [ "$status" -eq 0 ]

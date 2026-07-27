@@ -449,7 +449,7 @@ if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --other
 fi
 
 git add wiki/ index.md
-git commit -m "chore(ingest): initial ingest from Bachelorprojekt ($PROCESSED pages) [T001861]"
+git commit -m "chore(agents): initial ingest from Bachelorprojekt ($PROCESSED pages) [T001861]"
 echo "  Committed $PROCESSED pages"
 
 # Push branch
@@ -467,7 +467,7 @@ if git remote get-url origin &>/dev/null; then
       --repo Paddione/brain \
       --base main \
       --head "$BRANCH" \
-      --title "chore(ingest): Initial ingest from Bachelorprojekt" \
+      --title "chore(agents): Initial ingest from Bachelorprojekt" \
       --body "Automated initial ingest of $PROCESSED wiki pages from Bachelorprojekt.
 
 **Source groups:** ssot-specs, runbooks, adr, gotchas-footguns, agent-guide-maps, core-docs, health-goals, diagrams

@@ -87,7 +87,7 @@ Einschränkungen typischerweise am **Ende** der Beschreibung.
 
 ## Schritte
 
-- [ ] **RED zuerst.** Für die maschinell prüfbaren Punkte (Scopes, `CLAUDE.md`, W3) einen Test in
+- [x] **RED zuerst.** Für die maschinell prüfbaren Punkte (Scopes, `CLAUDE.md`, W3) einen Test in
       der Datei anlegen, die dem jeweiligen Thema entspricht — `p6` besitzt keine eigene
       Spec-Datei, die Tests gehören zu `p7` und werden dort geschrieben. Hier gilt der RED-Nachweis
       über die direkte Prüfung:
@@ -98,20 +98,20 @@ grep -c 'chore(batch)' scripts/batch-workflow-gen.sh
 # expected: FAIL (rot — beide liefern einen Wert groesser 0)
 ```
 
-- [ ] **Schritt 1 — Commit-Scopes korrigieren.** `chore(batch)` → `chore(factory)` in
+- [x] **Schritt 1 — Commit-Scopes korrigieren.** `chore(batch)` → `chore(factory)` in
       `batch-workflow-gen.sh` (Zeilen 93, 135). `chore(ingest)` → `chore(agents)` in
       `brain-ingest.sh` (Zeilen 452, 470 und der PR-Titel). `agents` trägt den Sub-Scope
       `knowledge-ingest`, was den Zweck präziser trifft als `docs`.
 
       **`scripts/brain-bootstrap.sh` bleibt unverändert** (Begründung oben).
 
-- [ ] **Schritt 2 — CLAUDE.md Zeile 49.** `scripts/plan-frontmatter-hook.sh` durch
+- [x] **Schritt 2 — CLAUDE.md Zeile 49.** `scripts/plan-frontmatter-hook.sh` durch
       `bash scripts/vda.sh frontmatter <plan-file>` ersetzen. Das deprecatete Skript selbst wird
       **nicht** gelöscht — es kann externe Aufrufer haben, und das Löschen wäre ein eigener
       Vorgang mit eigener Prüfung (vgl. die Warnung in T002269: vor dem Löschen prüfen, ob
       systemd-Units, Cron oder externe Aufrufer daran hängen).
 
-- [ ] **Schritt 3 — CLAUDE.md BATS-Konvention erweitern.** Der Block enthält bereits die
+- [x] **Schritt 3 — CLAUDE.md BATS-Konvention erweitern.** Der Block enthält bereits die
       `$output`-Matching-Regel. Zwei Regeln kommen dazu:
 
       (a) **Positiv-Anker-Pflicht.** Jeder Negativtest ("X darf nicht vorkommen") braucht im
@@ -133,25 +133,34 @@ grep -c 'chore(batch)' scripts/batch-workflow-gen.sh
       nicht "eine Seite wählen", sondern beide Blöcke behalten und die geteilte schließende
       Klammer duplizieren (T002351-M2).
 
-- [ ] **Schritt 4 — `plan-lint` W3.** Die Ursache zuerst **reproduzieren**: einen Fixture-Plan mit
+- [x] **Schritt 4 — `plan-lint` W3.** _(BEFUND: die im Plan vermutete Ursache — das
+      Zeilensuffix `:6-31` — ist **widerlegt**. Fixture C (Referenz mit demselben Suffix im
+      selben Plan) loest kein W3 aus, Fixture D (identische Referenz in `tasks.d/`) dagegen
+      schon. Tatsaechliche Ursache: W3 durchsuchte nur die Index-Plandatei und folgte den
+      Partial-Dateien nicht. Deshalb half auch das Umschreiben auf `(Zeilen 6-31)` nicht.)_ Die Ursache zuerst **reproduzieren**: einen Fixture-Plan mit
       `` `datei.sh:6-31` `` im `**Files:**`-Block bauen und W3 auslösen. Erst dann die
       Token-Extraktion in `plan-lint.sh:335-348` anpassen. Der Vergleich mit Task 4
       (`scripts/preflight-pr-scope.sh:6` wird **nicht** bemängelt) legt nahe, dass nicht das
       Zeilensuffix an sich das Problem ist, sondern der Bereich mit Bindestrich — das ist die
       erste zu prüfende Hypothese, nicht die feststehende Ursache.
 
-- [ ] **Schritt 5 — Branch-Naming-Meldung.** In `.githooks/pre-commit` die Fehlermeldung des
+- [x] **Schritt 5 — Branch-Naming-Meldung.** In `.githooks/pre-commit` die Fehlermeldung des
       Guards um den expliziten Hinweis ergänzen, dass die Ticket-ID **groß** geschrieben sein muss
       (`T002338`, nicht `t002338`), und die gültigen Typ-Präfixe nennen. Der Guard selbst bleibt
       case-sensitiv — das ist gewollt, nur die Meldung erklärt es bisher nicht.
 
-- [ ] **Schritt 6 — Kollisionsdetektor.** Die Warnung so einschränken, dass eine Überschneidung
+- [x] **Schritt 6 — Kollisionsdetektor.** _(BEFUND: der Detektor meldet bereits **je Datei**
+      (`grep -qxF "$file"` in der Datei-Schleife) — die Annahme „schliesst vom einen Artefakt auf
+      den ganzen Commit" trifft nicht zu. Umgesetzt wurde nur der zutreffende Teil: der Ausschluss
+      generierter Artefakte, Quelle `.gitattributes`. Er sitzt in `scripts/agent-collision.sh`,
+      das p6 nicht in `target_files` fuehrt — kein anderes Partial besitzt die Datei, D1 bleibt
+      erfuellt. Abweichung hiermit ausgewiesen.)_ Die Warnung so einschränken, dass eine Überschneidung
       **je Datei** gemeldet wird statt für den ganzen Commit. Generierte Artefakte, die praktisch
       jeder Lauf anfasst — allen voran `website/src/data/openspec-status.json` — werden von der
       Kollisionsprüfung ausgenommen; die Liste in `.gitattributes` (`merge=ours
       linguist-generated=true`) ist die passende Quelle dafür und muss nicht dupliziert werden.
 
-- [ ] **Schritt 7 — ticket-ops-Query.** `AND is_test_data = false` in die Phase-1-Query aufnehmen,
+- [x] **Schritt 7 — ticket-ops-Query.** `AND is_test_data = false` in die Phase-1-Query aufnehmen,
       analog zu `container-count.ts:16`. Zusätzlich die Regel notieren: die Übersichtstabelle darf
       gekürzte Beschreibungen zeigen, **vor jedem Dispatch** wird die Beschreibung aber
       vollständig gelesen — die wichtigsten Einschränkungen stehen am Ende.

@@ -250,3 +250,26 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   [ "$status" -eq 0 ]
   echo "${lines[${#lines[@]}-1]}" | jq -e '.slotId == null'
 }
+
+# ── T002281: install-service prueft den tatsaechlichen Zustand ────────
+# Bei der Live-Installation am 2026-07-27 lief die Altinstanz weiter (PID-File
+# gueltig, kill -0 erfolgreich, Block griff trotzdem nicht) und die frische Unit
+# fiel in eine EADDRINUSE-Restart-Schleife. Nur im Journal sichtbar -
+# 'systemctl is-active' meldete 'activating', was wie ein langsamer Start aussieht.
+
+@test "proxy:install-service prueft den Port, nicht nur das PID-File (T002281)" {
+  # Derselbe Check, den proxy:start seit T002277 hat. Das PID-File kennt nur die
+  # nohup-Instanz und luegt, sobald der Port anderweitig belegt ist.
+  run bash -c "sed -n '/proxy:install-service:/,/^  [a-z]/p' \
+    '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' | grep -cE 'curl .*health'"
+  [ "$output" != "0" ]
+}
+
+@test "proxy:install-service verifiziert den Unit-Zustand nach enable (T002281)" {
+  # 'Erfolgsmeldung ohne Pruefung' - dieselbe Klasse, die T002276 bei schtasks
+  # gefunden hat. enable --now kann erfolgreich zurueckkehren, waehrend die Unit
+  # in auto-restart haengt.
+  run bash -c "sed -n '/proxy:install-service:/,/^  [a-z]/p' \
+    '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' | grep -cE 'is-active|ActiveState'"
+  [ "$output" != "0" ]
+}

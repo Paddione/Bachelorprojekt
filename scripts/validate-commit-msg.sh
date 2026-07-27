@@ -65,10 +65,27 @@ load_allowed_scopes() {
 
 ALLOWED_SCOPES="$(load_allowed_scopes)"
 
+# Gezielte Diagnose für einen abgelehnten Scope aus commitlint.config.cjs
+# (SSOT, T002328). Deckt die drei Fälle ab, in denen wir den Zielnamen kennen:
+# konsolidiert (admin -> website), entfallen (tracking) und Quality-Goal-Code
+# (cq07 -> G-CQ07). Leere Ausgabe = nichts Genaueres bekannt, dann greift
+# suggest_scope. Der Scope geht als process.argv[1] hinein statt in den
+# node -e-String interpoliert zu werden — sonst könnte ein Scope mit
+# Anführungszeichen den Ausdruck zerlegen.
+scope_hint() {
+  local scope="$1"
+  if command -v node >/dev/null 2>&1 && [ -f "$CONFIG" ]; then
+    node -e "
+      const cfg = require('$CONFIG');
+      const fn = cfg.scopeHint;
+      process.stdout.write(typeof fn === 'function' ? fn(process.argv[1]) : '');
+    " "$scope" 2>/dev/null
+  fi
+}
+
 # "Did you mean" — find the nearest valid scope for an unknown one [T002240].
-# With ~94 named scopes, "unknown scope 'agents'" plus a pointer to another
-# command costs a round trip for what is usually a plain prefix typo
-# (agents -> agent-guide). Matching is deliberately conservative: only
+# Greift für Scopes, die scope_hint() nicht kennt: echte Tippfehler
+# (websitex -> website). Matching is deliberately conservative: only
 # prefix/substring relationships count, so a genuinely novel scope produces no
 # misleading suggestion at all.
 suggest_scope() {
@@ -161,8 +178,14 @@ validate_subject() {
       done
       if [ "$ok" -ne 0 ]; then
         echo "  ✗ ${label}unknown scope '${scope}': ${subject}" >&2
-        local _suggestion
-        if _suggestion="$(suggest_scope "$scope")" && [ -n "$_suggestion" ]; then
+        # Der Hint hat Vorrang: suggest_scope liefert für 'admin' nur eine
+        # Prefix-Antwort ohne Aussagekraft, während die Alias-Map den
+        # tatsächlichen Zielnamen kennt (T002328).
+        local _hint _suggestion
+        _hint="$(scope_hint "$scope")"
+        if [ -n "$_hint" ]; then
+          echo "    ↳ ${_hint}" >&2
+        elif _suggestion="$(suggest_scope "$scope")" && [ -n "$_suggestion" ]; then
           echo "    ↳ did you mean '${_suggestion}'?" >&2
         fi
         return 1

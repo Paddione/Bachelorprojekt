@@ -11,7 +11,7 @@ export const POST: APIRoute = async ({ request }) => {
   const body = await request.json() as { externalId: string; resolution: string };
   const r = await pool.query(
     `SELECT external_id, reporter_email FROM tickets.tickets
-      WHERE type = 'bug' AND external_id = $1`, [body.externalId]);
+      WHERE type IN ('bug','fix') AND external_id = $1`, [body.externalId]);
   if (r.rowCount === 0) return new Response('not found', { status: 404 });
   const t = r.rows[0];
   if (!t.reporter_email) return new Response(JSON.stringify({ ok: true, skipped: true }),

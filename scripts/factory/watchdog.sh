@@ -24,7 +24,7 @@ STALE_MIN="${FACTORY_STALE_MIN:-30}"
 # (T002361). At the 30-minute default that is ~90 minutes before a human is asked.
 MAX_ATTEMPTS="${FACTORY_MAX_ATTEMPTS:-3}"
 
-mapfile -t stale < <(printf "SELECT external_id, type FROM tickets.tickets WHERE type IN ('feature','task') AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" "$STALE_MIN" | factory_psql)
+mapfile -t stale < <(printf "SELECT external_id, type FROM tickets.tickets WHERE type IN ('feature','feat','task','chore') AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" "$STALE_MIN" | factory_psql)
 
 # Zombie-Worktree-Cleanup: a hung pipeline leaves .worktrees/sf-* behind. Remove the
 # worktree whose branch matches this ticket (idempotent; never fails the loop).
@@ -144,7 +144,7 @@ done
 
 # ── awaiting_deploy staleness (>24h) ──────────────────────────────────────
 AD_STALE_H="${FACTORY_AD_STALE_H:-24}"
-mapfile -t ad_stale < <(printf "SELECT external_id FROM tickets.tickets WHERE type='feature' AND status='awaiting_deploy' AND updated_at < now() - make_interval(hours => %s);" "$AD_STALE_H" | factory_psql)
+mapfile -t ad_stale < <(printf "SELECT external_id FROM tickets.tickets WHERE type IN ('feature','feat') AND status='awaiting_deploy' AND updated_at < now() - make_interval(hours => %s);" "$AD_STALE_H" | factory_psql)
 
 for ext_id in "${ad_stale[@]}"; do
   [[ -z "$ext_id" ]] && continue

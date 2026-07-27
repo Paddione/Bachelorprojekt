@@ -47,7 +47,7 @@ factory_resolve
 READY_IDS=$(cat <<'SQL' | factory_psql 2>/dev/null || echo ""
 SELECT COALESCE(json_agg(external_id), '[]')
 FROM tickets.tickets
-WHERE type='feature'
+WHERE type IN ('feature','feat')
   AND status='plan_staged'
   AND (readiness->>'spec_skizziert')::boolean IS TRUE
   AND (readiness->>'abhaengigkeiten_klar')::boolean IS TRUE

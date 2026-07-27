@@ -141,7 +141,7 @@ export async function getLoadingDock(slotsUsed: number, slotsCap: number): Promi
   const r = await pool.query<{ external_id: string; title: string; priority: string; retry_count: number | null }>(
     `SELECT external_id, title, priority, retry_count
        FROM tickets.tickets
-      WHERE type = 'feature' AND status = 'backlog' AND pipeline_slot IS NULL
+      WHERE type IN ('feature','feat') AND status = 'backlog' AND pipeline_slot IS NULL
       ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 END,
                created_at`,
   );
@@ -259,7 +259,7 @@ export async function getStaged(limit = 12): Promise<StagedItem[]> {
           WHERE body LIKE 'FACTORY-PLAN-REF %'
           ORDER BY ticket_id, created_at DESC
        ) c ON c.ticket_id = t.id
-      WHERE t.type = 'feature' AND t.status = 'plan_staged'
+      WHERE t.type IN ('feature','feat') AND t.status = 'plan_staged'
       ORDER BY CASE t.priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 ELSE 4 END,
                t.created_at DESC
       LIMIT $1::int`,
@@ -308,7 +308,7 @@ export async function releaseToBacklog(extId: string): Promise<boolean> {
   const r = await pool.query(
     `UPDATE tickets.tickets
         SET status = 'backlog', updated_at = now()
-      WHERE external_id = $1 AND type = 'feature' AND status = 'plan_staged'`,
+      WHERE external_id = $1 AND type IN ('feature','feat') AND status = 'plan_staged'`,
     [extId],
   );
   return (r.rowCount ?? 0) > 0;
@@ -321,7 +321,7 @@ export async function deployFromAwaiting(extId: string): Promise<boolean> {
   const r = await pool.query(
     `UPDATE tickets.tickets
         SET status = 'done', resolution = 'shipped', done_at = now(), updated_at = now()
-      WHERE external_id = $1 AND type = 'feature' AND status = 'awaiting_deploy'`,
+      WHERE external_id = $1 AND type IN ('feature','feat') AND status = 'awaiting_deploy'`,
     [extId],
   );
   return (r.rowCount ?? 0) > 0;

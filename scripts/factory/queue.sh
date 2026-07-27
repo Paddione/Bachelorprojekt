@@ -25,20 +25,26 @@ FROM (
       -- lastenheft_locked (default false) and execution_released (default true).
       --
       -- Feature backlog: Lastenheft-locked (requirements firm = AI-ready).
-      (type='feature' AND status='backlog'
+      -- Stays a positive list — this lane hangs on "feature", not on "any kind of
+      -- work". Dual vocabulary during the T002329 transition: 'feature' → 'feat'.
+      (type IN ('feature','feat') AND status='backlog'
        AND COALESCE((readiness->>'lastenheft_locked')::boolean, false) = true
        AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false)
-      -- Staged chore/task and bug tickets (mishap-tracker auto-plans, dev-flow-plan
-      -- fix plans): the plan is already authored + lint-gated by stage-plan, so no
-      -- lastenheft gate applies.
-      -- execution_released=true is the default (backward-compatible: only tickets
-      -- explicitly held via stage-plan --hold are excluded from dispatch).
+      -- Staged tickets of any workable type (e.g. mishap-tracker auto-plans): the
+      -- plan is already authored + lint-gated by stage-plan, so no lastenheft gate
+      -- applies. execution_released=true is the default (backward-compatible: only
+      -- tickets explicitly held via stage-plan --hold are excluded from dispatch).
+      -- Exclusion list, not a whitelist [T002329/T002333]: a staged type='bug'
+      -- ticket was invisible to the dispatcher because only 'task' was listed. With
+      -- ten types instead of four that gap gets likelier, so the lane names the one
+      -- type that is never worked on itself — 'project' (the epic).
       --
-      -- type='bug' joined this branch in T002333 rather than getting its own OR
-      -- branch. A separate branch would have to repeat both readiness gates below,
-      -- and that is exactly how they drift apart — T002361 existed because one gate
-      -- was present in only one of the two branches. One branch, one set of gates.
-      OR (type IN ('task','bug') AND status='plan_staged'
+      -- Rebase-Auflösung 2026-07-28: dieser Branch entstand VOR T002333/T002361 und
+      -- kannte den factory_excluded-Gate noch nicht. Übernommen wird das neue
+      -- Vokabular UND beide Gates — genau das, wovor der Kommentar oben warnt
+      -- ("one branch, one set of gates"). Ohne den Gate hätte sich T002329, das
+      -- selbst factory_excluded=true trägt, nach dem Merge wieder selbst dispatcht.
+      OR (type <> 'project' AND status='plan_staged'
           AND COALESCE((readiness->>'execution_released')::boolean, true) = true
           AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false)
     )

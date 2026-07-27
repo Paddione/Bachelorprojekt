@@ -71,7 +71,7 @@ export async function listOffice(): Promise<OfficeItem[]> {
             planning_rank, readiness, pinned, created_at, updated_at, requirements_list,
             grilling_meta
        FROM tickets.tickets
-      WHERE type = 'feature' AND status = 'planning'
+      WHERE type IN ('feature','feat') AND status = 'planning'
       ORDER BY pinned DESC, COALESCE(planning_rank, 2147483647), created_at`,
   );
   return r.rows.map(mapRow);
@@ -85,7 +85,7 @@ export async function createIdea(inp: CreateInput): Promise<string> {
   const r = await pool.query(
     `INSERT INTO tickets.tickets
        (type, brand, title, status, value_prop, priority, effort, areas, planning_rank, readiness)
-     VALUES ('feature', $1, $2, 'planning', $3, COALESCE($4,'mittel'), $5, $6,
+     VALUES ('feat', $1, $2, 'planning', $3, COALESCE($4,'mittel'), $5, $6,
        (SELECT COALESCE(MAX(planning_rank),0)+1 FROM tickets.tickets WHERE status='planning'),
        '{}'::jsonb)
      RETURNING external_id`,
@@ -179,7 +179,7 @@ export async function promoteItem(extId: string, override: boolean): Promise<{ o
 
 export async function officeCount(): Promise<number> {
   const r = await pool.query(
-    `SELECT COUNT(*)::int AS n FROM tickets.tickets WHERE type='feature' AND status='planning'`,
+    `SELECT COUNT(*)::int AS n FROM tickets.tickets WHERE type IN ('feature','feat') AND status='planning'`,
   );
   return r.rows[0]?.n ?? 0;
 }
@@ -246,7 +246,9 @@ export async function clarifyItem(
 
 // ── T000933: Triage apply/discard ─────────────────────────────────────────
 
-const VALID_TYPES = ['bug', 'feature', 'task', 'project'];
+// Dual-Vokabular [T002329]: Altwerte bleiben gueltig bis Teil D (T002331).
+const VALID_TYPES = ['fix', 'feat', 'chore', 'project', 'docs', 'refactor',
+  'perf', 'test', 'ci', 'build', 'bug', 'feature', 'task'];
 const VALID_PRIORITIES = ['hoch', 'mittel', 'niedrig'];
 const VALID_SEVERITIES = ['critical', 'major', 'minor', 'trivial'];
 

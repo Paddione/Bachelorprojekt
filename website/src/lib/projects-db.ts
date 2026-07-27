@@ -131,7 +131,7 @@ const PROJECT_SELECT = `
             WHERE sp.parent_id = t.id AND sp.type = 'project') AS "subProjectCount",
          (SELECT COUNT(*)::int FROM tickets.tickets pt
             LEFT JOIN tickets.tickets sp ON sp.id = pt.parent_id AND sp.type = 'project'
-           WHERE pt.type = 'task'
+           WHERE pt.type IN ('task','chore')
              AND (pt.parent_id = t.id OR sp.parent_id = t.id)) AS "taskCount",
          t.created_at   AS "createdAt",  t.updated_at AS "updatedAt"
   FROM tickets.tickets t
@@ -157,7 +157,7 @@ const SUBPROJECT_SELECT = `
          sp.assignee_id AS "adminId",
          a.name         AS "adminName",   a.email AS "adminEmail",
          (SELECT COUNT(*)::int FROM tickets.tickets pt
-            WHERE pt.type = 'task' AND pt.parent_id = sp.id) AS "taskCount",
+            WHERE pt.type IN ('task','chore') AND pt.parent_id = sp.id) AS "taskCount",
          sp.created_at AS "createdAt", sp.updated_at AS "updatedAt"
   FROM tickets.tickets sp
   LEFT JOIN customers c ON sp.customer_id = c.id
@@ -361,7 +361,7 @@ export async function listDirectTasks(projectId: string): Promise<ProjectTask[]>
   await initTicketsSchema();
   const result = await pool.query(
     `${TASK_SELECT}
-     WHERE pt.type='task'
+     WHERE pt.type IN ('task','chore')
        AND pt.parent_id = $1
        AND parent.parent_id IS NULL
      ${TASK_ORDER}`,
@@ -374,7 +374,7 @@ export async function listSubProjectTasks(subProjectId: string): Promise<Project
   await initTicketsSchema();
   const result = await pool.query(
     `${TASK_SELECT}
-     WHERE pt.type='task' AND pt.parent_id=$1
+     WHERE pt.type IN ('task','chore') AND pt.parent_id=$1
      ${TASK_ORDER}`,
     [subProjectId]
   );
@@ -396,7 +396,7 @@ export async function createProjectTask(params: {
     `INSERT INTO tickets.tickets
        (type, parent_id, brand, title, description, notes, start_date, due_date,
         status, resolution, priority, customer_id, assignee_id)
-     VALUES ('task', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+     VALUES ('chore', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
     [parentId, parent.rows[0].brand, params.name,
      params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
@@ -417,7 +417,7 @@ export async function updateProjectTask(id: string, params: {
        SET title=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
            status=$7, resolution=$8, priority=$9,
            customer_id=$10, assignee_id=$11, updated_at=now()
-     WHERE id=$1 AND type='task'`,
+     WHERE id=$1 AND type IN ('task','chore')`,
     [id, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
      m.status, m.resolution, params.priority,
@@ -426,5 +426,5 @@ export async function updateProjectTask(id: string, params: {
 }
 
 export async function deleteProjectTask(id: string): Promise<void> {
-  await pool.query(`DELETE FROM tickets.tickets WHERE id=$1 AND type='task'`, [id]);
+  await pool.query(`DELETE FROM tickets.tickets WHERE id=$1 AND type IN ('task','chore')`, [id]);
 }

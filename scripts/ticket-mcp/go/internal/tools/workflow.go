@@ -113,7 +113,7 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 		mcp.NewTool("create_ticket",
 			mcp.WithDescription("Legt ein Ticket an. Gibt 'external_id|uuid' zurück (Skills parsen cut -d'|' -f1)."),
 			mcp.WithString("type", mcp.Description("bug|feature|task|project"),
-				mcp.Enum("bug", "feature", "task", "project"), mcp.Required()),
+				mcp.Enum("fix", "feat", "chore", "project", "docs", "refactor", "perf", "test", "ci", "build", "bug", "feature", "task"), mcp.Required()),
 			mcp.WithString("title", mcp.Description("Ticket-Titel"), mcp.Required()),
 			mcp.WithString("description", mcp.Description("Beschreibung (Pflicht in create.sh)"), mcp.Required()),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),

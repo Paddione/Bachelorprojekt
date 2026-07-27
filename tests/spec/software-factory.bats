@@ -2119,11 +2119,17 @@ STUB
 }
 
 # ── FA-SF-52: mishap auto-chore-plan factory plumbing [T001844] ──────────────#
-@test "FA-SF-52: queue.sh also selects plan_staged task and bug tickets" {
-  # T002333 widened this branch from type='task' to type IN ('task','bug') — the
-  # staged plan is the contract for both types, so both bypass the lastenheft gate.
-  run grep -Eq "type IN \('task','bug'\) AND status='plan_staged'" scripts/factory/queue.sh
-  [ "$status" -eq 0 ]
+@test "FA-SF-52: queue.sh also selects plan_staged tickets" {
+  # Die Zusage ist "gestagte Tickets erreichen den Dispatcher", nicht die konkrete
+  # Formulierung. T002329/T002333 hat die Whitelist (`type='task'`) durch eine
+  # Ausschlussliste ersetzt, weil ein gestagtes type='bug' sonst unsichtbar blieb —
+  # mit zehn statt vier Typen wird diese Luecke wahrscheinlicher. Der Guard prueft
+  # daher die Lane, nicht ihren Wortlaut.
+  local lane
+  lane=$(sed -n "/status='plan_staged'/p" scripts/factory/queue.sh)
+  [ -n "$lane" ]
+  # 'project' (das Epic) ist der einzige Typ, der nie selbst bearbeitet wird.
+  echo "$lane" | grep -Eq "type <> 'project'|type='task'"
 }
 
 @test "FA-SF-52: slots.sh claim allows plan_staged status" {
@@ -3435,7 +3441,10 @@ STUB
 @test "T001444: stage-plan auto-emits scout/design/plan done" {
   CAP_FILE="$(mktemp)"; export CAP_FILE
   _pt_capture_stub
-  # T002347: Der Change-Ordner entsteht in BATS_TEST_TMPDIR, nicht im Worktree.
+  # T002347 (+T002368, dort per mktemp gelöst — beim Rebase 2026-07-28 zugunsten
+  # dieser Fassung verworfen: BATS_TEST_TMPDIR raeumt BATS selbst ab, waehrend das
+  # rm -rf der mktemp-Variante bei genau dem SIGTERM ausfaellt, den sie adressiert).
+  # Der Change-Ordner entsteht in BATS_TEST_TMPDIR, nicht im Worktree.
   # Vorher legte der Test openspec/changes/x direkt im Repo an und raeumte ihn
   # per rm -rf wieder weg — bei SIGTERM oder Timeout lief dieses rm nie, und der
   # halbe Change-Ordner blieb ungetrackt liegen. Parallel laufende Validierungen
@@ -4301,6 +4310,18 @@ EOF
   # Nur vollstaendige Aufrufe pruefen (erkennbar an --provider): unvollstaendige enden
   # in usage() vor jedem DB-Zugriff und sind unbedenklich.
   run bash -c "grep -E 'provider-config\.sh set .*--provider' '$REPO/tests/spec/software-factory.bats' | grep -vcE '\-\-dry-run'"
+  [ "$output" = "0" ]
+}
+
+@test "T002368: kein Test legt ein Change-Verzeichnis im echten openspec/ an" {
+  # Verallgemeinert den T002281-Guard eine Ebene hoeher: dort ging es um EINE
+  # Datei, hier um das Muster. Ein relativ angelegtes openspec/changes/<slug>
+  # ist unter `bats -j 6` fuer den validateTree('openspec')-Test in
+  # openspec-workflow.bats sichtbar, der dann 'missing specs/ delta dir' meldet
+  # -- sporadisch rot, ohne Bezug zur eigentlichen Aenderung (PR #3400).
+  # Plan-/Fixture-Pfade gehoeren nach mktemp.
+  # Die grep-Zeilen dieses Guards selbst sind ueber '| grep' ausgenommen.
+  run bash -c "grep -rE 'mkdir -p .?openspec/changes' '$REPO/tests/spec/' | grep -vc 'grep'"
   [ "$output" = "0" ]
 }
 

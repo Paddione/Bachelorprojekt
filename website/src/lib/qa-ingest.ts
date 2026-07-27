@@ -51,7 +51,7 @@ export async function closeQaTicketsBySlug(results: E2ETestResult[]): Promise<st
        FROM tickets.tickets t
        JOIN tickets.ticket_comments c ON c.ticket_id = t.id
        WHERE t.status IN ('qa_review', 'awaiting_deploy')
-         AND t.type = 'feature'
+         AND t.type IN ('feature','feat')
          AND c.body LIKE 'FACTORY-PLAN-REF %'
          AND substring(c.body FROM 'branch=feature/([^ ]+)') = ANY($1)`,
       [allSlugs],

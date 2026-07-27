@@ -14,7 +14,7 @@ main() {
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
   _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
-UPDATE tickets.tickets SET type='feature', status='backlog' WHERE external_id = :'ext_id';
+UPDATE tickets.tickets SET type='feat', status='backlog' WHERE external_id = :'ext_id';
 EOF
   if [[ -n "$branch" || -n "$plan" ]]; then
     _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
@@ -28,7 +28,7 @@ SELECT t.id, 'factory', :'ref', 'internal'
    );
 EOF
   fi
-  echo "Ticket $id enqueued for the Software Factory (type=feature, status=backlog)"
+  echo "Ticket $id enqueued for the Software Factory (type=feat, status=backlog)"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

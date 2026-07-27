@@ -68,7 +68,7 @@ export async function listProjectsForCustomer(keycloakUserId: string): Promise<P
               pt.customer_id
          FROM tickets.tickets pt
          LEFT JOIN tickets.tickets sp ON sp.id = pt.parent_id AND sp.type = 'project'
-        WHERE pt.type='task' AND (pt.parent_id = $1 OR sp.parent_id = $1)
+        WHERE pt.type IN ('task','chore') AND (pt.parent_id = $1 OR sp.parent_id = $1)
         ORDER BY pt.created_at ASC`,
       [p.id],
     );
@@ -100,7 +100,7 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
   const customerId = cust.rows[0].id;
 
   const task = await pool.query<{ status: string }>(
-    `SELECT status FROM tickets.tickets WHERE id = $1 AND type='task' AND customer_id = $2`,
+    `SELECT status FROM tickets.tickets WHERE id = $1 AND type IN ('task','chore') AND customer_id = $2`,
     [taskId, customerId],
   );
   if (!task.rows[0]) return { ok: false };
@@ -113,7 +113,7 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
         SET status = $1, resolution = $2,
             done_at = CASE WHEN $1 = 'done' THEN now() ELSE NULL END,
             updated_at = now()
-      WHERE id = $3 AND type='task'`,
+      WHERE id = $3 AND type IN ('task','chore')`,
     [newStatus, newResolution, taskId],
   );
   return { ok: true };

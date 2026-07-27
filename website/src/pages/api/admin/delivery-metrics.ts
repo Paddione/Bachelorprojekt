@@ -79,14 +79,14 @@ export const GET: APIRoute = async ({ request , locals }) => {
            FROM tickets.tickets t
            JOIN tickets.ticket_links l ON l.from_id = t.id AND l.kind = 'pr' AND l.pr_number IS NOT NULL
            JOIN tickets.pr_events pe ON pe.pr_number = l.pr_number
-          WHERE t.type = 'feature' AND t.status = 'done'
+          WHERE t.type IN ('feature','feat') AND t.status = 'done'
             AND t.done_at >= now() - ${interval}
           ORDER BY t.done_at DESC LIMIT 200`,
       ),
       pool.query(
         `SELECT COUNT(*)::int AS bug_count
            FROM tickets.tickets
-          WHERE type = 'bug' AND status = 'done'
+          WHERE type IN ('bug','fix') AND status = 'done'
             AND done_at >= now() - ${interval}`,
       ),
       pool.query(

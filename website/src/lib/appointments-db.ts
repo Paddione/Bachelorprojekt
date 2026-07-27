@@ -66,7 +66,7 @@ export async function listTasksInMonth(year: number, month: number): Promise<Cal
      FROM tickets.tickets pt
      LEFT JOIN tickets.tickets parent ON parent.id = pt.parent_id
      LEFT JOIN tickets.tickets root   ON root.id   = parent.parent_id
-     WHERE pt.type='task'
+     WHERE pt.type IN ('task','chore')
        AND pt.due_date BETWEEN $1::date AND $2::date
      ORDER BY pt.due_date ASC, pt.priority DESC`,
     [firstDay, lastDay]

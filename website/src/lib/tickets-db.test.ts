@@ -22,9 +22,11 @@ describe('factory: inert pg_notify trigger on feature inserts', () => {
     expect(ALL_SRC).toContain('factory_feature_inserted') // NOTIFY channel name
   })
 
-  it('fires AFTER INSERT only for type=feature', () => {
+  it('fires AFTER INSERT only for feature types, in both vocabularies', () => {
+    // T002329: 'feature' → 'feat'. Ohne den zweiten Wert wäre der Trigger nach
+    // der Datenmigration dauerhaft stumm.
     expect(ALL_SRC).toMatch(/AFTER INSERT ON tickets\.tickets/)
-    expect(ALL_SRC).toMatch(/WHEN \(NEW\.type = 'feature'\)/)
+    expect(ALL_SRC).toMatch(/WHEN \(NEW\.type IN \('feature','feat'\)\)/)
   })
 
   it('documents that the trigger is NOT consumed in Phase 3', () => {

@@ -20,7 +20,7 @@ func RegisterTriageTools(s *server.MCPServer) {
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
 			mcp.WithString("type", mcp.Description("bug, feature, task, project"),
-				mcp.Enum("bug", "feature", "task", "project")),
+				mcp.Enum("fix", "feat", "chore", "project", "docs", "refactor", "perf", "test", "ci", "build", "bug", "feature", "task")),
 			mcp.WithString("severity", mcp.Description("critical, major, minor, trivial"),
 				mcp.Enum("critical", "major", "minor", "trivial")),
 			mcp.WithString("priority", mcp.Description("hoch, mittel, niedrig"),
@@ -44,7 +44,7 @@ func RegisterTriageTools(s *server.MCPServer) {
 			component, _ := a["component"].(string)
 			status, _ := a["status"].(string)
 
-			validTypes := []string{"bug", "feature", "task", "project"}
+			validTypes := []string{"fix", "feat", "chore", "project", "docs", "refactor", "perf", "test", "ci", "build", "bug", "feature", "task"}
 			if mtype != "" && !slices.Contains(validTypes, mtype) {
 				return mcp.NewToolResultError(fmt.Sprintf("Ungültiger type: %s. Erlaubt: %s", mtype, strings.Join(validTypes, ", "))), nil
 			}

@@ -42,8 +42,10 @@ main() {
   if [[ -n "$status" ]] && ! [[ " $_VALID_STATUSES " == *" ${status,,} "* ]]; then
     vda_error "Invalid status: $status (triage|planning|plan_staged|backlog|in_progress|in_review|qa_review|awaiting_deploy|blocked|done|archived)"; exit 2
   fi
-  if [[ -n "$type" ]] && ! [[ " bug feature task project " == *" ${type,,} "* ]]; then
-    vda_error "Invalid type: $type (bug|feature|task|project)"; exit 2
+  # Dual-Vokabular waehrend des Uebergangs [T002329]: die drei Altwerte bleiben
+  # gueltig, bis Teil D (T002331) sie aus dem DB-CHECK entfernt.
+  if [[ -n "$type" ]] && ! [[ " fix feat chore project docs refactor perf test ci build bug feature task " == *" ${type,,} "* ]]; then
+    vda_error "Invalid type: $type (fix|feat|chore|project|docs|refactor|perf|test|ci|build — legacy: bug|feature|task)"; exit 2
   fi
   if [[ -n "$attention_mode" ]] && ! [[ " auto ai_ready needs_human " == *" ${attention_mode,,} "* ]]; then
     vda_error "Invalid attention_mode: $attention_mode (auto|ai_ready|needs_human)"; exit 2

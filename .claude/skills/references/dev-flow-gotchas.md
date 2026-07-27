@@ -57,9 +57,12 @@ force-push to unstick.
 `git fetch origin main && git rebase origin/main && task freshness:regenerate && git add <regenerated files> && git rebase --continue && git push --force-with-lease`. `scripts/devflow-ci-watch.sh` already self-services a plain `DIRTY` rebase (see its preflight block); `CONFLICTING` from this specific race needs the regenerate step added in, since a bare rebase won't reproduce the artifact the auto-regen job would have produced.
 
 ### [T001395] Check the commit-scope SSOT allowlist BEFORE the first commit
-**Context**: The `<type>(<scope>): <subject>` allowlist is curated on purpose (SSOT: the `scopes:` list
-loaded by `.github/workflows/ci.yml`'s commit-lint job, mirrored by `scripts/validate-commit-msg.sh
-scopes` and enforced pre-push by `.githooks/pre-push` / `scripts/preflight-pr-scope.sh`). Every
+**Context**: The `<type>(<scope>): <subject>` allowlist is curated on purpose (SSOT: `namedScopes` in
+`commitlint.config.cjs`, printed by `scripts/validate-commit-msg.sh scopes` and enforced pre-push by
+`.githooks/pre-push` / `scripts/preflight-pr-scope.sh`). Since T002328 the list holds 14 entries and a
+consolidated old name is rejected with its target named in the diagnostic. Note that `ci.yml` is
+**not** a source — it says so itself ("Scopes are NOT enforced here"); the claim that it loaded a
+`scopes:` list survived here as stale documentation until T002328. Every
 existing dev-flow skill only runs `preflight-pr-scope.sh` right before `gh pr create` — i.e. **after**
 the implementation commit(s) already landed with whatever scope was guessed. During T001378 an
 implementer subagent committed with `installer`/`rustdesk` (neither registered), which was only

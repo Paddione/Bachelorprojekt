@@ -1629,6 +1629,12 @@
       "status": "archived"
     }
   ],
+  "T002254": [
+    {
+      "slug": "flux-bootstrap-secrets-ssot-T002254",
+      "status": "plan_staged"
+    }
+  ],
   "T002255": [
     {
       "slug": "2026-07-27-devflow-selection-archive-hardening",

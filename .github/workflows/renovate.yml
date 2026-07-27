@@ -124,6 +124,16 @@ jobs:
           IMAGE='ghcr.io/renovatebot/renovate:43@sha256:2a4e6df0330b0aa42b21f40589666b678bbd19bcd9a14c3c24ce0492c237c2ff'
           MAX_ATTEMPTS=3
           mkdir -p /tmp/renovate-cache
+          # The runner owns this directory (it creates it, and actions/cache
+          # restores into it as `runner`), but the Renovate container runs under a
+          # different UID and needs to write here — without this it dies with
+          # `EACCES: mkdir '/tmp/renovate-cache/containerbase'` before it ever
+          # reaches a repository (T002289, run 30240257345). Mode instead of
+          # chown-to-a-fixed-UID on purpose: it survives an image that changes its
+          # user. Wide permissions are acceptable on an ephemeral single-tenant
+          # runner under /tmp; the post-run chown below hands ownership back so
+          # the actions/cache post step can pack the directory.
+          chmod -R a+rwX /tmp/renovate-cache
 
           success=0
           for attempt in $(seq 1 "$MAX_ATTEMPTS"); do

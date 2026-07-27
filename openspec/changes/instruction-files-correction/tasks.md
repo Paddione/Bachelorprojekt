@@ -36,6 +36,27 @@ verloren geht: jede GEMINI-exklusive Sektion existiert bereits an anderer Stelle
 | `tests/spec/agent-skills.bats` | Vier neue `@test`-Blöcke als Instruktionsdatei-Gate: Keycloak-Verbot, GEMINI-Zeilenbudget plus Inventar-Verbot, Registry-Konsistenz Rollen, Registry-Konsistenz Runtimes |
 | `website/src/data/test-inventory.json` | regeneriert nach den Test-Änderungen |
 
+### Abgrenzung zu T002278 (parallel, `plan_staged`)
+
+`fix/mcp-postgres-brand-blind-T002278` (Commit `9b5f27f4a`) fasst **dieselbe Agent-Routing-Tabelle
+in `CLAUDE.md`** an: die MCP-Spalte der `bachelorprojekt-test`-Zeile, die `mcp-postgres` wörtlich
+als "Ticket-Queries" ausweist. Das ist laut T002278 eine aktive Fehlleitung, weil `mcp-postgres`
+fest an die mentolder-DB gebunden ist und für korczewski-IDs still die gleichnamige
+mentolder-Zeile liefert; die Korrektur lenkt dort auf `ticket-mcp` um.
+
+Die Zuständigkeitsgrenze innerhalb von `CLAUDE.md`:
+
+| Bereich | Gehört |
+|---|---|
+| MCP-Spalte der `bachelorprojekt-test`-Zeile in der Routing-Tabelle | **T002278** — dieser Change fasst sie nicht an |
+| Restliche Tabelle (Signals-Spalte, Agent-Namen, übrige MCP-Zellen) | T002305 — bleibt hier aber **unverändert**, weil die Prüfung ergeben hat, dass sie mit `.claude/agents/` und den `roles:` der K5-Registry übereinstimmt |
+| Blockquote-Absätze **unterhalb** der Tabelle (MCP-Serverliste, MCP-Schnellweg) und der `plan-context.sh`-Block | T002305 |
+
+Dieser Plan baut die Tabelle **nicht strukturell um** — `p2` ändert ausschließlich Prosa unterhalb
+der Tabelle. Damit sind beide Changes zeilendisjunkt und die Merge-Reihenfolge ist frei. Sollte
+`p2` beim Execute doch eine Tabellenzeile anfassen müssen, gilt T002278 als Vorgänger und dieser
+Change rebased darauf.
+
 `website/CLAUDE.md` und `VideoVault/CLAUDE.md` werden **nicht geändert**. Die vom Ticket verlangte
 Prüfung auf Widersprüche ist ein Nachweisschritt in `p3`; der Vorbefund lautet: keine Widersprüche,
 beide Dateien beschreiben ausschließlich ihren eigenen Scope und behaupten nichts über Identity

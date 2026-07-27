@@ -73,6 +73,21 @@ bash scripts/plan-context.sh infra --with-openspec 2>&1 >/dev/null | grep 'unkno
       Development Rules und der Gotchas-Abschnitt unverändert — sie wurden geprüft und sind
       korrekt.
 
+      **Harte Grenze zu T002278 (parallel, `plan_staged`, Branch
+      `fix/mcp-postgres-brand-blind-T002278`, Commit `9b5f27f4a`):** Die **MCP-Spalte der
+      `bachelorprojekt-test`-Zeile** in der Routing-Tabelle gehört T002278 — dort wird
+      `mcp-postgres` ("Ticket-Queries") auf `ticket-mcp` umgelenkt, weil `mcp-postgres` an die
+      mentolder-DB gebunden ist und für korczewski-IDs still die falsche Zeile liefert. Diese
+      Zelle wird hier **nicht** angefasst. Der MCP-Absatz, den dieses Partial ändert, ist der
+      Blockquote **unterhalb** der Tabelle ("MCP-Server names in this table refer to
+      Claude-Code-only SSE servers …"), nicht die Tabelle selbst. Vor dem Commit prüfen, dass der
+      Diff keine Tabellenzeile berührt:
+
+```bash
+git diff -U0 CLAUDE.md | grep -c '^[+-].*bachelorprojekt-test'
+# erwartet: 0
+```
+
 ## Verifikation dieses Partials
 
 ```bash

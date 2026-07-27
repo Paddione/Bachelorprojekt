@@ -104,7 +104,11 @@ tasks:
           # kein PID-File da - der Start unten wuerde mit EADDRINUSE sterben und ein
           # PID-File hinterlassen, das auf einen toten Prozess zeigt. Der Port ist
           # die verlaessliche Auskunft, nicht das PID-File.
-          if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then
+          # /livez, NICHT /health (T002336): hier geht es um Port-Belegung, nicht
+          # um Bedienbarkeit. /health antwortet 503, sobald ein Prio-1-Backend
+          # fehlt - mit `curl -fsS` sieht das aus wie "niemand da", und der Start
+          # unten liefe in genau das EADDRINUSE, das dieser Block verhindern soll.
+          if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
             echo "llm-proxy already answering on :$PORT (systemd unit? -> systemctl --user status llm-proxy)"
             exit 0
           fi
@@ -125,9 +129,15 @@ tasks:
     cmds:
       - |
         PORT="${LLM_PROXY_PORT:-18235}"
-        curl -fsS "http://127.0.0.1:$PORT/health" >/dev/null 2>&1 \
-          && curl -fsS "http://127.0.0.1:$PORT/admin/state" | jq . \
-          || echo "llm-proxy offline — Start: task llm:proxy:start"
+        # Erreichbarkeit via /livez (T002336) - sonst meldet der Status "offline",
+        # waehrend der Proxy laeuft und nur ein Backend fehlt. /health kommt danach
+        # als eigene Zeile dazu: sie ist die interessante Auskunft, wenn er lebt.
+        if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
+          curl -sS "http://127.0.0.1:$PORT/health" | jq '{ready, degraded}'
+          curl -fsS "http://127.0.0.1:$PORT/admin/state" | jq .
+        else
+          echo "llm-proxy offline — Start: task llm:proxy:start"
+        fi
 
   proxy:logs:
     desc: "Tail the local LLM proxy log"
@@ -161,7 +171,11 @@ tasks:
         # oben griff nicht, und die frisch installierte Unit fiel in eine
         # EADDRINUSE-Restart-Schleife. Der Port ist die verlaessliche Auskunft.
         for _ in 1 2 3; do
-          curl -fsS --max-time 2 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1 || break
+          # /livez, NICHT /health (T002336): die Schleife fragt "ist der Port noch
+          # belegt". Mit /health wuerde ein 503 (totes Prio-1-Backend) als "frei"
+          # gelesen, die Schleife braeche sofort ab - und die Altinstanz ueberlebte.
+          # Das ist exakt der T002281-Fall, den dieser Block behebt.
+          curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1 || break
           OWNER="$(ss -lptnH "sport = :$PORT" 2>/dev/null | grep -oE 'pid=[0-9]+' | head -1 | cut -d= -f2)"
           [[ -z "$OWNER" ]] && { echo "Port $PORT belegt, Besitzer nicht ermittelbar — abbrechen." >&2; exit 1; }
           echo "Port $PORT noch belegt von PID $OWNER — beende ihn."

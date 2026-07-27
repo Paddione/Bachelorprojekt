@@ -77,6 +77,40 @@ export function aggregateModels() {
   return { object: 'list', data };
 }
 
+/**
+ * Bewertet, ob der Proxy BEDIENEN kann - nicht, ob er laeuft (T002336).
+ *
+ * Massgeblich sind die Backends mit `priority === 1`, also der lokale
+ * Primaerpfad. Die naheliegende Regel "mindestens eines gesund" reicht
+ * nachweislich nicht: am 2026-07-27 war llamacpp-gemma (:8091) drei Stunden
+ * tot, waehrend deepseek (Cloud, priority 2) durchgehend antwortete. Nach
+ * jener Regel waere alles gruen gewesen, obwohl die Factory ins Leere lief.
+ * Ein Cloud-Fallback ist kein Ersatz fuer den lokalen Stack - er ist
+ * langsamer, kostet Geld und schickt Daten aus dem Haus.
+ *
+ * `degraded` listet dagegen ALLE ungesunden Backends, auch die niedriger
+ * priorisierten: ein weggebrochener Fallback soll sichtbar sein, ohne zu
+ * blockieren.
+ *
+ * @param {() => import('./backends.mjs').Backend[]} getBackends
+ * @returns {{ready:boolean, degraded:{name:string,priority:number,kind:string,baseUrl:string}[], checked:number}}
+ */
+export function evaluateReadiness(getBackends) {
+  const backends = getBackends();
+  const degraded = backends
+    .filter((b) => !health.get(b.name)?.healthy)
+    .map((b) => ({ name: b.name, priority: b.priority, kind: b.kind, baseUrl: b.baseUrl }));
+
+  const primary = backends.filter((b) => b.priority === 1);
+  // Kein Prio-1-Backend => NICHT ready. Ein `.every()` ueber eine leere Liste
+  // ist still `true` - genau die Vakuum-Wahrheit, die diesen Bug erzeugt hat
+  // ("es ist nichts kaputt, also ist alles gut"). Ein Proxy ohne lokalen
+  // Primaerpfad kann nicht bedienen, egal wie viele Fallbacks leben.
+  const ready = primary.length > 0 && primary.every((b) => !!health.get(b.name)?.healthy);
+
+  return { ready, degraded, checked: backends.length };
+}
+
 export function getState(getBackends) {
   return {
     lastProbe: lastProbeAt,

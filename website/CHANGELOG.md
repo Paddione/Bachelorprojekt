@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.217.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.5...website-v1.217.6) (2026-07-27)
+
+
+### Bug Fixes
+
+* **scripts:** stop masking connection failures as per-file SKIP in scs:index [T002292] ([#3348](https://github.com/Paddione/Bachelorprojekt/issues/3348)) ([6bc4ed3](https://github.com/Paddione/Bachelorprojekt/commit/6bc4ed3cf55a5bcfbba4ad3c782c6e9c5ee0f9a5))
+
 ## [1.217.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.4...website-v1.217.5) (2026-07-27)
 
 

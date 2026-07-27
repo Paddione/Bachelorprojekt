@@ -32,6 +32,7 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  PUPPETEER_SKIP_DOWNLOAD: 'true'
 
   OPENSPEC_TELEMETRY: '0'
 jobs:

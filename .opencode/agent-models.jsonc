@@ -13,9 +13,12 @@
       },
       "models": {
         "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": {
-          "name": "Gemma4 12B QAT (UD-Q4_K_XL) + MTP-draft Q8_0 (raw llama.cpp + CUDA 13.3, speculative decoding via --spec-type draft-mtp --spec-draft-n-max 2, -ngl 999, -c 65536 -fit off, 1 Slot, Q8_0 KV, --jinja) - vorher starten: scripts/llm/start-gemma-server.ps1",
+          "name": "Gemma4 12B QAT (UD-Q4_K_XL) + MTP-draft Q4_0 (raw llama.cpp + CUDA 13.3, speculative decoding via --spec-type draft-mtp --spec-draft-n-max 4, -ngl 999, -c 262144 -fit off, 1 Slot, Q8_0 KV, mmproj F16, --jinja) - vorher starten: scripts/llm/start-gemma-server.ps1 (Autostart-Profil seit T002297)",
+          // 262144 = n_ctx_train, der Wert den der Server seit T002297 faehrt
+          // (-Ctx 262144 -Slots 1 -KvType q8_0). Vorher stand hier 65536 - das
+          // war der alte Server-Deckel; opencode haette den Rest nie genutzt.
           "limit": {
-            "context": 65536,
+            "context": 262144,
             "output": 8192
           }
         }
@@ -102,16 +105,21 @@
     }
   },
   "agent": {
-    // 4 gleich konfigurierte Agent-Namen — alle reden mit demselben
-    // llama.cpp-Server (:8091, -np 1: EIN Slot, exklusiver ~245k-Kontext,
-    // Q8_0 KV, kein shared KV, speculative decoding via MTP-Draft).
-    // Konkurrierende gemma-4-12b-* serialisieren in der llm-proxy-Queue
-    // (scripts/llm-proxy). Die 4 Namen existieren, damit der Orchestrator
-    // sie explizit als unabhaengige `task`-Ziele dispatchen kann, statt
-    // sich auf undokumentiertes Verhalten bei mehrfachem `task` auf
-    // denselben Agent-Namen zu verlassen.
-    "gemma-4-12b-1": {
-      "description": "Write-capable subagent 1/4 on Gemma4 12B QAT (raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server - requests serialize in the llm-proxy queue, exclusive ~245k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+    // GENAU EIN summonbarer Gemma-Subagent (T002298). Vorher gab es vier
+    // gleich konfigurierte Namen (gemma-4-12b-1..4), damit der Orchestrator
+    // sie als unabhaengige `task`-Ziele parallel dispatchen konnte. Das war
+    // strukturelle Parallelitaet ohne physische: alle vier treffen denselben
+    // llama.cpp-Server auf :8091, der mit "-np 1" genau EINEN Slot hat, und
+    // serialisieren in der llm-proxy-Queue (max_inflight=1). Die vier Namen
+    // erzeugten also nur den Anschein von Nebenlaeufigkeit - und vier
+    // konkurrierende Streams zerstoeren zusaetzlich den Praefix-Reuse des
+    // einen Slots (T002286: bei mehreren Streams prefillt jeder den
+    // gemeinsamen System-Prompt erneut).
+    //
+    // Ein einziger Name ist die einzige im Config-Schema durchsetzbare
+    // Obergrenze: was nicht existiert, kann nicht dispatcht werden.
+    "gemma-4-12b": {
+      "description": "The ONLY write-capable Gemma subagent (Gemma4 12B QAT, raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server with 262144 ctx). There is exactly one - do not attempt to dispatch parallel Gemma streams, the server has one slot and the llm-proxy serializes anyway. Preferred for all write-capable delegation.",
       "mode": "subagent",
       "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -123,35 +131,36 @@
       // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "gemma-4-12b-2": {
-      "description": "Write-capable subagent 2/4 on Gemma4 12B QAT (raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server - requests serialize in the llm-proxy queue, exclusive ~245k ctx while running, no shared KV). Preferred for all write-capable delegation.",
-      "mode": "subagent",
+    // Primaerer (Tab-waehlbarer) Gemma-Agent mit vollem Kontext (T002298).
+    // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
+    // summonbar - er zaehlt deshalb nicht gegen die Ein-Subagent-Grenze oben
+    // und kann sie auch nicht umgehen.
+    //
+    // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
+    // Orchestrator davor. Bekommt die vollen 262144 Token des Servers.
+    // `task` bewusst nur auf deepseek-helper: wuerde er gemma-4-12b
+    // dispatchen, laegen zwei Gemma-Kontexte auf demselben einen Slot und
+    // wuerden sich gegenseitig in der Proxy-Queue blockieren.
+    "gemma-4-12b-primary": {
+      "description": "Primary (Tab-selectable) Gemma4 12B QAT agent with the full 262144-token context. Use for fully local work without the DeepSeek orchestrator in front. Can escalate to deepseek-helper but must not dispatch gemma-4-12b - both would contend for the same single server slot.",
+      "mode": "primary",
       "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#10B981",
-      "temperature": 0.4,
-      "steps": 10,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "gemma-4-12b-3": {
-      "description": "Write-capable subagent 3/4 on Gemma4 12B QAT (raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server - requests serialize in the llm-proxy queue, exclusive ~245k ctx while running, no shared KV). Preferred for all write-capable delegation.",
-      "mode": "subagent",
-      "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#059669",
-      "temperature": 0.4,
-      "steps": 10,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "gemma-4-12b-4": {
-      "description": "Write-capable subagent 4/4 on Gemma4 12B QAT (raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server - requests serialize in the llm-proxy queue, exclusive ~245k ctx while running, no shared KV). Preferred for all write-capable delegation.",
-      "mode": "subagent",
-      "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#047857",
-      "temperature": 0.4,
-      "steps": 10,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+      "color": "#6EE7B7",
+      // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
+      // plant UND implementiert. Deutlich hoehere Werte riskieren den
+      // Tool-Call-im-<think>-Block-Fehler aus der fablevibes-Diagnose.
+      "temperature": 0.3,
+      "steps": 50,
+      // write=deny aus demselben Grund wie beim Subagenten - das ist eine
+      // Modell-Eigenschaft (Ganzdatei-Overwrite statt Edit), keine Frage des
+      // Agent-Modus. Neue Dateien legt der Benutzer bzw. ein Folgeschritt an.
+      "permission": {
+        "edit": "allow",
+        "write": "deny",
+        "bash": "allow",
+        "task": { "deepseek-helper": "allow", "gemma-4-12b": "deny" }
+      }
     },
     // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
     // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
@@ -168,16 +177,21 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the gemma-4-12b gang (up to 4 task-parallel streams) for implementation. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the single gemma-4-12b subagent sequentially for implementation. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "opencode-go/deepseek-v4-flash",
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,
       "steps": 50,
+      // Exakter Name statt "gemma-4-12b-*" (T002298): das Wildcard wuerde
+      // jeden neu hinzugefuegten gemma-4-12b-<n> automatisch mitfreigeben und
+      // die Ein-Subagent-Grenze lautlos aufheben. Ein weiterer Gemma-Subagent
+      // muss hier bewusst eingetragen werden - und dann faellt auf, dass er
+      // sich denselben einen Server-Slot teilt.
       "permission": {
         "task": {
-          "gemma-4-12b-*": "allow",
+          "gemma-4-12b": "allow",
           "deepseek-helper": "allow"
         }
       }

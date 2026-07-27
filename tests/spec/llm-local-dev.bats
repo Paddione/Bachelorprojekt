@@ -115,9 +115,66 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc declares the full 65536 context for Gemma4" {
+@test "agent-models.jsonc declares the full 262144 context for Gemma4 (T002298)" {
+  # Muss dem -Ctx des Servers entsprechen. Steht hier weniger, laesst opencode
+  # Kontext ungenutzt liegen; steht hier mehr, laeuft der Server im Betrieb in
+  # einen Ueberlauf, den opencode nicht kommen sieht. Server-Profil seit
+  # T002297: start-gemma-server.ps1 -Ctx 262144 -Slots 1 -KvType q8_0.
   # Extrahiert den ersten "context"-Wert nach dem Gemma-Modellschluessel.
   ctx="$(awk '/"gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": *\{/,/"context"/' \
     "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
-  [ "$ctx" = "65536" ]
+  [ "$ctx" = "262144" ]
+}
+
+@test "agent-models.jsonc defines exactly ONE summonable gemma subagent (T002298)" {
+  # Der Server auf :8091 hat einen einzigen Slot (-np 1) und die llm-proxy
+  # serialisiert bei max_inflight=1. Mehrere gemma-Subagent-Namen erzeugen
+  # deshalb nur den Anschein von Nebenlaeufigkeit und zerstoeren zusaetzlich
+  # den Praefix-Reuse des Slots (T002286). Ein einziger Name ist die einzige
+  # im Config-Schema durchsetzbare Obergrenze.
+  run node -e "
+    const s = require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
+    const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
+    const a = JSON.parse(j).agent || {};
+    const sub = Object.entries(a)
+      .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'subagent')
+      .map(([n]) => n);
+    if (sub.length !== 1) { console.error('gemma subagents: ' + JSON.stringify(sub)); process.exit(1); }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "agent-models.jsonc provides a primary gemma agent with full context (T002298)" {
+  # mode:primary heisst Tab-waehlbar und NICHT per task summonbar - er zaehlt
+  # deshalb nicht gegen die Ein-Subagent-Grenze und kann sie nicht umgehen.
+  run node -e "
+    const s = require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
+    const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
+    const o = JSON.parse(j);
+    const prim = Object.entries(o.agent || {})
+      .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'primary');
+    if (prim.length !== 1) { console.error('primary gemma agents: ' + prim.length); process.exit(1); }
+    const model = prim[0][1].model;
+    const [prov, mid] = model.split('/');
+    const ctx = o.provider[prov].models[mid].limit.context;
+    if (ctx !== 262144) { console.error('primary gemma ctx: ' + ctx); process.exit(1); }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "orchestrator may not dispatch gemma via a wildcard (T002298)" {
+  # "gemma-4-12b-*": "allow" wuerde jeden neu hinzugefuegten gemma-4-12b-<n>
+  # automatisch mitfreigeben und die Ein-Subagent-Grenze lautlos aufheben.
+  run node -e "
+    const s = require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
+    const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
+    const t = ((JSON.parse(j).agent || {}).orchestrator || {}).permission || {};
+    const keys = Object.keys(t.task || {});
+    const wild = keys.filter(k => k.startsWith('gemma') && k.includes('*'));
+    if (wild.length) { console.error('wildcard gemma grants: ' + JSON.stringify(wild)); process.exit(1); }
+    process.exit(0);
+  "
+  [ "$status" -eq 0 ]
 }

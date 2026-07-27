@@ -10,7 +10,8 @@ opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents b
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `gemma-4-12b-1..4` | Gemma4 12B QAT (UD-Q4_K_XL, ~245k ctx, port 8091, server `-np 1` ⇒ serialized via llm-proxy; physical parallelism configurable via `max_inflight`) | **Preferred** for all write-capable delegation (4 dispatchable names, serial by default) |
+| `gemma-4-12b` | Gemma4 12B QAT (UD-Q4_K_XL, 262144 ctx, port 8091, server `-np 1` ⇒ one slot, serialized via llm-proxy) | **Preferred** for all write-capable delegation — **exactly one** such subagent exists (T002298); dispatch sequentially |
+| `gemma-4-12b-primary` | same model, `mode: primary` (Tab-selectable, not summonable via `task`) | Fully local work without the DeepSeek orchestrator in front; full 262144 ctx |
 | `deepseek-helper` | DeepSeek V4 Flash (OpenCode Go, 1M ctx) | Escalation: local agent stuck or context exhausted |
 | `explore` | built-in | Read-only codebase exploration |
 | `general` | built-in | Read-only general research |

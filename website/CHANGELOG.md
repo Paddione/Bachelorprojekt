@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.221.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.6...website-v1.221.7) (2026-07-27)
+
+
+### Bug Fixes
+
+* **scripts:** RUN_ALL-Fallback der Testauswahl meldet seinen Grund [T002377] ([#3423](https://github.com/Paddione/Bachelorprojekt/issues/3423)) ([9c518a9](https://github.com/Paddione/Bachelorprojekt/commit/9c518a976fb373f6a8f9a0345d40da6fd8ce67bb))
+
 ## [1.221.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.5...website-v1.221.6) (2026-07-27)
 
 

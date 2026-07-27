@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.221.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.7...website-v1.221.8) (2026-07-27)
+
+
+### Bug Fixes
+
+* **mcp:** Mishap-Emissionsrate senken — Schwelle 10, kein Session-Ende-Flush [T002383] ([#3427](https://github.com/Paddione/Bachelorprojekt/issues/3427)) ([aabaaa1](https://github.com/Paddione/Bachelorprojekt/commit/aabaaa1211b5cdcccd4830055208c22ee6c8e16f))
+
 ## [1.221.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.6...website-v1.221.7) (2026-07-27)
 
 

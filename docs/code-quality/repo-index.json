@@ -2914,7 +2914,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 550,
+      "file_count": 551,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3296,6 +3296,7 @@
         "scripts/llm-proxy/server.mjs",
         "scripts/llm-proxy/server.test.mjs",
         "scripts/llm-pull-models.sh",
+        "scripts/llm/install-startup-autostart.ps1",
         "scripts/llm/measure-embedding-equivalence.mjs",
         "scripts/llm/ollama.service",
         "scripts/llm/register-scheduled-tasks.ps1",

@@ -5,7 +5,8 @@
   Startet eine persistente llama.cpp-Instanz fuer Text-Reranking (bge-reranker-v2-m3 Q8_0)
   auf Port 8096. Getrennter Prozess vom Embedding-Server, da llama.cpp Embedding-Pooling
   (CLS) und Rerank-Pooling (RANK) nicht in einem Server bedienen kann.
-  VRAM-Notausstieg via Umgebungsvariable LLM_RERANK_NGL (Default 99).
+  Laeuft seit T002337 im CPU-RAM (Default LLM_RERANK_NGL=0). GPU-Rueckweg fuer
+  Massen-Reranking: LLM_RERANK_NGL=99.
 
   T002260 - WARUM -b/-ub 8192 gesetzt sein MUSS:
   bge-reranker-v2-m3 ist ein Cross-Encoder auf XLM-RoBERTa, also nicht-kausal.
@@ -46,7 +47,15 @@ if (-not (Test-Path $Model)) {
 # PowerShell 7 - unter 5.1 (dem einzigen auf diesem Host installierten
 # PowerShell) ist das ein Parse-Fehler: 'Unerwartetes Token "?"'. Das Skript
 # war damit nie ausfuehrbar. if/else ist versionsunabhaengig.
-$Ngl = "99"
+# T002337: Default ist jetzt 0 - das Modell liegt im CPU-RAM statt im VRAM,
+# genau wie bge-m3 seit T002319. Der Reranker blieb dabei versehentlich auf 99
+# stehen; da install-startup-autostart.ps1 dieses Skript ARGUMENTLOS aufruft,
+# holte sich jeder Autostart die GPU-Variante zurueck. Das kollidiert mit dem
+# Gemma-Profil aus T002297 (-Ctx 262144), das mit rund 15,1 von 16,3 GiB fast
+# das gesamte VRAM belegt und nur ~850 MiB Reserve laesst - zu wenig fuer
+# bge-reranker-v2-m3 Q8_0 (~0,6 GB) daneben. Fuer Massen-Reranking, wo der
+# Durchsatz zaehlt und Gemma nicht laeuft, ist LLM_RERANK_NGL=99 der Rueckweg.
+$Ngl = "0"
 if ($env:LLM_RERANK_NGL) { $Ngl = $env:LLM_RERANK_NGL }
 
 Write-Host "Starting bge-reranker-v2-m3 rerank server on port 8096..."
@@ -62,10 +71,16 @@ $Params = @(
   "-b", "8192"
   "-ub", "8192"
   "-ngl", $Ngl
-  "-fa", "on"
   "--host", "0.0.0.0"
   "--port", "$Port"
 )
+
+# T002337: Flash Attention nur mit GPU-Offload, analog start-embed-server.ps1.
+# -fa ist eine GPU-Optimierung; auf dem CPU-Pfad bringt sie nichts und macht
+# den Aufruf nur schwerer mit dem GPU-Profil vergleichbar. Anders als beim
+# Embedder geht es hier NICHT um bitgenaue Reproduzierbarkeit - Rerank-Scores
+# werden pro Anfrage berechnet und nirgends persistiert.
+if ($Ngl -ne "0") { $Params += @("-fa", "on") }
 
 # Port raeumen - ein noch laufender Server auf diesem Port laesst den neuen
 # still am Bind scheitern.

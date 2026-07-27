@@ -37,6 +37,33 @@ _ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)
   echo "${_S1_LIMITS[$ext]:-0}"
 }
 
+# --- S1 ignore list (docs/code-quality/gates.yaml → s1.ignore) ---
+# Files on this list are deliberately NOT measured by the S1 gate (check.mjs already
+# honours it). plan-lint previously read only s1.limits, so an ignored file still
+# computed a budget against its static extension limit — deeply negative, since these
+# files are on the list precisely because they exceed it (T002270).
+declare -a _S1_IGNORE
+_load_s1_ignore() {
+  [[ "${_S1_IGNORE_LOADED:-0}" == "1" ]] && return 0
+  _S1_IGNORE_LOADED=1
+  local gates="${REPO_ROOT:-.}/docs/code-quality/gates.yaml" entry
+  if [[ -f "$gates" ]] && command -v yq >/dev/null 2>&1; then
+    while IFS= read -r entry; do
+      [[ -n "$entry" ]] && _S1_IGNORE+=("$entry")
+    done < <(yq -r '.s1.ignore[]' "$gates" 2>/dev/null)
+  fi
+  return 0  # a failed/empty yq query must never abort the loader under set -e
+}
+_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry
+  _load_s1_ignore
+  local path="$1" pattern
+  for pattern in "${_S1_IGNORE[@]:-}"; do
+    [[ -z "$pattern" ]] && continue
+    [[ "$path" == $pattern ]] && return 0
+  done
+  return 1
+}
+
 # effective_threshold <path> -> max(static_limit, baseline.metric); 0 if ungated & unbaselined
 effective_threshold() {
   local path="$1" limit base
@@ -49,9 +76,12 @@ effective_threshold() {
   fi
 }
 
-# residual_budget <path> -> effective_threshold − live wc -l ; empty if file absent or ungated & unbaselined
+# residual_budget <path> -> effective_threshold − live wc -l ; empty if file absent,
+# ungated & unbaselined (T002265), or listed under s1.ignore (T002270 — the S1 gate
+# deliberately does not measure it).
 residual_budget() {
   local path="$1" thr cur
+  _is_s1_ignored "$path" && { echo ""; return 0; }
   [[ -f "$REPO_ROOT/$path" ]] || { echo ""; return 0; }
   thr="$(effective_threshold "$path")"
   # Threshold 0 with no baseline means ungated extension — not applicable.
@@ -269,6 +299,13 @@ while IFS= read -r path; do
   if [[ -z "$claimed" ]]; then
     claimed="$(grep -oE "\`$esc\`.{0,60}(Budget|Restbudget|budget) *-?[0-9]+" <<<"$PLAN_PROSE" 2>/dev/null \
               | grep -oE -- '-?[0-9]+' | tail -1 || true)"
+  fi
+  if _is_s1_ignored "$path"; then
+    # W4: the S1 gate does not measure this file — a numeric budget claim for it
+    # is meaningless. Only warn when the plan actually stated a number; an
+    # omitted/n.a. budget stays silent (T002270).
+    [[ -n "$claimed" ]] && warn "W4: $path is listed under s1.ignore — the S1 gate does not measure it, so its claimed budget $claimed is meaningless"
+    continue
   fi
   if [[ -n "$claimed" && -n "$computed" && "$claimed" != "$computed" ]]; then
     hard "B1a: $path claims budget $claimed but computed effective budget is $computed"

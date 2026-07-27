@@ -1671,6 +1671,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002270": [
+    {
+      "slug": "fix-plan-lint-s1-ignore-T002270",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

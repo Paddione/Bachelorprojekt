@@ -53,7 +53,17 @@ teardown() { rm -rf "$TMP"; }
 
 @test "preflight: scope with breaking change marker exits 0 for valid scope" {
   run bash "$HELPER" "feat(db)!: breaking schema"
-  [ "$status" -eq 0 ]
+  # Diagnose bei Fehlschlag: dieser Test war in CI rot, waehrend er lokal und
+  # alle Nachbartests gruen liefen (T002328). Ohne den Output ist die Ursache
+  # nicht eingrenzbar — der nackte Exit-Code sagt nicht, ob die Allowlist leer
+  # war, der Scope nicht extrahiert wurde oder ein Guard vorher zuschlug.
+  [ "$status" -eq 0 ] || {
+    echo "--- unerwarteter Exit $status ---"
+    echo "$output"
+    echo "--- Allowlist, die das Skript sieht: ---"
+    bash "${BATS_TEST_DIRNAME}/../../scripts/validate-commit-msg.sh" scopes || echo "(scopes-Aufruf schlug fehl)"
+    return 1
+  }
 }
 
 @test "preflight: ticket-ID/branch mismatch suggests a git branch -m fix [T001915]" {

@@ -738,69 +738,22 @@ The system SHALL render the 3D canvas to fill at least 90 % of the mobile viewpo
 ### Requirement: Semantic Code Search — Indexer (SCS-1)
 <!-- bats: scs-index.bats -->
 
-The system SHALL maintain a `scripts/index-repo.ts` indexer that creates `code_embeddings` and `file_dependencies` tables with pgvector support, uses the `bge-m3` model (1024 dimensions), supports incremental re-indexing via `--file` flag and SHA-256 hashing, and excludes `node_modules`/`dist`.
+The system SHALL maintain a `scripts/index-repo.ts` indexer that creates `code_embeddings` and `file_dependencies` tables with pgvector support, uses the `bge-m3` model (1024 dimensions), supports incremental re-indexing via `--file` flag and SHA-256 hashing, and excludes `node_modules`/`dist`. The indexer SHALL verify that its embedding endpoint is reachable before use, SHALL abort with a non-zero exit code on connection failures instead of recording them as per-file skips, and SHALL report unchanged and failed files as separate counters.
 
-#### Scenario: `index-repo.ts` existiert und ist nicht leer *(BATS)*
-- **GIVEN** das Repo-Verzeichnis enthält `scripts/index-repo.ts`
-- **WHEN** die Datei auf Existenz und Nicht-Leerheit geprüft wird
-- **THEN** sind beide Bedingungen erfüllt
-
-#### Scenario: `index-repo.ts` enthält DDL für `code_embeddings` *(BATS)*
+#### Scenario: Verbindungsfehler bricht den Lauf ab *(BATS)*
 - **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach dem Token `code_embeddings` durchsucht wird
-- **THEN** erscheint das Token mindestens 3-mal
+- **WHEN** die Datei nach `isInfrastructureError` durchsucht wird
+- **THEN** wird die Klassifikationsfunktion mindestens zweimal gefunden
 
-#### Scenario: `index-repo.ts` enthält DDL für `file_dependencies` *(BATS)*
+#### Scenario: Zaehler fuer unveraenderte und fehlgeschlagene Dateien sind getrennt *(BATS)*
 - **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach dem Token `file_dependencies` durchsucht wird
-- **THEN** erscheint das Token mindestens 2-mal
+- **WHEN** die Datei nach `unchanged_files` und `failed_files` durchsucht wird
+- **THEN** kommen beide Schluessel in der Abschluss-Ausgabe vor
 
-#### Scenario: Embedding-Dimension ist `EMBED_DIM` (bge-m3 = 1024) *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach `EMBED_DIM` durchsucht wird
-- **THEN** erscheint das Token mindestens 2-mal
-
-#### Scenario: `--file`-Flag für inkrementellen Reindex vorhanden *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach `--file` durchsucht wird
-- **THEN** erscheint das Flag mindestens einmal
-
-#### Scenario: `bge-m3`-Modell-Referenz ist vorhanden *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach `bge-m3` durchsucht wird
-- **THEN** erscheint das Token mindestens einmal
-
-#### Scenario: Import-Extraktion für Abhängigkeitsgraph ist implementiert *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach `extractImports` durchsucht wird
-- **THEN** erscheint das Token mindestens einmal
-
-#### Scenario: `node_modules` und `dist` werden ignoriert *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei auf Ausschluss-Muster durchsucht wird
-- **THEN** enthalten beide Muster (`node_modules`, `'dist'`) mindestens einen Treffer
-
-#### Scenario: YAML wird separat gechunked *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach `chunkYaml` durchsucht wird
-- **THEN** erscheint das Token mindestens einmal
-
-#### Scenario: SHA-256-Hashing für inkrementelles Indexing *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach `sha256` durchsucht wird
-- **THEN** erscheint das Token mindestens einmal
-
-#### Scenario: `ivfflat`-Index für Kosinus-Ähnlichkeit ist vorhanden *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach `ivfflat` durchsucht wird
-- **THEN** erscheint das Token mindestens einmal
-
-#### Scenario: UNIQUE-Constraint auf `(file_path, chunk_index)` *(BATS)*
-- **GIVEN** `scripts/index-repo.ts` ist vorhanden
-- **WHEN** die Datei nach `UNIQUE(file_path, chunk_index)` durchsucht wird
-- **THEN** ist mindestens ein Treffer vorhanden
-
----
+#### Scenario: `scs:index` verwendet kein `fuser -k` *(BATS)*
+- **GIVEN** der Task `scs:index` in `Taskfile.yml`
+- **WHEN** seine ausfuehrbaren Zeilen nach `fuser -k` durchsucht werden
+- **THEN** wird kein Treffer gefunden
 
 ### Requirement: Semantic Code Search — Such-API und UI (SCS-2 bis SCS-5)
 <!-- bats: scs-search.bats | e2e: fa-scs-scout.spec.ts -->
@@ -887,3 +840,5 @@ The system SHALL expose a `GET /api/codesearch` endpoint (admin-only, query para
 <!-- merged from change delta brett.md (2fea33bd3438) -->
 
 <!-- merged from change delta brett.md (d8bb0594328e) -->
+
+<!-- merged from change delta brett.md (ebcb412a667e) -->

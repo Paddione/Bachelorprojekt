@@ -106,6 +106,38 @@ function sha256(s: string): string {
   return createHash('sha256').update(s).digest('hex');
 }
 
+// T002292 — Fehler, die niemals datei-spezifisch sein koennen.
+//
+// main() fing bisher JEDEN Fehler pro Datei und verbuchte ihn als SKIP. Damit
+// wurden zwei globale Stoerungen unsichtbar: eine unerreichbare Embed-URL und
+// ein abgerissener port-forward auf shared-db. Beide entwerten den GESAMTEN
+// Lauf — sie muessen hart abbrechen, nicht 4772-mal still uebersprungen werden.
+// Ein HTTP 500 des Embedding-Servers dagegen betrifft genau einen zu langen
+// Chunk (T002266) und bleibt zu Recht ein SKIP.
+const INFRA_ERROR_CODES = new Set([
+  'ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'EHOSTUNREACH', 'ETIMEDOUT', 'EPIPE',
+]);
+
+// undici verpackt Socket-Fehler in ein nacktes "fetch failed"; pg meldet einen
+// weggebrochenen Pool als Klartext ohne .code.
+const INFRA_ERROR_MESSAGES = [
+  'fetch failed',
+  'Connection terminated',
+  'timeout exceeded when trying to connect',
+];
+
+export function isInfrastructureError(err: unknown, depth = 0): boolean {
+  // Nicht-Error-Werte (null, Strings) sind nie eine Diagnose — sonst wuerde ein
+  // Dateiinhalt, der zufaellig "ECONNREFUSED" enthaelt, den Lauf abbrechen.
+  if (depth > 5 || !(err instanceof Error)) return false;
+  const code = (err as NodeJS.ErrnoException).code;
+  if (typeof code === 'string' && INFRA_ERROR_CODES.has(code)) return true;
+  if (INFRA_ERROR_MESSAGES.some(m => err.message.includes(m))) return true;
+  // Der echte Socket-Code steckt bei fetch eine Ebene tiefer in .cause.
+  const cause = (err as { cause?: unknown }).cause;
+  return cause != null && isInfrastructureError(cause, depth + 1);
+}
+
 function walkDir(dir: string, out: string[] = []): string[] {
   let entries: import('node:fs').Dirent[];
   try { entries = readdirSync(dir, { withFileTypes: true }) as import('node:fs').Dirent[]; } catch { return out; }
@@ -362,7 +394,12 @@ async function main(): Promise<void> {
 
     let totalChunks = 0;
     let indexedFiles = 0;
-    let skippedFiles = 0;
+    // T002292: bisher zaehlte EIN Zaehler beides — unveraenderte Dateien (der
+    // Hash-Skip in indexFile() gibt 0 zurueck) UND fehlgeschlagene. Dadurch sah
+    // die Abschluss-JSON eines komplett kaputten Laufs genauso aus wie die eines
+    // gesunden No-op-Laufs.
+    let unchangedFiles = 0;
+    let failedFiles = 0;
 
     for (const absPath of files) {
       const relPath = relative(REPO_ROOT, absPath);
@@ -373,18 +410,27 @@ async function main(): Promise<void> {
           indexedFiles++;
           if (!singleFile) process.stderr.write(`[SCS] ${relPath}: ${chunks} chunks\n`);
         } else {
-          skippedFiles++;
+          unchangedFiles++;
         }
       } catch (err) {
+        if (isInfrastructureError(err)) {
+          process.stderr.write(
+            `[SCS] FATAL bei ${relPath}: ${err instanceof Error ? err.message : err}\n`
+            + `[SCS] embed=${EMBED_URL} pghost=${pool.options.host}:${pool.options.port} — `
+            + `Endpunkt nicht erreichbar, Lauf nach ${indexedFiles} indexierten Dateien abgebrochen.\n`,
+          );
+          throw err;
+        }
         process.stderr.write(`[SCS] SKIP ${relPath}: ${err instanceof Error ? err.message : err}\n`);
-        skippedFiles++;
+        failedFiles++;
       }
     }
 
     const countRes = await pool.query(`SELECT COUNT(*)::int AS n FROM code_embeddings`);
     console.log(JSON.stringify({
       indexed_files: indexedFiles,
-      skipped_files: skippedFiles,
+      unchanged_files: unchangedFiles,
+      failed_files: failedFiles,
       new_chunks: totalChunks,
       total_rows: countRes.rows[0].n,
     }));

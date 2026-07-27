@@ -159,3 +159,29 @@ setup() {
   [ "$status" -eq 0 ]
   ! echo "$output" | grep -q 'G1'
 }
+
+# === T002265: residual_budget returns empty for ungated extensions ===
+
+@test "residual_budget returns empty for ungated extension (no negative number)" {
+  # .bats files are not in _S1_LIMITS and have no baseline entry
+  # → residual_budget should return empty, not a negative line count
+  run env PLAN_LINT_SELFTEST=1 bash "$LINT" residual_budget "tests/unit/plan-lint.bats"
+  [ "$status" -eq 0 ]
+  # Output should be empty (not a negative number like -161)
+  [[ -z "$output" ]] || {
+    echo "Expected empty output for ungated file, got: '$output'"
+    return 1
+  }
+}
+
+@test "residual_budget still returns budget for gated extension with baseline" {
+  # .ts files are gated — residual_budget should return a numeric value
+  # (positive or negative depending on file size vs threshold)
+  local result
+  result="$(PLAN_LINT_SELFTEST=1 bash "$LINT" residual_budget "scripts/plan-lint.sh" 2>/dev/null || true)"
+  # .sh files are gated (limit 500), so result should be numeric
+  [[ "$result" =~ ^-?[0-9]+$ ]] || {
+    echo "Expected numeric budget for gated file, got: '$result'"
+    return 1
+  }
+}

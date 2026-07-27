@@ -49,11 +49,18 @@ effective_threshold() {
   fi
 }
 
-# residual_budget <path> -> effective_threshold − live wc -l ; empty if file absent
+# residual_budget <path> -> effective_threshold − live wc -l ; empty if file absent or ungated & unbaselined
 residual_budget() {
   local path="$1" thr cur
   [[ -f "$REPO_ROOT/$path" ]] || { echo ""; return 0; }
   thr="$(effective_threshold "$path")"
+  # Threshold 0 with no baseline means ungated extension — not applicable.
+  # Return empty instead of a misleading negative number (the file's line count).
+  if [[ "$thr" -eq 0 ]]; then
+    local base
+    base="$(jq -r --arg k "S1:$path" '.[$k].metric // empty' "$BASELINE")"
+    [[ -z "$base" ]] && { echo ""; return 0; }
+  fi
   cur="$(wc -l < "$REPO_ROOT/$path" | tr -d ' ')"
   echo $(( thr - cur ))
 }

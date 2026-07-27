@@ -22,7 +22,7 @@ deshalb für bewusst ausgenommene Dateien ein tief negatives Budget aus.
 
 | Datei | Ist-Zeilen | S1-Budget |
 |-------|-----------|-----------|
-| `scripts/plan-lint.sh` | 387 | 113 |
+| `scripts/plan-lint.sh` | 395 | 105 |
 | `tests/unit/plan-lint.bats` | 182 | S1 kennt kein Limit für `.bats` |
 | `tests/unit/fixtures/plan-lint/s1-ignored-file.md` | 44 | S1 kennt kein Limit für `.md` |
 | `tests/unit/fixtures/plan-lint/s1-ignored-with-budget.md` | neu | S1 kennt kein Limit für `.md` |

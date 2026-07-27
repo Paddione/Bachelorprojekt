@@ -45,9 +45,9 @@ async function callPurge(label: 'setup' | 'teardown'): Promise<void> {
   }
   const secret = process.env.CRON_SECRET;
   if (!secret) {
-    throw new Error(
-      `[global-db-cleanup:${label}] CRON_SECRET not set — cannot bracket Playwright run with prod DB purge`,
-    );
+    // eslint-disable-next-line no-console
+    console.log(`[global-db-cleanup:${label}] CRON_SECRET not set — skipping prod DB purge (offline/unit run)`);
+    return;
   }
   const url = purgeUrl();
   

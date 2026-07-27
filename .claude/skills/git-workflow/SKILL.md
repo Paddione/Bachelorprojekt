@@ -212,6 +212,7 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 - **Immer `--squash`** — hält `main`-History sauber (Entwicklungsregel)
 - **Immer `--delete-branch`** — Branch-Leichen vermeiden
 - **`--auto`** — mergt automatisch wenn alle Required Checks grün sind
+- **Race-Hinweis:** `--auto` kehrt sofort zurück; der eigentliche Merge passiert asynchron. CI-Läufe, die durch `edited`-Events (PR-Titel-Edit) getriggert wurden, können noch laufen. `cancel-in-progress` in `ci.yml` wurde so angepasst, dass `edited`-Runs keine laufenden CI-Jobs abbrechen (T002248).
 
 ---
 

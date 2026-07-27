@@ -347,12 +347,18 @@ assert_var_not_declared() {
   [ "$status" -eq 0 ]
 }
 
-@test "start-gemma-server.ps1 pins the context at 65536 (T002286)" {
+@test "start-gemma-server.ps1 defaults the context to 65536 (T002286/T002293)" {
   # Loest den -fitc-Floor aus T002277 ab. Die Schutzabsicht ist dieselbe - die
   # Factory fuellt 31-37k Tokens pro Prompt und braucht mehr als den llama.cpp-
   # Default -, nur strenger umgesetzt: ein fester -c kann gar nicht erst still
   # nach unten ausweichen, waehrend Auto-Fit je nach VRAM-Belegung variierte.
-  run grep -qE '"-c",[[:space:]]*"65536"' "$REPO/scripts/llm/start-gemma-server.ps1"
+  # Seit T002293 ist -c ueber -Ctx parametrisierbar (Mehr-Agenten-Profil). Die
+  # Absicht bleibt unveraendert, nur die Pruefstelle wandert: der DEFAULT muss
+  # 65536 sein, und -c muss den Parameter benutzen statt eines Literals - sonst
+  # koennte ein Aufrufer den Deckel setzen, ohne dass das Skript es zeigt.
+  run grep -qE '\$Ctx[[:space:]]*=[[:space:]]*65536' "$REPO/scripts/llm/start-gemma-server.ps1"
+  [ "$status" -eq 0 ]
+  run grep -qE '"-c",[[:space:]]*"\$Ctx"' "$REPO/scripts/llm/start-gemma-server.ps1"
   [ "$status" -eq 0 ]
 }
 
@@ -371,12 +377,30 @@ assert_var_not_declared() {
   # llama.cpp teilt -c stur durch -np, SOFERN nicht --kv-unified gesetzt ist.
   # Gemessen: "-c 8192 -np 4 -kvu" => n_ctx 8192 je Slot, mit "-no-kvu" => 2048.
   # Wer hier auf mehrere Slots umstellt, ohne -kvu zu setzen, viertelt den
-  # Kontext lautlos unter den Factory-Bedarf. Aktuell steht -np auf 1.
+  # Kontext lautlos unter den Factory-Bedarf.
+  # Seit T002293 kommt -np aus dem Parameter $Slots. Beide Formen bleiben
+  # zulaessig, die Absicht wird in beiden geprueft:
+  #   a) Literal ("-np", "N")      -> N > 1 verlangt ein unbedingtes "-kvu"
+  #   b) Parameter ("-np", "$Slots") -> Default muss 1 sein UND es muss einen
+  #      Zweig geben, der -kvu bei > 1 dazuschaltet.
   # Der Wert steht in Anfuehrungszeichen ("-np", "1"), daher tr statt Anker-Regex.
-  np="$(grep -oE '"-np",[[:space:]]*"[0-9]+"' "$REPO/scripts/llm/start-gemma-server.ps1" | tr -dc '0-9')"
-  [ -n "$np" ]
-  if [ "$np" -gt 1 ]; then
-    run grep -q '"-kvu"' "$REPO/scripts/llm/start-gemma-server.ps1"
+  gemma="$REPO/scripts/llm/start-gemma-server.ps1"
+  np="$(grep -oE '"-np",[[:space:]]*"[0-9]+"' "$gemma" | tr -dc '0-9')"
+  if [ -n "$np" ]; then
+    if [ "$np" -gt 1 ]; then
+      run grep -q '"-kvu"' "$gemma"
+      [ "$status" -eq 0 ]
+    fi
+  else
+    run grep -qE '"-np",[[:space:]]*"\$Slots"' "$gemma"
+    [ "$status" -eq 0 ]
+    run grep -qE '\$Slots[[:space:]]*=[[:space:]]*1' "$gemma"
+    [ "$status" -eq 0 ]
+    # Muss den tatsaechlichen Parameter-Append treffen, NICHT irgendeine Zeile,
+    # die beides erwaehnt: die Statusausgabe des Skripts enthaelt ebenfalls
+    # "$Slots -gt 1" und den Text "-kvu" und wuerde eine lose Regex erfuellen,
+    # auch wenn der Zweig geloescht waere (beim Negativtest aufgefallen).
+    run grep -qE 'if[[:space:]]*\([[:space:]]*\$Slots[[:space:]]*-gt[[:space:]]*1[[:space:]]*\)[[:space:]]*\{[[:space:]]*\$Params[[:space:]]*\+=[[:space:]]*"-kvu"' "$gemma"
     [ "$status" -eq 0 ]
   fi
 }

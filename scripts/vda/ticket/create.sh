@@ -30,17 +30,17 @@ main() {
   fi
   # [T002280] BRAND resolution: authoritative source is top-level $BRAND from
   # ticket.sh. If --brand was passed explicitly here, validate it matches.
+  # Standalone call (no BRAND env, no --brand) falls back to default mentolder.
   if [[ -n "$brand" && -n "${BRAND:-}" && "$brand" != "$BRAND" ]]; then
     echo "ERROR: --brand '$brand' widerspricht top-level BRAND='$BRAND' (T002280)" >&2
     exit 2
   fi
   if [[ -n "$brand" ]]; then
-    :  # explicit --brand already captured, matches $BRAND (or $BRAND unset)
+    :  # explicit --brand already captured, validates above when BRAND is set
   elif [[ -n "${BRAND:-}" ]]; then
     brand="$BRAND"
   else
-    echo "ERROR: BRAND nicht aufloesbar — weder --brand noch BRAND-Env noch TICKET_NS (T002280)" >&2
-    exit 2
+    brand="mentolder"  # standalone call without brand context — safe default
   fi
   # [T001582-M2] Validate --severity client-side before any DB access, so an
   # invalid value never burns a sequence id on a failed insert. Empty stays

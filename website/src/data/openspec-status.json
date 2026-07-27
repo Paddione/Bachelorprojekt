@@ -1767,6 +1767,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002328": [
+    {
+      "slug": "commit-scope-consolidation",
+      "status": "plan_staged"
+    }
+  ],
   "T002339": [
     {
       "slug": "mishap-t002339",

@@ -89,15 +89,29 @@ function generateSessionId(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function getLoginUrl(state?: string): string {
+// Maps OIDC state tokens (≥8 chars, random) to the returnTo path they encode.
+// Pocket ID v2.11.0 rejects state values shorter than 8 characters.
+const oidcStateStore = new Map<string, string>();
+
+export function getLoginUrl(returnTo?: string): string {
+  const state = generateSessionId();
+  if (returnTo) {
+    oidcStateStore.set(state, returnTo);
+  }
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     redirect_uri: `${SITE_URL}${CALLBACK_PATH}`,
     response_type: 'code',
     scope: 'openid email profile',
-    ...(state ? { state } : {}),
+    state,
   });
   return `${AUTH_ENDPOINT}?${params}`;
+}
+
+export function consumeReturnTo(state: string): string | undefined {
+  const returnTo = oidcStateStore.get(state);
+  oidcStateStore.delete(state);
+  return returnTo;
 }
 
 export async function getLogoutUrl(sessionId?: string): Promise<string> {

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { exchangeCode, isAdmin, setSessionCookie } from '../../../lib/auth';
+import { exchangeCode, isAdmin, setSessionCookie, consumeReturnTo } from '../../../lib/auth';
 
 // Origins (besides safe relative paths) that a post-login `returnTo`/`state`
 // may redirect to. The cross-origin React SPA (react.<brand>) reuses this
@@ -57,6 +57,7 @@ export function resolveReturnTo(rawState: string, fallback: string): string {
 export const GET: APIRoute = async ({ url, locals }) => {
   const code = url.searchParams.get('code');
   const rawState = url.searchParams.get('state') || '/';
+  const resolvedReturnTo = consumeReturnTo(rawState) || rawState;
   const error = url.searchParams.get('error');
 
   if (error) {
@@ -83,7 +84,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
     });
   }
 
-  const destination = resolveReturnTo(rawState, isAdmin(result.user) ? '/admin' : '/portal');
+  const destination = resolveReturnTo(resolvedReturnTo, isAdmin(result.user) ? '/admin' : '/portal');
 
   return new Response(null, {
     status: 302,

@@ -82,6 +82,11 @@ cd .worktrees/<slug>
 bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label dev-flow-chore
 ```
 
+> **`cd` wirkt nur auf Bash (T002357):** Ab hier MÜSSEN alle Datei-Tool-Pfade (Read/Write/Edit)
+> explizit den Worktree-Präfix (`.worktrees/<slug>/...`) tragen. `cd` ändert nur das Bash-cwd,
+> nicht den Bezugspunkt der Datei-Tools — ein zu Session-Beginn im Hauptcheckout korrekter Pfad
+> bleibt syntaktisch gültig und trifft danach still die falsche Arbeitskopie (Mishap T002350).
+
 > Enthält `<slug>` eine wiederverwendete `TICKET_EXT_ID` (z.B. `T001869`), sollte deren Ticketnummer
 > im Slug vorkommen (z.B. `doc-cleanup-T001869`) — `preflight-pr-scope.sh` prüft das PR-Titel↔Branch-
 > Matching case-insensitiv (T001873), Groß-/Kleinschreibung im Slug spielt also keine Rolle.

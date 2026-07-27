@@ -87,6 +87,13 @@ und committed Proposals, nicht nur das eigene Branch-Delta. Erst danach entsteht
 | **B — Branch live** | Worktree | `scripts/worktree-create.sh`, agent-lock claimen, Artefakte verschieben, Scaffold-Commit + Push |
 | **C — Partial-Pipeline** | Worktree | Decompose in Partials, pro Partial: Plan schreiben → committen → stagen → enqueuen; danach plan-lint, Embedding, finaler Push |
 
+> **`cd` wirkt nur auf Bash (T002357):** Ab Phase B (Worktree betreten) MÜSSEN alle Datei-Tool-Pfade
+> (Read/Write/Edit) explizit den Worktree-Präfix tragen. `cd` ändert nur das Bash-cwd, nicht den
+> Bezugspunkt der Datei-Tools — ein zu Phase-A-Zeit im Hauptcheckout korrekter Pfad bleibt
+> syntaktisch gültig und trifft danach still die falsche Arbeitskopie (Mishap T002350). Die
+> konkrete `worktree-create.sh`/`cd`-Sequenz steht in `dev-flow-plan-phases.md`, dort gilt derselbe
+> Hinweis.
+
 Vollständige Schrittfolge aller drei Phasen samt Befehlen, Decompose-/Fan-out-Mechanik
 (Schritt 3.7) und Kontext-Injektion für Plan-Subagenten:
 [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md).

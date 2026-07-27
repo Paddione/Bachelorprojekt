@@ -1410,3 +1410,62 @@ setup_renovate_mock() {
   [ "$status" -eq 42 ]
   [ "$calls" -eq 1 ]
 }
+
+# ── T002289: Der Cache-Mount aus T002249 machte den Renovate-Lauf unbrauchbar.
+#    /tmp/renovate-cache wird vom GitHub-Runner-User angelegt; der Renovate-
+#    Container laeuft als 'ubuntu' (UID 1000) und scheitert beim ersten Schreiben:
+#      EACCES: permission denied, mkdir '/tmp/renovate-cache/containerbase'
+#    (run 30240257345, Exit 1 nach ~0.5s, noch vor der Repository-Phase).
+#    T002249 antizipierte die UMGEKEHRTE Richtung — "Container schreibt als root,
+#    der actions/cache-Post-Step als runner kann nicht packen" — und baute das
+#    chown nur NACH dem Lauf. Beide Richtungen werden gebraucht: vor dem Lauf fuer
+#    den Container, nach dem Lauf fuer actions/cache.
+#    Erwartet: FAIL — der Fix ist noch nicht implementiert.
+
+@test "T002289: Cache-Verzeichnis wird VOR dem docker run fuer den Container beschreibbar" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  local body
+  body=$(python3 - "$wf" <<'PY'
+import sys, yaml
+steps = yaml.safe_load(open(sys.argv[1]))['jobs']['renovate']['steps']
+print(next(s['run'] for s in steps if s.get('name', '').startswith('Self-hosted Renovate')))
+PY
+)
+
+  # Eine Rechteanpassung muss ueberhaupt existieren ...
+  local perm_line
+  perm_line=$(grep -nE 'chown|chmod' <<<"$body" | head -1 | cut -d: -f1)
+  [ -n "$perm_line" ] || {
+    echo "FAIL: der Renovate-Step passt die Rechte auf dem Cache-Verzeichnis nicht an."
+    echo "      Der Runner legt /tmp/renovate-cache an, der Container laeuft unter"
+    echo "      einer anderen UID und kann nicht hineinschreiben — Renovate bricht"
+    echo "      mit EACCES ab, bevor es ein Repository sieht."
+    return 1
+  }
+
+  # ... und VOR dem docker run stehen, sonst kommt sie zu spaet.
+  local docker_line
+  docker_line=$(grep -n 'docker run' <<<"$body" | head -1 | cut -d: -f1)
+  [ -n "$docker_line" ]
+  [ "$perm_line" -lt "$docker_line" ] || {
+    echo "FAIL: die Rechteanpassung steht NACH dem docker run (Zeile ${perm_line} vs ${docker_line})."
+    echo "      Genau das war der Defekt: T002249 hatte nur den Post-Lauf-chown fuer"
+    echo "      actions/cache, nicht den Pre-Lauf-chown fuer den Container."
+    return 1
+  }
+}
+
+@test "T002289: der Post-Lauf-chown fuer actions/cache bleibt erhalten" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  # Regression-Guard: beim Fix der einen Richtung darf die andere nicht wegfallen.
+  # Ohne den Post-Lauf-chown scheitert der actions/cache-Post-Step am Packen —
+  # lautlos, der Cache bliebe dauerhaft kalt.
+  python3 - "$wf" <<'PY'
+import sys, yaml
+steps = yaml.safe_load(open(sys.argv[1]))['jobs']['renovate']['steps']
+names = [s.get('name', '') for s in steps]
+idx = next(i for i, n in enumerate(names) if n.startswith('Self-hosted Renovate'))
+after = [s for s in steps[idx + 1:] if 'chown' in s.get('run', '')]
+assert after, "kein chown-Step NACH dem Renovate-Step (actions/cache kann nicht packen)"
+PY
+}

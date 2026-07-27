@@ -2923,7 +2923,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 554,
+      "file_count": 555,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3294,6 +3294,7 @@
         "scripts/lib/route-manifest.mjs",
         "scripts/lib/route-manifest.test.mjs",
         "scripts/lib/scan.sh",
+        "scripts/lib/scs-chunking.ts",
         "scripts/lib/seal-extra-namespaces.sh",
         "scripts/lib/teams-import.sh",
         "scripts/lib/ticket-grill.sh",

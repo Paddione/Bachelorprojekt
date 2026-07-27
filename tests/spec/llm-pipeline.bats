@@ -203,6 +203,39 @@ assert_var_not_declared() {
 # PowerShell liefert dafür still $null, also wurde jede Scheduled Task mit leerem
 # Executable-Pfad registriert (/tr "" <args>) und konnte nichts starten — der
 # Grund, warum es faktisch keine Server-Persistenz gab.
+# ── PowerShell-5.1-Parsebarkeit (T002275) ─────────────────────────────
+# Vier von fuenf scripts/llm/*.ps1 waren fuer PowerShell 5.1 nicht parsebar, aus
+# zwei unabhaengigen Gruenden. Beide Guards sind statisch, weil CI unter Linux
+# laeuft und kein PowerShell hat. Der echte Test ist auf Windows:
+#   [System.Management.Automation.Language.Parser]::ParseFile($f, [ref]$null, [ref]$errs)
+#
+# Grund 1 — Encoding: PS 5.1 liest eine .ps1 OHNE BOM als ANSI/Windows-1252.
+# UTF-8-Mehrbyte-Sequenzen zerfallen, und einige der Bytes sind typografische
+# Anfuehrungszeichen, die PowerShell als String-Delimiter akzeptiert:
+#   '-' em dash  E2 80 94 -> Byte 0x94 = '"' in cp1252
+#   Haken        E2 9C 93 -> Byte 0x93 = '"'
+#   Pfeil rechts E2 86 92 -> Byte 0x92 = "'"
+# Ein solches Zeichen im KOMMENTAR genuegt: es oeffnet einen String, der bis zum
+# naechsten Anfuehrungszeichen laeuft. Der Parser zeigt dann auf eine Zeile weit
+# darunter ("Zeichenfolge hat kein Abschlusszeichen").
+#
+# Grund 2 — Ternary: 'cond ? a : b' gibt es erst ab PowerShell 7. Auf diesem Host
+# ist nur 5.1 installiert (kein pwsh.exe), dort ist es ein Parse-Fehler.
+
+@test "no scripts/llm/*.ps1 contains a byte above 0x7F (T002275)" {
+  # Absichtlich ALLE non-ASCII-Bytes, nicht nur die bekannten Quote-Ausloeser:
+  # ein Test auf 'keine em dashes' waere zu eng, Haken und Pfeile brechen genauso.
+  run bash -c "LC_ALL=C grep -lP '[\\x80-\\xff]' '$REPO'/scripts/llm/*.ps1 2>/dev/null"
+  [ -z "$output" ]
+  [ "$status" -ne 0 ]
+}
+
+@test "no scripts/llm/*.ps1 uses the PS7-only ternary operator (T002275)" {
+  run bash -c "grep -lE '\\)[[:space:]]+\\?[[:space:]]' '$REPO'/scripts/llm/*.ps1 2>/dev/null"
+  [ -z "$output" ]
+  [ "$status" -ne 0 ]
+}
+
 # ── Bonsai-Autostart-Argumente (T002274) ──────────────────────────────
 # Der Task-Eintrag war ein Schnappschuss einer verworfenen Konfiguration:
 # nicht existierende TQ2_0-Datei, Upstream-Build ohne CUDA-Kernel fuer dieses

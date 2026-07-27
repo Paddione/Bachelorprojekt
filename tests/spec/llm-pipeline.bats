@@ -405,6 +405,39 @@ assert_var_not_declared() {
   fi
 }
 
+@test "start-gemma-server.ps1 keeps :8091 multimodal via --mmproj (T002296)" {
+  # Gemma 4 12B kann Bild UND Audio, aber nur mit geladenem mmproj-Tower. Ohne
+  # ihn startet der Server klaglos als reines Textmodell - /props meldet dann
+  # vision:false/audio:false, und auffallen wuerde es erst, wenn ein Client ein
+  # Bild schickt und eine hilflose Textantwort bekommt. Genau das ist zwischen
+  # T002293 und T002296 passiert: der Live-Server hatte den Tower, das Skript
+  # nicht, und der erste Start ueber das Skript hat ihn lautlos entfernt.
+  gemma="$REPO/scripts/llm/start-gemma-server.ps1"
+  run grep -qE '\$Mmproj[[:space:]]*=[[:space:]]*Join-Path' "$gemma"
+  [ "$status" -eq 0 ]
+  # Der Append muss an der Bedingung haengen, nicht irgendwo im Text stehen.
+  run grep -qE '\$Params[[:space:]]*\+=[[:space:]]*@\("--mmproj",[[:space:]]*\$Mmproj\)' "$gemma"
+  [ "$status" -eq 0 ]
+  # Und ein fehlender Tower darf nicht still durchrutschen.
+  run grep -qE 'mmproj not found' "$gemma"
+  [ "$status" -eq 0 ]
+}
+
+@test "start-gemma-server.ps1 pairs quantised KV with -fa on (T002296)" {
+  # Harte llama.cpp-Kopplung, kein Stilfrage: mit "-fa off" bricht der Start ab
+  # mit "llama_init_from_model: V cache quantization requires flash_attn".
+  # Nur f16 laedt ohne. Der Default "-fa auto" waehlt hier zwar faktisch "on",
+  # ist aber hardwareabhaengig und wird von /props NICHT exponiert - es gibt
+  # also keine Laufzeitpruefung, die den Fehler nachtraeglich sichtbar machte.
+  gemma="$REPO/scripts/llm/start-gemma-server.ps1"
+  kv="$(grep -oE '\$KvType[[:space:]]*=[[:space:]]*"[a-z0-9_]+"' "$gemma" | head -1 | sed -E 's/.*"([a-z0-9_]+)"/\1/')"
+  [ -n "$kv" ]
+  if [ "$kv" != "f16" ]; then
+    run grep -qE '"-fa",[[:space:]]*"on"' "$gemma"
+    [ "$status" -eq 0 ]
+  fi
+}
+
 # Kein eigener Start-Job-Guard fuer start-gemma-server.ps1: der Test
 # "no scripts/llm/*.ps1 starts a server via Start-Job (T002276)" oben deckt
 # jedes Skript im Verzeichnis ab, auch neu hinzugekommene.

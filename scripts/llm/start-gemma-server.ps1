@@ -85,6 +85,14 @@
   Werte > 1 schalten automatisch -kvu dazu, sonst teilt llama.cpp $Ctx durch $Slots.
 .PARAMETER NMax
   --spec-draft-n-max. Default 4 (gemessenes Optimum, Sweep in .DESCRIPTION).
+.PARAMETER KvType
+  KV-Cache-Quantisierung. Default q4_0 (T002296) - gibt bei grossem -Ctx das
+  VRAM fuer den mmproj-Tower frei, kostet ~3,6 Prozent Generierungsdurchsatz.
+  q8_0 holt den Durchsatz und die bessere woertliche Kontext-Treue zurueck.
+  f16 ist unquantisiert und der einzige Wert, der ohne "-fa on" laedt.
+.PARAMETER NoMmproj
+  Startet ohne Vision-/Audio-Tower. Spart ~200 MiB VRAM, macht :8091 aber zu
+  einem reinen Textmodell (/props meldet dann vision:false, audio:false).
 .EXAMPLE
   .\scripts\llm\start-gemma-server.ps1
   # Factory-Profil: 65536 ctx, 1 Slot, maximaler Praefix-Reuse
@@ -99,7 +107,10 @@ param(
   [int]$Port = 8091,
   [int]$Ctx = 65536,
   [int]$Slots = 1,
-  [int]$NMax = 4
+  [int]$NMax = 4,
+  [ValidateSet("q4_0", "q8_0", "f16")]
+  [string]$KvType = "q4_0",
+  [switch]$NoMmproj
 )
 
 # Bei diesem Build liegt llama-server.exe in \bin, nicht flach im Root.
@@ -116,6 +127,14 @@ $Model   = Join-Path $ModelDir "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf"
 # Q8_0-Upscale (Messwerte in .DESCRIPTION). mtp-gemma-4-12B-it.gguf im Repo-Root
 # ist byte-identisch damit - das ist die Datei, die "-hf" automatisch zieht.
 $MtpHead = Join-Path $ModelDir "mtp-gemma-4-12B-it-Q4_0.gguf"
+# Vision-/Audio-Tower (T002296). Gemma 4 12B kann Bild UND Audio; ohne --mmproj
+# meldet /props "vision: false, audio: false" und der Server ist ein reines
+# Textmodell. Das war zwischen T002293 und T002296 der Fall - der Live-Server
+# hatte den Tower, das Skript nicht, und der erste Start ueber das Skript hat
+# ihn lautlos entfernt. Deshalb steht er jetzt hier und nicht nur im Kopf des
+# Aufrufers. F16 statt F32: halber Speicher (175 statt 210 MB), gleiche
+# Ausgabe im Rahmen der Messgenauigkeit. Abschaltbar mit -NoMmproj.
+$Mmproj = Join-Path $ModelDir "mmproj-F16.gguf"
 
 if (-not (Test-Path $Model)) {
   Write-Error "Model not found at: $Model"
@@ -140,15 +159,22 @@ foreach ($c in $conns) {
 
 $freeMiB = [int](& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()
 $slotWord = if ($Slots -gt 1) { "$Slots slots, -kvu (gemeinsamer Pool)" } else { "1 slot" }
-Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port ($Ctx ctx, Q8_0 KV, $slotWord, n-max $NMax) ..."
+$mmWord = if ($NoMmproj) { "kein mmproj (nur Text)" } else { "mmproj F16 (Vision+Audio)" }
+Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port ($Ctx ctx, $KvType KV, $slotWord, n-max $NMax, $mmWord) ..."
 Write-Output "  Model:     $Model"
 Write-Output "  MTP head:  $MtpHead"
 Write-Output "  Free VRAM: $freeMiB MiB"
-# Der Bedarf skaliert mit $Ctx: gemessen 2026-07-27 rund 14,6 KiB VRAM je
-# Kontext-Token bei q8_0-KV (Gemma teilt KV ueber Layer und nutzt ein
-# 1024er-SWA-Fenster, deshalb so wenig). 8000 MiB Sockel = Gewichte + Q4_0-Head
-# + mmproj + Compute-Buffer.
-$needMiB = 8000 + [int]($Ctx * 0.0143)
+# Der Bedarf skaliert mit $Ctx UND mit $KvType: gemessen 2026-07-27 rund
+# 14,6 KiB VRAM je Kontext-Token bei q8_0, ~7,3 KiB bei q4_0, ~29 KiB bei f16
+# (Gemma teilt KV ueber Layer und nutzt ein 1024er-SWA-Fenster, deshalb
+# ueberhaupt so wenig). Sockel = Gewichte + Q4_0-Draft-Head + Compute-Buffer,
+# plus ~200 MiB fuer den mmproj-Tower, wenn er mitlaeuft.
+$perTokMiB = 0.0143
+if ($KvType -eq "q4_0") { $perTokMiB = 0.0072 }
+if ($KvType -eq "f16")  { $perTokMiB = 0.0286 }
+$baseMiB = 8000
+if (-not $NoMmproj) { $baseMiB += 200 }
+$needMiB = $baseMiB + [int]($Ctx * $perTokMiB)
 if ($freeMiB -lt $needMiB) {
   Write-Output "  WARNUNG: unter $needMiB MiB frei. Die Gewichte allein brauchen ~7.4 GB,"
   Write-Output "           dazu der MTP-Head (~0.25 GB) und $Ctx Tokens KV."
@@ -193,12 +219,33 @@ $Params = @(
   #      ebenfalls >= $Slots sein, sonst serialisiert der llm-proxy weiter.
   #   2. Der Praefix-Reuse-Vorteil oben geht anteilig verloren.
   "-np", "$Slots"
-  # KV q8_0: praktisch verlustfrei und halbiert den Cache gegenueber f16.
-  # Bewusst NICHT q4_0: das spart nur Kontext, von dem hier ohnehin Ueberschuss
-  # herrscht, und degradiert genau das woertliche Zurueckholen von Pfaden,
-  # Symbolnamen und Tool-Call-Argumenten aus dem Kontext.
-  "--cache-type-k", "q8_0"
-  "--cache-type-v", "q8_0"
+  # KV-Quantisierung, Default q4_0 (T002296). ACHTUNG - das ist eine bewusste
+  # Umkehr der Entscheidung von T002286, nicht ein Versehen:
+  #
+  # Der alte Kommentar argumentierte, q4_0 spare "nur Kontext, von dem ohnehin
+  # Ueberschuss herrscht". Das galt fuer -Ctx 65536 mit einem Slot. Gemessen
+  # 2026-07-27 an genau diesem Server, identischer Prompt, temperature 0:
+  #
+  #   -c 262144 / q8_0   15362 MiB   151,1 t/s
+  #   -c 262144 / q4_0   14184 MiB   145,5 t/s   (-1178 MiB, -3,7 %)
+  #   -c 65536  / q8_0   12552 MiB   151,3 t/s
+  #   -c 65536  / q4_0   12181 MiB   145,9 t/s   (-371 MiB,  -3,6 %)
+  #
+  # Die Ersparnis skaliert mit -Ctx, die Kosten nicht: bei kleinem Kontext
+  # lohnt q4_0 nicht, beim Mehr-Agenten-Profil (-Ctx 200000) sind es ~1,4 GB.
+  # Dieses VRAM finanziert den mmproj-Tower unten. Wer Durchsatz ueber
+  # Multimodalitaet stellt: "-KvType q8_0" und die 3,6 Prozent sind zurueck.
+  #
+  # Der bekannte Nachteil bleibt bestehen und ist der Preis: 4-Bit-KV
+  # degradiert das woertliche Zurueckholen von Pfaden, Symbolnamen und
+  # Tool-Call-Argumenten aus dem Kontext staerker als q8_0. Faellt das in der
+  # Factory auf, ist "-KvType q8_0" der erste Hebel.
+  #
+  # HARTE KOPPLUNG: jede Quantisierung setzt "-fa on" voraus. Mit "-fa off"
+  # bricht der Start ab: "V cache quantization requires flash_attn". Nur f16
+  # laeuft ohne. Der Guard in tests/spec/llm-pipeline.bats haelt das fest.
+  "--cache-type-k", "$KvType"
+  "--cache-type-v", "$KvType"
   # Fester Deckel statt Auto-Fit - Begruendung und Messwerte in .DESCRIPTION.
   "-c", "$Ctx"
   "-fit", "off"
@@ -212,6 +259,21 @@ $Params = @(
 # Nur bei echter Parallelitaet. Mit einem Slot ist -kvu wirkungslos, macht die
 # Kommandozeile aber schwerer mit dem Default-Profil vergleichbar.
 if ($Slots -gt 1) { $Params += "-kvu" }
+
+# Fail-loud statt fail-silent: ein fehlender Tower wuerde den Server als reines
+# Textmodell hochbringen, und das faellt erst auf, wenn ein Client ein Bild
+# schickt und eine hilflose Textantwort bekommt.
+if (-not $NoMmproj) {
+  if (Test-Path $Mmproj) {
+    $Params += @("--mmproj", $Mmproj)
+  } else {
+    Write-Error "mmproj not found at: $Mmproj"
+    Write-Output "  Ohne ihn startet :8091 ohne Vision/Audio. Entweder holen:"
+    Write-Output "    hf download unsloth/gemma-4-12B-it-qat-GGUF --include '*mmproj-F16*' --local-dir $ModelDir"
+    Write-Output "  oder bewusst verzichten: -NoMmproj"
+    exit 1
+  }
+}
 
 $logDir = Split-Path $Exe -Parent
 $logOut = Join-Path $logDir "gemma4-12b-mtp-out.log"

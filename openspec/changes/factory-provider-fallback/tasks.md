@@ -132,7 +132,7 @@ Setzt RC1 und die Router-Seite von D3 um.
 - Consumes: `tickets.factory_model_slots(phase, provider, model_id, base_url)` und `tickets.provider_config(source, tier, priority, provider, model_id, base_url, max_concurrent, context_window, context_budget, enabled)`, ab Task 4 zusaetzlich `api_key_env`.
 - Produces: Router-JSON mit dem zusaetzlichen Feld `apiKeyEnv` (String oder `null`). Task 3 liest genau dieses Feld. Bestehende Felder (`provider`, `modelId`, `baseUrl`, `slotId`, `ctx`, `emergency`) bleiben unveraendert.
 
-- [ ] **Step 1: RED-Test laufen lassen**
+- [x] **Step 1: RED-Test laufen lassen**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: route-provider" tests/spec/software-factory.bats
@@ -140,7 +140,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: route-provider" tests/spec
 
 Expected: FAIL — der Phase-Block enthaelt noch ein `exit 0`, `qwythos-9b-v2` steht noch im Emergency-Zweig, und `apiKeyEnv` fehlt.
 
-- [ ] **Step 2: Phase-Zweig zur Kandidatenquelle machen**
+- [x] **Step 2: Phase-Zweig zur Kandidatenquelle machen**
 
 Den Block `if [[ -n "$PHASE" ]]; then ... fi` (Zeilen 72-86) so ersetzen, dass er die Zeile **sammelt** statt zurueckzugeben:
 
@@ -162,7 +162,7 @@ fi
 
 `factory_model_slots` hat keine `max_concurrent`-Spalte; der Literalwert `3` haelt das Feldformat mit `provider_config` deckungsgleich, damit beide Quellen dieselbe Claim-Schleife durchlaufen. `api_key_env` kommt aus Task 4 hinzu — bis dahin liefert `COALESCE` den Leerstring, und die Schleife behandelt ihn wie einen Provider ohne Key.
 
-- [ ] **Step 3: Kandidatenliste zusammenfuehren**
+- [x] **Step 3: Kandidatenliste zusammenfuehren**
 
 Die `CANDS`-Zuweisung um `api_key_env` erweitern und den Pin voranstellen:
 
@@ -179,7 +179,7 @@ SQL
 [[ -n "$PINNED" ]] && CANDS="${PINNED}"$'\n'"${CANDS}"
 ```
 
-- [ ] **Step 4: Schleife um das Key-Feld erweitern**
+- [x] **Step 4: Schleife um das Key-Feld erweitern**
 
 `read` und die Ausgabe anpassen:
 
@@ -200,7 +200,7 @@ und im Erfolgsfall:
   fi
 ```
 
-- [ ] **Step 5: Emergency-Zweig auf ein reales Backend zeigen lassen und hoerbar machen**
+- [x] **Step 5: Emergency-Zweig auf ein reales Backend zeigen lassen und hoerbar machen**
 
 Die Schlusszeile ersetzen:
 
@@ -212,11 +212,11 @@ echo "  Emergency-Fallback aktiv — pruefe 'bash scripts/factory/reap-provider-
 printf '{"provider":"lmstudio","modelId":"gemma-4-12b","baseUrl":"http://127.0.0.1:1234","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n'
 ```
 
-- [ ] **Step 6: Auch der opus-Zweig gibt das neue Feld aus**
+- [x] **Step 6: Auch der opus-Zweig gibt das neue Feld aus**
 
 Damit alle Ausgabepfade dasselbe Schema haben, in der `printf`-Zeile des `opus`-Blocks (Zeile 67-68) `"apiKeyEnv":null,` vor `"emergency"` ergaenzen. Die Auswahllogik des Zweigs bleibt unangetastet.
 
-- [ ] **Step 7: Tests gruen pruefen**
+- [x] **Step 7: Tests gruen pruefen**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-70|FA-SF-71|FA-SF-74: route-provider" tests/spec/software-factory.bats
@@ -224,7 +224,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-70|FA-SF-71|FA-SF-74: route-pr
 
 Expected: PASS. `FA-SF-70` und `FA-SF-71` sind Regressionsschutz — sie muessen mitlaufen und gruen bleiben.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/factory/route-provider.sh

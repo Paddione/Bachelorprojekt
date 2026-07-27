@@ -64,38 +64,44 @@ SQL
   fi
   IFS=$'\t' read -r opus_prov opus_model opus_burl <<< "$OPUS_ROW"
   OPUS_BJSON=$([[ -n "$opus_burl" ]] && printf '"%s"' "$opus_burl" || printf 'null')
-  printf '{"provider":"%s","modelId":"%s","baseUrl":%s,"slotId":null,"ctx":0,"emergency":false}\n' \
+  # apiKeyEnv:null haelt das Ausgabeschema mit der Kandidatenkette deckungsgleich [T002359].
+  # Die Auswahllogik dieses Zweigs bleibt bewusst unangetastet (kein Slot-Claim).
+  printf '{"provider":"%s","modelId":"%s","baseUrl":%s,"slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":false}\n' \
     "$opus_prov" "$opus_model" "$OPUS_BJSON"
   exit 0
 fi
 
+# Der Phase-Pin aus factory_model_slots ist Kandidat #0, nicht das Ergebnis [T002359].
+# Bis hierher returnte dieser Block beim ersten Treffer und uebersprang damit
+# Priority-Kette, provider_health, Cooldown und Claim vollstaendig — die gesamte
+# Fallback-Logik darunter war fuer plan/implement/verify toter Code.
+#
+# factory_model_slots hat keine max_concurrent-Spalte; der Literalwert 3 haelt das
+# Feldformat mit provider_config deckungsgleich, damit beide Quellen dieselbe
+# Claim-Schleife durchlaufen.
+PINNED=""
 if [[ -n "$PHASE" ]]; then
-  SLOT=$(factory_psql -v phase="$PHASE" <<'SQL'
-SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')
+  PINNED=$(factory_psql -v phase="$PHASE" <<'SQL'
+SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')||E'\t'||3
+       ||E'\t'||0||E'\t'||''||E'\t'||COALESCE(api_key_env,'')
 FROM tickets.factory_model_slots WHERE phase = :'phase';
 SQL
 )
-  if [[ -n "$SLOT" ]]; then
-    IFS=$'\t' read -r prov model burl <<< "$SLOT"
-    if [[ -n "$prov" ]]; then
-      BJSON=$([[ -n "$burl" ]] && printf '"%s"' "$burl" || printf 'null')
-      printf '{"provider":"%s","modelId":"%s","baseUrl":%s,"slotId":null,"ctx":0,"emergency":false}\n' "$prov" "$model" "$BJSON"
-      exit 0
-    fi
-  fi
 fi
 
 # Ordered candidates: source-specific before '*', then priority asc.
 CANDS=$(factory_psql -v src="$SOURCE" -v tier="$TIER" <<'SQL'
 SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')||E'\t'||max_concurrent
        ||E'\t'||COALESCE(context_window,0)||E'\t'||COALESCE(context_budget::text,'')
+       ||E'\t'||COALESCE(api_key_env,'')
 FROM tickets.provider_config
 WHERE (source=:'src' OR source='*') AND tier=:'tier' AND enabled=true
 ORDER BY (source=:'src') DESC, priority ASC;
 SQL
 )
+[[ -n "$PINNED" ]] && CANDS="${PINNED}"$'\n'"${CANDS}"
 
-while IFS=$'\t' read -r prov model burl maxc ctx budget; do
+while IFS=$'\t' read -r prov model burl maxc ctx budget keyenv; do
   [[ -z "$prov" ]] && continue
   # Atomic claim: circuit closed AND below cap AND (unbounded budget OR fits reservation).
   CLAIM=$(factory_psql -v prov="$prov" -v maxc="$maxc" -v ctx="${ctx:-0}" -v budget="$budget" <<'SQL'
@@ -112,10 +118,17 @@ SQL
 )
   if [[ -n "$CLAIM" ]]; then
     BJSON=$([[ -n "$burl" ]] && printf '"%s"' "$burl" || printf 'null')
-    printf '{"provider":"%s","modelId":"%s","baseUrl":%s,"slotId":"%s","ctx":%s,"emergency":false}\n' "$prov" "$model" "$BJSON" "$prov" "${ctx:-0}"
+    KJSON=$([[ -n "$keyenv" ]] && printf '"%s"' "$keyenv" || printf 'null')
+    printf '{"provider":"%s","modelId":"%s","baseUrl":%s,"slotId":"%s","ctx":%s,"apiKeyEnv":%s,"emergency":false}\n' \
+      "$prov" "$model" "$BJSON" "$prov" "${ctx:-0}" "$KJSON"
     exit 0
   fi
 done <<< "$CANDS"
 
-# Emergency fallback: local Qwen3.6, no slot claimed.
-printf '{"provider":"lmstudio","modelId":"qwythos-9b-v2","baseUrl":"http://127.0.0.1:1234","slotId":null,"ctx":0,"emergency":true}\n'
+# Emergency fallback: lokales LM Studio, kein Slot geclaimt.
+# RC5 [T002359]: hier stand ein Modell, das LM Studio seit dem Gemma-Cutover nicht
+# mehr serviert. Der Router gab es lautlos zurueck — der llm-proxy bog es still auf
+# das erste gesunde Backend um, sodass nirgends ein Fehler auftauchte.
+echo "route-provider: ALLE Kandidaten fuer source=$SOURCE tier=$TIER belegt oder auf Cooldown." >&2
+echo "  Emergency-Fallback aktiv — pruefe 'bash scripts/factory/reap-provider-slots.sh --dry-run'." >&2
+printf '{"provider":"lmstudio","modelId":"gemma-4-12b","baseUrl":"http://127.0.0.1:1234","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n'

@@ -41,7 +41,7 @@ teardown() {
 # ── 2. Subject-line classification (allow cases) ─────────────────────────────
 
 @test "allows: fix(real-code) — production-code change" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'src/middleware.ts' > "$TMP/msg-subject"
   mkdir -p src && printf 'real code' > src/middleware.ts
   git add src/middleware.ts
@@ -50,7 +50,7 @@ teardown() {
 }
 
 @test "allows: fix(real-code+test) — production + test in same commit" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware sequence\n' > "$TMP/msg-subject"
   mkdir -p src && printf 'real' > src/middleware.ts && printf 'test' > src/middleware.test.ts
   git add src/
@@ -59,7 +59,7 @@ teardown() {
 }
 
 @test "allows: test(red-only) — RED-test commit uses test: prefix" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'test(red): verify locals.requestLogger is set\n' > "$TMP/msg-subject"
   mkdir -p src && printf 'test' > src/middleware.test.ts
   git add src/
@@ -68,7 +68,7 @@ teardown() {
 }
 
 @test "allows: chore(plan-only) — plan-only commit uses chore(plans):" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'chore(plans): stage t001434 for execution [T001434]\n' > "$TMP/msg-subject"
   mkdir -p openspec/changes/t001434 && printf 'plan' > openspec/changes/t001434/tasks.md
   git add openspec/
@@ -77,7 +77,7 @@ teardown() {
 }
 
 @test "allows: docs: readme update is not an implementation claim" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'docs: update README\n' > "$TMP/msg-subject"
   printf 'hello' > README.md
   git add README.md
@@ -86,7 +86,7 @@ teardown() {
 }
 
 @test "allows: ci: workflow bump is not an implementation claim" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'ci: bump action versions\n' > "$TMP/msg-subject"
   mkdir -p .github/workflows && printf 'on: push' > .github/workflows/ci.yml
   git add .github/
@@ -95,7 +95,7 @@ teardown() {
 }
 
 @test "allows: fix(kustomize) — yaml/manifest counts as production code" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): tweak configmap\n' > "$TMP/msg-subject"
   mkdir -p k3d && printf 'data:' > k3d/configmap-domains.yaml
   git add k3d/
@@ -104,7 +104,7 @@ teardown() {
 }
 
 @test "allows: fix(scope-less) — no-scope implementation title is still fine if real code is staged" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix: typo in error message\n' > "$TMP/msg-subject"
   mkdir -p src && printf 'export const E = 1;' > src/typo.ts
   git add src/
@@ -113,7 +113,7 @@ teardown() {
 }
 
 @test "allows: feat!: breaking-change marker still allowed" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'feat(api)!: drop legacy /v1 endpoints\n' > "$TMP/msg-subject"
   mkdir -p src/api && printf 'export {}' > src/api/v2.ts
   git add src/
@@ -124,7 +124,7 @@ teardown() {
 # ── 3. Block cases — the T001434 pattern ────────────────────────────────────
 
 @test "blocks: fix(red-only-test) — the T001434 pattern (T001434-mishap)" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain loggingMiddleware in middleware.ts via sequence() [T001434]\n' > "$TMP/msg-subject"
   mkdir -p src && printf 'test' > src/middleware.test.ts
   git add src/
@@ -136,7 +136,7 @@ teardown() {
 }
 
 @test "blocks: fix(plan-only)" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware\n' > "$TMP/msg-subject"
   mkdir -p openspec/changes/x && printf 'plan' > openspec/changes/x/tasks.md
   git add openspec/
@@ -145,7 +145,7 @@ teardown() {
 }
 
 @test "blocks: fix(plan-and-test combined)" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware\n' > "$TMP/msg-subject"
   mkdir -p src && printf 'test' > src/middleware.test.ts
   mkdir -p openspec/changes/x && printf 'plan' > openspec/changes/x/tasks.md
@@ -155,7 +155,7 @@ teardown() {
 }
 
 @test "blocks: fix(spec-only — openspec/specs)" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware\n' > "$TMP/msg-subject"
   mkdir -p openspec/specs && printf 'spec' > openspec/specs/centralized-logging.md
   git add openspec/specs/
@@ -164,7 +164,7 @@ teardown() {
 }
 
 @test "blocks: feat(plan-only)" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'feat(infra): add logging chain\n' > "$TMP/msg-subject"
   mkdir -p openspec/changes/x && printf 'p' > openspec/changes/x/tasks.md && printf 'p' > openspec/changes/x/proposal.md
   git add openspec/changes/x/
@@ -173,7 +173,7 @@ teardown() {
 }
 
 @test "blocks: refactor(plan-only)" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'refactor(scripts): consolidate guards\n' > "$TMP/msg-subject"
   mkdir -p openspec/changes/cleanup && printf 'p' > openspec/changes/cleanup/tasks.md
   git add openspec/changes/cleanup/
@@ -182,7 +182,7 @@ teardown() {
 }
 
 @test "blocks: perf(plan-only)" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'perf(db): index tickets table\n' > "$TMP/msg-subject"
   mkdir -p openspec/changes/perf && printf 'p' > openspec/changes/perf/tasks.md
   git add openspec/changes/perf/
@@ -191,7 +191,7 @@ teardown() {
 }
 
 @test "blocks: doc-only files (superpowers specs) with implementation title" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): chain middleware\n' > "$TMP/msg-subject"
   mkdir -p docs/superpowers/specs && printf 'spec' > docs/superpowers/specs/2026-07-02-design.md
   git add docs/superpowers/specs/
@@ -202,7 +202,7 @@ teardown() {
 # ── 4. Bypass semantics ──────────────────────────────────────────────────────
 
 @test "SKIP_COMMIT_VS_DIFF=1 bypasses the check (commit-msg hook)" {
-  mkdir -p "$TMP/repo" && cd "$TMP/repo" && git init -q && git config user.email t@t && git config user.name t
+  mkdir -p "$TMP/repo" && cd "$TMP/repo" || return 1 && git init -q && git config user.email t@t && git config user.name t
   printf 'fix(infra): should be allowed with SKIP_COMMIT_VS_DIFF=1\n' > "$TMP/msg-subject"
   mkdir -p src && printf 'test' > src/middleware.test.ts
   git add src/

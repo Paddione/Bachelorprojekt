@@ -13,7 +13,7 @@ setup() { load 'test_helper.bash'; }
   # still fail downstream (factory_psql needs a live shared-db pod) — only
   # assert the pre-DB validation behavior: opus passes argument validation
   # and emits a warning, instead of being hard-rejected like before.
-  run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m
+  run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m --dry-run
   [[ "$output" == *"WARNING"* ]]
   [[ "$output" == *"opus"* ]]
   [[ "$output" != *"Usage:"* ]]

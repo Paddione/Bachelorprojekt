@@ -3093,7 +3093,7 @@ REG="scripts/factory/service-registry.sh"
 @test "FA-SF-70: provider-config.sh set accepts tier=opus with warning" {
   kubectl() { if [ "$1" = "get" ]; then echo "mock-pod"; else echo "ok"; fi; }
   export -f kubectl
-  run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m
+  run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"opus"* ]]
 }
@@ -4286,6 +4286,8 @@ EOF
 @test "T002281: FA-SF-70 schreibt nicht in die echte provider_config" {
   # Der Test rief 'provider-config.sh set --source x --tier opus' gegen die
   # produktive Tabelle auf und hinterliess dort dauerhaft x|opus|1|anthropic|m.
-  run bash -c "grep -E 'provider-config\.sh set' '$REPO/tests/spec/software-factory.bats' | grep -vcE '(--dry-run|DRY_RUN|--help)'"
+  # Nur vollstaendige Aufrufe pruefen (erkennbar an --provider): unvollstaendige enden
+  # in usage() vor jedem DB-Zugriff und sind unbedenklich.
+  run bash -c "grep -E 'provider-config\.sh set .*--provider' '$REPO/tests/spec/software-factory.bats' | grep -vcE '\-\-dry-run'"
   [ "$output" = "0" ]
 }

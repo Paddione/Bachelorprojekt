@@ -18,14 +18,24 @@ exit 2; }
 cmd="${1:-}"; shift || true
 case "$cmd" in
   set)
-    src= tier= prio= prov= model= burl= maxc=3
+    src= tier= prio= prov= model= burl= maxc=3 dry=false
     while [[ $# -gt 0 ]]; do case "$1" in
       --source) src="$2"; shift 2;; --tier) tier="$2"; shift 2;;
       --priority) prio="$2"; shift 2;; --provider) prov="$2"; shift 2;;
       --model) model="$2"; shift 2;; --base-url) burl="$2"; shift 2;;
-      --max-concurrent) maxc="$2"; shift 2;; *) usage;; esac; done
+      --max-concurrent) maxc="$2"; shift 2;;
+      --dry-run) dry=true; shift;; *) usage;; esac; done
     [[ -n "$src" && -n "$tier" && -n "$prio" && -n "$prov" && -n "$model" ]] || usage
     if [[ "$tier" == "opus" ]]; then echo "WARNING: opus tier — ensure a provider_config row exists for this source/tier." >&2; fi
+    # --dry-run [T002281]: validiert Argumente und gibt Warnungen aus, beruehrt die
+    # DB aber nicht. FA-SF-70 prueft genau diese Validierung und fuhr dafuer bis 2026-07-27
+    # gegen die PRODUKTIVE provider_config — die Zeile x|opus|1|anthropic|m blieb dort
+    # dauerhaft stehen. Folgenlos, weil source='x' nie matcht, aber ein Test, der in die
+    # produktive Routing-Tabelle schreibt, ist eine Zeitbombe.
+    if $dry; then
+      echo "DRY-RUN: would upsert ${src}/${tier}/${prio} → ${prov}/${model}"
+      exit 0
+    fi
     factory_psql \
       -v src="$src" -v tier="$tier" -v prio="$prio" -v prov="$prov" \
       -v model="$model" -v burl="${burl:-}" -v maxc="$maxc" <<'SQL'

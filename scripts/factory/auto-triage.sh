@@ -113,8 +113,44 @@ validate_triage() {
   return 0
 }
 
-# ── call_llm: build prompt → route-provider → curl → response ──────────
+# ── Slot-Freigabe [T002281] ────────────────────────────────────────────
+# route-provider.sh claimt atomar (active_agents + 1) und liefert slotId. Dieses
+# Skript las slotId frueher nicht einmal aus - und da es pro Ticket einmal claimt,
+# stand deepseek nach drei Laeufen auf active_agents=3 = max_concurrent und wurde
+# von der Kandidaten-Kette still uebersprungen, ohne jede Fehlermeldung.
+#
+# WARUM EIN WRAPPER UND KEIN 'trap RETURN': _call_llm_inner hat fuenf Ruecksprung-
+# pfade (route-provider failed, leere Felder, leere baseUrl, curl failed, kein
+# content, Erfolg). Ein Release an jedem einzelnen waere genau die Stelle, an der
+# der naechste Patch einen vergisst. Der Wrapper faengt alle ab.
+#
+# WARUM KEIN 'trap EXIT' WIE IN scout-llm-fallback.sh: jenes Skript claimt EINMAL
+# pro Lauf, hier wird pro Ticket geclaimt. Ein EXIT-Trap gaebe nur den letzten Slot
+# frei und liesse alle vorherigen stehen.
+CURRENT_ROUTE_JSON=""
+
+release_current_slot() {
+  [[ -z "$CURRENT_ROUTE_JSON" ]] && return 0
+  local slot ctx
+  slot="$(printf '%s' "$CURRENT_ROUTE_JSON" | jq -r '.slotId // empty' 2>/dev/null)"
+  ctx="$(printf '%s' "$CURRENT_ROUTE_JSON" | jq -r '.ctx // 0' 2>/dev/null)"
+  CURRENT_ROUTE_JSON=""   # vor dem Aufruf leeren: macht die Funktion idempotent
+  [[ -z "$slot" || "$slot" == "null" ]] && return 0
+  # ctx mitgeben, sonst bleibt reserved_tokens stehen (release-slot.sh Zeile 5).
+  bash "$HERE/release-slot.sh" "$slot" true "${ctx:-0}" >/dev/null 2>&1 || true
+}
+# Netz fuer Abbrueche mitten im Lauf (Ctrl-C, Timeout, set -e).
+trap release_current_slot EXIT
+
 call_llm() {
+  local rc=0
+  _call_llm_inner "$@" || rc=$?
+  release_current_slot
+  return $rc
+}
+
+# ── _call_llm_inner: build prompt → route-provider → curl → response ────
+_call_llm_inner() {
   local title="$1" description="$2" enums="$3"
   local system_prompt
   system_prompt=$(cat <<'PROMPT'
@@ -154,6 +190,9 @@ PROMPT
     echo "auto-triage: route-provider failed" >&2
     return 1
   }
+  # Ab hier haelt dieser Aufruf einen Slot — der Wrapper call_llm gibt ihn auf
+  # jedem Ruecksprungpfad wieder frei [T002281].
+  CURRENT_ROUTE_JSON="$route"
   local provider; provider=$(echo "$route" | jq -r '.provider // ""')
   local model; model=$(echo "$route" | jq -r '.modelId // ""')
   local base_url; base_url=$(echo "$route" | jq -r '.baseUrl // ""')

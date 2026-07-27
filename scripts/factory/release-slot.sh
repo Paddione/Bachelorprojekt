@@ -16,6 +16,9 @@ factory_psql -v prov="$PROV" -v ctx="$CTX" <<'SQL'
 UPDATE tickets.provider_health
 SET active_agents = GREATEST(0, active_agents - 1),
     reserved_tokens = GREATEST(0, reserved_tokens - :'ctx'::int),
+    -- claimed_at nur loeschen, wenn danach kein Claim mehr offen ist: sonst haelt
+    -- der TTL-Reaper den verbleibenden Claim faelschlich fuer frisch [T002281].
+    claimed_at = CASE WHEN active_agents - 1 <= 0 THEN NULL ELSE claimed_at END,
     updated_at = now()
 WHERE provider = :'prov';
 SQL

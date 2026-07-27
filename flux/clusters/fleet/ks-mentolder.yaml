@@ -14,6 +14,19 @@ spec:
     name: fleet-manifests
   path: ./mentolder
   prune: true
+  # T002313: Hier stehen NUR Workloads, die diese Kustomization selbst ausrollt.
+  # Ein healthCheck ist ein Gate VOR dem Applizieren — Flux wartet, bis alle
+  # genannten Ziele gesund sind. Ein Eintrag auf fremde Infrastruktur macht
+  # deren Ausfall zum Blocker fuer den gesamten Brand-Stack.
+  #
+  # Entfernt: Deployment/traefik in namespace workspace. Das existiert dort
+  # nicht (nur oauth2-proxy-traefik, ein anderer Dienst); das echte traefik
+  # laeuft Helm-verwaltet in kube-system als k3s-Systemkomponente und wird von
+  # dieser Kustomization gar nicht deployed. Als Gate war der Eintrag wertlos,
+  # und auf kube-system umgebogen haette jeder traefik-Neustart den Brand-Stack
+  # blockiert. Am 2026-07-27 hat genau diese Bauart einen Deadlock erzeugt:
+  # pocket-id war wegen zerstoerter DB-Passwoerter unhealthy -> Health-Gate hing
+  # -> der Fix (T002306), der die Passwoerter repariert haette, kam nie an.
   healthChecks:
     - apiVersion: apps/v1
       kind: Deployment
@@ -22,8 +35,4 @@ spec:
     - apiVersion: apps/v1
       kind: Deployment
       name: pocket-id
-      namespace: workspace
-    - apiVersion: apps/v1
-      kind: Deployment
-      name: traefik
       namespace: workspace

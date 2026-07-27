@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.221.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.0...website-v1.221.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* **ci:** Commit-Scopes auf 14 Domaenen-Scopes konsolidieren [T002328] ([#3396](https://github.com/Paddione/Bachelorprojekt/issues/3396)) ([cbf9699](https://github.com/Paddione/Bachelorprojekt/commit/cbf96994b584797c5815c58a7bb56fce68156db7))
+* **llm:** /health meldet Readiness, /livez neu [T002336] ([#3395](https://github.com/Paddione/Bachelorprojekt/issues/3395)) ([2064c7c](https://github.com/Paddione/Bachelorprojekt/commit/2064c7c39c3752f6e9696ec791a3d78b947a1599))
+* **mcp:** declare mcp-postgres brand-scope in registry, tool-guide, and CLAUDE.md [T002278] ([#3393](https://github.com/Paddione/Bachelorprojekt/issues/3393)) ([ee52c8e](https://github.com/Paddione/Bachelorprojekt/commit/ee52c8eed6890261c75489f153426c2cb2918451))
+* **mcp:** reap stale postgres MCP children and harden monolith memory limit [T002321] ([#3397](https://github.com/Paddione/Bachelorprojekt/issues/3397)) ([6ecab5f](https://github.com/Paddione/Bachelorprojekt/commit/6ecab5fc08779c3547d41248543f36c09a801d55))
+
 ## [1.221.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.220.2...website-v1.221.0) (2026-07-27)
 
 

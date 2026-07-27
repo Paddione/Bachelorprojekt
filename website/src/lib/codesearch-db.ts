@@ -12,21 +12,38 @@ let _pool: pg.Pool | undefined;
 export function __setPoolForTests(testPool: pg.Pool): void { _pool = testPool; }
 function p(): pg.Pool { return _pool ?? defaultPool; }
 
-const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'text-embedding-bge-m3';
+// T002317: war 'text-embedding-bge-m3'. Der Indexer schreibt mit 'bge-m3'
+// (scripts/index-repo.ts) — Query- und Index-Vektoren muessen aus demselben
+// Modell stammen, sonst vergleicht die Suche zwei verschiedene Vektorraeume.
+const EMBED_MODEL = process.env.LLM_EMBED_MODEL ?? 'bge-m3';
+const RERANK_MODEL = process.env.LLM_RERANK_MODEL ?? 'bge-reranker-v2-m3';
 
-// `task scs:search` and local dev shells run outside the cluster, where
-// llm-gateway-lmstudio's DNS never resolves. Resolve once and cache — falls
-// back to the local dev stack (LM Studio direct on :1234) instead of hanging.
+// T002317: zeigte auf llm-gateway-lmstudio:1234. Diesen Service gibt es nicht
+// mehr — bge-m3 zog mit T002258/T002110 auf einen eigenen llama-server um.
+// In Produktion lief die Suche damit ins Leere: DNS liefert NXDOMAIN und der
+// Fallback localhost:1234 existiert im Website-Pod nicht.
 let _embedUrlPromise: Promise<string> | undefined;
 async function resolveEmbedUrl(): Promise<string> {
   if (process.env.LLM_EMBED_URL) return process.env.LLM_EMBED_URL;
   if (!_embedUrlPromise) {
-    const clusterHost = 'llm-gateway-lmstudio.workspace.svc.cluster.local';
+    const clusterHost = 'llm-gateway-embed.workspace.svc.cluster.local';
     _embedUrlPromise = dnsLookup(clusterHost)
-      .then(() => `http://${clusterHost}:1234`)
-      .catch(() => 'http://localhost:1234');
+      .then(() => `http://${clusterHost}:8095`)
+      .catch(() => 'http://localhost:8095');
   }
   return _embedUrlPromise;
+}
+
+let _rerankUrlPromise: Promise<string> | undefined;
+async function resolveRerankUrl(): Promise<string> {
+  if (process.env.LLM_RERANK_URL) return process.env.LLM_RERANK_URL;
+  if (!_rerankUrlPromise) {
+    const clusterHost = 'llm-gateway-rerank.workspace.svc.cluster.local';
+    _rerankUrlPromise = dnsLookup(clusterHost)
+      .then(() => `http://${clusterHost}:8096`)
+      .catch(() => 'http://localhost:8096');
+  }
+  return _rerankUrlPromise;
 }
 
 function vecLiteral(v: number[]): string {
@@ -54,24 +71,73 @@ export interface CodeSearchResult {
   score: number;
   snippet: string;
   chunk_index: number;
+  /** Logit des Rerankers; fehlt, wenn der Reranker nicht erreichbar war. */
+  rerank_score?: number;
+}
+
+// T002317: Wie viele Kandidaten die Vektorsuche holt, bevor der Reranker
+// sortiert. Der Reranker sieht Query und Dokument gemeinsam und erkennt damit
+// Bezuege, die reine Vektor-Naehe verfehlt — er kann aber nur umsortieren, was
+// die erste Stufe geliefert hat. Ein grosszuegiger Faktor ist praktisch
+// gratis: gemessen 2026-07-27 braucht bge-reranker-v2-m3 fuer 40 Kandidaten
+// rund 0.1s.
+const RERANK_CANDIDATE_FACTOR = 8;
+const RERANK_MAX_CANDIDATES = 50;
+
+async function rerank(query: string, docs: string[]): Promise<number[] | null> {
+  try {
+    const url = await resolveRerankUrl();
+    const r = await fetch(`${url}/v1/rerank`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'query' },
+      body: JSON.stringify({ model: RERANK_MODEL, query, documents: docs }),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!r.ok) return null;
+    const j = await r.json() as { results?: Array<{ index: number; relevance_score: number }> };
+    if (!Array.isArray(j.results)) return null;
+    // Auf die Eingabereihenfolge zurueckmappen: der Server liefert die Treffer
+    // bereits sortiert, mit `index` als Verweis auf das Eingabedokument.
+    const scores = new Array<number>(docs.length).fill(Number.NEGATIVE_INFINITY);
+    for (const res of j.results) {
+      if (res.index >= 0 && res.index < docs.length) scores[res.index] = res.relevance_score;
+    }
+    return scores;
+  } catch {
+    // Fail-soft (T002317): ein nicht erreichbarer Reranker darf die Suche nicht
+    // abschalten. Ohne ihn bleibt das Vektor-Ranking — schlechter sortiert,
+    // aber brauchbar.
+    return null;
+  }
 }
 
 export async function searchCode(query: string, limit = 5): Promise<CodeSearchResult[]> {
   const embedding = await embedQueryText(query);
+  const candidates = Math.min(RERANK_MAX_CANDIDATES, limit * RERANK_CANDIDATE_FACTOR);
   const r = await p().query(
     `SELECT file_path, chunk_index, content,
             1 - (embedding <=> $1) AS score
        FROM code_embeddings
       ORDER BY embedding <=> $1
       LIMIT $2`,
-    [vecLiteral(embedding), limit],
+    [vecLiteral(embedding), candidates],
   );
-  return r.rows.map((row: { file_path: string; chunk_index: number; content: string; score: number }) => ({
+  const rows = r.rows.map((row: { file_path: string; chunk_index: number; content: string; score: number }) => ({
     path: row.file_path,
     score: Number(row.score),
     snippet: row.content.slice(0, 300),
     chunk_index: row.chunk_index,
+    content: row.content,
   }));
+  if (rows.length === 0) return [];
+
+  const scores = await rerank(query, rows.map(x => x.content));
+  const ranked = scores
+    ? rows.map((x, i) => ({ ...x, rerank_score: scores[i] }))
+          .sort((a, b) => b.rerank_score - a.rerank_score)
+    : rows;
+
+  return ranked.slice(0, limit).map(({ content: _content, ...rest }) => rest);
 }
 
 export async function searchCodeAugmented(query: string, limit = 5): Promise<CodeSearchResult[]> {

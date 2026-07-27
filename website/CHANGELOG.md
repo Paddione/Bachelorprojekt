@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.221.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.4...website-v1.221.5) (2026-07-27)
+
+
+### Bug Fixes
+
+* **factory:** Provider-Fallback-Kaskade erreichbar machen, Slot-Leak schliessen [T002359] ([#3414](https://github.com/Paddione/Bachelorprojekt/issues/3414)) ([c9d21b4](https://github.com/Paddione/Bachelorprojekt/commit/c9d21b416d1d090063d886e7ef164fca66c0802d))
+
 ## [1.221.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.3...website-v1.221.4) (2026-07-27)
 
 

@@ -1653,6 +1653,12 @@
       "status": "archived"
     }
   ],
+  "T002263": [
+    {
+      "slug": "fix-stage-plan-branch-ref-T002263",
+      "status": "plan_staged"
+    }
+  ],
   "T002265": [
     {
       "slug": "2026-07-27-mishap-t002265",

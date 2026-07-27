@@ -20,6 +20,9 @@
   der Ausfallzone. Verschaerfend: website/src/lib/rerank.ts verschluckt Fehler und
   liefert dann still score: 0 - der Ausfall ist von aussen unsichtbar.
   Beim Aendern dieser Werte immer mit einem LANGEN Dokument nachpruefen.
+
+  HEALTH-POLL-FENSTER: bis zu 240 Sekunden. Mit -NoWait kehrt das Skript sofort
+  nach Start-Process zurueck und ueberspringt den Hinweistext.
 .PARAMETER LlamaDir
   Verzeichnis mit llama-server.exe. Default: C:\Users\PatrickKorczewski\llama-b10090-13.3
 .EXAMPLE
@@ -28,7 +31,8 @@
 
 param(
   [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10090-13.3",
-  [int]$Port = 8096
+  [int]$Port = 8096,
+  [switch]$NoWait
 )
 
 $Exe = Join-Path $LlamaDir "llama-server.exe"
@@ -105,14 +109,16 @@ $proc = Start-Process -FilePath $Exe -ArgumentList $Params -WindowStyle Hidden -
           -RedirectStandardError  (Join-Path $logDir "rerank-err.log")
 "PID: $($proc.Id)" | Out-File -FilePath (Join-Path $logDir "rerank.pid") -Encoding ascii
 
-Write-Host "Rerank server started (PID: $($proc.Id))"
-Write-Host "Endpoint: http://127.0.0.1:8096/v1/rerank"
-Write-Host ""
-Write-Host ""
-Write-Host "Test (T002260 - mit LANGEM Dokument pruefen; Kurzdokumente wie"
-Write-Host "'paris'/'berlin' bleiben auch bei kaputtem -ub gruen):"
-Write-Host '  $long = "flux reconciles the oci artifact every ten minutes " * 100  # ~1200 Tokens'
-Write-Host '  $body = @{ query = "how often does flux reconcile"; documents = @($long, "apple pie recipe") } | ConvertTo-Json'
-Write-Host '  Invoke-RestMethod -Uri http://127.0.0.1:8096/v1/rerank -Method Post `'
-Write-Host '    -ContentType application/json -Body $body | ForEach-Object { $_.results }'
-Write-Host "  -> erwartet: index 0 vor index 1. HTTP 500 'too large to process' = -b/-ub fehlen."
+if (-not $NoWait) {
+  Write-Host "Rerank server started (PID: $($proc.Id))"
+  Write-Host "Endpoint: http://127.0.0.1:8096/v1/rerank"
+  Write-Host ""
+  Write-Host ""
+  Write-Host "Test (T002260 - mit LANGEM Dokument pruefen; Kurzdokumente wie"
+  Write-Host "'paris'/'berlin' bleiben auch bei kaputtem -ub gruen):"
+  Write-Host '  $long = "flux reconciles the oci artifact every ten minutes " * 100  # ~1200 Tokens'
+  Write-Host '  $body = @{ query = "how often does flux reconcile"; documents = @($long, "apple pie recipe") } | ConvertTo-Json'
+  Write-Host '  Invoke-RestMethod -Uri http://127.0.0.1:8096/v1/rerank -Method Post `'
+  Write-Host '    -ContentType application/json -Body $body | ForEach-Object { $_.results }'
+  Write-Host "  -> erwartet: index 0 vor index 1. HTTP 500 'too large to process' = -b/-ub fehlen."
+}

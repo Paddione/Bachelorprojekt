@@ -485,6 +485,27 @@ assert_var_not_declared() {
 # "no scripts/llm/*.ps1 starts a server via Start-Job (T002276)" oben deckt
 # jedes Skript im Verzeichnis ab, auch neu hinzugekommene.
 
+# ── -NoWait-Schalter (T002339) ──────────────────────────────────────
+# Alle drei Startskripte sollen einen -NoWait-Schalter anbieten, der Health-Poll
+# und Hinweistext ueberspringt. CRLF-Toleranz wie die -ngl-Guards (T002337):
+# [[:space:]]*$ statt $, weil .ps1-Dateien durchgehend CRLF sind.
+
+@test "every scripts/llm/start-*.ps1 has a NoWait switch (T002339)" {
+  missing=""
+  for f in "$REPO"/scripts/llm/start-*.ps1; do
+    grep -qE '\[switch\]\$NoWait[[:space:]]*$' "$f" || missing="$missing $(basename "$f")"
+  done
+  [ -z "$missing" ] || { echo "ohne -NoWait:$missing"; false; }
+}
+
+@test "every scripts/llm/start-*.ps1 wraps health-poll/text in if (-not \$NoWait) (T002339)" {
+  missing=""
+  for f in "$REPO"/scripts/llm/start-*.ps1; do
+    grep -qE 'if[[:space:]]*\([[:space:]]*-not[[:space:]]+\$NoWait[[:space:]]*\)' "$f" || missing="$missing $(basename "$f")"
+  done
+  [ -z "$missing" ] || { echo "ohne -NoWait-Guard:$missing"; false; }
+}
+
 @test "install-startup-autostart.ps1 autostarts no SECOND chat model (T002286)" {
   # Die urspruengliche Absicht (T002276) - der Embedding-Stack darf nicht
   # verhungern - gilt weiter, nur nicht mehr pauschal gegen jedes Chat-Modell.

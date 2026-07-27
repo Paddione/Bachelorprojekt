@@ -2913,7 +2913,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 547,
+      "file_count": 548,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3259,6 +3259,7 @@
         "scripts/hooks/precompact-prune.sh",
         "scripts/import-users.sh",
         "scripts/index-repo-incremental.sh",
+        "scripts/index-repo.test.ts",
         "scripts/index-repo.ts",
         "scripts/install-dev-tools.sh",
         "scripts/knowledge/ingest-bug-tickets.mjs",

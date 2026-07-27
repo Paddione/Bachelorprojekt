@@ -1,0 +1,66 @@
+# docs/agent-guide/registry/agents.yaml
+# SSOT for all agent definitions: roles (Claude Code domain agents) and runtimes
+# (opencode subagents/primary agents). Both axes together cover the full agent
+# landscape of this project.
+#
+# Harness values:
+#   claude_code   — the model string from each .claude/agents/*.md frontmatter.
+#   agy           — model string usable with the `agy` CLI, or null / "unsupported".
+#                   null: the agent/harness pair does not exist (opencode).
+#                   "unsupported": the file is loaded but agy does not honor the
+#                   model: field (measured — see T002304 for methodology notes).
+#   opencode      — always null; opencode reads its agents from .opencode/agent-models.jsonc,
+#                   not from .claude/agents/.
+#   tools         — the tools: list from the agent frontmatter, if present.
+roles:
+  bachelorprojekt-db:
+    claude_code: sonnet
+    agy: unsupported
+    opencode: null
+  bachelorprojekt-infra:
+    claude_code: opus
+    agy: unsupported
+    opencode: null
+  bachelorprojekt-ops:
+    claude_code: sonnet
+    agy: unsupported
+    opencode: null
+    tools: [Bash, Read, Glob, Grep]
+  bachelorprojekt-security:
+    claude_code: opus
+    agy: unsupported
+    opencode: null
+  bachelorprojekt-test:
+    claude_code: sonnet
+    agy: unsupported
+    opencode: null
+  bachelorprojekt-website:
+    claude_code: sonnet
+    agy: unsupported
+    opencode: null
+
+# Runtime definitions from .opencode/agent-models.jsonc. Every entry here MUST
+# correspond to an actual agent in the opencode agent config.
+#
+# write_capable: true if the agent permission block has write: "allow".
+runtimes:
+  gemma-4-12b:
+    mode: subagent
+    model: llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
+    write_capable: false
+    note: "Single server slot (-np 1), serialized via llm-proxy — never dispatch in parallel [T002298]"
+  gemma-4-12b-primary:
+    mode: primary
+    model: llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
+    write_capable: false
+    note: "Tab-selectable primary agent, full 262144 ctx [T002298]"
+  deepseek-helper:
+    mode: subagent
+    model: opencode-go/deepseek-v4-flash
+    write_capable: true
+    note: "Escalation: 1M ctx via OpenCode Go subscription"
+  orchestrator:
+    mode: primary
+    model: opencode-go/deepseek-v4-flash
+    write_capable: true
+    note: "Primary orchestrator, dispatches gemma-4-12b sequentially"

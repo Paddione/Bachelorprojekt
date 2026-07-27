@@ -7,19 +7,7 @@ description: 'Use when on a feature/* or fix/* branch that has a staged plan in 
 
 ## Wann diese Skill greift
 
-Du bist auf einem `feature/*` oder `fix/*` Branch. `dev-flow-plan` hat Spec und Plan committed und gepusht. Jetzt soll implementiert werden.
-**Sage zu Beginn:** "Ich nutze dev-flow-execute zur Plan-Ausführung."
-
-## Position im Git-Kreislauf
-
-```
-    ┌──────────────────────────────────────────────────────────────┐
-[ main ] ─► [branch + plan committed] ─► [implement] ─► [PR+merge] ┘
-                 (von dev-flow-plan)      DIESER SKILL   ─► AUSSTIEG
-```
-**EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket — von `dev-flow-plan` übergeben  
-**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `done/shipped`, OpenSpec archiviert, Kreislauf geschlossen  
-**Voraussetzung:** `dev-flow-plan` hat Branch + Plan-Pfad via `ticket.sh stage-plan` in der DB verankert
+Feature/Fix-Branch mit `plan_staged` Ticket → PR gemergt zu `main`, Ticket `done/shipped`, OpenSpec archiviert.
 
 ## Pre-Flight (Schritte −1 bis 1.7)
 
@@ -249,14 +237,14 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 | `dev-flow-e2e` | Folge — schreibt E2E-Tests nach Deploy |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |
 
-## Nachbereitung & Mishap Report
+## Nachbereitung
 
-Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende des Skills über `mishap-tracker` (Invoke `mishap-tracker` with your accumulated MISHAP_LOG).
+Melde alle aufgetretenen Fehler oder Prozess-Frictionen über `mishap-tracker`.
 
 ## Framework mapping
 
 | Framework | Availability |
 |-----------|-------------|
-| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
-| **opencode** | Full — available as a listed skill. All tools (CLI, MCP) are framework-agnostic |
-| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+| **Claude Code** | Full |
+| **opencode** | Full |
+| **agy** | Full |

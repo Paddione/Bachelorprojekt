@@ -146,6 +146,7 @@ for kw in "${ALL_KEYWORDS[@]:-}"; do
       --include="*.svelte" --include="*.astro" \
       --include="*.yaml" --include="*.yml" --include="*.sh" \
       --include="*.spec.ts" --include="*.test.ts" \
+      --exclude-dir=node_modules --exclude-dir=dist \
       -- "$kw" "$d" 2>/dev/null | head -20
   done
 done >> "$tmp_hits"
@@ -159,6 +160,7 @@ if [[ ${#FNAME_PARTS[@]} -gt 0 ]]; then
     find "$d" -type f \
       \( -name "*.ts" -o -name "*.js" -o -name "*.mjs" -o -name "*.cjs" \
          -o -name "*.svelte" -o -name "*.astro" \) \
+      -not \( -path '*/node_modules/*' -o -path '*/dist/*' \) \
       2>/dev/null | grep -iE -- "$fname_re" | head -20
   done >> "$tmp_hits"
 fi
@@ -170,7 +172,7 @@ if printf '%s' "$INFRA_HAYSTACK" | grep -qiE 'deploy|manifest|config|secret|cert
     [[ -z "$kw" ]] && continue
     for d in "$REPO/k3d" "$REPO/environments"; do
       [[ -d "$d" ]] || continue
-      grep -rliF -- "$kw" "$d" 2>/dev/null | head -10
+      grep -rliF --exclude-dir=node_modules --exclude-dir=dist -- "$kw" "$d" 2>/dev/null | head -10
     done
   done >> "$tmp_hits"
 fi

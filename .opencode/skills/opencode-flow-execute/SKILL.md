@@ -5,29 +5,16 @@ description: Use in opencode when on a feature/* or fix/* branch that has a stag
 
 # opencode-flow-execute — Plan-Ausführung & PR (opencode)
 
-## Wann diese Skill greift
-
-Du bist auf einem `feature/*` oder `fix/*` Branch. `opencode-flow-plan` hat Spec und Plan committed und gepusht.
-
-**EINSTIEG:** Feature/Fix-Branch mit `plan_staged` Ticket
-**AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Ticket `done/shipped`, OpenSpec archiviert
+Feature/Fix-Branch mit `plan_staged` Ticket → PR gemergt zu `main`, Ticket `done/shipped`, OpenSpec archiviert.
 
 ## Ticket-ID ermitteln
 
-Falls `TICKET_ID` nicht bekannt: staged plans per MCP abfragen:
-```
-mcp__mcp-postgres__query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })
-```
-Bei mehreren: den User in Plain-Text fragen, welche Ticket-ID.
+Falls unbekannt: `mcp__mcp-postgres__query({ sql: "SELECT external_id, title FROM tickets.tickets WHERE status='plan_staged' ORDER BY planning_rank ASC NULLS LAST, created_at DESC LIMIT 10;" })`. Bei mehreren User fragen.
 
 ## Schritt −1: Pre-Flight — Ticket-Lock & Status (vor allen Git-Operationen) [T002038]
 
-Bevor irgendeine Git-Operation oder Worktree-Erzeugung läuft, MUSS die Session
-das Ticket als erstes sichern. Dieses frühe Claimen verhindert die Race
-zwischen dev-flow-execute und der Factory-Pipeline: die Factory PREP prüft
-agent-lock auf "held" und überspringt das Ticket, wenn eine interaktive Session
-es bereits claimed hat — ABER nur wenn der Claim VOR dem ersten Factory-Check
-platziert ist. [T002038-M1]
+Session MUSS das Ticket sichern BEVOR irgendeine Git-Operation läuft. Dieses
+frühe Claimen verhindert die Race mit der Factory-Pipeline. [T002038-M1]
 
 ### Schritt −1.0: Ticket-Status aus der DB prüfen
 
@@ -35,22 +22,9 @@ platziert ist. [T002038-M1]
 TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID")
 TICKET_STATUS=$(echo "$TICKET_JSON" | jq -r '.status // empty')
 case "$TICKET_STATUS" in
-  done|archived|merged)
-    echo "❌ Ticket $TICKET_ID ist bereits $TICKET_STATUS — kein dev-flow-execute nötig." >&2
-    exit 1
-    ;;
-  in_progress)
-    echo "⚠️  Ticket $TICKET_ID ist bereits in_progress. Ein anderes Cluster arbeitet evtl. parallel."
-    echo "   Fortsetzung auf eigenes Risiko. Abbruch: exit 1"
-    # Nicht blockierend — eine laufende Session kann legitimerweise fortgesetzt werden.
-    # Der Claim-Schutz (Schritt −1.1) verhindert Doppelarbeit.
-    ;;
-  plan_staged)
-    echo "✅ Ticket $TICKET_ID ist plan_staged — fortfahren."
-    ;;
-  *)
-    echo "⚠️  Ticket $TICKET_ID hat Status '$TICKET_STATUS' — unerwartet, aber nicht blockierend."
-    ;;
+  done|archived|merged) exit 1 ;;
+  plan_staged) echo "✅ plan_staged" ;;
+  *) echo "⚠️ Status $TICKET_STATUS unerwartet" ;;
 esac
 ```
 
@@ -62,12 +36,9 @@ bash scripts/agent-lock.sh check-and-claim ticket "$TICKET_ID" \
   --label opencode-flow-execute
 RET=$?
 case $RET in
-  0) echo "✅ Ticket $TICKET_ID erfolgreich geclaimed." ;;
-  1) echo "❌ Ticket $TICKET_ID wird bereits von einer anderen Session bearbeitet." >&2
-     echo "   → Session-Koordination: agent-msg.sh read --mine --unread" >&2
-     exit 1 ;;
-  2) echo "❌ Ticket $TICKET_ID ist bereits done/merged — Status-Check verweigert Claim." >&2
-     exit 1 ;;
+  0) ;;
+  1) exit 1 ;;
+  2) exit 1 ;;
 esac
 ```
 
@@ -86,32 +57,26 @@ MAIN_BRANCH=$(cd "$MAIN_REPO" && git rev-parse --abbrev-ref HEAD)
 if [ "$MAIN_BRANCH" = "main" ]; then
   (cd "$MAIN_REPO" && git fetch origin main && git pull --rebase origin main)
 else
-  (cd "$MAIN_REPO" && git fetch origin main:main) || echo "Hauptcheckout auf $MAIN_BRANCH - nur fetch, kein pull"
+  (cd "$MAIN_REPO" && git fetch origin main:main)
 fi
 ```
 
-> **Hinweis:** Diese Änderung verhindert, dass `git pull --rebase` versehentlich einen Remote-Branch rebast, wenn der Hauptcheckout nicht auf `main` liegt. Verifikation: `bash scripts/test-dev-flow-execute-sync.sh`.
-
 ## Schritt 0: Worktree-Konsistenz
 
-Prüfe, ob du in einem `.worktrees/*` Worktree bist. Falls nicht:
+Falls nicht in `.worktrees/*`:
 
 ```bash
 SLUG=$(echo "$(git branch --show-current)" | sed 's#^[a-z]*/##')
 bash scripts/worktree-create.sh "$(git branch --show-current)" ".worktrees/${SLUG}"
 ```
 
-(`scripts/worktree-create.sh` ist git-crypt-safe. `worktree.ts`'s `worktree_create` hat diese Neutralisierung nicht — bekanntes Limitation.)
-
-## Schritt 0.5: Sync mit main & Rebase
+## Schritt 0.5: Rebase
 
 ```bash
-git fetch origin main
-git rebase origin/main
-git submodule update --init --recursive
+git fetch origin main && git rebase origin/main && git submodule update --init --recursive
 ```
 
-## Schritt 1: Plan-Pfad aus der DB laden
+## Schritt 1: Plan-Pfad laden
 
 ```bash
 TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID")
@@ -120,14 +85,10 @@ BRANCH=$(echo "$PLAN_REF" | sed -n 's/.*branch=\([^ ]*\).*/\1/p')
 PLAN_FILE=$(echo "$PLAN_REF" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
 ```
 
-## Schritt 1.4: Doppelarbeit-Guard (bereits in Schritt −1 erfolgt)
-
-Der Ticket-Claim wurde bereits in Schritt −1.1 platziert. Dieser Schritt ist
-nur noch eine Verifikation, dass der Claim noch gültig ist:
+## Schritt 1.4: Claim-Verifikation
 
 ```bash
-bash scripts/agent-lock.sh check ticket "$TICKET_ID" | head -1 | grep -q '^mine$' \
-  || { echo "❌ Ticket $TICKET_ID nicht mehr von dieser Session geclaimed — abbruch." >&2; exit 1; }
+bash scripts/agent-lock.sh check ticket "$TICKET_ID" | head -1 | grep -q '^mine$' || exit 1
 ```
 
 ## Schritt 1.5: Ticket auf in_progress setzen
@@ -139,133 +100,105 @@ ticket-mcp: set_touched_files({ id: "$TICKET_ID", files: "<dateien aus plan>" })
 
 ## Schritt 1.6: Pipeline-Modus erkennen
 
-Prüfe, ob das Ticket im Pipeline-Modus (Partial-Dispatch) oder Single-Shot gestaged wurde:
+Prüfe auf Partial-Dispatch vs Single-Shot:
 
 ```bash
 TICKET_STRUCT=$(./scripts/vda.sh ticket get --id "$TICKET_ID" --json 2>/dev/null || echo '{}')
 SLOT_COUNT=$(echo "$TICKET_STRUCT" | jq -r '.slot_count // 1')
 TICKET_STATUS=$(echo "$TICKET_STRUCT" | jq -r '.status // empty')
-echo "ℹ️  Ticket $TICKET_ID: status=$TICKET_STATUS, slot_count=$SLOT_COUNT"
 ```
 
-- **slot_count > 1:** Pipeline-Modus — die Factory hat bereits mit der Arbeit begonnen (vom Planner enqueued). Warte auf vollständige Partial-Dispatches (siehe Schritt 2.1).
-- **slot_count = 1:** Single-Shot — normale sequentielle Ausführung.
+- **slot_count > 1:** Pipeline-Modus — auf vollständige Partial-Dispatches warten (Schritt 2.1).
+- **slot_count = 1:** Single-Shot — normale Ausführung.
 
 ## Schritt 2: Implementierung delegieren
 
-### Schritt 2.1: Pipeline-Modus — Auf Partial-Vollständigkeit warten
+### Schritt 2.1: Pipeline-Modus — auf Partials warten
 
-Wenn `slot_count > 1` und Factory bereits läuft (`status == 'in_progress'`):
+Wenn `slot_count > 1` und `status == 'in_progress'`:
 
 ```bash
 # Poll-Schleife: warte bis alle N Partials committed sind (vom Planner)
 # oder der Planner fertig ist (letztes Partial ist Tests)
 for wait_min in $(seq 1 30); do
-  # Prüfe ob Branch neue Partials hat
   git fetch origin "$(git branch --show-current)"
   PLAN_COUNT=$(grep -c '^| p[0-9]' "$PLAN_FILE" 2>/dev/null || echo 0)
-  if [ "$PLAN_COUNT" -ge "$SLOT_COUNT" ]; then
-    echo "✅ Alle $SLOT_COUNT Partials sind im Branch sichtbar."
-    break
-  fi
-  echo "⏳ Warte auf Partial $PLAN_COUNT/$SLOT_COUNT ..."
+  [ "$PLAN_COUNT" -ge "$SLOT_COUNT" ] && break
   git pull --rebase origin "$(git branch --show-current)"
   sleep 30
 done
 ```
 
-Dann normal rebasen und alle Partials in der richtigen Reihenfolge abarbeiten.
+Dann rebasen und alle Partials in Reihenfolge abarbeiten.
 
-### Schritt 2.2: Implementierung (Single-Shot oder nach Warte-Schleife)
+### Schritt 2.2: Implementierung
 
-- Lies den Plan aus `$PLAN_FILE`
-- Lies `openspec/changes/<slug>/intel.json` für Typen-Wahrheit
-- Implementiere alle Tasks in Reihenfolge
-- Nach jedem Meilenstein: Commit und Push
-- Vor PR-Erstellung: Freshness-Artefakte regenerieren und committen
+- Lies den Plan aus `$PLAN_FILE` und `openspec/changes/<slug>/intel.json`
+- Tasks in Reihenfolge; nach jedem Meilenstein Commit + Push
+- Vor PR: Freshness-Artefakte regenerieren
 
 ## Schritt 3: Lokale Verifikation
 
 ```bash
-task workspace:validate   # wenn k8s-Manifeste berührt
-task test:changed
-task freshness:regenerate
-task freshness:check
+task workspace:validate
+task test:changed && task freshness:regenerate && task freshness:check
 ```
 
-## Schritt 4: Code Review Gate
-
-Vor dem PR-Merge: delegate an einen Review-Subagenten via `delegate()` oder nutze `gh-axi pr review` für eine automatische Code-Review-Prüfung. Behebe alle gefundenen Probleme.
+## Schritt 4: Code Review
 
 ```bash
-# Autoren-Code-Review: delegate an explore-Subagenten
 delegate(prompt: "Review this PR's changes for bugs, security issues, and style. PR: $(gh-axi pr view --json url -q '.url')", agent: "explore")
 ```
 
-Der User muss die Review-Ergebnisse bestätigen, bevor der PR gemergt wird.
-
 ## Schritt 5: PR erstellen
 
-Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
+Delegate to `opencode-git-workflow` Steps 2–6:
 
 ```bash
 bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [$TICKET_ID]"
 gh-axi pr create --title "<type>(<scope>): <subject> [$TICKET_ID]" --body "..."
 ```
 
-## Schritt 5.5: CI/CD-Fix-Schleife
+## Schritt 5.5: CI-Fix-Schleife
 
 ```bash
-PR_URL=$(gh-axi pr view --json url -q '.url')
-bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
+bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$(gh-axi pr view --json url -q '.url')"
 ```
 
 ## Schritt 6: Auto-Merge wenn CI grün
 
-Phase-Chain-Gate (fail-closed):
 ```bash
 bash scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
-```
-
-Auto-Merge aktivieren (Voraussetzung: mindestens ein Implementierungs-Commit liegt auf dem Branch, nicht nur der Plan-Stage-Commit — T001899):
-```bash
 (cd "$MAIN_REPO" && gh-axi pr merge --auto --squash --delete-branch)
 ```
 
-## Schritt 6.4: Auf Merge warten (Poll-Schleife)
+## Schritt 6.4: Auf Merge warten
 
-`gh-axi pr merge --auto` kehrt sofort zurück — der eigentliche Merge passiert asynchron.
-Warte, bis der Merge tatsächlich durch ist, bevor das Ticket geschlossen wird:
+`gh-axi pr merge --auto` kehrt sofort zurück — Merge passiert asynchron:
 
 ```bash
 PR_NUM=$(gh-axi pr view --json number -q '.number')
 MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
 WAIT_START=$(date +%s)
-
-echo "⏳ Warte auf Merge von PR #$PR_NUM (max ${MAX_MERGE_WAIT_MIN}min) ..."
 while true; do
   MERGE_STATE=$(gh-axi pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
   STATE="${MERGE_STATE%%|*}"
   case "$STATE" in
-    MERGED) echo "✅ PR #$PR_NUM ist gemergt."; break ;;
-    CLOSED) echo "❌ PR #$PR_NUM wurde geschlossen ohne Merge." >&2; exit 2 ;;
+    MERGED) break ;;
+    CLOSED) exit 2 ;;
   esac
   ELAPSED=$(( $(date +%s) - WAIT_START ))
-  if (( ELAPSED > MAX_MERGE_WAIT_MIN * 60 )); then
-    echo "❌ PR #$PR_NUM nach ${MAX_MERGE_WAIT_MIN}min nicht gemergt (state=$STATE)." >&2
-    exit 3
-  fi
+  (( ELAPSED > MAX_MERGE_WAIT_MIN * 60 )) && exit 3
   sleep 15
 done
 ```
 
 ## Schritt 6.5: Ticket abschließen
 
-Merge = Abschluss (T001092). Ticket schließen:
 ```
 ticket-mcp: add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })
 ticket-mcp: transition_status({ id: "$TICKET_ID", status: "done", resolution: "shipped" })
-ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow", detail: "PR #$PR_NUM merged · done/shipped" })
+ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow" })
 ```
 
 ## Schritt 7: Plan archivieren
@@ -280,37 +213,24 @@ git commit -m "chore(plans): archive $SLUG [$TICKET_ID]"
 ## Schritt 7.5: Worktree bereinigen
 
 ```
-agent-lock.sh release ticket $TICKET_ID
-git worktree remove .worktrees/<slug> --force
-git branch -D feature/<slug>
+agent-lock.sh release ticket $TICKET_ID && git worktree remove .worktrees/<slug> --force && git branch -D feature/<slug>
 ```
 
-## Schritt 8: Post-Merge Deploy & Verify
+## Schritt 8: Post-Merge Deploy
 
-Führe den Deployment-Schritt nur aus, wenn die geänderten Dateien deploy-pflichtige Bereiche betreffen:
+Nur bei deploy-pflichtigen Bereichen:
 
 ```bash
 bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
 ```
 
-**Deploy-Mapping (SSOT):** Pfad→Task-Tabelle und Pod-Verify-Schleife in `.claude/skills/references/deploy-routing.md`.
+Deploy-Mapping: `.claude/skills/references/deploy-routing.md`.
 
 ## Verwandte Skills
 
 | Skill | Beziehung |
 |-------|-----------|
-| `opencode-flow-plan` | **Vorgänger** — liefert Branch + Plan |
-| `opencode-git-workflow` | **SSOT für Commit/PR/Merge/Cleanup** |
-| `background-agents.ts` | Subagent-Routing (read-only vs write-capable) |
-| `scripts/worktree-create.sh` | Git-crypt-safe worktree creator |
-| `scripts/devflow-post-merge-deploy.sh` | Schritt 8 — Post-Merge Deploy |
-| `references/deploy-routing` | Deploy-Mapping (SSOT) |
-
-
-## Framework mapping
-
-| Framework | Availability |
-|-----------|-------------|
-| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
-| **opencode** | Full — native skill for opencode |
-| **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |
+| `opencode-flow-plan` | Vorgänger |
+| `opencode-git-workflow` | SSOT Commit/PR/Merge |
+| `background-agents.ts` | Subagent-Routing |
+| `scripts/devflow-post-merge-deploy.sh` | Schritt 8 |

@@ -45,6 +45,8 @@ for row in "${launch_rows[@]}"; do
   ext_id="$(echo "$row" | jq -r '.external_id')"
   brand="$(echo "$row" | jq -r '.brand // "mentolder"')"
   title="$(echo "$row" | jq -r '.title // ""')"
+  description="$(echo "$row" | jq -r '.description // ""')"
+  description_escaped="$(printf '%s' "$description" | jq -Rs .)"
   branch="$(echo "$row" | jq -r '.branch // ""')"
   plan_path="$(echo "$row" | jq -r '.plan_path // ""')"
   wt_path="$(echo "$row" | jq -r '.worktree_path // ""')"
@@ -95,6 +97,7 @@ Context:
 Invoke the Workflow tool with these exact arguments to run the pipeline:
   Workflow({scriptPath:\"${REPO}/scripts/factory/pipeline.mjs\"}, {
     title:\"${title}\",
+    description:${description_escaped},
     ticket_id:\"${ext_id}\",
     brand:\"${brand}\",
     slug:\"${slug}\",

@@ -77,6 +77,7 @@ for brand in mentolder korczewski; do
     # Fetch details
     ticket_json=$(BRAND=$brand bash scripts/ticket.sh get --id "$ext_id" 2>/dev/null || echo '{}')
     title=$(echo "$ticket_json" | jq -r '.title // null')
+    description=$(echo "$ticket_json" | jq -r '.description // ""')
     plan_ref=$(echo "$ticket_json" | jq -r '.plan_ref // ""')
 
     branch=null; plan_path=null
@@ -89,8 +90,8 @@ for brand in mentolder korczewski; do
 
     final_launch=$(echo "$final_launch" | jq -c \
       --arg b "$brand" --arg e "$ext_id" --argjson s "$slot" \
-      --arg t "${title:-}" --arg br "${branch:-null}" --arg p "${plan_path:-null}" --argjson dr "$dry_run" \
-      '. + [{"brand":$b, "external_id":$e, "slot":$s, "title":$t, "branch":$br, "plan_path":$p, "dry_run":$dr}]')
+      --arg t "${title:-}" --arg d "${description:-}" --arg br "${branch:-null}" --arg p "${plan_path:-null}" --argjson dr "$dry_run" \
+      '. + [{"brand":$b, "external_id":$e, "slot":$s, "title":$t, "description":$d, "branch":$br, "plan_path":$p, "dry_run":$dr}]')
   done
 done
 

@@ -42,6 +42,19 @@ async function main() {
       title: title || '',
       slug: slug || '',
     });
+    const blockTicket = () => {
+      try {
+        execFileSync('bash', [
+          path.join(REPO, 'scripts/ticket.sh'), 'release-slot', '--id', String(ticket_id)
+        ], { stdio: 'ignore', timeout: 15000, env: { ...process.env, BRAND: brand } });
+      } catch {}
+      try {
+        execFileSync('bash', [
+          path.join(REPO, 'scripts/ticket.sh'), 'update-status', '--id', String(ticket_id), '--status', 'blocked'
+        ], { stdio: 'ignore', timeout: 15000, env: { ...process.env, BRAND: brand } });
+      } catch {}
+    };
+
     if (preGateResult.weak) {
       const reason = preGateResult.reasons[0] || 'spec_too_short';
       console.log(JSON.stringify({ sqGateResult: { status: 'scout_weak', ticket_id: String(ticket_id), reasons: [reason] } }));
@@ -55,6 +68,7 @@ async function main() {
         };
         phaseEvent('scout', 'blocked', `scout_weak: ${reason}`);
       } catch {}
+      blockTicket();
       return;
     }
 
@@ -91,6 +105,7 @@ async function main() {
     const sqGate = SQ.runScoutGate({ ...scout, title, description }, ticket_id, REPO, { execFileSync }, console.log, phaseEvent);
     if (sqGate) {
       console.log(JSON.stringify({ sqGateResult: sqGate, complexity: scout.complexity, touched_files: scout.touched_files, risk_areas: scout.risk_areas, similar_tickets: scout.similar_tickets }));
+      blockTicket();
       return;
     }
 

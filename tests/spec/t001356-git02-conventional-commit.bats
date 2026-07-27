@@ -287,3 +287,15 @@ PRE_COMMIT_HOOK="${BATS_TEST_DIRNAME}/../../.githooks/pre-commit"
   [[ "$branch" =~ ^feature/|^fix/|^chore/|^docs/ ]]
   [[ "$branch" =~ T[0-9]{6,} ]]                  # the pre-commit:117 regex
 }
+
+@test "llm scope is in the allowed scopes list" {
+  run "$SCRIPT" scopes
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"llm"* ]]
+}
+
+@test "accepts chore(llm): commit with llm scope" {
+  echo "chore(llm): add server startup scripts [T000000]" > "$TMP_MSG"
+  run "$SCRIPT" message "$TMP_MSG"
+  [ "$status" -eq 0 ]
+}

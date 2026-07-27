@@ -317,6 +317,65 @@ async function main() {
     ], { stdio: 'ignore', env: { ...process.env, BRAND: brand } });
     console.log("conflict escalated");
 
+  } else if (command === 'guard-overwrite') {
+    // Generic agent overwrite guard (not bonsai-specific).
+    // Detects when an agent used `write` (whole-file overwrite) instead of `edit`
+    // by checking if committed files shrank to <30% of their line count.
+    // Runs on the worktree branch (HEAD~1 vs HEAD).
+    // On detection: reverts the file to HEAD~1 and re-commits with a revert message.
+    // Duplicate of guard-bonsai-overwrite.sh logic, but worktree-aware and generic.
+    const { agent: agentName, files, worktree } = payload;
+    const WT = worktree || REPO;
+    const LOGFILE = path.join(REPO, '.bonsai-write-guard.log');
+    const THRESHOLD_PCT = 30;
+    let reverted = 0;
+    let revertDetails = [];
+
+    // Check if HEAD has a parent commit to compare against
+    let hasParent = false;
+    try {
+      execFileSync('git', ['-C', WT, 'rev-parse', 'HEAD~1'], { stdio: 'ignore', timeout: 5000 });
+      hasParent = true;
+    } catch { /* first commit on branch — nothing to compare */ }
+
+    if (hasParent) {
+      const targetFiles = Array.isArray(files) && files.length > 0
+        ? files
+        : (() => {
+            try {
+              return execFileSync('git', ['-C', WT, 'diff', '--name-only', '--diff-filter=M', 'HEAD~1..HEAD'], { encoding: 'utf8', timeout: 10000 }).trim().split('\n').filter(Boolean);
+            } catch { return []; }
+          })();
+
+      for (const file of targetFiles) {
+        if (!file) continue;
+        try {
+          const headLines = execFileSync('git', ['-C', WT, 'show', `HEAD~1:${file}`], { encoding: 'utf8', timeout: 10000 }).trim().split('\n').length;
+          const currentLines = execFileSync('git', ['-C', WT, 'show', `HEAD:${file}`], { encoding: 'utf8', timeout: 10000 }).trim().split('\n').length;
+
+          // Only flag if HEAD~1 had significant content (>5 lines)
+          if (headLines > 5 && currentLines > 0 && currentLines < (headLines * THRESHOLD_PCT / 100)) {
+            // Overwrite detected — revert to previous version
+            execFileSync('git', ['-C', WT, 'checkout', 'HEAD~1', '--', file], { stdio: 'ignore', timeout: 10000 });
+            const now = new Date().toISOString();
+            const logLine = `[${now}] GUARD:factory-${agentName} REVERTED ${file} (overwrite: ${headLines}→${currentLines} lines, <${THRESHOLD_PCT}%)`;
+            fs.appendFileSync(LOGFILE, logLine + '\n');
+            reverted++;
+            revertDetails.push({ file, before: headLines, after: currentLines });
+          }
+        } catch {
+          // File doesn't exist in HEAD~1 (new file) — skip
+        }
+      }
+
+      if (reverted > 0) {
+        execFileSync('git', ['-C', WT, 'add', '-A'], { stdio: 'ignore', timeout: 10000 });
+        execFileSync('git', ['-C', WT, 'commit', '-m', `fix(${agentName}): revert overwrite — agent used write instead of edit [guard]`], { stdio: 'ignore', timeout: 10000 });
+      }
+    }
+
+    console.log(JSON.stringify({ status: reverted > 0 ? 'blocked' : 'pass', agent: agentName, reverted, details: revertDetails }));
+
   } else if (command === 'resolve-task-source') {
     const { slug } = payload;
     try {

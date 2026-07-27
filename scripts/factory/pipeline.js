@@ -170,6 +170,11 @@ if (A.batch_mode === true && Array.isArray(A.sub_features)) {
        After: bash ${REPO}/scripts/factory/sandbox-run.sh ${WORK_WT} 'task workspace:validate && task test:all && task freshness:regenerate'
        Then: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${sf.id} [batch-factory]`)}. Return diff + test result.`
     const r = await agent(p + injections, { label: `batch:${sf.id}`, phase: 'Implement', model: FACTORY_MODEL })
+    // Guard: detect agent overwriting files with write instead of edit (T002286)
+    if (r != null) {
+      const guardRes = await runRunner(agent, 'guard-overwrite', { agent: `batch-${sf.id}`, files: sf.assignedFiles || [], worktree: WORK_WT });
+      try { const g = JSON.parse(guardRes || '{}'); if (g.status === 'blocked') log(`Guard blocked batch:${sf.id} — ${g.reverted} file(s) overwritten → reverted.`); } catch {}
+    }
     if (r != null) await phaseEvent('implement', 'partial-done', JSON.stringify({ partial: sf.id, files: sf.assignedFiles || [], tests: /\bfail/i.test(String(r)) ? 'fail' : 'pass' }))
     return r
   }))
@@ -366,6 +371,10 @@ if (tasks.length && !A.batch_mode) {
       { label: `impl:${t.id}`, phase: 'Implement', model: FACTORY_MODEL },
     )
     if (impl == null) continue
+
+    // Guard: detect agent overwriting files with write instead of edit (T002286)
+    const guardRes = await runRunner(agent, 'guard-overwrite', { agent: `impl-${t.id}`, files: t.target_files, worktree: WORK_WT });
+    try { const g = JSON.parse(guardRes || '{}'); if (g.status === 'blocked') log(`Guard blocked ${t.id} — ${g.reverted} file(s) overwritten → reverted.`); } catch {}
 
     const vr = await runTaskVerifyLoop(agent, t, parseInt(process.env.FACTORY_BUILD_LOOP_MAX || '3'), WORK_WT, WORK_BRANCH, slug)
     if (vr) implemented.push(vr)

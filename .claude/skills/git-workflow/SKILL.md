@@ -44,6 +44,16 @@ fi
 > `git checkout -b` → `git stash pop`: jeder Schritt muss den Abschluss des
 > vorherigen abwarten.
 
+> **Probe-Commit + `--hard` verwirft auch unstaged Dateien (T001454, wiederholt bei
+> T002252/T002253).** Das Muster "Probe committen → prüfen → `git reset -q --hard HEAD~1`
+> zurückrollen" wirkt lokal begrenzt, weil scheinbar nur der eigene Probe-Commit adressiert
+> wird — `--hard` unterscheidet aber nicht zwischen Commit-Rollback und Working-Tree-Verwurf
+> und reißt unstaged Arbeitsdateien mit. Sicher:
+> ```bash
+> git stash -u && git reset --hard HEAD~1 && git stash pop
+> ```
+> Oder den Probe erst gar nicht committen, sondern in einem separaten Wegwerf-Worktree testen.
+
 ---
 
 ## Schritt 1 — Verifikation & Freshness Guard (vor dem Commit)

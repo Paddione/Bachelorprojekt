@@ -82,12 +82,19 @@ EOF
     then
       echo "WARN: stage-plan: force-tick flag write failed — factory will tick on the next factory.timer interval" >&2
     fi
-    systemctl --user start factory.service 2>/dev/null || true
   fi
   if [[ "$hold" == "1" ]]; then
     echo "Ticket $id staged in Kommissionierung (status=plan_staged, execution held)"
   else
     echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
+  fi
+  if [[ "$hold" != "1" ]]; then
+    # --no-block: factory.service ist Type=oneshot (RuntimeMaxSec=3600). Ohne --no-block
+    # wartet `systemctl start` auf einen laufenden Tick und macht aus dem oben als
+    # best-effort/non-fatal deklarierten Weck-Aufruf einen Hang von bis zu 61 min. Die
+    # Bestaetigung steht davor, damit der Stage auch bei klemmendem systemd gemeldet
+    # wird. [T002366]
+    systemctl --user start --no-block factory.service 2>/dev/null || true
   fi
 }
 

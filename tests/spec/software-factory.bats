@@ -4165,9 +4165,12 @@ EOF
 
 @test "FA-SF-GANG: stage-plan schreibt force-tick-requested Flag (T002128-p1)" {
   # p1: stage-plan.sh enthaelt den force-tick-Upsert + factory.service-Kick
+  # T002366: der Kick ist weiterhin genau einmal vorhanden, nun aber non-blocking —
+  # ohne --no-block wartete er auf den laufenden oneshot-Tick (bis 61 min) und
+  # widersprach damit dem hier geprueften non-fatal/best-effort-Charakter.
   run grep -c "force-tick-requested" scripts/vda/ticket/stage-plan.sh
   [ "$output" -ge 1 ]
-  run grep -c "systemctl --user start factory.service" scripts/vda/ticket/stage-plan.sh
+  run grep -c "systemctl --user start --no-block factory.service" scripts/vda/ticket/stage-plan.sh
   [ "$output" -eq 1 ]
   # Beide Trigger sind non-fatal (Warnung >&2, kein Abbruch)
   run grep "WARN: stage-plan: force-tick flag write failed" scripts/vda/ticket/stage-plan.sh

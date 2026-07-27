@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.217.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.4...website-v1.217.5) (2026-07-27)
+
+
+### Bug Fixes
+
+* **llm:** add port cleanup + Port param to embed and rerank servers [T002288] ([#3346](https://github.com/Paddione/Bachelorprojekt/issues/3346)) ([398c08c](https://github.com/Paddione/Bachelorprojekt/commit/398c08ce526c9990bd23a7f9e323db8de5f1dd1a))
+
 ## [1.217.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.3...website-v1.217.4) (2026-07-27)
 
 

@@ -68,10 +68,10 @@ Inkonsistent ist das `category:`-Feld: es existiert nur bei den drei `*-speciali
 
 ### B3 — `OVERVIEW.md` ist verrottet und zeigt, was ohne Gate passiert
 
-`OVERVIEW.md` listet sechs Skills, die es nicht mehr gibt: `host-node-networking`,
-`cluster-deployment`, `secret-rotation`, `workspace-deploy`, `database-ops` (alle in `infra-ops`
-konsolidiert) und `llm-ops` (von K3 gelöscht). Zusätzlich steht `/feature-intake` als Zeile,
-obwohl es ein opencode-Command und kein Skill ist.
+`OVERVIEW.md` listet fünf Skills, die es nicht mehr gibt: `host-node-networking`,
+`cluster-deployment`, `secret-rotation`, `workspace-deploy` und `database-ops` — alle in
+`infra-ops` konsolidiert, ihre Zeilen aber stehen geblieben. Zusätzlich steht `/feature-intake`
+als Zeile, obwohl es ein opencode-Command und kein Skill ist.
 
 Die Einträge verlinken überwiegend auf `k3d/docs-content-built/skills/<name>.html` — also auf
 **Build-Artefakte des Docs-Containers**, nicht auf die Quelldatei. Diese Links überleben eine

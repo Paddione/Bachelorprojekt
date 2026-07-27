@@ -15,7 +15,7 @@ H1-Überschrift zurück, die keinen einzigen Trigger-Begriff enthält.
 
 `.claude/skills/OVERVIEW.md` liefert den Beleg, warum ein einmaliger Pass nicht reicht: Die dort
 behauptete Skill-**Zahl** stimmt, weil `G-AGENTIC06` sie misst. Die Skill-**Liste** daneben führt
-sechs Skills, die es nicht mehr gibt, und verlinkt auf Docs-Container-Build-Artefakte statt auf
+fünf Skills, die es nicht mehr gibt, und verlinkt auf Docs-Container-Build-Artefakte statt auf
 die Quelldateien — weil das kein Gate misst. Ohne maschinelle Verankerung verrottet K4 auf
 demselben Weg.
 

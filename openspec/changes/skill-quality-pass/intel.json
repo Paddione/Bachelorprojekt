@@ -93,7 +93,7 @@
       "severity": "info"
     },
     {
-      "note": "G-AGENTIC08 counts dead scripts/ paths inside SKILL.md. Moving procedure text into .claude/skills/references/ carries those paths along; if a relocated block quotes a script path, the gate follows it into the new file (it globs .claude/skills recursively). Verify after each extraction.",
+      "note": "G-AGENTIC08 greps with --include=SKILL.md, so it only inspects files literally named SKILL.md. Relocating a block that quotes a scripts/ path into .claude/skills/references/ removes that path from the gate's scope — the gate does NOT follow it. The blind spot already exists for the 19 current reference files; this change would widen it. p4 therefore widens the gate's include pattern to *.md as part of touching health-goals-check.sh.",
       "severity": "warn"
     },
     {

@@ -21,30 +21,30 @@ unterscheiden. Genau diese Ununterscheidbarkeit hat den Reihenfolgefehler so lan
 
 ## Aufgaben
 
-- [ ] **P2.1 — Ist-Stand lesen.** Der vollständige `read-partials`-Zweig samt Rückgabeform:
+- [x] **P2.1 — Ist-Stand lesen.** Der vollständige `read-partials`-Zweig samt Rückgabeform:
 
 ```bash
 sed -n '400,470p' scripts/factory/pipeline-runner.js
 ```
 
-- [ ] **P2.2 — Übersprungene IDs zurückgeben.** Die von `orderAndFilter` entfernten Partial-IDs in
+- [x] **P2.2 — Übersprungene IDs zurückgeben.** Die von `orderAndFilter` entfernten Partial-IDs in
       die Rückgabe aufnehmen (etwa als `skipped: [...]`). Die bestehenden Felder — insbesondere
       `partials` und `sub_features` — behalten Name und Bedeutung, weil `pipeline.js:321` auf
       `partials.partials` und `Array.isArray(partials.sub_features)` prüft.
 
-- [ ] **P2.3 — Fehlendes Manifest ausdrücklich melden.** Findet `P.readPartials(dir)` kein
+- [x] **P2.3 — Fehlendes Manifest ausdrücklich melden.** Findet `P.readPartials(dir)` kein
       Manifest, muss die Rückgabe das unterscheidbar ausdrücken (etwa `manifest: 'absent'`) statt
       nur ein leeres Objekt zu liefern. Der Aufrufer soll „kein Manifest vorhanden" von
       „Verzeichnis nicht lesbar" trennen können — Ersteres ist ein legitimer Plan ohne `tasks.d/`,
       Letzteres ein Umgebungsfehler.
 
-- [ ] **P2.4 — Den DB-Fehlerpfad nicht verschlucken.** Die Abfrage der Phase-Events steht heute in
+- [x] **P2.4 — Den DB-Fehlerpfad nicht verschlucken.** Die Abfrage der Phase-Events steht heute in
       einem `try`-Block. Schlägt sie fehl, bleibt `doneIds` leer und alle Partials gelten als
       offen — die Pipeline würde stillschweigend alles wiederholen. Diesen Fall in der Rückgabe
       kenntlich machen, damit p3 ihn protokollieren kann. **Das Verhalten selbst bleibt
       unverändert** (weiterlaufen statt abbrechen); nur die Stille wird beseitigt.
 
-- [ ] **P2.5 — Rückwärtskompatibel bleiben.** Andere Aufrufer von `read-partials` prüfen:
+- [x] **P2.5 — Rückwärtskompatibel bleiben.** Andere Aufrufer von `read-partials` prüfen:
 
 ```bash
 grep -rn "read-partials" scripts/ tests/ | grep -v node_modules
@@ -53,7 +53,7 @@ grep -rn "read-partials" scripts/ tests/ | grep -v node_modules
       Jeder gefundene Aufrufer muss mit der erweiterten Rückgabe unverändert funktionieren. Neue
       Felder werden ergänzt, keine bestehenden umbenannt oder entfernt.
 
-- [ ] **P2.6 — Zeilenbudget prüfen.** Nach der Änderung:
+- [x] **P2.6 — Zeilenbudget prüfen.** Nach der Änderung:
 
 ```bash
 wc -l scripts/factory/pipeline-runner.js
@@ -64,7 +64,7 @@ wc -l scripts/factory/pipeline-runner.js
       `pipeline-runner.js` importieren. Diese Datei darf importieren — die Import-Sperre aus
       T000460 gilt nur für `pipeline.js` und `pipeline.mjs`.
 
-- [ ] **P2.7 — Lokal gegenprüfen.** Der Runner wird normalerweise von der Pipeline gerufen. Für
+- [x] **P2.7 — Lokal gegenprüfen.** Der Runner wird normalerweise von der Pipeline gerufen. Für
       eine isolierte Probe genügt ein Plan-Verzeichnis mit `tasks.d/` — dieser Change bringt
       selbst eines mit:
 

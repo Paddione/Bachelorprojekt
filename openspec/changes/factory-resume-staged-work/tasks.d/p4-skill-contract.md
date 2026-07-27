@@ -27,7 +27,7 @@ Wortlaut und Nummerierung.
 
 ## Aufgaben
 
-- [ ] **P4.1 — Kopplung erfassen.** Vor der ersten Zeile Änderung feststellen, welche Zeichenketten
+- [x] **P4.1 — Kopplung erfassen.** Vor der ersten Zeile Änderung feststellen, welche Zeichenketten
       die neun Tests aus dieser Datei erwarten:
 
 ```bash
@@ -36,7 +36,7 @@ grep -rn 'dev-flow-execute/SKILL.md' tests/ | head -20
 
       Jede so gefundene Assertion muss nach der Änderung weiterhin zutreffen.
 
-- [ ] **P4.2 — Fortsetzungs-Abschnitt ergänzen.** Ein neuer Abschnitt beschreibt, was gilt, wenn
+- [x] **P4.2 — Fortsetzungs-Abschnitt ergänzen.** Ein neuer Abschnitt beschreibt, was gilt, wenn
       auf dem Branch bereits Arbeit liegt:
       - Die Factory setzt fort statt neu zu beginnen; erledigte Partials werden über die
         `partial-done`-Phase-Events erkannt und übersprungen.
@@ -45,35 +45,35 @@ grep -rn 'dev-flow-execute/SKILL.md' tests/ | head -20
       - Es gibt **keine** zweite Fortschrittsquelle. Wer hier Commit-Betreffs oder Plan-Checkboxen
         auswerten will, baut Drift ein.
 
-- [ ] **P4.3 — Hold-Default ausdrücklich benennen.** `Schritt 1.8` behandelt bereits die Freigabe.
+- [x] **P4.3 — Hold-Default ausdrücklich benennen.** `Schritt 1.8` behandelt bereits die Freigabe.
       Dort ergänzen, dass `readiness.execution_released=false` der **Default** bleibt und
       Fortsetzungsfähigkeit ihn nicht ersetzt: die Freigabe bleibt die menschliche Entscheidung,
       sie kostet nur keine bereits geleistete Arbeit mehr.
 
-- [ ] **P4.4 — `reclaim` als Notausstieg einordnen.** Festhalten, dass `ticket.sh reclaim` für
+- [x] **P4.4 — `reclaim` als Notausstieg einordnen.** Festhalten, dass `ticket.sh reclaim` für
       entgleiste Ausführungen gedacht ist und **nicht** der Regelweg für jedes gestagte Ticket —
       und dass keine Automatik ihn auslöst.
 
-- [ ] **P4.5 — Fremdbesitz beschreiben.** Ist der Branch in einem anderen Worktree ausgecheckt,
+- [x] **P4.5 — Fremdbesitz beschreiben.** Ist der Branch in einem anderen Worktree ausgecheckt,
       stellt die Factory zurück und gibt ihren Slot frei; das Ticket wird **nicht** `blocked`. Für
       den menschlichen Ausführer heißt das: ein Ticket, das kurz nicht anläuft, ist kein Defekt,
       sondern eine belegte Ressource.
 
-- [ ] **P4.6 — Keine Brand-Domain-Literale.** Der Text darf keine konkreten Hostnamen enthalten;
+- [x] **P4.6 — Keine Brand-Domain-Literale.** Der Text darf keine konkreten Hostnamen enthalten;
       Domains kommen aus `k3d/configmap-domains.yaml`:
 
 ```bash
 grep -nE 'mentolder\.de|korczewski\.de' .claude/skills/dev-flow-execute/SKILL.md
 ```
 
-- [ ] **P4.7 — Test-Ketten gegenprüfen.** Nach der Änderung die gekoppelten Suites laufen lassen —
+- [x] **P4.7 — Test-Ketten gegenprüfen.** Nach der Änderung die gekoppelten Suites laufen lassen —
       `task test:changed` deckt die spec-Suite nicht zuverlässig ab, daher explizit:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/dev-flow-execute.bats tests/spec/dev-flow-plan.bats tests/spec/openspec-workflow.bats
 ```
 
-- [ ] **P4.8 — Skill-Größe prüfen.** Es gibt einen laufenden Change zur SKILL.md-Größe
+- [x] **P4.8 — Skill-Größe prüfen.** Es gibt einen laufenden Change zur SKILL.md-Größe
       (`openspec/changes/agentic-skillmd-size/`). Prüfen, ob daraus ein Limit gilt, das dieser
       Zuwachs reißt:
 

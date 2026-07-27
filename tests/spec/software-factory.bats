@@ -4715,4 +4715,155 @@ MOCKEOF
 @test "T002390: the skill points at the script instead of duplicating the procedure" {
   run grep -q "auto-chore-plan.sh" "$REPO_ROOT/.claude/skills/mishap-tracker/SKILL.md"
   [ "$status" -eq 0 ]
+# ── [T002327] Wiederaufnahme angefangener Tickets ───────────────────#
+#
+# GRENZE DIESER TESTS: `tickets.factory_phase_events` ist in CI nicht erreichbar.
+# Geprüft werden deshalb Struktur und Verzweigung im Quelltext — Aufrufreihenfolge,
+# Markerzeile, Exit-Code, Abwesenheit des blocked-Pfads im Fremdbesitz-Zweig — NICHT
+# der Datenbank-Roundtrip. Wer hier einen DB-Test sucht: es gibt keinen, und das ist
+# Absicht, kein Versehen.
+#
+# Die Import-Sperre aus T000460 (kein Top-Level-Import vor `meta`, kein import() zur
+# Laufzeit in pipeline.js) wird bereits von den FA-SF-20-Kontrakttests oben abgedeckt.
+# Hier bewusst KEINE zweite Assertion dafür — doppelte Zusicherungen driften auseinander.
+
+@test "T002327: setupWorktree laeuft INNERHALB des REUSE-Zweigs vor read-partials" {
+  # Die naheliegende Formulierung — erste Fundstelle von setupWorktree vor der ersten
+  # von read-partials — waere schon VOR dem Fix gruen gewesen: der Batch-Pfad ruft
+  # setupWorktree ohnehin frueher auf. Geprueft wird deshalb, dass ein Aufruf ZWISCHEN
+  # `if (REUSE) {` und dem read-partials-Aufruf liegt. Genau das stellt der Fix her,
+  # und genau daran haengt, ob read-partials das Partial-Manifest ueberhaupt sehen kann.
+  local pj="$REPO/scripts/factory/pipeline.js"
+  local reuse_line read_line setup_between
+  reuse_line=$(grep -n '^if (REUSE) {' "$pj" | head -1 | cut -d: -f1)
+  read_line=$(grep -n "'read-partials'" "$pj" | head -1 | cut -d: -f1)
+  [ -n "$reuse_line" ] || { echo "if (REUSE) nicht gefunden"; false; }
+  [ -n "$read_line" ]  || { echo "read-partials nicht gefunden"; false; }
+  [ "$reuse_line" -lt "$read_line" ] || { echo "read-partials liegt vor dem REUSE-Block"; false; }
+
+  setup_between=$(awk -v a="$reuse_line" -v b="$read_line" \
+    'NR>a && NR<b && /await setupWorktree\(agent,/ {c++} END{print c+0}' "$pj")
+  [ "$setup_between" -ge 1 ] || {
+    echo "kein setupWorktree-Aufruf zwischen Zeile $reuse_line (if REUSE) und $read_line (read-partials)"
+    false; }
+}
+
+@test "T002327: der zweite setupWorktree-Aufruf ist gegen Doppelanlage abgesichert" {
+  # Ein zweiter Aufruf mit demselben Pfad scheitert an "<path> already exists" und
+  # liefe direkt in die Eskalation — ein selbstverschuldetes `blocked`.
+  run grep -Fq 'const iwt = wtReady' "$REPO/scripts/factory/pipeline.js"
+  [ "$status" -eq 0 ] || { echo "Implement-Block prueft nicht, ob der Worktree schon steht"; false; }
+}
+
+@test "T002327: worktree-create.sh meldet einen belegten Branch mit Marker und Exit 3" {
+  # Hermetische Sandbox statt des echten Repos (Muster wie T002245 in ci-cd.bats).
+  # Gegen das echte Repo waere der Test flaky: der Divergence-Guard am Skriptkopf
+  # stasht bei zurueckliegendem lokalem main den Arbeitsbaum und bricht aus einem
+  # Worktree heraus sogar mit FATAL ab (`git fetch origin main:main` verweigert das
+  # Aktualisieren eines anderswo ausgecheckten main). Der Test wuerde dann aus einem
+  # voellig anderen Grund rot — und niemand wuesste, ob die Fremdbesitz-Erkennung
+  # ueberhaupt geprueft wurde. In der Sandbox ist main == origin/main, der Guard ist
+  # ein No-op, und geprueft wird genau das, was hier geprueft werden soll.
+  local sbox; sbox="$BATS_TEST_TMPDIR/wc-sandbox"
+  local br="chore/t002327-probe"
+  local first="$sbox/first" second="$sbox/second"
+  mkdir -p "$sbox/repo/scripts"
+  cp "$REPO/scripts/worktree-create.sh" "$sbox/repo/scripts/worktree-create.sh"
+
+  run bash -c "
+    cd '$sbox/repo' &&
+    git init -q -b main . &&
+    git -c user.email=t@t -c user.name=t commit -q --allow-empty -m base &&
+    git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree &&
+    git update-ref refs/remotes/origin/main HEAD &&
+    git worktree add --quiet -b '$br' '$first' HEAD 2>&1"
+  [ "$status" -eq 0 ] || { echo "Sandbox-Vorbedingung fehlgeschlagen: $output"; false; }
+  local REPO="$sbox/repo"
+
+  # Auf die worktree-create-Ausgabezeile einschraenken. Ein unqualifiziertes
+  # [[ "$output" == *"branch in use"* ]] waere hier zwar unverfaenglich, aber der
+  # Worktree-Pfad dieses Changes enthaelt Begriffe aus dem Testtext — dieselbe Falle
+  # wie in factory-reclaim-lock-respect.bats (T002267/T002272).
+  run bash -c "cd '$REPO' && bash scripts/worktree-create.sh '$br' '$second' origin/main 2>&1 | grep '^worktree-create:' | grep -c 'branch in use'"
+  local marker_hits="$output"
+
+  run bash -c "cd '$REPO' && bash scripts/worktree-create.sh '$br' '$second' origin/main >/dev/null 2>&1"
+  local exit_code="$status"
+
+  # P5.4: kein Rest, und der belegte Branch lebt unveraendert weiter — der
+  # schlimmstmoegliche Ausgang waere, den Branch einer lebenden Session zu loeschen.
+  local leftover=0; [ -d "$second" ] && leftover=1
+  run bash -c "cd '$REPO' && git show-ref --verify --quiet 'refs/heads/$br'"
+  local branch_alive="$status"
+
+  [ "$marker_hits" = "1" ] || { echo "Markerzeile 'branch in use' fehlt (Treffer: $marker_hits)"; false; }
+  [ "$exit_code" -eq 3 ] || { echo "erwartet Exit 3 fuer Fremdbesitz, bekam $exit_code"; false; }
+  [ "$leftover" -eq 0 ] || { echo "Rest-Worktree unter $second angelegt"; false; }
+  [ "$branch_alive" -eq 0 ] || { echo "der belegte Branch wurde geloescht"; false; }
+}
+
+@test "T002327: der Exit-Code fuer Fremdbesitz ist im Skriptkopf dokumentiert" {
+  # Er ist ab jetzt Kontrakt: pipeline.js verzweigt darauf.
+  run bash -c "sed -n '1,40p' '$REPO/scripts/worktree-create.sh' | grep -c 'branch is already checked out in ANOTHER worktree'"
+  [ "$output" = "1" ] || { echo "Exit-Code 3 nicht im Skriptkopf dokumentiert"; false; }
+}
+
+@test "T002327: der Fremdbesitz-Zweig setzt weder blocked noch PushNotification" {
+  # Nicht ausfuehrbar testbar (kein Cluster, kein Agent) — geprueft wird der Quelltext
+  # der Zweige. Jeder branch-in-use-Block muss VOR dem naechsten Zweig enden, ohne
+  # --status blocked oder PushNotification zu enthalten.
+  local pj="$REPO/scripts/factory/pipeline.js"
+  local bad
+  # Blockende ist der `return { status: 'deferred' ... }` — die letzte Anweisung jedes
+  # Zweigs. Ein Indent-Muster als Terminator (/^  }/) laeuft in den NACHFOLGENDEN
+  # if(!ok)-Eskalationsblock hinein und meldet dessen legitimes `blocked`.
+  # Kommentarzeilen werden uebersprungen: der Zweig ERKLAERT, dass er kein blocked und
+  # keine PushNotification setzt — ein Scan ueber den Rohtext bliebe an dieser
+  # Erklaerung haengen und waere gruen, sobald jemand den Kommentar loescht.
+  bad=$(awk '
+    /^[[:space:]]*(\/\/|\*)/     { next }
+    /reason === .branch-in-use./ { inblk=1 }
+    inblk && /--status blocked/  { print "blocked in branch-in-use-Zweig, Zeile " NR }
+    inblk && /PushNotification/  { print "PushNotification in branch-in-use-Zweig, Zeile " NR }
+    inblk && /status: .deferred./ { inblk=0 }
+  ' "$pj")
+  [ -z "$bad" ] || { echo "$bad"; false; }
+
+  # Gegenprobe: es GIBT ueberhaupt einen solchen Zweig (sonst ist der Test vakuum-gruen).
+  run grep -c "reason === 'branch-in-use'" "$pj"
+  [ "$output" -ge 2 ] || { echo "erwartet mind. 2 branch-in-use-Zweige (REUSE + Implement), fand $output"; false; }
+}
+
+@test "T002327: jeder Fremdbesitz-Zweig gibt den Slot frei" {
+  # Bleibt der Slot belegt, verhungert die Queue — das waere schlimmer als das
+  # `blocked`, das dieser Change ersetzt.
+  local pj="$REPO/scripts/factory/pipeline.js"
+  local branches releases
+  branches=$(grep -c "reason === 'branch-in-use'" "$pj")
+  releases=$(grep -c "defer-branch-in-use" "$pj")
+  [ "$releases" -eq "$branches" ] || {
+    echo "$branches Fremdbesitz-Zweige, aber $releases Slot-Freigaben"; false; }
+  run grep -c "release-slot --id \${A.ticket_id}" "$pj"
+  [ "$output" -ge "$branches" ] || { echo "zu wenige release-slot-Aufrufe"; false; }
+}
+
+@test "T002327: read-partials meldet uebersprungene Partials und den Fallback-Grund" {
+  local pr="$REPO/scripts/factory/pipeline-runner.js"
+  run grep -Fq 'res.skipped' "$pr";      [ "$status" -eq 0 ] || { echo "skipped fehlt"; false; }
+  run grep -Fq "res.manifest" "$pr";     [ "$status" -eq 0 ] || { echo "manifest fehlt"; false; }
+  run grep -Fq 'res.done_lookup' "$pr";  [ "$status" -eq 0 ] || { echo "done_lookup fehlt"; false; }
+  # Rueckwaertskompatibel: pipeline.js:321 prueft weiterhin partials/sub_features.
+  run grep -Fq 'partials.partials && Array.isArray(partials.sub_features)' "$REPO/scripts/factory/pipeline.js"
+  [ "$status" -eq 0 ] || { echo "bestehender Vertrag partials/sub_features gebrochen"; false; }
+}
+
+@test "T002327: der stille Fallback ist beseitigt — pipeline.js loggt jeden Grund" {
+  local pj="$REPO/scripts/factory/pipeline.js"
+  run grep -c "partials.skipped\|partials.done_lookup\|partials.manifest" "$pj"
+  [ "$output" -ge 4 ] || { echo "zu wenige Fallback-Meldungen in pipeline.js: $output"; false; }
+}
+
+@test "T002327: das Hold-Gate aus T002272 bleibt unangetastet (queue.sh unveraendert)" {
+  run bash -c "cd '$REPO' && git diff --exit-code origin/main -- scripts/factory/queue.sh"
+  [ "$status" -eq 0 ] || { echo "queue.sh wurde veraendert — das Hold-Gate ist tabu"; false; }
 }

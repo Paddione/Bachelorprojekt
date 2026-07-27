@@ -25,14 +25,14 @@ nicht in `target_files` dieses Partials. Den Befund melden und die Datei als Nac
 
 ## Aufgaben
 
-- [ ] **P3.1 — Ist-Stand lesen.** Der Reuse-Block (314–338) und der Implement-Block (340–356) sind
+- [x] **P3.1 — Ist-Stand lesen.** Der Reuse-Block (314–338) und der Implement-Block (340–356) sind
       die beiden Hälften, deren Reihenfolge sich umkehrt:
 
 ```bash
 sed -n '310,360p' scripts/factory/pipeline.js
 ```
 
-- [ ] **P3.2 — Worktree vor dem Manifest-Lesen anlegen.** Der `setupWorktree`-Aufruf (Zeile 345)
+- [x] **P3.2 — Worktree vor dem Manifest-Lesen anlegen.** Der `setupWorktree`-Aufruf (Zeile 345)
       muss ausgeführt sein, bevor `read-partials` (Zeile 320) `${WORK_WT}/openspec/changes/<slug>`
       liest. Andernfalls existiert der Pfad nicht und der Fallback greift — der eigentliche Fehler
       dieses Changes.
@@ -42,17 +42,17 @@ sed -n '310,360p' scripts/factory/pipeline.js
       berücksichtigen, legt **jeder** Lauf einen Worktree an — auch Läufe, die nie implementieren.
       Der neue Aufruf gehört daher an den Anfang des `if (REUSE)`-Zweigs, nicht vor ihn.
 
-- [ ] **P3.3 — Nicht doppelt anlegen.** Nach der Umstellung darf `setupWorktree` pro Lauf nur
+- [x] **P3.3 — Nicht doppelt anlegen.** Nach der Umstellung darf `setupWorktree` pro Lauf nur
       einmal erfolgreich durchlaufen. Der bestehende Aufruf im Implement-Block muss entweder
       entfallen oder erkennen, dass der Worktree schon steht. Ein zweiter Aufruf mit demselben Pfad
       scheitert (`<path> already exists`) und würde direkt in die Eskalation laufen.
 
-- [ ] **P3.4 — Auf den Fremdbesitz-Marker verzweigen.** `setupWorktree` gibt heute
+- [x] **P3.4 — Auf den Fremdbesitz-Marker verzweigen.** `setupWorktree` gibt heute
       `{ ok, detail }` zurück; `ok` hängt allein an `/ready on/`. Den aus p1 stammenden
       Fremdbesitz-Fall zusätzlich unterscheiden und aus der Funktion herausreichen (etwa
       `{ ok:false, reason:'branch-in-use' }`).
 
-- [ ] **P3.5 — Fremdbesitz stellt zurück statt zu blockieren.** Im Fremdbesitz-Fall **nicht** den
+- [x] **P3.5 — Fremdbesitz stellt zurück statt zu blockieren.** Im Fremdbesitz-Fall **nicht** den
       Pfad aus Zeile 346–355 nehmen. Kein `update-status --status blocked`, keine
       PushNotification-Eskalation. Stattdessen: den Slot freigeben, ein `phase-event` mit
       erkennbarem Grund schreiben und mit einem eigenen Status zurückkehren, sodass der nächste
@@ -65,20 +65,20 @@ sed -n '310,360p' scripts/factory/pipeline.js
 grep -n "slots.sh\|release" scripts/factory/pipeline.js | head -20
 ```
 
-- [ ] **P3.6 — Echten Fehlschlag unverändert lassen.** Jeder andere Grund für ein gescheitertes
+- [x] **P3.6 — Echten Fehlschlag unverändert lassen.** Jeder andere Grund für ein gescheitertes
       `setupWorktree` führt weiterhin zu `blocked` plus Eskalation. Dieser Pfad wird nicht
       angefasst.
 
-- [ ] **P3.7 — Übersprungene Partials protokollieren.** Die aus p2 zurückgegebenen IDs über `log()`
+- [x] **P3.7 — Übersprungene Partials protokollieren.** Die aus p2 zurückgegebenen IDs über `log()`
       ausgeben, im selben Stil wie die vorhandene Meldung in Zeile 323. Ohne diese Zeile ist im
       Nachhinein nicht nachvollziehbar, warum ein Lauf weniger Tasks hatte als der Plan Partials.
 
-- [ ] **P3.8 — Den Fallback laut machen.** Meldet p2 ein fehlendes Manifest, das ausdrücklich
+- [x] **P3.8 — Den Fallback laut machen.** Meldet p2 ein fehlendes Manifest, das ausdrücklich
       loggen, bevor der LLM-Decompose in Zeile 327 anläuft. Ebenso den in P2.4 erkennbar gemachten
       Fehlschlag der Phase-Event-Abfrage. Ein stiller Fallback ist die Fehlersituation, die dieser
       Change beseitigt — er darf nicht in anderer Form zurückkehren.
 
-- [ ] **P3.9 — Strukturvertrag prüfen.** `pipeline.js` wird von einem Kontrakttest abgesichert.
+- [x] **P3.9 — Strukturvertrag prüfen.** `pipeline.js` wird von einem Kontrakttest abgesichert.
       Diesen vor dem Commit laufen lassen:
 
 ```bash
@@ -87,7 +87,7 @@ grep -rn "FA-SF-20" tests/ | head -5
 
       Den gefundenen Test ausführen und grün bekommen.
 
-- [ ] **P3.10 — Reihenfolge am Quelltext belegen.** Die erste Fundstelle von `setupWorktree(agent`
+- [x] **P3.10 — Reihenfolge am Quelltext belegen.** Die erste Fundstelle von `setupWorktree(agent`
       muss eine kleinere Zeilennummer haben als die erste von `'read-partials'`:
 
 ```bash

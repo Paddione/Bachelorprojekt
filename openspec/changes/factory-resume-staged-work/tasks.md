@@ -74,7 +74,7 @@ beschreibt das fertige Verhalten, p5 prueft es.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Die in p5 ergaenzten Assertions pruefen die Aufrufreihenfolge in
+- [x] **Failing-Test-Step (RED).** Die in p5 ergaenzten Assertions pruefen die Aufrufreihenfolge in
       `pipeline.js` und die Markerzeile in `worktree-create.sh`. Vor p1 bis p3 existiert beides
       nicht, der Lauf ist rot:
 
@@ -83,13 +83,13 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
 # expected: FAIL (rot — Marker und korrigierte Reihenfolge existieren noch nicht)
 ```
 
-- [ ] **Fix-Step (GREEN).** Nach p1 bis p4 laeuft derselbe Aufruf gruen:
+- [x] **Fix-Step (GREEN).** Nach p1 bis p4 laeuft derselbe Aufruf gruen:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
 ```
 
-- [ ] **Reihenfolge-Beweis am Quelltext.** Der `setupWorktree`-Aufruf muss vor dem
+- [x] **Reihenfolge-Beweis am Quelltext.** Der `setupWorktree`-Aufruf muss vor dem
       `read-partials`-Aufruf stehen; die Zeilennummern muessen aufsteigend sein:
 
 ```bash
@@ -97,7 +97,7 @@ grep -n 'setupWorktree(agent' scripts/factory/pipeline.js | head -1
 grep -n "'read-partials'" scripts/factory/pipeline.js | head -1
 ```
 
-- [ ] **Fremdbesitz-Beweis ohne Fremdsession.** Denselben Branch, der bereits in diesem Worktree
+- [x] **Fremdbesitz-Beweis ohne Fremdsession.** Denselben Branch, der bereits in diesem Worktree
       ausgecheckt ist, ein zweites Mal anfordern. Erwartet: Markerzeile und dedizierter Exit-Code
       statt des generischen Fehlschlags:
 
@@ -108,13 +108,13 @@ grep -c 'branch in use' /tmp/wt-dup.log
 rm -rf /tmp/wt-dup-probe /tmp/wt-dup.log
 ```
 
-- [ ] **Kein Eingriff in das Hold-Gate.** `queue.sh` muss unveraendert bleiben:
+- [x] **Kein Eingriff in das Hold-Gate.** `queue.sh` muss unveraendert bleiben:
 
 ```bash
 git diff --exit-code origin/main -- scripts/factory/queue.sh
 ```
 
-- [ ] **Test-Inventar.** `tests/spec/software-factory.bats` existiert bereits, es kommt keine Datei
+- [x] **Test-Inventar.** `tests/spec/software-factory.bats` existiert bereits, es kommt keine Datei
       hinzu — die `@test`-Zaehlung aendert sich aber:
 
 ```bash
@@ -122,7 +122,7 @@ task test:inventory
 git status --porcelain website/src/data/test-inventory.json
 ```
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

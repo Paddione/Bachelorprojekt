@@ -28,7 +28,7 @@ auf die relevante Zeile einschränken, etwa
 
 ## Aufgaben
 
-- [ ] **P5.1 — RED.** Die neuen Assertions vor p1 bis p3 laufen lassen. Weder Markerzeile noch
+- [x] **P5.1 — RED.** Die neuen Assertions vor p1 bis p3 laufen lassen. Weder Markerzeile noch
       korrigierte Reihenfolge existieren, der Lauf muss rot sein:
 
 ```bash
@@ -36,35 +36,35 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
 # expected: FAIL (rot — Marker und korrigierte Reihenfolge existieren noch nicht)
 ```
 
-- [ ] **P5.2 — Assertion: Reihenfolge im Quelltext.** Die erste Fundstelle von `setupWorktree(agent`
+- [x] **P5.2 — Assertion: Reihenfolge im Quelltext.** Die erste Fundstelle von `setupWorktree(agent`
       in `scripts/factory/pipeline.js` hat eine kleinere Zeilennummer als die erste von
       `'read-partials'`. Beide Zeilennummern im Test vergleichen, nicht nur auf Vorkommen prüfen —
       ein reiner Existenztest wäre schon vor dem Fix grün.
 
-- [ ] **P5.3 — Assertion: Markerzeile in `worktree-create.sh`.** Der Begriff `branch in use`
+- [x] **P5.3 — Assertion: Markerzeile in `worktree-create.sh`.** Der Begriff `branch in use`
       erscheint in einer `worktree-create:`-Ausgabezeile, wenn derselbe Branch ein zweites Mal
       angefordert wird. Der Testbranch wird im Test selbst angelegt und wieder entfernt; auf
       keinen Fall einen Branch einer fremden Session verwenden.
 
-- [ ] **P5.4 — Assertion: kein Rest bei Fremdbesitz.** Nach dem abgewiesenen Aufruf existiert kein
+- [x] **P5.4 — Assertion: kein Rest bei Fremdbesitz.** Nach dem abgewiesenen Aufruf existiert kein
       Worktree-Verzeichnis am Zielpfad und der belegte Branch existiert unverändert weiter. Das ist
       die Absicherung gegen den schwersten Fehlermodus aus P1.4.
 
-- [ ] **P5.5 — Assertion: dedizierter Exit-Code.** Der Fremdbesitz-Fall endet mit dem in p1
+- [x] **P5.5 — Assertion: dedizierter Exit-Code.** Der Fremdbesitz-Fall endet mit dem in p1
       festgelegten Exit-Code, nicht mit `0` und nicht mit dem generischen Fehlercode.
 
-- [ ] **P5.6 — Assertion: Fremdbesitz führt nicht zu `blocked`.** Im Fremdbesitz-Zweig von
+- [x] **P5.6 — Assertion: Fremdbesitz führt nicht zu `blocked`.** Im Fremdbesitz-Zweig von
       `pipeline.js` darf weder `--status blocked` noch die PushNotification-Eskalation stehen. Da
       der Zweig nicht ausführbar getestet werden kann, prüft der Test den Quelltext des Zweigs —
       und kommentiert genau das als bewusste Einschränkung.
 
-- [ ] **P5.7 — Assertion: `queue.sh` unverändert.** Das Hold-Gate aus T002272 bleibt unangetastet:
+- [x] **P5.7 — Assertion: `queue.sh` unverändert.** Das Hold-Gate aus T002272 bleibt unangetastet:
 
 ```bash
 git diff --exit-code origin/main -- scripts/factory/queue.sh
 ```
 
-- [ ] **P5.8 — Assertion: keine Import-Verletzung in `pipeline.js`.** Weder ein Top-Level-Import vor
+- [x] **P5.8 — Assertion: keine Import-Verletzung in `pipeline.js`.** Weder ein Top-Level-Import vor
       `meta` noch ein `import(` zur Laufzeit. Falls der FA-SF-20-Kontrakttest das bereits abdeckt,
       **keine zweite Assertion schreiben**, sondern im Kommentar auf ihn verweisen — doppelte
       Zusicherungen driften auseinander.
@@ -73,19 +73,19 @@ git diff --exit-code origin/main -- scripts/factory/queue.sh
 grep -rn "FA-SF-20" tests/ | head -5
 ```
 
-- [ ] **P5.9 — Jede Assertion einmal künstlich brechen.** Reihenfolge in `pipeline.js` tauschen,
+- [x] **P5.9 — Jede Assertion einmal künstlich brechen.** Reihenfolge in `pipeline.js` tauschen,
       Markerzeile umformulieren, Exit-Code ändern — und jeweils bestätigen, dass BATS rot wird.
       Ohne diesen Schritt ist nicht belegt, dass die Tests überhaupt etwas prüfen. Danach
       zurücknehmen.
 
-- [ ] **P5.10 — Test-Inventar.** Es kommt keine Datei hinzu, aber die `@test`-Zählung ändert sich:
+- [x] **P5.10 — Test-Inventar.** Es kommt keine Datei hinzu, aber die `@test`-Zählung ändert sich:
 
 ```bash
 task test:inventory
 git status --porcelain website/src/data/test-inventory.json
 ```
 
-- [ ] **P5.11 — Finale Verifikation.**
+- [x] **P5.11 — Finale Verifikation.**
 
 ```bash
 task test:changed

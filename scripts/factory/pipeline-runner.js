@@ -421,7 +421,19 @@ async function main() {
     try {
       const dir = changeDir || path.join(REPO, 'openspec/changes', String(slug || ''));
       const res = P.readPartials(dir);
+      // [T002327] Report what was skipped and why. Until now this branch knew which
+      // partials were already done but kept it to itself, so pipeline.js could not
+      // tell "resumed, 3 of 5 already finished" from "no manifest, falling back to
+      // the LLM decompose". That indistinguishability is what hid the ordering bug
+      // (read-partials ran before the worktree existed) for as long as it did.
+      // Purely additive: no existing field is renamed or removed, because
+      // pipeline.js:321 tests `partials.partials` and `Array.isArray(sub_features)`.
+      res.manifest = res.partials ? 'present' : 'absent';
+      res.skipped = [];
+      res.done_lookup = 'skipped';   // 'ok' | 'failed' | 'skipped'
+      res.order = 'skipped';         // 'ok' | 'failed' | 'skipped'
       if (res.partials) {
+        const idsBefore = (res.sub_features || []).map((sf) => sf.id);
         // Read done partial IDs from factory_phase_events (partial-done with tests:'pass')
         let doneIds = [];
         try {
@@ -440,14 +452,27 @@ async function main() {
               if (detail?.tests === 'pass' && detail?.partial) doneIds.push(detail.partial);
             } catch { /* skip malformed */ }
           }
-        } catch { /* partial-order.cjs not available or DB error — fall through to unfiltered */ }
+          res.done_lookup = 'ok';
+        } catch {
+          // Behaviour is deliberately unchanged: keep going with an empty doneIds
+          // rather than aborting the tick. Only the SILENCE is removed — without
+          // this flag a failed phase-event query looks exactly like "nothing done
+          // yet", and the pipeline would quietly redo finished work.
+          res.done_lookup = 'failed';
+        }
 
         try {
           const { orderAndFilter } = await import('./partial-order.cjs');
           res.sub_features = orderAndFilter(res.sub_features, doneIds)
             .map((id) => res.sub_features.find((sf) => sf.id === id))
             .filter(Boolean);
-        } catch { /* keep original order on D2 errors — pipeline falls back to LLM decompose */ }
+          res.order = 'ok';
+        } catch { /* keep original order on D2 errors — pipeline falls back to LLM decompose */
+          res.order = 'failed';
+        }
+
+        const idsAfter = new Set((res.sub_features || []).map((sf) => sf.id));
+        res.skipped = idsBefore.filter((id) => !idsAfter.has(id));
 
         res.sub_features = res.sub_features.map((sf) => ({
           ...sf,
@@ -456,7 +481,10 @@ async function main() {
       }
       console.log(JSON.stringify(res));
     } catch (e) {
-      console.log(JSON.stringify({ partials: false, error: String(e.message || e) }));
+      // manifest:'error' — the directory could not be read at all. Distinct from
+      // manifest:'absent' (a legitimate plan without tasks.d/), so the caller can
+      // tell an environment fault from a design choice. [T002327]
+      console.log(JSON.stringify({ partials: false, manifest: 'error', skipped: [], error: String(e.message || e) }));
     }
 
   } else if (command === 'deploy-prompt') {

@@ -258,13 +258,15 @@ assert_var_not_declared() {
   [ -z "$output" ]
 }
 
-@test "install-startup-autostart.ps1 covers embed and rerank only (T002276)" {
+@test "install-startup-autostart.ps1 covers embed, rerank and gemma in that order (T002286)" {
   [ -f "$REPO/scripts/llm/install-startup-autostart.ps1" ]
-  run grep -q "start-embed-server.ps1', 'start-rerank-server.ps1')" \
+  # Reihenfolge ist Absicht: scheitert Gemma (der groesste Brocken), steht der
+  # Embedding-Stack trotzdem. Gemma kam erst dazu, nachdem sein Startskript von
+  # "-fit on" auf den festen Deckel "-c 65536" umgestellt wurde - vorher haette
+  # es sich alles freie VRAM genommen.
+  run grep -q "start-embed-server.ps1', 'start-rerank-server.ps1', 'start-gemma-server.ps1')" \
       "$REPO/scripts/llm/install-startup-autostart.ps1"
   [ "$status" -eq 0 ]
-  # Chat-Server bewusst nicht im Autostart: stark unterschiedlicher VRAM-Bedarf,
-  # ein pauschaler Start wuerde dem Embedding-Stack den Speicher wegnehmen.
   run bash -c "grep -nE '^[^#]*start-bonsai-server' '$REPO'/scripts/llm/*.ps1 2>/dev/null"
   [ -z "$output" ]
 }
@@ -331,29 +333,50 @@ assert_var_not_declared() {
   [ "$status" -eq 0 ]
 }
 
-@test "start-gemma-server.ps1 keeps the 32768 context floor (T002277)" {
-  # -fitc ist die Untergrenze des Auto-Fittings. Die Factory fuellt 31-37k Tokens
-  # pro Prompt; faellt der Server still auf 4096, ist er fuer sie wertlos, ohne
-  # dass ein Smoke-Test das zeigt.
-  run grep -qE '"-fitc",[[:space:]]*"32768"' "$REPO/scripts/llm/start-gemma-server.ps1"
+@test "start-gemma-server.ps1 pins the context at 65536 (T002286)" {
+  # Loest den -fitc-Floor aus T002277 ab. Die Schutzabsicht ist dieselbe - die
+  # Factory fuellt 31-37k Tokens pro Prompt und braucht mehr als den llama.cpp-
+  # Default -, nur strenger umgesetzt: ein fester -c kann gar nicht erst still
+  # nach unten ausweichen, waehrend Auto-Fit je nach VRAM-Belegung variierte.
+  run grep -qE '"-c",[[:space:]]*"65536"' "$REPO/scripts/llm/start-gemma-server.ps1"
   [ "$status" -eq 0 ]
 }
 
-@test "start-gemma-server.ps1 sets no explicit -c (T002277)" {
-  # Ein gesetztes -c schaltet --fit ab und friert den Kontext auf einen festen
-  # Wert ein. Genau das soll hier NICHT passieren.
-  run bash -c "grep -E '^[[:space:]]+\"-c\",' '$REPO/scripts/llm/start-gemma-server.ps1'"
+@test "start-gemma-server.ps1 disables auto-fit (T002286)" {
+  # "-fit on" zog den Kontext auf n_ctx_train (262144) hoch und band ~86 Prozent
+  # davon ungenutzt als KV-Cache. Gemessen 2026-07-27: der feste Deckel gibt
+  # 3094 MiB VRAM frei (15670 -> 12576 MiB belegt). Ohne "-fit off" wuerde das
+  # gesetzte -c zwar gelten, aber die Absicht waere im Skript nicht mehr lesbar.
+  run grep -qE '"-fit",[[:space:]]*"off"' "$REPO/scripts/llm/start-gemma-server.ps1"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -E '\"-fit\",[[:space:]]*\"on\"' '$REPO/scripts/llm/start-gemma-server.ps1'"
   [ "$status" -ne 0 ]
+}
+
+@test "start-gemma-server.ps1 pairs -np > 1 with -kvu if it ever parallelises (T002286)" {
+  # llama.cpp teilt -c stur durch -np, SOFERN nicht --kv-unified gesetzt ist.
+  # Gemessen: "-c 8192 -np 4 -kvu" => n_ctx 8192 je Slot, mit "-no-kvu" => 2048.
+  # Wer hier auf mehrere Slots umstellt, ohne -kvu zu setzen, viertelt den
+  # Kontext lautlos unter den Factory-Bedarf. Aktuell steht -np auf 1.
+  # Der Wert steht in Anfuehrungszeichen ("-np", "1"), daher tr statt Anker-Regex.
+  np="$(grep -oE '"-np",[[:space:]]*"[0-9]+"' "$REPO/scripts/llm/start-gemma-server.ps1" | tr -dc '0-9')"
+  [ -n "$np" ]
+  if [ "$np" -gt 1 ]; then
+    run grep -q '"-kvu"' "$REPO/scripts/llm/start-gemma-server.ps1"
+    [ "$status" -eq 0 ]
+  fi
 }
 
 # Kein eigener Start-Job-Guard fuer start-gemma-server.ps1: der Test
 # "no scripts/llm/*.ps1 starts a server via Start-Job (T002276)" oben deckt
 # jedes Skript im Verzeichnis ab, auch neu hinzugekommene.
 
-@test "install-startup-autostart.ps1 does NOT autostart a chat model (T002276/T002277)" {
-  # Bewusste Entscheidung aus T002276: Gemma laeuft mit '-fit on' und nimmt sich
-  # alles freie VRAM. Im Autostart vor dem Embedding-Stack wuerde es bge-m3 und
-  # dem Reranker den Speicher wegnehmen. Der Guard haelt diese Entscheidung fest.
-  run bash -c "grep -E 'start-(gemma|gptoss|bonsai)' '$REPO/scripts/llm/install-startup-autostart.ps1'"
+@test "install-startup-autostart.ps1 autostarts no SECOND chat model (T002286)" {
+  # Die urspruengliche Absicht (T002276) - der Embedding-Stack darf nicht
+  # verhungern - gilt weiter, nur nicht mehr pauschal gegen jedes Chat-Modell.
+  # Gemma ist mit festem -c 65536 planbar (12576 von 16303 MiB) und laesst
+  # bge-m3 + Reranker mit zusammen ~1,7 GB Platz. Ein ZWEITES Chat-Modell passt
+  # daneben nicht: gpt-oss-20b allein braucht 12,1 GB.
+  run bash -c "grep -E 'start-(gptoss|bonsai)' '$REPO/scripts/llm/install-startup-autostart.ps1'"
   [ "$status" -ne 0 ]
 }

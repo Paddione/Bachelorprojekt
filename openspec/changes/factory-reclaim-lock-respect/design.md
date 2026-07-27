@@ -11,131 +11,97 @@ _Ticket: T002267 — Folge aus dem T002255/T002256-Zyklus._
 
 ## Problem
 
-Ein Ticket soll normal in die Factory gestaget werden und in der Queue sichtbar bleiben —
-aber solange eine interaktive Session es hält oder kein Worker daran arbeitet, muss es sich
-ohne Umwege entnehmen und selbst bearbeiten lassen. Heute geht beides nicht.
+Ein Ticket soll normal in die Factory gestaget werden und in der Queue sichtbar bleiben,
+aber jederzeit interaktiv übernehmbar sein. Am 2026-07-27 (T002255) griff der Factory-Tick
+ein Ticket unmittelbar nach `ticket.sh stage-plan` (`status=in_progress`, `pipeline_slot=1`).
+Zurückholen ging nur über `status=blocked` — semantisch falsch, weil der Plan fertig ist.
 
-**Beobachtet am 2026-07-27 (T002255):** Direkt nach `ticket.sh stage-plan` griff der laufende
-Factory-Tick das Ticket (`status=in_progress`, `pipeline_slot=1`), obwohl `dev-flow-plan`
-laut Kontrakt bei `plan_staged` stoppt und dem Menschen die Ausführungswahl lässt.
-Zurückholen ging nur über den Umweg `status=blocked`, weil `plan_staged` beim nächsten Tick
-sofort erneut dispatcht worden wäre. `blocked` ist dabei semantisch falsch: der Plan ist
-fertig, es blockiert nichts. Zusätzlich stand T002256 in der Queue, das auf denselben Plan
-und Branch zeigte — zwei Agenten wären parallel auf einem Branch gelandet.
+## Korrigierter Befund
 
-### Ursache
+Der erste Entwurf dieses Designs nahm an, dem Dispatcher fehle ein ticket-scoped Lock-Check.
+**Das war falsch.** Der Check existiert dreifach und ist korrekt:
 
-- `scripts/factory/queue.sh` selektiert `type='task' AND status='plan_staged'` **ohne jeden
-  Claim-Check**.
-- `scripts/factory/dispatcher.js:107-120` hat zwar einen Sentinel, aber er taugt nicht:
-  er liest `agent-lock.sh list`, prüft per Regex auf das Label `interactive-worker` und
-  reduziert dann lediglich `maxParallel` um 1. Das ist **ticket-unabhängig** — es hält
-  allgemein einen Slot frei, statt ein bestimmtes Ticket zu überspringen. Und es ist
-  **faktisch tot**, weil `dev-flow-plan`/`dev-flow-execute` mit den Labels `dev-flow-plan`
-  bzw. `dev-flow-execute` claimen, nie mit `interactive-worker`.
-- `scripts/factory/pipeline.js` setzt selbst **keinen** `agent-lock`; der Dispatcher kann
-  Mensch- und Factory-Claims ohnehin nicht unterscheiden.
+| Datei | Zeile | Status |
+|---|---|---|
+| `scripts/factory/factory-prep-runner.sh` | 67–75 | aktiv |
+| `scripts/factory/factory-prep-bridge.sh` | 100–107 | aktiv |
+| `scripts/factory/dispatcher-prep.sh` | 82–90 | verwaist (kein Aufrufer) |
 
-## Vorhandene Bausteine
+Alle drei fragen `agent-lock.sh check ticket <id>` ab und geben bei Exit 3 (`held`) den Slot
+frei. Der `interactive-worker`-Sentinel in `dispatcher.js` ist davon unabhängig — nur ein
+grober Kapazitätspuffer, nicht der Guard.
 
-Bemerkenswert: es fehlt kein einziger Mechanismus, nur ihre Verdrahtung.
+**Der Guard griff nicht, weil die Antwort falsch war.** `agent-lock.sh` stufte den Lock einer
+lebenden Session als reapable ein, also meldete `check` `free`. Drei Ursachen in `_reapable`:
 
-| Baustein | Zustand |
-|---|---|
-| `agent-lock.sh check ticket <id>` | vorhanden, liefert `free`/`mine`/`held` |
-| `agent-lock.sh claim ticket` | vorhanden, wird von beiden dev-flow-Skills gesetzt |
-| `slots.sh release <ext_id>` / `ticket.sh release-slot` | vorhanden |
-| Worker-Liveness | `watchdog.sh` nutzt `updated_at` als Heartbeat (`fn_lifecycle_ts`) |
+1. **`_sid_alive` erkennt Claude-Sessions nicht** (Zeile 48–49): numerische SIDs werden per
+   `pgrep -s` geprüft; die Claude-Session-SID ist numerisch, wird aber nicht gefunden.
+   Verifiziert: `pgrep -s 771140` schlägt fehl, während die Session läuft.
+2. **Ein lebender `owner_pid` galt nicht als Lebensbeweis.** Der pid-Zweig (Zeile 144–151)
+   reapt nur bei *totem* Prozess; ein lebender fiel durch zu `sid-dead` (Zeile 153–161).
+3. **Branch-scoped Claims tragen `branch: ""`** — der Name steht in `id`, `--branch` wird nie
+   übergeben. Der worktree+branch-Fallback (T002204, Zeile 137–141) verlangt aber ein
+   nicht-leeres `branch`-Feld. Verifiziert an zwei Locks derselben SID: der Ticket-Lock
+   (mit `branch`) war `live`, der Branch-Lock (ohne) `stale`.
 
-Entscheidend ist der Kontrakt von `cmd_check` (`scripts/agent-lock.sh:268-273`):
-
-```bash
-if [ ! -f "$f" ] || _reapable "$f"; then echo "free"; return 0; fi   # kein ODER toter Lock
-if [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then echo "mine"; ...; return 0; fi
-echo "held"; cat "$f"; return 3                                       # fremde LEBENDE Session
-```
-
-Zeile 270 beantwortet die heikelste Frage von selbst: ein **toter** Lock meldet `free` und
-blockiert die Factory nicht. Deshalb ist an `agent-lock.sh` **keine Zeile** zu ändern —
-der Dispatcher muss diese API nur aufrufen.
+Damit hing der gesamte Schutz an einem einzigen Pfad — dem worktree+branch-Match — und fiel
+weg, sobald dessen Bedingungen nicht exakt erfüllt waren.
 
 ## Lösung
 
-### 1. Dispatcher respektiert ticket-scoped Locks
+### 1. Lebender Prozess schützt den Claim
 
-`dispatcher.js` ersetzt den `interactive-worker`-Regex-Sentinel durch eine **pro-Ticket**-
-Prüfung: vor dem Slot-Claim `agent-lock.sh check ticket <ext_id>`; Exit 3 (`held`) →
-Ticket überspringen, Exit 0 (`free`/`mine`) → wie bisher dispatchen.
+In `_reapable`, unmittelbar nach dem worktree+branch-Fallback:
 
-Das Ticket bleibt dabei **in der Queue sichtbar** — `queue.sh` wird nicht angefasst. Genau
-das ist gewollt: die Factory sieht es, fasst es aber nicht an. Der Skip wird geloggt, damit
-ein übersprungenes Ticket nicht als stillschweigend verschwunden erscheint.
+```bash
+pid="$(_lock_field "$f" owner_pid)"
+if [ -n "$pid" ] && _pid_alive "$pid"; then return 1; fi
+```
 
-Der alte pauschale `maxParallel`-Abzug entfällt ersatzlos: er war ein grober Ersatz für
-genau diese Prüfung und würde nach dem Fix nur noch grundlos Kapazität kosten.
+Ein laufender Halter-Prozess ist der direkteste verfügbare Lebensbeweis und muss die
+nachfolgenden Reap-Pfade (`worktree-missing`, `sid-dead`, `heartbeat-ttl`) überstimmen. Die
+Umkehrung gilt ausdrücklich **nicht**: ein toter `owner_pid` bleibt nach den bestehenden
+Regeln reapable — ein lebender pid ist Beweis für Leben, seine Abwesenheit kein Beweis für
+Schutz. Eine Gegenprobe sichert das ab.
 
-### 2. `ticket.sh reclaim <id>`
+### 2. Branch-Claims tragen ihren Branch
 
-Ein Kommando statt der heutigen Handarbeit:
+In `cmd_claim`, nach dem Argument-Parsing:
 
-1. Worker-Liveness prüfen — `pipeline_slot IS NOT NULL AND status='in_progress'` **und**
-   `updated_at` jünger als die Stale-Schwelle (dieselbe Semantik wie `watchdog.sh`).
-2. Lebt ein Worker → **abbrechen** mit Hinweis auf Slot, Status und Alter des letzten
-   Fortschritts. Übernahme nur mit explizitem `--force`.
-3. Sonst: Slot freigeben (`slots.sh release`), Status zurück auf **`plan_staged`** (nicht
-   `blocked` — der Plan ist fertig), `agent-lock claim ticket` für die aufrufende Session.
+```bash
+[ "$SCOPE" = "branch" ] && [ -z "$BRANCH" ] && BRANCH="$ID"
+```
 
-Nach Schritt 3 lässt der Dispatcher das Ticket wegen (1) in Ruhe, ohne dass der Status
-verbogen werden muss. Das ist der eigentliche Punkt: `plan_staged` bleibt der ehrliche
-Zustand, und die Zuständigkeit wird über den Lock ausgedrückt, nicht über den Status.
+Damit greift der T002204-Fallback auch für branch-scoped Claims. Ein explizit übergebenes
+`--branch` hat Vorrang.
 
-### 3. Label-Konvention
+### 3. `ticket.sh reclaim <id>`
 
-Kein Umbau nötig: der neue Check ist label-agnostisch, weil er ticket-scoped fragt. Die
-Regex auf `interactive-worker` verschwindet mit dem alten Sentinel; die vorhandenen Labels
-`dev-flow-plan`/`dev-flow-execute` bleiben unverändert gültig.
+Neues Skript `scripts/ticket-reclaim.sh`, dispatcht aus `ticket.sh`:
+
+1. Worker-Liveness aus `updated_at` bestimmen — dieselbe Schwelle wie `watchdog.sh`
+   (`FACTORY_STALE_MIN`, Default 30), damit sich beide Urteile nicht widersprechen.
+2. Lebt ein Worker und fehlt `--force`: abbrechen, nichts verändern, Slot/Status/Alter nennen.
+3. Sonst: Slot freigeben, Status auf **`plan_staged`**, Ticket claimen.
+
+`plan_staged` statt `blocked` ist der Kern: der Plan ist fertig, die Zuständigkeit drückt der
+Lock aus, nicht der Status. Nach dem Claim überspringt der vorhandene T000510-Guard das
+Ticket — jetzt, wo `check` die Wahrheit sagt.
 
 ## Abgrenzung
 
-- **Zurückgestellt:** der T002256-Fall (zwei Tickets zeigen auf denselben Plan/Branch).
-  Eigener Change — der Lock-Respekt entschärft ihn bereits teilweise, löst ihn aber nicht.
-- `queue.sh` bleibt unverändert (Sichtbarkeit ist gewollt).
-- `agent-lock.sh` bleibt unverändert (der Kontrakt genügt).
-- `pipeline.js` setzt weiterhin keinen eigenen Lock — nicht nötig, da der Slot die
-  Factory-seitige Belegung bereits abbildet.
+- `queue.sh`, `dispatcher.js` und der T000510-Guard bleiben unverändert.
+- Der verwaiste `dispatcher-prep.sh` wird **nicht** entfernt — eigener Chore, nicht Teil
+  dieses Fixes.
+- Zurückgestellt: zwei Tickets auf demselben Plan/Branch (der T002256-Fall).
+- `_sid_alive` selbst wird nicht umgebaut. Der pid-Pfad deckt den Fall ab; ein Eingriff in
+  die SID-Auflösung hätte deutlich größere Reichweite.
 
 ## Test-Strategie
 
-Alle Tests zuerst RED, in `tests/spec/factory-reclaim-lock-respect.bats`:
+Verhaltenstests statt Content-Assertions: `agent-lock.sh` ist über `AGENT_LOCK_DIR` und
+`AGENT_LOCK_FAKE_ALIVE` isoliert testbar. Lock-Dateien werden mit kontrollierten Feldern
+(SID, PID, Worktree, Branch, Alter) erzeugt und `check` gegen den Exit-Code geprüft.
 
-| Test | Prüft |
-|------|-------|
-| Dispatcher fragt pro Ticket | `dispatcher.js` ruft `agent-lock.sh check ticket` auf |
-| Alter Sentinel ist weg | keine `interactive-worker`-Regex, kein `maxParallel`-Abzug mehr |
-| Skip wird geloggt | übersprungenes Ticket erzeugt eine Log-Zeile |
-| `reclaim` existiert | `ticket.sh` kennt das Kommando und listet es im Usage |
-| `reclaim` setzt `plan_staged` | nicht `blocked` |
-| `reclaim` gibt den Slot frei | `slots.sh release` bzw. `release-slot` wird aufgerufen |
-| `reclaim` verweigert bei lebendem Worker | Abbruch mit Hinweis, Exit ≠ 0 |
-| `--force` überschreibt | mit Flag auch bei lebendem Worker erfolgreich |
-| toter Lock blockiert nicht | `check` liefert `free` bei reapable Lock (Regressionswächter) |
-
-`queue.sh` muss weiterhin `plan_staged` selektieren — ein Regressionswächter stellt sicher,
-dass die Sichtbarkeit nicht versehentlich mit weggefiltert wird.
-
-## Gate-Notizen
-
-`scripts/factory/dispatcher.js` — 210 Zeilen, `.js`-Limit 600, nicht gebaselined und nicht
-ignoriert: echtes Budget **390**. Der Fix ersetzt den alten Sentinel-Block, wächst also kaum.
-
-`scripts/ticket.sh` — 862 Zeilen, steht **namentlich auf der `s1.ignore`-Liste** in
-`gates.yaml` (zusammen mit `scripts/factory/pipeline.js` und sechs weiteren). Das Gate
-greift dort also nicht. Genau deshalb bekommt `reclaim` trotzdem ein **eigenes Skript**
-(`scripts/ticket-reclaim.sh`), das `ticket.sh` nur noch dispatcht: die Ignore-Liste ist ein
-Eingeständnis, kein Freibrief, und 862 Zeilen sind bereits jenseits dessen, was sich gut
-lesen lässt. Das ist eine Qualitäts-, keine Gate-Entscheidung — sie wird hier festgehalten,
-damit sie nicht später als überflüssig zurückgebaut wird.
-
-Das neue `scripts/ticket-reclaim.sh` unterliegt dem regulären `.sh`-Limit 500 und wird mit
-großem Abstand darunter geschnitten. S4 (Orphan-Gate) ist erfüllt: es wird von `ticket.sh`
-referenziert.
+Zusätzlich Regressionswächter, dass der T000510-Guard in beiden aktiven prep-Skripten
+erhalten bleibt — er ist korrekt und darf bei diesem Fix nicht verloren gehen.

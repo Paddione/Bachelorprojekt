@@ -4,39 +4,41 @@
 
 Ein Ticket soll normal in die Factory gestaget werden und in der Queue sichtbar bleiben —
 aber solange eine interaktive Session es hält oder gar kein Worker daran arbeitet, muss es
-sich ohne Umwege entnehmen und selbst bearbeiten lassen. Heute geht beides nicht.
+sich ohne Umwege entnehmen und selbst bearbeiten lassen.
 
 Am 2026-07-27 (T002255) griff der laufende Factory-Tick ein Ticket unmittelbar nach
-`ticket.sh stage-plan` (`status=in_progress`, `pipeline_slot=1`), obwohl `dev-flow-plan`
-laut Kontrakt bei `plan_staged` stoppt und dem Menschen die Ausführungswahl lässt.
-Zurückholen ging nur über den Umweg `status=blocked`, weil `plan_staged` beim nächsten Tick
-sofort erneut dispatcht worden wäre. `blocked` ist dabei semantisch falsch: der Plan ist
-fertig, es blockiert nichts. Zusätzlich stand ein zweites Ticket in der Queue, das auf
-denselben Plan und Branch zeigte — zwei Agenten wären parallel auf einem Branch gelandet.
+`ticket.sh stage-plan`, obwohl `dev-flow-plan` laut Kontrakt bei `plan_staged` stoppt.
+Zurückholen ging nur über den Umweg `status=blocked` — semantisch falsch, weil der Plan
+fertig ist und nichts blockiert.
 
-Die Ursache ist ein Sentinel, der nicht tut, was sein Name verspricht:
-`scripts/factory/dispatcher.js` liest zwar `agent-lock.sh list`, prüft aber nur per Regex
-auf das Label `interactive-worker` und reduziert dann lediglich `maxParallel` um 1. Das ist
-ticket-unabhängig — es hält allgemein einen Slot frei, statt ein bestimmtes Ticket zu
-überspringen — und greift ohnehin nie, weil die dev-flow-Skills mit den Labels
-`dev-flow-plan`/`dev-flow-execute` claimen.
+**Die naheliegende Erklärung war falsch.** Der ticket-scoped Lock-Guard existiert bereits
+dreifach und ist korrekt (`factory-prep-runner.sh:67`, `factory-prep-bridge.sh:100`, und im
+verwaisten `dispatcher-prep.sh:82`, jeweils als T000510 markiert). Er fragt
+`agent-lock.sh check ticket` ab und gibt bei `held` den Slot frei. Er griff nicht, weil die
+**Antwort falsch war**: `agent-lock.sh` stufte den Lock einer lebenden Session als reapable
+ein und meldete `free`. Zwei Defekte in `_reapable`:
+
+- **`_sid_alive` erkennt Claude-Sessions nicht.** Numerische SIDs werden per `pgrep -s`
+  aufgelöst; die Claude-Session-SID ist numerisch, wird davon aber nicht gefunden. Der
+  Kommentar nimmt nur *nicht*-numerische Harness-IDs von der Prüfung aus.
+- **Ein lebender `owner_pid` galt nirgends als Lebensbeweis.** Der pid-Zweig reapt nur bei
+  *totem* Prozess; ein lebender fiel durch zum `sid-dead`-Pfad und wurde nach Ablauf der
+  Grace-Periode gereapt.
+- **Branch-scoped Claims tragen `branch: ""`** — der Name steht in `id`, `--branch` wird nie
+  übergeben. Der worktree+branch-Fallback (T002204) verlangt aber ein nicht-leeres
+  `branch`-Feld und greift für sie deshalb prinzipiell nie.
 
 ## What
 
-- **`scripts/factory/dispatcher.js`** fragt pro Kandidat-Ticket `agent-lock.sh check ticket
-  <id>` und überspringt es bei Exit 3 (`held`). Der alte `interactive-worker`-Regex samt
-  pauschalem `maxParallel`-Abzug entfällt. Übersprungene Tickets werden geloggt.
+- **`scripts/agent-lock.sh`** — ein laufender `owner_pid` schützt den Claim (vor den
+  worktree-missing- und sid-dead-Pfaden); ein toter `owner_pid` bleibt reapable. Ein
+  branch-scoped Claim füllt sein `branch`-Feld aus der `id`, sofern kein `--branch` kommt.
 - **`scripts/ticket-reclaim.sh` (neu)**, dispatcht von `ticket.sh reclaim <id>`: prüft
-  Worker-Liveness über `updated_at` (dieselbe Semantik wie `watchdog.sh`), gibt bei totem
-  oder fehlendem Worker den Slot frei, setzt den Status zurück auf **`plan_staged`** und
-  claimt das Ticket für die aufrufende Session. Lebt ein Worker, bricht es mit Hinweis auf
-  Slot, Status und Alter des letzten Fortschritts ab — Übernahme nur mit `--force`.
-- **`scripts/factory/queue.sh` bleibt unverändert.** Die Sichtbarkeit in der Queue ist
-  gewollt: die Factory sieht das Ticket, fasst es aber nicht an.
-- **`scripts/agent-lock.sh` bleibt unverändert.** Sein `check`-Kontrakt genügt bereits und
-  ist von sich aus stale-sicher — ein toter Lock meldet `free` und blockiert nichts.
-
-Damit bleibt `plan_staged` der ehrliche Zustand, und die Zuständigkeit wird über den Lock
-ausgedrückt statt über einen verbogenen Status.
+  Worker-Liveness über `updated_at` mit derselben Schwelle wie `watchdog.sh`, gibt bei totem
+  oder fehlendem Worker den Slot frei, setzt den Status auf **`plan_staged`** und claimt das
+  Ticket. Lebt ein Worker, bricht es ab und nennt Slot, Status und Alter des letzten
+  Fortschritts — Übernahme nur mit `--force`.
+- **Die Factory bleibt unverändert.** `queue.sh` (Sichtbarkeit), `dispatcher.js` und der
+  T000510-Guard werden nicht angefasst — sie sind korrekt.
 
 _Ticket: T002267_

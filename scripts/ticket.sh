@@ -819,7 +819,7 @@ cmd_triage() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, touch, enqueue, stage-plan, assert-phase-chain, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
+  echo "Commands: create, update-status, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, assert-phase-chain, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -837,6 +837,10 @@ case "$cmd" in
   set-scout-drift)   cmd_set_scout_drift "$@" ;;
   set-pipeline-slot) cmd_set_pipeline_slot "$@" ;;
   release-slot)      cmd_release_slot "$@" ;;
+  # Eigenes Skript statt einer Funktion hier: ticket.sh steht mit 862 Zeilen
+  # namentlich auf der s1.ignore-Liste in docs/code-quality/gates.yaml — das ist
+  # ein Eingestaendnis, kein Freibrief. [T002267]
+  reclaim)           exec bash "$(dirname "${BASH_SOURCE[0]}")/ticket-reclaim.sh" "$@" ;;
   touch)             cmd_touch "$@" ;;
   list)              cmd_list "$@" ;;
   backfill-id)       cmd_backfill_id "$@" ;;

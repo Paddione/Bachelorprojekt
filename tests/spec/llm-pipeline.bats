@@ -278,11 +278,32 @@ assert_var_not_declared() {
   # Embedding-Stack trotzdem. Gemma kam erst dazu, nachdem sein Startskript von
   # "-fit on" auf den festen Deckel "-c 65536" umgestellt wurde - vorher haette
   # es sich alles freie VRAM genommen.
-  run grep -q "start-embed-server.ps1', 'start-rerank-server.ps1', 'start-gemma-server.ps1')" \
-      "$REPO/scripts/llm/install-startup-autostart.ps1"
-  [ "$status" -eq 0 ]
+  # Seit T002297 ist die flache Namensliste eine Liste von Hashtables mit
+  # Script/Arguments, weil Gemma Parameter braucht. Die Reihenfolge wird
+  # deshalb ueber die Zeilennummern der Script-Eintraege geprueft statt ueber
+  # einen Literal-Vergleich der Array-Zeile.
+  auto="$REPO/scripts/llm/install-startup-autostart.ps1"
+  emb="$(grep -n "Script *= *'start-embed-server.ps1'" "$auto" | cut -d: -f1)"
+  rer="$(grep -n "Script *= *'start-rerank-server.ps1'" "$auto" | cut -d: -f1)"
+  gem="$(grep -n "Script *= *'start-gemma-server.ps1'" "$auto" | cut -d: -f1)"
+  [ -n "$emb" ] && [ -n "$rer" ] && [ -n "$gem" ]
+  [ "$emb" -lt "$rer" ]
+  [ "$rer" -lt "$gem" ]
   run bash -c "grep -nE '^[^#]*start-bonsai-server' '$REPO'/scripts/llm/*.ps1 2>/dev/null"
   [ -z "$output" ]
+}
+
+@test "autostart passes the measured max-context profile to gemma (T002297)" {
+  # Ohne Argumente bekaeme Gemma die Skript-Defaults (-Ctx 65536, q4_0) - das
+  # waere nach einem Reboot ein anderer Server als der, den wir vermessen
+  # haben, ohne dass irgendwo etwas rot wird. Deshalb ein eigener Guard.
+  # 262144 ist n_ctx_train; ein hoeherer Wert waere nicht nutzbar.
+  auto="$REPO/scripts/llm/install-startup-autostart.ps1"
+  gemline="$(grep "Script *= *'start-gemma-server.ps1'" "$auto")"
+  [ -n "$gemline" ]
+  echo "$gemline" | grep -q -- '-Ctx 262144'
+  echo "$gemline" | grep -q -- '-Slots 1'
+  echo "$gemline" | grep -q -- '-KvType q8_0'
 }
 
 # ── gpt-oss-20b als Factory-Kandidat (T002268) ────────────────────────

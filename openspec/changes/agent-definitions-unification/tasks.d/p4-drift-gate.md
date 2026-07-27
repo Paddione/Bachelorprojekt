@@ -27,7 +27,6 @@ grep -n '^@test' tests/spec/agent-library.bats
 Der Fehlermodus aus T002309 (`find-changed-tests.sh` emittiert gelöschte `.bats`-Pfade, BATS
 scheitert mit `not ok 1 bats-gather-tests`) kann daher nicht auftreten. Sollte `test:spec:changed`
 trotzdem mit diesem Fehler abbrechen, ist T002309 die Ursache, nicht dieser Plan.
-
 ## Aufgaben
 
 - [ ] **P4.1 — RED: Test anlegen, der jetzt fehlschlägt.** Die dritte Assertion (CLAUDE.md gegen

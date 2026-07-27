@@ -1629,6 +1629,12 @@
       "status": "archived"
     }
   ],
+  "T002267": [
+    {
+      "slug": "factory-reclaim-lock-respect",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

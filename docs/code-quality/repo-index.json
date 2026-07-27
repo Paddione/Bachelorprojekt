@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 620,
+      "file_count": 621,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -402,6 +402,7 @@
         "tests/spec/env-seal-empty-value-keys.bats",
         "tests/spec/factory-branch-switch-guard.bats",
         "tests/spec/factory-merge-hooks.bats",
+        "tests/spec/factory-reclaim-lock-respect.bats",
         "tests/spec/feature-product-linking.bats",
         "tests/spec/fixtures/make-partial-plan.sh",
         "tests/spec/fleet-operations.bats",
@@ -2913,7 +2914,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 550,
+      "file_count": 551,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3423,6 +3424,7 @@
         "scripts/ticket-mcp/go/internal/tools/triage_test.go",
         "scripts/ticket-mcp/go/internal/tools/workflow.go",
         "scripts/ticket-mcp/go/internal/tools/workflow_test.go",
+        "scripts/ticket-reclaim.sh",
         "scripts/ticket-status-validate.sh",
         "scripts/ticket.sh",
         "scripts/tickets-sunset-audit.mjs",

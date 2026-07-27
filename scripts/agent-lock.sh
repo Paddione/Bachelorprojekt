@@ -139,8 +139,18 @@ _reapable() {
     wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
     [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ] && return 1
   fi
-  # 1) Dead PID + past grace → reap with reason "pid-dead" (auditable cause). [T001415]
+  # 0c) A LIVE owner_pid always wins. [T002267]
+  #     _sid_alive resolves numeric sids via `pgrep -s`, which does NOT find the
+  #     Claude Code session id even while the session is running — so the sid
+  #     check in (0) reports "dead" for a perfectly live holder. Step (1) below
+  #     only ever *reaps* on a dead pid; a live pid was never treated as proof of
+  #     life, so such a claim fell through to the sid-dead path and `check`
+  #     answered "free". The factory dispatcher then grabbed a ticket a human was
+  #     holding (observed: T002255 — the T000510 guard in factory-prep-*.sh is
+  #     correct, it was asking a lock that lied).
   pid="$(_lock_field "$f" owner_pid)"
+  if [ -n "$pid" ] && _pid_alive "$pid"; then return 1; fi
+  # 1) Dead PID + past grace → reap with reason "pid-dead" (auditable cause). [T001415]
   if [ -n "$pid" ]; then
     if ! _pid_alive "$pid"; then
       age=$(( now - age_base ))
@@ -235,6 +245,12 @@ cmd_claim() {
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;
     --branch) BRANCH="$2"; shift 2;; --ticket) TICKET="$2"; shift 2;;
     *) shift;; esac; done
+  # For a branch-scoped claim the branch name IS the id; callers therefore never
+  # pass --branch. Leaving `branch` empty disabled the worktree+branch liveness
+  # fallback in _reapable (T002204), which requires a non-empty branch field — so
+  # branch claims went stale as soon as the sid check failed, while the ticket
+  # claim of the very same session stayed live. [T002267]
+  [ "$SCOPE" = "branch" ] && [ -z "$BRANCH" ] && BRANCH="$ID"
   local f; f="$(_lock_file "$SCOPE" "$ID")"
   _with_lock
   [ -f "$f" ] && _reapable "$f" && rm -f "$f"

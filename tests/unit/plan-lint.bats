@@ -206,3 +206,16 @@ setup() {
   [ "$status" -eq 0 ]
   ! echo "$output" | grep -q 'B1b'
 }
+
+@test "T002270: a claimed budget on an s1-ignored file warns W4 without failing" {
+  run bash "$LINT" "$FIX/s1-ignored-with-budget.md"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q 'W4'
+  echo "$output" | grep -q 'scripts/ticket.sh'
+}
+
+@test "T002270: omitting the budget on an s1-ignored file stays silent (no W4)" {
+  run bash "$LINT" "$FIX/s1-ignored-file.md"
+  [ "$status" -eq 0 ]
+  ! echo "$output" | grep -q 'W4'
+}

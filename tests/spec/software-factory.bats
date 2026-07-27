@@ -4165,9 +4165,12 @@ EOF
 
 @test "FA-SF-GANG: stage-plan schreibt force-tick-requested Flag (T002128-p1)" {
   # p1: stage-plan.sh enthaelt den force-tick-Upsert + factory.service-Kick
+  # T002366: der Kick ist weiterhin genau einmal vorhanden, nun aber non-blocking —
+  # ohne --no-block wartete er auf den laufenden oneshot-Tick (bis 61 min) und
+  # widersprach damit dem hier geprueften non-fatal/best-effort-Charakter.
   run grep -c "force-tick-requested" scripts/vda/ticket/stage-plan.sh
   [ "$output" -ge 1 ]
-  run grep -c "systemctl --user start factory.service" scripts/vda/ticket/stage-plan.sh
+  run grep -c "systemctl --user start --no-block factory.service" scripts/vda/ticket/stage-plan.sh
   [ "$output" -eq 1 ]
   # Beide Trigger sind non-fatal (Warnung >&2, kein Abbruch)
   run grep "WARN: stage-plan: force-tick flag write failed" scripts/vda/ticket/stage-plan.sh
@@ -4295,4 +4298,49 @@ EOF
 @test "T002272-M1: queue.sh WHERE clause gates plan_staged tasks on execution_released" {
   run grep -n "execution_released" "$REPO_ROOT/scripts/factory/queue.sh"
   [ "$status" -eq 0 ]
+}
+
+# ── T002366: release-hold darf nicht auf dem factory.service-Oneshot blockieren ──
+# factory.service ist Type=oneshot mit RuntimeMaxSec=3600/TimeoutStartSec=3660.
+# `systemctl start` haengt sich an einen laufenden Job an und wartet bis zu 61 min.
+# Der Stub bildet genau diese Semantik nach: blockierend ohne --no-block.
+# TICKET_OFFLINE bleibt bewusst 0 — mit 1 kehrt release-hold vor dem systemctl-Aufruf
+# zurueck und der Test waere auch ohne den Fix gruen (Scheintest).
+_t002366_stub_dir() {
+  local d="$BATS_TEST_TMPDIR/t002366-bin"
+  mkdir -p "$d"
+  cat >"$d/kubectl" <<'SH'
+#!/usr/bin/env bash
+case "$1" in
+  get)  echo "pod/shared-db-0" ;;
+  exec) cat >/dev/null ;;
+esac
+exit 0
+SH
+  cat >"$d/systemctl" <<'SH'
+#!/usr/bin/env bash
+for a in "$@"; do [ "$a" = "--no-block" ] && exit 0; done
+sleep 30
+SH
+  chmod +x "$d/kubectl" "$d/systemctl"
+  echo "$d"
+}
+
+@test "T002366: release-hold kehrt zurueck, waehrend ein factory-Tick laeuft" {
+  local stub_dir; stub_dir="$(_t002366_stub_dir)"
+  run env PATH="${stub_dir}:${PATH}" TICKET_OFFLINE=0 \
+    timeout 5 bash "$REPO_ROOT/scripts/ticket.sh" release-hold --id T000001
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q '^execution_released set to true for ticket T000001$'
+}
+
+@test "T002366: kein blockierendes 'systemctl start factory.service' in der Ticket-CLI" {
+  # Klassen-Guard zum Verhaltenstest oben: stage-plan.sh weckt factory.service auf
+  # demselben Weg (Zeile ~85, nur im Nicht---hold-Zweig) und haengt dort genauso.
+  # Der dortige Kommentar nennt den Weck-Aufruf ausdruecklich best-effort und
+  # non-fatal — ein blockierendes 'systemctl start' widerspricht dem.
+  run bash -c "grep -rn 'systemctl --user start' \
+      '$REPO_ROOT/scripts/ticket.sh' '$REPO_ROOT/scripts/vda/ticket/' \
+      | grep -vc -- '--no-block'"
+  [ "$output" = "0" ]
 }

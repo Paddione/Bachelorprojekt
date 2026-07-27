@@ -324,8 +324,13 @@ VALUES ('force-tick-requested', NULL, now()::text, :'setby', now())
 ON CONFLICT (key, brand) DO UPDATE
   SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
 EOF
-  systemctl --user start factory.service 2>/dev/null || true
   echo "execution_released set to true for ticket $id"
+  # --no-block: factory.service ist Type=oneshot (RuntimeMaxSec=3600). Ohne --no-block
+  # haengt sich `systemctl start` an einen laufenden Job und wartet bis zu 61 min — der
+  # Aufruf ist aber nur ein Weck-Beschleuniger, die Semantik traegt der DB-Schluessel
+  # force-tick-requested oben. Die Bestaetigung steht davor, damit die Zustandsaenderung
+  # auch bei klemmendem systemd gemeldet wird. [T002366]
+  systemctl --user start --no-block factory.service 2>/dev/null || true
 }
 
 cmd_set_touched_files() {

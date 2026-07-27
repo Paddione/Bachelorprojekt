@@ -433,6 +433,11 @@ tasks:
     cmds:
       - ./tests/unit/lib/bats-core/bin/bats tests/unit/render-cloud-init.bats
 
+  test:unit:flux-render-runtime-vars:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/flux-render-runtime-vars.bats
+
   test:unit:fleet-phase2b:
     internal: true
     cmds:

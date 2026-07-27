@@ -46,6 +46,12 @@
   gleichzeitig passen nicht auf die Karte.
 .PARAMETER Uninstall
   Entfernt den Startup-Eintrag wieder.
+.PARAMETER Watchdog
+  Haengt nach den Server-Zeilen den Watchdog an den Shim (T002335). Der Autostart
+  startet die Server nur EINMAL; stirbt danach einer, bleibt er ohne Watchdog tot.
+.PARAMETER WatchdogOnly
+  Schreibt einen Shim, der ausschliesslich den Watchdog startet. Sinnvoll, wenn die
+  Server anders hochkommen (manuell, anderes Profil) und nur die Aufsicht fehlt.
 .PARAMETER RepoRoot
   Wurzel des Repos aus Windows-Sicht. Default ist der UNC-Pfad in WSL.
 .EXAMPLE
@@ -56,6 +62,8 @@
 
 param(
   [switch]$Uninstall,
+  [switch]$Watchdog,
+  [switch]$WatchdogOnly,
   [string]$RepoRoot = '\\wsl$\k3d-dev\home\patrick\Bachelorprojekt'
 )
 
@@ -68,6 +76,13 @@ if ($Uninstall) {
     Write-Output "Entfernt: $shim"
   } else {
     Write-Output "Nichts zu entfernen - $shim existiert nicht."
+  }
+  # T002335: Den Shim zu loeschen beendet keinen bereits laufenden Watchdog - er
+  # haengt an keinem Startup-Eintrag mehr, laeuft aber weiter und wuerde Server
+  # neu starten, die man gerade abschalten wollte.
+  $watchdogScript = Join-Path (Join-Path $RepoRoot 'scripts\llm') 'watchdog-llm-servers.ps1'
+  if (Test-Path $watchdogScript) {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $watchdogScript -Uninstall
   }
   exit 0
 }
@@ -111,18 +126,34 @@ $lines = @(
   'rem Nicht von Hand editieren - Aenderungen gehen beim naechsten Lauf verloren.',
   'rem Entfernen: install-startup-autostart.ps1 -Uninstall'
 )
-foreach ($s in $startups) {
-  # T002264 als Mahnung: dort wurde $Task.Expr statt $Task.Exe gelesen, ein Key
-  # dieses Namens existierte nicht, und PowerShell lieferte still $null - alle
-  # Tasks bekamen ein leeres Executable. Deshalb hier fail-loud statt Vertrauen.
-  if (-not $s.ContainsKey('Script') -or -not $s.ContainsKey('Arguments')) {
-    Write-Error "Startup-Eintrag ohne Script/Arguments-Key: $($s | Out-String)"
+if (-not $WatchdogOnly) {
+  foreach ($s in $startups) {
+    # T002264 als Mahnung: dort wurde $Task.Expr statt $Task.Exe gelesen, ein Key
+    # dieses Namens existierte nicht, und PowerShell lieferte still $null - alle
+    # Tasks bekamen ein leeres Executable. Deshalb hier fail-loud statt Vertrauen.
+    if (-not $s.ContainsKey('Script') -or -not $s.ContainsKey('Arguments')) {
+      Write-Error "Startup-Eintrag ohne Script/Arguments-Key: $($s | Out-String)"
+      exit 1
+    }
+    $full = Join-Path $llmDir $s.Script
+    $line = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $full
+    if ($s.Arguments -ne '') { $line += ' ' + $s.Arguments }
+    $lines += $line
+  }
+}
+
+# T002335: Der Watchdog ist eine Endlosschleife. Ohne 'start /B' wuerde der Shim
+# an dieser Zeile stehen bleiben und - im WatchdogOnly-Fall irrelevant, sonst
+# fatal - nachfolgende Zeilen nie erreichen. Deshalb NICHT -NoLoop uebergeben:
+# genau die Endlosschleife ist der Zweck.
+if ($Watchdog -or $WatchdogOnly) {
+  $watchdogScript = Join-Path $llmDir 'watchdog-llm-servers.ps1'
+  if (-not (Test-Path $watchdogScript)) {
+    Write-Error "Watchdog-Skript nicht gefunden: $watchdogScript"
     exit 1
   }
-  $full = Join-Path $llmDir $s.Script
-  $line = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $full
-  if ($s.Arguments -ne '') { $line += ' ' + $s.Arguments }
-  $lines += $line
+  $lines += 'rem Watchdog [T002335] - startet tote Server neu. start /B, weil Endlosschleife.'
+  $lines += ('start /B powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}" -PollSeconds 60' -f $watchdogScript)
 }
 
 Set-Content -Path $shim -Value $lines -Encoding ascii

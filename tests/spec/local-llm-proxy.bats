@@ -273,3 +273,15 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
     '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' | grep -cE 'is-active|ActiveState'"
   [ "$output" != "0" ]
 }
+
+# ── Readiness (T002336) ───────────────────────────────────────────────
+# Der Wrapper hat zwei Aufgaben. Erstens faehrt er die node-Suite ueberhaupt:
+# scripts/llm-proxy/server.test.mjs war bis T002336 in KEINEM Taskfile-Target
+# und in KEINEM CI-Job eingebunden - die Tests existierten, liefen aber nie.
+# Zweitens bringt er die Suite unter task test:all, das die spec-Reihe faehrt.
+# Muster uebernommen von "FA-SF-40: node --test provision suite passes".
+@test "T002336: node --test llm-proxy suite passes (readiness + routing)" {
+  run node --test "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.test.mjs"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"fail 0"* ]]
+}

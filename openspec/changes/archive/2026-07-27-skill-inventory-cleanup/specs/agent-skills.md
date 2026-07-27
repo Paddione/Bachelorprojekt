@@ -82,21 +82,5 @@ visible rather than implicit.
 
 ## REMOVED Requirements
 
-### Requirement: superpowers-writing-plans stub must exist for opencode compatibility
-
-**Reason**: The stub declared `name: superpowers:writing-plans`, colliding with the plugin skill
-of the same name. opencode denies that name outright in its skill permission list, so the stub
-never served the compatibility purpose it was created for. The four scenarios that asserted
-properties of `dev-flow-plan` itself are preserved in `tests/spec/dev-flow-plan.bats`.
-
-**Migration**: Invoke `superpowers:writing-plans` (plugin) in Claude Code, or follow the inlined
-plan-writing steps in `dev-flow-plan/SKILL.md` step 3.7 in opencode and agy.
-
-### Requirement: superpowers-executing-plans stub must exist for opencode compatibility
-
-**Reason**: Same collision as above, with `name: superpowers:executing-plans`. The four scenarios
-that asserted properties of `dev-flow-execute` itself are preserved in
-`tests/spec/dev-flow-execute.bats`.
-
-**Migration**: Invoke `superpowers:executing-plans` (plugin) in Claude Code, or follow
-`dev-flow-execute/SKILL.md` in opencode and agy.
+_(none — the stub requirements never existed in the parent SSOT; the stubs were ad-hoc
+additions without corresponding spec requirements.)_

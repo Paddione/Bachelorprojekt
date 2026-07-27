@@ -115,9 +115,9 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc declares the full 16384 context for Gemma4" {
+@test "agent-models.jsonc declares the full 65536 context for Gemma4" {
   # Extrahiert den ersten "context"-Wert nach dem Gemma-Modellschluessel.
   ctx="$(awk '/"gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": *\{/,/"context"/' \
     "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
-  [ "$ctx" = "16384" ]
+  [ "$ctx" = "65536" ]
 }

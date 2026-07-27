@@ -35,6 +35,31 @@ export function validateRegistry(dir, repoRoot = null) {
   const goals = load(dir, 'goals.yaml');
   const components = load(dir, 'components.yaml');
 
+  let agents = {};
+  try { agents = load(dir, 'agents'); } catch { agents = {}; }
+
+  const HARNESS_KEYS = ['claude_code', 'agy', 'opencode'];
+  const VALID_HARNESS_VALUES = new Set([null, 'unsupported']);
+  if (agents?.roles) {
+    for (const [name, role] of Object.entries(agents.roles)) {
+      for (const key of HARNESS_KEYS)
+        req(role && key in role, `agents.roles.${name}: missing harness key '${key}'`);
+      if (role) {
+        for (const key of HARNESS_KEYS) {
+          const v = role[key];
+          if (v !== null && v !== undefined && !VALID_HARNESS_VALUES.has(v))
+            req(typeof v === 'string' && v.length > 0, `agents.roles.${name}.${key}: must be non-empty string, null, or "unsupported"`);
+        }
+      }
+    }
+  }
+  if (agents?.runtimes) {
+    for (const [name, rt] of Object.entries(agents.runtimes)) {
+      req(rt?.mode === 'primary' || rt?.mode === 'subagent',
+        `agents.runtimes.${name}: mode must be 'primary' or 'subagent', got '${rt?.mode}'`);
+    }
+  }
+
   let themes = [];
   try { themes = load(dir, 'themes.yaml'); } catch { themes = []; }
   const themeIds = new Set((themes ?? []).map((t) => t && t.id));

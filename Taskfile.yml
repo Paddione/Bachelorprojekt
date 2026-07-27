@@ -3260,7 +3260,7 @@ tasks:
       - task: agent-guide:platform-descriptions
 
   agent-guide:maps:
-    desc: "Regenerate docs/agent-guide/maps/{goals,tools,danger}-map.md from the registry"
+    desc: "Regenerate docs/agent-guide/maps/{goals,tools,danger,agents}-map.md from the registry"
     cmds:
       - node scripts/agent-guide/emit-maps.mjs
 

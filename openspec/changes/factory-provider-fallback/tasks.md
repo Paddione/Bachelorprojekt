@@ -52,7 +52,7 @@ Setzt RC3 und RC4 um. Bewusst der erste Task: er entblockt `llamacpp` und macht 
 - Consumes: `factory_resolve` / `factory_psql` aus `scripts/factory/lib.sh`.
 - Produces: nichts fuer spaetere Tasks — reine Verhaltenskorrektur.
 
-- [ ] **Step 1: Den bereits geschriebenen RED-Test laufen lassen**
+- [x] **Step 1: Den bereits geschriebenen RED-Test laufen lassen**
 
 Der FA-SF-74-Block existiert schon und ist rot. Beweis vor der Aenderung:
 
@@ -62,7 +62,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: reaper zeroes|FA-SF-74: wa
 
 Expected: FAIL — `grep -Eq 'active_agents *= *0'` findet nichts, und `wakeup.sh` enthaelt keinen Reaper-Aufruf.
 
-- [ ] **Step 2: Dekrement durch Nullsetzung ersetzen**
+- [x] **Step 2: Dekrement durch Nullsetzung ersetzen**
 
 In `scripts/factory/reap-provider-slots.sh` im `WITH stale AS (...)`-UPDATE:
 
@@ -83,7 +83,7 @@ SELECT count(*) FROM stale;
 
 Begruendung als Kommentar direkt darueber ergaenzen: die Zeile wird nur angefasst, wenn ihr juengster Claim aelter als die TTL ist — dann sind alle auf ihr gehaltenen Slots verwaist, nicht nur einer. Das alte `GREATEST(0, active_agents - 1)` in Kombination mit `claimed_at = NULL` machte die Zeile nach dem ersten Lauf unerreichbar, weil `claimed_at IS NOT NULL` nie wieder matchte.
 
-- [ ] **Step 3: Reaper an den Factory-Tick haengen**
+- [x] **Step 3: Reaper an den Factory-Tick haengen**
 
 In `scripts/factory/wakeup.sh` vor dem Dispatch-Block einfuegen:
 
@@ -94,7 +94,7 @@ In `scripts/factory/wakeup.sh` vor dem Dispatch-Block einfuegen:
 bash "$HERE/reap-provider-slots.sh" || true
 ```
 
-- [ ] **Step 4: Tests gruen pruefen**
+- [x] **Step 4: Tests gruen pruefen**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: reaper zeroes|FA-SF-74: wakeup.sh runs" tests/spec/software-factory.bats
@@ -102,7 +102,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: reaper zeroes|FA-SF-74: wa
 
 Expected: PASS (2 Tests).
 
-- [ ] **Step 5: Verwaiste Slots einmalig abraeumen und verifizieren**
+- [x] **Step 5: Verwaiste Slots einmalig abraeumen und verifizieren**
 
 ```bash
 bash scripts/factory/reap-provider-slots.sh --dry-run
@@ -111,7 +111,7 @@ bash scripts/factory/reap-provider-slots.sh
 
 Danach muss `llamacpp` auf `active_agents=0` stehen. Pruefen mit dem Query aus Task 4, Step 5.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/factory/reap-provider-slots.sh scripts/factory/wakeup.sh

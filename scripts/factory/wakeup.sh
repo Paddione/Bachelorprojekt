@@ -149,6 +149,13 @@ while true; do
   bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.sandbox.mode 1 "mode=${FACTORY_SANDBOX}" || true
 
   bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.tick.count 1 brand="${BRAND:-mentolder}" || true
+  # Verwaiste Provider-Slots freigeben, BEVOR der Tick Kandidaten claimt [T002359].
+  # Bewusst hier statt in einem eigenen systemd-Timer: der Reaper soll nur laufen,
+  # wenn die Factory laeuft — sonst koennte er Slots aktiver Requests abraeumen.
+  # reap-provider-slots.sh hatte bis hierher ueberhaupt keinen Aufrufer: das Netz
+  # unter dem Slot-Leak war geschrieben, aber nie aufgehaengt.
+  bash "${REPO}/scripts/factory/reap-provider-slots.sh" 2>&1 \
+    | sed 's/^/[reap-slots] /' >&2 || true
   # T001415: Auto-Close von Tickets deren PR bereits gemergt ist
   # (worktree-lifecycle, dev-flow-execute, tickets/status-lifecycle).
   for _acm_brand in mentolder korczewski; do

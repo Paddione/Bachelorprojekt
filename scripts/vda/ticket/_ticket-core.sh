@@ -27,11 +27,24 @@ if [[ -n "${BATS_TEST_NAME:-}${BATS_VERSION:-}" && "${TICKET_TEST_DB_OK:-0}" != 
   CTX="bats-no-cluster-t002224"
 fi
 
+# [T002307] The pod list is filtered server-side to phase Running. kubectl orders
+# by name, so a leftover Succeeded/Failed `shared-db-<old>` (rollout, node drain,
+# eviction) can sort ahead of the live pod; every caller then died one step later
+# in `kubectl exec` with "cannot exec into a container in a completed pod". All
+# ~25 call sites route through here, so the filter belongs here and nowhere else.
 _pgpod() {
-  local pod
-  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
+  local pod all
+  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
+    --field-selector status.phase=Running -o name 2>/dev/null | head -1)
   if [[ -z "$pod" ]]; then
-    echo "ERROR: no shared-db pod found in namespace $NS (context $CTX)" >&2
+    # Only on the error path: ask again unfiltered to tell "no pod at all" apart
+    # from "pods exist, none Running". The happy path keeps its single API call.
+    all=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | tr '\n' ' ')
+    if [[ -n "${all// /}" ]]; then
+      echo "ERROR: no Running shared-db pod in namespace $NS (context $CTX); found but not Running: ${all% }" >&2
+    else
+      echo "ERROR: no shared-db pod found in namespace $NS (context $CTX)" >&2
+    fi
     exit 1
   fi
   echo "$pod"

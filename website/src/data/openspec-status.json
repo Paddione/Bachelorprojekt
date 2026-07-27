@@ -1761,6 +1761,12 @@
       "status": "archived"
     }
   ],
+  "T002307": [
+    {
+      "slug": "ticket-pgpod-running-pod-selector",
+      "status": "plan_staged"
+    }
+  ],
   "T002321": [
     {
       "slug": "2026-07-27-mcp-postgres-oom",

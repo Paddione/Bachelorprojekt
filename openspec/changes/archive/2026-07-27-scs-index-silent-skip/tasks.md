@@ -2,7 +2,7 @@
 title: "scs-index-silent-skip — Implementation Plan"
 ticket_id: T002292
 domains: [infra, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -3435,9 +3435,16 @@ STUB
 @test "T001444: stage-plan auto-emits scout/design/plan done" {
   CAP_FILE="$(mktemp)"; export CAP_FILE
   _pt_capture_stub
-  mkdir -p openspec/changes/x && touch openspec/changes/x/tasks.md
-  run bash scripts/ticket.sh stage-plan --id T000001 --branch feature/x --plan openspec/changes/x/tasks.md
-  rm -rf openspec/changes/x
+  # T002347: Der Change-Ordner entsteht in BATS_TEST_TMPDIR, nicht im Worktree.
+  # Vorher legte der Test openspec/changes/x direkt im Repo an und raeumte ihn
+  # per rm -rf wieder weg — bei SIGTERM oder Timeout lief dieses rm nie, und der
+  # halbe Change-Ordner blieb ungetrackt liegen. Parallel laufende Validierungen
+  # des openspec-Baums stolperten dann ueber einen Change ohne proposal.md.
+  # stage-plan akzeptiert laut Vorbedingung auch eine Datei auf der Platte
+  # (`-f "$plan"`), ein absoluter Pfad genuegt also — kein cd, kein git init.
+  local plan="$BATS_TEST_TMPDIR/openspec/changes/x/tasks.md"
+  mkdir -p "$(dirname "$plan")" && touch "$plan"
+  run bash scripts/ticket.sh stage-plan --id T000001 --branch feature/x --plan "$plan"
   [ "$status" -eq 0 ]
   grep -qF "VALUES ('scout'),('design'),('plan')" "$CAP_FILE"
   grep -q  "auto: stage-plan"                     "$CAP_FILE"

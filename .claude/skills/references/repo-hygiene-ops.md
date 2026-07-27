@@ -84,6 +84,42 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 * **CI-Failures:** `gh pr checks <number>` diagnostizieren. Rote PRs nie mergen. Bekannter Flake →
   re-run; sonst PR offen lassen und (falls Ticket vorhanden) auf `in_progress` belassen.
 
+### PR-Branch auf `main` nachziehen
+
+Nötig bei `mergeStateStatus=BEHIND` und bei den Phantom-Konflikten aus `merge=ours`
+(generierte Artefakte melden auf GitHub `DIRTY`, obwohl der Merge lokal sauber läuft —
+GitHub führt keine Custom-Merge-Driver aus; Details in
+[`gotchas-footguns.md`](../../../docs/superpowers/references/gotchas-footguns.md#mergeours-erzeugt-github-only-phantom-konflikte)).
+
+1. **Wenn die `gh`-Version es kann:**
+   ```bash
+   gh pr update-branch <number>
+   ```
+   > **Nicht jede installierte `gh` kennt das Subkommando** — 2.45.0 (Ubuntu-Paket, Stand
+   > 2026-07-27) tut es **nicht** und antwortet stattdessen mit der generischen `gh pr`-Hilfe.
+   > Das ist leicht zu übersehen: der Aufruf endet mit Exit 0, ohne irgendetwas zu tun.
+   > Prüfen mit `gh pr update-branch --help | head -1` — kommt „Work with GitHub pull
+   > requests." statt einer `update-branch`-Beschreibung, ist es nicht vorhanden.
+
+2. **REST-Fallback (funktioniert mit jeder `gh`-Version):**
+   ```bash
+   OWNER_REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
+   HEAD_SHA=$(gh pr view <number> --json headRefOid -q '.headRefOid')
+   gh api --method PUT "repos/$OWNER_REPO/pulls/<number>/update-branch" \
+     -f expected_head_sha="$HEAD_SHA"
+   ```
+   `expected_head_sha` ist der Schutz gegen ein Rennen: hat jemand zwischenzeitlich auf den
+   Branch gepusht, schlägt der Aufruf mit 422 fehl, statt fremde Arbeit zu überschreiben.
+   Den SHA deshalb per `gh pr view` frisch holen und **nicht** aus einem lokalen
+   `git rev-parse HEAD` nehmen — lokal kann der Branch veraltet sein.
+
+3. Danach die generierten Artefakte gegen den neuen Stand neu bauen und committen:
+   ```bash
+   git fetch origin <branch> && git reset --hard origin/<branch>
+   task freshness:regenerate
+   ```
+   [T002347]
+
 ## 4. GitHub-Issue-Intake (selten)
 
 Issues leben in Postgres, nicht auf GitHub. Falls `gh issue list --state open` etwas liefert:

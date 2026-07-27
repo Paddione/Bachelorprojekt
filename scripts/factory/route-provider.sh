@@ -89,10 +89,19 @@ fi
 # Separator ist kein Whitespace, daher bleiben leere Felder als leere Felder erhalten.
 PINNED=""
 if [[ -n "$PHASE" ]]; then
+  # max_concurrent kommt NICHT als Literal: factory_model_slots fuehrt die Spalte nicht,
+  # aber der Cap gehoert zum Provider, nicht zur Tier-Zeile. Ein fester Wert wuerde den
+  # konfigurierten Cap unterlaufen — registriert provider-register-bonsai.sh llamacpp mit
+  # max_concurrent=1, liessen drei parallele Ticks trotzdem drei Claims gegen das Literal
+  # durch. MIN() ueber die enabled provider_config-Zeilen desselben Providers waehlt
+  # bewusst den strengsten konfigurierten Cap; 3 bleibt nur der Fallback fuer einen
+  # Provider, der ueberhaupt keine Zeile hat.
   PINNED=$(factory_psql -v phase="$PHASE" <<'SQL'
-SELECT provider||E'\x1f'||model_id||E'\x1f'||COALESCE(base_url,'')||E'\x1f'||3
-       ||E'\x1f'||0||E'\x1f'||''||E'\x1f'||COALESCE(api_key_env,'')
-FROM tickets.factory_model_slots WHERE phase = :'phase';
+SELECT s.provider||E'\x1f'||s.model_id||E'\x1f'||COALESCE(s.base_url,'')
+       ||E'\x1f'||COALESCE((SELECT MIN(c.max_concurrent) FROM tickets.provider_config c
+                             WHERE c.provider = s.provider AND c.enabled = true), 3)
+       ||E'\x1f'||0||E'\x1f'||''||E'\x1f'||COALESCE(s.api_key_env,'')
+FROM tickets.factory_model_slots s WHERE s.phase = :'phase';
 SQL
 )
 fi

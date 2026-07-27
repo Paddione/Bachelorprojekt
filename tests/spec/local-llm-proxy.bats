@@ -132,6 +132,16 @@ _skip_if_no_db() {
   # :8093 herauskommt — egal wie weit die Kaskade durchlaeuft.
   run bash "${REPO_ROOT}/${ROUTE}" factory-implement sonnet
   [ "$status" -eq 0 ]
+
+  # Seit T002359 claimt der Aufruf einen echten Slot (vorher gab der Phase-Zweig den Pin
+  # ohne Claim zurueck). Dieser Test laeuft gegen die LIVE-Registry — ohne Release traebe
+  # ihn jeder Lauf naeher an max_concurrent und reproduzierte damit genau den Slot-Leak,
+  # den das Ticket behebt. Freigabe vor den Assertions, damit ein Fehlschlag nichts leakt.
+  local _slot; _slot="$(echo "$output" | jq -r '.slotId // empty' 2>/dev/null || true)"
+  if [[ -n "$_slot" && "$_slot" != "null" ]]; then
+    bash "${REPO_ROOT}/scripts/factory/release-slot.sh" "$_slot" true >/dev/null 2>&1 || true
+  fi
+
   ! echo "$output" | grep -q ':8093'
 }
 

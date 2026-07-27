@@ -88,6 +88,13 @@ fi
 # den Factory-Account (DEEPSEEK_API_KEY_PK). Der abgeleitete Name bleibt als Fallback
 # fuer Zeilen ohne api_key_env stehen.
 key_env="$(printf '%s' "$provider_json" | jq -r '.apiKeyEnv // empty' 2>/dev/null)"
+# Guard vor der indirekten Expansion: bash wertet in ${!v} einen Array-Subscript
+# arithmetisch aus, ein api_key_env der Form x[$(...)] wuerde den Inhalt der DB-Spalte
+# ausfuehren. Nur gewoehnliche Variablennamen passieren.
+if [[ -n "$key_env" ]] && ! [[ "$key_env" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+  echo "scout-llm-fallback: apiKeyEnv '$key_env' ist kein gueltiger Variablenname — ignoriert." >&2
+  key_env=""
+fi
 api_key="${key_env:+${!key_env:-}}"
 
 # Local providers (localhost/127.0.0.1) skip the key check — LM Studio etc. accept any

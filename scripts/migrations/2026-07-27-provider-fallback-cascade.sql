@@ -28,12 +28,23 @@ COMMENT ON COLUMN tickets.factory_model_slots.api_key_env IS
 -- Schritt 1: die bestehende sonnet-DeepSeek-Zeile raeumt Prioritaet 1 und bekommt die
 -- korrekte Base-URL sowie den Key-Namen. Der Pfad /anthropic ergab gegen das angehaengte
 -- /v1/chat/completions einen 404; der Anthropic-Mode waere /v1/messages.
+--
+-- base_url traegt KEIN Pfadsuffix — jeder Konsument haengt seinen eigenen Pfad an:
+-- auto-triage.sh und scout-llm-fallback.sh bilden '<base>/v1/chat/completions'. Ein
+-- gespeichertes '/v1' ergaebe '/v1/v1/chat/completions' und damit denselben 404, den
+-- diese Zeile gerade beseitigt (der Guard in auto-triage.sh matcht '*/v1/*', also nur
+-- MIT nachfolgendem Slash — ein URL-Ende auf '/v1' rutscht durch). Alle uebrigen
+-- Registry-Zeilen speichern die base_url ebenfalls suffixfrei.
 UPDATE tickets.provider_config
    SET priority    = 2,
-       base_url    = 'https://api.deepseek.com/v1',
+       base_url    = 'https://api.deepseek.com',
        api_key_env = 'DEEPSEEK_API_KEY_PK',
        updated_at  = now()
- WHERE source = '*' AND tier = 'sonnet' AND provider = 'deepseek' AND priority = 1;
+-- priority IN (1,2), nicht '= 1': nach dem ersten Lauf steht die Zeile bereits auf 2, und
+-- ein Filter auf 1 wuerde beim Re-Run nicht mehr greifen — eine spaetere Korrektur an
+-- base_url oder api_key_env liefe dann still ins Leere. Beide Werte sind Zielzustand,
+-- kein Delta, also ist der breitere Filter auch beim ersten Lauf korrekt.
+ WHERE source = '*' AND tier = 'sonnet' AND provider = 'deepseek' AND priority IN (1, 2);
 
 -- Schritt 2: Stufe 2 = LM Studio direkt, umgeht den Proxy und deckt damit einen
 -- Proxy-Ausfall bei laufendem Backend ab. Stufe 3 = DeepSeek, faengt den Totalausfall
@@ -43,9 +54,9 @@ INSERT INTO tickets.provider_config
   (source, tier, priority, provider, model_id, base_url, max_concurrent, enabled, api_key_env, brand)
 VALUES
   ('*', 'cheap',  1, 'lmstudio', 'gemma-4-12b',   'http://127.0.0.1:1234',       3, true, NULL,                  '*'),
-  ('*', 'cheap',  2, 'deepseek', 'deepseek-chat', 'https://api.deepseek.com/v1', 3, true, 'DEEPSEEK_API_KEY_PK', '*'),
+  ('*', 'cheap',  2, 'deepseek', 'deepseek-chat', 'https://api.deepseek.com',     3, true, 'DEEPSEEK_API_KEY_PK', '*'),
   ('*', 'flash',  1, 'lmstudio', 'gemma-4-12b',   'http://127.0.0.1:1234',       3, true, NULL,                  '*'),
-  ('*', 'flash',  2, 'deepseek', 'deepseek-chat', 'https://api.deepseek.com/v1', 3, true, 'DEEPSEEK_API_KEY_PK', '*'),
+  ('*', 'flash',  2, 'deepseek', 'deepseek-chat', 'https://api.deepseek.com',     3, true, 'DEEPSEEK_API_KEY_PK', '*'),
   ('*', 'sonnet', 1, 'lmstudio', 'gemma-4-12b',   'http://127.0.0.1:1234',       3, true, NULL,                  '*')
 ON CONFLICT (source, tier, priority) DO UPDATE
   SET provider    = EXCLUDED.provider,

@@ -549,7 +549,7 @@ git commit -m "fix(llm): fail on configured model ids without a live backend [T0
 - Consumes: alle vorherigen Tasks.
 - Produces: nichts.
 
-- [ ] **Step 1: Den vollstaendigen FA-SF-74-Block gruen pruefen**
+- [x] **Step 1: Den vollstaendigen FA-SF-74-Block gruen pruefen**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74" tests/spec/software-factory.bats
@@ -557,7 +557,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74" tests/spec/software-factor
 
 Expected: PASS (7 Tests).
 
-- [ ] **Step 2: Router-Regression gegen die Nachbarbloecke**
+- [x] **Step 2: Router-Regression gegen die Nachbarbloecke**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-70|FA-SF-71|FA-SF-73" tests/spec/software-factory.bats
@@ -565,7 +565,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-70|FA-SF-71|FA-SF-73" tests/sp
 
 Expected: PASS — insbesondere `FA-SF-70: route-provider.sh emits valid JSON keys for opus without DB`, weil Task 2 Step 6 die opus-Ausgabe angefasst hat.
 
-- [ ] **Step 3: Kaskade im Live-Betrieb beweisen**
+- [x] **Step 3: Kaskade im Live-Betrieb beweisen**
 
 Den zweiten Kandidaten erzwingen, indem der erste kuenstlich belegt wird:
 
@@ -583,13 +583,13 @@ bash scripts/factory/release-slot.sh lmstudio true
 bash scripts/factory/reap-provider-slots.sh
 ```
 
-- [ ] **Step 4: Test-Inventar regenerieren**
+- [x] **Step 4: Test-Inventar regenerieren**
 
 ```bash
 task test:inventory
 ```
 
-- [ ] **Step 5: Mandatory Verify-Commands**
+- [x] **Step 5: Mandatory Verify-Commands**
 
 ```bash
 task test:changed
@@ -599,7 +599,7 @@ task freshness:check
 
 Alle drei muessen gruen sein. `task freshness:check` enthaelt den S1-S4-Ratchet und die Baseline-Key-Count-Assertion.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add website/src/data/test-inventory.json

@@ -771,7 +771,17 @@ tasks:
           echo "→ No matching spec tests for this diff"
           exit 0
         fi
-        echo "→ Running changed spec tests:"
+        # [T002377] Anzahl nennen und den Vollauf benennen. Ohne das las sich der
+        # stille RUN_ALL-Fallback wie eine gezielte Auswahl; der Lauf dauert dann
+        # aber ueber zehn Minuten, und ein Timeout darauf sieht aus wie ein
+        # Testfehler ("exit 1, obwohl alle Untertests gruen").
+        SELECTED=$(echo "$CHANGED_FILES" | wc -l)
+        TOTAL=$(ls tests/spec/*.bats 2>/dev/null | wc -l)
+        if [ "$SELECTED" -ge "$TOTAL" ]; then
+          echo "→ FULL spec suite ($SELECTED files) — diff-scoped selection fell back to run-all; expect >10 min"
+        else
+          echo "→ Running changed spec tests ($SELECTED of $TOTAL):"
+        fi
         echo "$CHANGED_FILES"
         ./tests/unit/lib/bats-core/bin/bats $CHANGED_FILES
 

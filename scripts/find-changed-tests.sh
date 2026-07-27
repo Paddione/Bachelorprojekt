@@ -17,6 +17,20 @@ fi
 
 CANDIDATES=()
 RUN_ALL=false
+# [T002377] Warum RUN_ALL griff — der Fallback war bisher stumm. Wer die Ausgabe
+# sah, las "Running changed spec tests:" gefolgt von 138 Pfaden und hielt das fuer
+# eine gezielte Auswahl statt fuer "ich fuehre die komplette Suite aus". Der
+# resultierende Lauf dauert ueber zehn Minuten; laeuft er in ein Timeout, endet er
+# mit Exit != 0, waehrend JEDER Untertest bestanden hat - gemeldet als
+# "false-positive exit 1".
+RUN_ALL_REASON=""
+
+_trigger_run_all() {   # $1 = die Datei, die den Fallback ausgeloest hat
+  RUN_ALL=true
+  [ -n "$RUN_ALL_REASON" ] && return 0
+  RUN_ALL_REASON="$1"
+  echo "note: '$1' changed — falling back to the FULL ${TYPE} suite (no diff-scoped selection)" >&2
+}
 declare -A PROBE_CACHE=()  # path-prefix → matching spec bats (grep memoisation)
 
 is_excluded() {
@@ -71,7 +85,7 @@ while IFS= read -r file; do
         echo "note: $file changed — no test file match, skipping RUN_ALL" >&2
       else
         # If a script changed but no obvious test matches, fallback to run all for safety
-        RUN_ALL=true
+        _trigger_run_all "$file"
       fi
     fi
     continue
@@ -89,13 +103,13 @@ while IFS= read -r file; do
 
   # Shared spec harness (helpers/fixtures) can break any spec file. [T002245]
   if [ "$TYPE" = "spec" ] && { [[ "$file" == tests/spec/helpers/* ]] || [[ "$file" == tests/spec/fixtures/* ]] || [[ "$file" == tests/spec/test_helper.bash ]]; }; then
-    RUN_ALL=true
+    _trigger_run_all "$file"
     continue
   fi
 
   # If workflow, configs, or test helper libraries changed, run all tests for safety
   if [[ "$file" == .github/workflows/* ]] || [[ "$file" == Taskfile* ]] || [[ "$file" == tests/unit/lib/* ]] || [[ "$file" == package.json ]]; then
-    RUN_ALL=true
+    _trigger_run_all "$file"
     continue
   fi
 

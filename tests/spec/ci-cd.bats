@@ -1667,3 +1667,67 @@ MOCKEOF
   [ -n "$regen" ] || { echo "kein 'task freshness:regenerate' im Mock-Log:"; echo "$calls"; return 1; }
   [ "$regen" -lt "$push" ] || { echo "freshness:regenerate lief NACH dem Push:"; echo "$calls"; return 1; }
 }
+
+@test "T002377: find-changed-tests.sh nennt den Grund, wenn es auf die volle Suite zurueckfaellt" {
+  # Der Fallback war stumm. Wer die Ausgabe sah, las "Running changed spec tests:"
+  # gefolgt von 138 Pfaden und hielt das fuer eine gezielte Auswahl. Der Lauf
+  # dauert dann ueber zehn Minuten; laeuft er in ein Timeout, endet er mit
+  # Exit != 0, obwohl JEDER Untertest bestanden hat — gemeldet als
+  # "false-positive exit 1 bei test:spec:changed".
+  local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
+  local tmp="$BATS_TEST_TMPDIR/runall-repo"
+  mkdir -p "$tmp/scripts" "$tmp/tests/spec/helpers"
+  cp "$finder" "$tmp/scripts/find-changed-tests.sh"
+  : > "$tmp/tests/spec/alpha.bats"
+  : > "$tmp/tests/spec/beta.bats"
+  : > "$tmp/tests/spec/helpers/shared.bash"
+
+  cd "$tmp"
+  git init -q -b main .
+  git -c user.email=t@t -c user.name=t commit -q --allow-empty -m base
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
+  git update-ref refs/remotes/origin/main HEAD
+
+  git checkout -q -b topic
+  echo change >> tests/spec/helpers/shared.bash
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m harness
+
+  # stdout bleibt die reine Dateiliste — nachgelagerte Aufrufer parsen sie.
+  run bash -c 'bash scripts/find-changed-tests.sh spec 2>/dev/null'
+  [ "$status" -eq 0 ]
+  [ "$(echo "$output" | wc -l)" -eq 2 ]
+
+  # Der Grund geht nach stderr und nennt die ausloesende Datei.
+  run bash -c 'bash scripts/find-changed-tests.sh spec 2>&1 >/dev/null'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"tests/spec/helpers/shared.bash"* ]] || {
+    echo "Note nennt die ausloesende Datei nicht: $output"; false; }
+  [[ "$output" == *"FULL spec suite"* ]] || {
+    echo "Note benennt den Vollauf nicht: $output"; false; }
+}
+
+@test "T002377: der RUN_ALL-Hinweis erscheint genau einmal, nicht je Datei" {
+  # Bei einem Diff mit vielen Ausloesern wuerde eine Zeile pro Datei die
+  # eigentliche Meldung zutexten — und damit wieder unsichtbar machen.
+  local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
+  local tmp="$BATS_TEST_TMPDIR/runall-once"
+  mkdir -p "$tmp/scripts" "$tmp/tests/spec/helpers" "$tmp/.github/workflows"
+  cp "$finder" "$tmp/scripts/find-changed-tests.sh"
+  : > "$tmp/tests/spec/alpha.bats"
+  : > "$tmp/tests/spec/helpers/shared.bash"
+  : > "$tmp/.github/workflows/ci.yml"
+
+  cd "$tmp"
+  git init -q -b main .
+  git -c user.email=t@t -c user.name=t commit -q --allow-empty -m base
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
+  git update-ref refs/remotes/origin/main HEAD
+
+  git checkout -q -b topic
+  echo a >> tests/spec/helpers/shared.bash
+  echo b >> .github/workflows/ci.yml
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m two-triggers
+
+  run bash -c 'bash scripts/find-changed-tests.sh spec 2>&1 >/dev/null | grep -c "FULL spec suite"'
+  [ "$output" = "1" ] || { echo "erwartet genau 1 Hinweis, bekam: $output"; false; }
+}

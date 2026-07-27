@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.221.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.220.2...website-v1.221.0) (2026-07-27)
+
+
+### Features
+
+* **mcp:** reference ticket-mcp by PATH name instead of absolute path [T002301] ([#3386](https://github.com/Paddione/Bachelorprojekt/issues/3386)) ([62b12b9](https://github.com/Paddione/Bachelorprojekt/commit/62b12b9b9bae942a7b28299b0252933950b0095a))
+
 ## [1.220.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.220.1...website-v1.220.2) (2026-07-27)
 
 

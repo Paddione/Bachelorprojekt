@@ -17,8 +17,11 @@
   Gemessen 2026-07-27: 2000 Zeichen Code = 774 Tokens -> HTTP 500.
   Die abgeloeste TEI-Instanz konnte 8192 (max_position_embeddings 8194), der
   Cutover T002110 hatte die nutzbare Eingabelaenge also unbemerkt auf 512
-  reduziert. Beim Aendern dieser Werte immer mit einem LANGTEXT nachpruefen -
+  reduziert.   Beim Aendern dieser Werte immer mit einem LANGTEXT nachpruefen -
   ein "Hallo Welt"-Smoke-Test bleibt in jedem Fall gruen.
+
+  HEALTH-POLL-FENSTER: bis zu 240 Sekunden. Mit -NoWait kehrt das Skript sofort
+  nach Start-Process zurueck und ueberspringt den Hinweistext.
 .PARAMETER LlamaDir
   Verzeichnis mit llama-server.exe. Default: C:\Users\PatrickKorczewski\llama-b10090-13.3
 .EXAMPLE
@@ -27,7 +30,8 @@
 
 param(
   [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10090-13.3",
-  [int]$Port = 8095
+  [int]$Port = 8095,
+  [switch]$NoWait
 )
 
 $Exe = Join-Path $LlamaDir "llama-server.exe"
@@ -112,14 +116,16 @@ $proc = Start-Process -FilePath $Exe -ArgumentList $Params -WindowStyle Hidden -
           -RedirectStandardError  (Join-Path $logDir "embed-err.log")
 "PID: $($proc.Id)" | Out-File -FilePath (Join-Path $logDir "embed.pid") -Encoding ascii
 
-Write-Host "Embedding server started (PID: $($proc.Id))"
-Write-Host "Endpoint: http://127.0.0.1:8095/v1/embeddings"
-Write-Host ""
-Write-Host ""
-Write-Host "Test (T002260 - MIT LANGTEXT pruefen, ein Kurztext bleibt auch bei"
-Write-Host "kaputtem -ub gruen und verdeckt die 512-Token-Kappung):"
-Write-Host '  $long = "kubernetes deployment reconciliation " * 120   # ~600+ Tokens'
-Write-Host '  $body = @{ model = "bge-m3"; input = @($long) } | ConvertTo-Json'
-Write-Host '  Invoke-RestMethod -Uri http://127.0.0.1:8095/v1/embeddings -Method Post `'
-Write-Host '    -ContentType application/json -Body $body | ForEach-Object { $_.data[0].embedding.Count }'
-Write-Host "  -> erwartet: 1024. HTTP 500 'too large to process' = -b/-ub fehlen."
+if (-not $NoWait) {
+  Write-Host "Embedding server started (PID: $($proc.Id))"
+  Write-Host "Endpoint: http://127.0.0.1:8095/v1/embeddings"
+  Write-Host ""
+  Write-Host ""
+  Write-Host "Test (T002260 - MIT LANGTEXT pruefen, ein Kurztext bleibt auch bei"
+  Write-Host "kaputtem -ub gruen und verdeckt die 512-Token-Kappung):"
+  Write-Host '  $long = "kubernetes deployment reconciliation " * 120   # ~600+ Tokens'
+  Write-Host '  $body = @{ model = "bge-m3"; input = @($long) } | ConvertTo-Json'
+  Write-Host '  Invoke-RestMethod -Uri http://127.0.0.1:8095/v1/embeddings -Method Post `'
+  Write-Host '    -ContentType application/json -Body $body | ForEach-Object { $_.data[0].embedding.Count }'
+  Write-Host "  -> erwartet: 1024. HTTP 500 'too large to process' = -b/-ub fehlen."
+}

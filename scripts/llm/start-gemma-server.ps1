@@ -66,11 +66,17 @@
 
   ACHTUNG REASONING-CONTENT: mit --jinja antwortet Gemma 4 als Reasoning-Modell.
   llama.cpp legt den Denkteil in reasoning_content, waehrend content LEER bleibt,
-  bis das Denken abgeschlossen ist. Bei zu knappem max_tokens kommt deshalb eine
+  bis das Denken abgeschlossen ist. Bei   zu knappem max_tokens kommt deshalb eine
   Antwort mit leerem content und finish_reason=length zurueck - kein Fehler, aber
   auch kein Ergebnis. Gemessen: max_tokens 64 liefert leeren content, 512 liefert
   "Berlin". Wer Clients gegen diesen Server baut, muss das Budget entsprechend
   bemessen.
+
+  HEALTH-POLL-FENSTER: bis zu 240 Sekunden. Wer dieses Skript mit einem Timeout
+  aufruft, der unter dem Poll-Fenster liegt, bekommt Exit 143 fuer eine erfolgreiche
+  Operation gemeldet. Ein blinder Retry killt den laufenden Server (Port-Cleanup).
+  Mit -NoWait kehrt das Skript sofort nach Start-Process zurueck und ueberspringt
+  Health-Poll und Hinweistext.
 .PARAMETER LlamaDir
   Verzeichnis mit dem Fork-Build. Default: C:\Users\PatrickKorczewski\llama-bonsai-cuda13.3
 .PARAMETER Port
@@ -110,7 +116,8 @@ param(
   [int]$NMax = 4,
   [ValidateSet("q4_0", "q8_0", "f16")]
   [string]$KvType = "q4_0",
-  [switch]$NoMmproj
+  [switch]$NoMmproj,
+  [switch]$NoWait
 )
 
 # Bei diesem Build liegt llama-server.exe in \bin, nicht flach im Root.
@@ -287,34 +294,36 @@ $p = Start-Process -FilePath $Exe -ArgumentList $Params -WindowStyle Hidden -Pas
        -RedirectStandardOutput $logOut -RedirectStandardError $logErr
 "PID: $($p.Id)" | Out-File -FilePath (Join-Path $logDir "gemma4-12b-mtp.pid") -Encoding ascii
 
-$deadline = (Get-Date).AddSeconds(240)
-$healthy = $false
-while ((Get-Date) -lt $deadline) {
-  Start-Sleep -Seconds 3
-  if ($p.HasExited) { break }
-  try {
-    $r = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/health" -TimeoutSec 2
-    if ($r.status -eq 'ok') { $healthy = $true; break }
-  } catch {}
-}
+if (-not $NoWait) {
+  $deadline = (Get-Date).AddSeconds(240)
+  $healthy = $false
+  while ((Get-Date) -lt $deadline) {
+    Start-Sleep -Seconds 3
+    if ($p.HasExited) { break }
+    try {
+      $r = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/health" -TimeoutSec 2
+      if ($r.status -eq 'ok') { $healthy = $true; break }
+    } catch {}
+  }
 
-if ($healthy) {
-  Write-Output "Gemma 4 12B: PID $($p.Id) healthy on :$Port"
-  Write-Output "  VRAM danach: $((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()) MiB frei"
-  Write-Output ""
-  Write-Output "Der llm-proxy (:18235) findet den Server ueber die Registry und den Alias"
-  Write-Output "'gemma-4-12b'. Laeuft er nicht, aus WSL heraus starten:"
-  Write-Output "  task llm:proxy:start        # oder: systemctl --user start llm-proxy"
-  Write-Output ""
-  Write-Output "Smoke-Test MIT ausreichendem Budget (max_tokens 64 liefert wegen"
-  Write-Output "reasoning_content einen LEEREN content, siehe .DESCRIPTION):"
-  Write-Output '  $b = @{ model = "gemma-4-12b"; max_tokens = 512;'
-  Write-Output '          messages = @(@{ role = "user"; content = "Hauptstadt von Deutschland?" }) } | ConvertTo-Json -Depth 5'
-  Write-Output '  Invoke-RestMethod -Uri http://127.0.0.1:18235/v1/chat/completions -Method Post `'
-  Write-Output '    -ContentType application/json -Body $b | ForEach-Object { $_.choices[0].message.content }'
-} elseif ($p.HasExited) {
-  Write-Output "Gemma 4 12B FAILED: exited (code $($p.ExitCode)) - see $logErr"
-  Get-Content $logErr -Tail 20
-} else {
-  Write-Output "Gemma 4 12B WARNING: PID $($p.Id) laeuft, aber nach 240s nicht healthy - see $logErr"
+  if ($healthy) {
+    Write-Output "Gemma 4 12B: PID $($p.Id) healthy on :$Port"
+    Write-Output "  VRAM danach: $((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()) MiB frei"
+    Write-Output ""
+    Write-Output "Der llm-proxy (:18235) findet den Server ueber die Registry und den Alias"
+    Write-Output "'gemma-4-12b'. Laeuft er nicht, aus WSL heraus starten:"
+    Write-Output "  task llm:proxy:start        # oder: systemctl --user start llm-proxy"
+    Write-Output ""
+    Write-Output "Smoke-Test MIT ausreichendem Budget (max_tokens 64 liefert wegen"
+    Write-Output "reasoning_content einen LEEREN content, siehe .DESCRIPTION):"
+    Write-Output '  $b = @{ model = "gemma-4-12b"; max_tokens = 512;'
+    Write-Output '          messages = @(@{ role = "user"; content = "Hauptstadt von Deutschland?" }) } | ConvertTo-Json -Depth 5'
+    Write-Output '  Invoke-RestMethod -Uri http://127.0.0.1:18235/v1/chat/completions -Method Post `'
+    Write-Output '    -ContentType application/json -Body $b | ForEach-Object { $_.choices[0].message.content }'
+  } elseif ($p.HasExited) {
+    Write-Output "Gemma 4 12B FAILED: exited (code $($p.ExitCode)) - see $logErr"
+    Get-Content $logErr -Tail 20
+  } else {
+    Write-Output "Gemma 4 12B WARNING: PID $($p.Id) laeuft, aber nach 240s nicht healthy - see $logErr"
+  }
 }

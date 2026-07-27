@@ -38,3 +38,10 @@ setup() {
   RUN_COUNT=$(git -C "$REPO" ls-files -- .claude/skills | grep -c 'superpowers-' || true)
   [ "$RUN_COUNT" -eq 0 ]
 }
+
+@test "T002339: git-workflow-procedures requires a CI watch loop to treat empty gh response as retry, not state change" {
+  REF="$REPO/.claude/skills/references/git-workflow-procedures.md"
+  [ -f "$REF" ]
+  run grep -q "empty.*gh.*response\|Transportfehler\|continue;.*}" "$REF"
+  [ "$status" -eq 0 ]
+}

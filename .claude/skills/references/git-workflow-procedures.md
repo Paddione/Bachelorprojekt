@@ -86,6 +86,29 @@ gh api -X PATCH "repos/{owner}/{repo}/pulls/<n>" -f title="<neuer Titel>"
 | PR-Scope invalid | `preflight-pr-scope.sh` Exit 1 | Scope korrigieren, neu prüfen |
 | Falscher Cluster gedeployt | `ENV=` vergessen gesetzt | Immer `ENV=mentolder` / `ENV=korczewski` explizit |
 
+## CI Watch Loop — leere gh-Antworten als Retry, nicht als Zustandswechsel [T002339]
+
+Ein `gh pr view --json state -q .state` in einer CI-Watch-Schleife kann bei
+Netzwerkfehlern ("error connecting to api.github.com") einen LEEREN String liefern.
+Wird dieser gegen `"OPEN"` verglichen und als ungleich befunden, steigt die Schleife
+mit `STATE=` aus — das sieht aus wie ein abgeschlossener Zustandswechsel, obwohl der
+PR unverändert offen ist. Dasselbe Muster wie das "grün bei 0 Checks"-Falschpositiv:
+das AUSBLEIBEN einer Antwort wird als Aussage interpretiert.
+
+**Regel:** Jeder `gh`-Aufruf in einer Warteschleife muss gegen Transportfehler
+abgesichert werden:
+
+```bash
+STATE=$(gh pr view --json state -q '.state' 2>/dev/null) || { sleep 30; continue; }
+# Leerer String ist kein Zustandswechsel — weiterpollern
+[ -z "$STATE" ] && { sleep 30; continue; }
+# Erst ein nicht-leerer Wert ungleich "OPEN" beendet die Schleife
+[ "$STATE" != "OPEN" ] && break
+```
+
+Dieselbe Logik gilt für `gh run watch` und andere Warteschleifen: das Ausbleiben
+einer Antwort ist kein Signal, die Schleife zu beenden.
+
 ## Freshness-Auto-Regen-Race [T001395]
 
 Bleibt ein PR über einen geplanten Freshness-Auto-Regen-Zyklus offen, committet der Scheduler

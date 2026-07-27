@@ -39,6 +39,9 @@
   Rechnung: 12.11 GB Gewichte + 0.98 GB KV + 1.3 GB (bge-m3 + Reranker, die
   dauerhaft mitlaufen) = ~14.4 GB von 16.3 GB. Wer den Kontext hochdreht, muss
   gegenrechnen.
+
+  HEALTH-POLL-FENSTER: bis zu 240 Sekunden. Mit -NoWait kehrt das Skript sofort
+  nach Start-Process zurueck und ueberspringt Health-Poll und Hinweistext.
 .PARAMETER LlamaDir
   Verzeichnis mit llama-server.exe. Default: C:\Users\PatrickKorczewski\llama-b10090-13.3
 .EXAMPLE
@@ -47,7 +50,8 @@
 
 param(
   [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10090-13.3",
-  [int]$Ctx = 40960
+  [int]$Ctx = 40960,
+  [switch]$NoWait
 )
 
 # Bei diesem Build liegt llama-server.exe flach im Root, nicht in \bin.
@@ -119,30 +123,32 @@ $p = Start-Process -FilePath $Exe -ArgumentList $Params -WindowStyle Hidden `
        -RedirectStandardOutput $logOut -RedirectStandardError $logErr -PassThru
 "PID: $($p.Id)" | Out-File -FilePath (Join-Path (Split-Path $Exe -Parent) "gptoss.pid") -Encoding ascii
 
-$deadline = (Get-Date).AddSeconds(240)
-$healthy = $false
-while ((Get-Date) -lt $deadline) {
-  Start-Sleep -Seconds 3
-  if ($p.HasExited) { break }
-  try {
-    $r = Invoke-RestMethod -Uri 'http://127.0.0.1:8097/health' -TimeoutSec 2
-    if ($r.status -eq 'ok') { $healthy = $true; break }
-  } catch {}
-}
+if (-not $NoWait) {
+  $deadline = (Get-Date).AddSeconds(240)
+  $healthy = $false
+  while ((Get-Date) -lt $deadline) {
+    Start-Sleep -Seconds 3
+    if ($p.HasExited) { break }
+    try {
+      $r = Invoke-RestMethod -Uri 'http://127.0.0.1:8097/health' -TimeoutSec 2
+      if ($r.status -eq 'ok') { $healthy = $true; break }
+    } catch {}
+  }
 
-if ($healthy) {
-  Write-Output "gpt-oss-20b: PID $($p.Id) healthy on :8097"
-  Write-Output "  VRAM danach: $((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()) MiB frei"
-  Write-Output ""
-  Write-Output "Naechster Schritt - als Kandidat registrieren (priority 1, aendert das"
-  Write-Output "Routing NICHT, Bonsai bleibt auf priority 0 scharf):"
-  Write-Output "  bash scripts/factory/provider-register-gptoss.sh"
-  Write-Output ""
-  Write-Output "Dann A/B gegen echte Factory-Tickets:"
-  Write-Output "  node scripts/factory/eval-replay.mjs --help"
-} elseif ($p.HasExited) {
-  Write-Output "gpt-oss-20b FAILED: exited (code $($p.ExitCode)) - see $logErr"
-  Get-Content $logErr -Tail 20
-} else {
-  Write-Output "gpt-oss-20b WARNING: PID $($p.Id) laeuft, aber nach 240s nicht healthy - see $logErr"
+  if ($healthy) {
+    Write-Output "gpt-oss-20b: PID $($p.Id) healthy on :8097"
+    Write-Output "  VRAM danach: $((& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()) MiB frei"
+    Write-Output ""
+    Write-Output "Naechster Schritt - als Kandidat registrieren (priority 1, aendert das"
+    Write-Output "Routing NICHT, Bonsai bleibt auf priority 0 scharf):"
+    Write-Output "  bash scripts/factory/provider-register-gptoss.sh"
+    Write-Output ""
+    Write-Output "Dann A/B gegen echte Factory-Tickets:"
+    Write-Output "  node scripts/factory/eval-replay.mjs --help"
+  } elseif ($p.HasExited) {
+    Write-Output "gpt-oss-20b FAILED: exited (code $($p.ExitCode)) - see $logErr"
+    Get-Content $logErr -Tail 20
+  } else {
+    Write-Output "gpt-oss-20b WARNING: PID $($p.Id) laeuft, aber nach 240s nicht healthy - see $logErr"
+  }
 }

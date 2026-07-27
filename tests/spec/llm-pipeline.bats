@@ -258,6 +258,20 @@ assert_var_not_declared() {
   [ -z "$output" ]
 }
 
+@test "every scripts/llm/start-*.ps1 frees its port before starting (T002288)" {
+  # Ohne Raeumung scheitert der neue Server still am Bind, waehrend der ALTE
+  # Prozess sein Modell weiter im VRAM haelt. Gemessen 2026-07-27 nach einem
+  # Lauf von llm-stack-autostart.cmd: je zwei llama-server auf 8095 und 8096,
+  # 14119 statt 12285 MiB belegt - rund 1,8 GB pro Lauf, kumulierend.
+  # Verzeichnisweit wie der Start-Job-Guard oben, damit neu hinzukommende
+  # Startskripte automatisch abgedeckt sind.
+  missing=""
+  for f in "$REPO"/scripts/llm/start-*.ps1; do
+    grep -q 'Get-NetTCPConnection' "$f" || missing="$missing $(basename "$f")"
+  done
+  [ -z "$missing" ] || { echo "ohne Port-Raeumung:$missing"; false; }
+}
+
 @test "install-startup-autostart.ps1 covers embed, rerank and gemma in that order (T002286)" {
   [ -f "$REPO/scripts/llm/install-startup-autostart.ps1" ]
   # Reihenfolge ist Absicht: scheitert Gemma (der groesste Brocken), steht der

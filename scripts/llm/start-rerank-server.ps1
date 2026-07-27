@@ -26,7 +26,8 @@
 #>
 
 param(
-  [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10090-13.3"
+  [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-b10090-13.3",
+  [int]$Port = 8096
 )
 
 $Exe = Join-Path $LlamaDir "llama-server.exe"
@@ -63,8 +64,18 @@ $Params = @(
   "-ngl", $Ngl
   "-fa", "on"
   "--host", "0.0.0.0"
-  "--port", "8096"
+  "--port", "$Port"
 )
+
+# Port raeumen - ein noch laufender Server auf diesem Port laesst den neuen
+# still am Bind scheitern.
+$conns = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+foreach ($c in $conns) {
+  if ($c.OwningProcess -and $c.OwningProcess -ne 0) {
+    Write-Output "Stopping existing process on port $Port (PID $($c.OwningProcess)) ..."
+    & taskkill.exe /F /T /PID $c.OwningProcess 2>&1 | Out-Null
+  }
+}
 
 # T002276: hier stand ein Job-basierter Start. Ein Job haengt an der
 # PowerShell-SITZUNG - endet sie, stirbt der Server mit. Empirisch geprueft:

@@ -12,8 +12,11 @@ zu duplizieren. Die Gate-*Mathematik* (S1–S4, Baseline-Ratchet) ist in
 task workspace:validate     # Kustomize-Manifeste (nur wenn k8s-Manifeste berührt)
 task test:changed           # Gezielte Tests für geänderte Domains (vitest --changed + BATS + quality)
 task freshness:regenerate   # Generierte Artefakte aktualisieren — sonst CI "stale artifact"
+# → Artefakte committen (git add + git commit), siehe Freshness-Artefakte unten
 task freshness:check        # CI-Äquivalent: Freshness + S1–S4-Ratchet + Baseline-Key-Count-Assertion
 ```
+
+**Wichtig:** Nach `regenerate` müssen die generierten Artefakte **gecommittet** werden, bevor `check` läuft — sonst vergleicht `check` gegen HEAD und sieht die frischen Artefakte als "stale". Siehe Abschnitt „Freshness-Artefakte — git add nach `regenerate`" unten.
 
 **Beide Freshness-Befehle sind nötig:**
 - `regenerate` aktualisiert die generierten Artefakte (Liste unten) — ohne sie ist CI rot.

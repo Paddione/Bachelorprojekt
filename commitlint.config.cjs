@@ -29,6 +29,7 @@ const NAMED_SCOPES = [
   'nextcloud',
   'openclaw',
   'scripts',
+  'llm',
   'agent-guide',
   'fleet',
   'mcp',

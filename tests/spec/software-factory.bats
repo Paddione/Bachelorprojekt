@@ -3093,7 +3093,7 @@ REG="scripts/factory/service-registry.sh"
 @test "FA-SF-70: provider-config.sh set accepts tier=opus with warning" {
   kubectl() { if [ "$1" = "get" ]; then echo "mock-pod"; else echo "ok"; fi; }
   export -f kubectl
-  run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m
+  run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"opus"* ]]
 }
@@ -4227,4 +4227,67 @@ EOF
   # /admin/state mit inflight/max_inflight Anreicherung
   run grep -c "inflightOf" scripts/llm-proxy/server.mjs
   [ "$output" -ge 2 ]
+}
+
+# ── T002281: Provider-Slot-Leak + Datenintegritaet ────────────────────
+# Vier Befunde aus dem Gemma-Cutover (T002277). Die Guards sind strukturell,
+# weil die Verhaltenspfade eine Live-DB brauchen und diese Suite offline laeuft.
+
+@test "T002281: auto-triage.sh gibt den geclaimten Provider-Slot frei" {
+  # route-provider.sh claimt atomar (active_agents+1) und liefert slotId.
+  # auto-triage.sh las slotId bisher nicht einmal aus - deshalb stand deepseek
+  # auf active_agents=3 = max_concurrent und war als Fallback dauerhaft tot,
+  # ohne jede Fehlermeldung. scout-llm-fallback.sh macht es korrekt vor.
+  run bash -c "grep -Eq 'trap .*release.* EXIT' '$REPO/scripts/factory/auto-triage.sh'"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -q 'slotId' '$REPO/scripts/factory/auto-triage.sh'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002281: es gibt einen TTL-Reaper fuer verwaiste Provider-Slots" {
+  # Ein reiner Aufrufer-Fix macht den Leak unsichtbar, nicht unmoeglich:
+  # zwei Aufrufer, einer hatte den Release bereits vergessen.
+  [ -f "$REPO/scripts/factory/reap-provider-slots.sh" ]
+  run bash -c "grep -q 'claimed_at' '$REPO/scripts/factory/reap-provider-slots.sh'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002281: Migration bereinigt Muell-Provider und sperrt die Klasse" {
+  # Die Altlast traegt ganze TSV-Zeilen als Provider-Namen (literale \t,
+  # 4-Feld-Format einer abgeloesten Query-Version). Der CHECK haelt die Klasse
+  # zu, unabhaengig davon welcher Schreibpfad sie erzeugt hat.
+  local mig="$REPO/scripts/migrations/2026-07-27-provider-health-integrity.sql"
+  [ -f "$mig" ]
+  run bash -c "grep -Eq 'ADD COLUMN IF NOT EXISTS claimed_at' '$mig'"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -Eiq 'CHECK' '$mig'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002281: route-provider.sh behauptet kein Inlining in pipeline.js" {
+  # pipeline.js enthaelt weder slotId noch route-provider noch provider_health -
+  # der Kommentar hat beim Debuggen dieses Befunds aktiv in die Irre gefuehrt.
+  run bash -c "grep -q 'inlined into pipeline.js' '$REPO/scripts/factory/route-provider.sh'"
+  [ "$status" -ne 0 ]
+}
+
+@test "T002281: check-commit-vs-diff.bats schreibt nie ins Repo-Root" {
+  # 'mkdir -p \$TMP/repo && cd \$TMP/repo && git init' - die folgenden Zeilen
+  # hingen NICHT an dieser Kette. Schlaegt cd fehl, entsteht openspec/changes/x
+  # im echten Repo; bats setzt in @test-Bloecken kein set -e, der Test laeuft
+  # stillschweigend weiter.
+  run bash -c "grep -cE 'cd \"\\\$TMP/repo\"( |\$)' '$REPO/tests/unit/check-commit-vs-diff.bats'"
+  [ "$status" -eq 0 ]
+  # Jedes cd in diese Datei muss einen Fehlerpfad haben (|| return / || fail).
+  run bash -c "grep -E 'cd \"\\\$TMP/repo\"' '$REPO/tests/unit/check-commit-vs-diff.bats' | grep -vcE '\\|\\|'"
+  [ "$output" = "0" ]
+}
+
+@test "T002281: FA-SF-70 schreibt nicht in die echte provider_config" {
+  # Der Test rief 'provider-config.sh set --source x --tier opus' gegen die
+  # produktive Tabelle auf und hinterliess dort dauerhaft x|opus|1|anthropic|m.
+  # Nur vollstaendige Aufrufe pruefen (erkennbar an --provider): unvollstaendige enden
+  # in usage() vor jedem DB-Zugriff und sind unbedenklich.
+  run bash -c "grep -E 'provider-config\.sh set .*--provider' '$REPO/tests/spec/software-factory.bats' | grep -vcE '\-\-dry-run'"
+  [ "$output" = "0" ]
 }

@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 # scripts/factory/route-provider.sh <source> <tier>
 # Emits JSON: {"provider":..,"modelId":..,"baseUrl":..|null,"slotId":..|null,"emergency":bool}
-# opus → provider_config lookup without slot claim (T002277). Used by dev-flow AND inlined into pipeline.js.
+# opus → provider_config lookup without slot claim (T002277). Used by dev-flow, auto-triage.sh
+# and scout-llm-fallback.sh. (Hier stand bis T002281 der Hinweis, die Logik sei zusätzlich in
+# pipeline.js dupliziert — das stimmt nicht: pipeline.js enthält weder slotId noch
+# provider_health, und die Behauptung hat beim Debuggen des Slot-Leaks in die Irre geführt.)
 # slotId == provider name (slots are per-provider counters, not per-claim UUIDs).
+# WER CLAIMT, MUSS FREIGEBEN: scripts/factory/release-slot.sh — sonst bleibt active_agents
+# stehen, bis der Provider auf max_concurrent steht und still übersprungen wird. Netz
+# darunter: scripts/factory/reap-provider-slots.sh (TTL über claimed_at).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
@@ -95,7 +101,8 @@ while IFS=$'\t' read -r prov model burl maxc ctx budget; do
   CLAIM=$(factory_psql -v prov="$prov" -v maxc="$maxc" -v ctx="${ctx:-0}" -v budget="$budget" <<'SQL'
 INSERT INTO tickets.provider_health (provider) VALUES (:'prov') ON CONFLICT (provider) DO NOTHING;
 UPDATE tickets.provider_health
-SET active_agents = active_agents + 1, reserved_tokens = reserved_tokens + :'ctx'::int, updated_at = now()
+SET active_agents = active_agents + 1, reserved_tokens = reserved_tokens + :'ctx'::int,
+    claimed_at = now(), updated_at = now()
 WHERE provider = :'prov'
   AND active_agents < :'maxc'::int
   AND (cooldown_until IS NULL OR cooldown_until <= now())

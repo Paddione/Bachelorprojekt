@@ -13,6 +13,31 @@ const CHUNK_MAX_TOKENS = 512;
 const CHUNK_OVERLAP = 64;
 const BATCH_SIZE = 16;
 
+// T002266: estimateTokens rechnete mit 4 Zeichen/Token. Das gilt fuer Prosa —
+// Code und YAML tokenisieren dichter. Gemessen am laufenden bge-m3-Server:
+// 2000 Zeichen Code = 774 echte Tokens, 4000 Zeichen YAML = 1253. Das sind
+// ~2.6 Zeichen/Token, die Schaetzung war also rund 1.5x zu optimistisch und
+// die nominell "512-Token"-Chunks enthielten real bis zu ~774 Tokens.
+const CHARS_PER_TOKEN = 2.6;
+
+// Harter Backstop in ZEICHEN, unabhaengig von jeder Schaetzung. Er greift genau
+// dort, wo die zeilenweise Token-Logik strukturell nicht greifen kann:
+//   - eine einzelne ueberlange Zeile (minifiziert, Base64, eingebettetes JSON)
+//     wurde nie gesplittet, weil nur ZWISCHEN Zeilen umgebrochen wurde;
+//   - chunkYaml kannte ueberhaupt keine Obergrenze und splittete nur an
+//     Top-Level-Keys. Gemessen 2026-07-27 ueber das ganze Repo: 298 von 3385
+//     YAML-Chunks lagen ueber 512 Tokens, 31 sogar ueber 8192 (dem
+//     max_position_embeddings des Modells), der groesste bei 318.500 Tokens
+//     (k3d/monitoring/kube-prometheus-stack-rendered.yaml). Solche Chunks
+//     werden vom Embedding-Server mit HTTP 500 abgelehnt und landen still im
+//     catch von main() als SKIP.
+const CHUNK_MAX_CHARS = Math.floor(CHUNK_MAX_TOKENS * CHARS_PER_TOKEN);
+
+// Helm-Renders und vergleichbare generierte Mega-Manifeste. Sie gehoeren nicht
+// in einen semantischen CODE-Index: sie sind Ausgabe, nicht Quelle, und
+// kube-prometheus-stack-rendered.yaml allein ist 5 MB.
+const IGNORE_FILE_PATTERNS: RegExp[] = [/-rendered\.ya?ml$/];
+
 const IGNORE_DIRS = new Set([
   'node_modules', 'dist', '.git', 'docs-content-built',
   'k3d/docs-content-built', '.svelte-kit', '.astro', 'build',
@@ -88,63 +113,101 @@ function walkDir(dir: string, out: string[] = []): string[] {
     if (IGNORE_DIRS.has(e.name)) continue;
     const full = join(dir, e.name);
     if (e.isDirectory()) walkDir(full, out);
-    else if (e.isFile() && INDEXABLE_EXTS.has(extname(e.name))) out.push(full);
+    else if (
+      e.isFile()
+      && INDEXABLE_EXTS.has(extname(e.name))
+      && !IGNORE_FILE_PATTERNS.some(re => re.test(e.name))
+    ) out.push(full);
   }
   return out;
 }
 
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / CHARS_PER_TOKEN);
 }
 
-function chunkCode(content: string, filePath: string): string[] {
+export function chunkCode(content: string, filePath: string): string[] {
   const ext = extname(filePath);
   if (ext === '.yaml' || ext === '.yml') return chunkYaml(content);
   return chunkSource(content);
 }
 
-function chunkYaml(content: string): string[] {
+// Zerlegt eine einzelne Zeile, die allein schon zu gross ist. Ohne das bleibt
+// jede Token-Rechnung wirkungslos, denn umgebrochen wurde nur ZWISCHEN Zeilen.
+function splitOversizedLine(line: string): string[] {
+  if (line.length <= CHUNK_MAX_CHARS) return [line];
+  const parts: string[] = [];
+  for (let i = 0; i < line.length; i += CHUNK_MAX_CHARS) {
+    parts.push(line.slice(i, i + CHUNK_MAX_CHARS));
+  }
+  return parts;
+}
+
+// Gemeinsamer Kern beider Chunker: akkumuliert zeilenweise und deckelt sowohl
+// die geschaetzten Tokens ALS AUCH die Zeichen. Der Zeichendeckel ist die
+// Garantie — er haengt an keiner Schaetzung.
+function boundedChunks(text: string): string[] {
   const chunks: string[] = [];
-  const lines = content.split('\n');
   let current: string[] = [];
-  for (const line of lines) {
-    if (/^[^\s#]/.test(line) && current.length > 0) {
-      chunks.push(current.join('\n'));
-      current = [line];
-    } else {
+  let currentTokens = 0;
+  let currentChars = 0;
+
+  for (const rawLine of text.split('\n')) {
+    for (const line of splitOversizedLine(rawLine)) {
+      const lineTokens = estimateTokens(line);
+      const lineChars = line.length + 1; // +1 fuer das \n beim Join
+      const wouldExceed =
+        currentTokens + lineTokens > CHUNK_MAX_TOKENS ||
+        currentChars + lineChars > CHUNK_MAX_CHARS;
+
+      if (wouldExceed && current.length > 0) {
+        chunks.push(current.join('\n'));
+        // Overlap uebernehmen (Kontext ueber die Chunk-Grenze hinweg).
+        // Durch CHUNK_OVERLAP << CHUNK_MAX_TOKENS bleibt der Overlap immer
+        // deutlich unter dem Deckel, ein Endlos-Flush ist damit ausgeschlossen.
+        const overlapLines: string[] = [];
+        let overlapTokens = 0;
+        for (let i = current.length - 1; i >= 0; i--) {
+          const t = estimateTokens(current[i]);
+          if (overlapTokens + t > CHUNK_OVERLAP) break;
+          overlapLines.unshift(current[i]);
+          overlapTokens += t;
+        }
+        current = overlapLines;
+        currentTokens = overlapTokens;
+        currentChars = overlapLines.reduce((acc, l) => acc + l.length + 1, 0);
+      }
+
       current.push(line);
+      currentTokens += lineTokens;
+      currentChars += lineChars;
     }
   }
   if (current.length > 0) chunks.push(current.join('\n'));
   return chunks.filter(c => c.trim().length > 20);
 }
 
-function chunkSource(content: string): string[] {
-  const chunks: string[] = [];
-  const lines = content.split('\n');
+// YAML behaelt die semantische Gruppierung an Top-Level-Keys, jeder Block wird
+// danach aber zwingend auf die Obergrenze gebracht. Vorher fehlte dieser zweite
+// Schritt vollstaendig — ein Manifest mit einem Top-Level-Key wurde zu EINEM
+// Chunk in Dateigroesse.
+export function chunkYaml(content: string): string[] {
+  const blocks: string[] = [];
   let current: string[] = [];
-  let currentTokens = 0;
-
-  for (const line of lines) {
-    const lineTokens = estimateTokens(line);
-    if (currentTokens + lineTokens > CHUNK_MAX_TOKENS && current.length > 0) {
-      chunks.push(current.join('\n'));
-      const overlapLines: string[] = [];
-      let overlapTokens = 0;
-      for (let i = current.length - 1; i >= 0; i--) {
-        const t = estimateTokens(current[i]);
-        if (overlapTokens + t > CHUNK_OVERLAP) break;
-        overlapLines.unshift(current[i]);
-        overlapTokens += t;
-      }
-      current = overlapLines;
-      currentTokens = overlapTokens;
+  for (const line of content.split('\n')) {
+    if (/^[^\s#]/.test(line) && current.length > 0) {
+      blocks.push(current.join('\n'));
+      current = [line];
+    } else {
+      current.push(line);
     }
-    current.push(line);
-    currentTokens += lineTokens;
   }
-  if (current.length > 0) chunks.push(current.join('\n'));
-  return chunks.filter(c => c.trim().length > 20);
+  if (current.length > 0) blocks.push(current.join('\n'));
+  return blocks.flatMap(b => boundedChunks(b));
+}
+
+export function chunkSource(content: string): string[] {
+  return boundedChunks(content);
 }
 
 function extractImports(content: string, filePath: string): string[] {
@@ -330,7 +393,16 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => {
-  console.error('[SCS] FATAL:', err);
-  process.exit(1);
-});
+// T002266: main() lief bisher beim Modulladen, wodurch die Datei nicht
+// importierbar war — ein Unit-Test der Chunk-Logik haette eine DB-Verbindung
+// aufgebaut und den ganzen Index angefasst. Der Guard prueft, ob die Datei als
+// Skript aufgerufen wurde. Unter `npx tsx scripts/index-repo.ts` ist argv[1]
+// der Pfad dieser Datei; importiert ein Test-Runner sie, zeigt argv[1] auf
+// dessen Entrypoint und main() bleibt aus. Das CLI-Verhalten ist unveraendert.
+const invokedAsScript = /(^|[\\/])index-repo\.ts$/.test(process.argv[1] ?? '');
+if (invokedAsScript) {
+  main().catch(err => {
+    console.error('[SCS] FATAL:', err);
+    process.exit(1);
+  });
+}

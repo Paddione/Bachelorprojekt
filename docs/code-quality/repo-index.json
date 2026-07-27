@@ -2923,7 +2923,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 555,
+      "file_count": 556,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3028,6 +3028,7 @@
         "scripts/check-updates.sh",
         "scripts/ci-dummy-secrets.sh",
         "scripts/cicd-kubeconfig-gen.sh",
+        "scripts/claude-key-picker.sh",
         "scripts/cleanup-test-inbox.sh",
         "scripts/coaching/batch-ingest-dir.mts",
         "scripts/coaching/batch-ingest-dir.test.mts",

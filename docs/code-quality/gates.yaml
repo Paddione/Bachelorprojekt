@@ -200,6 +200,9 @@ s4:
     # Pre-existing — referenced by dev-flow-execute phases doc; the S4
     # reference_sources globs don't reach the inline docs block it lives in.
     - "scripts/test-dev-flow-execute-sync.sh"
+    # Standalone Claude Code key picker — invoked manually or via CLAUDE_KEY env,
+    # not referenced from Taskfile / docs (T002???).
+    - "scripts/claude-key-picker.sh"
 
 s5:
   rules:

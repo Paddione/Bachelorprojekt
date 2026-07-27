@@ -4522,3 +4522,71 @@ $sql
 EOSQL"
   [ -z "$output" ]
 }
+
+# ── [T002386] factory_pgpod muss einen Running-Pod waehlen ────────────────────
+#
+# In workspace-korczewski lagen am 2026-07-28 zwei shared-db-Pods:
+#   shared-db-786c4d5b64-n62db   Failed    (09:20 Uhr)
+#   shared-db-86d7d79f7b-th2mm   Running   (10:04 Uhr)
+#
+# factory_pgpod nahm `-o name | head -1` ohne Phasenfilter. kubectl sortiert nach
+# Name, der Failed-Pod sortiert vor dem lebenden — jeder Aufruf traf also den
+# toten Pod und starb einen Schritt spaeter in `kubectl exec` mit "cannot exec
+# into a container in a completed pod".
+#
+# Folge: Die GESAMTE korczewski-Brand war fuer den Dispatcher blind. queue.sh,
+# slots.sh und schedule.sh scheiterten dort ausnahmslos; 7 offene Tickets konnten
+# nicht dispatcht werden. Weil schedule.sh den Aufruf als
+# `2>/dev/null || echo 0` absichert, wurde der Ausfall als "0 belegte Slots"
+# gewertet — fail-open, ohne Log und ohne Warnung.
+#
+# T002307 hatte denselben Bug bereits in scripts/vda/ticket/_ticket-core.sh
+# behoben, mit dem Kommentar "All ~25 call sites route through here, so the
+# filter belongs here and nowhere else". Das war falsch: Die Factory haelt in
+# lib.sh eine eigene Implementierung.
+
+_t002386_mockdir() {
+  local mockdir; mockdir="$(mktemp -d)"
+  cat > "$mockdir/kubectl" <<'MOCKEOF'
+#!/usr/bin/env bash
+if [[ "$*" == *"get pod"* ]]; then
+  if [[ "$*" == *"--field-selector"*"status.phase=Running"* ]]; then
+    echo "pod/shared-db-live"
+  else
+    # Wie der echte API-Server ohne Filter: der tote Pod sortiert zuerst.
+    echo "pod/shared-db-completed"
+    echo "pod/shared-db-live"
+  fi
+  exit 0
+fi
+exit 0
+MOCKEOF
+  chmod +x "$mockdir/kubectl"
+  echo "$mockdir"
+}
+
+@test "T002386: factory_pgpod skips a completed shared-db pod and returns the Running one" {
+  local mockdir; mockdir="$(_t002386_mockdir)"
+  run env PATH="$mockdir:$PATH" FACTORY_NS=workspace-korczewski FACTORY_CTX=fleet bash -c \
+    'source "'"$REPO_ROOT"'/scripts/factory/lib.sh"; factory_pgpod'
+  rm -rf "$mockdir"
+  [ "$status" -eq 0 ]
+  [ "$output" = "pod/shared-db-live" ]
+}
+
+@test "T002386: every shared-db pod selection in scripts/ filters on phase Running" {
+  # Klassen-Guard statt Einzelfall: T002307 fixte eine Kopie und hielt die Sache
+  # fuer erledigt, waehrend vier weitere Kopien den Bug behielten. Dieser Test
+  # meldet jede kuenftige Kopie ohne Filter rot, egal in welcher Datei.
+  #
+  # Gezaehlt wird pro Datei, nicht pro Zeile: die Selektion darf ueber mehrere
+  # Zeilen umgebrochen sein (so steht sie in _ticket-core.sh).
+  local offenders=""
+  while IFS= read -r f; do
+    grep -q -- "--field-selector status.phase=Running" "$f" || offenders="$offenders $f"
+  done < <(grep -rl "app in (shared-db" "$REPO_ROOT/scripts" --include='*.sh')
+  [ -z "$offenders" ] || {
+    echo "Pod-Selektion ohne Phasenfilter in:$offenders" >&2
+    false
+  }
+}

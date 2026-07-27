@@ -30,8 +30,18 @@ fi
 # [T002307] The pod list is filtered server-side to phase Running. kubectl orders
 # by name, so a leftover Succeeded/Failed `shared-db-<old>` (rollout, node drain,
 # eviction) can sort ahead of the live pod; every caller then died one step later
-# in `kubectl exec` with "cannot exec into a container in a completed pod". All
-# ~25 call sites route through here, so the filter belongs here and nowhere else.
+# in `kubectl exec` with "cannot exec into a container in a completed pod".
+#
+# [T002386] Korrektur der urspruenglichen Annahme: Hier stand "All ~25 call sites
+# route through here, so the filter belongs here and nowhere else." Das stimmt
+# nicht. Die Factory haelt in scripts/factory/lib.sh (factory_pgpod) eine eigene
+# Implementierung, ebenso conflict-check.sh, mishap-categorize.sh und
+# batch-gap-analysis.sh. Alle vier behielten den Bug und legten am 2026-07-28 die
+# gesamte korczewski-Brand fuer den Dispatcher still.
+#
+# Wer eine weitere Pod-Selektion anlegt, braucht den Filter erneut. Der Guard
+# dagegen steht in tests/spec/software-factory.bats unter dem Titel
+# "every shared-db pod selection in scripts/ filters on phase Running".
 _pgpod() {
   local pod all
   pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \

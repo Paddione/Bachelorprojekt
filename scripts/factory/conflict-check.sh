@@ -58,7 +58,10 @@ USER="website"
 
 _pgpod() {
   local pod
-  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
+  # [T002386] Phase Running serverseitig filtern — sonst kann ein liegengebliebener
+  # Failed/Succeeded-Pod vor dem lebenden sortieren und `kubectl exec` scheitert.
+  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
+    --field-selector status.phase=Running -o name 2>/dev/null | head -1)
   if [[ -z "$pod" ]]; then
     echo '{"error":"no shared-db pod found"}' >&2
     exit 2

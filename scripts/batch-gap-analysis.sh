@@ -8,8 +8,11 @@ ENV="${1:-${ENV:-dev}}"
 CTX="${TICKET_CTX:-fleet}"
 NS="${TICKET_NS:-workspace}"
 
+# [T002386] Phase Running serverseitig filtern — sonst kann ein liegengebliebener
+# Failed/Succeeded-Pod vor dem lebenden sortieren und `kubectl exec` scheitert.
 pod=$(kubectl get pod -n "$NS" --context "$CTX" \
-  -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
+  -l 'app in (shared-db, shared-db-dev)' \
+  --field-selector status.phase=Running -o name 2>/dev/null | head -1)
 
 if [[ -z "$pod" ]]; then
   echo "ERROR: no shared-db pod found (ns=$NS ctx=$CTX)" >&2

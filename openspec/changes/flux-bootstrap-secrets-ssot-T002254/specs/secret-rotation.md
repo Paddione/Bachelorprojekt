@@ -48,8 +48,13 @@ schema entry cannot leave a stale ciphertext behind.
 `environments/schema.yaml` SHALL declare `GHCR_USERNAME` and `FLUX_WEBHOOK_TOKEN`, and
 SHALL map `GHCR_PAT` and `FLUX_WEBHOOK_TOKEN` into the `flux-system` namespace with
 `owner_brand: [mentolder]`, so that both Flux bootstrap SealedSecrets are produced by
-`task env:seal` and validated by `task env:validate`. Sealing a non-owning brand SHALL
-NOT write the `flux-system` output files.
+`task env:seal`. Sealing a non-owning brand SHALL NOT write the `flux-system` output
+files. Because both values are user-supplied and a fail-closed `required: true` would
+block `task env:seal` for the whole environment until the one-time plaintext migration
+has landed, both entries SHALL be `required: false`. The sealer SHALL therefore leave an
+`output_file` untouched when every source key of its mapping is empty, so that an
+incomplete plaintext file cannot overwrite a live bootstrap ciphertext with empty
+strings.
 
 #### Scenario: korczewski does not overwrite the shared flux-system secrets
 
@@ -58,8 +63,10 @@ NOT write the `flux-system` output files.
 - **THEN** the run logs that it skips the `flux-system` mappings
 - **AND** `flux/clusters/fleet/bootstrap/*-sealedsecret.yaml` remain byte-identical
 
-#### Scenario: A missing flux webhook token fails validation
+#### Scenario: An empty flux webhook token does not destroy the live ciphertext
 
-- **GIVEN** `FLUX_WEBHOOK_TOKEN` is absent from `environments/.secrets/mentolder.yaml`
-- **WHEN** `task env:validate ENV=mentolder` runs
-- **THEN** it exits non-zero and names the missing key
+- **GIVEN** `FLUX_WEBHOOK_TOKEN` is absent or empty in `environments/.secrets/mentolder.yaml`
+- **WHEN** `task env:seal ENV=mentolder` runs
+- **THEN** it logs that it skips the mapping
+- **AND** `flux/clusters/fleet/bootstrap/flux-webhook-token-sealedsecret.yaml` stays
+  byte-identical

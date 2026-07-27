@@ -951,9 +951,47 @@ secrets:
       - namespace: website
         secret: website-content-token
 
+  # ── Flux-Bootstrap-Secrets (T002251 → T002254) ────────────────────────────
+  # Die beiden SealedSecrets unter flux/clusters/fleet/bootstrap/ wurden in
+  # T002251 von Hand gesealt — ihr Plaintext lebte nur als laufendes Secret im
+  # fleet-Cluster. Seit T002254 erzeugt `task env:seal` sie aus diesem Schema.
+  # `owner_brand: [mentolder]`, weil der Namespace flux-system auf fleet nur
+  # einmal existiert (gleiches Muster wie coturn, T001404/T001584).
+  # Beide sind `required: false`: sie sind nutzergestellt, und ein
+  # fail-closed `required: true` würde `task env:seal` für mentolder blockieren,
+  # bis die einmalige Migration des Plaintexts erfolgt ist. Sind die Werte
+  # leer, lässt der Sealer die Zieldateien unangetastet statt einen leeren
+  # Ciphertext über den laufenden zu schreiben.
+  - name: GHCR_USERNAME
+    required: false
+    generate: false
+    description: "GitHub-Benutzername für den ghcr.io-Pull des Flux-OCI-Artefakts. Bildet mit GHCR_PAT das Secret flux-system/ghcr-auth. [T002254]"
+
   - name: GHCR_PAT
     required: false
     generate: false
+    description: "GitHub-PAT (read:packages) für ghcr.io. Wird mit GHCR_USERNAME zum .dockerconfigjson des Secrets flux-system/ghcr-auth zusammengesetzt. [T002254]"
+    extra_namespaces:
+      - namespace: flux-system
+        secret: ghcr-auth
+        type: kubernetes.io/dockerconfigjson
+        registry: ghcr.io
+        username_key: GHCR_USERNAME
+        dest_key: .dockerconfigjson
+        output_file: flux/clusters/fleet/bootstrap/ghcr-auth-sealedsecret.yaml
+        owner_brand: [mentolder]
+
+  - name: FLUX_WEBHOOK_TOKEN
+    required: false
+    generate: true
+    length: 32
+    description: "Shared Secret des Flux-Receiver-Webhooks (flux-system/flux-webhook-token). Reines Shared Secret ohne externe Bindung — darf generiert werden. [T002254]"
+    extra_namespaces:
+      - namespace: flux-system
+        secret: flux-webhook-token
+        dest_key: token
+        output_file: flux/clusters/fleet/bootstrap/flux-webhook-token-sealedsecret.yaml
+        owner_brand: [mentolder]
 
   - name: MEETINGS_DB_PASSWORD
     required: true

@@ -116,6 +116,13 @@ tests/unit/lib/bats-core/bin/bats tests/spec/secret-rotation.bats
 
 ## Task 4 — Migration: Plaintext aus dem Cluster in den SSOT überführen
 
+> **STATUS: OFFEN — nicht Teil dieses PRs.** Der Schritt braucht Klartext-Zugriff auf
+> `environments/.secrets/mentolder.yaml` und auf laufende Cluster-Secrets; beides ist
+> für den Implementierungs-Agenten gesperrt. Bis er ausgeführt ist, bleiben die
+> Ciphertexte unter `flux/clusters/fleet/bootstrap/` die aus T002251 — der Sealer lässt
+> sie bei leeren Quell-Keys bewusst unangetastet (siehe Task 3, Guard). Nachgezogen
+> wird der Schritt manuell von Patrick.
+
 Dieser Schritt ist einmalig und berührt eine git-crypt-verschlüsselte Datei. Er wird
 **nicht** automatisiert und **nicht** in ein Skript geschrieben.
 

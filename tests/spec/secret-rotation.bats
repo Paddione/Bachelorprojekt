@@ -106,6 +106,184 @@ YAML
   [ "$status" -ne 0 ]
 }
 
+# ═══════════════════════════════════════════════════════════════════
+# T002254 — Flux-Bootstrap-Secrets im Secret-SSOT
+# extra_namespaces: `type`, dockerconfigjson-Builder, `output_file`
+# ═══════════════════════════════════════════════════════════════════
+
+SEAL_LIB="${PROJECT_DIR}/scripts/lib/seal-extra-namespaces.sh"
+
+# Source the sealer library standalone (env-seal.sh provides die/info at
+# runtime; stub them so the pure build functions are testable offline).
+load_seal_lib() {
+  die() { echo "DIE: $*" >&2; return 1; }
+  info() { :; }
+  # shellcheck source=../../scripts/lib/seal-extra-namespaces.sh
+  source "$SEAL_LIB"
+}
+
+# Stub kubeseal: wrap the input manifest verbatim in a SealedSecret envelope.
+seal_stub_dir() {
+  local d="${BATS_TEST_TMPDIR}/stub"
+  mkdir -p "$d"
+  cat > "${d}/kubeseal" <<'STUB'
+#!/usr/bin/env bash
+cat
+echo "kind: SealedSecret"
+STUB
+  chmod +x "${d}/kubeseal"
+  echo "$d"
+}
+
+@test "seal lib: extra_namespaces entry without type defaults to Opaque" {
+  load_seal_lib
+  local secrets="${BATS_TEST_TMPDIR}/s.yaml"
+  echo 'SOME_TOKEN: "plain-value"' > "$secrets"
+  local out="${BATS_TEST_TMPDIR}/m-opaque.yaml"
+
+  build_secret_manifest "$out" "flux-system" "some-secret" \
+    "SOME_TOKEN:=:token:=:false:=:-:=:-" "$secrets" ""
+  grep -q '^type: Opaque$' "$out"
+  grep -q 'token: "plain-value"' "$out"
+}
+
+@test "seal lib: schema type is passed through to the manifest" {
+  load_seal_lib
+  local secrets="${BATS_TEST_TMPDIR}/s.yaml"
+  echo 'SOME_TOKEN: "plain-value"' > "$secrets"
+  local out="${BATS_TEST_TMPDIR}/m-typed.yaml"
+
+  build_secret_manifest "$out" "flux-system" "ghcr-auth" \
+    "SOME_TOKEN:=:token:=:false:=:-:=:-" "$secrets" "" \
+    "kubernetes.io/dockerconfigjson"
+  grep -q '^type: kubernetes.io/dockerconfigjson$' "$out"
+}
+
+@test "seal lib: dockerconfigjson is assembled from username and token" {
+  load_seal_lib
+  local secrets="${BATS_TEST_TMPDIR}/s.yaml"
+  cat > "$secrets" <<'YAML'
+GHCR_USERNAME: "test-user"
+GHCR_PAT: "test-token-42"
+YAML
+  local out="${BATS_TEST_TMPDIR}/m-dcj.yaml"
+
+  build_secret_manifest "$out" "flux-system" "ghcr-auth" \
+    "GHCR_PAT:=:.dockerconfigjson:=:false:=:ghcr.io:=:GHCR_USERNAME" \
+    "$secrets" "" "kubernetes.io/dockerconfigjson"
+
+  local expect
+  expect=$(printf '%s' 'test-user:test-token-42' | base64 | tr -d '\n')
+  grep -q "{\"auths\":{\"ghcr.io\":{\"auth\":\"${expect}\"}}}" "$out"
+  # Gegenprobe: der rohe Token darf nicht unverpackt im Manifest stehen.
+  ! grep -q 'test-token-42' "$out"
+}
+
+@test "seal lib: output_file routes documents away from the collected file" {
+  load_seal_lib
+  local work="${BATS_TEST_TMPDIR}/routed"
+  mkdir -p "$work"
+  local secrets="${work}/s.yaml" schema="${work}/schema.yaml"
+  local collected="${work}/collected.yaml" cert="${work}/c.pem"
+  : > "$collected"; : > "$cert"
+  cat > "$secrets" <<'YAML'
+GHCR_USERNAME: "test-user"
+GHCR_PAT: "test-token-42"
+FLUX_WEBHOOK_TOKEN: "webhook-token-42"
+OTHER_KEY: "other-value"
+YAML
+  cat > "$schema" <<'YAML'
+version: 1
+secrets:
+  - name: GHCR_PAT
+    required: false
+    extra_namespaces:
+      - namespace: flux-system
+        secret: ghcr-auth
+        type: kubernetes.io/dockerconfigjson
+        registry: ghcr.io
+        username_key: GHCR_USERNAME
+        dest_key: .dockerconfigjson
+        output_file: bootstrap/ghcr-auth-sealedsecret.yaml
+  - name: FLUX_WEBHOOK_TOKEN
+    required: false
+    extra_namespaces:
+      - namespace: flux-system
+        secret: flux-webhook-token
+        dest_key: token
+        output_file: bootstrap/flux-webhook-token-sealedsecret.yaml
+  - name: OTHER_KEY
+    required: false
+    extra_namespaces:
+      - namespace: website
+        secret: website-secrets
+YAML
+
+  ENV_NAME=mentolder ENV_FILE="${work}/none.yaml" \
+  SEAL_OUTPUT_ROOT="$work" PATH="$(seal_stub_dir):${PATH}" \
+    seal_extra_namespace_secrets "$schema" "$secrets" "$cert" "$collected"
+
+  [ -f "${work}/bootstrap/ghcr-auth-sealedsecret.yaml" ]
+  [ -f "${work}/bootstrap/flux-webhook-token-sealedsecret.yaml" ]
+  grep -q 'name: ghcr-auth' "${work}/bootstrap/ghcr-auth-sealedsecret.yaml"
+  grep -q 'task env:seal ENV=mentolder' "${work}/bootstrap/ghcr-auth-sealedsecret.yaml"
+  # Die Sammeldatei enthält nur das Mapping ohne output_file.
+  ! grep -q 'flux-system' "$collected"
+  grep -q 'name: website-secrets' "$collected"
+}
+
+@test "seal lib: empty source keys leave the output_file untouched" {
+  load_seal_lib
+  local work="${BATS_TEST_TMPDIR}/guard"
+  mkdir -p "${work}/bootstrap"
+  local secrets="${work}/s.yaml" schema="${work}/schema.yaml"
+  local collected="${work}/collected.yaml" cert="${work}/c.pem"
+  local target="${work}/bootstrap/flux-webhook-token-sealedsecret.yaml"
+  : > "$collected"; : > "$cert"
+  echo "LIVE-CIPHERTEXT-MUST-SURVIVE" > "$target"
+  echo 'FLUX_WEBHOOK_TOKEN: ""' > "$secrets"
+  cat > "$schema" <<'YAML'
+version: 1
+secrets:
+  - name: FLUX_WEBHOOK_TOKEN
+    required: false
+    extra_namespaces:
+      - namespace: flux-system
+        secret: flux-webhook-token
+        dest_key: token
+        output_file: bootstrap/flux-webhook-token-sealedsecret.yaml
+YAML
+
+  ENV_NAME=mentolder ENV_FILE="${work}/none.yaml" \
+  SEAL_OUTPUT_ROOT="$work" PATH="$(seal_stub_dir):${PATH}" \
+    seal_extra_namespace_secrets "$schema" "$secrets" "$cert" "$collected"
+
+  grep -q 'LIVE-CIPHERTEXT-MUST-SURVIVE' "$target"
+}
+
+@test "schema: flux-system mappings are owned by mentolder only" {
+  local schema="${PROJECT_DIR}/environments/schema.yaml"
+  [ -f "$schema" ] || skip "environments/schema.yaml not found"
+
+  python3 - "$schema" <<'PY'
+import sys, yaml
+with open(sys.argv[1]) as f:
+    schema = yaml.safe_load(f) or {}
+seen = {}
+for entry in schema.get("secrets") or []:
+    for m in entry.get("extra_namespaces") or []:
+        if m.get("namespace") != "flux-system":
+            continue
+        assert [str(b).lower() for b in m.get("owner_brand") or []] == ["mentolder"], \
+            f"{entry['name']} → flux-system needs owner_brand: [mentolder]"
+        assert m.get("output_file"), f"{entry['name']} → flux-system needs output_file"
+        seen[m["secret"]] = m["output_file"]
+for name in ("ghcr-auth", "flux-webhook-token"):
+    assert name in seen, f"schema does not map flux-system/{name}"
+    assert seen[name].startswith("flux/clusters/fleet/bootstrap/"), seen[name]
+PY
+}
+
 @test "env-generate: refuses to overwrite existing secrets file" {
   local env_dir="${BATS_TEST_TMPDIR}/environments"
   mkdir -p "${env_dir}/.secrets"

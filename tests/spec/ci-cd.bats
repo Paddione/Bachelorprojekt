@@ -1234,3 +1234,95 @@ MOCKEOF
   [ -n "$diff_line" ]
   [ "$regen_line" -lt "$diff_line" ]
 }
+
+# ── T002249: Renovate bricht an bewegtem `main` ab und meldet trotzdem Erfolg.
+#    Renovate liest die Base-Branch-SHA beim Klonen und prueft sie vor dem
+#    Schreiben erneut (optimistic concurrency). Bei Drift verwirft es den
+#    gesamten Repo-Lauf mit result=repository-changed — ohne Retry und mit
+#    Exit-Code 0. Gemessen an Run 30238038240: 157s Laufzeit (30s Extraktion
+#    fuer 192 Dateien/983 Deps, 127s Lookup), dann Abbruch. Dem stehen ~103
+#    Commits/Tag auf main gegenueber (factory-tick alle 5-6 min, Freshness-Bot,
+#    Auto-Merges) — ein driftfreies 157s-Fenster ist waehrend aktiver Stunden
+#    nicht zu erwischen. Ergebnis: seit T000898 (2026-06-17) null Renovate-PRs,
+#    bei zehn aufeinanderfolgenden Runs mit conclusion=success.
+#    Alle vier Tests sind erwartet: FAIL — der Fix ist noch nicht implementiert.
+
+@test "T002249-A: renovate.yml wiederholt den Lauf bei repository-changed" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  grep -q 'repository-changed' "$wf" || {
+    echo "FAIL: renovate.yml wertet das Lauf-Ergebnis nicht aus."
+    echo "      Renovate schreibt bei Base-SHA-Drift '\"result\": \"repository-changed\"'"
+    echo "      ins Log und beendet sich mit Exit-Code 0. Ohne Auswertung dieser"
+    echo "      Zeile kann der Workflow den Fehlschlag weder erkennen noch"
+    echo "      wiederholen — er meldet Erfolg fuer einen Lauf, der nichts getan hat."
+    return 1
+  }
+  grep -qE 'for attempt|while .*attempt|RENOVATE_MAX_ATTEMPTS' "$wf" || {
+    echo "FAIL: renovate.yml enthaelt keine Retry-Schleife."
+    echo "      repository-changed ist upstream als transient modelliert ('state ist"
+    echo "      stale, wirf alles weg und starte neu') — der Neustart ist Aufgabe des"
+    echo "      Aufrufers, Renovate selbst wiederholt NICHT. Erwartet: bis zu 3"
+    echo "      Versuche ohne Backoff (Warten hilft nicht, die Schreiblast auf main"
+    echo "      ist ueber die Zeit verteilt; der Folgeversuch profitiert stattdessen"
+    echo "      vom warmen Cache und ist damit kuerzer)."
+    return 1
+  }
+}
+
+@test "T002249-B: renovate.yml endet rot, wenn alle Versuche repository-changed liefern" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  grep -qE '^\s*exit 1|::error' "$wf" || {
+    echo "FAIL: renovate.yml kann nicht fehlschlagen."
+    echo "      Der eigentliche Defekt ist nicht der Abbruch, sondern seine Stille:"
+    echo "      Exit-Code 0 laesst zehn Runs auf 'success' stehen, waehrend 47"
+    echo "      angehakte Checkboxen im Dependency Dashboard #3219 unbemerkt warten."
+    echo "      Das Monitoring-Signal ist invertiert — der Workflow meldet Erfolg"
+    echo "      genau dann, wenn er seine Aufgabe verfehlt hat. Erwartet: nach dem"
+    echo "      letzten erfolglosen Versuch 'exit 1' (fail-closed)."
+    return 1
+  }
+}
+
+@test "T002249-C: renovate.yml aktiviert und persistiert den Repository-Cache" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  grep -qE 'RENOVATE_REPOSITORY_CACHE.*enabled' "$wf" || {
+    echo "FAIL: RENOVATE_REPOSITORY_CACHE ist nicht auf 'enabled' gesetzt"
+    echo "      (Default ist 'disabled'). Von 157s Laufzeit entfallen 127s auf die"
+    echo "      Datasource-Lookups — genau die Phase, die der JSON-Cache abkuerzt."
+    echo "      Ein kuerzerer Lauf bietet der Base-SHA-Drift ein kleineres Fenster."
+    return 1
+  }
+  grep -q 'RENOVATE_CACHE_DIR' "$wf" || {
+    echo "FAIL: RENOVATE_CACHE_DIR ist nicht gesetzt (Default null). Ohne"
+    echo "      definiertes Verzeichnis gibt es nichts, was actions/cache"
+    echo "      zwischen zwei Runs persistieren koennte."
+    return 1
+  }
+  grep -qE 'uses: actions/cache@' "$wf" || {
+    echo "FAIL: kein actions/cache-Step. Der Repository-Cache lebt sonst nur"
+    echo "      innerhalb eines einzelnen Runs und ist beim naechsten Lauf kalt —"
+    echo "      die 127s-Lookup-Phase kaeme unveraendert zurueck."
+    return 1
+  }
+}
+
+@test "T002249-D: renovate.yml ruft das Renovate-Image digest-gepinnt direkt auf" {
+  local wf="$REPO_ROOT/.github/workflows/renovate.yml"
+  grep -qE 'ghcr\.io/renovatebot/renovate:[^@[:space:]]+@sha256:[0-9a-f]{64}' "$wf" || {
+    echo "FAIL: das Renovate-Image ist nicht digest-gepinnt aufgerufen."
+    echo "      Der Container erhaelt den GitHub-App-Installation-Token — es gilt"
+    echo "      dieselbe Supply-Chain-Konvention wie fuer die secret-tragenden"
+    echo "      Actions in dieser Datei (nie @latest, immer gepinnt). Erwartet:"
+    echo "      'ghcr.io/renovatebot/renovate:<tag>@sha256:<64 hex>' — Tag UND"
+    echo "      Digest, damit Renovates eigener docker-Manager den Pin bumpen kann."
+    return 1
+  }
+  ! grep -qE 'uses: renovatebot/github-action@' "$wf" || {
+    echo "FAIL: renovatebot/github-action wird weiterhin verwendet."
+    echo "      Die Action kapselt genau das docker-run, das die Retry-Schleife"
+    echo "      selbst ausfuehren muss; ein 'uses:'-Step laesst sich nicht"
+    echo "      schleifen. Beides parallel zu behalten bedeutet zwei"
+    echo "      Renovate-Laeufe pro Job. Erwartet: die Action ist ersetzt."
+    return 1
+  }
+}

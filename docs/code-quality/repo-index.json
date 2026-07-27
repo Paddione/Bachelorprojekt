@@ -2923,7 +2923,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 554,
+      "file_count": 555,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3317,6 +3317,7 @@
         "scripts/llm/start-rerank-server.ps1",
         "scripts/lmstudio-preload.sh",
         "scripts/mcp-gateway/mcp-gateway.service",
+        "scripts/mcp-sync.sh",
         "scripts/merge-domains.mjs",
         "scripts/migrate-bugs-to-tickets.mjs",
         "scripts/migrate-eur-on-payment.ts",

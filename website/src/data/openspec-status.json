@@ -1719,6 +1719,12 @@
       "status": "archived"
     }
   ],
+  "T002304": [
+    {
+      "slug": "2026-07-27-agent-definitions-unification",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

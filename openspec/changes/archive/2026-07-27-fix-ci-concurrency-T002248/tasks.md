@@ -2,7 +2,7 @@
 title: "fix-ci-concurrency-T002248 — Implementation Plan"
 ticket_id: T002248
 domains: [ci, tests, docs]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

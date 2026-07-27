@@ -592,6 +592,11 @@ tasks:
         tests/unit/T000617-alert-rules.bats
         tests/unit/vendored-bats.bats
 
+  test:unit:verification-block-order:
+    internal: true
+    cmds:
+      - ./tests/unit/lib/bats-core/bin/bats tests/unit/verification-block-order.bats
+
   test:unit:coverage-guard:
     internal: true
     # Fail if any tests/unit/*.bats is neither run by a task nor allowlisted.

@@ -66,12 +66,20 @@ $Params = @(
   "--port", "8096"
 )
 
-$Job = Start-Job -ScriptBlock {
-  param($Exe, $Params)
-  & $Exe @Params
-} -ArgumentList $Exe, $Params
+# T002276: hier stand ein Job-basierter Start. Ein Job haengt an der
+# PowerShell-SITZUNG - endet sie, stirbt der Server mit. Empirisch geprueft:
+# nach Aufruf aus einer transienten Sitzung lief kein llama-server mehr und
+# :8096 antwortete nicht. Damit war Autostart strukturell unmoeglich, denn eine
+# Scheduled Task oder ein Startup-Eintrag beendet die Sitzung nach dem
+# Skriptlauf. Start-Process erzeugt einen eigenstaendigen Prozess, der das
+# Sitzungsende ueberlebt.
+$logDir = Split-Path $Exe -Parent
+$proc = Start-Process -FilePath $Exe -ArgumentList $Params -WindowStyle Hidden -PassThru `
+          -RedirectStandardOutput (Join-Path $logDir "rerank-out.log") `
+          -RedirectStandardError  (Join-Path $logDir "rerank-err.log")
+"PID: $($proc.Id)" | Out-File -FilePath (Join-Path $logDir "rerank.pid") -Encoding ascii
 
-Write-Host "Rerank server started (Job ID: $($Job.Id))"
+Write-Host "Rerank server started (PID: $($proc.Id))"
 Write-Host "Endpoint: http://127.0.0.1:8096/v1/rerank"
 Write-Host ""
 Write-Host ""

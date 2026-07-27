@@ -77,6 +77,21 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
+@test "T002383: bundling is driven periodically from the factory tick" {
+  # Ohne periodischen Schnitt waechst der Buffer bei niedriger Aktivitaet
+  # unbegrenzt alt — die angehobene Schwelle allein wuerde ihn nie leeren.
+  run grep -q 'flush-stale-mishaps' "$REPO/scripts/factory/wakeup.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002383: the mishap buffer path resolves the shared git dir" {
+  # In einem git-Worktree ist .git eine DATEI — filepath.Join(root, ".git", …)
+  # laeuft dort in ENOTDIR und writeBuffer verwarf den Fehler still.
+  local src="$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  run grep -q 'git-common-dir' "$src"
+  [ "$status" -eq 0 ]
+}
+
 @test "T002383: the skill documents that the buffer survives a session" {
   # Gegenprobe zum Test darueber: Der Flush darf nicht ersatzlos verschwinden,
   # sondern muss durch die Aussage ersetzt sein, dass Liegenbleiben sicher ist.

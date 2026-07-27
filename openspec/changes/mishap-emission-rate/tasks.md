@@ -34,7 +34,7 @@ openspec/changes/mishap-emission-rate/specs/mcp-skill-integration.md   (neu — 
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Die drei Tests liegen bereits im Stage-Commit dieses
+- [x] **Failing-Test-Step (RED).** Die drei Tests liegen bereits im Stage-Commit dieses
       Branches in `tests/spec/mcp-skill-integration.bats` (Marker `T002383`): Schwellenwert
       ist 10; die Skill-Datei behauptet nicht mehr, am Session-Ende ginge etwas verloren; und
       sie erklärt stattdessen, dass der Buffer persistent ist. Der dritte Test ist die
@@ -46,7 +46,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-skill-integration.bats -f "T002
 # expected: FAIL (rot — alle drei scheitern, weder Konstante noch Skill sind geändert)
 ```
 
-- [ ] **Fix-Step A (GREEN) — Schwelle anheben.** In
+- [x] **Fix-Step A (GREEN) — Schwelle anheben.** In
       `scripts/ticket-mcp/go/internal/tools/mishap.go` Zeile 20
       `const MISHAP_TRIGGER = 3` auf `10` setzen. Kein Test verankert derzeit den Wert 3, die
       Änderung ist einzeilig. Die Statusmeldungen ziehen automatisch mit, weil sie
@@ -55,7 +55,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-skill-integration.bats -f "T002
       Die Beschreibung des `flush_mishap_buffer`-Tools (Zeile 215) nennt die Schwelle als
       Literal „<3" im Fließtext — diese eine Stelle von Hand nachziehen.
 
-- [ ] **Fix-Step B (GREEN) — Session-Ende-Flush entfernen.** In
+- [x] **Fix-Step B (GREEN) — Session-Ende-Flush entfernen.** In
       `.claude/skills/mishap-tracker/SKILL.md` Schritt 3 ("Buffer am Ende flushen") umschreiben:
       Der unbedingte Flush bei < Schwelle entfällt. Der Satz „damit am Session-Ende nichts
       verloren geht" muss weg — er ist sachlich falsch, weil `mishapBufferPath()` den Buffer
@@ -70,7 +70,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-skill-integration.bats -f "T002
       weiter oben) greppt darauf. Er bleibt als *bewusster* manueller Schnitt dokumentiert,
       nur nicht mehr als Pflichtschritt.
 
-- [ ] **Aufrufende Skills prüfen.** `dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`,
+- [x] **Aufrufende Skills prüfen.** `dev-flow-plan`, `dev-flow-execute`, `dev-flow-chore`,
       `infra-ops`, `incident-response` und `ticket-ops` verweisen auf den mishap-tracker.
       Vor der Kürzung die Test-Kopplung prüfen, sonst reißen Ketten (T001441/T002181):
 
@@ -79,12 +79,12 @@ grep -rl 'mishap-tracker/SKILL.md' tests/
 grep -rn 'flush_mishap_buffer' .claude/skills/
 ```
 
-- [ ] **Periodischen Flush ergänzen.** Damit der Buffer nicht unbegrenzt wächst, einen
+- [x] **Periodischen Flush ergänzen.** Damit der Buffer nicht unbegrenzt wächst, einen
       periodischen Schnitt vorsehen — naheliegend im Factory-Tick (`scripts/factory/wakeup.sh`,
       analog zu `auto-enqueue`/`auto-triage`) oder als eigener Task. Ein Buffer, der nur noch
       bei Erreichen von 10 leert, ist andernfalls bei niedriger Aktivität unbegrenzt alt.
 
-- [ ] **Nebenbefund verifizieren: Worktree-Pfad.** `mishapBufferPath()` baut
+- [x] **Nebenbefund verifizieren: Worktree-Pfad.** `mishapBufferPath()` baut
       `filepath.Join(runner.RepoRoot(), ".git", "mishap-buffer.json")`. In einem git-Worktree
       ist `.git` eine **Datei**, kein Verzeichnis — dort könnte das Schreiben still
       fehlschlagen und Mishaps aus Worktree-Sessions verlieren. Prüfen und, falls bestätigt,
@@ -95,7 +95,7 @@ grep -rn 'flush_mishap_buffer' .claude/skills/
 cd .worktrees/<irgendein-worktree> && ls -la .git && test -f .git && echo ".git ist eine DATEI — Pfad-Annahme gebrochen"
 ```
 
-- [ ] **Wirksamkeit sicherstellen — Binary neu bauen.** Das `ticket-mcp-go`-Binary ist
+- [x] **Wirksamkeit sicherstellen — Binary neu bauen.** Das `ticket-mcp-go`-Binary ist
       **gitignored** (`scripts/ticket-mcp/.gitignore`) und wird per Task nach
       `/usr/local/bin` installiert. Der Merge allein ändert den laufenden MCP-Server **nicht**;
       die Schwelle bliebe bei 3, bis jemand neu baut. Nach dem Merge:
@@ -106,7 +106,7 @@ task ticket-mcp:build
 # (report_mishap antwortet dann "1/10", nicht "1/3")
 ```
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

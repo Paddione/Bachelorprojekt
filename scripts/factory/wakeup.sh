@@ -203,6 +203,20 @@ while true; do
     BRAND="$_t_brand" bash "${REPO}/scripts/factory/auto-triage.sh" 2>&1 \
       | sed "s/^/[auto-triage:${_t_brand}] /" >&2 || true
   done
+  # T002383: Periodischer Mishap-Buffer-Schnitt. Ersetzt den erzwungenen
+  # Session-Ende-Flush im mishap-tracker-Skill, der Ein-Eintrag-Bundles erzeugte:
+  # pro dev-flow-Zyklus mindestens ein Bundle-Ticket, das selbst wieder einen
+  # Zyklus verbraucht — nicht konvergent. Der Schnitt hängt jetzt am Alter des
+  # ältesten Eintrags (Default 7 Tage), nicht an einer Session-Grenze, und
+  # bündelt daher unabhängig vom Durchsatz höchstens ein Ticket pro Woche.
+  # Das Binary ist gitignored und liegt erst nach `task ticket-mcp:build` auf
+  # dem PATH — fehlt es, wird der Schritt still übersprungen (best-effort).
+  if command -v ticket-mcp-go >/dev/null 2>&1; then
+    for _mf_brand in mentolder korczewski; do
+      TICKET_MCP_REPO_ROOT="${REPO}" ticket-mcp-go --flush-stale-mishaps --brand "$_mf_brand" 2>&1 \
+        | sed "s/^/[mishap-flush:${_mf_brand}] /" >&2 || true
+    done
+  fi
   # T001805: PR-CI-Babysitter — repo-weit, brand-agnostisch, best-effort.
   bash "${REPO}/scripts/factory/babysit-prs.sh" 2>&1 \
     | sed 's/^/[babysit] /' >&2 || true

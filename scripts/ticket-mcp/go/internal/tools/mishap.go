@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -17,7 +18,21 @@ import (
 	"github.com/korczewski/bachelorprojekt/ticket-mcp/internal/runner"
 )
 
-const MISHAP_TRIGGER = 3
+// MISHAP_TRIGGER ist die Anzahl gepufferter Einträge, ab der automatisch ein
+// Bundle-Ticket entsteht.
+//
+// Der Wert muss ÜBER der mittleren Mishap-Zahl eines dev-flow-Zyklus liegen
+// (T002383). Jedes Bundle-Ticket verbraucht selbst einen Zyklus; liegt die
+// Emissionsrate bei ≥ 1 Bundle pro Zyklus, ist der Rückstand per Konstruktion
+// nicht abbaubar. Gemessen am 2026-07-28: bei Schwelle 3 entstanden an einem Tag
+// 32 Bundles, 19 blieben offen.
+const MISHAP_TRIGGER = 10
+
+// MISHAP_MAX_AGE ist das Alter, ab dem der Buffer auch unterhalb von
+// MISHAP_TRIGGER gebündelt wird. Der Schnitt erfolgt periodisch (Factory-Tick,
+// siehe scripts/factory/wakeup.sh), nicht mehr am Session-Ende — sonst
+// entstünden wieder Ein-Eintrag-Bundles.
+const MISHAP_MAX_AGE = 7 * 24 * time.Hour
 
 type MishapEntry struct {
 	Title       string `json:"title"`
@@ -37,8 +52,34 @@ type MishapBundle struct {
 
 var mishapMu sync.Mutex
 
+// gitCommonDir löst das gemeinsame Git-Verzeichnis eines Checkouts auf.
+//
+// In einem git-Worktree ist `.git` eine DATEI ("gitdir: …"), kein Verzeichnis —
+// ein Schreibversuch nach `<root>/.git/mishap-buffer.json` scheitert dort mit
+// ENOTDIR, und writeBuffer verwirft den Fehler stillschweigend. Genau so gingen
+// Mishaps aus Worktree-Sessions verloren (T002383, Nebenbefund verifiziert).
+//
+// `git rev-parse --git-common-dir` zeigt aus jedem Worktree auf dasselbe
+// Haupt-`.git`, sodass alle Sessions in denselben Buffer schreiben.
+func gitCommonDir(root string) string {
+	cmd := exec.Command("git", "rev-parse", "--git-common-dir")
+	cmd.Dir = root
+	out, err := cmd.Output()
+	if err != nil {
+		return filepath.Join(root, ".git")
+	}
+	dir := strings.TrimSpace(string(out))
+	if dir == "" {
+		return filepath.Join(root, ".git")
+	}
+	if !filepath.IsAbs(dir) {
+		dir = filepath.Join(root, dir)
+	}
+	return dir
+}
+
 func mishapBufferPath() string {
-	return filepath.Join(runner.RepoRoot(), ".git", "mishap-buffer.json")
+	return filepath.Join(gitCommonDir(runner.RepoRoot()), "mishap-buffer.json")
 }
 
 func readBuffer() []MishapEntry {
@@ -60,7 +101,12 @@ func writeBuffer(entries []MishapEntry) {
 	if err != nil {
 		return
 	}
-	_ = os.WriteFile(mishapBufferPath(), data, 0644)
+	// Fehler nicht verschlucken: ein fehlgeschlagener Write bedeutet verlorene
+	// Mishaps, und genau dieses stille Scheitern hat den Worktree-Bug oben so
+	// lange verborgen (T002383).
+	if err := os.WriteFile(mishapBufferPath(), data, 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "[mishap] Buffer-Write nach %s fehlgeschlagen: %v\n", mishapBufferPath(), err)
+	}
 }
 
 func classifyBundle(entries []MishapEntry) MishapBundle {
@@ -212,7 +258,10 @@ func RegisterMishapTools(s *server.MCPServer) {
 
 	s.AddTool(
 		mcp.NewTool("flush_mishap_buffer",
-			mcp.WithDescription("Erzwingt ein Bundle-Ticket aus dem aktuellen Buffer — auch bei <3 Einträgen (Session-Ende)."),
+			mcp.WithDescription(fmt.Sprintf(
+				"Erzwingt ein Bundle-Ticket aus dem aktuellen Buffer — auch unterhalb der Schwelle von %d Einträgen. Bewusster manueller Schnitt; NICHT routinemäßig am Session-Ende aufrufen, sonst entstehen Ein-Eintrag-Bundles (T002383).",
+				MISHAP_TRIGGER,
+			)),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
 		),
@@ -234,4 +283,46 @@ func RegisterMishapTools(s *server.MCPServer) {
 			return mcp.NewToolResultText(fmt.Sprintf("Bundle-Ticket angelegt: %s (%d Mishaps)\nBuffer geleert.", ext, len(buffer))), nil
 		},
 	)
+}
+
+// BufferIsStale entscheidet, ob der Buffer periodisch geschnitten werden soll:
+// er hält Einträge und der älteste davon ist mindestens maxAge alt.
+//
+// Der Schnitt hängt bewusst am Alter, nicht an einer Session-Grenze. Ein
+// Session-Ende-Flush erzeugt Ein-Eintrag-Bundles und damit genau die
+// Emissionsrate, die T002383 senkt; ein Alters-Schnitt hält den Buffer
+// dagegen beschränkt, ohne pro Zyklus ein Ticket zu emittieren.
+//
+// Einträge ohne parsebares ReportedAt gelten als NICHT alt — ein kaputter
+// Zeitstempel darf keinen Flush auslösen.
+func BufferIsStale(entries []MishapEntry, now time.Time, maxAge time.Duration) bool {
+	for _, e := range entries {
+		t, err := time.Parse(time.RFC3339, e.ReportedAt)
+		if err != nil {
+			continue
+		}
+		if now.Sub(t) >= maxAge {
+			return true
+		}
+	}
+	return false
+}
+
+// FlushStaleBuffer ist der periodische Schnitt für den Factory-Tick
+// (scripts/factory/wakeup.sh). Er legt nur dann ein Bundle-Ticket an, wenn der
+// Buffer nach BufferIsStale überfällig ist, und meldet sonst eine No-Op.
+func FlushStaleBuffer(brand string, maxAge time.Duration) (string, error) {
+	buffer := readBuffer()
+	if len(buffer) == 0 {
+		return "", nil
+	}
+	if !BufferIsStale(buffer, time.Now(), maxAge) {
+		return "", nil
+	}
+	ext, err := createMishapBundleTicket(buffer, brand)
+	if err != nil {
+		return "", err
+	}
+	writeBuffer([]MishapEntry{})
+	return ext, nil
 }

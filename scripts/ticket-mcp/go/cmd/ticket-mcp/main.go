@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/mark3labs/mcp-go/server"
 
@@ -18,7 +19,29 @@ import (
 
 func main() {
 	httpFlag := flag.Bool("http", false, "Starte im HTTP-Modus (StreamableHTTP)")
+	flushStale := flag.Bool("flush-stale-mishaps", false,
+		"Einmaliger periodischer Buffer-Schnitt: bündelt den Mishap-Buffer, wenn sein ältester Eintrag überfällig ist, und beendet sich dann.")
+	flushBrand := flag.String("brand", "mentolder", "Brand für --flush-stale-mishaps")
+	flushMaxAgeDays := flag.Float64("flush-max-age-days", float64(tools.MISHAP_MAX_AGE)/float64(24*time.Hour),
+		"Alter in Tagen, ab dem --flush-stale-mishaps schneidet")
 	flag.Parse()
+
+	// Periodischer Schnitt (Factory-Tick, scripts/factory/wakeup.sh) — läuft
+	// bewusst als kurzlebiger Prozess und NICHT als MCP-Server, damit der Tick
+	// ihn ohne Session aufrufen kann (T002383).
+	if *flushStale {
+		maxAge := time.Duration(*flushMaxAgeDays * float64(24*time.Hour))
+		ext, err := tools.FlushStaleBuffer(*flushBrand, maxAge)
+		if err != nil {
+			log.Fatalf("flush-stale-mishaps fehlgeschlagen: %s", err.Error())
+		}
+		if ext == "" {
+			fmt.Println("Mishap-Buffer nicht überfällig — kein Bundle-Ticket angelegt.")
+		} else {
+			fmt.Printf("Bundle-Ticket angelegt: %s\n", ext)
+		}
+		return
+	}
 
 	httpMode := *httpFlag || os.Getenv("TICKET_MCP_HTTP") == "1"
 

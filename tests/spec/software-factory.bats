@@ -2119,8 +2119,10 @@ STUB
 }
 
 # ── FA-SF-52: mishap auto-chore-plan factory plumbing [T001844] ──────────────#
-@test "FA-SF-52: queue.sh also selects plan_staged task tickets" {
-  run grep -Eq "type='task' AND status='plan_staged'" scripts/factory/queue.sh
+@test "FA-SF-52: queue.sh also selects plan_staged task and bug tickets" {
+  # T002333 widened this branch from type='task' to type IN ('task','bug') — the
+  # staged plan is the contract for both types, so both bypass the lastenheft gate.
+  run grep -Eq "type IN \('task','bug'\) AND status='plan_staged'" scripts/factory/queue.sh
   [ "$status" -eq 0 ]
 }
 

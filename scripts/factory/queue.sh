@@ -28,11 +28,17 @@ FROM (
       (type='feature' AND status='backlog'
        AND COALESCE((readiness->>'lastenheft_locked')::boolean, false) = true
        AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false)
-      -- Staged chore/task tickets (e.g. mishap-tracker auto-plans): the plan is
-      -- already authored + lint-gated by stage-plan, so no lastenheft gate applies.
+      -- Staged chore/task and bug tickets (mishap-tracker auto-plans, dev-flow-plan
+      -- fix plans): the plan is already authored + lint-gated by stage-plan, so no
+      -- lastenheft gate applies.
       -- execution_released=true is the default (backward-compatible: only tickets
       -- explicitly held via stage-plan --hold are excluded from dispatch).
-      OR (type='task' AND status='plan_staged'
+      --
+      -- type='bug' joined this branch in T002333 rather than getting its own OR
+      -- branch. A separate branch would have to repeat both readiness gates below,
+      -- and that is exactly how they drift apart — T002361 existed because one gate
+      -- was present in only one of the two branches. One branch, one set of gates.
+      OR (type IN ('task','bug') AND status='plan_staged'
           AND COALESCE((readiness->>'execution_released')::boolean, true) = true
           AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false)
     )

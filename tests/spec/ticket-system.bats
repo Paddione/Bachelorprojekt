@@ -93,3 +93,39 @@
   [ "$status" -eq 0 ]
   [[ "$output" == *"NS=workspace"* ]]
 }
+
+# ── [T002282] update-status muss den agent-lock.sh-Claim respektieren ────────
+#
+# `agent-lock.sh` ist heute rein advisory: Dispatch-Gates (dispatcher-prep.sh,
+# factory-prep-bridge.sh, babysit-prs.sh) fragen `check ticket <id>` vor dem
+# Dispatch ab, aber der Schreib-Pfad `scripts/vda/ticket/update-status.sh` hat
+# NULL Bezug dazu — `grep -rn agent-lock scripts/vda/ticket/ scripts/ticket.sh`
+# liefert 0 Treffer. Jede zweite Session kann den Status eines fremd gelockten
+# Tickets überschreiben; genau dieser Rückschritt wurde bei T002270 beobachtet.
+
+@test "T002282-M3: update-status verweigert den Write bei fremdem agent-lock-Claim" {
+  local repo ald
+  repo="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+  ald="$(mktemp -d)"
+
+  # Session A hält den Ticket-Lock.
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_SESSION_ID="t002282-session-a" \
+    bash "$repo/scripts/agent-lock.sh" claim ticket T002282 --label foreign-session
+  [ "$status" -eq 0 ]
+
+  # Vorbedingung: aus Session B meldet check 'held' (Exit 3).
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_SESSION_ID="t002282-session-b" \
+    bash "$repo/scripts/agent-lock.sh" check ticket T002282
+  [ "$status" -eq 3 ]
+
+  # Session B versucht den Status-Write — muss abgelehnt werden.
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_SESSION_ID="t002282-session-b" \
+    bash "$repo/scripts/ticket.sh" update-status --id T002282 --status done
+  rm -rf "$ald"
+
+  [ "$status" -ne 0 ]
+  [[ "${output,,}" == *"agent-lock"* ]] || { echo "keine agent-lock-Ablehnung: $output"; return 1; }
+  # Der Guard muss VOR dem Cluster-Zugriff greifen — _pgpod darf nie laufen.
+  [[ "$output" != *"no shared-db pod found"* ]] || {
+    echo "Guard griff nicht: der Write lief bis _pgpod durch: $output"; return 1; }
+}

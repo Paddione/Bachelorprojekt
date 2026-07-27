@@ -187,18 +187,10 @@ assert_var_not_declared() {
   [ "$status" -eq 0 ]
 }
 
-# Hier ist die Inline-String-Form korrekt — register-scheduled-tasks.ps1 baut die
-# Argumente als eine zusammenhaengende Kommandozeile fuer schtasks.exe.
-@test "register-scheduled-tasks.ps1 passes -b/-ub 8192 to the embed server (T002260)" {
-  run grep -qE 'bge-m3-Q8_0\.gguf.*-b 8192 -ub 8192' "$REPO/scripts/llm/register-scheduled-tasks.ps1"
-  [ "$status" -eq 0 ]
-}
-
-@test "register-scheduled-tasks.ps1 passes -b/-ub 8192 to the rerank server (T002260)" {
-  run grep -qE 'bge-reranker-v2-m3-Q8_0\.gguf.*-b 8192 -ub 8192' "$REPO/scripts/llm/register-scheduled-tasks.ps1"
-  [ "$status" -eq 0 ]
-}
-
+# T002276: die beiden Guards, die dieselben Flags in den Args-Zeilen von
+# register-scheduled-tasks.ps1 prueften, sind entfallen. Dort gibt es keine Args
+# mehr (der Task verweist auf das Startskript), und die beiden Guards oben
+# pruefen die Flags bereits an ihrer einzigen verbleibenden Stelle.
 # T002264: der Zugriff stand auf $Task.Expr, ein Key dieses Namens existiert nicht.
 # PowerShell liefert dafür still $null, also wurde jede Scheduled Task mit leerem
 # Executable-Pfad registriert (/tr "" <args>) und konnte nichts starten — der
@@ -236,33 +228,45 @@ assert_var_not_declared() {
   [ "$status" -ne 0 ]
 }
 
-# ── Bonsai-Autostart-Argumente (T002274) ──────────────────────────────
-# Der Task-Eintrag war ein Schnappschuss einer verworfenen Konfiguration:
-# nicht existierende TQ2_0-Datei, Upstream-Build ohne CUDA-Kernel fuer dieses
-# Format, und -np 4 statt des nach T002102 bewusst gewaehlten Einzel-Slots.
-# Die Guards greifen bewusst NUR die Args-/Exe-ZEILE (identifiziert ueber
-# --port 8093 bzw. den Fork-Pfad) und nicht die Datei als Ganzes — der
-# Kommentar am Eintrag nennt die alten, falschen Werte absichtlich.
+# ── Autostart-Struktur (T002276) ──────────────────────────────────────
+# Ersetzt die frueheren T002274-Guards. Jene prueften die Bonsai-Argumente
+# INNERHALB von register-scheduled-tasks.ps1 — diese Argumente existieren nicht
+# mehr: der Task verweist jetzt auf das jeweilige Startskript. Zwei Gruende:
+# schtasks begrenzt /tr auf 261 Zeichen (Bonsai brauchte 338, Embed 262), und die
+# Argumente lagen doppelt vor (Registrierung UND Startskript) — genau die
+# Zwei-Wahrheiten-Falle, die bei start-embeddings.ps1 die -b/-ub-Flags
+# verschluckt hat. Bonsai ist zusaetzlich aus dem Autostart entfernt.
 
-@test "Bonsai task uses the existing prism-ml Q2_0 model, not TQ2_0 (T002274)" {
-  run bash -c "grep -E '^[[:space:]]+Args = .*--port 8093' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -q 'prism-ml.*Ternary-Bonsai-8B-Q2_0\\.gguf'"
-  [ "$status" -eq 0 ]
-  # TQ2_0 hat in keinem der Builds CUDA-Kernel -> waere CPU-Notbetrieb
-  run bash -c "grep -E '^[[:space:]]+Args = .*--port 8093' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -q 'TQ2_0'"
+@test "register-scheduled-tasks.ps1 points tasks at start scripts (T002276)" {
+  run bash -c "grep -E '^[[:space:]]+Args = ' '$REPO/scripts/llm/register-scheduled-tasks.ps1'"
   [ "$status" -ne 0 ]
+  run bash -c "grep -cE '^[[:space:]]+Script = ' '$REPO/scripts/llm/register-scheduled-tasks.ps1'"
+  [ "$output" -ge 2 ]
 }
 
-@test "Bonsai task runs a single slot, not -np 4 (T002274)" {
-  run bash -c "grep -E '^[[:space:]]+Args = .*--port 8093' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -qE '\\-np 1( |$)'"
+@test "register-scheduled-tasks.ps1 checks schtasks exit codes (T002276)" {
+  # Vorher: Ausgabe nach Out-Null plus unbedingtes "[ok] registered" - das Skript
+  # meldete dreimal Erfolg, obwohl kein einziger Task entstand.
+  run grep -q 'LASTEXITCODE -ne 0' "$REPO/scripts/llm/register-scheduled-tasks.ps1"
   [ "$status" -eq 0 ]
-  run bash -c "grep -E '^[[:space:]]+Args = .*--port 8093' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -qE '\\-np 4( |$)'"
-  [ "$status" -ne 0 ]
 }
 
-@test "Bonsai task uses the PrismML fork build (T002274)" {
-  # Nur der Fork hat CUDA-Kernel fuer Q2_0.
-  run bash -c "grep -vE '^[[:space:]]*#' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -qE 'Exe = .*llama-bonsai-cuda13\\.3'"
+@test "no scripts/llm/*.ps1 starts a server via Start-Job (T002276)" {
+  # Ein Job haengt an der PowerShell-Sitzung; endet sie, stirbt der Server mit.
+  # Kommentarzeilen ausgenommen - dort ist der alte Mechanismus dokumentiert.
+  run bash -c "grep -nE 'Start-Job[[:space:]]+-ScriptBlock' '$REPO'/scripts/llm/*.ps1 2>/dev/null"
+  [ -z "$output" ]
+}
+
+@test "install-startup-autostart.ps1 covers embed and rerank only (T002276)" {
+  [ -f "$REPO/scripts/llm/install-startup-autostart.ps1" ]
+  run grep -q "start-embed-server.ps1', 'start-rerank-server.ps1')" \
+      "$REPO/scripts/llm/install-startup-autostart.ps1"
   [ "$status" -eq 0 ]
+  # Chat-Server bewusst nicht im Autostart: stark unterschiedlicher VRAM-Bedarf,
+  # ein pauschaler Start wuerde dem Embedding-Stack den Speicher wegnehmen.
+  run bash -c "grep -nE '^[^#]*start-bonsai-server' '$REPO'/scripts/llm/*.ps1 2>/dev/null"
+  [ -z "$output" ]
 }
 
 # ── gpt-oss-20b als Factory-Kandidat (T002268) ────────────────────────
@@ -299,12 +303,16 @@ assert_var_not_declared() {
   [ "$status" -ne 0 ]
 }
 
-@test "register-scheduled-tasks.ps1 reads \$Task.Exe, not a nonexistent key (T002264)" {
-  run grep -qE '\$Exe[[:space:]]*=[[:space:]]*\$Task\.Exe' "$REPO/scripts/llm/register-scheduled-tasks.ps1"
+@test "register-scheduled-tasks.ps1 reads only defined hashtable keys (T002264/T002276)" {
+  # T002264 fand hier '$Exe = $Task.Expr' - einen Key, den die Hashtable nie
+  # definierte; PowerShell liefert dafuer still $null. Mit T002276 tragen die
+  # Eintraege nur noch Name/Description/Script, der Zugriff geht auf $Task.Script.
+  # Der Guard bleibt als Klasse erhalten: kein Zugriff auf einen undefinierten Key.
+  run bash -c "grep -vE '^[[:space:]]*#' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -oE '\\\$Task\\.[A-Za-z]+' | sort -u"
   [ "$status" -eq 0 ]
-  # Kein CODE-Zugriff auf einen Key, den die Hashtable nicht definiert.
-  # PowerShell-Kommentarzeilen (#) vorher wegfiltern — der Fix ist dort mitsamt
-  # des alten, falschen Namens dokumentiert, und das soll so bleiben.
-  run bash -c "grep -vE '^[[:space:]]*#' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -qE '\\\$Task\\.Expr'"
-  [ "$status" -ne 0 ]
+  for key in $output; do
+    short="${key#\$Task.}"
+    run grep -qE "^[[:space:]]+$short = " "$REPO/scripts/llm/register-scheduled-tasks.ps1"
+    [ "$status" -eq 0 ]
+  done
 }

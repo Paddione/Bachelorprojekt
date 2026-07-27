@@ -165,7 +165,7 @@ npx vitest run scripts/index-repo.test.ts
 
 ```bash
 git add scripts/index-repo.ts scripts/index-repo.test.ts
-git commit -m "fix(scs): treat connection failures as fatal instead of per-file SKIP [T002292]"
+git commit -m "fix(scripts): treat connection failures as fatal instead of per-file SKIP [T002292]"
 ```
 
 ---
@@ -246,7 +246,7 @@ LLM_EMBED_URL=http://llm-gateway-embed.workspace.svc.cluster.local:8095 \
 
 ```bash
 git add scripts/index-repo.ts
-git commit -m "fix(scs): probe LLM_EMBED_URL for reachability before trusting it [T002292]"
+git commit -m "fix(scripts): probe LLM_EMBED_URL for reachability before trusting it [T002292]"
 ```
 
 ---
@@ -282,7 +282,10 @@ An `tests/unit/scs-index.bats` anhängen:
   # fuser -k signalisiert die eigene Prozessgruppe mit und beendet damit die
   # aufrufende Shell — im Taskfile faellt das nur deshalb nicht auf, weil
   # go-task jeden cmds-Block in einer eigenen Shell startet.
-  run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/Taskfile.yml' | grep -c 'fuser -k'"
+  # Nur ausfuehrbare Zeilen pruefen — der erklaerende Kommentar im Task
+  # nennt `fuser -k` selbst und darf den Guard nicht ausloesen.
+  run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/Taskfile.yml' \
+    | grep -v '^[[:space:]]*#' | grep -c 'fuser -k'"
   [[ "$output" -eq 0 ]]
 }
 ```
@@ -354,7 +357,7 @@ task test:inventory
 
 ```bash
 git add Taskfile.yml tests/unit/scs-index.bats website/src/data/test-inventory.json
-git commit -m "fix(scs): retry scs:index across port-forward drops [T002292]"
+git commit -m "fix(scripts): retry scs:index across port-forward drops [T002292]"
 ```
 
 ---

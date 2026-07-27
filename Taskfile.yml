@@ -4633,20 +4633,34 @@ tasks:
         [ "${ENV:-dev}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
         NS="${WORKSPACE_NAMESPACE:-workspace}"
 
-        fuser -k 15434/tcp 2>/dev/null || true
-        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 15434:5432 \
-          >/tmp/scs-index-pf.log 2>&1 &
-        PF=$!
-        trap 'kill $PF 2>/dev/null || true' EXIT
-        sleep 4
-        if ! nc -z 127.0.0.1 15434 2>/dev/null; then
-          echo "ERROR: port-forward not listening on 15434:" >&2
-          cat /tmp/scs-index-pf.log >&2
-          exit 1
-        fi
-
-        PGHOST=localhost PGPORT=15434 PGDATABASE=website PGUSER=website \
-          npx tsx scripts/index-repo.ts
+        # T002292: Der port-forward auf shared-db reisst reproduzierbar ab. Der
+        # Indexer bricht deshalb jetzt hart ab statt still weiterzuskippen —
+        # hier wird er so oft neu gestartet, bis er durchlaeuft. Das traegt,
+        # weil der Hash-Skip in indexFile() Laeufe resumierbar macht: ein
+        # abgebrochener Pass hinterlaesst einen konsistenten Teil-Index.
+        # Jeder Pass bekommt einen EIGENEN Port — kein `fuser -k`, das wuerde
+        # die eigene Prozessgruppe (und damit diese Shell) mit abschiessen.
+        rc=1
+        for pass in 1 2 3 4 5; do
+          port=$((15434 + pass))
+          kubectl $ctx_flag -n "$NS" port-forward svc/shared-db ${port}:5432 \
+            >/tmp/scs-index-pf.log 2>&1 &
+          pf=$!
+          sleep 4
+          if ! nc -z 127.0.0.1 $port 2>/dev/null; then
+            echo "→ Pass $pass: port-forward kam nicht hoch, neuer Versuch" >&2
+            cat /tmp/scs-index-pf.log >&2
+            kill $pf 2>/dev/null || true
+            continue
+          fi
+          PGHOST=localhost PGPORT=$port PGDATABASE=website PGUSER=website \
+            npx tsx scripts/index-repo.ts
+          rc=$?
+          kill $pf 2>/dev/null || true
+          [ $rc -eq 0 ] && break
+          echo "→ Pass $pass endete mit Exit $rc, setze fort" >&2
+        done
+        exit $rc
 
   scs:index-incremental:
     desc: "Incremental SCS reindex — pass changed file paths as args: task scs:index-incremental -- path/to/file.ts"

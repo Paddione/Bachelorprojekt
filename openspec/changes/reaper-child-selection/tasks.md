@@ -42,14 +42,20 @@ sie aus dem richtigen Grund rot sind.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -f 'T002350' tests/spec/mcp-gateway.bats
-# expected: FAIL — 9 der 10 Tests rot (list_reap_candidates fehlt, PROC_ROOT fehlt,
+# expected: FAIL — 10 der 11 Tests rot (list_reap_candidates fehlt, PROC_ROOT fehlt,
 # MCP_PG_CHILD_MAX_COUNT fehlt, Fixture- und Container-Auswahl nicht ausführbar).
 # Grün ist bereits: "age threshold stays above the statement_timeout" (300s > 120s
 # steht seit T002321 im Manifest) — dieser Test darf nicht kippen.
 ```
 
-Akzeptanz: 9 rote Tests aus dem richtigen Grund, der Timeout-Test bleibt grün, und die
-29 vorbestehenden Tests der Datei bleiben grün.
+Akzeptanz: 10 rote Tests aus dem richtigen Grund, der Timeout-Test bleibt grün, und die
+29 vorbestehenden Tests der Datei bleiben grün (Gesamtlauf der Datei: 30 grün, 10 rot).
+
+Die fünf Fixture-Tests tragen einen Positiv-Anker (`assert_selection_alive`): sie
+verlangen, dass das erwartete Child 4711 in der Kandidatenliste steht, **bevor** sie die
+Negativ-Aussage prüfen. Ohne ihn wäre „PID 1 steht nicht in der Liste" trivial erfüllt,
+solange die Funktion fehlt und die Liste leer ist — also genau die vakuose Grünfärbung,
+an der T002321 gescheitert ist. Beim Umsetzen darf dieser Anker nicht entfernt werden.
 
 ## Task 2 — Auswahl als eigene Funktion `list_reap_candidates`
 

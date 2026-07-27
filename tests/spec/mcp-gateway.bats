@@ -253,6 +253,33 @@ reaper_selection_fn() {
   pg_container_args | sed -n '/^list_reap_candidates()/,/^}/p'
 }
 
+# Laedt die Auswahlfunktion und laesst sie gegen das Fixture laufen.
+# Ausgabe-Kontrakt: je Kandidat eine Zeile "<starttime> <pid>", aeltester zuerst.
+run_selection() {  # <fixture> <self_pid>
+  local fixture="$1" self="$2" fn
+  fn="$(bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn")"
+  [ -n "$fn" ] || return 127
+  bash -c "$fn
+PROC_ROOT='$fixture' SELF_PID='$self' list_reap_candidates"
+}
+
+# Nur die PID-Spalte der Kandidatenliste.
+selected_pids() {  # <fixture> <self_pid>
+  run_selection "$1" "$2" | awk '{print $2}' | tr '\n' ' ' | sed 's/ $//'
+}
+
+# Positiv-Anker fuer die Negativtests. Ohne ihn wuerde "PID 1 ist nicht in der
+# Liste" trivial gelten, solange die Funktion fehlt und die Liste leer ist —
+# also genau die vakuose Gruenfaerbung, an der T002321 gescheitert ist.
+assert_selection_alive() {  # <kandidatenliste>
+  [ -n "$1" ] \
+    || { echo "Kandidatenliste ist leer — Auswahlfunktion fehlt oder selektiert nichts; der Negativtest waere vakuos gruen"; return 1; }
+  case " $1 " in
+    *" 4711 "*) ;;
+    *) echo "erwartetes Child 4711 fehlt in [$1] — Positiv-Anker nicht erfuellt"; return 1 ;;
+  esac
+}
+
 @test "T002350: reaper exposes a pure selection function (no kill) that a test can load" {
   run bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn"
   [ "$status" -eq 0 ]
@@ -260,20 +287,54 @@ reaper_selection_fn() {
     || { echo "list_reap_candidates() fehlt im Startkommando — die Auswahl ist nicht isoliert und damit nicht pruefbar"; return 1; }
 }
 
-@test "T002350: reaper selects only real children, never pid 1 or its own subshell" {
-  fixture="$(mktemp -d)"
-  mk_fixture "$fixture"
-  fn="$(bash -c "$(declare -f pg_container_args reaper_selection_fn); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; reaper_selection_fn")"
-  [ -n "$fn" ] || { echo "keine Auswahlfunktion im Manifest"; rm -rf "$fixture"; return 1; }
-
-  run bash -c "$fn
-PROC_ROOT='$fixture' SELF_PID=19 list_reap_candidates | sort -n | tr '\n' ' '"
-  got="$(echo $output)"
+@test "T002350: list_reap_candidates returns only genuine children" {
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 19)"
   rm -rf "$fixture"
-  [ "$status" -eq 0 ]
-  # Negativ-Probe ist der Kern: 1 und 19 duerfen NICHT erscheinen.
   [ "$got" = "4711 4712" ] \
-    || { echo "Kandidaten: [$got] — erwartet [4711 4712]; 1=supergateway-Parent, 19=Reaper-Subshell duerfen nicht dabei sein"; return 1; }
+    || { echo "Kandidaten: [$got] — erwartet [4711 4712]"; return 1; }
+}
+
+@test "T002350: list_reap_candidates never returns PID 1" {
+  # PID 1 ist der supergateway-Parent; er fuehrt den gesuchten Namen in argv[2].
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 19)"
+  rm -rf "$fixture"
+  assert_selection_alive "$got" || return 1
+  case " $got " in
+    *" 1 "*) echo "PID 1 (supergateway-Parent) steht in der Kandidatenliste: [$got]"; return 1 ;;
+  esac
+}
+
+@test "T002350: list_reap_candidates never returns the reaper's own subshell" {
+  # PID 19 hat die komplette Startskript-cmdline geerbt — genau der Selbstmord aus #3397.
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 19)"
+  rm -rf "$fixture"
+  assert_selection_alive "$got" || return 1
+  case " $got " in
+    *" 19 "*) echo "die Reaper-Subshell steht in der Kandidatenliste: [$got]"; return 1 ;;
+  esac
+}
+
+@test "T002350: candidates are ordered oldest first" {
+  # Stufe 2 killt die aeltesten zuerst — die Reihenfolge ist Teil des Kontrakts.
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 19)"
+  rm -rf "$fixture"
+  # 4711 hat starttime 200, 4712 hat 210 — der aeltere muss zuerst stehen.
+  [ "${got%% *}" = "4711" ] \
+    || { echo "aeltester Kandidat steht nicht vorn: [$got]"; return 1; }
+}
+
+@test "T002350: list_reap_candidates honours an explicit self-PID exclusion" {
+  # Wird SELF_PID auf ein echtes Child gesetzt, muss dieses verschwinden — Beleg,
+  # dass der Self-Guard wirkt und nicht bloss zufaellig nichts trifft.
+  fixture="$(mktemp -d)"; mk_fixture "$fixture"
+  got="$(selected_pids "$fixture" 4711)"
+  rm -rf "$fixture"
+  [ "$got" = "4712" ] \
+    || { echo "SELF_PID=4711 wurde nicht ausgeschlossen: [$got]"; return 1; }
 }
 
 @test "T002350: reaper reads a configurable proc root so production keeps /proc" {
@@ -323,7 +384,7 @@ PROC_ROOT='$fixture' SELF_PID=19 list_reap_candidates | sort -n | tr '\n' ' '"
     printf '%s\n' 'sleep 2'
     printf '%s\n' "$fn"
     printf '%s\n' 'read -r self _ < /proc/self/stat'
-    printf '%s\n' 'cand="$(list_reap_candidates | tr "\n" " ")"'
+    printf '%s\n' 'cand="$(list_reap_candidates | awk "{print \$2}" | tr "\n" " ")"'
     printf '%s\n' 'echo "candidates=[$cand] child=$child"'
     printf '%s\n' 'case " $cand " in *" $child "*) ;; *) echo "FAIL: echtes Child nicht selektiert"; exit 1 ;; esac'
     printf '%s\n' 'case " $cand " in *" 1 "*) echo "FAIL: PID 1 selektiert"; exit 1 ;; esac'

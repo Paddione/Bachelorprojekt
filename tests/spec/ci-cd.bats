@@ -28,6 +28,14 @@ setup() {
   [[ "$output" == *"always()"* ]]
 }
 
+@test "T002272-M2: dev-flow-execute Step 5 requests auto-merge before the CI-watch loop" {
+  EXEC_SKILL="$REPO_ROOT/.claude/skills/dev-flow-execute/SKILL.md"
+  merge_line=$(grep -n -- "gh pr merge --auto" "$EXEC_SKILL" | head -1 | cut -d: -f1)
+  watch_line=$(grep -n 'devflow-ci-watch.sh' "$EXEC_SKILL" | head -1 | cut -d: -f1)
+  [ -n "$merge_line" ] && [ -n "$watch_line" ]
+  [ "$merge_line" -lt "$watch_line" ]
+}
+
 @test "G-E2E02: e2e.yml post-run purge step posts X-Cron-Secret against the matrix website_url" {
   run grep -A6 'purge-all-test-data' "$E2E_WF"
   [ "$status" -eq 0 ]

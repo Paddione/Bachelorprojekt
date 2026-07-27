@@ -159,9 +159,20 @@ REST-Fallback für Titel-Edits.
 Execute-spezifisch: Ticket-ID `[$TICKET_ID]` im Subject (nach `type(scope): `, z.B. `feat(scope): implement feature [$TICKET_ID]`) und `Closes T000XXX` im Body bei Fixes.
 Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führe `gh pr create` manuell aus (beide Frameworks).
 
+> **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren.
+> Proposal-Commits auf Feature-Branches triggern den Auto-Merge-Flow und können das Ticket
+> vorzeitig schließen (Merge = Abschluss, T001092). Auto-Merge erst enable, wenn mindestens ein
+> Implementierungs-Commit auf dem Branch liegt. Zu diesem Zeitpunkt (Schritt 5) ist der
+> Implementierungs-Commit bereits gepusht, also ist die Voraussetzung erfüllt.
+
+```bash
+# Auto-Merge sofort anfordern — GitHub merged selbstständig, sobald Required Checks grün sind.
+(cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
+```
+
 ## Schritt 5.5: CI/CD-Fix-Schleife
 
-Nachdem der PR gepusht ist, überwache CI und behebe Fehler — bevor du mergst. Details und Required-Check-Liste (SSOT): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
+Nachdem der PR gepusht ist, überwache CI und behebe Fehler — Auto-Merge ist bereits angefordert (Schritt 5) und greift, sobald die Required Checks grün sind. Details und Required-Check-Liste (SSOT): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 ```bash
 PR_URL=$(gh pr view --json url -q '.url')
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
@@ -170,24 +181,16 @@ Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet
 `devflow-ci-watch.sh` prüft `mergeStateStatus` bereits **vor** dem CI-Poll-Loop und rebased bei `DIRTY` selbstständig gegen `origin/main` (T001408, Finding 2). Bricht der Rebase mit einem Konflikt ab, beendet sich das Skript mit Exit-Code `3` (statt hängen zu bleiben). In diesem Fall löst der **implementierende Subagent selbst** den Konflikt (kein zweiter Subagent für denselben Branch — genau das Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` danach erneut auf.
 Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit-Code `4`, wenn `gh pr view --json mergeable` `CONFLICTING` meldet — d.h. der PR hat echte Merge-Konflikte gegen main (nicht nur einen stale Branch). Auch in diesem Fall löst der **implementierende Subagent selbst** den Konflikt manuell (`git fetch origin main && git rebase origin/main`, Konflikte lösen, `git push --force-with-lease`) und ruft `devflow-ci-watch.sh` erneut auf. Es wird **kein** zweiter Subagent für denselben Branch gespawnt.
 
-## Schritt 6: Auto-Merge wenn CI grün
-
-> **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren.
-> Proposal-Commits auf Feature-Branches triggern den Auto-Merge-Flow und können das Ticket
-> vorzeitig schließen (Merge = Abschluss, T001092). Auto-Merge erst enable, wenn mindestens ein
-> Implementierungs-Commit auf dem Branch liegt.
+## Schritt 6: Phase-Chain-Gate & Merge-Wait
 
 > **Hinweis:** `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT.
 > Die Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 **Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
 Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen. Bei FAIL
 zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann mergen.
+(Auto-Merge wurde bereits in Schritt 5 angefordert — hier läuft nur noch das Gate.)
 ```bash
 ./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
-```
-```bash
-# Merge PR aus dem Haupt-Repo, um Konflikte zu vermeiden
-(cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
 ```
 
 ## Schritte 6.4–7.5 — Merge-Wait, Ticket-Abschluss, Cleanup

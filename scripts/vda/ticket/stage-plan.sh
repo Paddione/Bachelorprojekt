@@ -16,9 +16,15 @@ main() {
   if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
   if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
   case "$partials" in [1-9]) ;; *) echo "ERROR: --partials must be 1..9" >&2; exit 2 ;; esac
-  # Pre-flight: verify the plan file exists in git or local file system (prevents silent staging of broken refs)
-  if ! git cat-file -e "HEAD:${plan}" 2>/dev/null && ! [[ -f "${plan}" ]]; then
-    echo "ERROR: Plan file '${plan}' does not exist in git. Re-run dev-flow-plan to generate a valid plan." >&2
+  # Pre-flight: verify the plan file exists on the named branch, in HEAD, or on
+  # the local filesystem (prevents silent staging of broken refs). Checked from
+  # most specific to most general: the branch ref covers the common case of the
+  # MCP server running the check from the main checkout while the plan only
+  # exists on the worktree's feature branch (T002263).
+  if ! git cat-file -e "${branch}:${plan}" 2>/dev/null \
+    && ! git cat-file -e "HEAD:${plan}" 2>/dev/null \
+    && ! [[ -f "${plan}" ]]; then
+    echo "ERROR: Plan file '${plan}' does not exist on branch '${branch}', in HEAD, or on disk. Check the path and make sure the commit was pushed." >&2
     exit 1
   fi
   local pod; pod=$(_pgpod)

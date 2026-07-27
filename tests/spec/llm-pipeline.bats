@@ -203,6 +203,35 @@ assert_var_not_declared() {
 # PowerShell liefert dafür still $null, also wurde jede Scheduled Task mit leerem
 # Executable-Pfad registriert (/tr "" <args>) und konnte nichts starten — der
 # Grund, warum es faktisch keine Server-Persistenz gab.
+# ── Bonsai-Autostart-Argumente (T002274) ──────────────────────────────
+# Der Task-Eintrag war ein Schnappschuss einer verworfenen Konfiguration:
+# nicht existierende TQ2_0-Datei, Upstream-Build ohne CUDA-Kernel fuer dieses
+# Format, und -np 4 statt des nach T002102 bewusst gewaehlten Einzel-Slots.
+# Die Guards greifen bewusst NUR die Args-/Exe-ZEILE (identifiziert ueber
+# --port 8093 bzw. den Fork-Pfad) und nicht die Datei als Ganzes — der
+# Kommentar am Eintrag nennt die alten, falschen Werte absichtlich.
+
+@test "Bonsai task uses the existing prism-ml Q2_0 model, not TQ2_0 (T002274)" {
+  run bash -c "grep -E '^[[:space:]]+Args = .*--port 8093' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -q 'prism-ml.*Ternary-Bonsai-8B-Q2_0\\.gguf'"
+  [ "$status" -eq 0 ]
+  # TQ2_0 hat in keinem der Builds CUDA-Kernel -> waere CPU-Notbetrieb
+  run bash -c "grep -E '^[[:space:]]+Args = .*--port 8093' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -q 'TQ2_0'"
+  [ "$status" -ne 0 ]
+}
+
+@test "Bonsai task runs a single slot, not -np 4 (T002274)" {
+  run bash -c "grep -E '^[[:space:]]+Args = .*--port 8093' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -qE '\\-np 1( |$)'"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -E '^[[:space:]]+Args = .*--port 8093' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -qE '\\-np 4( |$)'"
+  [ "$status" -ne 0 ]
+}
+
+@test "Bonsai task uses the PrismML fork build (T002274)" {
+  # Nur der Fork hat CUDA-Kernel fuer Q2_0.
+  run bash -c "grep -vE '^[[:space:]]*#' '$REPO/scripts/llm/register-scheduled-tasks.ps1' | grep -qE 'Exe = .*llama-bonsai-cuda13\\.3'"
+  [ "$status" -eq 0 ]
+}
+
 # ── gpt-oss-20b als Factory-Kandidat (T002268) ────────────────────────
 # Der Kandidat muss INERT bleiben, bis jemand bewusst umschaltet. Zwei
 # Invarianten sichern das ab: priority 1 (Bonsai steht auf 0, route-provider.sh

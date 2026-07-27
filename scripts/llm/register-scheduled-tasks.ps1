@@ -9,8 +9,9 @@
   3 Mal im Abstand von 1 Minute neu gestartet.
 .TASK 1
   Name: LlamaBonsaiServer
-  Command: %UserProfile%\llama-b10090-13.3\llama-server.exe
-  Args: -m ...\Ternary-Bonsai-8B-TQ2_0.gguf -c 131072 -np 4 ...
+  Command: %UserProfile%\llama-bonsai-cuda13.3\bin\llama-server.exe  (PrismML-Fork)
+  Args: -m ...\prism-ml\...\Ternary-Bonsai-8B-Q2_0.gguf -c 65536 -np 1 ...
+  Achtung: Fork-Build und Q2_0 sind Pflicht, siehe Kommentar am Eintrag (T002274).
 .TASK 2
   Name: LlamaEmbedServer
   Command: %UserProfile%\llama-b10090-13.3\llama-server.exe
@@ -26,9 +27,38 @@
 $Tasks = @(
   @{
     Name = "LlamaBonsaiServer"
-    Description = "Ternary-Bonsai-8B mit 4 Slots (Factory-Orchestrator)"
-    Exe = "$env:UserProfile\llama-b10090-13.3\llama-server.exe"
-    Args = "-m `"$env:UserProfile\.lmstudio\models\gpustack\Ternary-Bonsai-8B-TQ2_0.gguf`" -c 131072 -np 4 --cache-ram 24576 -ngl 99 -fa on -ctk q4_0 -ctv q4_0 --jinja --temp 0.7 --top-p 0.95 --top-k 20 --min-p 0 --host 0.0.0.0 --port 8093"
+    Description = "Ternary-Bonsai-8B, 1 Slot (Factory-Orchestrator)"
+    # T002274: dieser Eintrag beschrieb eine Konfiguration, die nicht
+    # funktioniert und im interaktiven Startskript bereits verworfen wurde.
+    # Drei unabhaengige Probleme, alle behoben:
+    #
+    # 1. MODELL: stand auf ...\gpustack\Ternary-Bonsai-8B-TQ2_0.gguf - diese
+    #    Datei existiert nicht (geprueft 2026-07-27). Vorhanden ist der
+    #    prism-ml-Q2_0-Build. Der Task waere sofort gescheitert.
+    # 2. FORMAT + BUILD: TQ2_0 hat im PrismML-Fork KEINE CUDA-Kernel
+    #    (T002111: grep -ril TQ2_0 ggml/src/ggml-cuda/ -> 0 Dateien, Q2_0 -> 8),
+    #    im Upstream-Build ebenso nicht. Gemessen mit TQ2_0: Prompt 54 tok/s,
+    #    Generierung 12,8 tok/s, GPU 10-12 %, 7,7 von 8 CPU-Threads am Anschlag.
+    #    Mit Q2_0 auf dem Fork-Build: Prompt 6355 tok/s, Generierung 234 tok/s.
+    #    Deshalb Fork-Build (llama-bonsai-cuda13.3\bin) statt b10090.
+    # 3. SLOTS: -np 4 ist die nach T002102 bewusst verworfene Variante. Unter
+    #    echter 3-4x-Last blieben fertig generierte Slots unfreigegeben, einmal
+    #    stiller Server-Crash. Serialisierung liegt seitdem im scripts/llm-proxy
+    #    (FIFO), der Server faehrt EINEN Slot mit dem vollen Kontext exklusiv.
+    #    Ausserdem passt -c 131072 -np 4 nicht ins VRAM-Budget, wenn bge-m3 und
+    #    der Reranker mitlaufen (die belegen zusammen 1,3 GB).
+    #
+    # KV-Quant q8_0 statt q4_0: 2026-07-23 gegeneinander gemessen, q8_0 war in
+    # BEIDEN Dimensionen besser (+3 % Prompt, +9 % Generierung) und gilt als
+    # nahezu verlustfrei. --metrics ergaenzt, weil ohne den Prometheus-Endpoint
+    # genau die oben genannte CPU-Regression unsichtbar blieb.
+    #
+    # SSOT fuer diese Argumente ist start-bonsai-parallel.ps1 auf dem GPU-Host.
+    # Bei Aenderungen dort MUSS dieser Eintrag mitgezogen werden - zwei
+    # Wahrheiten sind genau das Muster, das bei start-embeddings.ps1 die
+    # -b/-ub-Flags verschluckt hat (T002260).
+    Exe = "$env:UserProfile\llama-bonsai-cuda13.3\bin\llama-server.exe"
+    Args = "-m `"$env:UserProfile\.lmstudio\models\prism-ml\Ternary-Bonsai-8B-gguf\Ternary-Bonsai-8B-Q2_0.gguf`" -c 65536 -np 1 --cache-ram 24576 -ngl 99 -fa on -ctk q8_0 -ctv q8_0 --jinja --temp 0.7 --top-p 0.95 --top-k 20 --min-p 0 --metrics --host 0.0.0.0 --port 8093"
   }
   @{
     Name = "LlamaEmbedServer"

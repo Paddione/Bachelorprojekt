@@ -19,6 +19,7 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 13. [dev.mentolder.de stack](#devmentolderde-stack) — devc decommissioned; WSL bootstrap caveats
 14. [Brett](#brett) — stub; reserved for future use
 15. [Alt-Worktrees nach T002135 — Submodul-Gitdir-Reste](#alt-worktrees-nach-t002135--submodul-gitdir-reste) — cleanup orphaned submodule gitdirs in pre-merge worktrees
+16. [merge=ours erzeugt GitHub-only Phantom-Konflikte](#mergeours-erzeugt-github-only-phantom-konflikte) — DIRTY auf GitHub bei lokal sauberem Merge; REST-`update-branch`-Fallback
 
 ---
 
@@ -145,3 +146,40 @@ git worktree remove .worktrees/<name>  # geht dann ohne --force
 ```
 
 Das Problem erledigt sich mit der Zeit, sobald alle VOR-T002135-Worktrees abgeräumt sind.
+
+### merge=ours erzeugt GitHub-only Phantom-Konflikte
+
+**Symptom.** `gh pr view <n> --json mergeStateStatus` meldet `DIRTY` oder `CONFLICTING`,
+obwohl `git merge origin/main` lokal ohne einen einzigen Konflikt durchläuft und
+`git diff` sauber ist. Die betroffenen Dateien sind ausnahmslos generierte Artefakte —
+`docs/generated/**`, `website/src/data/openspec-status.json`, `website/src/data/test-inventory.json`
+und rund 18 weitere.
+
+**Ursache.** `.gitattributes` markiert 21 Pfade mit `merge=ours`. Lokal ist dafür der
+Merge-Treiber `merge.ours.driver=true` konfiguriert: git ruft `true` auf, das Ergebnis
+ist „unsere Version gewinnt", und der Konflikt verschwindet geräuschlos. **GitHub führt
+serverseitig keine Custom-Merge-Driver aus** — dort bleibt es ein gewöhnlicher
+Inhaltskonflikt. Das ist kein Bug in `.gitattributes`, sondern eine Asymmetrie zwischen
+lokalem git und der GitHub-Merge-Maschine, und sie tritt zuverlässig auf, sobald zwei
+Branches dieselben Artefakte regeneriert haben.
+
+**Nicht auf die naheliegende Diagnose hereinfallen:** ein lokal sauberer Merge-Tree
+*widerlegt* den GitHub-Konflikt nicht. Wer lokal prüft und „passt doch" schließt, sucht
+den Fehler an der falschen Stelle.
+
+**Auflösung.** Den PR-Branch serverseitig auf `main` nachziehen und die Artefakte danach
+lokal neu erzeugen:
+
+```bash
+git fetch origin main && git merge origin/main   # lokal konfliktfrei dank merge=ours
+task freshness:regenerate                        # Artefakte gegen den neuen Stand neu bauen
+git add <die regenerierten Pfade> && git commit && git push
+```
+
+Reicht das nicht, hilft `update-branch` — siehe den REST-Fallback in
+[`repo-hygiene-ops.md` §3](../../../.claude/skills/references/repo-hygiene-ops.md), denn
+`gh pr update-branch` existiert erst in neueren `gh`-Versionen (2.45.0 kennt es **nicht**).
+
+**Langfristig** gehören diese Artefakte nicht in den PR-Diff: entweder in CI regeneriert
+statt committet, oder über `diff=generated` aus dem Diff gehalten. Solange sie committet
+sind, bleibt der Phantom-Konflikt ein wiederkehrender Kostenposten. [T002347]

@@ -1326,3 +1326,87 @@ MOCKEOF
     return 1
   }
 }
+
+# ── T002249-E: Verhaltenstest der Retry-Schleife gegen einen docker-Mock.
+#    Die vier Tests oben pruefen, DASS die Bausteine im Workflow stehen; dieser
+#    prueft, dass die Schleife tatsaechlich zaehlt, abbricht und fail-closed
+#    endet. Notwendig, weil sich das Live-Verhalten erst nach dem Merge auf main
+#    beobachten laesst — vorher ist der Mock die einzige echte Absicherung.
+#    Er hat sich bereits bezahlt gemacht: die Retry-Meldung behauptete
+#    urspruenglich auch nach dem LETZTEN Versuch "retrying".
+
+_extract_renovate_step() {
+  python3 - "$1" "$2" <<'PY'
+import sys, yaml
+wf, out = sys.argv[1], sys.argv[2]
+steps = yaml.safe_load(open(wf))['jobs']['renovate']['steps']
+body = next(s['run'] for s in steps if s.get('name', '').startswith('Self-hosted Renovate'))
+open(out, 'w').write(body)
+PY
+}
+
+# Schreibt einen docker-Mock, der jeden Aufruf in $MOCK_CALLS protokolliert und
+# die per $1 vorgegebene Renovate-Ergebniszeile ausgibt.
+_write_docker_mock() {
+  cat > "$1/bin/docker" <<MOCK
+#!/usr/bin/env bash
+echo "call" >> "\$MOCK_CALLS"
+$2
+MOCK
+  chmod +x "$1/bin/docker"
+}
+
+setup_renovate_mock() {
+  MOCKDIR="$(mktemp -d)"
+  mkdir -p "$MOCKDIR/bin"
+  _extract_renovate_step "$REPO_ROOT/.github/workflows/renovate.yml" "$MOCKDIR/step.sh"
+  export MOCK_CALLS="$MOCKDIR/calls.txt"
+  : > "$MOCK_CALLS"
+  export GITHUB_WORKSPACE="$MOCKDIR" RENOVATE_TOKEN=x RENOVATE_REPOSITORIES=x LOG_LEVEL=info
+}
+
+@test "T002249-E: Retry-Schleife versucht dreimal und endet dann fail-closed" {
+  setup_renovate_mock
+  _write_docker_mock "$MOCKDIR" 'echo "        \"result\": \"repository-changed\","; exit 0'
+
+  run env PATH="$MOCKDIR/bin:$PATH" timeout 60 bash "$MOCKDIR/step.sh"
+  local calls; calls=$(wc -l < "$MOCK_CALLS")
+  rm -rf "$MOCKDIR"
+
+  [ "$status" -eq 1 ]                        # fail-closed statt still gruen
+  [ "$calls" -eq 3 ]                         # MAX_ATTEMPTS ausgeschoepft
+  [[ "$output" == *"::error::"* ]]           # als Annotation sichtbar
+  [[ "$output" == *"no repository was processed"* ]]
+  # Die Meldung des letzten Versuchs darf kein Retry versprechen, das nicht kommt.
+  [[ "$output" == *"no attempts left"* ]]
+}
+
+@test "T002249-E: erfolgreicher Zweitversuch beendet die Schleife gruen" {
+  setup_renovate_mock
+  _write_docker_mock "$MOCKDIR" \
+    'if [ "$(wc -l < "$MOCK_CALLS")" -eq 1 ]; then echo "        \"result\": \"repository-changed\","; else echo "        \"result\": \"done\","; fi; exit 0'
+
+  run env PATH="$MOCKDIR/bin:$PATH" timeout 60 bash "$MOCKDIR/step.sh"
+  local calls; calls=$(wc -l < "$MOCK_CALLS")
+  rm -rf "$MOCKDIR"
+
+  [ "$status" -eq 0 ]
+  [ "$calls" -eq 2 ]                         # bricht ab, sobald es geklappt hat
+  [[ "$output" != *"::error::"* ]]
+}
+
+@test "T002249-E: echter Renovate-Fehler wird nicht wiederholt" {
+  setup_renovate_mock
+  _write_docker_mock "$MOCKDIR" 'echo "FATAL: authentication failed"; exit 42'
+
+  run env PATH="$MOCKDIR/bin:$PATH" timeout 60 bash "$MOCKDIR/step.sh"
+  local calls; calls=$(wc -l < "$MOCK_CALLS")
+  rm -rf "$MOCKDIR"
+
+  # Nur repository-changed ist transient. Ein abgelaufener Token oder eine
+  # kaputte renovate.json5 wird durch drei Wiederholungen nicht besser — der
+  # Exit-Code muss unveraendert durchgereicht werden, damit die Ursache im
+  # Job-Status sichtbar bleibt.
+  [ "$status" -eq 42 ]
+  [ "$calls" -eq 1 ]
+}

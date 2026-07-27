@@ -37,7 +37,7 @@ ist in `docs/code-quality/baseline.json` gebaselined.
 
 ## Task 1 — Failing-Test-Nachweis (RED)
 
-- [ ] Ausgangszustand bestätigen. Bereits im Stage-Commit dieses Branches erbracht; vor
+- [x] Ausgangszustand bestätigen. Bereits im Stage-Commit dieses Branches erbracht; vor
       Beginn der Implementierung erneut prüfen.
 
 ```bash
@@ -58,7 +58,7 @@ folgenden Tasks:
 
 ## Task 2 — Image-Digest ermitteln
 
-- [ ] Digest frisch auflösen, statt den aus dem Log übernommenen Wert blind zu setzen.
+- [x] Digest frisch auflösen, statt den aus dem Log übernommenen Wert blind zu setzen.
 
 Der Container erhält den GitHub-App-Installation-Token und fällt damit unter dieselbe
 Supply-Chain-Regel wie die secret-tragenden Actions im selben Workflow.
@@ -86,7 +86,7 @@ künftig selbst frisch. Ein reiner Digest-Pin würde einfrieren.
 
 ## Task 3 — `renovatebot/github-action` durch `docker run` ersetzen
 
-- [ ] Den Step `Self-hosted Renovate` in `.github/workflows/renovate.yml` ersetzen.
+- [x] Den Step `Self-hosted Renovate` in `.github/workflows/renovate.yml` ersetzen.
 
 Die Action kapselt genau ein `docker run`; ein `uses:`-Step lässt sich nicht schleifen. Der
 Aufruf wird deshalb ausgeschrieben. Vorlage ist das Kommando, das die Action in Run
@@ -177,7 +177,7 @@ plus Checkout, und mit warmem Cache liegen Versuch 2 und 3 deutlich darunter.
 
 ## Task 4 — Cache-Rechte und Report-Artefakt
 
-- [ ] Ownership-Normalisierung und Artefakt-Upload ergänzen.
+- [x] Ownership-Normalisierung und Artefakt-Upload ergänzen.
 
 Der `actions/cache`-Post-Step läuft als Benutzer `runner`. Schreibt der Container seine
 Cache-Dateien als root, scheitert das Packen an fehlenden Rechten — der Cache wäre beim
@@ -207,7 +207,7 @@ Die Reports sind Debug-Material, kein Gate — das Gate ist der Log-Grep aus Tas
 
 ## Task 5 — Kommentar-Altlasten korrigieren
 
-- [ ] Header- und Inline-Kommentare an den neuen Stand angleichen.
+- [x] Header- und Inline-Kommentare an den neuen Stand angleichen.
 
 Der Header-Kommentar beschreibt die abgelöste Action, und die Begründung an `fetch-depth: 0`
 behauptet, der volle Klon verhindere den Abbruch. Sie markiert sich selbst als offen und ist
@@ -225,7 +225,7 @@ eigenständig klont und der Checkout nur `renovate.json5` liefert.
 
 ## Task 6 — Verifikation
 
-- [ ] Alle Gates grün.
+- [x] Alle Gates grün.
 
 ```bash
 # 1. Vertragstests gruen (Gegenprobe zu Task 1)

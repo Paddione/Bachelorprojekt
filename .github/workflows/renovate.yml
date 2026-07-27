@@ -17,7 +17,20 @@ name: Renovate
 #
 # NOT the opencode.yml pattern: that workflow uses id-token: write, and the
 #   OIDC-to-installation-token exchange is a feature of the opencode action.
-#   renovatebot/github-action has no such exchange and expects a ready token.
+#   There is no such exchange here; Renovate expects a ready token.
+#
+# Why a raw `docker run` instead of renovatebot/github-action (T002249): Renovate
+#   reads the base branch SHA when it clones and re-checks it before writing
+#   (optimistic concurrency). On drift it discards the whole repository run with
+#   result=repository-changed — and exits 0. With ~103 commits/day landing on main
+#   (factory-tick every 5-6 min, freshness bot commits, auto-merges) against a 157s
+#   run, that abort is the normal case, not the exception: between 2026-06-17 and
+#   2026-07-27 Renovate opened zero PRs while every run reported success.
+#   `repository-changed` is modelled upstream as transient ("state is stale, throw
+#   it away and start over") — the restart is the caller's job, Renovate does not
+#   retry itself. A `uses:` step cannot be looped, so the docker invocation the
+#   action wraps is spelled out below and wrapped in a retry loop that fails the
+#   job when every attempt aborts.
 
 on:
   schedule:
@@ -49,10 +62,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
-          # Full clone (fetch-depth: 0) so Renovate can properly detect its own
-          # generated PR branches without aborting with "Repository has changed
-          # during renovation". Shallow clones (fetch-depth: 1) make this
-          # detection overly sensitive. [TBD]
+          # Full clone. This does NOT prevent the "Repository has changed during
+          # renovation" abort — that was the original rationale here and the logs
+          # disprove it: the abort kept happening with fetch-depth: 0 (see the
+          # retry loop below, T002249). Renovate clones independently inside the
+          # container; this checkout only supplies renovate.json5. Left at 0
+          # deliberately: dropping to 1 would save checkout time but needs its own
+          # verification run, tracked as a side finding on T002249 rather than
+          # changed blind here.
           fetch-depth: 0
           fetch-tags: false
           persist-credentials: false
@@ -72,24 +89,113 @@ jobs:
           client-id: ${{ secrets.RENOVATE_APP_ID }}
           private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
 
-      - name: Self-hosted Renovate
-        # SHA-gepinnt (Supply-Chain: Action erhaelt RENOVATE_TOKEN).
-        # v56.1.15 (2026-06). Bump via Review / Renovate selbst; nie @latest
-        # fuer secret-tragende Third-Party-Actions.
-        uses: renovatebot/github-action@3064367f740a1a91cca218698a63902689cce200  # v56.1.15
+      - name: Restore Renovate cache
+        uses: actions/cache@v6
+        with:
+          path: /tmp/renovate-cache
+          # Rolling key: every run writes a new entry, restore-keys pulls the most
+          # recent one. A static key would never be refreshed after the first run
+          # (actions/cache does not overwrite an existing key).
+          key: renovate-cache-${{ github.run_id }}
+          restore-keys: |
+            renovate-cache-
+
+      - name: Self-hosted Renovate (retry on repository-changed)
         env:
           # Freshly minted App installation token (1h TTL, revoked post-job).
           RENOVATE_TOKEN: ${{ steps.app-token.outputs.token }}
           # Work list. Without it self-hosted Renovate runs GREEN but processes
           # nothing at all ("WARN: No repositories found - did you want to run
           # with flag --autodiscover?") — no PR, no Dependency Dashboard issue.
-          # The action does not forward github.repository on its own. Explicit
-          # instead of RENOVATE_AUTODISCOVER so the run stays deterministic
-          # regardless of how widely the GitHub App happens to be installed.
-          # [T002165]
+          # Renovate does not derive it from the workflow context on its own.
+          # Explicit instead of RENOVATE_AUTODISCOVER so the run stays
+          # deterministic regardless of how widely the GitHub App happens to be
+          # installed. [T002165]
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           # Log level for debugging.
           LOG_LEVEL: ${{ vars.RENOVATE_LOG_LEVEL || 'info' }}
+        run: |
+          set -euo pipefail
+          # Tag AND digest: the digest is the supply-chain guarantee (this
+          # container receives the App installation token, so the same pinning
+          # rule as for the secret-bearing actions above applies), the tag is what
+          # lets Renovate's own docker manager recognise the image as updatable.
+          # A bare digest pin would freeze and silently rot.
+          IMAGE='ghcr.io/renovatebot/renovate:43@sha256:2a4e6df0330b0aa42b21f40589666b678bbd19bcd9a14c3c24ce0492c237c2ff'
+          MAX_ATTEMPTS=3
+          mkdir -p /tmp/renovate-cache
+
+          success=0
+          for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
+            echo "::group::Renovate attempt ${attempt}/${MAX_ATTEMPTS}"
+            log="/tmp/renovate-attempt-${attempt}.log"
+
+            # No -t: a TTY colours the output and would break the grep below.
+            # PIPESTATUS, not $?: through the tee pipe $? is tee's exit code.
+            set +e
+            docker run --rm \
+              --env RENOVATE_TOKEN \
+              --env RENOVATE_REPOSITORIES \
+              --env LOG_LEVEL \
+              --env RENOVATE_CONFIG_FILE=/github-action/renovate.json5 \
+              --env RENOVATE_REPOSITORY_CACHE=enabled \
+              --env RENOVATE_CACHE_DIR=/tmp/renovate-cache \
+              --env RENOVATE_REPORT_TYPE=file \
+              --env "RENOVATE_REPORT_PATH=/tmp/renovate-report-${attempt}.json" \
+              --volume "${GITHUB_WORKSPACE}/renovate.json5:/github-action/renovate.json5" \
+              --volume /tmp:/tmp \
+              "$IMAGE" 2>&1 | tee "$log"
+            docker_rc=${PIPESTATUS[0]}
+            set -e
+            echo "::endgroup::"
+
+            if [ "$docker_rc" -ne 0 ]; then
+              echo "::error::Renovate exited ${docker_rc} on attempt ${attempt}."
+              exit "$docker_rc"
+            fi
+
+            # Detected from the log, not from the report JSON: this line is
+            # empirically confirmed (run 30238038240), the report schema is not.
+            # A mis-guessed JSON path would silently never match — the retry would
+            # never fire and the job would be green again, i.e. exactly the defect
+            # this step exists to remove.
+            if grep -q '"result": "repository-changed"' "$log"; then
+              if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
+                echo "::warning::Attempt ${attempt}: base branch moved mid-run — retrying."
+              else
+                echo "::warning::Attempt ${attempt}: base branch moved mid-run — no attempts left."
+              fi
+              continue
+            fi
+
+            success=1
+            break
+          done
+
+          # No backoff between attempts: the write load on main is spread over
+          # time, not bunched, so waiting does not improve the odds — it only
+          # burns job time. The next attempt instead benefits from the warm cache
+          # and is therefore shorter, which is what actually narrows the window.
+          if [ "$success" -ne 1 ]; then
+            echo "::error::Renovate aborted with repository-changed on all ${MAX_ATTEMPTS} attempts — no repository was processed."
+            exit 1
+          fi
+
+      - name: Normalize cache ownership
+        # The actions/cache post step runs as `runner`. If the container wrote its
+        # cache files as root, packing fails on permissions — and it fails
+        # quietly: the cache would stay cold forever without turning the job red.
+        if: always()
+        run: sudo chown -R "$(id -u):$(id -g)" /tmp/renovate-cache || true
+
+      - name: Upload Renovate reports
+        # Debug material only — the gate is the log grep above, not these files.
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          configurationFile: renovate.json5
-          token: ${{ steps.app-token.outputs.token }}
+          name: renovate-reports
+          path: |
+            /tmp/renovate-report-*.json
+            /tmp/renovate-attempt-*.log
+          if-no-files-found: ignore
+          retention-days: 7

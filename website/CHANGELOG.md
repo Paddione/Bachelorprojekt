@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.217.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.3...website-v1.217.4) (2026-07-27)
+
+
+### Bug Fixes
+
+* **ci:** retry Renovate on repository-changed instead of exiting green [T002249] ([#3341](https://github.com/Paddione/Bachelorprojekt/issues/3341)) ([94bf5e6](https://github.com/Paddione/Bachelorprojekt/commit/94bf5e6f494bb773a32fb9ead294874856749867))
+
 ## [1.217.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.2...website-v1.217.3) (2026-07-27)
 
 

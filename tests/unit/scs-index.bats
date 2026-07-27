@@ -120,3 +120,51 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/Taskfile.yml' | grep -c 'npx tsx scripts/index-repo.ts || rc='"
   [[ "$output" -eq 1 ]]
 }
+
+@test "SCS-1: ensureSchema detects the vector index by access method, not by name (T002315)" {
+  # Die alte Pruefung lief ueber `indexname LIKE '%ivfflat%'` und traf nie zu:
+  # Postgres benennt einen namenlosen CREATE INDEX nach Tabelle und Spalte
+  # (code_embeddings_embedding_idx, _idx1, _idx2 …), nie nach der
+  # Zugriffsmethode. Jeder Lauf legte deshalb einen weiteren Index an — am
+  # 2026-07-27 lagen drei identische ivfflat-Indizes auf der Tabelle.
+  # Nur ausfuehrbare Zeilen pruefen — der Kommentar im Code zitiert die alte
+  # Abfrage absichtlich und darf den Guard nicht ausloesen.
+  run bash -c "grep -v '^\\s*//' '$PROJECT_DIR/scripts/index-repo.ts' | grep -c \"indexname LIKE '%ivfflat%'\" || true"
+  [[ "$output" -eq 0 ]]
+  run grep -c "am.amname IN ('hnsw', 'ivfflat')" "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -eq 1 ]]
+}
+
+@test "SCS-1: vector index is HNSW, not ivfflat (T002315)" {
+  run grep -c "USING hnsw (embedding vector_cosine_ops)" "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -ge 1 ]]
+  # kein CREATE eines ivfflat-Index mehr
+  run bash -c "grep -c 'CREATE INDEX.*USING ivfflat' '$PROJECT_DIR/scripts/index-repo.ts' || true"
+  [[ "$output" -eq 0 ]]
+}
+
+@test "SCS-1: chunks are written in multi-row inserts (T002315)" {
+  # Ein INSERT pro Chunk kostete ~30ms Roundtrip — bei 18.549 Chunks rund neun
+  # Minuten, waehrend das Einbetten derselben Menge ~110s braucht.
+  run grep -c 'INSERT_BATCH' "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -ge 2 ]]
+}
+
+@test "SCS-1: parallelism defaults to one worker (T002315)" {
+  # Der Regelfall ist der inkrementelle Lauf aus dem git-Hook; Nebenlaeufigkeit
+  # lohnt nur beim Voll-Neuaufbau (SCS_WORKERS=4).
+  run grep -c "process.env.SCS_WORKERS ?? 1" "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -eq 1 ]]
+}
+
+@test "SCS-1: files containing NUL bytes are skipped before the insert (T002315)" {
+  # Postgres laesst 0x00 in einer TEXT-Spalte strukturell nicht zu.
+  run grep -c "u0000" "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -ge 1 ]]
+}
+
+@test "SCS-1: chunking lives in its own module (T002315)" {
+  [[ -f "$PROJECT_DIR/scripts/lib/scs-chunking.ts" ]]
+  run grep -c "from './lib/scs-chunking.js'" "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -ge 1 ]]
+}

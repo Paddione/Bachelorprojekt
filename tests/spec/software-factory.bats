@@ -4417,3 +4417,75 @@ SH
   # But the DRY_RUN block as a whole must still set the marker.
   printf '%s' "$body" | grep -q 'dryrun-mark'
 }
+
+# ── FA-SF-74-provider-fallback-cascade ──────────────────────────#
+# FA-SF-74 — T002359: Der Provider-Fallback war strukturell unerreichbar. Sechs Ursachen,
+# hier als rot→grün-Beweis fixiert. Alle Assertions laufen gegen den Quelltext (offline,
+# deterministisch) bzw. gegen die DB mit skip ohne Cluster.
+#
+# WARUM QUELLTEXT-ASSERTIONS: der Fehler war nie ein falscher Rückgabewert, sondern ein
+# Kontrollfluss, der die Fallback-Kette gar nicht erst erreicht. Ein Funktionstest ohne DB
+# landet immer im Emergency-Zweig und würde die Regression nicht sehen.
+#
+# $output-Gotcha (CLAUDE.md §CI/CD): hier bewusst KEIN unqualifiziertes $output-Matching —
+# der Worktree heißt "factory-provider-fallback" und enthält die Wörter "factory",
+# "provider" und "fallback"; über ein $0 in einer Usage-Zeile würde jede naive Assertion
+# grün, ohne dass der Fix existiert.
+
+@test "FA-SF-74: route-provider.sh phase branch feeds the candidate chain instead of returning" {
+  # RC1: der factory_model_slots-Zweig returnte beim ersten Treffer und übersprang damit
+  # Priority-Kette, provider_health, Cooldown und Claim komplett. Nach dem Fix ist der
+  # Slot-Pin Kandidat #0 — kein unbedingtes exit im Phase-Block mehr.
+  run bash -c "awk '/FROM tickets.factory_model_slots/,/^# Ordered candidates/' '$REPO_ROOT/scripts/factory/route-provider.sh' | grep -c 'exit 0'"
+  [ "$output" = "0" ]
+}
+
+@test "FA-SF-74: route-provider.sh emergency row names no model without a live backend" {
+  # RC5: qwythos-9b-v2 wird von LM Studio auf :1234 seit dem Gemma-Cutover nicht mehr
+  # serviert. Der Emergency-Zweig gab die ID trotzdem zurück — lautlos.
+  run grep -c 'qwythos-9b-v2' "$REPO_ROOT/scripts/factory/route-provider.sh"
+  [ "$output" = "0" ]
+}
+
+@test "FA-SF-74: route-provider.sh emits apiKeyEnv so the key is data-driven, not hardcoded" {
+  # RC/D3: die DB-Zeile trägt den NAMEN der Env-Variable (DEEPSEEK_API_KEY_PK für die
+  # Factory, DEEPSEEK_API_KEY für Coaching) — der Key selbst bleibt in git-crypt.
+  grep -q 'api_key_env' "$REPO_ROOT/scripts/factory/route-provider.sh"
+  grep -q '"apiKeyEnv"' "$REPO_ROOT/scripts/factory/route-provider.sh"
+}
+
+@test "FA-SF-74: auto-triage.sh resolves the api key by indirection, not a provider case" {
+  # auto-triage.sh:218 las hart DEEPSEEK_API_KEY — den Coaching-Key, nicht den
+  # Factory-Key (pk-deepseek). Nach dem Fix kommt der Variablenname aus dem Router.
+  grep -q 'apiKeyEnv' "$REPO_ROOT/scripts/factory/auto-triage.sh"
+  run bash -c "grep -c 'deepseek)  *api_key=\"\${DEEPSEEK_API_KEY' '$REPO_ROOT/scripts/factory/auto-triage.sh' || true"
+  [ "$output" = "0" ]
+}
+
+@test "FA-SF-74: reaper zeroes active_agents so one run clears every stranded slot" {
+  # RC4: das alte GREATEST(0, active_agents - 1) in Kombination mit claimed_at = NULL
+  # machte die Zeile nach dem ERSTEN Lauf unerreichbar — active_agents blieb auf 2 stehen.
+  grep -Eq 'active_agents *= *0' "$REPO_ROOT/scripts/factory/reap-provider-slots.sh"
+  run bash -c "grep -c 'active_agents - 1' '$REPO_ROOT/scripts/factory/reap-provider-slots.sh' || true"
+  [ "$output" = "0" ]
+}
+
+@test "FA-SF-74: wakeup.sh runs the slot reaper each tick (it had no caller at all)" {
+  # RC4: reap-provider-slots.sh hatte weder Timer noch Cron noch Taskfile-Eintrag —
+  # das Netz war geschrieben, aber nie aufgehängt.
+  grep -q 'reap-provider-slots.sh' "$REPO_ROOT/scripts/factory/wakeup.sh"
+}
+
+@test "FA-SF-74: each factory tier has a fallback candidate behind the primary" {
+  # RC2: cheap/flash/sonnet hatten je genau EINE enabled Zeile — der Tier-Name im
+  # Aufruf traf nie eine DeepSeek-Zeile (die lagen in haiku/sonnet hinter prio 0).
+  command -v kubectl >/dev/null || skip "kubectl not available"
+  kubectl --context fleet get ns workspace >/dev/null 2>&1 || skip "fleet cluster not reachable"
+  local sql="SELECT tier, count(*) FROM tickets.provider_config
+             WHERE source='*' AND enabled=true AND tier IN ('cheap','flash','sonnet')
+             GROUP BY tier HAVING count(*) < 2;"
+  run bash -c "source '$REPO_ROOT/scripts/factory/lib.sh'; factory_resolve; factory_psql <<'EOSQL'
+$sql
+EOSQL"
+  [ -z "$output" ]
+}

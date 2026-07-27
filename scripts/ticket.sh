@@ -305,6 +305,29 @@ cmd_assert_phase_chain() {
   main "$@"
 }
 
+cmd_release_hold() {
+  local id=""
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --id) id="$2"; shift 2 ;;
+      *)    echo "Unknown release-hold option: $1" >&2; exit 2 ;;
+    esac; done
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  if _ticket_offline_skip "release-hold" "--id" "$id"; then return 0; fi
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":true}'::jsonb
+ WHERE external_id = :'ext_id';
+EOF
+  _exec_sql "$pod" -v setby='release-hold' <<'EOF' >/dev/null 2>&1
+INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+VALUES ('force-tick-requested', NULL, now()::text, :'setby', now())
+ON CONFLICT (key, brand) DO UPDATE
+  SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now();
+EOF
+  systemctl --user start factory.service 2>/dev/null || true
+  echo "execution_released set to true for ticket $id"
+}
+
 cmd_set_touched_files() {
   local id="" files=""
   while [[ $# -gt 0 ]]; do case "$1" in
@@ -853,7 +876,7 @@ cmd_triage() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, assert-phase-chain, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
+  echo "Commands: create, update-status, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -881,6 +904,7 @@ case "$cmd" in
   triage)            cmd_triage "$@" ;;
   enqueue)           cmd_enqueue "$@" ;;
   stage-plan)        cmd_stage_plan "$@" ;;
+  release-hold)      cmd_release_hold "$@" ;;
   assert-phase-chain) cmd_assert_phase_chain "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;
   factory-control)   cmd_factory_control "$@" ;;

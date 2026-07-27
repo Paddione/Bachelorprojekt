@@ -157,6 +157,8 @@ Du behältst deinen vollen Brainstorming-Kontext: lies den vom Subagenten zurüc
 SSOT für Ticket-Anlage, Stage und Embedding: [ticket-stage-procedure](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-stage-procedure.md)
 
 Dort steht auch der Ticket-Claim für diesen Schritt (`bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" …`, Session-Koordination [T000510]) — er muss laufen, bevor der Pre-Commit-Guard in Schritt 5 die Lock-Datei liest.
+
+> **`--hold`-Pflicht für interaktive Stage-Calls:** Der Aufruf von `stage-plan` in diesem Schritt MUSS `--hold` setzen (siehe `ticket-stage-procedure.md`). Dadurch wird `readiness.execution_released=false` gesetzt, was das Ticket vom Factory-Dispatch zurückhält, bis `dev-flow-execute` es explizit freigibt. Ohne `--hold` würde die Factory das Ticket sofort nach dem Stage-Commit dispatchen können, bevor der Operator die Ausführung freigegeben hat.
 ### Schritt 5: Commit & Push — dann STOPP
 **Pre-Commit Guard (PFLICHT — Schritt 5) [T001268]:**
 Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:
@@ -185,7 +187,7 @@ git push -u origin $(git branch --show-current)
 ```
 ### Schritt 6: Optionaler Plan-Review (interaktiv)
 Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Plan annotierbar rendern (`bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md`) und im Browser reviewen. Details: [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).
-**STOPP.** Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
+**STOPP.** Branch, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen. Ticket ist per `execution_released=false` vom Factory-Dispatch zurückgehalten, bis `dev-flow-execute` es mit `release-hold` freigibt.
 
 ## Fix-Pfad
 

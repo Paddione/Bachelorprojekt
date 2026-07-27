@@ -79,11 +79,19 @@ fi
 # factory_model_slots hat keine max_concurrent-Spalte; der Literalwert 3 haelt das
 # Feldformat mit provider_config deckungsgleich, damit beide Quellen dieselbe
 # Claim-Schleife durchlaufen.
+#
+# FELDTRENNER \x1f STATT TAB [T002359]: Tab ist fuer bash ein IFS-WHITESPACE-Zeichen —
+# aufeinanderfolgende Tabs verschmelzen zu einem einzigen Trenner und leere Felder
+# verschwinden spurlos. Bei einer Cloud-Zeile ohne context_budget rutschte dadurch
+# api_key_env in die budget-Variable, und der Claim brach mit
+# `invalid input syntax for type integer: "DEEPSEEK_API_KEY_PK"` ab — also ausgerechnet
+# auf der Fallback-Stufe, die dieses Ticket ueberhaupt erst erreichbar macht. Der Unit
+# Separator ist kein Whitespace, daher bleiben leere Felder als leere Felder erhalten.
 PINNED=""
 if [[ -n "$PHASE" ]]; then
   PINNED=$(factory_psql -v phase="$PHASE" <<'SQL'
-SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')||E'\t'||3
-       ||E'\t'||0||E'\t'||''||E'\t'||COALESCE(api_key_env,'')
+SELECT provider||E'\x1f'||model_id||E'\x1f'||COALESCE(base_url,'')||E'\x1f'||3
+       ||E'\x1f'||0||E'\x1f'||''||E'\x1f'||COALESCE(api_key_env,'')
 FROM tickets.factory_model_slots WHERE phase = :'phase';
 SQL
 )
@@ -91,9 +99,9 @@ fi
 
 # Ordered candidates: source-specific before '*', then priority asc.
 CANDS=$(factory_psql -v src="$SOURCE" -v tier="$TIER" <<'SQL'
-SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')||E'\t'||max_concurrent
-       ||E'\t'||COALESCE(context_window,0)||E'\t'||COALESCE(context_budget::text,'')
-       ||E'\t'||COALESCE(api_key_env,'')
+SELECT provider||E'\x1f'||model_id||E'\x1f'||COALESCE(base_url,'')||E'\x1f'||max_concurrent
+       ||E'\x1f'||COALESCE(context_window,0)||E'\x1f'||COALESCE(context_budget::text,'')
+       ||E'\x1f'||COALESCE(api_key_env,'')
 FROM tickets.provider_config
 WHERE (source=:'src' OR source='*') AND tier=:'tier' AND enabled=true
 ORDER BY (source=:'src') DESC, priority ASC;
@@ -101,7 +109,7 @@ SQL
 )
 [[ -n "$PINNED" ]] && CANDS="${PINNED}"$'\n'"${CANDS}"
 
-while IFS=$'\t' read -r prov model burl maxc ctx budget keyenv; do
+while IFS=$'\x1f' read -r prov model burl maxc ctx budget keyenv; do
   [[ -z "$prov" ]] && continue
   # Atomic claim: circuit closed AND below cap AND (unbounded budget OR fits reservation).
   CLAIM=$(factory_psql -v prov="$prov" -v maxc="$maxc" -v ctx="${ctx:-0}" -v budget="$budget" <<'SQL'

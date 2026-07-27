@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 623,
+      "file_count": 624,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -506,6 +506,7 @@
         "tests/unit/backup-restore-filen-pull.bats",
         "tests/unit/backup-restore-namespace.bats",
         "tests/unit/backup-restore-recovery.bats",
+        "tests/unit/bats-runner-path.bats",
         "tests/unit/brainstorm-dev-host.bats",
         "tests/unit/brainstorm-extract-choice.bats",
         "tests/unit/build-graph.bats",

@@ -87,3 +87,50 @@ setup() {
   [ "$status" -eq 1 ]
   [[ "$output" == *"does not exist"* ]]
 }
+
+# --- T002263: same fallback for archive-plan (scripts/ticket.sh) --------------
+
+@test "T002263: archive-plan accepts a --plan-file that exists only on the named branch" {
+  local repo="$BATS_TEST_TMPDIR/wt-repo-archive"
+  mkdir -p "$repo"
+  (
+    cd "$repo"
+    git init -q -b main .
+    git config user.email t@example.com
+    git config user.name Test
+    echo base > README.md
+    git add README.md
+    git commit -q -m base
+    git checkout -q -b feature/only-here
+    mkdir -p openspec/changes/demo
+    echo "# plan" > openspec/changes/demo/tasks.md
+    git add openspec/changes/demo/tasks.md
+    git commit -q -m plan
+    git checkout -q main
+  )
+  cd "$repo"
+  run bash "$REPO_ROOT/scripts/ticket.sh" archive-plan --id T000999 --slug demo \
+      --branch "feature/only-here" --plan-file "openspec/changes/demo/tasks.md"
+  # The DB step will fail in this sandbox — that is fine. What must NOT happen
+  # is the pre-flight rejecting the plan file as missing/empty.
+  [[ "$output" != *"does not exist or is empty"* ]]
+}
+
+@test "T002263: archive-plan still rejects an empty --plan-file not on any branch" {
+  local repo="$BATS_TEST_TMPDIR/wt-repo-archive-empty"
+  mkdir -p "$repo"
+  (
+    cd "$repo"
+    git init -q -b main .
+    git config user.email t@example.com
+    git config user.name Test
+    echo base > README.md
+    git add README.md
+    git commit -q -m base
+  )
+  cd "$repo"
+  run bash "$REPO_ROOT/scripts/ticket.sh" archive-plan --id T000999 --slug ghost \
+      --branch "feature/absent" --plan-file "openspec/changes/ghost/tasks.md"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"does not exist or is empty"* ]]
+}

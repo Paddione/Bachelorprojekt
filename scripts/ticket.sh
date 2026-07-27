@@ -127,7 +127,11 @@ cmd_archive_plan() {
   # the OFFLINE marker, not a 'plan file not found' error. See T001242 M3.
   if _ticket_offline_skip "archive-plan" "--id" "$id" "--slug" "$slug"; then return 0; fi
 
-  if [[ ! -s "$plan_file" ]]; then
+  # Same three-stage fallback as scripts/vda/ticket/stage-plan.sh (T002263): a
+  # plan committed only on the worktree's feature branch is invisible to a
+  # plain filesystem check when this runs from the main checkout, even though
+  # the branch ref is visible (worktrees share one .git).
+  if [[ ! -s "$plan_file" ]] && ! git cat-file -e "${branch}:${plan_file}" 2>/dev/null; then
     echo "ERROR: plan file does not exist or is empty: $plan_file" >&2
     exit 1
   fi

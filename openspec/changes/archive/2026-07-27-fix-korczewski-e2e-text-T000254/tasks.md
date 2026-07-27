@@ -2,7 +2,7 @@
 title: "fix-korczewski-e2e-text-T000254 — Implementation Plan"
 ticket_id: T000254
 domains: [website, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -448,6 +448,66 @@ EOF
   esac
 }
 
+# Terminal state for a ticket the Software Factory could not complete (T002361).
+# The watchdog calls this once its per-ticket attempt counter reaches
+# FACTORY_MAX_ATTEMPTS, instead of resetting the status yet again — that reset was
+# the second half of the dry-run-first livelock (a dry-run aborting before
+# `dryrun-mark` never clears guard_dryrun_ok, so every tick forced another
+# preview and burned a headless session).
+#
+# All effects run in ONE transaction on purpose. A half-applied terminal state
+# (status=blocked but no factory_excluded flag) is silently re-dispatchable the
+# moment somebody moves the status back — which is exactly the failure this
+# subcommand exists to prevent.
+cmd_unfactory() {
+  local id="" attempts=""
+  while [[ $# -gt 0 ]]; do case "$1" in
+      --id)       id="$2"; shift 2 ;;
+      --attempts) attempts="$2"; shift 2 ;;
+      *)          echo "Unknown unfactory option: $1" >&2; exit 2 ;;
+    esac; done
+  # Validate BEFORE _pgpod so bad-arg errors stay deterministic without a cluster
+  # (same convention as cmd_phase / FA-SF-48).
+  if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
+  if [[ -n "$attempts" && ! "$attempts" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: --attempts must be a non-negative integer." >&2; exit 2
+  fi
+  if _ticket_offline_skip "unfactory" "--id" "$id"; then return 0; fi
+  local pod; pod=$(_pgpod)
+  _exec_sql "$pod" -v ext_id="$id" -v attempts="${attempts:-unknown}" <<'EOF' >/dev/null
+BEGIN;
+
+UPDATE tickets.tickets
+SET status         = 'blocked',
+    attention_mode = 'needs_human',
+    readiness      = COALESCE(readiness, '{}'::jsonb) || '{"factory_excluded":true}'::jsonb
+WHERE external_id = :'ext_id';
+
+-- The closing comment reads the attempt count and the most recent phase event so
+-- the ticket carries its own explanation; the watchdog wrote seven identical
+-- comments to T002282 without anybody noticing (T002361).
+INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+SELECT t.id, 'factory-watchdog',
+       'Unfactored: die Software Factory hat dieses Ticket nach '
+       || :'attempts' || ' erfolglosen Watchdog-Runden abgegeben.'
+       || E'\n\nStatus=blocked, attention_mode=needs_human, readiness.factory_excluded=true — '
+       || E'queue.sh dispatcht es in KEINEM Zweig mehr, auch nicht nach einem Statuswechsel.'
+       || E'\n\nLetztes Phase-Event: '
+       || COALESCE((SELECT pe.phase || '/' || pe.state || ' @ ' || pe.at::text
+                    FROM tickets.factory_phase_events pe
+                    WHERE pe.ticket_id = t.id
+                    ORDER BY pe.at DESC LIMIT 1), 'keines')
+       || E'\n\nRueckweg (nur menschlich): '
+       || 'ticket.sh plan-meta set --id ' || t.external_id
+       || ' --readiness factory_excluded=false',
+       'internal'
+FROM tickets.tickets t WHERE t.external_id = :'ext_id';
+
+COMMIT;
+EOF
+  echo "unfactored ticket $id (status=blocked, needs_human, factory_excluded=true)"
+}
+
 cmd_factory_control() {
   local action="" key="" brand="" value="" set_by=""
   if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
@@ -881,7 +941,7 @@ cmd_triage() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
+  echo "Commands: create, update-status, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -912,6 +972,7 @@ case "$cmd" in
   release-hold)      cmd_release_hold "$@" ;;
   assert-phase-chain) cmd_assert_phase_chain "$@" ;;
   retry-count)       cmd_retry_count "$@" ;;
+  unfactory)         cmd_unfactory "$@" ;;
   factory-control)   cmd_factory_control "$@" ;;
   dryrun-mark)       cmd_dryrun_mark "$@" ;;
   dryrun-check)      cmd_dryrun_check "$@" ;;

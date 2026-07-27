@@ -22,8 +22,21 @@ GEAENDERT:
   scripts/ticket.sh                  (neues cmd_unfactory + Dispatch + Usage-Zeile)
   scripts/factory/queue.sh           (factory_excluded-Gate in BEIDEN Dispatch-Zweigen)
   scripts/factory/pipeline.mjs       (dryrun-mark raus aus dem Agent-Prompt)
+  scripts/factory/pipeline-runner.js (neues dryrun-mark-Kommando, NICHT fehlerschluckend)
   tests/spec/software-factory.bats   (7 Regressionstests, bereits als RED geschrieben)
 ```
+
+**Nachtrag zur File Structure (waehrend der Umsetzung erkannt):**
+`scripts/factory/pipeline-runner.js` kam hinzu. `pipeline.mjs` hat keinen Node-API-Zugriff
+(kein `fs`, kein `child_process`) und fuehrt jeden Shell-Seiteneffekt ueber
+`runRunner(agent, '<command>', payload)` aus, das im Runner landet. Der Marker-Aufruf braucht
+dort also ein eigenes Kommando. Anders als `phase-event` (das Fehler mit `catch {}` schluckt)
+darf `dryrun-mark` NICHT schlucken — ein still uebersprungener Marker ist genau der Bug.
+
+**Praezisierung zu „deterministisch":** auch `runRunner` laesst einen Agenten den Befehl
+ausfuehren. Der Gewinn ist nicht „ohne Modell", sondern: der Marker wandert von einem
+Stichpunkt unter fuenf in einem Review-Prompt zu einem eigenen Programmschritt mit
+Ein-Zweck-Prompt, der im Kontrollfluss liegt und dessen Fehlschlag als Exception sichtbar wird.
 
 Keine neuen Dateien. Keine Datenbankmigration: `factory_control.updated_at` und
 `factory_phase_events.at` existieren bereits, inklusive Index
@@ -37,7 +50,8 @@ Keine neuen Dateien. Keine Datenbankmigration: `factory_control.updated_at` und
 | `scripts/factory/queue.sh` | `.sh` | 500 | 30 | 500, Reserve 470 Zeilen |
 | `scripts/ticket.sh` | `.sh` | 500 | 924 | keine, Datei steht auf der `s1.ignore`-Liste |
 | `scripts/factory/pipeline.mjs` | `.mjs` | 500 | 617 | keine, Datei steht auf der `s1.ignore`-Liste |
-| `tests/spec/software-factory.bats` | `.bats` | keins | 4371 | nicht S1-gated |
+| `scripts/factory/pipeline-runner.js` | `.js` | 600 | 489 | 600, Reserve 111 Zeilen |
+| `tests/spec/software-factory.bats` | `.bats` | keins | 4419 | nicht S1-gated |
 
 `scripts/ticket.sh` ist in `docs/code-quality/gates.yaml` als „sanctioned single-file CLI"
 ausgenommen (G-RH01 Batch 1, „low priority, do not split"). `scripts/factory/pipeline.mjs`
@@ -69,7 +83,7 @@ Nicht in diesem Change:
 
 ### Task 1 — RED: Regressionstests und Fehlschlag-Nachweis
 
-- [ ] Die sieben Tests liegen in `tests/spec/software-factory.bats` unter der Sektion
+- [x] Die sieben Tests liegen in `tests/spec/software-factory.bats` unter der Sektion
       `T002361-livelock-breaker`. Sie pruefen strukturell per `grep` gegen Dateien, nicht
       gegen `$output` — das vermeidet die `$0`-Falle aus CLAUDE.md und laeuft offline in CI.
 
@@ -84,7 +98,7 @@ derzeit IM Agent-Prompt steht (gefunden 1, erwartet 0). Bricht er stattdessen an
 
 ### Task 2 — `ticket.sh unfactory` implementieren
 
-- [ ] Neues `cmd_unfactory()` in `scripts/ticket.sh`, angelehnt an `cmd_retry_count()`
+- [x] Neues `cmd_unfactory()` in `scripts/ticket.sh`, angelehnt an `cmd_retry_count()`
       (Zeile 415) fuer Argument-Parsing und `_pgpod`/`_exec_sql`-Nutzung.
 
 Ein Statement-Block setzt alle Effekte, damit kein halb angewandter Terminalzustand
@@ -111,7 +125,7 @@ Akzeptanzkriterien:
 
 ### Task 3 — Attempt-Zaehler im Watchdog
 
-- [ ] In `scripts/factory/watchdog.sh` innerhalb der bestehenden
+- [x] In `scripts/factory/watchdog.sh` innerhalb der bestehenden
       `for row in "${stale[@]}"`-Schleife, VOR der Status-Reset-Entscheidung.
 
 Ein `factory_psql`-Statement macht Compare-and-Set fuer den Key `factory_attempt:<ext_id>`
@@ -141,7 +155,7 @@ Akzeptanzkriterien:
 
 ### Task 4 — Eskalation auf `unfactory` bei `FACTORY_MAX_ATTEMPTS`
 
-- [ ] `FACTORY_MAX_ATTEMPTS="${FACTORY_MAX_ATTEMPTS:-3}"` in
+- [x] `FACTORY_MAX_ATTEMPTS="${FACTORY_MAX_ATTEMPTS:-3}"` in
       `scripts/factory/watchdog.sh` neben `STALE_MIN` deklarieren.
 
 Erreicht der Zaehler aus Task 3 den Wert, wird statt `update-status` auf
@@ -159,7 +173,7 @@ Akzeptanzkriterien:
 
 ### Task 5 — `factory_excluded`-Gate in `queue.sh`
 
-- [ ] Beide Dispatch-Zweige der `WHERE`-Klausel in `scripts/factory/queue.sh` um
+- [x] Beide Dispatch-Zweige der `WHERE`-Klausel in `scripts/factory/queue.sh` um
       `AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false` erweitern —
       den `type='feature' AND status='backlog'`-Zweig (Zeile 19) und den
       `type='task' AND status='plan_staged'`-Zweig (Zeile 25).
@@ -179,7 +193,7 @@ Akzeptanzkriterien:
 
 ### Task 6 — `dryrun-mark` aus dem Agent-Prompt herausnehmen
 
-- [ ] In `scripts/factory/pipeline.mjs`, `DRY_RUN`-Zweig (Zeile 480 herum).
+- [x] In `scripts/factory/pipeline.mjs`, `DRY_RUN`-Zweig (Zeile 480 herum).
 
 - Die Zeile `bash ${REPO}/scripts/ticket.sh dryrun-mark --id ${A.ticket_id}` aus dem
   Template-Literal des `agent()`-Prompts entfernen und die Aufzaehlung im Prompt anpassen
@@ -203,7 +217,7 @@ Akzeptanzkriterien:
 
 ### Task 7 — Final Verification
 
-- [ ] Alle Gates laufen gruen:
+- [x] Alle Gates laufen gruen:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats --filter 'T002361'

@@ -190,6 +190,19 @@ async function main() {
     } catch {}
     try { otelEmit.emitPhase(phase, state, { brand, ticket_id }); } catch {}
 
+  } else if (command === 'dryrun-mark') {
+    // T002361: graduating a ticket out of dry-run-first is the ONLY exit from that
+    // loop, so unlike phase-event above this must NOT swallow failures. A silently
+    // skipped marker is the bug: guard_dryrun_ok stays unsatisfied, every tick forces
+    // another preview, and one headless session burns per round.
+    // T001816 originally added this call as a bullet inside the Deploy-phase agent
+    // prompt, which made a mandatory state transition depend on model compliance.
+    const { ticket_id, brand } = payload;
+    execFileSync('bash',
+      [path.join(REPO, 'scripts/ticket.sh'), 'dryrun-mark', '--id', String(ticket_id)],
+      { stdio: 'ignore', timeout: 30000, env: { ...process.env, BRAND: brand } });
+    process.stdout.write(`dryrun-mark: ok ${ticket_id}\n`);
+
   } else if (command === 'broadcast') {
     const { msg, label } = payload;
     if (_msgBridge && typeof _msgBridge.broadcast === 'function') {

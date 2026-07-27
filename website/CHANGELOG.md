@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.8...website-v1.216.9) (2026-07-27)
+
+
+### Bug Fixes
+
+* **scripts:** add llm scope, fix verification-block ordering [T002262] ([#3316](https://github.com/Paddione/Bachelorprojekt/issues/3316)) ([450b67e](https://github.com/Paddione/Bachelorprojekt/commit/450b67ea0e8484f86a100dd83b32fa09f8cc0562))
+
 ## [1.216.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.7...website-v1.216.8) (2026-07-27)
 
 

@@ -1763,8 +1763,8 @@
   ],
   "T002321": [
     {
-      "slug": "mcp-postgres-oom",
-      "status": "plan_staged"
+      "slug": "2026-07-27-mcp-postgres-oom",
+      "status": "archived"
     }
   ],
   "T002339": [

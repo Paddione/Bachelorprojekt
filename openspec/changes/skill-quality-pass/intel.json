@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "slug": "skill-quality-pass",
+    "ticket_id": "T002303",
+    "generated_from": "main@68a4c3d10",
+    "domains": ["agent-config", "docs"],
+    "intel_sources": ["grep", "wc", "baseline.json", "git-log"]
+  },
+  "impact_files": [
+    { "path": ".claude/skills/dev-flow-execute/SKILL.md", "language": "markdown", "loc": 486, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/infra-ops/SKILL.md", "language": "markdown", "loc": 476, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/dev-flow-plan/SKILL.md", "language": "markdown", "loc": 460, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/ticket-ops/SKILL.md", "language": "markdown", "loc": 334, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/openspec-explore/SKILL.md", "language": "markdown", "loc": 298, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/git-workflow/SKILL.md", "language": "markdown", "loc": 283, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/dev-flow-e2e/SKILL.md", "language": "markdown", "loc": 224, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/mishap-tracker/SKILL.md", "language": "markdown", "loc": 209, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/dev-flow-chore/SKILL.md", "language": "markdown", "loc": 192, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/openspec-apply-change/SKILL.md", "language": "markdown", "loc": 166, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/openspec-propose/SKILL.md", "language": "markdown", "loc": 139, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/openspec-archive-change/SKILL.md", "language": "markdown", "loc": 124, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/database-specialist/SKILL.md", "language": "markdown", "loc": 114, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/website-specialist/SKILL.md", "language": "markdown", "loc": 110, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/security-specialist/SKILL.md", "language": "markdown", "loc": 107, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/incident-response/SKILL.md", "language": "markdown", "loc": 103, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/brain-ingest/SKILL.md", "language": "markdown", "loc": 68, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/operations-management/SKILL.md", "language": "markdown", "loc": 65, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/repo-hygiene/SKILL.md", "language": "markdown", "loc": 55, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/references/SKILL.md", "language": "markdown", "loc": 40, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/skills/OVERVIEW.md", "language": "markdown", "loc": 214, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "scripts/health-goals-check.sh", "language": "bash", "loc": 471, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": ".claude/lib/goals.md", "language": "markdown", "loc": 642, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/agent-skills.bats", "language": "bats", "loc": 48, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 },
+    { "path": "tests/spec/agentic-tooling-quality-goals.bats", "language": "bats", "loc": 86, "s1_limit": 0, "s1_baseline": null, "s1_budget": 0 }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/health-goals-check.sh:row",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "row <kind:gate|target> <id> <actual> <cmp:le|ge|eq> <target> <desc...>",
+      "type_text": "(kind, id, actual, cmp, target, ...desc) => void; actual=\"-\" => SKIP; kind=gate => non-zero exit on miss",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:G-AGENTIC09",
+      "kind": "gate-row",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "row target G-AGENTIC09 \"$(find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!=\"total\"&&$1>500{c++} END{print c+0}')\" le 0 \"SKILL.md >500 Zeilen\"",
+      "type_text": "line 377; currently kind=target (advisory), threshold 500, scope: all skills incl. vendor",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:G-AGENTIC06",
+      "kind": "gate-row",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "claimed=$(grep -oE '[0-9]+ project-local skills' .claude/skills/OVERVIEW.md | head -1 | grep -oE '^[0-9]+'); real=$(git ls-files -- .claude/skills | grep -c '/SKILL\\.md$')",
+      "type_text": "line 244; kind=gate, eq 0; reads the count claim from OVERVIEW.md line 3",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:G-AGENTIC07",
+      "kind": "gate-row",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "for f in $(git ls-files -- .claude/skills | grep '/SKILL\\.md$'); awk frontmatter description-present || continue; refs in CLAUDE.md AGENTS.md OVERVIEW.md other SKILL.md",
+      "type_text": "line 251; kind=gate, eq 0; only counts skills that HAVE a description — the archived-exemption precedent",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:G-AGENTIC08",
+      "kind": "gate-row",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "grep -rhoP '(?<![A-Za-z0-9_./-])scripts/[A-Za-z0-9_./-]+\\.(sh|mjs|py)' .claude/skills --include=SKILL.md | test -f || count",
+      "type_text": "line 261; kind=gate, eq 0; every scripts/ path quoted in a SKILL.md must exist — relocating text into references/ must keep paths valid",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": ["scripts/health-goals-check.sh:row"],
+    "edges": [
+      { "from": "task freshness:check", "to": "scripts/health-goals-check.sh", "kind": "calls" },
+      { "from": ".github/workflows/health-goals.yml", "to": "scripts/health-goals-check.sh", "kind": "calls" },
+      { "from": "scripts/health-goals-check.sh:G-AGENTIC06", "to": ".claude/skills/OVERVIEW.md", "kind": "data_flow" },
+      { "from": "scripts/health-goals-check.sh:G-AGENTIC09", "to": ".claude/skills/*/SKILL.md", "kind": "data_flow" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "S1 ratchet does not cover this change: docs/code-quality/baseline.json holds 28 S1 entries, all .astro/.svelte/.ts/.mjs/.py. No .md, .sh or .bats file is baselined, so every s1_budget above is 0 in the sense of 'not measured', not 'exhausted'. Line growth in SKILL.md is unconstrained today — that is the gap K4 closes.",
+      "severity": "info"
+    },
+    {
+      "note": "G-AGENTIC08 counts dead scripts/ paths inside SKILL.md. Moving procedure text into .claude/skills/references/ carries those paths along; if a relocated block quotes a script path, the gate follows it into the new file (it globs .claude/skills recursively). Verify after each extraction.",
+      "severity": "warn"
+    },
+    {
+      "note": "G-AGENTIC07 counts a skill as orphaned when it has a description but no reference in CLAUDE.md, AGENTS.md, OVERVIEW.md or another SKILL.md. Rewriting OVERVIEW.md rows risks dropping the only reference for a skill. Re-run the gate after the OVERVIEW.md rewrite, not only at the end.",
+      "severity": "warn"
+    },
+    {
+      "note": "G-AGENTIC06 parses the literal string '<N> project-local skills' from OVERVIEW.md. K4 neither adds nor removes skills, so the number 28 must survive the rewrite verbatim in that grep-able form.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not used: the change set is markdown and bash with no typed symbols to resolve. Sources used were grep, wc, git log and baseline.json.",
+      "severity": "info"
+    }
+  ]
+}

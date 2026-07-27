@@ -1,5 +1,29 @@
 {
   "mcpServers": {
+    "codebase-memory-mcp": {
+      "command": "/home/patrick/.local/bin/codebase-memory-mcp"
+    },
+    "factory-mcp": {
+      "type": "http",
+      "url": "http://localhost:13003/mcp"
+    },
+    "mcp-kubernetes": {
+      "type": "http",
+      "url": "http://localhost:18080/mcp"
+    },
+    "mcp-postgres": {
+      "type": "http",
+      "url": "http://localhost:13001/mcp"
+    },
+    "mcp-task-runner": {
+      "command": "mcp-task-runner",
+      "args": [
+        "--otel-endpoint",
+        "localhost:4317",
+        "--taskfile",
+        "/home/patrick/Bachelorprojekt/Taskfile.yml"
+      ]
+    },
     "task-master-ai": {
       "command": "npx",
       "args": [
@@ -11,30 +35,8 @@
         "TASK_MASTER_TOOLS": "all"
       }
     },
-    "mcp-kubernetes": {
-      "type": "http",
-      "url": "http://localhost:18080/mcp"
-    },
-    "mcp-postgres": {
-      "type": "http",
-      "url": "http://localhost:13001/mcp"
-    },
-    "factory-mcp": {
-      "type": "http",
-      "url": "http://localhost:13003/mcp"
-    },
-    "mcp-task-runner": {
-      "command": "mcp-task-runner",
-      "args": [
-        "--otel-endpoint", "localhost:4317",
-        "--taskfile", "/home/patrick/Bachelorprojekt/Taskfile.yml"
-      ]
-    },
     "ticket-mcp": {
       "command": "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"
-    },
-    "codebase-memory-mcp": {
-      "command": "/home/patrick/.local/bin/codebase-memory-mcp"
     }
   }
 }

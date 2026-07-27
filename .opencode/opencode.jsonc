@@ -68,124 +68,130 @@
     }
   },
   "mcp": {
-    // ── Monolith HTTP-Endpunkte (kubectl portforward via Taskfile) ────────
-    "factory-mcp": {
-      "type": "remote",
-      "url": "http://localhost:13003/mcp",
-      "enabled": true
-    },
-    "mcp-kubernetes": {
-      "type": "remote",
-      "url": "http://localhost:18080/mcp",
-      "enabled": true
-    },
-    "mcp-postgres": {
-      "type": "remote",
-      "url": "http://localhost:13001/mcp",
-      "enabled": true
-    },
-    // ── Stdio-Server (lokale Prozesse) ────────────────────────────────────
+
     "codebase-memory-mcp": {
+
       "type": "local",
-      "command": [
-        "/home/patrick/.local/bin/codebase-memory-mcp"
-      ],
+
+      "command": ["/home/patrick/.local/bin/codebase-memory-mcp"],
+
       "enabled": true
+
     },
-    "mcp-task-runner": {
-      "type": "local",
-      "command": [
-        "mcp-task-runner",
-        "--otel-endpoint",
-        "localhost:4317",
-        "--taskfile",
-        "/home/patrick/Bachelorprojekt/Taskfile.yml"
-      ],
-      "enabled": true
-    },
-    "ticket-mcp": {
-      "type": "local",
-      "command": [
-        "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"
-      ],
-      "enabled": true
-    },
-    // task-master-ai: per openspec/specs/mcp-skill-integration.md deliberately
-    // "optional/available, keine Skill-Logik" — never wired into any skill.
-    // Disabled by default to avoid eager tool-schema loading; ticket-mcp is
-    // the canonical task/ticket system for this repo. Flip to true to use ad-hoc.
-    "task-master-ai": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "task-master-ai"
-      ],
-      "environment": {
-        "OLLAMA_BASE_URL": "http://localhost:11434/api",
-        "TASK_MASTER_TOOLS": "all"
-      },
-      "enabled": false
-    },
-    // ── GitHub MCP (local) ────────────────────────────────────────────────
-    // Disabled: zero references in this repo's skills/scripts/docs; gh-axi
-    // (.claude/skills/references/gh-axi.md) is the mandated GitHub path for
-    // all agents, with plain `gh` as documented fallback. Flip to true if a
-    // future workflow needs native MCP-level GitHub API access gh-axi/gh lack.
-    "github-mcp": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
-      "environment": {
-        "GITHUB_TOKEN": "{env:GITHUB_TOKEN}"
-      },
-      "enabled": false
-    },
-    // ── Projekt-Override: global aktivierte, projektfremde MCPs abschalten ─
-    // Reduziert opencodes initialen Session-Context (Tool-Schemas werden
-    // eager geladen, kein Lazy-Loading). Diese Server sind generische
-    // Web/Docs/Reasoning-Tools ohne Bezug zum k8s/postgres/Ticket-Workflow
-    // dieses Repos. Volle Server-Definition wiederholt (statt nur
-    // "enabled": false), damit der Override unabhängig von opencodes
-    // Merge-Strategie (shallow/deep) greift. Bei Bedarf lokal wieder auf
-    // true setzen.
+
     "docfork": {
+
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "docfork"
-      ],
+
+      "command": ["npx","-y","docfork"],
+
       "enabled": false
+
     },
-    "sequential-thinking": {
+
+    "factory-mcp": {
+
+      "type": "remote",
+
+      "url": "http://localhost:13003/mcp",
+
+      "enabled": true
+
+    },
+
+    "github-mcp": {
+
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
+
+      "command": ["npx","-y","@modelcontextprotocol/server-github"],
+
+      "environment": {"GITHUB_TOKEN":"{env:GITHUB_TOKEN}"},
+
       "enabled": false
+
     },
+
+    "mcp-kubernetes": {
+
+      "type": "remote",
+
+      "url": "http://localhost:18080/mcp",
+
+      "enabled": true
+
+    },
+
+    "mcp-postgres": {
+
+      "type": "remote",
+
+      "url": "http://localhost:13001/mcp",
+
+      "enabled": true
+
+    },
+
+    "mcp-task-runner": {
+
+      "type": "local",
+
+      "command": ["mcp-task-runner","--otel-endpoint","localhost:4317","--taskfile","/home/patrick/Bachelorprojekt/Taskfile.yml"],
+
+      "enabled": true
+
+    },
+
     "playwright": {
+
       "type": "local",
-      "command": [
-        "npx",
-        "@playwright/mcp@latest"
-      ],
+
+      "command": ["npx","@playwright/mcp@latest"],
+
       "enabled": false
+
     },
-    "webresearch": {
+
+    "sequential-thinking": {
+
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@mzxrai/mcp-webresearch@latest"
-      ],
+
+      "command": ["npx","-y","@modelcontextprotocol/server-sequential-thinking"],
+
       "enabled": false
+
+    },
+
+    "task-master-ai": {
+
+      "type": "local",
+
+      "command": ["npx","-y","task-master-ai"],
+
+      "environment": {"OLLAMA_BASE_URL":"http://localhost:11434/api","TASK_MASTER_TOOLS":"all"},
+
+      "enabled": false
+
+    },
+
+    "ticket-mcp": {
+
+      "type": "local",
+
+      "command": ["/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"],
+
+      "enabled": true
+
+    },
+
+    "webresearch": {
+
+      "type": "local",
+
+      "command": ["npx","-y","@mzxrai/mcp-webresearch@latest"],
+
+      "enabled": false
+
     }
+
   }
 }

@@ -32,3 +32,30 @@ Target it could not stop a regression — it only recorded one.
 - **GIVEN** a project-owned `SKILL.md` grows from 240 to 260 lines
 - **WHEN** `bash scripts/health-goals-check.sh --only=G-AGENTIC09` runs
 - **THEN** the Gate reports a non-zero count and exits non-zero
+
+### Requirement: G-AGENTIC08 No Dead Script/Task References In Skills Gate
+
+The count of non-existent `scripts/…` paths quoted in the Markdown of **project-owned** skills
+SHALL be measured as a fail-closed Gate with target 0. The scope covers every `.md` file of those
+skills plus `.claude/skills/references/`, not only files named `SKILL.md`.
+
+The previous formulation matched `--include=SKILL.md` only. Relocating procedure text into a
+reference file therefore removed its script paths from the gate's scope — the very move that
+progressive disclosure encourages. Vendor skills are excluded because their `scripts/…` mentions
+are relative to the skill directory and resolve correctly there, while the repo-relative check
+would report them as dead.
+
+#### Scenario: a relocated block quotes a script path
+
+- **GIVEN** a block quoting `scripts/plan-lint.sh` moves from a `SKILL.md` into
+  `.claude/skills/references/`
+- **WHEN** the G-AGENTIC08 measure command runs
+- **THEN** the path is still checked, because the scope covers all `.md` of project-owned skills
+
+#### Scenario: a vendor skill quotes a skill-relative script path
+
+- **GIVEN** `.claude/skills/gitops-repo-audit/references/api-migration.md` mentions
+  `scripts/validate.sh`, which exists at `.claude/skills/gitops-repo-audit/scripts/validate.sh`
+- **WHEN** the G-AGENTIC08 measure command runs
+- **THEN** the file is not inspected and the Gate stays green, because vendor skills are out of
+  scope

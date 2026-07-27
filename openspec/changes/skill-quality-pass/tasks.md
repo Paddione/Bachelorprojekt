@@ -45,7 +45,8 @@ Intel: `openspec/changes/skill-quality-pass/intel.json`
 | `.claude/skills/git-workflow/SKILL.md` | 283 Zeilen → höchstens 250, extract nach `references/` |
 | `.claude/skills/references/dev-flow-execute-phases.md` | NEU — ausgelagerte Prozedur-Details aus `dev-flow-execute` |
 | `.claude/skills/references/dev-flow-plan-phases.md` | NEU — ausgelagerte Prozedur-Details aus `dev-flow-plan` |
-| `.claude/skills/references/infra-ops-runbooks.md` | NEU — ausgelagerte Sektions-Runbooks aus `infra-ops` |
+| `.claude/skills/infra-ops/references/runbooks-deploy.md` | NEU — §1–3 aus `infra-ops`. Abweichend vom ursprünglichen Plan **nicht** im geteilten Hub: `infra-ops` hat bereits ein eigenes `references/` (Hetzner-, Proxmox-, OpenClaw-Provisioning), und der Hub ist laut eigener description für cross-cutting Referenzen da |
+| `.claude/skills/infra-ops/references/runbooks-operations.md` | NEU — §4–7 aus `infra-ops` |
 | `.claude/skills/references/ticket-ops-procedures.md` | NEU — ausgelagerte Prozedur-Details aus `ticket-ops` |
 | `.claude/skills/references/git-workflow-procedures.md` | NEU — ausgelagerte Prozedur-Details aus `git-workflow` |
 | `.claude/skills/references/openspec-explore-procedures.md` | NEU — ausgelagerte Prozedur-Details aus `openspec-explore` |

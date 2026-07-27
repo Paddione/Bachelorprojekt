@@ -78,9 +78,33 @@ setup() {
 }
 
 # ── G-AGENTIC09: God-Skill line budget ────────────────────────────────
+#
+# Seit T002303 ein fail-closed Gate mit Schwelle 250 über die projekteigenen Skills
+# (vorher: advisory target, Schwelle 500, alle Skills inkl. upstream-gepflegter).
 
-@test "G-AGENTIC09: zero SKILL.md files exceed 500 lines" {
+@test "G-AGENTIC09: zero project-owned SKILL.md files exceed 250 lines" {
   local count
-  count=$(find "$REPO/.claude/skills" -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}')
+  count=$(cd "$REPO" && bash -c '
+    source <(sed -n "/^project_owned_skills()/,/^}/p" scripts/health-goals-check.sh)
+    c=0; for d in $(project_owned_skills); do
+      [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 250 ] && c=$((c+1)); done; echo $c')
   [ "$count" -eq 0 ]
+}
+
+@test "G-AGENTIC09 is declared as a fail-closed gate, not an advisory target" {
+  # Ein auf 'target' zurückgestuftes Gate meldet weiterhin 0 und bliebe sonst unbemerkt.
+  run grep -E '^row gate G-AGENTIC09 ' "$REPO/scripts/health-goals-check.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "G-AGENTIC09 measures 250 lines, not the legacy 500" {
+  run grep -A3 '^row gate G-AGENTIC09 ' "$REPO/scripts/health-goals-check.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"-gt 250"* ]]
+}
+
+@test "project_owned_skills derives the vendor set from the OVERVIEW.md marker block" {
+  run grep -A3 '^project_owned_skills()' "$REPO/scripts/health-goals-check.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"vendor-skills:begin"* ]]
 }

@@ -1,6 +1,6 @@
 ---
 name: mishap-tracker
-description: Shared utility — batches all execution mishaps into a single aggregate ticket. Reuses an existing open "Mishap collection" ticket if one exists; creates a new one otherwise. Each mishap is individually classified within the aggregate.
+description: 'Use at the END of any runbook or dev-flow skill to file the frictions it accumulated — batches every MISHAP_LOG entry into one aggregate ticket instead of N individual ones, reusing an open "Mishap collection" ticket if one exists. Triggers on mishap, MISHAP_LOG, friction report, "report what went wrong", scripts/hooks/mishap-tracker.sh, and the closing step of dev-flow-plan, dev-flow-execute, dev-flow-chore, infra-ops, incident-response and ticket-ops.'
 ---
 
 # mishap-tracker

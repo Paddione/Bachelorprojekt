@@ -1,6 +1,6 @@
 ---
 name: git-workflow
-description: Use whenever committing, pushing, creating a PR, or finishing work on any branch. Covers the complete repo-specific git lifecycle: pull-first, commit conventions, freshness guard, commit verification, PR creation with scope preflight, CI fix loop, auto-merge, and worktree cleanup.
+description: 'Use whenever committing, pushing, creating a PR, or finishing work on any branch. Covers the complete repo-specific git lifecycle: pull-first, commit conventions, freshness guard, commit verification, PR creation with scope preflight, CI fix loop, auto-merge, and worktree cleanup.'
 ---
 
 # Git Workflow — vollständiger Lifecycle für dieses Repo
@@ -65,33 +65,15 @@ nicht kosmetisch Zeilen zusammenziehen.
 <type>(<scope>): <subject> [<TICKET_EXT_ID>]
 ```
 
-- **Header ≤ 100 Zeichen** (commitlint-Regel)
-- `type`: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`
-- `scope`: betroffenes Modul / Verzeichnis (z. B. `website`, `k3d`, `scripts`, `pocket-id`)
-- `TICKET_EXT_ID`: z. B. `T001026` — **immer anhängen** wenn ein Ticket existiert
-- Body-Zeilen ebenfalls < 100 Zeichen
-
-Beispiele:
-
-```
-feat(website): add React mentolder rebuild [T001026]
-fix(pocket-id): rotate stale oauth2-proxy secret [T000950]
-chore(k3d): bump TEI embed port 9081 [T000978]
-```
-
-**Neuer Scope nötig?** Bevor ein noch nicht registrierter Scope (z. B. ein neuer Goal-Code wie
-`sec06`) in einer Commit-Message oder einem PR-Titel verwendet wird, zuerst
-`bash scripts/register-scope.sh <scope>` ausführen und die geänderte `commitlint.config.cjs`
-mitcommitten — sonst schlägt das `commit-lint`-Gate (und `preflight-pr-scope.sh`) mit "unknown
-scope" fehl. `commitlint.config.cjs` ist die einzige Quelle; `ci.yml` und `pr-auto-title.yml`
-laden daraus dynamisch (T001364).
+Header ≤ 100 Zeichen, Ticket-ID immer anhängen. Die vollständige `type`/`scope`-Liste, Beispiele,
+die PR-Body-Vorlage und das Vorgehen für einen **noch nicht registrierten Scope**
+(`scripts/register-scope.sh` + `commitlint.config.cjs` mitcommitten, T001364) stehen in
+[git-workflow-procedures](file:///home/patrick/Bachelorprojekt/.claude/skills/references/git-workflow-procedures.md).
 
 > **Scope vorab gegen SSOT-Allowlist prüfen [T001395]:** `preflight-pr-scope.sh` (Schritt 4) läuft
-> erst kurz vor `gh pr create` — also NACH dem Commit. Ein falsch geratener Scope (z. B.
-> `installer`/`rustdesk` statt eines registrierten Scopes) führt dann zu einem Soft-Reset +
-> Recommit mitten im Flow. Vor dem ersten Commit die erlaubte Liste ziehen und daraus wählen:
-> `bash scripts/validate-commit-msg.sh scopes`. Siehe
-> [dev-flow-gotchas T001395](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
+> erst kurz vor `gh pr create` — also NACH dem Commit. Ein falsch geratener Scope führt dann zu
+> einem Soft-Reset + Recommit mitten im Flow. Vor dem ersten Commit die erlaubte Liste ziehen und
+> daraus wählen: `bash scripts/validate-commit-msg.sh scopes`.
 
 ### Commit ausführen
 
@@ -158,21 +140,9 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [<TICKET_EXT_ID>]
 
 ### PR anlegen
 
-```bash
-gh pr create \
-  --title "<type>(<scope>): <subject> [<TICKET_EXT_ID>]" \
-  --body "$(cat <<'EOF'
-## Summary
-- <was wurde geändert>
-- <warum>
-
-## Test Plan
-- [ ] <manuell überprüft / CI grün>
-
-🤖 [T<TICKET_EXT_ID>]
-EOF
-)"
-```
+`gh pr create --title "<type>(<scope>): <subject> [<TICKET_EXT_ID>]" --body ...` — die
+Body-Vorlage (Summary + Test Plan) und der REST-Fallback für nachträgliche Titel-Edits stehen in
+[git-workflow-procedures](file:///home/patrick/Bachelorprojekt/.claude/skills/references/git-workflow-procedures.md).
 
 ---
 
@@ -191,14 +161,11 @@ Kurzfassung:
 > sondern "CI startet nie". Diagnose: `gh pr view <n> --json mergeStateStatus`.
 
 > **Freshness-Auto-Regen-Race [T001395]:** Bleibt ein PR über einen geplanten
-> Freshness-Auto-Regen-Zyklus offen, committet der Scheduler eigenständig Änderungen an
-> generierten Artefakten (`docs/code-quality/repo-index.json` u. ä.) auf `main` — der PR kippt
-> dann auf `CONFLICTING`, ohne dass ein Mensch etwas geändert hat (beobachtet in T001378). Das
-> ist kein echter Merge-Konflikt: kurz halten (PRs zügig mergen) minimiert das Risiko; tritt es
-> trotzdem auf, den normalen Rebase-Schritt (oben) um `task freshness:regenerate` ergänzen, BEVOR
-> gepusht wird — sonst rebased man gegen einen bereits wieder veralteten Artefaktstand:
-> `git fetch origin main && git rebase origin/main && task freshness:regenerate && git add <regenerierte Dateien> && git rebase --continue && git push --force-with-lease`.
-> Details: [dev-flow-gotchas T001395](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-gotchas.md).
+> Freshness-Auto-Regen-Zyklus offen, kippt er auf `CONFLICTING`, ohne dass ein Mensch etwas
+> geändert hat — der Scheduler hat generierte Artefakte auf `main` committet. Kein echter
+> Merge-Konflikt; der Rebase muss dann um `task freshness:regenerate` ergänzt werden, **bevor**
+> gepusht wird. Befehlsfolge:
+> [git-workflow-procedures](file:///home/patrick/Bachelorprojekt/.claude/skills/references/git-workflow-procedures.md).
 
 ---
 
@@ -234,32 +201,12 @@ Lebenszyklus-SSOT: [session-coordination](file:///home/patrick/Bachelorprojekt/.
 
 ---
 
-## Quick-Reference
+## Nachschlagewerk
 
-| Schritt | Was | Wann |
-|---------|-----|------|
-| 0 | `git pull --rebase` | Immer als erstes |
-| 1 | `task freshness:regenerate` | Wenn Code-Dateien geändert wurden |
-| 2 | Conventional Commit ≤100 Zeichen + Ticket-ID | Jeder Commit |
-| 2 | Commit-Verifikation (HEAD_SHA != BASE_SHA) | Nach jedem Commit in Worktrees |
-| 3 | `git push -u origin <branch>` | Einmalig, danach plain `git push` |
-| 4 | `bash scripts/preflight-pr-scope.sh` + `gh pr create` | Einmal pro PR |
-| 5 | CI Fix Loop | Bis alle Required Checks grün |
-| 6 | `gh pr merge --auto --squash --delete-branch` | Wenn CI grün |
-| 7 | `git worktree remove` + `agent-lock release` | Nur bei Worktree-Arbeit |
-
----
-
-## Häufige Fehler
-
-| Fehler | Diagnose | Fix |
-|--------|----------|-----|
-| Commit landet nicht (git-crypt) | `git rev-parse HEAD == BASE_SHA` | `git status`, dann erneut committen |
-| CI startet nie | `gh pr view <n> --json mergeStateStatus` → `CONFLICTING` | `git rebase origin/main` |
-| Stale artifact in CI | `task freshness:check` lokal rot | `task freshness:regenerate && git add && git commit` |
-| S1 Ratchet über Budget | `task freshness:check` schlägt fehl | Datei wirklich verkleinern |
-| PR-Scope invalid | `preflight-pr-scope.sh` Exit 1 | Scope korrigieren, neu prüfen |
-| Falscher Cluster gedeployt | `ENV=` vergessen gesetzt | Immer `ENV=mentolder` / `ENV=korczewski` explizit |
+Schritt-Übersicht (0–7 auf einen Blick) und die Fehlertabelle „Symptom → Diagnose → Fix"
+(Commit landet nicht, CI startet nie, stale artifact, S1-Ratchet, PR-Scope invalid, falscher
+Cluster) stehen in
+[git-workflow-procedures](file:///home/patrick/Bachelorprojekt/.claude/skills/references/git-workflow-procedures.md).
 
 ---
 

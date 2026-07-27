@@ -90,6 +90,27 @@ whether a workflow keeps it.
 - **THEN** the file is left unchanged, because upstream-maintained skills are out of scope and
   editing them would create merge conflicts on the next sync
 
+### Requirement: Skill frontmatter must be parseable YAML
+
+Every tracked `SKILL.md` MUST open with a YAML frontmatter block that a standard YAML parser can
+load into a mapping containing a `name` key.
+
+An unquoted plain scalar ends its key at the first `: ` (colon followed by space). A
+`description` such as `Triggers on: database migration, ALTER TABLE` therefore does not parse as
+a string — the parser sees a nested mapping and fails. Harnesses that extract the description by
+regex tolerate this, but a frontmatter that a standard parser rejects cannot be relied on as the
+source of a skill's trigger terms, and any tooling built on it breaks silently.
+
+Values containing `: ` MUST be quoted.
+
+#### Scenario: a description contains an unquoted colon
+
+- **GIVEN** `.claude/skills/database-specialist/SKILL.md` declares
+  `description: Use for … Triggers on: database migration, ALTER TABLE`
+- **WHEN** the frontmatter is loaded with a standard YAML parser
+- **THEN** the load fails with "mapping values are not allowed here", and the value is quoted so
+  that it parses as a single string
+
 ### Requirement: A forked vendor skill must declare the fork
 
 A tracked `SKILL.md` that carries upstream provenance metadata — such as `license`, an author

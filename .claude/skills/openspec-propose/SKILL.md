@@ -1,12 +1,13 @@
 ---
 name: openspec-propose
-description: Propose a new change with all artifacts generated in one step. Use when the user wants to quickly describe what they want to build and get a complete proposal with design, specs, and tasks ready for implementation.
-license: MIT
+description: 'Use to create a new OpenSpec change proposal with design, delta specs and tasks in one step. Triggers on /opsx:propose, openspec propose, "new change proposal", openspec/changes/, task openspec:propose, scripts/openspec.sh propose, --target-spec, delta spec skeleton. Within this repo dev-flow-plan calls this as part of its Phase A — invoke it directly only for a standalone proposal.'
 compatibility: Requires openspec CLI.
-metadata:
-  author: openspec
-  version: "1.0"
-  generatedBy: "1.3.1"
+# FORK — nicht upstream-synchron. Stammt aus dem OpenSpec-Upstream
+# (https://github.com/Fission-AI/OpenSpec), installiert mit T001263 / PR #2188, und wurde
+# seitdem hier weiterentwickelt (u.a. Framework-Mapping-Tabelle, PR #2702) ohne je gegen
+# Upstream re-synct zu werden. Die frueheren Felder license/metadata.author/generatedBy
+# behaupteten unveraenderte Herkunft und wurden deshalb entfernt (T002303): ein Re-Sync
+# auf ihrer Grundlage haette die lokalen Aenderungen still verworfen.
 ---
 
 Propose a new change - create the change and generate all artifacts in one step.

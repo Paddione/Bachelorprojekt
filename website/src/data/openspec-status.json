@@ -1725,6 +1725,12 @@
       "status": "archived"
     }
   ],
+  "T002303": [
+    {
+      "slug": "skill-quality-pass",
+      "status": "plan_staged"
+    }
+  ],
   "T002304": [
     {
       "slug": "2026-07-27-agent-definitions-unification",

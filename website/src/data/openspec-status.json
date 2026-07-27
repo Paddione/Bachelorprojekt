@@ -1629,6 +1629,12 @@
       "status": "archived"
     }
   ],
+  "T002249": [
+    {
+      "slug": "renovate-repo-changed-hardening",
+      "status": "plan_staged"
+    }
+  ],
   "T002251": [
     {
       "slug": "2026-07-27-flux-bootstrap-sealedsecrets",

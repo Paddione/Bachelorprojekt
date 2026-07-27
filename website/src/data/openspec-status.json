@@ -1689,6 +1689,12 @@
       "status": "archived"
     }
   ],
+  "T002278": [
+    {
+      "slug": "2026-07-27-mcp-postgres-brand-scope",
+      "status": "archived"
+    }
+  ],
   "T002280": [
     {
       "slug": "ticket-sh-brand-derivation",

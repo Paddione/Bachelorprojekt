@@ -2,7 +2,7 @@
 title: "mcp-postgres-brand-scope — Implementation Plan"
 ticket_id: T002278
 domains: [mcp, agent-config, tests]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

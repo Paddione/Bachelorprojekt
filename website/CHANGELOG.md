@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.217.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.1...website-v1.217.2) (2026-07-27)
+
+
+### Bug Fixes
+
+* **scripts:** Mishap-Bundle fixes [T002261] ([#3331](https://github.com/Paddione/Bachelorprojekt/issues/3331)) ([f5e3f0d](https://github.com/Paddione/Bachelorprojekt/commit/f5e3f0db8596d8bafa371848f17e68038adcba15))
+
 ## [1.217.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.0...website-v1.217.1) (2026-07-27)
 
 

@@ -1,12 +1,14 @@
 # mcp-gateway
 
-<!-- baseline SSOT — aktualisiert 2026-06-22: Monolith dekommissioniert, CLI-basierte MCP-Server -->
+<!-- baseline SSOT — aktualisiert 2026-07-27 (T002321): Monolith läuft nachweislich weiter, Dekommissionierungs-Notiz war unzutreffend -->
 
 ## Purpose
 
 Das MCP-Gateway stellt MCP-Server (PostgreSQL, GitHub, Browser, Kubernetes) als lokale CLI-Prozesse bereit, die auf dem WSL-Host laufen und über `localhost:{port}/mcp` erreichbar sind. Die Server sind in `.mcp.json` konfiguriert. Die Absicherung im Dev-Cluster erfolgt über einen `--skip-auth-route`-Bypass auf dem `oauth2-proxy-dev`, der die vier MCP-Pfade am OIDC-Gate vorbeileitet.
 
-> **Architektur-Notiz:** Der frühere `claude-code-mcp-monolith` Kubernetes-Pod (Supergateway-basiert) wurde dekommissioniert. MCP-Server laufen jetzt ausschließlich als CLI-Prozesse auf dem WSL-Host — keine In-Cluster-Deployment mehr. Referenz: PR MCP-Monolith-Removal (2026-06-22).
+> **Architektur-Notiz (korrigiert T002321):** Der `claude-code-mcp-monolith` Kubernetes-Pod (Supergateway-basiert, Manifest `k3d/default/claude-code-mcp-monolith-deploy.yaml`) läuft weiterhin aktiv im `fleet`-Cluster (Namespace `default`) — die frühere Notiz vom 2026-06-22, wonach dieser Pod ausser Betrieb genommen worden sei, war unzutreffend. Die Ablösung durch die lokalen CLI-Prozesse ist unter T002311/T002312 noch zur Entscheidung offen, nicht vollzogen. Beide Betriebsformen existieren aktuell parallel: lokale CLI-MCP-Server auf dem WSL-Host (primär genutzt) und der In-Cluster-Monolith (weiterhin ausgeliefert und aktiv).
+>
+> **Apply-Weg:** `k3d/default/` wird von keiner Overlay- (`prod-fleet/*`) oder Flux-Kustomization referenziert — die Ressourcen gehen **nicht** über die Flux-GitOps-Pipeline live. Änderungen an `k3d/default/claude-code-mcp-monolith-deploy.yaml` werden erst wirksam nach einem expliziten manuellen `kubectl apply -k k3d/default --context fleet`.
 
 ---
 

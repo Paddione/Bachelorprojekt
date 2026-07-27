@@ -1761,6 +1761,12 @@
       "status": "archived"
     }
   ],
+  "T002321": [
+    {
+      "slug": "mcp-postgres-oom",
+      "status": "plan_staged"
+    }
+  ],
   "T002339": [
     {
       "slug": "mishap-t002339",

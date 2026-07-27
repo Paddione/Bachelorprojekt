@@ -159,3 +159,67 @@ setup() {
   [[ "$output" == *"/usr/local/bin"* ]] \
     || { echo "ticket-mcp:build installiert nicht auf den PATH:"; echo "$output"; return 1; }
 }
+
+# ── MCP Postgres Bridge Child-Process Containment (T002321) ────────────
+#
+# Der postgres-Container wurde 56x OOMKilled: supergateway --stateless spawnt
+# pro MCP-Request einen mcp-server-postgres-Kindprozess (~54Mi RSS) und reaped
+# ihn nie; die RSS-Summe erreicht nach ~10h das 2Gi-cgroup-Limit.
+
+MONOLITH_MANIFEST_REL="k3d/default/claude-code-mcp-monolith-deploy.yaml"
+
+# Startkommando (args[0]) des postgres-Containers aus dem JSON-Manifest.
+pg_container_args() {
+  jq -r '.spec.template.spec.containers[] | select(.name=="postgres") | .args[0]' \
+    "$REPO/$MONOLITH_MANIFEST_REL"
+}
+
+pg_memory_limit() {
+  jq -r '.spec.template.spec.containers[] | select(.name=="postgres") | .resources.limits.memory' \
+    "$REPO/$MONOLITH_MANIFEST_REL"
+}
+
+@test "monolith deployment manifest exists" {
+  [ -f "$REPO/$MONOLITH_MANIFEST_REL" ]
+}
+
+@test "postgres container reaps accumulated mcp-server-postgres children" {
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'reap|REAP'"
+  [ "$status" -eq 0 ]
+}
+
+@test "postgres container pins supergateway to an explicit version" {
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'supergateway@[0-9]+\.[0-9]+\.[0-9]+'"
+  [ "$status" -eq 0 ]
+}
+
+@test "postgres container pins @modelcontextprotocol/server-postgres to an explicit version" {
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq '@modelcontextprotocol/server-postgres@[0-9]+\.[0-9]+\.[0-9]+'"
+  [ "$status" -eq 0 ]
+}
+
+@test "postgres container logs child count so growth is visible before the kill" {
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq 'child|children'"
+  [ "$status" -eq 0 ]
+}
+
+@test "postgres memory limit is below 2Gi so a regression surfaces in hours" {
+  limit="$(pg_memory_limit)"
+  # Erwartet: Mi-Wert unter 2048Mi. 2Gi versteckt den Leak ~10h lang.
+  [[ "$limit" =~ ^([0-9]+)Mi$ ]] || { echo "limit '$limit' ist nicht in Mi angegeben"; return 1; }
+  [ "${BASH_REMATCH[1]}" -lt 2048 ]
+}
+
+# ── MCP Monolith Deployment Reality In SSOT (T002321) ──────────────────
+
+@test "mcp-gateway spec does not claim the monolith is decommissioned while its manifest ships" {
+  if [ -f "$REPO/$MONOLITH_MANIFEST_REL" ]; then
+    run grep -Eq 'dekommissioniert|decommissioned' "$REPO/openspec/specs/mcp-gateway.md"
+    [ "$status" -ne 0 ]
+  fi
+}
+
+@test "mcp-gateway spec documents the manual apply path of k3d/default" {
+  run grep -q 'k3d/default' "$REPO/openspec/specs/mcp-gateway.md"
+  [ "$status" -eq 0 ]
+}

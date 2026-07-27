@@ -515,3 +515,62 @@ assert_var_not_declared() {
   run bash -c "grep -E 'start-(gptoss|bonsai)' '$REPO/scripts/llm/install-startup-autostart.ps1'"
   [ "$status" -ne 0 ]
 }
+
+# ── [T002335] Watchdog fuer die LLM-Server ────────────────────────────
+#
+# Der Autostart startet die Server EINMAL bei der Anmeldung. Stirbt danach einer,
+# bleibt er tot - unter \Llama\ war kein Scheduled Task registriert, der es haette
+# bemerken koennen. Diese Guards halten fest, was den Watchdog wirksam macht.
+
+@test "T002335: watchdog-llm-servers.ps1 existiert" {
+  [ -f "$REPO/scripts/llm/watchdog-llm-servers.ps1" ]
+}
+
+@test "T002335: jeder Watchdog-Server-Eintrag hat Name, Port, Script und Args" {
+  # Ein fehlender Hashtable-Key liefert in PowerShell still $null (T002264) - der
+  # Eintrag liefe dann mit leerem Skriptpfad los. Deshalb strukturell pruefen.
+  local entries
+  entries=$(grep -cE '@\{ *Name *=.*Port *=.*Script *=.*Args *=' \
+    "$REPO/scripts/llm/watchdog-llm-servers.ps1")
+  [ "$entries" -eq 3 ] || { echo "erwartet 3 vollstaendige Server-Eintraege, gefunden: $entries"; false; }
+}
+
+@test "T002335: der Watchdog prueft localhost:PORT/health" {
+  run grep -qE 'http://localhost:\$Port/health' "$REPO/scripts/llm/watchdog-llm-servers.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002335: install-startup-autostart.ps1 referenziert das Watchdog-Skript" {
+  run grep -q 'watchdog-llm-servers.ps1' "$REPO/scripts/llm/install-startup-autostart.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002335: der Watchdog nutzt Start-Process, nie Start-Job" {
+  # T002276-Klasse: Start-Job bindet den Server an die erzeugende PowerShell-
+  # Sitzung. Endet sie, stirbt der Server mit - ein Watchdog, der so startet,
+  # produziert genau den Ausfall, den er verhindern soll.
+  # Nur Code pruefen: der <# .. #>-Hilfeblock und die Zeilenkommentare ERKLAEREN,
+  # warum Start-Job falsch ist. Ein ungefiltertes grep bliebe an der Erklaerung
+  # haengen und waere gruen, sobald jemand den Kommentar loescht - also genau
+  # falschherum. awk schneidet den Hilfeblock heraus, grep -v die Kommentarzeilen.
+  local code
+  code="$(awk '/^<#/{s=1} !s{print} /^#>/{s=0}' \
+    "$REPO/scripts/llm/watchdog-llm-servers.ps1" | grep -vE '^[[:space:]]*#')"
+  run bash -c "printf '%s' \"\$1\" | grep -q 'Start-Job'" _ "$code"
+  [ "$status" -ne 0 ] || { echo "Start-Job im Code des Watchdogs gefunden"; false; }
+  run bash -c "printf '%s' \"\$1\" | grep -q 'Start-Process'" _ "$code"
+  [ "$status" -eq 0 ] || { echo "Watchdog startet nicht per Start-Process"; false; }
+}
+
+@test "T002335: Write-WatchdogLog schreibt nicht in den Success-Stream" {
+  # Write-Output waere Teil des Rueckgabewerts jeder aufrufenden Funktion.
+  # Gemessen am 2026-07-28: Invoke-WatchdogCycle lieferte dadurch ein Array aus
+  # Log-Zeilen statt der Anzahl gesunder Server; '$alive -eq $Servers.Count'
+  # wirkt auf Arrays als Filter und war nur zufaellig wahr.
+  local body
+  body="$(awk '/^function Write-WatchdogLog/{s=1} s{print} s&&/^}/{exit}' \
+    "$REPO/scripts/llm/watchdog-llm-servers.ps1")"
+  [ -n "$body" ] || { echo "Write-WatchdogLog nicht gefunden"; false; }
+  run bash -c "printf '%s' \"\$1\" | grep -q 'Write-Output'" _ "$body"
+  [ "$status" -ne 0 ] || { echo "Write-WatchdogLog nutzt Write-Output"; false; }
+}

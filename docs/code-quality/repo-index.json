@@ -2924,7 +2924,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 557,
+      "file_count": 558,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3318,6 +3318,7 @@
         "scripts/llm/start-gemma-server.ps1",
         "scripts/llm/start-gptoss-server.ps1",
         "scripts/llm/start-rerank-server.ps1",
+        "scripts/llm/watchdog-llm-servers.ps1",
         "scripts/lmstudio-preload.sh",
         "scripts/mcp-gateway/mcp-gateway.service",
         "scripts/mcp-sync.sh",

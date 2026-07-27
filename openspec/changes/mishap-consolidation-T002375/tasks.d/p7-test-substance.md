@@ -104,6 +104,39 @@ gewesen. Aufgefallen ist das nur durch eine explizite Negativ-Probe.
 
 ## Schritte
 
+> ## ⚠️ BEFUND: Schritte 1–4 und 8 sind BLOCKIERT — als T002393 erfasst
+>
+> Die Prämisse dieses Partials („`pipeline.js` und `pipeline.mjs` enthalten beide denselben
+> Code", „einziger echter Abhänger ist `eval-replay.mjs:87`") ist **widerlegt**:
+>
+> | | `pipeline.js` (getestet) | `pipeline.mjs` (**dispatcht**) |
+> |---|---|---|
+> | Zeilen | 603 | 623 |
+> | letzter Commit | `344d58432` [T002286] | `0269e403f` [T002361] |
+> | `setupWorktree` / `read-partials` / Partial-Fanout (T002074) | ja | **nein** |
+> | guard-overwrite (T002286) | ja | **nein** |
+> | Dry-Run-Livelock-Zähler (T002361) | nein | ja |
+>
+> 288 Diff-Zeilen. Die Dateien sind **auseinandergelaufen**, nicht dupliziert. Ein
+> `git rm scripts/factory/pipeline.js` würde damit Funktionalität vernichten statt toten Code
+> entfernen. Ebenso trifft „einziger Abhänger" nicht zu: `grep -rl 'pipeline.js'` liefert über
+> zehn Dateien (Taskfile.yml, Taskfile.factory.yml, ticket-reclaim.sh, dispatcher.js,
+> watchdog.sh, qa-lens.mjs, pipeline-runner.js, pipeline-decompose.cjs,
+> scout-quality-check.cjs, eval-replay.mjs).
+>
+> Auch das Umstellen von `PIPELINE_SCRIPT`/`PJS` auf `pipeline.mjs` (RED-Schritt) ist damit
+> nicht durchführbar: die Kontrakttests würden reihenweise rot, weil dem dispatchten Pfad die
+> geprüften Blöcke schlicht fehlen. Dieses Partial selbst verbietet ausdrücklich, den Test an
+> das Verhalten anzupassen — richtig ist, den Unterschied erst zu verstehen.
+>
+> **Erfasst als T002393** (type=bug, Priorität hoch) mit dem Vorschlag: erst die fehlenden
+> Blöcke nach `pipeline.mjs` portieren und den dispatchten Pfad verifizieren, DANN die Dublette
+> entfernen und die Tests umstellen — mit eigenem RED/GREEN-Nachweis, nicht als Nebenschritt
+> eines Mishap-Bundles.
+>
+> Umgesetzt wurden die davon unabhängigen Schritte **5, 6 und 7**.
+
+
 - [ ] **RED zuerst.** Die Umstellung von `PIPELINE_SCRIPT`/`PJS` auf `pipeline.mjs` vornehmen und
       die Suite **vor** allen anderen Änderungen laufen lassen.
 
@@ -154,14 +187,14 @@ grep -rn 'pipeline\.js' --include='*.sh' --include='*.mjs' --include='*.js' --in
       und prüfen, dass der neue Test **rot** wird. Ohne diese Probe ist "grün" nicht von "prüft
       nichts" unterscheidbar.
 
-- [ ] **Schritt 5 — Positiv-Anker in `mcp-gateway.bats` (T002356-M1).** Jede Negativ-Assertion
+- [x] **Schritt 5 — Positiv-Anker in `mcp-gateway.bats` (T002356-M1).** Jede Negativ-Assertion
       bekommt im selben `@test` einen Positiv-Anker, der bei fehlender Implementierung rot wird.
       Der `assert_selection_alive`-Helfer aus T002350 ist die Vorlage.
 
       Ebenfalls prüfen: Konstrukte der Form `got="$(fn …)"; rc=$?` hinter einer Pipe. Der
       Exit-Status ist der des letzten Pipe-Glieds — korrekt ist `${PIPESTATUS[0]}`.
 
-- [ ] **Schritt 6 — Abwesenheits-Tests gegen SSOT-Dokumente (T002352-M2).** Prüfen, ob weitere
+- [x] **Schritt 6 — Abwesenheits-Tests gegen SSOT-Dokumente (T002352-M2).** Prüfen, ob weitere
       Tests ein Spec-Dokument per Substring auf Abwesenheit eines Begriffs testen, ohne
       `#### Scenario:`-Blöcke auszunehmen. Solche Tests sind nach dem Archivieren des zugehörigen
       Changes **garantiert** rot.
@@ -171,7 +204,7 @@ grep -rn 'pipeline\.js' --include='*.sh' --include='*.mjs' --include='*.js' --in
       zeigt, warum: der erste Filterversuch verschluckte den halben Dateirest und wäre unbemerkt
       dauerhaft grün geblieben.
 
-- [ ] **Schritt 7 — CRLF-Anker (T002338-M2).** In `tests/spec/llm-pipeline.bats` die Guards auf
+- [x] **Schritt 7 — CRLF-Anker (T002338-M2).** In `tests/spec/llm-pipeline.bats` die Guards auf
       `scripts/llm/*.ps1` auf `[[:space:]]*$` statt `$` umstellen. Die Dateien sind durchgehend
       CRLF (verifiziert im Ursprungs-Ticket: 118 von 118 Zeilen).
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.6...website-v1.216.7) (2026-07-27)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock haelt Claims lebender Sessions, ticket.sh reclaim [T002267] ([#3311](https://github.com/Paddione/Bachelorprojekt/issues/3311)) ([e240c0c](https://github.com/Paddione/Bachelorprojekt/commit/e240c0c2bceabfa63ad68eadb9f5dd469a77d642))
+
 ## [1.216.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.5...website-v1.216.6) (2026-07-26)
 
 

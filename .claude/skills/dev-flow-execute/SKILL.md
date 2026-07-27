@@ -256,7 +256,7 @@ ATTACHMENT_DIR="/tmp/ticket-attachments-$TICKET_ID"
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
 Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — **MCP-first**:
-> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet" })`
+> `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet · agent_id=$IMPLEMENTER_AGENT_ID" })`
 Fallback:
 ```bash
 ./scripts/ticket.sh phase "$TICKET_ID" implement entered --driver devflow --detail "Subagent gestartet" || true
@@ -289,6 +289,7 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
   ```
   **Ziel:** Die Gesamtzahl der `.bats`-Dateien in `tests/local/` sinkt oder bleibt konstant. Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy — nicht neu anlegen.
 - **Auftrag:**
+  - **Ein-Ebenen-Regel (PFLICHT, wörtlich Teil dieses Prompts):** Spawne selbst KEINE Subagenten/Sub-Implementer — rufe `superpowers:executing-plans` IN-CONTEXT auf. Wenn du glaubst, einen Sub-Implementer für einen Teil-Task zu brauchen, STOPPE und eskaliere stattdessen an den Orchestrator zurück, statt selbst zu delegieren. Verschachtelte Delegation ist nicht erlaubt (siehe subagent-provisioning.md, 162k-Prompt-Lehre).
   - **/goal: Finish dev-flow-execute and merge the PR cleanly.**
   - *Feature:* Rufe `superpowers:executing-plans` (Claude Code — built-in, Stub in `.claude/skills/superpowers-executing-plans/` für opencode-Kompatibilität; opencode: führe die Schritte direkt aus — `opencode-flow-execute` hat das Äquivalent inlined) + `test-driven-development` (Claude Code — built-in; opencode: siehe `vitest/SKILL.md`) auf und arbeite den Plan vollständig ab. Aktualisiere nach jedem Meilenstein die Checkbox im Plan (`- [ ] M1` → `- [x] M1`), committe und pushe.
   - *Fix:* Verifiziere zuerst, dass ein failing Test existiert, dann nach Rot-Grün-Prinzip bis grün.

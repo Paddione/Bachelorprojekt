@@ -44,6 +44,20 @@
   [[ "$output" == *"ELSE NULL"* ]]
 }
 
+# ── [T002284] get.sh must project resolution, severity, description in JSON ────
+
+@test "T002284: get.sh projects resolution in its JSON output" {
+  run grep -Fq "'resolution', t.resolution" scripts/vda/ticket/get.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002284: get.sh projects severity and description in its JSON output" {
+  run grep -Fq "'severity', t.severity" scripts/vda/ticket/get.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq "'description', t.description" scripts/vda/ticket/get.sh
+  [ "$status" -eq 0 ]
+}
+
 @test "T002230: the two write paths agree that resolution is terminal-only" {
   # transition.ts is the other path. If it ever drops the CASE, the shell path and
   # the API path would disagree about what a non-terminal status means.

@@ -75,3 +75,15 @@ git diff --cached --quiet || git commit -m "chore: regenerate freshness artifact
 
 > Der Pre-commit-Hook automatisiert `regenerate` nach `task secrets:install-hooks` —
 > ohne Hook immer manuell ausführen, wenn `.ts/.svelte/.astro/.sh/.mjs`-Dateien geändert wurden.
+
+## Post-Commit-Verifikation (Pflicht)
+
+Nach `git commit` (oder nachdem der Pre-commit-Hook gelaufen ist) prüfen, dass die
+regenerierten Artefakte wirklich im Commit liegen:
+
+```bash
+git show --stat HEAD   # PFLICHT: bestätigt, dass die regenerierten Artefakte
+                        # tatsächlich im Commit liegen — ein grüner `git commit` allein
+                        # belegt das NICHT (T002284: pre-commit kann eine gestagte
+                        # Änderung lautlos zu einem Leer-Diff neutralisieren).
+```

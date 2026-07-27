@@ -58,3 +58,10 @@ setup() {
   run grep -qi 'MCP-Erweiterung' "$CONTRIBUTING_DOC"
   [ "$status" -eq 0 ]
 }
+
+# ── Mishap T002284: nested-delegation guard must live in the implementer prompt ──
+
+@test "T002284: dev-flow-execute Auftrag-Block forbids the implementer from spawning sub-agents" {
+  run grep -Fq "Spawne selbst KEINE Subagenten" "$DEV_FLOW_EXECUTE_SKILL"
+  [ "$status" -eq 0 ]
+}

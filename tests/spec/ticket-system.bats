@@ -253,3 +253,112 @@ MOCKEOF
   run grep -Eq "NOT +[a-z_]*\.?readiness *\? *'lastenheft_locked'" scripts/vda/ticket/readiness-audit.sh
   [ "$status" -eq 0 ]
 }
+
+# ── [T002329] tickets.type nutzt das Conventional-Commit-Vokabular ───────────#
+#
+# Teil B des Epics T002326. bug->fix, feature->feat, task->chore, plus sechs
+# neue Werte (docs, refactor, perf, test, ci, build). Waehrend des Uebergangs
+# akzeptiert der CHECK beide Vokabulare, damit ein Zeitversatz zwischen
+# DB-Migration (reist im Website-Image) und Skript-Deploy (reist mit dem Merge)
+# folgenlos bleibt. Die Altwerte fallen in Teil D (T002331).
+#
+# Statisch gegen die Quelle assertiert -- dieselbe Begruendung wie bei T002230:
+# das SQL auszufuehren braucht einen Cluster, und diese Tests duerfen keinen
+# erreichen (T002224).
+
+MIGRATIONS_TS="website/src/lib/tickets/migrations.ts"
+TABLES_TS="website/src/lib/tickets/tables/tickets.ts"
+TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
+
+@test "T002329: die Vokabular-Migration liegt in einem eigenen Modul" {
+  # migrations.ts steht bei 576/600 Zeilen (S1-Budget 24). Der Constraint- und
+  # Datenmigrationsblock wird deshalb ausgelagert statt hineingequetscht.
+  [ -f "$TYPE_VOCAB_TS" ]
+}
+
+@test "T002329: migrations.ts ruft die ausgelagerte Vokabular-Migration auf" {
+  # Ein Modul, das niemand aufruft, migriert nichts.
+  run bash -c "grep -c 'applyTypeVocabularyMigration' '$MIGRATIONS_TS'"
+  [ "$output" != "0" ]
+}
+
+@test "T002329: der type-CHECK wird als benannter Constraint gesetzt" {
+  # Ohne Namen laesst er sich spaeter nicht droppen -- vgl. das bereits
+  # etablierte Muster fuer tickets_status_check und tickets_effort_check.
+  run grep -Fq "ADD CONSTRAINT tickets_type_check" "$TYPE_VOCAB_TS"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002329: die inline-CHECK-Klausel am type-ADD-COLUMN ist entfernt" {
+  # ADD COLUMN IF NOT EXISTS ist gegen eine bestehende Spalte ein No-op. Bleibt
+  # der CHECK dort stehen, wirkt jede Aenderung daran live NICHT -- der Test
+  # haelt genau diese Falle offen.
+  run bash -c "grep -c 'ADD COLUMN IF NOT EXISTS type TEXT CHECK' '$MIGRATIONS_TS'"
+  [ "$output" = "0" ]
+}
+
+# 2>/dev/null ist in den folgenden Tests NICHT kosmetisch: `run` fängt stdout und
+# stderr gemeinsam in $output. Fehlt die Zieldatei, landet grep's "No such file or
+# directory" in $output, und eine Assertion auf != "0" ist dann erfüllt, ohne dass
+# irgendetwas geprüft wurde -- der Test wäre in RED und in GREEN gleichermaßen grün.
+# Beobachtet in der RED-Phase dieses Tickets; vgl. T002346.
+
+@test "T002329: der type-CHECK kennt die sechs neu hinzugekommenen Werte" {
+  run bash -c "grep -A5 'ADD CONSTRAINT tickets_type_check' '$TYPE_VOCAB_TS' 2>/dev/null \
+                 | grep -c \"'refactor'\""
+  [ "$output" != "0" ]
+}
+
+@test "T002329: der type-CHECK akzeptiert waehrend des Uebergangs die Altwerte" {
+  # Dual-Vokabular: sonst schlaegt jeder Schreibzugriff eines noch nicht
+  # aktualisierten Aufrufers fehl, solange das Image noch nicht ausgerollt ist.
+  run bash -c "grep -A5 'ADD CONSTRAINT tickets_type_check' '$TYPE_VOCAB_TS' 2>/dev/null \
+                 | grep -c \"'bug'\""
+  [ "$output" != "0" ]
+}
+
+@test "T002329: Bestandsdaten werden per WHERE-gefiltertem UPDATE migriert" {
+  # Der WHERE-Filter ist das, was die Migration idempotent macht: der zweite
+  # Lauf trifft null Zeilen. Sie laeuft bei jedem Pod-Boot erneut.
+  # Über cat statt direkt auf die Datei: `grep -c <fehlende-datei>` gibt gar nichts
+  # aus (leerer $output erfüllt != "0"), `grep -c` am Ende einer Pipe dagegen "0".
+  run bash -c "cat '$TYPE_VOCAB_TS' 2>/dev/null \
+                 | grep -c \"WHERE type IN ('bug','feature','task')\""
+  [ "$output" != "0" ]
+}
+
+@test "T002329: der Constraint wird vor der Datenumschrift erweitert" {
+  # Umgekehrte Reihenfolge laesst das UPDATE am noch geltenden alten CHECK
+  # scheitern. Zeilennummern-Vergleich statt blosser Anwesenheitspruefung.
+  run bash -c "
+    c=\$(grep -n 'ADD CONSTRAINT tickets_type_check' '$TYPE_VOCAB_TS' | head -1 | cut -d: -f1)
+    u=\$(grep -n \"WHERE type IN ('bug','feature','task')\" '$TYPE_VOCAB_TS' | head -1 | cut -d: -f1)
+    [ -n \"\$c\" ] && [ -n \"\$u\" ] && [ \"\$c\" -lt \"\$u\" ]"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002329: v_active_features liest beide Vokabulare" {
+  # Sonst leert sich die Arbeitsmenge des Dispatchers in dem Moment, in dem die
+  # Datenmigration feature -> feat umschreibt.
+  run bash -c "grep -A16 'CREATE OR REPLACE VIEW tickets.v_active_features' '$TABLES_TS' \
+                 | grep -c \"type IN ('feature','feat')\""
+  [ "$output" != "0" ]
+}
+
+@test "T002329: v_factory_metrics zaehlt beide Vokabulare" {
+  run bash -c "grep -A12 'CREATE OR REPLACE VIEW tickets.v_factory_metrics' '$TABLES_TS' \
+                 | grep -c \"type IN ('feature','feat')\""
+  [ "$output" != "0" ]
+}
+
+@test "T002329: der pg_notify-Trigger feuert auch fuer feat" {
+  # trg_notify_feature_inserted haengt an WHEN (NEW.type = 'feature') und waere
+  # nach der Migration dauerhaft stumm -- im Ticket nicht erfasst.
+  run bash -c "grep -c \"NEW.type IN ('feature','feat')\" '$MIGRATIONS_TS'"
+  [ "$output" != "0" ]
+}
+
+@test "T002329: ticket-mcp validiert gegen das neue Vokabular" {
+  run bash -c "grep -c '\"chore\"' scripts/ticket-mcp/go/internal/tools/triage.go"
+  [ "$output" != "0" ]
+}

@@ -4590,3 +4590,30 @@ MOCKEOF
     false
   }
 }
+
+# ── [T002329 / T002333] staged-Lane ist eine Ausschluss-, keine Positivliste ──#
+#
+# T002333: ein type='bug'-Ticket mit status='plan_staged' war fuer den
+# Dispatcher unsichtbar, weil die Lane als Whitelist ('task') gepflegt wird.
+# Mit dem Conventional-Commit-Vokabular waechst die Typmenge von vier auf zehn,
+# also waechst auch die Chance, wieder einen Wert zu vergessen. Die Lane wird
+# deshalb auf `type <> 'project'` umgestellt -- 'project' ist der Epic-Typ und
+# der einzige, der nie selbst bearbeitet wird.
+
+@test "T002329/T002333: die staged-Lane schliesst ausschliesslich project aus" {
+  run bash -c "grep -c \"type <> 'project'\" '$REPO_ROOT/scripts/factory/queue.sh'"
+  [ "$output" != "0" ]
+}
+
+@test "T002329/T002333: die staged-Lane ist keine Typ-Whitelist mehr" {
+  # Die alte Form haette 'fix', 'docs', 'refactor' usw. weiterhin verschluckt.
+  run bash -c "grep -c \"type='task' AND status='plan_staged'\" '$REPO_ROOT/scripts/factory/queue.sh'"
+  [ "$output" = "0" ]
+}
+
+@test "T002329: die backlog-Lane erkennt feature und feat" {
+  # Die backlog-Lane bleibt bewusst eine Positivliste -- sie haengt fachlich an
+  # "Feature", nicht an "irgendein Arbeitstyp".
+  run bash -c "grep -c \"type IN ('feature','feat')\" '$REPO_ROOT/scripts/factory/queue.sh'"
+  [ "$output" != "0" ]
+}

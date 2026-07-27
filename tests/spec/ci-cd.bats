@@ -1009,10 +1009,15 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   [ "$output" = "tests/spec/alpha.bats" ]
 
   # shared harness → full suite (both files)
+  # stderr wird verworfen: BATS buendelt in `run` stdout UND stderr in $output,
+  # und der RUN_ALL-Fallback meldet seinen Grund seit T002377 auf stderr. Ohne
+  # das 2>/dev/null zaehlt die Notiz als dritte "Datei" mit. Der Vertrag des
+  # Skripts ist ausdruecklich "stdout ist die reine Dateiliste" — genau den
+  # prueft diese Assertion, also muss sie auch nur stdout sehen.
   git checkout -q main && git checkout -q -b topic2
   echo change >> tests/spec/helpers/shared.bash
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m harness
-  run bash scripts/find-changed-tests.sh spec
+  run bash -c 'bash scripts/find-changed-tests.sh spec 2>/dev/null'
   [ "$status" -eq 0 ]
   [ "$(echo "$output" | wc -l)" -eq 2 ]
 }

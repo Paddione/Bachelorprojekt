@@ -35,8 +35,34 @@
   llama-bonsai-cuda13.3-Build, nicht im Upstream-Release b10090, das Embedding
   und Rerank verwenden. Gemma bringt einen Multi-Token-Prediction-Head mit; ihn
   als Draft-Modell zu nutzen ist billiger als ein separates kleines Draft-Modell,
-  weil der Head ohnehin Teil der Gewichte ist. Gemessen 2026-07-27:
-  ~157 Tokens/s bei 69 Prozent Draft-Akzeptanz (draft_n_accepted 36 / draft_n 52).
+  weil der Head ohnehin Teil der Gewichte ist.
+
+  WARUM Q4_0-DRAFTER UND N-MAX 4 (T002293): der Q4_0-Head ist NICHT die
+  abgespeckte Variante, sondern der native QAT-Drafter - laut Modellkarte sind
+  ~97 Prozent seiner Gewichte byte-exakt auf dem int4-Grid ("near-lossless").
+  Q8_0/BF16/F16 sind Hochskalierungen derselben Gewichte, also groesser ohne
+  Mehrwert. Sweep vom 2026-07-27 auf diesem Host bestaetigt es:
+
+    Drafter   n_max   tg          Draft-Akzeptanz
+    Q4_0        4     210,9 t/s   0,763   <- Optimum
+    Q4_0        6     209,3 t/s   0,668
+    Q4_0        3     181,9 t/s   0,808
+    Q4_0        2     172,7 t/s   0,867
+    Q8_0        4     179,0 t/s   0,628
+    Q8_0        6     164,5 t/s   0,510
+
+  Der Q8_0-Head ist in BEIDEN Dimensionen schlechter. Und die vorher gesetzte
+  n_max 2 ist nur der Startwert aus dem Unsloth-MTP-Guide, der selbst sagt:
+  "do not assume 2 is optimal, try 1 through 6". Hier gewinnt 4 um ~22 Prozent.
+  Hohe Akzeptanz allein ist kein Ziel - bei n_max 2 werden zwar 87 Prozent der
+  Drafts angenommen, aber es gibt je Verify-Schritt nur 2 zu gewinnen.
+
+  WARUM -fa on EXPLIZIT (T002293): quantisierter KV-Cache ERZWINGT
+  FlashAttention - mit "-fa off" bricht der Start hart ab mit
+  "llama_init_from_model: V cache quantization requires flash_attn". Der Default
+  ist "auto", der hier faktisch "on" waehlt; explizit ist trotzdem besser, weil
+  auto eine hardwareabhaengige Entscheidung ist und /props sie NICHT exponiert.
+  Es gibt also keine Laufzeitpruefung, nur den Startabbruch als Indiz.
 
   ACHTUNG REASONING-CONTENT: mit --jinja antwortet Gemma 4 als Reasoning-Modell.
   llama.cpp legt den Denkteil in reasoning_content, waehrend content LEER bleibt,
@@ -49,13 +75,31 @@
   Verzeichnis mit dem Fork-Build. Default: C:\Users\PatrickKorczewski\llama-bonsai-cuda13.3
 .PARAMETER Port
   Listen-Port. Default 8091 (so in tickets.llm_proxy_backends registriert).
+.PARAMETER Ctx
+  Kontextfenster. Default 65536 (Factory-Profil, Begruendung in .DESCRIPTION).
+  Fuer das Mehr-Agenten-Profil zusammen mit -Slots hochsetzen, z.B. 200000.
+  Modell-Maximum ist 262144.
+.PARAMETER Slots
+  Parallele Slots (-np). Default 1 - siehe den Praefix-Reuse-Block bei den
+  Parametern unten, warum das fuer die serielle Factory die schnellere Wahl ist.
+  Werte > 1 schalten automatisch -kvu dazu, sonst teilt llama.cpp $Ctx durch $Slots.
+.PARAMETER NMax
+  --spec-draft-n-max. Default 4 (gemessenes Optimum, Sweep in .DESCRIPTION).
 .EXAMPLE
   .\scripts\llm\start-gemma-server.ps1
+  # Factory-Profil: 65536 ctx, 1 Slot, maximaler Praefix-Reuse
+.EXAMPLE
+  .\scripts\llm\start-gemma-server.ps1 -Ctx 200000 -Slots 3
+  # Mehr-Agenten-Profil: 200k als GEMEINSAMER Pool ueber 3 Slots (-kvu).
+  # Wirkt nur, wenn tickets.llm_proxy_backends.max_inflight ebenfalls >= 3 ist.
 #>
 
 param(
   [string]$LlamaDir = "C:\Users\PatrickKorczewski\llama-bonsai-cuda13.3",
-  [int]$Port = 8091
+  [int]$Port = 8091,
+  [int]$Ctx = 65536,
+  [int]$Slots = 1,
+  [int]$NMax = 4
 )
 
 # Bei diesem Build liegt llama-server.exe in \bin, nicht flach im Root.
@@ -68,7 +112,10 @@ if (-not (Test-Path $Exe)) {
 
 $ModelDir = "$env:UserProfile\.lmstudio\models\unsloth\gemma-4-12B-it-qat-UD-Q4_K_XL"
 $Model   = Join-Path $ModelDir "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf"
-$MtpHead = Join-Path $ModelDir "mtp-gemma-4-12b-it-Q8_0.gguf"
+# Q4_0 ist der native QAT-Drafter und in Durchsatz UND Akzeptanz besser als der
+# Q8_0-Upscale (Messwerte in .DESCRIPTION). mtp-gemma-4-12B-it.gguf im Repo-Root
+# ist byte-identisch damit - das ist die Datei, die "-hf" automatisch zieht.
+$MtpHead = Join-Path $ModelDir "mtp-gemma-4-12B-it-Q4_0.gguf"
 
 if (-not (Test-Path $Model)) {
   Write-Error "Model not found at: $Model"
@@ -92,13 +139,19 @@ foreach ($c in $conns) {
 }
 
 $freeMiB = [int](& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()
-Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port (65536 ctx, Q8_0 KV, 1 slot) ..."
+$slotWord = if ($Slots -gt 1) { "$Slots slots, -kvu (gemeinsamer Pool)" } else { "1 slot" }
+Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port ($Ctx ctx, Q8_0 KV, $slotWord, n-max $NMax) ..."
 Write-Output "  Model:     $Model"
 Write-Output "  MTP head:  $MtpHead"
 Write-Output "  Free VRAM: $freeMiB MiB"
-if ($freeMiB -lt 9000) {
-  Write-Output "  WARNUNG: unter 9000 MiB frei. Die Gewichte allein brauchen ~7.4 GB,"
-  Write-Output "           dazu der MTP-Head (~0.5 GB) und 65536 Tokens KV."
+# Der Bedarf skaliert mit $Ctx: gemessen 2026-07-27 rund 14,6 KiB VRAM je
+# Kontext-Token bei q8_0-KV (Gemma teilt KV ueber Layer und nutzt ein
+# 1024er-SWA-Fenster, deshalb so wenig). 8000 MiB Sockel = Gewichte + Q4_0-Head
+# + mmproj + Compute-Buffer.
+$needMiB = 8000 + [int]($Ctx * 0.0143)
+if ($freeMiB -lt $needMiB) {
+  Write-Output "  WARNUNG: unter $needMiB MiB frei. Die Gewichte allein brauchen ~7.4 GB,"
+  Write-Output "           dazu der MTP-Head (~0.25 GB) und $Ctx Tokens KV."
   Write-Output "           Mit '-fit off' faellt der Start bei zu wenig VRAM hart aus,"
   Write-Output "           statt still auf weniger Kontext auszuweichen - das ist Absicht."
   Write-Output "           Laeuft parallel ein anderes Chat-Modell (gpt-oss :8097)? Dann beenden."
@@ -110,12 +163,16 @@ if ($freeMiB -gt 15000) {
 
 $Params = @(
   "-m", $Model
-  # Speculative Decoding ueber den mitgelieferten MTP-Head. -n-max 2 heisst:
-  # hoechstens 2 Tokens vorausraten, bevor das Hauptmodell verifiziert.
+  # Speculative Decoding ueber den mitgelieferten MTP-Head. n-max 4 heisst:
+  # hoechstens 4 Tokens vorausraten, bevor das Hauptmodell verifiziert.
+  # Warum 4 und nicht der Guide-Startwert 2: Sweep-Tabelle in .DESCRIPTION.
   "--spec-type", "draft-mtp"
   "--spec-draft-model", $MtpHead
-  "--spec-draft-n-max", "2"
+  "--spec-draft-n-max", "$NMax"
   "-ngl", "999"
+  # Explizit statt Default "auto" - Begruendung in .DESCRIPTION. Ohne
+  # FlashAttention ist der quantisierte KV-Cache unten nicht ladbar.
+  "-fa", "on"
   # Ein einziger Slot. Zwei Gruende, beide 2026-07-27 gemessen (T002286):
   #   1. tickets.llm_proxy_backends.max_inflight = 1 fuer llamacpp-gemma - der
   #      llm-proxy serialisiert. Weitere Slots blieben schlicht ungenutzt.
@@ -125,11 +182,17 @@ $Params = @(
   #      jeder Slot den gemeinsamen Praefix voll (3240 Token je Slot) - bei einem
   #      37k-Factory-Prompt also ~148k statt ~37k Token. Parallelitaet und
   #      Praefix-Reuse sind hier Gegenspieler; seriell gewinnt der Cache.
-  # Falls doch einmal echte Parallelitaet noetig ist: -np N NUR zusammen mit
-  # -kvu (--kv-unified) setzen, sonst teilt llama.cpp -c stur durch -np.
-  # Gemessen: "-c 8192 -np 4 -kvu" => n_ctx 8192 je Slot, mit "-no-kvu" => 2048.
-  # Zusaetzlich max_inflight in der DB hochsetzen, sonst wirkt es nicht.
-  "-np", "1"
+  # Echte Parallelitaet gibt es ueber -Slots N. Der Schalter setzt -kvu gleich
+  # mit, sonst teilt llama.cpp $Ctx stur durch $Slots (gemessen: "-c 8192 -np 4
+  # -kvu" => n_ctx 8192 je Slot, mit "-no-kvu" => 2048). Mit -kvu ist $Ctx ein
+  # GEMEINSAMER Pool: bei "-Ctx 200000 -Slots 3" melden alle drei Slots
+  # n_ctx 200192, teilen sich aber einen Puffer (14,8 GB VRAM; drei separate
+  # 200k-Caches braeuchten ~19 GB und wuerden mit "-fit off" nicht starten).
+  # ACHTUNG - zwei Bedingungen, sonst verpufft es:
+  #   1. tickets.llm_proxy_backends.max_inflight fuer llamacpp-gemma muss
+  #      ebenfalls >= $Slots sein, sonst serialisiert der llm-proxy weiter.
+  #   2. Der Praefix-Reuse-Vorteil oben geht anteilig verloren.
+  "-np", "$Slots"
   # KV q8_0: praktisch verlustfrei und halbiert den Cache gegenueber f16.
   # Bewusst NICHT q4_0: das spart nur Kontext, von dem hier ohnehin Ueberschuss
   # herrscht, und degradiert genau das woertliche Zurueckholen von Pfaden,
@@ -137,7 +200,7 @@ $Params = @(
   "--cache-type-k", "q8_0"
   "--cache-type-v", "q8_0"
   # Fester Deckel statt Auto-Fit - Begruendung und Messwerte in .DESCRIPTION.
-  "-c", "65536"
+  "-c", "$Ctx"
   "-fit", "off"
   # --jinja: strukturierte tool_calls aus der im GGUF hinterlegten Vorlage.
   # Ohne sie liefert der Server keine tool_calls - fuer die Factory unbrauchbar.
@@ -145,6 +208,10 @@ $Params = @(
   "--host", "0.0.0.0"
   "--port", "$Port"
 )
+
+# Nur bei echter Parallelitaet. Mit einem Slot ist -kvu wirkungslos, macht die
+# Kommandozeile aber schwerer mit dem Default-Profil vergleichbar.
+if ($Slots -gt 1) { $Params += "-kvu" }
 
 $logDir = Split-Path $Exe -Parent
 $logOut = Join-Path $logDir "gemma4-12b-mtp-out.log"

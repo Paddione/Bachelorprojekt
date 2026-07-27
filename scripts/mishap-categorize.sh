@@ -13,7 +13,10 @@ USER="website"
 _db_update() {
   local ext_id="$1" category="$2"
   local pod
-  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1) || true
+  # [T002386] Phase Running serverseitig filtern — sonst kann ein liegengebliebener
+  # Failed/Succeeded-Pod vor dem lebenden sortieren und `kubectl exec` scheitert.
+  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
+    --field-selector status.phase=Running -o name 2>/dev/null | head -1) || true
   if [[ -z "$pod" ]]; then
     echo "mishap-categorize: ERROR no shared-db pod found in namespace $NS (context $CTX)" >&2
     return

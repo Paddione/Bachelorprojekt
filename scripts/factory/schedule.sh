@@ -23,8 +23,19 @@ GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}"
 # Global concurrency = occupied slots across BOTH brands (separate DBs).
 global_used=0
 for b in mentolder korczewski; do
-  n=$(BRAND="$b" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" count 2>/dev/null || echo 0)
-  global_used=$((global_used + ${n:-0}))
+  # [T002386] Fehler NICHT still als 0 werten. Bis dahin verschluckte
+  # `2>/dev/null || echo 0` jeden Ausfall einer Brand und rechnete sie als leer.
+  # Genau so blieb unbemerkt, dass korczewski wegen eines toten shared-db-Pods
+  # ueber Stunden gar nicht erreichbar war: keine Meldung, keine Warnung, nur
+  # eine Kapazitaetsrechnung, die zu viel Platz auswies.
+  # Fail-open bleibt bewusst (ein Brand-Ausfall darf die andere nicht blockieren),
+  # aber er ist jetzt sichtbar.
+  if ! n=$(BRAND="$b" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" count 2>&1); then
+    echo "schedule: WARN slot count for brand '$b' failed, counting it as 0 — capacity may be overstated: ${n}" >&2
+    n=0
+  fi
+  case "$n" in (''|*[!0-9]*) n=0 ;; esac
+  global_used=$((global_used + n))
 done
 
 plan='[]'

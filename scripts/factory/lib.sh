@@ -27,10 +27,36 @@ factory_resolve() {
   fi
 }
 
+# [T002386] Serverseitig auf Phase Running filtern. kubectl sortiert nach Name,
+# also kann ein liegengebliebener Succeeded/Failed-Pod (Rollout, Node-Drain,
+# Eviction) vor dem lebenden sortieren; `head -1` traf dann zuverlaessig den
+# toten, und jeder Aufruf starb einen Schritt spaeter in `kubectl exec` mit
+# "cannot exec into a container in a completed pod".
+#
+# Das hat am 2026-07-28 die GESAMTE korczewski-Brand fuer den Dispatcher blind
+# gemacht: queue.sh, slots.sh und schedule.sh scheiterten dort ausnahmslos.
+# Sichtbar wurde es nicht, weil schedule.sh den count-Aufruf als
+# `2>/dev/null || echo 0` absichert und den Ausfall damit als "0 belegte Slots"
+# wertet.
+#
+# Dies ist eine eigenstaendige Kopie neben scripts/vda/ticket/_ticket-core.sh —
+# der T002307-Fix dort erreichte diesen Pfad nicht. Guard gegen weitere Kopien:
+# tests/spec/software-factory.bats, "every shared-db pod selection in scripts/".
 factory_pgpod() {
-  local pod
-  pod=$(kubectl get pod -n "$FACTORY_NS" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
-  if [[ -z "$pod" ]]; then echo '{"error":"no shared-db pod found"}' >&2; exit 2; fi
+  local pod all
+  pod=$(kubectl get pod -n "$FACTORY_NS" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' \
+    --field-selector status.phase=Running -o name 2>/dev/null | head -1)
+  if [[ -z "$pod" ]]; then
+    # Nur auf dem Fehlerpfad nochmal ungefiltert fragen, um "gar kein Pod" von
+    # "Pods da, keiner Running" zu unterscheiden. Der Happy Path bleibt ein Call.
+    all=$(kubectl get pod -n "$FACTORY_NS" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | tr '\n' ' ')
+    if [[ -n "${all// /}" ]]; then
+      echo "{\"error\":\"no Running shared-db pod in ${FACTORY_NS}; found but not Running: ${all% }\"}" >&2
+    else
+      echo '{"error":"no shared-db pod found"}' >&2
+    fi
+    exit 2
+  fi
   echo "$pod"
 }
 

@@ -198,18 +198,19 @@ spec:
                   - -c
                   - |
                     until pg_isready -U postgres; do sleep 2; done
-                    # ACHTUNG (T002306): Die doppelten Dollarzeichen in $${VAR} und $$db
-                    # unten sind KEIN Tippfehler — nicht "korrigieren".
-                    # scripts/flux-render-artifact.sh schickt jedes Manifest durch
-                    # envsubst und macht danach gezielt $${VAR} -> ${VAR} rueckgaengig.
-                    # Das $$ ist also der Mechanismus, mit dem eine Variable die
-                    # BUILD-Zeit uebersteht, um erst zur LAUFZEIT von der Container-Shell
-                    # expandiert zu werden (gleiche Trennung wie bei WEBSITE_CONFIG_SHA).
-                    # Ohne $$ rendert envsubst die Passwoerter zu Leerstrings — der Pod
-                    # fuehrt dann `ALTER USER ... WITH PASSWORD ''` aus und sperrt
-                    # nextcloud, vaultwarden, videovault und pocket_id aus ihrer eigenen
-                    # Datenbank aus (Prod-Ausfall am 2026-07-27, SSO down).
-                    # Der fail-closed-Check im Renderer faengt das NICHT: eine leer
+                    # ACHTUNG (T002306): Die doppelten Dollarzeichen in $${VAR} und
+                    # $$db unten sind KEIN Tippfehler — nicht "korrigieren".
+                    # Sie markieren LAUFZEIT-Variablen: die Shell IM Container soll
+                    # sie expandieren, nicht der Renderer.
+                    # scripts/flux-render-artifact.sh baut seine envsubst-Allowlist
+                    # dynamisch aus dem Manifest und filtert die so markierten Namen
+                    # heraus; danach macht es $${VAR} -> ${VAR} rueckgaengig.
+                    # Ohne das $$ landet die Variable in ihrer eigenen Ersetzungsliste,
+                    # envsubst setzt sie (nicht gesetzt) auf "" und der Pod fuehrt
+                    # `ALTER USER ... WITH PASSWORD ''` aus — nextcloud, vaultwarden,
+                    # videovault und pocket_id sind dann aus ihrer eigenen Datenbank
+                    # ausgesperrt (Prod-Ausfall am 2026-07-27, SSO plattformweit down).
+                    # Der fail-closed-Check des Renderers faengt das nicht: eine leer
                     # substituierte Variable sieht fuer ihn korrekt aus.
                     # Self-heal: ensure every service role + database exists on each start.
                     # The one-shot /docker-entrypoint-initdb.d/01-init-databases.sh runs only

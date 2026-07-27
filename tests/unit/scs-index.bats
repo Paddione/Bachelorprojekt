@@ -112,3 +112,11 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
     | grep -v '^[[:space:]]*#' | grep -c 'fuser -k'"
   [[ "$output" -eq 0 ]]
 }
+
+@test "SCS-1: scs:index retry loop captures exit code with || (T002292)" {
+  # go-task fuehrt jeden cmds-Block mit set -e-Semantik aus. Ohne `|| rc=$?`
+  # bricht die Shell beim ersten fehlschlagenden Indexer-Lauf ab, bevor der
+  # Exit-Code gelesen wird — die Retry-Schleife kaeme nie zum Zug.
+  run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/Taskfile.yml' | grep -c 'npx tsx scripts/index-repo.ts || rc='"
+  [[ "$output" -eq 1 ]]
+}

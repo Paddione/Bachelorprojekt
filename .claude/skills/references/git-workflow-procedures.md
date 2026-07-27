@@ -32,8 +32,10 @@ Bevor ein noch nicht registrierter Scope (z. B. ein neuer Goal-Code wie `sec06`)
 Commit-Message oder einem PR-Titel verwendet wird, zuerst
 `bash scripts/register-scope.sh <scope>` ausführen und die geänderte `commitlint.config.cjs`
 mitcommitten — sonst schlägt das `commit-lint`-Gate (und `preflight-pr-scope.sh`) mit
-"unknown scope" fehl. `commitlint.config.cjs` ist die einzige Quelle; `ci.yml` und
-`pr-auto-title.yml` laden daraus dynamisch (T001364).
+"unknown scope" fehl. `commitlint.config.cjs` ist die einzige Quelle; `pr-auto-title.yml` und
+`preflight-pr-scope.sh` laden daraus dynamisch (T001364, T002328). `ci.yml` erzwingt **keine**
+Scopes — es hält das selbst fest ("Scopes are NOT enforced here"); die Durchsetzung passiert
+über `validate-commit-msg.sh range` im commit-lint-Job.
 
 Die erlaubte Liste vor dem ersten Commit ziehen: `bash scripts/validate-commit-msg.sh scopes`.
 

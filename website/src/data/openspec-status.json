@@ -1767,6 +1767,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002336": [
+    {
+      "slug": "llm-proxy-readiness",
+      "status": "plan_staged"
+    }
+  ],
   "T002339": [
     {
       "slug": "mishap-t002339",

@@ -94,6 +94,13 @@ jobs:
       - name: Code-quality gates (always)
         run: node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
 
+      # T002336: bis hierher lief diese Suite nirgends - weder in einem
+      # Taskfile-Target noch in CI. "always", nicht selektiv: der Proxy ist
+      # Infrastruktur fuer Factory und dev-flow, ein Bruch faellt sonst erst
+      # zur Laufzeit auf (und dann still, siehe /health-Vorfall 2026-07-27).
+      - name: llm-proxy routing + readiness (always)
+        run: node --test scripts/llm-proxy/*.test.mjs
+
       - name: API auth regression gate
         run: |
           git show origin/main:docs/generated/api-map.json > /tmp/api-map-main.json 2>/dev/null || echo '{"generatedAt":"","endpoints":[]}' > /tmp/api-map-main.json

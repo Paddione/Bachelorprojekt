@@ -53,7 +53,13 @@ teardown() {
 _start_proxy() {
   node "${REPO_ROOT}/${PROXY_MOD}" >/dev/null 2>&1 & PROXY_PID=$!
   for _ in $(seq 1 40); do
-    curl -sf "http://127.0.0.1:${PROXY_PORT}/health" >/dev/null 2>&1 && return 0
+    # /livez, NICHT /health (T002336): diese Schleife fragt "laeuft der Prozess
+    # schon", nicht "kann er bedienen". Seit /health Readiness meldet, antwortet
+    # es mit 503, sobald ein Prio-1-Backend fehlt - und `curl -sf` wertet 503 als
+    # Fehlschlag. Der Test "Alle Backends down" killt genau diese Backends VOR
+    # dem Start und lief damit in den Timeout, obwohl der Proxy laengst lauschte.
+    # Dieser Harnisch ist der erste echte Konsument, der Liveness braucht.
+    curl -sf "http://127.0.0.1:${PROXY_PORT}/livez" >/dev/null 2>&1 && return 0
     sleep 0.25
   done
   return 1
@@ -220,8 +226,16 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   # Das PID-File kennt nur die nohup-Instanz. Ohne Port-Pruefung wuerde ein
   # zweiter Start mit EADDRINUSE sterben und ein PID-File hinterlassen, das auf
   # einen toten Prozess zeigt.
-  grep -qE 'curl .*127\.0\.0\.1:\$PORT/health' \
-    "${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml"
+  # T002336, zwei Korrekturen an diesem Guard:
+  #   1. Der grep lief ueber die GANZE Datei und war damit falsch-gruen: er fand
+  #      das Muster in proxy:status, waehrend proxy:start laengst /livez nutzte.
+  #      Jetzt wird wie beim install-service-Guard erst der Block geschnitten.
+  #   2. Das Muster akzeptiert livez UND health - geprueft wird die Absicht aus
+  #      dem Testnamen (ein HTTP-Port-Check existiert), nicht der Endpunktname.
+  run bash -c "sed -n '/^  proxy:start:/,/^  [a-z]/p' \
+    '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' \
+    | grep -cE 'curl .*127\.0\.0\.1:\\\$PORT/(livez|health)'"
+  [ "$output" != "0" ]
 }
 
 @test "Gemma-Migration registriert das Backend mit Alias (T002277)" {
@@ -260,8 +274,13 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
 @test "proxy:install-service prueft den Port, nicht nur das PID-File (T002281)" {
   # Derselbe Check, den proxy:start seit T002277 hat. Das PID-File kennt nur die
   # nohup-Instanz und luegt, sobald der Port anderweitig belegt ist.
+  # T002336: das Muster akzeptiert livez UND health. Geprueft wird die ABSICHT
+  # aus dem Testnamen - "es gibt einen HTTP-Port-Check" -, nicht der Endpunktname.
+  # Der Aufruf steht inzwischen auf /livez, weil /health seit T002336 Readiness
+  # meldet: ein 503 bei totem Backend haette die Kill-Schleife als "Port frei"
+  # gelesen und die Altinstanz ueberleben lassen - genau der T002281-Fall.
   run bash -c "sed -n '/proxy:install-service:/,/^  [a-z]/p' \
-    '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' | grep -cE 'curl .*health'"
+    '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' | grep -cE 'curl .*(livez|health)'"
   [ "$output" != "0" ]
 }
 
@@ -272,4 +291,34 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   run bash -c "sed -n '/proxy:install-service:/,/^  [a-z]/p' \
     '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' | grep -cE 'is-active|ActiveState'"
   [ "$output" != "0" ]
+}
+
+# ── Readiness (T002336) ───────────────────────────────────────────────
+# Der Wrapper hat zwei Aufgaben. Erstens faehrt er die node-Suite ueberhaupt:
+# scripts/llm-proxy/server.test.mjs war bis T002336 in KEINEM Taskfile-Target
+# und in KEINEM CI-Job eingebunden - die Tests existierten, liefen aber nie.
+# Zweitens bringt er die Suite unter task test:all, das die spec-Reihe faehrt.
+# Muster uebernommen von "FA-SF-40: node --test provision suite passes".
+@test "T002336: node --test llm-proxy suite passes (readiness + routing)" {
+  run node --test "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.test.mjs"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"fail 0"* ]]
+}
+
+@test "T002336: /health meldet 503 bei totem Prio-1-Backend, /livez bleibt 200" {
+  # Das Gegenstueck zu den reinen evaluateReadiness-Tests in server.test.mjs:
+  # hier zaehlt der HTTP-STATUS, den die Delta-Spec fordert. Backend "a" ist
+  # priority 1, "b" priority 2 (siehe setup); beide Stubs sterben, also ist der
+  # lokale Primaerpfad weg.
+  kill "$PID_A" "$PID_B" 2>/dev/null; sleep 0.3
+  _start_proxy
+
+  run curl -s -o /tmp/llmproxy_health -w '%{http_code}' "http://127.0.0.1:${PROXY_PORT}/health"
+  [ "$output" = "503" ]
+  grep -q '"ready":false' /tmp/llmproxy_health
+  # Der Aufrufer muss sehen, WELCHES Backend fehlt - nicht nur, dass etwas fehlt.
+  grep -q '"name":"a"' /tmp/llmproxy_health
+
+  run curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:${PROXY_PORT}/livez"
+  [ "$output" = "200" ]
 }

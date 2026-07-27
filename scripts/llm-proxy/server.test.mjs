@@ -50,6 +50,63 @@ test('resolveModel: no healthy backend -> null (caller sends 503 no_backend)', (
   ] })
 })
 
+// ── Readiness (T002336) ───────────────────────────────────────────────
+// /health meldete 200, solange der PROZESS lief — auch mit totem Backend.
+// Am 2026-07-27 blieb llamacpp-gemma (:8091) drei Stunden weg, ohne dass
+// irgendwo etwas rot wurde: deepseek war die ganze Zeit erreichbar, also
+// war "mindestens ein Backend gesund" erfuellt. Genau deshalb reicht diese
+// schwache Regel nicht — massgeblich sind die LOKALEN Prio-1-Backends.
+// Ein Cloud-Fallback ist kein Ersatz fuer den lokalen Stack.
+//
+// Der dynamische Import ist Absicht: ein statischer named import auf einen
+// noch nicht existierenden Export ist ein SyntaxError beim Modul-Laden und
+// wuerde die GESAMTE Datei rot faerben statt nur diesen Test.
+test('evaluateReadiness: unhealthy enabled priority-1 backend -> not ready (T002336)', async () => {
+  const mod = await import('./discovery.mjs')
+  assert.equal(typeof mod.evaluateReadiness, 'function',
+    'discovery.mjs muss evaluateReadiness(getBackends) exportieren')
+
+  const gemma = { name: 'llamacpp-gemma', baseUrl: 'http://127.0.0.1:8091/v1', kind: 'llamacpp', priority: 1 }
+  const deepseek = { name: 'deepseek', baseUrl: 'https://api.deepseek.com/v1', kind: 'openai-remote', priority: 2 }
+  _testSeed({ backends: [
+    { name: 'llamacpp-gemma', priority: 1, healthy: false, models: [] },
+    { name: 'deepseek', priority: 2, healthy: true, models: ['deepseek-chat'] },
+  ] })
+
+  const r = mod.evaluateReadiness(mockGet([gemma, deepseek]))
+  assert.equal(r.ready, false, 'totes Prio-1-Backend muss ready=false ergeben, auch wenn ein Cloud-Fallback lebt')
+  assert.deepEqual(r.degraded.map((d) => d.name), ['llamacpp-gemma'])
+
+  // Re-seed fuer die uebrigen Tests (Muster wie im 503-Test oben)
+  _testSeed({ backends: [
+    { name: 'a', priority: 1, healthy: true, models: ['m1'] },
+    { name: 'b', priority: 2, healthy: true, models: ['m2'] },
+  ] })
+})
+
+test('evaluateReadiness: only a lower-priority backend down -> still ready (T002336)', async () => {
+  const mod = await import('./discovery.mjs')
+  assert.equal(typeof mod.evaluateReadiness, 'function',
+    'discovery.mjs muss evaluateReadiness(getBackends) exportieren')
+
+  const gemma = { name: 'llamacpp-gemma', baseUrl: 'http://127.0.0.1:8091/v1', kind: 'llamacpp', priority: 1 }
+  const deepseek = { name: 'deepseek', baseUrl: 'https://api.deepseek.com/v1', kind: 'openai-remote', priority: 2 }
+  _testSeed({ backends: [
+    { name: 'llamacpp-gemma', priority: 1, healthy: true, models: ['gemma-4-12b'] },
+    { name: 'deepseek', priority: 2, healthy: false, models: [] },
+  ] })
+
+  const r = mod.evaluateReadiness(mockGet([gemma, deepseek]))
+  assert.equal(r.ready, true, 'ein ausgefallener Cloud-Fallback darf den Proxy nicht rot melden')
+  assert.deepEqual(r.degraded.map((d) => d.name), ['deepseek'],
+    'der Ausfall wird trotzdem berichtet — sichtbar, aber nicht blockierend')
+
+  _testSeed({ backends: [
+    { name: 'a', priority: 1, healthy: true, models: ['m1'] },
+    { name: 'b', priority: 2, healthy: true, models: ['m2'] },
+  ] })
+})
+
 test('applyFixups bonsai-system-role-fixup: mid-array system role is transformed', () => {
   const body = { messages: [
     { role: 'system', content: 'sys' },

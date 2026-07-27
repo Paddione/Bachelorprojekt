@@ -21,6 +21,16 @@
 # selbst, sobald der naechste Poll (30 s) durchkommt; ein Neustart der Unit ist
 # nicht noetig.
 
+# KEIN HEALTH-WATCHDOG - MIT ABSICHT (T002336):
+# Restart=always unten reagiert auf das ENDE des Prozesses, nicht auf einen
+# HTTP-Status. Seit T002336 antwortet /health mit 503, wenn ein lokales
+# Prio-1-Backend (llama.cpp auf der Windows-Seite) weg ist. Wer hier ein
+# WatchdogSec oder einen ExecStartPost-Healthcheck ergaenzt, laesst systemd
+# beim Backend-Ausfall den FALSCHEN Prozess neu starten: der Proxy ist dann
+# voellig gesund, nur sein Upstream nicht - und ein Neustart holt den
+# llama.cpp-Server auf der Windows-Seite ganz sicher nicht zurueck.
+# Wer Liveness braucht, nimmt /livez (immer 200).
+
 [Unit]
 Description=Local LLM proxy (OpenAI-compatible, 127.0.0.1:18235)
 Documentation=file:///home/patrick/Bachelorprojekt/openspec/specs/local-llm-proxy.md

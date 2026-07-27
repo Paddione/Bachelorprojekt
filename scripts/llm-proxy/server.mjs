@@ -2,7 +2,7 @@
 import http from 'node:http';
 import { Readable } from 'node:stream';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
-import { startDiscovery, resolveModel, aggregateModels, getState } from './discovery.mjs';
+import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
 import { applyFixups, sanitizeToolSchemaPatterns } from './fixups.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
@@ -178,7 +178,26 @@ const server = http.createServer((req, res) => {
   const { method, url } = req;
   const path = url.split('?')[0];
   (async () => {
-    if (path === '/health') return sendJson(res, 200, { status: 'ok' });
+    // /health beantwortet READINESS: "kann ich bedient werden", nicht "lebe
+    // ich" (T002336). Vorher stand hier ein unbedingtes 200 - deshalb blieb am
+    // 2026-07-27 ein dreistuendiger Ausfall von llamacpp-gemma unsichtbar.
+    // Die Wahrheit liegt bewusst auf /health und nicht auf einem additiven
+    // /readyz: wer blind prueft, prueft /health, und genau der wurde getaeuscht.
+    if (path === '/health') {
+      const r = evaluateReadiness(getBackends);
+      // degraded kommt in BEIDEN Faellen mit - der Aufrufer soll sehen, WELCHES
+      // Backend fehlt, statt nur dass etwas fehlt.
+      return sendJson(res, r.ready ? 200 : 503, {
+        status: r.ready ? 'ok' : 'degraded',
+        ready: r.ready,
+        degraded: r.degraded,
+        checked: r.checked,
+        lastProbe: getState(getBackends).lastProbe,
+      });
+    }
+    // Reine Liveness - die alte /health-Semantik unter eigenem Namen, fuer
+    // Aufrufer, die wirklich nur wissen wollen, ob der Prozess laeuft.
+    if (path === '/livez') return sendJson(res, 200, { status: 'ok' });
     if (path === '/v1/models' && method === 'GET') return sendJson(res, 200, aggregateModels());
     if (path === '/admin/state' && method === 'GET') {
       const state = getState(getBackends);

@@ -198,7 +198,8 @@ sed -E 's/^[[:space:]]*\/\/.*$//g' .opencode/agent-models.jsonc \
 
 Neue Datei nach der globalen Vorlage (`~/.config/opencode/prompts/orchestrator.md`) plus vier
 Ergänzungen: (1) **Gang-Gating via `/admin/state`** des llm-proxy (`127.0.0.1:18235`) statt `/health` —
-`/health` meldet nur Liveness, die Gang-Breite richtet sich nach `{inflight, max_inflight}`;
+`/livez` meldet nur Liveness (seit T002336; `/health` antwortet dort mit Readiness und kann 503
+liefern), die Gang-Breite richtet sich ohnehin nach `{inflight, max_inflight}`;
 (2) **Partial-Disjunktheit** respektieren (ein Partial → ein bonsai, keine überlappenden Dateien, dem
 `## Partials`-Manifest folgen); (3) **Eskalation an `deepseek-helper` nach 2 Fehlversuchen** pro Partial
 (kein dritter lokaler Retry); (4) **Phase-Event-Konvention** referenzieren (`implement`-Events,
@@ -214,7 +215,7 @@ You are the **Orchestrator** (DeepSeek V4 Flash, 1M ctx on OpenCode Go). Your ro
 - Break every task into **disjoint** partial plans — no two subagents may touch the same file. Respect the `## Partials` manifest in the launch prompt: one partial → one bonsai-8b. Dispatch each to a separate agent via `task` — use bonsai-8b-1 through bonsai-8b-4 for up to 4 concurrent streams.
 - Each bonsai-8b gets one self-contained goal with: files to touch, expected output, and acceptance criteria. Keep their context lean.
 - **Physical serialization**: the four bonsai names share a single llama.cpp slot (`-np 1`) behind the llm-proxy. Concurrent `task` dispatches are structurally parallel but the proxy serializes them up to its per-backend `max_inflight` (default 1 ⇒ strictly serial). Do not assume wall-clock parallelism; assume correctness under any interleaving.
-- **Gang gating**: before widening a gang, probe the llm-proxy admin surface `http://127.0.0.1:18235/admin/state` (NOT `/health`) and read the backend's `{inflight, max_inflight}`. Only add a concurrent stream when free in-flight capacity exists; otherwise dispatch sequentially. `/health` reports only liveness and must not be used to size the gang.
+- **Gang gating**: before widening a gang, probe the llm-proxy admin surface `http://127.0.0.1:18235/admin/state` (NOT `/health`) and read the backend's `{inflight, max_inflight}`. Only add a concurrent stream when free in-flight capacity exists; otherwise dispatch sequentially. Neither `/health` (readiness since T002336 — it may answer 503) nor `/livez` (pure liveness) says anything about free in-flight capacity, so neither must be used to size the gang.
 - **Escalation**: if a bonsai-8b fails the same partial **twice** (stuck, context-exhausted, or repeated error after local compaction/retry), do NOT retry a third time locally — escalate that partial to `deepseek-helper` via `task` with a compacted handoff (goal, done-so-far, stuck-point).
 - Read-only exploration (code search, file reads) stays here. Only dispatch for write-capable implementation work.
 

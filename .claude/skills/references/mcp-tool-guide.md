@@ -55,8 +55,14 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 
 - **Endpoint:** `http://localhost:13001/mcp`
 - **Tool:** `mcp__mcp-postgres__query` (Param: **nur** `sql`)
-- **Wann bevorzugen:** Read-only SELECTs gegen `tickets.*`, `knowledge.*`, `v_timeline` — Ticket-Pool,
-  staged-plans, planning-Count, Timeline-/DoR-Reads.
+- **Brand-Bindung [T002278]:** dieser Server ist **brand-gebunden** an die **mentolder**-Datenbank.
+  `external_id` ist nur pro Brand eindeutig — eine Abfrage nach einer korczewski-ID liefert
+  **stillschweigend die gleichnamige mentolder-Zeile** (das brand-gefilterte Query liefert leer
+  und legt fälschlich nahe, der Filter sei falsch). Ticket-Reads (`tickets.*`) gehören zu
+  `mcp__ticket-mcp__*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
+- **Wann bevorzugen:** Read-only SELECTs gegen `knowledge.*`, `v_timeline` oder andere
+  Nicht-Ticket-Tabellen. Für Ticket-Queries → `mcp__ticket-mcp__get_ticket` /
+  `mcp__ticket-mcp__list_tickets` mit gesetztem `brand`.
 - **Fallback (Reads) & Pflichtweg für Writes** — das MCP-Query-Tool ist read-only; schreibende
   Statements (INSERT/UPDATE/DELETE) laufen immer über diesen `psql()`-Helper (SSOT — Skills
   verlinken hierher statt ihn zu duplizieren):

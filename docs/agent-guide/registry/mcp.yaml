@@ -24,6 +24,17 @@ clients:
   mcp-postgres:
     transport: http
     endpoint: http://localhost:13001/mcp
+    brand: mentolder
+    database: shared-db.workspace.svc.cluster.local/website
+    scope_warning: >-
+      Fest an die mentolder-DB gebunden (DATABASE_URL im postgres-Container des
+      MCP-Monolithen). external_id ist nur pro Brand eindeutig — eine Abfrage nach
+      einer korczewski-ID liefert still die gleichnamige mentolder-Zeile statt einer
+      leeren Menge. Ticket-Reads gehören zu ticket-mcp mit explizitem brand-Argument.
+    korczewski_path: >-
+      Nicht-Ticket-SQL gegen die korczewski-DB läuft über kubectl exec gegen den
+      shared-db-Pod in Namespace workspace-korczewski (Context fleet), nicht über
+      diesen Server.
     harness:
       claude_code:
         type: http

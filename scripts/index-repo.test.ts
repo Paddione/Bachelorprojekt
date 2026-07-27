@@ -152,6 +152,23 @@ describe('isInfrastructureError (T002292)', () => {
       .toBe(false);
   });
 
+  it('erkennt einen Postgres-Shutdown (T002292 Nachtrag)', () => {
+    // Gemessen am 2026-07-27: beim Pod-Replace meldet Postgres zuerst
+    // "terminating connection due to administrator command", dann mehrfach
+    // "the database system is shutting down" — erst danach kommt ECONNREFUSED.
+    // Die ersten beiden Stufen trugen keinen .code und passten auf kein Muster,
+    // liefen also als per-Datei-SKIP durch. Sie sind die FRUEHERE und damit
+    // nuetzlichere Warnung als der spaetere Socket-Fehler.
+    expect(isInfrastructureError(new Error('terminating connection due to administrator command')))
+      .toBe(true);
+    expect(isInfrastructureError(new Error('the database system is shutting down'))).toBe(true);
+  });
+
+  it('erkennt eine noch startende Datenbank (T002292 Nachtrag)', () => {
+    // Gegenstueck beim Hochfahren des Ersatz-Pods.
+    expect(isInfrastructureError(new Error('the database system is starting up'))).toBe(true);
+  });
+
   it('ist robust gegen Nicht-Error-Werte', () => {
     expect(isInfrastructureError(null)).toBe(false);
     expect(isInfrastructureError('ECONNREFUSED')).toBe(false);

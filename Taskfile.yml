@@ -4651,9 +4651,14 @@ tasks:
             kill $pf 2>/dev/null || true
             continue
           fi
+          # `|| rc=$?` ist Pflicht: go-task fuehrt jeden cmds-Block mit
+          # set -e-Semantik aus. Ohne das `||` bricht die Shell beim ersten
+          # fehlschlagenden Lauf ab — noch BEVOR `rc=$?` gelesen wird — und die
+          # Retry-Schleife kommt nie zum Zug (beobachtet 2026-07-27: Pass 1
+          # endete mit Exit 1, es folgte kein zweiter Pass).
+          rc=0
           PGHOST=localhost PGPORT=$port PGDATABASE=website PGUSER=website \
-            npx tsx scripts/index-repo.ts
-          rc=$?
+            npx tsx scripts/index-repo.ts || rc=$?
           kill $pf 2>/dev/null || true
           [ $rc -eq 0 ] && break
           echo "→ Pass $pass endete mit Exit $rc, setze fort" >&2

@@ -148,6 +148,15 @@ const INFRA_ERROR_MESSAGES = [
   'fetch failed',
   'Connection terminated',
   'timeout exceeded when trying to connect',
+  // Nachtrag T002292: Beim Pod-Replace meldet Postgres eine Abfolge, die VOR
+  // dem Socket-Fehler kommt und keinen .code traegt. Gemessen 2026-07-27:
+  // erst 1x "terminating connection due to administrator command" (SIGTERM),
+  // dann 9x "the database system is shutting down", erst danach ECONNREFUSED.
+  // Ohne diese Muster liefen die ersten Dateien nach jedem Replace als
+  // per-Datei-SKIP durch — also genau die Maskierung, die dieser Fix abstellt.
+  'terminating connection due to administrator command',
+  'the database system is shutting down',
+  'the database system is starting up',
 ];
 
 export function isInfrastructureError(err: unknown, depth = 0): boolean {

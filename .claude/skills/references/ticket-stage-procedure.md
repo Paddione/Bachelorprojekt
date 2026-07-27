@@ -52,8 +52,11 @@ fi
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" \
-  --plan "openspec/changes/<slug>/tasks.md"
+  --plan "openspec/changes/<slug>/tasks.md" \
+  --hold
 ```
+**`--hold`-Flag:** When present, `stage-plan` sets `readiness.execution_released=false`, which gates the ticket from factory dispatch until `dev-flow-execute` explicitly releases it via `ticket.sh release-hold`. Use `--hold` in all interactive dev-flow-plan calls so the human operator controls when the factory picks up the ticket.
+
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
 Ticket-Claim jetzt nachholen (Session-Koordination [T000510]) — der Feature-Pfad kennt
 die Ticket-ID erst ab hier; Schritt 5's Pre-Commit-Guard prüft ticket-scoped und braucht

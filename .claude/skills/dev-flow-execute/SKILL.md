@@ -50,6 +50,17 @@ stehen in [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude
 > ausschließlich `type=feature`. Ein `task`-Ticket, das `auto-enqueue` aus `plan_staged` gezogen
 > hat, belegt einen Slot und wird nie bearbeitet — hier immer manuell weiterfahren.
 
+## Schritt 1.8: Ticket freigeben (release hold)
+
+Wenn das Ticket per `stage-plan --hold` gestaged wurde (interaktiver dev-flow-plan-Pfad), ist
+`readiness.execution_released=false` gesetzt — das Ticket wird vom Factory-Dispatch zurückgehalten,
+bis dieser Schritt es freigibt. Der Aufruf ist best-effort (`|| true`), da ein ohne `--hold`
+gestagetes Ticket (z.B. Mishap-Tracker-Auto-Plans) einfach keinen Hold hat:
+
+```bash
+bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
+```
+
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
 Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — **MCP-first**:

@@ -140,3 +140,13 @@ _exec_step2_block() {
   run bash -c "grep -c '^  release-hold)' '$REPO/scripts/ticket.sh'"
   [ "$output" != "0" ]
 }
+
+@test "T002272-M1: dev-flow-plan SKILL.md and ticket-stage-procedure.md reference stage-plan --hold" {
+  run grep -n -- "stage-plan.*--hold" "$PLAN_SKILL" "$REPO/.claude/skills/references/ticket-stage-procedure.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002272-M1: dev-flow-execute SKILL.md calls release-hold" {
+  run grep -n "release-hold" "$EXEC_SKILL"
+  [ "$status" -eq 0 ]
+}

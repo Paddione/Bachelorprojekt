@@ -14,18 +14,22 @@
   unveraendert; ergaenzt wurden Existenzpruefungen, der Health-Poll und der
   VRAM-Hinweis, analog zu start-gptoss-server.ps1.
 
-  WARUM KEIN AUTOSTART: install-startup-autostart.ps1 startet bewusst nur
-  Embedding und Rerank. Gemma laeuft mit "-fit on" und nimmt sich ALLES freie
-  VRAM (siehe unten) - wuerde es beim Anmelden vor dem Embedding-Stack starten,
-  bliebe fuer bge-m3 und den Reranker nichts uebrig. Dieses Skript wird deshalb
-  von Hand aufgerufen, nachdem :8095 und :8096 stehen.
+  AUTOSTART: seit T002286 startet install-startup-autostart.ps1 auch Gemma.
+  Der fruehere Ausschlussgrund war "-fit on" - damit nahm sich der Server ALLES
+  freie VRAM und haette dem Embedding-Stack den Speicher weggenommen, wenn er
+  vor ihm gestartet waere. Mit dem festen -c unten ist der Bedarf deterministisch
+  und die Startreihenfolge damit unkritisch.
 
-  WARUM KEIN EXPLIZITES -c: ohne -c bleibt n_ctx "unset", und --fit (Default on)
-  laedt n_ctx_train (262144) und verkleinert ihn so weit, bis er mit -fitt MiB
-  Reserve ins VRAM passt. Ein gesetztes -c wuerde das Fitting abschalten.
-  -fitc 32768 ist die Untergrenze: passt nicht mindestens so viel Kontext,
-  scheitert der Start hart, statt still auf 4096 zu fallen. Die Factory fuellt
-  31-37k Tokens pro Prompt - unter 32768 waere der Server fuer sie nutzlos.
+  WARUM FESTES -c 65536 (T002286): "-fit on" ohne -c laedt n_ctx_train (262144)
+  und verkleinert ihn nur so weit, bis er ins VRAM passt - auf diesem Host also
+  gar nicht, weil 262144 hineinpassen. Die Factory fuellt aber nur 31-37k Tokens
+  pro Prompt, nutzte also ~14 Prozent des Kontexts und band den Rest als KV-Cache.
+  Gemessen 2026-07-27: -c 65536 senkt die VRAM-Belegung von 15670 auf 13054 MiB
+  (2560 MiB frei), der Frei-Speicher steigt von 328 auf 2944 MiB. 65536 laesst
+  gegenueber 37k weiterhin Reserve. "-fit off" ist dabei sicher, weil 65536
+  deutlich UNTER dem vorher passenden Wert liegt - das OOM-Risiko von "-fit off"
+  besteht nur nach oben. Nebeneffekt: die Konfiguration ist reproduzierbar,
+  waehrend Auto-Fit je nach Belegung durch :8095/:8096 andere Groessen ergab.
 
   WARUM DER FORK-BUILD: --spec-type draft-mtp gibt es nur im
   llama-bonsai-cuda13.3-Build, nicht im Upstream-Release b10090, das Embedding
@@ -88,18 +92,20 @@ foreach ($c in $conns) {
 }
 
 $freeMiB = [int](& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()
-Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port (auto-fit context, Q8_0 KV, 1 slot) ..."
+Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port (65536 ctx, Q8_0 KV, 1 slot) ..."
 Write-Output "  Model:     $Model"
 Write-Output "  MTP head:  $MtpHead"
 Write-Output "  Free VRAM: $freeMiB MiB"
 if ($freeMiB -lt 9000) {
   Write-Output "  WARNUNG: unter 9000 MiB frei. Die Gewichte allein brauchen ~7.4 GB,"
-  Write-Output "           dazu der MTP-Head (~0.5 GB) und mindestens 32768 Tokens KV."
+  Write-Output "           dazu der MTP-Head (~0.5 GB) und 65536 Tokens KV."
+  Write-Output "           Mit '-fit off' faellt der Start bei zu wenig VRAM hart aus,"
+  Write-Output "           statt still auf weniger Kontext auszuweichen - das ist Absicht."
   Write-Output "           Laeuft parallel ein anderes Chat-Modell (gpt-oss :8097)? Dann beenden."
 }
 if ($freeMiB -gt 15000) {
   Write-Output "  HINWEIS: sehr viel VRAM frei - laufen bge-m3 (:8095) und der Reranker"
-  Write-Output "           (:8096) ueberhaupt? '-fit on' nimmt sich sonst deren Speicher mit."
+  Write-Output "           (:8096) ueberhaupt? Sie belegen zusammen rund 1,7 GB."
 }
 
 $Params = @(
@@ -110,17 +116,29 @@ $Params = @(
   "--spec-draft-model", $MtpHead
   "--spec-draft-n-max", "2"
   "-ngl", "999"
-  # Ein einziger Slot - sonst gilt n_parallel=auto=4 und der Kontext wird
-  # geviertelt. Der llm-proxy serialisiert ohnehin per Semaphor
-  # (tickets.llm_proxy_backends.max_inflight, Default 1).
+  # Ein einziger Slot. Zwei Gruende, beide 2026-07-27 gemessen (T002286):
+  #   1. tickets.llm_proxy_backends.max_inflight = 1 fuer llamacpp-gemma - der
+  #      llm-proxy serialisiert. Weitere Slots blieben schlicht ungenutzt.
+  #   2. Ein Slot haelt EINEN KV-Zustand, den aufeinanderfolgende Aufrufer per
+  #      Praefix-Reuse teilen: bei gleichem System-Prompt wurden nur 12 von 3034
+  #      Prompt-Token neu berechnet (99,6 Prozent Treffer). Mit 4 Slots prefillt
+  #      jeder Slot den gemeinsamen Praefix voll (3240 Token je Slot) - bei einem
+  #      37k-Factory-Prompt also ~148k statt ~37k Token. Parallelitaet und
+  #      Praefix-Reuse sind hier Gegenspieler; seriell gewinnt der Cache.
+  # Falls doch einmal echte Parallelitaet noetig ist: -np N NUR zusammen mit
+  # -kvu (--kv-unified) setzen, sonst teilt llama.cpp -c stur durch -np.
+  # Gemessen: "-c 8192 -np 4 -kvu" => n_ctx 8192 je Slot, mit "-no-kvu" => 2048.
+  # Zusaetzlich max_inflight in der DB hochsetzen, sonst wirkt es nicht.
   "-np", "1"
-  # KV q8_0: praktisch verlustfrei, halbiert den Cache gegenueber f16 und
-  # verdoppelt damit den Kontext, den "-fit" unterbringt.
+  # KV q8_0: praktisch verlustfrei und halbiert den Cache gegenueber f16.
+  # Bewusst NICHT q4_0: das spart nur Kontext, von dem hier ohnehin Ueberschuss
+  # herrscht, und degradiert genau das woertliche Zurueckholen von Pfaden,
+  # Symbolnamen und Tool-Call-Argumenten aus dem Kontext.
   "--cache-type-k", "q8_0"
   "--cache-type-v", "q8_0"
-  "-fit", "on"
-  "-fitt", "1024"
-  "-fitc", "32768"
+  # Fester Deckel statt Auto-Fit - Begruendung und Messwerte in .DESCRIPTION.
+  "-c", "65536"
+  "-fit", "off"
   # --jinja: strukturierte tool_calls aus der im GGUF hinterlegten Vorlage.
   # Ohne sie liefert der Server keine tool_calls - fuer die Factory unbrauchbar.
   "--jinja"

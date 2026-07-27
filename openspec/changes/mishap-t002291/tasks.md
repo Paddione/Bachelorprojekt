@@ -2,7 +2,7 @@
 title: Stale Branch Cleanup — backup/ + chore/ + subagent/ Orphans
 ticket_id: T002291
 domains: [repo/chore/hygiene]
-status: planning
+status: completed
 ---
 
 # mishap-t002291 — Implementation Plan

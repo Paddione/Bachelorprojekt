@@ -633,3 +633,10 @@ Ebenfalls in T002162 behoben: `gen-goals-data.mjs` las `measured_at` aus dem **l
 sortiert (Prio-A-Abschnitt oben, Prio-B/C-Historie unten), nicht chronologisch — der
 2026-07-25-Eintrag auf Zeile 108 verlor deshalb gegen die 2026-07-22-Einträge weiter unten,
 und alle 95 Ziele trugen einen vier Tage alten Mess-Stichtag. Jetzt gewinnt das jüngste Datum.
+
+**Baseline-Update 2026-07-27 (T002302 — Skill-Inventar-Bereinigung):**
+- 11 getrackte Skills entfernt (6 STUBs, 1 Grabstein `llm-ops`, 4 ML-Vendor-Skills)
+- G-AGENTIC06 Zähler in OVERVIEW.md von 39 auf 28 korrigiert (Soll: `git ls-files | grep -c SKILL.md`)
+- Drei ML-Skill-Registrierungen (unsloth, gguf-quantization, speculative-decoding) aus OVERVIEW.md entfernt
+- `skills-lock.json`: llama-cpp-Eintrag entfernt (nur lavish, vitest verbleiben)
+- Skill-Deny-Liste in `.opencode/opencode.jsonc` um 12 Einträge bereinigt

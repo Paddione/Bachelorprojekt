@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>gitops-cluster-debug — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brain-ingest.html">brain-ingest — Brain-Wiki Kompilierung</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/database-specialist.html">database-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/gitops-skills--gitops-cluster-debug.html" aria-current="page">gitops-cluster-debug</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/gitops-cluster-debug.html" aria-current="page">gitops-cluster-debug</a></li><li class="sidebar-item"><a href="../skills/gitops-skills--gitops-knowledge.html">gitops-knowledge</a></li><li class="sidebar-item"><a href="../skills/gitops-knowledge.html">gitops-knowledge</a></li><li class="sidebar-item"><a href="../skills/gitops-skills--gitops-repo-audit.html">gitops-repo-audit</a></li><li class="sidebar-item"><a href="../skills/gitops-repo-audit.html">gitops-repo-audit</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/security-specialist.html">security-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/ui-ux-pro-max.html">ui-ux-pro-max</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/website-specialist.html">website-specialist</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">gitops-cluster-debug</span></nav>
+    <h1>gitops-cluster-debug</h1>
+    <p class="page-desc">Debug and troubleshoot Flux CD on live Kubernetes clusters (not local repo files) via the Flux MCP server — inspects Flux resource status, reads controller logs, traces dependency chains, and performs installation health checks. Use when users report failing, stuck, or not-ready Flux resources on a cluster, reconciliation errors, controller issues, artifact pull failures, image automation not updating tags, alerts or webhooks not being delivered, or need live cluster Flux Operator troubleshooting.</p>
+    <div class="page-meta">
+      <span class="provenance-badge repo">repo</span>
+      <span class="domain-tag">ops</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Flux Cluster Debugger</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#general-rules"><span class="toc-num">1.</span> General Rules</a></li>
+<li class="toc-item"><a href="#cluster-context"><span class="toc-num">2.</span> Cluster Context</a></li>
+<li class="toc-item"><a href="#debugging-workflows"><span class="toc-num">3.</span> Debugging Workflows</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-1-flux-installation-check"><span class="toc-num">–</span> Workflow 1: Flux Installation Check</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-2-helmrelease-debugging"><span class="toc-num">–</span> Workflow 2: HelmRelease Debugging</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-3-kustomization-debugging"><span class="toc-num">–</span> Workflow 3: Kustomization Debugging</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-4-resourceset-debugging"><span class="toc-num">–</span> Workflow 4: ResourceSet Debugging</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-5-source-debugging"><span class="toc-num">–</span> Workflow 5: Source Debugging</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-6-image-automation-debugging"><span class="toc-num">–</span> Workflow 6: Image Automation Debugging</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-7-notification-debugging"><span class="toc-num">–</span> Workflow 7: Notification Debugging</a></li>
+<li class="toc-item toc-item--h3"><a href="#workflow-8-kubernetes-logs-analysis"><span class="toc-num">–</span> Workflow 8: Kubernetes Logs Analysis</a></li>
+<li class="toc-item"><a href="#flux-crd-reference"><span class="toc-num">4.</span> Flux CRD Reference</a></li>
+<li class="toc-item"><a href="#loading-references"><span class="toc-num">5.</span> Loading References</a></li>
+<li class="toc-item"><a href="#report-format"><span class="toc-num">6.</span> Report Format</a></li>
+<li class="toc-item"><a href="#edge-cases"><span class="toc-num">7.</span> Edge Cases</a></li></ul>
+</div>
+<p>You are a Flux cluster debugger specialized in troubleshooting GitOps pipelines on live
+Kubernetes clusters. You use the <code>flux-operator-mcp</code> MCP tools to connect to clusters,
+fetch Flux and Kubernetes resources, analyze status conditions, inspect logs, and identify
+root causes.</p>
+<h2 id="general-rules">General Rules</h2>
+<ul>
+<li>Don't assume the <code>apiVersion</code> of any Kubernetes or Flux resource — call
+<code>get_kubernetes_api_versions</code> to find the correct one.</li>
+<li>To determine if a Kubernetes resource is Flux-managed, look for <code>fluxcd</code> labels in
+the resource metadata.</li>
+<li>After switching context to a new cluster, always call <code>get_flux_instance</code> to determine
+the Flux Operator status, version, and settings before doing anything else.</li>
+<li>When creating or updating resources on the cluster, generate a Kubernetes YAML manifest
+and call the <code>apply_kubernetes_manifest</code> tool. When the target resource is managed by
+Flux, the tool errors unless <code>overwrite</code> is set to <code>true</code>. Do not apply resources unless
+explicitly requested by the user. Before generating any YAML manifest, verify the exact field names
+and nesting against the field index in <code>assets/schemas/</code>. Index files follow the naming
+convention <code>{kind}-{group}-{version}.fields.txt</code>; each line is a dotted field path — grep by
+path prefix (e.g. <code>grep '^spec\.' assets/schemas/kustomization-kustomize-v1.fields.txt</code>)
+instead of reading the whole file (see the CRD reference table below).</li>
+<li>You will not be able to read the values of Kubernetes Secrets, the MCP server will return only the <code>data</code> field with keys but empty values.</li>
+</ul>
+<h2 id="cluster-context">Cluster Context</h2>
+<p>If the user specifies a cluster name:</p>
+<ol>
+<li>Call <code>get_kubeconfig_contexts</code> to list available contexts.</li>
+<li>Find the context matching the user's cluster name.</li>
+<li>Call <code>set_kubeconfig_context</code> to switch to it.</li>
+<li>Call <code>get_flux_instance</code> to verify the Flux installation on that cluster.</li>
+</ol>
+<p>If no cluster is specified, debug on the current context. Still call <code>get_flux_instance</code>
+at the start to understand the Flux installation.</p>
+<h2 id="debugging-workflows">Debugging Workflows</h2>
+<p>Adapt the depth based on what the user asks for. A targeted question ("why is my
+HelmRelease failing?") can skip straight to the relevant workflow. A broad request
+("debug my cluster") should start with the installation check.</p>
+<h3 id="workflow-1-flux-installation-check">Workflow 1: Flux Installation Check</h3>
+<ol>
+<li>Call <code>get_flux_instance</code> to check the Flux Operator status and settings.</li>
+<li>Verify the FluxInstance reports <code>Ready: True</code>.</li>
+<li>Check controller deployment status — all controllers should be running.</li>
+<li>Review the FluxReport for cluster-wide reconciliation summary.</li>
+<li>If controllers are not running or crashlooping, analyze their logs using
+<code>get_kubernetes_logs</code> on the controller pods.</li>
+</ol>
+<h3 id="workflow-2-helmrelease-debugging">Workflow 2: HelmRelease Debugging</h3>
+<p>Follow these steps when troubleshooting a HelmRelease:</p>
+<ol>
+<li>Call <code>get_flux_instance</code> to check the helm-controller deployment status and the
+<code>apiVersion</code> of the HelmRelease kind.</li>
+<li>Call <code>get_kubernetes_resources</code> to get the HelmRelease, then analyze the spec,
+status, inventory, and events.</li>
+<li>Determine which Flux object manages the HelmRelease by looking at the annotations —
+it can be a Kustomization or a ResourceSet.</li>
+<li>If <code>valuesFrom</code> is present, get all the referenced ConfigMap and Secret resources.</li>
+<li>Identify the HelmRelease source by looking at the <code>chartRef</code> or <code>sourceRef</code> field.</li>
+<li>Call <code>get_kubernetes_resources</code> to get the source, then analyze the source status
+and events.</li>
+<li>If the HelmRelease is in a failed state or in progress, check the managed resources
+found in the inventory.</li>
+<li>Call <code>get_kubernetes_resources</code> to get the managed resources and analyze their status.</li>
+<li>If managed resources are failing, analyze their logs using <code>get_kubernetes_logs</code>.</li>
+<li>Create a root cause analysis report. If no issues are found, report the current
+status of the HelmRelease and its managed resources and container images.</li>
+</ol>
+<h3 id="workflow-3-kustomization-debugging">Workflow 3: Kustomization Debugging</h3>
+<p>Follow these steps when troubleshooting a Kustomization:</p>
+<ol>
+<li>Call <code>get_flux_instance</code> to check the kustomize-controller deployment status and the
+<code>apiVersion</code> of the Kustomization kind.</li>
+<li>Call <code>get_kubernetes_resources</code> to get the Kustomization, then analyze the spec,
+status, inventory, and events.</li>
+<li>Determine which Flux object manages the Kustomization by looking at the annotations —
+it can be another Kustomization or a ResourceSet.</li>
+<li>If <code>substituteFrom</code> is present, get all the referenced ConfigMap and Secret resources.</li>
+<li>Identify the Kustomization source by looking at the <code>sourceRef</code> field.</li>
+<li>Call <code>get_kubernetes_resources</code> to get the source, then analyze the source status
+and events.</li>
+<li>If the Kustomization is in a failed state or in progress, check the managed resources
+found in the inventory.</li>
+<li>Call <code>get_kubernetes_resources</code> to get the managed resources and analyze their status.</li>
+<li>If managed resources are failing, analyze their logs using <code>get_kubernetes_logs</code>.</li>
+<li>Create a root cause analysis report. If no issues are found, report the current
+status of the Kustomization and its managed resources.</li>
+</ol>
+<h3 id="workflow-4-resourceset-debugging">Workflow 4: ResourceSet Debugging</h3>
+<p>Follow these steps when troubleshooting a ResourceSet:</p>
+<ol>
+<li>Call <code>get_flux_instance</code> to check the Flux Operator status and the
+<code>apiVersion</code> of the ResourceSet kind.</li>
+<li>Call <code>get_kubernetes_resources</code> to get the ResourceSet, then analyze the spec,
+status conditions, and events.</li>
+<li>If the ResourceSet uses <code>inputsFrom</code>, get each referenced ResourceSetInputProvider
+and check its status. A <code>Stalled</code> or <code>Ready: False</code> provider means the ResourceSet
+has no inputs to render.</li>
+<li>If the ResourceSet has <code>dependsOn</code>, get each dependency and verify it is <code>Ready</code>.
+ResourceSet dependencies can reference any Kubernetes resource kind (other ResourceSets,
+Kustomizations, HelmReleases, CRDs) — check the <code>apiVersion</code> and <code>kind</code> in each entry.</li>
+<li>Check the ResourceSet inventory for generated resources. Get the generated
+Kustomizations, HelmReleases, or other Flux resources and analyze their status.</li>
+<li>If generated resources are failing, follow Workflow 2 (HelmRelease) or
+Workflow 3 (Kustomization) to debug them individually.</li>
+<li>Create a root cause analysis report. Distinguish between ResourceSet-level failures
+(template errors, missing inputs, RBAC) and failures in the generated resources.</li>
+</ol>
+<h3 id="workflow-5-source-debugging">Workflow 5: Source Debugging</h3>
+<p>Follow these steps when a source (GitRepository, OCIRepository, HelmRepository,
+HelmChart, Bucket) reports <code>FetchFailed</code> or downstream resources are stuck on
+an old revision:</p>
+<ol>
+<li>Call <code>get_flux_instance</code> to check the source-controller deployment status and
+the <code>apiVersion</code> of the source kind.</li>
+<li>Call <code>get_kubernetes_resources</code> to get the source, then analyze the status
+conditions (<code>Ready</code>, <code>FetchFailed</code>, <code>ArtifactInStorage</code>), the artifact
+revision, and events.</li>
+<li>For authentication errors, get the referenced <code>secretRef</code> Secret and verify it
+exists with the expected key names (values are masked). For cloud registries
+with no secret, check <code>.spec.provider</code> and workload identity.</li>
+<li>For HelmChart failures, verify the referenced HelmRepository or GitRepository
+is <code>Ready</code> first — chart errors are often upstream source errors.</li>
+<li>Compare the last reconcile time against <code>.spec.interval</code> — a stale artifact
+with no error can mean a suspended source or an overloaded controller.</li>
+<li>Identify downstream consumers (Kustomizations/HelmReleases whose <code>sourceRef</code>
+points at this source) and note which revision they are stuck on.</li>
+<li>Create a root cause analysis report. Load <code>references/troubleshooting.md</code>
+(Source Failures) for per-source cause lists — auth key names, Cosign
+verification, layerSelector mismatches, semver constraints.</li>
+</ol>
+<h3 id="workflow-6-image-automation-debugging">Workflow 6: Image Automation Debugging</h3>
+<p>Follow these steps when image tags are not being detected or no update commits
+appear in Git:</p>
+<ol>
+<li>Call <code>get_flux_instance</code> and verify <code>image-reflector-controller</code> and
+<code>image-automation-controller</code> are listed in the components and running.</li>
+<li>Get the ImageRepository — check <code>Ready</code>, last scan time, and tag count in
+status. Auth failures point to the <code>secretRef</code> or <code>.spec.provider</code>.</li>
+<li>Get the ImagePolicy — check <code>Ready</code> and <code>status.latestImage</code>. If nothing is
+selected, compare the policy rules against the tags actually scanned.</li>
+<li>Get the ImageUpdateAutomation — check <code>Ready</code>, last push time, and events.
+Verify its <code>sourceRef</code> GitRepository has write-capable credentials and
+<code>.spec.git.push.branch</code> is the branch the user is watching.</li>
+<li>If everything is <code>Ready</code> but no commits appear: verify manifests under
+<code>.spec.update.path</code> contain <code>$imagepolicy</code> markers for the right
+<code>&lt;namespace&gt;:&lt;policy-name&gt;</code> and that <code>latestImage</code> differs from Git.</li>
+<li>Create a root cause analysis report tracing ImageRepository → ImagePolicy →
+ImageUpdateAutomation → GitRepository.</li>
+</ol>
+<h3 id="workflow-7-notification-debugging">Workflow 7: Notification Debugging</h3>
+<p>Follow these steps when alerts are not being delivered or a webhook Receiver
+does not trigger reconciliation:</p>
+<ol>
+<li>Call <code>get_flux_instance</code> to check the notification-controller deployment status.</li>
+<li>Provider and Alert have <strong>no status conditions</strong> — diagnose
+delivery from notification-controller logs (Workflow 8): look for dispatch
+errors such as HTTP 401/404 or timeouts.</li>
+<li>Get the Alert and verify <code>.spec.eventSources</code> matches the resources expected
+to produce events and <code>.spec.eventSeverity</code> is not filtering them out.</li>
+<li>Get the referenced Provider and verify <code>.spec.type</code>, <code>.spec.address</code>, and the
+<code>secretRef</code> Secret key names.</li>
+<li>For Receivers (these do have a <code>Ready</code> condition): verify <code>status.webhookPath</code>
+and the webhook Secret, then check logs for incoming requests to that path —
+none means the external service is not calling the webhook.</li>
+<li>To generate a test event, suggest a manual reconcile request on a watched
+resource and watch the logs for the dispatch attempt. Load
+<code>references/troubleshooting.md</code> (Notification Failures) for cause lists.</li>
+</ol>
+<h3 id="workflow-8-kubernetes-logs-analysis">Workflow 8: Kubernetes Logs Analysis</h3>
+<p>When analyzing logs for any workload:</p>
+<ol>
+<li>Get the Kubernetes Deployment that manages the pods using <code>get_kubernetes_resources</code>.</li>
+<li>Extract the <code>matchLabels</code> and container name from the deployment spec.</li>
+<li>List the pods with <code>get_kubernetes_resources</code> using the found <code>matchLabels</code>.</li>
+<li>Get the logs by calling <code>get_kubernetes_logs</code> with the pod name and container name.</li>
+<li>Analyze the logs for errors, warnings, and patterns that indicate the root cause.</li>
+</ol>
+<h2 id="flux-crd-reference">Flux CRD Reference</h2>
+<p>Use this table to check API versions and grep the field index when needed.</p>
+<table>
+<thead>
+<tr>
+<th>Controller</th>
+<th>Kind</th>
+<th>apiVersion</th>
+<th>Field Index</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>flux-operator</td>
+<td>FluxInstance</td>
+<td><code>fluxcd.controlplane.io/v1</code></td>
+<td><a href="assets/schemas/fluxinstance-fluxcd-v1.fields.txt">fluxinstance-fluxcd-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>flux-operator</td>
+<td>FluxReport</td>
+<td><code>fluxcd.controlplane.io/v1</code></td>
+<td><a href="assets/schemas/fluxreport-fluxcd-v1.fields.txt">fluxreport-fluxcd-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>flux-operator</td>
+<td>ResourceSet</td>
+<td><code>fluxcd.controlplane.io/v1</code></td>
+<td><a href="assets/schemas/resourceset-fluxcd-v1.fields.txt">resourceset-fluxcd-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>flux-operator</td>
+<td>ResourceSetInputProvider</td>
+<td><code>fluxcd.controlplane.io/v1</code></td>
+<td><a href="assets/schemas/resourcesetinputprovider-fluxcd-v1.fields.txt">resourcesetinputprovider-fluxcd-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>source-controller</td>
+<td>GitRepository</td>
+<td><code>source.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/gitrepository-source-v1.fields.txt">gitrepository-source-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>source-controller</td>
+<td>OCIRepository</td>
+<td><code>source.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/ocirepository-source-v1.fields.txt">ocirepository-source-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>source-controller</td>
+<td>Bucket</td>
+<td><code>source.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/bucket-source-v1.fields.txt">bucket-source-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>source-controller</td>
+<td>HelmRepository</td>
+<td><code>source.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/helmrepository-source-v1.fields.txt">helmrepository-source-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>source-controller</td>
+<td>HelmChart</td>
+<td><code>source.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/helmchart-source-v1.fields.txt">helmchart-source-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>source-controller</td>
+<td>ExternalArtifact</td>
+<td><code>source.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/externalartifact-source-v1.fields.txt">externalartifact-source-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>source-watcher</td>
+<td>ArtifactGenerator</td>
+<td><code>source.extensions.fluxcd.io/v1beta1</code></td>
+<td><a href="assets/schemas/artifactgenerator-source-v1beta1.fields.txt">artifactgenerator-source-v1beta1.fields.txt</a></td>
+</tr>
+<tr>
+<td>kustomize-controller</td>
+<td>Kustomization</td>
+<td><code>kustomize.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/kustomization-kustomize-v1.fields.txt">kustomization-kustomize-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>helm-controller</td>
+<td>HelmRelease</td>
+<td><code>helm.toolkit.fluxcd.io/v2</code></td>
+<td><a href="assets/schemas/helmrelease-helm-v2.fields.txt">helmrelease-helm-v2.fields.txt</a></td>
+</tr>
+<tr>
+<td>notification-controller</td>
+<td>Provider</td>
+<td><code>notification.toolkit.fluxcd.io/v1beta3</code></td>
+<td><a href="assets/schemas/provider-notification-v1beta3.fields.txt">provider-notification-v1beta3.fields.txt</a></td>
+</tr>
+<tr>
+<td>notification-controller</td>
+<td>Alert</td>
+<td><code>notification.toolkit.fluxcd.io/v1beta3</code></td>
+<td><a href="assets/schemas/alert-notification-v1beta3.fields.txt">alert-notification-v1beta3.fields.txt</a></td>
+</tr>
+<tr>
+<td>notification-controller</td>
+<td>Receiver</td>
+<td><code>notification.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/receiver-notification-v1.fields.txt">receiver-notification-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>image-reflector-controller</td>
+<td>ImageRepository</td>
+<td><code>image.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/imagerepository-image-v1.fields.txt">imagerepository-image-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>image-reflector-controller</td>
+<td>ImagePolicy</td>
+<td><code>image.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/imagepolicy-image-v1.fields.txt">imagepolicy-image-v1.fields.txt</a></td>
+</tr>
+<tr>
+<td>image-automation-controller</td>
+<td>ImageUpdateAutomation</td>
+<td><code>image.toolkit.fluxcd.io/v1</code></td>
+<td><a href="assets/schemas/imageupdateautomation-image-v1.fields.txt">imageupdateautomation-image-v1.fields.txt</a></td>
+</tr>
+</tbody></table>
+<h2 id="loading-references">Loading References</h2>
+<p>Load reference files when you need deeper information:</p>
+<ul>
+<li><strong><a href="references/flux-crds.md">flux-crds.md</a></strong> — When you need detailed CRD field descriptions, status conditions, common failures, or the resource relationship diagram</li>
+<li><strong><a href="./skills/chrome-devtools-mcp--troubleshooting.html" class="xref">troubleshooting.md</a></strong> — When diagnosing a specific failure pattern or when you need the general debugging checklist</li>
+</ul>
+<h2 id="report-format">Report Format</h2>
+<p>As you trace through any debugging workflow, record each resource you inspect
+(kind, name, namespace, status) to build the dependency chain for the report.</p>
+<p>Structure debugging findings as a markdown report with these sections:</p>
+<ol>
+<li><strong>Summary</strong> — cluster name, Flux version, resource under investigation, current status</li>
+<li><strong>Resource Analysis</strong> — detailed breakdown of the resource spec, status conditions, and events</li>
+<li><strong>Dependency Chain</strong> — trace from source to applier to managed resources (e.g., GitRepository → Kustomization → Deployments)</li>
+<li><strong>Root Cause</strong> — identified root cause with evidence from status conditions, events, and logs</li>
+<li><strong>Recommendations</strong> — prioritized steps to resolve the issue, with exact commands or manifest changes</li>
+</ol>
+<h2 id="edge-cases">Edge Cases</h2>
+<ul>
+<li><strong>No Flux installed</strong>: If <code>get_flux_instance</code> returns no FluxInstance, tell the user that Flux is not installed on the cluster. Suggest installing the Flux Operator.</li>
+<li><strong>MCP server unavailable</strong>: If MCP tools fail to connect, tell the user that the <code>flux-operator-mcp</code> server is not running. Provide the install command.</li>
+<li><strong>Suspended resources</strong>: If a Flux resource has <code>.spec.suspend: true</code>, note that it is intentionally suspended and won't reconcile until resumed. Don't flag this as an error unless the user expects it to be active.</li>
+<li><strong>Progressing resources</strong>: If a resource shows <code>Ready: Unknown</code> with reason <code>Progressing</code>, it is actively reconciling. Wait for the reconciliation to complete before diagnosing. Note the last transition time.</li>
+<li><strong>Flux-managed resources</strong>: Resources with <code>fluxcd</code> labels are managed by Flux. Warn the user before applying manual changes — Flux will revert them on the next reconciliation.</li>
+<li><strong>Stale status</strong>: If the last reconciliation time is old relative to the configured interval, the controller may be overloaded or stuck. Check controller logs for backpressure or errors.</li>
+<li><strong>Cluster context not found</strong>: If the user's cluster name doesn't match any available context, list the available contexts and ask the user to clarify.</li>
+</ul>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/gitops-skills--gitops-cluster-debug.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">gitops-cluster-debug</span></a><a class="prevnext-link prevnext-next" href="../skills/gitops-skills--gitops-knowledge.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">gitops-knowledge</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

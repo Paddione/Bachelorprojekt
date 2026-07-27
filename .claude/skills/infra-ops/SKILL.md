@@ -460,7 +460,7 @@ Diese Skills sind in `infra-ops` aufgegangen. Ihre Verzeichnisse und Referenz-Da
 - `.claude/skills/cluster-deployment/` — Hetzner + Proxmox provisioning references
 - `.claude/skills/host-node-networking/` — WireGuard + OpenClaw references
 - `k3d/pocket-id-client-seed.yaml` (Seed-Job; es gibt kein `keycloak-realm-sync`-Skill mehr)
-- `.claude/skills/llm-ops/`
+- `.claude/skills/llm-ops/` — in `infra-ops` §5 aufgegangen (Verzeichnis entfernt)
 - `.claude/skills/secret-rotation/`
 - `.claude/skills/workspace-deploy/`
 - `.claude/skills/database-ops/`

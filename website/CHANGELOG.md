@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.216.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.7...website-v1.216.8) (2026-07-27)
+
+
+### Bug Fixes
+
+* **ci:** exclude edited from concurrency-cancel, skip E2E without CRON_SECRET [T002248] ([#3315](https://github.com/Paddione/Bachelorprojekt/issues/3315)) ([e8400cd](https://github.com/Paddione/Bachelorprojekt/commit/e8400cd7140b4974bcd0305f28e3e9b2058eb66a))
+
 ## [1.216.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.6...website-v1.216.7) (2026-07-27)
 
 

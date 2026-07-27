@@ -28,13 +28,21 @@ Zustand.
 
 ## What
 
-1. `systemctl --user start` in `cmd_release_hold` um `--no-block` ergänzen. Der Aufruf
-   stellt den Job dann nur in die Queue und kehrt sofort zurück.
-2. Die Bestätigungszeile `execution_released set to true for ticket <id>` **vor** den
-   systemctl-Aufruf ziehen, sodass die Zustandsänderung auch dann bestätigt wird, wenn
-   systemd nicht erreichbar ist oder klemmt.
+1. `systemctl --user start` um `--no-block` ergänzen — an **beiden** Fundstellen:
+   `cmd_release_hold` in `scripts/ticket.sh` (Zeile 327) und der Auto-Tick-Wake in
+   `scripts/vda/ticket/stage-plan.sh` (Zeile 85, Nicht-`--hold`-Zweig). Der Aufruf stellt
+   den Job dann nur in die Queue und kehrt sofort zurück.
+2. Die jeweilige Bestätigungszeile **vor** den systemctl-Aufruf ziehen, sodass die
+   Zustandsänderung auch dann bestätigt wird, wenn systemd nicht erreichbar ist oder klemmt.
 3. Verhaltenstest in `tests/spec/software-factory.bats`, der `kubectl` und `systemctl`
-   stubbt und die Oneshot-Semantik nachbildet.
+   stubbt und die Oneshot-Semantik nachbildet, plus ein Klassen-Guard über
+   `scripts/ticket.sh` und `scripts/vda/ticket/`.
+
+Die zweite Fundstelle erklärt zugleich einen bisher separat geführten Befund:
+`stage-plan` hängt ebenfalls >120 s ohne Ausgabe, während der Write durchgeht. Gleiches
+Symptom, gleiche Wurzel. Der Kommentar an dieser Stelle (Zeile 69–70) bezeichnet den
+Weck-Aufruf ausdrücklich als best-effort und non-fatal — ein blockierendes
+`systemctl start` widerspricht dieser Absicht bereits im geschriebenen Code.
 
 Die Semantik bleibt erhalten: `release-hold` schreibt weiterhin den DB-Kontrollschlüssel
 `force-tick-requested`, den der nächste Tick konsumiert und löscht. Der systemctl-Aufruf
@@ -42,7 +50,9 @@ ist lediglich ein Beschleuniger, kein Träger der Zustandsänderung — auf sein
 zu warten war nie beabsichtigt.
 
 **Nicht Teil dieser Änderung:** die übrigen readiness-schreibenden Subkommandos
-(`lastenheft lock`, `set-readiness-flag`). Ein Grep über `scripts/ticket.sh` zeigt genau
-einen `systemctl`-Aufruf — sie sind vom Fehlerbild nicht betroffen.
+(`lastenheft lock`, `set-readiness-flag`) rufen kein `systemctl` auf und sind vom
+Fehlerbild nicht betroffen. Ebenso `scripts/terminal-sidekick-host.sh:101` — das dortige
+ttyd-Unit ist kein `oneshot`, und bei `Type=simple` kehrt `systemctl start` nach dem Fork
+sofort zurück.
 
 _Ticket: T002366_

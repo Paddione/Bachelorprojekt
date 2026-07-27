@@ -4330,3 +4330,14 @@ SH
   [ "$status" -eq 0 ]
   echo "$output" | grep -q '^execution_released set to true for ticket T000001$'
 }
+
+@test "T002366: kein blockierendes 'systemctl start factory.service' in der Ticket-CLI" {
+  # Klassen-Guard zum Verhaltenstest oben: stage-plan.sh weckt factory.service auf
+  # demselben Weg (Zeile ~85, nur im Nicht---hold-Zweig) und haengt dort genauso.
+  # Der dortige Kommentar nennt den Weck-Aufruf ausdruecklich best-effort und
+  # non-fatal — ein blockierendes 'systemctl start' widerspricht dem.
+  run bash -c "grep -rn 'systemctl --user start' \
+      '$REPO_ROOT/scripts/ticket.sh' '$REPO_ROOT/scripts/vda/ticket/' \
+      | grep -vc -- '--no-block'"
+  [ "$output" = "0" ]
+}

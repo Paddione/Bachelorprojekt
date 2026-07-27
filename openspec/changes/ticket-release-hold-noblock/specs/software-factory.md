@@ -1,10 +1,11 @@
 ## ADDED Requirements
 
-### Requirement: release-hold returns without waiting for the factory tick
+### Requirement: Ticket CLI auto-tick wake never blocks on the factory tick
 
-The `release-hold` subcommand of `scripts/ticket.sh` SHALL complete without waiting for a
-running factory tick to finish. It writes `readiness.execution_released=true` and the
-`force-tick-requested` control key, then wakes the dispatcher with a non-blocking
+Every subcommand of the ticket CLI that wakes `factory.service` SHALL complete without
+waiting for a running factory tick to finish. This covers `release-hold` in
+`scripts/ticket.sh` and the auto-tick wake in `scripts/vda/ticket/stage-plan.sh`. Both
+write their control keys, then wake the dispatcher with a non-blocking
 `systemctl --user start --no-block factory.service`. The success confirmation SHALL be
 emitted before the systemd call, so the state change is reported even when systemd is
 unreachable or stalled.
@@ -20,6 +21,14 @@ made the command hang silently for the duration of the tick.
 - **THEN** the command returns promptly with exit code 0 and prints
   `execution_released set to true for ticket <ticket>`, instead of blocking until the tick
   completes
+
+#### Scenario: Staging a plan while a factory tick is running
+
+- **GIVEN** `factory.service` is currently activating a long-running oneshot job
+- **WHEN** an operator runs `scripts/ticket.sh stage-plan` without `--hold`
+- **THEN** the command returns promptly after writing the `force-tick-requested` control
+  key and prints its `staged in Kommissionierung` confirmation, instead of blocking until
+  the tick completes
 
 #### Scenario: systemd is unreachable
 

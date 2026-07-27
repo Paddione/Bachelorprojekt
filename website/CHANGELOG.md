@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.217.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.9...website-v1.217.0) (2026-07-27)
+
+
+### Features
+
+* **secrets:** seal Flux-Bootstrap-Secrets aus dem Secret-SSOT [T002254] ([#3323](https://github.com/Paddione/Bachelorprojekt/issues/3323)) ([ef8e66c](https://github.com/Paddione/Bachelorprojekt/commit/ef8e66c017ab88c2dad9fc37e8afc5009629def5))
+
+
+### Bug Fixes
+
+* **scripts:** residual_budget empty for ungated, document BATS runner path [T002265] ([#3318](https://github.com/Paddione/Bachelorprojekt/issues/3318)) ([5ff9d06](https://github.com/Paddione/Bachelorprojekt/commit/5ff9d06b551d358dde6b52340d9796ab8cdce816))
+* **scripts:** resolve stage-plan/archive-plan plan paths against the branch, not HEAD [T002263] ([#3324](https://github.com/Paddione/Bachelorprojekt/issues/3324)) ([8dc492e](https://github.com/Paddione/Bachelorprojekt/commit/8dc492eb477d00b29872a4dcf2e135746fbfa0ea))
+* **website:** resolve korczewski nested footer landmark + E2E text mismatches [T000254] ([#3326](https://github.com/Paddione/Bachelorprojekt/issues/3326)) ([7d4544b](https://github.com/Paddione/Bachelorprojekt/commit/7d4544b20a83c0662155b532fd9c6ad904c39544))
+
 ## [1.216.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.8...website-v1.216.9) (2026-07-27)
 
 

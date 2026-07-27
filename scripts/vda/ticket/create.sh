@@ -4,7 +4,7 @@
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
-  local type="" title="" desc="" brand="mentolder" severity="" priority="mittel" status="triage" attention_mode="" is_test="false" areas="" product_id=""
+  local type="" title="" desc="" brand="" severity="" priority="mittel" status="triage" attention_mode="" is_test="false" areas="" product_id=""
   # Tolerate an optional leading "create" subcommand token so this script can
   # be invoked either standalone (`create.sh create --type ...`) or via the
   # ticket.sh dispatcher (which already shifts the subcommand off before
@@ -26,6 +26,20 @@ main() {
     esac; done
   if [[ -z "$type" || -z "$title" || -z "$desc" ]]; then
     echo "ERROR: --type, --title, and --description are required." >&2
+    exit 2
+  fi
+  # [T002280] BRAND resolution: authoritative source is top-level $BRAND from
+  # ticket.sh. If --brand was passed explicitly here, validate it matches.
+  if [[ -n "$brand" && -n "${BRAND:-}" && "$brand" != "$BRAND" ]]; then
+    echo "ERROR: --brand '$brand' widerspricht top-level BRAND='$BRAND' (T002280)" >&2
+    exit 2
+  fi
+  if [[ -n "$brand" ]]; then
+    :  # explicit --brand already captured, matches $BRAND (or $BRAND unset)
+  elif [[ -n "${BRAND:-}" ]]; then
+    brand="$BRAND"
+  else
+    echo "ERROR: BRAND nicht aufloesbar — weder --brand noch BRAND-Env noch TICKET_NS (T002280)" >&2
     exit 2
   fi
   # [T001582-M2] Validate --severity client-side before any DB access, so an

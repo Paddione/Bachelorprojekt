@@ -65,3 +65,31 @@
     website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
 }
+
+# ── [T002280] BRAND/NS resolution is never inferred from free-text args ────#
+
+@test "T002280: Freitext im --title beeinflusst NS-Aufloesung nicht" {
+  run bash scripts/ticket.sh --resolve-ns-only create --type bug \
+    --title "korczewski-home E2E test regression" --description "irrelevant"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"NS=workspace"* ]]
+  [[ "$output" != *"workspace-korczewski"* ]]
+}
+
+@test "T002280: explizites --brand gewinnt gegen widerspruechlichen Freitext" {
+  run bash scripts/ticket.sh --resolve-ns-only create --type bug --brand korczewski \
+    --title "mentolder rollout notes" --description "irrelevant"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"NS=workspace-korczewski"* ]]
+}
+
+@test "T002280: ungueltiger --brand-Wert wird abgelehnt" {
+  run bash scripts/ticket.sh --resolve-ns-only create --type bug --brand acme --title "x"
+  [ "$status" -eq 2 ]
+}
+
+@test "T002280: kein Signal -> Default mentolder bleibt unveraendert" {
+  run bash scripts/ticket.sh --resolve-ns-only update-status --id T000001 --status done
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"NS=workspace"* ]]
+}

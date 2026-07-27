@@ -1805,14 +1805,14 @@
   ],
   "T002359": [
     {
-      "slug": "factory-provider-fallback",
-      "status": "plan_staged"
+      "slug": "2026-07-28-factory-provider-fallback",
+      "status": "archived"
     }
   ],
   "T002361": [
     {
-      "slug": "factory-livelock-breaker",
-      "status": "plan_staged"
+      "slug": "2026-07-28-factory-livelock-breaker",
+      "status": "archived"
     }
   ],
   "T002366": [

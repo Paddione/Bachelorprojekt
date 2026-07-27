@@ -184,17 +184,41 @@ einem Gesamt-Verdict. Blocking-Findings (Severity `high`/`critical` oder Verdict
 The system SHALL pro Tick stale `in_progress`-Tickets (kein `updated_at`-Update seit
 `FACTORY_STALE_MIN` Minuten, Default 30) prüfen, ob bereits ein `FACTORY-PLAN-REF`-Kommentar
 (`plan_ref` via `ticket.sh get`) existiert, und den Slot in jedem Fall freigeben sowie den
-verwaisten Worktree entfernen:
+verwaisten Worktree entfernen.
+
+Zusätzlich SHALL das System pro stale erkanntem Ticket einen Versuchszähler unter dem Key
+`factory_attempt:<external_id>` in `tickets.factory_control` fortschreiben. Der Zähler
+SHALL mit einem **non-NULL `brand`**-Wert geschrieben werden, weil `factory_control` ein
+`UNIQUE (key, brand)` trägt und Postgres NULL-Werte darin als distinct behandelt — eine
+NULL-Brand-Zeile lässt `ON CONFLICT` nie feuern und würde Duplikate ansammeln. Die
+Fortschreibung SHALL echten Fortschritt von Stillstand unterscheiden: existiert ein
+`tickets.factory_phase_events`-Eintrag, dessen `at` neuer ist als das `updated_at` des
+Zählers, SHALL der Zähler auf `1` zurückgesetzt werden; andernfalls SHALL er um `1` erhöht
+werden. `tickets.updated_at` SHALL für diesen Vergleich NICHT verwendet werden, da
+`fn_lifecycle_ts` es bei jedem Zeilen-Write erhöht und ein reiner `touch` damit als
+Fortschritt erschiene.
+
+Solange der Zähler unter `FACTORY_MAX_ATTEMPTS` (Default 3) liegt, gilt das bisherige
+Reset-Verhalten:
 
 - Existiert **kein** `plan_ref` (noch nie geplant), setzt das System den Status auf `triage`
   zurück (unverändertes Verhalten).
 - Existiert bereits ein `plan_ref` und `type='feature'`, setzt das System den Status auf
   `backlog` zurück, statt die bereits geleistete Planungsarbeit über `triage` zu verwerfen —
   das Ticket re-qualifiziert sich direkt für `queue.sh`s Dispatch-Gate (bleibt
-  `lastenheft_locked`) und `pipeline.js` erkennt `FACTORY-PLAN-REF` beim nächsten Dispatch
+  `lastenheft_locked`) und `pipeline.mjs` erkennt `FACTORY-PLAN-REF` beim nächsten Dispatch
   automatisch, überspringt Scout/Design/Plan und setzt bei Implement fort.
 - Existiert bereits ein `plan_ref` und `type='task'`, setzt das System den Status auf
   `plan_staged` zurück (matcht `queue.sh`s bestehenden Task-Dispatch-Pfad).
+
+Erreicht der Zähler `FACTORY_MAX_ATTEMPTS`, SHALL das System statt eines weiteren Resets
+`ticket.sh unfactory` aufrufen. Slot-Freigabe und Zombie-Worktree-Cleanup SHALL dabei
+unverändert weiterlaufen — die Eskalation ersetzt ausschließlich das Status-Ziel.
+
+Ist der Zähler nicht lesbar oder nicht schreibbar, SHALL sich der Watchdog wie ohne Zähler
+verhalten (Reset auf `triage`/`backlog`/`plan_staged`) und den Fehler protokollieren. Ein
+Datenbankproblem SHALL NICHT dazu führen, dass Tickets in den Terminalzustand versetzt
+werden.
 
 `awaiting_deploy`-Features ohne Deployment seit `FACTORY_AD_STALE_H` Stunden (Default 24)
 werden mit `attention_mode=needs_human` markiert und erhalten einen Warn-Kommentar
@@ -213,8 +237,29 @@ werden mit `attention_mode=needs_human` markiert und erhalten einen Warn-Komment
 - **WHEN** `watchdog.sh` ausgeführt wird (FACTORY_STALE_MIN=30)
 - **THEN** T001828 erhält `status=backlog` (nicht `triage`); `pipeline_slot=NULL`; ein
   Kommentar verweist auf den bereits vorhandenen Plan; der nächste Dispatcher-Tick claimed
-  erneut einen Slot und `pipeline.js` fährt bei Implement fort, statt Scout/Design/Plan zu
+  erneut einen Slot und `pipeline.mjs` fährt bei Implement fort, statt Scout/Design/Plan zu
   wiederholen
+
+#### Scenario: Versuchszähler steigt bei Stillstand ohne Phase-Event
+- **GIVEN** Ticket T002338 (`type=task`, `plan_ref` vorhanden) ist stale, sein Zähler
+  `factory_attempt:T002338` steht auf `1`, und seit dem Zähler-Write existiert kein neuerer
+  `factory_phase_events`-Eintrag
+- **WHEN** `watchdog.sh` ausgeführt wird (FACTORY_MAX_ATTEMPTS=3)
+- **THEN** der Zähler steht auf `2`; T002338 erhält `status=plan_staged`; der Slot ist frei
+
+#### Scenario: Versuchszähler wird durch echten Fortschritt zurückgesetzt
+- **GIVEN** Ticket T002338 ist stale, sein Zähler steht auf `2`, und es existiert ein
+  `factory_phase_events`-Eintrag, dessen `at` neuer ist als das `updated_at` des Zählers
+- **WHEN** `watchdog.sh` ausgeführt wird
+- **THEN** der Zähler steht auf `1` statt auf `3`; T002338 wird nicht eskaliert
+
+#### Scenario: Eskalation bei Erreichen von FACTORY_MAX_ATTEMPTS
+- **GIVEN** Ticket T002338 ist stale, sein Zähler steht auf `2`, es gibt keinen neueren
+  `factory_phase_events`-Eintrag, und `FACTORY_MAX_ATTEMPTS=3`
+- **WHEN** `watchdog.sh` ausgeführt wird
+- **THEN** `ticket.sh unfactory --id T002338` wird aufgerufen; der Status wird NICHT auf
+  `plan_staged` zurückgesetzt; `pipeline_slot=NULL` und der Zombie-Worktree-Cleanup laufen
+  trotzdem
 
 #### Scenario: Stale awaiting_deploy
 - **GIVEN** Ticket T000504 ist seit 26 Stunden im Status `awaiting_deploy`
@@ -904,16 +949,38 @@ The Software Factory pipeline SHALL mark a ticket as dry-run-checked
 `DRY_RUN` branch, so that `guard_dryrun_ok()` permits a real (non-dry-run)
 execution on the ticket's next scheduled tick.
 
+The marking SHALL happen in deterministic code after the Deploy-phase preview agent call
+returns, NOT as an instruction inside the agent prompt. A state transition that is the only
+way out of the dry-run-first loop SHALL NOT depend on a headless session surviving or on a
+model complying with a prompt line. If the agent call aborts (for example because the
+configured `ANTHROPIC_BASE_URL` refuses the connection), the marker SHALL remain unset and
+the ticket SHALL be bounded by the watchdog's attempt counter instead of looping
+indefinitely.
+
+The pipeline file that carries this behaviour is `scripts/factory/pipeline.mjs` — the file
+`dispatcher-bridge.sh` launches via the Workflow tool and `run-pipeline.mjs` imports.
+
 #### Scenario: Ticket forced into dry-run by guard_dryrun_ok
 
 - **GIVEN** a ticket has no dry-run-first marker (`ticket.sh dryrun-check`
   exits non-zero)
-- **WHEN** the pipeline runs it in the `DRY_RUN` branch and reaches the
-  Deploy-phase preview step
-- **THEN** it calls `ticket.sh dryrun-mark --id <ticket>` before releasing
-  the slot and resetting status to `backlog`, so the next tick's
-  `guard_dryrun_ok()` call returns true and the ticket runs for real instead
-  of looping through another forced preview.
+- **WHEN** the pipeline runs it in the `DRY_RUN` branch and the Deploy-phase preview agent
+  call returns successfully
+- **THEN** deterministic code — not the agent prompt — calls
+  `ticket.sh dryrun-mark --id <ticket>`, so the next tick's `guard_dryrun_ok()` call
+  returns true and the ticket runs for real instead of looping through another forced
+  preview.
+
+#### Scenario: Dry-run aborts before the marker is set
+
+- **GIVEN** a ticket has no dry-run-first marker and the configured
+  `ANTHROPIC_BASE_URL` refuses connections
+- **WHEN** the pipeline enters the `DRY_RUN` branch and the Deploy-phase preview agent call
+  throws
+- **THEN** the marker stays unset and the ticket keeps returning to the queue, but the
+  watchdog's `factory_attempt` counter bounds the repetition and escalates via
+  `ticket.sh unfactory` once `FACTORY_MAX_ATTEMPTS` is reached — the ticket does not loop
+  indefinitely.
 
 ### Requirement: Sandboxed Command Execution for the Implement Phase
 
@@ -1489,16 +1556,27 @@ trap releases only the final claim.
 ### Requirement: Orphaned provider slots are reclaimed after a TTL
 
 `tickets.provider_health` SHALL record `claimed_at` for every active claim, and
-`scripts/factory/reap-provider-slots.sh` SHALL release claims older than
-`PROVIDER_SLOT_TTL_MIN` (default 30). The TTL SHALL stay well above the runtime of a single LLM
-request — a shorter value would release slots of requests still in flight and thereby defeat the
-concurrency limit it is meant to protect.
+`scripts/factory/reap-provider-slots.sh` SHALL release **all** claims of a row whose `claimed_at` is
+older than `PROVIDER_SLOT_TTL_MIN` (default 30) by setting `active_agents` and `reserved_tokens` to
+zero. The TTL SHALL stay well above the runtime of a single LLM request — a shorter value would
+release slots of requests still in flight and thereby defeat the concurrency limit it is meant to
+protect.
 
-#### Scenario: A stale claim is reclaimed
+Zeroing rather than decrementing is required for correctness, not merely for speed: `claimed_at`
+records the **most recent** claim of a row, so a row that qualifies holds no fresh claim at all and
+every slot on it is orphaned. Decrementing by one while clearing `claimed_at` in the same statement
+made the row unreachable after the first run, because `claimed_at IS NOT NULL` never matched again —
+the counter stayed permanently above zero and the provider was skipped by the candidate chain for good.
 
-- **GIVEN** a provider row with `active_agents` above zero and `claimed_at` older than the TTL
-- **WHEN** the reaper runs
-- **THEN** `active_agents` is decremented and `claimed_at` is reset to `NULL`
+The reaper SHALL be invoked once per factory tick from `scripts/factory/wakeup.sh`, before the tick
+claims any candidates. It is deliberately bound to the tick rather than to an independent timer: a
+reaper that runs while the factory is stopped could reclaim slots of requests that are still active.
+
+#### Scenario: A stale claim is reclaimed completely
+
+- **GIVEN** a provider row with several concurrent claims whose `claimed_at` is older than the TTL
+- **WHEN** the reaper runs once
+- **THEN** `active_agents` and `reserved_tokens` are zero and `claimed_at` is reset to `NULL`
 
 #### Scenario: A fresh claim is left alone
 
@@ -1511,6 +1589,13 @@ concurrency limit it is meant to protect.
 - **GIVEN** a provider holds more than one concurrent claim
 - **WHEN** `release-slot.sh` releases one of them
 - **THEN** `claimed_at` is retained, so the reaper can still see the remaining claim
+
+#### Scenario: The reaper runs on every factory tick
+
+- **GIVEN** a factory tick starts
+- **WHEN** `wakeup.sh` prepares the tick
+- **THEN** it invokes the reaper before dispatching, best-effort, so a reaper failure never aborts
+  the tick
 
 ### Requirement: Provider names are free of structural characters
 
@@ -1580,6 +1665,148 @@ made the command hang silently for the duration of the tick.
 - **WHEN** an operator runs `scripts/ticket.sh release-hold --id <ticket>`
 - **THEN** the readiness flag and the `force-tick-requested` control key are still written,
   the confirmation is still printed, and the next scheduled tick picks the ticket up
+
+### Requirement: Permanent dispatch exclusion via unfactory
+
+The system SHALL provide `ticket.sh unfactory --id <external_id>` as the terminal state for
+a ticket the Software Factory could not complete. The subcommand SHALL set, in one
+statement block so no partially applied state can be observed:
+
+- `status = blocked`
+- `attention_mode = needs_human`
+- `readiness.factory_excluded = true`
+- a closing comment naming the attempt count and the most recent phase event
+
+`scripts/factory/queue.sh` SHALL exclude tickets carrying
+`readiness.factory_excluded = true` from **both** dispatch branches (the
+`type='feature' AND status='backlog'` branch and the `type='task' AND status='plan_staged'`
+branch) via `COALESCE((readiness->>'factory_excluded')::boolean, false) = false`. The
+default `false` is deliberate: an absent flag SHALL NOT exclude a ticket, consistent with
+`lastenheft_locked` (default false) and `execution_released` (default true).
+
+The exclusion SHALL survive a later status change, so returning the ticket to
+`plan_staged` by hand or by another script does NOT re-expose it to dispatch. Clearing the
+flag SHALL require an explicit human action
+(`ticket.sh plan-meta set --readiness factory_excluded=false`).
+
+#### Scenario: Unfactored ticket is not dispatched even in a dispatchable status
+
+- **GIVEN** Ticket T002338 (`type=task`) carries `readiness.factory_excluded = true` and
+  someone sets its status back to `plan_staged`
+- **WHEN** `queue.sh` runs for its brand
+- **THEN** T002338 does not appear in the returned JSON array
+
+#### Scenario: Tickets without the flag are unaffected
+
+- **GIVEN** Ticket T002400 (`type=task`, `status=plan_staged`) has no `factory_excluded`
+  key in its `readiness` object
+- **WHEN** `queue.sh` runs for its brand
+- **THEN** T002400 appears in the returned JSON array
+
+### Requirement: Phase Pin Is the First Candidate, Not a Shortcut
+
+`scripts/factory/route-provider.sh` SHALL treat a matching row in `tickets.factory_model_slots` as
+the highest-priority candidate of the same selection chain that evaluates `tickets.provider_config`,
+and SHALL NOT return from the phase branch without passing through the cooldown check and the atomic
+slot claim. A phase pin expresses a preference, not a bypass: returning early skipped the priority
+chain, `provider_health`, the cooldown window and the claim entirely, which made the whole fallback
+logic dead code for the `plan`, `implement` and `verify` phases.
+
+#### Scenario: Pinned provider is claimed like any other candidate
+
+- **GIVEN** `tickets.factory_model_slots` holds a row for phase `implement`
+- **WHEN** `route-provider.sh factory-implement sonnet` runs against a reachable database
+- **THEN** the pinned provider is offered to the same claim loop as the `provider_config` rows, and
+  the emitted JSON carries a non-null `slotId` because a slot was actually claimed
+
+#### Scenario: Blocked pin falls through to the next candidate
+
+- **GIVEN** the pinned provider for a phase sits at `active_agents = max_concurrent`
+- **WHEN** the router resolves that phase
+- **THEN** the pin is skipped and the next candidate from `provider_config` is claimed, instead of
+  the router returning the blocked provider
+
+#### Scenario: Exhausted chain is announced, not returned silently
+
+- **GIVEN** every candidate for a source/tier is claimed out or on cooldown
+- **WHEN** the router falls through to the emergency branch
+- **THEN** it writes a diagnostic naming the source and tier to stderr, and the emitted JSON carries
+  `emergency: true` together with a model id that a reachable backend actually serves
+
+### Requirement: Provider API Keys Are Resolved by Variable Name from the Routing Row
+
+The routing row SHALL carry the **name** of the environment variable holding the provider's API key
+in `api_key_env`, the router SHALL emit it as `apiKeyEnv`, and callers SHALL resolve the key by
+indirection over that name. No caller SHALL map provider names to key variables itself: a provider
+name cannot distinguish two accounts of the same vendor, which is how the factory ended up sending
+the coaching key `DEEPSEEK_API_KEY` instead of the factory key `DEEPSEEK_API_KEY_PK`.
+
+The column SHALL never hold a key value. Keys stay git-crypt-encrypted in the environment secrets.
+
+#### Scenario: Caller resolves the factory key, not the coaching key
+
+- **GIVEN** the routing row for the factory's `deepseek` candidate has `api_key_env = 'DEEPSEEK_API_KEY_PK'`
+- **WHEN** `auto-triage.sh` builds the request for that provider
+- **THEN** it reads the variable named by `apiKeyEnv` and uses the factory account's key
+
+#### Scenario: Provider without a key stays usable
+
+- **GIVEN** a routing row for a local backend with `api_key_env` NULL
+- **WHEN** a caller resolves the key for that route
+- **THEN** no key is set and no `Authorization` header is sent, and the call proceeds normally
+
+#### Scenario: Missing key is reported, not silently empty
+
+- **GIVEN** a routing row names an environment variable that is unset in the caller's environment
+- **WHEN** the caller resolves the key
+- **THEN** it writes a diagnostic naming the missing variable to stderr
+
+### Requirement: Every Factory Tier Has a Fallback Candidate Behind the Primary
+
+`tickets.provider_config` SHALL hold at least two `enabled` candidates for each tier the factory
+actually requests (`cheap`, `flash`, `sonnet`), so that the cascade has something to fall to. The
+stages SHALL be layered by failure domain: the local proxy first, the local backend directly second
+(covering a proxy outage while the backend runs), and a cloud provider third (covering a total
+outage of the GPU host).
+
+#### Scenario: Each requested tier offers more than one candidate
+
+- **GIVEN** the cascade migration has been applied
+- **WHEN** the enabled `source = '*'` rows are counted per tier for `cheap`, `flash` and `sonnet`
+- **THEN** every one of those tiers has at least two candidates
+
+#### Scenario: Cloud stage carries its key variable name
+
+- **GIVEN** the third-stage cloud candidate of a factory tier
+- **WHEN** its routing row is read
+- **THEN** `api_key_env` names the factory account's key variable and `base_url` addresses the
+  OpenAI-compatible path that the callers append `/v1/chat/completions` to
+
+### Requirement: Configured Model IDs Are Checked Against Live Backends
+
+The system SHALL provide a check (`scripts/llm/routing-check.sh`, exposed as `task llm:routing:check`)
+that fails when a configured model id is served by no reachable local backend. It SHALL cover both
+sources of model ids — the routing tables in the database and the factory environment file — because
+`resolveModel()` in the llm-proxy silently redirects unknown models to the first healthy backend,
+so a drifted id produces no error anywhere on its own.
+
+#### Scenario: Phantom model id fails the check
+
+- **GIVEN** a configured model id that no reachable local backend serves
+- **WHEN** the check runs with at least one backend reachable
+- **THEN** it names the offending id and its source on stderr and exits non-zero
+
+#### Scenario: Check is fail-soft without any backend
+
+- **GIVEN** no local backend answers
+- **WHEN** the check runs
+- **THEN** it reports that it was skipped and exits zero, because it cannot make any statement
+
+#### Scenario: Cloud endpoints are not probed
+
+- **GIVEN** a routing row whose `base_url` addresses an `https://` cloud endpoint
+- **WHEN** the check runs
+- **THEN** that row is skipped, because its catalogue is not retrievable without an API key
 
 ## Testszenarien
 
@@ -3422,3 +3649,7 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (8796f9d72907) -->
 
 <!-- merged from change delta software-factory.md (2037e622ac8d) -->
+
+<!-- merged from change delta software-factory.md (8ac6cafe9a32) -->
+
+<!-- merged from change delta software-factory.md (0df5d2f19300) -->

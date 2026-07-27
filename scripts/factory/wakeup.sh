@@ -95,6 +95,28 @@ if [[ -f "${CRYPT_PROBE}" ]] && head -c 16 "${CRYPT_PROBE}" 2>/dev/null | grep -
   fi
 fi
 
+# ── Factory-API-Key in die Tick-Umgebung holen [T002359] ─────────────────────
+# DEEPSEEK_API_KEY_PK ist der Factory-Key (Account pk-deepseek, getrennte Abrechnung
+# vom Coaching-Key DEEPSEEK_API_KEY). WELCHE Variable ein Provider benutzt, steht in
+# tickets.provider_config.api_key_env — hier wird nur dafuer gesorgt, dass sie in der
+# Prozessumgebung ueberhaupt existiert, damit die Indirektion in auto-triage.sh und
+# scout-llm-fallback.sh sie aufloesen kann.
+#
+# Bewusst in einer Subshell statt direktem `source`: env-resolve.sh exportiert das
+# komplette Schema und wuerde die vom autopilot.env gesetzte Tick-Umgebung
+# ueberschreiben. Muss NACH dem git-crypt-Unlock oben stehen — bei verschlossenem
+# Baum liefert die Secrets-Datei Ciphertext.
+if [[ -z "${DEEPSEEK_API_KEY_PK:-}" ]]; then
+  _factory_dsk="$( ( source "${REPO}/scripts/env-resolve.sh" mentolder >/dev/null 2>&1 \
+                     && printf '%s' "${DEEPSEEK_API_KEY_PK:-}" ) || true )"
+  if [[ -n "${_factory_dsk}" ]]; then
+    export DEEPSEEK_API_KEY_PK="${_factory_dsk}"
+  else
+    echo "wakeup.sh: DEEPSEEK_API_KEY_PK nicht aufloesbar — Cloud-Fallback laeuft ohne Key." >&2
+  fi
+  unset _factory_dsk
+fi
+
 # ── reasoning_effort MUST stay UNSET so the Workflow harness can spawn subagents ─
 # The harness forces thinking.type=disabled for nested agent() spawns. If
 # reasoning_effort is ALSO set (any level), the Anthropic-compatible endpoint
@@ -149,6 +171,13 @@ while true; do
   bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.sandbox.mode 1 "mode=${FACTORY_SANDBOX}" || true
 
   bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.tick.count 1 brand="${BRAND:-mentolder}" || true
+  # Verwaiste Provider-Slots freigeben, BEVOR der Tick Kandidaten claimt [T002359].
+  # Bewusst hier statt in einem eigenen systemd-Timer: der Reaper soll nur laufen,
+  # wenn die Factory laeuft — sonst koennte er Slots aktiver Requests abraeumen.
+  # reap-provider-slots.sh hatte bis hierher ueberhaupt keinen Aufrufer: das Netz
+  # unter dem Slot-Leak war geschrieben, aber nie aufgehaengt.
+  bash "${REPO}/scripts/factory/reap-provider-slots.sh" 2>&1 \
+    | sed 's/^/[reap-slots] /' >&2 || true
   # T001415: Auto-Close von Tickets deren PR bereits gemergt ist
   # (worktree-lifecycle, dev-flow-execute, tickets/status-lifecycle).
   for _acm_brand in mentolder korczewski; do

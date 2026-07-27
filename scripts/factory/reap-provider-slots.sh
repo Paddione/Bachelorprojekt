@@ -45,10 +45,17 @@ fi
 
 # Ein einzelnes UPDATE statt Read-then-Write: der Zaehler wird sonst zwischen SELECT und
 # UPDATE von einem parallelen Claim veraendert.
+#
+# NULLSETZUNG STATT DEKREMENT [T002359]: die Zeile wird nur angefasst, wenn ihr JUENGSTER
+# Claim aelter als die TTL ist — dann sind alle auf ihr gehaltenen Slots verwaist, nicht nur
+# einer. Das alte, um genau eins dekrementierende GREATEST() in Kombination mit
+# `claimed_at = NULL` machte die Zeile nach dem ERSTEN Lauf unerreichbar, weil
+# `claimed_at IS NOT NULL` nie wieder matchte: der Zaehler blieb bei drei verwaisten
+# Claims auf zwei stehen, fuer immer.
 REAPED=$(factory_psql -v ttl="$TTL_MIN" <<'SQL'
 WITH stale AS (
   UPDATE tickets.provider_health
-     SET active_agents   = GREATEST(0, active_agents - 1),
+     SET active_agents   = 0,
          reserved_tokens = 0,
          claimed_at      = NULL,
          updated_at      = now()

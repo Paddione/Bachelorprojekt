@@ -113,11 +113,35 @@ _skip_if_no_db() {
   grep -q '"no_backend"' /tmp/llmproxy_body
 }
 
-@test "route-provider.sh factory-implement sonnet -> baseUrl :18235 (kein :8093)" {
+@test "route-provider.sh factory-implement sonnet -> Pin :18235 (kein :8093)" {
   _skip_if_no_db
+  # Bis T002359 gab der Phase-Zweig den Pin bedingungslos zurueck — ohne Claim, ohne
+  # Health-Check. Deshalb war eine Laufzeit-Assertion auf die baseUrl hier stabil.
+  # Seit T002359 ist der Pin nur noch Kandidat #0: ist sein Slot belegt, waehlt die
+  # Kette bewusst den naechsten Provider. Der Test wird darum in zwei Teile zerlegt.
+
+  # Teil 1 — Konfiguration, deterministisch: der Pin fuer die implement-Phase muss auf
+  # den Proxy zeigen. Das ist die eigentliche T002277-Aussage und haengt an keinem Slot.
+  run bash -c "source '${REPO_ROOT}/scripts/factory/lib.sh'; factory_resolve; \
+    factory_psql -t -A -c \"SELECT COALESCE(base_url,'') FROM tickets.factory_model_slots WHERE phase='implement'\""
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q '127.0.0.1:18235'
+
+  # Teil 2 — Laufzeit, zustandsabhaengig: welcher Kandidat gewinnt, entscheidet der
+  # Slot-Zustand. Invariant bleibt aber, dass NIE das alte direkte llama.cpp-Backend
+  # :8093 herauskommt — egal wie weit die Kaskade durchlaeuft.
   run bash "${REPO_ROOT}/${ROUTE}" factory-implement sonnet
   [ "$status" -eq 0 ]
-  echo "$output" | grep -q '"baseUrl":"http://127.0.0.1:18235"'
+
+  # Seit T002359 claimt der Aufruf einen echten Slot (vorher gab der Phase-Zweig den Pin
+  # ohne Claim zurueck). Dieser Test laeuft gegen die LIVE-Registry — ohne Release traebe
+  # ihn jeder Lauf naeher an max_concurrent und reproduzierte damit genau den Slot-Leak,
+  # den das Ticket behebt. Freigabe vor den Assertions, damit ein Fehlschlag nichts leakt.
+  local _slot; _slot="$(echo "$output" | jq -r '.slotId // empty' 2>/dev/null || true)"
+  if [[ -n "$_slot" && "$_slot" != "null" ]]; then
+    bash "${REPO_ROOT}/scripts/factory/release-slot.sh" "$_slot" true >/dev/null 2>&1 || true
+  fi
+
   ! echo "$output" | grep -q ':8093'
 }
 

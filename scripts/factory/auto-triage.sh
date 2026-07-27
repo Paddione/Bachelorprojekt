@@ -128,6 +128,9 @@ validate_triage() {
 # pro Lauf, hier wird pro Ticket geclaimt. Ein EXIT-Trap gaebe nur den letzten Slot
 # frei und liesse alle vorherigen stehen.
 CURRENT_ROUTE_JSON=""
+# Modell des letzten erfolgreichen Routings — ueberlebt release_current_slot bewusst,
+# weil die Triage-Metadaten es NACH der Slot-Freigabe brauchen [T002359].
+LAST_MODEL_USED=""
 
 release_current_slot() {
   [[ -z "$CURRENT_ROUTE_JSON" ]] && return 0
@@ -195,6 +198,12 @@ PROMPT
   CURRENT_ROUTE_JSON="$route"
   local provider; provider=$(echo "$route" | jq -r '.provider // ""')
   local model; model=$(echo "$route" | jq -r '.modelId // ""')
+  # Fuer die Triage-Metadaten weiter unten festhalten, WELCHES Modell wirklich
+  # geantwortet hat. Frueher wurde dafuer route-provider.sh ein zweites Mal
+  # aufgerufen — das claimte pro Ticket einen weiteren Slot, den niemand freigab
+  # (der Wrapper deckt nur _call_llm_inner ab), und lieferte nach einem Fallback
+  # ausserdem den falschen Namen. Genau der Leak aus RC3, nur an anderer Stelle.
+  LAST_MODEL_USED="$model"
   local base_url; base_url=$(echo "$route" | jq -r '.baseUrl // ""')
 
   if [[ -z "$provider" || -z "$model" ]]; then
@@ -214,12 +223,29 @@ PROMPT
     */v1/*|*/chat/completions|*/messages) ;;  # already has path
     *) api_url="${api_url%/}/v1/chat/completions" ;;
   esac
-  case "$provider" in
-    deepseek)  api_key="${DEEPSEEK_API_KEY:-}" ;;
-    anthropic) api_key="${ANTHROPIC_API_KEY:-}" ;;
-    openai)    api_key="${OPENAI_API_KEY:-}" ;;
-    *)         api_key="" ;;
-  esac
+  # Welche Env-Variable den Key traegt, entscheidet die DB-Zeile — nicht dieses Skript
+  # [T002359]. Vorher stand hier eine Fallunterscheidung ueber den Provider-Namen, die
+  # fuer deepseek DEEPSEEK_API_KEY las: den Coaching-Key, nicht den Factory-Key
+  # (Account pk-deepseek, DEEPSEEK_API_KEY_PK). Ein Provider-Name kann nicht zwischen
+  # zwei Accounts desselben Anbieters unterscheiden — die Routing-Zeile kann es.
+  # Der Name wird vor der indirekten Expansion gegen die Env-Variablen-Syntax geprueft:
+  # bash wertet in ${!v} einen Array-Subscript arithmetisch aus, ein api_key_env der Form
+  # x[$(...)] wuerde also den Inhalt der DB-Spalte ausfuehren. Der Guard laesst nur
+  # gewoehnliche Variablennamen durch.
+  local key_env
+  key_env=$(echo "$route" | jq -r '.apiKeyEnv // ""')
+  if [[ -n "$key_env" ]] && ! [[ "$key_env" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+    echo "auto-triage: apiKeyEnv '$key_env' ist kein gueltiger Variablenname — ignoriert." >&2
+    key_env=""
+  fi
+  if [[ -n "$key_env" ]]; then
+    api_key="${!key_env:-}"
+    if [[ -z "$api_key" ]]; then
+      echo "auto-triage: $key_env ist nicht gesetzt — Provider $provider ohne Key." >&2
+    fi
+  else
+    api_key=""
+  fi
 
   local tmp_req tmp_resp
   tmp_req=$(mktemp) tmp_resp=$(mktemp)
@@ -359,7 +385,7 @@ for ticket in "${TICKETS[@]}"; do
   fi
 
   # Add metadata to suggestion
-  model_used=$(BRAND="$BRAND" bash "$HERE/route-provider.sh" triage flash 2>/dev/null | jq -r '.modelId // "unknown"')
+  model_used="${LAST_MODEL_USED:-unknown}"
   timestamp=$(date -u +%FT%TZ)
   final_json=$(echo "$suggestion" | jq \
     --arg model "$model_used" \

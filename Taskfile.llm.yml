@@ -226,6 +226,11 @@ tasks:
         fi
         systemctl --user status llm-proxy.service --no-pager -n 20 || true
 
+  routing:check:
+    desc: "Prueft, ob jede konfigurierte Modell-ID von einem erreichbaren Backend serviert wird [T002359]"
+    cmds:
+      - bash scripts/llm/routing-check.sh
+
   measure-equivalence:
     desc: "Measure embedding equivalence between TEI and new llama.cpp endpoint"
     cmds:

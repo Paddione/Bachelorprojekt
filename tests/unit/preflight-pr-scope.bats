@@ -1,38 +1,11 @@
 #!/usr/bin/env bats
 # Tests for scripts/preflight-pr-scope.sh — validate PR title scope against
-# the semantic-PR allowlist before `gh pr create`. [T000925]
+# the named-scope list in commitlint.config.cjs before `gh pr create`.
+# [T000925, Quelle umgestellt in T002328]
 
 setup() {
   HELPER="$BATS_TEST_DIRNAME/../../scripts/preflight-pr-scope.sh"
   TMP="$(mktemp -d)"
-
-  # Fixture ci.yml with a minimal commit-lint scopes list
-  FIXTURE="$TMP/ci.yml"
-  cat > "$FIXTURE" <<'EOF'
-name: CI-TEST
-on:
-  pull_request:
-    branches: [main]
-jobs:
-  commit-lint:
-    name: Conventional Commits
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: amannn/action-semantic-pull-request@v5.5.3
-        with:
-          types: |
-            feat
-            fix
-            chore
-          scopes: |
-            website
-            admin
-            db
-            ops
-            factory
-          subjectPattern: ^.{1,200}$
-EOF
 
   # Isolated git fixture [T001723]: the script's branch/worktree guards
   # ([T001592]) call `git symbolic-ref --short HEAD`, which is meaningless
@@ -51,42 +24,52 @@ EOF
 teardown() { rm -rf "$TMP"; }
 
 @test "preflight: valid scope exits 0" {
-  run bash "$HELPER" "feat(admin): add dashboard" "$FIXTURE"
+  run bash "$HELPER" "feat(website): add dashboard"
   [ "$status" -eq 0 ]
 }
 
 @test "preflight: invalid scope exits non-zero with help" {
-  run bash "$HELPER" "feat(cockpit): add view" "$FIXTURE"
+  run bash "$HELPER" "feat(cockpit): add view"
   [ "$status" -ne 0 ]
   echo "$output" | grep -q "NOT in the semantic-PR allowlist"
   echo "$output" | grep -q "website"
 }
 
 @test "preflight: scope-less title exits 0" {
-  run bash "$HELPER" "docs: update readme" "$FIXTURE"
+  run bash "$HELPER" "docs: update readme"
   [ "$status" -eq 0 ]
   echo "$output" | grep -qi "no scope"
 }
 
-@test "preflight: missing workflow file exits 2" {
-  run bash "$HELPER" "feat(admin): x" "/nonexistent/ci.yml"
-  [ "$status" -eq 2 ]
-}
-
-@test "preflight: multi-dash scope (dev-flow) is recognized" {
-  run bash "$HELPER" "fix(ops): restart pod" "$FIXTURE"
+@test "preflight: Domaenen-Scope 'ops' wird erkannt" {
+  # Hiess bis T002328 "multi-dash scope (dev-flow) is recognized" — der Name war
+  # schon davor irrefuehrend (geprueft wurde stets 'ops', nie 'dev-flow'), und
+  # seit der Konsolidierung enthaelt kein einziger der 14 Ziel-Scopes einen
+  # Bindestrich. Der Testzweck ist damit entfallen; was bleibt, ist die
+  # Erkennung eines regulaeren Domaenen-Scopes.
+  run bash "$HELPER" "fix(ops): restart pod"
   [ "$status" -eq 0 ]
 }
 
 @test "preflight: scope with breaking change marker exits 0 for valid scope" {
-  run bash "$HELPER" "feat(db)!: breaking schema" "$FIXTURE"
-  [ "$status" -eq 0 ]
+  run bash "$HELPER" "feat(db)!: breaking schema"
+  # Diagnose bei Fehlschlag: dieser Test war in CI rot, waehrend er lokal und
+  # alle Nachbartests gruen liefen (T002328). Ohne den Output ist die Ursache
+  # nicht eingrenzbar — der nackte Exit-Code sagt nicht, ob die Allowlist leer
+  # war, der Scope nicht extrahiert wurde oder ein Guard vorher zuschlug.
+  [ "$status" -eq 0 ] || {
+    echo "--- unerwarteter Exit $status ---"
+    echo "$output"
+    echo "--- Allowlist, die das Skript sieht: ---"
+    bash "${BATS_TEST_DIRNAME}/../../scripts/validate-commit-msg.sh" scopes || echo "(scopes-Aufruf schlug fehl)"
+    return 1
+  }
 }
 
 @test "preflight: ticket-ID/branch mismatch suggests a git branch -m fix [T001915]" {
   # Mishap regression: FATAL alone left no clue how to recover. The error must
   # now propose the concrete rename command and point at the T001917 process fix.
-  run bash "$HELPER" "chore(dev-flow): some chore [T001901]" "$FIXTURE"
+  run bash "$HELPER" "chore(dev-flow): some chore [T001901]"
   [ "$status" -ne 0 ]
   echo "$output" | grep -q "does not match current branch"
   echo "$output" | grep -q "git branch -m"
@@ -104,6 +87,6 @@ teardown() { rm -rf "$TMP"; }
   mkdir -p "$WTREE"
   git -C "$TMP" worktree add -q -b fix/example "$WTREE" test-fixture
   cd "$WTREE"
-  run bash "$HELPER" "fix(ops): example" "$FIXTURE"
+  run bash "$HELPER" "fix(ops): example"
   [ "$status" -eq 0 ]
 }

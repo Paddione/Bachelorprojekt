@@ -143,5 +143,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .claude/lib/goals.md website/src/lib/goals-data.generated.json
-          git commit -m "chore(goals): refresh health goal measurements"
+          # Scope 'goals' ist in 'ci' aufgegangen (T002328). Der commit-lint-Job
+          # laeuft nur auf pull_request und haette diesen Bot-Push auf main nicht
+          # abgefangen — der Commit wuerde die Historie genau dort verschmutzen,
+          # wo die Konsolidierung aufraeumt.
+          git commit -m "chore(ci): refresh health goal measurements"
           git push

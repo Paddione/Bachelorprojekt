@@ -11,7 +11,10 @@ Guards; hier stehen das Commit-Format im Detail, die Schritt-Übersicht und die 
 
 - **Header ≤ 100 Zeichen** (commitlint-Regel)
 - `type`: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `ci`
-- `scope`: betroffenes Modul / Verzeichnis (z. B. `website`, `k3d`, `scripts`, `pocket-id`)
+- `scope`: einer von 14 (T002328) — sechs Domänen `website`, `infra`, `db`, `security`, `ops`,
+  `test` (deckungsgleich mit den Agent-Rollen) plus `plans`, `factory`, `agents`, `ci`,
+  `scripts`, `docs`, `mcp`, `deps`. Ein konsolidierter Altname wie `k3d` oder `pocket-id`
+  wird abgelehnt, die Meldung nennt aber das Ziel (`infra` bzw. `security`).
 - `TICKET_EXT_ID`: z. B. `T001026` — **immer anhängen** wenn ein Ticket existiert
 - Body-Zeilen ebenfalls < 100 Zeichen
 
@@ -19,8 +22,8 @@ Beispiele:
 
 ```
 feat(website): add React mentolder rebuild [T001026]
-fix(pocket-id): rotate stale oauth2-proxy secret [T000950]
-chore(k3d): bump TEI embed port 9081 [T000978]
+fix(security): rotate stale oauth2-proxy secret [T000950]
+chore(infra): bump TEI embed port 9081 [T000978]
 ```
 
 ### Neuer Scope nötig?
@@ -29,8 +32,10 @@ Bevor ein noch nicht registrierter Scope (z. B. ein neuer Goal-Code wie `sec06`)
 Commit-Message oder einem PR-Titel verwendet wird, zuerst
 `bash scripts/register-scope.sh <scope>` ausführen und die geänderte `commitlint.config.cjs`
 mitcommitten — sonst schlägt das `commit-lint`-Gate (und `preflight-pr-scope.sh`) mit
-"unknown scope" fehl. `commitlint.config.cjs` ist die einzige Quelle; `ci.yml` und
-`pr-auto-title.yml` laden daraus dynamisch (T001364).
+"unknown scope" fehl. `commitlint.config.cjs` ist die einzige Quelle; `pr-auto-title.yml` und
+`preflight-pr-scope.sh` laden daraus dynamisch (T001364, T002328). `ci.yml` erzwingt **keine**
+Scopes — es hält das selbst fest ("Scopes are NOT enforced here"); die Durchsetzung passiert
+über `validate-commit-msg.sh range` im commit-lint-Job.
 
 Die erlaubte Liste vor dem ersten Commit ziehen: `bash scripts/validate-commit-msg.sh scopes`.
 

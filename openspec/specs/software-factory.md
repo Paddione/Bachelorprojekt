@@ -407,14 +407,14 @@ The system SHALL route the brainstorm broker exclusively through the dev-stack s
 The system SHALL validate a PR title's conventional-commit scope against the allowlist defined in `.github/workflows/ci.yml` before `gh pr create`. Titles with valid or absent scopes exit 0; invalid scopes exit non-zero with an error naming the allowlist and listing valid scopes; missing workflow file exits 2; breaking-change marker (`!`) is transparent.
 
 #### Scenario: Gültiger und fehlender Scope
-- **GIVEN** `ci.yml` mit Scope-Allowlist `website, admin, db, ops, factory`
-- **WHEN** `preflight-pr-scope.sh "feat(admin): add dashboard" <ci.yml>` aufgerufen wird
+- **GIVEN** `commitlint.config.cjs` mit `website` in `namedScopes`
+- **WHEN** `preflight-pr-scope.sh "feat(website): add dashboard"` aufgerufen wird
 - **THEN** Exit 0; Titel ohne Scope (`"docs: update readme"`) gibt ebenfalls Exit 0 mit `"no scope"`-Meldung
 
-#### Scenario: Ungültiger Scope und fehlende Workflow-Datei
-- **GIVEN** Scope `cockpit` ist nicht in der Allowlist; oder `ci.yml` existiert nicht
-- **WHEN** `preflight-pr-scope.sh "feat(cockpit): add view" <ci.yml>` bzw. mit ungültigem Pfad aufgerufen wird
-- **THEN** ungültiger Scope gibt Exit non-0 mit `"NOT in the semantic-PR allowlist"` und listet gültige Scopes; fehlende Workflow-Datei gibt Exit 2; Breaking-Change `!` bei gültigem Scope gibt Exit 0
+#### Scenario: Ungültiger Scope wird abgewiesen
+- **GIVEN** Scope `cockpit` ist nicht in der Allowlist
+- **WHEN** `preflight-pr-scope.sh "feat(cockpit): add view"` aufgerufen wird
+- **THEN** ungültiger Scope gibt Exit non-0 mit `"NOT in the semantic-PR allowlist"` und listet gültige Scopes; Breaking-Change `!` bei gültigem Scope gibt Exit 0
 
 ---
 

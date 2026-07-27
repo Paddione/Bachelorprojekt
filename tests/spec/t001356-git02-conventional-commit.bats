@@ -153,13 +153,21 @@ teardown() {
 # stehen — ein unbekannter Scope kostet dann ein --amend oder ein interaktives
 # Rebase. Genau das passierte mit chore(skills): der Scope fehlte in
 # NAMED_SCOPES und die Ablehnung kam erst beim Push.
+#
+# T002328: 'skills' ist seit der Scope-Konsolidierung wieder KEIN gueltiger
+# Scope — es ist ein Alias auf 'agents'. Das ist bewusst keine Regression
+# gegen T002115: der Schmerz damals war nicht die Ablehnung, sondern die
+# Auskunftslosigkeit (ein Verweis auf eine 94-Eintraege-Liste). Die Ablehnung
+# nennt jetzt 'agents' direkt. Die Tests unten pruefen dieselbe Eigenschaft
+# wie vorher, nur am erhaltenen Scope 'agents' statt am konsolidierten
+# 'skills'.
 
 HOOK="${BATS_TEST_DIRNAME}/../../.githooks/commit-msg"
 
-@test "T002115: 'skills' ist ein registrierter Scope" {
+@test "T002115: 'agents' ist ein registrierter Scope [T002328: war 'skills']" {
   run bash "$SCRIPT" scopes
   [ "$status" -eq 0 ]
-  echo "$output" | grep -qx 'skills'
+  echo "$output" | grep -qx 'agents'
 }
 
 @test "T002115: commit-msg-Hook lehnt einen unbekannten Scope ab" {
@@ -169,10 +177,19 @@ HOOK="${BATS_TEST_DIRNAME}/../../.githooks/commit-msg"
   echo "$output" | grep -q "unknown scope 'bogusscope'"
 }
 
-@test "T002115: commit-msg-Hook laesst chore(skills) durch" {
-  echo "chore(skills): Bonsai-Referenz aktualisieren" > "$TMP_MSG"
+@test "T002115: commit-msg-Hook laesst chore(agents) durch [T002328: war chore(skills)]" {
+  echo "chore(agents): Bonsai-Referenz aktualisieren" > "$TMP_MSG"
   run bash "$HOOK" "$TMP_MSG"
   [ "$status" -eq 0 ]
+}
+
+@test "T002328: commit-msg-Hook lehnt chore(skills) ab und nennt 'agents'" {
+  # Gegenstueck zum Test darueber: der konsolidierte Name wird abgelehnt, aber
+  # die Diagnose fuehrt direkt zum Ersatz — kein Nachschlagen noetig.
+  echo "chore(skills): Bonsai-Referenz aktualisieren" > "$TMP_MSG"
+  run bash "$HOOK" "$TMP_MSG"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"agents"* ]]
 }
 
 @test "T002115: commit-msg-Hook nennt den Weg zur Scope-Liste" {
@@ -193,14 +210,20 @@ HOOK="${BATS_TEST_DIRNAME}/../../.githooks/commit-msg"
 # the valid scope `agent-guide`; the rejection should say so instead of costing
 # a round trip. Two sightings ended with an empty branch on the remote because
 # the `git push` was not `&&`-chained behind the rejected `git commit`.
+#
+# T002328: 'agents' ist inzwischen selbst ein gueltiger Scope und taugt damit
+# nicht mehr als Beispiel fuer einen unbekannten. Die Tests nutzen jetzt
+# 'websitex' — kein Alias, kein entfallenes System, kein Quality-Goal-Code,
+# also faellt es weiterhin in die Prefix-Heuristik (-> 'website') und prueft
+# genau dieselbe Eigenschaft wie zuvor.
 
-@test "T002240: unknown scope 'agents' suggests the nearest valid scope" {
-  echo "fix(agents): drop invented tool names" > "$TMP_MSG"
+@test "T002240: unknown scope 'websitex' suggests the nearest valid scope [T002328: war 'agents']" {
+  echo "fix(websitex): drop invented tool names" > "$TMP_MSG"
   run bash "$SCRIPT" message "$TMP_MSG"
   [ "$status" -eq 1 ]
-  [[ "$output" == *"unknown scope 'agents'"* ]]
+  [[ "$output" == *"unknown scope 'websitex'"* ]]
   [[ "$output" == *"did you mean"* ]]
-  [[ "$output" == *"agent-guide"* ]]
+  [[ "$output" == *"website"* ]]
 }
 
 @test "T002240: unknown scope with no near match emits no bogus suggestion" {
@@ -211,8 +234,8 @@ HOOK="${BATS_TEST_DIRNAME}/../../.githooks/commit-msg"
   [[ "$output" != *"did you mean"* ]]
 }
 
-@test "T002240: the suggestion is a scope that actually validates" {
-  echo "fix(agents): x" > "$TMP_MSG"
+@test "T002240: the suggestion is a scope that actually validates [T002328: war 'agents']" {
+  echo "fix(websitex): x" > "$TMP_MSG"
   run bash "$SCRIPT" message "$TMP_MSG"
   local suggested
   suggested="$(printf '%s\n' "$output" | sed -n "s/.*did you mean '\([^']*\)'.*/\1/p" | head -1)"
@@ -288,14 +311,26 @@ PRE_COMMIT_HOOK="${BATS_TEST_DIRNAME}/../../.githooks/pre-commit"
   [[ "$branch" =~ T[0-9]{6,} ]]                  # the pre-commit:117 regex
 }
 
-@test "llm scope is in the allowed scopes list" {
+# T002328: 'llm' ist in 'ops' aufgegangen — die LLM-Pipeline gehoert zur
+# Betriebsdomaene (bachelorprojekt-ops betreut GPU-Host und Modelle). Die
+# beiden Tests pruefen weiterhin dasselbe Paar aus Listeneintrag und
+# akzeptiertem Commit, nur am Zielscope; dazu kommt die Alias-Diagnose.
+
+@test "ops scope is in the allowed scopes list [T002328: war 'llm']" {
   run "$SCRIPT" scopes
   [ "$status" -eq 0 ]
-  [[ "$output" == *"llm"* ]]
+  [[ "$output" == *"ops"* ]]
 }
 
-@test "accepts chore(llm): commit with llm scope" {
-  echo "chore(llm): add server startup scripts [T000000]" > "$TMP_MSG"
+@test "accepts chore(ops): commit with ops scope [T002328: war chore(llm)]" {
+  echo "chore(ops): add server startup scripts [T000000]" > "$TMP_MSG"
   run "$SCRIPT" message "$TMP_MSG"
   [ "$status" -eq 0 ]
+}
+
+@test "T002328: chore(llm) wird abgelehnt und nennt 'ops' als Ziel" {
+  echo "chore(llm): add server startup scripts [T000000]" > "$TMP_MSG"
+  run "$SCRIPT" message "$TMP_MSG"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"ops"* ]]
 }

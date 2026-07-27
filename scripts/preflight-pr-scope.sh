@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # preflight-pr-scope.sh — validate the scope in a Conventional-Commit PR title
-# against the semantic-PR allowlist in ci.yml BEFORE `gh pr create`. [T000925]
+# against the named-scope list in commitlint.config.cjs BEFORE `gh pr create`.
+# [T000925]
 #
-# Usage:  preflight-pr-scope.sh "<PR title>" [<ci_workflow_path>]
-#   ci_workflow_path  defaults to .github/workflows/ci.yml
+# Bis T002328 wurde die Allowlist hier aus einem `scopes: |`-Block in
+# .github/workflows/ci.yml geparst. Den Block gibt es dort seit der Umstellung
+# auf action-semantic-pull-request nicht mehr — ci.yml hält selbst fest
+# "Scopes are NOT enforced here". Der Parser lief seither immer leer und nur
+# ein stiller Fallback hielt das Skript funktionsfähig. Die einzige Quelle ist
+# jetzt commitlint.config.cjs, gelesen über validate-commit-msg.sh.
 #
-# Exit: 0 = scope valid or no scope; 1 = scope not in allowlist; 2 = usage error.
+# Usage:  preflight-pr-scope.sh "<PR title>"
+#
+# Exit: 0 = scope valid or no scope; 1 = scope not in allowlist or SSOT unreadable.
 
 set -euo pipefail
 
-TITLE="${1:?Usage: preflight-pr-scope.sh '<PR title>' [<ci_workflow_path>]}"
-CI_WORKFLOW="${2:-.github/workflows/ci.yml}"
+TITLE="${1:?Usage: preflight-pr-scope.sh '<PR title>'}"
 
 # ── Branch and Worktree Validation [T001592] ──────────────────────────────────
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"
@@ -83,32 +89,20 @@ if [[ "$SCOPE" =~ ^T[0-9]{6}$ ]]; then
   exit 0
 fi
 
-if [ ! -f "$CI_WORKFLOW" ]; then
-  echo "preflight-pr-scope: workflow file '$CI_WORKFLOW' not found" >&2
-  exit 2
+# Allowlist aus der SSOT commitlint.config.cjs (T002328). Beide Fehlerfälle
+# sind fail-closed: bisher konnte ein leeres Parse-Ergebnis stillschweigend in
+# einen Fallback rutschen, wodurch ein echter Config-Defekt unsichtbar blieb.
+_ssot_script="$(dirname "$0")/validate-commit-msg.sh"
+if [ ! -x "$_ssot_script" ]; then
+  echo "preflight-pr-scope: FATAL: '$_ssot_script' nicht gefunden oder nicht ausführbar" >&2
+  exit 1
 fi
 
-# Parse the scopes list from ci.yml: find the `scopes: |` line inside the
-# commit-lint job, then collect every indented line (containing a bare word)
-# until the next dedent or end-of-file.
-_allowed="$(awk '
-  /^[ ]*scopes:[ ]*\|/ { in_scopes=1; next }
-  in_scopes && /^[ ]+[a-z][a-z0-9-]*$/ { gsub(/^[ ]+/,""); print; next }
-  in_scopes && /^[ ]+[a-z]/ { exit }
-  in_scopes && /^[ ]*$/ { next }
-  in_scopes && /^[^ ]/ { exit }
-' "$CI_WORKFLOW")"
+_allowed="$("$_ssot_script" scopes 2>/dev/null || true)"
 
 if [ -z "$_allowed" ]; then
-  _ssot_script="$(dirname "$0")/validate-commit-msg.sh"
-  if [ -x "$_ssot_script" ]; then
-    _allowed="$("$_ssot_script" scopes 2>/dev/null || true)"
-  fi
-fi
-
-if [ -z "$_allowed" ]; then
-  echo "preflight-pr-scope: could not parse scope allowlist from '$CI_WORKFLOW' and SSOT fallback failed" >&2
-  exit 2
+  echo "preflight-pr-scope: FATAL: leere Scope-Allowlist aus commitlint.config.cjs" >&2
+  exit 1
 fi
 
 if echo "$_allowed" | grep -qxF "$SCOPE"; then
@@ -117,6 +111,6 @@ if echo "$_allowed" | grep -qxF "$SCOPE"; then
 fi
 
 echo "preflight-pr-scope: scope '$SCOPE' is NOT in the semantic-PR allowlist" >&2
-echo "Allowed scopes (from $CI_WORKFLOW):" >&2
+echo "Allowed scopes (from commitlint.config.cjs):" >&2
 echo "$_allowed" | sed 's/^/  /' >&2
 exit 1

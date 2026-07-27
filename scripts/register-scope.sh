@@ -23,6 +23,22 @@ if [[ "$SCOPE" =~ ^T[0-9]{6}$ ]]; then
   exit 0
 fi
 
+# Ein konsolidierter Scope darf nicht per register-scope zurückkehren — sonst
+# baut sich die Allowlist Eintrag für Eintrag wieder auf (T002328). Betrifft
+# Aliase (admin -> website), entfallene Systeme (tracking) und
+# Quality-Goal-Codes (cq07). Läuft vor der Format-Prüfung, weil diese Namen
+# das Format durchweg erfüllen und sonst stillschweigend durchrutschen.
+if [ -f "$CONFIG" ] && command -v node >/dev/null 2>&1; then
+  _hint="$(node -e "
+    const cfg = require('$CONFIG');
+    process.stdout.write(typeof cfg.scopeHint === 'function' ? cfg.scopeHint(process.argv[1]) : '');
+  " "$SCOPE" 2>/dev/null || true)"
+  if [ -n "$_hint" ]; then
+    echo "register-scope: $_hint" >&2
+    exit 1
+  fi
+fi
+
 if [[ ! "$SCOPE" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
   echo "register-scope: invalid scope format '$SCOPE' (must match ^[a-z0-9][a-z0-9-]*$)" >&2
   exit 1

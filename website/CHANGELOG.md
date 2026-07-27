@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.218.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.6...website-v1.218.0) (2026-07-27)
+
+
+### Features
+
+* **agent-guide:** unify agent definitions in agents.yaml registry with drift-gate [T002304] ([#3365](https://github.com/Paddione/Bachelorprojekt/issues/3365)) ([f8a4e94](https://github.com/Paddione/Bachelorprojekt/commit/f8a4e9446e6c9c91e1a37c45846fa7d40c3b141e))
+
 ## [1.217.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.5...website-v1.217.6) (2026-07-27)
 
 

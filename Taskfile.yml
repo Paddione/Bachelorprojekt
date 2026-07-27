@@ -4738,9 +4738,21 @@ tasks:
   # ticket-mcp Go Binary
   # ─────────────────────────────────────────────
   ticket-mcp:build:
-    desc: "Build the ticket-mcp Go binary (scripts/ticket-mcp/ticket-mcp-go)"
+    desc: "Build the ticket-mcp Go binary and install it onto the PATH as ticket-mcp-go"
     cmds:
-      - make -C scripts/ticket-mcp/go build
+      - |
+        # Die Registry referenziert 'ticket-mcp-go' ueber den PATH-Namen (T002301), nicht
+        # ueber einen absoluten Repo-Pfad. Der Install-Schritt ist deshalb Teil des Builds.
+        # Best-effort wie mcp-task-runner: ist /usr/local/bin nicht schreibbar, bleibt das
+        # bereits installierte Binary in Kraft — kein Abbruch der Task-Kette.
+        make -C scripts/ticket-mcp/go build
+        if install -m 0755 scripts/ticket-mcp/ticket-mcp-go /usr/local/bin/ticket-mcp-go 2>/dev/null; then
+          echo "ticket-mcp: installed fresh build to /usr/local/bin"
+        elif sudo -n install -m 0755 scripts/ticket-mcp/ticket-mcp-go /usr/local/bin/ticket-mcp-go 2>/dev/null; then
+          echo "ticket-mcp: installed fresh build to /usr/local/bin (sudo)"
+        else
+          echo "ticket-mcp: /usr/local/bin not writable — using pre-installed binary if present"
+        fi
 
   # ─────────────────────────────────────────────
   # Maintenance — periodic cleanups

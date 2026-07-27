@@ -177,7 +177,7 @@
 
       "type": "local",
 
-      "command": ["/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go"],
+      "command": ["ticket-mcp-go"],
 
       "enabled": true
 

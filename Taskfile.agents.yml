@@ -239,7 +239,7 @@ tasks:
           fi
         }
         echo "stdio MCP servers (spawned per-session by the client, no daemon required):"
-        check "/home/patrick/Bachelorprojekt/scripts/ticket-mcp/ticket-mcp-go" "ticket-mcp"
+        check "ticket-mcp-go" "ticket-mcp"
         check "mcp-task-runner" "mcp-task-runner"
         check "/home/patrick/.local/bin/codebase-memory-mcp" "codebase-memory-mcp"
         check "npx" "task-master-ai (via npx)"

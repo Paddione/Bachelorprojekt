@@ -1725,6 +1725,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002301": [
+    {
+      "slug": "ticket-mcp-portable",
+      "status": "plan_staged"
+    }
+  ],
   "T002302": [
     {
       "slug": "2026-07-27-skill-inventory-cleanup",

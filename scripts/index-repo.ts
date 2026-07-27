@@ -68,6 +68,21 @@ async function clusterDnsResolves(hostname: string): Promise<boolean> {
   }
 }
 
+// T002292 — eine explizit gesetzte LLM_EMBED_URL wurde bisher ungeprueft
+// uebernommen ("Explicit env vars always win"). environments/mentolder.yaml
+// setzt sie auf den cluster-internen DNS-Namen, der auf dem WSL-Host nicht
+// aufloest — dadurch scheiterte JEDER embedTexts()-Aufruf und der Indexer lief
+// mit Exit 0 durch, ohne etwas zu schreiben. Jede HTTP-Antwort zaehlt als
+// erreichbar; nur Transportfehler und Timeout zaehlen als nicht erreichbar.
+async function endpointReachable(url: string): Promise<boolean> {
+  try {
+    await fetch(`${url}/health`, { signal: AbortSignal.timeout(2000) });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 let EMBED_URL: string;
 let EMBED_MODEL: string;
 
@@ -76,12 +91,21 @@ async function resolveEmbedConfig(): Promise<void> {
   // dedicated llama-server on :8095 with T002110/PR #3150; the Service in
   // k3d/llm-gpu.yaml is `llm-gateway-embed` on port 8095 and LM Studio is gone.
   const clusterHost = 'llm-gateway-embed.workspace.svc.cluster.local';
-  if (process.env.LLM_EMBED_URL) {
-    EMBED_URL = process.env.LLM_EMBED_URL;
+  const localUrl = 'http://localhost:8095';
+  const configured = process.env.LLM_EMBED_URL;
+
+  if (configured && await endpointReachable(configured)) {
+    EMBED_URL = configured;
   } else {
-    EMBED_URL = (await clusterDnsResolves(clusterHost))
-      ? `http://${clusterHost}:8095`
-      : 'http://localhost:8095';
+    if (configured) {
+      process.stderr.write(
+        `[SCS] WARN LLM_EMBED_URL=${configured} ist nicht erreichbar — `
+        + `faellt auf ${localUrl} zurueck (T002292).\n`,
+      );
+    }
+    EMBED_URL = (await endpointReachable(localUrl))
+      ? localUrl
+      : (await clusterDnsResolves(clusterHost)) ? `http://${clusterHost}:8095` : localUrl;
   }
   // llama-server serves a single model and ignores the `model` field, so this
   // is cosmetic there — it still matters for any OpenAI-compatible router in

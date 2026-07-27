@@ -129,3 +129,53 @@
   [[ "$output" != *"no shared-db pod found"* ]] || {
     echo "Guard griff nicht: der Write lief bis _pgpod durch: $output"; return 1; }
 }
+
+# ── [T002307] _pgpod must select a Running shared-db pod ──────────────────────
+#
+# _pgpod took `kubectl get pod -l 'app in (shared-db, shared-db-dev)' -o name |
+# head -1` — an unfiltered list. kubectl orders by name, so a leftover
+# `shared-db-<old>` in phase Succeeded/Failed (left behind by a rollout, a node
+# drain or an evicted pod) can sort ahead of the live one. Every ticket.sh verb
+# then failed at the *next* step with kubectl's "cannot exec into a container in
+# a completed pod", and the only known workaround was deleting the dead pod by
+# hand. All ~25 call sites route through this one helper, so the phase filter
+# belongs here and nowhere else.
+#
+# Stubbed kubectl: it answers the field-selector query the way the API server
+# would (Running pods only) and the unfiltered query with the completed pod
+# first — so the test fails for the real reason if the filter is missing.
+
+_pgpod_mockdir() {
+  local mockdir; mockdir="$(mktemp -d)"
+  cat > "$mockdir/kubectl" <<'MOCKEOF'
+#!/usr/bin/env bash
+if [[ "$*" == *"get pod"* ]]; then
+  if [[ "$*" == *"--field-selector"*"status.phase=Running"* ]]; then
+    echo "pod/shared-db-live"
+  else
+    echo "pod/shared-db-completed"
+    echo "pod/shared-db-live"
+  fi
+  exit 0
+fi
+exit 0
+MOCKEOF
+  chmod +x "$mockdir/kubectl"
+  echo "$mockdir"
+}
+
+@test "T002307: _pgpod skips a completed shared-db pod and returns the Running one" {
+  local mockdir; mockdir="$(_pgpod_mockdir)"
+  run env PATH="$mockdir:$PATH" bash -c \
+    'source "'"$BATS_TEST_DIRNAME"'/../../scripts/vda/ticket/_ticket-core.sh"; _pgpod'
+  rm -rf "$mockdir"
+  [ "$status" -eq 0 ]
+  [ "$output" = "pod/shared-db-live" ]
+}
+
+@test "T002307: _pgpod asks the API server for Running pods only" {
+  # Guards the mechanism, not just the outcome: filtering client-side would still
+  # pass the test above but would keep paging the full pod list.
+  run grep -Fq -- "--field-selector status.phase=Running" scripts/vda/ticket/_ticket-core.sh
+  [ "$status" -eq 0 ]
+}

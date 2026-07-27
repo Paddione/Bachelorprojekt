@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url';
 // .js-Endung fuer eine .ts-Datei — ESM-Konvention, wie in
 // scripts/openspec-validate.test.ts. Ein '.ts'-Import braucht
 // allowImportingTsExtensions, das hier nicht gesetzt ist.
-import { chunkCode, chunkSource, chunkYaml, estimateTokens } from './index-repo.js';
+import {
+  chunkCode, chunkSource, chunkYaml, estimateTokens, isInfrastructureError,
+} from './index-repo.js';
 
 // T002266 — Regressionsschutz gegen uebergrosse Chunks.
 //
@@ -88,6 +90,71 @@ describe('chunkSource (T002266)', () => {
     const chunks = chunkSource(src);
     assertAllBounded(chunks, 'normaler Code');
     expect(chunks.length).toBeGreaterThan(1);
+  });
+});
+
+// T002292 — Fehlerklassifikation.
+//
+// Vorgeschichte: main() fing JEDEN Fehler pro Datei und verbuchte ihn als SKIP.
+// Damit wurden zwei globale Stoerungen als datei-lokale Probleme maskiert:
+// eine unerreichbare Embed-URL (LLM_EMBED_URL zeigte auf die cluster-interne
+// DNS-Adresse, die auf dem WSL-Host nicht aufloest) und ein abgerissener
+// port-forward auf shared-db. Beide Male lief der Indexer mit Exit 0 durch,
+// ohne irgendetwas zu schreiben — gemessen 2026-07-27: 2513 Dateien in einem
+// einzigen Lauf still uebersprungen, der Index stand seit 8 Tagen bei 66 von
+// 4772 Dateien.
+//
+// Die Unterscheidung, auf die es ankommt: ein Verbindungsfehler kann niemals
+// datei-spezifisch sein — er entwertet den gesamten Lauf und muss hart
+// abbrechen. Ein HTTP 500 des Embedding-Servers dagegen betrifft genau einen
+// zu langen Chunk (T002266) und darf ein SKIP bleiben.
+describe('isInfrastructureError (T002292)', () => {
+  function withCode(message: string, code: string): Error {
+    return Object.assign(new Error(message), { code });
+  }
+
+  it('erkennt einen abgerissenen port-forward (ECONNREFUSED)', () => {
+    expect(isInfrastructureError(
+      withCode('connect ECONNREFUSED 127.0.0.1:15434', 'ECONNREFUSED'),
+    )).toBe(true);
+  });
+
+  it('erkennt eine nicht aufloesbare Embed-URL (ENOTFOUND)', () => {
+    // Genau der WSL-Host-Fall: llm-gateway-embed.workspace.svc.cluster.local
+    expect(isInfrastructureError(
+      withCode('getaddrinfo ENOTFOUND llm-gateway-embed.workspace.svc.cluster.local', 'ENOTFOUND'),
+    )).toBe(true);
+  });
+
+  it('erkennt den undici-Wrapper, der den Code in .cause versteckt', () => {
+    // node-fetch/undici wirft nach aussen nur "fetch failed"; der echte
+    // Socket-Code steckt eine Ebene tiefer.
+    const wrapped = Object.assign(new TypeError('fetch failed'), {
+      cause: withCode('connect ECONNREFUSED 127.0.0.1:8095', 'ECONNREFUSED'),
+    });
+    expect(isInfrastructureError(wrapped)).toBe(true);
+  });
+
+  it('erkennt einen weggebrochenen pg-Pool', () => {
+    expect(isInfrastructureError(new Error('Connection terminated unexpectedly'))).toBe(true);
+  });
+
+  it('behandelt einen zu langen Chunk NICHT als Infrastrukturfehler', () => {
+    // Der T002266-Fall: der Server lehnt genau diesen einen Chunk ab. Der Lauf
+    // als Ganzes ist gesund und soll weiterlaufen.
+    expect(isInfrastructureError(
+      new Error('embed 500: {"error":"input is too large to process"}'),
+    )).toBe(false);
+  });
+
+  it('behandelt einen Lesefehler einer einzelnen Datei NICHT als Infrastrukturfehler', () => {
+    expect(isInfrastructureError(withCode('EISDIR: illegal operation on a directory', 'EISDIR')))
+      .toBe(false);
+  });
+
+  it('ist robust gegen Nicht-Error-Werte', () => {
+    expect(isInfrastructureError(null)).toBe(false);
+    expect(isInfrastructureError('ECONNREFUSED')).toBe(false);
   });
 });
 

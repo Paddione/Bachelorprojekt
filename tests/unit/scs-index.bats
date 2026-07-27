@@ -87,3 +87,28 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   run grep -n '|| true' "$PROJECT_DIR/scripts/index-repo-incremental.sh"
   [[ "$status" -ne 0 ]]
 }
+
+@test "SCS-1: index-repo.ts classifies infrastructure errors (T002292)" {
+  run grep -c 'isInfrastructureError' "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -ge 2 ]]
+}
+
+@test "SCS-1: index-repo.ts reports unchanged and failed files separately (T002292)" {
+  run grep -c 'unchanged_files' "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -ge 1 ]]
+  run grep -c 'failed_files' "$PROJECT_DIR/scripts/index-repo.ts"
+  [[ "$output" -ge 1 ]]
+}
+
+@test "SCS-1: scs:index does not use fuser -k, which kills its own shell (T002292)" {
+  # fuser -k signalisiert die eigene Prozessgruppe mit und beendet damit die
+  # aufrufende Shell — im Taskfile faellt das nur deshalb nicht auf, weil
+  # go-task jeden cmds-Block in einer eigenen Shell startet.
+  #
+  # Geprueft werden nur ausfuehrbare Zeilen: der Task erklaert in einem
+  # Kommentar, WARUM hier kein fuser steht, und dieser Kommentar darf den
+  # Guard nicht ausloesen.
+  run bash -c "sed -n '/^  scs:index:/,/^  scs:search:/p' '$PROJECT_DIR/Taskfile.yml' \
+    | grep -v '^[[:space:]]*#' | grep -c 'fuser -k'"
+  [[ "$output" -eq 0 ]]
+}

@@ -187,6 +187,28 @@ assert_var_not_declared() {
   [ "$status" -eq 0 ]
 }
 
+# ── CPU-Default fuer Embed und Rerank (T002337) ───────────────────────
+# Beide Hilfsmodelle liegen im CPU-RAM, damit das VRAM dem Chat-Modell gehoert:
+# Gemma laeuft seit T002297 mit -Ctx 262144 und belegt rund 15,1 von 16,3 GiB.
+# Der Reranker war der Beweis, dass ein einzelner Guard hier nicht reicht —
+# T002319 stellte den Embedder auf 0 um und liess start-rerank-server.ps1 auf
+# 99 stehen; weil install-startup-autostart.ps1 beide Skripte ARGUMENTLOS
+# aufruft, holte jeder Autostart die GPU-Variante zurueck, ohne dass etwas rot
+# wurde. Deshalb pruefen die Guards BEIDE Skripte gemeinsam. Der GPU-Rueckweg
+# bleibt ueber LLM_EMBED_NGL/LLM_RERANK_NGL offen — hier steht nur der Default.
+# Das [[:space:]]*$ am Ende ist kein Schoenheitsfehler: die .ps1-Dateien sind
+# durchgehend CRLF, ein blosses "$ scheitert am \r vor dem Zeilenende.
+
+@test "start-embed-server.ps1 defaults -ngl to 0 (CPU RAM, T002337)" {
+  run grep -qE '^\$Ngl = "0"[[:space:]]*$' "$REPO/scripts/llm/start-embed-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "start-rerank-server.ps1 defaults -ngl to 0 (CPU RAM, T002337)" {
+  run grep -qE '^\$Ngl = "0"[[:space:]]*$' "$REPO/scripts/llm/start-rerank-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
 # T002276: die beiden Guards, die dieselben Flags in den Args-Zeilen von
 # register-scheduled-tasks.ps1 prueften, sind entfallen. Dort gibt es keine Args
 # mehr (der Task verweist auf das Startskript), und die beiden Guards oben

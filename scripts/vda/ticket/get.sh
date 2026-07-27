@@ -21,6 +21,7 @@ SELECT json_build_object(
   'title', t.title, 'status', t.status, 'priority', t.priority,
   'touched_files', t.touched_files, 'pipeline_slot', t.pipeline_slot,
   'created_at', t.created_at, 'updated_at', t.updated_at,
+  'resolution', t.resolution, 'severity', t.severity, 'description', t.description,
   'plan_ref', (
     SELECT c.body FROM tickets.ticket_comments c
     WHERE c.ticket_id = t.id AND c.body LIKE 'FACTORY-PLAN-REF %'

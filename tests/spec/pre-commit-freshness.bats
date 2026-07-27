@@ -194,6 +194,16 @@ setup_t002239_m1() {
 # Control test: pre-commit's freshness block (T001388 auto-stage) must still
 # be triggered when no rebase/merge is in flight and FRESHNESS_HOOK_DISABLED
 # is unset. Drift-Guard: confirms the guard does not over-suppress.
+# ── [T002284] pre-commit warns when regeneration neutralizes a staged change ──
+
+@test "T002284: pre-commit warns when regeneration neutralizes an already-staged freshness file" {
+  [ -f "$HOOK" ] || { echo "MISSING hook: $HOOK"; return 1; }
+  grep -qE '_pre_staged_freshness' "$HOOK" \
+    || { echo "MISSING '_pre_staged_freshness' pre-state snapshot in $HOOK"; return 1; }
+  grep -qE 'neutralized by regeneration' "$HOOK" \
+    || { echo "MISSING neutralized-staged-diff warning in $HOOK"; return 1; }
+}
+
 @test "T001973: pre-commit hook still calls task freshness:regenerate (control test, must stay green)" {
   setup_t001973
   [ -f "$PRE_COMMIT" ] || { echo "MISSING hook: $PRE_COMMIT"; return 1; }

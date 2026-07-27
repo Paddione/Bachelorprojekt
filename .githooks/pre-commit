@@ -79,6 +79,12 @@ if [ "${FRESHNESS_HOOK_DISABLED:-0}" != "1" ]; then
   _gd="$(git rev-parse --absolute-git-dir 2>/dev/null || true)"
   if [ -z "$_gd" ] || { [ ! -d "$_gd/rebase-merge" ] && [ ! -d "$_gd/rebase-apply" ] && [ ! -f "$_gd/MERGE_HEAD" ]; }; then
     if command -v task >/dev/null 2>&1 && task --version 2>&1 | grep -q "Task version"; then
+      _pre_staged_freshness=()
+      for _f in "${_FRESHNESS_FILES[@]}"; do
+        if ! git -C "$repo_root" diff --cached --quiet -- "$_f" 2>/dev/null; then
+          _pre_staged_freshness+=("$_f")
+        fi
+      done
       if (cd "$repo_root" && task freshness:regenerate > /dev/null 2>&1); then
         _staged=0
         for _f in "${_FRESHNESS_FILES[@]}"; do
@@ -86,6 +92,12 @@ if [ "${FRESHNESS_HOOK_DISABLED:-0}" != "1" ]; then
             git -C "$repo_root" add -- "$_f"
             echo "  ↻ freshness: auto-staged $_f"
             _staged=$((_staged + 1))
+          fi
+        done
+        for _f in "${_pre_staged_freshness[@]:-}"; do
+          if [ -n "$_f" ] && git -C "$repo_root" diff --cached --quiet -- "$_f" 2>/dev/null; then
+            echo "  ⚠ freshness: your staged change to $_f was neutralized by regeneration" >&2
+            echo "    (working copy now matches HEAD) — verify with 'git show --stat HEAD' after commit" >&2
           fi
         done
         [ "$_staged" -gt 0 ] && echo "  ↻ freshness: $_staged artifact(s) updated — included in this commit."

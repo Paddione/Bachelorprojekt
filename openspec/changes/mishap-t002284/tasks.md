@@ -46,7 +46,7 @@ Kein Datei-Overlap zwischen den drei Einträgen: (1) `scripts/vda/ticket/get.sh`
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** `scripts/vda/ticket/get.sh:19-29` baut das JSON über
+- [x] **Failing-Test-Step (RED).** `scripts/vda/ticket/get.sh:19-29` baut das JSON über
       `json_build_object(...)` und listet dort `external_id, id, type, brand, title, status,
       priority, touched_files, pipeline_slot, created_at, updated_at, plan_ref` — `resolution`,
       `severity` und `description` fehlen in der Projektion, obwohl sie in `tickets.tickets`
@@ -76,14 +76,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system.bats
       }
       ```
 
-- [ ] **Fix-Step M1 (GREEN) — `get.sh` Projektion vervollständigen.** In
+- [x] **Fix-Step M1 (GREEN) — `get.sh` Projektion vervollständigen.** In
       `scripts/vda/ticket/get.sh:19-29` die `json_build_object(...)`-Liste um
       `'resolution', t.resolution, 'severity', t.severity, 'description', t.description`
       ergänzen (Spaltennamen 1:1 aus `tickets.tickets` wie in `create.sh`/`update-status.sh`
       verwendet — keine neue Migration nötig, nur die Projektion nachziehen). Anschließend
       `tests/spec/ticket-system.bats` erneut laufen lassen — jetzt GREEN.
 
-- [ ] **Fix-Step M2 (GREEN) — Ein-Ebenen-Regel in den Implementer-Prompt, nicht nur in die
+- [x] **Fix-Step M2 (GREEN) — Ein-Ebenen-Regel in den Implementer-Prompt, nicht nur in die
       Skill-Prosa.** `.claude/skills/dev-flow-execute/SKILL.md` Schritt 2 (ab Zeile 256)
       erklärt die Ein-Ebenen-Regel bisher nur als Begründung an den lesenden Orchestrator
       (Zeile 265, `> **Warum EIN Implementer statt ... Fan-out?**`) — der gespawnte
@@ -116,7 +116,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system.bats
       }
       ```
 
-- [ ] **Fix-Step M3 (GREEN) — pre-commit warnt bei neutralisiertem Staged-Diff.**
+- [x] **Fix-Step M3 (GREEN) — pre-commit warnt bei neutralisiertem Staged-Diff.**
       `.githooks/pre-commit` staged in Zeile 83-90 nach `task freshness:regenerate` jede
       Datei aus `_FRESHNESS_FILES`, deren Arbeitskopie sich gegen den Index unterscheidet
       (`git diff --quiet -- "$_f"`, Zeile 85). Reproduzierter Schaden: eine vom Aufrufer
@@ -168,7 +168,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system.bats
       }
       ```
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [ ] **Final Verification.** Run the three mandatory CI gates: (wird in Schritt 3 ausgeführt)
 
 ```bash
 task test:changed

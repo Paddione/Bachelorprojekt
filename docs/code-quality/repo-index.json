@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 622,
+      "file_count": 623,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -606,6 +606,7 @@
         "tests/unit/vda-release-notes-smoke.bats",
         "tests/unit/vda-ticket-smoke.bats",
         "tests/unit/vendored-bats.bats",
+        "tests/unit/verification-block-order.bats",
         "tests/unit/website-ci-deploy.bats",
         "tests/unit/website-domain-config-overlay.bats",
         "tests/unit/wg-mesh-fullmesh.bats",

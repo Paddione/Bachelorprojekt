@@ -4442,8 +4442,16 @@ SH
 # separater Zweig muesste sie duplizieren — genau die Luecke, die T002361
 # schliessen musste.
 @test "T002333: queue.sh dispatches plan_staged bug tickets alongside tasks" {
-  run grep -Eq "type IN \('task','bug'\) AND status='plan_staged'" "$REPO_ROOT/scripts/factory/queue.sh"
-  [ "$status" -eq 0 ]
+  # Geprueft wird die Zusage ("ein gestagtes bug-Ticket erreicht den Dispatcher"),
+  # nicht ihr Wortlaut. T002329 hat die Whitelist IN ('task','bug') durch die
+  # Ausschlussliste `type <> 'project'` ersetzt — strikt allgemeiner, sie deckt
+  # zusaetzlich die sechs neuen Conventional-Commit-Typen ab. Ein grep auf die
+  # alte Formulierung wuerde hier rot, obwohl die Zusage besser erfuellt ist als
+  # zuvor; deshalb akzeptiert der Guard beide Formen.
+  local lane
+  lane=$(sed -n "/status='plan_staged'/p" "$REPO_ROOT/scripts/factory/queue.sh")
+  [ -n "$lane" ]
+  echo "$lane" | grep -Eq "type <> 'project'|type IN \('task','bug'\)"
 }
 
 @test "T002333: the plan_staged dispatch branch stays single (no ungated bug duplicate)" {

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.221.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.5...website-v1.221.6) (2026-07-27)
+
+
+### Bug Fixes
+
+* **factory:** queue.sh dispatcht plan_staged Bugs, nicht nur Tasks [T002333] ([#3418](https://github.com/Paddione/Bachelorprojekt/issues/3418)) ([af02283](https://github.com/Paddione/Bachelorprojekt/commit/af02283b1ee1ecc9dc15ca6d5785a9a45d56b35c))
+* **scripts:** _pgpod waehlt nur Running-Pods, RBAC/read-only-Grenzen dokumentiert [T002307] ([#3416](https://github.com/Paddione/Bachelorprojekt/issues/3416)) ([f2a01bd](https://github.com/Paddione/Bachelorprojekt/commit/f2a01bdc5fb61a1894924d7ed0044de985bfff43))
+
 ## [1.221.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.4...website-v1.221.5) (2026-07-27)
 
 

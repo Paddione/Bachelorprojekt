@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.221.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.1...website-v1.221.2) (2026-07-27)
+
+
+### Bug Fixes
+
+* **infra:** reaper selects children by argv/ppid, not cmdline substring [T002350] ([#3401](https://github.com/Paddione/Bachelorprojekt/issues/3401)) ([20e7561](https://github.com/Paddione/Bachelorprojekt/commit/20e756157f937184a8f4174c1439d3a33e720dd2))
+* **website:** generate random OIDC state to satisfy Pocket ID v2.11.0 minimum length [T002360] ([#3403](https://github.com/Paddione/Bachelorprojekt/issues/3403)) ([372729d](https://github.com/Paddione/Bachelorprojekt/commit/372729d7d16a0dd7e12542277a63458e078aae9f))
+
 ## [1.221.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.0...website-v1.221.1) (2026-07-27)
 
 

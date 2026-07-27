@@ -20,7 +20,10 @@ FROM (
        AND COALESCE((readiness->>'lastenheft_locked')::boolean, false) = true)
       -- Staged chore/task tickets (e.g. mishap-tracker auto-plans): the plan is
       -- already authored + lint-gated by stage-plan, so no lastenheft gate applies.
-      OR (type='task' AND status='plan_staged')
+      -- execution_released=true is the default (backward-compatible: only tickets
+      -- explicitly held via stage-plan --hold are excluded from dispatch).
+      OR (type='task' AND status='plan_staged'
+          AND COALESCE((readiness->>'execution_released')::boolean, true) = true)
     )
   ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 END, created_at
 ) q;

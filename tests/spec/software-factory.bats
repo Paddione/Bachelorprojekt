@@ -4291,3 +4291,8 @@ EOF
   run bash -c "grep -E 'provider-config\.sh set .*--provider' '$REPO/tests/spec/software-factory.bats' | grep -vcE '\-\-dry-run'"
   [ "$output" = "0" ]
 }
+
+@test "T002272-M1: queue.sh WHERE clause gates plan_staged tasks on execution_released" {
+  run grep -n "execution_released" "$REPO_ROOT/scripts/factory/queue.sh"
+  [ "$status" -eq 0 ]
+}

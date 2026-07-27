@@ -26,6 +26,8 @@ task freshness:check        # CI-Äquivalent: Freshness + S1–S4-Ratchet + Base
 
 Bei Manifest-Änderungen zusätzlich: `./tests/runner.sh local <TEST-ID>` für die relevanten Tests.
 
+Bei Änderungen an `tests/spec/` zusätzlich: `task test:spec:changed` — CI fährt eine separate spec-Suite, die `test:changed` nicht abdeckt. Ohne diesen Schritt werden spec-Guard-Verletzungen erst nach dem Push sichtbar (T002291).
+
 ## S1-Ratchet — Kurzform
 
 Das Ratchet vergleicht gegen den **eingefrorenen Baseline-Wert**, nicht nur gegen das statische

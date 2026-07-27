@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.221.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.2...website-v1.221.3) (2026-07-27)
+
+
+### Bug Fixes
+
+* **scripts:** release-hold und stage-plan wecken factory.service non-blocking [T002366] ([#3405](https://github.com/Paddione/Bachelorprojekt/issues/3405)) ([600be89](https://github.com/Paddione/Bachelorprojekt/commit/600be89a10b73a47fe606a0988dbff7b76d7445c))
+
 ## [1.221.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.1...website-v1.221.2) (2026-07-27)
 
 

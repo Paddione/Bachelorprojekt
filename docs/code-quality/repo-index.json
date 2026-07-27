@@ -2923,7 +2923,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 556,
+      "file_count": 555,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3152,7 +3152,6 @@
         "scripts/factory/conflict-check.sh",
         "scripts/factory/deploy-transition.cjs",
         "scripts/factory/dispatcher-bridge.sh",
-        "scripts/factory/dispatcher-prep.sh",
         "scripts/factory/dispatcher.js",
         "scripts/factory/eval-context.cjs",
         "scripts/factory/eval-gen.mjs",

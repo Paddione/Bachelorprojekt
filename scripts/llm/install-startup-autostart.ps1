@@ -84,16 +84,45 @@ if (-not (Test-Path $llmDir)) {
 # damit kein Umweg ueber eine .lnk mit Zielpfad-Escaping noetig ist.
 # -WindowStyle Hidden, damit beim Anmelden kein Fenster aufpoppt; die
 # Startskripte protokollieren selbst in <build>\*-out.log / *-err.log.
-$scripts = @('start-embed-server.ps1', 'start-rerank-server.ps1', 'start-gemma-server.ps1')
+# Reihenfolge ist Absicht (T002286): scheitert Gemma - der groesste Brocken -,
+# steht der Embedding-Stack trotzdem. Args je Eintrag seit T002297, weil Gemma
+# sonst die Skript-Defaults bekaeme (-Ctx 65536, -KvType q4_0) statt des
+# gemessenen Max-Kontext-Profils. Embed und Rerank brauchen keine Argumente,
+# ihre Flags (-b/-ub 8192, --pooling cls) stehen in den Startskripten selbst.
+#
+# WARUM 262144/q8_0/1 Slot (T002297), alles am 2026-07-27 gemessen:
+#   - 262144 ist n_ctx_train, das harte Modell-Maximum. Darueber warnt
+#     llama.cpp und nutzt es nicht.
+#   - q8_0 statt q4_0: schneller (146,9 vs 138,0 t/s) und praktisch verlustfrei.
+#     Der 4-Bit-Umweg (T002296) diente nur dazu, VRAM fuer den mmproj-Tower
+#     freizuraeumen - bei einem Slot ist der Platz auch mit 8 Bit da.
+#   - 1 Slot: maximaler Praefix-Reuse (T002286), und mehrere Slots teilen sich
+#     mit -kvu ohnehin denselben Pool.
+#   Ergebnis: 15437 von 16303 MiB belegt, 561 MiB frei, :8095/:8096 laufen
+#   daneben weiter. Verifiziert mit einem 155009-Token-Prompt.
+$startups = @(
+  @{ Script = 'start-embed-server.ps1';  Arguments = '' },
+  @{ Script = 'start-rerank-server.ps1'; Arguments = '' },
+  @{ Script = 'start-gemma-server.ps1';  Arguments = '-Ctx 262144 -Slots 1 -KvType q8_0' }
+)
 $lines = @(
   '@echo off',
   'rem Erzeugt von scripts/llm/install-startup-autostart.ps1 [T002276].',
   'rem Nicht von Hand editieren - Aenderungen gehen beim naechsten Lauf verloren.',
   'rem Entfernen: install-startup-autostart.ps1 -Uninstall'
 )
-foreach ($s in $scripts) {
-  $full = Join-Path $llmDir $s
-  $lines += ('powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $full)
+foreach ($s in $startups) {
+  # T002264 als Mahnung: dort wurde $Task.Expr statt $Task.Exe gelesen, ein Key
+  # dieses Namens existierte nicht, und PowerShell lieferte still $null - alle
+  # Tasks bekamen ein leeres Executable. Deshalb hier fail-loud statt Vertrauen.
+  if (-not $s.ContainsKey('Script') -or -not $s.ContainsKey('Arguments')) {
+    Write-Error "Startup-Eintrag ohne Script/Arguments-Key: $($s | Out-String)"
+    exit 1
+  }
+  $full = Join-Path $llmDir $s.Script
+  $line = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"' -f $full
+  if ($s.Arguments -ne '') { $line += ' ' + $s.Arguments }
+  $lines += $line
 }
 
 Set-Content -Path $shim -Value $lines -Encoding ascii

@@ -1561,3 +1561,44 @@ PY
   run grep -c 'commitlint.config.cjs' "$REPO_ROOT/openspec/specs/ci-cd.md"
   [ "$output" -ge 1 ]
 }
+
+@test "T002328: die Alias-Struktur erfuellt ihre Invarianten" {
+  # Die neun Tests darueber pruefen konkrete Paare (admin->website). Diese
+  # Struktur-Invarianten fangen das, was Einzelpaare nicht koennen: bei 91 von
+  # Hand gepflegten Aliassen wuerde ein Tippfehler im ZIEL (websites statt
+  # website) eine Diagnose erzeugen, die auf einen Scope zeigt, den es nicht
+  # gibt — und kein Paar-Test wuerde es merken.
+  run node -e "
+    const c = require('$REPO_ROOT/commitlint.config.cjs');
+    const named = new Set(c.namedScopes);
+    const errs = [];
+    for (const [alias, target] of Object.entries(c.scopeAliases)) {
+      if (!named.has(target)) errs.push('Alias-Ziel fehlt in namedScopes: ' + alias + ' -> ' + target);
+      if (named.has(alias)) errs.push('Name ist Alias UND gueltiger Scope: ' + alias);
+    }
+    for (const r of Object.keys(c.scopeRetired)) {
+      if (named.has(r)) errs.push('retired UND gueltig: ' + r);
+      if (c.scopeAliases[r]) errs.push('retired UND Alias: ' + r);
+    }
+    const re = new RegExp(c.syntheticScopeRe);
+    for (const n of named) if (re.test(n)) errs.push('Synthetik-Regex faengt gueltigen Scope: ' + n);
+    if (errs.length) { console.error(errs.join('\n')); process.exit(1); }
+  "
+  [ "$status" -eq 0 ]
+}
+
+@test "T002328: jedes Alias-Ziel validiert auch tatsaechlich als Commit-Scope" {
+  # Ende-zu-Ende-Gegenprobe zum Test darueber: nicht nur in namedScopes
+  # vorhanden, sondern vom Guard auch wirklich akzeptiert.
+  local targets
+  targets="$(node -e "
+    const c = require('$REPO_ROOT/commitlint.config.cjs');
+    process.stdout.write([...new Set(Object.values(c.scopeAliases))].join(' '));
+  ")"
+  [ -n "$targets" ]
+  for t in $targets; do
+    printf 'fix(%s): probe\n' "$t" > "$BATS_TEST_TMPDIR/probe"
+    run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$BATS_TEST_TMPDIR/probe"
+    [ "$status" -eq 0 ] || { echo "Alias-Ziel '$t' wird vom Guard abgelehnt"; return 1; }
+  done
+}

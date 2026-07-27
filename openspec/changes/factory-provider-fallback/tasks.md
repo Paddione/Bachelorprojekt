@@ -338,7 +338,7 @@ Setzt RC2 und die Datenseite von D2/D3 um.
 - Consumes: nichts.
 - Produces: Spalte `tickets.provider_config.api_key_env TEXT NULL` und `tickets.factory_model_slots.api_key_env TEXT NULL`, gelesen von Task 2.
 
-- [ ] **Step 1: RED-Test laufen lassen**
+- [x] **Step 1: RED-Test laufen lassen**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: each factory tier" tests/spec/software-factory.bats
@@ -346,7 +346,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: each factory tier" tests/s
 
 Expected: FAIL — `cheap`, `flash` und `sonnet` haben je nur einen `enabled` Kandidaten.
 
-- [ ] **Step 2: Migration schreiben**
+- [x] **Step 2: Migration schreiben**
 
 ```sql
 -- scripts/migrations/2026-07-27-provider-fallback-cascade.sql
@@ -390,13 +390,13 @@ UPDATE tickets.provider_health
 COMMIT;
 ```
 
-- [ ] **Step 3: Migration anwenden**
+- [x] **Step 3: Migration anwenden**
 
 ```bash
 bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql < scripts/migrations/2026-07-27-provider-fallback-cascade.sql'
 ```
 
-- [ ] **Step 4: Kaskade verifizieren**
+- [x] **Step 4: Kaskade verifizieren**
 
 ```bash
 bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql <<EOSQL
@@ -409,7 +409,7 @@ EOSQL'
 
 Erwartet: drei Zeilen fuer `cheap` mit den Prioritaeten 0, 1, 2.
 
-- [ ] **Step 5: Slot-Zustand verifizieren**
+- [x] **Step 5: Slot-Zustand verifizieren**
 
 ```bash
 bash -c 'source scripts/factory/lib.sh; factory_resolve; factory_psql <<EOSQL
@@ -419,7 +419,7 @@ EOSQL'
 
 Erwartet: `llamacpp` mit `active_agents = 0` und leerem `claimed_at`.
 
-- [ ] **Step 6: DB-Test gruen pruefen**
+- [x] **Step 6: DB-Test gruen pruefen**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: each factory tier" tests/spec/software-factory.bats
@@ -427,7 +427,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: each factory tier" tests/s
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/migrations/2026-07-27-provider-fallback-cascade.sql

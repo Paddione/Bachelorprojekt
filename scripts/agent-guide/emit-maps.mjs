@@ -17,7 +17,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
  * write finished saw an empty file. Now: tmp lives next to dest, rename(2) is
  * atomic on POSIX so dest jumps from old content to new content in one step.
  */
-async function atomicWriteFile(dest, body) {
+export async function atomicWriteFile(dest, body) {
   const tmp = `${dest}.${randomBytes(6).toString('hex')}.tmp`;
   try {
     await writeFile(tmp, body, 'utf8');

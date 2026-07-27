@@ -197,6 +197,9 @@ s4:
     - "scripts/find-changed-e2e-tests.sh"
     - "scripts/agent-tracing.mjs"
     - "scripts/reseed-alertmanager-secret.sh"
+    # Pre-existing — referenced by dev-flow-execute phases doc; the S4
+    # reference_sources globs don't reach the inline docs block it lives in.
+    - "scripts/test-dev-flow-execute-sync.sh"
 
 s5:
   rules:

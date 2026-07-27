@@ -10,12 +10,12 @@ opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents b
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `bonsai-8b-1..4` | Ternary-Bonsai-8B (Q2_0, 65k ctx, port 8093, server `-np 1` ⇒ serialized via llm-proxy; physical parallelism configurable via `max_inflight`) | **Preferred** for all write-capable delegation (4 dispatchable names, serial by default) |
+| `gemma-4-12b-1..4` | Gemma4 12B QAT (UD-Q4_K_XL, ~245k ctx, port 8091, server `-np 1` ⇒ serialized via llm-proxy; physical parallelism configurable via `max_inflight`) | **Preferred** for all write-capable delegation (4 dispatchable names, serial by default) |
 | `deepseek-helper` | DeepSeek V4 Flash (OpenCode Go, 1M ctx) | Escalation: local agent stuck or context exhausted |
 | `explore` | built-in | Read-only codebase exploration |
 | `general` | built-in | Read-only general research |
 
-Dispatch: `delegate(prompt, agent)` for read-only. `task` for write-capable (bonsai-8b, deepseek-helper).
+Dispatch: `delegate(prompt, agent)` for read-only. `task` for write-capable (gemma-4-12b, deepseek-helper).
 Agent definitions live in `.opencode/agent-models.jsonc` → sync via `bash scripts/opencode-sync-agents.sh`.
 
 ## Core Commands

@@ -13,10 +13,10 @@
       },
       "models": {
         "gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": {
-          "name": "Gemma4 12B QAT (UD-Q4_K_XL) + MTP-draft Q8_0 (raw llama.cpp + CUDA 13.3, speculative decoding via --spec-type draft-mtp --spec-draft-n-max 2, -ngl 999, -c 16384 auf EINEM Slot (kein -np), --jinja) - vorher starten: C:\\Users\\PatrickKorczewski\\.lmstudio\\start-gemma4-12b-mtp.ps1",
+          "name": "Gemma4 12B QAT (UD-Q4_K_XL) + MTP-draft Q8_0 (raw llama.cpp + CUDA 13.3, speculative decoding via --spec-type draft-mtp --spec-draft-n-max 2, -ngl 999, -c 65536 -fit off, 1 Slot, Q8_0 KV, --jinja) - vorher starten: scripts/llm/start-gemma-server.ps1",
           "limit": {
-            "context": 16384,
-            "output": 4096
+            "context": 65536,
+            "output": 8192
           }
         }
       }
@@ -32,26 +32,7 @@
       // for OpenAI-compatible providers yet (github.com/anomalyco/opencode#6231).
       "models": {}
     },
-    "llama-bonsai-server": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "llama.cpp (Ternary-Bonsai-8B)",
-      "options": {
-        "baseURL": "http://127.0.0.1:18235/v1"
-      },
-      "models": {
-        // Ternary-Bonsai-8B on port 8093: single slot, full 65536 ctx,
-        // exclusive per request (-np 1, no shared KV). Concurrent bonsai-8b-*
-        // dispatches serialize in the llm-proxy queue (scripts/llm-proxy),
-        // not on the server - see T002102-Folgevorfall (2026-07-23).
-        "Ternary-Bonsai-8B-Q2_0.gguf": {
-          "name": "Ternary-Bonsai-8B (Q2_0, serialized, 65k exclusive ctx)",
-          "limit": {
-            "context": 65536,
-            "output": 8192
-          }
-        }
-      }
-    },
+
     // OpenCode Zen/Go: Key aus ~/.config/opencode/secrets.env (chmod 600, nicht
     // in git). "opencode-go" statt "opencode" (Zen) - Subscription-Tier ($10/mo),
     // deepseek-v4-flash ist Teil des Go-Katalogs (verifiziert per curl gegen
@@ -121,64 +102,64 @@
     }
   },
   "agent": {
-    // 4 gleich konfigurierte Agent-Namen statt einem "bonsai-8b" - alle reden
-    // mit demselben llama-server (:8093, -np 1: EIN Slot, exklusiver 65k-Kontext,
-    // kein shared KV). Konkurrierende bonsai-8b-* serialisieren in der llm-proxy-
-    // Queue (scripts/llm-proxy); physische Parallelitaet ist per Backend-Spalte
-    // max_inflight konfigurierbar (Default 1 = seriell, s. factory-flash-bonsai-
-    // gang p4). Die 4 Namen existieren, damit der Orchestrator sie explizit als
-    // unabhaengige `task`-Ziele dispatchen kann, statt sich auf undokumentiertes
-    // Verhalten bei mehrfachem `task` auf denselben Agent-Namen zu verlassen.
-    "bonsai-8b-1": {
-      "description": "Write-capable subagent 1/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+    // 4 gleich konfigurierte Agent-Namen — alle reden mit demselben
+    // llama.cpp-Server (:8091, -np 1: EIN Slot, exklusiver ~245k-Kontext,
+    // Q8_0 KV, kein shared KV, speculative decoding via MTP-Draft).
+    // Konkurrierende gemma-4-12b-* serialisieren in der llm-proxy-Queue
+    // (scripts/llm-proxy). Die 4 Namen existieren, damit der Orchestrator
+    // sie explizit als unabhaengige `task`-Ziele dispatchen kann, statt
+    // sich auf undokumentiertes Verhalten bei mehrfachem `task` auf
+    // denselben Agent-Namen zu verlassen.
+    "gemma-4-12b-1": {
+      "description": "Write-capable subagent 1/4 on Gemma4 12B QAT (raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server - requests serialize in the llm-proxy queue, exclusive ~245k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
-      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
+      "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#F59E0B",
+      "color": "#34D399",
       "temperature": 0.4,
       "steps": 10,
-      // write=deny: bonsai-8b überschreibt sonst ganze Dateien statt surgical edit
-      // (beobachtet 2026-07-23, T002137: 3/3 bonsai löschten existierende Files).
+      // write=deny: subagent überschreibt sonst ganze Dateien statt surgical edit
+      // (beobachtet 2026-07-23, T002137: subagents löschten existierende Files).
       // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "bonsai-8b-2": {
-      "description": "Write-capable subagent 2/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+    "gemma-4-12b-2": {
+      "description": "Write-capable subagent 2/4 on Gemma4 12B QAT (raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server - requests serialize in the llm-proxy queue, exclusive ~245k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
-      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
+      "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#F97316",
+      "color": "#10B981",
       "temperature": 0.4,
       "steps": 10,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "bonsai-8b-3": {
-      "description": "Write-capable subagent 3/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+    "gemma-4-12b-3": {
+      "description": "Write-capable subagent 3/4 on Gemma4 12B QAT (raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server - requests serialize in the llm-proxy queue, exclusive ~245k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
-      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
+      "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#EA580C",
+      "color": "#059669",
       "temperature": 0.4,
       "steps": 10,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "bonsai-8b-4": {
-      "description": "Write-capable subagent 4/4 on Ternary-Bonsai-8B (Q2_0, single-slot server - requests serialize in the llm-proxy queue, exclusive 65k ctx while running, no shared KV). Preferred for all write-capable delegation.",
+    "gemma-4-12b-4": {
+      "description": "Write-capable subagent 4/4 on Gemma4 12B QAT (raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server - requests serialize in the llm-proxy queue, exclusive ~245k ctx while running, no shared KV). Preferred for all write-capable delegation.",
       "mode": "subagent",
-      "model": "llama-bonsai-server/Ternary-Bonsai-8B-Q2_0.gguf",
+      "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#D97706",
+      "color": "#047857",
       "temperature": 0.4,
       "steps": 10,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // Eskalationsstufe fuer Parallel-Agenten (start-bonsai-parallel.ps1), NACH
-    // lokaler Kontext-Kompaktierung/Retry und opencodes eigener Kompaktierung -
-    // erst wenn beides nicht reicht, wird hier dispatcht. Laeuft ueber die
-    // OpenCode-Go-Subscription (kein Pay-per-Token, s. "opencode-go"-Provider
-    // oben), nicht ueber eine direkte DeepSeek-API-Abrechnung.
+    // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
+    // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
+    // beides nicht reicht, wird hier dispatcht. Laeuft ueber die OpenCode-
+    // Go-Subscription (kein Pay-per-Token, s. "opencode-go"-Provider oben),
+    // nicht ueber eine direkte DeepSeek-API-Abrechnung.
     "deepseek-helper": {
-      "description": "ESCALATION: DeepSeek V4 Flash via OpenCode Go (1M ctx) - dispatch when a local parallel subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed",
+      "description": "ESCALATION: DeepSeek V4 Flash via OpenCode Go (1M ctx) - dispatch when a local gemma-4-12b subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed",
       "mode": "subagent",
       "model": "opencode-go/deepseek-v4-flash",
       "prompt": "{file:./prompts/deepseek-helper.md}",
@@ -187,7 +168,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the bonsai-8b gang (up to 4 task-parallel streams) for implementation. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the gemma-4-12b gang (up to 4 task-parallel streams) for implementation. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "opencode-go/deepseek-v4-flash",
       "prompt": "{file:./prompts/orchestrator.md}",
@@ -196,7 +177,7 @@
       "steps": 50,
       "permission": {
         "task": {
-          "bonsai-8b-*": "allow",
+          "gemma-4-12b-*": "allow",
           "deepseek-helper": "allow"
         }
       }

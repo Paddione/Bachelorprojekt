@@ -247,7 +247,7 @@ Setzt die Aufruferseite von D3 um und beseitigt den Griff zum falschen der beide
 - Consumes: `apiKeyEnv` aus dem Router-JSON (Task 2).
 - Produces: nichts fuer spaetere Tasks.
 
-- [ ] **Step 1: RED-Test laufen lassen**
+- [x] **Step 1: RED-Test laufen lassen**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: auto-triage" tests/spec/software-factory.bats
@@ -255,7 +255,7 @@ tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: auto-triage" tests/spec/so
 
 Expected: FAIL — `auto-triage.sh` kennt `apiKeyEnv` nicht und liest hart `DEEPSEEK_API_KEY`.
 
-- [ ] **Step 2: `case`-Statement durch Indirektion ersetzen**
+- [x] **Step 2: `case`-Statement durch Indirektion ersetzen**
 
 In `scripts/factory/auto-triage.sh` den Block ab `case "$provider" in` ersetzen:
 
@@ -275,7 +275,7 @@ In `scripts/factory/auto-triage.sh` den Block ab `case "$provider" in` ersetzen:
   fi
 ```
 
-- [ ] **Step 3: Denselben Mechanismus im Scout-Pfad**
+- [x] **Step 3: Denselben Mechanismus im Scout-Pfad**
 
 `scripts/factory/scout-llm-fallback.sh` liest den Key bisher gar nicht aus dem Router. Nach der `base_url`-Zuweisung ergaenzen:
 
@@ -293,7 +293,7 @@ AUTH_ARGS=()
 
 Die `AUTH_ARGS` beim bestehenden `curl`-Aufruf mit `"${AUTH_ARGS[@]}"` einsetzen. Fail-soft bleibt: ohne Key laeuft der Aufruf wie bisher gegen die lokalen Backends, die keinen Header brauchen.
 
-- [ ] **Step 4: Factory-Key in die Tick-Umgebung exportieren**
+- [x] **Step 4: Factory-Key in die Tick-Umgebung exportieren**
 
 In `scripts/factory/wakeup.sh` beim Laden der Konfiguration ergaenzen:
 
@@ -308,7 +308,7 @@ if [[ -z "${DEEPSEEK_API_KEY_PK:-}" ]]; then
 fi
 ```
 
-- [ ] **Step 5: Tests gruen pruefen**
+- [x] **Step 5: Tests gruen pruefen**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --filter "FA-SF-74: auto-triage" tests/spec/software-factory.bats
@@ -317,7 +317,7 @@ bash -n scripts/factory/scout-llm-fallback.sh && bash -n scripts/factory/wakeup.
 
 Expected: PASS, und beide Syntaxpruefungen ohne Ausgabe.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/factory/auto-triage.sh scripts/factory/scout-llm-fallback.sh scripts/factory/wakeup.sh

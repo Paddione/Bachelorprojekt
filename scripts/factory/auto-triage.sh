@@ -214,12 +214,21 @@ PROMPT
     */v1/*|*/chat/completions|*/messages) ;;  # already has path
     *) api_url="${api_url%/}/v1/chat/completions" ;;
   esac
-  case "$provider" in
-    deepseek)  api_key="${DEEPSEEK_API_KEY:-}" ;;
-    anthropic) api_key="${ANTHROPIC_API_KEY:-}" ;;
-    openai)    api_key="${OPENAI_API_KEY:-}" ;;
-    *)         api_key="" ;;
-  esac
+  # Welche Env-Variable den Key traegt, entscheidet die DB-Zeile — nicht dieses Skript
+  # [T002359]. Vorher stand hier eine Fallunterscheidung ueber den Provider-Namen, die
+  # fuer deepseek DEEPSEEK_API_KEY las: den Coaching-Key, nicht den Factory-Key
+  # (Account pk-deepseek, DEEPSEEK_API_KEY_PK). Ein Provider-Name kann nicht zwischen
+  # zwei Accounts desselben Anbieters unterscheiden — die Routing-Zeile kann es.
+  local key_env
+  key_env=$(echo "$route" | jq -r '.apiKeyEnv // ""')
+  if [[ -n "$key_env" ]]; then
+    api_key="${!key_env:-}"
+    if [[ -z "$api_key" ]]; then
+      echo "auto-triage: $key_env ist nicht gesetzt — Provider $provider ohne Key." >&2
+    fi
+  else
+    api_key=""
+  fi
 
   local tmp_req tmp_resp
   tmp_req=$(mktemp) tmp_resp=$(mktemp)

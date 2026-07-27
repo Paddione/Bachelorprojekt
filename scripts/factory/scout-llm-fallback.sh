@@ -83,17 +83,30 @@ if [[ -z "$base_url" ]]; then
   exit 0
 fi
 
-# Look up API key from env: use provider-specific key if set, else fallback to a
-# generic one. Local providers (localhost/127.0.0.1) skip key check — LM Studio
-# etc. accept any value or none.
+# Welche Env-Variable den Key traegt, sagt die Routing-Zeile [T002359]: der aus dem
+# Provider-Namen abgeleitete Name (DEEPSEEK_API_KEY) trifft den Coaching-Account, nicht
+# den Factory-Account (DEEPSEEK_API_KEY_PK). Der abgeleitete Name bleibt als Fallback
+# fuer Zeilen ohne api_key_env stehen.
+key_env="$(printf '%s' "$provider_json" | jq -r '.apiKeyEnv // empty' 2>/dev/null)"
+api_key="${key_env:+${!key_env:-}}"
+
+# Local providers (localhost/127.0.0.1) skip the key check — LM Studio etc. accept any
+# value or none.
 if [[ "$base_url" != http://127.0.0.1* && "$base_url" != http://localhost* ]]; then
-  key_var="$(echo "$provider" | tr '[:lower:]' '[:upper:]')_API_KEY"
-  api_key="${!key_var:-${FACTORY_LLM_API_KEY:-}}"
   if [[ -z "$api_key" ]]; then
-    echo "scout-llm-fallback: no API key found for provider $provider (${key_var} or FACTORY_LLM_API_KEY unset), skipping." >&2
+    key_var="$(echo "$provider" | tr '[:lower:]' '[:upper:]')_API_KEY"
+    api_key="${!key_var:-${FACTORY_LLM_API_KEY:-}}"
+  fi
+  if [[ -z "$api_key" ]]; then
+    echo "scout-llm-fallback: no API key found for provider $provider (apiKeyEnv=${key_env:-unset}, FACTORY_LLM_API_KEY unset), skipping." >&2
     exit 0
   fi
 fi
+
+# Header nur setzen, wenn ein Key vorliegt — fail-soft gegen die lokalen Backends,
+# die keinen Authorization-Header brauchen.
+AUTH_ARGS=()
+[[ -n "${api_key:-}" ]] && AUTH_ARGS=(-H "Authorization: Bearer ${api_key}")
 
 # Build prompt: include repo file tree so the LLM can suggest existing paths.
 FILE_TREE=$(find "$REPO" -type f \( -name '*.ts' -o -name '*.js' -o -name '*.svelte' -o -name '*.astro' -o -name '*.yaml' -o -name '*.yml' -o -name '*.sh' \) ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/dist/*' 2>/dev/null | sed "s|^$REPO/||" | head -200)
@@ -123,7 +136,7 @@ jq -n \
 
 curl -sS --max-time 60 \
   -H "Content-Type: application/json" \
-  ${api_key:+-H "Authorization: Bearer $api_key"} \
+  ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
   -d "@$tmp_req" \
   "$API_URL" > "$tmp_resp" 2>/dev/null || {
   echo "scout-llm-fallback: LLM call timed out or failed, skipping." >&2

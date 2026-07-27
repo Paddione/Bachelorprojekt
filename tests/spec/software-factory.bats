@@ -4400,6 +4400,30 @@ SH
   [ "$output" -ge 2 ]
 }
 
+# ── T002333: plan_staged bugs must be dispatchable, not only tasks ───────────
+# Ein Bug-Ticket mit gestagtem, lint-gepruefram Plan war fuer den Dispatcher
+# strukturell unsichtbar: die WHERE-Klausel kannte nur type='feature' (backlog)
+# und type='task' (plan_staged). Es blieb ohne Fehlermeldung liegen — belegt am
+# 2026-07-27 an T002278, T002321 und T002335.
+#
+# Die Erweiterung laeuft bewusst ueber IN ('task','bug') im BESTEHENDEN Zweig
+# statt ueber einen dritten OR-Zweig: nur so teilen sich Tasks und Bugs
+# dieselben Readiness-Gates (execution_released, factory_excluded). Ein
+# separater Zweig muesste sie duplizieren — genau die Luecke, die T002361
+# schliessen musste.
+@test "T002333: queue.sh dispatches plan_staged bug tickets alongside tasks" {
+  run grep -Eq "type IN \('task','bug'\) AND status='plan_staged'" "$REPO_ROOT/scripts/factory/queue.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002333: the plan_staged dispatch branch stays single (no ungated bug duplicate)" {
+  # Genau EIN plan_staged-Zweig. Ein zweiter waere der Duplikat-Pfad, an dem
+  # die Readiness-Gates auseinanderlaufen koennen.
+  run bash -c "grep -c \"status='plan_staged'\" '$REPO_ROOT/scripts/factory/queue.sh'"
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 1 ]
+}
+
 @test "T002361: pipeline.mjs calls dryrun-mark outside the DRY_RUN agent prompt" {
   # pipeline.mjs is the LIVE workflow (dispatcher-bridge.sh launches it via
   # Workflow({scriptPath}); run-pipeline.mjs imports it). pipeline.js is a stale

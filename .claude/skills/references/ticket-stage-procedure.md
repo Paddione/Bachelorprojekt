@@ -12,6 +12,31 @@ für das Gang-Gating durchreichen — MCP-seitig via `set_plan_meta`, sonst per 
 (N = Anzahl der Partials aus dem `## Partials`-Manifest, 1..9; Default 1). `--partials`
 lebt in `scripts/vda/ticket/stage-plan.sh` — `scripts/ticket.sh` bleibt unberührt.
 
+> **`--partials` ist PFLICHT, auch für einen einzelnen, nicht aufgeteilten Fix-Plan** —
+> `stage-plan.sh` validiert `case "$partials" in [1-9]`. Das stand bisher nirgends, und die
+> Formulierung „bei einem Multi-Partial-Plan" liest sich wie eine Ausnahme. [T002372-M2]
+
+> **⚠️ Ohne `--hold` ist das Ticket SOFORT factory-greifbar.** `stage-plan.sh` weckt am Ende
+> `factory.service` (`systemctl --user start --no-block`) und setzt eine Force-Tick-Flag. Das
+> ist keine Randnotiz: wer interaktiv plant und den Zeitpunkt der Ausführung selbst bestimmen
+> will, muss `--hold` setzen — sonst greift die Factory zu, bevor der Mensch entschieden hat.
+> `dev-flow-execute` gibt später per `ticket.sh release-hold` frei. [T002372-M2]
+
+> **Flag-Drift zu `archive-plan`:** `stage-plan` akzeptiert seit [T002375-p3] **beides**,
+> `--plan` und `--plan-file`. `archive-plan` kennt weiterhin nur `--plan-file` — dort ist das
+> der etablierte Name, den auch der MCP-Wrapper `archive_plan` verwendet. Ein Flag zur Uebergabe des Slugs
+> hat es an keiner der beiden Stellen je gegeben — der Slug steckt im Plan-Pfad.
+
+> **Exit-Code über eine Pipe: `${PIPESTATUS[0]}`, nicht `$?`.** Läuft der Aufruf als
+> `timeout 120 bash scripts/ticket.sh stage-plan … | tail -5`, misst `$?` das **letzte**
+> Glied der Pipe — also `tail`, das praktisch immer 0 liefert. Ein falsches Flag sieht dann
+> wie ein Erfolg aus, und genau das machte die beiden Punkte oben unsichtbar. [T002372-M2]
+>
+> ```bash
+> timeout 120 bash scripts/ticket.sh stage-plan … | tail -5
+> [ "${PIPESTATUS[0]}" -eq 0 ] || echo "stage-plan FEHLGESCHLAGEN"
+> ```
+
 **Embedding-Index (Hybrid-Kontext-Transfer Teil 2):** Direkt nach dem Stage, vor
 Commit/Push, den Change nach pgvector indizieren, damit die Execute-/Factory-Phase
 ihn per factory-mcp `openspec_find_similar` abrufen kann — über den **fail-visible

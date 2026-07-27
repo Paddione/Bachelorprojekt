@@ -57,21 +57,21 @@ Punkt 3 ist der gefährlichste: er macht die anderen beiden unsichtbar.
 
 ## Schritte
 
-- [ ] **RED zuerst.**
+- [x] **RED zuerst.**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system.bats
 # expected: FAIL (rot — stage-plan lehnt --plan-file ab und nennt die gueltigen Flags nicht)
 ```
 
-- [ ] **Schritt 1 — `--plan-file` als Alias.** In der Argument-Schleife von `stage-plan.sh`
+- [x] **Schritt 1 — `--plan-file` als Alias.** In der Argument-Schleife von `stage-plan.sh`
       `--plan-file` auf dieselbe Variable wie `--plan` legen. Die Richtung ist bewusst gewählt:
       `archive-plan` bekommt **keinen** `--plan`-Alias, weil `--plan-file` dort der etablierte Name
       ist und der MCP-Wrapper ihn verwendet. Ein Alias in beide Richtungen verdoppelt die
       Oberfläche, ohne das Problem kleiner zu machen; hier reicht der eine Weg, den die Aufrufer
       tatsächlich gehen.
 
-- [ ] **Schritt 2 — Fehlermeldung.** `Unknown stage-plan option: $1` (Zeile 14) um die gültige
+- [x] **Schritt 2 — Fehlermeldung.** `Unknown stage-plan option: $1` (Zeile 14) um die gültige
       Flag-Liste ergänzen. Grund: die Meldung ist der einzige Ort, an dem ein Aufrufer im
       Fehlerfall überhaupt hinsieht.
 
@@ -81,13 +81,13 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system.bats
       abgeleitet ist — den Match erfüllen. Die Assertion zuerst auf die relevante Ausgabezeile
       einengen.
 
-- [ ] **Schritt 3 — Referenz abgleichen.** In `ticket-stage-procedure.md` die Flag-Liste gegen
+- [x] **Schritt 3 — Referenz abgleichen.** In `ticket-stage-procedure.md` die Flag-Liste gegen
       `stage-plan.sh` prüfen und `--slug` entfernen. Drei Ergänzungen:
       `--partials` als Pflichtfeld (auch bei einem einzelnen Partial), `--hold` als **Warnung**
       statt Randnotiz (ohne `--hold` ist das Ticket sofort factory-greifbar), und der
       `${PIPESTATUS[0]}`-Hinweis für Aufrufe über eine Pipe.
 
-- [ ] **Schritt 4 — Port-Forward-Integrität (T002371-M1).** In `mcp-tool-guide.md` neben den
+- [x] **Schritt 4 — Port-Forward-Integrität (T002371-M1).** In `mcp-tool-guide.md` neben den
       bestehenden Portforward-Guard: der `kubectl port-forward` auf `workspace/shared-db` ist
       instabil und hat nachweislich **Zeilen mit falscher `external_id`** geliefert — im
       Ursprungsfall wurde ein UPDATE-Flag auf eine nicht existierende ID gesetzt (T002358 statt
@@ -100,7 +100,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system.bats
 
       Kein Skript-Fix: die Ursache liegt in der Port-Forward-Session, nicht im Repo.
 
-- [ ] **Schritt 5 — Tests.** Ein `@test` für `--plan-file` als akzeptiertes Alias, eines dafür,
+- [x] **Schritt 5 — Tests.** Ein `@test` für `--plan-file` als akzeptiertes Alias, eines dafür,
       dass ein wirklich unbekanntes Flag mit Exit 2 abbricht **und** die gültige Liste ausgibt.
       Der zweite Test braucht einen Positiv-Anker (siehe `p7`): erst prüfen, dass ein gültiger
       Aufruf durchläuft, dann die Negativ-Aussage.

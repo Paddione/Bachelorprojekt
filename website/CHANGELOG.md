@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.217.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.217.0...website-v1.217.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* **scripts:** honour s1.ignore in plan-lint residual budget [T002270] ([#3321](https://github.com/Paddione/Bachelorprojekt/issues/3321)) ([313096c](https://github.com/Paddione/Bachelorprojekt/commit/313096c0e12d6110a9d893e3d2c5e07c54107ef7))
+
 ## [1.217.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.216.9...website-v1.217.0) (2026-07-27)
 
 

@@ -1,11 +1,15 @@
 // scripts/agent-guide/emit-maps.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   escapeCell,
   renderGoalsMap,
   renderToolsMap,
   renderDangerMap,
+  atomicWriteFile,
 } from './emit-maps.mjs';
 
 test('escapeCell: pipe is backslash-escaped', () => {
@@ -33,6 +37,30 @@ test('escapeCell: empty/undefined renders as the em-dash placeholder', () => {
   assert.equal(escapeCell(''), '—');
   assert.equal(escapeCell(undefined), '—');
   assert.equal(escapeCell(null), '—');
+});
+
+// ---- regression T002308: atomicWriteFile must unlink (not re-rename) the tmp file on failure ----
+test('atomicWriteFile: on write failure, removes the tmp file instead of re-attempting rename (T002308)', async () => {
+  // T002308: the original catch block was a copy-paste of the try block — it called
+  // `rename(tmp, dest)` again instead of `unlink(tmp)`. That second rename fails for the
+  // exact same reason the first one did, so the tmp sibling is silently left behind on
+  // every failed emitter run. This regression guard forces `dest` to be a pre-existing,
+  // non-empty directory: `rename(tmp, dest)` then fails with EISDIR/ENOTEMPTY, exercising
+  // the catch path realistically. It also proves the tmp path is cleaned up either way,
+  // not just that a specific fs call is invoked.
+  const dir = await mkdtemp(join(tmpdir(), 'emit-maps-atomic-'));
+  try {
+    const dest = join(dir, 'dest');
+    await mkdir(dest); // dest exists as a directory -> rename(tmp, dest) must fail
+    await mkdir(join(dest, 'keep-me-non-empty')); // non-empty, so it's never silently replaced
+
+    await assert.rejects(() => atomicWriteFile(dest, 'body'));
+
+    const leftover = (await readdir(dir)).filter((name) => name.includes('.tmp'));
+    assert.deepEqual(leftover, [], 'no *.tmp sibling must remain after a failed write');
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 // ---- shared fixture builder (in-memory registry, mirrors loadRegistry's return shape) ----

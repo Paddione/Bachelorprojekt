@@ -20,3 +20,31 @@ SPEC_FILE="${BATS_TEST_DIRNAME}/../e2e/specs/fa-bugs-notifications.spec.ts"
   run grep -n "DELETE FROM tickets.tickets" "$SPEC_FILE"
   [ "$status" -eq 0 ]
 }
+
+# --- T000254: korczewski landmark + text expectations -------------------------
+# The korczewski page rendered TWO <footer> elements: KoreHomepage's `w-foot`
+# inside <main>, plus the layout's `site-foot`. A <footer> nested in <main> is a
+# landmark inside a landmark, and it makes Playwright's getByRole('contentinfo')
+# ambiguous under strict mode — the likely source of the "flaky" runs in the
+# ticket. The outer layout footer stays; the inner one must not be a <footer>.
+
+KORE_HOMEPAGE="${BATS_TEST_DIRNAME}/../../website/src/components/kore/KoreHomepage.svelte"
+KORCZEWSKI_SPEC="${BATS_TEST_DIRNAME}/../e2e/specs/korczewski-home.spec.ts"
+
+@test "T000254: KoreHomepage renders no nested <footer> landmark" {
+  run grep -n '<footer' "$KORE_HOMEPAGE"
+  [ "$status" -ne 0 ]
+}
+
+@test "T000254: korczewski footer expectation is case-insensitive" {
+  # The layout footer spells the brand lowercase ("korczewski."); a literal
+  # 'Korczewski' can only ever match the inner w-foot, which is going away.
+  run grep -n "toContainText('Korczewski')" "$KORCZEWSKI_SPEC"
+  [ "$status" -ne 0 ]
+}
+
+@test "T000254: the brand link is addressable by an accessible name" {
+  # Either the link carries an aria-label, or the spec stops relying on one.
+  run grep -n 'korczewski startseite' "$KORCZEWSKI_SPEC"
+  [ "$status" -ne 0 ]
+}

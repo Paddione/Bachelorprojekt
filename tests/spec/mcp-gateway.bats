@@ -63,6 +63,40 @@ setup() {
   [[ "$output" =~ skipped ]]
 }
 
+# ── mcp-postgres Brand-Bindung (T002278) ──────────────────────────────
+# Der Server auf :13001 haengt fest an der mentolder-DB. `external_id` ist nur
+# pro Brand eindeutig, eine Abfrage nach einer korczewski-ID liefert daher still
+# das gleichnamige mentolder-Ticket. Die Bindung muss maschinenlesbar in der
+# Registry stehen und in der Prosa-SSOT als Routing-Regel dokumentiert sein.
+
+@test "registry declares mcp-postgres brand binding and target database" {
+  run bash -c "node -e \"const fs=require('fs'),y=require('yaml');const d=y.parse(fs.readFileSync('$REPO/docs/agent-guide/registry/mcp.yaml','utf8'));const c=d.clients['mcp-postgres'];if(c.brand!=='mentolder')process.exit(1);if(!c.database)process.exit(1);console.log('ok')\""
+  echo "output: $output"
+  [ "$status" -eq 0 ]
+}
+
+@test "registry names the sanctioned korczewski read path for mcp-postgres" {
+  run bash -c "node -e \"const fs=require('fs'),y=require('yaml');const d=y.parse(fs.readFileSync('$REPO/docs/agent-guide/registry/mcp.yaml','utf8'));const c=d.clients['mcp-postgres'];if(!c.korczewski_path)process.exit(1);if(!/workspace-korczewski/.test(c.korczewski_path))process.exit(1);console.log('ok')\""
+  echo "output: $output"
+  [ "$status" -eq 0 ]
+}
+
+@test "mcp-tool-guide warns that mcp-postgres is brand-scoped to mentolder" {
+  run grep -qi 'brand-gebunden\|brand-scoped\|nur die mentolder-DB' \
+    "$REPO/.claude/skills/references/mcp-tool-guide.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "mcp-tool-guide routes ticket reads to ticket-mcp with explicit brand" {
+  run grep -q 'T002278' "$REPO/.claude/skills/references/mcp-tool-guide.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "CLAUDE.md routing table no longer sells mcp-postgres as the ticket-query path" {
+  run grep -q 'mcp-postgres` (localhost:13001) — Ticket-Queries' "$REPO/CLAUDE.md"
+  [ "$status" -ne 0 ]
+}
+
 @test "cluster container names match deployment manifest" {
   run grep -c '"name": "keycloak"\|"name": "playwright"\|"name": "github"' \
     "$REPO/k3d/default/claude-code-mcp-monolith-deploy.yaml"

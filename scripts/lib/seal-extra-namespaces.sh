@@ -14,16 +14,32 @@
 #   - required: false + empty value → emit key with "" (deterministic)
 #   - missing required flag         → fail-closed (default true)
 #
+# Typed secrets, dockerconfigjson and per-entry output files (T002254):
+#   - mapping.type        → secret type of the generated manifest (default Opaque)
+#   - mapping.registry    + mapping.username_key → build a .dockerconfigjson
+#                           blob from username + token instead of a raw value
+#   - mapping.output_file → repo-relative file the document is written to
+#                           (rewritten in full) instead of the collected
+#                           environments/sealed-secrets/<env>.yaml
+#
 # Sourced from scripts/env-seal.sh. Not executable on its own.
 # ═══════════════════════════════════════════════════════════════════
 # shellcheck disable=SC2155
 
+# Root that `output_file` paths are resolved against. Overridable so tests
+# never write into the real repo tree.
+SEAL_OUTPUT_ROOT="${SEAL_OUTPUT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
 # parse_extra_namespace_entries <schema_file>
 # Emits one tab-separated line per tuple:
-#   src<TAB>ns<TAB>sec<TAB>dest<TAB>required<TAB>owner_brand_csv
+#   src<TAB>ns<TAB>sec<TAB>dest<TAB>required<TAB>owner_brand_csv<TAB>type
+#   <TAB>output_file<TAB>registry<TAB>username_key
 # owner_brand_csv is a comma-separated list (e.g. "mentolder" or
 # "mentolder,korczewski"); empty when the schema field is absent
-# (backwards-compat default = no owner_ownership filter).
+# (backwards-compat default = no owner_ownership filter). Absent optional
+# fields are emitted as "-" and decoded back to "" by the reader — TAB is IFS
+# whitespace, so bash `read` would otherwise collapse consecutive empty fields
+# and shift every following column (T002254).
 parse_extra_namespace_entries() {
   local schema_file="$1"
   SCHEMA="$schema_file" WORKSPACE_NS="${WORKSPACE_NS:-workspace}" WEBSITE_NS="${WEBSITE_NS:-website}" python3 <<'PY'
@@ -41,17 +57,36 @@ for entry in schema.get("secrets") or []:
         sec = mapping["secret"]
         dest = mapping.get("dest_key") or src
         owner_brand = mapping.get("owner_brand") or []
-        ob_csv = ",".join(str(b) for b in owner_brand)
-        print(f"{src}\t{ns}\t{sec}\t{dest}\t{required}\t{ob_csv}")
+        ob_csv = ",".join(str(b) for b in owner_brand) or "-"
+        stype = mapping.get("type") or "-"
+        out_file = mapping.get("output_file") or "-"
+        registry = mapping.get("registry") or "-"
+        user_key = mapping.get("username_key") or "-"
+        print(f"{src}\t{ns}\t{sec}\t{dest}\t{required}\t{ob_csv}\t"
+              f"{stype}\t{out_file}\t{registry}\t{user_key}")
 PY
 }
 
-# build_secret_manifest <tmp_manifest> <ns> <sname> <mappings> <secrets_file> [owner_brand_csv]
+# build_dockerconfigjson <registry> <username> <token>
+# Emits {"auths":{"<registry>":{"auth":"<base64 of user:token>"}}} on stdout.
+# Deliberately silent otherwise — the caller must not log the result.
+build_dockerconfigjson() {
+  local auth
+  auth=$(printf '%s:%s' "$2" "$3" | base64 | tr -d '\n')
+  printf '{"auths":{"%s":{"auth":"%s"}}}' "$1" "$auth"
+}
+
+# build_secret_manifest <tmp_manifest> <ns> <sname> <mappings> <secrets_file> \
+#                       [owner_brand_csv] [secret_type]
 # Writes the input Secret manifest to <tmp_manifest> (or empty string if
 # all keys were missing/empty). Honours the per-entry `required` flag:
 #   - required: true + empty value → die
 #   - required: false + empty value → emit key with ""
-# Sets the global DEST_LIST to a space-separated list of emitted keys.
+# Sets the global DEST_LIST to a space-separated list of emitted keys and
+# NONEMPTY_COUNT to the number of keys that carried an actual value (T002254 —
+# the caller uses it to leave an `output_file` untouched instead of writing a
+# document full of empty strings over a live bootstrap ciphertext).
+# secret_type defaults to Opaque.
 # If owner_brand_csv is non-empty, writes the annotation
 # `secrets.bachelorprojekt/owner-brand` on the Secret metadata.
 build_secret_manifest() {
@@ -61,6 +96,7 @@ build_secret_manifest() {
   local mappings="$4"
   local secrets_file="$5"
   local owner_brand_csv="${6:-}"
+  local secret_type="${7:-Opaque}"
 
   declare -A secret_vals
   while IFS= read -r line; do
@@ -74,6 +110,7 @@ build_secret_manifest() {
   done < "$secrets_file"
 
   DEST_LIST=""
+  NONEMPTY_COUNT=0
   {
     echo "apiVersion: v1"
     echo "kind: Secret"
@@ -84,14 +121,32 @@ build_secret_manifest() {
       echo "  annotations:"
       echo "    secrets.bachelorprojekt/owner-brand: \"${owner_brand_csv}\""
     fi
-    echo "type: Opaque"
+    echo "type: ${secret_type}"
     echo "stringData:"
     for m in $mappings; do
-      local src="${m%%:=:*}"
-      local rest="${m#*:=:}"
-      local dest="${rest%:=:*}"
-      local required="${rest##*:=:}"
+      # Mapping fields are `:=:`-joined and never contain whitespace, so
+      # word-splitting is a safe decoder. `-` encodes an empty field. The
+      # function's own arguments are already captured in locals above.
+      # shellcheck disable=SC2086
+      set -- ${m//:=:/ }
+      local src="$1" dest="$2" required="$3"
+      local registry="$4" user_key="$5"
+      [[ "$registry" == "-" ]] && registry=""
+      [[ "$user_key" == "-" ]] && user_key=""
       local val="${secret_vals[$src]:-}"
+
+      # dockerconfigjson: assemble from username + token instead of using the
+      # raw value. An incomplete pair is treated as an empty value.
+      if [[ -n "$registry" && -n "$user_key" ]]; then
+        local user_val="${secret_vals[$user_key]:-}"
+        if [[ -n "$val" && -n "$user_val" ]]; then
+          echo "  ${dest}: '$(build_dockerconfigjson "$registry" "$user_val" "$val")'"
+          DEST_LIST="${DEST_LIST} ${dest}"
+          NONEMPTY_COUNT=$((NONEMPTY_COUNT + 1))
+          continue
+        fi
+        val=""
+      fi
 
       if [[ -z "$val" ]]; then
         case "${required}" in
@@ -108,8 +163,28 @@ build_secret_manifest() {
       fi
       echo "  ${dest}: \"${val}\""
       DEST_LIST="${DEST_LIST} ${dest}"
+      if [[ -n "$val" ]]; then NONEMPTY_COUNT=$((NONEMPTY_COUNT + 1)); fi
     done
   } > "$tmp_manifest"
+}
+
+# write_generated_file_header <target>
+# Truncates <target> and writes the provenance header for an `output_file`
+# document. Replaces the manual regeneration runbook of T002251.
+write_generated_file_header() {
+  cat > "$1" <<EOF
+# GENERIERT von \`task env:seal ENV=${ENV_NAME:-<env>}\` — nicht von Hand editieren.
+# Plaintext-Quelle: environments/.secrets/${ENV_NAME:-<env>}.yaml (git-crypt),
+# Mapping: environments/schema.yaml (extra_namespaces.output_file).
+#
+# Bis T002251 wurden diese Ciphertexte per Runbook aus dem Cluster
+# zurückgelesen und von Hand gesealt; seit T002254 erzeugt sie der Sealer aus
+# dem Secret-SSOT. Nach einer Sealing-Key-Rotation neu erzeugen mit:
+#   task env:seal ENV=${ENV_NAME:-<env>}
+#
+# Wird von \`task flux:bootstrap\` imperativ appliziert und muss existieren,
+# BEVOR Flux das OCI-Artefakt ziehen kann. [T002251][T002254]
+EOF
 }
 
 # seal_extra_namespace_secrets <schema_file> <secrets_file> <cert_file> <output_file>
@@ -143,10 +218,21 @@ seal_extra_namespace_secrets() {
 
   declare -A ns_map=()
   declare -A owner_by_pair=()
-  while IFS=$'\t' read -r src ns sec dest required ob; do
+  declare -A type_by_pair=()
+  declare -A outfile_by_pair=()
+  declare -A truncated=()
+  while IFS=$'\t' read -r src ns sec dest required ob stype out_file registry user_key; do
     [[ -z "$src" ]] && continue
+    # "-" is the placeholder for an absent optional field (see parser).
+    [[ "$ob" == "-" ]] && ob=""
+    [[ "$stype" == "-" ]] && stype=""
+    [[ "$out_file" == "-" ]] && out_file=""
     local pair="${ns}|${sec}"
-    local mapping="${src}:=:${dest}:=:${required}"
+    local mapping="${src}:=:${dest}:=:${required}:=:${registry:--}:=:${user_key:--}"
+    # Type and output file are properties of the (ns, secret) pair; entries
+    # sharing a pair must agree — last declaration wins, as for owner_brand.
+    [[ -n "$stype" ]] && type_by_pair["$pair"]="$stype"
+    [[ -n "$out_file" ]] && outfile_by_pair["$pair"]="$out_file"
     if [[ -v ns_map[$pair] ]]; then
       ns_map["$pair"]="${ns_map[$pair]} ${mapping}"
     else
@@ -188,7 +274,8 @@ seal_extra_namespace_secrets() {
     local tmp_manifest
     tmp_manifest=$(mktemp)
 
-    build_secret_manifest "$tmp_manifest" "$ns" "$sname" "$mappings" "$secrets_file" "$owner_brand_csv"
+    build_secret_manifest "$tmp_manifest" "$ns" "$sname" "$mappings" \
+      "$secrets_file" "$owner_brand_csv" "${type_by_pair[$pair]:-Opaque}"
 
     if [[ -z "${DEST_LIST// /}" ]]; then
       echo "INFO: Skipping ${ns}/${sname} — no keys present in secrets file." >&2
@@ -196,11 +283,31 @@ seal_extra_namespace_secrets() {
       continue
     fi
 
+    # Per-entry output file (T002254): written in full so a removed schema
+    # entry cannot leave a stale ciphertext behind. Never written when every
+    # source key is empty — that would overwrite a live bootstrap ciphertext
+    # with empty strings.
+    local target="$output_file"
+    local of="${outfile_by_pair[$pair]:-}"
+    if [[ -n "$of" ]]; then
+      if [[ "$NONEMPTY_COUNT" -eq 0 ]]; then
+        echo "WARN: skipping ${ns}/${sname} → ${of} — all source keys are empty in ${secrets_file}; leaving the existing file untouched." >&2
+        rm -f "$tmp_manifest"
+        continue
+      fi
+      target="${SEAL_OUTPUT_ROOT}/${of}"
+      mkdir -p "$(dirname "$target")"
+      if [[ -z "${truncated[$of]:-}" ]]; then
+        write_generated_file_header "$target"
+        truncated["$of"]=1
+      fi
+    fi
+
     info "Encrypting ${ns}/${sname} (keys:${DEST_LIST}) with kubeseal..."
     {
       echo "---"
       kubeseal --cert "$cert_file" --format yaml < "$tmp_manifest"
-    } >> "$output_file" \
+    } >> "$target" \
       || die "kubeseal encryption failed for ${ns}/${sname}"
 
     rm -f "$tmp_manifest"

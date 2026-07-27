@@ -254,6 +254,11 @@ for entry in schema.get("secrets") or []:
         owner_brand = mapping.get("owner_brand") or []
         if owner_brand and all(str(b).lower() != brand_lc for b in owner_brand):
             continue
+        # Derived values (T002254): a dockerconfigjson blob is assembled from a
+        # username + token at seal time, so it is never byte-equal to the
+        # source key in workspace-secrets. A sync check would always fail.
+        if mapping.get("registry") or mapping.get("username_key"):
+            continue
         ns = ns_remap.get(mapping["namespace"], mapping["namespace"])
         sec = mapping["secret"]
         dest = mapping.get("dest_key") or src

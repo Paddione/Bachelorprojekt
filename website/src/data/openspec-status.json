@@ -1701,6 +1701,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002291": [
+    {
+      "slug": "mishap-t002291",
+      "status": "plan_staged"
+    }
+  ],
   "T002292": [
     {
       "slug": "2026-07-27-scs-index-silent-skip",

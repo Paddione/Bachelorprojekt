@@ -58,7 +58,7 @@ Herleitung in `design.md` § E2.
 
 ## Schritte
 
-- [ ] **RED zuerst.** Die vier Verhaltenstests schreiben und gegen den Stand ohne Hook laufen
+- [x] **RED zuerst.** Die vier Verhaltenstests schreiben und gegen den Stand ohne Hook laufen
       lassen. Sie müssen fehlschlagen, weil `scripts/hooks/worktree-write-guard.sh` noch nicht
       existiert.
 
@@ -67,7 +67,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/dev-flow-plan.bats
 # expected: FAIL (rot — der Hook existiert noch nicht)
 ```
 
-- [ ] **Schritt 1 — Hook-Skript.** `scripts/hooks/worktree-write-guard.sh` liest die Tool-Eingabe
+- [x] **Schritt 1 — Hook-Skript.** `scripts/hooks/worktree-write-guard.sh` liest die Tool-Eingabe
       auf stdin, zieht den Zielpfad heraus und entscheidet:
 
       1. Pfad **außerhalb** des Repo-Roots → erlauben. Der Hook ist keine allgemeine
@@ -83,7 +83,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/dev-flow-plan.bats
       dort wird `owner_sid` über Tool-Call-Grenzen hinweg stabil und `branch`/`worktree`
       zuverlässig befüllt.
 
-- [ ] **Schritt 2 — Ablehnungsmeldung.** Die Meldung nennt drei Dinge: den abgelehnten Pfad, den
+- [x] **Schritt 2 — Ablehnungsmeldung.** Die Meldung nennt drei Dinge: den abgelehnten Pfad, den
       erwarteten Worktree-Präfix und den Namen der Bypass-Variablen. Vorbild sind
       `SKIP_BRANCH_CHECK` und `SKIP_COMMIT_VS_DIFF` in diesem Repo — ein Guard ohne benannten
       Notausgang wird umgangen statt verstanden.
@@ -91,12 +91,12 @@ tests/unit/lib/bats-core/bin/bats tests/spec/dev-flow-plan.bats
       Konkret soll die Meldung den Fehler aus T002357-M1 direkt beantworten: "der Pfad gehört zum
       Hauptcheckout, dieser Session gehört `<worktree>` — Pfad mit diesem Präfix erneut aufrufen."
 
-- [ ] **Schritt 3 — Registrierung.** Den Hook in `.claude/settings.json` unter dem bereits
+- [x] **Schritt 3 — Registrierung.** Den Hook in `.claude/settings.json` unter dem bereits
       vorhandenen `PreToolUse`-Block auf die dateischreibenden Tools registrieren. Der Block
       existiert (verifiziert: `PreToolUse` und `SessionStart` sind die beiden Schlüssel) — es wird
       ein Eintrag ergänzt, die Datei nicht umgebaut.
 
-- [ ] **Schritt 4 — Tests.** Ein `@test` je Fall aus Schritt 1, plus einer für den Bypass. Die
+- [x] **Schritt 4 — Tests.** Ein `@test` je Fall aus Schritt 1, plus einer für den Bypass. Die
       Fixtures legen die Lock-Dateien in einem `$BATS_TEST_TMPDIR`-Verzeichnis an und setzen
       `AGENT_LOCK_DIR` — **niemals** in das echte `agent-locks/`-Verzeichnis schreiben. Das ist
       genau der Fehler, den T002347-M1 in `software-factory.bats` beschreibt: ein Test, der ins
@@ -107,7 +107,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/dev-flow-plan.bats
       fehlendem Hook rot wird — sonst besteht er vakuos, weil bei fehlendem Skript gar nichts
       passiert. Konvention aus T002356-M1, in `p6` in `CLAUDE.md` verankert.
 
-- [ ] **Schritt 5 — Background-Monitor-Verbot verankern (T002351-M3).** Der
+- [x] **Schritt 5 — Background-Monitor-Verbot verankern (T002351-M3).** Der
       `dev-flow-execute`-Prompt enthält die Direktive wörtlich ("KEINE Background-Tasks, auf deren
       Output du in einer Monitor-Schleife wartest"), und der Implementer startete
       `devflow-ci-watch.sh` trotzdem im Hintergrund — die Wiederholung eines Mishaps aus T001969

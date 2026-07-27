@@ -150,3 +150,116 @@ _exec_step2_block() {
   run grep -n "release-hold" "$EXEC_SKILL"
   [ "$status" -eq 0 ]
 }
+
+# ── [T002375-p2] Worktree-Schreibschutz als blockierender PreToolUse-Hook ──#
+#
+# agent-lock.sh ist kooperativ. Eine Session ohne Claim sah bisher keinerlei
+# Widerstand; der pre-commit-Mutex greift erst beim Commit. T002355-M3 belegt eine
+# fremde Session, die im geclaimten Worktree schrieb UND pushte — entdeckt nur
+# zufaellig ueber einen "File has been modified since read"-Fehler.
+#
+# Die Fixtures schreiben ausschliesslich nach $BATS_TEST_TMPDIR und setzen
+# AGENT_LOCK_DIR. Niemals ins echte agent-locks/ — das ist genau der Fehler aus
+# T002347-M1: ein Test, der ins echte Arbeitsverzeichnis schreibt, macht parallele
+# Laeufe rot und hinterlaesst Muell, wenn er abbricht.
+
+_wg_guard() { echo "$REPO/scripts/hooks/worktree-write-guard.sh"; }
+
+_wg_lock() {  # $1=lockdir $2=name $3=owner_sid $4=worktree
+  cat > "$1/$2.json" <<JSON
+{
+  "scope": "branch",
+  "id": "probe",
+  "owner_sid": "$3",
+  "owner_pid": $$,
+  "label": "probe",
+  "branch": "probe",
+  "worktree": "$4",
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "heartbeat_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+JSON
+}
+
+_wg_run() {  # $1=lockdir $2=sid $3=zielpfad  -> setzt status/output
+  run env AGENT_LOCK_DIR="$1" CLAUDE_CODE_SESSION_ID="$2" \
+    bash -c "cd '$REPO' && printf '%s' '{\"tool_input\":{\"file_path\":\"$3\"}}' | bash '$(_wg_guard)'"
+}
+
+@test "T002375-p2: der Guard existiert und ist ausfuehrbar" {
+  # Positiv-Anker fuer alle Negativtests unten: fehlt das Skript, passiert dort
+  # gar nichts und sie bestuenden vakuos.
+  [ -f "$(_wg_guard)" ] || { echo "scripts/hooks/worktree-write-guard.sh fehlt"; false; }
+  [ -x "$(_wg_guard)" ] || { echo "Guard ist nicht ausfuehrbar"; false; }
+}
+
+@test "T002375-p2: Schreiben ausserhalb des eigenen Worktrees wird abgelehnt" {
+  local ld; ld="$BATS_TEST_TMPDIR/locks-a"; mkdir -p "$ld"
+  # Der Worktree muss UNTER dem Repo-Root liegen — reale Worktrees tun das
+  # (.worktrees/<slug>), und Regel 1 laesst alles ausserhalb bewusst durch.
+  # Das Verzeichnis muss nicht existieren, verglichen werden Praefixe.
+  local mywt="$REPO/.worktrees/t002375-p2-mine"
+  _wg_lock "$ld" branch__probe "sid-mine" "$mywt"
+
+  # Positiv-Anker: innerhalb des eigenen Worktrees MUSS es durchgehen.
+  _wg_run "$ld" "sid-mine" "$mywt/datei.txt"
+  [ "$status" -eq 0 ] || { echo "eigener Worktree wurde faelschlich abgelehnt: $output"; false; }
+
+  # Der eigentliche Fall: Hauptcheckout statt eigenem Worktree.
+  _wg_run "$ld" "sid-mine" "$REPO/scripts/irgendwas.sh"
+  [ "$status" -ne 0 ] || { echo "Schreibzugriff ausserhalb des Worktrees wurde NICHT abgelehnt"; false; }
+  [[ "$output" == *"$mywt"* ]] || { echo "Meldung nennt den eigenen Worktree nicht: $output"; false; }
+  [[ "$output" == *"WORKTREE_GUARD_BYPASS"* ]] || { echo "Meldung nennt den Notausgang nicht: $output"; false; }
+}
+
+@test "T002375-p2: ein fremder lebender Claim schuetzt seinen Worktree" {
+  local ld; ld="$BATS_TEST_TMPDIR/locks-b"; mkdir -p "$ld"
+  local otherwt="$REPO/.worktrees/t002375-p2-fremd"
+  _wg_lock "$ld" branch__fremd "sid-other" "$otherwt"
+
+  # Positiv-Anker: ohne eigenen Claim bleibt alles ausserhalb des fremden erlaubt.
+  _wg_run "$ld" "sid-mine" "$REPO/scripts/irgendwas.sh"
+  [ "$status" -eq 0 ] || { echo "ohne Claim wurde faelschlich abgelehnt: $output"; false; }
+
+  _wg_run "$ld" "sid-mine" "$otherwt/design.md"
+  [ "$status" -ne 0 ] || { echo "Schreiben in fremden geclaimten Worktree wurde NICHT abgelehnt"; false; }
+  [[ "$output" == *"sid-other"* ]] || { echo "Meldung nennt die besitzende Session nicht: $output"; false; }
+}
+
+@test "T002375-p2: Pfade ausserhalb des Repos sind nicht Sache des Guards" {
+  local ld; ld="$BATS_TEST_TMPDIR/locks-c"; mkdir -p "$ld"
+  _wg_lock "$ld" branch__probe "sid-mine" "$REPO/.worktrees/t002375-p2-mine"
+  # /etc/hosts liegt ausserhalb des Repo-Roots — der Guard ist keine allgemeine
+  # Dateisystem-Policy und muss durchlassen.
+  _wg_run "$ld" "sid-mine" "/etc/hosts"
+  [ "$status" -eq 0 ] || { echo "Pfad ausserhalb des Repos wurde abgelehnt: $output"; false; }
+}
+
+@test "T002375-p2: WORKTREE_GUARD_BYPASS=1 laesst den Schreibzugriff durch" {
+  local ld; ld="$BATS_TEST_TMPDIR/locks-d"; mkdir -p "$ld"
+  local mywt="$REPO/.worktrees/t002375-p2-mine"
+  _wg_lock "$ld" branch__probe "sid-mine" "$mywt"
+
+  # Positiv-Anker: ohne Bypass wird derselbe Aufruf abgelehnt.
+  _wg_run "$ld" "sid-mine" "$REPO/scripts/irgendwas.sh"
+  [ "$status" -ne 0 ] || { echo "Vorbedingung: der Zugriff haette abgelehnt werden muessen"; false; }
+
+  run env AGENT_LOCK_DIR="$ld" CLAUDE_CODE_SESSION_ID="sid-mine" WORKTREE_GUARD_BYPASS=1 \
+    bash -c "cd '$REPO' && printf '%s' '{\"tool_input\":{\"file_path\":\"$REPO/scripts/irgendwas.sh\"}}' | bash '$(_wg_guard)'"
+  [ "$status" -eq 0 ] || { echo "Bypass wirkt nicht: $output"; false; }
+}
+
+@test "T002375-p2: der Guard ist in .claude/settings.json auf die Schreib-Tools registriert" {
+  run bash -c "cd '$REPO' && python3 -c \"
+import json
+d = json.load(open('.claude/settings.json'))
+pre = d.get('hooks', {}).get('PreToolUse', [])
+hits = [h for h in pre if 'worktree-write-guard' in json.dumps(h)]
+assert hits, 'kein PreToolUse-Eintrag fuer worktree-write-guard'
+m = hits[0].get('matcher', '')
+for tool in ('Write', 'Edit'):
+    assert tool in m, f'{tool} fehlt im matcher: {m}'
+print('ok')
+\""
+  [ "$status" -eq 0 ] || { echo "$output"; false; }
+}

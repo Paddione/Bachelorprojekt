@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>gitops-knowledge — Workspace MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <a class="site-header-brand" href="../index.html">
+    <span class="site-mark" aria-hidden="true">◆</span>
+    <span class="site-wordmark">Dokumentation</span>
+  </a>
+</header>
+<div id="search-overlay" role="dialog" aria-modal="true" aria-label="Suche">
+  <div id="search-box">
+    <input id="search-input" type="search" role="searchbox" placeholder="Suchen… (Esc schließt)" autocomplete="off" aria-label="Suchbegriff eingeben">
+    <div id="search-results" role="listbox" aria-live="polite" aria-label="Suchergebnisse"></div>
+  </div>
+</div>
+<div id="app">
+<div class="doc-layout">
+<aside class="sidebar" aria-label="Abschnittsnavigation">
+<details class="sidebar-section"><summary class="sidebar-section-title">Dev-Workflow</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../skills/superpowers--brainstorming.html">brainstorming</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-architect.html">code-architect</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-explorer.html">code-explorer</a></li><li class="sidebar-item"><a href="../agents/feature-dev--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-reviewer.html">code-reviewer</a></li><li class="sidebar-item"><a href="../agents/code-simplifier--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--code-simplifier.html">code-simplifier</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--comment-analyzer.html">comment-analyzer</a></li><li class="sidebar-item"><a href="../skills/dev-flow-e2e.html">dev-flow-e2e</a></li><li class="sidebar-item"><a href="../skills/dev-flow-execute.html">dev-flow-execute</a></li><li class="sidebar-item"><a href="../skills/dev-flow-plan.html">dev-flow-plan</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--dispatching-parallel-agents.html">dispatching-parallel-agents</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--executing-plans.html">executing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../skills/superpowers--finishing-a-development-branch.html">finishing-a-development-branch</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--pr-test-analyzer.html">pr-test-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--receiving-code-review.html">receiving-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../skills/superpowers--requesting-code-review.html">requesting-code-review</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--silent-failure-hunter.html">silent-failure-hunter</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--subagent-driven-development.html">subagent-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--systematic-debugging.html">systematic-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../skills/superpowers--test-driven-development.html">test-driven-development</a></li><li class="sidebar-item"><a href="../agents/pr-review-toolkit--type-design-analyzer.html">type-design-analyzer</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/using-git-worktrees.html">using-git-worktrees</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--using-superpowers.html">using-superpowers</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--verification-before-completion.html">verification-before-completion</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-plans.html">writing-plans</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li><li class="sidebar-item"><a href="../skills/superpowers--writing-skills.html">writing-skills</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Bachelorprojekt-Infra</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/mishap-tracker.html">mishap-tracker</a></li><li class="sidebar-item"><a href="../skills/operations-management.html">operations-management</a></li><li class="sidebar-item"><a href="../skills/update-dependencies.html">update-dependencies</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">KI / ML</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cli.html">hf-cli</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-aws-context-discovery.html">hf-cloud-aws-context-discovery</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-python-env-setup.html">hf-cloud-python-env-setup</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-deployment-planner.html">hf-cloud-sagemaker-deployment-planner</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-iam-preflight.html">hf-cloud-sagemaker-iam-preflight</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-sagemaker-production-defaults.html">hf-cloud-sagemaker-production-defaults</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-cloud-serving-image-selection.html">hf-cloud-serving-image-selection</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--hf-mem.html">hf-mem</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-best.html">huggingface-best</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-community-evals.html">huggingface-community-evals</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-datasets.html">huggingface-datasets</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-gradio.html">huggingface-gradio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-llm-trainer.html">huggingface-llm-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-local-models.html">huggingface-local-models</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-lora-space-builder.html">huggingface-lora-space-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-paper-publisher.html">huggingface-paper-publisher</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-papers.html">huggingface-papers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-spaces.html">huggingface-spaces</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-tool-builder.html">huggingface-tool-builder</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-trackio.html">huggingface-trackio</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-vision-trainer.html">huggingface-vision-trainer</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--huggingface-zerogpu.html">huggingface-zerogpu</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--train-sentence-transformers.html">train-sentence-transformers</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--transformers-js.html">transformers-js</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li><li class="sidebar-item"><a href="../skills/huggingface-skills--trl-training.html">trl-training</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Plugin- &amp; Skill-Bau</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../agents/plugin-dev--agent-creator.html">agent-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--agent-development.html">agent-development</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-py.html">agent-sdk-verifier-py</a></li><li class="sidebar-item"><a href="../agents/agent-sdk-dev--agent-sdk-verifier-ts.html">agent-sdk-verifier-ts</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--command-development.html">command-development</a></li><li class="sidebar-item"><a href="../agents/hookify--conversation-analyzer.html">conversation-analyzer</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--hook-development.html">hook-development</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--mcp-integration.html">mcp-integration</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-settings.html">plugin-settings</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--plugin-structure.html">plugin-structure</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--plugin-validator.html">plugin-validator</a></li><li class="sidebar-item"><a href="../skills/skill-creator--skill-creator.html">skill-creator</a></li><li class="sidebar-item"><a href="../skills/plugin-dev--skill-development.html">skill-development</a></li><li class="sidebar-item"><a href="../agents/plugin-dev--skill-reviewer.html">skill-reviewer</a></li><li class="sidebar-item"><a href="../skills/hookify--writing-rules.html">writing-hookify-rules</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">Browser &amp; Debugging</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--a11y-debugging.html">a11y-debugging</a></li><li class="sidebar-item"><a href="../skills/superpowers-chrome--browsing.html">browsing</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools.html">chrome-devtools</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--chrome-devtools-cli.html">chrome-devtools-cli</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--debug-optimize-lcp.html">debug-optimize-lcp</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--memory-leak-debugging.html">memory-leak-debugging</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li><li class="sidebar-item"><a href="../skills/chrome-devtools-mcp--troubleshooting.html">troubleshooting</a></li></ul></details><details class="sidebar-section"><summary class="sidebar-section-title">MCP &amp; API</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/postman--agent-ready-apis.html">agent-ready-apis</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-app.html">build-mcp-app</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcp-server.html">build-mcp-server</a></li><li class="sidebar-item"><a href="../skills/mcp-server-dev--build-mcpb.html">build-mcpb</a></li><li class="sidebar-item"><a href="../skills/postman--generate-spec.html">generate-spec</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--mcp-cli.html">mcp-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-cli.html">postman-cli</a></li><li class="sidebar-item"><a href="../skills/postman--postman-context.html">postman-context</a></li><li class="sidebar-item"><a href="../skills/postman--postman-knowledge.html">postman-knowledge</a></li><li class="sidebar-item"><a href="../skills/postman--run-collection.html">run-collection</a></li><li class="sidebar-item"><a href="../skills/postman--send-request.html">send-request</a></li></ul></details><details class="sidebar-section" open><summary class="sidebar-section-title">Claude Code &amp; Tooling</summary><ul class="sidebar-list"><li class="sidebar-item"><a href="../skills/brightdata-plugin--agent-onboarding.html">agent-onboarding</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--ai-tools-setup.html">ai-tools-setup</a></li><li class="sidebar-item"><a href="../skills/brain-ingest.html">brain-ingest — Brain-Wiki Kompilierung</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brand-listening.html">brand-listening</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brd-browser-debug.html">brd-browser-debug</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-best-practices.html">bright-data-best-practices</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--bright-data-mcp.html">bright-data-mcp</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--brightdata-cli.html">brightdata-cli</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--proxy.html">brightdata-proxy</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--python-sdk-best-practices.html">brightdata-sdk</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--js-sdk-best-practices.html">brightdata-sdk-js</a></li><li class="sidebar-item"><a href="../skills/claude-code-setup--claude-automation-recommender.html">claude-automation-recommender</a></li><li class="sidebar-item"><a href="../skills/claude-md-management--claude-md-improver.html">claude-md-improver</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--competitive-intel.html">competitive-intel</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--computer-health-check.html">computer-health-check</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--data-feeds.html">data-feeds</a></li><li class="sidebar-item"><a href="../skills/database-specialist.html">database-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--design-mirror.html">design-mirror</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--desktop-commander-overview.html">desktop-commander-overview</a></li><li class="sidebar-item"><a href="../skills/dev-flow-chore.html">dev-flow-chore</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--developing-claude-code-plugins.html">developing-claude-code-plugins</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--discover-api.html">discover-api</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--finding-duplicate-functions.html">finding-duplicate-functions</a></li><li class="sidebar-item"><a href="../skills/frontend-design--frontend-design.html">frontend-design</a></li><li class="sidebar-item"><a href="../skills/git-workflow.html">git-workflow</a></li><li class="sidebar-item"><a href="../skills/gitops-skills--gitops-cluster-debug.html">gitops-cluster-debug</a></li><li class="sidebar-item"><a href="../skills/gitops-cluster-debug.html">gitops-cluster-debug</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/gitops-skills--gitops-knowledge.html" aria-current="page">gitops-knowledge</a></li><li class="sidebar-item sidebar-item--active"><a href="../skills/gitops-knowledge.html" aria-current="page">gitops-knowledge</a></li><li class="sidebar-item"><a href="../skills/gitops-skills--gitops-repo-audit.html">gitops-repo-audit</a></li><li class="sidebar-item"><a href="../skills/gitops-repo-audit.html">gitops-repo-audit</a></li><li class="sidebar-item"><a href="../skills/incident-response.html">incident-response</a></li><li class="sidebar-item"><a href="../skills/infra-ops.html">infra-ops</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/semgrep--install-mfw.html">install-mfw</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--knowledge-base.html">knowledge-base</a></li><li class="sidebar-item"><a href="../skills/lavish.html">lavish</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--live-research.html">live-research</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--obsidian-vault.html">obsidian-vault</a></li><li class="sidebar-item"><a href="../skills/openspec-apply-change.html">openspec-apply-change</a></li><li class="sidebar-item"><a href="../skills/openspec-archive-change.html">openspec-archive-change</a></li><li class="sidebar-item"><a href="../skills/openspec-explore.html">openspec-explore</a></li><li class="sidebar-item"><a href="../skills/openspec-propose.html">openspec-propose</a></li><li class="sidebar-item"><a href="../skills/playground--playground.html">playground</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--price-comparison.html">price-comparison</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--rag-pipeline.html">rag-pipeline</a></li><li class="sidebar-item"><a href="../skills/references.html">references</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/remember--remember.html">remember</a></li><li class="sidebar-item"><a href="../skills/repo-hygiene.html">repo-hygiene</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scrape.html">scrape</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-builder.html">scraper-builder</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--scraper-studio.html">scraper-studio</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--search.html">search</a></li><li class="sidebar-item"><a href="../skills/security-specialist.html">security-specialist</a></li><li class="sidebar-item"><a href="../skills/brightdata-plugin--seo-audit.html">seo-audit</a></li><li class="sidebar-item"><a href="../skills/desktop-commander--terminal.html">terminal</a></li><li class="sidebar-item"><a href="../skills/ticket-ops.html">ticket-ops</a></li><li class="sidebar-item"><a href="../skills/braintrust--troubleshoot-braintrust-mcp.html">troubleshoot-braintrust-mcp</a></li><li class="sidebar-item"><a href="../skills/ui-ux-pro-max.html">ui-ux-pro-max</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--using-tmux-for-interactive-commands.html">using-tmux-for-interactive-commands</a></li><li class="sidebar-item"><a href="../skills/vitest.html">vitest</a></li><li class="sidebar-item"><a href="../skills/website-specialist.html">website-specialist</a></li><li class="sidebar-item"><a href="../skills/superpowers-lab--windows-vm.html">windows-vm</a></li><li class="sidebar-item"><a href="../skills/superpowers-developing-for-claude-code--working-with-claude-code.html">working-with-claude-code</a></li></ul></details>
+</aside>
+  <main id="main">
+<header class="page-header">
+  <div class="page-header-body">
+    <nav class="breadcrumbs"><a href="../index.html">Übersicht</a> <span class="sep">/</span> <a href="../skills.html">Skills</a> <span class="sep">/</span> <span class="crumb-current">gitops-knowledge</span></nav>
+    <h1>gitops-knowledge</h1>
+    <p class="page-desc">Flux CD and Flux Operator expert — answers questions and generates schema-validated YAML for all Flux CRDs (not repo auditing or live cluster debugging). Use when users ask about Flux concepts, want manifests for HelmRelease, Kustomization, GitRepository, OCIRepository, ResourceSet, FluxInstance, or any Flux resource. When user needs guidance on GitOps repository structure, bootstrap Flux with Terraform, multi-tenancy, OCI-based delivery, image tag automation, drift detection, preview environments, notifications, or the Flux Web UI and MCP Server.</p>
+    <div class="page-meta">
+      <span class="provenance-badge plugin">plugin · <span class="pv-name">gitops-skills</span> <span class="pv-ver">9b05787530a3</span></span>
+      <span class="domain-tag">infra</span>
+    </div>
+  </div>
+</header>
+
+<article class="doc-body">
+<html><head></head><body><h1>Flux CD Knowledge Base</h1><div class="toc-box auto-toc">
+  <div class="toc-title">Auf dieser Seite</div>
+  <ul class="toc-list"><li class="toc-item"><a href="#what-is-flux"><span class="toc-num">1.</span> What is Flux</a></li>
+<li class="toc-item"><a href="#controllers-and-crds"><span class="toc-num">2.</span> Controllers and CRDs</a></li>
+<li class="toc-item"><a href="#how-flux-works"><span class="toc-num">3.</span> How Flux Works</a></li>
+<li class="toc-item toc-item--h3"><a href="#reconciliation-loop"><span class="toc-num">–</span> Reconciliation Loop</a></li>
+<li class="toc-item toc-item--h3"><a href="#dependency-ordering"><span class="toc-num">–</span> Dependency Ordering</a></li>
+<li class="toc-item toc-item--h3"><a href="#reactivity-with-watch-labels"><span class="toc-num">–</span> Reactivity with Watch Labels</a></li>
+<li class="toc-item"><a href="#decision-trees"><span class="toc-num">4.</span> Decision Trees</a></li>
+<li class="toc-item toc-item--h3"><a href="#which-source-type"><span class="toc-num">–</span> Which Source Type?</a></li>
+<li class="toc-item toc-item--h3"><a href="#kustomization-vs-helmrelease"><span class="toc-num">–</span> Kustomization vs HelmRelease?</a></li>
+<li class="toc-item toc-item--h3"><a href="#resourceset-vs-kustomization"><span class="toc-num">–</span> ResourceSet vs Kustomization?</a></li>
+<li class="toc-item toc-item--h3"><a href="#how-to-set-up-gitops-from-scratch"><span class="toc-num">–</span> How to Set Up GitOps from Scratch</a></li>
+<li class="toc-item"><a href="#canonical-yaml-patterns"><span class="toc-num">5.</span> Canonical YAML Patterns</a></li>
+<li class="toc-item toc-item--h3"><a href="#1-gitops-pipeline-gitrepository--kustomization"><span class="toc-num">–</span> 1. GitOps Pipeline (GitRepository + Kustomization)</a></li>
+<li class="toc-item toc-item--h3"><a href="#2-helm-from-https-repository"><span class="toc-num">–</span> 2. Helm from HTTPS Repository</a></li>
+<li class="toc-item toc-item--h3"><a href="#3-helm-from-oci-registry-recommended"><span class="toc-num">–</span> 3. Helm from OCI Registry (Recommended)</a></li>
+<li class="toc-item toc-item--h3"><a href="#4-fluxinstance-with-oci-sync-gitless-gitops"><span class="toc-num">–</span> 4. FluxInstance with OCI Sync (Gitless GitOps)</a></li>
+<li class="toc-item toc-item--h3"><a href="#5-resourceset-for-multi-component-orchestration"><span class="toc-num">–</span> 5. ResourceSet for Multi-Component Orchestration</a></li>
+<li class="toc-item toc-item--h3"><a href="#6-image-automation"><span class="toc-num">–</span> 6. Image Automation</a></li>
+<li class="toc-item toc-item--h3"><a href="#7-notifications-slack-github-webhooks"><span class="toc-num">–</span> 7. Notifications (Slack, GitHub, Webhooks)</a></li>
+<li class="toc-item"><a href="#common-mistakes"><span class="toc-num">6.</span> Common Mistakes</a></li>
+<li class="toc-item"><a href="#reference-index"><span class="toc-num">7.</span> Reference Index</a></li></ul>
+</div>
+<p>You are an expert on Flux CD, the GitOps toolkit for Kubernetes. Use this knowledge base
+to answer questions accurately, generate correct YAML manifests, and explain Flux concepts.</p>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Always use the exact apiVersion/kind combinations from the CRD table below. Never invent API versions.</li>
+<li>Before generating YAML for any CRD, verify field names, types, enum values, and required fields against its field index in <code>assets/schemas/</code> (see the CRD table below). Each line is <code>&lt;dotted.path&gt; &lt;type&gt; [(required)] [enum=a|b] [default=x] [pattern="..."] [min=N max=N] # description</code>, with arrays as <code>path[]</code> and string maps as <code>&lt;map[string]T&gt;</code>. Grep by path prefix to list a subtree (e.g. <code>grep '^spec\.chart\.' assets/schemas/helmrelease-helm-v2.fields.txt</code>) or grep a field name to find where it lives. Constraints the index doesn't carry (mutual-exclusivity and other CEL rules) are enforced by <code>flux schema validate</code>.</li>
+<li>When a question requires detail beyond this file, load the relevant reference file from <code>references/</code>.</li>
+<li>When working inside a GitOps repository, inventory the layout with <code>flux schema discover</code> before placing files, and after writing manifests validate them with <code>flux schema validate</code> — fix and re-run until clean. Load <code>references/flux-cli.md</code> for the full CLI workflow, local rendering, and overlay debugging. If the tools aren't installed, skip validation and say so.</li>
+<li>Prefer Flux Operator (FluxInstance) for cluster setup. Do not reference <code>flux bootstrap</code> or legacy <code>gotk-*</code> files.</li>
+</ul>
+<h2 id="what-is-flux">What is Flux</h2>
+<p>Flux is a set of Kubernetes controllers that implement GitOps — the practice of using Git
+(or OCI registries) as the source of truth for declarative infrastructure and applications.
+Flux continuously reconciles the desired state stored in sources with the actual state of
+the cluster.</p>
+<p><strong>Flux Operator</strong> manages the Flux installation declaratively through a <code>FluxInstance</code> custom
+resource. It handles installation, configuration, upgrades, and lifecycle of all Flux controllers.
+Only one FluxInstance named <code>flux</code> can exist per cluster.</p>
+<p><strong>How resources relate:</strong></p>
+<div class="code-wrapper"><pre><code>Sources (Git, OCI, Helm, Bucket)
+  │
+  ▼ produce artifacts
+Artifacts (tarballs, Helm charts, OCI layers)
+  │
+  ▼ consumed by
+Appliers (Kustomization, HelmRelease)
+  │
+  ▼ create/update
+Managed Resources (Deployments, Services, ConfigMaps, ...)
+  │
+  ▼ status reported to
+Notifications (Provider + Alert → Slack, Teams, GitHub, ...)
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>ResourceSet orchestration flow:</strong></p>
+<div class="code-wrapper"><pre><code>ResourceSetInputProvider (GitHub PRs, OCI tags, ...)
+  │
+  ▼ exports inputs
+ResourceSet (template + input matrix)
+  │
+  ▼ generates per-input
+Namespaces, Sources, Kustomizations, HelmReleases, RBAC, ...
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p><strong>Two delivery models:</strong></p>
+<ul>
+<li><strong>Git-based:</strong> Flux watches Git repositories and applies changes on commit.</li>
+<li><strong>Gitless (OCI-based):</strong> Git → CI pushes OCI artifacts → Flux pulls from registry. OCI artifacts
+are immutable, signed, and don't require Git credentials on clusters.</li>
+</ul>
+<h2 id="controllers-and-crds">Controllers and CRDs</h2>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>apiVersion</th>
+<th>Controller</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FluxInstance</td>
+<td>fluxcd.controlplane.io/v1</td>
+<td>flux-operator</td>
+<td>Manages Flux installation lifecycle</td>
+</tr>
+<tr>
+<td>FluxReport</td>
+<td>fluxcd.controlplane.io/v1</td>
+<td>flux-operator</td>
+<td>Read-only observed state of Flux</td>
+</tr>
+<tr>
+<td>ResourceSet</td>
+<td>fluxcd.controlplane.io/v1</td>
+<td>flux-operator</td>
+<td>Template resources from input matrix</td>
+</tr>
+<tr>
+<td>ResourceSetInputProvider</td>
+<td>fluxcd.controlplane.io/v1</td>
+<td>flux-operator</td>
+<td>Fetch inputs from external services</td>
+</tr>
+<tr>
+<td>GitRepository</td>
+<td>source.toolkit.fluxcd.io/v1</td>
+<td>source-controller</td>
+<td>Fetch from Git repositories</td>
+</tr>
+<tr>
+<td>OCIRepository</td>
+<td>source.toolkit.fluxcd.io/v1</td>
+<td>source-controller</td>
+<td>Fetch OCI artifacts from registries</td>
+</tr>
+<tr>
+<td>HelmRepository</td>
+<td>source.toolkit.fluxcd.io/v1</td>
+<td>source-controller</td>
+<td>Index Helm chart repositories</td>
+</tr>
+<tr>
+<td>HelmChart</td>
+<td>source.toolkit.fluxcd.io/v1</td>
+<td>source-controller</td>
+<td>Fetch and package Helm charts</td>
+</tr>
+<tr>
+<td>Bucket</td>
+<td>source.toolkit.fluxcd.io/v1</td>
+<td>source-controller</td>
+<td>Fetch from S3-compatible storage</td>
+</tr>
+<tr>
+<td>ExternalArtifact</td>
+<td>source.toolkit.fluxcd.io/v1</td>
+<td>(external)</td>
+<td>Generic artifact storage for 3rd-party controllers</td>
+</tr>
+<tr>
+<td>ArtifactGenerator</td>
+<td>source.extensions.fluxcd.io/v1beta1</td>
+<td>source-watcher</td>
+<td>Compose/decompose artifacts from multiple sources</td>
+</tr>
+<tr>
+<td>Kustomization</td>
+<td>kustomize.toolkit.fluxcd.io/v1</td>
+<td>kustomize-controller</td>
+<td>Build and apply Kustomize overlays or plain YAML</td>
+</tr>
+<tr>
+<td>HelmRelease</td>
+<td>helm.toolkit.fluxcd.io/v2</td>
+<td>helm-controller</td>
+<td>Install and manage Helm releases</td>
+</tr>
+<tr>
+<td>Provider</td>
+<td>notification.toolkit.fluxcd.io/v1beta3</td>
+<td>notification-controller</td>
+<td>External notification provider config</td>
+</tr>
+<tr>
+<td>Alert</td>
+<td>notification.toolkit.fluxcd.io/v1beta3</td>
+<td>notification-controller</td>
+<td>Route events to notification providers</td>
+</tr>
+<tr>
+<td>Receiver</td>
+<td>notification.toolkit.fluxcd.io/v1</td>
+<td>notification-controller</td>
+<td>Webhook receiver for incoming events</td>
+</tr>
+<tr>
+<td>ImageRepository</td>
+<td>image.toolkit.fluxcd.io/v1</td>
+<td>image-reflector-controller</td>
+<td>Scan container image registries</td>
+</tr>
+<tr>
+<td>ImagePolicy</td>
+<td>image.toolkit.fluxcd.io/v1</td>
+<td>image-reflector-controller</td>
+<td>Select image by version policy</td>
+</tr>
+<tr>
+<td>ImageUpdateAutomation</td>
+<td>image.toolkit.fluxcd.io/v1</td>
+<td>image-automation-controller</td>
+<td>Update YAML in Git with new image tags</td>
+</tr>
+</tbody></table>
+<h2 id="how-flux-works">How Flux Works</h2>
+<h3 id="reconciliation-loop">Reconciliation Loop</h3>
+<p>Flux controllers run a continuous reconciliation loop:</p>
+<ol>
+<li><strong>Sources poll for changes</strong> — source-controller checks Git repos, OCI registries, Helm repos,
+or S3 buckets at configured intervals and produces versioned artifacts.</li>
+<li><strong>Appliers consume artifacts</strong> — kustomize-controller and helm-controller detect new artifact
+revisions, build manifests (Kustomize overlays or Helm templates), and apply them to the cluster
+using server-side apply.</li>
+<li><strong>Drift detection and self-healing</strong> — Flux compares the desired state from the source with the
+live state in the cluster. When drift is detected, Flux corrects it automatically (if enabled).</li>
+<li><strong>Notifications report status</strong> — notification-controller sends events to external systems
+(Slack, Teams, GitHub commit status, etc.) based on Alert rules.</li>
+</ol>
+<h3 id="dependency-ordering">Dependency Ordering</h3>
+<p>Use <code>dependsOn</code> to control reconciliation order. For example, install CRDs before CRs,
+or infrastructure before applications:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">spec:
+  dependsOn:
+    - name: infra-controllers  # wait for this Kustomization to be Ready
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>ResourceSets support richer dependencies with <code>readyExpr</code> (CEL expressions) and can depend on any type of resource:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">spec:
+  dependsOn:
+    - apiVersion: fluxcd.controlplane.io/v1
+      kind: ResourceSet
+      name: policies
+      ready: true
+      readyExpr: "status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For ordering <em>within</em> a single ResourceSet, use <code>spec.steps</code> (ordered named steps, each applied
+and health-checked before the next) instead of <code>spec.resources</code> — see <code>references/resourcesets.md</code>.</p>
+<h3 id="reactivity-with-watch-labels">Reactivity with Watch Labels</h3>
+<p>By default, Flux controllers poll sources at the configured interval. To react immediately
+when a dependency changes, add the watch label to the upstream resource:</p>
+<div class="code-wrapper"><pre><code class="language-yaml">metadata:
+  labels:
+    reconcile.fluxcd.io/watch: Enabled
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>When a ConfigMap or Secret with this label changes, any Kustomization or HelmRelease that
+references it via <code>postBuild.substituteFrom</code> or <code>valuesFrom</code> will reconcile immediately.</p>
+<h2 id="decision-trees">Decision Trees</h2>
+<h3 id="which-source-type">Which Source Type?</h3>
+<ul>
+<li><strong>Git repo with Kustomize overlays or plain YAML</strong> → <code>GitRepository</code></li>
+<li><strong>OCI artifact (container image with manifests)</strong> → <code>OCIRepository</code></li>
+<li><strong>Helm chart from OCI registry</strong> → <code>OCIRepository</code> with <code>layerSelector</code> for Helm media type</li>
+<li><strong>Helm chart from HTTPS Helm repo</strong> → <code>HelmRepository</code> (default type)</li>
+<li><strong>S3/GCS/MinIO bucket</strong> → <code>Bucket</code></li>
+<li><strong>Monorepo that needs splitting</strong> → <code>ArtifactGenerator</code> (creates <code>ExternalArtifact</code> per path)</li>
+<li><strong>Helm chart + env-specific values from Git</strong> → <code>ArtifactGenerator</code> (composes chart with values overlay)</li>
+</ul>
+<h3 id="kustomization-vs-helmrelease">Kustomization vs HelmRelease?</h3>
+<ul>
+<li><strong>Plain YAML or Kustomize overlays</strong> → <code>Kustomization</code></li>
+<li><strong>Helm chart</strong> → <code>HelmRelease</code></li>
+<li>Both can deploy to remote clusters via <code>kubeConfig</code> and support <code>dependsOn</code>.</li>
+</ul>
+<h3 id="resourceset-vs-kustomization">ResourceSet vs Kustomization?</h3>
+<ul>
+<li><strong>One set of manifests, one deployment</strong> → <code>Kustomization</code></li>
+<li><strong>Same template deployed for N inputs (tenants, components, environments)</strong> → <code>ResourceSet</code></li>
+<li>ResourceSets generate resources from an input matrix; Kustomizations apply a fixed set of manifests.</li>
+</ul>
+<h3 id="how-to-set-up-gitops-from-scratch">How to Set Up GitOps from Scratch</h3>
+<ol>
+<li>Install Flux Operator (Helm chart or Terraform)</li>
+<li>Create a <code>FluxInstance</code> named <code>flux</code> in the <code>flux-system</code> namespace</li>
+<li>Configure <code>.spec.sync</code> to point to your Git repo or OCI registry</li>
+<li>Organize manifests in the source repo using Kustomize base+overlay pattern</li>
+<li>Create <code>Kustomization</code> resources to apply manifests from the source</li>
+<li>Add <code>Provider</code> + <code>Alert</code> for notifications</li>
+</ol>
+<h2 id="canonical-yaml-patterns">Canonical YAML Patterns</h2>
+<h3 id="1-gitops-pipeline-gitrepository--kustomization">1. GitOps Pipeline (GitRepository + Kustomization)</h3>
+<div class="code-wrapper"><pre><code class="language-yaml">apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: my-app
+  namespace: flux-system
+spec:
+  interval: 5m
+  url: https://github.com/org/my-app.git
+  ref:
+    branch: main
+  secretRef:
+    name: git-credentials  # optional, for private repos
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: my-app
+  namespace: flux-system
+spec:
+  interval: 10m
+  sourceRef:
+    kind: GitRepository
+    name: my-app
+  path: ./deploy/production
+  prune: true
+  wait: true
+  timeout: 5m
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="2-helm-from-https-repository">2. Helm from HTTPS Repository</h3>
+<div class="code-wrapper"><pre><code class="language-yaml">apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  interval: 1h
+  url: https://kubernetes-sigs.github.io/metrics-server/
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: metrics-server
+      version: "3.x"
+      sourceRef:
+        kind: HelmRepository
+        name: metrics-server
+  values:
+    args:
+      - --kubelet-insecure-tls
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="3-helm-from-oci-registry-recommended">3. Helm from OCI Registry (Recommended)</h3>
+<div class="code-wrapper"><pre><code class="language-yaml">apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: cert-manager-chart
+  namespace: cert-manager
+spec:
+  interval: 1h
+  url: oci://quay.io/jetstack/charts/cert-manager
+  layerSelector:
+    mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
+    operation: copy
+  ref:
+    semver: "1.x"
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: cert-manager-chart
+  install:
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 5m
+  upgrade:
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 5m
+  values:
+    crds:
+      enabled: true
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="4-fluxinstance-with-oci-sync-gitless-gitops">4. FluxInstance with OCI Sync (Gitless GitOps)</h3>
+<div class="code-wrapper"><pre><code class="language-yaml">apiVersion: fluxcd.controlplane.io/v1
+kind: FluxInstance
+metadata:
+  name: flux
+  namespace: flux-system
+spec:
+  distribution:
+    version: "2.x"
+    registry: "ghcr.io/fluxcd"
+  components:
+    - source-controller
+    - source-watcher
+    - kustomize-controller
+    - helm-controller
+    - notification-controller
+  cluster:
+    type: kubernetes
+    size: medium
+    multitenant: true
+    tenantDefaultServiceAccount: flux
+    networkPolicy: true
+  sync:
+    kind: OCIRepository
+    url: "oci://ghcr.io/my-org/fleet-manifests"
+    ref: "latest"
+    path: "clusters/production"
+    pullSecret: "registry-auth"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<h3 id="5-resourceset-for-multi-component-orchestration">5. ResourceSet for Multi-Component Orchestration</h3>
+<div class="code-wrapper"><pre><code class="language-yaml">apiVersion: fluxcd.controlplane.io/v1
+kind: ResourceSet
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  inputs:
+    - tenant: "frontend"
+      environment: "production"
+    - tenant: "backend"
+      environment: "production"
+  resources:
+    - apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: &lt;&lt; inputs.tenant &gt;&gt;
+    - apiVersion: source.toolkit.fluxcd.io/v1
+      kind: OCIRepository
+      metadata:
+        name: apps
+        namespace: &lt;&lt; inputs.tenant &gt;&gt;
+      spec:
+        interval: 5m
+        url: "oci://ghcr.io/my-org/apps/&lt;&lt; inputs.tenant &gt;&gt;"
+        ref:
+          tag: latest
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1
+      kind: Kustomization
+      metadata:
+        name: apps
+        namespace: &lt;&lt; inputs.tenant &gt;&gt;
+      spec:
+        interval: 30m
+        wait: true
+        prune: true
+        sourceRef:
+          kind: OCIRepository
+          name: apps
+        path: "./&lt;&lt; inputs.environment &gt;&gt;"
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+<p>For the full multi-tenant pattern — per-tenant ServiceAccount + RoleBinding,
+<code>serviceAccountName</code> impersonation, <code>dependsOn</code>, and the <code>reconcileEvery</code> annotation —
+load <code>references/resourcesets.md</code>.</p>
+<h3 id="6-image-automation">6. Image Automation</h3>
+<p>Flux supports two delivery models for updating container images and Helm chart versions.
+Pick based on whether the team wants Git commits as the audit log for version changes:</p>
+<ul>
+<li><strong>Git-based</strong> — <code>ImageRepository</code> + <code>ImagePolicy</code> + <code>ImageUpdateAutomation</code> scan the
+registry and commit tag bumps back to Git via <code>$imagepolicy</code> YAML markers. Requires
+<code>image-reflector-controller</code> and <code>image-automation-controller</code> on the cluster. Load
+<code>references/image-automation.md</code>.</li>
+<li><strong>Gitless</strong> — <code>ResourceSet</code> + <code>ResourceSetInputProvider</code> (<code>type: OCIArtifactTag</code>)
+scans the registry and re-renders the <code>ResourceSet</code> directly, upgrading the downstream
+<code>HelmRelease</code> or <code>Kustomization</code> without touching Git. No bot credentials, no Git
+poll lag, no extra controllers. Recommended default for Flux Operator deployments.
+Load <code>references/gitless-image-automation.md</code>.</li>
+</ul>
+<p>Gitless is the better fit when the tag lives in Helm values, when tags should differ per
+cluster in a fleet, or when the team doesn't want a bot writing to the repo. Git-based is
+the better fit when PR-based approval of version bumps is required or when Git must remain
+the canonical record of every deployed version.</p>
+<h3 id="7-notifications-slack-github-webhooks">7. Notifications (Slack, GitHub, Webhooks)</h3>
+<p>Provider + Alert for outgoing notifications, Receiver for incoming webhooks.
+Alert and Provider use <code>v1beta3</code>, Receiver uses <code>v1</code>.</p>
+<p>For Slack, GitHub commit status, webhook receivers, and all provider types,
+load <code>references/notifications.md</code>.</p>
+<h2 id="common-mistakes">Common Mistakes</h2>
+<p><strong>Wrong template delimiters:</strong></p>
+<ul>
+<li>ResourceSet uses <code>&lt;&lt; inputs.field &gt;&gt;</code> — NOT <code>{{ .inputs.field }}</code> or <code>{{ inputs.field }}</code></li>
+<li>Go templates <code>{{ }}</code> are only used in ImageUpdateAutomation <code>.spec.git.commit.messageTemplate</code></li>
+</ul>
+<p><strong>Mutual exclusivity:</strong></p>
+<ul>
+<li>HelmRelease: <code>spec.chart.spec</code> and <code>spec.chartRef</code> are mutually exclusive</li>
+<li>FluxInstance: only one per cluster, must be named <code>flux</code></li>
+</ul>
+<p><strong>HelmRelease strategy fields:</strong></p>
+<ul>
+<li>Install/upgrade strategy is at <code>spec.install.strategy.name</code> and <code>spec.upgrade.strategy.name</code></li>
+<li>Always use <code>RetryOnFailure</code> — it retries without rollback or uninstall, avoiding downtime</li>
+<li>Do not use <code>RemediateOnFailure</code> or <code>spec.install.remediation</code> / <code>spec.upgrade.remediation</code></li>
+</ul>
+<p><strong>OCIRepository for Helm charts:</strong></p>
+<ul>
+<li>When using OCIRepository to fetch Helm charts from OCI registries, set <code>layerSelector</code> to extract the chart:<div class="code-wrapper"><pre><code class="language-yaml">layerSelector:
+  mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
+  operation: copy
+</code></pre><button class="copy-btn" aria-label="Copy code">Copy</button></div>
+</li>
+</ul>
+<p><strong>Drift control — pick the right knob:</strong></p>
+<ul>
+<li>Kustomization <code>spec.ignore</code> — exclude specific JSON-pointer fields from drift detection/apply (e.g. HPA <code>replicas</code>). Distinct from the <code>kustomize.toolkit.fluxcd.io/ssa: Ignore</code> annotation, which skips a whole object.</li>
+<li>HelmRelease <code>spec.driftDetection.ignore</code> — the HelmRelease equivalent, only active when <code>driftDetection.mode</code> is <code>warn</code>/<code>enabled</code>.</li>
+</ul>
+<h2 id="reference-index">Reference Index</h2>
+<p>Load reference files and field indexes based on the question topic.
+Grep the field index for field-level lookups when generating YAML.</p>
+<table>
+<thead>
+<tr>
+<th>CRD</th>
+<th>Reference</th>
+<th>Field Index</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FluxInstance</td>
+<td><code>references/flux-operator.md</code></td>
+<td><code>assets/schemas/fluxinstance-fluxcd-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>FluxReport</td>
+<td><code>references/flux-operator.md</code></td>
+<td><code>assets/schemas/fluxreport-fluxcd-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>ResourceSet</td>
+<td><code>references/resourcesets.md</code></td>
+<td><code>assets/schemas/resourceset-fluxcd-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>ResourceSetInputProvider</td>
+<td><code>references/resourcesets.md</code></td>
+<td><code>assets/schemas/resourcesetinputprovider-fluxcd-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>GitRepository</td>
+<td><code>references/sources.md</code></td>
+<td><code>assets/schemas/gitrepository-source-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>OCIRepository</td>
+<td><code>references/sources.md</code></td>
+<td><code>assets/schemas/ocirepository-source-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>HelmRepository</td>
+<td><code>references/sources.md</code></td>
+<td><code>assets/schemas/helmrepository-source-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>HelmChart</td>
+<td><code>references/sources.md</code></td>
+<td><code>assets/schemas/helmchart-source-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>Bucket</td>
+<td><code>references/sources.md</code></td>
+<td><code>assets/schemas/bucket-source-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>ExternalArtifact</td>
+<td><code>references/sources.md</code></td>
+<td><code>assets/schemas/externalartifact-source-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>ArtifactGenerator</td>
+<td><code>references/sources.md</code></td>
+<td><code>assets/schemas/artifactgenerator-source-v1beta1.fields.txt</code></td>
+</tr>
+<tr>
+<td>Kustomization</td>
+<td><code>references/kustomization.md</code></td>
+<td><code>assets/schemas/kustomization-kustomize-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>HelmRelease</td>
+<td><code>references/helmrelease.md</code></td>
+<td><code>assets/schemas/helmrelease-helm-v2.fields.txt</code></td>
+</tr>
+<tr>
+<td>Provider</td>
+<td><code>references/notifications.md</code></td>
+<td><code>assets/schemas/provider-notification-v1beta3.fields.txt</code></td>
+</tr>
+<tr>
+<td>Alert</td>
+<td><code>references/notifications.md</code></td>
+<td><code>assets/schemas/alert-notification-v1beta3.fields.txt</code></td>
+</tr>
+<tr>
+<td>Receiver</td>
+<td><code>references/notifications.md</code></td>
+<td><code>assets/schemas/receiver-notification-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>ImageRepository</td>
+<td><code>references/image-automation.md</code></td>
+<td><code>assets/schemas/imagerepository-image-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>ImagePolicy</td>
+<td><code>references/image-automation.md</code></td>
+<td><code>assets/schemas/imagepolicy-image-v1.fields.txt</code></td>
+</tr>
+<tr>
+<td>ImageUpdateAutomation</td>
+<td><code>references/image-automation.md</code></td>
+<td><code>assets/schemas/imageupdateautomation-image-v1.fields.txt</code></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Repository structure, monorepo vs multi-repo, OCI-based fleet management</td>
+<td><code>references/repo-patterns.md</code></td>
+</tr>
+<tr>
+<td>Best practices, dependency management, remediation, versioning</td>
+<td><code>references/best-practices.md</code></td>
+</tr>
+<tr>
+<td>Web UI, dashboard, SSO, OIDC, Dex, Keycloak, Entra ID, RBAC</td>
+<td><code>references/web-ui.md</code></td>
+</tr>
+<tr>
+<td>MCP Server, AI assistant integration, in-cluster deployment</td>
+<td><code>references/mcp-server.md</code></td>
+</tr>
+<tr>
+<td>Terraform bootstrap of Flux Operator</td>
+<td><code>references/terraform-bootstrap.md</code></td>
+</tr>
+<tr>
+<td>Flux CLI and plugins: <code>flux schema</code> discover/validate/extract, local rendering with <code>flux build</code> and <code>flux operator build</code>, overlay debugging</td>
+<td><code>references/flux-cli.md</code></td>
+</tr>
+<tr>
+<td>Gitless GitOps, Flux OCI artifacts, <code>flux push artifact</code>, registry-based delivery</td>
+<td><code>references/gitless-gitops.md</code></td>
+</tr>
+<tr>
+<td>Gitless image automation (ResourceSet + OCIArtifactTag)</td>
+<td><code>references/gitless-image-automation.md</code></td>
+</tr>
+</tbody></table>
+</body></html>
+</article>
+
+<nav class="prevnext" aria-label="Seitennavigation"><a class="prevnext-link prevnext-prev" href="../skills/gitops-skills--gitops-knowledge.html"><span class="prevnext-label">← Zurück</span><span class="prevnext-title">gitops-knowledge</span></a><a class="prevnext-link prevnext-next" href="../skills/gitops-skills--gitops-repo-audit.html"><span class="prevnext-label">Weiter →</span><span class="prevnext-title">gitops-repo-audit</span></a></nav>
+  </main>
+</div>
+</div>
+<footer class="site-footer">
+  <span>Workspace MVP — generierte Dokumentation</span>
+</footer>
+<script src="../app.js"></script>
+</body>
+</html>

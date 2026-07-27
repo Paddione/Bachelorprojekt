@@ -109,3 +109,24 @@ _exec_step2_block() {
   grep -q "\.git/worktrees/<name>/modules" "$FOOTGUNS" \
     || { echo "MISSING path pattern: .git/worktrees/<name>/modules"; return 1; }
 }
+
+# ── Migrated from superpowers-writing-plans.bats (T002302) ──────────────
+
+@test "dev-flow-plan SKILL.md exists" {
+  [ -f "$REPO/.claude/skills/dev-flow-plan/SKILL.md" ]
+}
+
+@test "dev-flow-plan mentions plan-lint rules" {
+  run grep -q "plan-lint" "$REPO/.claude/skills/dev-flow-plan/SKILL.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "dev-flow-plan references Step 3.7" {
+  run grep -q "3.7" "$REPO/.claude/skills/dev-flow-plan/SKILL.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "dev-flow-plan mentions frontmatter keys" {
+  run grep -q "frontmatter" "$REPO/.claude/skills/dev-flow-plan/SKILL.md"
+  [ "$status" -eq 0 ]
+}

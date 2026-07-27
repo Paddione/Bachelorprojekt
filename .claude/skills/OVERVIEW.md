@@ -1,6 +1,6 @@
 # Skills Overview
 
-39 project-local skills (35 in `.claude/skills/<name>/` + 1 in `.claude/skills/superpowers/using-git-worktrees/`) grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+28 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
@@ -56,35 +56,32 @@ Each skill's `SKILL.md` frontmatter carries an optional `agent:` field that tell
 
 ---
 
-## Schicht-Kontrakt: dev-flow orchestriert, superpowers liefert Disziplin
+## Schicht-Kontrakt: dev-flow orchestriert, Disziplin-Schritte sind inlined
 
-Die `dev-flow-*`-Skills sind **projektspezifische Orchestratoren**. Sie rufen die generischen
-`superpowers:*`-Skills für die Disziplin-Schritte auf und ergänzen Projekt-Tooling
-(`worktree-create.sh`, `ticket.sh`, `agent-lock.sh`, Deploy-Tasks).
+Die `dev-flow-*`-Skills sind **projektspezifische Orchestratoren**. Die ehemaligen generischen
+`superpowers:*`-Disziplin-Schritte (brainstorming, writing-plans, executing-plans,
+test-driven-development, verification-before-completion, requesting-code-review) sind in die
+jeweiligen `dev-flow-*`-Skills inlined — keine eigenen Skill-Verzeichnisse mehr.
 
-**Regel:** Für Repo-Arbeit **immer über `dev-flow-*` einsteigen** — nie direkt in
-`superpowers:brainstorming` / [`writing-plans`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--writing-plans.html) / [`executing-plans`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--executing-plans.html) / [`finishing-a-development-branch`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--finishing-a-development-branch.html).
-Der dev-flow-Skill ruft diese zur richtigen Zeit selbst auf.
+**Regel:** Für Repo-Arbeit **immer über `dev-flow-*` einsteigen**.
 
-| dev-flow-Schritt | ruft superpowers-Skill |
+| dev-flow-Schritt | Disziplin-Schritt (inlined) |
 |---|---|
-| [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html) Schritt 3 | [`brainstorming`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--brainstorming.html) |
-| [`dev-flow-plan`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-plan.html) Schritt 3.7 (Subagent) | [`writing-plans`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--writing-plans.html) |
-| [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) Schritt 2 (Implementer) | [`executing-plans`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--executing-plans.html) (in-context) + [`test-driven-development`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--test-driven-development.html) |
-| [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) bei Fehlern | *(Implementer diagnostiziert selbst — Logs, Hypothese, Fix, Re-Test)* |
-| [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) Schritt 3 | [`verification-before-completion`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--verification-before-completion.html) |
-| [`dev-flow-execute`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/dev-flow-execute.html) Schritt 3.8 | [`requesting-code-review`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--requesting-code-review.html) |
+| `dev-flow-plan` Schritt 3 | Brainstorming |
+| `dev-flow-plan` Schritt 3.7 (Subagent) | Plan-Schreibung |
+| `dev-flow-execute` Schritt 2 (Implementer) | executing-plans + test-driven-development |
+| `dev-flow-execute` Schritt 3 | verification-before-completion |
+| `dev-flow-execute` Schritt 3.8 | requesting-code-review (Code Review) |
 
-> **Worktrees:** [`using-git-worktrees`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/using-git-worktrees.html) (superpowers) ist im dev-flow-Pfad durch
-> `scripts/worktree-create.sh` ersetzt (git-crypt-safe). Nicht beide mischen.
+> **Worktrees:** `scripts/worktree-create.sh` (git-crypt-safe) übernimmt Worktree-Isolation im dev-flow-Pfad.
 
 ### Verifikations-Leiter (wer prüft was — kein doppeltes Gate)
 
 Verifikation passiert bewusst auf zwei Ebenen mit **unterschiedlichem Zweck** — das ist kein Stacking:
 
-1. **Implementer-Subagent:** [`test-driven-development`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--test-driven-development.html) (Rot-Grün) → stoppt erst bei grünen Tests. *Selbst-Check.*
-2. **Eltern (execute):** [`verification-before-completion`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--verification-before-completion.html) → **unabhängige** Re-Verifikation der Subagent-Behauptung (Evidence vor Assertion).
-3. **Eltern (execute):** [`requesting-code-review`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/superpowers--requesting-code-review.html) → fremde Augen auf Korrektheit/Stil **vor** Merge.
+1. **Implementer-Subagent:** test-driven-development (Rot-Grün) → stoppt erst bei grünen Tests. *Selbst-Check.*
+2. **Eltern (execute):** verification-before-completion → **unabhängige** Re-Verifikation der Subagent-Behauptung (Evidence vor Assertion).
+3. **Eltern (execute):** requesting-code-review → fremde Augen auf Korrektheit/Stil **vor** Merge.
 4. **Eltern (execute):** CI-Fix-Loop → die Wahrheit der CI nach dem Push.
 
 Stufe 2 wiederholt Stufe 1 *nicht* aus Misstrauen, sondern weil delegierte Selbstauskunft kein
@@ -117,7 +114,7 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 | Skill | When to use |
 |---|---|
 | [`workspace-deploy`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/workspace-deploy.html) | Full-stack workspace platform deployment — umbrella `workspace:setup`, post-setup, talk/recording/transcriber setup, optional admin-users and vaultwarden seed. Every service that doesn't ship via base kustomize alone. |
-| [`llm-ops`](https://github.com/Paddione/Bachelorprojekt/blob/main/k3d/docs-content-built/skills/llm-ops.html) | LLM pipeline operations — GPU host bootstrap, model management, deploy/status/test of LLM gateway services (TEI, Ollama, LiteLLM router, ComfyUI, Rigger). |
+| `infra-ops` §5 | LLM pipeline operations — GPU host bootstrap, model management, deploy/status/test of LLM gateway services. |
 
 ---
 
@@ -143,16 +140,15 @@ unabhängiger Beweis ist. Stufen 3+4 prüfen andere Dimensionen (Review-Qualitä
 
 ---
 
-## Third-party / ML-Referenz-Skills (kein Projekt-Workflow)
+## Third-party / UI-Referenz-Skills (kein Projekt-Workflow)
 
 Eingecheckte Referenz-Skills ohne Bezug zum Workspace-Deploy-Workflow — nur bei explizitem Bedarf aufrufen:
 
 | Skill | When to use |
 |---|---|
 | `ui-ux-pro-max` | UI/UX-Design-Intelligenz (Styles, Paletten, Font-Pairings) — für opencode via `permission: deny` deaktiviert. |
-| `unsloth` | Schnelles LLM-Fine-Tuning (LoRA/QLoRA) — Referenz für die lokale LLM-Pipeline. |
-| `gguf-quantization` | GGUF-Format & llama.cpp-Quantisierung für CPU/Consumer-GPU-Inferenz. |
-| `speculative-decoding` | Inferenz-Beschleunigung (Draft-Modelle, Medusa, Lookahead). |
+
+> **Ungetrackte Skills (lokal installiert):** `haniakrim21-everything-claude-code-react-bits` (Name `react-bits`) und `whisper` sind nicht von git getrackt (lokal via market-cli installiert). Ihre Entfernung ist ein manueller Schritt auf dem Entwicklungsrechner.
 
 ---
 
@@ -167,22 +163,6 @@ graph TD
         DP -->|chore| DC[dev-flow-chore]
         DE --> DEE[dev-flow-e2e]
     end
-
-    subgraph "superpowers (Disziplin-Schicht)"
-        BS[brainstorming]
-        WP[writing-plans]
-        EP[executing-plans]
-        TDD[test-driven-development]
-        VBC[verification-before-completion]
-        RCR[requesting-code-review]
-    end
-
-    DP --> BS
-    DP --> WP
-    DE --> EP
-    DE --> TDD
-    DE --> VBC
-    DE --> RCR
 
     subgraph "Runbooks (eigenständig)"
         IO[infra-ops §1-7]

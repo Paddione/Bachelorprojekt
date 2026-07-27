@@ -29,18 +29,6 @@
       "dev-flow-execute": "deny",
       "dev-flow-chore": "deny",
       "dev-flow-e2e": "deny",
-      "requesting-code-review": "deny",
-      "superpowers:brainstorming": "deny",
-      "superpowers:executing-plans": "deny",
-      "superpowers:writing-plans": "deny",
-      "test-driven-development": "deny",
-      "verification-before-completion": "deny",
-      // ── ML inference / fine-tuning (not project-relevant) ────────────
-      "gguf-quantization": "deny",
-      "llama-cpp": "deny",
-      "speculative-decoding": "deny",
-      "unsloth": "deny",
-      "whisper": "deny",
       // ── Generic meta / skill discovery ───────────────────────────────
       "agent-orchestration": "deny",
       "project-overview": "deny",
@@ -56,7 +44,6 @@
       "website-specialist": "deny",
       // ── UI/design (not primary workflow) ─────────────────────────────
       "ui-ux-pro-max": "deny",
-      "react-bits": "deny",
       "references": "deny",
       // ── market-cli installed (not project-relevant, avoid context bloat) ─
       "lavish": "deny"

@@ -48,10 +48,11 @@ task clusters:status                        # one-line status across both enviro
 # (Deploy is push-based — there is no Flux/Argo reconciler on fleet to query.)
 ```
 
-## LLM operations (llm-ops)
+## LLM operations
 For GPU host bootstrap, model management, deploy/status/test of LLM gateway services
-(TEI, Ollama, LiteLLM router, ComfyUI, Rigger), use the
-`.claude/skills/llm-ops/SKILL.md` runbook. Uses `task llm:*` commands against
+(TEI, Ollama, LiteLLM router, ComfyUI, Rigger), refer to
+`infra-ops` §5 (LLM Ops) in `.claude/skills/infra-ops/SKILL.md`.
+Uses `task llm:*` commands against
 the GPU worker at `10.10.0.3` (WireGuard mesh, LM Studio port 1234).
 
 ## Important constraints

@@ -37,7 +37,7 @@ while IFS= read -r file; do
   
   # If it is a test file in our base dir, it's a direct candidate
   if [[ "$file" == "$BASE_DIR"/*.bats ]]; then
-    if ! is_excluded "$file"; then
+    if [ -f "$file" ] && ! is_excluded "$file"; then
       CANDIDATES+=("$file")
     fi
     continue

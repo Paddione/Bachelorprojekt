@@ -445,8 +445,8 @@ Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) �
 | Skill | Beziehung |
 |-------|-----------|
 | `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
-| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8. Stub in `.claude/skills/superpowers-brainstorming/` für opencode-Kompatibilität |
-| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7). Stub in `.claude/skills/superpowers-writing-plans/` für opencode-Kompatibilität |
+| `superpowers:brainstorming` | **IMMER** aufgerufen — Feature-Pfad Schritt 3, Fix-Pfad Schritt 2.8. Claude Code built-in; opencode: inlined in `opencode-flow-plan` |
+| `superpowers:writing-plans` | Aufgerufen vom Plan-Subagenten (Schritt 3.7). Claude Code built-in; opencode: inlined in `opencode-flow-plan` |
 | `dev-flow-execute` | **Nachfolger im Kreislauf** — implementiert den erstellten Plan |
 | `dev-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |
 | `mishap-tracker` | Abschluss — protokolliert Frictions |

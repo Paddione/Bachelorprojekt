@@ -60,7 +60,7 @@ aber `scripts/factory/queue.sh` dispatcht nur `type='feature' AND status='backlo
 `backlog` bewegt, füllt im **selben** Durchgang `requirements_list` und setzt den Lock — dieser
 Schritt wird nicht auf später vertagt.
 
-**Titel-Dedupe vor jeder Intake-Zeile:** Bevor aus einer Intake-Quelle eine neue Zeile entsteht,
+**Dedupe-Guard vor jeder Intake-Zeile:** Bevor aus einer Intake-Quelle eine neue Zeile entsteht,
 wird nach einem offenen Ticket mit demselben Titel gesucht (case-insensitiv,
 Whitespace-normalisiert). Bei einem Treffer wird die bestehende `external_id` wiederverwendet und
 ein `ticket_comments`-Eintrag mit der Re-Trigger-Quelle angehängt — **keine** neue Zeile. Sonst

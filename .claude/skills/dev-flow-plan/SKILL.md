@@ -120,6 +120,23 @@ Plan reale Signaturen statt erfundener Typen referenziert: `symbols`/`signature`
 - **Plan-Staleness:** Wenn Factory schneller ist als Planner → Dispatcher pausiert (kein Ticket in backlog). Sobald nächstes Partial enqueued ist, läuft Tick weiter.
 - **Plan-Mutation:** Sobald ein Partial enqueued ist, darf der Planner es nicht mehr ändern.
 
+### Schritt 3.7: Plan-Erstellung — Decompose, dann paralleler Fan-out (T002074)
+
+Zweistufig: Der Orchestrator **decomposed** aus `intel.json` in Partials mit disjunkten
+`target_files` (Tests immer separat, Obergrenze 9), dann schreiben **parallele Plan-Subagenten**
+je ihre `tasks.d/pX-<name>.md`. Der Orchestrator schreibt den `tasks.md`-Index mit
+Partial-Manifest, `## File Structure` und finalem Verify-Task. Mechanik, Kontext-Injektion und
+Provisionierung: [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md).
+
+**Der Subagent-Prompt MUSS
+[plan-quality-gates](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-quality-gates.md)
+verbindlich einbinden** — der Subagent liest die Datei und schreibt den Plan dagegen. Sie ist
+SSOT für die plan-lint Hard Rules: Frontmatter mit `title`, `ticket_id`, `domains`, `status` (F1),
+`## File Structure` nach der H1 (STRUCT1), ein Failing-Test-Step mit der wörtlichen Phrase
+`expected: FAIL` **plus** echtem Testrunner-Aufruf (STRUCT2), der finale Verify-Task mit
+`task test:changed` / `task freshness:regenerate` / `task freshness:check` (STRUCT3), das Verbot
+offener Platzhalter wie `TBD`/`TODO`/`FIXME` in der Prosa (P1) und die Budget-Integrität (B1a/B1b).
+
 ### Schritt 3.8: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)
 Führe ZUERST den deterministischen, fail-closed Linter auf den Plan-Pfad aus, den der
 Subagent zurückgegeben hat — das ist das **harte Gate**:

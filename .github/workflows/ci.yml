@@ -28,7 +28,7 @@ concurrency:
   # Cancel superseded runs on the same PR (rapid iteration / stacked Factory pushes);
   # never cancel push-to-main runs, which gate the deployable history.
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

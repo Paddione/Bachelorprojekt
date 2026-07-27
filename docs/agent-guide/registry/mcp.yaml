@@ -152,6 +152,8 @@ clients:
       opencode:
         type: local
         command: [npx, -y, "@modelcontextprotocol/server-github"]
+        environment:
+          GITHUB_TOKEN: "{env:GITHUB_TOKEN}"
         enabled: false
     note: "Nur in opencode (disabled). gh-axi ist der mandatierte GitHub-Pfad."
 

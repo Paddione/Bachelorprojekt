@@ -66,14 +66,14 @@ kosmetische Zusammenziehung.
 
 ## Schritte
 
-- [ ] **RED zuerst.** Die neuen Tests schreiben und gegen den unveränderten Stand laufen lassen.
+- [x] **RED zuerst.** Die neuen Tests schreiben und gegen den unveränderten Stand laufen lassen.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
 # expected: FAIL (rot — _my_sid kennt CLAUDE_CODE_SESSION_ID nicht, ein ticket-Claim schreibt branch="")
 ```
 
-- [ ] **Schritt 1 — Extraktion (S1-Budget schaffen).** `cmd_guard_precommit` (Zeilen 404–423) und
+- [x] **Schritt 1 — Extraktion (S1-Budget schaffen).** `cmd_guard_precommit` (Zeilen 404–423) und
       `cmd_guard_postcheckout` (Zeilen 425–446) nach `scripts/agent-lock-guards.sh` verschieben.
       `agent-lock.sh` sourct die neue Datei und behält die Dispatch-Einträge im `case`, damit die
       Aufrufschnittstelle unverändert bleibt. Die beiden externen Aufrufer sind
@@ -83,12 +83,12 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
 
       Nachweis, dass die Extraktion wirkt: `wc -l < scripts/agent-lock.sh` liegt danach unter 430.
 
-- [ ] **Schritt 2 — T002363 absorbieren.** `git cherry-pick 1c26c3d66`. **Vor** Schritt 3
+- [x] **Schritt 2 — T002363 absorbieren.** _(entfaellt: bereits als PR #3410 / Commit b9685c683 in main; `_reject_arg` liegt vor.)_ `git cherry-pick 1c26c3d66`. **Vor** Schritt 3
       ausführen, sonst kollidiert der Pick mit dem neu geschriebenen `cmd_claim`. Konflikte in
       `agent-lock.sh` zugunsten beider Seiten auflösen (die Argument-Validierung und die
       Extraktion aus Schritt 1 sind unabhängig). Der Commit-Autor bleibt erhalten.
 
-- [ ] **Schritt 3 — Harness-Variable.** `_my_sid` so umbauen, dass es die erste nicht-leere unter
+- [x] **Schritt 3 — Harness-Variable.** `_my_sid` so umbauen, dass es die erste nicht-leere unter
       `CLAUDE_CODE_SESSION_ID` und `CLAUDE_SESSION_ID` nimmt, danach `AGENT_LOCK_SID`, danach den
       Unix-Fallback. Die Reihenfolge ist normativ in der Delta-Spec festgehalten.
 
@@ -96,7 +96,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
       bestehenden Tests hängen daran. Die Namensliste gehört in **eine** Variable am Dateikopf,
       damit `_detect_tool` (Zeile 61, prüft dieselbe Variable) nicht auseinanderläuft.
 
-- [ ] **Schritt 4 — Branch-Auto-Fill.** In `cmd_claim` nach der Argument-Auswertung: Ist `BRANCH`
+- [x] **Schritt 4 — Branch-Auto-Fill.** In `cmd_claim` nach der Argument-Auswertung: Ist `BRANCH`
       leer, aus dem HEAD des Claim-Worktrees füllen (`git -C "${WT:-$PWD}" rev-parse
       --abbrev-ref HEAD`), nicht nur für branch-scoped Claims. Die bestehende Zeile 253
       (`[ "$SCOPE" = "branch" ] && [ -z "$BRANCH" ] && BRANCH="$ID"`) bleibt als Spezialfall
@@ -106,7 +106,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
       läuft trotzdem durch. Ein Claim darf an dieser Stelle nicht scheitern; das Feld ist
       Diagnose-Information, keine Vorbedingung.
 
-- [ ] **Schritt 5 — Reap-Härtung für tote Kurzläufer-Locks (T002341-M3, T002372 dritter Effekt).**
+- [x] **Schritt 5 — Reap-Härtung für tote Kurzläufer-Locks (T002341-M3, T002372 dritter Effekt).**
       Ein Claim, der in einem sofort endenden `bash -c` gesetzt wurde, trägt dessen PID als
       `owner_pid`; der nächste `reap` einer Parallelsession räumt ihn ab. Mit Schritt 3 ist
       `owner_sid` nicht mehr numerisch, und `_sid_alive` behandelt nicht-numerische SIDs bereits
@@ -116,7 +116,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
       nicht-numerischer `owner_sid` anlegt und prüft, dass `reap` ihn stehen lässt, bis die
       Heartbeat-TTL abläuft.
 
-- [ ] **Schritt 6 — Den Scheintest ersetzen.** `tests/spec/agent-lock-session-identity.bats:32`
+- [x] **Schritt 6 — Den Scheintest ersetzen.** `tests/spec/agent-lock-session-identity.bats:32`
       setzt `CLAUDE_SESSION_ID` selbst und prüft dann, dass es verwendet wird. Der Test war grün,
       während der Mechanismus in der realen Umgebung nie griff — dieselbe Fehlerklasse, die `p7`
       behandelt, mitten im Locking-Cluster.
@@ -125,7 +125,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-session-identity.bats
       `CLAUDE_SESSION_ID` bewusst ungesetzt. Der bestehende Test bleibt zusätzlich erhalten, damit
       die Rückwärtskompatibilität geprüft ist.
 
-- [ ] **Schritt 7 — Test: Release über die Tool-Call-Grenze.** Der Test, der den ursprünglichen
+- [x] **Schritt 7 — Test: Release über die Tool-Call-Grenze.** Der Test, der den ursprünglichen
       Befund reproduziert: `claim` und `release` in **getrennten** Subshells mit derselben
       Harness-Variable, unterschiedlicher Unix-SID. `release` muss ohne `--force` durchlaufen.
       Die Unix-SID-Differenz wird im Test durch zwei separate `bash -c`-Aufrufe erzeugt.

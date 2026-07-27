@@ -19,6 +19,14 @@ set -uo pipefail
 AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"
 AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 
+# Namen der harness-gesetzten Session-Variablen, in Prüfreihenfolge. [T002375-p1]
+# EINE Liste für _my_sid UND _detect_tool: bis hierher prüften beide unabhängig
+# voneinander `CLAUDE_SESSION_ID`, und genau so läuft eine solche Liste auseinander.
+# CLAUDE_CODE_SESSION_ID zuerst, weil Claude Code sie real exportiert;
+# CLAUDE_SESSION_ID bleibt gültig — opencode und agy können sie setzen, und die
+# bestehenden Tests hängen daran.
+_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID"
+
 _now() { date +%s; }
 
 _my_sid() {
@@ -27,7 +35,17 @@ _my_sid() {
   # AGENT_LOCK_SID stays as a second layer (CI / unit tests). Only fall back
   # to the per-call Unix SID when neither harness env nor test override is
   # set — that path is the source of the cross-call drift bug. [T001268]
-  if [ -n "${CLAUDE_SESSION_ID:-}" ]; then printf '%s\n' "$CLAUDE_SESSION_ID"; return; fi
+  # [T002375-p1] Die Harness exportiert CLAUDE_CODE_SESSION_ID, nicht CLAUDE_SESSION_ID.
+  # Gemessen: `env | grep -c '^CLAUDE_SESSION_ID='` -> 0, `…CLAUDE_CODE_SESSION_ID=` -> 1.
+  # Die alte Zeile las nur die zweite Variante, fiel also IMMER auf den Unix-Fallback
+  # unten durch — und der ist pro Bash-Tool-Call verschieden. Folge: `release` hielt den
+  # eigenen Lock für fremd und verlangte --force. Das ist keine Kosmetik: --force ist das
+  # Instrument, mit dem man FREMDE lebende Locks abräumt; erzwingt der Normalfall es,
+  # gewöhnt sich jeder Aufrufer daran und räumt irgendwann einen echten fremden ab.
+  local _v
+  for _v in $_AGENT_LOCK_SID_ENVS; do
+    if [ -n "${!_v:-}" ]; then printf '%s\n' "${!_v}"; return; fi
+  done
   if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
   local s; s="$(ps -o sess= -p "$$" 2>/dev/null | tr -d ' ')"
   if [ -n "$s" ]; then printf '%s\n' "$s"; return; fi
@@ -58,7 +76,11 @@ _detect_tool() {
   # CLAUDE_SESSION_ID is the harness-provided env from Claude Code / opencode;
   # we also accept the older CLAUDECODE/CLAUDE_CODE marker for back-compat.
   # CLAUDE_SESSION_ID alone is enough to identify the Claude harness. [T001268]
-  if [ -n "${CLAUDE_SESSION_ID:-}${CLAUDECODE:-}${CLAUDE_CODE:-}" ]; then echo claude
+  # [T002375-p1] Dieselbe Namensliste wie _my_sid — sonst erkennt der eine die Harness
+  # und der andere nicht.
+  local _v _sid_env=""
+  for _v in $_AGENT_LOCK_SID_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done
+  if [ -n "${_sid_env}${CLAUDECODE:-}${CLAUDE_CODE:-}" ]; then echo claude
   elif [ -n "${GEMINI_CLI:-}${GEMINI_SANDBOX:-}${GEMINI_API_KEY:-}" ]; then echo gemini
   else echo unknown; fi
 }
@@ -266,6 +288,21 @@ cmd_claim() {
   # branch claims went stale as soon as the sid check failed, while the ticket
   # claim of the very same session stayed live. [T002267]
   [ "$SCOPE" = "branch" ] && [ -z "$BRANCH" ] && BRANCH="$ID"
+  # [T002375-p1] Für JEDEN anderen Scope aus dem HEAD füllen. Vorher blieb `branch`
+  # bei einem ticket-scoped Claim leer — und der Pre-Commit-Guard aus dev-flow-plan
+  # Schritt 5 vergleicht genau dieses Feld mit dem HEAD-Branch. Er schlug damit
+  # zwangsläufig fehl, sobald man den Claim so absetzte, wie die Skill ihn
+  # dokumentiert. Verschärfend: `claim` ist idempotent und überschreibt einen
+  # bestehenden Lock nicht, ein einmal leer angelegter ließ sich also nicht durch
+  # erneutes Claimen reparieren.
+  #
+  # Scheitert rev-parse (detached HEAD, kein Repo), bleibt das Feld leer und der Claim
+  # läuft trotzdem durch: `branch` ist Diagnose-Information, keine Vorbedingung — ein
+  # Claim darf hier nicht scheitern.
+  if [ -z "$BRANCH" ]; then
+    BRANCH="$(git -C "${WT:-$PWD}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+    [ "$BRANCH" = "HEAD" ] && BRANCH=""
+  fi
   local f; f="$(_lock_file "$SCOPE" "$ID")"
   _with_lock
   [ -f "$f" ] && _reapable "$f" && rm -f "$f"
@@ -405,49 +442,21 @@ cmd_reap() {
   return 0
 }
 
-cmd_guard_precommit() {
-  [ -n "${AGENT_LOCK_FORCE:-}" ] && return 0
-  local f; f="$(_lock_file main-checkout)"
-  _with_lock
-  # Only a DELIBERATE foreign claim (any label other than the auto self-claim one) still
-  # hard-blocks — an auto-claimed lock is bookkeeping, not a real exclusive hold, so it must
-  # never block a different session's ordinary commit. [T001383]
-  if [ -f "$f" ] && ! _reapable "$f" \
-     && [ "$(_lock_field "$f" owner_sid)" != "$(_my_sid)" ] \
-     && [ "$(_lock_field "$f" label)" != "$_SELF_CLAIM_LABEL" ]; then
-    echo "AGENT-LOCK: main-Checkout $(_holder_msg "$f")" >&2
-    echo "  Eine andere Session arbeitet im main-Checkout. Nutze einen Worktree" >&2
-    echo "  (scripts/worktree-create.sh) oder erzwinge: AGENT_LOCK_FORCE=1 git commit ..." >&2
-    return 1
-  fi
-  # No live foreign deliberate lock blocks the commit → self-claim so the `branch` field
-  # stays populated for guard-postcheckout. Best-effort; must never block the commit. [T001383]
-  _self_claim_main_checkout || true
-  return 0
-}
 
-cmd_guard_postcheckout() {
-  local f; f="$(_lock_file main-checkout)"
-  [ -f "$f" ] || return 0
-  _reapable "$f" && return 0
-  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] && return 0
-  # Exemption first: never warn or revert mid rebase/merge/cherry-pick.
-  _git_op_in_progress && return 0
-  echo "AGENT-LOCK (Warnung): main-Checkout $(_holder_msg "$f") — paralleler Branch-Switch riskant." >&2
-  # Opt-out escape hatch.
-  [ "${AGENT_LOCK_POSTCHECKOUT_REVERT:-1}" = "0" ] && return 0
-  # Best-effort revert onto the lock's recorded branch — never a raw SHA.
-  local br; br="$(_lock_field "$f" branch)"
-  [ -n "$br" ] || return 0
-  git show-ref --verify --quiet "refs/heads/$br" || return 0
-  [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$br" ] && return 0
-  if git checkout "$br" >/dev/null 2>&1; then
-    echo "AGENT-LOCK: main-Checkout auf '$br' zurückgesetzt (Lock-Halter aktiv)." >&2
-  else
-    echo "AGENT-LOCK: Revert auf '$br' fehlgeschlagen — bitte manuell prüfen." >&2
-  fi
-  return 0
-}
+# Die beiden Git-Hook-Guards liegen in einer eigenen Datei [T002375-p1] — diese hier
+# stand bei 464 von 500 erlaubten Zeilen (S1, .sh) und hatte für den Change keinen Platz.
+# Die Aufrufschnittstelle bleibt `agent-lock.sh guard-precommit|guard-postcheckout`,
+# damit .githooks/pre-commit und .githooks/post-checkout unverändert bleiben können.
+# Fail-loud: fehlt die Datei, sind die Guards stumm wirkungslos — und ein Guard, der
+# schweigend nichts tut, ist schlimmer als gar keiner.
+_AGENT_LOCK_DIR_SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh" ]; then
+  # shellcheck source=scripts/agent-lock-guards.sh
+  . "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh"
+else
+  echo "AGENT-LOCK: FATAL — scripts/agent-lock-guards.sh fehlt neben $0" >&2
+  exit 1
+fi
 
 main() {
   local cmd="${1:-}"; shift 2>/dev/null || true

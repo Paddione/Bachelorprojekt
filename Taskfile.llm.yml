@@ -95,8 +95,18 @@ tasks:
           set -e
           DIR="$HOME/.local/state/llm-proxy"; mkdir -p "$DIR"
           PIDF="$DIR/proxy.pid"; LOGF="$DIR/proxy.log"
+          PORT="${LLM_PROXY_PORT:-18235}"
           if [ -f "$PIDF" ] && kill -0 "$(cat "$PIDF")" 2>/dev/null; then
             echo "llm-proxy already running (pid $(cat "$PIDF"))"; exit 0
+          fi
+          # T002277: das PID-File kennt nur die nohup-Instanz. Laeuft der Proxy als
+          # systemd-Unit (task llm:proxy:install-service), ist der Port belegt, aber
+          # kein PID-File da - der Start unten wuerde mit EADDRINUSE sterben und ein
+          # PID-File hinterlassen, das auf einen toten Prozess zeigt. Der Port ist
+          # die verlaessliche Auskunft, nicht das PID-File.
+          if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then
+            echo "llm-proxy already answering on :$PORT (systemd unit? -> systemctl --user status llm-proxy)"
+            exit 0
           fi
           nohup node scripts/llm-proxy/server.mjs >> "$LOGF" 2>&1 &
           echo $! > "$PIDF"
@@ -123,6 +133,57 @@ tasks:
     desc: "Tail the local LLM proxy log"
     cmds:
       - tail -n 100 -f "$HOME/.local/state/llm-proxy/proxy.log"
+
+  # ── llm-proxy als systemd USER service (T002277) ────────────────────────
+  # Gleiche Form wie agents:factory-mcp:install. Der Windows-Startup-Ordner
+  # (scripts/llm/install-startup-autostart.ps1) startet nur die llama.cpp-Server
+  # auf der Windows-Seite; der Proxy ist ein WSL-Node-Prozess und gehoert hierher.
+  proxy:install-service:
+    desc: "Install the LLM proxy as a persistent systemd USER service (autostart + Restart=always)"
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host (WSL without lingering?)."
+          echo "Enable it: 'loginctl enable-linger $USER' then re-run. Falling back: task llm:proxy:start."
+          exit 1
+        fi
+        # Manuell gestartete nohup-Instanz beenden, damit der Port fuer systemd frei ist.
+        PIDF="$HOME/.local/state/llm-proxy/proxy.pid"
+        if [[ -f "$PIDF" ]] && kill -0 "$(cat "$PIDF")" 2>/dev/null; then
+          kill "$(cat "$PIDF")" && rm -f "$PIDF"
+          echo "stopped manually started instance"
+        fi
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        mkdir -p "${UNIT_DIR}"
+        ln -sf "$(pwd)/scripts/llm-proxy/llm-proxy.service" "${UNIT_DIR}/llm-proxy.service"
+        systemctl --user daemon-reload
+        systemctl --user enable --now llm-proxy.service
+        echo "llm-proxy installed as systemd --user service (autostart + Restart=always)."
+
+  proxy:uninstall-service:
+    desc: "Stop + disable the llm-proxy systemd service and remove the symlinked unit."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        systemctl --user disable --now llm-proxy.service 2>/dev/null || true
+        rm -f "${HOME}/.config/systemd/user/llm-proxy.service"
+        systemctl --user daemon-reload 2>/dev/null || true
+        echo "llm-proxy systemd service uninstalled."
+
+  proxy:service-status:
+    desc: "Show the llm-proxy systemd service state + recent journal tail."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host."
+          exit 0
+        fi
+        systemctl --user status llm-proxy.service --no-pager -n 20 || true
 
   measure-equivalence:
     desc: "Measure embedding equivalence between TEI and new llama.cpp endpoint"

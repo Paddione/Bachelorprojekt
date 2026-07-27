@@ -195,3 +195,58 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   # muss, ist genau dann aus, wenn er gebraucht wird.
   grep -q 'sanitizeToolSchemaPatterns' "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
 }
+
+# ── systemd-Unit + Registry-Migration (T002277) ───────────────────────
+# Der Proxy lief bis 2026-07-27 ausschliesslich als manuell gestarteter
+# Node-Prozess; nach jedem Reboot war die Factory ohne Zutun tot.
+
+@test "llm-proxy.service existiert und startet server.mjs (T002277)" {
+  local unit="${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/llm-proxy.service"
+  [ -f "$unit" ]
+  grep -qE '^ExecStart=.*/node .*/scripts/llm-proxy/server\.mjs$' "$unit"
+  grep -qE '^WantedBy=default\.target$' "$unit"
+}
+
+@test "llm-proxy.service hat kubectl im PATH (T002277)" {
+  # Die Backend-Registry wird per `kubectl exec ... psql` gelesen
+  # (scripts/factory/lib.sh). kubectl liegt unter /usr/local/bin, das die
+  # systemd-Default-PATH NICHT enthaelt - ohne diese Zeile laeuft der Proxy
+  # dauerhaft mit leerer Backend-Liste und meldet trotzdem /health ok.
+  grep -qE '^Environment=PATH=.*(/usr/local/bin)' \
+    "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/llm-proxy.service"
+}
+
+@test "proxy:start erkennt eine bereits laufende systemd-Instanz (T002277)" {
+  # Das PID-File kennt nur die nohup-Instanz. Ohne Port-Pruefung wuerde ein
+  # zweiter Start mit EADDRINUSE sterben und ein PID-File hinterlassen, das auf
+  # einen toten Prozess zeigt.
+  grep -qE 'curl .*127\.0\.0\.1:\$PORT/health' \
+    "${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml"
+}
+
+@test "Gemma-Migration registriert das Backend mit Alias (T002277)" {
+  local mig="${BATS_TEST_DIRNAME}/../../scripts/migrations/2026-07-27-llm-proxy-gemma-backend.sql"
+  [ -f "$mig" ]
+  # Der Alias ist die einzige Zusage, dass 'gemma-4-12b' auf diesem Backend
+  # landet - resolveModel() biegt unbekannte Modelle sonst still auf das erste
+  # gesunde Backend um.
+  grep -q '"gemma-4-12b"' "$mig"
+  grep -qE "llamacpp-gemma" "$mig"
+}
+
+@test "route-provider.sh liest tier=opus aus der Registry (T002277)" {
+  # Vorher stand hier ein hardcodiertes Modell, das die DB komplett umging.
+  local rp="${BATS_TEST_DIRNAME}/../../scripts/factory/route-provider.sh"
+  run bash -c "grep -E \"OPUS_MODEL=.ternary-bonsai-27b\" '$rp'"
+  [ "$status" -ne 0 ]
+  grep -qE "tier='opus'" "$rp"
+}
+
+@test "route-provider.sh claimt fuer tier=opus keinen Slot (T002277)" {
+  # opus liefert slotId:null - es gibt beim Aufrufer keinen Release-Pfad. Ginge
+  # es durch die normale Claim-Kette, waere der Provider nach max_concurrent
+  # Aufrufen dauerhaft blockiert.
+  run bash scripts/factory/route-provider.sh factory-plan opus
+  [ "$status" -eq 0 ]
+  echo "${lines[${#lines[@]}-1]}" | jq -e '.slotId == null'
+}

@@ -316,3 +316,44 @@ assert_var_not_declared() {
     [ "$status" -eq 0 ]
   done
 }
+
+# ── Gemma-Chat-Server (T002277) ───────────────────────────────────────
+# Das Skript lag bis 2026-07-27 unversioniert unter %UserProfile%\.lmstudio\.
+# Die Guards sichern die drei Parameter, ohne die der Server fuer die Factory
+# unbrauchbar waere - alle drei waren im Original bereits richtig gesetzt und
+# sollen es beim Uebertragen ins Repo geblieben sein.
+
+@test "start-gemma-server.ps1 exists and enables MTP speculative decoding (T002277)" {
+  [ -f "$REPO/scripts/llm/start-gemma-server.ps1" ]
+  run grep -qE '"--spec-type",[[:space:]]*"draft-mtp"' "$REPO/scripts/llm/start-gemma-server.ps1"
+  [ "$status" -eq 0 ]
+  run grep -q '\--spec-draft-model' "$REPO/scripts/llm/start-gemma-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "start-gemma-server.ps1 keeps the 32768 context floor (T002277)" {
+  # -fitc ist die Untergrenze des Auto-Fittings. Die Factory fuellt 31-37k Tokens
+  # pro Prompt; faellt der Server still auf 4096, ist er fuer sie wertlos, ohne
+  # dass ein Smoke-Test das zeigt.
+  run grep -qE '"-fitc",[[:space:]]*"32768"' "$REPO/scripts/llm/start-gemma-server.ps1"
+  [ "$status" -eq 0 ]
+}
+
+@test "start-gemma-server.ps1 sets no explicit -c (T002277)" {
+  # Ein gesetztes -c schaltet --fit ab und friert den Kontext auf einen festen
+  # Wert ein. Genau das soll hier NICHT passieren.
+  run bash -c "grep -E '^[[:space:]]+\"-c\",' '$REPO/scripts/llm/start-gemma-server.ps1'"
+  [ "$status" -ne 0 ]
+}
+
+# Kein eigener Start-Job-Guard fuer start-gemma-server.ps1: der Test
+# "no scripts/llm/*.ps1 starts a server via Start-Job (T002276)" oben deckt
+# jedes Skript im Verzeichnis ab, auch neu hinzugekommene.
+
+@test "install-startup-autostart.ps1 does NOT autostart a chat model (T002276/T002277)" {
+  # Bewusste Entscheidung aus T002276: Gemma laeuft mit '-fit on' und nimmt sich
+  # alles freie VRAM. Im Autostart vor dem Embedding-Stack wuerde es bge-m3 und
+  # dem Reranker den Speicher wegnehmen. Der Guard haelt diese Entscheidung fest.
+  run bash -c "grep -E 'start-(gemma|gptoss|bonsai)' '$REPO/scripts/llm/install-startup-autostart.ps1'"
+  [ "$status" -ne 0 ]
+}

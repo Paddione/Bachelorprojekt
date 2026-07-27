@@ -449,7 +449,7 @@ Setzt RC6 und den dritten Punkt von D5 um: die Regressionssperre gegen den naech
 - Consumes: `provider_config` und `factory_model_slots` (Task 4), die `/v1/models`-Endpunkte der lokalen Backends.
 - Produces: Exit-Code 1, wenn eine konfigurierte Modell-ID von keinem erreichbaren Backend bedient wird.
 
-- [ ] **Step 1: Health-Skript schreiben**
+- [x] **Step 1: Health-Skript schreiben**
 
 ```bash
 #!/usr/bin/env bash
@@ -496,7 +496,7 @@ exit $FAILED
 
 Ausfuehrbar machen: `chmod +x scripts/llm/routing-check.sh`.
 
-- [ ] **Step 2: Taskfile-Eintrag ergaenzen (S4 — sonst Orphan-Violation)**
+- [x] **Step 2: Taskfile-Eintrag ergaenzen (S4 — sonst Orphan-Violation)**
 
 Unter den bestehenden `llm:`-Tasks in `Taskfile.yml`:
 
@@ -507,7 +507,7 @@ Unter den bestehenden `llm:`-Tasks in `Taskfile.yml`:
       - bash scripts/llm/routing-check.sh
 ```
 
-- [ ] **Step 3: Skript gegen den Ist-Zustand laufen lassen**
+- [x] **Step 3: Skript gegen den Ist-Zustand laufen lassen**
 
 ```bash
 task llm:routing:check
@@ -515,7 +515,7 @@ task llm:routing:check
 
 Erwartet vor Schritt 4: Meldung, dass `ternary-bonsai-27b` kein Backend hat, Exit-Code 1.
 
-- [ ] **Step 4: Autopilot-Env auf ein reales Modell korrigieren**
+- [x] **Step 4: Autopilot-Env auf ein reales Modell korrigieren**
 
 `~/.config/factory/autopilot.env` liegt ausserhalb des Repos und wird nicht versioniert. Die Zeile
 
@@ -531,7 +531,7 @@ ANTHROPIC_MODEL=gemma-4-12b
 
 Danach `task llm:routing:check` erneut ausfuehren — Exit-Code 0.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/llm/routing-check.sh Taskfile.yml

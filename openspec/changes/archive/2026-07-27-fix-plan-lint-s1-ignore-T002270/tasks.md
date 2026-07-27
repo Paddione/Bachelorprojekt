@@ -2,7 +2,7 @@
 title: "fix-plan-lint-s1-ignore-T002270 — Implementation Plan"
 ticket_id: T002270
 domains: [infra]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -13,8 +13,8 @@ Before responding to any request, check these signals and delegate to the named 
 | `website/`, Astro, Svelte, component, homepage, kore, mentolder brand, CSS, UI, frontend, design | `bachelorprojekt-website` | — |
 | pod, logs, status, restart, crash, health, kubectl, "what's wrong", "why is X failing", "is X running", `llm:`, GPU, Ollama, model | `bachelorprojekt-ops` | `mcp-kubernetes` (localhost:18080) — Claude-Code-only SSE server, see `mcp-tool-guide.md` |
 | `k3d/`, `prod*/`, manifest, kustomize, overlay, Taskfile, `ENV=`, `environments/`, deploy, `workspace:setup` | `bachelorprojekt-infra` | `mcp-kubernetes` (localhost:18080) — nur Status-Checks (Claude-Code-only) |
-| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `mcp-postgres` (localhost:13001) — Ticket-Queries |
-| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001) |
+| test, `FA-*`, `SA-*`, `NFA-*`, `AK-*`, `FA-SF`, BATS, Playwright, `runner.sh`, "test failing", "test case", "write a test", `factory:`, autopilot | `bachelorprojekt-test` | `ticket-mcp` (Go-Adapter) — Ticket-Reads/Lifecycle; `mcp-postgres` (:13001, nur mentolder) für Nicht-Ticket-Tabellen |
+| database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001, nur mentolder-DB) — Ticket-Reads → `ticket-mcp` mit `brand` |
 | SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
 > **MCP-Registry ist SSOT (T002300):** `docs/agent-guide/registry/mcp.yaml` ist die einzige Quelle für alle drei Harness-Configs. `task mcp:sync` regeneriert daraus `.mcp.json` (Claude Code), `.opencode/opencode.jsonc` (opencode) und `~/.gemini/config/mcp_config.json` (agy); `task mcp:check` prüft auf Drift. Configs nicht von Hand editieren — die Änderung geht in die Registry.

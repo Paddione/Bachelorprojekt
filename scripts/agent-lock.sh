@@ -238,13 +238,28 @@ _self_claim_main_checkout() {
   cmd_claim main-checkout "" --branch "$br" --label "$_SELF_CLAIM_LABEL" >/dev/null 2>&1
 }
 
+# Reject an unrecognised argument instead of dropping it silently. The claim parsers
+# used to end in `*) shift;;`, so `claim ticket T123 dev-flow-plan` (label passed
+# positionally instead of via --label) returned 0 while writing a lock with empty
+# `branch` and `label`. That lock then fails the dev-flow-plan pre-commit guard, which
+# compares `.branch` against HEAD — and an empty `branch` also disables the
+# worktree+branch liveness fallback in _reapable (see the [T002267] note below), so the
+# lock goes stale earlier than the caller expects. Failing loudly is the only way the
+# caller finds out. [T002363]
+_reject_arg() {
+  echo "AGENT-LOCK: $1: unbekanntes Argument '$2'" >&2
+  echo "  Erwartet werden benannte Flags: --label <l> --worktree <p> --branch <b> --ticket <id>" >&2
+  [ "$1" = "check-and-claim" ] && echo "  sowie --status-check <pfad>" >&2
+  return 0
+}
+
 cmd_claim() {
   SCOPE="$1"; ID="${2:-}"; shift 2 2>/dev/null || shift $#
   LABEL=""; WT=""; BRANCH=""; TICKET=""
   while [ $# -gt 0 ]; do case "$1" in
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;
     --branch) BRANCH="$2"; shift 2;; --ticket) TICKET="$2"; shift 2;;
-    *) shift;; esac; done
+    *) _reject_arg claim "$1"; return 2;; esac; done
   # For a branch-scoped claim the branch name IS the id; callers therefore never
   # pass --branch. Leaving `branch` empty disabled the worktree+branch liveness
   # fallback in _reapable (T002204), which requires a non-empty branch field — so
@@ -302,7 +317,7 @@ cmd_check_and_claim() {
     --status-check) status_check_script="$2"; shift 2;;
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;
     --branch) BRANCH="$2"; shift 2;; --ticket) TICKET="$2"; shift 2;;
-    *) shift;; esac; done
+    *) _reject_arg check-and-claim "$1"; return 2;; esac; done
 
   # 1) Optional external status-check (e.g. ticket.sh get --id + jq).
   #    If the ticket is already done/merged/archived, refuse the claim.

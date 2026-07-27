@@ -135,3 +135,83 @@ PY
   run grep -c 'docs-content-built' "$REPO/.claude/skills/OVERVIEW.md"
   [ "$output" = "0" ]
 }
+
+# ── instruction files gate (T002305) ──────────────────────────────────
+#
+# Die drei Root-Instruktionsdateien sind gedriftet, weil nichts sie gemessen hat:
+# GEMINI.md spiegelte die Architektur und stand mit zehn falschen Aussagen im Repo.
+# Diese Tests sind fail-closed und verhindern, dass der Spiegel zurueckkehrt.
+
+ROOT_INSTRUCTION_FILES=(CLAUDE.md AGENTS.md GEMINI.md)
+
+@test "T002305: no root instruction file mentions Keycloak" {
+  # Der Identity Provider ist Pocket ID (Clients in pocket_id.oidc_clients, geseedet
+  # per pocket-id-client-seed Job). Jedes Keycloak-Vorkommen ist eine Regression.
+  local f hits fail=0
+  for f in "${ROOT_INSTRUCTION_FILES[@]}"; do
+    hits="$(grep -ni 'keycloak' "$REPO/$f" || true)"
+    [ -z "$hits" ] || { echo "$f nennt Keycloak:"; echo "$hits"; fail=1; }
+  done
+  [ "$fail" -eq 0 ]
+}
+
+@test "T002305: GEMINI.md stays a pointer, not an architecture mirror" {
+  local f="$REPO/GEMINI.md"
+  [ -f "$f" ]
+
+  local lines; lines=$(wc -l < "$f")
+  [ "$lines" -le 40 ] || { echo "GEMINI.md hat $lines Zeilen (Limit 40)"; return 1; }
+
+  # Hartkodierte Task-Kommandos widersprechen CLAUDE.md ("Never look up or hardcode
+  # task commands" -> scripts/vda.sh oracle). Ausnahme: die agy-exklusive MCP-Sync-Notiz.
+  local tasks
+  tasks="$(grep -oE 'task [a-z][a-z0-9-]*:[a-z0-9:-]*' "$f" | grep -vE '^task mcp:(sync|check)$' || true)"
+  [ -z "$tasks" ] || { echo "unerlaubte task-Literale in GEMINI.md:"; echo "$tasks"; return 1; }
+
+  # Die Service-Aufzaehlung war die Sektion, in der die Keycloak- und LiveKit-Fehler sassen.
+  local services
+  services="$(grep -noE 'Nextcloud|Vaultwarden|Collabora|DocuSeal|Janus|coturn|Traefik|LiveKit' "$f" || true)"
+  [ -z "$services" ] || { echo "GEMINI.md spiegelt wieder Services:"; echo "$services"; return 1; }
+}
+
+_registry_keys() { # $1 = roles|runtimes
+  node -e '
+    const yaml = require("yaml");
+    const fs = require("fs");
+    const d = yaml.parse(fs.readFileSync(process.argv[1], "utf8"));
+    console.log(Object.keys(d[process.argv[2]] || {}).join("\n"));
+  ' "$REPO/docs/agent-guide/registry/agents.yaml" "$1"
+}
+
+@test "T002305: CLAUDE.md and AGENTS.md name exactly the registry roles" {
+  local roles; roles="$(_registry_keys roles)"
+  [ -n "$roles" ]
+  local f r fail=0
+  for f in CLAUDE.md AGENTS.md; do
+    # jede Registry-Rolle muss vorkommen
+    while read -r r; do
+      [ -z "$r" ] && continue
+      grep -qF -- "$r" "$REPO/$f" || { echo "$f nennt Registry-Rolle nicht: $r"; fail=1; }
+    done <<< "$roles"
+    # kein bachelorprojekt-*-Name, den die Registry nicht kennt
+    while read -r r; do
+      [ -z "$r" ] && continue
+      grep -qxF -- "$r" <<< "$roles" || { echo "$f nennt unbekannte Rolle: $r"; fail=1; }
+    done < <(grep -ohE 'bachelorprojekt-[a-z]+' "$REPO/$f" | sort -u)
+  done
+  [ "$fail" -eq 0 ]
+}
+
+@test "T002305: AGENTS.md runtime table covers every registry runtime" {
+  local runtimes; runtimes="$(_registry_keys runtimes)"
+  [ -n "$runtimes" ]
+  # Geprueft wird die Tabellenzeile (| `name` | …), nicht blosses Vorkommen im Fliesstext —
+  # 'orchestrator' stand bereits in der Ueberschrift, fehlte aber in der Tabelle.
+  local rows r fail=0
+  rows="$(grep -oE '^\| `[a-z0-9-]+`' "$REPO/AGENTS.md" | tr -d '|` ')"
+  while read -r r; do
+    [ -z "$r" ] && continue
+    grep -qxF -- "$r" <<< "$rows" || { echo "AGENTS.md Runtime-Tabelle fehlt: $r"; fail=1; }
+  done <<< "$runtimes"
+  [ "$fail" -eq 0 ]
+}

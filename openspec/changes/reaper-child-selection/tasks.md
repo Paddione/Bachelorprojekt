@@ -34,7 +34,7 @@ gebaselined. Es besteht daher kein S1-Zeilenbudget, das die Umsetzung einschrän
 S3 ist nicht berührt (keine Brand-Domain-Literale). S4 ist nicht berührt (keine neue
 Manifest- oder Skriptdatei).
 
-## Task 1 — RED verifizieren
+## Task 1 — RED verifizieren [x]
 
 Die Failing-Tests liegen bereits im Stage-Commit (`tests/spec/mcp-gateway.bats`,
 Abschnitt "Reaper-Kandidatenauswahl (T002350)"). Vor jeder Änderung bestätigen, dass
@@ -57,7 +57,7 @@ Negativ-Aussage prüfen. Ohne ihn wäre „PID 1 steht nicht in der Liste" trivi
 solange die Funktion fehlt und die Liste leer ist — also genau die vakuose Grünfärbung,
 an der T002321 gescheitert ist. Beim Umsetzen darf dieser Anker nicht entfernt werden.
 
-## Task 2 — Auswahl als eigene Funktion `list_reap_candidates`
+## Task 2 — Auswahl als eigene Funktion `list_reap_candidates` [x]
 
 Datei: `k3d/default/claude-code-mcp-monolith-deploy.yaml`, Container `postgres`,
 `args[0]`. Das Manifest ist ein `kubectl get -o json`-Dump; die Änderung betrifft den
@@ -121,7 +121,7 @@ Akzeptanz: die Fixture-Tests aus Task 1 werden grün
 `honours an explicit self-PID exclusion`), `PROC_ROOT` und `list_reap_candidates` sind
 im Startkommando nachweisbar.
 
-## Task 3 — Auswahl gegen echtes procfs belegen
+## Task 3 — Auswahl gegen echtes procfs belegen [x]
 
 Der Fixture-Test allein kann eine ganze Fehlerklasse nicht sehen: ein Fixture aus
 regulären Dateien hat `size > 0`, echtes procfs meldet für `cmdline` dagegen
@@ -140,7 +140,7 @@ Akzeptanz: der Smoke-Test wird grün — das echte Child ist in der Kandidatenli
 nicht. Läuft der Test lokal ohne Docker, skippt er mit sichtbarer Meldung; in CI
 (ubuntu-latest) muss er echt laufen.
 
-## Task 4 — Zwei Kill-Stufen im Reaper-Loop
+## Task 4 — Zwei Kill-Stufen im Reaper-Loop [x]
 
 Gleiche Datei, gleicher String. Die bisherige Schleife wird durch eine ersetzt, die
 `list_reap_candidates` nutzt und zwei Stufen fährt:
@@ -193,7 +193,7 @@ Der Loop läuft weiterhin im Hintergrund neben `exec supergateway`.
 Akzeptanz: der Test `reaper caps the number of live children, not just their age` wird
 grün; die Log-Zeile trägt zusätzlich `cap=`.
 
-## Task 5 — Rechenweg des Memory-Limits korrigieren
+## Task 5 — Rechenweg des Memory-Limits korrigieren [x]
 
 Gleiche Datei, Container `postgres`. Das Limit bleibt bei `512Mi` — die Begründung wird
 auf die gemessene cgroup-Basis umgestellt:
@@ -211,7 +211,7 @@ Begründung stehenbleiben.
 Akzeptanz: `postgres memory limit is below 2Gi` bleibt grün, der Rechenweg ist im
 Manifest-Kommentar oder in der PR-Beschreibung nachvollziehbar.
 
-## Task 6 — Live applizieren und Wirkung verifizieren
+## Task 6 — Live applizieren und Wirkung verifizieren [ ] (OFFEN — bewusst erst nach Merge, siehe Abschlussbericht)
 
 Ohne diesen Schritt bleibt der Fix wirkungslos: `k3d/default/` hängt an keiner Flux-
 Kustomization. **`kubectl apply -k k3d/default` ist defekt** (T002349 — `includeSelectors:

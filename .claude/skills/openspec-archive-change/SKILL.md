@@ -1,12 +1,13 @@
 ---
 name: openspec-archive-change
-description: Archive a completed change in the experimental workflow. Use when the user wants to finalize and archive a change after implementation is complete.
-license: MIT
+description: 'Use to archive a finished OpenSpec change and merge its delta into the SSOT spec. Triggers on /opsx:archive, openspec archive, task openspec:archive, scripts/openspec.sh archive, --create-new, "finalize the change", move change to openspec/changes/archive/. Run only after the change is merged — dev-flow-execute calls this in its post-merge step.'
 compatibility: Requires openspec CLI.
-metadata:
-  author: openspec
-  version: "1.0"
-  generatedBy: "1.3.1"
+# FORK — nicht upstream-synchron. Stammt aus dem OpenSpec-Upstream
+# (https://github.com/Fission-AI/OpenSpec), installiert mit T001263 / PR #2188, und wurde
+# seitdem hier weiterentwickelt (u.a. Framework-Mapping-Tabelle, PR #2702) ohne je gegen
+# Upstream re-synct zu werden. Die frueheren Felder license/metadata.author/generatedBy
+# behaupteten unveraenderte Herkunft und wurden deshalb entfernt (T002303): ein Re-Sync
+# auf ihrer Grundlage haette die lokalen Aenderungen still verworfen.
 ---
 
 Archive a completed change in the experimental workflow.

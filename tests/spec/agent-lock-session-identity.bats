@@ -129,9 +129,14 @@ setup() {
 
 @test "T001386: dev-flow-plan Feature-Pfad Schritt B.1 claims ticket when TICKET_EXT_ID is already known" {
   [ -f "$PLAN_SKILL" ]
-  # Between the "Schritt B.1" heading and the next "Schritt B.2" heading, the
-  # text must contain an agent-lock.sh claim ticket invocation.
-  awk '/^#### Schritt B\.1:/{flag=1} /^#### Schritt B\.2:/{flag=0} flag' "$PLAN_SKILL" \
+  # T002303: Die Phasen A/B/C standen einmal ausformuliert im SKILL.md. Der Body
+  # verweist heute verbindlich auf references/dev-flow-plan-phases.md, wo Schritt B.1
+  # den Claim trägt. Die Anforderung ist unverändert; geprüft wird die Kette
+  # (Verweis vorhanden + Referenz trägt die Mechanik) — analog T002181/T001268-M3.
+  grep -qF 'dev-flow-plan-phases' "$PLAN_SKILL"
+  local phases_ref="$REPO/.claude/skills/references/dev-flow-plan-phases.md"
+  [ -f "$phases_ref" ]
+  awk '/^#### Schritt B\.1:/{flag=1} /^#### Schritt B\.2:/{flag=0} flag' "$phases_ref" \
     | grep -Eq 'agent-lock\.sh[[:space:]]+claim[[:space:]]+ticket'
 }
 

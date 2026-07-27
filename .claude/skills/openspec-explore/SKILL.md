@@ -1,12 +1,13 @@
 ---
 name: openspec-explore
-description: Enter explore mode - a thinking partner for exploring ideas, investigating problems, and clarifying requirements. Use when the user wants to think through something before or during a change.
-license: MIT
+description: 'Use as a thinking partner BEFORE committing to an approach — explore an idea, investigate a problem, compare options, or get unstuck mid-change. Triggers on /opsx:explore, "let me think through", "explore this", "what are the options", "I am stuck on", "should we use X or Y", "this is a mess". Produces no artifact and reaches no required conclusion; for the decision-and-write-it-down step use dev-flow-plan brainstorming instead.'
 compatibility: Requires openspec CLI.
-metadata:
-  author: openspec
-  version: "1.0"
-  generatedBy: "1.3.1"
+# FORK — nicht upstream-synchron. Stammt aus dem OpenSpec-Upstream
+# (https://github.com/Fission-AI/OpenSpec), installiert mit T001263 / PR #2188, und wurde
+# seitdem hier weiterentwickelt (u.a. Framework-Mapping-Tabelle, PR #2702) ohne je gegen
+# Upstream re-synct zu werden. Die frueheren Felder license/metadata.author/generatedBy
+# behaupteten unveraenderte Herkunft und wurden deshalb entfernt (T002303): ein Re-Sync
+# auf ihrer Grundlage haette die lokalen Aenderungen still verworfen.
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
@@ -145,106 +146,13 @@ If the user mentions a change or you detect one is relevant:
 
 ## Handling Different Entry Points
 
-**User brings a vague idea:**
-```
-User: I'm thinking about adding real-time collaboration
+Wie ein Explore-Gespräch verläuft, hängt davon ab, womit der Nutzer einsteigt. Vier
+ausformulierte Beispieldialoge — vage Idee, konkretes Problem, mitten in der Implementierung
+feststeckend, Optionen vergleichen — stehen in
+[`references/openspec-explore-procedures.md`](../references/openspec-explore-procedures.md).
 
-You: Real-time collab is a big space. Let me think about this...
-
-      COLLABORATION SPECTRUM
-      ════════════════════════════════════════════
-
-      Awareness          Coordination         Sync
-          │                   │                 │
-          ▼                   ▼                 ▼
-      ┌────────┐         ┌────────┐        ┌────────┐
-      │Presence│         │Cursors │        │  CRDT  │
-      │  "3    │         │ Multi  │        │Conflict│
-      │online" │         │ select │        │  free  │
-      └────────┘         └────────┘        └────────┘
-          │                   │                 │
-       trivial            moderate           complex
-
-      Where's your head at?
-```
-
-**User brings a specific problem:**
-```
-User: The auth system is a mess
-
-You: [reads codebase]
-
-     ┌─────────────────────────────────────────────┐
-     │              CURRENT AUTH FLOW              │
-     └─────────────────────────────────────────────┘
-                        │
-          ┌─────────────┼─────────────┐
-          ▼             ▼             ▼
-     ┌─────────┐  ┌─────────┐  ┌─────────┐
-     │ Google  │  │  GitHub │  │  Email  │
-     │  OAuth  │  │  OAuth  │  │  Magic  │
-     └────┬────┘  └────┬────┘  └────┬────┘
-          │             │             │
-          └─────────────┼─────────────┘
-                        ▼
-                  ┌───────────┐
-                  │  Session  │
-                  └─────┬─────┘
-                        │
-                        ▼
-                  ┌───────────┐
-                  │   Perms   │
-                  └───────────┘
-
-     I see three tangles. Which one's burning?
-```
-
-**User is stuck mid-implementation:**
-```
-User: /opsx:explore add-auth-system
-      The OAuth integration is more complex than expected
-
-You: [reads change artifacts]
-
-     You're on task 4: "Implement OAuth flow"
-
-     Let me trace what's involved...
-
-     [draws diagram, explores options, suggests paths]
-
-     Want to update the design to reflect this?
-     Or add a spike task to investigate?
-```
-
-**User wants to compare options:**
-```
-User: Should we use Postgres or SQLite?
-
-You: Generic answer is boring. What's the context?
-
-User: A CLI tool that tracks local dev environments
-
-You: That changes everything.
-
-     ┌─────────────────────────────────────────────────┐
-     │          CLI TOOL DATA STORAGE                  │
-     └─────────────────────────────────────────────────┘
-
-     Key constraints:
-     • No daemon running
-     • Must work offline
-     • Single user
-
-                  SQLite          Postgres
-     Deployment   embedded ✓      needs server ✗
-     Offline      yes ✓           no ✗
-     Single file  yes ✓           no ✗
-
-     SQLite. Not even close.
-
-     Unless... is there a sync component?
-```
-
+Das Muster ist in allen vieren dasselbe: **nicht** sofort antworten, sondern den Raum aufspannen
+(Spektrum, Ist-Zustand, Constraints) und den Nutzer wählen lassen, wo eingestiegen wird.
 ---
 
 ## Ending Discovery

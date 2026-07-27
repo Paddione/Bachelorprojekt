@@ -1,6 +1,6 @@
 ---
 name: repo-hygiene
-description: Use for repository housekeeping — clean up stale branches/worktrees, triage and merge open PRs, close resolved tickets, manage GitHub issue intake, and check software factory queue status. Triggers — "clean branches", "merge PRs", "prune worktrees", "factory queue status".
+description: 'Use for the state of the repository itself — stale branches and worktrees, open PRs to merge and close, GitHub issue intake, software factory queue status. Triggers on "clean branches", "merge PRs", "prune worktrees", "stale worktrees", "factory queue status", "close resolved tickets", git worktree remove, gh pr merge. Not for the content of tickets — triage, missing information and parallel-work planning belong to ticket-ops.'
 ---
 
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende

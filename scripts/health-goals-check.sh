@@ -79,6 +79,19 @@ print(len(d) if g=='ALL' else sum(1 for v in d.values() if v.get('gate')==g))
 PY
 }
 count() { grep -rEn "$1" $2 --include="*.ts" --include="*.svelte" --include="*.astro" 2>/dev/null | grep -v 'goals-data\.ts' | wc -l | tr -d ' '; }
+# Projekteigene Skill-Verzeichnisse = getrackt minus Vendor-Sektion in OVERVIEW.md (T002303).
+# Upstream-gepflegte Skills sind ausgenommen: eine Änderung dort kollidiert beim nächsten Sync.
+# Fehlt der Marker-Block, ist die Vendor-Liste leer und ALLE Skills gelten als projekteigen —
+# das Gate wird dann strenger, nie schwächer.
+project_owned_skills() { # gibt Verzeichnisnamen relativ zu .claude/skills aus
+  local vendor; vendor=$(sed -n '/<!-- vendor-skills:begin -->/,/<!-- vendor-skills:end -->/p' \
+    .claude/skills/OVERVIEW.md 2>/dev/null | grep -oE '^\| `[a-z0-9/-]+`' | tr -d '|` ')
+  local f d
+  for f in $(git ls-files -- .claude/skills | grep '/SKILL\.md$'); do
+    d="${f#.claude/skills/}"; d="${d%/SKILL.md}"
+    printf '%s\n' "$vendor" | grep -qx "$d" || echo "$d"
+  done
+}
 mcp_servers() { python3 - "$1" <<'PY' 2>/dev/null || true
 import json,re,sys
 s=open(sys.argv[1]).read(); s=re.sub(r'^\s*//.*$','',s,flags=re.M); s=re.sub(r',(\s*[}\]])',r'\1',s)
@@ -262,10 +275,19 @@ row gate G-AGENTIC07 "$(
 row gate G-AGENTIC08 "$(
   # Lookbehind verhindert False Positives, wenn "scripts/…" Teil eines längeren,
   # existierenden Pfads ist (z.B. .claude/skills/<name>/scripts/foo.py)
+  # Scope: alle .md der projekteigenen Skills (T002303) — vorher nur SKILL.md, wodurch
+  # ausgelagerte references/ ungeprüft blieben. Vendor-Skills bleiben aussen vor, weil ihre
+  # relativen scripts/-Pfade skill-lokal korrekt sind und hier falsch gelesen wuerden.
   c=0
-  for p in $(grep -rhoP '(?<![A-Za-z0-9_./-])scripts/[A-Za-z0-9_./-]+\.(sh|mjs|py)' .claude/skills --include=SKILL.md | sort -u); do
+  dirs=""; for d in $(project_owned_skills); do dirs="$dirs .claude/skills/$d"; done
+  dirs="$dirs .claude/skills/references"
+  for p in $(grep -rhoP '(?<![A-Za-z0-9_./-])scripts/[A-Za-z0-9_./-]+\.(sh|mjs|py)' $dirs --include='*.md' | sort -u); do
     [ -f "$p" ] || c=$((c+1)); done; echo $c
-)" eq 0 "Tote Script-Pfade in SKILL.md"
+)" eq 0 "Tote Script-Pfade in projekteigenen Skill-.md"
+row gate G-AGENTIC09 "$(
+  c=0; for d in $(project_owned_skills); do
+    [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 250 ] && c=$((c+1)); done; echo $c
+)" eq 0 "Projekteigene SKILL.md >250 Zeilen"
 row gate G-AGENTIC11 "$(
   claimed=$(grep 'opencode runtime registers' CLAUDE.md | grep -oE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u)
   actual=$(mcp_servers .opencode/opencode.jsonc)
@@ -374,9 +396,6 @@ row target G-AGENTIC01 "$(
   c=0; for a in bachelorprojekt-security bachelorprojekt-infra bachelorprojekt-db; do
     awk 'BEGIN{f=0}/^---$/{f++;next} f==1&&/^tools:/{ok=1} END{exit !ok}' .claude/agents/$a.md || c=$((c+1)); done; echo $c
 )" le 0 "Ungescopte Agenten (security/infra/db ohne tools:-Feld)"
-row target G-AGENTIC09 "$(
-  find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
-)" le 0 "SKILL.md >500 Zeilen"
 row target G-AGENTIC10 "$(
   c=0; for a in bachelorprojekt-website bachelorprojekt-ops bachelorprojekt-infra bachelorprojekt-test bachelorprojekt-db bachelorprojekt-security; do
     grep -rlE "^agent:[[:space:]]*$a" .claude/skills --include=SKILL.md >/dev/null 2>&1 || c=$((c+1)); done; echo $c

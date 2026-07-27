@@ -48,17 +48,30 @@ gh run list --workflow e2e.yml --limit 14 --json conclusion \
 
 ---
 
-## G-AGENTIC09 — SKILL.md > 500 Zeilen: 2 → 0
+## G-AGENTIC09 — Projekteigene SKILL.md > 250 Zeilen: 0 (Gate)
 
-**Was:** Zählt SKILL.md-Dateien mit mehr als 500 Zeilen. T001904 hatte `dev-flow-plan` von
-508 auf 479 Zeilen komprimiert — seitdem sind weitere Skills über die Schwelle gewachsen
-(Regressions-Check via `health-goals-check.sh`).
+**Was:** Zählt **projekteigene** `SKILL.md`-Dateien mit mehr als **250** Zeilen. Der
+projekteigene Satz wird aus der Vendor-Sektion in `.claude/skills/OVERVIEW.md` abgeleitet
+(getrackt minus Marker-Block); upstream-gepflegte Skills sind ausgenommen, weil eine Änderung
+dort beim nächsten Sync kollidiert.
+
+**Warum verschärft (T002303):** Die frühere Fassung maß alle Skills gegen 500 Zeilen und war ein
+`target`, kein `gate` — sie konnte eine Regression nur protokollieren, nicht stoppen. 500 lag
+zudem weit über der Progressive-Disclosure-Grenze, die sie schützen sollte. Erschwerend:
+`SKILL.md` ist **nicht** vom S1-Zeilen-Ratchet erfasst (`docs/code-quality/baseline.json` führt
+nur `.astro/.svelte/.ts/.mjs/.py`), Skill-Bodies wuchsen also gegen keinerlei Widerstand — sechs
+lagen bei der Umstellung zwischen 283 und 486 Zeilen.
 
 ```bash
-find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'
+c=0; for d in $(project_owned_skills); do
+  [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 250 ] && c=$((c+1)); done; echo $c
 ```
 
-> **A · Baseline:** 0 → 2 (2026-07-22, Regressions-Check) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** TBD
+Die Hilfsfunktion `project_owned_skills` liegt im Kopf von `scripts/health-goals-check.sh` und
+wird auch von G-AGENTIC08 genutzt. Fehlt der Marker-Block in `OVERVIEW.md`, ist die Vendor-Liste
+leer und alle Skills gelten als projekteigen — das Gate wird dann strenger, nie schwächer.
+
+> **C · Baseline:** 2 → 0 (2026-07-27, T002303) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002303 · **Klasse:** Gate (fail-closed)
 
 ---
 
@@ -421,7 +434,8 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC05** | 6-Agenten Cross-Reference | 0 ✓ | 0 | `comm -3 <(ls agents/...) <(routing from validate.mjs) + <(registry from tools.yaml)` |
 | **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills \| grep -c '/SKILL\.md$'` (nur getrackte — market-cli-Installationen zählen nicht, T001783) |
 | **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in git ls-files; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` (nur getrackte) |
-| **G-AGENTIC08** | Tote Script-Pfade in SKILL.md | 0 ✓ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' .claude/skills \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives) |
+| **G-AGENTIC08** | Tote Script-Pfade in projekteigenen Skill-`.md` | 0 ✓ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' $(project_owned_skills) + references --include='*.md' \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives; Scope seit T002303 auf alle `.md` statt nur `SKILL.md`, damit ausgelagerte `references/` nicht ungeprüft bleiben) |
+| **G-AGENTIC09** | Projekteigene `SKILL.md` >250 Zeilen | 0 ✓ | 0 | `for d in $(project_owned_skills); wc -l > 250 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md` (T002303; vorher `target` mit Schwelle 500 über alle Skills) |
 
 | **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
 | **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
@@ -640,3 +654,19 @@ und alle 95 Ziele trugen einen vier Tage alten Mess-Stichtag. Jetzt gewinnt das 
 - Drei ML-Skill-Registrierungen (unsloth, gguf-quantization, speculative-decoding) aus OVERVIEW.md entfernt
 - `skills-lock.json`: llama-cpp-Eintrag entfernt (nur lavish, vitest verbleiben)
 - Skill-Deny-Liste in `.opencode/opencode.jsonc` um 12 Einträge bereinigt
+
+**Baseline-Update 2026-07-27 (T002303 — Skill-Qualitäts-Pass):**
+- **G-AGENTIC09 verschärft und von `target` auf `gate` hochgestuft:** Schwelle 500 → 250, Scope
+  von „alle Skills" auf „projekteigene" (abgeleitet aus der Vendor-Sektion in `OVERVIEW.md`).
+  Baseline 2 → 0. Die sechs Übergrößen wurden per Progressive Disclosure gekürzt, ohne einen
+  Schritt zu verlieren: `dev-flow-execute` 486→248, `infra-ops` 476→176, `dev-flow-plan` 460→209,
+  `ticket-ops` 334→131, `openspec-explore` 298→206, `git-workflow` 283→230.
+- **G-AGENTIC08 Scope erweitert:** von `--include=SKILL.md` auf alle `.md` der projekteigenen
+  Skills plus `references/`. Vorher blieben ausgelagerte Referenzdateien ungeprüft — genau die
+  Lücke, die dieser Change sonst vergrößert hätte. Vendor-Skills bleiben ausgenommen, weil ihre
+  relativen `scripts/`-Pfade skill-lokal korrekt sind und repo-relativ falsch gelesen würden.
+- Neue gemeinsame Hilfsfunktion `project_owned_skills()` im Kopf von `health-goals-check.sh`.
+- Nebenbefund, nicht gemessen: **sieben `description`-Frontmatter waren kein gültiges YAML**
+  (unquotierter `: ` im Plain-Scalar), davon fünf Vorbestand. Alle projekteigenen descriptions
+  sind jetzt gequotet; `brain-ingest` hatte überhaupt kein Frontmatter und war damit nie über
+  Intent-Matching erreichbar.

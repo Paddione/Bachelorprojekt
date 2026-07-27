@@ -1,12 +1,13 @@
 ---
 name: openspec-apply-change
-description: Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.
-license: MIT
+description: 'Use to work through the tasks of an existing OpenSpec change — start, continue or resume implementation. Triggers on /opsx:apply, openspec apply, task openspec:apply, "continue the change", "work through tasks", openspec/changes/<slug>/tasks.md, mark task done. Within this repo dev-flow-execute owns the full implement-verify-PR loop — invoke this directly only to advance an OpenSpec change outside that pipeline.'
 compatibility: Requires openspec CLI.
-metadata:
-  author: openspec
-  version: "1.0"
-  generatedBy: "1.3.1"
+# FORK — nicht upstream-synchron. Stammt aus dem OpenSpec-Upstream
+# (https://github.com/Fission-AI/OpenSpec), installiert mit T001263 / PR #2188, und wurde
+# seitdem hier weiterentwickelt (u.a. Framework-Mapping-Tabelle, PR #2702) ohne je gegen
+# Upstream re-synct zu werden. Die frueheren Felder license/metadata.author/generatedBy
+# behaupteten unveraenderte Herkunft und wurden deshalb entfernt (T002303): ein Re-Sync
+# auf ihrer Grundlage haette die lokalen Aenderungen still verworfen.
 ---
 
 Implement tasks from an OpenSpec change.

@@ -1791,6 +1791,12 @@
       "status": "archived"
     }
   ],
+  "T002361": [
+    {
+      "slug": "factory-livelock-breaker",
+      "status": "plan_staged"
+    }
+  ],
   "T002366": [
     {
       "slug": "2026-07-27-ticket-release-hold-noblock",

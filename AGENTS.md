@@ -1,6 +1,6 @@
 # AGENTS.md — Quick-Start for Orchestrator Sessions
 
-> **Goal:** Keep this file under 120 lines of must-know content. Reference details live in CLAUDE.md and the linked sections below — read them on-demand, not upfront.
+> **Goal:** Keep this file under 160 lines of must-know content. Reference details live in CLAUDE.md and the linked sections below — read them on-demand, not upfront.
 
 Loaded via `.opencode/opencode.jsonc` → `"instructions": ["AGENTS.md"]`.
 
@@ -10,14 +10,15 @@ opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents b
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `gemma-4-12b` | Gemma4 12B QAT (UD-Q4_K_XL, 262144 ctx, port 8091, server `-np 1` ⇒ one slot, serialized via llm-proxy) | **Preferred** for all write-capable delegation — **exactly one** such subagent exists (T002298); dispatch sequentially |
-| `gemma-4-12b-primary` | same model, `mode: primary` (Tab-selectable, not summonable via `task`) | Fully local work without the DeepSeek orchestrator in front; full 262144 ctx |
-| `deepseek-helper` | DeepSeek V4 Flash (OpenCode Go, 1M ctx) | Escalation: local agent stuck or context exhausted |
+| `orchestrator` | DeepSeek V4 Flash (OpenCode Go), `mode: primary`, `write_capable: true` | Primary orchestrator — dispatches `gemma-4-12b` sequentially |
+| `gemma-4-12b` | Gemma4 12B QAT (UD-Q4_K_XL, 262144 ctx, port 8091, server `-np 1` ⇒ one slot, serialized via llm-proxy) | Local bulk work. `write_capable: false` — **exactly one** such subagent exists (T002298); dispatch sequentially |
+| `gemma-4-12b-primary` | same model, `mode: primary` (Tab-selectable, not summonable via `task`) | Fully local work without the DeepSeek orchestrator in front; full 262144 ctx. `write_capable: false` |
+| `deepseek-helper` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `write_capable: true` | Escalation: local agent stuck or context exhausted |
 | `explore` | built-in | Read-only codebase exploration |
 | `general` | built-in | Read-only general research |
 
-Dispatch: `delegate(prompt, agent)` for read-only. `task` for write-capable (gemma-4-12b, deepseek-helper).
-Agent definitions live in `.opencode/agent-models.jsonc` → sync via `bash scripts/opencode-sync-agents.sh`.
+Dispatch: `delegate(prompt, agent)` for read-only. `task` for write-capable — per registry that is `orchestrator` and `deepseek-helper`, **not** the gemma agents.
+Agent definitions live in `.opencode/agent-models.jsonc`; the `write_capable` flags above are SSOT in `docs/agent-guide/registry/agents.yaml` (K5/T002304) → sync via `bash scripts/opencode-sync-agents.sh`.
 
 ## Core Commands
 
@@ -30,16 +31,16 @@ task workspace:validate                          # Kustomize dry-run
 
 ## Workflow Rules
 
-- Branches: `feature/*`, `fix/*`, `chore/*`, `docs/*`. All changes via PRs → squash-merge. No direct pushes to `main`.
+- Branches: `feature/*`, `fix/*`, `chore/*`, `docs/*`. All changes via PRs → squash-merge. No direct pushes to `main`. (CLAUDE.md Rule 7 lists only the first three; `scripts/preflight-pr-scope.sh` enforces worktrees for `feature/*` and `fix/*` and forbids neither list — the divergence is open, see T002305 design.md.)
 - **Pipeline-Prinzip:** Planning-Agents (opencode-flow-plan) legen Worktree + Branch sofort an und enqueuen jedes Partial-Plan einzeln in die Factory, sobald es geschrieben ist. Die Factory beginnt mit der Ausführung, während der Planner das nächste Partial schreibt. Siehe `opencode-flow-plan` SKILL.md Phase B/C.
 - `dev-flow-plan` (brainstorm→spec→partial-plan→stage→enqueue→factory-executes→next-partial) dann `dev-flow-execute` (PR→deploy).
 - CI gate: `task test:changed` + `task freshness:check` + `task workspace:validate` — **vor** PR-Create lokal laufen lassen, nicht erst in CI.
-- **Merge = closure** (T001092): ticket closes on green auto-merge. Prod deploy is decoupled (push-based).
+- **Merge = closure** (T001092): ticket closes on green auto-merge. The prod deploy is decoupled from that — it does **not** change the ticket status.
 
 ## Architecture (30-second view)
 
 - **Fleet cluster** (single k3s): mentolder → ns `workspace`, korczewski → ns `workspace-korczewski`. Context: `fleet`.
-- Push-based deploy. Only website auto-deploys via GH Actions.
+- **Pull-based deploy via FluxCD** (T002083): `.github/workflows/render-fleet-artifact.yml` renders the OCI artifact `ghcr.io/paddione/fleet-manifests` on every `main` push; Flux reconciles it on the fleet cluster (`flux/clusters/fleet/`). `task workspace:deploy` is break-glass fallback only.
 - k3d/ = base Kustomize. Prod overlays: `prod-fleet/mentolder/`, `prod-fleet/korczewski/`.
 - Centralized domains: `k3d/configmap-domains.yaml` — never hardcode hostnames.
 

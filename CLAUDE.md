@@ -17,6 +17,8 @@ Before responding to any request, check these signals and delegate to the named 
 | database, PostgreSQL, psql, schema, query, backup, restore, tracking, timeline, `bachelorprojekt.features`, `v_timeline` | `bachelorprojekt-db` | `mcp-postgres` (localhost:13001) |
 | SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
+> **MCP-Registry ist SSOT (T002300):** `docs/agent-guide/registry/mcp.yaml` ist die einzige Quelle für alle drei Harness-Configs. `task mcp:sync` regeneriert daraus `.mcp.json` (Claude Code), `.opencode/opencode.jsonc` (opencode) und `~/.gemini/config/mcp_config.json` (agy); `task mcp:check` prüft auf Drift. Configs nicht von Hand editieren — die Änderung geht in die Registry.
+
 > **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `mcp-kubernetes`, `mcp-postgres`, `factory-mcp`, `codebase-memory-mcp`, `mcp-task-runner`, `ticket-mcp`, `task-master-ai`, `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
 > **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
@@ -30,11 +32,19 @@ Run `bash scripts/plan-context.sh <role> --with-openspec` and prepend output to 
 
 ```bash
 # Example orchestrator injection pattern:
-context=$(bash scripts/plan-context.sh infra --with-openspec)
+context=$(bash scripts/plan-context.sh bachelorprojekt-infra --with-openspec)
 if [[ -n "$context" ]]; then
   prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
 fi
 ```
+
+> **`<role>` muss ein voller Rollenname sein.** Gültig sind ausschließlich die in
+> `_role_allowlist()` in `scripts/plan-context.sh` gelisteten Namen —
+> `bachelorprojekt-{website,ops,infra,test,db,security}` plus `orchestrator`. Eine Kurzform wie
+> `infra` schlägt **nicht** fehl: sie fällt still auf `__ALL__` zurück, gibt nur ein `WARN:
+> unknown role` auf stderr aus und liefert **alle** Proposals ungefiltert — der Rollenfilter wirkt
+> dann gar nicht (T002322). Die Allowlist wird hier bewusst nicht dupliziert; maßgeblich ist die
+> Funktion im Skript.
 
 Also: after `superpowers:writing-plans` skill creates a new plan file, run `bash scripts/plan-frontmatter-hook.sh <plan-file>` on it before committing. This adds the required frontmatter (domains, status) that `plan-context.sh` and the GH Action depend on.
 

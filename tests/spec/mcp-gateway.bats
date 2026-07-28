@@ -353,7 +353,10 @@ assert_selection_alive() {  # <kandidatenliste>
 @test "T002350: reaper reads self-PID via \$_root indirection, not hardcoded /proc" {
   # Der Reaper muss ueber $_root/self/stat lesen, damit Tests ein Fixture
   # unterschieben koennen. Hardcoded /proc/self/stat waere nicht testbar.
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq '\$_root/self/stat'"
+  # [$] statt \$: der aeussere bats-String ist doppelt gequotet, '\$' kaeme beim
+  # inneren grep als '$' an — und das ist in ERE der Zeilenende-Anker, das Muster
+  # koennte nie matchen. Die Zeichenklasse umgeht beide Quoting-Ebenen.
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq '[\$]_root/self/stat'"
   [ "$status" -eq 0 ]
 }
 

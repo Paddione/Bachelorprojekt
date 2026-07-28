@@ -19,6 +19,15 @@ einzige Bauform, die die Anforderung erfüllt.
 
 ## Vorgaben
 
+- **Transport ist HTTP/SSE, nicht stdio.** Das ist eine harte Festlegung, keine Präferenz. Die
+  Web-UI von `llama-server` (Seite „MCP Servers") nimmt beim Hinzufügen ausschließlich eine
+  **URL** entgegen — ein stdio-Shim wäre dort prinzipiell unerreichbar. HTTP macht ihn in beiden
+  Welten nutzbar: direkt in der llama-UI eintragbar und über die Registry an Claude Code,
+  opencode und agy verteilbar. Der stdio-Weg (`--mcp-servers-config`, T002398) ist eine
+  **andere** Anbindung und hier ausdrücklich nicht gemeint.
+- **Bind auf `127.0.0.1` plus Bearer-Token.** Über HTTP entfällt die implizite Authentifizierung,
+  die stdio dadurch hat, dass nur der startende Prozess den Server erreicht. Das Feld
+  `Authorization / Bearer` im UI-Dialog ist der vorgesehene Weg.
 - **Zwei Tools:** eines für Embedding (Text rein, Vektor raus), eines für Reranking (Query plus
   Kandidaten rein, absteigend sortierte Ergebnisse raus).
 - **Der Shim ruft den Router aus p2 auf.** Er hält keine eigene Failover-Logik und keinen eigenen
@@ -43,9 +52,15 @@ einzige Bauform, die die Anforderung erfüllt.
       Einträge (`codebase-memory-mcp`, `ticket-mcp` sind die nächstliegenden Vorbilder).
 - [ ] `task mcp:sync` ausführen und die generierten Configs mitcommitten; anschließend
       `task mcp:check` auf Drift prüfen.
-- [ ] `scripts/llm/mcp-servers.json` nur dann ergänzen, wenn ein llama.cpp-Modell den Shim
-      *selbst* aufrufen soll. Ist das nicht der Fall, bleibt die Datei unverändert — der Eintrag
-      dort wäre sonst eine irreführende Selbstreferenz.
+- [ ] `scripts/llm/mcp-servers.json` **unverändert lassen.** Diese Datei ist das Ziel von
+      `--mcp-servers-config` und nimmt laut Registry-Kopfkommentar ausschließlich
+      `transport: stdio` auf; ein HTTP-Server dort lässt `mcp:sync` fail-closed abbrechen. Die
+      Datei steht nur deshalb im Manifest, damit die Prüfung „gehört der Shim hier hinein?"
+      dokumentiert beantwortet ist — die Antwort ist nein.
+- [ ] Den Shim in der llama-UI (`http://localhost:8098/#/mcp-servers`, „Add New Server") als URL
+      eintragen und verifizieren, dass beide Tools dort erscheinen. Schlägt die Verbindung aus
+      dem Browser mit einem CORS-Fehler fehl, ist der Server ohne CORS-Header gestartet — dann
+      greift die `--ui-mcp-proxy`-Option aus p1, die llama-server serverseitig verbinden lässt.
 
 ## Abgrenzung
 

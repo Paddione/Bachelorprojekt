@@ -49,6 +49,11 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-pipeline/dual-pair-failover.bat
       Der bestehende Erfolgsfall bleibt unverändert bestehen.
 - [ ] `website/src/lib/embeddings.test.ts` erweitern: `callRouter` bezieht seine Zieladresse vom
       Router; die öffentlichen Signaturen von `embedQuery` und `embedBatch` sind unverändert.
+- [ ] `scripts/llm-proxy/runner.test.mjs` erweitern: ein Loadout mit gesetzter
+      `--ui-mcp-proxy`-Option erzeugt das Flag in der argv-Liste, ein Loadout ohne sie erzeugt es
+      nicht. Der zweite Fall ist der Positiv-Anker zum ersten — er scheitert, wenn die Abbildung
+      fehlt, statt vakuos zu bestehen. Hat der vorhandene Build das Flag laut p1 nicht, entfällt
+      dieser Schritt zusammen mit der Option.
 - [ ] **GREEN.** Nach Abschluss von p1 bis p5 läuft der BATS-Lauf oben grün, ebenso die drei
       Vitest-Dateien.
 

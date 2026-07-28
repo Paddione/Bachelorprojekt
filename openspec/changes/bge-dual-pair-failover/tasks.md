@@ -30,6 +30,8 @@ _Ticket: T002426_
 | `website/src/lib/rerank.ts` | 43 | 557 |
 | `website/src/lib/embeddings.test.ts` | 150 | 450 |
 | `website/src/lib/rerank.test.ts` | 63 | 537 |
+| `scripts/llm-proxy/runner.mjs` | 102 | 398 |
+| `scripts/llm-proxy/runner.test.mjs` | 105 | 395 |
 
 Neue Dateien mit S1-Gate: `website/src/lib/bge-router.ts` (`.ts`, Limit 600),
 `website/src/lib/bge-router.test.ts` (`.ts`, Limit 600), `website/src/pages/api/bge/retrieve.ts`
@@ -61,12 +63,12 @@ CQ02: Dieser Plan führt keine `any`-Typen ein. Die Antwortformen von `llama-ser
 
 | id | Datei | Rolle | target_files | depends_on |
 | --- | --- | --- | --- | --- |
-| p1 | `tasks.d/p1-batch-host.md` | impl | `scripts/llm/start-embed-batch-server.ps1`, `scripts/llm/start-rerank-batch-server.ps1`, `scripts/llm/register-scheduled-tasks.ps1`, `scripts/llm/watchdog-llm-servers.ps1`, `scripts/llm/loadouts.json` | |
+| p1 | `tasks.d/p1-batch-host.md` | impl | `scripts/llm/start-embed-batch-server.ps1`, `scripts/llm/start-rerank-batch-server.ps1`, `scripts/llm/register-scheduled-tasks.ps1`, `scripts/llm/watchdog-llm-servers.ps1`, `scripts/llm/loadouts.json`, `scripts/llm-proxy/runner.mjs` | |
 | p2 | `tasks.d/p2-failover-router.md` | impl | `website/src/lib/bge-router.ts`, `website/src/lib/embeddings.ts`, `website/src/lib/rerank.ts` | p1 |
 | p3 | `tasks.d/p3-retrieval-api.md` | impl | `website/src/pages/api/bge/retrieve.ts`, `website/src/pages/api/bge/changes.ts` | p2 |
 | p4 | `tasks.d/p4-mcp-shim.md` | impl | `scripts/bge-mcp/server.mjs`, `scripts/llm/mcp-servers.json`, `docs/agent-guide/registry/mcp.yaml`, `.mcp.json`, `.opencode/opencode.jsonc` | p2 |
 | p5 | `tasks.d/p5-config.md` | impl | `environments/schema.yaml`, `environments/dev.yaml`, `environments/mentolder.yaml`, `environments/korczewski.yaml`, `environments/staging.yaml`, `environments/fleet-mentolder.yaml`, `environments/fleet-korczewski.yaml`, `k3d/llm-gpu.yaml` | p1 |
-| p6 | `tasks.d/p6-tests.md` | tests | `website/src/lib/bge-router.test.ts`, `website/src/lib/embeddings.test.ts`, `website/src/lib/rerank.test.ts`, `tests/spec/llm-pipeline/dual-pair-failover.bats`, `website/src/data/test-inventory.json` | p1, p2, p3, p4, p5 |
+| p6 | `tasks.d/p6-tests.md` | tests | `website/src/lib/bge-router.test.ts`, `website/src/lib/embeddings.test.ts`, `website/src/lib/rerank.test.ts`, `tests/spec/llm-pipeline/dual-pair-failover.bats`, `website/src/data/test-inventory.json`, `scripts/llm-proxy/runner.test.mjs` | p1, p2, p3, p4, p5 |
 
 `p2` hängt an `p1`, weil erst die Startskripte die Ports des Batch-Paars festschreiben, gegen die
 der Router routet. `p3` und `p4` hängen an `p2`, weil beide dieselbe Router-Funktion aufrufen

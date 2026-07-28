@@ -3,7 +3,7 @@
 **Rolle:** impl · **depends_on:** — · **target_files:**
 `scripts/llm/start-embed-batch-server.ps1`, `scripts/llm/start-rerank-batch-server.ps1`,
 `scripts/llm/register-scheduled-tasks.ps1`, `scripts/llm/watchdog-llm-servers.ps1`,
-`scripts/llm/loadouts.json`
+`scripts/llm/loadouts.json`, `scripts/llm-proxy/runner.mjs`
 
 ## Ziel
 
@@ -46,6 +46,23 @@ automatisch und werden vom bestehenden Watchdog mitüberwacht.
 - [ ] `scripts/llm/loadouts.json` um Einträge für beide Batch-Server ergänzen: `fit.enabled: false`,
       `args.ngl: 0`, `args.parallel` passend zur Batch-Last, `mcp.serversConfig: null`. Das Feld
       `notes` hält fest, warum dieses Paar bewusst CPU-gebunden ist.
+- [ ] **`--ui-mcp-proxy` als Loadout-Option nachrüsten.** Zuerst prüfen, ob der vorhandene Build
+      das Flag kennt:
+
+      ```bash
+      "/mnt/c/Users/PatrickKorczewski/llama-b10090-13.3/llama-server.exe" --help | grep -i 'ui-mcp-proxy'
+      ```
+
+      Kennt er es, ein optionales Feld (etwa `args.uiMcpProxy`) in `loadouts.json` einführen und
+      in `scripts/llm-proxy/runner.mjs` auf `--ui-mcp-proxy` abbilden — an derselben Stelle, an
+      der heute `mcp.serversConfig` auf `--mcp-servers-config` abgebildet wird (Zeile 45). Kennt
+      er es nicht, den Befund im `notes`-Feld des betroffenen Loadouts festhalten und die Option
+      weglassen; dann ist ein Build-Upgrade ein eigener Vorgang.
+
+      Zweck: Die Web-UI von `llama-server` lässt den **Browser** direkt zum MCP-Server verbinden.
+      Ein lokaler MCP-Server ohne CORS-Header lehnt das ab. Mit dem Flag verbindet stattdessen
+      `llama-server` selbst — das ist die Voraussetzung dafür, dass der Shim aus p4 und die
+      übrigen localhost-MCPs in der UI überhaupt eintragbar sind.
 
 ## Abgrenzung
 

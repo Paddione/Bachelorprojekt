@@ -33,7 +33,10 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/te
       continue
     fi
     entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "${id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")
-  done < <(find "$dir" -maxdepth 1 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z)
+  # maxdepth 2 statt 1 [T002416]: seit der Verzeichniskonvention liegen Spec-Tests auch
+  # unter tests/spec/<spec-slug>/. Mit maxdepth 1 fehlten sie im Inventar, und der
+  # CI-Check "test-inventory differs" wuerde erst beim naechsten Regenerieren auffallen.
+  done < <(find "$dir" -maxdepth 2 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z)
 done
 
 for f in "${REPO_ROOT}"/tests/e2e/specs/*.spec.ts; do

@@ -78,6 +78,19 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 
 - **Endpoint:** `http://localhost:13001/mcp`
 - **Tool:** `mcp__mcp-postgres__query` (Param: **nur** `sql`)
+- **Verfügbarkeits-Check — vor jedem Zugriff prüfen:** Der Server läuft als Port-Forward auf
+  `workspace/shared-db` und ist nicht automatisch in jeder Session registriert. Vor dem ersten
+  `mcp__mcp-postgres__query`-Aufruf die Erreichbarkeit bestätigen:
+  ```bash
+  curl -s --max-time 2 -o /dev/null -w '%{http_code}' \
+    -X POST -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+    -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"hc","version":"1"}}}' \
+    http://localhost:13001/mcp
+  # 200 → MCP erreichbar; alles andere → psql()-Fallback (siehe unten).
+  ```
+  Schlägt der Check fehl oder das Tool ist als deferred Tool nicht registriert
+  (`ToolSearch({query: "select:mcp__mcp-postgres__query"})` liefert nichts) → sofort auf den
+  `psql()`-Fallback umschwenken, nicht auf den MCP-Weg beharren.
 - **Brand-Bindung [T002278]:** dieser Server ist **brand-gebunden** an die **mentolder**-Datenbank.
   `external_id` ist nur pro Brand eindeutig — eine Abfrage nach einer korczewski-ID liefert
   **stillschweigend die gleichnamige mentolder-Zeile** (das brand-gefilterte Query liefert leer

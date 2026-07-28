@@ -466,20 +466,18 @@ cmd_reap() {
 }
 
 
-# Die beiden Git-Hook-Guards liegen in einer eigenen Datei [T002375-p1] — diese hier
-# stand bei 464 von 500 erlaubten Zeilen (S1, .sh) und hatte für den Change keinen Platz.
-# Die Aufrufschnittstelle bleibt `agent-lock.sh guard-precommit|guard-postcheckout`,
-# damit .githooks/pre-commit und .githooks/post-checkout unverändert bleiben können.
-# Fail-loud: fehlt die Datei, sind die Guards stumm wirkungslos — und ein Guard, der
-# schweigend nichts tut, ist schlimmer als gar keiner.
 _AGENT_LOCK_DIR_SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh" ]; then
-  # shellcheck source=scripts/agent-lock-guards.sh
-  . "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh"
-else
-  echo "AGENT-LOCK: FATAL — scripts/agent-lock-guards.sh fehlt neben $0" >&2
-  exit 1
-fi
+# Git-Hook-Guards in eigener Datei [T002375-p1] unter S1-Limit. Fail-loud: stumm = schlimmer.
+# Beide Fragmente sind ausgelagert, damit diese Datei unter dem S1-Limit von
+# 500 Zeilen bleibt (guards: T002214, merged/check-merged: T002279).
+# shellcheck source=scripts/agent-lock-guards.sh
+# shellcheck source=scripts/agent-lock-merged.sh
+for _agent_lock_frag in agent-lock-guards.sh agent-lock-merged.sh; do
+  [ -f "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag" ] || {
+    echo "AGENT-LOCK: FATAL — scripts/$_agent_lock_frag fehlt neben $0" >&2; exit 1; }
+  . "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag"
+done
+unset _agent_lock_frag
 
 main() {
   local cmd="${1:-}"; shift 2>/dev/null || true
@@ -489,12 +487,13 @@ main() {
     release) cmd_release "$@";;
     check)   cmd_check "$@";;
     check-and-claim) cmd_check_and_claim "$@";;
+    check-merged)    cmd_check_merged "$@";;
     list)    cmd_list "$@";;
     reap)    cmd_reap "$@";;
     mine)    _my_sid;;
     guard-precommit)    cmd_guard_precommit "$@";;
     guard-postcheckout) cmd_guard_postcheckout "$@";;
-    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
+    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-merged|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
   esac
 }
 main "$@"

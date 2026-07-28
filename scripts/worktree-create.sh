@@ -292,8 +292,36 @@ if [ -n "$(find "$WT_PATH" -maxdepth 3 -name pnpm-workspace.yaml -not -path '*/n
 fi
 
 _ok=1   # reached a clean finish — disarm the rollback trap
+
+# Anker-Commit auf einem FRISCH angelegten Branch. [T002412]
+#
+# Ein neuer Branch hat null Commits ueber seiner Basis. Fuer jede Aufraeumlogik, die
+# Loeschbarkeit an Commit-Ancestry festmacht ("ist vollstaendig in main enthalten?"),
+# ist er damit nicht von einem fertig gemergten Branch zu unterscheiden — und
+# `git branch -D` plus `git worktree remove --force` raeumen ihn ab, waehrend noch
+# jemand darin arbeitet.
+#
+# Belegt am 2026-07-28: zwei Worktrees wurden im Abstand von Sekunden angelegt. Der
+# zu T002407 trug bereits einen Commit und ueberlebte; der zu T002408 hatte keinen und
+# wurde mitten im Lauf samt Branch entfernt (verifiziert: nicht in `git worktree list`,
+# `git branch --list` leer, nie auf origin). Welcher Aufrufer es war, liess sich nicht
+# rekonstruieren — `cleanup.sh` und `auto-chore-plan.sh` scheiden aus, beide loeschen
+# nur explizit uebergebene bzw. eigene Pfade. Der Anker wirkt unabhaengig davon:
+# er macht den Branch fuer JEDE Ancestry-Pruefung sichtbar als "nicht enthalten".
+#
+# Best-effort und bewusst nicht fatal: schlaegt der Commit fehl, ist der Worktree
+# trotzdem brauchbar. `--no-verify`, weil der Commit keine Dateien traegt — es gibt
+# nichts zu linten oder auf Secrets zu scannen, und ein Hook-Fehlschlag darf die
+# Worktree-Erstellung nicht scheitern lassen.
 if [ "$BRANCH_EXISTS" -eq 1 ]; then
     echo "worktree-create: $WT_PATH ready on existing branch $BRANCH"
 else
+    if git -C "$WT_PATH" commit --allow-empty --no-verify -q \
+         -m "chore: anchor branch $BRANCH [skip ci]" 2>/dev/null; then
+        echo "worktree-create: Anker-Commit gesetzt (schuetzt vor Ancestry-basiertem Cleanup)" >&2
+    else
+        echo "worktree-create: WARNUNG — Anker-Commit fehlgeschlagen; der Branch hat null" >&2
+        echo "  Commits ueber $BASE und kann von Aufraeumlogik als 'gemergt' geloescht werden." >&2
+    fi
     echo "worktree-create: $WT_PATH ready on branch $BRANCH (base $BASE)"
 fi

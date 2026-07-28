@@ -121,6 +121,15 @@ for f in "$LOCK_DIR"/*.json; do
   wt="$(_abs_wt "$wt")"
   owner="$(_field "$f" owner_sid)"
   if [ "$owner" = "$SID" ]; then
+    # Ein eigener Claim auf einen nicht mehr existierenden Worktree darf die Session
+    # nicht lähmen. Sonst gilt: MY_WTS ist nicht leer, also wird jeder Pfad ausserhalb
+    # abgelehnt — aber der einzige erlaubte Pfad existiert nicht. Die Session kann dann
+    # NIRGENDS mehr schreiben und kommt nur noch über den Notausgang weiter. Genau das
+    # trat am 2026-07-28 ein, als der Worktree zu T002408 während des Laufs entfernt
+    # wurde. Bleibt nach dem Filtern kein eigener Worktree übrig, greift Regel 4
+    # ("ohne Claim ändert sich nichts"); der Schutz gegen FREMDE Claims bleibt
+    # davon unberührt. [T002412]
+    [ -d "$wt" ] || continue
     # ALLE eigenen Claims sammeln, nicht nur den ersten: eine Session darf legitim
     # mehrere Worktrees halten (z. B. wenn ticket-ops zwei Tickets parallel
     # dispatcht). Der frühere `[ -z "$MY_WT" ] && MY_WT="$wt"` sperrte sie aus allen

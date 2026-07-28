@@ -3,8 +3,9 @@
 # Ticket: T002267 — Folge aus dem T002255/T002256-Zyklus.
 #
 # BEFUND (korrigiert gegenueber dem ersten Planentwurf): der ticket-scoped
-# Lock-Check im Dispatcher EXISTIERT bereits dreifach (dispatcher-prep.sh:82,
-# factory-prep-runner.sh:67, factory-prep-bridge.sh:100, jeweils "T000510").
+# Lock-Check im Dispatcher EXISTIERT bereits (dispatcher-prep.sh:82, "T000510";
+# die frueher hier ebenfalls genannten factory-prep-runner.sh und
+# factory-prep-bridge.sh sind seit T002324 als toter Code geloescht).
 # Er griff bei T002255 trotzdem nicht, weil agent-lock.sh einen Lock der
 # LEBENDEN Session faelschlich als reapable einstuft und `check` dann `free`
 # meldet. Zwei Defekte in _reapable:
@@ -24,8 +25,6 @@ setup() {
   AGENT_LOCK="$REPO_ROOT/scripts/agent-lock.sh"
   TICKET_SH="$REPO_ROOT/scripts/ticket.sh"
   RECLAIM="$REPO_ROOT/scripts/ticket-reclaim.sh"
-  PREP_RUNNER="$REPO_ROOT/scripts/factory/factory-prep-runner.sh"
-  PREP_BRIDGE="$REPO_ROOT/scripts/factory/factory-prep-bridge.sh"
 
   export AGENT_LOCK_DIR="$BATS_TEST_TMPDIR/locks"
   mkdir -p "$AGENT_LOCK_DIR"
@@ -111,19 +110,12 @@ EOF
 # Regressionswaechter — der vorhandene Guard bleibt, wie er ist
 # ─────────────────────────────────────────────────────────────────────────────
 
-@test "T002267-G1: factory-prep-runner behaelt den T000510-Lock-Guard" {
-  run grep -nE "agent-lock\.sh.* check ticket" "$PREP_RUNNER"
-  [ "$status" -eq 0 ]
-  run grep -n 'al" -eq 3' "$PREP_RUNNER"
-  [ "$status" -eq 0 ]
-}
-
-@test "T002267-G1: factory-prep-bridge behaelt den T000510-Lock-Guard" {
-  run grep -nE "agent-lock\.sh.* check ticket" "$PREP_BRIDGE"
-  [ "$status" -eq 0 ]
-  run grep -n 'al" -eq 3' "$PREP_BRIDGE"
-  [ "$status" -eq 0 ]
-}
+# [T002324] Die beiden Waechter fuer factory-prep-runner.sh und
+# factory-prep-bridge.sh sind entfallen: beide Skripte waren toter Code (keine
+# einzige Referenz ausser Kommentaren) und wurden geloescht. Der T000510-Guard,
+# den sie absicherten, lebt weiterhin in dispatcher-prep.sh — dafuer bleibt der
+# Test unten. `vda.sh factory-prep` ist davon unberuehrt; es dispatcht auf
+# scripts/vda/factory-prep.sh, eine eigenstaendige Datei.
 
 @test "T002267-G1: check meldet weiterhin 'free' fuer einen fehlenden Lock" {
   run bash "$AGENT_LOCK" check ticket T009999

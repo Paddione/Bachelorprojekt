@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 634,
+      "file_count": 635,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -487,6 +487,7 @@
         "tests/spec/t001586.bats",
         "tests/spec/t001591.bats",
         "tests/spec/t002204-mishap-bundle.bats",
+        "tests/spec/t002374-mishap-bundle.bats",
         "tests/spec/terminal-sidekick.bats",
         "tests/spec/test_helper.bash",
         "tests/spec/ticket-mcp.bats",

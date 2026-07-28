@@ -4646,3 +4646,73 @@ MOCKEOF
   run bash -c "grep -c \"type IN ('feature','feat')\" '$REPO_ROOT/scripts/factory/queue.sh'"
   [ "$output" != "0" ]
 }
+
+# ── [T002390] Auto-Chore-Plan: triage -> plan_staged ohne Menschen ───────────
+#
+# mishap-tracker SKILL.md Schritt 3.5 beschreibt den vollstaendigen Weg von einem
+# frischen Bundle-Ticket bis status=plan_staged. Der Schritt ist aber PROSA:
+# scripts/hooks/mishap-tracker.sh ist mit 46 Zeilen nur ein Friction-Recorder,
+# und `grep -rln auto-chore-plan scripts/` lieferte nichts.
+#
+# Folge, gemessen am 2026-07-28: 8 Mishap-Bundles mit severity=minor lagen in
+# triage — alle nach dem dokumentierten Gate auto-planbar. Belegt an der eigenen
+# Session: T002381 und T002382 wurden per report_mishap angelegt (Schritte 1-3),
+# Schritt 3.5 uebersprungen, beide blieben liegen.
+#
+# Das war die letzte strukturelle Luecke im Durchsatz: Der Dispatcher nimmt
+# plan_staged (seit T002333 auch fuer bug), die Factory arbeitet — es kam nur
+# nichts an, weil triage keinen automatischen Ausgang hatte.
+
+@test "T002390: auto-chore-plan exists as an executable script, not only as prose" {
+  [ -x "$REPO_ROOT/scripts/factory/auto-chore-plan.sh" ]
+}
+
+@test "T002390: auto-chore-plan honours the severity gate" {
+  # major/critical (broken/security-Eintraege) duerfen NICHT auto-geplant werden —
+  # sie brauchen menschliche Triage. Ohne dieses Gate wuerde das Skript genau die
+  # Bundles durchwinken, bei denen ein Mensch hinsehen muss.
+  run grep -Eq "major|critical" "$REPO_ROOT/scripts/factory/auto-chore-plan.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002390: auto-chore-plan keeps the ticket ID case-sensitive in the branch name" {
+  # .githooks/pre-commit erzwingt T[0-9]{6,} case-sensitive. Ein aus dem
+  # lowercase-Slug abgeleiteter Branch (chore/mishap-t002382) matcht nicht, der
+  # Commit wird abgelehnt und der Schritt kann nie durchlaufen. Genau dieser Bug
+  # ist am 2026-07-26 live passiert (T002240).
+  #
+  # Geprueft wird, dass das Skript den Branch NICHT aus der lowercase-Variablen
+  # baut: ein `tr '[:upper:]' '[:lower:]'` darf nur den Slug speisen.
+  #
+  # Die Existenzpruefung steht bewusst VOR dem grep: ohne sie waere der Test
+  # leer-gruen, solange die Datei fehlt (grep findet nichts -> status != 0 ->
+  # bestanden), und wuerde die Falle erst absichern, nachdem jemand sie
+  # eingebaut hat.
+  [ -f "$REPO_ROOT/scripts/factory/auto-chore-plan.sh" ]
+  run grep -Eq 'branch=.*\$\{?slug' "$REPO_ROOT/scripts/factory/auto-chore-plan.sh"
+  [ "$status" -ne 0 ]
+}
+
+@test "T002390: auto-chore-plan chains commit and push with &&" {
+  # Ein abgelehnter Commit verhindert einen Push auf eigener Zeile NICHT — der
+  # Branch waere dann ohne Plan gepusht und das Ticket zeigte auf Leeres.
+  # Zeilenfortsetzungen (\ am Zeilenende) vorher aufloesen — die Verkettung darf
+  # ueber mehrere Zeilen gehen, das ist die lesbarere Form. Ohne das Zusammen-
+  # ziehen wuerde der Test die korrekte Schreibweise faelschlich ablehnen.
+  run bash -c "sed -e ':a' -e 'N;\$!ba' -e 's/\\\\\\n[[:space:]]*/ /g' \
+    '$REPO_ROOT/scripts/factory/auto-chore-plan.sh' \
+    | grep -Eq 'git commit.*&&.*git push'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002390: the factory tick invokes auto-chore-plan" {
+  # Verankerung: Ohne Aufruf im Tick bleibt es bei "laeuft, wenn jemand daran
+  # denkt" — exakt der Zustand, den dieses Ticket behebt.
+  run grep -q "auto-chore-plan" "$REPO_ROOT/scripts/factory/wakeup.sh"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002390: the skill points at the script instead of duplicating the procedure" {
+  run grep -q "auto-chore-plan.sh" "$REPO_ROOT/.claude/skills/mishap-tracker/SKILL.md"
+  [ "$status" -eq 0 ]
+}

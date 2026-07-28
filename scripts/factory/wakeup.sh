@@ -217,6 +217,15 @@ while true; do
         | sed "s/^/[mishap-flush:${_mf_brand}] /" >&2 || true
     done
   fi
+  # T002390: Mishap-Bundles (severity=minor) von triage nach plan_staged. Der
+  # Schritt stand bis dahin nur als Prosa in mishap-tracker SKILL.md 3.5 und
+  # wurde deshalb uebersprungen — 8 auto-planbare Bundles lagen in triage.
+  # Laeuft VOR dem Dispatcher-Tick, damit schedule.sh sie im selben Tick sieht.
+  # Best-effort: Fehler nicht fatal, das Gate lehnt major/critical ohnehin ab.
+  for _acp_brand in mentolder korczewski; do
+    BRAND="$_acp_brand" bash "${REPO}/scripts/factory/auto-chore-plan.sh" --all 2>&1 \
+      | sed "s/^/[auto-chore-plan:${_acp_brand}] /" >&2 || true
+  done
   # T001805: PR-CI-Babysitter — repo-weit, brand-agnostisch, best-effort.
   bash "${REPO}/scripts/factory/babysit-prs.sh" 2>&1 \
     | sed 's/^/[babysit] /' >&2 || true

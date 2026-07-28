@@ -119,70 +119,48 @@ mcp__ticket-mcp__flush_mishap_buffer({ brand: "<brand>" })
 
 ## Step 3.5: Non-critical bundle → auto-chore-plan
 
-Sobald ein Bundle-Ticket soeben angelegt wurde (external id `<ext-id>`), prüft dieser Schritt,
-ob ein Chore-Plan automatisch erzeugt und der Software Factory zur Umsetzung übergeben werden
-kann — ohne menschliche Zwischenstation.
+Ein Bundle ohne kritische Einträge geht **ohne menschliche Zwischenstation** von `triage`
+nach `plan_staged` und wird damit von der Software Factory aufgegriffen.
 
-1. **Gate auf dem lokalen `MISHAP_LOG` (NICHT `ticket.sh get`).** Berechne `has_critical` =
-   „mindestens ein `MISHAP_LOG`-Eintrag mit `type` = `broken` oder `security`". Wichtig:
-   `scripts/vda/ticket/get.sh` liefert **kein** `severity`- und **kein** `description`-Feld im
-   JSON — ein DB-Roundtrip über `ticket.sh get` kann die Severity also nicht liefern. Das
-   in-session `MISHAP_LOG` ist daher die einzige Quelle der Wahrheit (spiegelt `mishap.go`s
-   `classifyBundle` → `severity=major` bei `broken`/`security`) und funktioniert zusätzlich
-   offline. Falls `has_critical` → **stop**: Ticket bleibt bei `status=triage` für manuelle
-   Triage (heutiges Verhalten). Sonst weiter.
-2. **Slug UND Branch — zwei verschiedene Werte [T002240].**
+**Ausgeführt wird das von `scripts/factory/auto-chore-plan.sh` [T002390]** — nicht von Hand:
 
-   ```bash
-   # Verzeichnis-Slug: KOMPLETT lowercase (openspec/changes/<slug>-Konvention)
-   slug="mishap-$(echo "<ext-id>" | tr '[:upper:]' '[:lower:]')"   # -> mishap-t002239
-   # Branch-Name: Ticket-ID UNVERAENDERT, grosses T (NICHT aus dem Slug ableiten!)
-   branch="chore/mishap-<ext-id>"                                  # -> chore/mishap-T002239
-   ```
+```bash
+bash scripts/factory/auto-chore-plan.sh <ext-id>
+```
 
-   > ⚠️ **Falle (2026-07-26 live gestolpert):** `.githooks/pre-commit` erzwingt eine
-   > **case-sensitive** Ticket-ID im Branch-Namen (`[[ "$_bn" =~ T[0-9]{6,} ]]`).
-   > `chore/mishap-t002239` mit kleinem `t` matcht diese Regex **nicht** — der Commit
-   > wird abgelehnt und Schritt 3.5 kann so nie durchlaufen. Den lowercase-Slug also
-   > **ausschliesslich** fuer `openspec/changes/<slug>` verwenden, den Branch-Namen
-   > immer aus der unveraenderten `<ext-id>` bauen. Den Branch-Namen aus dem
-   > lowercase-Slug abzuleiten ist genau der Bug — nicht wieder einfuehren.
-   >
-   > Und weil ein abgelehnter Commit den nachfolgenden Push **nicht** verhindert,
-   > wenn beide auf getrennten Zeilen stehen: `git commit … && git push …` immer
-   > `&&`-verketten (siehe Schritt 7) und danach `git log --oneline -1` pruefen.
+Der Factory-Tick (`wakeup.sh`) ruft es zusätzlich mit `--all` je Brand auf, sodass liegen
+gebliebene Bundles von selbst nachgezogen werden.
 
-3. `bash scripts/openspec.sh propose "$slug" --ticket <ext-id>` — seedet das
-   plan-lint-konforme `openspec/changes/$slug/tasks.md`-Skelett (headless; kein Brainstorming).
-4. **Authoring an einen frischen Subagenten delegieren** (Provisionierung gemäß
-   `.claude/skills/references/subagent-provisioning.md`; inkl. Anti-Context-Overflow-
-   Handoff-Direktive). Die vollständigen `MISHAP_LOG`-Einträge als Kontext übergeben. Der
-   Subagent befüllt `openspec/changes/$slug/tasks.md` mit:
-   - je `MISHAP_LOG`-Eintrag ein Fix-Task, der die betroffene Komponente und die konkrete
-     Behebung aus der `description` des Eintrags benennt;
-   - mindestens einen echten RED-Failing-Test-Schritt mit dem wörtlichen Ausdruck
-     `expected: FAIL` plus einem echten Runner-Aufruf (`bats … tests/spec/<file>.bats` oder
-     `vitest …`) gegen eine bestehende Testdatei — die plan-lint-STRUCT2-Anforderung;
-   - einen abschließenden Verify-Task mit `task test:changed`, `task freshness:regenerate`,
-     `task freshness:check` (STRUCT3);
-   - Pflicht-Frontmatter (`title`, `ticket_id`, `domains`, `status`) und die Form
-     `# <slug> — Implementation Plan` / `## File Structure` (STRUCT1).
-5. `bash scripts/plan-lint.sh openspec/changes/$slug/tasks.md` — Hard Gate. Bei FAIL: mit dem
-   Linter-Output erneut delegieren (max. 2 Retries). Bleibt es rot: **kein** Aufruf von
-   `stage-plan`; Ticket bleibt bei `status=triage`, Lint-Fehler im Summary melden (kein
-   Rollback nötig — nichts wurde gestaged).
-6. `./scripts/ticket.sh stage-plan --id <ext-id> --branch "$branch" --plan "openspec/changes/$slug/tasks.md"`
-   — setzt `status=plan_staged`, schreibt den `FACTORY-PLAN-REF branch=$branch plan=…`-
-   Kommentar und markiert scout/design/plan-Phase-Events als done (bestehendes
-   `stage-plan.sh`-Verhalten). `--branch` bekommt den **Branch** aus Schritt 2, nicht den Slug.
-7. Commit + Push des `$branch`-Branches — beide Kommandos **`&&`-verkettet** in einem Aufruf:
-   `git add openspec/changes/$slug && git commit -m "chore(plans): stage $slug for factory [<ext-id>]" && git push -u origin "$branch"`.
-   Danach `git log --oneline -1` pruefen: HEAD muss den neuen Commit zeigen. (Ohne `&&`
-   laeuft der Push auch nach einem abgelehnten Commit und legt einen **leeren Branch** an;
-   `.githooks/pre-push` blockt diesen Fall inzwischen, das ist aber der Backstop, nicht die
-   Regel.)
-   Ab hier erkennt die Software Factory (queue.sh/slots.sh/pipeline.js/dispatcher-bridge.sh)
-   den `FACTORY-PLAN-REF` automatisch, schedult das Ticket und treibt es bis zum Merge.
+**Warum als Skript und nicht als Anleitung:** Dieser Schritt stand bis 2026-07-28 hier als
+Prosa — und wurde in der Praxis übersprungen. Acht auto-planbare Bundles lagen deshalb in
+`triage`, während der Dispatcher und die Factory beide einsatzbereit waren. Ein
+Automatisierungsschritt, der von der Aufmerksamkeit des Ausführenden abhängt, ist keiner.
+Deshalb steht das Verfahren **nur** im Skript; wird es hier erneut ausgeschrieben, driften
+Prosa und Code wieder auseinander.
+
+Was das Skript garantiert (Details und Begründungen im Skriptkopf):
+
+- **Severity-Gate:** nur `minor`/`trivial`. `major`/`critical` tragen `broken`- oder
+  `security`-Einträge und bleiben für menschliche Triage in `triage`.
+- **`plan-lint` als Hard Gate:** bei FAIL kein `stage-plan`, Ticket bleibt `triage`.
+- **Branch mit unveränderter Ticket-ID, Verzeichnis-Slug lowercase.** Zwei verschiedene Werte
+  aus derselben Ticket-ID [T002240]:
+
+  ```bash
+  # Verzeichnis-Slug: KOMPLETT lowercase (openspec/changes/<slug>-Konvention)
+  slug="mishap-$(echo "<ext-id>" | tr '[:upper:]' '[:lower:]')"   # -> mishap-t002239
+  # Branch-Name: Ticket-ID UNVERAENDERT, grosses T (NICHT aus dem Slug ableiten!)
+  branch="chore/mishap-<ext-id>"                                  # -> chore/mishap-T002239
+  ```
+
+  `.githooks/pre-commit` prüft `T[0-9]{6,}` **case-sensitive**. `chore/mishap-t002239` mit
+  kleinem `t` matcht die Regex nicht — der Commit wird abgelehnt und der Schritt kann nie
+  durchlaufen. Den Branch-Namen aus dem lowercase-Slug abzuleiten ist genau der Bug.
+- **Commit und Push `&&`-verkettet** — ein abgelehnter Commit verhindert einen Push auf
+  eigener Zeile nicht.
+
+Ab `plan_staged` erkennt die Factory den `FACTORY-PLAN-REF`, schedult das Ticket und treibt es
+bis zum Merge.
 
 ---
 

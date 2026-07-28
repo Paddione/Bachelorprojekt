@@ -33,6 +33,26 @@ _trigger_run_all() {   # $1 = die Datei, die den Fallback ausgeloest hat
 }
 declare -A PROBE_CACHE=()  # path-prefix → matching spec bats (grep memoisation)
 
+# Probe spec bats files for a given path: grep the path into spec bats, walk
+# ancestor directories, deepest match wins. Extracted so both the main loop
+# and the scripts/* fallback can share it without duplication. [T002345]
+probe_spec_for_path() { # $1 = changed file path
+  local probe="$1" matched=""
+  while [[ "$probe" == */* ]]; do
+    if [ -n "${PROBE_CACHE[$probe]+set}" ]; then
+      matched="${PROBE_CACHE[$probe]}"
+    else
+      matched=$(grep -lF -- "$probe" "$BASE_DIR"/*.bats 2>/dev/null || true)
+      PROBE_CACHE["$probe"]="$matched"
+    fi
+    [ -n "$matched" ] && break
+    probe="${probe%/*}"
+  done
+  while IFS= read -r m; do
+    [ -n "$m" ] && CANDIDATES+=("$m")
+  done <<< "$matched" || true
+}
+
 is_excluded() {
   local bats_file="$1"
   if [ "$TYPE" != "unit" ]; then
@@ -83,8 +103,18 @@ while IFS= read -r file; do
       # selection logic IS the change being tested.
       if [[ "$file" == scripts/find-changed-tests.sh ]]; then
         echo "note: $file changed — no test file match, skipping RUN_ALL" >&2
+      elif [ "$TYPE" = "spec" ]; then
+        # For spec selection, try the path probe before falling back to RUN_ALL.
+        # The probe greps the changed path into spec bats and picks the deepest
+        # match — often finding exactly the one suite that covers this script.
+        # Without this, every scripts/* change without a name match would fall
+        # through to RUN_ALL, pulling in the entire spec suite. [T002345]
+        probe_spec_for_path "$file"
+        if [ ${#CANDIDATES[@]} -eq 0 ]; then
+          _trigger_run_all "$file"
+        fi
       else
-        # If a script changed but no obvious test matches, fallback to run all for safety
+        # For unit selection, fallback to run all for safety
         _trigger_run_all "$file"
       fi
     fi
@@ -121,21 +151,7 @@ while IFS= read -r file; do
   # this, whole domains (website/**, k3d/**, flux/**) matched no rule above and
   # a diff-scoped run selected nothing for them. [T002245]
   if [ "$TYPE" = "spec" ] && [ "$RUN_ALL" != "true" ]; then
-    probe="$file"
-    matched=""
-    while [[ "$probe" == */* ]]; do
-      if [ -n "${PROBE_CACHE[$probe]+set}" ]; then
-        matched="${PROBE_CACHE[$probe]}"
-      else
-        matched=$(grep -lF -- "$probe" "$BASE_DIR"/*.bats 2>/dev/null || true)
-        PROBE_CACHE["$probe"]="$matched"
-      fi
-      [ -n "$matched" ] && break
-      probe="${probe%/*}"
-    done
-    while IFS= read -r m; do
-      [ -n "$m" ] && CANDIDATES+=("$m")
-    done <<< "$matched"
+    probe_spec_for_path "$file"
   fi
 done <<< "$CHANGED"
 

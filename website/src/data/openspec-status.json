@@ -1809,6 +1809,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002345": [
+    {
+      "slug": "spec-test-selection",
+      "status": "plan_staged"
+    }
+  ],
   "T002350": [
     {
       "slug": "2026-07-27-reaper-child-selection",

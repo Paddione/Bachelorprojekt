@@ -124,6 +124,17 @@ gesetzt — das Ticket wird vom Factory-Dispatch zurückgehalten, bis dieser Sch
 bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
 ```
 
+## Schritt 1.9: Kollisions-Check vor der Implementierung ⚡ [T002444]
+
+Bevor du mit der Implementierung beginnst, prüfe ob andere Sessions parallel an denselben
+Dateien arbeiten. Anders als der Pre-Commit-Hook (der `--staged` nutzt und nur staged Dateien
+prüft) erfasst `--branch` ALLE Dateien, die dein Branch jemals verändert hat — egal ob
+committed, staged oder Working-Tree-Änderungen:
+
+```bash
+bash scripts/agent-collision.sh check --branch || echo "⚠ Achtung: Kollision mit anderen Sessions — vor dem Commit koordinieren!"
+```
+
 ## Schritt 2: Implementierung delegieren
 
 ### Schritt 2.1: Pipeline-Modus — auf Partials warten

@@ -2045,6 +2045,12 @@
       "status": "archived"
     }
   ],
+  "T002447": [
+    {
+      "slug": "agent-lock-release-guard",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

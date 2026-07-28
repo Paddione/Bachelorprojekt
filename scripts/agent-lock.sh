@@ -42,11 +42,17 @@ _my_sid() {
   # eigenen Lock für fremd und verlangte --force. Das ist keine Kosmetik: --force ist das
   # Instrument, mit dem man FREMDE lebende Locks abräumt; erzwingt der Normalfall es,
   # gewöhnt sich jeder Aufrufer daran und räumt irgendwann einen echten fremden ab.
+  # AGENT_LOCK_SID ZUERST: es ist der ausdrueckliche Test-Override (siehe Dateikopf).
+  # Stuende er hinter den Harness-Variablen, wuerde ambient exportiertes
+  # CLAUDE_CODE_SESSION_ID ihn ueberstimmen — und jeder Test, der ihn setzt, briche in
+  # einer Harness-Session. Ein Override, den ambient State ueberstimmen kann, ist keiner.
+  # (Der Altcode hatte denselben Fehler mit CLAUDE_SESSION_ID davor; er biss nur nie,
+  # weil diese Variable real nie gesetzt war.)
+  if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
   local _v
   for _v in $_AGENT_LOCK_SID_ENVS; do
     if [ -n "${!_v:-}" ]; then printf '%s\n' "${!_v}"; return; fi
   done
-  if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
   local s; s="$(ps -o sess= -p "$$" 2>/dev/null | tr -d ' ')"
   if [ -n "$s" ]; then printf '%s\n' "$s"; return; fi
   # fallback: 4th field after the ')' in /proc/self/stat is the session id

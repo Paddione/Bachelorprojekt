@@ -1242,7 +1242,11 @@ MOCKEOF
   # ... und VOR der Diff-Schleife stehen, sonst diffed er gegen den alten Stand.
   local regen_line diff_line
   regen_line=$(grep -n 'task:[[:space:]]*freshness:regenerate' <<<"$block" | head -1 | cut -d: -f1)
-  diff_line=$(grep -n 'git diff --exit-code' <<<"$block" | head -1 | cut -d: -f1)
+  # [T002375-p4] Musterbreite bewusst: geprueft wird die REIHENFOLGE, nicht die
+  # Flag-Schreibweise. Die Diff-Schleife nutzt seit T002375-p4 `git diff --quiet`
+  # (zwei Faelle: nicht gestaged vs. nicht committet) statt `--exit-code`. Ein Test,
+  # der auf die alte Schreibweise festnagelt, misst die Formulierung statt der Aussage.
+  diff_line=$(grep -nE 'git diff (--exit-code|--quiet)' <<<"$block" | head -1 | cut -d: -f1)
   [ -n "$regen_line" ]
   [ -n "$diff_line" ]
   [ "$regen_line" -lt "$diff_line" ]

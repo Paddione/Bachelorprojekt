@@ -105,7 +105,12 @@ _ticket_lock_guard() {
   local lock_sh out rc
   lock_sh="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/agent-lock.sh"
   [[ -x "$lock_sh" || -f "$lock_sh" ]] || return 0
-  out="$(bash "$lock_sh" check ticket "$id" 2>/dev/null)"; rc=$?
+  # [T002422] Explizites Durchreichen der Harness-Session-Variablen in den
+  # Sub-Bash-Aufruf. Ohne diese Weitergabe kann der child bash die env-Variablen
+  # nicht sehen, faellt auf den Unix-Session-ID-Fallback zurueck, und der
+  # unterscheidet sich zwischen claim (Main-Shell) und check (Sub-Bash) — der
+  # Lock-Guard sieht dann einen fremden Lock und verweigert den Schreibzugriff.
+  out="$(CLAUDE_CODE_SESSION_ID="${CLAUDE_CODE_SESSION_ID:-}" CLAUDE_SESSION_ID="${CLAUDE_SESSION_ID:-}" bash "$lock_sh" check ticket "$id" 2>/dev/null)"; rc=$?
   if [[ $rc -eq 3 ]]; then
     echo "ERROR: Ticket $id ist durch eine andere Session gesperrt (agent-lock) — Status-Schreibvorgang verweigert." >&2
     echo "       Halter: $(printf '%s' "$out" | tr '\n' ' ')" >&2

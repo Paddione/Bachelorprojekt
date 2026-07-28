@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.223.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.222.0...website-v1.223.0) (2026-07-28)
+
+
+### Features
+
+* **factory:** angefangene Tickets fortsetzen statt neu beginnen [T002327] ([#3426](https://github.com/Paddione/Bachelorprojekt/issues/3426)) ([ec0c2fc](https://github.com/Paddione/Bachelorprojekt/commit/ec0c2fced927c4c3ee644e31ab8bf3a0fe21bb55))
+
+
+### Bug Fixes
+
+* **agents:** Mishap-Konsolidierung — 7 Partials, Session-Identität, Worktree-Guard, Test-Substanz [T002375] ([#3434](https://github.com/Paddione/Bachelorprojekt/issues/3434)) ([0f525b9](https://github.com/Paddione/Bachelorprojekt/commit/0f525b94bb8f7ed2f8bc0598fc979362147550ca))
+
 ## [1.222.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.10...website-v1.222.0) (2026-07-28)
 
 

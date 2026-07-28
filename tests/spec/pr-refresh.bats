@@ -89,11 +89,20 @@ _fixture() {
 }
 
 @test "pr-refresh: lokal ausgecheckter Branch wird abgelehnt, ohne zu pushen" {
-  # Der eigene Worktree-Branch ist per Definition ausgecheckt — ein realer Fall, kein
-  # konstruierter: PR #3447 hing an chore/mishap-T002382, den der Hauptcheckout hielt,
-  # ohne dass ein agent-lock dafuer existierte.
-  own_branch="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
-  # Positiv-Anker: der Branch ist wirklich in der Worktree-Liste — ohne ihn koennte der
+  # Realer Fall, kein konstruierter: PR #3447 hing an chore/mishap-T002382, den der
+  # Hauptcheckout hielt, ohne dass ein agent-lock dafuer existierte.
+  #
+  # Den Branch aus der Worktree-Liste lesen statt aus HEAD: GitHub Actions checkt einen
+  # detached HEAD aus, dort liefert `rev-parse --abbrev-ref HEAD` woertlich "HEAD" und die
+  # Worktree-Liste fuehrt `detached` statt `branch refs/heads/…`. Der Guard ist in dieser
+  # Umgebung strukturell nicht ausloesbar — dann wird ehrlich uebersprungen statt eine
+  # Vorbedingung zu behaupten, die nicht existiert.
+  own_branch="$(git -C "$REPO_ROOT" worktree list --porcelain \
+    | awk '/^branch refs\/heads\//{ sub("^branch refs/heads/", ""); print; exit }')"
+  if [ -z "$own_branch" ]; then
+    skip "kein Worktree mit ausgechecktem Branch (detached HEAD, z.B. GitHub Actions)"
+  fi
+  # Positiv-Anker: der Branch steht wirklich in der Worktree-Liste — ohne ihn koennte der
   # Test auch bei komplett fehlendem Guard bestehen.
   run git -C "$REPO_ROOT" worktree list --porcelain
   [ "$status" -eq 0 ]

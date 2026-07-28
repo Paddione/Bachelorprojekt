@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # scripts/agent-lock-merged.sh — check-merged command for agent-lock.sh. [T002279]
 #
 # Sourced by scripts/agent-lock.sh; provides cmd_check_merged.

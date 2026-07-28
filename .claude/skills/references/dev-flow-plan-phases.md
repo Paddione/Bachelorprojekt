@@ -332,3 +332,25 @@ git push -u origin $(git branch --show-current)
 >
 > Guard: `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` (siehe `openspec/specs/ci-cd.md`) blockiert jeden Commit mit Implementation-Type, dessen Staged-Diff nur Test-/Spec-/Plan-Dateien enthält — mit Verweis auf die richtigen Präfixe. Bypass: `SKIP_COMMIT_VS_DIFF=1 git commit ...` (Notfall).
 **STOPP.** Failing Test, Spec und Plan sind committed und gepusht. Nächster Schritt: `dev-flow-execute` aufrufen.
+
+## Preflight — Check merged ticket (T002279)
+
+Gilt in **beiden** Pfaden vor der Worktree-Anlage. Ein Bug wird häufig beiläufig in einem
+anderen Ticket mitgefixt; ohne diesen Check investiert die Planungs-Session Recherche in einen
+bereits erledigten Bug.
+
+```bash
+bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"
+```
+
+Exit-Codes:
+
+| rc | Bedeutung | Reaktion |
+|----|-----------|----------|
+| 0 | Ticket-ID nicht auf `main` gefunden | fortfahren |
+| 1 | Ticket-ID in gemergtem Commit oder Commit-Body auf `main` | Ticket auf `done` setzen, Session abbrechen |
+| 2 | ungültiges ID-Format oder `origin/main` fehlt | Aufruf korrigieren; kein Freibrief zum Fortfahren |
+
+Der Check kostet einen `git log`-Aufruf und fing beide Fundstellen der ursprünglichen Meldung
+ab (T002264, T002259). Er ersetzt **nicht** den Post-Merge-Scan aus T002279, sondern verhindert
+Doppelarbeit, bevor sie entsteht.

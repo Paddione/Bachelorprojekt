@@ -103,31 +103,10 @@ Plan reale Signaturen statt erfundener Typen referenziert: `symbols`/`signature`
 `risks[]`-Eintrag gesetzt statt die Sektion still leer zu lassen. Format:
 [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
 
-### Phase A.5: Preflight — Check merged ticket (T002279)
-
-Bevor der Worktree angelegt wird, prüfe, ob die Ticket-ID bereits in einem gemergten Commit
-auf `main` vorkommt. Das schließt die Lücke, wenn ein Bug beiläufig in einem anderen Ticket
-gefixt und gemergt wurde — die Planungs-Session investiert dann keine Recherche mehr in einen
-bereits erledigten Bug.
-
-```bash
-if [ -n "${TICKET_EXT_ID:-}" ]; then
-  if git log origin/main --oneline --grep="$TICKET_EXT_ID" | head -5 | grep -q .; then
-    echo "⚠ WARNING: Ticket $TICKET_EXT_ID bereits in gemergtem Commit auf main referenziert."
-    echo "  Der Bug ist möglicherweise schon gefixt. Bitte vor Worktree-Anlage prüfen."
-    echo "  Fundstellen:"
-    git log origin/main --oneline --grep="$TICKET_EXT_ID" | head -5
-    echo "  → Bei Bestätigung: Ticket auf done setzen und diese Session abbrechen."
-  fi
-fi
-```
-
-Dieser Check ist billig (ein `git log`-Aufruf) und hat beide Fundstellen der ursprünglichen
-Meldung abgefangen (T002264, T002259). Er ersetzt nicht den Post-Merge-Scan (T002279), sondern
-verhindert Doppelarbeit, bevor sie entsteht.
-
 ### Guards des Feature-Pfads
 
+- **Preflight: Check merged ticket** (T002279) — beide Pfade, vor der Worktree-Anlage:
+  `bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"` (`rc=1` = auf `main` schon gefixt → Ticket `done`, abbrechen). Exit-Codes: [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md) §Preflight.
 - **Brainstorming ist nicht optional** — weder im Feature- noch im Fix-Pfad. Es entscheidet, was
   überhaupt gebaut wird; ein Plan ohne vorherige Klärung plant die falsche Sache sorgfältig.
 - **Ticket vor Branch** (T001917, T002050): Steht die `TICKET_EXT_ID` fest, trägt der Branch sie
@@ -221,23 +200,6 @@ Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Pl
 Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird — Rot-Grün ist
 hier harte Voraussetzung, nicht Stilfrage. Der Test gehört nach `tests/spec/<spec-slug>.bats`
 (die Spec aus `openspec/specs/`), nicht in eine neue ticket-nummerierte Datei.
-
-### Preflight: Check merged ticket (T002279)
-
-Bevor du in die Worktree-Anlage einsteigst, prüfe, ob die Ticket-ID bereits in einem gemergten
-Commit auf `main` vorkommt. Besonders Bug-Tickets werden oft beiläufig in anderen Changes gefixt.
-
-```bash
-if [ -n "${TICKET_EXT_ID:-}" ]; then
-  if git log origin/main --oneline --grep="$TICKET_EXT_ID" | head -5 | grep -q .; then
-    echo "⚠ WARNING: Ticket $TICKET_EXT_ID bereits in gemergtem Commit auf main referenziert."
-    echo "  Der Bug ist möglicherweise schon gefixt. Bitte vor Worktree-Anlage prüfen."
-    echo "  Fundstellen:"
-    git log origin/main --oneline --grep="$TICKET_EXT_ID" | head -5
-    echo "  → Bei Bestätigung: Ticket auf done setzen und diese Session abbrechen."
-  fi
-fi
-```
 
 Schritte 1–5 im Detail (Ticket anlegen, Worktree, Claims, Lavish-Board, Brainstorming mit
 Root-Cause-Fokus, failing Test, Plan, `stage-plan`, Commit):

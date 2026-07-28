@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# .githooks/post-commit-embed — after a commit that touches openspec/changes/<slug>/
+# files, embed the change into pgvector so factory-mcp openspec_find_similar can find
+# it immediately — even if the session that wrote the plan crashed before the
+# explicit embed step (C.4) in dev-flow-plan.
+#
+# This is the safety net: dev-flow-plan C.4 calls openspec-embed-local.sh directly,
+# but if the session dies before reaching C.4 (watchdog timeout, context overflow),
+# this hook catches the next commit on that branch and runs the embed.
+#
+# Idempotent: openspec-embed.mjs DELETEs existing chunks for the slug before
+# re-inserting (upsert by delete+insert).
+#
+# Opt out: OPENSPEC_EMBED_HOOK_DISABLED=1 git commit ...
+set -uo pipefail
+
+if [[ "${OPENSPEC_EMBED_HOOK_DISABLED:-0}" == "1" ]]; then
+  exit 0
+fi
+
+# Skip in CI — the explicit C.4 step or the openspec.sh apply/archive calls handle
+# embedding in CI pipelines.
+if [[ -n "${CI:-}" ]]; then
+  exit 0
+fi
+
+repo_root="$(git rev-parse --show-toplevel)"
+
+# Detect which openspec slugs this commit touched.
+# Use diff-tree instead of diff HEAD~1 HEAD so it works on the initial commit too
+# (diff-tree compares the tree of HEAD against its parents — for the root commit
+# there is no parent, so it shows the full tree; that's fine, we'll just filter).
+CHANGED="$(git diff-tree --no-commit-id -r --name-only HEAD 2>/dev/null || true)"
+
+# Extract unique slugs from paths like openspec/changes/<slug>/...
+SLUGS="$(echo "$CHANGED" | grep -oP '^openspec/changes/\K[^/]+' | sort -u || true)"
+
+if [[ -z "$SLUGS" ]]; then
+  exit 0
+fi
+
+for slug in $SLUGS; do
+  change_dir="$repo_root/openspec/changes/$slug"
+  if [[ ! -d "$change_dir" ]]; then
+    continue
+  fi
+  # Only embed if the change has a tasks.md (active plan, not just a stray file).
+  if [[ ! -f "$change_dir/tasks.md" ]]; then
+    continue
+  fi
+  echo "[openspec-embed] post-commit: embedding slug='$slug'..."
+  if ! bash "$repo_root/scripts/openspec-embed-local.sh" "$slug" 2>&1; then
+    echo "[openspec-embed] WARN: embed failed for '$slug' (non-fatal — see above)" >&2
+  fi
+done

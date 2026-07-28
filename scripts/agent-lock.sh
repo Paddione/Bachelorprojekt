@@ -294,6 +294,19 @@ cmd_claim() {
   # branch claims went stale as soon as the sid check failed, while the ticket
   # claim of the very same session stayed live. [T002267]
   [ "$SCOPE" = "branch" ] && [ -z "$BRANCH" ] && BRANCH="$ID"
+  # `--worktree` absolut speichern: der Wert wurde bisher roh uebernommen, die
+  # uebliche Aufrufform ist aber relativ (`--worktree .worktrees/<slug>`), und ein
+  # relativer Pfad ist fuer jeden spaeteren Leser mehrdeutig — er gilt nur relativ
+  # zum cwd des Claimers. Folgen im Detail im Kopf von
+  # scripts/hooks/worktree-write-guard.sh; kurz: der Guard sperrt die Session aus
+  # allem aus, und `_reapable` haelt lebende Locks fuer tot. Bezug ist `$PWD` (so ist
+  # ein relativer Pfad definiert), nicht der Repo-Root — aus einem Worktree lieferte
+  # `--show-toplevel` dessen Root statt des main-Checkouts. Kein `realpath`: der Pfad
+  # muss zum Claim-Zeitpunkt nicht existieren.  [T002412]
+  case "${WT:-}" in
+    ""|"-"|/*) ;;
+    *) WT="$PWD/${WT#./}" ;;
+  esac
   # [T002375-p1] Für JEDEN anderen Scope aus dem HEAD füllen. Vorher blieb `branch`
   # bei einem ticket-scoped Claim leer — und der Pre-Commit-Guard aus dev-flow-plan
   # Schritt 5 vergleicht genau dieses Feld mit dem HEAD-Branch. Er schlug damit

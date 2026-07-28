@@ -1803,6 +1803,12 @@
       "status": "archived"
     }
   ],
+  "T002334": [
+    {
+      "slug": "openspec-embedding-T002334",
+      "status": "plan_staged"
+    }
+  ],
   "T002336": [
     {
       "slug": "llm-proxy-readiness",
@@ -1818,6 +1824,12 @@
   "T002345": [
     {
       "slug": "spec-test-selection",
+      "status": "plan_staged"
+    }
+  ],
+  "T002349": [
+    {
+      "slug": "k3d-kustomization-T002349",
       "status": "plan_staged"
     }
   ],
@@ -1881,6 +1893,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002389": [
+    {
+      "slug": "factory-attempt-counter-T002389",
+      "status": "plan_staged"
+    }
+  ],
   "T002390": [
     {
       "slug": "auto-chore-plan-script",
@@ -1890,6 +1908,12 @@
   "T002393": [
     {
       "slug": "pipeline-divergence-T002393",
+      "status": "plan_staged"
+    }
+  ],
+  "T002413": [
+    {
+      "slug": "pr-refresh-T002413",
       "status": "plan_staged"
     }
   ],

@@ -197,8 +197,13 @@ _wg_run() {  # $1=lockdir $2=sid $3=zielpfad  -> setzt status/output
   local ld; ld="$BATS_TEST_TMPDIR/locks-a"; mkdir -p "$ld"
   # Der Worktree muss UNTER dem Repo-Root liegen — reale Worktrees tun das
   # (.worktrees/<slug>), und Regel 1 laesst alles ausserhalb bewusst durch.
-  # Das Verzeichnis muss nicht existieren, verglichen werden Praefixe.
+  # Das Verzeichnis muss seit T002412 EXISTIEREN: ein eigener Claim auf einen
+  # geloeschten Worktree wird uebersprungen, damit eine Session sich nicht selbst
+  # aussperrt, wenn ihr Worktree unter ihr weggeraeumt wird. Frueher stand hier
+  # "muss nicht existieren, verglichen werden Praefixe" — das galt nur, solange
+  # der Guard tote eigene Claims noch mitzaehlte.
   local mywt="$REPO/.worktrees/t002375-p2-mine"
+  mkdir -p "$mywt"
   _wg_lock "$ld" branch__probe "sid-mine" "$mywt"
 
   # Positiv-Anker: innerhalb des eigenen Worktrees MUSS es durchgehen.
@@ -238,6 +243,7 @@ _wg_run() {  # $1=lockdir $2=sid $3=zielpfad  -> setzt status/output
 @test "T002375-p2: WORKTREE_GUARD_BYPASS=1 laesst den Schreibzugriff durch" {
   local ld; ld="$BATS_TEST_TMPDIR/locks-d"; mkdir -p "$ld"
   local mywt="$REPO/.worktrees/t002375-p2-mine"
+  mkdir -p "$mywt"   # seit T002412: tote eigene Worktrees zaehlen nicht mehr
   _wg_lock "$ld" branch__probe "sid-mine" "$mywt"
 
   # Positiv-Anker: ohne Bypass wird derselbe Aufruf abgelehnt.
@@ -262,4 +268,142 @@ for tool in ('Write', 'Edit'):
 print('ok')
 \""
   [ "$status" -eq 0 ] || { echo "$output"; false; }
+}
+
+@test "T002412: ein RELATIV gespeicherter Worktree-Pfad wird gegen den Repo-Root aufgeloest" {
+  # Der Kern des Bugs: agent-lock.sh speicherte '--worktree .worktrees/<slug>' roh,
+  # der Guard macht den Zielpfad aber absolut. Ohne Normalisierung matcht der
+  # eigene Worktree NIE — und weil ein gesetzter eigener Worktree jeden Pfad
+  # ausserhalb ablehnt, blockierte der Guard damit JEDEN Write der Session.
+  local ld; ld="$BATS_TEST_TMPDIR/locks-t002412-rel"; mkdir -p "$ld"
+
+  # Bezugspunkt ist der MAIN-Checkout, nicht $REPO: der Guard loest relative
+  # Lock-Pfade ueber `git rev-parse --git-common-dir` auf, weil Worktrees per
+  # Konvention unter <main>/.worktrees/<slug> liegen und er das Arbeitsverzeichnis
+  # des Claimers nicht kennen kann. Laeuft dieser Test selbst aus einem Worktree,
+  # sind $REPO und MAIN verschieden — dann muss das Fixture unter MAIN liegen.
+  local main_root; main_root="$(cd "$(git -C "$REPO" rev-parse --git-common-dir)/.." && pwd)"
+  local mywt="$main_root/.worktrees/t002412-relativ"
+  mkdir -p "$mywt"
+  _wg_lock "$ld" branch__probe "sid-mine" ".worktrees/t002412-relativ"   # RELATIV
+
+  # Der eigentliche Fall: im eigenen Worktree muss geschrieben werden duerfen,
+  # obwohl der Lock den Pfad relativ fuehrt.
+  _wg_run "$ld" "sid-mine" "$mywt/datei.txt"
+  local rc_inner="$status" out_inner="$output"
+
+  # Positiv-Anker gegen ein vakuoses Bestehen: der Guard muss ueberhaupt noch
+  # blocken. Waere die Normalisierung so kaputt, dass MY_WTS leer bleibt, ginge
+  # die Pruefung oben ebenfalls durch — dann aber auch diese hier, und sie faellt.
+  # Muss VOR dem Aufraeumen laufen: ohne das Verzeichnis gilt der Claim als tot.
+  _wg_run "$ld" "sid-mine" "$main_root/scripts/irgendwas.sh"
+  local rc_outer="$status" out_outer="$output"
+
+  rmdir "$mywt" 2>/dev/null || true
+
+  [ "$rc_inner" -eq 0 ] || { echo "relativ gespeicherter eigener Worktree wurde abgelehnt: $out_inner"; false; }
+  [ "$rc_outer" -ne 0 ] || { echo "Guard blockt gar nicht mehr — Normalisierung wirkungslos: $out_outer"; false; }
+}
+
+@test "T002412: ALLE eigenen Claims werden geehrt, nicht nur der erste" {
+  # Eine Session darf legitim mehrere Worktrees halten (ticket-ops dispatcht
+  # mehrere Tickets parallel). Frueher gewann der zuerst gefundene Lock, und
+  # welcher das ist, entscheidet allein die Glob-Reihenfolge der Dateinamen.
+  local ld; ld="$BATS_TEST_TMPDIR/locks-t002412-multi"; mkdir -p "$ld"
+  local wt_a="$REPO/.worktrees/t002412-aaa" wt_b="$REPO/.worktrees/t002412-zzz"
+  mkdir -p "$wt_a" "$wt_b"
+  _wg_lock "$ld" ticket__aaa "sid-mine" "$wt_a"
+  _wg_lock "$ld" ticket__zzz "sid-mine" "$wt_b"
+
+  # Beide muessen durchgehen — der zweite ist der, den die alte Logik verlor.
+  _wg_run "$ld" "sid-mine" "$wt_a/x.txt"
+  [ "$status" -eq 0 ] || { echo "erster eigener Worktree abgelehnt: $output"; false; }
+  _wg_run "$ld" "sid-mine" "$wt_b/x.txt"
+  [ "$status" -eq 0 ] || { echo "ZWEITER eigener Worktree abgelehnt (der alte Bug): $output"; false; }
+
+  # Positiv-Anker: ausserhalb beider wird weiterhin abgelehnt, und die Meldung
+  # nennt beide Worktrees.
+  _wg_run "$ld" "sid-mine" "$REPO/scripts/irgendwas.sh"
+  [ "$status" -ne 0 ] || { echo "ausserhalb beider Worktrees wurde NICHT abgelehnt"; false; }
+  [[ "$output" == *"$wt_a"* && "$output" == *"$wt_b"* ]] \
+    || { echo "Meldung nennt nicht beide eigenen Worktrees: $output"; false; }
+}
+
+@test "T002412: ein eigener Claim auf einen GELOESCHTEN Worktree laehmt die Session nicht" {
+  # Am 2026-07-28 wurde der Worktree zu T002408 waehrend des Laufs entfernt. Der
+  # Lock blieb stehen und zeigte ins Leere — die Session konnte danach nirgends
+  # mehr schreiben, obwohl ihr Worktree gar nicht mehr existierte.
+  local ld; ld="$BATS_TEST_TMPDIR/locks-t002412-dead"; mkdir -p "$ld"
+  local lebend="$REPO/.worktrees/t002412-lebend"
+  mkdir -p "$lebend"
+
+  # Positiv-Anker zuerst: mit einem LEBENDEN eigenen Claim blockt der Guard.
+  _wg_lock "$ld" ticket__lebend "sid-mine" "$lebend"
+  _wg_run "$ld" "sid-mine" "$REPO/scripts/irgendwas.sh"
+  [ "$status" -ne 0 ] || { echo "Vorbedingung: lebender Claim haette blocken muessen"; false; }
+
+  # Jetzt derselbe Aufbau, aber der geclaimte Worktree existiert nicht.
+  local ld2; ld2="$BATS_TEST_TMPDIR/locks-t002412-dead2"; mkdir -p "$ld2"
+  _wg_lock "$ld2" ticket__tot "sid-mine" "$REPO/.worktrees/t002412-nie-angelegt"
+  _wg_run "$ld2" "sid-mine" "$REPO/scripts/irgendwas.sh"
+  [ "$status" -eq 0 ] || { echo "toter eigener Claim sperrt die Session aus: $output"; false; }
+}
+
+@test "T002412: ein FREMDER Claim schuetzt seinen Worktree auch ohne existierendes Verzeichnis" {
+  # Abgrenzung zum Test darueber: die Existenzpruefung gilt NUR fuer eigene
+  # Claims. Ein fremder Claim darf nicht dadurch entwertet werden, dass sein
+  # Verzeichnis (noch) nicht angelegt ist — sonst oeffnet die Lockerung ein Loch.
+  local ld; ld="$BATS_TEST_TMPDIR/locks-t002412-foreign"; mkdir -p "$ld"
+  local fremdwt="$REPO/.worktrees/t002412-fremd-ohne-dir"
+  _wg_lock "$ld" ticket__fremd "sid-other" "$fremdwt"
+
+  # Positiv-Anker: ausserhalb des fremden Worktrees bleibt alles erlaubt.
+  _wg_run "$ld" "sid-mine" "$REPO/scripts/irgendwas.sh"
+  [ "$status" -eq 0 ] || { echo "ohne eigenen Claim faelschlich abgelehnt: $output"; false; }
+
+  _wg_run "$ld" "sid-mine" "$fremdwt/design.md"
+  [ "$status" -ne 0 ] || { echo "fremder Claim ohne Verzeichnis schuetzt nicht mehr: $output"; false; }
+}
+
+@test "T002412: agent-lock.sh speichert --worktree absolut" {
+  local ld; ld="$BATS_TEST_TMPDIR/locks-t002412-abs"; mkdir -p "$ld"
+  run env AGENT_LOCK_DIR="$ld" bash -c \
+    "cd '$REPO' && bash scripts/agent-lock.sh claim ticket T999412 \
+       --label probe --worktree .worktrees/t002412-abs --branch chore/probe"
+  [ "$status" -eq 0 ] || { echo "claim fehlgeschlagen: $output"; false; }
+
+  local f="$ld/ticket__T999412.json"
+  [ -f "$f" ] || { echo "Lock-Datei fehlt: $f"; false; }
+  local wt; wt="$(sed -n 's/.*"worktree": *"\([^"]*\)".*/\1/p' "$f" | head -1)"
+
+  # Positiv-Anker: das Feld ist ueberhaupt gefuellt (sonst bestuende die
+  # Negativ-Aussage unten vakuos).
+  [ -n "$wt" ] || { echo "worktree-Feld ist leer"; false; }
+  case "$wt" in
+    /*) : ;;
+    *) echo "worktree wurde relativ gespeichert: $wt"; false ;;
+  esac
+}
+
+@test "T002412: worktree-create.sh setzt einen Anker-Commit nur auf NEUEN Branches" {
+  # Ein frischer Branch hat null Commits ueber seiner Basis und ist damit fuer
+  # jede Ancestry-basierte Aufraeumlogik von einem gemergten nicht zu
+  # unterscheiden. Der Anker macht ihn sichtbar als "nicht enthalten".
+  local s="$REPO/scripts/worktree-create.sh"
+  [ -f "$s" ] || { echo "worktree-create.sh fehlt"; false; }
+
+  # Positiv-Anker: die Verzweigung auf BRANCH_EXISTS existiert ueberhaupt —
+  # ohne sie waere die Aussage "nur auf neuen Branches" gegenstandslos.
+  grep -q 'BRANCH_EXISTS' "$s" || { echo "BRANCH_EXISTS-Verzweigung fehlt"; false; }
+  grep -q -- '--allow-empty' "$s" || { echo "kein Anker-Commit im Skript"; false; }
+
+  # Der Anker-Commit darf NUR im else-Zweig (neuer Branch) stehen: die Zeile mit
+  # --allow-empty muss NACH der 'ready on existing branch'-Meldung kommen.
+  local ln_existing ln_anchor
+  ln_existing="$(grep -n 'ready on existing branch' "$s" | head -1 | cut -d: -f1)"
+  ln_anchor="$(grep -n -- '--allow-empty' "$s" | head -1 | cut -d: -f1)"
+  [ -n "$ln_existing" ] && [ -n "$ln_anchor" ] \
+    || { echo "Ankerzeilen nicht gefunden (existing=$ln_existing anchor=$ln_anchor)"; false; }
+  [ "$ln_anchor" -gt "$ln_existing" ] \
+    || { echo "Anker-Commit steht nicht im else-Zweig: anchor=$ln_anchor existing=$ln_existing"; false; }
 }

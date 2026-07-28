@@ -2,7 +2,13 @@
 # .githooks/post-commit — git's real hook entrypoint (git only ever invokes a
 # hook file named exactly "post-commit"; "post-commit-index" alone is never
 # picked up automatically, regardless of core.hooksPath). Dispatches to the
-# actual SCS reindex logic.
+# actual SCS reindex logic and OpenSpec embed safety net.
 set -uo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
-exec "$repo_root/.githooks/post-commit-index"
+
+# 1. Incremental SCS code-index reindex.
+bash "$repo_root/.githooks/post-commit-index"
+
+# 2. OpenSpec pgvector embed — catches plan commits that were written without
+#    reaching the explicit C.4 step (session abort before finalize).
+bash "$repo_root/.githooks/post-commit-embed"

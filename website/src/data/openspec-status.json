@@ -1961,6 +1961,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002410": [
+    {
+      "slug": "mishap-t002410",
+      "status": "plan_staged"
+    }
+  ],
   "T002413": [
     {
       "slug": "2026-07-28-pr-refresh-T002413",

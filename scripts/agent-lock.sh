@@ -294,6 +294,24 @@ cmd_claim() {
   # branch claims went stale as soon as the sid check failed, while the ticket
   # claim of the very same session stayed live. [T002267]
   [ "$SCOPE" = "branch" ] && [ -z "$BRANCH" ] && BRANCH="$ID"
+  # `--worktree` absolut speichern. Der Wert wurde bisher roh uebernommen, und die
+  # uebliche Aufrufform ist relativ (`--worktree .worktrees/<slug>`). Ein relativer
+  # Pfad in der Lock-Datei ist aber gegenueber JEDEM spaeteren Leser mehrdeutig — er
+  # gilt nur relativ zum cwd des Claimers:
+  #   - `scripts/hooks/worktree-write-guard.sh` vergleicht ihn gegen einen absoluten
+  #     Zielpfad; er matcht dann nie, und da ein gesetzter eigener Worktree jeden
+  #     Pfad ausserhalb ablehnt, blockiert der Guard JEDEN Write der Session.
+  #   - `_reapable` prueft `[ ! -d "$wt" ]` und wuerde einen lebenden Lock als tot
+  #     einstufen, sobald es aus einem anderen Verzeichnis laeuft.
+  # Bezugspunkt ist `$PWD` und nicht der Repo-Root: ein relativer Pfad ist per
+  # Definition relativ zum Arbeitsverzeichnis des Aufrufers. `git rev-parse
+  # --show-toplevel` waere hier falsch — aus einem Worktree heraus liefert es dessen
+  # Root, nicht den main-Checkout.
+  # Kein `realpath`/`cd`: der Pfad muss zum Claim-Zeitpunkt nicht existieren.  [T002412]
+  case "${WT:-}" in
+    ""|"-"|/*) ;;
+    *) WT="$PWD/${WT#./}" ;;
+  esac
   # [T002375-p1] Für JEDEN anderen Scope aus dem HEAD füllen. Vorher blieb `branch`
   # bei einem ticket-scoped Claim leer — und der Pre-Commit-Guard aus dev-flow-plan
   # Schritt 5 vergleicht genau dieses Feld mit dem HEAD-Branch. Er schlug damit

@@ -96,16 +96,37 @@ _my_sid() {
 }
 SID="$(_my_sid)"
 
-MY_WT=""
+# Worktree-Pfade aus den Lock-Dateien gegen den main-Checkout absolut machen.
+# `agent-lock.sh` speichert den `--worktree`-Wert so, wie der Aufrufer ihn uebergibt —
+# und die uebliche Schreibweise ist relativ (`.worktrees/<slug>`). TARGET ist ab
+# Zeile 66 dagegen IMMER absolut. Ohne diese Normalisierung matcht ein relativ
+# gespeicherter Pfad nie, und weil ein gesetztes MY_WT jeden Pfad ausserhalb
+# ablehnt, blockiert der Guard dann JEDEN Schreibzugriff der Session — der Notausgang
+# bleibt die einzige Möglichkeit weiterzuarbeiten. [T002412]
+_abs_wt() {
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *)  printf '%s\n' "$MAIN_ROOT/${1#./}" ;;
+  esac
+}
+
+MY_WTS=()
 FOREIGN_WT=""
 FOREIGN_SID=""
 for f in "$LOCK_DIR"/*.json; do
   [ -f "$f" ] || continue
   wt="$(_field "$f" worktree)"
   [ -n "$wt" ] || continue
+  [ "$wt" = "-" ] && continue
+  wt="$(_abs_wt "$wt")"
   owner="$(_field "$f" owner_sid)"
   if [ "$owner" = "$SID" ]; then
-    [ -z "$MY_WT" ] && MY_WT="$wt"
+    # ALLE eigenen Claims sammeln, nicht nur den ersten: eine Session darf legitim
+    # mehrere Worktrees halten (z. B. wenn ticket-ops zwei Tickets parallel
+    # dispatcht). Der frühere `[ -z "$MY_WT" ] && MY_WT="$wt"` sperrte sie aus allen
+    # ausser dem zuerst gefundenen aus — und welcher das ist, entscheidet die
+    # Glob-Reihenfolge, also der Ticketname. [T002412]
+    MY_WTS+=("$wt")
   else
     case "$TARGET" in
       "$wt"/*|"$wt") FOREIGN_WT="$wt"; FOREIGN_SID="$owner";;
@@ -113,17 +134,20 @@ for f in "$LOCK_DIR"/*.json; do
   fi
 done
 
-# 2) Eigener Claim gewinnt: nur darunter darf geschrieben werden.
-if [ -n "$MY_WT" ]; then
-  case "$TARGET" in
-    "$MY_WT"/*|"$MY_WT") _allow ;;
-  esac
+# 2) Eigener Claim gewinnt: nur unterhalb der eigenen Worktrees darf geschrieben werden.
+if [ "${#MY_WTS[@]}" -gt 0 ]; then
+  for mw in "${MY_WTS[@]}"; do
+    case "$TARGET" in
+      "$mw"/*|"$mw") _allow ;;
+    esac
+  done
   {
     echo "WORKTREE-GUARD: Schreibzugriff abgelehnt."
     echo "  Pfad:            $TARGET"
-    echo "  Dieser Session gehoert: $MY_WT"
+    echo "  Dieser Session gehoeren:"
+    for mw in "${MY_WTS[@]}"; do echo "    - $mw"; done
     echo "  Der Pfad liegt ausserhalb — vermutlich im Hauptcheckout oder in einem"
-    echo "  fremden Worktree. Ruf denselben Pfad mit dem Praefix '$MY_WT/' erneut auf."
+    echo "  fremden Worktree. Ruf denselben Pfad mit einem der Praefixe oben erneut auf."
     echo "  Grund: 'cd' wirkt nur auf Bash; Edit/Write nehmen absolute Pfade und"
     echo "  treffen sonst still die falsche Arbeitskopie [T002357-M1]."
     echo "  Notausgang (bewusst): WORKTREE_GUARD_BYPASS=1"

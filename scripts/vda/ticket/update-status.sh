@@ -39,6 +39,9 @@ main() {
   # Merge = Abschluss (T001092): a done ticket can only go to archived. Any other
   # transition would lose the resolution and violate the contract. This guard runs
   # as a separate SELECT before the UPDATE so we fail early with a clear message.
+  # Note: this guard is best-effort — the SELECT and UPDATE are separate autocommit
+  # calls with no enclosing transaction, so a concurrent writer could race between
+  # them (pre-existing architectural limitation; the TS side avoids it via FOR UPDATE).
   # Note: scripts/factory/reconcile-ticket-status.sh bypasses this guard by writing
   # SQL directly via kubectl exec — that's intentional for its watchdog patterns.
   local _cur_status

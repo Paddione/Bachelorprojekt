@@ -1872,3 +1872,35 @@ MOCKEOF
   rm -f "$probe"
   [[ "$verdict" == *"IN"* ]] || { echo "ungetrackte Datei fehlt im Scan-Universum: $verdict"; false; }
 }
+
+# ── [T002374-M1] commitlint: scope 'skills' alias to 'agents' ─────────────#
+
+@test "T002374-M1: commitlint.config.cjs SCOPE_ALIAS_GROUPS.agents enthaelt 'skills'" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  grep -qE "agents.*\[.*skills" "$REPO_ROOT/commitlint.config.cjs" \
+    || { echo "MISSING 'skills' alias in SCOPE_ALIAS_GROUPS.agents"; return 1; }
+}
+
+@test "T002374-M1: scopeHint gibt Hinweis fuer 'skills' zurueck" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  run bash -c "node -e \"const cfg = require('$REPO_ROOT/commitlint.config.cjs'); process.stdout.write(cfg.scopeHint('skills') || '(empty)');\""
+  [[ "$output" != *"empty"* ]] || { echo "scopeHint fuer 'skills' gibt keinen Hinweis"; false; }
+  [[ "$output" == *"agents"* ]] || { echo "scopeHint fuer 'skills' verweist nicht auf 'agents': $output"; false; }
+}
+
+# ── [T002374-M2] agent-lock release: --force bei SID-Mismatch ───────────#
+
+@test "T002374-M2: agent-lock.sh release mit --force ueberschreibt SID-Mismatch" {
+  AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  export AGENT_LOCK_FAKE_ALIVE="session-A-orch"
+  export AGENT_LOCK_SID="session-A-orch"
+  bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" claim ticket T002374-m2 --label test-delegate
+  [ -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ]
+
+  export AGENT_LOCK_SID="session-B-sub"
+  run bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" release ticket T002374-m2 --force
+  echo "exit: $status output: $output"
+  [ "$status" -eq 0 ] || { echo "release with --force must succeed even with SID mismatch"; false; }
+  [ ! -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ] || { echo "lock file should be deleted after release"; false; }
+  rm -rf "$AGENT_LOCK_DIR"
+}

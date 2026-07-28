@@ -22,7 +22,7 @@ stammen unveraendert aus der Ticket-Beschreibung; die Diagnose dort ist die Vorg
 ## File Structure
 
 ```
-<der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+tests/spec/ci-cd.bats
 ```
 
 ## Mishap-Eintraege

@@ -27,16 +27,16 @@ CHANGED:
 
 ## Tasks
 
-### 1. Failing-Test (RED)
+### 1. Failing-Test (RED) ✓
 
 Schreibe BATS-Test der die Divergenz nachweist: pipeline.mjs hat nicht den Partial-Fanout (T002074) und Guard-Overwrite (T002286), die pipeline.js bereits hat.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/pipeline-divergence-T002393.bats
-# expected: FAIL
+# expected: FAIL → actual: FAIL (6/6 failed)
 ```
 
-### 2. Fehlende Blöcke portieren (GREEN)
+### 2. Fehlende Blöcke portieren (GREEN) ✓
 
 Portiere die fehlenden Blöcke aus pipeline.js nach pipeline.mjs:
 - Partial-Fanout (T002074)
@@ -44,8 +44,9 @@ Portiere die fehlenden Blöcke aus pipeline.js nach pipeline.mjs:
 - Reihenfolge-Korrektur (T002327)
 
 Verifiziere mit BATS-Test aus Task 1 — muss GREEN sein.
+→ actual: GREEN (6/6 passed)
 
-### 3. pipeline.js entfernen, Referenzen umstellen
+### 3. pipeline.js entfernen, Referenzen umstellen ✓
 
 - Lösche `scripts/factory/pipeline.js`
 - Aktualisiere alle Referenzen auf `pipeline.mjs` in:

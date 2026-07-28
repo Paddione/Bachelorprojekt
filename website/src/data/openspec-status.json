@@ -1969,6 +1969,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002425": [
+    {
+      "slug": "mishap-t002425",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

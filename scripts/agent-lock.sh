@@ -352,8 +352,18 @@ cmd_release() {
   local scope="$1" id="${2:-}" force=""; [ "${3:-}" = "--force" ] && force=1
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
-  if [ -n "$force" ] || [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then rm -f "$f"; return 0; fi
-  echo "release: lock owned by SID $(_lock_field "$f" owner_sid), current SID $(_my_sid) — use --force" >&2
+  local owner_sid
+  owner_sid="$(_lock_field "$f" owner_sid)"
+  # Auto-release if owner SID is dead (crashed session). SID-based check before
+  # the identity comparison prevents --force-less release of a live foreign lock
+  # whose SID happens to be unreachable by pgrep (non-numeric SIDs are always
+  # considered alive by _sid_alive). [T002373-M2]
+  if [ -n "$force" ] \
+    || [ "$owner_sid" = "$(_my_sid)" ] \
+    || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
+    rm -f "$f"; return 0
+  fi
+  echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2
   return 1
 }
 

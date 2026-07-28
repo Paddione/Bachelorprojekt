@@ -36,7 +36,7 @@ setup() {
   [ "$output" -ge 1 ]
   run grep -c 'SendMessage' "$SKILL"
   [ "$output" -ge 2 ]
-  run grep -c 'kein zweiter Subagent' "$SKILL"
+  run grep -c 'kein neuer Spawn' "$SKILL"
   [ "$output" -ge 1 ]
 }
 

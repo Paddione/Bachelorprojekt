@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 598,
+      "file_count": 599,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -343,6 +343,7 @@
         "tests/spec/centralized-logging.bats",
         "tests/spec/chat-inbox.bats",
         "tests/spec/ci-cd.bats",
+        "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
         "tests/spec/ci-cd/mishap-t002425.bats",
         "tests/spec/ci-cd/pr-refresh-batch.bats",
         "tests/spec/ci-cd/spec-dir-convention.bats",

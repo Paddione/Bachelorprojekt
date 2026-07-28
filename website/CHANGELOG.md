@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.223.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.0...website-v1.223.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **factory:** pipeline.mjs mit fehlenden Blöcken nachziehen, pipeline.js entfernen [T002393] ([#3450](https://github.com/Paddione/Bachelorprojekt/issues/3450)) ([905fdb9](https://github.com/Paddione/Bachelorprojekt/commit/905fdb9886cb49f8df7a745c0d0f23cf8d43cd35))
+* **test:** scripts/*-Aenderungen erreichen die Pfad-Probe im spec-Finder [T002345] ([#3452](https://github.com/Paddione/Bachelorprojekt/issues/3452)) ([c70ef55](https://github.com/Paddione/Bachelorprojekt/commit/c70ef5543316099186b492de3cac659407da437b))
+
+
+### Documentation
+
+* **ci:** add hint about untracked files requiring two freshness rounds [T002273] ([#3445](https://github.com/Paddione/Bachelorprojekt/issues/3445)) ([9d75f2f](https://github.com/Paddione/Bachelorprojekt/commit/9d75f2f96683d064f2d3f6948b28c770afd58e32))
+
 ## [1.223.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.222.0...website-v1.223.0) (2026-07-28)
 
 

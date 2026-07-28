@@ -1014,9 +1014,10 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   # has been called for a ticket. Without it, a ticket that enters the DRY_RUN
   # branch loops forever: every subsequent tick re-forces dry_run=true and the
   # ticket is bounced back to backlog without ever progressing (T001816).
-  run awk '/^if \(DRY_RUN\) \{/{f=1} f{print} f && /^\}/{exit}' scripts/factory/pipeline.mjs
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "dryrun-mark --id" ]]
+  # NOTE: T002361 moved dryrun-mark OUTSIDE the DRY_RUN agent prompt (as its own
+  # programmatic step) to break the livelock. The test checks the full file, not
+  # the awk-extracted block.
+  grep -q 'dryrun-mark' scripts/factory/pipeline.mjs
 }
 
 # ── FA-SF-32-classify-paths ─────────────────────────────────────#

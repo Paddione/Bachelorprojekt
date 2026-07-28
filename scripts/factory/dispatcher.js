@@ -132,7 +132,7 @@ async function main() {
     toLaunch.map(
       (f) => () =>
         workflow(
-          { scriptPath: 'scripts/factory/pipeline.js' },
+          { scriptPath: 'scripts/factory/pipeline.mjs' },
           {
             title: f.title ?? f.external_id,
             description: `Dispatched by the Software Factory dispatcher (slot ${f.slot}).`,

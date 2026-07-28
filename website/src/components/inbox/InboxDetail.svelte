@@ -404,7 +404,7 @@
         </button>
         <span class="spacer"></span>
         {#if p(item, 'ticketId')}
-          <a class="btn btn-ghost" href={`/admin/bugs?ticket=${encodeURIComponent(p<string>(item, 'ticketId') ?? '')}`}>
+          <a class="btn btn-ghost" href={`/admin/tickets?ticket=${encodeURIComponent(p<string>(item, 'ticketId') ?? '')}`}>
             Im Ticket öffnen ↗
           </a>
         {/if}

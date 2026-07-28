@@ -58,6 +58,13 @@ in A.5 den Ordner noch nicht angelegt hat; kein Doppel mehr im alten Spec-Verzei
 Nach dem Schreiben der Spec das Frontmatter setzen:
 `bash scripts/vda.sh frontmatter --spec openspec/changes/<slug>/design.md`
 und `ticket_id`/`plan_ref` ausfüllen sobald Ticket-ID und Plan-Pfad feststehen.
+
+> **Commit-Scope ist `plans`, nicht `specs` [T002425-M2].** Der naheliegende `docs(specs):`
+> wird von `validate-commit-msg` abgelehnt — `specs` wurde mit T002328 zu `plans`
+> konsolidiert. Der Plugin-Skill `superpowers:brainstorming` kennt diese Repo-Konvention
+> nicht (er legt seine Spec per Default nach `docs/superpowers/specs/`, was hier ohnehin
+> durch den Change-Ordner ersetzt ist), deshalb steht der Scope hier. Also:
+> `docs(plans): …` oder `chore(plans): …`.
 #### Schritt A.5: OpenSpec-Change anlegen — AUF MAIN ⚡
 Lege den OpenSpec-Change-Ordner **auf dem main-Branch** an (seedet `proposal.md` + `tasks.md` +
 Delta-Skeleton, setzt Ticket-Status auf `planning`). Merke den Repo-Root für Schritt B.2:

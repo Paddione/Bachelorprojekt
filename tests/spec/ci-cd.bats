@@ -1603,12 +1603,12 @@ PY
   [[ "$output" == *"website"* ]]
 }
 
-@test "T002328: konsolidierter Scope 'skills' nennt sein Ziel 'agents' in der Diagnose" {
+@test "T002328/T002374: 'skills' ist wieder ein gueltiger Scope" {
   msg="$BATS_TEST_TMPDIR/msg-skills"
   printf 'chore(skills): tidy up\n' > "$msg"
   run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$msg"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"agents"* ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OK"* ]]
 }
 
 @test "T002328: entfallener Scope 'tracking' wird als entfernt gemeldet, nicht auf ein Ziel gemappt" {
@@ -1871,4 +1871,30 @@ MOCKEOF
   local verdict="$output"
   rm -f "$probe"
   [[ "$verdict" == *"IN"* ]] || { echo "ungetrackte Datei fehlt im Scan-Universum: $verdict"; false; }
+}
+
+# ── [T002374-M1] commitlint: 'skills' is a first-class scope, not an alias ──#
+
+@test "T002374-M1: 'skills' ist ein gueltiger Scope, kein Alias mehr" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  # 'skills' is now a NAMED_SCOPE, not a SCOPE_ALIAS. scopeHint returns empty.
+  run bash -c "node -e \"const cfg = require('$REPO_ROOT/commitlint.config.cjs'); process.stdout.write(cfg.scopeHint('skills') || '(empty)');\""
+  [[ "$output" == *"empty"* ]] || { echo "scopeHint fuer 'skills' soll leer sein (skills ist jetzt First-Class-Scope): $output"; false; }
+}
+
+# ── [T002374-M2] agent-lock release: --force bei SID-Mismatch ───────────#
+
+@test "T002374-M2: agent-lock.sh release mit --force ueberschreibt SID-Mismatch" {
+  AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  export AGENT_LOCK_FAKE_ALIVE="session-A-orch"
+  export AGENT_LOCK_SID="session-A-orch"
+  bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" claim ticket T002374-m2 --label test-delegate
+  [ -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ]
+
+  export AGENT_LOCK_SID="session-B-sub"
+  run bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" release ticket T002374-m2 --force
+  echo "exit: $status output: $output"
+  [ "$status" -eq 0 ] || { echo "release with --force must succeed even with SID mismatch"; false; }
+  [ ! -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ] || { echo "lock file should be deleted after release"; false; }
+  rm -rf "$AGENT_LOCK_DIR"
 }

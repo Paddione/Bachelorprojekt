@@ -97,9 +97,9 @@ const kpis = [
     suffix: openInvoices > 0 ? `${fmtCurrency(openInvoiceAmount)} — noch nicht bezahlt` : 'alles bezahlt',
   },
   {
-    label: 'Überfällige Bugs',
+    label: 'Offene Tickets',
     value: openBugCount,
-    href: '/admin/bugs',
+    href: '/admin/tickets',
     color: openBugCount > 0 ? 'danger' as const : 'neutral' as const,
     suffix: openBugCount > 0 ? 'in Bearbeitung' : 'sauber',
   },

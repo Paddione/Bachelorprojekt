@@ -2,14 +2,14 @@
 //
 // FA-bug-notify: bug-report submission → admin resolve → reporter email
 //
-// This test verifies the full notification loop on the LEGACY resolve path
-// (`/api/admin/bugs/resolve`, JSON body). The newer `/api/admin/tickets/:id/transition`
-// path is covered by fa-admin-tickets.spec.ts — both are kept so the legacy
-// route's email side-effect stays in regression coverage.
+// This test verifies the notification loop via the unified transition API
+// (`/api/admin/tickets/:id/transition`). The flow logic is the same as the
+// legacy /api/admin/bugs/resolve path (now removed in T002330).
 //
 // Flow:
 //   1. Direct-DB insert into tickets.tickets (is_test_data=true) → mint a test ticket.
-//   2. Admin authenticates via Keycloak OIDC and POSTs /api/admin/bugs/resolve.
+//   2. Admin authenticates via Keycloak OIDC and POSTs /api/admin/tickets/:id/transition
+//      with status=done and resolution=fixed.
 //   3. Mailpit confirms an email arrived at the reporter's address
 //      with a subject like "[T001751] Ihre Meldung wurde bearbeitet".
 //   4. afterEach deletes the seeded ticket row by external_id, so the
@@ -59,7 +59,7 @@ async function mailpitReachable(request: import('@playwright/test').APIRequestCo
 }
 
 async function loginAsAdmin(page: import('@playwright/test').Page): Promise<void> {
-  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/bugs');
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/tickets');
 }
 
 test.describe('FA-bug-notify', () => {
@@ -87,8 +87,8 @@ test.describe('FA-bug-notify', () => {
 
     await assertAuthenticatedReachable(
       request,
-      `${BASE}/admin/bugs`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin bugs page' },
+      `${BASE}/admin/tickets`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin tickets page' },
       testInfo
     );
 
@@ -101,15 +101,17 @@ test.describe('FA-bug-notify', () => {
     const description = 'E2E notification test — Playwright FA-bug-notify';
 
     const pool = new Pool({ connectionString: DB_URL });
+    let ticketUuid: string;
     let ticketId: string;
     try {
-      const { rows } = await pool.query<{ external_id: string }>(
+      const { rows } = await pool.query<{ id: string; external_id: string }>(
         `INSERT INTO tickets.tickets
            (type, brand, title, description, url, reporter_email, status, is_test_data)
          VALUES ('bug', $1, $2, $3, '/e2e-test', $4, 'triage', true)
-         RETURNING external_id`,
+         RETURNING id, external_id`,
         [BRAND, description.slice(0, 200), description, reporter],
       );
+      ticketUuid = rows[0].id;
       ticketId = rows[0].external_id;
     } finally {
       await pool.end();
@@ -120,19 +122,21 @@ test.describe('FA-bug-notify', () => {
     // ── Step 2: Admin login via Keycloak OIDC ───────────────────────
     await loginAsAdmin(page);
 
-    // ── Step 3: Resolve ticket via API with admin session cookies ───
+    // ── Step 3: Transition ticket via API with admin session cookies ─
     // Use page.request so Playwright sends the session cookies from the
     // logged-in browser context. The X-E2E-Test + X-Cron-Secret headers
     // tell the server to skip the real SMTP send (isE2ETestRequest guard).
     const e2eHeaders = markerAvailable() ? markerHeaders()! : {};
-    const resolveRes = await page.request.post(`${BASE}/api/admin/bugs/resolve`, {
+    const resolveRes = await page.request.post(`${BASE}/api/admin/tickets/${ticketUuid}/transition`, {
       headers: { 'Content-Type': 'application/json', ...e2eHeaders },
       data: JSON.stringify({
-        ticketId,
-        resolutionNote: 'fixed in E2E plan — Playwright FA-bug-notify',
+        status: 'done',
+        resolution: 'fixed',
+        note: 'fixed in E2E — Playwright FA-bug-notify',
+        noteVisibility: 'public',
       }),
     });
-    expect(resolveRes.ok(), `resolve POST failed: ${resolveRes.status()}`).toBeTruthy();
+    expect(resolveRes.ok(), `transition POST failed: ${resolveRes.status()}`).toBeTruthy();
 
     const resolveBody = await resolveRes.json() as { ok: boolean };
     expect(resolveBody.ok).toBe(true);
@@ -165,11 +169,11 @@ test.describe('FA-bug-notify', () => {
     }
   });
 
-  // ── Guard: public resolve endpoint requires auth ─────────────────
-  test('POST /api/admin/bugs/resolve returns 403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/bugs/resolve`, {
+  // ── Guard: transition endpoint requires auth ─────────────────────
+  test('POST /api/admin/tickets/:id/transition returns 403 without auth', async ({ request }) => {
+    const res = await request.post(`${BASE}/api/admin/tickets/00000000-0000-0000-0000-000000000000/transition`, {
       headers: { 'Content-Type': 'application/json' },
-      data: JSON.stringify({ ticketId: 'BR-20260101-0000', resolutionNote: 'test' }),
+      data: JSON.stringify({ status: 'done', resolution: 'fixed', note: 'test' }),
     });
     expect([401, 403]).toContain(res.status());
   });

@@ -5,6 +5,13 @@
 # Consolidated BATS suite for the Software Factory component.
 # Aggregated from tests/local/FA-SF-*.bats (41 source files).
 # Convention: one .bats file per OpenSpec SSOT spec.
+#
+# [T002427] Die 41 Quelldateien sind ENTFERNT — diese Datei ist die einzige Quelle. Sie
+# lagen bis dahin unveraendert daneben, weil die Konsolidierung sie nie geloescht hat.
+# Der daraus folgende doppelte Testname verdeckte T002421: nach dem Entfernen von
+# scripts/factory/pipeline.js sah ein gefilterter Lauf auf tests/spec/ gruen aus, waehrend
+# `task test:factory` ueber die veralteten Kopien mit 30 Tests rot lief. Neue Faelle gehoeren
+# hierher, nicht nach tests/local/.
 
 # ── File-level variables ──────────────────────────────────────────────────────
 PIPELINE_SCRIPT="scripts/factory/pipeline.mjs"
@@ -518,7 +525,12 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.mjs"
 }
 
 @test "FA-SF-20: pipeline writes a per-phase liveness touch (>=6 references)" {
-  run grep -c "ticket.sh touch" "$PIPELINE_SCRIPT"
+  # [T002418] Ueber pipeline.mjs UND pipeline-runner.js gezaehlt. Die Anforderung ist
+  # unveraendert — jede Phase meldet Liveness, sonst haelt der Watchdog sie fuer tot.
+  # Verlagert hat sich nur der Ort: die Liveness der Plan-Phase steckte im Prompt des
+  # Conflict-Agenten und ist mit dessen Wegfall in den Runner gewandert, wo sie
+  # deterministisch laeuft statt davon abzuhaengen, dass ein Modell die Zeile ausfuehrt.
+  run bash -c "cat '$PIPELINE_SCRIPT' scripts/factory/pipeline-runner.js | grep -cE \"ticket[.]sh touch|'touch', '--id'\""
   [ "$status" -eq 0 ]
   [ "$output" -ge 6 ]
 }
@@ -874,6 +886,28 @@ process.stdout.write(a+'/'+b)"
   [ "$st" = "triage" ]
 }
 
+@test "FA-SF-26: a stale in_progress feature WITH a staged plan (FACTORY-PLAN-REF) is returned to backlog, not triage [T001850]" {
+  # [T002427] Aus tests/local/FA-SF-26-watchdog.bats uebernommen. Gegenstueck zum Test
+  # darueber: liegt bereits ein Plan vor, darf der Watchdog diese Arbeit nicht wegwerfen,
+  # indem er nach triage zuruecksetzt — das erzwingt einen vollen Scout/Design/Plan-Neustart.
+  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  local brand="${TEST_BRAND:-korczewski}"
+  ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-b.txt")
+  env BRAND="$brand" bash scripts/factory/slots.sh claim "$ext" 1 >/dev/null
+  # Simuliert, dass dev-flow-plan fuer dieses Ticket bereits einen Plan gestaged hat.
+  BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh add-comment --id "$ext" \
+    --body "FACTORY-PLAN-REF branch=feature/sf-test-wd-$$ plan=openspec/changes/sf-test-wd-$$/tasks.md" >/dev/null
+  local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
+  run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
+  [ "$status" -eq 0 ]
+  echo "$output" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
+  st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
+  [ "$st" = "backlog" ]
+}
+
 @test "T002242-M2: watchdog zombie-worktree cleanup prueft git status vor Force-Remove" {
   run grep -n "status --short" "$REPO_ROOT/scripts/factory/watchdog.sh"
   [ "$status" -eq 0 ]
@@ -967,6 +1001,17 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   [ "$labels" -eq 2 ]
   pinned=$(grep -E "label: '(escalate|metrics)'" "$DISPATCHER_SCRIPT" | grep "model:" | wc -l)
   [ "$pinned" -eq 0 ]
+}
+
+@test "FA-SF-30: dispatcher reads prep from a file, not via child_process (T001812)" {
+  # Uebernommen aus tests/local/FA-SF-30-dispatcher-contract.bats, die mit T002421
+  # entfaellt. T001810 rief factory-prep per child_process.execFileSync INNERHALB des
+  # Workflow-Calls (bis 300s), langsam genug um den Call in den asynchronen
+  # "launched in background"-Modus zu kippen — eine einmalige `claude -p`-Session
+  # ueberlebt diese Notification nie. T001812 hat factory-prep zurueck nach wakeup.sh
+  # (synchrones bash) verlegt und uebergibt das Ergebnis als Dateipfad.
+  run grep -q "args.prep_file\|A.prep_file" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "readFileSync" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
 }
 
 # ── FA-SF-31-workflow-entrypoint ────────────────────────────────#
@@ -1126,6 +1171,17 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
   printf 'all good, nothing to report here\n' > "$TMPLOG"
   run _cf
   [ "$output" = "other" ]
+}
+
+@test "FA-SF-33: harmless log with word manifest does not classify as manifest" {
+  # [T002427] Aus tests/local/FA-SF-33-classify-failure.bats uebernommen. Falsch-Positiv-
+  # Wache: das blosse Vorkommen des Wortes "manifest" in einer Erfolgsmeldung darf die
+  # Klassifikation nicht auf 'manifest' ziehen — sonst laeuft die Fehlerbehandlung in den
+  # falschen Zweig.
+  printf 'Checking route-manifest.json... ok\nAll checks passed cleanly\n' > "$TMPLOG"
+  run _cf
+  [ "$status" -eq 0 ]
+  [ "$output" != "manifest" ]
 }
 
 @test "FA-SF-33: missing log file classifies as other" {
@@ -3105,6 +3161,12 @@ REG="scripts/factory/service-registry.sh"
   run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"opus"* ]]
+  # [T002427] Aus tests/local/FA-SF-70-provider-router.bats uebernommen, die mit diesem
+  # Vorgang entfaellt: opus muss die Argumentpruefung PASSIEREN und nur warnen. Ohne diese
+  # Zeile bestuende der Test auch dann, wenn opus hart abgelehnt wuerde — die Usage-Ausgabe
+  # enthaelt den Tier-Namen ebenfalls.
+  [[ "$output" == *"WARNING"* ]]
+  [[ "$output" != *"Usage:"* ]]
 }
 
 @test "FA-SF-70: provider-config.sh set requires all mandatory flags" {

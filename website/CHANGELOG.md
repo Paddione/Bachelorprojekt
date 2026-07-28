@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.225.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.3...website-v1.225.4) (2026-07-28)
+
+
+### Bug Fixes
+
+* **infra:** port-forward guard + update-status psql var fix [T002371] ([#3475](https://github.com/Paddione/Bachelorprojekt/issues/3475)) ([213130d](https://github.com/Paddione/Bachelorprojekt/commit/213130db82d05a86a8445bf63ed0cffba959fdda))
+* **scripts:** pr-refresh Sammellauf bricht nicht mehr beim ersten abgelehnten PR ab [T002417] ([#3486](https://github.com/Paddione/Bachelorprojekt/issues/3486)) ([7951c2a](https://github.com/Paddione/Bachelorprojekt/commit/7951c2a037f72e97a93f6379ca06865a381f4f81))
+* **scripts:** sieben halb archivierte OpenSpec-Changes geheilt + Guard dagegen [T002428] ([#3488](https://github.com/Paddione/Bachelorprojekt/issues/3488)) ([1c9a641](https://github.com/Paddione/Bachelorprojekt/commit/1c9a6413780321838e148d707f6cc0ade60c501b))
+* **test:** remove 13 legacy FA-SF bats files referencing deleted pipeline.js [T002421] ([#3485](https://github.com/Paddione/Bachelorprojekt/issues/3485)) ([21112d0](https://github.com/Paddione/Bachelorprojekt/commit/21112d00d95825fe06ea366560bfaa8089f14ba0))
+
+## [1.225.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.2...website-v1.225.3) (2026-07-28)
+
+
+### Tests
+
+* **ci:** regression tests for scope alias and release --force [T002374] ([#3449](https://github.com/Paddione/Bachelorprojekt/issues/3449)) ([d552865](https://github.com/Paddione/Bachelorprojekt/commit/d552865be3aa1e97bdf5bef099cb1acaa10696b9))
+
+## [1.225.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.1...website-v1.225.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* **plans:** auto-correct ADDED→MODIFIED when target exists in SSOT [T002354] ([#3476](https://github.com/Paddione/Bachelorprojekt/issues/3476)) ([279a1d3](https://github.com/Paddione/Bachelorprojekt/commit/279a1d322ae18825af2efebba9cf8e7d4441afa1))
+
+## [1.225.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.0...website-v1.225.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock auto-release dead SID + git merge --ff-only guard [T002373] ([#3448](https://github.com/Paddione/Bachelorprojekt/issues/3448)) ([0d99a14](https://github.com/Paddione/Bachelorprojekt/commit/0d99a14750b86128a32164bad6376beba6f8d9d6))
+* **scripts:** guard done→awaiting_deploy from clearing resolution [T002382] ([#3447](https://github.com/Paddione/Bachelorprojekt/issues/3447)) ([f41a64c](https://github.com/Paddione/Bachelorprojekt/commit/f41a64cb6cc9a57f680b7ec4d29d993983582bdf))
+
 ## [1.225.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.224.1...website-v1.225.0) (2026-07-28)
 
 

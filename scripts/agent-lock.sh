@@ -338,22 +338,25 @@ cmd_claim() {
 cmd_refresh() {
   SCOPE="$1"; ID="${2:-}"; local f; f="$(_lock_file "$SCOPE" "$ID")"
   [ -f "$f" ] || return 1
-  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || return 1
+  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || \
+  [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ] || return 1
   LABEL="$(_lock_field "$f" label)"; WT="$(_lock_field "$f" worktree)"
   BRANCH="$(_lock_field "$f" branch)"; TICKET="$(_lock_field "$f" ticket)"
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
 }
 
-# NOTE: cmd_release compares owner_sid with _my_sid (derived from $$/PPID). When the claim
-# was issued inside a subshell (e.g. `cd worktree && claim ...`), the SID may differ,
-# causing a false mismatch. Consider using a stable session identifier from the environment
-# (e.g. CLAUDE_SESSION_ID) for cross-subshell consistency.
+# NOTE: cmd_release compares SID with _my_sid. When claim happened in a subshell
+# the SID may differ — see T001268.
 cmd_release() {
   local scope="$1" id="${2:-}" force=""; [ "${3:-}" = "--force" ] && force=1
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
-  if [ -n "$force" ] || [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then rm -f "$f"; return 0; fi
-  echo "release: lock owned by SID $(_lock_field "$f" owner_sid), current SID $(_my_sid) — use --force" >&2
+  local owner_sid; owner_sid="$(_lock_field "$f" owner_sid)"
+  # [T002373-M2] [T002374] Auto-release if owner SID is dead; same-tool fallback.
+  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; } || [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then
+    rm -f "$f"; return 0
+  fi
+  echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2
   return 1
 }
 

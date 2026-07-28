@@ -22,13 +22,6 @@ E2E_MARKER_TS="${BATS_TEST_DIRNAME}/../../tests/e2e/lib/e2e-marker.ts"
   [ "$status" -ne 0 ] || { echo "inline rateLimitMap still present"; return 1; }
 }
 
-# ── Task 2: fa-26 skip condition ────────────────────────────────────────────
-
-@test "T002196-2: fa-26 skip uses !markerAvailable() (not markerAvailable())" {
-  run grep -E "test\.skip\(!markerAvailable" "${BATS_TEST_DIRNAME}/../../tests/e2e/specs/fa-26-bug-report-form.spec.ts"
-  [ "$status" -eq 0 ] || { echo "skip condition not inverted to !markerAvailable()"; return 1; }
-}
-
 # ── Task 3: booking 409 — isSlotInAnyWindow try-catch ───────────────────────
 
 @test "T002196-3: booking.ts wraps isSlotInAnyWindow in try-catch" {

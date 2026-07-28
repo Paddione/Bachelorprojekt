@@ -13,7 +13,13 @@
 # docs/superpowers/specs/2026-07-28-pr-conflict-reduction-design.md, Abschnitt
 # "Verworfene Ansaetze".
 #
-# Exit: 0 = geheilt / nichts zu tun / dry-run, 1 = Guard hat abgelehnt, 2 = Benutzungsfehler.
+# Exit: 0 = kein PR abgelehnt, 1 = mindestens ein PR abgelehnt, 2 = Benutzungsfehler.
+#
+# Sammellauf [T002417]: Eine Ablehnung ueberspringt nur den betroffenen PR; die uebrigen
+# Nummern werden weiter verarbeitet und am Ende als Bilanz ausgewiesen. Frueher beendete
+# jeder Guard per exit den ganzen Lauf — bei der ersten realen Messung hingen drei von vier
+# CONFLICTING-PRs an ausgecheckten Worktrees, womit der dokumentierte Sammelaufruf
+# `task pr:refresh -- 3448 3446 3442` praktisch nie ueber den ersten PR hinauskam.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -36,6 +42,14 @@ _die()  { printf 'pr-refresh: %s\n' "$*" >&2; exit 1; }
 _info() { printf 'pr-refresh: %s\n' "$*"; }
 _dry()  { printf '[dry-run] %s\n' "$*"; }
 
+# _reject — wie _die, aber es beendet nur die Bearbeitung EINES PR statt des ganzen Laufs.
+# Warum das der Normalfall sein muss (T002417): bei der ersten realen Messung hingen drei
+# von vier CONFLICTING-PRs an ausgecheckten Worktrees. Mit `exit` verarbeitete
+# `pr-refresh.sh 3461 3457 3449 3442` deshalb nur die erste Nummer — der dokumentierte
+# Sammelaufruf war praktisch unbenutzbar. Ablehnungen sind hier kein Ausnahmefall,
+# sondern die Regel.
+_reject() { printf 'pr-refresh: %s\n' "$*" >&2; return 1; }
+
 _gh() { "$GH_CMD" "$@"; }
 
 _usage() {
@@ -56,6 +70,11 @@ Guards:
   - Kein Zugriff auf Branches, die agent-lock als live fuehrt (fremde Session).
   - Abbruch, sobald ein Konflikt eine nicht generierte Datei betrifft.
   - Push ausschliesslich mit --force-with-lease, niemals mit --force.
+
+Sammellauf:
+  Ein abgelehnter Pull Request ueberspringt nur sich selbst; die uebrigen Nummern
+  werden weiter verarbeitet. Am Ende steht eine Bilanz (geheilt / uebersprungen /
+  abgelehnt). Der Exit-Code ist 1, sobald mindestens einer abgelehnt wurde.
 EOF
 }
 
@@ -107,34 +126,40 @@ _push() {
 
 # --- Kern: ein einzelner PR -------------------------------------------------------------
 
+# process_pr — Rueckgabe ist die Bilanz-Kategorie, nicht nur Erfolg/Misserfolg:
+#   0 = geheilt (oder im Dry-run: waere geheilt worden)
+#   1 = abgelehnt (ein Guard hat gegriffen oder die Auffrischung schlug fehl)
+#   2 = uebersprungen (kein Handlungsbedarf, kein Fehler)
 process_pr() {
   local num="$1" meta mergeable branch author me owner
   meta="$(_gh pr view "$num" --json number,mergeable,headRefName,author 2>/dev/null)" \
-    || _die "PR $num nicht abrufbar"
+    || { _reject "PR $num nicht abrufbar"; return 1; }
 
   mergeable="$(printf '%s' "$meta" | jq -r '.mergeable // "UNKNOWN"')"
   branch="$(printf '%s'   "$meta" | jq -r '.headRefName // empty')"
   author="$(printf '%s'   "$meta" | jq -r '.author.login // empty')"
-  [ -n "$branch" ] || _die "PR $num: headRefName fehlt in der Antwort"
+  [ -n "$branch" ] || { _reject "PR $num: headRefName fehlt in der Antwort"; return 1; }
 
   # Guard 1 — nur CONFLICTING ist unser Fall. Alles andere ist kein Fehler.
   if [ "$mergeable" != "CONFLICTING" ]; then
     _info "PR $num ist $mergeable — nichts zu tun."
-    return 0
+    return 2
   fi
 
   # Guard 2 — fremde PRs nie anfassen. Ein Force-Push auf einen fremden Branch ist
   # nicht reparierbar.
   me="$(_me)"
   if [ "$author" != "$me" ]; then
-    _die "PR $num gehoert $author, nicht $me — kein Force-Push auf fremde Branches."
+    _reject "PR $num gehoert $author, nicht $me — kein Force-Push auf fremde Branches."
+    return 1
   fi
 
   # Guard 3 — arbeitet gerade jemand auf dem Branch, wuerde ein Force-Push seine
   # unversionierte Arbeit zerreissen.
   owner="$(_lock_owner "$branch")"
   if [ -n "$owner" ]; then
-    _die "PR $num: Branch $branch wird von $owner gehalten — abgebrochen."
+    _reject "PR $num: Branch $branch wird von $owner gehalten — abgebrochen."
+    return 1
   fi
 
   # Guard 4 — harte Tatsache statt freiwilliger Absicht: ist der Branch lokal
@@ -142,7 +167,8 @@ process_pr() {
   local checkout
   checkout="$(_checkout_path "$branch")"
   if [ -n "$checkout" ]; then
-    _die "PR $num: Branch $branch ist ausgecheckt in $checkout — abgebrochen."
+    _reject "PR $num: Branch $branch ist ausgecheckt in $checkout — abgebrochen."
+    return 1
   fi
 
   if [ "$DRY_RUN" -eq 1 ]; then
@@ -161,7 +187,7 @@ _refresh_branch() {
   # einen eigenen Worktree.
   [ -d "$wt" ] && git -C "$REPO_ROOT" worktree remove "$wt" --force >/dev/null 2>&1
   bash "${REPO_ROOT}/scripts/worktree-create.sh" "$branch" "$wt" >/dev/null \
-    || _die "PR $num: Worktree fuer $branch nicht anlegbar"
+    || { _reject "PR $num: Worktree fuer $branch nicht anlegbar"; return 1; }
 
   git -C "$wt" fetch origin main --quiet
 
@@ -174,15 +200,23 @@ _refresh_branch() {
     if [ -n "$handwork" ]; then
       git -C "$wt" rebase --abort >/dev/null 2>&1 || true
       git -C "$REPO_ROOT" worktree remove "$wt" --force >/dev/null 2>&1 || true
-      _die "PR $num: Konflikt in nicht generierter Datei — $(printf '%s' "$handwork" | head -1). Handarbeit noetig."
+      _reject "PR $num: Konflikt in nicht generierter Datei — $(printf '%s' "$handwork" | head -1). Handarbeit noetig."
+      return 1
     fi
     # Nur generierte Dateien offen: die Arbeitsbaum-Fassung uebernehmen und weiterlaufen.
     # Der merge=ours-Treiber hat sie bereits entschieden; hier bleibt nur das Staging.
     printf '%s\n' "$unresolved" | while IFS= read -r f; do
       [ -n "$f" ] && git -C "$wt" checkout --ours -- "$f" 2>/dev/null && git -C "$wt" add -- "$f"
     done
-    GIT_EDITOR=true git -C "$wt" rebase --continue >/dev/null 2>&1 \
-      || _die "PR $num: rebase --continue fehlgeschlagen"
+    if ! GIT_EDITOR=true git -C "$wt" rebase --continue >/dev/null 2>&1; then
+      # Aufraeumen ist im Sammellauf Pflicht, nicht Kosmetik: bliebe der Worktree stehen,
+      # haelt er den Branch ausgecheckt — und Guard 4 wuerde denselben PR beim naechsten
+      # Versuch ablehnen, obwohl nur dieser Lauf gescheitert ist.
+      git -C "$wt" rebase --abort >/dev/null 2>&1 || true
+      git -C "$REPO_ROOT" worktree remove "$wt" --force >/dev/null 2>&1 || true
+      _reject "PR $num: rebase --continue fehlgeschlagen"
+      return 1
+    fi
   fi
 
   # Nach dem Rebase koennen die Artefakte inhaltlich veraltet sein — regenerieren und
@@ -211,8 +245,24 @@ main() {
   done
 
   if [ "${#prs[@]}" -eq 0 ]; then _usage >&2; return 2; fi
-  local n
-  for n in "${prs[@]}"; do process_pr "$n"; done
+
+  local n rc healed=0 skipped=0 rejected=0
+  for n in "${prs[@]}"; do
+    # `process_pr "$n" || rc=$?` statt eines nackten Aufrufs: unter `set -e` wuerde ein
+    # Rueckgabewert != 0 in Kommandoposition den ganzen Lauf beenden — genau das Verhalten,
+    # das dieser Vorgang abstellt.
+    rc=0; process_pr "$n" || rc=$?
+    case "$rc" in
+      0) healed=$((healed + 1)) ;;
+      2) skipped=$((skipped + 1)) ;;
+      *) rejected=$((rejected + 1)) ;;
+    esac
+  done
+
+  _info "Bilanz — ${healed} geheilt, ${skipped} uebersprungen, ${rejected} abgelehnt."
+
+  # Exit != 0 bei mindestens einer Ablehnung, damit Automatisierung sie nicht uebersieht.
+  [ "$rejected" -eq 0 ]
 }
 
 main "$@"

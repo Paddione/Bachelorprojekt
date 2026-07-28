@@ -4,13 +4,7 @@
 //
 // Background
 // ──────────
-// The `e2e-marker.ts` helper (`createTestBugReport`) seeds tickets via
-// POST /api/bug-report. That requires a running website pod, traverses
-// the full request pipeline, and is fragile against rate limits /
-// network flaps / new schema columns (e.g. `is_test_data` was added in
-// T000862 and `external_id` switched from `BR-*` to `T*`).
-//
-// These helpers instead INSERT directly into `tickets.tickets` using a
+// These helpers INSERT directly into `tickets.tickets` using a
 // `pg.Pool` — same pattern as `fa-fragebogen.spec.ts` (T000703). The
 // seeded rows carry `is_test_data = true`, so:
 //
@@ -49,7 +43,7 @@ function seededReporter(testId: string): string {
 export interface SeedAdminTicketInput {
   /** Short suffix used in title, reporter email, and description. */
   testId: string;
-  /** Ticket status. Defaults to 'triage' (matches the bug-report endpoint). */
+  /** Ticket status. Defaults to 'triage'. */
   status?: 'triage' | 'backlog' | 'in_progress' | 'in_review' | 'blocked' | 'done' | 'archived';
   /** Optional override for `description`. */
   description?: string;

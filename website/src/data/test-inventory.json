@@ -2700,6 +2700,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/db-pod-phase-guard",
+    "file": "tests/spec/software-factory/db-pod-phase-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "studio-sessions-reorganize",
     "file": "tests/spec/studio-sessions-reorganize.bats",
     "category": "studio-sessions-reorganize",

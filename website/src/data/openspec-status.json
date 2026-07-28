@@ -2021,6 +2021,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002439": [
+    {
+      "slug": "db-pod-phase-guard-T002439",
+      "status": "plan_staged"
+    }
+  ],
   "T002445": [
     {
       "slug": "2026-07-28-test-inventory-coverage",

@@ -1851,6 +1851,12 @@
       "status": "archived"
     }
   ],
+  "T002387": [
+    {
+      "slug": "worktree-divergence-guard-T002387",
+      "status": "plan_staged"
+    }
+  ],
   "T002388": [
     {
       "slug": "plan-meta-readiness-merge",

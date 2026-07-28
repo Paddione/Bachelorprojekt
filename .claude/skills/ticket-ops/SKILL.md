@@ -68,6 +68,8 @@ erzeugt ein wiederholtes Upstream-Signal (Factory-Tick, Cron-Re-Fail, Event-Repl
 Beinahe-Duplikate. Gilt in Phase 1 bei der Klassifikation **und** im Issue-Intake von
 [`repo-hygiene`](../repo-hygiene/SKILL.md).
 
+**Vollständige Beschreibungen lesen:** Ticket-Beschreibungen nie kürzen (z.B. `left(description,700)`). Die wichtigsten Einschränkungen ("haengt an X", "wird dort mit erledigt") stehen typischerweise am ENDE der Beschreibung. Vor jedem Dispatch die Beschreibung vollständig lesen, um verfrühte Dispatches zu vermeiden.
+
 **Laufende Arbeit nicht anfassen:** Tickets in `in_progress`, die auf einen lebenden Plan-Branch
 zeigen, bleiben unberührt.
 

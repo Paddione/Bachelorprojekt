@@ -288,6 +288,10 @@ cmd_refresh() {
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
 }
 
+# NOTE: cmd_release compares owner_sid with _my_sid (derived from $$/PPID). When the claim
+# was issued inside a subshell (e.g. `cd worktree && claim ...`), the SID may differ,
+# causing a false mismatch. Consider using a stable session identifier from the environment
+# (e.g. CLAUDE_SESSION_ID) for cross-subshell consistency.
 cmd_release() {
   local scope="$1" id="${2:-}" force=""; [ "${3:-}" = "--force" ] && force=1
   local f; f="$(_lock_file "$scope" "$id")"

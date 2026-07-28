@@ -114,6 +114,35 @@ PLAN
   [[ "$output" != *"workspace-korczewski"* ]]
 }
 
+@test "T002446: Realfaelle aus dem Bestand — Extension-Tokens, Backtick-Reste, Pfad-Fragmente" {
+  # Diese drei Faelle stammen NICHT aus dem Reissbrett, sondern aus einem Lauf gegen die 33
+  # realen Plaene unter openspec/changes/. Handgeschriebene Fixtures waren zu sauber und
+  # liessen alle drei durch:
+  #   - `.sh`/`.md` — blosse Extensions aus S1-Budget-Tabellen im selben Abschnitt
+  #   - `queue.sh`  — Basename aus Prosa, ohne Verzeichnisanteil
+  #   - `specs/database.md` — Fragment eines echten Pfads (openspec/specs/database.md)
+  _plan_with_fs "$FIX/real.md" <<'PLAN'
+| Datei | Ist | Schwelle |
+|---|---|---|
+| `scripts/factory/queue.sh` | 200 | 500 |
+
+Nur `.sh` unterliegt S1; `.bats` und `.md` stehen nicht in den Limits. Siehe auch
+`queue.sh` und die Spec unter `specs/database.md`.
+PLAN
+
+  run bash "$DERIVE" "$FIX/real.md"
+  _assert_derive_ran
+  [[ "$output" == *"scripts/factory/queue.sh"* ]]   # Positiv-Anker zuerst
+  # Blosse Extensions sind keine Pfade.
+  [[ $(printf '%s\n' "$output" | grep -cx '\.sh') -eq 0 ]]
+  [[ $(printf '%s\n' "$output" | grep -cx '\.md') -eq 0 ]]
+  [[ $(printf '%s\n' "$output" | grep -cx '\.bats') -eq 0 ]]
+  # Basename ohne Verzeichnisanteil ist ein Prosa-Fragment.
+  [[ $(printf '%s\n' "$output" | grep -cx 'queue.sh') -eq 0 ]]
+  # 'specs' existiert nicht im Repo-Wurzelverzeichnis — also ein Fragment, kein Pfad.
+  [[ $(printf '%s\n' "$output" | grep -cx 'specs/database.md') -eq 0 ]]
+}
+
 @test "T002446: leere File-Structure meldet auf stderr und blockiert nicht" {
   _plan_with_fs "$FIX/empty.md" <<'PLAN'
 Keine Dateien — reine Cluster-Operation.

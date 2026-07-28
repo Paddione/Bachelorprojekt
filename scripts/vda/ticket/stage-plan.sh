@@ -73,6 +73,43 @@ main() {
 UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer
  WHERE external_id = :'ext_id';
 EOF
+
+  # [T002446] touched_files aus dem `## File Structure`-Block des Plans ableiten.
+  # Bisher setzte erst dev-flow-execute Schritt 1.5 die Spalte, und dort konditional
+  # ("Falls der Plan die beruehrten Dateien kennt"). Der Plan kennt sie immer —
+  # `## File Structure` ist plan-lint Hard Rule STRUCT1 — also wird hier geschrieben,
+  # sobald die Information existiert, statt auf einen spaeteren Prosa-Schritt zu hoffen.
+  #
+  # ERGAENZEND, nicht ersetzend: der Implementer beruehrt regelmaessig Dateien, die im Plan
+  # nicht standen, und traegt sie ueber Schritt 1.5 nach. Ein `SET touched_files = <plan>`
+  # wuerde diese Nachtraege bei jedem erneuten stage-plan verwerfen. Die Vereinigung
+  # passiert in SQL, damit sie atomar bleibt.
+  local derived plan_content plan_tmp
+  plan_tmp="$(mktemp)"
+  if git cat-file -e "${branch}:${plan}" 2>/dev/null; then
+    git cat-file -p "${branch}:${plan}" >"$plan_tmp" 2>/dev/null
+  elif git cat-file -e "HEAD:${plan}" 2>/dev/null; then
+    git cat-file -p "HEAD:${plan}" >"$plan_tmp" 2>/dev/null
+  elif [[ -f "${plan}" ]]; then
+    cp "${plan}" "$plan_tmp"
+  fi
+  derived="$(bash "$(dirname "${BASH_SOURCE[0]}")/../../plan-touched-files.sh" "$plan_tmp" 2>/dev/null || true)"
+  rm -f "$plan_tmp"
+  if [[ -n "${derived//[[:space:]]/}" ]]; then
+    local csv; csv="$(printf '%s' "$derived" | paste -sd, -)"
+    _exec_sql "$pod" -v ext_id="$id" -v files="$csv" <<'EOF' >/dev/null
+UPDATE tickets.tickets
+   SET touched_files = ARRAY(
+         SELECT DISTINCT e FROM unnest(
+           COALESCE(touched_files, ARRAY[]::text[]) || string_to_array(:'files', ',')
+         ) AS e
+         WHERE e <> '' ORDER BY e)
+ WHERE external_id = :'ext_id';
+EOF
+    echo "touched_files: $(printf '%s\n' "$derived" | grep -c .) Pfad(e) aus dem Plan uebernommen" >&2
+  else
+    echo "touched_files: keine Pfade aus '${plan}' ableitbar — Spalte unveraendert" >&2
+  fi
   if [[ "$hold" == "1" ]]; then
     _exec_sql_with_timeout "$pod" -v ext_id="$id" -- hold-flag <<'EOF'
 UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":false}'::jsonb

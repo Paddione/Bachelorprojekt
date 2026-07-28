@@ -111,6 +111,13 @@ Routing (plan vs. execute), das Masterplan-Format und der Wave-1-Dispatch:
 > **Soft-Conflict-Kante:** Zwei fertige Tickets, die sich einen `areas`-Eintrag teilen, haben
 > Datei-Kollisionsrisiko und dürfen **nicht** in dieselbe Welle. Bewusst konservativ — die
 > Kollision wird angezeigt, nicht versteckt.
+>
+> **Pre-Check-Invariante [T002422]:** Vor dem ersten `claim`-Aufruf in der Dispatch-Schleife
+> wird für jedes Wave-1-Ticket `agent-lock.sh check ticket <id>` ausgeführt. Tickets mit Status
+> `held` werden gesammelt und vor dem Worktree-Setup gemeldet (`LOCK-KONFLIKT: T002XXX bereits
+> gehalten von ...`). Der Dispatch fährt nur mit den freien Tickets fort. Dadurch wird
+> verhindert, dass bereits belegte Tickets erst nach dem Aufbau des Worktrees (kostspielig)
+> als blockiert erkannt werden.
 
 **Merge = Abschluss:** Jedes Ticket schließt über seinen eigenen grünen Auto-Merge; der
 Masterplan verfolgt den Dispatch, nicht den Prod-Live-Stand.

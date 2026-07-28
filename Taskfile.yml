@@ -761,10 +761,15 @@ tasks:
         fi
 
   test:spec:
-    desc: "Run the offline-safe spec bats (tests/spec/*). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
       - task: test:spec:build-mcp-runner
-      - ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files tests/spec/*.bats
+      # `-r tests/spec/` statt `tests/spec/*.bats` [T002416]: der Glob erfasst NUR die
+      # oberste Ebene. Seit der Verzeichniskonvention liegen neue Tests unter
+      # tests/spec/<spec-slug>/ — die waeren mit dem Glob stillschweigend nie gelaufen,
+      # was schlimmer ist als ein roter Test. `-r` erfasst beide Formen, deshalb koennen
+      # die 139 Bestandsdateien auf der obersten Ebene liegen bleiben.
+      - ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files -r tests/spec/
 
   test:spec:changed:
     desc: "Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]"
@@ -781,7 +786,9 @@ tasks:
         # aber ueber zehn Minuten, und ein Timeout darauf sieht aus wie ein
         # Testfehler ("exit 1, obwohl alle Untertests gruen").
         SELECTED=$(echo "$CHANGED_FILES" | wc -l)
-        TOTAL=$(ls tests/spec/*.bats 2>/dev/null | wc -l)
+        # find statt ls-Glob [T002416]: der Glob zaehlt nur die oberste Ebene. Zu kleines
+        # TOTAL laesst SELECTED >= TOTAL werden und meldet faelschlich "FULL spec suite".
+        TOTAL=$(find tests/spec -name '*.bats' -type f 2>/dev/null | wc -l)
         if [ "$SELECTED" -ge "$TOTAL" ]; then
           echo "→ FULL spec suite ($SELECTED files) — diff-scoped selection fell back to run-all; expect >10 min"
         else

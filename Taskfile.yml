@@ -3368,6 +3368,11 @@ tasks:
     cmds:
       - bash scripts/check-pod-phase-filter.sh {{.CLI_ARGS}}
 
+  plan:touched-files:
+    desc: "Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md"
+    cmds:
+      - bash scripts/plan-touched-files.sh {{.CLI_ARGS}}
+
   health:goals:
     desc: "Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast"
     cmds:

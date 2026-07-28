@@ -225,12 +225,23 @@ SLUG=$(basename "$PLAN_FILE" .md)
 ./scripts/ticket.sh phase "$TICKET_ID" plan entered --driver devflow --detail "Plan: $SLUG · $TICKET_ID" || true
 ```
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.
-Falls der Plan die berührten Dateien kennt, registriere sie für die Conflict-Gate (parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
-> `mcp__ticket-mcp__set_touched_files({ id: "$TICKET_ID", files: "<comma-separated-paths>" })`
+> **`touched_files` ist beim Stagen bereits gesetzt [T002446].** `stage-plan` leitet die Liste
+> aus dem `## File Structure`-Block des Plans ab — der Block ist plan-lint Hard Rule STRUCT1,
+> die Information existiert also zwingend. Dieser Schritt **ergänzt** deshalb nur noch, was der
+> Plan nicht kannte; er ist kein Erstschreiben mehr. Vorher hing die Befüllung an der Formulierung
+> „Falls der Plan die berührten Dateien kennt" — also an der Sorgfalt des ausführenden Agenten,
+> und ein übersehener Fall genügt für eine unentdeckte Kollision.
+
+Berührt die Umsetzung Dateien, die im Plan **nicht** standen, ergänze sie für die Conflict-Gate
+(parallele Sessions sehen die Kollision via `agent-collision.sh`) — **MCP-first**:
+> `mcp__ticket-mcp__set_touched_files({ id: "$TICKET_ID", files: "<alle Pfade, inkl. der bereits gesetzten>" })`
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "plan", state: "done", driver: "devflow", detail: "Plan geladen · Assets folgen" })`
 Fallback:
 ```bash
-./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<comma-separated-paths>"
+# ACHTUNG: set-touched-files ERSETZT die Liste. Erst den Ist-Stand lesen, dann die neuen
+# Pfade anhängen — sonst gehen die beim Stagen abgeleiteten Plan-Pfade verloren.
+./scripts/ticket.sh get --id "$TICKET_ID"        # aktuelle touched_files ablesen
+./scripts/ticket.sh set-touched-files --id "$TICKET_ID" --files "<bestehende>,<neue>"
 ./scripts/ticket.sh phase "$TICKET_ID" plan done --driver devflow --detail "Plan geladen · Assets folgen" || true
 ```
 

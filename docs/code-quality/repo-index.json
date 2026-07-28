@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 611,
+      "file_count": 612,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -451,6 +451,7 @@
         "tests/spec/software-factory.bats",
         "tests/spec/software-factory/conflict-gate.bats",
         "tests/spec/software-factory/db-pod-phase-guard.bats",
+        "tests/spec/software-factory/stage-plan-touched-files.bats",
         "tests/spec/studio-sessions-reorganize.bats",
         "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",
         "tests/spec/t001353-mishap-bundle-ci-tickets.bats",
@@ -2905,7 +2906,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 583,
+      "file_count": 584,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3375,6 +3376,7 @@
         "scripts/plan-review/annotate-client.js",
         "scripts/plan-review/plan-review.sh",
         "scripts/plan-review/render-plan.mjs",
+        "scripts/plan-touched-files.sh",
         "scripts/post-deploy-watch.sh",
         "scripts/pr-refresh.sh",
         "scripts/pre-deploy-check.sh",

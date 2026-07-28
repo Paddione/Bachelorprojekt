@@ -1845,6 +1845,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002390": [
+    {
+      "slug": "auto-chore-plan-script",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

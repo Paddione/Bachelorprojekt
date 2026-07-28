@@ -4645,6 +4645,8 @@ MOCKEOF
   # "Feature", nicht an "irgendein Arbeitstyp".
   run bash -c "grep -c \"type IN ('feature','feat')\" '$REPO_ROOT/scripts/factory/queue.sh'"
   [ "$output" != "0" ]
+}
+
 # ── [T002390] Auto-Chore-Plan: triage -> plan_staged ohne Menschen ───────────
 #
 # mishap-tracker SKILL.md Schritt 3.5 beschreibt den vollstaendigen Weg von einem

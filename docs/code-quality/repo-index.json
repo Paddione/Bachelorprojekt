@@ -2926,7 +2926,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 559,
+      "file_count": 560,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3137,6 +3137,7 @@
         "scripts/factory/aci.cjs",
         "scripts/factory/aci.test.cjs",
         "scripts/factory/agent-msg-bridge.cjs",
+        "scripts/factory/auto-chore-plan.sh",
         "scripts/factory/auto-close-merged.sh",
         "scripts/factory/auto-enqueue.sh",
         "scripts/factory/auto-triage.sh",

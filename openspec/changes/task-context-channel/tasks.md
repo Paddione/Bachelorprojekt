@@ -22,9 +22,9 @@ _Ticket: T002420_
 
 | Datei | Ist-Zeilen | Budget |
 |---|---|---|
-| `scripts/plan-intel.sh` | 0 (neu) | n/a (neue Datei, Limit 500) |
-| `scripts/task-context.sh` | 0 (neu) | n/a (neue Datei, Limit 500) |
-| `scripts/plan-lint.sh` | 447 | 53 |
+| `scripts/plan-intel.sh` | 0 (neu) | n/a (neue Datei, Limit 800) |
+| `scripts/task-context.sh` | 0 (neu) | n/a (neue Datei, Limit 800) |
+| `scripts/plan-lint.sh` | 450 | 350 |
 | `scripts/factory/pipeline.mjs` | 663 | n/a (auf `s1.ignore`) |
 | `.claude/skills/dev-flow-execute/SKILL.md` | 250 | n/a (S1-ungated) |
 | `.claude/skills/references/dev-flow-plan-phases.md` | 327 | n/a (S1-ungated) |

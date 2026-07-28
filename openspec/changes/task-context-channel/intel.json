@@ -2,7 +2,7 @@
   "meta": {
     "slug": "task-context-channel",
     "ticket_id": "T002420",
-    "generated_from": "main@8b38d906b",
+    "generated_from": "main@5601f3300",
     "domains": [
       "plan-authoring",
       "dev-tooling",
@@ -27,7 +27,7 @@
     {
       "path": ".claude/skills/references/dev-flow-plan-phases.md",
       "language": "markdown",
-      "loc": 331,
+      "loc": 353,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -36,7 +36,7 @@
       "path": "scripts/factory/pipeline.mjs",
       "language": "javascript",
       "loc": 693,
-      "s1_limit": 500,
+      "s1_limit": 800,
       "s1_baseline": null,
       "s1_budget": null
     },
@@ -44,25 +44,25 @@
       "path": "scripts/plan-intel.sh",
       "language": "bash",
       "loc": 197,
-      "s1_limit": 500,
+      "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 303
+      "s1_budget": 603
     },
     {
       "path": "scripts/plan-lint.sh",
       "language": "bash",
-      "loc": 447,
-      "s1_limit": 500,
+      "loc": 450,
+      "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 53
+      "s1_budget": 350
     },
     {
       "path": "scripts/task-context.sh",
       "language": "bash",
       "loc": 231,
-      "s1_limit": 500,
+      "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 269
+      "s1_budget": 569
     },
     {
       "path": "tests/spec/dev-flow-plan/task-context.bats",
@@ -99,91 +99,91 @@
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:34:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)",
+      "qualified_name": "scripts/plan-lint.sh:37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "34:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
-      "type_text": "34:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "signature": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "type_text": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:46:_load_s1_ignore() {",
+      "qualified_name": "scripts/plan-lint.sh:49:_load_s1_ignore() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "46:_load_s1_ignore() {(...)",
-      "type_text": "46:_load_s1_ignore() {(...)",
+      "signature": "49:_load_s1_ignore() {(...)",
+      "type_text": "49:_load_s1_ignore() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:57:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry",
+      "qualified_name": "scripts/plan-lint.sh:60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "57:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
-      "type_text": "57:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "signature": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "type_text": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:68:effective_threshold() {",
+      "qualified_name": "scripts/plan-lint.sh:71:effective_threshold() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "68:effective_threshold() {(...)",
-      "type_text": "68:effective_threshold() {(...)",
+      "signature": "71:effective_threshold() {(...)",
+      "type_text": "71:effective_threshold() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:82:residual_budget() {",
+      "qualified_name": "scripts/plan-lint.sh:85:residual_budget() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "82:residual_budget() {(...)",
-      "type_text": "82:residual_budget() {(...)",
+      "signature": "85:residual_budget() {(...)",
+      "type_text": "85:residual_budget() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:117:hard() { HARD+=(\"$1\"); }",
+      "qualified_name": "scripts/plan-lint.sh:120:hard() { HARD+=(\"$1\"); }",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "117:hard() { HARD+=(\"$1\"); }(...)",
-      "type_text": "117:hard() { HARD+=(\"$1\"); }(...)",
+      "signature": "120:hard() { HARD+=(\"$1\"); }(...)",
+      "type_text": "120:hard() { HARD+=(\"$1\"); }(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:118:warn() { WARN+=(\"$1\"); }",
+      "qualified_name": "scripts/plan-lint.sh:121:warn() { WARN+=(\"$1\"); }",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "118:warn() { WARN+=(\"$1\"); }(...)",
-      "type_text": "118:warn() { WARN+=(\"$1\"); }(...)",
+      "signature": "121:warn() { WARN+=(\"$1\"); }(...)",
+      "type_text": "121:warn() { WARN+=(\"$1\"); }(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:125:fm_field() {  # fm_field <key> -> value (empty if absent)",
+      "qualified_name": "scripts/plan-lint.sh:128:fm_field() {  # fm_field <key> -> value (empty if absent)",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "125:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
-      "type_text": "125:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "signature": "128:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "type_text": "128:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:249:  _check_intel_completeness() {",
+      "qualified_name": "scripts/plan-lint.sh:252:  _check_intel_completeness() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "249:  _check_intel_completeness() {(...)",
-      "type_text": "249:  _check_intel_completeness() {(...)",
+      "signature": "252:  _check_intel_completeness() {(...)",
+      "type_text": "252:  _check_intel_completeness() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:418:_json_str() {",
+      "qualified_name": "scripts/plan-lint.sh:421:_json_str() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "418:_json_str() {(...)",
-      "type_text": "418:_json_str() {(...)",
+      "signature": "421:_json_str() {(...)",
+      "type_text": "421:_json_str() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:428:emit_verdict() {",
+      "qualified_name": "scripts/plan-lint.sh:431:emit_verdict() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "428:emit_verdict() {(...)",
-      "type_text": "428:emit_verdict() {(...)",
+      "signature": "431:emit_verdict() {(...)",
+      "type_text": "431:emit_verdict() {(...)",
       "source": "grep"
     },
     {
@@ -235,6 +235,46 @@
   ],
   "external_types": [],
   "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
     {
       "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
       "severity": "warn"

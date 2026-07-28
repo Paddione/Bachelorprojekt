@@ -2,7 +2,7 @@
   "meta": {
     "slug": "task-context-channel",
     "ticket_id": "T002420",
-    "generated_from": "main@5368f79a7",
+    "generated_from": "main@8b38d906b",
     "domains": [
       "plan-authoring",
       "dev-tooling",
@@ -19,7 +19,7 @@
     {
       "path": ".claude/skills/dev-flow-execute/SKILL.md",
       "language": "markdown",
-      "loc": 246,
+      "loc": 251,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -27,7 +27,7 @@
     {
       "path": ".claude/skills/references/dev-flow-plan-phases.md",
       "language": "markdown",
-      "loc": 324,
+      "loc": 331,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -35,7 +35,7 @@
     {
       "path": "scripts/factory/pipeline.mjs",
       "language": "javascript",
-      "loc": 667,
+      "loc": 693,
       "s1_limit": 500,
       "s1_baseline": null,
       "s1_budget": null
@@ -235,6 +235,46 @@
   ],
   "external_types": [],
   "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
     {
       "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
       "severity": "warn"

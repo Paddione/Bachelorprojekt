@@ -35,7 +35,6 @@
       // for OpenAI-compatible providers yet (github.com/anomalyco/opencode#6231).
       "models": {}
     },
-
     // OpenCode Zen/Go: Key aus ~/.config/opencode/secrets.env (chmod 600, nicht
     // in git). "opencode-go" statt "opencode" (Zen) - Subscription-Tier ($10/mo),
     // deepseek-v4-flash ist Teil des Go-Katalogs (verifiziert per curl gegen
@@ -118,10 +117,10 @@
     //
     // Ein einziger Name ist die einzige im Config-Schema durchsetzbare
     // Obergrenze: was nicht existiert, kann nicht dispatcht werden.
-    "gemma-4-12b": {
-      "description": "The ONLY write-capable Gemma subagent (Gemma4 12B QAT, raw llama.cpp on port 8091, speculative decoding via MTP draft, single-slot server with 262144 ctx). There is exactly one - do not attempt to dispatch parallel Gemma streams, the server has one slot and the llm-proxy serializes anyway. Preferred for all write-capable delegation.",
+    "gpt-oss-20b": {
+      "description": "gpt",
       "mode": "subagent",
-      "model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+      "model": "openai/gpt-oss-20b",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -129,7 +128,12 @@
       // write=deny: subagent überschreibt sonst ganze Dateien statt surgical edit
       // (beobachtet 2026-07-23, T002137: subagents löschten existierende Files).
       // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+      "permission": {
+        "edit": "allow",
+        "write": "deny",
+        "bash": "allow",
+        "task": "deny"
+      }
     },
     // Primaerer (Tab-waehlbarer) Gemma-Agent mit vollem Kontext (T002298).
     // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
@@ -159,7 +163,10 @@
         "edit": "allow",
         "write": "deny",
         "bash": "allow",
-        "task": { "deepseek-helper": "allow", "gemma-4-12b": "deny" }
+        "task": {
+          "deepseek-helper": "allow",
+          "gemma-4-12b": "deny"
+        }
       }
     },
     // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
@@ -174,7 +181,14 @@
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F97316",
       "temperature": 0.3,
-      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+      "permission": {
+        "edit": "allow",
+        "write": "allow",
+        "bash": "allow",
+        "task": "deny",
+        "webfetch": "deny",
+        "websearch": "deny"
+      }
     },
     "orchestrator": {
       "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the single gemma-4-12b subagent sequentially for implementation. Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",

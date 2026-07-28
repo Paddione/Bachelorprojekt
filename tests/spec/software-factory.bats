@@ -4715,6 +4715,8 @@ MOCKEOF
 @test "T002390: the skill points at the script instead of duplicating the procedure" {
   run grep -q "auto-chore-plan.sh" "$REPO_ROOT/.claude/skills/mishap-tracker/SKILL.md"
   [ "$status" -eq 0 ]
+}
+
 # ── [T002327] Wiederaufnahme angefangener Tickets ───────────────────#
 #
 # GRENZE DIESER TESTS: `tickets.factory_phase_events` ist in CI nicht erreichbar.

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 630,
+      "file_count": 631,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -453,6 +453,7 @@
         "tests/spec/pocket-id-client-seed-timeout.bats",
         "tests/spec/pocket-id-migration.bats",
         "tests/spec/pocket-id-proxy-ip.bats",
+        "tests/spec/pr-refresh.bats",
         "tests/spec/pre-commit-freshness.bats",
         "tests/spec/projekttickets-cockpit.bats",
         "tests/spec/questionnaire-system.bats",
@@ -2928,7 +2929,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 567,
+      "file_count": 568,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3386,6 +3387,7 @@
         "scripts/plan-review/plan-review.sh",
         "scripts/plan-review/render-plan.mjs",
         "scripts/post-deploy-watch.sh",
+        "scripts/pr-refresh.sh",
         "scripts/pre-deploy-check.sh",
         "scripts/pre-deploy-checks-lib.sh",
         "scripts/preflight-pr-scope.sh",

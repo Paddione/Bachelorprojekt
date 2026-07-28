@@ -39,6 +39,9 @@ STUB
   export PR_REFRESH_GH_CMD="${STUB_DIR}/gh-stub.sh"
   export PR_REFRESH_PUSH_LOG="$PUSH_LOG"
   export PR_REFRESH_DRY_PUSH=1
+  # Eigener Login ohne Netz. Ohne diese Variable wuerde das Skript `gh api user` rufen —
+  # der gh-Stub oben kennt nur die PR-Fixture und wuerde eine falsche Antwort liefern.
+  export PR_REFRESH_ME="Paddione"
 }
 
 _fixture() {
@@ -82,6 +85,30 @@ _fixture() {
   # Positiv-Anker gegen vakuoses Bestehen: die Ablehnung muss den fremden Login nennen.
   # Ohne implementierten Guard faellt das Skript anders (oder gar nicht) durch.
   printf '%s\n' "$output" | grep -q 'SomeoneElse'
+  [ ! -s "$PUSH_LOG" ]
+}
+
+@test "pr-refresh: lokal ausgecheckter Branch wird abgelehnt, ohne zu pushen" {
+  # Der eigene Worktree-Branch ist per Definition ausgecheckt — ein realer Fall, kein
+  # konstruierter: PR #3447 hing an chore/mishap-T002382, den der Hauptcheckout hielt,
+  # ohne dass ein agent-lock dafuer existierte.
+  own_branch="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
+  # Positiv-Anker: der Branch ist wirklich in der Worktree-Liste — ohne ihn koennte der
+  # Test auch bei komplett fehlendem Guard bestehen.
+  run git -C "$REPO_ROOT" worktree list --porcelain
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qx "branch refs/heads/${own_branch}"
+
+  # Leeres Lock-Verzeichnis, damit Guard 3 (agent-lock) NICHT vorher greift — dieser Branch
+  # traegt real einen Lock, und der Test soll Guard 4 isoliert treffen, nicht dessen
+  # Vorgaenger.
+  export AGENT_LOCK_DIR="${BATS_TEST_TMPDIR}/empty-locks"
+  mkdir -p "$AGENT_LOCK_DIR"
+
+  _fixture "{\"number\":9,\"mergeable\":\"CONFLICTING\",\"headRefName\":\"${own_branch}\",\"author\":{\"login\":\"Paddione\"}}"
+  run bash "$SCRIPT" 9
+  [ "$status" -ne 0 ]
+  printf '%s\n' "$output" | grep -q 'ausgecheckt'
   [ ! -s "$PUSH_LOG" ]
 }
 

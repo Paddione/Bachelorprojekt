@@ -1893,6 +1893,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002413": [
+    {
+      "slug": "pr-refresh-T002413",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -62,8 +62,6 @@ const listedTicketRow = {
   tagNames: [],
   createdAt: new Date('2026-06-27T09:00:00Z'),
   updatedAt: new Date('2026-06-27T09:00:00Z'),
-  aiQuestion: null,
-  humanAnswer: null,
   grillingAnswers: null,
   grillingMeta: null,
 };
@@ -360,8 +358,6 @@ describe('patchAdminTicket', () => {
         startDate: null,
         dueDate: null,
         estimateMinutes: null,
-        aiQuestion: 'Q?',
-        humanAnswer: 'A.',
         grillingAnswers: null,
         grillingMeta: null,
         actor: baseActor,

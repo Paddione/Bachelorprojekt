@@ -1787,6 +1787,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002331": [
+    {
+      "slug": "schema-diaet-T002331",
+      "status": "plan_staged"
+    }
+  ],
   "T002333": [
     {
       "slug": "2026-07-28-queue-dispatch-bug-type",

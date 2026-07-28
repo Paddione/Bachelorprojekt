@@ -456,6 +456,7 @@
         "tests/spec/test_helper.bash",
         "tests/spec/ticket-mcp.bats",
         "tests/spec/ticket-system.bats",
+        "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
         "tests/spec/ts-suppression.bats",
         "tests/spec/vaultwarden-integration.bats",
         "tests/spec/website-core.bats",
@@ -612,7 +613,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 50,
+      "file_count": 51,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -663,7 +664,8 @@
         "scripts/migrations/2026-07-23-llm-proxy-max-inflight.sql",
         "scripts/migrations/2026-07-27-llm-proxy-gemma-backend.sql",
         "scripts/migrations/2026-07-27-provider-fallback-cascade.sql",
-        "scripts/migrations/2026-07-27-provider-health-integrity.sql"
+        "scripts/migrations/2026-07-27-provider-health-integrity.sql",
+        "scripts/migrations/2026-07-28-schema-diaet-T002331.sql"
       ]
     },
     {

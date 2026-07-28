@@ -67,13 +67,25 @@ SQL
     continue
   fi
 
-  # Best-effort conflict gate on known touched_files. rc 0 = no conflict,
-  # rc 1 = conflict (skip), rc 2 = error/null touched_files (treat as schedulable).
+  # Conflict gate on known touched_files. rc 0 = no conflict, rc 1 = conflict (skip),
+  # rc 2 = error/null touched_files.
+  #
+  # [T002418] rc 2 bleibt schedulable, wird aber nicht mehr stillschweigend geschluckt.
+  # Die Spalte touched_files wurde bis T002418 nie befuellt (pipeline.mjs verwarf
+  # scout.touched_files nach dem unmittelbaren Check), weshalb dieser Aufruf hier
+  # praktisch IMMER rc 2 lieferte und das Gate faktisch wirkungslos war — so liefen am
+  # 2026-07-28 T002341/T002373/T002374 gleichzeitig auf scripts/agent-lock.sh.
+  # Seit dem Scout-Write ist rc 2 der Ausnahmefall und damit ein Befund: sichtbar auf
+  # stderr, damit man merkt, wenn das Gate wieder blind laeuft. Fail-open bleibt es
+  # bewusst — ein nicht erreichbarer DB-Pod darf den Dispatch nicht komplett anhalten.
   set +e
   BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/conflict-check.sh" "$ext_id" >/dev/null 2>&1
   rc=$?
   set -e
   [[ "$rc" -eq 1 ]] && continue
+  if [[ "$rc" -eq 2 ]]; then
+    echo "WARN: conflict-check rc 2 fuer $ext_id (keine touched_files oder Fehler) — schedule ungeprueft [T002418]" >&2
+  fi
 
   # Gang-Bedarf des Kandidaten (Design §3): slot_count wird von stage-plan
   # --partials gesetzt; Default 1 = Single-Slot wie bisher.

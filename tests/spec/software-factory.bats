@@ -518,7 +518,12 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.mjs"
 }
 
 @test "FA-SF-20: pipeline writes a per-phase liveness touch (>=6 references)" {
-  run grep -c "ticket.sh touch" "$PIPELINE_SCRIPT"
+  # [T002418] Ueber pipeline.mjs UND pipeline-runner.js gezaehlt. Die Anforderung ist
+  # unveraendert — jede Phase meldet Liveness, sonst haelt der Watchdog sie fuer tot.
+  # Verlagert hat sich nur der Ort: die Liveness der Plan-Phase steckte im Prompt des
+  # Conflict-Agenten und ist mit dessen Wegfall in den Runner gewandert, wo sie
+  # deterministisch laeuft statt davon abzuhaengen, dass ein Modell die Zeile ausfuehrt.
+  run bash -c "cat '$PIPELINE_SCRIPT' scripts/factory/pipeline-runner.js | grep -cE \"ticket[.]sh touch|'touch', '--id'\""
   [ "$status" -eq 0 ]
   [ "$output" -ge 6 ]
 }

@@ -2256,6 +2256,12 @@
     "kind": "shell"
   },
   {
+    "id": "fix-ticket-tracking-T002279",
+    "file": "tests/spec/fix-ticket-tracking-T002279.bats",
+    "category": "fix-ticket-tracking-T002279",
+    "kind": "shell"
+  },
+  {
     "id": "fixtures/make-partial-plan",
     "file": "tests/spec/fixtures/make-partial-plan.sh",
     "category": "fixtures",

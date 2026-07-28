@@ -5,6 +5,13 @@
 # Consolidated BATS suite for the Software Factory component.
 # Aggregated from tests/local/FA-SF-*.bats (41 source files).
 # Convention: one .bats file per OpenSpec SSOT spec.
+#
+# [T002427] Die 41 Quelldateien sind ENTFERNT — diese Datei ist die einzige Quelle. Sie
+# lagen bis dahin unveraendert daneben, weil die Konsolidierung sie nie geloescht hat.
+# Der daraus folgende doppelte Testname verdeckte T002421: nach dem Entfernen von
+# scripts/factory/pipeline.js sah ein gefilterter Lauf auf tests/spec/ gruen aus, waehrend
+# `task test:factory` ueber die veralteten Kopien mit 30 Tests rot lief. Neue Faelle gehoeren
+# hierher, nicht nach tests/local/.
 
 # ── File-level variables ──────────────────────────────────────────────────────
 PIPELINE_SCRIPT="scripts/factory/pipeline.mjs"
@@ -879,6 +886,28 @@ process.stdout.write(a+'/'+b)"
   [ "$st" = "triage" ]
 }
 
+@test "FA-SF-26: a stale in_progress feature WITH a staged plan (FACTORY-PLAN-REF) is returned to backlog, not triage [T001850]" {
+  # [T002427] Aus tests/local/FA-SF-26-watchdog.bats uebernommen. Gegenstueck zum Test
+  # darueber: liegt bereits ein Plan vor, darf der Watchdog diese Arbeit nicht wegwerfen,
+  # indem er nach triage zuruecksetzt — das erzwingt einen vollen Scout/Design/Plan-Neustart.
+  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  local brand="${TEST_BRAND:-korczewski}"
+  ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-b.txt")
+  env BRAND="$brand" bash scripts/factory/slots.sh claim "$ext" 1 >/dev/null
+  # Simuliert, dass dev-flow-plan fuer dieses Ticket bereits einen Plan gestaged hat.
+  BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh add-comment --id "$ext" \
+    --body "FACTORY-PLAN-REF branch=feature/sf-test-wd-$$ plan=openspec/changes/sf-test-wd-$$/tasks.md" >/dev/null
+  local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
+  run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
+  [ "$status" -eq 0 ]
+  echo "$output" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
+  st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
+  [ "$st" = "backlog" ]
+}
+
 @test "T002242-M2: watchdog zombie-worktree cleanup prueft git status vor Force-Remove" {
   run grep -n "status --short" "$REPO_ROOT/scripts/factory/watchdog.sh"
   [ "$status" -eq 0 ]
@@ -1142,6 +1171,17 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
   printf 'all good, nothing to report here\n' > "$TMPLOG"
   run _cf
   [ "$output" = "other" ]
+}
+
+@test "FA-SF-33: harmless log with word manifest does not classify as manifest" {
+  # [T002427] Aus tests/local/FA-SF-33-classify-failure.bats uebernommen. Falsch-Positiv-
+  # Wache: das blosse Vorkommen des Wortes "manifest" in einer Erfolgsmeldung darf die
+  # Klassifikation nicht auf 'manifest' ziehen — sonst laeuft die Fehlerbehandlung in den
+  # falschen Zweig.
+  printf 'Checking route-manifest.json... ok\nAll checks passed cleanly\n' > "$TMPLOG"
+  run _cf
+  [ "$status" -eq 0 ]
+  [ "$output" != "manifest" ]
 }
 
 @test "FA-SF-33: missing log file classifies as other" {
@@ -3121,6 +3161,12 @@ REG="scripts/factory/service-registry.sh"
   run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"opus"* ]]
+  # [T002427] Aus tests/local/FA-SF-70-provider-router.bats uebernommen, die mit diesem
+  # Vorgang entfaellt: opus muss die Argumentpruefung PASSIEREN und nur warnen. Ohne diese
+  # Zeile bestuende der Test auch dann, wenn opus hart abgelehnt wuerde — die Usage-Ausgabe
+  # enthaelt den Tier-Namen ebenfalls.
+  [[ "$output" == *"WARNING"* ]]
+  [[ "$output" != *"Usage:"* ]]
 }
 
 @test "FA-SF-70: provider-config.sh set requires all mandatory flags" {

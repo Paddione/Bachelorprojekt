@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.225.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.3...website-v1.225.4) (2026-07-28)
+
+
+### Bug Fixes
+
+* **infra:** port-forward guard + update-status psql var fix [T002371] ([#3475](https://github.com/Paddione/Bachelorprojekt/issues/3475)) ([213130d](https://github.com/Paddione/Bachelorprojekt/commit/213130db82d05a86a8445bf63ed0cffba959fdda))
+* **scripts:** pr-refresh Sammellauf bricht nicht mehr beim ersten abgelehnten PR ab [T002417] ([#3486](https://github.com/Paddione/Bachelorprojekt/issues/3486)) ([7951c2a](https://github.com/Paddione/Bachelorprojekt/commit/7951c2a037f72e97a93f6379ca06865a381f4f81))
+* **scripts:** sieben halb archivierte OpenSpec-Changes geheilt + Guard dagegen [T002428] ([#3488](https://github.com/Paddione/Bachelorprojekt/issues/3488)) ([1c9a641](https://github.com/Paddione/Bachelorprojekt/commit/1c9a6413780321838e148d707f6cc0ade60c501b))
+* **test:** remove 13 legacy FA-SF bats files referencing deleted pipeline.js [T002421] ([#3485](https://github.com/Paddione/Bachelorprojekt/issues/3485)) ([21112d0](https://github.com/Paddione/Bachelorprojekt/commit/21112d00d95825fe06ea366560bfaa8089f14ba0))
+
 ## [1.225.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.2...website-v1.225.3) (2026-07-28)
 
 

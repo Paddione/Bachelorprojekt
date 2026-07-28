@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "bge-mcp": {
+      "type": "http",
+      "url": "http://localhost:13005/mcp"
+    },
     "codebase-memory-mcp": {
       "command": "/home/patrick/.local/bin/codebase-memory-mcp"
     },

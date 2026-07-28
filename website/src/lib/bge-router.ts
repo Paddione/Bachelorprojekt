@@ -1,5 +1,3 @@
-import { logger } from './logger';
-
 /**
  * T002426 — die einzige Stelle, die entscheidet, welches bge-Paar eine Anfrage
  * bedient.
@@ -84,6 +82,26 @@ const ENV_KEYS: Record<PairId, Record<BgeRole, string>> = {
   batch: { embed: 'LLM_EMBED_BATCH_URL', rerank: 'LLM_RERANKER_BATCH_URL' },
 };
 
+/**
+ * Der Logger wird LAZY geladen, nicht statisch importiert.
+ *
+ * Grund: `scripts/bge-mcp/server.mjs` importiert dieses Modul direkt (Node
+ * strippt die Typen), damit die Failover-Entscheidung an genau EINER Stelle
+ * steht statt im Shim ein zweites Mal. Dort ist der pino-Logger der Website
+ * nicht aufloesbar — mit einem statischen Import waere das Modul im Shim gar
+ * nicht ladbar und der Shim muesste die Logik duplizieren. Der Fallback auf
+ * console.warn haelt die Sichtbarkeit trotzdem aufrecht; still wird eine
+ * Umleitung in keinem der beiden Kontexte.
+ */
+async function warn(fields: Record<string, unknown>, msg: string): Promise<void> {
+  try {
+    const { logger } = await import('./logger');
+    logger.warn(fields, msg);
+  } catch {
+    console.warn(msg, fields);
+  }
+}
+
 export const partnerOf = (pair: PairId): PairId => (pair === 'interactive' ? 'batch' : 'interactive');
 
 export function pairUrl(pair: PairId, role: BgeRole): string {
@@ -165,7 +183,7 @@ export async function resolvePair(
   const reason = primary.reachable ? 'overloaded' : 'unreachable';
 
   if (partner.reachable && !partner.overloaded) {
-    logger.warn(
+    await warn(
       { from: preferred, to: other, role, reason, latencyMs: primary.latencyMs, queued: primary.queued },
       '[bge-router] redirecting to partner pair',
     );
@@ -173,7 +191,7 @@ export async function resolvePair(
   }
 
   if (primary.reachable) {
-    logger.warn(
+    await warn(
       { from: preferred, to: preferred, role, reason: 'degraded', partnerReachable: partner.reachable },
       '[bge-router] both pairs degraded — staying on primary',
     );
@@ -181,7 +199,7 @@ export async function resolvePair(
   }
 
   if (partner.reachable) {
-    logger.warn(
+    await warn(
       { from: preferred, to: other, role, reason, partnerOverloaded: partner.overloaded },
       '[bge-router] redirecting to overloaded partner — primary is down',
     );

@@ -44,20 +44,20 @@ einzige Bauform, die die Anforderung erfüllt.
 
 ## Schritte
 
-- [ ] `scripts/bge-mcp/server.mjs` anlegen: MCP-Server mit den beiden Tools, der für jede Anfrage
+- [x] `scripts/bge-mcp/server.mjs` anlegen: MCP-Server mit den beiden Tools, der für jede Anfrage
       den Router aus p2 konsultiert und das ermittelte Paar anspricht.
-- [ ] Fehlerverhalten festlegen: sind beide Paare aus, meldet das Tool einen Fehler an den
+- [x] Fehlerverhalten festlegen: sind beide Paare aus, meldet das Tool einen Fehler an den
       Aufrufer, statt leere Vektoren oder unsortierte Kandidaten zurückzugeben.
-- [ ] Eintrag in `docs/agent-guide/registry/mcp.yaml` ergänzen, in der Form der bestehenden
+- [x] Eintrag in `docs/agent-guide/registry/mcp.yaml` ergänzen, in der Form der bestehenden
       Einträge (`codebase-memory-mcp`, `ticket-mcp` sind die nächstliegenden Vorbilder).
-- [ ] `task mcp:sync` ausführen und die generierten Configs mitcommitten; anschließend
+- [x] `task mcp:sync` ausführen und die generierten Configs mitcommitten; anschließend
       `task mcp:check` auf Drift prüfen.
-- [ ] `scripts/llm/mcp-servers.json` **unverändert lassen.** Diese Datei ist das Ziel von
+- [x] `scripts/llm/mcp-servers.json` **unverändert lassen.** Diese Datei ist das Ziel von
       `--mcp-servers-config` und nimmt laut Registry-Kopfkommentar ausschließlich
       `transport: stdio` auf; ein HTTP-Server dort lässt `mcp:sync` fail-closed abbrechen. Die
       Datei steht nur deshalb im Manifest, damit die Prüfung „gehört der Shim hier hinein?"
       dokumentiert beantwortet ist — die Antwort ist nein.
-- [ ] Den Shim in der llama-UI (`http://localhost:8098/#/mcp-servers`, „Add New Server") als URL
+- [x] Den Shim in der llama-UI (`http://localhost:8098/#/mcp-servers`, „Add New Server") als URL
       eintragen und verifizieren, dass beide Tools dort erscheinen. Schlägt die Verbindung aus
       dem Browser mit einem CORS-Fehler fehl, ist der Server ohne CORS-Header gestartet — dann
       greift die `--ui-mcp-proxy`-Option aus p1, die llama-server serverseitig verbinden lässt.

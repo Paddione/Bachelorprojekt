@@ -871,12 +871,11 @@ tasks:
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
         echo "$CHANGED" | grep -qE "^scripts/" && RUN_SCRIPTS=true || true
         echo "$CHANGED" | grep -qE "^(scripts/factory/|tests/local/FA-)" && RUN_FACTORY=true || true
-        # scripts/llm-proxy/ zieht RUN_SPEC mit: der Regressionsschutz fuer den
-        # Proxy haengt an tests/spec/local-llm-proxy.bats. Ohne diesen Zweig
-        # wuerde eine reine scripts/llm-proxy/-Aenderung nur RUN_SCRIPTS setzen,
-        # und der Pfad faehrt find-changed-tests.sh unit - nicht die spec-Suite.
-        # Ein Test, den die Selektion nie auswaehlt, schuetzt nichts (T002336).
-        echo "$CHANGED" | grep -qE "^(tests/spec/|scripts/llm-proxy/)" && RUN_SPEC=true || true
+        # scripts/*-Aenderungen muessen die spec-Suite erreichen koennen: der
+        # spec-Finder prueft per Pfad-Probe, welche spec-bats einen geaenderten
+        # Pfad referenziert. Ohne diesen Zweig wrde eine reine scripts/*-Aenderung
+        # nur RUN_SCRIPTS setzen und find-changed-tests.sh unit aufrufen. [T002345]
+        echo "$CHANGED" | grep -qE "^(tests/spec/|scripts/)" && RUN_SPEC=true || true
         echo "$CHANGED" | grep -qE "^(tests/unit/|\.bats)" && RUN_UNIT=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true

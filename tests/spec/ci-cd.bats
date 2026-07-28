@@ -1094,7 +1094,7 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   git checkout -q -b topic
   echo change >> scripts/factory/queue.sh
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m scripts-change
-  run bash scripts/find-changed-tests.sh spec
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   # Genau die referenzierende Suite — nicht alle drei (RUN_ALL) und nicht leer.
   [ "$output" = "tests/spec/software-factory.bats" ]
@@ -1120,7 +1120,7 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   git checkout -q -b topic
   echo change >> scripts/orphan/nobody-tests-me.sh
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m orphan
-  run bash scripts/find-changed-tests.sh spec
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   [ "$(echo "$output" | wc -l)" -eq 2 ]
 }

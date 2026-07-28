@@ -434,3 +434,39 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
   run bash -c "grep -qE 'current_status.*done.*fix_status.*awaiting_deploy' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
   [ "$status" -eq 0 ] || { echo "MISSING done→awaiting_deploy guard condition in reconcile-ticket-status.sh"; false; }
 }
+
+# ── [T002382-M2] update-status.sh guard: done → non-terminal verboten ─────────#
+
+@test "T002382-M2: update-status.sh forbids done → non-terminal transitions" {
+  run grep -Fq "ERROR: Cannot transition from 'done'" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq "terminal tickets can only transition to 'archived'" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002382-M2: update-status.sh forbids archived → anything" {
+  run grep -Fq "ERROR: Cannot transition from 'archived'" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002382-M2: update-status.sh allows done → archived" {
+  run grep -Fq "done:archived" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
+# ── [T002382-M3] transition.ts guard: done → non-terminal verboten ───────────#
+
+@test "T002382-M3: transition.ts forbids done → non-terminal" {
+  run grep -Fq "Cannot transition from 'done'" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+}
+
+@test "T002382-M3: transition.ts forbids archived → anything" {
+  run grep -Fq "Cannot transition from 'archived'" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+}
+
+@test "T002382-M3: transition.ts uses COALESCE for resolution preservation" {
+  run grep -Fq "COALESCE(\$2, resolution)" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+}

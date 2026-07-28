@@ -55,6 +55,21 @@ curl -sf --max-time 2 http://127.0.0.1:13003/health && echo " → factory-mcp up
 Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **Fallback** (der jeweilige
 `psql`-/`kubectl`-/Skript-Block im Skill).
 
+> **⚠️ Port-Forward-Integrität — der Guard oben prüft Erreichbarkeit, nicht Korrektheit [T002371-M1].**
+> Der `kubectl port-forward` auf `workspace/shared-db` ist instabil und hat nachweislich **Zeilen
+> mit falscher `external_id`** geliefert. Im Ursprungsfall wurde daraufhin ein UPDATE-Flag auf eine
+> **nicht existierende** ID gesetzt (T002358 statt T002367) — der Schreibvorgang meldete Erfolg und
+> traf nichts.
+>
+> Daraus folgen zwei Regeln:
+>
+> 1. **Schreibende Operationen laufen nicht über den Port-Forward.** Für Writes gilt der oben
+>    dokumentierte `kubectl exec … psql`-Pfad.
+> 2. **Ein Read, dessen Ergebnis eine Schreiboperation steuert, wird gegengeprüft** — die gelesene
+>    ID gegen eine zweite Quelle abgleichen, *bevor* geschrieben wird.
+>
+> Kein Skript-Fix möglich: die Ursache liegt in der Port-Forward-Session, nicht im Repo.
+
 ---
 
 ## `mcp-postgres` — Read-only SQL

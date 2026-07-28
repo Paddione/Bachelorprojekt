@@ -90,7 +90,7 @@ ABLAUF (führe jeden Schritt aus):
     BIS grün (0 hard). Erst danach committen — ein roter Plan darf NICHT gepusht werden.
 7. Setze shared_changes auf true wenn der Plan k3d/configmap-domains.yaml,
    environments/schema.yaml oder k3d/kustomization.yaml ändern muss — sonst false
-8. git add docs/ openspec/ && git commit -m "chore(batch): spec+plan for ${ticket.external_id}"
+8. git add docs/ openspec/ && git commit -m "chore(factory): spec+plan for ${ticket.external_id}"
 9. git push -u origin ${branch}
 
 Gib zurück (JSON gemäß Schema):
@@ -132,7 +132,7 @@ PLAN: ${r.plan_path}
    k3d/configmap-domains.yaml und/oder environments/schema.yaml nötig sind
 3. Füge die Einträge idempotent hinzu (prüfe ob sie bereits existieren)
 4. git add k3d/configmap-domains.yaml environments/schema.yaml
-5. git commit -m "chore(batch): shared-file changes for ${r.ticket_id}"
+5. git commit -m "chore(factory): shared-file changes for ${r.ticket_id}"
 6. git push origin ${r.branch}`,
       { phase: 'Shared', label: `shared:${r.ticket_id}` }
     )

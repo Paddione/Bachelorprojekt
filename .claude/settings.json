@@ -68,6 +68,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/worktree-write-guard.sh",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "SessionStart": [

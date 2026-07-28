@@ -32,6 +32,11 @@ setup() {
 @test "T001268-M1: agent-lock uses CLAUDE_SESSION_ID as the owner_sid when set" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
   unset AGENT_LOCK_SID
+  # [T002375-p1] CLAUDE_CODE_SESSION_ID muss ausdruecklich weg: die Harness exportiert
+  # sie real, und sie steht in der normativen Reihenfolge VOR CLAUDE_SESSION_ID.
+  # Ohne dieses unset prueft der Test die Umgebung statt die Vorbedingung — genau
+  # die Fehlerklasse, die dieses Bundle behandelt.
+  unset CLAUDE_CODE_SESSION_ID
   export CLAUDE_SESSION_ID="claude-session-fixed-1234"
   run bash "$LOCK" claim ticket T001268-m1 --label mishap1
   [ "$status" -eq 0 ]
@@ -43,6 +48,11 @@ setup() {
 @test "T001268-M1: agent-lock treats different CLAUDE_SESSION_ID values as different owners" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
   unset AGENT_LOCK_SID
+  # [T002375-p1] CLAUDE_CODE_SESSION_ID muss ausdruecklich weg: die Harness exportiert
+  # sie real, und sie steht in der normativen Reihenfolge VOR CLAUDE_SESSION_ID.
+  # Ohne dieses unset prueft der Test die Umgebung statt die Vorbedingung — genau
+  # die Fehlerklasse, die dieses Bundle behandelt.
+  unset CLAUDE_CODE_SESSION_ID
   export CLAUDE_SESSION_ID="session-A"
   bash "$LOCK" claim ticket T001268-m1b
   owner_a=$(sed -n 's/.*"owner_sid": *"\([^"]*\)".*/\1/p' "$AGENT_LOCK_DIR/ticket__T001268-m1b.json")
@@ -172,6 +182,11 @@ setup() {
 @test "T002261-M1: cmd_release emits stderr diagnostic on SID mismatch" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
   # Claim the lock as "session-A"
+  # [T002375-p1] CLAUDE_CODE_SESSION_ID muss ausdruecklich weg: die Harness exportiert
+  # sie real, und sie steht in der normativen Reihenfolge VOR CLAUDE_SESSION_ID.
+  # Ohne dieses unset prueft der Test die Umgebung statt die Vorbedingung — genau
+  # die Fehlerklasse, die dieses Bundle behandelt.
+  unset CLAUDE_CODE_SESSION_ID
   export CLAUDE_SESSION_ID="session-A"
   unset AGENT_LOCK_SID
   bash "$LOCK" claim ticket T002261-m1 --label test-release
@@ -189,4 +204,162 @@ setup() {
   [ -f "$AGENT_LOCK_DIR/ticket__T002261-m1.json" ]
 
   rm -rf "$AGENT_LOCK_DIR"
+}
+
+# ── [T002375-p1] Die real exportierte Harness-Variable ─────────────────#
+#
+# Der Test oben (T001268-M1) setzt CLAUDE_SESSION_ID SELBST und prueft dann, dass
+# sie verwendet wird. Er war jahrelang gruen, waehrend der Mechanismus in der
+# echten Umgebung nie griff: die Claude-Code-Harness exportiert
+# CLAUDE_CODE_SESSION_ID. Nachweis:
+#   env | grep -c '^CLAUDE_SESSION_ID='       -> 0
+#   env | grep -c '^CLAUDE_CODE_SESSION_ID='  -> 1
+# Ein Test, der seine eigene Vorbedingung herstellt, misst nichts. Die folgenden
+# setzen deshalb ausschliesslich die real exportierte Variable.
+
+@test "T002375-p1: _my_sid nutzt CLAUDE_CODE_SESSION_ID, wenn CLAUDE_SESSION_ID ungesetzt ist" {
+  AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  unset AGENT_LOCK_SID CLAUDE_SESSION_ID
+  export CLAUDE_CODE_SESSION_ID="harness-real-var-1"
+  run bash "$LOCK" claim ticket T002375-p1a --label probe
+  [ "$status" -eq 0 ]
+  local owner
+  owner=$(sed -n 's/.*"owner_sid": *"\([^"]*\)".*/\1/p' "$AGENT_LOCK_DIR/ticket__T002375-p1a.json")
+  rm -rf "$AGENT_LOCK_DIR"
+  [ "$owner" = "harness-real-var-1" ] || { echo "owner_sid war '$owner', erwartet 'harness-real-var-1'"; false; }
+}
+
+@test "T002375-p1: release gelingt ohne --force ueber die Tool-Call-Grenze hinweg" {
+  # DER urspruengliche Befund aus T002325-M3 / T002338-M3 / T002372-M1: claim und
+  # release liefen in getrennten bash-Aufrufen, also mit unterschiedlicher
+  # Unix-Session-ID. Ohne die Harness-Variable fiel _my_sid auf ps -o sess= durch
+  # und die eigene Session galt als fremd — release verlangte --force.
+  #
+  # Warum das mehr als Bequemlichkeit ist: --force ist genau das Instrument, mit
+  # dem man FREMDE, noch lebende Locks abraeumt. Erzwingt der Normalfall es, gewoehnt
+  # sich jeder Aufrufer daran und raeumt irgendwann einen echten Fremd-Lock ab.
+  #
+  # setsid ist hier tragend, nicht Zierde: zwei gewoehnliche `bash -c` erben die
+  # Session-ID des Elternprozesses und sind damit IDENTISCH. Ein Test ohne setsid
+  # waere auch ohne den Fix gruen — also wertlos. Gemessen: bash -c liefert zweimal
+  # dieselbe SID, setsid bash -c zwei verschiedene.
+  command -v setsid >/dev/null || skip "setsid nicht verfuegbar — die SID-Differenz waere nicht erzeugbar"
+  local ald; ald="$(mktemp -d)"
+
+  local sid_a sid_b
+  sid_a=$(setsid bash -c 'ps -o sess= -p $$' </dev/null | tr -d ' ')
+  sid_b=$(setsid bash -c 'ps -o sess= -p $$' </dev/null | tr -d ' ')
+  [ "$sid_a" != "$sid_b" ] || { rm -rf "$ald"; skip "setsid erzeugt hier keine getrennten Sessions"; }
+
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID="boundary-sid" \
+    setsid bash -c "unset AGENT_LOCK_SID CLAUDE_SESSION_ID; bash '$LOCK' claim ticket T002375-p1b --label probe" </dev/null
+  [ "$status" -eq 0 ] || { rm -rf "$ald"; echo "claim fehlgeschlagen: $output"; false; }
+
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID="boundary-sid" \
+    setsid bash -c "unset AGENT_LOCK_SID CLAUDE_SESSION_ID; bash '$LOCK' release ticket T002375-p1b" </dev/null
+  local rel_status="$status" rel_out="$output"
+  rm -rf "$ald"
+  [ "$rel_status" -eq 0 ] || { echo "release verlangte --force: $rel_out"; false; }
+}
+
+@test "T002375-p1: ein ticket-scoped Claim fuellt branch aus dem HEAD" {
+  # cmd_claim fuellte BRANCH nur fuer branch-scoped Claims (die ID IST dort der
+  # Branch). Ein ticket-scoped Claim schrieb "branch": "". Der Pre-Commit-Guard aus
+  # dev-flow-plan Schritt 5 vergleicht genau dieses Feld mit dem HEAD-Branch und
+  # schlug damit IMMER fehl, wenn man den Claim so absetzt wie die Skill ihn
+  # dokumentiert. Verschaerfend: claim ist idempotent, ein einmal leer angelegter
+  # Lock laesst sich durch erneutes Claimen nicht reparieren.
+  #
+  # Der Test stellt seine Vorbedingung SELBST her, statt gegen $REPO zu claimen.
+  # Ein Actions-Checkout ist detached; dort liefert rev-parse woertlich 'HEAD',
+  # und cmd_claim leert das Feld dann absichtlich (siehe Folgetest). Gegen $REPO
+  # gemessen war dieser Test deshalb lokal gruen und in CI rot — er mass den
+  # Zustand des umgebenden Checkouts mit, nicht nur das Verhalten von claim.
+  local ald; ald="$(mktemp -d)"
+  local tmprepo; tmprepo="$(mktemp -d)"
+  git -C "$tmprepo" init -q -b probe-branch
+  git -C "$tmprepo" -c user.email=t@example.invalid -c user.name=t \
+    commit -q --allow-empty -m init
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID="branchfill-sid" \
+    bash -c "cd '$tmprepo' && unset AGENT_LOCK_SID CLAUDE_SESSION_ID; bash '$LOCK' claim ticket T002375-p1c --label probe"
+  [ "$status" -eq 0 ] || { rm -rf "$ald" "$tmprepo"; echo "claim fehlgeschlagen: $output"; false; }
+  local br
+  br=$(sed -n 's/.*"branch": *"\([^"]*\)".*/\1/p' "$ald/ticket__T002375-p1c.json")
+  rm -rf "$ald" "$tmprepo"
+  [ "$br" = "probe-branch" ] || { echo "branch war '$br', erwartet 'probe-branch'"; false; }
+}
+
+@test "T002375-p1: bei detached HEAD bleibt branch leer und der Claim laeuft trotzdem" {
+  # Das Gegenstueck zum Test darueber, und der Grund, warum dieser nicht einfach
+  # 'HEAD' als erwarteten Wert akzeptiert: 'HEAD' ist kein Branchname, sondern die
+  # Ausgabe von rev-parse fuer einen Zustand ohne Branch. Als Diagnose-Feld waere er
+  # irrefuehrend, deshalb leert cmd_claim ihn. Ohne diesen Test waere die Zeile
+  # `[ "$BRANCH" = "HEAD" ] && BRANCH=""` in agent-lock.sh ungedeckt — und der Test
+  # oben in einem detached Checkout still vakuos.
+  local ald; ald="$(mktemp -d)"
+  local tmprepo; tmprepo="$(mktemp -d)"
+  git -C "$tmprepo" init -q -b probe-branch
+  git -C "$tmprepo" -c user.email=t@example.invalid -c user.name=t \
+    commit -q --allow-empty -m init
+  git -C "$tmprepo" checkout -q --detach HEAD
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID="detached-sid" \
+    bash -c "cd '$tmprepo' && unset AGENT_LOCK_SID CLAUDE_SESSION_ID; bash '$LOCK' claim ticket T002375-p1d --label probe"
+  [ "$status" -eq 0 ] || { rm -rf "$ald" "$tmprepo"; echo "claim scheiterte am detached HEAD: $output"; false; }
+  local br
+  br=$(sed -n 's/.*"branch": *"\([^"]*\)".*/\1/p' "$ald/ticket__T002375-p1d.json")
+  rm -rf "$ald" "$tmprepo"
+  [ -z "$br" ] || { echo "branch war '$br', erwartet leer"; false; }
+}
+
+@test "T002375-p1: reap laesst einen Lock mit toter PID und nicht-numerischer SID stehen" {
+  # T002341-M3: ein Claim aus einem sofort endenden `bash -c` traegt dessen PID als
+  # owner_pid; der naechste reap einer Parallelsession raeumte ihn ab. Mit einer
+  # nicht-numerischen owner_sid gilt der Halter als lebendig (die SID ist per pgrep
+  # nicht pruefbar), und nur die Heartbeat-TTL darf ihn noch abraeumen.
+  # Belegt statt angenommen — genau das verlangt der Plan.
+  local ald; ald="$(mktemp -d)"
+  local dead_pid=999999
+  cat > "$ald/ticket__T002375-p1d.json" <<JSON
+{
+  "scope": "ticket",
+  "id": "T002375-p1d",
+  "owner_sid": "harness-nonnumeric-sid",
+  "owner_pid": $dead_pid,
+  "label": "probe",
+  "branch": "",
+  "worktree": "",
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "heartbeat_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+JSON
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID="other-session" \
+    bash -c "unset AGENT_LOCK_SID CLAUDE_SESSION_ID; bash '$LOCK' reap"
+  local survived=0; [ -f "$ald/ticket__T002375-p1d.json" ] && survived=1
+  rm -rf "$ald"
+  [ "$survived" -eq 1 ] || { echo "reap hat den Lock einer noch lebenden Fremd-Session abgeraeumt"; false; }
+}
+
+@test "T002375-p1: die Guard-Kommandos sind ausgelagert, die Aufrufschnittstelle bleibt" {
+  # Extraktion zur S1-Budget-Schaffung. Die beiden externen Aufrufer
+  # (.githooks/pre-commit, .githooks/post-checkout) rufen weiterhin
+  # `agent-lock.sh guard-*` — sie gehoeren p6 und duerfen sich hier nicht aendern.
+  [ -f "$REPO/scripts/agent-lock-guards.sh" ] || { echo "scripts/agent-lock-guards.sh fehlt"; false; }
+  run grep -q 'cmd_guard_precommit' "$REPO/scripts/agent-lock-guards.sh"
+  [ "$status" -eq 0 ] || { echo "cmd_guard_precommit nicht ausgelagert"; false; }
+  run grep -q 'cmd_guard_postcheckout' "$REPO/scripts/agent-lock-guards.sh"
+  [ "$status" -eq 0 ] || { echo "cmd_guard_postcheckout nicht ausgelagert"; false; }
+  # Dispatch bleibt in agent-lock.sh
+  run grep -qE 'guard-precommit' "$LOCK"
+  [ "$status" -eq 0 ] || { echo "Dispatch-Eintrag guard-precommit verschwunden"; false; }
+  # Die externen Aufrufer sind unangetastet
+  run grep -q 'agent-lock.sh' "$REPO/.githooks/pre-commit"
+  [ "$status" -eq 0 ]
+  # Der Extraktionsbeweis ist, dass die Rümpfe NICHT mehr hier stehen — nicht eine
+  # Zeilenzahl. (Der Plan nennt "< 430" als Zwischenstand direkt nach dem Verschieben;
+  # danach kommen die eigentlichen Änderungen wieder hinzu. Dauerhaft gilt das
+  # S1-Limit .sh = 500.)
+  run bash -c "grep -c '^cmd_guard_precommit()' '$LOCK'"
+  [ "$output" = "0" ] || { echo "cmd_guard_precommit steht noch in agent-lock.sh"; false; }
+  local n; n=$(wc -l < "$LOCK")
+  [ "$n" -lt 500 ] || { echo "agent-lock.sh hat $n Zeilen, S1-Limit fuer .sh ist 500"; false; }
 }

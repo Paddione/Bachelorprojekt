@@ -8,10 +8,22 @@ main() {
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)       id="$2"; shift 2 ;;
       --branch)   branch="$2"; shift 2 ;;
-      --plan)     plan="$2"; shift 2 ;;
+      # --plan-file ist der Name, den `archive-plan` (scripts/ticket.sh) und der
+      # MCP-Wrapper `archive_plan` benutzen. Wer zwischen beiden Kommandos wechselte,
+      # lief zuverlaessig in einen Fehlversuch (T002372-M2, T002325-M2). Der Alias
+      # geht bewusst NUR in diese Richtung: `archive-plan` bekommt kein `--plan`,
+      # weil `--plan-file` dort der etablierte Name ist. Ein Alias in beide
+      # Richtungen verdoppelt die Oberflaeche, ohne das Problem kleiner zu machen.
+      --plan|--plan-file) plan="$2"; shift 2 ;;
       --partials) partials="$2"; shift 2 ;;
       --hold)     hold=1; shift ;;
-      *)          echo "Unknown stage-plan option: $1" >&2; exit 2 ;;
+      # Die Fehlermeldung ist der einzige Ort, an dem ein Aufrufer im Fehlerfall
+      # ueberhaupt hinsieht — also nennt sie die gueltigen Flags. [T002375-p3]
+      *)          echo "Unknown stage-plan option: $1" >&2
+                  echo "  Gueltige Flags: --id <ext-id> --branch <branch> --plan|--plan-file <pfad> --partials <1..9> [--hold]" >&2
+                  echo "  --partials ist PFLICHT, auch fuer einen einzelnen, nicht aufgeteilten Plan." >&2
+                  echo "  Ohne --hold ist das Ticket sofort factory-greifbar (stage-plan weckt factory.service)." >&2
+                  exit 2 ;;
     esac; done
   if [[ -z "$id"     ]]; then echo "ERROR: --id is required."     >&2; exit 2; fi
   if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi

@@ -93,6 +93,14 @@ setup() {
 }
 
 @test "CLAUDE.md routing table no longer sells mcp-postgres as the ticket-query path" {
+  # [T002375-p7] Positiv-Anker ZUERST. Ohne ihn bestuende dieser Test auch dann, wenn
+  # CLAUDE.md fehlt, umbenannt wurde oder $REPO falsch aufgeloest ist — "nicht gefunden"
+  # und "gibt es nicht" sind fuer grep dasselbe. Genau diese Klasse (T002356-M1) ist der
+  # Gegenstand dieses Partials.
+  [ -f "$REPO/CLAUDE.md" ] || { echo "CLAUDE.md nicht gefunden — der Test haette vakuos bestanden"; false; }
+  run grep -q 'mcp-postgres' "$REPO/CLAUDE.md"
+  [ "$status" -eq 0 ] || { echo "CLAUDE.md erwaehnt mcp-postgres gar nicht mehr — Anker pruefen"; false; }
+
   run grep -q 'mcp-postgres` (localhost:13001) — Ticket-Queries' "$REPO/CLAUDE.md"
   [ "$status" -ne 0 ]
 }
@@ -417,6 +425,20 @@ assert_selection_alive() {  # <kandidatenliste>
       !in_s
     ' \"$REPO/openspec/specs/mcp-gateway.md\" | grep -Eq 'dekommissioniert|decommissioned'"
     [ "$status" -ne 0 ]
+
+    # [T002375-p7] Negativ-Probe zum Filter selbst. Der erste Fix-Versuch in PR #3398
+    # beendete Scenario-Bloecke erst bei der naechsten #-Ueberschrift und verschluckte
+    # damit den GESAMTEN Dateirest nach dem letzten Scenario — der Test waere unbemerkt
+    # dauerhaft gruen geblieben. Hier wird deshalb belegt, dass der Filter noch Substanz
+    # durchlaesst: eine Ueberschrift, die garantiert im Dokument steht, muss ihn passieren.
+    run bash -c "awk '
+      /^#### Scenario:/                  { in_s = 1; next }
+      in_s && /^([[:space:]]*\$|[[:space:]]+|- )/ { next }
+      { in_s = 0 }
+      !in_s
+    ' \"$REPO/openspec/specs/mcp-gateway.md\" | grep -cE '^#+ '"
+    [ "$output" -gt 0 ] || {
+      echo "der Scenario-Filter verschluckt den Dateirest — der Abwesenheitstest waere dauerhaft gruen"; false; }
   fi
 }
 

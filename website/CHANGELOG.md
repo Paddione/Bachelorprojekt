@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.221.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.8...website-v1.221.9) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** merge readiness instead of replace in plan-meta set [T002388] ([#3432](https://github.com/Paddione/Bachelorprojekt/issues/3432)) ([98160fc](https://github.com/Paddione/Bachelorprojekt/commit/98160fc420363b35634011843760c1d79f56ee61))
+
 ## [1.221.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.7...website-v1.221.8) (2026-07-27)
 
 

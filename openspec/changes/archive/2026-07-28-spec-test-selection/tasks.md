@@ -2,7 +2,7 @@
 title: "spec-test-selection — Implementation Plan"
 ticket_id: T002345
 domains: [bachelorprojekt-test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -40,8 +40,9 @@ fi
 # gesamte korczewski-Brand fuer den Dispatcher still.
 #
 # Wer eine weitere Pod-Selektion anlegt, braucht den Filter erneut. Der Guard
-# dagegen steht in tests/spec/software-factory.bats unter dem Titel
-# "every shared-db pod selection in scripts/ filters on phase Running".
+# dagegen ist scripts/check-pod-phase-filter.sh (seit T002439 ein eigenes Skript
+# statt inline im Test; er prueft pro Treffer, nicht pro Datei, und deckt
+# scripts/ UND tests/ ab). Aufrufbar als `task quality:pod-phase-filter`.
 _pgpod() {
   local pod all
   pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
@@ -49,7 +50,7 @@ _pgpod() {
   if [[ -z "$pod" ]]; then
     # Only on the error path: ask again unfiltered to tell "no pod at all" apart
     # from "pods exist, none Running". The happy path keeps its single API call.
-    all=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | tr '\n' ' ')
+    all=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | tr '\n' ' ')  # pod-phase-filter: intentional-unfiltered
     if [[ -n "${all// /}" ]]; then
       echo "ERROR: no Running shared-db pod in namespace $NS (context $CTX); found but not Running: ${all% }" >&2
     else

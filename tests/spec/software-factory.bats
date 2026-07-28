@@ -41,12 +41,17 @@ REG="scripts/factory/service-registry.sh"
 # ── Helpers ───────────────────────────────────────────────────────────────────
 # Skip if no shared-db pod is reachable (offline / CI without cluster).
 # Used by FA-SF-04 db-schema tests which require a live DB.
+# [T002439] Der Phasenfilter ist Teil der BEDINGUNG, nicht Kosmetik: ohne ihn liefert die
+# Selektion auch einen Completed-Pod, der Skip bleibt aus, und das folgende `kubectl exec`
+# endet mit rc=1 statt in einem sauberen Skip. Genau so entstand der "DB-Nachweis rc=1"
+# im Verify von T002418.
 _skip_if_no_db() {
   local _pod
   _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
-    -l 'app in (shared-db,shared-db-dev)' -o name 2>/dev/null | head -1) || true
+    -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
+    -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then
-    skip "no shared-db pod reachable (offline/CI)"
+    skip "no Running shared-db pod reachable (offline/CI)"
   fi
 }
 
@@ -169,7 +174,7 @@ teardown() {
   # Update it to be type='task' and status='in_progress' to simulate in-flight human work
   local ns="${FACTORY_NS:-workspace-korczewski-dev}"
   local pod
-  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtAc "UPDATE tickets.tickets SET type='task', status='in_progress' WHERE external_id = '$ext_id';"
 
@@ -199,7 +204,7 @@ psql_tickets() {
   local ctx="${FACTORY_CTX:-fleet}"
   local ns="${FACTORY_NS:-workspace}"
   local pod
-  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
   if [[ -z "$pod" ]]; then
     echo "Error: shared-db pod not found" >&2
     return 1
@@ -875,7 +880,7 @@ process.stdout.write(a+'/'+b)"
   # Derive the namespace from the brand (do not rely on a FACTORY_NS default).
   local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
   # Backdate updated_at by 40 minutes to simulate a hung pipeline.
-  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
   run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
@@ -898,7 +903,7 @@ process.stdout.write(a+'/'+b)"
   BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh add-comment --id "$ext" \
     --body "FACTORY-PLAN-REF branch=feature/sf-test-wd-$$ plan=openspec/changes/sf-test-wd-$$/tasks.md" >/dev/null
   local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
-  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
   run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
@@ -4666,19 +4671,19 @@ MOCKEOF
   [ "$output" = "pod/shared-db-live" ]
 }
 
-@test "T002386: every shared-db pod selection in scripts/ filters on phase Running" {
+@test "T002386/T002439: every shared-db pod selection filters on phase Running" {
   # Klassen-Guard statt Einzelfall: T002307 fixte eine Kopie und hielt die Sache
-  # fuer erledigt, waehrend vier weitere Kopien den Bug behielten. Dieser Test
-  # meldet jede kuenftige Kopie ohne Filter rot, egal in welcher Datei.
+  # fuer erledigt, waehrend vier weitere Kopien den Bug behielten.
   #
-  # Gezaehlt wird pro Datei, nicht pro Zeile: die Selektion darf ueber mehrere
-  # Zeilen umgebrochen sein (so steht sie in _ticket-core.sh).
-  local offenders=""
-  while IFS= read -r f; do
-    grep -q -- "--field-selector status.phase=Running" "$f" || offenders="$offenders $f"
-  done < <(grep -rl "app in (shared-db" "$REPO_ROOT/scripts" --include='*.sh')
-  [ -z "$offenders" ] || {
-    echo "Pod-Selektion ohne Phasenfilter in:$offenders" >&2
+  # [T002439] Die Scan-Logik lebt jetzt in scripts/check-pod-phase-filter.sh statt hier
+  # inline. Zwei Gruende: sie war inline nicht gegen Fixtures pruefbar, und sie hatte
+  # selbst zwei Blindstellen — sie sah nur scripts/ mit --include='*.sh', und sie zaehlte
+  # pro DATEI. Diese Datei hier entkam ihr dadurch trotz fuenf ungefilterter Selektionen,
+  # weil die Zeile darueber den Filter-String als Suchmuster fuehrte. Zwei Implementierungen
+  # derselben Regel wuerden auseinanderlaufen, deshalb ruft der Test das Skript auf.
+  run bash "$REPO_ROOT/scripts/check-pod-phase-filter.sh"
+  [ "$status" -eq 0 ] || {
+    echo "$output" >&2
     false
   }
 }

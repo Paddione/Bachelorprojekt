@@ -66,12 +66,17 @@ _start_proxy() {
 }
 
 # Skip if no shared-db pod is reachable (offline / CI without cluster).
+# [T002439] Der Phasenfilter ist Teil der BEDINGUNG, nicht Kosmetik: ohne ihn liefert die
+# Selektion auch einen Completed-Pod, der Skip bleibt aus, und das folgende `kubectl exec`
+# endet mit rc=1 statt in einem sauberen Skip. Genau so entstand der "DB-Nachweis rc=1"
+# im Verify von T002418.
 _skip_if_no_db() {
   local _pod
   _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
-    -l 'app in (shared-db,shared-db-dev)' -o name 2>/dev/null | head -1) || true
+    -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
+    -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then
-    skip "no shared-db pod reachable (offline/CI)"
+    skip "no Running shared-db pod reachable (offline/CI)"
   fi
 }
 

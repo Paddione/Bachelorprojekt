@@ -3363,6 +3363,11 @@ tasks:
     cmds:
       - node scripts/code-quality/check.mjs
 
+  quality:pod-phase-filter:
+    desc: "Prüft, dass jede shared-db-Pod-Selektion auf status.phase=Running filtert (T002439). Wurzeln nach --, z.B. task quality:pod-phase-filter -- scripts"
+    cmds:
+      - bash scripts/check-pod-phase-filter.sh {{.CLI_ARGS}}
+
   health:goals:
     desc: "Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast"
     cmds:

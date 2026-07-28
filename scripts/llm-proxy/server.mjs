@@ -4,9 +4,17 @@ import { Readable } from 'node:stream';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
 import { applyFixups, sanitizeToolSchemaPatterns } from './fixups.mjs';
+import { readFileSync } from 'node:fs';
+import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH } from './loadouts.mjs';
+import { scanModels, expandRoot } from './models.mjs';
+import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
+import { join } from 'node:path';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
+const LLAMA_BIN = process.env.LLAMA_SERVER_BIN
+  || join(process.env.HOME, 'opt/llama-b10155-cuda13.3/bin/llama-server');
+const HEALTH_TIMEOUT_MS = 240_000;
 
 startRegistryPoll(POLL_MS);
 const discovery = startDiscovery(getBackends, POLL_MS);
@@ -174,6 +182,61 @@ async function proxyV1(req, res, subpath) {
   }
 }
 
+// Loesst den Loadout-Modellpfad gegen die konfigurierten modelRoots auf.
+function resolveModelPath(doc, loadout) {
+  for (const root of doc.modelRoots) {
+    const candidate = join(expandRoot(root), loadout.model);
+    try { readFileSync(candidate, { flag: 'r', encoding: null, length: 0 }); return candidate; }
+    catch { /* naechste Wurzel */ }
+  }
+  return null;
+}
+
+async function waitHealthy(port, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const r = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(2000) });
+      if (r.ok) return true;
+    } catch { /* noch nicht da */ }
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return false;
+}
+
+// Ein Server kann auf /health antworten und trotzdem unfaehig sein, ein
+// tool_calls-Objekt zu erzeugen -- fuer tool-basiertes Coding wertlos.
+async function smokeTestToolCall(port) {
+  try {
+    const r = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'user', content: 'Read the file /etc/hostname using the available tool.' }],
+        tools: [{ type: 'function', function: { name: 'read_file', description: 'Read a file from disk',
+          parameters: { type: 'object', properties: { path: { type: 'string' } }, required: ['path'] } } }],
+        tool_choice: 'auto', max_tokens: 256,
+      }),
+      signal: AbortSignal.timeout(120_000),
+    });
+    const body = await r.json();
+    return Array.isArray(body?.choices?.[0]?.message?.tool_calls);
+  } catch { return false; }
+}
+
+async function chosenSettings(port) {
+  try {
+    const r = await fetch(`http://127.0.0.1:${port}/props`, { signal: AbortSignal.timeout(5000) });
+    const p = await r.json();
+    return { ctx: p?.default_generation_settings?.n_ctx ?? null };
+  } catch { return { ctx: null }; }
+}
+
+function portInUse(doc, port, exceptSlug) {
+  return doc.loadouts.some((l) => l.port === port && l.slug !== exceptSlug
+    && unitStatus(l.slug).active === 'active');
+}
+
 const server = http.createServer((req, res) => {
   const { method, url } = req;
   const path = url.split('?')[0];
@@ -210,6 +273,105 @@ const server = http.createServer((req, res) => {
       return sendJson(res, 200, state);
     }
     if (path === '/admin/reload' && method === 'POST') { await discovery.probeNow(); return sendJson(res, 200, { reloaded: true }); }
+
+    // --- Loadout-Verwaltung -------------------------------------------------
+    if ((path === '/admin' || path === '/admin/') && method === 'GET') {
+      const html = readFileSync(new URL('./ui/index.html', import.meta.url), 'utf8');
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      return res.end(html);
+    }
+    if (path === '/admin/models' && method === 'GET') {
+      try {
+        const { doc } = readLoadouts(DEFAULT_PATH);
+        return sendJson(res, 200, { models: scanModels(doc.modelRoots) });
+      } catch (err) {
+        return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
+      }
+    }
+    if (path === '/admin/loadouts' && method === 'GET') {
+      try {
+        const { doc, mtimeMs } = readLoadouts(DEFAULT_PATH);
+        return sendJson(res, 200, { doc, mtimeMs });
+      } catch (err) {
+        return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
+      }
+    }
+    if (path === '/admin/loadouts' && method === 'PUT') {
+      try {
+        const body = await readBody(req);
+        writeLoadouts(body.doc, DEFAULT_PATH, body.mtimeMs ?? null);
+        const { mtimeMs } = readLoadouts(DEFAULT_PATH);
+        return sendJson(res, 200, { saved: true, mtimeMs });
+      } catch (err) {
+        const conflict = /conflict|geaendert/i.test(err.message);
+        return sendJson(res, conflict ? 409 : 400,
+          { error: { code: conflict ? 'stale_write' : 'invalid', message: err.message } });
+      }
+    }
+    if (path === '/admin/loadouts/status' && method === 'GET') {
+      try {
+        const { doc } = readLoadouts(DEFAULT_PATH);
+        const status = await Promise.all(doc.loadouts.map(async (l) => {
+          const u = unitStatus(l.slug);
+          const running = u.active === 'active';
+          return {
+            slug: l.slug, unit: unitName(l.slug), port: l.port,
+            active: u.active, sub: u.sub, running,
+            chosen: running ? await chosenSettings(l.port) : null,
+          };
+        }));
+        return sendJson(res, 200, { status });
+      } catch (err) {
+        return sendJson(res, 500, { error: { code: 'loadouts_invalid', message: err.message } });
+      }
+    }
+    const startMatch = path.match(/^\/admin\/loadouts\/([a-z0-9-]+)\/start$/);
+    if (startMatch && method === 'POST') {
+      const slug = startMatch[1];
+      try {
+        const { doc } = readLoadouts(DEFAULT_PATH);
+        const loadout = findLoadout(doc, slug);
+        if (!loadout) return sendJson(res, 404, { error: { code: 'not_found', message: slug } });
+        if (unitStatus(slug).active === 'active') {
+          return sendJson(res, 409, { error: { code: 'already_running', message: `${slug} laeuft bereits` } });
+        }
+        if (portInUse(doc, loadout.port, slug)) {
+          return sendJson(res, 409, { error: { code: 'port_busy', message: `Port ${loadout.port} belegt` } });
+        }
+        const modelPath = resolveModelPath(doc, loadout);
+        if (!modelPath) {
+          return sendJson(res, 422, { error: { code: 'model_missing', message: `${loadout.model} in keiner modelRoot gefunden` } });
+        }
+        startUnit(loadout, modelPath, doc.defaults, LLAMA_BIN);
+        const healthy = await waitHealthy(loadout.port, HEALTH_TIMEOUT_MS);
+        if (!healthy) {
+          const logs = recentLogs(slug);
+          try { stopUnit(slug); } catch { /* Unit war evtl. schon weg */ }
+          return sendJson(res, 502, { error: { code: 'start_failed', message: 'Server wurde nicht gesund', logs } });
+        }
+        const chosen = await chosenSettings(loadout.port);
+        const toolCallOk = await smokeTestToolCall(loadout.port);
+        await discovery.probeNow();
+        return sendJson(res, 201, {
+          unit: unitName(slug), port: loadout.port, chosen, toolCallOk,
+          warning: toolCallOk ? null : 'Kein tool_calls erzeugt — haeufigste Ursache: args.jinja ist false',
+        });
+      } catch (err) {
+        return sendJson(res, 500, { error: { code: 'start_error', message: err.message } });
+      }
+    }
+    const stopMatch = path.match(/^\/admin\/loadouts\/([a-z0-9-]+)\/stop$/);
+    if (stopMatch && method === 'POST') {
+      const slug = stopMatch[1];
+      try {
+        stopUnit(slug);
+        await discovery.probeNow();
+        return sendJson(res, 200, { stopped: slug });
+      } catch (err) {
+        return sendJson(res, 500, { error: { code: 'stop_error', message: err.message } });
+      }
+    }
+
     if (path.startsWith('/v1/') && method === 'POST') return proxyV1(req, res, path.slice(3));
     return sendJson(res, 404, { error: { code: 'not_found', message: path } });
   })().catch((err) => sendJson(res, 502, { error: { code: 'proxy_error', message: err.message } }));

@@ -1,0 +1,109 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>LLM-Loadouts</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 2rem auto; max-width: 60rem; padding: 0 1rem; }
+  h1 { font-size: 1.2rem; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 2rem; }
+  th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+  th { font-weight: 600; opacity: .7; }
+  .dot { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; background: #999; }
+  .dot.on { background: #2ea043; }
+  button { font: inherit; padding: .2rem .7rem; cursor: pointer; }
+  button[disabled] { opacity: .4; cursor: default; }
+  #msg { white-space: pre-wrap; padding: .6rem; border-left: 3px solid #888; margin-bottom: 1.5rem; display: none; }
+  #msg.err { border-color: #d33; }
+  details { margin-bottom: 2rem; }
+  code { opacity: .75; }
+</style>
+
+<h1>LLM-Loadouts</h1>
+<div id="msg"></div>
+
+<table id="loadouts">
+  <thead><tr><th></th><th>Loadout</th><th>Port</th><th>Kontext</th><th>Modell</th><th></th></tr></thead>
+  <tbody></tbody>
+</table>
+
+<details>
+  <summary>Gefundene Modelle</summary>
+  <table id="models">
+    <thead><tr><th>Datei</th><th>Quant</th><th>Layer</th><th>Groesse</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</details>
+
+<script type="module">
+const $ = (s) => document.querySelector(s)
+const msg = (text, isErr = false) => {
+  const el = $('#msg')
+  el.textContent = text
+  el.className = isErr ? 'err' : ''
+  el.style.display = text ? 'block' : 'none'
+}
+const gb = (n) => `${(n / 1e9).toFixed(2)} GB`
+
+async function api(path, opts) {
+  const r = await fetch(path, opts)
+  const body = await r.json().catch(() => ({}))
+  if (!r.ok) throw new Error(body?.error?.message ?? `${r.status} ${path}`)
+  return body
+}
+
+async function refresh() {
+  try {
+    const [{ doc }, { status }] = await Promise.all([
+      api('/admin/loadouts'),
+      api('/admin/loadouts/status'),
+    ])
+    const byslug = Object.fromEntries(status.map((s) => [s.slug, s]))
+    $('#loadouts tbody').replaceChildren(...doc.loadouts.map((l) => {
+      const st = byslug[l.slug] ?? {}
+      const tr = document.createElement('tr')
+      tr.innerHTML = `
+        <td><span class="dot ${st.running ? 'on' : ''}"></span></td>
+        <td>${l.label}<br><code>${l.slug}</code></td>
+        <td>${l.port}</td>
+        <td>${st.chosen?.ctx ?? '—'}</td>
+        <td><code>${l.model}</code></td>
+        <td></td>`
+      const btn = document.createElement('button')
+      btn.textContent = st.running ? 'stop' : 'start'
+      btn.onclick = () => act(l.slug, st.running ? 'stop' : 'start', btn)
+      tr.lastElementChild.append(btn)
+      return tr
+    }))
+  } catch (err) { msg(err.message, true) }
+}
+
+async function loadModels() {
+  try {
+    const { models } = await api('/admin/models')
+    $('#models tbody').replaceChildren(...models.map((m) => {
+      const tr = document.createElement('tr')
+      tr.innerHTML = `<td><code>${m.relPath}</code></td><td>${m.quant ?? '—'}</td>
+                      <td>${m.blockCount ?? '—'}</td><td>${gb(m.sizeBytes)}</td>`
+      return tr
+    }))
+  } catch (err) { msg(err.message, true) }
+}
+
+async function act(slug, verb, btn) {
+  btn.disabled = true
+  msg(verb === 'start' ? `Starte ${slug} — Modell laden dauert bis zu einer Minute…` : `Stoppe ${slug}…`)
+  try {
+    const r = await api(`/admin/loadouts/${slug}/${verb}`, { method: 'POST' })
+    msg(verb === 'start'
+      ? `${slug} laeuft. Kontext ${r.chosen?.ctx ?? '?'}, Tool-Call ${r.toolCallOk ? 'ok' : 'FEHLGESCHLAGEN'}.`
+        + (r.warning ? `\n${r.warning}` : '')
+      : `${slug} gestoppt.`)
+  } catch (err) { msg(err.message, true) }
+  btn.disabled = false
+  refresh()
+}
+
+refresh()
+loadModels()
+setInterval(refresh, 5000)
+</script>

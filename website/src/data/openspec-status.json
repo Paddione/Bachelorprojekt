@@ -1689,6 +1689,12 @@
       "status": "archived"
     }
   ],
+  "T002273": [
+    {
+      "slug": "mishap-t002273",
+      "status": "plan_staged"
+    }
+  ],
   "T002278": [
     {
       "slug": "2026-07-27-mcp-postgres-brand-scope",
@@ -1797,6 +1803,12 @@
       "status": "archived"
     }
   ],
+  "T002334": [
+    {
+      "slug": "openspec-embedding-T002334",
+      "status": "plan_staged"
+    }
+  ],
   "T002336": [
     {
       "slug": "llm-proxy-readiness",
@@ -1806,6 +1818,18 @@
   "T002339": [
     {
       "slug": "mishap-t002339",
+      "status": "plan_staged"
+    }
+  ],
+  "T002345": [
+    {
+      "slug": "spec-test-selection",
+      "status": "plan_staged"
+    }
+  ],
+  "T002349": [
+    {
+      "slug": "k3d-kustomization-T002349",
       "status": "plan_staged"
     }
   ],
@@ -1863,9 +1887,21 @@
       "status": "plan_staged"
     }
   ],
+  "T002387": [
+    {
+      "slug": "worktree-divergence-guard-T002387",
+      "status": "plan_staged"
+    }
+  ],
   "T002388": [
     {
       "slug": "plan-meta-readiness-merge",
+      "status": "plan_staged"
+    }
+  ],
+  "T002389": [
+    {
+      "slug": "factory-attempt-counter-T002389",
       "status": "plan_staged"
     }
   ],
@@ -1878,6 +1914,12 @@
   "T002393": [
     {
       "slug": "pipeline-divergence-T002393",
+      "status": "plan_staged"
+    }
+  ],
+  "T002413": [
+    {
+      "slug": "pr-refresh-T002413",
       "status": "plan_staged"
     }
   ],

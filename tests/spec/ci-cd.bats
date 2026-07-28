@@ -1873,19 +1873,13 @@ MOCKEOF
   [[ "$verdict" == *"IN"* ]] || { echo "ungetrackte Datei fehlt im Scan-Universum: $verdict"; false; }
 }
 
-# ── [T002374-M1] commitlint: scope 'skills' alias to 'agents' ─────────────#
+# ── [T002374-M1] commitlint: 'skills' is a first-class scope, not an alias ──#
 
-@test "T002374-M1: commitlint.config.cjs SCOPE_ALIAS_GROUPS.agents enthaelt 'skills'" {
+@test "T002374-M1: 'skills' ist ein gueltiger Scope, kein Alias mehr" {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
-  grep -qE "agents.*\[.*skills" "$REPO_ROOT/commitlint.config.cjs" \
-    || { echo "MISSING 'skills' alias in SCOPE_ALIAS_GROUPS.agents"; return 1; }
-}
-
-@test "T002374-M1: scopeHint gibt Hinweis fuer 'skills' zurueck" {
-  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  # 'skills' is now a NAMED_SCOPE, not a SCOPE_ALIAS. scopeHint returns empty.
   run bash -c "node -e \"const cfg = require('$REPO_ROOT/commitlint.config.cjs'); process.stdout.write(cfg.scopeHint('skills') || '(empty)');\""
-  [[ "$output" != *"empty"* ]] || { echo "scopeHint fuer 'skills' gibt keinen Hinweis"; false; }
-  [[ "$output" == *"agents"* ]] || { echo "scopeHint fuer 'skills' verweist nicht auf 'agents': $output"; false; }
+  [[ "$output" == *"empty"* ]] || { echo "scopeHint fuer 'skills' soll leer sein (skills ist jetzt First-Class-Scope): $output"; false; }
 }
 
 # ── [T002374-M2] agent-lock release: --force bei SID-Mismatch ───────────#

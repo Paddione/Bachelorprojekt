@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.226.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.5...website-v1.226.0) (2026-07-28)
+
+
+### Features
+
+* **scripts:** Merge-Arbitrierung bei N-Wege-Dateikollisionen [T002423] ([#3490](https://github.com/Paddione/Bachelorprojekt/issues/3490)) ([1e599f7](https://github.com/Paddione/Bachelorprojekt/commit/1e599f7636e2acb5320c0096ea2189e640ed9fda))
+
+
+### Bug Fixes
+
+* **scripts:** incidental ticket closure tracking [T002279] ([#3473](https://github.com/Paddione/Bachelorprojekt/issues/3473)) ([1dfb8a0](https://github.com/Paddione/Bachelorprojekt/commit/1dfb8a0e8101794b4f99032f673dcec0d9ab9ce3))
+
 ## [1.225.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.4...website-v1.225.5) (2026-07-28)
 
 

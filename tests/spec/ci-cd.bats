@@ -1603,12 +1603,12 @@ PY
   [[ "$output" == *"website"* ]]
 }
 
-@test "T002328: konsolidierter Scope 'skills' nennt sein Ziel 'agents' in der Diagnose" {
+@test "T002328/T002374: 'skills' ist wieder ein gueltiger Scope" {
   msg="$BATS_TEST_TMPDIR/msg-skills"
   printf 'chore(skills): tidy up\n' > "$msg"
   run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$msg"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"agents"* ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OK"* ]]
 }
 
 @test "T002328: entfallener Scope 'tracking' wird als entfernt gemeldet, nicht auf ein Ziel gemappt" {

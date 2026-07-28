@@ -399,8 +399,10 @@ JSON
   bash "$LOCK" claim ticket T002373-m2b --label test-release-alive
   [ -f "$AGENT_LOCK_DIR/ticket__T002373-m2b.json" ]
 
-  # Switch to different session, owner marked alive
+  # Switch to different session AND different tool class to bypass
+  # the same-tool fallback (T002374) and trigger the SID mismatch. [T002373-M2]
   export AGENT_LOCK_SID="session-C"
+  export GEMINI_CLI=1
   run bash "$LOCK" release ticket T002373-m2b
   [ "$status" -eq 1 ] || { echo "release must fail without --force when owner SID is alive"; false; }
 

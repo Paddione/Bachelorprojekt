@@ -55,7 +55,7 @@ Verifiziere mit BATS-Test aus Task 1 — muss GREEN sein.
   - `tests/spec/software-factory.bats` (PIPELINE_SCRIPT/PJS)
   - Alle weiteren im Grep gefundenen Referenzen
 
-### 4. Tests aktualisieren & CI-Gates
+### 4. Tests aktualisieren & CI-Gates ✓
 
 ```bash
 task test:changed

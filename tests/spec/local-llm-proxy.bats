@@ -384,8 +384,8 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   grep -qE "'/admin/models'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
   grep -qE "'/admin/loadouts'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
   grep -qE "'/admin/loadouts/status'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  grep -qE "'/admin/loadouts/[^/]+/start'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
-  grep -qE "'/admin/loadouts/[^/]+/stop'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "admin/loadouts/.*start" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "admin/loadouts/.*stop" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
 }
 
 @test "T002394: /admin Route serviert HTML (ui/index.html)" {

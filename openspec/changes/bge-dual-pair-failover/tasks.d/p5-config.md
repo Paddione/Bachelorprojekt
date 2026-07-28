@@ -32,14 +32,14 @@ erreichen.
 
 ## Schritte
 
-- [ ] Neue Variablen für Embedding- und Rerank-Endpunkt des Batch-Paars in
+- [x] Neue Variablen für Embedding- und Rerank-Endpunkt des Batch-Paars in
       `environments/schema.yaml` eintragen, mit Beschreibung und Pflichtstatus.
-- [ ] Werte in allen sieben Environment-Dateien ergänzen: `dev.yaml`, `mentolder.yaml`,
+- [x] Werte in allen sieben Environment-Dateien ergänzen: `dev.yaml`, `mentolder.yaml`,
       `korczewski.yaml`, `staging.yaml`, `fleet-mentolder.yaml`, `fleet-korczewski.yaml`.
-- [ ] Variablen für die Überlast-Schwellen des Routers ergänzen (Latenzgrenze und
+- [x] Variablen für die Überlast-Schwellen des Routers ergänzen (Latenzgrenze und
       Queue-Sättigung), damit p2 sie nicht hartkodieren muss.
-- [ ] `k3d/llm-gpu.yaml` um die beiden Gateway-Services für 8085/8086 erweitern.
-- [ ] `task env:validate` ausführen und grün bekommen.
+- [x] `k3d/llm-gpu.yaml` um die beiden Gateway-Services für 8085/8086 erweitern.
+- [x] `task env:validate` ausführen und grün bekommen.
 
 ## Abgrenzung
 

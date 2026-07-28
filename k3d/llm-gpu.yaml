@@ -62,3 +62,61 @@ subsets:
     ports:
       - name: http
         port: 8096
+---
+# ── T002426 — Paar A (Batch/Reindex, CPU-gebunden) ───────────────────────
+# Zweites bge-Paar auf DEMSELBEN Host, aber mit -ngl 0 im CPU-RAM. Es belegt
+# kein VRAM und uebernimmt Batch-/Reindex-Last, damit ein laufender Reindex die
+# interaktiven Agenten auf 8095/8096 nicht mehr blockiert. Der Host-SPOF bleibt
+# davon unberuehrt: faellt die Maschine aus, sind beide Paare weg.
+#
+# ── bge-m3 Batch-Embedding (llama.cpp, Port 8085) ────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-embed-batch
+  labels:
+    app: llm-gateway
+spec:
+  ports:
+    - name: http
+      port: 8085
+      targetPort: 8085
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-gateway-embed-batch
+  labels:
+    app: llm-gateway
+subsets:
+  - addresses:
+      - ip: ${LLM_HOST_IP}
+    ports:
+      - name: http
+        port: 8085
+---
+# ── bge-reranker-v2-m3 Batch-Rerank (llama.cpp, Port 8086) ───────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-gateway-rerank-batch
+  labels:
+    app: llm-gateway
+spec:
+  ports:
+    - name: http
+      port: 8086
+      targetPort: 8086
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: llm-gateway-rerank-batch
+  labels:
+    app: llm-gateway
+subsets:
+  - addresses:
+      - ip: ${LLM_HOST_IP}
+    ports:
+      - name: http
+        port: 8086

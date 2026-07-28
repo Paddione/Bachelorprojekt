@@ -89,6 +89,14 @@ ANDEREN lebenden Session im Worktree geändert werden. Der `.githooks/pre-commit
 es automatisch auf (`agent-collision.sh check --staged`). Mit `AGENT_COLLISION_STRICT=1`
 wird der Commit bei Kollision abgelehnt.
 
+Drei Prüfmodi, je nachdem WAS erfasst werden soll:
+
+| Modus | Prüft | Wann nutzen |
+|-------|-------|-------------|
+| `--staged` (default) | Nur `git add`-Dateien | Pre-Commit-Hook |
+| `--all` | Staged + unstaged (Working Tree) | Vor `git commit -a` |
+| `--branch` | **Alles** was der Branch je geändert hat (committed + staged + unstaged via `main...HEAD`) | Präventiv, auch bei sauberem WT |
+
 ```bash
 # Prüfe ob staged Dateien mit anderen Sessions kollidieren
 bash scripts/agent-collision.sh check --staged
@@ -102,6 +110,17 @@ bash scripts/agent-collision.sh check --branch
 # Stille Prüfung (exit code only)
 bash scripts/agent-collision.sh check --quiet
 ```
+
+**Wichtig:** `--branch` heisst NICHT Branch-Erstellung. Der Name kommt vom
+Drei-Punkt-Diff `git diff --name-only main...HEAD`, der exakt die Dateien zeigt,
+die dieser Branch seit Abzweigen von main geändert hat — egal ob committed oder nicht.
+Das Skript erstellt oder wechselt nie einen Branch.
+
+**Empfohlener Workflow [T002444]:**
+1. Vor dem Plan-Schreiben (`opencode-flow-plan`): `agent-collision.sh check --branch`
+2. Pre-Commit-Hook: `agent-collision.sh check --staged`
+3. Vor dem PR-Erstellen: `agent-collision.sh check --branch` (stellt sicher, dass
+   Merge-Konflikte mit anderen Branches früh erkannt werden)
 
 Erkenntnis: Liest die Lock-Dateien aus `agent-lock.sh` Registry JSON und vergleicht
 `git diff --name-only HEAD` aller lebenden Worktrees. Reine lokale Bash — kein Cluster.

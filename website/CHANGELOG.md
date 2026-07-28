@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.227.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.226.2...website-v1.227.0) (2026-07-28)
+
+
+### Features
+
+* **scripts:** task-context-channel — generator, assembler, gate, and tests [T002420] ([#3501](https://github.com/Paddione/Bachelorprojekt/issues/3501)) ([f1a5d4e](https://github.com/Paddione/Bachelorprojekt/commit/f1a5d4ef5fb4dd766abe50a8baaa32869b6cd517))
+
 ## [1.226.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.226.1...website-v1.226.2) (2026-07-28)
 
 

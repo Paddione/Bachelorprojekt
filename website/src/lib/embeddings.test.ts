@@ -48,45 +48,80 @@ describe('embeddings client', () => {
 describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
   const ORIGINAL_ENV = process.env.LLM_ENABLED;
   const ORIGINAL_EMBED_URL = process.env.LLM_EMBED_URL;
+  const ORIGINAL_BATCH_URL = process.env.LLM_EMBED_BATCH_URL;
+
+  const INTERACTIVE = 'http://llm-router.test:4000';
+  const BATCH = 'http://llm-batch.test:8085';
+
+  /**
+   * T002426: seit `callRouter` seine Zieladresse vom bge-Router bezieht, geht
+   * jedem Embedding-Aufruf eine /health-Probe voraus. Die Mocks unterscheiden
+   * deshalb nach Pfad; ein Mock, der die Embedding-Antwort auch auf /health
+   * liefert, laesst den Router beide Paare fuer unerreichbar halten.
+   */
+  const embedOrHealth = (embedBody: object) => (url: string) =>
+    Promise.resolve(String(url).endsWith('/health')
+      ? new Response(JSON.stringify({ status: 'ok', slots_processing: 0 }), { status: 200 })
+      : new Response(JSON.stringify(embedBody), { status: 200 }));
 
   beforeEach(() => {
     process.env.LLM_ENABLED = 'true';
-    process.env.LLM_EMBED_URL = 'http://llm-router.test:4000';
+    process.env.LLM_EMBED_URL = INTERACTIVE;
+    process.env.LLM_EMBED_BATCH_URL = BATCH;
     global.fetch = ORIGINAL_FETCH;
   });
   afterEach(() => {
     process.env.LLM_ENABLED = ORIGINAL_ENV;
     process.env.LLM_EMBED_URL = ORIGINAL_EMBED_URL;
+    process.env.LLM_EMBED_BATCH_URL = ORIGINAL_BATCH_URL;
   });
 
   test('routes bge-m3 query to LLM_EMBED_URL with X-LLM-Purpose=query', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(
-      JSON.stringify({ data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 8 } }),
-      { status: 200 },
-    ));
+    const fetchMock = vi.fn().mockImplementation(embedOrHealth(
+      { data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 8 } }));
     global.fetch = fetchMock;
 
     const r = await embedQuery('hallo', { model: 'bge-m3', purpose: 'query' });
     expect(r.embedding).toHaveLength(1024);
 
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(String(url)).toBe('http://llm-router.test:4000/v1/embeddings');
-    expect((init as RequestInit).headers).toMatchObject({ 'X-LLM-Purpose': 'query' });
-    const body = JSON.parse((init as RequestInit).body as string);
-    // LM Studio port migration: bge-m3 is routed via resolveModelId() to the
-    // upstream model name `text-embedding-bge-m3`. TEI ignores the model field,
-    // LM Studio routes by it.
+    const call = fetchMock.mock.calls.find(([u]: [string]) => String(u).endsWith('/v1/embeddings'));
+    expect(call).toBeDefined();
+    const [url, init] = call as [string, RequestInit];
+    expect(String(url)).toBe(`${INTERACTIVE}/v1/embeddings`);
+    expect(init.headers).toMatchObject({ 'X-LLM-Purpose': 'query' });
+    const body = JSON.parse(init.body as string);
     expect(body.model).toBe('bge-m3');
   });
 
+  test('callRouter takes its target from the bge-router: index purpose goes to the batch pair', async () => {
+    const fetchMock = vi.fn().mockImplementation(embedOrHealth(
+      { data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 8 } }));
+    global.fetch = fetchMock;
+
+    await embedBatch(['a'], { model: 'bge-m3', purpose: 'index' });
+
+    const call = fetchMock.mock.calls.find(([u]: [string]) => String(u).endsWith('/v1/embeddings'));
+    expect(String((call as [string])[0])).toBe(`${BATCH}/v1/embeddings`);
+  });
+
+  test('public signatures of embedQuery and embedBatch are unchanged', async () => {
+    global.fetch = vi.fn().mockImplementation(embedOrHealth(
+      { data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 4 } }));
+    const q = await embedQuery('x');
+    expect(Array.isArray(q.embedding)).toBe(true);
+    expect(typeof q.tokens).toBe('number');
+    const b = await embedBatch(['x']);
+    expect(b.embeddings).toHaveLength(1);
+    expect(typeof b.tokens).toBe('number');
+  });
+
   test('routes voyage-multilingual-2 model through the embed URL (no direct voyage call)', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(
-      JSON.stringify({ data: [{ embedding: Array(1024).fill(0.03) }], usage: { total_tokens: 9 } }),
-      { status: 200 },
-    ));
+    const fetchMock = vi.fn().mockImplementation(embedOrHealth(
+      { data: [{ embedding: Array(1024).fill(0.03) }], usage: { total_tokens: 9 } }));
     global.fetch = fetchMock;
     await embedQuery('hi', { model: 'voyage-multilingual-2', purpose: 'query' });
-    expect(String(fetchMock.mock.calls[0][0])).toContain('llm-router.test');
+    const call = fetchMock.mock.calls.find(([u]: [string]) => String(u).endsWith('/v1/embeddings'));
+    expect(String((call as [string])[0])).toContain('llm-router.test');
   });
 
   test('purpose=index, router 503 → throws EmbeddingIndexError (no fallback)', async () => {
@@ -119,7 +154,8 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
     let callCount = 0;
     global.fetch = vi.fn().mockImplementation((url: string) => {
       callCount++;
-      if (String(url).includes('llm-router.test')) {
+      // Beide Paare sind weg — erst dann darf der Voyage-Weg greifen.
+      if (String(url).includes('llm-router.test') || String(url).includes('llm-batch.test')) {
         return Promise.reject(Object.assign(new Error('ECONNREFUSED'), { code: 'ECONNREFUSED' }));
       }
       // Voyage fallback succeeds

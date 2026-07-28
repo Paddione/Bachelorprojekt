@@ -29,18 +29,18 @@ rufen diese Stelle auf, statt eigene Ausweichlogik mitzubringen.
 
 ## Schritte
 
-- [ ] `website/src/lib/bge-router.ts` anlegen: Typen für Paar-Identität (`batch` | `interactive`),
+- [x] `website/src/lib/bge-router.ts` anlegen: Typen für Paar-Identität (`batch` | `interactive`),
       Health-Status und Routing-Entscheidung; eine Probe-Funktion, die Erreichbarkeit und
       Auslastung eines Paars ermittelt; eine Auflösungsfunktion, die aus gewünschter Rolle plus
       Health-Zustand das tatsächlich zu verwendende Paar bestimmt und die Umleitung protokolliert.
-- [ ] Die Endpunkt-Adressen aus den in p5 eingeführten Environment-Variablen lesen, nicht
+- [x] Die Endpunkt-Adressen aus den in p5 eingeführten Environment-Variablen lesen, nicht
       hartkodieren. Solange p5 noch nicht gemergt ist, gegen die Variablennamen programmieren,
       die das Manifest in p5 festlegt.
-- [ ] `website/src/lib/embeddings.ts`: `callRouter` (aktuell Zeile 80) so umbauen, dass es die
+- [x] `website/src/lib/embeddings.ts`: `callRouter` (aktuell Zeile 80) so umbauen, dass es die
       Zieladresse vom `bge-router` bezieht statt sie direkt aufzulösen. Das ist der einzige
       Engpass in dieser Datei — die öffentlichen Signaturen von `embedQuery` und `embedBatch`
       bleiben unverändert, damit keine Aufrufer angefasst werden müssen.
-- [ ] `website/src/lib/rerank.ts`: `rerankCandidates` so umbauen, dass es bei Ausfall des
+- [x] `website/src/lib/rerank.ts`: `rerankCandidates` so umbauen, dass es bei Ausfall des
       primären Rerankers **erst den Partner versucht** und erst danach auf `score: 0` degradiert.
       Sowohl der Partner-Wechsel als auch die Degradation werden als Warnung protokolliert. Die
       Signatur `rerankCandidates` und der Rückgabetyp `RerankResult` bleiben unverändert.

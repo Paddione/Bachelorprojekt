@@ -1,7 +1,7 @@
 // website/src/lib/e2e-marker.ts
 //
 // Detects whether an inbound HTTP request is a Playwright E2E call so the
-// form endpoints (/api/contact, /api/booking, /api/bug-report,
+// form endpoints (/api/contact, /api/booking,
 // /api/portal/messages) can stamp `is_test_data=true` on the rows they
 // create — the purge function then sweeps them at the next bracket.
 //

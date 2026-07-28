@@ -42,7 +42,11 @@ probe_spec_for_path() { # $1 = changed file path
     if [ -n "${PROBE_CACHE[$probe]+set}" ]; then
       matched="${PROBE_CACHE[$probe]}"
     else
-      matched=$(grep -lF -- "$probe" "$BASE_DIR"/*.bats 2>/dev/null || true)
+      # Rekursiv statt flachem Glob [T002416]: seit der Verzeichniskonvention liegen
+      # Tests auch unter tests/spec/<spec-slug>/. Ein flaches "$BASE_DIR"/*.bats haette
+      # sie uebersehen — die Aenderung an einem Skript wuerde dann ihren eigenen Test
+      # nicht mehr ausloesen, und der Lauf saehe gruen aus, weil er gar nicht stattfand.
+      matched=$(find "$BASE_DIR" -name '*.bats' -type f -exec grep -lF -- "$probe" {} + 2>/dev/null || true)
       PROBE_CACHE["$probe"]="$matched"
     fi
     [ -n "$matched" ] && break
@@ -85,6 +89,11 @@ while IFS= read -r file; do
     matched_test=""
     if [ -f "$BASE_DIR/$name.bats" ]; then
       matched_test="$BASE_DIR/$name.bats"
+    # Verzeichnisform [T002416]: tests/spec/<spec-slug>/<name>.bats. Erst nach der
+    # flachen Form geprueft, damit bestehende Sammeldateien Vorrang behalten und die
+    # Auswahl sich fuer sie nicht aendert.
+    elif _dir_match="$(find "$BASE_DIR" -mindepth 2 -name "$name.bats" -type f 2>/dev/null | head -1)"; [ -n "$_dir_match" ]; then
+      matched_test="$_dir_match"
     elif [ -f "$BASE_DIR/vda-$name.bats" ]; then
       matched_test="$BASE_DIR/vda-$name.bats"
     elif [ -f "$BASE_DIR/ticket-$name.bats" ]; then

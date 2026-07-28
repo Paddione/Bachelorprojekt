@@ -96,6 +96,9 @@ bash scripts/agent-collision.sh check --staged
 # Prüfe staged + unstaged Änderungen
 bash scripts/agent-collision.sh check --all
 
+# Prüfe die eigene Branch-Divergenz (praeventiver Modus, auch bei sauberem Working Tree)
+bash scripts/agent-collision.sh check --branch
+
 # Stille Prüfung (exit code only)
 bash scripts/agent-collision.sh check --quiet
 ```

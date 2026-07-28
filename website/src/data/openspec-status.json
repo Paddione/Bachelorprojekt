@@ -1787,6 +1787,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002331": [
+    {
+      "slug": "schema-diaet-T002331",
+      "status": "plan_staged"
+    }
+  ],
   "T002333": [
     {
       "slug": "2026-07-28-queue-dispatch-bug-type",
@@ -1857,6 +1863,12 @@
     {
       "slug": "2026-07-28-factory-livelock-breaker",
       "status": "archived"
+    }
+  ],
+  "T002365": [
+    {
+      "slug": "devflow-execute-hardening-T002365",
+      "status": "plan_staged"
     }
   ],
   "T002366": [
@@ -1964,6 +1976,12 @@
   "T002425": [
     {
       "slug": "mishap-t002425",
+      "status": "plan_staged"
+    }
+  ],
+  "T002427": [
+    {
+      "slug": "fa-sf-dedupe-T002427",
       "status": "plan_staged"
     }
   ],

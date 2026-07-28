@@ -53,16 +53,20 @@ setup() {
 }
 
 @test "spec-dir: Test-Inventar erfasst Unterverzeichnisse" {
-  # Positiv-Anker: der Inventar-Builder existiert und scannt tests/spec ...
-  run grep -c 'tests/spec' "${REPO_ROOT}/scripts/build-test-inventory.sh"
+  # Ergebnisprüfung statt Implementierungsdetail [T002445]: dieser Test prüfte zuvor nur,
+  # dass "maxdepth 2" im Skripttext steht — der `find` fand Unterverzeichnis-Dateien schon
+  # vorher, sie fielen erst bei der ID-Extraktion durch. Ein grüner Test bei falscher
+  # Titelaussage. Jetzt wird das tatsächliche Inventar-Ergebnis geprüft.
+  #
+  # Positiv-Anker: die Beispieldatei liegt wirklich unter einem tests/spec-Unterverzeichnis
+  # — sonst wäre die folgende Suche trivial leer.
+  [ -f "${REPO_ROOT}/tests/spec/ci-cd/spec-dir-convention.bats" ]
+  local sandbox="${BATS_TEST_TMPDIR}/inventory.json"
+  run bash -c "TEST_INVENTORY_OUT='$sandbox' bash '${REPO_ROOT}/scripts/build-test-inventory.sh'"
   [ "$status" -eq 0 ]
-  [ "$output" -ge 1 ]
-  # ... nicht mit -maxdepth 1, das genau eine Ebene tief schaut. Kommentarzeilen
-  # ausgenommen — die erklaeren gerade WARUM maxdepth 1 nicht mehr taugt.
-  run bash -c "grep -v '^\s*#' '${REPO_ROOT}/scripts/build-test-inventory.sh' | grep -c 'maxdepth 1'"
-  [ "$output" -eq 0 ]
-  # Positiv-Gegenprobe: der find-Aufruf existiert noch und schaut tiefer.
-  run bash -c "grep -v '^\s*#' '${REPO_ROOT}/scripts/build-test-inventory.sh' | grep -c 'maxdepth 2'"
+  run jq --arg p 'tests/spec/ci-cd/spec-dir-convention.bats' \
+    '[.[] | select(.file == $p)] | length' "$sandbox"
+  [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 }
 

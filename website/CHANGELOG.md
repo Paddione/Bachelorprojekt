@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.225.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.4...website-v1.225.5) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** Test-Inventar erfasst tests/spec/&lt;slug&gt;/-Unterverzeichnisse [T002445] ([#3499](https://github.com/Paddione/Bachelorprojekt/issues/3499)) ([ba7630a](https://github.com/Paddione/Bachelorprojekt/commit/ba7630a668e372efef2c916df5c4ed448c21ffd7))
+
 ## [1.225.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.3...website-v1.225.4) (2026-07-28)
 
 

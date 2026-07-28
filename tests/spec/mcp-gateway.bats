@@ -350,10 +350,13 @@ assert_selection_alive() {  # <kandidatenliste>
   [ "$status" -eq 0 ]
 }
 
-@test "T002350: reaper derives its own pid from /proc/self, not from \$\$" {
-  # In POSIX-sh expandiert $$ auch in der Subshell zur PID der Ur-Shell (hier 1),
-  # die Reaper-Subshell bliebe damit ungeschuetzt.
-  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq '/proc/self/stat'"
+@test "T002350: reaper reads self-PID via \$_root indirection, not hardcoded /proc" {
+  # Der Reaper muss ueber $_root/self/stat lesen, damit Tests ein Fixture
+  # unterschieben koennen. Hardcoded /proc/self/stat waere nicht testbar.
+  # [$] statt \$: der aeussere bats-String ist doppelt gequotet, '\$' kaeme beim
+  # inneren grep als '$' an — und das ist in ERE der Zeilenende-Anker, das Muster
+  # koennte nie matchen. Die Zeichenklasse umgeht beide Quoting-Ebenen.
+  run bash -c "$(declare -f pg_container_args); REPO='$REPO'; MONOLITH_MANIFEST_REL='$MONOLITH_MANIFEST_REL'; pg_container_args | grep -Eq '[\$]_root/self/stat'"
   [ "$status" -eq 0 ]
 }
 

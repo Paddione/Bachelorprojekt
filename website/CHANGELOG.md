@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.223.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.4...website-v1.223.5) (2026-07-28)
+
+
+### Bug Fixes
+
+* **factory:** attempt counter distinguishes MODEL from INFRA failure [T002389] ([#3459](https://github.com/Paddione/Bachelorprojekt/issues/3459)) ([6ddb809](https://github.com/Paddione/Bachelorprojekt/commit/6ddb80921861533aa86859b36a677fcb74a87c98))
+
 ## [1.223.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.3...website-v1.223.4) (2026-07-28)
 
 

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 613,
+      "file_count": 614,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -311,6 +311,7 @@
         "tests/scripts/admin-menu-gate.bats",
         "tests/scripts/helper-collab-mock-runner.mjs",
         "tests/spec/active-sessions-hub.bats",
+        "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
         "tests/spec/admin-cockpit.bats",
         "tests/spec/admin-token-consolidation.bats",
         "tests/spec/admin-ui-modal-drawer.bats",
@@ -2907,7 +2908,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 586,
+      "file_count": 587,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -2960,6 +2961,7 @@
         "scripts/agent-guide/validate.mjs",
         "scripts/agent-guide/validate.test.mjs",
         "scripts/agent-lock-guards.sh",
+        "scripts/agent-lock-identity.sh",
         "scripts/agent-lock-merged.sh",
         "scripts/agent-lock.sh",
         "scripts/agent-model-select.sh",

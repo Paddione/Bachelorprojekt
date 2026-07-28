@@ -2,7 +2,7 @@
 title: "bge-dual-pair-failover — zweites bge-Paar, MCP-Shim und gegenseitiges Failover"
 ticket_id: T002426
 domains: [infra, website, llm]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

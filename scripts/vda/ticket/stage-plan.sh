@@ -3,14 +3,37 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
+# Watchdog um _exec_sql. `timeout` scheidet aus: es ist ein externes Binary und
+# kann keine Shell-Funktion starten (rc=127, "No such file or directory") — ein
+# `timeout 120 _exec_sql …` haette JEDEN Schreibvorgang lahmgelegt statt ihn
+# abzusichern. Stattdessen laeuft _exec_sql in einer Hintergrund-Subshell, die
+# nach Ablauf der Frist SIGTERM bekommt.
+#
+# Kontext-Label wird als `-- <ctx>` uebergeben und aus der Argumentliste
+# herausgeloest, damit es nicht bei psql landet.
 _exec_sql_with_timeout() {
   local pod="$1"; shift
-  local timeout_sec=120
-  timeout "$timeout_sec" _exec_sql "$pod" "$@" >/dev/null 2>&1 || {
-    local ctx="${3:-unknown}"
+  local timeout_sec="${STAGE_PLAN_SQL_TIMEOUT:-120}" ctx=unknown
+  local args=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --) ctx="${2:-unknown}"; shift 2 ;;
+      *)  args+=("$1"); shift ;;
+    esac
+  done
+
+  local sql; sql="$(cat)"          # Heredoc einlesen, bevor die Subshell startet
+  ( printf '%s' "$sql" | _exec_sql "$pod" "${args[@]}" >/dev/null 2>&1 ) &
+  local pid=$! waited=0
+  while kill -0 "$pid" 2>/dev/null && (( waited < timeout_sec )); do
+    sleep 1; waited=$(( waited + 1 ))
+  done
+  if kill -0 "$pid" 2>/dev/null; then
+    kill -TERM "$pid" 2>/dev/null
     echo "WARN: stage-plan: SQL timed out after ${timeout_sec}s (ctx=$ctx) — write may have succeeded despite timeout" >&2
     return 1
-  }
+  fi
+  wait "$pid"
 }
 
 main() {

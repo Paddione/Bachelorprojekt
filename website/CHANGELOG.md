@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.226.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.226.1...website-v1.226.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** Pod-Phase-Guard treffer-granular, scripts/ UND tests/ [T002439] ([#3498](https://github.com/Paddione/Bachelorprojekt/issues/3498)) ([d2c06a5](https://github.com/Paddione/Bachelorprojekt/commit/d2c06a53c6bb2abf02129f75c2ea83112a46cf0f))
+* **scripts:** stage-plan leitet touched_files aus ## File Structure ab [T002446] ([#3503](https://github.com/Paddione/Bachelorprojekt/issues/3503)) ([2cea54f](https://github.com/Paddione/Bachelorprojekt/commit/2cea54f68968e1d07f9d29bcc068d0e9b73822f9))
+
 ## [1.226.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.226.0...website-v1.226.1) (2026-07-28)
 
 

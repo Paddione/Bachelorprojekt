@@ -24,6 +24,14 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will. Nutze diesen Skill 
 **AUSSTIEG:** Feature/Fix-Branch mit committiertem Plan auf Remote gepusht, Ticket `plan_staged`
 **Nächster Schritt:** `opencode-flow-execute`
 
+## Schritt −3: Deep Grilling (optional)
+
+Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session.
+Nutze `lavish` für die Q/A-Session: Erstelle `.lavish/<slug>-grilling.html` mit den Fragen als
+interaktivem Formular (Input-Playbook), öffne es mit `npx -y lavish-axi .lavish/<slug>-grilling.html`
+und poll auf Antworten. Falls durchgeführt, erstelle das Grilling-Ticket via ticket-mcp
+(`create_ticket` mit type=task, title="Grilling: <kurzer-titel>").
+
 ## Schritt −2: Main sync (Pull-First)
 
 ```bash
@@ -43,6 +51,15 @@ git worktree list
 ## Schritt 0: Pfad bestimmen
 
 Wähle Feature, Fix oder Chore. Features/Fixes → dieser Skill. Chores → `opencode-flow-chore` und STOPP.
+
+### Artefakt-Ebene: braucht der Request ein PRD davor?
+
+Die feature/fix/chore-Wahl oben ist die *Pfad*-Wahl durch diese Skill; davor steht die
+*Artefakt*-Wahl (PRD vs. ADR vs. Change-Proposal vs. Chore-Ticket). Entscheidungstabelle:
+- **Neues Feature ohne klares Zielbild** → PRD erstellen (Anforderungsdokument)
+- **Technische Änderung mit Architektur-Impact** → ADR erstellen
+- **Klar umrissene Feature-Änderung** → Change-Proposal (OpenSpec)
+- **Reine Wartung** → Chore-Ticket, kein Spec
 
 ## Feature-Pfad
 
@@ -99,6 +116,10 @@ Setze `TICKET_EXT_ID` (Feld 1) und `TICKET_UUID` (Feld 2) aus der Rückgabe.
 Claims: `agent-lock.sh claim ticket` + `claim branch` mit Label `opencode-flow-plan`.
 
 ### Phase B: Worktree anlegen + Branch pushen (vor Plan-Schreibung)
+
+> **`cd` wirkt nur auf Bash (T002357):** Ab Phase B tragen alle Datei-Tool-Pfade (Read/Write/Edit)
+> zwingend den Worktree-Präfix — `cd` ändert nur das Bash-cwd, nicht den Bezugspunkt der
+> Datei-Tools. Begründung und Prüfbefehl: siehe Claude-Referenz `dev-flow-plan-phases.md`.
 
 🚨 **Pipeline-Prinzip:** Der Branch und Worktree werden JETZT angelegt und gepusht,
 damit Partial-Pläne sofort in die Factory enqueued werden können, während der Planner
@@ -181,8 +202,9 @@ FOR each partial pX (p1, p2, ...):
   └─► Nächstes Partial (oder STOPP wenn alle geschrieben)
 
 NACH dem letzten Partial (Tests):
-  ├─► Schritt C.3: Plan-Qualitäts-Gate
-  │     bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md
+  ├─► Schritt C.3: Plan-Qualitäts-Gate (deterministischer Linter + advisory LLM-QA)
+  │     bash scripts/plan-lint.sh openspec/changes/<slug>/tasks.md || exit 1
+  │     bash scripts/plan-qa-check.sh openspec/changes/<slug>/tasks.md || true   # advisory
   │     bash scripts/openspec.sh validate
   │
   ├─► Schritt C.4: Pgvector-Index aktualisieren
@@ -211,12 +233,54 @@ Zeit │
 - **Ticket-Status:** Während der Pipeline bleibt das Ticket `plan_staged` → `backlog` → `in_progress`. Der Planner muss vor jedem Enqueue prüfen, ob die Factory das Ticket bereits bearbeitet (`in_progress`) — dann kurz pausieren und warten.
 - **Plan-Mutation:** Sobald ein Partial enqueued ist, darf der Planner den Plan für dieses Partial NICHT mehr ändern (Factory hat bereits begonnen). Neue Erkenntnisse fließen via `design.md`-Updates in spätere Partials.
 
+### Guards des Feature-Pfads
+
+- **Brainstorming ist nicht optional** — weder im Feature- noch im Fix-Pfad. Es entscheidet, was
+  überhaupt gebaut wird; ein Plan ohne vorherige Klärung plant die falsche Sache sorgfältig.
+- **Ticket vor Branch** (T001917, T002050): Steht die `TICKET_EXT_ID` fest, trägt der Branch sie
+  als Suffix (`feature/<slug>-T002050`). Existiert noch kein Ticket, wird es **vor** der
+  Worktree-Anlage erstellt. Sonst schlägt `preflight-pr-scope.sh` beim PR fehl.
+- **Disjunkte Partials (D1):** Keine Datei darf in zwei Partials liegen — `scripts/plan-lint.sh`
+  erzwingt das. Das letzte Partial ist **immer** die Tests-Rolle. Obergrenze 9.
+- **Plan-Mutation:** Sobald ein Partial enqueued ist, darf der Planner es nicht mehr ändern.
+- **Qualitäts-Gate vor Design-Assets:** Jedes synchronisierte SVG vor dem Ablegen prüfen —
+  `currentColor` statt `<img>`-Einbettung, keine Stray-Hex-Werte, kein Root-`width/height`,
+  Export-Vollständigkeit. Unpassende Assets werden **verworfen**, nicht mitkopiert (T000756).
+
 ### Fix-Pfad
 
 ## Fix-Pfad
 
+Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird — Rot-Grün ist
+hier harte Voraussetzung, nicht Stilfrage. Der Test gehört nach `tests/spec/<spec-slug>.bats`
+(die Spec aus `openspec/specs/`), nicht in eine neue ticket-nummerierte Datei.
+
 - Lege Bug-Ticket an (via ticket-mcp `create_ticket`), schreibe failing Test, erstelle Plan, stage, commit und push.
 - Hinweis: Erstelle zusätzlich zu `design.md` auch `openspec/changes/<slug>/specs/<parent-ssot-slug>.md` nach der T001304-Delta-Konvention.
+- `--hold`-Pflicht für interaktive Stage-Calls: Der Aufruf von `stage-plan` in diesem Schritt
+  MUSS `--hold` setzen. Dadurch wird das Ticket vom Factory-Dispatch zurückgehalten, bis
+  `opencode-flow-execute` es explizit freigibt.
+
+### Pre-Commit Guard (PFLICHT vor Commit) [T001268]
+
+Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:
+
+1. **Nicht auf main committen:**
+   ```bash
+   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+   [ "$CURRENT_BRANCH" != "main" ] || { echo "FATAL: plan-stage commit auf main ist verboten" >&2; exit 1; }
+   ```
+2. **Sauberer Status ist Pflicht:**
+   ```bash
+   [ -z "$(git status --porcelain)" ] || { echo "FATAL: working tree ist nicht sauber" >&2; exit 1; }
+   ```
+3. **Branch stimmt mit agent-lock claim überein:**
+   ```bash
+   LOCK_FILE="$(git rev-parse --git-common-dir)/agent-locks/ticket__${TICKET_EXT_ID}.json"
+   [ -f "$LOCK_FILE" ] || { echo "FATAL: kein ticket-scoped agent-lock-Claim für $TICKET_EXT_ID" >&2; exit 1; }
+   CLAIMED_BRANCH="$(jq -r '.branch' "$LOCK_FILE" 2>/dev/null)"
+   [ "$CLAIMED_BRANCH" = "$CURRENT_BRANCH" ] || { echo "FATAL: branch mismatch" >&2; exit 1; }
+   ```
 
 ## Verwandte Skills
 
@@ -224,15 +288,21 @@ Zeit │
 |-------|-----------|
 | `opencode-git-workflow` | Commit/Push/PR-Schritte |
 | `opencode-flow-execute` | **Nachfolger** — implementiert den Plan |
-| `opencode-flow-chore` | Geschwister — Chores statt Features/Fixes |
+| `opencode-flow-chore` | Geschwister — Chores statt Features/Fixes (direkter Kurzschluss) |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |
 | `background-agents.ts` | Read-only Subagent für Plan-Schreiben |
+| `using-git-worktrees` | Hintergrund — ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe) |
 | `worktree.ts` / `scripts/worktree-create.sh` | Worktree-Erstellung (Wrapper nötig wg. git-crypt) |
 
+## Nachbereitung & Mishap Report
+
+Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende über `mishap-tracker`
+(aufrufbar via `bash scripts/hooks/mishap-tracker.sh`).
 
 ## Framework mapping
 
 | Framework | Availability |
 |-----------|-------------|
-| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
-| **opencode** | Full — native skill for opencode |
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — native skill for opencode. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

@@ -9,6 +9,8 @@ description: Use in opencode for maintenance work with no behavior change — do
 
 Eine **Chore**: Wartung ohne Verhaltensänderung. Chores brauchen **keinen** Plan und **keinen** `opencode-flow-execute`-Handoff. Für Features/Fixes stattdessen `opencode-flow-plan` nutzen.
 
+**Sage zu Beginn:** "Ich nutze opencode-flow-chore und führe die Wartung direkt aus."
+
 **EINSTIEG:** `main` — synchronisiert, sauberer Stand
 **AUSSTIEG:** PR gemergt zu `main`, Worktree bereinigt, Kreislauf geschlossen
 
@@ -33,6 +35,11 @@ bash scripts/worktree-create.sh chore/<slug> .worktrees/<slug>
 bash scripts/agent-lock.sh claim branch "chore/<slug>" --worktree "$PWD" --label opencode-flow-chore
 ```
 
+> **`cd` wirkt nur auf Bash (T002357):** Ab hier MÜSSEN alle Datei-Tool-Pfade (Read/Write/Edit)
+> explizit den Worktree-Präfix (`.worktrees/<slug>/...`) tragen. `cd` ändert nur das Bash-cwd,
+> nicht den Bezugspunkt der Datei-Tools — ein zu Session-Beginn im Hauptcheckout korrekter Pfad
+> bleibt syntaktisch gültig und trifft danach still die falsche Arbeitskopie (T002350).
+
 Optional: Minimales Audit-Ticket anlegen via ticket-mcp.
 
 ## Schritt 2: Änderungen vornehmen
@@ -47,6 +54,11 @@ task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+> **⚠ S1-Gate-Guard (Chores ohne Plan!):** Chores haben kein Zeilenbudget-Planungsschritt.
+> Berührt die Chore Code-Dateien (`.ts/.svelte/.astro/.sh/.mjs/...`), vor dem Commit den
+> Restbudget-Check aus `verification-block` laufen lassen — bei Restbudget ≤ 0 die Datei
+> **echt verkleinern**, nicht kosmetisch zusammenziehen.
 
 ## Schritt 4: Commit, Push & PR
 
@@ -73,12 +85,19 @@ git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug>
 
 Nur wenn die Chore deploybare Pfade berührt — Mapping in deploy-routing.
 
+## Nachbereitung & Mishap Report
+
+Melde alle aufgetretenen Fehler oder Prozess-Frictionen am Ende über `mishap-tracker`
+(Invoke `mishap-tracker` with your accumulated MISHAP_LOG).
+
 ## Verwandte Skills
 
 | Skill | Beziehung |
 |-------|-----------|
-| `opencode-flow-plan` | Geschwister — Features/Fixes |
+| `opencode-flow-plan` | Geschwister — Features/Fixes (mit Plan + Handoff) statt Chores |
 | `opencode-git-workflow` | **SSOT für Commit/PR/Merge/Cleanup** |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |
+| `using-git-worktrees` | Hintergrund — wird hier durch `scripts/worktree-create.sh` (git-crypt-safe) ersetzt |
 | `scripts/worktree-create.sh` | Git-crypt-safe worktree creator |
 | `worktree.ts` Plugin | Opencode-native primitive (git-crypt-limited) |
 
@@ -87,6 +106,6 @@ Nur wenn die Chore deploybare Pfade berührt — Mapping in deploy-routing.
 
 | Framework | Availability |
 |-----------|-------------|
-| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
-| **opencode** | Full — native skill for opencode |
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — native skill for opencode. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

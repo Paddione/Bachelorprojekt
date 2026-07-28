@@ -111,6 +111,19 @@ TICKET_STATUS=$(echo "$TICKET_STRUCT" | jq -r '.status // empty')
 - **slot_count > 1:** Pipeline-Modus — auf vollständige Partial-Dispatches warten (Schritt 2.1).
 - **slot_count = 1:** Single-Shot — normale Ausführung.
 
+> **Für `type=task`-Tickets dispatcht die Factory nicht.** Ein `task`-Ticket, das `auto-enqueue`
+> aus `plan_staged` gezogen hat, belegt einen Slot und wird nie bearbeitet — hier immer manuell
+> weiterfahren.
+
+## Schritt 1.8: Ticket freigeben (release hold)
+
+Wenn das Ticket per `stage-plan --hold` gestaged wurde, ist `readiness.execution_released=false`
+gesetzt — das Ticket wird vom Factory-Dispatch zurückgehalten, bis dieser Schritt es freigibt:
+
+```bash
+bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
+```
+
 ## Schritt 2: Implementierung delegieren
 
 ### Schritt 2.1: Pipeline-Modus — auf Partials warten
@@ -133,22 +146,59 @@ Dann rebasen und alle Partials in Reihenfolge abarbeiten.
 
 ### Schritt 2.2: Implementierung
 
-- Lies den Plan aus `$PLAN_FILE` und `openspec/changes/<slug>/intel.json`
+- Lies den Plan aus `$PLAN_FILE` und **Plan Intel Bundle** `openspec/changes/<slug>/intel.json` (Pflicht-Kontext für den Implementer)
 - Tasks in Reihenfolge; nach jedem Meilenstein Commit + Push
 - Vor PR: Freshness-Artefakte regenerieren
+- Phase-Telemetrie (best-effort):
+  ```
+  ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow" })
+  ```
+
+## Schritt 2.5: Self-Correcting Loop (optional)
+
+```bash
+bash scripts/devflow-build-loop.sh "$TICKET_ID"
+```
+Läuft **vor** der Verifikation und lokal **vor** dem Push, reduziert die Last auf die CI-Retry-Schleife
+(Schritt 5.5), ersetzt sie aber nicht. Default `MAX_LOOP=3`.
+
+> Bei `abort:escalate-gate|no-progress|max-iterations` wird eskaliert (Ticket-Kommentar) —
+> **kein** blindes Weiter-Pushen.
 
 ## Schritt 3: Lokale Verifikation
+
+Phase-Telemetrie (PFLICHT — das Phase-Chain-Gate erzwingt sie):
+```
+ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })
+ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })
+```
 
 ```bash
 task workspace:validate
 task test:changed && task freshness:regenerate && task freshness:check
 ```
 
-## Schritt 4: Code Review
+Nach grünen Tests:
+```
+ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "Tests grün · freshness OK" })
+```
+
+## Schritt 3.5: Admin-Menu Placement Gate
+
+Falls neue Admin-Seiten hinzugefügt wurden:
+```bash
+bash scripts/admin-menu-gate.sh
+```
+
+## Schritt 4: Code Review Gate (Mandatory)
+
+Vor dem PR-Merge muss eine unabhängige Überprüfung stattfinden:
 
 ```bash
 delegate(prompt: "Review this PR's changes for bugs, security issues, and style. PR: $(gh-axi pr view --json url -q '.url')", agent: "explore")
 ```
+
+Behebe alle gefundenen Probleme und stelle sicher, dass der Reviewer "Approved" gibt, bevor du fortfährst.
 
 ## Schritt 5: PR erstellen
 
@@ -159,16 +209,42 @@ bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [$TICKET_ID]"
 gh-axi pr create --title "<type>(<scope>): <subject> [$TICKET_ID]" --body "..."
 ```
 
-## Schritt 5.5: CI-Fix-Schleife
+> **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren.
+> Proposal-Commits auf Feature-Branches triggern den Auto-Merge-Flow und können das Ticket
+> vorzeitig schließen (Merge = Abschluss, T001092). Auto-Merge erst enable, wenn mindestens ein
+> Implementierungs-Commit auf dem Branch liegt.
+
+## Schritt 5.5: CI/CD-Fix-Schleife
+
+Nachdem der PR gepusht ist, überwache CI und behebe Fehler — Auto-Merge ist bereits angefordert
+(Schritt 5) und greift, sobald die Required Checks grün sind.
 
 ```bash
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$(gh-axi pr view --json url -q '.url')"
 ```
 
-## Schritt 6: Auto-Merge wenn CI grün
+`devflow-ci-watch.sh` prüft `mergeStateStatus` bereits **vor** dem CI-Poll-Loop und rebased bei
+`DIRTY` gegen `origin/main` (T001408, Finding 2). Bricht der Rebase mit einem Konflikt ab,
+beendet sich das Skript mit Exit-Code 3. In diesem Fall löst der implementierende Subagent
+selbst den Konflikt und ruft das Skript erneut auf.
 
+Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` mit Exit-Code 4, wenn `gh pr view`
+`CONFLICTING` meldet — echte Merge-Konflikte. Auch hier löst der implementierende Subagent
+den Konflikt manuell (`git fetch origin main && git rebase origin/main`, lösen, push).
+
+## Schritt 6: Phase-Chain-Gate & Auto-Merge
+
+> **Merge = Abschluss (T001092):** Das Ticket schließt beim grünen Merge nach `main`. Der
+> Prod-Deploy (Schritt 8) ist entkoppelt und ändert den Ticket-Status **nicht**.
+
+**Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge:**
+Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen:
 ```bash
 bash scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
+```
+
+Dann Auto-Merge anfordern:
+```bash
 (cd "$MAIN_REPO" && gh-axi pr merge --auto --squash --delete-branch)
 ```
 
@@ -195,11 +271,19 @@ done
 
 ## Schritt 6.5: Ticket abschließen
 
+Der Abschluss selbst — `resolution` ist `shipped` (Feature) oder `fixed` (Fix):
+
+```bash
+./scripts/vda.sh ticket update-status --id "$TICKET_ID" --status done --resolution "$RESOLUTION"
+```
+
 ```
 ticket-mcp: add_pr_link({ id: "$TICKET_ID", pr: "$PR_NUM" })
-ticket-mcp: transition_status({ id: "$TICKET_ID", status: "done", resolution: "shipped" })
 ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done", driver: "devflow" })
 ```
+
+> **Claims vor dem Worktree-Remove freigeben** — sonst bleibt ein Lock auf einen Pfad zurück,
+> den es nicht mehr gibt.
 
 ## Schritt 7: Plan archivieren
 
@@ -226,11 +310,16 @@ bash scripts/devflow-post-merge-deploy.sh "$TICKET_ID"
 
 Deploy-Mapping: `.claude/skills/references/deploy-routing.md`.
 
+## Nachbereitung & Mishap Report
+
+Melde alle aufgetretenen Fehler oder Prozess-Frictionen über `mishap-tracker`.
+
 ## Verwandte Skills
 
 | Skill | Beziehung |
 |-------|-----------|
-| `opencode-flow-plan` | Vorgänger |
+| `opencode-flow-plan` | **Vorgänger** — liefert Branch + Plan |
 | `opencode-git-workflow` | SSOT Commit/PR/Merge |
+| `mishap-tracker` | Abschluss — protokolliert Frictions |
 | `background-agents.ts` | Subagent-Routing |
 | `scripts/devflow-post-merge-deploy.sh` | Schritt 8 |

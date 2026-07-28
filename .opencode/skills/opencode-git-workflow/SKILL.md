@@ -5,6 +5,8 @@ description: Use whenever committing, pushing, creating a PR, or finishing work 
 
 # opencode-git-workflow — vollständiger Git-Lifecycle für dieses Repo (opencode)
 
+**Sage zu Beginn:** "Ich nutze opencode-git-workflow für den Commit/PR-Ablauf."
+
 Dieser Skill ist die **SSOT für Commit → Push → PR → Merge → Cleanup** in opencode. Die `opencode-flow-*`-Skills verweisen auf die Schritte hier statt sie zu duplizieren. Für GitHub-Read/View-Flows `gh-axi` bevorzugen (Repos: `Paddione/Bachelorprojekt`).
 
 ---
@@ -21,8 +23,27 @@ else
   git stash
   git pull --rebase origin main
   git stash pop
+  # Konflikte? Dem User anzeigen und klären.
 fi
 ```
+
+> **Branch-Switch + Stash Race (T001974 Mishap 2).** Niemals
+> `git checkout -b <branch> && git stash pop` in einer einzigen Pipeline
+> verketten. Der `stash pop` kann ausgeführt werden, bevor der
+> Branch-Switch abgeschlossen ist, sodass der Commit auf dem falschen Branch
+> (z. B. `main`) landet. Stattdessen explizit sequenziell mit Error-Check:
+>
+> ```bash
+> git checkout -b fix/my-branch || exit 1   # Branch-Switch abwarten
+> git stash pop || { echo "stash pop failed"; exit 1; }
+> ```
+
+> **Probe-Commit + `--hard` verwirft auch unstaged Dateien (T001454, T002252/T002253).**
+> `--hard` unterscheidet nicht zwischen Commit-Rollback und Working-Tree-Verwurf
+> und reißt unstaged Arbeitsdateien mit. Sicher:
+> ```bash
+> git stash -u && git reset --hard HEAD~1 && git stash pop
+> ```
 
 ---
 
@@ -49,7 +70,10 @@ Kurzform: `task freshness:regenerate` + `task freshness:check` (CI-Äquivalent, 
 - `TICKET_EXT_ID`: z. B. `T001026` — **immer anhängen**
 - Body-Zeilen ebenfalls < 100 Zeichen
 
-**Scope vorab prüfen:** `bash scripts/validate-commit-msg.sh scopes`
+> **Scope vorab gegen SSOT-Allowlist prüfen [T001395]:** `preflight-pr-scope.sh` (Schritt 4) läuft
+> erst kurz vor `gh pr create` — also NACH dem Commit. Ein falsch geratener Scope führt dann zu
+> einem Soft-Reset + Recommit. Vor dem ersten Commit die erlaubte Liste ziehen:
+> `bash scripts/validate-commit-msg.sh scopes`
 
 ### Commit ausführen
 
@@ -60,8 +84,10 @@ BASE_SHA="$(git rev-parse HEAD)"
 
 git add <spezifische Dateien>
 
+# Secret-in-index-Guard (T001210): abbrechen, falls git-crypt-Pfade im Index gelandet sind
 if git diff --cached --name-only | grep -q '^environments/.secrets/'; then
   echo "FATAL: environments/.secrets/** darf nicht gestaged sein (git-crypt)" >&2
+  git diff --cached --name-only | grep '^environments/.secrets/' | sed 's/^/  /' >&2
   exit 1
 fi
 
@@ -125,9 +151,16 @@ EOF
 Nachdem der PR gepusht ist: CI überwachen und Fehler beheben **bevor** gemergt wird. SSOT: `.claude/skills/references/ci-fix-loop.md`.
 
 Kurzfassung:
-1. `gh-axi pr checks <n> --watch`
-2. Bei Fehler: lokal fixen, committen, pushen
-3. Bei `CONFLICTING`: `git fetch origin main && git rebase origin/main && task freshness:regenerate && git add <regenerierte> && git rebase --continue && git push --force-with-lease`
+1. `gh-axi pr checks <n> --watch` — warten bis alle Required Checks grün sind
+2. Bei Fehler: Log lesen, lokal fixen, committen, pushen — Loop wiederholen
+3. Bei `CONFLICTING` PR-Status: `git fetch origin main && git rebase origin/main` → push
+4. Bei `CONFLICTING` nach Auto-Regen: `git fetch origin main && git rebase origin/main && task freshness:regenerate && git add <regenerierte> && git rebase --continue && git push --force-with-lease`
+
+> **Freshness-Auto-Regen-Race [T001395]:** Bleibt ein PR über einen geplanten
+> Freshness-Auto-Regen-Zyklus offen, kippt er auf `CONFLICTING`, ohne dass ein Mensch etwas
+> geändert hat — der Scheduler hat generierte Artefakte auf `main` committet. Kein echter
+> Merge-Konflikt; der Rebase muss dann um `task freshness:regenerate` ergänzt werden, **bevor**
+> gepusht wird.
 
 ---
 
@@ -141,6 +174,7 @@ MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 - **Immer `--squash`**
 - **Immer `--delete-branch`**
 - **`--auto`** — mergt automatisch wenn alle Required Checks grün sind
+- **Race-Hinweis:** `--auto` kehrt sofort zurück; der eigentliche Merge passiert asynchron. CI-Läufe, die durch `edited`-Events (PR-Titel-Edit) getriggert wurden, können noch laufen. `cancel-in-progress` in `ci.yml` wurde so angepasst, dass `edited`-Runs keine laufenden CI-Jobs abbrechen (T002248).
 
 ---
 
@@ -210,12 +244,14 @@ bash scripts/worktree-create.sh <branch> .worktrees/<slug>
 | `opencode-flow-execute` | Feature/Fix-Ablauf (nutzt diesen Skill intern) |
 | `scripts/worktree-create.sh` | Git-crypt-safe worktree creator |
 | `worktree.ts` Plugin | Opencode-native primitive (git-crypt-limited) |
+| `.claude/skills/references/git-workflow-procedures.md` | Detail-Referenz (Schritt-Übersicht, Fehlertabelle) |
+| `using-git-worktrees` | Worktree korrekt anlegen (git-crypt-safe) |
 
 
 ## Framework mapping
 
 | Framework | Availability |
 |-----------|-------------|
-| **Claude Code** | Not available directly. Equivalent: native Claude Code `dev-flow-plan` / `dev-flow-execute` / `dev-flow-chore` skills |
-| **opencode** | Full — native skill for opencode |
+| **Claude Code** | Full — load via `load skill <name>` or matches on description triggers |
+| **opencode** | Full — native skill for opencode. All tools (CLI, MCP) are framework-agnostic |
 | **agy** | Full — treat the opencode path as authoritative. All CLI tools and MCP calls work identically |

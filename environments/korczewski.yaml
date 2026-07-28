@@ -68,6 +68,11 @@ env_vars:
   LLM_RERANK_ENABLED: "false"
   LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace-korczewski.svc.cluster.local:8096"
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace-korczewski.svc.cluster.local:8095"
+  # T002426 — Paar A (Batch/Reindex, CPU-gebunden, belegt kein VRAM).
+  LLM_EMBED_BATCH_URL: "http://llm-gateway-embed-batch.workspace-korczewski.svc.cluster.local:8085"
+  LLM_RERANKER_BATCH_URL: "http://llm-gateway-rerank-batch.workspace-korczewski.svc.cluster.local:8086"
+  LLM_BGE_LATENCY_BUDGET_MS: "2000"
+  LLM_BGE_QUEUE_LIMIT: "4"
 
   STUDIO_DOMAIN: studio.korczewski.de
   STUDIO_IMAGE: ghcr.io/paddione/studio-server

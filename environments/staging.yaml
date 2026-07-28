@@ -73,6 +73,11 @@ env_vars:
   COMFY_PORT: "8189"
   LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace-staging.svc.cluster.local:8096"
   LLM_EMBED_URL: "http://llm-gateway-embed.workspace-staging.svc.cluster.local:8095"
+  # T002426 — Paar A (Batch/Reindex, CPU-gebunden, belegt kein VRAM).
+  LLM_EMBED_BATCH_URL: "http://llm-gateway-embed-batch.workspace-staging.svc.cluster.local:8085"
+  LLM_RERANKER_BATCH_URL: "http://llm-gateway-rerank-batch.workspace-staging.svc.cluster.local:8086"
+  LLM_BGE_LATENCY_BUDGET_MS: "2000"
+  LLM_BGE_QUEUE_LIMIT: "4"
   # System-test failure loop disabled on staging
   SYSTEMTEST_LOOP_ENABLED: "false"
   STUDIO_DOMAIN: studio.staging.korczewski.de

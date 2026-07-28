@@ -44,6 +44,14 @@ export function buildServerArgv(loadout, modelPath, defaults) {
 
   if (loadout.mcp?.serversConfig != null) argv.push('--mcp-servers-config', loadout.mcp.serversConfig);
 
+  // T002426: GEGENRICHTUNG zu --mcp-servers-config. Jenes Flag macht llama-server
+  // zum MCP-*Client* (das Modell ruft fremde Tools). --ui-mcp-proxy betrifft die
+  // Web-UI: ohne das Flag verbindet der BROWSER direkt zum eingetragenen
+  // MCP-Server und scheitert an einem lokalen Server ohne CORS-Header; mit dem
+  // Flag verbindet llama-server serverseitig. Voraussetzung dafuer, dass der
+  // bge-Shim in der UI ueberhaupt eintragbar ist.
+  if (a.uiMcpProxy) argv.push('--ui-mcp-proxy');
+
   // Der Alias ist der Slug: damit taucht das Loadout unter seinem eigenen Namen
   // in /v1/models auf und ist ohne Zuordnungstabelle anfragbar.
   argv.push('--alias', loadout.slug);

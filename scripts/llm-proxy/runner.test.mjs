@@ -94,6 +94,26 @@ test('speculative und mcp erscheinen, wenn gesetzt', () => {
   assert.equal(argv[argv.indexOf('--mcp-servers-config') + 1], '/etc/mcp.json')
 })
 
+// T002426: die Web-UI von llama-server laesst den BROWSER direkt zum MCP-Server
+// verbinden. Ein lokaler MCP-Server ohne CORS-Header lehnt das ab; mit
+// --ui-mcp-proxy verbindet llama-server selbst. Der zweite Fall unten ist der
+// Positiv-Anker zum ersten: faellt die Abbildung ganz weg, bleibt das Flag in
+// beiden Faellen aus und der erste Test wird rot statt beide vakuos gruen.
+test('uiMcpProxy=true erzeugt --ui-mcp-proxy in argv', () => {
+  const withProxy = structuredClone(base)
+  withProxy.args.uiMcpProxy = true
+  const argv = buildServerArgv(withProxy, MODEL, defaults)
+  assert.ok(argv.includes('--ui-mcp-proxy'))
+})
+
+test('uiMcpProxy=false bzw. fehlend erzeugt das Flag NICHT', () => {
+  const off = structuredClone(base)
+  off.args.uiMcpProxy = false
+  assert.equal(buildServerArgv(off, MODEL, defaults).includes('--ui-mcp-proxy'), false)
+  // base kennt das Feld gar nicht — auch dann darf nichts gesetzt werden.
+  assert.equal(buildServerArgv(base, MODEL, defaults).includes('--ui-mcp-proxy'), false)
+})
+
 test('buildStartCommand kapselt systemd-run mit --user und --collect', () => {
   const cmd = buildStartCommand(base, MODEL, defaults, '/opt/llama/bin/llama-server')
   assert.equal(cmd[0], 'systemd-run')

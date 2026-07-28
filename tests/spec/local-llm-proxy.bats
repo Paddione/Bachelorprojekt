@@ -354,13 +354,25 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   [ "$output" -ge 1 ]
 }
 
-@test "T002394: kein Loadout pinnt ctx oder ngl (--fit-Regression)" {
+@test "T002394: kein Loadout MIT --fit pinnt ctx oder ngl (--fit-Regression)" {
+  # T002426: auf fit-Loadouts eingegrenzt. Ein gesetztes -c/-ngl schaltet dort
+  # die VRAM-Anpassung ab - das ist die Regression. Bei fit.enabled=false ist
+  # das Setzen dagegen PFLICHT (validateLoadout in scripts/llm-proxy/loadouts.mjs),
+  # sonst laeuft der llama.cpp-Default -c 0 ins OOM. Die pauschale Fassung haette
+  # jedes bewusst CPU-gebundene Loadout verboten.
+  # Der 'checked'-Zaehler ist der Positiv-Anker: ohne ihn bestuende der Test
+  # vakuos, sobald gar kein fit-Loadout mehr in der Datei steht.
   run node -e '
     const d=require("./scripts/llm/loadouts.json");
+    let checked=0;
     d.loadouts.forEach(l => {
-      if(l.args.ctx!==null){console.error(l.slug+": ctx ist "+l.args.ctx);process.exitCode=1}
-      if(l.args.ngl!==null){console.error(l.slug+": ngl ist "+l.args.ngl);process.exitCode=1}
+      if(l.fit && l.fit.enabled===true){
+        checked++;
+        if(l.args.ctx!==null){console.error(l.slug+": ctx ist "+l.args.ctx);process.exitCode=1}
+        if(l.args.ngl!==null){console.error(l.slug+": ngl ist "+l.args.ngl);process.exitCode=1}
+      }
     });
+    if(checked===0){console.error("kein --fit-Loadout geprueft");process.exitCode=1}
   '
   [ "$status" -eq 0 ]
 }

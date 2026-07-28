@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { createInterface } from 'node:readline';
 import { spawn } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 const LLM_PROXY = process.env.LLM_PROXY || 'http://127.0.0.1:18235';
 const MODEL = process.env.SYNTHESIZE_MODEL || '';
@@ -10,6 +11,22 @@ async function readStdin() {
   let data = '';
   for await (const line of rl) data += line + '\n';
   return JSON.parse(data);
+}
+
+// git show gegen origin/<ref> (Prod/CI), mit Fallback auf lokalen <ref>
+// (Fixture-Repos ohne origin-Remote, siehe detect.sh-Tests).
+function gitShow(ref, path) {
+  for (const candidate of [`origin/${ref}`, ref]) {
+    try {
+      return execFileSync('git', ['show', `${candidate}:${path}`], {
+        encoding: 'utf8',
+        maxBuffer: 10 * 1024 * 1024,
+      });
+    } catch {
+      // nächster Kandidat / Datei existiert in diesem Ref nicht
+    }
+  }
+  return null;
 }
 
 function buildPrompt(cluster) {
@@ -27,7 +44,17 @@ function buildPrompt(cluster) {
   }
 
   lines.push('');
-  lines.push('Für jede kollidierende Datei gibt es die main-Version und die Version jedes PRs.');
+  lines.push('Dateiversionen (main = gemeinsamer Bezugspunkt, je PR seine Branch-Version):');
+  for (const file of cluster.files) {
+    lines.push(`--- ${file} (main) ---`);
+    lines.push(gitShow('main', file) ?? '(neu, existiert noch nicht auf main)');
+    for (const pr of cluster.eligible_prs) {
+      lines.push(`--- ${file} (PR #${pr.number} / ${pr.branch}) ---`);
+      lines.push(gitShow(pr.branch, file) ?? '(unverändert / nicht lesbar)');
+    }
+  }
+
+  lines.push('');
   lines.push('Erstelle eine zusammengeführte Version, die alle semantischen Änderungen vereint.');
   lines.push('');
   lines.push('Antworte NUR als JSON mit diesem Schema:');

@@ -41,17 +41,24 @@ scan:
     - "tests/unit/lib/**"
 
 s1:
+  # Anhebung mit Headroom [T002452]. Grund: zwei Dateien standen auf 0 bzw. 1 Zeile
+  # Reserve (scripts/agent-lock.sh 499/500), wodurch der Guard nicht mehr Wachstum
+  # blockierte, sondern jeden inhaltlichen PR an diesen Dateien — unabhaengig von
+  # dessen Qualitaet. Die Werte unten sind gegen den gemessenen Bestand gesetzt,
+  # nicht geschaetzt. Unveraendert bleiben die Endungen ohne gemessenen Druck
+  # (.js/.jsx/.cjs/.bash/.mts/.java/.php) — eine Anhebung "der Symmetrie wegen"
+  # verschenkt Ratchet-Wirkung dort, wo sie gerade greift.
   limits:
-    .astro: 400
-    .ts: 600
-    .svelte: 500
-    .sh: 500
-    .mjs: 500
+    .astro: 500   # war 400
+    .ts: 750      # war 600
+    .svelte: 650  # war 500
+    .sh: 650      # war 500 — agent-lock.sh 499, danach 151 Zeilen Reserve
+    .mjs: 650     # war 500
     .mts: 500
-    .py: 600
+    .py: 750      # war 600
     .js: 600
     .jsx: 600
-    .tsx: 400
+    .tsx: 500     # war 400
     .cjs: 200
     .bash: 300
     .java: 400

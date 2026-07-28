@@ -31,7 +31,8 @@ if ! [[ "$TICKET_UUID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
   exit 2
 fi
 
-PGPOD=$(kubectl get pod -n "$NS" --context "$CTX" -l app=shared-db -o name 2>/dev/null | head -1)
+PGPOD=$(kubectl get pod -n "$NS" --context "$CTX" -l app=shared-db \
+  --field-selector status.phase=Running -o name 2>/dev/null | head -1)
 if [[ -z "$PGPOD" ]]; then
   echo "ERROR: no shared-db pod found in ns=$NS ctx=$CTX" >&2
   exit 1

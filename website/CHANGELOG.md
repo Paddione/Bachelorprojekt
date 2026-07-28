@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.222.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.10...website-v1.222.0) (2026-07-28)
+
+
+### Features
+
+* **factory:** auto-chore-plan.sh fuehrt mishap-tracker Schritt 3.5 aus [T002390] ([#3428](https://github.com/Paddione/Bachelorprojekt/issues/3428)) ([3a8119b](https://github.com/Paddione/Bachelorprojekt/commit/3a8119bbbc1ccce2f3a117dc26b8c84159fcac8b))
+
 ## [1.221.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.9...website-v1.221.10) (2026-07-28)
 
 

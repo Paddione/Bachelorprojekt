@@ -10,7 +10,7 @@ show_help() {
   echo "Usage: vda.sh ticket <subcommand> [args]"
   echo ""
   echo "Extracted subcommands:"
-  echo "  create, get, update-status, enqueue, stage-plan, triage"
+  echo "  create, get, update-status, enqueue, stage-plan, triage, readiness-audit"
   echo ""
   echo "Pass-through subcommands (delegated to ticket.sh):"
   echo "  add-comment, add-pr-link, grill, archive-plan, get-attachments,"
@@ -26,7 +26,7 @@ main() {
   shift 2>/dev/null || :
 
   case "$cmd" in
-    create|get|update-status|enqueue|stage-plan|triage)
+    create|get|update-status|enqueue|stage-plan|triage|readiness-audit)
       source "${SCRIPT_DIR}/${cmd}.sh"
       main "$@"
       ;;

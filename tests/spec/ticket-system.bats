@@ -179,3 +179,77 @@ MOCKEOF
   run grep -Fq -- "--field-selector status.phase=Running" scripts/vda/ticket/_ticket-core.sh
   [ "$status" -eq 0 ]
 }
+
+# ── [T002388] plan-meta must merge readiness, not replace it ─────────────────#
+#
+# `plan-meta set --readiness k=v` assigned the whole JSONB column instead of merging
+# into it, so every call dropped the keys it did not name. Since _readiness_to_json
+# builds an object containing only the named keys, that is the normal case, not an
+# edge case. Four set_readiness_flag calls for T002369 each reported "updated"; only
+# the last survived. The collateral damage reaches the control flags: lastenheft_locked
+# is the factory dispatch gate (queue.sh), factory_excluded the unfactory terminal
+# state from T002361, execution_released the dev-flow-plan hold.
+#
+# Same family as T002230 above — an UPDATE field list where "not passed" silently
+# came to mean "set to empty". The SQL is asserted statically for the same reason:
+# exercising it needs a cluster, and these tests must never reach one (T002224).
+
+@test "T002388: plan-meta set merges the new readiness into the existing column" {
+  run grep -Fq "readiness         = COALESCE(readiness,'{}'::jsonb) || COALESCE(" scripts/ticket.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002388: the replacing readiness assignment is gone, not merely shadowed" {
+  # The old shape must be absent from the whole file, not just outranked by a new line.
+  run grep -Fq 'readiness         = COALESCE($readiness_sql, readiness)' scripts/ticket.sh
+  [ "$status" -ne 0 ]
+}
+
+@test "T002388: an omitted --readiness is a no-op rather than a column wipe" {
+  # Without --readiness the generated fragment is the literal NULL, and `jsonb || NULL`
+  # is NULL — the merge would blank the column it was meant to protect. The inner
+  # COALESCE turns that into a merge with the empty object.
+  run grep -Fq "COALESCE(\$readiness_sql, '{}'::jsonb)" scripts/ticket.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002388: every readiness writer in ticket.sh uses the merge form" {
+  # The bug was one writer drifting away from a convention the other four already kept.
+  # Any assignment of the form `readiness = COALESCE(<something>, readiness)` is a relapse.
+  run grep -Eq "readiness +=? *COALESCE\(\\\$[a-z_]+, *readiness\)" scripts/ticket.sh
+  [ "$status" -ne 0 ]
+}
+
+# ── [T002388] read-only audit for readiness truncated by the bug above ───────#
+#
+# The fix heals future writes; keys already lost are not reconstructable, so the audit
+# only produces a candidate list for a human to work through. Deliberately not a repair:
+# blanket-setting lastenheft_locked would open the factory dispatch gate on tickets that
+# were never locked on purpose.
+
+@test "T002388: the readiness-audit module exists" {
+  [ -f scripts/vda/ticket/readiness-audit.sh ]
+}
+
+@test "T002388: the ticket dispatcher routes readiness-audit to the module" {
+  run grep -Fq "readiness-audit" scripts/vda/ticket.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002388: the readiness audit never writes to the database" {
+  # A report that can mutate is a repair tool by accident. Guard the read-only claim.
+  # The existence gate is load-bearing: grep on a missing file exits 2, which would
+  # satisfy the negative assertion below and leave this test vacuously green.
+  [ -f scripts/vda/ticket/readiness-audit.sh ]
+  run grep -Eq "^[^#]*\b(UPDATE|INSERT|DELETE)\b" scripts/vda/ticket/readiness-audit.sh
+  [ "$status" -ne 0 ]
+}
+
+@test "T002388: the lock heuristic tests key absence, not a falsy value" {
+  # `lastenheft_locked: false` records a deliberate unlock and is not damage; only a
+  # key that vanished entirely is a suspect.
+  run grep -Fq "'lastenheft_locked'" scripts/vda/ticket/readiness-audit.sh
+  [ "$status" -eq 0 ]
+  run grep -Eq "NOT +[a-z_]*\.?readiness *\? *'lastenheft_locked'" scripts/vda/ticket/readiness-audit.sh
+  [ "$status" -eq 0 ]
+}

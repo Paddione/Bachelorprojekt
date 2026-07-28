@@ -760,7 +760,7 @@ UPDATE tickets.tickets SET
   areas             = COALESCE($areas_sql, areas),
   depends_on        = COALESCE($depends_sql, depends_on),
   planning_rank     = COALESCE($rank_sql, planning_rank),
-  readiness         = COALESCE($readiness_sql, readiness),
+  readiness         = COALESCE(readiness,'{}'::jsonb) || COALESCE($readiness_sql, '{}'::jsonb),
   requirements_list = COALESCE($requirements_sql, requirements_list),
   updated_at        = now()
 WHERE external_id = :'ext_id';

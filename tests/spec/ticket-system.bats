@@ -417,3 +417,20 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
   run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --slug foo 2>&1 | grep -c -- '--hold'"
   [ "$output" -ge 1 ] || { echo "die Fehlermeldung erwaehnt --hold nicht"; false; }
 }
+
+# ── [T002382-M1] reconcile-ticket-status: done→awaiting_deploy darf resolution nicht leeren ──
+
+@test "T002382-M1: reconcile-ticket-status.sh guardt done→awaiting_deploy mit resolution-preserve" {
+  run bash -c "grep -q 'resolution preserved' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
+  [ "$status" -eq 0 ] || { echo "MISSING resolution-preserve guard in reconcile-ticket-status.sh"; false; }
+}
+
+@test "T002382-M1: reconcile-ticket-status.sh liest existing_resolution vor dem Revert" {
+  run bash -c "grep -q 'existing_resolution' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
+  [ "$status" -eq 0 ] || { echo "MISSING existing_resolution query in reconcile-ticket-status.sh"; false; }
+}
+
+@test "T002382-M1: reconcile-ticket-status.sh guardt done→awaiting_deploy (current_status == done && fix_status == awaiting_deploy)" {
+  run bash -c "grep -qE 'current_status.*done.*fix_status.*awaiting_deploy' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
+  [ "$status" -eq 0 ] || { echo "MISSING done→awaiting_deploy guard condition in reconcile-ticket-status.sh"; false; }
+}

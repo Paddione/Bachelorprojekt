@@ -102,14 +102,25 @@ if [[ "$DRY_RUN" == true ]]; then
   exit 0
 fi
 
-cd "$REPO"
-
-if [[ -e "openspec/changes/${slug}" ]]; then
+if [[ -e "$REPO/openspec/changes/${slug}" ]]; then
   echo "auto-chore-plan: openspec/changes/${slug} existiert bereits — uebersprungen" >&2
   exit 3
 fi
 
-bash "$REPO/scripts/openspec.sh" propose "$slug" --ticket "$EXT_ID" >/dev/null
+# Die gesamte Branch-Arbeit passiert in einem eigenen Worktree. Ein `git checkout`
+# im geteilten Hauptcheckout ist verboten (scripts/factory/check-no-main-checkout.sh)
+# — und hier besonders gefaehrlich, weil wakeup.sh dieses Skript AUS diesem
+# Checkout heraus aufruft: ein Branch-Wechsel wuerde der laufenden Factory den
+# Boden unter den Fuessen wegziehen.
+WT="$REPO/.worktrees/acp-${slug}"
+cleanup_wt() { git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true; }
+trap cleanup_wt EXIT
+
+git -C "$REPO" fetch -q origin main
+git -C "$REPO" worktree add -q -b "$branch" "$WT" origin/main
+
+cd "$WT"
+bash "$WT/scripts/openspec.sh" propose "$slug" --ticket "$EXT_ID" >/dev/null
 
 # Plan aus der Ticket-Beschreibung bauen. Die Bundle-Beschreibung ist strukturiert
 # ("### Mishap N: <titel>" je Eintrag), daraus wird je ein Fix-Task.
@@ -173,22 +184,24 @@ task freshness:check
 PLANEOF
 } > "$plan_path"
 
-# Hard Gate: ein roter Linter darf niemals gestaged werden.
-if ! lint_out="$(bash "$REPO/scripts/plan-lint.sh" "$plan_path" 2>&1)"; then
+# Hard Gate: ein roter Linter darf niemals gestaged werden. Der Worktree wird
+# per trap ohnehin abgeraeumt, das Ticket bleibt unangetastet auf triage.
+if ! lint_out="$(bash "$WT/scripts/plan-lint.sh" "$plan_path" 2>&1)"; then
   echo "auto-chore-plan: plan-lint FAIL fuer $EXT_ID — kein stage-plan, Ticket bleibt triage" >&2
   printf '%s\n' "$lint_out" >&2
-  rm -rf "openspec/changes/${slug}"
   exit 1
 fi
-
-bash "$REPO/scripts/ticket.sh" stage-plan --id "$EXT_ID" --branch "$branch" --plan "$plan_path" >/dev/null
 
 # Commit und Push MUESSEN verkettet sein: ein vom pre-commit-Hook abgelehnter
 # Commit verhindert einen Push auf eigener Zeile NICHT — der Branch waere dann
 # ohne Plan gepusht und das Ticket zeigte auf Leeres.
-git checkout -q -b "$branch" 2>/dev/null || git checkout -q "$branch"
 git add "openspec/changes/${slug}" \
   && git commit -q -m "chore(plans): stage ${slug} for factory [${EXT_ID}]" \
   && git push -q -u origin "$branch"
+
+# stage-plan erst NACH dem Push: es verankert den FACTORY-PLAN-REF auf einen
+# Branch, den der Dispatcher auschecken koennen muss. Umgekehrt zeigte das Ticket
+# kurzzeitig auf etwas, das noch nicht auf dem Remote liegt.
+bash "$WT/scripts/ticket.sh" stage-plan --id "$EXT_ID" --branch "$branch" --plan "$plan_path" >/dev/null
 
 echo "auto-chore-plan: $EXT_ID gestaged (branch=$branch plan=$plan_path)"

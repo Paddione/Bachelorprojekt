@@ -143,9 +143,19 @@ Was das Skript garantiert (Details und Begründungen im Skriptkopf):
 - **Severity-Gate:** nur `minor`/`trivial`. `major`/`critical` tragen `broken`- oder
   `security`-Einträge und bleiben für menschliche Triage in `triage`.
 - **`plan-lint` als Hard Gate:** bei FAIL kein `stage-plan`, Ticket bleibt `triage`.
-- **Branch mit unveränderter Ticket-ID** (`chore/mishap-T002382`), Verzeichnis-Slug lowercase.
-  `.githooks/pre-commit` prüft `T[0-9]{6,}` case-sensitive; ein aus dem Slug abgeleiteter
-  Branch wird abgelehnt und der Schritt stirbt still (T002240).
+- **Branch mit unveränderter Ticket-ID, Verzeichnis-Slug lowercase.** Zwei verschiedene Werte
+  aus derselben Ticket-ID [T002240]:
+
+  ```bash
+  # Verzeichnis-Slug: KOMPLETT lowercase (openspec/changes/<slug>-Konvention)
+  slug="mishap-$(echo "<ext-id>" | tr '[:upper:]' '[:lower:]')"   # -> mishap-t002239
+  # Branch-Name: Ticket-ID UNVERAENDERT, grosses T (NICHT aus dem Slug ableiten!)
+  branch="chore/mishap-<ext-id>"                                  # -> chore/mishap-T002239
+  ```
+
+  `.githooks/pre-commit` prüft `T[0-9]{6,}` **case-sensitive**. `chore/mishap-t002239` mit
+  kleinem `t` matcht die Regex nicht — der Commit wird abgelehnt und der Schritt kann nie
+  durchlaufen. Den Branch-Namen aus dem lowercase-Slug abzuleiten ist genau der Bug.
 - **Commit und Push `&&`-verkettet** — ein abgelehnter Commit verhindert einen Push auf
   eigener Zeile nicht.
 

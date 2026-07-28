@@ -11,7 +11,7 @@ psql_website() {
   local ctx="${FACTORY_CTX:-devc}"
   local ns="${FACTORY_NS:-workspace-dev}"
   local pod
-  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
   if [[ -z "$pod" ]]; then
     echo "Error: shared-db pod not found" >&2
     return 1

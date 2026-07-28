@@ -49,7 +49,7 @@ factory_pgpod() {
   if [[ -z "$pod" ]]; then
     # Nur auf dem Fehlerpfad nochmal ungefiltert fragen, um "gar kein Pod" von
     # "Pods da, keiner Running" zu unterscheiden. Der Happy Path bleibt ein Call.
-    all=$(kubectl get pod -n "$FACTORY_NS" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | tr '\n' ' ')
+    all=$(kubectl get pod -n "$FACTORY_NS" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | tr '\n' ' ')  # pod-phase-filter: intentional-unfiltered
     if [[ -n "${all// /}" ]]; then
       echo "{\"error\":\"no Running shared-db pod in ${FACTORY_NS}; found but not Running: ${all% }\"}" >&2
     else

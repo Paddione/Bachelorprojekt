@@ -56,7 +56,7 @@ purge_factory_test_data() {
     fi
   fi
   local pod
-  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
   [[ -z "$pod" ]] && { echo "no shared-db pod in $ns" >&2; return 1; }
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
     psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null

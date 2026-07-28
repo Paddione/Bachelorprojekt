@@ -140,7 +140,7 @@
 
 # ── [T002307] _pgpod must select a Running shared-db pod ──────────────────────
 #
-# _pgpod took `kubectl get pod -l 'app in (shared-db, shared-db-dev)' -o name |
+# _pgpod took `kubectl get pod -l 'app in (shared-db, shared-db-dev)' -o name |  # pod-phase-filter: intentional-unfiltered
 # head -1` — an unfiltered list. kubectl orders by name, so a leftover
 # `shared-db-<old>` in phase Succeeded/Failed (left behind by a rollout, a node
 # drain or an evicted pod) can sort ahead of the live one. Every ticket.sh verb

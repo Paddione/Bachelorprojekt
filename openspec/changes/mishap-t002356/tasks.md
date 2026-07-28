@@ -22,11 +22,10 @@ stammen unveraendert aus der Ticket-Beschreibung; die Diagnose dort ist die Vorg
 ## File Structure
 
 ```
-CLAUDE.md                                                                — unveraendert (M1-Doku existierte bereits)
-scripts/factory/reconcile-ticket-status.sh                               — unveraendert (M2-Hypothese widerlegt)
-scripts/openspec.sh                                                      — unveraendert (M3 bereits durch T002375 gefixt)
-openspec/changes/mishap-t002356/proposal.md                              — Why/What ausgefuellt (Investigations-Ergebnis)
-tests/spec/software-factory/reconcile-status-no-in-progress-T002356.bats — neu: Regression-Guard fuer widerlegte M2-Hypothese
+CLAUDE.md                                   — unveraendert (M1-Doku existierte bereits)
+scripts/factory/reconcile-ticket-status.sh  — unveraendert (M2-Hypothese widerlegt, bereits durch T002375-p5 getestet)
+scripts/openspec.sh                         — unveraendert (M3 bereits durch T002375 gefixt)
+openspec/changes/mishap-t002356/proposal.md — Why/What ausgefuellt (Investigations-Ergebnis)
 ```
 
 ## Mishap-Eintraege
@@ -70,14 +69,16 @@ Loesungsrichtung: ein --resume-Pfad, der nur fehlende oder erkennbar unausgefuel
 
 ## Verify (RED → GREEN)
 
-- [x] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
-      der das beschriebene Fehlverhalten reproduziert. Er gehoert nach
-      `tests/spec/<spec-slug>.bats` — die Spec, die das Verhalten abdeckt.
-
-```bash
-tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
-# expected: FAIL (rot — der Fix ist noch nicht implementiert)
-```
+- [x] **Failing-Test-Step (RED) — entfaellt begruendet.** Alle drei Eintraege
+      erwiesen sich bei der Recon als bereits abgedeckt: M1 ist reine CLAUDE.md-
+      Doku (kein Testgegenstand), M2s Hypothese ist bereits durch
+      `tests/spec/openspec-workflow.bats::"T002375-p5: reconcile-ticket-status.sh
+      setzt KEIN in_progress (Befund, kein Fix)"` widerlegt und getestet, M3 ist
+      bereits durch T002375 (PR #3434) mit Tests in
+      `tests/spec/openspec-workflow.bats` implementiert. Ein neuer Test haette
+      einen bestehenden dupliziert (siehe verworfener Erstversuch
+      `tests/spec/software-factory/reconcile-status-no-in-progress-T002356.bats`,
+      wieder entfernt).
 
 - [x] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten. Jeder nennt Komponente und
       vorgeschlagene Behebung. Eintraege, die sich bei der Recon als nicht zutreffend

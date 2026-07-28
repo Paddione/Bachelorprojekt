@@ -7,7 +7,7 @@
 # Convention: one .bats file per OpenSpec SSOT spec.
 
 # ── File-level variables ──────────────────────────────────────────────────────
-PIPELINE_SCRIPT="scripts/factory/pipeline.js"
+PIPELINE_SCRIPT="scripts/factory/pipeline.mjs"
 DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 GUARDS_SCRIPT="scripts/factory/guards.sh"
 CANARY_SCRIPT="$BATS_TEST_DIRNAME/../../scripts/feature-promote.sh"
@@ -17,7 +17,7 @@ PROVISION_MOD="scripts/factory/provision.js"
 PROVISION_SUITE="scripts/factory/provision.test.mjs"
 DECOMPOSE_MOD="scripts/factory/pipeline-decompose.cjs"
 DECOMPOSE_SUITE="scripts/factory/pipeline-decompose.test.cjs"
-PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
+PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.mjs"
 # T002074: the Deploy-phase prompt moved into pipeline-partials.cjs (buildDeployPrompt)
 # and the CI retry loop into pr-babysit-ticket.sh — deploy-contract greps span these.
 PARTIALS_MOD="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline-partials.cjs"

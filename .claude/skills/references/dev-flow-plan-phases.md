@@ -11,21 +11,18 @@ Mechanik und die Schritte des Fix-Pfads.
 Frage den User aktiv nach Spec-Notizen, Mockups oder Screenshots. Lese Text- und Image-Dateien mit dem `Read` Tool ein, um sie in den Kontext zu laden.
 Verwende einen Code-Explorer Subagenten, um die Code-Pfade und Architektur vor dem Brainstorming zu analysieren.
 #### Schritt A.1.5: Intel-Gathering → Plan Intel Bundle ⚡
-Nach der Exploration (A.1) ein typisiertes **Plan Intel Bundle** befüllen (`intel.json`) — die
-maschinenlesbare Typen-Wahrheit, die Plan- und Execute-Phase teilen. Schema + Quellen-Mapping:
-[plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
-Jede Sektion ist an ihre Intel-Quelle gebunden:
-- `symbols` / `signature` / `type_text` → **codebase-memory** (`get_code_snippet`, `search_graph`) + **LSP** (Hover/Definition); Fallback `grep`/`Read`.
-- `call_graph` → **codebase-memory** `trace_path` (`calls`/`data_flow`/`cross_service`).
-- `db_tables` → **mcp-postgres** (`information_schema.columns`, read-only); Fallback `kubectl exec … psql`.
-- `api_contracts` → `Read` der `website/src/pages/api/**`-Handler + deren Typen.
-- `external_types` → **context7** (`resolve-library-id` → `query-docs`).
-- `impact_files` / `s1_*` → `wc -l` + `docs/code-quality/baseline.json` + `_ext_limit` (plan-lint-Logik).
-Liegt vor `/opsx:propose` noch kein Change-Ordner vor, halte das Bundle bei den übrigen
-Phase-A-Artefakten und verschiebe es in **B.2** nach `openspec/changes/<slug>/intel.json`. Ist eine
-Quelle und auch ihr Fallback nicht erreichbar, setze einen `risks[]`-Eintrag (`severity: warn`) statt
-die Sektion still leer zu lassen. Validiere lokal strukturell (`jq`). Das Bundle informiert bereits
-das Brainstorming (A.4).
+Nach der Exploration (A.1) Generator laufen lassen — deterministisch, kein LLM:
+```bash
+bash scripts/plan-intel.sh <slug>
+```
+Das Skript befüllt `openspec/changes/<slug>/intel.json` aus der Plan-Datei (target_files),
+berechnet S1-Budgets via `scripts/plan-lint.sh`-Hooks und extrahiert Symbole per `grep`.
+Schema + Quellen-Mapping: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
+`api_contracts` und `external_types` bleiben beim Planner — der Generator überschreibt nicht,
+was der Planner von Hand ergänzt hat. Fehlt eine Quelle, entsteht ein `risks[]`-Eintrag.
+Das Bundle informiert bereits das Brainstorming (A.4).
+Liegt vor `/opsx:propose` noch kein Change-Ordner vor, das Bundle erstellen und nach **B.2**
+verschieben: `mkdir -p openspec/changes/<slug> && bash scripts/plan-intel.sh <slug>`.
 #### Schritt A.2: Design-Bundle co-lokalisieren (nur Design-/UI-Tickets)
 Wenn das Ticket einen Design-Handoff hat (claude.ai-Design-Session → Bundle-ID), lege die Assets
 **jetzt im main-Checkout** an — sie werden in Schritt B.2 in den Worktree verschoben:
@@ -118,7 +115,7 @@ bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
 WT=".worktrees/<slug>"
 mkdir -p "${WT}/openspec/changes/"
 mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
-[ -f "${REPO_ROOT}/intel.json" ] && mv "${REPO_ROOT}/intel.json" "${WT}/openspec/changes/<slug>/intel.json" 2>/dev/null || true
+[ -f "${REPO_ROOT}/intel.json" ] && mv "${REPO_ROOT}/intel.json" "${WT}/openspec/changes/<slug>/intel.json"
 [ -f "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" ] && mv "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" "${WT}/.lavish/" 2>/dev/null || true
 cd "${WT}"
 ```

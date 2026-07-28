@@ -37,12 +37,14 @@ Return the stdout verbatim. If the command fails, return the stderr string.`
 }
 
 async function runTaskVerifyLoop(agentFn, t, maxLoop, WORK_WT, WORK_BRANCH, slug) {
+  const taskCtx = await runRunner(agentFn, 'task-context', { slug })
   for (let i = 0; i < maxLoop; i++) {
     const verifyCmd = 'task workspace:validate && task test:all && task freshness:regenerate'
     const wrapSandbox = (workWt, cmd) => `bash /home/patrick/Bachelorprojekt/scripts/factory/sandbox-run.sh ${workWt} ${JSON.stringify(cmd)}`
-    const prompt = i === 0
+    const basePrompt = i === 0
       ? `Self-verify task ${t.id} on ${WORK_BRANCH}: confirm acceptance: ${t.acceptance_criteria.join('; ')}. Report pass/fail.`
       : `/goal Fix task ${t.id} (attempt ${i + 1}/${maxLoop}). Acceptance: ${t.acceptance_criteria.join('; ')}. After fix: ${wrapSandbox(WORK_WT, verifyCmd)} && cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} iter ${i + 1} [factory]`)}. Return pass/fail.`
+    const prompt = taskCtx ? taskCtx + '\n\n' + basePrompt : basePrompt
     const result = await agentFn(prompt, { label: `impl:${t.id}:${i}`, phase: 'Implement', model: FACTORY_MODEL })
     if (result) return result
   }
@@ -435,10 +437,10 @@ if (tasks && tasks.length && !A.batch_mode) {
     return { status: 'blocked', reason: 'worktree-setup', detail: iwt.detail }
   }
 
+  const taskCtx = await runRunner(agent, 'task-context', { slug: safeSlug })
   for (const t of tasks) {
     const injections = await consumeInjections('implement')
-    const impl = await agent(
-      (t.prompt /* partial fan-out prompt (T002074) */ ||
+    const baseImplPrompt = t.prompt /* partial fan-out prompt (T002074) */ ||
       `/goal Implement task ${t.id} for ticket ${A.ticket_id}.
        Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
        Implement task ${t.id} on ${WORK_BRANCH} in the shared worktree at ${WORK_WT}
@@ -448,7 +450,9 @@ if (tasks && tasks.length && !A.batch_mode) {
        DARK-LAUNCH: gate new behavior behind isFeatureEnabled('${brand}', '${slug}') (default OFF).
        After implementing: bash ${REPO}/scripts/factory/sandbox-run.sh ${WORK_WT} 'task workspace:validate && task test:all && task freshness:regenerate'
        Then commit: cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} [factory]`)}
-       Return a summary of the diff and local test result (pass/fail).`) + injections,
+       Return a summary of the diff and local test result (pass/fail).`
+    const implPrompt = taskCtx ? taskCtx + '\n\n' + baseImplPrompt : baseImplPrompt
+    const impl = await agent(implPrompt + injections,
       { label: `impl:${t.id}`, phase: 'Implement', model: FACTORY_MODEL },
     )
     if (impl == null) continue

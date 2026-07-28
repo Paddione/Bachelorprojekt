@@ -70,8 +70,12 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
-  - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` (aus der Plan-Phase) — der Implementer lädt es als Pflicht-Kontext (analog zu `$ATTACHMENT_DIR`) und arbeitet gegen dieselbe Typen-Wahrheit wie der Plan: reale Signaturen aus `symbols`, DB-Spalten aus `db_tables`, API-Contracts aus `api_contracts` — kein Re-Explorieren. Format: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
-- **⚠️ BATS-Pflicht:** Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die OpenSpec-Spec, die das Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage: `tests/spec/software-factory.bats`); ohne klare Spec-Zuordnung `tests/unit/` erweitern. Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy und werden **nicht** neu angelegt. Vorgehen im Detail: [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md) §BATS.
+  - **Plan Intel Bundle (PFLICHT):** `bash scripts/task-context.sh <slug>` — gemeinsamer Assembler, liefert statischen Kern aus intel.json + frische Signale. Format: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
+- **⚠️ BATS-Pflicht:** Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die
+  OpenSpec-Spec, die das Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage:
+  `tests/spec/software-factory.bats`); ohne klare Spec-Zuordnung `tests/unit/` erweitern.
+  Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy und werden **nicht** neu angelegt.
+  Vorgehen im Detail: [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md) §BATS.
 - **Auftrag:**
   - **Ein-Ebenen-Regel (PFLICHT, wörtlich Teil dieses Prompts):** Spawne selbst KEINE Subagenten/Sub-Implementer — rufe `superpowers:executing-plans` IN-CONTEXT auf. Wenn du glaubst, einen Sub-Implementer für einen Teil-Task zu brauchen, STOPPE und eskaliere stattdessen an den Orchestrator zurück, statt selbst zu delegieren. Verschachtelte Delegation ist nicht erlaubt (siehe subagent-provisioning.md, 162k-Prompt-Lehre).
   - **/goal: Finish dev-flow-execute and merge the PR cleanly.**

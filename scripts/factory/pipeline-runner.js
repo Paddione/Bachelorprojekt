@@ -570,6 +570,18 @@ async function main() {
       console.log(JSON.stringify({ pr_ready: false }));
     }
 
+  } else if (command === 'task-context') {
+    const { slug, partial, planBase } = payload;
+    try {
+      const args = [path.join(REPO, 'scripts/task-context.sh'), String(slug)];
+      if (partial) args.push('--partial', String(partial));
+      if (planBase) args.push('--plan-base', String(planBase));
+      const ctx = execFileSync('bash', args, { encoding: 'utf8', timeout: 30000 });
+      console.log(ctx);
+    } catch (e) {
+      console.log('');
+    }
+
   } else if (command === 'record-failure-class') {
     // T002389: Record a failure classification (MODEL or INFRA) to
     // factory_control so watchdog.sh can distinguish infrastructure

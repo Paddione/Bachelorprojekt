@@ -41,7 +41,9 @@ factory_resolve() {
 #
 # Dies ist eine eigenstaendige Kopie neben scripts/vda/ticket/_ticket-core.sh —
 # der T002307-Fix dort erreichte diesen Pfad nicht. Guard gegen weitere Kopien:
-# tests/spec/software-factory.bats, "every shared-db pod selection in scripts/".
+# scripts/check-pod-phase-filter.sh (seit T002439 ein eigenes Skript statt inline
+# im Test; prueft pro Treffer statt pro Datei und deckt scripts/ UND tests/ ab).
+# Aufrufbar als `task quality:pod-phase-filter`.
 factory_pgpod() {
   local pod all
   pod=$(kubectl get pod -n "$FACTORY_NS" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' \

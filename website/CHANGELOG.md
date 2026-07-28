@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.223.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.2...website-v1.223.3) (2026-07-28)
+
+
+### Bug Fixes
+
+* **infra:** includeSelectors:false in k3d/default/kustomization [T002349] ([#3455](https://github.com/Paddione/Bachelorprojekt/issues/3455)) ([d29cad5](https://github.com/Paddione/Bachelorprojekt/commit/d29cad5541a1014d2652e883e2bdc8db2b7d4aa3))
+
 ## [1.223.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.1...website-v1.223.2) (2026-07-28)
 
 

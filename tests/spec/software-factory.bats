@@ -2119,11 +2119,17 @@ STUB
 }
 
 # ── FA-SF-52: mishap auto-chore-plan factory plumbing [T001844] ──────────────#
-@test "FA-SF-52: queue.sh also selects plan_staged task and bug tickets" {
-  # T002333 widened this branch from type='task' to type IN ('task','bug') — the
-  # staged plan is the contract for both types, so both bypass the lastenheft gate.
-  run grep -Eq "type IN \('task','bug'\) AND status='plan_staged'" scripts/factory/queue.sh
-  [ "$status" -eq 0 ]
+@test "FA-SF-52: queue.sh also selects plan_staged tickets" {
+  # Die Zusage ist "gestagte Tickets erreichen den Dispatcher", nicht die konkrete
+  # Formulierung. T002329/T002333 hat die Whitelist (`type='task'`) durch eine
+  # Ausschlussliste ersetzt, weil ein gestagtes type='bug' sonst unsichtbar blieb —
+  # mit zehn statt vier Typen wird diese Luecke wahrscheinlicher. Der Guard prueft
+  # daher die Lane, nicht ihren Wortlaut.
+  local lane
+  lane=$(sed -n "/status='plan_staged'/p" scripts/factory/queue.sh)
+  [ -n "$lane" ]
+  # 'project' (das Epic) ist der einzige Typ, der nie selbst bearbeitet wird.
+  echo "$lane" | grep -Eq "type <> 'project'|type='task'"
 }
 
 @test "FA-SF-52: slots.sh claim allows plan_staged status" {
@@ -3435,7 +3441,10 @@ STUB
 @test "T001444: stage-plan auto-emits scout/design/plan done" {
   CAP_FILE="$(mktemp)"; export CAP_FILE
   _pt_capture_stub
-  # T002347: Der Change-Ordner entsteht in BATS_TEST_TMPDIR, nicht im Worktree.
+  # T002347 (+T002368, dort per mktemp gelöst — beim Rebase 2026-07-28 zugunsten
+  # dieser Fassung verworfen: BATS_TEST_TMPDIR raeumt BATS selbst ab, waehrend das
+  # rm -rf der mktemp-Variante bei genau dem SIGTERM ausfaellt, den sie adressiert).
+  # Der Change-Ordner entsteht in BATS_TEST_TMPDIR, nicht im Worktree.
   # Vorher legte der Test openspec/changes/x direkt im Repo an und raeumte ihn
   # per rm -rf wieder weg — bei SIGTERM oder Timeout lief dieses rm nie, und der
   # halbe Change-Ordner blieb ungetrackt liegen. Parallel laufende Validierungen
@@ -4304,6 +4313,18 @@ EOF
   [ "$output" = "0" ]
 }
 
+@test "T002368: kein Test legt ein Change-Verzeichnis im echten openspec/ an" {
+  # Verallgemeinert den T002281-Guard eine Ebene hoeher: dort ging es um EINE
+  # Datei, hier um das Muster. Ein relativ angelegtes openspec/changes/<slug>
+  # ist unter `bats -j 6` fuer den validateTree('openspec')-Test in
+  # openspec-workflow.bats sichtbar, der dann 'missing specs/ delta dir' meldet
+  # -- sporadisch rot, ohne Bezug zur eigentlichen Aenderung (PR #3400).
+  # Plan-/Fixture-Pfade gehoeren nach mktemp.
+  # Die grep-Zeilen dieses Guards selbst sind ueber '| grep' ausgenommen.
+  run bash -c "grep -rE 'mkdir -p .?openspec/changes' '$REPO/tests/spec/' | grep -vc 'grep'"
+  [ "$output" = "0" ]
+}
+
 @test "T002272-M1: queue.sh WHERE clause gates plan_staged tasks on execution_released" {
   run grep -n "execution_released" "$REPO_ROOT/scripts/factory/queue.sh"
   [ "$status" -eq 0 ]
@@ -4421,8 +4442,16 @@ SH
 # separater Zweig muesste sie duplizieren — genau die Luecke, die T002361
 # schliessen musste.
 @test "T002333: queue.sh dispatches plan_staged bug tickets alongside tasks" {
-  run grep -Eq "type IN \('task','bug'\) AND status='plan_staged'" "$REPO_ROOT/scripts/factory/queue.sh"
-  [ "$status" -eq 0 ]
+  # Geprueft wird die Zusage ("ein gestagtes bug-Ticket erreicht den Dispatcher"),
+  # nicht ihr Wortlaut. T002329 hat die Whitelist IN ('task','bug') durch die
+  # Ausschlussliste `type <> 'project'` ersetzt — strikt allgemeiner, sie deckt
+  # zusaetzlich die sechs neuen Conventional-Commit-Typen ab. Ein grep auf die
+  # alte Formulierung wuerde hier rot, obwohl die Zusage besser erfuellt ist als
+  # zuvor; deshalb akzeptiert der Guard beide Formen.
+  local lane
+  lane=$(sed -n "/status='plan_staged'/p" "$REPO_ROOT/scripts/factory/queue.sh")
+  [ -n "$lane" ]
+  echo "$lane" | grep -Eq "type <> 'project'|type IN \('task','bug'\)"
 }
 
 @test "T002333: the plan_staged dispatch branch stays single (no ungated bug duplicate)" {
@@ -4589,4 +4618,31 @@ MOCKEOF
     echo "Pod-Selektion ohne Phasenfilter in:$offenders" >&2
     false
   }
+}
+
+# ── [T002329 / T002333] staged-Lane ist eine Ausschluss-, keine Positivliste ──#
+#
+# T002333: ein type='bug'-Ticket mit status='plan_staged' war fuer den
+# Dispatcher unsichtbar, weil die Lane als Whitelist ('task') gepflegt wird.
+# Mit dem Conventional-Commit-Vokabular waechst die Typmenge von vier auf zehn,
+# also waechst auch die Chance, wieder einen Wert zu vergessen. Die Lane wird
+# deshalb auf `type <> 'project'` umgestellt -- 'project' ist der Epic-Typ und
+# der einzige, der nie selbst bearbeitet wird.
+
+@test "T002329/T002333: die staged-Lane schliesst ausschliesslich project aus" {
+  run bash -c "grep -c \"type <> 'project'\" '$REPO_ROOT/scripts/factory/queue.sh'"
+  [ "$output" != "0" ]
+}
+
+@test "T002329/T002333: die staged-Lane ist keine Typ-Whitelist mehr" {
+  # Die alte Form haette 'fix', 'docs', 'refactor' usw. weiterhin verschluckt.
+  run bash -c "grep -c \"type='task' AND status='plan_staged'\" '$REPO_ROOT/scripts/factory/queue.sh'"
+  [ "$output" = "0" ]
+}
+
+@test "T002329: die backlog-Lane erkennt feature und feat" {
+  # Die backlog-Lane bleibt bewusst eine Positivliste -- sie haengt fachlich an
+  # "Feature", nicht an "irgendein Arbeitstyp".
+  run bash -c "grep -c \"type IN ('feature','feat')\" '$REPO_ROOT/scripts/factory/queue.sh'"
+  [ "$output" != "0" ]
 }

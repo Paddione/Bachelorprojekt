@@ -171,7 +171,7 @@ Das JSON MUSS dieses Schema haben:
 }
 
 Entscheidungsregeln:
-- type: "bug" bei Fehlermeldungen/Defekten, "feature" bei neuen Funktionen/Wünschen, "task" bei technischen Arbeiten/Refactoring, "project" bei großen Epics mit mehreren Subtickets.
+- type: Conventional-Commit-Vokabular. "fix" bei Fehlermeldungen/Defekten, "feat" bei neuen Funktionen/Wünschen, "chore" bei technischen Arbeiten ohne Verhaltensänderung, "refactor" bei Umbauten mit gleichem Verhalten, "docs" bei reiner Dokumentation, "perf" bei Performance-Arbeit, "test" bei reiner Testarbeit, "ci" bei Build-/Pipeline-Konfiguration, "build" bei Abhängigkeiten/Bundling, "project" bei großen Epics mit mehreren Subtickets.
 - priority: "hoch" wenn geschäftskritisch oder Sicherheit, "mittel" bei normaler Wichtigkeit, "niedrig" für nice-to-have.
 - severity: "critical" bei Totalausfall, "major" bei stark eingeschränkter Nutzbarkeit, "minor" bei Workaround möglich, "trivial" bei kosmetischen Fehlern.
 - areas: Wähle 1-3 passende Bereiche aus der erlaubten Liste.
@@ -269,7 +269,7 @@ PROMPT
       additionalProperties: false,
       required: ["type","priority","severity","areas","component","assignee_suggested","rationale"],
       properties: {
-        type: { type: "string", enum: ["bug","feature","task","project"] },
+        type: { type: "string", enum: ["fix","feat","chore","project","docs","refactor","perf","test","ci","build"] },
         priority: { type: "string", enum: ["hoch","mittel","niedrig"] },
         severity: { type: "string", enum: ["critical","major","minor","trivial"] },
         areas: { type: "array", items: { type: "string", enum: $enums.areas }, minItems: 1, maxItems: 3 },

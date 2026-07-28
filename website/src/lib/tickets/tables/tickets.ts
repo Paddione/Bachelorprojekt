@@ -12,7 +12,11 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
     CREATE TABLE IF NOT EXISTS tickets.tickets (
       id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
       external_id     TEXT        UNIQUE,
-      type            TEXT        NOT NULL CHECK (type IN ('bug','feature','task','project')),
+      -- Dual-Vokabular [T002329]. Bei einer frischen DB gilt dieser inline-CHECK,
+      -- bis applyTypeVocabularyMigration ihn durch den benannten tickets_type_check
+      -- ersetzt; beide müssen dieselben Werte tragen, sonst schlagen Inserts
+      -- zwischen CREATE TABLE und Migration fehl.
+      type            TEXT        NOT NULL CHECK (type IN ('fix','feat','chore','project','docs','refactor','perf','test','ci','build','bug','feature','task')),
       parent_id       UUID        REFERENCES tickets.tickets(id) ON DELETE SET NULL,
       brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT        NOT NULL,
 
@@ -438,7 +442,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
       COUNT(*) FILTER (WHERE status = 'done') AS features_shipped,
       ROUND((AVG(EXTRACT(EPOCH FROM (done_at - created_at))/3600) FILTER (WHERE status = 'done'))::numeric, 1) AS avg_cycle_time_h,
       COUNT(*) FILTER (WHERE status = 'blocked') AS escalations,
-      COUNT(*) FILTER (WHERE type = 'feature') AS total_features
+      COUNT(*) FILTER (WHERE type IN ('feature','feat')) AS total_features
     FROM tickets.tickets
     WHERE created_at > NOW() - INTERVAL '30 days'
     GROUP BY 1
@@ -458,7 +462,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
       created_at,
       updated_at
     FROM tickets.tickets
-    WHERE type = 'feature'
+    WHERE type IN ('feature','feat')
       AND status IN ('backlog', 'in_progress', 'in_review')
       AND touched_files IS NOT NULL
     ORDER BY

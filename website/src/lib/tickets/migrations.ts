@@ -3,12 +3,13 @@
 // audit/cycle/lifecycle triggers + fn_purge_test_data + notify_feature_inserted.
 // Extracted from tickets-db.ts (G-RH01 Batch 2 — T001155).
 import type { Pool, PoolClient } from 'pg';
+import { applyTypeVocabularyMigration } from './migrate-type-vocabulary';
 
 export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<void> {
   // Idempotent column additions for older schema versions where CREATE TABLE IF NOT EXISTS skipped creation
   await pool.query(`
     ALTER TABLE tickets.tickets
-      ADD COLUMN IF NOT EXISTS type TEXT CHECK (type IN ('bug','feature','task','project')),
+      ADD COLUMN IF NOT EXISTS type TEXT,
       ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL,
       ADD COLUMN IF NOT EXISTS brand TEXT,
       ADD COLUMN IF NOT EXISTS url TEXT,
@@ -50,6 +51,10 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
     ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_status_check
       CHECK (status IN ('triage','planning','plan_staged','backlog','in_progress','in_review','blocked','qa_review','awaiting_deploy','done','archived'))
   `);
+
+  // Typ-Vokabular (T002329): benannter Constraint + Datenmigration bug/feature/task
+  // → fix/feat/chore. Ausgelagert, weil diese Datei am S1-Zeilenbudget steht.
+  await applyTypeVocabularyMigration(pool);
   await pool.query(`
     ALTER TABLE tickets.tickets
       ADD COLUMN IF NOT EXISTS value_prop    TEXT,
@@ -570,7 +575,9 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
     CREATE TRIGGER trg_notify_feature_inserted
     AFTER INSERT ON tickets.tickets
     FOR EACH ROW
-    WHEN (NEW.type = 'feature')
+    -- Dual-Vokabular (T002329): ohne 'feat' wäre der Trigger nach der
+    -- Datenmigration dauerhaft stumm.
+    WHEN (NEW.type IN ('feature','feat'))
     EXECUTE FUNCTION tickets.notify_feature_inserted();
   `);
 }

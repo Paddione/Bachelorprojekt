@@ -20,7 +20,7 @@ export const COCKPIT_ROLLUP_VIEW_SQL = `
       SELECT d.container_id, d.node_id, d.status
       FROM descendants d
       WHERE d.node_id <> d.container_id
-        AND d.type IN ('task', 'bug')
+        AND d.type IN ('task', 'bug', 'chore', 'fix')
         AND d.status <> 'archived'
         AND NOT EXISTS (
           SELECT 1 FROM tickets.tickets ch WHERE ch.parent_id = d.node_id
@@ -57,7 +57,7 @@ export const COCKPIT_ROLLUP_VIEW_SQL = `
       END AS health
     FROM tickets.tickets c
     LEFT JOIN agg a ON a.container_id = c.id
-    WHERE c.type IN ('project', 'feature');
+    WHERE c.type IN ('project', 'feature', 'feat');
 `;
 
 export async function ensureCockpitViews(pool: import('pg').Pool): Promise<void> {

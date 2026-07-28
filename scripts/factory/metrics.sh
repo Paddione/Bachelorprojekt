@@ -21,8 +21,8 @@ SELECT COALESCE(
   'no metrics yet');
 SQL
 )
-active=$(printf "SELECT count(*) FROM tickets.tickets WHERE type='feature' AND status='in_progress';" | factory_psql)
-backlog=$(printf "SELECT count(*) FROM tickets.tickets WHERE type='feature' AND status='backlog';" | factory_psql)
+active=$(printf "SELECT count(*) FROM tickets.tickets WHERE type IN ('feature','feat') AND status='in_progress';" | factory_psql)
+backlog=$(printf "SELECT count(*) FROM tickets.tickets WHERE type IN ('feature','feat') AND status='backlog';" | factory_psql)
 
 body=$(printf '**Factory metrics — %s**\n- %s\n- active(in_progress)=%s backlog=%s' "$BRAND" "$today" "$active" "$backlog")
 BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" add-comment --id "$TICKET" --body "$body"

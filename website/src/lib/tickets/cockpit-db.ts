@@ -49,7 +49,7 @@ async function fetchLeafRollup(brand: string, orphanOnly: boolean): Promise<Roll
        SUM(CASE WHEN status = 'awaiting_deploy' THEN 1 ELSE 0 END) AS awaiting_deploy_leaves,
        SUM(CASE WHEN status IN ('triage','backlog','planning','plan_staged') THEN 1 ELSE 0 END) AS open_leaves
      FROM tickets.tickets
-     WHERE brand = $1 AND type IN ('task', 'bug')${orphanOnly ? ' AND parent_id IS NULL' : ''}`,
+     WHERE brand = $1 AND type IN ('task', 'bug', 'chore', 'fix')${orphanOnly ? ' AND parent_id IS NULL' : ''}`,
     [brand],
   );
   const r = rows[0] ?? {};
@@ -83,7 +83,7 @@ async function getLeafTickets(
     `SELECT t.id, t.external_id, t.type, t.title, t.status, t.priority,
             t.parent_id, t.planning_rank
        FROM tickets.tickets t
-      WHERE t.brand = $1 AND t.type IN ('task', 'bug')
+      WHERE t.brand = $1 AND t.type IN ('task', 'bug', 'chore', 'fix')
         AND t.status <> 'archived'${orphanOnly ? ' AND t.parent_id IS NULL' : ''}
       ORDER BY COALESCE(t.planning_rank, 2147483647), t.external_id
       LIMIT $2`,
@@ -107,7 +107,7 @@ export async function getPortfolio(brand: string): Promise<PortfolioPayload> {
             r.in_progress_leaves, r.open_leaves, r.pct_done, r.health
        FROM tickets.tickets t
        LEFT JOIN tickets.v_cockpit_rollup r ON r.container_id = t.id
-      WHERE t.brand = $1 AND t.type IN ('project', 'feature')
+      WHERE t.brand = $1 AND t.type IN ('project', 'feature', 'feat')
       ORDER BY COALESCE(t.planning_rank, 2147483647), t.created_at
       LIMIT $2`,
     [brand, PORTFOLIO_MAX_ROWS],
@@ -213,7 +213,7 @@ export async function getFeatureTickets(brand: string, extId: string): Promise<F
             r.in_progress_leaves, r.open_leaves, r.pct_done, r.health
        FROM tickets.tickets t
        LEFT JOIN tickets.v_cockpit_rollup r ON r.container_id = t.id
-      WHERE t.brand = $1 AND t.external_id = $2 AND t.type IN ('project', 'feature')`,
+      WHERE t.brand = $1 AND t.external_id = $2 AND t.type IN ('project', 'feature', 'feat')`,
     [brand, extId],
   );
   if (fr.rows.length === 0) throw new NotFoundError(`container ${extId} not found`);
@@ -235,7 +235,7 @@ export async function getFeatureTickets(brand: string, extId: string): Promise<F
     `SELECT t.id, t.external_id, t.type, t.title, t.status, t.priority,
             t.parent_id, t.planning_rank
        FROM tickets.tickets t
-      WHERE t.brand = $2 AND t.type IN ('task', 'bug')
+      WHERE t.brand = $2 AND t.type IN ('task', 'bug', 'chore', 'fix')
         AND (
           t.parent_id = $1
           OR t.parent_id IN (SELECT id FROM tickets.tickets WHERE parent_id = $1)

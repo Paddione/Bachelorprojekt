@@ -82,7 +82,10 @@ SQL
   esac
 
   resolution="shipped"
-  [[ "$ttype" == "bug" ]] && resolution="fixed"
+  # Dual-Vokabular [T002329]: 'bug' bleibt gueltig, bis Teil D (T002331) es aus dem
+  # CHECK entfernt. Muss deckungsgleich mit cockpit-labels.ts bleiben, sonst weichen
+  # Cockpit-Anzeige und automatischer Merge-Abschluss voneinander ab.
+  [[ "$ttype" == "bug" || "$ttype" == "fix" ]] && resolution="fixed"
 
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "auto-close-merged [DRY-RUN]: würde $ticket (PR #$pr_num, ${BRAND}) → done/$resolution"

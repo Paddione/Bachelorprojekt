@@ -24,8 +24,11 @@ describe('COCKPIT_ROLLUP_VIEW_SQL', () => {
   it('joins agg before WHERE (valid SQL order, no placeholder)', () => {
     expect(COCKPIT_ROLLUP_VIEW_SQL).toContain('LEFT JOIN agg a ON a.container_id = c.id');
     expect(COCKPIT_ROLLUP_VIEW_SQL).not.toContain('PLACEHOLDER');
+    // Anker ohne die Typwerte selbst [T002329]: dieser Test prüft die
+    // SQL-Reihenfolge, nicht das Vokabular — er darf nicht bei jeder
+    // Erweiterung der Typliste mitbrechen.
     expect(COCKPIT_ROLLUP_VIEW_SQL.indexOf('LEFT JOIN agg'))
-      .toBeLessThan(COCKPIT_ROLLUP_VIEW_SQL.indexOf("WHERE c.type IN ('project', 'feature')"));
+      .toBeLessThan(COCKPIT_ROLLUP_VIEW_SQL.indexOf('WHERE c.type IN ('));
   });
 
   it('excludes archived leaves from total_leaves count (leaves CTE filters archived)', () => {

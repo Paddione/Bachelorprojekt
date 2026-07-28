@@ -10,12 +10,18 @@ const features = [
 beforeEach(() => vi.restoreAllMocks());
 
 describe('TicketCreateModal', () => {
-  it('has a "bug" option in the type dropdown', () => {
+  it('offers the conventional-commit types in the dropdown', () => {
+    // T002329: 'bug' → 'fix', 'task' → 'chore', 'feature' → 'feat'. Neu
+    // angelegte Tickets tragen ausschließlich das neue Vokabular; die Altwerte
+    // bleiben nur in der DB gültig, bis Teil D (T002331) sie entfernt.
     const { getByTestId } = render(TicketCreateModal,
       { open: true, features, onClose: () => {} });
     const typeSelect = getByTestId('type-select') as HTMLSelectElement;
     const values = Array.from(typeSelect.options).map((o) => o.value);
-    expect(values).toContain('bug');
+    expect(values).toContain('fix');
+    expect(values).toContain('chore');
+    expect(values).toContain('feat');
+    expect(values).not.toContain('bug');
   });
 
   it('updates parentId when modal is reopened with a different defaultFeatureId', async () => {

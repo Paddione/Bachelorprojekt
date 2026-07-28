@@ -12,7 +12,7 @@
   export let onCreated: ((detail: { id?: string }) => void) | undefined = undefined;
 
   let parentId = '';
-  let type = 'task';
+  let type = 'chore';
   let title = '';
   let description = '';
   let priority = 'mittel';
@@ -74,10 +74,16 @@
       </label>
       <label>Typ
         <select data-testid="type-select" bind:value={type}>
-          <option value="task">Aufgabe</option>
-          <option value="bug">Bug</option>
-          <option value="feature">Feature</option>
+          <option value="chore">Aufgabe</option>
+          <option value="fix">Fix</option>
+          <option value="feat">Feature</option>
           <option value="project">Projekt</option>
+          <option value="docs">Doku</option>
+          <option value="refactor">Refactoring</option>
+          <option value="perf">Performance</option>
+          <option value="test">Test</option>
+          <option value="ci">CI</option>
+          <option value="build">Build</option>
         </select>
       </label>
       <label>Titel *

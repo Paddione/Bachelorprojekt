@@ -188,7 +188,7 @@ export async function insertBugTicket(params: {
 
 async function ticketIdByExternal(externalId: string): Promise<string | null> {
   const r = await pool.query(
-    `SELECT id FROM tickets.tickets WHERE type = 'bug' AND external_id = $1`,
+    `SELECT id FROM tickets.tickets WHERE type IN ('bug','fix') AND external_id = $1`,
     [externalId]);
   return r.rows[0]?.id ?? null;
 }
@@ -248,7 +248,7 @@ export async function getBugTicketStatus(ticketId: string): Promise<BugTicketSta
               WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
               ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
        FROM tickets.tickets t
-      WHERE t.type = 'bug' AND t.external_id = $1`,
+      WHERE t.type IN ('bug','fix') AND t.external_id = $1`,
     [ticketId]);
   return r.rows[0] ?? null;
 }
@@ -307,7 +307,7 @@ export async function getBugTicketWithComments(
                WHERE from_id = t.id AND kind = 'fixes' AND pr_number IS NOT NULL
                ORDER BY created_at DESC LIMIT 1) AS "fixedAt"
        FROM tickets.tickets t
-      WHERE t.type = 'bug' AND t.external_id = $1`,
+      WHERE t.type IN ('bug','fix') AND t.external_id = $1`,
     [ticketId]);
   if (t.rows.length === 0) return null;
   const c = await pool.query(
@@ -319,7 +319,7 @@ export async function getBugTicketWithComments(
             tc.created_at AS "createdAt"
        FROM tickets.ticket_comments tc
        JOIN tickets.tickets t ON t.id = tc.ticket_id
-      WHERE t.type = 'bug' AND t.external_id = $1
+      WHERE t.type IN ('bug','fix') AND t.external_id = $1
       ORDER BY tc.created_at ASC`,
     [ticketId]);
   return { ticket: t.rows[0], comments: c.rows };
@@ -336,7 +336,7 @@ export async function appendBugTicketComment(params: {
     `INSERT INTO tickets.ticket_comments
        (ticket_id, author_label, kind, body, visibility)
      SELECT id, $2, $3, $4, 'internal' FROM tickets.tickets
-      WHERE type = 'bug' AND external_id = $1
+      WHERE type IN ('bug','fix') AND external_id = $1
      RETURNING id, $1::text AS "ticketId", author_label AS author, kind, body, created_at AS "createdAt"`,
     [params.ticketId, params.author, params.kind ?? 'comment', params.body]);
   return r.rows[0];
@@ -486,7 +486,7 @@ export async function listBugTickets(filters: {
   limit?: number;
 }): Promise<BugTicketRow[]> {
   await initTicketsSchema();
-  const where: string[] = [`t.type = 'bug'`];
+  const where: string[] = [`t.type IN ('bug','fix')`];
   const vals: unknown[] = [];
   if (filters.brand) {
     vals.push(filters.brand);

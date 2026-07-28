@@ -20,8 +20,14 @@ const PRIORITY_LABELS: Record<string, string> = {
   niedrig: 'Niedrig', mittel: 'Mittel', hoch: 'Hoch', kritisch: 'Kritisch',
 };
 
+// Conventional-Commit-Vokabular [T002329]. Die drei Altwerte bleiben gelistet,
+// bis Teil D (T002331) sie aus dem DB-CHECK entfernt — historische Zeilen tragen
+// sie weiter, und ein Ticket ohne Beschriftung ist im Cockpit unlesbar.
 const TYPE_LABELS: Record<string, string> = {
-  task: 'Aufgabe', bug: 'Bug', feature: 'Feature', project: 'Projekt',
+  fix: 'Fix', feat: 'Feature', chore: 'Aufgabe', project: 'Projekt',
+  docs: 'Doku', refactor: 'Refactoring', perf: 'Performance',
+  test: 'Test', ci: 'CI', build: 'Build',
+  task: 'Aufgabe', bug: 'Bug', feature: 'Feature',
 };
 
 const RESOLUTION_LABELS: Record<string, string> = {
@@ -51,7 +57,9 @@ export function resolutionLabel(r: string): string { return RESOLUTION_LABELS[r]
 // done/archived require a resolution server-side (transition.ts §44). Pick a
 // sensible default by ticket type so a one-click "Erledigt" succeeds instead of 400.
 export function defaultResolutionFor(type: string): string {
-  return type === 'bug' ? 'fixed' : 'shipped';
+  // Muss deckungsgleich mit scripts/factory/auto-close-merged.sh bleiben, sonst
+  // weichen Cockpit-Anzeige und automatischer Merge-Abschluss voneinander ab.
+  return type === 'bug' || type === 'fix' ? 'fixed' : 'shipped';
 }
 
 // State-aware next statuses for the drawer. Permissive but excludes the current

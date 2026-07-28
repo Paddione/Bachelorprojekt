@@ -412,7 +412,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
 | **G-DOC01** | Defekte interne Doc-Links | 0 ✓ | 0 | `python3 scripts/check-links.py` |
-| **G-DOC02** | Root-CLAUDE.md Zeilen | 203 ⚠ | ≤ 200 | `wc -l < CLAUDE.md` |
+| **G-DOC02** | Root-CLAUDE.md Zeilen | 218 ⚠ | ≤ 200 | `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-DOC04** | Architektur-ADRs | 5 ✓ | ≥ 5 | `find docs -ipath '*adr*' -name '*.md' \| wc -l` |
 | **G-DOC06** | Agent Guide Index | 30 ✓ | ≥ 30 | `find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md \| wc -l` |
@@ -446,14 +446,14 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC17** | Command-Orphans via S4 | 0 ✓ | ≤ 0 | `S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99` |
 | **G-AGENTIC01** | Ungescopte Agenten (security/infra/db ohne `tools:`) | 3 ⚠ | ≤ 0 | `awk-Frontmatter-Check über .claude/agents/bachelorprojekt-{security,infra,db}.md` |
 | **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent` |
-| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 52 ⚠ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
+| **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 76 ⚠ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 1 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |
 | **G-TEST05** | Vitest Line-Coverage `website/src/lib` | 86 % ✓ | ≥ 60 % | `cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast) |
 | **G-BRAIN12** | Brain-Manifest-Gruppen ohne Treffer (Ingest-Drift) | 0 ✓ | 0 | `bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 \| stderr-Warnungen 'hat 0 Treffer' zählen` |
 | **G-BRAIN13** | Brain-Merge-Hook-Pfad-Parität (Trigger ↔ Handler) | 0 ✓ | 0 | `paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)` |
 | **G-BRAIN15** | Brain-Seed-Template-Lint grün | Exit 0 ✓ | Exit 0 | `bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain` |
-| **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 13 ⚠ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
-| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 32 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
+| **G-OPS02** | Container-Restarts <24h (fleet, beide Brands) | 10 ⚠ | ≤ 3 | `kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh) |
+| **G-OPS03** | Live-TLS-Cert-Restlaufzeit (Tage, min beider Brands) | 31 ✓ | ≥ 14 | `echo \| openssl s_client -servername web.<brand>.de -connect …:443 \| openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten) |
 
 ---
 

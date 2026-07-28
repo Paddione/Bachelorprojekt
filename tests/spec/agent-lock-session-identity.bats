@@ -164,6 +164,10 @@ setup() {
 # owner, it must emit a diagnostic line to stderr so the operator knows
 # why the release failed and how to force it. Currently it returns 1
 # silently — the operator has no indication of the cause.
+#
+# NOTE: The SID mismatch detection relies on _my_sid derived from $$/PPID. When the claim
+# was issued inside a subshell, the SID may differ, causing a false mismatch. See comment
+# in scripts/agent-lock.sh cmd_release.
 
 @test "T002261-M1: cmd_release emits stderr diagnostic on SID mismatch" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR

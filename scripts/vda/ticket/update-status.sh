@@ -45,10 +45,8 @@ main() {
   # Note: scripts/factory/reconcile-ticket-status.sh bypasses this guard by writing
   # SQL directly via kubectl exec — that's intentional for its watchdog patterns.
   local _cur_status
-  _cur_status=$(_exec_sql "$pod" -v ext_id="$id" <<'EOF' 2>/dev/null
-SELECT status FROM tickets.tickets WHERE external_id = :'ext_id' LIMIT 1;
-EOF
-  | tr -d '[:space:]')
+  local _sql="SELECT status FROM tickets.tickets WHERE external_id = '${id}' LIMIT 1;"
+  _cur_status=$(echo "$_sql" | _exec_sql "$pod" 2>/dev/null | tr -d '[:space:]')
   case "${_cur_status}:${status}" in
     done:done|archived:archived)
       ;; # idempotent — always allowed

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.223.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.3...website-v1.223.4) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** add post-commit-embed safety net for OpenSpec pgvector indexing [T002334] ([#3456](https://github.com/Paddione/Bachelorprojekt/issues/3456)) ([7cac1e0](https://github.com/Paddione/Bachelorprojekt/commit/7cac1e0f0ebcb13dbfcdfae4b9c8c18f9e1cc2d3))
+
 ## [1.223.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.2...website-v1.223.3) (2026-07-28)
 
 

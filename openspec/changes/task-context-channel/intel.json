@@ -1,0 +1,463 @@
+{
+  "meta": {
+    "slug": "task-context-channel",
+    "ticket_id": "T002420",
+    "generated_from": "main@5601f3300",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/dev-flow-execute/SKILL.md",
+      "language": "markdown",
+      "loc": 251,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/dev-flow-plan-phases.md",
+      "language": "markdown",
+      "loc": 353,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/pipeline.mjs",
+      "language": "javascript",
+      "loc": 693,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/plan-intel.sh",
+      "language": "bash",
+      "loc": 197,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 603
+    },
+    {
+      "path": "scripts/plan-lint.sh",
+      "language": "bash",
+      "loc": 450,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 350
+    },
+    {
+      "path": "scripts/task-context.sh",
+      "language": "bash",
+      "loc": 231,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 569
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/task-context.bats",
+      "language": "bash",
+      "loc": 121,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/plan-intel.sh:25:_resolve_target_files() {",
+      "kind": "function",
+      "file": "scripts/plan-intel.sh",
+      "signature": "25:_resolve_target_files() {(...)",
+      "type_text": "25:_resolve_target_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-intel.sh:67:_path_language() {",
+      "kind": "function",
+      "file": "scripts/plan-intel.sh",
+      "signature": "67:_path_language() {(...)",
+      "type_text": "67:_path_language() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:14:_load_s1_limits() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "14:_load_s1_limits() {(...)",
+      "type_text": "14:_load_s1_limits() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "type_text": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:49:_load_s1_ignore() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "49:_load_s1_ignore() {(...)",
+      "type_text": "49:_load_s1_ignore() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "type_text": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:71:effective_threshold() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "71:effective_threshold() {(...)",
+      "type_text": "71:effective_threshold() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:85:residual_budget() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "85:residual_budget() {(...)",
+      "type_text": "85:residual_budget() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:120:hard() { HARD+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "120:hard() { HARD+=(\"$1\"); }(...)",
+      "type_text": "120:hard() { HARD+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:121:warn() { WARN+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "121:warn() { WARN+=(\"$1\"); }(...)",
+      "type_text": "121:warn() { WARN+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:128:fm_field() {  # fm_field <key> -> value (empty if absent)",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "128:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "type_text": "128:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:252:  _check_intel_completeness() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "252:  _check_intel_completeness() {(...)",
+      "type_text": "252:  _check_intel_completeness() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:421:_json_str() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "421:_json_str() {(...)",
+      "type_text": "421:_json_str() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:431:emit_verdict() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "431:emit_verdict() {(...)",
+      "type_text": "431:emit_verdict() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/task-context.sh:151:_signal_parallel_work() {",
+      "kind": "function",
+      "file": "scripts/task-context.sh",
+      "signature": "151:_signal_parallel_work() {(...)",
+      "type_text": "151:_signal_parallel_work() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/task-context.sh:172:_signal_main_drift() {",
+      "kind": "function",
+      "file": "scripts/task-context.sh",
+      "signature": "172:_signal_main_drift() {(...)",
+      "type_text": "172:_signal_main_drift() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/task-context.sh:200:_signal_similar_changes() {",
+      "kind": "function",
+      "file": "scripts/task-context.sh",
+      "signature": "200:_signal_similar_changes() {(...)",
+      "type_text": "200:_signal_similar_changes() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/task-context.bats:5:setup() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/task-context.bats",
+      "signature": "5:setup() {(...)",
+      "type_text": "5:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [
+    {
+      "route": "/test",
+      "method": "GET",
+      "request_type": "void",
+      "response_type": "string",
+      "file": "test.js"
+    }
+  ],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — it was assembled by hand because the generator it specifies does not exist yet. symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "scripts/factory/pipeline.mjs is on the s1.ignore list in docs/code-quality/gates.yaml, therefore S1-ungated. s1_budget 0 here means 'not measured', NOT 'no room'. Do not derive a shrink step from it.",
+      "severity": "info"
+    },
+    {
+      "note": ".claude/skills/dev-flow-execute/SKILL.md is S1-ungated (.md has no s1.limits entry) but sits at exactly 250 lines against health goal G-AGENTIC09 (project-owned SKILL.md > 250 lines, target 0). Effective budget is ZERO: any net line added breaks the gate. The planned edit replaces four lines of prose (69-72) with a one-line script call, so it shrinks the file — keep it that way.",
+      "severity": "warn"
+    },
+    {
+      "note": "The implementer prompt is built in pipeline.mjs around lines 43-46 (loop labelled impl:${t.id}:${i}). Sibling files pipeline-runner.js and run-pipeline.mjs also construct prompts; confirm the live dispatch path before wiring, rather than assuming pipeline.mjs is the only one.",
+      "severity": "warn"
+    }
+  ]
+}

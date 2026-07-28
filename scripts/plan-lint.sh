@@ -246,6 +246,42 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
       hard "D2: dependency cycle: $_remaining"
     fi
   fi
+  # I1 (NEU, Hard): Vollständigkeit des Intel-Bundles.
+  # Nur im Partial-Modus aktiv: prüft ob intel.json existiert, valide ist,
+  # und alle target_files aus dem Manifest in impact_files abgedeckt sind.
+  _check_intel_completeness() {
+    local slug
+    slug="$(basename "$(dirname "$PLAN")")"
+    local intel="$PLAN_DIR/intel.json"
+    if [[ ! -f "$intel" ]]; then
+      warn "I1: intel.json not found at $intel — run scripts/plan-intel.sh $slug to generate it"
+      return
+    fi
+    if ! jq -e . "$intel" >/dev/null 2>&1; then
+      hard "I1: intel.json at $intel is not valid JSON"
+      return
+    fi
+    if ! jq -e '.meta and .impact_files and .symbols' "$intel" >/dev/null 2>&1; then
+      hard "I1: intel.json meta, impact_files or symbols is empty/missing"
+      return
+    fi
+    # Extract impact_files paths
+    local covered_paths
+    covered_paths="$(jq -r '.impact_files[].path' "$intel" 2>/dev/null | sort -u)"
+    # Compare against ALL_PARTIAL_TARGETS
+    local missing=()
+    local tgt
+    for tgt in "${ALL_PARTIAL_TARGETS[@]:-}"; do
+      [[ -z "$tgt" ]] && continue
+      if ! grep -qxF "$tgt" <<<"$covered_paths" 2>/dev/null; then
+        missing+=("$tgt")
+      fi
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+      hard "I1: intel.json impact_files fehlt fuer: ${missing[*]}"
+    fi
+  }
+  _check_intel_completeness
 fi
 
 # === STRUCT2: at least one failing-test step (fail phrase + a real test-runner) ===

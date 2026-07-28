@@ -1991,6 +1991,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002420": [
+    {
+      "slug": "task-context-channel",
+      "status": "plan_staged"
+    }
+  ],
   "T002423": [
     {
       "slug": "2026-07-28-merge-arbitration",

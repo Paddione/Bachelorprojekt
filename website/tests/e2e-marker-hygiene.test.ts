@@ -17,7 +17,7 @@
 // production after the fact.
 
 import { describe, it, expect } from 'vitest';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -45,8 +45,6 @@ function collectSpecFiles(dir: string): string[] {
  * PR re-introduces a bug-report-style POST endpoint, the test will flag
  * any spec file that forgets the E2E marker.
  */
-const MARKER_TOKENS = ['X-E2E-Test', 'markerHeaders', 'markerAvailable'];
-
 describe('E2E marker hygiene (T000862/T000863)', () => {
   const specs = collectSpecFiles(E2E_ROOT);
 

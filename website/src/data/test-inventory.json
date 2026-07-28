@@ -2088,12 +2088,6 @@
     "kind": "shell"
   },
   {
-    "id": "T002196-2",
-    "file": "tests/spec/website-interfaces.bats",
-    "category": "T002196",
-    "kind": "shell"
-  },
-  {
     "id": "T002196-3",
     "file": "tests/spec/website-interfaces.bats",
     "category": "T002196",

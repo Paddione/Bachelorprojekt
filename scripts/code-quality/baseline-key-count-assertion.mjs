@@ -65,6 +65,17 @@ function main() {
   );
   for (const k of newKeys) console.error(`  - ${k}`);
   console.error(`Add the tag to the PR description (e.g. [baseline-allow:vendor-exclude]).`);
+  // [T002425-M4] Der Tag ist NICHT immer die richtige Antwort. Haeufigster Fall in der
+  // Praxis: der Branch fusst auf einem aelteren main, auf dem der Key noch existierte;
+  // ein Regenerate friert ihn dann erneut ein, obwohl der PR die Datei gar nicht anfasst.
+  // Gemessener Vorgang: S1:website/src/components/FactoryFloor.svelte tauchte auf
+  // fix/conflict-gate-T002418 auf, nachdem #3461 den Key auf main entfernt hatte.
+  console.error(
+    `\nBEVOR du den Tag setzt: betrifft ein Key eine Datei, die dieser PR gar nicht aendert,\n` +
+    `ist die Ursache meist ein veralteter Branch — der Key wurde auf main entfernt, dein\n` +
+    `Branch kennt ihn noch. Dann ist der Tag die falsche Antwort. Stattdessen:\n` +
+    `  git checkout origin/main -- docs/code-quality/baseline.json && task freshness:regenerate`
+  );
   return 1;
 }
 

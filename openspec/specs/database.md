@@ -777,6 +777,44 @@ Gegencheck der Prod-Statistik beider Brands.
 - **WHEN** das Index-Audit durchgeführt wird
 - **THEN** entsteht eine Empfehlungsliste in der DB-Audit-Notiz, und es wird in dieser Änderung kein `DROP INDEX` ausgeführt
 
+### Requirement: brand column CHECK constraint coverage
+Every table with a `brand` column SHALL have a CHECK constraint that restricts the column to valid brand values. The constraint SHALL use the naming convention `chk_brand_<table_name>`. Tables that already have CHECK constraints are excluded.
+
+#### Scenario: A table with a brand column carries a named constraint
+
+- **GIVEN** a table with a `brand` column and no pre-existing CHECK constraint
+- **WHEN** the brand-constraint migration has run
+- **THEN** the table carries a constraint named `chk_brand_<table_name>`
+
+#### Scenario: An out-of-range brand value is rejected
+
+- **GIVEN** a constrained table
+- **WHEN** a row is inserted with a brand value outside the table's valid set
+- **THEN** the database rejects the insert
+
+#### Scenario: Re-running the migration is idempotent
+
+- **GIVEN** a table whose constraint already exists
+- **WHEN** the migration runs again
+- **THEN** the duplicate-object error is swallowed and the migration completes
+
+### Requirement: constraint value set
+For tables that serve only mentolder: `CHECK (brand = 'mentolder')`. For tables that serve both brands: `CHECK (brand IN ('mentolder', 'korczewski'))`. The valid brand set is determined by examining existing data and the table's FK relationship to `brands(id)`.
+
+#### Scenario: A single-brand table permits only that brand
+
+- **GIVEN** a table that serves mentolder only
+- **WHEN** its constraint is inspected
+- **THEN** it reads `CHECK (brand = 'mentolder')`
+- **AND** an insert carrying `korczewski` is rejected
+
+#### Scenario: A dual-brand table permits both brands
+
+- **GIVEN** a table that serves both brands
+- **WHEN** its constraint is inspected
+- **THEN** it reads `CHECK (brand IN ('mentolder', 'korczewski'))`
+- **AND** rows of either brand insert successfully
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -945,3 +983,5 @@ The system SHALL serve `GET /healthz` on the arena-server URL with HTTP 200 and 
 - **THEN** ist der `<body>` sichtbar und enthält weder `"502 Bad Gateway"` noch `"Internal Server Error"`
 
 <!-- merged from change delta database.md (6daacaaf00f7) -->
+
+<!-- merged from change delta database.md (91f7389bbd7e) -->

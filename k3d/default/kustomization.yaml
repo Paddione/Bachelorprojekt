@@ -13,4 +13,4 @@ labels:
   - pairs:
       app: claude-code-mcp-monolith
       managed-by: kustomize
-    includeSelectors: true
+    includeSelectors: false

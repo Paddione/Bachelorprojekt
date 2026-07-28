@@ -334,6 +334,67 @@ async function main() {
     }
     console.log(JSON.stringify({ valid: failures.length === 0, failures }));
 
+  } else if (command === 'set-touched-files') {
+    // [T002418] Persistiert die Scout-Dateiliste ins Ticket. Ohne diesen Schritt bleibt
+    // touched_files null und das Conflict-Gate ist blind (siehe pipeline.mjs, Scout-Phase).
+    const { ticket_id, brand, files } = payload;
+    const shSafeTicketId = String(ticket_id).replace(/[^A-Za-z0-9_-]/g, '');
+    const list = (Array.isArray(files) ? files : []).filter((f) => typeof f === 'string' && f);
+    if (list.length === 0) {
+      console.log('set-touched-files: skipped (empty list)');
+    } else {
+      execFileSync('bash', [
+        path.join(REPO, 'scripts/ticket.sh'), 'set-touched-files',
+        '--id', shSafeTicketId, '--files', list.join(','),
+      ], { stdio: 'ignore', env: { ...process.env, BRAND: brand } });
+      console.log(`set-touched-files: ${list.length} path(s)`);
+    }
+
+  } else if (command === 'conflict-check') {
+    // [T002418] Der Conflict-CHECK laeuft jetzt hier statt ueber einen Agenten.
+    // Vorher entschied pipeline.mjs mit `/\"T0/.test(conflict)` — einem Regex auf der
+    // Freitext-Antwort eines LLM. Der traf nur, wenn das Modell die Ticket-ID zufaellig
+    // in Anfuehrungszeichen ausgab; formatierte es anders oder kommentierte es die
+    // Ausgabe, wurde ein echter Konflikt stillschweigend uebersehen.
+    //
+    // Bemerkenswert war die Asymmetrie: 'conflict-escalate' unten lief laengst
+    // deterministisch, nur die Entscheidung DARUEBER nicht.
+    //
+    // Rueckgabe ist immer JSON: {rc, conflicts[]}. rc 0 = frei, 1 = Konflikt,
+    // 2 = Fehler/keine touched_files.
+    const { ticket_id, brand, files } = payload;
+    const shSafeTicketId = String(ticket_id).replace(/[^A-Za-z0-9_-]/g, '');
+    const fileArgs = Array.isArray(files) ? files.filter((f) => typeof f === 'string' && f) : [];
+    // Liveness der Plan-Phase. Steckte vorher im Agent-Prompt (`bash scripts/ticket.sh
+    // touch --id …`) und ist mit dem Wegfall des Agenten mitgegangen — der Watchdog haette
+    // die Phase danach faelschlich als tot gesehen. Hier ist sie sogar zuverlaessiger:
+    // deterministisch statt davon abhaengig, dass ein Modell die Zeile ausfuehrt.
+    try {
+      execFileSync('bash', [
+        path.join(REPO, 'scripts/ticket.sh'), 'touch', '--id', shSafeTicketId
+      ], { stdio: 'ignore', env: { ...process.env, BRAND: brand } });
+    } catch { /* Liveness ist best-effort und darf das Gate nie blockieren */ }
+    let rc = 0;
+    let raw = '';
+    try {
+      raw = execFileSync('bash', [
+        path.join(REPO, 'scripts/factory/conflict-check.sh'), shSafeTicketId, ...fileArgs
+      ], { encoding: 'utf8', env: { ...process.env, BRAND: brand } });
+    } catch (e) {
+      rc = typeof e.status === 'number' ? e.status : 2;
+      raw = (e.stdout || '').toString();
+    }
+    let conflicts = [];
+    try {
+      const parsed = JSON.parse((raw || '').trim() || '[]');
+      if (Array.isArray(parsed)) conflicts = parsed.filter(Boolean);
+    } catch {
+      // Nicht-JSON auf stdout heisst: das Skript kam nicht bis zur Ausgabe (z.B. kein
+      // erreichbarer DB-Pod). Das ist rc 2 — ein Fehler, ausdruecklich KEINE Freigabe.
+      if (rc === 0) rc = 2;
+    }
+    console.log(JSON.stringify({ rc, conflicts }));
+
   } else if (command === 'conflict-escalate') {
     const { ticket_id, brand, conflict } = payload;
     const shSafeTicketId = String(ticket_id).replace(/[^A-Za-z0-9_-]/g, '');
@@ -508,6 +569,27 @@ async function main() {
     } catch (e) {
       console.log(JSON.stringify({ pr_ready: false }));
     }
+
+  } else if (command === 'record-failure-class') {
+    // T002389: Record a failure classification (MODEL or INFRA) to
+    // factory_control so watchdog.sh can distinguish infrastructure
+    // failures from model failures when deciding whether to increment
+    // the attempt counter. Called by pipeline.mjs on error paths.
+    const { ticket_id, brand, failure_class } = payload;
+    const fcClass = String(failure_class).toUpperCase();
+    if (fcClass !== 'MODEL' && fcClass !== 'INFRA') {
+      console.error(`record-failure-class: invalid class "${failure_class}" — expected MODEL or INFRA`);
+      return;
+    }
+    try {
+      execFileSync('bash', [
+        path.join(REPO, 'scripts/ticket.sh'), 'factory-control', 'set',
+        '--key', `pipeline_failure_class:${ticket_id}`,
+        '--value', fcClass,
+        '--set-by', 'pipeline-runner',
+        '--brand', String(brand || 'mentolder')
+      ], { stdio: 'ignore', timeout: 15000, env: { ...process.env, BRAND: brand || 'mentolder' } });
+    } catch {}
   }
 }
 

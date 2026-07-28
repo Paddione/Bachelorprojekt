@@ -110,24 +110,38 @@
     finally { submitting = false; }
   }
 
+  const CATEGORY_LABELS: Record<BugCategory, string> = {
+    fehler: 'Fehler',
+    verbesserung: 'Verbesserung',
+    erweiterungswunsch: 'Erweiterungswunsch',
+    zahlung: 'Zahlung',
+  };
+
   async function submitPortal(e: Event) {
     e.preventDefault();
     if (!portalCanSubmit) return;
     submitting = true; result = null;
-    const fd = new FormData();
-    fd.append('description', portalDescription.trim());
-    fd.append('email', portalEmail.trim());
-    fd.append('category', portalCategory);
-    fd.append('url', window.location.href);
-    fd.append('userAgent', navigator.userAgent);
-    fd.append('viewport', `${window.innerWidth}x${window.innerHeight}`);
-    for (const file of portalFiles) fd.append('screenshot', file, file.name);
     try {
-      const res = await fetch('/api/bug-report', { method: 'POST', body: fd });
+      const title = `[${CATEGORY_LABELS[portalCategory]}] ${portalDescription.trim().slice(0, 80)}${portalDescription.length > 80 ? '…' : ''}`;
+      const desc = `Kategorie: ${CATEGORY_LABELS[portalCategory]}\nE-Mail: ${portalEmail.trim()}\nURL: ${window.location.href}\n\n${portalDescription.trim()}${portalFiles.length > 0 ? `\n\n(${portalFiles.length} Screenshot(s) beigefügt — konnten nicht hochgeladen werden.)` : ''}`;
+      const res = await fetch('/api/admin/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'bug',
+          title,
+          description: desc,
+          reporterEmail: portalEmail.trim(),
+        }),
+      });
       const data = await res.json();
       if (res.ok) {
-        const tid = data.ticketId ?? '';
-        result = { success: true, message: tid ? `Meldung als ${tid} aufgenommen.` : 'Vielen Dank! Meldung übermittelt.' };
+        let externalId = '';
+        if (data.id) {
+          const detail = await fetch(`/api/admin/tickets/${data.id}`).then(r => r.json()).catch(() => null);
+          externalId = detail?.ticket?.externalId ?? '';
+        }
+        result = { success: true, message: externalId ? `Meldung als ${externalId} aufgenommen.` : 'Vielen Dank! Meldung übermittelt.' };
         resetPortalForm();
         setTimeout(() => { open = false; result = null; }, 2000);
       } else {

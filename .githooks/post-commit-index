@@ -26,8 +26,13 @@ echo "$CHANGED" | while IFS= read -r f; do
   (
     cd "$repo_root" || exit 1
     if ! out=$(timeout 30 npx tsx scripts/index-repo.ts --file "$f" 2>&1); then
-      echo "[SCS] WARN: reindex failed for $f" >&2
-      echo "$out" | tail -5 >&2
+      # Filter out noisy Node error objects — keep one summary line only
+      if echo "$out" | grep -q 'ECONNREFUSED'; then
+        echo "[SCS] skip: pgvector not reachable" >&2
+      else
+        echo "[SCS] WARN: reindex failed for $f" >&2
+        echo "$out" | tail -3 >&2
+      fi
     fi
   ) &
 done

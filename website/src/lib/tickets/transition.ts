@@ -73,10 +73,27 @@ export async function transitionTicket(
     if (cur.rowCount === 0) throw new Error(`ticket ${ticketId} not found`);
     const before = cur.rows[0];
 
+    // [T002382] Status transition guard: forbid terminal → non-terminal transitions.
+    // Merge = Abschluss (T001092): a done ticket can only go to archived. This mirrors
+    // the guard in scripts/vda/ticket/update-status.sh (bash side).
+    const b4 = before.status as string;
+    if (b4 === 'done' && p.status !== 'done' && p.status !== 'archived') {
+      throw new Error(`Cannot transition from 'done' to '${p.status}' — terminal tickets can only transition to 'archived'`);
+    }
+    if (b4 === 'archived' && p.status !== 'archived') {
+      throw new Error(`Cannot transition from 'archived' to '${p.status}' — archived is a terminal state`);
+    }
+
     const upd = await client.query(
       `UPDATE tickets.tickets
          SET status = $1,
-             resolution = CASE WHEN $1 IN ('done','archived') THEN $2 ELSE NULL END
+             -- [T002382] resolution preservation: mirror the T002230 fix from the bash
+             -- side. Previously used $2 unconditionally, which cleared the resolution on
+             -- every non-terminal transition — including done → awaiting_deploy reverts.
+             resolution = CASE
+               WHEN $1 IN ('done','archived') THEN COALESCE($2, resolution)
+               ELSE NULL
+             END
        WHERE id = $3
        RETURNING id, external_id, type, status, resolution, reporter_email, brand`,
       [p.status, p.resolution ?? null, ticketId]

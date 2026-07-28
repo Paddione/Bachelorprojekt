@@ -61,8 +61,12 @@
 @test "T002230: the two write paths agree that resolution is terminal-only" {
   # transition.ts is the other path. If it ever drops the CASE, the shell path and
   # the API path would disagree about what a non-terminal status means.
-  run grep -Fq "resolution = CASE WHEN \$1 IN ('done','archived') THEN \$2 ELSE NULL END" \
-    website/src/lib/tickets/transition.ts
+  # [T002382] Updated to match the new multi-line COALESCE pattern.
+  run grep -Fq "resolution = CASE" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+  run grep -Fq "COALESCE(\$2, resolution)" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+  run grep -Fq "ELSE NULL" website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
 }
 
@@ -416,4 +420,57 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
   # dispatchbar — das stand bisher nur als Randnotiz in der Referenz.
   run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --slug foo 2>&1 | grep -c -- '--hold'"
   [ "$output" -ge 1 ] || { echo "die Fehlermeldung erwaehnt --hold nicht"; false; }
+}
+
+# ── [T002382-M1] reconcile-ticket-status: done→awaiting_deploy darf resolution nicht leeren ──
+
+@test "T002382-M1: reconcile-ticket-status.sh guardt done→awaiting_deploy mit resolution-preserve" {
+  run bash -c "grep -q 'resolution preserved' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
+  [ "$status" -eq 0 ] || { echo "MISSING resolution-preserve guard in reconcile-ticket-status.sh"; false; }
+}
+
+@test "T002382-M1: reconcile-ticket-status.sh liest existing_resolution vor dem Revert" {
+  run bash -c "grep -q 'existing_resolution' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
+  [ "$status" -eq 0 ] || { echo "MISSING existing_resolution query in reconcile-ticket-status.sh"; false; }
+}
+
+@test "T002382-M1: reconcile-ticket-status.sh guardt done→awaiting_deploy (current_status == done && fix_status == awaiting_deploy)" {
+  run bash -c "grep -qE 'current_status.*done.*fix_status.*awaiting_deploy' '$BATS_TEST_DIRNAME/../../scripts/factory/reconcile-ticket-status.sh'"
+  [ "$status" -eq 0 ] || { echo "MISSING done→awaiting_deploy guard condition in reconcile-ticket-status.sh"; false; }
+}
+
+# ── [T002382-M2] update-status.sh guard: done → non-terminal verboten ─────────#
+
+@test "T002382-M2: update-status.sh forbids done → non-terminal transitions" {
+  run grep -Fq "ERROR: Cannot transition from 'done'" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq "terminal tickets can only transition to 'archived'" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002382-M2: update-status.sh forbids archived → anything" {
+  run grep -Fq "ERROR: Cannot transition from 'archived'" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002382-M2: update-status.sh allows done → archived" {
+  run grep -Fq "done:archived" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
+# ── [T002382-M3] transition.ts guard: done → non-terminal verboten ───────────#
+
+@test "T002382-M3: transition.ts forbids done → non-terminal" {
+  run grep -Fq "Cannot transition from 'done'" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+}
+
+@test "T002382-M3: transition.ts forbids archived → anything" {
+  run grep -Fq "Cannot transition from 'archived'" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+}
+
+@test "T002382-M3: transition.ts uses COALESCE for resolution preservation" {
+  run grep -Fq "COALESCE(\$2, resolution)" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
 }

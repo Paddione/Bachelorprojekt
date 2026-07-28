@@ -24,6 +24,11 @@ task freshness:check        # CI-Äquivalent: Freshness + S1–S4-Ratchet + Base
   `docs/code-quality/baseline.json`. Ohne lokalen `check` wird eine Limit-Überschreitung
   erst nach dem Push sichtbar → Firefight-Modus.
 
+**Bei NEUEN Dateien (`git add` noch nicht passiert):** `task freshness:regenerate` baut
+seine Datei-Universe aus `git ls-files` — untracked Dateien werden nicht erfasst. Das
+führt zu einem zweiten Durchlauf: erst `git add` der neuen Datei, dann `task
+freshness:regenerate` erneut, dann `freshness:check`. Planbar zwei Runden einplanen.
+
 Bei Manifest-Änderungen zusätzlich: `./tests/runner.sh local <TEST-ID>` für die relevanten Tests.
 
 Bei Änderungen an `tests/spec/` zusätzlich: `task test:spec:changed` — CI fährt eine separate spec-Suite, die `test:changed` nicht abdeckt. Ohne diesen Schritt werden spec-Guard-Verletzungen erst nach dem Push sichtbar (T002291).

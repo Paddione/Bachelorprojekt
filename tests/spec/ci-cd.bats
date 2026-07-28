@@ -1057,6 +1057,74 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   [ -z "$output" ]
 }
 
+# ── T002345: scripts/*-Aenderungen erreichen die Pfad-Probe nie ──────────────
+# Der scripts/*-Zweig in find-changed-tests.sh versucht einen Namensabgleich
+# (queue.sh -> queue.bats / vda-queue.bats / ticket-queue.bats / factory-queue.bats)
+# und setzt bei Fehlschlag RUN_ALL=true, gefolgt von `continue`. Das `continue`
+# springt ueber die Pfad-Probe hinweg, die den Pfad in den spec-Dateien greppt
+# und den tiefsten Treffer waehlt.
+#
+# Folge: Fuer scripts/-Aenderungen liefert der spec-Finder entweder einen
+# Namenstreffer oder ALLE Suiten — nie die eine, die den Pfad tatsaechlich
+# prueft. Gemessen an scripts/factory/queue.sh: 138 Suiten statt der einen
+# software-factory.bats, die den Pfad woertlich referenziert.
+#
+# Zusammen mit RUN_SPEC=false im Taskfile (die spec-Suite wird fuer scripts/
+# gar nicht erst angefragt) ergibt das ein False-Green im Pflicht-Gate vor dem
+# PR: Ein Fix an scripts/factory/*.sh besteht `task test:changed`, ohne dass
+# die Suite laeuft, die ihn absichert.
+@test "T002345: a scripts/ change without a name match falls through to the path probe" {
+  local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
+  local tmp="$BATS_TEST_TMPDIR/scripts-probe-repo"
+  mkdir -p "$tmp/scripts/factory" "$tmp/tests/spec"
+  cp "$finder" "$tmp/scripts/find-changed-tests.sh"
+  # Keine Datei heisst queue.bats/factory-queue.bats — der Namensabgleich MUSS
+  # scheitern, damit der Fall ueberhaupt getestet wird. Genau eine Suite nennt
+  # den Pfad; sie ist die richtige Antwort.
+  echo '# covers scripts/factory/queue.sh' > "$tmp/tests/spec/software-factory.bats"
+  : > "$tmp/tests/spec/unrelated-one.bats"
+  : > "$tmp/tests/spec/unrelated-two.bats"
+  : > "$tmp/scripts/factory/queue.sh"
+
+  cd "$tmp"
+  git init -q -b main .
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
+  git update-ref refs/remotes/origin/main HEAD
+
+  git checkout -q -b topic
+  echo change >> scripts/factory/queue.sh
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m scripts-change
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
+  [ "$status" -eq 0 ]
+  # Genau die referenzierende Suite — nicht alle drei (RUN_ALL) und nicht leer.
+  [ "$output" = "tests/spec/software-factory.bats" ]
+}
+
+@test "T002345: a scripts/ change with no referencing spec still widens to the full suite" {
+  # Gegenprobe: Der RUN_ALL-Fallback bleibt die Sicherheitsnetz-Antwort, wenn
+  # WEDER Namensabgleich NOCH Pfad-Probe etwas findet. Ohne diesen Test koennte
+  # der Fix die Absicherung still in "gar nichts auswaehlen" umkippen.
+  local finder="$REPO_ROOT/scripts/find-changed-tests.sh"
+  local tmp="$BATS_TEST_TMPDIR/scripts-noprobe-repo"
+  mkdir -p "$tmp/scripts/orphan" "$tmp/tests/spec"
+  cp "$finder" "$tmp/scripts/find-changed-tests.sh"
+  : > "$tmp/tests/spec/alpha.bats"
+  : > "$tmp/tests/spec/beta.bats"
+  : > "$tmp/scripts/orphan/nobody-tests-me.sh"
+
+  cd "$tmp"
+  git init -q -b main .
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
+  git update-ref refs/remotes/origin/main HEAD
+
+  git checkout -q -b topic
+  echo change >> scripts/orphan/nobody-tests-me.sh
+  git add -A && git -c user.email=t@t -c user.name=t commit -q -m orphan
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
+  [ "$status" -eq 0 ]
+  [ "$(echo "$output" | wc -l)" -eq 2 ]
+}
+
 # ── T002170: Restposten der Renovate-Config-Migration. fileMatch ist deprecated
 #    und wurde durch managerFilePatterns ersetzt (slash-gekapselte Regexes, wie
 #    schon bei matchPackageNames in T002165). Wichtig: der kubernetes-Manager hat
@@ -1535,12 +1603,12 @@ PY
   [[ "$output" == *"website"* ]]
 }
 
-@test "T002328: konsolidierter Scope 'skills' nennt sein Ziel 'agents' in der Diagnose" {
+@test "T002328/T002374: 'skills' ist wieder ein gueltiger Scope" {
   msg="$BATS_TEST_TMPDIR/msg-skills"
   printf 'chore(skills): tidy up\n' > "$msg"
   run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$msg"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"agents"* ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OK"* ]]
 }
 
 @test "T002328: entfallener Scope 'tracking' wird als entfernt gemeldet, nicht auf ein Ziel gemappt" {
@@ -1803,4 +1871,30 @@ MOCKEOF
   local verdict="$output"
   rm -f "$probe"
   [[ "$verdict" == *"IN"* ]] || { echo "ungetrackte Datei fehlt im Scan-Universum: $verdict"; false; }
+}
+
+# ── [T002374-M1] commitlint: 'skills' is a first-class scope, not an alias ──#
+
+@test "T002374-M1: 'skills' ist ein gueltiger Scope, kein Alias mehr" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  # 'skills' is now a NAMED_SCOPE, not a SCOPE_ALIAS. scopeHint returns empty.
+  run bash -c "node -e \"const cfg = require('$REPO_ROOT/commitlint.config.cjs'); process.stdout.write(cfg.scopeHint('skills') || '(empty)');\""
+  [[ "$output" == *"empty"* ]] || { echo "scopeHint fuer 'skills' soll leer sein (skills ist jetzt First-Class-Scope): $output"; false; }
+}
+
+# ── [T002374-M2] agent-lock release: --force bei SID-Mismatch ───────────#
+
+@test "T002374-M2: agent-lock.sh release mit --force ueberschreibt SID-Mismatch" {
+  AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  export AGENT_LOCK_FAKE_ALIVE="session-A-orch"
+  export AGENT_LOCK_SID="session-A-orch"
+  bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" claim ticket T002374-m2 --label test-delegate
+  [ -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ]
+
+  export AGENT_LOCK_SID="session-B-sub"
+  run bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" release ticket T002374-m2 --force
+  echo "exit: $status output: $output"
+  [ "$status" -eq 0 ] || { echo "release with --force must succeed even with SID mismatch"; false; }
+  [ ! -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ] || { echo "lock file should be deleted after release"; false; }
+  rm -rf "$AGENT_LOCK_DIR"
 }

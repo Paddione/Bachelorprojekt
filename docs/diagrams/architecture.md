@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-87 Services · 1827 Abhängigkeitskanten · 411 API-Endpoints
+87 Services · 1827 Abhängigkeitskanten · 403 API-Endpoints
 
 ## Service-Map
 
@@ -2026,13 +2026,6 @@ flowchart TB
 | `/api/admin/bookkeeping/summary` | GET | 🔐 admin |
 | `/api/admin/brand-starter` | GET | 🔐 admin |
 | `/api/admin/brett/broadcast` | GET, POST | 🔐 admin |
-| `/api/admin/bugs/{id}` | GET | 🔐 admin |
-| `/api/admin/bugs/{id}/comments` | POST | 🔐 admin |
-| `/api/admin/bugs/archive` | POST | 🔐 admin |
-| `/api/admin/bugs/create` | POST | 🔐 admin |
-| `/api/admin/bugs/list` | GET | 🔐 admin |
-| `/api/admin/bugs/reopen` | POST | 🔐 admin |
-| `/api/admin/bugs/resolve` | POST | 🔐 admin |
 | `/api/admin/clientnotes/create` | POST | 🔐 admin |
 | `/api/admin/clientnotes/delete` | POST | 🔐 admin |
 | `/api/admin/clients-list` | GET | 🔐 admin |
@@ -2326,7 +2319,6 @@ flowchart TB
 | `/api/booking` | POST | ❓ unclassified |
 | `/api/bookings/{uid}/project` | PATCH | 🔐 admin |
 | `/api/brett/bot` | POST | ❓ unclassified |
-| `/api/bug-report` | POST | ❓ unclassified |
 | `/api/calendar/slots` | GET | ❓ unclassified |
 | `/api/cluster/status` | GET | ❓ unclassified |
 | `/api/codesearch` | GET | 🔐 admin |

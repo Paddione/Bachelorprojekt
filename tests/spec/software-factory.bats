@@ -5,9 +5,16 @@
 # Consolidated BATS suite for the Software Factory component.
 # Aggregated from tests/local/FA-SF-*.bats (41 source files).
 # Convention: one .bats file per OpenSpec SSOT spec.
+#
+# [T002427] Die 41 Quelldateien sind ENTFERNT — diese Datei ist die einzige Quelle. Sie
+# lagen bis dahin unveraendert daneben, weil die Konsolidierung sie nie geloescht hat.
+# Der daraus folgende doppelte Testname verdeckte T002421: nach dem Entfernen von
+# scripts/factory/pipeline.js sah ein gefilterter Lauf auf tests/spec/ gruen aus, waehrend
+# `task test:factory` ueber die veralteten Kopien mit 30 Tests rot lief. Neue Faelle gehoeren
+# hierher, nicht nach tests/local/.
 
 # ── File-level variables ──────────────────────────────────────────────────────
-PIPELINE_SCRIPT="scripts/factory/pipeline.js"
+PIPELINE_SCRIPT="scripts/factory/pipeline.mjs"
 DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 GUARDS_SCRIPT="scripts/factory/guards.sh"
 CANARY_SCRIPT="$BATS_TEST_DIRNAME/../../scripts/feature-promote.sh"
@@ -17,7 +24,7 @@ PROVISION_MOD="scripts/factory/provision.js"
 PROVISION_SUITE="scripts/factory/provision.test.mjs"
 DECOMPOSE_MOD="scripts/factory/pipeline-decompose.cjs"
 DECOMPOSE_SUITE="scripts/factory/pipeline-decompose.test.cjs"
-PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
+PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.mjs"
 # T002074: the Deploy-phase prompt moved into pipeline-partials.cjs (buildDeployPrompt)
 # and the CI retry loop into pr-babysit-ticket.sh — deploy-contract greps span these.
 PARTIALS_MOD="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline-partials.cjs"
@@ -92,7 +99,7 @@ setup() {
   # FA-SF-63: scout.sh deterministic tests
   SCOUT="${REPO_ROOT}/scripts/factory/scout.sh"
   FIXTURE="${REPO_ROOT}/tests/local/fixtures/scout-repo"
-  PIPELINE="${REPO_ROOT}/scripts/factory/pipeline.js"
+  PIPELINE="${REPO_ROOT}/scripts/factory/pipeline.mjs"
 
   _CLEANUP_PATHS=("$TMPLOG" "$TEST_TMP_DIR")
 }
@@ -477,7 +484,7 @@ psql_tickets() {
 
 # ── FA-SF-20-pipeline-contract ──────────────────────────────────#
 # FA-SF-20: structural contract for the runnable factory pipeline (offline, no cluster).
-PIPELINE_SCRIPT="scripts/factory/pipeline.js"
+PIPELINE_SCRIPT="scripts/factory/pipeline.mjs"
 
 @test "FA-SF-20: pipeline.js exists and is syntactically valid JS" {
   [ -f "$PIPELINE_SCRIPT" ]
@@ -518,7 +525,12 @@ PIPELINE_SCRIPT="scripts/factory/pipeline.js"
 }
 
 @test "FA-SF-20: pipeline writes a per-phase liveness touch (>=6 references)" {
-  run grep -c "ticket.sh touch" "$PIPELINE_SCRIPT"
+  # [T002418] Ueber pipeline.mjs UND pipeline-runner.js gezaehlt. Die Anforderung ist
+  # unveraendert — jede Phase meldet Liveness, sonst haelt der Watchdog sie fuer tot.
+  # Verlagert hat sich nur der Ort: die Liveness der Plan-Phase steckte im Prompt des
+  # Conflict-Agenten und ist mit dessen Wegfall in den Runner gewandert, wo sie
+  # deterministisch laeuft statt davon abzuhaengen, dass ein Modell die Zeile ausfuehrt.
+  run bash -c "cat '$PIPELINE_SCRIPT' scripts/factory/pipeline-runner.js | grep -cE \"ticket[.]sh touch|'touch', '--id'\""
   [ "$status" -eq 0 ]
   [ "$output" -ge 6 ]
 }
@@ -874,6 +886,28 @@ process.stdout.write(a+'/'+b)"
   [ "$st" = "triage" ]
 }
 
+@test "FA-SF-26: a stale in_progress feature WITH a staged plan (FACTORY-PLAN-REF) is returned to backlog, not triage [T001850]" {
+  # [T002427] Aus tests/local/FA-SF-26-watchdog.bats uebernommen. Gegenstueck zum Test
+  # darueber: liegt bereits ein Plan vor, darf der Watchdog diese Arbeit nicht wegwerfen,
+  # indem er nach triage zuruecksetzt — das erzwingt einen vollen Scout/Design/Plan-Neustart.
+  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  local brand="${TEST_BRAND:-korczewski}"
+  ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-b.txt")
+  env BRAND="$brand" bash scripts/factory/slots.sh claim "$ext" 1 >/dev/null
+  # Simuliert, dass dev-flow-plan fuer dieses Ticket bereits einen Plan gestaged hat.
+  BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh add-comment --id "$ext" \
+    --body "FACTORY-PLAN-REF branch=feature/sf-test-wd-$$ plan=openspec/changes/sf-test-wd-$$/tasks.md" >/dev/null
+  local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
+  run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
+  [ "$status" -eq 0 ]
+  echo "$output" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
+  st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
+  [ "$st" = "backlog" ]
+}
+
 @test "T002242-M2: watchdog zombie-worktree cleanup prueft git status vor Force-Remove" {
   run grep -n "status --short" "$REPO_ROOT/scripts/factory/watchdog.sh"
   [ "$status" -eq 0 ]
@@ -921,7 +955,7 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 }
 
 @test "FA-SF-30: launches pipeline.js via workflow scriptPath" {
-  run grep -q "scripts/factory/pipeline.js" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "scripts/factory/pipeline.mjs" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
   run grep -Eq "workflow\(" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
 }
 
@@ -969,6 +1003,17 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   [ "$pinned" -eq 0 ]
 }
 
+@test "FA-SF-30: dispatcher reads prep from a file, not via child_process (T001812)" {
+  # Uebernommen aus tests/local/FA-SF-30-dispatcher-contract.bats, die mit T002421
+  # entfaellt. T001810 rief factory-prep per child_process.execFileSync INNERHALB des
+  # Workflow-Calls (bis 300s), langsam genug um den Call in den asynchronen
+  # "launched in background"-Modus zu kippen — eine einmalige `claude -p`-Session
+  # ueberlebt diese Notification nie. T001812 hat factory-prep zurueck nach wakeup.sh
+  # (synchrones bash) verlegt und uebergibt das Ergebnis als Dateipfad.
+  run grep -q "args.prep_file\|A.prep_file" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "readFileSync" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+}
+
 # ── FA-SF-31-workflow-entrypoint ────────────────────────────────#
 # FA-SF-31: factory Workflow scripts must NOT wrap their body in a fire-and-forget
 # IIFE. The harness runs the script body and treats the run as complete when the
@@ -977,9 +1022,9 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 # top-level await → agents run + return propagates). Guard both runnable scripts.
 
 @test "FA-SF-31: pipeline.js has no fire-and-forget async IIFE wrapper" {
-  run grep -Eq '\(async[[:space:]]*\([[:space:]]*\)[[:space:]]*=>' scripts/factory/pipeline.js
+  run grep -Eq '\(async[[:space:]]*\([[:space:]]*\)[[:space:]]*=>' scripts/factory/pipeline.mjs
   [ "$status" -ne 0 ]
-  run grep -Eq '^[[:space:]]*\}\)\(\)[[:space:]]*$' scripts/factory/pipeline.js
+  run grep -Eq '^[[:space:]]*\}\)\(\)[[:space:]]*$' scripts/factory/pipeline.mjs
   [ "$status" -ne 0 ]
 }
 
@@ -991,22 +1036,22 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
 }
 
 @test "FA-SF-31: both scripts still parse and use top-level await" {
-  run node --check scripts/factory/pipeline.js;   [ "$status" -eq 0 ]
+  run node --check scripts/factory/pipeline.mjs;   [ "$status" -eq 0 ]
   run node --check scripts/factory/dispatcher.js; [ "$status" -eq 0 ]
-  run grep -Eq 'await (agent|workflow|parallel|pipeline)\(' scripts/factory/pipeline.js;   [ "$status" -eq 0 ]
+  run grep -Eq 'await (agent|workflow|parallel|pipeline)\(' scripts/factory/pipeline.mjs;   [ "$status" -eq 0 ]
   run grep -Eq 'await (agent|workflow|parallel|pipeline)\(' scripts/factory/dispatcher.js; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-31: pipeline.js has a dry-run branch that does NOT merge/deploy" {
-  run grep -Eq 'dry_run|FACTORY_DRY_RUN|DRY_RUN' scripts/factory/pipeline.js
+  run grep -Eq 'dry_run|FACTORY_DRY_RUN|DRY_RUN' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
   # In the dry-run branch the deploy agent must be guarded: assert a DRY_RUN const exists
-  run grep -Eq 'const DRY_RUN' scripts/factory/pipeline.js
+  run grep -Eq 'const DRY_RUN' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-31: pipeline.js has a plan-reuse entrypoint" {
-  run grep -Eq 'REUSE|plan_path|WORK_BRANCH' scripts/factory/pipeline.js; [ "$status" -eq 0 ]
+  run grep -Eq 'REUSE|plan_path|WORK_BRANCH' scripts/factory/pipeline.mjs; [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-31: DRY_RUN branch marks the ticket dry-run-checked before requeuing (T001816)" {
@@ -1014,9 +1059,10 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   # has been called for a ticket. Without it, a ticket that enters the DRY_RUN
   # branch loops forever: every subsequent tick re-forces dry_run=true and the
   # ticket is bounced back to backlog without ever progressing (T001816).
-  run awk '/^if \(DRY_RUN\) \{/{f=1} f{print} f && /^\}/{exit}' scripts/factory/pipeline.js
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "dryrun-mark --id" ]]
+  # NOTE: T002361 moved dryrun-mark OUTSIDE the DRY_RUN agent prompt (as its own
+  # programmatic step) to break the livelock. The test checks the full file, not
+  # the awk-extracted block.
+  grep -q 'dryrun-mark' scripts/factory/pipeline.mjs
 }
 
 # ── FA-SF-32-classify-paths ─────────────────────────────────────#
@@ -1125,6 +1171,17 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
   printf 'all good, nothing to report here\n' > "$TMPLOG"
   run _cf
   [ "$output" = "other" ]
+}
+
+@test "FA-SF-33: harmless log with word manifest does not classify as manifest" {
+  # [T002427] Aus tests/local/FA-SF-33-classify-failure.bats uebernommen. Falsch-Positiv-
+  # Wache: das blosse Vorkommen des Wortes "manifest" in einer Erfolgsmeldung darf die
+  # Klassifikation nicht auf 'manifest' ziehen — sonst laeuft die Fehlerbehandlung in den
+  # falschen Zweig.
+  printf 'Checking route-manifest.json... ok\nAll checks passed cleanly\n' > "$TMPLOG"
+  run _cf
+  [ "$status" -eq 0 ]
+  [ "$output" != "manifest" ]
 }
 
 @test "FA-SF-33: missing log file classifies as other" {
@@ -1280,7 +1337,7 @@ GUARDS_SCRIPT="scripts/factory/guards.sh"
 
 # ── FA-SF-37-retry ──────────────────────────────────────────────#
 # FA-SF-37-retry — structured ≤2 self-healing retry loop in pipeline.js
-PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
+PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.mjs"
 
 @test "FA-SF-37-retry: pipeline.js lints clean (node --check)" {
   run node --check "$PJS"
@@ -1609,7 +1666,7 @@ PHASES_SCRIPT="$BATS_TEST_DIRNAME/../../scripts/lib/promote-phases.sh"
 
 # ── FA-SF-39-canary-wire ────────────────────────────────────────#
 # FA-SF-39-canary-wire — Deploy-phase canary wiring in pipeline.js
-PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.js"
+PJS="$BATS_TEST_DIRNAME/../../scripts/factory/pipeline.mjs"
 
 @test "FA-SF-39-wire: pipeline.js lints clean" {
   run node --check "$PJS"
@@ -1979,27 +2036,27 @@ ROUTE="${BATS_TEST_DIRNAME}/../../website/src/pages/api/factory-metrics.ts"
 # of FA-SF-20/31, because the Workflow script cannot be unit-executed offline.
 
 @test "FA-SF-43: pipeline.js does NOT pass the harness isolation:'worktree' option (code, not comments)" {
-  run bash -c "CODE_ONLY() { grep -v '^[[:space:]]*//' scripts/factory/pipeline.js | grep -v '^[[:space:]]*\*'; }; CODE_ONLY | grep -Eq \"isolation:[[:space:]]*'worktree'\""
+  run bash -c "CODE_ONLY() { grep -v '^[[:space:]]*//' scripts/factory/pipeline.mjs | grep -v '^[[:space:]]*\*'; }; CODE_ONLY | grep -Eq \"isolation:[[:space:]]*'worktree'\""
   [ "$status" -ne 0 ]
 }
 
 @test "FA-SF-43: pipeline.js creates the worktree via scripts/worktree-create.sh" {
-  run grep -Eq 'scripts/worktree-create\.sh[[:space:]]+\$\{WORK_BRANCH\}[[:space:]]+\$\{WORK_WT\}' scripts/factory/pipeline.js
+  run grep -Eq 'scripts/worktree-create\.sh[[:space:]]+\$\{WORK_BRANCH\}[[:space:]]+\$\{WORK_WT\}' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-43: pipeline.js fails loudly (returns blocked) when worktree setup fails" {
-  run grep -Eq "reason: 'worktree-setup'" scripts/factory/pipeline.js
+  run grep -Eq "reason: 'worktree-setup'" scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-43: spec/plan filenames are date-stamped by the agent, not from A.timestamp" {
   # the undefined- filename bug: A.timestamp is not reliably passed → must use date +%F
-  run grep -Eq '\$\{A\.timestamp\}-\$\{slug\}' scripts/factory/pipeline.js
+  run grep -Eq '\$\{A\.timestamp\}-\$\{slug\}' scripts/factory/pipeline.mjs
   [ "$status" -ne 0 ]
-  run grep -Eq 'docs/superpowers/specs/\$\(date \+%F\)-\$\{slug\}-design\.md' scripts/factory/pipeline.js
+  run grep -Eq 'docs/superpowers/specs/\$\(date \+%F\)-\$\{slug\}-design\.md' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
-  run grep -Eq 'openspec/changes/\$\{slug\}/tasks\.md' scripts/factory/pipeline.js
+  run grep -Eq 'openspec/changes/\$\{slug\}/tasks\.md' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
@@ -2011,7 +2068,7 @@ ROUTE="${BATS_TEST_DIRNAME}/../../website/src/pages/api/factory-metrics.ts"
 }
 
 @test "FA-SF-43: pipeline.js still parses" {
-  run node --check scripts/factory/pipeline.js
+  run node --check scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
@@ -2025,10 +2082,10 @@ ROUTE="${BATS_TEST_DIRNAME}/../../website/src/pages/api/factory-metrics.ts"
 #     and `factory-control set` must not create NULL-brand duplicates.
 
 @test "FA-SF-44: Verify panel diffs the worktree, not bare HEAD in REPO" {
-  run grep -Eq 'git -C \$\{WORK_WT\} diff origin/main\.\.\.HEAD' scripts/factory/pipeline.js
+  run grep -Eq 'git -C \$\{WORK_WT\} diff origin/main\.\.\.HEAD' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
   # the old empty-diff form must be gone
-  run grep -Eq 'git diff origin/main\.\.\.HEAD in \$\{REPO\}' scripts/factory/pipeline.js
+  run grep -Eq 'git diff origin/main\.\.\.HEAD in \$\{REPO\}' scripts/factory/pipeline.mjs
   [ "$status" -ne 0 ]
 }
 
@@ -2098,12 +2155,12 @@ STUB
 
 @test "FA-SF-45: pipeline.js releases slot + resets to backlog on conflict" {
   # the conflict-block path must include release-slot (template: ${A.ticket_id})
-  run bash -c "grep -Eq 'release-slot.*--id.*ticket_id' scripts/factory/pipeline.js && grep -Eq 'update-status.*--id.*ticket_id.*backlog' scripts/factory/pipeline.js"
+  run bash -c "grep -Eq 'release-slot.*--id.*ticket_id' scripts/factory/pipeline.mjs && grep -Eq 'update-status.*--id.*ticket_id.*backlog' scripts/factory/pipeline.mjs"
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-45: pipeline.js conflict-block return includes released:true" {
-  run grep -Eq "released: true" scripts/factory/pipeline.js
+  run grep -Eq "released: true" scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
@@ -2113,7 +2170,7 @@ STUB
 }
 
 @test "FA-SF-45: offline parsing passes" {
-  run node --check scripts/factory/pipeline.js;   [ "$status" -eq 0 ]
+  run node --check scripts/factory/pipeline.mjs;   [ "$status" -eq 0 ]
   run bash -n scripts/factory/conflict-check.sh;  [ "$status" -eq 0 ]
   run bash -n scripts/factory/slots.sh;           [ "$status" -eq 0 ]
 }
@@ -2153,7 +2210,7 @@ STUB
 
 @test "FA-SF-52: pipeline.js PR title uses chore prefix for chore branches" {
   # titlePrefix is still computed in pipeline.js; the PR-title template moved to buildDeployPrompt.
-  run grep -Fq "WORK_BRANCH.startsWith('chore/') ? 'chore' : 'feat'" scripts/factory/pipeline.js
+  run grep -Fq "WORK_BRANCH.startsWith('chore/') ? 'chore' : 'feat'" scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
   run grep -Fq '${c.titlePrefix}(${c.slug})' scripts/factory/pipeline-partials.cjs
   [ "$status" -eq 0 ]
@@ -2219,23 +2276,23 @@ STUB
 
 @test "FA-SF-46: pipeline.js wraps main body in try/finally" {
   # finally block must contain the cleanup agent call.
-  run grep -Eq '} finally \{' scripts/factory/pipeline.js
+  run grep -Eq '} finally \{' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-46: pipeline.js finally block calls cleanup.sh" {
-  run grep -Eq 'scripts/factory/cleanup\.sh' scripts/factory/pipeline.js
+  run grep -Eq 'scripts/factory/cleanup\.sh' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-46: pipeline.js cleanup is wrapped in try/catch (never masks real result)" {
-  run grep -Eq 'catch[[:space:]]*\(_\)' scripts/factory/pipeline.js
+  run grep -Eq 'catch[[:space:]]*\(_\)' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-46: pipeline.js cleanup passes both WORK_BRANCH and WORK_WT" {
   # The invocation is inside a JS template literal: --branch ${WORK_BRANCH} --worktree ${WORK_WT}
-  run grep -Eq 'cleanup\.sh.*--branch.*WORK_BRANCH.*--worktree.*WORK_WT' scripts/factory/pipeline.js
+  run grep -Eq 'cleanup\.sh.*--branch.*WORK_BRANCH.*--worktree.*WORK_WT' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
@@ -2839,14 +2896,14 @@ EOF
 }
 
 @test "FA-SF-59: pipeline.js loads ACI conditionally via env var" {
-  run bash -c "ACI_ENABLED=true node --check scripts/factory/pipeline.js"
+  run bash -c "ACI_ENABLED=true node --check scripts/factory/pipeline.mjs"
   [ "$status" -eq 0 ]
   [[ "$output" =~ "" ]]  # node --check produces no output on success
 
-  run bash -c "ACI_ENABLED=false node --check scripts/factory/pipeline.js"
+  run bash -c "ACI_ENABLED=false node --check scripts/factory/pipeline.mjs"
   [ "$status" -eq 0 ]
 
-  run bash -c "node --check scripts/factory/pipeline.js"
+  run bash -c "node --check scripts/factory/pipeline.mjs"
   [ "$status" -eq 0 ]
 }
 
@@ -2979,15 +3036,15 @@ REG="scripts/factory/service-registry.sh"
 }
 
 @test "FA-SF-60: pipeline.js references the service-registry resolver" {
-  run grep -q 'resolve_partial_services' scripts/factory/pipeline.js
+  run grep -q 'resolve_partial_services' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
-  run grep -q 'service-registry.sh' scripts/factory/pipeline.js
+  run grep -q 'service-registry.sh' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-60: pipeline.js passes node --check" {
   command -v node >/dev/null || skip "node not installed"
-  run node --check scripts/factory/pipeline.js
+  run node --check scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
@@ -3104,6 +3161,12 @@ REG="scripts/factory/service-registry.sh"
   run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"opus"* ]]
+  # [T002427] Aus tests/local/FA-SF-70-provider-router.bats uebernommen, die mit diesem
+  # Vorgang entfaellt: opus muss die Argumentpruefung PASSIEREN und nur warnen. Ohne diese
+  # Zeile bestuende der Test auch dann, wenn opus hart abgelehnt wuerde — die Usage-Ausgabe
+  # enthaelt den Tier-Namen ebenfalls.
+  [[ "$output" == *"WARNING"* ]]
+  [[ "$output" != *"Usage:"* ]]
 }
 
 @test "FA-SF-70: provider-config.sh set requires all mandatory flags" {
@@ -3167,17 +3230,17 @@ REG="scripts/factory/service-registry.sh"
   # mechanism. Sandbox mode (FACTORY_MODEL fixed to the local LM Studio model
   # for every agent() call) has no tiers/slots left to release — this is an
   # intentional architecture change, not a regression.
-  run grep -q "releaseSlotSync" scripts/factory/pipeline.js
+  run grep -q "releaseSlotSync" scripts/factory/pipeline.mjs
   [ "$status" -ne 0 ]
-  run grep -q "routeProviderSync" scripts/factory/pipeline.js
+  run grep -q "routeProviderSync" scripts/factory/pipeline.mjs
   [ "$status" -ne 0 ]
-  run grep -q "FACTORY_MODEL" scripts/factory/pipeline.js
+  run grep -q "FACTORY_MODEL" scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
 
 @test "FA-SF-71: pipeline.js stays offline-parseable after ctx threading" {
-  run node --check scripts/factory/pipeline.js
+  run node --check scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
@@ -3971,7 +4034,7 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
 }
 
 @test "FA-SF-GANG: pipeline.js emittiert partial-done-Phase-Events" {
-  run grep -Fq "partial-done" scripts/factory/pipeline.js
+  run grep -Fq "partial-done" scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
@@ -3994,9 +4057,9 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
 }
 
 @test "FA-SF-GANG: Deploy-Phase kennt das pr-ready-Gate" {
-  run grep -Fq "pr-ready" scripts/factory/pipeline.js
+  run grep -Fq "pr-ready" scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
-  run grep -Fq "pending-pr-gate" scripts/factory/pipeline.js
+  run grep -Fq "pending-pr-gate" scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
   run grep -Fq "pr-gate" scripts/factory/pipeline-runner.js
   [ "$status" -eq 0 ]
@@ -4009,7 +4072,7 @@ QA_LENS="${BATS_TEST_DIRNAME}/../../scripts/factory/qa-lens.mjs"
   [ "$status" -eq 0 ]
   run grep -Fq -- '--squash --auto' scripts/factory/pr-babysit-ticket.sh
   [ "$status" -eq 0 ]
-  run grep -Fq 'pr-babysit-ticket.sh' scripts/factory/pipeline.js
+  run grep -Fq 'pr-babysit-ticket.sh' scripts/factory/pipeline.mjs
   [ "$status" -eq 0 ]
 }
 
@@ -4735,7 +4798,7 @@ MOCKEOF
   # setupWorktree ohnehin frueher auf. Geprueft wird deshalb, dass ein Aufruf ZWISCHEN
   # `if (REUSE) {` und dem read-partials-Aufruf liegt. Genau das stellt der Fix her,
   # und genau daran haengt, ob read-partials das Partial-Manifest ueberhaupt sehen kann.
-  local pj="$REPO/scripts/factory/pipeline.js"
+  local pj="$REPO/scripts/factory/pipeline.mjs"
   local reuse_line read_line setup_between
   reuse_line=$(grep -n '^if (REUSE) {' "$pj" | head -1 | cut -d: -f1)
   read_line=$(grep -n "'read-partials'" "$pj" | head -1 | cut -d: -f1)
@@ -4753,7 +4816,7 @@ MOCKEOF
 @test "T002327: der zweite setupWorktree-Aufruf ist gegen Doppelanlage abgesichert" {
   # Ein zweiter Aufruf mit demselben Pfad scheitert an "<path> already exists" und
   # liefe direkt in die Eskalation — ein selbstverschuldetes `blocked`.
-  run grep -Fq 'const iwt = wtReady' "$REPO/scripts/factory/pipeline.js"
+  run grep -Fq 'const iwt = wtReady' "$REPO/scripts/factory/pipeline.mjs"
   [ "$status" -eq 0 ] || { echo "Implement-Block prueft nicht, ob der Worktree schon steht"; false; }
 }
 
@@ -4814,7 +4877,7 @@ MOCKEOF
   # Nicht ausfuehrbar testbar (kein Cluster, kein Agent) — geprueft wird der Quelltext
   # der Zweige. Jeder branch-in-use-Block muss VOR dem naechsten Zweig enden, ohne
   # --status blocked oder PushNotification zu enthalten.
-  local pj="$REPO/scripts/factory/pipeline.js"
+  local pj="$REPO/scripts/factory/pipeline.mjs"
   local bad
   # Blockende ist der `return { status: 'deferred' ... }` — die letzte Anweisung jedes
   # Zweigs. Ein Indent-Muster als Terminator (/^  }/) laeuft in den NACHFOLGENDEN
@@ -4839,7 +4902,7 @@ MOCKEOF
 @test "T002327: jeder Fremdbesitz-Zweig gibt den Slot frei" {
   # Bleibt der Slot belegt, verhungert die Queue — das waere schlimmer als das
   # `blocked`, das dieser Change ersetzt.
-  local pj="$REPO/scripts/factory/pipeline.js"
+  local pj="$REPO/scripts/factory/pipeline.mjs"
   local branches releases
   branches=$(grep -c "reason === 'branch-in-use'" "$pj")
   releases=$(grep -c "defer-branch-in-use" "$pj")
@@ -4855,12 +4918,12 @@ MOCKEOF
   run grep -Fq "res.manifest" "$pr";     [ "$status" -eq 0 ] || { echo "manifest fehlt"; false; }
   run grep -Fq 'res.done_lookup' "$pr";  [ "$status" -eq 0 ] || { echo "done_lookup fehlt"; false; }
   # Rueckwaertskompatibel: pipeline.js:321 prueft weiterhin partials/sub_features.
-  run grep -Fq 'partials.partials && Array.isArray(partials.sub_features)' "$REPO/scripts/factory/pipeline.js"
+  run grep -Fq 'partials.partials && Array.isArray(partials.sub_features)' "$REPO/scripts/factory/pipeline.mjs"
   [ "$status" -eq 0 ] || { echo "bestehender Vertrag partials/sub_features gebrochen"; false; }
 }
 
 @test "T002327: der stille Fallback ist beseitigt — pipeline.js loggt jeden Grund" {
-  local pj="$REPO/scripts/factory/pipeline.js"
+  local pj="$REPO/scripts/factory/pipeline.mjs"
   run grep -c "partials.skipped\|partials.done_lookup\|partials.manifest" "$pj"
   [ "$output" -ge 4 ] || { echo "zu wenige Fallback-Meldungen in pipeline.js: $output"; false; }
 }

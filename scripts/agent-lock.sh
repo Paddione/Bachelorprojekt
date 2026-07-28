@@ -462,19 +462,21 @@ cmd_reap() {
 }
 
 
-# Die beiden Git-Hook-Guards liegen in einer eigenen Datei [T002375-p1] — diese hier
-# stand bei 464 von 500 erlaubten Zeilen (S1, .sh) und hatte für den Change keinen Platz.
-# Die Aufrufschnittstelle bleibt `agent-lock.sh guard-precommit|guard-postcheckout`,
-# damit .githooks/pre-commit und .githooks/post-checkout unverändert bleiben können.
-# Fail-loud: fehlt die Datei, sind die Guards stumm wirkungslos — und ein Guard, der
-# schweigend nichts tut, ist schlimmer als gar keiner.
 _AGENT_LOCK_DIR_SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Git-Hook-Guards in eigener Datei [T002375-p1] unter S1-Limit. Fail-loud: stumm = schlimmer.
 if [ -f "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh" ]; then
   # shellcheck source=scripts/agent-lock-guards.sh
   . "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh"
 else
   echo "AGENT-LOCK: FATAL — scripts/agent-lock-guards.sh fehlt neben $0" >&2
   exit 1
+fi
+# T002279: check-merged command, extracted for S1 limit.
+if [ -f "$_AGENT_LOCK_DIR_SELF/agent-lock-merged.sh" ]; then
+  # shellcheck source=scripts/agent-lock-merged.sh
+  . "$_AGENT_LOCK_DIR_SELF/agent-lock-merged.sh"
+else
+  echo "AGENT-LOCK: WARNING — scripts/agent-lock-merged.sh fehlt neben $0 (check-merged disabled)" >&2
 fi
 
 main() {
@@ -485,12 +487,13 @@ main() {
     release) cmd_release "$@";;
     check)   cmd_check "$@";;
     check-and-claim) cmd_check_and_claim "$@";;
+    check-merged)    cmd_check_merged "$@";;
     list)    cmd_list "$@";;
     reap)    cmd_reap "$@";;
     mine)    _my_sid;;
     guard-precommit)    cmd_guard_precommit "$@";;
     guard-postcheckout) cmd_guard_postcheckout "$@";;
-    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
+    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-merged|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
   esac
 }
 main "$@"

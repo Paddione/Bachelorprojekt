@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "slug": "task-context-channel",
+    "ticket_id": "T002420",
+    "generated_from": "main@3b38d5e39",
+    "domains": ["plan-authoring", "dev-tooling", "factory"],
+    "intel_sources": ["grep", "baseline.json", "gates.yaml", "wc -l"]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/plan-intel.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 500
+    },
+    {
+      "path": "scripts/task-context.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 500
+    },
+    {
+      "path": "scripts/plan-lint.sh",
+      "language": "bash",
+      "loc": 411,
+      "s1_limit": 500,
+      "s1_baseline": null,
+      "s1_budget": 89
+    },
+    {
+      "path": "scripts/factory/pipeline.mjs",
+      "language": "javascript",
+      "loc": 663,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".claude/skills/dev-flow-execute/SKILL.md",
+      "language": "markdown",
+      "loc": 250,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": ".claude/skills/references/dev-flow-plan-phases.md",
+      "language": "markdown",
+      "loc": 327,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/task-context.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": 0
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/plan-lint.sh:_ext_limit",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "_ext_limit <path> -> int",
+      "type_text": "(path: string) => number  // 0 = ungated extension",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:effective_threshold",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "effective_threshold <path> -> int",
+      "type_text": "(path: string) => number  // max(_ext_limit, baseline.metric)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:residual_budget",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "residual_budget <path> -> int",
+      "type_text": "(path: string) => number",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:hard",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "hard <message>",
+      "type_text": "(msg: string) => void  // appends to HARD[]; drives non-zero exit",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:warn",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "warn <message>",
+      "type_text": "(msg: string) => void  // appends to WARN[]; advisory only",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:emit_verdict",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "emit_verdict",
+      "type_text": "() => void  // renders HARD/WARN and sets exit status",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-intel-filter.sh",
+      "kind": "script",
+      "file": "scripts/plan-intel-filter.sh",
+      "signature": "plan-intel-filter.sh <intel.json|slug> <target_file>...",
+      "type_text": "stdout: filtered intel JSON (impact_files + symbols narrowed to target list; meta/db_tables/api_contracts/risks verbatim). Reads intel via stdin because jq --args swallows file arguments as positionals.",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-context.sh:--semantic",
+      "kind": "cli_flag",
+      "file": "scripts/plan-context.sh",
+      "signature": "plan-context.sh <role> [--with-openspec] [--semantic <query>]",
+      "type_text": "Existing but never invoked. Calls GET ${OPENSPEC_SEARCH_URL:-http://website.website.svc.cluster.local:4321}/api/openspec/search?q=&limit=3 with --max-time 5, renders .results[] as markdown bullets.",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [
+      "scripts/factory/pipeline.mjs:implementer-loop",
+      "scripts/plan-lint.sh:emit_verdict"
+    ],
+    "edges": [
+      { "from": "pipeline.mjs:implementer-loop", "to": "task-source.cjs:resolveTaskSource", "kind": "calls" },
+      { "from": "plan-lint.sh:residual_budget", "to": "plan-lint.sh:effective_threshold", "kind": "calls" },
+      { "from": "plan-lint.sh:effective_threshold", "to": "plan-lint.sh:_ext_limit", "kind": "calls" }
+    ]
+  },
+  "db_tables": [],
+  "api_contracts": [
+    {
+      "path": "/api/openspec/search",
+      "method": "GET",
+      "params": "q (string), limit (int)",
+      "response": "{ results: [{ slug, ticket_id, file_type, snippet }] }",
+      "note": "Consumed today only by plan-context.sh:152-163, which is itself never invoked with --semantic."
+    }
+  ],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — it was assembled by hand because the generator it specifies does not exist yet. symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "scripts/factory/pipeline.mjs is on the s1.ignore list in docs/code-quality/gates.yaml, therefore S1-ungated. s1_budget 0 here means 'not measured', NOT 'no room'. Do not derive a shrink step from it.",
+      "severity": "info"
+    },
+    {
+      "note": ".claude/skills/dev-flow-execute/SKILL.md is S1-ungated (.md has no s1.limits entry) but sits at exactly 250 lines against health goal G-AGENTIC09 (project-owned SKILL.md > 250 lines, target 0). Effective budget is ZERO: any net line added breaks the gate. The planned edit replaces four lines of prose (69-72) with a one-line script call, so it shrinks the file — keep it that way.",
+      "severity": "warn"
+    },
+    {
+      "note": "The implementer prompt is built in pipeline.mjs around lines 43-46 (loop labelled impl:${t.id}:${i}). Sibling files pipeline-runner.js and run-pipeline.mjs also construct prompts; confirm the live dispatch path before wiring, rather than assuming pipeline.mjs is the only one.",
+      "severity": "warn"
+    }
+  ]
+}

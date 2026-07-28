@@ -132,7 +132,10 @@ leer, und die `impact_files`-Pfade decken die Union der `target_files` aus dem P
 
 ## Tests
 
-`tests/spec/dev-flow-plan.bats` (bestehende Spec-Datei, kein neues ticket-nummeriertes File).
+`tests/spec/dev-flow-plan/task-context.bats` — eigene Datei im Spec-Verzeichnis, **nicht** angehängt
+an die Sammeldatei `tests/spec/dev-flow-plan.bats` (T002416, CLAUDE.md:153). Genau dieses Vorhaben
+ist der Anlassfall: vier Partials, deren Test-Partial sonst am Dateiende mit jeder Parallelarbeit
+kollidiert. Keine ticket-nummerierten Dateien.
 
 Negativtests brauchen einen Positiv-Anker im selben Test (T002356-M1): erst prüfen, dass der
 gültige Fall durchläuft, dann die Negativ-Aussage — sonst besteht der Test vakuos gegen eine leere

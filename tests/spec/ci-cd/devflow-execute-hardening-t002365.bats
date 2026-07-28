@@ -14,9 +14,9 @@ setup() {
 
 # ── Mishap 1: CI-watch is Orchestrator-owned, not Implementer-owned ────────
 
-@test "T002365-M1: SKILL.md documents the Implementer/Orchestrator split table" {
-  # Positiv-Anker: the split table itself must exist verbatim.
-  run grep -c 'Orchestrator: devflow-ci-watch.sh' "$SKILL"
+@test "T002365-M1: SKILL.md documents the Implementer/Orchestrator split" {
+  # Positiv-Anker: the Arbeitsteilung note itself must exist.
+  run grep -c 'Arbeitsteilung (T002365' "$SKILL"
   [ "$output" -ge 1 ]
   # Negativ: the Implementer-facing Auftrag no longer tells it to invoke the CI loop itself
   # (the split table's mention of the script name, assigned to the Orchestrator, is fine —

@@ -51,16 +51,9 @@ bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
-> **Arbeitsteilung (T002365, aus T002351-M3):** Der Implementer endet nach dem Auto-Merge-Request
-> und meldet zurück — die CI-Überwachung bleibt beim Orchestrator, damit sie nie als
-> Hintergrund-Monitor im Subagenten läuft [T001969]:
-> ```
-> Implementer:  implementieren -> verify -> push -> gh pr create
->               -> gh pr merge --auto -> ENDE, Bericht zurueck
-> Orchestrator: devflow-ci-watch.sh (Schritt 5.5)
->               bei Exit 3/4 den Konflikt an den Implementer
->               zurueckgeben (SendMessage), nicht neu spawnen
-> ```
+> **Arbeitsteilung (T002365, aus T002351-M3):** Implementer bis `gh pr merge --auto` → **ENDE**,
+> Bericht zurück. Orchestrator: CI-Watch (5.5); Exit 3/4 per `SendMessage` an den Implementer
+> zurück, nicht neu spawnen — sonst liefe die CI-Überwachung als Hintergrund-Monitor [T001969].
 
 Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — **MCP-first**:
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet · agent_id=$IMPLEMENTER_AGENT_ID" })`
@@ -77,16 +70,8 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
-  - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` (aus der Plan-Phase) — der
-    Implementer lädt es als Pflicht-Kontext (analog zu `$ATTACHMENT_DIR`) und arbeitet gegen dieselbe
-    Typen-Wahrheit wie der Plan: reale Signaturen aus `symbols`, DB-Spalten aus `db_tables`,
-    API-Contracts aus `api_contracts` — kein Re-Explorieren. Format:
-    [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
-- **⚠️ BATS-Pflicht:** Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die
-  OpenSpec-Spec, die das Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage:
-  `tests/spec/software-factory.bats`); ohne klare Spec-Zuordnung `tests/unit/` erweitern.
-  Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy und werden **nicht** neu angelegt.
-  Vorgehen im Detail: [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md) §BATS.
+  - **Plan Intel Bundle (PFLICHT):** `openspec/changes/<slug>/intel.json` (aus der Plan-Phase) — der Implementer lädt es als Pflicht-Kontext (analog zu `$ATTACHMENT_DIR`) und arbeitet gegen dieselbe Typen-Wahrheit wie der Plan: reale Signaturen aus `symbols`, DB-Spalten aus `db_tables`, API-Contracts aus `api_contracts` — kein Re-Explorieren. Format: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
+- **⚠️ BATS-Pflicht:** Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die OpenSpec-Spec, die das Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage: `tests/spec/software-factory.bats`); ohne klare Spec-Zuordnung `tests/unit/` erweitern. Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy und werden **nicht** neu angelegt. Vorgehen im Detail: [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md) §BATS.
 - **Auftrag:**
   - **Ein-Ebenen-Regel (PFLICHT, wörtlich Teil dieses Prompts):** Spawne selbst KEINE Subagenten/Sub-Implementer — rufe `superpowers:executing-plans` IN-CONTEXT auf. Wenn du glaubst, einen Sub-Implementer für einen Teil-Task zu brauchen, STOPPE und eskaliere stattdessen an den Orchestrator zurück, statt selbst zu delegieren. Verschachtelte Delegation ist nicht erlaubt (siehe subagent-provisioning.md, 162k-Prompt-Lehre).
   - **/goal: Finish dev-flow-execute and merge the PR cleanly.**
@@ -96,16 +81,9 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
   - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
   - **Hintergrund-Monitore für lange Test-Runs verboten [T001969 Mishap 1].** Während der Verifikation (lange `task test:changed`/`gh run watch`/CI-Polls) **keine** Background-Tasks starten, auf deren Output der Subagent in einer Monitor-Schleife wartet ("I'll wait for the monitor"). Stattdessen synchron mit explizitem Timeout ausführen: `timeout 600 task test:changed` und auf das Resultat warten. Bei Stop-Events: Arbeit fortsetzen oder an den Orchestrator eskalieren — nicht auf einen Monitor-Loop warten.
   - Erstelle einen PR und fordere Auto-Merge an (`gh pr merge --auto --squash --delete-branch`, Schritt 5).
-  - **ENDE (T002365):** Danach ist der Auftrag des Implementers abgeschlossen — melde Ergebnis
-    (PR-URL, letzter Commit) an den Orchestrator zurück. Die CI-Fix-Schleife (Schritt 5.5),
-    der Merge-Wait, der Ticket-Abschluss und die Plan-Archivierung laufen **nicht** mehr im
-    Implementer, sondern im Orchestrator — siehe Arbeitsteilung oben.
-  - **Der Worktree wird NICHT von dir entfernt** (T002365, aus T002352-M1) — das Bereinigen von
-    Worktree und Branch ist Orchestrator-Aufgabe (Schritt 7.5), damit der Orchestrator darin noch
-    die OpenSpec-Archivierung fahren kann, bevor der Worktree verschwindet.
-Der Subagent führt Implementierung, Verifikation, Push, PR-Erstellung und Auto-Merge-Aktivierung
-selbstständig durch und endet danach. Du wirst per `<task-notification>` benachrichtigt, wenn er
-fertig ist. Fahre dann mit Schritt 5.5 (CI-Watch-Schleife) fort — nicht erst mit Schritt 8.
+  - **ENDE (T002365):** Melde Ergebnis zurück — CI-Fix-Schleife (5.5), Merge-Wait, Ticket-Abschluss und
+    Plan-Archivierung laufen im Orchestrator. **Der Worktree wird NICHT von dir entfernt** (T002352-M1),
+    das ist Orchestrator-Aufgabe (Schritt 7.5). Notification abwarten, dann bei Schritt 5.5 weiter — nicht Schritt 8.
 
 ## Schritt 2.5 — Lokaler Self-Correcting-Loop (optional)
 
@@ -179,27 +157,19 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 
 ## Schritt 5.5: CI/CD-Fix-Schleife (Orchestrator-Zuständigkeit, T002365)
 
-**Diesen Schritt führt der Orchestrator aus, nicht der Implementer** — der Implementer endet in
-Schritt 2 direkt nach dem Auto-Merge-Request und läuft daher nie als Hintergrund-Monitor
-[T001969 Mishap 1, aus T002351-M3]. Nachdem der Implementer zurückgemeldet hat, überwacht der
-Orchestrator CI und behebt Fehler — Auto-Merge ist bereits angefordert (Schritt 5) und greift,
-sobald die Required Checks grün sind. Details und Required-Check-Liste (SSOT):
-[ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
+**Orchestrator-Schritt, nicht Implementer** — der läuft daher nie als Hintergrund-Monitor [T001969 Mishap 1, T002351-M3]. Nach der Implementer-Rückmeldung überwacht der Orchestrator CI — Auto-Merge ist bereits angefordert (Schritt 5) und greift, sobald die Required Checks grün sind. Details/Required-Check-Liste: [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 ```bash
 PR_URL=$(gh pr view --json url -q '.url')
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 ```
 Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet`-Subagenten übergeben (Fix-Routine: Freshness → TS → BATS → Kustomize → Commitlint), nach erfolgreichem Push Loop wiederholen.
-`devflow-ci-watch.sh` prüft `mergeStateStatus` bereits **vor** dem CI-Poll-Loop und rebased bei `DIRTY` selbstständig gegen `origin/main` (T001408, Finding 2). Bricht der Rebase mit einem Konflikt ab, beendet sich das Skript mit Exit-Code `3` (statt hängen zu bleiben). In diesem Fall gibt der **Orchestrator den Konflikt per `SendMessage` an den bereits gespawnten Implementer zurück** (nicht neu spawnen — kein zweiter Subagent für denselben Branch, genau das Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` erneut auf, nachdem der Implementer den Push nachgeholt hat.
-Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit-Code `4`, wenn `gh pr view --json mergeable` `CONFLICTING` meldet — d.h. der PR hat echte Merge-Konflikte gegen main (nicht nur einen stale Branch). Auch in diesem Fall gibt der **Orchestrator** den Konflikt per `SendMessage` an denselben Implementer zurück, der ihn manuell löst (`git fetch origin main && git rebase origin/main`, Konflikte lösen, `git push --force-with-lease`); danach ruft der Orchestrator `devflow-ci-watch.sh` erneut auf. Es wird **kein** zweiter Subagent für denselben Branch gespawnt.
+`devflow-ci-watch.sh` rebased bei `DIRTY` gegen `origin/main` (T001408) und beendet sich mit Exit-Code `3` bei Rebase-Konflikt bzw. `4` bei echtem `CONFLICTING`-Mergestatus (T001415) — in beiden Fällen gibt der **Orchestrator den Konflikt per `SendMessage` an den bereits gespawnten Implementer zurück** (kein neuer Spawn — Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` nach dessen Push erneut auf.
 
 ## Schritt 6: Phase-Chain-Gate & Merge-Wait
 
-> **Ab hier (Schritt 6–7.5) läuft alles im Orchestrator (T002365)** — der Implementer hat in
-> Schritt 2 bereits zurückgemeldet und ist fertig.
-
-> **Hinweis:** `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT.
-> Die Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
+> **Ab hier (Schritt 6–7.5) läuft alles im Orchestrator (T002365)** — der Implementer hat bereits
+> zurückgemeldet. `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT. Die
+> Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 **Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
 Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen. Bei FAIL
 zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann mergen.

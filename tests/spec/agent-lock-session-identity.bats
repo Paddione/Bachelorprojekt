@@ -200,24 +200,15 @@ _unset_claude_harness_env() {
 
 @test "T002261-M1: cmd_release emits stderr diagnostic on SID mismatch" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
-  # Claim the lock as "session-A" under claude tool
-  # [T002375-p1] CLAUDE_CODE_SESSION_ID muss ausdruecklich weg: die Harness exportiert
-  # sie real, und sie steht in der normativen Reihenfolge VOR CLAUDE_SESSION_ID.
-  # Ohne dieses unset prueft der Test die Umgebung statt die Vorbedingung — genau
-  # die Fehlerklasse, die dieses Bundle behandelt.
-  _unset_claude_harness_env
-  export CLAUDE_SESSION_ID="session-A"
-  unset AGENT_LOCK_SID
-  bash "$LOCK" claim ticket T002261-m1 --label test-release
+  # Claim the lock with explicit SID + tool (AGENT_LOCK_TOOL overrides ambient)
+  AGENT_LOCK_TOOL=claude AGENT_LOCK_SID="session-A" \
+    bash "$LOCK" claim ticket T002261-m1 --label test-release
   [ -f "$AGENT_LOCK_DIR/ticket__T002261-m1.json" ]
 
-  # Switch to a different session AND different tool class (gemini) to bypass
-  # the same-tool fallback and trigger the SID-mismatch diagnostic. [T002374]
-  # [T002451] Die VOLLE Markerliste muss weg, nicht nur CLAUDE_SESSION_ID —
-  # CLAUDECODE allein genuegt, damit _detect_tool weiter "claude" liefert.
-  _unset_claude_harness_env
-  export GEMINI_CLI=1
-  run bash "$LOCK" release ticket T002261-m1
+  # Switch to a different SID — the SID mismatch triggers the diagnostic.
+  # Tool class does NOT help anymore (T002447 removed the same-tool fallback).
+  AGENT_LOCK_TOOL=gemini AGENT_LOCK_SID="session-B" \
+    run bash "$LOCK" release ticket T002261-m1
   [ "$status" -eq 1 ]
 
   # stderr must NOT be empty — the fix adds a diagnostic message
@@ -226,7 +217,6 @@ _unset_claude_harness_env() {
   # Lock file must still exist (release was refused)
   [ -f "$AGENT_LOCK_DIR/ticket__T002261-m1.json" ]
 
-  unset GEMINI_CLI
   rm -rf "$AGENT_LOCK_DIR"
 }
 
@@ -428,19 +418,15 @@ JSON
 @test "T002373-M2: cmd_release verweigert Release ohne --force wenn owner SID lebt" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
   export AGENT_LOCK_FAKE_ALIVE="ghost-sid-99999"
-  # [T002451] Ohne dieses unset traegt der Lock unten tool="claude" AUS DER HARNESS,
-  # und die Same-Tool-Klausel gibt ihn frei, obwohl der Test das Gegenteil prueft.
-  _unset_claude_harness_env
-  # Claim as "ghost-sid-99999" (marked alive via fake)
-  export AGENT_LOCK_SID="ghost-sid-99999"
-  bash "$LOCK" claim ticket T002373-m2b --label test-release-alive
+  # Claim as "ghost-sid-99999" (marked alive via fake), with explicit tool
+  AGENT_LOCK_TOOL=claude AGENT_LOCK_SID="ghost-sid-99999" \
+    bash "$LOCK" claim ticket T002373-m2b --label test-release-alive
   [ -f "$AGENT_LOCK_DIR/ticket__T002373-m2b.json" ]
 
-  # Switch to different session AND different tool class to bypass
-  # the same-tool fallback (T002374) and trigger the SID mismatch. [T002373-M2]
-  export AGENT_LOCK_SID="session-C"
-  export GEMINI_CLI=1
-  run bash "$LOCK" release ticket T002373-m2b
+  # Switch to different session — tool class does NOT help (T002447 removed fallback).
+  # AGENT_LOCK_TOOL=claude on BOTH sides tests that same tool is NOT sufficient.
+  AGENT_LOCK_TOOL=claude AGENT_LOCK_SID="session-C" \
+    run bash "$LOCK" release ticket T002373-m2b
   [ "$status" -eq 1 ] || { echo "release must fail without --force when owner SID is alive"; false; }
 
   # Lock file must still exist

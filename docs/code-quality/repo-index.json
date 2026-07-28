@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 624,
+      "file_count": 625,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -433,6 +433,7 @@
         "tests/spec/openspec-pgvector.bats",
         "tests/spec/openspec-upstream-cli.bats",
         "tests/spec/openspec-workflow.bats",
+        "tests/spec/openspec-workflow/half-archive-guard.bats",
         "tests/spec/openspec-worktree-anchor.bats",
         "tests/spec/pipeline-divergence-T002393.bats",
         "tests/spec/pipeline-interface.bats",
@@ -2913,7 +2914,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 570,
+      "file_count": 571,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3355,6 +3356,7 @@
         "scripts/openspec-embed-local.sh",
         "scripts/openspec-embed.mjs",
         "scripts/openspec-embed.test.mjs",
+        "scripts/openspec-half-archive-check.sh",
         "scripts/openspec-header-inject.sh",
         "scripts/openspec-merge.mjs",
         "scripts/openspec-merge.test.ts",

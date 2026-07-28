@@ -1,4 +1,10 @@
-## ADDED Requirements
+# admin-nav-accordion
+
+## Purpose
+
+_Purpose fehlt — beim nächsten inhaltlichen Delta zu admin-nav-accordion ergänzen._
+
+## Requirements
 
 ### Requirement: Sessions-Eintrag in Sidebar-Sektion Geschäft
 
@@ -21,3 +27,5 @@ active on the session list path.
 - **WHEN** the sidebar renders
 - **THEN** the "Studio" item is marked active
 - **AND** the "Sessions" item is not marked active
+
+<!-- merged from change delta admin-nav-accordion.md (c9c0333277ba) -->

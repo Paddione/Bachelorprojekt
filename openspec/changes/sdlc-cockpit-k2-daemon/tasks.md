@@ -8,7 +8,7 @@
 | # | Name | Rolle | Dateien | Status |
 |---|------|-------|---------|--------|
 | p1 | daemon-core | Daemon-Server, Routing, Token | `.lavish/kit/daemon/` (server.ts, routes/, lib/) | `tasks.d/p1-daemon-core.md` ✓ |
-| p2 | source-adapters | Quell-Integration (kubectl, gh-axi, etc.) | `.lavish/kit/daemon/sources/` | — |
+| p2 | source-adapters | Quell-Integration (kubectl, gh-axi, etc.) + Route-Editierungen | `.lavish/kit/daemon/sources/`, `routes/*` (Stubs→echt) | `tasks.d/p2-source-adapters.md` ✓ |
 | p3 | adapter-js | Browser-Adapter (ersetzt K1-Fixtures) | `.lavish/kit/adapter.js` | — |
 | p4 | tests | Struktur- & Unit-Tests | `tests/spec/sdlc-cockpit/`, `tests/unit/` | — |
 

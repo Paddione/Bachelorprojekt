@@ -42,7 +42,7 @@ test.describe('FA-26: Bug report API', { tag: ['@admin'] }, () => {
     const res = await request.post(`${BASE}/api/bug-report`, {
       headers,
       multipart: {
-        description: 'POST /api/bug-report mit gültigen Daten erfolgreich',
+        description: '[E2E] Bug-Report — gültige Daten',
         email: 'e2e-test@example.invalid',
         category: 'fehler',
         url: `${BASE}/`,

@@ -219,3 +219,13 @@ setup() {
   [ "$status" -eq 0 ]
   ! echo "$output" | grep -q 'W4'
 }
+
+# === T002342: W3 partial-mode with line-suffix should NOT warn ===
+
+@test "W3 partial: line-suffix reference does not trigger false W3 warning" {
+  run bash "$LINT" "$FIX/w3-partial-line-suffix/tasks.md"
+  [ "$status" -eq 0 ]
+  # The file scripts/register-scope.sh IS referenced in the partial tasks
+  # with a line-suffix (:6-31), so W3 should NOT fire
+  ! echo "$output" | grep -q 'W3'
+}

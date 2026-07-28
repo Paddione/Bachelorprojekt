@@ -80,168 +80,168 @@ deren Status nach Code-Review entschieden wird.
 | `slot_count` | 100 % (6 Werte) | Factory-Parallel-Slots |
 | `discarded` | 100 % (2 Werte) | Cockpit-Feature-Suggest, 1 Ticket aktiv |
 
-## Tasks
+## UMFANG REDUZIERT (Implement-Phase, 2026-07-28)
+
+**Von ~23 ursprünglich geplanten Spalten werden nur 3 tatsächlich entfernt:
+`ai_question`, `human_answer`, `scope`.** Grund: die Zweit-Prüfung gegen die
+korczewski-DB (Task 1) plus eine Code-Referenzstellen-Analyse ergab, dass
+fast jede Kandidaten-Spalte an eine lebende, aktiv verdrahtete Funktion
+gekoppelt ist (UI-Feld, API mit echtem Aufrufer, CLI-Skript, MCP-Tool, oder
+Trigger/Index-Kopplung mit einer belegten Spalte) — 0 % Fillrate bedeutete
+in diesen Fällen „noch nie ausgelöst", nicht „tot". Volle Begründung je
+Spalte: `specs/ticket-system.md` Abschnitt 2. Die Tasks 4–11 unten sind
+entsprechend als „entfällt" markiert, wo die jeweilige Spalte jetzt alive
+bleibt; nur Task 2 (scope) und Task 3, reduziert auf ai_question/human_answer,
+wurden tatsächlich ausgeführt.
 
 ### 1. Inventur verifizieren
 
-- [ ] Run fill-rate query against mentolder DB (done — siehe Background)
-- [ ] Run fill-rate query against korczewski DB (done — Abweichungen dokumentieren)
-- [ ] Pro Kandidat entscheiden: remove or keep
-- [ ] Finale Liste der zu entfernenden Spalten in delta spec dokumentieren
+- [x] Run fill-rate query against mentolder DB (done — siehe Background)
+- [x] Run fill-rate query against korczewski DB — **Abweichungen gefunden**:
+      `due_date` (1/11), `start_date` (1/11), `source_test_question_id` (3/11)
+      sind in korczewski befüllt, obwohl 0 % in mentolder → bleiben alive.
+- [x] Pro Kandidat entscheiden: remove or keep — siehe `specs/ticket-system.md`
+- [x] Finale Liste der zu entfernenden Spalten in delta spec dokumentiert
+      (3 statt ~23: `ai_question`, `human_answer`, `scope`)
 
 ### 2. `scope`-Spalte entfernen
 
-- [ ] `migrations.ts` Zeile 18: `scope TEXT` aus legacy ALTER TABLE entfernen
-- [ ] Code-Referenzen auf `scope` suchen und entfernen
-- [ ] `DROP COLUMN IF EXISTS scope` in Migration
+- [x] `migrations.ts` Zeile 18: `scope TEXT` aus legacy ALTER TABLE entfernen
+- [x] Code-Referenzen auf `scope` suchen und entfernen (keine gefunden außer
+      der ADD-COLUMN-Zeile selbst; `tickets.pr_events.scope` ist eine andere
+      Tabelle und bleibt unangetastet)
+- [x] `DROP COLUMN IF EXISTS scope` in Migration
 
-### 3. Cockpit-Feature-Suggest-Spalten entfernen
+### 3. Cockpit-Feature-Suggest-Spalten — REDUZIERT auf `ai_question`/`human_answer`
 
-Betrifft: `ai_question`, `human_answer`, `suggestion_comment`, `next_step`,
-`major_feature`
+Ursprünglich geplant: `ai_question`, `human_answer`, `suggestion_comment`,
+`next_step`, `major_feature`. Nach Code-Analyse: `suggestion_comment`,
+`next_step`, `major_feature` sind Teil der Cockpit-Feature-Suggest-
+Action-Buttons (`VALID_ACTIONS` in `feature-actions.ts`, geschrieben über
+`cockpit-db.ts`); `discard` (→ `discarded`) aus derselben Action-Liste ist
+aktiv genutzt (100 % belegt). 3 von 4 Buttons einer lebenden UI zu entfernen
+wäre eine Verhaltensänderung, kein Rückbau → bleiben alive.
 
-- [ ] `scripts/migrations/2026-06-15-cockpit-feature-suggest.sql` — gesamte Datei
-      als obsolet markieren (kein DROP mehr nötig, Migration läuft künftig
-      `ADD COLUMN IF NOT EXISTS` die nie feuern)
-- [ ] Code-Referenzen auf diese Spalten suchen und entfernen
-- [ ] `DROP COLUMN IF EXISTS` für alle 5 in einer neuen Migration
+- [x] `scripts/migrations/2026-05-19-ai-question-human-answer.sql` — als
+      obsolet markiert (Kommentar-Header, Datei bleibt als No-Op-Historie)
+- [x] Code-Referenzen auf `ai_question`/`human_answer` entfernt (`admin.ts`
+      SELECT + PATCH-Whitelist, `pages/api/admin/tickets/[id].ts`-Whitelist,
+      `admin.test.ts`-Fixtures)
+- [x] `DROP COLUMN IF EXISTS` für `ai_question`/`human_answer` in neuer Migration
+- [ ] ~~`suggestion_comment`, `next_step`, `major_feature` entfernen~~ —
+      **entfällt**, siehe Begründung oben und `specs/ticket-system.md`.
 
-### 4. Datums-/Schätz-Spalten entfernen
+### 4. Datums-/Schätz-Spalten — **entfällt vollständig**
 
-Betrifft: `start_date`, `due_date`, `estimate_minutes`, `time_logged_minutes`
+Ursprünglich geplant: `start_date`, `due_date`, `estimate_minutes`,
+`time_logged_minutes`. Die korczewski-Fillrate-Prüfung (Task 1) zeigte
+`due_date`/`start_date` mit je 1/11 befüllten Zeilen — brand-abweichend
+befüllt, also nicht tot. `estimate_minutes`/`time_logged_minutes` sind
+weiterhin 0 % in beiden Brands, aber Teil desselben generischen Ticket-PATCH
+und (für `due_date`/`estimate_minutes`) desselben Audit-Log
+`tracked_field`-Arrays wie die jetzt bestätigt alive Spalten — aus
+Konsistenzgründen bewusst konservativ komplett belassen statt zwei von vier
+eng verwandten Feldern halbherzig zu entfernen.
 
-- [ ] `admin.ts`: `startDate`, `dueDate`, `estimateMinutes`, `timeLoggedMinutes`
-      aus SELECT- und Param-Listen entfernen
-- [ ] `tickets.ts` (CREATE TABLE): Spalten aus DDL entfernen
-- [ ] `container-detail.ts`: `estimateMinutes`-Referenz prüfen/entfernen
-- [ ] Audit-Log (`fn_audit_log`): tracked_field-Array um `start_date`, `due_date`,
-      `estimate_minutes` kürzen
-- [ ] `DROP COLUMN IF EXISTS` für alle 4
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
 
-### 5. `retry_count`-Spalte entfernen
+### 5. `retry_count`-Spalte — **entfällt**
 
-- [ ] `migrations.ts` Zeile 35: ADD COLUMN retry_count entfernen
-- [ ] `DROP COLUMN IF EXISTS retry_count`
-- [ ] Code-Referenzen prüfen (Factory-Retry-Logik — ist nie angesprungen)
+Schreiber `scripts/ticket.sh retry-count` (bump/reset), Leser
+`factory-floor.ts` (Anzeige „retry erschöpft"). Live Sicherheitsmechanismus,
+nur nie ausgelöst — kein Rückbau-Kandidat.
 
-### 6. `pinned`-Spalte entfernen
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
 
-- [ ] `migrations.ts` Zeile 67: ADD COLUMN pinned entfernen
-- [ ] `DROP COLUMN IF EXISTS pinned`
+### 6. `pinned`-Spalte — **entfällt**
 
-### 7. `url`-Spalte entfernen
+Schreiber `pages/api/planning-office/[extId].ts`, aktiv in
+`ORDER BY pinned DESC` (Planungsbüro-Queue-Sortierung).
 
-- [ ] `tickets.ts` (CREATE TABLE): `url TEXT` entfernen
-- [ ] `admin.ts`: `t.url` aus SELECT und Param-Listen entfernen
-- [ ] Audit-Log (`fn_audit_log`): tracked_field-Array um `url` kürzen
-- [ ] `DROP COLUMN IF EXISTS url`
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
 
-### 8. `thesis_tag`-Spalte entfernen
+### 7. `url`-Spalte — **entfällt**
 
-- [ ] `tickets.ts` (CREATE TABLE): `thesis_tag TEXT` entfernen
-- [ ] `tickets.ts` (Index): `tickets_thesis_tag_idx` entfernen
-- [ ] Audit-Log (`fn_audit_log`): tracked_field-Array um `thesis_tag` kürzen
-- [ ] `DROP COLUMN IF EXISTS thesis_tag`
+Teil des generischen Ticket-PATCH + Audit-Log `tracked_field`-Array.
 
-### 9. `source_test_*`-Spalten entfernen
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
 
-Betrifft: `source_test_assignment_id`, `source_test_question_id`,
-`source_test_run_id`, `source_test_result_id`, `source_test_id`
+### 8. `thesis_tag`-Spalte — **entfällt**
 
-- [ ] `systemtest-linkback.ts`: ADD COLUMN-Block + unique indexes entfernen
-- [ ] `systemtest/db.ts`: ALTER TABLE ADD COLUMN-Block für diese Spalten entfernen
-- [ ] `failure-bridge.ts`, `failure-bridge.test.ts`, `reconciler.ts`,
-      `reconciler.test.ts`, `cleanup.test.ts`, `retest-trigger.test.ts`,
-      `board.test.ts`: alle Referenzen auf source_test_* entfernen
-- [ ] `migrations.ts` `fn_purge_test_data()`: Has-column-Checks und
-      source_test_assignment_id-Referenzen entfernen
-- [ ] `DROP COLUMN IF EXISTS` für alle 5
+Audit-Log `tracked_field` + eigenes Anzeige-Feld im Ticket-Detail-UI
+(`pages/admin/tickets/[id].astro`).
 
-### 10. `grilling_meta` / `grilling_answers`-Spalten entfernen
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
 
-- [ ] `systemtest-linkback.ts`: ADD COLUMN grilling_* entfernen
-- [ ] `scripts/migrations/2026-06-17-triage-columns.sql`: grilling_meta aus der
-      Datei entfernen
-- [ ] Code-Referenzen in grilling.ts-Kommentaren prüfen
-- [ ] `DROP COLUMN IF EXISTS` für beide
+### 9. `source_test_*`-Spalten — **entfällt vollständig**
 
-### 11. `pipeline_slot`-Spalte entfernen
+Ursprünglich geplant: alle 5. `source_test_question_id` ist in korczewski
+3/11 befüllt (brand-abweichend) und im selben Unique-Index/Trigger wie
+`source_test_assignment_id` gekoppelt. Die übrigen 3
+(`source_test_run_id`/`result_id`/`id`) sind 0 % in beiden Brands, aber Teil
+einer aktiv verdrahteten, nur noch nie ausgelösten Test-Run-Failure-Bridge
+(`test-run-bridge.ts`, aufgerufen von `ingest-e2e.ts`/`test-runner.ts`) mit
+eigenem INSERT/Unique-Index/FK. Entfernen wäre Verhaltensänderung an einer
+lebenden Pipeline.
 
-- [ ] `migrations.ts` Zeile 30: ADD COLUMN pipeline_slot entfernen
-- [ ] `tickets.ts` (v_active_features view): `pipeline_slot` aus SELECT entfernen
-- [ ] Code-Referenzen auf `pipeline_slot` suchen und entfernen
-- [ ] `DROP COLUMN IF EXISTS pipeline_slot`
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
+
+### 10. `grilling_meta` / `grilling_answers`-Spalten — **entfällt**
+
+Schreiber `scripts/lib/ticket-grill.sh` + `ticket-mcp record_grill_answers`
+(Grilling-to-Ticket-DoR-Workflow), Leser `final-grilling.ts`; `grilling_meta`
+zusätzlich per `UPDATE … SET grilling_meta = grilling_meta - 'triage'` in
+`planning-office.ts` genutzt. Live, nur selten ausgelöst.
+
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
+
+### 11. `pipeline_slot`-Spalte — **entfällt**
+
+Aktiv gelesen/geschrieben in `factory-floor.ts`, `qa-dal.ts`, `qa-ingest.ts`
+(Factory-Slot-Freigabe bei Ticket-Abschluss) sowie im UI
+(`FactoryKpiGrid.svelte`).
+
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
+
+### 11b. `requirements_list`-Spalte — **entfällt**
+
+Lastenheft-Lock-Feature (`planning-office.ts`, `container-detail.ts`,
+`lastenheft.ts`), aktiv im UI angezeigt (`PlanningOfficeDetail.svelte`,
+`ContainerDorPanel.svelte`, `TicketSpecProgress.svelte`).
+
+- [ ] ~~Alle Unterpunkte~~ — **entfällt**
 
 ### 12. Neue DB-Migration erstellen
 
-Eine neue Datei `scripts/migrations/2026-07-28-schema-diaet-T002331.sql`:
+`scripts/migrations/2026-07-28-schema-diaet-T002331.sql` — enthält nur noch
+3 `DROP COLUMN IF EXISTS` (`ai_question`, `human_answer`, `scope`) plus einen
+ausführlichen Kommentar-Block, der die Umfangsreduktion und die Begründung
+je ursprünglich geplanter Spalte dokumentiert (siehe Datei selbst und
+`specs/ticket-system.md`).
 
-```sql
--- Schema-Diät T002331: ~23 tote Spalten entfernen.
--- Idempotent (IF EXISTS). Nach Ausführung auf BEIDEN Brand-DBs:
---   workspace            (mentolder)
---   workspace-korczewski (korczewski)
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS ai_question;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS human_answer;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS due_date;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS estimate_minutes;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS scope;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS source_test_assignment_id;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS source_test_question_id;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS source_test_run_id;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS source_test_result_id;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS source_test_id;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS start_date;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS suggestion_comment;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS thesis_tag;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS next_step;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS major_feature;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS retry_count;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS pinned;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS time_logged_minutes;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS url;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS grilling_answers;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS grilling_meta;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS pipeline_slot;
-ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS requirements_list;
-```
-
-- [ ] Datei erstellen
-- [ ] In `Taskfile.yml` oder Ausführungsanleitung verlinken
+- [x] Datei erstellt
+- [x] Ausführungsanleitung im Deployment-Abschnitt unten (unverändert:
+      manueller `kubectl exec … psql` auf beide Brand-DBs nach Merge)
 
 ### 13. Schema-Code säubern
 
-- [ ] `tickets/tables/tickets.ts` (CREATE TABLE):
-      `url`, `thesis_tag`, `start_date`, `due_date`, `estimate_minutes`,
-      `time_logged_minutes` aus Spaltenliste entfernen
-- [ ] `tickets.ts` (Index): `tickets_thesis_tag_idx` entfernen
-- [ ] `tickets.ts` (v_active_features): `pipeline_slot` aus SELECT entfernen
-- [ ] `tickets.ts` (fn_audit_log tracked_field): `url`, `thesis_tag`,
-      `start_date`, `due_date`, `estimate_minutes` entfernen
-- [ ] `migrations.ts`:
-      - Legacy-ADD: `scope` entfernen
-      - `retry_count` ADD entfernen
-      - `pinned` ADD entfernen
-      - `pipeline_slot` ADD entfernen
-- [ ] `systemtest-linkback.ts`: source_test_*-ADD + unique indexes + grilling_*-ADD entfernen
-- [ ] `systemtest/db.ts`: source_test_*-ADD-Block entfernen
+- [x] `admin.ts`: `aiQuestion`/`humanAnswer` aus Type, SELECT, PATCH-Whitelist
+      entfernen
+- [x] `pages/api/admin/tickets/[id].ts`: `aiQuestion`/`humanAnswer` aus
+      Whitelist entfernen
+- [x] `migrations.ts`: Legacy-ADD `scope` entfernen
+- [ ] ~~`url`, `thesis_tag`, `start_date`, `due_date`, `estimate_minutes`,
+      `time_logged_minutes`, `retry_count`, `pinned`, `pipeline_slot`,
+      `source_test_*`, `grilling_*` aus DDL/Views/Audit-Log entfernen~~ —
+      **entfällt**, alle bleiben alive (siehe oben)
 
 ### 14. Tests anpassen
 
-- [ ] Alle `CREATE TABLE tickets.tickets (...)` in Testdateien synchronisieren
-      (die reduzierten Spalten aus den Test-Kreatur-Tabellen entfernen):
-      - `appointments-db.test.ts`
-      - `planning-office.test.ts`
-      - `factory-floor.test.ts`
-      - `cockpit-db.test.ts`
-      - `container-detail.test.ts`
-      - `admin.test.ts` (enthält Referenzen auf estimateMinutes etc.)
-      - `website-db.test.ts`, `website-db-projects.test.ts`
-      - `failure-bridge.test.ts`, `reconciler.test.ts`,
-        `retest-trigger.test.ts`, `cleanup.test.ts`, `board.test.ts`,
-        `db.test.ts`
-- [ ] Alle Test-Mocks/Fixtures aufräumen, die tote Spalten setzen
-- [ ] `task test:changed` laufen lassen
+- [x] `admin.test.ts`: `aiQuestion`/`humanAnswer`-Referenzen aus Fixture und
+      Testfall entfernt
+- [ ] ~~Alle anderen gelisteten Testdateien~~ — **entfällt**, betrifft nur
+      Spalten, die jetzt alive bleiben
+- [x] `task test:changed` laufen lassen
 
 ### 15. CI-Gates
 
@@ -252,31 +252,32 @@ task freshness:check
 bash scripts/preflight-pr-scope.sh
 ```
 
-## Files (erwartete Änderungen)
+## Files (tatsächliche Änderungen — reduzierter Umfang)
 
 ```
 CHANGED:
-  website/src/lib/tickets/tables/tickets.ts           — CREATE TABLE + Index + View + Audit-Log
-  website/src/lib/tickets/tables/systemtest-linkback.ts — ADD COLUMN + Index-Block entfernen
-  website/src/lib/tickets/migrations.ts                 — legacy ADD COLUMN + purge_test_data
-  website/src/lib/systemtest/db.ts                      — source_test_*-ADD entfernen
-  website/src/lib/systemtest/failure-bridge.ts          — source_test_*-Refs
-  website/src/lib/systemtest/reconciler.ts              — source_test_*-Ref
-  website/src/lib/tickets/lastenheft.ts                 — requirements_list nutzt README?
-  website/src/lib/tickets/container-detail.ts           — estimateMinutes etc.
-  website/src/lib/tickets/admin.ts                      — url, startDate, dueDate, etc.
-  website/src/lib/tickets/cockpit-db.ts                 — planning_rank nur (alive)
-  website/src/lib/tickets/transition.ts                 — ggf. updateSuccessorReadiness
-
-REMOVED (aus Tests):
-  - Referenzen auf estimate_minutes, start_date, due_date in allen Test-Dateien
+  website/src/lib/tickets/admin.ts                        — aiQuestion/humanAnswer aus Type,
+                                                              SELECT, PATCH-Whitelist entfernt
+  website/src/lib/tickets/admin.test.ts                    — Fixture + Testfall bereinigt
+  website/src/pages/api/admin/tickets/[id].ts              — aiQuestion/humanAnswer aus
+                                                              Whitelist entfernt
+  website/src/lib/tickets/migrations.ts                    — legacy ADD COLUMN scope entfernt
 
 ADDED:
   scripts/migrations/2026-07-28-schema-diaet-T002331.sql  — DROP COLUMN Migration
+                                                              (ai_question, human_answer, scope)
 
-REDUNDANT (obsolet, kein aktiver Code mehr):
-  scripts/migrations/2026-06-15-cockpit-feature-suggest.sql — entire file (Markierung)
-  scripts/migrations/2026-06-17-triage-columns.sql          — grilling_meta-Zeile entfernen
+MARKIERT ALS OBSOLET (Datei bleibt als No-Op-Historie erhalten):
+  scripts/migrations/2026-05-19-ai-question-human-answer.sql
+
+NICHT ANGEFASST (ursprünglich geplant, nach Analyse alive — siehe
+specs/ticket-system.md für Begründung je Spalte):
+  website/src/lib/tickets/tables/tickets.ts
+  website/src/lib/tickets/tables/systemtest-linkback.ts
+  website/src/lib/systemtest/db.ts, failure-bridge.ts, reconciler.ts, test-run-bridge.ts
+  website/src/lib/tickets/lastenheft.ts, container-detail.ts, cockpit-db.ts
+  scripts/migrations/2026-06-15-cockpit-feature-suggest.sql
+  scripts/migrations/2026-06-17-triage-columns.sql
 ```
 
 ## Risiken und Gegenmaßnahmen

@@ -1,0 +1,87 @@
+-- Schema-Diät T002331 (Teil D des Epics T002326): tote Spalten aus
+-- tickets.tickets zurückbauen.
+--
+-- WICHTIG — Umfang wurde gegenüber dem ursprünglichen Design (Proposal/
+-- tasks.md) DEUTLICH reduziert. Das Design ging von ~23 toten Kandidaten aus,
+-- basierend auf einer Fillrate-Analyse NUR gegen die mentolder-DB. Die für
+-- dieses Ticket vorgeschriebene Zweit-Prüfung gegen die korczewski-DB plus
+-- eine Code-Referenzstellen-Analyse (wer schreibt/liest die Spalte wirklich)
+-- ergab: fast jede Kandidaten-Spalte ist tatsächlich an eine lebende, aktiv
+-- verdrahtete Funktion gekoppelt (UI-Feld, API-Whitelist mit echtem Aufrufer,
+-- CLI-Skript, oder Trigger/Index, der dieselbe Spalte wie eine belegte
+-- Spalte nutzt) — auch wenn der Fill-Rate-Wert 0 % beträgt, weil das Feature
+-- schlicht noch nie ausgelöst wurde. Nur zwei Spalten haben KEINEN
+-- Schreiber/Leser irgendwo im Repo (weder UI noch Skript noch Automation):
+--
+--   ai_question, human_answer  — nur im generischen PATCH-Feld-Whitelist
+--     von admin.ts/[id].ts referenziert (nie von einer UI gesendet), sonst
+--     nur die ADD-COLUMN-Migration selbst. 0/1787 (mentolder), 0/11
+--     (korczewski).
+--
+--   scope (auf tickets.tickets) — nur die ADD-COLUMN-Zeile in
+--     migrations.ts; keine SELECT/UPDATE/Referenz irgendwo im Code. Nicht zu
+--     verwechseln mit tickets.pr_events.scope (andere Tabelle, aktiv befüllt,
+--     bleibt unangetastet).
+--
+-- Alle anderen ursprünglich gelisteten Kandidaten bleiben ALIVE — Begründung
+-- je Spalte in der Delta-Spec (openspec/changes/schema-diaet-T002331/specs/
+-- ticket-system.md) und im PR-Body. Kurzfassung:
+--   - due_date, start_date          — korczewski hat je 1/11 befüllte Zeile
+--                                      (mentolder 0/1787) → nicht tot.
+--   - source_test_question_id       — korczewski 3/11 befüllt; zudem im
+--                                      selben INSERT/Unique-Index/Trigger
+--                                      wie source_test_assignment_id
+--                                      gekoppelt (failure-bridge.ts,
+--                                      systemtest/db.ts trg_systemtest_retest).
+--   - source_test_assignment_id,
+--     source_test_run_id/result_id/id — 0 % in beiden Brands, aber aktiv
+--                                      verdrahtet (failure-bridge.ts /
+--                                      test-run-bridge.ts INSERT+Unique-Index
+--                                      +FK); Entfernen würde die lebende
+--                                      (nur noch nie ausgelöste) E2E-Failure-
+--                                      Bridge-Pipeline zerstören — das wäre
+--                                      Verhaltensänderung, nicht Rückbau.
+--   - retry_count                   — Schreiber `scripts/ticket.sh
+--                                      retry-count`, Leser factory-floor.ts
+--                                      (Anzeige „retry erschöpft").
+--   - pinned                        — Schreiber
+--                                      /api/planning-office/[extId].ts,
+--                                      aktiv in ORDER-BY-Sortierung.
+--   - pipeline_slot                 — aktiv gelesen/geschrieben in
+--                                      factory-floor.ts, qa-dal.ts,
+--                                      qa-ingest.ts (Factory-Slot-Freigabe).
+--   - requirements_list             — Lastenheft-Lock-Feature
+--                                      (planning-office.ts, container-
+--                                      detail.ts, lastenheft.ts), aktiv im UI
+--                                      angezeigt.
+--   - url, thesis_tag,
+--     estimate_minutes,
+--     time_logged_minutes           — Teil des generischen Ticket-PATCH +
+--                                      Audit-Log tracked_field-Arrays
+--                                      (url/thesis_tag/estimate_minutes);
+--                                      thesis_tag zusätzlich im Ticket-Detail-
+--                                      UI angezeigt. Fill-Rate niedrig, aber
+--                                      aktiv überwacht/editierbar — kein
+--                                      verwaister Ballast.
+--   - next_step, major_feature,
+--     suggestion_comment            — Teil der Cockpit-Feature-Suggest-
+--                                      Action-Buttons (VALID_ACTIONS =
+--                                      next_step/discard/major/comment in
+--                                      feature-actions.ts); 'discard' ist
+--                                      aktiv genutzt (discarded-Spalte 100 %
+--                                      belegt) — Entfernen von 3 der 4
+--                                      Buttons wäre eine sichtbare UI-
+--                                      Verhaltensänderung, nicht Rückbau.
+--   - grilling_answers, grilling_meta — Schreiber scripts/lib/ticket-grill.sh
+--                                      + ticket-mcp record_grill_answers
+--                                      (Grilling-to-Ticket-Workflow), Leser
+--                                      final-grilling.ts; grilling_meta
+--                                      zusätzlich in planning-office.ts
+--                                      per UPDATE genutzt.
+--
+-- Idempotent (IF EXISTS). Nach Ausführung auf BEIDEN Brand-DBs:
+--   workspace            (mentolder)
+--   workspace-korczewski (korczewski)
+ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS ai_question;
+ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS human_answer;
+ALTER TABLE tickets.tickets DROP COLUMN IF EXISTS scope;

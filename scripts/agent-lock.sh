@@ -294,20 +294,15 @@ cmd_claim() {
   # branch claims went stale as soon as the sid check failed, while the ticket
   # claim of the very same session stayed live. [T002267]
   [ "$SCOPE" = "branch" ] && [ -z "$BRANCH" ] && BRANCH="$ID"
-  # `--worktree` absolut speichern. Der Wert wurde bisher roh uebernommen, und die
-  # uebliche Aufrufform ist relativ (`--worktree .worktrees/<slug>`). Ein relativer
-  # Pfad in der Lock-Datei ist aber gegenueber JEDEM spaeteren Leser mehrdeutig — er
-  # gilt nur relativ zum cwd des Claimers:
-  #   - `scripts/hooks/worktree-write-guard.sh` vergleicht ihn gegen einen absoluten
-  #     Zielpfad; er matcht dann nie, und da ein gesetzter eigener Worktree jeden
-  #     Pfad ausserhalb ablehnt, blockiert der Guard JEDEN Write der Session.
-  #   - `_reapable` prueft `[ ! -d "$wt" ]` und wuerde einen lebenden Lock als tot
-  #     einstufen, sobald es aus einem anderen Verzeichnis laeuft.
-  # Bezugspunkt ist `$PWD` und nicht der Repo-Root: ein relativer Pfad ist per
-  # Definition relativ zum Arbeitsverzeichnis des Aufrufers. `git rev-parse
-  # --show-toplevel` waere hier falsch — aus einem Worktree heraus liefert es dessen
-  # Root, nicht den main-Checkout.
-  # Kein `realpath`/`cd`: der Pfad muss zum Claim-Zeitpunkt nicht existieren.  [T002412]
+  # `--worktree` absolut speichern: der Wert wurde bisher roh uebernommen, die
+  # uebliche Aufrufform ist aber relativ (`--worktree .worktrees/<slug>`), und ein
+  # relativer Pfad ist fuer jeden spaeteren Leser mehrdeutig — er gilt nur relativ
+  # zum cwd des Claimers. Folgen im Detail im Kopf von
+  # scripts/hooks/worktree-write-guard.sh; kurz: der Guard sperrt die Session aus
+  # allem aus, und `_reapable` haelt lebende Locks fuer tot. Bezug ist `$PWD` (so ist
+  # ein relativer Pfad definiert), nicht der Repo-Root — aus einem Worktree lieferte
+  # `--show-toplevel` dessen Root statt des main-Checkouts. Kein `realpath`: der Pfad
+  # muss zum Claim-Zeitpunkt nicht existieren.  [T002412]
   case "${WT:-}" in
     ""|"-"|/*) ;;
     *) WT="$PWD/${WT#./}" ;;

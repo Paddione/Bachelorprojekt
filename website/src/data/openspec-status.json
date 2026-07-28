@@ -1881,6 +1881,12 @@
       "status": "archived"
     }
   ],
+  "T002385": [
+    {
+      "slug": "e2e-bug-report-testdata-T002385",
+      "status": "plan_staged"
+    }
+  ],
   "T002387": [
     {
       "slug": "worktree-divergence-guard-T002387",

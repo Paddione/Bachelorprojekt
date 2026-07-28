@@ -1075,12 +1075,6 @@
   },
   {
     "id": "FA-SF-20",
-    "file": "tests/local/FA-SF-20-pipeline-contract.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-20",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
@@ -1171,19 +1165,7 @@
   },
   {
     "id": "FA-SF-30",
-    "file": "tests/local/FA-SF-30-dispatcher-contract.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-30",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-31",
-    "file": "tests/local/FA-SF-31-workflow-entrypoint.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1255,12 +1237,6 @@
   },
   {
     "id": "FA-SF-37",
-    "file": "tests/local/FA-SF-37-retry.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-37",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
@@ -1279,19 +1255,7 @@
   },
   {
     "id": "FA-SF-39",
-    "file": "tests/local/FA-SF-39-canary-wire.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-39",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-40",
-    "file": "tests/local/FA-SF-40-provision.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1321,19 +1285,7 @@
   },
   {
     "id": "FA-SF-43",
-    "file": "tests/local/FA-SF-43-worktree-gitcrypt.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-43",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-44",
-    "file": "tests/local/FA-SF-44-verify-diff-killswitch.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1345,19 +1297,7 @@
   },
   {
     "id": "FA-SF-45",
-    "file": "tests/local/FA-SF-45-conflict-gate-deadlock.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-45",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-46",
-    "file": "tests/local/FA-SF-46-cleanup.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1477,31 +1417,13 @@
   },
   {
     "id": "FA-SF-59",
-    "file": "tests/local/FA-SF-59-aci-loop.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-59",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-60",
-    "file": "tests/local/FA-SF-60-partial-deploy.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-60",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-63",
-    "file": "tests/local/FA-SF-63-scout-deterministic.bats",
     "category": "FA",
     "kind": "shell"
   },

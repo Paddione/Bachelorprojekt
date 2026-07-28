@@ -22,7 +22,11 @@ stammen unveraendert aus der Ticket-Beschreibung; die Diagnose dort ist die Vorg
 ## File Structure
 
 ```
-<der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+CLAUDE.md                                                                — unveraendert (M1-Doku existierte bereits)
+scripts/factory/reconcile-ticket-status.sh                               — unveraendert (M2-Hypothese widerlegt)
+scripts/openspec.sh                                                      — unveraendert (M3 bereits durch T002375 gefixt)
+openspec/changes/mishap-t002356/proposal.md                              — Why/What ausgefuellt (Investigations-Ergebnis)
+tests/spec/software-factory/reconcile-status-no-in-progress-T002356.bats — neu: Regression-Guard fuer widerlegte M2-Hypothese
 ```
 
 ## Mishap-Eintraege
@@ -66,7 +70,7 @@ Loesungsrichtung: ein --resume-Pfad, der nur fehlende oder erkennbar unausgefuel
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
+- [x] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
       der das beschriebene Fehlverhalten reproduziert. Er gehoert nach
       `tests/spec/<spec-slug>.bats` — die Spec, die das Verhalten abdeckt.
 
@@ -75,11 +79,11 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
 # expected: FAIL (rot — der Fix ist noch nicht implementiert)
 ```
 
-- [ ] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten. Jeder nennt Komponente und
+- [x] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten. Jeder nennt Komponente und
       vorgeschlagene Behebung. Eintraege, die sich bei der Recon als nicht zutreffend
       erweisen, werden im PR-Text begruendet verworfen statt stillschweigend uebergangen.
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

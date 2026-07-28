@@ -5,64 +5,90 @@ domains: [cockpit, daemon, adapter]
 status: plan_staged
 ---
 
-# Tasks: SDLC Cockpit — K2 Daten-Adapter & lokaler Daemon
+# Implementation Plan
 
 **Ticket:** T002461  
 **Branch:** `feature/sdlc-cockpit-k2-daemon-T002461`  
 **Spec:** `openspec/changes/sdlc-cockpit-k2-daemon/design.md`
 
-## Partial Manifest
+## File Structure
 
-| Partial | Name | Files | Role |
-|---------|------|-------|------|
-| p1 | daemon-core | `.lavish/kit/daemon/server.ts`, `.lavish/kit/daemon/routes/`, `.lavish/kit/daemon/lib/` | implementation |
-| p2 | source-adapters | `.lavish/kit/daemon/sources/`, `.lavish/kit/daemon/routes/*` (Stub-Editierungen) | implementation |
-| p3 | adapter-js | `.lavish/kit/adapter.js`, `.lavish/kit/daemon/server.ts` (+token route) | implementation |
-| p4 | tests | `tests/spec/sdlc-cockpit/`, `tests/unit/cockpit-adapter.test.ts`, `tests/unit/cockpit-daemon-cache.test.ts` | tests |
+```
+openspec/changes/sdlc-cockpit-k2-daemon/
+├── proposal.md
+├── design.md
+├── specs/sdlc-cockpit/spec.md
+├── tasks.md
+└── tasks.d/
+    ├── p1-daemon-core.md
+    ├── p2-source-adapters.md
+    ├── p3-adapter-js.md
+    └── p4-tests.md
+```
+
+```
+.lavish/kit/
+├── adapter.js                           # [K2-ersetzt]
+└── daemon/                              # [K2-neu]
+    ├── server.ts
+    ├── routes/  (cockpit, cluster, factory, custom, stream)
+    ├── sources/ (kubectl, gh-axi, git, agent-lock, ticket-mcp, factory-mcp, opencode-db, model-health)
+    ├── lib/     (token, exec, cache, sse)
+    └── audit.jsonl
+```
+
+```
+tests/
+├── spec/sdlc-cockpit/
+│   ├── adapter-contract.bats
+│   ├── daemon-endpoints.bats
+│   ├── no-silent-fallback.bats
+│   ├── freshness-timestamp.bats
+│   └── daemon-token-mode.bats
+└── unit/
+    ├── cockpit-adapter.test.ts
+    └── cockpit-daemon-cache.test.ts
+```
+
+## Partials
+
+| p1 | tasks.d/p1-daemon-core.md | implementation | .lavish/kit/daemon/server.ts, .lavish/kit/daemon/lib/token.ts, .lavish/kit/daemon/lib/exec.ts, .lavish/kit/daemon/lib/cache.ts, .lavish/kit/daemon/lib/sse.ts |
+| p2 | tasks.d/p2-source-adapters.md | implementation | .lavish/kit/daemon/sources/kubectl.ts, .lavish/kit/daemon/sources/gh-axi.ts, .lavish/kit/daemon/sources/git.ts, .lavish/kit/daemon/sources/agent-lock.ts, .lavish/kit/daemon/sources/ticket-mcp.ts, .lavish/kit/daemon/sources/factory-mcp.ts, .lavish/kit/daemon/sources/opencode-db.ts, .lavish/kit/daemon/sources/model-health.ts, .lavish/kit/daemon/routes/cockpit.ts, .lavish/kit/daemon/routes/cluster.ts, .lavish/kit/daemon/routes/factory.ts, .lavish/kit/daemon/routes/custom.ts, .lavish/kit/daemon/routes/stream.ts |
+| p3 | tasks.d/p3-adapter-js.md | implementation | .lavish/kit/adapter.js |
+| p4 | tasks.d/p4-tests.md | tests | tests/spec/sdlc-cockpit/adapter-contract.bats, tests/spec/sdlc-cockpit/daemon-endpoints.bats, tests/spec/sdlc-cockpit/no-silent-fallback.bats, tests/spec/sdlc-cockpit/freshness-timestamp.bats, tests/spec/sdlc-cockpit/daemon-token-mode.bats, tests/unit/cockpit-adapter.test.ts, tests/unit/cockpit-daemon-cache.test.ts |
 
 **Disjunktheit:** Keine Datei kommt in mehr als einem Partial vor (D1).
 
-**Pipeline:** Partials werden in Reihenfolge p1→p2→p3→p4 gestaged und enqueued. p4 (Tests-Rolle) ist das letzte Partial.
-
 ## Partial Plans
 
-- [p1] `tasks.d/p1-daemon-core.md` — HTTP-Server (Hono), Routing, Token-Generierung, SSE-Mechanismus, Lib-Module
-- [p2] `tasks.d/p2-source-adapters.md` — 8 Source-Module (kubectl, gh-axi, git, agent-lock, ticket-mcp, factory-mcp, opencode-db, model-health), Route-Editierungen (Stubs→echt)
-- [p3] `tasks.d/p3-adapter-js.md` — Browser-Adapter ersetzt K1-Fixtures: HTTP-Client mit D10-D13, SSE-Streams, Token-Retrieval
-- [p4] `tasks.d/p4-tests.md` — 5 BATS-Strukturtests + 2 Vitest-Unit-Tests
+- [p1] `tasks.d/p1-daemon-core.md` — HTTP-Server (Hono), Token-Generierung, SSE-Mechanismus, Lib-Module (token, exec, cache, sse). Route-Dateien sind NICHT in p1 (werden in p2 erstellt).
+- [p2] `tasks.d/p2-source-adapters.md` — 8 Source-Module + Route-Dateien (cockpit, cluster, factory, custom, stream) mit echten Quell-Aufrufen
+- [p3] `tasks.d/p3-adapter-js.md` — Browser-Adapter ersetzt K1-Fixtures
+- [p4] `tasks.d/p4-tests.md` — 5 BATS + 2 Vitest (STRUCT2: failing-test step)
 
-## STRUCT2 Failing-Test Step
+## Failing-Test Step (STRUCT2)
 
-In p4: Die Vitest-Unit-Tests (`cockpit-adapter.test.ts`, `cockpit-daemon-cache.test.ts`) starten
-mit Placeholder-Assertions (`expect(true).toBe(true)`) und müssen nach der Adapter-Implementierung
-(p3) durch echte Assertions ersetzt werden. Vor der Implementierung:
+**p4 enthält einen failing-test step:** Vor der Adapter-Implementierung sind die Vitest-Tests
+Platzhalter. Der Befehl `npx vitest run tests/unit/cockpit-adapter.test.ts` erwartet FAIL
+(weil Adapter-Mocks/Imports nicht aufgelöst werden können). Nach p3-Implementierung: PASS.
+
 ```bash
-npx vitest run tests/unit/cockpit-adapter.test.ts  # erwartet: FAIL (Placeholder oder Import-Fehler)
+# Schritt 1 (vor Implementierung) — erwartet: FAIL
+npx vitest run tests/unit/cockpit-adapter.test.ts && echo "UNEXPECTED PASS" || echo "EXPECTED FAIL"
+
+# Schritt 2 (nach p3) — erwartet: PASS
+npx vitest run tests/unit/cockpit-adapter.test.ts
 ```
-Nach der Implementierung:
-```bash
-npx vitest run tests/unit/cockpit-adapter.test.ts  # erwartet: PASS
-```
 
-## STRUCT3 Verify Task
+## Verify Task (STRUCT3)
 
 ```bash
-task test:changed          # nur K2-relevante Tests
+task test:changed          # K2-relevante Tests
 task freshness:regenerate  # test-inventory.json aktualisieren
-task freshness:check       # muss bestehen
+task freshness:check
+task test:code-quality
 ```
-
-## Quality Gates
-
-- `bash scripts/plan-lint.sh openspec/changes/sdlc-cockpit-k2-daemon/tasks.md`
-- `bash scripts/openspec.sh validate`
-- `task test:changed` — nur K2-relevante Tests
-- `task freshness:check` — test-inventory.json muss aktuell sein
-- `task test:code-quality`
-- Alle BATS-Negativtests haben Positiv-Anker (T002356-M1)
-- D13: Kein Null/Strich/Beispielwert in Fehlerantworten
-- D12: Jede Antwort trägt `fetchedAt`
 
 ## Blockiert durch
 
-K1 (T002460) — `.lavish/kit/`-Verzeichnis existiert erst nach K1-Merge
+K1 (T002460)

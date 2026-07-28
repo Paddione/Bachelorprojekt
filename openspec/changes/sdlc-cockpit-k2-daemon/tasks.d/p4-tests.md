@@ -1,5 +1,7 @@
 # Partial p4 — Tests (Struktur- & Unit-Tests)
 
+> **STRUCT2 Failing-Test Step:** Before implementation, run `npx vitest run tests/unit/cockpit-adapter.test.ts` — expected: FAIL (placeholders, no adapter module loaded). After p3 implementation, expected: PASS.
+
 **Ticket:** T002461  
 **Rolle:** `tests` (letztes Partial — STRUCT2-Failing-Test-Step)  
 **Ziel-Dateien:** `tests/spec/sdlc-cockpit/` (5 BATS), `tests/unit/cockpit-adapter.test.ts`, `tests/unit/cockpit-daemon-cache.test.ts`  

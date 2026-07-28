@@ -1,0 +1,28 @@
+{
+  "symbols": {
+    "adapter_api": ["tickets", "agents", "ci", "cluster", "factory", "models", "ticketAction", "agentAction"],
+    "daemon_endpoints": ["/api/admin/cockpit/portfolio", "/api/admin/cluster/pods-list", "/api/admin/cluster/warnings", "/api/admin/factory-control", "/api/cockpit/agents", "/api/cockpit/ci", "/api/cockpit/models", "/api/cockpit/stream/agents", "/api/cockpit/stream/factory"]
+  },
+  "impact_files": [
+    ".lavish/kit/adapter.js",
+    ".lavish/kit/daemon/server.ts",
+    ".lavish/kit/daemon/routes/cockpit.ts",
+    ".lavish/kit/daemon/routes/cluster.ts",
+    ".lavish/kit/daemon/routes/factory.ts",
+    ".lavish/kit/daemon/routes/custom.ts",
+    ".lavish/kit/daemon/routes/stream.ts",
+    ".lavish/kit/daemon/sources/kubectl.ts",
+    ".lavish/kit/daemon/sources/gh-axi.ts",
+    ".lavish/kit/daemon/sources/git.ts",
+    ".lavish/kit/daemon/sources/agent-lock.ts",
+    ".lavish/kit/daemon/sources/ticket-mcp.ts",
+    ".lavish/kit/daemon/sources/factory-mcp.ts",
+    ".lavish/kit/daemon/sources/opencode-db.ts",
+    ".lavish/kit/daemon/sources/model-health.ts",
+    ".lavish/kit/daemon/lib/token.ts",
+    ".lavish/kit/daemon/lib/exec.ts",
+    ".lavish/kit/daemon/lib/cache.ts",
+    ".lavish/kit/daemon/lib/sse.ts"
+  ],
+  "notes": "K2 depends on K1 (T002460) for .lavish/kit/ directory structure"
+}

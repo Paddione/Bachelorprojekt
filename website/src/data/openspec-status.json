@@ -1689,6 +1689,12 @@
       "status": "archived"
     }
   ],
+  "T002273": [
+    {
+      "slug": "mishap-t002273",
+      "status": "plan_staged"
+    }
+  ],
   "T002278": [
     {
       "slug": "2026-07-27-mcp-postgres-brand-scope",

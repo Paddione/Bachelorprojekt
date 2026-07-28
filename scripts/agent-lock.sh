@@ -352,11 +352,8 @@ cmd_release() {
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
   local owner_sid; owner_sid="$(_lock_field "$f" owner_sid)"
-  # [T002373-M2] Auto-release if owner SID is dead (non-numeric SIDs are always alive by _sid_alive).
-  # [T002374] Same-tool fallback: allow release when tool class matches.
-  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || \
-     { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; } || \
-     [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then
+  # [T002373-M2] [T002374] Auto-release if owner SID is dead; same-tool fallback.
+  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; } || [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then
     rm -f "$f"; return 0
   fi
   echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2

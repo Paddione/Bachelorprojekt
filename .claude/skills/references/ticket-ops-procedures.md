@@ -154,7 +154,15 @@ If you are running without an interactive question tool (e.g. dispatched as a su
 > `mcp__ticket-mcp__set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })`
 > `mcp__ticket-mcp__add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })`
 
-Fallback / bulk path (ticket-mcp nicht erreichbar, oder für Felder ohne Wrapper wie ein direkter `priority`-Set + eine einzelne JSONB-Readiness-Merge): Writes go through `psql()` (the MCP query tool is read-only). Per ticket, set the now-satisfied DoR flags via a JSONB merge (never clobber other flags), update the answered fields, and append a clarification comment:
+**CLI path** (ticket-mcp nicht erreichbar, oder im Worktree — `ticket.sh` ist dasselbe Backend, das auch der MCP-Wrapper ruft): Der korrekte Subcommand heisst `add-comment` (nicht `comment`):
+
+> ```bash
+> bash scripts/ticket.sh add-comment --id T000XXX --body "## Klärungsrunde …"
+> ```
+
+> ⚠️ `add-comment` ist der einzige CLI-Weg — `bash scripts/ticket.sh comment` existiert nicht und scheitert mit `Unknown command`.
+
+**psql-Fallback** (weder MCP noch `ticket.sh` verfügbar — nur für Bulk-Operationen oder Felder ohne Wrapper, z.B. ein direkter `priority`-Set + JSONB-Readiness-Merge). Der psql-Pfad erfordert manuelle `author_label`-Setzung und ist fehleranfälliger als die beiden vorigen Wege. Per ticket:
 
 ```bash
 psql -c "

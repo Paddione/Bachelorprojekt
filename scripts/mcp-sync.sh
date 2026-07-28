@@ -2,7 +2,7 @@
 set -euo pipefail
 # scripts/mcp-sync.sh — MCP Registry SSOT Generator
 # Subcommands:
-#   render   — Write all three target configs from docs/agent-guide/registry/mcp.yaml
+#   render   — Write all four target configs from docs/agent-guide/registry/mcp.yaml
 #   check    — Compare targets against registry (exit != 0 on drift, never writes)
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -10,6 +10,7 @@ REGISTRY="$REPO/docs/agent-guide/registry/mcp.yaml"
 CLAUDE_TARGET="$REPO/.mcp.json"
 OPENCODE_TARGET="$REPO/.opencode/opencode.jsonc"
 AGY_TARGET="${HOME}/.gemini/config/mcp_config.json"
+LLAMACPP_TARGET="$REPO/scripts/llm/mcp-servers.json"
 
 render_claude_json() {
   node -e "
@@ -58,6 +59,43 @@ render_agy_json() {
     fs.writeFileSync('/dev/stdout', JSON.stringify(out, null, 4) + '\n');
   "
 }
+# llama.cpp (T002398): Cursor-Format "mcpServers". Opt-in ueber harness.llamacpp --
+# ohne Block wird ein Server NICHT angehaengt, weil jeder Eintrag ein Kindprozess
+# von llama-server wird (npx-basierte Server wuerden den Modellstart verzoegern).
+render_llamacpp_json() {
+  node -e "
+    const fs = require('fs'), yaml = require('yaml');
+    const reg = yaml.parse(fs.readFileSync('$REGISTRY', 'utf8'));
+    const clients = reg.clients;
+    const out = { mcpServers: {} };
+    for (const name of Object.keys(clients).sort()) {
+      const c = clients[name];
+      if (!c.harness || !c.harness.llamacpp) continue;
+      // llama.cpp spricht MCP NUR ueber stdio (server_mcp_stdio ist die einzige
+      // Transport-Implementierung). Ein http-Server hier ergaebe eine Config, die
+      // llama-server WORTLOS verwirft -- deshalb abbrechen statt ueberspringen.
+      if (c.transport === 'http') {
+        console.error('mcp-sync: ' + name + ' hat einen llamacpp-Block, ist aber transport: http — llama.cpp unterstuetzt nur stdio.');
+        process.exit(2);
+      }
+      const h = c.harness.llamacpp;
+      if (!h.command) {
+        console.error('mcp-sync: ' + name + ' hat einen llamacpp-Block ohne command.');
+        process.exit(2);
+      }
+      const server = { command: h.command };
+      // Leere Felder werden WEGGELASSEN, nicht als null emittiert: llama.cpp
+      // behandelt ein leeres command als 'ueberspringen'.
+      if (h.args && h.args.length) server.args = h.args;
+      if (h.env) server.env = h.env;
+      if (h.cwd) server.cwd = h.cwd;
+      if (h.timeout_ms) server.timeout_ms = h.timeout_ms;
+      out.mcpServers[name] = server;
+    }
+    fs.writeFileSync('/dev/stdout', JSON.stringify(out, null, 2) + '\n');
+  "
+}
+
 render_opencode_jsonc() {
   node -e "
     const fs = require('fs'), yaml = require('yaml');
@@ -133,6 +171,10 @@ cmd_render() {
   else
     echo "mcp-sync: render: $AGY_TARGET dir missing — skipped" >&2
   fi
+
+  echo "mcp-sync: render: writing $LLAMACPP_TARGET"
+  render_llamacpp_json > "${LLAMACPP_TARGET}.tmp"
+  mv "${LLAMACPP_TARGET}.tmp" "$LLAMACPP_TARGET"
 }
 
 cmd_check() {
@@ -154,6 +196,9 @@ cmd_check() {
   else
     echo "mcp-sync: check: $AGY_TARGET not present — skipped (exit 0 based on repo files)" >&2
   fi
+
+  render_llamacpp_json > "$tmpd/llamacpp.json"
+  diff_or_drift "scripts/llm/mcp-servers.json" "$tmpd/llamacpp.json" "$LLAMACPP_TARGET" || exit_code=1
 
   return "$exit_code"
 }

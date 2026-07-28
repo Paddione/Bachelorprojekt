@@ -112,14 +112,6 @@ EOF
   [ "$found" -eq 0 ]
 }
 
-main() {
-  local cmd="${1:-}"; shift 2>/dev/null || true
-  case "$cmd" in
-    check) cmd_check "$@";;
-    *) echo "Usage: agent-collision.sh check [--staged|--all] [--quiet]" >&2; return 2;;
-  esac
-}
-main "$@"
 # Generated/freshness artifact paths that appear in every session's changes.
 # Colliding on these is noise — every propose/commit bumps them. [T002341-M2]
 _GENERATED_PATTERNS="website/src/data/test-inventory.json
@@ -152,3 +144,12 @@ _is_generated() {
   done <<< "$_GENERATED_PATTERNS"
   return 1
 }
+
+main() {
+  local cmd="${1:-}"; shift 2>/dev/null || true
+  case "$cmd" in
+    check) cmd_check "$@";;
+    *) echo "Usage: agent-collision.sh check [--staged|--all] [--quiet]" >&2; return 2;;
+  esac
+}
+main "$@"

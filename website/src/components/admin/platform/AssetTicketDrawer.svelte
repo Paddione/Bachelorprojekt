@@ -86,7 +86,7 @@
 
 {#snippet drawerFooter()}
   <a
-    href="/admin/bugs"
+    href="/admin/tickets"
     class="block w-full py-3 bg-admin-bg border border-admin-border rounded-xl text-center text-sm font-bold text-white hover:border-admin-primary/30 transition-all"
   >
     Alle Tickets anzeigen

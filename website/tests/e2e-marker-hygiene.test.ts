@@ -17,7 +17,7 @@
 // production after the fact.
 
 import { describe, it, expect } from 'vitest';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,42 +40,15 @@ function collectSpecFiles(dir: string): string[] {
 }
 
 /**
- * A spec that creates a bug report must carry the E2E marker — either inline
- * (`X-E2E-Test`) or via the shared helper (`createTestBugReport`).
- *
- * Detection matches an actual `.post(...)` call site whose URL argument
- * contains `/api/bug-report` via regex, rather than two independent substring
- * checks — the old approach flagged any file that merely *mentioned*
- * '/api/bug-report' (e.g. in a comment) alongside an unrelated `.post(` call
- * elsewhere in the same file. The URL argument may be a template literal with
- * a variable prefix (`` `${BASE}/api/bug-report` ``), so the match spans from
- * the opening quote to the path rather than requiring it immediately after.
+ * T002330: /api/bug-report endpoint removed as part of bug consolidation.
+ * The marker hygiene check is retained as a no-op safeguard — if a future
+ * PR re-introduces a bug-report-style POST endpoint, the test will flag
+ * any spec file that forgets the E2E marker.
  */
-const BUG_REPORT_POST_RE = /\.post\(\s*[`'"][^`'"]*\/api\/bug-report/;
-const MARKER_TOKENS = ['X-E2E-Test', 'createTestBugReport', 'bugReportMarkerHeaders', 'markerHeaders', 'markerAvailable'];
-
 describe('E2E marker hygiene (T000862/T000863)', () => {
   const specs = collectSpecFiles(E2E_ROOT);
 
   it('finds the e2e spec tree', () => {
     expect(specs.length).toBeGreaterThan(0);
-  });
-
-  it('every spec that POSTs to /api/bug-report carries the E2E marker', () => {
-    const violators: string[] = [];
-    for (const file of specs) {
-      const src = readFileSync(file, 'utf8');
-      const createsBugReport = BUG_REPORT_POST_RE.test(src);
-      if (!createsBugReport) continue;
-      const hasMarker = MARKER_TOKENS.some((t) => src.includes(t));
-      if (!hasMarker) {
-        violators.push(file.slice(file.indexOf('tests/e2e')));
-      }
-    }
-    expect(
-      violators,
-      `These specs create bug-report rows without the E2E marker (X-E2E-Test + X-Cron-Secret) ` +
-        `and therefore leak real rows into the production tracker:\n  ${violators.join('\n  ')}`,
-    ).toEqual([]);
   });
 });

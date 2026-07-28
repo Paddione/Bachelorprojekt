@@ -1797,6 +1797,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002330": [
+    {
+      "slug": "bug-consolidation-T002330",
+      "status": "plan_staged"
+    }
+  ],
   "T002333": [
     {
       "slug": "2026-07-28-queue-dispatch-bug-type",

@@ -556,19 +556,25 @@ const maxScore = Math.max(...scores.map(s => s.threshold_high ?? s.final_score ?
     submitBtn.disabled = true;
     bugModalError.classList.add('hidden');
     try {
-      const r = await fetch('/api/admin/bugs/create', {
+      const r = await fetch('/api/admin/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc, category: 'fehler' }),
+        body: JSON.stringify({ type: 'bug', title: desc.trim().slice(0, 80), description: desc }),
       });
       const data = await r.json().catch(() => ({}));
-      if (r.ok && data.ticketId) {
+      if (r.ok && data.id) {
+        // Fetch external_id (T-number) from the detail endpoint
+        let ticketId = '';
+        try {
+          const detail = await fetch(`/api/admin/tickets/${data.id}`).then(r => r.json()).catch(() => null);
+          ticketId = detail?.ticket?.externalId ?? '';
+        } catch { /* best-effort */ }
         const resultEl = document.getElementById(`bug-result-${activeBugStepId}`);
         if (resultEl) {
-          resultEl.textContent = `Ticket erstellt: ${data.ticketId}`;
+          resultEl.textContent = `Ticket erstellt: ${ticketId || data.id}`;
           const link = document.createElement('a');
-          link.href = '/admin/bugs';
-          link.textContent = data.ticketId;
+          link.href = '/admin/tickets';
+          link.textContent = ticketId || data.id;
           link.className = 'underline text-gold';
           resultEl.textContent = 'Ticket erstellt: ';
           resultEl.appendChild(link);

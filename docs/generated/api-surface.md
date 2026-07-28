@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-26T19:25:42.025Z
+> Generated at 2026-07-28T03:10:58.538Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -37,13 +37,6 @@
 | `/api/admin/bookkeeping/summary` | GET | 🔐 admin | `website/src/pages/api/admin/bookkeeping/summary.ts` |
 | `/api/admin/brand-starter` | GET | 🔐 admin | `website/src/pages/api/admin/brand-starter.ts` |
 | `/api/admin/brett/broadcast` | GET, POST | 🔐 admin | `website/src/pages/api/admin/brett/broadcast.ts` |
-| `/api/admin/bugs/{id}` | GET | 🔐 admin | `website/src/pages/api/admin/bugs/[id].ts` |
-| `/api/admin/bugs/{id}/comments` | POST | 🔐 admin | `website/src/pages/api/admin/bugs/[id]/comments.ts` |
-| `/api/admin/bugs/archive` | POST | 🔐 admin | `website/src/pages/api/admin/bugs/archive.ts` |
-| `/api/admin/bugs/create` | POST | 🔐 admin | `website/src/pages/api/admin/bugs/create.ts` |
-| `/api/admin/bugs/list` | GET | 🔐 admin | `website/src/pages/api/admin/bugs/list.ts` |
-| `/api/admin/bugs/reopen` | POST | 🔐 admin | `website/src/pages/api/admin/bugs/reopen.ts` |
-| `/api/admin/bugs/resolve` | POST | 🔐 admin | `website/src/pages/api/admin/bugs/resolve.ts` |
 | `/api/admin/clientnotes/create` | POST | 🔐 admin | `website/src/pages/api/admin/clientnotes/create.ts` |
 | `/api/admin/clientnotes/delete` | POST | 🔐 admin | `website/src/pages/api/admin/clientnotes/delete.ts` |
 | `/api/admin/clients-list` | GET | 🔐 admin | `website/src/pages/api/admin/clients-list.ts` |
@@ -337,7 +330,6 @@
 | `/api/booking` | POST | ❓ unclassified | `website/src/pages/api/booking.ts` |
 | `/api/bookings/{uid}/project` | PATCH | 🔐 admin | `website/src/pages/api/bookings/[uid]/project.ts` |
 | `/api/brett/bot` | POST | ❓ unclassified | `website/src/pages/api/brett/bot.ts` |
-| `/api/bug-report` | POST | ❓ unclassified | `website/src/pages/api/bug-report.ts` |
 | `/api/calendar/slots` | GET | ❓ unclassified | `website/src/pages/api/calendar/slots.ts` |
 | `/api/cluster/status` | GET | ❓ unclassified | `website/src/pages/api/cluster/status.ts` |
 | `/api/codesearch` | GET | 🔐 admin | `website/src/pages/api/codesearch.ts` |

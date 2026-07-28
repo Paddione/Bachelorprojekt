@@ -921,7 +921,22 @@ tasks:
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
 
         if [ "$RUN_E2E_WEBSITE" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e website changes: task test:e2e:website"; task test:e2e:website; fi
-        if [ "$RUN_E2E_SERVICES" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e services changes: task test:e2e:services"; task test:e2e:services; fi
+        # [T002375-p4] Erreichbarkeit pruefen, bevor die E2E-Gruppe laeuft. Bei jeder
+        # k3d/-Aenderung lief sie bisher bedingungslos und schlug ohne Dev-Stack mit 13
+        # ERR_CONNECTION_REFUSED fehl. Entscheidend: CI fuehrt fuer PRs nur
+        # test:spec:changed plus manifests.bats/changed-manifests.bats aus, NICHT das
+        # volle test:changed — der lokale Lauf war also strenger als das Gate, das er
+        # simuliert. Ein Agent, der die Pflicht-Verifikation woertlich befolgt, stand vor
+        # der Wahl: falsche Regression melden, blind weitermachen, oder Zeit an einem
+        # Umgebungsproblem verbrennen. Der Skip ist SICHTBAR, nicht still — sonst hat der
+        # naechste Agent dieselbe Frage eine Ebene spaeter.
+        if [ "$RUN_E2E_SERVICES" = "true" ] && command -v npx >/dev/null 2>&1; then
+          if (exec 3<>/dev/tcp/127.0.0.1/4321) 2>/dev/null; then
+            echo "→ e2e services changes: task test:e2e:services"; task test:e2e:services
+          else
+            echo "→ e2e services uebersprungen: localhost:4321 antwortet nicht. Kein PR-Blocker — CI fuehrt diese Gruppe fuer PRs ohnehin nicht aus."
+          fi
+        fi
         if [ "$RUN_E2E_BRETT" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e brett changes: task test:e2e:brett"; task test:e2e:brett; fi
         if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
 
@@ -1103,14 +1118,25 @@ tasks:
           website/src/lib/agent-guide.generated.json
           website/src/lib/platform-descriptions.generated.json
         "
+        # [T002375-p4] Die Meldung unterscheidet jetzt, WAS fehlt. Phase 0 oben hat
+        # freshness:regenerate bereits ausgefuehrt — der Arbeitsbaum ist danach per
+        # Konstruktion aktuell. "is stale" war deshalb strukturell die falsche Diagnose
+        # und las sich wie ein fehlgeschlagenes regenerate; T002352-M3 beschreibt genau
+        # die Schleife, in die man daraufhin laeuft: regenerate, check, regenerate, check.
+        # Fehlend ist in Wahrheit immer nur der Commit — die Meldung sagt das jetzt und
+        # nennt die naechste Aktion statt der bereits erledigten.
         for f in $FILES; do
-          if ! git diff --exit-code "$f"; then
-            echo "  ✗ $f is stale — run 'task freshness:regenerate' locally and commit"
+          if ! git diff --quiet "$f" 2>/dev/null; then
+            echo "  ✗ $f regenerated but not staged — run 'git add $f' and commit"
+            ERRORS=$((ERRORS + 1))
+          elif ! git diff --quiet HEAD -- "$f" 2>/dev/null; then
+            echo "  ✗ $f staged but not committed — commit it"
             ERRORS=$((ERRORS + 1))
           fi
         done
         if [ $ERRORS -gt 0 ]; then
-          echo "ERROR: ${ERRORS} generated artifact(s) are stale (see above)."
+          echo "ERROR: ${ERRORS} generated artifact(s) are not committed (see above)."
+          echo "       Der Arbeitsbaum ist aktuell — freshness:regenerate erneut auszufuehren aendert nichts."
           exit 1
         fi
         echo "✓ All generated artifacts are fresh"

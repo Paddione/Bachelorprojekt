@@ -31,6 +31,24 @@ sed -E -i 's/^status: (active|plan_staged|in_progress)$/status: completed/' "$PL
 > Aus dem Haupt-Checkout heraus funktioniert
 > `mcp__ticket-mcp__archive_plan({ id, slug, branch, plan_file, pr })` weiterhin.
 
+> **Delta-Disziplin — die SSOT wird im Change NICHT direkt editiert [T002375-p5].**
+> Änderungen an `openspec/specs/**` gehören ausschließlich ins Delta unter
+> `openspec/changes/<slug>/specs/`. Das Mergen ist Aufgabe genau dieses `archive`-Schritts.
+>
+> Wird beides gepflegt — Delta *und* Direktedit an der SSOT —, ist der Delta-Marker
+> zwangsläufig falsch, und der Fehler fällt erst beim Archivieren auf, also **nach** dem
+> Merge. Beim Archivieren von T002328 schlug `openspec.sh archive` deshalb zweimal fehl
+> (T002354-M1):
+>
+> ```
+> ERROR: ci-cd.md: ADDED target '…' already exists in ci-cd.md — use MODIFIED or rename
+> ERROR: ci-cd.md: REMOVED target '… — Scenario "…"' not found
+> ```
+>
+> **`## REMOVED Requirements` listet ganze Requirement-Namen, niemals einzelne Szenarien.**
+> Ein Szenario, das entfallen soll, wird nicht dort entfernt, sondern als Prosa-Hinweis im
+> zugehörigen `MODIFIED`-Requirement geführt.
+
 3. OpenSpec-Change archivieren: `openspec/changes/<slug>/` → `openspec/changes/archive/<date>-<slug>/`. Verschiebt proposal.md, tasks.md, specs/, assets/ ins Archiv und aktualisiert den SSOT-Delta.
 ```bash
 bash scripts/openspec.sh archive "$SLUG"

@@ -40,6 +40,22 @@ _lock_dir() {
 
 _field() { sed -n "s/.*\"$2\": *\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | head -1; }
 
+# Entfernt Pfade, die .gitattributes als `linguist-generated=true` fuehrt. [T002375-p6]
+# Die Muster stehen dort in der ersten Spalte; `**`-Globs werden auf ein Praefix reduziert.
+_drop_generated() {
+  local list="$1" ga pat
+  ga="$(git rev-parse --show-toplevel 2>/dev/null)/.gitattributes"
+  [ -f "$ga" ] || { printf '%s\n' "$list"; return 0; }
+  while IFS= read -r pat; do
+    [ -n "$pat" ] || continue
+    case "$pat" in
+      *'**') list="$(printf '%s\n' "$list" | grep -v -- "^${pat%'**'}" || true)" ;;
+      *)     list="$(printf '%s\n' "$list" | grep -vxF -- "$pat" || true)" ;;
+    esac
+  done < <(awk '/linguist-generated=true/{print $1}' "$ga")
+  printf '%s\n' "$list" | sed '/^$/d'
+}
+
 cmd_check() {
   local mode=staged quiet=0
   while [ $# -gt 0 ]; do case "$1" in
@@ -51,6 +67,16 @@ cmd_check() {
     own="$(printf '%s\n%s\n' "$own" "$(git diff --name-only HEAD 2>/dev/null)")"
   fi
   own="$(printf '%s\n' "$own" | sed '/^$/d' | sort -u)"
+  # [T002375-p6] Generierte Artefakte aus der Kollisionspruefung nehmen. Sie werden von
+  # praktisch jedem Lauf angefasst — allen voran website/src/data/openspec-status.json,
+  # das jeder `openspec propose` neu schreibt. In T002341-M2 kamen so sechs
+  # COLLISION-Warnungen zustande, von denen nur diese eine Datei eine echte Ueberschneidung
+  # war; echte Kollisionen gehen in solchem Rauschen unter.
+  #
+  # Quelle ist .gitattributes (`linguist-generated=true`) — die Liste wird NICHT dupliziert,
+  # sonst laeuft sie auseinander. Fehlt die Datei oder greift kein Muster, bleibt alles beim
+  # Alten (fail-open, wie der ganze Detektor).
+  own="$(_drop_generated "$own")"
   [ -n "$own" ] || return 0
 
   local mysid d; mysid="$(_my_sid)"; d="$(_lock_dir)"
@@ -67,6 +93,7 @@ cmd_check() {
     git -C "$wt" rev-parse --git-dir >/dev/null 2>&1 || continue
     peer="$( { git -C "$wt" diff --name-only HEAD 2>/dev/null; \
                git -C "$wt" diff --cached --name-only 2>/dev/null; } | sed '/^$/d' | sort -u )"
+    peer="$(_drop_generated "$peer")"
     [ -n "$peer" ] || continue
     while IFS= read -r file; do
       [ -n "$file" ] || continue

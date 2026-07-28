@@ -340,6 +340,22 @@ fi
 # (### New files / ### Changed files) stay part of the section.
 FS_SECTION="$(awk '/^##[[:space:]]+File Structure/{f=1;next} f&&/^##[[:space:]]/{exit} f{print}' "$PLAN")"
 PLAN_OUTSIDE_FS="$(awk '/^##[[:space:]]+File Structure/{infs=1;next} infs&&/^##[[:space:]]/{infs=0} infs{next} {print}' "$PLAN")"
+# [T002375-p6] Die Partial-Dateien mitlesen. Im Partial-Modell (T002074) steht die
+# `## File Structure` im Index-Plan, waehrend die Tasks — und damit die Datei-Referenzen —
+# in `tasks.d/pN-*.md` liegen. W3 sah nur den Index-Plan und meldete deshalb JEDE dort
+# gelistete Datei als unreferenziert.
+#
+# Das war der Befund aus T002342-M1: gemeldet wurde `scripts/register-scope.sh`, obwohl
+# Task 5 die Datei in seinem `**Files:**`-Block fuehrte. Die dort vermutete Ursache — das
+# Zeilensuffix `:6-31` — ist nachweislich NICHT das Problem: eine Referenz mit demselben
+# Suffix im selben Plan loest kein W3 aus (Fixture C), eine identische Referenz in einer
+# tasks.d-Datei dagegen schon (Fixture D). Deshalb hat auch das Umschreiben auf
+# `(Zeilen 6-31)` nichts geaendert.
+_PLAN_DIR="$(dirname "$PLAN")"
+if compgen -G "$_PLAN_DIR/tasks.d/*.md" >/dev/null 2>&1; then
+  PLAN_OUTSIDE_FS="$PLAN_OUTSIDE_FS
+$(cat "$_PLAN_DIR"/tasks.d/*.md)"
+fi
 while IFS= read -r ftok; do
   [[ -n "$ftok" ]] || continue
   # Match by BASENAME: File Structure lists full paths, but task prose idiomatically

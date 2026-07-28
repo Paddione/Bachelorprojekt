@@ -108,18 +108,22 @@
   repo="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
   ald="$(mktemp -d)"
 
+  # [T002375-p1] CLAUDE_CODE_SESSION_ID muss weg: die Harness exportiert sie real und
+  # sie steht in der Aufloesungsreihenfolge VOR CLAUDE_SESSION_ID. Ohne das unset haetten
+  # beide "Sessions" dieselbe SID und der Guard haette nichts zu verweigern.
+  unset CLAUDE_CODE_SESSION_ID
   # Session A hält den Ticket-Lock.
-  run env AGENT_LOCK_DIR="$ald" CLAUDE_SESSION_ID="t002282-session-a" \
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t002282-session-a" \
     bash "$repo/scripts/agent-lock.sh" claim ticket T002282 --label foreign-session
   [ "$status" -eq 0 ]
 
   # Vorbedingung: aus Session B meldet check 'held' (Exit 3).
-  run env AGENT_LOCK_DIR="$ald" CLAUDE_SESSION_ID="t002282-session-b" \
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t002282-session-b" \
     bash "$repo/scripts/agent-lock.sh" check ticket T002282
   [ "$status" -eq 3 ]
 
   # Session B versucht den Status-Write — muss abgelehnt werden.
-  run env AGENT_LOCK_DIR="$ald" CLAUDE_SESSION_ID="t002282-session-b" \
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t002282-session-b" \
     bash "$repo/scripts/ticket.sh" update-status --id T002282 --status done
   rm -rf "$ald"
 
@@ -361,4 +365,55 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
 @test "T002329: ticket-mcp validiert gegen das neue Vokabular" {
   run bash -c "grep -c '\"chore\"' scripts/ticket-mcp/go/internal/tools/triage.go"
   [ "$output" != "0" ]
+}
+
+# ── [T002375-p3] CLI-Flag-Drift zwischen stage-plan und archive-plan ──#
+#
+# `--plan-file` ist der Name, den archive-plan und der MCP-Wrapper archive_plan
+# benutzen; stage-plan kannte nur `--plan`. Wer zwischen beiden Kommandos wechselte,
+# lief zuverlaessig in einen Fehlversuch (T002372-M2, T002325-M2).
+#
+# Am gefaehrlichsten war Punkt 3 aus T002372-M2: laeuft der Aufruf ueber eine Pipe
+# (`timeout … | tail`), misst `$?` das LETZTE Glied — ein falsches Flag sah wie ein
+# Erfolg aus und machte die beiden anderen Befunde unsichtbar. Diese Tests pruefen
+# den Exit-Code deshalb direkt, ohne Pipe.
+
+@test "T002375-p3: stage-plan akzeptiert --plan-file als Alias auf --plan" {
+  # Kein Cluster noetig: geprueft wird die Argument-Auswertung. Ein unbekanntes Flag
+  # bricht mit 2 ab, BEVOR irgendetwas anderes passiert; ein akzeptiertes nicht.
+  # Der Exit-Code allein taugt hier NICHT als Kriterium: sowohl ein unbekanntes Flag
+  # als auch ein fehlendes --id enden mit 2. Der Diskriminator ist, dass der Aufruf
+  # die Argument-Schleife VERLAESST und erst an der --id-Pflichtpruefung stehen
+  # bleibt — dann wurde --plan-file konsumiert.
+  run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --plan-file /nonexistent/x.md 2>&1 | grep -c 'Unknown stage-plan option'"
+  [ "$output" = "0" ] || { echo "--plan-file gilt weiterhin als unbekanntes Flag"; false; }
+
+  run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --plan-file /nonexistent/x.md 2>&1 | grep -c 'ERROR: --id is required'"
+  [ "$output" = "1" ] || { echo "der Aufruf erreichte die --id-Pflichtpruefung nicht"; false; }
+}
+
+@test "T002375-p3: ein wirklich unbekanntes Flag bricht mit 2 ab und nennt die gueltigen Flags" {
+  # Positiv-Anker zuerst: ein GUELTIGES Flag darf nicht als unbekannt gelten —
+  # sonst bestuende der Negativteil vakuos.
+  run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --partials 1 2>&1 | grep -c 'Unknown stage-plan option'"
+  [ "$output" = "0" ] || { echo "gueltiges Flag --partials wurde als unbekannt gemeldet"; false; }
+
+  run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --slug foo >/dev/null 2>&1"
+  [ "$status" -eq 2 ] || { echo "erwartet Exit 2 fuer --slug, bekam $status"; false; }
+
+  # Auf die relevante Zeile eingrenzen: der Worktree-Verzeichnisname ist aus dem
+  # Change-Slug abgeleitet und wuerde einen ungefilterten Match auf 'plan' erfuellen,
+  # sobald ein Skript $0 mitdruckt (CLAUDE.md, BATS-Konvention / T002267).
+  run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --slug foo 2>&1 | grep -c 'Gueltige Flags:'"
+  [ "$output" = "1" ] || { echo "die Fehlermeldung nennt die gueltigen Flags nicht"; false; }
+
+  run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --slug foo 2>&1 | grep -c 'plan-file'"
+  [ "$output" -ge 1 ] || { echo "die Fehlermeldung nennt --plan-file nicht"; false; }
+}
+
+@test "T002375-p3: die Fehlermeldung warnt vor der sofortigen Factory-Greifbarkeit ohne --hold" {
+  # stage-plan.sh weckt factory.service. Ohne --hold ist das Ticket damit unmittelbar
+  # dispatchbar — das stand bisher nur als Randnotiz in der Referenz.
+  run bash -c "cd '$BATS_TEST_DIRNAME/../..' && bash scripts/ticket.sh stage-plan --slug foo 2>&1 | grep -c -- '--hold'"
+  [ "$output" -ge 1 ] || { echo "die Fehlermeldung erwaehnt --hold nicht"; false; }
 }

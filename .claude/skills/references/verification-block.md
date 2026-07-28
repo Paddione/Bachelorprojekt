@@ -28,6 +28,31 @@ Bei Manifest-Änderungen zusätzlich: `./tests/runner.sh local <TEST-ID>` für d
 
 Bei Änderungen an `tests/spec/` zusätzlich: `task test:spec:changed` — CI fährt eine separate spec-Suite, die `test:changed` nicht abdeckt. Ohne diesen Schritt werden spec-Guard-Verletzungen erst nach dem Push sichtbar (T002291).
 
+### Zwei rote Ergebnisse, die keine sind [T002375-p4]
+
+**(a) Neue Dateien und der Freshness-Index.** Seit T002375-p4 zählt das Scan-Universum auch
+untracked-aber-nicht-ignorierte Dateien, der Regelfall braucht also nur **einen** Durchlauf.
+Das Netz bleibt trotzdem stehen — wer mit `.gitignore`-Ausnahmen arbeitet, kann weiterhin in
+das alte Muster laufen. Dann gilt die Reihenfolge: erst `git add <neue Datei>`, dann
+`task quality:index`, dann `task freshness:check`. Symptom des alten Musters: `file_count`
+steigt beim zweiten Lauf um genau 1 (beobachtet 548 → 549, T002255/T002267).
+
+**(b) Rote E2E-Services bei reinen Manifest-Änderungen sind KEIN PR-Blocker.**
+`task test:changed` startet bei `k3d/`-, `environments/`- oder `VideoVault/`-Änderungen die
+Gruppe `test:e2e:services` gegen `localhost:4321`. Ohne laufenden Dev-Stack sind 13
+`ERR_CONNECTION_REFUSED` das erwartete Ergebnis. Seit T002375-p4 überspringt `test:changed`
+die Gruppe mit sichtbarer Meldung, wenn der Port nicht antwortet.
+
+Der Grund, warum das kein Blocker ist: **CI führt für PRs nur `test:spec:changed` plus
+`tests/unit/manifests.bats` und `changed-manifests.bats` aus — nicht das volle
+`task test:changed`.** Der lokale Lauf ist damit strenger als das Gate, das er simuliert. Die
+CI-äquivalenten Kommandos:
+
+```bash
+task test:spec:changed
+tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/changed-manifests.bats
+```
+
 ## S1-Ratchet — Kurzform
 
 Das Ratchet vergleicht gegen den **eingefrorenen Baseline-Wert**, nicht nur gegen das statische

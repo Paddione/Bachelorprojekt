@@ -14,6 +14,11 @@ setup() {
   LOCK="$REPO/scripts/agent-lock.sh"
   export AGENT_LOCK_DIR
   AGENT_LOCK_DIR="$(mktemp -d)"
+  # [T002375-p1] CLAUDE_CODE_SESSION_ID ausdruecklich entfernen: die Harness exportiert
+  # sie real und sie steht in der Aufloesungsreihenfolge VOR CLAUDE_SESSION_ID. Ohne das
+  # unset loesen alle "Sessions" dieses Tests auf dieselbe ambient SID auf, und der
+  # Negativtest unten (zweiter claim wird abgewiesen) prueft nichts mehr.
+  unset CLAUDE_CODE_SESSION_ID
   export CLAUDE_SESSION_ID="claude-t001384-suite"
   unset AGENT_LOCK_SID
 }

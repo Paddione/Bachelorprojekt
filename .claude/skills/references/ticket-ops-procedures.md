@@ -50,9 +50,26 @@ SELECT external_id, title, type, status, priority, severity, component, areas,
        COALESCE(length(trim(description)),0) AS desc_len, created_at::date
 FROM tickets.tickets
 WHERE status NOT IN ('done','archived')
+  -- [T002375-p6] E2E-Testdaten ausschliessen. T002348 tauchte im Triage auf und kostete
+  -- eine volle Untersuchungsschleife — es war kein Fehler: Titel und Beschreibung stammen
+  -- woertlich aus tests/e2e/specs/fa-26-bug-report-form.spec.ts:45, und der
+  -- Marker-Mechanismus aus T001453 hatte korrekt gegriffen (is_test_data = true). Diese
+  -- Query filterte ihn nur nicht, obwohl der Produktivcode es durchgaengig tut (siehe
+  -- website/src/pages/api/admin/cockpit/container-count.ts:16).
+  AND is_test_data = false
 ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 ELSE 4 END,
          created_at ASC;
 ```
+
+> **Die Uebersichtstabelle darf kuerzen — vor jedem Dispatch wird die Beschreibung
+> VOLLSTAENDIG gelesen [T002338-M1].** Die Triage-Abfrage lief einmal mit
+> `left(description, 700)`. Bei T002308 stand der entscheidende Hinweis jenseits der 700
+> Zeichen: der Fix sei bei einem anderen Ticket ohnehin mit abzuhandeln. Genau das trat
+> ein — Kosten: ein Worktree, ein Agent-Lauf, rund 134k Token.
+>
+> Der Grund ist strukturell und nicht auf dieses eine Ticket beschraenkt: **Tickets tragen
+> ihre wichtigsten Einschraenkungen typischerweise am ENDE der Beschreibung** — dort landet,
+> was beim Schreiben zuletzt einfiel, und das ist oft die Abgrenzung.
 
 ### Step 1.2: Compute the `missing[]` list per ticket
 

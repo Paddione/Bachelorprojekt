@@ -9,10 +9,20 @@ hierher konsolidiert.
 Watcht einen PR bis alle required checks grün sind, sammelt Failure-Logs und eskaliert nach
 `MAX_CI_ATTEMPTS` (Default 5):
 
+> **SYNCHRON aufrufen — niemals als Hintergrund-Task mit Monitor-Schleife [T002375-p2].**
+> Der Aufruf blockiert bewusst, bis die Checks entschieden sind. Ihn im Hintergrund zu starten
+> und dann auf seinen Output zu warten, ist die Wiederholung von T001969 — und sie ist bereits
+> einmal passiert, obwohl der `dev-flow-execute`-Prompt die Direktive wörtlich enthält
+> (T002351-M3). Die Diagnose damals: die Prompt-Direktive konkurrierte mit dieser Referenz, die
+> das Skript nur als *aufzurufendes Kommando* nannte, **ohne die Ausführungsart zu erzwingen**.
+> Deshalb steht sie jetzt hier, unmittelbar an der Kopiervorlage. `timeout` gehört dazu — ohne
+> ihn ist „synchron" gleichbedeutend mit „hängt womöglich unbegrenzt".
+
 ```bash
 TICKET_ID="T000xxx"
 PR_URL=$(gh pr view --json url -q '.url')
-bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
+# synchron, mit explizitem Timeout — kein `&`, kein run_in_background, kein Monitor-Loop
+timeout 1800 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 ```
 
 - Bei Failure: `gh run view --log-failed` (Tail 200) → Diagnose an einen Fix-Subagenten

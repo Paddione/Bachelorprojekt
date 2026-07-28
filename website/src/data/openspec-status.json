@@ -1821,6 +1821,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002349": [
+    {
+      "slug": "k3d-kustomization-T002349",
+      "status": "plan_staged"
+    }
+  ],
   "T002350": [
     {
       "slug": "2026-07-27-reaper-child-selection",

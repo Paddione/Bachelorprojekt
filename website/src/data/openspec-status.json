@@ -1979,6 +1979,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002423": [
+    {
+      "slug": "merge-arbitration",
+      "status": "plan_staged"
+    }
+  ],
   "T002425": [
     {
       "slug": "mishap-t002425",

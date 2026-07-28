@@ -1,0 +1,59 @@
+name: Merge Arbitration
+
+# T002423 — kurative Auflösungsstufe für N-Wege-Dateikollisionen. Läuft auf
+# dem self-hosted fleet-gpu-Pool (derselbe wie opencode.yml): der llm-proxy
+# ist an 127.0.0.1:18235 gebunden und von einem GitHub-hosted Runner nicht
+# erreichbar (siehe docs/superpowers/specs/2026-07-28-merge-arbitration-design.md).
+#
+# Strikt fail-open: kein Required Check, kein Force-Push, keine fremden
+# Branches. continue-on-error auf jedem Schritt — ein Ausfall (GPU-Runner
+# down, LLM antwortet nicht) darf niemals gegen einen PR zählen.
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch: {}
+
+env:
+  OPENSPEC_TELEMETRY: '0'
+
+jobs:
+  arbitrate:
+    runs-on: [self-hosted, fleet-gpu]
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Fetch all open PR branches
+        continue-on-error: true
+        run: |
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*' --prune --quiet || true
+
+      - name: Detect clusters
+        id: detect
+        continue-on-error: true
+        run: |
+          bash scripts/arbitration/detect.sh > /tmp/arbitration-clusters.json 2>/tmp/arbitration-detect.log
+          cat /tmp/arbitration-detect.log >&2 || true
+          COUNT=$(jq '. | length' /tmp/arbitration-clusters.json 2>/dev/null || echo 0)
+          echo "count=${COUNT}" >> "$GITHUB_OUTPUT"
+          echo "Found ${COUNT} cluster(s) at/above threshold"
+
+      - name: Apply arbitration (per Cluster)
+        if: steps.detect.outputs.count != '0'
+        continue-on-error: true
+        run: |
+          jq -c '.[]' /tmp/arbitration-clusters.json | while IFS= read -r cluster; do
+            echo "$cluster" | bash scripts/arbitration/apply.sh || true
+          done

@@ -3363,17 +3363,15 @@ tasks:
     cmds:
       - node scripts/code-quality/check.mjs
 
-<<<<<<< HEAD
   quality:pod-phase-filter:
     desc: "Prüft, dass jede shared-db-Pod-Selektion auf status.phase=Running filtert (T002439). Wurzeln nach --, z.B. task quality:pod-phase-filter -- scripts"
     cmds:
       - bash scripts/check-pod-phase-filter.sh {{.CLI_ARGS}}
-=======
+
   plan:touched-files:
     desc: "Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md"
     cmds:
       - bash scripts/plan-touched-files.sh {{.CLI_ARGS}}
->>>>>>> 6e055cf7e (fix(scripts): stage-plan leitet touched_files aus ## File Structure ab [T002446])
 
   health:goals:
     desc: "Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast"

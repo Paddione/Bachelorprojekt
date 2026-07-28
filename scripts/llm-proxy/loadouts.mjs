@@ -30,6 +30,7 @@ function validateLoadout(l, index, seen) {
   seen.add(l.slug);
 
   if (typeof l.model !== 'string' || !l.model) fail(`${l.slug}: model fehlt`);
+  if (l.model.includes('..')) fail(`${l.slug}: model path darf kein '..' enthalten`);
   if (!Number.isInteger(l.port) || l.port < 1024 || l.port > 65535) {
     fail(`${l.slug}: port muss ganzzahlig zwischen 1024 und 65535 sein`);
   }

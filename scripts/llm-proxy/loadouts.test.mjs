@@ -98,3 +98,9 @@ test('findLoadout findet per Slug und liefert undefined sonst', () => {
   assert.equal(findLoadout(doc, 'gptoss-context').port, 8098)
   assert.equal(findLoadout(doc, 'ghost'), undefined)
 })
+
+test('parseLoadouts: model path mit .. wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].model = '../../etc/passwd'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /\.\./)
+})

@@ -254,7 +254,7 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     slug="$(basename "$(dirname "$PLAN")")"
     local intel="$PLAN_DIR/intel.json"
     if [[ ! -f "$intel" ]]; then
-      hard "I1: intel.json not found at $intel — run scripts/plan-intel.sh $slug"
+      warn "I1: intel.json not found at $intel — run scripts/plan-intel.sh $slug to generate it"
       return
     fi
     if ! jq -e . "$intel" >/dev/null 2>&1; then

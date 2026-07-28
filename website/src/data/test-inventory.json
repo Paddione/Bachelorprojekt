@@ -979,12 +979,6 @@
   },
   {
     "id": "FA-SF-01",
-    "file": "tests/local/FA-SF-01-conflict-check.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-01",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
@@ -1003,19 +997,7 @@
   },
   {
     "id": "FA-SF-04",
-    "file": "tests/local/FA-SF-04-db-schema.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-04",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-05",
-    "file": "tests/local/FA-SF-05-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1081,19 +1063,7 @@
   },
   {
     "id": "FA-SF-21",
-    "file": "tests/local/FA-SF-21-ticket-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-21",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-22",
-    "file": "tests/local/FA-SF-22-fixtures.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1105,19 +1075,7 @@
   },
   {
     "id": "FA-SF-23",
-    "file": "tests/local/FA-SF-23-slots.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-23",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-24",
-    "file": "tests/local/FA-SF-24-queue.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1129,31 +1087,13 @@
   },
   {
     "id": "FA-SF-25",
-    "file": "tests/local/FA-SF-25-schedule.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-25",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-26",
-    "file": "tests/local/FA-SF-26-watchdog.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-26",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-27",
-    "file": "tests/local/FA-SF-27-metrics.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1177,19 +1117,7 @@
   },
   {
     "id": "FA-SF-32",
-    "file": "tests/local/FA-SF-32-classify-paths.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-32",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-33",
-    "file": "tests/local/FA-SF-33-classify-failure.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1201,31 +1129,13 @@
   },
   {
     "id": "FA-SF-34",
-    "file": "tests/local/FA-SF-34-prefix-conflict.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-34",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-35",
-    "file": "tests/local/FA-SF-35-factory-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-35",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-36",
-    "file": "tests/local/FA-SF-36-guards.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1238,12 +1148,6 @@
   {
     "id": "FA-SF-37",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-38",
-    "file": "tests/local/FA-SF-38-canary.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1268,12 +1172,6 @@
   {
     "id": "FA-SF-41",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-42",
-    "file": "tests/local/FA-SF-42-dashboard-route.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1309,19 +1207,7 @@
   },
   {
     "id": "FA-SF-47",
-    "file": "tests/local/FA-SF-47-wakeup-reasoning-effort.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-47",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-48",
-    "file": "tests/local/FA-SF-48-ticket-phase-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1333,19 +1219,7 @@
   },
   {
     "id": "FA-SF-49",
-    "file": "tests/local/FA-SF-49-injection-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-49",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-50",
-    "file": "tests/local/FA-SF-50-stage-plan.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1357,19 +1231,7 @@
   },
   {
     "id": "FA-SF-51",
-    "file": "tests/local/FA-SF-51-auto-enqueue.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-51",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-52",
-    "file": "tests/local/FA-SF-52-qa-notify.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1381,31 +1243,13 @@
   },
   {
     "id": "FA-SF-53",
-    "file": "tests/local/FA-SF-53-decompose.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-53",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-57",
-    "file": "tests/local/FA-SF-57-app-catalog.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-57",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-58",
-    "file": "tests/local/FA-SF-58-eval-harness.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1424,12 +1268,6 @@
   {
     "id": "FA-SF-60",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-70",
-    "file": "tests/local/FA-SF-70-provider-router.bats",
     "category": "FA",
     "kind": "shell"
   },

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.225.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.2...website-v1.225.3) (2026-07-28)
+
+
+### Tests
+
+* **ci:** regression tests for scope alias and release --force [T002374] ([#3449](https://github.com/Paddione/Bachelorprojekt/issues/3449)) ([d552865](https://github.com/Paddione/Bachelorprojekt/commit/d552865be3aa1e97bdf5bef099cb1acaa10696b9))
+
 ## [1.225.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.1...website-v1.225.2) (2026-07-28)
 
 

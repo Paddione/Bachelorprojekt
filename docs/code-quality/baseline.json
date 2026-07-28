@@ -6,6 +6,13 @@
     "detail": "669 lines > 500 limit (.mjs)",
     "frozen_at": "224a9e077"
   },
+  "S1:k3d/talk-transcriber/app.py": {
+    "gate": "S1",
+    "path": "k3d/talk-transcriber/app.py",
+    "metric": 648,
+    "detail": "648 lines > 600 limit (.py)",
+    "frozen_at": "224a9e077"
+  },
   "S1:website/src/components/assistant/QuestionnaireView.svelte": {
     "gate": "S1",
     "path": "website/src/components/assistant/QuestionnaireView.svelte",

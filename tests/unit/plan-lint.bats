@@ -45,10 +45,18 @@ setup() {
   [ "$output" = "0" ]
 }
 
-@test "B1 math: unbaselined .sh -> effective threshold = static 500" {
+@test "B1 math: unbaselined .sh -> effective threshold = the gates.yaml limit" {
+  # [T002452] Die Zahl wird aus gates.yaml GELESEN, nicht wiederholt. Vorher stand
+  # hier das Literal 500 — beim Anheben auf 650 wurde dieser Test rot, obwohl
+  # plan-lint.sh selbst korrekt aus gates.yaml liest. Die fuenfte Kopie derselben
+  # Zahl im Repo; der Test hat damit die Konfiguration von gestern geprueft.
+  local limit; limit=$(yq -r '.s1.limits[".sh"]' "$REPO/docs/code-quality/gates.yaml")
+  # Positiv-Anker: ein leeres oder "null"-Limit wuerde den Vergleich unten
+  # bedeutungslos machen, statt den Testgegenstand zu pruefen.
+  [[ "$limit" =~ ^[0-9]+$ ]] || { echo "s1.limits['.sh'] nicht lesbar: '$limit'"; return 1; }
   run env PLAN_LINT_SELFTEST=1 bash "$LINT" effective_threshold "scripts/never-baselined-xyz.sh"
   [ "$status" -eq 0 ]
-  [ "$output" = "500" ]
+  [ "$output" = "$limit" ]
 }
 
 @test "B1 math: baselined file uses max(limit, baseline.metric)" {
@@ -70,8 +78,11 @@ setup() {
 }
 
 @test "B1 math: residual_budget = threshold - wc -l on a live file" {
-  # plan-context.sh is unbaselined .sh -> 500 - wc-l (computed at test time)
-  expected=$((500 - $(wc -l < "$REPO/scripts/plan-context.sh")))
+  # plan-context.sh is unbaselined .sh -> limit - wc-l (both read at test time).
+  # [T002452] Limit aus gates.yaml statt Literal 500 — siehe Kommentar oben.
+  local limit; limit=$(yq -r '.s1.limits[".sh"]' "$REPO/docs/code-quality/gates.yaml")
+  [[ "$limit" =~ ^[0-9]+$ ]] || { echo "s1.limits['.sh'] nicht lesbar: '$limit'"; return 1; }
+  expected=$((limit - $(wc -l < "$REPO/scripts/plan-context.sh")))
   run env PLAN_LINT_SELFTEST=1 bash "$LINT" residual_budget "scripts/plan-context.sh"
   [ "$status" -eq 0 ]
   [ "$output" = "$expected" ]
@@ -179,7 +190,7 @@ setup() {
   # (positive or negative depending on file size vs threshold)
   local result
   result="$(PLAN_LINT_SELFTEST=1 bash "$LINT" residual_budget "scripts/plan-lint.sh" 2>/dev/null || true)"
-  # .sh files are gated (limit 500), so result should be numeric
+  # .sh files are gated (limit steht in gates.yaml), so result should be numeric
   [[ "$result" =~ ^-?[0-9]+$ ]] || {
     echo "Expected numeric budget for gated file, got: '$result'"
     return 1

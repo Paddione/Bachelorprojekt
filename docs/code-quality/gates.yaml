@@ -55,7 +55,12 @@ s1:
     .sh: 650      # war 500 — agent-lock.sh 499, danach 151 Zeilen Reserve
     .mjs: 650     # war 500
     .mts: 500
-    .py: 750      # war 600
+    # .py bleibt 600: kein gemessener Druck. Einzige Datei nahe der Grenze ist
+    # k3d/talk-transcriber/app.py (648) — die Anhebung haette dort keine Arbeit
+    # entsperrt, sondern eine getrackte Verletzung stillgelegt. Die B1b-Fixture in
+    # tests/unit/fixtures/plan-lint/over-threshold.md haengt genau daran und wurde
+    # rot, als .py kurzzeitig auf 750 stand: das Gate hat den Fehler selbst gemeldet.
+    .py: 600
     .js: 600
     .jsx: 600
     .tsx: 500     # war 400

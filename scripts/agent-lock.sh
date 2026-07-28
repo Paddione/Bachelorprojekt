@@ -467,20 +467,16 @@ cmd_reap() {
 
 _AGENT_LOCK_DIR_SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Git-Hook-Guards in eigener Datei [T002375-p1] unter S1-Limit. Fail-loud: stumm = schlimmer.
-if [ -f "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh" ]; then
-  # shellcheck source=scripts/agent-lock-guards.sh
-  . "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh"
-else
-  echo "AGENT-LOCK: FATAL — scripts/agent-lock-guards.sh fehlt neben $0" >&2
-  exit 1
-fi
-# T002279: check-merged command, extracted for S1 limit.
-if [ -f "$_AGENT_LOCK_DIR_SELF/agent-lock-merged.sh" ]; then
-  # shellcheck source=scripts/agent-lock-merged.sh
-  . "$_AGENT_LOCK_DIR_SELF/agent-lock-merged.sh"
-else
-  echo "AGENT-LOCK: WARNING — scripts/agent-lock-merged.sh fehlt neben $0 (check-merged disabled)" >&2
-fi
+# Beide Fragmente sind ausgelagert, damit diese Datei unter dem S1-Limit von
+# 500 Zeilen bleibt (guards: T002214, merged/check-merged: T002279).
+# shellcheck source=scripts/agent-lock-guards.sh
+# shellcheck source=scripts/agent-lock-merged.sh
+for _agent_lock_frag in agent-lock-guards.sh agent-lock-merged.sh; do
+  [ -f "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag" ] || {
+    echo "AGENT-LOCK: FATAL — scripts/$_agent_lock_frag fehlt neben $0" >&2; exit 1; }
+  . "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag"
+done
+unset _agent_lock_frag
 
 main() {
   local cmd="${1:-}"; shift 2>/dev/null || true

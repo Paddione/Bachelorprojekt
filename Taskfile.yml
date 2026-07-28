@@ -527,6 +527,11 @@ tasks:
     cmds:
       - bash scripts/mishap-categorize.sh {{.CLI_ARGS}}
 
+  pr:refresh:
+    desc: "Rebase konfliktbehaftete PRs auf origin/main und heilt Konflikte in generierten Artefakten. Usage: task pr:refresh -- [--dry-run] <pr-nummer>..."
+    cmds:
+      - bash scripts/pr-refresh.sh {{.CLI_ARGS}}
+
   release:notes:
     desc: "Generate release notes from merged PRs since last tag. Usage: task release:notes -- [--since <tag>] [--out <file>]"
     cmds:

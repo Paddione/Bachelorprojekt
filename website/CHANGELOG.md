@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.224.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.5...website-v1.224.0) (2026-07-28)
+
+
+### Features
+
+* **scripts:** task pr:refresh heilt PRs mit Konflikten in generierten Artefakten [T002413] ([#3464](https://github.com/Paddione/Bachelorprojekt/issues/3464)) ([f09a98c](https://github.com/Paddione/Bachelorprojekt/commit/f09a98cee92d1e7594cf4fd424472708f36d187c))
+
+## [1.223.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.4...website-v1.223.5) (2026-07-28)
+
+
+### Bug Fixes
+
+* **factory:** attempt counter distinguishes MODEL from INFRA failure [T002389] ([#3459](https://github.com/Paddione/Bachelorprojekt/issues/3459)) ([6ddb809](https://github.com/Paddione/Bachelorprojekt/commit/6ddb80921861533aa86859b36a677fcb74a87c98))
+
 ## [1.223.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.3...website-v1.223.4) (2026-07-28)
 
 

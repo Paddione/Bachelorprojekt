@@ -64,7 +64,12 @@ $LlmDir  = Join-Path $RepoRoot 'scripts\llm'
 $Servers = @(
   @{ Name = 'bge-m3';   Port = 8095; Script = 'start-embed-server.ps1';  Args = '-NoWait' },
   @{ Name = 'Reranker'; Port = 8096; Script = 'start-rerank-server.ps1'; Args = '-NoWait' },
-  @{ Name = 'Gemma';    Port = 8091; Script = 'start-gemma-server.ps1';  Args = '-Ctx 262144 -Slots 1 -KvType q8_0 -NoWait' }
+  @{ Name = 'Gemma';    Port = 8091; Script = 'start-gemma-server.ps1';  Args = '-Ctx 262144 -Slots 1 -KvType q8_0 -NoWait' },
+  # T002426 - Paar A (Batch, CPU). Stirbt es unbemerkt, faellt jeder Reindex still
+  # auf Paar B zurueck und konkurriert dort mit den interaktiven Anfragen - genau
+  # der Zustand, den dieser Vorgang beseitigt. Der Watchdog macht ihn sichtbar.
+  @{ Name = 'bge-m3-batch';   Port = 8085; Script = 'start-embed-batch-server.ps1';  Args = '-NoWait' },
+  @{ Name = 'Reranker-batch'; Port = 8086; Script = 'start-rerank-batch-server.ps1'; Args = '-NoWait' }
 )
 
 # Write-Host, NICHT Write-Output: Write-Output schreibt in den Success-Stream und

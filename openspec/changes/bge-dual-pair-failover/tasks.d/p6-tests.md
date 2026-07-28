@@ -28,7 +28,7 @@
 
 ## Schritte
 
-- [ ] **Failing-Test-Step (RED).** `tests/spec/llm-pipeline/dual-pair-failover.bats` anlegen mit
+- [x] **Failing-Test-Step (RED).** `tests/spec/llm-pipeline/dual-pair-failover.bats` anlegen mit
       den Assertions gegen die Existenz und Form der neuen Artefakte: beide Batch-Startskripte mit
       festem `-ngl 0` und den Ports 8085/8086, Watchdog- und Scheduled-Task-Abdeckung für beide,
       der Registry-Eintrag des MCP-Shims, die neuen Environment-Variablen in `schema.yaml` und

@@ -39,6 +39,18 @@ $Tasks = @(
     Description = "bge-reranker-v2-m3 Rerank-Server (Port 8096)"
     Script = "$PSScriptRoot\start-rerank-server.ps1"
   }
+  # T002426 - Paar A (Batch, CPU-gebunden). Eigene Tasks statt Parameter am
+  # Bestandsserver: beide Paare laufen GLEICHZEITIG, es ist kein Umschalten.
+  @{
+    Name = "LlamaEmbedBatchServer"
+    Description = "bge-m3 Batch-Embedding-Server, CPU (Port 8085)"
+    Script = "$PSScriptRoot\start-embed-batch-server.ps1"
+  }
+  @{
+    Name = "LlamaRerankBatchServer"
+    Description = "bge-reranker-v2-m3 Batch-Rerank-Server, CPU (Port 8086)"
+    Script = "$PSScriptRoot\start-rerank-batch-server.ps1"
+  }
 )
 
 $SchTasks = "$env:SystemRoot\System32\schtasks.exe"

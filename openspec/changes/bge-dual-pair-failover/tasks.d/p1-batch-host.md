@@ -32,21 +32,21 @@ automatisch und werden vom bestehenden Watchdog mitüberwacht.
 
 ## Schritte
 
-- [ ] `scripts/llm/start-embed-batch-server.ps1` anlegen, formgleich zu
+- [x] `scripts/llm/start-embed-batch-server.ps1` anlegen, formgleich zu
       `start-embed-server.ps1`, aber mit `$Port = 8085`, festem `-ngl 0` und angepassten
       Ausgabetexten (Endpoint-Hinweis auf 8085). Die Port-Räumlogik über
       `Get-NetTCPConnection -LocalPort $Port -State Listen` übernehmen.
-- [ ] `scripts/llm/start-rerank-batch-server.ps1` analog zu `start-rerank-server.ps1` anlegen,
+- [x] `scripts/llm/start-rerank-batch-server.ps1` analog zu `start-rerank-server.ps1` anlegen,
       `$Port = 8086`, festes `-ngl 0`, `RANK`-Pooling.
-- [ ] `scripts/llm/register-scheduled-tasks.ps1` um beide neuen Server erweitern —
+- [x] `scripts/llm/register-scheduled-tasks.ps1` um beide neuen Server erweitern —
       `At system startup`, `RunAs SYSTEM`, Restart-on-failure, gleiche Form wie die bestehenden
       Einträge.
-- [ ] `scripts/llm/watchdog-llm-servers.ps1` um beide neuen Ports erweitern, sodass ein toter
+- [x] `scripts/llm/watchdog-llm-servers.ps1` um beide neuen Ports erweitern, sodass ein toter
       Batch-Server ebenso neu gestartet wird wie die Bestandsserver.
-- [ ] `scripts/llm/loadouts.json` um Einträge für beide Batch-Server ergänzen: `fit.enabled: false`,
+- [x] `scripts/llm/loadouts.json` um Einträge für beide Batch-Server ergänzen: `fit.enabled: false`,
       `args.ngl: 0`, `args.parallel` passend zur Batch-Last, `mcp.serversConfig: null`. Das Feld
       `notes` hält fest, warum dieses Paar bewusst CPU-gebunden ist.
-- [ ] **`--ui-mcp-proxy` als Loadout-Option nachrüsten.** Zuerst prüfen, ob der vorhandene Build
+- [x] **`--ui-mcp-proxy` als Loadout-Option nachrüsten.** Zuerst prüfen, ob der vorhandene Build
       das Flag kennt:
 
       ```bash

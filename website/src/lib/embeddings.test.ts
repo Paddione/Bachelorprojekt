@@ -84,7 +84,7 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
     const r = await embedQuery('hallo', { model: 'bge-m3', purpose: 'query' });
     expect(r.embedding).toHaveLength(1024);
 
-    const call = fetchMock.mock.calls.find(([u]: [string]) => String(u).endsWith('/v1/embeddings'));
+    const call = fetchMock.mock.calls.find((c: unknown[]) => String(c[0]).endsWith('/v1/embeddings'));
     expect(call).toBeDefined();
     const [url, init] = call as [string, RequestInit];
     expect(String(url)).toBe(`${INTERACTIVE}/v1/embeddings`);
@@ -100,7 +100,7 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
 
     await embedBatch(['a'], { model: 'bge-m3', purpose: 'index' });
 
-    const call = fetchMock.mock.calls.find(([u]: [string]) => String(u).endsWith('/v1/embeddings'));
+    const call = fetchMock.mock.calls.find((c: unknown[]) => String(c[0]).endsWith('/v1/embeddings'));
     expect(String((call as [string])[0])).toBe(`${BATCH}/v1/embeddings`);
   });
 
@@ -120,7 +120,7 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
       { data: [{ embedding: Array(1024).fill(0.03) }], usage: { total_tokens: 9 } }));
     global.fetch = fetchMock;
     await embedQuery('hi', { model: 'voyage-multilingual-2', purpose: 'query' });
-    const call = fetchMock.mock.calls.find(([u]: [string]) => String(u).endsWith('/v1/embeddings'));
+    const call = fetchMock.mock.calls.find((c: unknown[]) => String(c[0]).endsWith('/v1/embeddings'));
     expect(String((call as [string])[0])).toContain('llm-router.test');
   });
 

@@ -27,15 +27,15 @@ Vektordimension oder Distanzmaß kennen muss.
 
 ## Schritte
 
-- [ ] `website/src/pages/api/bge/retrieve.ts` anlegen: Query und `top_k` validieren, über den
+- [x] `website/src/pages/api/bge/retrieve.ts` anlegen: Query und `top_k` validieren, über den
       Router aus p2 embedden, gegen den pgvector-Bestand suchen, über den Router reranken und
       höchstens `top_k` Treffer absteigend nach Relevanz zurückgeben.
-- [ ] Cross-Space-Prüfung einbauen: zielt die Query auf Collections mit unterschiedlichen
+- [x] Cross-Space-Prüfung einbauen: zielt die Query auf Collections mit unterschiedlichen
       Vektorräumen, wird sie abgelehnt.
-- [ ] `website/src/pages/api/bge/changes.ts` anlegen: nimmt einen Zeitpunkt entgegen und liefert
+- [x] `website/src/pages/api/bge/changes.ts` anlegen: nimmt einen Zeitpunkt entgegen und liefert
       genau die seither neu embeddeten Ressourcen samt ihrem Embedding-Zeitpunkt, damit Agenten
       Caches invalidieren können.
-- [ ] Beide Endpunkte geben 503 zurück, wenn der Router meldet, dass beide Paare nicht erreichbar
+- [x] Beide Endpunkte geben 503 zurück, wenn der Router meldet, dass beide Paare nicht erreichbar
       sind.
 
 ## Abgrenzung

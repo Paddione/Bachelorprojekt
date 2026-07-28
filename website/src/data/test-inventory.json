@@ -2394,6 +2394,42 @@
     "kind": "shell"
   },
   {
+    "id": "merge-arbitration/apply-escalation",
+    "file": "tests/spec/merge-arbitration/apply-escalation.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/apply-idempotency",
+    "file": "tests/spec/merge-arbitration/apply-idempotency.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/detect-clustering",
+    "file": "tests/spec/merge-arbitration/detect-clustering.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/detect-generated-exclusion",
+    "file": "tests/spec/merge-arbitration/detect-generated-exclusion.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/detect-threshold",
+    "file": "tests/spec/merge-arbitration/detect-threshold.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/synthesize-syntax-gate",
+    "file": "tests/spec/merge-arbitration/synthesize-syntax-gate.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-bundle-2026-06-30",
     "file": "tests/spec/mishap-bundle-2026-06-30.bats",
     "category": "mishap-bundle-2026-06-30",

@@ -1789,8 +1789,8 @@
   ],
   "T002331": [
     {
-      "slug": "schema-diaet-T002331",
-      "status": "plan_staged"
+      "slug": "2026-07-28-schema-diaet-T002331",
+      "status": "archived"
     }
   ],
   "T002333": [
@@ -1849,8 +1849,8 @@
   ],
   "T002356": [
     {
-      "slug": "mishap-t002356",
-      "status": "plan_staged"
+      "slug": "2026-07-28-mishap-t002356",
+      "status": "archived"
     }
   ],
   "T002359": [
@@ -1867,8 +1867,8 @@
   ],
   "T002365": [
     {
-      "slug": "devflow-execute-hardening-T002365",
-      "status": "plan_staged"
+      "slug": "2026-07-28-devflow-execute-hardening-T002365",
+      "status": "archived"
     }
   ],
   "T002366": [
@@ -1994,6 +1994,12 @@
   "T002428": [
     {
       "slug": "openspec-half-archive-T002428",
+      "status": "plan_staged"
+    }
+  ],
+  "T002445": [
+    {
+      "slug": "test-inventory-coverage",
       "status": "plan_staged"
     }
   ],

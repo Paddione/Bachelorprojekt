@@ -51,6 +51,17 @@ bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
+> **Arbeitsteilung (T002365, aus T002351-M3):** Der Implementer endet nach dem Auto-Merge-Request
+> und meldet zurück — die CI-Überwachung bleibt beim Orchestrator, damit sie nie als
+> Hintergrund-Monitor im Subagenten läuft [T001969]:
+> ```
+> Implementer:  implementieren -> verify -> push -> gh pr create
+>               -> gh pr merge --auto -> ENDE, Bericht zurueck
+> Orchestrator: devflow-ci-watch.sh (Schritt 5.5)
+>               bei Exit 3/4 den Konflikt an den Implementer
+>               zurueckgeben (SendMessage), nicht neu spawnen
+> ```
+
 Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — **MCP-first**:
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet · agent_id=$IMPLEMENTER_AGENT_ID" })`
 Fallback:
@@ -84,9 +95,17 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
   - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
   - **Hintergrund-Monitore für lange Test-Runs verboten [T001969 Mishap 1].** Während der Verifikation (lange `task test:changed`/`gh run watch`/CI-Polls) **keine** Background-Tasks starten, auf deren Output der Subagent in einer Monitor-Schleife wartet ("I'll wait for the monitor"). Stattdessen synchron mit explizitem Timeout ausführen: `timeout 600 task test:changed` und auf das Resultat warten. Bei Stop-Events: Arbeit fortsetzen oder an den Orchestrator eskalieren — nicht auf einen Monitor-Loop warten.
-  - Erstelle einen PR, durchlaufe die CI-Fix-Schleife bis grün, und merge via Auto-Merge.
-  - Schließe das Ticket ab und archiviere den Plan.
-Der Subagent führt den gesamten dev-flow-execute-Pipeline selbstständig bis zum Merge durch. Du wirst per `<task-notification>` benachrichtigt, wenn er fertig ist. Fahre dann mit Schritt 8 (Post-Merge Deploy & Verify) fort.
+  - Erstelle einen PR und fordere Auto-Merge an (`gh pr merge --auto --squash --delete-branch`, Schritt 5).
+  - **ENDE (T002365):** Danach ist der Auftrag des Implementers abgeschlossen — melde Ergebnis
+    (PR-URL, letzter Commit) an den Orchestrator zurück. Die CI-Fix-Schleife (Schritt 5.5),
+    der Merge-Wait, der Ticket-Abschluss und die Plan-Archivierung laufen **nicht** mehr im
+    Implementer, sondern im Orchestrator — siehe Arbeitsteilung oben.
+  - **Der Worktree wird NICHT von dir entfernt** (T002365, aus T002352-M1) — das Bereinigen von
+    Worktree und Branch ist Orchestrator-Aufgabe (Schritt 7.5), damit der Orchestrator darin noch
+    die OpenSpec-Archivierung fahren kann, bevor der Worktree verschwindet.
+Der Subagent führt Implementierung, Verifikation, Push, PR-Erstellung und Auto-Merge-Aktivierung
+selbstständig durch und endet danach. Du wirst per `<task-notification>` benachrichtigt, wenn er
+fertig ist. Fahre dann mit Schritt 5.5 (CI-Watch-Schleife) fort — nicht erst mit Schritt 8.
 
 ## Schritt 2.5 — Lokaler Self-Correcting-Loop (optional)
 
@@ -158,18 +177,26 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 (cd "$MAIN_REPO" && gh pr merge --auto --squash --delete-branch)
 ```
 
-## Schritt 5.5: CI/CD-Fix-Schleife
+## Schritt 5.5: CI/CD-Fix-Schleife (Orchestrator-Zuständigkeit, T002365)
 
-Nachdem der PR gepusht ist, überwache CI und behebe Fehler — Auto-Merge ist bereits angefordert (Schritt 5) und greift, sobald die Required Checks grün sind. Details und Required-Check-Liste (SSOT): [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
+**Diesen Schritt führt der Orchestrator aus, nicht der Implementer** — der Implementer endet in
+Schritt 2 direkt nach dem Auto-Merge-Request und läuft daher nie als Hintergrund-Monitor
+[T001969 Mishap 1, aus T002351-M3]. Nachdem der Implementer zurückgemeldet hat, überwacht der
+Orchestrator CI und behebt Fehler — Auto-Merge ist bereits angefordert (Schritt 5) und greift,
+sobald die Required Checks grün sind. Details und Required-Check-Liste (SSOT):
+[ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 ```bash
 PR_URL=$(gh pr view --json url -q '.url')
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
 ```
 Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet`-Subagenten übergeben (Fix-Routine: Freshness → TS → BATS → Kustomize → Commitlint), nach erfolgreichem Push Loop wiederholen.
-`devflow-ci-watch.sh` prüft `mergeStateStatus` bereits **vor** dem CI-Poll-Loop und rebased bei `DIRTY` selbstständig gegen `origin/main` (T001408, Finding 2). Bricht der Rebase mit einem Konflikt ab, beendet sich das Skript mit Exit-Code `3` (statt hängen zu bleiben). In diesem Fall löst der **implementierende Subagent selbst** den Konflikt (kein zweiter Subagent für denselben Branch — genau das Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` danach erneut auf.
-Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit-Code `4`, wenn `gh pr view --json mergeable` `CONFLICTING` meldet — d.h. der PR hat echte Merge-Konflikte gegen main (nicht nur einen stale Branch). Auch in diesem Fall löst der **implementierende Subagent selbst** den Konflikt manuell (`git fetch origin main && git rebase origin/main`, Konflikte lösen, `git push --force-with-lease`) und ruft `devflow-ci-watch.sh` erneut auf. Es wird **kein** zweiter Subagent für denselben Branch gespawnt.
+`devflow-ci-watch.sh` prüft `mergeStateStatus` bereits **vor** dem CI-Poll-Loop und rebased bei `DIRTY` selbstständig gegen `origin/main` (T001408, Finding 2). Bricht der Rebase mit einem Konflikt ab, beendet sich das Skript mit Exit-Code `3` (statt hängen zu bleiben). In diesem Fall gibt der **Orchestrator den Konflikt per `SendMessage` an den bereits gespawnten Implementer zurück** (nicht neu spawnen — kein zweiter Subagent für denselben Branch, genau das Doppel-Push-Risiko aus T001408) und ruft `devflow-ci-watch.sh` erneut auf, nachdem der Implementer den Push nachgeholt hat.
+Seit T001415 (Finding 2) beendet sich `devflow-ci-watch.sh` zusätzlich mit Exit-Code `4`, wenn `gh pr view --json mergeable` `CONFLICTING` meldet — d.h. der PR hat echte Merge-Konflikte gegen main (nicht nur einen stale Branch). Auch in diesem Fall gibt der **Orchestrator** den Konflikt per `SendMessage` an denselben Implementer zurück, der ihn manuell löst (`git fetch origin main && git rebase origin/main`, Konflikte lösen, `git push --force-with-lease`); danach ruft der Orchestrator `devflow-ci-watch.sh` erneut auf. Es wird **kein** zweiter Subagent für denselben Branch gespawnt.
 
 ## Schritt 6: Phase-Chain-Gate & Merge-Wait
+
+> **Ab hier (Schritt 6–7.5) läuft alles im Orchestrator (T002365)** — der Implementer hat in
+> Schritt 2 bereits zurückgemeldet und ist fertig.
 
 > **Hinweis:** `E2E PR` ist kein required check (T000722) — blockiert den Merge NICHT.
 > Die Required-Check-Liste lebt in [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).

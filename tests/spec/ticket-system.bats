@@ -97,7 +97,7 @@
 # ── [T002282] update-status muss den agent-lock.sh-Claim respektieren ────────
 #
 # `agent-lock.sh` ist heute rein advisory: Dispatch-Gates (dispatcher-prep.sh,
-# factory-prep-bridge.sh, babysit-prs.sh) fragen `check ticket <id>` vor dem
+# babysit-prs.sh) fragen `check ticket <id>` vor dem
 # Dispatch ab, aber der Schreib-Pfad `scripts/vda/ticket/update-status.sh` hat
 # NULL Bezug dazu — `grep -rn agent-lock scripts/vda/ticket/ scripts/ticket.sh`
 # liefert 0 Treffer. Jede zweite Session kann den Status eines fremd gelockten

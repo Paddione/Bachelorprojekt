@@ -2926,7 +2926,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 560,
+      "file_count": 558,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3162,8 +3162,6 @@
         "scripts/factory/eval-gen.mjs",
         "scripts/factory/eval-replay.mjs",
         "scripts/factory/eval.mjs",
-        "scripts/factory/factory-prep-bridge.sh",
-        "scripts/factory/factory-prep-runner.sh",
         "scripts/factory/factory.service",
         "scripts/factory/factory.timer",
         "scripts/factory/filter-diff.sh",

@@ -93,7 +93,7 @@ _ticket_offline_refuse_read() {
 
 # _ticket_lock_guard <external_id> — Durchsetzung der bisher rein advisory
 # agent-lock.sh-Claims im Schreibpfad. Dispatch-Gates (dispatcher-prep.sh,
-# factory-prep-bridge.sh, babysit-prs.sh) fragen den Lock vor dem Dispatch ab,
+# babysit-prs.sh) fragen den Lock vor dem Dispatch ab,
 # der Status-Write tat es nie — deshalb konnte eine zweite Session den Status
 # eines fremd gelockten Tickets überschreiben (beobachtet bei T002270). [T002282]
 #

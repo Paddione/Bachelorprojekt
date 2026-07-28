@@ -152,6 +152,24 @@ call_llm() {
   return $rc
 }
 
+# ── find_similar_tickets: retrieve top-N similar tickets (fail-soft) ─────
+REPO_ROOT="${REPO_ROOT:-$(cd "$HERE/../.." && pwd)}"
+find_similar_tickets() {
+  local title="$1" description="$2" limit="${3:-5}"
+  if ! command -v npx >/dev/null 2>&1; then
+    return 0
+  fi
+  if [[ ! -f "$REPO_ROOT/website/scripts/find-similar-tickets.mjs" ]]; then
+    return 0
+  fi
+  local raw
+  raw="$(cd "$REPO_ROOT/website" \
+    && timeout 15 npx tsx scripts/find-similar-tickets.mjs "$title $description" "$limit" \
+       2>/dev/null)" || return 0
+  [[ -z "$raw" ]] && return 0
+  printf '%s' "$raw"
+}
+
 # ── _call_llm_inner: build prompt → route-provider → curl → response ────
 _call_llm_inner() {
   local title="$1" description="$2" enums="$3"
@@ -186,6 +204,23 @@ PROMPT
     user_prompt="${user_prompt}\n\nTicket-Beschreibung: ${description}"
   fi
   user_prompt="${user_prompt}\n\nErlaubte Werte:\n${enums}"
+
+  # STUFE 1: Append similar tickets as grounding context (fail-soft)
+  local similar_json
+  similar_json="$(find_similar_tickets "$title" "$description" 5 2>/dev/null)" || similar_json=""
+  if [[ -n "$similar_json" && "$similar_json" != "[]" && "$similar_json" != "null" ]]; then
+    local similar_block
+    similar_block="$(printf '%s' "$similar_json" | jq -r '
+      if type == "array" then
+        [.[] | select(.external_id != null) |
+         "  - \(.external_id): \(.title // "?") (type=\(.type // "?"), areas=\(.areas // [] | join(",")))"]
+        | join("\n")
+      else empty end
+    ' 2>/dev/null)" || similar_block=""
+    if [[ -n "$similar_block" ]]; then
+      user_prompt="${user_prompt}\n\nÄhnliche Vorgänge (zur Orientierung — kopiere deren Klassifikation nur, wenn das neue Ticket inhaltlich übereinstimmt):\n${similar_block}"
+    fi
+  fi
 
   # Get provider routing
   local route

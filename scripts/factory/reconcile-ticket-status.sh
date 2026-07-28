@@ -56,6 +56,22 @@ reconcile() {
     return
   fi
 
+  # Guard: never clear resolution when reverting from done to awaiting_deploy.
+  # Preserve the existing resolution so it survives transient status flips.
+  # [T002382-M1]
+  if [[ "$current_status" == "done" && "$fix_status" == "awaiting_deploy" ]]; then
+    echo "reconcile-ticket-status: $ext_id — guarding done→awaiting_deploy revert (preserving resolution)" >&2
+    local existing_resolution
+    existing_resolution=$(kubectl exec "$POD" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
+      psql -U website -d website -qtA -v ON_ERROR_STOP=1 \
+        -v ext_id="$ext_id" \
+        -c "SELECT resolution FROM tickets.tickets WHERE external_id = :'ext_id';" 2>/dev/null || true)
+    if [[ -n "$existing_resolution" && "$existing_resolution" != "null" ]]; then
+      fix_resolution="$existing_resolution"
+      reason="$reason (resolution preserved: $existing_resolution)"
+    fi
+  fi
+
   echo "reconcile-ticket-status: $ext_id ($current_status) → $fix_status/$fix_resolution — $reason" >&2
 
   kubectl exec "$POD" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
@@ -76,7 +92,7 @@ WITH updated AS (
 )
 INSERT INTO tickets.ticket_comments (ticket_id, author_label, kind, body, visibility)
 SELECT id, 'claude-code', 'watchdog',
-       format(E'reconcile-ticket-status watchdog: reverted from %%s to %%s/%%s\nReason: %%s\nAuto-fix applied %s.',
+       format(E'reconcile-ticket-status watchdog: reverted from %s to %s/%s\nReason: %s\nAuto-fix applied %s.',
           (SELECT status FROM tickets.tickets WHERE external_id = :'ext_id'),
           :'fix_status', :'fix_resolution', :'reason',
           to_char(now(), 'YYYY-MM-DD HH24:MI:SS')),

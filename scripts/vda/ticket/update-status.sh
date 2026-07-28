@@ -35,6 +35,31 @@ main() {
   local pod
   pod=$(_pgpod)
 
+  # [T002382] Status transition guard: forbid terminal → non-terminal transitions.
+  # Merge = Abschluss (T001092): a done ticket can only go to archived. Any other
+  # transition would lose the resolution and violate the contract. This guard runs
+  # as a separate SELECT before the UPDATE so we fail early with a clear message.
+  # Note: this guard is best-effort — the SELECT and UPDATE are separate autocommit
+  # calls with no enclosing transaction, so a concurrent writer could race between
+  # them (pre-existing architectural limitation; the TS side avoids it via FOR UPDATE).
+  # Note: scripts/factory/reconcile-ticket-status.sh bypasses this guard by writing
+  # SQL directly via kubectl exec — that's intentional for its watchdog patterns.
+  local _cur_status
+  _cur_status=$(_exec_sql "$pod" -v ext_id="$id" \
+    -c "SELECT status FROM tickets.tickets WHERE external_id = :'ext_id' LIMIT 1;" 2>/dev/null | tr -d '[:space:]')
+  case "${_cur_status}:${status}" in
+    done:done|archived:archived)
+      ;; # idempotent — always allowed
+    done:archived)
+      ;; # done → archived — the only permitted non-idempotent terminal transition
+    done:*)
+      echo "ERROR: Cannot transition from 'done' to '$status' — terminal tickets can only transition to 'archived'." >&2
+      exit 2 ;;
+    archived:*)
+      echo "ERROR: Cannot transition from 'archived' to '$status' — archived is a terminal state." >&2
+      exit 2 ;;
+  esac
+
   # UPDATE (autocommit) läuft VOR dem Event-INSERT — Telemetrie kann den
   # Statuswechsel nicht zurückrollen. blocked löst die letzte Phase per Lookup auf
   # (Fallback implement). Dedup: kein Insert bei vorhandenem (ticket,phase,state).

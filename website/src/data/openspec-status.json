@@ -1887,6 +1887,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002382": [
+    {
+      "slug": "mishap-t002382",
+      "status": "plan_staged"
+    }
+  ],
   "T002383": [
     {
       "slug": "2026-07-28-mishap-emission-rate",
@@ -1939,6 +1945,10 @@
     {
       "slug": "pr-refresh-T002413",
       "status": "plan_staged"
+    },
+    {
+      "slug": "2026-07-28-pr-refresh-T002413",
+      "status": "archived"
     }
   ],
   "TBD": [

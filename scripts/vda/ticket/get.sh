@@ -7,7 +7,8 @@ main() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown get option: $1" >&2; exit 2 ;;
+      -*)   echo "Unknown get option: $1 (valid: --id <ID>)" >&2; exit 2 ;;
+      *)    if [[ -z "$id" ]]; then id="$1"; shift; else echo "Unexpected argument: $1 (valid: --id <ID>)" >&2; exit 2; fi ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   # TICKET_OFFLINE=1 — refuse the read loudly so the operator knows the

@@ -101,7 +101,14 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
   for (const item of parseDelta(delta)) {
     const hit = findBlocks(lines).find(b => b.name === item.name)
     if (item.op === 'ADDED') {
-      if (hit) fail(`${deltaName}: ADDED target '${item.name}' already exists in ${basename(ssotPath)} — use MODIFIED or rename`)
+      if (hit) {
+        // Auto-correct: ADDED → MODIFIED when the requirement already exists in the
+        // SSOT (e.g. the change directly edited the SSOT AND wrote a delta). Warn
+        // loudly so the plan-phase lesson is visible, but do not abort the archive.
+        process.stderr.write(`WARN: ${deltaName}: ADDED target '${item.name}' already exists in ${basename(ssotPath)} — auto-converting to MODIFIED\n`)
+        lines.splice(hit.start, hit.end - hit.start, ...item.lines)
+        continue
+      }
       const at = endOfRequirements(lines)
       lines.splice(at, 0, '', ...item.lines)
     } else if (item.op === 'MODIFIED') {

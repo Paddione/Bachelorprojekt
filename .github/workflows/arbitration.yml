@@ -1,0 +1,31 @@
+name: Merge Arbitration
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  arbitrate:
+    runs-on: [self-hosted, fleet-gpu]
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect clusters
+        id: detect
+        run: |
+          CLUSTERS=$(bash scripts/arbitration/detect.sh | grep -v '^DEBUG')
+          echo "clusters=$CLUSTERS" >> "$GITHUB_OUTPUT"
+          echo "$CLUSTERS" | jq '. | length' | xargs -I{} echo "Found {} cluster(s)"
+
+      - name: Apply arbitration
+        if: steps.detect.outputs.clusters != '[]'
+        run: |
+          echo "${{ steps.detect.outputs.clusters }}" | bash scripts/arbitration/apply.sh || true
+        env:
+          GH_TOKEN: ${{ github.token }}

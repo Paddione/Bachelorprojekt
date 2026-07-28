@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Merge-Arbitration Cluster",
+  "description": "Ein Cluster kollidierender PRs, die dieselbe Datei fachlich ändern. Wird von detect.sh ausgegeben und von synthesize.mjs/apply.sh konsumiert.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["cluster_key", "files", "eligible_prs"],
+    "properties": {
+      "cluster_key": {
+        "type": "string",
+        "description": "sha256 über sortierte Dateipfade + PR-Nummern + head-SHAs",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "files": {
+        "type": "array",
+        "items": { "type": "string" },
+        "minItems": 1,
+        "description": "Die kollidierenden Dateipfade"
+      },
+      "eligible_prs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["number", "head_sha", "branch"],
+          "properties": {
+            "number": { "type": "integer" },
+            "head_sha": { "type": "string" },
+            "ticket": { "type": "string" },
+            "branch": { "type": "string" },
+            "title": { "type": "string" }
+          }
+        },
+        "minItems": 3,
+        "description": "Stimmberechtigte PRs (!draft, CI grün)"
+      },
+      "ineligible_prs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["number", "reason"],
+          "properties": {
+            "number": { "type": "integer" },
+            "reason": { "type": "string", "enum": ["draft", "ci_red", "arbitration_label"] }
+          }
+        },
+        "description": "PRs, die denselben Dateischnitt treffen, aber nicht stimmberechtigt sind"
+      }
+    }
+  }
+}

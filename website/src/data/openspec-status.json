@@ -1833,6 +1833,12 @@
       "status": "archived"
     }
   ],
+  "T002388": [
+    {
+      "slug": "plan-meta-readiness-merge",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

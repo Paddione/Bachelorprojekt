@@ -22,7 +22,10 @@ stammen unveraendert aus der Ticket-Beschreibung; die Diagnose dort ist die Vorg
 ## File Structure
 
 ```
-<der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+scripts/vda/ticket/stage-plan.sh
+scripts/agent-collision.sh
+scripts/agent-lock.sh
+tests/spec/ci-cd.bats
 ```
 
 ## Mishap-Eintraege

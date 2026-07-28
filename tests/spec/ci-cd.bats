@@ -1872,3 +1872,75 @@ MOCKEOF
   rm -f "$probe"
   [[ "$verdict" == *"IN"* ]] || { echo "ungetrackte Datei fehlt im Scan-Universum: $verdict"; false; }
 }
+
+# ────────────────────────────────────────────────────────────────────────────
+# T002341-M1: stage-plan hat Timeout-Wrapper fuer _exec_sql
+# ────────────────────────────────────────────────────────────────────────────
+
+@test "T002341-M1: stage-plan.sh definiert _exec_sql_with_timeout" {
+  [ -f "$REPO_ROOT/scripts/vda/ticket/stage-plan.sh" ] || skip "stage-plan.sh nicht gefunden"
+  grep -q '_exec_sql_with_timeout' "$REPO_ROOT/scripts/vda/ticket/stage-plan.sh" \
+    || { echo "MISSING _exec_sql_with_timeout function in stage-plan.sh"; return 1; }
+}
+
+@test "T002341-M1: stage-plan.sh timeout wrapper enthaelt WARN message" {
+  [ -f "$REPO_ROOT/scripts/vda/ticket/stage-plan.sh" ] || skip "stage-plan.sh nicht gefunden"
+  grep -q 'timed out after' "$REPO_ROOT/scripts/vda/ticket/stage-plan.sh" \
+    || { echo "MISSING timeout warning message in stage-plan.sh"; return 1; }
+}
+
+# ────────────────────────────────────────────────────────────────────────────
+# T002341-M2: agent-collision.sh filtert generierte Dateien aus der Kollisionsmeldung
+# ────────────────────────────────────────────────────────────────────────────
+
+@test "T002341-M2: agent-collision.sh definiert _is_generated" {
+  [ -f "$REPO_ROOT/scripts/agent-collision.sh" ] || skip "agent-collision.sh nicht gefunden"
+  grep -q '_is_generated()' "$REPO_ROOT/scripts/agent-collision.sh" \
+    || { echo "MISSING _is_generated function in agent-collision.sh"; return 1; }
+}
+
+@test "T002341-M2: agent-collision.sh _is_generated erkennt openspec-status.json als generated" {
+  run bash -c "source '$REPO_ROOT/scripts/agent-collision.sh' 2>/dev/null
+    _is_generated 'website/src/data/openspec-status.json' && echo 'GENERATED' || echo 'NOT_GENERATED'"
+  [[ "$output" == *GENERATED* ]] \
+    || { echo "_is_generated sollte openspec-status.json als generated erkennen"; return 1; }
+}
+
+@test "T002341-M2: agent-collision.sh _is_generated erkennt echte Source-Dateien als nicht generated" {
+  run bash -c "source '$REPO_ROOT/scripts/agent-collision.sh' 2>/dev/null
+    _is_generated 'src/pages/index.ts' && echo 'GENERATED' || echo 'NOT_GENERATED'"
+  [[ "$output" == *NOT_GENERATED* ]] \
+    || { echo "_is_generated sollte src/pages/index.ts als NICHT generated erkennen"; return 1; }
+}
+
+@test "T002341-M2: agent-collision.sh skip-loop hat _is_generated als continue-Guard" {
+  [ -f "$REPO_ROOT/scripts/agent-collision.sh" ] || skip "agent-collision.sh nicht gefunden"
+  grep -qE '_is_generated.*continue' "$REPO_ROOT/scripts/agent-collision.sh" \
+    || { echo "MISSING _is_generated guard in collision loop"; return 1; }
+}
+
+# ────────────────────────────────────────────────────────────────────────────
+# T002341-M3: agent-lock.sh cmd_claim ruft cmd_reap vor dem Schreiben auf
+# ────────────────────────────────────────────────────────────────────────────
+
+@test "T002341-M3: agent-lock.sh cmd_claim enthaelt cmd_reap call" {
+  [ -f "$REPO_ROOT/scripts/agent-lock.sh" ] || skip "agent-lock.sh nicht gefunden"
+  grep -q 'cmd_reap' "$REPO_ROOT/scripts/agent-lock.sh" \
+    || { echo "MISSING cmd_reap call in agent-lock.sh"; return 1; }
+}
+
+@test "T002341-M3: agent-lock.sh cmd_reap entfernt lock-Dateien mit dead SID" {
+  [ -f "$REPO_ROOT/scripts/agent-lock.sh" ] || skip "agent-lock.sh nicht gefunden"
+  grep -qP 'sid-dead.*return 0|_reap_log.*sid-dead' "$REPO_ROOT/scripts/agent-lock.sh" \
+    || { echo "MISSING sid-dead reap path in agent-lock.sh"; return 1; }
+}
+
+# ────────────────────────────────────────────────────────────────────────────
+# T002341-M3: agent-lock.sh pre-claim reap guard (claim ruft reap auf)
+# ────────────────────────────────────────────────────────────────────────────
+
+@test "T002341-M3: agent-lock.sh pre-claim reap in cmd_claim hat T002341-M3 Kommentar" {
+  [ -f "$REPO_ROOT/scripts/agent-lock.sh" ] || skip "agent-lock.sh nicht gefunden"
+  grep -q 'T002341-M3' "$REPO_ROOT/scripts/agent-lock.sh" \
+    || { echo "MISSING T002341-M3 reference in agent-lock.sh"; return 1; }
+}

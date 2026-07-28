@@ -3,6 +3,16 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
+_exec_sql_with_timeout() {
+  local pod="$1"; shift
+  local timeout_sec=120
+  timeout "$timeout_sec" _exec_sql "$pod" "$@" >/dev/null 2>&1 || {
+    local ctx="${3:-unknown}"
+    echo "WARN: stage-plan: SQL timed out after ${timeout_sec}s (ctx=$ctx) — write may have succeeded despite timeout" >&2
+    return 1
+  }
+}
+
 main() {
   local id="" branch="" plan="" partials="1" hold=0
   while [[ $# -gt 0 ]]; do case "$1" in
@@ -29,11 +39,6 @@ main() {
   if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
   if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
   case "$partials" in [1-9]) ;; *) echo "ERROR: --partials must be 1..9" >&2; exit 2 ;; esac
-  # Pre-flight: verify the plan file exists on the named branch, in HEAD, or on
-  # the local filesystem (prevents silent staging of broken refs). Checked from
-  # most specific to most general: the branch ref covers the common case of the
-  # MCP server running the check from the main checkout while the plan only
-  # exists on the worktree's feature branch (T002263).
   if ! git cat-file -e "${branch}:${plan}" 2>/dev/null \
     && ! git cat-file -e "HEAD:${plan}" 2>/dev/null \
     && ! [[ -f "${plan}" ]]; then
@@ -41,17 +46,17 @@ main() {
     exit 1
   fi
   local pod; pod=$(_pgpod)
-  _exec_sql "$pod" -v ext_id="$id" -v partials="$partials" <<'EOF' >/dev/null
+  _exec_sql_with_timeout "$pod" -v ext_id="$id" -v partials="$partials" -- status-update <<'EOF'
 UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer
  WHERE external_id = :'ext_id';
 EOF
   if [[ "$hold" == "1" ]]; then
-    _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+    _exec_sql_with_timeout "$pod" -v ext_id="$id" -- hold-flag <<'EOF'
 UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":false}'::jsonb
  WHERE external_id = :'ext_id';
 EOF
   fi
-  _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
+  _exec_sql_with_timeout "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" -- plan-ref <<'EOF'
 DELETE FROM tickets.ticket_comments c
  USING tickets.tickets t
  WHERE t.external_id = :'ext_id'
@@ -64,7 +69,7 @@ SELECT t.id, 'dev-flow-plan', :'ref', 'internal'
 EOF
   local driver="${TICKET_PHASE_DRIVER:-devflow}"
   case "$driver" in factory|devflow) ;; *) driver="devflow" ;; esac
-  _exec_sql "$pod" -v ext_id="$id" -v driver="$driver" -v detail="auto: stage-plan" <<'EOF' >/dev/null
+  _exec_sql_with_timeout "$pod" -v ext_id="$id" -v driver="$driver" -v detail="auto: stage-plan" -- phase-events <<'EOF'
 INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver)
 SELECT t.id, p.phase, 'done', :'detail', :'driver'
 FROM tickets.tickets t
@@ -75,15 +80,6 @@ WHERE t.external_id = :'ext_id'
      WHERE e.ticket_id = t.id AND e.phase = p.phase AND e.state = 'done'
   );
 EOF
-  # Auto-tick wake (REQ-SF-AUTOTICK-001; supersedes T002102-p3 Task 1/4/5, D2):
-  # after a successful stage, request a force-tick and kick factory.service so the
-  # staged plan is picked up now instead of on the next factory.timer interval.
-  # Both triggers are best-effort — a DB or systemd failure degrades to the timer
-  # path (warn, non-fatal, exit stays 0). Flag mirrors writeControl()
-  # (website/src/lib/factory-floor.ts): key='force-tick-requested', brand NULL,
-  # ON CONFLICT (key, brand). The consumer (scripts/factory/wakeup.sh:70-83) reads
-  # LIMIT 1 and DELETEs all matching rows, so a repeated stage is harmless even
-  # when a NULL-brand row is not deduped by the unique index.
   if [[ "$hold" != "1" ]]; then
     if ! _exec_sql "$pod" -v setby='stage-plan' <<'EOF' >/dev/null 2>&1
 INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
@@ -101,11 +97,6 @@ EOF
     echo "Ticket $id staged in Kommissionierung (status=plan_staged)"
   fi
   if [[ "$hold" != "1" ]]; then
-    # --no-block: factory.service ist Type=oneshot (RuntimeMaxSec=3600). Ohne --no-block
-    # wartet `systemctl start` auf einen laufenden Tick und macht aus dem oben als
-    # best-effort/non-fatal deklarierten Weck-Aufruf einen Hang von bis zu 61 min. Die
-    # Bestaetigung steht davor, damit der Stage auch bei klemmendem systemd gemeldet
-    # wird. [T002366]
     systemctl --user start --no-block factory.service 2>/dev/null || true
   fi
 }

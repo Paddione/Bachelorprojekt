@@ -97,6 +97,7 @@ cmd_check() {
     [ -n "$peer" ] || continue
     while IFS= read -r file; do
       [ -n "$file" ] || continue
+      _is_generated "$file" && continue
       if printf '%s\n' "$peer" | grep -qxF "$file"; then
         found=1
         if [ "$quiet" -eq 0 ]; then
@@ -119,3 +120,35 @@ main() {
   esac
 }
 main "$@"
+# Generated/freshness artifact paths that appear in every session's changes.
+# Colliding on these is noise — every propose/commit bumps them. [T002341-M2]
+_GENERATED_PATTERNS="website/src/data/test-inventory.json
+website/src/data/openspec-status.json
+website/src/data/route-manifest.json
+website/src/lib/learning-assets.generated.json
+website/public/learning-assets/THIRD-PARTY-ASSETS.md
+docs/code-quality/repo-index.json
+docs/agent-guide/10-ziele.md
+docs/agent-guide/20-werkzeuge.md
+docs/agent-guide/30-bausteine.md
+docs/agent-guide/maps/goals-map.md
+docs/agent-guide/maps/tools-map.md
+docs/agent-guide/maps/danger-map.md
+website/src/lib/agent-guide.generated.json
+website/src/lib/platform-descriptions.generated.json
+docs/generated/graph.json
+docs/generated/api-map.json
+docs/generated/blast-radius.md
+docs/diagrams/architecture.md
+website/src/lib/goals-data.generated.json"
+
+_is_generated() {
+  local file="$1"
+  while IFS= read -r pattern; do
+    [ -z "$pattern" ] && continue
+    case "$file" in
+      $pattern) return 0;;
+    esac
+  done <<< "$_GENERATED_PATTERNS"
+  return 1
+}

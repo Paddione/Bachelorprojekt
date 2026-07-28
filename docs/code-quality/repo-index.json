@@ -2930,7 +2930,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 568,
+      "file_count": 569,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3324,6 +3324,7 @@
         "scripts/llm-pull-models.sh",
         "scripts/llm/install-startup-autostart.ps1",
         "scripts/llm/loadouts.json",
+        "scripts/llm/mcp-servers.json",
         "scripts/llm/measure-embedding-equivalence.mjs",
         "scripts/llm/ollama.service",
         "scripts/llm/register-scheduled-tasks.ps1",

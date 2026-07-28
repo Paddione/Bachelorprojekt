@@ -16,7 +16,17 @@
 
 set -euo pipefail
 
-TITLE="${1:?Usage: preflight-pr-scope.sh '<PR title>'}"
+# Eigener Argument-Check statt ${1:?…} [T002425-M3]: die Parameter-Expansion erzeugt
+# "preflight-pr-scope.sh: line 19: 1: Usage: …" — eine Bash-Fehlermeldung, in der die
+# Usage-Zeile als Fehlertext des fehlenden Parameters "1" erscheint. Dass schlicht der
+# PR-Titel fehlt, ist daraus nicht erkennbar.
+if [ "$#" -lt 1 ]; then
+  echo "preflight-pr-scope: FEHLER: PR-Titel fehlt." >&2
+  echo "  Usage: preflight-pr-scope.sh \"<PR title>\"" >&2
+  echo "  Beispiel: preflight-pr-scope.sh \"fix(scripts): guard xyz [T000123]\"" >&2
+  exit 2
+fi
+TITLE="$1"
 
 # ── Branch and Worktree Validation [T001592] ──────────────────────────────────
 CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo "")"

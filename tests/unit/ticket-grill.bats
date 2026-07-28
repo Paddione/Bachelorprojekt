@@ -3,6 +3,8 @@
 # from --answer pairs, and the per-question merge SQL shape (ADD COLUMN IF NOT EXISTS +
 # COALESCE(...) || jsonb_build_object(...)). kubectl is mocked; no live cluster.
 
+bats_require_minimum_version 1.5.0
+
 setup() {
   TICKET="$BATS_TEST_DIRNAME/../../scripts/ticket.sh"
   MOCKDIR="$(mktemp -d)"

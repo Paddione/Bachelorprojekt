@@ -344,23 +344,15 @@ cmd_refresh() {
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
 }
 
-# NOTE: cmd_release compares owner_sid with _my_sid (derived from $$/PPID). When the claim
-# was issued inside a subshell (e.g. `cd worktree && claim ...`), the SID may differ,
-# causing a false mismatch. Consider using a stable session identifier from the environment
-# (e.g. CLAUDE_SESSION_ID) for cross-subshell consistency.
+# NOTE: cmd_release compares SID with _my_sid. When claim happened in a subshell
+# the SID may differ — see T001268.
 cmd_release() {
   local scope="$1" id="${2:-}" force=""; [ "${3:-}" = "--force" ] && force=1
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
-  local owner_sid
-  owner_sid="$(_lock_field "$f" owner_sid)"
-  # Auto-release if owner SID is dead (crashed session). SID-based check before
-  # the identity comparison prevents --force-less release of a live foreign lock
-  # whose SID happens to be unreachable by pgrep (non-numeric SIDs are always
-  # considered alive by _sid_alive). [T002373-M2]
-  if [ -n "$force" ] \
-    || [ "$owner_sid" = "$(_my_sid)" ] \
-    || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
+  local owner_sid; owner_sid="$(_lock_field "$f" owner_sid)"
+  # [T002373-M2] Auto-release if owner SID is dead (non-numeric SIDs are always alive by _sid_alive).
+  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
     rm -f "$f"; return 0
   fi
   echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2

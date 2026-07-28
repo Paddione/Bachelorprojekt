@@ -1917,6 +1917,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002413": [
+    {
+      "slug": "2026-07-28-pr-refresh-T002413",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

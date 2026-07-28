@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.223.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.1...website-v1.223.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** worktree-create.sh Divergence-Guard verwendet sicheren Fetch ohne lokales main-Ref-Update [T002387] ([#3453](https://github.com/Paddione/Bachelorprojekt/issues/3453)) ([ba09de6](https://github.com/Paddione/Bachelorprojekt/commit/ba09de6bd9b46abfdfce4e59c0e112462507825b))
+
 ## [1.223.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.0...website-v1.223.1) (2026-07-28)
 
 

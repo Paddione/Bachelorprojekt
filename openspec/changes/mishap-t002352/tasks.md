@@ -77,7 +77,7 @@ Milderung: Die Fehlermeldung könnte den Fall unterscheiden. Wenn die Datei im A
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
+- [x] **Failing-Test-Step (RED).** Fuer den ersten Eintrag oben einen Test schreiben,
       der das beschriebene Fehlverhalten reproduziert. Er gehoert nach
       `tests/spec/<spec-slug>.bats` — die Spec, die das Verhalten abdeckt.
 
@@ -86,11 +86,11 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
 # expected: FAIL (rot — der Fix ist noch nicht implementiert)
 ```
 
-- [ ] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten. Jeder nennt Komponente und
+- [x] **Fix-Step (GREEN).** Die Eintraege oben abarbeiten. Jeder nennt Komponente und
       vorgeschlagene Behebung. Eintraege, die sich bei der Recon als nicht zutreffend
       erweisen, werden im PR-Text begruendet verworfen statt stillschweigend uebergangen.
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed

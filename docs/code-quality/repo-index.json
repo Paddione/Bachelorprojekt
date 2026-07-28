@@ -2914,7 +2914,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 571,
+      "file_count": 572,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3481,6 +3481,7 @@
         "scripts/vda/ticket/triage.sh",
         "scripts/vda/ticket/update-status.sh",
         "scripts/verify-deployment.sh",
+        "scripts/verify-ticket-id.sh",
         "scripts/wait-for-sealed-secret.sh",
         "scripts/website-config-sha.sh",
         "scripts/weekly-dep-schema-audit.sh",

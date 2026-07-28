@@ -269,15 +269,46 @@ setup() {
   # schlug damit IMMER fehl, wenn man den Claim so absetzt wie die Skill ihn
   # dokumentiert. Verschaerfend: claim ist idempotent, ein einmal leer angelegter
   # Lock laesst sich durch erneutes Claimen nicht reparieren.
+  #
+  # Der Test stellt seine Vorbedingung SELBST her, statt gegen $REPO zu claimen.
+  # Ein Actions-Checkout ist detached; dort liefert rev-parse woertlich 'HEAD',
+  # und cmd_claim leert das Feld dann absichtlich (siehe Folgetest). Gegen $REPO
+  # gemessen war dieser Test deshalb lokal gruen und in CI rot — er mass den
+  # Zustand des umgebenden Checkouts mit, nicht nur das Verhalten von claim.
   local ald; ald="$(mktemp -d)"
-  local head_branch; head_branch="$(git -C "$REPO" rev-parse --abbrev-ref HEAD)"
+  local tmprepo; tmprepo="$(mktemp -d)"
+  git -C "$tmprepo" init -q -b probe-branch
+  git -C "$tmprepo" -c user.email=t@example.invalid -c user.name=t \
+    commit -q --allow-empty -m init
   run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID="branchfill-sid" \
-    bash -c "cd '$REPO' && unset AGENT_LOCK_SID CLAUDE_SESSION_ID; bash '$LOCK' claim ticket T002375-p1c --label probe"
-  [ "$status" -eq 0 ] || { rm -rf "$ald"; echo "claim fehlgeschlagen: $output"; false; }
+    bash -c "cd '$tmprepo' && unset AGENT_LOCK_SID CLAUDE_SESSION_ID; bash '$LOCK' claim ticket T002375-p1c --label probe"
+  [ "$status" -eq 0 ] || { rm -rf "$ald" "$tmprepo"; echo "claim fehlgeschlagen: $output"; false; }
   local br
   br=$(sed -n 's/.*"branch": *"\([^"]*\)".*/\1/p' "$ald/ticket__T002375-p1c.json")
-  rm -rf "$ald"
-  [ "$br" = "$head_branch" ] || { echo "branch war '$br', erwartet '$head_branch'"; false; }
+  rm -rf "$ald" "$tmprepo"
+  [ "$br" = "probe-branch" ] || { echo "branch war '$br', erwartet 'probe-branch'"; false; }
+}
+
+@test "T002375-p1: bei detached HEAD bleibt branch leer und der Claim laeuft trotzdem" {
+  # Das Gegenstueck zum Test darueber, und der Grund, warum dieser nicht einfach
+  # 'HEAD' als erwarteten Wert akzeptiert: 'HEAD' ist kein Branchname, sondern die
+  # Ausgabe von rev-parse fuer einen Zustand ohne Branch. Als Diagnose-Feld waere er
+  # irrefuehrend, deshalb leert cmd_claim ihn. Ohne diesen Test waere die Zeile
+  # `[ "$BRANCH" = "HEAD" ] && BRANCH=""` in agent-lock.sh ungedeckt — und der Test
+  # oben in einem detached Checkout still vakuos.
+  local ald; ald="$(mktemp -d)"
+  local tmprepo; tmprepo="$(mktemp -d)"
+  git -C "$tmprepo" init -q -b probe-branch
+  git -C "$tmprepo" -c user.email=t@example.invalid -c user.name=t \
+    commit -q --allow-empty -m init
+  git -C "$tmprepo" checkout -q --detach HEAD
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID="detached-sid" \
+    bash -c "cd '$tmprepo' && unset AGENT_LOCK_SID CLAUDE_SESSION_ID; bash '$LOCK' claim ticket T002375-p1d --label probe"
+  [ "$status" -eq 0 ] || { rm -rf "$ald" "$tmprepo"; echo "claim scheiterte am detached HEAD: $output"; false; }
+  local br
+  br=$(sed -n 's/.*"branch": *"\([^"]*\)".*/\1/p' "$ald/ticket__T002375-p1d.json")
+  rm -rf "$ald" "$tmprepo"
+  [ -z "$br" ] || { echo "branch war '$br', erwartet leer"; false; }
 }
 
 @test "T002375-p1: reap laesst einen Lock mit toter PID und nicht-numerischer SID stehen" {

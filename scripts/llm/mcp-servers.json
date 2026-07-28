@@ -1,3 +1,17 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "codebase-memory-mcp": {
+      "command": "/home/patrick/.local/bin/codebase-memory-mcp",
+      "cwd": "/home/patrick/Bachelorprojekt",
+      "timeout_ms": 30000
+    },
+    "ticket-mcp": {
+      "command": "ticket-mcp-go",
+      "env": {
+        "TICKET_MCP_REPO_ROOT": "/home/patrick/Bachelorprojekt"
+      },
+      "cwd": "/home/patrick/Bachelorprojekt",
+      "timeout_ms": 30000
+    }
+  }
 }

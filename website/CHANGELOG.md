@@ -1,5 +1,46 @@
 # Changelog
 
+## [1.223.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.4...website-v1.223.5) (2026-07-28)
+
+
+### Bug Fixes
+
+* **factory:** attempt counter distinguishes MODEL from INFRA failure [T002389] ([#3459](https://github.com/Paddione/Bachelorprojekt/issues/3459)) ([6ddb809](https://github.com/Paddione/Bachelorprojekt/commit/6ddb80921861533aa86859b36a677fcb74a87c98))
+
+## [1.223.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.3...website-v1.223.4) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** add post-commit-embed safety net for OpenSpec pgvector indexing [T002334] ([#3456](https://github.com/Paddione/Bachelorprojekt/issues/3456)) ([7cac1e0](https://github.com/Paddione/Bachelorprojekt/commit/7cac1e0f0ebcb13dbfcdfae4b9c8c18f9e1cc2d3))
+
+## [1.223.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.2...website-v1.223.3) (2026-07-28)
+
+
+### Bug Fixes
+
+* **infra:** includeSelectors:false in k3d/default/kustomization [T002349] ([#3455](https://github.com/Paddione/Bachelorprojekt/issues/3455)) ([d29cad5](https://github.com/Paddione/Bachelorprojekt/commit/d29cad5541a1014d2652e883e2bdc8db2b7d4aa3))
+
+## [1.223.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.1...website-v1.223.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** worktree-create.sh Divergence-Guard verwendet sicheren Fetch ohne lokales main-Ref-Update [T002387] ([#3453](https://github.com/Paddione/Bachelorprojekt/issues/3453)) ([ba09de6](https://github.com/Paddione/Bachelorprojekt/commit/ba09de6bd9b46abfdfce4e59c0e112462507825b))
+
+## [1.223.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.0...website-v1.223.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **factory:** pipeline.mjs mit fehlenden Blöcken nachziehen, pipeline.js entfernen [T002393] ([#3450](https://github.com/Paddione/Bachelorprojekt/issues/3450)) ([905fdb9](https://github.com/Paddione/Bachelorprojekt/commit/905fdb9886cb49f8df7a745c0d0f23cf8d43cd35))
+* **test:** scripts/*-Aenderungen erreichen die Pfad-Probe im spec-Finder [T002345] ([#3452](https://github.com/Paddione/Bachelorprojekt/issues/3452)) ([c70ef55](https://github.com/Paddione/Bachelorprojekt/commit/c70ef5543316099186b492de3cac659407da437b))
+
+
+### Documentation
+
+* **ci:** add hint about untracked files requiring two freshness rounds [T002273] ([#3445](https://github.com/Paddione/Bachelorprojekt/issues/3445)) ([9d75f2f](https://github.com/Paddione/Bachelorprojekt/commit/9d75f2f96683d064f2d3f6948b28c770afd58e32))
+
 ## [1.223.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.222.0...website-v1.223.0) (2026-07-28)
 
 

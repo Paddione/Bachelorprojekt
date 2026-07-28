@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.225.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.1...website-v1.225.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* **plans:** auto-correct ADDED→MODIFIED when target exists in SSOT [T002354] ([#3476](https://github.com/Paddione/Bachelorprojekt/issues/3476)) ([279a1d3](https://github.com/Paddione/Bachelorprojekt/commit/279a1d322ae18825af2efebba9cf8e7d4441afa1))
+
 ## [1.225.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.0...website-v1.225.1) (2026-07-28)
 
 

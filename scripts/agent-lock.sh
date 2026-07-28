@@ -282,6 +282,7 @@ _reject_arg() {
 }
 
 cmd_claim() {
+  cmd_reap 2>/dev/null || true  # [T002341-M3] pre-claim reap: orphaned locks don't block new claim, best-effort
   SCOPE="$1"; ID="${2:-}"; shift 2 2>/dev/null || shift $#
   LABEL=""; WT=""; BRANCH=""; TICKET=""
   while [ $# -gt 0 ]; do case "$1" in

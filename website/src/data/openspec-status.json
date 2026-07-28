@@ -1963,6 +1963,12 @@
       "status": "archived"
     }
   ],
+  "T002417": [
+    {
+      "slug": "pr-refresh-batch-T002417",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

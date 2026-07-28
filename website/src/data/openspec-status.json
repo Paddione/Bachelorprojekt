@@ -1803,6 +1803,12 @@
       "status": "archived"
     }
   ],
+  "T002334": [
+    {
+      "slug": "openspec-embedding-T002334",
+      "status": "plan_staged"
+    }
+  ],
   "T002336": [
     {
       "slug": "llm-proxy-readiness",

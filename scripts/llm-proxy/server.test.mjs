@@ -5,6 +5,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { resolveModel, _testSeed } from './discovery.mjs'
 import { applyFixups } from './fixups.mjs'
+import { parseLoadouts } from './loadouts.mjs'
+import { readFileSync } from 'node:fs'
 
 // Helper: create a getBackends function that returns the given array
 const mockGet = (arr) => () => arr
@@ -122,3 +124,22 @@ test('applyFixups: empty fixup list leaves body unchanged (deep equal)', () => {
   const body = { messages: [{ role: 'system', content: 'x' }, { role: 'system', content: 'y' }] }
   assert.deepEqual(applyFixups([], body), body)
 })
+
+// --- Loadout-Registry: die ausgelieferte Datei muss gueltig sein -----------
+
+test('scripts/llm/loadouts.json ist gueltig und portkollisionsfrei', () => {
+  const doc = parseLoadouts(readFileSync('scripts/llm/loadouts.json', 'utf8'))
+  assert.ok(doc.loadouts.length > 0)
+  const ports = doc.loadouts.map((l) => l.port)
+  assert.equal(new Set(ports).size, ports.length, 'Ports muessen eindeutig sein')
+})
+
+test('kein ausgeliefertes Loadout pinnt ctx oder ngl', () => {
+  const doc = parseLoadouts(readFileSync('scripts/llm/loadouts.json', 'utf8'))
+  for (const l of doc.loadouts) {
+    assert.equal(l.args.ctx, null, `${l.slug}: ctx darf nicht gepinnt sein`)
+    assert.equal(l.args.ngl, null, `${l.slug}: ngl darf nicht gepinnt sein`)
+  }
+})
+
+

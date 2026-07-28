@@ -974,6 +974,17 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   [ "$pinned" -eq 0 ]
 }
 
+@test "FA-SF-30: dispatcher reads prep from a file, not via child_process (T001812)" {
+  # Uebernommen aus tests/local/FA-SF-30-dispatcher-contract.bats, die mit T002421
+  # entfaellt. T001810 rief factory-prep per child_process.execFileSync INNERHALB des
+  # Workflow-Calls (bis 300s), langsam genug um den Call in den asynchronen
+  # "launched in background"-Modus zu kippen — eine einmalige `claude -p`-Session
+  # ueberlebt diese Notification nie. T001812 hat factory-prep zurueck nach wakeup.sh
+  # (synchrones bash) verlegt und uebergibt das Ergebnis als Dateipfad.
+  run grep -q "args.prep_file\|A.prep_file" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "readFileSync" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+}
+
 # ── FA-SF-31-workflow-entrypoint ────────────────────────────────#
 # FA-SF-31: factory Workflow scripts must NOT wrap their body in a fire-and-forget
 # IIFE. The harness runs the script body and treats the run as complete when the

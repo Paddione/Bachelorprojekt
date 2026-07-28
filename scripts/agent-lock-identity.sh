@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # scripts/agent-lock-identity.sh — Session- und Tool-Identitaet (Fragment, ge-source-t)
 # Ausgelagert aus agent-lock.sh [T002447] wegen S1-Limit und logischer Gruppierung.
 # Enthaelt: _AGENT_LOCK_SID_ENVS, _now, _my_sid, _sid_alive, _pid_alive, _detect_tool.

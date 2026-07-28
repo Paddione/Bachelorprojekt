@@ -171,9 +171,10 @@ setup() {
 # ── T002261-M1: cmd_release schweigt bei SID-Mismatch ────────────────#
 #
 # When `cmd_release` is called with a SID that does not match the lock
-# owner, it must emit a diagnostic line to stderr so the operator knows
-# why the release failed and how to force it. Currently it returns 1
-# silently — the operator has no indication of the cause.
+# owner, and the tool class also differs, it must emit a diagnostic line
+# to stderr so the operator knows why the release failed and how to force it.
+# The same-tool fallback (T002374) allows release when tool class matches,
+# so this test uses a DIFFERENT tool class to trigger the diagnostic.
 #
 # NOTE: The SID mismatch detection relies on _my_sid derived from $$/PPID. When the claim
 # was issued inside a subshell, the SID may differ, causing a false mismatch. See comment
@@ -181,7 +182,7 @@ setup() {
 
 @test "T002261-M1: cmd_release emits stderr diagnostic on SID mismatch" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
-  # Claim the lock as "session-A"
+  # Claim the lock as "session-A" under claude tool
   # [T002375-p1] CLAUDE_CODE_SESSION_ID muss ausdruecklich weg: die Harness exportiert
   # sie real, und sie steht in der normativen Reihenfolge VOR CLAUDE_SESSION_ID.
   # Ohne dieses unset prueft der Test die Umgebung statt die Vorbedingung — genau
@@ -192,8 +193,10 @@ setup() {
   bash "$LOCK" claim ticket T002261-m1 --label test-release
   [ -f "$AGENT_LOCK_DIR/ticket__T002261-m1.json" ]
 
-  # Switch to a different session and try release
-  export CLAUDE_SESSION_ID="session-B"
+  # Switch to a different session AND different tool class (gemini) to bypass
+  # the same-tool fallback and trigger the SID-mismatch diagnostic. [T002374]
+  unset CLAUDE_SESSION_ID
+  export GEMINI_CLI=1
   run bash "$LOCK" release ticket T002261-m1
   [ "$status" -eq 1 ]
 
@@ -203,6 +206,7 @@ setup() {
   # Lock file must still exist (release was refused)
   [ -f "$AGENT_LOCK_DIR/ticket__T002261-m1.json" ]
 
+  unset GEMINI_CLI
   rm -rf "$AGENT_LOCK_DIR"
 }
 
@@ -395,8 +399,10 @@ JSON
   bash "$LOCK" claim ticket T002373-m2b --label test-release-alive
   [ -f "$AGENT_LOCK_DIR/ticket__T002373-m2b.json" ]
 
-  # Switch to different session, owner marked alive
+  # Switch to different session AND different tool class to bypass
+  # the same-tool fallback (T002374) and trigger the SID mismatch. [T002373-M2]
   export AGENT_LOCK_SID="session-C"
+  export GEMINI_CLI=1
   run bash "$LOCK" release ticket T002373-m2b
   [ "$status" -eq 1 ] || { echo "release must fail without --force when owner SID is alive"; false; }
 

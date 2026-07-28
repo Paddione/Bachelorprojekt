@@ -338,7 +338,8 @@ cmd_claim() {
 cmd_refresh() {
   SCOPE="$1"; ID="${2:-}"; local f; f="$(_lock_file "$SCOPE" "$ID")"
   [ -f "$f" ] || return 1
-  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || return 1
+  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || \
+  [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ] || return 1
   LABEL="$(_lock_field "$f" label)"; WT="$(_lock_field "$f" worktree)"
   BRANCH="$(_lock_field "$f" branch)"; TICKET="$(_lock_field "$f" ticket)"
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
@@ -351,8 +352,8 @@ cmd_release() {
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
   local owner_sid; owner_sid="$(_lock_field "$f" owner_sid)"
-  # [T002373-M2] Auto-release if owner SID is dead (non-numeric SIDs are always alive by _sid_alive).
-  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
+  # [T002373-M2] [T002374] Auto-release if owner SID is dead; same-tool fallback.
+  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; } || [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then
     rm -f "$f"; return 0
   fi
   echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2

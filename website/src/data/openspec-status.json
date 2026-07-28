@@ -1991,6 +1991,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002445": [
+    {
+      "slug": "test-inventory-coverage",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

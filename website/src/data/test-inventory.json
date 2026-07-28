@@ -2070,6 +2070,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/devflow-execute-hardening-t002365",
+    "file": "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/mishap-t002425",
     "file": "tests/spec/ci-cd/mishap-t002425.bats",
     "category": "ci-cd",
@@ -2391,6 +2397,12 @@
     "id": "mishap-bundle-2026-06-30",
     "file": "tests/spec/mishap-bundle-2026-06-30.bats",
     "category": "mishap-bundle-2026-06-30",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-t002422",
+    "file": "tests/spec/mishap-t002422.bats",
+    "category": "mishap-t002422",
     "kind": "shell"
   },
   {
@@ -2726,6 +2738,12 @@
   {
     "id": "ticket-system",
     "file": "tests/spec/ticket-system.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-system/schema-diaet-dead-columns",
+    "file": "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
     "category": "ticket-system",
     "kind": "shell"
   },

@@ -114,5 +114,9 @@ gh pr merge --auto --squash --delete-branch "$ARCHIVE_PR_URL"
 # Zurück zum Haupt-Worktree
 cd "$MAIN_REPO"
 git checkout main
-git pull --ff-only
+# git pull --ff-only scheitert bei globalem pull.rebase=true + unstaged changes
+# (T002373-M1). Merge-Pfad ist sicherer: stash, merge --ff-only, stash pop.
+git stash -u 2>/dev/null || true
+git merge --ff-only origin/main 2>/dev/null || git pull --ff-only
+git stash pop 2>/dev/null || true
 ```

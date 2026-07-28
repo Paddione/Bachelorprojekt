@@ -46,9 +46,9 @@ export const POST: APIRoute = async ({ request , locals }) => {
   catch { return new Response(JSON.stringify({ error: 'invalid JSON' }), { status: 400 }); }
 
   const type = body.type as TicketType;
-  if (!type || !['feature','task','project'].includes(type)) {
+  if (!type || !['bug','feature','task','project'].includes(type)) {
     return new Response(JSON.stringify({
-      error: 'type must be feature|task|project (bugs are minted via /api/bug-report)',
+      error: 'type must be bug|feature|task|project',
     }), { status: 400 });
   }
   const title = String(body.title ?? '').trim();

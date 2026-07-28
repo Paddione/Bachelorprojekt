@@ -345,18 +345,21 @@ cmd_refresh() {
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
 }
 
-# NOTE: cmd_release compares owner_sid with _my_sid (derived from $$/PPID). When the claim
-# was issued inside a subshell, the SID may differ causing a false mismatch. As a
-# secondary fallback, same-tool releases are allowed (Orchestrator claims, subagent
-# releases — both run under the same tool harness like opencode or Claude Code). [T002374]
+# NOTE: cmd_release compares SID with _my_sid. When claim happened in a subshell
+# the SID may differ — see T001268.
 cmd_release() {
   local scope="$1" id="${2:-}" force=""; [ "${3:-}" = "--force" ] && force=1
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
-  if [ -n "$force" ] || [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then rm -f "$f"; return 0; fi
-  # Same-tool fallback: allow release when tool class matches (orchestrator claims, subagent releases). [T002374]
-  if [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then rm -f "$f"; return 0; fi
-  echo "release: lock owned by SID $(_lock_field "$f" owner_sid), current SID $(_my_sid) — use --force" >&2
+  local owner_sid; owner_sid="$(_lock_field "$f" owner_sid)"
+  # [T002373-M2] Auto-release if owner SID is dead (non-numeric SIDs are always alive by _sid_alive).
+  # [T002374] Same-tool fallback: allow release when tool class matches.
+  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || \
+     { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; } || \
+     [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then
+    rm -f "$f"; return 0
+  fi
+  echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2
   return 1
 }
 

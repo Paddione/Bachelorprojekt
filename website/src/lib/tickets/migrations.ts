@@ -14,7 +14,8 @@ export async function applyLegacyMigrations(pool: Pool | PoolClient): Promise<vo
       ADD COLUMN IF NOT EXISTS brand TEXT,
       ADD COLUMN IF NOT EXISTS url TEXT,
       ADD COLUMN IF NOT EXISTS thesis_tag TEXT,
-      ADD COLUMN IF NOT EXISTS component TEXT
+      ADD COLUMN IF NOT EXISTS component TEXT,
+      ADD COLUMN IF NOT EXISTS scope     TEXT
   `);
 
   await pool.query(`ALTER TABLE tickets.tickets ADD COLUMN IF NOT EXISTS notes TEXT`);

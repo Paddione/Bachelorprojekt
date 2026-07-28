@@ -367,3 +367,50 @@ JSON
   local n; n=$(wc -l < "$LOCK")
   [ "$n" -lt 500 ] || { echo "agent-lock.sh hat $n Zeilen, S1-Limit fuer .sh ist 500"; false; }
 }
+
+# ── [T002373-M2] cmd_release auto-releases when owner SID is dead ──────#
+
+@test "T002373-M2: cmd_release gibt Lock ohne --force frei, wenn owner SID tot ist" {
+  AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  export AGENT_LOCK_FAKE_ALIVE=""
+  # Claim as "session-A"
+  export AGENT_LOCK_SID="ghost-sid-99999"
+  bash "$LOCK" claim ticket T002373-m2 --label test-release-dead
+  [ -f "$AGENT_LOCK_DIR/ticket__T002373-m2.json" ]
+
+  # Switch to "session-B" with dead owner
+  export AGENT_LOCK_SID="session-B"
+  # AGENT_LOCK_FAKE_ALIVE empty → ghost-sid-99999 is not alive
+  run bash "$LOCK" release ticket T002373-m2
+  echo "exit: $status output: $output"
+  [ "$status" -eq 0 ] || { echo "release should succeed without --force when owner SID is dead"; false; }
+
+  # Lock file must be gone
+  [ ! -f "$AGENT_LOCK_DIR/ticket__T002373-m2.json" ]
+
+  rm -rf "$AGENT_LOCK_DIR"
+}
+
+@test "T002373-M2: cmd_release verweigert Release ohne --force wenn owner SID lebt" {
+  AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  export AGENT_LOCK_FAKE_ALIVE="ghost-sid-99999"
+  # Claim as "ghost-sid-99999" (marked alive via fake)
+  export AGENT_LOCK_SID="ghost-sid-99999"
+  bash "$LOCK" claim ticket T002373-m2b --label test-release-alive
+  [ -f "$AGENT_LOCK_DIR/ticket__T002373-m2b.json" ]
+
+  # Switch to different session, owner marked alive
+  export AGENT_LOCK_SID="session-C"
+  run bash "$LOCK" release ticket T002373-m2b
+  [ "$status" -eq 1 ] || { echo "release must fail without --force when owner SID is alive"; false; }
+
+  # Lock file must still exist
+  [ -f "$AGENT_LOCK_DIR/ticket__T002373-m2b.json" ]
+
+  # With --force it must succeed
+  run bash "$LOCK" release ticket T002373-m2b --force
+  [ "$status" -eq 0 ] || { echo "release with --force must succeed"; false; }
+  [ ! -f "$AGENT_LOCK_DIR/ticket__T002373-m2b.json" ]
+
+  rm -rf "$AGENT_LOCK_DIR"
+}

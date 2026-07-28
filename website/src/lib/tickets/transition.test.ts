@@ -179,4 +179,67 @@ describe('transitionTicket', () => {
       m.transitionTicket('T-1', { status: 'in_progress', actor: { label: 'admin' } }),
     ).rejects.toThrow(/not found/i);
   });
+
+  // ── [T002382] Terminal transition guards ────────────────────────────────
+
+  it('throws when transitioning from done to awaiting_deploy (T002382)', async () => {
+    const m = await loadModule();
+    queueAndReject.push({ rows: [], rowCount: 0 }); // BEGIN
+    queueAndReject.push({ rows: [], rowCount: 0 }); // set_config user_label
+    queueAndReject.push({
+      rows: [{
+        id: 'uuid-done', external_id: 'T000099', type: 'feature', status: 'done', resolution: 'shipped',
+        reporter_email: null, brand: 'mentolder',
+      }],
+      rowCount: 1,
+    });
+    await expect(
+      m.transitionTicket('T000099', { status: 'awaiting_deploy', actor: { label: 'admin' } }),
+    ).rejects.toThrow(/Cannot transition from 'done' to 'awaiting_deploy'/);
+  });
+
+  it('allows transitioning from done to archived (T002382)', async () => {
+    const m = await loadModule();
+    queueAndReject.push({ rows: [], rowCount: 0 }); // BEGIN
+    queueAndReject.push({ rows: [], rowCount: 0 }); // set_config user_label
+    queueAndReject.push({
+      rows: [{
+        id: 'uuid-done2', external_id: 'T000100', type: 'feature', status: 'done', resolution: 'shipped',
+        reporter_email: null, brand: 'mentolder',
+      }],
+      rowCount: 1,
+    });
+    queueAndReject.push({
+      rows: [{
+        id: 'uuid-done2', external_id: 'T000100', type: 'feature', status: 'archived', resolution: 'shipped',
+        reporter_email: null, brand: 'mentolder',
+      }],
+      rowCount: 1,
+    });
+    queueAndReject.push({ rows: [], rowCount: 0 }); // COMMIT
+    const out = await m.transitionTicket('T000100', { status: 'archived', resolution: 'shipped', actor: { label: 'admin' } });
+    expect(out.status).toBe('archived');
+  });
+
+  it('uses COALESCE in the resolution SET to preserve existing value (T002382)', async () => {
+    const m = await loadModule();
+    const src = m.transitionTicket.toString();
+    expect(src).toContain('COALESCE($2, resolution)');
+  });
+
+  it('throws when transitioning from archived (T002382)', async () => {
+    const m = await loadModule();
+    queueAndReject.push({ rows: [], rowCount: 0 }); // BEGIN
+    queueAndReject.push({ rows: [], rowCount: 0 }); // set_config user_label
+    queueAndReject.push({
+      rows: [{
+        id: 'uuid-arch', external_id: 'T000102', type: 'feature', status: 'archived', resolution: 'shipped',
+        reporter_email: null, brand: 'mentolder',
+      }],
+      rowCount: 1,
+    });
+    await expect(
+      m.transitionTicket('T000102', { status: 'done', resolution: 'fixed', actor: { label: 'admin' } }),
+    ).rejects.toThrow(/Cannot transition from 'archived'/);
+  });
 });

@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-07-28T03:10:58.538Z
+> Generated at 2026-07-28T07:55:13.809Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -323,6 +323,8 @@
 | `/api/auth/logout` | GET | ❓ unclassified | `website/src/pages/api/auth/logout.ts` |
 | `/api/auth/magic` | GET | ❓ unclassified | `website/src/pages/api/auth/magic.ts` |
 | `/api/auth/me` | OPTIONS, GET | 🔐 admin | `website/src/pages/api/auth/me.ts` |
+| `/api/bge/changes` | GET | 🔐 admin | `website/src/pages/api/bge/changes.ts` |
+| `/api/bge/retrieve` | GET | 🔐 admin | `website/src/pages/api/bge/retrieve.ts` |
 | `/api/billing/create-invoice` | POST | ❓ unclassified | `website/src/pages/api/billing/create-invoice.ts` |
 | `/api/billing/invoice/{id}/pdf` | GET | 🔐 admin | `website/src/pages/api/billing/invoice/[id]/pdf.ts` |
 | `/api/billing/invoice/{id}/xrechnung.xml` | GET | 🔐 admin | `website/src/pages/api/billing/invoice/[id]/xrechnung.xml.ts` |

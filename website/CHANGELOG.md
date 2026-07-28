@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.225.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.0...website-v1.225.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock auto-release dead SID + git merge --ff-only guard [T002373] ([#3448](https://github.com/Paddione/Bachelorprojekt/issues/3448)) ([0d99a14](https://github.com/Paddione/Bachelorprojekt/commit/0d99a14750b86128a32164bad6376beba6f8d9d6))
+* **scripts:** guard done→awaiting_deploy from clearing resolution [T002382] ([#3447](https://github.com/Paddione/Bachelorprojekt/issues/3447)) ([f41a64c](https://github.com/Paddione/Bachelorprojekt/commit/f41a64cb6cc9a57f680b7ec4d29d993983582bdf))
+
 ## [1.225.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.224.1...website-v1.225.0) (2026-07-28)
 
 

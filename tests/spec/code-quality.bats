@@ -29,3 +29,12 @@ setup() {
   echo "remaining err: any catch blocks: $hits (target: 0)"
   [ "$hits" -eq 0 ]
 }
+
+@test "T002273: verification-block.md enthält Hinweis zu untracked Dateien in freshness:regenerate" {
+  ref="$REPO_ROOT/.claude/skills/references/verification-block.md"
+  [ -f "$ref" ] || { echo "MISSING ref: $ref"; return 1; }
+  grep -q 'git ls-files' "$ref" \
+    || { echo "MISSING git-ls-files hint in verification-block.md"; return 1; }
+  grep -q 'untracked' "$ref" \
+    || { echo "MISSING untracked hint in verification-block.md"; return 1; }
+}

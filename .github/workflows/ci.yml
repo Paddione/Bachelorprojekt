@@ -23,6 +23,13 @@ on:
       - 'docs/**'
       - '*.md'
       - '**/CLAUDE.md'
+  # Rettungsanker [T002425-M5]: GitHub loest fuer einen frisch gepushten SHA gelegentlich
+  # gar keinen Lauf aus — `gh pr checks` meldet dann minutenlang "no checks reported on the
+  # branch" und `.../commits/<sha>/check-runs` liefert total_count: 0, waehrend die letzten
+  # Runs noch am vorherigen SHA haengen. Auto-Merge greift in dem Zustand nie. Bisher blieb
+  # als einziger Ausweg ein leerer Commit, weil `gh workflow run ci.yml` mangels
+  # workflow_dispatch mit HTTP 422 abwies. Der Trigger aendert nichts am Normalbetrieb.
+  workflow_dispatch:
 
 concurrency:
   # Cancel superseded runs on the same PR (rapid iteration / stacked Factory pushes);

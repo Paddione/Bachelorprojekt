@@ -22,8 +22,22 @@ stammen unveraendert aus der Ticket-Beschreibung; die Diagnose dort ist die Vorg
 ## File Structure
 
 ```
-<der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+scripts/preflight-pr-scope.sh                          (M3) — eigener Argument-Check statt ${1:?…}
+scripts/code-quality/baseline-key-count-assertion.mjs  (M4) — zweite Ursache + Abhilfe in der Meldung
+.github/workflows/ci.yml                               (M5) — workflow_dispatch als Rettungsanker
+.claude/skills/references/dev-flow-plan-phases.md      (M2) — Commit-Scope `plans` benannt
+tests/spec/ci-cd/mishap-t002425.bats                   (neu) — Guards fuer M3/M4/M5
 ```
+
+## Befund je Eintrag
+
+| # | Befund | Aktion |
+|---|--------|--------|
+| M1 | **Bereits behoben.** Im ganzen Repo existiert keine positionale `claim`-Form mehr; alle Referenzdateien zeigen benannte Flags. Der Bericht beschreibt einen Zustand, der zum Meldezeitpunkt schon nicht mehr galt. | keine |
+| M2 | Teilweise gegenstandslos: das Repo lenkt die Design-Spec bereits nach `openspec/changes/<slug>/design.md` um, der `docs/superpowers/specs/`-Pfad ist der Plugin-Default. Offen blieb allein der Commit-Scope — und `superpowers:brainstorming` liegt im Plugin-Cache ausserhalb des Repos, ist also von hier nicht aenderbar. | Scope `plans` in der Repo-Referenz benannt |
+| M3 | **Bestaetigt.** `TITLE="${1:?Usage: …}"` erzeugt `…sh: line 19: 1: Usage: …` — die Usage erscheint als Fehlertext des Parameters `1`. | eigener Argument-Check, Exit 2 |
+| M4 | **Kein Bug.** Der Key war kein Wiedergaenger: `S1:website/src/components/FactoryFloor.svelte` stand seit #2676 in der Baseline und wurde erst mit #3461 (`b69be0752`, 2026-07-28) entfernt. Der Branch `fix/conflict-gate-T002418` fusste auf einem `main` davor. Falsch war nicht die Baseline, sondern die **Handlungsempfehlung**. | Meldung nennt jetzt den veralteten Branch als haeufigere Ursache samt Abhilfe |
+| M5 | **Bestaetigt.** `ci.yml` hat keinen `workflow_dispatch`-Trigger, daher HTTP 422 und der leere Commit als einziger Ausweg. | `workflow_dispatch:` ergaenzt |
 
 ## Mishap-Eintraege
 

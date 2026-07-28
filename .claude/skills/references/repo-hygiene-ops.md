@@ -8,11 +8,18 @@ DB-Zugriff (MCP-first, `psql()`-Fallback, `ticket_plans`-Warnung): siehe
 
 ## 1. Stale Git Worktrees
 
+Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit-Bereich allein reicht nicht — ein Worktree kann ungetrackte Änderungen enthalten, die kein `git log` anzeigt.
+
 ```bash
 git worktree list
-git log main..<branch> --oneline   # leer = vollständig gemergt
-git worktree remove <path> --force
+# Für jeden Worktree (außer main, außer aktuell gehaltener):
+git status --porcelain   # MUSS leer sein — sonst kein Remove
+git log main..<branch> --oneline   # Info: leer = Branch vollständig gemergt
+git worktree remove <path>          # ohne --force (Schutz bei ungetrackten Dateien)
 ```
+
+`--force` nur als bewusste Eskalation verwenden, wenn der Vorcheck sauber ist und
+`git worktree remove` trotzdem verweigert (z.B. bei.locked Worktrees).
 
 ## 2. Stale Branches
 

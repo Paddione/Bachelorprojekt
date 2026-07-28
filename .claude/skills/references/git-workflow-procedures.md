@@ -75,7 +75,7 @@ gh api -X PATCH "repos/{owner}/{repo}/pulls/<n>" -f title="<neuer Titel>"
 | 2 | Conventional Commit ≤100 Zeichen + Ticket-ID | Jeder Commit |
 | 2 | Commit-Verifikation (`HEAD_SHA != BASE_SHA`) | Nach jedem Commit in Worktrees |
 | 3 | `git push -u origin <branch>` | Einmalig, danach plain `git push` |
-| 4 | `bash scripts/preflight-pr-scope.sh` + `gh pr create` | Einmal pro PR |
+| 4 | `bash scripts/preflight-pr-scope.sh "<PR title>"` + `gh pr create` | Einmal pro PR |
 | 5 | CI Fix Loop | Bis alle Required Checks grün |
 | 6 | `gh pr merge --auto --squash --delete-branch` | Wenn CI grün |
 | 7 | `git worktree remove` + `agent-lock release` | Nur bei Worktree-Arbeit |

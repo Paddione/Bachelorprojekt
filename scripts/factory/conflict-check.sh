@@ -121,7 +121,19 @@ WITH new_files AS (
 SELECT json_agg(DISTINCT t.external_id)
 FROM tickets.tickets t, new_files nf
 WHERE t.external_id != :'ext_id'
-  AND t.type IN ('feature','feat','task','chore')
+  -- [T002418] 'bug'/'fix' ergaenzt: die drei realen Kollidenten vom 2026-07-28
+  -- (T002341/T002373/T002374, alle an scripts/agent-lock.sh) waren Mishap-Tickets und
+  -- fielen durch den alten Typfilter komplett heraus.
+  AND t.type IN ('feature','feat','task','chore','bug','fix')
+  -- [T002418] Der Statusfilter bleibt bewusst auf ('in_progress','in_review) — geprueft
+  -- und verworfen: 'plan_staged' aufzunehmen sah nach der offensichtlichen Luecke aus
+  -- ("im Moment des Dispatch ist noch kein Ticket in_progress"), ist aber falsch.
+  -- schedule.sh ruft conflict-check (Z. 82) VOR slots.sh claim-gang (Z. 106) auf, und der
+  -- Claim setzt status='in_progress'; der naechste Schleifendurchlauf sieht das vorherige
+  -- Ticket also sehr wohl. 'plan_staged' wuerde dagegen falsch-positiv blockieren, weil
+  -- ein Ticket dort tagelang liegen kann. Festgehalten in FA-SF-45.
+  -- Die Kollision vom 2026-07-28 kam nicht hierher, sondern von touched_files = null:
+  -- der IS-NOT-NULL-Filter unten verwirft dann alles, egal welcher Status.
   AND t.status IN ('in_progress','in_review')
   AND t.touched_files IS NOT NULL
   AND (

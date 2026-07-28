@@ -218,6 +218,23 @@ log(`Scout: complexity=${scout.complexity}, ${scout.touched_files.length} touche
 featureComplexity = scout.complexity
 featureTouchedFiles = scout.touched_files
 
+// [T002418] touched_files ins Ticket schreiben — die Wurzel des kaputten Conflict-Gates.
+// Bis hierher kannte der Scout die Dateien, reichte sie an den unmittelbaren Check weiter
+// und warf sie dann weg. Weil die Spalte in der DB null blieb (verifiziert an T002341),
+// war JEDES Ticket fuer nachfolgende Kollisionspruefungen unsichtbar: conflict-check.sh
+// filtert mit "AND t.touched_files IS NOT NULL", und schedule.sh ruft ohne Dateiliste auf,
+// was bei null zu rc 2 = "treat as schedulable" fuehrt. Das Gate hatte strukturell kein
+// Gedaechtnis — deshalb liefen T002341/T002373/T002374 gleichzeitig auf agent-lock.sh.
+//
+// Best-effort: ein fehlgeschlagener Write darf die Pipeline nicht anhalten, aber er wird
+// sichtbar geloggt statt still verschluckt.
+if (Array.isArray(scout.touched_files) && scout.touched_files.length > 0) {
+  const tfRes = await runRunner(agent, 'set-touched-files', {
+    ticket_id: A.ticket_id, brand, files: scout.touched_files,
+  })
+  log(`touched_files persistiert (${scout.touched_files.length}): ${String(tfRes).slice(0, 120)}`)
+}
+
 await phaseEvent('scout', 'done', `${(scout.touched_files || []).length} touched_files`)
 
 const isSimple = scout.complexity === 'simple'
@@ -246,15 +263,24 @@ tasks = []
 if (!isSimple) {
   phase('Plan')
   await phaseEvent('plan', 'entered', 'Plan-Erstellung')
-  const conflict = await agent(
-    `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${A.ticket_id}\`.
-     Run the brand-aware conflict gate:
-       BRAND=${brand} bash ${REPO}/scripts/factory/conflict-check.sh ${A.ticket_id} ${scout.touched_files.join(' ')}
-     Report the exact stdout JSON and exit code.
-     Exit 0 = no conflicts. Exit 1 = conflicts found (STOP). Exit 2 = error.`,
-    { label: 'plan:conflict', phase: 'Plan', model: FACTORY_MODEL },
-  )
-  if (/\"T0/.test(conflict)) {
+  // [T002418] Deterministisch statt per Agent. Vorher lief der Check ueber einen
+  // LLM-Aufruf, dessen Freitext-Antwort mit `/\"T0/` abgeklopft wurde — der Regex traf nur,
+  // wenn das Modell die Ticket-ID zufaellig in Anfuehrungszeichen ausgab. Formatierte es
+  // anders oder kommentierte es die Ausgabe, wurde ein echter Konflikt uebersehen und die
+  // Pipeline lief in die Kollision. Die Eskalation darunter war laengst deterministisch
+  // (pipeline-runner.js 'conflict-escalate'); nur die Entscheidung nicht.
+  const conflictJson = await runRunner(agent, 'conflict-check', {
+    ticket_id: A.ticket_id, brand, files: scout.touched_files,
+  })
+  let conflictRes = { rc: 2, conflicts: [] }
+  try {
+    conflictRes = JSON.parse(String(conflictJson).trim())
+  } catch {
+    // Unparsebare Antwort ist rc 2 — ein Fehler, ausdruecklich KEINE Freigabe.
+    log(`conflict-check: unparsebare Antwort, als rc 2 gewertet: ${String(conflictJson).slice(0, 120)}`)
+  }
+  const conflict = JSON.stringify(conflictRes.conflicts || [])
+  if (conflictRes.rc === 1 && (conflictRes.conflicts || []).length > 0) {
     log(`Conflict detected: ${conflict}`)
     await agent(
       `Release slot + return to queue:

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-26T19:25:42.025Z",
+  "generatedAt": "2026-07-28T03:10:58.538Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -270,62 +270,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/brett/broadcast.ts"
-    },
-    {
-      "path": "/api/admin/bugs/{id}",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/bugs/[id].ts"
-    },
-    {
-      "path": "/api/admin/bugs/{id}/comments",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/bugs/[id]/comments.ts"
-    },
-    {
-      "path": "/api/admin/bugs/archive",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/bugs/archive.ts"
-    },
-    {
-      "path": "/api/admin/bugs/create",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/bugs/create.ts"
-    },
-    {
-      "path": "/api/admin/bugs/list",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/bugs/list.ts"
-    },
-    {
-      "path": "/api/admin/bugs/reopen",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/bugs/reopen.ts"
-    },
-    {
-      "path": "/api/admin/bugs/resolve",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/bugs/resolve.ts"
     },
     {
       "path": "/api/admin/clientnotes/create",
@@ -2727,14 +2671,6 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/brett/bot.ts"
-    },
-    {
-      "path": "/api/bug-report",
-      "methods": [
-        "POST"
-      ],
-      "auth": "unclassified",
-      "file": "website/src/pages/api/bug-report.ts"
     },
     {
       "path": "/api/calendar/slots",

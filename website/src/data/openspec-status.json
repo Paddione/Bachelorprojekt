@@ -831,10 +831,6 @@
   ],
   "T001579": [
     {
-      "slug": "oauth2-proxy-hardening",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-07-03-oauth2-proxy-hardening",
       "status": "archived"
     }
@@ -852,10 +848,6 @@
     }
   ],
   "T001584": [
-    {
-      "slug": "fleet-secrets-parity-test",
-      "status": "plan_staged"
-    },
     {
       "slug": "2026-07-03-fleet-secrets-parity-test",
       "status": "archived"
@@ -923,19 +915,11 @@
   ],
   "T001638": [
     {
-      "slug": "coaching-sessions-admin-ux",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-07-08-coaching-sessions-admin-ux",
       "status": "archived"
     }
   ],
   "T001641": [
-    {
-      "slug": "coaching-ki-model-select",
-      "status": "plan_staged"
-    },
     {
       "slug": "2026-07-08-coaching-ki-model-select",
       "status": "archived"
@@ -1797,6 +1781,18 @@
       "status": "plan_staged"
     }
   ],
+  "T002330": [
+    {
+      "slug": "bug-consolidation-T002330",
+      "status": "plan_staged"
+    }
+  ],
+  "T002331": [
+    {
+      "slug": "2026-07-28-schema-diaet-T002331",
+      "status": "archived"
+    }
+  ],
   "T002333": [
     {
       "slug": "2026-07-28-queue-dispatch-bug-type",
@@ -1845,6 +1841,18 @@
       "status": "plan_staged"
     }
   ],
+  "T002354": [
+    {
+      "slug": "mishap-t002354",
+      "status": "plan_staged"
+    }
+  ],
+  "T002356": [
+    {
+      "slug": "2026-07-28-mishap-t002356",
+      "status": "archived"
+    }
+  ],
   "T002359": [
     {
       "slug": "2026-07-28-factory-provider-fallback",
@@ -1857,10 +1865,34 @@
       "status": "archived"
     }
   ],
+  "T002365": [
+    {
+      "slug": "2026-07-28-devflow-execute-hardening-T002365",
+      "status": "archived"
+    }
+  ],
   "T002366": [
     {
       "slug": "2026-07-27-ticket-release-hold-noblock",
       "status": "archived"
+    }
+  ],
+  "T002371": [
+    {
+      "slug": "2026-07-28-mishap-mcp-postgres-T002371",
+      "status": "archived"
+    }
+  ],
+  "T002373": [
+    {
+      "slug": "mishap-t002373",
+      "status": "plan_staged"
+    }
+  ],
+  "T002374": [
+    {
+      "slug": "mishap-t002374",
+      "status": "plan_staged"
     }
   ],
   "T002375": [
@@ -1872,6 +1904,12 @@
   "T002377": [
     {
       "slug": "mishap-t002377",
+      "status": "plan_staged"
+    }
+  ],
+  "T002382": [
+    {
+      "slug": "mishap-t002382",
       "status": "plan_staged"
     }
   ],
@@ -1917,9 +1955,45 @@
       "status": "plan_staged"
     }
   ],
+  "T002399": [
+    {
+      "slug": "auto-triage-grounding-T002399",
+      "status": "plan_staged"
+    }
+  ],
   "T002413": [
     {
-      "slug": "pr-refresh-T002413",
+      "slug": "2026-07-28-pr-refresh-T002413",
+      "status": "archived"
+    }
+  ],
+  "T002417": [
+    {
+      "slug": "pr-refresh-batch-T002417",
+      "status": "plan_staged"
+    }
+  ],
+  "T002425": [
+    {
+      "slug": "mishap-t002425",
+      "status": "plan_staged"
+    }
+  ],
+  "T002427": [
+    {
+      "slug": "fa-sf-dedupe-T002427",
+      "status": "plan_staged"
+    }
+  ],
+  "T002428": [
+    {
+      "slug": "openspec-half-archive-T002428",
+      "status": "plan_staged"
+    }
+  ],
+  "T002445": [
+    {
+      "slug": "test-inventory-coverage",
       "status": "plan_staged"
     }
   ],

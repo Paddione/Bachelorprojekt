@@ -48,7 +48,6 @@ export interface ListedTicket {
   tagNames: string[];
   createdAt: Date;
   updatedAt: Date;
-  aiQuestion: string | null; humanAnswer: string | null;
 }
 
 interface TicketDetail extends ListedTicket {
@@ -149,7 +148,7 @@ const LIST_COLS = `
         WHERE tt.ticket_id = t.id), ARRAY[]::text[]
     ) AS "tagNames",
     t.created_at AS "createdAt", t.updated_at AS "updatedAt",
-    t.ai_question AS "aiQuestion", t.human_answer AS "humanAnswer", t.grilling_answers AS "grillingAnswers", t.grilling_meta AS "grillingMeta"
+    t.grilling_answers AS "grillingAnswers", t.grilling_meta AS "grillingMeta"
 `;
 const LIST_FROM = `
   FROM tickets.tickets t
@@ -478,7 +477,6 @@ export async function patchAdminTicket(p: {
   startDate?: string | null;
   dueDate?: string | null;
   estimateMinutes?: number | null;
-  aiQuestion?: string | null; humanAnswer?: string | null;
   grillingAnswers?: GrillingAnswers | null; grillingMeta?: GrillingMeta | null;
   actor: { id?: string; label: string };
 }): Promise<void> {
@@ -504,7 +502,6 @@ export async function patchAdminTicket(p: {
   if (p.startDate   !== undefined) push('start_date',      p.startDate);
   if (p.dueDate     !== undefined) push('due_date',        p.dueDate);
   if (p.estimateMinutes !== undefined) push('estimate_minutes', p.estimateMinutes);
-  if (p.aiQuestion !== undefined) push('ai_question', p.aiQuestion); if (p.humanAnswer !== undefined) push('human_answer', p.humanAnswer);
   if (p.grillingAnswers !== undefined) push('grilling_answers', p.grillingAnswers); if (p.grillingMeta !== undefined) push('grilling_meta', p.grillingMeta);
   if (sets.length === 0) return;
 

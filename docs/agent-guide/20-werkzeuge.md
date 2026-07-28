@@ -104,7 +104,7 @@ Setzt einen fertigen Plan um und öffnet einen Pull Request.
 
 **So startest du:** Sage '/dev-flow-execute' oder 'Setze den Plan um' – ein staged Plan muss bereits existieren.
 
-**Was schiefgehen kann:** Der falsche Branch könnte aktiv sein (🟡); CI könnte fehlschlagen und den Merge blockieren.
+**Was schiefgehen kann:** Der falsche Branch könnte aktiv sein (🟡); CI könnte fehlschlagen und den Merge blockieren. Der Implementer endet nach dem Auto-Merge-Request – CI-Watch, Merge-Wait und Worktree-Cleanup laufen im Orchestrator, nicht im Implementer (T002365).
 
 **Du kannst diesen Prompt kopieren und in Claude Code einfügen:**
 

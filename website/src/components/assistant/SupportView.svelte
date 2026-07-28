@@ -67,30 +67,41 @@
     !fileError
   );
 
+  const CATEGORY_LABELS: Record<Category, string> = {
+    fehler: 'Fehler',
+    verbesserung: 'Verbesserung',
+    erweiterungswunsch: 'Erweiterungswunsch',
+    zahlung: 'Zahlung',
+  };
+
   async function handleSubmit(e: Event) {
     e.preventDefault();
     if (!canSubmit) return;
     submitting = true;
     result = null;
 
-    const fd = new FormData();
-    fd.append('description', description.trim());
-    fd.append('email', email.trim());
-    fd.append('category', category);
-    fd.append('url', window.location.href);
-    fd.append('userAgent', navigator.userAgent);
-    fd.append('viewport', `${window.innerWidth}x${window.innerHeight}`);
-    for (const file of files) {
-      fd.append('screenshot', file, file.name);
-    }
-
     try {
-      const res = await fetch('/api/bug-report', { method: 'POST', body: fd });
+      const title = `[${CATEGORY_LABELS[category]}] ${description.trim().slice(0, 80)}${description.length > 80 ? '…' : ''}`;
+      const desc = `Kategorie: ${CATEGORY_LABELS[category]}\nE-Mail: ${email.trim()}\nURL: ${window.location.href}\n\n${description.trim()}${files.length > 0 ? `\n\n(${files.length} Screenshot(s) beigefügt — konnten nicht hochgeladen werden.)` : ''}`;
+      const res = await fetch('/api/admin/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'bug',
+          title,
+          description: desc,
+          reporterEmail: email.trim(),
+        }),
+      });
       const data = await res.json();
       if (res.ok) {
-        const ticketId = data.ticketId ?? '';
-        const successMsg = ticketId
-          ? `Vielen Dank! Ihre Meldung wurde als ${ticketId} aufgenommen.`
+        let externalId = '';
+        if (data.id) {
+          const detail = await fetch(`/api/admin/tickets/${data.id}`).then(r => r.json()).catch(() => null);
+          externalId = detail?.ticket?.externalId ?? '';
+        }
+        const successMsg = externalId
+          ? `Vielen Dank! Ihre Meldung wurde als ${externalId} aufgenommen.`
           : 'Vielen Dank! Ihre Meldung wurde übermittelt.';
         result = { success: true, message: successMsg };
         resetForm();

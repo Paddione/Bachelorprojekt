@@ -82,9 +82,9 @@
       <h4 class="text-sm font-bold text-white group-hover:text-admin-primary">Systemtest Board</h4>
       <p class="text-xs text-admin-text-mute">Automatisierte E2E-Testergebnisse.</p>
     </a>
-    <a href="/admin/bugs" class="p-4 rounded-2xl bg-admin-surface border border-admin-border hover:border-admin-primary/30 transition-all group">
-      <h4 class="text-sm font-bold text-white group-hover:text-admin-primary">Fehlermeldungen</h4>
-      <p class="text-xs text-admin-text-mute">Interne Tickets und Debug-Logs.</p>
+    <a href="/admin/tickets" class="p-4 rounded-2xl bg-admin-surface border border-admin-border hover:border-admin-primary/30 transition-all group">
+      <h4 class="text-sm font-bold text-white group-hover:text-admin-primary">Tickets</h4>
+      <p class="text-xs text-admin-text-mute">Alle Tickets verwalten.</p>
     </a>
   </footer>
 </div>

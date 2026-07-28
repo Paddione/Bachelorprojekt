@@ -984,7 +984,7 @@
       "summary_de": "Setzt einen fertigen Plan um und öffnet einen Pull Request.",
       "what_for_de": "Implementiert den Plan task-by-task, läuft Tests, pusht und erstellt den PR. Wird nach dev-flow-plan aufgerufen.",
       "how_to_start_de": "Sage '/dev-flow-execute' oder 'Setze den Plan um' – ein staged Plan muss bereits existieren.",
-      "what_could_go_wrong_de": "Der falsche Branch könnte aktiv sein (🟡); CI könnte fehlschlagen und den Merge blockieren.",
+      "what_could_go_wrong_de": "Der falsche Branch könnte aktiv sein (🟡); CI könnte fehlschlagen und den Merge blockieren. Der Implementer endet nach dem Auto-Merge-Request – CI-Watch, Merge-Wait und Worktree-Cleanup laufen im Orchestrator, nicht im Implementer (T002365).",
       "danger": "caution",
       "guardrails": [
         {

@@ -29,7 +29,7 @@ stehen in [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude
 
 > **Worktree-Isolation ist Pflicht** [T001363]: Läuft die Execute-Phase versehentlich im
 > Haupt-Checkout (z. B. nach einem Session-Neustart), schreibt der Implementer direkt ins
-> Haupt-Repo statt in eine isolierte Kopie.
+> Haupt-Repo statt in eine isolierte Kopie. Liegt auf dem Branch schon Arbeit oder hält ihn ein fremder Worktree (`branch in use`, Exit 3 aus `scripts/worktree-create.sh`), gilt der **Fortsetzungs-Kontrakt** [T002327] — fortsetzen statt neu beginnen, zurückstellen statt `blocked`: [factory-resume-contract](file:///home/patrick/Bachelorprojekt/.claude/skills/references/factory-resume-contract.md).
 
 > **Pipeline-Modus:** Bei `slot_count > 1` hat die Factory bereits begonnen. Dann erst warten,
 > bis alle N Partials im Branch sichtbar sind, und danach implementieren.
@@ -43,7 +43,7 @@ stehen in [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude
 Wenn das Ticket per `stage-plan --hold` gestaged wurde (interaktiver dev-flow-plan-Pfad), ist
 `readiness.execution_released=false` gesetzt — das Ticket wird vom Factory-Dispatch zurückgehalten,
 bis dieser Schritt es freigibt. Der Aufruf ist best-effort (`|| true`), da ein ohne `--hold`
-gestagetes Ticket (z.B. Mishap-Tracker-Auto-Plans) einfach keinen Hold hat:
+gestagetes Ticket (z.B. Mishap-Tracker-Auto-Plans) einfach keinen Hold hat. `execution_released=false` bleibt der **Default** [T002327]: Fortsetzungsfähigkeit ersetzt die Freigabe nicht, sie macht sie nur folgenlos für bereits geleistete Arbeit.
 
 ```bash
 bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true

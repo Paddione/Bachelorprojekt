@@ -1773,6 +1773,12 @@
       "status": "archived"
     }
   ],
+  "T002327": [
+    {
+      "slug": "factory-resume-staged-work",
+      "status": "plan_staged"
+    }
+  ],
   "T002328": [
     {
       "slug": "2026-07-27-commit-scope-consolidation",

@@ -2003,6 +2003,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002426": [
+    {
+      "slug": "bge-dual-pair-failover",
+      "status": "plan_staged"
+    }
+  ],
   "T002427": [
     {
       "slug": "fa-sf-dedupe-T002427",

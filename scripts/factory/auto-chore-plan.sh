@@ -116,8 +116,16 @@ WT="$REPO/.worktrees/acp-${slug}"
 cleanup_wt() { git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true; }
 trap cleanup_wt EXIT
 
-git -C "$REPO" fetch -q origin main
-git -C "$REPO" worktree add -q -b "$branch" "$WT" origin/main
+# scripts/worktree-create.sh statt `git worktree add`: Das Repo ist git-crypt-
+# verschluesselt, und ein roher `worktree add` scheitert am smudge-Filter
+# ("Unable to open key file"). Der Wrapper ist genau dafuer da und verlinkt
+# ausserdem node_modules.
+# stderr NICHT verwerfen — sonst ist eine fehlgeschlagene Anlage nicht diagnostizierbar.
+if ! wt_out="$(bash "$REPO/scripts/worktree-create.sh" "$branch" "$WT" 2>&1)"; then
+  echo "auto-chore-plan: Worktree-Anlage fuer $branch fehlgeschlagen:" >&2
+  printf '%s\n' "$wt_out" >&2
+  exit 1
+fi
 
 cd "$WT"
 bash "$WT/scripts/openspec.sh" propose "$slug" --ticket "$EXT_ID" >/dev/null

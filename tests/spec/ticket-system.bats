@@ -61,8 +61,12 @@
 @test "T002230: the two write paths agree that resolution is terminal-only" {
   # transition.ts is the other path. If it ever drops the CASE, the shell path and
   # the API path would disagree about what a non-terminal status means.
-  run grep -Fq "resolution = CASE WHEN \$1 IN ('done','archived') THEN \$2 ELSE NULL END" \
-    website/src/lib/tickets/transition.ts
+  # [T002382] Updated to match the new multi-line COALESCE pattern.
+  run grep -Fq "resolution = CASE" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+  run grep -Fq "COALESCE(\$2, resolution)" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ]
+  run grep -Fq "ELSE NULL" website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
 }
 

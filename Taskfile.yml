@@ -810,6 +810,11 @@ tasks:
   test:openspec:
     desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate, TypeScript/Vitest)."
     cmds:
+      # [T002428] Halb archivierte Changes zuerst — `archive` ist nicht atomar und sein
+      # Ergebnis kann teilweise committet werden. Sieben Slugs lagen so seit dem 3. Juli
+      # gleichzeitig offen und archiviert, mit 16 Requirements, die in keiner SSOT-Spec
+      # standen. Der Zustand war bis dahin nirgends pruefbar.
+      - bash scripts/openspec-half-archive-check.sh
       - '[ -d node_modules ] || npm ci'
       - npm run test:openspec
 

@@ -222,6 +222,16 @@ cmd_archive() {
     [[ "$st" == "done" ]] || die "archive refused: ticket status is '${st:-unknown}', expected 'done'"
   fi
   local dest="$OPENSPEC_ROOT/changes/archive/$(date +%F)-$slug"
+  # [T002428] VOR dem Delta-Merge pruefen, nicht danach: `mv "$dir" "$dest"` weiter unten
+  # verschiebt die Quelle in ein bestehendes Ziel HINEIN (archive/<datum>-<slug>/<slug>/)
+  # statt es zu ersetzen — ohne Fehler und ohne Hinweis. Wuerde erst danach abgebrochen,
+  # waere das Delta bereits in der SSOT und der Lauf nicht mehr wiederholbar.
+  if [[ -e "$dest" ]]; then
+    die "archive refused: Archivziel existiert bereits: $dest
+  Ein erneuter Lauf wuerde '$slug' dort hinein verschachteln statt zu ersetzen.
+  Pruefe, ob der Change schon (teilweise) archiviert ist:
+    bash scripts/openspec-half-archive-check.sh"
+  fi
   if [[ -d "$dir/specs" ]]; then
     for capfile in "$dir/specs"/*.md; do
       [[ -e "$capfile" ]] || continue

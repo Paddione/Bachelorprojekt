@@ -20,6 +20,14 @@
 #   <path>    worktree path, e.g. .worktrees/foo (repo-relative default location)
 #   <base>    base ref for a NEW branch (default: origin/main); ignored when the
 #             branch already exists.
+#
+# Exit codes:
+#   0  worktree ready (stdout ends with a line containing "ready on" — pipeline.js
+#      matches on exactly that string, do not reword it)
+#   3  branch is already checked out in ANOTHER worktree [T002327]. Nothing was
+#      created and no branch was touched. Callers treat this as "someone else owns
+#      this branch" and defer, NOT as a failure to be escalated.
+#   1  any other setup failure (the half-created worktree is rolled back)
 set -euo pipefail
 
 # T001302/T001332: Divergence guard — auto-sync if local main is behind origin/main,
@@ -95,6 +103,34 @@ fi
 # (removing a worktree never deletes its branch). Lets the factory retry cleanly.
 git worktree remove --force "$WT_PATH" 2>/dev/null || true
 git worktree prune 2>/dev/null || true
+
+# [T002327] Is the branch already checked out in ANOTHER worktree? Ask git instead
+# of parsing the failure message of `git worktree add`: its wording differs between
+# git versions ("is already checked out at …" / "already used by worktree at …"), so
+# a regex on it in pipeline.js would silently rot and drop the case back into the
+# generic error path — which sets the ticket to `blocked`. That is exactly the
+# behaviour this change removes: a branch held by a living session is not a failure,
+# it is someone else's turn.
+#
+# This runs AFTER the idempotency prune above, so a stale worktree at OUR OWN path is
+# already gone and cannot be mistaken for a foreign owner. It runs BEFORE the skeleton
+# step and before the rollback trap is installed — the early exit therefore creates
+# nothing and, crucially, can never delete a foreign session's branch.
+#
+# Matched on the fully-qualified refname: the short name would let `feature/x` match
+# `feature/x-y`.
+_occupied_by=""
+while IFS= read -r _line; do
+    case "$_line" in
+        worktree\ *) _wt_candidate="${_line#worktree }" ;;
+        branch\ refs/heads/"$BRANCH") _occupied_by="$_wt_candidate"; break ;;
+    esac
+done < <(git worktree list --porcelain)
+
+if [ -n "$_occupied_by" ]; then
+    echo "worktree-create: branch in use — $BRANCH ist bereits ausgecheckt in $_occupied_by" >&2
+    exit 3
+fi
 
 # 1) Skeleton without checkout — never runs the smudge filter, so it cannot fail
 #    on git-crypt paths.

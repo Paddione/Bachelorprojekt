@@ -63,17 +63,27 @@ async function runTaskVerifyLoop(agentFn, t, maxLoop, WORK_WT, WORK_BRANCH, slug
 }
 
 // Shared worktree bootstrap (used by the batch path and the single-task path).
-// Returns { ok, detail }; the caller escalates on !ok.
+// Returns { ok, detail, reason? }; the caller escalates on !ok — EXCEPT for
+// reason:'branch-in-use', which is not a failure at all: a living session holds the
+// branch, and the right answer is to release the slot and let a later tick pick the
+// ticket up again. [T002327]
+//
+// The marker comes from worktree-create.sh (exit 3), not from parsing git's own
+// wording — that differs between git versions and a regex on it would rot silently
+// back into the escalation path.
 async function setupWorktree(agentFn, REPO, WORK_BRANCH, WORK_WT, ticket_id, label) {
   const wtSetup = await agentFn(
     `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${ticket_id}\`.
      From ${REPO}, create the isolated worktree:
        bash ${REPO}/scripts/worktree-create.sh ${WORK_BRANCH} ${WORK_WT} origin/main
-     Report the FULL stdout. A success line contains "ready on".`,
+     Report the FULL stdout AND stderr, verbatim. A success line contains "ready on";
+     a line containing "branch in use" means another worktree holds the branch.`,
     { label: `${label}:worktree-setup`, phase: 'Implement', model: FACTORY_MODEL },
   )
   const s = String(wtSetup ?? '')
-  return /ready on/.test(s) ? { ok: true } : { ok: false, detail: s.slice(0, 400) }
+  if (/ready on/.test(s)) return { ok: true }
+  if (/branch in use/.test(s)) return { ok: false, reason: 'branch-in-use', detail: s.slice(0, 400) }
+  return { ok: false, detail: s.slice(0, 400) }
 }
 
 async function main() {
@@ -146,6 +156,20 @@ if (A.batch_mode === true && Array.isArray(A.sub_features)) {
   await phaseEvent('implement', 'entered', `Batch: ${A.sub_features.length} sub-features`)
 
   const bwt = await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'impl:batch')
+  if (!bwt.ok && bwt.reason === 'branch-in-use') {
+    // Same rule as the single-task path [T002327]: a branch held by a living session
+    // is someone else's turn, not a defect. Left un-handled here, the batch path
+    // would keep setting `blocked` and the acceptance criterion would hold for only
+    // half the pipeline.
+    log(`Branch ${WORK_BRANCH} is held by another worktree — deferring batch ${A.ticket_id}`)
+    await agent(
+      `Release the slot and leave the ticket status untouched:
+       bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}`,
+      { label: 'impl:batch-defer-branch-in-use', phase: 'Implement', model: FACTORY_MODEL },
+    )
+    await phaseEvent('implement', 'deferred', 'branch-in-use: ' + String(bwt.detail || '').slice(0, 120))
+    return { status: 'deferred', reason: 'branch-in-use', detail: bwt.detail, released: true }
+  }
   if (!bwt.ok) {
     await agent(
       `Batch worktree could not be created for ${A.ticket_id}.
@@ -311,13 +335,70 @@ if (!isSimple) {
 }
 }
 
+let wtReady = false
+
 if (REUSE) {
   phase('Plan')
   await phaseEvent('plan', 'entered', 'Plan-Reuse')
+
+  // [T002327] The worktree is created HERE, before read-partials — not down in the
+  // Implement block. read-partials reads ${WORK_WT}/openspec/changes/<slug>; with the
+  // old ordering that path did not exist yet, readPartials returned nothing, and the
+  // code fell through to the LLM decompose below. That path knows nothing about
+  // finished partials and rebuilds the full task list, so the implement loop redid
+  // work that was already done. Worse, it was not even reliably wrong: a leftover
+  // .worktrees/<slug> from an earlier tick made resumption work by accident.
+  //
+  // Guarded on !A.batch_mode so that runs which never implement still do not create a
+  // worktree — the old condition was `tasks.length && !A.batch_mode`, and tasks.length
+  // is not known yet at this point. REUSE means a human plan exists, i.e. we intend to
+  // implement, so !batch_mode is the part that must travel with the call.
+  if (!A.batch_mode) {
+    const rwt = await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'reuse')
+    if (!rwt.ok && rwt.reason === 'branch-in-use') {
+      // Someone else's turn, not a defect. Release the slot — holding it would starve
+      // the queue — and return without touching the ticket status, so the next tick
+      // picks it up normally. No `blocked`, no PushNotification.
+      log(`Branch ${WORK_BRANCH} is held by another worktree — deferring ${A.ticket_id}`)
+      await agent(
+        `Release the slot and leave the ticket status untouched:
+         bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}`,
+        { label: 'reuse:defer-branch-in-use', phase: 'Plan', model: FACTORY_MODEL },
+      )
+      await phaseEvent('plan', 'deferred', 'branch-in-use: ' + String(rwt.detail || '').slice(0, 120))
+      return { status: 'deferred', reason: 'branch-in-use', detail: rwt.detail, released: true }
+    }
+    if (!rwt.ok) {
+      // Every other reason escalates exactly as before.
+      await agent(
+        `Worktree could not be created for ${A.ticket_id}.
+         bash ${REPO}/scripts/ticket.sh update-status --id ${A.ticket_id} --status blocked
+         PushNotification: \`ToolSearch select:PushNotification\`, title "Factory worktree failed: ${A.ticket_id} (${brand})", message "${String(rwt.detail || '').slice(0, 200)}".`,
+        { label: 'reuse:worktree-escalate', phase: 'Plan', model: FACTORY_MODEL },
+      )
+      await phaseEvent('plan', 'blocked', 'worktree-setup')
+      return { status: 'blocked', reason: 'worktree-setup', detail: rwt.detail }
+    }
+    wtReady = true
+  }
+
   // T002074: if the plan ships tasks.d/ partials (disjoint file lists decided at
   // plan time), use them directly instead of a runtime LLM decompose.
   let partials = {}
   try { partials = JSON.parse(await runRunner(agent, 'read-partials', { slug: safeSlug, changeDir: `${WORK_WT}/openspec/changes/${safeSlug}`, ctx: { repo: REPO, workWt: WORK_WT, workBranch: WORK_BRANCH, brand, slug: safeSlug, ticketId: A.ticket_id } })) } catch {}
+  // [T002327] Say out loud what was skipped and why. A silent fallback is the failure
+  // mode this change removes; it must not come back in another shape.
+  if (Array.isArray(partials.skipped) && partials.skipped.length) {
+    log(`Plan-Reuse: skipping ${partials.skipped.length} already-done partial(s): ${partials.skipped.join(', ')}`)
+  }
+  if (partials.done_lookup === 'failed') {
+    log('Plan-Reuse: phase-event lookup FAILED — every partial counts as open, finished work may be repeated')
+  }
+  if (partials.manifest === 'absent') {
+    log('Plan-Reuse: plan ships no tasks.d/ manifest — falling back to the LLM decompose')
+  } else if (partials.manifest === 'error') {
+    log(`Plan-Reuse: partial manifest UNREADABLE (${String(partials.error || '').slice(0, 160)}) — falling back to the LLM decompose`)
+  }
   if (partials.partials && Array.isArray(partials.sub_features)) {
     tasks = partials.sub_features.map((sf) => ({ id: sf.id, target_files: sf.assignedFiles || [], acceptance_criteria: [`partial ${sf.id} implemented; local tests pass`], prompt: sf.prompt }))
     log(`Plan-Reuse: ${tasks.length} tasks.d/ partials (gang) — skipping LLM decompose`)
@@ -342,7 +423,23 @@ if (tasks.length && !A.batch_mode) {
   phase('Implement')
   await phaseEvent('implement', 'entered', 'Implementierung gestartet')
 
-  const iwt = await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'impl')
+  // [T002327] In the REUSE path the worktree already stands (it had to, so that
+  // read-partials could see the manifest). Calling setupWorktree a second time with
+  // the same path fails with "<path> already exists" and would drop straight into the
+  // escalation below — a self-inflicted `blocked`.
+  const iwt = wtReady
+    ? { ok: true }
+    : await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'impl')
+  if (!iwt.ok && iwt.reason === 'branch-in-use') {
+    log(`Branch ${WORK_BRANCH} is held by another worktree — deferring ${A.ticket_id}`)
+    await agent(
+      `Release the slot and leave the ticket status untouched:
+       bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}`,
+      { label: 'impl:defer-branch-in-use', phase: 'Implement', model: FACTORY_MODEL },
+    )
+    await phaseEvent('implement', 'deferred', 'branch-in-use: ' + String(iwt.detail || '').slice(0, 120))
+    return { status: 'deferred', reason: 'branch-in-use', detail: iwt.detail, released: true }
+  }
   if (!iwt.ok) {
     await agent(
       `Worktree could not be created for ${A.ticket_id}.

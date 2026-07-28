@@ -1853,6 +1853,145 @@ so a drifted id produces no error anywhere on its own.
 - **WHEN** the check runs
 - **THEN** that row is skipped, because its catalogue is not retrievable without an API key
 
+### Requirement: Pod-Phase Guard Is Match-Granular and Covers Tests
+
+The system SHALL enforce that every `shared-db` pod selection in the repository carries
+`--field-selector status.phase=Running`, evaluated **per logical line** rather than per file.
+A logical line is the result of joining backslash continuations. The guard SHALL scan both
+`scripts/` and `tests/` and SHALL include `*.sh` and `*.bats` files. A selection that is
+deliberately unfiltered SHALL carry an explicit opt-out marker on the same logical line;
+without that marker the guard SHALL report it.
+
+Rationale: an unfiltered selection can return a `Completed` or `Terminating` pod, after which
+`kubectl exec` fails with exit code 1. A file-granular guard passes any file that mentions the
+filter anywhere — including a file that only mentions it inside the guard's own search pattern.
+
+#### Scenario: An unfiltered selection in a test file is reported
+
+- **GIVEN** a file under `tests/` contains a `shared-db` pod selection without
+  `--field-selector status.phase=Running` and without an opt-out marker
+- **WHEN** the guard runs
+- **THEN** the guard fails and names that file
+
+#### Scenario: A filter elsewhere in the same file does not excuse an unfiltered selection
+
+- **GIVEN** a file contains one selection carrying `--field-selector status.phase=Running`
+  and a second selection on a different logical line carrying no filter and no opt-out marker
+- **WHEN** the guard runs
+- **THEN** the guard fails, because the presence of a filter on one line does not cover the other
+
+#### Scenario: A selection split across lines by a backslash continuation counts as filtered
+
+- **GIVEN** a selection whose `--field-selector status.phase=Running` sits on the continuation
+  line after a trailing backslash
+- **WHEN** the guard runs
+- **THEN** the guard treats the joined logical line as filtered and does not report it
+
+#### Scenario: A deliberately unfiltered selection is tolerated only with its marker
+
+- **GIVEN** the error path in `scripts/vda/ticket/_ticket-core.sh` queries pods unfiltered to
+  distinguish "no pod at all" from "pods exist, none Running", and carries the opt-out marker
+- **WHEN** the guard runs
+- **THEN** the guard does not report that line
+- **AND** removing the marker makes the guard report it
+
+### Requirement: Database-Dependent Tests Skip on Absent Running Pod
+
+The system SHALL make test helpers that require a live `shared-db` connection skip when no
+**Running** pod is reachable, not merely when no pod object is found. A helper that finds a
+non-Running pod SHALL skip rather than proceed into a `kubectl exec` that exits non-zero.
+
+#### Scenario: Only a non-Running pod exists
+
+- **GIVEN** the namespace contains a `shared-db` pod in phase `Succeeded` and none in `Running`
+- **WHEN** a database-dependent test invokes its skip helper
+- **THEN** the test is skipped
+- **AND** the test run does not report a failure or a non-zero exit code from `kubectl exec`
+
+### Requirement: touched_files Distinguishes Unscouted from Empty
+
+The system SHALL keep `tickets.tickets.touched_files` nullable without a default. `NULL` SHALL
+mean "no scout has recorded files for this ticket"; an empty array SHALL mean "scout ran and
+found no files". Conflict detection SHALL rely on this distinction.
+
+Rationale: a `NOT NULL DEFAULT '{}'` migration would make both states indistinguishable and
+silently turn every unscouted ticket into a participant in conflict detection.
+
+#### Scenario: Conflict detection ignores unscouted tickets
+
+- **GIVEN** a ticket whose `touched_files` is `NULL`
+- **WHEN** `conflict-check.sh` searches for colliding in-flight tickets
+- **THEN** that ticket is excluded from the comparison by the `touched_files IS NOT NULL` filter
+
+### Requirement: stage-plan Derives touched_files From the Plan
+
+The system SHALL derive `tickets.tickets.touched_files` from the plan's `## File Structure`
+section when a plan is staged, rather than relying on a later manual step. The derivation SHALL
+be additive: an existing `touched_files` value SHALL be extended, never replaced, so that files
+recorded during implementation survive a re-stage.
+
+Rationale: `## File Structure` is a plan-lint hard rule (STRUCT1), so the information is
+guaranteed to exist at stage time. Setting the column only in `dev-flow-execute` step 1.5 — and
+there only conditionally ("if the plan knows the touched files") — makes conflict detection
+depend on an agent performing an optional prose step.
+
+#### Scenario: Staging a plan populates touched_files
+
+- **GIVEN** a plan whose `## File Structure` section lists `scripts/foo.sh` and `tests/bar.bats`
+- **WHEN** the plan is staged for a ticket whose `touched_files` is `NULL`
+- **THEN** `touched_files` contains both paths
+
+#### Scenario: Re-staging does not discard files added during implementation
+
+- **GIVEN** a ticket whose `touched_files` already contains `scripts/extra.sh`, a file the
+  implementer touched but which the plan never listed
+- **WHEN** the same plan is staged again
+- **THEN** `touched_files` still contains `scripts/extra.sh` alongside the plan's paths
+
+#### Scenario: A plan without derivable paths does not block staging
+
+- **GIVEN** a plan whose `## File Structure` section names no repository path
+- **WHEN** the plan is staged
+- **THEN** staging succeeds
+- **AND** the absence is reported on stderr rather than passing silently
+
+### Requirement: File Structure Parsing Covers the Three Established Formats
+
+The system SHALL extract repository paths from a `## File Structure` section written in any of
+the three formats in use: a fenced block with `NEW:`/`CHANGED:` group headers, a bullet list with
+backtick-quoted paths, or a Markdown table with backtick-quoted paths. A candidate SHALL be
+accepted only if it is tracked in the repository or carries a known file extension; descriptive
+prose, group headers, and table column headings SHALL NOT be emitted as paths.
+
+Rationale: of 33 plans carrying the section, 23 use the fenced form and the remainder split
+between bullet and table form. Entries are not always repository paths — one plan lists a
+Kubernetes resource in a namespace under this heading.
+
+#### Scenario: Fenced form with group headers
+
+- **GIVEN** a `## File Structure` fence containing a `NEW:` header and an indented line
+  `scripts/foo.sh — adds the deriver`
+- **WHEN** paths are extracted
+- **THEN** `scripts/foo.sh` is emitted
+- **AND** neither `NEW:` nor the description after the dash is emitted
+
+#### Scenario: Bullet and table forms with backtick-quoted paths
+
+- **GIVEN** a section containing the bullet ``- `tests/spec/database.bats` (modified)`` and a
+  table row `` | `k3d/brett.yaml` | Add comment | ``
+- **WHEN** paths are extracted
+- **THEN** both `tests/spec/database.bats` and `k3d/brett.yaml` are emitted
+- **AND** the table column heading is not emitted
+
+#### Scenario: Non-path entries are rejected while real paths beside them survive
+
+- **GIVEN** a section listing both `tests/spec/database.bats` and the cluster resource
+  `deployment/arena-server in namespace workspace-korczewski`
+- **WHEN** paths are extracted
+- **THEN** `tests/spec/database.bats` is emitted
+- **AND** `deployment/arena-server` is not emitted, because it is neither tracked in the
+  repository nor carries a file extension
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -3702,3 +3841,7 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (7fa4daed6311) -->
 
 <!-- merged from change delta software-factory.md (e6fd0834ae76) -->
+
+<!-- merged from change delta software-factory.md (8ed6f8c1bc44) -->
+
+<!-- merged from change delta software-factory.md (fcd09e84e92c) -->

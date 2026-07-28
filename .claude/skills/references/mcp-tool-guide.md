@@ -68,7 +68,9 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 > 2. **Ein Read, dessen Ergebnis eine Schreiboperation steuert, wird gegengeprüft** — die gelesene
 >    ID gegen eine zweite Quelle abgleichen, *bevor* geschrieben wird.
 >
-> Kein Skript-Fix möglich: die Ursache liegt in der Port-Forward-Session, nicht im Repo.
+> **Skript-Fix [T002371]:** `scripts/verify-ticket-id.sh <external_id> [brand]` prüft vor einem
+> Write via kubectl exec (sicher), ob die gelesene ID existiert. Exit 0 = OK, Exit 1 = nicht
+> gefunden. Vor jedem Write einfügen, der auf einer port-forward-basierten Read-Flagge basiert.
 
 ---
 

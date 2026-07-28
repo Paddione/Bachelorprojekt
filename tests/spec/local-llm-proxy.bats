@@ -346,3 +346,49 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   run curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:${PROXY_PORT}/livez"
   [ "$output" = "200" ]
 }
+
+# --- T002394: Loadout-Registry -------------------------------------------------
+@test "T002394: loadouts.json ist gueltiges JSON mit mindestens einem Loadout" {
+  run node -e 'const d=require("./scripts/llm/loadouts.json"); if(!Array.isArray(d.loadouts)||!d.loadouts.length) process.exit(1); console.log(d.loadouts.length)'
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+}
+
+@test "T002394: kein Loadout pinnt ctx oder ngl (--fit-Regression)" {
+  run node -e '
+    const d=require("./scripts/llm/loadouts.json");
+    d.loadouts.forEach(l => {
+      if(l.args.ctx!==null){console.error(l.slug+": ctx ist "+l.args.ctx);process.exitCode=1}
+      if(l.args.ngl!==null){console.error(l.slug+": ngl ist "+l.args.ngl);process.exitCode=1}
+    });
+  '
+  [ "$status" -eq 0 ]
+}
+
+@test "T002394: loadouts.json-Ports sind eindeutig" {
+  run node -e '
+    const d=require("./scripts/llm/loadouts.json");
+    const ports=d.loadouts.map(l=>l.port);
+    if(new Set(ports).size!==ports.length){process.exit(1)}
+  '
+  [ "$status" -eq 0 ]
+}
+
+@test "T002394: server.mjs importiert loadouts/models/runner Module" {
+  grep -qE "from './loadouts.mjs'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "from './models.mjs'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "from './runner.mjs'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+}
+
+@test "T002394: /admin/* Routen sind in server.mjs definiert" {
+  grep -qE "'/admin/models'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "'/admin/loadouts'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "'/admin/loadouts/status'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "'/admin/loadouts/[^/]+/start'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  grep -qE "'/admin/loadouts/[^/]+/stop'" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+}
+
+@test "T002394: /admin Route serviert HTML (ui/index.html)" {
+  grep -qE "'/admin'|'/admin/'.*GET" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  [ -f "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/ui/index.html" ]
+}

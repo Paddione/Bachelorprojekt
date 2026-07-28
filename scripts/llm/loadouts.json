@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "modelRoots": [
+    "~/models/gguf",
+    "/mnt/c/Users/PatrickKorczewski/.lmstudio/models"
+  ],
+  "defaults": { "host": "0.0.0.0" },
+  "loadouts": [
+    {
+      "slug": "gptoss-context",
+      "label": "gpt-oss-20b · maximaler Kontext",
+      "model": "gptoss20/gpt-oss-20b-Q8_0.gguf",
+      "port": 8098,
+      "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 32768 },
+      "args": {
+        "ctx": null, "ngl": null, "parallel": 1,
+        "cacheTypeK": "q8_0", "cacheTypeV": "q8_0", "loadMode": "mmap",
+        "flashAttention": true, "jinja": true, "metrics": true,
+        "reasoning": "auto", "reasoningBudget": null
+      },
+      "speculative": { "draftHfRepo": null, "draftNgl": null },
+      "mcp": { "serversConfig": null },
+      "extraArgs": [],
+      "notes": "MXFP4-nativ: alle Quants 11,5-12,1 GB, Q8_0 ist praktisch gratis. Gemessen 158-166 tok/s decode bei 105.472 Kontext."
+    },
+    {
+      "slug": "devstral-quality",
+      "label": "Devstral-Small-2 24B · Code-Qualitaet",
+      "model": "devstral24/Devstral-Small-2-24B-Instruct-2512-IQ4_XS.gguf",
+      "port": 8099,
+      "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 8192 },
+      "args": {
+        "ctx": null, "ngl": null, "parallel": 1,
+        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
+        "flashAttention": true, "jinja": true, "metrics": true,
+        "reasoning": "auto", "reasoningBudget": null
+      },
+      "speculative": { "draftHfRepo": null, "draftNgl": null },
+      "mcp": { "serversConfig": null },
+      "extraArgs": [],
+      "notes": "IQ4_XS (12,78 GB) statt Q4_K_M (14,33 GB): kleiner UND besser als Q4_K_S (13,55 GB). f16-KV fuer maximale Qualitaet."
+    }
+  ]
+}

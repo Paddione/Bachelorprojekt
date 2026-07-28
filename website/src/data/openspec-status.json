@@ -1961,6 +1961,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002427": [
+    {
+      "slug": "fa-sf-dedupe-T002427",
+      "status": "plan_staged"
+    }
+  ],
   "T002428": [
     {
       "slug": "openspec-half-archive-T002428",

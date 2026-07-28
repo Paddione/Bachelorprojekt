@@ -23,6 +23,11 @@ STALE_MIN="${FACTORY_STALE_MIN:-30}"
 # handed to `ticket.sh unfactory` instead of being reset into the queue again
 # (T002361). At the 30-minute default that is ~90 minutes before a human is asked.
 MAX_ATTEMPTS="${FACTORY_MAX_ATTEMPTS:-3}"
+# Separate limit for infrastructure failures (no phase events ever written — DB
+# down, cluster unreachable, etc.). These do NOT consume the MODEL attempt budget
+# (T002389). Default 3 as well; a higher value means the watchdog will retry on
+# the same level more often before escalating.
+MAX_INFRA_ATTEMPTS="${FACTORY_INFRA_MAX_ATTEMPTS:-3}"
 
 mapfile -t stale < <(printf "SELECT external_id, type FROM tickets.tickets WHERE type IN ('feature','feat','task','chore') AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" "$STALE_MIN" | factory_psql)
 
@@ -72,7 +77,31 @@ for row in "${stale[@]}"; do
   # Progress is measured against factory_phase_events.at, NOT tickets.updated_at:
   # fn_lifecycle_ts bumps updated_at on every row write, so a bare `ticket.sh
   # touch` would masquerade as progress and reset the counter forever.
-  attempt="$(factory_psql -v ext_id="$ext_id" -v key="factory_attempt:$ext_id" -v brand="$BRAND" 2>/dev/null <<'SQL' || true
+  #
+  # ── Failure classification (T002389) ──────────────────────────────────────
+  # Distinguish INFRA (no phase events ever written — pipeline never started)
+  # from MODEL (phase events exist but stalled mid-execution). INFRA failures
+  # use a separate counter key so they do NOT consume the MODEL attempt budget.
+  has_phase="$(factory_psql -v ext_id="$ext_id" 2>/dev/null <<'SQL' || echo ""
+SELECT EXISTS(
+  SELECT 1 FROM tickets.factory_phase_events pe
+  JOIN tickets.tickets t ON t.id = pe.ticket_id
+  WHERE t.external_id = :'ext_id'
+)::text;
+SQL
+)"
+  if [[ "$has_phase" == "t" ]]; then
+    counter_key="factory_attempt:$ext_id"
+    failure_class="MODEL"
+    max_allowed=$MAX_ATTEMPTS
+  else
+    counter_key="factory_infra_attempt:$ext_id"
+    failure_class="INFRA"
+    max_allowed=$MAX_INFRA_ATTEMPTS
+    echo "watchdog: INFRA failure for $ext_id (no phase events) — separate counter" >&2
+  fi
+
+  attempt="$(factory_psql -v ext_id="$ext_id" -v key="$counter_key" -v brand="$BRAND" 2>/dev/null <<'SQL' || true
 WITH tgt AS (
   SELECT id FROM tickets.tickets WHERE external_id = :'ext_id'
 ), prog AS (
@@ -102,9 +131,9 @@ SQL
   # worse failure mode than the livelock this guards against.
   escalate=0
   if [[ "$attempt" =~ ^[0-9]+$ ]]; then
-    if (( attempt >= MAX_ATTEMPTS )); then escalate=1; fi
+    if (( attempt >= max_allowed )); then escalate=1; fi
   else
-    echo "watchdog: attempt counter for $ext_id unreadable — falling back to plain reset" >&2
+    echo "watchdog: ${failure_class:-?} attempt counter for $ext_id unreadable — falling back to plain reset" >&2
     attempt="?"
   fi
 
@@ -113,8 +142,10 @@ SQL
     # readiness.factory_excluded=true in one transaction and writes its own
     # closing comment. Slot release and zombie cleanup below still run — the
     # escalation replaces the status target, not the housekeeping.
+    # The failure class (MODEL/INFRA) is passed as attempts prefix so the
+    # closing comment carries the distinction (T002389).
     BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" unfactory \
-      --id "$ext_id" --attempts "$attempt" >/dev/null
+      --id "$ext_id" --attempts "${failure_class}-${attempt}" >/dev/null
     BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" >/dev/null
     escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
     _wd_cleanup_worktree "$ext_id"
@@ -123,16 +154,17 @@ SQL
 
   # The attempt suffix makes consecutive rounds distinguishable. Seven byte-identical
   # comments on T002282 were themselves a signal nobody read (T002361).
-  attempt_note=" [attempt ${attempt}/${MAX_ATTEMPTS}]"
+  # T002389: include the failure class (MODEL/INFRA) so the distinction is visible.
+  attempt_note=" [${failure_class:-MODEL} ${attempt}/${max_allowed}]"
   if [[ -n "$plan_ref" && "$ticket_type" == "feature" ]]; then
     reset_status="backlog"
-    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write). Plan already staged (${plan_ref}) — resuming via backlog instead of restarting from Scout.${attempt_note}"
+    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write, class=${failure_class:-MODEL}). Plan already staged (${plan_ref}) — resuming via backlog instead of restarting from Scout.${attempt_note}"
   elif [[ -n "$plan_ref" && "$ticket_type" == "task" ]]; then
     reset_status="plan_staged"
-    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write). Plan already staged (${plan_ref}) — resuming via plan_staged instead of restarting from Scout.${attempt_note}"
+    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write, class=${failure_class:-MODEL}). Plan already staged (${plan_ref}) — resuming via plan_staged instead of restarting from Scout.${attempt_note}"
   else
     reset_status="triage"
-    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write). Returned to queue (triage); slot released.${attempt_note}"
+    reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write, class=${failure_class:-MODEL}). Returned to queue (triage); slot released.${attempt_note}"
   fi
   BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" update-status --id "$ext_id" --status "$reset_status" >/dev/null
   BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" >/dev/null

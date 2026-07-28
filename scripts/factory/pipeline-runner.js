@@ -508,6 +508,27 @@ async function main() {
     } catch (e) {
       console.log(JSON.stringify({ pr_ready: false }));
     }
+
+  } else if (command === 'record-failure-class') {
+    // T002389: Record a failure classification (MODEL or INFRA) to
+    // factory_control so watchdog.sh can distinguish infrastructure
+    // failures from model failures when deciding whether to increment
+    // the attempt counter. Called by pipeline.mjs on error paths.
+    const { ticket_id, brand, failure_class } = payload;
+    const fcClass = String(failure_class).toUpperCase();
+    if (fcClass !== 'MODEL' && fcClass !== 'INFRA') {
+      console.error(`record-failure-class: invalid class "${failure_class}" — expected MODEL or INFRA`);
+      return;
+    }
+    try {
+      execFileSync('bash', [
+        path.join(REPO, 'scripts/ticket.sh'), 'factory-control', 'set',
+        '--key', `pipeline_failure_class:${ticket_id}`,
+        '--value', fcClass,
+        '--set-by', 'pipeline-runner',
+        '--brand', String(brand || 'mentolder')
+      ], { stdio: 'ignore', timeout: 15000, env: { ...process.env, BRAND: brand || 'mentolder' } });
+    } catch {}
   }
 }
 

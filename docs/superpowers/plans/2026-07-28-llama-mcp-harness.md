@@ -2,7 +2,7 @@
 title: llama.cpp MCP-Harness Implementation Plan
 ticket_id: T002398
 domains: [ops, infra]
-status: active
+status: completed
 pr_number: null
 file_locks: []
 shared_changes: false

@@ -493,6 +493,7 @@
         "tests/spec/website-interfaces.bats",
         "tests/spec/workspace-deploy-secrets-scope.bats",
         "tests/spec/workspace-deploy.bats",
+        "tests/spec/worktree-divergence-guard-T002387.bats",
         "tests/sql/software-history.sql",
         "tests/unit/.coverage-allowlist",
         "tests/unit/T000617-alert-rules.bats",

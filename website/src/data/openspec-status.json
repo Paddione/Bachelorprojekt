@@ -1893,6 +1893,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002389": [
+    {
+      "slug": "factory-attempt-counter-T002389",
+      "status": "plan_staged"
+    }
+  ],
   "T002390": [
     {
       "slug": "auto-chore-plan-script",

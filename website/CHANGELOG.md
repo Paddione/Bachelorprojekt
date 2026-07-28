@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.221.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.9...website-v1.221.10) (2026-07-28)
+
+
+### Bug Fixes
+
+* **db:** tickets.type auf Conventional-Commit-Vokabular umstellen [T002329] ([#3431](https://github.com/Paddione/Bachelorprojekt/issues/3431)) ([2489956](https://github.com/Paddione/Bachelorprojekt/commit/248995631c56f1451a14883249a126c69e301992))
+
 ## [1.221.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.221.8...website-v1.221.9) (2026-07-28)
 
 

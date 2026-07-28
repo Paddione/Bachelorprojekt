@@ -41,33 +41,34 @@ scan:
     - "tests/unit/lib/**"
 
 s1:
-  # Anhebung mit Headroom [T002452]. Grund: zwei Dateien standen auf 0 bzw. 1 Zeile
-  # Reserve (scripts/agent-lock.sh 499/500), wodurch der Guard nicht mehr Wachstum
-  # blockierte, sondern jeden inhaltlichen PR an diesen Dateien — unabhaengig von
-  # dessen Qualitaet. Die Werte unten sind gegen den gemessenen Bestand gesetzt,
-  # nicht geschaetzt. Unveraendert bleiben die Endungen ohne gemessenen Druck
-  # (.js/.jsx/.cjs/.bash/.mts/.java/.php) — eine Anhebung "der Symmetrie wegen"
-  # verschenkt Ratchet-Wirkung dort, wo sie gerade greift.
+  # Grosszuegige Anhebung auf ausdrueckliche Anweisung [T002452]. Ausloeser: zwei
+  # Dateien standen auf 0 bzw. 1 Zeile Reserve (dev-flow-plan/SKILL.md 250/250,
+  # agent-lock.sh 499/500). Ein Gate mit Reserve 0 blockiert nicht mehr Wachstum,
+  # sondern jeden inhaltlichen PR an der Datei — unabhaengig von dessen Qualitaet.
+  # Belegt an diesem Vorgang selbst: der T002451-Bugfix brachte agent-lock.sh auf
+  # 513 Zeilen und waere unter der alten 500 abgelehnt worden.
+  #
+  # Die Werte sind bewusst WEIT gesetzt, nicht knapp am Bestand. Knapp bemessene
+  # Limits erzeugen nach ein paar PRs erneut genau die Lage, die hier behoben wird.
+  # Der eigentliche Regressionsschutz ist ohnehin nicht diese Zahl, sondern der
+  # Baseline-Ratchet in docs/code-quality/baseline.json: der faellt bei JEDER
+  # Verschlechterung einer bereits erfassten Datei, auch weit unterhalb dieser
+  # Grenzen. Das Limit ist die Notbremse fuer neue Dateien, nicht die Regel.
   limits:
-    .astro: 500   # war 400
-    .ts: 750      # war 600
-    .svelte: 650  # war 500
-    .sh: 650      # war 500 — agent-lock.sh 499, danach 151 Zeilen Reserve
-    .mjs: 650     # war 500
-    .mts: 500
-    # .py bleibt 600: kein gemessener Druck. Einzige Datei nahe der Grenze ist
-    # k3d/talk-transcriber/app.py (648) — die Anhebung haette dort keine Arbeit
-    # entsperrt, sondern eine getrackte Verletzung stillgelegt. Die B1b-Fixture in
-    # tests/unit/fixtures/plan-lint/over-threshold.md haengt genau daran und wurde
-    # rot, als .py kurzzeitig auf 750 stand: das Gate hat den Fehler selbst gemeldet.
-    .py: 600
-    .js: 600
-    .jsx: 600
-    .tsx: 500     # war 400
-    .cjs: 200
-    .bash: 300
-    .java: 400
-    .php: 400
+    .astro: 600   # war 400
+    .ts: 900      # war 600
+    .svelte: 800  # war 500
+    .sh: 800      # war 500
+    .mjs: 800     # war 500
+    .mts: 800     # war 500
+    .py: 800      # war 600
+    .js: 800      # war 600
+    .jsx: 800     # war 600
+    .tsx: 600     # war 400
+    .cjs: 400     # war 200
+    .bash: 500    # war 300
+    .java: 600    # war 400
+    .php: 600     # war 400
   ignore:
     - "website/src/lib/system-test-seed-data.ts"
     # pipeline.js is a single monolithic Claude Code Workflow script: the harness

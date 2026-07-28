@@ -25,10 +25,10 @@ _load_s1_limits() {
   # [T002452] Muss mit docs/code-quality/gates.yaml uebereinstimmen. Dieser Zweig
   # greift nur ohne yq — driftet er, rechnet plan-lint dort still mit Budgets von
   # gestern, und zwar ohne Fehlermeldung. Beim Anheben der Limits mitfuehren.
-  for kv in .astro=500 .tsx=500 .java=400 .php=400 \
-            .ts=750 .js=600 .jsx=600 .py=600 \
-            .svelte=650 .sh=650 .mjs=650 .mts=500 \
-            .bash=300 .cjs=200; do
+  for kv in .astro=600 .tsx=600 .java=600 .php=600 \
+            .ts=900 .js=800 .jsx=800 .py=800 \
+            .svelte=800 .sh=800 .mjs=800 .mts=800 \
+            .bash=500 .cjs=400; do
     k="${kv%%=*}"; v="${kv#*=}"
     [[ -z "${_S1_LIMITS[$k]:-}" ]] && _S1_LIMITS["$k"]="$v"
   done

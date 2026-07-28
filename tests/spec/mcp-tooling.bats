@@ -77,3 +77,64 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
 @test "antigravity-cli settings.json pre-grants Bash(gh *) permission (T001274)" {
   skip "antigravity-cli not installed — skipping T001274"
 }
+
+# --- T002398: llama.cpp als vierter MCP-Harness --------------------------------
+# llama.cpp spricht MCP NUR ueber stdio (server_mcp_stdio ist die einzige
+# Transport-Implementierung) und verwirft fehlerhafte Eintraege WORTLOS. Diese
+# Guards stellen sicher, dass der Generator die Fehler stattdessen meldet.
+
+@test "T002398: mcp-sync render erzeugt gueltiges scripts/llm/mcp-servers.json" {
+  run bash scripts/mcp-sync.sh render
+  [ "$status" -eq 0 ]
+  run node -e 'const d=require("./scripts/llm/mcp-servers.json"); if(typeof d.mcpServers!=="object") process.exit(1)'
+  [ "$status" -eq 0 ]
+}
+
+@test "T002398: jeder Eintrag hat ein nicht-leeres command" {
+  run node -e '
+    const d=require("./scripts/llm/mcp-servers.json");
+    const bad=Object.entries(d.mcpServers).filter(([,v])=>!v.command).map(([k])=>k);
+    if(bad.length){console.error("ohne command: "+bad.join(","));process.exit(1)}
+  '
+  [ "$status" -eq 0 ]
+}
+
+@test "T002398: kein http-Server steht in der llama.cpp-Config" {
+  run node -e '
+    const fs=require("fs"), yaml=require("yaml");
+    const reg=yaml.parse(fs.readFileSync("docs/agent-guide/registry/mcp.yaml","utf8"));
+    const gen=require("./scripts/llm/mcp-servers.json");
+    const http=Object.entries(reg.clients).filter(([,c])=>c.transport==="http").map(([k])=>k);
+    const bad=http.filter(n=>n in gen.mcpServers);
+    if(bad.length){console.error("http in llama.cpp-Config: "+bad.join(","));process.exit(1)}
+  '
+  [ "$status" -eq 0 ]
+}
+
+@test "T002398: mcp:check erkennt Drift in der llama.cpp-Config" {
+  cp scripts/llm/mcp-servers.json "$BATS_TEST_TMPDIR/backup.json"
+  node -e '
+    const fs=require("fs");
+    const d=JSON.parse(fs.readFileSync("scripts/llm/mcp-servers.json","utf8"));
+    d.mcpServers["drift-probe"]={command:"nope"};
+    fs.writeFileSync("scripts/llm/mcp-servers.json", JSON.stringify(d,null,2)+"\n");
+  '
+  run bash scripts/mcp-sync.sh check
+  cp "$BATS_TEST_TMPDIR/backup.json" scripts/llm/mcp-servers.json
+  [ "$status" -ne 0 ]
+}
+
+@test "T002398: llamacpp-Block an einem http-Server laesst render fehlschlagen" {
+  cp docs/agent-guide/registry/mcp.yaml "$BATS_TEST_TMPDIR/reg.yaml"
+  node -e '
+    const fs=require("fs"), yaml=require("yaml");
+    const reg=yaml.parse(fs.readFileSync("docs/agent-guide/registry/mcp.yaml","utf8"));
+    const httpName=Object.entries(reg.clients).find(([,c])=>c.transport==="http")[0];
+    reg.clients[httpName].harness.llamacpp={command:"should-not-be-emitted"};
+    fs.writeFileSync("docs/agent-guide/registry/mcp.yaml", yaml.stringify(reg));
+  '
+  run bash scripts/mcp-sync.sh render
+  cp "$BATS_TEST_TMPDIR/reg.yaml" docs/agent-guide/registry/mcp.yaml
+  bash scripts/mcp-sync.sh render >/dev/null 2>&1 || true
+  [ "$status" -ne 0 ]
+}

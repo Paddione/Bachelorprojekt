@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.225.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.224.1...website-v1.225.0) (2026-07-28)
+
+
+### Features
+
+* **factory:** grounding context in auto-triage prompt via similar tickets [T002399] ([#3470](https://github.com/Paddione/Bachelorprojekt/issues/3470)) ([b3f78c9](https://github.com/Paddione/Bachelorprojekt/commit/b3f78c9843fc5f94efd3f3ca5503a8b10de9a6cd))
+
+## [1.224.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.224.0...website-v1.224.1) (2026-07-28)
+
+
+### Tests
+
+* **test:** mark test data with [E2E] prefix in bug-report spec [T002385] ([#3457](https://github.com/Paddione/Bachelorprojekt/issues/3457)) ([60fc645](https://github.com/Paddione/Bachelorprojekt/commit/60fc6450f3477389178e49609e037c77a0b350c2))
+
 ## [1.224.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.223.5...website-v1.224.0) (2026-07-28)
 
 

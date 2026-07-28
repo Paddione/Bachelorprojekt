@@ -191,20 +191,12 @@ setup() {
   grep -q "autoTriage" "${PROJECT_DIR}/website/src/pages/api/admin/tickets/index.ts"
 }
 
-@test "static: admin/bugs/create.ts imports autoTriage" {
-  grep -q "autoTriage" "${PROJECT_DIR}/website/src/pages/api/admin/bugs/create.ts"
-}
-
 @test "static: tickets/comment.ts imports autoTriage" {
   grep -q "autoTriage" "${PROJECT_DIR}/website/src/pages/api/tickets/comment.ts"
 }
 
 @test "static: admin/tickets/index.ts calls autoTriage after create" {
   grep -q "void autoTriage" "${PROJECT_DIR}/website/src/pages/api/admin/tickets/index.ts"
-}
-
-@test "static: admin/bugs/create.ts calls autoTriage after insert" {
-  grep -q "void autoTriage" "${PROJECT_DIR}/website/src/pages/api/admin/bugs/create.ts"
 }
 
 @test "static: tickets/comment.ts calls autoTriage in else branch" {

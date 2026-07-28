@@ -6,6 +6,12 @@
 #   clients:  MCP client/harness configuration (per-server)
 #   cluster:  In-cluster monolith infrastructure (5 containers)
 ---
+# LLAMA.CPP-HARNESS (T002398): der Block harness.llamacpp haengt einen Server als
+# stdio-Kindprozess an llama-server (--mcp-servers-config, Ziel scripts/llm/mcp-servers.json).
+# NUR fuer transport: stdio — llama.cpp hat mit server_mcp_stdio genau eine
+# Transport-Implementierung; ein llamacpp-Block an einem http-Server laesst mcp-sync
+# fail-closed abbrechen. Opt-in mit Absicht: jeder Eintrag ist ein zusaetzlicher
+# Kindprozess beim Modellstart.
 clients:
   mcp-kubernetes:
     transport: http
@@ -130,6 +136,12 @@ clients:
         type: local
         command: [ticket-mcp-go]
         enabled: true
+      llamacpp:
+        command: ticket-mcp-go
+        env:
+          TICKET_MCP_REPO_ROOT: /home/patrick/Bachelorprojekt
+        cwd: /home/patrick/Bachelorprojekt
+        timeout_ms: 30000
 
   # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp
   # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
@@ -145,6 +157,10 @@ clients:
         type: local
         command: [/home/patrick/.local/bin/codebase-memory-mcp]
         enabled: true
+      llamacpp:
+        command: /home/patrick/.local/bin/codebase-memory-mcp
+        cwd: /home/patrick/Bachelorprojekt
+        timeout_ms: 30000
 
   # ── Disabled in opencode, absent in claude_code + agy ──────
   # Diese Server existieren nur in opencode als Disabled-Overrides.

@@ -338,21 +338,29 @@ cmd_claim() {
 cmd_refresh() {
   SCOPE="$1"; ID="${2:-}"; local f; f="$(_lock_file "$SCOPE" "$ID")"
   [ -f "$f" ] || return 1
-  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || return 1
-  LABEL="$(_lock_field "$f" label)"; WT="$(_lock_field "$f" worktree)"
-  BRANCH="$(_lock_field "$f" branch)"; TICKET="$(_lock_field "$f" ticket)"
-  CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
+  if [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || \
+     [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then
+    LABEL="$(_lock_field "$f" label)"; WT="$(_lock_field "$f" worktree)"
+    BRANCH="$(_lock_field "$f" branch)"; TICKET="$(_lock_field "$f" ticket)"
+    CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
+  fi
+  return 1
 }
 
 # NOTE: cmd_release compares owner_sid with _my_sid (derived from $$/PPID). When the claim
 # was issued inside a subshell (e.g. `cd worktree && claim ...`), the SID may differ,
-# causing a false mismatch. Consider using a stable session identifier from the environment
-# (e.g. CLAUDE_SESSION_ID) for cross-subshell consistency.
+# causing a false mismatch. As a secondary fallback, same-tool releases are also
+# allowed (e.g. Orchestrator claims, subagent releases — both run under the same
+# tool harness like opencode or Claude Code). [T002374]
 cmd_release() {
   local scope="$1" id="${2:-}" force=""; [ "${3:-}" = "--force" ] && force=1
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
   if [ -n "$force" ] || [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then rm -f "$f"; return 0; fi
+  # Same-tool fallback: if the lock was claimed by the same tool class (e.g. both
+  # 'claude' or both 'unknown'), allow release without --force. This handles the
+  # delegation pattern where an orchestrator claims and a subagent releases.
+  if [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then rm -f "$f"; return 0; fi
   echo "release: lock owned by SID $(_lock_field "$f" owner_sid), current SID $(_my_sid) — use --force" >&2
   return 1
 }

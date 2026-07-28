@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 600,
+      "file_count": 601,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -398,6 +398,7 @@
         "tests/spec/mcp-tooling.bats",
         "tests/spec/mediaviewer.bats",
         "tests/spec/mishap-bundle-2026-06-30.bats",
+        "tests/spec/mishap-t002422.bats",
         "tests/spec/monitoring-alerts.bats",
         "tests/spec/newsletter-system.bats",
         "tests/spec/nextcloud-integration.bats",

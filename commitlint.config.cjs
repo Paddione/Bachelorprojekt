@@ -15,7 +15,6 @@ const NAMED_SCOPES = [
   'plans',
   'factory',
   'agents',
-  'skills',
   'ci',
   'scripts',
   'docs',

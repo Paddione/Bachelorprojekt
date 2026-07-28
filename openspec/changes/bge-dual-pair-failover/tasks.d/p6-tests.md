@@ -40,21 +40,21 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-pipeline/dual-pair-failover.bat
 # expected: FAIL (rot — keines der Artefakte aus p1 bis p5 existiert zu diesem Zeitpunkt)
 ```
 
-- [ ] `website/src/lib/bge-router.test.ts` anlegen: Umleitung bei rotem Health-Check in beide
+- [x] `website/src/lib/bge-router.test.ts` anlegen: Umleitung bei rotem Health-Check in beide
       Richtungen; Umleitung bei Überlast trotz grünem Health-Check; Fehler statt Ersatzwerten,
       wenn beide Paare aus sind; Protokollierung jeder Umleitung als Warnung.
-- [ ] `website/src/lib/rerank.test.ts` erweitern: primärer Reranker aus und Partner gesund liefert
+- [x] `website/src/lib/rerank.test.ts` erweitern: primärer Reranker aus und Partner gesund liefert
       korrekt sortierte Ergebnisse vom Partner statt `score: 0`; beide aus oder Reranking
       deaktiviert liefert weiterhin `score: 0` ohne Fehler; beide Fälle protokollieren eine Warnung.
       Der bestehende Erfolgsfall bleibt unverändert bestehen.
-- [ ] `website/src/lib/embeddings.test.ts` erweitern: `callRouter` bezieht seine Zieladresse vom
+- [x] `website/src/lib/embeddings.test.ts` erweitern: `callRouter` bezieht seine Zieladresse vom
       Router; die öffentlichen Signaturen von `embedQuery` und `embedBatch` sind unverändert.
-- [ ] `scripts/llm-proxy/runner.test.mjs` erweitern: ein Loadout mit gesetzter
+- [x] `scripts/llm-proxy/runner.test.mjs` erweitern: ein Loadout mit gesetzter
       `--ui-mcp-proxy`-Option erzeugt das Flag in der argv-Liste, ein Loadout ohne sie erzeugt es
       nicht. Der zweite Fall ist der Positiv-Anker zum ersten — er scheitert, wenn die Abbildung
       fehlt, statt vakuos zu bestehen. Hat der vorhandene Build das Flag laut p1 nicht, entfällt
       dieser Schritt zusammen mit der Option.
-- [ ] **GREEN.** Nach Abschluss von p1 bis p5 läuft der BATS-Lauf oben grün, ebenso die drei
+- [x] **GREEN.** Nach Abschluss von p1 bis p5 läuft der BATS-Lauf oben grün, ebenso die drei
       Vitest-Dateien.
 
 ```bash
@@ -62,5 +62,5 @@ tests/unit/lib/bats-core/bin/bats tests/spec/llm-pipeline/dual-pair-failover.bat
 # expected: PASS
 ```
 
-- [ ] `task test:inventory` regenerieren und `website/src/data/test-inventory.json` mitcommitten —
+- [x] `task test:inventory` regenerieren und `website/src/data/test-inventory.json` mitcommitten —
       CI vergleicht die committete Fassung und schlägt bei Abweichung fehl.

@@ -26,12 +26,16 @@ _Ticket: T002426_
 
 | Datei | Ist | Budget |
 | --- | --- | --- |
-| `website/src/lib/embeddings.ts` | 179 | 421 |
-| `website/src/lib/rerank.ts` | 43 | 557 |
-| `website/src/lib/embeddings.test.ts` | 150 | 450 |
-| `website/src/lib/rerank.test.ts` | 63 | 537 |
-| `scripts/llm-proxy/runner.mjs` | 102 | 398 |
-| `scripts/llm-proxy/runner.test.mjs` | 105 | 395 |
+| `website/src/lib/embeddings.ts` | 198 | 402 |
+| `website/src/lib/rerank.ts` | 83 | 517 |
+| `website/src/lib/embeddings.test.ts` | 186 | 414 |
+| `website/src/lib/rerank.test.ts` | 103 | 497 |
+| `scripts/llm-proxy/runner.mjs` | 110 | 390 |
+| `scripts/llm-proxy/runner.test.mjs` | 125 | 375 |
+| `scripts/llm-proxy/loadouts.mjs` | 100 | 400 |
+| `scripts/llm-proxy/server.test.mjs` | 166 | 334 |
+| `tests/spec/llm-pipeline.bats` | 589 | — |
+| `tests/spec/local-llm-proxy.bats` | 406 | — |
 
 Neue Dateien mit S1-Gate: `website/src/lib/bge-router.ts` (`.ts`, Limit 600),
 `website/src/lib/bge-router.test.ts` (`.ts`, Limit 600), `website/src/pages/api/bge/retrieve.ts`
@@ -68,7 +72,22 @@ CQ02: Dieser Plan führt keine `any`-Typen ein. Die Antwortformen von `llama-ser
 | p3 | `tasks.d/p3-retrieval-api.md` | impl | `website/src/pages/api/bge/retrieve.ts`, `website/src/pages/api/bge/changes.ts` | p2 |
 | p4 | `tasks.d/p4-mcp-shim.md` | impl | `scripts/bge-mcp/server.mjs`, `scripts/llm/mcp-servers.json`, `docs/agent-guide/registry/mcp.yaml`, `.mcp.json`, `.opencode/opencode.jsonc` | p2 |
 | p5 | `tasks.d/p5-config.md` | impl | `environments/schema.yaml`, `environments/dev.yaml`, `environments/mentolder.yaml`, `environments/korczewski.yaml`, `environments/staging.yaml`, `environments/fleet-mentolder.yaml`, `environments/fleet-korczewski.yaml`, `k3d/llm-gpu.yaml` | p1 |
-| p6 | `tasks.d/p6-tests.md` | tests | `website/src/lib/bge-router.test.ts`, `website/src/lib/embeddings.test.ts`, `website/src/lib/rerank.test.ts`, `tests/spec/llm-pipeline/dual-pair-failover.bats`, `website/src/data/test-inventory.json`, `scripts/llm-proxy/runner.test.mjs` | p1, p2, p3, p4, p5 |
+| p6 | `tasks.d/p6-tests.md` | tests | `website/src/lib/bge-router.test.ts`, `website/src/lib/embeddings.test.ts`, `website/src/lib/rerank.test.ts`, `tests/spec/llm-pipeline/dual-pair-failover.bats`, `website/src/data/test-inventory.json`, `scripts/llm-proxy/runner.test.mjs`, `scripts/llm-proxy/loadouts.mjs`, `scripts/llm-proxy/server.test.mjs`, `tests/spec/llm-pipeline.bats`, `tests/spec/local-llm-proxy.bats` | p1, p2, p3, p4, p5 |
+
+Vier Dateien kamen beim Umsetzen zu `p6` hinzu, weil bestehende Guards die neuen
+Artefakte sonst falsch-negativ abgelehnt haetten — der Befund gehoert in den Plan, nicht in
+einen stillen Nebenbei-Commit:
+
+- `scripts/llm-proxy/loadouts.mjs` — `ARG_KEYS` kannte `uiMcpProxy` nicht; ohne den Eintrag
+  faellt die fail-closed-Validierung ueber das neue Loadout-Feld aus `p1`.
+- `scripts/llm-proxy/server.test.mjs` und `tests/spec/local-llm-proxy.bats` — der
+  T002394-Guard „kein Loadout pinnt ctx oder ngl" galt pauschal und haette damit jedes
+  bewusst CPU-gebundene Loadout (`-ngl 0`) verboten. Er gilt jetzt fuer Loadouts **mit**
+  `--fit`; fuer `fit.enabled=false` verlangt `validateLoadout()` das Gegenteil.
+- `tests/spec/llm-pipeline.bats` — zwei Bestandsassertions: das Adressliteral `llm-gateway`
+  steht nicht mehr in `embeddings.ts` (es ist in den Router gewandert), und der Watchdog
+  deckt jetzt fuenf statt drei Server ab. Beide pruefen nun die Aussage ihres Titels statt
+  einer festen Zahl bzw. eines Literals.
 
 `p2` hängt an `p1`, weil erst die Startskripte die Ports des Batch-Paars festschreiben, gegen die
 der Router routet. `p3` und `p4` hängen an `p2`, weil beide dieselbe Router-Funktion aufrufen

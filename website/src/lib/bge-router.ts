@@ -89,16 +89,19 @@ const ENV_KEYS: Record<PairId, Record<BgeRole, string>> = {
  * strippt die Typen), damit die Failover-Entscheidung an genau EINER Stelle
  * steht statt im Shim ein zweites Mal. Dort ist der pino-Logger der Website
  * nicht aufloesbar — mit einem statischen Import waere das Modul im Shim gar
- * nicht ladbar und der Shim muesste die Logik duplizieren. Der Fallback auf
- * console.warn haelt die Sichtbarkeit trotzdem aufrecht; still wird eine
- * Umleitung in keinem der beiden Kontexte.
+ * nicht ladbar und der Shim muesste die Logik duplizieren.
+ *
+ * Der Fallback schreibt eine pino-foermige JSON-Zeile direkt nach stderr, statt
+ * die globale Konsole zu benutzen: G-FE03 verbietet rohe Konsolen-Aufrufe unter
+ * `website/src`, und die Regel soll hier nicht mit einer Ausnahme aufgeweicht
+ * werden. Still wird eine Umleitung in keinem der beiden Kontexte.
  */
 async function warn(fields: Record<string, unknown>, msg: string): Promise<void> {
   try {
     const { logger } = await import('./logger');
     logger.warn(fields, msg);
   } catch {
-    console.warn(msg, fields);
+    process.stderr.write(`${JSON.stringify({ level: 40, service: 'bge-mcp', ...fields, msg })}\n`);
   }
 }
 

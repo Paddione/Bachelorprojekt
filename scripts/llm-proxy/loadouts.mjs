@@ -13,6 +13,10 @@ const LOADOUT_KEYS = new Set([
 const ARG_KEYS = new Set([
   'ctx', 'ngl', 'parallel', 'cacheTypeK', 'cacheTypeV', 'loadMode',
   'flashAttention', 'jinja', 'metrics', 'reasoning', 'reasoningBudget',
+  // T002426: laesst llama-server selbst zum MCP-Server verbinden statt den
+  // Browser aus der Web-UI heraus — ohne das Flag scheitert ein lokaler
+  // MCP-Server ohne CORS-Header.
+  'uiMcpProxy',
 ]);
 const LOAD_MODES = new Set(['none', 'mmap', 'mlock', 'mmap+mlock', 'dio']);
 

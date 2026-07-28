@@ -48,9 +48,9 @@ gh run list --workflow e2e.yml --limit 14 --json conclusion \
 
 ---
 
-## G-AGENTIC09 — Projekteigene SKILL.md > 250 Zeilen: 0 (Gate)
+## G-AGENTIC09 — Projekteigene SKILL.md > 400 Zeilen: 0 (Gate)
 
-**Was:** Zählt **projekteigene** `SKILL.md`-Dateien mit mehr als **250** Zeilen. Der
+**Was:** Zählt **projekteigene** `SKILL.md`-Dateien mit mehr als **400** Zeilen. Der
 projekteigene Satz wird aus der Vendor-Sektion in `.claude/skills/OVERVIEW.md` abgeleitet
 (getrackt minus Marker-Block); upstream-gepflegte Skills sind ausgenommen, weil eine Änderung
 dort beim nächsten Sync kollidiert.
@@ -62,9 +62,24 @@ zudem weit über der Progressive-Disclosure-Grenze, die sie schützen sollte. Er
 nur `.astro/.svelte/.ts/.mjs/.py`), Skill-Bodies wuchsen also gegen keinerlei Widerstand — sechs
 lagen bei der Umstellung zwischen 283 und 486 Zeilen.
 
+**Warum von 250 auf 400 gelockert (T002452):** Die Verschärfung war richtig, die Zahl zu knapp.
+Nach der Kompression standen `dev-flow-plan/SKILL.md` auf **exakt 250** und `dev-flow-execute`
+auf 247 — Reserve 0 bzw. 3. Das Gate blockierte damit nicht mehr Wachstum, sondern **jede**
+inhaltliche Änderung an genau den Skills, die am häufigsten angefasst werden: wer eine Zeile
+Erklärung ergänzte, bekam einen roten Guard, unabhängig von der Qualität der Änderung. Das ist
+keine Progressive Disclosure, das ist ein Schreibverbot. 400 hält den Abstand zur alten,
+wirkungslosen 500 und gibt ~150 Zeilen Reserve. **Die 500 bleibt verworfen** — der Guard
+`G-AGENTIC09 measures 400 lines, not the legacy 500` in
+`tests/spec/agentic-tooling-quality-goals.bats` hält beide Richtungen fest.
+
+> **Die Schwelle steht nur hier und in `scripts/health-goals-check.sh`.** Die beiden BATS-Guards
+> (`agent-skills.bats`, `agentic-tooling-quality-goals.bats`) **lesen** sie von dort. Vor T002452
+> führten vier Stellen unabhängig die Zahl 250 — bei jeder Anhebung wäre eine liegengeblieben.
+> Wer die Schwelle ändert, ändert `health-goals-check.sh` und diesen Abschnitt, sonst nichts.
+
 ```bash
 c=0; for d in $(project_owned_skills); do
-  [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 250 ] && c=$((c+1)); done; echo $c
+  [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c
 ```
 
 Die Hilfsfunktion `project_owned_skills` liegt im Kopf von `scripts/health-goals-check.sh` und
@@ -435,7 +450,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC06** | OVERVIEW.md Skill-Zähler vs real | 0 ✓ | 0 | `claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills \| grep -c '/SKILL\.md$'` (nur getrackte — market-cli-Installationen zählen nicht, T001783) |
 | **G-AGENTIC07** | Verwaiste aktive Skills | 0 ✓ | 0 | `for SKILL.md in git ls-files; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` (nur getrackte) |
 | **G-AGENTIC08** | Tote Script-Pfade in projekteigenen Skill-`.md` | 0 ✓ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' $(project_owned_skills) + references --include='*.md' \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives; Scope seit T002303 auf alle `.md` statt nur `SKILL.md`, damit ausgelagerte `references/` nicht ungeprüft bleiben) |
-| **G-AGENTIC09** | Projekteigene `SKILL.md` >250 Zeilen | 0 ✓ | 0 | `for d in $(project_owned_skills); wc -l > 250 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md` (T002303; vorher `target` mit Schwelle 500 über alle Skills) |
+| **G-AGENTIC09** | Projekteigene `SKILL.md` >400 Zeilen | 0 ✓ | 0 | `for d in $(project_owned_skills); wc -l > 400 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md` (T002303; vorher `target` mit Schwelle 500 über alle Skills — Schwelle 250→400 in T002452, weil zwei Skills auf 0 bzw. 3 Zeilen Reserve standen) |
 
 | **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
 | **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |

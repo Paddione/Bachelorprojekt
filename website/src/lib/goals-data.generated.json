@@ -16,7 +16,7 @@
   },
   {
     "id": "G-AGENTIC09",
-    "title": "Projekteigene SKILL.md > 250 Zeilen",
+    "title": "Projekteigene SKILL.md > 400 Zeilen",
     "category": "Agent-Tooling",
     "priority": "C",
     "direction": "lower",
@@ -25,7 +25,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "c=0; for d in $(project_owned_skills); do\n  [ \"$(wc -l < \".claude/skills/$d/SKILL.md\")\" -gt 250 ] && c=$((c+1)); done; echo $c",
+    "measurement": "c=0; for d in $(project_owned_skills); do\n  [ \"$(wc -l < \".claude/skills/$d/SKILL.md\")\" -gt 400 ] && c=$((c+1)); done; echo $c",
     "source": ".claude/lib/goals.md · G-AGENTIC09",
     "measured_at": "2026-07-27"
   },
@@ -1171,7 +1171,7 @@
   },
   {
     "id": "G-AGENTIC09",
-    "title": "Projekteigene `SKILL.md` >250 Zeilen",
+    "title": "Projekteigene `SKILL.md` >400 Zeilen",
     "category": "Agent-Tooling",
     "priority": "C",
     "direction": "lower",
@@ -1180,7 +1180,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "for d in $(project_owned_skills); wc -l > 250 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md` (T002303; vorher `target` mit Schwelle 500 über alle Skills)",
+    "measurement": "for d in $(project_owned_skills); wc -l > 400 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md` (T002303; vorher `target` mit Schwelle 500 über alle Skills — Schwelle 250→400 in T002452, weil zwei Skills auf 0 bzw. 3 Zeilen Reserve standen)",
     "source": ".claude/lib/goals.md · G-AGENTIC09",
     "measured_at": "2026-07-27"
   },

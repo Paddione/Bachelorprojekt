@@ -21,6 +21,24 @@ setup() {
   EXEC_SKILL="$REPO/.claude/skills/dev-flow-execute/SKILL.md"
 }
 
+# [T002451] Entfernt JEDE Variable, an der _detect_tool die Claude-Harness erkennt.
+# Pflicht in jedem Test, der ein FREMDES Tool (GEMINI_CLI=1) simuliert: die Harness
+# exportiert CLAUDECODE und CLAUDE_CODE_SESSION_ID real, und solange auch nur eine
+# davon steht, liefert _detect_tool "claude". Die Same-Tool-Klausel in cmd_release
+# gibt den Lock dann frei und der Test misst die Umgebung statt die Vorbedingung.
+#
+# Die Namen werden AUS scripts/agent-lock.sh gelesen, nicht hier wiederholt — eine
+# zweite Kopie der Liste ist genau die Drift, die diesen Vorgang ausgeloest hat.
+_unset_claude_harness_env() {
+  local names v
+  names=$(sed -n 's/^_AGENT_LOCK_\(SID\|TOOL_MARKER\)_ENVS="\([^"]*\)".*/\2/p' "$LOCK" | tr '\n' ' ')
+  # Positiv-Anker: eine leere Liste wuerde still nichts unsetzen und den Test
+  # vakuos gruen machen. Beide Listen muessen gefunden worden sein.
+  [[ "$names" == *CLAUDE_CODE_SESSION_ID* && "$names" == *CLAUDECODE* ]] \
+    || { echo "Harness-Marker-Listen nicht aus $LOCK lesbar: '$names'"; return 1; }
+  for v in $names; do unset "$v"; done
+}
+
 # ── Mishap 1: agent-lock identity drift ────────────────────────────────#
 #
 # The Claude Code / opencode harness exposes a session ID for telemetry
@@ -187,7 +205,7 @@ setup() {
   # sie real, und sie steht in der normativen Reihenfolge VOR CLAUDE_SESSION_ID.
   # Ohne dieses unset prueft der Test die Umgebung statt die Vorbedingung — genau
   # die Fehlerklasse, die dieses Bundle behandelt.
-  unset CLAUDE_CODE_SESSION_ID
+  _unset_claude_harness_env
   export CLAUDE_SESSION_ID="session-A"
   unset AGENT_LOCK_SID
   bash "$LOCK" claim ticket T002261-m1 --label test-release
@@ -195,7 +213,9 @@ setup() {
 
   # Switch to a different session AND different tool class (gemini) to bypass
   # the same-tool fallback and trigger the SID-mismatch diagnostic. [T002374]
-  unset CLAUDE_SESSION_ID
+  # [T002451] Die VOLLE Markerliste muss weg, nicht nur CLAUDE_SESSION_ID —
+  # CLAUDECODE allein genuegt, damit _detect_tool weiter "claude" liefert.
+  _unset_claude_harness_env
   export GEMINI_CLI=1
   run bash "$LOCK" release ticket T002261-m1
   [ "$status" -eq 1 ]
@@ -361,11 +381,25 @@ JSON
   # Der Extraktionsbeweis ist, dass die Rümpfe NICHT mehr hier stehen — nicht eine
   # Zeilenzahl. (Der Plan nennt "< 430" als Zwischenstand direkt nach dem Verschieben;
   # danach kommen die eigentlichen Änderungen wieder hinzu. Dauerhaft gilt das
-  # S1-Limit .sh = 500.)
+  # S1-Limit .sh aus docs/code-quality/gates.yaml.)
   run bash -c "grep -c '^cmd_guard_precommit()' '$LOCK'"
   [ "$output" = "0" ] || { echo "cmd_guard_precommit steht noch in agent-lock.sh"; false; }
+
+  # [T002450] Die Grenze wird GELESEN, nicht wiederholt. Vorher stand hier `-lt 500`
+  # neben `.sh: 500` in gates.yaml — zwei Quellen fuer dieselbe Zahl. Bei genau 500
+  # Zeilen widersprachen sie sich: scripts/code-quality/gates/s1-filesize.mjs laesst
+  # `lines <= limit` durch (gruen), dieser Guard forderte `< 500` (rot). PR #3446
+  # landete punktgenau auf 500.
+  local limit
+  limit=$(sed -n 's/^[[:space:]]*\.sh:[[:space:]]*\([0-9]\+\).*$/\1/p' \
+            "$REPO/docs/code-quality/gates.yaml" | head -1)
+  # Positiv-Anker: ohne diesen Check waere ein leeres $limit ein stiller Pass
+  # (`[ "$n" -le "" ]` bricht zwar ab, aber die Absicht muss benannt sein).
+  [[ "$limit" =~ ^[0-9]+$ ]] || { echo "s1.limits['.sh'] nicht aus gates.yaml lesbar: '$limit'"; false; }
   local n; n=$(wc -l < "$LOCK")
-  [ "$n" -lt 500 ] || { echo "agent-lock.sh hat $n Zeilen, S1-Limit fuer .sh ist 500"; false; }
+  # Gleiche Vergleichsrichtung wie s1-filesize.mjs: `> limit` ist der Verstoss,
+  # `== limit` ist gruen. Sonst kehrt der Widerspruch bei der neuen Zahl zurueck.
+  [ "$n" -le "$limit" ] || { echo "agent-lock.sh hat $n Zeilen, S1-Limit fuer .sh ist $limit"; false; }
 }
 
 # ── [T002373-M2] cmd_release auto-releases when owner SID is dead ──────#
@@ -394,6 +428,9 @@ JSON
 @test "T002373-M2: cmd_release verweigert Release ohne --force wenn owner SID lebt" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
   export AGENT_LOCK_FAKE_ALIVE="ghost-sid-99999"
+  # [T002451] Ohne dieses unset traegt der Lock unten tool="claude" AUS DER HARNESS,
+  # und die Same-Tool-Klausel gibt ihn frei, obwohl der Test das Gegenteil prueft.
+  _unset_claude_harness_env
   # Claim as "ghost-sid-99999" (marked alive via fake)
   export AGENT_LOCK_SID="ghost-sid-99999"
   bash "$LOCK" claim ticket T002373-m2b --label test-release-alive

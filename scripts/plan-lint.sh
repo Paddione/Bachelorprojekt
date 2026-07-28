@@ -22,10 +22,13 @@ _load_s1_limits() {
   fi
   # Fail-safe fallback — only fills extensions gates.yaml did not provide.
   local kv k v
-  for kv in .astro=400 .tsx=400 .java=400 .php=400 \
-            .ts=600 .js=600 .jsx=600 .py=600 \
-            .svelte=500 .sh=500 .mjs=500 .mts=500 \
-            .bash=300 .cjs=200; do
+  # [T002452] Muss mit docs/code-quality/gates.yaml uebereinstimmen. Dieser Zweig
+  # greift nur ohne yq — driftet er, rechnet plan-lint dort still mit Budgets von
+  # gestern, und zwar ohne Fehlermeldung. Beim Anheben der Limits mitfuehren.
+  for kv in .astro=600 .tsx=600 .java=600 .php=600 \
+            .ts=900 .js=800 .jsx=800 .py=800 \
+            .svelte=800 .sh=800 .mjs=800 .mts=800 \
+            .bash=500 .cjs=400; do
     k="${kv%%=*}"; v="${kv#*=}"
     [[ -z "${_S1_LIMITS[$k]:-}" ]] && _S1_LIMITS["$k"]="$v"
   done

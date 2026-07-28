@@ -27,6 +27,17 @@ AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 # bestehenden Tests hängen daran.
 _AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID"
 
+# Zusaetzliche Claude-Harness-Marker OHNE Session-ID-Bedeutung. [T002451]
+# Sie tragen keine SID, identifizieren aber die Harness — _detect_tool liest sie,
+# _my_sid nicht. Bis hierher standen sie als Literale in _detect_tool, und genau
+# deshalb war der Fix aus T002375-p1 unvollstaendig: Tests, die ein FREMDES Tool
+# simulieren wollten, unsetzten $_AGENT_LOCK_SID_ENVS und uebersahen CLAUDECODE.
+# Die Harness exportiert es real (gemessen: `env | grep -c '^CLAUDECODE='` -> 1),
+# also lieferte _detect_tool weiter "claude", die Same-Tool-Klausel in cmd_release
+# griff, und der Test mass die Umgebung statt die Vorbedingung.
+# Als benannte Liste koennen Tests gegen die Liste unsetzen statt gegen eine Kopie.
+_AGENT_LOCK_TOOL_MARKER_ENVS="CLAUDECODE CLAUDE_CODE"
+
 _now() { date +%s; }
 
 _my_sid() {
@@ -86,7 +97,10 @@ _detect_tool() {
   # und der andere nicht.
   local _v _sid_env=""
   for _v in $_AGENT_LOCK_SID_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done
-  if [ -n "${_sid_env}${CLAUDECODE:-}${CLAUDE_CODE:-}" ]; then echo claude
+  # [T002451] Marker aus der benannten Liste statt als Literale — siehe Kommentar
+  # bei _AGENT_LOCK_TOOL_MARKER_ENVS.
+  for _v in $_AGENT_LOCK_TOOL_MARKER_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done
+  if [ -n "${_sid_env}" ]; then echo claude
   elif [ -n "${GEMINI_CLI:-}${GEMINI_SANDBOX:-}${GEMINI_API_KEY:-}" ]; then echo gemini
   else echo unknown; fi
 }

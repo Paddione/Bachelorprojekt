@@ -57,7 +57,7 @@ includes:
     taskfile: ./Taskfile.agents.yml
     dir: .
   # Software Factory — Phase 1 pipeline documentation wrapper.
-  # See scripts/factory/pipeline.js + docs/superpowers/references/factory-usage.md.
+  # See scripts/factory/pipeline.mjs + docs/superpowers/references/factory-usage.md.
   factory:
     taskfile: ./Taskfile.factory.yml
     dir: .

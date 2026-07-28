@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 628,
+      "file_count": 629,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -443,6 +443,7 @@
         "tests/spec/openspec-upstream-cli.bats",
         "tests/spec/openspec-workflow.bats",
         "tests/spec/openspec-worktree-anchor.bats",
+        "tests/spec/pipeline-divergence-T002393.bats",
         "tests/spec/pipeline-interface.bats",
         "tests/spec/plan-context.bats",
         "tests/spec/pocket-id-client-seed-auth-header.bats",
@@ -2926,7 +2927,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 568,
+      "file_count": 567,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3189,7 +3190,6 @@
         "scripts/factory/pipeline-partials.cjs",
         "scripts/factory/pipeline-pattern.md",
         "scripts/factory/pipeline-runner.js",
-        "scripts/factory/pipeline.js",
         "scripts/factory/pipeline.mjs",
         "scripts/factory/pr-babysit-ticket.sh",
         "scripts/factory/prep-simple.sh",

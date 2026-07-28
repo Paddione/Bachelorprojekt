@@ -1869,6 +1869,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002393": [
+    {
+      "slug": "pipeline-divergence-T002393",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

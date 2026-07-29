@@ -1827,6 +1827,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002342": [
+    {
+      "slug": "mishap-bundle-dev-flow-scripts",
+      "status": "plan_staged"
+    }
+  ],
   "T002345": [
     {
       "slug": "2026-07-28-spec-test-selection",

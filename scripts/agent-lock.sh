@@ -154,7 +154,17 @@ _reapable() {
   # 0) A CONFIRMED-ALIVE SID ALWAYS WINS — even if the worktree path is stale
   #    or missing, a live session owns the claim. Reapability only kicks in
   #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
-  if [ -n "$sid" ] && _sid_alive "$sid"; then return 1; fi
+  if [ -n "$sid" ] && _sid_alive "$sid"; then
+    # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID (non-numeric
+    # UUIDs gelten immer als "alive" — aber wenn der Heartbeat alt ist, ist der
+    # Halter wirklich tot und nur die UUID im Lock uebrig). Ohne diesen Check
+    # wuerde reap nie einen solchen Lock aufraeumen, weil der SID-Fruehrueck-
+    # kehr nie zum PID-/Heartbeat-Teil vordringt.
+    if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
+      _reap_log "$f" heartbeat-ttl; return 0
+    fi
+    return 1
+  fi
   # 0b) Worktree+branch match beats a dead/mismatched SID: a session RESUME
   #     starts a new process with a different SID (and possibly a different
   #     PID), which would otherwise fall through to the pid-dead/sid-dead reap
@@ -367,7 +377,16 @@ cmd_release() {
 cmd_check() {
   local f; f="$(_lock_file "$1" "${2:-}")"
   if [ ! -f "$f" ] || _reapable "$f"; then echo "free"; return 0; fi
+  # [T002392-M1] SID-Match reicht fuer "mine" — aber bei SID-Drift (keine Harness-
+  # Env, Unix-SID pro Bash-Call wechselnd) erkennt die Session den eigenen Lock nicht.
+  # Zusaetzlich Worktree-Pfad prüfen: wenn der Lock denselben Worktree nennt,
+  # aus dem wir kommen (oder main checkout), ist es unser eigener Lock.
   if [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then echo "mine"; cat "$f"; return 0; fi
+  local my_wt="${PWD}"
+  local lock_wt="$(_lock_field "$f" worktree)"
+  if [ -n "$lock_wt" ] && [ "$lock_wt" != "-" ] && [ "$lock_wt" = "$my_wt" ]; then
+    echo "mine"; cat "$f"; return 0
+  fi
   echo "held"; cat "$f"; return 3
 }
 

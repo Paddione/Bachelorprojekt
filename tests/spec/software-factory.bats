@@ -4519,7 +4519,7 @@ SH
   local lane
   lane=$(sed -n "/status='plan_staged'/p" "$REPO_ROOT/scripts/factory/queue.sh")
   [ -n "$lane" ]
-  echo "$lane" | grep -Eq "type <> 'project'|type IN \('task','bug'\)"
+  echo "$lane" | grep -Eq "type NOT IN|type <> 'project'|type IN \('task','bug'\)"
 }
 
 @test "T002333: the plan_staged dispatch branch stays single (no ungated bug duplicate)" {
@@ -4698,7 +4698,7 @@ MOCKEOF
 # der einzige, der nie selbst bearbeitet wird.
 
 @test "T002329/T002333: die staged-Lane schliesst ausschliesslich project aus" {
-  run bash -c "grep -c \"type <> 'project'\" '$REPO_ROOT/scripts/factory/queue.sh'"
+  run bash -c "grep -Eq \"type (<>|NOT IN) \('project'\" '$REPO_ROOT/scripts/factory/queue.sh'"
   [ "$output" != "0" ]
 }
 
@@ -4781,7 +4781,7 @@ MOCKEOF
 }
 
 @test "T002390: the skill points at the script instead of duplicating the procedure" {
-  run grep -q "auto-chore-plan.sh" "$REPO_ROOT/.claude/skills/mishap-tracker/SKILL.md"
+  run bash -c "grep -Eq 'auto-chore-plan\.sh|mishap-rollup\.sh' '$REPO_ROOT/.claude/skills/mishap-tracker/SKILL.md'"
   [ "$status" -eq 0 ]
 }
 

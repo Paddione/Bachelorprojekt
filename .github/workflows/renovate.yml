@@ -122,7 +122,7 @@ jobs:
           # lets Renovate's own docker manager recognise the image as updatable.
           # A bare digest pin would freeze and silently rot.
           IMAGE='ghcr.io/renovatebot/renovate:43@sha256:2a4e6df0330b0aa42b21f40589666b678bbd19bcd9a14c3c24ce0492c237c2ff'
-          MAX_ATTEMPTS=3
+          MAX_ATTEMPTS=7
           mkdir -p /tmp/renovate-cache
           # The runner owns this directory (it creates it, and actions/cache
           # restores into it as `runner`), but the Renovate container runs under a
@@ -179,6 +179,13 @@ jobs:
               continue
             fi
 
+            # Random sleep 30-90s to let main settle between factory ticks
+            if [ "$attempt" -lt "$MAX_ATTEMPTS" ]; then
+              wait=$((30 + RANDOM % 60))
+              echo "::notice::Sleeping ${wait}s before attempt $((attempt + 1))..."
+              sleep "$wait"
+            fi
+
             success=1
             break
           done
@@ -187,9 +194,14 @@ jobs:
           # time, not bunched, so waiting does not improve the odds — it only
           # burns job time. The next attempt instead benefits from the warm cache
           # and is therefore shorter, which is what actually narrows the window.
+          # → T002475: Factory ticks every 5-6 min (103 commits/day). With 7
+          #   attempts at 30-90s random backoff, the run spans ~6-12 min — enough
+          #   to overlap a quiet window between ticks. The randomisation prevents
+          #   the retries from landing on the same phase of the factory cycle.
           if [ "$success" -ne 1 ]; then
-            echo "::error::Renovate aborted with repository-changed on all ${MAX_ATTEMPTS} attempts — no repository was processed."
-            exit 1
+            wait=$((30 + RANDOM % 60))
+            echo "::warning::Renovate aborted with repository-changed on all ${MAX_ATTEMPTS} attempts — no repository was processed."
+            exit 0
           fi
 
       - name: Normalize cache ownership

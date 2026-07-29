@@ -3168,8 +3168,14 @@ tasks:
         NS="${WORKSPACE_NAMESPACE:-workspace}"
 
         echo "Fetching postgres superuser password from ${NS}/shared-db..."
-        PG_PW=$(kubectl $ctx_flag -n "$NS" exec deploy/shared-db -- \
-          printenv POSTGRES_PASSWORD | tr -d '\r\n')
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
         if [ -z "$PG_PW" ]; then
           echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
         fi
@@ -3610,8 +3616,14 @@ tasks:
         kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
 
         echo "Fetching postgres superuser password from ${NS}/shared-db..."
-        PG_PW=$(kubectl $ctx_flag -n "$NS" exec deploy/shared-db -- \
-          printenv POSTGRES_PASSWORD | tr -d '\r\n')
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
         if [ -z "$PG_PW" ]; then
           echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
         fi
@@ -3979,6 +3991,13 @@ tasks:
     dir: website
     cmds:
       - npm run dev
+
+  cockpit:dev:
+    desc: Serve SDLC Cockpit static files locally (http://localhost:8765)
+    dir: .lavish
+    cmds:
+      - fuser -k 8765/tcp 2>/dev/null; sleep 0.3
+      - python3 -m http.server 8765 --bind 127.0.0.1
 
   website:status:
     desc: "Show website deployment status (ENV=dev|mentolder|korczewski)"

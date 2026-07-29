@@ -474,3 +474,79 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
   run grep -Fq "COALESCE(\$2, resolution)" website/src/lib/tickets/transition.ts
   [ "$status" -eq 0 ]
 }
+
+# ── [T002407-M1] DB-Typ 'incident' ist registriert ───────────────────────────#
+# Der Typ muss im CHECK-Constraint von migrate-type-vocabulary.ts und im
+# Inline-CHECK von tables/tickets.ts stehen, damit report_mishap ihn setzen kann.
+# Tasks 1.1 + 1.2: beide Listen müssen 'incident' enthalten.
+# RED-Bedingung (vor Task 1): der Typ fehlt → Test schlägt fehl.
+
+@test "T002407-M1a: migrate-type-vocabulary.ts listet 'incident' in NEW_TYPES" {
+  run bash -c "grep -q \"'incident'\" 'website/src/lib/tickets/migrate-type-vocabulary.ts'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M1b: migrate-type-vocabulary.ts CONSTRAINT CHECK kennt 'incident'" {
+  # Der benannte CONSTRAINT muss 'incident' in der IN-Liste führen
+  run bash -c "grep -A20 'ADD CONSTRAINT tickets_type_check' 'website/src/lib/tickets/migrate-type-vocabulary.ts' 2>/dev/null \
+                 | grep -c \"'incident'\""
+  [ "$output" != "0" ]
+}
+
+@test "T002407-M1c: tables/tickets.ts Inline-CHECK kennt 'incident'" {
+  run bash -c "grep -c \"'incident'\" 'website/src/lib/tickets/tables/tickets.ts'"
+  [ "$output" != "0" ]
+}
+
+@test "T002407-M1d: cockpit-labels.ts hat TYPE_LABELS.incident" {
+  run bash -c "grep \"incident:\" 'website/src/lib/tickets/cockpit-labels.ts' \
+                 | grep -c 'Incident'"
+  [ "$output" != "0" ]
+}
+
+# ── [T002407-M2] queue.sh schliesst incident aus ─────────────────────────────#
+# Lane 48: OR (type NOT IN ('project','incident') AND status='plan_staged' ...)
+# Ein gestagtes incident-Ticket darf in der Queue NICHT auftauchen.
+# RED-Bedingung (vor Task 1.4): type NOT IN enthält 'incident' nicht.
+
+@test "T002407-M2a: queue.sh filtert incident in type NOT IN" {
+  # Negativtest: incident ist in der Ausschlussliste
+  run grep -Fq "NOT IN ('project','incident')" scripts/factory/queue.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M2b: queue.sh filtert incident nicht nur im Kommentar" {
+  # Der Filter muss im SQL stehen, nicht nur im Kommentar darüber.
+  # Ein `grep -A5 'NOT IN'` auf die SQL-Zeile muss 'incident' enthalten.
+  run bash -c "grep -A5 \"type NOT IN\" scripts/factory/queue.sh 2>/dev/null | grep -c \"'incident'\""
+  [ "$output" != "0" ]
+}
+
+@test "T002407-M2c: queue.sh liefert gestagtes chore weiterhin (Positivtest)" {
+  # 'chore' darf NICHT in der NOT-IN-Liste stehen — sonst wären chore-Tickets
+  # unsichtbar. Der Test stellt sicher, dass der Ausschluss incident-spezifisch ist.
+  run bash -c "grep -A5 \"type NOT IN\" scripts/factory/queue.sh 2>/dev/null | grep -c \"'chore'\""
+  [ "$output" = "0" ]
+}
+
+# ── [T002407-M3] incident-Tickets haben attention_mode=needs_human ────────────#
+# incident ist per Konvention needs_human, damit der Dispatcher sie nicht
+# automatisch aufgreift (queue.sh schließt sie ohnehin aus, aber die invariante
+# muss auch im Typ selbst dokumentiert sein).
+
+@test "T002407-M3a: go mishap.go behandelt incident als sofortigen Ticket-Typ" {
+  # isIncidentType muss 'incident' erkennen
+  run grep -Fq "isIncidentType(mtype)" scripts/ticket-mcp/go/internal/tools/mishap.go
+  [ "$status" -eq 0 ]
+  # incident in der validTypes-Liste
+  run grep -Fq '"incident"' scripts/ticket-mcp/go/internal/tools/mishap.go
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M3b: go mishap.go erkennt broken und security als incident-Aliase" {
+  # broken und security müssen denselben Pfad wie incident nehmen
+  run bash -c "grep -Fq '\"broken\"' scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+  run bash -c "grep -Fq '\"security\"' scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+}

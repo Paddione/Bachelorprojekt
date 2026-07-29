@@ -2962,7 +2962,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 588,
+      "file_count": 590,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3222,6 +3222,8 @@
         "scripts/factory/mcp-server.mjs",
         "scripts/factory/merge-hooks.sh",
         "scripts/factory/metrics.sh",
+        "scripts/factory/migrate-mishap-bundles.sh",
+        "scripts/factory/mishap-rollup.sh",
         "scripts/factory/opencode-exec.sh",
         "scripts/factory/otel-emit.cjs",
         "scripts/factory/otel-emit.sh",

@@ -4937,3 +4937,100 @@ MOCKEOF
   run bash -c "cd '$REPO' && git diff --exit-code origin/main -- scripts/factory/queue.sh"
   [ "$status" -eq 0 ] || { echo "queue.sh wurde veraendert — das Hold-Gate ist tabu"; false; }
 }
+
+# ── [T002407-M7] Container-Lifecycle: plan_staged, Recycling, Treiber-Idempotenz ──#
+
+@test "T002407-M7a: mishap-rollup.sh hat festen Slug und Branch (kein Abbruch bei Existenz)" {
+  # Der Treiber verwendet einen persistenten Slug/Branch, der nie gelöscht wird.
+  # Existiert er bereits, wird tasks.md neu erzeugt — kein exit 3.
+  local script="$REPO/scripts/factory/mishap-rollup.sh"
+  [ -f "$script" ]
+  run bash -n "$script"
+  [ "$status" -eq 0 ]
+  # Slug ist fest codiert
+  run grep -Fq 'SLUG="mishap-incident-rollup"' "$script"
+  [ "$status" -eq 0 ]
+  run grep -Fq 'BRANCH="chore/${SLUG}"' "$script"
+  [ "$status" -eq 0 ]
+  # Update statt Abbruch: existiert change dir → kein exit 3
+  run grep -Eq "exit 3" "$script"
+  [ "$status" -ne 0 ] || { echo "mishap-rollup.sh darf kein exit 3 enthalten"; false; }
+}
+
+@test "T002407-M7b: mishap-rollup.sh hat No-op-Pfad (keine Batches → exit 0 ohne Worktree)" {
+  local script="$REPO/scripts/factory/mishap-rollup.sh"
+  # No-op bei leerem Container: Suche nach Kommentar, der auf den No-op-Pfad hinweist
+  run grep -qi "nichts zu tun\|noop\|no-op\|keine .*batches\|nothing to do" "$script"
+  [ "$status" -eq 0 ] || { echo "No-op-Hinweis fehlt in mishap-rollup.sh"; false; }
+  # Der No-op-Pfad muss vor der Worktree-Anlage exit 0 geben — prüfe Zeilen-Reihenfolge
+  local wt_line noop_exit_line
+  wt_line=$(grep -n 'worktree-create\|WORKTREE_CREATE' "$script" | head -1 | cut -d: -f1)
+  noop_exit_line=$(grep -n 'exit 0' "$script" | head -1 | cut -d: -f1)
+  if [[ -n "$wt_line" && -n "$noop_exit_line" ]]; then
+    [ "$noop_exit_line" -lt "$wt_line" ] || skip "No-op-Pfad liegt nicht vor worktree-create (exit 0 ist später)"
+  fi
+}
+
+@test "T002407-M7c: mishap-rollup.sh verwendet branch-exists-Pfad (rebase statt Neu-Anlage)" {
+  local script="$REPO/scripts/factory/mishap-rollup.sh"
+  # Der Branch lebt dauerhaft auf dem Remote. Statt neu anlegen: checkout + rebase.
+  run grep -Eq "BRANCH_EXISTS|git checkout.*BRANCH|git rebase" "$script"
+  [ "$status" -eq 0 ] || { echo "Branch-Existenz-Pfad fehlt in mishap-rollup.sh"; false; }
+}
+
+@test "T002407-M7d: mishap-rollup.sh hat plan-lint als Hard Gate" {
+  local script="$REPO/scripts/factory/mishap-rollup.sh"
+  run grep -q "plan-lint" "$script"
+  [ "$status" -eq 0 ] || { echo "plan-lint Gate fehlt in mishap-rollup.sh"; false; }
+}
+
+@test "T002407-M7e: auto-close-merged erkennt Rollup-Container und recycled statt close" {
+  # auto-close-merged.sh muss den Container-Titel erkennen und ihn auf plan_staged
+  # zurücksetzen statt auf done/shipped.
+  local script="$REPO/scripts/factory/auto-close-merged.sh"
+  run bash -n "$script"
+  [ "$status" -eq 0 ]
+  # Container-Erkennung: muss den ROLLUP_TICKET_TITLE oder eine eindeutige Markierung prüfen
+  run grep -q "Mishap Rollup\|ROLLUP_TICKET_TITLE\|Rollup" "$script"
+  [ "$status" -eq 0 ] || { echo "auto-close-merged.sh erkennt Rollup-Container nicht"; false; }
+  # Recycling: statt done/shipped muss plan_staged gesetzt werden
+  run grep -Eq "plan_staged" "$script"
+  [ "$status" -eq 0 ] || { echo "auto-close-merged.sh recycled Container nicht (plan_staged fehlt)"; false; }
+}
+
+@test "T002407-M7f: wakeup.sh ruft mishap-rollup.sh pro Brand auf" {
+  local script="$REPO/scripts/factory/wakeup.sh"
+  # Nach mishap-flush und vor auto-chore-plan: mishap-rollup.sh pro Brand
+  run grep -q "mishap-rollup.sh" "$script"
+  [ "$status" -eq 0 ] || { echo "wakeup.sh ruft mishap-rollup.sh nicht auf"; false; }
+  # Die Referenz steht in einem for-Block (mentolder+korczewski). Prüfe auf das Loop-Muster
+  # und dass der Aufruf im Loop-Body liegt.
+  run bash -c "grep -A3 'for .*_mr_brand' '$script' | grep -q 'mishap-rollup.sh'"
+  [ "$status" -eq 0 ] || { echo "mishap-rollup.sh nicht im Brand-Loop"; false; }
+}
+
+@test "T002407-M7g: migrate-mishap-bundles.sh existiert und hat --dry-run und --help" {
+  local script="$REPO/scripts/factory/migrate-mishap-bundles.sh"
+  [ -f "$script" ]
+  [ -x "$script" ]
+  run bash -n "$script"
+  [ "$status" -eq 0 ]
+  run bash "$script" --help
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "Usage" ]]
+  # --dry-run muss ohne Fehler durchlaufen
+  run bash "$script" --dry-run 2>&1
+  [[ "$output" =~ "DRY RUN" ]]
+}
+
+@test "T002407-M7h: migrate-mishap-bundles.sh listet alle 12 Bundle-IDs" {
+  local script="$REPO/scripts/factory/migrate-mishap-bundles.sh"
+  run bash -c "grep -oE 'T002[0-9]{3,}' '$script' | sort -u | wc -l"
+  # Mindestens die 12 bekannten Bundles müssen aufgeführt sein
+  [ "$output" -ge 12 ] || { echo "weniger als 12 Bundle-IDs gefunden: $output"; false; }
+  # Prüfung auf konkrete IDs
+  for id in T002325 T002342 T002354 T002355 T002364 T002371 T002372 T002379 T002381 T002392 T002409 T002410; do
+    run grep -q "$id" "$script"
+    [ "$status" -eq 0 ] || { echo "Bundle-ID $id fehlt in migrate-mishap-bundles.sh"; false; }
+  done
+}

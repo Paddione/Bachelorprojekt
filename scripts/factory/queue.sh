@@ -34,17 +34,18 @@ FROM (
       -- plan is already authored + lint-gated by stage-plan, so no lastenheft gate
       -- applies. execution_released=true is the default (backward-compatible: only
       -- tickets explicitly held via stage-plan --hold are excluded from dispatch).
-      -- Exclusion list, not a whitelist [T002329/T002333]: a staged type='bug'
+      -- Exclusion list, not a whitelist [T002329/T002333/T002407]: a staged type='bug'
       -- ticket was invisible to the dispatcher because only 'task' was listed. With
-      -- ten types instead of four that gap gets likelier, so the lane names the one
-      -- type that is never worked on itself — 'project' (the epic).
+      -- ten+ types instead of four that gap gets likelier, so the lane names the types
+      -- that are never dispatched themselves — 'project' (the epic) and 'incident'
+      -- (needs_human, not machine-workable).
       --
       -- Rebase-Auflösung 2026-07-28: dieser Branch entstand VOR T002333/T002361 und
       -- kannte den factory_excluded-Gate noch nicht. Übernommen wird das neue
       -- Vokabular UND beide Gates — genau das, wovor der Kommentar oben warnt
       -- ("one branch, one set of gates"). Ohne den Gate hätte sich T002329, das
       -- selbst factory_excluded=true trägt, nach dem Merge wieder selbst dispatcht.
-      OR (type <> 'project' AND status='plan_staged'
+      OR (type NOT IN ('project','incident') AND status='plan_staged'
           AND COALESCE((readiness->>'execution_released')::boolean, true) = true
           AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false)
     )

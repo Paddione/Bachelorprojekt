@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 623,
+      "file_count": 626,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -534,6 +534,9 @@
         "tests/unit/fixtures/plan-lint/s1-ignored-file.md",
         "tests/unit/fixtures/plan-lint/s1-ignored-with-budget.md",
         "tests/unit/fixtures/plan-lint/struct2-phrase-no-testcmd.md",
+        "tests/unit/fixtures/plan-lint/w3-partial-line-suffix/tasks.d/p1-impl.md",
+        "tests/unit/fixtures/plan-lint/w3-partial-line-suffix/tasks.d/p2-tests.md",
+        "tests/unit/fixtures/plan-lint/w3-partial-line-suffix/tasks.md",
         "tests/unit/fixtures/plan-lint/wrong-budget.md",
         "tests/unit/fixtures/sample-knowledge.json",
         "tests/unit/fixtures/software-history/mock-anthropic.mjs",

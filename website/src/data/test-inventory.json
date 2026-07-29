@@ -2742,6 +2742,12 @@
     "kind": "shell"
   },
   {
+    "id": "scout-llm-fallback-erden",
+    "file": "tests/spec/scout-llm-fallback-erden.bats",
+    "category": "scout-llm-fallback-erden",
+    "kind": "shell"
+  },
+  {
     "id": "scout-prediction-quality",
     "file": "tests/spec/scout-prediction-quality.bats",
     "category": "scout-prediction-quality",

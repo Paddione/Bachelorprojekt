@@ -68,14 +68,35 @@ echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
     continue
   fi
 
-  # Look up the ticket's current status and type. SQL is read-only.
+  # Look up the ticket's current status, type, and title. SQL is read-only.
   row=$(cat <<SQL | factory_psql 2>/dev/null
-SELECT status, type FROM tickets.tickets WHERE external_id = '$ticket' LIMIT 1;
+SELECT status, type, title FROM tickets.tickets WHERE external_id = '$ticket' LIMIT 1;
 SQL
 )
   [[ -z "$row" ]] && { echo "auto-close-merged: $ticket (PR #$pr_num) existiert nicht in ${BRAND} — skip [T001580]" >&2; continue; }
   status=$(printf '%s' "$row" | awk -F'|' '{print $1}' | tr -d ' ')
   ttype=$(printf '%s' "$row" | awk -F'|' '{print $2}' | tr -d ' ')
+  title=$(printf '%s' "$row" | awk -F'|' '{print $3}' | tr -d ' ')
+
+  # T002407: Rollup-Container-Recycling statt close. Der Container
+  # ("Mishap Rollup — fortlaufende Sammlung") wird nach Merge NICHT
+  # auf done gesetzt, sondern auf plan_staged+execution_released=false
+  # recycelt, damit er weitere Mishap-Batches sammeln kann.
+  if [[ "$title" == "Mishap Rollup — fortlaufende Sammlung" ]]; then
+    echo "auto-close-merged: $ticket (PR #$pr_num) ist Rollup-Container — recycling statt done" >&2
+    cat <<SQL | factory_psql >/dev/null 2>&1 || true
+UPDATE tickets.tickets
+   SET status = 'plan_staged',
+       readiness = COALESCE(readiness,'{}'::jsonb) || '{"execution_released":false}'::jsonb
+ WHERE external_id = '$ticket';
+SQL
+    BRAND="$BRAND" bash "$(dirname "${BASH_SOURCE[0]}")/../ticket.sh" add-comment \
+      --id "$ticket" \
+      --body "Rollup-Container recycelt nach Merge von PR #${pr_num} (status=plan_staged, execution_released=false)" \
+      --author "auto-close-merged" \
+      --visibility "internal" >/dev/null 2>&1 || true
+    continue
+  fi
 
   case "$status" in
     done|archived) echo "auto-close-merged: $ticket (PR #$pr_num) bereits $status — skip [T001580]" >&2; continue ;;

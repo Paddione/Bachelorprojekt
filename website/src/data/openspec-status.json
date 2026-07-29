@@ -2027,6 +2027,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002431": [
+    {
+      "slug": "t2431-k1-vector-db",
+      "status": "plan_staged"
+    }
+  ],
   "T002439": [
     {
       "slug": "2026-07-28-db-pod-phase-guard-T002439",

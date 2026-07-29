@@ -2256,6 +2256,12 @@
     "kind": "shell"
   },
   {
+    "id": "factory-escalation-ladder",
+    "file": "tests/spec/factory-escalation-ladder.bats",
+    "category": "factory-escalation-ladder",
+    "kind": "shell"
+  },
+  {
     "id": "factory-merge-hooks",
     "file": "tests/spec/factory-merge-hooks.bats",
     "category": "factory-merge-hooks",

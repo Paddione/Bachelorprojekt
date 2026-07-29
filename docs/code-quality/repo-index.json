@@ -2447,7 +2447,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 460,
+      "file_count": 461,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -2468,6 +2468,7 @@
         ".opencode/plugins/kdco-primitives/terminal-detect.ts",
         ".opencode/plugins/kdco-primitives/types.ts",
         ".opencode/plugins/kdco-primitives/with-timeout.ts",
+        ".opencode/plugins/opencode-review-src/",
         ".opencode/plugins/worktree",
         ".opencode/plugins/worktree.ts",
         ".opencode/prompts/deepseek-helper.md",
@@ -2915,7 +2916,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 587,
+      "file_count": 588,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -2993,6 +2994,7 @@
         "scripts/backup-restore.sh",
         "scripts/batch-gap-analysis.sh",
         "scripts/batch-workflow-gen.sh",
+        "scripts/bge-mcp/bge-mcp.service",
         "scripts/bge-mcp/server.mjs",
         "scripts/brain-auto-memory-export.sh",
         "scripts/brain-auto-memory-scan.sh",

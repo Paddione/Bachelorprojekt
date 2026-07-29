@@ -2664,6 +2664,42 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/document-tokens-only",
+    "file": "tests/spec/sdlc-cockpit/document-tokens-only.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/kit-artifacts-exist",
+    "file": "tests/spec/sdlc-cockpit/kit-artifacts-exist.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/kit-binding",
+    "file": "tests/spec/sdlc-cockpit/kit-binding.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/no-direct-fetch",
+    "file": "tests/spec/sdlc-cockpit/no-direct-fetch.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/panel-type-declaration",
+    "file": "tests/spec/sdlc-cockpit/panel-type-declaration.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/rail-representation",
+    "file": "tests/spec/sdlc-cockpit/rail-representation.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sealed-secret-cluster-drift",
     "file": "tests/spec/sealed-secret-cluster-drift.bats",
     "category": "sealed-secret-cluster-drift",

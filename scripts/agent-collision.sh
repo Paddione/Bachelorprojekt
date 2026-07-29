@@ -120,6 +120,8 @@ cmd_check() {
     [ -n "$peer" ] || continue
     while IFS= read -r file; do
       [ -n "$file" ] || continue
+      # M9: Datei muss im Peer existieren — Dateisystem ODER im Git-Index
+      if [ ! -f "$wt/$file" ] && ! git -C "$wt" ls-files -- "$file" >/dev/null 2>&1; then continue; fi
       # Squash-Merge: die Peer-Commits sind keine Ancestors von main, main...HEAD listet die
       # Datei weiter — aber wenn der Blob identisch ist, ist nichts mehr offen.
       # Fehlschlagende rev-parse (Datei in main nicht vorhanden) => behalten, nicht verwerfen.
@@ -127,8 +129,14 @@ cmd_check() {
       # hat (sonst waere HEAD:file == main:file obwohl der Peer aktiv aendert). [T002444]
       peer_blob="$(git -C "$wt" rev-parse "HEAD:$file" 2>/dev/null || true)"
       main_blob="$(git rev-parse "main:$file" 2>/dev/null || true)"
-      if [ -n "$peer_blob" ] && [ "$peer_blob" = "$main_blob" ] && \
+      if [ "$peer_blob" = "$main_blob" ] && \
          ! git -C "$wt" diff --name-only HEAD -- "$file" 2>/dev/null | grep -q . && \
+         ! git -C "$wt" diff --cached --name-only -- "$file" 2>/dev/null | grep -q .; then
+        continue
+      fi
+
+      # M7: committed only → kein Alarm. Nur uncommitted → Alarm.
+      if ! git -C "$wt" diff --name-only HEAD -- "$file" 2>/dev/null | grep -q . && \
          ! git -C "$wt" diff --cached --name-only -- "$file" 2>/dev/null | grep -q .; then
         continue
       fi

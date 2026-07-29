@@ -200,6 +200,13 @@ _unset_claude_harness_env() {
 
 @test "T002261-M1: cmd_release emits stderr diagnostic on SID mismatch" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  # [T002456] Harness-Variablen abbauen: eine aktive Claude-Code-Session exportiert
+  # CLAUDE_CODE_SESSION_ID und CLAUDECODE real, was die Tool-Klassen-Ableitung
+  # beeinflusst. Ohne diesen Aufruf schlägt `_detect_tool` in _write_lock auf "claude"
+  # statt "gemini" — der Lock wird mit tool=claude angelegt, was den Same-Tool-Fallback
+  # triggert (selbst wenn T002447 ihn aus cmd_release entfernt hat, bleibt die Pfad-Abhängigkeit
+  # in _write_lock bestehen und der Lock-Content spiegelt die falsche Tool-Klasse).
+  _unset_claude_harness_env
   # Claim the lock with explicit SID + tool (AGENT_LOCK_TOOL overrides ambient)
   AGENT_LOCK_TOOL=claude AGENT_LOCK_SID="session-A" \
     bash "$LOCK" claim ticket T002261-m1 --label test-release
@@ -417,6 +424,12 @@ JSON
 
 @test "T002373-M2: cmd_release verweigert Release ohne --force wenn owner SID lebt" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  # [T002456] Harness-Variablen abbauen: analog T002261-M1 oben — ambient exportiertes
+  # CLAUDE_CODE_SESSION_ID würde in _write_lock die falsche Tool-Klasse hinterlassen,
+  # und in _my_sid via AGENT_LOCK_SID_ENVS die owner_sid auf den Harness-Wert statt
+  # den Test-Override setzen. Die Priority-Order (AGENT_LOCK_SID zuerst) schützt
+  # _my_sid, aber _unset_claude_harness_env macht die Isolation explizit.
+  _unset_claude_harness_env
   export AGENT_LOCK_FAKE_ALIVE="ghost-sid-99999"
   # Claim as "ghost-sid-99999" (marked alive via fake), with explicit tool
   AGENT_LOCK_TOOL=claude AGENT_LOCK_SID="ghost-sid-99999" \

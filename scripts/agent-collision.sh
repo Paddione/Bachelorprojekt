@@ -72,7 +72,13 @@ cmd_check() {
     own="$(printf '%s\n%s\n' "$own" "$(git diff --name-only HEAD 2>/dev/null)")"
   fi
   if [ "$mode" = "branch" ]; then
-    own="$( { git diff --name-only main...HEAD 2>/dev/null; \
+    # [T002455] origin/main statt main: der lokale main-Ref kann hinter origin/main liegen,
+    # sodass main...HEAD eine zu alte Merge-Base verwendet. Ein Peer-Worktree auf aktuellem
+    # origin/main zeigt dann alle zwischenzeitlich gemergten Commits als vermeintlich eigene
+    # Änderungen — Fehlalarme. Fallback auf main bei detached HEAD / fehlendem Remote.
+    local base_ref="main"
+    git rev-parse --verify origin/main >/dev/null 2>&1 && base_ref="origin/main"
+    own="$( { git diff --name-only "${base_ref}...HEAD" 2>/dev/null; \
               git diff --name-only HEAD 2>/dev/null; \
               git diff --cached --name-only 2>/dev/null; } | sed '/^$/d' | sort -u )"
   fi
@@ -102,9 +108,12 @@ cmd_check() {
     [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] || continue
     git -C "$wt" rev-parse --git-dir >/dev/null 2>&1 || continue
     # Drei-Punkt gegen den Merge-Base: nur was DIESER Branch geaendert hat.
-    # Schlaegt die Aufloesung von main fehl (detached HEAD, fehlender Branch), entfaellt
+    # [T002455] origin/main statt main (analog own-Seite oben), Fallback auf main.
+    # Schlaegt die Aufloesung fehl (detached HEAD, fehlender Branch), entfaellt
     # nur der committete Anteil — der Working-Tree-Anteil laeuft weiter (fail-open).
-    peer="$( { git -C "$wt" diff --name-only main...HEAD 2>/dev/null; \
+    local peer_base="main"
+    git -C "$wt" rev-parse --verify origin/main >/dev/null 2>&1 && peer_base="origin/main"
+    peer="$( { git -C "$wt" diff --name-only "${peer_base}...HEAD" 2>/dev/null; \
                git -C "$wt" diff --name-only HEAD 2>/dev/null; \
                git -C "$wt" diff --cached --name-only 2>/dev/null; } | sed '/^$/d' | sort -u )"
     peer="$(_drop_generated "$peer")"

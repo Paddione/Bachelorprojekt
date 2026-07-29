@@ -2208,6 +2208,12 @@
     "kind": "shell"
   },
   {
+    "id": "divergence-guard/branch-name-guard",
+    "file": "tests/spec/divergence-guard/branch-name-guard.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
     "id": "docker-build-speedup",
     "file": "tests/spec/docker-build-speedup.bats",
     "category": "docker-build-speedup",

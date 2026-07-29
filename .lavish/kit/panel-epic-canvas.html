@@ -1,0 +1,11 @@
+<!-- panel-epic-canvas.html — K5 Epic-Canvas Panel -->
+<link rel="stylesheet" href="panel-epic-canvas.css" />
+<div id="epic-canvas-root" class="epic-canvas"></div>
+<script type="module">
+  import { EpicCanvas } from './panel-epic-canvas.js';
+  const root = document.getElementById('epic-canvas-root');
+  const canvas = new EpicCanvas(root, {
+    fullscreen: window.location.hash === '#fullscreen'
+  });
+  window.__epicCanvas = canvas;
+</script>

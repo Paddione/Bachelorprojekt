@@ -55,6 +55,7 @@ The system SHALL allow exactly one tool round: tool calls are executed and the r
   4. Enthält die Antwort erneut `tool_calls` → wird ignoriert, die letzte Antwort ohne Tool-Call wird verwendet
 
 ### Non-Goals
-
+- Keine mehrstufige Agentenschleife
+- Keine persistenten Tool-Sessions
 - Keine mehrstufige Agentenschleife
 - Keine persistenten Tool-Sessions

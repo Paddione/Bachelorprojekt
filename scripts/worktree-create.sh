@@ -30,6 +30,69 @@
 #   1  any other setup failure (the half-created worktree is rolled back)
 set -euo pipefail
 
+# --- branch-name guard: fail fast before divergence guard [T002470] ---
+#
+# Background: T002240 (same bug, fixed only in scripts/factory/auto-chore-plan.sh),
+# T002409 Mishap 2 (repeat with feat/), and measured 2026-07-29:
+# 4 of 13 active worktrees had non-conforming branches.
+#
+# Why duplicated and not extracted to scripts/lib/: the pre-commit hook has no
+# dependency on a repo file today, and a missing lib file would block every commit.
+# Three drift-tests in tests/spec/divergence-guard/branch-name-guard.bats ensure
+# both implementations stay in sync.
+#
+# Exemptions and patterns are literal copies from .githooks/pre-commit (lines 120-156).
+if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
+  _bn="${1:-}"
+  if [ -n "$_bn" ]; then
+    case "$_bn" in
+      main|develop|master|release-please--*|dependabot/*|renovate/*) ;;
+      *)
+        _has_ticket=0
+        _has_type=0
+        [[ "$_bn" =~ ^feature/|^fix/|^chore/|^docs/ ]] && _has_type=1
+        [[ "$_bn" =~ T[0-9]{6,} ]] && _has_ticket=1
+        if [ "$_has_type" -eq 0 ] || [ "$_has_ticket" -eq 0 ]; then
+          echo "✗  worktree-create: branch '$_bn' does not follow naming convention." >&2
+          echo "" >&2
+          [ "$_has_type" -eq 0 ] && \
+            echo "  ✗ kein gueltiges Typ-Praefix. Erlaubt: feature/ fix/ chore/ docs/" >&2
+          if [ "$_has_ticket" -eq 0 ]; then
+            _found_lower=""
+            [[ "$_bn" =~ t([0-9]{6,}) ]] && _found_lower="${BASH_REMATCH[1]}"
+            echo "  ✗ keine Ticket-ID (T[0-9]{6,}) gefunden. Muss GROSS sein${_found_lower:+ — t$_found_lower → T$_found_lower}." >&2
+          fi
+          echo "" >&2
+          echo "  Required: type/<slug>-T000XXX" >&2
+          echo "  Examples:" >&2
+          echo "    feature/flux-gaps-brainless-T002093" >&2
+          echo "    fix/pocket-id-retry-T001234" >&2
+          echo "    chore/deps-bump-T001500" >&2
+          # Build suggested correction (lowercase ticket ID + feat/ → feature/)
+          _suggested="$_bn"
+          _suggested_changed=0
+          if [[ "$_suggested" =~ ^feat/ ]]; then
+            _suggested="feature/${_suggested#feat/}"
+            _suggested_changed=1
+          fi
+          if [[ "$_suggested" =~ (.*)t([0-9]{6,})(.*) ]]; then
+            _suggested="${BASH_REMATCH[1]}T${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+            _suggested_changed=1
+          fi
+          if [ "$_suggested_changed" -eq 1 ]; then
+            echo "" >&2
+            echo "  Suggested: $_suggested" >&2
+          fi
+          echo "" >&2
+          echo "  Why: ticket ID links WIP to its ticket and subsequent PR." >&2
+          echo "  To bypass (emergency only): WT_SKIP_NAME_CHECK=1 bash $0 ..." >&2
+          exit 1
+        fi
+        ;;
+    esac
+  fi
+fi
+
 # T001302/T001332: Divergence guard — auto-sync if local main is behind origin/main,
 # reject if truly diverged.
 # Only fires when origin/main exists (e.g. real upstream repos), so BATS tests with

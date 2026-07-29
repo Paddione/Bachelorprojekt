@@ -412,6 +412,7 @@
         "tests/spec/merge-arbitration/detect-threshold.bats",
         "tests/spec/merge-arbitration/synthesize-syntax-gate.bats",
         "tests/spec/mishap-bundle-2026-06-30.bats",
+        "tests/spec/mishap-categorize-erden.bats",
         "tests/spec/mishap-t002422.bats",
         "tests/spec/monitoring-alerts.bats",
         "tests/spec/newsletter-system.bats",

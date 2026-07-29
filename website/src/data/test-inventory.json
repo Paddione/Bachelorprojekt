@@ -2364,6 +2364,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals-erden",
+    "file": "tests/spec/health-goals-erden.bats",
+    "category": "health-goals-erden",
+    "kind": "shell"
+  },
+  {
     "id": "hermes-mcp-access",
     "file": "tests/spec/hermes-mcp-access.bats",
     "category": "hermes-mcp-access",

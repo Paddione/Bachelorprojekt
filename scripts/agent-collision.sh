@@ -105,6 +105,7 @@ cmd_check() {
     sid="$(_field "$f" owner_sid)"
     pid="$(_field "$f" owner_pid)"
     [ -n "$pid" ] && [ "$pid" = "$$" ] && continue
+    [ "$sid" = "$mysid" ] && continue
     _sid_alive "$sid" || continue
     wt="$(_field "$f" worktree)"
     [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] || continue

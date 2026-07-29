@@ -204,7 +204,7 @@ fi
 #    on git-crypt paths.
 # === T002471-M4: Branch-Name-Guard ===
 # Prüft, ob die Ticket-ID im Branch-Namen gross geschrieben ist
-_ticket_id=$(echo "$BRANCH" | grep -oE '[tT][0-9]{6,}' | head -1)
+_ticket_id=$(echo "$BRANCH" | grep -oE '[tT][0-9]{6,}' | head -1 || true)
 if [[ -n "$_ticket_id" && "$_ticket_id" != "${_ticket_id^^}" ]]; then
   echo "ERROR: Ticket-ID im Branch-Namen '$BRANCH' ist kleingeschrieben." >&2
   echo "  Verwende ${_ticket_id^^} statt $_ticket_id." >&2

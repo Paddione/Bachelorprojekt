@@ -140,6 +140,7 @@ if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
             echo "  ✗ kein gueltiges Typ-Praefix. Erlaubt: feature/ fix/ chore/ docs/" >&2
           [ "$_has_ticket" -eq 0 ] && \
             echo "  ✗ keine Ticket-ID gefunden. Sie muss GROSS geschrieben sein: T002338, nicht t002338." >&2
+           echo "  Fix: git branch -m $(git rev-parse --abbrev-ref HEAD) $(git rev-parse --abbrev-ref HEAD | sed 's/t[0-9]\{6,\}/T&/')"
           echo "" >&2
           echo "  Required: type/<slug>-T000XXX" >&2
           echo "  Examples:" >&2

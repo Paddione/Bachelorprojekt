@@ -202,6 +202,15 @@ fi
 
 # 1) Skeleton without checkout — never runs the smudge filter, so it cannot fail
 #    on git-crypt paths.
+# === T002471-M4: Branch-Name-Guard ===
+# Prüft, ob die Ticket-ID im Branch-Namen gross geschrieben ist
+_ticket_id=$(echo "$BRANCH" | grep -oE '[tT][0-9]{6,}' | head -1)
+if [[ -n "$_ticket_id" && "$_ticket_id" != "${_ticket_id^^}" ]]; then
+  echo "ERROR: Ticket-ID im Branch-Namen '$BRANCH' ist kleingeschrieben." >&2
+  echo "  Verwende ${_ticket_id^^} statt $_ticket_id." >&2
+  exit 1
+fi
+# === Ende T002471-M4 ===
 if [ "$BRANCH_EXISTS" -eq 1 ]; then
     # Existing branch: fetch it so the local ref is current, then check it out.
     git fetch --quiet origin "$BRANCH" 2>/dev/null || true

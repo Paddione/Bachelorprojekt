@@ -26,6 +26,8 @@ if ! bash "$repo_root/scripts/check-commit-vs-diff.sh" "$1"; then
   echo "" >&2
   echo "💡 Hint: use 'test(red):' for RED-only test commits or" >&2
   echo "         'chore(plan):' for plan-only commits." >&2
+  echo "" >&2
+  echo "No commit was created — commit-msg hook rejected the message (commit-vs-diff check)." >&2
   exit 1
 fi
 
@@ -45,5 +47,7 @@ if ! bash "$repo_root/scripts/validate-commit-msg.sh" message "$1"; then
   echo "" >&2
   echo "💡 Erlaubte Scopes: bash scripts/validate-commit-msg.sh scopes" >&2
   echo "   Ticket-Scopes (T000123) und Health-Goal-Scopes (G-SIZE02) sind immer gueltig." >&2
+  echo "" >&2
+  echo "No commit was created — commit-msg hook rejected the message (conventional-commit format check)." >&2
   exit 1
 fi

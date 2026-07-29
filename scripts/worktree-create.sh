@@ -101,12 +101,17 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   if ! git merge-base --is-ancestor origin/main main 2>/dev/null; then
     if git merge-base --is-ancestor main origin/main 2>/dev/null; then
       echo "worktree-create: local main is behind origin/main — fast-forwarding..." >&2
+      CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
+      if [ "$CURRENT_BRANCH" != "main" ]; then
+        echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgeführt werden." >&2
+        echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
+        exit 1
+      fi
       _needs_pop=false
       if ! git diff --quiet HEAD 2>/dev/null; then
         git stash push -m "worktree-create-auto-stash" 2>/dev/null || true
         _needs_pop=true
       fi
-      CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
       if [ "$CURRENT_BRANCH" = "main" ]; then
         git pull --rebase origin main 2>/dev/null || {
           echo "FATAL: auto-sync failed — could not pull origin/main into main." >&2

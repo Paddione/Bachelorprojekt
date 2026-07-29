@@ -4,7 +4,18 @@
 set -u
 
 TICKET_ID="${1:-}"
-MERGE_COMMIT=$(git log origin/main -1 --format="%H")
+if [[ -z "$TICKET_ID" ]]; then
+  echo "FEHLER: TICKET_ID erforderlich — Usage: devflow-post-merge-deploy.sh T00XXXX" >&2
+  exit 2
+fi
+# T002448-M9/M10: Finde den Merge-Commit durch Ticket-ID-Match auf main,
+# nicht durch blindes `git log -1`. Bei mehreren intervenierenden Commits
+# zwischen Merge und HEAD liefert `-1` den falschen Commit.
+MERGE_COMMIT=$(git log origin/main --format="%H %s" --grep="\\[${TICKET_ID}\\]" --merges -1 2>/dev/null | awk '{print $1}')
+if [[ -z "$MERGE_COMMIT" ]]; then
+  echo "FEHLER: Kein Merge-Commit fuer Ticket ${TICKET_ID} auf origin/main gefunden." >&2
+  exit 3
+fi
 # Generierte Artefakte (linguist-generated in .gitattributes) aus der Deploy-Routing-
 # Selektion nehmen: website/src/data/openspec-status.json & Co. liegen im Merge-Diff jedes
 # Changes mit OpenSpec-Artefakt und loesten sonst einen Deploy ohne Website-Bezug aus

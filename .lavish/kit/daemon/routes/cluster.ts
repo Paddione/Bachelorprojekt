@@ -1,30 +1,25 @@
-// routes/cluster.ts — STUB handlers for /api/admin/cluster/*
-// Real data sources in p2 (kubectl)
+// routes/cluster.ts — Real data sources (p2)
 import type { Context } from 'hono';
-import { getCached, setCache } from '../lib/cache';
+import { setCache } from '../lib/cache';
+import { getPods, getWarnings } from '../sources/kubectl';
 
 export async function podsListHandler(c: Context) {
+  const ns = c.req.query('namespace') || undefined;
   try {
-    // STUB: In p2 durch kubectl get pods ersetzen
-    const data = {
-      pods: [
-        { name: 'stub-pod-1', namespace: 'workspace', status: 'Running', restarts: 0, age: '2026-07-28T12:00:00Z' },
-      ],
-    };
-    const entry = setCache('pods-all', data, 30_000);
+    const data = await getPods(ns);
+    const entry = setCache(`pods-${ns||'all'}`, data, 30_000);
     return c.json({ ...data, fetchedAt: entry.fetchedAt });
   } catch (e: any) {
-    return c.json({ error: e.message, fetchedAt: new Date().toISOString() });
+    const entry = setCache(`pods-${ns||'all'}`, null as any, 30_000, e.message);
+    return c.json({ error: e.message, fetchedAt: entry.fetchedAt, staleSince: entry.staleSince });
   }
 }
 
 export async function warningsHandler(c: Context) {
   try {
-    // STUB: In p2 durch echte Cluster-Warnings ersetzen
-    return c.json({
-      warnings: [],
-      fetchedAt: new Date().toISOString(),
-    });
+    const warnings = await getWarnings();
+    const entry = setCache('warnings', warnings, 30_000);
+    return c.json({ warnings, fetchedAt: entry.fetchedAt });
   } catch (e: any) {
     return c.json({ error: e.message, fetchedAt: new Date().toISOString() });
   }

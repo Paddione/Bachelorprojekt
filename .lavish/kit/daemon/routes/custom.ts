@@ -1,16 +1,23 @@
-// routes/custom.ts — STUB handlers for /api/cockpit/{agents,ci,models}
-// Real data in p2 (agent-lock, gh-axi, model-health)
+// routes/custom.ts — Real data sources (p2)
 import type { Context } from 'hono';
-import { getCached, setCache } from '../lib/cache';
+import { setCache } from '../lib/cache';
+import { getAgentSessions } from '../sources/agent-lock';
+import { getSessions } from '../sources/opencode-db';
+import { getCIRuns } from '../sources/gh-axi';
+import { checkModels } from '../sources/model-health';
 
 export async function agentsHandler(c: Context) {
   try {
-    // STUB: In p2 durch agent-lock.sh list ersetzen
-    const agents = [
-      { sid: 'stub-session', label: 'p2-implementation-needed', ticket: '', status: 'stub' },
-    ];
-    const entry = setCache('agents', agents, 15_000);
-    return c.json({ agents, fetchedAt: entry.fetchedAt });
+    const [agents, sessions] = await Promise.all([
+      getAgentSessions(),
+      getSessions().catch(() => []),
+    ]);
+    const merged = agents.map(a => {
+      const s = sessions.find(s => s.ticket_id === a.ticket);
+      return { ...a, worktree: s?.worktree || a.worktree, last_active: s?.status };
+    });
+    const entry = setCache('agents', merged, 15_000);
+    return c.json({ agents: merged, fetchedAt: entry.fetchedAt });
   } catch (e: any) {
     return c.json({ error: e.message, fetchedAt: new Date().toISOString() });
   }
@@ -18,8 +25,7 @@ export async function agentsHandler(c: Context) {
 
 export async function ciHandler(c: Context) {
   try {
-    // STUB: In p2 durch gh-axi run list ersetzen
-    const runs: any[] = [];
+    const runs = await getCIRuns();
     const entry = setCache('ci', runs, 120_000);
     return c.json({ runs, fetchedAt: entry.fetchedAt });
   } catch (e: any) {
@@ -29,10 +35,7 @@ export async function ciHandler(c: Context) {
 
 export async function modelsHandler(c: Context) {
   try {
-    // STUB: In p2 durch model-health.ts ersetzen
-    const models = [
-      { name: 'gemma-4-12b', port: 8091, status: 'unknown' },
-    ];
+    const models = await checkModels();
     const entry = setCache('models', models, 30_000);
     return c.json({ models, fetchedAt: entry.fetchedAt });
   } catch (e: any) {

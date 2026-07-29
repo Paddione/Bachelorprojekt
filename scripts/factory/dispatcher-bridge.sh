@@ -54,6 +54,8 @@ for row in "${launch_rows[@]}"; do
   [[ -z "$slug" ]] && slug="sf-$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')"
   dry_run_val="$(echo "$row" | jq -r '.dry_run // false')"
   [[ "$DRY_RUN" == "true" ]] && dry_run_val=true
+  attempt="$(echo "$row" | jq -r '.attempt // 1')"
+  model_tier="$(echo "$row" | jq -r '.model_tier // "flash"')"
 
   # Budget guard
   if ! BRAND="$brand" bash "$HERE/budget-guard.sh" "$brand" 2>/dev/null; then
@@ -65,7 +67,7 @@ for row in "${launch_rows[@]}"; do
   # Budget estimate (non-fatal)
   BRAND="$brand" bash "$HERE/budget-estimate.sh" "$ext_id" "$brand" 2>/dev/null || true
 
-  echo "dispatcher-bridge: launching pipeline for $ext_id ($brand)" >&2
+  echo "dispatcher-bridge: launching pipeline for $ext_id ($brand) tier=${model_tier} attempt=${attempt}" >&2
 
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "dispatcher-bridge: DRY RUN — would launch pipeline for $ext_id" >&2
@@ -103,6 +105,8 @@ Invoke the Workflow tool with these exact arguments to run the pipeline:
     slug:\"${slug}\",
     timestamp:\"${TIMESTAMP}\",
     dry_run:${dry_run_val},
+    attempt:${attempt},
+    model_tier:\"${model_tier}\",
     branch:$(if [[ -n "$branch" ]]; then echo "\"${branch}\""; else echo 'null'; fi),
     plan_path:$(if [[ -n "$plan_path" ]]; then echo "\"${plan_path}\""; else echo 'null'; fi)
   })

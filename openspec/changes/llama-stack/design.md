@@ -59,7 +59,9 @@ Migration, weil kein Registry-Change nötig ist, solange beide neuen Gemma-Loado
 
 ### D1 — Zwei Loadout-Slugs statt eines Modus-Parameters
 
-`gemma-factory` (`-np 1 -c 65536`) und `gemma-multiagent` (`-np 5 -c 200000 -kvu`) sind zwei
+`gemma-factory` (`-np 1 -c 65536`) und `gemma-multiagent` (`-np 5 -c 200000`, plus explizites
+`extraArgs: ["-kvu"]` — `runner.mjs` setzt `-kvu` NICHT automatisch bei `parallel>1`, Korrektur
+ggü. der ursprünglichen Annahme, Befund aus den Task-Partials P3/P5) sind zwei
 eigenständige Einträge in `loadouts.json`, beide an Port 8091. Der bestehende `portInUse()`-Check
 in `server.mjs` verhindert bereits, dass zwei Loadouts denselben Port gleichzeitig belegen — ein
 Start von `gemma-multiagent` schlägt mit 409 fehl, solange `gemma-factory` läuft, und umgekehrt.

@@ -53,10 +53,10 @@ schließender Kommentar) — **es gibt keinen `ticket_id`-FK auf PRs**.
 
 **⚠️ DoR ≠ das Factory-Gate.** Die vier DoR-Flags (`spec_skizziert`,
 `offene_fragen_geklaert`, `abhaengigkeiten_klar`, `aufwand_geschaetzt`) ergeben `dorScore = 4` —
-aber `scripts/factory/queue.sh` dispatcht nur `type='feature' AND status='backlog'` mit
+aber `scripts/factory/queue.sh` dispatcht nur `type='feat' AND status='backlog'` mit
 `readiness.lastenheft_locked = true`, einem **fünften, separaten** Flag. Ein Ticket kann
 `dorScore = 4` haben und trotzdem unsichtbar im Backlog verrotten, wenn niemand
-`ticket.sh lastenheft lock --id <id>` ausgeführt hat. Wer hier ein `type='feature'`-Ticket nach
+`ticket.sh lastenheft lock --id <id>` ausgeführt hat. Wer hier ein `type='feat'`-Ticket nach
 `backlog` bewegt, füllt im **selben** Durchgang `requirements_list` und setzt den Lock — dieser
 Schritt wird nicht auf später vertagt.
 

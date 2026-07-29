@@ -73,6 +73,8 @@ data:
   WHISPER_URL: "http://whisper.${WORKSPACE_NAMESPACE}.svc.cluster.local:8000"
   # LLM (local-first pipeline — chat via Windows LM Studio, embed via TEI)
   LLM_EMBED_URL: "${LLM_EMBED_URL}"
+  LLM_EMBED_BATCH_URL: "${LLM_EMBED_BATCH_URL}"
+  LLM_RERANKER_BATCH_URL: "${LLM_RERANKER_BATCH_URL}"
   LLM_ENABLED: "${LLM_ENABLED}"
   LLM_RERANK_ENABLED: "${LLM_RERANK_ENABLED}"
   # KORE-Assistent (no-LLM keyword-search mode for now)

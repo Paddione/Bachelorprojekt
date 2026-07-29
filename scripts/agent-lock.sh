@@ -13,7 +13,7 @@
 # Storage: one JSON file per claim under $AGENT_LOCK_DIR (default the shared
 # gitdir's agent-locks/, so all worktrees share it). Never committed.
 #
-# Test overrides: AGENT_LOCK_DIR, AGENT_LOCK_SID, AGENT_LOCK_FAKE_ALIVE.
+# Test overrides: AGENT_LOCK_DIR, AGENT_LOCK_SID, AGENT_LOCK_FAKE_ALIVE, AGENT_LOCK_TOOL.
 set -uo pipefail
 
 AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"
@@ -353,8 +353,7 @@ cmd_claim() {
 cmd_refresh() {
   SCOPE="$1"; ID="${2:-}"; local f; f="$(_lock_file "$SCOPE" "$ID")"
   [ -f "$f" ] || return 1
-  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || \
-  [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ] || return 1
+  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || return 1
   LABEL="$(_lock_field "$f" label)"; WT="$(_lock_field "$f" worktree)"
   BRANCH="$(_lock_field "$f" branch)"; TICKET="$(_lock_field "$f" ticket)"
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
@@ -367,8 +366,12 @@ cmd_release() {
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
   local owner_sid; owner_sid="$(_lock_field "$f" owner_sid)"
-  # [T002373-M2] [T002374] Auto-release if owner SID is dead; same-tool fallback.
-  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; } || [ "$(_lock_field "$f" tool)" = "$(_detect_tool)" ]; then
+  # [T002373-M2] Auto-release nur bei eigenem Lock oder totem Owner. Gleiche Tool-Klasse
+  # berechtigt NICHT: im Betrieb melden alle beteiligten Sessions dieselbe Klasse, der
+  # Ownership-Check waere damit wirkungslos. Der Fallback aus T002374 war ein Workaround
+  # gegen SID-Drift pro Bash-Call — diese Ursache ist seit T002375-p1 behoben. [T002447]
+  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] \
+     || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
     rm -f "$f"; return 0
   fi
   echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2
@@ -486,7 +489,8 @@ _AGENT_LOCK_DIR_SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # 500 Zeilen bleibt (guards: T002214, merged/check-merged: T002279).
 # shellcheck source=scripts/agent-lock-guards.sh
 # shellcheck source=scripts/agent-lock-merged.sh
-for _agent_lock_frag in agent-lock-guards.sh agent-lock-merged.sh; do
+# shellcheck source=scripts/agent-lock-identity.sh
+for _agent_lock_frag in agent-lock-identity.sh agent-lock-guards.sh agent-lock-merged.sh; do
   [ -f "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag" ] || {
     echo "AGENT-LOCK: FATAL — scripts/$_agent_lock_frag fehlt neben $0" >&2; exit 1; }
   . "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag"

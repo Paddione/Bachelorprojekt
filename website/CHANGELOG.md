@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.228.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.227.0...website-v1.228.0) (2026-07-29)
+
+
+### Features
+
+* **website:** Lavish Design-Kit & Panel-Kontrakt K1 [T002460] ([#3518](https://github.com/Paddione/Bachelorprojekt/issues/3518)) ([f49fead](https://github.com/Paddione/Bachelorprojekt/commit/f49fead165d5b586a0b0eef8c26cf49f8b430945))
+
+
+### Bug Fixes
+
+* **agents:** same-tool-Fallback entfernt, Identität extrahiert, AGENT_LOCK_TOOL [T002447] ([#3515](https://github.com/Paddione/Bachelorprojekt/issues/3515)) ([f62b893](https://github.com/Paddione/Bachelorprojekt/commit/f62b893b57692222548dc29eb591233f0d25e08d))
+
 ## [1.227.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.226.2...website-v1.227.0) (2026-07-28)
 
 

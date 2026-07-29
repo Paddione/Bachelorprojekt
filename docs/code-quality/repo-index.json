@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 638,
+      "file_count": 639,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -456,6 +456,7 @@
         "tests/spec/s1-violations-batch2.bats",
         "tests/spec/s1-violations.bats",
         "tests/spec/s2-cycles-g-cq07.bats",
+        "tests/spec/scout-llm-fallback-erden.bats",
         "tests/spec/scout-prediction-quality.bats",
         "tests/spec/sdlc-cockpit/document-tokens-only.bats",
         "tests/spec/sdlc-cockpit/kit-artifacts-exist.bats",

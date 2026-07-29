@@ -1,4 +1,4 @@
-# Spec Delta: release-notes-erden
+## ADDED Requirements
 
 ### Requirement: Release notes generator enriches LLM prompt with ticket context
 

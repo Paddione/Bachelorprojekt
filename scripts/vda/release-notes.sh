@@ -41,6 +41,30 @@ _get_last_tag() {
   echo "$tag"
 }
 
+_ticket_context() {
+  # Extract ticket ID from PR title [T00XXXX] and look up type/areas/description
+  # from the database. Falls back to empty string on any failure.
+  local title="$1" tid
+  if [[ "$title" =~ \[(T[0-9]{6})\] ]]; then
+    tid="${BASH_REMATCH[1]}"
+    # Try vda ticket get first, then psql fallback
+    local ticket_json
+    if command -v vda.sh &>/dev/null; then
+      ticket_json=$("${SCRIPT_DIR}/vda.sh" ticket get --id "$tid" --json 2>/dev/null || true)
+    fi
+    if [[ -z "$ticket_json" ]] && command -v psql &>/dev/null; then
+      ticket_json=$(psql -t -A -h "${PGHOST:-localhost}" -p "${PGPORT:-5432}" \
+        -d "${PGDATABASE:-bachelorprojekt}" -U "${PGUSER:-postgres}" \
+        -c "SELECT json_build_object('type', type, 'areas', areas, 'description', left(description,200)) FROM tickets.tickets WHERE external_id='$tid'" 2>/dev/null || true)
+    fi
+    if [[ -n "$ticket_json" ]]; then
+      echo "$ticket_json"
+      return 0
+    fi
+  fi
+  return 1
+}
+
 _get_tag_date() {
   local tag="$1"
   git log -1 --format=%cI "$tag" 2>/dev/null || date -Iseconds
@@ -137,10 +161,22 @@ _build_deterministic_notes() {
       local pr_num
       pr_num=$(jq -r ".[$i].number" <<<"$prs_json" 2>/dev/null || echo "?")
       if [[ -n "$title" ]]; then
-        local typ section
-        typ=$(_detect_type "$title")
-        section=$(_ensure_type_key "$typ")
-        _append "$section" "- ${title} (#${pr_num})"
+        local ticket_context typ section
+        ticket_context=$(_ticket_context "$title")
+        if [[ -n "$ticket_context" ]]; then
+          typ=$(jq -r '.type // "chore"' <<<"$ticket_context" 2>/dev/null || echo "chore")
+          local areas desc
+          areas=$(jq -r '.areas // ""' <<<"$ticket_context" 2>/dev/null || echo "")
+          desc=$(jq -r '.description // ""' <<<"$ticket_context" 2>/dev/null || echo "")
+          section=$(_ensure_type_key "$typ")
+          local line="- ${title} (#${pr_num})"
+          [[ -n "$areas" ]] && line+=" [${areas}]"
+          _append "$section" "$line"
+        else
+          typ=$(_detect_type "$title")
+          section=$(_ensure_type_key "$typ")
+          _append "$section" "- ${title} (#${pr_num})"
+        fi
       fi
       i=$((i + 1))
     done

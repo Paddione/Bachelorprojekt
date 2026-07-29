@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.229.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.228.0...website-v1.229.0) (2026-07-29)
+
+
+### Features
+
+* **factory:** Eskalationsleiter gemma→deepseek-flash→deepseek-pro [T002369] ([#3528](https://github.com/Paddione/Bachelorprojekt/issues/3528)) ([749e252](https://github.com/Paddione/Bachelorprojekt/commit/749e252846273b351b762078c58758280ab4e2cb))
+* **factory:** Mishap-Tracker Rollup — Incident-Typ + Container-Recycling [T002407] ([#3527](https://github.com/Paddione/Bachelorprojekt/issues/3527)) ([02079c1](https://github.com/Paddione/Bachelorprojekt/commit/02079c1dfa499979e8fd20528a5ca649ce82c378))
+* **scripts:** erden health-goals-llm-fill [T002402] ([#3540](https://github.com/Paddione/Bachelorprojekt/issues/3540)) ([d17feba](https://github.com/Paddione/Bachelorprojekt/commit/d17feba2e79b12c7eaebb4dfb8da40bd32223053))
+* **scripts:** Mishap-Bundle — 10 Fixes für Scripts, Tests, Docs [T002469] ([#3531](https://github.com/Paddione/Bachelorprojekt/issues/3531)) ([6974c80](https://github.com/Paddione/Bachelorprojekt/commit/6974c80ad3b3c0de474fefd7ae048fdbce039f52))
+* **scripts:** Mishap-Bundle — agent-lock force-claim + Docs-Fixes [T002454] ([#3532](https://github.com/Paddione/Bachelorprojekt/issues/3532)) ([60a5632](https://github.com/Paddione/Bachelorprojekt/commit/60a56322643c2879c9d64f0e78ab728d77f36f1d))
+* **scripts:** mishap-categorize erden — bestehende Kategorien als LLM-Prompt-Kontext [T002401] ([#3536](https://github.com/Paddione/Bachelorprojekt/issues/3536)) ([7587059](https://github.com/Paddione/Bachelorprojekt/commit/75870593f7bfac6668844fe15c590d40b30d7688))
+
+
+### Bug Fixes
+
+* **plans:** archive stale Erden changes and fix broken spec headers [T002471] ([cea547b](https://github.com/Paddione/Bachelorprojekt/commit/cea547b56ba3d6c72fc3dfd57e2711cffd8b3fbc))
+* **scripts:** Branch-Namens-Guard in worktree-create.sh vor Divergence-Guard [T002470] ([#3525](https://github.com/Paddione/Bachelorprojekt/issues/3525)) ([99e54e6](https://github.com/Paddione/Bachelorprojekt/commit/99e54e6af133c034cf5f6666fc9966a9aef44606))
+* **scripts:** plan-context summary mode + --full flag [T002322] ([#3537](https://github.com/Paddione/Bachelorprojekt/issues/3537)) ([e898a41](https://github.com/Paddione/Bachelorprojekt/commit/e898a41ee4df2b6452f3b1f8b3e0b1b56520873a))
+
+
+### Tests
+
+* **test:** W3 partial-mode regression test for line-suffix refs [T002342] ([#3507](https://github.com/Paddione/Bachelorprojekt/issues/3507)) ([86b223e](https://github.com/Paddione/Bachelorprojekt/commit/86b223e2ae52b6c2e22827477282412b0152255e))
+
 ## [1.228.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.227.0...website-v1.228.0) (2026-07-29)
 
 

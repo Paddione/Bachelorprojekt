@@ -1619,6 +1619,12 @@
       "status": "archived"
     }
   ],
+  "T002250": [
+    {
+      "slug": "mishap-docker-wsl-T002250",
+      "status": "plan_staged"
+    }
+  ],
   "T002251": [
     {
       "slug": "2026-07-27-flux-bootstrap-sealedsecrets",

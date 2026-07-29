@@ -2508,6 +2508,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-docker-wsl-T002250",
+    "file": "tests/spec/mishap-docker-wsl-T002250.bats",
+    "category": "mishap-docker-wsl-T002250",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-t002422",
     "file": "tests/spec/mishap-t002422.bats",
     "category": "mishap-t002422",

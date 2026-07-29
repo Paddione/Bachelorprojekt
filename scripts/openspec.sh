@@ -116,6 +116,11 @@ cmd_propose() {
     _propose_state_report "$dir" >&2
     die "change '$slug' already exists at $dir — mit --resume nur fehlende/leere Dateien seeden"
   fi
+  # [T002381-M2] Ticket-Status-Uebergang VOR dem Scaffold, damit ein Fehlschlag
+  # (z.B. agent-lock-Guard in ticket.sh) keine orphan-Dateien hinterlaesst.
+  if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
+    bash "$TICKET_SH" update-status --id "$ticket" --status planning >/dev/null
+  fi
   mkdir -p "$dir/specs"
   _seed_if_placeholder "$dir/proposal.md" "$resume" \
     "$(printf '# Proposal: %s\n\n## Why\n\n## What\n\n_Ticket: %s_\n' "$slug" "$ticket")"
@@ -170,14 +175,12 @@ task freshness:check
 \`\`\`
 OUTER_EOF
 )"
+
   _seed_if_placeholder "$dir/tasks.md" "$resume" "$_tasks_skeleton"
   local delta_spec_name="${target_spec:-$slug}"
   _seed_if_placeholder "$dir/specs/$delta_spec_name.md" "$resume" \
     "$(printf '## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n\n#### Scenario: TODO\n\n- **GIVEN** …\n- **WHEN** …\n- **THEN** …')"
   echo "$ticket" > "$dir/.ticket"
-  if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
-    bash "$TICKET_SH" update-status --id "$ticket" --status planning >/dev/null
-  fi
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
     bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
   fi

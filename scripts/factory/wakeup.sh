@@ -47,6 +47,11 @@ RETICK_DELAY="${FACTORY_IDLE_RETICK_DELAY:-5}"
 
 cd "${REPO}"
 
+# [T002381-M3] Vor jedem Tick den lokalen main-Ref aktualisieren, damit die
+# Factory nicht mit stale Code tickt. Fail-open: bei Fehler (z.B. kein Netz)
+# laeuft mit dem aktuellen Stand weiter — besser stale als ausgefallen.
+git pull --ff-only origin main 2>/dev/null || true
+
 # ── single-flight: acquire the tick lock non-blocking; bail if a tick is live ──
 exec 9>"${LOCKFILE}"
 if ! flock -n 9; then

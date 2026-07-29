@@ -98,10 +98,13 @@ cmd_check() {
   local mysid d; mysid="$(_my_sid)"; d="$(_lock_dir)"
   [ -d "$d" ] || return 0
 
-  local found=0 f sid wt peer file
+  local found=0 f sid pid wt peer file
+  declare -A seen
   for f in "$d"/*.json; do
     [ -e "$f" ] || continue
     sid="$(_field "$f" owner_sid)"
+    pid="$(_field "$f" owner_pid)"
+    [ -n "$pid" ] && [ "$pid" = "$$" ] && continue
     [ "$sid" = "$mysid" ] && continue
     _sid_alive "$sid" || continue
     wt="$(_field "$f" worktree)"
@@ -141,10 +144,13 @@ cmd_check() {
         continue
       fi
       if printf '%s\n' "$peer" | grep -qxF "$file"; then
-        found=1
-        if [ "$quiet" -eq 0 ]; then
-          printf '⚠ COLLISION: %s — auch in-flight bei %s/%s (sid %s, worktree %s)\n' \
-            "$file" "$(_field "$f" tool)" "$(_field "$f" label)" "$sid" "$wt" >&2
+        if [[ -z "${seen[$file]:-}" ]]; then
+          seen[$file]=1
+          found=1
+          if [ "$quiet" -eq 0 ]; then
+            printf '⚠ COLLISION: %s — auch in-flight bei %s/%s (sid %s, worktree %s)\n' \
+              "$file" "$(_field "$f" tool)" "$(_field "$f" label)" "$sid" "$wt" >&2
+          fi
         fi
       fi
     done <<EOF

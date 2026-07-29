@@ -2,6 +2,8 @@
 // scripts/openspec-embed.mjs — Write-CLI: indexes one OpenSpec change (proposal/tasks/spec)
 // into knowledge.chunks via TEI embeddings. Best-effort: logs errors, exits 0.
 //   node scripts/openspec-embed.mjs --slug <slug> [--dry-run]
+// [T002471-M8] Bei transienten Embedding-Backend-Fehlern werden nicht indexierte
+// Slugs nicht automatisch nachgezogen. Fuer Backfill: task openspec:embed:backfill
 // Chunking/frontmatter helpers are pure and duplicated from website/src/lib/chunking.ts
 // (an ESM script cannot import the TS src/ tree).
 

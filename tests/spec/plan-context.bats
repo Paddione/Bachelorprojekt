@@ -218,3 +218,76 @@ EOF
   echo "$output" | grep -q 'Usage' \
     || { echo "expected 'Usage' on stderr (got: $output)"; return 1; }
 }
+
+# ── [T002322] Ausgabe-Granularitaet: Zusammenfassung statt Volltext ──────────
+#
+# Gemessen am 2026-07-28 im echten Repo:
+#   bachelorprojekt-infra:   46 von 93 Proposals, 14711 Zeilen (~319/Proposal)
+#   bachelorprojekt-db:      21 von 93 Proposals,  4079 Zeilen (~194/Proposal)
+#
+# Der Rollenfilter arbeitet also (db 21 vs infra 46 ist eine echte
+# Unterscheidung). Die Groesse kommt daher, dass plan-context.sh pro
+# eingeschlossenem Proposal VIER Dateien vollstaendig ausgibt: proposal.md,
+# tasks.md, jedes tasks.d/-Partial und design.md.
+#
+# CLAUDE.md schreibt vor, diesen Output vor JEDEM Agent-Dispatch als
+# <active-plans> zu prependen. Bei fuenfstelligen Zeilenzahlen wird der Schritt
+# in der Praxis uebersprungen — die Kontext-Injektion findet dann gar nicht
+# statt. Ein Mechanismus, den man wegen seiner Kosten umgeht, wirkt wie ein
+# fehlender Mechanismus.
+#
+# Vertrag: Standard ist eine Zusammenfassung (Titel + Kurzbeschreibung +
+# Task-Ueberschriften). Der Volltext bleibt ueber ein explizites Flag
+# erreichbar, damit nichts verloren geht, was heute genutzt wird.
+
+_t002322_bulky_fixture() {
+  local slug="zz-test-t002322-bulky"
+  mkdir -p "$CHANGES_DIR/$slug"
+  cat > "$CHANGES_DIR/$slug/proposal.md" <<'EOF'
+---
+title: "Proposal: bulky"
+---
+
+# Proposal: bulky
+
+Kurzbeschreibung in der ersten Zeile.
+EOF
+  {
+    echo '---'
+    echo 'title: "Tasks: bulky"'
+    echo 'domains: [ops]'
+    echo 'status: active'
+    echo '---'
+    echo
+    echo '# Tasks: bulky'
+    echo
+    echo '## Schritt eins'
+    # Fuellkoerper: eine eindeutige Marke tief im Rumpf, die in einer
+    # Zusammenfassung NICHT auftauchen darf.
+    for i in $(seq 1 200); do echo "Fuellzeile $i mit Detail ZZMARKERTIEFIMRUMPF$i"; done
+  } > "$CHANGES_DIR/$slug/tasks.md"
+  echo "$slug"
+}
+
+@test "T002322: per-proposal output is a summary, not the full plan body" {
+  local slug; slug="$(_t002322_bulky_fixture)"
+  out="$(_run_pcf bachelorprojekt-ops 2>/dev/null || true)"
+  # Der Titel muss da sein — sonst waere das Proposal gar nicht ausgewaehlt.
+  echo "$out" | grep -q "### Active proposal: $slug"
+  # Der Rumpf darf NICHT vollstaendig mitkommen.
+  ! echo "$out" | grep -q "ZZMARKERTIEFIMRUMPF150"
+}
+
+@test "T002322: --full restores the complete plan body" {
+  # Gegenprobe: Die Zusammenfassung darf den Volltext nicht unerreichbar machen.
+  # Ohne diesen Test koennte der Fix Information ersatzlos wegwerfen.
+  #
+  # ACHTUNG: Dieser Test ist VOR dem Fix leer-gruen — `--full` ist noch kein
+  # bekanntes Argument, wird ignoriert, und der Volltext kommt sowieso. Seine
+  # Aussagekraft entsteht erst NACH dem Fix: dann faellt er rot, wenn die
+  # Zusammenfassung eingebaut, das Flag aber vergessen wurde. Wer den Fix
+  # umsetzt, darf sich also nicht auf sein gruenes Ergebnis vorher berufen.
+  local slug; slug="$(_t002322_bulky_fixture)"
+  out="$(_run_pcf bachelorprojekt-ops --full 2>/dev/null || true)"
+  echo "$out" | grep -q "ZZMARKERTIEFIMRUMPF150"
+}

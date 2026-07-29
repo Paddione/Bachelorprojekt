@@ -28,14 +28,7 @@ AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 _AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID"
 
 # Zusaetzliche Claude-Harness-Marker OHNE Session-ID-Bedeutung. [T002451]
-# Sie tragen keine SID, identifizieren aber die Harness — _detect_tool liest sie,
-# _my_sid nicht. Bis hierher standen sie als Literale in _detect_tool, und genau
-# deshalb war der Fix aus T002375-p1 unvollstaendig: Tests, die ein FREMDES Tool
-# simulieren wollten, unsetzten $_AGENT_LOCK_SID_ENVS und uebersahen CLAUDECODE.
-# Die Harness exportiert es real (gemessen: `env | grep -c '^CLAUDECODE='` -> 1),
-# also lieferte _detect_tool weiter "claude", die Same-Tool-Klausel in cmd_release
-# griff, und der Test mass die Umgebung statt die Vorbedingung.
-# Als benannte Liste koennen Tests gegen die Liste unsetzen statt gegen eine Kopie.
+# Marker ohne SID; _detect_tool liest sie, _my_sid nicht. [T002451]
 _AGENT_LOCK_TOOL_MARKER_ENVS="CLAUDECODE CLAUDE_CODE"
 
 _now() { date +%s; }
@@ -47,23 +40,16 @@ _my_sid() {
   # to the per-call Unix SID when neither harness env nor test override is
   # set — that path is the source of the cross-call drift bug. [T001268]
   # [T002375-p1] Die Harness exportiert CLAUDE_CODE_SESSION_ID, nicht CLAUDE_SESSION_ID.
-  # Gemessen: `env | grep -c '^CLAUDE_SESSION_ID='` -> 0, `…CLAUDE_CODE_SESSION_ID=` -> 1.
-  # Die alte Zeile las nur die zweite Variante, fiel also IMMER auf den Unix-Fallback
-  # unten durch — und der ist pro Bash-Tool-Call verschieden. Folge: `release` hielt den
-  # eigenen Lock für fremd und verlangte --force. Das ist keine Kosmetik: --force ist das
-  # Instrument, mit dem man FREMDE lebende Locks abräumt; erzwingt der Normalfall es,
-  # gewöhnt sich jeder Aufrufer daran und räumt irgendwann einen echten fremden ab.
-  # AGENT_LOCK_SID ZUERST: es ist der ausdrueckliche Test-Override (siehe Dateikopf).
-  # Stuende er hinter den Harness-Variablen, wuerde ambient exportiertes
-  # CLAUDE_CODE_SESSION_ID ihn ueberstimmen — und jeder Test, der ihn setzt, briche in
-  # einer Harness-Session. Ein Override, den ambient State ueberstimmen kann, ist keiner.
-  # (Der Altcode hatte denselben Fehler mit CLAUDE_SESSION_ID davor; er biss nur nie,
-  # weil diese Variable real nie gesetzt war.)
-  if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
+# SID-Check: Harness-Env wins, then test override, then Unix SID. [T001268]
+if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
   local _v
   for _v in $_AGENT_LOCK_SID_ENVS; do
     if [ -n "${!_v:-}" ]; then printf '%s\n' "${!_v}"; return; fi
   done
+  # [T002381-M1] Weder Harness-Env noch AGENT_LOCK_SID gesetzt — der Unix-SID-Fallback
+  # driftet pro Bash-Call. Warnung ausgeben, damit der Operator die Ursache erkennt
+  # und AGENT_LOCK_SID setzen oder die Harness-Variable bereitstellen kann.
+  echo "WARNUNG: _my_sid — weder CLAUDE_CODE_SESSION_ID/CLAUDE_SESSION_ID noch AGENT_LOCK_SID gesetzt. SID driftet pro Bash-Call (siehe T001268/T002381)." >&2
   local s; s="$(ps -o sess= -p "$$" 2>/dev/null | tr -d ' ')"
   if [ -n "$s" ]; then printf '%s\n' "$s"; return; fi
   # fallback: 4th field after the ')' in /proc/self/stat is the session id

@@ -1769,6 +1769,12 @@
       "status": "archived"
     }
   ],
+  "T002322": [
+    {
+      "slug": "plan-context-summary",
+      "status": "plan_staged"
+    }
+  ],
   "T002327": [
     {
       "slug": "factory-resume-staged-work",

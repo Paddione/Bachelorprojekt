@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 626,
+      "file_count": 627,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -373,6 +373,7 @@
         "tests/spec/env-seal-empty-value-keys.bats",
         "tests/spec/factory-attempt-counter-T002389.bats",
         "tests/spec/factory-branch-switch-guard.bats",
+        "tests/spec/factory-escalation-ladder.bats",
         "tests/spec/factory-merge-hooks.bats",
         "tests/spec/factory-reclaim-lock-respect.bats",
         "tests/spec/feature-product-linking.bats",

@@ -1895,6 +1895,12 @@
       "status": "archived"
     }
   ],
+  "T002369": [
+    {
+      "slug": "factory-escalation-ladder",
+      "status": "plan_staged"
+    }
+  ],
   "T002371": [
     {
       "slug": "2026-07-28-mishap-mcp-postgres-T002371",

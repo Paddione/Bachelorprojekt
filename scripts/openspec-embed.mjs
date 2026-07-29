@@ -8,7 +8,7 @@
 // (an ESM script cannot import the TS src/ tree).
 
 import pg from 'pg';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 export function stripFrontmatter(raw) {
@@ -24,6 +24,47 @@ export function stripFrontmatter(raw) {
 
 export function approxTokens(s) {
   return Math.ceil(s.length / 4);
+}
+
+export const ACTIVE_STATUSES = ['planning', 'plan_staged', 'active'];
+
+export function parsePartialManifest(tasksMd) {
+  const lines = tasksMd.split('\n');
+  let inTable = false;
+  const rows = [];
+  for (const line of lines) {
+    if (/^## Partials/.test(line)) { inTable = true; continue; }
+    if (!inTable) continue;
+    if (/^## /.test(line)) break;  // next section
+    if (/^\|/.test(line)) {
+      const cells = line.split('|').slice(1, -1).map(c => c.trim());
+      // Skip separator row (contains ---) and header row (first cell is 'id')
+      if (cells.length >= 4 && !cells[0].includes('---') && cells[0].toLowerCase() !== 'id') {
+        rows.push({
+          partialId: cells[0],
+          role: cells[2] || '',
+          targetFiles: cells[3] ? cells[3].split(',').map(s => s.trim().replace(/`/g, '')).filter(s => s !== '—' && s !== '') : [],
+          dependsOn: cells[4] ? cells[4].split(',').map(s => s.trim().replace(/`/g, '')).filter(s => s !== '—' && s !== '') : [],
+        });
+      }
+    }
+  }
+  return rows;
+}
+
+export function countLocalActivePlans(repoRoot) {
+  const changesDir = path.join(repoRoot, 'openspec', 'changes');
+  if (!existsSync(changesDir)) return 0;
+  let count = 0;
+  for (const slug of readdirSync(changesDir)) {
+    if (slug === 'archive') continue;
+    const tasksPath = path.join(changesDir, slug, 'tasks.md');
+    if (!existsSync(tasksPath)) continue;
+    const raw = readFileSync(tasksPath, 'utf8');
+    const { frontmatter } = stripFrontmatter(raw);
+    if (ACTIVE_STATUSES.includes(frontmatter.status)) count++;
+  }
+  return count;
 }
 
 function sectionTitleOf(section) {
@@ -115,6 +156,17 @@ export function buildChunks(files) {
       out.push({ ...c, position: pos++, fileType: 'spec_section' });
     }
   }
+  if (files.partials != null) {
+    for (const [partialId, content] of Object.entries(files.partials)) {
+      out.push({
+        position: pos++,
+        text: content.trim(),
+        sectionTitle: partialId,
+        charOffset: 0,
+        fileType: 'partial',
+      });
+    }
+  }
   return out;
 }
 
@@ -152,7 +204,20 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
     tasks: readIfExists(path.join(changeDir, 'tasks.md')) ?? undefined,
     spec: readIfExists(path.join(changeDir, 'specs', `${slug}.md`)) ?? undefined,
   };
-  if (files.proposal == null && files.tasks == null && files.spec == null) {
+
+  // ---- tasks.d/ partials ----
+  const tasksDir = path.join(changeDir, 'tasks.d');
+  let partials = null;
+  if (existsSync(tasksDir)) {
+    partials = {};
+    const entries = readdirSync(tasksDir).filter(f => f.endsWith('.md')).sort();
+    for (const entry of entries) {
+      partials[entry.replace(/\.md$/, '')] = readFileSync(path.join(tasksDir, entry), 'utf8');
+    }
+  }
+  files.partials = partials;
+
+  if (files.proposal == null && files.tasks == null && files.spec == null && partials == null) {
     log(`no OpenSpec files for slug '${slug}' under ${changeDir}; nothing to index`);
     return { inserted: 0, dryRun };
   }
@@ -160,7 +225,26 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
   const meta = stripFrontmatter(files.tasks ?? files.proposal ?? '').frontmatter;
   const ticketId = meta.ticket_id ?? null;
   const status = meta.status ?? null;
+  const manifest = files.tasks ? parsePartialManifest(files.tasks) : [];
   const chunks = buildChunks(files);
+
+  // Enrich partial chunks with manifest metadata
+  const partialMeta = {};
+  for (const m of manifest) {
+    partialMeta[m.partialId] = m;
+  }
+  for (const c of chunks) {
+    if (c.fileType === 'partial') {
+      const m = partialMeta[c.sectionTitle];
+      if (m) {
+        c.partial_id = m.partialId;
+        c.role = m.role;
+        c.target_files = m.targetFiles;
+        c.depends_on = m.dependsOn;
+        c.token_estimate = approxTokens(c.text);
+      }
+    }
+  }
 
   if (dryRun) {
     log(`[dry-run] slug='${slug}' model=${model} would index ${chunks.length} chunks (ticket=${ticketId} status=${status})`);
@@ -203,15 +287,41 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
     let inserted = 0;
     for (let i = 0; i < chunks.length; i++) {
       const c = chunks[i];
+      const baseMeta = { slug, ticket_id: ticketId, status, file_type: c.fileType, section_title: c.sectionTitle, char_offset: c.charOffset };
+      const partialFields = {};
+      if (c.fileType === 'partial') {
+        if (c.partial_id) partialFields.partial_id = c.partial_id;
+        if (c.role) partialFields.role = c.role;
+        if (c.target_files) partialFields.target_files = c.target_files;
+        if (c.depends_on) partialFields.depends_on = c.depends_on;
+        if (c.token_estimate) partialFields.token_estimate = c.token_estimate;
+      }
+      const mergedMeta = { ...baseMeta, ...partialFields };
       await query(
         `INSERT INTO knowledge.chunks (document_id, collection_id, position, text, embedding, metadata)
          VALUES ($1, $2, $3, $4, $5, $6::jsonb)`,
         [documentId, collectionId, c.position, c.text, vecLiteral(vectors[i]),
-         JSON.stringify({ slug, ticket_id: ticketId, status, file_type: c.fileType, section_title: c.sectionTitle, char_offset: c.charOffset })],
+         JSON.stringify(mergedMeta)],
       );
       inserted++;
     }
     await query(`UPDATE knowledge.collections SET last_indexed_at = now() WHERE source = 'specs_plans'`, []);
+
+    // ---- completeness gate: warn if indexed vs local active count mismatch ----
+    try {
+      const idxRes = await query(
+        `SELECT COUNT(*)::int AS cnt FROM knowledge.documents WHERE collection_id = $1`,
+        [collectionId],
+      );
+      const indexedCount = idxRes.rows[0]?.cnt ?? 0;
+      const localCount = countLocalActivePlans(repoRoot);
+      if (indexedCount !== localCount) {
+        log(`WARN: completeness gate — collection has ${indexedCount} docs but ${localCount} local active plans (status=${ACTIVE_STATUSES.join('|')})`);
+      } else {
+        log(`completeness gate OK — ${indexedCount} docs match ${localCount} local active plans`);
+      }
+    } catch (_) { /* best-effort */ }
+
     log(`indexed slug='${slug}': ${inserted} chunks (model=${model})`);
     return { inserted, dryRun: false };
   } finally {
@@ -223,13 +333,22 @@ async function main() {
   const args = process.argv.slice(2);
   let slug = '';
   let dryRun = false;
+  let checkCoverage = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--slug') slug = args[++i] ?? '';
     else if (args[i] === '--dry-run') dryRun = true;
+    else if (args[i] === '--check-coverage') checkCoverage = true;
   }
-  if (!slug) { console.error('[openspec-embed] --slug <slug> required'); process.exit(0); }
   const repoRoot = process.env.OPENSPEC_EMBED_REPO
     || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+
+  if (checkCoverage) {
+    const localCount = countLocalActivePlans(repoRoot);
+    console.log(`Local active plans (status in ${JSON.stringify(ACTIVE_STATUSES)}): ${localCount}`);
+    process.exit(0);
+  }
+
+  if (!slug) { console.error('[openspec-embed] --slug <slug> required'); process.exit(0); }
   try {
     await embedSlug({ slug, repoRoot, dryRun });
   } catch (err) {

@@ -40,7 +40,7 @@ if command -v gitleaks >/dev/null 2>&1; then
     exit 1
   fi
 else
-  echo "  ⚠ gitleaks binary not found — skipping secret scan (CI runs fail-closed)" >&2
+  echo "  ⚠ gitleaks binary not found — skipping secret scan (CI runs fail-closed). Install with: sudo apt install gitleaks || brew install gitleaks" >&2
 fi
 
 # --- freshness: auto-regenerate generated artifacts before commit [T000581] ---

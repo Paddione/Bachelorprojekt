@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "slug": "mishap-docker-wsl-T002250",
+    "ticket_id": "T002420",
+    "generated_from": "main@3995047b6",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/setup.sh",
+      "language": "bash",
+      "loc": 67,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 733
+    },
+    {
+      "path": "scripts/factory/sandbox-run.sh",
+      "language": "bash",
+      "loc": 82,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 718
+    },
+    {
+      "path": "tests/spec/mishap-docker-wsl-T002250.bats",
+      "language": "bash",
+      "loc": 45,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/setup.sh:11:check_prerequisites() {",
+      "kind": "function",
+      "file": "scripts/setup.sh",
+      "signature": "11:check_prerequisites() {(...)",
+      "type_text": "11:check_prerequisites() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:17:resolve_mode() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "17:resolve_mode() {(...)",
+      "type_text": "17:resolve_mode() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:26:egress_allowlist() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "26:egress_allowlist() {(...)",
+      "type_text": "26:egress_allowlist() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:32:run_docker() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "32:run_docker() {(...)",
+      "type_text": "32:run_docker() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:49:run_k8s() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "49:run_k8s() {(...)",
+      "type_text": "49:run_k8s() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:71:run_off() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "71:run_off() {(...)",
+      "type_text": "71:run_off() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mishap-docker-wsl-T002250.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mishap-docker-wsl-T002250.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

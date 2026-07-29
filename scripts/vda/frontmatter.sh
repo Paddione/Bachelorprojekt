@@ -61,6 +61,32 @@ _derive_domains() {
     printf '%s\n' "${domains[@]}"
 }
 
+# [T002471-M10] Domain-Ableitung aus Dateipfaden statt Textvorkommen.
+# Liest content von stdin, extrahiert Pfade aus einem "## File Structure"-Block,
+# und leitet domains aus den tatsaechlich betroffenen Pfaden ab.
+# Wenn kein File-Structure-Block vorhanden ist, faellt sie auf _derive_domains zurueck.
+_derive_domains_from_paths() {
+    local content; content="$(cat)"
+    local domains=()
+    # Extrahiere Pfade aus dem ## File Structure Block (``` ... ``` nach der Ueberschrift)
+    local paths
+    paths=$(printf '%s\n' "$content" | sed -n '/^## File Structure/,/^## /{/```/,/```/p}' | sed '/```/d')
+    if [[ -z "$paths" ]]; then
+        # Kein File Structure Block: fallback auf alte textbasierte Logik
+        printf '%s\n' "$content" | _derive_domains
+        return
+    fi
+    grep -qiE '(^|/)scripts/' <<<"$paths" && domains+=(infra)
+    grep -qiE '(^|/)website/src/' <<<"$paths" && domains+=(website)
+    grep -qiE '(^|/)\.agents/skills/' <<<"$paths" && domains+=(ops)
+    grep -qiE '(^|/)tests/' <<<"$paths" && domains+=(test)
+    grep -qiE '(^|/)openspec/' <<<"$paths" && domains+=(docs)
+    # db und security haben keine dedizierten Pfadmuster — aus File Structure allein nicht ableitbar
+    grep -qiE 'database|postgresql|psql|schema' <<<"$content" && domains+=(db)
+    grep -qiE 'SealedSecret|Keycloak|OIDC|DSGVO|credentials' <<<"$content" && domains+=(security)
+    printf '%s\n' "${domains[@]}"
+}
+
 # space-separated roles -> "[a, b]"; empty -> "[]"
 _domains_to_yaml() {
     local input="$1"
@@ -198,7 +224,7 @@ if [[ "$needs_domains" -eq 0 && "$needs_status" -eq 0 && "$needs_batch" -eq 0 &&
     exit 0
 fi
 
-derived="$(_body | _derive_domains | tr '\n' ' ' | sed 's/ *$//')"
+derived="$(_body | _derive_domains_from_paths | tr '\n' ' ' | sed 's/ *$//')"
 derived_yaml="$(_domains_to_yaml "$derived")"
 [[ "$needs_domains" -eq 1 && "$derived_yaml" == "[]" ]] && \
     echo "WARNING: domains is empty and no signals found in $FILE — set domains manually." >&2
@@ -221,27 +247,7 @@ awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
             print "parent_feature: null"
             print "depends_on_plans: []"
 }
-
-# [T002471-M10] Domain-Ableitung aus Dateipfaden statt Textvorkommen
-_derive_domains_from_paths() {
-  local content="$1"
-  local domains=()
-  # Extrahiere Pfade aus File Structure Block (``` ... ``` nach ## File Structure)
-  local paths
-  paths=$(printf '%s\n' "$content" | sed -n '/^## File Structure/,/^## /{/```/,/```/p}' | sed '/```/d')
-  if [[ -z "$paths" ]]; then
-    # Kein File Structure Block: fallback auf alte Logik
-    _derive_domains "$content"
-    return
-  fi
-  grep -qiE 'scripts/' <<<"$paths" && domains+=(infra)
-  grep -qiE 'website/src/' <<<"$paths" && domains+=(website)
-  grep -qiE '\.agents/skills/' <<<"$paths" && domains+=(ops)
-  grep -qiE 'tests/' <<<"$paths" && domains+=(test)
-  grep -qiE 'openspec/' <<<"$paths" && domains+=(docs)
-  printf '%s\n' "${domains[@]}"
-}
-
+        
         print; infm=0; next
     }
     infm==1 && $0 ~ /^ticket_id:/ {

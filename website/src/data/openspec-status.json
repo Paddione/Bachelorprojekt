@@ -2093,6 +2093,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002453": [
+    {
+      "slug": "plan-partials-embedding",
+      "status": "plan_staged"
+    }
+  ],
   "T002457": [
     {
       "slug": "mishap-t002457",
@@ -2103,6 +2109,12 @@
     {
       "slug": "2026-07-29-worktree-branch-name-guard",
       "status": "archived"
+    }
+  ],
+  "T002471": [
+    {
+      "slug": "mishap-bundle-t002471",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

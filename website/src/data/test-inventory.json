@@ -2604,6 +2604,30 @@
     "kind": "shell"
   },
   {
+    "id": "plan-partials-embedding/build-chunks",
+    "file": "tests/spec/plan-partials-embedding/build-chunks.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/coverage-gate",
+    "file": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/manifest-parser",
+    "file": "tests/spec/plan-partials-embedding/manifest-parser.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/size-gate",
+    "file": "tests/spec/plan-partials-embedding/size-gate.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "pocket-id-client-seed-auth-header",
     "file": "tests/spec/pocket-id-client-seed-auth-header.bats",
     "category": "pocket-id-client-seed-auth-header",
@@ -2679,6 +2703,12 @@
     "id": "react-login-edit-homepage",
     "file": "tests/spec/react-login-edit-homepage.bats",
     "category": "react-login-edit-homepage",
+    "kind": "shell"
+  },
+  {
+    "id": "release-notes-erden",
+    "file": "tests/spec/release-notes-erden.bats",
+    "category": "release-notes-erden",
     "kind": "shell"
   },
   {

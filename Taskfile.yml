@@ -906,8 +906,22 @@ tasks:
         echo "$CHANGED" | grep -qE "^brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|environments/|VideoVault/)" && RUN_E2E_SERVICES=true || true
         echo "$CHANGED" | grep -qE "(korczewski)" && RUN_E2E_KORCZEWSKI=true || true
-        if [ "$RUN_WEBSITE" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ website changes: pnpm vitest run --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
-        if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ mentolder-web changes: pnpm --filter mentolder-web test"; pnpm --filter mentolder-web test; fi
+        if [ "$RUN_WEBSITE" = "true" ]; then
+          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+            echo "→ website changes: pnpm vitest run --changed"
+            (cd website && pnpm vitest run --changed --reporter verbose)
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping website JS tests"
+          fi
+        fi
+        if [ "$RUN_MENTOLDER_WEB" = "true" ]; then
+          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+            echo "→ mentolder-web changes: pnpm --filter mentolder-web test"
+            pnpm --filter mentolder-web test
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping mentolder-web JS tests"
+          fi
+        fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
         
         JOBS=$(nproc 2>/dev/null || echo 2)
@@ -962,7 +976,12 @@ tasks:
         if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
 
         if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
-          if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
+          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+            echo "→ no domain-specific changes: vitest --changed"
+            (cd website && pnpm vitest run --changed --reporter verbose)
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping JS fallback tests"
+          fi
         fi
         echo "→ quality gate (always)"; task test:code-quality
 

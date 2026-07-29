@@ -144,6 +144,7 @@ jobs:
             # PIPESTATUS, not $?: through the tee pipe $? is tee's exit code.
             set +e
             docker run --rm \
+              --dns 1.1.1.1 \
               --env RENOVATE_TOKEN \
               --env RENOVATE_REPOSITORIES \
               --env LOG_LEVEL \

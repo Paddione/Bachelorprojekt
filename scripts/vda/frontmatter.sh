@@ -141,7 +141,7 @@ fi
 
 # ── Case A: no frontmatter → derive, optional interactive override, prepend ──
 if ! _has_frontmatter; then
-    derived="$(_body | _derive_domains | tr '\n' ' ' | sed 's/ *$//')"
+    derived="$(_body | _derive_domains_from_paths | tr '\n' ' ' | sed 's/ *$//')"
     domains_input="$derived"
     if [[ -t 0 && -z "${BATS_TEST_FILENAME:-}" && -z "${CI:-}" ]]; then
         echo "Derived domains for $(basename "$FILE"): [${derived:-none}]"
@@ -220,7 +220,28 @@ awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
             print "batch_id: null"
             print "parent_feature: null"
             print "depends_on_plans: []"
-        }
+}
+
+# [T002471-M10] Domain-Ableitung aus Dateipfaden statt Textvorkommen
+_derive_domains_from_paths() {
+  local content="$1"
+  local domains=()
+  # Extrahiere Pfade aus File Structure Block (``` ... ``` nach ## File Structure)
+  local paths
+  paths=$(printf '%s\n' "$content" | sed -n '/^## File Structure/,/^## /{/```/,/```/p}' | sed '/```/d')
+  if [[ -z "$paths" ]]; then
+    # Kein File Structure Block: fallback auf alte Logik
+    _derive_domains "$content"
+    return
+  fi
+  grep -qiE 'scripts/' <<<"$paths" && domains+=(infra)
+  grep -qiE 'website/src/' <<<"$paths" && domains+=(website)
+  grep -qiE '\.agents/skills/' <<<"$paths" && domains+=(ops)
+  grep -qiE 'tests/' <<<"$paths" && domains+=(test)
+  grep -qiE 'openspec/' <<<"$paths" && domains+=(docs)
+  printf '%s\n' "${domains[@]}"
+}
+
         print; infm=0; next
     }
     infm==1 && $0 ~ /^ticket_id:/ {

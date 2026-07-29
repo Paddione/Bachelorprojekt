@@ -32,7 +32,9 @@ teardown() {
   AGENT_LOCK_FAKE_ALIVE="alive-session" AGENT_LOCK_SID="alive-session" \
     bash "$LOCK" claim ticket T002454-f2 --label old-session
   [ -f "$AGENT_LOCK_DIR/ticket__T002454-f2.json" ]
-  sed -i 's/"owner_pid": *"[^"]*"/"owner_pid": "1"/' "$AGENT_LOCK_DIR/ticket__T002454-f2.json"
+  # Verwende die PID dieser Test-Shell ($$) — garantiert lebend und kill-able,
+  # im Gegensatz zu PID 1, der in manchen Namespaces/Containern nicht sichtbar ist.
+  sed -i 's/"owner_pid": *"[^"]*"/"owner_pid": "'$$'"/' "$AGENT_LOCK_DIR/ticket__T002454-f2.json"
   AGENT_LOCK_SID="new-session" \
     run bash "$LOCK" claim ticket T002454-f2 --force --label new-session
   [ "$status" -eq 1 ]

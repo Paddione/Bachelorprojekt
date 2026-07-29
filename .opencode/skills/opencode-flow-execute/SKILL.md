@@ -157,7 +157,7 @@ Dann rebasen und alle Partials in Reihenfolge abarbeiten.
 
 ### Schritt 2.2: Implementierung
 
-- Lies den Plan aus `$PLAN_FILE` und **Plan Intel Bundle** `openspec/changes/<slug>/intel.json` (Pflicht-Kontext für den Implementer)
+- Lies den Plan aus `$PLAN_FILE` und — sofern vorhanden — das **Plan Intel Bundle** `openspec/changes/<slug>/intel.json` (Optional — der Implementer kann die Typen-Wahrheit selbst erheben, wenn die Datei fehlt)
 - Tasks in Reihenfolge; nach jedem Meilenstein Commit + Push
 - Vor PR: Freshness-Artefakte regenerieren
 - Phase-Telemetrie (best-effort):

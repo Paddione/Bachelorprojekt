@@ -1926,6 +1926,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-lock-force-claim",
+    "file": "tests/spec/agent-lock-force-claim.bats",
+    "category": "agent-lock-force-claim",
+    "kind": "shell"
+  },
+  {
     "id": "agent-lock-session-identity",
     "file": "tests/spec/agent-lock-session-identity.bats",
     "category": "agent-lock-session-identity",

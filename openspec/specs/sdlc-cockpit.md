@@ -1,14 +1,60 @@
-# SDLC Cockpit — Single Source of Truth
+# sdlc-cockpit
 
-> **Epic:** T002458  
-> **Status:** in_progress (K1 active, K2–K9 planned)
+<!-- baseline SSOT für das SDLC Cockpit Epic -->
 
-## Überblick
+## Purpose
 
 Das SDLC Cockpit ist ein agentisches Engineering Command Center für den
 Bachelorprojekt-Software-Development-Lifecycle. Es ersetzt das heutige
 `opencode-cockpit.html` durch ein dreischichtiges Design-Kit (Lavish) und
 eine Panel-basierte Cockpit-Fläche.
+
+---
+
+## Requirements
+
+### Requirement: Lavish Design-Kit — Dreischichtiges CSS-Token-System
+
+The SSOT SHALL define ein Lavish Design-Kit mit drei Schichten: Tokens (Farben, Typografie, Abstände, Radien), Dokument-Bausteine (Überschriften, Tabellen, Code-Blöcke), und Panel-Rahmen (Frame, Kopf, Body, Aktions-Slot). (K1, E11)
+
+#### Scenario: Ein Board lädt das Kit per `<link>` und verwendet Tokons statt Hardcode-Werte
+
+- GIVEN ein Board lädt `tokens.css`, `document.css`, `panel.css`
+- WHEN das Board Tokens wie `--lv-clr-primary` referenziert
+- THEN werden die Design-Tokens korrekt angewandt
+
+### Requirement: Panel-Laufzeit — Panel.create() mit vier Typen
+
+The system SHALL implement a Panel-Klasse mit den Typen Status/Strom/Canvas/Terminal,
+Typ-gesteuertem Refresh/Fehler/Scroll-Verhalten, und Action-Zustandsmaschine. (K1, D2, D4, D5, D10–D13)
+
+#### Scenario: Panel erzeugen und Typ setzen
+
+- GIVEN ein Panel wird via `Panel.create({type: 'status'})` erzeugt
+- WHEN das Panel initialisiert ist
+- THEN zeigt es den Status-Typ mit korrektem Frame, Kopf und Body an
+
+### Requirement: Daten-Adapter — Kein direkter fetch() aus Panels
+
+The system SHALL provide einen Adapter-Vertrag mit Fixture-Daten für 6 Domänen (Tickets, Agents, CI, Cluster, Factory, Modelle). Kein Panel ruft `fetch()` direkt auf. (K1, E1, E16)
+
+#### Scenario: Panel verwendet Adapter statt fetch
+
+- GIVEN ein Panel benötigt Modelldaten
+- WHEN es den Adapter aufruft
+- THEN erhält es Fixture-Daten ohne Netzwerkzugriff
+
+### Requirement: Belegartefakte — Standalone-Board und Cockpit-Hülle
+
+The system SHALL provide `reference-board.html` (Schicht 1+2) und `cockpit-shell.html` (Schicht 3) als standalone, `file://`-öffnungsfähige Belege ohne Build. (K1)
+
+#### Scenario: Belegartefakt wird im Browser geöffnet
+
+- GIVEN `reference-board.html` wird mit `file://` geöffnet
+- WHEN die Seite lädt
+- THEN werden Tokens und Dokument-Bausteine korrekt dargestellt
+
+---
 
 ## Kind-Verteilung
 

@@ -1878,6 +1878,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/release-foreign-lock-guard",
+    "file": "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "admin-actions-schema",
     "file": "tests/local/admin-actions-schema.bats",
     "category": "admin-actions-schema",

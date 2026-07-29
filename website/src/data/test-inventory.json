@@ -1908,6 +1908,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-collision-false-positives",
+    "file": "tests/spec/agent-collision-false-positives.bats",
+    "category": "agent-collision-false-positives",
+    "kind": "shell"
+  },
+  {
     "id": "agent-library",
     "file": "tests/spec/agent-library.bats",
     "category": "agent-library",

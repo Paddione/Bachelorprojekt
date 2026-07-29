@@ -155,7 +155,17 @@ SQL
   # The attempt suffix makes consecutive rounds distinguishable. Seven byte-identical
   # comments on T002282 were themselves a signal nobody read (T002361).
   # T002389: include the failure class (MODEL/INFRA) so the distinction is visible.
-  attempt_note=" [${failure_class:-MODEL} ${attempt}/${max_allowed}]"
+  # T002369: derive escalation tier from attempt count (1→flash, 2→haiku, 3+→sonnet)
+  # so the comment tells which model tier the next pipeline run would use.
+  local tier_name="flash"
+  if [[ "$attempt" =~ ^[0-9]+$ ]]; then
+    if (( attempt + 1 >= 3 )); then
+      tier_name="sonnet"
+    elif (( attempt + 1 == 2 )); then
+      tier_name="haiku"
+    fi
+  fi
+  attempt_note=" [${failure_class:-MODEL} ${attempt}/${max_allowed} | tier=${tier_name}]"
   if [[ -n "$plan_ref" && "$ticket_type" == "feature" ]]; then
     reset_status="backlog"
     reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write, class=${failure_class:-MODEL}). Plan already staged (${plan_ref}) — resuming via backlog instead of restarting from Scout.${attempt_note}"

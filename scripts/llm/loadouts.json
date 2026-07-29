@@ -21,7 +21,8 @@
       "speculative": { "draftHfRepo": null, "draftNgl": null },
       "mcp": { "serversConfig": null },
       "extraArgs": [],
-      "notes": "MXFP4-nativ: alle Quants 11,5-12,1 GB, Q8_0 ist praktisch gratis. Gemessen 158-166 tok/s decode bei 105.472 Kontext."
+      "notes": "MXFP4-nativ: alle Quants 11,5-12,1 GB, Q8_0 ist praktisch gratis. Gemessen 158-166 tok/s decode bei 105.472 Kontext.",
+      "exclusiveGroup": "chat-gpu"
     },
     {
       "slug": "devstral-quality",
@@ -38,7 +39,8 @@
       "speculative": { "draftHfRepo": null, "draftNgl": null },
       "mcp": { "serversConfig": null },
       "extraArgs": [],
-      "notes": "IQ4_XS (12,78 GB) statt Q4_K_M (14,33 GB): kleiner UND besser als Q4_K_S (13,55 GB). f16-KV fuer maximale Qualitaet."
+      "notes": "IQ4_XS (12,78 GB) statt Q4_K_M (14,33 GB): kleiner UND besser als Q4_K_S (13,55 GB). f16-KV fuer maximale Qualitaet.",
+      "exclusiveGroup": "chat-gpu"
     },
     {
       "slug": "bge-embed-batch",
@@ -75,6 +77,50 @@
       "mcp": { "serversConfig": null },
       "extraArgs": ["--reranking", "-b", "8192", "-ub", "8192"],
       "notes": "T002426 Paar A: bewusst CPU-gebunden (-ngl 0). Eigener Prozess neben bge-embed-batch, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann."
+    },
+    {
+      "slug": "gemma-factory",
+      "label": "Gemma 4 12B · Factory Single-Agent",
+      "model": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+      "port": 8091,
+      "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 32768 },
+      "args": {
+        "ctx": null, "ngl": null, "parallel": 1,
+        "cacheTypeK": "q4_0", "cacheTypeV": "q4_0", "loadMode": "mmap",
+        "flashAttention": true, "jinja": true, "metrics": true,
+        "reasoning": "auto", "reasoningBudget": null,
+        "mmprojPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mmproj-F16.gguf"
+      },
+      "speculative": {
+        "draftModelPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mtp-gemma-4-12B-it-Q4_0.gguf",
+        "draftNgl": null
+      },
+      "mcp": { "serversConfig": null },
+      "extraArgs": [],
+      "exclusiveGroup": "chat-gpu",
+      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (Default-Profil, -np 1). -fit ersetzt das bisherige harte -c 65536; minCtx haelt die Untergrenze."
+    },
+    {
+      "slug": "gemma-multiagent",
+      "label": "Gemma 4 12B · Factory Multi-Agent",
+      "model": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
+      "port": 8091,
+      "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 65536 },
+      "args": {
+        "ctx": null, "ngl": null, "parallel": 5,
+        "cacheTypeK": "q4_0", "cacheTypeV": "q4_0", "loadMode": "mmap",
+        "flashAttention": true, "jinja": true, "metrics": true,
+        "reasoning": "auto", "reasoningBudget": null,
+        "mmprojPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mmproj-F16.gguf"
+      },
+      "speculative": {
+        "draftModelPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mtp-gemma-4-12B-it-Q4_0.gguf",
+        "draftNgl": null
+      },
+      "mcp": { "serversConfig": null },
+      "extraArgs": ["-kvu"],
+      "exclusiveGroup": "chat-gpu",
+      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (-Slots-Profil, -np 5 -kvu)."
     }
   ]
 }

@@ -94,11 +94,11 @@ ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' TH
 
 **Tier A — every ticket** (a NULL/empty here is a gap):
 - `priority IS NULL` → `priority`
-- `type = 'bug' AND severity IS NULL` → `severity`
+- `type = 'fix' AND severity IS NULL` → `severity`
 - `desc_len < 30` → `description` (too thin to act on)
 - `component IS NULL AND (areas IS NULL OR areas = '{}')` → `area/component`
 
-**Tier B — only `type='feature' AND status='planning'`** — for each DoR flag not `true` in `readiness`, add `dor:<flag>`. `dorScore < 4` ⇒ incomplete. (A feature can also still hit Tier-A gaps.)
+**Tier B — only `type='feat' AND status='planning'`** — for each DoR flag not `true` in `readiness`, add `dor:<flag>`. `dorScore < 4` ⇒ incomplete. (A feature can also still hit Tier-A gaps.)
 
 A ticket with an empty `missing[]` is **ready**. *Do not touch `in_progress` tickets referencing a live plan branch.*
 
@@ -233,7 +233,7 @@ The dev-flow contract splits the parallel unit, orchestrated by all available su
 - `attention_mode = 'ai_ready'` / DoR-complete → **planning wave**: dispatch `dev-flow-plan` via domain-specific subagent for plan creation and staging
 - **Any other ready ticket** → **parallel planning wave**: all available subagents work in parallel to create plans, set readiness flags, stage branches. No ready ticket is left without a route or owner.
 
-Any subagent that lands a `type='feature'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and call `ticket.sh lastenheft lock --id <id>` — see the DoR-vs-factory-gate note above. A ticket without the lock is invisible to `queue.sh`/`dispatcher-bridge.sh` and will silently never dispatch.
+Any subagent that lands a `type='feat'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and call `ticket.sh lastenheft lock --id <id>` — see the DoR-vs-factory-gate note above. A ticket without the lock is invisible to `queue.sh`/`dispatcher-bridge.sh` and will silently never dispatch.
 
 All subagents report back with: ticket_id, decisions made, branch created, plan staged, **lastenheft locked (y/n)**. Consolidate for Phase 3 masterplan completion.
 

@@ -2789,8 +2789,8 @@ tasks:
           LLM_HOST_IP="${LLM_HOST_IP:-172.17.0.1}" \
           LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}" \
           LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
-          LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-}" \
-          LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-}" \
+          LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-http://llm-gateway-embed-batch:8085}" \
+          LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-http://llm-gateway-rerank-batch:8086}" \
           POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://id.localhost}" \
           POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id.${WORKSPACE_NAMESPACE:-workspace}.svc.cluster.local:1411}" \
           POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-id.localhost}" \

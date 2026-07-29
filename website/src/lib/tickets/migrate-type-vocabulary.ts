@@ -9,7 +9,7 @@ import type { Pool, PoolClient } from 'pg';
 // dem Merge sofort auf dem Host an) — die beiden Zeitpunkte fallen zwangsläufig
 // auseinander, und solange beide Namensräume gültig sind, ist das Fenster folgenlos.
 // Die Altwerte fallen in Teil D (T002331) aus dem Constraint.
-const NEW_TYPES = ['fix', 'feat', 'chore', 'project', 'docs', 'refactor', 'perf', 'test', 'ci', 'build'] as const;
+const NEW_TYPES = ['fix', 'feat', 'chore', 'project', 'incident', 'docs', 'refactor', 'perf', 'test', 'ci', 'build'] as const;
 const LEGACY_TYPES = ['bug', 'feature', 'task'] as const;
 
 export const TICKET_TYPES = [...NEW_TYPES, ...LEGACY_TYPES] as const;
@@ -30,9 +30,9 @@ export async function applyTypeVocabularyMigration(pool: Pool | PoolClient): Pro
   await pool.query(`ALTER TABLE tickets.tickets DROP CONSTRAINT IF EXISTS tickets_type_check`);
   await pool.query(`
     ALTER TABLE tickets.tickets ADD CONSTRAINT tickets_type_check
-      CHECK (type IN ('fix','feat','chore','project',
-                      'docs','refactor','perf','test','ci','build',
-                      'bug','feature','task'))
+      CHECK (type IN ('fix','feat','chore','project','incident',
+                       'docs','refactor','perf','test','ci','build',
+                       'bug','feature','task'))
   `);
   await pool.query(`
     UPDATE tickets.tickets SET type = CASE type

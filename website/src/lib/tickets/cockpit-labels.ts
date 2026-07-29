@@ -24,7 +24,7 @@ const PRIORITY_LABELS: Record<string, string> = {
 // bis Teil D (T002331) sie aus dem DB-CHECK entfernt — historische Zeilen tragen
 // sie weiter, und ein Ticket ohne Beschriftung ist im Cockpit unlesbar.
 const TYPE_LABELS: Record<string, string> = {
-  fix: 'Fix', feat: 'Feature', chore: 'Aufgabe', project: 'Projekt',
+  fix: 'Fix', feat: 'Feature', chore: 'Aufgabe', project: 'Projekt', incident: 'Incident',
   docs: 'Doku', refactor: 'Refactoring', perf: 'Performance',
   test: 'Test', ci: 'CI', build: 'Build',
   task: 'Aufgabe', bug: 'Bug', feature: 'Feature',

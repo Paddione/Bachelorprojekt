@@ -1,0 +1,287 @@
+// scripts/llm-proxy/mcp-bridge.mjs
+// stdio→HTTP/SSE bridge for MCP servers.
+// Each enabled server gets one child process shared across all HTTP sessions.
+// GET  /mcp/<name> → SSE stream (event: session_id, followed by event: message)
+// POST /mcp/<name> → writes JSON-RPC to child stdin → response broadcast via SSE
+
+import { spawn } from 'node:child_process';
+import { createInterface } from 'node:readline';
+import { existsSync, readFileSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// ── Internal state ────────────────────────────────────────────────────────────
+
+/** @type {Map<string, ServerEntry>} */
+const servers = new Map();
+
+/** @type {object|null} */
+let config = null;
+
+/**
+ * @typedef {Object} ServerEntry
+ * @property {import('node:child_process').ChildProcess} proc
+ * @property {Set<import('node:http').ServerResponse>} sessions
+ * @property {import('node:readline').Interface} rl
+ * @property {NodeJS.Timeout|null} keepAliveTimer
+ */
+
+// ── Config loading ────────────────────────────────────────────────────────────
+
+function configPath() {
+  return join(__dirname, '..', 'llm', 'mcp-bridge.json');
+}
+
+function loadConfig() {
+  const file = configPath();
+  if (!existsSync(file)) {
+    console.warn('[mcp-bridge] config not found:', file);
+    return null;
+  }
+  return JSON.parse(readFileSync(file, 'utf-8'));
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+function checkAuth(req, srvCfg) {
+  const tokenEnv = srvCfg.bearerTokenEnv;
+  if (!tokenEnv) return true;
+  const expected = process.env[tokenEnv];
+  if (!expected) return true;
+  const auth = req.headers['authorization'];
+  if (!auth) return false;
+  const parts = auth.split(/\s+/);
+  return parts.length === 2 && parts[0].toLowerCase() === 'bearer' && parts[1] === expected;
+}
+
+// ── Environment variable resolution ──────────────────────────────────────────
+
+function resolveEnvVars(obj) {
+  const out = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[k] = String(v).replace(/\{env:([^}]+)\}/g, (_, name) => process.env[name] || '');
+  }
+  return out;
+}
+
+// ── Process lifecycle ─────────────────────────────────────────────────────────
+
+/**
+ * Spawn a child process for a server and set up event handlers.
+ * @param {string} name
+ * @param {object} srvCfg
+ * @returns {ServerEntry}
+ */
+function createServerEntry(name, srvCfg) {
+  const childEnv = { ...process.env, ...resolveEnvVars(srvCfg.env || {}) };
+
+  const proc = spawn(srvCfg.command, srvCfg.args || [], {
+    cwd: srvCfg.cwd || process.cwd(),
+    env: childEnv,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+
+  const sessions = new Set();
+
+  // Read stdout line by line – each line is a JSON-RPC message
+  const rl = createInterface({ input: proc.stdout });
+  rl.on('line', (line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    broadcastToSessions(sessions, trimmed);
+  });
+
+  // Log stderr
+  proc.stderr.on('data', (d) => {
+    const msg = d.toString().trim();
+    if (msg) console.error(`[mcp-bridge:${name}]`, msg);
+  });
+
+  // Auto-restart on exit
+  proc.on('exit', (code, signal) => {
+    console.error(`[mcp-bridge] ${name}: exited code=${code} signal=${signal}`);
+    closeAllSessions(sessions);
+    rl.close();
+    servers.delete(name);
+
+    // Re-create if still enabled
+    if (config && config.servers[name] && config.servers[name].enabled) {
+      console.log(`[mcp-bridge] ${name}: restarting in 1s...`);
+      setTimeout(() => {
+        servers.set(name, createServerEntry(name, config.servers[name]));
+      }, 1000);
+    }
+  });
+
+  proc.on('error', (err) => {
+    console.error(`[mcp-bridge] ${name}: spawn error`, err.message);
+  });
+
+  return { proc, sessions, rl, keepAliveTimer: null };
+}
+
+function broadcastToSessions(sessions, line) {
+  const data = `event: message\ndata: ${line}\n\n`;
+  for (const session of sessions) {
+    try {
+      session.write(data);
+    } catch {
+      sessions.delete(session);
+    }
+  }
+}
+
+function closeAllSessions(sessions) {
+  for (const session of sessions) {
+    try { session.end(); } catch { /* ignore */ }
+  }
+  sessions.clear();
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+/**
+ * Initialize the bridge: load config, start all enabled servers.
+ * Best-effort – logs errors, never throws.
+ */
+async function initBridge() {
+  try {
+    config = loadConfig();
+    if (!config) return;
+    for (const [name, srvCfg] of Object.entries(config.servers)) {
+      if (!srvCfg.enabled) continue;
+      servers.set(name, createServerEntry(name, srvCfg));
+      console.log(`[mcp-bridge] ${name}: started`);
+    }
+  } catch (err) {
+    console.error('[mcp-bridge] init error:', err.message);
+  }
+}
+
+/**
+ * Handle an incoming request for /mcp/<name>.
+ * @param {import('node:http').IncomingMessage} req
+ * @param {import('node:http').ServerResponse} res
+ * @param {string} serverName  – from URL path segment
+ * @param {string} method      – HTTP method ('GET' | 'POST')
+ */
+function handleMcp(req, res, serverName, method) {
+  const entry = servers.get(serverName);
+  if (!entry) {
+    res.writeHead(404, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'server_not_found', message: `no enabled MCP server: ${serverName}` } }));
+    return;
+  }
+
+  const srvCfg = config?.servers?.[serverName];
+  if (!srvCfg) {
+    res.writeHead(404, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'config_missing', message: `server ${serverName} not in config` } }));
+    return;
+  }
+
+  // Auth check
+  if (!checkAuth(req, srvCfg)) {
+    res.writeHead(401, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'unauthorized', message: 'invalid or missing bearer token' } }));
+    return;
+  }
+
+  // Check process health
+  if (!entry.proc || entry.proc.killed || !entry.proc.stdin.writable) {
+    res.writeHead(503, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'server_unavailable', message: `${serverName} is restarting` } }));
+    return;
+  }
+
+  if (method === 'GET') {
+    // ── SSE stream setup ──
+    res.writeHead(200, {
+      'content-type': 'text/event-stream',
+      'cache-control': 'no-cache',
+      'connection': 'keep-alive',
+    });
+
+    // Send session_id event (MCP SSE transport handshake)
+    const sessionId = randomUUID();
+    res.write(`event: session_id\ndata: ${JSON.stringify({ sessionId })}\n\n`);
+
+    // Register session
+    entry.sessions.add(res);
+
+    // Deregister on client disconnect
+    req.on('close', () => {
+      entry.sessions.delete(res);
+      // If the client that initiated the keep-alive disconnects, the timer
+      // will be cleaned up on the next tick anyway – but we clear the ref
+      // so the event loop isn't held open.
+    });
+
+    // SSE keepalive (comment line every 15s prevents proxy/load-balancer timeouts)
+    const keepAlive = setInterval(() => {
+      try {
+        res.write(': keepalive\n\n');
+      } catch {
+        clearInterval(keepAlive);
+        entry.sessions.delete(res);
+      }
+    }, 15_000);
+
+    req.on('close', () => clearInterval(keepAlive));
+
+  } else if (method === 'POST') {
+    // ── JSON-RPC dispatch ──
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => {
+      let message;
+      try {
+        message = JSON.parse(body);
+      } catch {
+        res.writeHead(400, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: { code: 'invalid_json', message: 'request body is not valid JSON' } }));
+        return;
+      }
+
+      if (!message.jsonrpc || !message.method) {
+        res.writeHead(400, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: { code: 'invalid_rpc', message: 'missing jsonrpc or method field' } }));
+        return;
+      }
+
+      try {
+        entry.proc.stdin.write(JSON.stringify(message) + '\n');
+        res.writeHead(202, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ accepted: true }));
+      } catch (err) {
+        res.writeHead(503, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ error: { code: 'write_error', message: err.message } }));
+      }
+    });
+
+  } else {
+    res.writeHead(405, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ error: { code: 'method_not_allowed', message: `${method} not supported` } }));
+  }
+}
+
+/**
+ * Gracefully stop all child processes and close all SSE sessions.
+ */
+function stopBridge() {
+  for (const [name, entry] of servers) {
+    closeAllSessions(entry.sessions);
+    entry.rl.close();
+    if (entry.proc && !entry.proc.killed) {
+      entry.proc.kill();
+    }
+    console.log(`[mcp-bridge] ${name}: stopped`);
+  }
+  servers.clear();
+  config = null;
+}
+
+export { initBridge, handleMcp, stopBridge };

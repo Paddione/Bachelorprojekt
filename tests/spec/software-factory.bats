@@ -4854,10 +4854,10 @@ MOCKEOF
   # [[ "$output" == *"branch in use"* ]] waere hier zwar unverfaenglich, aber der
   # Worktree-Pfad dieses Changes enthaelt Begriffe aus dem Testtext — dieselbe Falle
   # wie in factory-reclaim-lock-respect.bats (T002267/T002272).
-  run bash -c "cd '$REPO' && bash scripts/worktree-create.sh '$br' '$second' origin/main 2>&1 | grep '^worktree-create:' | grep -c 'branch in use'"
+  run bash -c "cd '$REPO' && WT_SKIP_NAME_CHECK=1 bash scripts/worktree-create.sh '$br' '$second' origin/main 2>&1 | grep '^worktree-create:' | grep -c 'branch in use'"
   local marker_hits="$output"
 
-  run bash -c "cd '$REPO' && bash scripts/worktree-create.sh '$br' '$second' origin/main >/dev/null 2>&1"
+  run bash -c "cd '$REPO' && WT_SKIP_NAME_CHECK=1 bash scripts/worktree-create.sh '$br' '$second' origin/main >/dev/null 2>&1"
   local exit_code="$status"
 
   # P5.4: kein Rest, und der belegte Branch lebt unveraendert weiter — der

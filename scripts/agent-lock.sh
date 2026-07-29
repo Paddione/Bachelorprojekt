@@ -76,17 +76,12 @@ _pid_alive() {  # <pid>
 }
 
 _detect_tool() {
-  # CLAUDE_SESSION_ID is the harness-provided env from Claude Code / opencode;
-  # we also accept the older CLAUDECODE/CLAUDE_CODE marker for back-compat.
-  # CLAUDE_SESSION_ID alone is enough to identify the Claude harness. [T001268]
-  # [T002375-p1] Dieselbe Namensliste wie _my_sid — sonst erkennt der eine die Harness
-  # und der andere nicht.
-  local _v _sid_env=""
+  # Uses same env list as _my_sid so both agree on harness detection. [T001268][T002375-p1]
+  local _v _sid_env="" _is_claude=0
   for _v in $_AGENT_LOCK_SID_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done
-  # [T002451] Marker aus der benannten Liste statt als Literale — siehe Kommentar
-  # bei _AGENT_LOCK_TOOL_MARKER_ENVS.
-  for _v in $_AGENT_LOCK_TOOL_MARKER_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done
-  if [ -n "${_sid_env}" ]; then echo claude
+  for _v in $_AGENT_LOCK_TOOL_MARKER_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && _is_claude=1 && break; done
+  if [ -n "${_sid_env}" ]; then
+    [ "$_is_claude" -eq 1 ] && echo claude || echo opencode
   elif [ -n "${GEMINI_CLI:-}${GEMINI_SANDBOX:-}${GEMINI_API_KEY:-}" ]; then echo gemini
   else echo unknown; fi
 }

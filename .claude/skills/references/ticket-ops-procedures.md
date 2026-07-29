@@ -226,7 +226,22 @@ Edges come from two sources — merge both:
 - **Wave N** = every ready ticket whose hard dependencies are all satisfied by waves `< N` **and** which has no `areas` conflict with another ticket already placed in wave N.
 - **Maximise wave width** (the goal is "as much in parallel as possible") subject to those two constraints.
 - Order ties by `priority` (hoch > mittel > niedrig), then smaller `effort` first (quick wins).
-### Step 3.3: Route each ticket (plan vs. execute with subagent orchestration)
+### Step 3.3: Pre-Check — Lock-Status der Wave-1-Tickets prüfen
+
+> **Pre-Check-Invariante [T002422]:** Vor dem ersten `claim`-Aufruf wird für jedes Wave-1-Ticket
+> `agent-lock.sh check ticket <id>` ausgeführt. Bereits belegte Tickets (Status `held`) werden
+> vor dem Worktree-Setup gemeldet und zurückgestellt — teure Worktree-Erstellung für blockierte
+> Tickets entfällt. [T002424]
+
+0. **Pre-Check:** For each wave-1 ticket, run `bash scripts/agent-lock.sh check ticket <ext-id>`.
+   Collect all tickets that return `held` and report them:
+   ```
+   LOCK-KONFLIKT: T002XXX bereits gehalten von claude (sid …, worktree …, …)
+   LOCK-KONFLIKT: T002YYY bereits gehalten von gemini (sid …, worktree …, …)
+   ```
+   Remove held tickets from the wave set. Proceed only with free tickets.
+
+### Step 3.4: Route each ticket (plan vs. execute with subagent orchestration)
 
 The dev-flow contract splits the parallel unit, orchestrated by all available subagents:
 - `status = 'plan_staged'` → **execution wave**: dispatch `dev-flow-execute` via relevant subagent (`website-specialist`, `bachelorprojekt-test`, etc.)
@@ -237,7 +252,7 @@ Any subagent that lands a `type='feat'` ticket in `status='backlog'` must, in th
 
 All subagents report back with: ticket_id, decisions made, branch created, plan staged, **lastenheft locked (y/n)**. Consolidate for Phase 3 masterplan completion.
 
-### Step 3.4: Present the masterplan
+### Step 3.5: Present the masterplan
 ```
 WELLE 1  (parallel · keine offenen Abh.)
   T000953  Cockpit Fullscreen   hoch   area:website  plan_staged → execute (wt-A)
@@ -245,23 +260,12 @@ WELLE 1  (parallel · keine offenen Abh.)
 WELLE 2  (nach T000953)
   T000959  Status-Badge         mittel area:website  ai_ready    → plan    (wt-C)  ⊳ depends T000953
 ⚠ KONFLIKT: T000953 & T000961 beide area:website/admin → seriell (T000961 → Welle 2)
+LOCK-KONFLIKTE: [T002424]  (erscheint nur bei Konflikten)
+  T002XXX bereits gehalten von claude (sid …, label …, seit …)  → deferred
 DEFERRED (needs_human, ungeklärt): T000738
 ```
 
-### Step 3.5: Dispatch wave 1 (after the user approves)
-
-> **Pre-Check-Invariante [T002422]:** Vor dem ersten `claim`-Aufruf wird für jedes Wave-1-Ticket
-> `agent-lock.sh check ticket <id>` ausgeführt. Bereits belegte Tickets (Status `held`) werden
-> vor dem Worktree-Setup gemeldet und zurückgestellt — teure Worktree-Erstellung für blockierte
-> Tickets entfällt.
-
-0. **Pre-Check:** For each wave-1 ticket, run `bash scripts/agent-lock.sh check ticket <ext-id>`.
-   Collect all tickets that return `held` and report them:
-   ```
-   LOCK-KONFLIKT: T002XXX bereits gehalten von claude (sid …, worktree …, …)
-   LOCK-KONFLIKT: T002YYY bereits gehalten von gemini (sid …, worktree …, …)
-   ```
-   Remove held tickets from the wave set. Proceed only with free tickets.
+### Step 3.6: Dispatch wave 1 (after the user approves)
 
 For each remaining wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
 1. `bash scripts/agent-lock.sh claim ticket <ext-id> --branch <b> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it).

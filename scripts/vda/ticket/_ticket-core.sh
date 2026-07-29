@@ -106,17 +106,45 @@ _ticket_lock_guard() {
   local lock_sh out rc
   lock_sh="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/agent-lock.sh"
   [[ -x "$lock_sh" || -f "$lock_sh" ]] || return 0
-  # [T002422] Explizites Durchreichen der Harness-Session-Variablen in den
-  # Sub-Bash-Aufruf. Ohne diese Weitergabe kann der child bash die env-Variablen
-  # nicht sehen, faellt auf den Unix-Session-ID-Fallback zurueck, und der
-  # unterscheidet sich zwischen claim (Main-Shell) und check (Sub-Bash) — der
-  # Lock-Guard sieht dann einen fremden Lock und verweigert den Schreibzugriff.
-  out="$(CLAUDE_CODE_SESSION_ID="${CLAUDE_CODE_SESSION_ID:-}" CLAUDE_SESSION_ID="${CLAUDE_SESSION_ID:-}" bash "$lock_sh" check ticket "$id" 2>/dev/null)"; rc=$?
-  if [[ $rc -eq 3 ]]; then
+    # [T002424] Direkter Lock-Datei-Parsing statt Subshell-Env-Passthrough.
+  # Der Lock-Datei-Pfad folgt agent-lock.sh-Konvention:
+  #   <git-common-dir>/agent-locks/ticket__<id>.json
+  local common_dir lock_file owner_sid current_sid
+  common_dir="$(git rev-parse --git-common-dir 2>/dev/null || echo ".git")"
+  lock_file="${common_dir}/agent-locks/ticket__${id}.json"
+
+  # owner_sid aus der Lock-Datei extrahieren
+  owner_sid=""
+  if [[ -f "$lock_file" ]]; then
+    owner_sid=$(sed -n 's/.*"owner_sid": *"\([^"]*\)".*/\1/p' "$lock_file" 2>/dev/null)
+  fi
+
+  # Aktuelle SID aus der Umgebung ermitteln
+  current_sid="${CLAUDE_CODE_SESSION_ID:-${CLAUDE_SESSION_ID:-}}"
+  if [[ -z "$current_sid" ]]; then
+    current_sid="shell-$$"
+  fi
+
+  # [T002424-M1] Diagnose: owner_sid vs. current_sid bei Mismatch
+  if [[ -n "$owner_sid" && "$owner_sid" != "$current_sid" ]]; then
     echo "ERROR: Ticket $id ist durch eine andere Session gesperrt (agent-lock) — Status-Schreibvorgang verweigert." >&2
-    echo "       Halter: $(printf '%s' "$out" | tr '\n' ' ')" >&2
-    echo "       Override nur bewusst: TICKET_LOCK_OVERRIDE=1" >&2
+    echo "       Diagnose: _ticket_lock_guard SID mismatch" >&2
+    echo "         Lock owner_sid:     $owner_sid" >&2
+    echo "         Current SID:        $current_sid" >&2
+    echo "         Shell PID:          $$" >&2
+    echo "       Override: TICKET_LOCK_OVERRIDE=1" >&2
     return 7
+  fi
+
+  # [T002424-M1] Same-Tool-Fallback: Wenn keine SIDs gesetzt sind, via agent-lock.sh check
+  if [[ -z "$owner_sid" && -z "$current_sid" ]]; then
+    out="$(bash "$lock_sh" check ticket "$id" 2>/dev/null)"; rc=$?
+    if [[ $rc -eq 3 ]]; then
+      echo "ERROR: Ticket $id ist durch eine andere Session gesperrt (agent-lock) — Status-Schreibvorgang verweigert." >&2
+      echo "       Halter: $(printf '%s' "$out" | tr '\n' ' ')" >&2
+      echo "       Override: TICKET_LOCK_OVERRIDE=1" >&2
+      return 7
+    fi
   fi
   return 0
 }

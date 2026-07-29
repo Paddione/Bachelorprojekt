@@ -3996,7 +3996,7 @@ tasks:
     desc: Serve SDLC Cockpit static files locally (http://localhost:8765)
     dir: .lavish
     cmds:
-      - fuser -k 8765/tcp 2>/dev/null; sleep 0.3
+      - fuser -k 8765/tcp 2>/dev/null || true; sleep 0.3
       - python3 -m http.server 8765 --bind 127.0.0.1
 
   website:status:

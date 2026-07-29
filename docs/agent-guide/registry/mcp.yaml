@@ -1,17 +1,3 @@
-# docs/agent-guide/registry/mcp.yaml
-# SSOT MCP Server Registry — single source of truth for MCP server
-# definitions across all three agent harnesses (Claude Code, agy, opencode).
-#
-# Two top-level sections:
-#   clients:  MCP client/harness configuration (per-server)
-#   cluster:  In-cluster monolith infrastructure (5 containers)
----
-# LLAMA.CPP-HARNESS (T002398): der Block harness.llamacpp haengt einen Server als
-# stdio-Kindprozess an llama-server (--mcp-servers-config, Ziel scripts/llm/mcp-servers.json).
-# NUR fuer transport: stdio — llama.cpp hat mit server_mcp_stdio genau eine
-# Transport-Implementierung; ein llamacpp-Block an einem http-Server laesst mcp-sync
-# fail-closed abbrechen. Opt-in mit Absicht: jeder Eintrag ist ein zusaetzlicher
-# Kindprozess beim Modellstart.
 clients:
   mcp-kubernetes:
     transport: http
@@ -26,21 +12,21 @@ clients:
         type: remote
         url: http://localhost:18080/mcp
         enabled: true
-
+      llamacpp:
+        command: should-not-be-emitted
   mcp-postgres:
     transport: http
     endpoint: http://localhost:13001/mcp
     brand: mentolder
     database: shared-db.workspace.svc.cluster.local/website
-    scope_warning: >-
-      Fest an die mentolder-DB gebunden (DATABASE_URL im postgres-Container des
-      MCP-Monolithen). external_id ist nur pro Brand eindeutig — eine Abfrage nach
-      einer korczewski-ID liefert still die gleichnamige mentolder-Zeile statt einer
-      leeren Menge. Ticket-Reads gehören zu ticket-mcp mit explizitem brand-Argument.
-    korczewski_path: >-
-      Nicht-Ticket-SQL gegen die korczewski-DB läuft über kubectl exec gegen den
-      shared-db-Pod in Namespace workspace-korczewski (Context fleet), nicht über
-      diesen Server.
+    scope_warning: Fest an die mentolder-DB gebunden (DATABASE_URL im
+      postgres-Container des MCP-Monolithen). external_id ist nur pro Brand
+      eindeutig — eine Abfrage nach einer korczewski-ID liefert still die
+      gleichnamige mentolder-Zeile statt einer leeren Menge. Ticket-Reads
+      gehören zu ticket-mcp mit explizitem brand-Argument.
+    korczewski_path: Nicht-Ticket-SQL gegen die korczewski-DB läuft über kubectl
+      exec gegen den shared-db-Pod in Namespace workspace-korczewski (Context
+      fleet), nicht über diesen Server.
     harness:
       claude_code:
         type: http
@@ -51,7 +37,6 @@ clients:
         type: remote
         url: http://localhost:13001/mcp
         enabled: true
-
   factory-mcp:
     transport: http
     endpoint: http://localhost:13003/mcp
@@ -65,26 +50,16 @@ clients:
         type: remote
         url: http://localhost:13003/mcp
         enabled: true
-
-  # T002426 — bge-MCP-Shim: Embedding und Reranking als MCP-Ressource.
-  # llama-server kann sich NICHT selbst als MCP-Server exponieren; --mcp-servers-config
-  # ist sein MCP-*Client*-Pfad. Deshalb dieser eigene Shim
-  # (scripts/bge-mcp/server.mjs). Transport ist HTTP und nicht stdio, weil die
-  # llama-Web-UI beim Hinzufuegen ausschliesslich eine URL entgegennimmt — ein
-  # stdio-Shim waere dort unerreichbar. Aus demselben Grund steht er NICHT in
-  # scripts/llm/mcp-servers.json: die Datei nimmt nur transport: stdio auf.
   bge-mcp:
     transport: http
     endpoint: http://localhost:13005/mcp
-    auth_note: >-
-      Bind auf 127.0.0.1 plus Bearer-Token (BGE_MCP_TOKEN). Der Generator kennt
-      kein headers-Feld; der Token wird im Harness bzw. im UI-Dialog der
+    auth_note: Bind auf 127.0.0.1 plus Bearer-Token (BGE_MCP_TOKEN). Der Generator
+      kennt kein headers-Feld; der Token wird im Harness bzw. im UI-Dialog der
       llama-Web-UI ("Authorization / Bearer") von Hand hinterlegt. Ohne
       gesetzten Token startet der Shim nicht.
-    failover_note: >-
-      Der Shim haelt keine eigene Failover-Logik. Welches bge-Paar antwortet,
-      entscheidet website/src/lib/bge-router.ts — dieselbe Stelle, die auch die
-      HTTP-Endpunkte und die Bestandsclients benutzen.
+    failover_note: Der Shim haelt keine eigene Failover-Logik. Welches bge-Paar
+      antwortet, entscheidet website/src/lib/bge-router.ts — dieselbe Stelle,
+      die auch die HTTP-Endpunkte und die Bestandsclients benutzen.
     harness:
       claude_code:
         type: http
@@ -95,12 +70,6 @@ clients:
         type: remote
         url: http://localhost:13005/mcp
         enabled: true
-
-  # task-master-ai:
-  #   claude_code: npx -y task-master-ai (portable)
-  #   agy:         /home/patrick/.npm-global/bin/task-master-ai (absoluter Pfad, NICHT portabel)
-  #   opencode:    npx -y task-master-ai, aber enabled: false
-  # Resolution: npx -y ist die portable Form (P1.2).
   task-master-ai:
     transport: stdio
     command: npx
@@ -113,24 +82,29 @@ clients:
     harness:
       claude_code:
         command: npx
-        args: [-y, task-master-ai]
+        args:
+          - -y
+          - task-master-ai
         env:
           OLLAMA_BASE_URL: http://localhost:11434/api
           TASK_MASTER_TOOLS: all
       agy:
         command: /home/patrick/.npm-global/bin/task-master-ai
-        note: "Absoluter Pfad — nicht portabel. npx -y waere portabel, aber agy setzt den globalen Installationspfad."
+        note: Absoluter Pfad — nicht portabel. npx -y waere portabel, aber agy setzt den
+          globalen Installationspfad.
         env:
           OLLAMA_BASE_URL: http://localhost:11434/api
           TASK_MASTER_TOOLS: all
       opencode:
         type: local
-        command: [npx, -y, task-master-ai]
+        command:
+          - npx
+          - -y
+          - task-master-ai
         enabled: false
         environment:
           OLLAMA_BASE_URL: http://localhost:11434/api
           TASK_MASTER_TOOLS: all
-
   mcp-task-runner:
     transport: stdio
     command: mcp-task-runner
@@ -139,21 +113,30 @@ clients:
       - localhost:4317
       - --taskfile
       - /home/patrick/Bachelorprojekt/Taskfile.yml
-    # Absoluter taskfile-Pfad: nicht portabel, wird durch MCPB-Bundle ersetzt (T002301)
     harness:
       claude_code:
         command: mcp-task-runner
-        args: [--otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+        args:
+          - --otel-endpoint
+          - localhost:4317
+          - --taskfile
+          - /home/patrick/Bachelorprojekt/Taskfile.yml
       agy:
         command: mcp-task-runner
-        args: [--otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+        args:
+          - --otel-endpoint
+          - localhost:4317
+          - --taskfile
+          - /home/patrick/Bachelorprojekt/Taskfile.yml
       opencode:
         type: local
-        command: [mcp-task-runner, --otel-endpoint, localhost:4317, --taskfile, /home/patrick/Bachelorprojekt/Taskfile.yml]
+        command:
+          - mcp-task-runner
+          - --otel-endpoint
+          - localhost:4317
+          - --taskfile
+          - /home/patrick/Bachelorprojekt/Taskfile.yml
         enabled: true
-
-  # ticket-mcp: ueber den PATH-Namen referenziert (T002301). Installiert von
-  # `task ticket-mcp:build` nach /usr/local/bin, analog mcp-task-runner.
   ticket-mcp:
     transport: stdio
     command: ticket-mcp-go
@@ -164,7 +147,8 @@ clients:
         command: ticket-mcp-go
       opencode:
         type: local
-        command: [ticket-mcp-go]
+        command:
+          - ticket-mcp-go
         enabled: true
       llamacpp:
         command: ticket-mcp-go
@@ -172,9 +156,6 @@ clients:
           TICKET_MCP_REPO_ROOT: /home/patrick/Bachelorprojekt
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 30000
-
-  # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp
-  # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
   codebase-memory-mcp:
     transport: stdio
     command: /home/patrick/.local/bin/codebase-memory-mcp
@@ -185,18 +166,13 @@ clients:
         command: /home/patrick/.local/bin/codebase-memory-mcp
       opencode:
         type: local
-        command: [/home/patrick/.local/bin/codebase-memory-mcp]
+        command:
+          - /home/patrick/.local/bin/codebase-memory-mcp
         enabled: true
       llamacpp:
         command: /home/patrick/.local/bin/codebase-memory-mcp
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 30000
-
-  # ── Disabled in opencode, absent in claude_code + agy ──────
-  # Diese Server existieren nur in opencode als Disabled-Overrides.
-  # Sie haben kein Gegenstück in claude_code oder agy und werden hier
-  # nur für die Registry-Vollständigkeit dokumentiert.
-
   github-mcp:
     transport: stdio
     command: npx
@@ -208,12 +184,14 @@ clients:
     harness:
       opencode:
         type: local
-        command: [npx, -y, "@modelcontextprotocol/server-github"]
+        command:
+          - npx
+          - -y
+          - "@modelcontextprotocol/server-github"
         environment:
           GITHUB_TOKEN: "{env:GITHUB_TOKEN}"
         enabled: false
-    note: "Nur in opencode (disabled). gh-axi ist der mandatierte GitHub-Pfad."
-
+    note: Nur in opencode (disabled). gh-axi ist der mandatierte GitHub-Pfad.
   playwright:
     transport: stdio
     command: npx
@@ -222,10 +200,11 @@ clients:
     harness:
       opencode:
         type: local
-        command: [npx, "@playwright/mcp@latest"]
+        command:
+          - npx
+          - "@playwright/mcp@latest"
         enabled: false
-    note: "Nur in opencode (disabled). Nicht project-relevant."
-
+    note: Nur in opencode (disabled). Nicht project-relevant.
   docfork:
     transport: stdio
     command: npx
@@ -235,10 +214,12 @@ clients:
     harness:
       opencode:
         type: local
-        command: [npx, -y, docfork]
+        command:
+          - npx
+          - -y
+          - docfork
         enabled: false
-    note: "Nur in opencode (disabled). Vermeidet Kontext-Bloat."
-
+    note: Nur in opencode (disabled). Vermeidet Kontext-Bloat.
   sequential-thinking:
     transport: stdio
     command: npx
@@ -248,10 +229,12 @@ clients:
     harness:
       opencode:
         type: local
-        command: [npx, -y, "@modelcontextprotocol/server-sequential-thinking"]
+        command:
+          - npx
+          - -y
+          - "@modelcontextprotocol/server-sequential-thinking"
         enabled: false
-    note: "Nur in opencode (disabled)."
-
+    note: Nur in opencode (disabled).
   webresearch:
     transport: stdio
     command: npx
@@ -261,20 +244,14 @@ clients:
     harness:
       opencode:
         type: local
-        command: [npx, -y, "@mzxrai/mcp-webresearch@latest"]
+        command:
+          - npx
+          - -y
+          - "@mzxrai/mcp-webresearch@latest"
         enabled: false
-    note: "Nur in opencode (disabled)."
-
+    note: Nur in opencode (disabled).
 cluster:
-  # In-Cluster-Monolith: k3d/default/claude-code-mcp-monolith-{deploy,svc}.yaml
-  # Namespace: default, Context: fleet
-  # Port-forward-Bruecke (systemd user unit):
-  #   scripts/mcp-gateway/mcp-gateway.service
-  #   Taskfile.agents.yml -> mcp-gateway:start
-  #   kubectl port-forward svc/claude-code-mcp-monolith 18080:8080 13000:3000 13001:3001 13002:3002
-  # Bekannte Defekte:
-  #   T002312: Der SSOT-Spec behauptet, dieser Monolith sei dekommissioniert (falsch)
-  note: "5/5 Running, 55 Restarts. Service 56d alt, Pod 18d alt."
+  note: 5/5 Running, 55 Restarts. Service 56d alt, Pod 18d alt.
   containers:
     - name: kubernetes
       image: quay.io/containers/kubernetes_mcp_server@sha256:ef1ede0fd73ce975de1850b7f19090d0850c4ce3e7d21d795f21de3ee8d1452c

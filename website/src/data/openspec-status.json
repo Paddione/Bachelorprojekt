@@ -1994,7 +1994,7 @@
   "T002407": [
     {
       "slug": "mishap-t002407",
-      "status": "plan_staged"
+      "status": "archived"
     }
   ],
   "T002410": [
@@ -2051,6 +2051,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002429": [
+    {
+      "slug": "t2429-stdio-mcps-bridge",
+      "status": "plan_staged"
+    }
+  ],
   "T002439": [
     {
       "slug": "2026-07-28-db-pod-phase-guard-T002439",
@@ -2075,10 +2081,22 @@
       "status": "plan_staged"
     }
   ],
+  "T002448": [
+    {
+      "slug": "mishap-bundle-infra-testspec-ci",
+      "status": "plan_staged"
+    }
+  ],
   "T002457": [
     {
       "slug": "mishap-t002457",
       "status": "plan_staged"
+    }
+  ],
+  "T002470": [
+    {
+      "slug": "2026-07-29-worktree-branch-name-guard",
+      "status": "archived"
     }
   ],
   "TBD": [

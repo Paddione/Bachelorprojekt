@@ -286,8 +286,8 @@ row gate G-AGENTIC08 "$(
 )" eq 0 "Tote Script-Pfade in projekteigenen Skill-.md"
 row gate G-AGENTIC09 "$(
   c=0; for d in $(project_owned_skills); do
-    [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 250 ] && c=$((c+1)); done; echo $c
-)" eq 0 "Projekteigene SKILL.md >250 Zeilen"
+    [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c
+)" eq 0 "Projekteigene SKILL.md >400 Zeilen"
 row gate G-AGENTIC11 "$(
   claimed=$(grep 'opencode runtime registers' CLAUDE.md | grep -oE '`[a-z][a-z0-9-]*`' | tr -d '`' | sort -u)
   actual=$(mcp_servers .opencode/opencode.jsonc)

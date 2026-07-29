@@ -20,7 +20,13 @@ setup() {
 }
 
 @test "embeddings.ts routes through LLM gateway when LLM_ENABLED" {
-  run grep -q 'llm-gateway' "$REPO/website/src/lib/embeddings.ts"
+  # T002426: die Gateway-Adresse steht nicht mehr in dieser Datei. Sie kommt vom
+  # bge-Router, der zwischen dem interaktiven und dem Batch-Paar entscheidet -
+  # genau darum ging es: EINE Routing-Entscheidung statt einer pro Konsument.
+  # Geprueft wird deshalb die Indirektion, nicht mehr das Adressliteral.
+  run grep -q "from './bge-router'" "$REPO/website/src/lib/embeddings.ts"
+  [ "$status" -eq 0 ]
+  run grep -qE 'llm-gateway' "$REPO/website/src/lib/bge-router.ts"
   [ "$status" -eq 0 ]
 }
 
@@ -529,10 +535,17 @@ assert_var_not_declared() {
 @test "T002335: jeder Watchdog-Server-Eintrag hat Name, Port, Script und Args" {
   # Ein fehlender Hashtable-Key liefert in PowerShell still $null (T002264) - der
   # Eintrag liefe dann mit leerem Skriptpfad los. Deshalb strukturell pruefen.
-  local entries
+  # T002426: nicht mehr gegen eine feste Zahl, sondern gegen die Gesamtzahl der
+  # Eintraege - der Watchdog deckt seit dem Batch-Paar fuenf Server ab und wird
+  # weiter wachsen. Die Aussage des Tests ist "JEDER Eintrag ist vollstaendig",
+  # nicht "es sind genau drei".
+  local entries total
   entries=$(grep -cE '@\{ *Name *=.*Port *=.*Script *=.*Args *=' \
     "$REPO/scripts/llm/watchdog-llm-servers.ps1")
-  [ "$entries" -eq 3 ] || { echo "erwartet 3 vollstaendige Server-Eintraege, gefunden: $entries"; false; }
+  total=$(grep -cE '@\{ *Name *=' "$REPO/scripts/llm/watchdog-llm-servers.ps1")
+  [ "$total" -ge 3 ] || { echo "erwartet mindestens 3 Server-Eintraege, gefunden: $total"; false; }
+  [ "$entries" -eq "$total" ] \
+    || { echo "$((total - entries)) von $total Eintraegen unvollstaendig"; false; }
 }
 
 @test "T002335: der Watchdog prueft localhost:PORT/health" {

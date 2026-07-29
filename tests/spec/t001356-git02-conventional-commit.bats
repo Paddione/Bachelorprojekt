@@ -183,13 +183,13 @@ HOOK="${BATS_TEST_DIRNAME}/../../.githooks/commit-msg"
   [ "$status" -eq 0 ]
 }
 
-@test "T002328: commit-msg-Hook lehnt chore(skills) ab und nennt 'agents'" {
-  # Gegenstueck zum Test darueber: der konsolidierte Name wird abgelehnt, aber
-  # die Diagnose fuehrt direkt zum Ersatz — kein Nachschlagen noetig.
+@test "T002328/T002374: 'skills' ist wieder ein gueltiger Scope" {
+  # T002328 konsolidierte 'skills' nach 'agents'. T002374 macht 'skills'
+  # wieder zu einem First-Class-Scope, da er fuer Skill-Dateien intuitiv ist.
   echo "chore(skills): Bonsai-Referenz aktualisieren" > "$TMP_MSG"
   run bash "$HOOK" "$TMP_MSG"
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"agents"* ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OK"* ]]
 }
 
 @test "T002115: commit-msg-Hook nennt den Weg zur Scope-Liste" {

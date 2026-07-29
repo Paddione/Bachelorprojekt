@@ -979,12 +979,6 @@
   },
   {
     "id": "FA-SF-01",
-    "file": "tests/local/FA-SF-01-conflict-check.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-01",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
@@ -1003,19 +997,7 @@
   },
   {
     "id": "FA-SF-04",
-    "file": "tests/local/FA-SF-04-db-schema.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-04",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-05",
-    "file": "tests/local/FA-SF-05-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1075,19 +1057,7 @@
   },
   {
     "id": "FA-SF-20",
-    "file": "tests/local/FA-SF-20-pipeline-contract.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-20",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-21",
-    "file": "tests/local/FA-SF-21-ticket-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1099,19 +1069,7 @@
   },
   {
     "id": "FA-SF-22",
-    "file": "tests/local/FA-SF-22-fixtures.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-22",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-23",
-    "file": "tests/local/FA-SF-23-slots.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1123,19 +1081,7 @@
   },
   {
     "id": "FA-SF-24",
-    "file": "tests/local/FA-SF-24-queue.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-24",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-25",
-    "file": "tests/local/FA-SF-25-schedule.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1147,19 +1093,7 @@
   },
   {
     "id": "FA-SF-26",
-    "file": "tests/local/FA-SF-26-watchdog.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-26",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-27",
-    "file": "tests/local/FA-SF-27-metrics.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1171,19 +1105,7 @@
   },
   {
     "id": "FA-SF-30",
-    "file": "tests/local/FA-SF-30-dispatcher-contract.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-30",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-31",
-    "file": "tests/local/FA-SF-31-workflow-entrypoint.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1195,19 +1117,7 @@
   },
   {
     "id": "FA-SF-32",
-    "file": "tests/local/FA-SF-32-classify-paths.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-32",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-33",
-    "file": "tests/local/FA-SF-33-classify-failure.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1219,19 +1129,7 @@
   },
   {
     "id": "FA-SF-34",
-    "file": "tests/local/FA-SF-34-prefix-conflict.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-34",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-35",
-    "file": "tests/local/FA-SF-35-factory-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1243,19 +1141,7 @@
   },
   {
     "id": "FA-SF-36",
-    "file": "tests/local/FA-SF-36-guards.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-36",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-37",
-    "file": "tests/local/FA-SF-37-retry.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1267,31 +1153,13 @@
   },
   {
     "id": "FA-SF-38",
-    "file": "tests/local/FA-SF-38-canary.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-38",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-39",
-    "file": "tests/local/FA-SF-39-canary-wire.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-39",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-40",
-    "file": "tests/local/FA-SF-40-provision.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1309,19 +1177,7 @@
   },
   {
     "id": "FA-SF-42",
-    "file": "tests/local/FA-SF-42-dashboard-route.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-42",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-43",
-    "file": "tests/local/FA-SF-43-worktree-gitcrypt.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1333,19 +1189,7 @@
   },
   {
     "id": "FA-SF-44",
-    "file": "tests/local/FA-SF-44-verify-diff-killswitch.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-44",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-45",
-    "file": "tests/local/FA-SF-45-conflict-gate-deadlock.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1357,19 +1201,7 @@
   },
   {
     "id": "FA-SF-46",
-    "file": "tests/local/FA-SF-46-cleanup.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-46",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-47",
-    "file": "tests/local/FA-SF-47-wakeup-reasoning-effort.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1381,19 +1213,7 @@
   },
   {
     "id": "FA-SF-48",
-    "file": "tests/local/FA-SF-48-ticket-phase-cli.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-48",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-49",
-    "file": "tests/local/FA-SF-49-injection-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1405,19 +1225,7 @@
   },
   {
     "id": "FA-SF-50",
-    "file": "tests/local/FA-SF-50-stage-plan.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-50",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-51",
-    "file": "tests/local/FA-SF-51-auto-enqueue.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1429,19 +1237,7 @@
   },
   {
     "id": "FA-SF-52",
-    "file": "tests/local/FA-SF-52-qa-notify.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-52",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-53",
-    "file": "tests/local/FA-SF-53-decompose.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1453,19 +1249,7 @@
   },
   {
     "id": "FA-SF-57",
-    "file": "tests/local/FA-SF-57-app-catalog.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-57",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-58",
-    "file": "tests/local/FA-SF-58-eval-harness.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -1477,37 +1261,13 @@
   },
   {
     "id": "FA-SF-59",
-    "file": "tests/local/FA-SF-59-aci-loop.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-59",
     "file": "tests/spec/software-factory.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-60",
-    "file": "tests/local/FA-SF-60-partial-deploy.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-60",
     "file": "tests/spec/software-factory.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-63",
-    "file": "tests/local/FA-SF-63-scout-deterministic.bats",
-    "category": "FA",
-    "kind": "shell"
-  },
-  {
-    "id": "FA-SF-70",
-    "file": "tests/local/FA-SF-70-provider-router.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -2109,6 +1869,1038 @@
     "id": "T002196-6",
     "file": "tests/spec/website-interfaces.bats",
     "category": "T002196",
+    "kind": "shell"
+  },
+  {
+    "id": "active-sessions-hub",
+    "file": "tests/spec/active-sessions-hub.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
+    "id": "active-sessions-hub/release-foreign-lock-guard",
+    "file": "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
+    "id": "admin-actions-schema",
+    "file": "tests/local/admin-actions-schema.bats",
+    "category": "admin-actions-schema",
+    "kind": "shell"
+  },
+  {
+    "id": "admin-cockpit",
+    "file": "tests/spec/admin-cockpit.bats",
+    "category": "admin-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "admin-token-consolidation",
+    "file": "tests/spec/admin-token-consolidation.bats",
+    "category": "admin-token-consolidation",
+    "kind": "shell"
+  },
+  {
+    "id": "admin-ui-modal-drawer",
+    "file": "tests/spec/admin-ui-modal-drawer.bats",
+    "category": "admin-ui-modal-drawer",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-collision-false-positives",
+    "file": "tests/spec/agent-collision-false-positives.bats",
+    "category": "agent-collision-false-positives",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-library",
+    "file": "tests/spec/agent-library.bats",
+    "category": "agent-library",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-lock-claim-persist",
+    "file": "tests/spec/agent-lock-claim-persist.bats",
+    "category": "agent-lock-claim-persist",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-lock-force-claim",
+    "file": "tests/spec/agent-lock-force-claim.bats",
+    "category": "agent-lock-force-claim",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-lock-session-identity",
+    "file": "tests/spec/agent-lock-session-identity.bats",
+    "category": "agent-lock-session-identity",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-roster",
+    "file": "tests/spec/agent-roster.bats",
+    "category": "agent-roster",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills",
+    "file": "tests/spec/agent-skills.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agentic-review",
+    "file": "tests/spec/agentic-review.bats",
+    "category": "agentic-review",
+    "kind": "shell"
+  },
+  {
+    "id": "agentic-tooling-quality-goals",
+    "file": "tests/spec/agentic-tooling-quality-goals.bats",
+    "category": "agentic-tooling-quality-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "agentic-trends-radar",
+    "file": "tests/spec/agentic-trends-radar.bats",
+    "category": "agentic-trends-radar",
+    "kind": "shell"
+  },
+  {
+    "id": "archive",
+    "file": "tests/spec/archive.bats",
+    "category": "archive",
+    "kind": "shell"
+  },
+  {
+    "id": "art-library-webapp",
+    "file": "tests/spec/art-library-webapp.bats",
+    "category": "art-library-webapp",
+    "kind": "shell"
+  },
+  {
+    "id": "auth-sso",
+    "file": "tests/spec/auth-sso.bats",
+    "category": "auth-sso",
+    "kind": "shell"
+  },
+  {
+    "id": "auto-triage-grounding-T002399",
+    "file": "tests/spec/auto-triage-grounding-T002399.bats",
+    "category": "auto-triage-grounding-T002399",
+    "kind": "shell"
+  },
+  {
+    "id": "background-agents-fallback",
+    "file": "tests/spec/background-agents-fallback.bats",
+    "category": "background-agents-fallback",
+    "kind": "shell"
+  },
+  {
+    "id": "backup-pipeline",
+    "file": "tests/spec/backup-pipeline.bats",
+    "category": "backup-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "billing-pipeline",
+    "file": "tests/spec/billing-pipeline.bats",
+    "category": "billing-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-auto-memory",
+    "file": "tests/spec/brain-auto-memory.bats",
+    "category": "brain-auto-memory",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-foundation",
+    "file": "tests/spec/brain-foundation.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-gekko-inbox",
+    "file": "tests/spec/brain-gekko-inbox.bats",
+    "category": "brain-gekko-inbox",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-ingest",
+    "file": "tests/spec/brain-ingest.bats",
+    "category": "brain-ingest",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-initial-ingest",
+    "file": "tests/spec/brain-initial-ingest.bats",
+    "category": "brain-initial-ingest",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-mcp",
+    "file": "tests/spec/brain-mcp.bats",
+    "category": "brain-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-merge-hook",
+    "file": "tests/spec/brain-merge-hook.bats",
+    "category": "brain-merge-hook",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-quality-goals",
+    "file": "tests/spec/brain-quality-goals.bats",
+    "category": "brain-quality-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-quartz-deploy",
+    "file": "tests/spec/brain-quartz-deploy.bats",
+    "category": "brain-quartz-deploy",
+    "kind": "shell"
+  },
+  {
+    "id": "brett",
+    "file": "tests/spec/brett.bats",
+    "category": "brett",
+    "kind": "shell"
+  },
+  {
+    "id": "centralized-logging",
+    "file": "tests/spec/centralized-logging.bats",
+    "category": "centralized-logging",
+    "kind": "shell"
+  },
+  {
+    "id": "chat-inbox",
+    "file": "tests/spec/chat-inbox.bats",
+    "category": "chat-inbox",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd",
+    "file": "tests/spec/ci-cd.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/devflow-execute-hardening-t002365",
+    "file": "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/mishap-t002425",
+    "file": "tests/spec/ci-cd/mishap-t002425.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/pr-refresh-batch",
+    "file": "tests/spec/ci-cd/pr-refresh-batch.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/spec-dir-convention",
+    "file": "tests/spec/ci-cd/spec-dir-convention.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/test-inventory-coverage",
+    "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "coaching-sessions-polish-guide",
+    "file": "tests/spec/coaching-sessions-polish-guide.bats",
+    "category": "coaching-sessions-polish-guide",
+    "kind": "shell"
+  },
+  {
+    "id": "code-quality",
+    "file": "tests/spec/code-quality.bats",
+    "category": "code-quality",
+    "kind": "shell"
+  },
+  {
+    "id": "collabora-integration",
+    "file": "tests/spec/collabora-integration.bats",
+    "category": "collabora-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "commit-signing",
+    "file": "tests/spec/commit-signing.bats",
+    "category": "commit-signing",
+    "kind": "shell"
+  },
+  {
+    "id": "coverage-gate",
+    "file": "tests/spec/coverage-gate.bats",
+    "category": "coverage-gate",
+    "kind": "shell"
+  },
+  {
+    "id": "database",
+    "file": "tests/spec/database.bats",
+    "category": "database",
+    "kind": "shell"
+  },
+  {
+    "id": "datev-export",
+    "file": "tests/spec/datev-export.bats",
+    "category": "datev-export",
+    "kind": "shell"
+  },
+  {
+    "id": "db-quality-goals",
+    "file": "tests/spec/db-quality-goals.bats",
+    "category": "db-quality-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-chore-ticket-ops-mishaps",
+    "file": "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
+    "category": "dev-flow-chore-ticket-ops-mishaps",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-execute",
+    "file": "tests/spec/dev-flow-execute.bats",
+    "category": "dev-flow-execute",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan",
+    "file": "tests/spec/dev-flow-plan.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan-ticket-sh-mishaps",
+    "file": "tests/spec/dev-flow-plan-ticket-sh-mishaps.bats",
+    "category": "dev-flow-plan-ticket-sh-mishaps",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/task-context",
+    "file": "tests/spec/dev-flow-plan/task-context.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "devflow-selection-archive-hardening",
+    "file": "tests/spec/devflow-selection-archive-hardening.bats",
+    "category": "devflow-selection-archive-hardening",
+    "kind": "shell"
+  },
+  {
+    "id": "divergence-guard",
+    "file": "tests/spec/divergence-guard.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
+    "id": "docker-build-speedup",
+    "file": "tests/spec/docker-build-speedup.bats",
+    "category": "docker-build-speedup",
+    "kind": "shell"
+  },
+  {
+    "id": "dora-dashboard",
+    "file": "tests/spec/dora-dashboard.bats",
+    "category": "dora-dashboard",
+    "kind": "shell"
+  },
+  {
+    "id": "e2e-skill-selfpatch",
+    "file": "tests/local/e2e-skill-selfpatch.bats",
+    "category": "e2e-skill-selfpatch",
+    "kind": "shell"
+  },
+  {
+    "id": "e2e-test-infrastructure",
+    "file": "tests/spec/e2e-test-infrastructure.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
+    "id": "e2e-testing",
+    "file": "tests/spec/e2e-testing.bats",
+    "category": "e2e-testing",
+    "kind": "shell"
+  },
+  {
+    "id": "env-seal-empty-value-keys",
+    "file": "tests/spec/env-seal-empty-value-keys.bats",
+    "category": "env-seal-empty-value-keys",
+    "kind": "shell"
+  },
+  {
+    "id": "factory-attempt-counter-T002389",
+    "file": "tests/spec/factory-attempt-counter-T002389.bats",
+    "category": "factory-attempt-counter-T002389",
+    "kind": "shell"
+  },
+  {
+    "id": "factory-branch-switch-guard",
+    "file": "tests/spec/factory-branch-switch-guard.bats",
+    "category": "factory-branch-switch-guard",
+    "kind": "shell"
+  },
+  {
+    "id": "factory-merge-hooks",
+    "file": "tests/spec/factory-merge-hooks.bats",
+    "category": "factory-merge-hooks",
+    "kind": "shell"
+  },
+  {
+    "id": "factory-reclaim-lock-respect",
+    "file": "tests/spec/factory-reclaim-lock-respect.bats",
+    "category": "factory-reclaim-lock-respect",
+    "kind": "shell"
+  },
+  {
+    "id": "feature-product-linking",
+    "file": "tests/spec/feature-product-linking.bats",
+    "category": "feature-product-linking",
+    "kind": "shell"
+  },
+  {
+    "id": "fix-ci-concurrency",
+    "file": "tests/spec/fix-ci-concurrency.bats",
+    "category": "fix-ci-concurrency",
+    "kind": "shell"
+  },
+  {
+    "id": "fix-ticket-tracking-T002279",
+    "file": "tests/spec/fix-ticket-tracking-T002279.bats",
+    "category": "fix-ticket-tracking-T002279",
+    "kind": "shell"
+  },
+  {
+    "id": "fixtures/make-partial-plan",
+    "file": "tests/spec/fixtures/make-partial-plan.sh",
+    "category": "fixtures",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations",
+    "file": "tests/spec/fleet-operations.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "g-cq02-any-types",
+    "file": "tests/spec/g-cq02-any-types.bats",
+    "category": "g-cq02-any-types",
+    "kind": "shell"
+  },
+  {
+    "id": "g-cq08-knip-dead-code",
+    "file": "tests/spec/g-cq08-knip-dead-code.bats",
+    "category": "g-cq08-knip-dead-code",
+    "kind": "shell"
+  },
+  {
+    "id": "g-dep01-npm-vuln",
+    "file": "tests/spec/g-dep01-npm-vuln.bats",
+    "category": "g-dep01-npm-vuln",
+    "kind": "shell"
+  },
+  {
+    "id": "g-fe02-bundle-budget",
+    "file": "tests/spec/g-fe02-bundle-budget.bats",
+    "category": "g-fe02-bundle-budget",
+    "kind": "shell"
+  },
+  {
+    "id": "g-fe03-structured-logger",
+    "file": "tests/spec/g-fe03-structured-logger.bats",
+    "category": "g-fe03-structured-logger",
+    "kind": "shell"
+  },
+  {
+    "id": "g-size02-large-files",
+    "file": "tests/spec/g-size02-large-files.bats",
+    "category": "g-size02-large-files",
+    "kind": "shell"
+  },
+  {
+    "id": "grilling-flow",
+    "file": "tests/spec/grilling-flow.bats",
+    "category": "grilling-flow",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goal-latest-image-exclusions",
+    "file": "tests/spec/health-goal-latest-image-exclusions.bats",
+    "category": "health-goal-latest-image-exclusions",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals",
+    "file": "tests/spec/health-goals.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "hermes-mcp-access",
+    "file": "tests/spec/hermes-mcp-access.bats",
+    "category": "hermes-mcp-access",
+    "kind": "shell"
+  },
+  {
+    "id": "image-drift",
+    "file": "tests/spec/image-drift.bats",
+    "category": "image-drift",
+    "kind": "shell"
+  },
+  {
+    "id": "lavish",
+    "file": "tests/spec/lavish.bats",
+    "category": "lavish",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-local-dev",
+    "file": "tests/spec/llm-local-dev.bats",
+    "category": "llm-local-dev",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-pipeline",
+    "file": "tests/spec/llm-pipeline.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-pipeline/dual-pair-failover",
+    "file": "tests/spec/llm-pipeline/dual-pair-failover.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy",
+    "file": "tests/spec/local-llm-proxy.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "lockfile-drift",
+    "file": "tests/spec/lockfile-drift.bats",
+    "category": "lockfile-drift",
+    "kind": "shell"
+  },
+  {
+    "id": "mandatory-sequences",
+    "file": "tests/local/mandatory-sequences.bats",
+    "category": "mandatory-sequences",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway",
+    "file": "tests/spec/mcp-gateway.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-skill-integration",
+    "file": "tests/spec/mcp-skill-integration.bats",
+    "category": "mcp-skill-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-tooling",
+    "file": "tests/spec/mcp-tooling.bats",
+    "category": "mcp-tooling",
+    "kind": "shell"
+  },
+  {
+    "id": "mediaviewer",
+    "file": "tests/spec/mediaviewer.bats",
+    "category": "mediaviewer",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/apply-escalation",
+    "file": "tests/spec/merge-arbitration/apply-escalation.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/apply-idempotency",
+    "file": "tests/spec/merge-arbitration/apply-idempotency.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/detect-clustering",
+    "file": "tests/spec/merge-arbitration/detect-clustering.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/detect-generated-exclusion",
+    "file": "tests/spec/merge-arbitration/detect-generated-exclusion.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/detect-threshold",
+    "file": "tests/spec/merge-arbitration/detect-threshold.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "merge-arbitration/synthesize-syntax-gate",
+    "file": "tests/spec/merge-arbitration/synthesize-syntax-gate.bats",
+    "category": "merge-arbitration",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-bundle-2026-06-30",
+    "file": "tests/spec/mishap-bundle-2026-06-30.bats",
+    "category": "mishap-bundle-2026-06-30",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-t002422",
+    "file": "tests/spec/mishap-t002422.bats",
+    "category": "mishap-t002422",
+    "kind": "shell"
+  },
+  {
+    "id": "monitoring-alerts",
+    "file": "tests/spec/monitoring-alerts.bats",
+    "category": "monitoring-alerts",
+    "kind": "shell"
+  },
+  {
+    "id": "newsletter-system",
+    "file": "tests/spec/newsletter-system.bats",
+    "category": "newsletter-system",
+    "kind": "shell"
+  },
+  {
+    "id": "nextcloud-integration",
+    "file": "tests/spec/nextcloud-integration.bats",
+    "category": "nextcloud-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "observability",
+    "file": "tests/spec/observability.bats",
+    "category": "observability",
+    "kind": "shell"
+  },
+  {
+    "id": "opencode-local-model-runner",
+    "file": "tests/spec/opencode-local-model-runner.bats",
+    "category": "opencode-local-model-runner",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-embedding",
+    "file": "tests/spec/openspec-embedding.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-pgvector",
+    "file": "tests/spec/openspec-pgvector.bats",
+    "category": "openspec-pgvector",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-upstream-cli",
+    "file": "tests/spec/openspec-upstream-cli.bats",
+    "category": "openspec-upstream-cli",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow",
+    "file": "tests/spec/openspec-workflow.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/half-archive-guard",
+    "file": "tests/spec/openspec-workflow/half-archive-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-worktree-anchor",
+    "file": "tests/spec/openspec-worktree-anchor.bats",
+    "category": "openspec-worktree-anchor",
+    "kind": "shell"
+  },
+  {
+    "id": "pipeline-divergence-T002393",
+    "file": "tests/spec/pipeline-divergence-T002393.bats",
+    "category": "pipeline-divergence-T002393",
+    "kind": "shell"
+  },
+  {
+    "id": "pipeline-interface",
+    "file": "tests/spec/pipeline-interface.bats",
+    "category": "pipeline-interface",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-context",
+    "file": "tests/spec/plan-context.bats",
+    "category": "plan-context",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-client-seed-auth-header",
+    "file": "tests/spec/pocket-id-client-seed-auth-header.bats",
+    "category": "pocket-id-client-seed-auth-header",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-client-seed-early-abort",
+    "file": "tests/spec/pocket-id-client-seed-early-abort.bats",
+    "category": "pocket-id-client-seed-early-abort",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-client-seed-pagination",
+    "file": "tests/spec/pocket-id-client-seed-pagination.bats",
+    "category": "pocket-id-client-seed-pagination",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-client-seed-secret-writeback",
+    "file": "tests/spec/pocket-id-client-seed-secret-writeback.bats",
+    "category": "pocket-id-client-seed-secret-writeback",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-client-seed-timeout",
+    "file": "tests/spec/pocket-id-client-seed-timeout.bats",
+    "category": "pocket-id-client-seed-timeout",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-migration",
+    "file": "tests/spec/pocket-id-migration.bats",
+    "category": "pocket-id-migration",
+    "kind": "shell"
+  },
+  {
+    "id": "pocket-id-proxy-ip",
+    "file": "tests/spec/pocket-id-proxy-ip.bats",
+    "category": "pocket-id-proxy-ip",
+    "kind": "shell"
+  },
+  {
+    "id": "pr-refresh",
+    "file": "tests/spec/pr-refresh.bats",
+    "category": "pr-refresh",
+    "kind": "shell"
+  },
+  {
+    "id": "pre-commit-freshness",
+    "file": "tests/spec/pre-commit-freshness.bats",
+    "category": "pre-commit-freshness",
+    "kind": "shell"
+  },
+  {
+    "id": "projekttickets-cockpit",
+    "file": "tests/spec/projekttickets-cockpit.bats",
+    "category": "projekttickets-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "questionnaire-system",
+    "file": "tests/spec/questionnaire-system.bats",
+    "category": "questionnaire-system",
+    "kind": "shell"
+  },
+  {
+    "id": "react-homepage-blocks",
+    "file": "tests/spec/react-homepage-blocks.bats",
+    "category": "react-homepage-blocks",
+    "kind": "shell"
+  },
+  {
+    "id": "react-login-edit-homepage",
+    "file": "tests/spec/react-login-edit-homepage.bats",
+    "category": "react-login-edit-homepage",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-health-goals",
+    "file": "tests/spec/repo-health-goals.bats",
+    "category": "repo-health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "rustdesk-server",
+    "file": "tests/spec/rustdesk-server.bats",
+    "category": "rustdesk-server",
+    "kind": "shell"
+  },
+  {
+    "id": "s1-violations",
+    "file": "tests/spec/s1-violations.bats",
+    "category": "s1-violations",
+    "kind": "shell"
+  },
+  {
+    "id": "s1-violations-batch2",
+    "file": "tests/spec/s1-violations-batch2.bats",
+    "category": "s1-violations-batch2",
+    "kind": "shell"
+  },
+  {
+    "id": "s2-cycles-g-cq07",
+    "file": "tests/spec/s2-cycles-g-cq07.bats",
+    "category": "s2-cycles-g-cq07",
+    "kind": "shell"
+  },
+  {
+    "id": "scout-prediction-quality",
+    "file": "tests/spec/scout-prediction-quality.bats",
+    "category": "scout-prediction-quality",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/document-tokens-only",
+    "file": "tests/spec/sdlc-cockpit/document-tokens-only.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/kit-artifacts-exist",
+    "file": "tests/spec/sdlc-cockpit/kit-artifacts-exist.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/kit-binding",
+    "file": "tests/spec/sdlc-cockpit/kit-binding.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/no-direct-fetch",
+    "file": "tests/spec/sdlc-cockpit/no-direct-fetch.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/panel-type-declaration",
+    "file": "tests/spec/sdlc-cockpit/panel-type-declaration.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/rail-representation",
+    "file": "tests/spec/sdlc-cockpit/rail-representation.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sealed-secret-cluster-drift",
+    "file": "tests/spec/sealed-secret-cluster-drift.bats",
+    "category": "sealed-secret-cluster-drift",
+    "kind": "shell"
+  },
+  {
+    "id": "secret-rotation",
+    "file": "tests/spec/secret-rotation.bats",
+    "category": "secret-rotation",
+    "kind": "shell"
+  },
+  {
+    "id": "secret-rotation-exposure",
+    "file": "tests/spec/secret-rotation-exposure.bats",
+    "category": "secret-rotation-exposure",
+    "kind": "shell"
+  },
+  {
+    "id": "secrets-deploy-automation",
+    "file": "tests/spec/secrets-deploy-automation.bats",
+    "category": "secrets-deploy-automation",
+    "kind": "shell"
+  },
+  {
+    "id": "security",
+    "file": "tests/spec/security.bats",
+    "category": "security",
+    "kind": "shell"
+  },
+  {
+    "id": "sessions-server",
+    "file": "tests/spec/sessions-server.bats",
+    "category": "sessions-server",
+    "kind": "shell"
+  },
+  {
+    "id": "sidekick-assistant",
+    "file": "tests/spec/sidekick-assistant.bats",
+    "category": "sidekick-assistant",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/conflict-gate",
+    "file": "tests/spec/software-factory/conflict-gate.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/db-pod-phase-guard",
+    "file": "tests/spec/software-factory/db-pod-phase-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/stage-plan-touched-files",
+    "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "studio-sessions-reorganize",
+    "file": "tests/spec/studio-sessions-reorganize.bats",
+    "category": "studio-sessions-reorganize",
+    "kind": "shell"
+  },
+  {
+    "id": "t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp",
+    "file": "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",
+    "category": "t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "t001353-mishap-bundle-ci-tickets",
+    "file": "tests/spec/t001353-mishap-bundle-ci-tickets.bats",
+    "category": "t001353-mishap-bundle-ci-tickets",
+    "kind": "shell"
+  },
+  {
+    "id": "t001356-git02-conventional-commit",
+    "file": "tests/spec/t001356-git02-conventional-commit.bats",
+    "category": "t001356-git02-conventional-commit",
+    "kind": "shell"
+  },
+  {
+    "id": "t001363-mishap-bundle",
+    "file": "tests/spec/t001363-mishap-bundle.bats",
+    "category": "t001363-mishap-bundle",
+    "kind": "shell"
+  },
+  {
+    "id": "t001408-mishap-bundle",
+    "file": "tests/spec/t001408-mishap-bundle.bats",
+    "category": "t001408-mishap-bundle",
+    "kind": "shell"
+  },
+  {
+    "id": "t001415-mishap-bundle",
+    "file": "tests/spec/t001415-mishap-bundle.bats",
+    "category": "t001415-mishap-bundle",
+    "kind": "shell"
+  },
+  {
+    "id": "t001582-mishap-bundle",
+    "file": "tests/spec/t001582-mishap-bundle.bats",
+    "category": "t001582-mishap-bundle",
+    "kind": "shell"
+  },
+  {
+    "id": "t001586",
+    "file": "tests/spec/t001586.bats",
+    "category": "t001586",
+    "kind": "shell"
+  },
+  {
+    "id": "t001591",
+    "file": "tests/spec/t001591.bats",
+    "category": "t001591",
+    "kind": "shell"
+  },
+  {
+    "id": "t002204-mishap-bundle",
+    "file": "tests/spec/t002204-mishap-bundle.bats",
+    "category": "t002204-mishap-bundle",
+    "kind": "shell"
+  },
+  {
+    "id": "t002374-mishap-bundle",
+    "file": "tests/spec/t002374-mishap-bundle.bats",
+    "category": "t002374-mishap-bundle",
+    "kind": "shell"
+  },
+  {
+    "id": "terminal-sidekick",
+    "file": "tests/spec/terminal-sidekick.bats",
+    "category": "terminal-sidekick",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-mcp",
+    "file": "tests/spec/ticket-mcp.bats",
+    "category": "ticket-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-system",
+    "file": "tests/spec/ticket-system.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-system/schema-diaet-dead-columns",
+    "file": "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "ts-suppression",
+    "file": "tests/spec/ts-suppression.bats",
+    "category": "ts-suppression",
+    "kind": "shell"
+  },
+  {
+    "id": "vaultwarden-integration",
+    "file": "tests/spec/vaultwarden-integration.bats",
+    "category": "vaultwarden-integration",
+    "kind": "shell"
+  },
+  {
+    "id": "website-core",
+    "file": "tests/spec/website-core.bats",
+    "category": "website-core",
+    "kind": "shell"
+  },
+  {
+    "id": "workspace-deploy",
+    "file": "tests/spec/workspace-deploy.bats",
+    "category": "workspace-deploy",
+    "kind": "shell"
+  },
+  {
+    "id": "workspace-deploy-secrets-scope",
+    "file": "tests/spec/workspace-deploy-secrets-scope.bats",
+    "category": "workspace-deploy-secrets-scope",
+    "kind": "shell"
+  },
+  {
+    "id": "worktree-divergence-guard-T002387",
+    "file": "tests/spec/worktree-divergence-guard-T002387.bats",
+    "category": "worktree-divergence-guard-T002387",
     "kind": "shell"
   }
 ]

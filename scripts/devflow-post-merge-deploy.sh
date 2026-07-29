@@ -64,3 +64,8 @@ else
   echo "❌ $DETAIL" >&2
   exit 1
 fi
+
+# T002279: Scan merge for incidentally referenced tickets and add advisory comments.
+# Runs as best-effort (non-fatal) after deploy. Does NOT auto-close tickets.
+bash "$(dirname "${BASH_SOURCE[0]}")/devflow-post-merge-ticket-closure.sh" \
+  --merge-sha "$MERGE_COMMIT" || echo "⚠ ticket-closure scan non-fatal exit $?"

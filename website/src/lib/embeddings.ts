@@ -1,5 +1,6 @@
 import { logAiCall } from './ai-metrics';
 import { logger } from './logger';
+import { resolvePair, BgeRoutingError, type PairId } from './bge-router';
 
 const VOYAGE_URL = 'https://api.voyageai.com/v1/embeddings';
 const VOYAGE_MODEL = 'voyage-multilingual-2';
@@ -35,7 +36,16 @@ const voyageKey = () => {
 };
 
 const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
-const embedUrl = () => process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8095';
+
+// T002426: die Zieladresse kommt aus dem bge-Router, nicht mehr direkt aus der
+// Umgebung. Damit gilt fuer den Embedding-Pfad dieselbe Failover-Entscheidung
+// wie fuer den MCP-Shim und die HTTP-Endpunkte — an genau einer Stelle.
+// Rollenzuordnung: Index-Last ist Batch-Last (Paar A), Query-Last ist
+// interaktiv (Paar B). Bewusst ohne Health-Cache: eine zwischengespeicherte
+// Auslastung waere genau der Wert, dessen Aktualitaet die Ueberlast-Umleitung
+// ausmacht.
+const preferredPairFor = (purpose: EmbeddingPurpose): PairId =>
+  (purpose === 'index' ? 'batch' : 'interactive');
 
 // Maps internal model type to the actual model ID sent to the API.
 // llama.cpp accepts the model field (ignored in single-model mode).
@@ -48,6 +58,9 @@ const resolveModelId = (m: string) => MODEL_ID_MAP[m] ?? m;
 function isNetworkError(err: unknown, signal?: AbortSignal): boolean {
   if (!(err instanceof Error)) return false;
   if (err.name === 'AbortError' && signal?.aborted) return false;
+  // T002426: "kein Paar erreichbar" IST ein Erreichbarkeitsproblem und wird
+  // genauso behandelt wie ein ECONNREFUSED gegen einen einzelnen Endpunkt.
+  if (err instanceof BgeRoutingError) return true;
   return err.name === 'AbortError' ||
     /ECONNREFUSED|ETIMEDOUT|ECONNRESET|fetch failed/i.test(err.message);
 }
@@ -81,8 +94,14 @@ async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'mode
   const max = opts.maxAttempts ?? 4;
   const base = opts.baseDelayMs ?? 250;
   let lastErr: unknown;
+  // Ein BgeRoutingError faellt hier bewusst UNVERPACKT durch: isNetworkError()
+  // stuft ihn als Erreichbarkeitsproblem ein, damit die bestehende
+  // Fallunterscheidung greift — voyage-multilingual-2 weicht auf Voyage aus,
+  // bge-m3 faellt fail-closed durch. Ein vorzeitiges Umwandeln in
+  // Embedding*Error wuerde die Voyage-Ausweiche stillschweigend abschneiden.
+  const target = (await resolvePair(preferredPairFor(opts.purpose), 'embed', { signal: opts.signal })).url;
   for (let attempt = 1; attempt <= max; attempt++) {
-    const r = await fetch(`${embedUrl()}/v1/embeddings`, {
+    const r = await fetch(`${target}/v1/embeddings`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': opts.purpose },
       body: JSON.stringify({ model: resolveModelId(opts.model), input: inputs }),

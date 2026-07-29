@@ -105,6 +105,8 @@ Plan reale Signaturen statt erfundener Typen referenziert: `symbols`/`signature`
 
 ### Guards des Feature-Pfads
 
+- **Preflight: Check merged ticket** (T002279) — beide Pfade, vor der Worktree-Anlage:
+  `bash scripts/agent-lock.sh check-merged "$TICKET_EXT_ID"` (`rc=1` = auf `main` schon gefixt → Ticket `done`, abbrechen). Exit-Codes: [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md) §Preflight.
 - **Brainstorming ist nicht optional** — weder im Feature- noch im Fix-Pfad. Es entscheidet, was
   überhaupt gebaut wird; ein Plan ohne vorherige Klärung plant die falsche Sache sorgfältig.
 - **Ticket vor Branch** (T001917, T002050): Steht die `TICKET_EXT_ID` fest, trägt der Branch sie

@@ -5,6 +5,13 @@
 # Consolidated BATS suite for the Software Factory component.
 # Aggregated from tests/local/FA-SF-*.bats (41 source files).
 # Convention: one .bats file per OpenSpec SSOT spec.
+#
+# [T002427] Die 41 Quelldateien sind ENTFERNT — diese Datei ist die einzige Quelle. Sie
+# lagen bis dahin unveraendert daneben, weil die Konsolidierung sie nie geloescht hat.
+# Der daraus folgende doppelte Testname verdeckte T002421: nach dem Entfernen von
+# scripts/factory/pipeline.js sah ein gefilterter Lauf auf tests/spec/ gruen aus, waehrend
+# `task test:factory` ueber die veralteten Kopien mit 30 Tests rot lief. Neue Faelle gehoeren
+# hierher, nicht nach tests/local/.
 
 # ── File-level variables ──────────────────────────────────────────────────────
 PIPELINE_SCRIPT="scripts/factory/pipeline.mjs"
@@ -34,12 +41,17 @@ REG="scripts/factory/service-registry.sh"
 # ── Helpers ───────────────────────────────────────────────────────────────────
 # Skip if no shared-db pod is reachable (offline / CI without cluster).
 # Used by FA-SF-04 db-schema tests which require a live DB.
+# [T002439] Der Phasenfilter ist Teil der BEDINGUNG, nicht Kosmetik: ohne ihn liefert die
+# Selektion auch einen Completed-Pod, der Skip bleibt aus, und das folgende `kubectl exec`
+# endet mit rc=1 statt in einem sauberen Skip. Genau so entstand der "DB-Nachweis rc=1"
+# im Verify von T002418.
 _skip_if_no_db() {
   local _pod
   _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
-    -l 'app in (shared-db,shared-db-dev)' -o name 2>/dev/null | head -1) || true
+    -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
+    -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then
-    skip "no shared-db pod reachable (offline/CI)"
+    skip "no Running shared-db pod reachable (offline/CI)"
   fi
 }
 
@@ -162,7 +174,7 @@ teardown() {
   # Update it to be type='task' and status='in_progress' to simulate in-flight human work
   local ns="${FACTORY_NS:-workspace-korczewski-dev}"
   local pod
-  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtAc "UPDATE tickets.tickets SET type='task', status='in_progress' WHERE external_id = '$ext_id';"
 
@@ -192,7 +204,7 @@ psql_tickets() {
   local ctx="${FACTORY_CTX:-fleet}"
   local ns="${FACTORY_NS:-workspace}"
   local pod
-  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
   if [[ -z "$pod" ]]; then
     echo "Error: shared-db pod not found" >&2
     return 1
@@ -868,7 +880,7 @@ process.stdout.write(a+'/'+b)"
   # Derive the namespace from the brand (do not rely on a FACTORY_NS default).
   local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
   # Backdate updated_at by 40 minutes to simulate a hung pipeline.
-  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name | head -1)
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
   run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
@@ -877,6 +889,28 @@ process.stdout.write(a+'/'+b)"
   # Confirm status=triage and pipeline_slot cleared.
   st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
   [ "$st" = "triage" ]
+}
+
+@test "FA-SF-26: a stale in_progress feature WITH a staged plan (FACTORY-PLAN-REF) is returned to backlog, not triage [T001850]" {
+  # [T002427] Aus tests/local/FA-SF-26-watchdog.bats uebernommen. Gegenstueck zum Test
+  # darueber: liegt bereits ein Plan vor, darf der Watchdog diese Arbeit nicht wegwerfen,
+  # indem er nach triage zuruecksetzt — das erzwingt einen vollen Scout/Design/Plan-Neustart.
+  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  local brand="${TEST_BRAND:-korczewski}"
+  ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-b.txt")
+  env BRAND="$brand" bash scripts/factory/slots.sh claim "$ext" 1 >/dev/null
+  # Simuliert, dass dev-flow-plan fuer dieses Ticket bereits einen Plan gestaged hat.
+  BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh add-comment --id "$ext" \
+    --body "FACTORY-PLAN-REF branch=feature/sf-test-wd-$$ plan=openspec/changes/sf-test-wd-$$/tasks.md" >/dev/null
+  local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
+  kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
+  run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
+  [ "$status" -eq 0 ]
+  echo "$output" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
+  st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
+  [ "$st" = "backlog" ]
 }
 
 @test "T002242-M2: watchdog zombie-worktree cleanup prueft git status vor Force-Remove" {
@@ -972,6 +1006,17 @@ DISPATCHER_SCRIPT="scripts/factory/dispatcher.js"
   [ "$labels" -eq 2 ]
   pinned=$(grep -E "label: '(escalate|metrics)'" "$DISPATCHER_SCRIPT" | grep "model:" | wc -l)
   [ "$pinned" -eq 0 ]
+}
+
+@test "FA-SF-30: dispatcher reads prep from a file, not via child_process (T001812)" {
+  # Uebernommen aus tests/local/FA-SF-30-dispatcher-contract.bats, die mit T002421
+  # entfaellt. T001810 rief factory-prep per child_process.execFileSync INNERHALB des
+  # Workflow-Calls (bis 300s), langsam genug um den Call in den asynchronen
+  # "launched in background"-Modus zu kippen — eine einmalige `claude -p`-Session
+  # ueberlebt diese Notification nie. T001812 hat factory-prep zurueck nach wakeup.sh
+  # (synchrones bash) verlegt und uebergibt das Ergebnis als Dateipfad.
+  run grep -q "args.prep_file\|A.prep_file" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
+  run grep -q "readFileSync" "$DISPATCHER_SCRIPT"; [ "$status" -eq 0 ]
 }
 
 # ── FA-SF-31-workflow-entrypoint ────────────────────────────────#
@@ -1131,6 +1176,17 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
   printf 'all good, nothing to report here\n' > "$TMPLOG"
   run _cf
   [ "$output" = "other" ]
+}
+
+@test "FA-SF-33: harmless log with word manifest does not classify as manifest" {
+  # [T002427] Aus tests/local/FA-SF-33-classify-failure.bats uebernommen. Falsch-Positiv-
+  # Wache: das blosse Vorkommen des Wortes "manifest" in einer Erfolgsmeldung darf die
+  # Klassifikation nicht auf 'manifest' ziehen — sonst laeuft die Fehlerbehandlung in den
+  # falschen Zweig.
+  printf 'Checking route-manifest.json... ok\nAll checks passed cleanly\n' > "$TMPLOG"
+  run _cf
+  [ "$status" -eq 0 ]
+  [ "$output" != "manifest" ]
 }
 
 @test "FA-SF-33: missing log file classifies as other" {
@@ -3110,6 +3166,12 @@ REG="scripts/factory/service-registry.sh"
   run bash scripts/factory/provider-config.sh set --source x --tier opus --priority 1 --provider anthropic --model m --dry-run
   [ "$status" -eq 0 ]
   [[ "$output" == *"opus"* ]]
+  # [T002427] Aus tests/local/FA-SF-70-provider-router.bats uebernommen, die mit diesem
+  # Vorgang entfaellt: opus muss die Argumentpruefung PASSIEREN und nur warnen. Ohne diese
+  # Zeile bestuende der Test auch dann, wenn opus hart abgelehnt wuerde — die Usage-Ausgabe
+  # enthaelt den Tier-Namen ebenfalls.
+  [[ "$output" == *"WARNING"* ]]
+  [[ "$output" != *"Usage:"* ]]
 }
 
 @test "FA-SF-70: provider-config.sh set requires all mandatory flags" {
@@ -4609,19 +4671,19 @@ MOCKEOF
   [ "$output" = "pod/shared-db-live" ]
 }
 
-@test "T002386: every shared-db pod selection in scripts/ filters on phase Running" {
+@test "T002386/T002439: every shared-db pod selection filters on phase Running" {
   # Klassen-Guard statt Einzelfall: T002307 fixte eine Kopie und hielt die Sache
-  # fuer erledigt, waehrend vier weitere Kopien den Bug behielten. Dieser Test
-  # meldet jede kuenftige Kopie ohne Filter rot, egal in welcher Datei.
+  # fuer erledigt, waehrend vier weitere Kopien den Bug behielten.
   #
-  # Gezaehlt wird pro Datei, nicht pro Zeile: die Selektion darf ueber mehrere
-  # Zeilen umgebrochen sein (so steht sie in _ticket-core.sh).
-  local offenders=""
-  while IFS= read -r f; do
-    grep -q -- "--field-selector status.phase=Running" "$f" || offenders="$offenders $f"
-  done < <(grep -rl "app in (shared-db" "$REPO_ROOT/scripts" --include='*.sh')
-  [ -z "$offenders" ] || {
-    echo "Pod-Selektion ohne Phasenfilter in:$offenders" >&2
+  # [T002439] Die Scan-Logik lebt jetzt in scripts/check-pod-phase-filter.sh statt hier
+  # inline. Zwei Gruende: sie war inline nicht gegen Fixtures pruefbar, und sie hatte
+  # selbst zwei Blindstellen — sie sah nur scripts/ mit --include='*.sh', und sie zaehlte
+  # pro DATEI. Diese Datei hier entkam ihr dadurch trotz fuenf ungefilterter Selektionen,
+  # weil die Zeile darueber den Filter-String als Suchmuster fuehrte. Zwei Implementierungen
+  # derselben Regel wuerden auseinanderlaufen, deshalb ruft der Test das Skript auf.
+  run bash "$REPO_ROOT/scripts/check-pod-phase-filter.sh"
+  [ "$status" -eq 0 ] || {
+    echo "$output" >&2
     false
   }
 }

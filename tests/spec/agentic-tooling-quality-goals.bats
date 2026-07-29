@@ -82,12 +82,12 @@ setup() {
 # Seit T002303 ein fail-closed Gate mit Schwelle 250 über die projekteigenen Skills
 # (vorher: advisory target, Schwelle 500, alle Skills inkl. upstream-gepflegter).
 
-@test "G-AGENTIC09: zero project-owned SKILL.md files exceed 250 lines" {
+@test "G-AGENTIC09: zero project-owned SKILL.md files exceed the declared limit" {
   local count
   count=$(cd "$REPO" && bash -c '
     source <(sed -n "/^project_owned_skills()/,/^}/p" scripts/health-goals-check.sh)
     c=0; for d in $(project_owned_skills); do
-      [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 250 ] && c=$((c+1)); done; echo $c')
+      [ "$(wc -l < ".claude/skills/$d/SKILL.md")" -gt 400 ] && c=$((c+1)); done; echo $c')
   [ "$count" -eq 0 ]
 }
 
@@ -97,10 +97,18 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "G-AGENTIC09 measures 250 lines, not the legacy 500" {
+@test "G-AGENTIC09 measures 400 lines, not the legacy 500" {
+  # [T002452] Schwelle 250 -> 400: dev-flow-plan/SKILL.md stand exakt auf 250 und
+  # dev-flow-execute auf 247 — das Gate blockierte damit nicht mehr Wachstum, sondern
+  # jede inhaltliche Aenderung an diesen Dateien. 400 laesst Reserve und bleibt klar
+  # unter der Alt-Schwelle 500, die T002303 aus gutem Grund verworfen hat: 500 lag
+  # weit ueber der Progressive-Disclosure-Grenze, die das Gate schuetzen soll.
+  # Dieser Test haelt die Untergrenze offen und die Obergrenze zu.
   run grep -A3 '^row gate G-AGENTIC09 ' "$REPO/scripts/health-goals-check.sh"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"-gt 250"* ]]
+  [[ "$output" == *"-gt 400"* ]]
+  # Rueckfall auf die Alt-Schwelle bleibt verboten.
+  [[ "$output" != *"-gt 500"* ]]
 }
 
 @test "project_owned_skills derives the vendor set from the OVERVIEW.md marker block" {

@@ -1603,12 +1603,12 @@ PY
   [[ "$output" == *"website"* ]]
 }
 
-@test "T002328: konsolidierter Scope 'skills' nennt sein Ziel 'agents' in der Diagnose" {
+@test "T002328/T002374: 'skills' ist wieder ein gueltiger Scope" {
   msg="$BATS_TEST_TMPDIR/msg-skills"
   printf 'chore(skills): tidy up\n' > "$msg"
   run bash "$REPO_ROOT/scripts/validate-commit-msg.sh" message "$msg"
-  [ "$status" -ne 0 ]
-  [[ "$output" == *"agents"* ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"OK"* ]]
 }
 
 @test "T002328: entfallener Scope 'tracking' wird als entfernt gemeldet, nicht auf ein Ziel gemappt" {
@@ -1871,4 +1871,104 @@ MOCKEOF
   local verdict="$output"
   rm -f "$probe"
   [[ "$verdict" == *"IN"* ]] || { echo "ungetrackte Datei fehlt im Scan-Universum: $verdict"; false; }
+}
+
+# ────────────────────────────────────────────────────────────────────────────
+# T002341-M1: stage-plan hat Timeout-Wrapper fuer _exec_sql
+# ────────────────────────────────────────────────────────────────────────────
+
+@test "T002341-M1: stage-plan.sh definiert _exec_sql_with_timeout" {
+  [ -f "$REPO_ROOT/scripts/vda/ticket/stage-plan.sh" ] || skip "stage-plan.sh nicht gefunden"
+  grep -q '_exec_sql_with_timeout' "$REPO_ROOT/scripts/vda/ticket/stage-plan.sh" \
+    || { echo "MISSING _exec_sql_with_timeout function in stage-plan.sh"; return 1; }
+}
+
+@test "T002341-M1: stage-plan.sh timeout wrapper enthaelt WARN message" {
+  [ -f "$REPO_ROOT/scripts/vda/ticket/stage-plan.sh" ] || skip "stage-plan.sh nicht gefunden"
+  grep -q 'timed out after' "$REPO_ROOT/scripts/vda/ticket/stage-plan.sh" \
+    || { echo "MISSING timeout warning message in stage-plan.sh"; return 1; }
+}
+
+# ────────────────────────────────────────────────────────────────────────────
+# T002341-M2: agent-collision.sh filtert generierte Dateien aus der Kollisionsmeldung
+# ────────────────────────────────────────────────────────────────────────────
+# Der urspruengliche Fix fuehrte eine hartkodierte Liste (_is_generated) ein.
+# T002375-p6 loeste sie durch _drop_generated ab, das .gitattributes
+# (linguist-generated=true) als SSOT liest. Diese Tests pruefen deshalb das
+# VERHALTEN, nicht den Funktionsnamen — sonst schreiben sie eine abgeloeste
+# Bauform fest.
+
+@test "T002341-M2: agent-collision.sh filtert generierte Pfade aus einer Dateiliste" {
+  [ -f "$REPO_ROOT/scripts/agent-collision.sh" ] || skip "agent-collision.sh nicht gefunden"
+  run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
+    _drop_generated 'website/src/data/openspec-status.json'"
+  [ "$status" -eq 0 ] || { echo "_drop_generated nicht aufrufbar"; return 1; }
+  # Positiv-Anker zuerst: eine echte Quelldatei MUSS die Filterung ueberleben,
+  # sonst besteht die Negativ-Aussage unten vakuos (T002356-M1).
+  run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
+    _drop_generated 'website/src/pages/index.astro'"
+  [ "$(printf '%s' "$output" | tr -d '[:space:]')" = "website/src/pages/index.astro" ] \
+    || { echo "Quelldatei wurde faelschlich gefiltert: '$output'"; return 1; }
+  run bash -c "cd '$REPO_ROOT' && source scripts/agent-collision.sh 2>/dev/null
+    _drop_generated 'website/src/data/openspec-status.json'"
+  [ -z "$(printf '%s' "$output" | tr -d '[:space:]')" ] \
+    || { echo "openspec-status.json haette gefiltert werden muessen: '$output'"; return 1; }
+}
+
+@test "T002341-M2: cmd_check wendet den Generated-Filter auf beide Seiten an" {
+  [ -f "$REPO_ROOT/scripts/agent-collision.sh" ] || skip "agent-collision.sh nicht gefunden"
+  # eigene Dateien UND Peer-Dateien muessen durch _drop_generated laufen —
+  # ein einseitiger Filter meldet die Kollision weiterhin.
+  local n
+  n=$(sed -n '/^cmd_check()/,/^}/p' "$REPO_ROOT/scripts/agent-collision.sh" | grep -c '_drop_generated')
+  [ "$n" -ge 2 ] \
+    || { echo "cmd_check ruft _drop_generated nur ${n}x auf, erwartet >=2 (own + peer)"; return 1; }
+}
+
+@test "T002341-M3: agent-lock.sh cmd_claim enthaelt cmd_reap call" {
+  [ -f "$REPO_ROOT/scripts/agent-lock.sh" ] || skip "agent-lock.sh nicht gefunden"
+  grep -q 'cmd_reap' "$REPO_ROOT/scripts/agent-lock.sh" \
+    || { echo "MISSING cmd_reap call in agent-lock.sh"; return 1; }
+}
+
+@test "T002341-M3: agent-lock.sh cmd_reap entfernt lock-Dateien mit dead SID" {
+  [ -f "$REPO_ROOT/scripts/agent-lock.sh" ] || skip "agent-lock.sh nicht gefunden"
+  grep -qP 'sid-dead.*return 0|_reap_log.*sid-dead' "$REPO_ROOT/scripts/agent-lock.sh" \
+    || { echo "MISSING sid-dead reap path in agent-lock.sh"; return 1; }
+}
+
+# ────────────────────────────────────────────────────────────────────────────
+# T002341-M3: agent-lock.sh pre-claim reap guard (claim ruft reap auf)
+# ────────────────────────────────────────────────────────────────────────────
+
+@test "T002341-M3: agent-lock.sh pre-claim reap in cmd_claim hat T002341-M3 Kommentar" {
+  [ -f "$REPO_ROOT/scripts/agent-lock.sh" ] || skip "agent-lock.sh nicht gefunden"
+  grep -q 'T002341-M3' "$REPO_ROOT/scripts/agent-lock.sh" \
+    || { echo "MISSING T002341-M3 reference in agent-lock.sh"; return 1; }
+}
+
+# ── [T002374-M1] commitlint: 'skills' is a first-class scope, not an alias ──#
+
+@test "T002374-M1: 'skills' ist ein gueltiger Scope, kein Alias mehr" {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  # 'skills' is now a NAMED_SCOPE, not a SCOPE_ALIAS. scopeHint returns empty.
+  run bash -c "node -e \"const cfg = require('$REPO_ROOT/commitlint.config.cjs'); process.stdout.write(cfg.scopeHint('skills') || '(empty)');\""
+  [[ "$output" == *"empty"* ]] || { echo "scopeHint fuer 'skills' soll leer sein (skills ist jetzt First-Class-Scope): $output"; false; }
+}
+
+# ── [T002374-M2] agent-lock release: --force bei SID-Mismatch ───────────#
+
+@test "T002374-M2: agent-lock.sh release mit --force ueberschreibt SID-Mismatch" {
+  AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  export AGENT_LOCK_FAKE_ALIVE="session-A-orch"
+  export AGENT_LOCK_SID="session-A-orch"
+  bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" claim ticket T002374-m2 --label test-delegate
+  [ -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ]
+
+  export AGENT_LOCK_SID="session-B-sub"
+  run bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" release ticket T002374-m2 --force
+  echo "exit: $status output: $output"
+  [ "$status" -eq 0 ] || { echo "release with --force must succeed even with SID mismatch"; false; }
+  [ ! -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ] || { echo "lock file should be deleted after release"; false; }
+  rm -rf "$AGENT_LOCK_DIR"
 }

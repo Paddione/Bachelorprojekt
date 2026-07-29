@@ -66,6 +66,36 @@ clients:
         url: http://localhost:13003/mcp
         enabled: true
 
+  # T002426 — bge-MCP-Shim: Embedding und Reranking als MCP-Ressource.
+  # llama-server kann sich NICHT selbst als MCP-Server exponieren; --mcp-servers-config
+  # ist sein MCP-*Client*-Pfad. Deshalb dieser eigene Shim
+  # (scripts/bge-mcp/server.mjs). Transport ist HTTP und nicht stdio, weil die
+  # llama-Web-UI beim Hinzufuegen ausschliesslich eine URL entgegennimmt — ein
+  # stdio-Shim waere dort unerreichbar. Aus demselben Grund steht er NICHT in
+  # scripts/llm/mcp-servers.json: die Datei nimmt nur transport: stdio auf.
+  bge-mcp:
+    transport: http
+    endpoint: http://localhost:13005/mcp
+    auth_note: >-
+      Bind auf 127.0.0.1 plus Bearer-Token (BGE_MCP_TOKEN). Der Generator kennt
+      kein headers-Feld; der Token wird im Harness bzw. im UI-Dialog der
+      llama-Web-UI ("Authorization / Bearer") von Hand hinterlegt. Ohne
+      gesetzten Token startet der Shim nicht.
+    failover_note: >-
+      Der Shim haelt keine eigene Failover-Logik. Welches bge-Paar antwortet,
+      entscheidet website/src/lib/bge-router.ts — dieselbe Stelle, die auch die
+      HTTP-Endpunkte und die Bestandsclients benutzen.
+    harness:
+      claude_code:
+        type: http
+        url: http://localhost:13005/mcp
+      agy:
+        serverUrl: http://localhost:13005/mcp
+      opencode:
+        type: remote
+        url: http://localhost:13005/mcp
+        enabled: true
+
   # task-master-ai:
   #   claude_code: npx -y task-master-ai (portable)
   #   agy:         /home/patrick/.npm-global/bin/task-master-ai (absoluter Pfad, NICHT portabel)

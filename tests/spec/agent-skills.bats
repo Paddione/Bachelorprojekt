@@ -90,10 +90,20 @@ project_owned_skills() {
   done
 }
 
-@test "no project-owned SKILL.md exceeds 250 lines" {
+@test "no project-owned SKILL.md exceeds the G-AGENTIC09 limit" {
+  # [T002452] Die Zahl wird aus scripts/health-goals-check.sh GELESEN, nicht wiederholt.
+  # Vorher stand hier eine vierte unabhaengige Kopie derselben Schwelle (250) — bei der
+  # Anhebung auf 400 waeren drei Stellen gewandert und diese liegengeblieben. Genau die
+  # Drift, die bei .sh zwischen gates.yaml und dem agent-lock-Guard schon eingetreten war.
+  local limit
+  limit=$(sed -n '/^row gate G-AGENTIC09 /,/^)"/p' "$REPO/scripts/health-goals-check.sh" \
+            | sed -n 's/.*SKILL\.md")" -gt \([0-9]\+\).*/\1/p' | head -1)
+  # Positiv-Anker: ohne diese Pruefung wuerde ein leeres $limit den Vergleich unten
+  # abbrechen lassen und der Test waere aus dem falschen Grund rot.
+  [[ "$limit" =~ ^[0-9]+$ ]] || { echo "G-AGENTIC09-Schwelle nicht lesbar: '$limit'"; return 1; }
   for d in $(project_owned_skills); do
     n=$(wc -l < "$REPO/.claude/skills/$d/SKILL.md")
-    [ "$n" -le 250 ] || { echo "$d has $n lines (limit 250)"; return 1; }
+    [ "$n" -le "$limit" ] || { echo "$d has $n lines (limit $limit)"; return 1; }
   done
 }
 

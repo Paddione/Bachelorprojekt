@@ -28,6 +28,11 @@ _sid_alive() {
   if [ -n "${AGENT_LOCK_FAKE_ALIVE+x}" ]; then
     case " $AGENT_LOCK_FAKE_ALIVE " in *" $1 "*) return 0;; *) return 1;; esac
   fi
+  # Spiegelt scripts/agent-lock.sh:_sid_alive [T001268]: nicht-numerische SIDs sind
+  # harness-vergebene Session-IDs (CLAUDE_SESSION_ID), die `pgrep -s` nicht aufloesen
+  # kann. Bei Aenderung dort HIER nachziehen — Guard: der Drift-Test in
+  # tests/spec/software-factory/collision-window.bats vergleicht beide Urteile.
+  case "$1" in *[!0-9]*) return 0;; esac
   pgrep -s "$1" >/dev/null 2>&1
 }
 
@@ -59,12 +64,23 @@ _drop_generated() {
 cmd_check() {
   local mode=staged quiet=0
   while [ $# -gt 0 ]; do case "$1" in
-    --staged) mode=staged;; --all) mode=all;; --quiet) quiet=1;; *) ;;
+    --staged) mode=staged;; --all) mode=all;; --branch) mode=branch;; --quiet) quiet=1;; *) ;;
   esac; shift; done
 
   local own; own="$(git diff --cached --name-only 2>/dev/null)"
   if [ "$mode" = "all" ]; then
     own="$(printf '%s\n%s\n' "$own" "$(git diff --name-only HEAD 2>/dev/null)")"
+  fi
+  if [ "$mode" = "branch" ]; then
+    # [T002455] origin/main statt main: der lokale main-Ref kann hinter origin/main liegen,
+    # sodass main...HEAD eine zu alte Merge-Base verwendet. Ein Peer-Worktree auf aktuellem
+    # origin/main zeigt dann alle zwischenzeitlich gemergten Commits als vermeintlich eigene
+    # Änderungen — Fehlalarme. Fallback auf main bei detached HEAD / fehlendem Remote.
+    local base_ref="main"
+    git rev-parse --verify origin/main >/dev/null 2>&1 && base_ref="origin/main"
+    own="$( { git diff --name-only "${base_ref}...HEAD" 2>/dev/null; \
+              git diff --name-only HEAD 2>/dev/null; \
+              git diff --cached --name-only 2>/dev/null; } | sed '/^$/d' | sort -u )"
   fi
   own="$(printf '%s\n' "$own" | sed '/^$/d' | sort -u)"
   # [T002375-p6] Generierte Artefakte aus der Kollisionspruefung nehmen. Sie werden von
@@ -91,12 +107,39 @@ cmd_check() {
     wt="$(_field "$f" worktree)"
     [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] || continue
     git -C "$wt" rev-parse --git-dir >/dev/null 2>&1 || continue
-    peer="$( { git -C "$wt" diff --name-only HEAD 2>/dev/null; \
+    # Drei-Punkt gegen den Merge-Base: nur was DIESER Branch geaendert hat.
+    # [T002455] origin/main statt main (analog own-Seite oben), Fallback auf main.
+    # Schlaegt die Aufloesung fehl (detached HEAD, fehlender Branch), entfaellt
+    # nur der committete Anteil — der Working-Tree-Anteil laeuft weiter (fail-open).
+    local peer_base="main"
+    git -C "$wt" rev-parse --verify origin/main >/dev/null 2>&1 && peer_base="origin/main"
+    peer="$( { git -C "$wt" diff --name-only "${peer_base}...HEAD" 2>/dev/null; \
+               git -C "$wt" diff --name-only HEAD 2>/dev/null; \
                git -C "$wt" diff --cached --name-only 2>/dev/null; } | sed '/^$/d' | sort -u )"
     peer="$(_drop_generated "$peer")"
     [ -n "$peer" ] || continue
     while IFS= read -r file; do
       [ -n "$file" ] || continue
+      # M9: Datei muss im Peer existieren — Dateisystem ODER im Git-Index
+      if [ ! -f "$wt/$file" ] && ! git -C "$wt" ls-files -- "$file" >/dev/null 2>&1; then continue; fi
+      # Squash-Merge: die Peer-Commits sind keine Ancestors von main, main...HEAD listet die
+      # Datei weiter — aber wenn der Blob identisch ist, ist nichts mehr offen.
+      # Fehlschlagende rev-parse (Datei in main nicht vorhanden) => behalten, nicht verwerfen.
+      # WICHTIG: nur ueberspringen, wenn der Peer KEINE uncommitteten Aenderungen an der Datei
+      # hat (sonst waere HEAD:file == main:file obwohl der Peer aktiv aendert). [T002444]
+      peer_blob="$(git -C "$wt" rev-parse "HEAD:$file" 2>/dev/null || true)"
+      main_blob="$(git rev-parse "main:$file" 2>/dev/null || true)"
+      if [ "$peer_blob" = "$main_blob" ] && \
+         ! git -C "$wt" diff --name-only HEAD -- "$file" 2>/dev/null | grep -q . && \
+         ! git -C "$wt" diff --cached --name-only -- "$file" 2>/dev/null | grep -q .; then
+        continue
+      fi
+
+      # M7: committed only → kein Alarm. Nur uncommitted → Alarm.
+      if ! git -C "$wt" diff --name-only HEAD -- "$file" 2>/dev/null | grep -q . && \
+         ! git -C "$wt" diff --cached --name-only -- "$file" 2>/dev/null | grep -q .; then
+        continue
+      fi
       if printf '%s\n' "$peer" | grep -qxF "$file"; then
         found=1
         if [ "$quiet" -eq 0 ]; then
@@ -115,7 +158,7 @@ main() {
   local cmd="${1:-}"; shift 2>/dev/null || true
   case "$cmd" in
     check) cmd_check "$@";;
-    *) echo "Usage: agent-collision.sh check [--staged|--all] [--quiet]" >&2; return 2;;
+    *) echo "Usage: agent-collision.sh check [--staged|--all|--branch] [--quiet]" >&2; return 2;;
   esac
 }
 main "$@"

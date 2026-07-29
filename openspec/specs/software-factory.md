@@ -339,7 +339,17 @@ The system SHALL parse a skill YAML frontmatter for `hooks.pre` and `hooks.post`
 
 ### Requirement: Agent-Kollisionserkennung bei parallelen Edits
 
-The system SHALL detect when a live peer agent (identified via `AGENT_LOCK_FAKE_ALIVE` / real session IDs) has in-flight modifications to the same files as the current session. `--staged` prüft staged Files, `--all` zusätzlich unstaged; bei Kollision Exit 1 mit `COLLISION`-Ausgabe und Dateiname; `--quiet` unterdrückt Ausgabezeilen, behält aber den Exit-Code; tote oder eigene Sessions werden ignoriert (fail-open).
+The system SHALL detect when a live peer agent has in-flight modifications to the same files as the
+current session. In-flight means the union of the peer's committed branch divergence
+(`<base>...HEAD`, three-dot), its unstaged changes and its staged changes — a peer that has already
+committed its work MUST still be reported. Peer liveness SHALL follow the same rule as
+`agent-lock.sh`: non-numeric (harness-provided) session IDs count as alive because `pgrep -s` cannot
+resolve them; numeric session IDs remain `pgrep`-verified. Files whose blob in the peer worktree is
+identical to the blob in the base branch SHALL be dropped, so squash-merged branches stop warning.
+`--staged` checks staged files, `--all` additionally unstaged, `--branch` the current session's own
+committed branch divergence. On collision: exit 1 with a `COLLISION` line naming the file;
+`--quiet` suppresses the lines but keeps the exit code; dead or own sessions are ignored. Every git
+operation that fails degrades to "no data" (fail-open, exit 0) rather than blocking.
 
 #### Scenario: Überlappende Staged-Datei ergibt Kollision
 - **GIVEN** Peer-Session 2222 ist als lebendig markiert und hat `shared.txt` in Worktree B modifiziert; Session 1111 staged `shared.txt` in Worktree A
@@ -351,7 +361,25 @@ The system SHALL detect when a live peer agent (identified via `AGENT_LOCK_FAKE_
 - **WHEN** `agent-collision.sh check --staged` ausgeführt wird
 - **THEN** Exit 0 in beiden Fällen; eigene SID (1111) als Peer-Claim ergibt ebenfalls Exit 0 (keine Selbst-Kollision)
 
----
+#### Scenario: Harness-SID ohne pgrep-Auflösung gilt als lebendig
+- **GIVEN** ein Peer-Claim mit nicht-numerischer Session-ID (UUID) und einer überlappenden Datei; `AGENT_LOCK_FAKE_ALIVE` ist NICHT gesetzt
+- **WHEN** `agent-collision.sh check --staged` ausgeführt wird
+- **THEN** Exit 1 mit `COLLISION`; eine numerische, nicht existente Session-ID ergibt unter denselben Bedingungen Exit 0
+
+#### Scenario: Committete Peer-Arbeit ist sichtbar
+- **GIVEN** der Peer hat seine Änderung an `shared.txt` bereits committed, sein Working Tree ist sauber
+- **WHEN** `agent-collision.sh check --staged` mit derselben Datei staged ausgeführt wird
+- **THEN** Exit 1 mit `COLLISION` und `shared.txt`; eine committete Peer-Änderung an einer anderen Datei ergibt Exit 0
+
+#### Scenario: Squash-gemergter Peer warnt nicht mehr
+- **GIVEN** der Peer hat `shared.txt` committed und derselbe Inhalt steht inzwischen über einen eigenen Commit in `main`, sodass die Blobs identisch sind
+- **WHEN** `agent-collision.sh check --staged` ausgeführt wird
+- **THEN** Exit 0; solange der Peer-Blob dagegen von `main` abweicht, ergibt derselbe Aufruf Exit 1
+
+#### Scenario: --branch prüft die eigene Branch-Divergenz
+- **GIVEN** die eigene Änderung an `shared.txt` ist bereits committed und nichts ist staged; ein lebender Peer hat dieselbe Datei in Arbeit
+- **WHEN** `agent-collision.sh check --branch` ausgeführt wird
+- **THEN** Exit 1 mit `shared.txt`; `--staged` ergibt im selben Zustand Exit 0; `--branch --quiet` gibt Exit 1 ohne Ausgabe; ein fehlender Peer-Worktree ergibt Exit 0
 
 ### Requirement: Inter-Agent Message Channel
 
@@ -1824,6 +1852,145 @@ so a drifted id produces no error anywhere on its own.
 - **GIVEN** a routing row whose `base_url` addresses an `https://` cloud endpoint
 - **WHEN** the check runs
 - **THEN** that row is skipped, because its catalogue is not retrievable without an API key
+
+### Requirement: Pod-Phase Guard Is Match-Granular and Covers Tests
+
+The system SHALL enforce that every `shared-db` pod selection in the repository carries
+`--field-selector status.phase=Running`, evaluated **per logical line** rather than per file.
+A logical line is the result of joining backslash continuations. The guard SHALL scan both
+`scripts/` and `tests/` and SHALL include `*.sh` and `*.bats` files. A selection that is
+deliberately unfiltered SHALL carry an explicit opt-out marker on the same logical line;
+without that marker the guard SHALL report it.
+
+Rationale: an unfiltered selection can return a `Completed` or `Terminating` pod, after which
+`kubectl exec` fails with exit code 1. A file-granular guard passes any file that mentions the
+filter anywhere — including a file that only mentions it inside the guard's own search pattern.
+
+#### Scenario: An unfiltered selection in a test file is reported
+
+- **GIVEN** a file under `tests/` contains a `shared-db` pod selection without
+  `--field-selector status.phase=Running` and without an opt-out marker
+- **WHEN** the guard runs
+- **THEN** the guard fails and names that file
+
+#### Scenario: A filter elsewhere in the same file does not excuse an unfiltered selection
+
+- **GIVEN** a file contains one selection carrying `--field-selector status.phase=Running`
+  and a second selection on a different logical line carrying no filter and no opt-out marker
+- **WHEN** the guard runs
+- **THEN** the guard fails, because the presence of a filter on one line does not cover the other
+
+#### Scenario: A selection split across lines by a backslash continuation counts as filtered
+
+- **GIVEN** a selection whose `--field-selector status.phase=Running` sits on the continuation
+  line after a trailing backslash
+- **WHEN** the guard runs
+- **THEN** the guard treats the joined logical line as filtered and does not report it
+
+#### Scenario: A deliberately unfiltered selection is tolerated only with its marker
+
+- **GIVEN** the error path in `scripts/vda/ticket/_ticket-core.sh` queries pods unfiltered to
+  distinguish "no pod at all" from "pods exist, none Running", and carries the opt-out marker
+- **WHEN** the guard runs
+- **THEN** the guard does not report that line
+- **AND** removing the marker makes the guard report it
+
+### Requirement: Database-Dependent Tests Skip on Absent Running Pod
+
+The system SHALL make test helpers that require a live `shared-db` connection skip when no
+**Running** pod is reachable, not merely when no pod object is found. A helper that finds a
+non-Running pod SHALL skip rather than proceed into a `kubectl exec` that exits non-zero.
+
+#### Scenario: Only a non-Running pod exists
+
+- **GIVEN** the namespace contains a `shared-db` pod in phase `Succeeded` and none in `Running`
+- **WHEN** a database-dependent test invokes its skip helper
+- **THEN** the test is skipped
+- **AND** the test run does not report a failure or a non-zero exit code from `kubectl exec`
+
+### Requirement: touched_files Distinguishes Unscouted from Empty
+
+The system SHALL keep `tickets.tickets.touched_files` nullable without a default. `NULL` SHALL
+mean "no scout has recorded files for this ticket"; an empty array SHALL mean "scout ran and
+found no files". Conflict detection SHALL rely on this distinction.
+
+Rationale: a `NOT NULL DEFAULT '{}'` migration would make both states indistinguishable and
+silently turn every unscouted ticket into a participant in conflict detection.
+
+#### Scenario: Conflict detection ignores unscouted tickets
+
+- **GIVEN** a ticket whose `touched_files` is `NULL`
+- **WHEN** `conflict-check.sh` searches for colliding in-flight tickets
+- **THEN** that ticket is excluded from the comparison by the `touched_files IS NOT NULL` filter
+
+### Requirement: stage-plan Derives touched_files From the Plan
+
+The system SHALL derive `tickets.tickets.touched_files` from the plan's `## File Structure`
+section when a plan is staged, rather than relying on a later manual step. The derivation SHALL
+be additive: an existing `touched_files` value SHALL be extended, never replaced, so that files
+recorded during implementation survive a re-stage.
+
+Rationale: `## File Structure` is a plan-lint hard rule (STRUCT1), so the information is
+guaranteed to exist at stage time. Setting the column only in `dev-flow-execute` step 1.5 — and
+there only conditionally ("if the plan knows the touched files") — makes conflict detection
+depend on an agent performing an optional prose step.
+
+#### Scenario: Staging a plan populates touched_files
+
+- **GIVEN** a plan whose `## File Structure` section lists `scripts/foo.sh` and `tests/bar.bats`
+- **WHEN** the plan is staged for a ticket whose `touched_files` is `NULL`
+- **THEN** `touched_files` contains both paths
+
+#### Scenario: Re-staging does not discard files added during implementation
+
+- **GIVEN** a ticket whose `touched_files` already contains `scripts/extra.sh`, a file the
+  implementer touched but which the plan never listed
+- **WHEN** the same plan is staged again
+- **THEN** `touched_files` still contains `scripts/extra.sh` alongside the plan's paths
+
+#### Scenario: A plan without derivable paths does not block staging
+
+- **GIVEN** a plan whose `## File Structure` section names no repository path
+- **WHEN** the plan is staged
+- **THEN** staging succeeds
+- **AND** the absence is reported on stderr rather than passing silently
+
+### Requirement: File Structure Parsing Covers the Three Established Formats
+
+The system SHALL extract repository paths from a `## File Structure` section written in any of
+the three formats in use: a fenced block with `NEW:`/`CHANGED:` group headers, a bullet list with
+backtick-quoted paths, or a Markdown table with backtick-quoted paths. A candidate SHALL be
+accepted only if it is tracked in the repository or carries a known file extension; descriptive
+prose, group headers, and table column headings SHALL NOT be emitted as paths.
+
+Rationale: of 33 plans carrying the section, 23 use the fenced form and the remainder split
+between bullet and table form. Entries are not always repository paths — one plan lists a
+Kubernetes resource in a namespace under this heading.
+
+#### Scenario: Fenced form with group headers
+
+- **GIVEN** a `## File Structure` fence containing a `NEW:` header and an indented line
+  `scripts/foo.sh — adds the deriver`
+- **WHEN** paths are extracted
+- **THEN** `scripts/foo.sh` is emitted
+- **AND** neither `NEW:` nor the description after the dash is emitted
+
+#### Scenario: Bullet and table forms with backtick-quoted paths
+
+- **GIVEN** a section containing the bullet ``- `tests/spec/database.bats` (modified)`` and a
+  table row `` | `k3d/brett.yaml` | Add comment | ``
+- **WHEN** paths are extracted
+- **THEN** both `tests/spec/database.bats` and `k3d/brett.yaml` are emitted
+- **AND** the table column heading is not emitted
+
+#### Scenario: Non-path entries are rejected while real paths beside them survive
+
+- **GIVEN** a section listing both `tests/spec/database.bats` and the cluster resource
+  `deployment/arena-server in namespace workspace-korczewski`
+- **WHEN** paths are extracted
+- **THEN** `tests/spec/database.bats` is emitted
+- **AND** `deployment/arena-server` is not emitted, because it is neither tracked in the
+  repository nor carries a file extension
 
 ## Testszenarien
 
@@ -3672,3 +3839,9 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (0df5d2f19300) -->
 
 <!-- merged from change delta software-factory.md (7fa4daed6311) -->
+
+<!-- merged from change delta software-factory.md (e6fd0834ae76) -->
+
+<!-- merged from change delta software-factory.md (8ed6f8c1bc44) -->
+
+<!-- merged from change delta software-factory.md (fcd09e84e92c) -->

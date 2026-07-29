@@ -1,31 +1,16 @@
 #!/usr/bin/env bash
 # scripts/agent-lock.sh — cross-tool session-coordination lock registry. [T000510]
-#
-# Why: several agent sessions (Claude + Gemini, sometimes two Claude windows)
-# share one checkout / one .git. This advisory file-lock registry lets each
-# session claim a ticket / branch / the-main-checkout / a-registry-file, so the
-# others see "who is doing what" and refuse to duplicate work or stomp the
-# shared index.
-#
-# Identity: the Unix SESSION ID (ps -o sess=) is shared by every subprocess of
-# one agent CLI but differs between Claude/Gemini/two windows.
-#
-# Storage: one JSON file per claim under $AGENT_LOCK_DIR (default the shared
-# gitdir's agent-locks/, so all worktrees share it). Never committed.
-#
-# Test overrides: AGENT_LOCK_DIR, AGENT_LOCK_SID, AGENT_LOCK_FAKE_ALIVE.
+# One JSON file per claim under $AGENT_LOCK_DIR (shared gitdir's agent-locks/).
+# Test overrides: AGENT_LOCK_DIR, AGENT_LOCK_SID, AGENT_LOCK_FAKE_ALIVE, AGENT_LOCK_TOOL.
 set -uo pipefail
 
 AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"
 AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 
-# Namen der harness-gesetzten Session-Variablen, in Prüfreihenfolge. [T002375-p1]
-# EINE Liste für _my_sid UND _detect_tool: bis hierher prüften beide unabhängig
-# voneinander `CLAUDE_SESSION_ID`, und genau so läuft eine solche Liste auseinander.
-# CLAUDE_CODE_SESSION_ID zuerst, weil Claude Code sie real exportiert;
-# CLAUDE_SESSION_ID bleibt gültig — opencode und agy können sie setzen, und die
-# bestehenden Tests hängen daran.
+# Harness-Session-Variablen in Prüfreihenfolge: CLAUDE_CODE_SESSION_ID zuerst. [T002375-p1]
 _AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID"
+# Harness-Marker ohne Session-ID, fuer _detect_tool als benannte Liste. [T002451]
+_AGENT_LOCK_TOOL_MARKER_ENVS="CLAUDECODE CLAUDE_CODE"
 
 _now() { date +%s; }
 
@@ -36,23 +21,16 @@ _my_sid() {
   # to the per-call Unix SID when neither harness env nor test override is
   # set — that path is the source of the cross-call drift bug. [T001268]
   # [T002375-p1] Die Harness exportiert CLAUDE_CODE_SESSION_ID, nicht CLAUDE_SESSION_ID.
-  # Gemessen: `env | grep -c '^CLAUDE_SESSION_ID='` -> 0, `…CLAUDE_CODE_SESSION_ID=` -> 1.
-  # Die alte Zeile las nur die zweite Variante, fiel also IMMER auf den Unix-Fallback
-  # unten durch — und der ist pro Bash-Tool-Call verschieden. Folge: `release` hielt den
-  # eigenen Lock für fremd und verlangte --force. Das ist keine Kosmetik: --force ist das
-  # Instrument, mit dem man FREMDE lebende Locks abräumt; erzwingt der Normalfall es,
-  # gewöhnt sich jeder Aufrufer daran und räumt irgendwann einen echten fremden ab.
-  # AGENT_LOCK_SID ZUERST: es ist der ausdrueckliche Test-Override (siehe Dateikopf).
-  # Stuende er hinter den Harness-Variablen, wuerde ambient exportiertes
-  # CLAUDE_CODE_SESSION_ID ihn ueberstimmen — und jeder Test, der ihn setzt, briche in
-  # einer Harness-Session. Ein Override, den ambient State ueberstimmen kann, ist keiner.
-  # (Der Altcode hatte denselben Fehler mit CLAUDE_SESSION_ID davor; er biss nur nie,
-  # weil diese Variable real nie gesetzt war.)
+  # SID-Check: Harness-Env wins, then test override, then Unix SID. [T001268]
   if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
   local _v
   for _v in $_AGENT_LOCK_SID_ENVS; do
     if [ -n "${!_v:-}" ]; then printf '%s\n' "${!_v}"; return; fi
   done
+  # [T002381-M1] Weder Harness-Env noch AGENT_LOCK_SID gesetzt — der Unix-SID-Fallback
+  # driftet pro Bash-Call. Warnung ausgeben, damit der Operator die Ursache erkennt
+  # und AGENT_LOCK_SID setzen oder die Harness-Variable bereitstellen kann.
+  echo "WARNUNG: _my_sid — weder CLAUDE_CODE_SESSION_ID/CLAUDE_SESSION_ID noch AGENT_LOCK_SID gesetzt. SID driftet pro Bash-Call (siehe T001268/T002381)." >&2
   local s; s="$(ps -o sess= -p "$$" 2>/dev/null | tr -d ' ')"
   if [ -n "$s" ]; then printf '%s\n' "$s"; return; fi
   # fallback: 4th field after the ')' in /proc/self/stat is the session id
@@ -79,25 +57,19 @@ _pid_alive() {  # <pid>
 }
 
 _detect_tool() {
-  # CLAUDE_SESSION_ID is the harness-provided env from Claude Code / opencode;
-  # we also accept the older CLAUDECODE/CLAUDE_CODE marker for back-compat.
-  # CLAUDE_SESSION_ID alone is enough to identify the Claude harness. [T001268]
-  # [T002375-p1] Dieselbe Namensliste wie _my_sid — sonst erkennt der eine die Harness
-  # und der andere nicht.
-  local _v _sid_env=""
+  # Uses same env list as _my_sid so both agree on harness detection. [T001268][T002375-p1]
+  local _v _sid_env="" _is_claude=0
   for _v in $_AGENT_LOCK_SID_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done
-  if [ -n "${_sid_env}${CLAUDECODE:-}${CLAUDE_CODE:-}" ]; then echo claude
+  for _v in $_AGENT_LOCK_TOOL_MARKER_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && _is_claude=1 && break; done
+  if [ -n "${_sid_env}" ]; then
+    [ "$_is_claude" -eq 1 ] && echo claude || echo opencode
   elif [ -n "${GEMINI_CLI:-}${GEMINI_SANDBOX:-}${GEMINI_API_KEY:-}" ]; then echo gemini
   else echo unknown; fi
 }
 
 _lock_dir() {
   if [ -n "${AGENT_LOCK_DIR:-}" ]; then printf '%s\n' "$AGENT_LOCK_DIR"; return; fi
-  # Always anchor on the toplevel of the main checkout so the path is
-  # independent of the caller's cwd (worktrees, subshell captures, etc.).
-  # Falls back to /tmp/agent-locks only if `git rev-parse` itself fails —
-  # never to a cwd-relative resolution, which can be silently wrong when
-  # invoked from a worktree whose `.git` is a file, not a directory. [T001384]
+  # Anchor on git toplevel, not caller cwd (worktrees have .git as file). [T001384]
   local toplevel common
   toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || { printf '/tmp/agent-locks\n'; return; }
   common="$(cd "$toplevel" && git rev-parse --git-common-dir 2>/dev/null)" || { printf '/tmp/agent-locks\n'; return; }
@@ -114,11 +86,7 @@ _lock_file() { # <scope> [id]
 
 _lock_field() { sed -n "s/.*\"$2\": *\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | head -1; }
 
-# Append an append-only audit line whenever a claim is classified reapable.
-# Fail-open: a write failure is ignored (consistent with the rest of the script).
-# NOTE: .reap.log is not rotated here — small text lines; rotate in a follow-up if it grows.
-# Check if a git branch has a live (non-reapable) agent-lock claim. Used by
-# cmd_reap step 2c to protect live-claimed branches from deletion. [T001448 M3]
+# Check if a git branch has a live (non-reapable) agent-lock claim. [T001448 M3]
 _branch_is_live_claimed() {
   local br="$1" d f
   d="$(_lock_dir)"
@@ -138,7 +106,7 @@ _reap_log() {  # <lock-file> <reason>
     >> "$(_lock_dir)/.reap.log" 2>/dev/null || true
 }
 
-# 0 = reapable (clearly dead). A confirmed-alive SID is NEVER reapable.
+# 0 = reapable (clearly dead). Confirmed-alive SID/live-PID/worktree-match NEVER reapable.
 _reapable() {
   local f="$1" sid wt hb ct now age pid br
   [ -f "$f" ] || return 0
@@ -154,7 +122,17 @@ _reapable() {
   # 0) A CONFIRMED-ALIVE SID ALWAYS WINS — even if the worktree path is stale
   #    or missing, a live session owns the claim. Reapability only kicks in
   #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
-  if [ -n "$sid" ] && _sid_alive "$sid"; then return 1; fi
+  if [ -n "$sid" ] && _sid_alive "$sid"; then
+    # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID (non-numeric
+    # UUIDs gelten immer als "alive" — aber wenn der Heartbeat alt ist, ist der
+    # Halter wirklich tot und nur die UUID im Lock uebrig). Ohne diesen Check
+    # wuerde reap nie einen solchen Lock aufraeumen, weil der SID-Fruehrueck-
+    # kehr nie zum PID-/Heartbeat-Teil vordringt.
+    if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
+      _reap_log "$f" heartbeat-ttl; return 0
+    fi
+    return 1
+  fi
   # 0b) Worktree+branch match beats a dead/mismatched SID: a session RESUME
   #     starts a new process with a different SID (and possibly a different
   #     PID), which would otherwise fall through to the pid-dead/sid-dead reap
@@ -167,15 +145,7 @@ _reapable() {
     wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
     [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ] && return 1
   fi
-  # 0c) A LIVE owner_pid always wins. [T002267]
-  #     _sid_alive resolves numeric sids via `pgrep -s`, which does NOT find the
-  #     Claude Code session id even while the session is running — so the sid
-  #     check in (0) reports "dead" for a perfectly live holder. Step (1) below
-  #     only ever *reaps* on a dead pid; a live pid was never treated as proof of
-  #     life, so such a claim fell through to the sid-dead path and `check`
-  #     answered "free". The factory dispatcher then grabbed a ticket a human was
-  #     holding (observed: T002255 — the T000510 guard in factory-prep-*.sh is
-  #     correct, it was asking a lock that lied).
+  # 0c) LIVE owner_pid always wins (pgrep -s misses Claude Code session id). [T002267]
   pid="$(_lock_field "$f" owner_pid)"
   if [ -n "$pid" ] && _pid_alive "$pid"; then return 1; fi
   # 1) Dead PID + past grace → reap with reason "pid-dead" (auditable cause). [T001415]
@@ -282,11 +252,13 @@ _reject_arg() {
 }
 
 cmd_claim() {
+  cmd_reap 2>/dev/null || true  # [T002341-M3] pre-claim reap: orphaned locks don't block new claim, best-effort
   SCOPE="$1"; ID="${2:-}"; shift 2 2>/dev/null || shift $#
-  LABEL=""; WT=""; BRANCH=""; TICKET=""
+  LABEL=""; WT=""; BRANCH=""; TICKET=""; FORCE=""
   while [ $# -gt 0 ]; do case "$1" in
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;
     --branch) BRANCH="$2"; shift 2;; --ticket) TICKET="$2"; shift 2;;
+    --force|-F) FORCE=1; shift;;
     *) _reject_arg claim "$1"; return 2;; esac; done
   # For a branch-scoped claim the branch name IS the id; callers therefore never
   # pass --branch. Leaving `branch` empty disabled the worktree+branch liveness
@@ -329,8 +301,18 @@ cmd_claim() {
     if [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then
       CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
     fi
-    echo "AGENT-LOCK: $SCOPE/$ID bereits $(_holder_msg "$f")" >&2
-    return 1
+    if [ -n "$FORCE" ]; then
+      local _pid; _pid="$(_lock_field "$f" owner_pid)"
+      if [ -z "$_pid" ] || ! _pid_alive "$_pid"; then
+        _reap_log "$f" claim-force; rm -f "$f"
+      else
+        echo "AGENT-LOCK: claim --force abgelehnt: owner_pid $_pid lebt noch" >&2
+        return 1
+      fi
+    else
+      echo "AGENT-LOCK: $SCOPE/$ID bereits $(_holder_msg "$f")" >&2
+      return 1
+    fi
   fi
   CREATED="$(_now)"; _write_lock "$f"; return 0
 }
@@ -351,8 +333,12 @@ cmd_release() {
   local f; f="$(_lock_file "$scope" "$id")"
   [ -f "$f" ] || return 0
   local owner_sid; owner_sid="$(_lock_field "$f" owner_sid)"
-  # [T002373-M2] Auto-release if owner SID is dead (non-numeric SIDs are always alive by _sid_alive).
-  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
+  # [T002373-M2] Auto-release nur bei eigenem Lock oder totem Owner. Gleiche Tool-Klasse
+  # berechtigt NICHT: im Betrieb melden alle beteiligten Sessions dieselbe Klasse, der
+  # Ownership-Check waere damit wirkungslos. Der Fallback aus T002374 war ein Workaround
+  # gegen SID-Drift pro Bash-Call — diese Ursache ist seit T002375-p1 behoben. [T002447]
+  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] \
+     || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
     rm -f "$f"; return 0
   fi
   echo "release: lock owned by SID $owner_sid, current SID $(_my_sid) — use --force" >&2
@@ -362,7 +348,16 @@ cmd_release() {
 cmd_check() {
   local f; f="$(_lock_file "$1" "${2:-}")"
   if [ ! -f "$f" ] || _reapable "$f"; then echo "free"; return 0; fi
+  # [T002392-M1] SID-Match reicht fuer "mine" — aber bei SID-Drift (keine Harness-
+  # Env, Unix-SID pro Bash-Call wechselnd) erkennt die Session den eigenen Lock nicht.
+  # Zusaetzlich Worktree-Pfad prüfen: wenn der Lock denselben Worktree nennt,
+  # aus dem wir kommen (oder main checkout), ist es unser eigener Lock.
   if [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then echo "mine"; cat "$f"; return 0; fi
+  local my_wt="${PWD}"
+  local lock_wt="$(_lock_field "$f" worktree)"
+  if [ -n "$lock_wt" ] && [ "$lock_wt" != "-" ] && [ "$lock_wt" = "$my_wt" ]; then
+    echo "mine"; cat "$f"; return 0
+  fi
   echo "held"; cat "$f"; return 3
 }
 
@@ -464,20 +459,19 @@ cmd_reap() {
 }
 
 
-# Die beiden Git-Hook-Guards liegen in einer eigenen Datei [T002375-p1] — diese hier
-# stand bei 464 von 500 erlaubten Zeilen (S1, .sh) und hatte für den Change keinen Platz.
-# Die Aufrufschnittstelle bleibt `agent-lock.sh guard-precommit|guard-postcheckout`,
-# damit .githooks/pre-commit und .githooks/post-checkout unverändert bleiben können.
-# Fail-loud: fehlt die Datei, sind die Guards stumm wirkungslos — und ein Guard, der
-# schweigend nichts tut, ist schlimmer als gar keiner.
 _AGENT_LOCK_DIR_SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh" ]; then
-  # shellcheck source=scripts/agent-lock-guards.sh
-  . "$_AGENT_LOCK_DIR_SELF/agent-lock-guards.sh"
-else
-  echo "AGENT-LOCK: FATAL — scripts/agent-lock-guards.sh fehlt neben $0" >&2
-  exit 1
-fi
+# Git-Hook-Guards in eigener Datei [T002375-p1] unter S1-Limit. Fail-loud: stumm = schlimmer.
+# Beide Fragmente sind ausgelagert, damit diese Datei unter dem S1-Limit von
+# 500 Zeilen bleibt (guards: T002214, merged/check-merged: T002279).
+# shellcheck source=scripts/agent-lock-guards.sh
+# shellcheck source=scripts/agent-lock-merged.sh
+# shellcheck source=scripts/agent-lock-identity.sh
+for _agent_lock_frag in agent-lock-identity.sh agent-lock-guards.sh agent-lock-merged.sh; do
+  [ -f "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag" ] || {
+    echo "AGENT-LOCK: FATAL — scripts/$_agent_lock_frag fehlt neben $0" >&2; exit 1; }
+  . "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag"
+done
+unset _agent_lock_frag
 
 main() {
   local cmd="${1:-}"; shift 2>/dev/null || true
@@ -487,12 +481,13 @@ main() {
     release) cmd_release "$@";;
     check)   cmd_check "$@";;
     check-and-claim) cmd_check_and_claim "$@";;
+    check-merged)    cmd_check_merged "$@";;
     list)    cmd_list "$@";;
     reap)    cmd_reap "$@";;
     mine)    _my_sid;;
     guard-precommit)    cmd_guard_precommit "$@";;
     guard-postcheckout) cmd_guard_postcheckout "$@";;
-    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
+    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-merged|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
   esac
 }
 main "$@"

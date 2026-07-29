@@ -1,0 +1,12 @@
+# Risiko-Pfade: Dateien in diesen Verzeichnissen/Pfaden betreffen geteilten
+# Cluster-, Secret- oder Deploy-State. Kollisionen hier werden eskaliert,
+# nicht automatisch zusammengeführt.
+#
+# DIESELBE LISTE existiert zusätzlich als VALUES-Ausdruck im SQL von
+# conflict-check.sh. Die Zusammenführung ist ein Folge-Ticket nach dem
+# T002418-Merge — der Duplikat-Zustand ist bewusst, nicht gewachsene Drift.
+k3d/
+prod
+environments/
+flux/
+Taskfile

@@ -731,9 +731,14 @@ tasks:
       - node --test scripts/llm-proxy/*.test.mjs
 
   test:factory:
-    desc: "Run the offline-safe Software Factory regression bats (tests/local/FA-SF-* + FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory.bats + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
-      - ./tests/unit/lib/bats-core/bin/bats tests/local/FA-SF-*.bats tests/local/FA-AR-*.bats
+      # [T002427] Zeigte bis hierher auf tests/local/FA-SF-*.bats. Diese 41 Dateien waren
+      # Duplikate der Sammeldatei tests/spec/software-factory.bats, in die sie konsolidiert
+      # worden waren, ohne die Originale zu entfernen. Der doppelte Testname verdeckte
+      # T002421: ein gefilterter Lauf auf tests/spec/ sah gruen aus, waehrend test:factory
+      # ueber die veraltete Kopie rot lief. Die Sammeldatei ist jetzt die einzige Quelle.
+      - ./tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats tests/local/FA-AR-*.bats
 
   test:spec:build-mcp-runner:
     cmds:
@@ -810,6 +815,11 @@ tasks:
   test:openspec:
     desc: "Validate the openspec/ change tree is OpenSpec-format-conformant (fail-closed CI gate, TypeScript/Vitest)."
     cmds:
+      # [T002428] Halb archivierte Changes zuerst — `archive` ist nicht atomar und sein
+      # Ergebnis kann teilweise committet werden. Sieben Slugs lagen so seit dem 3. Juli
+      # gleichzeitig offen und archiviert, mit 16 Requirements, die in keiner SSOT-Spec
+      # standen. Der Zustand war bis dahin nirgends pruefbar.
+      - bash scripts/openspec-half-archive-check.sh
       - '[ -d node_modules ] || npm ci'
       - npm run test:openspec
 
@@ -2779,6 +2789,8 @@ tasks:
           LLM_HOST_IP="${LLM_HOST_IP:-172.17.0.1}" \
           LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}" \
           LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
+          LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-http://llm-gateway-embed-batch:8085}" \
+          LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-http://llm-gateway-rerank-batch:8086}" \
           POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://id.localhost}" \
           POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id.${WORKSPACE_NAMESPACE:-workspace}.svc.cluster.local:1411}" \
           POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-id.localhost}" \
@@ -2786,7 +2798,7 @@ tasks:
               | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
               | TURN_OVERLAY_IP="${TURN_OVERLAY_IP:-172.17.0.1}" \
                 TERMINAL_OVERLAY_IP="${TERMINAL_OVERLAY_IP:-172.17.0.1}" \
-                envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_HOST_IP \$LLM_ROUTER_URL \$LLM_EMBED_URL \$STUDIO_IMAGE \$WEBSITE_NAMESPACE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$SMTP_USER \$POCKET_ID_SMTP_TLS \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$POCKET_ID_DOMAIN \$TURN_OVERLAY_IP \$TERMINAL_OVERLAY_IP" \
+                envsubst "\$PROD_DOMAIN \$BRAND_NAME \$CONTACT_EMAIL \$BRAND_ID \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_HOST_IP \$LLM_ROUTER_URL \$LLM_EMBED_URL \$LLM_EMBED_BATCH_URL \$LLM_RERANKER_BATCH_URL \$STUDIO_IMAGE \$WEBSITE_NAMESPACE \$SMTP_FROM \$SMTP_HOST \$SMTP_PORT \$SMTP_USER \$POCKET_ID_SMTP_TLS \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$POCKET_ID_DOMAIN \$TURN_OVERLAY_IP \$TERMINAL_OVERLAY_IP" \
               | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
               | kubectl apply --server-side --force-conflicts -f -
           # Tests retention CronJob — applied separately so its Role+RoleBinding
@@ -2904,7 +2916,7 @@ tasks:
           ENVSUBST_VARS="$ENVSUBST_VARS \$STUDIO_DOMAIN \$STUDIO_IMAGE \$STUDIO_IMAGE_DIGEST \$STUDIO_DB_URL \$WHISPER_URL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
           ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
-          ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL"
+          ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL \$LLM_EMBED_BATCH_URL \$LLM_RERANKER_BATCH_URL"
           ENVSUBST_VARS="$ENVSUBST_VARS \$COMFY_HOST_IP \$COMFY_PORT"
           ENVSUBST_VARS="$ENVSUBST_VARS \$RIGGER_HOST_IP \$RIGGER_PORT"
 
@@ -2962,6 +2974,8 @@ tasks:
           export LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}"
           export LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}"
           export LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}"
+          export LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-}"
+          export LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-}"
           export COMFY_HOST_IP="${COMFY_HOST_IP:-}"
           export COMFY_PORT="${COMFY_PORT:-}"
           export RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}"
@@ -3070,7 +3084,7 @@ tasks:
         ENVSUBST_VARS="$ENVSUBST_VARS \$STUDIO_DOMAIN \$STUDIO_IMAGE \$STUDIO_IMAGE_DIGEST \$STUDIO_DB_URL \$WHISPER_URL"
         ENVSUBST_VARS="$ENVSUBST_VARS \$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE"
         ENVSUBST_VARS="$ENVSUBST_VARS \$SYSTEMTEST_LOOP_ENABLED"
-        ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL"
+        ENVSUBST_VARS="$ENVSUBST_VARS \$LLM_HOST_IP \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_ROUTER_URL \$LLM_EMBED_URL \$LLM_EMBED_BATCH_URL \$LLM_RERANKER_BATCH_URL"
         ENVSUBST_VARS="$ENVSUBST_VARS \$COMFY_HOST_IP \$COMFY_PORT"
         ENVSUBST_VARS="$ENVSUBST_VARS \$RIGGER_HOST_IP \$RIGGER_PORT"
         ENVSUBST_VARS="$ENVSUBST_VARS \$ARENA_WS_URL \$ARENA_IMAGE"
@@ -3092,6 +3106,8 @@ tasks:
         export LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}"
         export LLM_ROUTER_URL="${LLM_ROUTER_URL:-http://llm-gateway-lmstudio.workspace.svc.cluster.local:1234}"
         export LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}"
+        export LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-}"
+        export LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-}"
         export COMFY_HOST_IP="${COMFY_HOST_IP:-}"
         export COMFY_PORT="${COMFY_PORT:-}"
         export RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}"
@@ -3352,6 +3368,16 @@ tasks:
     desc: "Run all code-quality gates (S1-S4) with the baseline ratchet (fails only on new/worsened)"
     cmds:
       - node scripts/code-quality/check.mjs
+
+  quality:pod-phase-filter:
+    desc: "Prüft, dass jede shared-db-Pod-Selektion auf status.phase=Running filtert (T002439). Wurzeln nach --, z.B. task quality:pod-phase-filter -- scripts"
+    cmds:
+      - bash scripts/check-pod-phase-filter.sh {{.CLI_ARGS}}
+
+  plan:touched-files:
+    desc: "Zeigt, welche Pfade stage-plan aus dem '## File Structure'-Block eines Plans ableitet (T002446). Aufruf: task plan:touched-files -- openspec/changes/<slug>/tasks.md"
+    cmds:
+      - bash scripts/plan-touched-files.sh {{.CLI_ARGS}}
 
   health:goals:
     desc: "Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast"
@@ -3778,13 +3804,15 @@ tasks:
           LLM_ENABLED="${LLM_ENABLED:-false}" \
           LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
           LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
+          LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-}" \
+          LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-}" \
           COMFY_HOST_IP="${COMFY_HOST_IP:-}" \
           COMFY_PORT="${COMFY_PORT:-}" \
           RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}" \
           RIGGER_PORT="${RIGGER_PORT:-8190}" \
           POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://id.localhost}" \
           POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id.${WORKSPACE_NAMESPACE:-workspace}.svc.cluster.local:1411}" \
-           envsubst "\$WEBSITE_IMAGE \$WEBSITE_IMAGE_TAG \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$BRAIN_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_EMBED_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" < k3d/website.yaml > "$_WEB_RENDER"
+           envsubst "\$WEBSITE_IMAGE \$WEBSITE_IMAGE_TAG \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$BRAIN_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_EMBED_URL \$LLM_EMBED_BATCH_URL \$LLM_RERANKER_BATCH_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" < k3d/website.yaml > "$_WEB_RENDER"
           # T002154/T002156: checksum/config NACH envsubst aus dem website-config-
           # data-Block bilden (gemeinsamer Helper — alle drei Render-Pfade muessen
           # denselben Wert liefern, sonst ueberschreiben sie sich gegenseitig).
@@ -3809,6 +3837,8 @@ tasks:
           LLM_ENABLED="${LLM_ENABLED:-false}" \
           LLM_RERANK_ENABLED="${LLM_RERANK_ENABLED:-false}" \
           LLM_EMBED_URL="${LLM_EMBED_URL:-http://llm-gateway-embed.workspace.svc.cluster.local:8095}" \
+          LLM_EMBED_BATCH_URL="${LLM_EMBED_BATCH_URL:-}" \
+          LLM_RERANKER_BATCH_URL="${LLM_RERANKER_BATCH_URL:-}" \
           COMFY_HOST_IP="${COMFY_HOST_IP:-}" \
           COMFY_PORT="${COMFY_PORT:-}" \
           RIGGER_HOST_IP="${RIGGER_HOST_IP:-${COMFY_HOST_IP:-}}" \
@@ -3817,7 +3847,7 @@ tasks:
           POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id.${WORKSPACE_NAMESPACE:-workspace}.svc.cluster.local:1411}" \
           kustomize build "$WEBSITE_OVERLAY" --load-restrictor=LoadRestrictionsNone \
             | sed -E 's/: \$\{([a-zA-Z0-9_]+)\}[[:space:]]*$/: "${\1}"/g' \
-            | envsubst "\$WEBSITE_IMAGE \$WEBSITE_IMAGE_TAG \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$BRAIN_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_EMBED_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" \
+            | envsubst "\$WEBSITE_IMAGE \$WEBSITE_IMAGE_TAG \$BRAND_ID \$BRAND_NAME \$CONTACT_EMAIL \$CONTACT_NAME \$CONTACT_PHONE \$CONTACT_CITY \$LEGAL_STREET \$LEGAL_ZIP \$LEGAL_JOBTITLE \$LEGAL_UST_ID \$LEGAL_WEBSITE \$SMTP_FROM \$SMTP_USER \$SMTP_HOST \$SMTP_PORT \$SMTP_SECURE \$WEBSITE_HOST \$WEBSITE_SITE_URL \$REACT_APP_ORIGIN \$KEYCLOAK_FRONTEND_URL \$NEXTCLOUD_EXTERNAL_URL \$NEXTCLOUD_DB_HOST \$DOCS_URL \$AUTH_EXTERNAL_URL \$VAULT_EXTERNAL_URL \$BRAIN_EXTERNAL_URL \$WHITEBOARD_EXTERNAL_URL \$TRAEFIK_EXTERNAL_URL \$MAIL_EXTERNAL_URL \$BRETT_DOMAIN \$PROD_DOMAIN \$CLUSTER_ENV \$WEBSITE_NAMESPACE \$WORKSPACE_NAMESPACE \$SYSTEMTEST_LOOP_ENABLED \$ARENA_WS_URL \$LLM_ENABLED \$LLM_RERANK_ENABLED \$LLM_EMBED_URL \$LLM_EMBED_BATCH_URL \$LLM_RERANKER_BATCH_URL \$COMFY_HOST_IP \$COMFY_PORT \$RIGGER_HOST_IP \$RIGGER_PORT \$POCKET_ID_FRONTEND_URL \$POCKET_ID_URL \$PRIMARY_FRONTEND \$WEBSITE_PRIMARY_SERVICE" \
             | sed -E 's/\$\$([a-zA-Z0-9_]|\{)/$\1/g' \
             > "$_WEB_RENDER"
           # T002154/T002156: siehe Dev-Zweig oben — Hash NACH envsubst ueber den

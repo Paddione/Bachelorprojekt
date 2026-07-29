@@ -53,10 +53,10 @@ schließender Kommentar) — **es gibt keinen `ticket_id`-FK auf PRs**.
 
 **⚠️ DoR ≠ das Factory-Gate.** Die vier DoR-Flags (`spec_skizziert`,
 `offene_fragen_geklaert`, `abhaengigkeiten_klar`, `aufwand_geschaetzt`) ergeben `dorScore = 4` —
-aber `scripts/factory/queue.sh` dispatcht nur `type='feature' AND status='backlog'` mit
+aber `scripts/factory/queue.sh` dispatcht nur `type='feat' AND status='backlog'` mit
 `readiness.lastenheft_locked = true`, einem **fünften, separaten** Flag. Ein Ticket kann
 `dorScore = 4` haben und trotzdem unsichtbar im Backlog verrotten, wenn niemand
-`ticket.sh lastenheft lock --id <id>` ausgeführt hat. Wer hier ein `type='feature'`-Ticket nach
+`ticket.sh lastenheft lock --id <id>` ausgeführt hat. Wer hier ein `type='feat'`-Ticket nach
 `backlog` bewegt, füllt im **selben** Durchgang `requirements_list` und setzt den Lock — dieser
 Schritt wird nicht auf später vertagt.
 
@@ -69,6 +69,14 @@ Beinahe-Duplikate. Gilt in Phase 1 bei der Klassifikation **und** im Issue-Intak
 [`repo-hygiene`](../repo-hygiene/SKILL.md).
 
 **Vollständige Beschreibungen lesen:** Ticket-Beschreibungen nie kürzen (z.B. `left(description,700)`). Die wichtigsten Einschränkungen ("haengt an X", "wird dort mit erledigt") stehen typischerweise am ENDE der Beschreibung. Vor jedem Dispatch die Beschreibung vollständig lesen, um verfrühte Dispatches zu vermeiden.
+
+**M1: Line-Nummern-Prüfung vor sed-Extraktion (T002469):** Vor jeder Extraktion mit `sed -n 'start,endp'` die Zeilennummern gegen `wc -l` der Quelldatei prüfen. `end > wc -l` verursacht Syntaxfehler (T2 Extraction befand: falscher Zeilenbereich → Syntax-Error). Positiv-Anker: die extrahierte Sektion auf `bash -n` prüfen, bevor die Originaldatei gelöscht wird.
+
+**M3: Planning- vs. Execution-Dispatch (T002469):** Der Orchestrator (DeepSeek/o1) führt die Planung selbst durch; gemma-4-12b wird nur für Execution-Dispatches genutzt. Phase 3 unterscheidet zwischen `dispatch_for_planning` (→ Orchestrator, behält Control) und `dispatch_for_execution` (→ gemma, gibt ab). Ein gemma-Planungs-Dispatch wird abgelehnt — der User hat das explizit so entschieden.
+
+**M5: Agent-Lock-Prüfung in DoR (T002469):** Vor der Einplanung eines Tickets den Agent-Lock-Status prüfen: `bash scripts/agent-lock.sh check ticket <id>` → `held` bedeutet, eine andere Session arbeitet aktiv daran. Solche Tickets in `in_progress` lassen und NICHT in den Masterplan aufnehmen. Die DoR-Prüfung in Phase 1 liest den agent-lock-Status und setzt `attention_mode=auto` bei live-claimed Tickets.
+
+**M2: mcp-postgres Fallback (T002469):** Wenn `mcp__mcp-postgres__query` nicht erreichbar ist (curl-Probe 000), auf den `kubectl exec` psql-Fallback ausweichen. Der Fallback ist in `scripts/ticket.sh` via `BRAND`-Routing dokumentiert. Vor jedem Bulk-Triage-Lauf die Erreichbarkeit mit `curl -s -o /dev/null -w '%{http_code}' localhost:13001/health` prüfen.
 
 **Laufende Arbeit nicht anfassen:** Tickets in `in_progress`, die auf einen lebenden Plan-Branch
 zeigen, bleiben unberührt.
@@ -111,6 +119,13 @@ Routing (plan vs. execute), das Masterplan-Format und der Wave-1-Dispatch:
 > **Soft-Conflict-Kante:** Zwei fertige Tickets, die sich einen `areas`-Eintrag teilen, haben
 > Datei-Kollisionsrisiko und dürfen **nicht** in dieselbe Welle. Bewusst konservativ — die
 > Kollision wird angezeigt, nicht versteckt.
+>
+> **Pre-Check-Invariante [T002422]:** Vor dem ersten `claim`-Aufruf in der Dispatch-Schleife
+> wird für jedes Wave-1-Ticket `agent-lock.sh check ticket <id>` ausgeführt. Tickets mit Status
+> `held` werden gesammelt und vor dem Worktree-Setup gemeldet (`LOCK-KONFLIKT: T002XXX bereits
+> gehalten von ...`). Der Dispatch fährt nur mit den freien Tickets fort. Dadurch wird
+> verhindert, dass bereits belegte Tickets erst nach dem Aufbau des Worktrees (kostspielig)
+> als blockiert erkannt werden.
 
 **Merge = Abschluss:** Jedes Ticket schließt über seinen eigenen grünen Auto-Merge; der
 Masterplan verfolgt den Dispatch, nicht den Prod-Live-Stand.

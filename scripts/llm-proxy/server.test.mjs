@@ -134,11 +134,32 @@ test('scripts/llm/loadouts.json ist gueltig und portkollisionsfrei', () => {
   assert.equal(new Set(ports).size, ports.length, 'Ports muessen eindeutig sein')
 })
 
-test('kein ausgeliefertes Loadout pinnt ctx oder ngl', () => {
+// T002426: die Regel gilt fuer Loadouts MIT --fit. Dort ist ein gepinntes -c
+// oder -ngl die Regression, gegen die T002394 schuetzt: ein gesetztes Argument
+// schaltet die VRAM-Anpassung ab. Bei fit.enabled=false ist das Gegenteil
+// Pflicht — validateLoadout() VERLANGT dort gesetzte ctx und ngl, sonst laeuft
+// ein ungesetztes -c in den llama.cpp-Default 0 und ins OOM. Die frueher
+// pauschale Fassung haette jedes bewusst CPU-gebundene Loadout (-ngl 0)
+// verboten. Der Positiv-Anker ist die Zaehlung unten: prueft der Test gar keine
+// fit-Loadouts mehr, faellt er auf, statt leer durchzulaufen.
+test('kein Loadout MIT --fit pinnt ctx oder ngl', () => {
   const doc = parseLoadouts(readFileSync('scripts/llm/loadouts.json', 'utf8'))
+  let checked = 0
   for (const l of doc.loadouts) {
+    if (l.fit?.enabled !== true) continue
+    checked++
     assert.equal(l.args.ctx, null, `${l.slug}: ctx darf nicht gepinnt sein`)
     assert.equal(l.args.ngl, null, `${l.slug}: ngl darf nicht gepinnt sein`)
+  }
+  assert.ok(checked > 0, 'kein einziges --fit-Loadout geprueft — der Test waere vakuos')
+})
+
+test('fit-freie Loadouts MUESSEN ctx und ngl setzen', () => {
+  const doc = parseLoadouts(readFileSync('scripts/llm/loadouts.json', 'utf8'))
+  for (const l of doc.loadouts) {
+    if (l.fit?.enabled !== false) continue
+    assert.notEqual(l.args.ctx, null, `${l.slug}: ctx muss ohne --fit gesetzt sein`)
+    assert.notEqual(l.args.ngl, null, `${l.slug}: ngl muss ohne --fit gesetzt sein`)
   }
 })
 

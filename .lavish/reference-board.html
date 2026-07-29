@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>SDLC Cockpit — Entscheidungen</title>
+  <link rel="stylesheet" href="./kit/tokens.css">
+  <link rel="stylesheet" href="./kit/document.css">
+</head>
+<body>
+  <h1>SDLC Cockpit — Entscheidungen</h1>
+
+  <h2>Design-Entscheidungen</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Entscheidung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>E1</td>
+        <td>Cockpit läuft standalone → später Admin-Menü</td>
+      </tr>
+      <tr>
+        <td>E6</td>
+        <td>Epic-Sichtbarkeit von Erstellung bis Abschluss</td>
+      </tr>
+      <tr>
+        <td>E11</td>
+        <td>Themes als Datenschicht, Tokens austauschbar</td>
+      </tr>
+      <tr>
+        <td>E16</td>
+        <td>Nur mentolder, brand als Parameter</td>
+      </tr>
+      <tr>
+        <td>E20</td>
+        <td>Kontrollraum-Ästhetik, dunkel, ein Akzent</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision-block">
+    <strong>E11</strong> — Tokens sind die einzige Quelle für Farben, Größen und Abstände. Kein hartkodierter CSS-Wert.
+  </div>
+
+  <div data-lavish-question>
+    Soll das Terminal-Panel (E21) eine eigene Build-Grenze bekommen? → Ja (D1)
+  </div>
+
+  <h3>Token-Beispiel</h3>
+  <pre><code>:root {
+  --color-accent: #58a6ff;
+  --space-4: 1rem;
+}</code></pre>
+
+  <blockquote>
+    Die Trennung von Design-Tokens und Layout-Logik ermöglicht eine konsistente UI über verschiedene Plattformen hinweg.
+  </blockquote>
+
+  <h3>Nächste Schritte</h3>
+  <ul>
+    <li>K2 Daten-Adapter</li>
+    <li>K3 Layout-Engine</li>
+    <li>K4 Steuerung</li>
+  </ul>
+</body>
+</html>

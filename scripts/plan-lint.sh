@@ -22,10 +22,13 @@ _load_s1_limits() {
   fi
   # Fail-safe fallback — only fills extensions gates.yaml did not provide.
   local kv k v
-  for kv in .astro=400 .tsx=400 .java=400 .php=400 \
-            .ts=600 .js=600 .jsx=600 .py=600 \
-            .svelte=500 .sh=500 .mjs=500 .mts=500 \
-            .bash=300 .cjs=200; do
+  # [T002452] Muss mit docs/code-quality/gates.yaml uebereinstimmen. Dieser Zweig
+  # greift nur ohne yq — driftet er, rechnet plan-lint dort still mit Budgets von
+  # gestern, und zwar ohne Fehlermeldung. Beim Anheben der Limits mitfuehren.
+  for kv in .astro=600 .tsx=600 .java=600 .php=600 \
+            .ts=900 .js=800 .jsx=800 .py=800 \
+            .svelte=800 .sh=800 .mjs=800 .mts=800 \
+            .bash=500 .cjs=400; do
     k="${kv%%=*}"; v="${kv#*=}"
     [[ -z "${_S1_LIMITS[$k]:-}" ]] && _S1_LIMITS["$k"]="$v"
   done
@@ -243,6 +246,42 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
       hard "D2: dependency cycle: $_remaining"
     fi
   fi
+  # I1 (NEU, Hard): Vollständigkeit des Intel-Bundles.
+  # Nur im Partial-Modus aktiv: prüft ob intel.json existiert, valide ist,
+  # und alle target_files aus dem Manifest in impact_files abgedeckt sind.
+  _check_intel_completeness() {
+    local slug
+    slug="$(basename "$(dirname "$PLAN")")"
+    local intel="$PLAN_DIR/intel.json"
+    if [[ ! -f "$intel" ]]; then
+      warn "I1: intel.json not found at $intel — run scripts/plan-intel.sh $slug to generate it"
+      return
+    fi
+    if ! jq -e . "$intel" >/dev/null 2>&1; then
+      hard "I1: intel.json at $intel is not valid JSON"
+      return
+    fi
+    if ! jq -e '.meta and .impact_files and .symbols' "$intel" >/dev/null 2>&1; then
+      hard "I1: intel.json meta, impact_files or symbols is empty/missing"
+      return
+    fi
+    # Extract impact_files paths
+    local covered_paths
+    covered_paths="$(jq -r '.impact_files[].path' "$intel" 2>/dev/null | sort -u)"
+    # Compare against ALL_PARTIAL_TARGETS
+    local missing=()
+    local tgt
+    for tgt in "${ALL_PARTIAL_TARGETS[@]:-}"; do
+      [[ -z "$tgt" ]] && continue
+      if ! grep -qxF "$tgt" <<<"$covered_paths" 2>/dev/null; then
+        missing+=("$tgt")
+      fi
+    done
+    if [[ ${#missing[@]} -gt 0 ]]; then
+      hard "I1: intel.json impact_files fehlt fuer: ${missing[*]}"
+    fi
+  }
+  _check_intel_completeness
 fi
 
 # === STRUCT2: at least one failing-test step (fail phrase + a real test-runner) ===

@@ -44,10 +44,29 @@ The triaging agent **autonomously decides** severity, component, areas, and read
 
 **MCP-first** (`mcp-postgres`, read-only): pass the query below to `mcp__mcp-postgres__query({ sql: "…" })`. Fallback: `psql -c "<query>"` via the `psql()` helper above.
 
+> **JSON-Ausgabe statt Pipe-Spalten [T002422].** Früher lieferte die Query
+> `psql -t`-Spalten mit `-A -F '|'`. Lange Titel verschoben die Spalten, sodass
+> `desc_len` Titelfragmente und `priority` den `created_at`-Wert enthielt. Die
+> JSON-Ausgabe unten ist spaltenausrichtungsinvariant — das Ergebnis wird mit
+> `jq -r '.result[]'` verarbeitet, nicht mit Split-by-Pipe.
+
 ```sql
-SELECT external_id, title, type, status, priority, severity, component, areas,
-       depends_on, attention_mode, planning_rank, readiness,
-       COALESCE(length(trim(description)),0) AS desc_len, created_at::date
+SELECT json_agg(json_build_object(
+  'external_id', external_id,
+  'title', title,
+  'type', type,
+  'status', status,
+  'priority', priority,
+  'severity', severity,
+  'component', component,
+  'areas', areas,
+  'depends_on', depends_on,
+  'attention_mode', attention_mode,
+  'planning_rank', planning_rank,
+  'readiness', readiness,
+  'desc_len', COALESCE(length(trim(description)), 0),
+  'created_at', created_at::text
+))::text AS result
 FROM tickets.tickets
 WHERE status NOT IN ('done','archived')
   -- [T002375-p6] E2E-Testdaten ausschliessen. T002348 tauchte im Triage auf und kostete
@@ -75,11 +94,11 @@ ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' TH
 
 **Tier A — every ticket** (a NULL/empty here is a gap):
 - `priority IS NULL` → `priority`
-- `type = 'bug' AND severity IS NULL` → `severity`
+- `type = 'fix' AND severity IS NULL` → `severity`
 - `desc_len < 30` → `description` (too thin to act on)
 - `component IS NULL AND (areas IS NULL OR areas = '{}')` → `area/component`
 
-**Tier B — only `type='feature' AND status='planning'`** — for each DoR flag not `true` in `readiness`, add `dor:<flag>`. `dorScore < 4` ⇒ incomplete. (A feature can also still hit Tier-A gaps.)
+**Tier B — only `type='feat' AND status='planning'`** — for each DoR flag not `true` in `readiness`, add `dor:<flag>`. `dorScore < 4` ⇒ incomplete. (A feature can also still hit Tier-A gaps.)
 
 A ticket with an empty `missing[]` is **ready**. *Do not touch `in_progress` tickets referencing a live plan branch.*
 
@@ -154,7 +173,15 @@ If you are running without an interactive question tool (e.g. dispatched as a su
 > `mcp__ticket-mcp__set_plan_meta({ id: "T000XXX", effort: "mittel", depends_on: "T000YYY" })`
 > `mcp__ticket-mcp__add_comment({ id: "T000XXX", body: "## Klärungsrunde …" })`
 
-Fallback / bulk path (ticket-mcp nicht erreichbar, oder für Felder ohne Wrapper wie ein direkter `priority`-Set + eine einzelne JSONB-Readiness-Merge): Writes go through `psql()` (the MCP query tool is read-only). Per ticket, set the now-satisfied DoR flags via a JSONB merge (never clobber other flags), update the answered fields, and append a clarification comment:
+**CLI path** (ticket-mcp nicht erreichbar, oder im Worktree — `ticket.sh` ist dasselbe Backend, das auch der MCP-Wrapper ruft): Der korrekte Subcommand heisst `add-comment` (nicht `comment`):
+
+> ```bash
+> bash scripts/ticket.sh add-comment --id T000XXX --body "## Klärungsrunde …"
+> ```
+
+> ⚠️ `add-comment` ist der einzige CLI-Weg — `bash scripts/ticket.sh comment` existiert nicht und scheitert mit `Unknown command`.
+
+**psql-Fallback** (weder MCP noch `ticket.sh` verfügbar — nur für Bulk-Operationen oder Felder ohne Wrapper, z.B. ein direkter `priority`-Set + JSONB-Readiness-Merge). Der psql-Pfad erfordert manuelle `author_label`-Setzung und ist fehleranfälliger als die beiden vorigen Wege. Per ticket:
 
 ```bash
 psql -c "
@@ -206,7 +233,7 @@ The dev-flow contract splits the parallel unit, orchestrated by all available su
 - `attention_mode = 'ai_ready'` / DoR-complete → **planning wave**: dispatch `dev-flow-plan` via domain-specific subagent for plan creation and staging
 - **Any other ready ticket** → **parallel planning wave**: all available subagents work in parallel to create plans, set readiness flags, stage branches. No ready ticket is left without a route or owner.
 
-Any subagent that lands a `type='feature'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and call `ticket.sh lastenheft lock --id <id>` — see the DoR-vs-factory-gate note above. A ticket without the lock is invisible to `queue.sh`/`dispatcher-bridge.sh` and will silently never dispatch.
+Any subagent that lands a `type='feat'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and call `ticket.sh lastenheft lock --id <id>` — see the DoR-vs-factory-gate note above. A ticket without the lock is invisible to `queue.sh`/`dispatcher-bridge.sh` and will silently never dispatch.
 
 All subagents report back with: ticket_id, decisions made, branch created, plan staged, **lastenheft locked (y/n)**. Consolidate for Phase 3 masterplan completion.
 
@@ -222,7 +249,21 @@ DEFERRED (needs_human, ungeklärt): T000738
 ```
 
 ### Step 3.5: Dispatch wave 1 (after the user approves)
-For each wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
+
+> **Pre-Check-Invariante [T002422]:** Vor dem ersten `claim`-Aufruf wird für jedes Wave-1-Ticket
+> `agent-lock.sh check ticket <id>` ausgeführt. Bereits belegte Tickets (Status `held`) werden
+> vor dem Worktree-Setup gemeldet und zurückgestellt — teure Worktree-Erstellung für blockierte
+> Tickets entfällt.
+
+0. **Pre-Check:** For each wave-1 ticket, run `bash scripts/agent-lock.sh check ticket <ext-id>`.
+   Collect all tickets that return `held` and report them:
+   ```
+   LOCK-KONFLIKT: T002XXX bereits gehalten von claude (sid …, worktree …, …)
+   LOCK-KONFLIKT: T002YYY bereits gehalten von gemini (sid …, worktree …, …)
+   ```
+   Remove held tickets from the wave set. Proceed only with free tickets.
+
+For each remaining wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
 1. `bash scripts/agent-lock.sh claim ticket <ext-id> --branch <b> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it).
 2. Create the worktree: `bash scripts/worktree-create.sh <branch> .worktrees/<slug>`.
 3. Hand to `dev-flow-execute` (plan_staged) or `dev-flow-plan` (unplanned) inside that worktree.

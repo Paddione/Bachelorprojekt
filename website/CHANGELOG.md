@@ -1,5 +1,82 @@
 # Changelog
 
+## [1.228.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.227.0...website-v1.228.0) (2026-07-29)
+
+
+### Features
+
+* **website:** Lavish Design-Kit & Panel-Kontrakt K1 [T002460] ([#3518](https://github.com/Paddione/Bachelorprojekt/issues/3518)) ([f49fead](https://github.com/Paddione/Bachelorprojekt/commit/f49fead165d5b586a0b0eef8c26cf49f8b430945))
+
+
+### Bug Fixes
+
+* **agents:** same-tool-Fallback entfernt, Identität extrahiert, AGENT_LOCK_TOOL [T002447] ([#3515](https://github.com/Paddione/Bachelorprojekt/issues/3515)) ([f62b893](https://github.com/Paddione/Bachelorprojekt/commit/f62b893b57692222548dc29eb591233f0d25e08d))
+
+## [1.227.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.226.2...website-v1.227.0) (2026-07-28)
+
+
+### Features
+
+* **scripts:** task-context-channel — generator, assembler, gate, and tests [T002420] ([#3501](https://github.com/Paddione/Bachelorprojekt/issues/3501)) ([f1a5d4e](https://github.com/Paddione/Bachelorprojekt/commit/f1a5d4ef5fb4dd766abe50a8baaa32869b6cd517))
+
+## [1.226.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.226.1...website-v1.226.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** Pod-Phase-Guard treffer-granular, scripts/ UND tests/ [T002439] ([#3498](https://github.com/Paddione/Bachelorprojekt/issues/3498)) ([d2c06a5](https://github.com/Paddione/Bachelorprojekt/commit/d2c06a53c6bb2abf02129f75c2ea83112a46cf0f))
+* **scripts:** stage-plan leitet touched_files aus ## File Structure ab [T002446] ([#3503](https://github.com/Paddione/Bachelorprojekt/issues/3503)) ([2cea54f](https://github.com/Paddione/Bachelorprojekt/commit/2cea54f68968e1d07f9d29bcc068d0e9b73822f9))
+
+## [1.226.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.226.0...website-v1.226.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** stage-plan timeout, collision filter, orphaned lock reap [T002341] ([#3446](https://github.com/Paddione/Bachelorprojekt/issues/3446)) ([8a9a8ab](https://github.com/Paddione/Bachelorprojekt/commit/8a9a8abffd7c79a7027226f279647426bdcdba81))
+
+## [1.226.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.5...website-v1.226.0) (2026-07-28)
+
+
+### Features
+
+* **scripts:** Merge-Arbitrierung bei N-Wege-Dateikollisionen [T002423] ([#3490](https://github.com/Paddione/Bachelorprojekt/issues/3490)) ([1e599f7](https://github.com/Paddione/Bachelorprojekt/commit/1e599f7636e2acb5320c0096ea2189e640ed9fda))
+
+
+### Bug Fixes
+
+* **scripts:** incidental ticket closure tracking [T002279] ([#3473](https://github.com/Paddione/Bachelorprojekt/issues/3473)) ([1dfb8a0](https://github.com/Paddione/Bachelorprojekt/commit/1dfb8a0e8101794b4f99032f673dcec0d9ab9ce3))
+
+## [1.225.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.4...website-v1.225.5) (2026-07-28)
+
+
+### Bug Fixes
+
+* **scripts:** Test-Inventar erfasst tests/spec/&lt;slug&gt;/-Unterverzeichnisse [T002445] ([#3499](https://github.com/Paddione/Bachelorprojekt/issues/3499)) ([ba7630a](https://github.com/Paddione/Bachelorprojekt/commit/ba7630a668e372efef2c916df5c4ed448c21ffd7))
+
+## [1.225.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.3...website-v1.225.4) (2026-07-28)
+
+
+### Bug Fixes
+
+* **infra:** port-forward guard + update-status psql var fix [T002371] ([#3475](https://github.com/Paddione/Bachelorprojekt/issues/3475)) ([213130d](https://github.com/Paddione/Bachelorprojekt/commit/213130db82d05a86a8445bf63ed0cffba959fdda))
+* **scripts:** pr-refresh Sammellauf bricht nicht mehr beim ersten abgelehnten PR ab [T002417] ([#3486](https://github.com/Paddione/Bachelorprojekt/issues/3486)) ([7951c2a](https://github.com/Paddione/Bachelorprojekt/commit/7951c2a037f72e97a93f6379ca06865a381f4f81))
+* **scripts:** sieben halb archivierte OpenSpec-Changes geheilt + Guard dagegen [T002428] ([#3488](https://github.com/Paddione/Bachelorprojekt/issues/3488)) ([1c9a641](https://github.com/Paddione/Bachelorprojekt/commit/1c9a6413780321838e148d707f6cc0ade60c501b))
+* **test:** remove 13 legacy FA-SF bats files referencing deleted pipeline.js [T002421] ([#3485](https://github.com/Paddione/Bachelorprojekt/issues/3485)) ([21112d0](https://github.com/Paddione/Bachelorprojekt/commit/21112d00d95825fe06ea366560bfaa8089f14ba0))
+
+## [1.225.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.2...website-v1.225.3) (2026-07-28)
+
+
+### Tests
+
+* **ci:** regression tests for scope alias and release --force [T002374] ([#3449](https://github.com/Paddione/Bachelorprojekt/issues/3449)) ([d552865](https://github.com/Paddione/Bachelorprojekt/commit/d552865be3aa1e97bdf5bef099cb1acaa10696b9))
+
+## [1.225.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.1...website-v1.225.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* **plans:** auto-correct ADDED→MODIFIED when target exists in SSOT [T002354] ([#3476](https://github.com/Paddione/Bachelorprojekt/issues/3476)) ([279a1d3](https://github.com/Paddione/Bachelorprojekt/commit/279a1d322ae18825af2efebba9cf8e7d4441afa1))
+
 ## [1.225.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.225.0...website-v1.225.1) (2026-07-28)
 
 

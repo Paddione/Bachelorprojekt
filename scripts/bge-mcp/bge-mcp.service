@@ -1,0 +1,22 @@
+# scripts/bge-mcp/bge-mcp.service
+# BGE MCP — systemd USER service. Embedding & Reranking MCP bridge
+# on 127.0.0.1:13005 (tools: bge_embed, bge_rerank).
+# Symlink to ~/.config/systemd/user/ to enable:
+#   ln -sf $PWD/scripts/bge-mcp/bge-mcp.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now bge-mcp
+
+[Unit]
+Description=BGE MCP server (Embedding & Rerank, 127.0.0.1:13005)
+Documentation=file:///home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/patrick/Bachelorprojekt
+ExecStart=/usr/bin/node /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs
+Restart=always
+RestartSec=5
+EnvironmentFile=-%h/.config/bge-mcp/server.env
+
+[Install]
+WantedBy=default.target

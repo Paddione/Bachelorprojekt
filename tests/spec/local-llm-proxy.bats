@@ -66,12 +66,17 @@ _start_proxy() {
 }
 
 # Skip if no shared-db pod is reachable (offline / CI without cluster).
+# [T002439] Der Phasenfilter ist Teil der BEDINGUNG, nicht Kosmetik: ohne ihn liefert die
+# Selektion auch einen Completed-Pod, der Skip bleibt aus, und das folgende `kubectl exec`
+# endet mit rc=1 statt in einem sauberen Skip. Genau so entstand der "DB-Nachweis rc=1"
+# im Verify von T002418.
 _skip_if_no_db() {
   local _pod
   _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
-    -l 'app in (shared-db,shared-db-dev)' -o name 2>/dev/null | head -1) || true
+    -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
+    -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then
-    skip "no shared-db pod reachable (offline/CI)"
+    skip "no Running shared-db pod reachable (offline/CI)"
   fi
 }
 
@@ -354,13 +359,25 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   [ "$output" -ge 1 ]
 }
 
-@test "T002394: kein Loadout pinnt ctx oder ngl (--fit-Regression)" {
+@test "T002394: kein Loadout MIT --fit pinnt ctx oder ngl (--fit-Regression)" {
+  # T002426: auf fit-Loadouts eingegrenzt. Ein gesetztes -c/-ngl schaltet dort
+  # die VRAM-Anpassung ab - das ist die Regression. Bei fit.enabled=false ist
+  # das Setzen dagegen PFLICHT (validateLoadout in scripts/llm-proxy/loadouts.mjs),
+  # sonst laeuft der llama.cpp-Default -c 0 ins OOM. Die pauschale Fassung haette
+  # jedes bewusst CPU-gebundene Loadout verboten.
+  # Der 'checked'-Zaehler ist der Positiv-Anker: ohne ihn bestuende der Test
+  # vakuos, sobald gar kein fit-Loadout mehr in der Datei steht.
   run node -e '
     const d=require("./scripts/llm/loadouts.json");
+    let checked=0;
     d.loadouts.forEach(l => {
-      if(l.args.ctx!==null){console.error(l.slug+": ctx ist "+l.args.ctx);process.exitCode=1}
-      if(l.args.ngl!==null){console.error(l.slug+": ngl ist "+l.args.ngl);process.exitCode=1}
+      if(l.fit && l.fit.enabled===true){
+        checked++;
+        if(l.args.ctx!==null){console.error(l.slug+": ctx ist "+l.args.ctx);process.exitCode=1}
+        if(l.args.ngl!==null){console.error(l.slug+": ngl ist "+l.args.ngl);process.exitCode=1}
+      }
     });
+    if(checked===0){console.error("kein --fit-Loadout geprueft");process.exitCode=1}
   '
   [ "$status" -eq 0 ]
 }

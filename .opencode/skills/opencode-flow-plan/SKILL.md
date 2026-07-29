@@ -48,6 +48,21 @@ bash scripts/agent-msg.sh read --unread
 git worktree list
 ```
 
+## Schritt −0.5: Kollisions-Check vor der Planung ⚡ [T002444]
+
+Bevor du mit der Planung beginnst, prüfe, ob **andere Sessions bereits auf deinem Ziel-Branch**
+oder an denselben Dateien arbeiten. Der `--branch`-Modus von `agent-collision.sh` erkennt
+Kollisionen mit parallelen Sessions AUCH DANN, wenn dein Working Tree sauber ist:
+
+```bash
+# Prüft ob andere Sessions Daten derselben Dateien bearbeiten
+bash scripts/agent-collision.sh check --branch || echo "⚠ Kollision erkannt — mit anderen Sessions koordinieren!"
+```
+
+Anders als `--staged` (braucht `git add`) und `--all` (braucht uncommittete Änderungen) findet
+`--branch` ALLES was dein Branch jemals angefasst hat — egal ob committed, staged oder unstaged.
+Bei Kollisionswarnung: mit den betroffenen Sessions abstimmen, bevor der Plan geschrieben wird.
+
 ## Schritt 0: Pfad bestimmen
 
 Wähle Feature, Fix oder Chore. Features/Fixes → dieser Skill. Chores → `opencode-flow-chore` und STOPP.

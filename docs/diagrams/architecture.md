@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-87 Services · 1827 Abhängigkeitskanten · 403 API-Endpoints
+87 Services · 1827 Abhängigkeitskanten · 405 API-Endpoints
 
 ## Service-Map
 
@@ -2312,6 +2312,8 @@ flowchart TB
 | `/api/auth/logout` | GET | ❓ unclassified |
 | `/api/auth/magic` | GET | ❓ unclassified |
 | `/api/auth/me` | OPTIONS, GET | 🔐 admin |
+| `/api/bge/changes` | GET | 🔐 admin |
+| `/api/bge/retrieve` | GET | 🔐 admin |
 | `/api/billing/create-invoice` | POST | ❓ unclassified |
 | `/api/billing/invoice/{id}/pdf` | GET | 🔐 admin |
 | `/api/billing/invoice/{id}/xrechnung.xml` | GET | 🔐 admin |

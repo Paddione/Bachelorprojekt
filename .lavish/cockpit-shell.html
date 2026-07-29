@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDLC Cockpit Shell</title>
+  <link rel="stylesheet" href="./kit/tokens.css">
+  <link rel="stylesheet" href="./kit/panel.css">
+  <script src="./kit/panel.js"></script>
+  <script src="./kit/adapter.js"></script>
+  <style>
+    /* ONLY layout — no colors, sizes, etc. that should come from tokens */
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; }
+    .cockpit-layout { display: flex; height: 100vh; }
+    .cockpit-focus { width: 220px; display: flex; flex-direction: column; gap: 4px; padding: 8px; background: var(--color-bg-base); border-right: 1px solid var(--color-border-muted); overflow-y: auto; flex-shrink: 0; }
+    .cockpit-workspace { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; overflow-y: auto; align-content: flex-start; }
+    .cockpit-header { padding: 8px 16px; background: var(--color-bg-elevated); border-bottom: 1px solid var(--color-border-muted); font-family: var(--font-ui); font-size: var(--text-sm); display: flex; align-items: center; gap: 8px; }
+    .cockpit-header h1 { margin: 0; font-size: var(--text-base); font-weight: var(--weight-semibold); }
+    .cockpit-workspace .panel--card { flex: 1 1 400px; max-width: 600px; }
+    .cockpit-workspace .panel--fullscreen { position: static; flex: 1 1 100%; max-width: 100%; border-radius: var(--radius-md); margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="cockpit-header">
+    <h1>SDLC Cockpit</h1>
+    <span data-brand="mentolder" style="font-size:var(--text-xs);color:var(--color-text-tertiary)">mentolder</span>
+    <span class="cockpit-status" style="margin-left:auto;font-size:var(--text-xs);color:var(--color-status-ok)">● Fixtures (K1)</span>
+  </div>
+
+  <div class="cockpit-layout">
+    <!-- FOCUS COLUMN — 5 Rail panels -->
+    <aside class="cockpit-focus">
+      <div class="panel panel--rail" data-panel-type="status" data-source="tickets" data-refresh-interval="30000" id="panel-tickets">
+        <div class="panel__head">
+          <span class="panel__title">Tickets</span>
+          <span class="panel__type-badge" data-panel-type="status"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn">Aktualisieren</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--rail" data-panel-type="status" data-source="agents" data-refresh-interval="30000" id="panel-agents">
+        <div class="panel__head">
+          <span class="panel__title">Agents</span>
+          <span class="panel__type-badge" data-panel-type="status"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn">Aktualisieren</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--rail" data-panel-type="status" data-source="ci" data-refresh-interval="30000" id="panel-ci">
+        <div class="panel__head">
+          <span class="panel__title">CI/CD</span>
+          <span class="panel__type-badge" data-panel-type="status"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn">Aktualisieren</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--rail" data-panel-type="status" data-source="factory" data-refresh-interval="30000" id="panel-factory">
+        <div class="panel__head">
+          <span class="panel__title">Factory</span>
+          <span class="panel__type-badge" data-panel-type="status"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn">Aktualisieren</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--rail" data-panel-type="status" data-source="models" data-refresh-interval="30000" id="panel-models">
+        <div class="panel__head">
+          <span class="panel__title">Modelle</span>
+          <span class="panel__type-badge" data-panel-type="status"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn">Aktualisieren</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+    </aside>
+
+    <!-- WORKSPACE — 2 card + 2 fullscreen panels -->
+    <main class="cockpit-workspace">
+      <div class="panel panel--card" data-panel-type="status" data-source="tickets" data-refresh-interval="30000" id="panel-tickets-card">
+        <div class="panel__head">
+          <span class="panel__title">Alle Tickets</span>
+          <span class="panel__type-badge" data-panel-type="status"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-tickets-card').refresh()">Aktualisieren</button>
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-tickets-card').resize('fullscreen')">Vollbild</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--card" data-panel-type="status" data-source="agents" data-refresh-interval="30000" id="panel-agents-card">
+        <div class="panel__head">
+          <span class="panel__title">Agenten im Detail</span>
+          <span class="panel__type-badge" data-panel-type="status"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-agents-card').refresh()">Aktualisieren</button>
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-agents-card').setActionState('locked')">Sperren</button>
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-agents-card').confirmAction('Kill Agent', 'agent-1941661', () => {})">Kill</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--fullscreen" data-panel-type="strom" data-source="factory" data-refresh-interval="15000" id="panel-factory-log">
+        <div class="panel__head">
+          <span class="panel__title">Factory-Log (Strom)</span>
+          <span class="panel__type-badge" data-panel-type="strom"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-factory-log').refresh()">Neu laden</button>
+          <button class="panel__action-btn panel__close-btn" onclick="Panel.registry.get('panel-factory-log').resize('card')">×</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--card" data-panel-type="terminal" data-source="" data-refresh-interval="0" id="panel-terminal">
+        <div class="panel__head">
+          <span class="panel__title">Terminal</span>
+          <span class="panel__type-badge" data-panel-type="terminal"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body">
+          <p>Terminal verbindet sich mit Daemon (K2)</p>
+          <p style="font-size:var(--text-xs);color:var(--color-text-tertiary);margin-top:var(--space-2)">Die tmux-Sitzung läuft weiter — beim Wiederverbinden wird sie erneut angedockt.</p>
+        </div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-terminal').resize('fullscreen')">Vollbild</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

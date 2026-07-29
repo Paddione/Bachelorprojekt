@@ -21,6 +21,24 @@ setup() {
   EXEC_SKILL="$REPO/.claude/skills/dev-flow-execute/SKILL.md"
 }
 
+# [T002451] Entfernt JEDE Variable, an der _detect_tool die Claude-Harness erkennt.
+# Pflicht in jedem Test, der ein FREMDES Tool (GEMINI_CLI=1) simuliert: die Harness
+# exportiert CLAUDECODE und CLAUDE_CODE_SESSION_ID real, und solange auch nur eine
+# davon steht, liefert _detect_tool "claude". Die Same-Tool-Klausel in cmd_release
+# gibt den Lock dann frei und der Test misst die Umgebung statt die Vorbedingung.
+#
+# Die Namen werden AUS scripts/agent-lock.sh gelesen, nicht hier wiederholt — eine
+# zweite Kopie der Liste ist genau die Drift, die diesen Vorgang ausgeloest hat.
+_unset_claude_harness_env() {
+  local names v
+  names=$(sed -n 's/^_AGENT_LOCK_\(SID\|TOOL_MARKER\)_ENVS="\([^"]*\)".*/\2/p' "$LOCK" | tr '\n' ' ')
+  # Positiv-Anker: eine leere Liste wuerde still nichts unsetzen und den Test
+  # vakuos gruen machen. Beide Listen muessen gefunden worden sein.
+  [[ "$names" == *CLAUDE_CODE_SESSION_ID* && "$names" == *CLAUDECODE* ]] \
+    || { echo "Harness-Marker-Listen nicht aus $LOCK lesbar: '$names'"; return 1; }
+  for v in $names; do unset "$v"; done
+}
+
 # ── Mishap 1: agent-lock identity drift ────────────────────────────────#
 #
 # The Claude Code / opencode harness exposes a session ID for telemetry
@@ -171,9 +189,10 @@ setup() {
 # ── T002261-M1: cmd_release schweigt bei SID-Mismatch ────────────────#
 #
 # When `cmd_release` is called with a SID that does not match the lock
-# owner, it must emit a diagnostic line to stderr so the operator knows
-# why the release failed and how to force it. Currently it returns 1
-# silently — the operator has no indication of the cause.
+# owner, and the tool class also differs, it must emit a diagnostic line
+# to stderr so the operator knows why the release failed and how to force it.
+# The same-tool fallback (T002374) allows release when tool class matches,
+# so this test uses a DIFFERENT tool class to trigger the diagnostic.
 #
 # NOTE: The SID mismatch detection relies on _my_sid derived from $$/PPID. When the claim
 # was issued inside a subshell, the SID may differ, causing a false mismatch. See comment
@@ -181,20 +200,22 @@ setup() {
 
 @test "T002261-M1: cmd_release emits stderr diagnostic on SID mismatch" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
-  # Claim the lock as "session-A"
-  # [T002375-p1] CLAUDE_CODE_SESSION_ID muss ausdruecklich weg: die Harness exportiert
-  # sie real, und sie steht in der normativen Reihenfolge VOR CLAUDE_SESSION_ID.
-  # Ohne dieses unset prueft der Test die Umgebung statt die Vorbedingung — genau
-  # die Fehlerklasse, die dieses Bundle behandelt.
-  unset CLAUDE_CODE_SESSION_ID
-  export CLAUDE_SESSION_ID="session-A"
-  unset AGENT_LOCK_SID
-  bash "$LOCK" claim ticket T002261-m1 --label test-release
+  # [T002456] Harness-Variablen abbauen: eine aktive Claude-Code-Session exportiert
+  # CLAUDE_CODE_SESSION_ID und CLAUDECODE real, was die Tool-Klassen-Ableitung
+  # beeinflusst. Ohne diesen Aufruf schlägt `_detect_tool` in _write_lock auf "claude"
+  # statt "gemini" — der Lock wird mit tool=claude angelegt, was den Same-Tool-Fallback
+  # triggert (selbst wenn T002447 ihn aus cmd_release entfernt hat, bleibt die Pfad-Abhängigkeit
+  # in _write_lock bestehen und der Lock-Content spiegelt die falsche Tool-Klasse).
+  _unset_claude_harness_env
+  # Claim the lock with explicit SID + tool (AGENT_LOCK_TOOL overrides ambient)
+  AGENT_LOCK_TOOL=claude AGENT_LOCK_SID="session-A" \
+    bash "$LOCK" claim ticket T002261-m1 --label test-release
   [ -f "$AGENT_LOCK_DIR/ticket__T002261-m1.json" ]
 
-  # Switch to a different session and try release
-  export CLAUDE_SESSION_ID="session-B"
-  run bash "$LOCK" release ticket T002261-m1
+  # Switch to a different SID — the SID mismatch triggers the diagnostic.
+  # Tool class does NOT help anymore (T002447 removed the same-tool fallback).
+  AGENT_LOCK_TOOL=gemini AGENT_LOCK_SID="session-B" \
+    run bash "$LOCK" release ticket T002261-m1
   [ "$status" -eq 1 ]
 
   # stderr must NOT be empty — the fix adds a diagnostic message
@@ -357,11 +378,25 @@ JSON
   # Der Extraktionsbeweis ist, dass die Rümpfe NICHT mehr hier stehen — nicht eine
   # Zeilenzahl. (Der Plan nennt "< 430" als Zwischenstand direkt nach dem Verschieben;
   # danach kommen die eigentlichen Änderungen wieder hinzu. Dauerhaft gilt das
-  # S1-Limit .sh = 500.)
+  # S1-Limit .sh aus docs/code-quality/gates.yaml.)
   run bash -c "grep -c '^cmd_guard_precommit()' '$LOCK'"
   [ "$output" = "0" ] || { echo "cmd_guard_precommit steht noch in agent-lock.sh"; false; }
+
+  # [T002450] Die Grenze wird GELESEN, nicht wiederholt. Vorher stand hier `-lt 500`
+  # neben `.sh: 500` in gates.yaml — zwei Quellen fuer dieselbe Zahl. Bei genau 500
+  # Zeilen widersprachen sie sich: scripts/code-quality/gates/s1-filesize.mjs laesst
+  # `lines <= limit` durch (gruen), dieser Guard forderte `< 500` (rot). PR #3446
+  # landete punktgenau auf 500.
+  local limit
+  limit=$(sed -n 's/^[[:space:]]*\.sh:[[:space:]]*\([0-9]\+\).*$/\1/p' \
+            "$REPO/docs/code-quality/gates.yaml" | head -1)
+  # Positiv-Anker: ohne diesen Check waere ein leeres $limit ein stiller Pass
+  # (`[ "$n" -le "" ]` bricht zwar ab, aber die Absicht muss benannt sein).
+  [[ "$limit" =~ ^[0-9]+$ ]] || { echo "s1.limits['.sh'] nicht aus gates.yaml lesbar: '$limit'"; false; }
   local n; n=$(wc -l < "$LOCK")
-  [ "$n" -lt 500 ] || { echo "agent-lock.sh hat $n Zeilen, S1-Limit fuer .sh ist 500"; false; }
+  # Gleiche Vergleichsrichtung wie s1-filesize.mjs: `> limit` ist der Verstoss,
+  # `== limit` ist gruen. Sonst kehrt der Widerspruch bei der neuen Zahl zurueck.
+  [ "$n" -le "$limit" ] || { echo "agent-lock.sh hat $n Zeilen, S1-Limit fuer .sh ist $limit"; false; }
 }
 
 # ── [T002373-M2] cmd_release auto-releases when owner SID is dead ──────#
@@ -389,15 +424,22 @@ JSON
 
 @test "T002373-M2: cmd_release verweigert Release ohne --force wenn owner SID lebt" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  # [T002456] Harness-Variablen abbauen: analog T002261-M1 oben — ambient exportiertes
+  # CLAUDE_CODE_SESSION_ID würde in _write_lock die falsche Tool-Klasse hinterlassen,
+  # und in _my_sid via AGENT_LOCK_SID_ENVS die owner_sid auf den Harness-Wert statt
+  # den Test-Override setzen. Die Priority-Order (AGENT_LOCK_SID zuerst) schützt
+  # _my_sid, aber _unset_claude_harness_env macht die Isolation explizit.
+  _unset_claude_harness_env
   export AGENT_LOCK_FAKE_ALIVE="ghost-sid-99999"
-  # Claim as "ghost-sid-99999" (marked alive via fake)
-  export AGENT_LOCK_SID="ghost-sid-99999"
-  bash "$LOCK" claim ticket T002373-m2b --label test-release-alive
+  # Claim as "ghost-sid-99999" (marked alive via fake), with explicit tool
+  AGENT_LOCK_TOOL=claude AGENT_LOCK_SID="ghost-sid-99999" \
+    bash "$LOCK" claim ticket T002373-m2b --label test-release-alive
   [ -f "$AGENT_LOCK_DIR/ticket__T002373-m2b.json" ]
 
-  # Switch to different session, owner marked alive
-  export AGENT_LOCK_SID="session-C"
-  run bash "$LOCK" release ticket T002373-m2b
+  # Switch to different session — tool class does NOT help (T002447 removed fallback).
+  # AGENT_LOCK_TOOL=claude on BOTH sides tests that same tool is NOT sufficient.
+  AGENT_LOCK_TOOL=claude AGENT_LOCK_SID="session-C" \
+    run bash "$LOCK" release ticket T002373-m2b
   [ "$status" -eq 1 ] || { echo "release must fail without --force when owner SID is alive"; false; }
 
   # Lock file must still exist

@@ -39,6 +39,42 @@
       "mcp": { "serversConfig": null },
       "extraArgs": [],
       "notes": "IQ4_XS (12,78 GB) statt Q4_K_M (14,33 GB): kleiner UND besser als Q4_K_S (13,55 GB). f16-KV fuer maximale Qualitaet."
+    },
+    {
+      "slug": "bge-embed-batch",
+      "label": "bge-m3 · Batch-Embedding (CPU)",
+      "model": "F:/Embedding/bge-m3-Q8_0.gguf",
+      "port": 8085,
+      "fit": { "enabled": false, "targetMarginMib": null, "minCtx": null },
+      "args": {
+        "ctx": 8192, "ngl": 0, "parallel": 4,
+        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
+        "flashAttention": false, "jinja": false, "metrics": true,
+        "reasoning": null, "reasoningBudget": null,
+        "uiMcpProxy": false
+      },
+      "speculative": { "draftHfRepo": null, "draftNgl": null },
+      "mcp": { "serversConfig": null },
+      "extraArgs": ["--embedding", "--pooling", "cls", "--embd-normalize", "2", "-b", "8192", "-ub", "8192"],
+      "notes": "T002426 Paar A: bewusst CPU-gebunden (-ngl 0), damit die Chat-Modelle das VRAM behalten. Kein VRAM-Anpassungsflag - bei -ngl 0 waere es wirkungslos und wuerde Teilnahme am VRAM-Wettbewerb vortaeuschen."
+    },
+    {
+      "slug": "bge-rerank-batch",
+      "label": "bge-reranker-v2-m3 · Batch-Rerank (CPU)",
+      "model": "gpustack/bge-reranker-v2-m3-GGUF/bge-reranker-v2-m3-Q8_0.gguf",
+      "port": 8086,
+      "fit": { "enabled": false, "targetMarginMib": null, "minCtx": null },
+      "args": {
+        "ctx": 8192, "ngl": 0, "parallel": 4,
+        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
+        "flashAttention": false, "jinja": false, "metrics": true,
+        "reasoning": null, "reasoningBudget": null,
+        "uiMcpProxy": false
+      },
+      "speculative": { "draftHfRepo": null, "draftNgl": null },
+      "mcp": { "serversConfig": null },
+      "extraArgs": ["--reranking", "-b", "8192", "-ub", "8192"],
+      "notes": "T002426 Paar A: bewusst CPU-gebunden (-ngl 0). Eigener Prozess neben bge-embed-batch, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann."
     }
   ]
 }

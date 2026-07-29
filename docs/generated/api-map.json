@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T03:10:58.538Z",
+  "generatedAt": "2026-07-28T07:55:13.809Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -2615,6 +2615,22 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/auth/me.ts"
+    },
+    {
+      "path": "/api/bge/changes",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/bge/changes.ts"
+    },
+    {
+      "path": "/api/bge/retrieve",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/bge/retrieve.ts"
     },
     {
       "path": "/api/billing/create-invoice",

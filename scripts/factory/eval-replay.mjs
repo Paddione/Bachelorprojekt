@@ -84,7 +84,7 @@ export async function runReplay({ fixtureId, fixturesDir, meta, dryRun }) {
     const timestamp = new Date().toISOString()
     const prompt = `Run the Software Factory pipeline for ticket ${extId} (${title}). \
 Call the Workflow tool exactly like this: \
-Workflow({scriptPath:"scripts/factory/pipeline.js"}, \
+Workflow({scriptPath:"scripts/factory/pipeline.mjs"}, \
 {title:"${title}", ticket_id:"${extId}", brand:"${brand}", \
 slug:"${branch}", timestamp:"${timestamp}", dry_run:false, \
 branch:null, plan_path:null}). \

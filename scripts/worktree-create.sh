@@ -51,7 +51,7 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
           exit 1
         }
       else
-        git fetch origin +refs/heads/main:refs/remotes/origin/main 2>/dev/null || {
+        git fetch origin main:main 2>/dev/null || {
           echo "FATAL: auto-sync failed — could not fast-forward main." >&2
           $_needs_pop && git stash pop 2>/dev/null || true
           exit 1

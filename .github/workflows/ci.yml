@@ -105,8 +105,9 @@ jobs:
       # Taskfile-Target noch in CI. "always", nicht selektiv: der Proxy ist
       # Infrastruktur fuer Factory und dev-flow, ein Bruch faellt sonst erst
       # zur Laufzeit auf (und dann still, siehe /health-Vorfall 2026-07-27).
+      # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - name: llm-proxy routing + readiness (always)
-        run: node --test scripts/llm-proxy/*.test.mjs
+        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs
 
       - name: API auth regression gate
         run: |

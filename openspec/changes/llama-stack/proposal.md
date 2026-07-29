@@ -1,34 +1,71 @@
 ---
-title: "EPIC: Lokaler llama.cpp-Stack — Speichersicherheit, Modell-Routing und Harness-Integration"
-domains: [scripts, agents]
+title: "llama-stack: Gemma-Migration in den Loadout-Stack, Autorestart, Auto-Start-Queue"
+domains: [scripts]
 ticket_id: T002459
 status: active
 ---
 
-# Lokaler llama.cpp-Stack
+# llama-stack
 
-**Ticket:** T002459
+**Ticket:** T002459 (EPIC — dieser Change deckt einen Teilscope ab, siehe "Nicht in diesem Change")
 
-## Zerlegung in Kinder-Tickets
+## Why
 
-### A1 — Speichersicherheit
-`start-gemma-server.sh` auf `-fit on` + `-fitt` + `-fitc` umstellen (von B2),
-Koexistenz beider Modelle auf einer GPU über `-fitt`-Margen auslegen,
-reduzierte Kontextgröße sichtbar melden.
+Der lokale llama.cpp-Stack läuft heute in zwei getrennten, nicht koordinierten Welten: Gemma 4
+12B, bge-m3 und der Reranker starten über Windows-PowerShell-Skripte (`scripts/llm/*.ps1`),
+überwacht von einem eigenen Watchdog-Prozess. gpt-oss 20b und Devstral laufen — wenn überhaupt
+gestartet — über ein neueres, deklaratives Loadout-System im `llm-proxy`
+(`scripts/llm-proxy/loadouts.json` + `/admin/loadouts/*`), das systemd-Units auf der Linux-Seite
+des GPU-Hosts verwaltet. Dieses Loadout-System hat noch keinen Autorestart und kein
+automatisches Start-bei-Anfrage — ein Request an ein konfiguriertes, aber gestopptes Modell
+schlägt fehl statt zu warten. Gemma ist im Loadout-System bislang gar nicht bekannt.
 
-### A2 — Modell-Routing (Politik)
-gpt-oss 20b → schwere Factory-Tickets (ein Slot, maximaler Kontext),
-Gemma 4 12B → leichte Aufgaben (mehrere Slots).
-Routing-Politik versionieren (bisher nur DB-seitig hinterlegt).
+Live-Verifikation am GPU-Host (2026-07-29) bestätigt: `~/opt/llama-b10155-cuda13.3` — der Build,
+den das Loadout-System für gpt-oss/Devstral nutzt — unterstützt bereits `--spec-type draft-mtp`,
+denselben Speculative-Decoding-Mechanismus, den bisher nur die Windows-Skripte für Gemma nutzten.
+Die Migration von Gemma in das Loadout-System kostet also keine Performance, vereinheitlicht aber
+Speichersicherheit (`-fit`), Autorestart und Erreichbarkeit unter einem einzigen, testbaren
+Mechanismus statt zwei parallelen.
 
-### A3 — Gemma-Konfiguration
-Sliding-Window/Context-Shift-Verhalten klären und konfigurieren,
-`q4_0`-KV-Messung dokumentieren (bereits gemessen: -3,6% Durchsatz).
+## What Changes
 
-### A4 — Werkzeug- und Rechtezuordnung je Harness
-Pro Aufgabe tatsächlich benötigte Werkzeuge zuweisen,
-unterschiedliche Zugriffsmodelle der Harnesses (Claude Code, opencode, agy) behandeln.
+- Zwei neue Gemma-Loadouts (`gemma-factory`, `gemma-multiagent`) in `loadouts.json`, beide an
+  Port 8091, gegenseitig exklusiv über den bestehenden `portInUse()`-Check — das ist der
+  Umschalter zwischen Single-Agent-Full-Context (`-np 1`) und Shared-Full-Context-Multi-Subagent
+  (`-np 5 -kvu`).
+- `loadouts.mjs`/`runner.mjs` um Felder für einen lokalen Speculative-Draft-Modell-Pfad und einen
+  mmproj-Pfad erweitert (bisher nur `draftHfRepo`/`draftNgl`, kein lokaler Pfad).
+- Speichersicherheit: beide neuen Gemma-Loadouts nutzen `-fit on` mit `minCtx`/`targetMarginMib`
+  statt des bisherigen harten `-fit off` mit fixem `-c`.
+- Autorestart für **alle** Loadouts (nicht nur Gemma): `buildStartCommand` in `runner.mjs`
+  bekommt `--property=Restart=on-failure --property=RestartSec=5` am `systemd-run`-Aufruf.
+- Auto-Start-bei-Anfrage + Warteschlange in `proxyV1` (`server.mjs`): eine Anfrage an ein
+  bekanntes, aber gestopptes Modell startet dessen Loadout automatisch und hält die Anfrage in
+  der bestehenden `enqueue()`-Warteschlange, bis `/health` grün ist — **nur** wenn das Modell zu
+  keinem aktuell laufenden Modell in Konflikt steht (neues `exclusiveGroup`-Feld in
+  `loadouts.json`). Bei Konflikt (z. B. gpt-oss angefragt, während Gemma läuft): kein
+  automatisches Stoppen, sondern eine klare 409-Antwort mit Handlungsanweisung.
+- **BREAKING (operativ, nicht API)**: Cutover des Gemma-Starts von Windows-PowerShell auf das
+  Linux-Loadout-System. `watchdog-llm-servers.ps1` verliert den Gemma-Eintrag,
+  `install-startup-autostart.ps1` startet Gemma nicht mehr automatisch.
+  `start-gemma-server.ps1` bleibt als dokumentierter Rollback-Pfad liegen.
 
-### A5 — MCP-Klärung (OFFEN)
-Was „nützliche MCP-Server in den llama-Stack migrieren" konkret bezweckt —
-llama-WebUI aufwerten oder etwas anderes. Vor Ticket-Erstellung zu klären.
+## Capabilities
+
+- **Modified Capabilities**: `local-llm-proxy` (`openspec/specs/local-llm-proxy.md`) — neue
+  Requirements für Autorestart, Auto-Start-Queue und Gemma-Loadouts. Kein neuer Capability-Slug,
+  da dies eine Erweiterung des bestehenden llm-proxy-Verhaltens ist (Delta-Spec-Konvention
+  T001304 — Datei benannt nach dem Parent-SSOT-Slug `local-llm-proxy`, nicht nach `llama-stack`).
+
+## Impact
+
+- **Code**: `scripts/llm-proxy/loadouts.json`, `scripts/llm-proxy/loadouts.mjs`,
+  `scripts/llm-proxy/runner.mjs`, `scripts/llm-proxy/server.mjs`,
+  `scripts/llm/watchdog-llm-servers.ps1`, `scripts/llm/install-startup-autostart.ps1`.
+- **Betrieb**: Live-Cutover auf dem produktiv von der Factory genutzten GPU-Host — Gemma läuft
+  aktuell und wird aktiv angefragt. Braucht einen Rollback-Schritt/Smoke-Test, keinen reinen
+  Code-Merge.
+- **Nicht in diesem Change** (bleiben eigene Kind-Tickets unter dem Epic T002459): A2
+  (Modell-Routing-Politik versionieren), A4 (Harness-Werkzeug-/Rechtezuordnung), A5
+  (MCP-Migration klären). Das aktuell tote Batch-Paar (bge-m3-batch :8085, Reranker-batch :8086,
+  T002426) ist ein eigener, unabhängiger Bug und wird hier nicht mitgefixt.

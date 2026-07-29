@@ -45,9 +45,11 @@ NEW:
 
 ### p1 — agent-collision.sh False Positives
 
-- [ ] 1.1 In `scripts/agent-collision.sh`: File-Exists-Prüfung (`[ -f "$peer_path" ]`) vor blob-Vergleich in der Peer-Scan-Logik — nicht-existente Dateien überspringen
-- [ ] 1.2 Branch-vs-Slug-Unterscheidung: false positives bei Dateien vermeiden, die nur im aktuellen Branch existieren
-- [ ] 1.3 `tests/spec/agent-collision-false-positives.bats` anlegen: Tests für brandneue Dateien, nicht-existente Peers
+- [ ] 1.1 `tests/spec/agent-collision-false-positives.bats` anlegen (RED-Phase)
+- [ ] 1.1-RED Run RED test: expected: FAIL (tests/unit/lib/bats-core/bin/bats tests/spec/agent-collision-false-positives.bats)
+- [ ] 1.2 In `scripts/agent-collision.sh`: File-Exists-Prüfung (`[ -f "$peer_path" ]`) vor blob-Vergleich — nicht-existente Dateien überspringen
+- [ ] 1.3 Branch-vs-Slug-Unterscheidung: false positives bei Dateien vermeiden, die nur im aktuellen Branch existieren
+- [ ] 1.4 RED-Test von 1.1 wird GRÜN nach 1.2+1.3
 
 ### p2 — worktree-create.sh Fixes
 

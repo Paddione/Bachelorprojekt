@@ -2472,6 +2472,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-categorize-erden",
+    "file": "tests/spec/mishap-categorize-erden.bats",
+    "category": "mishap-categorize-erden",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-t002422",
     "file": "tests/spec/mishap-t002422.bats",
     "category": "mishap-t002422",

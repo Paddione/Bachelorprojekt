@@ -8,6 +8,17 @@
 # Output: markdown block ready to wrap in <active-plans>...</active-plans>
 set -euo pipefail
 
+FULL=0
+args=("$@")
+new_args=()
+for arg in "${args[@]}"; do
+    if [[ "$arg" == "--full" ]]; then
+        FULL=1
+    else
+        new_args+=("$arg")
+    fi
+done
+set -- "${new_args[@]}"
 ROLE="${1:?Usage: plan-context.sh <role> [--with-openspec [<file>...]]}"
 shift
 WITH_OPENSPEC=0
@@ -80,9 +91,8 @@ for proposal_file in "$CHANGES_DIR"/*/proposal.md; do
     proposal_domains="$(_parse_yaml_domains "$proposal_file")"
 
     if [[ -z "$proposal_domains" ]]; then
-        # Legacy: kein `domains:`-Feld in proposal.md oder tasks.md →
-        # Default-Include mit WARN (Folge-PR kann migrieren).
         printf 'WARN: legacy proposal without domains frontmatter: %s\n' "$slug" >&2
+        [[ "$allowlist" != "__ALL__" ]] && continue
     elif [[ "$allowlist" != "__ALL__" && -n "$allowlist" ]]; then
         # Schnittmenge proposal.domains ∩ allowlist prüfen.
         match=0
@@ -98,31 +108,44 @@ for proposal_file in "$CHANGES_DIR"/*/proposal.md; do
     title="$slug"
     tasks_file="$(dirname "$proposal_file")/tasks.md"
 
-    echo "### Active proposal: $slug"
-    echo
-    cat "$proposal_file"
-    if [[ -f "$tasks_file" ]]; then
+    if [[ "$FULL" -eq 1 ]]; then
+        echo "### Active proposal: $slug"
         echo
-        echo "#### Implementation tasks"
-        cat "$tasks_file"
-    fi
-    # T002074: emit tasks.d/ partials (disjoint per-partial plans) and the
-    # co-located design.md as additional plan context, when present. Partials
-    # carry no frontmatter of their own — _parse_yaml_domains still falls back to
-    # tasks.md, so this is purely additive.
-    change_dir="$(dirname "$proposal_file")"
-    if [[ -d "$change_dir/tasks.d" ]]; then
-        for partial in "$change_dir"/tasks.d/*.md; do
-            [[ -f "$partial" ]] || continue
+        cat "$proposal_file"
+        if [[ -f "$tasks_file" ]]; then
             echo
-            echo "#### Partial: $(basename "$partial" .md)"
-            cat "$partial"
-        done
-    fi
-    if [[ -f "$change_dir/design.md" ]]; then
+            echo "#### Implementation tasks"
+            cat "$tasks_file"
+        fi
+        change_dir="$(dirname "$proposal_file")"
+        if [[ -d "$change_dir/tasks.d" ]]; then
+            for partial in "$change_dir"/tasks.d/*.md; do
+                [[ -f "$partial" ]] || continue
+                echo
+                echo "#### Partial: $(basename "$partial" .md)"
+                cat "$partial"
+            done
+        fi
+        if [[ -f "$change_dir/design.md" ]]; then
+            echo
+            echo "#### Design"
+            cat "$change_dir/design.md"
+        fi
+    else
+        echo "### Active proposal: $slug"
         echo
-        echo "#### Design"
-        cat "$change_dir/design.md"
+        desc=$(sed -n '/^# Proposal: .*$/{n;p;q;d}' "$proposal_file" | grep -v '^$' | grep -v '^#' | head -1 | xargs || true)
+        echo "$desc"
+        echo
+        if [[ -f "$tasks_file" ]]; then
+            headings=$(grep "^## " "$tasks_file" || true)
+            if [[ -n "$headings" ]]; then
+                echo "#### Implementation tasks"
+                echo "$headings"
+            fi
+        fi
+        echo
+        echo "Full plan: $proposal_file --full"
     fi
     echo
     found=$((found+1))

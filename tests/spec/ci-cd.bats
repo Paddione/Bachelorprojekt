@@ -1448,6 +1448,12 @@ setup_renovate_mock() {
   export MOCK_CALLS="$MOCKDIR/calls.txt"
   : > "$MOCK_CALLS"
   export GITHUB_WORKSPACE="$MOCKDIR" RENOVATE_TOKEN=x RENOVATE_REPOSITORIES=x LOG_LEVEL=info
+  # No-op sleep so the random 30-90s backoff in renovate.yml doesn't block tests
+  cat > "$MOCKDIR/bin/sleep" <<'MOCK'
+#!/usr/bin/env bash
+exit 0
+MOCK
+  chmod +x "$MOCKDIR/bin/sleep"
 }
 
 @test "T002249-E: Retry-Schleife versucht alle Versuche und endet still-gruen [T002475]" {

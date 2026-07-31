@@ -1619,6 +1619,12 @@
       "status": "archived"
     }
   ],
+  "T002250": [
+    {
+      "slug": "mishap-docker-wsl-T002250",
+      "status": "plan_staged"
+    }
+  ],
   "T002251": [
     {
       "slug": "2026-07-27-flux-bootstrap-sealedsecrets",
@@ -1769,6 +1775,12 @@
       "status": "archived"
     }
   ],
+  "T002322": [
+    {
+      "slug": "plan-context-summary",
+      "status": "plan_staged"
+    }
+  ],
   "T002327": [
     {
       "slug": "factory-resume-staged-work",
@@ -1826,6 +1838,12 @@
   "T002341": [
     {
       "slug": "mishap-t002341",
+      "status": "plan_staged"
+    }
+  ],
+  "T002342": [
+    {
+      "slug": "mishap-bundle-dev-flow-scripts",
       "status": "plan_staged"
     }
   ],
@@ -1887,6 +1905,12 @@
     {
       "slug": "2026-07-27-ticket-release-hold-noblock",
       "status": "archived"
+    }
+  ],
+  "T002369": [
+    {
+      "slug": "factory-escalation-ladder",
+      "status": "plan_staged"
     }
   ],
   "T002371": [
@@ -1973,6 +1997,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002407": [
+    {
+      "slug": "mishap-t002407",
+      "status": "archived"
+    }
+  ],
   "T002410": [
     {
       "slug": "mishap-t002410",
@@ -2027,6 +2057,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002429": [
+    {
+      "slug": "t2429-stdio-mcps-bridge",
+      "status": "plan_staged"
+    }
+  ],
   "T002439": [
     {
       "slug": "2026-07-28-db-pod-phase-guard-T002439",
@@ -2048,6 +2084,36 @@
   "T002447": [
     {
       "slug": "agent-lock-release-guard",
+      "status": "plan_staged"
+    }
+  ],
+  "T002448": [
+    {
+      "slug": "mishap-bundle-infra-testspec-ci",
+      "status": "plan_staged"
+    }
+  ],
+  "T002453": [
+    {
+      "slug": "plan-partials-embedding",
+      "status": "plan_staged"
+    }
+  ],
+  "T002457": [
+    {
+      "slug": "mishap-t002457",
+      "status": "plan_staged"
+    }
+  ],
+  "T002470": [
+    {
+      "slug": "2026-07-29-worktree-branch-name-guard",
+      "status": "archived"
+    }
+  ],
+  "T002471": [
+    {
+      "slug": "mishap-bundle-t002471",
       "status": "plan_staged"
     }
   ],

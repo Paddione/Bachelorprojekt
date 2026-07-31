@@ -164,9 +164,14 @@ fi
 
 mkdir -p "$(dirname "$OUT_PATH")"
 
+# Ticket-ID aus .ticket lesen (Fallback: leer), nicht hartkodieren — die
+# hardkodierte T002420 stammte aus einem Einzelticket und wanderte in jedes
+# generierte intel.json.
+TICKET_ID="$(cat "$CHANGE_DIR/.ticket" 2>/dev/null || echo "")"
+
 OUTPUT="$(jq -n \
   --arg slug "$SLUG" \
-  --arg ticket_id "T002420" \
+  --arg ticket_id "$TICKET_ID" \
   --arg generated_from "$GENERATED_FROM" \
   --argjson impact_files "$IMPACT_FILES" \
   --argjson symbols "$SYMBOLS" \

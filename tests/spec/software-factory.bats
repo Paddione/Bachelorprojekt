@@ -2190,8 +2190,10 @@ STUB
   local lane
   lane=$(sed -n "/status='plan_staged'/p" scripts/factory/queue.sh)
   [ -n "$lane" ]
-  # 'project' (das Epic) ist der einzige Typ, der nie selbst bearbeitet wird.
-  echo "$lane" | grep -Eq "type <> 'project'|type='task'"
+  # 'project' (das Epic) ist der einzige Typ, der nie selbst bearbeitet wird —
+  # 'incident' (T002348) ebenso wenig. T002329/T002333 hat die Whitelist durch die
+  # Ausschlussliste ersetzt; die Assertion folgt dem Produktionswortlaut.
+  echo "$lane" | grep -Eq "type NOT IN \('project','incident'\)"
 }
 
 @test "FA-SF-52: slots.sh claim allows plan_staged status" {
@@ -3512,16 +3514,24 @@ STUB
   # T002347 (+T002368, dort per mktemp gelöst — beim Rebase 2026-07-28 zugunsten
   # dieser Fassung verworfen: BATS_TEST_TMPDIR raeumt BATS selbst ab, waehrend das
   # rm -rf der mktemp-Variante bei genau dem SIGTERM ausfaellt, den sie adressiert).
-  # Der Change-Ordner entsteht in BATS_TEST_TMPDIR, nicht im Worktree.
-  # Vorher legte der Test openspec/changes/x direkt im Repo an und raeumte ihn
-  # per rm -rf wieder weg — bei SIGTERM oder Timeout lief dieses rm nie, und der
-  # halbe Change-Ordner blieb ungetrackt liegen. Parallel laufende Validierungen
-  # des openspec-Baums stolperten dann ueber einen Change ohne proposal.md.
-  # stage-plan akzeptiert laut Vorbedingung auch eine Datei auf der Platte
-  # (`-f "$plan"`), ein absoluter Pfad genuegt also — kein cd, kein git init.
-  local plan="$BATS_TEST_TMPDIR/openspec/changes/x/tasks.md"
-  mkdir -p "$(dirname "$plan")" && touch "$plan"
-  run bash scripts/ticket.sh stage-plan --id T000001 --branch feature/x --plan "$plan"
+  # Hermetische Sandbox (Muster T002327): T002471-M6 verlangt seit dem Rebase,
+  # dass die Plan-Datei committed ist (`git cat-file -e "HEAD:${plan}"`), bevor
+  # stage-plan sie akzeptiert. Die Datei muss also in einem git-Repo liegen — aber
+  # nicht im echten Worktree, sonst wuerde der Test den Tree verschmutzen und
+  # parallel laufende openspec-Validierungen stoerten sich an einem halben Change.
+  local sbox="$BATS_TEST_TMPDIR/stage-plan-sandbox"
+  mkdir -p "$sbox" && ln -s "$REPO/scripts" "$sbox/scripts"
+  ( cd "$sbox" && git init -q -b main . &&
+    git -c user.email=t@t -c user.name=t commit -q --allow-empty -m base )
+  local plan="openspec/changes/x/tasks.md"
+  local plan_abs="$sbox/$plan"
+  mkdir -p "$(dirname "$plan_abs")" && touch "$plan_abs"
+  ( cd "$sbox" && git add "$plan" &&
+    git -c user.email=t@t -c user.name=t commit -q -m plan )
+  # `run` ist eine BATS-Funktion und darf nicht in einer Subshell stehen; der cd
+  # wandert daher in einen bash -c-Aufruf. Der Plan-Pfad ist repo-relativ (nicht
+  # absolut): git cat-file von stage-plan prueft `HEAD:<pfad>` gegen den Tree.
+  run bash -c "cd '$sbox' && bash scripts/ticket.sh stage-plan --id T000001 --branch feature/x --plan '$plan'"
   [ "$status" -eq 0 ]
   grep -qF "VALUES ('scout'),('design'),('plan')" "$CAP_FILE"
   grep -q  "auto: stage-plan"                     "$CAP_FILE"

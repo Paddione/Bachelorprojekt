@@ -1,61 +1,300 @@
-// adapter.js — Data adapter contract + fixtures
+// adapter.js — Live data adapter (K2)
 // brand='mentolder' hardcoded per E16
-// In K2 this file is replaced by a real daemon connection
+// Communicates with local daemon on http://127.0.0.1:49152
+// Replaces K1 fixture implementation entirely.
 
 const data = (() => {
+  const BASE = 'http://127.0.0.1:49152';
   const brand = 'mentolder';
 
-  // ---- Fixtures ----
-  const fixtures = {
-    tickets: [
-      { id: 'T002460', title: 'K1: Lavish Design-Kit', status: 'in_progress', priority: 'hoch', epic: 'T002458' },
-      { id: 'T002461', title: 'K2: Daten-Adapter', status: 'triage', priority: 'hoch', epic: 'T002458' },
-      { id: 'T002462', title: 'K3: Layout-Engine', status: 'triage', priority: 'mittel', epic: 'T002458' },
-      { id: 'T002464', title: 'K5: Epic-Canvas', status: 'triage', priority: 'hoch', epic: 'T002458' },
-      { id: 'T002452', title: 'LOC-Gates Headroom', status: 'done', priority: 'hoch', epic: null },
-    ],
-    agents: [
-      { sid: '1941661', label: 'opencode-flow-execute', ticket: 'T002460', worktree: '.worktrees/sdlc-cockpit-design', status: 'active', started: '2026-07-28T20:13Z' },
-      { sid: '559e73c1', label: 'ci-fix-loop', ticket: 'T002342', worktree: '.worktrees/mishap-dev-flow-scripts', status: 'active', started: '2026-07-28T18:30Z' },
-      { sid: 'd4d44684', label: 'dev-flow-plan', ticket: 'T002447', worktree: '.worktrees/agent-lock-release-guard', status: 'idle', started: '2026-07-28T17:45Z' },
-    ],
-    ci: [
-      { run: 3516, workflow: 'chore(plans): Mishap-Bundle', status: 'in_progress', started: '2026-07-28T19:00Z', branch: 'feature/mishap-bundle-T002457' },
-      { run: 3515, workflow: 'fix(agents): same-tool-fallback', status: 'success', started: '2026-07-28T18:30Z', branch: 'fix/agent-identity-T002447' },
-    ],
-    cluster: {
-      pods: [
-        { name: 'ollama-llama-cpp-7f9d6', status: 'Running', restarts: 0, age: '3d', gpu: 'Tesla T4' },
-        { name: 'website-84b2c', status: 'Running', restarts: 1, age: '5d' },
-        { name: 'postgres-0', status: 'Running', restarts: 0, age: '12d' },
-        { name: 'flux-65432', status: 'Running', restarts: 0, age: '7d' },
-      ],
-      warnings: ['ollama-llama-cpp: GPU memory 78% used']
-    },
-    factory: {
-      queue_depth: 3,
-      running: 'T002460',
-      waiting: ['T002461', 'T002462', 'T002464'],
-      last_tick: '2026-07-28T20:15Z'
-    },
-    models: [
-      { name: 'gemma-4-12b', port: 8091, status: 'running', vram_gb: 7.2, slot: 1, ctx_k: 262144, slots_total: 1 },
-      { name: 'deepseek-v4-flash', port: null, status: 'remote', provider: 'opencode-go', ctx_k: 1048576 },
-    ]
-  };
+  // Poll registry: maps handle → { intervalId, paused, refreshMs }
+  const polls = new Map();
+  let nextHandle = 1;
+  let visibilityPaused = false;
+
+  // ---- D11: visibility-based pause ----
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      visibilityPaused = true;
+      // Pause all polls (don't clear — resume with immediate fetch on return)
+      for (const [handle, poll] of polls) {
+        if (poll.intervalId) {
+          clearInterval(poll.intervalId);
+          poll.intervalId = null;
+        }
+      }
+    } else {
+      visibilityPaused = false;
+      // Resume all polls with immediate fetch
+      for (const [handle, poll] of polls) {
+        poll.controller.fetchNow();
+        if (!poll.intervalId) {
+          poll.intervalId = setInterval(() => {
+            if (!visibilityPaused) poll.controller.fetchNow();
+          }, poll.refreshMs);
+        }
+      }
+    }
+  });
+
+  // ---- Core fetch helper (D12, D13) ----
+  async function fetchEndpoint(endpoint) {
+    try {
+      const res = await fetch(`${BASE}${endpoint}${endpoint.includes('?') ? '&' : '?'}_t=${Date.now()}`);
+      if (!res.ok) {
+        return { error: `HTTP ${res.status}: ${res.statusText}`, fetchedAt: new Date().toISOString() };
+      }
+      const data = await res.json();
+      // D12: Ensure fetchedAt is present
+      if (!data.fetchedAt) {
+        data.fetchedAt = new Date().toISOString();
+      }
+      return data;
+    } catch (e) {
+      // D13: Never return null/empty array silently
+      return { error: `Daemon unreachable: ${e.message}`, fetchedAt: new Date().toISOString() };
+    }
+  }
+
+  // ---- Poll factory (D10, D11) ----
+  function createPoll(endpoint, defaultRefreshMs) {
+    let lastData = null;
+    let lastFetchedAt = null;
+    let error = null;
+    let staleSince = null;
+    let listeners = [];
+
+    const controller = {
+      fetchNow: async () => {
+        try {
+          const result = await fetchEndpoint(endpoint);
+          lastFetchedAt = result.fetchedAt;
+          
+          if (result.error) {
+            error = result.error;
+            if (!staleSince) staleSince = lastFetchedAt;
+            // D13: Keep last valid data, mark as stale
+            if (lastData) {
+              lastData = { ...lastData, error, staleSince, fetchedAt: lastFetchedAt };
+            } else {
+              lastData = { error, staleSince, fetchedAt: lastFetchedAt };
+            }
+          } else {
+            error = null;
+            staleSince = null;
+            lastData = { ...result, fetchedAt: lastFetchedAt };
+          }
+        } catch (e) {
+          error = `Poll failed: ${e.message}`;
+          if (!staleSince) staleSince = new Date().toISOString();
+        }
+
+        // Notify listeners
+        for (const fn of listeners) {
+          try { fn(lastData); } catch {}
+        }
+      },
+
+      subscribe: (fn) => {
+        listeners.push(fn);
+        if (lastData) fn(lastData);
+        return () => {
+          listeners = listeners.filter(l => l !== fn);
+        };
+      },
+
+      getLastData: () => lastData,
+    };
+
+    return function startPoll(refreshMs) {
+      const ms = refreshMs || defaultRefreshMs;
+      const handle = nextHandle++;
+
+      // Immediate first fetch
+      controller.fetchNow();
+
+      // Start interval (unless visibility is paused)
+      let intervalId = null;
+      if (!visibilityPaused) {
+        intervalId = setInterval(() => {
+          if (!visibilityPaused) controller.fetchNow();
+        }, ms);
+      }
+
+      polls.set(handle, { intervalId, paused: visibilityPaused, refreshMs: ms, controller });
+
+      // Return handle with last data + unsubscribe
+      return {
+        _handle: handle,
+        get data() { return controller.getLastData(); },
+        subscribe: controller.subscribe,
+      };
+    };
+  }
+
+  // ---- Unsubscribe ----
+  function unsubscribe(handleObj) {
+    if (!handleObj || !handleObj._handle) return;
+    const poll = polls.get(handleObj._handle);
+    if (poll) {
+      if (poll.intervalId) clearInterval(poll.intervalId);
+      polls.delete(handleObj._handle);
+    }
+  }
+
+  // ---- SSE stream helper ----
+  function createStream(endpoint) {
+    return function startStream(onEvent) {
+      let eventSource = null;
+      let reconnectTimer = null;
+      let closed = false;
+
+      function connect() {
+        if (closed) return;
+
+        eventSource = new EventSource(`${BASE}${endpoint}`);
+
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            onEvent({ type: event.type || 'message', data, ts: new Date().toISOString() });
+          } catch {
+            onEvent({ type: 'parse_error', data: event.data, ts: new Date().toISOString() });
+          }
+        };
+
+        // Named events
+        const namedEvents = ['agent_update', 'agent_started', 'agent_heartbeat', 'agent_done',
+          'factory_tick', 'gap', 'heartbeat', 'error'];
+        for (const evt of namedEvents) {
+          eventSource.addEventListener(evt, (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              onEvent({ type: evt, data, ts: new Date().toISOString() });
+            } catch {
+              onEvent({ type: evt, data: event.data, ts: new Date().toISOString() });
+            }
+          });
+        }
+
+        eventSource.onerror = () => {
+          onEvent({ type: 'connection_error', data: {}, ts: new Date().toISOString() });
+          eventSource.close();
+          // Auto-reconnect after 5s
+          if (!closed) {
+            reconnectTimer = setTimeout(connect, 5000);
+          }
+        };
+      }
+
+      connect();
+
+      // Return close function
+      return () => {
+        closed = true;
+        if (eventSource) eventSource.close();
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+      };
+    };
+  }
+
+  // ---- Public API (identical to K1 signatures) ----
+
+  /** @param {{ refreshMs?: number }} [opts] */
+  function tickets(opts) {
+    return createPoll(`/api/admin/cockpit/portfolio?brand=${brand}`, 300000)(opts?.refreshMs);
+  }
+
+  /** @param {{ refreshMs?: number }} [opts] */
+  function agents(opts) {
+    return createPoll('/api/cockpit/agents', 15000)(opts?.refreshMs);
+  }
+
+  /** @param {{ refreshMs?: number }} [opts] */
+  function ci(opts) {
+    return createPoll('/api/cockpit/ci', 120000)(opts?.refreshMs);
+  }
+
+  /** @param {{ refreshMs?: number }} [opts] */
+  function cluster(opts) {
+    return createPoll('/api/admin/cluster/pods-list?namespace=workspace', 30000)(opts?.refreshMs);
+  }
+
+  /** @param {{ refreshMs?: number }} [opts] */
+  function factory(opts) {
+    return createPoll('/api/admin/factory-control', 60000)(opts?.refreshMs);
+  }
+
+  /** @param {{ refreshMs?: number }} [opts] */
+  function models(opts) {
+    return createPoll('/api/cockpit/models', 30000)(opts?.refreshMs);
+  }
+
+  /** @param {function} onEvent */
+  function agentStream(onEvent) {
+    return createStream('/api/cockpit/stream/agents')(onEvent);
+  }
+
+  /** @param {function} onEvent */
+  function factoryStream(onEvent) {
+    return createStream('/api/cockpit/stream/factory')(onEvent);
+  }
+
+  // ---- Write methods (stubs until K4) ----
+  async function ticketAction(ticketId, action) {
+    const token = await getToken();
+    if (!token) return { ok: false, error: 'No write token available' };
+    try {
+      const res = await fetch(`${BASE}/api/cockpit/ticket-action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ ticketId, action, brand }),
+      });
+      return res.json();
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  }
+
+  async function agentAction(sid, action) {
+    const token = await getToken();
+    if (!token) return { ok: false, error: 'No write token available' };
+    try {
+      const res = await fetch(`${BASE}/api/cockpit/agent-action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ sid, action, brand }),
+      });
+      return res.json();
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  }
+
+  // Token retrieval (E17 — read from daemon's token file via the daemon itself)
+  async function getToken() {
+    try {
+      const res = await fetch(`${BASE}/api/cockpit/token`);
+      if (res.ok) {
+        const data = await res.json();
+        return data.token;
+      }
+    } catch {}
+    return null;
+  }
 
   return {
-    // ---- Read methods ----
-    tickets: () => Promise.resolve(fixtures.tickets),
-    agents: () => Promise.resolve(fixtures.agents),
-    ci: () => Promise.resolve(fixtures.ci),
-    cluster: () => Promise.resolve(fixtures.cluster),
-    factory: () => Promise.resolve(fixtures.factory),
-    models: () => Promise.resolve(fixtures.models),
-
-    // ---- Write stubs (real in K4) ----
-    ticketAction: (ticketId, action) => Promise.resolve({ ok: true, message: `[K1 fixture] ${action} on ${ticketId} — real in K4` }),
-    agentAction: (sid, action) => Promise.resolve({ ok: true, message: `[K1 fixture] ${action} on ${sid} — real in K4` }),
+    tickets,
+    agents,
+    ci,
+    cluster,
+    factory,
+    models,
+    agentStream,
+    factoryStream,
+    ticketAction,
+    agentAction,
+    unsubscribe,
   };
 })();
 

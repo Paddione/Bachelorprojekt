@@ -2664,8 +2664,32 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/adapter-contract",
+    "file": "tests/spec/sdlc-cockpit/adapter-contract.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/daemon-endpoints",
+    "file": "tests/spec/sdlc-cockpit/daemon-endpoints.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/daemon-token-mode",
+    "file": "tests/spec/sdlc-cockpit/daemon-token-mode.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/document-tokens-only",
     "file": "tests/spec/sdlc-cockpit/document-tokens-only.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/freshness-timestamp",
+    "file": "tests/spec/sdlc-cockpit/freshness-timestamp.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -2684,6 +2708,12 @@
   {
     "id": "sdlc-cockpit/no-direct-fetch",
     "file": "tests/spec/sdlc-cockpit/no-direct-fetch.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/no-silent-fallback",
+    "file": "tests/spec/sdlc-cockpit/no-silent-fallback.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

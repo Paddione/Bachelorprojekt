@@ -54,6 +54,9 @@ app.get('/api/cockpit/agents', agentsHandler);
 app.get('/api/cockpit/ci', ciHandler);
 app.get('/api/cockpit/models', modelsHandler);
 
+// Token endpoint (E17 — read-only token for browser write stubs)
+app.get('/api/cockpit/token', (c) => c.json({ token }));
+
 // SSE Streams
 app.get('/api/cockpit/stream/agents', agentStreamHandler);
 app.get('/api/cockpit/stream/factory', factoryStreamHandler);

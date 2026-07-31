@@ -70,7 +70,7 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
 - **Kontext-Injektion** (er hat sonst KEINEN Kontext — gib ihm alles explizit; Kompaktheits-Regeln siehe subagent-provisioning §3):
   - Plan-Datei `$PLAN_FILE` (aus Schritt 1, via DB aufgelöst) + Ticket-ID.
   - Attachment-Verzeichnis `$ATTACHMENT_DIR` — bei UI-Arbeit ALLE Bilder/Texte mit dem `Read`-Tool einlesen.
-  - **Plan Intel Bundle (PFLICHT):** `bash scripts/task-context.sh <slug>` — gemeinsamer Assembler, liefert statischen Kern aus intel.json + frische Signale. Format: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md).
+  - **Plan Intel Bundle (Optional):** Sofern vorhanden: `bash scripts/task-context.sh <slug>` — gemeinsamer Assembler, liefert statischen Kern aus intel.json + frische Signale. Format: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md). Fehlt die Datei, ist das kein Blocker — der Implementer kann die Typen-Wahrheit selbst erheben.
 - **⚠️ BATS-Pflicht:** Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die
   OpenSpec-Spec, die das Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage:
   `tests/spec/software-factory.bats`); ohne klare Spec-Zuordnung `tests/unit/` erweitern.

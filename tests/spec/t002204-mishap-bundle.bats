@@ -29,6 +29,7 @@ setup() {
   TMP="$(mktemp -d)"
   export HOME="$TMP/home"; mkdir -p "$HOME"
   export GIT_CONFIG_GLOBAL="$HOME/.gitconfig"; : > "$GIT_CONFIG_GLOBAL"
+  export WT_SKIP_NAME_CHECK=1
 }
 
 teardown() { rm -rf "$TMP"; }

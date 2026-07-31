@@ -1,0 +1,315 @@
+{
+  "meta": {
+    "slug": "mishap-bundle-infra-testspec-ci",
+    "ticket_id": "T002420",
+    "generated_from": "main@de2d561de",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 219,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".githooks/commit-msg",
+      "language": "text",
+      "loc": 49,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "config",
+      "loc": 626,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/agent-lock.sh",
+      "language": "bash",
+      "loc": 517,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 283
+    },
+    {
+      "path": "scripts/devflow-post-merge-deploy.sh",
+      "language": "bash",
+      "loc": 71,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 729
+    },
+    {
+      "path": "scripts/devflow-verify.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/worktree-create.sh",
+      "language": "bash",
+      "loc": 327,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 473
+    },
+    {
+      "path": "tests/spec/mishap-bundle-infra-testspec-ci.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/agent-lock.sh:41:_now() { date +%s; }",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "41:_now() { date +%s; }(...)",
+      "type_text": "41:_now() { date +%s; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:43:_my_sid() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "43:_my_sid() {(...)",
+      "type_text": "43:_my_sid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:75:_sid_alive() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "75:_sid_alive() {(...)",
+      "type_text": "75:_sid_alive() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:87:_pid_alive() {  # <pid>",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "87:_pid_alive() {  # <pid>(...)",
+      "type_text": "87:_pid_alive() {  # <pid>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:92:_detect_tool() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "92:_detect_tool() {(...)",
+      "type_text": "92:_detect_tool() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:108:_lock_dir() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "108:_lock_dir() {(...)",
+      "type_text": "108:_lock_dir() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:122:_sanitize() { printf '%s' \"$1\" | tr '/ ' '--'; }",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "122:_sanitize() { printf '%s' \"$1\" | tr '/ ' '--'; }(...)",
+      "type_text": "122:_sanitize() { printf '%s' \"$1\" | tr '/ ' '--'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:124:_lock_file() { # <scope> [id]",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "124:_lock_file() { # <scope> [id](...)",
+      "type_text": "124:_lock_file() { # <scope> [id](...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:129:_lock_field() { sed -n \"s/.*\\\"$2\\\": *\\\"\\\\([^\\\"]*\\\\)\\\".*/\\\\1/p\" \"$1\" 2>/dev/null | head -1; }",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "129:_lock_field() { sed -n \"s/.*\\\"$2\\\": *\\\"\\\\([^\\\"]*\\\\)\\\".*/\\\\1/p\" \"$1\" 2>/dev/null | head -1; }(...)",
+      "type_text": "129:_lock_field() { sed -n \"s/.*\\\"$2\\\": *\\\"\\\\([^\\\"]*\\\\)\\\".*/\\\\1/p\" \"$1\" 2>/dev/null | head -1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:136:_branch_is_live_claimed() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "136:_branch_is_live_claimed() {(...)",
+      "type_text": "136:_branch_is_live_claimed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:149:_reap_log() {  # <lock-file> <reason>",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "149:_reap_log() {  # <lock-file> <reason>(...)",
+      "type_text": "149:_reap_log() {  # <lock-file> <reason>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:156:_reapable() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "156:_reapable() {(...)",
+      "type_text": "156:_reapable() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:218:_with_lock() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "218:_with_lock() {(...)",
+      "type_text": "218:_with_lock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:230:_write_lock() { # <file>  (reads SCOPE/ID/LABEL/WT/BRANCH/TICKET/CREATED)",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "230:_write_lock() { # <file>  (reads SCOPE/ID/LABEL/WT/BRANCH/TICKET/CREATED)(...)",
+      "type_text": "230:_write_lock() { # <file>  (reads SCOPE/ID/LABEL/WT/BRANCH/TICKET/CREATED)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:250:_holder_msg() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "250:_holder_msg() {(...)",
+      "type_text": "250:_holder_msg() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:259:_git_op_in_progress() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "259:_git_op_in_progress() {(...)",
+      "type_text": "259:_git_op_in_progress() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:277:_self_claim_main_checkout() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "277:_self_claim_main_checkout() {(...)",
+      "type_text": "277:_self_claim_main_checkout() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:291:_reject_arg() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "291:_reject_arg() {(...)",
+      "type_text": "291:_reject_arg() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:298:cmd_claim() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "298:cmd_claim() {(...)",
+      "type_text": "298:cmd_claim() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:353:cmd_refresh() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "353:cmd_refresh() {(...)",
+      "type_text": "353:cmd_refresh() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:364:cmd_release() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "364:cmd_release() {(...)",
+      "type_text": "364:cmd_release() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:381:cmd_check() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "381:cmd_check() {(...)",
+      "type_text": "381:cmd_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:392:cmd_check_and_claim() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "392:cmd_check_and_claim() {(...)",
+      "type_text": "392:cmd_check_and_claim() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:428:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "428:cmd_list() {(...)",
+      "type_text": "428:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:447:cmd_reap() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "447:cmd_reap() {(...)",
+      "type_text": "447:cmd_reap() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:500:main() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "500:main() {(...)",
+      "type_text": "500:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-create.sh:149:_rollback() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "149:_rollback() {(...)",
+      "type_text": "149:_rollback() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

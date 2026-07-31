@@ -95,7 +95,7 @@ func RegisterPlanningTools(s *server.MCPServer) {
 			flag, _ := a["flag"].(string)
 			value, _ := a["value"].(bool)
 
-			validFlags := []string{"spec_skizziert", "abhaengigkeiten_klar", "offene_fragen_geklaert", "aufwand_geschaetzt", "lastenheft_locked"}
+			validFlags := []string{"spec_skizziert", "abhaengigkeiten_klar", "offene_fragen_geklaert", "aufwand_geschaetzt", "lastenheft_locked", "factory_excluded", "execution_released"}
 			if !slices.Contains(validFlags, flag) {
 				return mcp.NewToolResultError(fmt.Sprintf("Ungültiger flag: %s. Erlaubt: %s", flag, strings.Join(validFlags, ", "))), nil
 			}

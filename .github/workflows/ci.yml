@@ -105,8 +105,9 @@ jobs:
       # Taskfile-Target noch in CI. "always", nicht selektiv: der Proxy ist
       # Infrastruktur fuer Factory und dev-flow, ein Bruch faellt sonst erst
       # zur Laufzeit auf (und dann still, siehe /health-Vorfall 2026-07-27).
+      # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - name: llm-proxy routing + readiness (always)
-        run: node --test scripts/llm-proxy/*.test.mjs
+        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs
 
       - name: API auth regression gate
         run: |
@@ -597,13 +598,14 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
+          BRANCH_BASE=$(git merge-base origin/main "$HEAD_SHA")
           fail=0
           while IFS= read -r sha; do
             [[ -z "$sha" ]] && continue
             subject=$(git log -1 --format='%s' "$sha")
             # Get the list of files changed by this commit (relative to its
             # first parent, falling back to the merge-base for merge commits).
-            parent=$(git rev-parse "$sha^1" 2>/dev/null || echo "$BASE_SHA")
+            parent=$(git rev-parse "$sha^1" 2>/dev/null || echo "$BRANCH_BASE")
             files=$(git diff --name-only "$parent" "$sha" 2>/dev/null || true)
             # Build a temp commit-msg file and pass the commit SHA so
             # the guard script uses per-commit diff (not cumulative).
@@ -615,7 +617,7 @@ jobs:
               fail=1
             fi
             rm -f "$tmp_msg"
-          done < <(git rev-list "${BASE_SHA}..${HEAD_SHA}" --no-merges)
+          done < <(git rev-list "${BRANCH_BASE}..${HEAD_SHA}" --no-merges)
           if [[ "$fail" -ne 0 ]]; then
             echo "" >&2
             echo "✗ commit-vs-diff consistency guard failed" >&2

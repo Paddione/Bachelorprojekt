@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# [T002471-M1] Graceful degradation wenn node_modules fehlt (frischer Worktree)
+if [[ ! -f "$(git rev-parse --show-toplevel 2>/dev/null)/node_modules/.bin/madge" ]]; then
+  echo "⚠ node_modules/madge not found — skipping quality:check (CI runs fail-closed)"
+  echo "  Run 'npm install' in the repo root to enable local quality checks."
+  exit 0
+fi
 # pre-push: fast quality gate (blockierend) + Conventional-Commit-Gate (blockierend)
 #            + BATS-Konsistenz-Advisory (warn-only) + Branch/PR naming advisory.
 #

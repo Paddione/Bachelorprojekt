@@ -62,10 +62,14 @@ main() {
   if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
   if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
   case "$partials" in [1-9]) ;; *) echo "ERROR: --partials must be 1..9" >&2; exit 2 ;; esac
+  # [T002471-M6] plan_file muss im Git-Tree von branch oder HEAD sein
+  # Der reine -f-Check auf Disk akzeptierte Dateien, die nur im Staging-Bereich lagen,
+  # aber nicht committed waren. Die Factory findet sie dann nicht.
   if ! git cat-file -e "${branch}:${plan}" 2>/dev/null \
-    && ! git cat-file -e "HEAD:${plan}" 2>/dev/null \
-    && ! [[ -f "${plan}" ]]; then
-    echo "ERROR: Plan file '${plan}' does not exist on branch '${branch}', in HEAD, or on disk. Check the path and make sure the commit was pushed." >&2
+    && ! git cat-file -e "HEAD:${plan}" 2>/dev/null; then
+    echo "ERROR: Plan file '${plan}' does not exist on branch '${branch}' or in HEAD." >&2
+    echo "  Die Datei muss committed sein, bevor stage-plan sie referenzieren kann." >&2
+    echo "  Verwende 'git add' und 'git commit' oder pushe den Branch." >&2
     exit 1
   fi
   local pod; pod=$(_pgpod)

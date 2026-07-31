@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "slug": "factory-escalation-ladder",
+    "ticket_id": "T002369",
+    "generated_from": "main@33f13e1e7",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/factory/factory-prep-runner.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/pipeline.mjs",
+      "language": "javascript",
+      "loc": 693,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/route-provider.sh",
+      "language": "bash",
+      "loc": 151,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 649
+    }
+  ],
+  "symbols": [],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

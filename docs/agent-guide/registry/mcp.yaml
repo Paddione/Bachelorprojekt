@@ -140,6 +140,10 @@ clients:
       - --taskfile
       - /home/patrick/Bachelorprojekt/Taskfile.yml
     # Absoluter taskfile-Pfad: nicht portabel, wird durch MCPB-Bundle ersetzt (T002301)
+    bridge:
+      url: http://127.0.0.1:18235/mcp/mcp-task-runner
+      bind: 127.0.0.1:18235
+      auth: null
     harness:
       claude_code:
         command: mcp-task-runner
@@ -157,6 +161,10 @@ clients:
   ticket-mcp:
     transport: stdio
     command: ticket-mcp-go
+    bridge:
+      url: http://127.0.0.1:18235/mcp/ticket-mcp
+      bind: 127.0.0.1:18235
+      auth: null
     harness:
       claude_code:
         command: ticket-mcp-go
@@ -178,6 +186,10 @@ clients:
   codebase-memory-mcp:
     transport: stdio
     command: /home/patrick/.local/bin/codebase-memory-mcp
+    bridge:
+      url: http://127.0.0.1:18235/mcp/codebase-memory-mcp
+      bind: 127.0.0.1:18235
+      auth: null
     harness:
       claude_code:
         command: /home/patrick/.local/bin/codebase-memory-mcp
@@ -205,6 +217,10 @@ clients:
       - "@modelcontextprotocol/server-github"
     env:
       GITHUB_TOKEN: "{env:GITHUB_TOKEN}"
+    bridge:
+      url: http://127.0.0.1:18235/mcp/github-mcp
+      bind: 127.0.0.1:18235
+      auth: null
     harness:
       opencode:
         type: local
@@ -219,6 +235,10 @@ clients:
     command: npx
     args:
       - "@playwright/mcp@latest"
+    bridge:
+      url: http://127.0.0.1:18235/mcp/playwright
+      bind: 127.0.0.1:18235
+      auth: null
     harness:
       opencode:
         type: local
@@ -232,6 +252,10 @@ clients:
     args:
       - -y
       - docfork
+    bridge:
+      url: http://127.0.0.1:18235/mcp/docfork
+      bind: 127.0.0.1:18235
+      auth: null
     harness:
       opencode:
         type: local
@@ -245,6 +269,10 @@ clients:
     args:
       - -y
       - "@modelcontextprotocol/server-sequential-thinking"
+    bridge:
+      url: http://127.0.0.1:18235/mcp/sequential-thinking
+      bind: 127.0.0.1:18235
+      auth: null
     harness:
       opencode:
         type: local
@@ -258,6 +286,10 @@ clients:
     args:
       - -y
       - "@mzxrai/mcp-webresearch@latest"
+    bridge:
+      url: http://127.0.0.1:18235/mcp/webresearch
+      bind: 127.0.0.1:18235
+      auth: null
     harness:
       opencode:
         type: local

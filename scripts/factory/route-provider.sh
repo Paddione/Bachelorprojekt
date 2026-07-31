@@ -88,7 +88,10 @@ fi
 # auf der Fallback-Stufe, die dieses Ticket ueberhaupt erst erreichbar macht. Der Unit
 # Separator ist kein Whitespace, daher bleiben leere Felder als leere Felder erhalten.
 PINNED=""
-if [[ -n "$PHASE" ]]; then
+# T002369: ROUTE_SKIP_PINNED=true überspringt den Phase-Pin (factory_model_slots)
+# und sucht direkt in provider_config. Die Escalation-Leiter (haiku/sonnet) darf
+# nicht vom lokalen Phase-Pin übersteuert werden.
+if [[ -n "$PHASE" && "${ROUTE_SKIP_PINNED:-false}" != "true" ]]; then
   # max_concurrent kommt NICHT als Literal: factory_model_slots fuehrt die Spalte nicht,
   # aber der Cap gehoert zum Provider, nicht zur Tier-Zeile. Ein fester Wert wuerde den
   # konfigurierten Cap unterlaufen — registriert provider-register-bonsai.sh llamacpp mit

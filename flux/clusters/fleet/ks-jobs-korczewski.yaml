@@ -7,6 +7,9 @@ spec:
   interval: 10m
   retryInterval: 5m
   timeout: 10m
+  # T002479: Bewusst suspendiert (2026-07-26, bestätigt 2026-07-31) — korczewski-Brand
+  # eingefroren (Kosten/Wartung). Folgt flux-korczewski, das ebenfalls suspendiert ist.
+  suspend: true
   dependsOn:
     - name: flux-korczewski
   sourceRef:

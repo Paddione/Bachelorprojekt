@@ -1448,19 +1448,25 @@ setup_renovate_mock() {
   export MOCK_CALLS="$MOCKDIR/calls.txt"
   : > "$MOCK_CALLS"
   export GITHUB_WORKSPACE="$MOCKDIR" RENOVATE_TOKEN=x RENOVATE_REPOSITORIES=x LOG_LEVEL=info
+  # No-op sleep so the random 30-90s backoff in renovate.yml doesn't block tests
+  cat > "$MOCKDIR/bin/sleep" <<'MOCK'
+#!/usr/bin/env bash
+exit 0
+MOCK
+  chmod +x "$MOCKDIR/bin/sleep"
 }
 
-@test "T002249-E: Retry-Schleife versucht dreimal und endet dann fail-closed" {
+@test "T002249-E: Retry-Schleife versucht alle Versuche und endet still-gruen [T002475]" {
   setup_renovate_mock
   _write_docker_mock "$MOCKDIR" 'echo "        \"result\": \"repository-changed\","; exit 0'
 
-  run env PATH="$MOCKDIR/bin:$PATH" timeout 60 bash "$MOCKDIR/step.sh"
+  run env PATH="$MOCKDIR/bin:$PATH" timeout 120 bash "$MOCKDIR/step.sh"
   local calls; calls=$(wc -l < "$MOCK_CALLS")
   rm -rf "$MOCKDIR"
 
-  [ "$status" -eq 1 ]                        # fail-closed statt still gruen
-  [ "$calls" -eq 3 ]                         # MAX_ATTEMPTS ausgeschoepft
-  [[ "$output" == *"::error::"* ]]           # als Annotation sichtbar
+  [ "$status" -eq 0 ]                        # T002475: exit 0, kein Fehler wenn alle Versuche exhausted
+  [ "$calls" -eq 7 ]                         # MAX_ATTEMPTS=7 ausgeschoepft
+  [[ "$output" != *"::error::"* ]]           # ::warning:: statt ::error::
   [[ "$output" == *"no repository was processed"* ]]
   # Die Meldung des letzten Versuchs darf kein Retry versprechen, das nicht kommt.
   [[ "$output" == *"no attempts left"* ]]

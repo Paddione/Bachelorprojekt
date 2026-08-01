@@ -80,10 +80,46 @@ describe('getLoginUrl', () => {
     expect(url).toContain(encodeURIComponent('/api/auth/callback'));
   });
 
-  it('echoes the supplied state parameter', async () => {
+  // [T002497] Bis 372729d7d reichte getLoginUrl das Argument als state-Parameter
+  // durch; der Test hiess entsprechend "echoes the supplied state parameter".
+  // Seither ist das Argument ein returnTo, das INTERN unter einem zufällig
+  // erzeugten state hinterlegt wird — Pocket ID v2.11.0 weist states unter
+  // 8 Zeichen ab. Der alte Test blieb stehen und war seit dem 27.07. rot.
+  it('erzeugt einen zufälligen state und echot das returnTo NICHT', async () => {
     const m = await loadModule();
-    const url = m.getLoginUrl('csrf-token-123');
-    expect(url).toContain('state=csrf-token-123');
+    const url = m.getLoginUrl('/admin/tickets');
+    const state = new URL(url).searchParams.get('state');
+
+    // Positiv-Anker: ohne state wäre die Negativ-Aussage unten vakuos.
+    expect(state).toBeTruthy();
+    expect(state!.length).toBeGreaterThanOrEqual(8); // Pocket-ID-v2.11-Mindestlänge
+    expect(url).not.toContain('/admin/tickets');
+    expect(url).not.toContain(encodeURIComponent('/admin/tickets'));
+  });
+
+  it('zwei Aufrufe erzeugen verschiedene states', async () => {
+    const m = await loadModule();
+    const a = new URL(m.getLoginUrl('/a')).searchParams.get('state');
+    const b = new URL(m.getLoginUrl('/b')).searchParams.get('state');
+    expect(a).not.toBe(b);
+  });
+
+  // Der eigentliche Vertrag zwischen getLoginUrl und dem Callback — bisher
+  // ungetestet, obwohl er entscheidet, wohin ein Nutzer nach dem Login landet.
+  it('hinterlegt das returnTo abrufbar unter dem erzeugten state, einmalig', async () => {
+    const m = await loadModule();
+    const state = new URL(m.getLoginUrl('/admin/tickets')).searchParams.get('state')!;
+
+    expect(m.consumeReturnTo(state)).toBe('/admin/tickets');
+    // consume heisst consume: der zweite Abruf muss leer ausgehen, sonst wäre
+    // ein state wiederverwendbar.
+    expect(m.consumeReturnTo(state)).toBeUndefined();
+  });
+
+  it('ohne returnTo wird nichts hinterlegt', async () => {
+    const m = await loadModule();
+    const state = new URL(m.getLoginUrl()).searchParams.get('state')!;
+    expect(m.consumeReturnTo(state)).toBeUndefined();
   });
 });
 

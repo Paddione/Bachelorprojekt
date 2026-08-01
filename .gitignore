@@ -29,7 +29,8 @@ openclaw/.env
 .openclaw/workspace/
 # deploy/mcp/claude-code-secrets.yaml — now TRACKED, git-crypt-encrypted (see .gitattributes)
 .mcp.json
-.lavish/
+.lavish/*.html
+.lavish/*.brainstorm*
 vaultwarden-import-*.json
 *-bitwarden-export.json
 claude-code/*-export.settings.json

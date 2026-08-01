@@ -98,8 +98,15 @@ residual_budget() {
   echo $(( thr - cur ))
 }
 
-# Self-test hook: `PLAN_LINT_SELFTEST=1 plan-lint.sh <fn> <args...>` runs one
-# pure function and prints its result — keeps the budget math unit-testable.
+# Direct subcommand or self-test hook:
+if [[ "${1:-}" == "residual_budget" ]]; then
+  shift
+  REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  BASELINE="$REPO_ROOT/docs/code-quality/baseline.json"
+  residual_budget "$@"
+  exit 0
+fi
+
 if [[ "${PLAN_LINT_SELFTEST:-0}" == "1" ]]; then
   REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
   BASELINE="$REPO_ROOT/docs/code-quality/baseline.json"
@@ -110,7 +117,7 @@ fi
 
 JSON=0
 if [[ "${1:-}" == "--json" ]]; then JSON=1; shift; fi
-PLAN="${1:?Usage: plan-lint.sh [--json] <plan-file>}"
+PLAN="${1:?Usage: plan-lint.sh [--json] <plan-file> | residual_budget <file>}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASELINE="$REPO_ROOT/docs/code-quality/baseline.json"

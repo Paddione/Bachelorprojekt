@@ -51,7 +51,7 @@ The triaging agent **autonomously decides** severity, component, areas, and read
 > `jq -r '.result[]'` verarbeitet, nicht mit Split-by-Pipe.
 
 ```sql
-SELECT json_agg(json_build_object(
+SELECT json_build_object(
   'external_id', external_id,
   'title', title,
   'type', type,
@@ -66,15 +66,9 @@ SELECT json_agg(json_build_object(
   'readiness', readiness,
   'desc_len', COALESCE(length(trim(description)), 0),
   'created_at', created_at::text
-))::text AS result
+)::text AS row
 FROM tickets.tickets
 WHERE status NOT IN ('done','archived')
-  -- [T002375-p6] E2E-Testdaten ausschliessen. T002348 tauchte im Triage auf und kostete
-  -- eine volle Untersuchungsschleife — es war kein Fehler: Titel und Beschreibung stammen
-  -- woertlich aus tests/e2e/specs/fa-26-bug-report-form.spec.ts:45, und der
-  -- Marker-Mechanismus aus T001453 hatte korrekt gegriffen (is_test_data = true). Diese
-  -- Query filterte ihn nur nicht, obwohl der Produktivcode es durchgaengig tut (siehe
-  -- website/src/pages/api/admin/cockpit/container-count.ts:16).
   AND is_test_data = false
 ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 ELSE 4 END,
          created_at ASC;

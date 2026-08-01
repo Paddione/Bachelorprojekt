@@ -75,7 +75,7 @@
 
       "url": "http://localhost:13005/mcp",
 
-      "headers": {"Authorization":"Bearer ${BGE_MCP_TOKEN}"},
+      "headers": {"Authorization":"Bearer {env:BGE_MCP_TOKEN}"},
 
       "enabled": true
 

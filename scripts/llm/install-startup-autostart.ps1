@@ -118,6 +118,14 @@ if (-not (Test-Path $llmDir)) {
 $startups = @(
   @{ Script = 'start-embed-server.ps1';  Arguments = '' },
   @{ Script = 'start-rerank-server.ps1'; Arguments = '' },
+  # T002489: Paar A (Batch, CPU) fehlte hier, obwohl der Watchdog es laengst
+  # ueberwacht (T002426). Folge: nach jedem Neustart lief nur Paar B, und der
+  # bge-Router fiel bei jeder Reindex-Last still auf das interaktive Paar
+  # zurueck - genau die Konkurrenz, die die Paartrennung vermeiden soll.
+  # Reihenfolge: Batch VOR Gemma, weil beide CPU-only sind und ohne VRAM
+  # auskommen; scheitert Gemma, steht der komplette bge-Stack trotzdem.
+  @{ Script = 'start-embed-batch-server.ps1';  Arguments = '' },
+  @{ Script = 'start-rerank-batch-server.ps1'; Arguments = '' },
   @{ Script = 'start-gemma-server.ps1';  Arguments = '-Ctx 262144 -Slots 1 -KvType q8_0' }
 )
 $lines = @(

@@ -2400,6 +2400,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/autostart-covers-both-pairs",
+    "file": "tests/spec/llm-pipeline/autostart-covers-both-pairs.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline/dual-pair-failover",
     "file": "tests/spec/llm-pipeline/dual-pair-failover.bats",
     "category": "llm-pipeline",
@@ -2432,6 +2438,18 @@
   {
     "id": "mcp-gateway/authenticated-http-headers",
     "file": "tests/spec/mcp-gateway/authenticated-http-headers.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/bge-host-routing",
+    "file": "tests/spec/mcp-gateway/bge-host-routing.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/opencode-env-placeholder",
+    "file": "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
     "category": "mcp-gateway",
     "kind": "shell"
   },

@@ -733,14 +733,19 @@ tasks:
       - node --test scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs
 
   test:factory:
-    desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory.bats + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
     cmds:
       # [T002427] Zeigte bis hierher auf tests/local/FA-SF-*.bats. Diese 41 Dateien waren
       # Duplikate der Sammeldatei tests/spec/software-factory.bats, in die sie konsolidiert
       # worden waren, ohne die Originale zu entfernen. Der doppelte Testname verdeckte
       # T002421: ein gefilterter Lauf auf tests/spec/ sah gruen aus, waehrend test:factory
-      # ueber die veraltete Kopie rot lief. Die Sammeldatei ist jetzt die einzige Quelle.
-      - ./tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats tests/local/FA-AR-*.bats
+      # ueber die veraltete Kopie rot lief.
+      #
+      # [T002503] Die Sammeldatei ist jetzt in tests/spec/software-factory/ aufgeteilt und
+      # ENTFERNT — dieselbe Lehre, diesmal beim Aufteilen statt beim Zusammenfuehren
+      # beachtet. `-r` auf das Verzeichnis, damit kuenftige Dateien ohne Aenderung hier
+      # mitlaufen; ein Glob wuerde sie stillschweigend auslassen.
+      - ./tests/unit/lib/bats-core/bin/bats -r tests/spec/software-factory/ tests/local/FA-AR-*.bats
 
   test:spec:build-mcp-runner:
     cmds:

@@ -243,6 +243,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@a15d269cd4658e1107c09f1fabf4cbd7bd1f308a  # v5.4.0
+        with:
+          version: 10
+
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
@@ -678,7 +683,8 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          bash scripts/validate-commit-msg.sh range "${BASE_SHA}..${HEAD_SHA}"
+          BRANCH_BASE=$(git merge-base origin/main "$HEAD_SHA")
+          bash scripts/validate-commit-msg.sh range "${BRANCH_BASE}..${HEAD_SHA}"
 
       # commit-vs-diff consistency guard (T001434-mishap). Catches any commit
       # whose subject claims an implementation change but whose diff contains

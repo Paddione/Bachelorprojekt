@@ -127,6 +127,15 @@ lesen diese Datei statt einer Kopie im Skill-Prompt):
   Warnung aus — kosmetisches Zusammenziehen reicht bei Budget≈0 nicht (siehe Schritt 3.7/4
   im Skill).
 
+### Gate-Messung & Ad-hoc-Skripte (Positiv-Anker-Pflicht) [T002495-M10]
+
+Gate-Werte NIE mit ad-hoc nachgebauten Einzeilern (z.B. Python/Regex-Substitutions an JSONC) prüfen, wenn das Repo ein autoritatives Messskript besitzt (`scripts/health-goals-check.sh`).
+
+Ist eine Ad-hoc-Messung unvermeidbar:
+- IMMER einen Positiv-Anker mitmessen und ausgeben, der bei Fehlschlag/Crash ungleich 0 ist:
+  `echo "Anker: claimed=$(echo "$claimed" | grep -c .) actual=$(echo "$actual" | grep -c .)"`
+- Beide Zahlen müssen > 0 sein. Stderr nicht nach `/dev/null` umleiten oder per Pipe verschlucken — leeres Stdin darf von `wc -l` / `comm` nicht fälschlich als "0 Abweichungen" ausgewertet werden.
+
 ### Weitere CI-Gates (Pflicht im finalen Verifikations-Task jedes Plans)
 
 Der letzte Task jedes Plans MUSS diese Kommandos als Steps enthalten:

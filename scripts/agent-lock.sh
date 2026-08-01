@@ -277,8 +277,10 @@ cmd_claim() {
   # muss zum Claim-Zeitpunkt nicht existieren.  [T002412]
   case "${WT:-}" in
     ""|"-"|/*) ;;
+    ".") WT="$PWD" ;;
     *) WT="$PWD/${WT#./}" ;;
   esac
+  WT="${WT%/}"
   # [T002375-p1] Für JEDEN anderen Scope aus dem HEAD füllen. Vorher blieb `branch`
   # bei einem ticket-scoped Claim leer — und der Pre-Commit-Guard aus dev-flow-plan
   # Schritt 5 vergleicht genau dieses Feld mit dem HEAD-Branch. Er schlug damit

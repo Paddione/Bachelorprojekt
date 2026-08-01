@@ -2,7 +2,7 @@
   "meta": {
     "slug": "task-context-channel",
     "ticket_id": "T002420",
-    "generated_from": "main@5601f3300",
+    "generated_from": "main@5fdfdce8f",
     "domains": [
       "plan-authoring",
       "dev-tooling",
@@ -35,7 +35,7 @@
     {
       "path": "scripts/factory/pipeline.mjs",
       "language": "javascript",
-      "loc": 693,
+      "loc": 696,
       "s1_limit": 800,
       "s1_baseline": null,
       "s1_budget": null
@@ -51,10 +51,10 @@
     {
       "path": "scripts/plan-lint.sh",
       "language": "bash",
-      "loc": 450,
+      "loc": 463,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 350
+      "s1_budget": 337
     },
     {
       "path": "scripts/task-context.sh",
@@ -171,19 +171,19 @@
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:421:_json_str() {",
+      "qualified_name": "scripts/plan-lint.sh:434:_json_str() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "421:_json_str() {(...)",
-      "type_text": "421:_json_str() {(...)",
+      "signature": "434:_json_str() {(...)",
+      "type_text": "434:_json_str() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:431:emit_verdict() {",
+      "qualified_name": "scripts/plan-lint.sh:444:emit_verdict() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "431:emit_verdict() {(...)",
-      "type_text": "431:emit_verdict() {(...)",
+      "signature": "444:emit_verdict() {(...)",
+      "type_text": "444:emit_verdict() {(...)",
       "source": "grep"
     },
     {
@@ -235,6 +235,26 @@
   ],
   "external_types": [],
   "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
     {
       "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
       "severity": "warn"

@@ -271,15 +271,19 @@ const data = (() => {
     }
   }
 
-  // Token retrieval (E17 — read from daemon's token file via the daemon itself)
+  // Token retrieval — T002505.
+  //
+  // Frueher holte diese Funktion den Token von `${BASE}/api/cockpit/token`.
+  // Dieser Endpoint gab ihn unauthentifiziert heraus und machte damit die
+  // 0600-Rechte der Token-Datei wertlos; er ist entfernt.
+  //
+  // Ein Browser hat keinen legitimen Weg an den Token: die Datei liegt unter
+  // /tmp/cockpit-daemon.token und ist bewusst nur fuer den Nutzer lesbar.
+  // Damit sind Schreibaktionen aus dem Browser deaktiviert — die zugehoerigen
+  // Endpunkte sind ohnehin noch Stubs. Eine echte Auth (z. B. eine an einen
+  // festen Origin gebundene Session, die der Daemon selbst ausliefert) gehoert
+  // nach K4 und soll nicht durch einen offenen Token-Endpoint ersetzt werden.
   async function getToken() {
-    try {
-      const res = await fetch(`${BASE}/api/cockpit/token`);
-      if (res.ok) {
-        const data = await res.json();
-        return data.token;
-      }
-    } catch {}
     return null;
   }
 

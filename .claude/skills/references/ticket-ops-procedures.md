@@ -50,8 +50,15 @@ The triaging agent **autonomously decides** severity, component, areas, and read
 > JSON-Ausgabe unten ist spaltenausrichtungsinvariant — das Ergebnis wird mit
 > `jq -r '.result[]'` verarbeitet, nicht mit Split-by-Pipe.
 
+> **Das `ORDER BY` steht INNERHALB des Aggregats [T002481].** Mit einem äußeren
+> `ORDER BY` scheitert die Query an einem GROUP-BY-Fehler: `json_agg` aggregiert
+> über alle Zeilen, die Sortierspalten liegen danach nicht mehr einzeln vor.
+> `json_agg(… ORDER BY …)` ist die gültige Form und erhält zugleich die eine
+> JSON-Zeile aus T002422 — der äußere `ORDER BY` war der Fehler, nicht die
+> Aggregation.
+
 ```sql
-SELECT json_build_object(
+SELECT json_agg(json_build_object(
   'external_id', external_id,
   'title', title,
   'type', type,
@@ -66,12 +73,17 @@ SELECT json_build_object(
   'readiness', readiness,
   'desc_len', COALESCE(length(trim(description)), 0),
   'created_at', created_at::text
-)::text AS row
+) ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 ELSE 4 END,
+           created_at ASC)::text AS result
 FROM tickets.tickets
 WHERE status NOT IN ('done','archived')
-  AND is_test_data = false
-ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 ELSE 4 END,
-         created_at ASC;
+  -- [T002375-p6] E2E-Testdaten ausschliessen. T002348 tauchte im Triage auf und kostete
+  -- eine volle Untersuchungsschleife — es war kein Fehler: Titel und Beschreibung stammen
+  -- woertlich aus tests/e2e/specs/fa-26-bug-report-form.spec.ts:45, und der
+  -- Marker-Mechanismus aus T001453 hatte korrekt gegriffen (is_test_data = true). Diese
+  -- Query filterte ihn nur nicht, obwohl der Produktivcode es durchgaengig tut (siehe
+  -- website/src/pages/api/admin/cockpit/container-count.ts:16).
+  AND is_test_data = false;
 ```
 
 > **Die Uebersichtstabelle darf kuerzen — vor jedem Dispatch wird die Beschreibung

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 655,
+      "file_count": 656,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -351,6 +351,7 @@
         "tests/spec/ci-cd/mishap-t002425.bats",
         "tests/spec/ci-cd/pr-refresh-batch.bats",
         "tests/spec/ci-cd/spec-dir-convention.bats",
+        "tests/spec/ci-cd/spec-shard-partition.bats",
         "tests/spec/ci-cd/test-inventory-coverage.bats",
         "tests/spec/coaching-sessions-polish-guide.bats",
         "tests/spec/code-quality.bats",
@@ -2992,7 +2993,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 596,
+      "file_count": 597,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3503,6 +3504,7 @@
         "scripts/setup-dev-env.sh",
         "scripts/setup.sh",
         "scripts/skill-orchestrator.sh",
+        "scripts/spec-shard.sh",
         "scripts/staging-db-anonymize.sh",
         "scripts/staging-id.sh",
         "scripts/start-comfyui.sh",

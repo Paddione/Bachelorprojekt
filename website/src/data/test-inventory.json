@@ -2118,6 +2118,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/spec-shard-partition",
+    "file": "tests/spec/ci-cd/spec-shard-partition.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/test-inventory-coverage",
     "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
     "category": "ci-cd",

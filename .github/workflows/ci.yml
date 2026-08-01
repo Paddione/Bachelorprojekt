@@ -158,15 +158,77 @@ jobs:
           ./tests/unit/lib/bats-core/bin/bats \
             tests/unit/manifests.bats tests/unit/changed-manifests.bats
 
-  test-factory:
-    # tests/spec/*.bats + OpenSpec validation + setup-go for the
-    # mcp-task-runner build (needed by test:spec). All spec tests skip
-    # live-DB cases without a cluster (CI-safe). [T002182]
-    # Scoped to the changed specs on PRs, full suite on push-to-main. [T002245]
-    name: Factory + OpenSpec + Guards
+  # ── Factory: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
+  #
+  # [T002500] Vorher war das EIN Job mit ~400s, dem kritischen Pfad jedes PRs
+  # (zweitlaengster Job: 165s). Zwei Probleme, beide hier behoben:
+  #
+  #   1. Die billigen Gates (OpenSpec-Validierung: 1s) standen HINTER der
+  #      6-Minuten-BATS-Suite und liefen bei deren Fehlschlag gar nicht mehr.
+  #      Eine kaputte Spec meldete sich also erst nach sechs Minuten — oder,
+  #      wenn vorher ein Test rot wurde, ueberhaupt nicht.
+  #   2. Die Suite ist durchsatz-, nicht tail-gebunden (~537s CPU-Arbeit).
+  #      Mehr `bats -j` auf EINEM Runner war ausgereizt; der einzige Hebel
+  #      sind mehr Runner. Details in scripts/spec-shard.sh.
+  #
+  # Der Aggregator `test-factory` behaelt den Namen "Factory + OpenSpec + Guards",
+  # weil genau dieser String als Required Status Check in der Branch Protection
+  # von main haengt. Eine nackte Matrix haette ihn in "… (1)".."… (4)" umbenannt
+  # und jeden PR dauerhaft blockiert.
+
+  test-factory-openspec:
+    # Die billigen, hochsignalhaften Gates — laufen parallel zu den Shards und
+    # melden nach ~30s statt nach ~400s.
+    name: Factory OpenSpec + Guards (fast)
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          fetch-tags: false
+
+      - name: Fetch origin/main for diffing (shallow)
+        run: git fetch --no-tags --prune --depth=1 origin main:refs/remotes/origin/main
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install node dependencies
+        run: npm ci
+
+      - name: OpenSpec validation
+        run: npm run test:openspec
+
+      - name: Agent setup replay reminder
+        run: |
+          changed=$(git diff --name-only origin/main...HEAD || true)
+          if echo "$changed" | grep -Eq '^(.opencode/agent-models.jsonc|scripts/factory/review-[^/]+\.prompt\.md|scripts/factory/provider-router\.js|AGENTS.md)$'; then
+            echo "::warning::Agenten-Setup geändert — lokal 'task factory:eval:replay' ausführen"
+          fi
+
+  test-factory-shard:
+    # tests/spec/*.bats + setup-go fuer den mcp-task-runner-Build (von test:spec
+    # gebraucht). Alle Spec-Tests ueberspringen Live-DB-Faelle ohne Cluster
+    # (CI-safe). [T002182]
+    # Auf PRs auf die geaenderten Specs gescopt, volle Suite bei push-to-main. [T002245]
+    name: Factory spec shard ${{ matrix.shard }}
     if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      # fail-fast: false ist Absicht. Bricht ein Shard ab, sollen die anderen
+      # zu Ende laufen — sonst sieht man pro Lauf nur die Fehler EINES Shards
+      # und braucht fuer eine rote Suite so viele CI-Runden wie Shards.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      SPEC_SHARD: ${{ matrix.shard }}
+      SPEC_SHARDS: 4
     steps:
       - uses: actions/checkout@v7
         with:
@@ -196,15 +258,16 @@ jobs:
       - name: Create CI dummy secrets
         run: bash scripts/ci-dummy-secrets.sh
 
-      # T002245: On PRs run only the spec bats matching the diff (task
-      # test:spec:changed → scripts/find-changed-tests.sh spec), the same
-      # scoping the unit job uses. NOT the pre-T002182 hardcoded file list —
-      # the shared-harness/workflow/Taskfile fallbacks widen to the full suite,
-      # and push-to-main still runs ALL of tests/spec/*.bats, so a regression
-      # cannot rot undetected on main (the T002182 failure mode).
-      # Fail closed: if origin/main is unreachable the diff would be empty and
-      # silently select nothing — run everything instead.
-      - name: Spec BATS suite
+      # PyYAML wird VON den G-CD01-Assertions gebraucht (tests/spec/ci-cd.bats
+      # macht `import yaml`), muss also vor der Suite stehen. Bis T002500 stand
+      # dieser Step dahinter und trug nichts bei — dass die Assertions trotzdem
+      # liefen, lag allein daran, dass ubuntu-latest PyYAML vorinstalliert hat.
+      - name: Install PyYAML for CI-CD guard assertions
+        run: python3 -m pip install --quiet pyyaml
+
+      # Fail closed: ist origin/main nicht erreichbar, waere der Diff leer und
+      # wuerde still nichts auswaehlen — dann lieber alles laufen lassen.
+      - name: Spec BATS suite (shard ${{ matrix.shard }}/4)
         env:
           IS_PR: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -215,19 +278,33 @@ jobs:
             task test:spec
           fi
 
-      - name: OpenSpec validation
-        run: npm run test:openspec
-
-      # PyYAML is needed by the G-CD01 assertions, which parse build-website.yml.
-      - name: Install PyYAML for CI-CD guard assertions
-        run: python3 -m pip install --quiet pyyaml
-
-      - name: Agent setup replay reminder
+  test-factory:
+    # Aggregator. Traegt den Required-Check-Namen und ist fail-closed: alles,
+    # was nicht exakt "success" ist, laesst ihn scheitern. Das ist wesentlich —
+    # in der Branch Protection zaehlt ein UEBERSPRUNGENER Required Check als
+    # bestanden. Ein Aggregator ohne always() wuerde bei fehlgeschlagenen
+    # needs uebersprungen und damit das Gate lautlos oeffnen.
+    name: Factory + OpenSpec + Guards
+    if: always() && github.event.action != 'edited'
+    needs: [test-factory-openspec, test-factory-shard]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Aggregate shard + gate results
+        env:
+          OPENSPEC_RESULT: ${{ needs.test-factory-openspec.result }}
+          SHARDS_RESULT: ${{ needs.test-factory-shard.result }}
         run: |
-          changed=$(git diff --name-only origin/main...HEAD || true)
-          if echo "$changed" | grep -Eq '^(.opencode/agent-models.jsonc|scripts/factory/review-[^/]+\.prompt\.md|scripts/factory/provider-router\.js|AGENTS.md)$'; then
-            echo "::warning::Agenten-Setup geändert — lokal 'task factory:eval:replay' ausführen"
+          echo "OpenSpec + Guards : $OPENSPEC_RESULT"
+          echo "Spec shards (1-4) : $SHARDS_RESULT"
+          # SHARDS_RESULT ist das Aggregat ueber ALLE Matrix-Legs — 'success'
+          # nur, wenn jeder einzelne Shard erfolgreich war.
+          if [ "$OPENSPEC_RESULT" = "success" ] && [ "$SHARDS_RESULT" = "success" ]; then
+            echo "Alle Factory-Gates gruen."
+            exit 0
           fi
+          echo "::error::Factory-Gates nicht gruen (openspec=$OPENSPEC_RESULT shards=$SHARDS_RESULT)"
+          exit 1
 
   # ── End scoped test jobs ──────────────────────────────────────────
 

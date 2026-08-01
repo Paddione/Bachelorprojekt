@@ -131,10 +131,19 @@ _reapable() {
   #     starts a new process with a different SID (and possibly PID), which
   #     would otherwise fall through to the pid-dead/sid-dead reap paths below.
   #     Verify liveness via the filesystem/git state instead. [T002204]
+  #     [T002513] But only while the heartbeat is fresh: a resume renews it
+  #     (re-claim/refresh), a dead holder never does — T002448-M8 established
+  #     the heartbeat as the only reliable liveness signal. An expired heartbeat
+  #     makes the lock reapable despite the worktree match.
   if [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] && [ -n "$br" ]; then
     local wt_branch
     wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
-    [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ] && return 1
+    if [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ]; then
+      if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
+        _reap_log "$f" heartbeat-ttl; return 0
+      fi
+      return 1
+    fi
   fi
   # 0c) LIVE owner_pid always wins (pgrep -s misses Claude Code session id). [T002267]
   pid="$(_lock_field "$f" owner_pid)"

@@ -74,3 +74,100 @@ teardown() {
   run bash -c "jq -r '.branch' '$AGENT_LOCK_DIR/branch__chore-probe-T002363.json'"
   [ "$output" = "chore/probe-T002363" ]
 }
+
+# ── T002513: Regel 0b (Worktree+Branch-Match) respektiert die Heartbeat-TTL ──#
+#
+# Regel 0b (T002204, Session-Resume) schuetzt einen Claim, sobald der Worktree existiert
+# und auf dem im Lock vermerkten Branch steht — ohne Alters-/Heartbeat-Pruefung. Ein
+# toter Halter mit intaktem Worktree (owner_sid + owner_pid tot, Heartbeat lange
+# abgelaufen) gilt dadurch dauerhaft als "live" und blockiert den Worktree.
+#
+# Fix: 0b wird an die Heartbeat-TTL gekoppelt. Ein Resume erneuert den Heartbeat
+# (Re-Claim/refresh schreiben heartbeat_at frisch), ein toter Halter nicht.
+
+# Schreibt einen Lock mit totem SID+PID und passendem Worktree+Branch-Match in
+# $AGENT_LOCK_DIR und gibt den Worktree-Pfad zurueck. <mode> = stale | fresh | none
+# (none: Altformat ohne heartbeat_at-Feld).
+_write_rule0b_lock() {
+  local name="$1" mode="$2"
+  local tmprepo; tmprepo="$(mktemp -d)"
+  git -C "$tmprepo" init -q -b probe-branch
+  git -C "$tmprepo" -c user.email=t@example.invalid -c user.name=t \
+    commit -q --allow-empty -m init
+  local now ttl stale
+  now="$(date +%s)"; ttl="${AGENT_LOCK_TTL:-1800}"; stale=$(( now - ttl - 60 ))
+  if [ "$mode" = "stale" ] || [ "$mode" = "fresh" ]; then
+    local hb; [ "$mode" = "stale" ] && hb="$stale" || hb="$now"
+    cat > "$AGENT_LOCK_DIR/$name.json" <<JSON
+{
+  "scope": "ticket",
+  "id": "$name",
+  "owner_sid": "99999999",
+  "owner_pid": 999999,
+  "label": "probe",
+  "branch": "probe-branch",
+  "worktree": "$tmprepo",
+  "created_at": "$stale",
+  "heartbeat_at": "$hb"
+}
+JSON
+  else
+    cat > "$AGENT_LOCK_DIR/$name.json" <<JSON
+{
+  "scope": "ticket",
+  "id": "$name",
+  "owner_sid": "99999999",
+  "owner_pid": 999999,
+  "label": "probe",
+  "branch": "probe-branch",
+  "worktree": "$tmprepo",
+  "created_at": "$stale"
+}
+JSON
+  fi
+  # [T002502] .last-fetch-Marker: der erste reap in einem frischen Lock-Dir wuerde sonst
+  # ein Netzwerk-Fetch ausloesen. Marker frisch anlegen => fetch uebersprungen.
+  touch "$AGENT_LOCK_DIR/.last-fetch"
+  printf '%s' "$tmprepo"
+}
+
+@test "T002513: reap entfernt Lock mit Worktree-Match bei abgelaufenem Heartbeat" {
+  local wt; wt="$(_write_rule0b_lock ticket__T002513 stale)"
+  run env AGENT_LOCK_DIR="$AGENT_LOCK_DIR" AGENT_LOCK_TTL=1800 \
+    bash -c "cd '$wt' && bash '$LOCK' reap"
+  local reaped=0; [ ! -f "$AGENT_LOCK_DIR/ticket__T002513.json" ] && reaped=1
+  rm -rf "$AGENT_LOCK_DIR/ticket__T002513.json" "$wt"
+  [ "$reaped" -eq 1 ] || { echo "reap liess Lock mit totem Halter + abgelaufenem Heartbeat stehen (Regel 0b ohne TTL)"; false; }
+}
+
+@test "T002513: reap loggt heartbeat-ttl fuer den entfernten Lock" {
+  local wt; wt="$(_write_rule0b_lock ticket__T002513b stale)"
+  run env AGENT_LOCK_DIR="$AGENT_LOCK_DIR" AGENT_LOCK_TTL=1800 \
+    bash -c "cd '$wt' && bash '$LOCK' reap"
+  local logged=0
+  grep -q 'ticket__T002513b heartbeat-ttl' "$AGENT_LOCK_DIR/.reap.log" 2>/dev/null && logged=1
+  rm -rf "$AGENT_LOCK_DIR/ticket__T002513b.json" "$wt"
+  [ "$logged" -eq 1 ] || { echo ".reap.log enthaelt keinen heartbeat-ttl-Eintrag fuer T002513b"; false; }
+}
+
+@test "T002513: reap laesst Lock mit Worktree-Match und frischem Heartbeat stehen" {
+  # Gegenprobe zur Resume-Semantik: der Worktree+Branch-Match MUSS einen Lock schuetzen,
+  # solange der Heartbeat frisch ist — Regel 0b verliert ihre Schutzfunktion nicht.
+  local wt; wt="$(_write_rule0b_lock ticket__T002513c fresh)"
+  run env AGENT_LOCK_DIR="$AGENT_LOCK_DIR" AGENT_LOCK_TTL=1800 \
+    bash -c "cd '$wt' && bash '$LOCK' reap"
+  local survived=0; [ -f "$AGENT_LOCK_DIR/ticket__T002513c.json" ] && survived=1
+  rm -rf "$AGENT_LOCK_DIR/ticket__T002513c.json" "$wt"
+  [ "$survived" -eq 1 ] || { echo "reap hat Lock mit frischem Heartbeat abgeraeumt (Over-Reap)"; false; }
+}
+
+@test "T002513: reap laesst Altformat ohne heartbeat_at durch Regel 0b stehen" {
+  # Altformat (prae-Heartbeat-Claims): kein heartbeat_at-Feld => Regel 0b bleibt voll
+  # schuetzend, damit alte Locks nicht durch den TTL-Kopplungs-Fix abgeraeumt werden.
+  local wt; wt="$(_write_rule0b_lock ticket__T002513d none)"
+  run env AGENT_LOCK_DIR="$AGENT_LOCK_DIR" AGENT_LOCK_TTL=1800 \
+    bash -c "cd '$wt' && bash '$LOCK' reap"
+  local survived=0; [ -f "$AGENT_LOCK_DIR/ticket__T002513d.json" ] && survived=1
+  rm -rf "$AGENT_LOCK_DIR/ticket__T002513d.json" "$wt"
+  [ "$survived" -eq 1 ] || { echo "reap hat Altformat-Lock ohne heartbeat_at abgeraeumt"; false; }
+}

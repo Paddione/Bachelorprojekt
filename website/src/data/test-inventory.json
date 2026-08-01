@@ -2958,6 +2958,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/public-assets-no-server-code",
+    "file": "tests/spec/sdlc-cockpit/public-assets-no-server-code.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/rail-representation",
     "file": "tests/spec/sdlc-cockpit/rail-representation.bats",
     "category": "sdlc-cockpit",

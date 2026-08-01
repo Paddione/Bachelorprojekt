@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 # scripts/agent-lock.sh — cross-tool session-coordination lock registry. [T000510]
 # One JSON file per claim under $AGENT_LOCK_DIR (shared gitdir's agent-locks/).
-# Test overrides: AGENT_LOCK_DIR, AGENT_LOCK_SID, AGENT_LOCK_FAKE_ALIVE, AGENT_LOCK_TOOL.
+# Test overrides: AGENT_LOCK_DIR, AGENT_LOCK_SID, AGENT_LOCK_FAKE_ALIVE, AGENT_LOCK_TOOL,
+# AGENT_LOCK_FETCH_TTL.
 set -uo pipefail
 
 AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"
 AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
+# [T002502] Netzwerk-Fetch in cmd_reap wird auf hoechstens einen pro TTL-Fenster
+# begrenzt. `git fetch --prune origin` ist ein Roundtrip (~1.4s lokal, auf CI mit
+# cold git-Refs deutlich mehr), und cmd_reap laeuft als pre-claim reap bei JEDEM
+# claim. agent-lock-claim-persist.bats (Test 4: 30 Runden claim+reap) kostete dadurch
+# ~92s lokal bzw. ~310s auf CI-Shard 4. Der Remote-Ref-Stand muss nicht
+# sekundengenau sein: ein fetch alle 300s reicht fuer die verwaiste-Branch-Pruefung.
+AGENT_LOCK_FETCH_TTL="${AGENT_LOCK_FETCH_TTL:-300}"
 
 # Harness-Session-Variablen in Prüfreihenfolge: CLAUDE_CODE_SESSION_ID zuerst. [T002375-p1]
 _AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID"
@@ -434,7 +442,21 @@ cmd_reap() {
   # 2) prune git worktree admin entries for gone directories
   git worktree prune 2>/dev/null || true
   # 2b) prune stale remote-tracking refs (branches deleted on GitHub after merge)
-  git fetch --prune origin 2>/dev/null || true
+  #     [T002502] TTL-Guard: fetch hoechstens einmal pro AGENT_LOCK_FETCH_TTL. Der
+  #     Marker liegt im Lock-Dir (nicht in /tmp), damit parallele Worktrees/Repos
+  #     unabhaengig getaktet werden und Tests mit eigenem AGENT_LOCK_DIR isoliert
+  #     bleiben. AGENT_LOCK_FETCH_TTL=0 erzwingt den fetch bei jedem reap (Debug).
+  #     Fehlt der Marker, ist der fetch faellig (erster reap des Lock-Dirs).
+  local _fetch_marker _fetch_age
+  _fetch_marker="$(_lock_dir)/.last-fetch"
+  _fetch_age=0
+  if [ -f "$_fetch_marker" ]; then
+    _fetch_age=$(( $(date +%s) - $(stat -c %Y "$_fetch_marker" 2>/dev/null || echo 0) ))
+  fi
+  if [ "${AGENT_LOCK_FETCH_TTL:-300}" -eq 0 ] || [ ! -f "$_fetch_marker" ] || [ "$_fetch_age" -ge "${AGENT_LOCK_FETCH_TTL:-300}" ]; then
+    git fetch --prune origin 2>/dev/null || true
+    touch "$_fetch_marker" 2>/dev/null || true
+  fi
   # 2c) delete local branches that were squash-merged into main (upstream gone)
   for br in $(git branch --merged main 2>/dev/null | sed 's/^[* ]*//' | grep -v '^main$'); do
     # skip branches that have a live agent-lock claim (e.g. dev-flow-plan in progress) [T001448 M3]

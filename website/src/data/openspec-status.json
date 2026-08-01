@@ -2105,6 +2105,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002459": [
+    {
+      "slug": "llama-stack",
+      "status": "plan_staged"
+    }
+  ],
   "T002470": [
     {
       "slug": "2026-07-29-worktree-branch-name-guard",
@@ -2121,6 +2127,24 @@
     {
       "slug": "mishap-t002481",
       "status": "plan_staged"
+    }
+  ],
+  "T002487": [
+    {
+      "slug": "2026-08-01-mcp-authenticated-http-headers",
+      "status": "archived"
+    }
+  ],
+  "T002494": [
+    {
+      "slug": "gate-agentic01-unresolved-tools",
+      "status": "plan_staged"
+    }
+  ],
+  "T002507": [
+    {
+      "slug": "2026-08-01-portrait-derivate-crop",
+      "status": "archived"
     }
   ],
   "TBD": [

@@ -577,8 +577,39 @@ SH
 }
 
 @test "T002327: das Hold-Gate aus T002272 bleibt unangetastet (queue.sh unveraendert)" {
-  run bash -c "cd '$REPO' && git diff --exit-code origin/main -- scripts/factory/queue.sh"
-  [ "$status" -eq 0 ] || { echo "queue.sh wurde veraendert — das Hold-Gate ist tabu"; false; }
+  # Verglichen werden die BLOB-HASHES an beiden Revisionen, nicht per `git diff`.
+  # [T002519]
+  #
+  # Vorher: `git diff --exit-code origin/main -- scripts/factory/queue.sh`. Zwei
+  # Fehler in einer Zeile:
+  #   1. `git diff <commit> -- <pfad>` vergleicht den Commit gegen den
+  #      ARBEITSBAUM, nicht gegen HEAD — jede Verunreinigung durch einen
+  #      nebenlaeufigen Test faellt dem Guard zur Last.
+  #   2. `[ "$status" -eq 0 ]` unterscheidet nicht zwischen "Diff nicht leer" und
+  #      "git-Kommando fehlgeschlagen". Beides ergab dieselbe Meldung.
+  #
+  # Auf dem depth-1-Checkout in CI (actions/checkout + `git fetch --depth=1
+  # origin main`) trat der zweite Fall ein: der Test war auf main reproduzierbar
+  # rot (zwei unabhaengige Laeufe), waehrend queue.sh nachweislich seit #3527
+  # unveraendert und zwischen den beteiligten SHAs identisch war — und die
+  # gesamte Shard-Menge lokal gruen durchlief, ohne queue.sh anzufassen.
+  #
+  # Blob-Hashes brauchen nur die beiden Baeume (in einem --depth=1-Fetch
+  # vorhanden), nie eine Merge-Base, und ignorieren den Arbeitsbaum.
+  local path="scripts/factory/queue.sh" ref_blob head_blob
+  ref_blob="$(cd "$REPO" && git rev-parse "origin/main:$path" 2>&1)" || {
+    skip "origin/main:$path nicht aufloesbar ($ref_blob) — kein Urteil moeglich"
+  }
+  head_blob="$(cd "$REPO" && git rev-parse "HEAD:$path" 2>&1)" || {
+    echo "HEAD:$path nicht aufloesbar: $head_blob" >&2; return 1
+  }
+  [ "$head_blob" = "$ref_blob" ] || {
+    echo "queue.sh wurde veraendert — das Hold-Gate ist tabu" >&2
+    echo "  origin/main: $ref_blob" >&2
+    echo "  HEAD:        $head_blob" >&2
+    (cd "$REPO" && git diff "origin/main" HEAD -- "$path" | head -40) >&2
+    return 1
+  }
 }
 
 # ── [T002407-M7] Container-Lifecycle: plan_staged, Recycling, Treiber-Idempotenz ──#

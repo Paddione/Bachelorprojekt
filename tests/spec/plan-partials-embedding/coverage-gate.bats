@@ -41,14 +41,17 @@ teardown() { rm -rf "$TMP"; }
 }
 
 @test "countLocalActivePlans zaehlt nur active-status Plaene" {
-  # Set up test changes dir with mixed statuses
+  # Set up test changes dir with mixed statuses.
+  # 'printf --' ist hier PFLICHT: das Format beginnt mit '---' (YAML-Frontmatter),
+  # ohne das '--' parst bash-printf es als Option und bricht mit Exit 2 ab
+  # ("printf: --: invalid option"). [T002512]
   mkdir -p "$TMP/openspec/changes/plan-a" "$TMP/openspec/changes/plan-b" "$TMP/openspec/changes/plan-c" "$TMP/openspec/changes/plan-d" "$TMP/openspec/changes/archive/old-plan"
-  printf '---\ntitle: A\nstatus: planning\n---\n# A\n\nTasks\n' > "$TMP/openspec/changes/plan-a/tasks.md"
-  printf '---\ntitle: B\nstatus: plan_staged\n---\n# B\n\nTasks\n' > "$TMP/openspec/changes/plan-b/tasks.md"
-  printf '---\ntitle: C\nstatus: archived\n---\n# C\n\nTasks\n' > "$TMP/openspec/changes/plan-c/tasks.md"
-  printf '---\ntitle: D\nstatus: done\n---\n# D\n\nTasks\n' > "$TMP/openspec/changes/plan-d/tasks.md"
+  printf -- '---\ntitle: A\nstatus: planning\n---\n# A\n\nTasks\n' > "$TMP/openspec/changes/plan-a/tasks.md"
+  printf -- '---\ntitle: B\nstatus: plan_staged\n---\n# B\n\nTasks\n' > "$TMP/openspec/changes/plan-b/tasks.md"
+  printf -- '---\ntitle: C\nstatus: archived\n---\n# C\n\nTasks\n' > "$TMP/openspec/changes/plan-c/tasks.md"
+  printf -- '---\ntitle: D\nstatus: done\n---\n# D\n\nTasks\n' > "$TMP/openspec/changes/plan-d/tasks.md"
   # Archive subdir should be skipped
-  printf '---\ntitle: Old\nstatus: planning\n---\n# Old\n\nTasks\n' > "$TMP/openspec/changes/archive/old-plan/tasks.md"
+  printf -- '---\ntitle: Old\nstatus: planning\n---\n# Old\n\nTasks\n' > "$TMP/openspec/changes/archive/old-plan/tasks.md"
 
   run node --input-type=module -e "
     import { countLocalActivePlans } from '$REPO/scripts/openspec-embed.mjs';

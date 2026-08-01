@@ -368,9 +368,18 @@ done < <(find "$MAIN_ROOT" -maxdepth 2 -name pnpm-workspace.yaml -not -path '*/n
 # that differs from the branch this worktree now sits on, the linked deps may
 # be stale/incompatible for this branch's package.json / lockfile — surface it
 # instead of failing silently on a dependency mismatch later. [T002204]
+#
+# [T002495-M3] FACTORY RISK: The Software Factory dispatches from MAIN_ROOT.
+# When the main checkout is NOT on `main`, queue/backlog reads are measured
+# against the wrong branch. This warning fires on every worktree creation, but
+# is only shown at that moment — not on subsequent use. Prefer always keeping
+# the main checkout on `main` (reset with: git -C "$MAIN_ROOT" checkout main).
 _source_branch="$(git -C "$MAIN_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
 if [ -n "$_source_branch" ] && [ "$_source_branch" != "HEAD" ] && [ "$_source_branch" != "$BRANCH" ]; then
     echo "worktree-create: WARNUNG — Quell-Checkout ($MAIN_ROOT) steht auf Branch '$_source_branch', dieser Worktree auf '$BRANCH'. Verlinkte node_modules koennen von diesem Branch abweichen." >&2
+    if [ "$_source_branch" != "main" ]; then
+        echo "worktree-create: WARNUNG — Quell-Checkout steht NICHT auf main. Die Software Factory dispatched aus diesem Verzeichnis und misst Queue-Abfragen gegen den falschen Branch. [T002495-M3]" >&2
+    fi
 fi
 
 # T002239-M3: Guard reminder — warn that pnpm install inside a worktree

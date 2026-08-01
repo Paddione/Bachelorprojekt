@@ -20,6 +20,8 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 14. [Brett](#brett) — stub; reserved for future use
 15. [Alt-Worktrees nach T002135 — Submodul-Gitdir-Reste](#alt-worktrees-nach-t002135--submodul-gitdir-reste) — cleanup orphaned submodule gitdirs in pre-merge worktrees
 16. [merge=ours erzeugt GitHub-only Phantom-Konflikte](#mergeours-erzeugt-github-only-phantom-konflikte) — DIRTY auf GitHub bei lokal sauberem Merge; REST-`update-branch`-Fallback
+17. [WireGuard unter Windows: `wg set` & `.dpapi`-Recovery](#wireguard-unter-windows-wg-set--dpapi-recovery-t002495-m9) — `wg set` setzt keine Windows-Routen; SYSTEM-ACL auf DPAPI
+18. [git worktree add mit git-crypt-geschützten Pfaden: Smudge-Fehler erwartet](#git-worktree-add-mit-git-crypt-geschutzten-pfaden-smudge-fehler-erwartet-t002495-m5) — bei direktem `git worktree add` auf Locked-Repo
 
 ---
 
@@ -183,3 +185,27 @@ Reicht das nicht, hilft `update-branch` — siehe den REST-Fallback in
 **Langfristig** gehören diese Artefakte nicht in den PR-Diff: entweder in CI regeneriert
 statt committet, oder über `diff=generated` aus dem Diff gehalten. Solange sie committet
 sind, bleibt der Phantom-Konflikt ein wiederkehrender Kostenposten. [T002347]
+
+### WireGuard unter Windows: `wg set` & `.dpapi`-Recovery [T002495-M9]
+
+Bei der Wartung von WireGuard-Tunnels auf Windows-Hosts (z. B. GPU-Host `scripts/llm/*.ps1`):
+1. **`wg set <iface> peer ...` setzt KEINE Windows-Routen.** Es aktualisiert nur den Treiber-Kryptozustand. Der Handshake gelingt, aber IP-Pakete finden keine Route. Unter Windows richtet ausschließlich der Dienststart aus der `.conf` die Windows-Routingtabelle ein. Nach Änderungen Tunnel-Dienst neustarten und mit `Get-NetRoute` prüfen.
+2. **`.dpapi`-Konfigurationen sind SYSTEM-geschützt.** `Data\Configurations\<name>.conf.dpapi` ist per ACL auf SYSTEM beschränkt (auch Admin-Builds bekommen Access Denied beim Lesen). Bei Tunnel-Recovery `.dpapi` nicht umkopieren, sondern `wireguard.exe /installtunnelservice <pfad-zur-.dpapi>` direkt aufrufen — der Dienst liest sie unter SYSTEM und stellt den Tunnel wieder her.
+
+### git worktree add mit git-crypt-geschützten Pfaden: Smudge-Fehler erwartet [T002495-M5]
+
+**Symptom.** Direkter Aufruf von `git worktree add --detach <pfad> origin/main -q` (also NICHT über `scripts/worktree-create.sh`) gibt aus:
+```
+error: external filter '/usr/bin/git-crypt smudge' failed 1
+error: external filter '/usr/bin/git-crypt smudge' failed
+```
+Der Worktree wird trotzdem angelegt, HEAD steht korrekt, und BATS-Suites, die die Secrets nicht berühren, laufen fehlerfrei.
+
+**Ursache.** Der neue Worktree erbt den git-crypt-Filter, aber nicht den entsperrten Schlüsselzustand. Die verschlüsselten Dateien unter `environments/.secrets/` können nicht ge-smudged werden.
+
+**Risiken:**
+- Ein Skript mit `set -e` oder Stderr-Check bricht hier fälschlich ab.
+- In diesem Worktree befinden sich die `.secrets`-Dateien als roher Ciphertext — ohne weitere Warnung. Wer dort mit Secrets arbeiten will, findet UNBRAUCHBARE Inhalte.
+- Die Fehlermeldung kommt nur einmal (beim Anlegen), nicht bei späterer Nutzung.
+
+**Lösung.** Immer `scripts/worktree-create.sh <branch> <path>` verwenden. Das Skript legt den Worktree ohne Checkout an und konfiguriert dann entweder den Schlüssel (unlocked) oder neutralisiert den Filter auf `cat` (locked), bevor es checked out — ohne Smudge-Fehler in beiden Fällen.

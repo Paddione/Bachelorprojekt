@@ -19,25 +19,64 @@ mentolder:
   # Note: design doc originally said 10.13.13.0/24 / port 51820 — corrected here.
   wg_subnet: "192.168.100.0/24"
   listen_port: 51821
-  # Hetzner control-plane nodes — direct public IPs, always reachable as endpoints
+  # Hetzner nodes des fleet-Clusters.
+  #
+  # pod_cidr (T002491): Der GPU-Host braucht fuer jeden Kubernetes-Peer NEBEN der
+  # Mesh-Adresse dessen Pod-CIDR in AllowedIPs — in WireGuard ist AllowedIPs
+  # zugleich Routing-Tabelle und Eingangsfilter, sonst verwirft der Host die
+  # Pakete der Pods lautlos. Der Wert ist `.spec.podCIDR` des Nodes; er aendert
+  # sich, wenn ein Node neu in den Cluster aufgenommen wird. Nur die Konfiguration
+  # des GPU-Hosts traegt diese Eintraege (siehe generate-wg-conf.sh) — unter
+  # Kubernetes-Nodes routet flannel die Pod-Netze selbst.
   nodes:
     - name: gekko-hetzner-2
       endpoint: "178.104.169.206:51821"
       wg_ip: "192.168.100.30"
+      # ACHTUNG: Der wg-Peer lebt (frischer Handshake), aber der Node ist am
+      # 2026-08-01 NICHT mehr Teil des fleet-Clusters — `kubectl get nodes` kennt
+      # ihn nicht, das CIDR ist keinem Node zugeordnet. Bis zur Klaerung bleibt
+      # der Eintrag stehen, damit der bestehende Tunnel unveraendert bleibt.
+      pod_cidr: "10.42.6.0/24"
       schema_key: WG_MESH_GEKKO2
       public_key: "iXnGP9bIwrofD6a96D5Fz5rM7smbIAc3gXJcUx5m6j0="
 
     - name: gekko-hetzner-3
       endpoint: "46.225.125.59:51821"
       wg_ip: "192.168.100.31"
+      pod_cidr: "10.42.5.0/24"
       schema_key: WG_MESH_GEKKO3
       public_key: "UyOC2keZx+1L73sOw+tVN1jNksgSkjX5zb1sZY3W/x0="
 
     - name: gekko-hetzner-4
       endpoint: "178.104.159.79:51821"
       wg_ip: "192.168.100.32"
+      pod_cidr: "10.42.3.0/24"
       schema_key: WG_MESH_GEKKO4
       public_key: "mHjkm8YbesFZfneadLPZ8gHwyobakn1gRc+Cx82rP0Y="
+
+    # Control-Plane-Nodes des fleet-Clusters. Sie kamen mit der
+    # Fleet-Konsolidierung dazu, wurden aber nie ins wg-gpu-Mesh aufgenommen —
+    # Pods auf diesen Nodes erreichten Embedding und Rerank deshalb ueberhaupt
+    # nicht (T002491). Anders als die gekko-Eintraege haben sie keinen
+    # schema_key: ihre privaten Schluessel liegen ausschliesslich auf den Nodes
+    # unter /etc/wireguard/wg-gpu.key und nicht in environments/.secrets.
+    - name: pk-hetzner-4
+      endpoint: "204.168.244.104:51821"
+      wg_ip: "192.168.100.33"
+      pod_cidr: "10.42.0.0/24"
+      public_key: "tK3WzIcumUjACWqbXNgCqoSP9JhICAUHA+D8kSzMJ2o="
+
+    - name: pk-hetzner-6
+      endpoint: "37.27.251.38:51821"
+      wg_ip: "192.168.100.34"
+      pod_cidr: "10.42.1.0/24"
+      public_key: "aBZsZcOOZ3PV4MvSUQ1yDI/rNw1QblL2e1+Q0zYE/gk="
+
+    - name: pk-hetzner-8
+      endpoint: "62.238.23.79:51821"
+      wg_ip: "192.168.100.35"
+      pod_cidr: "10.42.2.0/24"
+      public_key: "9pUIHwlWBP8LtwKh1C5Ni1/FvqUHK9wWEGEHcqBfS20="
 
   # GPU host — WSL2 on Windows with LM Studio (RTX 5070 Ti, 16 GB)
   # Configured in commit 05dbf9a8. The wg-gpu interface on WSL2 uses 192.168.100.10;

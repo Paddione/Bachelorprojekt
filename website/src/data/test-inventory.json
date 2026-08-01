@@ -2562,6 +2562,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-bundle-T002506",
+    "file": "tests/spec/mishap-bundle-T002506.bats",
+    "category": "mishap-bundle-T002506",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-bundle-infra-testspec-ci",
     "file": "tests/spec/mishap-bundle-infra-testspec-ci.bats",
     "category": "mishap-bundle-infra-testspec-ci",

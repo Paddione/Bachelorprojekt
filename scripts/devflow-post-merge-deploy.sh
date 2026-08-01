@@ -4,14 +4,26 @@
 set -u
 
 TICKET_ID="${1:-}"
-if [[ -z "$TICKET_ID" ]]; then
+if [ -z "$TICKET_ID" ]; then
   echo "FEHLER: TICKET_ID erforderlich — Usage: devflow-post-merge-deploy.sh T00XXXX" >&2
   exit 2
 fi
+# T002506-Review (M7): T-Nummer-Format validieren, bevor die ID als Regex in
+# --grep landet. Eine malformed ID wuerde als Zeichenklasse/Regex interpretiert
+# und koennte nicht gemeinte Commits matchen — identisches Muster wie in
+# agent-lock-merged.sh cmd_check_merged.
+case "$TICKET_ID" in T[0-9][0-9][0-9][0-9][0-9][0-9]) : ;; *)
+  echo "FEHLER: ungültiges Ticket-ID-Format '$TICKET_ID' (erwartet T######)" >&2
+  exit 2
+esac
 # T002448-M9/M10: Finde den Merge-Commit durch Ticket-ID-Match auf main,
 # nicht durch blindes `git log -1`. Bei mehreren intervenierenden Commits
 # zwischen Merge und HEAD liefert `-1` den falschen Commit.
-MERGE_COMMIT=$(git log origin/main --format="%H %s" --grep="\\[${TICKET_ID}\\]" --merges -1 2>/dev/null | awk '{print $1}')
+# M7 (T002506): `--merges` gestrichen — das Repo squasht PRs (1 Parent),
+# `--merges` wuerde nur echte Merge-Commits (≥2 Parents) finden und schliesst
+# den Squash-Commit aus. Der `--grep`-Match auf "[TICKET_ID]" identifiziert
+# den Squash-Commit bereits eindeutig.
+MERGE_COMMIT=$(git log origin/main --format="%H %s" --grep="\\[${TICKET_ID}\\]" -1 2>/dev/null | awk '{print $1}')
 if [[ -z "$MERGE_COMMIT" ]]; then
   echo "FEHLER: Kein Merge-Commit fuer Ticket ${TICKET_ID} auf origin/main gefunden." >&2
   exit 3

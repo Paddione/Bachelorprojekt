@@ -222,3 +222,35 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 - **Tools:** `search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `search_code`, `get_architecture`, `index_repository`.
 - **Wann bevorzugen:** strukturelle Code-Suche und Abhängigkeitsanalyse — vor grep/glob.
 - **Fallback:** `grep` / `rg` / `glob` für einfache Textsuche.
+
+## `bge-mcp` — BGE Embeddings & Reranking (Bearer-pflichtig)
+
+- **Transport:** HTTP auf `127.0.0.1:13005/mcp` (`scripts/bge-mcp/server.mjs`, systemd-user-Unit
+  `bge-mcp.service`). HTTP statt stdio, weil die llama-Web-UI beim Hinzufügen ausschließlich eine
+  URL entgegennimmt.
+- **Tools:** `bge_embed`, `bge_rerank`.
+- **Wann bevorzugen:** lokale Vektor-Embeddings und Reranking über die bge-Paare.
+- **Fallback:** direkter HTTP-Aufruf an die Paar-URLs (siehe `website/src/lib/bge-router.ts`).
+
+**Der Server verlangt zwingend einen Bearer-Token.** Über HTTP entfällt die implizite
+Authentifizierung, die stdio dadurch besitzt, dass nur der startende Prozess sprechen kann; der
+Bind auf `127.0.0.1` schützt nur gegen das Netz, nicht gegen andere lokale Prozesse. Der Header
+wird seit T002487 aus dem `headers`-Feld der Registry generiert — als unexpandierte
+`${BGE_MCP_TOKEN}`-Referenz, damit kein Klartext in eine getrackte Datei gerät.
+
+Betriebsvoraussetzung ist deshalb, dass die Variable in der Umgebung exportiert ist, aus der der
+Harness startet:
+
+```bash
+set -a; . ~/.config/bge-mcp/server.env; set +a   # vor dem Start des Harness
+```
+
+**Diagnose bei „Server inaktiv":** Ein fehlender Token sieht aus wie ein nicht laufender Dienst.
+Unterscheiden lässt sich das nur direkt am Endpunkt — `HTTP 401` mit `www-authenticate: Bearer`
+heißt „läuft, aber Token fehlt", erst ein Verbindungsfehler heißt „läuft nicht":
+
+```bash
+curl -si -X POST http://localhost:13005/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"1"}}}' | head -3
+```

@@ -2430,6 +2430,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/authenticated-http-headers",
+    "file": "tests/spec/mcp-gateway/authenticated-http-headers.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-skill-integration",
     "file": "tests/spec/mcp-skill-integration.bats",
     "category": "mcp-skill-integration",

@@ -2,7 +2,10 @@
   "mcpServers": {
     "bge-mcp": {
       "type": "http",
-      "url": "http://localhost:13005/mcp"
+      "url": "http://localhost:13005/mcp",
+      "headers": {
+        "Authorization": "Bearer ${BGE_MCP_TOKEN}"
+      }
     },
     "codebase-memory-mcp": {
       "command": "/home/patrick/.local/bin/codebase-memory-mcp"

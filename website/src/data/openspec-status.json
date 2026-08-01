@@ -2111,6 +2111,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002464": [
+    {
+      "slug": "epic-canvas-k5",
+      "status": "plan_staged"
+    }
+  ],
   "T002470": [
     {
       "slug": "2026-07-29-worktree-branch-name-guard",

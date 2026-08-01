@@ -230,6 +230,36 @@ const data = (() => {
     return createPoll('/api/cockpit/models', 30000)(opts?.refreshMs);
   }
 
+  /**
+   * K5 Epic-Canvas (T002464). Poll wie die uebrigen Listen-Endpunkte.
+   * @param {{ refreshMs?: number }} [opts]
+   */
+  function epics(opts) {
+    return createPoll('/api/cockpit/epics', 60000)(opts?.refreshMs);
+  }
+
+  /**
+   * OF1-Vorpruefung vor einem Canvas-Export: hat jemand anders
+   * openspec/changes/ seit `sinceIso` angefasst?
+   *
+   * Einmalabruf statt Poll — die Frage stellt sich nur im Moment des Exports.
+   * Sie liegt hier im Adapter, damit Panel und canvas-store.js kein eigenes
+   * fetch() brauchen (E1).
+   *
+   * @param {string} epicId
+   * @param {string} sinceIso
+   * @returns {Promise<{hasChanges: boolean, error?: string, reason?: string}>}
+   */
+  async function epicChangesSince(epicId, sinceIso) {
+    const data = await fetchEndpoint(
+      `/api/cockpit/epics/${encodeURIComponent(epicId)}/changes-since?ts=${encodeURIComponent(sinceIso)}`,
+    );
+    // Konservativ: wo die Antwort nichts Eindeutiges sagt, gilt "geaendert".
+    // Der Nutzer wird dann gefragt, statt dass still ueberschrieben wird.
+    if (data.error) return { hasChanges: true, error: data.error };
+    return { hasChanges: data.hasChanges !== false, reason: data.reason };
+  }
+
   /** @param {function} onEvent */
   function agentStream(onEvent) {
     return createStream('/api/cockpit/stream/agents')(onEvent);
@@ -294,6 +324,8 @@ const data = (() => {
     cluster,
     factory,
     models,
+    epics,
+    epicChangesSince,
     agentStream,
     factoryStream,
     ticketAction,

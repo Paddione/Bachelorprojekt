@@ -12,6 +12,7 @@ import { portfolioHandler, featureHandler } from './routes/cockpit';
 import { podsListHandler, warningsHandler } from './routes/cluster';
 import { factoryStatusHandler } from './routes/factory';
 import { agentsHandler, ciHandler, modelsHandler } from './routes/custom';
+import { epicsHandler, epicsChangesSinceHandler } from './routes/epics';
 import { agentStreamHandler, factoryStreamHandler } from './routes/stream';
 
 const PORT = parseInt(process.env.COCKPIT_DAEMON_PORT || '49152', 10);
@@ -54,6 +55,13 @@ app.get('/api/cockpit/agents', agentsHandler);
 app.get('/api/cockpit/ci', ciHandler);
 app.get('/api/cockpit/models', modelsHandler);
 
+// K5 Epic-Canvas (T002464). Beide Routen sind lesend — der Canvas-Export
+// schreibt NICHT serverseitig: die Canvas-Daten liegen ohnehin im Browser
+// (IndexedDB), und ein Schreibpfad ins Dateisystem gehoert hinter die Auth, die
+// erst K4 entwirft (siehe den T002505-Block weiter unten).
+app.get('/api/cockpit/epics', epicsHandler);
+app.get('/api/cockpit/epics/:id/changes-since', epicsChangesSinceHandler);
+
 // T002505: Hier stand ein Endpoint, der den Token unauthentifiziert per HTTP
 // herausgab:
 //     app.get('/api/cockpit/token', (c) => c.json({ token }));
@@ -84,9 +92,22 @@ app.post('/api/cockpit/agent-action', (c) => c.json({ ok: true, message: 'Write 
 // Zeitstempel aus JEDER Antwort, um das Alter der Anzeige zu bestimmen. Ohne das
 // Feld kann er fuer /health nur die Anfragezeit annehmen — und genau diese Luecke
 // blieb unbemerkt, solange der Test dazu geskippt wurde [T002508].
+// `root` ist der Checkout, aus dem dieser Daemon gestartet wurde [T002464].
+//
+// Ohne dieses Feld kann ein Test nicht feststellen, OB der Daemon, der ihm
+// antwortet, den Code traegt, den er gerade prueft. Auf dem Standardport laeuft
+// leicht noch ein Daemon aus einem anderen Worktree — dann misst die Suite
+// dessen Stand. Beobachtet an genau diesem Ticket: ein 3,8 h alter Daemon aus
+// .worktrees/cockpit-daemon-runtime-T002508 lieferte 404 fuer eine Route, die
+// im gepruefen Checkout laengst registriert war.
+//
+// Die Blickrichtung ist dieselbe wie bei T002508: dort war die Suite blind,
+// weil sie bedingungslos skippte; hier waere sie blind, weil sie den falschen
+// Prozess befragt. Beides sieht in bats nach einem Ergebnis aus.
 app.get('/health', (c) => c.json({
   status: 'ok',
   uptime: process.uptime(),
+  root: process.cwd(),
   fetchedAt: new Date().toISOString(),
 }));
 

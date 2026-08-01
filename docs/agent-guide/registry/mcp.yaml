@@ -16,6 +16,15 @@ clients:
   mcp-kubernetes:
     transport: http
     endpoint: http://localhost:18080/mcp
+    browser_endpoint: http://localhost:18082/mcp
+    browser_note: >-
+      Fuer Browser-Clients (llama-Web-UI, http://localhost:8098) steht mcp-kubernetes
+      hinter dem CORS-Proxy scripts/mcp-cors-proxy unter :18082. Grund: das
+      OTS-Image kubernetes_mcp_server kann kein CORS und wirft 403 auf jede
+      Anfrage mit Origin-Header (eigener CSRF-Schutz). Der Proxy beantwortet
+      OPTIONS selbst, entfernt Origin/Referer beim Weiterreichen an :18080 und
+      setzt die CORS-Header am Antwortweg. CLI-Harnesses (kein Origin-Header)
+      koennen weiter :18080 direkt benutzen.
     harness:
       claude_code:
         type: http

@@ -3035,7 +3035,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 602,
+      "file_count": 604,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3466,6 +3466,8 @@
         "scripts/llm/start-rerank-server.ps1",
         "scripts/llm/watchdog-llm-servers.ps1",
         "scripts/lmstudio-preload.sh",
+        "scripts/mcp-cors-proxy/mcp-cors-proxy.service",
+        "scripts/mcp-cors-proxy/proxy.mjs",
         "scripts/mcp-gateway/mcp-gateway.service",
         "scripts/mcp-sync.sh",
         "scripts/merge-domains.mjs",

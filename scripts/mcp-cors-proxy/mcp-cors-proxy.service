@@ -1,0 +1,28 @@
+# scripts/mcp-cors-proxy/mcp-cors-proxy.service
+# mcp-cors-proxy — systemd USER service. Transparenter CORS-Reverse-Proxy vor
+# mcp-kubernetes (127.0.0.1:18080 -> Streamable-HTTP des OTS-Images
+# kubernetes_mcp_server im cluster). Das Image kann kein CORS, und es wirft
+# 403 auf jede Anfrage mit Origin-Header (eigener CSRF-Schutz) — der Proxy
+# beantwortet OPTIONS selbst, entfernt Origin/Referer beim Weiterreichen und
+# setzt die CORS-Header erst am Antwortweg. Der Browser (llama-Web-UI auf
+# http://localhost:8098) erreicht mcp-kubernetes damit unter
+# http://127.0.0.1:18082/mcp. Bestehende Clients auf :18080 sind unberuehrt.
+# Installed/managed via `task agents:mcp-cors-proxy:install` (symlinked into
+# ~/.config/systemd/user/).
+[Unit]
+Description=MCP CORS reverse proxy (mcp-kubernetes :18082 -> :18080)
+After=network-online.target
+Wants=mcp-gateway.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/patrick/Bachelorprojekt
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=LISTEN_PORT=18082
+Environment=UPSTREAM=http://127.0.0.1:18080
+ExecStart=/usr/bin/node /home/patrick/Bachelorprojekt/scripts/mcp-cors-proxy/proxy.mjs
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

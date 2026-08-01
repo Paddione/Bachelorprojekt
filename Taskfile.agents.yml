@@ -221,6 +221,74 @@ tasks:
         fi
         systemctl --user status mcp-gateway.service --no-pager -n 20 || true
 
+  # ── mcp-cors-proxy — CORS-Proxy vor mcp-kubernetes (:18082 -> :18080) ──
+  # Das OTS-Image kubernetes_mcp_server kann kein CORS und wirft 403 auf
+  # Origin-Header; der Browser-Client (llama-Web-UI) braucht deshalb diesen
+  # Proxy. Same install/status shape as factory-mcp above.
+
+  mcp-cors-proxy:install:
+    desc: "Install mcp-cors-proxy as a persistent systemd USER service (autostart + Restart=always)."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host."
+          echo "Enable it: 'loginctl enable-linger $USER' then re-run."
+          exit 1
+        fi
+        # Reap any ad-hoc proxy instance started for testing so the port is free.
+        fuser -k 18082/tcp 2>/dev/null || true
+        sleep 1
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        SRC="$(pwd)/scripts/mcp-cors-proxy"
+        mkdir -p "${UNIT_DIR}"
+        ln -sf "${SRC}/mcp-cors-proxy.service" "${UNIT_DIR}/mcp-cors-proxy.service"
+        systemctl --user daemon-reload
+        systemctl --user enable --now mcp-cors-proxy.service
+        echo "mcp-cors-proxy installed as systemd --user service (autostart + Restart=always)."
+
+  mcp-cors-proxy:uninstall:
+    desc: "Stop + disable the mcp-cors-proxy systemd service and remove the symlinked unit."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        systemctl --user disable --now mcp-cors-proxy.service 2>/dev/null || true
+        rm -f "${UNIT_DIR}/mcp-cors-proxy.service"
+        systemctl --user daemon-reload 2>/dev/null || true
+        echo "mcp-cors-proxy systemd service uninstalled."
+
+  mcp-cors-proxy:status:
+    desc: "Health-check mcp-cors-proxy (:18082 preflight + initialize)"
+    cmds:
+      - |
+        bash -c '
+          set -euo pipefail
+          preflight=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://127.0.0.1:18082/mcp \
+            -H "Origin: http://localhost:8098" -H "Access-Control-Request-Method: POST" \
+            -H "Access-Control-Request-Headers: content-type" || echo "000")
+          init=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:18082/mcp \
+            -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+            -H "Origin: http://localhost:8098" \
+            -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"hc\",\"version\":\"1\"}}}" || echo "000")
+          echo "mcp-cors-proxy (:18082) preflight: HTTP $preflight, init: HTTP $init"
+          [[ "$preflight" == "204" && "$init" == "200" ]]
+        '
+
+  mcp-cors-proxy:service-status:
+    desc: "Show the mcp-cors-proxy systemd service state + recent journal tail."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host."
+          exit 0
+        fi
+        systemctl --user status mcp-cors-proxy.service --no-pager -n 20 || true
+
   # ── stdio MCP servers — spawned per-session by the client (Claude Code /
   # opencode), not standalone daemons. Nothing to install/start here; this is
   # a read-only presence check for the stack overview below.
@@ -247,16 +315,18 @@ tasks:
   # ── stack — the whole MCP surface at a glance ─────────────────────────
 
   stack:install:
-    desc: "Install every daemon-backed MCP server (factory-mcp, mcp-gateway) as persistent systemd services"
+    desc: "Install every daemon-backed MCP server (factory-mcp, mcp-gateway, mcp-cors-proxy) as persistent systemd services"
     cmds:
       - task: factory-mcp:install
       - task: mcp-gateway:install
+      - task: mcp-cors-proxy:install
 
   stack:uninstall:
     desc: "Uninstall every daemon-backed MCP server's systemd service"
     cmds:
       - task: factory-mcp:uninstall
       - task: mcp-gateway:uninstall
+      - task: mcp-cors-proxy:uninstall
 
   stack:status:
     desc: "Status overview of every configured MCP server (daemons + stdio presence check)"

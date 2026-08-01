@@ -149,12 +149,31 @@ func main() {
 	log.Printf("factory-mcp listening on %s (repo=%s)", addr, repo())
 	srv := &http.Server{
 		Addr:              addr,
-		Handler:           mux,
+		Handler:           withCORS(mux),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Max-Age", "86400")
+		if requested := r.Header.Get("Access-Control-Request-Headers"); requested != "" {
+			w.Header().Set("Access-Control-Allow-Headers", requested)
+		} else {
+			w.Header().Set("Access-Control-Allow-Headers",
+				"Authorization, Content-Type, Accept, mcp-protocol-version")
+		}
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func handleMCP(w http.ResponseWriter, r *http.Request) {

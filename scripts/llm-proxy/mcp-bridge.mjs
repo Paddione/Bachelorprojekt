@@ -2,7 +2,9 @@
 // stdio→HTTP/SSE bridge for MCP servers.
 // Each enabled server gets one child process shared across all HTTP sessions.
 // GET  /mcp/<name> → SSE stream (event: session_id, followed by event: message)
-// POST /mcp/<name> → writes JSON-RPC to child stdin → response broadcast via SSE
+// POST /mcp/<name> → writes JSON-RPC to child stdin; the child's response is
+//   returned directly (200) on the same POST — streamable_http compatible —
+//   and additionally broadcast to open SSE sessions for legacy SSE clients.
 
 import { spawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
@@ -17,6 +19,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /** @type {Map<string, ServerEntry>} */
 const servers = new Map();
+
+/** @type {Map<string, {res: import('node:http').ServerResponse, timer: NodeJS.Timeout}>} */
+const pending = new Map();
 
 /** @type {object|null} */
 let config = null;
@@ -42,6 +47,21 @@ function loadConfig() {
     return null;
   }
   return JSON.parse(readFileSync(file, 'utf-8'));
+}
+
+// ── CORS ──────────────────────────────────────────────────────────────────────
+// Der llama-Web-UI-Browser (http://localhost:8098) ruft die Bridge cross-origin
+// auf. Ohne Preflight-Antwort und CORS-Header blockiert der Browser den Request
+// ("Failed to fetch"). OPTIONS wird deshalb VOR der Auth-Pruefung beantwortet.
+const CORS_HEADERS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, OPTIONS',
+  'access-control-allow-headers': 'Authorization, Content-Type, Accept, mcp-protocol-version',
+  'access-control-max-age': '86400',
+};
+
+function withCors(headers = {}) {
+  return { ...CORS_HEADERS, ...headers };
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -92,6 +112,27 @@ function createServerEntry(name, srvCfg) {
     const trimmed = line.trim();
     if (!trimmed) return;
     broadcastToSessions(sessions, trimmed);
+
+    // Streamable-HTTP mode: deliver the child's response directly to the
+    // POST that originated the request (matched by JSON-RPC id).
+    let msg;
+    try {
+      msg = JSON.parse(trimmed);
+    } catch {
+      return; // not a JSON-RPC line (child log output)
+    }
+    if (msg && msg.id !== undefined) {
+      const key = String(msg.id);
+      const p = pending.get(key);
+      if (p) {
+        clearTimeout(p.timer);
+        pending.delete(key);
+        if (!p.res.headersSent) {
+          p.res.writeHead(200, withCors({ 'content-type': 'application/json' }));
+          p.res.end(trimmed);
+        }
+      }
+    }
   });
 
   // Log stderr
@@ -169,41 +210,50 @@ async function initBridge() {
  * @param {string} method      – HTTP method ('GET' | 'POST')
  */
 function handleMcp(req, res, serverName, method) {
+  if (method === 'OPTIONS') {
+    const requested = req.headers['access-control-request-headers'];
+    res.writeHead(204, requested
+      ? { ...CORS_HEADERS, 'access-control-allow-headers': requested }
+      : CORS_HEADERS);
+    res.end();
+    return;
+  }
+
   const entry = servers.get(serverName);
   if (!entry) {
-    res.writeHead(404, { 'content-type': 'application/json' });
+    res.writeHead(404, withCors({ 'content-type': 'application/json' }));
     res.end(JSON.stringify({ error: { code: 'server_not_found', message: `no enabled MCP server: ${serverName}` } }));
     return;
   }
 
   const srvCfg = config?.servers?.[serverName];
   if (!srvCfg) {
-    res.writeHead(404, { 'content-type': 'application/json' });
+    res.writeHead(404, withCors({ 'content-type': 'application/json' }));
     res.end(JSON.stringify({ error: { code: 'config_missing', message: `server ${serverName} not in config` } }));
     return;
   }
 
   // Auth check
   if (!checkAuth(req, srvCfg)) {
-    res.writeHead(401, { 'content-type': 'application/json' });
+    res.writeHead(401, withCors({ 'content-type': 'application/json' }));
     res.end(JSON.stringify({ error: { code: 'unauthorized', message: 'invalid or missing bearer token' } }));
     return;
   }
 
   // Check process health
   if (!entry.proc || entry.proc.killed || !entry.proc.stdin.writable) {
-    res.writeHead(503, { 'content-type': 'application/json' });
+    res.writeHead(503, withCors({ 'content-type': 'application/json' }));
     res.end(JSON.stringify({ error: { code: 'server_unavailable', message: `${serverName} is restarting` } }));
     return;
   }
 
   if (method === 'GET') {
     // ── SSE stream setup ──
-    res.writeHead(200, {
+    res.writeHead(200, withCors({
       'content-type': 'text/event-stream',
       'cache-control': 'no-cache',
       'connection': 'keep-alive',
-    });
+    }));
 
     // Send session_id event (MCP SSE transport handshake)
     const sessionId = randomUUID();
@@ -241,29 +291,51 @@ function handleMcp(req, res, serverName, method) {
       try {
         message = JSON.parse(body);
       } catch {
-        res.writeHead(400, { 'content-type': 'application/json' });
+        res.writeHead(400, withCors({ 'content-type': 'application/json' }));
         res.end(JSON.stringify({ error: { code: 'invalid_json', message: 'request body is not valid JSON' } }));
         return;
       }
 
       if (!message.jsonrpc || !message.method) {
-        res.writeHead(400, { 'content-type': 'application/json' });
+        res.writeHead(400, withCors({ 'content-type': 'application/json' }));
         res.end(JSON.stringify({ error: { code: 'invalid_rpc', message: 'missing jsonrpc or method field' } }));
         return;
       }
 
       try {
         entry.proc.stdin.write(JSON.stringify(message) + '\n');
-        res.writeHead(202, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ accepted: true }));
       } catch (err) {
-        res.writeHead(503, { 'content-type': 'application/json' });
+        res.writeHead(503, withCors({ 'content-type': 'application/json' }));
         res.end(JSON.stringify({ error: { code: 'write_error', message: err.message } }));
+        return;
       }
+
+      // Notifications have no id → the child sends no response. Acknowledge
+      // with an empty 202 (spec-compliant; body only on 200).
+      if (message.id === undefined) {
+        res.writeHead(202, withCors());
+        res.end();
+        return;
+      }
+
+      // Request → answer directly with the child's result (streamable_http).
+      // The child also broadcasts to open SSE sessions for legacy clients.
+      const timer = setTimeout(() => {
+        pending.delete(String(message.id));
+        if (!res.headersSent) {
+          res.writeHead(504, withCors({ 'content-type': 'application/json' }));
+          res.end(JSON.stringify({
+            jsonrpc: '2.0',
+            id: message.id,
+            error: { code: -32000, message: 'bridge timeout: no response from child server' },
+          }));
+        }
+      }, 30_000);
+      pending.set(String(message.id), { res, timer });
     });
 
   } else {
-    res.writeHead(405, { 'content-type': 'application/json' });
+    res.writeHead(405, withCors({ 'content-type': 'application/json' }));
     res.end(JSON.stringify({ error: { code: 'method_not_allowed', message: `${method} not supported` } }));
   }
 }
@@ -280,6 +352,14 @@ function stopBridge() {
     }
     console.log(`[mcp-bridge] ${name}: stopped`);
   }
+  for (const p of pending.values()) {
+    clearTimeout(p.timer);
+    if (!p.res.headersSent) {
+      p.res.writeHead(503, withCors({ 'content-type': 'application/json' }));
+      p.res.end(JSON.stringify({ error: { code: 'server_stopped', message: 'bridge stopped' } }));
+    }
+  }
+  pending.clear();
   servers.clear();
   config = null;
 }

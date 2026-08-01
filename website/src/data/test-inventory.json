@@ -2832,6 +2832,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/kit-assets-in-image",
+    "file": "tests/spec/sdlc-cockpit/kit-assets-in-image.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/kit-binding",
     "file": "tests/spec/sdlc-cockpit/kit-binding.bats",
     "category": "sdlc-cockpit",

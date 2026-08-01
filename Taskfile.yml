@@ -3705,6 +3705,11 @@ tasks:
     cmds:
       - node scripts/check-bundle-size.mjs --update-baseline
 
+  website:portrait-derivatives:
+    desc: "Rebuild the portrait derivatives from gerald.jpg — 4:5 crop anchored at y=0 so the head stays whole (T002507)"
+    cmds:
+      - bash scripts/build-portrait-derivatives.sh
+
   website:sync:
     desc: "Fast-sync website/src to the running pod and rebuild (ENV=dev|mentolder|...)"
     vars:

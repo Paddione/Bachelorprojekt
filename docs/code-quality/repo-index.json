@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 678,
+      "file_count": 679,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -426,6 +426,7 @@
         "tests/spec/merge-arbitration/detect-threshold.bats",
         "tests/spec/merge-arbitration/synthesize-syntax-gate.bats",
         "tests/spec/mishap-bundle-2026-06-30.bats",
+        "tests/spec/mishap-bundle-T002506.bats",
         "tests/spec/mishap-bundle-infra-testspec-ci.bats",
         "tests/spec/mishap-bundle/ci-test-agentlock.bats",
         "tests/spec/mishap-categorize-erden.bats",

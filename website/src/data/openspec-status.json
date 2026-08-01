@@ -2153,6 +2153,12 @@
       "status": "archived"
     }
   ],
+  "T002508": [
+    {
+      "slug": "cockpit-daemon-runtime",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

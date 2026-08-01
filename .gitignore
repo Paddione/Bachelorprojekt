@@ -32,6 +32,11 @@ openclaw/.env
 # Ignore individual .lavish/ files (not the subtree — K1 kit + K2 daemon are tracked)
 .lavish/*.html
 .lavish/*.brainstorm*
+# Emit-Ausgabe des Daemon-Typechecks [T002508]. Der Daemon laeuft ueber tsx und
+# wird nie aus dist/ gestartet; das Verzeichnis entsteht nur, weil ein via
+# project references eingebundenes Projekt "composite": true braucht und
+# composite ohne Emit nicht zulaessig ist.
+.lavish/kit/daemon/dist/
 vaultwarden-import-*.json
 *-bitwarden-export.json
 claude-code/*-export.settings.json

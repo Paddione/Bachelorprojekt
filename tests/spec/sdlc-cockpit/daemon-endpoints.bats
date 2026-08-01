@@ -2,12 +2,10 @@
 
 # daemon-endpoints.bats — Daemon antwortet auf alle GET-Endpoints
 
+load daemon-helper
+
 setup() {
-  DAEMON_PORT=${COCKPIT_DAEMON_PORT:-49152}
-  BASE="http://127.0.0.1:${DAEMON_PORT}"
-  if ! curl -s -m 2 "${BASE}/health" >/dev/null 2>&1; then
-    skip "Daemon not running (no /health on ${BASE})"
-  fi
+  require_daemon || return 1
 }
 
 @test "daemon health endpoint responds" {

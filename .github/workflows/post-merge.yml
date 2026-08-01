@@ -55,6 +55,50 @@ jobs:
           }
           retry bash scripts/ticket.sh update-status --id "$TICKET_ID" --status awaiting_deploy
 
+  reap-branches:
+    name: Reap orphaned remote branches
+    runs-on: ubuntu-latest
+    needs: mark-awaiting
+    # Haengt bewusst NICHT am Deploy-Pfad: ein Fehler beim Aufraeumen darf nie einen Deploy
+    # blockieren. continue-on-error entspricht dem non-fatalen Verhalten der uebrigen
+    # Post-Merge-Schritte.
+    continue-on-error: true
+    # contents: write wird NUR hier gesetzt, nicht workflowweit — das Skript loescht Refs und
+    # pusht Archiv-Tags. Begruendung analog zum Kommentar am Job render-artifact weiter unten:
+    # Rechte bleiben auf den Job begrenzt, der sie braucht.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+          fetch-tags: false
+      - name: Reap branches whose ticket is closed
+        env:
+          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"
+          if [[ -z "$TICKET_ID" ]]; then
+            echo "No T###### id in merge commit — nothing to reap."
+            exit 0
+          fi
+          # ticket.sh braucht Cluster-Zugriff fuer die Statusabfrage.
+          mkdir -p "$HOME/.kube"
+          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          export KUBECONFIG="$HOME/.kube/config"
+          export TICKET_CTX=fleet BRAND=mentolder
+          bash scripts/branch-reaper.sh --ticket "$TICKET_ID" | tee /tmp/reap.log
+          {
+            echo "### Branch reaper — $TICKET_ID"
+            echo ''
+            echo '```'
+            cat /tmp/reap.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   detect:
     name: Detect manifest changes
     runs-on: ubuntu-latest

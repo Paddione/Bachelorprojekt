@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.233.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.232.0...website-v1.233.0) (2026-08-01)
+
+
+### Features
+
+* **agents:** Auth-Schnitt für K4 und K6 entscheiden [T002463] ([#3602](https://github.com/Paddione/Bachelorprojekt/issues/3602)) ([11384ee](https://github.com/Paddione/Bachelorprojekt/commit/11384ee5a2a56807aa35c2a90449c7c8a43fc4c9))
+
+
+### Bug Fixes
+
+* **website:** Daemon-Quellcode nicht mehr öffentlich ausliefern [T002528] ([#3601](https://github.com/Paddione/Bachelorprojekt/issues/3601)) ([f908cae](https://github.com/Paddione/Bachelorprojekt/commit/f908cae118f80f45f18dc8a2978493a92e7fff0e))
+
 ## [1.232.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.231.0...website-v1.232.0) (2026-08-01)
 
 

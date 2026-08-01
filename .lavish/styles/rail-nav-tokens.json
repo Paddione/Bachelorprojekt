@@ -1,0 +1,16 @@
+{
+  "id": "rail-nav-tokens",
+  "name": "Zusammengeklappte Panel-Leiste",
+  "zweck": "Mehrere Panels als schmale Leiste nebeneinander zeigen, ohne dass sie ihre Identitaet verlieren. Der Kopf behaelt seinen horizontalen Abstand und ruecken die Titel auf die kleinste Textstufe; Rumpf und Kontext werden ausgeblendet statt verkleinert, damit kein halb lesbarer Zwischenzustand entsteht.",
+  "herkunft": {
+    "projekt": "Bachelorprojekt / SDLC-Cockpit",
+    "datei": ".lavish/kit/panel.css",
+    "zeile": 167
+  },
+  "beleg_ausschnitt": ".panel--rail .panel__body,\n.panel--rail .panel__context {\n  display: none;\n}\n\n.panel--rail .panel__head {\n  padding: 0 var(--space-4);\n  border-bottom: none;\n}\n\n.panel--rail .panel__title {\n  font-size: var(--text-xs);\n}",
+  "token_bezuege": [
+    "--space-4",
+    "--text-xs"
+  ],
+  "tags": ["layout", "rail", "panel", "abstand"]
+}

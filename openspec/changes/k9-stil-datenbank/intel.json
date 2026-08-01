@@ -24,7 +24,23 @@
       "s1_budget": 738
     },
     {
+      "path": ".lavish/kit/daemon/routes/styles.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
       "path": ".lavish/kit/daemon/server.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".lavish/kit/daemon/sources/styles.ts",
       "language": "javascript",
       "loc": 0,
       "s1_limit": 900,

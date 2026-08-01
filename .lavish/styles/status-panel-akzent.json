@@ -1,0 +1,17 @@
+{
+  "id": "status-panel-akzent",
+  "name": "Statusfarben im Panel-Kopf",
+  "zweck": "Zustand eines Panels durch Farbe allein erkennbar machen, ohne die Textgroesse oder das Layout zu veraendern. Veraltete Daten und ein abgerissener Datenstrom bekommen je eine eigene Statusfarbe; die Grundfarbe des Kopfes bleibt unangetastet, damit die Information additiv wirkt und nicht die Lesbarkeit stoert.",
+  "herkunft": {
+    "projekt": "Bachelorprojekt / SDLC-Cockpit",
+    "datei": ".lavish/kit/panel.css",
+    "zeile": 49
+  },
+  "beleg_ausschnitt": ".panel__staleness--stale {\n  color: var(--color-status-warn);\n}\n\n.panel__staleness--disconnected {\n  color: var(--color-status-err);\n}\n\n.panel__actions--confirming .panel__confirm-target {\n  font-weight: var(--weight-semibold);\n  color: var(--color-status-warn);\n}",
+  "token_bezuege": [
+    "--color-status-warn",
+    "--color-status-err",
+    "--weight-semibold"
+  ],
+  "tags": ["status", "farbe", "panel", "kontrollraum"]
+}

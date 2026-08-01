@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "status-panel-akzent",
+      "name": "Statusfarben im Panel-Kopf",
+      "zweck": "Zustand eines Panels durch Farbe allein erkennbar machen, ohne die Textgroesse oder das Layout zu veraendern.",
+      "herkunft": {
+        "projekt": "Bachelorprojekt / SDLC-Cockpit",
+        "datei": ".lavish/kit/panel.css"
+      },
+      "tags": ["status", "farbe", "panel", "kontrollraum"]
+    },
+    {
+      "id": "rail-nav-tokens",
+      "name": "Zusammengeklappte Panel-Leiste",
+      "zweck": "Mehrere Panels als schmale Leiste nebeneinander zeigen, ohne dass sie ihre Identitaet verlieren.",
+      "herkunft": {
+        "projekt": "Bachelorprojekt / SDLC-Cockpit",
+        "datei": ".lavish/kit/panel.css"
+      },
+      "tags": ["layout", "rail", "panel", "abstand"]
+    }
+  ]
+}

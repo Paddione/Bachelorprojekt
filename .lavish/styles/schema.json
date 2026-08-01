@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mentolder.de/schemas/lavish-style-entry.json",
+  "title": "Stil-Datenbank-Eintrag",
+  "description": "Ein geernteter Gestaltungsbaustein (E14/D14). Ein Eintrag kommt nur ins Kit, wenn er alle drei Beitragsregeln erfuellt: Beleg-Ausschnitt, ausschliesslich Token-Bezuege, Verzeichniseintrag mit Zweck und Herkunft.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "zweck", "herkunft", "beleg_ausschnitt", "token_bezuege"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stabiler Bezeichner in kebab-case. Zugleich der Schluessel im index.json.",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Sprechender Name auf Deutsch.",
+      "minLength": 1
+    },
+    "zweck": {
+      "type": "string",
+      "description": "Die Gestaltungsabsicht — wofuer dieser Baustein da ist, nicht wie er gebaut ist. Das ist, was ein Modell liest, wenn es einen passenden Baustein sucht.",
+      "minLength": 1
+    },
+    "herkunft": {
+      "type": "object",
+      "description": "Woher der Baustein stammt. Ohne Herkunft laesst sich weder der Kontext nachschlagen noch beurteilen, ob der Beleg noch aktuell ist.",
+      "additionalProperties": false,
+      "required": ["projekt", "datei"],
+      "properties": {
+        "projekt": { "type": "string", "minLength": 1 },
+        "datei": { "type": "string", "minLength": 1 },
+        "zeile": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "beleg_ausschnitt": {
+      "type": "string",
+      "description": "Der tatsaechliche Code-Ausschnitt. Er darf KEINE festen Farb- oder Groessenwerte enthalten — nur var(--token)-Bezuege. Ein Ausschnitt mit hartkodierten Werten bricht E11 und taugt nicht als Vorlage.",
+      "minLength": 1
+    },
+    "token_bezuege": {
+      "type": "array",
+      "description": "Die verwendeten Design-Tokens, jedes davon in .lavish/kit/tokens.css definiert. Ein Eintrag ohne Token-Bezug kann nicht als Token-Beispiel dienen.",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^--[a-z0-9]+(-[a-z0-9]+)*$"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "Freie Schlagworte fuer die Suche.",
+      "items": { "type": "string" }
+    }
+  }
+}

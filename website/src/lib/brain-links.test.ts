@@ -38,9 +38,9 @@ describe('isIngestedSource — Grenze aus dem Manifest', () => {
   });
 });
 
-describe('candidateHrefs — beide URL-Kandidaten in fester Reihenfolge', () => {
-  it('liefert /<slug> zuerst, dann /wiki/<slug>', () => {
-    expect(candidateHrefs('claude')).toEqual(['/claude', '/wiki/claude']);
+describe('candidateHrefs — URL-Form, am Dienst belegt (Task 8)', () => {
+  it('liefert /wiki/<slug> (Content-Root unter /wiki/, /<slug> antwortet 404)', () => {
+    expect(candidateHrefs('claude')).toEqual(['/wiki/claude']);
   });
 });
 

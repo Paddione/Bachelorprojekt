@@ -68,12 +68,16 @@ export function isIngestedSource(path: string): boolean {
 }
 
 /**
- * Die beiden URL-Kandidaten aus Annahme 1, in fester Reihenfolge. Welcher
- * antwortet, klärt der laufende Dienst (Task 8); bis dahin probiert der
- * Endpunkt beide und nimmt den ersten, der 200 liefert.
+ * Die URL-Form der Wiki-Seite, belegt am laufenden Dienst (2026-08-02,
+ * Task 8): `http://localhost:8787/wiki/<slug>` antwortet 200 für existierende
+ * Seiten (`/wiki/claude`, `/wiki/agents`, `/wiki/claude-lib-goals`),
+ * `/<slug>` antwortet 404. Der Quartz-Build (`SERVER_ROOT=/public`) liefert
+ * den Content-Root unter `/wiki/` aus. Seit diesem Befund gibt es genau einen
+ * Kandidaten; die Probe je Link entfällt nicht, sie prüft weiterhin den
+ * Existenznachweis.
  */
 export function candidateHrefs(slug: string): string[] {
-  return [`/${slug}`, `/wiki/${slug}`];
+  return [`/wiki/${slug}`];
 }
 
 /**

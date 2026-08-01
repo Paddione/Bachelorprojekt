@@ -42,20 +42,12 @@ describe('GET /api/admin/cockpit/brain', () => {
     expect(body.error).toBeTruthy();
   });
 
-  it('emits a clean link when the first candidate answers 200', async () => {
-    fetchMock.mockResolvedValueOnce(new Response(null, { status: 200 }));
-    const res = await GET({ request: req('admin', 'paths=CLAUDE.md') } as unknown as Parameters<typeof GET>[0]);
-    const body = await res.json();
-    expect(body.links).toEqual([{ href: '/claude', label: 'CLAUDE' }]);
-    expect(body.missing).toEqual([]);
-  });
-
-  it('tries the second candidate if the first is not 200', async () => {
-    fetchMock.mockResolvedValueOnce(new Response(null, { status: 404 }));
+  it('emits a clean link when the candidate answers 200', async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 200 }));
     const res = await GET({ request: req('admin', 'paths=CLAUDE.md') } as unknown as Parameters<typeof GET>[0]);
     const body = await res.json();
     expect(body.links).toEqual([{ href: '/wiki/claude', label: 'CLAUDE' }]);
+    expect(body.missing).toEqual([]);
   });
 
   it('routes a pruned source into uncovered instead of probing', async () => {

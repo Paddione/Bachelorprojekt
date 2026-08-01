@@ -2135,6 +2135,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002507": [
+    {
+      "slug": "2026-08-01-portrait-derivate-crop",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

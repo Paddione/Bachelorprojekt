@@ -315,7 +315,10 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   run grep -q 'loading="eager"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
   run grep -q 'fetchpriority="high"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
   run grep -q 'width="600"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
-  run grep -q 'height="600"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
+  # 750 seit T002507: die Derivate sind 4:5 statt quadratisch, damit der Kopf
+  # vollstaendig im Bild bleibt. Dass diese Werte zur ausgelieferten Datei
+  # passen, prueft tests/spec/website-core/portrait-derivate-crop.bats.
+  run grep -q 'height="750"' "$PERF_PORTRAIT"; [ "$status" -eq 0 ]
   run grep -q 'loading="lazy"' "$PERF_PORTRAIT"; [ "$status" -ne 0 ]
 }
 

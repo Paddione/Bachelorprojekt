@@ -1,3 +1,26 @@
+# Partial p3 — Browser-Adapter (ersetzt K1-Fixtures)
+
+**Ticket:** T002461  
+**Rolle:** `adapter-js`  
+**Ziel-Datei:** `.lavish/kit/adapter.js` (ersetzt die gesamte K1-Fixture-Datei)  
+**Hängt ab von:** p1 (Daemon-Core), p2 (Source-Adapters)  
+**Nicht zu modifizieren:** `daemon/`-Dateien (p1, p2), Panel-Dateien (unberührt)
+
+## Ziel
+
+Die K1-Fixture-Implementierung vollständig durch einen Live-HTTP-Client ersetzen, der mit dem
+lokalen Daemon spricht. Die **Signatur bleibt identisch** — kein Panel-Code muss geändert werden.
+Der Adapter implementiert D10 (panel-deklarierte Refresh-Rate), D11 (kein Polling unsichtbarer
+Panels), D12 (fetchedAt durchreichen), D13 (nie Null/Strich/Beispielwert).
+
+## Zu ersetzende Datei
+
+### `.lavish/kit/adapter.js` (vollständiger Ersatz)
+
+Die gesamte Datei wird durch folgende Implementierung ersetzt. Die öffentliche API (`window.data`)
+bleibt identisch zur K1-Version.
+
+```js
 // adapter.js — Live data adapter (K2)
 // brand='mentolder' hardcoded per E16
 // Communicates with local daemon on http://127.0.0.1:49152
@@ -299,3 +322,60 @@ const data = (() => {
 })();
 
 window.data = data;
+```
+
+## Wichtige Änderungen gegenüber K1
+
+1. **Asynchron statt `Promise.resolve(fixtures)`**: Alle Methoden fetchen jetzt vom Daemon
+2. **Rückgabewert ist jetzt ein Handle-Objekt** mit `.data`-Property und `.subscribe()`-Methode,
+   nicht mehr direkt das Daten-Array. Panels müssen ggf. `.data` statt direktem Wert lesen.
+3. **Neue Methoden**: `agentStream(onEvent)`, `factoryStream(onEvent)`, `unsubscribe(handle)`
+4. **Write-Methoden**: `ticketAction()` und `agentAction()` versuchen Token vom Daemon zu holen
+5. **D10**: Jede Methode akzeptiert `refreshMs`-Parameter
+6. **D11**: `visibilitychange`-Listener pausiert/resumed Polling
+7. **D12**: `fetchedAt` wird aus jeder Response extrahiert
+8. **D13**: Bei Fehler wird `error`-Feld gesetzt, nie `null` zurückgegeben
+
+## Panel-Kompatibilität
+
+Da der Rückgabetyp von `Promise<Array>` zu einem Handle-Objekt wechselt, müssen Panel-Aufrufe
+angepasst werden:
+
+**K1 (Fixture):**
+```js
+const tickets = await data.tickets();
+renderTable(tickets);
+```
+
+**K2 (Live):**
+```js
+const handle = data.tickets({ refreshMs: 300000 });
+renderTable(handle.data);  // initial render
+handle.subscribe((freshData) => {
+  renderTable(freshData);  // each poll update
+});
+```
+
+**Diese Signaturänderung muss in den Panel-Dateien nachgezogen werden.** Da K1 noch nicht gemerged
+ist und die Panel-Dateien aus K1 stammen, sollte der Factory-Implementierer prüfen, ob die Panels
+die neue Signatur unterstützen oder ob sie angepasst werden müssen.
+
+## Token-Endpoint (neu im Daemon)
+
+Der Daemon braucht einen zusätzlichen Endpoint, damit der Browser das Token lesen kann:
+```ts
+// In server.ts hinzufügen:
+app.get('/api/cockpit/token', (c) => c.json({ token }));
+```
+
+Dieser Endpoint ist GET (frei erreichbar per E17) und liefert nur das Token — kein Audit.
+
+## Abnahmekriterien
+
+1. `adapter.js` enthält **kein** `Promise.resolve(fixtures)` mehr
+2. `typeof data.tickets === 'function'` → `true`  
+3. `typeof data.agents === 'function'` → `true`
+4. `typeof data.agentStream === 'function'` → `true` (neu in K2)
+5. `typeof data.unsubscribe === 'function'` → `true` (neu in K2)
+6. `data.tickets({ refreshMs: 5000 })` gibt ein Handle-Objekt mit `.data` zurück
+7. Kein `fetch(...)`-Aufruf außerhalb von `adapter.js` in `.lavish/kit/` (D2-Positiv-Anker)

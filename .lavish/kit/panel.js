@@ -81,12 +81,13 @@ class Panel {
 
     const source = this.el.dataset.source;
     try {
-      const result = await window.data[source]();
+      const handle = window.data[source]();
       this.lastError = null;
       this.isStale = false;
       this.isDisconnected = false;
       this.lastRefresh = new Date();
-      this.render(result);
+      this.render(handle.data);
+      handle.subscribe((freshData) => this.render(freshData));
     } catch (e) {
       this.lastError = new Date();
       this.isStale = true;

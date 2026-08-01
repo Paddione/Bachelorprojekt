@@ -19,11 +19,26 @@ setup() {
   cd "$REPO" || return 1
 }
 
-# Bildet `COPY website/ .` (WORKDIR /app) nach: nur der website-Teilbaum landet
-# im Ziel, Symlinks werden als Symlinks übernommen.
+# Bildet `COPY website/ .` (WORKDIR /app) nach: der website-Teilbaum landet im
+# Ziel, Symlinks werden als Symlinks übernommen.
+#
+# [T002499] Kopiert wird NUR public/, nicht website/. — und das ist eine
+# Korrektheits-, keine Sparmaßnahme. `cp -r website/.` zog in CI 606 MB mit:
+# website/node_modules ist lokal ein Symlink aufs Haupt-node_modules (der Test
+# lief in 0,59 s), nach `pnpm install` in CI aber ein echtes Verzeichnis. Da
+# BATS_TEST_TMPDIR unter /tmp liegt und `task test:spec` die Suite mit
+# `bats -j $(nproc)` PARALLEL fährt, lief /tmp voll und die anderen Worker
+# starben mit "parallel: Is the disk full?" — die Suite brach bei wechselnden
+# Testzahlen ab (61 bzw. 515 von 2510), ohne dass dieser Test selbst rot wurde.
+#
+# Für die Aussage des Tests ist public/ äquivalent: die geprüften Symlinks
+# liegen unter public/cockpit/ und behalten ihre relative Tiefe. $T/public/
+# cockpit/kit -> ../../../.lavish/kit zeigt auf $T/../.lavish/kit und ist im
+# Sandbox-Pfad genauso tot wie /app/public/cockpit/kit -> /.lavish/kit im Image.
 _simulate_website_copy() {
   local dest="$1"
-  cp -r website/. "$dest/" 2>/dev/null || true
+  mkdir -p "$dest/public"
+  cp -r website/public/. "$dest/public/" 2>/dev/null || true
 }
 
 @test "T002466: Kit-Assets sind im Image-Layout auflösbar, nicht nur im Checkout" {

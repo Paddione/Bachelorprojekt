@@ -119,3 +119,9 @@ git show --stat HEAD   # PFLICHT: bestätigt, dass die regenerierten Artefakte
                         # belegt das NICHT (T002284: pre-commit kann eine gestagte
                         # Änderung lautlos zu einem Leer-Diff neutralisieren).
 ```
+
+### Log-Aktualitäts-Regel [T002495-M8]
+
+Vor jedem Hintergrund- oder Elevated-Lauf (z. B. PowerShell, background `task`, async `run_command`), dessen Ergebnis über eine Log- oder Transkriptdatei ausgelesen wird:
+1. Die alte Logdatei löschen (`rm -f <log-path>`).
+2. Vor dem Lesen des Logs prüfen, ob die Logdatei neu angelegt wurde. Die bloße Existenz eines alten Logs ist kein Beweis für einen erfolgreichen/fehlgeschlagenen neuen Lauf.

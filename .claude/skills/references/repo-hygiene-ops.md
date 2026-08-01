@@ -45,6 +45,16 @@ git fetch --prune                                                  # gone remote
 >     done
 > ```
 > Nur `-D` (force) funktioniert hier — git sieht die Squash-History nicht.
+>
+> **Zeitzonen-Falle bei Nach-Merge-Commits [T002495-M1]:** `gh pr list --json mergedAt` liefert UTC (`Z`-Suffix), `git log --format='%cI'` lokale Offset-Zeit. Vor dem Vergleichen beide auf UTC normalisieren (`TZ=UTC git log -1 --format='%cd' --date=format-local:'%Y-%m-%dT%H:%M:%SZ'`), sonst meldet der Vergleich falsche Nach-Merge-Commits.
+>
+> **Three-dot-Diff-Falle (`origin/main...<branch>`) [T002495-M2]:** Three-dot zeigt den Diff seit dem Abzweigpunkt (`merge-base`), der sich beim Squash-Merge nicht verschiebt. Um echte ungemergte Änderungen zu prüfen, nur eigene Quelldateien gegen `origin/main` vergleichen:
+> ```bash
+> mb=$(git merge-base origin/main "$b")
+> for f in $(git diff --name-only "$mb" "$b"); do
+>   [ "$(git rev-parse "$b:$f")" = "$(git rev-parse "origin/main:$f")" ] || echo "ABWEICHEND: $f"
+> done
+> ```
 
 ## 3. PR-Triage → verknüpftes Ticket schließen
 

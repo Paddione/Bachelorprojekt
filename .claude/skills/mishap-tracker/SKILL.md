@@ -9,6 +9,20 @@ Batches all execution mishaps into **one aggregate ticket** rather than creating
 
 Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 
+### Branch-Naming-Konvention (T002240 — Groß-/Kleinschreibung)
+
+Beim Anlegen eines Mishap-Branches gilt:
+
+```bash
+ext_id="<T-ID aus ticket.sh>"       # z.B. T002239 — bleibt GROSS (pre-commit: T[0-9]{6,})
+slug=$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')   # openspec-Slug bleibt lowercase
+branch="chore/mishap-<ext-id>"      # Branch-Name mit GROSSEM Ticket-Suffix
+# Beispiel: branch="chore/mishap-T002239"
+```
+
+- Der **Branch** trägt die Ticket-ID GROSS (`T[0-9]{6,}`) — sonst schlägt die pre-commit-Prüfung fehl.
+- Das **openspec-Verzeichnis** (slug) bleibt lowercase (Konvention).
+
 ---
 
 ## Input
@@ -75,9 +89,9 @@ mcp__ticket-mcp__report_mishap({
 ```
 
 **Rückmeldung auswerten:**
-- `"Incident-Ticket angelegt: T000xxx"` → sofortiges Incident-Ticket, kein Buffer-Eintrag
+- `"Incident-Ticket angelegt: T000xxx"` → sofortiges Incident-Ticket für `incident`/`broken`/`security`, kein Buffer-Eintrag
 - `"Mishap gespeichert (3/10). Noch 7 bis zum Rollup-Container-Append."` → weiter melden, Buffer sammelt
-- `"Rollup-Container-Append: 10 Mishaps an den Container angehaengt. Verbleibend: 2."` → Schwelle erreicht, Container wurde befüllt
+- `"Rollup-Container-Append: 10 Mishaps an den Container angehaengt. Verbleibend: 2."` → Schwelle (10) erreicht, Rollup-Container wurde befüllt (`mishap-mcp` hängt per `add-comment` an den `plan_staged`-Rollup-Container an)
 
 ---
 
@@ -94,10 +108,7 @@ mcp__ticket-mcp__get_mishap_buffer()
 Der Buffer ist dateibasiert (`mishap-buffer.json` im gemeinsamen Git-Verzeichnis, aufgelöst über
 `git rev-parse --git-common-dir`) und damit **persistent**: er überlebt Sessionwechsel,
 Worktrees und Neustarts. Ein liegen gebliebener Eintrag wird vom nächsten `report_mishap`
-mitgezählt und geht nicht verloren.
-
-> **Warum hier früher ein erzwungener Flush stand — und warum er weg ist (T002383):**
-> Der Flush erzeugte Bundle-Tickets aus 1–2 Einträgen. Jedes Bundle-Ticket verbraucht seinerseits
+mitgezählt und geht nicht verloren. Wenn die Schwelle von 10 Einträgen erreicht wird oder ein Stale-Flush auslöst, hängt `ticket-mcp` die Einträge als strukturierten Kommentar an den zentralen Rollup-Container ("Mishap Rollup — fortlaufende Sammlung").
 > einen dev-flow-Zyklus, der wieder in diesem Schritt endet. Bei ≥ 1 Bundle pro Zyklus ist der
 > Rückstand per Konstruktion nicht abbaubar — am 27.07.2026 entstanden so 32 Bundles, 19 blieben
 > offen. Den Flush aus Sorge vor Datenverlust wiederherzustellen ist der Rückfall in genau dieses

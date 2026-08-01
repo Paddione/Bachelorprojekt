@@ -86,7 +86,7 @@
       "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 32768 },
       "args": {
         "ctx": null, "ngl": null, "parallel": 1,
-        "cacheTypeK": "q4_0", "cacheTypeV": "q4_0", "loadMode": "mmap",
+        "cacheTypeK": "q8_0", "cacheTypeV": "q8_0", "loadMode": "mmap",
         "flashAttention": true, "jinja": true, "metrics": true,
         "reasoning": "auto", "reasoningBudget": null,
         "mmprojPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mmproj-F16.gguf"
@@ -98,7 +98,7 @@
       "mcp": { "serversConfig": null },
       "extraArgs": [],
       "exclusiveGroup": "chat-gpu",
-      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (Default-Profil, -np 1). -fit ersetzt das bisherige harte -c 65536; minCtx haelt die Untergrenze."
+      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 — aus dem UEBERWACHTEN Profil (-Ctx 262144 -Slots 1 -KvType q8_0, so starten watchdog-llm-servers.ps1 und install-startup-autostart.ps1), NICHT aus den param()-Defaults des Skripts (65536/q4_0). Die Defaults weichen vom laufenden Server ab; wer sie migriert, senkt still die Qualitaet. q8_0 ist Absicht: q4_0-KV degradiert das woertliche Zurueckholen von Pfaden, Symbolnamen und Tool-Call-Argumenten (T002501). -fit ersetzt das harte -c; minCtx haelt die Untergrenze."
     },
     {
       "slug": "gemma-multiagent",
@@ -108,7 +108,7 @@
       "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 65536 },
       "args": {
         "ctx": null, "ngl": null, "parallel": 5,
-        "cacheTypeK": "q4_0", "cacheTypeV": "q4_0", "loadMode": "mmap",
+        "cacheTypeK": "q8_0", "cacheTypeV": "q8_0", "loadMode": "mmap",
         "flashAttention": true, "jinja": true, "metrics": true,
         "reasoning": "auto", "reasoningBudget": null,
         "mmprojPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mmproj-F16.gguf"
@@ -120,7 +120,7 @@
       "mcp": { "serversConfig": null },
       "extraArgs": ["-kvu"],
       "exclusiveGroup": "chat-gpu",
-      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (-Slots-Profil, -np 5 -kvu)."
+      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (-Slots-Profil, -np 5 -kvu). q8_0 wie gemma-factory und gptoss-context — siehe dortige Begruendung (T002501). Mit -kvu ist minCtx ein GEMEINSAMER Pool ueber alle Slots, kein Wert je Slot."
     }
   ]
 }

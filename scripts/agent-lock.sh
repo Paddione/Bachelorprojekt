@@ -119,10 +119,14 @@ _reapable() {
   # [T001582-M1] Using created_at alone wrongly reaped claims that were
   # refreshed recently but originally created long ago.
   local age_base="${hb:-${ct:-0}}"
+  pid="$(_lock_field "$f" owner_pid)"
   # 0) A CONFIRMED-ALIVE SID ALWAYS WINS — even if the worktree path is stale
   #    or missing, a live session owns the claim. Reapability only kicks in
   #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
   if [ -n "$sid" ] && _sid_alive "$sid"; then
+    if [ -n "$pid" ] && ! _pid_alive "$pid"; then
+      _reap_log "$f" pid-dead; return 0
+    fi
     # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID (non-numeric
     # UUIDs gelten immer als "alive" — aber wenn der Heartbeat alt ist, ist der
     # Halter wirklich tot und nur die UUID im Lock uebrig). Ohne diesen Check
@@ -146,7 +150,6 @@ _reapable() {
     [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ] && return 1
   fi
   # 0c) LIVE owner_pid always wins (pgrep -s misses Claude Code session id). [T002267]
-  pid="$(_lock_field "$f" owner_pid)"
   if [ -n "$pid" ] && _pid_alive "$pid"; then return 1; fi
   # 1) Dead PID + past grace → reap with reason "pid-dead" (auditable cause). [T001415]
   if [ -n "$pid" ]; then
@@ -277,8 +280,10 @@ cmd_claim() {
   # muss zum Claim-Zeitpunkt nicht existieren.  [T002412]
   case "${WT:-}" in
     ""|"-"|/*) ;;
+    ".") WT="$PWD" ;;
     *) WT="$PWD/${WT#./}" ;;
   esac
+  WT="${WT%/}"
   # [T002375-p1] Für JEDEN anderen Scope aus dem HEAD füllen. Vorher blieb `branch`
   # bei einem ticket-scoped Claim leer — und der Pre-Commit-Guard aus dev-flow-plan
   # Schritt 5 vergleicht genau dieses Feld mit dem HEAD-Branch. Er schlug damit

@@ -16,6 +16,9 @@ if [[ -z "$MERGE_COMMIT" ]]; then
   echo "FEHLER: Kein Merge-Commit fuer Ticket ${TICKET_ID} auf origin/main gefunden." >&2
   exit 3
 fi
+# T002448-M10: Auto-Detect referenzierte Ticket-IDs im Merge-Commit-Subject (grep.*T00)
+TICKET_IDS=$(git show --format=%s "$MERGE_COMMIT" 2>/dev/null | grep -oE 'T00[0-9]{4}' | sort -u | tr '\n' ' ')
+echo "Referenzierte Ticket-IDs im Merge-Commit: ${TICKET_IDS:-keine}"
 # Generierte Artefakte (linguist-generated in .gitattributes) aus der Deploy-Routing-
 # Selektion nehmen: website/src/data/openspec-status.json & Co. liegen im Merge-Diff jedes
 # Changes mit OpenSpec-Artefakt und loesten sonst einen Deploy ohne Website-Bezug aus

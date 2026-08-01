@@ -24,15 +24,24 @@ _Ticket: T002420_
 |---|---|---|
 | `scripts/plan-intel.sh` | 0 (neu) | n/a (neue Datei, Limit 800) |
 | `scripts/task-context.sh` | 0 (neu) | n/a (neue Datei, Limit 800) |
-| `scripts/plan-lint.sh` | 450 | 350 |
+| `scripts/plan-lint.sh` | n/a (laufend gemessen, s. u.) | n/a (laufend gemessen, s. u.) |
 | `scripts/factory/pipeline.mjs` | 663 | n/a (auf `s1.ignore`) |
 | `.claude/skills/dev-flow-execute/SKILL.md` | 250 | n/a (S1-ungated) |
 | `.claude/skills/references/dev-flow-plan-phases.md` | 327 | n/a (S1-ungated) |
 | `tests/spec/dev-flow-plan/task-context.bats` | 0 (neu) | n/a (S1-ungated) |
 
 Budgets mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_budget <pfad>` verifiziert.
-Nur `scripts/plan-lint.sh` liefert einen numerischen Wert; die übrigen sind ignore-gelistet,
-ungated oder existieren noch nicht.
+Nur `scripts/plan-lint.sh` liefert überhaupt einen numerischen Wert; die übrigen sind
+ignore-gelistet, ungated oder existieren noch nicht.
+
+**Warum für `scripts/plan-lint.sh` trotzdem `n/a` in der Tabelle steht [T002506]:** Dieser Plan
+ist zugleich die **Fixture** von `tests/spec/dev-flow-plan/task-context.bats` (TCC-Gate). Eine
+eingetragene Zahl wird dort von B1a gegen den *live gemessenen* Restwert derselben Datei geprüft —
+und `scripts/plan-lint.sh` wächst mit jeder Änderung an ihr. Jede solche Änderung ließ das Gate
+rot werden, ohne dass am Plan oder am Gate etwas falsch war (450→350, dann 463→337, dann 330).
+Der Wert wird deshalb bewusst nicht mehr behauptet; gemessen wird er weiterhin über das Kommando
+oben. Die Aussagekraft von B1a bleibt für alle *echten* Pläne unberührt — dort ist die
+Zieldatei nicht das messende Werkzeug selbst.
 
 **Nicht-S1-Constraint für `dev-flow-execute/SKILL.md`:** Health-Goal G-AGENTIC09 (projekteigene
 `SKILL.md` über 250 Zeilen, Ziel 0) — die Datei steht bei exakt 250, das Ziel ist derzeit grün.

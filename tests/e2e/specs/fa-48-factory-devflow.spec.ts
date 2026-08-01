@@ -27,31 +27,36 @@ function stubPayload(hall: HallItem[]) {
     metrics: { shippedToday: 0, avgCycleH: null },
     loadingDock: [],
     hall,
-    shipped: [], staged: [], officeWaiting: 0, stagedWaiting: 0,
+    shipped: [],
+    awaitingDeploy: [],
+    awaitingDeployVisible: false,
+    staged: [],
+    providerHealth: [],
+    officeWaiting: 0, stagedWaiting: 0,
+    planningCount: { total: 0, ready: 0 },
+    attention: { blocked: [], stuck: [], cooldowns: [], isEmpty: true },
     fetchedAt: new Date().toISOString(),
   };
 }
 
 async function gotoDevStatusWithStub(page: any, payload: any) {
-  await page.route('**/api/factory-floor', (route: any) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(payload),
-    }),
-  );
-
-  await page.route('**/admin/pipeline*', async (route: any) => {
-    const response = await route.fetch();
-    let body = await response.text();
-    const payloadStr = JSON.stringify(payload);
-    // Replace initial: null or initial: {...} inside props attribute in Astro island
-    body = body.replace(/"initial":null/g, `"initial":${payloadStr}`);
-    body = body.replace(/"initial":\{.*?\}/g, `"initial":${payloadStr}`);
-    route.fulfill({ response, body });
+  // Stub the live API and SSE stream so only the stubbed payload reaches the UI.
+  await page.route('**/api/factory-floor', (route: any) => {
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(payload) });
   });
+  await page.route('**/api/factory-floor/stream', (route: any) => route.abort());
 
-  await page.goto('/dev-status');
+  await page.goto('/admin/pipeline?tab=factory', { waitUntil: 'domcontentloaded' });
+  // DevStatusTabs & FactoryFloor listen for floor-stub-update and ingest the payload.
+  // The island hydrates asynchronously — dispatch repeatedly so the listener is
+  // guaranteed to be registered when the event lands (idempotent overwrite).
+  await page.evaluate((p: any) => {
+    const fire = () => window.dispatchEvent(new CustomEvent('floor-stub-update', { detail: p }));
+    fire();
+    setTimeout(fire, 200);
+    setTimeout(fire, 800);
+  }, payload);
+  await expect(page.getByTestId('factory-floor')).toBeVisible();
 }
 
 test.describe('FA-48: FactoryFloor devflow chip & CI badge', () => {

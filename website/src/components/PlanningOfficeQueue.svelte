@@ -36,6 +36,7 @@
     onDragLeave,
     onDrop,
     onDragEnd,
+    onRankUp,
     onSelect,
     onHandlePointerDown,
     onHandlePointerMove,
@@ -51,6 +52,7 @@
     onDragLeave: () => void;
     onDrop: (e: DragEvent, idx: number) => void;
     onDragEnd: () => void;
+    onRankUp: (it: PlanItem, idx: number) => void;
     onSelect: (it: PlanItem) => void;
     onHandlePointerDown: (e: PointerEvent, it: PlanItem) => void;
     onHandlePointerMove: (e: PointerEvent) => void;
@@ -58,14 +60,15 @@
   } = $props();
 </script>
 
-<div class="pb-queue" data-testid="pb-queue">
+<div class="pb-queue" data-testid="office-list">
   {#each items as it, idx (it.extId)}
     <div
       class="pb-row"
       class:selected={selectedExtId === it.extId}
       class:drag-source={dragSrcExtId === it.extId}
       class:drop-target={dropTargetIdx === idx}
-      data-testid="pb-queue-row-{it.extId}"
+      data-testid="office-card"
+      data-ext-id={it.extId}
       data-planning-item=""
       draggable={!isMobile}
       ondragstart={(e) => onDragStart(e, it)}
@@ -82,6 +85,14 @@
         onpointerup={onHandlePointerUp}
       >☰</span>
       <span class="pb-rank">{String(idx + 1).padStart(2, '0')}</span>
+      <button
+        class="pb-rank-up"
+        data-testid="office-rank-up"
+        title="Rang nach oben"
+        onclick={(e) => { e.stopPropagation(); onRankUp(it, idx); }}
+        disabled={idx === 0}
+        aria-label="Rang nach oben"
+      >▲</button>
       <span class="pb-priority-dot" style="background:{priorityColor(it.priority)}"></span>
       <span class="pb-extid">{it.extId}</span>
       <span class="pb-title">{it.title}</span>

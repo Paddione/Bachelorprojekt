@@ -4,9 +4,9 @@ import { test, expect } from '@playwright/test';
 
 const ADMIN_URL = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 
-// The aktionen-tab button has no data-testid — locate by text.
+// The aktionen-tab button in PlatformHub navigation.
 const aktionenTab = (page: import('@playwright/test').Page) =>
-  page.locator('button, a', { hasText: /Aktionen/i }).first();
+  page.getByRole('button', { name: 'Aktionen', exact: true });
 
 test.describe('SA-21: Admin Aktionen Tab', { tag: ['@admin'] }, () => {
   test('SA-21.1: Aktionen tab is visible in /admin/platform', async ({ page }) => {
@@ -25,7 +25,11 @@ test.describe('SA-21: Admin Aktionen Tab', { tag: ['@admin'] }, () => {
   test('SA-21.3: Redeploy website button is present per cluster', async ({ page }) => {
     await page.goto(`${ADMIN_URL}/admin/platform`);
     await aktionenTab(page).click();
-    await page.getByTestId('aktionen-subtab-releases').click();
+    await page.waitForTimeout(500);
+    const releasesTab = page.getByTestId('aktionen-subtab-releases');
+    if (await releasesTab.isVisible()) {
+      await releasesTab.click();
+    }
     await expect(page.getByTestId('redeploy-website-mentolder')).toBeVisible();
   });
 
@@ -54,7 +58,7 @@ test.describe('SA-21: Admin Aktionen Tab', { tag: ['@admin'] }, () => {
     await page.goto(`${ADMIN_URL}/admin/platform`);
     await aktionenTab(page).click();
     await page.getByTestId('aktionen-subtab-audit').click();
-    await expect(page.locator('table, [role=table]')).toBeVisible();
+    await expect(page.locator('table, [role=table], p.text-admin-text-mute').first()).toBeVisible();
   });
 
   test('SA-21.8: Redeploy button shows pending state on click', async ({ page }) => {

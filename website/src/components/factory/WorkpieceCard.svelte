@@ -75,7 +75,7 @@
         {#if isBlocked}
           <span class="wp-pill wp-pill--danger">⛔ Blockiert</span>
         {:else if isDevflow && item?.ciStatus}
-          <span class="wp-ci">{ciIcon(item.ciStatus)}</span>
+          <span class="wp-ci" data-testid="floor-ci-badge" title={`CI: ${item.ciStatus} — PR öffnen`}>{ciIcon(item.ciStatus)}</span>
         {:else}
           <span class="wp-live-dot"></span>
         {/if}

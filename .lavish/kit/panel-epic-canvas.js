@@ -9,6 +9,7 @@ export class EpicCanvas {
     this.activeEpicId = null;
     this.render();
     this.loadEpics();
+    this.loadBrainLinks();
   }
 
   toggleFullscreen() {
@@ -73,6 +74,65 @@ export class EpicCanvas {
     list.appendChild(box);
   }
 
+  /**
+   * K6 Brain-Verweise (T002465) — die Wiki-Seiten zum Quellpfad dieses Panels.
+   *
+   * Einmalabruf statt Poll: die Verweise aendern sich nur bei einem Ingest-Lauf.
+   * Das Panel kennt sein Subjekt — das SDLC-Cockpit-Epic und dessen SSOT-Spec —
+   * und reicht diesen Quellpfad an den Adapter weiter; es holt den Inhalt nie
+   * selbst (E1).
+   */
+  async loadBrainLinks() {
+    try {
+      if (!window.data || typeof window.data.brainLinks !== 'function') {
+        this.setContext([{ href: '#', label: 'Brain-Verweise nicht verfügbar' }]);
+        return;
+      }
+      const result = await window.data.brainLinks(['openspec/specs/sdlc-cockpit.md']);
+      this.renderBrainContext(result);
+    } catch (e) {
+      this.setContext([{ href: '#', label: `Brain-Verweise: ${e.message}` }]);
+    }
+  }
+
+  /**
+   * Die drei Kontext-Zustaende, keiner davon still (D13): ein Fehler wird
+   * benannt, eine nicht ingestierte Quelle wird benannt, und erfolgreiche
+   * Verweise werden als Links gerendert.
+   */
+  renderBrainContext(result) {
+    if (!result) return;
+    if (result.error) {
+      this.setContext([{ href: '#', label: `Brain: ${result.error}` }]);
+      return;
+    }
+    if (result.uncovered && result.uncovered.length > 0 && (!result.links || result.links.length === 0)) {
+      this.setContext([{ href: '#', label: 'Quellen dieses Panels werden nicht ingestiert' }]);
+      return;
+    }
+    if (result.links && result.links.length > 0) {
+      this.setContext(result.links);
+      return;
+    }
+    this.setContext([]);
+  }
+
+  /** Kontext-Slot füllen — gleicher Vertrag wie panel.js#setContext ({href, label}). */
+  setContext(links) {
+    const slot = this.container.querySelector('.epic-canvas-context');
+    if (!slot) return;
+    slot.replaceChildren();
+    if (!links || links.length === 0) return;
+    for (const link of links) {
+      const a = document.createElement('a');
+      a.href = link.href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = link.label;
+      slot.appendChild(a);
+    }
+  }
+
   /** Poll beenden, wenn das Panel verschwindet — sonst laeuft er weiter. */
   destroy() {
     if (this.unsubscribeEpics) this.unsubscribeEpics();
@@ -92,6 +152,7 @@ export class EpicCanvas {
         <button class="epic-toggle-fullscreen" title="Vollfläche umschalten">⛶</button>
       </div>
       <div class="epic-canvas-list"></div>
+      <div class="epic-canvas-context"></div>
     `;
     this.container.querySelector('.epic-toggle-fullscreen')
       .addEventListener('click', () => this.toggleFullscreen());

@@ -112,7 +112,7 @@ _reapable() {
   [ -f "$f" ] || return 0
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
   hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
-  br="$(_lock_field "$f" branch)"; pid="$(_lock_field "$f" owner_pid)"
+  br="$(_lock_field "$f" branch)"
   # Age reference for the pid-dead/sid-dead grace checks below: prefer the
   # heartbeat (reflects the last confirmed-live refresh) and fall back to
   # created_at only for old claim files that predate the heartbeat_at field.
@@ -123,18 +123,15 @@ _reapable() {
   #    or missing, a live session owns the claim. Reapability only kicks in
   #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
   if [ -n "$sid" ] && _sid_alive "$sid"; then
-    pid="$(_lock_field "$f" owner_pid)"
-    if [ -z "$pid" ] || _pid_alive "$pid"; then
-      # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID (non-numeric
-      # UUIDs gelten immer als "alive" — aber wenn der Heartbeat alt ist, ist der
-      # Halter wirklich tot und nur die UUID im Lock uebrig). Ohne diesen Check
-      # wuerde reap nie einen solchen Lock aufraeumen, weil der SID-Fruehrueck-
-      # kehr nie zum PID-/Heartbeat-Teil vordringt.
-      if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
-        _reap_log "$f" heartbeat-ttl; return 0
-      fi
-      return 1
+    # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID (non-numeric
+    # UUIDs gelten immer als "alive" — aber wenn der Heartbeat alt ist, ist der
+    # Halter wirklich tot und nur die UUID im Lock uebrig). Ohne diesen Check
+    # wuerde reap nie einen solchen Lock aufraeumen, weil der SID-Fruehrueck-
+    # kehr nie zum PID-/Heartbeat-Teil vordringt.
+    if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
+      _reap_log "$f" heartbeat-ttl; return 0
     fi
+    return 1
   fi
   # 0b) Worktree+branch match beats a dead/mismatched SID: a session RESUME
   #     starts a new process with a different SID (and possibly a different
@@ -149,6 +146,7 @@ _reapable() {
     [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ] && return 1
   fi
   # 0c) LIVE owner_pid always wins (pgrep -s misses Claude Code session id). [T002267]
+  pid="$(_lock_field "$f" owner_pid)"
   if [ -n "$pid" ] && _pid_alive "$pid"; then return 1; fi
   # 1) Dead PID + past grace → reap with reason "pid-dead" (auditable cause). [T001415]
   if [ -n "$pid" ]; then

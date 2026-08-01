@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 663,
+      "file_count": 664,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -431,6 +431,7 @@
         "tests/spec/mishap-categorize-erden.bats",
         "tests/spec/mishap-docker-wsl-T002250.bats",
         "tests/spec/mishap-t002422.bats",
+        "tests/spec/mishap-t002424.bats",
         "tests/spec/monitoring-alerts.bats",
         "tests/spec/newsletter-system.bats",
         "tests/spec/nextcloud-integration.bats",
@@ -3000,7 +3001,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 600,
+      "file_count": 601,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3488,6 +3489,7 @@
         "scripts/plan-touched-files.sh",
         "scripts/post-deploy-watch.sh",
         "scripts/pr-refresh.sh",
+        "scripts/pr-scope-check.sh",
         "scripts/pre-deploy-check.sh",
         "scripts/pre-deploy-checks-lib.sh",
         "scripts/preflight-pr-scope.sh",

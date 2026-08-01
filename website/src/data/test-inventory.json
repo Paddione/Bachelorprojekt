@@ -2592,6 +2592,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-t002424",
+    "file": "tests/spec/mishap-t002424.bats",
+    "category": "mishap-t002424",
+    "kind": "shell"
+  },
+  {
     "id": "monitoring-alerts",
     "file": "tests/spec/monitoring-alerts.bats",
     "category": "monitoring-alerts",

@@ -216,12 +216,20 @@ fi
 # 1) Skeleton without checkout — never runs the smudge filter, so it cannot fail
 #    on git-crypt paths.
 # === T002471-M4: Branch-Name-Guard ===
-# Prüft, ob die Ticket-ID im Branch-Namen gross geschrieben ist
-_ticket_id=$(echo "$BRANCH" | grep -oE '[tT][0-9]{6,}' | head -1 || true)
-if [[ -n "$_ticket_id" && "$_ticket_id" != "${_ticket_id^^}" ]]; then
-  echo "ERROR: Ticket-ID im Branch-Namen '$BRANCH' ist kleingeschrieben." >&2
-  echo "  Verwende ${_ticket_id^^} statt $_ticket_id." >&2
-  exit 1
+# Prüft, ob die Ticket-ID im Branch-Namen gross geschrieben ist.
+# WT_SKIP_NAME_CHECK MUSS hier genauso greifen wie beim Guard weiter oben
+# (Zeile ~45): dieser zweite Guard wurde später ergänzt und kannte die
+# dokumentierte Notfall-Umgehung nicht — sie war damit wirkungslos, weil der
+# erste Guard sie zwar respektierte, dieser dann aber trotzdem abbrach.
+# [T002512]
+if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
+  _ticket_id=$(echo "$BRANCH" | grep -oE '[tT][0-9]{6,}' | head -1 || true)
+  if [[ -n "$_ticket_id" && "$_ticket_id" != "${_ticket_id^^}" ]]; then
+    echo "ERROR: Ticket-ID im Branch-Namen '$BRANCH' ist kleingeschrieben." >&2
+    echo "  Verwende ${_ticket_id^^} statt $_ticket_id." >&2
+    echo "  Umgehung (nur im Notfall): WT_SKIP_NAME_CHECK=1 bash $0 ..." >&2
+    exit 1
+  fi
 fi
 # === Ende T002471-M4 ===
 if [ "$BRANCH_EXISTS" -eq 1 ]; then

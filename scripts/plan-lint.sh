@@ -390,8 +390,15 @@ fi
 # (File Structure → tasks); the reverse is noisy (tasks name incidental helpers/runners).
 # Section boundary is the next H2 (`## `), so H3 sub-groupings inside File Structure
 # (### New files / ### Changed files) stay part of the section.
+# M6 (T002506): `### Task N`-Headings (H3, writing-plans-Vorlage) beenden die
+# File-Structure-Region ebenfalls — ohne `## Tasks`-H2-Abschnitt blieb der komplette
+# Task-Body im infs-Bereich, W3 fand keine Referenzen und meldete jede Datei als
+# unreferenziert. `### New files`/`### Changed files` matcht das Task-Muster nicht.
 FS_SECTION="$(awk '/^##[[:space:]]+File Structure/{f=1;next} f&&/^##[[:space:]]/{exit} f{print}' "$PLAN")"
-PLAN_OUTSIDE_FS="$(awk '/^##[[:space:]]+File Structure/{infs=1;next} infs&&/^##[[:space:]]/{infs=0} infs{next} {print}' "$PLAN")"
+# M5 (T002506-Review): Das writing-plans-Template nutzt `### Task N: <Name>` — N
+# als Literal. `Task [0-9]` verfehlte den unnummerierten Template-Fall und liess
+# die File-Structure-Region dort bis zum naechsten H2 offen (W3 false negative).
+PLAN_OUTSIDE_FS="$(awk '/^##[[:space:]]+File Structure/{infs=1;next} infs&&(/^##[[:space:]]/||/^###[[:space:]]+Task ([0-9]|N)/){infs=0} infs{next} {print}' "$PLAN")"
 # [T002375-p6] Die Partial-Dateien mitlesen. Im Partial-Modell (T002074) steht die
 # `## File Structure` im Index-Plan, waehrend die Tasks — und damit die Datei-Referenzen —
 # in `tasks.d/pN-*.md` liegen. W3 sah nur den Index-Plan und meldete deshalb JEDE dort

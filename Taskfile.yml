@@ -768,15 +768,28 @@ tasks:
         fi
 
   test:spec:
-    desc: "Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS laeuft nur die eigene Partition (siehe scripts/spec-shard.sh)."
     cmds:
       - task: test:spec:build-mcp-runner
-      # `-r tests/spec/` statt `tests/spec/*.bats` [T002416]: der Glob erfasst NUR die
-      # oberste Ebene. Seit der Verzeichniskonvention liegen neue Tests unter
-      # tests/spec/<spec-slug>/ — die waeren mit dem Glob stillschweigend nie gelaufen,
-      # was schlimmer ist als ein roter Test. `-r` erfasst beide Formen, deshalb koennen
-      # die 139 Bestandsdateien auf der obersten Ebene liegen bleiben.
-      - ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files -r tests/spec/
+      - |
+        # `find` statt `bats -r tests/spec/` [T002500]: die Shard-Aufteilung braucht eine
+        # explizite Dateiliste. Der rekursive Fang bleibt identisch zu `-r` — und damit
+        # auch die Eigenschaft aus T002416, dass Tests unter tests/spec/<spec-slug>/
+        # miterfasst werden. Ein flacher Glob wuerde sie stillschweigend auslassen, was
+        # schlimmer waere als ein roter Test.
+        FILES=$(find tests/spec -name '*.bats' -type f | LC_ALL=C sort)
+        if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
+          FILES=$(printf '%s\n' "$FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS")
+          echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$FILES" | grep -c .) Dateien"
+        fi
+        # Leere Auswahl ist ein Fehler, kein No-op. Ein still gruener Leerlauf saehe
+        # aus wie eine bestandene Suite, obwohl nichts lief — genau die Klasse von
+        # Fehler, die das Sharding einfuehren kann und die niemand bemerkt.
+        if [ "$(printf '%s' "$FILES" | grep -c .)" -eq 0 ]; then
+          echo "test:spec: FEHLER — keine Spec-Dateien ausgewaehlt" >&2
+          exit 1
+        fi
+        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $FILES
 
   test:spec:changed:
     desc: "Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]"
@@ -802,7 +815,20 @@ tasks:
           echo "→ Running changed spec tests ($SELECTED of $TOTAL):"
         fi
         echo "$CHANGED_FILES"
-        ./tests/unit/lib/bats-core/bin/bats $CHANGED_FILES
+        # [T002500] Sharding auch hier, denn der teure Fall laeuft ueber DIESEN Pfad:
+        # aendert ein PR ci.yml/Taskfile.yml oder ein geteiltes Harness, faellt
+        # find-changed-tests.sh fail-closed auf die volle Suite zurueck (~400s).
+        if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
+          CHANGED_FILES=$(printf '%s\n' "$CHANGED_FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS")
+          # Anders als bei test:spec ist ein leerer Shard hier legitim: eine
+          # diff-gescopte Auswahl kann weniger Dateien haben als es Shards gibt.
+          if [ "$(printf '%s' "$CHANGED_FILES" | grep -c .)" -eq 0 ]; then
+            echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: keine Dateien in dieser Partition"
+            exit 0
+          fi
+          echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$CHANGED_FILES" | grep -c .) Dateien"
+        fi
+        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $CHANGED_FILES
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"

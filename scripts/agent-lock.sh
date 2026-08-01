@@ -119,23 +119,22 @@ _reapable() {
   # [T001582-M1] Using created_at alone wrongly reaped claims that were
   # refreshed recently but originally created long ago.
   local age_base="${hb:-${ct:-0}}"
-  pid="$(_lock_field "$f" owner_pid)"
   # 0) A CONFIRMED-ALIVE SID ALWAYS WINS — even if the worktree path is stale
   #    or missing, a live session owns the claim. Reapability only kicks in
   #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
   if [ -n "$sid" ] && _sid_alive "$sid"; then
-    if [ -n "$pid" ] && ! _pid_alive "$pid"; then
-      _reap_log "$f" pid-dead; return 0
+    pid="$(_lock_field "$f" owner_pid)"
+    if [ -z "$pid" ] || _pid_alive "$pid"; then
+      # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID (non-numeric
+      # UUIDs gelten immer als "alive" — aber wenn der Heartbeat alt ist, ist der
+      # Halter wirklich tot und nur die UUID im Lock uebrig). Ohne diesen Check
+      # wuerde reap nie einen solchen Lock aufraeumen, weil der SID-Fruehrueck-
+      # kehr nie zum PID-/Heartbeat-Teil vordringt.
+      if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
+        _reap_log "$f" heartbeat-ttl; return 0
+      fi
+      return 1
     fi
-    # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID (non-numeric
-    # UUIDs gelten immer als "alive" — aber wenn der Heartbeat alt ist, ist der
-    # Halter wirklich tot und nur die UUID im Lock uebrig). Ohne diesen Check
-    # wuerde reap nie einen solchen Lock aufraeumen, weil der SID-Fruehrueck-
-    # kehr nie zum PID-/Heartbeat-Teil vordringt.
-    if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
-      _reap_log "$f" heartbeat-ttl; return 0
-    fi
-    return 1
   fi
   # 0b) Worktree+branch match beats a dead/mismatched SID: a session RESUME
   #     starts a new process with a different SID (and possibly a different

@@ -663,7 +663,8 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          bash scripts/validate-commit-msg.sh range "${BASE_SHA}..${HEAD_SHA}"
+          BRANCH_BASE=$(git merge-base origin/main "$HEAD_SHA")
+          bash scripts/validate-commit-msg.sh range "${BRANCH_BASE}..${HEAD_SHA}"
 
       # commit-vs-diff consistency guard (T001434-mishap). Catches any commit
       # whose subject claims an implementation change but whose diff contains

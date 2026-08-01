@@ -30,6 +30,19 @@
 #   1  any other setup failure (the half-created worktree is rolled back)
 set -euo pipefail
 
+# T002448-M1: fail fast when the source checkout is not on main — but ONLY in
+# real upstream repos (origin/main exists). Ephemeral BATS repos without a
+# remote must keep the T002204 warn-path (exit 0), because there is no canonical
+# main to protect. Mirrors the divergence-guard's origin/main precondition.
+if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+  CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
+  if [ "$CURRENT_BRANCH" != "main" ]; then
+    echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgefuehrt werden." >&2
+    echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
+    exit 1
+  fi
+fi
+
 # --- branch-name guard: fail fast before divergence guard [T002470] ---
 #
 # Background: T002240 (same bug, fixed only in scripts/factory/auto-chore-plan.sh),

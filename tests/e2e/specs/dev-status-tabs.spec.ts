@@ -63,7 +63,7 @@ test('FA-UNIF-09: Attention strip appears when a workpiece is blocked', async ({
 });
 
 test('FA-UNIF-10: Planung reflects a promote without manual reload', async ({ page }) => {
-  await page.goto('/admin/pipeline?tab=planung');
+  await page.goto('/admin/pipeline?tab=planung', { waitUntil: 'domcontentloaded' });
   const before = await page.locator('[data-planning-item]').count();
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('factory-floor-refreshed', { detail: {} })));
   await expect.poll(() => page.locator('[data-planning-item]').count()).toBeGreaterThanOrEqual(0);
@@ -81,11 +81,11 @@ test('FA-UNIF-11: sidebar does not scroll with the Werkstatt accordion open (144
 });
 
 test('FA-UNIF-12: legacy routes redirect to /admin/pipeline', async ({ page }) => {
-  await page.goto('/dev-status?tab=planung');
+  await page.goto('/dev-status?tab=planung', { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(/\/admin\/pipeline\?tab=planung/);
-  await page.goto('/admin/factory-observability');
+  await page.goto('/admin/factory-observability', { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(/\/admin\/pipeline\?tab=kosten/);
-  await page.goto('/admin/dora');
+  await page.goto('/admin/dora', { waitUntil: 'domcontentloaded' });
   await expect(page).toHaveURL(/\/admin\/pipeline\?tab=analytics/);
 });
 

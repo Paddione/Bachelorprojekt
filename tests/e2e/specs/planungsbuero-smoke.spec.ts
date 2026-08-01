@@ -15,7 +15,7 @@ test.describe('Planungsbüro Smoke', { tag: ['@admin', '@planungsbuero'] }, () =
   });
 
   test('Erste Queue-Zeile hat pb-queue-row testid und ist 56px hoch', async ({ page }) => {
-    const firstRow = page.locator('[data-testid^="pb-queue-row-"]').first();
+    const firstRow = page.locator('[data-testid="office-card"]').first();
     await expect(firstRow).toBeVisible();
     const box = await firstRow.boundingBox();
     expect(box).not.toBeNull();
@@ -23,16 +23,16 @@ test.describe('Planungsbüro Smoke', { tag: ['@admin', '@planungsbuero'] }, () =
   });
 
   test('Klick auf Zeile rendert Detail-Panel sichtbar', async ({ page }) => {
-    const firstRow = page.locator('[data-testid^="pb-queue-row-"]').first();
+    const firstRow = page.locator('[data-testid="office-card"]').first();
     await firstRow.click();
     const detail = page.locator('[data-testid="pb-detail"]');
     await expect(detail).toBeVisible({ timeout: 60_000 });
   });
 
   test('Promote-Button ist disabled wenn Readiness < 4', async ({ page }) => {
-    const firstRow = page.locator('[data-testid^="pb-queue-row-"]').first();
+    const firstRow = page.locator('[data-testid="office-card"]').first();
     await firstRow.click();
-    const promote = page.locator('[data-testid="pb-detail-promote"]');
+    const promote = page.locator('[data-testid="office-promote"]');
     await expect(promote).toBeVisible({ timeout: 60_000 });
     const dorSquares = firstRow.locator('.pb-dor-on');
     const count = await dorSquares.count();

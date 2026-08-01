@@ -16,6 +16,7 @@
   import KostenTab from './factory/KostenTab.svelte';
   import AnalyticsWindowFilter from './factory/AnalyticsWindowFilter.svelte';
   import type { FloorPayload } from '../lib/factory-floor-types';
+  import { floorStore, ingestFloorPayload, seedFloor } from '../lib/stores/factory-floor-store';
   import { deriveCountdownSec } from '../lib/parallel-status';
 
   type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten' | 'parallel';
@@ -40,7 +41,11 @@
 
   onMount(() => {
     const urlTab = new URLSearchParams(window.location.search).get('tab') as Tab | null;
-    if (!urlTab) {
+    if (urlTab && TAB_KEYS.includes(urlTab)) {
+      activeTab = urlTab;
+    } else if (initialTab) {
+      activeTab = initialTab;
+    } else {
       const saved = localStorage.getItem('dev-status-tab') as Tab | null;
       if (saved && TAB_KEYS.includes(saved)) activeTab = saved;
     }
@@ -144,6 +149,25 @@
       loadParallel();
     }
   });
+  let floorData = $state<FloorPayload | null>(initial);
+  $effect(() => {
+    const unsub = floorStore.subscribe((s) => {
+      if (s.payload) floorData = s.payload;
+    });
+    return unsub;
+  });
+  onMount(() => {
+    if (initial) seedFloor(initial);
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        floorData = customEvent.detail;
+        ingestFloorPayload(customEvent.detail);
+      }
+    };
+    window.addEventListener('floor-stub-update', handler);
+    return () => window.removeEventListener('floor-stub-update', handler);
+  });
 </script>
 
 <div class="dev-status-tabs">
@@ -163,7 +187,7 @@
 </div>
 
 {#if activeTab === 'factory'}
-  <FactoryFloor {initial} />
+  <FactoryFloor initial={floorData} />
 {:else if activeTab === 'planung'}
   <div class="planning-tab-wrap">
     <PlanningOffice {brand} />

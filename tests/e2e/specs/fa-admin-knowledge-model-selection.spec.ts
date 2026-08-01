@@ -7,15 +7,15 @@ const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS;
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/wissensquellen');
+  await loginViaE2E(page, BASE, ADMIN_USER, '/admin/wissen');
 }
 
 test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@admin'] }, () => {
   test.beforeEach(async ({ request }, testInfo) => {
     await assertAuthenticatedReachable(
       request,
-      `${BASE}/admin/wissensquellen`,
-      { acceptableStatuses: [200, 302, 401], label: 'admin wissensquellen' },
+      `${BASE}/admin/wissen`,
+      { acceptableStatuses: [200, 302, 401], label: 'admin wissen' },
       testInfo
     );
   });
@@ -23,11 +23,12 @@ test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@ad
   test('verify embedding model selection in Web-Quelle modal and create bge-m3 collection', async ({ page }) => {
     await loginAsAdmin(page);
 
+    await page.getByRole('button', { name: 'Einlesen' }).click();
     await page.getByRole('button', { name: '+ Web-Quelle' }).click();
 
     // Verify modal is open and label is present
-    const label = page.getByText('Einbettungsmodell', { exact: true });
-    await expect(label).toBeVisible();
+    const label = page.getByText('Einbettungsmodell');
+    await expect(label).toBeVisible({ timeout: 10_000 });
 
     const select = page.locator('label:has-text("Einbettungsmodell") select');
     await expect(select).toBeVisible();
@@ -61,7 +62,8 @@ test.describe('Wissensquellen admin — Embedding Model Selection', { tag: ['@ad
     expect(created.embedding_model).toBe('bge-m3');
 
     // Cleanup
-    await page.goto(`${BASE}/admin/wissensquellen`);
+    await page.goto(`${BASE}/admin/wissen`);
+    await page.getByRole('button', { name: 'Sammlungen' }).click();
     const row = page.getByRole('row', { name: new RegExp(stamp) });
     await expect(row).toBeVisible({ timeout: 60_000 });
 

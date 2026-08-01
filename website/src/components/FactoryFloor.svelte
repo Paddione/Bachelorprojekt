@@ -11,7 +11,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { FloorPayload, TicketDetail, InjectionKind } from '../lib/factory-floor-types';
-  import { floorStore, acquireFloor, seedFloor } from '../lib/stores/factory-floor-store';
+  import { floorStore, acquireFloor, seedFloor, ingestFloorPayload } from '../lib/stores/factory-floor-store';
 
   import QaChip from './QaChip.svelte';
   import QaModal from './QaModal.svelte';
@@ -44,7 +44,10 @@
   onMount(() => {
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent;
-      if (customEvent.detail) data = customEvent.detail;
+      if (customEvent.detail) {
+        data = customEvent.detail;
+        ingestFloorPayload(customEvent.detail);
+      }
     };
     window.addEventListener('floor-stub-update', handler);
     return () => window.removeEventListener('floor-stub-update', handler);
@@ -140,7 +143,7 @@
   }
 
   onMount(() => {
-    seedFloor(initial);
+    if (initial) seedFloor(initial);
     const release = acquireFloor();
     const unsub = floorStore.subscribe((s) => {
       if (s.payload) { data = s.payload; stale = s.stale; void refreshCi(s.payload.hall.filter(w => w.prNumber).map(w => w.extId)); }

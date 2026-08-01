@@ -95,7 +95,7 @@
   <legend>Definition of Ready</legend>
   {#each DOR_KEYS as k}
     <label class="pb-check">
-      <input type="checkbox" checked={item.readiness?.[k] === true} onchange={() => toggleDorFn(item, k)} />
+      <input type="checkbox" data-testid={`office-dor-${k}`} checked={item.readiness?.[k] === true} onchange={() => toggleDorFn(item, k)} />
       {DOR_LABEL[k]}
     </label>
   {/each}
@@ -129,7 +129,7 @@
 </label>
 <button
   class="pb-promote-btn"
-  data-testid="pb-detail-promote"
+  data-testid="office-promote"
   disabled={!override && item.dorScore < 4}
   onclick={() => promoteFn(item)}
 >Als nächstes planen</button>

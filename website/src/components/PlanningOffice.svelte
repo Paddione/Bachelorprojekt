@@ -41,6 +41,8 @@
   let selected: PlanItem | null = $state(null);
   let loading = $state(true);
   let override = $state(false);
+  let newTitle = $state('');
+  let newEffort = $state('mittel');
   let viewOverride = $state<'desktop' | 'mobile' | null>(null);
   let windowWidth = $state(typeof window !== 'undefined' ? window.innerWidth : 1024);
   let sheetOpen = $state(false);
@@ -133,6 +135,22 @@
     }
   }
 
+  async function addIdea() {
+    if (!newTitle.trim()) return;
+    const r = await fetch('/api/planning-office', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ title: newTitle.trim(), brand: _brand, effort: newEffort }),
+    });
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({ error: 'unknown' }));
+      alert('Idee konnte nicht angelegt werden: ' + data.error);
+      return;
+    }
+    newTitle = '';
+    await load();
+  }
+
   function onDragStart(e: DragEvent, it: PlanItem) {
     dragSrcExtId = it.extId;
     if (e.dataTransfer) {
@@ -165,6 +183,11 @@
     dropTargetIdx = null;
   }
 
+  async function onRankUp(it: PlanItem, idx: number) {
+    if (idx <= 0) return;
+    await patch(it.extId, { rank: idx - 1 });
+  }
+
   function onHandlePointerDown(e: PointerEvent, it: PlanItem) {
     if (!isMobile) return;
     touchDragExtId = it.extId;
@@ -173,7 +196,7 @@
 
   function onHandlePointerMove(e: PointerEvent) {
     if (!touchDragExtId) return;
-    const rows = document.querySelectorAll('[data-testid^="pb-queue-row-"]');
+    const rows = document.querySelectorAll('[data-testid="office-card"]');
     for (let i = 0; i < rows.length; i++) {
       const rect = rows[i].getBoundingClientRect();
       if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
@@ -253,26 +276,40 @@
 
   {#if loading}
     <div class="pb-loading">Lädt…</div>
-  {:else if !items.length}
-    <div class="pb-empty">Büro leer.</div>
   {:else}
     <div class="pb-layout" class:pb-mobile={isMobile}>
-      <PlanningOfficeQueue
-        {items}
-        {isMobile}
-        selectedExtId={selected?.extId ?? null}
-        {dragSrcExtId}
-        {dropTargetIdx}
-        onDragStart={onDragStart}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-        onDragEnd={onDragEnd}
-        onSelect={selectItem}
-        onHandlePointerDown={onHandlePointerDown}
-        onHandlePointerMove={onHandlePointerMove}
-        onHandlePointerUp={onHandlePointerUp}
-      />
+      <div class="pb-office-col">
+        <form class="pb-add" data-testid="office-add-form" onsubmit={(e) => { e.preventDefault(); void addIdea(); }}>
+          <input data-testid="office-add-title" placeholder="Neue Idee…" bind:value={newTitle} />
+          <select data-testid="office-add-effort" bind:value={newEffort}>
+            <option value="klein">klein</option>
+            <option value="mittel">mittel</option>
+            <option value="gross">groß</option>
+          </select>
+          <button type="submit">+ Anlegen</button>
+        </form>
+        {#if !items.length}
+          <div class="pb-empty">Büro leer.</div>
+        {:else}
+          <PlanningOfficeQueue
+            {items}
+            {isMobile}
+            selectedExtId={selected?.extId ?? null}
+            {dragSrcExtId}
+            {dropTargetIdx}
+            onDragStart={onDragStart}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            onDragEnd={onDragEnd}
+            onRankUp={onRankUp}
+            onSelect={selectItem}
+            onHandlePointerDown={onHandlePointerDown}
+            onHandlePointerMove={onHandlePointerMove}
+            onHandlePointerUp={onHandlePointerUp}
+          />
+        {/if}
+      </div>
 
       {#if !isMobile && selected}
         <div class="pb-detail" data-testid="pb-detail">

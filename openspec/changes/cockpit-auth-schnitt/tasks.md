@@ -40,6 +40,43 @@ in die SSOT `openspec/specs/sdlc-cockpit.md`.
 Begründung und Belege: siehe `proposal.md`. Die verbindlichen Zusagen stehen in
 `specs/sdlc-cockpit.md`.
 
+## Parallelität von K4 und K6
+
+Beide sind **unabhängig planbar und umsetzbar**. Das war nicht selbstverständlich
+und ist das Ergebnis von zwei Klärungen:
+
+**1. Keiner der beiden hängt am K7-Rest.** Der Adapter braucht keine globale
+Basis-Umschaltung, sondern eine Karte pro Endpunkt (siehe `specs/`). K4 und K6
+tragen ihre neuen Endpunkte einfach als „Website" ein. Ob `agents` und `models`
+je auf die Website wandern, bleibt davon unberührt — sie können es nicht, weil
+sie lokalen Zustand lesen.
+
+**2. K6s Blocker ist identifiziert.** Es fehlt eine NetworkPolicy nach dem
+gelebten Muster; kein Entwurfsproblem.
+
+### Geteilte Dateien — die eine echte Kollisionsstelle
+
+| Datei | K4 | K6 | Kollision |
+|---|---|---|---|
+| `website/src/pages/api/admin/cockpit/` | neue Schreib-Endpunkte | `brain.ts` | keine — verschiedene Dateien |
+| `k3d/network-policies.yaml` | — | brain-Policy | keine |
+| `.lavish/kit/panel.js` | Aktions-Slot (D4) | Kontext-Slot | möglich, verschiedene Funktionen |
+| **`.lavish/kit/adapter.js`** | Schreibmethoden + Endpunkt-Karte | `brain()` | **ja** |
+
+Die Kollision in `adapter.js` liegt an genau zwei Stellen: dem Funktionsblock
+und der Zeile im `return`-Objekt. Sie ist **bekannt, klein und trivial
+auflösbar** — beide Blöcke behalten. Genau dieser Konflikt trat bei K5 und K9
+auf und war in Minuten gelöst.
+
+Sie wird bewusst **nicht** durch Vorziehen eines gemeinsamen Vorlaufs vermieden:
+das würde eine Abhängigkeit zwischen zwei sonst unabhängigen Kindern schaffen,
+um einen Zweizeilen-Konflikt zu sparen. Wer zuerst merged, gewinnt; der zweite
+rebased.
+
+> `file_locks` im Plan-Frontmatter hilft hier **nicht** — das Feld wird zwar
+> geschrieben und beim Frontmatter-Setzen geprüft, aber von keinem Scheduler
+> ausgewertet. Es dokumentiert, es koordiniert nicht.
+
 ## Folgeschritte in den Kind-Tickets
 
 **K4 (T002463)** — setzt Klasse A um:
@@ -56,13 +93,51 @@ Begründung und Belege: siehe `proposal.md`. Die verbindlichen Zusagen stehen in
 
 - Website-API liest `brain.workspace.svc.cluster.local`, erzwingt `isAdmin`
 - Kontext-Slot der Panels mit Brain-Verweisen füllen
-- **Vorbedingung:** der interne Weg ist heute nicht durchgängig (Egress erlaubt,
-  Verbindung scheitert dennoch — Port 80 „refused", 8787 Timeout, Pod läuft).
-  Ursache cluster-seitig klären, bevor K6 dispatched wird.
+- **Erster Task: die fehlende NetworkPolicy.** Ursache geklärt — im
+  `workspace`-Namespace wirkt `allow-intra-namespace-ingress` mit leerem
+  `podSelector` als Default-Deny für alles von außerhalb. Für jeden Dienst, den
+  die Website erreichen darf, existiert eine eigene Policy nach striktem Muster;
+  für `brain` fehlt sie. Ergänzung in `k3d/network-policies.yaml`:
 
-**K7-Nachtrag (T002466, bereits gemergt)** — der offene Punkt 4 bekommt hiermit
-seine Antwort: der Adapter löst seine Basis-Adresse aus dem Host-Kontext auf,
-statt `http://127.0.0.1:49152` fest zu verdrahten. Umzusetzen mit K4.
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-to-brain-ingress
+  namespace: workspace
+spec:
+  podSelector:
+    matchLabels:
+      app: brain
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: website
+      ports:
+        - port: 8787      # Container-Port; der Service mappt 80 -> 8787
+          protocol: TCP
+```
+
+  Vorbild: `allow-website-to-vaultwarden-ingress` in derselben Datei. Der
+  Service ist gesund (Endpoint `10.42.3.194:8787`, Selector passt, Pod 1/1) —
+  es fehlt allein die Erlaubnis.
+
+**K7-Nachtrag (T002466, bereits gemergt)** — der offene Punkt 4 zerfällt in zwei
+Teile, und nur der kleinere gehört zu K4:
+
+- **Endpunkt-Karte statt Basis-Konstante** (mit K4): der Adapter entscheidet pro
+  Endpunkt, welcher Host ihn bedient. Klein, und Voraussetzung dafür, dass K4
+  und K6 ihre neuen Website-Endpunkte überhaupt ansprechen können.
+- **Fehlende Endpunkte auf der Website nachbauen** (eigener Vorgang, später):
+  `epics`, `styles` und `ci` sind dort noch nicht vorhanden. Solange sie fehlen,
+  bleiben sie in der Karte auf „Daemon". `agents` und `models` bleiben
+  **dauerhaft** dort — sie lesen lokalen Zustand.
+
+Die ursprüngliche Formulierung „der Adapter löst seine Basis-Adresse aus dem
+Host-Kontext auf" war zu grob: die Website bedient heute nur drei der acht
+Endpunkte. Ein globaler Umschalter hätte fünf Panels auf `404` gestellt.
 
 ## Verify
 

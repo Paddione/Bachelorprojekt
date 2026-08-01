@@ -2838,6 +2838,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/daemon-token-endpoint-removed",
+    "file": "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/daemon-token-mode",
     "file": "tests/spec/sdlc-cockpit/daemon-token-mode.bats",
     "category": "sdlc-cockpit",

@@ -16,10 +16,12 @@
 # and proves the fake-git-crypt simulation is faithful to the real bug.
 
 setup() {
+  export WT_SKIP_NAME_CHECK=1
   HELPER="$BATS_TEST_DIRNAME/../../scripts/worktree-create.sh"
   TMP="$(mktemp -d)"
   export HOME="$TMP/home"; mkdir -p "$HOME"           # isolate global git config
   export GIT_CONFIG_GLOBAL="$HOME/.gitconfig"; : > "$GIT_CONFIG_GLOBAL"
+  export WT_SKIP_NAME_CHECK=1  # T002470: Altsuite testet git-crypt, nicht Namenskonvention
 
   # A fake git-crypt: passes bytes through with `cat`, but fails if the gitdir
   # of the repo it is invoked in has no key file — exactly how real git-crypt

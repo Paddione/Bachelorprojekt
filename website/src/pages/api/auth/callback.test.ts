@@ -10,6 +10,18 @@ vi.mock('../../../lib/auth', () => ({
   })),
   isAdmin: vi.fn(() => mockIsAdmin),
   setSessionCookie: vi.fn(() => 'workspace_session=sess-123; Path=/; HttpOnly; SameSite=Lax'),
+  // [T002497] Seit dem Umbau auf zufällige OIDC-states (372729d7d) ruft der
+  // Callback consumeReturnTo(state) auf, um das beim Login hinterlegte returnTo
+  // aus dem Store zu holen. Fehlt der Export im Mock, wirft vitest bereits in
+  // callback.ts:60 — vor jeder Assertion, weshalb ALLE zehn Tests dieser Datei
+  // fielen und die returnTo-Allowlist damit ungeprüft blieb.
+  //
+  // undefined ist hier die richtige Antwort, nicht bloß die bequeme: die Tests
+  // übergeben den returnTo direkt als state-Parameter. Ein leerer Store lässt
+  // den Fallback `consumeReturnTo(rawState) || rawState` greifen, sodass genau
+  // der Wert in die Allowlist-Prüfung läuft, den der Test setzt. Würde der Mock
+  // stattdessen einen Wert liefern, prüften die Tests ihn statt ihrer Eingabe.
+  consumeReturnTo: vi.fn(() => undefined),
 }));
 
 import { GET } from './callback';

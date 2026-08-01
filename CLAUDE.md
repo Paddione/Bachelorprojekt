@@ -19,7 +19,7 @@ Before responding to any request, check these signals and delegate to the named 
 
 > **MCP-Registry ist SSOT (T002300):** `docs/agent-guide/registry/mcp.yaml` ist die einzige Quelle für alle drei Harness-Configs. `task mcp:sync` regeneriert daraus `.mcp.json` (Claude Code), `.opencode/opencode.jsonc` (opencode) und `~/.gemini/config/mcp_config.json` (agy); `task mcp:check` prüft auf Drift. Configs nicht von Hand editieren — die Änderung geht in die Registry.
 
-> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `mcp-kubernetes`, `mcp-postgres`, `factory-mcp`, `codebase-memory-mcp`, `mcp-task-runner`, `ticket-mcp`, `task-master-ai`, `github-mcp`, `playwright`, `sequential-thinking`, `webresearch`, `docfork` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
+> **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `bge-mcp`, `codebase-memory-mcp`, `docfork`, `factory-mcp`, `github-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `sequential-thinking`, `task-master-ai`, `ticket-mcp`, `webresearch` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
 > **Agent-Routing-Karten:** Generierte, grepbare Karten unter `docs/agent-guide/maps/` — `goals-map.md` (Intention → Weg → Tier → Guardrails), `tools-map.md`, `danger-map.md`. Quelle: `docs/agent-guide/registry/` (nicht von Hand editieren; via `task agent-guide:maps` regenerieren).
 
@@ -31,11 +31,8 @@ Before responding to any request, check these signals and delegate to the named 
 Run `bash scripts/plan-context.sh <role> --with-openspec` and prepend output to the agent prompt wrapped in `<active-plans>` tags. If the script produces no output, omit the block entirely. `--with-openspec` auto-loads the SSOT spec(s) for any files changed vs main — omit only when explicitly told to skip OpenSpec context.
 
 ```bash
-# Example orchestrator injection pattern:
 context=$(bash scripts/plan-context.sh bachelorprojekt-infra --with-openspec)
-if [[ -n "$context" ]]; then
-  prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
-fi
+[ -n "$context" ] && prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
 ```
 
 > **`<role>` muss ein voller Rollenname sein.** Gültig sind ausschließlich die in
@@ -166,19 +163,8 @@ Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.y
 
 ## Image Exclusions
 
-The following components intentionally use `:latest` images and are excluded from standard pinning requirements:
-- Website
-- Brett
-- Docs
-- Videovault
-- Mediaviewer-Widget
-- Mentolder-Web
-- Downloads
-- Brain
-- Studio
-- Talk-Transcriber
-
-This ensures that the Infrastructure and Dev workflows correctly identify these as "live" targets that do not require manual digest pinning.
+The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber.
+This ensures that Infrastructure and Dev workflows correctly identify these as "live" targets that do not require manual digest pinning.
 
 ## Development Rules
 
@@ -196,20 +182,13 @@ Non-obvious repo behaviors are documented in full at
 [`docs/superpowers/references/gotchas-footguns.md`](docs/superpowers/references/gotchas-footguns.md).
 
 Covered sub-topics (reference file, not repeated here):
-- **security-guidance rewake** — never git-restore after a commit rewake
-- **Session-Koordination** — agent-lock.sh claim/release/reap protocol
-- **Environment targeting** — ENV= is always explicit; WORKSPACE_NAMESPACE
-- **Cluster node placement** — wg-fleet flannel-iface; LiveKit node-pin (removed T002184)
-- **Kustomize overlays** — prod-fleet/* only; never bare prod/; $patch:delete
-- **Scripts & env** — env-resolve.sh must be sourced; envsubst lists
-- **Database queries** — never SELECT * on ticket_plans.content
-- **Cluster reset order** — sealed-secrets → fetch-cert → seal → cert → deploy
-- **Operational** — push-based; pull-first; CONFLICTING PR suppresses CI
-- **Staging (ENV=staging)** — workspace-staging ns; LiveKit removed per T002184
-- **Kore design system** — korczewski brand uses website/src/components/kore/
-- **Local-first LLM pipeline** — GPU host; vector space isolation; LM Studio
-- **dev.mentolder.de stack** — devc decommissioned; WSL bootstrap caveats
-- **Alt-Worktrees nach T002135** — cleanup orphaned submodule gitdirs (`docs/superpowers/references/gotchas-footguns.md#alt-worktrees-nach-t002135--submodul-gitdir-reste`)
+- **Security & Session**: security-guidance rewake, agent-lock.sh claim/release/reap protocol, ENV= explicit targeting, cluster node placement (wg-fleet flannel-iface).
+- **Overlays & Config**: prod-fleet/* only (never bare prod/, $patch:delete), env-resolve.sh sourcing, envsubst lists, DB queries (never SELECT * on ticket_plans.content).
+- **Ops & Infra**: cluster reset order, push-based/pull-first, CONFLICTING PR suppresses CI, ENV=staging, Kore design system, local-first LLM pipeline, dev.mentolder.de stack, alt-worktrees submodule gitdirs.
+
+### Test-Resultats-Konvention [T002448-M4]
+
+Tests MÜSSEN die tatsächlichen Ergebnisse/Outputs von Kommandos prüfen (`run`, `$output`, `$status`), nicht Implementierungsmuster im Quellcode (`grep` auf Script-Interna). Ein Test, der per `grep` einen Flag-Namen im Source sucht statt das tatsächliche Laufzeitverhalten zu messen, kann den falschen Erfolgsfall bestätigen, während die reale Operation fehlschlägt. Ausnahme: Querschnittstests, deren Ergebnis sich ausschließlich im Quelltext manifestiert (z. B. Dokumentationskonventionen, CI-Konfiguration) — hier ist `grep` das angemessene Mittel. Die Testdatei selbst dokumentiert im Header-Kommentar, welcher Prüfmodus verwendet wird.
 
 ### Bug-Triage-Konvention (CFR-Gate G-DORA03)
 

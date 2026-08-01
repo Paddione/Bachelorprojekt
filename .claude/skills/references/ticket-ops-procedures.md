@@ -248,7 +248,10 @@ The dev-flow contract splits the parallel unit, orchestrated by all available su
 - `attention_mode = 'ai_ready'` / DoR-complete → **planning wave**: dispatch `dev-flow-plan` via domain-specific subagent for plan creation and staging
 - **Any other ready ticket** → **parallel planning wave**: all available subagents work in parallel to create plans, set readiness flags, stage branches. No ready ticket is left without a route or owner.
 
-Any subagent that lands a `type='feat'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and call `ticket.sh lastenheft lock --id <id>` — see the DoR-vs-factory-gate note above. A ticket without the lock is invisible to `queue.sh`/`dispatcher-bridge.sh` and will silently never dispatch.
+Any subagent that lands a `type='feat'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and > **Wichtig [T002471-M3]:** Vor `lastenheft lock` muss `requirements_list` gefüllt sein:
+>   `bash scripts/ticket.sh plan-meta set --id <id> --requirements "req1|req2|req3"`
+>   Trennzeichen ist `|` (Pipe), nicht Komma. Bei leerer `requirements_list` schlägt `lastenheft lock` fehl.
+ A ticket without the lock is invisible to `queue.sh`/`dispatcher-bridge.sh` and will silently never dispatch.
 
 All subagents report back with: ticket_id, decisions made, branch created, plan staged, **lastenheft locked (y/n)**. Consolidate for Phase 3 masterplan completion.
 

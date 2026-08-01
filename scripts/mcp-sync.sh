@@ -6,11 +6,32 @@ set -euo pipefail
 #   check    — Compare targets against registry (exit != 0 on drift, never writes)
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-REGISTRY="$REPO/docs/agent-guide/registry/mcp.yaml"
-CLAUDE_TARGET="$REPO/.mcp.json"
-OPENCODE_TARGET="$REPO/.opencode/opencode.jsonc"
+
+# MCP_REGISTRY / MCP_OUT_DIR sind Test-Overrides (T002487). Ohne sie verhaelt sich
+# das Skript exakt wie zuvor. Mit ihnen laesst sich `render` gegen eine
+# Fixture-Registry in ein temporaeres Verzeichnis fahren, statt die echten
+# Harness-Configs zu ueberschreiben -- ohne diese Trennung ist der
+# Generizitaets-Nachweis nicht nebenwirkungsfrei fuehrbar.
+REGISTRY="${MCP_REGISTRY:-$REPO/docs/agent-guide/registry/mcp.yaml}"
+OUT_DIR="${MCP_OUT_DIR:-$REPO}"
+
+CLAUDE_TARGET="$OUT_DIR/.mcp.json"
+OPENCODE_TARGET="$OUT_DIR/.opencode/opencode.jsonc"
+# AGY_TARGET bleibt an $HOME gebunden: die Datei liegt konstruktionsbedingt
+# ausserhalb des Repos. Ein Test isoliert sie ueber HOME, nicht ueber MCP_OUT_DIR.
 AGY_TARGET="${HOME}/.gemini/config/mcp_config.json"
-LLAMACPP_TARGET="$REPO/scripts/llm/mcp-servers.json"
+LLAMACPP_TARGET="$OUT_DIR/scripts/llm/mcp-servers.json"
+
+# render_opencode_jsonc erhaelt alles ausserhalb des "mcp"-Blocks, indem es die
+# Zieldatei einliest. Unter einem alternativen OUT_DIR existiert sie noch nicht --
+# dann dient die Repo-Variante als Vorlage.
+opencode_source() {
+  if [ -f "$OPENCODE_TARGET" ]; then
+    printf '%s' "$OPENCODE_TARGET"
+  else
+    printf '%s' "$REPO/.opencode/opencode.jsonc"
+  fi
+}
 
 render_claude_json() {
   node -e "
@@ -24,6 +45,12 @@ render_claude_json() {
       const h = c.harness.claude_code;
       if (c.transport === 'http') {
         out.mcpServers[name] = { type: 'http', url: c.endpoint };
+        // headers wird VERBATIM emittiert -- \${VAR} bleibt unexpandiert stehen,
+        // damit kein Secret in eine getrackte Datei geraet. Expandiert wird erst
+        // vom Harness beim Laden. Clients ohne headers bleiben byte-identisch;
+        // ein leeres headers:{} wuerde check fuer jeden unbeteiligten Server
+        // als Drift melden.
+        if (c.headers) out.mcpServers[name].headers = c.headers;
       } else {
         const server = {};
         if (h.command) server.command = h.command;
@@ -48,6 +75,7 @@ render_agy_json() {
       const h = c.harness.agy;
       if (c.transport === 'http') {
         out.mcpServers[name] = { serverUrl: c.endpoint };
+        if (c.headers) out.mcpServers[name].headers = c.headers;
       } else {
         const server = {};
         if (h.command) server.command = h.command;
@@ -97,11 +125,13 @@ render_llamacpp_json() {
 }
 
 render_opencode_jsonc() {
+  local source
+  source="$(opencode_source)"
   node -e "
     const fs = require('fs'), yaml = require('yaml');
     const reg = yaml.parse(fs.readFileSync('$REGISTRY', 'utf8'));
     const clients = reg.clients;
-    const orig = fs.readFileSync('$OPENCODE_TARGET', 'utf8');
+    const orig = fs.readFileSync('$source', 'utf8');
 
     const mcpKeyIdx = orig.indexOf('\"mcp\"');
     const beforeMcpRaw = orig.slice(0, mcpKeyIdx);
@@ -132,6 +162,21 @@ render_opencode_jsonc() {
       fields.push(c + J('type') + ': ' + J(cl.transport === 'http' ? 'remote' : 'local'));
       if (cl.transport === 'http') {
         fields.push(c + J('url') + ': ' + J(cl.endpoint));
+        // T002488: opencode expandiert \${VAR} NICHT — es kennt nur die eigene
+        // Notation {env:VAR}. Empirisch belegt mit \`opencode mcp list\` gegen den
+        // Shim auf :13005: mit \${BGE_MCP_TOKEN} meldet opencode 'failed', mit
+        // {env:BGE_MCP_TOKEN} 'connected'. Die Registry fuehrt weiter die
+        // kanonische \${VAR}-Schreibweise; uebersetzt wird hier, damit nicht jeder
+        // Harness ein eigenes headers-Feld in der SSOT braucht.
+        // split/join statt Regex: der Ausdruck muesste sonst durch drei
+        // Quoting-Ebenen (bash -> node -e -> RegExp) escaped werden.
+        if (cl.headers) {
+          const translated = {};
+          for (const [hk, hv] of Object.entries(cl.headers)) {
+            translated[hk] = String(hv).split('\${').join('{env:');
+          }
+          fields.push(c + J('headers') + ': ' + J(translated));
+        }
       } else {
         fields.push(c + J('command') + ': ' + J(h.command || []));
         if (h.environment) {
@@ -158,6 +203,9 @@ diff_or_drift() {
 }
 
 cmd_render() {
+  # Unter einem alternativen OUT_DIR existieren die Unterverzeichnisse noch nicht.
+  mkdir -p "$(dirname "$OPENCODE_TARGET")" "$(dirname "$LLAMACPP_TARGET")"
+
   echo "mcp-sync: render: writing $CLAUDE_TARGET"
   render_claude_json > "$CLAUDE_TARGET"
 

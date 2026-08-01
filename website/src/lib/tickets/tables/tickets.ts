@@ -16,7 +16,7 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
       -- bis applyTypeVocabularyMigration ihn durch den benannten tickets_type_check
       -- ersetzt; beide müssen dieselben Werte tragen, sonst schlagen Inserts
       -- zwischen CREATE TABLE und Migration fehl.
-      type            TEXT        NOT NULL CHECK (type IN ('fix','feat','chore','project','docs','refactor','perf','test','ci','build','bug','feature','task')),
+      type            TEXT        NOT NULL CHECK (type IN ('fix','feat','chore','project','incident','docs','refactor','perf','test','ci','build','bug','feature','task')),
       parent_id       UUID        REFERENCES tickets.tickets(id) ON DELETE SET NULL,
       brand           TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT        NOT NULL,
 

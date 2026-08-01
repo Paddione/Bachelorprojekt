@@ -62,10 +62,12 @@ listen_port = env_data['listen_port']
 # or those nodes are silently dropped from every peer list (T000371 regression).
 MESH_CATEGORIES = ('nodes', 'gpu_hosts', 'home_workers', 'workers', 'devc_servers')
 self_node = None
+self_category = None
 for cat in MESH_CATEGORIES:
     for node in env_data.get(cat, []):
         if node['name'] == node_name:
             self_node = node
+            self_category = cat
             break
     if self_node:
         break
@@ -81,17 +83,33 @@ lines = [
     f"ListenPort = {listen_port}",
 ]
 
+# Pod-CIDRs gehoeren AUSSCHLIESSLICH in die Konfiguration eines GPU-Hosts.
+#
+# Warum ueberhaupt (T002491): In WireGuard ist AllowedIPs zugleich Routing-Tabelle
+# und Eingangsfilter. Ohne das Pod-CIDR eines Kubernetes-Peers verwirft der
+# GPU-Host dessen Pod-Pakete lautlos — kein Fehler, keine Meldung, nur Stille.
+# Genau so blieb monatelang unbemerkt, dass drei fleet-Nodes Embedding und Rerank
+# nicht erreichten.
+#
+# Warum nur dort: Unter Kubernetes-Nodes routet flannel die Pod-Netze bereits ueber
+# wg-fleet. Truege ein Node die Pod-CIDRs seiner Geschwister zusaetzlich in
+# AllowedIPs ein, konkurrierten zwei Mechanismen um dieselben Praefixe.
+emit_pod_cidr = (self_category == 'gpu_hosts')
+
 # Emit one [Peer] block per node in the mesh, skipping self
 for cat in MESH_CATEGORIES:
     for peer in env_data.get(cat, []):
         if peer['name'] == node_name:
             continue
+        allowed = f"{peer['wg_ip']}/32"
+        if emit_pod_cidr and peer.get('pod_cidr'):
+            allowed += f", {peer['pod_cidr']}"
         lines += [
             "",
             "[Peer]",
             f"# {peer['name']}",
             f"PublicKey = {peer['public_key']}",
-            f"AllowedIPs = {peer['wg_ip']}/32",
+            f"AllowedIPs = {allowed}",
         ]
         if peer.get('endpoint'):
             lines.append(f"Endpoint = {peer['endpoint']}")

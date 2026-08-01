@@ -1908,6 +1908,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-collision-false-positives",
+    "file": "tests/spec/agent-collision-false-positives.bats",
+    "category": "agent-collision-false-positives",
+    "kind": "shell"
+  },
+  {
     "id": "agent-library",
     "file": "tests/spec/agent-library.bats",
     "category": "agent-library",
@@ -1917,6 +1923,12 @@
     "id": "agent-lock-claim-persist",
     "file": "tests/spec/agent-lock-claim-persist.bats",
     "category": "agent-lock-claim-persist",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-lock-force-claim",
+    "file": "tests/spec/agent-lock-force-claim.bats",
+    "category": "agent-lock-force-claim",
     "kind": "shell"
   },
   {
@@ -1946,6 +1958,12 @@
   {
     "id": "agentic-tooling-quality-goals",
     "file": "tests/spec/agentic-tooling-quality-goals.bats",
+    "category": "agentic-tooling-quality-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "agentic-tooling-quality-goals/g-agentic01-unresolved-tools",
+    "file": "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",
     "category": "agentic-tooling-quality-goals",
     "kind": "shell"
   },
@@ -2100,6 +2118,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/spec-shard-partition",
+    "file": "tests/spec/ci-cd/spec-shard-partition.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/test-inventory-coverage",
     "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
     "category": "ci-cd",
@@ -2196,6 +2220,12 @@
     "kind": "shell"
   },
   {
+    "id": "divergence-guard/branch-name-guard",
+    "file": "tests/spec/divergence-guard/branch-name-guard.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
     "id": "docker-build-speedup",
     "file": "tests/spec/docker-build-speedup.bats",
     "category": "docker-build-speedup",
@@ -2244,6 +2274,12 @@
     "kind": "shell"
   },
   {
+    "id": "factory-escalation-ladder",
+    "file": "tests/spec/factory-escalation-ladder.bats",
+    "category": "factory-escalation-ladder",
+    "kind": "shell"
+  },
+  {
     "id": "factory-merge-hooks",
     "file": "tests/spec/factory-merge-hooks.bats",
     "category": "factory-merge-hooks",
@@ -2282,6 +2318,24 @@
   {
     "id": "fleet-operations",
     "file": "tests/spec/fleet-operations.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/firewall-program-match",
+    "file": "tests/spec/fleet-operations/firewall-program-match.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/powershell-ascii-only",
+    "file": "tests/spec/fleet-operations/powershell-ascii-only.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/wg-gpu-pod-cidr",
+    "file": "tests/spec/fleet-operations/wg-gpu-pod-cidr.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },
@@ -2340,6 +2394,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals-erden",
+    "file": "tests/spec/health-goals-erden.bats",
+    "category": "health-goals-erden",
+    "kind": "shell"
+  },
+  {
     "id": "hermes-mcp-access",
     "file": "tests/spec/hermes-mcp-access.bats",
     "category": "hermes-mcp-access",
@@ -2370,14 +2430,38 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/autostart-covers-both-pairs",
+    "file": "tests/spec/llm-pipeline/autostart-covers-both-pairs.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline/dual-pair-failover",
     "file": "tests/spec/llm-pipeline/dual-pair-failover.bats",
     "category": "llm-pipeline",
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/gemma-thinking-budget",
+    "file": "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy",
     "file": "tests/spec/local-llm-proxy.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/gemma-kv-quant",
+    "file": "tests/spec/local-llm-proxy/gemma-kv-quant.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/gemma-loadout-autorestart-queue",
+    "file": "tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -2396,6 +2480,24 @@
   {
     "id": "mcp-gateway",
     "file": "tests/spec/mcp-gateway.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/authenticated-http-headers",
+    "file": "tests/spec/mcp-gateway/authenticated-http-headers.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/bge-host-routing",
+    "file": "tests/spec/mcp-gateway/bge-host-routing.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/opencode-env-placeholder",
+    "file": "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
     "category": "mcp-gateway",
     "kind": "shell"
   },
@@ -2457,6 +2559,30 @@
     "id": "mishap-bundle-2026-06-30",
     "file": "tests/spec/mishap-bundle-2026-06-30.bats",
     "category": "mishap-bundle-2026-06-30",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-bundle-infra-testspec-ci",
+    "file": "tests/spec/mishap-bundle-infra-testspec-ci.bats",
+    "category": "mishap-bundle-infra-testspec-ci",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-bundle/ci-test-agentlock",
+    "file": "tests/spec/mishap-bundle/ci-test-agentlock.bats",
+    "category": "mishap-bundle",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-categorize-erden",
+    "file": "tests/spec/mishap-categorize-erden.bats",
+    "category": "mishap-categorize-erden",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-docker-wsl-T002250",
+    "file": "tests/spec/mishap-docker-wsl-T002250.bats",
+    "category": "mishap-docker-wsl-T002250",
     "kind": "shell"
   },
   {
@@ -2550,6 +2676,30 @@
     "kind": "shell"
   },
   {
+    "id": "plan-partials-embedding/build-chunks",
+    "file": "tests/spec/plan-partials-embedding/build-chunks.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/coverage-gate",
+    "file": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/manifest-parser",
+    "file": "tests/spec/plan-partials-embedding/manifest-parser.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/size-gate",
+    "file": "tests/spec/plan-partials-embedding/size-gate.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "pocket-id-client-seed-auth-header",
     "file": "tests/spec/pocket-id-client-seed-auth-header.bats",
     "category": "pocket-id-client-seed-auth-header",
@@ -2628,6 +2778,12 @@
     "kind": "shell"
   },
   {
+    "id": "release-notes-erden",
+    "file": "tests/spec/release-notes-erden.bats",
+    "category": "release-notes-erden",
+    "kind": "shell"
+  },
+  {
     "id": "repo-health-goals",
     "file": "tests/spec/repo-health-goals.bats",
     "category": "repo-health-goals",
@@ -2658,9 +2814,39 @@
     "kind": "shell"
   },
   {
+    "id": "scout-llm-fallback-erden",
+    "file": "tests/spec/scout-llm-fallback-erden.bats",
+    "category": "scout-llm-fallback-erden",
+    "kind": "shell"
+  },
+  {
     "id": "scout-prediction-quality",
     "file": "tests/spec/scout-prediction-quality.bats",
     "category": "scout-prediction-quality",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/adapter-contract",
+    "file": "tests/spec/sdlc-cockpit/adapter-contract.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/daemon-endpoints",
+    "file": "tests/spec/sdlc-cockpit/daemon-endpoints.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/daemon-token-endpoint-removed",
+    "file": "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/daemon-token-mode",
+    "file": "tests/spec/sdlc-cockpit/daemon-token-mode.bats",
+    "category": "sdlc-cockpit",
     "kind": "shell"
   },
   {
@@ -2670,8 +2856,20 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/freshness-timestamp",
+    "file": "tests/spec/sdlc-cockpit/freshness-timestamp.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/kit-artifacts-exist",
     "file": "tests/spec/sdlc-cockpit/kit-artifacts-exist.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/kit-assets-in-image",
+    "file": "tests/spec/sdlc-cockpit/kit-assets-in-image.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -2684,6 +2882,12 @@
   {
     "id": "sdlc-cockpit/no-direct-fetch",
     "file": "tests/spec/sdlc-cockpit/no-direct-fetch.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/no-silent-fallback",
+    "file": "tests/spec/sdlc-cockpit/no-silent-fallback.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -2870,6 +3074,12 @@
   {
     "id": "website-core",
     "file": "tests/spec/website-core.bats",
+    "category": "website-core",
+    "kind": "shell"
+  },
+  {
+    "id": "website-core/portrait-derivate-crop",
+    "file": "tests/spec/website-core/portrait-derivate-crop.bats",
     "category": "website-core",
     "kind": "shell"
   },

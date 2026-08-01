@@ -49,13 +49,14 @@ Before reporting any mishap, verify the claim with a concrete check:
 
 ## Step 1: Mishap-Typ Klassifikation
 
-| Mishap type | Severity | Priority | Attention mode |
-|---|---|---|---|
-| `broken` | `major` | `hoch` | `needs_human` |
-| `security` | `critical` | `hoch` | `needs_human` |
-| `degraded` | `minor` | `mittel` | `needs_human` |
-| `suspicious` | `minor` | `mittel` | `ai_ready` |
-| `drift` | `trivial` | `niedrig` | `ai_ready` |
+| Mishap type | Severity | Priority | Attention mode | Verhalten |
+|---|---|---|---|---|---|
+| `incident` | `major` | `hoch` | `needs_human` | Sofort Ticket (kein Buffer) |
+| `broken` | `major` | `hoch` | `needs_human` | Alias für `incident` — sofort Ticket |
+| `security` | `critical` | `hoch` | `needs_human` | Alias für `incident` — sofort Ticket |
+| `degraded` | `minor` | `mittel` | `needs_human` | Buffer → Rollup-Container |
+| `suspicious` | `minor` | `mittel` | `ai_ready` | Buffer → Rollup-Container |
+| `drift` | `trivial` | `niedrig` | `ai_ready` | Buffer → Rollup-Container |
 
 ---
 
@@ -74,8 +75,9 @@ mcp__ticket-mcp__report_mishap({
 ```
 
 **Rückmeldung auswerten:**
-- `"Mishap gespeichert (2/10). Noch 8 bis zum automatischen Bundle-Ticket."` → weiter melden, Buffer sammelt
-- `"Bundle-Ticket angelegt: T000xxx"` → Ticket existiert, Factory-Tick übernimmt
+- `"Incident-Ticket angelegt: T000xxx"` → sofortiges Incident-Ticket, kein Buffer-Eintrag
+- `"Mishap gespeichert (3/10). Noch 7 bis zum Rollup-Container-Append."` → weiter melden, Buffer sammelt
+- `"Rollup-Container-Append: 10 Mishaps an den Container angehaengt. Verbleibend: 2."` → Schwelle erreicht, Container wurde befüllt
 
 ---
 
@@ -101,12 +103,17 @@ mitgezählt und geht nicht verloren.
 > offen. Den Flush aus Sorge vor Datenverlust wiederherzustellen ist der Rückfall in genau dieses
 > Verhalten; die Sorge ist unbegründet (siehe Persistenz oben).
 
-Gebündelt wird stattdessen auf zwei Wegen, beide ohne Session-Bezug:
+An den Rollup-Container angehängt wird auf zwei Wegen, beide ohne Session-Bezug:
 
 | Weg | Auslöser |
 |---|---|
-| Schwelle | `report_mishap` bündelt automatisch ab **10** Einträgen |
-| Alters-Schnitt | Der Factory-Tick (`scripts/factory/wakeup.sh`) ruft periodisch `ticket-mcp-go --flush-stale-mishaps` auf und bündelt, sobald der älteste Eintrag ≥ 7 Tage alt ist |
+| Schwelle | `report_mishap` hängt ab **10** Einträgen an den Rollup-Container an |
+| Alters-Schnitt | Der Factory-Tick (`scripts/factory/wakeup.sh`) ruft periodisch `ticket-mcp-go --flush-stale-mishaps` auf und hängt an, sobald der älteste Eintrag ≥ 7 Tage alt ist |
+
+**Zum Rollup-Container:** Ein persistentes Ticket (`type=chore`, `status=plan_staged`) mit dem Titel
+"Mishap Rollup — fortlaufende Sammlung". Es wird niemals geschlossen — nicht-kritische Mishaps
+werden als Kommentar-Batches an dieses Ticket gehängt. Der Rollup-Treiber
+(`scripts/factory/mishap-rollup.sh`) extrahiert daraus periodisch einen Plan und staged ihn.
 
 `flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfügbar — z. B. wenn ein
 Befund sofort ein Ticket braucht. Es ist kein Pflichtschritt dieses Skills mehr:
@@ -117,56 +124,54 @@ mcp__ticket-mcp__flush_mishap_buffer({ brand: "<brand>" })
 
 ---
 
-## Step 3.5: Non-critical bundle → auto-chore-plan
+## Step 3.5: Rollup-Container → Plan generieren
 
-Ein Bundle ohne kritische Einträge geht **ohne menschliche Zwischenstation** von `triage`
-nach `plan_staged` und wird damit von der Software Factory aufgegriffen.
+Nicht-kritische Mishaps, die den Buffer-Schwellwert erreicht oder den Alters-Schnitt
+ausgelöst haben, liegen als Kommentar-Batches am Rollup-Container-Ticket
+("Mishap Rollup — fortlaufende Sammlung", `type=chore`, `status=plan_staged`).
 
-**Ausgeführt wird das von `scripts/factory/auto-chore-plan.sh` [T002390]** — nicht von Hand:
+**Ausgeführt wird das Extrahieren von `scripts/factory/mishap-rollup.sh` [T002407]** — nicht von Hand:
 
 ```bash
-bash scripts/factory/auto-chore-plan.sh <ext-id>
+BRAND=<brand> bash scripts/factory/mishap-rollup.sh
 ```
 
-Der Factory-Tick (`wakeup.sh`) ruft es zusätzlich mit `--all` je Brand auf, sodass liegen
-gebliebene Bundles von selbst nachgezogen werden.
+Der Factory-Tick (`wakeup.sh`) ruft es pro Brand auf, sodass liegen gebliebene Batches
+von selbst aufgegriffen werden.
 
-**Warum als Skript und nicht als Anleitung:** Dieser Schritt stand bis 2026-07-28 hier als
-Prosa — und wurde in der Praxis übersprungen. Acht auto-planbare Bundles lagen deshalb in
-`triage`, während der Dispatcher und die Factory beide einsatzbereit waren. Ein
-Automatisierungsschritt, der von der Aufmerksamkeit des Ausführenden abhängt, ist keiner.
-Deshalb steht das Verfahren **nur** im Skript; wird es hier erneut ausgeschrieben, driften
-Prosa und Code wieder auseinander.
+Was das Skript garantiert (Details im Skriptkopf `scripts/factory/mishap-rollup.sh`):
 
-Was das Skript garantiert (Details und Begründungen im Skriptkopf):
-
-- **Severity-Gate:** nur `minor`/`trivial`. `major`/`critical` tragen `broken`- oder
-  `security`-Einträge und bleiben für menschliche Triage in `triage`.
-- **`plan-lint` als Hard Gate:** bei FAIL kein `stage-plan`, Ticket bleibt `triage`.
-- **Branch mit unveränderter Ticket-ID, Verzeichnis-Slug lowercase.** Zwei verschiedene Werte
-  aus derselben Ticket-ID [T002240]:
-
-  ```bash
-  # Verzeichnis-Slug: KOMPLETT lowercase (openspec/changes/<slug>-Konvention)
-  slug="mishap-$(echo "<ext-id>" | tr '[:upper:]' '[:lower:]')"   # -> mishap-t002239
-  # Branch-Name: Ticket-ID UNVERAENDERT, grosses T (NICHT aus dem Slug ableiten!)
-  branch="chore/mishap-<ext-id>"                                  # -> chore/mishap-T002239
-  ```
-
-  `.githooks/pre-commit` prüft `T[0-9]{6,}` **case-sensitive**. `chore/mishap-t002239` mit
-  kleinem `t` matcht die Regex nicht — der Commit wird abgelehnt und der Schritt kann nie
-  durchlaufen. Den Branch-Namen aus dem lowercase-Slug abzuleiten ist genau der Bug.
+- **Fester Slug/Branch:** `mishap-incident-rollup` / `chore/mishap-incident-rollup` — der
+  Branch wird nie gelöscht, das Ticket nie geschlossen.
+- **Update statt Neu:** existiert das Change-Verzeichnis bereits, wird `tasks.md` neu
+  erzeugt — kein Abbruch.
+- **`plan-lint` als Hard Gate:** bei FAIL kein `stage-plan`, Container bleibt `plan_staged`.
 - **Commit und Push `&&`-verkettet** — ein abgelehnter Commit verhindert einen Push auf
   eigener Zeile nicht.
+- **No-op-Pfad:** keine unverarbeiteten Batches → Meldung und `exit 0` ohne Worktree-Anlage.
 
-Ab `plan_staged` erkennt die Factory den `FACTORY-PLAN-REF`, schedult das Ticket und treibt es
-bis zum Merge.
+Nach erfolgreichem `stage-plan` ist der Container wieder bereit für die nächste Batch-Runde.
 
 ---
 
 ## Step 4: Fallback — Kein ticket-mcp erreichbar
 
-Falls der MCP-Server nicht antwortet, einen formatierten Block ausgeben für manuelle Eingabe unter `https://web.mentolder.de/admin/bugs`:
+Falls der MCP-Server nicht antwortet, einen formatierten Block ausgeben für manuelle Eingabe unter `https://web.mentolder.de/admin/bugs`.
+
+**Incident-Pfad:** `incident`-/`broken`-/`security`-Mishaps erfordern sofortige Aufmerksamkeit.
+Lege ein Incident-Ticket manuell an:
+
+```bash
+bash scripts/ticket.sh create --type incident --title "..." --description "..." --brand <brand>
+# oder via ticket-mcp (nur CLI):
+bash scripts/ticket.sh create --type incident --title "<titel>" \
+  --description "<beschreibung>" --brand <brand>
+```
+
+Setze `attention_mode=needs_human` und `status=triage`, damit das Ticket nicht automatisch
+dispatched wird. Nicht-kritische Mishaps (`degraded`/`suspicious`/`drift`) können als
+Kommentar am Rollup-Container-Ticket (s.o.) nachgetragen werden, sobald der MCP-Server
+wieder erreichbar ist — sie laufen nicht weg, da der Buffer dateibasiert ist.
 
 ```
 --- Mishap-Report ---

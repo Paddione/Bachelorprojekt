@@ -7,6 +7,10 @@ spec:
   interval: 10m
   retryInterval: 2m
   timeout: 10m
+  # T002479: Bewusst suspendiert (2026-07-23, bestätigt 2026-07-31) — korczewski-Brand
+  # eingefroren (Kosten/Wartung). Alle Workloads stehen live auf 0/0 Replicas.
+  # Vor einem Re-Aktivieren die Suspension in einem separaten Change aufheben.
+  suspend: true
   dependsOn:
     - name: flux-infra-controllers
   sourceRef:

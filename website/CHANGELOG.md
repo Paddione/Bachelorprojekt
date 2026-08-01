@@ -1,5 +1,50 @@
 # Changelog
 
+## [1.230.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.229.0...website-v1.230.0) (2026-08-01)
+
+
+### Features
+
+* **agents:** cockpit daemon K2 — live adapter + tests [T002461] ([#3553](https://github.com/Paddione/Bachelorprojekt/issues/3553)) ([979f37f](https://github.com/Paddione/Bachelorprojekt/commit/979f37fc888082a9fa983799768cc35a1366cf6c))
+* **factory:** add similar-ticket context retrieval to scout LLM fallback [T002400] ([#3545](https://github.com/Paddione/Bachelorprojekt/issues/3545)) ([986279c](https://github.com/Paddione/Bachelorprojekt/commit/986279c519f4a851ba9205518c2801d051982ae5))
+* **ops:** remove Gemma from Windows watchdog and autostart [T002459] ([#3569](https://github.com/Paddione/Bachelorprojekt/issues/3569)) ([9636019](https://github.com/Paddione/Bachelorprojekt/commit/96360191ce9efbf58d29513e42b9c6f576213f58))
+* **website:** Cockpit-Shell mit Lavish Design-Kit verdrahten [T002466] ([#3563](https://github.com/Paddione/Bachelorprojekt/issues/3563)) ([3c1fcd2](https://github.com/Paddione/Bachelorprojekt/commit/3c1fcd256f1101b48ad6023439d30e6ed1eeb9f0))
+
+
+### Bug Fixes
+
+* **factory:** Thinking-Gate an lokaler baseUrl statt Modellnamen [T002501] ([#3572](https://github.com/Paddione/Bachelorprojekt/issues/3572)) ([6d4c217](https://github.com/Paddione/Bachelorprojekt/commit/6d4c217752f22c41c67e1296784f2519f4e2d118))
+* **infra:** verankere wg-gpu-Pod-CIDRs und GPU-Host-Firewall im Repo [T002491] ([#3562](https://github.com/Paddione/Bachelorprojekt/issues/3562)) ([099629d](https://github.com/Paddione/Bachelorprojekt/commit/099629d2b19895260add2fb32e23383dc1d14680))
+* **mcp:** render Authorization headers for http MCP clients [T002487] ([#3558](https://github.com/Paddione/Bachelorprojekt/issues/3558)) ([88d0034](https://github.com/Paddione/Bachelorprojekt/commit/88d00346a470d473a909ce7e9ba627c987b98550))
+* **mcp:** route bge pairs to localhost and translate opencode env syntax [T002488] ([#3560](https://github.com/Paddione/Bachelorprojekt/issues/3560)) ([805ead5](https://github.com/Paddione/Bachelorprojekt/commit/805ead57b8366708ed52350bac63d8b8e9c6a610))
+* **ops:** identifiziere Firewall-Regeln über den vollen Programmpfad [T002496] ([#3564](https://github.com/Paddione/Bachelorprojekt/issues/3564)) ([6b565c1](https://github.com/Paddione/Bachelorprojekt/commit/6b565c15895aee7502b6ab921796a59cfde78bef))
+* **plans:** resolve G-AGENTIC01 vs T002221 conflict [T002494] ([#3566](https://github.com/Paddione/Bachelorprojekt/issues/3566)) ([53a4ab6](https://github.com/Paddione/Bachelorprojekt/commit/53a4ab6593b674aea5d87b8786bc482b79e74658))
+* **website:** 12 rote Vitest-Tests auf main gruen [T002497] ([#3565](https://github.com/Paddione/Bachelorprojekt/issues/3565)) ([507e24c](https://github.com/Paddione/Bachelorprojekt/commit/507e24cb9998c2c4843bfa7528f2f5fd148cc90d))
+
+## [1.229.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.228.0...website-v1.229.0) (2026-07-29)
+
+
+### Features
+
+* **factory:** Eskalationsleiter gemma→deepseek-flash→deepseek-pro [T002369] ([#3528](https://github.com/Paddione/Bachelorprojekt/issues/3528)) ([749e252](https://github.com/Paddione/Bachelorprojekt/commit/749e252846273b351b762078c58758280ab4e2cb))
+* **factory:** Mishap-Tracker Rollup — Incident-Typ + Container-Recycling [T002407] ([#3527](https://github.com/Paddione/Bachelorprojekt/issues/3527)) ([02079c1](https://github.com/Paddione/Bachelorprojekt/commit/02079c1dfa499979e8fd20528a5ca649ce82c378))
+* **scripts:** erden health-goals-llm-fill [T002402] ([#3540](https://github.com/Paddione/Bachelorprojekt/issues/3540)) ([d17feba](https://github.com/Paddione/Bachelorprojekt/commit/d17feba2e79b12c7eaebb4dfb8da40bd32223053))
+* **scripts:** Mishap-Bundle — 10 Fixes für Scripts, Tests, Docs [T002469] ([#3531](https://github.com/Paddione/Bachelorprojekt/issues/3531)) ([6974c80](https://github.com/Paddione/Bachelorprojekt/commit/6974c80ad3b3c0de474fefd7ae048fdbce039f52))
+* **scripts:** Mishap-Bundle — agent-lock force-claim + Docs-Fixes [T002454] ([#3532](https://github.com/Paddione/Bachelorprojekt/issues/3532)) ([60a5632](https://github.com/Paddione/Bachelorprojekt/commit/60a56322643c2879c9d64f0e78ab728d77f36f1d))
+* **scripts:** mishap-categorize erden — bestehende Kategorien als LLM-Prompt-Kontext [T002401] ([#3536](https://github.com/Paddione/Bachelorprojekt/issues/3536)) ([7587059](https://github.com/Paddione/Bachelorprojekt/commit/75870593f7bfac6668844fe15c590d40b30d7688))
+
+
+### Bug Fixes
+
+* **plans:** archive stale Erden changes and fix broken spec headers [T002471] ([cea547b](https://github.com/Paddione/Bachelorprojekt/commit/cea547b56ba3d6c72fc3dfd57e2711cffd8b3fbc))
+* **scripts:** Branch-Namens-Guard in worktree-create.sh vor Divergence-Guard [T002470] ([#3525](https://github.com/Paddione/Bachelorprojekt/issues/3525)) ([99e54e6](https://github.com/Paddione/Bachelorprojekt/commit/99e54e6af133c034cf5f6666fc9966a9aef44606))
+* **scripts:** plan-context summary mode + --full flag [T002322] ([#3537](https://github.com/Paddione/Bachelorprojekt/issues/3537)) ([e898a41](https://github.com/Paddione/Bachelorprojekt/commit/e898a41ee4df2b6452f3b1f8b3e0b1b56520873a))
+
+
+### Tests
+
+* **test:** W3 partial-mode regression test for line-suffix refs [T002342] ([#3507](https://github.com/Paddione/Bachelorprojekt/issues/3507)) ([86b223e](https://github.com/Paddione/Bachelorprojekt/commit/86b223e2ae52b6c2e22827477282412b0152255e))
+
 ## [1.228.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.227.0...website-v1.228.0) (2026-07-29)
 
 

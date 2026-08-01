@@ -98,10 +98,13 @@ cmd_check() {
   local mysid d; mysid="$(_my_sid)"; d="$(_lock_dir)"
   [ -d "$d" ] || return 0
 
-  local found=0 f sid wt peer file
+  local found=0 f sid pid wt peer file
+  declare -A seen
   for f in "$d"/*.json; do
     [ -e "$f" ] || continue
     sid="$(_field "$f" owner_sid)"
+    pid="$(_field "$f" owner_pid)"
+    [ -n "$pid" ] && [ "$pid" = "$$" ] && continue
     [ "$sid" = "$mysid" ] && continue
     _sid_alive "$sid" || continue
     wt="$(_field "$f" worktree)"
@@ -120,6 +123,8 @@ cmd_check() {
     [ -n "$peer" ] || continue
     while IFS= read -r file; do
       [ -n "$file" ] || continue
+      # M9: Datei muss im Peer existieren — Dateisystem ODER im Git-Index
+      if [ ! -f "$wt/$file" ] && ! git -C "$wt" ls-files -- "$file" >/dev/null 2>&1; then continue; fi
       # Squash-Merge: die Peer-Commits sind keine Ancestors von main, main...HEAD listet die
       # Datei weiter — aber wenn der Blob identisch ist, ist nichts mehr offen.
       # Fehlschlagende rev-parse (Datei in main nicht vorhanden) => behalten, nicht verwerfen.
@@ -127,16 +132,25 @@ cmd_check() {
       # hat (sonst waere HEAD:file == main:file obwohl der Peer aktiv aendert). [T002444]
       peer_blob="$(git -C "$wt" rev-parse "HEAD:$file" 2>/dev/null || true)"
       main_blob="$(git rev-parse "main:$file" 2>/dev/null || true)"
-      if [ -n "$peer_blob" ] && [ "$peer_blob" = "$main_blob" ] && \
+      if [ "$peer_blob" = "$main_blob" ] && \
          ! git -C "$wt" diff --name-only HEAD -- "$file" 2>/dev/null | grep -q . && \
          ! git -C "$wt" diff --cached --name-only -- "$file" 2>/dev/null | grep -q .; then
         continue
       fi
+
+      # M7: committed only → kein Alarm. Nur uncommitted → Alarm.
+      if ! git -C "$wt" diff --name-only HEAD -- "$file" 2>/dev/null | grep -q . && \
+         ! git -C "$wt" diff --cached --name-only -- "$file" 2>/dev/null | grep -q .; then
+        continue
+      fi
       if printf '%s\n' "$peer" | grep -qxF "$file"; then
-        found=1
-        if [ "$quiet" -eq 0 ]; then
-          printf '⚠ COLLISION: %s — auch in-flight bei %s/%s (sid %s, worktree %s)\n' \
-            "$file" "$(_field "$f" tool)" "$(_field "$f" label)" "$sid" "$wt" >&2
+        if [[ -z "${seen[$file]:-}" ]]; then
+          seen[$file]=1
+          found=1
+          if [ "$quiet" -eq 0 ]; then
+            printf '⚠ COLLISION: %s — auch in-flight bei %s/%s (sid %s, worktree %s)\n' \
+              "$file" "$(_field "$f" tool)" "$(_field "$f" label)" "$sid" "$wt" >&2
+          fi
         fi
       fi
     done <<EOF

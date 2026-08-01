@@ -124,29 +124,49 @@ echo "" >> "$OUTPUT_FILE"
 for gid in "${CANDIDATES[@]}"; do
   printf "  → %s ... " "$gid"
 
-  # Prompt: hole Kontext aus goals.md Sektion
-  CONTEXT=$(python3 -c "
+  # Prompt: hole Kontext aus goals.md Sektion sowie bestehende Nachbar-Ziele desselben Präfix
+  CONTEXT_AND_EXISTING=$(python3 -c "
 import re, sys
-with open('$GOALS_FILE') as f:
+
+goals_file = '$GOALS_FILE'
+gid = '$gid'
+
+with open(goals_file) as f:
     text = f.read()
-# Finde Sektion für gid
-pattern = r'##\s+' + re.escape('$gid') + r'.*?(?=\n##\s|\Z)'
+
+# 1. Hole Sektion für gid
+pattern = r'##\s+' + re.escape(gid) + r'.*?(?=\n##\s|\Z)'
 m = re.search(pattern, text, re.DOTALL)
-if m: print(m.group(0)[:1500])
-else: print('(kein Kontext gefunden)')
+sec_text = m.group(0)[:1500] if m else '(kein Kontext gefunden)'
+
+# 2. Hole Nachbar-Ziele des gleichen Präfix (z.B. G-AGENTIC)
+pfx_match = re.match(r'^(G-[A-Z]+)', gid)
+existing_str = ''
+if pfx_match:
+    prefix = pfx_match.group(1)
+    found_items = []
+    
+    # Section headers: ## G-PREFIX...
+    for m_sec in re.finditer(r'##\s+(' + re.escape(prefix) + r'[A-Z0-9]*)\s+—\s+([^\n]+)', text):
+        eg_id, eg_title = m_sec.group(1), m_sec.group(2).strip()
+        found_items.append(f'- {eg_id}: {eg_title}')
+        
+    # Table rows: | **G-PREFIX...** | Title | ...
+    for m_row in re.finditer(r'\|\s*\*\*(' + re.escape(prefix) + r'[A-Z0-9]*)\*\*\s*\|\s*([^|]+)', text):
+        eg_id, eg_title = m_row.group(1), m_row.group(2).strip()
+        if not any(item.startswith(f'- {eg_id}:') for item in found_items):
+            found_items.append(f'- {eg_id}: {eg_title}')
+            
+    if found_items:
+        existing_str = '[EXISTING_GOALS]\n' + '\n'.join(found_items)
+
+combined = f'{sec_text}\n\n{existing_str}'.strip()
+# Budget-Begrenzung (max 3000 Zeichen), um llm-proxy Margin nicht zu sprengen
+print(combined[:3000])
 " 2>/dev/null || echo "(Kontext-Fehler)")
 
-  JSON_PAYLOAD=$(cat <<JSON
-{
-  "model": "${LLM_MODEL}",
-  "messages": [
-    {"role": "user", "content": "Du bekommst ein Health-Goal aus .claude/lib/goals.md. Liefere eine strukturierte Bewertung als JSON. Goal-ID: ${gid}. Kontext: ${CONTEXT}. Antworte NUR als JSON: {\"id\":\"${gid}\",\"value\":\"<aktueller Wert>\",\"unit\":\"<Einheit>\",\"confidence\":0.0,\"evidence\":\"<Begründung>\",\"reproducible_cmd_suggestion\":\"<reproduzierbarer Messbefehl>\"}"}
-  ],
-  "response_format": {"type": "json_object"},
-  "max_tokens": 300
-}
-JSON
-  )
+  JSON_PAYLOAD=$(python3 "$(dirname "${BASH_SOURCE[0]}")/health-goals-payload.py" \
+    "$LLM_MODEL" "$gid" <<< "$CONTEXT_AND_EXISTING")
 
   RESP=$(curl -s --max-time 30 \
     -H "Content-Type: application/json" \

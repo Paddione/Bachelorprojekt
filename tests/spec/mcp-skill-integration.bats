@@ -121,3 +121,120 @@ setup() {
   run grep -q 'add-comment\|add_comment' "$REPO/.claude/skills/references/mcp-tool-guide.md"
   [ "$status" -eq 0 ]
 }
+
+# ── [T002407-M4] Incident-Typen umgehen den Buffer ────────────────────────────#
+# Der Go-Code in mishap.go hat zwei Pfade: incident-Typen erzeugen sofort ein
+# Ticket, nicht-kritische Typen sammeln im Buffer. Die Tests assertieren den
+# Quelltext-Pfad (statisch, kein Go-Kompilat nötig).
+
+@test "T002407-M4a: isIncidentType erkennt incident" {
+  run grep -Fq 'return mtype == "incident" || mtype == "broken" || mtype == "security"' \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M4b: isIncidentType erkennt broken (Alias)" {
+  # broken ist ein Alias für incident — beide erzeugen sofort ein Ticket.
+  # Die isIncidentType-Funktion muss beide abdecken, nicht nur den Primärtyp.
+  # Die Funktion steht auf einer Zeile, daher mit grep -A Kontext prüfen.
+  run grep -A3 'func isIncidentType' "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [[ "$output" == *'"broken"'* ]]
+}
+
+@test "T002407-M4c: isIncidentType erkennt security (Alias)" {
+  run grep -A3 'func isIncidentType' "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [[ "$output" == *'"security"'* ]]
+}
+
+@test "T002407-M4d: incident erzeugt createIncidentTicket-Aufruf (Sofort-Ticket)" {
+  # Im report_mishap-Handler: wenn isIncidentType() → createIncidentTicket aufrufen.
+  # Der Test sucht nach dem if-Zweig, der das Ticket erzeugt.
+  run grep -Fq "createIncidentTicket(entry, brand)" \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ] || { echo "createIncidentTicket-Aufruf fehlt"; false; }
+  run grep -Fq 'Incident-Ticket angelegt' \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M4e: nicht-kritische Typen (degraded) gehen in den Buffer" {
+  # Der else-Pfad (nicht incident) schreibt in den Buffer.
+  # Ein degraded-Mishap darf KEIN sofortiges Ticket auslösen.
+  run grep -Fq "buffer = append(buffer, entry)" \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+  run grep -Fq 'Mishap gespeichert' \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+}
+
+# ── [T002407-M5] Erzeugte Tickets tragen nie type=task ────────────────────────#
+# incident-Tickets werden mit --type incident angelegt, non-incident-Rollup
+# mit --type chore. Der Wert 'task' kommt in keinem Pfad vor. [T002329]
+
+@test "T002407-M5a: buildIncidentTicketArgs verwendet --type incident" {
+  run grep -Fq '"create", "--type", "incident"' \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M5b: buildIncidentTicketArgs verwendet --attention-mode needs_human" {
+  run grep -Fq '"--attention-mode", "needs_human"' \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M5c: buildFindRollupTicketArgs sucht type=chore" {
+  run grep -Fq '"--type", "chore"' \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M5d: buildCreateRollupTicketArgs verwendet --type chore" {
+  # Der Container selbst wird als chore angelegt, nie als task.
+  run grep -Fq '"create", "--type", "chore"' \
+    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M5e: kein Pfad in mishap.go erzeugt type=task" {
+  # Die Migration von Bundle zu incident/chore darf nirgendwo task verwenden.
+  # task ist ein Legacy-Typ, der in T002331 entfernt wird. [T002329]
+  run bash -c "grep -F '\"task\"' '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' \
+    | grep -v '//.*\"task\"' | grep -v 'legacy.*task\|TODO\|FIXME' | wc -l"
+  [ "$output" = "0" ]
+}
+
+# ── [T002407-M6] Rollup-Container wird in plan_staged angelegt ────────────────#
+# findOrCreateRollupTicket erzeugt den Container mit status=plan_staged, nie triage.
+# Das ermöglicht dem Rollup-Treiber, direkt auf den Plan zuzugreifen.
+
+@test "T002407-M6a: buildCreateRollupTicketArgs setzt --status plan_staged" {
+  run bash -c "grep -A10 'buildCreateRollupTicketArgs' \
+    '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' 2>/dev/null \
+    | grep -c '\"plan_staged\"'"
+  [ "$output" != "0" ] || { echo "plan_staged nicht in buildCreateRollupTicketArgs gefunden (Doppelhochtriche)"; false; }
+}
+
+@test "T002407-M6b: buildCreateRollupTicketArgs setzt --status plan_staged, NICHT triage" {
+  # Der Container darf nie in triage landen.
+  run bash -c "grep -A10 'buildCreateRollupTicketArgs' \
+    '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' 2>/dev/null \
+    | grep -c \"'triage'\""
+  [ "$output" = "0" ]
+}
+
+@test "T002407-M6c: ROLLUP_TICKET_TITLE ist definiert" {
+  run bash -c "grep -q 'ROLLUP_TICKET_TITLE' \
+    '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go'"
+  [ "$status" -eq 0 ]
+}
+
+@test "T002407-M6d: SKILL.md verweist auf mishap-rollup.sh statt auto-chore-plan.sh" {
+  local skill="$REPO/.claude/skills/mishap-tracker/SKILL.md"
+  run grep -q 'mishap-rollup.sh' "$skill"
+  [ "$status" -eq 0 ] || { echo "mishap-rollup.sh fehlt in SKILL.md"; false; }
+  # Step-3.5-Sektion darf auto-chore-plan nicht mehr im Titel/Lead erwähnen
+  run bash -c "grep -A3 'Step 3.5' '$skill' | grep -c 'auto-chore-plan'"
+  [ "$output" = "0" ] || { echo "Step 3.5 erwähnt noch auto-chore-plan"; false; }
+}

@@ -106,6 +106,24 @@ run_prep() {
       title=$(echo "${ticket_json}" | jq -r '.title // null')
       plan_ref=$(echo "${ticket_json}" | jq -r '.plan_ref // ""')
 
+      # ── Attempt counter für Model-Escalation (T002369) ─────────────────────
+      # Lies factory_attempt:<ext_id> aus factory_control; der Watchdog
+      # inkrementiert diesen Zähler bei jedem Stale-Detect ohne Fortschritt.
+      # pipeline_attempt = counter + 1 (der bevorstehende Pipeline-Durchlauf).
+      # Mapping: 1→flash, 2→haiku, 3+→sonnet.
+      local attempt_counter pipeline_attempt model_tier
+      attempt_counter=$(BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" factory-control get \
+        --key "factory_attempt:${ext_id}" --brand "${brand}" 2>/dev/null || echo "0")
+      attempt_counter=${attempt_counter:-0}
+      pipeline_attempt=$(( attempt_counter + 1 ))
+      if [[ "$pipeline_attempt" -ge 3 ]]; then
+        model_tier="sonnet"
+      elif [[ "$pipeline_attempt" -eq 2 ]]; then
+        model_tier="haiku"
+      else
+        model_tier="flash"
+      fi
+
       branch=null; plan_path=null
       if [[ -n "${plan_ref}" ]]; then
         br=$(echo "${plan_ref}" | grep -oP 'branch=\K\S+' || true)
@@ -137,7 +155,8 @@ run_prep() {
       final_launch=$(echo "${final_launch}" | jq -c \
         --arg b "${brand}" --arg e "${ext_id}" --argjson s "${slot}" \
         --arg t "${title:-}" --arg br "${branch:-null}" --arg p "${plan_path:-null}" --arg w "${wt_path}" --argjson dr "${dry_run}" \
-        '. + [{"brand":$b, "external_id":$e, "slot":$s, "title":$t, "branch":$br, "plan_path":$p, "worktree_path":$w, "dry_run":$dr}]')
+        --argjson at "${pipeline_attempt}" --arg mt "${model_tier}" \
+        '. + [{"brand":$b, "external_id":$e, "slot":$s, "title":$t, "branch":$br, "plan_path":$p, "worktree_path":$w, "dry_run":$dr, "attempt":$at, "model_tier":$mt}]')
     done
   done
 

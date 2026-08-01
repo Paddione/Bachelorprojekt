@@ -723,12 +723,14 @@ tasks:
       - node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
 
   test:llm-proxy:
-    desc: "Run the llm-proxy routing + readiness unit tests (node:test)"
+    desc: "Run the llm-proxy routing + readiness unit tests (node:test + vitest)"
     cmds:
       # T002336: diese Suite existierte seit T002102, lief aber in KEINEM Target
       # und in KEINEM CI-Job - sie war nie ein Regressionsschutz, nur eine Datei.
       # Aufgefallen erst, als /health bei totem Backend drei Stunden 200 meldete.
-      - node --test scripts/llm-proxy/*.test.mjs
+      # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
+      - npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs
+      - node --test scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs
 
   test:factory:
     desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory.bats + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
@@ -766,15 +768,28 @@ tasks:
         fi
 
   test:spec:
-    desc: "Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe."
+    desc: "Run the offline-safe spec bats (tests/spec/, rekursiv). Builds mcp-task-runner fresh if go is available (best-effort). Live-DB cases skip without a reachable cluster, so this is CI-safe. SPEC_SHARD/SPEC_SHARDS laeuft nur die eigene Partition (siehe scripts/spec-shard.sh)."
     cmds:
       - task: test:spec:build-mcp-runner
-      # `-r tests/spec/` statt `tests/spec/*.bats` [T002416]: der Glob erfasst NUR die
-      # oberste Ebene. Seit der Verzeichniskonvention liegen neue Tests unter
-      # tests/spec/<spec-slug>/ — die waeren mit dem Glob stillschweigend nie gelaufen,
-      # was schlimmer ist als ein roter Test. `-r` erfasst beide Formen, deshalb koennen
-      # die 139 Bestandsdateien auf der obersten Ebene liegen bleiben.
-      - ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files -r tests/spec/
+      - |
+        # `find` statt `bats -r tests/spec/` [T002500]: die Shard-Aufteilung braucht eine
+        # explizite Dateiliste. Der rekursive Fang bleibt identisch zu `-r` — und damit
+        # auch die Eigenschaft aus T002416, dass Tests unter tests/spec/<spec-slug>/
+        # miterfasst werden. Ein flacher Glob wuerde sie stillschweigend auslassen, was
+        # schlimmer waere als ein roter Test.
+        FILES=$(find tests/spec -name '*.bats' -type f | LC_ALL=C sort)
+        if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
+          FILES=$(printf '%s\n' "$FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS")
+          echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$FILES" | grep -c .) Dateien"
+        fi
+        # Leere Auswahl ist ein Fehler, kein No-op. Ein still gruener Leerlauf saehe
+        # aus wie eine bestandene Suite, obwohl nichts lief — genau die Klasse von
+        # Fehler, die das Sharding einfuehren kann und die niemand bemerkt.
+        if [ "$(printf '%s' "$FILES" | grep -c .)" -eq 0 ]; then
+          echo "test:spec: FEHLER — keine Spec-Dateien ausgewaehlt" >&2
+          exit 1
+        fi
+        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $FILES
 
   test:spec:changed:
     desc: "Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]"
@@ -800,7 +815,20 @@ tasks:
           echo "→ Running changed spec tests ($SELECTED of $TOTAL):"
         fi
         echo "$CHANGED_FILES"
-        ./tests/unit/lib/bats-core/bin/bats $CHANGED_FILES
+        # [T002500] Sharding auch hier, denn der teure Fall laeuft ueber DIESEN Pfad:
+        # aendert ein PR ci.yml/Taskfile.yml oder ein geteiltes Harness, faellt
+        # find-changed-tests.sh fail-closed auf die volle Suite zurueck (~400s).
+        if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
+          CHANGED_FILES=$(printf '%s\n' "$CHANGED_FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS")
+          # Anders als bei test:spec ist ein leerer Shard hier legitim: eine
+          # diff-gescopte Auswahl kann weniger Dateien haben als es Shards gibt.
+          if [ "$(printf '%s' "$CHANGED_FILES" | grep -c .)" -eq 0 ]; then
+            echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: keine Dateien in dieser Partition"
+            exit 0
+          fi
+          echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$CHANGED_FILES" | grep -c .) Dateien"
+        fi
+        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $CHANGED_FILES
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
@@ -841,16 +869,20 @@ tasks:
     cmds:
       - bash scripts/openspec.sh archive {{.CLI_ARGS}}
   openspec:embed:backfill:
-    desc: "Re-index all active openspec changes (status planning|plan_staged) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]"
+    desc: "Re-index all active openspec changes (status in ACTIVE_STATUSES from openspec-embed.mjs) into pgvector. Usage: task openspec:embed:backfill [-- --dry-run]"
     cmds:
       - |
         set -e
+        # ACTIVE_STATUSES is the SSOT — read dynamically from the ESM export
+        ACTIVE_STATUSES="$(node --input-type=module -e "
+          import('./scripts/openspec-embed.mjs').then(m => console.log(m.ACTIVE_STATUSES.join('|')))
+        " 2>/dev/null || echo 'planning|plan_staged')"
         for d in openspec/changes/*/; do
           slug="$(basename "$d")"
           [ "$slug" = "archive" ] && continue
           [ -f "$d/tasks.md" ] || continue
           st="$(sed -n 's/^status:[[:space:]]*//p' "$d/tasks.md" | head -1)"
-          case "$st" in planning|plan_staged) ;; *) continue ;; esac
+          case "$st" in $ACTIVE_STATUSES) ;; *) continue ;; esac
           echo "backfill: $slug (status=$st)"
           node scripts/openspec-embed.mjs --slug "$slug" {{.CLI_ARGS}}
         done
@@ -906,8 +938,22 @@ tasks:
         echo "$CHANGED" | grep -qE "^brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|environments/|VideoVault/)" && RUN_E2E_SERVICES=true || true
         echo "$CHANGED" | grep -qE "(korczewski)" && RUN_E2E_KORCZEWSKI=true || true
-        if [ "$RUN_WEBSITE" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ website changes: pnpm vitest run --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
-        if [ "$RUN_MENTOLDER_WEB" = "true" ] && command -v pnpm >/dev/null 2>&1; then echo "→ mentolder-web changes: pnpm --filter mentolder-web test"; pnpm --filter mentolder-web test; fi
+        if [ "$RUN_WEBSITE" = "true" ]; then
+          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+            echo "→ website changes: pnpm vitest run --changed"
+            (cd website && pnpm vitest run --changed --reporter verbose)
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping website JS tests"
+          fi
+        fi
+        if [ "$RUN_MENTOLDER_WEB" = "true" ]; then
+          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+            echo "→ mentolder-web changes: pnpm --filter mentolder-web test"
+            pnpm --filter mentolder-web test
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping mentolder-web JS tests"
+          fi
+        fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
         
         JOBS=$(nproc 2>/dev/null || echo 2)
@@ -962,7 +1008,12 @@ tasks:
         if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
 
         if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
-          if command -v pnpm >/dev/null 2>&1; then echo "→ no domain-specific changes: vitest --changed"; (cd website && pnpm vitest run --changed --reporter verbose); fi
+          if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
+            echo "→ no domain-specific changes: vitest --changed"
+            (cd website && pnpm vitest run --changed --reporter verbose)
+          else
+            echo "⚠ vitest not available (worktree symlink limitation) — skipping JS fallback tests"
+          fi
         fi
         echo "→ quality gate (always)"; task test:code-quality
 
@@ -3143,8 +3194,14 @@ tasks:
         NS="${WORKSPACE_NAMESPACE:-workspace}"
 
         echo "Fetching postgres superuser password from ${NS}/shared-db..."
-        PG_PW=$(kubectl $ctx_flag -n "$NS" exec deploy/shared-db -- \
-          printenv POSTGRES_PASSWORD | tr -d '\r\n')
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
         if [ -z "$PG_PW" ]; then
           echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
         fi
@@ -3585,8 +3642,14 @@ tasks:
         kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
 
         echo "Fetching postgres superuser password from ${NS}/shared-db..."
-        PG_PW=$(kubectl $ctx_flag -n "$NS" exec deploy/shared-db -- \
-          printenv POSTGRES_PASSWORD | tr -d '\r\n')
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
         if [ -z "$PG_PW" ]; then
           echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
         fi
@@ -3641,6 +3704,11 @@ tasks:
     desc: "Measure and update the client-JS bundle baseline (website/bundle-baseline.json) — G-FE02"
     cmds:
       - node scripts/check-bundle-size.mjs --update-baseline
+
+  website:portrait-derivatives:
+    desc: "Rebuild the portrait derivatives from gerald.jpg — 4:5 crop anchored at y=0 so the head stays whole (T002507)"
+    cmds:
+      - bash scripts/build-portrait-derivatives.sh
 
   website:sync:
     desc: "Fast-sync website/src to the running pod and rebuild (ENV=dev|mentolder|...)"
@@ -3954,6 +4022,13 @@ tasks:
     dir: website
     cmds:
       - npm run dev
+
+  cockpit:dev:
+    desc: Serve SDLC Cockpit static files locally (http://localhost:8765)
+    dir: .lavish
+    cmds:
+      - fuser -k 8765/tcp 2>/dev/null || true; sleep 0.3
+      - python3 -m http.server 8765 --bind 127.0.0.1
 
   website:status:
     desc: "Show website deployment status (ENV=dev|mentolder|korczewski)"

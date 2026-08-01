@@ -13,7 +13,7 @@ import { execFileSync } from 'node:child_process';
 export function unitName(slug) { return `llama-${slug}.service`; }
 
 /** @returns {string[]} argv fuer llama-server, OHNE das Binary selbst */
-export function buildServerArgv(loadout, modelPath, defaults) {
+export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   const a = loadout.args ?? {};
   const argv = ['-m', modelPath, '--host', defaults.host, '--port', String(loadout.port)];
 
@@ -38,8 +38,14 @@ export function buildServerArgv(loadout, modelPath, defaults) {
   if (a.reasoning != null) argv.push('-rea', a.reasoning);
   if (a.reasoningBudget != null) argv.push('--reasoning-budget', String(a.reasoningBudget));
 
+  // D2: Vision tower. Resolved path from caller beats raw loadout value.
+  const mmproj = resolved.mmprojPath ?? a.mmprojPath ?? null;
+  if (mmproj != null) argv.push('--mmproj', mmproj);
   const s = loadout.speculative ?? {};
-  if (s.draftHfRepo != null) argv.push('--spec-draft-hf', s.draftHfRepo);
+  // D2: local draft path beats HF repo
+  const draftPath = resolved.draftModelPath ?? s.draftModelPath ?? null;
+  if (draftPath != null) argv.push('--spec-draft-model', draftPath);
+  else if (s.draftHfRepo != null) argv.push('--spec-draft-hf', s.draftHfRepo);
   if (s.draftNgl != null) argv.push('-ngld', String(s.draftNgl));
 
   if (loadout.mcp?.serversConfig != null) argv.push('--mcp-servers-config', loadout.mcp.serversConfig);
@@ -59,7 +65,7 @@ export function buildServerArgv(loadout, modelPath, defaults) {
   return argv.concat(loadout.extraArgs ?? []);
 }
 
-export function buildStartCommand(loadout, modelPath, defaults, binPath) {
+export function buildStartCommand(loadout, modelPath, defaults, binPath, resolved = {}) {
   return [
     'systemd-run', '--user',
     `--unit=${unitName(loadout.slug)}`,
@@ -67,15 +73,18 @@ export function buildStartCommand(loadout, modelPath, defaults, binPath) {
     // Zustand 'failed' stehen und blockiert den Unit-Namen -- der naechste
     // Startversuch scheitert dann mit "unit already exists", obwohl nichts laeuft.
     '--collect',
+    // D3: systemd restart properties. MUST be before '--' separator.
+    '--property=Restart=on-failure',
+    '--property=RestartSec=5',
     `--description=llama.cpp loadout ${loadout.slug}`,
     '--',
     binPath,
-    ...buildServerArgv(loadout, modelPath, defaults),
+    ...buildServerArgv(loadout, modelPath, defaults, resolved),
   ];
 }
 
-export function startUnit(loadout, modelPath, defaults, binPath) {
-  const [cmd, ...args] = buildStartCommand(loadout, modelPath, defaults, binPath);
+export function startUnit(loadout, modelPath, defaults, binPath, resolved = {}) {
+  const [cmd, ...args] = buildStartCommand(loadout, modelPath, defaults, binPath, resolved);
   execFileSync(cmd, args, { encoding: 'utf8', stdio: 'pipe' });
 }
 

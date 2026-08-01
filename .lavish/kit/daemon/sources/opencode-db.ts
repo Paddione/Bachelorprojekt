@@ -3,7 +3,7 @@ import { exec } from '../lib/exec';
 export interface OpenCodeSession { sid: string; label: string; ticket_id: string|null; worktree: string|null; status: string; }
 
 export async function getSessions(): Promise<OpenCodeSession[]> {
-  const r = await exec('bash scripts/vda.sh oracle \'list active sessions\' 2>/dev/null || true', 10000);
+  const r = await exec('bash', ['scripts/vda.sh', 'oracle', 'list active sessions'], 10000);
   if (!r.ok || !r.stdout) return [];
   try {
     const data = JSON.parse(r.stdout);

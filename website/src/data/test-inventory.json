@@ -979,325 +979,325 @@
   },
   {
     "id": "FA-SF-01",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-02",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-03",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-04",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-05",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-06",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-07",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-08",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-09",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-10",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-11",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-12",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-13",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-20",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-21",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-22",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-23",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scheduling.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-24",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scheduling.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-25",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scheduling.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-26",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scheduling.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-27",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scheduling.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-30",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/dispatcher.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-31",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/dispatcher.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-32",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/dispatcher.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-33",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/dispatcher.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-34",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/dispatcher.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-35",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/retry-and-build-loop.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-36",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/retry-and-build-loop.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-37",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/retry-and-build-loop.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-38",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-39",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-40",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-41",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/wakeup.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-42",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/dashboard.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-43",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-44",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-45",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/conflict-db-triage.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-46",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/canary-and-cleanup.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-47",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/wakeup.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-48",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-49",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-50",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-51",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scheduling.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-52",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/ticket-lifecycle.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-53",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-57",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-58",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-59",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-60",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/partial-deploy-gang.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-70",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scout-and-routing.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-71",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scout-and-routing.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-72",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-73",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scheduling.bats",
     "category": "FA",
     "kind": "shell"
   },
   {
     "id": "FA-SF-74",
-    "file": "tests/spec/software-factory.bats",
+    "file": "tests/spec/software-factory/scout-and-routing.bats",
     "category": "FA",
     "kind": "shell"
   },
@@ -2954,6 +2954,12 @@
   {
     "id": "software-factory/db-pod-phase-guard",
     "file": "tests/spec/software-factory/db-pod-phase-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/pr-babysit",
+    "file": "tests/spec/software-factory/pr-babysit.bats",
     "category": "software-factory",
     "kind": "shell"
   },

@@ -174,7 +174,7 @@ PLANEOF
       `tests/spec/<spec-slug>.bats` — die Spec, die das Verhalten abdeckt.
 
 ```bash
-tests/unit/lib/bats-core/bin/bats tests/spec/software-factory.bats
+tests/unit/lib/bats-core/bin/bats -r tests/spec/software-factory/
 # expected: FAIL (rot — der Fix ist noch nicht implementiert)
 ```
 

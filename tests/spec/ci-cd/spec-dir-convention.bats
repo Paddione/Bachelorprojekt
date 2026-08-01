@@ -14,12 +14,34 @@ setup() {
 }
 
 @test "spec-dir: Runner erfasst Unterverzeichnisse (bats -r)" {
-  # Positiv-Anker: der test:spec-Task existiert ueberhaupt und ruft bats auf ...
-  run grep -A12 '^  test:spec:$' "${REPO_ROOT}/Taskfile.yml"
+  # Positiv-Anker: es gibt ueberhaupt Tests in Unterverzeichnissen. Ohne diesen Anker
+  # waere die Aussage "der Runner erfasst sie" gegenstandslos (T002356-M1).
+  run bash -c "cd '$REPO_ROOT' && find tests/spec -mindepth 2 -name '*.bats' -type f | wc -l"
   [ "$status" -eq 0 ]
+  [ "$output" -gt 0 ]
+
+  # Der test:spec-Task existiert und ruft bats auf ...
+  #
+  # [T002503] awk-Fenster statt `grep -A<n>`. Der Block ist mit der Shard-Logik aus
+  # T002500 laenger geworden; ein festes -A30 reichte bis in den FOLGENDEN Task
+  # test:spec:changed hinein — und der enthaelt selbst ein `find tests/spec -name`.
+  # Die Rekursions-Assertion unten war damit erfuellt, auch wenn test:spec auf einen
+  # flachen Glob umgestellt wurde. Der Guard war also genau gegen die Regression blind,
+  # die er verhindern soll. Das Fenster endet jetzt am naechsten Task-Key gleicher Tiefe.
+  # Nur Nicht-Kommentarzeilen auswerten (Muster aus tests/spec/software-factory/
+  # conflict-gate.bats): der Block ERKLAERT in einem Kommentar, dass `find` hier
+  # `bats -r tests/spec/` ersetzt — diese Erklaerung erfuellte die Regex unten und
+  # hielt den Guard gruen, obwohl der Task auf einen flachen Glob umgestellt war.
+  run bash -c "awk '/^  test:spec:\$/{f=1;next} f && /^  [a-z][a-zA-Z0-9:_-]*:\$/{exit} f' '${REPO_ROOT}/Taskfile.yml' | grep -vE '^\s*#'"
+  [ "$status" -eq 0 ]
+  [ -n "$output" ]
   printf '%s\n' "$output" | grep -q 'bats-core/bin/bats'
-  # ... und tut das rekursiv statt per *.bats-Glob, der Unterverzeichnisse auslaesst.
-  printf '%s\n' "$output" | grep -qE 'bats .*-r .*tests/spec'
+
+  # ... und waehlt die Dateien rekursiv aus. Zwei zulaessige Formen [T002500]:
+  # `bats -r tests/spec/` oder eine per `find` erzeugte Liste. Beide erfassen
+  # Unterverzeichnisse; entscheidend ist, dass es KEIN flacher tests/spec/*.bats-Glob
+  # ist — der laesst die Verzeichniskonvention still unter den Tisch fallen.
+  printf '%s\n' "$output" | grep -qE 'bats .*-r .*tests/spec|find tests/spec .*-name'
 }
 
 @test "spec-dir: Zaehl-Logik in test:spec:changed zaehlt auch Unterverzeichnisse" {

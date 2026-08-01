@@ -1908,6 +1908,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-collision-false-positives",
+    "file": "tests/spec/agent-collision-false-positives.bats",
+    "category": "agent-collision-false-positives",
+    "kind": "shell"
+  },
+  {
     "id": "agent-library",
     "file": "tests/spec/agent-library.bats",
     "category": "agent-library",
@@ -1917,6 +1923,12 @@
     "id": "agent-lock-claim-persist",
     "file": "tests/spec/agent-lock-claim-persist.bats",
     "category": "agent-lock-claim-persist",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-lock-force-claim",
+    "file": "tests/spec/agent-lock-force-claim.bats",
+    "category": "agent-lock-force-claim",
     "kind": "shell"
   },
   {
@@ -2196,6 +2208,12 @@
     "kind": "shell"
   },
   {
+    "id": "divergence-guard/branch-name-guard",
+    "file": "tests/spec/divergence-guard/branch-name-guard.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
     "id": "docker-build-speedup",
     "file": "tests/spec/docker-build-speedup.bats",
     "category": "docker-build-speedup",
@@ -2241,6 +2259,12 @@
     "id": "factory-branch-switch-guard",
     "file": "tests/spec/factory-branch-switch-guard.bats",
     "category": "factory-branch-switch-guard",
+    "kind": "shell"
+  },
+  {
+    "id": "factory-escalation-ladder",
+    "file": "tests/spec/factory-escalation-ladder.bats",
+    "category": "factory-escalation-ladder",
     "kind": "shell"
   },
   {
@@ -2337,6 +2361,12 @@
     "id": "health-goals",
     "file": "tests/spec/health-goals.bats",
     "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals-erden",
+    "file": "tests/spec/health-goals-erden.bats",
+    "category": "health-goals-erden",
     "kind": "shell"
   },
   {
@@ -2460,6 +2490,30 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-bundle-infra-testspec-ci",
+    "file": "tests/spec/mishap-bundle-infra-testspec-ci.bats",
+    "category": "mishap-bundle-infra-testspec-ci",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-bundle/ci-test-agentlock",
+    "file": "tests/spec/mishap-bundle/ci-test-agentlock.bats",
+    "category": "mishap-bundle",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-categorize-erden",
+    "file": "tests/spec/mishap-categorize-erden.bats",
+    "category": "mishap-categorize-erden",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-docker-wsl-T002250",
+    "file": "tests/spec/mishap-docker-wsl-T002250.bats",
+    "category": "mishap-docker-wsl-T002250",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-t002422",
     "file": "tests/spec/mishap-t002422.bats",
     "category": "mishap-t002422",
@@ -2550,6 +2604,30 @@
     "kind": "shell"
   },
   {
+    "id": "plan-partials-embedding/build-chunks",
+    "file": "tests/spec/plan-partials-embedding/build-chunks.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/coverage-gate",
+    "file": "tests/spec/plan-partials-embedding/coverage-gate.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/manifest-parser",
+    "file": "tests/spec/plan-partials-embedding/manifest-parser.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "plan-partials-embedding/size-gate",
+    "file": "tests/spec/plan-partials-embedding/size-gate.bats",
+    "category": "plan-partials-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "pocket-id-client-seed-auth-header",
     "file": "tests/spec/pocket-id-client-seed-auth-header.bats",
     "category": "pocket-id-client-seed-auth-header",
@@ -2628,6 +2706,12 @@
     "kind": "shell"
   },
   {
+    "id": "release-notes-erden",
+    "file": "tests/spec/release-notes-erden.bats",
+    "category": "release-notes-erden",
+    "kind": "shell"
+  },
+  {
     "id": "repo-health-goals",
     "file": "tests/spec/repo-health-goals.bats",
     "category": "repo-health-goals",
@@ -2655,6 +2739,12 @@
     "id": "s2-cycles-g-cq07",
     "file": "tests/spec/s2-cycles-g-cq07.bats",
     "category": "s2-cycles-g-cq07",
+    "kind": "shell"
+  },
+  {
+    "id": "scout-llm-fallback-erden",
+    "file": "tests/spec/scout-llm-fallback-erden.bats",
+    "category": "scout-llm-fallback-erden",
     "kind": "shell"
   },
   {

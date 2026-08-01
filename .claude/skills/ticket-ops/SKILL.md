@@ -70,6 +70,14 @@ Beinahe-Duplikate. Gilt in Phase 1 bei der Klassifikation **und** im Issue-Intak
 
 **Vollständige Beschreibungen lesen:** Ticket-Beschreibungen nie kürzen (z.B. `left(description,700)`). Die wichtigsten Einschränkungen ("haengt an X", "wird dort mit erledigt") stehen typischerweise am ENDE der Beschreibung. Vor jedem Dispatch die Beschreibung vollständig lesen, um verfrühte Dispatches zu vermeiden.
 
+**M1: Line-Nummern-Prüfung vor sed-Extraktion (T002469):** Vor jeder Extraktion mit `sed -n 'start,endp'` die Zeilennummern gegen `wc -l` der Quelldatei prüfen. `end > wc -l` verursacht Syntaxfehler (T2 Extraction befand: falscher Zeilenbereich → Syntax-Error). Positiv-Anker: die extrahierte Sektion auf `bash -n` prüfen, bevor die Originaldatei gelöscht wird.
+
+**M3: Planning- vs. Execution-Dispatch (T002469):** Der Orchestrator (DeepSeek/o1) führt die Planung selbst durch; gemma-4-12b wird nur für Execution-Dispatches genutzt. Phase 3 unterscheidet zwischen `dispatch_for_planning` (→ Orchestrator, behält Control) und `dispatch_for_execution` (→ gemma, gibt ab). Ein gemma-Planungs-Dispatch wird abgelehnt — der User hat das explizit so entschieden.
+
+**M5: Agent-Lock-Prüfung in DoR (T002469):** Vor der Einplanung eines Tickets den Agent-Lock-Status prüfen: `bash scripts/agent-lock.sh check ticket <id>` → `held` bedeutet, eine andere Session arbeitet aktiv daran. Solche Tickets in `in_progress` lassen und NICHT in den Masterplan aufnehmen. Die DoR-Prüfung in Phase 1 liest den agent-lock-Status und setzt `attention_mode=auto` bei live-claimed Tickets.
+
+**M2: mcp-postgres Fallback (T002469):** Wenn `mcp__mcp-postgres__query` nicht erreichbar ist (curl-Probe 000), auf den `kubectl exec` psql-Fallback ausweichen. Der Fallback ist in `scripts/ticket.sh` via `BRAND`-Routing dokumentiert. Vor jedem Bulk-Triage-Lauf die Erreichbarkeit mit `curl -s -o /dev/null -w '%{http_code}' localhost:13001/health` prüfen.
+
 **Laufende Arbeit nicht anfassen:** Tickets in `in_progress`, die auf einen lebenden Plan-Branch
 zeigen, bleiben unberührt.
 

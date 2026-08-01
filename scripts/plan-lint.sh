@@ -282,6 +282,19 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
     fi
   }
   _check_intel_completeness
+
+  # === [T002453-C] Größen-Gate: Partial > 7000 Token → FAIL ===
+  PARTIALS_DIR="${PLAN_DIR}/tasks.d"
+  if [[ -d "$PARTIALS_DIR" ]]; then
+    for partial_file in "$PARTIALS_DIR"/*.md; do
+      [[ -f "$partial_file" ]] || continue
+      chars=$(wc -c < "$partial_file")
+      tokens=$(( (chars + 3) / 4 ))
+      if [[ $tokens -gt 7000 ]]; then
+        hard "T002453-C: $(basename "$partial_file") hat ~${tokens} Token (>7000). Slot zu gross — verkleinern oder aufteilen."
+      fi
+    done
+  fi
 fi
 
 # === STRUCT2: at least one failing-test step (fail phrase + a real test-runner) ===

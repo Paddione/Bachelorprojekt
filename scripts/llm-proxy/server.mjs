@@ -9,6 +9,7 @@ import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH } from './loadou
 import { scanModels, expandRoot } from './models.mjs';
 import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
 import { join } from 'node:path';
+import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
@@ -18,6 +19,9 @@ const HEALTH_TIMEOUT_MS = 240_000;
 
 startRegistryPoll(POLL_MS);
 const discovery = startDiscovery(getBackends, POLL_MS);
+
+// MCP-Bridge init (best-effort: logs errors, never prevents server start)
+initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));
 
 // Serialisierung + Kontext-Budget (T002102-Folgevorfall, 2026-07-23; erweitert
 // um per-Backend-Semaphor T002128-p4): mehrere gleichzeitige Requests an DENSELBEN
@@ -372,6 +376,10 @@ const server = http.createServer((req, res) => {
       }
     }
 
+    // MCP Bridge — stdio-MCPs via HTTP/SSE
+    const mcpMatch = path.match(/^\/mcp\/([a-z0-9-]+)$/);
+    if (mcpMatch) return handleMcp(req, res, mcpMatch[1], method);
+
     if (path.startsWith('/v1/') && method === 'POST') return proxyV1(req, res, path.slice(3));
     return sendJson(res, 404, { error: { code: 'not_found', message: path } });
   })().catch((err) => sendJson(res, 502, { error: { code: 'proxy_error', message: err.message } }));
@@ -379,3 +387,12 @@ const server = http.createServer((req, res) => {
 
 await discovery.probeNow();
 server.listen(PORT, '127.0.0.1', () => console.log(`[llm-proxy] listening on 127.0.0.1:${PORT}`));
+
+// Graceful shutdown: stop MCP bridge processes on exit
+function shutdown(signal) {
+  console.log(`[llm-proxy] ${signal}: stopping bridge...`);
+  stopBridge();
+  process.exit(0);
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

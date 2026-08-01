@@ -8,6 +8,24 @@
 # ═══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
+# T002250-M1: WSL Docker Desktop credsStore fix
+# Docker Desktop sets credsStore=desktop.exe which breaks docker CLI in WSL.
+# Strip it automatically so docker pull/push work inside WSL distros.
+fix_wsl_docker_creds() {
+  if [ -z "${WSL_DISTRO_NAME:-}" ]; then return 0; fi
+  local cfg="${HOME:-~}/.docker/config.json"
+  if [ -f "$cfg" ] && grep -q '"credsStore"' "$cfg" 2>/dev/null; then
+    local tmp; tmp="$(mktemp)"
+    if jq 'del(.credsStore)' "$cfg" > "$tmp" 2>/dev/null; then
+      mv "$tmp" "$cfg"
+      echo "  [FIX]  stripped credsStore from $cfg (WSL compat)" >&2
+    else
+      rm -f "$tmp"
+    fi
+  fi
+}
+fix_wsl_docker_creds
+
 check_prerequisites() {
   local exit_code=0
 

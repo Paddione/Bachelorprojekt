@@ -66,7 +66,9 @@ EOF
 # als die Grace-Periode — aber der owner_pid LEBT. Heute meldet check 'free',
 # die Factory greift zu. Erwartet: 'held'.
 @test "T002267-A1: lebender owner_pid schuetzt den Lock vor sid-dead-Reap" {
-  _mk_lock ticket T009001 999999 "$$" "$REPO_ROOT" "" 86400
+  # Use /nonexistent/worktree so the worktree-match heuristic (T002392-M1)
+  # doesn't short-circuit the PID check.
+  _mk_lock ticket T009001 999999 "$$" "/nonexistent/worktree" "" 86400
   run bash "$AGENT_LOCK" check ticket T009001
   [ "$status" -eq 3 ]
   [[ "$output" == *"held"* ]]

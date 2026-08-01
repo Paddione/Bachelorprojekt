@@ -3,7 +3,7 @@
 # Usage: release-notes.sh <generate|publish-github|publish-changelog|help> [args]
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 source "${SCRIPT_DIR}/lib/vda-core.sh"
 
 _show_help() {
@@ -39,6 +39,30 @@ _get_last_tag() {
     return
   fi
   echo "$tag"
+}
+
+_ticket_context() {
+  # Extract ticket ID from PR title [T00XXXX] and look up type/areas/description
+  # from the database. Falls back to empty string on any failure.
+  local title="$1" tid
+  if [[ "$title" =~ \[(T[0-9]{6})\] ]]; then
+    tid="${BASH_REMATCH[1]}"
+    # Try vda ticket get first, then psql fallback
+    local ticket_json
+    if command -v vda.sh &>/dev/null; then
+      ticket_json=$("${SCRIPT_DIR}/vda.sh" ticket get --id "$tid" --json 2>/dev/null || true)
+    fi
+    if [[ -z "$ticket_json" ]] && command -v psql &>/dev/null; then
+      ticket_json=$(psql -t -A -h "${PGHOST:-localhost}" -p "${PGPORT:-5432}" \
+        -d "${PGDATABASE:-bachelorprojekt}" -U "${PGUSER:-postgres}" \
+        -c "SELECT json_build_object('type', type, 'areas', areas, 'description', left(description,200)) FROM tickets.tickets WHERE external_id='$tid'" 2>/dev/null || true)
+    fi
+    if [[ -n "$ticket_json" ]]; then
+      echo "$ticket_json"
+      return 0
+    fi
+  fi
+  return 1
 }
 
 _get_tag_date() {
@@ -137,10 +161,22 @@ _build_deterministic_notes() {
       local pr_num
       pr_num=$(jq -r ".[$i].number" <<<"$prs_json" 2>/dev/null || echo "?")
       if [[ -n "$title" ]]; then
-        local typ section
-        typ=$(_detect_type "$title")
-        section=$(_ensure_type_key "$typ")
-        _append "$section" "- ${title} (#${pr_num})"
+        local ticket_context typ section
+        ticket_context=$(_ticket_context "$title")
+        if [[ -n "$ticket_context" ]]; then
+          typ=$(jq -r '.type // "chore"' <<<"$ticket_context" 2>/dev/null || echo "chore")
+          local areas desc
+          areas=$(jq -r '.areas // ""' <<<"$ticket_context" 2>/dev/null || echo "")
+          desc=$(jq -r '.description // ""' <<<"$ticket_context" 2>/dev/null || echo "")
+          section=$(_ensure_type_key "$typ")
+          local line="- ${title} (#${pr_num})"
+          [[ -n "$areas" ]] && line+=" [${areas}]"
+          _append "$section" "$line"
+        else
+          typ=$(_detect_type "$title")
+          section=$(_ensure_type_key "$typ")
+          _append "$section" "- ${title} (#${pr_num})"
+        fi
       fi
       i=$((i + 1))
     done
@@ -180,9 +216,37 @@ _deepseek_narrative() {
     return 1
   fi
   local base_url="${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}"
+
+  local ticket_context=""
+  while IFS= read -r title; do
+    if [[ -z "$title" ]]; then
+      continue
+    fi
+    local re='\[(T[0-9]{5,6})\]'
+    if [[ "$title" =~ $re ]]; then
+      local ticket_id="${BASH_REMATCH[1]}"
+      local ticket_json
+      ticket_json=$(bash "${SCRIPT_DIR}/ticket.sh" get --id "$ticket_id" 2>/dev/null) || true
+      if [[ -n "$ticket_json" ]] && jq -e '.id // .external_id' <<<"$ticket_json" &>/dev/null; then
+        local t_type t_title t_desc t_areas
+        t_type=$(jq -r '.type // "unknown"' <<<"$ticket_json")
+        t_title=$(jq -r '.title // ""' <<<"$ticket_json")
+        t_desc=$(jq -r '.description // ""' <<<"$ticket_json")
+        t_areas=$(jq -r '.areas // [] | join(", ")' <<<"$ticket_json")
+        
+        ticket_context+=$'- Ticket '"${ticket_id}"$' ('"${t_type}"$'): '"${t_title}"$'\n  Areas: '"${t_areas}"$'\n  Description: '"${t_desc}"$'\n'
+      fi
+    fi
+  done <<<"$pr_titles"
+
+  local context_block=""
+  if [[ -n "$ticket_context" ]]; then
+    context_block=$'\n[TICKET_CONTEXT]\n'"${ticket_context}"
+  fi
+
   local prompt="Fasse diese gemergten PRs zu einer kurzen, user-freundlichen 'Was ist neu'-Einleitung im Markdown-Format zusammen. Nutze Aufzählungen, fokussiere auf Nutzerwert. Maximal 3-4 Sätze.
 PRs:
-${pr_titles}"
+${pr_titles}${context_block}"
 
   local llm_response
   llm_response=$(curl -s --max-time 30 "${base_url}/chat/completions" \
@@ -380,4 +444,6 @@ main() {
   esac
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

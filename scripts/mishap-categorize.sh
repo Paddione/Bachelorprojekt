@@ -34,6 +34,24 @@ SQL
   echo "mishap-categorize: category='${category}' set for ${ext_id}" >&2
 }
 
+_fetch_existing_categories() {
+  local pod
+  pod=$(kubectl get pod -n "$NS" --context "$CTX" -l 'app in (shared-db, shared-db-dev)' \
+    --field-selector status.phase=Running -o name 2>/dev/null | head -1) || true
+  if [[ -z "$pod" ]]; then
+    echo "mishap-categorize: WARN no shared-db pod for category fetch" >&2
+    return 1
+  fi
+  kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
+    psql -U "$USER" -d "$DB" -qtA -v ON_ERROR_STOP=1 <<'SQL' 2>/dev/null || true
+SELECT substring(name from 6) FROM tickets.tags WHERE name LIKE 'kind:%' ORDER BY name;
+SQL
+}
+
+_build_enum_fallback() {
+  printf '%s\n' 'CI-Konflikt' 'Gate-Fehler' 'API-Fehler' 'Scout-Qualität' 'Deploy-Fehler' 'Spec-Lücke' 'Test-Lücke' 'Sonstige'
+}
+
 if [[ $# -lt 3 ]]; then
   echo "Usage: $0 <external_id> <title> <description>" >&2
   exit 0
@@ -83,9 +101,21 @@ if [[ "$best_count" -gt 0 ]]; then
   exit 0
 fi
 
+# Fetch existing categories from DB for context grounding
+existing_categories=$(_fetch_existing_categories 2>/dev/null || true)
+if [[ -z "$existing_categories" ]]; then
+  existing_categories=$(_build_enum_fallback)
+  echo "mishap-categorize: using enum fallback for existing categories" >&2
+fi
+
 if [[ -n "${DEEPSEEK_API_KEY:-}" ]]; then
   base_url="${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}"
-  prompt="Classify this mishap into exactly one category: CI-Konflikt, Gate-Fehler, API-Fehler, Scout-Qualität, Deploy-Fehler, Spec-Lücke, Test-Lücke, Sonstige. Reply with only the category name, no punctuation, no explanation.
+  prompt="You are categorizing a mishap report. Below are existing categories already in use. Choose exactly ONE from this list — do NOT invent new category names.
+
+[EXISTING_CATEGORIES]
+$(echo "$existing_categories" | while read -r c; do echo "- $c"; done)
+
+Classify this mishap into exactly one of the EXISTING_CATEGORIES above. If none fits perfectly, pick the closest match. Reply with only the category name, no punctuation, no explanation.
 
 Title: ${title}
 Description: ${desc}"
@@ -102,7 +132,10 @@ Description: ${desc}"
 
   if [[ -n "$llm_response" ]]; then
     llm_response="$(echo "$llm_response" | tr -d '[:punct:]' | xargs)"
-    valid=('CI-Konflikt' 'Gate-Fehler' 'API-Fehler' 'Scout-Qualität' 'Deploy-Fehler' 'Spec-Lücke' 'Test-Lücke' 'Sonstige')
+    valid=()
+    while IFS= read -r vc; do
+      [[ -n "$vc" ]] && valid+=("$vc")
+    done <<< "$existing_categories"
     for vc in "${valid[@]}"; do
       if [[ "${llm_response,,}" == "${vc,,}" ]]; then
         category="$vc"

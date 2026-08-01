@@ -4,7 +4,7 @@
     "node": ">=22.13.0"
   },
   "type": "module",
-  "version": "1.228.0",
+  "version": "1.229.0",
   "private": true,
   "scripts": {
     "dev": "astro dev",
@@ -32,7 +32,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "astro": "^7.1.5",
+    "astro": "^7.1.6",
     "chart.js": "^4.5.1",
     "d3": "^7.9.0",
     "epub2": "^3.0.2",
@@ -44,7 +44,7 @@
     "pdfkit": "^0.19.1",
     "pg": "^8.22.0",
     "pino": "^10.3.1",
-    "playwright": "^1.62.0",
+    "playwright": "^1.62.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "rrweb": "^2.1.0",

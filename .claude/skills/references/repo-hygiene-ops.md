@@ -67,7 +67,11 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
   > **Exit 1 nach Squash-Merge ist KEIN Fehler** (`not possible to fast-forward` — der PR ist
   > trotzdem gemergt). **Immer per Timestamp verifizieren, nie per Exit-Code:**
   > ```bash
-  > gh pr view <number> --json mergedAt -q '.mergedAt'   # leer = offen; Timestamp = gemergt
+  > m=$(gh pr view <number> --json mergedAt -q '.mergedAt')  # leer = offen; Timestamp = gemergt
+  > [ -n "$m" ] || { echo "FAIL: mergedAt leer (gh API-Ausfall?)"; exit 1; }
+  > # Offline-Anker als Alternative — Squash-Commit in origin/main via Ticket-Tag:
+  > # SQUASH=$(git log origin/main --grep="<TICKET_ID>" --format='%cI' -1)
+  > # [ -n "$SQUASH" ] || { echo "FAIL: kein Squash-Commit gefunden"; exit 1; }
   > ```
   Bei noch laufendem CI stattdessen `--auto` — GitHub mergt, sobald die Checks grün sind.
 

@@ -84,14 +84,18 @@ func isIncidentType(mtype string) bool {
 	return mtype == "incident" || mtype == "broken" || mtype == "security"
 }
 
-func createIncidentTicket(entry MishapEntry, brand string) (string, error) {
-	out, err := runner.RunTicket([]string{
-		"create", "--type", "task", "--brand", brand,
+func buildIncidentTicketArgs(entry MishapEntry, brand string) []string {
+	return []string{
+		"create", "--type", "incident", "--brand", brand,
 		"--title", fmt.Sprintf("Mishap-Incident: %s", entry.Title),
 		"--description", fmt.Sprintf("### Incident\n\n**Typ:** %s | **Komponente:** %s\n\n%s", entry.Type, entry.Component, entry.Description),
 		"--status", "triage", "--severity", "major", "--priority", "hoch",
 		"--attention-mode", "needs_human", "--areas", entry.Component,
-	}, map[string]string{"BRAND": brand})
+	}
+}
+
+func createIncidentTicket(entry MishapEntry, brand string) (string, error) {
+	out, err := runner.RunTicket(buildIncidentTicketArgs(entry, brand), map[string]string{"BRAND": brand})
 	if err != nil {
 		return "", err
 	}
@@ -102,10 +106,23 @@ func createIncidentTicket(entry MishapEntry, brand string) (string, error) {
 	return ext, nil
 }
 
+func buildFindRollupTicketArgs(brand string) []string {
+	return []string{
+		"list", "--brand", brand, "--status", "plan_staged", "--type", "chore", "--limit", "200",
+	}
+}
+
+func buildCreateRollupTicketArgs(brand string) []string {
+	return []string{
+		"create", "--type", "chore", "--brand", brand,
+		"--title", ROLLUP_TICKET_TITLE,
+		"--description", "Fortlaufende Sammlung nicht-kritischer Mishaps. Dieses Ticket bleibt dauerhaft offen.",
+		"--status", "plan_staged", "--severity", "minor",
+	}
+}
+
 func findOrCreateRollupTicket(brand string) (string, error) {
-	raw, err := runner.RunTicket([]string{
-		"list", "--brand", brand, "--status", "triage", "--type", "task", "--limit", "200",
-	}, map[string]string{"BRAND": brand})
+	raw, err := runner.RunTicket(buildFindRollupTicketArgs(brand), map[string]string{"BRAND": brand})
 	if err != nil {
 		return "", fmt.Errorf("Rollup-Container-Suche fehlgeschlagen: %w", err)
 	}
@@ -120,12 +137,7 @@ func findOrCreateRollupTicket(brand string) (string, error) {
 			}
 		}
 	}
-	out, err := runner.RunTicket([]string{
-		"create", "--type", "task", "--brand", brand,
-		"--title", ROLLUP_TICKET_TITLE,
-		"--description", "Fortlaufende Sammlung nicht-kritischer Mishaps. Dieses Ticket bleibt dauerhaft offen.",
-		"--status", "triage", "--severity", "minor",
-	}, map[string]string{"BRAND": brand})
+	out, err := runner.RunTicket(buildCreateRollupTicketArgs(brand), map[string]string{"BRAND": brand})
 	if err != nil {
 		return "", fmt.Errorf("Rollup-Container-Erstellung fehlgeschlagen: %w", err)
 	}

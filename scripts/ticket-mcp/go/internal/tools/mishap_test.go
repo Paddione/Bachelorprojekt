@@ -107,3 +107,213 @@ func TestRollupConstants(t *testing.T) {
 	if ROLLUP_BRANCH == "" { t.Error("ROLLUP_BRANCH must be set") }
 	if ROLLUP_CHANGE_DIR == "" { t.Error("ROLLUP_CHANGE_DIR must be set") }
 }
+
+// Flag helpers for args inspection.
+
+func flagValue(args []string, flag string) string {
+	for i, a := range args {
+		if a == flag && i+1 < len(args) {
+			return args[i+1]
+		}
+	}
+	return ""
+}
+
+func hasFlagValue(args []string, flag, value string) bool {
+	for i, a := range args {
+		if a == flag && i+1 < len(args) && args[i+1] == value {
+			return true
+		}
+	}
+	return false
+}
+
+func hasAnyFlagValue(args []string, flag string, values ...string) bool {
+	for i, a := range args {
+		if a == flag && i+1 < len(args) {
+			for _, v := range values {
+				if args[i+1] == v {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// --- Incident-Ticket-Args ---
+
+func TestIncidentTicketArgs_UsesIncidentType(t *testing.T) {
+	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "broken", ReportedAt: "2026-07-28T12:00:00Z"}
+	args := buildIncidentTicketArgs(entry, "mentolder")
+	if !hasFlagValue(args, "--type", "incident") {
+		t.Errorf("buildIncidentTicketArgs missing --type incident; got args: %v", args)
+	}
+}
+
+func TestIncidentTicketArgs_NotTask(t *testing.T) {
+	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "incident", ReportedAt: "2026-07-28T12:00:00Z"}
+	args := buildIncidentTicketArgs(entry, "mentolder")
+	if hasFlagValue(args, "--type", "task") {
+		t.Error("buildIncidentTicketArgs must NOT use --type task; should use --type incident")
+	}
+}
+
+func TestIncidentTicketArgs_BrandAndSeverity(t *testing.T) {
+	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "incident", ReportedAt: "2026-07-28T12:00:00Z"}
+	args := buildIncidentTicketArgs(entry, "korczewski")
+	if v := flagValue(args, "--brand"); v != "korczewski" {
+		t.Errorf("expected --brand korczewski, got %q", v)
+	}
+	if v := flagValue(args, "--severity"); v != "major" {
+		t.Errorf("expected --severity major, got %q", v)
+	}
+	if v := flagValue(args, "--priority"); v != "hoch" {
+		t.Errorf("expected --priority hoch, got %q", v)
+	}
+	if v := flagValue(args, "--attention-mode"); v != "needs_human" {
+		t.Errorf("expected --attention-mode needs_human, got %q", v)
+	}
+}
+
+// --- Rollup-Find-Args ---
+
+func TestRollupFindArgs_UsesChoreAndPlanStaged(t *testing.T) {
+	args := buildFindRollupTicketArgs("mentolder")
+	if !hasFlagValue(args, "--type", "chore") {
+		t.Errorf("buildFindRollupTicketArgs missing --type chore; got args: %v", args)
+	}
+	if !hasFlagValue(args, "--status", "plan_staged") {
+		t.Errorf("buildFindRollupTicketArgs missing --status plan_staged; got args: %v", args)
+	}
+	if !hasFlagValue(args, "--brand", "mentolder") {
+		t.Errorf("buildFindRollupTicketArgs missing --brand mentolder; got args: %v", args)
+	}
+}
+
+func TestRollupFindArgs_NotTask(t *testing.T) {
+	args := buildFindRollupTicketArgs("mentolder")
+	if hasFlagValue(args, "--type", "task") {
+		t.Error("buildFindRollupTicketArgs must NOT use --type task; should use --type chore")
+	}
+}
+
+// --- Rollup-Create-Args ---
+
+func TestRollupCreateArgs_UsesChore(t *testing.T) {
+	args := buildCreateRollupTicketArgs("mentolder")
+	if !hasFlagValue(args, "--type", "chore") {
+		t.Errorf("buildCreateRollupTicketArgs missing --type chore; got args: %v", args)
+	}
+}
+
+func TestRollupCreateArgs_NotTask(t *testing.T) {
+	args := buildCreateRollupTicketArgs("mentolder")
+	if hasFlagValue(args, "--type", "task") {
+		t.Error("buildCreateRollupTicketArgs must NOT use --type task; should use --type chore")
+	}
+}
+
+func TestRollupCreateArgs_StatusIsPlanStaged(t *testing.T) {
+	args := buildCreateRollupTicketArgs("mentolder")
+	if !hasFlagValue(args, "--status", "plan_staged") {
+		t.Errorf("buildCreateRollupTicketArgs missing --status plan_staged; got args: %v", args)
+	}
+}
+
+func TestRollupCreateArgs_NotTriage(t *testing.T) {
+	args := buildCreateRollupTicketArgs("mentolder")
+	if hasFlagValue(args, "--status", "triage") {
+		t.Error("buildCreateRollupTicketArgs must NOT use --status triage; should use --status plan_staged")
+	}
+}
+
+func TestRollupCreateArgs_NoIncidentType(t *testing.T) {
+	args := buildCreateRollupTicketArgs("mentolder")
+	// Rollup container is a chore, not an incident
+	if hasFlagValue(args, "--type", "incident") {
+		t.Error("rollup container must be --type chore, not incident")
+	}
+}
+
+// --- Dispatch: incident types go to createIncidentTicket, others to buffer ---
+
+func TestIncidentTypeDispatch(t *testing.T) {
+	// Verify the dispatch rules used in report_mishap handler:
+	// incident, broken, security → createIncidentTicket (true)
+	// degraded, suspicious, drift, process → buffer path (false)
+	for _, typ := range []string{"incident", "broken", "security"} {
+		if !isIncidentType(typ) {
+			t.Errorf("isIncidentType(%q) must be true — should create incident ticket directly", typ)
+		}
+	}
+	for _, typ := range []string{"degraded", "suspicious", "drift", "process"} {
+		if isIncidentType(typ) {
+			t.Errorf("isIncidentType(%q) must be false — should go to buffer", typ)
+		}
+	}
+}
+
+func TestIncidentAndBrokenArgsMatch(t *testing.T) {
+	// broken is an alias for incident — both should produce identical ticket args
+	// except for the Type field in the MishapEntry itself (which appears in the description).
+	entryIncident := MishapEntry{Title: "Fail", Description: "D", Component: "c", Type: "incident", ReportedAt: ""}
+	entryBroken := MishapEntry{Title: "Fail", Description: "D", Component: "c", Type: "broken", ReportedAt: ""}
+
+	argsInc := buildIncidentTicketArgs(entryIncident, "mentolder")
+	argsBroken := buildIncidentTicketArgs(entryBroken, "mentolder")
+
+	// Both should produce --type incident regardless of the MishapEntry.Type
+	if v := flagValue(argsInc, "--type"); v != "incident" {
+		t.Errorf("incident entry: expected --type incident, got %q", v)
+	}
+	if v := flagValue(argsBroken, "--type"); v != "incident" {
+		t.Errorf("broken entry: expected --type incident, got %q", v)
+	}
+
+	// Title contains the Mishap entry title (same for both)
+	if v := flagValue(argsInc, "--title"); v != "Mishap-Incident: Fail" {
+		t.Errorf("incident title: expected 'Mishap-Incident: Fail', got %q", v)
+	}
+	if v := flagValue(argsBroken, "--title"); v != "Mishap-Incident: Fail" {
+		t.Errorf("broken title: expected 'Mishap-Incident: Fail', got %q", v)
+	}
+}
+
+// --- Full arg set does not contain stale types ---
+
+func TestNoTaskTypeInAnyBuilder(t *testing.T) {
+	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "incident", ReportedAt: ""}
+	assertNoTask := func(name string, args []string) {
+		t.Helper()
+		if hasFlagValue(args, "--type", "task") {
+			t.Errorf("%s must not use --type task", name)
+		}
+	}
+	assertNoTask("buildIncidentTicketArgs", buildIncidentTicketArgs(entry, "mentolder"))
+	assertNoTask("buildFindRollupTicketArgs", buildFindRollupTicketArgs("mentolder"))
+	assertNoTask("buildCreateRollupTicketArgs", buildCreateRollupTicketArgs("mentolder"))
+}
+
+func TestNoTriageStatusInRollupCreate(t *testing.T) {
+	if hasFlagValue(buildCreateRollupTicketArgs("mentolder"), "--status", "triage") {
+		t.Error("rollup create must not use --status triage")
+	}
+	if hasFlagValue(buildFindRollupTicketArgs("mentolder"), "--status", "triage") {
+		t.Error("rollup find must not use --status triage")
+	}
+}
+
+func TestBuildersAreDeterministic(t *testing.T) {
+	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "incident", ReportedAt: ""}
+	a1 := buildIncidentTicketArgs(entry, "mentolder")
+	a2 := buildIncidentTicketArgs(entry, "mentolder")
+	if len(a1) != len(a2) {
+		t.Fatalf("non-deterministic: len %d vs %d", len(a1), len(a2))
+	}
+	for i := range a1 {
+		if a1[i] != a2[i] {
+			t.Fatalf("non-deterministic at index %d: %q vs %q", i, a1[i], a2[i])
+		}
+	}
+}

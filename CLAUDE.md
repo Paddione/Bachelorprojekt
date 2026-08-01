@@ -211,6 +211,10 @@ Covered sub-topics (reference file, not repeated here):
 - **dev.mentolder.de stack** — devc decommissioned; WSL bootstrap caveats
 - **Alt-Worktrees nach T002135** — cleanup orphaned submodule gitdirs (`docs/superpowers/references/gotchas-footguns.md#alt-worktrees-nach-t002135--submodul-gitdir-reste`)
 
+### Test-Resultats-Konvention [T002448-M4]
+
+Tests MÜSSEN die tatsächlichen Ergebnisse/Outputs von Kommandos prüfen (`run`, `$output`, `$status`), nicht Implementierungsmuster im Quellcode (`grep` auf Script-Interna). Ein Test, der per `grep` einen Flag-Namen im Source sucht statt das tatsächliche Laufzeitverhalten zu messen, kann den falschen Erfolgsfall bestätigen, während die reale Operation fehlschlägt. Ausnahme: Querschnittstests, deren Ergebnis sich ausschließlich im Quelltext manifestiert (z. B. Dokumentationskonventionen, CI-Konfiguration) — hier ist `grep` das angemessene Mittel. Die Testdatei selbst dokumentiert im Header-Kommentar, welcher Prüfmodus verwendet wird.
+
 ### Bug-Triage-Konvention (CFR-Gate G-DORA03)
 
 **Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst** — kein stiller `fix()`-Commit ohne Ticket-Referenz. Die Change Failure Rate (broad proxy: fix()-Rate) wird mit `bash scripts/vda.sh cfr` gemessen, Ziel ≤ 15 % über 8 Wochen; ein ungeticketer `fix()`-Commit zählt als verschleierter Bug und verschlechtert den Proxy-Wert, ohne in der DORA-Auswertung unter `/admin/dora` zu erscheinen.

@@ -222,6 +222,13 @@ while true; do
         | sed "s/^/[mishap-flush:${_mf_brand}] /" >&2 || true
     done
   fi
+  # T002407: Mishap-Rollup-Treiber — generiert/staged Plan aus Container-Kommentaren.
+  # Laeuft NACH dem Mishap-Flush (der frischt die Container-Kommentare) und VOR dem
+  # auto-chore-plan (der andere Bundle-Tickets verarbeitet). Best-effort.
+  for _mr_brand in mentolder korczewski; do
+    BRAND="$_mr_brand" bash "${REPO}/scripts/factory/mishap-rollup.sh" 2>&1 \
+      | sed "s/^/[mishap-rollup:${_mr_brand}] /" >&2 || true
+  done
   # T002390: Mishap-Bundles (severity=minor) von triage nach plan_staged. Der
   # Schritt stand bis dahin nur als Prosa in mishap-tracker SKILL.md 3.5 und
   # wurde deshalb uebersprungen — 8 auto-planbare Bundles lagen in triage.

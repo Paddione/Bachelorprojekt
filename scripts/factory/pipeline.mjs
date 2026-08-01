@@ -13,15 +13,18 @@ export const meta = {
 // process independently.
 if (typeof process !== 'undefined' && !process.env.TICKET_PHASE_DRIVER) process.env.TICKET_PHASE_DRIVER = 'factory'
 
-// Sandbox local routing — use qwythos-9b-v2.
-// This replaces the old per-call provider-tier routing/slot-release
-// machinery (opus/sonnet/haiku via route-provider.sh + factory_model_slots) —
-// the factory now always runs against the local LM Studio model.
-const FACTORY_MODEL = {
-  provider: 'lmstudio',
-  modelId: 'qwythos-9b-v2',
-  baseUrl: 'http://127.0.0.1:1234',
+// Model escalation ladder (T002369): the factory-prep step reads the
+// attempt counter from factory_control and injects A.model_tier into the
+// pipeline payload. Each tier maps to a provider/model combination.
+// The ladder: 1→flash (local LM Studio), 2→haiku, 3→sonnet (external API).
+// Fallback to flash if no tier is provided (direct pipeline invocation).
+const MODEL_TIERS = {
+  flash:  { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234' },
+  haiku:  { provider: 'deepseek', modelId: 'deepseek-chat',  baseUrl: null },
+  sonnet: { provider: 'deepseek', modelId: 'deepseek-reasoner', baseUrl: null },
 }
+
+const FACTORY_MODEL = MODEL_TIERS[args?.model_tier] ?? MODEL_TIERS.flash
 
 // Delegate any Node-API-requiring operation to pipeline-runner.js (host-side, has
 // require/fs/child_process) by spawning an agent that shells out to it and returns

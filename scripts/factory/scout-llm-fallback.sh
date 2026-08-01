@@ -115,6 +115,43 @@ fi
 AUTH_ARGS=()
 [[ -n "${api_key:-}" ]] && AUTH_ARGS=(-H "Authorization: Bearer ${api_key}")
 
+find_similar_tickets() {
+  local title="$1" description="$2" limit="${3:-5}"
+  if ! command -v npx >/dev/null 2>&1; then
+    return 0
+  fi
+  if [[ ! -f "$REPO/website/scripts/find-similar-tickets.mjs" ]]; then
+    return 0
+  fi
+  local raw
+  raw="$(cd "$REPO/website" \
+    && timeout 15 npx tsx scripts/find-similar-tickets.mjs "$title $description" "$limit" \
+       2>/dev/null)" || return 0
+  [[ -z "$raw" ]] && return 0
+  printf '%s' "$raw"
+}
+
+# ── Stufe 1: retrieve similar tickets as grounding context (fail-soft) ─────
+context_block=""
+if [[ -n "$TITLE" ]]; then
+  similar_json="$(timeout 5 bash -c "$(declare -f find_similar_tickets); find_similar_tickets '$TITLE' '$DESCRIPTION' 5" 2>/dev/null)" || {
+    echo "scout-llm-fallback: find_similar failed or timed out — proceeding without context" >&2
+    similar_json=""
+  }
+  if [[ -n "$similar_json" && "$similar_json" != "[]" && "$similar_json" != "null" ]]; then
+    similar_block="$(printf '%s' "$similar_json" | jq -r '
+      if type == "array" then
+        [.[] | select(.external_id != null) |
+         "  - \(.external_id): \(.title // "?") (type=\(.type // "?"), areas=\(.areas // [] | join(",")))"]
+        | join("\n")
+      else empty end
+    ' 2>/dev/null)" || similar_block=""
+    if [[ -n "$similar_block" ]]; then
+      context_block="[CONTEXT] — Similar past tickets for grounding:\n${similar_block}\n[/CONTEXT]\n"
+    fi
+  fi
+fi
+
 # Build prompt: include repo file tree so the LLM can suggest existing paths.
 FILE_TREE=$(find "$REPO" -type f \( -name '*.ts' -o -name '*.js' -o -name '*.svelte' -o -name '*.astro' -o -name '*.yaml' -o -name '*.yml' -o -name '*.sh' \) ! -path '*/node_modules/*' ! -path '*/.git/*' ! -path '*/dist/*' 2>/dev/null | sed "s|^$REPO/||" | head -200)
 slug_line=""
@@ -129,7 +166,7 @@ stats_section=""
 if [[ -n "$KEYWORD_STATS" ]]; then
   stats_section="Grep keyword match statistics (use this to guide file selection):\n$KEYWORD_STATS\n\n"
 fi
-prompt="You are a software factory scout. Given a feature ticket, list the likely files (relative paths) that will be touched during implementation. Output ONLY one file path per line, no commentary, no markdown, no code fences. Choose paths that actually exist on disk from the repo file listing below.\n\nRepo file listing:\n$FILE_TREE\n\n---\n\nTitle: $TITLE\n${slug_line}Description: $DESCRIPTION\n\n${discovered_section}${stats_section}Likely changed files:"
+prompt="You are a software factory scout. Given a feature ticket, list the likely files (relative paths) that will be touched during implementation. Output ONLY one file path per line, no commentary, no markdown, no code fences. Choose paths that actually exist on disk from the repo file listing below.\n\nRepo file listing:\n$FILE_TREE\n\n${context_block}---\n\nTitle: $TITLE\n${slug_line}Description: $DESCRIPTION\n\n${discovered_section}${stats_section}Likely changed files:"
 
 tmp_req="$(mktemp)"
 tmp_resp="$(mktemp)"

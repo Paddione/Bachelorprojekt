@@ -38,7 +38,13 @@ run_docker() {
     docker build -t "${SANDBOX_IMAGE}" -f "${REPO}/scripts/factory/sandbox.Dockerfile" "${REPO}/scripts/factory" >&2
   fi
 
+  local docker_dns=""
+  if [ -n "${WSL_DISTRO_NAME:-}" ]; then
+    docker_dns="--dns 1.1.1.1"
+  fi
+
   docker run --rm \
+    ${docker_dns} \
     --network "${FACTORY_SANDBOX_NET:-factory-sandbox-egress}" \
     -v "${WORKTREE}:/work" \
     -w /work \

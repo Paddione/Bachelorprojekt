@@ -2310,6 +2310,12 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/firewall-program-match",
+    "file": "tests/spec/fleet-operations/firewall-program-match.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/powershell-ascii-only",
     "file": "tests/spec/fleet-operations/powershell-ascii-only.bats",
     "category": "fleet-operations",

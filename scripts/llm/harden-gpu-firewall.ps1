@@ -52,6 +52,11 @@ param(
 
   [string]$RuleName = 'llama-bge-wg-mesh',
 
+  # Angezeigter Regelname. Default wird aus RuleName abgeleitet, damit ein Lauf
+  # fuer einen anderen Build (z. B. Gemma auf :8091) nicht faelschlich "bge"
+  # in der Firewall-Uebersicht stehen laesst.
+  [string]$DisplayName = "$RuleName (wg-mesh only)",
+
   [switch]$WhatIfOnly
 )
 
@@ -66,15 +71,23 @@ if (-not (Test-Path $Program)) {
   throw "Binary nicht gefunden: $Program"
 }
 
-$leaf = Split-Path $Program -Leaf
-$dir  = Split-Path $Program -Parent
+# Identitaet einer Binary ist ihr VOLLSTAENDIGER Pfad, nichts anderes (T002496).
+#
+# Eine fruehere Fassung matchte ueber den Basename des Elternverzeichnisses. Bei
+# ...\llama-b10090-13.3\llama-server.exe ergab das ein eindeutiges Muster und
+# funktionierte - aber nur zufaellig. Der bonsai-Build liegt unter
+# ...\llama-bonsai-cuda13.3\bin\llama-server.exe; dort ist der Basename "bin", das
+# Muster wird zu "*bin*llama-server.exe" und trifft jeden parallel installierten
+# llama-Build mit bin-Unterordner. Darunter llama-b9553-cuda13, dessen Regeln
+# BLOCK sind: das Skript haette eine Sperre entfernt statt sie zu erhalten.
+#
+# Die Firewall speichert Programmpfade in Kleinschreibung und teils mit
+# abweichender Schreibung der Verzeichnisse, deshalb wird beidseitig normalisiert.
+$normalizedProgram = $Program.ToLowerInvariant()
 
 function Get-RulesForProgram {
-  # Der Vergleich laeuft ueber das Elternverzeichnis, weil mehrere llama-Builds
-  # parallel installiert sind und alle dieselbe llama-server.exe heissen. Nur die
-  # Regeln des uebergebenen Builds duerfen angefasst werden.
   Get-NetFirewallApplicationFilter |
-    Where-Object { $_.Program -like "*$([System.IO.Path]::GetFileName($dir))*$leaf" } |
+    Where-Object { $null -ne $_.Program -and $_.Program.ToLowerInvariant() -eq $normalizedProgram } |
     ForEach-Object { $_ | Get-NetFirewallRule } |
     Where-Object { $_.Direction -eq 'Inbound' }
 }
@@ -96,7 +109,7 @@ if (Get-NetFirewallRule -Name $RuleName -ErrorAction SilentlyContinue) {
   Remove-NetFirewallRule -Name $RuleName
 }
 New-NetFirewallRule -Name $RuleName `
-  -DisplayName 'llama-server bge (wg-mesh only)' `
+  -DisplayName $DisplayName `
   -Direction Inbound -Action Allow -Protocol TCP `
   -LocalPort $Ports -RemoteAddress $MeshSubnet -Program $Program `
   -Profile Any -Enabled True | Out-Null

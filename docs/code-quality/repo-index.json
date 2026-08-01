@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 652,
+      "file_count": 653,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -382,6 +382,7 @@
         "tests/spec/fix-ticket-tracking-T002279.bats",
         "tests/spec/fixtures/make-partial-plan.sh",
         "tests/spec/fleet-operations.bats",
+        "tests/spec/fleet-operations/firewall-program-match.bats",
         "tests/spec/fleet-operations/powershell-ascii-only.bats",
         "tests/spec/fleet-operations/wg-gpu-pod-cidr.bats",
         "tests/spec/g-cq02-any-types.bats",

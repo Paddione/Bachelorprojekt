@@ -2111,6 +2111,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002463": [
+    {
+      "slug": "cockpit-auth-schnitt",
+      "status": "plan_staged"
+    }
+  ],
   "T002464": [
     {
       "slug": "2026-08-01-epic-canvas-k5",

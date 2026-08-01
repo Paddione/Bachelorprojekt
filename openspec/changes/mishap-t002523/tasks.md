@@ -22,8 +22,31 @@ stammen unveraendert aus der Ticket-Beschreibung; die Diagnose dort ist die Vorg
 ## File Structure
 
 ```
-<der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+scripts/agent-collision.sh                             M2 — eigener Worktree als Identitaetsmerkmal
+tests/spec/agent-behavior/collision-own-worktree.bats  M2 — neuer Guard
+tests/spec/dev-flow-plan/task-context.bats             M4 — keine Arbeitsbaum-Mutation mehr
+.claude/skills/references/repo-hygiene-ops.md          M7, M8 — gh-Exitcode, Batch-Push
+.claude/skills/references/plan-quality-gates.md        M9 — veraltete S1-Tabelle entfernt
+.claude/skills/references/dev-flow-plan-phases.md      M3, M10 — Lavish-Consent, Hauptcheckout-Mutation
+.claude/skills/dev-flow-execute/SKILL.md               M5 — freshness:check-Reihenfolge
+website/src/data/test-inventory.json                   generiert
+docs/code-quality/repo-index.json                      generiert
 ```
+
+## Bearbeitungsstand
+
+| Eintrag | Ergebnis |
+|---|---|
+| M1 CI-Rot durch T002486 | erledigt ohne eigene Aenderung — T002485 und T002486 sind beide `done` |
+| M2 Collision-Detector | behoben, Guard in `tests/spec/agent-behavior/collision-own-worktree.bats` |
+| M3 Lavish-Widerspruch | behoben — „anbieten" statt „PFLICHT", Consent-Gate ist massgeblich |
+| M4 BATS mutiert Arbeitsbaum | behoben — `--out` in Tempdir plus `teardown()`-Klammer |
+| M5 freshness-Reihenfolge | behoben — Hinweis in dev-flow-execute Schritt 3 |
+| M6 Flux Ready=False | erledigt ohne eigene Aenderung — alle Kustomizations stehen auf `READY=True` |
+| M7 gh-Exitcode | behoben — Fehlerfall ist ein eigener Zweig |
+| M8 Batch-Push | behoben — Bündelform dokumentiert |
+| M9 veraltete S1-Tabelle | behoben — Zahlen durch Lesebefehl ersetzt |
+| M10 Hauptcheckout-Mutation | behoben — expliziter `checkout --` nach dem Artefakt-Umzug |
 
 ## Mishap-Eintraege
 

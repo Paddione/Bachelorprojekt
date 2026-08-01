@@ -18,13 +18,16 @@ Es blockiert CI, wenn:
 > macht CI rot (real passiert: `AdminLayout.astro` 444→445). Das statische Limit ist nur für
 > *neue/kleine* Dateien die relevante Schwelle.
 
-Statische Limits (Stand 2026-06, verbindlich ist `gates.yaml` → `s1.limits`):
+Die statischen Limits werden hier **bewusst nicht aufgeführt**. Eine frühere Tabelle nannte
+konkrete Zahlen mit dem Zusatz „Stand 2026-06, verbindlich ist `gates.yaml`" — und war nach
+T002452 (Anhebung aller Werte, z. B. `.sh` 500 → 800) durchgehend falsch. Wer die Tabelle statt
+der Quelle las, rechnete mit einem zu knappen Budget und plante unnötige Splits ein: genau die
+Firefight-Schleife, die dieser Abschnitt verhindern soll. Jede Kopie driftet erneut, deshalb
+steht hier der Lesebefehl statt der Werte [T002523-M9]:
 
-| Extension | Limit | | Extension | Limit |
-|-----------|-------|-|-----------|-------|
-| `.ts` `.js` `.jsx` `.py` | 600 | | `.svelte` `.sh` `.mjs` `.mts` | 500 |
-| `.astro` `.tsx` `.java` `.php` | 400 | | `.bash` | 300 |
-| `.cjs` | 200 | | | |
+```bash
+yq '.s1.limits' docs/code-quality/gates.yaml     # oder: grep -A15 '  limits:' docs/code-quality/gates.yaml
+```
 
 **Pflicht beim Plan-Schreiben — pro zu ändernder Datei BEIDE Schwellen ermitteln:**
 1. `wc -l <datei>` → Ist-Zeilen.
@@ -32,8 +35,8 @@ Statische Limits (Stand 2026-06, verbindlich ist `gates.yaml` → `s1.limits`):
    ```bash
    jq -r '."S1:<relativer/pfad>".metric // "nicht-baselined"' docs/code-quality/baseline.json
    ```
-   - `nicht-baselined` → wirksame Schwelle = statisches Extension-Limit (Tabelle oben),
-     Budget = Limit − Ist.
+   - `nicht-baselined` → wirksame Schwelle = statisches Extension-Limit aus
+     `gates.yaml` → `s1.limits` (Lesebefehl oben), Budget = Limit − Ist.
    - eine Zahl → Datei ist gebaselined (liegt über Limit, eingefroren). Wirksame Schwelle =
      **dieser Baseline-Wert**, Budget = Baseline − Ist (**oft 0**).
 3. Budget im Plan notieren — gegen die wirksame Schwelle, z.B.

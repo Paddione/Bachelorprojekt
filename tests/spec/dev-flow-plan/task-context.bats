@@ -7,37 +7,58 @@ setup() {
   SCHEMA="$REPO/.claude/skills/references/schemas/plan-intel-bundle.schema.json"
   SLUG="task-context-channel"
   CHANGE_DIR="$REPO/openspec/changes/$SLUG"
+  # Wohin die Generator-Laeufe schreiben, die ihr Ergebnis nur lesen wollen.
+  OUT="$BATS_TEST_TMPDIR/intel.json"
+
+  # [T002523-M4] Der echte intel.json-Stand wird gesichert und in teardown()
+  # wiederhergestellt. Diese Suite arbeitet gegen einen PRODUKTIVEN Change-Slug, nicht
+  # gegen ein Fixture: die Gate-Tests brauchen die Datei an ihrem echten Ort, weil
+  # plan-lint sie dort sucht. Ohne diese Klammer blieb nach jedem Suite-Lauf eine
+  # modifizierte Datei eines FREMDEN Changes im Arbeitsbaum liegen — wer danach
+  # `git status` las, musste erst herausfinden, ob das eigene Arbeit, fremder WIP oder
+  # Testmuell war. Genau aus dieser Unklarheit ist bei T001880 echter Verlust entstanden.
+  INTEL_BACKUP=""
+  if [ -f "$CHANGE_DIR/intel.json" ]; then
+    INTEL_BACKUP="$BATS_TEST_TMPDIR/intel.orig.json"
+    cp "$CHANGE_DIR/intel.json" "$INTEL_BACKUP"
+  fi
+}
+
+teardown() {
+  if [ -n "${INTEL_BACKUP:-}" ] && [ -f "$INTEL_BACKUP" ]; then
+    cp "$INTEL_BACKUP" "$CHANGE_DIR/intel.json"
+  fi
 }
 
 # ── Generator (p1) ──────────────────────────────────────
 
 @test "TCC-gen: erzeugt schema-konformes Bundle aus Fixture-Slug" {
-  run bash "$REPO/scripts/plan-intel.sh" "$SLUG"
+  run bash "$REPO/scripts/plan-intel.sh" "$SLUG" --out "$OUT"
   [ "$status" -eq 0 ] || { echo "Generator failed: $output"; false; }
-  jq -e . "$CHANGE_DIR/intel.json" >/dev/null || { echo "invalid JSON"; false; }
+  jq -e . "$OUT" >/dev/null || { echo "invalid JSON"; false; }
   for k in meta impact_files symbols; do
-    jq -e --arg k "$k" 'has($k)' "$CHANGE_DIR/intel.json" >/dev/null \
+    jq -e --arg k "$k" 'has($k)' "$OUT" >/dev/null \
       || { echo "MISSING top-level key: $k"; false; }
   done
-  jq -e '.impact_files | all(has("loc") and has("s1_budget"))' "$CHANGE_DIR/intel.json" >/dev/null
+  jq -e '.impact_files | all(has("loc") and has("s1_budget"))' "$OUT" >/dev/null
 }
 
 @test "TCC-gen: s1.ignore-Datei erhaelt s1_budget:null, gemessene Datei numerisch" {
-  run bash "$REPO/scripts/plan-intel.sh" "$SLUG"
+  run bash "$REPO/scripts/plan-intel.sh" "$SLUG" --out "$OUT"
   [ "$status" -eq 0 ]
   local lint_budget
-  lint_budget="$(jq -r '.impact_files[] | select(.path == "scripts/plan-lint.sh") | .s1_budget' "$CHANGE_DIR/intel.json")"
+  lint_budget="$(jq -r '.impact_files[] | select(.path == "scripts/plan-lint.sh") | .s1_budget' "$OUT")"
   [[ "$lint_budget" =~ ^-?[0-9]+$ ]] || { echo "gemessene Datei hat nicht-numerischen budget: $lint_budget"; false; }
   local pipeline_budget
-  pipeline_budget="$(jq -r '.impact_files[] | select(.path == "scripts/factory/pipeline.mjs") | .s1_budget' "$CHANGE_DIR/intel.json")"
+  pipeline_budget="$(jq -r '.impact_files[] | select(.path == "scripts/factory/pipeline.mjs") | .s1_budget' "$OUT")"
   [ "$pipeline_budget" == "null" ] || { echo "s1.ignore Datei hat budget: $pipeline_budget (sollte null sein)"; false; }
 }
 
 @test "TCC-gen: nicht erreichbare Quelle erzeugt risks[] mit severity:warn" {
-  run bash "$REPO/scripts/plan-intel.sh" "$SLUG"
+  run bash "$REPO/scripts/plan-intel.sh" "$SLUG" --out "$OUT"
   [ "$status" -eq 0 ]
   local warn_count
-  warn_count="$(jq '[.risks[] | select(.severity == "warn")] | length' "$CHANGE_DIR/intel.json")"
+  warn_count="$(jq '[.risks[] | select(.severity == "warn")] | length' "$OUT")"
   [ "$warn_count" -ge 1 ] || { echo "kein warn-risk gefunden"; false; }
 }
 

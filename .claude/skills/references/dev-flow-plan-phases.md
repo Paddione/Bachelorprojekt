@@ -42,8 +42,19 @@ SVG vor dem Ablegen prüfen und **unpassende verwerfen** (NICHT mit in `new/` au
 und **Export-Vollständigkeit** (Anzahl gelieferter Dateien vs. im Intent spezifizierte).
 Alt-Assets werden **nicht** mitkopiert — der Abgleich passiert in-place gegen die echte
 Repo-Datei (`git diff` / `Read` der Live-Datei) erst beim Verbauen, nicht als Plan-Ballast.
-#### Schritt A.3: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
-Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings.
+#### Schritt A.3: Lavish-Board anbieten — vor Brainstorming
+Biete dem User ein visuelles Arbeitsblatt an: `.lavish/<slug>-brainstorm.html` (Sections: Intent,
+Constraints, Trade-offs, Entscheidungen), geöffnet mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`.
+
+> **Anbieten, nicht erzwingen [T002523-M3].** Dieser Schritt stand früher als „⚡ PFLICHT" hier,
+> während der `lavish`-Skill in seiner eigenen description ein Consent-Gate trägt: „only after
+> the user has agreed to it; see the consent gate below before opening a browser session". Eine
+> unbedingte Pflicht lässt sich mit einem Zustimmungsvorbehalt nicht erfüllen — solange beides
+> nebeneinanderstand, entschied jede Session neu und unterschiedlich (bei T002507 wurde das Board
+> deshalb weggelassen). Maßgeblich ist das Consent-Gate: erst fragen, dann öffnen.
+>
+> Lehnt der User ab oder ist die Sitzung nicht interaktiv, läuft das Brainstorming über
+> `AskUserQuestion` mit Previews. Das ist ein vollwertiger Ersatz, kein Notbehelf.
 #### Schritt A.4: Brainstorming ⚡ IMMER — kein Überspringen
 Rufe `superpowers:brainstorming` auf (Claude Code — built-in) oder führe die Brainstorming-Schritte
 direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; lies die Spec und
@@ -117,8 +128,22 @@ mkdir -p "${WT}/openspec/changes/"
 mv "${REPO_ROOT}/openspec/changes/<slug>" "${WT}/openspec/changes/<slug>"
 [ -f "${REPO_ROOT}/intel.json" ] && mv "${REPO_ROOT}/intel.json" "${WT}/openspec/changes/<slug>/intel.json"
 [ -f "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" ] && mv "${REPO_ROOT}/.lavish/<slug>-brainstorm.html" "${WT}/.lavish/" 2>/dev/null || true
+
+# [T002523-M10] Phase A laeuft bewusst im Hauptcheckout — `openspec.sh propose` ruft dort
+# `openspec-status-map.sh` auf und schreibt website/src/data/openspec-status.json neu. Das ist
+# die einzige Mutation, die nach dem Umzug im Hauptcheckout zurueckbleibt, und sie widerspricht
+# der Regel "mutierende Tasks nie im Hauptcheckout" (CLAUDE.local.md). Sie ist leicht zu
+# uebersehen, weil sie erst nach dem Worktree-Wechsel sichtbar wird — wenn die Aufmerksamkeit
+# schon im Worktree liegt. Genau aus solchen liegengebliebenen Mutationen entstand T001880.
+# Die Datei wird im Worktree ohnehin von `task freshness:regenerate` neu erzeugt.
+git -C "${REPO_ROOT}" checkout -- website/src/data/openspec-status.json 2>/dev/null || true
+
 cd "${WT}"
 ```
+
+> **Nach diesem Schritt muss `git -C "${REPO_ROOT}" status --porcelain` leer sein.** Ist es das
+> nicht, gehört die verbliebene Änderung entweder in den Worktree oder verworfen — sie darf
+> nicht auf `main` liegen bleiben.
 
 #### Schritt B.3: Scaffold-Commit + Push (Branch ist live für Factory)
 
@@ -289,8 +314,11 @@ bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" \
 bash scripts/agent-lock.sh claim branch "fix/<slug>" --worktree "$PWD" --label dev-flow-plan
 ```
 Exit 1 = eine lebende Session arbeitet schon daran → koordinieren, nicht duplizieren.
-### Schritt 2.7: Lavish-Board starten ⚡ PFLICHT — vor Brainstorming
-Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Root-Cause, Fix-Ansatz, Subsysteme, Edge-Cases) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`.
+### Schritt 2.7: Lavish-Board anbieten — vor Brainstorming
+Biete `.lavish/<slug>-brainstorm.html` an (Sections: Root-Cause, Fix-Ansatz, Subsysteme,
+Edge-Cases), geöffnet mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. **Anbieten, nicht
+erzwingen** — Begründung siehe Schritt A.3 [T002523-M3]. Ohne Zustimmung läuft das Brainstorming
+über `AskUserQuestion`.
 ### Schritt 2.8: Brainstorming ⚡ IMMER — kein Überspringen
 Rufe `superpowers:brainstorming` auf. Nutze das `lavish`-Board für visuelle Root-Cause-Dokumentation.
 Fokus: Root-Cause-Analyse, Fix-Ansatz, betroffene Subsysteme, Edge-Cases.

@@ -107,6 +107,15 @@ Phasen-Telemetrie (PFLICHT für verify — das Gate erzwingt sie) — **MCP-firs
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })`
 Verifikation ausführen — die vier Befehle + `./tests/runner.sh local <FA-XX oder SA-XX>` bei
 Manifest-Änderungen. **SSOT:** [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md).
+
+> **`freshness:check` kann erst NACH dem Commit der regenerierten Artefakte grün werden
+> [T002523-M5].** Dieser Schritt steht vor Schritt 5 (Commit & Push), `check` prüft aber nicht
+> nur, ob die Artefakte aktuell sind, sondern ob sie **committet** sind
+> (`✗ … regenerated but not staged — run 'git add …' and commit`). In der hier notierten
+> Reihenfolge ist der erste Aufruf daher zwangsläufig rot. Richtig ist: `regenerate` →
+> generierte Artefakte **committen** → `check`. Der Commit-Schritt für generierte Artefakte
+> wird also aus Schritt 5 hierher vorgezogen; der eigentliche Implementierungs-Commit bleibt,
+> wo er ist.
 Nach grünen Tests — **MCP-first**:
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "done", driver: "devflow", detail: "Tests grün · freshness OK" })`
 > `plan`/`implement`/`deploy`-Events entstehen jetzt automatisch aus den Statuswechseln (`update-status`/`stage-plan`); Doppel-Emission ist dank Dedup harmlos.

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 682,
+      "file_count": 684,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -315,6 +315,7 @@
         "tests/spec/admin-cockpit.bats",
         "tests/spec/admin-token-consolidation.bats",
         "tests/spec/admin-ui-modal-drawer.bats",
+        "tests/spec/agent-behavior/collision-own-worktree.bats",
         "tests/spec/agent-collision-false-positives.bats",
         "tests/spec/agent-library.bats",
         "tests/spec/agent-lock-claim-persist.bats",

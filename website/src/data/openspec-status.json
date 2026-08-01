@@ -2165,6 +2165,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002513": [
+    {
+      "slug": "agent-lock-reap-rule0b-ttl",
+      "status": "plan_staged"
+    }
+  ],
   "T002520": [
     {
       "slug": "2026-08-01-post-merge-branch-reaper",

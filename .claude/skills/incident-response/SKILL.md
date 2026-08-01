@@ -61,6 +61,7 @@ Fallback (mcp-kubernetes nicht erreichbar — Verfügbarkeits-Guard siehe [`MCP-
 
 ## Step 4 — Fix or Rollback
 
+* **Baseline remote clients before network changes [T002495-M6]:** Vor jeder Änderung an Netzwerkpfaden oder Firewall-Regeln (Hetzner, UFW, WireGuard, GPU-Host) zwingend die Erreichbarkeit von REMOTEN Clients (z. B. fleet-Cluster-Pods, external probes) messen und dokumentieren, nicht nur den lokalen Health-Endpunkt (`curl localhost`). Sonst lässt sich nach der Änderung ein Vorzustand nicht von einem selbst verursachten Ausfall unterscheiden.
 * **Rollback** (no schema migration introduced): `kubectl set image deployment/<svc> <container>=ghcr.io/paddione/workspace-<svc>:<PREV_SHA> -n <ns> --context <ctx>`
 * **Fix:** Open a `fix/<slug>` branch, implement, PR, merge, verify.
 

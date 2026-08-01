@@ -187,30 +187,44 @@ setup() {
 
 # ── M8: agent-lock reap PID-dead beats SID-alive ───────────────────────────#
 
-@test "T002448-M8: agent-lock reap removes lock with dead PID even when SID is alive" {
-  # When a lock has an alive (non-numeric) SID but a dead PID, reap must
-  # still clean it up — PID-dead beats SID-alive. Currently _reapable
-  # returns 1 (not reapable) when SID is alive, regardless of PID state.
-  # RED: the lock survives reap. After the fix, dead PID triggers reap.
+@test "T002448-M8: agent-lock reap removes lock with dead PID once the heartbeat is stale" {
+  # Prüfmodus: Resultat-Verifikation [T002448-M4] — reap wird ausgeführt, geprüft
+  # wird die Lock-Datei danach.
+  #
+  # Der ursprüngliche Wortlaut dieses Gates ("toter PID schlägt lebende SID,
+  # sofort") ist NICHT umsetzbar: er widerspricht dem älteren, absichtlichen
+  # Kontrakt aus T001384 ("eine bestätigt lebende SID gewinnt immer") — und
+  # beide Zustände sind beobachtungsgleich (SID alive, PID tot, Lock frisch).
+  # Grund für den Entwurf: eine Claude-Code-Session hat eine nicht-numerische
+  # UUID als SID und pro Bash-Aufruf einen NEUEN Prozess. "owner_pid ist tot"
+  # ist damit der Normalfall einer völlig gesunden Session und taugt nicht als
+  # Aufräumsignal. Das echte Signal ist der Heartbeat: er wird nur von einem
+  # lebenden Halter erneuert.
+  #
+  # Der Mishap dahinter — "ein Lock mit totem PID blieb liegen" — ist damit
+  # abgedeckt: sobald der Heartbeat älter als AGENT_LOCK_TTL ist, räumt reap
+  # auf, auch wenn die SID weiterhin "alive" aussieht.
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
 
-  # Create claim with a non-numeric SID (always treated as alive by
-  # _sid_alive) so SID-alive check is the only thing keeping the lock.
+  # Claim mit nicht-numerischer SID (von _sid_alive immer als lebend gewertet),
+  # damit ausschliesslich der SID-alive-Zweig den Lock schuetzt.
   AGENT_LOCK_SID="still-alive-m8" \
     bash "$LOCK" claim ticket t2448-m8 --label mishap8 >/dev/null 2>&1
 
   LF="$AGENT_LOCK_DIR/ticket__t2448-m8.json"
   [ -f "$LF" ]
 
-  # Overwrite owner_pid with a guaranteed-dead PID.
+  # owner_pid auf einen garantiert toten PID setzen.
   sed -i 's/"owner_pid": "[0-9]*"/"owner_pid": "999999"/' "$LF"
 
-  # Run reap (without AGENT_LOCK_SID so it evaluates the lock file's SID).
+  # Positiv-Anker [T002356-M1]: mit frischem Heartbeat MUSS der Lock den reap
+  # ueberleben. Ohne diesen Anker wuerde der Negativteil unten auch dann gruen,
+  # wenn reap wahllos alles loescht.
   bash "$LOCK" reap >/dev/null 2>&1
+  [ -f "$LF" ]
 
-  # RED: currently the lock survives because _sid_alive("still-alive-m8")
-  # returns 0 (alive, non-numeric) and _reapable returns 1 without ever
-  # considering the dead PID. After the fix, dead PID triggers cleanup.
+  # Jetzt den Heartbeat veralten lassen — der Halter ist wirklich weg.
+  AGENT_LOCK_TTL=0 bash "$LOCK" reap >/dev/null 2>&1
   [ ! -f "$LF" ]
 
   rm -rf "$AGENT_LOCK_DIR"

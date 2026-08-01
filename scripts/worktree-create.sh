@@ -30,6 +30,19 @@
 #   1  any other setup failure (the half-created worktree is rolled back)
 set -euo pipefail
 
+# T002448-M1: fail fast when the source checkout is not on main — but ONLY in
+# real upstream repos (origin/main exists). Ephemeral BATS repos without a
+# remote must keep the T002204 warn-path (exit 0), because there is no canonical
+# main to protect. Mirrors the divergence-guard's origin/main precondition.
+if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+  CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
+  if [ "$CURRENT_BRANCH" != "main" ]; then
+    echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgefuehrt werden." >&2
+    echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
+    exit 1
+  fi
+fi
+
 # --- branch-name guard: fail fast before divergence guard [T002470] ---
 #
 # Background: T002240 (same bug, fixed only in scripts/factory/auto-chore-plan.sh),
@@ -203,12 +216,20 @@ fi
 # 1) Skeleton without checkout — never runs the smudge filter, so it cannot fail
 #    on git-crypt paths.
 # === T002471-M4: Branch-Name-Guard ===
-# Prüft, ob die Ticket-ID im Branch-Namen gross geschrieben ist
-_ticket_id=$(echo "$BRANCH" | grep -oE '[tT][0-9]{6,}' | head -1 || true)
-if [[ -n "$_ticket_id" && "$_ticket_id" != "${_ticket_id^^}" ]]; then
-  echo "ERROR: Ticket-ID im Branch-Namen '$BRANCH' ist kleingeschrieben." >&2
-  echo "  Verwende ${_ticket_id^^} statt $_ticket_id." >&2
-  exit 1
+# Prüft, ob die Ticket-ID im Branch-Namen gross geschrieben ist.
+# WT_SKIP_NAME_CHECK MUSS hier genauso greifen wie beim Guard weiter oben
+# (Zeile ~45): dieser zweite Guard wurde später ergänzt und kannte die
+# dokumentierte Notfall-Umgehung nicht — sie war damit wirkungslos, weil der
+# erste Guard sie zwar respektierte, dieser dann aber trotzdem abbrach.
+# [T002512]
+if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
+  _ticket_id=$(echo "$BRANCH" | grep -oE '[tT][0-9]{6,}' | head -1 || true)
+  if [[ -n "$_ticket_id" && "$_ticket_id" != "${_ticket_id^^}" ]]; then
+    echo "ERROR: Ticket-ID im Branch-Namen '$BRANCH' ist kleingeschrieben." >&2
+    echo "  Verwende ${_ticket_id^^} statt $_ticket_id." >&2
+    echo "  Umgehung (nur im Notfall): WT_SKIP_NAME_CHECK=1 bash $0 ..." >&2
+    exit 1
+  fi
 fi
 # === Ende T002471-M4 ===
 if [ "$BRANCH_EXISTS" -eq 1 ]; then
@@ -355,9 +376,18 @@ done < <(find "$MAIN_ROOT" -maxdepth 2 -name pnpm-workspace.yaml -not -path '*/n
 # that differs from the branch this worktree now sits on, the linked deps may
 # be stale/incompatible for this branch's package.json / lockfile — surface it
 # instead of failing silently on a dependency mismatch later. [T002204]
+#
+# [T002495-M3] FACTORY RISK: The Software Factory dispatches from MAIN_ROOT.
+# When the main checkout is NOT on `main`, queue/backlog reads are measured
+# against the wrong branch. This warning fires on every worktree creation, but
+# is only shown at that moment — not on subsequent use. Prefer always keeping
+# the main checkout on `main` (reset with: git -C "$MAIN_ROOT" checkout main).
 _source_branch="$(git -C "$MAIN_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
 if [ -n "$_source_branch" ] && [ "$_source_branch" != "HEAD" ] && [ "$_source_branch" != "$BRANCH" ]; then
     echo "worktree-create: WARNUNG — Quell-Checkout ($MAIN_ROOT) steht auf Branch '$_source_branch', dieser Worktree auf '$BRANCH'. Verlinkte node_modules koennen von diesem Branch abweichen." >&2
+    if [ "$_source_branch" != "main" ]; then
+        echo "worktree-create: WARNUNG — Quell-Checkout steht NICHT auf main. Die Software Factory dispatched aus diesem Verzeichnis und misst Queue-Abfragen gegen den falschen Branch. [T002495-M3]" >&2
+    fi
 fi
 
 # T002239-M3: Guard reminder — warn that pnpm install inside a worktree

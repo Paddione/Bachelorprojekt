@@ -55,9 +55,9 @@ nutzbar und ohne die anderen testbar ist.
 
 | Komponente | Aufgabe | Schreibt | Braucht |
 |---|---|---|---|
-| `scripts/arbitration/detect.sh` | Cluster-Erkennung über offene PRs, gibt JSON aus | nichts | `gh-axi`, `git` |
+| `scripts/arbitration/detect.sh` | Cluster-Erkennung über offene PRs, gibt JSON aus | nichts | `gh`-CLI (`--json`), `git` |
 | `scripts/arbitration/synthesize.mjs` | JSON rein → `{merged, confidence, rationale, per_pr_notes}` raus | nichts | llm-proxy |
-| `scripts/arbitration/apply.sh` | Synthese-PR **oder** Eskalation | GitHub, Ticket-DB | `gh-axi`, `ticket.sh` |
+| `scripts/arbitration/apply.sh` | Synthese-PR **oder** Eskalation | GitHub, Ticket-DB | `gh`-CLI (`--json`), `ticket.sh` |
 
 `detect.sh` ist allein wertvoll: manuell aufgerufen zeigt es die aktuellen Kollisionen,
 bevor ein LLM beteiligt ist. `synthesize.mjs` ist rein funktional und damit ohne Cluster,
@@ -75,7 +75,7 @@ Der self-hosted Runner ist nicht Bequemlichkeit, sondern Bedingung: der llm-prox
 ## Datenfluss
 
 ```
-gh-axi pr list (open)
+gh pr list --json (open)
    │  pro PR: git diff --name-only origin/main...origin/<head>
    │          + isDraft, statusCheckRollup, labels, Ticket-ID aus Titel
    ▼

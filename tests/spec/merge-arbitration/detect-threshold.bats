@@ -21,8 +21,8 @@ teardown() {
   cat > "$PATH_STUB/gh-axi" <<'STUB'
 #!/usr/bin/env bash
 echo '[
-  {"number":2001,"headRefName":"pr1","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr1 [T0001]"},
-  {"number":2002,"headRefName":"pr2","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr2 [T0002]"}
+  {"number":2001,"headRefName":"pr1","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr1 [T0001]"},
+  {"number":2002,"headRefName":"pr2","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr2 [T0002]"}
 ]'
 STUB
   chmod +x "$PATH_STUB/gh-axi"
@@ -36,9 +36,9 @@ STUB
   cat > "$PATH_STUB/gh-axi" <<'STUB3'
 #!/usr/bin/env bash
 echo '[
-  {"number":2001,"headRefName":"pr1","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr1 [T0001]"},
-  {"number":2002,"headRefName":"pr2","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr2 [T0002]"},
-  {"number":2003,"headRefName":"pr3","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr3 [T0003]"}
+  {"number":2001,"headRefName":"pr1","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr1 [T0001]"},
+  {"number":2002,"headRefName":"pr2","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr2 [T0002]"},
+  {"number":2003,"headRefName":"pr3","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr3 [T0003]"}
 ]'
 STUB3
   PATH="$PATH_STUB:$PATH" GH_AXI=gh-axi GIT_ATTR=/dev/null run bash "$DETECT"

@@ -24,9 +24,9 @@ teardown() {
   cat > "$PATH_STUB/gh-axi" <<'STUB'
 #!/usr/bin/env bash
 echo '[
-  {"number":3001,"headRefName":"pr1","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr1 [T0001]"},
-  {"number":3002,"headRefName":"pr2","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr2 [T0002]"},
-  {"number":3003,"headRefName":"pr3","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr3 [T0003]"}
+  {"number":3001,"headRefName":"pr1","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr1 [T0001]"},
+  {"number":3002,"headRefName":"pr2","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr2 [T0002]"},
+  {"number":3003,"headRefName":"pr3","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr3 [T0003]"}
 ]'
 STUB
   chmod +x "$PATH_STUB/gh-axi"
@@ -47,9 +47,9 @@ STUB
   cat > "$PATH_STUB/gh-axi" <<'STUB2'
 #!/usr/bin/env bash
 echo '[
-  {"number":4001,"headRefName":"pr4","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr4 [T0004]"},
-  {"number":4002,"headRefName":"pr5","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr5 [T0005]"},
-  {"number":4003,"headRefName":"pr6","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr6 [T0006]"}
+  {"number":4001,"headRefName":"pr4","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr4 [T0004]"},
+  {"number":4002,"headRefName":"pr5","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr5 [T0005]"},
+  {"number":4003,"headRefName":"pr6","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr6 [T0006]"}
 ]'
 STUB2
   PATH="$PATH_STUB:$PATH" GH_AXI=gh-axi run bash "$DETECT"

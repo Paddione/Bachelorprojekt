@@ -16,14 +16,15 @@
 # Ausgang ohne Exit-Code-Interpretation unterscheiden können.
 #
 # Env overrides (für Tests/Fixtures):
-#   GH_AXI               - gh-Wrapper-Binary (Default: gh-axi)
+#   GH_AXI               - gh-CLI-Binary (Default: gh; gh-axi kann kein JSON
+#                          emittieren — siehe detect.sh)
 #   TICKET_SH            - Kommando für Ticket-Erstellung (Default: scripts/ticket.sh)
 #   SYNTHESIZE           - Pfad zu synthesize.mjs (Default: neben diesem Skript)
 #   SHARED_STATE         - Risiko-Pfadliste (Default: scripts/factory/shared-state-paths.txt)
 #   CONFIDENCE_THRESHOLD - Eskalationsschwelle (Default: 0.8)
 set -uo pipefail
 
-GH_AXI="${GH_AXI:-gh-axi}"
+GH_AXI="${GH_AXI:-gh}"
 TICKET_SH="${TICKET_SH:-scripts/ticket.sh}"
 SYNTHESIZE="${SYNTHESIZE:-$(dirname "$0")/synthesize.mjs}"
 SHARED_STATE="${SHARED_STATE:-scripts/factory/shared-state-paths.txt}"
@@ -49,7 +50,7 @@ check_idempotent() {
   "$GH_AXI" pr list --state open --json title,labels,headRefName 2>/dev/null | jq -e \
     --arg branch "$branch" \
     '.[] | select((.headRefName // "") == $branch)
-         | select((.labels.nodes // []) | any(.name == "arbitration"))' >/dev/null 2>&1
+         | select((.labels // []) | any(.name == "arbitration"))' >/dev/null 2>&1
 }
 
 check_risk_path() {

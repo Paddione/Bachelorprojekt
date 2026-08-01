@@ -77,7 +77,7 @@ STUB
   cat > "$PATH_STUB/gh-axi" <<STUB
 #!/usr/bin/env bash
 case "\$1 \$2" in
-  "pr list") echo '[{"number":9999,"headRefName":"chore/merge-arbitration-${KEY_V1:0:12}","labels":{"nodes":[{"name":"arbitration"}]},"title":"merge-arbitration [${KEY_V1:0:12}]"}]' ;;
+  "pr list") echo '[{"number":9999,"headRefName":"chore/merge-arbitration-${KEY_V1:0:12}","labels":[{"name":"arbitration"}],"title":"merge-arbitration [${KEY_V1:0:12}]"}]' ;;
   "pr create") echo "SHOULD NOT BE CALLED"; exit 1 ;;
   *) exit 0 ;;
 esac
@@ -101,7 +101,7 @@ STUB
   cat > "$PATH_STUB/gh-axi" <<STUB
 #!/usr/bin/env bash
 case "\$1 \$2" in
-  "pr list") echo '[{"number":9999,"headRefName":"chore/merge-arbitration-${KEY_V1:0:12}","labels":{"nodes":[{"name":"arbitration"}]},"title":"merge-arbitration [${KEY_V1:0:12}]"}]' ;;
+  "pr list") echo '[{"number":9999,"headRefName":"chore/merge-arbitration-${KEY_V1:0:12}","labels":[{"name":"arbitration"}],"title":"merge-arbitration [${KEY_V1:0:12}]"}]' ;;
   "pr create") echo "https://example.invalid/pr/2"; exit 0 ;;
   "pr comment") exit 0 ;;
   *) exit 0 ;;

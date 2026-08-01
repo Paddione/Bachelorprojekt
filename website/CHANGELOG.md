@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.231.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.230.0...website-v1.231.0) (2026-08-01)
+
+
+### Features
+
+* **ci:** Post-Merge-Branch-Reaper für verwaiste Remote-Branches [T002520] ([#3587](https://github.com/Paddione/Bachelorprojekt/issues/3587)) ([bebebf0](https://github.com/Paddione/Bachelorprojekt/commit/bebebf0010ade24fe39718675bf376ad88ed709f))
+
+
+### Bug Fixes
+
+* **agents:** Mishap-Bundle T002523 — Collision-Detector, Testmutation, vier Doku-Widersprüche [T002523] ([#3590](https://github.com/Paddione/Bachelorprojekt/issues/3590)) ([6d543c0](https://github.com/Paddione/Bachelorprojekt/commit/6d543c0dec5ce4452fdc50beece647bc44e1f632))
+* **ci:** spec-Fallback rekursiv sammeln — 65 Tests liefen auf keinem PR [T002518] ([#3585](https://github.com/Paddione/Bachelorprojekt/issues/3585)) ([dd9c8cf](https://github.com/Paddione/Bachelorprojekt/commit/dd9c8cfa48662a4efd9f8951cea19ab678cb89ae))
+* **scripts:** 7 Mishap-Fixes T002506 ([#3578](https://github.com/Paddione/Bachelorprojekt/issues/3578)) ([354aaa9](https://github.com/Paddione/Bachelorprojekt/commit/354aaa9d28d53d04ac6ea0b9d8f747d93dfd2653))
+* **scripts:** Mishap-Bundle T002424 — ticket-lock-guard, pr-scope-check, Pre-Check-Reihenfolge [T002424] ([#3583](https://github.com/Paddione/Bachelorprojekt/issues/3583)) ([9620f3a](https://github.com/Paddione/Bachelorprojekt/commit/9620f3a8c126a5579a28cfc7ef5048d7627ea063))
+* **security:** Cockpit-Daemon ohne Shell, Token nicht mehr per HTTP [T002505] ([#3576](https://github.com/Paddione/Bachelorprojekt/issues/3576)) ([71e92b2](https://github.com/Paddione/Bachelorprojekt/commit/71e92b2ff8a178f6b3e59447144381c9afc2ea79))
+* **test:** Cockpit-Daemon-Lauf-Kontrakt, CI-Gate fail-closed [T002508] ([#3579](https://github.com/Paddione/Bachelorprojekt/issues/3579)) ([95e159e](https://github.com/Paddione/Bachelorprojekt/commit/95e159e532939f59d0b86eb6f1f9a7e7b6ee499f))
+* **website:** Portrait-Derivate 4:5 ab y=0 — Oberkopf nicht mehr abgeschnitten [T002507] ([#3577](https://github.com/Paddione/Bachelorprojekt/issues/3577)) ([e1a5406](https://github.com/Paddione/Bachelorprojekt/commit/e1a540639f2047ebfe39bc75fc12a8f21dc5a22f))
+
+
+### Tests
+
+* **ops:** P5.5 nachtragen — gemma-loadout-autorestart-queue.bats [T002459] ([#3575](https://github.com/Paddione/Bachelorprojekt/issues/3575)) ([10d767e](https://github.com/Paddione/Bachelorprojekt/commit/10d767e5ecfefb2ad5d79a75911cdcf7821b1d81))
+
 ## [1.230.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.229.0...website-v1.230.0) (2026-08-01)
 
 

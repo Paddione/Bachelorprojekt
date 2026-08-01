@@ -57,6 +57,10 @@ MAIN_BRANCH=$(cd "$MAIN_REPO" && git rev-parse --abbrev-ref HEAD)
 if [ "$MAIN_BRANCH" = "main" ]; then
   (cd "$MAIN_REPO" && git fetch origin main && git pull --rebase origin main)
 else
+  # M1 (T002506): main ist im MAIN_REPO NICHT ausgecheckt — `git fetch origin
+  # main:main` aktualisiert den lokalen main-Ref ohne ihn auszuchecken und ist hier
+  # der richtige Weg. (Scheitern wuerde es nur, wenn main im MAIN_REPO ausgecheckt
+  # waere — dann waere der if-Zweig oben aktiv. [T002506-M1]
   (cd "$MAIN_REPO" && git fetch origin main:main)
 fi
 ```

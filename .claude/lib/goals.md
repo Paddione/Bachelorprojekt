@@ -405,7 +405,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-CQ10** | S4 verwaiste Scripts | 0 ✓ | ≤ 4 | `python3 -c "..S4-Gate.." < docs/code-quality/baseline.json` |
 | **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 311 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
-| **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 7 ⚠ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
+| **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 6 ✓ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
 | **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json 2>/dev/null \| python3 -c "..."` |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | `grep -q "npm ci" website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
@@ -427,7 +427,7 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SPEC03** | Proposals ohne .ticket-Verknüpfung | 0 ✓ | 0 | `for d in openspec/changes/*/; do [ -f "$d/.ticket" ] \|\| m=$((m+1)); done` |
 | **G-DB06** | Orphan-Rows (3 FK-Paare) | 0 ✓ | 0 | `db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)` |
 | **G-DOC01** | Defekte interne Doc-Links | 0 ✓ | 0 | `python3 scripts/check-links.py` |
-| **G-DOC02** | Root-CLAUDE.md Zeilen | 223 ⚠ | ≤ 200 | `wc -l < CLAUDE.md` |
+| **G-DOC02** | Root-CLAUDE.md Zeilen | 198 ✓ | ≤ 200 | `wc -l < CLAUDE.md` |
 | **G-DOC03** | README-Index in Hauptverzeichnissen | 5/5 ✓ | 5/5 | `for d in website brett scripts tests k3d; do ls "$d"/README* ... done` |
 | **G-DOC04** | Architektur-ADRs | 5 ✓ | ≥ 5 | `find docs -ipath '*adr*' -name '*.md' \| wc -l` |
 | **G-DOC06** | Agent Guide Index | 30 ✓ | ≥ 30 | `find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md \| wc -l` |
@@ -452,14 +452,14 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-AGENTIC08** | Tote Script-Pfade in projekteigenen Skill-`.md` | 0 ✓ | 0 | `grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\.(sh\|mjs\|py)' $(project_owned_skills) + references --include='*.md' \| sort -u \| test -f || count` (Lookbehind gegen Substring-False-Positives; Scope seit T002303 auf alle `.md` statt nur `SKILL.md`, damit ausgelagerte `references/` nicht ungeprüft bleiben) |
 | **G-AGENTIC09** | Projekteigene `SKILL.md` >400 Zeilen | 0 ✓ | 0 | `for d in $(project_owned_skills); wc -l > 400 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md` (T002303; vorher `target` mit Schwelle 500 über alle Skills — Schwelle 250→400 in T002452, weil zwei Skills auf 0 bzw. 3 Zeilen Reserve standen) |
 
-| **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 1 ⚠ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
-| **G-AGENTIC12** | .mcp.json-Server undokumentiert | 1 ⚠ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
+| **G-AGENTIC11** | CLAUDE.md opencode-Liste vs opencode.jsonc | 0 ✓ | 0 | `comm -3 <(grep opencode-Liste \| extract backtick-names) <(mcp_servers opencode.jsonc)` |
+| **G-AGENTIC12** | .mcp.json-Server undokumentiert | 0 ✓ | 0 | `for s in $(mcp_servers .mcp.json); grep -q -- "$s" mcp-tool-guide.md || count` |
 | **G-AGENTIC13** | Tote MCP-Server-Refs in SKILL.md | 0 ✓ | 0 | `grep -rhoE 'mcp__...__\|mcp-..._browser_' .claude/skills \| gegen registrierte Server` |
 | **G-AGENTIC14** | .mcp.json ↔ opencode Parity | 0 ✓ | 0 | `python3 <<'PY' ... load both, sig() for common keys, count mismatches` |
 | **G-AGENTIC15** | Phantom-/opsx-Command-Referenzen | 0 ✓ | 0 | `grep -rhoE '/opsx[:-][a-z]+' in .claude/ .opencode/ .claude/skills vs valid command set` |
 | **G-AGENTIC16** | Claude ↔ opencode Command-Sync | 0 ✓ | 0 | `for each .claude/commands/opsx/*.md, compare normalized body with .opencode/opsx-$name.md` |
 | **G-AGENTIC17** | Command-Orphans via S4 | 0 ✓ | ≤ 0 | `S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99` |
-| **G-AGENTIC01** | Ungescopte Agenten (security/infra/db ohne `tools:`) | 3 ⚠ | ≤ 0 | `awk-Frontmatter-Check über .claude/agents/bachelorprojekt-{security,infra,db}.md` |
+| **G-AGENTIC01** | Ungescopte Agenten (security/infra/db ohne `tools:`) | 3 ⚠ | ≤ 0 | `awk-Frontmatter-Check über .claude/agents/bachelorprojekt-{security,infra,db}.md` — **blockiert: widerspricht Test T002221** (`tests/spec/agent-library.bats`), der für genau diese drei Agenten das Gegenteil fordert (*kein* `tools:`-Key). T002221 war ein Bugfix: die frühere Liste nannte `mcp_postgres_query` statt `mcp__mcp-postgres__query`, resolvte zur leeren Menge, und jeder Dispatch starb mit „would be spawned with zero tools — refusing". Eine Liste aus reinen Built-ins (`Bash, Read, Glob, Grep`) macht das Gate zwar grün, entzieht den Agenten aber ihre in `CLAUDE.md` als primär vorgeschriebenen MCP-Werkzeuge (`mcp-postgres` für `-db`, `mcp-kubernetes` für `-infra`) — Funktionsregression statt Least-Privilege. Auflösung erfordert eine Entscheidung Gate↔Test, siehe [[T002494]]. |
 | **G-AGENTIC10** | Agenten ohne dispatchende Skill | 0 ✓ | ≤ 0 | `grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent` |
 | **G-DB04** | Backup-Alter (h) seit letztem db-backup-Job | 172 ⚠ | ≤ 26h | `db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738` |
 | **G-DB08** | Tabellen >10k Rows mit Seq-Scan-Anteil >5 % | 2 ✓ | ≤ 3 | `db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)` |

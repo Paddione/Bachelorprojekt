@@ -8,8 +8,13 @@ TYPE="${1:-unit}" # "unit" or "spec"
 BASE_DIR="tests/${TYPE}"
 ALLOWLIST="tests/unit/.coverage-allowlist"
 
-# Get the list of changed files against main
-CHANGED=$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)
+# Get the list of changed files against main.
+# FIND_CHANGED_TESTS_FILES ueberschreibt die Liste (newline-separiert). Das ist
+# die Test-Naht: der RUN_ALL-Zweig haengt sonst an einem committeten Diff gegen
+# origin/main und laesst sich nicht gezielt ausloesen — ein Test muesste die
+# Sammel-Logik nachbauen und wuerde damit seine eigene Kopie pruefen statt
+# dieses Skript. [T002518]
+CHANGED="${FIND_CHANGED_TESTS_FILES:-$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)}"
 
 if [ -z "$CHANGED" ]; then
   exit 0
@@ -166,8 +171,27 @@ done <<< "$CHANGED"
 
 # Unique list of candidates
 if [ "$RUN_ALL" = "true" ]; then
-  # Return all non-excluded tests in the directory
-  find "$BASE_DIR" -maxdepth 1 -name "*.bats" | while read -r test_file; do
+  # Der Fallback MUSS dieselbe Menge liefern wie der jeweilige Runner-Task,
+  # sonst laufen Tests nur auf einem der beiden Wege. Die beiden Sammlungen
+  # haben bewusst GEGENSAETZLICHE Konventionen:
+  #
+  #   spec  → rekursiv (`task test:spec` nutzt `bats -r tests/spec/`, T002416:
+  #           eine Datei pro Vorgang unter tests/spec/<spec-slug>/)
+  #   unit  → flach (`task test:unit` nutzt `find … -maxdepth 1`), denn unter
+  #           tests/unit/lib/ liegt die VENDORTE bats-core-Installation mit
+  #           eigenen .bats-Beispieldateien, die nie laufen duerfen.
+  #
+  # Vorher galt `-maxdepth 1` fuer beide. Da JEDER PR ueber diesen Pfad laeuft
+  # (test:spec:changed), fielen damit alle 65 Spec-Tests in Unterverzeichnissen
+  # aus der PR-Abdeckung — u. a. die kompletten Verzeichnisse
+  # tests/spec/software-factory/ und tests/spec/sdlc-cockpit/. Nur der
+  # Push-nach-main-Pfad erfasste sie. [T002518]
+  if [ "$TYPE" = "spec" ]; then
+    _find_args=(-name "*.bats")
+  else
+    _find_args=(-maxdepth 1 -name "*.bats")
+  fi
+  find "$BASE_DIR" "${_find_args[@]}" | while read -r test_file; do
     if ! is_excluded "$test_file"; then
       echo "$test_file"
     fi

@@ -205,7 +205,7 @@ Schritte 1–5 im Detail (Ticket anlegen, Worktree, Claims, Lavish-Board, Brains
 Root-Cause-Fokus, failing Test, Plan, `stage-plan`, Commit):
 [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md) §Fix-Pfad.
 
-**Bug-Triage: Ursachen-Verifikation vor Brainstorming [T002448-M5]:** Eine Bug-Beschreibung enthält oft Symptome und Hypothesen über die Ursache in einem Satz. Vor dem Brainstorming MUSS unterschieden werden: was ist beobachtetes Symptom (Fakt, reproduzierbar) und was ist Annahme über die Ursache (Hypothese, zu verifizieren). Brainstorming und Lösungsdesign dürfen nicht auf einer ungeprüften Hypothese aufbauen — die Ursache MUSS vor dem Schritt "Lösung entwerfen" mit einem minimalen Reproducer oder Log-Evidenz belegt werden. Diese Trennung (Symptom vs. Hypothese) gehört ins Proposal.
+**Bug-Triage: Ursachen-Verifikation vor Brainstorming [T002448-M5]:** Eine Bug-Beschreibung enthält oft Symptome und Hypothesen über die Ursache in einem Satz. Vor dem Brainstorming MUSS unterschieden werden: was ist beobachtetes Symptom (Fakt, reproduzierbar) und was ist Annahme über die Ursache (Hypothese, zu verifizieren). Brainstorming und Lösungsdesign dürfen nicht auf einer ungeprüften Hypothese aufbauen — die Ursache MUSS vor dem Schritt "Lösung entwerfen" mit einem minimalen Reproducer oder Log-Evidenz belegt werden. Diese Trennung (Symptom vs. Hypothese) gehört ins Proposal. English: verify the bug cause during triage — distinguish observed symptom from assumed root cause, and validate the cause with evidence (minimal reproducer or log) before designing the solution.
 
 Der abschließende Stage-Commit des Fix-Pfads:
 

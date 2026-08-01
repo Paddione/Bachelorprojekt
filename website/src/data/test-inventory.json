@@ -1932,6 +1932,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-lock-fetch-guard",
+    "file": "tests/spec/agent-lock-fetch-guard.bats",
+    "category": "agent-lock-fetch-guard",
+    "kind": "shell"
+  },
+  {
     "id": "agent-lock-force-claim",
     "file": "tests/spec/agent-lock-force-claim.bats",
     "category": "agent-lock-force-claim",

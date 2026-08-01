@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # scripts/agent-lock.sh — cross-tool session-coordination lock registry. [T000510]
 # One JSON file per claim under $AGENT_LOCK_DIR (shared gitdir's agent-locks/).
-# Test overrides: AGENT_LOCK_DIR, AGENT_LOCK_SID, AGENT_LOCK_FAKE_ALIVE, AGENT_LOCK_TOOL.
+# Test overrides: AGENT_LOCK_DIR, AGENT_LOCK_SID, AGENT_LOCK_FAKE_ALIVE, AGENT_LOCK_TOOL,
+# AGENT_LOCK_FETCH_TTL.
 set -uo pipefail
 
 AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"
 AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
+# [T002502] cmd_reap-Fetch (pre-claim reap bei JEDEM claim) max 1x pro TTL-Fenster:
+# ohne Guard kostete claim-persist.bats Test 4 ~92s lokal / ~310s auf CI-Shard 4.
+AGENT_LOCK_FETCH_TTL="${AGENT_LOCK_FETCH_TTL:-300}"
 
 # Harness-Session-Variablen in Prüfreihenfolge: CLAUDE_CODE_SESSION_ID zuerst. [T002375-p1]
 _AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID"
@@ -15,13 +19,10 @@ _AGENT_LOCK_TOOL_MARKER_ENVS="CLAUDECODE CLAUDE_CODE"
 _now() { date +%s; }
 
 _my_sid() {
-  # Harness-stable env wins (Claude Code / opencode expose a session id for
-  # telemetry that survives across bash tool calls). The test override
-  # AGENT_LOCK_SID stays as a second layer (CI / unit tests). Only fall back
-  # to the per-call Unix SID when neither harness env nor test override is
-  # set — that path is the source of the cross-call drift bug. [T001268]
-  # [T002375-p1] Die Harness exportiert CLAUDE_CODE_SESSION_ID, nicht CLAUDE_SESSION_ID.
-  # SID-Check: Harness-Env wins, then test override, then Unix SID. [T001268]
+  # Harness-stable env wins (Claude Code / opencode expose a session id surviving
+  # bash tool calls); AGENT_LOCK_SID override stays as second layer (CI/unit tests);
+  # per-call Unix-SID is the fallback and the source of the drift bug. [T001268]
+  # [T002375-p1] Harness exportiert CLAUDE_CODE_SESSION_ID, nicht CLAUDE_SESSION_ID.
   if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
   local _v
   for _v in $_AGENT_LOCK_SID_ENVS; do
@@ -113,33 +114,23 @@ _reapable() {
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
   hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
   br="$(_lock_field "$f" branch)"
-  # Age reference for the pid-dead/sid-dead grace checks below: prefer the
-  # heartbeat (reflects the last confirmed-live refresh) and fall back to
-  # created_at only for old claim files that predate the heartbeat_at field.
-  # [T001582-M1] Using created_at alone wrongly reaped claims that were
-  # refreshed recently but originally created long ago.
+  # Age base for grace checks: heartbeat first (last confirmed-live refresh),
+  # created_at fallback for pre-heartbeat claim files. [T001582-M1]
   local age_base="${hb:-${ct:-0}}"
   # 0) A CONFIRMED-ALIVE SID ALWAYS WINS — even if the worktree path is stale
-  #    or missing, a live session owns the claim. Reapability only kicks in
-  #    when the SID is dead (or, as a last resort, when no SID is recorded). [T001384]
+  #    or missing, a live session owns the claim. [T001384]
   if [ -n "$sid" ] && _sid_alive "$sid"; then
-    # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID (non-numeric
-    # UUIDs gelten immer als "alive" — aber wenn der Heartbeat alt ist, ist der
-    # Halter wirklich tot und nur die UUID im Lock uebrig). Ohne diesen Check
-    # wuerde reap nie einen solchen Lock aufraeumen, weil der SID-Fruehrueck-
-    # kehr nie zum PID-/Heartbeat-Teil vordringt.
+    # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID: non-numeric UUIDs
+    # gelten immer als "alive" — ein alter Heartbeat zeigt aber einen toten Halter.
     if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
       _reap_log "$f" heartbeat-ttl; return 0
     fi
     return 1
   fi
   # 0b) Worktree+branch match beats a dead/mismatched SID: a session RESUME
-  #     starts a new process with a different SID (and possibly a different
-  #     PID), which would otherwise fall through to the pid-dead/sid-dead reap
-  #     paths below and delete a claim that is still very much live — the
-  #     worktree is sitting right there, checked out on the exact branch the
-  #     claim recorded. Verify liveness via that filesystem/git state instead
-  #     of trusting the volatile SID. [T002204]
+  #     starts a new process with a different SID (and possibly PID), which
+  #     would otherwise fall through to the pid-dead/sid-dead reap paths below.
+  #     Verify liveness via the filesystem/git state instead. [T002204]
   if [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] && [ -n "$br" ]; then
     local wt_branch
     wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
@@ -434,7 +425,19 @@ cmd_reap() {
   # 2) prune git worktree admin entries for gone directories
   git worktree prune 2>/dev/null || true
   # 2b) prune stale remote-tracking refs (branches deleted on GitHub after merge)
-  git fetch --prune origin 2>/dev/null || true
+  #     [T002502] TTL-Guard: fetch max 1x pro AGENT_LOCK_FETCH_TTL (Marker im
+  #     Lock-Dir, isoliert je AGENT_LOCK_DIR; TTL=0 erzwingt, fehlender Marker
+  #     = faellig).
+  local _fetch_marker _fetch_age
+  _fetch_marker="$(_lock_dir)/.last-fetch"
+  _fetch_age=0
+  if [ -f "$_fetch_marker" ]; then
+    _fetch_age=$(( $(date +%s) - $(stat -c %Y "$_fetch_marker" 2>/dev/null || echo 0) ))
+  fi
+  if [ "${AGENT_LOCK_FETCH_TTL:-300}" -eq 0 ] || [ ! -f "$_fetch_marker" ] || [ "$_fetch_age" -ge "${AGENT_LOCK_FETCH_TTL:-300}" ]; then
+    git fetch --prune origin 2>/dev/null || true
+    touch "$_fetch_marker" 2>/dev/null || true
+  fi
   # 2c) delete local branches that were squash-merged into main (upstream gone)
   for br in $(git branch --merged main 2>/dev/null | sed 's/^[* ]*//' | grep -v '^main$'); do
     # skip branches that have a live agent-lock claim (e.g. dev-flow-plan in progress) [T001448 M3]

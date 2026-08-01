@@ -21,11 +21,11 @@ teardown() {
   cat > "$PATH_STUB/gh-axi" <<'STUB'
 #!/usr/bin/env bash
 echo '[
-  {"number":1001,"headRefName":"pr1","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr1 [T0001]"},
-  {"number":1002,"headRefName":"pr2","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr2 [T0002]"},
-  {"number":1003,"headRefName":"pr3","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr3 [T0003]"},
-  {"number":1004,"headRefName":"pr4","headRefOid":"HEAD","isDraft":true,"labels":{"nodes":[]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr4 [T0004]"},
-  {"number":1005,"headRefName":"pr5","headRefOid":"HEAD","isDraft":false,"labels":{"nodes":[{"name":"arbitration"}]},"statusCheckRollup":{"state":"SUCCESS"},"title":"fix: pr5 [T0005]"}
+  {"number":1001,"headRefName":"pr1","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr1 [T0001]"},
+  {"number":1002,"headRefName":"pr2","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr2 [T0002]"},
+  {"number":1003,"headRefName":"pr3","headRefOid":"HEAD","isDraft":false,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr3 [T0003]"},
+  {"number":1004,"headRefName":"pr4","headRefOid":"HEAD","isDraft":true,"labels":[],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr4 [T0004]"},
+  {"number":1005,"headRefName":"pr5","headRefOid":"HEAD","isDraft":false,"labels":[{"name":"arbitration"}],"statusCheckRollup":[{"__typename":"CheckRun","status":"COMPLETED","conclusion":"SUCCESS"}],"title":"fix: pr5 [T0005]"}
 ]'
 STUB
   chmod +x "$PATH_STUB/gh-axi"

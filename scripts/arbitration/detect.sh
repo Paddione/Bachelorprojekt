@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-GH_AXI="${GH_AXI:-gh-axi}"
+# gh-axi kann kein JSON emittieren (emittiert Tabellen) — für die maschinen-
+# lesbare PR-Liste braucht es das echte gh-CLI. Override für Tests möglich.
+GH_AXI="${GH_AXI:-gh}"
 GIT_ATTR="${GIT_ATTR:-.gitattributes}"
 
 merge_ours_patterns() {
@@ -36,7 +38,7 @@ eligible() {
   local is_draft="$1" ci_state="$2" labels_json="$3"
   [ "$is_draft" = "true" ] && return 1
   [ "$ci_state" != "SUCCESS" ] && [ "$ci_state" != "NEUTRAL" ] && [ "$ci_state" != "" ] && return 1
-  if echo "$labels_json" | jq -e '.nodes | map(.name) | contains(["arbitration"])' >/dev/null 2>&1; then
+  if echo "$labels_json" | jq -e 'map(.name) | contains(["arbitration"])' >/dev/null 2>&1; then
     return 1
   fi
   return 0
@@ -88,7 +90,7 @@ main() {
       else
         if [ "$is_draft" = "true" ]; then
           ineligible_reason="draft"
-        elif echo "$labels_json" | jq -e '.nodes | map(.name) | contains(["arbitration"])' >/dev/null 2>&1; then
+        elif echo "$labels_json" | jq -e 'map(.name) | contains(["arbitration"])' >/dev/null 2>&1; then
           ineligible_reason="arbitration_label"
         else
           ineligible_reason="ci_red"
@@ -114,7 +116,7 @@ main() {
         --arg reason "$ineligible_reason" \
         '. += [{"pr": $entry, "eligible": $eligible, "ineligible_reason": $reason}]')
     done <<< "$files"
-  done < <(echo "$prs" | jq -r '.[] | [.number, .headRefName, .headRefOid, (.isDraft|tostring), (.labels|tostring), (.statusCheckRollup.state // ""), .title] | @tsv')
+  done < <(echo "$prs" | jq -r '.[] | [.number, .headRefName, .headRefOid, (.isDraft|tostring), (.labels|tostring), (.statusCheckRollup // [] | if any(.conclusion == "FAILURE" or .conclusion == "TIMED_OUT" or .conclusion == "CANCELLED") then "FAILURE" elif length == 0 then "" elif all(.status == "COMPLETED" and (.conclusion == "SUCCESS" or .conclusion == "NEUTRAL" or .conclusion == "SKIPPED")) then "SUCCESS" else "" end), .title] | @tsv')
 
   local clusters=()
   local cluster_idx=0

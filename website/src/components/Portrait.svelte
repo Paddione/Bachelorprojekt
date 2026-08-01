@@ -32,7 +32,7 @@
       <picture>
         <source srcset={`${baseName}.avif 600w, ${baseName}-400.avif 400w`} sizes="(max-width: 720px) 400px, 600px" type="image/avif" />
         <source srcset={`${baseName}-400.webp 400w`} sizes="(max-width: 720px) 400px, 600px" type="image/webp" />
-        <img src={avatarSrc} alt={`${name}, ${role}`} loading="eager" fetchpriority="high" width="600" height="600" />
+        <img src={avatarSrc} alt={`${name}, ${role}`} loading="eager" fetchpriority="high" width="600" height="750" />
       </picture>
       <!-- Duotone wash -->
       <div class="duotone" aria-hidden="true"></div>
@@ -133,7 +133,12 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 18%;
+    /* Kein Y-Anteil: die Derivate tragen seit T002507 dasselbe Seitenverhaeltnis
+       wie dieser Rahmen, es gibt in keiner Achse Ueberhang zu verteilen. Der
+       frueher hier stehende Wert (18%) war schon davor wirkungslos — bei
+       quadratischer Quelle in 4:5 skaliert cover auf die Hoehe, der Ueberhang
+       entstand horizontal. Er suggerierte einen Kopf-Schutz, den er nie leistete. */
+    object-position: center;
     filter: contrast(1.04) brightness(1.02) sepia(.18) saturate(1.05);
     transition: filter .5s ease, transform .8s ease;
   }

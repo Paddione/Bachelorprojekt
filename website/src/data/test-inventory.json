@@ -2310,6 +2310,18 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/powershell-ascii-only",
+    "file": "tests/spec/fleet-operations/powershell-ascii-only.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/wg-gpu-pod-cidr",
+    "file": "tests/spec/fleet-operations/wg-gpu-pod-cidr.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",

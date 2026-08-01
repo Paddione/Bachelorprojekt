@@ -190,6 +190,13 @@ Covered sub-topics (reference file, not repeated here):
 
 Tests MÜSSEN die tatsächlichen Ergebnisse/Outputs von Kommandos prüfen (`run`, `$output`, `$status`), nicht Implementierungsmuster im Quellcode (`grep` auf Script-Interna). Ein Test, der per `grep` einen Flag-Namen im Source sucht statt das tatsächliche Laufzeitverhalten zu messen, kann den falschen Erfolgsfall bestätigen, während die reale Operation fehlschlägt. Ausnahme: Querschnittstests, deren Ergebnis sich ausschließlich im Quelltext manifestiert (z. B. Dokumentationskonventionen, CI-Konfiguration) — hier ist `grep` das angemessene Mittel. Die Testdatei selbst dokumentiert im Header-Kommentar, welcher Prüfmodus verwendet wird.
 
+### PowerShell-Skripte aus WSL (.ps1) [T002495-M7]
+
+PowerShell-Skripte unter `scripts/llm/*.ps1`, die aus WSL bearbeitet werden:
+- MÜSSEN rein ASCII kodiert sein (kein BOM, keine typografischen Sonderzeichen/Em-Dashes). PS 5.1 unter Windows liest UTF-8 ohne BOM als CP1252.
+- Vor dem Commit mit `[System.Management.Automation.Language.Parser]::ParseFile` oder BATS/linter prüfen.
+- Generierte Konfigurationsdateien (`.conf`) mit `-Encoding ASCII` statt `UTF8` schreiben (BOM in WireGuard-Confs bricht Tunnel-Services ab).
+
 ### Bug-Triage-Konvention (CFR-Gate G-DORA03)
 
 **Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst** — kein stiller `fix()`-Commit ohne Ticket-Referenz. Die Change Failure Rate (broad proxy: fix()-Rate) wird mit `bash scripts/vda.sh cfr` gemessen, Ziel ≤ 15 % über 8 Wochen; ein ungeticketer `fix()`-Commit zählt als verschleierter Bug und verschlechtert den Proxy-Wert, ohne in der DORA-Auswertung unter `/admin/dora` zu erscheinen.

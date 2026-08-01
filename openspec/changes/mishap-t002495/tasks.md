@@ -22,7 +22,14 @@ stammen unveraendert aus der Ticket-Beschreibung; die Diagnose dort ist die Vorg
 ## File Structure
 
 ```
-<der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+.claude/skills/incident-response/SKILL.md       — M6: baseline remote clients
+.claude/skills/mishap-tracker/SKILL.md          — M4: incident vs rollup-container
+.claude/skills/references/plan-quality-gates.md — M10: positive anchor required
+.claude/skills/references/repo-hygiene-ops.md   — M1+M2: timezone-safe + merge-base diff
+.claude/skills/references/verification-block.md — M8: log-freshness rule
+CLAUDE.md                                       — M7: PowerShell ASCII-only
+docs/superpowers/references/gotchas-footguns.md — M5+M9: git-crypt smudge + WireGuard Windows
+scripts/worktree-create.sh                      — M3: main-checkout guard
 ```
 
 ## Mishap-Eintraege

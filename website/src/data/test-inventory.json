@@ -1962,6 +1962,12 @@
     "kind": "shell"
   },
   {
+    "id": "agentic-tooling-quality-goals/g-agentic01-unresolved-tools",
+    "file": "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",
+    "category": "agentic-tooling-quality-goals",
+    "kind": "shell"
+  },
+  {
     "id": "agentic-trends-radar",
     "file": "tests/spec/agentic-trends-radar.bats",
     "category": "agentic-trends-radar",

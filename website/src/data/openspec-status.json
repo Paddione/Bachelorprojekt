@@ -2129,6 +2129,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002495": [
+    {
+      "slug": "mishap-t002495",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

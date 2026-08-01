@@ -32,7 +32,7 @@
   Einzelplatz-Workstation ist das ausreichend - die Modelle liegen ohnehin im
   Benutzerprofil, und die GPU wird interaktiv genutzt.
 
-   UMFANG seit T002459: nur noch Embedding und Rerank — Gemma läuft über den Linux-Loadout-Stack (siehe Kommentar über `$startups` weiter unten für den Rollback-Pfad).
+   UMFANG seit T002459: nur noch Embedding und Rerank - Gemma laeuft ueber den Linux-Loadout-Stack (siehe Kommentar ueber `$startups` weiter unten fuer den Rollback-Pfad).
 
 
   WEITERHIN NICHT IM AUTOSTART: gpt-oss-20b (:8097, 12,1 GB). Welches Chat-Modell

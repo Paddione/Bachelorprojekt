@@ -18,6 +18,8 @@
 # Fixtures entstehen zur Laufzeit unter $BATS_TEST_TMPDIR — ein eingecheckter Beispielplan
 # wuerde von plan-lint und den Plan-Watchdogs als echter Plan behandelt.
 
+bats_require_minimum_version 1.5.0
+
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   DERIVE="${REPO_ROOT}/scripts/plan-touched-files.sh"

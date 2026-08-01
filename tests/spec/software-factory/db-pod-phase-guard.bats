@@ -140,7 +140,10 @@ _assert_guard_reported() {
 @test "T002439: _skip_if_no_db ueberspringt bei fehlendem RUNNING-Pod, nicht erst bei gar keinem" {
   # Der Helfer sprang bisher nur an, wenn die Pod-Liste leer war. Ein Completed-Pod
   # lieferte eine nicht-leere Liste, der Skip blieb aus, und `kubectl exec` gab rc=1.
-  local sf="${REPO_ROOT}/tests/spec/software-factory.bats"
+  # [T002503] _skip_if_no_db lebt seit der Aufteilung der Sammeldatei in
+  # tests/spec/software-factory/_sf_common.bash.
+  local sf="${REPO_ROOT}/tests/spec/software-factory/_sf_common.bash"
+  [ -f "$sf" ]
   run bash -c "sed -n '/_skip_if_no_db()/,/^}/p' '$sf' | grep -c -- '--field-selector status.phase=Running'"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]

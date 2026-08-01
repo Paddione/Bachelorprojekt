@@ -4,6 +4,7 @@
 # und transiente Ticket-Status-Updates mit Backoff wiederholen (retry).
 
 setup() {
+  bats_require_minimum_version 1.5.0
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   WF="$REPO_ROOT/.github/workflows/post-merge.yml"
   BUILD_WF="$REPO_ROOT/.github/workflows/build-website.yml"

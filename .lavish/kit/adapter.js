@@ -260,6 +260,24 @@ const data = (() => {
     return { hasChanges: data.hasChanges !== false, reason: data.reason };
   }
 
+  /**
+   * K9 Stil-Datenbank (T002468) — die Gestaltungsquelle für die Modelle.
+   *
+   * Einmalabruf statt Poll: die Sammlung ändert sich nur, wenn jemand einen
+   * Eintrag beiträgt, nicht im Sekundentakt. Ein Poll hätte hier nichts zu tun.
+   *
+   * Der Zugriff liegt im Adapter, damit kein Panel selbst fetch() ruft (E1) —
+   * die Kit-Seiten laufen von file://, ein relativer Pfad erreichte den Daemon
+   * gar nicht.
+   *
+   * @returns {Promise<{entries?: Array, warnings?: string[], error?: string, fetchedAt: string}>}
+   */
+  async function styles() {
+    // fetchEndpoint hält D12/D13 bereits ein: fetchedAt ist immer gesetzt, und
+    // ein Fehler kommt als error-Feld zurück statt als null.
+    return fetchEndpoint('/api/cockpit/styles');
+  }
+
   /** @param {function} onEvent */
   function agentStream(onEvent) {
     return createStream('/api/cockpit/stream/agents')(onEvent);
@@ -326,6 +344,7 @@ const data = (() => {
     models,
     epics,
     epicChangesSince,
+    styles,
     agentStream,
     factoryStream,
     ticketAction,

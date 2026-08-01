@@ -13,6 +13,7 @@ import { podsListHandler, warningsHandler } from './routes/cluster';
 import { factoryStatusHandler } from './routes/factory';
 import { agentsHandler, ciHandler, modelsHandler } from './routes/custom';
 import { epicsHandler, epicsChangesSinceHandler } from './routes/epics';
+import { stylesHandler } from './routes/styles';
 import { agentStreamHandler, factoryStreamHandler } from './routes/stream';
 
 const PORT = parseInt(process.env.COCKPIT_DAEMON_PORT || '49152', 10);
@@ -61,6 +62,9 @@ app.get('/api/cockpit/models', modelsHandler);
 // erst K4 entwirft (siehe den T002505-Block weiter unten).
 app.get('/api/cockpit/epics', epicsHandler);
 app.get('/api/cockpit/epics/:id/changes-since', epicsChangesSinceHandler);
+
+// K9 Stil-Datenbank (T002468) — Gestaltungsquelle für die Modelle. Lesend.
+app.get('/api/cockpit/styles', stylesHandler);
 
 // T002505: Hier stand ein Endpoint, der den Token unauthentifiziert per HTTP
 // herausgab:

@@ -2442,6 +2442,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/gemma-thinking-budget",
+    "file": "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy",
     "file": "tests/spec/local-llm-proxy.bats",
     "category": "local-llm-proxy",

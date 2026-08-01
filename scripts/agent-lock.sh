@@ -112,7 +112,7 @@ _reapable() {
   [ -f "$f" ] || return 0
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
   hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
-  br="$(_lock_field "$f" branch)"
+  br="$(_lock_field "$f" branch)"; pid="$(_lock_field "$f" owner_pid)"
   # Age reference for the pid-dead/sid-dead grace checks below: prefer the
   # heartbeat (reflects the last confirmed-live refresh) and fall back to
   # created_at only for old claim files that predate the heartbeat_at field.

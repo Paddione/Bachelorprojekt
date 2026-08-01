@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.230.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.229.0...website-v1.230.0) (2026-08-01)
+
+
+### Features
+
+* **agents:** cockpit daemon K2 — live adapter + tests [T002461] ([#3553](https://github.com/Paddione/Bachelorprojekt/issues/3553)) ([979f37f](https://github.com/Paddione/Bachelorprojekt/commit/979f37fc888082a9fa983799768cc35a1366cf6c))
+* **factory:** add similar-ticket context retrieval to scout LLM fallback [T002400] ([#3545](https://github.com/Paddione/Bachelorprojekt/issues/3545)) ([986279c](https://github.com/Paddione/Bachelorprojekt/commit/986279c519f4a851ba9205518c2801d051982ae5))
+* **ops:** remove Gemma from Windows watchdog and autostart [T002459] ([#3569](https://github.com/Paddione/Bachelorprojekt/issues/3569)) ([9636019](https://github.com/Paddione/Bachelorprojekt/commit/96360191ce9efbf58d29513e42b9c6f576213f58))
+* **website:** Cockpit-Shell mit Lavish Design-Kit verdrahten [T002466] ([#3563](https://github.com/Paddione/Bachelorprojekt/issues/3563)) ([3c1fcd2](https://github.com/Paddione/Bachelorprojekt/commit/3c1fcd256f1101b48ad6023439d30e6ed1eeb9f0))
+
+
+### Bug Fixes
+
+* **factory:** Thinking-Gate an lokaler baseUrl statt Modellnamen [T002501] ([#3572](https://github.com/Paddione/Bachelorprojekt/issues/3572)) ([6d4c217](https://github.com/Paddione/Bachelorprojekt/commit/6d4c217752f22c41c67e1296784f2519f4e2d118))
+* **infra:** verankere wg-gpu-Pod-CIDRs und GPU-Host-Firewall im Repo [T002491] ([#3562](https://github.com/Paddione/Bachelorprojekt/issues/3562)) ([099629d](https://github.com/Paddione/Bachelorprojekt/commit/099629d2b19895260add2fb32e23383dc1d14680))
+* **mcp:** render Authorization headers for http MCP clients [T002487] ([#3558](https://github.com/Paddione/Bachelorprojekt/issues/3558)) ([88d0034](https://github.com/Paddione/Bachelorprojekt/commit/88d00346a470d473a909ce7e9ba627c987b98550))
+* **mcp:** route bge pairs to localhost and translate opencode env syntax [T002488] ([#3560](https://github.com/Paddione/Bachelorprojekt/issues/3560)) ([805ead5](https://github.com/Paddione/Bachelorprojekt/commit/805ead57b8366708ed52350bac63d8b8e9c6a610))
+* **ops:** identifiziere Firewall-Regeln über den vollen Programmpfad [T002496] ([#3564](https://github.com/Paddione/Bachelorprojekt/issues/3564)) ([6b565c1](https://github.com/Paddione/Bachelorprojekt/commit/6b565c15895aee7502b6ab921796a59cfde78bef))
+* **plans:** resolve G-AGENTIC01 vs T002221 conflict [T002494] ([#3566](https://github.com/Paddione/Bachelorprojekt/issues/3566)) ([53a4ab6](https://github.com/Paddione/Bachelorprojekt/commit/53a4ab6593b674aea5d87b8786bc482b79e74658))
+* **website:** 12 rote Vitest-Tests auf main gruen [T002497] ([#3565](https://github.com/Paddione/Bachelorprojekt/issues/3565)) ([507e24c](https://github.com/Paddione/Bachelorprojekt/commit/507e24cb9998c2c4843bfa7528f2f5fd148cc90d))
+
 ## [1.229.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.228.0...website-v1.229.0) (2026-07-29)
 
 

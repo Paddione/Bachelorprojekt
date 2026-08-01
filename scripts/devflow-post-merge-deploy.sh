@@ -11,7 +11,11 @@ fi
 # T002448-M9/M10: Finde den Merge-Commit durch Ticket-ID-Match auf main,
 # nicht durch blindes `git log -1`. Bei mehreren intervenierenden Commits
 # zwischen Merge und HEAD liefert `-1` den falschen Commit.
-MERGE_COMMIT=$(git log origin/main --format="%H %s" --grep="\\[${TICKET_ID}\\]" --merges -1 2>/dev/null | awk '{print $1}')
+# M7 (T002506): `--merges` gestrichen — das Repo squasht PRs (1 Parent),
+# `--merges` wuerde nur echte Merge-Commits (≥2 Parents) finden und schliesst
+# den Squash-Commit aus. Der `--grep`-Match auf "[TICKET_ID]" identifiziert
+# den Squash-Commit bereits eindeutig.
+MERGE_COMMIT=$(git log origin/main --format="%H %s" --grep="\\[${TICKET_ID}\\]" -1 2>/dev/null | awk '{print $1}')
 if [[ -z "$MERGE_COMMIT" ]]; then
   echo "FEHLER: Kein Merge-Commit fuer Ticket ${TICKET_ID} auf origin/main gefunden." >&2
   exit 3

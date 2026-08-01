@@ -162,7 +162,21 @@ render_opencode_jsonc() {
       fields.push(c + J('type') + ': ' + J(cl.transport === 'http' ? 'remote' : 'local'));
       if (cl.transport === 'http') {
         fields.push(c + J('url') + ': ' + J(cl.endpoint));
-        if (cl.headers) fields.push(c + J('headers') + ': ' + J(cl.headers));
+        // T002488: opencode expandiert \${VAR} NICHT — es kennt nur die eigene
+        // Notation {env:VAR}. Empirisch belegt mit \`opencode mcp list\` gegen den
+        // Shim auf :13005: mit \${BGE_MCP_TOKEN} meldet opencode 'failed', mit
+        // {env:BGE_MCP_TOKEN} 'connected'. Die Registry fuehrt weiter die
+        // kanonische \${VAR}-Schreibweise; uebersetzt wird hier, damit nicht jeder
+        // Harness ein eigenes headers-Feld in der SSOT braucht.
+        // split/join statt Regex: der Ausdruck muesste sonst durch drei
+        // Quoting-Ebenen (bash -> node -e -> RegExp) escaped werden.
+        if (cl.headers) {
+          const translated = {};
+          for (const [hk, hv] of Object.entries(cl.headers)) {
+            translated[hk] = String(hv).split('\${').join('{env:');
+          }
+          fields.push(c + J('headers') + ': ' + J(translated));
+        }
       } else {
         fields.push(c + J('command') + ': ' + J(h.command || []));
         if (h.environment) {

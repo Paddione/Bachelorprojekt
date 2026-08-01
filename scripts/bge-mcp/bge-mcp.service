@@ -16,6 +16,24 @@ WorkingDirectory=/home/patrick/Bachelorprojekt
 ExecStart=/usr/bin/node /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs
 Restart=always
 RestartSec=5
+
+# T002488: Host-Routing der bge-Paare.
+# Der Shim importiert website/src/lib/bge-router.ts. Ohne diese Variablen greifen
+# dessen DEFAULTS, und die zeigen auf Cluster-DNS
+# (llm-gateway-*.workspace.svc.cluster.local) — richtig fuer einen Pod, falsch
+# fuer diesen Prozess: er laeuft auf dem WSL-Host, wo der Name nicht aufloesbar
+# ist. Folge waren Tool-Aufrufe, die am Health-Check beider Paare scheiterten,
+# obwohl die Server auf localhost liefen.
+# Paar B (interactive, GPU-nah) bedient Agenten zur Laufzeit, Paar A (batch,
+# CPU) die Reindex-Last — die Zuordnung stammt aus T002426.
+Environment=LLM_EMBED_URL=http://127.0.0.1:8095
+Environment=LLM_RERANKER_URL=http://127.0.0.1:8096
+Environment=LLM_EMBED_BATCH_URL=http://127.0.0.1:8085
+Environment=LLM_RERANKER_BATCH_URL=http://127.0.0.1:8086
+
+# NACH den Environment=-Zeilen: eine gleichnamige Variable in der Datei
+# ueberschreibt den Default oben. Hier liegt auch BGE_MCP_TOKEN, ohne das der
+# Shim den Start verweigert.
 EnvironmentFile=-%h/.config/bge-mcp/server.env
 
 [Install]

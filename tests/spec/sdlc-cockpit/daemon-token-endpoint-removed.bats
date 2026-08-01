@@ -19,6 +19,8 @@
 # geraten — ist ergebnis-basiert abgedeckt in
 # tests/unit/cockpit-daemon-injection.test.ts.
 
+load daemon-helper
+
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   SERVER="$REPO/.lavish/kit/daemon/server.ts"
@@ -54,9 +56,7 @@ setup() {
 }
 
 @test "laufender Daemon liefert 404 auf /api/cockpit/token" {
-  if ! curl -s -m 2 "${BASE}/health" >/dev/null 2>&1; then
-    skip "Daemon laeuft nicht (kein /health auf ${BASE})"
-  fi
+  require_daemon || return 1
   # Anker: eine bestehende Route muss antworten, sonst misst der 404 nichts.
   run curl -s -o /dev/null -w '%{http_code}' -m 5 "${BASE}/health"
   [ "$output" = "200" ]
@@ -67,9 +67,7 @@ setup() {
 }
 
 @test "laufender Daemon fuehrt kein Kommando aus einem Namespace-Parameter aus" {
-  if ! curl -s -m 2 "${BASE}/health" >/dev/null 2>&1; then
-    skip "Daemon laeuft nicht (kein /health auf ${BASE})"
-  fi
+  require_daemon || return 1
   local marker="/tmp/cockpit-injection-probe.$$"
   rm -f "$marker"
   # Nicht-destruktiver Payload: legt nur eine Markerdatei an. Entsteht sie,

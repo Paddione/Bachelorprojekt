@@ -48,8 +48,17 @@ setup() {
 
 @test "T002508 hono ist tatsaechlich aufloesbar, nicht nur deklariert" {
   # Ergebnis statt Deklaration: eine Zeile in package.json nuetzt nichts, wenn
-  # das Paket nicht installiert ist. Node muss es wirklich finden.
-  run node -e "console.log(require.resolve('hono/package.json'))"
+  # das Paket nicht installiert ist. Node muss es wirklich importieren koennen.
+  #
+  # Bewusst per dynamischem import() und nicht per require.resolve(): hono gibt
+  # in seinem exports-Feld weder './package.json' noch einen CJS-Einstieg frei,
+  # ein require.resolve() scheitert dort mit ERR_PACKAGE_PATH_NOT_EXPORTED —
+  # also aus einem Grund, der nichts mit der Frage zu tun hat, ob das Paket da
+  # ist. Der Import prueft, was der Daemon tatsaechlich tut.
+  run node -e "import('hono').then(m => { if (typeof m.Hono !== 'function') process.exit(1); })"
+  [ "$status" -eq 0 ]
+
+  run node -e "import('@hono/node-server').then(m => { if (typeof m.serve !== 'function') process.exit(1); })"
   [ "$status" -eq 0 ]
 }
 
@@ -96,8 +105,13 @@ setup() {
   # POSITIV-ANKER: ohne die Variable ist Skippen weiterhin das gewollte
   # Verhalten (lokale Ergonomie). Waere die Datei schlicht kaputt, wuerde die
   # Negativaussage unten aus dem falschen Grund bestehen.
+  #
+  # `env -u` ist noetig, nicht kosmetisch: laeuft diese Suite selbst unter
+  # gesetztem COCKPIT_DAEMON_REQUIRED — in CI ist das der Normalfall — erbt der
+  # Kindprozess die Variable und wuerde rot statt skippen. Der Anker pruefte
+  # dann das Gegenteil dessen, was er soll.
   COCKPIT_DAEMON_PORT="${DEAD_PORT}" \
-    run ./tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/daemon-endpoints.bats
+    run env -u COCKPIT_DAEMON_REQUIRED ./tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/daemon-endpoints.bats
   [ "$status" -eq 0 ]
   echo "$output" | grep -q "# skip"
 

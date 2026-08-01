@@ -66,7 +66,7 @@ keinen strengeren Baseline-Wert als das Limit.
 
 ## Task 1 — RED bestätigen
 
-- [ ] Den bereits geschriebenen Reproducer laufen lassen und den roten Zustand belegen.
+- [x] Den bereits geschriebenen Reproducer laufen lassen und den roten Zustand belegen.
       Alle sechs Tests müssen fehlschlagen, und zwar jeweils aus dem in ihrem Namen
       genannten Grund — nicht an einem Syntaxfehler.
 
@@ -83,13 +83,13 @@ scheitert, Test 3 `ERR_MODULE_NOT_FOUND`, Test 4 der Lauf bleibt bei gesetztem
 
 ## Task 2 — Lauf-Kontrakt herstellen
 
-- [ ] `hono`, `@hono/node-server` und `tsx` als `devDependencies` in die Root-`package.json`
+- [x] `hono`, `@hono/node-server` und `tsx` als `devDependencies` in die Root-`package.json`
       aufnehmen, mit exakter Version gepinnt nach der im Repo üblichen Caret-Konvention der
       bestehenden Einträge. Anschließend `npm install` ausführen, damit `package-lock.json`
       mitwandert.
-- [ ] `.lavish/kit/daemon/tsconfig.json` anlegen und in den `references`-Block der
+- [x] `.lavish/kit/daemon/tsconfig.json` anlegen und in den `references`-Block der
       Root-`tsconfig.json` eintragen, damit `npm run typecheck` den Daemon erfasst.
-- [ ] `server.ts:23` von `const fs = require('fs')` auf einen ESM-Import umstellen. Die
+- [x] `server.ts:23` von `const fs = require('fs')` auf einen ESM-Import umstellen. Die
       Root-`package.json` setzt `"type": "module"`; `require` ist dort nicht definiert. Dieser
       Fehler wird erst sichtbar, nachdem `hono` auflösbar ist — der erste Blocker verdeckt ihn.
 
@@ -106,12 +106,12 @@ dann diesen zuerst beheben, bevor Task 3 beginnt.
 
 ## Task 3 — Start-Weg
 
-- [ ] Task `cockpit:daemon` im Taskfile ergänzen, neben dem bestehenden `cockpit:dev`. Er
+- [x] Task `cockpit:daemon` im Taskfile ergänzen, neben dem bestehenden `cockpit:dev`. Er
       startet den Daemon, pollt `/health` bis zur Antwort und bricht mit Exit-Code ungleich
       null ab, wenn der Daemon innerhalb des Zeitfensters nicht erreichbar wird. Ein still im
       Hintergrund gestorbener Daemon darf nicht als Erfolg durchgehen — genau diese Art
       stiller Erfolg ist die Ursache des gesamten Tickets.
-- [ ] Den bestehenden Stop-Weg aus dem Kopfkommentar von `server.ts` (PID-Datei unter
+- [x] Den bestehenden Stop-Weg aus dem Kopfkommentar von `server.ts` (PID-Datei unter
       `/tmp/cockpit-daemon.pid`) beibehalten und im Task dokumentieren.
 
 ```bash
@@ -122,15 +122,15 @@ kill "$(cat /tmp/cockpit-daemon.pid)"
 
 ## Task 4 — Gate fail-closed schalten
 
-- [ ] In den fünf betroffenen `.bats`-Dateien die `setup()`-Funktion so ändern, dass bei
+- [x] In den fünf betroffenen `.bats`-Dateien die `setup()`-Funktion so ändern, dass bei
       gesetzter Variable `COCKPIT_DAEMON_REQUIRED` ein nicht erreichbarer Daemon den Test
       **fehlschlagen** lässt, statt ihn zu skippen. Ohne die Variable bleibt das
       Skip-Verhalten unverändert, damit ein lokaler Lauf der 17 statischen Tests weiterhin
       ohne Daemon möglich ist.
-- [ ] Im Job `test-factory-shard` von `ci.yml` vor dem Suite-Aufruf den Daemon starten und
+- [x] Im Job `test-factory-shard` von `ci.yml` vor dem Suite-Aufruf den Daemon starten und
       `COCKPIT_DAEMON_REQUIRED=1` setzen. Der Job läuft als 4er-Matrix; der Start gehört in
       jeden Shard, da die Zuordnung der Cockpit-Dateien zu einem Shard nicht garantiert ist.
-- [ ] Sicherstellen, dass ein fehlgeschlagener Daemon-Start den Job abbricht, statt ihn
+- [x] Sicherstellen, dass ein fehlgeschlagener Daemon-Start den Job abbricht, statt ihn
       weiterlaufen zu lassen.
 
 ```bash
@@ -142,13 +142,13 @@ COCKPIT_DAEMON_REQUIRED=1 COCKPIT_DAEMON_PORT=49198 tests/unit/lib/bats-core/bin
 
 ## Task 5 — Die nun laufenden Tests grün bekommen
 
-- [ ] Suite mit laufendem Daemon und gesetzter Variable ausführen und die Fehler
+- [x] Suite mit laufendem Daemon und gesetzter Variable ausführen und die Fehler
       protokollieren. Erwartet ist mindestens ein echter Kontraktbruch: `/health` liefert
       `{ status, uptime }` ohne `fetchedAt`, während `freshness-timestamp.bats` genau dieses
       Feld verlangt.
-- [ ] `/health` um einen ISO-8601-Zeitstempel ergänzen, konsistent zum `fetchedAt` der
+- [x] `/health` um einen ISO-8601-Zeitstempel ergänzen, konsistent zum `fetchedAt` der
       übrigen Routen.
-- [ ] Die übrigen Funde triagieren. Was zum Lauf-Kontrakt gehört, wird hier behoben. Was
+- [x] Die übrigen Funde triagieren. Was zum Lauf-Kontrakt gehört, wird hier behoben. Was
       darüber hinausgeht — insbesondere alles an den Write-Endpunkten, der CORS-Herkunft
       `'null'` oder den unauthentifizierten GET-Routen — wandert als eigenes Ticket heraus,
       statt diesen Fix aufzublähen. Die Entscheidung je Fund im Ticketkommentar festhalten.
@@ -162,12 +162,12 @@ kill "$(cat /tmp/cockpit-daemon.pid)"
 
 ## Task 6 — Platzhalter-Assertions
 
-- [ ] Die drei `expect(true).toBe(true)`-Stubs in `tests/unit/cockpit-daemon-cache.test.ts`
+- [x] Die drei `expect(true).toBe(true)`-Stubs in `tests/unit/cockpit-daemon-cache.test.ts`
       durch echte Tests gegen `.lavish/kit/daemon/lib/cache.ts` ersetzen: `fetchedAt` wird
       gesetzt, TTL-Ablauf greift, und bei einem Fehler bleiben die alten Daten samt
       `error`-Feld erhalten. Das Modul importiert kein `hono` und ist direkt aus vitest
       ladbar — genauso wie `lib/exec.ts` im T002505-Test.
-- [ ] Die drei Attrappen in `tests/unit/cockpit-adapter.test.ts` entfernen, die auf
+- [x] Die drei Attrappen in `tests/unit/cockpit-adapter.test.ts` entfernen, die auf
       bats-Dateien verweisen (D10 `refreshMs`, D12 `fetchedAt`, D13 `error`-Feld). Diese
       Zusagen prüft die bats-Suite nach Task 4 erstmals wirklich; eine zweite, immer grüne
       Kopie in vitest schafft nur Doppelpflege. Der D11-Block bleibt: er prüft tatsächlich
@@ -181,9 +181,9 @@ grep -c "expect(true).toBe(true)" tests/unit/cockpit-daemon-cache.test.ts tests/
 
 ## Task 7 — Abschließende Verifikation
 
-- [ ] Reproducer aus Task 1 grün: alle sechs Tests bestehen.
-- [ ] Gesamte Cockpit-Suite mit Daemon: 41 Tests, keine Skips.
-- [ ] Die drei verpflichtenden CI-Gates laufen sauber durch.
+- [x] Reproducer aus Task 1 grün: alle sechs Tests bestehen.
+- [x] Gesamte Cockpit-Suite mit Daemon: 41 Tests, keine Skips.
+- [x] Die drei verpflichtenden CI-Gates laufen sauber durch.
 
 ```bash
 task cockpit:daemon

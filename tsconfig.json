@@ -8,6 +8,7 @@
     { "path": "./packages/videovault-player" },
     { "path": "./mediaviewer-widget" },
     { "path": "./mentolder-web" },
-    { "path": "./tests/e2e" }
+    { "path": "./tests/e2e" },
+    { "path": "./.lavish/kit/daemon" }
   ]
 }

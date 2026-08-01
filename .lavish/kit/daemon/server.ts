@@ -2,6 +2,7 @@
 // Start: npx tsx .lavish/kit/daemon/server.ts
 // Stop:  kill $(cat /tmp/cockpit-daemon.pid)
 
+import fs from 'node:fs';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { cors } from 'hono/cors';
@@ -20,7 +21,6 @@ const token = generateToken();
 writeTokenFile('/tmp/cockpit-daemon.token', token);
 
 // Write PID file
-const fs = require('fs');
 fs.writeFileSync('/tmp/cockpit-daemon.pid', String(process.pid));
 
 const app = new Hono();
@@ -79,7 +79,16 @@ app.post('/api/cockpit/ticket-action', (c) => c.json({ ok: true, message: 'Write
 app.post('/api/cockpit/agent-action', (c) => c.json({ ok: true, message: 'Write actions in K4' }));
 
 // Health
-app.get('/health', (c) => c.json({ status: 'ok', uptime: process.uptime() }));
+//
+// fetchedAt gehoert auch hier hin (D12): der Cockpit-Adapter liest den
+// Zeitstempel aus JEDER Antwort, um das Alter der Anzeige zu bestimmen. Ohne das
+// Feld kann er fuer /health nur die Anfragezeit annehmen — und genau diese Luecke
+// blieb unbemerkt, solange der Test dazu geskippt wurde [T002508].
+app.get('/health', (c) => c.json({
+  status: 'ok',
+  uptime: process.uptime(),
+  fetchedAt: new Date().toISOString(),
+}));
 
 console.log(`[cockpit-daemon] listening on http://127.0.0.1:${PORT}`);
 console.log(`[cockpit-daemon] token at /tmp/cockpit-daemon.token (0600)`);

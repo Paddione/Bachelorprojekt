@@ -33,18 +33,10 @@ function setDocumentHidden(hidden: boolean) {
   }
 }
 
-describe('Adapter (D10 — refreshMs)', () => {
-  it('poll interval is configurable via refreshMs factory param', () => {
-    // adapter.js exposes refreshMs(options) — contract asserted in
-    // tests/spec/sdlc-cockpit/adapter-contract.bats
-    expect(true).toBe(true);
-  });
-
-  it('default refreshMs is used when none specified', () => {
-    // default: 300000ms (5 min) — adapter-contract.bats
-    expect(true).toBe(true);
-  });
-});
+// D10 (refreshMs) hatte hier zwei Platzhalter, die auf
+// tests/spec/sdlc-cockpit/adapter-contract.bats verwiesen und selbst nichts
+// prueften. Entfernt in T002508: die bats-Datei prueft den Kontrakt tatsaechlich,
+// eine zweite, per Konstruktion immer gruene Kopie schafft nur Doppelpflege.
 
 describe('Adapter (D11 — visibility pause)', () => {
   it('document shim registers visibilitychange listeners', () => {
@@ -60,16 +52,13 @@ describe('Adapter (D11 — visibility pause)', () => {
   });
 });
 
-describe('Adapter (D12 — fetchedAt)', () => {
-  it('response carries fetchedAt from server', () => {
-    // /api/cockpit/agents sets fetchedAt — daemon-endpoints.bats + freshness-timestamp.bats
-    expect(typeof '2026-07-31T12:00:00Z').toBe('string');
-  });
-});
-
-describe('Adapter (D13 — no silent fallback)', () => {
-  it('returns error field on network failure, not null', () => {
-    // no-silent-fallback.bats asserts the error field on fetch failure
-    expect(true).toBe(true);
-  });
-});
+// D12 (fetchedAt) und D13 (error statt null) standen hier als Platzhalter, die
+// auf freshness-timestamp.bats bzw. no-silent-fallback.bats verwiesen. Beide
+// bats-Dateien wurden bis T002508 dauerhaft geskippt, weil kein Daemon lief —
+// die Zusagen waren also an KEINER Stelle geprueft, obwohl es an zwei Stellen so
+// aussah. Seit T002508 laeuft die bats-Suite gegen einen echten Daemon; die
+// Platzhalter sind damit entbehrlich und entfernt.
+//
+// Der D12-Fall war der auffaelligste: `expect(typeof '2026-07-31T12:00:00Z')
+// .toBe('string')` prueft ein String-Literal auf String-Sein und kann per
+// Konstruktion nie fehlschlagen.

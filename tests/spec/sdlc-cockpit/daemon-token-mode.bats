@@ -2,13 +2,11 @@
 
 # daemon-token-mode.bats — Token: 0600 Dateirechte, POST→401 ohne Token
 
+load daemon-helper
+
 setup() {
   TOKEN_FILE="/tmp/cockpit-daemon.token"
-  DAEMON_PORT=${COCKPIT_DAEMON_PORT:-49152}
-  BASE="http://127.0.0.1:${DAEMON_PORT}"
-  if ! curl -s -m 2 "${BASE}/health" >/dev/null 2>&1; then
-    skip "Daemon not running (no /health on ${BASE})"
-  fi
+  require_daemon || return 1
 }
 
 @test "token file has 0600 permissions" {

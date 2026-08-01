@@ -4025,6 +4025,51 @@ tasks:
       - fuser -k 8765/tcp 2>/dev/null || true; sleep 0.3
       - python3 -m http.server 8765 --bind 127.0.0.1
 
+  cockpit:daemon:
+    desc: "Start the SDLC Cockpit daemon in the background and wait until it answers (PORT= to override)"
+    silent: true
+    vars:
+      PORT: '{{.PORT | default "49152"}}'
+    cmds:
+      # Ein still im Hintergrund gestorbener Daemon darf nicht als Erfolg
+      # durchgehen — genau diese Art stiller Erfolg liess die Cockpit-Tests
+      # monatelang skippen, ohne dass es jemandem auffiel [T002508].
+      - |
+        set -eu
+        PORT="{{.PORT}}"
+        LOG="${COCKPIT_DAEMON_LOG:-/tmp/cockpit-daemon.log}"
+
+        if curl -sf -m 2 "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
+          echo "cockpit:daemon: bereits erreichbar auf Port ${PORT}"
+          exit 0
+        fi
+
+        # setsid ist nicht optional: go-task raeumt beim Task-Ende die eigene
+        # Prozessgruppe ab. Ein einfaches `cmd &` wuerde den Daemon zusammen mit
+        # diesem Task beenden — er startet, schreibt sein Log und ist wieder weg.
+        # Der Daemon muss eine eigene Session bekommen, um den Task zu ueberleben.
+        #
+        # Bewusst der direkte Binary-Aufruf statt `npx tsx`: npx schiebt einen
+        # Wrapper-Prozess dazwischen, dessen PID nicht die des Daemons ist.
+        rm -f /tmp/cockpit-daemon.pid
+        COCKPIT_DAEMON_PORT="${PORT}" setsid ./node_modules/.bin/tsx .lavish/kit/daemon/server.ts >"${LOG}" 2>&1 &
+
+        for _ in $(seq 1 60); do
+          if curl -sf -m 1 "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
+            echo "cockpit:daemon: bereit auf http://127.0.0.1:${PORT} (pid $(cat /tmp/cockpit-daemon.pid 2>/dev/null || echo '?'))"
+            echo "cockpit:daemon: stoppen mit  kill \$(cat /tmp/cockpit-daemon.pid)"
+            exit 0
+          fi
+          sleep 0.25
+        done
+
+        echo "cockpit:daemon: FEHLER — /health auf Port ${PORT} antwortet nach 15s nicht" >&2
+        cat "${LOG}" >&2
+        if [ -f /tmp/cockpit-daemon.pid ]; then
+          kill "$(cat /tmp/cockpit-daemon.pid)" 2>/dev/null || true
+        fi
+        exit 1
+
   website:status:
     desc: "Show website deployment status (ENV=dev|mentolder|korczewski)"
     vars:

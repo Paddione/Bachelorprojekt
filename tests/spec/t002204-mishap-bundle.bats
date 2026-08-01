@@ -100,15 +100,14 @@ _init_main_with_workspace_pkg() {
   LF="$AGENT_LOCK_DIR/ticket__t002204-m2-live.json"
   [ -f "$LF" ]
   # Simulate a session resume: the recorded owner_sid/owner_pid are now dead,
-  # and the claim is old enough to be past AGENT_LOCK_GRACE — the current
-  # implementation reaps this as "sid-dead" even though the worktree is still
-  # sitting right there on the exact recorded branch.
+  # but the resumed session has renewed its heartbeat (re-claim/refresh) — the
+  # worktree is still sitting right there on the exact recorded branch, so rule
+  # 0b must keep the lock alive. An expired heartbeat would make it reapable
+  # regardless of the worktree match [T002513].
   NOW="$(date +%s)"
-  OLD=$(( NOW - 100000 ))
   sed -i "s/\"owner_sid\": \"[^\"]*\"/\"owner_sid\": \"999998\"/" "$LF"
   sed -i "s/\"owner_pid\": \"[0-9]*\"/\"owner_pid\": \"999999\"/" "$LF"
-  sed -i "s/\"created_at\": \"[0-9]*\"/\"created_at\": \"$OLD\"/" "$LF"
-  sed -i "s/\"heartbeat_at\": \"[0-9]*\"/\"heartbeat_at\": \"$OLD\"/" "$LF"
+  sed -i "s/\"heartbeat_at\": \"[0-9]*\"/\"heartbeat_at\": \"$NOW\"/" "$LF"
 
   bash "$LOCK" reap
   run bash "$LOCK" list

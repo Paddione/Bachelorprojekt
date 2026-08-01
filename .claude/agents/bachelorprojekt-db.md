@@ -13,6 +13,8 @@ model: sonnet
 # The list resolved to the empty set and every dispatch died with
 # "would be spawned with zero tools - refusing", taking the opus/sonnet tiering
 # down with it. Inheriting all tools also survives future MCP renames.
+# [T002494] Gate G-AGENTIC01 misst seit T002494 nicht mehr die Anwesenheit des
+# Keys, sondern ins Leere zeigende Eintraege; dieser Zustand loest das Gate nicht mehr aus.
 ---
 
 ## Library

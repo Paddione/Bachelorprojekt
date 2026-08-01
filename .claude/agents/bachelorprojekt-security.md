@@ -11,6 +11,8 @@ model: opus
 # underscores instead of the `mcp__<server>__<tool>` form, plus wildcards that are
 # never expanded. The list resolved to nothing and every dispatch failed, dropping
 # the `opus` tier this agent needs for secret and OIDC work.
+# [T002494] Gate G-AGENTIC01 misst seit T002494 nicht mehr die Anwesenheit des
+# Keys, sondern ins Leere zeigende Eintraege; dieser Zustand loest das Gate nicht mehr aus.
 ---
 
 ## Library

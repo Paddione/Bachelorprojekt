@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 654,
+      "file_count": 655,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -324,6 +324,7 @@
         "tests/spec/agent-skills.bats",
         "tests/spec/agentic-review.bats",
         "tests/spec/agentic-tooling-quality-goals.bats",
+        "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",
         "tests/spec/agentic-trends-radar.bats",
         "tests/spec/archive.bats",
         "tests/spec/art-library-webapp.bats",
@@ -2991,7 +2992,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 595,
+      "file_count": 596,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3368,6 +3369,7 @@
         "scripts/knowledge/package.json",
         "scripts/knowledge/reindex.sh",
         "scripts/knowledge/search-similar.mjs",
+        "scripts/lib/count-unresolved-agent-tools.sh",
         "scripts/lib/export.sh",
         "scripts/lib/google-import.sh",
         "scripts/lib/nextcloud-api.sh",

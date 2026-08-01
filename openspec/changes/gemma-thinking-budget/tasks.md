@@ -56,7 +56,7 @@ _Ticket: T002501_
 
 ---
 
-### Task 1: Triage-Body-Bauer herausziehen und das Gate umstellen
+## Task 1: Triage-Body-Bauer herausziehen und das Gate umstellen
 
 **Files:**
 - Create: `scripts/factory/triage-body.sh`
@@ -172,7 +172,7 @@ git commit -m "fix(factory): Thinking-Gate an lokaler baseUrl statt am Modellnam
 
 ---
 
-### Task 2: Health-Goals-Payload herausziehen und Flag setzen
+## Task 2: Health-Goals-Payload herausziehen und Flag setzen
 
 **Files:**
 - Create: `scripts/health-goals-payload.py`
@@ -274,7 +274,7 @@ git commit -m "fix(scripts): health-goals-Payload ohne Thinking, Bauer herausgez
 
 ---
 
-### Task 3: Verifikation
+## Task 3: Verifikation
 
 **Files:**
 - Modify: keine — dieser Task prüft nur.

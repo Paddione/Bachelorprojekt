@@ -6,7 +6,7 @@
   Anmelden die Startskripte aufruft:
     start-embed-server.ps1   (bge-m3,             Port 8095)
     start-rerank-server.ps1  (bge-reranker-v2-m3, Port 8096)
-    start-gemma-server.ps1   (Gemma 4 12B QAT,    Port 8091)
+
 
   WARUM NICHT SCHEDULED TASKS (T002276):
   Auf diesem Host schlaegt der Task-Weg aus drei Gruenden fehl, alle gemessen am
@@ -32,14 +32,8 @@
   Einzelplatz-Workstation ist das ausreichend - die Modelle liegen ohnehin im
   Benutzerprofil, und die GPU wird interaktiv genutzt.
 
-  UMFANG: Embedding, Rerank und Gemma - in dieser Reihenfolge. Gemma kam mit
-  T002286 dazu, nachdem sein Startskript von "-fit on" auf den festen Deckel
-  "-c 65536 -fit off" umgestellt wurde. Vorher nahm sich der Server ALLES freie
-  VRAM und haette dem Embedding-Stack den Speicher weggenommen; jetzt ist sein
-  Bedarf deterministisch (rund 13,0 GB von 16,3 GB, gemessen 2026-07-27), sodass
-  bge-m3 und der Reranker mit zusammen ~1,7 GB daneben passen. Die Reihenfolge
-  bleibt trotzdem embed -> rerank -> gemma: scheitert der groesste Brocken,
-  steht der Embedding-Stack wenigstens.
+   UMFANG seit T002459: nur noch Embedding und Rerank - Gemma laeuft ueber den Linux-Loadout-Stack (siehe Kommentar ueber `$startups` weiter unten fuer den Rollback-Pfad).
+
 
   WEITERHIN NICHT IM AUTOSTART: gpt-oss-20b (:8097, 12,1 GB). Welches Chat-Modell
   die Factory nutzt, entscheidet tickets.factory_model_slots - zwei Chat-Server
@@ -113,12 +107,24 @@ if (-not (Test-Path $llmDir)) {
 #     freizuraeumen - bei einem Slot ist der Platz auch mit 8 Bit da.
 #   - 1 Slot: maximaler Praefix-Reuse (T002286), und mehrere Slots teilen sich
 #     mit -kvu ohnehin denselben Pool.
-#   Ergebnis: 15437 von 16303 MiB belegt, 561 MiB frei, :8095/:8096 laufen
-#   daneben weiter. Verifiziert mit einem 155009-Token-Prompt.
+# GEMMA FEHLT SEIT T002459 BEWUSST: der Autostart startet Gemma nicht mehr.
+# Gemma laeuft als Loadout ('gemma-factory'/'gemma-multiagent') im
+# Linux-llm-proxy mit nativem 'systemd Restart=on-failure' (design.md D3).
+# ROLLBACK (design.md D5): Cutover-Commit per 'git revert' zurueckdrehen
+# und danach den Shim neu erzeugen ('.\scripts\llm\install-startup-autostart.ps1').
 $startups = @(
   @{ Script = 'start-embed-server.ps1';  Arguments = '' },
   @{ Script = 'start-rerank-server.ps1'; Arguments = '' },
-  @{ Script = 'start-gemma-server.ps1';  Arguments = '-Ctx 262144 -Slots 1 -KvType q8_0' }
+  # T002489: Paar A (Batch, CPU) fehlte hier, obwohl der Watchdog es laengst
+  # ueberwacht (T002426). Folge: nach jedem Neustart lief nur Paar B, und der
+  # bge-Router fiel bei jeder Reindex-Last still auf das interaktive Paar
+  # zurueck - genau die Konkurrenz, die die Paartrennung vermeiden soll.
+  # Die Batch-Eintraege standen bis T002459 VOR dem Gemma-Eintrag, weil beide
+  # CPU-only sind und ein scheiterndes Gemma den bge-Stack nicht mitreissen
+  # sollte. Gemma ist hier seit T002459 weg (Linux-Loadout, siehe oben); die
+  # Reihenfolge bleibt, damit der bge-Stack zuerst steht.
+  @{ Script = 'start-embed-batch-server.ps1';  Arguments = '' },
+  @{ Script = 'start-rerank-batch-server.ps1'; Arguments = '' }
 )
 $lines = @(
   '@echo off',

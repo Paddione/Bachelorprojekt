@@ -127,11 +127,35 @@ test('applyFixups: empty fixup list leaves body unchanged (deep equal)', () => {
 
 // --- Loadout-Registry: die ausgelieferte Datei muss gueltig sein -----------
 
+// T002459: Ports muessen unter allen Loadouts eindeutig sein, die GLEICHZEITIG
+// laufen koennen — nicht global. Zwei Profile desselben Modells (gemma-factory
+// und gemma-multiagent) teilen sich bewusst :8091: sie liegen in derselben
+// exclusiveGroup, es laeuft also immer nur eines. Eine globale Eindeutigkeit zu
+// fordern hiesse, jedem Profil einen eigenen Port zu geben — dann zeigte der
+// llm-proxy je nach aktivem Profil auf einen anderen Port, und die Registry
+// muesste bei jedem Profilwechsel mitgepflegt werden.
 test('scripts/llm/loadouts.json ist gueltig und portkollisionsfrei', () => {
   const doc = parseLoadouts(readFileSync('scripts/llm/loadouts.json', 'utf8'))
   assert.ok(doc.loadouts.length > 0)
-  const ports = doc.loadouts.map((l) => l.port)
-  assert.equal(new Set(ports).size, ports.length, 'Ports muessen eindeutig sein')
+
+  // Positiv-Anker: mindestens ein Port muss ueberhaupt geprueft werden.
+  const withPort = doc.loadouts.filter((l) => l.port != null)
+  assert.ok(withPort.length > 0, 'kein Loadout mit Port — der Test waere vakuos')
+
+  const seen = new Map() // port -> exclusiveGroup des ersten Treffers
+  for (const l of withPort) {
+    const prev = seen.get(l.port)
+    if (prev === undefined) {
+      seen.set(l.port, l.exclusiveGroup ?? null)
+      continue
+    }
+    // Kollision nur dann erlaubt, wenn beide in DERSELBEN, nicht-leeren Gruppe sind.
+    assert.ok(
+      prev != null && prev === l.exclusiveGroup,
+      `${l.slug}: Port ${l.port} doppelt vergeben, aber nicht in derselben exclusiveGroup ` +
+        `(${prev} vs ${l.exclusiveGroup}) — diese Loadouts koennten gleichzeitig laufen`,
+    )
+  }
 })
 
 // T002426: die Regel gilt fuer Loadouts MIT --fit. Dort ist ein gepinntes -c

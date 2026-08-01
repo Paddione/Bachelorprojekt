@@ -21,6 +21,21 @@ RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY website/ .
 
+# [T002466] Lavish-Kit-Assets als ECHTE Dateien nachziehen.
+# website/public/cockpit/{kit,cockpit-shell.html,reference-board.html} sind im Repo
+# Symlinks nach ../../../.lavish/ — .lavish/ ist die SSOT (K1-Kit + K2-Daemon), und
+# eine Kopie im Repo waere Duplikation. Im Checkout und unter `pnpm dev` loesen sie
+# auf; das COPY oben kopiert aber nur den website-Teilbaum nach /app, wo das Ziel
+# /.lavish/ nicht existiert. Ohne diese drei Zeilen landen tote Symlinks im dist,
+# und /cockpit/kit/ liefert im Prod-Image 404, waehrend lokal alles korrekt aussieht.
+# Der Build-Kontext ist das Repo-Root (build-website.yml: `context: .`), .lavish/ ist
+# also verfuegbar. Die Kopien ueberschreiben die Symlinks an derselben Stelle, damit
+# beide Wege — lokal ueber den Symlink, im Image ueber die Kopie — denselben Pfad
+# bedienen. Guard: tests/spec/sdlc-cockpit/kit-assets-in-image.bats
+COPY .lavish/kit ./public/cockpit/kit
+COPY .lavish/cockpit-shell.html ./public/cockpit/cockpit-shell.html
+COPY .lavish/reference-board.html ./public/cockpit/reference-board.html
+
 # Cap Node.js heap to force GC before hitting kernel OOM (T000315).
 # The pixi.js + Astro build is memory-hungry; without an explicit limit,
 # the dev node (k3s-1) crashes with SIGSEGV or esbuild memory-corruption.

@@ -4,8 +4,9 @@ import { Readable } from 'node:stream';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
 import { applyFixups, sanitizeToolSchemaPatterns } from './fixups.mjs';
-import { readFileSync } from 'node:fs';
-import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH } from './loadouts.mjs';
+import { readFileSync, existsSync } from 'node:fs';
+import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart } from './loadouts.mjs';
+import os from 'node:os';
 import { scanModels, expandRoot } from './models.mjs';
 import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
 import { join } from 'node:path';
@@ -145,6 +146,17 @@ async function forwardToBackend(backend, servedModel, subpath, budgetedBody) {
 
 async function proxyV1(req, res, subpath) {
   const body = await readBody(req);
+  const auto = await ensureLoadoutForModel(body.model);
+  if (auto?.conflict) {
+    return sendJson(res, 409, { error: { code: 'exclusive_conflict', message:
+      `${body.model} teilt exclusiveGroup mit dem laufenden Loadout ${auto.conflict}. `
+      + `Zuerst 'curl -XPOST http://127.0.0.1:${PORT}/admin/loadouts/${auto.conflict}/stop' `
+      + `ausfuehren, dann die Anfrage wiederholen — der Proxy stoppt nichts von selbst.` } });
+  }
+  if (auto?.failed) {
+    const e = auto.failed;
+    return sendJson(res, e.status ?? 502, { error: { code: e.code ?? 'start_error', message: e.message } });
+  }
   const routed = resolveModel(body.model, getBackends);
   if (!routed) return sendJson(res, 503, { error: { code: 'no_backend', message: 'no healthy backend' } });
 
@@ -241,6 +253,71 @@ function portInUse(doc, port, exceptSlug) {
     && unitStatus(l.slug).active === 'active');
 }
 
+class LoadoutStartError extends Error {
+  constructor(status, code, message, extra = {}) {
+    super(message); this.status = status; this.code = code; Object.assign(this, extra);
+  }
+}
+
+async function startLoadout(slug) {
+  const { doc } = readLoadouts(DEFAULT_PATH);
+  const loadout = findLoadout(doc, slug);
+  if (!loadout) throw new LoadoutStartError(404, 'not_found', slug);
+  if (unitStatus(slug).active === 'active') {
+    throw new LoadoutStartError(409, 'already_running', `${slug} laeuft bereits`);
+  }
+  if (portInUse(doc, loadout.port, slug)) {
+    throw new LoadoutStartError(409, 'port_busy', `Port ${loadout.port} belegt`);
+  }
+  const modelPath = resolveModelPath(doc, loadout);
+  if (!modelPath) {
+    throw new LoadoutStartError(422, 'model_missing', `${loadout.model} in keiner modelRoot gefunden`);
+  }
+  // Resolve draftModelPath and mmprojPath against modelRoots for runner.mjs (P2 contract)
+  const resolved = {};
+  if (loadout.speculative?.draftModelPath) {
+    resolved.draftModelPath = doc.modelRoots.map(r => join(r.replace(/^~/, os.homedir()), loadout.speculative.draftModelPath)).find(existsSync) ?? null;
+  }
+  if (loadout.args?.mmprojPath) {
+    resolved.mmprojPath = doc.modelRoots.map(r => join(r.replace(/^~/, os.homedir()), loadout.args.mmprojPath)).find(existsSync) ?? null;
+  }
+  startUnit(loadout, modelPath, doc.defaults, LLAMA_BIN, resolved);
+  if (!await waitHealthy(loadout.port, HEALTH_TIMEOUT_MS)) {
+    const logs = recentLogs(slug);
+    try { stopUnit(slug); } catch { /* Unit was already gone */ }
+    throw new LoadoutStartError(502, 'start_failed', 'Server wurde nicht gesund', { logs });
+  }
+  const chosen = await chosenSettings(loadout.port);
+  const targetCtx = loadout.args?.ctx ?? loadout.fit?.minCtx ?? null;
+  if (targetCtx != null && chosen.ctx != null && chosen.ctx < targetCtx) {
+    console.log(`[loadout] ${slug}: -fit gewaehrte ctx ${chosen.ctx} < Ziel ${targetCtx}`);
+  }
+  const toolCallOk = await smokeTestToolCall(loadout.port);
+  await discovery.probeNow();
+  return { unit: unitName(slug), port: loadout.port, chosen, toolCallOk };
+}
+
+const startsInFlight = new Map();
+
+async function ensureLoadoutForModel(model) {
+  let doc;
+  try { ({ doc } = readLoadouts(DEFAULT_PATH)); } catch { return null; }
+  const activeSlugs = doc.loadouts
+    .filter((l) => unitStatus(l.slug).active === 'active')
+    .map((l) => l.slug);
+  const decision = planAutoStart({ doc, model, activeSlugs });
+  if (decision.action === 'none') return null;
+  if (decision.action === 'conflict') return { conflict: decision.conflictSlug };
+  const pending = startsInFlight.get(decision.slug);
+  if (pending) return pending;
+  const p = startLoadout(decision.slug)
+    .then(() => ({ started: decision.slug }))
+    .catch((err) => ({ failed: err }))
+    .finally(() => startsInFlight.delete(decision.slug));
+  startsInFlight.set(decision.slug, p);
+  return p;
+}
+
 const server = http.createServer((req, res) => {
   const { method, url } = req;
   const path = url.split('?')[0];
@@ -331,36 +408,18 @@ const server = http.createServer((req, res) => {
     }
     const startMatch = path.match(/^\/admin\/loadouts\/([a-z0-9-]+)\/start$/);
     if (startMatch && method === 'POST') {
-      const slug = startMatch[1];
       try {
-        const { doc } = readLoadouts(DEFAULT_PATH);
-        const loadout = findLoadout(doc, slug);
-        if (!loadout) return sendJson(res, 404, { error: { code: 'not_found', message: slug } });
-        if (unitStatus(slug).active === 'active') {
-          return sendJson(res, 409, { error: { code: 'already_running', message: `${slug} laeuft bereits` } });
-        }
-        if (portInUse(doc, loadout.port, slug)) {
-          return sendJson(res, 409, { error: { code: 'port_busy', message: `Port ${loadout.port} belegt` } });
-        }
-        const modelPath = resolveModelPath(doc, loadout);
-        if (!modelPath) {
-          return sendJson(res, 422, { error: { code: 'model_missing', message: `${loadout.model} in keiner modelRoot gefunden` } });
-        }
-        startUnit(loadout, modelPath, doc.defaults, LLAMA_BIN);
-        const healthy = await waitHealthy(loadout.port, HEALTH_TIMEOUT_MS);
-        if (!healthy) {
-          const logs = recentLogs(slug);
-          try { stopUnit(slug); } catch { /* Unit war evtl. schon weg */ }
-          return sendJson(res, 502, { error: { code: 'start_failed', message: 'Server wurde nicht gesund', logs } });
-        }
-        const chosen = await chosenSettings(loadout.port);
-        const toolCallOk = await smokeTestToolCall(loadout.port);
-        await discovery.probeNow();
+        const r = await startLoadout(startMatch[1]);
         return sendJson(res, 201, {
-          unit: unitName(slug), port: loadout.port, chosen, toolCallOk,
-          warning: toolCallOk ? null : 'Kein tool_calls erzeugt — haeufigste Ursache: args.jinja ist false',
+          ...r,
+          warning: r.toolCallOk ? null : 'Kein tool_calls erzeugt — haeufigste Ursache: args.jinja ist false',
         });
       } catch (err) {
+        if (err instanceof LoadoutStartError) {
+          return sendJson(res, err.status, { error: {
+            code: err.code, message: err.message, ...(err.logs ? { logs: err.logs } : {}),
+          } });
+        }
         return sendJson(res, 500, { error: { code: 'start_error', message: err.message } });
       }
     }

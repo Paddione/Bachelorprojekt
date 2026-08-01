@@ -29,6 +29,7 @@ openclaw/.env
 .openclaw/workspace/
 # deploy/mcp/claude-code-secrets.yaml — now TRACKED, git-crypt-encrypted (see .gitattributes)
 .mcp.json
+# Ignore individual .lavish/ files (not the subtree — K1 kit + K2 daemon are tracked)
 .lavish/*.html
 .lavish/*.brainstorm*
 vaultwarden-import-*.json
@@ -207,3 +208,6 @@ brain-worklist.txt
 
 # ── lobehub market-cli — locally installed skills (not vetted/shared) ──
 .claude/skills/haniakrim21-*/
+
+# ── ticket-mcp Go-Binary (Build-Artefakt, 12 MB — gehoert nicht in den Tree) ──
+scripts/ticket-mcp/go/ticket-mcp

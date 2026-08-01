@@ -8,7 +8,7 @@ export const DEFAULT_PATH = 'scripts/llm/loadouts.json';
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const LOADOUT_KEYS = new Set([
-  'slug', 'label', 'model', 'port', 'fit', 'args', 'speculative', 'mcp', 'extraArgs', 'notes',
+  'slug', 'label', 'model', 'port', 'fit', 'args', 'speculative', 'mcp', 'extraArgs', 'notes', 'exclusiveGroup',
 ]);
 const ARG_KEYS = new Set([
   'ctx', 'ngl', 'parallel', 'cacheTypeK', 'cacheTypeV', 'loadMode',
@@ -17,6 +17,7 @@ const ARG_KEYS = new Set([
   // Browser aus der Web-UI heraus — ohne das Flag scheitert ein lokaler
   // MCP-Server ohne CORS-Header.
   'uiMcpProxy',
+  'mmprojPath',
 ]);
 const LOAD_MODES = new Set(['none', 'mmap', 'mlock', 'mmap+mlock', 'dio']);
 
@@ -35,6 +36,11 @@ function validateLoadout(l, index, seen) {
 
   if (typeof l.model !== 'string' || !l.model) fail(`${l.slug}: model fehlt`);
   if (l.model.includes('..')) fail(`${l.slug}: model path darf kein '..' enthalten`);
+  if (l.args && l.args.mmprojPath != null) {
+    if (typeof l.args.mmprojPath !== 'string' || l.args.mmprojPath === '' || l.args.mmprojPath.includes('..')) {
+      fail(`${l.slug}: mmprojPath muss ein nicht-leerer String sein ohne '..'`);
+    }
+  }
   if (!Number.isInteger(l.port) || l.port < 1024 || l.port > 65535) {
     fail(`${l.slug}: port muss ganzzahlig zwischen 1024 und 65535 sein`);
   }
@@ -97,4 +103,26 @@ export function writeLoadouts(doc, path = DEFAULT_PATH, expectedMtimeMs = null) 
 
 export function findLoadout(doc, slug) {
   return doc.loadouts.find((l) => l.slug === slug);
+}
+
+/**
+ * Pure decision: may `model` be auto-started? No file/network I/O, no side effects.
+ * `doc` and `activeSlugs` are already loaded by the caller (server.mjs).
+ * @param {{doc: object, model: string, activeSlugs: string[]}} args
+ * @returns {{action:'start', slug:string}
+ *         | {action:'conflict', slug:string, conflictSlug:string, group:string}
+ *         | {action:'none'}}
+ */
+export function planAutoStart({ doc, model, activeSlugs }) {
+  if (typeof model !== 'string' || !model) return { action: 'none' };
+  const loadout = findLoadout(doc, model);
+  if (!loadout) return { action: 'none' };
+  if (activeSlugs.includes(loadout.slug)) return { action: 'none' };
+  const group = loadout.exclusiveGroup;
+  if (group) {
+    const conflict = doc.loadouts.find((l) => l.slug !== loadout.slug
+      && l.exclusiveGroup === group && activeSlugs.includes(l.slug));
+    if (conflict) return { action: 'conflict', slug: loadout.slug, conflictSlug: conflict.slug, group };
+  }
+  return { action: 'start', slug: loadout.slug };
 }

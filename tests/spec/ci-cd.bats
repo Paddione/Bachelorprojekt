@@ -923,16 +923,21 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
   }
 }
 
-# ── T002182: CI-Gate — test-factory job invokes full tests/spec/*.bats glob ──
+# ── T002182: CI-Gate — the spec-suite job invokes the full tests/spec glob ──
 # Regression guard: the factory job must NOT enumerate a hand-picked subset of
 # spec files, because any file not in the list runs in no required check and
 # can rot on main undetected (observed: T002163, T002167, image-drift).
+#
+# [T002500] Der gepruefte Job heisst seit dem Sharding `test-factory-shard` —
+# dort laeuft die Suite. `test-factory` ist nur noch der Aggregator, der den
+# Required-Check-Namen traegt und keine Tests selbst ausfuehrt. Die Schutzabsicht
+# ist unveraendert: WER die Spec-Suite faehrt, muss sie vollstaendig fahren.
 
 @test "T002182: ci.yml test-factory job uses task test:spec (full glob)" {
   local ci="$REPO_ROOT/.github/workflows/ci.yml"
-  # Extract the test-factory job steps between its header and the next job
+  # Extract the spec-suite job steps between its header and the next job
   local block
-  block=$(awk '/^  test-factory:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
+  block=$(awk '/^  test-factory-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
   # Must invoke task test:spec, not enumerate individual .bats files
   echo "$block" | grep -qE 'task test:spec|tests/spec/\*\.bats' || {
     echo "FAIL: test-factory job does not use task test:spec or tests/spec/*.bats glob."
@@ -942,7 +947,7 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
     return 1
   }
   # Must NOT list individual .bats filenames in a way that excludes others
-  ! echo "$block" | grep -qE 'tests/spec/[a-z].*\.bats' || {
+  ! echo "$block" | grep -v '^[[:space:]]*#' | grep -qE 'tests/spec/[a-z0-9_-]+\.bats' || {
     echo "FAIL: test-factory job still enumerates individual spec files."
     echo "      Use 'task test:spec' to run the full tests/spec/*.bats glob."
     return 1
@@ -957,7 +962,8 @@ sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
 @test "T002245: test-factory keeps a non-PR full-suite path for the spec bats" {
   local ci="$REPO_ROOT/.github/workflows/ci.yml"
   local block
-  block=$(awk '/^  test-factory:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
+  # [T002500] siehe Kommentar an T002182 oben: die Suite lebt in test-factory-shard.
+  block=$(awk '/^  test-factory-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
 
   # Scoping is optional; if present it must be gated on the event being a PR.
   if echo "$block" | grep -qF 'task test:spec:changed'; then

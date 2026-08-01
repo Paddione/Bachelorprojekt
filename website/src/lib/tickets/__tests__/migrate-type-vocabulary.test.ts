@@ -28,12 +28,21 @@ describe('applyTypeVocabularyMigration', () => {
     expect(update).toBeGreaterThan(add);
   });
 
-  it('der CHECK trägt alle dreizehn Werte', async () => {
+  // [T002497] Der Test hiess "der CHECK trägt alle dreizehn Werte" und prüfte
+  // toHaveLength(13). Mit dem incident-Typ (T002407) wurden es 14, und der Test
+  // war seit dem 29.07. rot. Die Zahl steckte in Name UND Assertion — zwei
+  // Stellen, die auseinanderlaufen können. Der Name führt sie jetzt nicht mehr.
+  //
+  // Die Längenprüfung bleibt trotzdem, als Positiv-Anker: wäre TICKET_TYPES
+  // leer, liefe die Schleife darunter null Mal und der Test bestünde vakuos.
+  // Sie ist bewusst exakt und kein >=, damit ein Hinzufügen oder Entfernen von
+  // Typen hier sichtbar wird statt still durchzugehen.
+  it('der CHECK trägt jeden Wert aus TICKET_TYPES', async () => {
     const { pool, statements } = fakePool();
     await applyTypeVocabularyMigration(pool);
     const check = statements.find((s) => s.includes('ADD CONSTRAINT tickets_type_check'))!;
 
-    expect(TICKET_TYPES).toHaveLength(13);
+    expect(TICKET_TYPES).toHaveLength(14); // 11 Conventional-Commit-Typen + 3 Altwerte
     for (const t of TICKET_TYPES) expect(check).toContain(`'${t}'`);
   });
 

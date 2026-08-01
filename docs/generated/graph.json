@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-26T19:16:38.103Z",
+  "generatedAt": "2026-08-01T10:08:31.724Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -661,12 +661,6 @@
       "from": "claude-code-mcp-monolith",
       "to": "website",
       "via": "env:DATABASE_URL",
-      "kind": "env"
-    },
-    {
-      "from": "claude-code-mcp-monolith",
-      "to": "keycloak",
-      "via": "env:KC_URL",
       "kind": "env"
     },
     {

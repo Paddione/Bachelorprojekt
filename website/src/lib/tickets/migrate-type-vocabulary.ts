@@ -4,7 +4,7 @@
 // 576/600 Zeilen am S1-Budget steht — T002329.
 import type { Pool, PoolClient } from 'pg';
 
-// Dual-Vokabular: der CHECK akzeptiert die zehn neuen Werte UND die drei Altwerte.
+// Dual-Vokabular: der CHECK akzeptiert die elf neuen Werte UND die drei Altwerte.
 // Das entkoppelt DB-Migration (reist im Website-Image) und Skript-Deploy (kommt mit
 // dem Merge sofort auf dem Host an) — die beiden Zeitpunkte fallen zwangsläufig
 // auseinander, und solange beide Namensräume gültig sind, ist das Fenster folgenlos.

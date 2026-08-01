@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-87 Services · 1827 Abhängigkeitskanten · 405 API-Endpoints
+87 Services · 1826 Abhängigkeitskanten · 405 API-Endpoints
 
 ## Service-Map
 
@@ -117,7 +117,6 @@ flowchart LR
   systemtest_outbox -->|"command"| website
   claude_code_mcp_monolith -->|"DATABASE_URL"| shared_db
   claude_code_mcp_monolith -->|"DATABASE_URL"| website
-  claude_code_mcp_monolith -->|"KC_URL"| keycloak
   oauth2_proxy_dev -->|"command"| traefik
   error_log_retention -->|"command"| website
   knowledge_ingest_prs -->|"PGHOST"| shared_db

@@ -2460,6 +2460,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/gemma-loadout-autorestart-queue",
+    "file": "tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "lockfile-drift",
     "file": "tests/spec/lockfile-drift.bats",
     "category": "lockfile-drift",

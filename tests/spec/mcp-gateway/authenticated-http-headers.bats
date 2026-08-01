@@ -155,19 +155,24 @@ YAML
   [ "$output" -ge 1 ]
 
   # Negativ-Aussage: jeder Authorization-Wert ist eine ${VAR}-Referenz.
-  run bash -c "node -e \"
-    const fs=require('fs');
-    const d=JSON.parse(fs.readFileSync('$REPO/.mcp.json','utf8'));
-    let bad=[];
-    for (const [n,s] of Object.entries(d.mcpServers)) {
-      if(!s.headers) continue;
-      for (const [k,v] of Object.entries(s.headers)) {
-        if(/authorization/i.test(k) && !/\\\$\{[A-Z_]+\}/.test(v)) bad.push(n+'.'+k);
-      }
-    }
-    console.log(bad.join(',')||'clean');
-  \""
-  echo "output: $output"
+  # Extraktion bewusst per jq statt `node -e`: eine Regex auf `${...}` ueberlebt
+  # die drei Quoting-Ebenen (bats -> bash -c -> node -e) nicht — der Backslash
+  # vor dem Dollar geht unterwegs verloren und die Pruefung meldet falsch rot.
+  run jq -r '.mcpServers | to_entries[] | select(.value.headers != null)
+             | .key as $n | .value.headers | to_entries[]
+             | select(.key | ascii_downcase == "authorization")
+             | "\($n)=\(.value)"' "$REPO/.mcp.json"
+  echo "authorization headers: $output"
   [ "$status" -eq 0 ]
-  [ "$output" = "clean" ]
+  [ -n "$output" ]
+
+  local leaked=""
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    case "$line" in
+      *'${'*'}'*) : ;;                   # Env-Referenz — in Ordnung
+      *) leaked="${leaked}${line} " ;;   # alles andere ist ein Klartext-Wert
+    esac
+  done <<< "$output"
+  [ -z "$leaked" ] || { echo "LEAK: $leaked"; false; }
 }

@@ -55,11 +55,15 @@ setup() {
 }
 
 # ── M3: agent-lock S1 ────────────────────────────────────────────────────────
-# scripts/agent-lock.sh muss die S1-Regel einhalten: max 500 Zeilen.
+# scripts/agent-lock.sh muss die S1-Regel einhalten. Der Grenzwert kommt aus
+# docs/code-quality/gates.yaml → s1.limits[.sh] (SSOT, T002452: 800), nicht aus
+# einer hartkodierten Zahl im Test.
 
-@test "T002414-M3: agent-lock.sh is ≤ 500 lines (S1 line-count rule)" {
-  local line_count
+@test "T002414-M3: agent-lock.sh complies with S1 .sh limit from gates.yaml" {
+  local line_count limit
   line_count=$(wc -l < "$REPO/scripts/agent-lock.sh")
-  echo "agent-lock.sh: $line_count lines"
-  [ "$line_count" -le 500 ]
+  limit=$(grep -E '^[[:space:]]+\.sh: [0-9]+' "$REPO/docs/code-quality/gates.yaml" | sed -E 's/.*\.sh:[[:space:]]*([0-9]+).*/\1/' | head -1)
+  echo "agent-lock.sh: $line_count lines (S1 .sh limit: ${limit:-?})"
+  [ -n "$limit" ]
+  [ "$line_count" -le "$limit" ]
 }

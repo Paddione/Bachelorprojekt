@@ -4,10 +4,18 @@
 set -u
 
 TICKET_ID="${1:-}"
-if [[ -z "$TICKET_ID" ]]; then
+if [ -z "$TICKET_ID" ]; then
   echo "FEHLER: TICKET_ID erforderlich — Usage: devflow-post-merge-deploy.sh T00XXXX" >&2
   exit 2
 fi
+# T002506-Review (M7): T-Nummer-Format validieren, bevor die ID als Regex in
+# --grep landet. Eine malformed ID wuerde als Zeichenklasse/Regex interpretiert
+# und koennte nicht gemeinte Commits matchen — identisches Muster wie in
+# agent-lock-merged.sh cmd_check_merged.
+case "$TICKET_ID" in T[0-9][0-9][0-9][0-9][0-9][0-9]) : ;; *)
+  echo "FEHLER: ungültiges Ticket-ID-Format '$TICKET_ID' (erwartet T######)" >&2
+  exit 2
+esac
 # T002448-M9/M10: Finde den Merge-Commit durch Ticket-ID-Match auf main,
 # nicht durch blindes `git log -1`. Bei mehreren intervenierenden Commits
 # zwischen Merge und HEAD liefert `-1` den falschen Commit.

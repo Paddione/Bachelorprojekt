@@ -31,6 +31,9 @@ setup() {
 }
 
 teardown() {
+  # M4 (Review): M3-Test legt `git worktree add ../peer-wt` als Geschwister-Verzeichnis
+  # AUSSERHALB von $TEST_TMP_DIR an — ohne Cleanup bliebe das Verzeichnis liegen.
+  rm -rf "$TEST_TMP_DIR/../peer-wt" 2>/dev/null || true
   rm -rf "$AGENT_LOCK_DIR" 2>/dev/null || true
   rm -rf "$TEST_TMP_DIR" 2>/dev/null || true
 }
@@ -39,13 +42,13 @@ teardown() {
 
 @test "M2: check-merged ignoriert Ticket-ID nur im Commit-Body" {
   pushd "$TEST_TMP_DIR" >/dev/null
-  # Commit für T002493, der im BODY (Dateiinhalt goals.md) [[T002494]] referenziert
-  mkdir -p .claude/lib
-  cat > goals.md <<'EOF'
-  Auflösung erfordert eine Entscheidung Gate↔Test, siehe [[T002494]].
-EOF
-  git add goals.md
-  git commit -qm "chore(agents): Health-Gates auf Target [T002493] (#3561)"
+  # Commit für T002493, der im Commit-MESSAGE-BODY [[T002494]] referenziert.
+  # WICHTIG (Review M1): Der Mishap ist ein Match auf die ID im MESSAGE-BODY,
+  # nicht im Dateiinhalt — `git log --grep` durchsucht Messages, nie Dateien.
+  # Vor dem Fix: --grep matcht den Body → rc=1 (RED). Nach dem Fix (subject-only):
+  # rc=0 (GREEN). Ein Dateiinhalt-Referenz-Test wäre vor UND nach dem Fix grün.
+  git commit -q --allow-empty -m "chore(agents): Health-Gates auf Target [T002493] (#3561)" \
+    -m "Auflösung erfordert eine Entscheidung, siehe [[T002494]]."
   # origin/main auf den neuen Stand bringen (Squash-Commit-Simulation)
   git branch -f origin/main HEAD
   # Body-Erwähnung von T002494: check-merged darf rc=0 melden (nicht gemergt)
@@ -74,6 +77,12 @@ EOF
   git add change.txt
   git commit -qm "fix(factory): Thinking-Gate an lokaler baseUrl [T002501] (#3572)"
   git branch -f origin/main HEAD
+  # Stub für scripts/filter-generated.sh (Review M2): Das Skript ruft es per
+  # relativem Pfad `bash scripts/filter-generated.sh` auf — im Temp-Repo fehlt
+  # es, CHANGED würde still leer bleiben und die Deploy-Trigger-Hälfte wäre
+  # ungetestet. Ein Passthrough-Stub macht die Pipeline real durchlaufen.
+  mkdir -p scripts
+  printf '#!/usr/bin/env bash\ncat\n' > scripts/filter-generated.sh
   # Das Skript sucht den Commit über --grep auf [T002501]; vor dem Fix (--merges)
   # wäre MERGE_COMMIT leer → exit 3. Nach dem Fix: Commit gefunden, Skript läuft
   # weiter (Deploy-Trigger-Check mit exit 0, da change.txt kein bekannter Trigger).
@@ -81,6 +90,8 @@ EOF
   echo "output: $output | status: $status"
   [ "$status" -eq 0 ]
   [[ "$output" == *"Keine bekannten Deploy-Trigger"* ]]
+  # CHANGED darf nicht leer sein — der Stub muss die Pipeline real durchlaufen lassen
+  [[ "$output" == *"change.txt"* ]]
   popd >/dev/null
 }
 

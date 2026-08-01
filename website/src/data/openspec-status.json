@@ -2105,6 +2105,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002459": [
+    {
+      "slug": "llama-stack",
+      "status": "plan_staged"
+    }
+  ],
   "T002470": [
     {
       "slug": "2026-07-29-worktree-branch-name-guard",
@@ -2127,6 +2133,12 @@
     {
       "slug": "gate-agentic01-unresolved-tools",
       "status": "plan_staged"
+    }
+  ],
+  "T002507": [
+    {
+      "slug": "2026-08-01-portrait-derivate-crop",
+      "status": "archived"
     }
   ],
   "TBD": [

@@ -17,6 +17,7 @@
 set -euo pipefail
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/lib.sh"
+source "$HERE/triage-body.sh"
 
 DRY_RUN=false
 TRIAGE_BATCH="${TRIAGE_BATCH:-5}"
@@ -287,14 +288,16 @@ PROMPT
   # cleanup at function exit
   trap "rm -f $tmp_req $tmp_resp 2>/dev/null" RETURN
 
-  # Build request body. For Qwen3-family hybrid reasoners, force
-  # enable_thinking=false (hard switch via chat_template_kwargs, not the
-  # soft "/no_think" prompt convention) so the model doesn't burn max_tokens
-  # on a <think> trace before ever emitting the JSON turn — the same failure
-  # mode documented for factory_ask in scripts/factory/mcp-go/main.go.
-  # response_format uses json_schema (not json_object) so llama.cpp/LM
-  # Studio constrain decoding to the enum-valid schema at the sampler level,
-  # instead of only validating after the fact in validate_triage().
+  # Das json_schema (nicht json_object) laesst llama.cpp/LM Studio schon beim
+  # Sampling auf die enum-gueltigen Werte constrainen, statt erst hinterher in
+  # validate_triage() zu pruefen.
+  #
+  # Der Body selbst wird von _build_triage_body (triage-body.sh) gebaut. Dort
+  # sitzt auch das enable_thinking-Gate: es haengt seit T002501 an der baseUrl,
+  # nicht mehr am Modellnamen. Der fruehere Test [[ $model == *qwen* ]] traf
+  # Gemma 4 nicht — seit dem Factory-Cutover ist Gemma aber genau das Modell,
+  # das hier antwortet, und es verbrennt max_tokens im reasoning_content,
+  # bevor content beginnt (gemessen: 512 Tokens reichen dann nicht).
   local schema
   schema=$(jq -n --argjson enums "$enums" '{
     name: "ticket_triage",
@@ -315,23 +318,7 @@ PROMPT
     }
   }')
 
-  jq -n \
-    --arg model "$model" \
-    --arg sys "$system_prompt" \
-    --arg user "$user_prompt" \
-    --argjson schema "$schema" \
-    --argjson thinking_off "$([[ "$model" == *qwen* ]] && echo true || echo false)" \
-    '{
-      model: $model,
-      messages: [
-        {role: "system", content: $sys},
-        {role: "user", content: $user}
-      ],
-      temperature: 0.2,
-      max_tokens: 512,
-      response_format: {type: "json_schema", json_schema: $schema}
-    }
-    + (if $thinking_off then {chat_template_kwargs: {enable_thinking: false}} else {} end)' > "$tmp_req"
+  _build_triage_body "$model" "$base_url" "$system_prompt" "$user_prompt" "$schema" > "$tmp_req"
 
   local curl_args=(-s -S --max-time 60)
   if [[ -n "$api_key" ]]; then

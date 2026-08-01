@@ -54,8 +54,21 @@ app.get('/api/cockpit/agents', agentsHandler);
 app.get('/api/cockpit/ci', ciHandler);
 app.get('/api/cockpit/models', modelsHandler);
 
-// Token endpoint (E17 — read-only token for browser write stubs)
-app.get('/api/cockpit/token', (c) => c.json({ token }));
+// T002505: Hier stand ein Endpoint, der den Token unauthentifiziert per HTTP
+// herausgab:
+//     app.get('/api/cockpit/token', (c) => c.json({ token }));
+// Damit waren die 0600-Rechte der Token-Datei wirkungslos — wer den Daemon
+// erreichte, bekam den Token einfach geliefert. Und erreichbar ist er auch aus
+// dem Browser: die CORS-Konfiguration oben erlaubt Origin 'null', und genau den
+// sendet ein sandboxed iframe, das eine beliebige fremde Seite einbetten kann.
+//
+// Der Token bleibt bestehen und wird weiter nach /tmp/cockpit-daemon.token mit
+// 0600 geschrieben (siehe oben). Wer ihn braucht, liest ihn dort — also auf
+// einem Weg, der bereits eine Berechtigung voraussetzt. Der Browser-Adapter
+// kann das nicht und hat deshalb keine Schreibrechte mehr; die Write-Endpunkte
+// sind ohnehin noch Stubs (siehe unten, "real implementation in K4"). Eine
+// echte Auth fuer den Browser gehoert in K4 entworfen, nicht durch die
+// Hintertuer eines offenen Token-Endpoints ersetzt.
 
 // SSE Streams
 app.get('/api/cockpit/stream/agents', agentStreamHandler);

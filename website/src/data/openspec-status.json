@@ -2123,6 +2123,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002481": [
+    {
+      "slug": "mishap-t002481",
+      "status": "plan_staged"
+    }
+  ],
   "T002487": [
     {
       "slug": "2026-08-01-mcp-authenticated-http-headers",

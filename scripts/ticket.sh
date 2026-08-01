@@ -949,7 +949,7 @@ case "$cmd" in
   create)            cmd_create "$@" ;;
   update-status)     cmd_update_status "$@" ;;
   set-parent)        cmd_set_parent "$@" ;;
-  add-comment)       cmd_add_comment "$@" ;;
+  add-comment|comment) cmd_add_comment "$@" ;;
   add-pr-link)       cmd_add_pr_link "$@" ;;
   grill)             cmd_grill "$@" ;;
   archive-plan)      cmd_archive_plan "$@" ;;
@@ -982,7 +982,7 @@ case "$cmd" in
   get-injections)    cmd_get_injections "$@" ;;
   plan-meta)         cmd_plan_meta "$@" ;;
   lastenheft)        cmd_lastenheft "$@" ;;
-  link-tickets)      cmd_link_tickets "$@" ;;
+  link-tickets|link) cmd_link_tickets "$@" ;;
   get-ticket-links)  cmd_get_ticket_links "$@" ;;
   get-timeline)      cmd_get_timeline "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;

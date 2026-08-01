@@ -88,7 +88,7 @@ class Panel {
       this.lastRefresh = new Date();
       this.render(handle.data);
       handle.subscribe((freshData) => this.render(freshData));
-    } catch (e) {
+    } catch {
       this.lastError = new Date();
       this.isStale = true;
       this.renderLastValid();
@@ -156,9 +156,18 @@ class Panel {
       });
     }
     
-    // Auto-scroll
-    const isAtBottom = this.body.scrollHeight - this.body.scrollTop <= this.body.clientHeight + 100;
-    this.body.scrollTop = this.body.scrollHeight;
+    // Auto-scroll — aber nur, wenn der Nutzer ohnehin am Ende steht.
+    //
+    // [T002528] Die Bedingung wurde berechnet und dann nicht angewendet: es
+    // wurde bedingungslos nach unten gescrollt. Wer weiter oben im Log las,
+    // wurde bei jedem Update herausgerissen. Sichtbar geworden ist das, weil
+    // ESLint die Kit-Dateien seit dem Symlink-Umbau erfasst und `isAtBottom`
+    // als ungenutzt meldete.
+    const isAtBottom =
+      this.body.scrollHeight - this.body.scrollTop <= this.body.clientHeight + 100;
+    if (isAtBottom) {
+      this.body.scrollTop = this.body.scrollHeight;
+    }
   }
 
   renderLastValid() {

@@ -17,7 +17,7 @@ const data = (() => {
     if (document.hidden) {
       visibilityPaused = true;
       // Pause all polls (don't clear — resume with immediate fetch on return)
-      for (const [handle, poll] of polls) {
+      for (const poll of polls.values()) {
         if (poll.intervalId) {
           clearInterval(poll.intervalId);
           poll.intervalId = null;
@@ -26,7 +26,7 @@ const data = (() => {
     } else {
       visibilityPaused = false;
       // Resume all polls with immediate fetch
-      for (const [handle, poll] of polls) {
+      for (const poll of polls.values()) {
         poll.controller.fetchNow();
         if (!poll.intervalId) {
           poll.intervalId = setInterval(() => {

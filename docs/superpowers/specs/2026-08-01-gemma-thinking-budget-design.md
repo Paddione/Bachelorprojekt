@@ -80,19 +80,32 @@ wird**: jedes lokale hybride Reasoning-Modell hat dasselbe Verhalten, und
 `chat_template_kwargs` ist bei remote APIs ein unbekanntes Feld, das abgelehnt werden
 kann. Das Routing liefert `baseUrl` bereits mit — das Gate stellt darauf um.
 
-Damit der Body offline prüfbar wird, wandert seine Konstruktion in eine reine Funktion:
+Damit der Body offline prüfbar wird, wandert seine Konstruktion in eine **eigene,
+sourcebare Datei** `scripts/factory/triage-body.sh`:
 
 ```
 _build_triage_body <model> <base_url> <system> <user> <schema>   # JSON auf stdout
 ```
 
-Keine DB-, Netz- oder Slot-Abhängigkeit. `_call_llm_inner` ruft sie auf.
+Keine DB-, Netz- oder Slot-Abhängigkeit. `auto-triage.sh` sourced sie, `_call_llm_inner`
+ruft sie auf.
+
+Warum eine eigene Datei und keine Funktion im Skript: `auto-triage.sh` hat **keinen**
+Sourcing-Guard. Argument-Parsing und die `BRAND`-Pflicht laufen beim Sourcen sofort los,
+danach folgt der DB-Zugriff — die Funktion wäre aus einem Offline-Test nicht erreichbar.
 
 ### Komponente 2 — `scripts/health-goals-llm-fill.sh`
 
-`'chat_template_kwargs': {'enable_thinking': False}` in den Python-Payload.
-Zusätzlich `HG_PRINT_PAYLOAD=1`: gibt den Payload aus und beendet vor dem `curl`,
-damit der Test ohne laufenden Server an ihn herankommt.
+Der Payload steckt heute in einem inline `python3 -c` mitten in der Kandidaten-Schleife
+und ist damit ebenfalls nur mit vollständigem Kontext erreichbar. Er wandert nach
+`scripts/health-goals-payload.py`:
+
+```
+python3 scripts/health-goals-payload.py <model> <gid>   # Kontext auf stdin, JSON auf stdout
+```
+
+Dort kommt `'chat_template_kwargs': {'enable_thinking': False}` hinzu. Das Skript ruft
+die Datei an der bisherigen Stelle auf; der Test ruft sie direkt.
 
 ### Bewusst nicht Teil dieser Lösung
 
@@ -113,13 +126,23 @@ Skript auf und prüfen den erzeugten JSON-Body, nicht Muster im Quelltext.
 
 | # | Fall | Erwartung |
 |---|---|---|
-| 1 | `_build_triage_body` mit lokaler `baseUrl` | `chat_template_kwargs.enable_thinking == false` |
-| 2 | `_build_triage_body` mit remote `baseUrl` | Feld nicht vorhanden |
-| 3 | `HG_PRINT_PAYLOAD=1` | Flag im Payload |
+| 1 | `triage-body.sh` sourcebar | `_build_triage_body` ist definiert |
+| 2 | `_build_triage_body` mit lokaler `baseUrl` | `chat_template_kwargs.enable_thinking == false` |
+| 3 | `_build_triage_body` mit remote `baseUrl` | Feld nicht vorhanden |
+| 4 | `_build_triage_body`, lokal | `response_format.type == json_schema` bleibt erhalten |
+| 5 | `health-goals-payload.py` | `chat_template_kwargs.enable_thinking == false` |
+| 6 | `health-goals-payload.py` | `model`, `response_format.type`, `max_tokens` unverändert |
 
-Fall 2 ist eine Negativ-Aussage und trägt deshalb im selben Test einen Positiv-Anker
+Fall 4 und 6 sichern ab, dass das Gate den übrigen Body nicht beschädigt:
+`json_schema`-Constraining ist der Grund, warum die Triage überhaupt valide Enums
+liefert, und ohne `json_object` bliebe `health-goals` beim Parse-Fehler.
+
+Fall 3 ist eine Negativ-Aussage und trägt deshalb im selben Test einen Positiv-Anker
 (T002356-M1): erst wird geprüft, dass der lokale Fall das Feld **setzt** — fehlt die
 Funktion, ist der Test rot, statt vakuos zu bestehen.
+
+RED-Baseline verifiziert am 2026-08-01: alle sechs Fälle schlagen fehl, und zwar wegen
+der fehlenden Dateien, nicht wegen Syntaxfehlern (`bats --count` liefert 6).
 
 Kein Test benötigt einen laufenden Server; die Suite läuft offline in CI.
 

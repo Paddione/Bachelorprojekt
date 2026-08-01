@@ -42,7 +42,6 @@ rot werden, ohne dass am Plan oder am Gate etwas falsch war (450→350, dann 463
 Der Wert wird deshalb bewusst nicht mehr behauptet; gemessen wird er weiterhin über das Kommando
 oben. Die Aussagekraft von B1a bleibt für alle *echten* Pläne unberührt — dort ist die
 Zieldatei nicht das messende Werkzeug selbst.
->>>>>>> origin/main
 
 **Nicht-S1-Constraint für `dev-flow-execute/SKILL.md`:** Health-Goal G-AGENTIC09 (projekteigene
 `SKILL.md` über 250 Zeilen, Ziel 0) — die Datei steht bei exakt 250, das Ziel ist derzeit grün.

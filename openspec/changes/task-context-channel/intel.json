@@ -2,7 +2,7 @@
   "meta": {
     "slug": "task-context-channel",
     "ticket_id": "T002420",
-    "generated_from": "main@5fdfdce8f",
+    "generated_from": "main@7c02d0c9d",
     "domains": [
       "plan-authoring",
       "dev-tooling",
@@ -51,10 +51,10 @@
     {
       "path": "scripts/plan-lint.sh",
       "language": "bash",
-      "loc": 463,
+      "loc": 477,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 337
+      "s1_budget": 323
     },
     {
       "path": "scripts/task-context.sh",
@@ -139,51 +139,51 @@
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:120:hard() { HARD+=(\"$1\"); }",
+      "qualified_name": "scripts/plan-lint.sh:127:hard() { HARD+=(\"$1\"); }",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "120:hard() { HARD+=(\"$1\"); }(...)",
-      "type_text": "120:hard() { HARD+=(\"$1\"); }(...)",
+      "signature": "127:hard() { HARD+=(\"$1\"); }(...)",
+      "type_text": "127:hard() { HARD+=(\"$1\"); }(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:121:warn() { WARN+=(\"$1\"); }",
+      "qualified_name": "scripts/plan-lint.sh:128:warn() { WARN+=(\"$1\"); }",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "121:warn() { WARN+=(\"$1\"); }(...)",
-      "type_text": "121:warn() { WARN+=(\"$1\"); }(...)",
+      "signature": "128:warn() { WARN+=(\"$1\"); }(...)",
+      "type_text": "128:warn() { WARN+=(\"$1\"); }(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:128:fm_field() {  # fm_field <key> -> value (empty if absent)",
+      "qualified_name": "scripts/plan-lint.sh:135:fm_field() {  # fm_field <key> -> value (empty if absent)",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "128:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
-      "type_text": "128:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "signature": "135:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "type_text": "135:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:252:  _check_intel_completeness() {",
+      "qualified_name": "scripts/plan-lint.sh:259:  _check_intel_completeness() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "252:  _check_intel_completeness() {(...)",
-      "type_text": "252:  _check_intel_completeness() {(...)",
+      "signature": "259:  _check_intel_completeness() {(...)",
+      "type_text": "259:  _check_intel_completeness() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:434:_json_str() {",
+      "qualified_name": "scripts/plan-lint.sh:448:_json_str() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "434:_json_str() {(...)",
-      "type_text": "434:_json_str() {(...)",
+      "signature": "448:_json_str() {(...)",
+      "type_text": "448:_json_str() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/plan-lint.sh:444:emit_verdict() {",
+      "qualified_name": "scripts/plan-lint.sh:458:emit_verdict() {",
       "kind": "function",
       "file": "scripts/plan-lint.sh",
-      "signature": "444:emit_verdict() {(...)",
-      "type_text": "444:emit_verdict() {(...)",
+      "signature": "458:emit_verdict() {(...)",
+      "type_text": "458:emit_verdict() {(...)",
       "source": "grep"
     },
     {
@@ -235,6 +235,14 @@
   ],
   "external_types": [],
   "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    },
     {
       "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
       "severity": "warn"

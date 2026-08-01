@@ -2910,6 +2910,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/k5-epic-canvas",
+    "file": "tests/spec/sdlc-cockpit/k5-epic-canvas.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/kit-artifacts-exist",
     "file": "tests/spec/sdlc-cockpit/kit-artifacts-exist.bats",
     "category": "sdlc-cockpit",

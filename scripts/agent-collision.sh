@@ -110,6 +110,19 @@ cmd_check() {
     wt="$(_field "$f" worktree)"
     [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] || continue
     git -C "$wt" rev-parse --git-dir >/dev/null 2>&1 || continue
+    # [M3 T002506] Lock↔Worktree-Zuordnung validieren: der Worktree-Pfad im Lock
+    # kann stale sein (Claim mit --worktree X, Session arbeitet aber in Y). Wenn der
+    # Worktree auf einem ANDEREN Branch steht als der Lock es aufzeichnet, gehoert
+    # der Lock nicht zu diesem Worktree — eine COLLISION-Meldung dagegen waere ein
+    # False Positive (falscher Pfad in der Meldung, Vergleich gegen den falschen
+    # Baum). Fail-open: Lock ueberspringen, keine Warnung. [T002506-M3]
+    local lock_branch=""
+    lock_branch="$(_field "$f" branch)"
+    if [ -n "$lock_branch" ] && [ "$lock_branch" != "-" ]; then
+      local wt_branch=""
+      wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+      if [ -n "$wt_branch" ] && [ "$wt_branch" != "$lock_branch" ]; then continue; fi
+    fi
     # Drei-Punkt gegen den Merge-Base: nur was DIESER Branch geaendert hat.
     # [T002455] origin/main statt main (analog own-Seite oben), Fallback auf main.
     # Schlaegt die Aufloesung fehl (detached HEAD, fehlender Branch), entfaellt

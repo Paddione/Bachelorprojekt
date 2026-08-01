@@ -19,46 +19,55 @@ setup() {
   STUBS="$BATS_TEST_TMPDIR/stubs"
   mkdir -p "$STUBS"
 
+  # Alle Fixture-Pfade sind ABSOLUT und alle git-Aufrufe nutzen -C. Kein `cd`, keine
+  # relativen Verzeichnisse: ein relativ angelegtes openspec/changes/<slug> waere unter
+  # `bats -j 6` fuer den validateTree('openspec')-Test sichtbar und faerbte ihn sporadisch
+  # rot (Guard "T002368" in tests/spec/software-factory/ticket-lifecycle.bats).
+  PLANDIR="$FIXTURE/openspec/changes/x"
+
   git init --bare --quiet "$REMOTE"
   git init --quiet "$FIXTURE"
-  cd "$FIXTURE" || return 1
-  git config user.email t@example.com
-  git config user.name Test
-  git remote add origin "$REMOTE"
+  git -C "$FIXTURE" config user.email t@example.com
+  git -C "$FIXTURE" config user.name Test
+  git -C "$FIXTURE" remote add origin "$REMOTE"
 
   # main: Basisstand, den alle Branches teilen
-  mkdir -p openspec/changes/x scripts
-  echo "base" > openspec/changes/x/tasks.md
-  echo "base" > scripts/echt.sh
-  git add -A && git commit --quiet -m "base"
-  git push --quiet origin HEAD:main
-  git fetch --quiet origin
+  mkdir -p "$PLANDIR" "$FIXTURE/scripts"
+  echo "base" > "$PLANDIR/tasks.md"
+  echo "base" > "$FIXTURE/scripts/echt.sh"
+  git -C "$FIXTURE" add -A
+  git -C "$FIXTURE" commit --quiet -m "base"
+  git -C "$FIXTURE" push --quiet origin HEAD:main
+  git -C "$FIXTURE" fetch --quiet origin
 
   # Branch 1: weicht NUR in einem Plan-Artefakt ab -> Allowlist trifft
-  git checkout --quiet -b chore/plan-T009001
-  echo "abweichend" > openspec/changes/x/tasks.md
-  git commit --quiet -am "plan only"
-  git push --quiet origin chore/plan-T009001
+  git -C "$FIXTURE" checkout --quiet -b chore/plan-T009001
+  echo "abweichend" > "$PLANDIR/tasks.md"
+  git -C "$FIXTURE" commit --quiet -am "plan only"
+  git -C "$FIXTURE" push --quiet origin chore/plan-T009001
 
   # Branch 2: weicht in einer echten Quelldatei ab -> Allowlist trifft NICHT
-  git checkout --quiet main && git checkout --quiet -b chore/src-T009002
-  echo "abweichend" > scripts/echt.sh
-  git commit --quiet -am "source change"
-  git push --quiet origin chore/src-T009002
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" checkout --quiet -b chore/src-T009002
+  echo "abweichend" > "$FIXTURE/scripts/echt.sh"
+  git -C "$FIXTURE" commit --quiet -am "source change"
+  git -C "$FIXTURE" push --quiet origin chore/src-T009002
 
   # Branch 3 und 4: nur Allowlist-Abweichung; ausgeschlossen werden sie über PR bzw. Ticket
-  git checkout --quiet main && git checkout --quiet -b chore/openpr-T009003
-  echo "abweichend3" > openspec/changes/x/tasks.md
-  git commit --quiet -am "plan only"
-  git push --quiet origin chore/openpr-T009003
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" checkout --quiet -b chore/openpr-T009003
+  echo "abweichend3" > "$PLANDIR/tasks.md"
+  git -C "$FIXTURE" commit --quiet -am "plan only"
+  git -C "$FIXTURE" push --quiet origin chore/openpr-T009003
 
-  git checkout --quiet main && git checkout --quiet -b chore/openticket-T009004
-  echo "abweichend4" > openspec/changes/x/tasks.md
-  git commit --quiet -am "plan only"
-  git push --quiet origin chore/openticket-T009004
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" checkout --quiet -b chore/openticket-T009004
+  echo "abweichend4" > "$PLANDIR/tasks.md"
+  git -C "$FIXTURE" commit --quiet -am "plan only"
+  git -C "$FIXTURE" push --quiet origin chore/openticket-T009004
 
-  git checkout --quiet main
-  git fetch --quiet origin
+  git -C "$FIXTURE" checkout --quiet main
+  git -C "$FIXTURE" fetch --quiet origin
 
   # gh-Stub: offener PR existiert ausschliesslich fuer chore/openpr-T009003
   cat > "$STUBS/gh" <<'STUB'

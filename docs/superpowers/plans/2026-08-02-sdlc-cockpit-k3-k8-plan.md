@@ -4,7 +4,7 @@ plan_ref: null
 status: active
 date: 2026-08-02
 domains: [website, cockpit]
-ticket_ids: [T002462, T002463, T002465, T002466, T002467]
+ticket_ids: [T002462, T002463, T002465, T002467]
 ---
 
 # K3–K8 Cockpit — Planungsstand der offenen Kinder
@@ -37,13 +37,22 @@ Delta-Spec und Partial-Manifest wie K5 und K9.
 | K4 Steuerung | T002463 | offen |
 | **K5 Epic-Canvas** | T002464 | **erledigt** — PR #3593, archiviert als `openspec/changes/archive/2026-08-01-epic-canvas-k5` |
 | K6 Brain-Anbindung | T002465 | offen |
-| K7 Admin-Migration | T002466 | offen |
+| **K7 Admin-Migration** | T002466 | **erledigt** — PR #3563, `website/src/pages/admin/cockpit.astro` liegt auf `main` |
 | K8 Headed-Tests | T002467 | offen |
 | **K9 Stil-Datenbank** | T002468 | **erledigt** — PR #3594, archiviert als `openspec/changes/archive/2026-08-01-k9-stil-datenbank` |
 
-K5 und K9 stehen unten weiterhin, aber nur noch als Abgleich zwischen dem, was
-geplant war, und dem, was tatsächlich entstanden ist. Sie sind aus `ticket_ids`
-entfernt, damit die Planungswerkzeuge sie nicht als offene Arbeit führen.
+Offen sind damit **vier** Kinder: K3, K4, K6 und K8. K5, K7 und K9 stehen unten
+weiterhin, aber nur noch als Abgleich zwischen dem, was geplant war, und dem,
+was tatsächlich entstanden ist. Sie sind aus `ticket_ids` entfernt, damit die
+Planungswerkzeuge sie nicht als offene Arbeit führen.
+
+> **Dieses Dokument wird nicht automatisch in Agent-Prompts injiziert.**
+> `scripts/plan-context.sh` durchsucht ausschließlich `openspec/changes/`
+> (`CHANGES_DIR`, einzige Fundstelle). Wer eines der offenen Kinder beginnt,
+> muss den Planungsstand von Hand heranziehen — der Verweis darauf steht als
+> Kommentar an jedem Kind-Ticket. Die beiden Taskfile-Treffer auf
+> `superpowers/plans` sind bloße Usage-Beispiele in Hilfetexten, keine
+> Konsumenten. [T002527]
 
 ## K3 (T002462): Layout-Engine
 
@@ -103,7 +112,7 @@ Abweichungen im Ergebnis — für K3/K4/K6/K7, die auf denselben Annahmen aufbau
 
 - **Zielort ist `.lavish/kit/`, nicht `website/src/components/cockpit/`.** Das
   Kit ist die Stelle, an der Panels und Adapter tatsächlich liegen; die
-  Admin-Integration ist Gegenstand von K7.
+  Admin-Fläche daneben stammt aus K7.
 - **Der Export schreibt NICHT nach `openspec/changes/`.** Punkt 3 oben ist so
   nicht umgesetzt und war auch nicht umsetzbar: die Schreib-Endpunkte des
   Daemons sind bis K4 Stubs, und T002505 hat dem Browser die Schreibrechte
@@ -126,9 +135,11 @@ Hängt an K2.
 3. Auth-Hürde lösen: **Brain ist ein generiertes Wiki, keine API.** Der Zugang
    führt über oauth2-proxy-Session-Cookie oder einen eigenen Pocket-ID-Client
 
-## K7 (T002466): Admin-Migration — Cockpit übernimmt den Pipeline-Slot
+## K7 (T002466): Admin-Migration — ERLEDIGT
 
-Hängt an K2 und K3.
+_PR #3563 · `website/src/pages/admin/cockpit.astro` liegt auf `main`_
+
+Geplant war:
 
 | id | file | role | target_files | depends_on |
 |----|------|------|--------------|------------|
@@ -137,13 +148,16 @@ Hängt an K2 und K3.
 1. Cockpit wird Dachfläche im Admin-Menü
 2. Bestehende Seiten (`cockpit.astro`, `pipeline.astro`) gehen als Panels auf
 3. CSS-Schicht (`tokens.css`, `document.css`) bleibt geteilt
-4. Adapter-Schnitt aus K1/K2 nutzen für den Base-URL-Wechsel — der Adapter
-   spricht heute fest `http://127.0.0.1:49152`; im Admin-Kontext ist das ein
-   anderer Ursprung
+4. Adapter-Schnitt aus K1/K2 nutzen für den Base-URL-Wechsel
+
+> **Offen geblieben:** Punkt 4. Der Adapter spricht weiterhin fest
+> `http://127.0.0.1:49152` (`const BASE` in `.lavish/kit/adapter.js`). Im
+> Admin-Kontext ist das ein anderer Ursprung — wer K3 oder K6 baut, sollte das
+> nicht als gelöst voraussetzen.
 
 ## K8 (T002467): Optionale agentische Headed-Tests
 
-Hängt an K7.
+Hing an K7 — **das ist erledigt**, K8 ist damit nicht mehr blockiert.
 
 | id | file | role | target_files | depends_on |
 |----|------|------|--------------|------------|
@@ -184,18 +198,18 @@ Abweichungen im Ergebnis:
 
 ## File Structure
 
-Für die noch offenen Kinder. Die Pfade sind gegenüber dem ursprünglichen Entwurf
-korrigiert: K5 und K9 sind tatsächlich unter `.lavish/` entstanden, nicht unter
-`website/src/`. Die Admin-Integration ist Gegenstand von K7 — bis dahin lebt das
-Cockpit im Kit.
+Für die noch offenen Kinder K3, K4, K6 und K8. Die Pfade sind gegenüber dem
+ursprünglichen Entwurf korrigiert: K5 und K9 sind tatsächlich unter `.lavish/`
+entstanden, nicht unter `website/src/`. Die Admin-Fläche existiert seit K7
+(`website/src/pages/admin/cockpit.astro`), das Kit bleibt daneben der Ort für
+Panels, Adapter und Daemon.
 
 ```
 CHANGED:
   .lavish/kit/                          — K3, K4, K6
   .lavish/kit/daemon/                   — K4, K6
   .lavish/opencode-cockpit.html         — K3
-  website/src/pages/admin/              — K7
-  website/src/components/admin/         — K7
+  (K7 erledigt — website/src/pages/admin/cockpit.astro liegt auf main)
   .github/workflows/e2e.yml             — K8
 NEW:
   tests/e2e/cockpit-verification/       — K8

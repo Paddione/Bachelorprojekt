@@ -13,8 +13,16 @@ const brand = BRAND();
 <AdminLayout title="SDLC Cockpit">
   <link rel="stylesheet" href="/cockpit/kit/tokens.css">
   <link rel="stylesheet" href="/cockpit/kit/panel.css">
-  <script src="/cockpit/kit/panel.js"></script>
-  <script src="/cockpit/kit/adapter.js"></script>
+  {/*
+    [T002466] is:inline ist hier PFLICHT, nicht Stilfrage. Ohne das Attribut
+    zieht Astro das Script in den Bundle-Graph und bricht den Build ab:
+    "references an asset in the public/ directory". Die Kit-Dateien liegen
+    bewusst unter public/ — sie stammen aus .lavish/ (SSOT) und werden statisch
+    ausgeliefert, nicht mitkompiliert. Der Fehler faellt NUR beim Build auf;
+    vitest und `pnpm dev` laufen beide gruen daran vorbei.
+  */}
+  <script is:inline src="/cockpit/kit/panel.js"></script>
+  <script is:inline src="/cockpit/kit/adapter.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; }
     html, body { height: 100%; }

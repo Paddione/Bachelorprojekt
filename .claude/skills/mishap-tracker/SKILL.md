@@ -9,6 +9,20 @@ Batches all execution mishaps into **one aggregate ticket** rather than creating
 
 Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 
+### Branch-Naming-Konvention (T002240 — Groß-/Kleinschreibung)
+
+Beim Anlegen eines Mishap-Branches gilt:
+
+```bash
+ext_id="<T-ID aus ticket.sh>"       # z.B. T002239 — bleibt GROSS (pre-commit: T[0-9]{6,})
+slug=$(echo "$ext_id" | tr '[:upper:]' '[:lower:]')   # openspec-Slug bleibt lowercase
+branch="chore/mishap-<ext-id>"      # Branch-Name mit GROSSEM Ticket-Suffix
+# Beispiel: branch="chore/mishap-T002239"
+```
+
+- Der **Branch** trägt die Ticket-ID GROSS (`T[0-9]{6,}`) — sonst schlägt die pre-commit-Prüfung fehl.
+- Das **openspec-Verzeichnis** (slug) bleibt lowercase (Konvention).
+
 ---
 
 ## Input

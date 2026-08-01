@@ -2442,8 +2442,26 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/gemma-thinking-budget",
+    "file": "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy",
     "file": "tests/spec/local-llm-proxy.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/gemma-kv-quant",
+    "file": "tests/spec/local-llm-proxy/gemma-kv-quant.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/gemma-loadout-autorestart-queue",
+    "file": "tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -2820,6 +2838,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/daemon-token-endpoint-removed",
+    "file": "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/daemon-token-mode",
     "file": "tests/spec/sdlc-cockpit/daemon-token-mode.bats",
     "category": "sdlc-cockpit",
@@ -3056,6 +3080,12 @@
   {
     "id": "website-core",
     "file": "tests/spec/website-core.bats",
+    "category": "website-core",
+    "kind": "shell"
+  },
+  {
+    "id": "website-core/portrait-derivate-crop",
+    "file": "tests/spec/website-core/portrait-derivate-crop.bats",
     "category": "website-core",
     "kind": "shell"
   },

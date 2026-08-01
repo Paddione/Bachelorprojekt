@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 681,
+      "file_count": 682,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -336,6 +336,7 @@
         "tests/spec/billing-pipeline.bats",
         "tests/spec/brain-auto-memory.bats",
         "tests/spec/brain-foundation.bats",
+        "tests/spec/brain-foundation/k1-vector-db-doc.bats",
         "tests/spec/brain-gekko-inbox.bats",
         "tests/spec/brain-ingest.bats",
         "tests/spec/brain-initial-ingest.bats",

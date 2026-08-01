@@ -2028,6 +2028,12 @@
     "kind": "shell"
   },
   {
+    "id": "brain-foundation/k1-vector-db-doc",
+    "file": "tests/spec/brain-foundation/k1-vector-db-doc.bats",
+    "category": "brain-foundation",
+    "kind": "shell"
+  },
+  {
     "id": "brain-gekko-inbox",
     "file": "tests/spec/brain-gekko-inbox.bats",
     "category": "brain-gekko-inbox",

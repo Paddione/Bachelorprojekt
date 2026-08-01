@@ -382,13 +382,30 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   [ "$status" -eq 0 ]
 }
 
-@test "T002394: loadouts.json-Ports sind eindeutig" {
+@test "T002394/T002459: Ports sind eindeutig unter gleichzeitig lauffaehigen Loadouts" {
+  # Nicht global eindeutig: zwei Profile desselben Modells (gemma-factory und
+  # gemma-multiagent) teilen sich bewusst :8091, weil sie in derselben
+  # exclusiveGroup liegen und nie zusammen laufen. Geprueft wird deshalb, ob
+  # zwei Loadouts mit gleichem Port auch wirklich einander ausschliessen.
   run node -e '
-    const d=require("./scripts/llm/loadouts.json");
-    const ports=d.loadouts.map(l=>l.port);
-    if(new Set(ports).size!==ports.length){process.exit(1)}
+    const d = require("./scripts/llm/loadouts.json");
+    const withPort = d.loadouts.filter(l => l.port != null);
+    if (!withPort.length) { console.error("kein Loadout mit Port"); process.exit(2) }
+    const seen = new Map();
+    for (const l of withPort) {
+      const prev = seen.get(l.port);
+      if (prev === undefined) { seen.set(l.port, l.exclusiveGroup ?? null); continue }
+      if (prev == null || prev !== l.exclusiveGroup) {
+        console.error(`${l.slug}: Port ${l.port} doppelt, aber Gruppen ${prev} != ${l.exclusiveGroup}`);
+        process.exit(1)
+      }
+    }
+    console.log(`geprueft: ${withPort.length} Loadouts`);
   '
+  echo "$output"
   [ "$status" -eq 0 ]
+  # Positiv-Anker: exit 2 hiesse, es gab gar nichts zu pruefen.
+  [[ "$output" == *"geprueft: "* ]]
 }
 
 @test "T002394: server.mjs importiert loadouts/models/runner Module" {

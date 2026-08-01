@@ -60,15 +60,20 @@ $LlmDir  = Join-Path $RepoRoot 'scripts\llm'
 # Warum 262144/q8_0/1 Slot: gemessen unter T002297 - 262144 ist n_ctx_train,
 # q8_0 ist schneller als q4_0 (146,9 vs 138,0 t/s) und ein Slot maximiert den
 # Praefix-Reuse. -NoWait, weil der Watchdog selbst auf Health wartet.
+# GEMMA FEHLT SEIT T002459 BEWUSST: Gemma laeuft nicht mehr ueber dieses
+# Windows-Skript, sondern als Loadout ('gemma-factory'/'gemma-multiagent',
+# beide Port 8091) im Linux-llm-proxy (scripts/llm-proxy/). Der Autorestart
+# passiert dort nativ ueber 'systemd Restart=on-failure' (design.md D3).
+# ROLLBACK (design.md D5): diesen Commit per 'git revert' rueckgaengig machen
+# und '.\scripts\llm\start-gemma-server.ps1' erneut ausfuehren.
 # gpt-oss-20b (:8097) fehlt bewusst: zwei Chat-Server passen nicht auf die Karte.
 $Servers = @(
   @{ Name = 'bge-m3';   Port = 8095; Script = 'start-embed-server.ps1';  Args = '-NoWait' },
-  @{ Name = 'Reranker'; Port = 8096; Script = 'start-rerank-server.ps1'; Args = '-NoWait' },
-  @{ Name = 'Gemma';    Port = 8091; Script = 'start-gemma-server.ps1';  Args = '-Ctx 262144 -Slots 1 -KvType q8_0 -NoWait' },
-  # T002426 - Paar A (Batch, CPU). Stirbt es unbemerkt, faellt jeder Reindex still
-  # auf Paar B zurueck und konkurriert dort mit den interaktiven Anfragen - genau
-  # der Zustand, den dieser Vorgang beseitigt. Der Watchdog macht ihn sichtbar.
-  @{ Name = 'bge-m3-batch';   Port = 8085; Script = 'start-embed-batch-server.ps1';  Args = '-NoWait' },
+   @{ Name = 'Reranker'; Port = 8096; Script = 'start-rerank-server.ps1'; Args = '-NoWait' },
+   # T002426 - Paar A (Batch, CPU). Stirbt es unbemerkt, faellt jeder Reindex still
+   # auf Paar B zurueck und konkurriert dort mit den interaktiven Anfragen - genau
+   # der Zustand, den dieser Vorgang beseitigt. Der Watchdog macht ihn sichtbar.
+   @{ Name = 'bge-m3-batch';   Port = 8085; Script = 'start-embed-batch-server.ps1';  Args = '-NoWait' },
   @{ Name = 'Reranker-batch'; Port = 8086; Script = 'start-rerank-batch-server.ps1'; Args = '-NoWait' }
 )
 

@@ -24,7 +24,15 @@ alle Einträge listet. (K9, E14)
 
 - **GIVEN** ein Eintrag mit `beleg_ausschnitt`
 - **WHEN** der Beleg auf Farb-/Größenwerte geprüft wird
-- **THEN** enthält er ausschließlich Token-Bezüge (`--lv-*` / `--color-*`), keine festen Hex-/Pixel-Werte
+- **THEN** enthält er ausschließlich Token-Bezüge, keine festen Hex-/Pixel-Werte
+- **AND** jedes genannte Token ist in `.lavish/kit/tokens.css` definiert
+
+> Der Planentwurf nannte hier `--lv-*` / `--color-*`. Ein `--lv-`-Präfix
+> existiert im Repo nicht; maßgeblich sind die in `tokens.css` tatsächlich
+> definierten Namen (`--color-*`, `--space-*`, `--radius-*`, `--text-*`,
+> `--duration-*`, `--font-*`, `--ease-*`, `--leading-*`, `--weight-*`). Eine
+> feste Liste würde hier bei jeder Token-Ergänzung veralten — geprüft wird
+> deshalb gegen die Datei, nicht gegen eine Aufzählung.
 
 ### Requirement: Modell-Zugriff über Adapter und Daemon-Route
 

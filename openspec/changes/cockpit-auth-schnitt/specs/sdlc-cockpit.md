@@ -76,24 +76,64 @@ protection removed at the edge is restored at the API.
 - **THEN** the response carries an `error` field
 - **AND** an empty result set remains distinguishable from a failure (D13)
 
-### Requirement: The adapter's base address follows its host context
+### Requirement: The adapter resolves each endpoint's host separately
 
-The system SHALL resolve the data adapter's base address from the context it
-runs in: the website's own origin when served from the admin page, the local
-daemon when served standalone. The address SHALL NOT be a fixed constant.
+The system SHALL decide **per endpoint** which host serves it, not by a single
+base address for all of them. Each endpoint SHALL declare whether its data is
+available from the website, only from the local daemon, or from both.
 
-This closes the open remainder of K7 — the adapter currently hardcodes
-`http://127.0.0.1:49152`, which is a foreign origin for a page served from the
-website.
+A single base switch is not sufficient and would break the admin page: of the
+eight endpoints the adapter requests today, the website serves only three
+(`portfolio`, `pods-list`, `factory-control`). Switching the base wholesale
+would leave five panels on `404`.
 
-#### Scenario: Served from the admin page
+The split follows from where the data actually lives, not from preference:
 
-- **GIVEN** the cockpit is served from the website's admin area
-- **WHEN** the adapter requests data
+| Endpoint | Source | Available from |
+|---|---|---|
+| `portfolio`, `pods-list`, `factory-control` | database, kubectl, factory | website (exists today) |
+| `epics` | ticket database | website (buildable) |
+| `styles` | repository files | website (buildable) |
+| `ci` | GitHub API | website (buildable) |
+| `agents` | local agent locks in the checkout's `git-common-dir` | **local daemon only** |
+| `models` | local model health ports on `127.0.0.1` | **local daemon only** |
+
+`agents` and `models` are not merely unbuilt on the website — they read state
+that exists only on a developer machine. They SHALL remain daemon-only.
+
+#### Scenario: A website-backed endpoint is served by the website
+
+- **GIVEN** the cockpit is served from the admin area
+- **WHEN** the adapter requests an endpoint the website serves
 - **THEN** it addresses the website's own origin
 
-#### Scenario: Served standalone
+#### Scenario: A daemon-only endpoint is not silently requested from the website
+
+- **GIVEN** the cockpit is served from the admin area
+- **WHEN** a panel needs a daemon-only endpoint
+- **THEN** the adapter does not request it from the website
+- **AND** the panel reports that the source is unavailable in this context,
+  rather than showing an empty result (D13)
+
+#### Scenario: Standalone serves everything from the daemon
 
 - **GIVEN** the cockpit is served as a standalone page
-- **WHEN** the adapter requests data
+- **WHEN** the adapter requests any endpoint
 - **THEN** it addresses the local daemon
+
+### Requirement: The website reaches Brain through an explicit ingress policy
+
+The system SHALL carry a NetworkPolicy that allows ingress from the `website`
+namespace to the `brain` pod on its container port. Without it the request is
+dropped: the `workspace` namespace carries `allow-intra-namespace-ingress` with
+an empty pod selector, which denies everything from outside by default. Every
+other service the website reaches has such a policy
+(`allow-website-to-{shared-db,pocket-id,nextcloud,vaultwarden,docuseal}-ingress`);
+`brain` is the one that is missing.
+
+#### Scenario: The website reaches the Brain service
+
+- **GIVEN** the website pod and the brain pod are running
+- **WHEN** the website requests the brain service on its container port
+- **THEN** the connection succeeds
+- **AND** it does not pass through the `oauth2-proxy` edge

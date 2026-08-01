@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 681,
+      "file_count": 682,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -347,6 +347,7 @@
         "tests/spec/centralized-logging.bats",
         "tests/spec/chat-inbox.bats",
         "tests/spec/ci-cd.bats",
+        "tests/spec/ci-cd/branch-reaper.bats",
         "tests/spec/ci-cd/changed-tests-collection-parity.bats",
         "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
         "tests/spec/ci-cd/mishap-t002425.bats",
@@ -3018,7 +3019,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 601,
+      "file_count": 602,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3113,6 +3114,7 @@
         "scripts/brainstorm-bridge.sh",
         "scripts/brainstorm-companion-harden.sh",
         "scripts/brainstorm-extract-choice.sh",
+        "scripts/branch-reaper.sh",
         "scripts/brett-bot-setup.sh",
         "scripts/build-api-map.mjs",
         "scripts/build-blast-radius.mjs",

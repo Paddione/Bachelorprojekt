@@ -56,6 +56,24 @@ git fetch --prune                                                  # gone remote
 > done
 > ```
 
+### Verwaiste Remote-Branches (ohne PR) [T002520]
+
+`--merged` und `[gone]` erfassen nur Branches, die selbst gemergt wurden. Plan- und
+Factory-Branches laufen aber häufig über einen Sammel-PR nach `main` — auf ihrem eigenen Ref
+findet nie ein Merge statt, also bleiben sie liegen (am 2026-08-01: 24 von 26 Remote-Branches
+ohne jeden PR). Diese Fälle deckt `scripts/branch-reaper.sh` ab; im Post-Merge-Workflow läuft er
+automatisch, manuell zum Nachsehen:
+
+```bash
+bash scripts/branch-reaper.sh --ticket T00XXXX --dry-run   # zeigt REAP-/KEEP-Zeilen mit Begründung
+bash scripts/branch-reaper.sh --ticket T00XXXX             # löscht, nach Archiv-Tag-Push
+```
+
+Gelöscht wird nur, wenn kein offener PR existiert, das Ticket `done`/`archived` ist **und** jede
+Blob-Abweichung zu `main` in der Allowlist des Skripts liegt (Plan- und Generat-Pfade). Beide
+Signale sind nötig: „Blob-Diff leer" allein hätte 1 von 20 realen Leichen erfasst, „Ticket done"
+allein hätte auch die einzige Kopie eines nie gemergten Deliverables gelöscht (T002431).
+
 ## 3. PR-Triage → verknüpftes Ticket schließen
 
 ```bash

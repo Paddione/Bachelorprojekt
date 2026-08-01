@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.232.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.231.0...website-v1.232.0) (2026-08-01)
+
+
+### Features
+
+* **agents:** K5 Epic-Canvas lauffähig machen — Route registrieren, exec-API, E1 [T002464] ([#3593](https://github.com/Paddione/Bachelorprojekt/issues/3593)) ([6574972](https://github.com/Paddione/Bachelorprojekt/commit/65749723becc4f6829396577053db13332ab6af4))
+* **agents:** K9 Stil-Datenbank — Datenebene, Beitragspfad und Zugriff [T002468] ([#3594](https://github.com/Paddione/Bachelorprojekt/issues/3594)) ([4895597](https://github.com/Paddione/Bachelorprojekt/commit/48955976789d61b17ec6ade28b9bd9c41221dc30))
+
+
+### Bug Fixes
+
+* **scripts:** Fetch-TTL-Guard für cmd_reap-Netzwerk-Fetch [T002502] ([#3592](https://github.com/Paddione/Bachelorprojekt/issues/3592)) ([2fad692](https://github.com/Paddione/Bachelorprojekt/commit/2fad69287c1cecb804bd8c155d2417158ff6a7a4))
+* **scripts:** Reap-Regel 0b an Heartbeat-TTL koppeln [T002513] ([#3595](https://github.com/Paddione/Bachelorprojekt/issues/3595)) ([9dfce98](https://github.com/Paddione/Bachelorprojekt/commit/9dfce9888a4857612c075a4ae6f38df70431f3d3))
+
 ## [1.231.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.230.0...website-v1.231.0) (2026-08-01)
 
 

@@ -1908,6 +1908,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-behavior/collision-own-worktree",
+    "file": "tests/spec/agent-behavior/collision-own-worktree.bats",
+    "category": "agent-behavior",
+    "kind": "shell"
+  },
+  {
     "id": "agent-collision-false-positives",
     "file": "tests/spec/agent-collision-false-positives.bats",
     "category": "agent-collision-false-positives",

@@ -36,7 +36,16 @@ git fetch --prune                                                  # gone remote
 > git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
 >   | awk '$2 == "[gone]" {print $1}' \
 >   | while read -r b; do
->       merged=$(gh pr list --head "$b" --state merged --json number -q '.[0].number')
+>       # Exit-Code auswerten, NICHT die leere Ausgabe [T002523-M7]: "gh sagt kein
+>       # gemergter PR" und "gh konnte nicht antworten" erzeugen beide eine leere
+>       # Ausgabe. Der Fehlerfall saehe sonst aus wie ein gueltiger Messwert. Real
+>       # beobachtet: mitten in einer Schleife ueber 13 Branches brach gh mit
+>       # "error connecting to api.github.com" ab; der betroffene Branch galt als
+>       # "kein PR", obwohl sein PR gemergt war.
+>       if ! merged=$(gh pr list --head "$b" --state merged --json number -q '.[0].number' 2>&1); then
+>         echo "SKIP $b — gh-Abfrage fehlgeschlagen: $(printf '%s' "$merged" | head -1)"
+>         continue
+>       fi
 >       if [ -n "$merged" ]; then
 >         git branch -D "$b"   # safe: PR #$merged merged, remote gone
 >       else
@@ -45,6 +54,17 @@ git fetch --prune                                                  # gone remote
 >     done
 > ```
 > Nur `-D` (force) funktioniert hier — git sieht die Squash-History nicht.
+>
+> **Remote-Löschungen bündeln [T002523-M8]:** Ab etwa einem Dutzend Branches ist die
+> Schleifenform mit je einem `git push origin --delete <branch>` nicht mehr praktikabel —
+> jeder Push ist eine eigene Netzrunde und triggert die lokalen pre-push-Hooks (u. a.
+> `task quality:check`). Bei 20 Branches lief das real nach 12 Löschungen in ein
+> Zwei-Minuten-Limit und hinterließ eine halb erledigte Aufgabe. Erst alle Kandidaten
+> **prüfen**, dann in **einem** Aufruf löschen:
+> ```bash
+> git push origin $(for b in $KANDIDATEN; do echo ":$b"; done)
+> ```
+> Der Prüfteil bleibt pro Branch, nur der Schreibteil wird gebündelt.
 >
 > **Zeitzonen-Falle bei Nach-Merge-Commits [T002495-M1]:** `gh pr list --json mergedAt` liefert UTC (`Z`-Suffix), `git log --format='%cI'` lokale Offset-Zeit. Vor dem Vergleichen beide auf UTC normalisieren (`TZ=UTC git log -1 --format='%cd' --date=format-local:'%Y-%m-%dT%H:%M:%SZ'`), sonst meldet der Vergleich falsche Nach-Merge-Commits.
 >

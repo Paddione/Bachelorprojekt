@@ -98,6 +98,17 @@ cmd_check() {
   local mysid d; mysid="$(_my_sid)"; d="$(_lock_dir)"
   [ -d "$d" ] || return 0
 
+  # [T002523-M2] Der eigene Arbeitsbaum als zweites Identitaetsmerkmal neben der SID.
+  # Der SID-Vergleich unten allein genuegt nicht: beim Claim wird AGENT_LOCK_SID als
+  # harness-vergebene Session-UUID gesetzt und im Lock gespeichert, beim pre-commit-Aufruf
+  # ist die Variable nicht gesetzt — _my_sid() faellt dann auf die numerische `ps -o sess=`
+  # zurueck. Eine UUID ist nie gleich einer Zahl, der Skip greift nicht, und die eigene
+  # Session wird als Kollision gegen sich selbst gemeldet (beobachtet bei T002507: sieben
+  # Warnungen, die alle den committenden Worktree selbst nannten). Solche Fehlalarme sind
+  # nicht bloss Rauschen — wer das Muster kennt, liest die echte Warnung nicht mehr.
+  local mywt=""
+  mywt="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+
   local found=0 f sid pid wt peer file
   declare -A seen
   for f in "$d"/*.json; do
@@ -108,6 +119,12 @@ cmd_check() {
     [ "$sid" = "$mysid" ] && continue
     _sid_alive "$sid" || continue
     wt="$(_field "$f" worktree)"
+    # Eigener Baum → nie eine Kollision, unabhaengig davon, welche SID im Lock steht.
+    if [ -n "$mywt" ] && [ -n "$wt" ] && [ "$wt" != "-" ]; then
+      if [ "$wt" = "$mywt" ] || [ "$(cd "$wt" 2>/dev/null && pwd -P)" = "$(cd "$mywt" 2>/dev/null && pwd -P)" ]; then
+        continue
+      fi
+    fi
     [ -n "$wt" ] && [ "$wt" != "-" ] && [ -d "$wt" ] || continue
     git -C "$wt" rev-parse --git-dir >/dev/null 2>&1 || continue
     # [M3 T002506] Lock↔Worktree-Zuordnung validieren: der Worktree-Pfad im Lock

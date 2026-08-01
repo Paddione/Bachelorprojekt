@@ -802,7 +802,7 @@ tasks:
           echo "→ Running changed spec tests ($SELECTED of $TOTAL):"
         fi
         echo "$CHANGED_FILES"
-        ./tests/unit/lib/bats-core/bin/bats $CHANGED_FILES
+        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $CHANGED_FILES
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"

@@ -63,13 +63,23 @@ export async function deleteCanvas(epicId) {
   });
 }
 
-// OF1: Prüft, ob openspec/changes/ seit Export geändert wurde
+// OF1: Prüft, ob openspec/changes/ seit dem letzten Export geändert wurde.
+//
+// Der Aufruf geht über window.data (adapter.js), nicht über ein eigenes fetch().
+// E1 verlangt das, und hier zeigt sich auch warum: die Kit-Seiten werden von
+// file:// geladen, ein relativer Pfad wie '/api/cockpit/…' hätte den Daemon auf
+// 127.0.0.1:49152 also nie erreicht. Die Basis-URL kennt nur der Adapter.
+//
+// Ohne Adapter (z.B. im Unit-Test) ist die konservative Antwort `true`:
+// "möglicherweise geändert" führt zur Rückfrage, `false` würde stillschweigend
+// zum Überschreiben raten.
 export async function hasExternalChanges(epicId, lastExportTs) {
+  const adapter = typeof window !== 'undefined' ? window.data : undefined;
+  if (!adapter || typeof adapter.epicChangesSince !== 'function') return true;
+
   try {
-    const res = await fetch(`/api/cockpit/epics/${epicId}/changes-since?ts=${encodeURIComponent(lastExportTs)}`);
-    if (!res.ok) return true;
-    const data = await res.json();
-    return data.hasChanges;
+    const result = await adapter.epicChangesSince(epicId, lastExportTs);
+    return result.hasChanges !== false;
   } catch {
     return true;
   }

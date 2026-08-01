@@ -1,40 +1,15 @@
-// routes/epics.ts — GET /api/cockpit/epics (K5)
+// routes/epics.ts — GET /api/cockpit/epics, GET /api/cockpit/epics/:id/changes-since (K5)
+//
+// Duenne Hono-Schicht ueber sources/epics.ts. Die Daten-Beschaffung liegt
+// bewusst dort, weil `hono` in keiner package.json deklariert ist und ein Test,
+// der diese Datei importiert, damit in CI nicht lauffaehig waere.
 import type { Context } from 'hono';
-import { exec } from '../lib/exec';
 import { setCache, getCached, isFresh } from '../lib/cache';
+import { getEpics, hasChangesSince, isValidIsoTimestamp, type EpicSummary } from '../sources/epics';
 
-export interface EpicSummary {
-  id: string;
-  title: string;
-  status: string;
-  priority: string;
-  childCount: number;
-}
+export type { EpicSummary };
 
-async function fetchEpics(): Promise<EpicSummary[]> {
-  const result = await exec(
-    'bash scripts/vda/ticket.sh list --type project,feat --status planning,plan_staged,in_progress --json 2>/dev/null || echo "[]"',
-    10000
-  );
-
-  if (!result.ok || !result.stdout) {
-    return [];
-  }
-
-  try {
-    const tickets = JSON.parse(result.stdout);
-    const epics = Array.isArray(tickets) ? tickets : (tickets.tickets || []);
-    return epics.map((t: any) => ({
-      id: t.external_id || t.id || '',
-      title: t.title || '',
-      status: t.status || 'unknown',
-      priority: t.priority || 'mittel',
-      childCount: 0,
-    }));
-  } catch {
-    return [];
-  }
-}
+const BRAND = 'mentolder'; // E16, wie im Adapter
 
 export async function epicsHandler(c: Context) {
   try {
@@ -43,26 +18,45 @@ export async function epicsHandler(c: Context) {
       return c.json({ epics: cached.data, fetchedAt: cached.fetchedAt });
     }
 
-    const epics = await fetchEpics();
+    const epics = await getEpics(BRAND);
     const entry = setCache('epics', epics, 60_000);
     return c.json({ epics, fetchedAt: entry.fetchedAt });
   } catch (e: any) {
+    // D13: der Fehler wird benannt, statt als leere Liste getarnt zu werden.
     return c.json({ error: e.message, fetchedAt: new Date().toISOString() });
   }
 }
 
+/**
+ * OF1 — wurde openspec/changes/ seit dem letzten Canvas-Export veraendert?
+ *
+ * Der Canvas darf nur die Teile ueberschreiben, die er selbst verfasst hat. Wo
+ * das nicht sicher entscheidbar ist, muss der Nutzer gefragt werden — deshalb
+ * ist die konservative Antwort hier `hasChanges: true`. Ein fehlender oder
+ * ungueltiger Zeitstempel ist KEIN Freibrief: ohne Bezugspunkt laesst sich
+ * nichts ausschliessen, also gilt "moeglicherweise geaendert". Die
+ * Vorgaengerfassung antwortete bei fehlendem ts mit `hasChanges: false` und
+ * haette damit ausgerechnet im unklarsten Fall zum Ueberschreiben geraten.
+ */
 export async function epicsChangesSinceHandler(c: Context) {
   const ts = c.req.query('ts');
-  if (!ts) return c.json({ hasChanges: false });
+
+  if (!ts || !isValidIsoTimestamp(ts)) {
+    return c.json({
+      hasChanges: true,
+      reason: 'kein gueltiger Bezugszeitpunkt',
+      fetchedAt: new Date().toISOString(),
+    });
+  }
 
   try {
-    const result = await exec(
-      `git log --oneline --since="${ts}" -- openspec/changes/ 2>/dev/null | wc -l`,
-      5000
-    );
-    const count = parseInt(result.stdout, 10);
-    return c.json({ hasChanges: count > 0 });
-  } catch {
-    return c.json({ hasChanges: true });
+    const hasChanges = await hasChangesSince(ts);
+    return c.json({ hasChanges, fetchedAt: new Date().toISOString() });
+  } catch (e: any) {
+    return c.json({
+      hasChanges: true,
+      error: e.message,
+      fetchedAt: new Date().toISOString(),
+    });
   }
 }

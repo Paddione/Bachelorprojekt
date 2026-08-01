@@ -1,5 +1,5 @@
 // panel-epic-canvas.js — K5 Epic-Canvas Panel
-import { getCanvas, saveCanvas, getAllCanvases, hasExternalChanges, recordExport } from './canvas-store.js';
+import { saveCanvas, getAllCanvases, hasExternalChanges, recordExport } from './canvas-store.js';
 
 export class EpicCanvas {
   constructor(container, options = {}) {
@@ -19,26 +19,68 @@ export class EpicCanvas {
 
   async loadEpics() {
     try {
-      const res = await fetch('/api/cockpit/epics');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      this.epics = data.epics || [];
-      // Merge with canvas-store data
-      const canvases = await getAllCanvases();
-      for (const epic of this.epics) {
-        const stored = canvases.find(c => c.epicId === epic.id);
-        if (stored) {
-          epic.description = stored.description || '';
-          epic.nextStep = stored.nextStep || '';
-          epic.notes = stored.notes || '';
-          epic.lastExportAt = stored.lastExportAt;
-        }
+      // E1: über den Adapter, nie per eigenem fetch(). Der Adapter kennt die
+      // Daemon-Basis-URL — die Kit-Seiten laufen von file://, ein relativer
+      // Pfad ginge dort ins Leere.
+      if (!window.data || typeof window.data.epics !== 'function') {
+        throw new Error('Adapter (window.data.epics) nicht verfügbar');
       }
-      this.renderList();
+      // Der Adapter liefert ein Poll-Handle mit `subscribe`, NICHT mit
+      // `fetchNow`; der erste Abruf startet beim Anlegen von selbst. Die Liste
+      // aktualisiert sich dadurch weiter, ohne dass das Panel selbst pollt.
+      this.epicsHandle = window.data.epics({ refreshMs: 60000 });
+      this.unsubscribeEpics = this.epicsHandle.subscribe((data) => {
+        this.onEpicsData(data).catch((e) => this.showError(e.message));
+      });
     } catch (e) {
-      const list = this.container.querySelector('.epic-canvas-list');
-      if (list) list.innerHTML = `<div class="epic-canvas-error">Fehler beim Laden: ${e.message}</div>`;
+      this.showError(e.message);
     }
+  }
+
+  async onEpicsData(data) {
+    if (!data) return;
+    // D13: ein Fehler wird angezeigt, nicht als leere Epic-Liste getarnt.
+    if (data.error) {
+      this.showError(data.error);
+      return;
+    }
+
+    this.epics = data.epics || [];
+    // Canvas-Daten aus IndexedDB dazumischen
+    const canvases = await getAllCanvases();
+    for (const epic of this.epics) {
+      const stored = canvases.find((c) => c.epicId === epic.id);
+      if (stored) {
+        epic.description = stored.description || '';
+        epic.nextStep = stored.nextStep || '';
+        epic.notes = stored.notes || '';
+        epic.lastExportAt = stored.lastExportAt;
+      }
+    }
+    this.renderList();
+  }
+
+  showError(message) {
+    const list = this.container.querySelector('.epic-canvas-list');
+    if (!list) return;
+    // textContent statt innerHTML: `message` stammt aus einer Daemon-Antwort
+    // (Fehlertexte enthalten u.a. stderr-Ausschnitte) und ist damit nichts,
+    // was als Markup interpretiert werden darf.
+    list.replaceChildren();
+    const box = document.createElement('div');
+    box.className = 'epic-canvas-error';
+    box.textContent = `Fehler beim Laden: ${message}`;
+    list.appendChild(box);
+  }
+
+  /** Poll beenden, wenn das Panel verschwindet — sonst laeuft er weiter. */
+  destroy() {
+    if (this.unsubscribeEpics) this.unsubscribeEpics();
+    if (this.epicsHandle && window.data && typeof window.data.unsubscribe === 'function') {
+      window.data.unsubscribe(this.epicsHandle);
+    }
+    this.unsubscribeEpics = null;
+    this.epicsHandle = null;
   }
 
   render() {
@@ -117,16 +159,70 @@ export class EpicCanvas {
           if (!confirm('openspec/changes/ wurde seit dem letzten Export geändert. Trotzdem exportieren?')) return;
         }
       }
-      const desc = list.querySelector('.epic-desc').value;
+      // Der Export laeuft clientseitig als Datei-Download, nicht ueber eine
+      // Schreib-Route.
+      //
+      // Zwei Gruende. Erstens liegen die Canvas-Daten ohnehin schon im Browser
+      // (IndexedDB) — ein Server-Rundlauf haette nichts hinzugefuegt. Zweitens
+      // sind die Schreib-Endpunkte des Daemons bewusst Stubs bis K4, und
+      // T002505 hat dem Browser die Schreibrechte gezielt entzogen (CORS
+      // erlaubt Origin 'null', der Token liegt nur noch in einer 0600-Datei).
+      // Eine Route, die von hier aus in openspec/changes/ schreibt, waere genau
+      // der Datenvernichter, vor dem OF1 warnt.
+      //
+      // Die heruntergeladene Datei traegt nur die Teile, die der Canvas selbst
+      // verfasst — proposal.md und tasks.md bleiben unberuehrt.
       try {
-        const res = await fetch('/api/cockpit/epics/export', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ epicId: epic.id, description: desc }),
+        const markdown = this.buildExportMarkdown(epic, {
+          description: list.querySelector('.epic-desc').value,
+          nextStep: list.querySelector('.epic-nextstep').value,
+          notes: list.querySelector('.epic-notes').value,
         });
-        if (res.ok) await recordExport(epic.id);
-      } catch { /* silent */ }
+        this.downloadFile(`${epic.id}-canvas.md`, markdown);
+        await recordExport(epic.id);
+      } catch (e) {
+        this.showError(`Export fehlgeschlagen: ${e.message}`);
+      }
     };
+  }
+
+  /**
+   * Rendert die canvas-eigenen Felder als Markdown. Bewusst NUR diese Felder:
+   * die Eigentumsgrenze aus OF1 verlaeuft zwischen dem, was der Canvas verfasst,
+   * und dem, was Agenten und CI waehrend der Umsetzung an den OpenSpec-Dateien
+   * fortschreiben.
+   */
+  buildExportMarkdown(epic, fields) {
+    const lines = [
+      `# ${epic.id} — ${epic.title}`,
+      '',
+      `_Status: ${epic.status} · Prioritaet: ${epic.priority}_`,
+      `_Exportiert am ${new Date().toISOString()} aus dem Epic-Canvas (K5)._`,
+      '',
+      '## Beschreibung',
+      '',
+      fields.description || '_(leer)_',
+      '',
+      '## Naechster Schritt',
+      '',
+      fields.nextStep || '_(leer)_',
+      '',
+      '## Notizen',
+      '',
+      fields.notes || '_(leer)_',
+      '',
+    ];
+    return lines.join('\n');
+  }
+
+  downloadFile(filename, content) {
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   esc(s) {

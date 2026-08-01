@@ -3,12 +3,10 @@
 # no-silent-fallback.bats — D13: Kein Null/Strich/Beispielwert bei Fehler
 # MIT POSITIV-ANKER (T002356-M1)
 
+load daemon-helper
+
 setup() {
-  DAEMON_PORT=${COCKPIT_DAEMON_PORT:-49152}
-  BASE="http://127.0.0.1:${DAEMON_PORT}"
-  if ! curl -s -m 2 "${BASE}/health" >/dev/null 2>&1; then
-    skip "Daemon not running (no /health on ${BASE})"
-  fi
+  require_daemon || return 1
 }
 
 @test "D13 POSITIV-ANKER: valid response has NO error field" {

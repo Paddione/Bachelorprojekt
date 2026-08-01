@@ -270,11 +270,47 @@ jobs:
       - name: Install PyYAML for CI-CD guard assertions
         run: python3 -m pip install --quiet pyyaml
 
+      # Ohne laufenden Daemon skippten 24 der 41 sdlc-cockpit-Tests dauerhaft,
+      # darunter alle Route- und Security-Guards aus T002505. Ein bats-skip ist
+      # ein `ok`, die Suite war also gruen, ohne je eine Route zu beruehren
+      # [T002508]. Der Start gehoert in JEDEN Shard: welcher Shard die
+      # Cockpit-Dateien zieht, ist nicht garantiert.
+      #
+      # Kein `|| true`: schlaegt der Start fehl, muss der Job abbrechen. Ein
+      # geschluckter Fehler brächte genau den stillen Zustand zurueck, den
+      # dieser Schritt beendet.
+      - name: Start cockpit daemon (shard ${{ matrix.shard }}/4)
+        run: task cockpit:daemon
+
+      # [T002517] Diagnose: Auf Shard 1 konnte GNU parallel (von `bats -j`
+      # genutzt) keinen einzigen Ausgabepuffer nach /tmp schreiben — "Cannot
+      # append to buffer file in /tmp", 0 statt 454 Tests ausgefuehrt, waehrend
+      # die Shards 2-4 im selben Lauf sauber durchliefen. Ohne Zahlen ist nicht
+      # entscheidbar, ob /tmp wirklich voll ist, wer es fuellt, oder ob es ein
+      # Rechteproblem ist. Der Schritt schlaegt bewusst NIE fehl.
+      - name: Diagnose /tmp (shard ${{ matrix.shard }}/4)
+        if: always()
+        run: |
+          echo "── df ──"; df -h /tmp / || true
+          echo "── inodes ──"; df -i /tmp / || true
+          echo "── groesste Eintraege in /tmp ──"
+          du -sh /tmp/* 2>/dev/null | sort -rh | head -15 || true
+          echo "── Schreibprobe ──"
+          if head -c 10M /dev/zero > /tmp/.wtest 2>/dev/null; then
+            echo "10M schreibbar"; rm -f /tmp/.wtest
+          else
+            echo "SCHREIBEN FEHLGESCHLAGEN"
+          fi
+          echo "── TMPDIR=${TMPDIR:-<nicht gesetzt>} ──"
+
       # Fail closed: ist origin/main nicht erreichbar, waere der Diff leer und
       # wuerde still nichts auswaehlen — dann lieber alles laufen lassen.
       - name: Spec BATS suite (shard ${{ matrix.shard }}/4)
         env:
           IS_PR: ${{ github.event_name == 'pull_request' }}
+          # Macht das Gate fail-closed: ein nicht erreichbarer Daemon laesst die
+          # betroffenen Tests durchfallen, statt sie zu ueberspringen.
+          COCKPIT_DAEMON_REQUIRED: '1'
         run: |
           if [ "$IS_PR" = "true" ] && git rev-parse --verify -q refs/remotes/origin/main >/dev/null; then
             task test:spec:changed

@@ -2850,6 +2850,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/daemon-runtime-contract",
+    "file": "tests/spec/sdlc-cockpit/daemon-runtime-contract.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/daemon-token-endpoint-removed",
     "file": "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
     "category": "sdlc-cockpit",

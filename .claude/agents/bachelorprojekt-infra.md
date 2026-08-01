@@ -13,6 +13,8 @@ model: opus
 # friends. Neither entry resolved, so every dispatch to this agent failed and had
 # to fall back to general-purpose — which also lost the `opus` tier this agent
 # carries precisely because its domain is cross-system and irreversible.
+# [T002494] Gate G-AGENTIC01 misst seit T002494 nicht mehr die Anwesenheit des
+# Keys, sondern ins Leere zeigende Eintraege; dieser Zustand loest das Gate nicht mehr aus.
 ---
 
 ## Library

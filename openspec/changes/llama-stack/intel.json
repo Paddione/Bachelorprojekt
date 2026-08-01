@@ -1,0 +1,283 @@
+{
+  "meta": {
+    "slug": "llama-stack",
+    "ticket_id": "T002420",
+    "generated_from": "main@f74828a7e",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/llm-proxy/loadouts.mjs",
+      "language": "javascript",
+      "loc": 100,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 700
+    },
+    {
+      "path": "scripts/llm-proxy/loadouts.test.mjs",
+      "language": "javascript",
+      "loc": 106,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 694
+    },
+    {
+      "path": "scripts/llm-proxy/runner.mjs",
+      "language": "javascript",
+      "loc": 110,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 690
+    },
+    {
+      "path": "scripts/llm-proxy/runner.test.mjs",
+      "language": "javascript",
+      "loc": 125,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 675
+    },
+    {
+      "path": "scripts/llm-proxy/server.mjs",
+      "language": "javascript",
+      "loc": 398,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 402
+    },
+    {
+      "path": "scripts/llm-proxy/server.test.mjs",
+      "language": "javascript",
+      "loc": 166,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 634
+    },
+    {
+      "path": "scripts/llm/install-startup-autostart.ps1",
+      "language": "text",
+      "loc": 173,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/loadouts.json",
+      "language": "config",
+      "loc": 80,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/watchdog-llm-servers.ps1",
+      "language": "text",
+      "loc": 234,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy.bats",
+      "language": "bash",
+      "loc": 411,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:23:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "23:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }(...)",
+      "type_text": "23:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:25:function validateLoadout(l, index, seen) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "25:function validateLoadout(l, index, seen) {(...)",
+      "type_text": "25:function validateLoadout(l, index, seen) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:24:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "24:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "type_text": "24:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:43:function semFor(name) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "43:function semFor(name) {(...)",
+      "type_text": "43:function semFor(name) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:49:function acquire(name, limit) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "49:function acquire(name, limit) {(...)",
+      "type_text": "49:function acquire(name, limit) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:55:function release(name) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "55:function release(name) {(...)",
+      "type_text": "55:function release(name) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:62:function enqueue(name, limit, fn) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "62:function enqueue(name, limit, fn) {(...)",
+      "type_text": "62:function enqueue(name, limit, fn) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:69:function inflightOf(name) { return sems.get(name)?.inflight ?? 0; }",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "69:function inflightOf(name) { return sems.get(name)?.inflight ?? 0; }(...)",
+      "type_text": "69:function inflightOf(name) { return sems.get(name)?.inflight ?? 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:125:function sendJson(res, status, obj) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "125:function sendJson(res, status, obj) {(...)",
+      "type_text": "125:function sendJson(res, status, obj) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:190:function resolveModelPath(doc, loadout) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "190:function resolveModelPath(doc, loadout) {(...)",
+      "type_text": "190:function resolveModelPath(doc, loadout) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:239:function portInUse(doc, port, exceptSlug) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "239:function portInUse(doc, port, exceptSlug) {(...)",
+      "type_text": "239:function portInUse(doc, port, exceptSlug) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:392:function shutdown(signal) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "392:function shutdown(signal) {(...)",
+      "type_text": "392:function shutdown(signal) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:394:  stopBridge();",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "394:  stopBridge();(...)",
+      "type_text": "394:  stopBridge();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:10:_start_stub() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "10:_start_stub() {(...)",
+      "type_text": "10:_start_stub() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }(...)",
+      "type_text": "31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:33:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "33:setup() {(...)",
+      "type_text": "33:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:48:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "48:teardown() {(...)",
+      "type_text": "48:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:53:_start_proxy() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "53:_start_proxy() {(...)",
+      "type_text": "53:_start_proxy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:73:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "73:_skip_if_no_db() {(...)",
+      "type_text": "73:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:158:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "158:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "type_text": "158:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

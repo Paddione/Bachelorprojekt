@@ -1962,6 +1962,12 @@
     "kind": "shell"
   },
   {
+    "id": "agentic-tooling-quality-goals/g-agentic01-unresolved-tools",
+    "file": "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",
+    "category": "agentic-tooling-quality-goals",
+    "kind": "shell"
+  },
+  {
     "id": "agentic-trends-radar",
     "file": "tests/spec/agentic-trends-radar.bats",
     "category": "agentic-trends-radar",
@@ -2108,6 +2114,12 @@
   {
     "id": "ci-cd/spec-dir-convention",
     "file": "tests/spec/ci-cd/spec-dir-convention.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/spec-shard-partition",
+    "file": "tests/spec/ci-cd/spec-shard-partition.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2310,6 +2322,24 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/firewall-program-match",
+    "file": "tests/spec/fleet-operations/firewall-program-match.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/powershell-ascii-only",
+    "file": "tests/spec/fleet-operations/powershell-ascii-only.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/wg-gpu-pod-cidr",
+    "file": "tests/spec/fleet-operations/wg-gpu-pod-cidr.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",
@@ -2412,8 +2442,26 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/gemma-thinking-budget",
+    "file": "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy",
     "file": "tests/spec/local-llm-proxy.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/gemma-kv-quant",
+    "file": "tests/spec/local-llm-proxy/gemma-kv-quant.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/gemma-loadout-autorestart-queue",
+    "file": "tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -2790,6 +2838,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/daemon-token-endpoint-removed",
+    "file": "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/daemon-token-mode",
     "file": "tests/spec/sdlc-cockpit/daemon-token-mode.bats",
     "category": "sdlc-cockpit",
@@ -2810,6 +2864,12 @@
   {
     "id": "sdlc-cockpit/kit-artifacts-exist",
     "file": "tests/spec/sdlc-cockpit/kit-artifacts-exist.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/kit-assets-in-image",
+    "file": "tests/spec/sdlc-cockpit/kit-assets-in-image.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },
@@ -3014,6 +3074,12 @@
   {
     "id": "website-core",
     "file": "tests/spec/website-core.bats",
+    "category": "website-core",
+    "kind": "shell"
+  },
+  {
+    "id": "website-core/portrait-derivate-crop",
+    "file": "tests/spec/website-core/portrait-derivate-crop.bats",
     "category": "website-core",
     "kind": "shell"
   },

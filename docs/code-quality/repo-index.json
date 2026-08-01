@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 658,
+      "file_count": 659,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -409,6 +409,7 @@
         "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
         "tests/spec/local-llm-proxy.bats",
         "tests/spec/local-llm-proxy/gemma-kv-quant.bats",
+        "tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats",
         "tests/spec/lockfile-drift.bats",
         "tests/spec/mcp-gateway.bats",
         "tests/spec/mcp-gateway/authenticated-http-headers.bats",

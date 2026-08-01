@@ -47,6 +47,13 @@ const PORT = Number.parseInt(process.env.BGE_MCP_PORT ?? '13005', 10);
 const TOKEN = process.env.BGE_MCP_TOKEN ?? '';
 const PROTOCOL_VERSION = '2025-06-18';
 
+const CORS_HEADERS = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, OPTIONS',
+  'access-control-allow-headers': 'Authorization, Content-Type, Accept, mcp-protocol-version',
+  'access-control-max-age': '86400',
+};
+
 const TOOLS = [
   {
     name: 'bge_embed',
@@ -197,9 +204,18 @@ function readBody(req) {
 
 const server = createServer(async (req, res) => {
   const send = (status, body, headers = {}) => {
-    res.writeHead(status, { 'content-type': 'application/json', ...headers });
+    res.writeHead(status, { 'content-type': 'application/json', ...CORS_HEADERS, ...headers });
     res.end(typeof body === 'string' ? body : JSON.stringify(body));
   };
+
+  if (req.method === 'OPTIONS') {
+    const requested = req.headers['access-control-request-headers'];
+    res.writeHead(204, requested
+      ? { ...CORS_HEADERS, 'access-control-allow-headers': requested }
+      : CORS_HEADERS);
+    res.end();
+    return undefined;
+  }
 
   if (!authorized(req)) {
     // Bearer-Pflicht auch fuer GET: der Bind auf 127.0.0.1 schuetzt nur gegen
@@ -214,6 +230,7 @@ const server = createServer(async (req, res) => {
       'content-type': 'text/event-stream',
       'cache-control': 'no-cache',
       connection: 'keep-alive',
+      ...CORS_HEADERS,
     });
     const beat = setInterval(() => res.write(': keep-alive\n\n'), 20_000);
     req.on('close', () => clearInterval(beat));

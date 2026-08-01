@@ -256,7 +256,7 @@ describe('mcp-bridge', () => {
 
   // ── POST: JSON-RPC dispatch ───────────────────────────────────────────────
 
-  it('POST /mcp/<name> writes JSON-RPC to stdin and returns 202', async () => {
+  it('POST /mcp/<name> writes JSON-RPC to stdin and returns 200 with the child response (streamable_http)', async () => {
     useSingleConfig();
     const proc = spawnOne();
     await initBridge();
@@ -266,12 +266,33 @@ describe('mcp-bridge', () => {
     handleMcp(mockReq({}, body), res, 'ticket-mcp', 'POST');
 
     await vi.waitFor(() => {
-      expect(proc.stdin.write).toHaveBeenCalled();
+      expect(proc.stdin.write).toHaveBeenCalledWith(body + '\n');
     });
 
-    expect(proc.stdin.write).toHaveBeenCalledWith(body + '\n');
+    // Simulate the child's response arriving on stdout → delivered on the POST
+    const childReply = JSON.stringify({ jsonrpc: '2.0', id: 1, result: { tools: [] } });
+    lineHandlerFrom(mockState.getRlInstances()[0])(childReply);
+
+    await vi.waitFor(() => {
+      expect(res.writeHead).toHaveBeenCalledWith(200, expect.any(Object));
+    });
+    expect(res.end).toHaveBeenCalledWith(childReply);
+  });
+
+  it('POST with a notification (no id) returns 202 without body', async () => {
+    useSingleConfig();
+    const proc = spawnOne();
+    await initBridge();
+
+    const body = JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' });
+    const res = mockRes();
+    handleMcp(mockReq({}, body), res, 'ticket-mcp', 'POST');
+
+    await vi.waitFor(() => {
+      expect(proc.stdin.write).toHaveBeenCalledWith(body + '\n');
+    });
     expect(res.writeHead).toHaveBeenCalledWith(202, expect.any(Object));
-    expect(res.end).toHaveBeenCalledWith(JSON.stringify({ accepted: true }));
+    expect(res.end).toHaveBeenCalledWith();
   });
 
   it('POST with invalid JSON returns 400', async () => {

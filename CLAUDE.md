@@ -71,6 +71,8 @@ Specifications are written in the OpenSpec format under `openspec/`. Drive the l
 
 Ein Ticket wird bei **grünem Auto-Merge nach `main` direkt geschlossen** (`done · resolution=shipped`) — einheitlich für Factory (`pipeline.js`) und dev-flow-execute (inkl. Batches). Der Prod-Deploy ist **entkoppelt** (push-based) und ändert den Ticket-Status NICHT; Closure trackt **Merge**, nicht Prod-Live. `awaiting_deploy` und `qa_review` sind aus dem Happy-Path entfernt, bleiben aber als Enum-Werte gültig (historische Zeilen, manuelle Sonderfälle, Watchdog `awaiting_deploy > 24h`); der Factory-Floor blendet die leere `awaiting_deploy`-Lane aus. Quality-Gate-Ergebnisse werden als `verify`-Phase-Events (`tickets.factory_phase_events`, strukturiertes `detail`) erfasst.
 
+**Deliverable-Check vor manuellem `done`/`shipped` (M10, T002506):** Bei manuellen Closures (kein Auto-Merge — z. B. Epics, die über mehrere PRs laufen) VOR dem Setzen auf `done`/`shipped` prüfen, dass alle im Plan deklarierten Deliverable-Dateien tatsächlich auf `origin/main` existieren (`git show origin/main:<pfad>` bzw. `git log` auf die Dateipfade im letzten Merge-Commit). Ein `done` ohne Deliverable ist Prozess-Drift und erzwingt einen nachträglichen Pflaster-Commit (beobachtet bei T002459/P5.5). Redaktioneller Hinweis, kein automatisierter Guard.
+
 ## Project Overview
 
 **Workspace MVP** -- a Kubernetes-based self-hosted collaboration platform for small teams (bachelor thesis). Integrates a custom messaging system (chat, built into the Astro website), Nextcloud (files + video via Talk), Pocket ID (SSO/OIDC), Collabora (office suite), Claude Code (AI), Vaultwarden (passwords), and supporting services. All data stays on-premises (DSGVO/GDPR by design).
@@ -186,6 +188,7 @@ Covered sub-topics (reference file, not repeated here):
 - **Security & Session**: security-guidance rewake, agent-lock.sh claim/release/reap protocol, ENV= explicit targeting, cluster node placement (wg-fleet flannel-iface).
 - **Overlays & Config**: prod-fleet/* only (never bare prod/, $patch:delete), env-resolve.sh sourcing, envsubst lists, DB queries (never SELECT * on ticket_plans.content).
 - **Ops & Infra**: cluster reset order, push-based/pull-first, CONFLICTING PR suppresses CI, ENV=staging, Kore design system, local-first LLM pipeline, dev.mentolder.de stack, alt-worktrees submodule gitdirs.
+- **Lokale Tooling-Lücke: gitleaks (M4, T002506)**: Fehlt `gitleaks` auf der Entwicklungsmaschine, wird der lokale Pre-Commit-Secret-Scan **stillschweigend übersprungen** (`⚠ gitleaks binary not found — skipping secret scan`); CI ist fail-closed, aber ein versehentlich committeter Schlüssel fällt erst **nach dem Push** in CI auf — nach dem Zeitpunkt, ab dem er als kompromittiert gilt. Installieren: `sudo apt install gitleaks || brew install gitleaks`. Solange es nicht installiert ist, ist das eine **bewusste** (dokumentierte) Umgebungs-Entscheidung, kein unbeobachteter Mangel.
 
 ### Test-Resultats-Konvention [T002448-M4]
 

@@ -34,12 +34,15 @@ Budgets mit `PLAN_LINT_SELFTEST=1 bash scripts/plan-lint.sh residual_budget <pfa
 Nur `scripts/plan-lint.sh` liefert überhaupt einen numerischen Wert; die übrigen sind
 ignore-gelistet, ungated oder existieren noch nicht.
 
-**Warum für `scripts/plan-lint.sh` trotzdem `n/a` in der Tabelle steht:** Dieser Plan ist zugleich
-die **Fixture** von `tests/spec/dev-flow-plan/task-context.bats` (TCC-Gate). Eine eingetragene Zahl
-wird dort von B1a gegen den *live gemessenen* Restwert derselben Datei geprüft — und
-`scripts/plan-lint.sh` wächst mit jeder Änderung an ihr. Jede solche Änderung ließ das Gate rot
-werden, ohne dass am Plan oder am Gate etwas falsch war (450→350, dann 463→337, dann 330). Der Wert
-wird deshalb bewusst nicht mehr behauptet; gemessen wird er weiterhin über das Kommando oben.
+**Warum für `scripts/plan-lint.sh` trotzdem `n/a` in der Tabelle steht [T002506]:** Dieser Plan
+ist zugleich die **Fixture** von `tests/spec/dev-flow-plan/task-context.bats` (TCC-Gate). Eine
+eingetragene Zahl wird dort von B1a gegen den *live gemessenen* Restwert derselben Datei geprüft —
+und `scripts/plan-lint.sh` wächst mit jeder Änderung an ihr. Jede solche Änderung ließ das Gate
+rot werden, ohne dass am Plan oder am Gate etwas falsch war (450→350, dann 463→337, dann 330).
+Der Wert wird deshalb bewusst nicht mehr behauptet; gemessen wird er weiterhin über das Kommando
+oben. Die Aussagekraft von B1a bleibt für alle *echten* Pläne unberührt — dort ist die
+Zieldatei nicht das messende Werkzeug selbst.
+>>>>>>> origin/main
 
 **Nicht-S1-Constraint für `dev-flow-execute/SKILL.md`:** Health-Goal G-AGENTIC09 (projekteigene
 `SKILL.md` über 250 Zeilen, Ziel 0) — die Datei steht bei exakt 250, das Ziel ist derzeit grün.

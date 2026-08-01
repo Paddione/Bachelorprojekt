@@ -35,19 +35,17 @@ cmd_check_merged() {
   fi
 
   local matches
-  matches="$(git log origin/main --oneline --grep="$ticket_id" 2>/dev/null | head -5)"
+  # M2 (T002506): NUR den Commit-BETREFF pruefen, nicht den Body. git log --grep
+  # durchsucht die ganze Message (Body inklusive) und interpretiert das Muster als
+  # Regex — "[T002494]" waere eine Zeichenklasse, die jedes Zeichen T/0/2/4/9 matcht
+  # (false positives auf x-beliebige Commits). Darum: formatierte Subject-Zeilen
+  # ("%h %s") mit fixed-string grep auf das PR-Betreff-Muster "[T00xxxx]" filtern.
+  # Eine ID, die nur im Commit-Body vorkommt (z. B. [[T002494]]-Wiki-Link in einer
+  # goals.md-Aenderung eines fremden Tickets), gilt NICHT als Merge-Beleg.
+  matches="$(git log origin/main --format='%h %s' 2>/dev/null | grep -F "[${ticket_id}]" | head -5)"
   if [ -n "$matches" ]; then
-    echo "check-merged: Ticket $ticket_id found in merged commit(s) on main:"
+    echo "check-merged: Ticket $ticket_id found in merged commit subject(s) on main:"
     echo "$matches"
-    return 1
-  fi
-
-  # Also scan commit bodies and full diff for mentions (not just subject line)
-  local body_matches
-  body_matches="$(git log origin/main --all-match --grep="$ticket_id" --format="%H %s" 2>/dev/null | head -5)"
-  if [ -n "$body_matches" ]; then
-    echo "check-merged: Ticket $ticket_id found in commit body on main:"
-    echo "$body_matches"
     return 1
   fi
 

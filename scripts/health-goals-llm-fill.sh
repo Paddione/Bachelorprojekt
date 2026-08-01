@@ -165,23 +165,8 @@ combined = f'{sec_text}\n\n{existing_str}'.strip()
 print(combined[:3000])
 " 2>/dev/null || echo "(Kontext-Fehler)")
 
-  JSON_PAYLOAD=$(python3 -c "
-import json, sys
-
-model = '$LLM_MODEL'
-gid = '$gid'
-context = sys.stdin.read().strip()
-
-prompt = f'Du bekommst ein Health-Goal aus .claude/lib/goals.md. Liefere eine strukturierte Bewertung als JSON. Goal-ID: {gid}. Kontext: {context}. Antworte NUR als JSON: {{\"id\":\"{gid}\",\"value\":\"<aktueller Wert>\",\"unit\":\"<Einheit>\",\"confidence\":0.0,\"evidence\":\"<Begründung>\",\"reproducible_cmd_suggestion\":\"<reproduzierbarer Messbefehl>\"}}'
-
-payload = {
-    'model': model,
-    'messages': [{'role': 'user', 'content': prompt}],
-    'response_format': {'type': 'json_object'},
-    'max_tokens': 300
-}
-print(json.dumps(payload))
-" <<< "$CONTEXT_AND_EXISTING")
+  JSON_PAYLOAD=$(python3 "$(dirname "${BASH_SOURCE[0]}")/health-goals-payload.py" \
+    "$LLM_MODEL" "$gid" <<< "$CONTEXT_AND_EXISTING")
 
   RESP=$(curl -s --max-time 30 \
     -H "Content-Type: application/json" \

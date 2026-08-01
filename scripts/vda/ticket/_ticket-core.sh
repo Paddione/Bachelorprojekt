@@ -111,10 +111,22 @@ _ticket_lock_guard() {
   # nicht sehen, faellt auf den Unix-Session-ID-Fallback zurueck, und der
   # unterscheidet sich zwischen claim (Main-Shell) und check (Sub-Bash) — der
   # Lock-Guard sieht dann einen fremden Lock und verweigert den Schreibzugriff.
+  #
+  # [T002424] Die Entscheidung bleibt bei agent-lock.sh und wird NICHT hier
+  # nachgebaut. Ein frueherer Versuch parste die Lock-Datei direkt ueber
+  # "<git-common-dir>/agent-locks/ticket__<id>.json" — und verlor damit
+  # AGENT_LOCK_DIR, das agent-lock.sh respektiert. Der Guard zeigte dann ins
+  # Leere, owner_sid blieb leer, und er liess JEDEN Write durch (nachgewiesen
+  # von T002282-M3). Wer die Pfadkonvention nachbaut, erbt sie nicht — er
+  # dupliziert sie und laeuft auseinander.
   out="$(CLAUDE_CODE_SESSION_ID="${CLAUDE_CODE_SESSION_ID:-}" CLAUDE_SESSION_ID="${CLAUDE_SESSION_ID:-}" bash "$lock_sh" check ticket "$id" 2>/dev/null)"; rc=$?
   if [[ $rc -eq 3 ]]; then
     echo "ERROR: Ticket $id ist durch eine andere Session gesperrt (agent-lock) — Status-Schreibvorgang verweigert." >&2
     echo "       Halter: $(printf '%s' "$out" | tr '\n' ' ')" >&2
+    # [T002424-M1] Diagnose: die eigene SID mit ausgeben. Ohne sie ist aus der
+    # Meldung nicht ersichtlich, WARUM der Halter als fremd gilt — genau das
+    # kostete bei T002424 eine Untersuchungsschleife.
+    echo "       Eigene SID: ${CLAUDE_CODE_SESSION_ID:-${CLAUDE_SESSION_ID:-<nicht gesetzt>}} (Shell-PID $$)" >&2
     echo "       Override nur bewusst: TICKET_LOCK_OVERRIDE=1" >&2
     return 7
   fi

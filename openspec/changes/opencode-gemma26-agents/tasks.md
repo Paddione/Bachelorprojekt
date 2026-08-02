@@ -103,6 +103,40 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/opencode-agent-mode
       mit einem fremden JSON-Werkzeug zu schreiben erzeugt einen
       Vollzeilen-Diff.
 
+## 1b. Den Proxy-Engpass mit oeffnen — sonst wirkt Aufgabe 1 nicht
+
+Gemessener IST-Zustand der ganzen Kette (2026-08-02):
+
+```
+Factory                      llm-proxy                 llama-server
+FACTORY_SLOTS_PER_BRAND=3  → llamacpp-gemma          → :8091
+(scripts/factory/slots.sh)   max_inflight = 1          total_slots = 1
+                             ^ serialisiert            ^ ein KV-Slot, n_ctx=99840
+```
+
+Drei Slots im Loadout einzurichten genuegt NICHT: der Proxy laesst weiterhin
+nur eine Anfrage gleichzeitig durch. Die Aenderung waere umgesetzt, die Messung
+in Aufgabe 2.3 wuerde fehlschlagen, und die Ursache staende nirgends.
+
+- [ ] **1b.1** `tickets.llm_proxy_backends`: `max_inflight` fuer das Backend
+      `llamacpp-gemma` von 1 auf **3** setzen, passend zu `parallel=3`.
+
+      Der Wert liegt in der **Datenbank**, nicht in `loadouts.json` — ein Blick
+      nur in versionierte Dateien uebersieht ihn strukturell. Schreibzugriff
+      ueber `kubectl exec … psql`, nicht ueber mcp-postgres (read-only).
+
+- [ ] **1b.2** Nach der Aenderung den `llm-proxy` neu laden bzw. neu starten,
+      damit `loadBackends()` den neuen Wert zieht. Ob ein Reload genuegt oder
+      ein Neustart noetig ist, aus `scripts/llm-proxy/backends.mjs`
+      (`loadBackendsOnce`, Memoisierung) bestimmen — nicht raten.
+
+- [ ] **1b.3** **Nicht mit erledigt betrachten:** die dritte Ebene, die
+      Zuordnung `pipeline_slot` → llama.cpp-Slot-ID, ist **T002483**
+      (`in_progress`). Ohne sie landen drei Factory-Tickets zwar parallel beim
+      Server, aber ohne feste Slot-Bindung — die Kontexttrennung je Ticket ist
+      damit noch nicht hergestellt. Dieser Plan macht den Weg frei, er ersetzt
+      T002483 nicht.
+
 ## 2. Unit neu starten und messen
 
 - [ ] **2.1** `llama-gemma26-factory.service` neu starten — die Änderungen aus
@@ -123,8 +157,12 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/opencode-agent-mode
       den Endwert, nicht die Config. Ergebnis ins Ticket.
 
 - [ ] **2.3** Belegen, dass drei Slots wirklich nebeneinander arbeiten: drei
-      gleichzeitige Anfragen gegen :8091 absetzen und über `/slots` prüfen,
-      dass sie sich auf verschiedene Slots verteilen statt zu serialisieren.
+      gleichzeitige Anfragen absetzen und über `/slots` prüfen, dass sie sich
+      auf verschiedene Slots verteilen statt zu serialisieren.
+
+      **Zweimal messen** — einmal direkt gegen :8091, einmal über den Proxy
+      (:18235). Weichen die Ergebnisse ab, ist Aufgabe 1b nicht wirksam
+      geworden: der Server kann parallel, das Tor davor nicht.
 
 ## 3. Agentendefinitionen korrigieren
 

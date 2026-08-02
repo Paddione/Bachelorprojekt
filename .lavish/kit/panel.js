@@ -412,6 +412,14 @@ class Panel {
   }
 }
 
+// Kit-Muster: jedes Modul haengt seinen Einstieg ans Fenster (window.actionPolicy,
+// window.data, window.cockpitLayout). Bei `class Panel` ist das nicht optional,
+// sondern noetig: eine Klassendeklaration auf oberster Ebene eines klassischen
+// Skripts landet in der globalen LEXIKALISCHEN Umgebung und erzeugt — anders als
+// `var` — keine Eigenschaft auf `window`. Ohne diese Zeile ist `window.Panel`
+// undefined und jeder Wachter in layout.js schlaegt still fehl. [T002462]
+window.Panel = Panel;
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-panel-type]').forEach(el => {
     try {

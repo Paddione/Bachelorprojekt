@@ -243,3 +243,55 @@ describe('Panel registry (T002462 — Task 2)', () => {
     expect(Panel.get(el)).toBe(second);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Fenster-Export (T002462) — laedt panel.js OHNE die `window.__Panel`-Bruecke
+// aus loadRealPanel(). Genau diese Bruecke hat verdeckt, dass `class Panel` auf
+// oberster Ebene eines klassischen Skripts in der globalen LEXIKALISCHEN
+// Umgebung landet und — anders als `var` — keine Eigenschaft auf `window`
+// erzeugt. layout.js haengt an `window.Panel`; ohne den expliziten Export sind
+// dort alle acht Waechter dauerhaft falsch und die Panel-Anbindung tut still
+// nichts. Geprueft wird das Ergebnis der Ausfuehrung, nicht der Quelltext.
+// ---------------------------------------------------------------------------
+describe('Panel-Fenster-Export (T002462)', () => {
+  beforeEach(() => {
+    (globalThis as Record<string, unknown>).IntersectionObserver = class {
+      observe() {}
+      disconnect() {}
+    };
+  });
+
+  function runPanelSourceBare() {
+    const windowObj: Record<string, unknown> = {
+      data: {},
+      innerWidth: 1280,
+      addEventListener: () => {},
+    };
+    new Function('window', 'document', 'localStorage', PANEL_SRC)(
+      windowObj,
+      { addEventListener: () => {}, querySelectorAll: () => [] },
+      { getItem: () => null, setItem: () => {} },
+    );
+    return windowObj;
+  }
+
+  it('panel.js legt Panel als Fenster-Eigenschaft ab — ohne Testbruecke', () => {
+    const windowObj = runPanelSourceBare();
+    // Positiv-Anker: die Ausfuehrung ist ueberhaupt durchgelaufen und hat das
+    // Fenster-Attrappenobjekt unveraendert gelassen, wo nichts zu tun war.
+    expect(windowObj.innerWidth).toBe(1280);
+    expect(typeof windowObj.Panel).toBe('function');
+  });
+
+  it('der Fenster-Export traegt den Registry-Vertrag, den layout.js aufruft', () => {
+    const Panel = runPanelSourceBare().Panel as {
+      get: (el: HTMLElement) => unknown;
+      adopt: (el: HTMLElement) => unknown;
+      create: (el: HTMLElement) => unknown;
+    };
+    const el = makeEl('panel-window-export');
+    expect(Panel.get(el)).toBeUndefined();
+    const panel = Panel.adopt(el);
+    expect(Panel.get(el)).toBe(panel);
+  });
+});

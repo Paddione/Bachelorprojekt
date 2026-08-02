@@ -154,7 +154,7 @@
     knownPanelIds = knownPanelIds || [];
     var parsed = null;
     if (typeof raw === 'string' && raw.length > 0) {
-      try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+      try { parsed = JSON.parse(raw); } catch { parsed = null; }
     }
     if (!parsed || parsed.version !== LAYOUT_VERSION) {
       return { workspace: [], fullscreen: null, catalog: knownPanelIds.slice() };
@@ -171,12 +171,12 @@
   function saveLayout(state) {
     try {
       window.localStorage.setItem(LAYOUT_KEY, serializeLayout(state));
-    } catch (e) { /* localStorage nicht verfügbar (file:// Privacy) */ }
+    } catch { /* localStorage nicht verfügbar (file:// Privacy) */ }
   }
 
   function loadLayout(knownPanelIds) {
     var raw = null;
-    try { raw = window.localStorage.getItem(LAYOUT_KEY); } catch (e) { raw = null; }
+    try { raw = window.localStorage.getItem(LAYOUT_KEY); } catch { raw = null; }
     return restoreLayout(raw, knownPanelIds);
   }
 
@@ -226,7 +226,6 @@
 
     // --- Fokus-Spalte / Arbeitsbereich aus vorhandenem Markup ---
     var allPanels = [].slice.call(document.querySelectorAll('[data-panel-type]'));
-    var workspacePanels = [].slice.call(workspaceEl.querySelectorAll('[data-panel-type]'));
     var catalogEl = document.querySelector('.cockpit-catalog');
     if (!catalogEl) {
       catalogEl = document.createElement('aside');
@@ -250,7 +249,7 @@
       if (el.parentNode !== workspaceEl) workspaceEl.appendChild(el);
       el.classList.remove('panel--rail', 'panel--card', 'panel--fullscreen');
       el.classList.add('panel--card');
-      var panel = window.Panel && Panel.get(el);
+      var panel = window.Panel && window.Panel.get(el);
       if (panel) panel.resize('card');
     }
 
@@ -258,7 +257,7 @@
       if (el.parentNode !== catalogEl) catalogEl.appendChild(el);
       el.classList.remove('panel--card', 'panel--fullscreen');
       el.classList.add('panel--rail');
-      var panel = window.Panel && Panel.get(el);
+      var panel = window.Panel && window.Panel.get(el);
       if (panel) panel.resize('rail');
     }
 
@@ -270,7 +269,7 @@
           if (el.parentNode !== workspaceEl) workspaceEl.appendChild(el);
           el.classList.remove('panel--rail', 'panel--card');
           el.classList.add('panel--fullscreen');
-          var panel = window.Panel && Panel.get(el);
+          var panel = window.Panel && window.Panel.get(el);
           if (panel) panel.resize('fullscreen');
         } else {
           movePanelToWorkspace(el);
@@ -337,7 +336,6 @@
 
     // --- Ziehen per Pointer Events (E3, Pointer-based rearrangement) ---
     var drag = null;
-    var preDragParent = null;
 
     document.addEventListener('pointerdown', function (e) {
       var head = e.target.closest ? e.target.closest('.panel__head') : null;
@@ -365,16 +363,16 @@
                         e.clientY >= rect.top && e.clientY <= rect.bottom;
       if (inWorkspace && drag.el.parentNode !== workspaceEl) {
         workspaceEl.appendChild(drag.el);
-        var panel = window.Panel && Panel.get(drag.el);
+        var panel = window.Panel && window.Panel.get(drag.el);
         if (panel) panel.resize('card');
       } else if (!inWorkspace && drag.el.parentNode !== catalogEl) {
         catalogEl.appendChild(drag.el);
-        var p2 = window.Panel && Panel.get(drag.el);
+        var p2 = window.Panel && window.Panel.get(drag.el);
         if (p2) p2.resize('rail');
       }
     });
 
-    document.addEventListener('pointerup', function (e) {
+    document.addEventListener('pointerup', function () {
       if (!drag) return;
       var el = drag.el;
       delete el.dataset.dragging;
@@ -383,7 +381,7 @@
       recompute();
     });
 
-    document.addEventListener('pointercancel', function (e) {
+    document.addEventListener('pointercancel', function () {
       if (!drag) return;
       var el = drag.el;
       delete el.dataset.dragging;
@@ -396,14 +394,14 @@
     var popChannel = null;
     try {
       popChannel = new BroadcastChannel('cockpit-panels');
-    } catch (e) { popChannel = null; }
+    } catch { popChannel = null; }
 
     document.addEventListener('click', function (e) {
       var btn = e.target.closest ? e.target.closest('.panel__action-btn[data-pop-out]') : null;
       if (!btn) return;
       var panelEl = btn.closest('[data-panel-type]');
       if (!panelEl) return;
-      var panel = window.Panel && Panel.get(panelEl);
+      var panel = window.Panel && window.Panel.get(panelEl);
       if (panel) panel.destroy();
       movePanelToCatalog(panelEl);
       var url = location.href.split('#')[0] + '#' + panelEl.id;
@@ -419,7 +417,7 @@
         if (ev.data && ev.data.type === 'panel-return' && ev.data.id) {
           var el = panelById(ev.data.id);
           if (el) {
-            var panel = window.Panel && Panel.adopt(el);
+            var panel = window.Panel && window.Panel.adopt(el);
             if (panel) panel.resize('card');
             movePanelToWorkspace(el);
             persist();
@@ -443,7 +441,7 @@
         if (panelEl.parentNode !== workspaceEl) workspaceEl.appendChild(panelEl);
         panelEl.classList.remove('panel--rail', 'panel--card');
         panelEl.classList.add('panel--fullscreen');
-        var panel = window.Panel && Panel.get(panelEl);
+        var panel = window.Panel && window.Panel.get(panelEl);
         if (panel) panel.resize('fullscreen');
       }
       persist();

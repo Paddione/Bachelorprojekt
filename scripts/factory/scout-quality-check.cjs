@@ -2,8 +2,9 @@
  * scripts/factory/scout-quality-check.cjs
  * Pure quality evaluator for Software-Factory Scout output.
  * No external dependencies. Loadable via require() from pipeline.js (Workflow script).
+ * Note: spec_too_short is handled by evaluateSpecPreGate (pre-gate), not here.
  *
- * @param {{touched_files?: unknown, spec_content?: unknown, plan_path?: unknown}} scoutResult
+ * @param {{touched_files?: unknown, plan_path?: unknown}} scoutResult
  * @returns {{weak: boolean, reasons: string[]}}
  */
 function evaluateScoutQuality(scoutResult) {
@@ -12,9 +13,6 @@ function evaluateScoutQuality(scoutResult) {
 
   const touched = Array.isArray(r.touched_files) ? r.touched_files : []
   if (touched.length === 0) reasons.push('touched_files_empty')
-
-  const spec = typeof r.spec_content === 'string' ? r.spec_content : ''
-  if (spec.length < 300) reasons.push('spec_too_short')
 
   if (!r.plan_path) reasons.push('no_plan_path')
 
@@ -68,7 +66,6 @@ function evaluateSpecPreGate(specContent, options) {
 function runScoutGate(scout, ticketId, repo, cp, log, phaseEvent) {
   const sq = evaluateScoutQuality({
     touched_files: scout.touched_files,
-    spec_content: `${scout.title ?? ''}\n${scout.description ?? ''}`,
     plan_path: 'pending',
   })
   if (!sq.weak) return null

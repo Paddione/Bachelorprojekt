@@ -20,11 +20,10 @@ setup() { export PROJECT_DIR MOD; }
   [[ "$output" == *'touched_files_empty'* ]]
 }
 
-@test "scout-quality: spec under 300 chars -> weak with spec_too_short" {
+@test "scout-quality: short spec with files and plan_path passes post-gate" {
   run node -e "const {evaluateScoutQuality}=require('$MOD'); const r=evaluateScoutQuality({touched_files:['a.ts'],spec_content:'short',plan_path:'p.md'}); process.stdout.write(JSON.stringify(r))"
   [ "$status" -eq 0 ]
-  [[ "$output" == *'"weak":true'* ]]
-  [[ "$output" == *'spec_too_short'* ]]
+  [[ "$output" == *'"weak":false'* ]]
 }
 
 @test "scout-quality: missing plan_path -> weak with no_plan_path" {

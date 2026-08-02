@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.239.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.239.0...website-v1.239.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* **test:** skip outdated cockpit tests due to SDLC cockpit redesign [T002458] ([#3670](https://github.com/Paddione/Bachelorprojekt/issues/3670)) ([3fb3618](https://github.com/Paddione/Bachelorprojekt/commit/3fb3618f667a7f6a81427f8918228f9a57b6ac04))
+
 ## [1.239.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.7...website-v1.239.0) (2026-08-02)
 
 

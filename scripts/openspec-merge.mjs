@@ -70,7 +70,10 @@ function endOfRequirements(lines) {
   return i
 }
 
-export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10), createNew = false, forceNewComponent = false) {
+// dryRun führt jeden Guard aus, schreibt aber nichts — weder die --create-new-
+// Skeleton-SSOT noch das Merge-Ergebnis. [T002581] Nur so kann cmd_archive alle
+// Deltas eines Change vorab prüfen, bevor der erste Schreibvorgang stattfindet.
+export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString().slice(0, 10), createNew = false, forceNewComponent = false, dryRun = false) {
   const deltaName = basename(deltaPath)
   const delta = readFileSync(deltaPath, 'utf-8')
 
@@ -78,6 +81,13 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
     if (re.test(delta)) fail(`${deltaName}: contains unedited skeleton stub (${STUB_MARKER} / 'The system SHALL …') — edit before archiving`)
   }
 
+  // Die --create-new-Skeleton-SSOT wird zunächst nur IM SPEICHER aufgebaut.
+  // [T002581] Bis Zeile 90 landete sie direkt auf der Platte — scheiterte danach
+  // ein Guard (MODIFIED-Ziel nicht gefunden, --create-new ohne Requirement-Block),
+  // blieb eine verwaiste Skeleton-Datei zurück, während das Change-Verzeichnis
+  // unverschoben liegen blieb. Beobachtet in T002569 Charge 6 (auto-close-guard.md).
+  let content
+  let creating = false
   if (!existsSync(ssotPath)) {
     if (!createNew) {
       fail(`Target '${ssotPath}' does not exist. Point the delta at an existing spec, or pass --create-new for a genuinely new component (e.g. a cross-cutting mishap bundle with no parent SSOT spec).`)
@@ -86,10 +96,11 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
     if (/^(t[0-9]{6}|g-[a-z0-9]+[0-9]{2})/.test(newSlug) && !forceNewComponent) {
       fail(`Refusing to create one-off spec '${newSlug}.md' (ticket/gate slug pattern). Use --target-spec <parent> to fold it into an existing component, or --force-new-component to override.`)
     }
-    mkdirSync(dirname(ssotPath), { recursive: true })
-    writeFileSync(ssotPath, `# ${newSlug}\n\n## Purpose\n\n_Purpose fehlt — beim nächsten inhaltlichen Delta zu ${newSlug} ergänzen._\n\n## Requirements\n`)
+    creating = true
+    content = `# ${newSlug}\n\n## Purpose\n\n_Purpose fehlt — beim nächsten inhaltlichen Delta zu ${newSlug} ergänzen._\n\n## Requirements\n`
+  } else {
+    content = readFileSync(ssotPath, 'utf-8')
   }
-  let content = readFileSync(ssotPath, 'utf-8')
   const deltaHash = createHash('sha1').update(delta).digest('hex').slice(0, 12)
   const marker = `<!-- merged from change delta ${deltaName} (${deltaHash}) -->`
   if (content.includes(marker)) {
@@ -131,6 +142,10 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
     fail(`--create-new but no ### Requirement: block merged into ${basename(ssotPath)} — check that the delta has '## ADDED Requirements' with at least one '### Requirement: …' child.`)
   }
 
+  // Ab hier ist jeder Guard durch. Erst jetzt wird geschrieben — im check-Modus
+  // gar nicht. [T002581]
+  if (dryRun) return 0
+  if (creating) mkdirSync(dirname(ssotPath), { recursive: true })
   writeFileSync(ssotPath, merged)
   return 0
 }
@@ -139,13 +154,14 @@ function main(argv) {
   const positional = argv.filter(a => !a.startsWith('--'))
   const flags = argv.filter(a => a.startsWith('--'))
   const [verb, deltaPath, ssotPath] = positional
-  if (verb !== 'apply' || !deltaPath || !ssotPath) {
-    process.stderr.write('Usage: openspec-merge.mjs apply <deltaPath> <ssotPath> [--create-new] [--force-new-component]\n')
+  // 'check' ist 'apply' ohne Schreibvorgang — identische Guards. [T002581]
+  if ((verb !== 'apply' && verb !== 'check') || !deltaPath || !ssotPath) {
+    process.stderr.write('Usage: openspec-merge.mjs <apply|check> <deltaPath> <ssotPath> [--create-new] [--force-new-component]\n')
     process.exit(2)
   }
   const createNew = flags.includes('--create-new')
   const forceNewComponent = flags.includes('--force-new-component')
-  return applyDelta(deltaPath, ssotPath, new Date().toISOString().slice(0, 10), createNew, forceNewComponent)
+  return applyDelta(deltaPath, ssotPath, new Date().toISOString().slice(0, 10), createNew, forceNewComponent, verb === 'check')
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

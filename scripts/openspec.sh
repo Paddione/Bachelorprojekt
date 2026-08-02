@@ -240,7 +240,19 @@ cmd_archive() {
   Pruefe, ob der Change schon (teilweise) archiviert ist:
     bash scripts/openspec-half-archive-check.sh"
   fi
+  # [T002581] Zwei-Pass: erst ALLE Deltas pruefen, dann ALLE anwenden. Vorher lief
+  # der Merge pro Datei in einer Schleife — brach Datei 2 an einem Guard ab, war die
+  # SSOT von Datei 1 bereits mutiert, das Change-Verzeichnis aber unverschoben. Ein
+  # solcher Lauf war weder vollzogen noch folgenlos und nur von Hand zu reparieren.
+  # Der Vorab-Check ist vollstaendig, nicht heuristisch: die Delta-Dateinamen in
+  # changes/<slug>/specs/ sind eindeutig, jedes Delta zielt also auf eine eigene SSOT.
+  # Kein Pass kann das Ergebnis eines anderen im selben Lauf beeinflussen.
   if [[ -d "$dir/specs" ]]; then
+    for capfile in "$dir/specs"/*.md; do
+      [[ -e "$capfile" ]] || continue
+      local cap; cap="$(basename "$capfile")"
+      _check_delta "$capfile" "$OPENSPEC_ROOT/specs/$cap" "$create_new" "$force_new"
+    done
     for capfile in "$dir/specs"/*.md; do
       [[ -e "$capfile" ]] || continue
       local cap; cap="$(basename "$capfile")"
@@ -263,6 +275,13 @@ _merge_delta() {
   # target, a RENAMED without **Renamed-to:**, or a skeleton stub exits non-zero
   # and aborts the archive (set -e) before the SSOT can be corrupted.
   node "$REPO/scripts/openspec-merge.mjs" apply "$delta" "$ssot" $create_new $force_new
+}
+
+_check_delta() {
+  local delta="$1" ssot="$2" create_new="${3:-}" force_new="${4:-}"
+  # Trockenlauf mit denselben Guards wie _merge_delta, ohne jeden Schreibvorgang.
+  # Fail-closed via set -e: bricht hier etwas ab, hat noch keine SSOT sich geaendert.
+  node "$REPO/scripts/openspec-merge.mjs" check "$delta" "$ssot" $create_new $force_new
 }
 
 cmd_validate() {

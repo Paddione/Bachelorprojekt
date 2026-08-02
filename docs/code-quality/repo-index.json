@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 730,
+      "file_count": 731,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -467,6 +467,7 @@
         "tests/spec/openspec-pgvector.bats",
         "tests/spec/openspec-upstream-cli.bats",
         "tests/spec/openspec-workflow.bats",
+        "tests/spec/openspec-workflow/archive-atomic-guards.bats",
         "tests/spec/openspec-workflow/archive-terminal-ticket-status.bats",
         "tests/spec/openspec-workflow/delta-scenario-guard.bats",
         "tests/spec/openspec-workflow/half-archive-guard.bats",

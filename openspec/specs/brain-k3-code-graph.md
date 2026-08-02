@@ -8,11 +8,15 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu brain-k3-code-graph erg�
 
 ### Requirement: Diagramm mit beschrifteten Kanten (REQ-k3-01)
 
+#### Scenario: Code-Graph-Dokumentation
+
 **GIVEN** die Brain-Architektur wird dokumentiert
 **WHEN** K3 erstellt wird
 **THEN** existiert ein Diagramm des Code-Graphen mit allen Datenquellen
 
 ### Requirement: Index-Erhebung (REQ-k3-02)
+
+#### Scenario: Index-Analyse
 
 **GIVEN** codebase-memory-mcp indiziert das Repository
 **WHEN** K3 dokumentiert die Infrastruktur
@@ -20,11 +24,15 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu brain-k3-code-graph erg�
 
 ### Requirement: Transport und Harness-Integration (REQ-k3-03)
 
+#### Scenario: Transport-Dokumentation
+
 **GIVEN** der Graph wird über stdio und MCP konsumiert
 **WHEN** K3 dokumentiert die Schnittstellen
 **THEN** sind alle Transportwege erfasst
 
 ### Requirement: K1/K3-Verhältnis (Defekt D8) (REQ-k3-04)
+
+#### Scenario: Divergenz-Analyse
 
 **GIVEN** K1 und K3 halten beide Wissen über dieselbe Codebasis
 **WHEN** K3 analysiert die Dopplung

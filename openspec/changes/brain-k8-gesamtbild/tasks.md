@@ -2,7 +2,7 @@
 title: "K8 Gesamtbild"
 ticket_id: T002438
 domains: [docs]
-status: plan_staged
+status: in_progress
 file_locks: []
 shared_changes: false
 batch_id: null

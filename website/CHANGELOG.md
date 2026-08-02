@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.238.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.2...website-v1.238.3) (2026-08-02)
+
+
+### Bug Fixes
+
+* **ops:** opencode-Agenten auf gemma26-factory umstellen — 12B-Drift schließen [T002545] ([#3653](https://github.com/Paddione/Bachelorprojekt/issues/3653)) ([02e9b6d](https://github.com/Paddione/Bachelorprojekt/commit/02e9b6dd31a9e617bc64f8be21c5ea34394cbcba))
+
 ## [1.238.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.1...website-v1.238.2) (2026-08-02)
 
 

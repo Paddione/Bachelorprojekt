@@ -29,13 +29,16 @@ setup() {
 
 @test "unit pins both bge endpoint URLs to the local port-forward" {
   # Positiv-Anker: beide Variablen, die bge-router.ts liest, zeigen auf
-  # 127.0.0.1 — das 8081/8081- und 8082/8081-Port-Forward der Unit.
+  # 127.0.0.1 — das 8081/8081- und 8093/8081-Port-Forward der Unit.
+  # 8093 statt 8082 (T002565): Port 8082 ist auf dem GPU-Host von einem
+  # Windows-svchost belegt (networkingMode=mirrored, in WSL selbst mit
+  # ss/lsof unsichtbar, nur ueber netstat.exe von der Windows-Seite sichtbar).
   run grep -c "^Environment=LLM_EMBED_URL=http://127\.0\.0\.1:8081$" "$UNIT"
   echo "LLM_EMBED_URL -> $output"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 
-  run grep -c "^Environment=LLM_RERANKER_URL=http://127\.0\.0\.1:8082$" "$UNIT"
+  run grep -c "^Environment=LLM_RERANKER_URL=http://127\.0\.0\.1:8093$" "$UNIT"
   echo "LLM_RERANKER_URL -> $output"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]

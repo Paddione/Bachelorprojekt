@@ -56,6 +56,13 @@ spec:
       labels:
         app: bge-embed
     spec:
+      # fsGroup 101: curlimages/curl laeuft als uid=100/gid=101 (curl_user),
+      # nicht root. Ohne fsGroup ist die Longhorn-PVC root-owned und der
+      # InitContainer scheitert mit "Permission denied" beim Schreiben nach
+      # /models - 2026-08-02 als Ursache eines 4h40min-CrashLoopBackOff
+      # gefunden (live per kubectl patch behoben, hier fuer GitOps persistiert).
+      securityContext:
+        fsGroup: 101
       initContainers:
         - name: model-download
           image: curlimages/curl:8.21.0
@@ -162,6 +169,9 @@ spec:
       labels:
         app: bge-rerank
     spec:
+      # fsGroup 101: siehe bge-embed weiter oben - gleiche Ursache, gleicher Fix.
+      securityContext:
+        fsGroup: 101
       initContainers:
         - name: model-download
           image: curlimages/curl:8.21.0

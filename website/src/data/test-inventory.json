@@ -2874,6 +2874,18 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/brain-ingress-policy",
+    "file": "tests/spec/sdlc-cockpit/brain-ingress-policy.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/brain-link-derivation",
+    "file": "tests/spec/sdlc-cockpit/brain-link-derivation.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/daemon-endpoints",
     "file": "tests/spec/sdlc-cockpit/daemon-endpoints.bats",
     "category": "sdlc-cockpit",

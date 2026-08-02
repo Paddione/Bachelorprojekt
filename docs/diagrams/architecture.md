@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-87 Services · 1826 Abhängigkeitskanten · 407 API-Endpoints
+87 Services · 1826 Abhängigkeitskanten · 408 API-Endpoints
 
 ## Service-Map
 
@@ -2084,6 +2084,7 @@ flowchart TB
 | `/api/admin/coaching/templates/{id}/versions` | GET | 🔐 admin |
 | `/api/admin/cockpit/audit` | GET | 🔐 admin |
 | `/api/admin/cockpit/batch` | POST | 🔐 admin |
+| `/api/admin/cockpit/brain` | GET | 🔐 admin |
 | `/api/admin/cockpit/container-count` | GET | 🔐 admin |
 | `/api/admin/cockpit/feature` | GET | 🔐 admin |
 | `/api/admin/cockpit/feature-action` | POST | 🔐 admin |

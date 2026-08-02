@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-02T00:35:25.720Z",
+  "generatedAt": "2026-08-02T01:04:33.376Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -755,6 +755,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/cockpit/batch.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/brain",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/brain.ts"
     },
     {
       "path": "/api/admin/cockpit/container-count",

@@ -82,4 +82,41 @@ clients:
       });
     }).toThrow(/BGE_MCP_TOKEN/);
   });
+
+  // ── T002549: Serverauswahl aus der Registry statt aus einer Codeliste ──────
+  //
+  // T002544 fuehrte eine hartkodierte targetServerKeys-Liste. Damit braucht
+  // jeder neue Server eine Code-Aenderung, und github-mcp (T002547) fiel
+  // heraus, obwohl die Bruecke ihn bedient.
+
+  it('nimmt jeden Registry-Eintrag mit erreichbarer Adresse auf, auch neu hinzugekommene', () => {
+    const templatePath = path.join(tmpDir, 'tpl.json');
+    const registryPath = path.join(tmpDir, 'reg.yaml');
+    const outputPath = path.join(tmpDir, 'out.json');
+
+    fs.writeFileSync(templatePath, JSON.stringify({}));
+    fs.writeFileSync(registryPath, `
+clients:
+  factory-mcp:
+    transport: http
+    endpoint: "http://127.0.0.1:13003/mcp"
+  github-mcp:
+    transport: stdio
+    browser_endpoint: "http://127.0.0.1:18235/mcp/github-mcp"
+  playwright:
+    transport: stdio
+`);
+    process.env.BGE_MCP_TOKEN = 'test-token';
+    generateUiConfigSeed({ templatePath, outputPath, registryPath });
+
+    const names = JSON.parse(JSON.parse(fs.readFileSync(outputPath, 'utf8')).mcpServers)
+      .map((s) => s.name);
+
+    // Positiv-Anker zuerst (T002356-M1): ohne ihn waere die Negativ-Aussage
+    // bei einer leeren Liste trivial erfuellt.
+    expect(names).toContain('factory-mcp');
+    expect(names).toContain('github-mcp');
+    // stdio ohne jede Adresse bleibt draussen — die Bruecke bedient ihn nicht.
+    expect(names).not.toContain('playwright');
+  });
 });

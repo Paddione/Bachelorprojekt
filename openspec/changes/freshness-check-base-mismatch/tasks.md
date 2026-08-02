@@ -74,7 +74,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/freshness-check-base-mismatch
 # expected: PASS (nach Task 2)
 ```
 
-- [ ] **Task 3 (Final Verification).** Regenerierte Artefakte + volle Gate-Kette:
+- [x] **Task 3 (Final Verification).** Regenerierte Artefakte + volle Gate-Kette:
 
 ```bash
 task test:changed

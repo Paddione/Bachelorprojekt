@@ -1,0 +1,18 @@
+_local_backup/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Self-evolve: local-only memory snapshot (user-specific, never committed)
+.gaslamp_context/
+
+# Reference/scratch docs (never committed)
+ref/
+
+# Skill eval run artifacts
+eval/artifacts/

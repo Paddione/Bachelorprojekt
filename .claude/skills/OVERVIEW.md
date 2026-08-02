@@ -1,6 +1,6 @@
 # Skills Overview
 
-28 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+30 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
@@ -172,6 +172,7 @@ alle Skills als projekteigen — das Gate wird dann strenger, nicht schwächer.
 | `lavish` | Kun Chen (kunchenguid) | Komplexe oder visuelle Antworten als annotierbares HTML-Artefakt rendern (`lavish-axi`). Nur nach Zustimmung des Nutzers. |
 | `superpowers/using-git-worktrees` | Superpowers-Plugin | Hintergrund zur Worktree-Isolation. Im dev-flow-Pfad ersetzt durch `scripts/worktree-create.sh` (git-crypt-safe). |
 | `ui-ux-pro-max` | Drittanbieter | UI/UX-Design-Intelligenz (Styles, Paletten, Font-Pairings) — für opencode via `permission: deny` deaktiviert. |
+| `unsloth-buddy` | TYH-labs (unsloth-buddy) | Fine-Tuning und RL mit Unsloth — LoRA-Patching, VRAM-Tuning, GGUF/vLLM/Ollama-Export. |
 | `vitest` | Anthony Fu (antfu/skills) | Vitest-Referenz — Mocking, Coverage-Konfiguration, Test-Filtering, Fixtures. |
 <!-- vendor-skills:end -->
 

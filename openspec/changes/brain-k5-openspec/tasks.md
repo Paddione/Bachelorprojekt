@@ -1,15 +1,23 @@
-# Tasks: K5: OpenSpec (SSOT-Specs und Changes) visualisieren
+---
+title: "K5 Openspec"
+ticket_id: T002435
+domains: [docs]
+status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: T002430
+depends_on_plans: []
+---
 
-| id | file | role | target_files | depends_on |
-|----|------|------|-------------|------------|
-| 1 | docs/brain/k5-openspec.md | docs | docs/brain/k5-openspec.md | — |
+# K5 Openspec
+
+_Ticket: T002435_
 
 ## Partials
 
-### 1 — Diagramm + Erhebung + Defekte
+| id | file | role | target_files | depends_on |
+|----|------|------|-------------|------------|
+| 1 | tasks.d/p1-survey.md | spec | — | — |
+| 2 | tasks.d/p2-documentation.md | docs | — | 1 |
 
-**target_files:** docs/brain/k5-openspec.md
-
-- Diagramm mit beschrifteten Kanten
-- Erhebung aller relevanten Aspekte
-- Defekt-Referenz aus T002430

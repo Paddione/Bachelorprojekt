@@ -2240,6 +2240,98 @@ automatically by resume detection.
 - **WHEN** the Factory dispatches it
 - **THEN** it appears among the candidates and its already-complete tasks are skipped
 
+### Requirement: LLM-Proxy-Preflight vor dem Dispatch
+
+`wakeup.sh` SHALL test the reachability of `ANTHROPIC_BASE_URL` (if set) before
+the first dispatch of a tick. If the proxy is unreachable, the tick SHALL be
+aborted with a log message — no headless `claude -p` sessions SHALL be launched.
+The preflight SHALL be a simple TCP/HTTP-HEAD check per brand, best-effort
+(non-fatal if the env var is unset — that means the real Anthropic API is the
+target and its reachability is out of scope).
+
+This prevents the Livelock-from-infrastructure-failure pattern: a dead
+llm-proxy starts sessions that die immediately (before writing any phase
+events), wasting INFRA attempt budget and adding load to the proxy during
+restart. The watchdog already distinguishes INFRA from MODEL failures
+(T002389), but avoiding the sessions entirely is cheaper than counting them.
+
+#### Scenario: Proxy down → Tick skipped
+
+- **GIVEN** `ANTHROPIC_BASE_URL` ist auf einen lokalen llm-proxy gesetzt
+- **AND** dieser Proxy antwortet nicht (Connection Refused / Timeout)
+- **WHEN** `wakeup.sh` startet
+- **THEN** logged die Preflight-Prüfung "LLM-Proxy unreachable — skipping tick"
+- **AND** der Tick wird abgebrochen, ohne dass `dispatcher-bridge.sh` läuft
+
+### Requirement: Watchdog-Kommentare deduplizieren
+
+The watchdog SHALL avoid writing consecutive identical comments to the same
+ticket. It SHALL track the last comment body per ticket (via
+`tickets.factory_control` key `watchdog_last_comment:<ticket>`) and SHALL skip
+the comment if the new body equals the stored one, unless the comment includes
+a counter that changed (e.g. "Attempt 3/3" after "Attempt 2/3").
+
+This prevents the "seven identical comments" signal-noise problem observed on
+T002282: when every watchdog round writes the same text, the repetition itself
+becomes invisible.
+
+#### Scenario: Identischer Watchdog-Kommentar wird unterdrückt
+
+- **GIVEN** ein Ticket hat den Watchdog-Kommentar "Pipeline stale > 30min"
+  bereits einmal erhalten
+- **WHEN** die nächste Watchdog-Runde denselben Text schreiben würde
+- **THEN** wird der Kommentar unterdrückt (nicht gespeichert)
+- **AND** falls ein Attempt-Zähler vorhanden ist (z.B. " [MODEL 2/3]"), wird der
+  Kommentar trotzdem geschrieben, weil der Text sich unterscheidet
+
+### Requirement: Dependency-based partial scheduling without full-gang claim
+
+The factory scheduler SHALL start a ticket whose plan has N partials as soon as at least one
+slot is free and at least one partial has no unmet dependencies, claiming
+`min(ready partials, free slots)` slots (minimum 1) instead of requiring an all-or-nothing
+claim of N slots. Head-of-line blocking SHALL only apply when zero slots are free.
+
+#### Scenario: Single agent starts a multi-partial ticket
+
+- **GIVEN** a `plan_staged` ticket with 3 partials of which at least one has no dependencies,
+  and exactly 1 free slot in the brand pool
+- **WHEN** the scheduler runs
+- **THEN** the ticket is claimed with 1 slot and execution begins with a dependency-free
+  partial instead of waiting for 3 free slots
+
+### Requirement: Optional depends_on column in the partials manifest
+
+The `## Partials` manifest table SHALL accept an optional fifth column `depends_on`
+(comma-separated partial ids). `plan-lint.sh` SHALL hard-fail on references to unknown partial
+ids and on dependency cycles, and SHALL continue to accept four-column manifests (no
+dependencies). The pipeline SHALL execute partials in a topological order, only starting
+partials whose dependencies have completed, and on resume SHALL skip partials already recorded
+as done via `partial-done` phase events.
+
+#### Scenario: Cycle in depends_on is rejected
+
+- **GIVEN** a partials manifest where p1 depends on p2 and p2 depends on p1
+- **WHEN** `plan-lint.sh` runs on the plan index
+- **THEN** it exits non-zero with a hard error naming the cycle
+
+#### Scenario: Resume skips completed partials
+
+- **GIVEN** a ticket whose `partial-done` events record p1 as completed
+- **WHEN** the pipeline resumes the ticket
+- **THEN** p1 is not re-executed and the next ready partial starts
+
+### Requirement: Partial count scales with plan size
+
+`stage-plan --partials` SHALL accept values from 1 to 9. Plans MAY declare more than three
+partials when their file sets are genuinely disjoint; the decompose guidance expresses a rule
+of thumb (one partial per disjoint subsystem, tests separate) instead of a hard cap of three.
+
+#### Scenario: Staging a five-partial plan
+
+- **GIVEN** a plan index whose manifest declares five disjoint partials
+- **WHEN** the plan is staged with `--partials 5`
+- **THEN** staging succeeds and the ticket's slot_count is 5
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -4101,3 +4193,7 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (a4ecd2161360) -->
 
 <!-- merged from change delta software-factory.md (99f56197f62c) -->
+
+<!-- merged from change delta software-factory.md (4da4d4334551) -->
+
+<!-- merged from change delta software-factory.md (34edcab2a35e) -->

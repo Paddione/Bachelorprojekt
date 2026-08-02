@@ -2,6 +2,56 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 
+/**
+ * Baut den Systemprompt aus der Registry (T002550).
+ *
+ * Bewusst kurz gehalten: er steht vor JEDER Unterhaltung im Kontext und kostet
+ * dort Platz, der fuer die eigentliche Aufgabe fehlt. Was das Modell ohnehin aus
+ * den Tool-Schemata erfaehrt — Parameter, Rueckgabewerte — wird hier NICHT
+ * wiederholt. Nur die Zustaendigkeit, die kein Schema ausdrueckt.
+ *
+ * @param {Record<string, any>} clients Registry-Eintraege
+ * @param {Array<{name: string}>} servers Die tatsaechlich eingebundenen Server
+ * @returns {string}
+ */
+export function buildSystemMessage(clients, servers) {
+  const PURPOSE = {
+    'k8s': 'Kubernetes-Cluster: Pods, Logs, Ressourcen, Events (lesend bevorzugt)',
+    'mcp-postgres': 'SQL gegen die mentolder-Datenbank — NICHT fuer Tickets',
+    'factory-mcp': 'Software-Factory: Queue, Status, Dispatch',
+    'bge-mcp': 'Embeddings und Reranking',
+    'ticket-mcp': 'Tickets: lesen, anlegen, Status, Plaene',
+    'mcp-task-runner': 'Taskfile-Ziele ausfuehren',
+    'codebase-memory-mcp': 'Code-Graph: Symbole finden, Aufrufketten verfolgen, Architektur',
+    'github-mcp': 'GitHub: Repos, Issues, Pull Requests',
+  };
+
+  const lines = [
+    'Du arbeitest am Repository Bachelorprojekt — einer Kubernetes-Plattform (Bachelorarbeit).',
+    '',
+    'Verfuegbare MCP-Server und ihre Zustaendigkeit:',
+  ];
+
+  for (const s of servers) {
+    const purpose = PURPOSE[s.name] || clients[s.name]?.description || 'siehe Tool-Beschreibungen';
+    lines.push(`- ${s.name}: ${purpose}`);
+  }
+
+  lines.push(
+    '',
+    'Regeln:',
+    '- Code suchen: erst codebase-memory-mcp (Graph), dann grep_search. Der Graph kennt',
+    '  Aufrufbeziehungen, die eine Textsuche nicht findet.',
+    '- Tickets ausschliesslich ueber ticket-mcp lesen und schreiben. mcp-postgres ist an die',
+    '  mentolder-Datenbank gebunden und liefert bei korczewski-IDs still die falsche Zeile.',
+    '- Vor dem Aendern einer Datei diese lesen. edit_file setzt den exakten Bestand voraus.',
+    '- Aenderungen am Repository laufen ueber Branch und Pull Request, nie direkt auf main.',
+    '- Behauptungen ueber den Zustand des Systems mit einem Kommando belegen, nicht schaetzen.',
+  );
+
+  return lines.join('\n');
+}
+
 export function generateUiConfigSeed(options = {}) {
   const repoRoot = path.resolve(import.meta.dirname, '../..');
   const templatePath = options.templatePath || path.join(repoRoot, 'scripts/llm/ui-config.template.json');
@@ -77,6 +127,21 @@ export function generateUiConfigSeed(options = {}) {
 
   const mcpServersDoubleEncoded = JSON.stringify(servers);
   templateContent.mcpServers = mcpServersDoubleEncoded;
+
+  // T002550 — Werkzeug-Routing als Systemprompt.
+  //
+  // Das Modell erfaehrt Namen, Beschreibung und Parameter jedes Tools
+  // automatisch (MCP: tools/list; eingebaute: aus dem Server), und einzelne
+  // Server liefern eigene `instructions` mit. Was KEIN Server kennt, ist die
+  // projektspezifische Zustaendigkeit: welcher der Server fuer welche Frage.
+  // Genau das steht hier — abgeleitet aus der Registry, damit es mitwaechst,
+  // statt als handgepflegter Text zu veralten.
+  //
+  // Ein im Template gesetzter systemMessage gewinnt: wer bewusst etwas
+  // Eigenes hinterlegt, soll nicht bei jedem Rendern ueberschrieben werden.
+  if (!templateContent.systemMessage) {
+    templateContent.systemMessage = buildSystemMessage(clients, servers);
+  }
 
   const dir = path.dirname(outputPath);
   if (!fs.existsSync(dir)) {

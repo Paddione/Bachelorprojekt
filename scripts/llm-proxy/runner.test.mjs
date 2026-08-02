@@ -165,3 +165,24 @@ test('ensureUiConfigRendered ist ein No-op ohne uiConfigFile', async () => {
   assert.doesNotThrow(() => ensureUiConfigRendered({ slug: 'bge-embed' }))
   assert.doesNotThrow(() => ensureUiConfigRendered({ slug: 'x', uiConfigFile: null }))
 })
+
+// ── T002550: eingebaute llama-Tools ──────────────────────────────────────────
+//
+// edit_file, write_file, exec_shell_command & Co. sind KEINE MCP-Tools, sondern
+// in llama-server eingebaut und nur ueber --tools erreichbar. Ohne das Flag hat
+// das Modell trotz acht MCP-Servern keine Moeglichkeit, Dateien zu bearbeiten.
+
+test('tools-Feld erzeugt --tools in der argv', () => {
+  const argv = buildServerArgv({ ...base, tools: 'all' }, MODEL, defaults)
+  const i = argv.indexOf('--tools')
+  assert.ok(i >= 0, '--tools fehlt in der argv')
+  assert.equal(argv[i + 1], 'all')
+})
+
+test('ohne tools-Feld bleibt die argv unveraendert', () => {
+  // Positiv-Anker zuerst: der Aufbau funktioniert ueberhaupt.
+  const argv = buildServerArgv(base, MODEL, defaults)
+  assert.ok(argv.includes('--port'), 'Grundgeruest der argv fehlt')
+  assert.equal(argv.includes('--tools'), false,
+    'Loadouts ohne tools-Feld duerfen kein --tools tragen')
+})

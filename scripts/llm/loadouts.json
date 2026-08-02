@@ -4,180 +4,359 @@
     "~/models/gguf",
     "/mnt/c/Users/PatrickKorczewski/.lmstudio/models"
   ],
-  "defaults": { "host": "0.0.0.0" },
+  "defaults": {
+    "host": "0.0.0.0"
+  },
   "loadouts": [
     {
       "slug": "gptoss-context",
-      "label": "gpt-oss-20b · maximaler Kontext",
+      "label": "gpt-oss-20b \u00b7 maximaler Kontext",
       "model": "gptoss20/gpt-oss-20b-Q8_0.gguf",
       "port": 8098,
-      "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 32768 },
-      "args": {
-        "ctx": null, "ngl": null, "parallel": 1,
-        "cacheTypeK": "q8_0", "cacheTypeV": "q8_0", "loadMode": "mmap",
-        "flashAttention": true, "jinja": true, "metrics": true,
-        "reasoning": "auto", "reasoningBudget": null
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 2400,
+        "minCtx": 32768
       },
-      "speculative": { "draftHfRepo": null, "draftNgl": null },
-      "mcp": { "serversConfig": null },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
       "extraArgs": [],
       "notes": "MXFP4-nativ: alle Quants 11,5-12,1 GB, Q8_0 ist praktisch gratis. Gemessen 158-166 tok/s decode bei 105.472 Kontext.",
       "exclusiveGroup": "chat-gpu"
     },
     {
       "slug": "devstral-quality",
-      "label": "Devstral-Small-2 24B · Code-Qualitaet",
+      "label": "Devstral-Small-2 24B \u00b7 Code-Qualitaet",
       "model": "devstral24/Devstral-Small-2-24B-Instruct-2512-IQ4_XS.gguf",
       "port": 8099,
-      "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 8192 },
-      "args": {
-        "ctx": null, "ngl": null, "parallel": 1,
-        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
-        "flashAttention": true, "jinja": true, "metrics": true,
-        "reasoning": "auto", "reasoningBudget": null
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 2400,
+        "minCtx": 8192
       },
-      "speculative": { "draftHfRepo": null, "draftNgl": null },
-      "mcp": { "serversConfig": null },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
       "extraArgs": [],
       "notes": "IQ4_XS (12,78 GB) statt Q4_K_M (14,33 GB): kleiner UND besser als Q4_K_S (13,55 GB). f16-KV fuer maximale Qualitaet.",
       "exclusiveGroup": "chat-gpu"
     },
     {
       "slug": "bge-embed-batch",
-      "label": "bge-m3 · Batch-Embedding (CPU)",
+      "label": "bge-m3 \u00b7 Batch-Embedding (CPU)",
       "model": "F:/Embedding/bge-m3-Q8_0.gguf",
       "port": 8085,
-      "fit": { "enabled": false, "targetMarginMib": null, "minCtx": null },
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": null,
+        "minCtx": null
+      },
       "args": {
-        "ctx": 8192, "ngl": 0, "parallel": 4,
-        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
-        "flashAttention": false, "jinja": false, "metrics": true,
-        "reasoning": null, "reasoningBudget": null,
+        "ctx": 8192,
+        "ngl": 0,
+        "parallel": 4,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": true,
+        "reasoning": null,
+        "reasoningBudget": null,
         "uiMcpProxy": false
       },
-      "speculative": { "draftHfRepo": null, "draftNgl": null },
-      "mcp": { "serversConfig": null },
-      "extraArgs": ["--embedding", "--pooling", "cls", "--embd-normalize", "2", "-b", "8192", "-ub", "8192"],
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [
+        "--embedding",
+        "--pooling",
+        "cls",
+        "--embd-normalize",
+        "2",
+        "-b",
+        "8192",
+        "-ub",
+        "8192"
+      ],
       "notes": "T002426 Paar A: bewusst CPU-gebunden (-ngl 0), damit die Chat-Modelle das VRAM behalten. Kein VRAM-Anpassungsflag - bei -ngl 0 waere es wirkungslos und wuerde Teilnahme am VRAM-Wettbewerb vortaeuschen."
     },
     {
       "slug": "bge-rerank-batch",
-      "label": "bge-reranker-v2-m3 · Batch-Rerank (CPU)",
+      "label": "bge-reranker-v2-m3 \u00b7 Batch-Rerank (CPU)",
       "model": "gpustack/bge-reranker-v2-m3-GGUF/bge-reranker-v2-m3-Q8_0.gguf",
       "port": 8086,
-      "fit": { "enabled": false, "targetMarginMib": null, "minCtx": null },
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": null,
+        "minCtx": null
+      },
       "args": {
-        "ctx": 8192, "ngl": 0, "parallel": 4,
-        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
-        "flashAttention": false, "jinja": false, "metrics": true,
-        "reasoning": null, "reasoningBudget": null,
+        "ctx": 8192,
+        "ngl": 0,
+        "parallel": 4,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": true,
+        "reasoning": null,
+        "reasoningBudget": null,
         "uiMcpProxy": false
       },
-      "speculative": { "draftHfRepo": null, "draftNgl": null },
-      "mcp": { "serversConfig": null },
-      "extraArgs": ["--reranking", "-b", "8192", "-ub", "8192"],
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [
+        "--reranking",
+        "-b",
+        "8192",
+        "-ub",
+        "8192"
+      ],
       "notes": "T002426 Paar A: bewusst CPU-gebunden (-ngl 0). Eigener Prozess neben bge-embed-batch, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann."
     },
     {
       "slug": "bge-embed",
-      "label": "bge-m3 · Embedding (WSL, CPU)",
+      "label": "bge-m3 \u00b7 Embedding (WSL, CPU)",
       "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",
       "port": 8095,
-      "fit": { "enabled": false, "targetMarginMib": null, "minCtx": null },
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": null,
+        "minCtx": null
+      },
       "args": {
-        "ctx": 8192, "ngl": 0, "parallel": 4,
-        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
-        "flashAttention": false, "jinja": false, "metrics": true,
-        "reasoning": null, "reasoningBudget": null,
+        "ctx": 8192,
+        "ngl": 0,
+        "parallel": 4,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": true,
+        "reasoning": null,
+        "reasoningBudget": null,
         "uiMcpProxy": false
       },
-      "speculative": { "draftHfRepo": null, "draftNgl": null },
-      "mcp": { "serversConfig": null },
-      "env": { "CUDA_VISIBLE_DEVICES": "" },
-      "extraArgs": ["--embedding", "--pooling", "cls", "--embd-normalize", "2", "-b", "8192", "-ub", "8192"],
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "env": {
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "extraArgs": [
+        "--embedding",
+        "--pooling",
+        "cls",
+        "--embd-normalize",
+        "2",
+        "-b",
+        "8192",
+        "-ub",
+        "8192"
+      ],
       "notes": "T002538. Der kanonische Embedding-Endpunkt: :8095 steht in Taskfile.yml, Taskfile.llm.yml, environments/dev.yaml, tests/local/NFA-11.sh und ~/.config/bge-mcp/server.env. Laeuft in WSL unter dem b10223-Build, nicht mehr als llama-server.exe auf Windows. CUDA_VISIBLE_DEVICES='' ist NICHT redundant zu -ngl 0: letzteres verhindert nur das Auslagern der Layer, llama.cpp allokiert trotzdem einen CUDA-Kontext. Gemessen 2026-08-02: die vier Windows-bge-Server hielten so zusammen 2,65 GB VRAM; deren Freigabe hob den Gemma-26B-Kontext von 12032 auf 45824. Kein fit: bei -ngl 0 waere es wirkungslos und wuerde Teilnahme am VRAM-Wettbewerb vortaeuschen. parallel 4 uebernimmt den Batch-Durchsatz des stillgelegten Paars auf :8085."
     },
     {
       "slug": "bge-rerank",
-      "label": "bge-reranker-v2-m3 · Rerank (WSL, CPU)",
+      "label": "bge-reranker-v2-m3 \u00b7 Rerank (WSL, CPU)",
       "model": "gpustack/bge-reranker-v2-m3-GGUF/bge-reranker-v2-m3-Q8_0.gguf",
       "port": 8096,
-      "fit": { "enabled": false, "targetMarginMib": null, "minCtx": null },
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": null,
+        "minCtx": null
+      },
       "args": {
-        "ctx": 8192, "ngl": 0, "parallel": 4,
-        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
-        "flashAttention": false, "jinja": false, "metrics": true,
-        "reasoning": null, "reasoningBudget": null,
+        "ctx": 8192,
+        "ngl": 0,
+        "parallel": 4,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": true,
+        "reasoning": null,
+        "reasoningBudget": null,
         "uiMcpProxy": false
       },
-      "speculative": { "draftHfRepo": null, "draftNgl": null },
-      "mcp": { "serversConfig": null },
-      "env": { "CUDA_VISIBLE_DEVICES": "" },
-      "extraArgs": ["--reranking", "-b", "8192", "-ub", "8192"],
-      "notes": "T002538. Der kanonische Rerank-Endpunkt :8096, Gegenstueck zu bge-embed. Eigener Prozess, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann — dieselbe Begruendung wie beim Batch-Paar. CUDA_VISIBLE_DEVICES='' siehe bge-embed. Der OpenAI-kompatible /v1/rerank-Pfad liefert dieselben Werte wie der native /rerank; verglichen wird die Reihenfolge der relevance_score, nicht deren Absolutwert (die sind rohe Logits, typisch um -11 fuer irrelevante Dokumente)."
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "env": {
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "extraArgs": [
+        "--reranking",
+        "-b",
+        "8192",
+        "-ub",
+        "8192"
+      ],
+      "notes": "T002538. Der kanonische Rerank-Endpunkt :8096, Gegenstueck zu bge-embed. Eigener Prozess, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann \u2014 dieselbe Begruendung wie beim Batch-Paar. CUDA_VISIBLE_DEVICES='' siehe bge-embed. Der OpenAI-kompatible /v1/rerank-Pfad liefert dieselben Werte wie der native /rerank; verglichen wird die Reihenfolge der relevance_score, nicht deren Absolutwert (die sind rohe Logits, typisch um -11 fuer irrelevante Dokumente)."
     },
     {
       "slug": "gemma-factory",
-      "label": "Gemma 4 12B · Factory Single-Agent",
+      "label": "Gemma 4 12B \u00b7 Factory Single-Agent",
       "model": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8091,
-      "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 32768 },
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 2400,
+        "minCtx": 32768
+      },
       "args": {
-        "ctx": null, "ngl": null, "parallel": 1,
-        "cacheTypeK": "q8_0", "cacheTypeV": "q8_0", "loadMode": "mmap",
-        "flashAttention": true, "jinja": true, "metrics": true,
-        "reasoning": "auto", "reasoningBudget": null,
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null,
         "mmprojPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mmproj-F16.gguf"
       },
       "speculative": {
         "draftModelPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mtp-gemma-4-12B-it-Q4_0.gguf",
         "draftNgl": null
       },
-      "mcp": { "serversConfig": null },
+      "mcp": {
+        "serversConfig": null
+      },
       "extraArgs": [],
       "exclusiveGroup": "chat-gpu",
-      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 — aus dem UEBERWACHTEN Profil (-Ctx 262144 -Slots 1 -KvType q8_0, so starten watchdog-llm-servers.ps1 und install-startup-autostart.ps1), NICHT aus den param()-Defaults des Skripts (65536/q4_0). Die Defaults weichen vom laufenden Server ab; wer sie migriert, senkt still die Qualitaet. q8_0 ist Absicht: q4_0-KV degradiert das woertliche Zurueckholen von Pfaden, Symbolnamen und Tool-Call-Argumenten (T002501). -fit ersetzt das harte -c; minCtx haelt die Untergrenze."
+      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 \u2014 aus dem UEBERWACHTEN Profil (-Ctx 262144 -Slots 1 -KvType q8_0, so starten watchdog-llm-servers.ps1 und install-startup-autostart.ps1), NICHT aus den param()-Defaults des Skripts (65536/q4_0). Die Defaults weichen vom laufenden Server ab; wer sie migriert, senkt still die Qualitaet. q8_0 ist Absicht: q4_0-KV degradiert das woertliche Zurueckholen von Pfaden, Symbolnamen und Tool-Call-Argumenten (T002501). -fit ersetzt das harte -c; minCtx haelt die Untergrenze."
     },
     {
       "slug": "gemma-multiagent",
-      "label": "Gemma 4 12B · Factory Multi-Agent",
+      "label": "Gemma 4 12B \u00b7 Factory Multi-Agent",
       "model": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8091,
-      "fit": { "enabled": true, "targetMarginMib": 2400, "minCtx": 65536 },
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 2400,
+        "minCtx": 65536
+      },
       "args": {
-        "ctx": null, "ngl": null, "parallel": 5,
-        "cacheTypeK": "q8_0", "cacheTypeV": "q8_0", "loadMode": "mmap",
-        "flashAttention": true, "jinja": true, "metrics": true,
-        "reasoning": "auto", "reasoningBudget": null,
+        "ctx": null,
+        "ngl": null,
+        "parallel": 5,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null,
         "mmprojPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mmproj-F16.gguf"
       },
       "speculative": {
         "draftModelPath": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/mtp-gemma-4-12B-it-Q4_0.gguf",
         "draftNgl": null
       },
-      "mcp": { "serversConfig": null },
-      "extraArgs": ["-kvu"],
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [
+        "-kvu"
+      ],
       "exclusiveGroup": "chat-gpu",
-      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (-Slots-Profil, -np 5 -kvu). q8_0 wie gemma-factory und gptoss-context — siehe dortige Begruendung (T002501). Mit -kvu ist minCtx ein GEMEINSAMER Pool ueber alle Slots, kein Wert je Slot."
+      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (-Slots-Profil, -np 5 -kvu). q8_0 wie gemma-factory und gptoss-context \u2014 siehe dortige Begruendung (T002501). Mit -kvu ist minCtx ein GEMEINSAMER Pool ueber alle Slots, kein Wert je Slot."
     },
     {
       "slug": "gemma26-factory",
-      "label": "Gemma 4 26B A4B · Factory Single-Agent",
+      "label": "Gemma 4 26B A4B \u00b7 Factory Single-Agent",
       "model": "gemma4/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8091,
-      "fit": { "enabled": true, "targetMarginMib": 256, "minCtx": 32768 },
-      "args": {
-        "ctx": null, "ngl": null, "parallel": 1,
-        "cacheTypeK": "q4_0", "cacheTypeV": "q4_0", "loadMode": "mmap",
-        "flashAttention": true, "jinja": true, "metrics": true,
-        "reasoning": "auto", "reasoningBudget": null
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 256,
+        "minCtx": 32768
       },
-      "speculative": { "draftModelPath": null, "draftNgl": null },
-      "mcp": { "serversConfig": null },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": "q4_0",
+        "cacheTypeV": "q4_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null
+      },
+      "speculative": {
+        "draftModelPath": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
       "uiConfigFile": "/home/patrick/.config/llama-cpp/ui-config.json",
       "extraArgs": [],
       "exclusiveGroup": "chat-gpu",
-      "notes": "T002534, gemessen 2026-08-02 auf RTX 5070 Ti (16 GB, geteilt mit Windows-Desktop) unter llama.cpp b10223. targetMarginMib 256 und KV q4_0 sind BEIDE Messergebnisse, keine Uebernahme von den 12B-Loadouts. -fitt-Reihe bei KV q8_0: 512 -> 45824 ctx / 129 tok/s, 256 -> 62464 / 160, 128 -> 70912 / 121, 64 -> 75264 / 142. Eine kleinere Marge gewinnt Kontext UND Tempo, weil --fit dann mehr Layer auf der GPU behaelt statt sie auszulagern; ab ~128 verdraengt der grosse KV-Cache selbst wieder Layer. KV q4_0 bei fitt 256: 99328 ctx / 166 tok/s. Die T002501-Sorge (q4_0-KV degradiert woertliches Zurueckholen von Pfaden, Symbolnamen, Tool-Call-Argumenten) war hier NICHT reproduzierbar: Probe mit sechs exakten Zeichenketten bei temperature 0, fuenf von fuenf Durchlaeufen zeichengenau. ACHTUNG - diese Probe lief im KURZEN Kontext (~200 Tokens) und widerlegt T002501 damit nicht fuer den Langkontext-Fall; Fehlerakkumulation ueber 37k+ Tokens ist ungemessen. Deshalb bleiben die 12B-Loadouts bei q8_0. Kein Draft-Modell: der MTP-Drafter mtp-gemma-4-26B-A4B-it.gguf (Architektur gemma4-assistant) laesst sich unter b10223 nicht laden (vector::_M_range_check) und bricht den Serverstart komplett ab; MTP waere reine Beschleunigung, das Zielmodell verifiziert jeden gedrafteten Token. Kein mmproj: die vorhandene mmproj-F16.gguf gehoert zum 12B. -ncmoe verworfen: 6 von 30 Layern brachten 196864 ctx, kosteten aber Faktor 7 beim Decoding (21,5 tok/s)."
+      "notes": "T002534, gemessen 2026-08-02 auf RTX 5070 Ti (16 GB, geteilt mit Windows-Desktop) unter llama.cpp b10223. targetMarginMib 256 und KV q4_0 sind BEIDE Messergebnisse, keine Uebernahme von den 12B-Loadouts. -fitt-Reihe bei KV q8_0: 512 -> 45824 ctx / 129 tok/s, 256 -> 62464 / 160, 128 -> 70912 / 121, 64 -> 75264 / 142. Eine kleinere Marge gewinnt Kontext UND Tempo, weil --fit dann mehr Layer auf der GPU behaelt statt sie auszulagern; ab ~128 verdraengt der grosse KV-Cache selbst wieder Layer. KV q4_0 bei fitt 256: 99328 ctx / 166 tok/s. Die T002501-Sorge (q4_0-KV degradiert woertliches Zurueckholen von Pfaden, Symbolnamen, Tool-Call-Argumenten) war hier NICHT reproduzierbar: Probe mit sechs exakten Zeichenketten bei temperature 0, fuenf von fuenf Durchlaeufen zeichengenau. ACHTUNG - diese Probe lief im KURZEN Kontext (~200 Tokens) und widerlegt T002501 damit nicht fuer den Langkontext-Fall; Fehlerakkumulation ueber 37k+ Tokens ist ungemessen. Deshalb bleiben die 12B-Loadouts bei q8_0. Kein Draft-Modell: der MTP-Drafter mtp-gemma-4-26B-A4B-it.gguf (Architektur gemma4-assistant) laesst sich unter b10223 nicht laden (vector::_M_range_check) und bricht den Serverstart komplett ab; MTP waere reine Beschleunigung, das Zielmodell verifiziert jeden gedrafteten Token. Kein mmproj: die vorhandene mmproj-F16.gguf gehoert zum 12B. -ncmoe verworfen: 6 von 30 Layern brachten 196864 ctx, kosteten aber Faktor 7 beim Decoding (21,5 tok/s).",
+      "tools": "all"
     }
   ]
 }

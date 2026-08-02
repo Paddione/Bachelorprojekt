@@ -24,6 +24,8 @@ The system SHALL have BATS tests in `tests/spec/admin-token-consolidation.bats` 
 
 ### Requirement: BATS spec coverage for admin-ui-modal-drawer
 
+#### Scenario: BATS spec coverage for admin-ui-modal-drawer
+
 The system SHALL have BATS tests in `tests/spec/admin-ui-modal-drawer.bats` that verify:
 - `AdminModal.svelte` uses native `<dialog>` with `data-testid` and `aria-labelledby`
 - Binding `open` prop drives `showModal()`/`close()`
@@ -34,6 +36,8 @@ The system SHALL have BATS tests in `tests/spec/admin-ui-modal-drawer.bats` that
 - Non-overlay components (`TicketCreateModal`, `VersionDrawer`) stay unmigrated
 
 ### Requirement: BATS spec coverage for react-login-edit-homepage
+
+#### Scenario: BATS spec coverage for react-login-edit-homepage
 
 The system SHALL have BATS tests in `tests/spec/react-login-edit-homepage.bats` that verify:
 - CORS helper `cors.ts` with allowlisted origin, credentials, OPTIONS preflight, fail-closed

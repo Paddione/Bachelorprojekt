@@ -83,6 +83,8 @@ implementation.
 
 ### Requirement: Test coverage for the empty-value-key bug
 
+#### Scenario: Test coverage for the empty-value-key bug
+
 A BATS test file `tests/spec/env-seal-empty-value-keys.bats` MUST exist with
 at minimum three test cases that exercise the new behaviour:
 

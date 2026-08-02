@@ -51,7 +51,7 @@ describe('validateChange', () => {
       mkdirSync(join(tmp, 'specs'), { recursive: true })
       writeFileSync(
         join(tmp, 'specs', 'cap.md'),
-        '## ADDED Requirements\n\n### Requirement: X\n\nThe system SHALL …\n',
+        '## ADDED Requirements\n\n### Requirement: X\n\n#### Scenario: X\n\nThe system SHALL …\n',
       )
       const { result } = validateChange(tmp)
       expect(result.ok).toBe(true)
@@ -113,7 +113,8 @@ describe('validateDeltaFile — T001262 hardening', () => {
   it('warns (not errors) on an unedited stub delta', () => {
     const STUB_MARKER = 'TO' + 'DO' // assembled marker for stub-detection tests
     const tmp = tmpChange(
-      '## ADDED Requirements\n\n### Requirement: ' + STUB_MARKER + '\n\nThe system SHALL …\n'
+      '## ADDED Requirements\n\n### Requirement: ' + STUB_MARKER +
+        '\n\n#### Scenario: ' + STUB_MARKER + '\n\nThe system SHALL …\n'
     )
     try {
       const { result } = validateChange(tmp)
@@ -126,7 +127,8 @@ describe('validateDeltaFile — T001262 hardening', () => {
     const specsRoot = mkdtempSync(join(tmpdir(), 'openspec-ssot-'))
     writeFileSync(join(specsRoot, 'cap.md'),
       '## Purpose\n\nx\n\n## Requirements\n\n### Requirement: Present\n\nThe system SHALL exist.\n')
-    const tmp = tmpChange('## MODIFIED Requirements\n\n### Requirement: Absent\n\nThe system SHALL change.\n')
+    const tmp = tmpChange(
+      '## MODIFIED Requirements\n\n### Requirement: Absent\n\n#### Scenario: Absent\n\nThe system SHALL change.\n')
     try {
       const { result } = validateChange(tmp, specsRoot)
       expect(result.ok).toBe(true)

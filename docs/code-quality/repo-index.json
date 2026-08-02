@@ -461,6 +461,7 @@
         "tests/spec/openspec-pgvector.bats",
         "tests/spec/openspec-upstream-cli.bats",
         "tests/spec/openspec-workflow.bats",
+        "tests/spec/openspec-workflow/delta-scenario-guard.bats",
         "tests/spec/openspec-workflow/half-archive-guard.bats",
         "tests/spec/openspec-worktree-anchor.bats",
         "tests/spec/pipeline-divergence-T002393.bats",

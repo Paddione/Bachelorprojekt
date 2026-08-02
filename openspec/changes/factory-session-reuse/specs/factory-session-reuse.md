@@ -20,4 +20,6 @@ The pipeline MUST fall back to a fresh `claude -p` dispatch when a session canno
 - AND the pipeline continues without interruption
 
 ### Requirement: Timeout handling with session reuse
+
+#### Scenario: Timeout handling with session reuse
 Phase timeouts MUST work correctly with session reuse — hanging resumed sessions should be killed and retried.

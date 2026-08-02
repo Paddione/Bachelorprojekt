@@ -2223,6 +2223,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002531": [
+    {
+      "slug": "sdlc-cockpit-k10-pipeline-slot",
+      "status": "plan_staged"
+    }
+  ],
   "T002537": [
     {
       "slug": "ingest-llm-argv-anchor",

@@ -24,6 +24,8 @@ from the same source so that alertmanager can send email notifications.
 
 ### Requirement: No schema or code changes required
 
+#### Scenario: No schema or code changes required
+
 The existing `environments/schema.yaml` entries for `SMTP_PASSWORD` with `extra_namespaces`
 are correct. The `env:seal` and `seal-extra-namespaces.sh` scripts function as designed.
 No modifications to schema, scripts, or application code are needed — the drift was caused

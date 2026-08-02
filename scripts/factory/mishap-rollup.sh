@@ -181,7 +181,7 @@ depends_on_plans: []
 _Container-Ticket: ${CONTAINER_ID}_
 
 Automatisch erzeugt von \`scripts/factory/mishap-rollup.sh\` [T002407] am
-$(date -u '+%Y-%m-%d %H:%M UTC)'. Die Eintraege stammen aus den
+$(date -u '+%Y-%m-%d %H:%M UTC'). Die Eintraege stammen aus den
 Batch-Kommentaren des Container-Tickets "${ROLLUP_TITLE}".
 
 ## File Structure

@@ -8,6 +8,8 @@ Dokumentiert das pre-existing Live-Site-Problem mit waitForHydration-Timeouts in
 
 ### Requirement: E2E-001 — Hydration-Timeouts werden toleriert
 
+#### Scenario: E2E-001 — Hydration-Timeouts werden toleriert
+
 E2E-Tests müssen mit instabilen Hydration-Zeiten auf der Live-Site umgehen können.
 
 **Scenarios:**

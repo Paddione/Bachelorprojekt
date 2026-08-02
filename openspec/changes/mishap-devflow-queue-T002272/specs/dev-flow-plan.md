@@ -2,6 +2,8 @@
 
 ### Requirement: REQ-DFP-HOLD-001 — stage-plan supports an explicit hold for interactive planning sessions
 
+#### Scenario: REQ-DFP-HOLD-001 — stage-plan supports an explicit hold for interactive planning sessions
+
 `scripts/vda/ticket/stage-plan.sh` SHALL accept an optional `--hold` flag. When present,
 it SHALL (a) set `readiness->>'execution_released' = 'false'` on the ticket in the same
 transaction as the `plan_staged` status update, and (b) skip the `force-tick-requested`

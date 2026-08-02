@@ -13,8 +13,12 @@ plan-lint SHALL NOT emit W3 for a file listed in `## File Structure` when at lea
 
 ### Requirement: CLAUDE-DEPRECATED-HOOK
 
+#### Scenario: CLAUDE-DEPRECATED-HOOK
+
 CLAUDE.md SHALL reference the active frontmatter command (`vda.sh frontmatter`) and NOT the deprecated `plan-frontmatter-hook.sh` outside its deprecation notice.
 
 ### Requirement: COMMIT-SCOPE-ALLOWLIST
+
+#### Scenario: COMMIT-SCOPE-ALLOWLIST
 
 Scripts that generate `git commit` commands SHALL use a scope from the `namedScopes` allowlist in `commitlint.config.cjs`.

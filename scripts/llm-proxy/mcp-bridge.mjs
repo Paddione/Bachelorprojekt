@@ -106,6 +106,17 @@ function createServerEntry(name, srvCfg) {
 
   const sessions = new Set();
 
+  // T002548 — Handshake-Zustand des Kindes.
+  //
+  // Die Bruecke teilt EINEN Kindprozess ueber alle HTTP-Sessions (T002429 §3.1),
+  // waehrend MCP `initialize` einmal pro Session vorsieht. Ein spec-treuer Server
+  // lehnt jedes weitere mit "duplicate 'initialize' received" ab. Deshalb fuehrt
+  // die Bruecke den Handshake genau einmal und beantwortet spaetere Anfragen aus
+  // `initResult` selbst. Der Zustand haengt am Kindprozess, nicht an der Route:
+  // beim Neustart (proc.on('exit') -> createServerEntry) entsteht er frisch, was
+  // korrekt ist — der neue Prozess hat noch keinen Handshake gesehen.
+  const handshake = { initResult: null, pendingInitId: null, notified: false };
+
   // Read stdout line by line – each line is a JSON-RPC message
   const rl = createInterface({ input: proc.stdout });
   rl.on('line', (line) => {
@@ -123,6 +134,16 @@ function createServerEntry(name, srvCfg) {
     }
     if (msg && msg.id !== undefined) {
       const key = String(msg.id);
+
+      // Antwort auf den einen Handshake, den wir durchgereicht haben → merken.
+      // Nur `result` wird gecacht: ein Fehler darf nicht als gueltiger Handshake
+      // konserviert werden, sonst bekaeme jede spaetere Session denselben Fehler
+      // ohne Chance auf einen neuen Versuch.
+      if (handshake.pendingInitId !== null && key === handshake.pendingInitId) {
+        handshake.pendingInitId = null;
+        if (msg.result !== undefined) handshake.initResult = msg.result;
+      }
+
       const p = pending.get(key);
       if (p) {
         clearTimeout(p.timer);
@@ -161,7 +182,7 @@ function createServerEntry(name, srvCfg) {
     console.error(`[mcp-bridge] ${name}: spawn error`, err.message);
   });
 
-  return { proc, sessions, rl, keepAliveTimer: null };
+  return { proc, sessions, rl, keepAliveTimer: null, handshake };
 }
 
 function broadcastToSessions(sessions, line) {
@@ -300,6 +321,36 @@ function handleMcp(req, res, serverName, method) {
         res.writeHead(400, withCors({ 'content-type': 'application/json' }));
         res.end(JSON.stringify({ error: { code: 'invalid_rpc', message: 'missing jsonrpc or method field' } }));
         return;
+      }
+
+      // T002548 — Handshake nicht durchreichen, wenn er schon gefuehrt wurde.
+      //
+      // MCP sieht `initialize` einmal pro Session vor, die Bruecke teilt aber
+      // einen Kindprozess. Ohne diesen Abfang antwortet ein spec-treuer Server
+      // (github-mcp-server v1.8.0) jeder zweiten Session mit
+      // "duplicate 'initialize' received". Die Antwort traegt die id des
+      // ANFRAGENDEN Clients, nicht die des ersten — sonst ordnet sein
+      // JSON-RPC-Layer sie keiner Anfrage zu.
+      const hs = entry.handshake;
+      if (hs) {
+        if (message.method === 'initialize') {
+          if (hs.initResult !== null) {
+            res.writeHead(200, withCors({ 'content-type': 'application/json' }));
+            res.end(JSON.stringify({ jsonrpc: '2.0', id: message.id, result: hs.initResult }));
+            return;
+          }
+          hs.pendingInitId = String(message.id);
+        } else if (message.method === 'notifications/initialized') {
+          // Auch diese Notification gehoert einmal pro Session — der geteilte
+          // Prozess hat sie nach dem ersten Mal gesehen. 202 wie bei jeder
+          // Notification, nur ohne Schreibvorgang.
+          if (hs.notified) {
+            res.writeHead(202, withCors());
+            res.end();
+            return;
+          }
+          hs.notified = true;
+        }
       }
 
       try {

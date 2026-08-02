@@ -435,4 +435,106 @@ describe('mcp-bridge', () => {
 
     expect(res.writeHead).toHaveBeenCalledWith(405, expect.any(Object));
   });
+
+  // ── initialize: einmal zum Kind, danach aus dem Cache (T002548) ────────────
+  //
+  // Die Bruecke teilt EINEN Kindprozess ueber alle HTTP-Sessions (T002429 §3.1),
+  // waehrend MCP `initialize` einmal pro Session vorsieht. Ein spec-treuer Server
+  // (github-mcp-server v1.8.0) lehnt das zweite mit "duplicate 'initialize'
+  // received" ab; die nachsichtigen stdio-Server verdeckten die Luecke bisher.
+
+  it('reicht das erste initialize an das Kind durch und merkt sich das Ergebnis', async () => {
+    useSingleConfig();
+    const proc = spawnOne();
+    await initBridge();
+
+    const body = JSON.stringify({
+      jsonrpc: '2.0', id: 1, method: 'initialize',
+      params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'a', version: '1' } },
+    });
+    const res = mockRes();
+    handleMcp(mockReq({}, body), res, 'ticket-mcp', 'POST');
+
+    await vi.waitFor(() => {
+      expect(proc.stdin.write).toHaveBeenCalledWith(body + '\n');
+    });
+
+    const childReply = JSON.stringify({
+      jsonrpc: '2.0', id: 1,
+      result: { protocolVersion: '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'ticket-mcp', version: '1.0.0' } },
+    });
+    lineHandlerFrom(mockState.getRlInstances()[0])(childReply);
+
+    await vi.waitFor(() => {
+      expect(res.writeHead).toHaveBeenCalledWith(200, expect.any(Object));
+    });
+  });
+
+  it('beantwortet ein zweites initialize selbst, ohne es an das Kind zu schicken', async () => {
+    useSingleConfig();
+    const proc = spawnOne();
+    await initBridge();
+
+    // Erste Session: Handshake vollstaendig durchfuehren.
+    const first = JSON.stringify({
+      jsonrpc: '2.0', id: 1, method: 'initialize',
+      params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'a', version: '1' } },
+    });
+    handleMcp(mockReq({}, first), mockRes(), 'ticket-mcp', 'POST');
+    await vi.waitFor(() => {
+      expect(proc.stdin.write).toHaveBeenCalledWith(first + '\n');
+    });
+    lineHandlerFrom(mockState.getRlInstances()[0])(JSON.stringify({
+      jsonrpc: '2.0', id: 1,
+      result: { protocolVersion: '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'ticket-mcp', version: '1.0.0' } },
+    }));
+
+    // Positiv-Anker (T002356-M1): der Durchreich-Pfad funktioniert ueberhaupt.
+    // Ohne ihn waere die Negativ-Aussage unten bei einer toten Bruecke trivial erfuellt.
+    const writesAfterFirst = proc.stdin.write.mock.calls.length;
+    expect(writesAfterFirst).toBeGreaterThan(0);
+
+    // Zweite Session: eigene id, eigener Client.
+    const second = JSON.stringify({
+      jsonrpc: '2.0', id: 99, method: 'initialize',
+      params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'b', version: '1' } },
+    });
+    const res2 = mockRes();
+    handleMcp(mockReq({}, second), res2, 'ticket-mcp', 'POST');
+
+    // Muss ohne Zutun des Kindes beantwortet werden.
+    await vi.waitFor(() => {
+      expect(res2.writeHead).toHaveBeenCalledWith(200, expect.any(Object));
+    });
+
+    // Kern der Regression: kein weiterer initialize-Schreibvorgang zum Kind.
+    expect(proc.stdin.write.mock.calls.length).toBe(writesAfterFirst);
+
+    // Und die Antwort traegt die id des ZWEITEN Aufrufers, nicht die des ersten.
+    const payload = JSON.parse(res2.end.mock.calls[0][0]);
+    expect(payload.id).toBe(99);
+    expect(payload.error).toBeUndefined();
+    expect(payload.result.serverInfo.name).toBe('ticket-mcp');
+  });
+
+  it('schickt notifications/initialized nur einmal an das Kind', async () => {
+    useSingleConfig();
+    const proc = spawnOne();
+    await initBridge();
+
+    const note = JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' });
+
+    handleMcp(mockReq({}, note), mockRes(), 'ticket-mcp', 'POST');
+    await vi.waitFor(() => {
+      expect(proc.stdin.write).toHaveBeenCalledWith(note + '\n');
+    });
+    const after = proc.stdin.write.mock.calls.length;
+
+    const res2 = mockRes();
+    handleMcp(mockReq({}, note), res2, 'ticket-mcp', 'POST');
+    await vi.waitFor(() => {
+      expect(res2.writeHead).toHaveBeenCalledWith(202, expect.any(Object));
+    });
+    expect(proc.stdin.write.mock.calls.length).toBe(after);
+  });
 });

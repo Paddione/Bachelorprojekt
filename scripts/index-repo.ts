@@ -72,10 +72,12 @@ let EMBED_MODEL: string;
 
 async function resolveEmbedConfig(): Promise<void> {
   // T002258: was llm-gateway-lmstudio:1234 (LM Studio). bge-m3 moved to a
-  // dedicated llama-server on :8095 with T002110/PR #3150; the Service in
-  // k3d/llm-gpu.yaml is `llm-gateway-embed` on port 8095 and LM Studio is gone.
+  // dedicated llama-server, and LM Studio is gone. T002551: the host-local
+  // llama-server (was :8095) is decommissioned; the Service in k3d/llm-gpu.yaml
+  // is `llm-gateway-embed` on port 8081 (T002570 corrected the stale :8095
+  // fallback references below).
   const clusterHost = 'llm-gateway-embed.workspace.svc.cluster.local';
-  const localUrl = 'http://localhost:8095';
+  const localUrl = 'http://localhost:8081';
   const configured = process.env.LLM_EMBED_URL;
 
   if (configured && await endpointReachable(configured)) {
@@ -89,7 +91,7 @@ async function resolveEmbedConfig(): Promise<void> {
     }
     EMBED_URL = (await endpointReachable(localUrl))
       ? localUrl
-      : (await clusterDnsResolves(clusterHost)) ? `http://${clusterHost}:8095` : localUrl;
+      : (await clusterDnsResolves(clusterHost)) ? `http://${clusterHost}:8081` : localUrl;
   }
   // llama-server serves a single model and ignores the `model` field, so this
   // is cosmetic there — it still matters for any OpenAI-compatible router in

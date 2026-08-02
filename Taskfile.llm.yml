@@ -231,6 +231,16 @@ tasks:
     cmds:
       - bash scripts/llm/routing-check.sh
 
+  loadouts:check:
+    desc: "Prueft loadouts.json auf die kanonische writeLoadouts()-Form (fail-closed, CI) [T002553]"
+    cmds:
+      - node scripts/llm/loadouts-format.mjs --check
+
+  loadouts:format:
+    desc: "Normalisiert loadouts.json auf die kanonische Form — Reparatur fuer loadouts:check [T002553]"
+    cmds:
+      - node scripts/llm/loadouts-format.mjs --write
+
   measure-equivalence:
     desc: "Measure embedding equivalence between TEI and new llama.cpp endpoint"
     cmds:

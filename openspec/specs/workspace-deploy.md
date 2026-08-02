@@ -680,29 +680,29 @@ do not exist.
 ### Requirement: discover-versions.sh ermittelt Tool-Versionen ohne Flux
 
 The system SHALL discover current versions for k3s, sealed-secrets Helm chart,
-cert-manager, and longhorn Helm chart via GitHub API and Helm search, write them to
-`versions.yaml` when `--update` is passed, and SHALL NOT track or write a `flux:` key
-(fleet is push-based, no Flux controller installed).
+cert-manager, and longhorn Helm chart via GitHub API and Helm search, and SHALL
+write them to `versions.yaml` when `--update` is passed. Because the fleet cluster
+now runs a pull-based GitOps reconciler (Flux Operator), the previous prohibition
+on tracking a `flux:` key is REMOVED: the system MAY additionally track a Flux
+distribution / flux-operator chart version, but MUST NOT fail when that key is
+absent (the four core keys remain mandatory).
 
-#### Scenario: Dry-Run gibt alle Versionen aus
+#### Scenario: Dry-Run gibt alle Pflicht-Versionen aus
 
-- **GIVEN** gemockte `curl`- und `helm`-Befehle liefern fixture-Werte
-- **WHEN** `bash scripts/discover-versions.sh` ohne `--update` ausgeführt wird
-- **THEN** enthält der Output `k3s: v1.99.0+k3s1`, `sealed_secrets_chart: 9.1.0`,
-  `cert_manager: v9.2.0`, `longhorn_chart: 9.3.0`
-- **AND** der Output enthält keinen Eintrag für `flux:` (da kein GitOps-Controller)
-- **AND** keine `versions.yaml`-Datei wird geschrieben
+- **GIVEN** mocked `curl` and `helm` commands returning fixture values
+- **WHEN** `bash scripts/discover-versions.sh` runs without `--update`
+- **THEN** the output contains `k3s:`, `sealed_secrets_chart:`, `cert_manager:`,
+  and `longhorn_chart:`
+- **AND** no `versions.yaml` file is written
 
-#### Scenario: --update schreibt versions.yaml mit managed-by-Kommentar
+#### Scenario: --update schreibt versions.yaml mit allen vier Pflicht-Keys
 
-- **GIVEN** `--update --versions-file <path>` werden übergeben
-- **WHEN** `bash scripts/discover-versions.sh --update` ausgeführt wird
-- **THEN** existiert die Datei und enthält alle vier Pflicht-Keys (`k3s:`, `sealed_secrets_chart:`,
-  `cert_manager:`, `longhorn_chart:`)
-- **AND** die erste Zeile der Datei enthält `discover-versions.sh` (managed-by-Kommentar)
-- **AND** `flux:` ist nicht in der Datei vorhanden
-
----
+- **GIVEN** `--update --versions-file <path>` are passed with mocked commands
+- **WHEN** `bash scripts/discover-versions.sh --update` runs
+- **THEN** the file exists and contains all four mandatory keys (`k3s:`,
+  `sealed_secrets_chart:`, `cert_manager:`, `longhorn_chart:`)
+- **AND** the presence or absence of an optional `flux:` key does NOT cause a
+  non-zero exit
 
 ### Requirement: Website-Dockerfile setzt Node.js-Heap-Limit im Build-Stage
 
@@ -1100,6 +1100,205 @@ webhook).
 - **WHEN** `kubectl --context fleet -n flux-system get sealedsecrets` is queried
 - **THEN** `ghcr-auth` and `flux-webhook-token` both report `SYNCED=True` with
   no decode error
+
+### Requirement: The built image tag reaches the rendered manifest
+
+The rendered website manifest SHALL reference the image tag supplied by the
+build pipeline, not a hardcoded `latest`.
+
+The tag SHALL be a template placeholder (`${WEBSITE_IMAGE_TAG}`) rather than a
+literal. Templating only the image *name* is insufficient: an override would
+then replace the name, turning the tag `sha-20260726-abc` into
+`ghcr.io/paddione/sha-20260726-abc:latest`, an image that does not exist.
+
+`scripts/flux-render-artifact.sh` SHALL read `WEBSITE_IMAGE_TAG` and
+`BRETT_IMAGE_TAG` from the environment, with the CLI flags `--website-image`
+and `--brett-image` taking precedence.
+
+Rationale: `.github/workflows/render-fleet-artifact.yml` supplies the freshly
+built SHA tag as an environment variable, while the script only ever read the
+CLI flag and `Taskfile.yml`'s `flux:render` passes only `--out`. The value
+arrived and was never consumed. The manifest kept `:latest`, its content did
+not change between builds, and Flux therefore had nothing to apply — a green
+build and a green render produced no rollout. On 2026-07-26 the website pod
+was still 2.5 hours old after a successful build (run 30208864439).
+
+#### Scenario: Supplied tag appears in the rendered Deployment
+
+- **GIVEN** `WEBSITE_IMAGE_TAG=sha-20260726-abc` is set in the environment
+- **WHEN** the fleet artifact is rendered
+- **THEN** the website Deployment references `ghcr.io/paddione/website:sha-20260726-abc`
+
+#### Scenario: CLI flag wins over the environment
+
+- **GIVEN** both `WEBSITE_IMAGE_TAG` and `--website-image` are supplied
+- **WHEN** the render script runs
+- **THEN** the value from the CLI flag is used
+
+### Requirement: The image tag placeholder never renders empty
+
+Every render path SHALL establish a default for `WEBSITE_IMAGE_TAG` and
+`BRETT_IMAGE_TAG` before invoking `envsubst`, and every `envsubst` allowlist
+that permits `$WEBSITE_IMAGE` SHALL also permit `$WEBSITE_IMAGE_TAG`.
+
+`envsubst` has no `${VAR:-default}` form: an unset variable becomes the empty
+string. A missing default or a missing allowlist entry therefore renders
+`image: ghcr.io/paddione/website:` — a broken manifest rather than a loud
+failure. The same failure mode is visible in the korczewski `notify-push`
+container, which waits forever on `bin/$/notify_push` after an `${ARCH}`
+placeholder was consumed by an unguarded `envsubst` pass.
+
+This applies to the break-glass `workspace:deploy` path as well — the path
+used precisely when the GitOps path is already broken.
+
+#### Scenario: Allowlist missing the tag placeholder fails the suite
+
+- **GIVEN** an `envsubst` allowlist contains `$WEBSITE_IMAGE` but not `$WEBSITE_IMAGE_TAG`
+- **WHEN** the spec suite runs
+- **THEN** the test fails, naming the offending list
+
+#### Scenario: Rendering without a supplied tag yields latest, not empty
+
+- **GIVEN** no `WEBSITE_IMAGE_TAG` is set
+- **WHEN** the artifact is rendered
+- **THEN** the Deployment references `…/website:latest`
+- **AND** no manifest contains an image reference ending in a bare colon
+
+### Requirement: Pull-based Reconciliation ist der Standard-Deploy-Pfad auf fleet
+
+The system SHALL reconcile the fleet cluster's desired state from an OCI artifact
+via a Flux Operator `FluxInstance` and a `Kustomization` dependency chain
+(sealed-secrets → platform → per-brand and per-website overlays), rather than by a
+push-based `kubectl apply`. The `FluxInstance` SHALL declare `spec.distribution`
+(registry and version) and `spec.sync` pointing at the private OCI artifact
+(`kind: OCIRepository`, the artifact URL, `ref`, and `path: clusters/fleet`) with a
+`pullSecret` of type `kubernetes.io/dockerconfigjson`. Every `Kustomization` SHALL
+set `spec.prune` explicitly; brand and website Kustomizations SHALL use
+`prune: true` with `wait: true`, while the sealed-secrets Kustomization SHALL use
+`prune: false` so Secrets are never garbage-collected.
+
+#### Scenario: Reconcile-Kette wird Ready
+
+- **GIVEN** the FluxInstance and Kustomization CRs are applied on fleet
+- **WHEN** the reconciler pulls the OCI artifact
+- **THEN** `flux-sealed-secrets`, `flux-platform`, and the brand/website
+  Kustomizations all reach `Ready=True`
+- **AND** `flux-platform` reconciles only after `flux-sealed-secrets` is ready
+  (dependsOn ordering)
+
+#### Scenario: Drift wird zurückgedreht
+
+- **GIVEN** a resource managed by a `prune: true` Kustomization is edited manually
+  with `kubectl edit`
+- **WHEN** the next reconcile interval elapses
+- **THEN** the manual change is reverted to the artifact state (self-healing)
+
+### Requirement: workspace:deploy ist Break-Glass und deprecated
+
+The system SHALL keep `task workspace:deploy ENV=<brand>` functional as a
+break-glass push path, but SHALL mark it deprecated and SHALL document that an
+operator MUST first suspend the affected Kustomization (`flux suspend kustomization
+<name>`) before a manual push, otherwise drift correction reverts the change.
+
+#### Scenario: Deprecation-Hinweis ist sichtbar
+
+- **GIVEN** the `workspace:deploy` task body
+- **WHEN** an operator reads it
+- **THEN** it contains a deprecation note referencing `flux suspend kustomization`
+  as the required precondition for a manual break-glass deploy
+
+### Requirement: Das OCI-Artefakt enthält keine Klartext-Secrets
+
+The system SHALL render the fleet overlays into the OCI artifact using the existing
+`kustomize build | sed | envsubst | sed` pipeline with a substitution allowlist that
+EXCLUDES every variable declared under the `secrets:` block of
+`environments/schema.yaml`. Secret material SHALL reach the cluster only via the
+committed SealedSecrets copied into the artifact's `sealed-secrets/` path, never as a
+substituted literal in a rendered manifest.
+
+#### Scenario: Render lässt Secret-Platzhalter unsubstituiert
+
+- **GIVEN** a schema variable declared under `secrets:` (e.g. `STUDIO_DB_URL`) that
+  also appears in the envsubst list
+- **WHEN** `scripts/flux-render-artifact.sh out/` runs
+- **THEN** no rendered manifest under `out/` contains the plaintext secret value
+- **AND** the secret is delivered exclusively through a SealedSecret under
+  `out/sealed-secrets/`
+
+### Requirement: k3d base is single-node-neutral
+
+The `k3d/` base manifests SHALL contain no host-specific scheduling constraints
+(nodeAffinity on `kubernetes.io/hostname` values) and no cross-namespace service
+literals, so that `task workspace:deploy ENV=dev` converges on any single-node
+cluster (local k3d, remote dev) without imperative follow-up work. Environment-
+specific pinning SHALL live exclusively in overlays or deploy-time patches
+(`WEBSITE_NODE_AFFINITY`).
+
+#### Scenario: Fresh local k3d cluster deploys without manual patches
+
+- **GIVEN** a freshly created k3d cluster (`task cluster:create`) as the current kubectl context
+- **WHEN** `task workspace:deploy ENV=dev` runs
+- **THEN** no workload remains unschedulable due to nodeAffinity on production or remote-dev hostnames
+- **AND** CronJobs reach the website service via `website.${WEBSITE_NAMESPACE}.svc`, not a hardcoded `website.website.svc`
+
+#### Scenario: Dev secrets cover all referenced keys
+
+- **GIVEN** the dev secret sources `k3d/secrets.yaml` and `k3d/website-dev-secrets.yaml`
+- **WHEN** the website and workspace Deployments resolve their `secretKeyRef`s
+- **THEN** every referenced key exists (including `SESSIONS_CRON_TOKEN`, `STUDIO_DB_URL`, `INTERNAL_API_TOKEN`, SEPA and LLM keys)
+- **AND** `website-secrets` lands in `${WEBSITE_NAMESPACE}`, not a hardcoded `website` namespace
+
+### Requirement: Dev-only apiserver egress policy
+
+The base SHALL ship a dev-only NetworkPolicy `allow-apiserver-egress-k3d`
+(TCP 6443 to `172.16.0.0/12`) so in-cluster jobs can reach the k3d API-server
+endpoint post-DNAT; the `prod/` overlay SHALL strip this resource via
+`$patch: delete` so production keeps the tight fleet-wg-only egress.
+
+#### Scenario: Seed job writes secrets back on k3d
+
+- **GIVEN** the `pocket-id-client-seed` job runs on a local k3d cluster
+- **WHEN** it PATCHes generated client secrets to `kubernetes.default.svc`
+- **THEN** the connection succeeds (endpoint in the Docker network is allowed by the dev-only policy)
+
+#### Scenario: Prod output contains no dev policy
+
+- **GIVEN** the `prod-fleet/<brand>` overlay
+- **WHEN** `kustomize build` renders the production manifests
+- **THEN** `allow-apiserver-egress-k3d` is absent from the output
+
+### Requirement: Pocket-ID bootstrap is self-contained
+
+The `pocket-id-db-init` job SHALL idempotently seed a bootstrap admin user and a
+`seed-deploy` API key (`sha256` of `workspace-secrets.POCKET_ID_API_KEY`) using
+`ON CONFLICT DO NOTHING`, so `pocket-id-client-seed` can authenticate on a fresh
+cluster without manual DB inserts, while existing rows on production remain
+untouched.
+
+#### Scenario: Fresh cluster seeds OIDC clients unattended
+
+- **GIVEN** a fresh cluster with empty `pocket_id.users` and `pocket_id.api_keys`
+- **WHEN** `pocket-id-db-init` and then `pocket-id-client-seed` run
+- **THEN** the seed job authenticates via `X-API-KEY` and provisions all OIDC clients
+
+#### Scenario: Existing production data is untouched
+
+- **GIVEN** a cluster whose `pocket_id` database already contains users and API keys
+- **WHEN** `pocket-id-db-init` re-runs
+- **THEN** no existing row is modified or duplicated
+
+### Requirement: ENV=dev targets the current kubectl context
+
+All deploy tasks' dev branches (`workspace:deploy`, `website:deploy`) SHALL
+operate on the current kubectl context and SHALL NOT pass
+`--context=${ENV_CONTEXT}`; the k3d cluster config SHALL pin `kubeAPI.hostPort`
+so the kubeconfig survives cluster restarts.
+
+#### Scenario: website:deploy dev applies manifests and image to the same cluster
+
+- **GIVEN** the current kubectl context is the local k3d cluster
+- **WHEN** `task website:deploy ENV=dev` runs
+- **THEN** the image import and the manifest apply both target the local cluster
 
 ## Testszenarien
 
@@ -1556,3 +1755,9 @@ The system SHALL have BATS tests in `tests/spec/ci-cd.bats` that verify the korc
 <!-- merged from change delta workspace-deploy.md (9d3f8efccbc2) -->
 
 <!-- merged from change delta workspace-deploy.md (241d903adef7) -->
+
+<!-- merged from change delta workspace-deploy.md (2847bad4c9de) -->
+
+<!-- merged from change delta workspace-deploy.md (f282e6b93573) -->
+
+<!-- merged from change delta workspace-deploy.md (22fc6651e928) -->

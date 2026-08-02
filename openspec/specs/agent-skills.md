@@ -451,3 +451,15 @@ nicht anwendbar" lesen und ohne Scope-Prüfung fortfahren.
 - **AND** das Gate läuft, statt mit einer Usage-Meldung abzubrechen
 
 <!-- merged from change delta agent-skills.md (33ce99d3ba83) -->
+
+### Requirement: Consolidation of Micro-Specs into Parent SSOT Specs
+
+The system SHALL consolidate isolated micro-spec deltas into their corresponding parent SSOT specification files under `openspec/specs/`.
+
+#### Scenario: Validation after consolidation passes cleanly
+
+- **GIVEN** 10 micro-specs merged into parent SSOT specs
+- **WHEN** running `task openspec:validate`
+- **THEN** all parent specs pass validation and no orphaned micro-specs remain
+
+<!-- merged from change delta agent-skills.md (74edc672d6fc) -->

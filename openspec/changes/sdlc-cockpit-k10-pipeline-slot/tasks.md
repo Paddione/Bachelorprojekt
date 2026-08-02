@@ -240,7 +240,7 @@ Die Löschung nimmt elf Testdateien mit. An ihre Stelle treten zwei Prüfstellen
 BATS-Vorgangstest für die Flächen- und Löschaussagen und ein Vitest für den Panel-Rahmen.
 Beide werden **vor** der Umsetzung geschrieben und laufen rot.
 
-- [ ] `tests/spec/sdlc-cockpit/pipeline-slot-uebernahme.bats` anlegen (Namensprüfung gegen
+- [x] `tests/spec/sdlc-cockpit/pipeline-slot-uebernahme.bats` anlegen (Namensprüfung gegen
       `ls tests/spec/sdlc-cockpit/` — die 18 vorhandenen Dateien tragen andere Namen).
       Header-Kommentar dokumentiert den Prüfmodus: **Quelltext-Prüfung**, weil es um
       Verdrahtung von Markup, Navigationsdaten und Dateiexistenz geht — ein Bereich, dessen
@@ -261,7 +261,7 @@ Beide werden **vor** der Umsetzung geschrieben und laufen rot.
       - *Weiterleitung:* zuerst belegen, dass `pipeline.astro` existiert, dann dass sie
         `Astro.redirect` mit `/admin/cockpit` und `Astro.url.search` verwendet und
         `DevStatusTabs` **nicht** mehr importiert.
-- [ ] `website/src/components/cockpit/PipelinePanel.test.ts` anlegen. Der Pfad fällt unter
+- [x] `website/src/components/cockpit/PipelinePanel.test.ts` anlegen. Der Pfad fällt unter
       `src/components/**/*.test.ts` und läuft damit im `components`-Projekt von
       `website/vitest.config.ts` (jsdom + Svelte-Plugin). Header-Kommentar dokumentiert den
       Prüfmodus: **Ergebnis-Test** — die echte Panel-Laufzeit wird ausgeführt und ihr Effekt
@@ -279,10 +279,10 @@ Beide werden **vor** der Umsetzung geschrieben und laufen rot.
         Panel-Element darf nicht in `Panel.registry` stehen. Positiv-Anker im selben Test:
         ein danebengestelltes Kontroll-Element **mit** `data-panel-type="status"` wird sehr
         wohl adoptiert — sonst bewiese der Test nur, dass die Laufzeit gar nicht lief.
-- [ ] `website/src/middleware/redirect-map.test.ts` anpassen: die vier Zeilen der
+- [x] `website/src/middleware/redirect-map.test.ts` anpassen: die vier Zeilen der
       `CASES`-Tabelle auf `/admin/cockpit?tab=…` umstellen. Die Aussage „genau 21 Einträge"
       bleibt bestehen — es kommt kein Eintrag hinzu (D-K10-3).
-- [ ] Läufe **vor** der Umsetzung:
+- [x] Läufe **vor** der Umsetzung:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/pipeline-slot-uebernahme.bats
@@ -291,7 +291,7 @@ cd website && npx vitest run src/components/cockpit/PipelinePanel.test.ts src/mi
 # der Cockpit-Baum steht noch, die Redirect-Ziele zeigen noch auf /admin/pipeline
 ```
 
-- [ ] Syntaxprüfung der neuen BATS-Datei mit dem tauglichen Mittel (`bash -n` meldet für
+- [x] Syntaxprüfung der neuen BATS-Datei mit dem tauglichen Mittel (`bash -n` meldet für
       `@test`-Blöcke einen irreführenden Fehler):
 
 ```bash

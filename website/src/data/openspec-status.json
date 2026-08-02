@@ -2271,6 +2271,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002560": [
+    {
+      "slug": "toolset-registry",
+      "status": "plan_staged"
+    }
+  ],
   "T002561": [
     {
       "slug": "2026-08-02-freshness-check-base-mismatch",

@@ -115,3 +115,44 @@ _gen() {
     false
   }
 }
+
+@test "PIRD: --out merge uebernimmt bestehendes intel.json am Zielpfad" {
+  local custom_out="$BATS_TEST_TMPDIR/custom_intel/intel.json"
+  mkdir -p "$(dirname "$custom_out")"
+
+  # Vorab-Lauf an den custom_out Pfad
+  bash "$REPO/scripts/plan-intel.sh" "$SLUG" --target-files scripts/plan-intel.sh --out "$custom_out"
+  [ -f "$custom_out" ]
+
+  # Api contract injizieren
+  jq '.api_contracts = [{"path":"/api/custom","method":"POST"}]' "$custom_out" > "$BATS_TEST_TMPDIR/patched.json"
+  mv "$BATS_TEST_TMPDIR/patched.json" "$custom_out"
+
+  # Erneuter Lauf mit --out custom_out
+  bash "$REPO/scripts/plan-intel.sh" "$SLUG" --target-files scripts/plan-intel.sh --out "$custom_out"
+
+  local kept
+  kept="$(jq '[.api_contracts[] | select(.path == "/api/custom")] | length' "$custom_out")"
+  [ "$kept" -eq 1 ] || {
+    echo "api_contracts in custom --out nicht beibehalten"
+    jq -c '.api_contracts' "$custom_out"
+    false
+  }
+}
+
+@test "PIRD: --out liest .ticket aus dem Zielverzeichnis" {
+  local custom_dir="$BATS_TEST_TMPDIR/ticket_test"
+  local custom_out="$custom_dir/intel.json"
+  mkdir -p "$custom_dir"
+  echo "T009999" > "$custom_dir/.ticket"
+
+  bash "$REPO/scripts/plan-intel.sh" "$SLUG" --target-files scripts/plan-intel.sh --out "$custom_out"
+
+  local ticket_id
+  ticket_id="$(jq -r '.meta.ticket_id' "$custom_out")"
+  [ "$ticket_id" = "T009999" ] || {
+    echo "Erwartet ticket_id T009999 aus custom_dir/.ticket, erhalten: $ticket_id"
+    false
+  }
+}
+

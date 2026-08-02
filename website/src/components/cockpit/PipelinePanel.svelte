@@ -8,8 +8,9 @@
 -->
 <script lang="ts">
   import DevStatusTabs from '../DevStatusTabs.svelte';
+  import type { FloorPayload } from '../../lib/factory-floor-types';
 
-  export let initial: any = null;
+  export let initial: FloorPayload | null = null;
   export let initialTab: string = 'factory';
   export let brand: string = 'mentolder';
 </script>

@@ -2472,6 +2472,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/worktree-hygiene-goals",
+    "file": "tests/spec/health-goals/worktree-hygiene-goals.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "hermes-mcp-access",
     "file": "tests/spec/hermes-mcp-access.bats",
     "category": "hermes-mcp-access",

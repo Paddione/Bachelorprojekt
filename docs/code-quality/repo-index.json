@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 741,
+      "file_count": 742,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -417,6 +417,7 @@
         "tests/spec/health-goal-latest-image-exclusions.bats",
         "tests/spec/health-goals-erden.bats",
         "tests/spec/health-goals.bats",
+        "tests/spec/health-goals/worktree-hygiene-goals.bats",
         "tests/spec/helpers/agent-tools.py",
         "tests/spec/hermes-mcp-access.bats",
         "tests/spec/image-drift.bats",
@@ -3079,7 +3080,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 621,
+      "file_count": 622,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3479,6 +3480,7 @@
         "scripts/lib/ticket-grill.sh",
         "scripts/lib/ticket-links.sh",
         "scripts/lib/vda-core.sh",
+        "scripts/lib/wt-hygiene-measure.sh",
         "scripts/llm-host-setup.sh",
         "scripts/llm-proxy/backends.mjs",
         "scripts/llm-proxy/discovery.mjs",

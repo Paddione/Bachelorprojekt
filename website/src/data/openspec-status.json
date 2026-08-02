@@ -2241,6 +2241,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002540": [
+    {
+      "slug": "fix-plan-intel-merge",
+      "status": "plan_staged"
+    }
+  ],
   "T002543": [
     {
       "slug": "mcp-gateway-watchdog",

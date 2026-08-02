@@ -43,7 +43,7 @@ fi
 OUT_PATH="${OUT_PATH:-$CHANGE_DIR/intel.json}"
 mkdir -p "$(dirname "$OUT_PATH")"
 
-EXISTING_INTEL="$CHANGE_DIR/intel.json"
+EXISTING_INTEL="${OUT_PATH:-$CHANGE_DIR/intel.json}"
 API_CONTRACTS="[]"
 EXTERNAL_TYPES="[]"
 RISKS_EXTRA="[]"
@@ -180,7 +180,11 @@ mkdir -p "$(dirname "$OUT_PATH")"
 # Ticket-ID aus .ticket lesen (Fallback: leer), nicht hartkodieren — die
 # hardkodierte T002420 stammte aus einem Einzelticket und wanderte in jedes
 # generierte intel.json.
-TICKET_ID="$(cat "$CHANGE_DIR/.ticket" 2>/dev/null || echo "")"
+TICKET_PATH="$(dirname "$OUT_PATH")/.ticket"
+if [[ ! -f "$TICKET_PATH" ]]; then
+  TICKET_PATH="$CHANGE_DIR/.ticket"
+fi
+TICKET_ID="$(cat "$TICKET_PATH" 2>/dev/null || echo "")"
 
 OUTPUT="$(jq -n \
   --arg slug "$SLUG" \

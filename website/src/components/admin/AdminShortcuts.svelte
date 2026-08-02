@@ -159,7 +159,7 @@
 
   const allInfraLinks: InfraLink[] = [
     { url: '/admin/platform', label: 'Plattform Hub' },
-    { url: '/admin/pipeline', label: 'Pipeline' },
+    { url: '/admin/cockpit', label: 'Cockpit' },
     ...(!isKore ? [{ url: '/admin/repohealth', label: 'Repo Health' }] : []),
   ];
 </script>

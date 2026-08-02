@@ -14,10 +14,10 @@ const CASES: ReadonlyArray<readonly [string, string]> = [
   ['/admin/50plus-digital',           '/admin/inhalte?tab=website&section=50plus-digital'],
   ['/admin/fuehrung-persoenlichkeit', '/admin/inhalte?tab=website&section=fuehrung-persoenlichkeit'],
   ['/admin/ki-transition',            '/admin/inhalte?tab=website&section=ki-transition'],
-  ['/admin/planungsbuero',            '/admin/pipeline?tab=planung'],
-  ['/admin/dora',                     '/admin/pipeline?tab=analytics'],
-  ['/admin/factory-budget',           '/admin/pipeline?tab=kosten'],
-  ['/admin/factory-observability',    '/admin/pipeline?tab=kosten'],
+  ['/admin/planungsbuero',            '/admin/cockpit?tab=planung'],
+  ['/admin/dora',                     '/admin/cockpit?tab=analytics'],
+  ['/admin/factory-budget',           '/admin/cockpit?tab=kosten'],
+  ['/admin/factory-observability',    '/admin/cockpit?tab=kosten'],
   ['/admin/ops',                      '/admin/platform'],
   ['/admin/monitoring',               '/admin/platform'],
   ['/admin/tickets',                  '/admin/cockpit'],
@@ -36,7 +36,7 @@ describe('resolveRedirect', () => {
   });
 
   it('normalisiert einen einzelnen Trailing-Slash', () => {
-    expect(resolveRedirect('/admin/dora/')).toBe('/admin/pipeline?tab=analytics');
+    expect(resolveRedirect('/admin/dora/')).toBe('/admin/cockpit?tab=analytics');
   });
 
   it('gibt null fuer nicht-gemappte Pfade zurueck (dynamische Routen bleiben unberuehrt)', () => {

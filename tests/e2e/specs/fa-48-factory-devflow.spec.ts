@@ -46,7 +46,7 @@ async function gotoDevStatusWithStub(page: any, payload: any) {
   });
   await page.route('**/api/factory-floor/stream', (route: any) => route.abort());
 
-  await page.goto('/admin/pipeline?tab=factory', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin/cockpit?tab=factory', { waitUntil: 'domcontentloaded' });
   // DevStatusTabs & FactoryFloor listen for floor-stub-update and ingest the payload.
   // The island hydrates asynchronously — dispatch repeatedly so the listener is
   // guaranteed to be registered when the event lands (idempotent overwrite).

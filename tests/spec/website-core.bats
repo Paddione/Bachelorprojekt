@@ -84,14 +84,13 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 }
 
 # ── T001433: Sidebar ─────────────────────────────────────────────────────────
-@test "T001433 sidebar: AdminSidebarNav has exactly one /admin/pipeline link labelled Pipeline" {
-  run grep -c "href:[[:space:]]*'/admin/pipeline'" "$SIDEBAR_NAV"
+@test "T001433 sidebar: AdminSidebarNav has exactly one /admin/cockpit link labelled Cockpit" {
+  run grep -c "href:[[:space:]]*'/admin/cockpit'" "$SIDEBAR_NAV"
   [ "$output" -ge 1 ]
-  run grep -E "label:[[:space:]]*'Pipeline'" "$SIDEBAR_NAV"
+  run grep -E "label:[[:space:]]*'Cockpit'" "$SIDEBAR_NAV"
   [ "$status" -eq 0 ]
-  # No actual /dev-status or /admin/planungsbuero href in the sidebar nav
-  # (matches-array entries are fine — they are URL patterns for the isActive() helper)
-  run grep -E "href:[[:space:]]*'/dev-status'|href:[[:space:]]*'/admin/planungsbuero'" "$SIDEBAR_NAV"
+  # No actual /admin/pipeline, /dev-status, or /admin/planungsbuero href in the sidebar nav
+  run grep -E "href:[[:space:]]*'/admin/pipeline'|href:[[:space:]]*'/dev-status'|href:[[:space:]]*'/admin/planungsbuero'" "$SIDEBAR_NAV"
   [ "$status" -ne 0 ]
 }
 
@@ -420,6 +419,13 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   [ "$status" -eq 0 ]
   run grep -Eq "label:[[:space:]]*'Repo Health'" "$SIDEBAR_NAV"
   [ "$status" -eq 0 ]
+}
+
+@test "T002531 sidebar: AdminSidebarNav has exactly one /admin/cockpit link and no /admin/pipeline link" {
+  run grep -Eq "href:[[:space:]]*'/admin/cockpit'" "$SIDEBAR_NAV"
+  [ "$status" -eq 0 ]
+  run grep -Eq "href:[[:space:]]*'/admin/pipeline'" "$SIDEBAR_NAV"
+  [ "$status" -ne 0 ]
 }
 
 @test "T002058 perf: public Layout.astro does not render PortalSidekick (Astro hoists island CSS render-blocking)" {

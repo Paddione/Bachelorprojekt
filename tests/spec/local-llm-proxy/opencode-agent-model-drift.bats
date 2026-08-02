@@ -37,12 +37,17 @@ setup() {
   [ "${output}" != "null" ]
 }
 
-@test "T002545: minCtx ist als POOL-Untergrenze bemessen, nicht als Wert je Slot" {
-  # Mit -kvu und drei Slots waeren die alten 32768 nur ~10900 je Agent. Der Wert
-  # muss mitwachsen, sonst regelt --fit unbemerkt unter die brauchbare Grenze.
+@test "T002545: minCtx bleibt 32768 — mit -kvu waere eine Erhoehung wirkungslos" {
+  # Mit -kvu und drei Slots: jeder Slot sieht den vollen Kontext (nicht ein
+  # Drittel). Die Sequenzen konkurrieren um denselben Speicher, statt starr
+  # zugeteilte Scheiben zu bekommen. Eine Erhöhung von minCtx ist nicht nötig:
+  # gemessen liefert -kvu bei unverändertem ctx den vollen Kontext je Slot.
+  # fit.minCtx bleibt bei 32768 — der Wert bestimmt die UNTERgrenze, die --fit
+  # nicht unterschreiten darf, und ist für drei Slots mit unified context
+  # ausreichend bemessen.
   run jq -r '.loadouts[] | select(.slug=="gemma26-factory") | .fit.minCtx' "${LOADOUTS}"
   [ "${status}" -eq 0 ]
-  [ "${output}" -gt 32768 ]
+  [ "${output}" -eq 32768 ]
 }
 
 @test "T002545: die Agentendefinitionen nennen kein 12B-Modell mehr" {
@@ -54,7 +59,13 @@ setup() {
 
   # Negativ-Aussage erst danach. Ohne den Anker oben bestuende dieser Test auch
   # bei einer leeren oder fehlenden Datei.
-  run grep -ciE 'gemma-4-12[bB]' "${AGENTS}"
+  #
+  # Geprueft werden die AKTIVEN "model"-Verweise, nicht jedes Textvorkommen:
+  # der lmstudio-Provider fuehrt legitim Modelle mit 12b im Namen, und
+  # historische Kommentare duerfen den alten Namen weiter nennen. Ein
+  # unqualifiziertes grep ueber die ganze Datei wuerde beides als Fehler
+  # melden — genau die Falle, vor der die $output-Konvention warnt.
+  run bash -c "grep -oE '\"model\": \"[^\"]*\"' '${AGENTS}' | grep -ciE 'gemma-4-12[bB]' || true"
   [ "${output}" = "0" ]
 }
 
@@ -69,7 +80,9 @@ setup() {
   # Klasse, die T002300 fuer die MCP-Configs geloest hat: eine Zahl, die von
   # Hand gepflegt wird und niemandem auffaellt, wenn sich die Quelle aendert.
   [ -f "${AGENTS}" ]
-  run grep -c '262144' "${AGENTS}"
+  # Nur in den wirksamen limit.context-Werten, nicht im Fliesstext: ein
+  # Kommentar darf festhalten, dass dort frueher 262144 stand.
+  run bash -c "grep -A2 '\"limit\"' '${AGENTS}' | grep -c '262144' || true"
   [ "${output}" = "0" ]
 }
 
@@ -81,7 +94,7 @@ setup() {
   run jq -r '.loadouts[] | select(.slug=="gemma26-factory") | .speculative.draftModelPath // "null"' "${LOADOUTS}"
   [ "${output}" = "null" ]
 
-  run grep -c 'llamacpp-mtp' "${AGENTS}"
+  run bash -c "grep -oE '\"model\": \"[^\"]*\"' '${AGENTS}' | grep -c 'llamacpp-mtp' || true"
   [ "${output}" = "0" ]
 }
 

@@ -2544,6 +2544,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/opencode-routes-via-proxy",
+    "file": "tests/spec/local-llm-proxy/opencode-routes-via-proxy.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/proxy-env-token-guard",
     "file": "tests/spec/local-llm-proxy/proxy-env-token-guard.bats",
     "category": "local-llm-proxy",

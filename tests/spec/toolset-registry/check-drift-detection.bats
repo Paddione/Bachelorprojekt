@@ -8,7 +8,6 @@ load '../test_helper.bash'
 
 @test "toolset gate detects hand-edited target config (drift)" {
   local tmp; tmp="$(mktemp -d)"
-  trap 'rm -rf "$tmp"' RETURN
 
   # 1) Fixture-Registry: github → cli:gh-axi canonical, mcp:github-mcp suppressed
   mkdir -p "$tmp/registry" "$tmp/out/.claude"
@@ -35,6 +34,7 @@ JSON
   [ "$status" -eq 0 ] || { echo "Positiv-Anker: Gate gegen konsistente Fixture muss Exit 0 liefern (status=$status)"; return 1; }
 
   # 4) Drift: suppressed mcp-Instanz wieder aktivieren (verwalteter Key verfälscht)
+  mkdir -p "$tmp/out/.claude"
   cat > "$tmp/out/.claude/settings.json" <<'JSON'
 {
   "theme": "dark",

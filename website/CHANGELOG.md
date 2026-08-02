@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.238.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.3...website-v1.238.4) (2026-08-02)
+
+
+### Bug Fixes
+
+* **ops:** BGE_MCP_TOKEN fuer den llm-proxy bereitstellen und sein Fehlen sichtbar machen [T002556] ([#3657](https://github.com/Paddione/Bachelorprojekt/issues/3657)) ([eb4ee76](https://github.com/Paddione/Bachelorprojekt/commit/eb4ee763b5cba899c69e574c5d672007edeabe2b))
+
 ## [1.238.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.2...website-v1.238.3) (2026-08-02)
 
 

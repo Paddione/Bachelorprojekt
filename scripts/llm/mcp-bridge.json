@@ -25,48 +25,6 @@
       "cwd": "/home/patrick/Bachelorprojekt",
       "enabled": true,
       "bearerTokenEnv": null
-    },
-    "github-mcp": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_TOKEN": "{env:GITHUB_TOKEN}"
-      },
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "enabled": false,
-      "bearerTokenEnv": null
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@latest"],
-      "env": {},
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "enabled": false,
-      "bearerTokenEnv": null
-    },
-    "docfork": {
-      "command": "npx",
-      "args": ["-y", "docfork"],
-      "env": {},
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "enabled": false,
-      "bearerTokenEnv": null
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "env": {},
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "enabled": false,
-      "bearerTokenEnv": null
-    },
-    "webresearch": {
-      "command": "npx",
-      "args": ["-y", "@mzxrai/mcp-webresearch@latest"],
-      "env": {},
-      "cwd": "/home/patrick/Bachelorprojekt",
-      "enabled": false,
-      "bearerTokenEnv": null
     }
   }
 }

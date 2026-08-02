@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.238.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.5...website-v1.238.6) (2026-08-02)
+
+
+### Bug Fixes
+
+* **security:** BGE_MCP_TOKEN in die git-crypt-SSOT aufnehmen und von dort verteilen [T002559] ([#3658](https://github.com/Paddione/Bachelorprojekt/issues/3658)) ([34104e7](https://github.com/Paddione/Bachelorprojekt/commit/34104e722e0ab73bdafb760f5731d060ed881a50))
+
 ## [1.238.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.4...website-v1.238.5) (2026-08-02)
 
 

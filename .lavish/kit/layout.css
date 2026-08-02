@@ -1,0 +1,171 @@
+/* .lavish/kit/layout.css — SDLC Cockpit Layout-Engine Stilschicht (K3, T002462)
+ *
+ * Alle neuen Layout-Klassen mit ausschliesslich Token-Bezuegen (E11).
+ * tokens.css bleibt selektorfrei und wird nicht angefasst. Keine hartkodierten
+ * Farb-, Groessen- oder Abstands-Werte.
+ */
+
+/* Flaeche: Fokus-Spalte + Arbeitsbereich + Katalog (E3) */
+.cockpit-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.cockpit-focus {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--color-bg-base);
+  border-right: 1px solid var(--color-border-muted);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.cockpit-focus .panel--rail {
+  max-height: 2.5rem;
+  padding: 0;
+}
+
+.cockpit-workspace {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  overflow-y: auto;
+  align-content: flex-start;
+}
+
+.cockpit-catalog {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--color-bg-inset);
+  border-left: 1px solid var(--color-border-muted);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.cockpit-header {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border-muted);
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.cockpit-header h1 {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+/* Rail-Gruppenkoepfe (D7) */
+.cockpit-rail-group {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--space-2) var(--space-2) 0;
+}
+
+/* Groessen im Arbeitsbereich */
+.cockpit-workspace .panel--card {
+  flex: 1 1 400px;
+  max-width: 600px;
+}
+
+.cockpit-workspace .panel--fullscreen {
+  position: static;
+  flex: 1 1 100%;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  margin-top: var(--space-3);
+}
+
+/* Gesperrtes Panel (D8): sichtbar, nicht versteckt */
+.panel--locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.panel--locked .panel__head {
+  pointer-events: none;
+}
+
+.panel--locked .panel__title::after {
+  content: " [gesperrt]";
+  font-size: var(--text-xs);
+  color: var(--color-status-warn);
+  text-transform: uppercase;
+}
+
+/* Ziehen: Element waehrend der Geste */
+.panel__head[data-dragging] {
+  opacity: 0.5;
+}
+
+/* Griff: Pointer-Events muessen die Geste behalten */
+.panel__head {
+  touch-action: none;
+}
+
+/* Mobil (3.2): Rail wird obere Leiste + Bottom-Sheet, ein Ein-Panel-Stack */
+@media (max-width: 768px) {
+  .cockpit-layout {
+    flex-direction: column;
+  }
+
+  .cockpit-focus {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-muted);
+    padding: var(--space-2);
+  }
+
+  .cockpit-focus .panel--rail {
+    display: none;
+  }
+
+  .cockpit-catalog {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--color-border-muted);
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .cockpit-catalog .panel--rail {
+    max-height: none;
+    flex: 0 0 auto;
+  }
+
+  .cockpit-workspace {
+    flex: 1;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    overflow-y: auto;
+  }
+
+  .cockpit-workspace .panel--card,
+  .cockpit-workspace .panel--fullscreen {
+    flex: 1 1 auto;
+    max-width: 100%;
+  }
+
+  .cockpit-rail-group {
+    display: none;
+  }
+}

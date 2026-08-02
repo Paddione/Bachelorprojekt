@@ -1,6 +1,14 @@
 class Panel {
   static registry = new Map();
 
+  static get(el) {
+    return Panel.registry.get(el);
+  }
+
+  static adopt(el) {
+    return Panel.get(el) || Panel.create(el);
+  }
+
   static create(el) {
     const type = el.dataset.panelType;
     if (!['status', 'strom', 'canvas', 'terminal'].includes(type)) {
@@ -69,6 +77,10 @@ class Panel {
   destroy() {
     this.stopPolling();
     if (this.observer) this.observer.disconnect();
+    // [T002462] Ein zerstoertes Panel muss aus der statischen Registry fallen —
+    // fuer Pop-out und Katalog-Rueckkehr ist ein stehengebliebener Eintrag ein
+    // echter Fehler, nicht Kosmetik.
+    Panel.registry.delete(this.el);
   }
 
   stopPolling() {
@@ -399,6 +411,14 @@ class Panel {
     errorEl.textContent = `Fehler: ${msg}`;
   }
 }
+
+// Kit-Muster: jedes Modul haengt seinen Einstieg ans Fenster (window.actionPolicy,
+// window.data, window.cockpitLayout). Bei `class Panel` ist das nicht optional,
+// sondern noetig: eine Klassendeklaration auf oberster Ebene eines klassischen
+// Skripts landet in der globalen LEXIKALISCHEN Umgebung und erzeugt — anders als
+// `var` — keine Eigenschaft auf `window`. Ohne diese Zeile ist `window.Panel`
+// undefined und jeder Wachter in layout.js schlaegt still fehl. [T002462]
+window.Panel = Panel;
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-panel-type]').forEach(el => {

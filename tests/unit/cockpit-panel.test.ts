@@ -3,8 +3,17 @@
 //
 // Testet den Panel-Vertrag ohne DOM: Typvalidierung, Groessen, Aktions-Zustaende.
 // [T002460]
+//
+// Abgrenzung gegen K8 (T002467, Headed-Tests): was ein echter Browser erbringen
+// muss — Pointer-Gesten, Pop-out-Fenster, optische Wirkung — ist hier NICHT
+// geprueft. Die Registry-Aussagen unten fuehren dagegen die echte panel.js-
+// Quelle aus (Vorbild K4s `new Function('window', src)`-Verfahren). [T002462]
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+const PANEL_SRC = readFileSync(resolve(__dirname, '../../.lavish/kit/panel.js'), 'utf8');
 
 describe('Panel type validation (D2)', () => {
   const VALID_TYPES = ['status', 'strom', 'canvas', 'terminal'] as const;
@@ -137,5 +146,152 @@ describe('D13 compliance — no null/0/dash as measurement', () => {
       // D13: Diese Werte duerfen nie als gueltige Messwerte erscheinen
       expect(val == null || val === 0 || val === '-' || val === '').toBe(true);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Registry-Vertrag (Task 2/Task 7, T002462) — fuehrt die echte panel.js-Quelle
+// aus. Die Quelle ist ein klassisches Skript (kein ES-Modul), wird deshalb per
+// readFileSync + new Function ausgefuehrt und legt das Panel auf dem Fenster-
+// Attrappenobjekt ab. DOM-Treffer (IntersectionObserver, document) sind Stubs.
+// ---------------------------------------------------------------------------
+
+function loadRealPanel() {
+  const windowObj: Record<string, unknown> = {
+    data: {},
+    innerWidth: 1280,
+    addEventListener: () => {},
+  };
+  const documentShim = {
+    addEventListener: () => {},
+    querySelectorAll: () => [],
+  };
+  const localStorageShim = {
+    getItem: () => null,
+    setItem: () => {},
+  };
+  const src = PANEL_SRC + '\nwindow.__Panel = Panel;';
+  new Function('window', 'document', 'localStorage', src)(
+    windowObj, documentShim, localStorageShim,
+  );
+  return windowObj.__Panel as {
+    create: (el: HTMLElement) => { destroy(): void; init(): void };
+    get: (el: HTMLElement) => unknown;
+    adopt: (el: HTMLElement) => unknown;
+  };
+}
+
+function makeEl(id = 'panel-x') {
+  return {
+    id,
+    dataset: { panelType: 'terminal' },
+    querySelector: () => null,
+  } as unknown as HTMLElement;
+}
+
+describe('Panel registry (T002462 — Task 2)', () => {
+  // Die Quelle referenziert IntersectionObserver als Global. Im Node-Lauf muss
+  // er waehrend der Test-Dauer existieren, sonst bricht `new Panel(...)` in
+  // init() ab — die Klasse wird ja erst NACH dem Laden ausgefuehrt.
+  beforeEach(() => {
+    (globalThis as Record<string, unknown>).IntersectionObserver = class {
+      observe() {}
+      disconnect() {}
+    };
+  });
+  afterEach(() => {
+    delete (globalThis as Record<string, unknown>).IntersectionObserver;
+  });
+
+  it('POSITIV-ANKER: vor destroy() liefert Panel.get(el) das Panel', () => {
+    const Panel = loadRealPanel();
+    const el = makeEl();
+    const panel = Panel.create(el);
+    expect(Panel.get(el)).toBe(panel);
+  });
+
+  it('nach destroy() liefert Panel.get(el) nichts mehr', () => {
+    const Panel = loadRealPanel();
+    const el = makeEl();
+    const panel = Panel.create(el);
+    panel.destroy();
+    expect(Panel.get(el)).toBeUndefined();
+  });
+
+  it('Panel.adopt(el) liefert fuer ein bereits registriertes Element dasselbe Objekt', () => {
+    const Panel = loadRealPanel();
+    const el = makeEl();
+    const panel = Panel.create(el);
+    expect(Panel.adopt(el)).toBe(panel);
+  });
+
+  it('Panel.adopt(el) legt fuer ein unbekanntes Element ein neues Panel an', () => {
+    const Panel = loadRealPanel();
+    const el = makeEl('panel-fresh');
+    const panel = Panel.adopt(el);
+    expect(Panel.get(el)).toBe(panel);
+  });
+
+  it('destroy() auf einem doppelt erzeugten Element raeumt den Registry-Eintrag', () => {
+    const Panel = loadRealPanel();
+    const el = makeEl();
+    const first = Panel.create(el);
+    first.destroy();
+    // Nach dem destroy registriert adopt() neu und bekommt ein frisches Panel.
+    const second = Panel.adopt(el);
+    expect(second).not.toBe(first);
+    expect(Panel.get(el)).toBe(second);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fenster-Export (T002462) — laedt panel.js OHNE die `window.__Panel`-Bruecke
+// aus loadRealPanel(). Genau diese Bruecke hat verdeckt, dass `class Panel` auf
+// oberster Ebene eines klassischen Skripts in der globalen LEXIKALISCHEN
+// Umgebung landet und — anders als `var` — keine Eigenschaft auf `window`
+// erzeugt. layout.js haengt an `window.Panel`; ohne den expliziten Export sind
+// dort alle acht Waechter dauerhaft falsch und die Panel-Anbindung tut still
+// nichts. Geprueft wird das Ergebnis der Ausfuehrung, nicht der Quelltext.
+// ---------------------------------------------------------------------------
+describe('Panel-Fenster-Export (T002462)', () => {
+  beforeEach(() => {
+    (globalThis as Record<string, unknown>).IntersectionObserver = class {
+      observe() {}
+      disconnect() {}
+    };
+  });
+
+  function runPanelSourceBare() {
+    const windowObj: Record<string, unknown> = {
+      data: {},
+      innerWidth: 1280,
+      addEventListener: () => {},
+    };
+    new Function('window', 'document', 'localStorage', PANEL_SRC)(
+      windowObj,
+      { addEventListener: () => {}, querySelectorAll: () => [] },
+      { getItem: () => null, setItem: () => {} },
+    );
+    return windowObj;
+  }
+
+  it('panel.js legt Panel als Fenster-Eigenschaft ab — ohne Testbruecke', () => {
+    const windowObj = runPanelSourceBare();
+    // Positiv-Anker: die Ausfuehrung ist ueberhaupt durchgelaufen und hat das
+    // Fenster-Attrappenobjekt unveraendert gelassen, wo nichts zu tun war.
+    expect(windowObj.innerWidth).toBe(1280);
+    expect(typeof windowObj.Panel).toBe('function');
+  });
+
+  it('der Fenster-Export traegt den Registry-Vertrag, den layout.js aufruft', () => {
+    const Panel = runPanelSourceBare().Panel as {
+      get: (el: HTMLElement) => unknown;
+      adopt: (el: HTMLElement) => unknown;
+      create: (el: HTMLElement) => unknown;
+    };
+    const el = makeEl('panel-window-export');
+    expect(Panel.get(el)).toBeUndefined();
+    const panel = Panel.adopt(el);
+    expect(Panel.get(el)).toBe(panel);
   });
 });

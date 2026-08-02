@@ -2958,6 +2958,24 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/layout-buildfree",
+    "file": "tests/spec/sdlc-cockpit/layout-buildfree.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/layout-kit-asset-wiring",
+    "file": "tests/spec/sdlc-cockpit/layout-kit-asset-wiring.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/layout-rail-fixed",
+    "file": "tests/spec/sdlc-cockpit/layout-rail-fixed.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/no-direct-fetch",
     "file": "tests/spec/sdlc-cockpit/no-direct-fetch.bats",
     "category": "sdlc-cockpit",

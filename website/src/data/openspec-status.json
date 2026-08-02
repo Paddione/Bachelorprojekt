@@ -2087,6 +2087,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002438": [
+    {
+      "slug": "brain-k8-gesamtbild",
+      "status": "plan_staged"
+    }
+  ],
   "T002439": [
     {
       "slug": "2026-07-28-db-pod-phase-guard-T002439",

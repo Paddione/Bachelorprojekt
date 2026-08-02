@@ -2,7 +2,7 @@
 title: "K3 Code Graph"
 ticket_id: T002433
 domains: [docs]
-status: plan_staged
+status: in_progress
 file_locks: []
 shared_changes: false
 batch_id: null

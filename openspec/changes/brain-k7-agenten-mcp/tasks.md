@@ -1,15 +1,23 @@
-# Tasks: K7: Agenten- und MCP-Harness-Ebene visualisieren
+---
+title: "K7 Agenten Mcp"
+ticket_id: T002437
+domains: [docs]
+status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: T002430
+depends_on_plans: []
+---
 
-| id | file | role | target_files | depends_on |
-|----|------|------|-------------|------------|
-| 1 | docs/brain/k7-agenten-mcp.md | docs | docs/brain/k7-agenten-mcp.md | — |
+# K7 Agenten Mcp
+
+_Ticket: T002437_
 
 ## Partials
 
-### 1 — Diagramm + Erhebung + Defekte
+| id | file | role | target_files | depends_on |
+|----|------|------|-------------|------------|
+| 1 | tasks.d/p1-survey.md | spec | — | — |
+| 2 | tasks.d/p2-documentation.md | docs | — | 1 |
 
-**target_files:** docs/brain/k7-agenten-mcp.md
-
-- Diagramm mit beschrifteten Kanten
-- Erhebung aller relevanten Aspekte
-- Defekt-Referenz aus T002430

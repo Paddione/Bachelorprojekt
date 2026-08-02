@@ -40,6 +40,8 @@ The commit-msg hook MUST clearly communicate when no commit was created.
 ---
 
 ### Requirement: Test results vs Implementation check
+
+#### Scenario: Test results vs Implementation check
 Tests MUST check actual outputs/results of operations rather than grep-ing implementation patterns in source code, unless the result is truly unobservable.
 
 ---

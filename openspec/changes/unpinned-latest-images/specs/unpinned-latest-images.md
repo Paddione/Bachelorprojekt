@@ -8,6 +8,8 @@ Dokumentiert die bewusste Nutzung von :latest Image-Tags in Workspace-Deployment
 
 ### Requirement: LATEST-001 — Intentionale :latest-Nutzung wird dokumentiert
 
+#### Scenario: LATEST-001 — Intentionale :latest-Nutzung wird dokumentiert
+
 Image-Tags, die bewusst auf :latest gesetzt sind (Website, Brett, Studio, etc.), werden in einer zentralen Liste dokumentiert.
 
 **Scenarios:**

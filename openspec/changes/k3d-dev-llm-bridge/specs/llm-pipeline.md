@@ -10,6 +10,8 @@ already use. Documentation fixes in k3d/llm-gpu.yaml and environments/schema.yam
 
 ### Requirement: LLM-PIPELINE-001 — Dev LLM_HOST_IP is reachable from k3d pods
 
+#### Scenario: LLM-PIPELINE-001 — Dev LLM_HOST_IP is reachable from k3d pods
+
 | | Before | After |
 |---|---|---|
 | Value | `172.17.0.1` (Docker bridge) | `192.168.100.10` (wg-mesh) |

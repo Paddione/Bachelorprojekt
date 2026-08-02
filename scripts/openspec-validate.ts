@@ -63,6 +63,22 @@ function validateDeltaFile(
     if (!/\*\*Renamed-to:\*\*/.test(body)) warnings.push(`${filePath}: RENAMED '${name}' missing '**Renamed-to:**' directive`)
   }
 
+  // Scenario ratchet for delta files (T002567). `validateSpec` enforces this on
+  // the SSOT, but `openspec archive` merges the delta verbatim — so a missing
+  // `#### Scenario:` only surfaced *after* archiving, in a different change than
+  // the one that introduced it. On 2026-08-02 that turned `main` red three times
+  // in a row. Checking here fails the PR that actually creates the gap.
+  //
+  // Only ADDED/MODIFIED carry scenario text into the SSOT; REMOVED and RENAMED
+  // name an existing requirement and are exempt.
+  for (const op of ['ADDED', 'MODIFIED'] as const) {
+    for (const { name, body } of sectionRequirements(content, op)) {
+      if (!/^#### Scenario: /m.test(body)) {
+        errors.push(`${filePath}: ${op} requirement '${name}' has no '#### Scenario:' entry`)
+      }
+    }
+  }
+
   // Cross-reference: MODIFIED/REMOVED/RENAMED targets should exist in the SSOT.
   if (specsRoot) {
     const ssotPath = join(specsRoot, basename(filePath))

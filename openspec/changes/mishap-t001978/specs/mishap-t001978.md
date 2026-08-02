@@ -7,6 +7,8 @@ ticket_id: T001978
 
 ### Requirement: background-agents auto-retries on empty output
 
+#### Scenario: background-agents auto-retries on empty output
+
 WHEN a delegation via `.opencode/plugins/background-agents.ts` returns
 `status: "complete"` AND `result.text` is empty
 AND the originating agent is `qwen35-iq4`

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.239.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.239.2...website-v1.239.3) (2026-08-02)
+
+
+### Tests
+
+* **dev-flow-e2e:** add optional K8 headed-verify Playwright stage [T002467] ([#3681](https://github.com/Paddione/Bachelorprojekt/issues/3681)) ([006f6d4](https://github.com/Paddione/Bachelorprojekt/commit/006f6d41a4f312d203e41d5055e9e155188deb63))
+
 ## [1.239.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.239.1...website-v1.239.2) (2026-08-02)
 
 

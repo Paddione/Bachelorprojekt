@@ -30,10 +30,15 @@ p1 muss vollständig implementiert und deployed sein.
 - [ ] **2.4** `website/src/lib/__tests__/embeddings.test.ts` — angepasste Aufrufe testen (Mock-URL)
 - [ ] **2.5** `website/src/lib/__tests__/rerank.test.ts` — angepasste Aufrufe testen (Mock-URL)
 
-### 3. Struct2 — Failing Test First
+### 3. Struct2 — Failing Test First (red→green)
 
-- [ ] **3.1** Failing BATS-Test schreiben, der den alten ExternalName-Service erwartet (muss fehlschlagen, bevor p1 deployed ist)
-- [ ] **3.2** Failing Vitest-Test für `resolvePair()`-Import (muss fehlschlagen, weil Funktion entfernt wurde)
+- [ ] **3.1** **FAILING (expected: FAIL)**: BATS-Test schreiben, der prüft dass `llm-gateway-embed` ein ClusterIP-Service ist. Run `bats tests/spec/llm-pipeline.bats --filter 'bge-k8s'` and verify it fails — Service ist noch ExternalName vor p1-Deploy.
+  ```bash
+  # Erwartet: FAIL (Service ist ExternalName, nicht ClusterIP)
+  kubectl get svc llm-gateway-embed -n workspace -o jsonpath='{.spec.type}' | grep -q ClusterIP
+  ```
+- [ ] **3.2** **FAILING (expected: FAIL)**: Vitest-Test für `resolveEndpoint('embed')` schreiben. Run `npx vitest run bge-router.test.ts` and verify it fails — `resolvePair` existiert noch, `resolveEndpoint` noch nicht implementiert.
+- [ ] **3.3** Nach p1-Deploy: beide Tests auf GRÜN verifizieren
 
 ## Verification
 

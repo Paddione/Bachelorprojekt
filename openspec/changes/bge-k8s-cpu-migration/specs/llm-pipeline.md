@@ -1,6 +1,6 @@
 # Delta: llm-pipeline — bge-K8s-CPU-Migration
 
-## Geänderte Requirements
+## MODIFIED Requirements
 
 ### Requirement: bge-Embedding-Layer läuft als Kubernetes-Deployment
 
@@ -64,16 +64,16 @@ Health-Checks und Overload-Detection entfallen — K8s-Readiness übernimmt die 
 - **WHEN** `resolveEndpoint('embed')` aufgerufen wird
 - **THEN** wird ein Error geworfen
 
-## Entfernte Requirements
+## REMOVED Requirements
 
 - **Batch-Paar-Routing** (T002426 Dual-Pair-Architektur) — ersetzt durch Single-Pool
 - **Bidirektionales Failover** (interactive ↔ batch) — ersetzt durch K8s-Replicas
 - **bge-Health-Check-Polling** — ersetzt durch K8s-Readiness-Probes
 - **Overload-Detection** (Queue-Limit) — ersetzt durch K8s-HPA (später)
 
-## Neue Environment-Variablen
+## REMOVED Environment Variables
 
-Keine. Entfernt werden:
+Keine neuen. Entfernt werden:
 - `LLM_EMBED_BATCH_URL`
 - `LLM_RERANKER_BATCH_URL`
 - `LLM_BGE_LATENCY_BUDGET_MS`

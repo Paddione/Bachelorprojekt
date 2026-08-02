@@ -825,8 +825,8 @@
   ],
   "T001578": [
     {
-      "slug": "brain-site-dockerfile-template",
-      "status": "plan_staged"
+      "slug": "2026-08-02-brain-site-dockerfile-template",
+      "status": "archived"
     }
   ],
   "T001579": [
@@ -885,8 +885,8 @@
   ],
   "T001608": [
     {
-      "slug": "brain-quality-goals",
-      "status": "plan_staged"
+      "slug": "2026-08-02-brain-quality-goals",
+      "status": "archived"
     }
   ],
   "T001609": [
@@ -1021,8 +1021,8 @@
   ],
   "T001789": [
     {
-      "slug": "admin-redirect-map",
-      "status": "plan_staged"
+      "slug": "2026-08-02-admin-redirect-map",
+      "status": "archived"
     }
   ],
   "T001800": [
@@ -1249,8 +1249,8 @@
   ],
   "T002015": [
     {
-      "slug": "central-llm-provider-routing",
-      "status": "plan_staged"
+      "slug": "2026-08-02-central-llm-provider-routing",
+      "status": "archived"
     }
   ],
   "T002016": [
@@ -1327,8 +1327,8 @@
   ],
   "T002094": [
     {
-      "slug": "agentic-skillmd-size",
-      "status": "plan_staged"
+      "slug": "2026-08-02-agentic-skillmd-size",
+      "status": "archived"
     }
   ],
   "T002095": [
@@ -1399,8 +1399,8 @@
   ],
   "T002138": [
     {
-      "slug": "coaching-session-beat-choreography",
-      "status": "plan_staged"
+      "slug": "2026-08-02-coaching-session-beat-choreography",
+      "status": "archived"
     }
   ],
   "T002142": [
@@ -1981,8 +1981,8 @@
   ],
   "T002390": [
     {
-      "slug": "auto-chore-plan-script",
-      "status": "plan_staged"
+      "slug": "2026-08-02-auto-chore-plan-script",
+      "status": "archived"
     }
   ],
   "T002393": [
@@ -2077,14 +2077,14 @@
   ],
   "T002434": [
     {
-      "slug": "brain-k4-brain-wiki",
-      "status": "plan_staged"
+      "slug": "2026-08-02-brain-k4-brain-wiki",
+      "status": "archived"
     }
   ],
   "T002435": [
     {
-      "slug": "brain-k5-openspec",
-      "status": "plan_staged"
+      "slug": "2026-08-02-brain-k5-openspec",
+      "status": "archived"
     }
   ],
   "T002436": [
@@ -2095,8 +2095,8 @@
   ],
   "T002437": [
     {
-      "slug": "brain-k7-agenten-mcp",
-      "status": "plan_staged"
+      "slug": "2026-08-02-brain-k7-agenten-mcp",
+      "status": "archived"
     }
   ],
   "T002438": [
@@ -2125,8 +2125,8 @@
   ],
   "T002447": [
     {
-      "slug": "agent-lock-release-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-02-agent-lock-release-guard",
+      "status": "archived"
     }
   ],
   "T002448": [
@@ -2161,12 +2161,12 @@
   ],
   "T002463": [
     {
-      "slug": "cockpit-auth-schnitt",
+      "slug": "sdlc-cockpit-k4-steuerung",
       "status": "plan_staged"
     },
     {
-      "slug": "sdlc-cockpit-k4-steuerung",
-      "status": "plan_staged"
+      "slug": "2026-08-02-cockpit-auth-schnitt",
+      "status": "archived"
     }
   ],
   "T002464": [
@@ -2237,8 +2237,8 @@
   ],
   "T002504": [
     {
-      "slug": "bge-mcp-client-env-check",
-      "status": "plan_staged"
+      "slug": "2026-08-02-bge-mcp-client-env-check",
+      "status": "archived"
     }
   ],
   "T002507": [
@@ -2249,14 +2249,14 @@
   ],
   "T002508": [
     {
-      "slug": "cockpit-daemon-runtime",
-      "status": "plan_staged"
+      "slug": "2026-08-02-cockpit-daemon-runtime",
+      "status": "archived"
     }
   ],
   "T002513": [
     {
-      "slug": "agent-lock-reap-rule0b-ttl",
-      "status": "plan_staged"
+      "slug": "2026-08-02-agent-lock-reap-rule0b-ttl",
+      "status": "archived"
     }
   ],
   "T002515": [
@@ -2273,8 +2273,8 @@
   ],
   "T002522": [
     {
-      "slug": "ci-push-trigger",
-      "status": "plan_staged"
+      "slug": "2026-08-02-ci-push-trigger",
+      "status": "archived"
     }
   ],
   "T002523": [

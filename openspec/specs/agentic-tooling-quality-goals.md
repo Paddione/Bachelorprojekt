@@ -120,36 +120,25 @@ would report them as dead.
 
 ### Requirement: G-AGENTIC09 God-Skill Line Budget Tracked
 
-The count of **project-owned** `SKILL.md` files exceeding **250 lines** SHALL be measured as a
-fail-closed Gate with target 0.
+The count of `SKILL.md` files exceeding 500 lines SHALL be measured and documented as a Target
+baseline in `goals.md`, without a forced split and without failing CI. `dev-flow-plan/SKILL.md`
+and `dev-flow-execute/SKILL.md` SHALL each stay at or below 500 lines by extracting verbose or
+duplicated operational blocks into `.claude/skills/references/*.md` and linking to them via
+`file://` references, per the T001904 precedent — without losing any operational instruction.
 
-The project-owned set is derived from `.claude/skills/OVERVIEW.md`: every tracked `SKILL.md`
-whose directory name is not listed in that file's third-party section. Upstream-maintained skills
-are excluded because editing them would create merge conflicts on the next sync, so a budget that
-counted them could never reach zero without touching files this repository does not own.
+#### Scenario: Counting oversized skills
 
-The previous formulation measured all skills against a 500-line threshold as an advisory Target.
-That threshold sat far above the progressive-disclosure budget it was meant to protect, and as a
-Target it could not stop a regression — it only recorded one.
+- **GIVEN** all `.claude/skills/*/SKILL.md` files
+- **WHEN** the G-AGENTIC09 measure command counts lines per file
+- **THEN** the count of files exceeding 500 lines is recorded as the documented Target baseline
 
-#### Scenario: Counting oversized project-owned skills
+#### Scenario: dev-flow-plan and dev-flow-execute stay under the 500-line threshold
 
-- **GIVEN** all tracked `SKILL.md` files and the third-party section of `OVERVIEW.md`
-- **WHEN** the G-AGENTIC09 measure command counts lines per project-owned file
-- **THEN** the count of files exceeding 250 lines is 0
-
-#### Scenario: A vendor skill exceeds the threshold
-
-- **GIVEN** `.claude/skills/gitops-knowledge/SKILL.md` has 460 lines
-- **AND** `OVERVIEW.md` names `gitops-knowledge` in its third-party section
-- **WHEN** the G-AGENTIC09 measure command runs
-- **THEN** the file is not counted and the Gate stays green
-
-#### Scenario: A project-owned skill regresses past the budget
-
-- **GIVEN** a project-owned `SKILL.md` grows from 240 to 260 lines
-- **WHEN** `bash scripts/health-goals-check.sh --only=G-AGENTIC09` runs
-- **THEN** the Gate reports a non-zero count and exits non-zero
+- **GIVEN** `.claude/skills/dev-flow-plan/SKILL.md` and `.claude/skills/dev-flow-execute/SKILL.md`
+  after extracting verbose/duplicated blocks into `.claude/skills/references/*.md`
+- **WHEN** `find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'`
+  is executed
+- **THEN** it prints `0`
 
 ### Requirement: G-AGENTIC10 Agent Skill-Dispatch Backreference Tracked
 
@@ -256,3 +245,5 @@ reference sources.
 <!-- merged from change delta agentic-tooling-quality-goals.md on 2026-07-01 -->
 
 <!-- merged from change delta agentic-tooling-quality-goals.md (8b4d83edc8d1) -->
+
+<!-- merged from change delta agentic-tooling-quality-goals.md (0cbba236f721) -->

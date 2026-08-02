@@ -12,6 +12,7 @@ import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.
 import { join } from 'node:path';
 import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
 import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
+import { enqueue, inflightOf, extractSlotId } from './slot-queue.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
@@ -40,48 +41,9 @@ const CTX_MARGIN = Number(process.env.LLM_PROXY_CTX_MARGIN || 1024); // Chat-Tem
 const SAFETY_MARGIN = Number(process.env.LLM_PROXY_SAFETY_MARGIN || 256);
 const MIN_OUTPUT_BUDGET = Number(process.env.LLM_PROXY_MIN_OUTPUT || 64);
 const PROPS_CACHE_MS = 60_000;
-
-// Per-Backend-Semaphor: bis zu `limit` Requests gleichzeitig in-flight, ueberzaehlige warten FIFO.
-// limit=1 ist aequivalent zur bisherigen Promise-Ketten-Serialisierung (genau 1 in-flight, strikte
-// FIFO) — damit bleibt das Default-Verhalten byte-identisch. Stale Eintraege (Backend faellt aus der
-// Registry) laufen auf inflight=0 aus und schaden nicht; kein aktives Cleanup noetig.
-const sems = new Map(); // backend.name -> { inflight:number, waiters: Array<() => void> }
-
-function semFor(name) {
-  let s = sems.get(name);
-  if (!s) { s = { inflight: 0, waiters: [] }; sems.set(name, s); }
-  return s;
-}
-
-function acquire(name, limit) {
-  const s = semFor(name);
-  if (s.inflight < limit) { s.inflight++; return Promise.resolve(); }
-  return new Promise((resolve) => s.waiters.push(resolve)); // FIFO: hinten anstellen
-}
-
-function release(name) {
-  const s = semFor(name);
-  const next = s.waiters.shift();     // FIFO: vorne entnehmen
-  if (next) next();                   // Slot direkt an den naechsten Wartenden weiterreichen (inflight konstant)
-  else if (s.inflight > 0) s.inflight--;
-}
-
-function enqueue(name, limit, fn, slotId) {
-  const queuedAt = Date.now();
-  const key = slotId != null ? `${name}:slot${slotId}` : name;
-  const run = acquire(key, limit).then(fn).finally(() => release(key));
-  return { run, queuedAt };
-}
-
-function extractSlotId(req) {
-  const raw = req.headers['x-slot-id'];
-  if (raw == null || raw === '') return null;
-  const n = Number(raw);
-  return Number.isFinite(n) && n >= 0 ? n : null;
-}
-
-// exportiert fuer /admin/state (Task 4): aktueller In-Flight-Zaehler eines Backends
-function inflightOf(name) { return sems.get(name)?.inflight ?? 0; }
+// Per-Backend-Semaphor ausgelagert nach slot-queue.mjs (T002483): die Semaphor-Logik
+// ist jetzt per Slot-id isolierbar. slot-queue.mjs exportiert enqueue(), inflightOf(),
+// und extractSlotId().
 
 const ctxCache = new Map(); // backend.name -> { ctx, fetchedAt }
 async function getBackendCtx(backend) {

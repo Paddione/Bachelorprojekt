@@ -99,7 +99,7 @@ Fähigkeit, `reason` bei jedem nicht-kanonischen Zustand, bekannte Kind-Präfixe
 Durchsetzbarkeitsklasse je Kind. Fehler nennen Fähigkeit und Instanz, nie nur
 eine Zeilennummer.
 
-## Task 3 — Collector über alle Quellen (p2)
+## Task 3 — Collector über alle Quellen (p2) - [x]
 
 `scripts/toolset/lib/harness.mjs` bekommt je Harness einen Adapter mit `read()`
 und `render()`. Gelesen werden:

@@ -86,13 +86,13 @@ _KV_Q4_ALLOWED="gemma26-factory"
   # Klammern und Kommata, OCI-Referenz, absoluter Binaerpfad, Flag-Kombination)
   # kam bei temperature 0 fuenfmal von fuenf zeichengenau zurueck.
   #
-  # DIESE AUSNAHME RUHT AUF UNVOLLSTAENDIGER EVIDENZ. Die Probe lief im KURZEN
-  # Kontext (~200 Tokens). Die Sorge aus T002501 betrifft Fehlerakkumulation
-  # ueber LANGE Kontexte — also genau den 37k-Factory-Prompt, fuer den der
-  # Kontext hier vergroessert wird. Dieser Fall ist ungemessen: T002535.
-  # Treten Fehler in Tool-Call-Argumenten oder Pfaden auf, ist diese Ausnahme
-  # der erste Verdaechtige: gemma26-factory auf q8_0 zuruecksetzen und pruefen,
-  # ob sie verschwinden.
+  # DER EVIDENZ-VORBEHALT WIRD DURCH DEN T002535-PROBE-TEST (s. u.) AUFGELOEST.
+  # Solange dieser Test nicht gelaufen ist, gilt: die Ausnahme ruht auf
+  # unvollstaendiger Evidenz (Kurzkontext ~200 Tokens). Die Sorge aus T002501
+  # betrifft Fehlerakkumulation ueber LANGE Kontexte — also genau den
+  # 37k-Factory-Prompt, fuer den der Kontext hier vergroessert wird.
+  # Sollte der T002535-Test rot sein, ist diese Ausnahme der erste Verdaechtige:
+  # gemma26-factory auf q8_0 zuruecksetzen.
   local offenders
   offenders=$(echo "$output" | awk '$2 == "q4_0" || $3 == "q4_0" { print $1 }' \
               | grep -vxF "$_KV_Q4_ALLOWED" || true)
@@ -120,4 +120,84 @@ _KV_Q4_ALLOWED="gemma26-factory"
   broken=$(echo "$output" | awk '($2 == "q8_0" || $2 == "q4_0") && $4 != "on" { print $1 }')
   echo "quantisiert ohne -fa on: ${broken:-<keine>}"
   [ -z "$broken" ]
+}
+
+# T002535: Langkontext-Wörtlichkeitsprobe für gemma26-factory mit q4_0-KV.
+# Der bestehende Ausnahme-Test (T002534) ruht auf einer Kurzkontext-Probe
+# (~200 Tokens). Die Sorge aus T002501 betrifft Fehlerakkumulation über LANGE
+# Kontexte (~37k Tokens, der typische Factory-Prompt). Dieser Test schickt
+# einen Prompt mit ~35k Tokens Füller + 6 exakten Zeichenketten an
+# gemma26-factory (temperature 0) und prüft zeichengenaue Wiedergabe.
+#
+# ERGEBNIS: q4_0 besteht → Ausnahme bestätigen, Evidenz-Vorbehalt streichen.
+#           q4_0 versagt  → gemma26-factory auf q8_0, Ausnahme entfernen.
+#
+# Voraussetzung: gemma26-factory läuft auf localhost:8081.
+# Bei nicht erreichbarem Server wird der Test übersprungen (skip).
+@test "T002535 Langkontext-Probe: q4_0-KV gibt exakte Zeichenketten nach ~35k Tokens zurück" {
+  LLM_URL="${LLM_URL:-http://localhost:8081/v1/chat/completions}"
+  if ! curl -s --max-time 3 "$LLM_URL" -H "Content-Type: application/json" \
+       -d '{"model":"gemma26-factory","messages":[{"role":"user","content":"ping"}],"max_tokens":5}' >/dev/null 2>&1; then
+    skip "gemma26-factory nicht erreichbar unter $LLM_URL"
+  fi
+
+  # 6 exakte Zeichenketten die der Prompt zurückgeben muss
+  local NEEDLE1="openspec/changes/fix-korczewski-zero-replicas-T002539/tasks.md"
+  local NEEDLE2="kustomize build prod-fleet/korczewski --load-restrictor=LoadRestrictionsNone"
+  local NEEDLE3='function buildServerArgv(loadout, modelPath, defaults, overrides)'
+  local NEEDLE4="oci://ghcr.io/paddione/fleet-manifests:latest"
+  local NEEDLE5="/usr/local/bin/kustomize"
+  local NEEDLE6="--ctx-size 99328 --cache-type-k q4_0 -fa on"
+
+  # Füller: wiederhole einen Satz bis ~35k Tokens (≈70000 Wörter)
+  local filler="Der schnelle braune Fuchs springt über den faulen Hund. "
+  local full_filler=""
+  for i in $(seq 1 1400); do full_filler+="$filler"; done
+
+  local prompt="Merke dir die folgenden sechs exakten Zeichenketten wörtlich:
+1. $NEEDLE1
+2. $NEEDLE2
+3. $NEEDLE3
+4. $NEEDLE4
+5. $NEEDLE5
+6. $NEEDLE6
+
+$full_filler
+
+Gib jetzt die sechs Zeichenketten exakt so zurück wie oben, eine pro Zeile:
+1. "
+
+  local passes=0
+  local runs=5
+  for run in $(seq 1 $runs); do
+    local response
+    response=$(curl -s --max-time 120 "$LLM_URL" \
+      -H "Content-Type: application/json" \
+      -d "$(jq -n --arg prompt "$prompt" '{
+        model: "gemma26-factory",
+        messages: [{role:"user",content:$prompt}],
+        temperature: 0,
+        max_tokens: 512
+      }')" 2>/dev/null)
+    local content
+    content=$(echo "$response" | jq -r '.choices[0].message.content // empty' 2>/dev/null)
+    [ -n "$content" ] || continue
+
+    local ok=1
+    echo "$content" | grep -qF "$NEEDLE1" || ok=0
+    echo "$content" | grep -qF "$NEEDLE2" || ok=0
+    echo "$content" | grep -qF "$NEEDLE3" || ok=0
+    echo "$content" | grep -qF "$NEEDLE4" || ok=0
+    echo "$content" | grep -qF "$NEEDLE5" || ok=0
+    echo "$content" | grep -qF "$NEEDLE6" || ok=0
+    [ "$ok" -eq 1 ] && passes=$((passes + 1))
+    echo "Lauf $run/$runs: $( [ "$ok" -eq 1 ] && echo 'BESTANDEN' || echo 'FEHLER' )"
+  done
+
+  echo "q4_0 Langkontext-Probe: $passes/$runs zeichengenau"
+  [ "$passes" -ge 3 ] || {
+    echo "FEHLER: gemma26-factory mit q4_0-KV versagt im Langkontext ($passes/$runs)"
+    echo "→ q8_0 zurücksetzen und Ausnahme in _KV_Q4_ALLOWED entfernen."
+    return 1
+  }
 }

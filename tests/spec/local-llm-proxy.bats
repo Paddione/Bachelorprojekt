@@ -429,18 +429,18 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
 
 # ── T002483: Slot-Routing ───────────────────────────────────────────────
 
-@test "T002483: server.mjs exports extractSlotId" {
-  run grep -q "extractSlotId" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+@test "T002483: slot-queue.mjs exports extractSlotId" {
+  run grep -q "export function extractSlotId" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/slot-queue.mjs"
   [ "$status" -eq 0 ]
 }
 
 @test "T002483: enqueue accepts slotId parameter" {
-  run grep -q "slotId" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  run grep -q "function enqueue.*slotId" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/slot-queue.mjs"
   [ "$status" -eq 0 ]
 }
 
 @test "T002483: slotId != null forges per-slot queue key" {
-  run grep -qE "\`\\$\\{name\\}:slot\\$\\{slotId\\}\`" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  run grep -qE "\`\\$\\{name\\}:slot\\$\\{slotId\\}\`" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/slot-queue.mjs"
   [ "$status" -eq 0 ]
 }
 

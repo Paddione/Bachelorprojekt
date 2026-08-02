@@ -483,17 +483,18 @@ EOF
 @test "FA-SF-GANG: llm-proxy server.mjs Semaphor und /admin/state (T002128-p4)" {
   run node --check scripts/llm-proxy/server.mjs
   [ "$status" -eq 0 ]
-  # Semaphor-Funktionen vorhanden
-  run grep -c "function acquire" scripts/llm-proxy/server.mjs
-  [ "$output" -eq 1 ]
-  run grep -c "function release" scripts/llm-proxy/server.mjs
-  [ "$output" -eq 1 ]
-  run grep -c "function enqueue" scripts/llm-proxy/server.mjs
-  [ "$output" -eq 1 ]
-  # enqueue hat 3 Parameter (name, limit, fn)
-  run grep "function enqueue(name, limit, fn)" scripts/llm-proxy/server.mjs
+  run node --check scripts/llm-proxy/slot-queue.mjs
   [ "$status" -eq 0 ]
-  # /admin/state mit inflight/max_inflight Anreicherung
+  # Semaphor-Funktionen sind in slot-queue.mjs (T002483)
+  run grep -c "function acquire" scripts/llm-proxy/slot-queue.mjs
+  [ "$output" -eq 1 ]
+  run grep -c "function release" scripts/llm-proxy/slot-queue.mjs
+  [ "$output" -eq 1 ]
+  run grep -c "export function enqueue" scripts/llm-proxy/slot-queue.mjs
+  [ "$output" -eq 1 ]
+  # server.mjs importiert enqueue und inflightOf aus slot-queue.mjs
   run grep -c "inflightOf" scripts/llm-proxy/server.mjs
-  [ "$output" -ge 2 ]
+  [ "$output" -ge 1 ]
+  run grep "enqueue.*slot-queue" scripts/llm-proxy/server.mjs
+  [ "$status" -eq 0 ]
 }

@@ -3270,6 +3270,42 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/agy-expected-proxy",
+    "file": "tests/spec/toolset-registry/agy-expected-proxy.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/check-drift-detection",
+    "file": "tests/spec/toolset-registry/check-drift-detection.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/check-offline",
+    "file": "tests/spec/toolset-registry/check-offline.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/sync-all-harnesses",
+    "file": "tests/spec/toolset-registry/sync-all-harnesses.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/sync-surgical",
+    "file": "tests/spec/toolset-registry/sync-surgical.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/unreviewed-quarantine",
+    "file": "tests/spec/toolset-registry/unreviewed-quarantine.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "ts-suppression",
     "file": "tests/spec/ts-suppression.bats",
     "category": "ts-suppression",

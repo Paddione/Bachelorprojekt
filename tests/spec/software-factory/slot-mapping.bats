@@ -10,6 +10,13 @@ teardown() { _sf_teardown; }
 
 SLOTS_SH="scripts/factory/slots.sh"
 
+_skip_if_no_column() {
+  _skip_if_no_db
+  if ! factory_psql -c "SELECT pipeline_slot_meta FROM tickets.tickets LIMIT 1;" &>/dev/null; then
+    skip "tickets.pipeline_slot_meta column does not exist in DB yet"
+  fi
+}
+
 @test "FA-SF-75: slots.sh exists and is syntactically valid bash" {
   [ -f "$SLOTS_SH" ]
   run bash -n "$SLOTS_SH"
@@ -17,14 +24,14 @@ SLOTS_SH="scripts/factory/slots.sh"
 }
 
 @test "FA-SF-75: slots.sh claim persists pipeline_slot_meta.llama_slot_id" {
-  _skip_if_no_db
+  _skip_if_no_column
   local ticket_id="T002483"
 
   # Release first so we can re-claim cleanly
-  run BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
+  run env BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
   [ "$status" -eq 0 ]
 
-  run BRAND=mentolder bash "$SLOTS_SH" claim "$ticket_id" 1
+  run env BRAND=mentolder bash "$SLOTS_SH" claim "$ticket_id" 1
   [ "$status" -eq 0 ]
 
   # Verify pipeline_slot_meta is set
@@ -33,42 +40,42 @@ SLOTS_SH="scripts/factory/slots.sh"
   echo "$output" | grep -q '0'
 
   # Cleanup
-  run BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
+  run env BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-75: slots.sh slot-id returns correct llama_slot_id" {
-  _skip_if_no_db
+  _skip_if_no_column
   local ticket_id="T002483"
 
   # Claim with slot=2 → llama_slot_id=1
-  run BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
+  run env BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
   [ "$status" -eq 0 ]
 
-  run BRAND=mentolder bash "$SLOTS_SH" claim "$ticket_id" 2
+  run env BRAND=mentolder bash "$SLOTS_SH" claim "$ticket_id" 2
   [ "$status" -eq 0 ]
 
-  run BRAND=mentolder bash "$SLOTS_SH" slot-id "$ticket_id"
+  run env BRAND=mentolder bash "$SLOTS_SH" slot-id "$ticket_id"
   [ "$status" -eq 0 ]
   echo "$output" | grep -q '1'
 
   # Cleanup
-  run BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
+  run env BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
   [ "$status" -eq 0 ]
 }
 
 @test "FA-SF-75: slots.sh release clears pipeline_slot_meta" {
-  _skip_if_no_db
+  _skip_if_no_column
   local ticket_id="T002483"
 
   # Claim then release
-  run BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
+  run env BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
   [ "$status" -eq 0 ]
 
-  run BRAND=mentolder bash "$SLOTS_SH" claim "$ticket_id" 1
+  run env BRAND=mentolder bash "$SLOTS_SH" claim "$ticket_id" 1
   [ "$status" -eq 0 ]
 
-  run BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
+  run env BRAND=mentolder bash "$SLOTS_SH" release "$ticket_id"
   [ "$status" -eq 0 ]
 
   # Verify pipeline_slot_meta is NULL after release
@@ -86,10 +93,10 @@ SLOTS_SH="scripts/factory/slots.sh"
     skip "no free backlog ticket for parallel claim test"
   fi
 
-  run BRAND=mentolder bash "$SLOTS_SH" release "$test_ticket"
+  run env BRAND=mentolder bash "$SLOTS_SH" release "$test_ticket"
   [ "$status" -eq 0 ]
 
-  run BRAND=mentolder bash "$SLOTS_SH" claim "$test_ticket" 1
+  run env BRAND=mentolder bash "$SLOTS_SH" claim "$test_ticket" 1
   [ "$status" -eq 0 ]
 
   # llama_slot_id should be 0 (pipeline_slot=1 - 1)
@@ -98,6 +105,6 @@ SLOTS_SH="scripts/factory/slots.sh"
   echo "$output" | grep -q '0'
 
   # Cleanup
-  run BRAND=mentolder bash "$SLOTS_SH" release "$test_ticket"
+  run env BRAND=mentolder bash "$SLOTS_SH" release "$test_ticket"
   [ "$status" -eq 0 ]
 }

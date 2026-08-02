@@ -1,0 +1,4 @@
+# docs/agent-guide/registry/toolset.lock.yaml
+# Probe snapshot lockfile for live MCP servers
+lock_version: 1
+servers: {}

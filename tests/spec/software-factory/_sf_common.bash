@@ -56,6 +56,7 @@ _sf_setup() {
   # Runtime paths (BATS_TEST_DIRNAME not available at file-level)
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   REPO="$REPO_ROOT"
+  source "${REPO_ROOT}/scripts/factory/lib.sh" 2>/dev/null || true
 
   # FA-SF-05: auto-triage.sh path + inline validator (mirrors auto-triage.sh)
   SCRIPT="${REPO}/scripts/factory/auto-triage.sh"

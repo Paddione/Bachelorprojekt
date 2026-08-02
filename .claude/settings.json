@@ -54,8 +54,11 @@
     "defaultMode": "auto"
   },
   "disabledMcpjsonServers": [
-    "task-master-ai",
-    "github-mcp"
+    "docfork",
+    "github-mcp",
+    "playwright",
+    "sequential-thinking",
+    "webresearch"
   ],
   "hooks": {
     "PreToolUse": [

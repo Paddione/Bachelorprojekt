@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.240.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.1...website-v1.240.2) (2026-08-02)
+
+
+### Bug Fixes
+
+* **plans:** openspec archive atomar machen — Guards vor den Delta-Merge [T002581] ([#3705](https://github.com/Paddione/Bachelorprojekt/issues/3705)) ([c1fc6fc](https://github.com/Paddione/Bachelorprojekt/commit/c1fc6fc68be3ab1ede6b1972cb5a2cc691e004d5))
+
 ## [1.240.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.0...website-v1.240.1) (2026-08-02)
 
 

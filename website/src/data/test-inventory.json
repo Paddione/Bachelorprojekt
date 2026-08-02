@@ -2460,6 +2460,12 @@
     "kind": "shell"
   },
   {
+    "id": "kv-budget",
+    "file": "tests/spec/kv-budget.bats",
+    "category": "kv-budget",
+    "kind": "shell"
+  },
+  {
     "id": "lavish",
     "file": "tests/spec/lavish.bats",
     "category": "lavish",

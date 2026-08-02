@@ -420,11 +420,21 @@ _ok=1   # reached a clean finish — disarm the rollback trap
 # trotzdem brauchbar. `--no-verify`, weil der Commit keine Dateien traegt — es gibt
 # nichts zu linten oder auf Secrets zu scannen, und ein Hook-Fehlschlag darf die
 # Worktree-Erstellung nicht scheitern lassen.
+#
+# KEIN `[skip ci]` in diesem Subject [T002522]. Der Squash-Merge faltet die Subjects
+# aller Branch-Commits in den BODY des main-Commits, und GitHub wertet seine
+# Skip-Marker gegen die gesamte Message des Head-Commits aus — ein Marker hier legt
+# also nach dem Merge SAEMTLICHE push-getriggerten Workflows auf main still, ohne
+# einen fehlgeschlagenen Lauf zu hinterlassen. Gemessen ueber 25 aufeinanderfolgende
+# main-Commits: 17 mit Marker erzeugten 0 push-Runs, 8 ohne erzeugten je einen.
+# Fuer den Anker selbst waere der Marker ohnehin wirkungslos: ci.yml triggert per
+# Push nur auf main und release-please--branches--main, und einen PR gibt es zu
+# diesem Zeitpunkt noch nicht. Guard: scripts/check-skip-ci-marker.sh (in ci.yml).
 if [ "$BRANCH_EXISTS" -eq 1 ]; then
     echo "worktree-create: $WT_PATH ready on existing branch $BRANCH"
 else
     if git -C "$WT_PATH" commit --allow-empty --no-verify -q \
-         -m "chore: anchor branch $BRANCH [skip ci]" 2>/dev/null; then
+         -m "chore: anchor branch $BRANCH" 2>/dev/null; then
         echo "worktree-create: Anker-Commit gesetzt (schuetzt vor Ancestry-basiertem Cleanup)" >&2
     else
         echo "worktree-create: WARNUNG — Anker-Commit fehlgeschlagen; der Branch hat null" >&2

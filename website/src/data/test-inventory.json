@@ -2148,6 +2148,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/skip-ci-marker-guard",
+    "file": "tests/spec/ci-cd/skip-ci-marker-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/spec-dir-convention",
     "file": "tests/spec/ci-cd/spec-dir-convention.bats",
     "category": "ci-cd",

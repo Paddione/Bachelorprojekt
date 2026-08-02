@@ -2205,6 +2205,12 @@
       "status": "archived"
     }
   ],
+  "T002522": [
+    {
+      "slug": "ci-push-trigger",
+      "status": "plan_staged"
+    }
+  ],
   "T002523": [
     {
       "slug": "mishap-t002523",

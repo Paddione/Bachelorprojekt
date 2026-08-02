@@ -4,8 +4,8 @@
 Dokumentation in `.github/workflows/e2e.yml`, dass K8 explizit kein CI-Gate ist.
 
 ## Task List
-- [ ] **3.1** `.github/workflows/e2e.yml`: Kommentar/Doku — K8 ist kein Merge-Gate
-- [ ] **3.2** Keine Änderung an der Workflow-Logik
+- [x] **3.1** `.github/workflows/e2e.yml`: Kommentar/Doku — K8 ist kein Merge-Gate
+- [x] **3.2** Keine Änderung an der Workflow-Logik
 
 ## Verification
 ```bash

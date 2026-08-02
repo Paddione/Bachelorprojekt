@@ -39,11 +39,12 @@ Return the stdout verbatim. If the command fails, return the stderr string.`
   return result ? result.trim() : ''
 }
 
-async function runTaskVerifyLoop(agentFn, t, maxLoop, WORK_WT, WORK_BRANCH, slug) {
+async function runTaskVerifyLoop(agentFn, t, maxLoop, WORK_WT, WORK_BRANCH, slug, pipelineSlot) {
   const taskCtx = await runRunner(agentFn, 'task-context', { slug })
   for (let i = 0; i < maxLoop; i++) {
     const verifyCmd = 'task workspace:validate && task test:all && task freshness:regenerate'
-    const wrapSandbox = (workWt, cmd) => `bash /home/patrick/Bachelorprojekt/scripts/factory/sandbox-run.sh ${workWt} ${JSON.stringify(cmd)}`
+    const sandboxArgs = pipelineSlot ? `--agent ${WORK_WT} --slot ${pipelineSlot}` : WORK_WT
+    const wrapSandbox = (workWt, cmd) => `bash /home/patrick/Bachelorprojekt/scripts/factory/sandbox-run.sh ${sandboxArgs} -- ${cmd}`
     const basePrompt = i === 0
       ? `Self-verify task ${t.id} on ${WORK_BRANCH}: confirm acceptance: ${t.acceptance_criteria.join('; ')}. Report pass/fail.`
       : `/goal Fix task ${t.id} (attempt ${i + 1}/${maxLoop}). Acceptance: ${t.acceptance_criteria.join('; ')}. After fix: ${wrapSandbox(WORK_WT, verifyCmd)} && cd ${WORK_WT} && git add -A && git commit -m ${JSON.stringify(`feat(${slug}): ${t.id} iter ${i + 1} [factory]`)}. Return pass/fail.`
@@ -72,6 +73,18 @@ async function setupWorktree(agentFn, REPO, WORK_BRANCH, WORK_WT, ticket_id, lab
   if (/ready on/.test(s)) return { ok: true }
   if (/branch in use/.test(s)) return { ok: false, reason: 'branch-in-use', detail: s.slice(0, 400) }
   return { ok: false, detail: s.slice(0, 400) }
+}
+
+async function resolvePipelineSlot(agentFn, ticketId, brand) {
+  if (process.env.PIPELINE_SLOT) return process.env.PIPELINE_SLOT
+  try {
+    if (ticketId && brand) {
+      const out = await runRunner(agentFn, 'slot-id', { ticket_id: ticketId, brand })
+      const slotId = String(out || '').trim()
+      if (slotId) return slotId
+    }
+  } catch { /* best-effort */ }
+  return null
 }
 
 async function main() {
@@ -441,6 +454,8 @@ if (tasks && tasks.length && !A.batch_mode) {
   }
 
   const taskCtx = await runRunner(agent, 'task-context', { slug: safeSlug })
+  const pipelineSlot = await resolvePipelineSlot(agent, A.ticket_id, brand)
+  if (pipelineSlot) log(`Pipeline slot: ${pipelineSlot}`)
   for (const t of tasks) {
     const injections = await consumeInjections('implement')
     const baseImplPrompt = t.prompt /* partial fan-out prompt (T002074) */ ||
@@ -464,7 +479,7 @@ if (tasks && tasks.length && !A.batch_mode) {
     const guardRes = await runRunner(agent, 'guard-overwrite', { agent: `impl-${t.id}`, files: t.target_files, worktree: WORK_WT });
     try { const g = JSON.parse(guardRes || '{}'); if (g.status === 'blocked') log(`Guard blocked ${t.id} — ${g.reverted} file(s) overwritten → reverted.`); } catch {}
 
-    const vr = await runTaskVerifyLoop(agent, t, parseInt(process.env.FACTORY_BUILD_LOOP_MAX || '3'), WORK_WT, WORK_BRANCH, slug)
+    const vr = await runTaskVerifyLoop(agent, t, parseInt(process.env.FACTORY_BUILD_LOOP_MAX || '3'), WORK_WT, WORK_BRANCH, slug, pipelineSlot)
     if (vr) implemented.push(vr)
     await phaseEvent('implement', 'partial-done', JSON.stringify({ partial: t.id, files: t.target_files || [], tests: vr ? 'pass' : 'fail' }))
   }

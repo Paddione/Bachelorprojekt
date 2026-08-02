@@ -9,7 +9,16 @@
 //   30,9 tok/s decode; ungesetzt mit -fitt 2400 waren es 158-166 tok/s bei
 //   105.472 statt 65.536 Kontext.
 import { execFileSync } from 'node:child_process';
+import { realpathSync } from 'node:fs';
+import path from 'node:path';
 import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
+
+// T002555 — Repo-Wurzel fuer das schreibende Binding der gehaerteten Unit.
+// Aus dem Modulpfad abgeleitet (scripts/llm-proxy/ → zwei Ebenen hoch) statt
+// hartkodiert, damit ein Worktree oder ein anderer Checkout-Ort nicht still das
+// falsche Verzeichnis einbindet. FACTORY_REPO ueberschreibt, konsistent mit
+// scripts/factory/sandbox-run.sh.
+const REPO_ROOT = process.env.FACTORY_REPO || path.resolve(import.meta.dirname, '../..');
 
 export function unitName(slug) { return `llama-${slug}.service`; }
 
@@ -83,6 +92,73 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   return argv.concat(loadout.extraArgs ?? []);
 }
 
+/**
+ * T002555 — systemd-Hardening fuer die llama-Unit.
+ *
+ * Die eingebauten llama-Tools (write_file, edit_file, exec_shell_command; via
+ * `tools` im Loadout) laufen IM llama-server-Prozess — nicht im
+ * Factory-Sandbox-Container. Die Sandbox aus T002483 umschliesst den Agenten,
+ * nicht den Inferenzserver; fuer diese Tools ist sie die falsche Ebene. Ohne das
+ * Hardening hier haette das Modell die vollen Rechte des Benutzers, ~/.ssh und
+ * die git-crypt-entschluesselten Secrets eingeschlossen.
+ *
+ * ProtectHome=tmpfs blendet /home komplett aus; erreichbar bleibt nur, was
+ * unten ausdruecklich zurueckgebunden wird. /dev und /usr sind davon unberuehrt,
+ * die GPU (unter WSL /dev/dxg, NICHT /dev/nvidia*) bleibt also erreichbar —
+ * gemessen an der laufenden Unit, die zur Laufzeit genau /dev/dxg und
+ * /usr/lib/wsl/drivers/… offen haelt.
+ *
+ * Das fuehrende '-' ist Pflicht, nicht Stil: BindReadOnlyPaths auf einen
+ * fehlenden Pfad laesst die Unit mit 226/NAMESPACE scheitern, BEVOR das Modell
+ * startet, und meldet das als "Failed to set up mount namespacing" — was nicht
+ * nach Konfigurationsfehler aussieht. Genau das passierte im Test mit
+ * ~/.config/llama-cpp: das Verzeichnis entsteht erst, wenn ein Loadout mit
+ * uiConfigFile startet, existiert also bei den uebrigen gar nicht.
+ *
+ * Pfade ausserhalb /home (z.B. die zweite Modellwurzel unter /mnt/c) sind von
+ * ProtectHome nicht betroffen und bleiben erreichbar. Eine Isolation gegen den
+ * Windows-Dateibaum waere ein eigener Vorgang.
+ */
+export function buildHardeningProperties(loadout, modelPath, binPath, repoRoot = REPO_ROOT) {
+  const dirOf = (p) => (typeof p === 'string' && p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : null);
+
+  // Das Binary allein reicht NICHT: llama-server laedt libllama-server-impl.so
+  // aus einem lib/ NEBEN bin/. Wird nur bin/ zurueckgebunden, startet der
+  // Prozess und stirbt sofort mit
+  //   "error while loading shared libraries: libllama-server-impl.so"
+  // (Status 127) — im Live-Test genau so beobachtet. Gebunden wird deshalb die
+  // Installationswurzel, also die Ebene ueber bin/.
+  //
+  // BEIDE Pfade, wenn die Installationswurzel ein Symlink ist (~/opt/llama-current
+  // zeigt auf die konkrete Build-Version). Nur das Ziel zu binden reicht nicht:
+  // der ExecStart nennt weiterhin den Symlink-Pfad, und der existiert im tmpfs
+  // dann nicht mehr — die Unit stirbt mit 203/EXEC, bevor sie eine Zeile
+  // protokolliert. Auch das im Live-Test genau so beobachtet.
+  const binDir = dirOf(binPath);
+  const installRoot = binDir && binDir.endsWith('/bin') ? dirOf(binDir) : binDir;
+  let resolvedRoot = null;
+  try {
+    if (installRoot) {
+      const real = realpathSync(installRoot);
+      if (real !== installRoot) resolvedRoot = real;
+    }
+  } catch { /* Pfad existiert nicht — das '-'-Praefix faengt es ab */ }
+
+  const readOnly = [installRoot, resolvedRoot, dirOf(modelPath), dirOf(loadout.uiConfigFile)];
+
+  return [
+    '--property=ProtectHome=tmpfs',
+    '--property=PrivateTmp=yes',
+    '--property=NoNewPrivileges=yes',
+    ...readOnly.filter(Boolean).map((p) => `--property=BindReadOnlyPaths=-${p}`),
+    // Schreibend, damit write_file/edit_file ihren Zweck behalten. Die Secrets
+    // darin bleiben ausgespart — InaccessiblePaths gilt AUCH innerhalb eines
+    // BindPaths, im Test verifiziert.
+    `--property=BindPaths=-${repoRoot}`,
+    `--property=InaccessiblePaths=-${repoRoot}/environments/.secrets`,
+  ];
+}
+
 export function buildStartCommand(loadout, modelPath, defaults, binPath, resolved = {}) {
   return [
     'systemd-run', '--user',
@@ -94,6 +170,7 @@ export function buildStartCommand(loadout, modelPath, defaults, binPath, resolve
     // D3: systemd restart properties. MUST be before '--' separator.
     '--property=Restart=on-failure',
     '--property=RestartSec=5',
+    ...buildHardeningProperties(loadout, modelPath, binPath),
     // T002538: Umgebungsvariablen der Unit. Ebenfalls VOR dem '--' — danach
     // gaeben sie systemd-run als Argumente an das Binary weiter, das sie nicht
     // kennt und mit unbekannter Option abbricht.

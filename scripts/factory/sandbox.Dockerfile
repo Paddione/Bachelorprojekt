@@ -9,3 +9,4 @@ RUN apt-get update && apt-get install -y curl && \
 RUN npm install -g playwright && npx playwright install-deps
 
 WORKDIR /work
+USER 1000:1000

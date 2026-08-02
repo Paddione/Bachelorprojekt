@@ -35,11 +35,30 @@
     "(?i)openspec/changes/archive/.*",
     # Skill references with YAML examples containing fake private keys
     "(?i)\\.claude/skills/gitops-knowledge/references/.*",
-    # The config file itself — its comments contain example patterns that
-    # trigger the very rules they document (e.g. "sk-Automatisierungstool").
-    "(?i)\\.gitleaks\\.toml$",
+    # [T002554] Nicht versionierbare Pfade. Der pre-commit-Hook und der CI-Step
+    # rufen gitleaks mit --no-git auf, scannen also den ARBEITSBAUM statt der
+    # Versionierung — damit auch alles, was gitignored ist.
+    #
+    # In CI fiel das nie auf: der Job `security-scan` fuehrt kein npm ci aus, dort
+    # gibt es weder node_modules noch tmp/. Lokal lieferten dieselbe Config und
+    # dasselbe Kommando 85 Funde und blockierten jeden Commit — der lokale Hook
+    # war strenger als das Gate, das er simulieren soll.
+    #
+    # Sicherheitlich unbedenklich, weil beide Pfade gitignored sind und damit gar
+    # nicht in einen Commit gelangen koennen (verifiziert per git check-ignore).
+    # Die Funde stammten aus Drittanbieter-Testfixturen (dotenv, zod, prettier)
+    # und aus Scratch-Dateien.
+    "(?i)(^|.*/)node_modules/.*",
+    "(?i)^tmp/.*",
     ".gitattributes",
     ".gitignore",
+    # [T002554] Diese Datei selbst. Eine Config, die Secret-MUSTER beschreibt,
+    # matcht sie zwangslaeufig: der Kommentar oben nennt "sk-Automatisierungstool"
+    # als Beispiel und loest damit die openai-api-key-Regel aus. Der Fund bestand
+    # schon vorher, war aber unter den 85 node_modules-Fehlalarmen unsichtbar —
+    # ein Guard, der staendig falsch anschlaegt, verbirgt genau das, was er
+    # zeigen soll.
+    ".gitleaks.toml",
   ]
 
 # ── Standard rules ─────────────────────────────────────────────────────

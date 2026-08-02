@@ -192,3 +192,103 @@ test('ohne tools-Feld bleibt die argv unveraendert', () => {
   assert.equal(argv.includes('--tools'), false,
     'Loadouts ohne tools-Feld duerfen kein --tools tragen')
 })
+
+// ── T002555: systemd-Hardening der llama-Unit ────────────────────────────────
+//
+// Die eingebauten llama-Tools laufen im llama-server-Prozess, nicht im
+// Factory-Sandbox-Container. Ohne Hardening haette das Modell die vollen Rechte
+// des Benutzers. Geprueft wird die erzeugte argv — die Wirkung der Properties
+// selbst ist gegen eine Wegwerf-Unit verifiziert (siehe Ticket T002555).
+
+test('Hardening-Properties stehen VOR dem --Trenner', () => {
+  const cmd = buildStartCommand(base, MODEL, defaults, '/opt/llama/bin/llama-server')
+  const sep = cmd.indexOf('--')
+  const protectHome = cmd.indexOf('--property=ProtectHome=tmpfs')
+  assert.ok(protectHome >= 0, 'ProtectHome fehlt')
+  // Nach dem Trenner gaebe systemd-run sie an das Binary weiter, das sie nicht
+  // kennt und mit unbekannter Option abbricht.
+  assert.ok(protectHome < sep, 'ProtectHome steht hinter dem --Trenner')
+})
+
+test('ProtectHome=tmpfs, PrivateTmp und NoNewPrivileges sind gesetzt', () => {
+  const cmd = buildStartCommand(base, MODEL, defaults, '/opt/llama/bin/llama-server')
+  for (const p of ['ProtectHome=tmpfs', 'PrivateTmp=yes', 'NoNewPrivileges=yes']) {
+    assert.ok(cmd.includes(`--property=${p}`), `${p} fehlt`)
+  }
+})
+
+test('Installations- und Modellverzeichnis werden read-only zurueckgebunden', () => {
+  const cmd = buildStartCommand(base, MODEL, defaults, '/opt/llama/bin/llama-server')
+  // Die Wurzel, nicht bin/ — lib/ liegt daneben (siehe eigener Test unten).
+  assert.ok(cmd.includes('--property=BindReadOnlyPaths=-/opt/llama'), 'Installationswurzel fehlt')
+  const modelDir = MODEL.slice(0, MODEL.lastIndexOf('/'))
+  assert.ok(cmd.includes(`--property=BindReadOnlyPaths=-${modelDir}`), 'Modell-Dir fehlt')
+})
+
+test('jedes Bind-Property traegt das optionale -Praefix', () => {
+  // Positiv-Anker zuerst: es gibt ueberhaupt Bind-Properties.
+  const cmd = buildStartCommand(base, MODEL, defaults, '/opt/llama/bin/llama-server')
+  const binds = cmd.filter((a) => /^--property=(BindPaths|BindReadOnlyPaths|InaccessiblePaths)=/.test(a))
+  assert.ok(binds.length >= 3, `zu wenige Bind-Properties: ${binds.length}`)
+  // Ohne '-' scheitert die Unit mit 226/NAMESPACE, sobald ein Pfad auf der
+  // Maschine fehlt — und zwar bevor das Modell startet.
+  for (const b of binds) {
+    assert.match(b, /=-\//, `Bind ohne optionales -Praefix: ${b}`)
+  }
+})
+
+test('uiConfigFile-Verzeichnis wird gebunden, fehlt es, entsteht kein Binding', () => {
+  const withUi = buildStartCommand(
+    { ...base, uiConfigFile: '/home/u/.config/llama-cpp/ui-config.json' },
+    MODEL, defaults, '/opt/llama/bin/llama-server')
+  assert.ok(withUi.includes('--property=BindReadOnlyPaths=-/home/u/.config/llama-cpp'),
+    'ui-config-Dir fehlt')
+
+  const without = buildStartCommand(base, MODEL, defaults, '/opt/llama/bin/llama-server')
+  assert.equal(without.some((a) => a.includes('llama-cpp')), false,
+    'Loadout ohne uiConfigFile darf kein solches Binding tragen')
+})
+
+test('das Repo ist schreibbar gebunden, .secrets ausgespart', async () => {
+  const { buildHardeningProperties } = await import('./runner.mjs')
+  const props = buildHardeningProperties(base, MODEL, '/opt/llama/bin/llama-server', '/repo')
+  assert.ok(props.includes('--property=BindPaths=-/repo'),
+    'Repo nicht schreibbar gebunden — write_file/edit_file waeren wirkungslos')
+  assert.ok(props.includes('--property=InaccessiblePaths=-/repo/environments/.secrets'),
+    'environments/.secrets nicht ausgespart')
+})
+
+test('Installationswurzel statt bin/ — sonst fehlt libllama-server-impl.so', async () => {
+  const { buildHardeningProperties } = await import('./runner.mjs')
+  const props = buildHardeningProperties({ slug: 'x' }, MODEL, '/opt/llama/bin/llama-server', '/repo')
+  assert.ok(props.includes('--property=BindReadOnlyPaths=-/opt/llama'),
+    'Installationswurzel fehlt — lib/ liegt NEBEN bin/, der Start scheitert mit 127')
+  assert.equal(props.includes('--property=BindReadOnlyPaths=-/opt/llama/bin'), false,
+    'nur bin/ zu binden reicht nicht und soll nicht passieren')
+})
+
+test('ist die Installationswurzel ein Symlink, werden BEIDE Pfade gebunden', async () => {
+  const { buildHardeningProperties } = await import('./runner.mjs')
+  const fs = await import('node:fs'); const os = await import('node:os'); const p = await import('node:path')
+
+  const tmp = fs.mkdtempSync(p.join(os.tmpdir(), 'hard-'))
+  const real = p.join(tmp, 'llama-b1'); const link = p.join(tmp, 'llama-current')
+  fs.mkdirSync(p.join(real, 'bin'), { recursive: true })
+  fs.symlinkSync(real, link)
+  try {
+    const props = buildHardeningProperties({ slug: 'x' }, MODEL, p.join(link, 'bin', 'llama-server'), '/repo')
+    // Nur das Ziel zu binden laesst den ExecStart-Pfad (den Symlink) im tmpfs
+    // verschwinden — die Unit stirbt dann mit 203/EXEC ohne eine Logzeile.
+    assert.ok(props.includes(`--property=BindReadOnlyPaths=-${link}`), 'Symlink-Pfad fehlt')
+    assert.ok(props.includes(`--property=BindReadOnlyPaths=-${real}`), 'aufgeloester Pfad fehlt')
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+})
+
+test('ohne Symlink entsteht kein doppeltes Binding', async () => {
+  const { buildHardeningProperties } = await import('./runner.mjs')
+  const props = buildHardeningProperties({ slug: 'x' }, MODEL, '/opt/llama/bin/llama-server', '/repo')
+  const roots = props.filter((a) => a.startsWith('--property=BindReadOnlyPaths=-/opt/llama'))
+  assert.equal(roots.length, 1, `erwartet 1 Binding fuer die Wurzel, erhalten ${roots.length}`)
+})

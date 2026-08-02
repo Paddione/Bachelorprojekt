@@ -188,7 +188,13 @@ Covered sub-topics (reference file, not repeated here):
 - **Security & Session**: security-guidance rewake, agent-lock.sh claim/release/reap protocol, ENV= explicit targeting, cluster node placement (wg-fleet flannel-iface).
 - **Overlays & Config**: prod-fleet/* only (never bare prod/, $patch:delete), env-resolve.sh sourcing, envsubst lists, DB queries (never SELECT * on ticket_plans.content).
 - **Ops & Infra**: cluster reset order, push-based/pull-first, CONFLICTING PR suppresses CI, ENV=staging, Kore design system, local-first LLM pipeline, dev.mentolder.de stack, alt-worktrees submodule gitdirs.
-- **Lokale Tooling-Lücke: gitleaks (M4, T002506)**: Fehlt `gitleaks` auf der Entwicklungsmaschine, wird der lokale Pre-Commit-Secret-Scan **stillschweigend übersprungen** (`⚠ gitleaks binary not found — skipping secret scan`); CI ist fail-closed, aber ein versehentlich committeter Schlüssel fällt erst **nach dem Push** in CI auf — nach dem Zeitpunkt, ab dem er als kompromittiert gilt. Installieren: `sudo apt install gitleaks || brew install gitleaks`. Solange es nicht installiert ist, ist das eine **bewusste** (dokumentierte) Umgebungs-Entscheidung, kein unbeobachteter Mangel.
+- **gitleaks: lokal installieren, aber die CI-Version (T002506/T002554)**: Fehlt `gitleaks`, wird der lokale Pre-Commit-Secret-Scan **stillschweigend übersprungen** (`⚠ gitleaks binary not found — skipping secret scan`); CI ist fail-closed, aber ein versehentlich committeter Schlüssel fällt dann erst **nach dem Push** auf — nach dem Zeitpunkt, ab dem er als kompromittiert gilt.
+  > **Nicht `apt install`** — das liefert 8.16.0, während `.github/workflows/ci.yml` per curl **8.18.2** holt. Lokal und CI würden unterschiedlich prüfen. Stattdessen dieselbe Version installieren:
+  > ```bash
+  > curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
+  >   | tar -xz -C /tmp gitleaks && install -m 0755 /tmp/gitleaks ~/.local/bin/gitleaks
+  > ```
+  > Hook und CI rufen gitleaks mit `--no-git` auf, scannen also den **Arbeitsbaum** statt der Versionierung. Der CI-Job `security-scan` führt kein `npm ci` aus und hat deshalb weder `node_modules` noch `tmp/` — lokal existieren beide. Bis T002554 blockierten daraus 85 Fehlalarme jeden lokalen Commit: gitleaks zu *installieren* machte den Commit-Pfad kaputt, und brauchbar war der Hook nur, solange das Binary fehlte und er fail-open übersprang. Beide Pfade stehen jetzt in `allowlist.paths` (sie sind gitignored, können also nie in einen Commit gelangen). Wer eine neue gitignorierte Fundquelle hinzufügt, ergänzt sie dort — nicht den Hook abschalten.
 
 ### Test-Resultats-Konvention [T002448-M4]
 

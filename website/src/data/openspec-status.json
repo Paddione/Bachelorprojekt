@@ -2069,6 +2069,12 @@
       "status": "archived"
     }
   ],
+  "T002433": [
+    {
+      "slug": "brain-k3-code-graph",
+      "status": "plan_staged"
+    }
+  ],
   "T002439": [
     {
       "slug": "2026-07-28-db-pod-phase-guard-T002439",

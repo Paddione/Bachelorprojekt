@@ -35,7 +35,7 @@ Betreibervorgabe 2026-08-02: bge verschwindet komplett vom GPU-Host und läuft
 künftig im Cluster; die Migration ist **T002551** (`in_progress`, Plan gestaged).
 Den lokalen Loadout zu reparieren hieße, an einer Datei zu arbeiten, die
 verschwinden soll. Die Messwerte und die dort zu treffenden Entscheidungen
-(`ctx/parallel >= 8192`, KV `q4_0`, und die offene Frage, ob ein Encoder-Modell
+(`-kvu` statt `ctx` zu vervierfachen, KV `q4_0`, und die offene Frage, ob ein Encoder-Modell
 überhaupt nennenswert KV allokiert) stehen als Kommentar an T002551; die Tickets
 sind verlinkt.
 
@@ -116,8 +116,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/embed-skip-visibili
 
 - [ ] **3.1** **Reihenfolge beachten, sonst ist der Lauf wirkungslos:**
       `task openspec:embed:backfill` überspringt dieselben Dokumente erneut,
-      solange die Kontextgrenze bei 2048 steht. Der Backfill gehört **nach** der
-      Kontexterhöhung aus T002551.
+      solange die Grenze bei 2048 je Dokument steht. Der Backfill gehört
+      **nach** der Server-Umstellung in T002551.
+
+      Dort ist der Weg inzwischen ein anderer als ursprünglich empfohlen:
+      gemessen liefert `-kvu` bei unverändertem `ctx` den vollen Kontext je
+      Slot (`n_ctx_slot` 8192 statt 2048), ohne den KV-Bedarf zu vervierfachen.
+      Für diesen Plan ändert das nichts am Ablauf — nur daran, worauf gewartet
+      wird.
 
 - [ ] **3.2** Vor dem Backfill die Ausgangszahl mit `--count-skipped` festhalten,
       danach erneut messen. Beide Werte ins Ticket — sonst ist nachher nicht

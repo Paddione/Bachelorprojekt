@@ -216,3 +216,5 @@ brain-worklist.txt
 
 # ── ticket-mcp Go-Binary (Build-Artefakt, 12 MB — gehoert nicht in den Tree) ──
 scripts/ticket-mcp/go/ticket-mcp
+unsloth_compiled_cache/
+.claude/skills/unsloth-buddy/

@@ -801,3 +801,16 @@ PY
     return 1
   }
 }
+
+# T002539: korczewski.de 503 — Brand ist seit 2026-07-23 suspendiert (T002479).
+# CLAUDE.md behauptet fälschlich "Both brands at 26/26 pods". Dieser Test prüft,
+# dass CLAUDE.md den Suspension-Status korrekt dokumentiert.
+@test "CLAUDE.md dokumentiert korczewski-Suspension (T002539)" {
+  run grep -c 'korczewski.*suspend\|korczewski.*0 pod\|korczewski.*eingefroren' "${PROJECT_DIR}/CLAUDE.md"
+  [ "$status" -eq 0 ] || {
+    echo "CLAUDE.md enthält keinen Hinweis auf korczewski-Suspension"
+    echo "Erwartet: 'korczewski … suspended … 0 pods'"
+    return 1
+  }
+  [ "$output" -ge 1 ]
+}

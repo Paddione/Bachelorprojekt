@@ -39,7 +39,7 @@ task workspace:validate                          # Kustomize dry-run
 
 ## Architecture (30-second view)
 
-- **Fleet cluster** (single k3s): mentolder → ns `workspace`, korczewski → ns `workspace-korczewski`. Context: `fleet`.
+- **Fleet cluster** (single k3s): mentolder → ns `workspace` (26/26 pods). korczewski → ns `workspace-korczewski` (suspended since 2026-07-23, T002479 — 0 pods, Flux `suspend: true`). Context: `fleet`.
 - **Pull-based deploy via FluxCD** (T002083): `.github/workflows/render-fleet-artifact.yml` renders the OCI artifact `ghcr.io/paddione/fleet-manifests` on every `main` push; Flux reconciles it on the fleet cluster (`flux/clusters/fleet/`). `task workspace:deploy` is break-glass fallback only.
 - k3d/ = base Kustomize. Prod overlays: `prod-fleet/mentolder/`, `prod-fleet/korczewski/`.
 - Centralized domains: `k3d/configmap-domains.yaml` — never hardcode hostnames.

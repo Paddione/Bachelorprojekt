@@ -23,6 +23,10 @@ setup() {
 }
 
 teardown() {
+  # Erst freigeben, dann toeten: schlaegt eine Assertion zwischen ANKER 1 und
+  # dem regulaeren `touch release` fehl, haengt sonst ein Stub-Handler bis zu
+  # seinem eigenen 60s-Timeout im offenen Request. [T002537]
+  [ -n "${GATE:-}" ] && touch "$GATE/release" 2>/dev/null
   [ -n "${STUB_PID:-}" ] && kill "$STUB_PID" 2>/dev/null
   return 0
 }
@@ -107,31 +111,67 @@ PYEOF
 }
 
 @test "T002533 der Schluessel steht nicht in argv (per ps lesbar)" {
-  start_stub "$VALID_PAGE"
+  # Gemessen wird im OFFENEN Request, nicht durch Abtasten. [T002537]
+  #
+  # Vorher lief hier eine 200er-Schleife, die den Prozessbaum pollte, bis der
+  # Hintergrundjob endete. Der Transform lebt aber nur ~35 ms, und eine
+  # Iteration (zwei ps-Aufrufe) kostet 11-23 ms — es passten also nur 2-4
+  # Stichproben in das gesamte Ereignisfenster. Abtastperiode und Ereignisdauer
+  # lagen in derselben Groessenordnung, das Verfahren hatte an keinem Ende
+  # Reserve: zu frueh war fork/exec des Kindes noch nicht fertig, zu spaet war
+  # der Job schon weg. Auf dem CI-Runner (vier parallele Shards) kollabierte
+  # das auf eine einzige Stichprobe und wurde sporadisch rot.
+  GATE="$BATS_TEST_TMPDIR/gate"
+  mkdir -p "$GATE"
+  start_stub "$VALID_PAGE" "$GATE"
+
   # Der Schluessel wird EXPORTIERT, nicht per `env VAR=... cmd` uebergeben:
   # sonst legt `env` ihn selbst in seine eigene Kommandozeile und der Test
   # wuerde das Testgeruest messen statt das Skript.
   export LM_STUDIO_URL="$STUB_URL" LM_MODEL=stub LM_API_KEY=streng-geheim-xyz
   bash "$TRANSFORM" "$SRC" note slug '[]' '[]' >/dev/null &
-  local job=$! seen_running=0 hits=0 i
-  for i in $(seq 1 200); do
-    # Positiv-Anker: mindestens einmal muss der laufende Transform in ps
-    # sichtbar gewesen sein. Ohne ihn koennte "0 Treffer" auch bedeuten, dass
-    # nie gemessen wurde, weil der Job schon vorbei war.
-    # Klammer-Schreibweise: `grep 'streng-geheim-xyz'` traegt das Muster in die
-    # EIGENE Kommandozeile, und `ps` sieht diesen grep, weil beide in derselben
-    # Pipeline gleichzeitig starten — der Test wuerde sich selbst finden.
-    # `[s]treng-...` matcht denselben Text, aber nicht mehr sich selbst.
-    ps -eo args 2>/dev/null | grep -q '[b]rain-ingest-transform' && seen_running=1
-    ps -eo args 2>/dev/null | grep -q '[s]treng-geheim-xyz' && hits=$((hits + 1))
-    kill -0 "$job" 2>/dev/null || break
+  local job=$! waited=0
+
+  # ANKER 1 — ein Ereignis, kein Zeitfenster: der Stub hat den Request erhalten
+  # und haelt ihn offen. Ab hier ist bewiesen, dass der Transform laeuft UND
+  # curl mitten im Request steht. Das ist zugleich der einzige Moment, in dem
+  # ein Leck ueberhaupt sichtbar waere — der Schluessel wandert in einen
+  # Authorization-Header, ein `curl -H "Authorization: Bearer ..."` truege ihn
+  # in seiner argv, und dieses Kind existiert nur waehrend des Requests. Die
+  # alte Abtastung konnte genau diesen Moment verpassen und trotzdem gruen
+  # melden.
+  while [ ! -e "$GATE/arrived" ]; do
+    waited=$((waited + 1))
+    if [ "$waited" -gt 100 ]; then
+      echo "Stub hat den Request in 10s nie gesehen — der Transform hat den" >&2
+      echo "Endpunkt nicht erreicht. Das ist KEIN Schluessel-Leck." >&2
+      # `|| true`: ist der Job schon weg, gibt kill 1 zurueck — bats meldete
+      # dann diese Zeile als Fehlerursache und verdeckte die Diagnose oben.
+      kill "$job" 2>/dev/null || true
+      return 1
+    fi
+    sleep 0.1
   done
+
+  # ANKER 2 — ps ist in dieser Umgebung aussagefaehig. Ohne diesen Nachweis
+  # bestuende die Sachaussage unten vakuos, sobald ps aus irgendeinem Grund
+  # nichts liefert: "kein Treffer" hiesse dann nicht "sauber", sondern "nicht
+  # gemessen". [T002356-M1]
+  run bash -c "ps -eo args 2>/dev/null | grep -c '[b]rain-ingest-transform'"
+  [ "$output" -ge 1 ]
+
+  # SACHAUSSAGE. Klammer-Schreibweise: `grep 'streng-geheim-xyz'` traegt das
+  # Muster in die EIGENE Kommandozeile, und ps sieht diesen grep, weil beide in
+  # derselben Pipeline gleichzeitig starten — der Test wuerde sich selbst
+  # finden. `[s]treng-...` matcht denselben Text, aber nicht mehr sich selbst.
+  run bash -c "ps -eo args 2>/dev/null | grep -c '[s]treng-geheim-xyz'"
+  [ "$output" -eq 0 ]
+
+  touch "$GATE/release"
   wait "$job"
   local rc=$?
   unset LM_STUDIO_URL LM_MODEL LM_API_KEY
   [ "$rc" -eq 0 ]
-  [ "$seen_running" -eq 1 ]
-  [ "$hits" -eq 0 ]
 }
 
 @test "T002533 leeres content bei gefuelltem reasoning_content nennt LM_DISABLE_THINKING" {

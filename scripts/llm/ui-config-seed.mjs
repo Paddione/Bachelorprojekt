@@ -66,15 +66,16 @@ export function generateUiConfigSeed(options = {}) {
   const registry = yaml.load(registryContent);
   const clients = registry.clients || {};
 
-  const targetServerKeys = [
-    'mcp-kubernetes',
-    'mcp-postgres',
-    'factory-mcp',
-    'bge-mcp',
-    'ticket-mcp',
-    'mcp-task-runner',
-    'codebase-memory-mcp'
-  ];
+  // T002549 — Die Serverauswahl wird aus der Registry ABGELEITET, nicht in einer
+  // Codeliste gefuehrt. Eine hartkodierte Liste erzwingt eine Code-Aenderung fuer
+  // jeden neuen Server; genau daran fiel github-mcp (T002547) heraus, obwohl die
+  // Bruecke ihn bedient. Kriterium ist ausschliesslich die Erreichbarkeit:
+  // browser_endpoint (bevorzugt) oder endpoint. stdio-Eintraege ohne beides
+  // bedient die Bruecke nicht und gehoeren deshalb nicht in den Seed.
+  //
+  // Anzeigenamen entsprechen dem Registry-Schluessel — einzige Ausnahme ist
+  // mcp-kubernetes, das in der UI seit jeher als "k8s" gefuehrt wird.
+  const DISPLAY_NAME_OVERRIDES = { 'mcp-kubernetes': 'k8s' };
 
   let templateContent = {};
   let templateRaw = '';
@@ -92,18 +93,13 @@ export function generateUiConfigSeed(options = {}) {
 
   const token = process.env.BGE_MCP_TOKEN || '';
 
-  const clientKeys = Object.keys(clients);
-  const keysToProcess = targetServerKeys.filter(k => clientKeys.includes(k)).length > 0
-    ? targetServerKeys
-    : clientKeys;
-
   const servers = [];
 
-  for (const key of keysToProcess) {
+  for (const key of Object.keys(clients)) {
     const entry = clients[key];
     if (!entry) continue;
 
-    const name = key === 'mcp-kubernetes' ? 'k8s' : key;
+    const name = DISPLAY_NAME_OVERRIDES[key] || key;
     const url = entry.browser_endpoint || entry.endpoint;
 
     if (!url) continue;

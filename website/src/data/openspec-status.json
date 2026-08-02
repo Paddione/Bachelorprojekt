@@ -2199,6 +2199,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002515": [
+    {
+      "slug": "plan-intel-risks-dedupe",
+      "status": "plan_staged"
+    }
+  ],
   "T002520": [
     {
       "slug": "2026-08-01-post-merge-branch-reaper",

@@ -166,7 +166,13 @@ RISK_CODEBASE='{"note":"codebase-memory and LSP were not queried for this bundle
 RISKS="$(echo "[]" | jq --argjson r "$RISK_CODEBASE" '. + [$r]')"
 
 if [[ -n "${RISKS_EXTRA:-}" && "$RISKS_EXTRA" != "[]" ]]; then
-  RISKS="$(echo "$RISKS" | jq --argjson re "$RISKS_EXTRA" '. + $re')"
+  # [T002515] unique_by, weil der Generator RISK_CODEBASE bei JEDEM Lauf neu erzeugt und
+  # RISKS_EXTRA den risks[]-Block des vorherigen Laufs traegt — inklusive derselben
+  # Meldung. Ohne Dedupe waechst risks[] um genau einen Eintrag pro Lauf und jeder
+  # Testlauf hinterlaesst eine geaenderte, committbare Datei.
+  # Der Schluessel ist (note, severity): manuell ergaenzte Risiken mit abweichendem note
+  # ueberleben, nur die Generator-Duplikate fallen weg.
+  RISKS="$(echo "$RISKS" | jq --argjson re "$RISKS_EXTRA" '. + $re | unique_by([.note, .severity])')"
 fi
 
 mkdir -p "$(dirname "$OUT_PATH")"

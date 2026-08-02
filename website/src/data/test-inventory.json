@@ -2538,6 +2538,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/opencode-agent-model-drift",
+    "file": "tests/spec/local-llm-proxy/opencode-agent-model-drift.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/ui-config-seed",
     "file": "tests/spec/local-llm-proxy/ui-config-seed.bats",
     "category": "local-llm-proxy",

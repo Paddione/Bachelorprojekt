@@ -6,7 +6,7 @@ vi.mock('../../../../lib/auth', () => ({
   ),
   isAdmin: vi.fn((s: { realmRoles?: string[] } | null | undefined) => s?.realmRoles?.includes('admin') ?? false),
 }));
-const setTicketStatus = vi.fn(async (brand: unknown, ticketId: unknown, status: unknown, actor: unknown) => ({ ok: true, from: 'backlog', to: 'in_progress' }));
+const setTicketStatus = vi.fn(async (_brand: unknown, _ticketId: unknown, _status: unknown, _actor: unknown) => ({ ok: true, from: 'backlog', to: 'in_progress' }));
 vi.mock('../../../../lib/tickets/cockpit-db', () => ({
   setTicketStatus: (brand: unknown, ticketId: unknown, status: unknown, actor: unknown) =>
     setTicketStatus(brand, ticketId, status, actor),

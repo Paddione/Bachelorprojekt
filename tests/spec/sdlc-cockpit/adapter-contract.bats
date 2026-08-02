@@ -39,14 +39,21 @@ setup() {
   [ "$output" -gt 0 ]
 }
 
-@test "adapter.js exposes 2 write stubs (ticketAction, agentAction)" {
+@test "adapter.js exposes the K4 write method (ticketAction)" {
   run grep -oP 'function\s+\w+Action(?=\s*\()' "$ADAPTER_FILE"
-  for method in ticketAction agentAction; do
-    echo "$output" | grep -q "$method" || {
-      echo "Missing write method: $method"
-      return 1
-    }
-  done
+  echo "$output" | grep -q 'ticketAction' || {
+    echo "Missing write method: ticketAction"
+    return 1
+  }
+  if echo "$output" | grep -q 'agentAction'; then
+    echo "agentAction must be removed (K4, Auth-Schnitt)"
+    return 1
+  fi
+}
+
+@test "adapter.js removed getToken (K4, Auth-Schnitt)" {
+  run grep -c 'getToken' "$ADAPTER_FILE"
+  [ "$output" -eq 0 ]
 }
 
 @test "adapter.js has no hardcoded fixture arrays (K2 replaces K1)" {

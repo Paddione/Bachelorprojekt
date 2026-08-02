@@ -2115,6 +2115,10 @@
     {
       "slug": "cockpit-auth-schnitt",
       "status": "plan_staged"
+    },
+    {
+      "slug": "sdlc-cockpit-k4-steuerung",
+      "status": "plan_staged"
     }
   ],
   "T002464": [

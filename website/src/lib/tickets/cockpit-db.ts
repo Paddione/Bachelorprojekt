@@ -4,6 +4,8 @@ import type {
   FeatureTickets, TicketRow, RollupMetrics, HealthStatus,
   BatchMutation, BatchResult, OpenSpecProposal,
 } from './cockpit-types';
+import { recordAudit } from './cockpit-audit';
+import type { TicketStatus } from './admin';
 import openspecStatusMap from '../../data/openspec-status.json';
 import { ALL_TICKETS_ID, NO_FEATURE_ID, NO_PRODUCT_ID } from './cockpit-ids';
 
@@ -392,4 +394,47 @@ async function audit(ticketId: string, field: string, newValue: unknown): Promis
       [ticketId, field, JSON.stringify(newValue)],
     );
   } catch { /* best-effort; activity table may differ in unit DB */ }
+}
+
+// K4 (T002463): the single Class-A write action of the cockpit. Unlike the
+// best-effort `audit()` helper above, the audit line here runs in the SAME
+// transaction as the status change — a lost line fails the action, honouring
+// the Auth-Schnitt promise that every executed write stands in the log.
+export async function setTicketStatus(
+  brand: string,
+  ticketId: string,
+  status: TicketStatus,
+  actor: string,
+): Promise<{ ok: true; from: string; to: TicketStatus }> {
+  await assertSameBrand(brand, [ticketId]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(
+      `SELECT status FROM tickets.tickets WHERE id = $1 AND brand = $2`,
+      [ticketId, brand],
+    );
+    if (rows.length === 0) throw new NotFoundError(`ticket ${ticketId} not found`);
+    const from = String(rows[0].status);
+    await client.query(
+      `UPDATE tickets.tickets SET status = $1, updated_at = now()
+        WHERE id = $2 AND brand = $3`,
+      [status, ticketId, brand],
+    );
+    await recordAudit(client, {
+      actor,
+      action: 'ticket_status',
+      target: ticketId,
+      outcome: 'success',
+      brand,
+      detail: { from, to: status },
+    });
+    await client.query('COMMIT');
+    return { ok: true, from, to: status };
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-28T07:55:13.809Z",
+  "generatedAt": "2026-08-02T00:35:25.720Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -741,6 +741,14 @@
       "file": "website/src/pages/api/admin/coaching/templates/[id]/versions.ts"
     },
     {
+      "path": "/api/admin/cockpit/audit",
+      "methods": [
+        "GET"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/audit.ts"
+    },
+    {
       "path": "/api/admin/cockpit/batch",
       "methods": [
         "POST"
@@ -811,6 +819,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/cockpit/suggest.ts"
+    },
+    {
+      "path": "/api/admin/cockpit/ticket-status",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/cockpit/ticket-status.ts"
     },
     {
       "path": "/api/admin/components",

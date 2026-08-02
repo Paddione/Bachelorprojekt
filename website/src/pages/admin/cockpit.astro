@@ -21,6 +21,7 @@ const brand = BRAND();
     ausgeliefert, nicht mitkompiliert. Der Fehler faellt NUR beim Build auf;
     vitest und `pnpm dev` laufen beide gruen daran vorbei.
   */}
+  <script is:inline src="/cockpit/kit/action-policy.js"></script>
   <script is:inline src="/cockpit/kit/panel.js"></script>
   <script is:inline src="/cockpit/kit/adapter.js"></script>
   <style>
@@ -107,8 +108,20 @@ const brand = BRAND();
         </div>
         <div class="panel__context"></div>
       </div>
-    </aside>
 
+      <div class="panel panel--rail" data-panel-type="strom" data-source="audit" data-refresh-interval="30000" id="panel-audit-rail">
+        <div class="panel__head">
+          <span class="panel__title">Audit-Log</span>
+          <span class="panel__type-badge" data-panel-type="strom"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-audit-rail').refresh()">Aktualisieren</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+    </aside>
     <main class="cockpit-workspace">
       <div class="panel panel--card" data-panel-type="status" data-source="tickets" data-refresh-interval="30000" id="panel-tickets-card">
         <div class="panel__head">
@@ -147,6 +160,19 @@ const brand = BRAND();
         <div class="panel__body"></div>
         <div class="panel__actions panel__actions--available">
           <button class="panel__action-btn" onclick="Panel.registry.get('panel-factory-log').refresh()">Neu laden</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--fullscreen" data-panel-type="strom" data-source="audit" data-refresh-interval="15000" id="panel-audit-log">
+        <div class="panel__head">
+          <span class="panel__title">Audit-Log (Strom)</span>
+          <span class="panel__type-badge" data-panel-type="strom"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-audit-log').refresh()">Neu laden</button>
         </div>
         <div class="panel__context"></div>
       </div>

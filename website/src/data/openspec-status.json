@@ -2075,6 +2075,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002435": [
+    {
+      "slug": "brain-k5-openspec",
+      "status": "plan_staged"
+    }
+  ],
   "T002439": [
     {
       "slug": "2026-07-28-db-pod-phase-guard-T002439",

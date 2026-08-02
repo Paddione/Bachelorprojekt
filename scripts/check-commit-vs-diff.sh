@@ -12,7 +12,7 @@
 #   - If the subject uses an implementation type (fix/feat/refactor/perf)
 #   - AND the staged diff contains ONLY test/spec/plan files
 #   - THEN reject with a clear error pointing the author to the right
-#     prefix (test(red): for RED-only test commits, chore(plan): for
+#     prefix (test(red): for RED-only test commits, chore(plans): for
 #     plan-only commits).
 #
 # Wired into:
@@ -97,7 +97,7 @@ if [[ $SELF_TEST -eq 1 ]]; then
   assert_allows "feat(real-code)"      "feat(website): add pricing widget"        "website/src/components/Pricing.tsx"
   assert_allows "fix(real-code)"       "fix(infra): chain middleware sequence"    "website/src/middleware.ts"
   assert_allows "fix(real+test)"       "fix(infra): chain middleware sequence"    "website/src/middleware.ts website/src/middleware.test.ts"
-  assert_allows "chore(plans)"         "chore(plans): stage t001434 for execution" "openspec/changes/t001434/tasks.md"
+  assert_allows "chore(plans)"         "chore(plan): stage t001434 for execution" "openspec/changes/t001434/tasks.md"
   assert_allows "test(red-only)"       "test(red): verify locals.requestLogger"   "website/src/middleware.test.ts"
   assert_allows "docs(readme)"         "docs: update README"                      "README.md"
   assert_allows "ci(workflow)"         "ci: bump action versions"                ".github/workflows/ci.yml"
@@ -173,7 +173,7 @@ and the bug lands in a follow-up commit instead of the same PR.
 
 Use one of these prefixes instead:
   test(red): …   for a RED-only test commit (the test is supposed to fail)
-  chore(plan): … for a plan-only commit (openspec/changes/, openspec/specs/, docs/superpowers/specs/)
+  chore(plans): … for a plan-only commit (openspec/changes/, openspec/specs/, docs/superpowers/specs/)
   test: …        for a test commit that is intentionally part of the fix
 
 If this really IS an implementation commit, your diff is missing the

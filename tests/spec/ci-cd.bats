@@ -1985,3 +1985,61 @@ MOCKEOF
   [ ! -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ] || { echo "lock file should be deleted after release"; false; }
   rm -rf "$AGENT_LOCK_DIR"
 }
+
+# T002529: check-commit-vs-diff.sh empfahl chore(plan): — validate-commit-msg.sh
+# lehnt 'plan' ab (T002328 konsolidierte zu 'plans'). Fix: auf chore(plans):.
+@test "check-commit-vs-diff.sh Nutzer-Empfehlung nutzt chore(plans): nicht chore(plan): (T002529)" {
+  # Nur die Zeilen 174-177 (Nutzer-Hinweis im Heredoc), nicht die Test-Daten.
+  run bash -c "sed -n '174,177p' '${REPO_ROOT}/scripts/check-commit-vs-diff.sh' | grep -c 'chore(plan):' || true"
+  if [ "$output" -gt 0 ] 2>/dev/null; then
+    echo "Nutzer-Empfehlung enthält noch chore(plan):"
+    sed -n '174,177p' "${REPO_ROOT}/scripts/check-commit-vs-diff.sh"
+    return 1
+  fi
+}
+
+# T002529 Guard: Alle in check-commit-vs-diff.sh empfohlenen Scope-Präfixe müssen
+# in der Allowlist von validate-commit-msg.sh enthalten sein.
+@test "check-commit-vs-diff.sh empfiehlt nur Scope-konforme Präfixe (T002529 guard)" {
+  ALLOWLIST=$(bash "${REPO_ROOT}/scripts/validate-commit-msg.sh" scopes 2>/dev/null || echo "")
+  [ -n "$ALLOWLIST" ] || { echo "validate-commit-msg.sh scopes liefert keine Liste"; return 1; }
+
+  # Extrahiere Scopes aus Empfehlungen wie 'chore(plan):', 'fix(<scope>):', 'feat(<scope>):'
+# T002529 Guard: check-commit-vs-diff.sh-Empfehlungen gegen Scope-Allowlist.
+# Extrahiert die empfohlenen Prefixe aus dem Nutzer-Hinweis (heredoc Zeile 174-177).
+@test "check-commit-vs-diff.sh Prefix-Empfehlungen sind Scope-konform (T002529 guard)" {
+  SCRIPT="${REPO_ROOT}/scripts/check-commit-vs-diff.sh"
+  ALLOWLIST=$(bash "${REPO_ROOT}/scripts/validate-commit-msg.sh" scopes 2>/dev/null || echo "")
+  [ -n "$ALLOWLIST" ] || { echo "validate-commit-msg.sh scopes liefert keine Liste"; return 1; }
+
+  # Extrahiere Scopes aus den Empfehlungen im heredoc: '  <type>(<scope>): …'
+  recommended=$(grep -oP '^\s{2}[a-z]+\([a-z-]+\):' "$SCRIPT" | \
+    sed 's/^[[:space:]]*//;s/.*(//;s/):.*//' | sort -u)
+
+  bad=""
+  for scope in $recommended; do
+    if ! echo "$ALLOWLIST" | grep -qw "$scope"; then
+      bad="$bad $scope"
+    fi
+  done
+
+  if [ -n "$bad" ]; then
+    echo "Ungültige Scope(s) in check-commit-vs-diff.sh-Empfehlungen:$bad"
+    echo "Allowlist: $ALLOWLIST"
+    return 1
+  fi
+}
+
+  bad=""
+  for scope in $recommended; do
+    if ! echo "$ALLOWLIST" | grep -qw "$scope"; then
+      bad="$bad $scope"
+    fi
+  done
+
+  if [ -n "$bad" ]; then
+    echo "Ungültige Scopes in check-commit-vs-diff.sh:$bad"
+    echo "Allowlist: $ALLOWLIST"
+    return 1
+  fi
+}

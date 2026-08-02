@@ -164,3 +164,130 @@ Format: Slug, Charge, betroffene SSOT-Spec, Fehlermeldung im Wortlaut.
   nicht (mehr). Der Change wurde von Charge 2 zurückgestellt und nicht archiviert; der Rest der
   Charge wurde regulär ausgeliefert. Reparatur (Delta-Fix, nicht SSOT-Direktedit) folgt in einem
   eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-bundle-t002471
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/misc-scripts.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: misc-scripts.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub, analog zu den Fällen aus Charge 1–3. Der Change
+  wurde von Charge 4 zurückgestellt und nicht archiviert; der Rest der Charge wurde regulär
+  ausgeliefert. Reparatur (Delta ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des
+  Plans.
+
+## mishap-t001867
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t001867.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t001867.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t001868
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t001868.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t001868.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t001873
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t001873.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t001873.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t001927
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t001927.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t001927.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t001973
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t001973.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t001973.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t001974
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t001974.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t001974.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t002137
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t002137.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t002137.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t002239
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t002239.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t002239.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t002261
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t002261.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t002261.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t002273
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t002273.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t002273.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t002291
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t002291.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t002291.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t002339
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t002339.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t002339.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## mishap-t002341
+
+- **Charge**: 4
+- **SSOT-Spec**: `openspec/specs/mishap-t002341.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: mishap-t002341.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 4 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.

@@ -13,23 +13,28 @@ After=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/home/patrick/Bachelorprojekt
-ExecStart=/usr/bin/node /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs
+# T002551: seit die bge-Server als CPU-Deployments im Cluster laufen
+# (k3d/llm-gpu.yaml), sind alle vier Host-Server (8095/8096/8085/8086)
+# dekommissioniert. Dieser Prozess laeuft aber auf dem WSL-Host, wo
+# Cluster-DNS (llm-gateway-*.workspace.svc.cluster.local) nicht aufloesbar ist
+# (T002488). Deshalb holt die Unit sich die Services selbst per kubectl
+# port-forward auf 127.0.0.1 — dasselbe Muster wie mcp-gateway.service.
+#   8081 -> svc/llm-gateway-embed  (ClusterIP :8081)
+#   8082 -> svc/llm-gateway-rerank (ClusterIP :8081)
+# KillMode=control-group (Default) raeumt den Hintergrund-port-forward bei
+# Restart mit auf. Der Shim startet erst, wenn 8081 tatsaechlich zuhoert.
+ExecStart=/bin/bash -c 'kubectl --context fleet port-forward -n workspace svc/llm-gateway-embed 8081:8081 svc/llm-gateway-rerank 8082:8081 & i=0; until { exec 9<>/dev/tcp/127.0.0.1/8081; } 2>/dev/null; do i=$((i+1)); [ $i -ge 60 ] && break; sleep 1; done; exec 9>&- 9<&-; exec /usr/bin/node /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs'
 Restart=always
 RestartSec=5
 
-# T002488: Host-Routing der bge-Paare.
-# Der Shim importiert website/src/lib/bge-router.ts. Ohne diese Variablen greifen
-# dessen DEFAULTS, und die zeigen auf Cluster-DNS
-# (llm-gateway-*.workspace.svc.cluster.local) — richtig fuer einen Pod, falsch
-# fuer diesen Prozess: er laeuft auf dem WSL-Host, wo der Name nicht aufloesbar
-# ist. Folge waren Tool-Aufrufe, die am Health-Check beider Paare scheiterten,
-# obwohl die Server auf localhost liefen.
-# Paar B (interactive, GPU-nah) bedient Agenten zur Laufzeit, Paar A (batch,
-# CPU) die Reindex-Last — die Zuordnung stammt aus T002426.
-Environment=LLM_EMBED_URL=http://127.0.0.1:8095
-Environment=LLM_RERANKER_URL=http://127.0.0.1:8096
-Environment=LLM_EMBED_BATCH_URL=http://127.0.0.1:8085
-Environment=LLM_RERANKER_BATCH_URL=http://127.0.0.1:8086
+# T002488: Host-Routing der bge-Endpoints. Der Shim importiert
+# website/src/lib/bge-router.ts, dessen resolveEndpoint('embed'|'rerank') die
+# Variablen unten liest. Ohne sie greifen dort keine Defaults — ein fehlender
+# Wert wird geworfen (fail-closed, 503 im API-Pfad). Cluster-DNS waere fuer
+# diesen Prozess falsch: er laeuft auf dem WSL-Host, wo der Name nicht
+# aufloesbar ist. Ziel sind deshalb die lokalen port-forward-Adressen oben.
+Environment=LLM_EMBED_URL=http://127.0.0.1:8081
+Environment=LLM_RERANKER_URL=http://127.0.0.1:8082
 
 # NACH den Environment=-Zeilen: eine gleichnamige Variable in der Datei
 # ueberschreibt den Default oben. Hier liegt auch BGE_MCP_TOKEN, ohne das der

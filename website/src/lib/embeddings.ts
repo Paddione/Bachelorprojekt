@@ -1,6 +1,6 @@
 import { logAiCall } from './ai-metrics';
 import { logger } from './logger';
-import { resolvePair, BgeRoutingError, type PairId } from './bge-router';
+import { resolveEndpoint, BgeRoutingError } from './bge-router';
 
 const VOYAGE_URL = 'https://api.voyageai.com/v1/embeddings';
 const VOYAGE_MODEL = 'voyage-multilingual-2';
@@ -37,15 +37,11 @@ const voyageKey = () => {
 
 const isLlmEnabled = () => process.env.LLM_ENABLED === 'true';
 
-// T002426: die Zieladresse kommt aus dem bge-Router, nicht mehr direkt aus der
-// Umgebung. Damit gilt fuer den Embedding-Pfad dieselbe Failover-Entscheidung
-// wie fuer den MCP-Shim und die HTTP-Endpunkte — an genau einer Stelle.
-// Rollenzuordnung: Index-Last ist Batch-Last (Paar A), Query-Last ist
-// interaktiv (Paar B). Bewusst ohne Health-Cache: eine zwischengespeicherte
-// Auslastung waere genau der Wert, dessen Aktualitaet die Ueberlast-Umleitung
-// ausmacht.
-const preferredPairFor = (purpose: EmbeddingPurpose): PairId =>
-  (purpose === 'index' ? 'batch' : 'interactive');
+// T002551: die Zieladresse kommt aus dem bge-Router, nicht mehr direkt aus der
+// Umgebung — damit gilt fuer den Embedding-Pfad dieselbe Aufloesung wie fuer
+// den MCP-Shim und die HTTP-Endpunkte, an genau einer Stelle.
+// `purpose` steuert seit dem Single-Pool keine Paarwahl mehr; es bleibt fuer
+// den X-LLM-Purpose-Header und die Fehlerklassenunterscheidung erhalten.
 
 // Maps internal model type to the actual model ID sent to the API.
 // llama.cpp accepts the model field (ignored in single-model mode).
@@ -99,7 +95,7 @@ async function callRouter(inputs: string[], opts: Required<Pick<EmbedOpts, 'mode
   // Fallunterscheidung greift — voyage-multilingual-2 weicht auf Voyage aus,
   // bge-m3 faellt fail-closed durch. Ein vorzeitiges Umwandeln in
   // Embedding*Error wuerde die Voyage-Ausweiche stillschweigend abschneiden.
-  const target = (await resolvePair(preferredPairFor(opts.purpose), 'embed', { signal: opts.signal })).url;
+  const target = resolveEndpoint('embed');
   for (let attempt = 1; attempt <= max; attempt++) {
     const r = await fetch(`${target}/v1/embeddings`, {
       method: 'POST',

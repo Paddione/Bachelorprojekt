@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-08-01T10:08:31.846Z
-> Nodes: 87 | Edges: 1826 | Isolated: 4
+> Generated: 2026-08-02T07:47:29.916Z
+> Nodes: 91 | Edges: 1828 | Isolated: 4
 
 ## Ranking (transitive Abhängige)
 
@@ -78,12 +78,14 @@
 | 70 | docs | 1 | 1 | 1 |
 | 71 | downloads | 1 | 1 | 1 |
 | 72 | einvoice-sidecar | 1 | 1 | 1 |
-| 73 | mediaviewer-widget | 1 | 1 | 1 |
-| 74 | monitoring-kube-state-metrics | 1 | 1 | 1 |
-| 75 | monitoring-operator | 1 | 1 | 1 |
-| 76 | nextcloud-redis | 1 | 1 | 1 |
-| 77 | sealed-secrets-controller | 1 | 1 | 1 |
-| 78 | whisper | 1 | 1 | 1 |
+| 73 | bge-embed | 1 | 1 | 1 |
+| 74 | bge-rerank | 1 | 1 | 1 |
+| 75 | mediaviewer-widget | 1 | 1 | 1 |
+| 76 | monitoring-kube-state-metrics | 1 | 1 | 1 |
+| 77 | monitoring-operator | 1 | 1 | 1 |
+| 78 | nextcloud-redis | 1 | 1 | 1 |
+| 79 | sealed-secrets-controller | 1 | 1 | 1 |
+| 80 | whisper | 1 | 1 | 1 |
 
 ## Details
 
@@ -445,6 +447,16 @@
 ### einvoice-sidecar
 **Direkte Abhängige:** 1 — einvoice-sidecar
 **Transitive Abhängige:** 1 — einvoice-sidecar
+**Upstream (In-Degree):** 1
+
+### bge-embed
+**Direkte Abhängige:** 1 — llm-gateway-embed
+**Transitive Abhängige:** 1 — llm-gateway-embed
+**Upstream (In-Degree):** 1
+
+### bge-rerank
+**Direkte Abhängige:** 1 — llm-gateway-rerank
+**Transitive Abhängige:** 1 — llm-gateway-rerank
 **Upstream (In-Degree):** 1
 
 ### mediaviewer-widget

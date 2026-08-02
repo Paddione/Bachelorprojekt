@@ -11,7 +11,8 @@
 # Linux-Loadout-Stack wurden cacheTypeK/V = q4_0 uebernommen. Das ist der
 # param()-DEFAULT des PowerShell-Skripts — nicht das Profil, mit dem der Server
 # tatsaechlich laeuft. watchdog-llm-servers.ps1 und install-startup-autostart.ps1
-# starten ihn seit T002297 mit "-Ctx 262144 -Slots 1 -KvType q8_0". Wer die
+# starteten ihn von T002297 bis zu ihrer Entfernung (T002551) mit
+# "-Ctx 262144 -Slots 1 -KvType q8_0". Wer die
 # Defaults migriert, senkt die Qualitaet still: der Skriptkopf schreibt q4_0-KV
 # ausdruecklich zu, es degradiere das woertliche Zurueckholen von Pfaden,
 # Symbolnamen und Tool-Call-Argumenten.

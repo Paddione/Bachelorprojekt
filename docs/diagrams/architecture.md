@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-87 Services · 1826 Abhängigkeitskanten · 408 API-Endpoints
+91 Services · 1828 Abhängigkeitskanten · 408 API-Endpoints
 
 ## Service-Map
 
@@ -40,6 +40,8 @@ flowchart LR
   knowledge_ingest_markdown["knowledge-ingest-markdown"]:::default
   knowledge_ingest_bugs["knowledge-ingest-bugs"]:::default
   knowledge_reindex_all["knowledge-reindex-all"]:::default
+  bge_embed["bge-embed"]:::default
+  bge_rerank["bge-rerank"]:::default
   mailpit["mailpit"]:::default
   mediaviewer_widget["mediaviewer-widget"]:::default
   mentolder_web["mentolder-web"]:::default
@@ -95,6 +97,8 @@ flowchart LR
   old_webspace["old-webspace"]:::default
   bachelorprojekt["bachelorprojekt"]:::default
   shared_db_dev_lb["shared-db-dev-lb"]:::default
+  llm_gateway_embed["llm-gateway-embed"]:::default
+  llm_gateway_rerank["llm-gateway-rerank"]:::default
   keycloak["keycloak"]:::auth
   tracking["tracking"]:::default
   docuseal["docuseal"]:::default
@@ -219,6 +223,8 @@ flowchart LR
   docs -->|"selector"| docs
   downloads -->|"selector"| downloads
   einvoice_sidecar -->|"selector"| einvoice_sidecar
+  llm_gateway_embed -->|"selector"| bge_embed
+  llm_gateway_rerank -->|"selector"| bge_rerank
   mailpit -->|"selector"| mailpit
   mediaviewer_widget -->|"selector"| mediaviewer_widget
   mentolder_web -->|"selector"| mentolder_web
@@ -1898,6 +1904,8 @@ flowchart TB
     knowledge_ingest_markdown(["knowledge-ingest-markdown"])
     knowledge_ingest_bugs(["knowledge-ingest-bugs"])
     knowledge_reindex_all(["knowledge-reindex-all"])
+    bge_embed["bge-embed"]
+    bge_rerank["bge-rerank"]
     mailpit["mailpit"]
     mediaviewer_widget["mediaviewer-widget"]
     mentolder_web["mentolder-web"]
@@ -1939,6 +1947,8 @@ flowchart TB
     old_webspace["old-webspace"]
     bachelorprojekt["bachelorprojekt"]
     shared_db_dev_lb["shared-db-dev-lb"]
+    llm_gateway_embed["llm-gateway-embed"]
+    llm_gateway_rerank["llm-gateway-rerank"]
     keycloak["keycloak"]
     tracking["tracking"]
     docuseal["docuseal"]

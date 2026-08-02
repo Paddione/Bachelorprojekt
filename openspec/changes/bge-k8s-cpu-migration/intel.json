@@ -1,0 +1,219 @@
+{
+  "meta": {
+    "slug": "bge-k8s-cpu-migration",
+    "ticket_id": "T002551",
+    "generated_from": "main@f2bcd4378",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "environments/dev.yaml",
+      "language": "config",
+      "loc": 49,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/fleet-korczewski.yaml",
+      "language": "config",
+      "loc": 120,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/fleet-mentolder.yaml",
+      "language": "config",
+      "loc": 120,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/korczewski.yaml",
+      "language": "config",
+      "loc": 113,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/mentolder.yaml",
+      "language": "config",
+      "loc": 136,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/schema.yaml",
+      "language": "config",
+      "loc": 1464,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "environments/staging.yaml",
+      "language": "config",
+      "loc": 102,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/llm-gpu.yaml",
+      "language": "config",
+      "loc": 122,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/bge-mcp/server.mjs",
+      "language": "javascript",
+      "loc": 262,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 538
+    },
+    {
+      "path": "scripts/llm/loadouts.json",
+      "language": "config",
+      "loc": 183,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/llm-pipeline.bats",
+      "language": "bash",
+      "loc": 600,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/lib/__tests__/bge-router.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/lib/__tests__/embeddings.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/lib/__tests__/rerank.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/lib/bge-router.ts",
+      "language": "javascript",
+      "loc": 215,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 685
+    },
+    {
+      "path": "website/src/lib/embeddings.ts",
+      "language": "javascript",
+      "loc": 198,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 702
+    },
+    {
+      "path": "website/src/lib/rerank.ts",
+      "language": "javascript",
+      "loc": 83,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 817
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/bge-mcp/server.mjs:190:function authorized(req) {",
+      "kind": "function",
+      "file": "scripts/bge-mcp/server.mjs",
+      "signature": "190:function authorized(req) {(...)",
+      "type_text": "190:function authorized(req) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/bge-mcp/server.mjs:196:function readBody(req) {",
+      "kind": "function",
+      "file": "scripts/bge-mcp/server.mjs",
+      "signature": "196:function readBody(req) {(...)",
+      "type_text": "196:function readBody(req) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-pipeline.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/llm-pipeline.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-pipeline.bats:59:dev_llm_host_ip() {",
+      "kind": "function",
+      "file": "tests/spec/llm-pipeline.bats",
+      "signature": "59:dev_llm_host_ip() {(...)",
+      "type_text": "59:dev_llm_host_ip() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/llm-pipeline.bats:128:assert_var_not_declared() {",
+      "kind": "function",
+      "file": "tests/spec/llm-pipeline.bats",
+      "signature": "128:assert_var_not_declared() {(...)",
+      "type_text": "128:assert_var_not_declared() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/embeddings.ts:58:function isNetworkError(err: unknown, signal?: AbortSignal): boolean {",
+      "kind": "function",
+      "file": "website/src/lib/embeddings.ts",
+      "signature": "58:function isNetworkError(err: unknown, signal?: AbortSignal): boolean {(...)",
+      "type_text": "58:function isNetworkError(err: unknown, signal?: AbortSignal): boolean {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

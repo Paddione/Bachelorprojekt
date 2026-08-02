@@ -2247,6 +2247,12 @@
       "status": "archived"
     }
   ],
+  "T002551": [
+    {
+      "slug": "bge-k8s-cpu-migration",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -1,17 +1,123 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# llm-gpu: external GPU peer — zwei persistente llama.cpp-Server (Windows)
+# llm-gpu: bge-Embedding/Reranking als Kubernetes-Deployments (CPU-only)
 #
-# Zwei llama.cpp-Server auf dem Windows-GPU-Host, direkt via wg-gpu erreichbar:
-#   - bge-m3 Embedding (Port 8095): /v1/embeddings, pooling CLS, 1024-dim
-#   - bge-reranker-v2-m3 Rerank (Port 8096): /v1/rerank
+# T002551: Die vier llama.cpp-Server wandern vom Windows/WSL-GPU-Host
+# (Endpoints auf ${LLM_HOST_IP}) in zwei CPU-only-Deployments im Cluster:
+#   - bge-embed   (bge-m3,          --embeddings): Port 8080
+#   - bge-rerank  (bge-reranker-v2-m3, --reranking): Port 8080
 #
-# Kein socat, kein Proxy, kein LM Studio, kein TEI mehr. Die Server laufen
-# als Windows Scheduled Tasks und starten automatisch beim Systemstart.
+# Damit entfällt der Host-SPOF und das Batch-Paar (8085/8086). Die Gateway-
+# Services heißen unverändert llm-gateway-embed/-rerank, exponiert auf Port
+# 8081 (bestehender Vertrag), targetPort ist der Container-Port 8080.
 #
-# ${LLM_HOST_IP}: 192.168.100.10 (wg-mesh — dev + prod fleet)
+# Modell-Population: pro Deployment ein eigener PVC (RWO) — ein geteilter
+# ReadOnlyMany-PVC würde auf dem Multi-Node-fleet zwischen zwei Deployments
+# brechen und bräuchte NFS/Longhorn mit ReadOnlyMany, das k3d-dev nicht hat.
+# Die Basis lässt storageClassName frei → k3d-dev nutzt die Default-SC
+# (local-path). Der Fleet-Cluster pinnt die Modell-PVCs im Prod-Overlay auf
+# longhorn (prod-fleet/components/llm-models-longhorn) — repliziert statt
+# node-lokal, kein erneuter HF-Download nach Node-Ausfall. Der InitContainer
+# lädt das Modell idempotent nach (skip wenn vorhanden); der App-Container
+# mountet read-only.
+#
+# Image: ghcr.io/ggml-org/llama.cpp:server-b10223 — CPU-fähiger Build-Pin
+# (kein server-cpu-Tag; der Rolling-Tag `server` bewegt sich unter dem
+# Deployment weg, und Issue ggml-org/llama.cpp#19397 dokumentiert einen
+# CPU-only-Crash in älteren Builds). CUDA wird via CUDA_VISIBLE_DEVICES=""
+# deaktiviert.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── bge-m3 Embedding (llama.cpp, Port 8095) ──────────────────────────────
+# ── bge-embed: bge-m3 Embedding (llama.cpp, CPU-only) ────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bge-embed-models
+  labels:
+    app: bge-embed
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bge-embed
+  labels:
+    app: bge-embed
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bge-embed
+  template:
+    metadata:
+      labels:
+        app: bge-embed
+    spec:
+      initContainers:
+        - name: model-download
+          image: curlimages/curl:8.21.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              if [ ! -s /models/bge-m3-Q8_0.gguf ]; then
+                echo "Downloading bge-m3-Q8_0.gguf ..."
+                curl -fL --retry 3 --connect-timeout 10 \
+                  -o /models/bge-m3-Q8_0.gguf \
+                  https://huggingface.co/gpustack/bge-m3-GGUF/resolve/main/bge-m3-Q8_0.gguf
+              fi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server-b10223
+          args:
+            - "-m"
+            - "/models/bge-m3-Q8_0.gguf"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            - "-ngl"
+            - "0"
+            - "-b"
+            - "8192"
+            - "-ub"
+            - "8192"
+            - "-np"
+            - "4"
+            - "--embeddings"
+          env:
+            - name: CUDA_VISIBLE_DEVICES
+              value: ""
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "1000m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: bge-embed-models
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -19,25 +125,105 @@ metadata:
   labels:
     app: llm-gateway
 spec:
+  selector:
+    app: bge-embed
   ports:
     - name: http
-      port: 8095
-      targetPort: 8095
+      port: 8081
+      targetPort: 8080
+
+# ── bge-rerank: bge-reranker-v2-m3 Rerank (llama.cpp, CPU-only) ──────────
 ---
 apiVersion: v1
-kind: Endpoints
+kind: PersistentVolumeClaim
 metadata:
-  name: llm-gateway-embed
+  name: bge-rerank-models
   labels:
-    app: llm-gateway
-subsets:
-  - addresses:
-      - ip: ${LLM_HOST_IP}
-    ports:
-      - name: http
-        port: 8095
+    app: bge-rerank
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 2Gi
 ---
-# ── bge-reranker-v2-m3 Rerank (llama.cpp, Port 8096) ─────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bge-rerank
+  labels:
+    app: bge-rerank
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bge-rerank
+  template:
+    metadata:
+      labels:
+        app: bge-rerank
+    spec:
+      initContainers:
+        - name: model-download
+          image: curlimages/curl:8.21.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              set -e
+              if [ ! -s /models/bge-reranker-v2-m3-Q8_0.gguf ]; then
+                echo "Downloading bge-reranker-v2-m3-Q8_0.gguf ..."
+                curl -fL --retry 3 --connect-timeout 10 \
+                  -o /models/bge-reranker-v2-m3-Q8_0.gguf \
+                  https://huggingface.co/gpustack/bge-reranker-v2-m3-GGUF/resolve/main/bge-reranker-v2-m3-Q8_0.gguf
+              fi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+      containers:
+        - name: llama-cpp
+          image: ghcr.io/ggml-org/llama.cpp:server-b10223
+          args:
+            - "-m"
+            - "/models/bge-reranker-v2-m3-Q8_0.gguf"
+            - "--host"
+            - "0.0.0.0"
+            - "--port"
+            - "8080"
+            - "-ngl"
+            - "0"
+            - "-b"
+            - "8192"
+            - "-ub"
+            - "8192"
+            - "-np"
+            - "4"
+            - "--reranking"
+          env:
+            - name: CUDA_VISIBLE_DEVICES
+              value: ""
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "1000m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+          volumeMounts:
+            - name: models
+              mountPath: /models
+              readOnly: true
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: bge-rerank-models
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -45,78 +231,9 @@ metadata:
   labels:
     app: llm-gateway
 spec:
+  selector:
+    app: bge-rerank
   ports:
     - name: http
-      port: 8096
-      targetPort: 8096
----
-apiVersion: v1
-kind: Endpoints
-metadata:
-  name: llm-gateway-rerank
-  labels:
-    app: llm-gateway
-subsets:
-  - addresses:
-      - ip: ${LLM_HOST_IP}
-    ports:
-      - name: http
-        port: 8096
----
-# ── T002426 — Paar A (Batch/Reindex, CPU-gebunden) ───────────────────────
-# Zweites bge-Paar auf DEMSELBEN Host, aber mit -ngl 0 im CPU-RAM. Es belegt
-# kein VRAM und uebernimmt Batch-/Reindex-Last, damit ein laufender Reindex die
-# interaktiven Agenten auf 8095/8096 nicht mehr blockiert. Der Host-SPOF bleibt
-# davon unberuehrt: faellt die Maschine aus, sind beide Paare weg.
-#
-# ── bge-m3 Batch-Embedding (llama.cpp, Port 8085) ────────────────────────
-apiVersion: v1
-kind: Service
-metadata:
-  name: llm-gateway-embed-batch
-  labels:
-    app: llm-gateway
-spec:
-  ports:
-    - name: http
-      port: 8085
-      targetPort: 8085
----
-apiVersion: v1
-kind: Endpoints
-metadata:
-  name: llm-gateway-embed-batch
-  labels:
-    app: llm-gateway
-subsets:
-  - addresses:
-      - ip: ${LLM_HOST_IP}
-    ports:
-      - name: http
-        port: 8085
----
-# ── bge-reranker-v2-m3 Batch-Rerank (llama.cpp, Port 8086) ───────────────
-apiVersion: v1
-kind: Service
-metadata:
-  name: llm-gateway-rerank-batch
-  labels:
-    app: llm-gateway
-spec:
-  ports:
-    - name: http
-      port: 8086
-      targetPort: 8086
----
-apiVersion: v1
-kind: Endpoints
-metadata:
-  name: llm-gateway-rerank-batch
-  labels:
-    app: llm-gateway
-subsets:
-  - addresses:
-      - ip: ${LLM_HOST_IP}
-    ports:
-      - name: http
-        port: 8086
+      port: 8081
+      targetPort: 8080

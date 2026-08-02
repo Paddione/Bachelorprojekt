@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # tests/spec/mcp-gateway/bge-host-routing.bats
 # SSOT: openspec/specs/mcp-gateway.md
-# Ticket: T002488
+# Ticket: T002551
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): QUELLTEXT — hier greift die
 # dokumentierte Ausnahme. Die systemd-Unit ist eine Konfigurationsdatei; ihr
@@ -10,8 +10,12 @@
 # installierten Host-Zustand und ist in der CI nicht reproduzierbar.
 #
 # Hintergrund: Der Shim importiert website/src/lib/bge-router.ts. Dessen
-# DEFAULTS zeigen auf Cluster-DNS (*.workspace.svc.cluster.local) — korrekt fuer
-# einen Pod, falsch fuer den Host-Prozess, wo der Name nicht aufloesbar ist.
+# resolveEndpoint('embed'|'rerank') liest LLM_EMBED_URL bzw. LLM_RERANKER_URL
+# und wirft ohne Wert (fail-closed). Seit T002551 laufen die bge-Server als
+# CPU-Deployments im Cluster (k3d/llm-gpu.yaml, Port 8081). Der bge-mcp-Prozess
+# lebt auf dem WSL-Host, wo Cluster-DNS nicht aufloesbar ist (T002488) — die
+# Unit holt sich die Services deshalb per kubectl port-forward auf 127.0.0.1
+# und pinnt die beiden Variablen dorthin.
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
@@ -23,21 +27,26 @@ setup() {
   [ -f "$UNIT" ]
 }
 
-@test "unit pins all four bge pair URLs to localhost" {
-  # Positiv-Anker: alle vier Variablen, die bge-router.ts als ENV_KEYS liest.
-  for var in LLM_EMBED_URL LLM_RERANKER_URL LLM_EMBED_BATCH_URL LLM_RERANKER_BATCH_URL; do
-    run grep -c "^Environment=${var}=http://127\.0\.0\.1:" "$UNIT"
-    echo "$var -> $output"
-    [ "$status" -eq 0 ]
-    [ "$output" -ge 1 ]
-  done
+@test "unit pins both bge endpoint URLs to the local port-forward" {
+  # Positiv-Anker: beide Variablen, die bge-router.ts liest, zeigen auf
+  # 127.0.0.1 — das 8081/8081- und 8082/8081-Port-Forward der Unit.
+  run grep -c "^Environment=LLM_EMBED_URL=http://127\.0\.0\.1:8081$" "$UNIT"
+  echo "LLM_EMBED_URL -> $output"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+
+  run grep -c "^Environment=LLM_RERANKER_URL=http://127\.0\.0\.1:8082$" "$UNIT"
+  echo "LLM_RERANKER_URL -> $output"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
 }
 
-@test "unit variable names match the ENV_KEYS the router actually reads" {
-  # Ein Tippfehler im Variablennamen waere sonst unsichtbar: der Router faellt
-  # still auf seine Cluster-Defaults zurueck, ohne dass irgendetwas meldet.
-  for var in LLM_EMBED_URL LLM_RERANKER_URL LLM_EMBED_BATCH_URL LLM_RERANKER_BATCH_URL; do
-    run grep -c "'${var}'" "$ROUTER"
+@test "unit variable names match the env keys the router actually reads" {
+  # Ein Tippfehler im Variablennamen waere sonst unsichtbar: der Router wuerde
+  # ohne Wert fail-closed — aber mit laengerem Diagnose-Weg. Der Abgleich mit
+  # process.env.* verankert den Namen an der echten Lese-Stelle.
+  for var in LLM_EMBED_URL LLM_RERANKER_URL; do
+    run grep -c "process\.env\.${var}" "$ROUTER"
     echo "router knows $var -> $output"
     [ "$status" -eq 0 ]
     [ "$output" -ge 1 ]
@@ -48,7 +57,7 @@ setup() {
   # Positiv-Anker zuerst: die Unit deklariert ueberhaupt Environment-Zeilen.
   run grep -c '^Environment=' "$UNIT"
   [ "$status" -eq 0 ]
-  [ "$output" -ge 4 ]
+  [ "$output" -ge 2 ]
 
   # Negativ-Aussage: keine AKTIVE Zeile zeigt in den Cluster. Bewusst auf
   # '^Environment=' verankert — der Kommentarblock darueber nennt den

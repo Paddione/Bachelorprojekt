@@ -22,12 +22,14 @@
 // implizite Authentifizierung, die stdio dadurch hat, dass nur der startende
 // Prozess den Server erreicht.
 //
-// KEINE EIGENE FAILOVER-LOGIK. Welches Paar antwortet, entscheidet
+// KEINE EIGENE AUSWEICH-LOGIK. Welche Adresse antwortet, entscheidet
 // `website/src/lib/bge-router.ts` — dasselbe Modul, das auch die HTTP-Endpunkte
 // und die Bestandsclients benutzen. Node strippt beim Import die Typen; deshalb
 // laedt der Router seinen Logger lazy (siehe Kommentar dort). Eine zweite
-// Failover-Implementierung hier waere genau die Divergenz, die dieser Vorgang
-// beseitigt.
+// Implementierung hier waere genau die Divergenz, die dieser Vorgang
+// beseitigt. Seit T002551 gibt es genau einen Endpoint pro Rolle
+// (`LLM_EMBED_URL` / `LLM_RERANKER_URL`); Health-Polling und Failover hat die
+// K8s-Readiness im Cluster uebernommen.
 //
 // Start:
 //   BGE_MCP_TOKEN=<token> node scripts/bge-mcp/server.mjs
@@ -40,7 +42,7 @@ import { dirname, resolve as resolvePath } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROUTER_PATH = resolvePath(HERE, '../../website/src/lib/bge-router.ts');
-const { resolvePair, BgeRoutingError } = await import(ROUTER_PATH);
+const { resolveEndpoint, BgeRoutingError } = await import(ROUTER_PATH);
 
 const HOST = process.env.BGE_MCP_HOST ?? '127.0.0.1';
 const PORT = Number.parseInt(process.env.BGE_MCP_PORT ?? '13005', 10);
@@ -59,15 +61,11 @@ const TOOLS = [
     name: 'bge_embed',
     description:
       'Embeds one or more texts with bge-m3 and returns the vectors. The caller passes plain text — '
-      + 'model name, vector dimension and the serving pair are resolved server-side.',
+      + 'model name, vector dimension and the endpoint are resolved server-side.',
     inputSchema: {
       type: 'object',
       properties: {
         texts: { type: 'array', items: { type: 'string' }, description: 'Texts to embed.' },
-        purpose: {
-          type: 'string', enum: ['query', 'index'],
-          description: 'query (default) prefers the interactive pair, index prefers the batch pair.',
-        },
       },
       required: ['texts'],
     },
@@ -89,27 +87,24 @@ const TOOLS = [
   },
 ];
 
-/** @returns {Promise<{url: string, pair: string}>} */
-async function target(preferred, role) {
-  const choice = await resolvePair(preferred, role);
-  return { url: choice.url, pair: choice.pair };
+/** @returns {string} Basis-URL des bge-Endpoints der Rolle. */
+function target(role) {
+  return resolveEndpoint(role);
 }
 
 async function embed(args) {
   const texts = Array.isArray(args?.texts) ? args.texts.filter((t) => typeof t === 'string') : [];
   if (texts.length === 0) throw new Error('bge_embed: "texts" must be a non-empty array of strings');
-  const preferred = args?.purpose === 'index' ? 'batch' : 'interactive';
-  const { url, pair } = await target(preferred, 'embed');
+  const url = target('embed');
 
   const r = await fetch(`${url}/v1/embeddings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: process.env.LLM_EMBED_MODEL ?? 'bge-m3', input: texts }),
   });
-  if (!r.ok) throw new Error(`bge_embed: pair ${pair} answered ${r.status}`);
+  if (!r.ok) throw new Error(`bge_embed: endpoint answered ${r.status}`);
   const body = await r.json();
   return {
-    pair,
     dimensions: body.data?.[0]?.embedding?.length ?? 0,
     embeddings: (body.data ?? []).map((d) => d.embedding),
   };
@@ -121,7 +116,7 @@ async function rerank(args) {
     ? args.documents.filter((d) => typeof d === 'string') : [];
   if (!query) throw new Error('bge_rerank: "query" is required');
   if (documents.length === 0) throw new Error('bge_rerank: "documents" must be a non-empty array');
-  const { url, pair } = await target('interactive', 'rerank');
+  const url = target('rerank');
 
   const r = await fetch(`${url}/v1/rerank`, {
     method: 'POST',
@@ -132,13 +127,13 @@ async function rerank(args) {
       documents,
     }),
   });
-  if (!r.ok) throw new Error(`bge_rerank: pair ${pair} answered ${r.status}`);
+  if (!r.ok) throw new Error(`bge_rerank: endpoint answered ${r.status}`);
   const body = await r.json();
   const ranked = (body.results ?? [])
     .map(({ index, relevance_score }) => ({ document: documents[index], score: relevance_score }))
     .sort((a, b) => b.score - a.score);
   const limit = Number.isInteger(args?.top_k) && args.top_k > 0 ? args.top_k : ranked.length;
-  return { pair, results: ranked.slice(0, limit) };
+  return { results: ranked.slice(0, limit) };
 }
 
 async function callTool(name, args) {
@@ -151,11 +146,12 @@ async function callTool(name, args) {
     }
     return { content: [{ type: 'text', text: JSON.stringify(payload) }], isError: false };
   } catch (err) {
-    // Fail-closed: sind beide Paare aus, meldet das Tool einen Fehler an den
-    // Aufrufer. Keine leeren Vektoren, keine unsortierten Kandidaten — genau
-    // diese stillen Ersatzwerte liessen den toten Reranker wochenlang unbemerkt.
+    // Fail-closed: ist der Endpoint nicht erreichbar oder konfiguriert, meldet
+    // das Tool einen Fehler an den Aufrufer. Keine leeren Vektoren, keine
+    // unsortierten Kandidaten — genau diese stillen Ersatzwerte liessen den
+    // toten Reranker wochenlang unbemerkt.
     const reason = err instanceof BgeRoutingError
-      ? `no bge pair reachable: ${err.message}`
+      ? `no bge endpoint configured: ${err.message}`
       : (err?.message ?? String(err));
     return { content: [{ type: 'text', text: reason }], isError: true };
   }

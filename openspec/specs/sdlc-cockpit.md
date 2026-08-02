@@ -193,6 +193,178 @@ Kein Panel ruft `fetch()` direkt auf (E1). (K9)
 - **WHEN** `GET /api/cockpit/styles` aufgerufen wird
 - **THEN** antwortet er mit der Eintragsliste und `fetchedAt`
 
+### Requirement: Brain references are derived deterministically from source paths
+
+The system SHALL derive the Brain wiki page for a given repository source path
+by the same rule the ingest pipeline uses to write that page, and by no other
+means. The rule is textual and reproducible: strip the file extension, strip a
+leading dot, replace `/`, `_` and space with `-`, lowercase the result — the
+slug produced by `scripts/brain-ingest-worklist.sh`, under which
+`scripts/brain-ingest.sh` stores the page.
+
+The system SHALL NOT use full-text search or semantic retrieval for this
+mapping. A derived reference SHALL be emitted only for source paths that the
+ingest manifest (`scripts/brain/ingest-sources.yaml`) actually accepts as a
+source; for every other path the system SHALL emit no reference rather than a
+guessed one.
+
+#### Scenario: A manifest-covered source path yields its wiki page
+
+- **GIVEN** a source path that the ingest manifest assigns to a group
+- **WHEN** the Brain reference for it is requested
+- **THEN** the returned link points at the page slug the ingest pipeline writes
+  for that same path
+
+#### Scenario: A path outside the manifest yields no reference
+
+- **GIVEN** a source path the ingest manifest does not cover, such as a file
+  under `website/` or `k3d/`
+- **WHEN** the Brain reference for it is requested
+- **THEN** no link is returned for that path
+- **AND** the response states that the path has no wiki page, so the gap is
+  visible rather than silent
+
+#### Scenario: A derived page that does not exist is not offered as a link
+
+- **GIVEN** a derived slug for which the Brain site serves no page
+- **WHEN** the references are assembled
+- **THEN** the link is omitted from the result
+- **AND** the omission is reported alongside the successful links
+
+### Requirement: Panels present their Brain references in the context slot
+
+The system SHALL fill the panel context slot with the derived Brain references,
+using the existing `setContext` contract of `{href, label}` entries. Panels
+SHALL NOT fetch Brain content themselves; the access SHALL go through the
+adapter, so that no panel carries its own `fetch()` (E1).
+
+The adapter SHALL retrieve Brain references as a one-shot request, not as a
+poll: the references change only when an ingest run publishes new pages, never
+between two seconds of panel life.
+
+#### Scenario: A panel with a known source shows its references
+
+- **GIVEN** a panel whose subject maps to at least one covered source path
+- **WHEN** the panel renders
+- **THEN** the context slot holds a link per existing wiki page
+
+#### Scenario: An unreachable Brain service leaves the panel honest
+
+- **GIVEN** the Brain service does not answer
+- **WHEN** a panel requests its references
+- **THEN** the context slot does not silently stay empty
+- **AND** the error is carried through to the panel, keeping an empty result
+  distinguishable from a failure (D13)
+
+### Requirement: Layout Engine Surface Organization
+
+Das Cockpit organisiert seine Fläche als Fokus-Spalte plus Arbeitsbereich, nicht als
+Kachelwand (E3). Der Inhalt der Fokus-Spalte ist festgelegt und nicht konfigurierbar (D7).
+
+The system SHALL organize the cockpit surface as a fixed focus column (rail) plus a free
+workspace, and SHALL expose the rail contents as an immutable list of exactly four groups —
+running epics, what needs attention, active agents, model servers — with no API, attribute
+or stored setting that adds, removes or reorders them.
+
+#### Scenario: Rail groups are fixed and immutable
+
+- **GIVEN** the layout engine is loaded
+- **WHEN** a caller reads the rail group list and attempts to mutate it
+- **THEN** the list contains exactly the four groups in the order defined by D7
+- **AND** the mutation attempt leaves the list unchanged
+
+#### Scenario: Workspace holds cards or one full-surface panel
+
+- **GIVEN** a desktop viewport and four panels assigned to the workspace
+- **WHEN** the engine computes the placement
+- **THEN** at most three panels are placed as cards and the remainder stays in the catalog
+- **AND** when one panel is expanded to full surface, it is the only panel placed
+
+### Requirement: Pointer-Based Rearrangement
+
+Panels werden mit einer einzigen Eingabe-API bewegt: Pointer Events. Damit gilt derselbe
+Codepfad für Maus, Touch und Stift.
+
+The system SHALL move panels between catalog and workspace and reorder them within the
+workspace using Pointer Events with pointer capture, SHALL NOT use the HTML5
+drag-and-drop API, and SHALL restore the pre-drag arrangement when the pointer interaction
+is cancelled.
+
+#### Scenario: Cancelled drag restores the arrangement
+
+- **GIVEN** a panel is being dragged from the catalog toward the workspace
+- **WHEN** the pointer interaction is cancelled before release
+- **THEN** the stored arrangement is identical to the arrangement before the drag started
+
+### Requirement: Full-Surface Canvas Is One State In Two Layouts
+
+Das Canvas-Panel lässt sich zur Vollfläche aufziehen und zurückholen. Es bleibt dabei ein
+Zustand (E7) — der Inhalt wird nicht neu aufgebaut.
+
+The system SHALL toggle a canvas panel between card and full-surface layout without
+destroying and recreating its panel instance, so that unsaved canvas content and the
+modified marker survive the toggle in both directions.
+
+#### Scenario: Canvas content survives the full-surface toggle
+
+- **GIVEN** a canvas panel with unsaved content in card layout
+- **WHEN** it is expanded to full surface and collapsed back
+- **THEN** the same panel instance is still registered for that element
+- **AND** the unsaved content and the modified marker are unchanged
+
+### Requirement: Layout Persistence Separate From Canvas Content
+
+Die Anordnung ist Ansichtsvorliebe, kein Arbeitsergebnis. Sie wird getrennt vom
+Canvas-Speicher abgelegt.
+
+The system SHALL persist the arrangement under its own versioned `localStorage` key,
+separate from the canvas content keys, SHALL restore the default arrangement when the
+stored value is missing, unparseable or of an unknown version, and SHALL drop entries
+referring to panels that no longer exist rather than failing to restore.
+
+#### Scenario: Unknown stored version falls back to the default arrangement
+
+- **GIVEN** a stored layout value whose version does not match the current one
+- **WHEN** the engine restores the arrangement
+- **THEN** the default arrangement is used and no canvas content key is read or written
+
+### Requirement: Mobile Layout And Terminal Lock
+
+Mobil gilt dieselbe Struktur untereinander statt nebeneinander (3.2). Das Terminal-Panel
+ist mobil gesperrt (D8).
+
+The system SHALL, for mobile viewports, render the rail as a top bar plus an expandable
+bottom sheet containing the four rail groups, SHALL place workspace panels as a
+single-panel stack in full-surface size only, and SHALL refuse to place a terminal panel
+in the workspace, keeping it visibly locked rather than hidden.
+
+#### Scenario: Terminal panel is locked, not silently dropped, on mobile
+
+- **GIVEN** a mobile viewport and a terminal panel in the catalog
+- **WHEN** the engine computes the placement
+- **THEN** the terminal panel is reported as locked with a stated reason
+- **AND** it is not placed in the workspace
+
+#### Scenario: Mobile workspace shows one full-surface panel
+
+- **GIVEN** a mobile viewport and three non-terminal panels assigned to the workspace
+- **WHEN** the engine computes the placement
+- **THEN** exactly one panel is visible and its size is the full-surface size
+
+### Requirement: Layout Engine Stays Build-Free And Ships To Both Shells
+
+Das Kit bleibt buildfrei (D1) und wird von beiden Hüllen über dieselben Dateien geladen.
+
+The system SHALL ship the layout engine as a classic browser script without module syntax,
+bundler step or npm dependency, and SHALL make it resolvable under `/cockpit/kit/` in the
+repository checkout, in the dev server and inside the built website image.
+
+#### Scenario: Layout asset resolves in the image layout
+
+- **GIVEN** the website image build copies `website/` and the `.lavish` sources
+- **WHEN** the resulting file layout is inspected
+- **THEN** the layout engine files resolve under `public/cockpit/kit/` and are non-empty
+
 ## Kind-Verteilung
 
 | Kind | Ticket | Status |
@@ -214,3 +386,7 @@ Siehe `openspec/changes/sdlc-cockpit-design/design.md`, Abschnitt „Getroffene 
 <!-- merged from change delta sdlc-cockpit.md (1254cd25f840) -->
 
 <!-- merged from change delta sdlc-cockpit.md (b6e25230b17f) -->
+
+<!-- merged from change delta sdlc-cockpit.md (e5ed300c324d) -->
+
+<!-- merged from change delta sdlc-cockpit.md (f4d7a9a21214) -->

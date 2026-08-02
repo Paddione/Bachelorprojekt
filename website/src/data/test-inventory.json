@@ -2694,6 +2694,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-bundle/rollup-heredoc-substitution",
+    "file": "tests/spec/mishap-bundle/rollup-heredoc-substitution.bats",
+    "category": "mishap-bundle",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-categorize-erden",
     "file": "tests/spec/mishap-categorize-erden.bats",
     "category": "mishap-categorize-erden",

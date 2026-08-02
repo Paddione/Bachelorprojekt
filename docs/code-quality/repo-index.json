@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 721,
+      "file_count": 722,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -447,6 +447,7 @@
         "tests/spec/mishap-bundle-T002506.bats",
         "tests/spec/mishap-bundle-infra-testspec-ci.bats",
         "tests/spec/mishap-bundle/ci-test-agentlock.bats",
+        "tests/spec/mishap-bundle/rollup-heredoc-substitution.bats",
         "tests/spec/mishap-categorize-erden.bats",
         "tests/spec/mishap-docker-wsl-T002250.bats",
         "tests/spec/mishap-t002422.bats",

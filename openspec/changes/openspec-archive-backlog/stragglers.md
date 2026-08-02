@@ -390,3 +390,59 @@ Format: Slug, Charge, betroffene SSOT-Spec, Fehlermeldung im Wortlaut.
 - **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 5 zurückgestellt und
   nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
   ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## plan-partials-embedding
+
+- **Charge**: 6
+- **SSOT-Spec**: `openspec/specs/openspec-embedding.md` (bestehend, `--create-new` angefordert)
+- **Fehlermeldung**: `ERROR: openspec-embedding.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 6 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## spec-security-gaps
+
+- **Charge**: 6
+- **SSOT-Spec**: `openspec/specs/health-goals.md` (bestehend, kein `--create-new`)
+- **Fehlermeldung**: `ERROR: health-goals.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 6 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## spec-test-rot
+
+- **Charge**: 6
+- **SSOT-Spec**: `openspec/specs/ci-cd.md` (bestehend, kein `--create-new`)
+- **Fehlermeldung**: `ERROR: ci-cd.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 6 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## specs-keycloak-pocketid
+
+- **Charge**: 6
+- **SSOT-Spec**: `openspec/specs/auth-sso.md` (bestehend, kein `--create-new`)
+- **Fehlermeldung**: `ERROR: auth-sso.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 6 zurückgestellt und
+  nicht archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta
+  ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## t001592
+
+- **Charge**: 6
+- **SSOT-Spec**: `openspec/specs/t001592.md` (nicht angelegt, `--create-new` angefordert)
+- **Fehlermeldung**: `ERROR: Refusing to create one-off spec 't001592.md' (ticket/gate slug pattern). Use --target-spec <parent> to fold it into an existing component, or --force-new-component to override.`
+- **Befund**: Ticket/Gate-Slug-Muster erkannt, Guard verweigert Anlage einer Ein-Themen-Spec.
+  Der Change wurde von Charge 6 zurückgestellt und nicht archiviert; der Rest der Charge wurde
+  regulär ausgeliefert. Reparatur (passenden `--target-spec` bestimmen oder bewusst
+  `--force-new-component`) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## t002105-mishap-bundle
+
+- **Charge**: 6
+- **SSOT-Spec**: `openspec/specs/auto-close-guard.md` (bestehend, `--create-new` angefordert)
+- **Fehlermeldung**: `ERROR: auto-close-guard.md: MODIFIED target 'Multi-partial Auto-Close Guard' not found in auto-close-guard.md`
+- **Befund**: Das Delta referenziert ein `### MODIFIED Requirements`-Ziel, das in der aktuellen
+  SSOT nicht (mehr) existiert. Der Change wurde von Charge 6 zurückgestellt und nicht
+  archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta-Fix, nicht
+  SSOT-Direktedit) folgt in einem eigenen PR gemäß Task 5.5 des Plans.

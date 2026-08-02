@@ -39,16 +39,38 @@ NAT) nicht möglich ist.
 - **THEN** wird die Session automatisch über hbbr relayed, ohne dass der Nutzer manuell
   eingreifen muss
 
-### Requirement: REQ-RUSTDESK-RELAY-004 — Minimale Portfläche ohne Web-Client
-Das System SHALL ausschließlich die Ports für native Desktop-/Mobile-Clients
-(21115/tcp, 21116/tcp+udp, 21117/tcp) öffnen und SHALL NOT den optionalen
-Browser-Web-Client (Port 21118/21119) aktivieren oder über Traefik routen.
+### Requirement: REQ-RUSTDESK-WEB-001 — SSO-gegateter Web-Client-Zugriff
 
-#### Scenario: Web-Client-Ports sind nicht erreichbar
-- **GIVEN** der RustDesk-Relay ist deployed und über die Firewall erreichbar
-- **WHEN** ein Verbindungsversuch auf Port 21118 oder 21119 unternommen wird
-- **THEN** schlägt die Verbindung fehl, da diese Ports weder im Deployment noch in der
-  Firewall-Konfiguration freigegeben sind
+Das System SHALL die RustDesk-Web-Client-Ports (21118/tcp für hbbs, 21119/tcp für
+hbbr) auf `${TURN_NODE}` öffnen, SHALL NOT diese Ports öffentlich ohne SSO-Gate
+erreichbar machen, und SHALL Zugriff ausschließlich über den Hostnamen
+`remote.mentolder.de` mit gültiger Pocket-ID-Session gewähren. `ufw` SHALL diese
+Ports ausschließlich aus dem `wg-fleet`-Overlay (`10.20.0.0/16`) freigeben, nicht aus
+dem öffentlichen Internet.
+
+#### Scenario: Direkter Portzugriff von außerhalb des Overlays schlägt fehl
+
+- **GIVEN** hbbs/hbbr sind mit geöffneten Web-Client-Ports 21118/21119 deployed
+- **WHEN** ein Verbindungsversuch auf `<öffentliche Node-IP>:21118` (oder `:21119`)
+  von außerhalb des `10.20.0.0/16`-Overlays unternommen wird
+- **THEN** verwirft `ufw` die Verbindung, da die Ports nur für das `wg-fleet`-Overlay
+  freigegeben sind
+
+#### Scenario: Zugriff über den öffentlichen Hostnamen erfordert eine gültige SSO-Session
+
+- **GIVEN** `oauth2-proxy-rustdesk-web` steht vor der Bridge zu hbbs/hbbr
+- **WHEN** ein Aufruf von `https://remote.mentolder.de` ohne gültige
+  Pocket-ID-Session eintrifft
+- **THEN** leitet `oauth2-proxy-rustdesk-web` zum Pocket-ID-Login um, statt die
+  Anfrage an hbbs/hbbr durchzureichen
+
+#### Scenario: Bestehende Session erreicht den Web-Client über die Overlay-Bridge
+
+- **GIVEN** ein Nutzer hat eine gültige Pocket-ID-Session für `rustdesk-web`
+- **WHEN** er `https://remote.mentolder.de` aufruft
+- **THEN** routet Traefik über `oauth2-proxy-rustdesk-web` und die
+  Service-ohne-Selector-Bridge zur Overlay-Adresse von `${TURN_NODE}` und der
+  RustDesk-Web-Client wird im Browser angezeigt
 
 ### Requirement: REQ-RUSTDESK-RELAY-005 — Firewall-Regeln auf dem gepinnten Node
 Das System SHALL sicherstellen, dass die für hbbs/hbbr benötigten Ports
@@ -86,3 +108,5 @@ das zugrunde liegende Secret ändert.
 
 <!-- merged from change delta rustdesk-server.md on 2026-07-01 -->
 <!-- merged from change delta rustdesk-subpath-rotation-runbook/rustdesk-server.md on 2026-07-01 -->
+
+<!-- merged from change delta rustdesk-server.md (f17a86a24568) -->

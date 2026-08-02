@@ -2163,6 +2163,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002483": [
+    {
+      "slug": "factory-slot-sandbox",
+      "status": "plan_staged"
+    }
+  ],
   "T002487": [
     {
       "slug": "2026-08-01-mcp-authenticated-http-headers",

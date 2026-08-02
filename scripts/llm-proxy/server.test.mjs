@@ -53,16 +53,6 @@ test('resolveModel: no healthy backend -> null (caller sends 503 no_backend)', (
 })
 
 // ── Readiness (T002336) ───────────────────────────────────────────────
-// /health meldete 200, solange der PROZESS lief — auch mit totem Backend.
-// Am 2026-07-27 blieb llamacpp-gemma (:8091) drei Stunden weg, ohne dass
-// irgendwo etwas rot wurde: deepseek war die ganze Zeit erreichbar, also
-// war "mindestens ein Backend gesund" erfuellt. Genau deshalb reicht diese
-// schwache Regel nicht — massgeblich sind die LOKALEN Prio-1-Backends.
-// Ein Cloud-Fallback ist kein Ersatz fuer den lokalen Stack.
-//
-// Der dynamische Import ist Absicht: ein statischer named import auf einen
-// noch nicht existierenden Export ist ein SyntaxError beim Modul-Laden und
-// wuerde die GESAMTE Datei rot faerben statt nur diesen Test.
 test('evaluateReadiness: unhealthy enabled priority-1 backend -> not ready (T002336)', async () => {
   const mod = await import('./discovery.mjs')
   assert.equal(typeof mod.evaluateReadiness, 'function',
@@ -79,7 +69,6 @@ test('evaluateReadiness: unhealthy enabled priority-1 backend -> not ready (T002
   assert.equal(r.ready, false, 'totes Prio-1-Backend muss ready=false ergeben, auch wenn ein Cloud-Fallback lebt')
   assert.deepEqual(r.degraded.map((d) => d.name), ['llamacpp-gemma'])
 
-  // Re-seed fuer die uebrigen Tests (Muster wie im 503-Test oben)
   _testSeed({ backends: [
     { name: 'a', priority: 1, healthy: true, models: ['m1'] },
     { name: 'b', priority: 2, healthy: true, models: ['m2'] },
@@ -127,29 +116,20 @@ test('applyFixups: empty fixup list leaves body unchanged (deep equal)', () => {
 
 // --- Loadout-Registry: die ausgelieferte Datei muss gueltig sein -----------
 
-// T002459: Ports muessen unter allen Loadouts eindeutig sein, die GLEICHZEITIG
-// laufen koennen — nicht global. Zwei Profile desselben Modells (gemma-factory
-// und gemma-multiagent) teilen sich bewusst :8091: sie liegen in derselben
-// exclusiveGroup, es laeuft also immer nur eines. Eine globale Eindeutigkeit zu
-// fordern hiesse, jedem Profil einen eigenen Port zu geben — dann zeigte der
-// llm-proxy je nach aktivem Profil auf einen anderen Port, und die Registry
-// muesste bei jedem Profilwechsel mitgepflegt werden.
 test('scripts/llm/loadouts.json ist gueltig und portkollisionsfrei', () => {
   const doc = parseLoadouts(readFileSync('scripts/llm/loadouts.json', 'utf8'))
   assert.ok(doc.loadouts.length > 0)
 
-  // Positiv-Anker: mindestens ein Port muss ueberhaupt geprueft werden.
   const withPort = doc.loadouts.filter((l) => l.port != null)
   assert.ok(withPort.length > 0, 'kein Loadout mit Port — der Test waere vakuos')
 
-  const seen = new Map() // port -> exclusiveGroup des ersten Treffers
+  const seen = new Map()
   for (const l of withPort) {
     const prev = seen.get(l.port)
     if (prev === undefined) {
       seen.set(l.port, l.exclusiveGroup ?? null)
       continue
     }
-    // Kollision nur dann erlaubt, wenn beide in DERSELBEN, nicht-leeren Gruppe sind.
     assert.ok(
       prev != null && prev === l.exclusiveGroup,
       `${l.slug}: Port ${l.port} doppelt vergeben, aber nicht in derselben exclusiveGroup ` +
@@ -158,14 +138,6 @@ test('scripts/llm/loadouts.json ist gueltig und portkollisionsfrei', () => {
   }
 })
 
-// T002426: die Regel gilt fuer Loadouts MIT --fit. Dort ist ein gepinntes -c
-// oder -ngl die Regression, gegen die T002394 schuetzt: ein gesetztes Argument
-// schaltet die VRAM-Anpassung ab. Bei fit.enabled=false ist das Gegenteil
-// Pflicht — validateLoadout() VERLANGT dort gesetzte ctx und ngl, sonst laeuft
-// ein ungesetztes -c in den llama.cpp-Default 0 und ins OOM. Die frueher
-// pauschale Fassung haette jedes bewusst CPU-gebundene Loadout (-ngl 0)
-// verboten. Der Positiv-Anker ist die Zaehlung unten: prueft der Test gar keine
-// fit-Loadouts mehr, faellt er auf, statt leer durchzulaufen.
 test('kein Loadout MIT --fit pinnt ctx oder ngl', () => {
   const doc = parseLoadouts(readFileSync('scripts/llm/loadouts.json', 'utf8'))
   let checked = 0
@@ -187,4 +159,43 @@ test('fit-freie Loadouts MUESSEN ctx und ngl setzen', () => {
   }
 })
 
+// ── T002483: Per-Slot Queuing ──────────────────────────────────────────
 
+test('extractSlotId: null for missing header', async () => {
+  const mod = await import('./slot-queue.mjs')
+  const req = { headers: {} }
+  const slotId = mod.extractSlotId(req)
+  assert.equal(slotId, null)
+})
+
+test('extractSlotId: parses X-Slot-ID header as integer', async () => {
+  const mod = await import('./slot-queue.mjs')
+  const req = { headers: { 'x-slot-id': '2' } }
+  const slotId = mod.extractSlotId(req)
+  assert.equal(slotId, 2)
+})
+
+test('extractSlotId: rejects non-numeric header', async () => {
+  const mod = await import('./slot-queue.mjs')
+  const req = { headers: { 'x-slot-id': 'abc' } }
+  const slotId = mod.extractSlotId(req)
+  assert.equal(slotId, null)
+})
+
+test('extractSlotId: accepts slot-id 0', async () => {
+  const mod = await import('./slot-queue.mjs')
+  const req = { headers: { 'x-slot-id': '0' } }
+  const slotId = mod.extractSlotId(req)
+  assert.equal(slotId, 0)
+})
+
+test('enqueue: different slotIds create independent queues (no deadlock)', async () => {
+  const mod = await import('./slot-queue.mjs')
+  const backendName = 'test-mapping'
+
+  const { run: r0 } = mod.enqueue(backendName, 1, () => Promise.resolve('slot0'), 0)
+  const { run: r1 } = mod.enqueue(backendName, 1, () => Promise.resolve('slot1'), 1)
+
+  const results = await Promise.all([r0, r1])
+  assert.deepEqual(results, ['slot0', 'slot1'])
+})

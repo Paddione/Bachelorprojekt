@@ -1,10 +1,30 @@
 #!/usr/bin/env bash
 # scripts/factory/sandbox-run.sh — run a factory command inside an isolated sandbox.
+#   sandbox-run.sh <worktree> <command...>               # one-shot mode
+#   sandbox-run.sh --agent <worktree> --slot N -- <cmd>  # agent mode (long-running)
 set -euo pipefail
 REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
+SANDBOX_IMAGE="${FACTORY_SANDBOX_IMAGE:-factory-sandbox:local}"
+AGENT_IMAGE="${FACTORY_AGENT_IMAGE:-factory-sandbox-agent:local}"
+AGENT_MODE=false
+SLOT_ID=""
+TICKET_ID="${FACTORY_TICKET_ID:-}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agent) AGENT_MODE=true; shift ;;
+    --slot) SLOT_ID="${2:?--slot requires a value}"; shift 2 ;;
+    --ticket) TICKET_ID="$2"; shift 2 ;;
+    --) shift; break ;;
+    -*) echo "sandbox-run: unknown flag $1" >&2; exit 2 ;;
+    *) break ;;
+  esac
+done
+
 WORKTREE="${1:?usage: sandbox-run.sh <worktree> <command...>}"; shift
 CMD="$*"
-SANDBOX_IMAGE="${FACTORY_SANDBOX_IMAGE:-factory-sandbox:local}"
+IMAGE="$SANDBOX_IMAGE"
+if $AGENT_MODE; then IMAGE="$AGENT_IMAGE"; fi
 
 # Never sandbox the main checkout (would defeat worktree isolation).
 case "${WORKTREE%/}" in
@@ -29,26 +49,77 @@ egress_allowlist() {
   printf '%s\n' api.anthropic.com registry.npmjs.org github.com codeload.github.com "${prod_domain}" "staging.${prod_domain}"
 }
 
-run_docker() {
-  docker network inspect "${FACTORY_SANDBOX_NET:-factory-sandbox-egress}" >/dev/null 2>&1 || \
-    docker network create "${FACTORY_SANDBOX_NET:-factory-sandbox-egress}" >/dev/null 2>&1 || true
+ensure_network() {
+  local net="${1:-factory-sandbox-egress}"
+  docker network inspect "$net" >/dev/null 2>&1 || \
+    docker network create "$net" >/dev/null 2>&1 || true
+}
 
-  if ! docker image inspect "${SANDBOX_IMAGE}" >/dev/null 2>&1; then
-    echo "sandbox-run: building sandbox image ${SANDBOX_IMAGE}..." >&2
-    docker build -t "${SANDBOX_IMAGE}" -f "${REPO}/scripts/factory/sandbox.Dockerfile" "${REPO}/scripts/factory" >&2
+build_image() {
+  local img="$1" dockerfile="$2"
+  if ! docker image inspect "$img" >/dev/null 2>&1; then
+    echo "sandbox-run: building image ${img}..." >&2
+    docker build -t "$img" -f "$dockerfile" "${REPO}/scripts/factory" >&2
   fi
+}
+
+enforce_egress() {
+  local net="$1"
+  # default-deny egress, then allow each host in the allowlist
+  docker run --rm --cap-add=NET_ADMIN --network "$net" alpine:latest sh -c '
+    iptables -I OUTPUT 1 -j DROP
+    '"$(egress_allowlist | while read -r host; do
+      [[ -n "$host" ]] || continue
+      echo "iptables -I OUTPUT 1 -d ${host} -j ACCEPT;"
+    done)"'
+    iptables -I OUTPUT 1 -d 127.0.0.1 -j ACCEPT
+    iptables -I OUTPUT 1 -d 1.1.1.1 -d 8.8.8.8 -d 8.8.4.4 -p udp --dport 53 -j ACCEPT
+    iptables -I OUTPUT 1 -d 1.1.1.1 -d 8.8.8.8 -d 8.8.4.4 -p tcp --dport 53 -j ACCEPT
+    echo "egress rules applied to ${net}"
+  ' 2>/dev/null || echo "sandbox-run: egress enforcement failed (non-fatal)" >&2
+}
+
+run_docker() {
+  local net="${FACTORY_SANDBOX_NET:-factory-sandbox-egress}"
+  if $AGENT_MODE; then
+    net="factory-sandbox-slot-${SLOT_ID:-0}"
+    ensure_network "$net"
+    # enforce egress on first use of this slot network
+    local marker="/tmp/.sandbox-net-${net}"
+    if [[ ! -f "$marker" ]]; then
+      enforce_egress "$net" && touch "$marker" || true
+    fi
+  else
+    ensure_network "$net"
+  fi
+  build_image "$IMAGE" "${REPO}/scripts/factory/sandbox.Dockerfile"
 
   local docker_dns=""
   if [ -n "${WSL_DISTRO_NAME:-}" ]; then
     docker_dns="--dns 1.1.1.1"
   fi
 
+  local container_name=""
+  local extra_opts=""
+  local tmpdir="/tmp"
+  if $AGENT_MODE && [[ -n "$SLOT_ID" ]]; then
+    local ticket="${TICKET_ID:-$(basename "$WORKTREE")}"
+    container_name="factory-agent-slot-${SLOT_ID}-${ticket}"
+    tmpdir="/tmp/factory-slot-${SLOT_ID}"
+    mkdir -p "$tmpdir"
+    extra_opts="--cpus=2 --memory=4g --hostname agent-slot-${SLOT_ID}"
+  fi
+
   docker run --rm \
+    ${container_name:+--name ${container_name}} \
     ${docker_dns} \
-    --network "${FACTORY_SANDBOX_NET:-factory-sandbox-egress}" \
+    ${extra_opts} \
+    --network "$net" \
+    --cap-add="${AGENT_MODE:+NET_ADMIN}" \
     -v "${WORKTREE}:/work" \
+    -v "${tmpdir}:/tmp" \
     -w /work \
-    "${SANDBOX_IMAGE}" \
+    "${IMAGE}" \
     bash -lc "${CMD}"
 }
 
@@ -60,7 +131,7 @@ run_k8s() {
 
   sed -e "s|TEMPLATE_JOB_ID|${job_id}|g" \
       -e "s|TEMPLATE_NAMESPACE|${ns}|g" \
-      -e "s|TEMPLATE_IMAGE|${SANDBOX_IMAGE}|g" \
+      -e "s|TEMPLATE_IMAGE|${IMAGE}|g" \
       -e "s|TEMPLATE_CMD|${CMD//|/\\|}|g" \
       -e "s|TEMPLATE_WORKTREE_PATH|${WORKTREE}|g" \
       "${REPO}/scripts/factory/sandbox-job.yaml" > "${job_file}"
@@ -75,8 +146,10 @@ run_k8s() {
 }
 
 run_off() {
-  echo "sandbox-run: FACTORY_SANDBOX=off — running UNSANDBOXED on host" >&2
-  bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.sandbox.off 1 mode=off || true
+  local mode_label="one-shot"
+  $AGENT_MODE && mode_label="agent (slot=${SLOT_ID:-?})"
+  echo "sandbox-run: FACTORY_SANDBOX=off — running UNSANDBOXED on host (${mode_label})" >&2
+  bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.sandbox.off 1 mode="${mode_label}" || true
   exec bash -c "cd '${WORKTREE}' && ${CMD}"
 }
 

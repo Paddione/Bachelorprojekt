@@ -1,0 +1,291 @@
+{
+  "meta": {
+    "slug": "factory-slot-sandbox",
+    "ticket_id": "T002483",
+    "generated_from": "main@f837b18cd",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/factory/pipeline.mjs",
+      "language": "javascript",
+      "loc": 696,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/sandbox-agent.Dockerfile",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/sandbox-run.sh",
+      "language": "bash",
+      "loc": 88,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 712
+    },
+    {
+      "path": "scripts/factory/sandbox.Dockerfile",
+      "language": "text",
+      "loc": 11,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/slots.sh",
+      "language": "bash",
+      "loc": 50,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 750
+    },
+    {
+      "path": "scripts/llm-proxy/server.mjs",
+      "language": "javascript",
+      "loc": 465,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 335
+    },
+    {
+      "path": "scripts/llm-proxy/server.test.mjs",
+      "language": "javascript",
+      "loc": 190,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 610
+    },
+    {
+      "path": "scripts/llm/loadouts.json",
+      "language": "config",
+      "loc": 361,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy.bats",
+      "language": "bash",
+      "loc": 428,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:17:resolve_mode() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "17:resolve_mode() {(...)",
+      "type_text": "17:resolve_mode() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:26:egress_allowlist() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "26:egress_allowlist() {(...)",
+      "type_text": "26:egress_allowlist() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:32:run_docker() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "32:run_docker() {(...)",
+      "type_text": "32:run_docker() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:55:run_k8s() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "55:run_k8s() {(...)",
+      "type_text": "55:run_k8s() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/sandbox-run.sh:77:run_off() {",
+      "kind": "function",
+      "file": "scripts/factory/sandbox-run.sh",
+      "signature": "77:run_off() {(...)",
+      "type_text": "77:run_off() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:31:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "31:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "type_text": "31:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:50:function semFor(name) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "50:function semFor(name) {(...)",
+      "type_text": "50:function semFor(name) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:56:function acquire(name, limit) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "56:function acquire(name, limit) {(...)",
+      "type_text": "56:function acquire(name, limit) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:62:function release(name) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "62:function release(name) {(...)",
+      "type_text": "62:function release(name) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:69:function enqueue(name, limit, fn) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "69:function enqueue(name, limit, fn) {(...)",
+      "type_text": "69:function enqueue(name, limit, fn) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:76:function inflightOf(name) { return sems.get(name)?.inflight ?? 0; }",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "76:function inflightOf(name) { return sems.get(name)?.inflight ?? 0; }(...)",
+      "type_text": "76:function inflightOf(name) { return sems.get(name)?.inflight ?? 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:132:function sendJson(res, status, obj) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "132:function sendJson(res, status, obj) {(...)",
+      "type_text": "132:function sendJson(res, status, obj) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:252:function portInUse(doc, port, exceptSlug) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "252:function portInUse(doc, port, exceptSlug) {(...)",
+      "type_text": "252:function portInUse(doc, port, exceptSlug) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:459:function shutdown(signal) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "459:function shutdown(signal) {(...)",
+      "type_text": "459:function shutdown(signal) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:461:  stopBridge();",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "461:  stopBridge();(...)",
+      "type_text": "461:  stopBridge();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:10:_start_stub() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "10:_start_stub() {(...)",
+      "type_text": "10:_start_stub() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }(...)",
+      "type_text": "31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:33:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "33:setup() {(...)",
+      "type_text": "33:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:48:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "48:teardown() {(...)",
+      "type_text": "48:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:53:_start_proxy() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "53:_start_proxy() {(...)",
+      "type_text": "53:_start_proxy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:73:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "73:_skip_if_no_db() {(...)",
+      "type_text": "73:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:158:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "158:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "type_text": "158:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

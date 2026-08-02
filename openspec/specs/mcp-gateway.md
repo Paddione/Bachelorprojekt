@@ -484,6 +484,15 @@ written — a `keycloak` container targeting a service that Pocket ID had alread
 (T002311), and a stale claim about this component's deployment status (T002312). Both have since
 been resolved; the requirement stands for any future defect.
 
+<!-- [T002589] Der Absatz oben umschreibt den Defekt aus T002312 bewusst, statt ihn beim Namen
+     zu nennen. Der Guard in tests/spec/mcp-gateway.bats greppt normative Prosa auf das
+     Abschaltungs-Signalwort (deutsche und englische Form, siehe den Regex dort) und nimmt nur
+     Scenario-Bloecke aus — er kann Beschreibung und Behauptung nicht unterscheiden. Beim
+     Archivieren von Charge 3 (T002569, PR #3697) wanderte eine Formulierung mit dem Signalwort
+     in die SSOT und faerbte main rot. Dieser Kommentar darf es deshalb selbst nicht
+     ausschreiben; der erste Anlauf tat es und blieb prompt rot. Den Guard aufzuweichen waere
+     falsch — er existiert, weil genau diese Behauptung monatelang unwidersprochen hier stand. -->
+
 Repairing such a defect requires changing a production manifest and is out of scope for a change
 whose subject is configuration generation.
 

@@ -12,14 +12,14 @@ test.describe('[factory-qs-abnahme-loop] QS-Abnahme-Flow', () => {
   test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS nicht gesetzt — überspringe Auth-Test');
 
   test('[factory-qs-abnahme-loop] /dev-status lädt ohne Fehler', async ({ page }) => {
-    await page.goto(`${WEBSITE_URL}/admin/pipeline`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEBSITE_URL}/admin/cockpit`, { waitUntil: 'domcontentloaded' });
     if (page.url().includes('/auth/') || page.url().includes('/login')) {
       await page.fill('input[name="username"]', ADMIN_USER);
       await page.fill('input[name="password"]', ADMIN_PASS);
       await page.click('input[type="submit"]');
-      await page.waitForURL(`${WEBSITE_URL}/admin/pipeline`, { waitUntil: 'domcontentloaded' });
+      await page.waitForURL(`${WEBSITE_URL}/admin/cockpit`, { waitUntil: 'domcontentloaded' });
     }
-    expect(page.url()).toMatch(/admin\/(pipeline|dev-status)/);
+    expect(page.url()).toMatch(/admin\/(cockpit|pipeline|dev-status)/);
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await page.waitForLoadState('domcontentloaded');
@@ -27,12 +27,12 @@ test.describe('[factory-qs-abnahme-loop] QS-Abnahme-Flow', () => {
   });
 
   test('[factory-qs-abnahme-loop] /admin/dev-status zeigt QS-Tab', async ({ page }) => {
-    await page.goto(`${WEBSITE_URL}/admin/pipeline`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${WEBSITE_URL}/admin/cockpit`, { waitUntil: 'domcontentloaded' });
     if (page.url().includes('/auth/') || page.url().includes('/login')) {
       await page.fill('input[name="username"]', ADMIN_USER);
       await page.fill('input[name="password"]', ADMIN_PASS);
       await page.click('input[type="submit"]');
-      await page.waitForURL(`${WEBSITE_URL}/admin/pipeline`, { waitUntil: 'domcontentloaded' });
+      await page.waitForURL(`${WEBSITE_URL}/admin/cockpit`, { waitUntil: 'domcontentloaded' });
     }
     const qsElement = page.locator('text=/QS|Floor|Steuerung/i').first();
     await expect(qsElement).toBeVisible({ timeout: 30_000 });

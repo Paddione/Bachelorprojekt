@@ -386,7 +386,7 @@ tests/unit/lib/bats-core/bin/bats --count tests/spec/sdlc-cockpit/pipeline-slot-
 
 ## Task 6 — `pipeline.astro` auflösen
 
-- [ ] `pipeline.astro` auf eine query-erhaltende Weiterleitung reduzieren, Vorbild
+- [x] `pipeline.astro` auf eine query-erhaltende Weiterleitung reduzieren, Vorbild
       `dev-status.astro`:
 
 ```
@@ -396,14 +396,14 @@ return Astro.redirect(`/admin/cockpit${Astro.url.search}`, 301);
 ---
 ```
 
-- [ ] `dev-status.astro:3` auf `/admin/cockpit` umstellen, damit kein Doppelsprung
+- [x] `dev-status.astro:3` auf `/admin/cockpit` umstellen, damit kein Doppelsprung
       `/dev-status → /admin/pipeline → /admin/cockpit` entsteht.
-- [ ] `tests/spec/software-factory/dashboard.bats`: die zwei Tests „pipeline.astro exists and
+- [x] `tests/spec/software-factory/dashboard.bats`: die zwei Tests „pipeline.astro exists and
       mounts DevStatusTabs" und „dev-status.astro is a 301 redirect to /admin/pipeline"
       umschreiben. Neue Aussagen: `cockpit.astro` bindet `PipelinePanel` ein (Positiv-Anker),
       `pipeline.astro` leitet mit `Astro.url.search` auf `/admin/cockpit` weiter und
       importiert `DevStatusTabs` nicht mehr, `dev-status.astro` zeigt auf `/admin/cockpit`.
-- [ ] E2E-Pfade nachziehen — sie laufen nachts gegen beide Brands und würden sonst über die
+- [x] E2E-Pfade nachziehen — sie laufen nachts gegen beide Brands und würden sonst über die
       Weiterleitung stolpern, sobald sie die URL prüfen:
       - `tests/e2e/specs/dev-status-tabs.spec.ts`: alle `page.goto('/admin/pipeline…')` auf
         `/admin/cockpit…`; FA-UNIF-04 erwartet künftig `/admin/cockpit?tab=planung`;

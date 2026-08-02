@@ -53,20 +53,27 @@ ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/api/factory-metrics.ts"
   [ "$output" = "0" ]
 }
 
-# ── T001433 admin-redesign: Pipeline move + Kosten tab + chart-color SSOT ────
+COCKPIT_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/admin/cockpit.astro"
 PIPELINE_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/admin/pipeline.astro"
 DEV_STATUS_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/dev-status.astro"
 FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../../website/src/components/factory/FactoryObservability.svelte"
 FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../../website/src/components/factory/factory-chart-colors.ts"
 
-@test "T001433 pipeline: pages/admin/pipeline.astro exists and mounts DevStatusTabs" {
-  [ -f "$PIPELINE_PAGE" ]
-  run grep -F "DevStatusTabs" "$PIPELINE_PAGE"
+@test "T001433 pipeline: pages/admin/cockpit.astro exists and mounts PipelinePanel" {
+  [ -f "$COCKPIT_PAGE" ]
+  run grep -F "PipelinePanel" "$COCKPIT_PAGE"
   [ "$status" -eq 0 ]
 }
 
-@test "T001433 pipeline: dev-status.astro is a 301 redirect to /admin/pipeline" {
-  run grep -F "Astro.redirect(\`/admin/pipeline" "$DEV_STATUS_PAGE"
+@test "T001433 pipeline: pipeline.astro is a 301 redirect to /admin/cockpit" {
+  run grep -F "Astro.redirect" "$PIPELINE_PAGE"
+  [ "$status" -eq 0 ]
+  run grep -F "/admin/cockpit" "$PIPELINE_PAGE"
+  [ "$status" -eq 0 ]
+}
+
+@test "T001433 pipeline: dev-status.astro is a 301 redirect to /admin/cockpit" {
+  run grep -F "Astro.redirect(\`/admin/cockpit" "$DEV_STATUS_PAGE"
   [ "$status" -eq 0 ]
 }
 

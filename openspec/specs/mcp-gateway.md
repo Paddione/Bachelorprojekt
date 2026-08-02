@@ -479,13 +479,13 @@ server registration, rather than from a new test file.
 ### Requirement: The registry must record known defects of the cluster layer rather than repair them
 
 The `cluster` section MUST record, for each container of the monolith, whether it is functional,
-and reference the ticket for any that is not. Two are known at the time of writing: the
-`keycloak` container targets a service that no longer exists because Pocket ID replaced Keycloak
-(T002311), and the SSOT description of this component claims the monolith was decommissioned
-while it is running (T002312).
+and reference the ticket for any that is not. Two such defects existed when this requirement was
+written — a `keycloak` container targeting a service that Pocket ID had already replaced
+(T002311), and a stale claim about this component's deployment status (T002312). Both have since
+been resolved; the requirement stands for any future defect.
 
-Repairing either requires changing a production manifest and is out of scope for a change whose
-subject is configuration generation.
+Repairing such a defect requires changing a production manifest and is out of scope for a change
+whose subject is configuration generation.
 
 #### Scenario: a container is known to be broken
 

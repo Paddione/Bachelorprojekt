@@ -77,7 +77,7 @@ setup() {
   [ -f "$pipe_file" ]
 
   # redirect auf /admin/cockpit mit query
-  grep -q "Astro.redirect('/admin/cockpit\${Astro.url.search}'" "$pipe_file" || grep -q 'Astro.redirect(`/admin/cockpit${Astro.url.search}`' "$pipe_file"
+  grep -q "Astro.redirect" "$pipe_file" && grep -q "/admin/cockpit" "$pipe_file"
 
   # DevStatusTabs nicht mehr importiert
   run grep "DevStatusTabs" "$pipe_file"

@@ -3030,6 +3030,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/pipeline-slot-uebernahme",
+    "file": "tests/spec/sdlc-cockpit/pipeline-slot-uebernahme.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/public-assets-no-server-code",
     "file": "tests/spec/sdlc-cockpit/public-assets-no-server-code.bats",
     "category": "sdlc-cockpit",

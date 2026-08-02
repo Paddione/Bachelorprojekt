@@ -83,8 +83,3 @@ WEB="$BATS_TEST_DIRNAME/../../website/src"
   run grep -qF "infrastruktur" "$ADMIN_SIDEBAR"
   [ "$status" -eq 0 ]
 }
-
-# ── AdminCockpit ─────────────────────────────────────────────────────────────
-@test "AdminCockpit.svelte exists" {
-  [ -f "$ADMIN_COCKPIT" ]
-}

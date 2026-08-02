@@ -445,12 +445,12 @@ ls website/src/pages/api/admin/cockpit/
 
 ## Task 8 — OF4 und Verifikation
 
-- [ ] `website/src/styles/mobile-cockpit.css` löschen (D-K10-4).
-- [ ] `website/src/styles/admin-responsive.css:5`: den Satz „Cockpit owns its own mobile
+- [x] `website/src/styles/mobile-cockpit.css` löschen (D-K10-4).
+- [x] `website/src/styles/admin-responsive.css:5`: den Satz „Cockpit owns its own mobile
       layout (mobile-cockpit.css) and is excluded." auf den neuen Stand bringen — das
       Cockpit bringt seine Mobilregeln über die Kit-Schicht mit, eine eigene
       Admin-Stildatei gibt es nicht mehr.
-- [ ] Alle in diesem Plan angelegten und geänderten Testdateien laufen lassen:
+- [x] Alle in diesem Plan angelegten und geänderten Testdateien laufen lassen:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit/
@@ -459,27 +459,27 @@ tests/unit/lib/bats-core/bin/bats tests/spec/website-core.bats tests/spec/admin-
 cd website && npx vitest run
 ```
 
-- [ ] Astro-Build gegenprüfen, weil der `is:inline`-Fehler ausschließlich beim Build sichtbar
+- [x] Astro-Build gegenprüfen, weil der `is:inline`-Fehler ausschließlich beim Build sichtbar
       wird (Task 5):
 
 ```bash
 cd website && pnpm build
 ```
 
-- [ ] Testinventar regenerieren und mitcommitten — CI vergleicht es fail-closed gegen die
+- [x] Testinventar regenerieren und mitcommitten — CI vergleicht es fail-closed gegen die
       eingecheckte Fassung, und dieser Vorgang entfernt elf und ergänzt zwei Testdateien:
 
 ```bash
 task test:inventory
 ```
 
-- [ ] `any`-Zählung darf nicht steigen (CQ02, Ist-Stand 0):
+- [x] `any`-Zählung darf nicht steigen (CQ02, Ist-Stand 0):
 
 ```bash
 bash -c "count=\$(grep -rn ': any\|<any>\|as any' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | wc -l | tr -d ' '); echo \"any count: \$count (limit: 200)\"; [ \$count -le 200 ]"
 ```
 
-- [ ] Pflicht-Gates:
+- [x] Pflicht-Gates:
 
 ```bash
 task test:changed

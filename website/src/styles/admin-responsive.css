@@ -2,7 +2,7 @@
  * Admin responsive parity (T001471). Layered:
  *   Layer 1 — global mobile fallback (≤767px) + desktop form upgrade (≥1024px)
  *   Layer 2 — opt-in table→card collapse (.admin-table-collapse, container <480px)
- * Cockpit owns its own mobile layout (mobile-cockpit.css) and is excluded.
+ * Cockpit brings its mobile layout via the kit layer (/cockpit/kit/panel.css).
  */
 
 /* Establish a query container on the admin content area so .admin-table-collapse

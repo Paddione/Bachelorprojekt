@@ -46,7 +46,11 @@ fi
 # gewinnt, wenn sie antwortet; sonst greift der Default unten. Er ist bewusst
 # derselbe Wert, den die Migration in die Registry schreibt - weicht er ab, ist
 # das ein Bug, kein Feature.
-OPUS_FALLBACK=$'llamacpp\tgemma-4-12b\thttp://127.0.0.1:18235'
+# [T002582] Stand hier bis 2026-08-02 auf 'gemma-4-12b' — ein Name, den das
+# Gateway nicht mehr aufloest (routing-check.sh meldete ihn als FEHLT). Der
+# Default ist per FACTORY_MODEL_ID ueberschreibbar, damit ein Modellwechsel
+# nicht wieder an drei Stellen nachgezogen werden muss.
+OPUS_FALLBACK=$'llamacpp\t'"${FACTORY_MODEL_ID:-gemma26-factory}"$'\thttp://127.0.0.1:18235'
 if [[ "$TIER" == "opus" ]]; then
   OPUS_ROW=$(factory_psql -v src="$SOURCE" 2>/dev/null <<'SQL' || true
 SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')
@@ -94,7 +98,7 @@ PINNED=""
 if [[ -n "$PHASE" && "${ROUTE_SKIP_PINNED:-false}" != "true" ]]; then
   # max_concurrent kommt NICHT als Literal: factory_model_slots fuehrt die Spalte nicht,
   # aber der Cap gehoert zum Provider, nicht zur Tier-Zeile. Ein fester Wert wuerde den
-  # konfigurierten Cap unterlaufen — registriert provider-register-bonsai.sh llamacpp mit
+  # konfigurierten Cap unterlaufen — registriert provider-register-local.sh llamacpp mit
   # max_concurrent=1, liessen drei parallele Ticks trotzdem drei Claims gegen das Literal
   # durch. MIN() ueber die enabled provider_config-Zeilen desselben Providers waehlt
   # bewusst den strengsten konfigurierten Cap; 3 bleibt nur der Fallback fuer einen
@@ -145,10 +149,15 @@ SQL
   fi
 done <<< "$CANDS"
 
-# Emergency fallback: lokales LM Studio, kein Slot geclaimt.
+# Emergency fallback: kein Slot geclaimt, Weg ueber das Gateway.
 # RC5 [T002359]: hier stand ein Modell, das LM Studio seit dem Gemma-Cutover nicht
 # mehr serviert. Der Router gab es lautlos zurueck — der llm-proxy bog es still auf
 # das erste gesunde Backend um, sodass nirgends ein Fehler auftauchte.
+# [T002582] Die damalige Korrektur trug nur einen anderen toten Namen ein
+# ('gemma-4-12b') und zeigte weiterhin auf LM Studio :1234 — das dort seit T002551
+# ausschliesslich Embedding- und Reranker-Modelle serviert, also GAR KEIN
+# Chat-Modell mehr. Der Fallback zeigt jetzt auf dasselbe Gateway wie der
+# regulaere Weg; damit gibt es nur noch eine Stelle, die ein Modell benennen kann.
 echo "route-provider: ALLE Kandidaten fuer source=$SOURCE tier=$TIER belegt oder auf Cooldown." >&2
 echo "  Emergency-Fallback aktiv — pruefe 'bash scripts/factory/reap-provider-slots.sh --dry-run'." >&2
-printf '{"provider":"lmstudio","modelId":"gemma-4-12b","baseUrl":"http://127.0.0.1:1234","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n'
+printf '{"provider":"llamacpp","modelId":"%s","baseUrl":"http://127.0.0.1:18235","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n' "${FACTORY_MODEL_ID:-gemma26-factory}"

@@ -265,13 +265,12 @@ tasks:
     cmds:
       - node scripts/llm/measure-embedding-equivalence.mjs
 
-  start-bonsai:
-    desc: "Start the Ternary-Bonsai-8B server with 4 slots (Windows GPU host)"
-    cmds:
-      - echo "Run on Windows GPU host:"
-      - echo "  powershell -ExecutionPolicy Bypass -File ./scripts/llm/start-bonsai-server.ps1"
+  # [T002582] 'start-bonsai' entfernt: der Task verwies auf
+  # scripts/llm/start-bonsai-server.ps1, das im Repo nicht existiert. Guard
+  # dagegen: tests/spec/local-llm-proxy/gateway-consumer-lint.bats prüft, dass
+  # jedes hier genannte .ps1-Skript vorhanden ist.
 
   lmstudio-preload:
-    desc: "DEPRECATED — bge embed/rerank sind seit T002551 CPU-Deployments im Cluster, Bonsai läuft als Scheduled Task (start-bonsai-server.ps1)."
+    desc: "DEPRECATED — bge embed/rerank sind seit T002551 CPU-Deployments im Cluster."
     cmds:
       - echo "LM Studio (lmstudio-preload.sh) is deprecated since T002110. Embedding/Reranking kommen seit T002551 aus dem Cluster (k3d/llm-gpu.yaml, via bge-mcp port-forward auf 127.0.0.1:8081/8082)."

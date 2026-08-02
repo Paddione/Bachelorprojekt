@@ -48,6 +48,30 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   if (a.reasoning != null) argv.push('-rea', a.reasoning);
   if (a.reasoningBudget != null) argv.push('--reasoning-budget', String(a.reasoningBudget));
 
+  // T002579 — Sampling. Bis hierher setzte kein Loadout Sampling-Parameter, es
+  // galten also stillschweigend die llama.cpp-Defaults (temp 0.8, top-k 40).
+  // Das war kein Entschluss, sondern eine Luecke: die Modellkarten nennen fuer
+  // Gemma 4 abweichende, kalibrierte Werte. Wie ueberall hier gilt: nur was
+  // NICHT null ist, erzeugt ein Argument — Loadouts ohne diese Felder behalten
+  // exakt ihre bisherige Kommandozeile.
+  if (a.temperature != null) argv.push('--temp', String(a.temperature));
+  if (a.topP != null) argv.push('--top-p', String(a.topP));
+  if (a.topK != null) argv.push('--top-k', String(a.topK));
+
+  // T002579 — Chat-Template-Argumente, insbesondere enable_thinking.
+  //
+  // BEWUSST NICHT ueber 'a.reasoning' abgebildet, obwohl es verwandt aussieht:
+  // '-rea' steuert, ob llama-server reasoning_content PARST und ausliefert.
+  // 'enable_thinking' ist ein Argument des CHAT-TEMPLATES und entscheidet, ob
+  // das Modell ueberhaupt denkt. Zwei Ebenen — ein gemeinsames Feld wuerde
+  // einen der beiden Namen zur Luege machen.
+  //
+  // Serialisierung hier statt in der Konfiguration: der Wert steht in
+  // loadouts.json als echtes Objekt, damit ihn niemand von Hand escapen muss.
+  if (a.chatTemplateKwargs != null) {
+    argv.push('--chat-template-kwargs', JSON.stringify(a.chatTemplateKwargs));
+  }
+
   // D2: Vision tower. Resolved path from caller beats raw loadout value.
   const mmproj = resolved.mmprojPath ?? a.mmprojPath ?? null;
   if (mmproj != null) argv.push('--mmproj', mmproj);

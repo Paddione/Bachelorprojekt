@@ -292,3 +292,39 @@ test('ohne Symlink entsteht kein doppeltes Binding', async () => {
   const roots = props.filter((a) => a.startsWith('--property=BindReadOnlyPaths=-/opt/llama'))
   assert.equal(roots.length, 1, `erwartet 1 Binding fuer die Wurzel, erhalten ${roots.length}`)
 })
+
+// --- T002579: Sampling + Chat-Template-Argumente ---------------------------
+
+test('T002579: Sampling-Felder erzeugen --temp/--top-p/--top-k', () => {
+  const lo = { ...base, args: { ...base.args, temperature: 1.0, topP: 0.95, topK: 64 } }
+  const argv = buildServerArgv(lo, MODEL, defaults)
+  assert.equal(argv[argv.indexOf('--temp') + 1], '1')
+  assert.equal(argv[argv.indexOf('--top-p') + 1], '0.95')
+  assert.equal(argv[argv.indexOf('--top-k') + 1], '64')
+})
+
+test('T002579: chatTemplateKwargs wird als JSON serialisiert', () => {
+  const lo = { ...base, args: { ...base.args, chatTemplateKwargs: { enable_thinking: true } } }
+  const argv = buildServerArgv(lo, MODEL, defaults)
+  const idx = argv.indexOf('--chat-template-kwargs')
+  assert.notEqual(idx, -1, '--chat-template-kwargs fehlt')
+  // Der Wert muss gueltiges JSON sein — nicht ein von Hand escapter String.
+  assert.deepEqual(JSON.parse(argv[idx + 1]), { enable_thinking: true })
+})
+
+test('T002579: ein Loadout OHNE die neuen Felder behaelt seine argv unveraendert', () => {
+  // Positiv-Anker gegen eine vakuose Aussage: waeren die Felder gar nicht
+  // implementiert, wuerde dieser Test ebenfalls bestehen. Deshalb zuerst
+  // belegen, dass die Flags bei GESETZTEN Feldern ueberhaupt entstehen.
+  const withFields = buildServerArgv(
+    { ...base, args: { ...base.args, temperature: 1.0, chatTemplateKwargs: { enable_thinking: false } } },
+    MODEL, defaults)
+  assert.ok(withFields.includes('--temp'), 'ANKER: --temp entsteht bei gesetztem Feld nicht')
+  assert.ok(withFields.includes('--chat-template-kwargs'), 'ANKER: --chat-template-kwargs entsteht nicht')
+
+  const argv = buildServerArgv(base, MODEL, defaults)
+  assert.equal(argv.includes('--temp'), false)
+  assert.equal(argv.includes('--top-p'), false)
+  assert.equal(argv.includes('--top-k'), false)
+  assert.equal(argv.includes('--chat-template-kwargs'), false)
+})

@@ -38,15 +38,24 @@ print(lo[0]['port'] if lo else '')
 
   [ -f "$PROBE_FILE" ] || { echo "ANKER ROT: $PROBE_FILE fehlt"; return 1; }
 
-  # Der deklarierte Port muss in der Probe vorkommen ...
-  run grep -cF ":${declared}" "$PROBE_FILE"
-  [ "$output" -gt 0 ] || {
-    echo "Probe nennt Port $declared nirgends — sie zielt woanders hin."; return 1; }
+  # Die Probe muss den Port entweder aus der Registry BEZIEHEN (bevorzugt —
+  # eine kuenftige Portaenderung zieht dann automatisch mit) oder ihn wenigstens
+  # korrekt nennen. Beides erfuellt das Ziel; nur ein davon abweichender
+  # hartkodierter Port ist der Defekt.
+  local from_registry=0 literal=0
+  grep -qF 'loadouts.json' "$PROBE_FILE" && from_registry=1
+  grep -qF ":${declared}" "$PROBE_FILE" && literal=1
+  [ "$from_registry" -eq 1 ] || [ "$literal" -eq 1 ] || {
+    echo "Probe bezieht Port weder aus loadouts.json noch nennt sie $declared."; return 1; }
 
-  # ... und der tote TEI-Port 8081 darf es NICHT.
-  run grep -n ':8081' "$PROBE_FILE"
+  # Der tote TEI-Port 8081 darf in keiner WIRKSAMEN Zeile mehr stehen.
+  # Kommentarzeilen sind ausgenommen — der historische Hinweis, dass die Probe
+  # frueher dorthin zeigte, ist der Grund, warum dieser Guard existiert, und
+  # soll erhalten bleiben. (Gleiche Konvention wie beim S3-Gate gegen
+  # hartkodierte Hostnamen.)
+  run bash -c "grep -n ':8081' '$PROBE_FILE' | grep -v '^[0-9]*: *#' || true"
   [ -z "$output" ] || {
-    echo "Probe zeigt noch auf den decommissionierten Port 8081:"; echo "$output"; return 1; }
+    echo "Probe zeigt in wirksamem Code noch auf den toten Port 8081:"; echo "$output"; return 1; }
 }
 
 @test "T002579: die Langkontext-Probe belegt ihre Kontextgroesse am Server" {

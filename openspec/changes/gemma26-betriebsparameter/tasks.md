@@ -151,17 +151,35 @@ Datei: `scripts/llm/loadouts.json`
 
 ## P5 — Consumer gegen den Thinking-Default absichern
 
-Dateien: `scripts/mishap-categorize.sh`, `scripts/plan-qa-check.sh`, `scripts/factory/ci-review.mjs`
+> **Scope-Korrektur waehrend der Umsetzung (2026-08-02).** Der Plan nannte hier
+> `scripts/mishap-categorize.sh`, `scripts/plan-qa-check.sh` und
+> `scripts/factory/ci-review.mjs`. Die Auswahl beruhte auf einer Suche nach `max_tokens`
+> **ohne Pruefung des Endpunkts** — und war damit falsch: alle drei rufen
+> `api.deepseek.com` auf, nicht den lokalen Proxy. Sie sind vom Thinking-Default auf
+> `gemma26-factory` gar nicht betroffen und werden **nicht** angefasst.
+>
+> Auch die zweite Fassung dieser Liste war noch zu gross. Vollstaendige Erhebung ueber alle
+> Dateien, die `:18235`/`LLM_PROXY`/`HG_LLM_URL` ansprechen — **einschliesslich der
+> Payload-Bauer**, die eine aufrufende `.sh` nicht selbst enthaelt:
+>
+> | Consumer | sendet Chat-Request | geschuetzt |
+> |---|---|---|
+> | `scripts/health-goals-llm-fill.sh` | ja | **ja** — in `scripts/health-goals-payload.py` |
+> | `scripts/arbitration/synthesize.mjs` | ja | **nein** |
+> | `routing-check.sh`, `github-mcp-wrapper.sh`, `route-provider.sh`, `health-goals-check.sh`, `llm-proxy/backends.mjs`, `llm-proxy/server.mjs` | nein (Status/Routing) | nicht betroffen |
+>
+> Es bleibt **eine** Datei. Der Rest wird nicht angefasst.
 
-- [ ] In allen drei Requests `chat_template_kwargs: {"enable_thinking": false}` ergaenzen,
-      analog zu `scripts/factory/triage-body.sh`, das es bereits korrekt macht.
-- [ ] Je einen Kommentar setzen, warum: bei serverseitig aktivem Thinking bleibt `content`
-      leer, bis die Denkphase endet — bei `max_tokens: 20` (`mishap-categorize.sh`) kommt
-      garantiert eine leere Antwort mit `finish_reason=length` zurueck (T002501).
-- [ ] **Budgets nicht anheben.** Fuer `plan-qa-check.sh` und `ci-review.mjs` waere Thinking
-      inhaltlich nuetzlich, erfordert aber groessere `max_tokens` und damit mehr Latenz und
-      GPU-Zeit. Das ist eine eigene Abwaegung und gehoert in ein Folge-Ticket, nicht als
-      Nebenwirkung in diesen Fix.
+Datei: `scripts/arbitration/synthesize.mjs`
+
+- [ ] `chat_template_kwargs: {"enable_thinking": false}` in den Request ergaenzen, analog zu
+      `scripts/health-goals-payload.py` und `scripts/factory/triage-body.sh`.
+- [ ] Kommentar setzen, warum: der Aufrufer verlangt `response_format: json_object` und liest
+      `choices[0].message.content` — bei aktivem Thinking bleibt der leer, bis die Denkphase
+      endet, und das JSON-Parsing scheitert (T002501).
+- [ ] **Keine Timeouts oder Budgets anheben.** Thinking fuer diesen Consumer nutzbar zu machen
+      waere eine eigene Abwaegung (Latenz, GPU-Zeit) und gehoert in ein Folge-Ticket, nicht
+      als Nebenwirkung in diesen Fix.
 
 ## P6 — T002535 korrigieren
 

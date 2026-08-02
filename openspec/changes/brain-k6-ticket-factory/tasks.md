@@ -1,15 +1,23 @@
-# Tasks: K6: Ticket- und Factory-Datenmodell visualisieren
+---
+title: "K6 Ticket Factory"
+ticket_id: T002436
+domains: [docs]
+status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: T002430
+depends_on_plans: []
+---
 
-| id | file | role | target_files | depends_on |
-|----|------|------|-------------|------------|
-| 1 | docs/brain/k6-ticket-factory.md | docs | docs/brain/k6-ticket-factory.md | — |
+# K6 Ticket Factory
+
+_Ticket: T002436_
 
 ## Partials
 
-### 1 — Diagramm + Erhebung + Defekte
+| id | file | role | target_files | depends_on |
+|----|------|------|-------------|------------|
+| 1 | tasks.d/p1-survey.md | spec | — | — |
+| 2 | tasks.d/p2-documentation.md | docs | — | 1 |
 
-**target_files:** docs/brain/k6-ticket-factory.md
-
-- Diagramm mit beschrifteten Kanten
-- Erhebung aller relevanten Aspekte
-- Defekt-Referenz aus T002430

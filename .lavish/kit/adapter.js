@@ -341,6 +341,21 @@ const data = (() => {
     return fetchEndpoint('styles');
   }
 
+  /**
+   * K6 Brain-Verweise (T002465) — Wiki-Seiten zu den Quellpfaden eines Panels.
+   *
+   * Einmalabruf statt Poll: die Verweise aendern sich nur bei einem Ingest-Lauf.
+   *
+   * @param {string[]} paths repo-relative Quellpfade
+   * @returns {Promise<{links?: Array, uncovered?: string[], missing?: string[], error?: string, fetchedAt: string}>}
+   */
+  async function brainLinks(paths) {
+    if (!paths || paths.length === 0) {
+      return { links: [], uncovered: [], missing: [], fetchedAt: new Date().toISOString() };
+    }
+    return fetchEndpoint(`/api/admin/cockpit/brain?paths=${encodeURIComponent(paths.join(','))}`);
+  }
+
   /** @param {function} onEvent */
   function agentStream(onEvent) {
     return createStream('agents-stream')(onEvent);
@@ -397,6 +412,7 @@ const data = (() => {
     epics,
     epicChangesSince,
     styles,
+    brainLinks,
     agentStream,
     factoryStream,
     ticketAction,

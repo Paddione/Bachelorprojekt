@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-08-02T00:35:25.720Z
+> Generated at 2026-08-02T01:04:33.376Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -96,6 +96,7 @@
 | `/api/admin/coaching/templates/{id}/versions` | GET | 🔐 admin | `website/src/pages/api/admin/coaching/templates/[id]/versions.ts` |
 | `/api/admin/cockpit/audit` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/audit.ts` |
 | `/api/admin/cockpit/batch` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/batch.ts` |
+| `/api/admin/cockpit/brain` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/brain.ts` |
 | `/api/admin/cockpit/container-count` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/container-count.ts` |
 | `/api/admin/cockpit/feature` | GET | 🔐 admin | `website/src/pages/api/admin/cockpit/feature.ts` |
 | `/api/admin/cockpit/feature-action` | POST | 🔐 admin | `website/src/pages/api/admin/cockpit/feature-action.ts` |

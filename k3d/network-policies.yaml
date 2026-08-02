@@ -402,7 +402,25 @@ spec:
     - port: 80
       protocol: TCP
 ---
-
+# brain: ingress from the website namespace on the container port (T002465)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-to-brain-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: brain
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ${WEBSITE_NAMESPACE}
+    ports:
+    - port: 8787
+      protocol: TCP
 ---
 # brett: ingress from Traefik on 3000
 apiVersion: networking.k8s.io/v1

@@ -2127,6 +2127,12 @@
       "status": "archived"
     }
   ],
+  "T002465": [
+    {
+      "slug": "sdlc-cockpit-k6-brain",
+      "status": "plan_staged"
+    }
+  ],
   "T002468": [
     {
       "slug": "2026-08-01-k9-stil-datenbank",

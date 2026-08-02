@@ -81,6 +81,11 @@ OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=tr
 printf '%s\n' "$OUT" | grep -v '://' >&2 || true
 
 if printf '%s' "$OUT" | grep -q "indexed slug='"; then
+  # Gesamtlage nach erfolgreichem Embedding zeigen
+  COUNT_OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=true \
+    OPENSPEC_EMBED_REPO="$EMBED_REPO" \
+    node "$REPO_ROOT/scripts/openspec-embed.mjs" --count-skipped 2>&1 || true)"
+  printf '%s\n' "$COUNT_OUT" | grep -v '://' >&2 || true
   exit 0
 fi
 echo "[openspec-embed-local] FEHLER: Embedding wurde NICHT indiziert (Output oben) — nicht still weitermachen." >&2

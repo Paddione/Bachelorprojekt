@@ -27,7 +27,7 @@ _Ticket: T002483 · Epic: T002370_
 | Datei | Ist | Budget |
 | --- | --- | --- |
 | `scripts/factory/sandbox-run.sh` | 88 | 712 |
-| `scripts/factory/pipeline.mjs` | 696 | 204 |
+| `scripts/factory/pipeline.mjs` | 696 | — |
 | `scripts/factory/slots.sh` | 50 | 750 |
 | `scripts/llm-proxy/server.mjs` | 465 | 335 |
 | `scripts/llm/loadouts.json` | 183 | — |

@@ -181,7 +181,7 @@ zweite rebased. Der Konflikt ist absehbar und wird bewusst in Kauf genommen.
 
 Kein Schritt dieses Tasks verändert Dateien. Er stellt fest, gegen welchen Stand gebaut wird.
 
-- [ ] Prüfen, ob die Layout-Engine aus K3 (T002462) auf `main` angekommen ist:
+- [x] Prüfen, ob die Layout-Engine aus K3 (T002462) auf `main` angekommen ist:
 
 ```bash
 git fetch origin main --quiet
@@ -189,7 +189,7 @@ git show origin/main:.lavish/kit/layout.js > /dev/null 2>&1 \
   && echo "K3-LIEGT-AUF-MAIN" || echo "K3-LIEGT-NICHT-AUF-MAIN"
 ```
 
-- [ ] **Ergebnis `K3-LIEGT-AUF-MAIN`:** das Pipeline-Panel im Arbeitsbereich über die reale
+- [x] **Ergebnis `K3-LIEGT-AUF-MAIN`:** das Pipeline-Panel im Arbeitsbereich über die reale
       Engine platzieren. Maßgeblich sind die tatsächlichen Signaturen aus
       `origin/main:.lavish/kit/layout.js`.
 - [ ] **Ergebnis `K3-LIEGT-NICHT-AUF-MAIN`:** gegen die Schnittstelle bauen, die K3s Plan
@@ -210,7 +210,7 @@ git show origin/main:.lavish/kit/layout.js > /dev/null 2>&1 \
       da ist. Ohne Engine steht das Panel im heutigen Flex-Arbeitsbereich — sichtbar und
       benutzbar, nur nicht verschiebbar. Diesen Zustand als Kommentarkopf in
       `PipelinePanel.svelte` festhalten (welcher Zweig gegriffen hat, mit Datum).
-- [ ] Verwaisung des zu löschenden Baums dateiweise belegen und die Ausgabe im PR-Text
+- [x] Verwaisung des zu löschenden Baums dateiweise belegen und die Ausgabe im PR-Text
       festhalten. Der Lauf misst Importeure **außerhalb** der Löschliste:
 
 ```bash
@@ -223,10 +223,10 @@ done
 grep -rn "cockpit-table-actions\|admin/cockpit-expand" website/src tests | cut -d: -f1 | sort -u
 ```
 
-- [ ] **Abbruchbedingung:** taucht für eine Datei ein Importeur auf, der *nicht* in der
+- [x] **Abbruchbedingung:** taucht für eine Datei ein Importeur auf, der *nicht* in der
       Löschliste steht, bleibt diese Datei stehen und der Befund wird im PR benannt. Eine zu
       weit gefasste Löschung ist hier der teuerste Fehler.
-- [ ] Gegenprobe für die Bleibe-Liste — diese Dateien MÜSSEN Importeure außerhalb der
+- [x] Gegenprobe für die Bleibe-Liste — diese Dateien MÜSSEN Importeure außerhalb der
       Löschliste haben:
 
 ```bash

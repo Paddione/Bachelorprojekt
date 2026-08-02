@@ -5,6 +5,7 @@
 #   BRAND=<brand> bash scripts/factory/slots.sh claim <ext_id> <slot>     # single-slot (legacy); echoes slot on success
 #   BRAND=<brand> bash scripts/factory/slots.sh claim-gang <ext_id> <n>   # atomic gang claim of n slots; echoes slot on success
 #   BRAND=<brand> bash scripts/factory/slots.sh release <ext_id>
+#   BRAND=<brand> bash scripts/factory/slots.sh slot-id <ext_id>
 # Slots are 1..FACTORY_SLOTS_PER_BRAND (default 3). Accounting sums slot_count
 # (gang tickets occupy n slots). claim/claim-gang only succeed if the feature has
 # no slot yet (UPDATE ... WHERE pipeline_slot IS NULL) — race-free.
@@ -27,7 +28,9 @@ case "$cmd" in
     ;;
   claim)
     ext_id="${1:?usage: claim <ext_id> <slot>}"; slot="${2:?usage: claim <ext_id> <slot>}"
-    out=$(printf '%s' "UPDATE tickets.tickets SET pipeline_slot = :'slot'::integer, status='in_progress' WHERE external_id = :'ext_id' AND pipeline_slot IS NULL AND status IN ('backlog','triage','plan_staged') RETURNING pipeline_slot;" | factory_psql -v ext_id="$ext_id" -v slot="$slot")
+    llama_slot_id=$((slot - 1))
+    claimed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    out=$(printf '%s' "UPDATE tickets.tickets SET pipeline_slot = :'slot'::integer, pipeline_slot_meta = jsonb_build_object('llama_slot_id', :'llama_id'::integer, 'claimed_at', :'claimed_at'), status='in_progress' WHERE external_id = :'ext_id' AND pipeline_slot IS NULL AND status IN ('backlog','triage','plan_staged') RETURNING pipeline_slot;" | factory_psql -v ext_id="$ext_id" -v slot="$slot" -v llama_id="$llama_slot_id" -v claimed_at="$claimed_at")
     if [[ -z "$out" ]]; then echo "claim failed (already slotted or wrong status): $ext_id" >&2; exit 1; fi
     echo "$out"
     ;;
@@ -43,8 +46,12 @@ case "$cmd" in
     ext_id="${1:?usage: release <ext_id>}"
     # Reset slot_count=1 so the next occupant starts single-slot (covers the
     # dispatcher path ticket.sh release-slot → slots.sh release; no dispatcher diff).
-    printf '%s' "UPDATE tickets.tickets SET pipeline_slot=NULL, slot_count=1 WHERE external_id = :'ext_id';" | factory_psql -v ext_id="$ext_id" >/dev/null
+    printf '%s' "UPDATE tickets.tickets SET pipeline_slot=NULL, slot_count=1, pipeline_slot_meta=NULL WHERE external_id = :'ext_id';" | factory_psql -v ext_id="$ext_id" >/dev/null
     echo "released $ext_id"
     ;;
-  *) echo '{"error":"usage: slots.sh count|next|claim|claim-gang|release [...]"}' >&2; exit 2 ;;
+  slot-id)
+    ext_id="${1:?usage: slot-id <ext_id>}"
+    printf "SELECT pipeline_slot_meta->>'llama_slot_id' FROM tickets.tickets WHERE external_id = :'ext_id' AND pipeline_slot_meta IS NOT NULL;" | factory_psql -v ext_id="$ext_id"
+    ;;
+  *) echo '{"error":"usage: slots.sh count|next|claim|claim-gang|release|slot-id [...]"}' >&2; exit 2 ;; 
 esac

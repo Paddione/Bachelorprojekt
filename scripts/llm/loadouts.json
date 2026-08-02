@@ -298,7 +298,7 @@
       "args": {
         "ctx": null,
         "ngl": null,
-        "parallel": 5,
+        "parallel": 3,
         "cacheTypeK": "q8_0",
         "cacheTypeV": "q8_0",
         "loadMode": "mmap",

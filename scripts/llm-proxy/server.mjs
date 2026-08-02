@@ -66,10 +66,18 @@ function release(name) {
   else if (s.inflight > 0) s.inflight--;
 }
 
-function enqueue(name, limit, fn) {
+function enqueue(name, limit, fn, slotId) {
   const queuedAt = Date.now();
-  const run = acquire(name, limit).then(fn).finally(() => release(name));
+  const key = slotId != null ? `${name}:slot${slotId}` : name;
+  const run = acquire(key, limit).then(fn).finally(() => release(key));
   return { run, queuedAt };
+}
+
+function extractSlotId(req) {
+  const raw = req.headers['x-slot-id'];
+  if (raw == null || raw === '') return null;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : null;
 }
 
 // exportiert fuer /admin/state (Task 4): aktueller In-Flight-Zaehler eines Backends
@@ -176,12 +184,14 @@ async function proxyV1(req, res, subpath) {
   const budgetedBody = applyFixups(backend.fixups, await applyContextBudget(backend, sanitized));
   if (substituted) console.log(`[route] ${body.model} → ${backend.name}:${servedModel}`);
 
-  const { run, queuedAt } = enqueue(backend.name, backend.maxInflight ?? 1, () => forwardToBackend(backend, servedModel, subpath, budgetedBody));
+  const slotId = extractSlotId(req);
+  const { run, queuedAt } = enqueue(backend.name, backend.maxInflight ?? 1, () => forwardToBackend(backend, servedModel, subpath, budgetedBody), slotId);
   const waitMs = Date.now() - queuedAt;
   if (waitMs > 250) console.log(`[queue] ${backend.name}: request waited ${waitMs}ms behind an in-flight request`);
   const upstream = await run;
 
   const passHeaders = { 'x-llm-proxy-backend': backend.name, 'x-llm-proxy-served-model': servedModel };
+  if (slotId != null) passHeaders['x-llm-proxy-slot'] = String(slotId);
   for (const h of ['content-type', 'cache-control']) {
     const v = upstream.headers.get(h); if (v) passHeaders[h] = v;
   }

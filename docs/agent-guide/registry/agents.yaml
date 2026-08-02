@@ -58,12 +58,27 @@ runtimes:
     mode: primary
     model: llamacpp-gemma26/gemma26-factory
     write_capable: false
-    note: "Tab-selectable primary agent, slot 3 of 3, ~99840 ctx (measured, not n_ctx_train) [T002545]"
+    note: "Tab-selectable primary agent, slot 3 of 3, ~97840 ctx (measured, not n_ctx_train) [T002545]"
+  gemma26-vision:
+    mode: primary
+    model: llamacpp-gemma26/gemma26-factory
+    write_capable: false
+    note: "Max context (97840 ctx), no subagent dispatch. Vision-ready (needs mmproj in loadout)."
   deepseek-helper:
     mode: subagent
-    model: opencode-go/deepseek-v4-flash
+    model: deepseek/deepseek-chat
     write_capable: true
-    note: "Escalation: 1M ctx via OpenCode Go subscription"
+    note: "Escalation: DeepSeek-V3 (128K ctx) via direct DeepSeek API"
+  deepseek-pro:
+    mode: subagent
+    model: deepseek/deepseek-reasoner
+    write_capable: true
+    note: "DeepSeek-R1 (128K ctx, max reasoning effort) for deep analysis and hard refactors"
+  deepseek-flash:
+    mode: subagent
+    model: deepseek/deepseek-chat
+    write_capable: true
+    note: "DeepSeek-V3 (200K ctx, max reasoning effort). Up to 3 parallel for independent subtasks."
   orchestrator:
     mode: primary
     model: opencode-go/deepseek-v4-flash

@@ -170,16 +170,15 @@ EOF"
     const o = JSON.parse(j);
     const prim = Object.entries(o.agent || {})
       .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'primary');
-    if (prim.length !== 1) { console.error('primary gemma agents: ' + prim.length); process.exit(1); }
-    const model = prim[0][1].model;
-    const [prov, mid] = model.split('/');
-    const ctx = o.provider[prov].models[mid].limit.context;
-    // Keine Liste gemessener Werte pflegen — sie driftet mit jeder
-    // --fit-/Slot-Aenderung (99840 bei 1 Slot, 88832 bei 3). Geprueft wird die
-    // Eigenschaft: plausibel und nicht der alte 12B-Wert 262144.
-    if (!Number.isInteger(ctx) || ctx === 262144 || ctx <= 50000 || ctx >= 200000) {
-      console.error('primary gemma ctx ' + ctx + ' implausible (expected a measured value, not n_ctx_train)');
-      process.exit(1);
+    if (prim.length < 1) { console.error('no primary gemma agents found'); process.exit(1); }
+    for (const [name, agent] of prim) {
+      const model = agent.model;
+      const [prov, mid] = model.split('/');
+      const ctx = o.provider[prov].models[mid].limit.context;
+      if (!Number.isInteger(ctx) || ctx === 262144 || ctx <= 50000 || ctx >= 200000) {
+        console.error(name + ' ctx ' + ctx + ' implausible (expected a measured value, not n_ctx_train)');
+        process.exit(1);
+      }
     }
     process.exit(0);
   "

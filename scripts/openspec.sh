@@ -222,7 +222,12 @@ cmd_archive() {
   if [[ "${TICKET_OFFLINE:-0}" != "1" && -f "$dir/.ticket" ]]; then
     local st
     st="$(bash "$TICKET_SH" get --id "$(cat "$dir/.ticket")" 2>/dev/null | grep -o '"status" *: *"[^"]*"' | head -1 | grep -o '"[^"]*"$' | tr -d '"' || true)"
-    [[ "$st" == "done" ]] || die "archive refused: ticket status is '${st:-unknown}', expected 'done'"
+    # [T002569] 'archived' ist ein SPAETERER Lifecycle-Zustand als 'done' (das
+    # Ticket wurde bereits abgeschlossen und danach ins Archiv verschoben), kein
+    # frueherer -- die Erweiterung ist keine Aufweichung des Fail-closed-Guards.
+    # Ein leerer oder unbekannter Status faellt weiterhin durch, da er keinem der
+    # beiden terminalen Werte entspricht.
+    [[ "$st" == "done" || "$st" == "archived" ]] || die "archive refused: ticket status is '${st:-unknown}', expected 'done' or 'archived'"
   fi
   local dest="$OPENSPEC_ROOT/changes/archive/$(date +%F)-$slug"
   # [T002428] VOR dem Delta-Merge pruefen, nicht danach: `mv "$dir" "$dest"` weiter unten

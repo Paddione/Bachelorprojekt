@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.238.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.237.0...website-v1.238.0) (2026-08-02)
+
+
+### Features
+
+* **ops:** bge-Stack von WSL-CPU nach Kubernetes-CPU migrieren [T002551] ([#3647](https://github.com/Paddione/Bachelorprojekt/issues/3647)) ([20e123b](https://github.com/Paddione/Bachelorprojekt/commit/20e123b7fc391ac05f04227a0ac66d791c0d5951))
+
 ## [1.237.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.236.0...website-v1.237.0) (2026-08-02)
 
 

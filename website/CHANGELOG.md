@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.236.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.235.2...website-v1.236.0) (2026-08-02)
+
+
+### Features
+
+* **website:** K10: Pipeline-Slot-Uebernahme und Abbau der Doppelflaechen [T002531] ([#3626](https://github.com/Paddione/Bachelorprojekt/issues/3626)) ([c3c228f](https://github.com/Paddione/Bachelorprojekt/commit/c3c228f8d4c2f4a7135b056adaec4aaf46cca27f))
+
 ## [1.235.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.235.1...website-v1.235.2) (2026-08-02)
 
 

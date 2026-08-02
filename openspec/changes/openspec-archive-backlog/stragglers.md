@@ -45,3 +45,59 @@ Format: Slug, Charge, betroffene SSOT-Spec, Fehlermeldung im Wortlaut.
   wurde von Charge 1 zurückgestellt und nicht archiviert; der Rest der Charge wurde regulär
   ausgeliefert. Reparatur (Delta ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des
   Plans.
+
+## e2e-bug-report-testdata-T002385
+
+- **Charge**: 2
+- **SSOT-Spec**: `openspec/specs/e2e-bug-report-testdata-T002385.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: e2e-bug-report-testdata-T002385.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 2 zurückgestellt und nicht
+  archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta ausformulieren)
+  folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## embed-skip-visibility
+
+- **Charge**: 2
+- **SSOT-Spec**: `openspec/specs/local-llm-proxy.md`
+- **Fehlermeldung**: `ERROR: local-llm-proxy.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub im Delta `openspec/changes/embed-skip-visibility/specs/local-llm-proxy.md`.
+  Der Change wurde von Charge 2 zurückgestellt und nicht archiviert; der Rest der Charge wurde
+  regulär ausgeliefert. Reparatur (Delta ausformulieren) folgt in einem eigenen PR gemäß Task 5.5
+  des Plans.
+
+## exclude-latest-images
+
+- **Charge**: 2
+- **SSOT-Spec**: `openspec/specs/exclude-latest-images.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: exclude-latest-images.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 2 zurückgestellt und nicht
+  archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta ausformulieren)
+  folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## factory-attempt-counter-T002389
+
+- **Charge**: 2
+- **SSOT-Spec**: `openspec/specs/factory-attempt-counter-T002389.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: factory-attempt-counter-T002389.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 2 zurückgestellt und nicht
+  archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta ausformulieren)
+  folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## factory-scout-backoff
+
+- **Charge**: 2
+- **SSOT-Spec**: `openspec/specs/factory-scout-backoff.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: factory-scout-backoff.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub. Der Change wurde von Charge 2 zurückgestellt und nicht
+  archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta ausformulieren)
+  folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## factory-slot-sandbox
+
+- **Charge**: 2
+- **SSOT-Spec**: `openspec/specs/software-factory.md`
+- **Fehlermeldung**: `ERROR: software-factory.md: MODIFIED target 'Pipeline-Slot → llama.cpp-Slot-Kopplung' not found in software-factory.md`
+- **Befund**: Das Delta-`MODIFIED`-Ziel existiert in der aktuellen SSOT `software-factory.md`
+  nicht (mehr). Der Change wurde von Charge 2 zurückgestellt und nicht archiviert; der Rest der
+  Charge wurde regulär ausgeliefert. Reparatur (Delta-Fix, nicht SSOT-Direktedit) folgt in einem
+  eigenen PR gemäß Task 5.5 des Plans.

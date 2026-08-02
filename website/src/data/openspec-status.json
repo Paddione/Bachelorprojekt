@@ -263,8 +263,8 @@
   ],
   "T001198": [
     {
-      "slug": "env-seal-empty-value-keys",
-      "status": "plan_staged"
+      "slug": "2026-08-02-env-seal-empty-value-keys",
+      "status": "archived"
     }
   ],
   "T001203": [
@@ -957,8 +957,8 @@
   ],
   "T001738": [
     {
-      "slug": "db-backup-filen-fix",
-      "status": "plan_staged"
+      "slug": "2026-08-02-db-backup-filen-fix",
+      "status": "archived"
     }
   ],
   "T001739": [
@@ -1027,8 +1027,8 @@
   ],
   "T001800": [
     {
-      "slug": "fix-arena-db-url-secrets",
-      "status": "plan_staged"
+      "slug": "2026-08-02-fix-arena-db-url-secrets",
+      "status": "archived"
     }
   ],
   "T001802": [
@@ -1285,8 +1285,8 @@
   ],
   "T002072": [
     {
-      "slug": "factory-session-reuse",
-      "status": "plan_staged"
+      "slug": "2026-08-02-factory-session-reuse",
+      "status": "archived"
     }
   ],
   "T002074": [
@@ -1333,14 +1333,14 @@
   ],
   "T002095": [
     {
-      "slug": "db-slow-query",
-      "status": "plan_staged"
+      "slug": "2026-08-02-db-slow-query",
+      "status": "archived"
     }
   ],
   "T002096": [
     {
-      "slug": "e2e-testdata-leak",
-      "status": "plan_staged"
+      "slug": "2026-08-02-e2e-testdata-leak",
+      "status": "archived"
     }
   ],
   "T002102": [
@@ -1375,14 +1375,14 @@
   ],
   "T002128": [
     {
-      "slug": "factory-flash-bonsai-gang",
-      "status": "plan_staged"
+      "slug": "2026-08-02-factory-flash-bonsai-gang",
+      "status": "archived"
     }
   ],
   "T002129": [
     {
-      "slug": "fix-factory-gang-drift",
-      "status": "plan_staged"
+      "slug": "2026-08-02-fix-factory-gang-drift",
+      "status": "archived"
     }
   ],
   "T002130": [
@@ -1537,8 +1537,8 @@
   ],
   "T002199": [
     {
-      "slug": "e2e-auth-setup-fail-closed",
-      "status": "plan_staged"
+      "slug": "2026-08-02-e2e-auth-setup-fail-closed",
+      "status": "archived"
     }
   ],
   "T002200": [
@@ -1579,8 +1579,8 @@
   ],
   "T002214": [
     {
-      "slug": "dev-tool-secrets-ssot",
-      "status": "plan_staged"
+      "slug": "2026-08-02-dev-tool-secrets-ssot",
+      "status": "archived"
     }
   ],
   "T002239": [
@@ -1669,8 +1669,8 @@
   ],
   "T002267": [
     {
-      "slug": "factory-reclaim-lock-respect",
-      "status": "plan_staged"
+      "slug": "2026-08-02-factory-reclaim-lock-respect",
+      "status": "archived"
     }
   ],
   "T002270": [
@@ -1783,8 +1783,8 @@
   ],
   "T002327": [
     {
-      "slug": "factory-resume-staged-work",
-      "status": "plan_staged"
+      "slug": "2026-08-02-factory-resume-staged-work",
+      "status": "archived"
     }
   ],
   "T002328": [
@@ -1909,8 +1909,8 @@
   ],
   "T002369": [
     {
-      "slug": "factory-escalation-ladder",
-      "status": "plan_staged"
+      "slug": "2026-08-02-factory-escalation-ladder",
+      "status": "archived"
     }
   ],
   "T002371": [
@@ -2047,8 +2047,8 @@
   ],
   "T002427": [
     {
-      "slug": "fa-sf-dedupe-T002427",
-      "status": "plan_staged"
+      "slug": "2026-08-02-fa-sf-dedupe-T002427",
+      "status": "archived"
     }
   ],
   "T002428": [

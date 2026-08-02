@@ -497,9 +497,10 @@ rejected against the allowed list `['klein', 'mittel', 'gross']`.
 ### Requirement: Inert pg_notify Trigger feuert ausschließlich bei Feature-Inserts
 
 The system SHALL define a PostgreSQL trigger function `tickets.notify_feature_inserted` that fires
-AFTER INSERT on `tickets.tickets` only when `NEW.type = 'feature'`, broadcasts on the channel
-`factory_feature_inserted`, and SHALL be explicitly documented as NOT-CONSUMED so no phantom
-consumer is accidentally wired.
+AFTER INSERT on `tickets.tickets` only when `NEW.type IN ('feature','feat')`, broadcasts on the
+channel `factory_feature_inserted`, and SHALL be explicitly documented as NOT-CONSUMED so no
+phantom consumer is accidentally wired. The trigger condition SHALL accept both the legacy and
+the new vocabulary, so the type migration does not silence it.
 
 #### Scenario: Trigger-Funktion und Kanal sind im Schema vorhanden
 
@@ -513,7 +514,11 @@ consumer is accidentally wired.
 - **WHEN** der Code auf das Load-Bearing-Kommentar geprüft wird
 - **THEN** enthält die Datei einen Kommentar, der `NOT-CONSUMED` oder `not consumed in Phase 3` beschreibt, damit kein Phantom-Consumer verdrahtet wird
 
----
+#### Scenario: Trigger überlebt die Vokabular-Migration
+
+- **GIVEN** die Typ-Migration hat `feature` zu `feat` umgeschrieben
+- **WHEN** ein Ticket mit `type='feat'` eingefügt wird
+- **THEN** feuert der Trigger und sendet auf `factory_feature_inserted`
 
 ### Requirement: Feature-Flag-Abfrage schlägt bei DB-Ausfall fail-closed auf false zurück
 
@@ -946,6 +951,160 @@ their status has advanced beyond `triage`, and tickets with a non-empty `require
 - **WHEN** the lock-suspicion query is inspected
 - **THEN** it tests for key absence (`NOT ... ? 'lastenheft_locked'`) rather than for a falsy
   value, so a deliberate unlock is not reported as damage
+
+### Requirement: Partielles Triage-Patch überschreibt den Ticket-Status nicht
+
+Das `triage_ticket`-MCP-Tool (`scripts/ticket-mcp/go/internal/tools/triage.go`) SHALL den
+`--status`-Parameter nur dann an die CLI weiterreichen, wenn der Aufrufer ihn explizit gesetzt
+hat. Ein leerer oder fehlender `status` SHALL NICHT auf `"triage"` defaulten — dasselbe
+Verhalten, das `priority`, `severity` und `type` bereits zeigen. Der zugrunde liegende
+`triage.sh` behandelt ein leeres `--status` über `COALESCE` bereits korrekt; der Go-Wrapper
+darf diese Semantik nicht unterlaufen.
+
+#### Scenario: Nur attention_mode wird gepatcht, der Status bleibt erhalten
+
+- **GIVEN** ein Ticket steht auf `status='plan_staged'`
+- **WHEN** `triage_ticket` mit gesetztem `attention_mode`, aber ohne `status` aufgerufen wird
+- **THEN** bleibt der Status `plan_staged`, und es wird kein `--status`-Argument an die CLI
+  übergeben
+
+#### Scenario: Ein explizit übergebener Status wird weiterhin angewendet
+
+- **GIVEN** ein Ticket steht auf `status='triage'`
+- **WHEN** `triage_ticket` mit `status='backlog'` aufgerufen wird
+- **THEN** wird `--status backlog` an die CLI übergeben und der Status entsprechend gesetzt
+
+#### Scenario: Kein Debug-Output auf dem MCP-Kanal
+
+- **GIVEN** `triage_ticket` wird über den MCP-Server aufgerufen
+- **WHEN** das Tool seine Argumente zusammenstellt
+- **THEN** schreibt es keine Debug-Zeilen in die Ausgabe, die das MCP-Protokoll oder das
+  Tool-Ergebnis verunreinigen könnten
+
+### Requirement: CLI Brand Resolution Ist Nie Freitext-Abgeleitet
+
+`scripts/ticket.sh` SHALL resolve the target brand (and therefore the target
+namespace/database) exclusively from an explicit `--brand` flag, the `BRAND`
+environment variable, or the `TICKET_NS` environment variable, in that priority
+order. It SHALL NOT scan free-text argument values (such as `--title` or
+`--description` contents) for brand name substrings. If none of the three
+explicit signals is present, it SHALL fall back to the documented default brand
+(`mentolder`) rather than inferring one from argument content.
+
+#### Scenario: Freitext im Titel beeinflusst die Brand-Auflösung nicht
+
+- **GIVEN** kein `--brand`-Flag, kein `BRAND`, kein `TICKET_NS` ist gesetzt
+- **WHEN** `ticket.sh create --title "korczewski-home E2E test" ...` aufgerufen wird
+- **THEN** wird die Ziel-Namespace/DB als `workspace` (mentolder-Default) aufgelöst, nicht als `workspace-korczewski`
+
+#### Scenario: Explizites --brand gewinnt gegen widersprüchlichen Freitext
+
+- **GIVEN** `--brand korczewski` ist explizit gesetzt
+- **WHEN** `ticket.sh create --brand korczewski --title "mentolder rollout notes" ...` aufgerufen wird
+- **THEN** wird die Ziel-Namespace/DB als `workspace-korczewski` aufgelöst
+
+#### Scenario: Ungültiger Brand-Wert wird abgelehnt
+
+- **GIVEN** `--brand acme` (weder mentolder noch korczewski)
+- **WHEN** `ticket.sh` mit diesem Flag aufgerufen wird
+- **THEN** bricht der Aufruf mit einem Fehler (`exit 2`) ab, ohne eine DB-Verbindung herzustellen
+
+### Requirement: Brand-Spalte Und Ziel-Namespace Sind Dieselbe Quelle
+
+`scripts/vda/ticket/create.sh` SHALL derive the `brand` column value for a new
+ticket row from the same resolved brand value that `scripts/ticket.sh` used to
+select the target namespace/database, not from an independent local default. An
+explicit `--brand` override at the `create` subcommand level SHALL be validated
+against the already-resolved top-level brand and SHALL fail loudly on mismatch
+rather than silently taking precedence.
+
+#### Scenario: Spalte und Namespace stimmen überein
+
+- **GIVEN** `ticket.sh` hat die Ziel-Namespace bereits als `workspace-korczewski` aufgelöst
+- **WHEN** `create.sh` ohne eigenes `--brand`-Override eine neue Zeile schreibt
+- **THEN** ist die `brand`-Spalte der neuen Zeile `korczewski`, konsistent mit der Ziel-DB
+
+#### Scenario: Divergierendes Subcommand-Override wird abgelehnt
+
+- **GIVEN** der top-level aufgelöste Brand ist `korczewski`
+- **WHEN** `create.sh --brand mentolder` (abweichender Wert) aufgerufen wird
+- **THEN** bricht der Aufruf mit einem Fehler ab, statt die Zeile mit `brand=mentolder` in der korczewski-DB zu schreiben
+
+### Requirement: Ticket-Typ nutzt das Conventional-Commit-Vokabular
+
+The system SHALL constrain `tickets.tickets.type` to the Conventional-Commit vocabulary
+`fix`, `feat`, `chore`, `project`, `docs`, `refactor`, `perf`, `test`, `ci` and `build`,
+enforced by a **named** constraint `tickets_type_check`. During the transition the constraint
+SHALL additionally accept the legacy values `bug`, `feature` and `task`, so that a database
+migrated ahead of its callers — or callers deployed ahead of their database — never rejects a
+write. The legacy values are removed in a later change.
+
+The constraint SHALL NOT be declared inline on `ADD COLUMN IF NOT EXISTS`, because that form is
+a no-op against an existing column and would leave the live constraint unchanged.
+
+#### Scenario: Named constraint replaces the inline declaration
+
+- **GIVEN** `tickets.tickets` already exists with the legacy inline CHECK
+- **WHEN** `applyLegacyMigrations()` runs
+- **THEN** the source drops any constraint named `tickets_type_check` and adds it back by name,
+  and no `CHECK (type IN …)` clause remains attached to the `ADD COLUMN IF NOT EXISTS type` statement
+
+#### Scenario: New vocabulary is accepted
+
+- **GIVEN** the migration has run
+- **WHEN** a ticket is inserted with `type='fix'`, `type='chore'` or `type='refactor'`
+- **THEN** the insert succeeds
+
+#### Scenario: Legacy vocabulary is still accepted during the transition
+
+- **GIVEN** the migration has run
+- **WHEN** a ticket is inserted with `type='bug'`
+- **THEN** the insert succeeds, so a caller that has not yet been updated cannot fail
+
+#### Scenario: Unknown values remain rejected
+
+- **GIVEN** the migration has run
+- **WHEN** a ticket is inserted with `type='wontfix'`
+- **THEN** the insert is rejected by `tickets_type_check`
+
+### Requirement: Bestandsdaten werden idempotent auf das neue Vokabular migriert
+
+The system SHALL rewrite existing rows from the legacy vocabulary to the new one — `bug` to
+`fix`, `feature` to `feat`, `task` to `chore` — as part of `applyLegacyMigrations()`, so the
+migration reaches **both** brand databases through the ordinary pod-boot path rather than a
+one-shot script. `project` SHALL remain unchanged. Re-running the migration SHALL affect zero
+rows.
+
+#### Scenario: Legacy rows are rewritten
+
+- **GIVEN** rows with `type` in (`bug`, `feature`, `task`)
+- **WHEN** `applyLegacyMigrations()` runs
+- **THEN** they hold `fix`, `feat` and `chore` respectively, and rows with `type='project'` are untouched
+
+#### Scenario: Second run is a no-op
+
+- **GIVEN** the migration has already run once
+- **WHEN** it runs again
+- **THEN** it updates zero rows and raises no error
+
+### Requirement: Views lesen beide Vokabulare
+
+The system SHALL define `tickets.v_active_features` and `tickets.v_factory_metrics` so they
+match `type IN ('feature','feat')` rather than `type = 'feature'`. Because both views accept
+either vocabulary, they return identical row counts before and after the data migration, and
+the migration therefore does not need to be atomic with respect to them.
+
+#### Scenario: Row count is stable across the migration
+
+- **GIVEN** a set of feature tickets eligible for `v_active_features`
+- **WHEN** the data migration rewrites `feature` to `feat`
+- **THEN** `v_active_features` returns the same rows before and after
+
+#### Scenario: Metrics view counts both vocabularies
+
+- **GIVEN** rows with `type='feature'` and rows with `type='feat'` in the same 30-day window
+- **WHEN** `v_factory_metrics` is queried
+- **THEN** `total_features` counts both
 
 ## Testszenarien
 
@@ -1603,3 +1762,9 @@ than the baselined 1096 (frozen at commit `8b581ebe` per
 <!-- merged from change delta ticket-system.md (6d18833cd337) -->
 
 <!-- merged from change delta ticket-system.md (b85ae98d958a) -->
+
+<!-- merged from change delta ticket-system.md (f9a170a688f3) -->
+
+<!-- merged from change delta ticket-system.md (7038d74413cf) -->
+
+<!-- merged from change delta ticket-system.md (3afe1404e6eb) -->

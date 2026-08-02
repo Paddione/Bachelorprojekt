@@ -15,7 +15,7 @@ show_help() {
   vda_header "vda.sh ticket triage"
   echo "Usage: vda.sh ticket triage --id <ext-id> [flags]"
   echo ""
-  echo "Flags: --priority, --severity, --status, --component, --suggest, --apply, --no-comment, -h|--help"
+  echo "Flags: --priority, --severity, --status, --component, --type, --attention-mode, --suggest, --apply, --no-comment, -h|--help"
 }
 
 main() {
@@ -55,8 +55,10 @@ main() {
     # In non-interactive mode, only require fields that are explicitly being set.
     # If a field is not provided as a flag, skip the interactive prompt but don't error—
     # the database UPDATE will only set non-empty values.
-    [[ -n "$priority" || -n "$severity" || -n "$status" || -n "$type" || -n "$attention_mode" ]] || \
-      { vda_error "At least one field (--priority, --severity, --status, --type, --attention-mode) must be provided in non-interactive mode"; exit 2; }
+    # [T002498-M9] `component` zählt mit: es IST ein änderbares Feld des Tools,
+    # sein Fehlen in dieser Liste machte reine Komponenten-Nachtragungen unmöglich.
+    [[ -n "$priority" || -n "$severity" || -n "$status" || -n "$component" || -n "$type" || -n "$attention_mode" ]] || \
+      { vda_error "At least one field (--priority, --severity, --status, --component, --type, --attention-mode) must be provided in non-interactive mode"; exit 2; }
   fi
 
   local pod; pod=$(_pgpod)
@@ -67,10 +69,10 @@ SQL
 )
   [[ -z "$ticket" || "$ticket" == "null" ]] && { vda_error "Ticket $id not found"; exit 1; }
 
-  vda_header "Ticket $id"
-  for field in title type status priority severity component; do
-    vda_section "${field^}" "$(jq -r ".$field // \"—\"" <<<"$ticket" 2>/dev/null || echo "—")"
-  done; echo ""
+  # [T002498-M8] Der frühere Header-Block zeigte den Zustand VOR der Änderung —
+  # mit "—" für noch nicht gesetzte Felder. Zusammen mit der unvollständigen
+  # Bestätigungszeile unten suggerierte er einen Teilfehlschlag. Der VOR-Block
+  # wird nicht mehr ausgegeben; die Bestätigung am Ende listet den NACH-Zustand.
 
   if [[ "$suggest" == "true" ]]; then
     local r; r=$(curl -fsS -X POST "${TRIAGE_API_URL:-http://localhost:4321/api/admin/tickets}/${id}/triage" 2>/dev/null || true)
@@ -121,7 +123,21 @@ INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility) 
 SQL
   fi
 
-  vda_success "Ticket $id triaged: ${priority}/${severity} → ${status}"
+  # [T002498-M8] Die Bestätigung listet ALLE im Aufruf übergebenen (nicht-leeren)
+  # Felder — vorher zeigte das Template nur "<priority>/<severity> → <status>",
+  # ein Aufruf mit severity+component+attention_mode ergab "✓ /critical →" und
+  # suggerierte einen Teilfehlschlag, obwohl alle Felder korrekt geschrieben
+  # wurden. Der obenstehende VOR-Zustand-Block verstärkte den Eindruck (zeigte
+  # "—" für noch nicht gesetzte Felder) und wurde dafür entfernt.
+  local changed=() kv
+  for kv in "priority=$priority" "severity=$severity" "status=$status" "component=$component" "type=$type" "attention_mode=$attention_mode"; do
+    [[ -n "${kv#*=}" ]] && changed+=("$kv")
+  done
+  if [[ ${#changed[@]} -gt 0 ]]; then
+    vda_success "Ticket $id triaged: ${changed[*]}"
+  else
+    vda_success "Ticket $id triaged (keine Felder gesetzt)"
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then main "$@"; fi

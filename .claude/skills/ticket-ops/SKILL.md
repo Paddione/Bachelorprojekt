@@ -126,6 +126,14 @@ Routing (plan vs. execute), das Masterplan-Format und der Wave-1-Dispatch:
 > gehalten von ...`). Der Dispatch fährt nur mit den freien Tickets fort. Dadurch wird
 > verhindert, dass bereits belegte Tickets erst nach dem Aufbau des Worktrees (kostspielig)
 > als blockiert erkannt werden.
+>
+> **Beide Lock-Scopes prüfen [T002498-M6]:** `check ticket` allein greift nicht — die
+> dev-flow-*-Skills locken branch-scoped, das Feld `held` bleibt dann für das Ticket leer
+> (T002497). Zusätzlich `check branch <vorgesehener-branch>` sowie
+> `agent-lock.sh list | grep <ext-id>` (Locks jeden Scopes) und ein Porcelain-Check auf
+> Worktrees mit der ID im Namen ausführen — Details in
+> [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md)
+> §Step 3.3.
 
 **Merge = Abschluss:** Jedes Ticket schließt über seinen eigenen grünen Auto-Merge; der
 Masterplan verfolgt den Dispatch, nicht den Prod-Live-Stand.

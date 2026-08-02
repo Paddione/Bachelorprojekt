@@ -53,7 +53,14 @@ if [[ -f "$EXISTING_INTEL" ]]; then
   RISKS_EXTRA="$(jq -c '.risks // []' "$EXISTING_INTEL")"
 fi
 
-GIT_SHA="$(cd "$REPO_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")"
+# [T002498-M2] Bezugspunkt ist origin/main, NICHT HEAD. Die intel.json behauptet
+# mit "generated_from: main@<sha>" einen main-Stand zu messen. Lief der Generator
+# im Hauptcheckout auf einem Feature-Branch, wurde dort HEAD als "main" verbucht
+# und das Artefakt eines fremden Changes trug einen Feature-Commit samt falscher
+# LOC-Zahlen (beobachtet bei T002493, Feature-Commit 364742268). origin/main ist
+# der einzige main, den das Feld ehrlich bezeugen darf. Fallback auf HEAD nur,
+# wenn kein origin/main existiert (z.B. detached, erster Push).
+GIT_SHA="$(cd "$REPO_ROOT" && { git rev-parse --short origin/main 2>/dev/null || git rev-parse --short HEAD 2>/dev/null || echo "unknown"; })"
 GENERATED_FROM="${GIT_SHA:+main@$GIT_SHA}"
 [[ "$GIT_SHA" == "unknown" ]] && GENERATED_FROM="unknown"
 

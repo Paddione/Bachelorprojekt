@@ -238,6 +238,13 @@ Edges come from two sources — merge both:
 > `agent-lock.sh check ticket <id>` ausgeführt. Bereits belegte Tickets (Status `held`) werden
 > vor dem Worktree-Setup gemeldet und zurückgestellt — teure Worktree-Erstellung für blockierte
 > Tickets entfällt. [T002424]
+>
+> **Lock-Scope-Vollständigkeit [T002498-M6]:** `check ticket <id>` allein greift strukturell
+> nicht: die dev-flow-*-Skills locken BRANCH-scoped (`agent-lock.sh claim branch <branch>`),
+> der ticket-Scope bleibt dabei leer (beobachtet bei T002497 — `check ticket` → `free`, der
+> zugehörige Branch-Lock `fix/vitest-main-red-T002497` → `held`). Ein dev-flow-verarbeitetes
+> Ticket meldet sich gegenüber ticket-ops also IMMER als frei. Der Pre-Check prüft deshalb
+> BEIDE Scopes und zusätzlich die Lock-Bestände:
 
 0. **Pre-Check:** For each wave-1 ticket, run `bash scripts/agent-lock.sh check ticket <ext-id>`.
    Collect all tickets that return `held` and report them:
@@ -246,6 +253,19 @@ Edges come from two sources — merge both:
    LOCK-KONFLIKT: T002YYY bereits gehalten von gemini (sid …, worktree …, …)
    ```
    Remove held tickets from the wave set. Proceed only with free tickets.
+
+   **[T002498-M6] Scope-übergreifende Prüfung** — `check ticket` ergänzen um:
+   ```bash
+   # 1) Branch-Scope des geplanten Arbeitstickets (dev-flow-*-Skills locken hier).
+   bash scripts/agent-lock.sh check branch "fix/<slug>-<ext-id>"   # "held" → LOCK-KONFLIKT
+   # 2) Jeden Lock-Bestand nach der Ticket-ID durchsuchen — Locks JEDES Scopes,
+   #    deren Branch- oder Worktree-Feld die ID trägt.
+   bash scripts/agent-lock.sh list | grep -E "<ext-id>"
+   # 3) Dirty Worktrees mit der ID im Verzeichnisnamen (der einzige verlässliche
+   #    Beleg für ungestaged Arbeit einer laufenden Session).
+   for wt in .worktrees/*"<ext-id>"*; do [ -d "$wt" ] && { git -C "$wt" status --porcelain | grep -q . \
+     && echo "DIRTY-WORKTREE: $wt"; }; done
+   ```
 
 ### Step 3.4: Route each ticket (plan vs. execute with subagent orchestration)
 

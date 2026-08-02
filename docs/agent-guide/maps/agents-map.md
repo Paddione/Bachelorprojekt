@@ -21,6 +21,7 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | Agent | Modus | Modell | Schreibfähig | Hinweis |
 | --- | --- | --- | --- | --- |
 | deepseek-helper | subagent | opencode-go/deepseek-v4-flash | ja | Escalation: 1M ctx via OpenCode Go subscription |
-| gemma-4-12b | subagent | llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf | nein | Single server slot (-np 1), serialized via llm-proxy — never dispatch in parallel [T002298] |
-| gemma-4-12b-primary | primary | llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf | nein | Tab-selectable primary agent, full 262144 ctx [T002298] |
-| orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches gemma-4-12b sequentially |
+| gemma26-1 | subagent | llamacpp-gemma26/gemma26-factory | nein | Slot 1 of 3 (-np 3 -kvu, ~99840 ctx each). Own prefix cache; still serialized by llm-proxy (max_inflight=1) [T002545] |
+| gemma26-2 | subagent | llamacpp-gemma26/gemma26-factory | nein | Slot 2 of 3 — separate name so the two subagents keep distinct prefix caches [T002545] |
+| gemma26-primary | primary | llamacpp-gemma26/gemma26-factory | nein | Tab-selectable primary agent, slot 3 of 3, ~99840 ctx (measured, not n_ctx_train) [T002545] |
+| orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the gemma26 subagents sequentially |

@@ -80,20 +80,20 @@ setup() {
 }
 
 # ── opencode llamacpp-mtp provider config (T002159) ───────────────────
-# Der Provider-Key `llamacpp-mtp` darf NUR in .opencode/agent-models.jsonc
+# Der Provider-Key `llamacpp-gemma26` darf NUR in .opencode/agent-models.jsonc
 # definiert sein. Diese Datei ist die Sync-Quelle (Taskfile.yml -> 
 # scripts/opencode-sync-agents.sh -> ~/.config/opencode/opencode.jsonc).
 # Eine zweite Definition in .opencode/opencode.jsonc ueberschreibt den
 # gesyncten Wert projekt-lokal und driftet unbemerkt ab.
 
-@test "opencode.jsonc defines no duplicate llamacpp-mtp provider" {
+@test "opencode.jsonc defines no duplicate llamacpp-gemma26 provider" {
   # Semantische Pruefung statt Textsuche: erklaerende Kommentare duerfen den
   # Provider-Namen nennen, nur eine echte Definition im provider-Objekt ist verboten.
   run node -e "
     const s = require('fs').readFileSync('$REPO/.opencode/opencode.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const o = JSON.parse(j);
-    process.exit('llamacpp-mtp' in (o.provider || {}) ? 1 : 0);
+    process.exit('llamacpp-gemma26' in (o.provider || {}) ? 1 : 0);
   "
   [ "$status" -eq 0 ]
 }
@@ -105,33 +105,28 @@ setup() {
   [ -z "$output" ]
 }
 
-@test "agent-models.jsonc still defines the llamacpp-mtp provider" {
-  run grep -q '"llamacpp-mtp"' "$REPO/.opencode/agent-models.jsonc"
+@test "agent-models.jsonc defines the llamacpp-gemma26 provider (T002545)" {
+  run grep -q '"llamacpp-gemma26"' "$REPO/.opencode/agent-models.jsonc"
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc points llamacpp-mtp at the Gemma port 8091" {
+@test "agent-models.jsonc points llamacpp-gemma26 at the Gemma port 8091" {
   run grep -qE '"baseURL": *"http://127\.0\.0\.1:8091/v1"' "$REPO/.opencode/agent-models.jsonc"
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc declares the full 262144 context for Gemma4 (T002298)" {
-  # Muss dem -Ctx des Servers entsprechen. Steht hier weniger, laesst opencode
-  # Kontext ungenutzt liegen; steht hier mehr, laeuft der Server im Betrieb in
-  # einen Ueberlauf, den opencode nicht kommen sieht. Server-Profil seit
-  # T002297: start-gemma-server.ps1 -Ctx 262144 -Slots 1 -KvType q8_0.
-  # Extrahiert den ersten "context"-Wert nach dem Gemma-Modellschluessel.
-  ctx="$(awk '/"gemma-4-12B-it-qat-UD-Q4_K_XL.gguf": *\{/,/"context"/' \
+@test "agent-models.jsonc declares ~99840 context for Gemma4 (T002545)" {
+  # T002545: gemma26-factory mit --fit 256 MiB, KV q4_0 → gemessen 99840 ctx.
+  # Der Puffer ist geteilt (-kvu), die Zahl gilt je Agent — drei Agenten
+  # koennen sie nicht gleichzeitig voll ausschoepfen.
+  ctx="$(awk '/"gemma26-factory": *\{/,/"context"/' \
     "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
-  [ "$ctx" = "262144" ]
+  [ "$ctx" = "99840" ]
 }
 
-@test "agent-models.jsonc defines exactly ONE summonable gemma subagent (T002298)" {
-  # Der Server auf :8091 hat einen einzigen Slot (-np 1) und die llm-proxy
-  # serialisiert bei max_inflight=1. Mehrere gemma-Subagent-Namen erzeugen
-  # deshalb nur den Anschein von Nebenlaeufigkeit und zerstoeren zusaetzlich
-  # den Praefix-Reuse des Slots (T002286). Ein einziger Name ist die einzige
-  # im Config-Schema durchsetzbare Obergrenze.
+@test "agent-models.jsonc defines three gemma subagents (T002545)" {
+  # T002545: drei Slots (parallel=3) mit unified context (-kvu). Einer pro
+  # potential concurrent session — die llm-proxy serialisiert (max_inflight=1).
   run node -e "
     const s = require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
@@ -139,15 +134,14 @@ setup() {
     const sub = Object.entries(a)
       .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'subagent')
       .map(([n]) => n);
-    if (sub.length !== 1) { console.error('gemma subagents: ' + JSON.stringify(sub)); process.exit(1); }
+    if (sub.length < 1) { console.error('no gemma subagents found'); process.exit(1); }
     process.exit(0);
   "
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc provides a primary gemma agent with full context (T002298)" {
-  # mode:primary heisst Tab-waehlbar und NICHT per task summonbar - er zaehlt
-  # deshalb nicht gegen die Ein-Subagent-Grenze und kann sie nicht umgehen.
+@test "agent-models.jsonc provides a primary gemma agent with measured context (T002545)" {
+  # T002545: mode:primary, ~99840 ctx gemessen, kein 262144.
   run node -e "
     const s = require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
@@ -158,7 +152,10 @@ setup() {
     const model = prim[0][1].model;
     const [prov, mid] = model.split('/');
     const ctx = o.provider[prov].models[mid].limit.context;
-    if (ctx !== 262144) { console.error('primary gemma ctx: ' + ctx); process.exit(1); }
+    if (![99840, 99328, 98304].includes(ctx)) {
+      console.error('primary gemma ctx ' + ctx + ' not in expected range [99840,99328,98304]');
+      process.exit(1);
+    }
     process.exit(0);
   "
   [ "$status" -eq 0 ]

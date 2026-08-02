@@ -10,9 +10,10 @@ opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents b
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | DeepSeek V4 Flash (OpenCode Go), `mode: primary`, `write_capable: true` | Primary orchestrator — dispatches `gemma-4-12b` sequentially |
-| `gemma-4-12b` | Gemma4 12B QAT (UD-Q4_K_XL, 262144 ctx, port 8091, server `-np 1` ⇒ one slot, serialized via llm-proxy) | Local bulk work. `write_capable: false` — **exactly one** such subagent exists (T002298); dispatch sequentially |
-| `gemma-4-12b-primary` | same model, `mode: primary` (Tab-selectable, not summonable via `task`) | Fully local work without the DeepSeek orchestrator in front; full 262144 ctx. `write_capable: false` |
+| `orchestrator` | DeepSeek V4 Flash (OpenCode Go), `mode: primary`, `write_capable: true` | Primary orchestrator — dispatches `gemma26-1`/`gemma26-2` sequentially |
+| `gemma26-1` | Gemma4 26B A4B QAT (UD-Q4_K_XL, ~99840 ctx, port 8091, 3 Slots via -kvu) | Local bulk work (slot 1 of 3). `write_capable: false` |
+| `gemma26-2` | same model, same server, slot 2 of 3 | Same as gemma26-1 — dispatch sequentially |
+| `gemma26-primary` | same model, `mode: primary` (Tab-selectable, not summonable via `task`) | Slot 3 of 3, ~99840 ctx shared pool via -kvu. `write_capable: false` |
 | `deepseek-helper` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `write_capable: true` | Escalation: local agent stuck or context exhausted |
 | `explore` | built-in | Read-only codebase exploration |
 | `general` | built-in | Read-only general research |

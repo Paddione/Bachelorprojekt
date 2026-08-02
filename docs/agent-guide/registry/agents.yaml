@@ -44,16 +44,21 @@ roles:
 #
 # write_capable: true if the agent permission block has write: "allow".
 runtimes:
-  gemma-4-12b:
+  gemma26-1:
     mode: subagent
-    model: llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
+    model: llamacpp-gemma26/gemma26-factory
     write_capable: false
-    note: "Single server slot (-np 1), serialized via llm-proxy — never dispatch in parallel [T002298]"
-  gemma-4-12b-primary:
+    note: "Slot 1 of 3 (-np 3 -kvu, ~99840 ctx each). Own prefix cache; still serialized by llm-proxy (max_inflight=1) [T002545]"
+  gemma26-2:
+    mode: subagent
+    model: llamacpp-gemma26/gemma26-factory
+    write_capable: false
+    note: "Slot 2 of 3 — separate name so the two subagents keep distinct prefix caches [T002545]"
+  gemma26-primary:
     mode: primary
-    model: llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf
+    model: llamacpp-gemma26/gemma26-factory
     write_capable: false
-    note: "Tab-selectable primary agent, full 262144 ctx [T002298]"
+    note: "Tab-selectable primary agent, slot 3 of 3, ~99840 ctx (measured, not n_ctx_train) [T002545]"
   deepseek-helper:
     mode: subagent
     model: opencode-go/deepseek-v4-flash
@@ -63,4 +68,4 @@ runtimes:
     mode: primary
     model: opencode-go/deepseek-v4-flash
     write_capable: true
-    note: "Primary orchestrator, dispatches gemma-4-12b sequentially"
+    note: "Primary orchestrator, dispatches the gemma26 subagents sequentially"

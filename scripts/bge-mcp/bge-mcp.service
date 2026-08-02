@@ -20,10 +20,17 @@ WorkingDirectory=/home/patrick/Bachelorprojekt
 # (T002488). Deshalb holt die Unit sich die Services selbst per kubectl
 # port-forward auf 127.0.0.1 — dasselbe Muster wie mcp-gateway.service.
 #   8081 -> svc/llm-gateway-embed  (ClusterIP :8081)
-#   8082 -> svc/llm-gateway-rerank (ClusterIP :8081)
-# KillMode=control-group (Default) raeumt den Hintergrund-port-forward bei
-# Restart mit auf. Der Shim startet erst, wenn 8081 tatsaechlich zuhoert.
-ExecStart=/bin/bash -c 'kubectl --context fleet port-forward -n workspace svc/llm-gateway-embed 8081:8081 svc/llm-gateway-rerank 8082:8081 & i=0; until { exec 9<>/dev/tcp/127.0.0.1/8081; } 2>/dev/null; do i=$((i+1)); [ $i -ge 60 ] && break; sleep 1; done; exec 9>&- 9<&-; exec /usr/bin/node /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs'
+#   8093 -> svc/llm-gateway-rerank (ClusterIP :8081) - NICHT 8082: von einem Windows-svchost belegt (mirrored networking, in WSL unsichtbar - 2026-08-02 per netstat.exe entdeckt)
+# ZWEI getrennte kubectl-Prozesse noetig: `kubectl port-forward` erlaubt genau
+# EINE Resource pro Aufruf, kein zweites `svc/...` mit eigenen Ports im selben
+# Kommando (das wurde als benannter Port des ERSTEN Service geparst und brach
+# mit "does not have a named port 'svc/llm-gateway-rerank'" ab - 2026-08-02
+# entdeckt, der Port-Forward lief seitdem die Unit existiert nie wirklich; nur
+# die server.env-Ueberschreibung auf die (mittlerweile dekommissionierten)
+# Host-Ports 8095/8096 hat das verdeckt).
+# KillMode=control-group (Default) raeumt beide Hintergrund-port-forwards bei
+# Restart mit auf. Der Shim startet erst, wenn BEIDE Ports tatsaechlich zuhoeren.
+ExecStart=/bin/bash -c 'kubectl --context fleet port-forward -n workspace svc/llm-gateway-embed 8081:8081 & kubectl --context fleet port-forward -n workspace svc/llm-gateway-rerank 8093:8081 & i=0; until (exec 3<>/dev/tcp/127.0.0.1/8081) 2>/dev/null; do i=$((i+1)); [ $i -ge 60 ] && break; sleep 1; done; j=0; until (exec 3<>/dev/tcp/127.0.0.1/8093) 2>/dev/null; do j=$((j+1)); [ $j -ge 60 ] && break; sleep 1; done; exec /usr/bin/node /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs'
 Restart=always
 RestartSec=5
 
@@ -34,7 +41,7 @@ RestartSec=5
 # diesen Prozess falsch: er laeuft auf dem WSL-Host, wo der Name nicht
 # aufloesbar ist. Ziel sind deshalb die lokalen port-forward-Adressen oben.
 Environment=LLM_EMBED_URL=http://127.0.0.1:8081
-Environment=LLM_RERANKER_URL=http://127.0.0.1:8082
+Environment=LLM_RERANKER_URL=http://127.0.0.1:8093
 
 # NACH den Environment=-Zeilen: eine gleichnamige Variable in der Datei
 # ueberschreibt den Default oben. Hier liegt auch BGE_MCP_TOKEN, ohne das der

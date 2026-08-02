@@ -206,7 +206,7 @@ Anschließend `task test:inventory` ausführen und
 `website/src/data/test-inventory.json` mitcommitten — CI vergleicht die Datei
 gegen die Neugenerierung und schlägt sonst fehl.
 
-## Task 9 — Abschließende Verifikation
+## Task 9 — Abschließende Verifikation - [x]
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/toolset-registry/

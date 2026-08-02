@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.235.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.235.0...website-v1.235.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* plan intel dedup T002515 ([#3619](https://github.com/Paddione/Bachelorprojekt/issues/3619)) ([abe7d31](https://github.com/Paddione/Bachelorprojekt/commit/abe7d31836522edebef99dd0cabf3488e9dc72b4))
+
 ## [1.235.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.234.0...website-v1.235.0) (2026-08-02)
 
 

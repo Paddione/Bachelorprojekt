@@ -110,18 +110,40 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc points llamacpp-gemma26 at the Gemma port 8091" {
-  run grep -qE '"baseURL": *"http://127\.0\.0\.1:8091/v1"' "$REPO/.opencode/agent-models.jsonc"
+@test "agent-models.jsonc points llamacpp-gemma26 at the llm-proxy, not at :8091 (T002558)" {
+  # T002558: opencode geht durch den Proxy. Damit gilt max_inflight=1 auch fuer
+  # die Agenten (sie serialisieren statt gleichzeitig auf den Server zu gehen),
+  # und die Fallback-Kette gemma -> deepseek -> opencode-zen greift auch lokal.
+  # Vorher stand hier :8091 — direkt am Proxy vorbei.
+  run grep -qE '"baseURL": *"http://127\.0\.0\.1:18235/v1"' "$REPO/.opencode/agent-models.jsonc"
   [ "$status" -eq 0 ]
+
+  # Negativ-Aussage nach dem Anker: kein llamacpp-Provider zeigt mehr direkt
+  # auf den Server.
+  run bash -c "python3 - <<'EOF'
+import re
+s = open('$REPO/.opencode/agent-models.jsonc').read()
+bad = re.findall(r'\"(llamacpp[^\"]*)\"\s*:\s*\{.*?\"baseURL\"\s*:\s*\"[^\"]*:8091[^\"]*\"', s, re.S)
+print(len(bad))
+EOF"
+  [ "$output" = "0" ]
 }
 
-@test "agent-models.jsonc declares ~99840 context for Gemma4 (T002545)" {
-  # T002545: gemma26-factory mit --fit 256 MiB, KV q4_0 → gemessen 99840 ctx.
-  # Der Puffer ist geteilt (-kvu), die Zahl gilt je Agent — drei Agenten
-  # koennen sie nicht gleichzeitig voll ausschoepfen.
+@test "agent-models.jsonc declares a MEASURED context for Gemma4, not n_ctx_train (T002545/T002558)" {
+  # Keine harte Konstante mehr. --fit entscheidet den Wert zur Laufzeit, und er
+  # aendert sich mit der Slot-Zahl: bei einem Slot wurden 99840 gemessen, bei
+  # drei (T002545) nur noch 88832, weil der geteilte -kvu-Puffer fuer drei
+  # Sequenzen reichen muss. Eine gepflegte Zahl driftet damit bei jeder
+  # Loadout-Aenderung — genau die Klasse, die dieses Ticket schliesst.
+  #
+  # Geprueft wird deshalb die EIGENSCHAFT: plausibel und nicht der alte
+  # 12B-Wert 262144 (= n_ctx_train, das 2,6-fache des real Verfuegbaren).
   ctx="$(awk '/"gemma26-factory": *\{/,/"context"/' \
     "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
-  [ "$ctx" = "99840" ]
+  [ -n "$ctx" ]
+  [ "$ctx" != "262144" ]
+  [ "$ctx" -gt 50000 ]
+  [ "$ctx" -lt 200000 ]
 }
 
 @test "agent-models.jsonc defines three gemma subagents (T002545)" {
@@ -152,8 +174,11 @@ setup() {
     const model = prim[0][1].model;
     const [prov, mid] = model.split('/');
     const ctx = o.provider[prov].models[mid].limit.context;
-    if (![99840, 99328, 98304].includes(ctx)) {
-      console.error('primary gemma ctx ' + ctx + ' not in expected range [99840,99328,98304]');
+    // Keine Liste gemessener Werte pflegen — sie driftet mit jeder
+    // --fit-/Slot-Aenderung (99840 bei 1 Slot, 88832 bei 3). Geprueft wird die
+    // Eigenschaft: plausibel und nicht der alte 12B-Wert 262144.
+    if (!Number.isInteger(ctx) || ctx === 262144 || ctx <= 50000 || ctx >= 200000) {
+      console.error('primary gemma ctx ' + ctx + ' implausible (expected a measured value, not n_ctx_train)');
       process.exit(1);
     }
     process.exit(0);

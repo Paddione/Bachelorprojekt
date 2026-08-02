@@ -25,6 +25,14 @@
       "cwd": "/home/patrick/Bachelorprojekt",
       "enabled": true,
       "bearerTokenEnv": null
+    },
+    "github-mcp": {
+      "command": "/home/patrick/Bachelorprojekt/scripts/llm/github-mcp-wrapper.sh",
+      "args": [],
+      "env": {},
+      "cwd": "/home/patrick/Bachelorprojekt",
+      "enabled": true,
+      "bearerTokenEnv": null
     }
   }
 }

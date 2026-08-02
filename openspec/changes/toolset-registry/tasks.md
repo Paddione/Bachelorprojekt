@@ -139,7 +139,7 @@ dem Muster von `MCP_REGISTRY` / `MCP_OUT_DIR` in `scripts/mcp-sync.sh`. Ohne
 diese Overrides ließe sich kein `sync`-Test ausführen, ohne die echte
 `.claude/settings.json` des Entwicklers zu überschreiben.
 
-## Task 5 — Das Gate (p4)
+## Task 5 — Das Gate (p4) - [x]
 
 `scripts/toolset/check.mjs` prüft offline und ohne Schreibpfad:
 

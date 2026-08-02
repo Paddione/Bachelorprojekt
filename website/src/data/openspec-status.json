@@ -2063,6 +2063,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002432": [
+    {
+      "slug": "brain-k2-bge-paare",
+      "status": "plan_staged"
+    }
+  ],
   "T002439": [
     {
       "slug": "2026-07-28-db-pod-phase-guard-T002439",

@@ -2802,6 +2802,12 @@
     "kind": "shell"
   },
   {
+    "id": "public-symlinks-resolve-in-image",
+    "file": "tests/spec/public-symlinks-resolve-in-image.bats",
+    "category": "public-symlinks-resolve-in-image",
+    "kind": "shell"
+  },
+  {
     "id": "questionnaire-system",
     "file": "tests/spec/questionnaire-system.bats",
     "category": "questionnaire-system",

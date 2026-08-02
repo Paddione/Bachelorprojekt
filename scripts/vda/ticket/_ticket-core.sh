@@ -121,13 +121,33 @@ _ticket_lock_guard() {
   # dupliziert sie und laeuft auseinander.
   out="$(CLAUDE_CODE_SESSION_ID="${CLAUDE_CODE_SESSION_ID:-}" CLAUDE_SESSION_ID="${CLAUDE_SESSION_ID:-}" bash "$lock_sh" check ticket "$id" 2>/dev/null)"; rc=$?
   if [[ $rc -eq 3 ]]; then
-    echo "ERROR: Ticket $id ist durch eine andere Session gesperrt (agent-lock) — Status-Schreibvorgang verweigert." >&2
-    echo "       Halter: $(printf '%s' "$out" | tr '\n' ' ')" >&2
+    # [T002498-M10] SID-Drift pro Aufrufkontext: der Claim lief über Bash, der
+    # Write über den MCP-Prozess — beide melden für DIESELBE Session verschiedene
+    # SIDs (beobachtet bei T002494-Dispatch). Der Lock-Guard blockierte daraufhin
+    # den eigenen Status-Write und bezeichnete die eigene Session als "ANDERE".
+    # Bei Gleichheit der Halter-SID mit der eigenen Session ist es kein fremder
+    # Lock → ohne Override durchlassen. Die Harness-UUID ist die einzige stabile
+    # Session-Kennung (Unix-SID wechselt pro Bash-Call, T002375-p1).
+    local my_sid holder_sid
+    my_sid="${CLAUDE_CODE_SESSION_ID:-${CLAUDE_SESSION_ID:-}}"
+    holder_sid="$(printf '%s' "$out" | sed -n 's/.*"owner_sid": *"\([^"]*\)".*/\1/p' | head -1)"
+    if [[ -n "$my_sid" && -n "$holder_sid" && "$my_sid" == "$holder_sid" ]]; then
+      return 0
+    fi
+    # [T002498-M10] Meldung entschärft: der Halter ist nicht zwingend eine fremde
+    # Session (SID-Drift möglich) — das sagen statt einer falschen Behauptung, und
+    # Halter-Felder (tool/label/pid) zur Einordnung mitgeben. Der Halter-Block kam
+    # schon vorher; es fehlte nur die Einordnung, welchen Schutz das Override kostet.
+    local holder_label holder_tool
+    holder_label="$(printf '%s' "$out" | sed -n 's/.*"label": *"\([^"]*\)".*/\1/p' | head -1)"
+    holder_tool="$(printf '%s' "$out" | sed -n 's/.*"tool": *"\([^"]*\)".*/\1/p' | head -1)"
+    echo "ERROR: Ticket $id ist gesperrt (agent-lock) — Status-Schreibvorgang verweigert." >&2
+    echo "       Halter: tool=${holder_tool:-?}, label=${holder_label:-?}, sid=${holder_sid:-?} (siehe \"$(printf '%s' "$out" | tr '\n' ' ')\")" >&2
     # [T002424-M1] Diagnose: die eigene SID mit ausgeben. Ohne sie ist aus der
     # Meldung nicht ersichtlich, WARUM der Halter als fremd gilt — genau das
     # kostete bei T002424 eine Untersuchungsschleife.
-    echo "       Eigene SID: ${CLAUDE_CODE_SESSION_ID:-${CLAUDE_SESSION_ID:-<nicht gesetzt>}} (Shell-PID $$)" >&2
-    echo "       Override nur bewusst: TICKET_LOCK_OVERRIDE=1" >&2
+    echo "       Eigene SID: ${my_sid:-<nicht gesetzt>} (Shell-PID $$)" >&2
+    echo "       Falls der Halter diese Session ist, gezielt durchlassen: TICKET_LOCK_OVERRIDE=1" >&2
     return 7
   fi
   return 0

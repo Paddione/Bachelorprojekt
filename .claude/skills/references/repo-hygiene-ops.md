@@ -121,6 +121,22 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
   > # SQUASH=$(git log origin/main --grep="<TICKET_ID>" --format='%cI' -1)
   > # [ -n "$SQUASH" ] || { echo "FAIL: kein Squash-Commit gefunden"; exit 1; }
   > ```
+  > **Leere Antwort ist KEIN Urteil [T002498-M5]:** Der Timestamp-Verifikation fehlt der
+  > Fall „Antwort fehlt ganz". Schlägt der vorangegangene `gh`-Aufruf fehl (z.B.
+  > `error connecting to api.github.com`), ist `$m` LEER — und „leer = offen" würde einen
+  > Merge-Watch fälschlich als „kein Wissen" statt als Fehler behandeln. Eine Watch-Schleife
+  > der Form `grep -q '^merged=nein' || { echo GEMERGT; break; }` wertet dieselbe leere Antwort
+  > als Erfolg (beobachtet bei PR #3563: open + DIRTY, gemeldet als gemergt). Gemeinsamer
+  > Nenner aller drei Fälle (0 Checks, leeres Log, leere Antwort): **die auswertende Logik muss
+  > eine LEERE Antwort von einer NEGATIVEN unterscheiden.** Korrektes Muster — erst die leere
+  > Antwort abfangen und explizit NICHT urteilen, dann auf das positive Signal prüfen, nie auf
+  > die Abwesenheit des negativen:
+  > ```bash
+  > raw=$(gh pr view <number> --json mergedAt 2>/dev/null)
+  > [ -n "$raw" ] || { echo "API-Fehler — KEIN Urteil, erneut versuchen"; exit 1; }
+  > m=$(printf '%s' "$raw" | jq -r '.mergedAt')
+  > [ -n "$m" ] && [ "$m" != "null" ] || { echo "FAIL: mergedAt leer"; exit 1; }
+  > ```
   Bei noch laufendem CI stattdessen `--auto` — GitHub mergt, sobald die Checks grün sind.
 
 * **Ticket schließen, sobald `mergedAt` gesetzt ist** (nur wenn `$TICKET_ID` gefunden;

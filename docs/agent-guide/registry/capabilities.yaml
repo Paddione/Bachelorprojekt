@@ -1,0 +1,71 @@
+# docs/agent-guide/registry/capabilities.yaml
+# SSOT Toolset Capability Registry
+# Führt Fähigkeiten auf und ordnet sie den Instanzen in verschiedenen Harnesses zu.
+---
+capabilities:
+  github:
+    cli:gh-axi:
+      state: canonical
+    mcp:github-mcp:
+      state: suppressed
+      reason: "gh-axi ist der mandatierte GitHub-Pfad."
+
+  browser-automation:
+    mcp:playwright:
+      state: suppressed
+      reason: "Nicht project-relevant."
+
+  dokumentations-lookup:
+    mcp:docfork:
+      state: suppressed
+      reason: "Vermeidet Kontext-Bloat."
+
+  websuche:
+    mcp:webresearch:
+      state: suppressed
+      reason: "Vermeidet Kontext-Bloat."
+
+  security-analyse:
+    skill:security-specialist:
+      state: canonical
+
+  code-review:
+    skill:dev-flow-plan:
+      state: canonical
+
+  mcp-kubernetes:
+    mcp:mcp-kubernetes:
+      state: canonical
+
+  mcp-postgres:
+    mcp:mcp-postgres:
+      state: canonical
+
+  factory-mcp:
+    mcp:factory-mcp:
+      state: canonical
+
+  bge-mcp:
+    mcp:bge-mcp:
+      state: canonical
+
+  task-master-ai:
+    mcp:task-master-ai:
+      state: canonical
+
+  mcp-task-runner:
+    mcp:mcp-task-runner:
+      state: canonical
+
+  ticket-mcp:
+    mcp:ticket-mcp:
+      state: canonical
+
+  codebase-memory-mcp:
+    mcp:codebase-memory-mcp:
+      state: canonical
+
+  sequential-thinking:
+    mcp:sequential-thinking:
+      state: suppressed
+      reason: "Nur in opencode (disabled)."

@@ -82,7 +82,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/toolset-registry/check-drift-detect
 # expected: FAIL (rot — scripts/toolset/check.mjs existiert noch nicht)
 ```
 
-## Task 2 — Registry-Schema und Loader (p1)
+## Task 2 — Registry-Schema und Loader (p1) - [x]
 
 `docs/agent-guide/registry/capabilities.yaml` anlegen. Startbestand sind die im
 Brainstorming belegten Fähigkeiten: `github` (kanonisch `cli:gh-axi`),

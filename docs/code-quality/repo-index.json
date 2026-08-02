@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 707,
+      "file_count": 708,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -409,6 +409,7 @@
         "tests/spec/helpers/agent-tools.py",
         "tests/spec/hermes-mcp-access.bats",
         "tests/spec/image-drift.bats",
+        "tests/spec/kv-budget.bats",
         "tests/spec/lavish.bats",
         "tests/spec/llm-local-dev.bats",
         "tests/spec/llm-pipeline.bats",
@@ -3043,7 +3044,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 609,
+      "file_count": 610,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3461,6 +3462,7 @@
         "scripts/llm/github-mcp-wrapper.sh",
         "scripts/llm/harden-gpu-firewall.ps1",
         "scripts/llm/install-startup-autostart.ps1",
+        "scripts/llm/kv-budget.sh",
         "scripts/llm/loadouts.json",
         "scripts/llm/mcp-bridge.json",
         "scripts/llm/mcp-servers.json",

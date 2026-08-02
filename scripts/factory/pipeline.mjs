@@ -16,10 +16,16 @@ if (typeof process !== 'undefined' && !process.env.TICKET_PHASE_DRIVER) process.
 // Model escalation ladder (T002369): the factory-prep step reads the
 // attempt counter from factory_control and injects A.model_tier into the
 // pipeline payload. Each tier maps to a provider/model combination.
-// The ladder: 1→flash (local LM Studio), 2→haiku, 3→sonnet (external API).
+// The ladder: 1→flash (lokales Modell ueber das Gateway), 2→haiku, 3→sonnet (external API).
 // Fallback to flash if no tier is provided (direct pipeline invocation).
+// [T002582] 'flash' zeigte auf LM Studio :1234 mit modelId 'qwythos-9b-v2'. Dort
+// laufen seit T002551 nur noch Embedding- und Reranker-Modelle, also kein
+// Chat-Modell — die unterste Sprosse der Leiter war unbesetzt. Sie geht jetzt
+// ueber dasselbe Gateway wie alles andere; FACTORY_MODEL_ID bleibt der einzige
+// Regler fuer den Modellnamen.
+const LOCAL_MODEL_ID = process.env.FACTORY_MODEL_ID || 'gemma26-factory'
 const MODEL_TIERS = {
-  flash:  { provider: 'lmstudio', modelId: 'qwythos-9b-v2', baseUrl: 'http://127.0.0.1:1234' },
+  flash:  { provider: 'llamacpp', modelId: LOCAL_MODEL_ID, baseUrl: 'http://127.0.0.1:18235' },
   haiku:  { provider: 'deepseek', modelId: 'deepseek-chat',  baseUrl: null },
   sonnet: { provider: 'deepseek', modelId: 'deepseek-reasoner', baseUrl: null },
 }

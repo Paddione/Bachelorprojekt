@@ -2556,6 +2556,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/gateway-consumer-lint",
+    "file": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/gemma-kv-quant",
     "file": "tests/spec/local-llm-proxy/gemma-kv-quant.bats",
     "category": "local-llm-proxy",

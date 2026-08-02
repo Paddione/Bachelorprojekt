@@ -2616,6 +2616,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/client-env-check",
+    "file": "tests/spec/mcp-gateway/client-env-check.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/opencode-env-placeholder",
     "file": "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
     "category": "mcp-gateway",

@@ -2235,6 +2235,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002504": [
+    {
+      "slug": "bge-mcp-client-env-check",
+      "status": "plan_staged"
+    }
+  ],
   "T002507": [
     {
       "slug": "2026-08-01-portrait-derivate-crop",

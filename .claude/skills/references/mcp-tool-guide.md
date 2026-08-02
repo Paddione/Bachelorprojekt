@@ -254,3 +254,9 @@ curl -si -X POST http://localhost:13005/mcp \
   -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"probe","version":"1"}}}' | head -3
 ```
+
+**Automatisierter Check (T002504):** `bash scripts/bge-mcp/check-client-env.sh` fasst obige
+Diagnose zusammen — prüft `~/.config/bge-mcp/server.env` auf Existenz + `BGE_MCP_TOKEN`, probt
+den Endpunkt mit und ohne Token und unterscheidet die drei Zustände über Exit-Codes (`0` = ok,
+`1` = Token fehlt/stimmt nicht, `2` = Server nicht erreichbar). Der Token-Wert wird nie
+ausgegeben. BATS-Regressionsschutz: `tests/spec/mcp-gateway/client-env-check.bats`.

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 725,
+      "file_count": 726,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -433,6 +433,7 @@
         "tests/spec/mcp-gateway.bats",
         "tests/spec/mcp-gateway/authenticated-http-headers.bats",
         "tests/spec/mcp-gateway/bge-host-routing.bats",
+        "tests/spec/mcp-gateway/client-env-check.bats",
         "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
         "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
         "tests/spec/mcp-skill-integration.bats",
@@ -3063,7 +3064,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 620,
+      "file_count": 621,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3142,6 +3143,7 @@
         "scripts/batch-gap-analysis.sh",
         "scripts/batch-workflow-gen.sh",
         "scripts/bge-mcp/bge-mcp.service",
+        "scripts/bge-mcp/check-client-env.sh",
         "scripts/bge-mcp/server.mjs",
         "scripts/brain-auto-memory-export.sh",
         "scripts/brain-auto-memory-scan.sh",

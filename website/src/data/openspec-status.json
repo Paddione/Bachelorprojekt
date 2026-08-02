@@ -2111,6 +2111,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002462": [
+    {
+      "slug": "sdlc-cockpit-k3-layout-engine",
+      "status": "plan_staged"
+    }
+  ],
   "T002463": [
     {
       "slug": "cockpit-auth-schnitt",

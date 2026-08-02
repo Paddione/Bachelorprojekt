@@ -77,6 +77,13 @@ vars:
   CLUSTER_NAME: korczewski
   REGISTRY: localhost:5000
   DEV_DOMAIN: localhost
+  # Ziel-IDs, die NUR lokal messbar sind — sie beschreiben Maschinenzustand (Worktrees,
+  # Hauptcheckout, agent-locks, LLM-Endpunkte), den ein CI-Runner gar nicht hat. Dort
+  # waeren sie strukturell gruen und damit wertlos; `freshness:check` ueberspringt sie
+  # deshalb in CI mit sichtbarer Notiz statt sie gruen zu melden. [T002443]
+  # Weitere lokal-only-Zielfamilien haengen ihre IDs hier an, statt einen zweiten
+  # Warn-Block anzulegen (Absprache mit T002442 / G-LLM*).
+  HG_LOCAL_ONLY_GOALS: G-WT01,G-WT02,G-WT03,G-WT04,G-WT05,G-WT06
 
 tasks:
   # ════════════════════════════════════════════════════════════════════
@@ -1188,6 +1195,26 @@ tasks:
         echo "ℹ freshness:check measured against local HEAD ${HEAD_SHA}"
         if [ "${BEHIND:-0}" -gt 0 ] 2>/dev/null; then
           echo "⚠ local branch is ${BEHIND} commit(s) behind origin/main — CI checks against the PR merge commit, which already includes those commits, so a green result here does not guarantee a green result in CI. Consider rebasing/merging origin/main first."
+        fi
+      # --- Phase 0c: lokal-only Hygiene-Ziele, WARNUNG ohne Fail (T002443) ---
+      # Diese Ziele messen lokalen Maschinenzustand (Worktrees, Hauptcheckout-Branch,
+      # agent-locks, main-Divergenz). Ein CI-Runner hat davon nichts, deshalb wird hier
+      # in CI NICHT gemessen, sondern sichtbar uebersprungen — eine strukturell gruene
+      # Messung waere schlimmer als gar keine, weil sie Hygiene vortaeuscht.
+      #
+      # Der Block failt bewusst NICHT (`|| true`): freshness:check ist ein Merge-Gate.
+      # Ein harter Fail bei dirty Hauptcheckout blockierte jeden lokalen Commit und
+      # fuehrte zur Umgehung des Gates statt zu Hygiene. Die Zahl gehoert in den Report,
+      # die Sichtbarkeit in den Alltagspfad.
+      #
+      # Bewusst NICHT in freshness:regenerate: die Task schreibt Artefakte und laeuft
+      # auch in CI; dieser Block ist reine lokale Anzeige.
+      - |
+        if [ -n "${CI:-}" ]; then
+          echo "ℹ lokal-only Hygiene-Ziele ({{.HG_LOCAL_ONLY_GOALS}}) uebersprungen — Grund: CI-Runner hat weder Worktrees noch agent-locks noch einen Hauptcheckout; die Messung waere strukturell gruen und damit wertlos. Lokal pruefen mit 'task health:wt'."
+        else
+          echo "ℹ lokale Worktree-/Session-Hygiene ({{.HG_LOCAL_ONLY_GOALS}}) — Warnung, kein Gate:"
+          task health:wt || true
         fi
       # --- Phase 1: diff-check each file ---
       - |
@@ -3457,6 +3484,11 @@ tasks:
     desc: "Ampel-Report der reproduzierbaren Repository-Health-Ziele aus .claude/lib/goals.md (Gates müssen grün sein; Targets zeigen Reduktions-Fortschritt). Flags nach --, z.B. task health:goals -- --strict --fast"
     cmds:
       - bash scripts/health-goals-check.sh {{.CLI_ARGS}}
+
+  health:wt:
+    desc: "Ampel-Report NUR der lokal messbaren Ziele (HG_LOCAL_ONLY_GOALS — Worktree-/Session-Hygiene G-WT*). Laeuft nicht in CI, siehe freshness:check."
+    cmds:
+      - bash scripts/health-goals-check.sh --fast --only={{.HG_LOCAL_ONLY_GOALS}} {{.CLI_ARGS}}
 
   health:goals:update:
     desc: "Schreibt frisch gemessene Werte in die Aktuell-Spalte der Prio-C-Tabelle (Green Gates) in .claude/lib/goals.md. Freitextige Prio-A/B-Abschnitte bleiben unangetastet. Flags nach --, z.B. task health:goals:update -- --dry-run"

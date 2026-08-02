@@ -541,76 +541,142 @@ except:
 
 ---
 
-## G-WT01 — Hauptcheckout auf main und sauber: n/a → 0
+## G-WT01 — Hauptcheckout auf main und sauber: 1 → 0
 
-**Was:** Prüft, ob der Hauptcheckout (`~/Bachelorprojekt`) auf Branch `main` steht und keinen
-uncommitteten Changes hat. Die Regel existiert seit T001880, wurde aber mehrfach verletzt —
-zuletzt am 2026-07-28 mit 15 uncommitteten Dateien auf `chore/mishap-T002422`. Eine
-Verletzung gefährdet Factory-Dispatcher und Worktree-Erstellung. Binaeres Ziel: 0 = ok,
-1 = Verletzung. Der Positiv-Anker ist der git-Befehl selbst — schlägt er fehl, ist das
-Ziel nicht messbar.
+**Was:** Prüft, ob der Hauptcheckout (`~/Bachelorprojekt`) auf Branch `main` steht und keine
+uncommitteten Changes trägt. Die Regel existiert seit T001880, wurde aber mehrfach verletzt —
+zuletzt am 2026-07-28 mit 15 uncommitteten Dateien auf `chore/mishap-T002422`. Eine Verletzung
+gefährdet Factory-Dispatcher und Worktree-Erstellung (`scripts/worktree-create.sh` warnt, blockiert
+aber nicht). Binäres Ziel: 0 = ok, 1 = Verletzung.
+
+**Positiv-Anker:** Lässt sich der Hauptcheckout nicht als Git-Repo auflösen oder schlägt
+`git status` fehl, ist die Ausgabe `n/a` — **nicht** `0` und auch nicht `1`. Ein nicht auflösbarer
+Pfad ist keine Verletzung, sondern eine nicht durchgeführte Messung.
 
 ```bash
-REPO="${HG_REPO_ROOT:-$HOME/Bachelorprojekt}"
-branch=$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null)
-if [ "$branch" != "main" ]; then echo 1; exit 0; fi
-[ -z "$(git -C "$REPO" status --porcelain 2>/dev/null)" ] && echo 0 || echo 1
+bash scripts/lib/wt-hygiene-measure.sh main-checkout
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** ja (nur lokal, CI hat keinen Hauptcheckout) · **Ticket:** T002443
+> **B · Baseline:** 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keinen Hauptcheckout) · **Ticket:** T002443
 
-## G-WT02 — Veraltete Worktrees (Branch gemergt oder >14d inaktiv): n/a → 0
+## G-WT02 — Veraltete Worktrees (Branch gemergt oder >14d inaktiv): 0 → 0
 
-**Was:** Zählt Worktrees unter `.worktrees/`, deren Branch bereits nach `main` gemergt wurde
-oder deren letzter Commit älter als 14 Tage ist. Aufgeräumte Worktrees verhindern
+**Was:** Zählt registrierte Nebenworktrees, deren HEAD-Commit bereits in `origin/main` enthalten
+ist oder deren letzter Commit älter als 14 Tage ist. Aufgeräumte Worktrees verhindern
 versehentliches Arbeiten auf toten Branches und das Anwachsen des `.worktrees/`-Verzeichnisses
-(26 Stück am 2026-07-28). Der Positiv-Anker prüft die Existenz mindestens eines Worktrees —
-ohne Worktrees ist die Messung bedeutungslos.
+(26 Stück am 2026-07-28).
+
+Die Merged-Erkennung läuft über `git merge-base --is-ancestor <worktree-head> origin/main`, nicht
+über `git branch -r --contains <branchname>`: der HEAD-Commit ist die Aussage, die interessiert,
+und ein Worktree mit detached HEAD hat gar keinen Branchnamen.
+
+**Positiv-Anker:** Ist kein Nebenworktree registriert oder lässt sich `origin/main` nicht
+auflösen, ist die Ausgabe `n/a`. Der frühere Messblock iterierte über den Glob `.worktrees/*/` und
+gab bei nicht greifendem Glob `0` aus — also trivial grün ohne Messgrundlage, exakt der vakuose
+Negativbefund, den T002356-M1 verbietet.
 
 ```bash
-REPO="${HG_REPO_ROOT:-$HOME/Bachelorprojekt}"
-count=0
-for wt in "$REPO"/.worktrees/*/; do
-  [ -d "$wt" ] || continue
-  branch=$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null) || continue
-  # Prüfe ob Branch auf main gemergt ist
-  if git -C "$REPO" branch -r --contains "$branch" 2>/dev/null | grep -q 'origin/main'; then
-    count=$((count + 1)); continue
-  fi
-  # Prüfe Alter des letzten Commits
-  last_commit=$(git -C "$wt" log -1 --format='%ct' 2>/dev/null)
-  now=$(date +%s)
-  if [ -n "$last_commit" ] && [ $(( (now - last_commit) / 86400 )) -gt 14 ]; then
-    count=$((count + 1))
-  fi
-done
-echo $count
+bash scripts/lib/wt-hygiene-measure.sh stale-worktrees
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** ja (nur lokal) · **Ticket:** T002443
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** nur lokal (CI hat keine Worktrees) · **Ticket:** T002443
 
-## G-WT03 — Verwaiste Agent-Locks (Prozess tot, Lock aktiv): n/a → 0
+## G-WT03 — Verwaiste Agent-Locks (Heartbeat abgelaufen oder Halter nicht auffindbar): 0 → 0
 
-**Was:** Zählt agent-locks unter `.git/agent-locks/`, deren `owner_pid` nicht mehr als
-laufender Prozess existiert. Tote Locks ohne lebenden Prozess blockieren den Reaper
-und verhindern, dass neue Sessions denselben Scope claimen. Der Positiv-Anker prüft
-die Existenz des Lock-Verzeichnisses — ohne Locks ist die Messung bedeutungslos.
+**Was:** Zählt Locks unter `<git-common-dir>/agent-locks/`, deren Halter nachweislich nicht mehr
+lebt. Tote Locks blockieren still: `check ticket <id>` meldet durchgehend `held`, `list` zeigt sie
+als `live`, und `agent-lock.sh reap` räumt sie nicht, solange der Worktree noch steht.
+
+**`owner_pid` ist KEIN Lebendigkeits-Signal.** `agent-lock.sh::_write_lock` schreibt
+`"owner_pid": "$$"` — die PID des kurzlebigen `agent-lock.sh`-Bash-Prozesses, der Sekunden später
+beendet ist. Am 2026-08-02 meldeten deshalb **alle fünf** Locks des Hauptcheckouts eine tote
+`owner_pid`, darunter der Lock der gerade laufenden Session. Eine Regel „tote PID ⇒ verwaist"
+stuft folglich jeden Lock als verwaist ein und ist wertlos. `agent-lock.sh::_reapable` behandelt
+eine tote PID aus demselben Grund nie allein als entscheidend.
+
+Gemessen wird deshalb in dieser Reihenfolge:
+
+1. **Heartbeat älter als 2×`AGENT_LOCK_TTL`** ⇒ verwaist. Eindeutig, und der einzige Indikator,
+   der auch eine **wiederverwendete** PID erwischt. Die TTL wird nicht neu erfunden, sondern aus
+   derselben Variable gelesen, die `scripts/agent-lock.sh` verwendet (Vorgabe 1800 s).
+2. **Heartbeat frisch** ⇒ lebendig, wenn der eingetragene Worktree noch existiert und auf dem
+   eingetragenen Branch steht (`_reapable` Pfad 0b) **oder** die `owner_pid` tatsächlich läuft
+   (Pfad 0c). Sonst verwaist.
+
+Anlassfall (2026-08-02, T002570): ein Lock mit toter `owner_pid` **und** `heartbeat_at ==
+created_at`, älter als zweimal TTL, bei weiterhin existierendem Worktree. Erkennbar war die
+Verwaisung nur durch manuellen PID- und Heartbeat-Vergleich.
+
+**Positiv-Anker:** Fehlt das Lock-Verzeichnis oder enthält es keine wohlgeformte Lock-Datei, ist
+die Ausgabe `n/a`. Der stärkste Anker ist der Lock der laufenden Session selbst: er ist
+nachweislich lebendig, obwohl seine `owner_pid` tot ist — klassifiziert das Verfahren ihn als
+verwaist, ist das Verfahren kaputt (Test `G-WT03 (stärkster Anker)` in
+`tests/spec/health-goals/worktree-hygiene-goals.bats`).
 
 ```bash
-REPO="${HG_REPO_ROOT:-$HOME/Bachelorprojekt}"
-lock_dir="$(git -C "$REPO" rev-parse --git-common-dir 2>/dev/null)/agent-locks"
-[ -d "$lock_dir" ] || { echo n/a; exit 0; }  # Positiv-Anker
-count=0
-for lock in "$lock_dir"/*.json; do
-  [ -f "$lock" ] || continue
-  pid=$(jq -r '.owner_pid // empty' "$lock" 2>/dev/null)
-  [ -n "$pid" ] || continue
-  kill -0 "$pid" 2>/dev/null || count=$((count + 1))
-done
-echo $count
+bash scripts/lib/wt-hygiene-measure.sh orphan-locks
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** ja (nur lokal) · **Ticket:** T002443
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keine agent-locks) · **Ticket:** T002443
+
+## G-WT04 — Löschbereite Worktrees mit ungesicherter Arbeit: 0 → 0
+
+**Was:** Zählt Nebenworktrees, die **gleichzeitig** löschbereit (HEAD bereits in `origin/main`) und
+dirty sind (`git status --porcelain` nicht leer). Genau diese Schnittmenge räumt der
+`repo-hygiene`-Cleanup weg, ohne hinzusehen: er prüft nur Commit-Ancestry, nicht ungetrackte
+Dateien (T002379). Ein Treffer bedeutet akut drohenden Datenverlust.
+
+Bewusst **nicht** „alle Worktrees mit dirty status": ungesicherte Arbeit ist im laufenden Betrieb
+normal — jede aktive Session hat sie. Ein Ziel darauf wäre dauerhaft rot und würde ignoriert.
+
+**Positiv-Anker:** Ist kein Nebenworktree registriert oder lässt sich `origin/main` nicht auflösen,
+ist die Ausgabe `n/a`.
+
+```bash
+bash scripts/lib/wt-hygiene-measure.sh unsafe-worktrees
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** nur lokal (CI hat keine Worktrees) · **Ticket:** T002443
+
+## G-WT05 — Lokaler main hinter origin/main (Commits): 0 → 0
+
+**Was:** Zählt Commits in `main..origin/main`. Ein zurückgefallener lokaler `main` ist die Ursache
+mehrerer Klassen von Folgefehlern: `scripts/worktree-create.sh` erzeugt Worktrees von einem alten
+Stand, `freshness:check` misst gegen einen anderen Base als CI (T002561), und lokale
+Factory-Queue-Abfragen laufen gegen den falschen Branch.
+
+**Positiv-Anker:** Fehlt `refs/heads/main` oder `refs/remotes/origin/main`, ist die Ausgabe `n/a`.
+Zusätzlich gilt ein **veralteter Fetch** als fehlende Messgrundlage: ist `FETCH_HEAD` älter als
+24 h, misst die Zahl nicht die Divergenz, sondern das Alter des letzten Fetch — dann `n/a` statt
+einer beruhigenden `0`.
+
+```bash
+bash scripts/lib/wt-hygiene-measure.sh main-divergence
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI klont frisch) · **Ticket:** T002443
+
+## G-WT06 — Phantom-Scope-Locks (Scope leer oder mit `-` beginnend): 0 → 0
+
+**Was:** Zählt Locks, deren `scope`-Feld leer ist oder mit `-` beginnt. Am 2026-08-02 zeigte
+`agent-lock.sh list` einen Lock mit `--label` als SCOPE-Wert — ein Flag wurde als
+Positionsargument gelesen. Der `_reject_arg`-Guard aus T002363 fängt nur unbekannte Flags **nach**
+dem Scope, nicht einen Scope, der selbst ein Flag ist. Solche Locks sind über
+`check ticket <id>` unauffindbar und blockieren still.
+
+Gemessen wird **kein Allowlist-Match**: die Scope-Namen sind offen (`ticket`, `branch`,
+`main-checkout`, `staging`, `registry`, weitere möglich), eine Allowlist würde bei jedem neuen
+Scope falsch alarmieren. Gemessen wird die Formfehler-Signatur — leer oder mit `-` beginnend kann
+nur aus einem als Positionsargument gelesenen Flag stammen.
+
+**Positiv-Anker:** Fehlt das Lock-Verzeichnis oder enthält es keine wohlgeformte Lock-Datei, ist
+die Ausgabe `n/a`.
+
+```bash
+bash scripts/lib/wt-hygiene-measure.sh phantom-scope-locks
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** nur lokal (CI hat keine agent-locks) · **Ticket:** T002443
 
 
 # Priorität C — Green Gates {#prio-c}
@@ -722,6 +788,7 @@ bash scripts/health-goals-llm-fill.sh --apply      # schreibt Prio-C-Aktuell mit
 - **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05, G-BRAIN12, G-BRAIN13, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14, G-AGENTIC09, G-DB11
+- **Nur lokal (nicht in CI):** G-WT01–G-WT06. Diese Familie misst lokalen Maschinenzustand — Worktrees, Hauptcheckout-Branch, agent-locks, `main`-Divergenz. Ein CI-Runner hat davon nichts; die Ziele wären dort strukturell immer grün und damit wertlos. Messort ist `task health:wt` (Ziel-IDs aus der Taskfile-Variable `HG_LOCAL_ONLY_GOALS`) sowie ein **nicht failender** Warn-Block in `task freshness:check`, der in CI mit sichtbarer Notiz übersprungen wird. [T002443]
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 

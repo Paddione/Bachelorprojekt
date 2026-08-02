@@ -560,45 +560,28 @@ except: print('-')
 " 2>/dev/null || echo "-")" le 0 "llm-proxy-Bereitschaft (ready + tote Provider)"
 
 # ── WT-TARGETS (T002443: Worktree- und Session-Hygiene) ──
-row target G-WT01 "$(
-REPO=\"${HG_REPO_ROOT:-$HOME/Bachelorprojekt}\"
-branch=$(git -C \"$REPO\" rev-parse --abbrev-ref HEAD 2>/dev/null)
-if [ \"$branch\" != \"main\" ]; then echo 1
-elif [ -z \"$(git -C \"$REPO\" status --porcelain 2>/dev/null)\" ]; then echo 0
-else echo 1; fi
-)" le 0 "Hauptcheckout auf main und sauber (binär: 0=ok)"
+# Die Messlogik lebt ausschliesslich in scripts/lib/wt-hygiene-measure.sh. Vorher standen
+# dieselben Befehle doppelt — hier und als Shell-Block in .claude/lib/goals.md — und drifteten
+# auseinander. Beide Stellen rufen jetzt nur noch dieses Skript auf.
+#
+# Das Skript meldet `n/a`, wenn die Messgrundlage fehlt; `row` erwartet dafuer `-` und zaehlt
+# den Fall als uebersprungen statt als erreicht. Genau diese Uebersetzung leistet wt_measure —
+# ein leerer oder nicht-numerischer Wert darf NIE als 0 durchgehen.
+wt_measure() { # <subcommand>
+  local v
+  v="$(bash scripts/lib/wt-hygiene-measure.sh "$1" 2>/dev/null)" || { echo "-"; return; }
+  case "$v" in
+    ''|*[!0-9]*) echo "-" ;;
+    *)           echo "$v" ;;
+  esac
+}
 
-row target G-WT02 "$(
-REPO=\"${HG_REPO_ROOT:-$HOME/Bachelorprojekt}\"
-count=0
-for wt in \"$REPO\"/.worktrees/*/; do
-  [ -d \"$wt\" ] || continue
-  branch=$(git -C \"$wt\" rev-parse --abbrev-ref HEAD 2>/dev/null) || continue
-  if git -C \"$REPO\" branch -r --contains \"$branch\" 2>/dev/null | grep -q 'origin/main'; then
-    count=$((count + 1)); continue
-  fi
-  last_commit=$(git -C \"$wt\" log -1 --format='%ct' 2>/dev/null)
-  now=$(date +%s)
-  if [ -n \"$last_commit\" ] && [ $(( (now - last_commit) / 86400 )) -gt 14 ]; then
-    count=$((count + 1))
-  fi
-done
-echo $count
-)" le 0 "Veraltete Worktrees (Branch gemergt oder >14d inaktiv)"
-
-row target G-WT03 "$(
-REPO=\"${HG_REPO_ROOT:-$HOME/Bachelorprojekt}\"
-lock_dir=\"$(git -C \"$REPO\" rev-parse --git-common-dir 2>/dev/null)/agent-locks\"
-[ -d \"$lock_dir\" ] || { echo '-'; exit 0; }
-count=0
-for lock in \"$lock_dir\"/*.json; do
-  [ -f \"$lock\" ] || continue
-  pid=$(jq -r '.owner_pid // empty' \"$lock\" 2>/dev/null)
-  [ -n \"$pid\" ] || continue
-  kill -0 \"$pid\" 2>/dev/null || count=$((count + 1))
-done
-echo $count
-)" le 0 "Verwaiste Agent-Locks (Prozess tot, Lock aktiv)"
+row target G-WT01 "$(wt_measure main-checkout)"       le 0 "Hauptcheckout auf main und sauber (binär: 0=ok)"
+row target G-WT02 "$(wt_measure stale-worktrees)"     le 0 "Veraltete Worktrees (HEAD gemergt oder >14d inaktiv)"
+row target G-WT03 "$(wt_measure orphan-locks)"        le 0 "Verwaiste Agent-Locks (Heartbeat abgelaufen oder Halter weg)"
+row target G-WT04 "$(wt_measure unsafe-worktrees)"    le 0 "Löschbereite Worktrees mit ungesicherter Arbeit"
+row target G-WT05 "$(wt_measure main-divergence)"     le 0 "Lokaler main hinter origin/main (Commits)"
+row target G-WT06 "$(wt_measure phantom-scope-locks)" le 0 "Phantom-Scope-Locks (Scope leer oder mit '-' beginnend)"
 
 # ── Zusammenfassung ────────────────────────────────────────────────────────────
 TOTAL=$((PASS+OPEN+GATEFAIL+SKIP))

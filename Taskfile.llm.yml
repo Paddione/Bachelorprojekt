@@ -203,6 +203,24 @@ tasks:
           exit 1
         fi
         echo "llm-proxy installed as systemd --user service (active/running, autostart + Restart=always)."
+        # [T002556] BGE_MCP_TOKEN ist fuer diese Unit nicht optional: ohne die
+        # Variable scheitert ensureUiConfigRendered() still, --ui-config-file
+        # zeigt danach auf eine fehlende Datei, und llama-server bricht beim
+        # naechsten Loadout-Start HART ab (Exit 1). Der Fehler faellt dann nicht
+        # hier auf, sondern erst Minuten spaeter beim Modellstart — deshalb hier
+        # pruefen, wo der Zusammenhang noch sichtbar ist.
+        PROXY_ENV="${HOME}/.config/llm-proxy/proxy.env"
+        if ! grep -q "^BGE_MCP_TOKEN=" "$PROXY_ENV" 2>/dev/null; then
+          echo "" >&2
+          echo "WARNUNG: BGE_MCP_TOKEN fehlt in $PROXY_ENV [T002556]" >&2
+          echo "  Folge: der naechste Loadout-Start mit uiConfigFile scheitert mit" >&2
+          echo "  'failed to open file ... ui-config.json' und crashloopt." >&2
+          echo "  Beheben (Wert aus der vorhandenen Quelle uebernehmen, nicht abtippen):" >&2
+          echo "    mkdir -p ~/.config/llm-proxy && touch $PROXY_ENV" >&2
+          echo "    chmod 0600 $PROXY_ENV" >&2
+          echo "    grep '^BGE_MCP_TOKEN=' ~/.config/bge-mcp/server.env >> $PROXY_ENV" >&2
+          echo "    systemctl --user restart llm-proxy.service" >&2
+        fi
 
   proxy:uninstall-service:
     desc: "Stop + disable the llm-proxy systemd service and remove the symlinked unit."

@@ -104,3 +104,46 @@ test('parseLoadouts: model path mit .. wird abgelehnt', () => {
   bad.loadouts[0].model = '../../etc/passwd'
   assert.throws(() => parseLoadouts(JSON.stringify(bad)), /\.\./)
 })
+
+// ── T002550: eingebaute llama-Tools ──────────────────────────────────────────
+//
+// Die Namen stammen aus `llama-server --help` (b10223) und sind bewusst als
+// Allowlist gefuehrt: read_file, file_glob_search, grep_search,
+// exec_shell_command, write_file, edit_file, get_datetime.
+//
+// 'all' waere ebenfalls ein gueltiger llama-Wert, wird hier aber ABGELEHNT.
+// llama.cpp kennt weder Sandbox noch Wurzelverzeichnis-Beschraenkung; wer
+// exec_shell_command freischaltet, gibt Shell-Zugriff mit den Rechten der Unit
+// auf das gesamte Benutzerverzeichnis. Ein Wort in der Registry darf das nicht
+// verstecken — die Faehigkeit muss dort namentlich stehen, wo sie erteilt wird.
+
+test('parseLoadouts: bekannte tools-Namen sind gueltig', () => {
+  const ok = structuredClone(valid)
+  ok.loadouts[0].tools = 'read_file,grep_search,edit_file'
+  assert.equal(parseLoadouts(JSON.stringify(ok)).loadouts[0].tools,
+    'read_file,grep_search,edit_file')
+})
+
+test('parseLoadouts: tools ist optional', () => {
+  // Positiv-Anker: ohne das Feld bleibt das Dokument gueltig.
+  const doc = parseLoadouts(JSON.stringify(valid))
+  assert.equal(doc.loadouts[0].tools, undefined)
+})
+
+test("parseLoadouts: tools='all' wird abgelehnt", () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].tools = 'all'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /namentlich/)
+})
+
+test('parseLoadouts: unbekannter tools-Name wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].tools = 'read_file,list_directory'
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /list_directory/)
+})
+
+test('parseLoadouts: leerer tools-String wird abgelehnt', () => {
+  const bad = structuredClone(valid)
+  bad.loadouts[0].tools = ''
+  assert.throws(() => parseLoadouts(JSON.stringify(bad)), /tools/)
+})

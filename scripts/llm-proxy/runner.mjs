@@ -51,6 +51,22 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   if (loadout.mcp?.serversConfig != null) argv.push('--mcp-servers-config', loadout.mcp.serversConfig);
   if (loadout.uiConfigFile != null) argv.push('--ui-config-file', loadout.uiConfigFile);
 
+  // T002550 — Eingebaute Tools (edit_file, write_file, grep_search,
+  // exec_shell_command …). Sie sind KEINE MCP-Tools: kein MCP-Server im Repo
+  // bietet Dateibearbeitung an, llama-server bringt sie selbst mit und schaltet
+  // sie nur ueber dieses Flag frei.
+  //
+  // ACHTUNG, kein Detail: llama.cpp kennt weder Sandbox noch
+  // Wurzelverzeichnis-Beschraenkung. Mit 'all' laeuft exec_shell_command mit
+  // den Rechten der Unit ueber das gesamte Benutzerverzeichnis — einschliesslich
+  // ~/.ssh, ~/.config und der git-crypt-entschluesselten Secrets im Repo. Das
+  // Feld bleibt deshalb OPTIONAL und wird bewusst pro Loadout gesetzt, nie global.
+  //
+  // Nebenwirkung laut upstream: --tools begrenzt --cors-origins standardmaessig
+  // auf localhost. Fuer unseren Fall folgenlos, weil WebUI und alle acht
+  // MCP-Endpunkte auf loopback liegen.
+  if (loadout.tools != null) argv.push('--tools', String(loadout.tools));
+
   // T002426: GEGENRICHTUNG zu --mcp-servers-config. Jenes Flag macht llama-server
   // zum MCP-*Client* (das Modell ruft fremde Tools). --ui-mcp-proxy betrifft die
   // Web-UI: ohne das Flag verbindet der BROWSER direkt zum eingetragenen

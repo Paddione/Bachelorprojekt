@@ -123,3 +123,30 @@ test('buildStartCommand kapselt systemd-run mit --user und --collect', () => {
   const sep = cmd.indexOf('--')
   assert.equal(cmd[sep + 1], '/opt/llama/bin/llama-server')
 })
+
+// ── T002550: eingebaute llama-Tools ──────────────────────────────────────────
+//
+// edit_file, write_file, exec_shell_command & Co. sind KEINE MCP-Tools, sondern
+// in llama-server eingebaut und nur ueber --tools erreichbar. Ohne das Flag hat
+// das Modell trotz acht MCP-Servern keine Moeglichkeit, Dateien zu bearbeiten.
+//
+// buildServerArgv reicht den Wert nur durch — welche Namen gueltig sind,
+// entscheidet der Validator in loadouts.mjs (TOOL_NAMES, kein 'all'). Deshalb
+// steht hier bewusst eine echte Namensliste und nicht das Sammelwort: der Test
+// soll kein Beispiel vorleben, das die Registry gar nicht mehr annimmt.
+
+test('tools-Feld erzeugt --tools in der argv', () => {
+  const tools = 'read_file,grep_search,edit_file'
+  const argv = buildServerArgv({ ...base, tools }, MODEL, defaults)
+  const i = argv.indexOf('--tools')
+  assert.ok(i >= 0, '--tools fehlt in der argv')
+  assert.equal(argv[i + 1], tools)
+})
+
+test('ohne tools-Feld bleibt die argv unveraendert', () => {
+  // Positiv-Anker zuerst: der Aufbau funktioniert ueberhaupt.
+  const argv = buildServerArgv(base, MODEL, defaults)
+  assert.ok(argv.includes('--port'), 'Grundgeruest der argv fehlt')
+  assert.equal(argv.includes('--tools'), false,
+    'Loadouts ohne tools-Feld duerfen kein --tools tragen')
+})

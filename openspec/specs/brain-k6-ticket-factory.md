@@ -8,17 +8,23 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu brain-k6-ticket-factory 
 
 ### Requirement: Diagramm mit beschrifteten Kanten (REQ-k6-01)
 
+#### Scenario: Diagramm-Erstellung
+
 **GIVEN** die Brain-Architektur wird dokumentiert
 **WHEN** K6 erstellt wird
 **THEN** existiert ein Diagramm mit beschrifteten Knoten und Kanten, das die zwei brand-getrennten Ticket-DBs (mentolder, korczewski) mit überlappendem `external_id`-Raum sowie den Zugriffspfad über `ticket-mcp`/`scripts/ticket.sh` und `factory-mcp` (:13003) darstellt
 
 ### Requirement: Vollständige Erhebung (REQ-k6-02)
 
+#### Scenario: Erhebung der Schnittstellen
+
 **GIVEN** die Komponente hat spezifische Datenquellen und Schnittstellen
 **WHEN** die Dokumentation wird erstellt
 **THEN** sind alle relevanten Aspekte erfasst (welche Tabellen existieren und welche gefüllt sind, wer schreibt, wer liest, wie "Merge gleich Abschluss" implementiert ist)
 
 ### Requirement: Defekt-Referenz (REQ-k6-03)
+
+#### Scenario: Defekt-Zuordnung
 
 **GIVEN** T002430 definiert die Defekte D1-D9
 **WHEN** K6 wird dokumentiert

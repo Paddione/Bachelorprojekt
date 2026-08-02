@@ -7,7 +7,12 @@
       // synct sie nach ~/.config/opencode/opencode.jsonc; .opencode/opencode.jsonc darf sie
       // NICHT erneut definieren, sonst driftet der Wert projekt-lokal ab (T002159).
       "options": {
-        "baseURL": "http://127.0.0.1:8091/v1",
+        // T002558: ueber den llm-proxy, NICHT direkt auf :8091. Damit gilt
+        // max_inflight=1 auch fuer die opencode-Agenten (sie serialisieren,
+        // statt gleichzeitig auf den Server zu gehen), und die Fallback-Kette
+        // gemma -> deepseek -> opencode-zen greift auch lokal. Vorher standen
+        // die Agenten bei totem Gemma schlicht ohne Modell da.
+        "baseURL": "http://127.0.0.1:18235/v1",
         "timeout": 600000,
         "chunkTimeout": 120000
       },
@@ -28,7 +33,7 @@
           // aber nicht gleichzeitig ausschoepfen - sie konkurrieren um
           // denselben Speicher.
           "limit": {
-            "context": 99840,
+            "context": 88832,
             "output": 8192
           }
         }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.235.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.235.1...website-v1.235.2) (2026-08-02)
+
+
+### Bug Fixes
+
+* **test:** deterministic anchor replaces ps-race sampling in argv test [T002537] ([#3627](https://github.com/Paddione/Bachelorprojekt/issues/3627)) ([86e3468](https://github.com/Paddione/Bachelorprojekt/commit/86e3468240a084030f54be401cf2246b272635c1))
+
 ## [1.235.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.235.0...website-v1.235.1) (2026-08-02)
 
 

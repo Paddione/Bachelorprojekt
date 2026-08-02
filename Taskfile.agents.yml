@@ -376,3 +376,24 @@ tasks:
       - task: mcp-gateway:status
       - echo ""
       - task: stdio:status
+
+  toolset:collect:
+    desc: "Collect toolset inventory across all harnesses"
+    cmds:
+      - node scripts/toolset/collect.mjs
+
+  toolset:check:
+    desc: "Run toolset capability gate (fail-closed, offline)"
+    cmds:
+      - node scripts/toolset/check.mjs
+
+  toolset:sync:
+    desc: "Surgically sync toolset registry into harness configs"
+    cmds:
+      - node scripts/toolset/sync.mjs
+
+  toolset:probe:
+    desc: "Probe live MCP servers and update lockfile"
+    cmds:
+      - node scripts/toolset/probe.mjs
+

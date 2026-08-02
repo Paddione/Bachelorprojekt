@@ -242,7 +242,7 @@ cmd_check() {
     render_agy_json > "$tmpd/agy.json"
     diff_or_drift "mcp_config.json" "$tmpd/agy.json" "$AGY_TARGET" || exit_code=1
   else
-    echo "mcp-sync: check: $AGY_TARGET not present — skipped (exit 0 based on repo files)" >&2
+    echo "SKIP: $AGY_TARGET not present — skipped (exit 0 based on repo files)"
   fi
 
   render_llamacpp_json > "$tmpd/llamacpp.json"

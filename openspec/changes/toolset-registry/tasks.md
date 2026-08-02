@@ -168,7 +168,7 @@ Infrastruktur reproduzierbar sind.
 
 Das Lockfile wird von `check.mjs` nicht gelesen und kann CI nicht rot machen.
 
-## Task 7 — Kuration, Karte und Task-Einhängung (p6)
+## Task 7 — Kuration, Karte und Task-Einhängung (p6) - [x]
 
 `.claude/skills/toolset-curate/SKILL.md` führt durch die `unreviewed`-Einträge:
 zeigt je Fall die überschneidende Fähigkeit und, sofern im Lockfile vorhanden,

@@ -76,6 +76,10 @@ export function buildStartCommand(loadout, modelPath, defaults, binPath, resolve
     // D3: systemd restart properties. MUST be before '--' separator.
     '--property=Restart=on-failure',
     '--property=RestartSec=5',
+    // T002538: Umgebungsvariablen der Unit. Ebenfalls VOR dem '--' — danach
+    // gaeben sie systemd-run als Argumente an das Binary weiter, das sie nicht
+    // kennt und mit unbekannter Option abbricht.
+    ...Object.entries(loadout.env ?? {}).map(([k, v]) => `--property=Environment=${k}=${v}`),
     `--description=llama.cpp loadout ${loadout.slug}`,
     '--',
     binPath,

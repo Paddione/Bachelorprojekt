@@ -9,6 +9,11 @@ export const DEFAULT_PATH = 'scripts/llm/loadouts.json';
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const LOADOUT_KEYS = new Set([
   'slug', 'label', 'model', 'port', 'fit', 'args', 'speculative', 'mcp', 'extraArgs', 'notes', 'exclusiveGroup',
+  // T002538: Umgebungsvariablen fuer die systemd-Unit. Gebraucht fuer
+  // CUDA_VISIBLE_DEVICES='' bei den CPU-gebundenen bge-Servern — '-ngl 0'
+  // verhindert nur das Auslagern der Layer, NICHT die Allokation eines
+  // CUDA-Kontexts (gemessen rund 600 MB je Prozess).
+  'env',
 ]);
 const ARG_KEYS = new Set([
   'ctx', 'ngl', 'parallel', 'cacheTypeK', 'cacheTypeV', 'loadMode',
@@ -64,6 +69,20 @@ function validateLoadout(l, index, seen) {
   }
 
   if (l.extraArgs != null && !Array.isArray(l.extraArgs)) fail(`${l.slug}: extraArgs muss ein Array sein`);
+
+  // env: flaches Objekt String -> String. Der Wert DARF leer sein — genau das
+  // ist der Anwendungsfall (CUDA_VISIBLE_DEVICES=''). Der Name muss dem
+  // POSIX-Muster folgen; ein '=' darin wuerde die systemd-Property zerlegen.
+  if (l.env != null) {
+    if (typeof l.env !== 'object' || Array.isArray(l.env)) {
+      fail(`${l.slug}: env muss ein Objekt sein`);
+    }
+    for (const [k, v] of Object.entries(l.env)) {
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(k)) fail(`${l.slug}: env-Name '${k}' ist kein gueltiger Variablenname`);
+      if (typeof v !== 'string') fail(`${l.slug}: env['${k}'] muss ein String sein`);
+      if (v.includes('\n')) fail(`${l.slug}: env['${k}'] darf keinen Zeilenumbruch enthalten`);
+    }
+  }
   return l;
 }
 

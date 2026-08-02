@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 714,
+      "file_count": 715,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -354,6 +354,7 @@
         "tests/spec/ci-cd/branch-reaper.bats",
         "tests/spec/ci-cd/changed-tests-collection-parity.bats",
         "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
+        "tests/spec/ci-cd/freshness-check-base-mismatch.bats",
         "tests/spec/ci-cd/mishap-t002425.bats",
         "tests/spec/ci-cd/pr-refresh-batch.bats",
         "tests/spec/ci-cd/skip-ci-marker-guard.bats",

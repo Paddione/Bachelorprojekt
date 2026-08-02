@@ -1174,6 +1174,21 @@ tasks:
       # from an identical tree produce zero changed files, and none of the 16
       # artifacts embed a wall-clock timestamp. Costs ~9s.
       - task: freshness:regenerate
+      # --- Phase 0b: measured-base note + origin/main divergence warning (T002561) ---
+      # `git diff --quiet HEAD -- "$f"` below measures only against the local HEAD.
+      # CI runs the same task against the PR's merge commit, which already
+      # contains the current origin/main — a different base. A local-green run
+      # can still fail in CI when the branch is behind origin/main. This block
+      # does not change the pass/fail outcome (warning only, no `exit 1`); it
+      # just makes the measured base visible and flags the exact condition that
+      # produces the mismatch, so a re-run isn't the first troubleshooting step.
+      - |
+        HEAD_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+        BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+        echo "ℹ freshness:check measured against local HEAD ${HEAD_SHA}"
+        if [ "${BEHIND:-0}" -gt 0 ] 2>/dev/null; then
+          echo "⚠ local branch is ${BEHIND} commit(s) behind origin/main — CI checks against the PR merge commit, which already includes those commits, so a green result here does not guarantee a green result in CI. Consider rebasing/merging origin/main first."
+        fi
       # --- Phase 1: diff-check each file ---
       - |
         ERRORS=0

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.239.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.7...website-v1.239.0) (2026-08-02)
+
+
+### Features
+
+* **toolset:** harness-übergreifende Werkzeug-Kuration [T002560] ([#3666](https://github.com/Paddione/Bachelorprojekt/issues/3666)) ([6816cbb](https://github.com/Paddione/Bachelorprojekt/commit/6816cbbeab1c70a67e704a50afef105f24af9486))
+
+
+### Bug Fixes
+
+* **ops:** plan-intel.sh read EXISTING_INTEL and .ticket from --out path [T002540] ([#3668](https://github.com/Paddione/Bachelorprojekt/issues/3668)) ([6f4ab0c](https://github.com/Paddione/Bachelorprojekt/commit/6f4ab0cc8f3615be2838165d2e67d8fc1f430120))
+
 ## [1.238.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.6...website-v1.238.7) (2026-08-02)
 
 

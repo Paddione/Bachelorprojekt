@@ -171,9 +171,29 @@ git push -u origin feature/<slug>
 
 Erzeuge aus `intel.json` (`impact_files`) das **Partial-Manifest**:
 1–N Partials mit disjunkten `target_files`-Listen; das **letzte Partial ist IMMER die
-Tests-Rolle** (`tests`, trägt den STRUCT2-Failing-Test-Step). Faustregel: 1 Partial bei
-< 5 `impact_files` / einem Subsystem, sonst Schnitt nach Subsystem, Tests separat. Keine
+Tests-Rolle** (`tests`, trägt den STRUCT2-Failing-Test-Step). Keine
 Datei in zwei Partials (D1 — `plan-lint.sh` erzwingt das im Partial-Modus).
+
+**Faustregel pro Agent-Modell:**
+
+| Agent-Modell | Max files/partial | Max steps | Kontext-Fenster |
+|---|---|---|---|
+| gemma26-factory (26B) | 5 | 10 | ~99840 |
+| gemma9-factory (9B) | 2–3 | 5 | ~8192 |
+| deepseek-* (Cloud) | 10+ | 50 | 128K–1M |
+
+**Gemma9-spezifische Partial-Sizing-Regeln:**
+- Jedes Partial umfasst **höchstens 2–3 Dateien** und **höchstens 5 Implementierungsschritte**
+- Ein Partial muss **in sich abgeschlossen** sein — der Agent darf keinen externen Kontext
+  aus anderen Partials benötigen
+- **Explizite Verifikation**: Jedes Partial listet eine konkrete Verifikation (z.B.
+  `task test:changed`, `python -c "import ..."`, `curl ...`)
+- **Keine indirekten Abhängigkeiten**: Wenn Partial p3 Datei X ändert, die p1 eingeführt hat,
+  muss p3 die vollständige X-Definition im Prompt enthalten (der 9B-Kontext reicht nicht
+  für werkzeugbasierte Exploration)
+- **Iterativer Fix-Loop**: Wenn ein Partial fehlschlägt → Fehler analysieren → Partial
+  korrigieren → direkt erneut enqueuen. Der Planner beobachtet den Factory-Output und
+  passt die folgenden Partials an
 
 #### Schritt C.2: Pipeline-Loop — Pro Partial: Plan → Stage → Enqueue → Factory
 
@@ -186,6 +206,16 @@ FOR each partial pX (p1, p2, ...):
   ├─► Schritt C.2a: Partial-Plan schreiben
   │     Fan-out Subagent via `delegate(prompt, agent="explore")` — Kontext: proposal.md,
   │     intel.json-Subset, Quality-Gates. Schreibt `tasks.d/pX-<name>.md`.
+  │
+  │     **Gemma9-Partials**: Jedes Partial braucht ein **Scaffolding-Preamble** am Anfang
+  │     der tasks.d/pX-Datei, das dem Agenten sagt, was er NICHT tun soll (keine
+  │     Exploration, keine Annahmen, nur den Plan ausführen). Format:
+  │     ```
+  │     # pX: <title>
+  │     > **Agent:** gemma9-{1,2} | **Files:** f1.ts, f2.ts | **Steps:** 3-5
+  │     > **Context budget:** 6000 tokens nach System-Prompt
+  │     > **Verify:** `<command>`
+  │     ```
   │
   ├─► Schritt C.2b: tasks.md-Index aktualisieren
   │     Der Orchestrator updated `tasks.md` mit dem neuen Partial-Eintrag im Manifest

@@ -2241,6 +2241,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002543": [
+    {
+      "slug": "mcp-gateway-watchdog",
+      "status": "plan_staged"
+    }
+  ],
   "T002544": [
     {
       "slug": "2026-08-02-ui-config-mcp-seed",

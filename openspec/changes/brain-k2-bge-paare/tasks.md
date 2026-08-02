@@ -2,7 +2,7 @@
 title: "K2 Bge Paare"
 ticket_id: T002432
 domains: [docs]
-status: in_progress
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

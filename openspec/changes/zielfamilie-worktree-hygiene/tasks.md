@@ -190,13 +190,13 @@ CI=true task freshness:check 2>&1 | grep -c 'uebersprungen'
 
 ## Task 6 — Finale Verifikation
 
-- [ ] Testinventar neu erzeugen, weil eine BATS-Datei hinzugekommen ist:
+- [x] Testinventar neu erzeugen, weil eine BATS-Datei hinzugekommen ist:
 
 ```bash
 task test:inventory
 ```
 
-- [ ] OpenSpec-Delta validieren:
+- [x] OpenSpec-Delta validieren:
 
 ```bash
 bash scripts/openspec.sh validate zielfamilie-worktree-hygiene

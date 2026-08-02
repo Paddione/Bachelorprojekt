@@ -238,6 +238,54 @@ echo ""
 echo ""
 echo "Phase 2 complete: Processed=$PROCESSED, Skipped=$SKIPPED, Failed=$FAILED (parallel, MAX_PARALLEL=$MAX_PARALLEL)"
 
+# Fehlerschwelle (T002533). Ohne dieses Gate endete ein Lauf, der 0 von 92
+# Quellen verarbeitet und 67-mal "LLM failed" gemeldet hatte, mit Exit 0 — von
+# einem Erfolg nicht zu unterscheiden, wenn man nicht in den Log sieht. Genau so
+# blieb ein toter LLM-Endpunkt unbemerkt bestehen.
+#
+# Die Schwelle ist bewusst grob: ein einzelner Ausfall (Zeitueberschreitung an
+# einer grossen Datei) soll den Lauf nicht kippen, ein systematischer schon.
+# Attempted = alles ausser Uebersprungenem; nur DAS ist die sinnvolle Bezugsmenge,
+# denn idempotent uebersprungene Quellen sagen ueber die Anbieter-Gesundheit nichts.
+# Zwei Regeln, weil eine allein jeweils den falschen Fall trifft:
+#
+#   a) Absolute Untergrenze. Viele Fehlschlaege heissen "der Endpunkt ist kaputt",
+#      unabhaengig von der Quote. Der Ausgangsfall waren 67 Fehlschlaege.
+#   b) Quote — aber erst ab einer Mindest-Stichprobe. Dank Idempotenz fasst ein
+#      Nachlauf oft nur eine Handvoll Quellen an; dort kippt ein einzelner
+#      transienter Fehlschlag (bei gehosteten Anbietern typisch:
+#      Ratenbegrenzung unter Parallelitaet) jede sinnvolle Quote.
+#
+# Ausdruecklich KEINE Regel ist "PROCESSED == 0 heisst Abbruch": ein Lauf, bei dem
+# alles idempotent uebersprungen wurde und genau eine hartnaeckige Quelle uebrig
+# bleibt, ist der Normalfall am Ende einer Ingest-Reihe, kein Stoerfall.
+INGEST_MAX_FAIL_PCT="${INGEST_MAX_FAIL_PCT:-20}"
+INGEST_MIN_SAMPLE="${INGEST_MIN_SAMPLE:-10}"
+INGEST_MAX_FAIL_ABS="${INGEST_MAX_FAIL_ABS:-10}"
+_attempted=$((PROCESSED + FAILED))
+_abort_reason=""
+if [ "$FAILED" -ge "$INGEST_MAX_FAIL_ABS" ]; then
+  _abort_reason="${FAILED} Quellen fehlgeschlagen (absolute Schwelle ${INGEST_MAX_FAIL_ABS})"
+elif [ "$_attempted" -ge "$INGEST_MIN_SAMPLE" ]; then
+  _fail_pct=$((FAILED * 100 / _attempted))
+  if [ "$_fail_pct" -gt "$INGEST_MAX_FAIL_PCT" ]; then
+    _abort_reason="${FAILED} von ${_attempted} versuchten Quellen fehlgeschlagen (${_fail_pct}%, Schwelle ${INGEST_MAX_FAIL_PCT}%)"
+  fi
+fi
+if [ -n "$_abort_reason" ]; then
+  echo "" >&2
+  echo "ERROR: ${_abort_reason}." >&2
+  echo "       Das ist kein Einzelausfall — pruefe zuerst den LLM-Endpunkt:" >&2
+  echo "         LM_STUDIO_URL=${LM_STUDIO_URL:-<nicht gesetzt>}  LM_MODEL=${LM_MODEL:-<nicht gesetzt>}" >&2
+  echo "       Es wurde nichts ausgeliefert. Stellschrauben: INGEST_MAX_FAIL_ABS," >&2
+  echo "       INGEST_MAX_FAIL_PCT, INGEST_MIN_SAMPLE." >&2
+  exit 1
+fi
+if [ "$FAILED" -gt 0 ]; then
+  echo "WARN: ${FAILED} Quelle(n) fehlgeschlagen — unterhalb der Abbruchschwelle." >&2
+  echo "      Bei gehosteten Anbietern meist transient; ein Nachlauf holt sie idempotent nach." >&2
+fi
+
 # ============================================================
 # Phase 2b: MOC Generation
 # ============================================================

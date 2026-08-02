@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # brain-ingest-transform.sh — LLM-assisted transformation of source files
-# into brain wiki pages. Calls a local llama-server ingest-pool endpoint
-# (OpenAI-compatible; standalone llama-server.exe, not LM Studio's own
-# server — see start-qwen36-ingest-pool.ps1, -np 6 concurrent slots).
+# into brain wiki pages. Calls any OpenAI-compatible chat endpoint: a local
+# llama-server from scripts/llm/loadouts.json, or a hosted provider such as
+# DeepSeek when LM_API_KEY is set.
+#
+# Es gibt bewusst KEINE Vorgabe-Adresse mehr. Die frühere Vorgabe zeigte auf
+# einen Ingest-Pool (localhost:8093, qwen3.6-14b-a3b-fablevibes), der mit dem
+# Loadout-Umbau entfallen ist — samt des hier einmal genannten Startskripts
+# start-qwen36-ingest-pool.ps1. Weil das Skript trotzdem startete, meldete es
+# 92-mal einzeln "LLM failed" statt einmal zu sagen, dass es kein Ziel hat.
+# LM_STUDIO_URL und LM_MODEL sind deshalb Pflicht. [T002533]
 #
 # Usage: brain-ingest-transform.sh <source_file> <type> <slug> <slugs_json> <tag_defaults_json>
 #
@@ -14,9 +21,18 @@
 #   tag_defaults_json — JSON array of default tags for the group
 #
 # Env:
-#   LM_STUDIO_URL    — ingest-pool API URL (default: http://localhost:8093;
-#                      var name kept for backward compat, it's not LM Studio)
-#   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
+#   LM_STUDIO_URL    — REQUIRED. OpenAI-compatible base URL, e.g.
+#                      http://127.0.0.1:8091 or https://api.deepseek.com
+#                      (var name kept for backward compat, it's not LM Studio)
+#   LM_MODEL         — REQUIRED. Model id, e.g. deepseek-chat
+#   LM_API_KEY       — Optional. Sent as `Authorization: Bearer`. Leer lassen
+#                      für lokale llama-server, die keine Auth erwarten.
+#   LM_DISABLE_THINKING — Optional (1). Schaltet die Denkphase ab. Pflicht bei
+#                      DeepSeek v4: sonst verbraucht das Modell das gesamte
+#                      Token-Budget in `reasoning_content` und liefert leeres
+#                      `content`. Mehr max_tokens hilft nicht — das Denken
+#                      waechst mit. Bei DeepSeek wirkt `thinking.type=disabled`;
+#                      `enable_thinking:false` wird dort ignoriert. [T002533]
 #   MAX_SOURCE_CHARS — Max source chars to send to LLM (default: 4000)
 #
 # Output: Transformed markdown with frontmatter to stdout
@@ -29,8 +45,12 @@ SLUG="${3:?page slug required}"
 SLUGS_JSON="${4:?slugs json required}"
 TAG_DEFAULTS="${5:?tag defaults json required}"
 
-LM_URL="${LM_STUDIO_URL:-http://localhost:8093}"
-LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
+LM_URL="${LM_STUDIO_URL:?LM_STUDIO_URL required (OpenAI-compatible base URL, e.g. https://api.deepseek.com)}"
+LM_MODEL="${LM_MODEL:?LM_MODEL required (model id, e.g. deepseek-chat)}"
+LM_API_KEY="${LM_API_KEY:-}"
+# Gehostete Anbieter antworten spuerbar langsamer als ein lokaler llama-server;
+# 90 s reichen dort nicht zuverlaessig fuer 3072 Ausgabe-Tokens.
+LM_TIMEOUT="${LM_TIMEOUT:-180}"
 MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-4000}"
 
 # Validate source file exists
@@ -71,24 +91,44 @@ ${CONTENT}
 
 Gib NUR das fertige Markdown aus:"
 
-# Call LM Studio API with optimized settings, populating $OUTPUT.
+# Call the OpenAI-compatible chat endpoint, populating $OUTPUT.
+#
+# Der API-Schluessel geht ueber `curl --config -` (stdin), NICHT als -H-Argument:
+# alles in argv ist auf dem Host per `ps` fuer jeden anderen Prozess lesbar. Ohne
+# Schluessel bleibt die Konfiguration leer und das Verhalten unveraendert.
 call_llm() {
-  local prompt="$1" response
-  response="$(curl -sf --max-time 90 "${LM_URL}/v1/chat/completions" \
+  local prompt="$1" response curl_cfg="" think='{}'
+  [ -n "$LM_API_KEY" ] && curl_cfg="$(printf 'header = "Authorization: Bearer %s"' "$LM_API_KEY")"
+  [ "${LM_DISABLE_THINKING:-0}" = "1" ] && think='{"thinking":{"type":"disabled"}}'
+  response="$(printf '%s\n' "$curl_cfg" | curl -sf --config - --max-time "$LM_TIMEOUT" "${LM_URL}/v1/chat/completions" \
     -H "Content-Type: application/json" \
     -d "$(jq -n \
       --arg model "$LM_MODEL" \
       --arg prompt "$prompt" \
-      '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: 3072, top_p: 0.9}')" 2>&1)" || {
-    echo "error: LM Studio API call failed" >&2
+      --argjson think "$think" \
+      '{model: $model, messages: [{role: "user", content: $prompt}], temperature: 0.2, max_tokens: 3072, top_p: 0.9} + $think')" 2>&1)" || {
+    echo "error: chat completion request failed (${LM_URL}, model ${LM_MODEL})" >&2
     echo "$response" >&2
     exit 1
   }
 
   OUTPUT="$(echo "$response" | jq -r '.choices[0].message.content // empty')"
   if [ -z "$OUTPUT" ]; then
-    echo "error: empty response from LM Studio" >&2
-    echo "$response" >&2
+    # Leeres content bei gefuelltem reasoning_content ist kein Anbieterfehler,
+    # sondern ein Reasoning-Modell, das sein ganzes Budget verdacht hat. Diese
+    # Unterscheidung gehoert in die Meldung — ohne sie sieht der Fall aus wie
+    # ein toter Endpunkt und man sucht an der falschen Stelle. [T002533]
+    local reason_len finish
+    reason_len="$(echo "$response" | jq -r '(.choices[0].message.reasoning_content // "") | length' 2>/dev/null || echo 0)"
+    finish="$(echo "$response" | jq -r '.choices[0].finish_reason // "?"' 2>/dev/null || echo '?')"
+    if [ "${reason_len:-0}" -gt 0 ]; then
+      echo "error: leeres content, aber ${reason_len} Zeichen reasoning_content (finish_reason=${finish})." >&2
+      echo "       Das Modell hat sein Token-Budget im Denken verbraucht. Setze LM_DISABLE_THINKING=1." >&2
+      echo "       Mehr max_tokens hilft nicht — die Denkphase waechst mit." >&2
+    else
+      echo "error: empty response from ${LM_URL} (model ${LM_MODEL}, finish_reason=${finish})" >&2
+      echo "$response" >&2
+    fi
     exit 1
   fi
 

@@ -259,7 +259,7 @@ stop_mock_llm() {
   SLUGS_JSON="$FIX/slugs.json"
   printf '["docs-kept"]\n' > "$SLUGS_JSON"
   start_mock_llm $'---\ntype: note\ntags: [x]\nstatus: active\n---\nkein rueckverweis'
-  LM_STUDIO_URL="http://127.0.0.1:$PORT" run bash "$REPO_ROOT/scripts/brain-ingest-transform.sh" "$FIX/repo/docs/kept.md" note docs-kept "$SLUGS_JSON" '["note"]'
+  LM_STUDIO_URL="http://127.0.0.1:$PORT" LM_MODEL=mock run bash "$REPO_ROOT/scripts/brain-ingest-transform.sh" "$FIX/repo/docs/kept.md" note docs-kept "$SLUGS_JSON" '["note"]'
   stop_mock_llm
   [ "$status" -ne 0 ]
   [[ "$output" == *"validation: missing source:: line"* ]]
@@ -271,7 +271,7 @@ stop_mock_llm() {
   SLUGS_JSON="$FIX/slugs.json"
   printf '["docs-kept"]\n' > "$SLUGS_JSON"
   start_mock_llm $'---\ntype: note\ntags: [x]\nstatus: active\n---\nsource:: Bachelorprojekt docs/kept.md\nbody [[docs-kept]]'
-  LM_STUDIO_URL="http://127.0.0.1:$PORT" run bash "$REPO_ROOT/scripts/brain-ingest-transform.sh" "$FIX/repo/docs/kept.md" note docs-kept "$SLUGS_JSON" '["note"]'
+  LM_STUDIO_URL="http://127.0.0.1:$PORT" LM_MODEL=mock run bash "$REPO_ROOT/scripts/brain-ingest-transform.sh" "$FIX/repo/docs/kept.md" note docs-kept "$SLUGS_JSON" '["note"]'
   stop_mock_llm
   [ "$status" -eq 0 ]
   [ "$(cat "$BATS_TEST_TMPDIR/hits")" -eq 1 ]

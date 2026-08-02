@@ -2514,6 +2514,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/index-repo-embed-port",
+    "file": "tests/spec/llm-pipeline/index-repo-embed-port.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy",
     "file": "tests/spec/local-llm-proxy.bats",
     "category": "local-llm-proxy",
@@ -2522,6 +2528,12 @@
   {
     "id": "local-llm-proxy/bge-token-ssot",
     "file": "tests/spec/local-llm-proxy/bge-token-ssot.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/embed-bge-fallback",
+    "file": "tests/spec/local-llm-proxy/embed-bge-fallback.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },

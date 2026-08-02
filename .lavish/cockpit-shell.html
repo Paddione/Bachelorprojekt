@@ -6,21 +6,11 @@
   <title>SDLC Cockpit Shell</title>
   <link rel="stylesheet" href="/cockpit/kit/tokens.css">
   <link rel="stylesheet" href="/cockpit/kit/panel.css">
+  <link rel="stylesheet" href="/cockpit/kit/layout.css">
   <script src="/cockpit/kit/action-policy.js"></script>
   <script src="/cockpit/kit/panel.js"></script>
+  <script src="/cockpit/kit/layout.js"></script>
   <script src="/cockpit/kit/adapter.js"></script>
-  <style>
-    /* ONLY layout — no colors, sizes, etc. that should come from tokens */
-    * { box-sizing: border-box; margin: 0; }
-    html, body { height: 100%; }
-    .cockpit-layout { display: flex; height: 100vh; }
-    .cockpit-focus { width: 220px; display: flex; flex-direction: column; gap: 4px; padding: 8px; background: var(--color-bg-base); border-right: 1px solid var(--color-border-muted); overflow-y: auto; flex-shrink: 0; }
-    .cockpit-workspace { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; overflow-y: auto; align-content: flex-start; }
-    .cockpit-header { padding: 8px 16px; background: var(--color-bg-elevated); border-bottom: 1px solid var(--color-border-muted); font-family: var(--font-ui); font-size: var(--text-sm); display: flex; align-items: center; gap: 8px; }
-    .cockpit-header h1 { margin: 0; font-size: var(--text-base); font-weight: var(--weight-semibold); }
-    .cockpit-workspace .panel--card { flex: 1 1 400px; max-width: 600px; }
-    .cockpit-workspace .panel--fullscreen { position: static; flex: 1 1 100%; max-width: 100%; border-radius: var(--radius-md); margin-top: 8px; }
-  </style>
 </head>
 <body>
   <div class="cockpit-header">
@@ -30,8 +20,13 @@
   </div>
 
   <div class="cockpit-layout">
-    <!-- FOCUS COLUMN — 5 Rail panels -->
+    <!-- FOCUS COLUMN — 5 Rail panels unter den vier D7-Gruppen (E3, D7) -->
     <aside class="cockpit-focus">
+      <div class="cockpit-rail-group">Laufende Epics</div>
+      <div class="cockpit-rail-group">Was Aufmerksamkeit braucht</div>
+      <div class="cockpit-rail-group">Aktive Agenten</div>
+      <div class="cockpit-rail-group">Modell-Server</div>
+
       <div class="panel panel--rail" data-panel-type="status" data-source="tickets" data-refresh-interval="30000" id="panel-tickets">
         <div class="panel__head">
           <span class="panel__title">Tickets</span>

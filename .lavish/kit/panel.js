@@ -1,6 +1,14 @@
 class Panel {
   static registry = new Map();
 
+  static get(el) {
+    return Panel.registry.get(el);
+  }
+
+  static adopt(el) {
+    return Panel.get(el) || Panel.create(el);
+  }
+
   static create(el) {
     const type = el.dataset.panelType;
     if (!['status', 'strom', 'canvas', 'terminal'].includes(type)) {
@@ -69,6 +77,10 @@ class Panel {
   destroy() {
     this.stopPolling();
     if (this.observer) this.observer.disconnect();
+    // [T002462] Ein zerstoertes Panel muss aus der statischen Registry fallen —
+    // fuer Pop-out und Katalog-Rueckkehr ist ein stehengebliebener Eintrag ein
+    // echter Fehler, nicht Kosmetik.
+    Panel.registry.delete(this.el);
   }
 
   stopPolling() {

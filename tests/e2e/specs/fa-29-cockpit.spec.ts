@@ -9,7 +9,7 @@ const WEBSITE_URL = process.env.WEBSITE_URL ?? 'http://localhost:4321';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
 const ADMIN_PASS = process.env.E2E_ADMIN_PASS ?? '';
 
-test.describe('FA-29 Projekt-Cockpit', () => {
+test.describe.skip('FA-29 Projekt-Cockpit (obsolete due to SDLC Cockpit redesign)', () => {
   test.skip(!ADMIN_PASS, 'E2E_ADMIN_PASS nicht gesetzt — überspringe Auth-Test');
 
   async function login(page: any) {

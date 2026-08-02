@@ -1246,17 +1246,16 @@ command's JSON output does not expose a `severity` field.
 
 ### Requirement: The Software Factory picks up staged task tickets
 
-The Software Factory scheduling pipeline SHALL consume `type='task'` and `type='bug'`
-tickets at `status='plan_staged'` in addition to `type='feature'` backlog tickets, so that
-a chore plan staged by the `mishap-tracker` and a fix plan staged by `dev-flow-plan` are
-both implemented, PR'd, and merged without human intervention. Task and bug tickets SHALL
-NOT require the feature-only `lastenheft_locked` readiness flag, because the staged plan is
-itself authored and lint-gated by `stage-plan`. Task and bug tickets SHALL share one single
-dispatch branch in the `queue.sh` WHERE clause, so that the `execution_released` and
-`factory_excluded` readiness gates apply identically to both types and cannot drift apart.
-The pipeline SHALL treat `chore/<slug>` work branches as first-class alongside `feature/*`
-and `fix/*` for the deploy guard, produce a `chore(...)`-prefixed PR title for them, and
-derive the pipeline slug from any `feature|fix|chore` branch prefix.
+The Software Factory scheduling pipeline SHALL consume **every** ticket type except `project` at
+`status='plan_staged'`, in addition to `type IN ('feature','feat')` backlog tickets, so that a
+plan staged by the `mishap-tracker` or by `dev-flow-plan` is implemented, PR'd, and merged without
+human intervention. The staged lane SHALL be expressed as an exclusion (`type <> 'project'`)
+rather than an enumeration of accepted types, so that adding a type to the vocabulary cannot
+render staged tickets of that type invisible to the dispatcher. Staged tickets SHALL NOT require
+the feature-only `lastenheft_locked` readiness flag. The pipeline SHALL treat `chore/<slug>` work
+branches as first-class alongside `feature/*` and `fix/*` for the deploy guard, produce a
+`chore(...)`-prefixed PR title for them, and derive the pipeline slug from any
+`feature|fix|chore` branch prefix.
 
 #### Scenario: queue.sh surfaces a staged task ticket
 
@@ -1264,18 +1263,17 @@ derive the pipeline slug from any `feature|fix|chore` branch prefix.
 - **WHEN** `scripts/factory/queue.sh` runs for that brand
 - **THEN** the ticket appears in the candidate JSON without needing `lastenheft_locked`
 
-#### Scenario: queue.sh surfaces a staged bug ticket
+#### Scenario: queue.sh surfaces a staged ticket of a newly introduced type
 
-- **GIVEN** a `type='bug', status='plan_staged'` ticket whose plan was staged by `dev-flow-plan`
+- **GIVEN** staged tickets with `type` in (`chore`, `fix`, `docs`, `refactor`, `perf`, `test`, `ci`, `build`)
 - **WHEN** `scripts/factory/queue.sh` runs for that brand
-- **THEN** the ticket appears in the candidate JSON without needing `lastenheft_locked`
+- **THEN** every one of them appears in the candidate JSON
 
-#### Scenario: the readiness gates hold for staged bug tickets
+#### Scenario: Epics are never dispatched
 
-- **GIVEN** a `type='bug', status='plan_staged'` ticket carrying `readiness.factory_excluded=true`
-  (set by `ticket.sh unfactory`) or `readiness.execution_released=false` (set by `stage-plan --hold`)
+- **GIVEN** a `type='project', status='plan_staged'` ticket
 - **WHEN** `scripts/factory/queue.sh` runs for that brand
-- **THEN** the ticket is absent from the candidate JSON, exactly as for a task ticket
+- **THEN** the ticket does NOT appear in the candidate JSON
 
 #### Scenario: slots.sh claims a slot for a staged task ticket
 
@@ -1425,27 +1423,13 @@ unchanged (Merge = Abschluss).
 
 ### Requirement: Bonsai Provider Registration for Implement and Review
 
-The system SHALL provide an idempotent registration script
-(`scripts/factory/provider-register-bonsai.sh`) that registers the local Bonsai
-llama.cpp server (`llamacpp`, model `ternary-bonsai-27b`, base URL
-`http://127.0.0.1:8093/v1`, `max_concurrent=3`) in `tickets.provider_config`
-via `ON CONFLICT (source, tier, priority) DO UPDATE` and pins
-`tickets.factory_model_slots` for `phase='implement'` and `phase='verify'` via
-`ON CONFLICT (phase) DO UPDATE`, for both brands. Scout and Plan phases keep
-their existing routing. The server-side slot budget convention is `-np 4` = 3
-factory workers + 1 orchestrator; the factory DB pool stays at 3.
+`scripts/factory/provider-register-bonsai.sh` SHALL register the logical model id `ternary-bonsai` with base URL `http://127.0.0.1:18235` (the unified gateway) in `tickets.provider_config` and `tickets.factory_model_slots` — never a backend port directly. This resolves the previous contradiction with the local-llm-proxy spec ("no enabled row references :8093 or :1234").
 
-#### Scenario: Registration is idempotent
+#### Scenario: Registration writes gateway URL
 
-- **GIVEN** the registration script already ran once
-- **WHEN** it runs a second time
-- **THEN** it exits 0 and the end state is identical — no duplicate rows in `provider_config` or `factory_model_slots`
-
-#### Scenario: Implement and review phases route to Bonsai
-
-- **GIVEN** the registration script has run
-- **WHEN** `route-provider.sh factory-implement sonnet` or the review path resolves a provider
-- **THEN** the phase-pinned `factory_model_slots` row wins and returns `llamacpp` with base URL `http://127.0.0.1:8093/v1`
+- **GIVEN** the registration script runs against a brand database
+- **WHEN** its idempotent upserts complete
+- **THEN** every row it touched has `base_url = http://127.0.0.1:18235` and `model_id = ternary-bonsai`, and re-running it never reintroduces `:8093`
 
 ### Requirement: PR Creation Gate after Local Verify and Completed Review
 
@@ -1533,24 +1517,13 @@ the derived next scheduled tick timestamp.
 
 ### Requirement: Force-Tick Trigger
 
-The system SHALL expose an admin-guarded `POST /api/factory/force-tick` endpoint that records
-a force-tick request by writing the `force-tick-requested` control key (ISO timestamp) into
-`tickets.factory_control`, so the next factory tick consumes it. The endpoint SHALL be
-idempotent — repeated calls only overwrite the timestamp.
+The force-tick flag (`tickets.factory_control`, key `force-tick-requested`) SHALL cause an actual factory tick within 30 seconds: a `factory-forcetick.timer` systemd user timer polls the flag and starts `factory.service` when set. `wakeup.sh` keeps consuming (logging and deleting) the flag for audit purposes.
 
-#### Scenario: Admin forces the next tick
+#### Scenario: Admin force-tick actually ticks
 
-- **GIVEN** an admin session
-- **WHEN** `POST /api/factory/force-tick` is called
-- **THEN** the `force-tick-requested` control key is written with the current timestamp and the
-  endpoint responds with HTTP 200
-
-#### Scenario: Factory tick consumes and clears the force-tick flag
-
-- **GIVEN** a `force-tick-requested` control key is set
-- **WHEN** `scripts/factory/wakeup.sh` starts a tick
-- **THEN** it logs that the tick was forced, clears the `force-tick-requested` key, and writes
-  `last-tick-at` with the tick completion time
+- **GIVEN** the factory is idle and the admin API sets the force-tick flag
+- **WHEN** the forcetick timer fires (≤30 s later)
+- **THEN** `factory.service` is started and the flag is consumed by the resulting tick
 
 ### Requirement: Parallel-Status Panel
 
@@ -2331,6 +2304,36 @@ of thumb (one partial per disjoint subsystem, tests separate) instead of a hard 
 - **GIVEN** a plan index whose manifest declares five disjoint partials
 - **WHEN** the plan is staged with `--partials 5`
 - **THEN** staging succeeds and the ticket's slot_count is 5
+
+### Requirement: Stage-Plan Wake Trigger
+
+`scripts/vda/ticket/stage-plan.sh` SHALL, after its DB writes succeed, set the force-tick flag and fire-and-forget `systemctl --user start factory.service` (non-fatal when systemd is unavailable), so a freshly staged plan is picked up without waiting for the 5-minute fallback timer.
+
+#### Scenario: Staging wakes the factory
+
+- **GIVEN** the factory loop is idle
+- **WHEN** a plan is staged via stage-plan.sh
+- **THEN** a factory tick starts within seconds (not minutes) and the staged ticket is auto-enqueued in that tick
+
+### Requirement: Pre-Dispatch Gateway Health Gate
+
+`dispatcher-bridge.sh` SHALL probe the LLM gateway (`GET ${ANTHROPIC_BASE_URL:-http://localhost:18235}/healthz`, timeout ≤3 s) before claiming budget/slots for a ticket. On probe failure the ticket is skipped with a log line and remains untouched — no gang slot is burned and no doomed `claude -p` session is spawned.
+
+#### Scenario: Dead gateway does not burn slots
+
+- **GIVEN** the gateway is unreachable or reports 503
+- **WHEN** the dispatcher iterates launchable tickets
+- **THEN** no ticket transitions to `in_progress`, no worktree/session is created, and a skip reason is logged
+
+### Requirement: Env-driven phase model routing
+
+`scripts/factory/pipeline.mjs` SHALL derive its phase-agent model target from environment (`FACTORY_LLM_BASE_URL` default `http://127.0.0.1:18235`, `FACTORY_LLM_MODEL` default `ternary-bonsai`, `FACTORY_LLM_PROVIDER` default `llamacpp`) instead of a hardcoded LM-Studio constant, so orchestrator and phase agents share one gateway egress.
+
+#### Scenario: Phases route through the gateway
+
+- **GIVEN** autopilot.env sets no overrides
+- **WHEN** a pipeline phase spawns an agent
+- **THEN** the agent's LLM call targets `http://127.0.0.1:18235` with model `ternary-bonsai`
 
 ## Testszenarien
 
@@ -4197,3 +4200,7 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (4da4d4334551) -->
 
 <!-- merged from change delta software-factory.md (34edcab2a35e) -->
+
+<!-- merged from change delta software-factory.md (7f99dff50f19) -->
+
+<!-- merged from change delta software-factory.md (72ef25c44023) -->

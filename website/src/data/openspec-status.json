@@ -1345,8 +1345,8 @@
   ],
   "T002102": [
     {
-      "slug": "unified-llm-gateway",
-      "status": "plan_staged"
+      "slug": "2026-08-02-unified-llm-gateway",
+      "status": "archived"
     }
   ],
   "T002105": [
@@ -1429,14 +1429,14 @@
   ],
   "T002149": [
     {
-      "slug": "website-db-split",
-      "status": "plan_staged"
+      "slug": "2026-08-02-website-db-split",
+      "status": "archived"
     }
   ],
   "T002150": [
     {
-      "slug": "t002150-website-db-split-stage-2",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002150-website-db-split-stage-2",
+      "status": "archived"
     }
   ],
   "T002154": [
@@ -1489,8 +1489,8 @@
   ],
   "T002183": [
     {
-      "slug": "t002183-triage-fix",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002183-triage-fix",
+      "status": "archived"
     }
   ],
   "T002184": [
@@ -1501,26 +1501,26 @@
   ],
   "T002185": [
     {
-      "slug": "t002185-health-goals-cronjob",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002185-health-goals-cronjob",
+      "status": "archived"
     }
   ],
   "T002186": [
     {
-      "slug": "t002186-ci-watch",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002186-ci-watch",
+      "status": "archived"
     }
   ],
   "T002187": [
     {
-      "slug": "t002187-pocket-id-seed-fix",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002187-pocket-id-seed-fix",
+      "status": "archived"
     }
   ],
   "T002188": [
     {
-      "slug": "t002188-dev-flow-plan-fix",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002188-dev-flow-plan-fix",
+      "status": "archived"
     }
   ],
   "T002193": [
@@ -1531,8 +1531,8 @@
   ],
   "T002196": [
     {
-      "slug": "t002196-website-api-status",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002196-website-api-status",
+      "status": "archived"
     }
   ],
   "T002199": [
@@ -1567,8 +1567,8 @@
   ],
   "T002207": [
     {
-      "slug": "t002207-flux-health-gate",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002207-flux-health-gate",
+      "status": "archived"
     }
   ],
   "T002209": [
@@ -1699,8 +1699,8 @@
   ],
   "T002280": [
     {
-      "slug": "ticket-sh-brand-derivation",
-      "status": "plan_staged"
+      "slug": "2026-08-02-ticket-sh-brand-derivation",
+      "status": "archived"
     }
   ],
   "T002284": [
@@ -1795,8 +1795,8 @@
   ],
   "T002329": [
     {
-      "slug": "ticket-type-vocabulary",
-      "status": "plan_staged"
+      "slug": "2026-08-02-ticket-type-vocabulary",
+      "status": "archived"
     }
   ],
   "T002330": [
@@ -2023,8 +2023,8 @@
   ],
   "T002420": [
     {
-      "slug": "task-context-channel",
-      "status": "plan_staged"
+      "slug": "2026-08-02-task-context-channel",
+      "status": "archived"
     }
   ],
   "T002423": [
@@ -2059,8 +2059,8 @@
   ],
   "T002429": [
     {
-      "slug": "t2429-stdio-mcps-bridge",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t2429-stdio-mcps-bridge",
+      "status": "archived"
     }
   ],
   "T002432": [
@@ -2333,8 +2333,8 @@
   ],
   "T002560": [
     {
-      "slug": "toolset-registry",
-      "status": "plan_staged"
+      "slug": "2026-08-02-toolset-registry",
+      "status": "archived"
     }
   ],
   "T002561": [

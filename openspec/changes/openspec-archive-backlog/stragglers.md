@@ -446,3 +446,41 @@ Format: Slug, Charge, betroffene SSOT-Spec, Fehlermeldung im Wortlaut.
   SSOT nicht (mehr) existiert. Der Change wurde von Charge 6 zurückgestellt und nicht
   archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta-Fix, nicht
   SSOT-Direktedit) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## t002184-livekit-removal
+
+- **Charge**: 7
+- **SSOT-Spec**: `openspec/specs/fleet-operations.md` (bestehend)
+- **Fehlermeldung**: `ERROR: fleet-operations.md: MODIFIED target 'Brand-Specific TURN IP Pinning' not found in fleet-operations.md`
+- **Befund**: Das Delta referenziert ein `### MODIFIED Requirements`-Ziel, das in der aktuellen
+  SSOT nicht (mehr) existiert. Der Change wurde von Charge 7 zurückgestellt und nicht
+  archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta-Fix, nicht
+  SSOT-Direktedit) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## ticket-pgpod-running-pod-selector
+
+- **Charge**: 7
+- **SSOT-Spec**: `openspec/specs/mcp-gateway.md` (bestehend)
+- **Fehlermeldung**: `ERROR: mcp-gateway.md: MODIFIED target 'Architektur-Notiz beschreibt den tatsächlichen Betriebsmodus' not found in mcp-gateway.md`
+- **Befund**: Das Delta referenziert ein `### MODIFIED Requirements`-Ziel, das in der aktuellen
+  SSOT nicht (mehr) existiert. Der Change wurde von Charge 7 zurückgestellt und nicht
+  archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta-Fix, nicht
+  SSOT-Direktedit) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## website-e2e-fixes
+
+- **Charge**: 7
+- **SSOT-Spec**: `openspec/specs/website-e2e-fixes.md` (nicht angelegt, `--create-new` angefordert)
+- **Fehlermeldung**: `ERROR: website-e2e-fixes.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Delta-Spec enthält noch unbearbeitete Skeleton-Platzhalter. Der Change wurde von
+  Charge 7 zurückgestellt und nicht archiviert; der Rest der Charge wurde regulär ausgeliefert.
+  Reparatur (Delta-Text ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.
+
+## worktree-divergence-guard-T002387
+
+- **Charge**: 7
+- **SSOT-Spec**: `openspec/specs/worktree-divergence-guard-T002387.md` (nicht angelegt, `--create-new` angefordert)
+- **Fehlermeldung**: `ERROR: worktree-divergence-guard-T002387.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Delta-Spec enthält noch unbearbeitete Skeleton-Platzhalter. Der Change wurde von
+  Charge 7 zurückgestellt und nicht archiviert; der Rest der Charge wurde regulär ausgeliefert.
+  Reparatur (Delta-Text ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des Plans.

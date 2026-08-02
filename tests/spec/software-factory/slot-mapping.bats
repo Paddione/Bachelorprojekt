@@ -10,13 +10,13 @@ teardown() { _sf_teardown; }
 
 SLOTS_SH="scripts/factory/slots.sh"
 
-@test "FA-SF-35: slots.sh exists and is syntactically valid bash" {
+@test "FA-SF-75: slots.sh exists and is syntactically valid bash" {
   [ -f "$SLOTS_SH" ]
   run bash -n "$SLOTS_SH"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-35: slots.sh claim persists pipeline_slot_meta.llama_slot_id" {
+@test "FA-SF-75: slots.sh claim persists pipeline_slot_meta.llama_slot_id" {
   _skip_if_no_db
   local ticket_id="T002483"
 
@@ -37,7 +37,7 @@ SLOTS_SH="scripts/factory/slots.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-35: slots.sh slot-id returns correct llama_slot_id" {
+@test "FA-SF-75: slots.sh slot-id returns correct llama_slot_id" {
   _skip_if_no_db
   local ticket_id="T002483"
 
@@ -57,7 +57,7 @@ SLOTS_SH="scripts/factory/slots.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-35: slots.sh release clears pipeline_slot_meta" {
+@test "FA-SF-75: slots.sh release clears pipeline_slot_meta" {
   _skip_if_no_db
   local ticket_id="T002483"
 
@@ -77,7 +77,7 @@ SLOTS_SH="scripts/factory/slots.sh"
   echo "$output" | grep -q 't'
 }
 
-@test "FA-SF-35: two parallel claims get different llama_slot_ids" {
+@test "FA-SF-75: two parallel claims get different llama_slot_ids" {
   _skip_if_no_db
   # Use a temp ticket for slot-claim testing
   local test_ticket

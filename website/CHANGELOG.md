@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.240.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.0...website-v1.240.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* **llm:** bge-Embedding-Routing — embedAll-Fallback, Reranker-URL, stale :8095 [T002570] ([#3692](https://github.com/Paddione/Bachelorprojekt/issues/3692)) ([a1df4ba](https://github.com/Paddione/Bachelorprojekt/commit/a1df4ba60663694bfd5bfcc98b80143b9fc5c0f1))
+
 ## [1.240.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.239.3...website-v1.240.0) (2026-08-02)
 
 

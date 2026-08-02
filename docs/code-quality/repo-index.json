@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 731,
+      "file_count": 733,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -425,6 +425,8 @@
         "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
         "tests/spec/local-llm-proxy/gemma-kv-quant.bats",
         "tests/spec/local-llm-proxy/gemma-loadout-autorestart-queue.bats",
+        "tests/spec/local-llm-proxy/helpers/llm-endpoint.bash",
+        "tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats",
         "tests/spec/local-llm-proxy/loadout-env-property.bats",
         "tests/spec/local-llm-proxy/loadouts-format.bats",
         "tests/spec/local-llm-proxy/model-path-large-file.bats",

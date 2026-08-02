@@ -2355,6 +2355,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002579": [
+    {
+      "slug": "gemma26-betriebsparameter",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

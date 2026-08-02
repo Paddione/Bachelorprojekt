@@ -45,6 +45,14 @@ const ARG_KEYS = new Set([
   // MCP-Server ohne CORS-Header.
   'uiMcpProxy',
   'mmprojPath',
+  // T002579 — Sampling. Vorher setzte kein Loadout diese Werte, es galten also
+  // die llama.cpp-Defaults (temp 0.8, top-k 40) statt der fuer das jeweilige
+  // Modell kalibrierten. Das war eine Luecke, keine Entscheidung.
+  'temperature', 'topP', 'topK',
+  // T002579 — Argumente des Chat-Templates, insbesondere enable_thinking.
+  // Getrennt von 'reasoning' (= '-rea'): jenes steuert das PARSEN von
+  // reasoning_content, dieses, ob das Modell ueberhaupt denkt.
+  'chatTemplateKwargs',
 ]);
 const LOAD_MODES = new Set(['none', 'mmap', 'mlock', 'mmap+mlock', 'dio']);
 

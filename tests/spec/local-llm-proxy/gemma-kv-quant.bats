@@ -87,13 +87,20 @@ _KV_Q4_ALLOWED="gemma26-factory"
   # Klammern und Kommata, OCI-Referenz, absoluter Binaerpfad, Flag-Kombination)
   # kam bei temperature 0 fuenfmal von fuenf zeichengenau zurueck.
   #
-  # DER EVIDENZ-VORBEHALT WIRD DURCH DEN T002535-PROBE-TEST (s. u.) AUFGELOEST.
-  # Solange dieser Test nicht gelaufen ist, gilt: die Ausnahme ruht auf
-  # unvollstaendiger Evidenz (Kurzkontext ~200 Tokens). Die Sorge aus T002501
-  # betrifft Fehlerakkumulation ueber LANGE Kontexte — also genau den
-  # 37k-Factory-Prompt, fuer den der Kontext hier vergroessert wird.
-  # Sollte der T002535-Test rot sein, ist diese Ausnahme der erste Verdaechtige:
-  # gemma26-factory auf q8_0 zuruecksetzen.
+  # EVIDENZ-STAND (T002579, 2026-08-02): die Langkontext-Probe weiter unten ist
+  # nachgeholt worden und faellt zugunsten von q4_0 aus — 39388 Prompt-Tokens,
+  # fuenf von fuenf Laeufen zeichengenau (30/30). Die Ausnahme ruht damit nicht
+  # mehr allein auf der Kurzkontext-Probe von ~200 Tokens.
+  #
+  # Sie ruht aber weiterhin auf einem REDUNDANTEN Fuellkontext (ein wiederholter
+  # Satz). Echte Factory-Prompts aus Code, Diffs und Logs sind heterogen und
+  # belasten den KV-Cache staerker; die Fehlerakkumulation, um die es T002501
+  # geht, ist damit gemildert belegt, nicht ausgeschlossen.
+  # Bei Fehlern in Tool-Call-Argumenten oder Pfaden bleibt diese Ausnahme der
+  # erste Verdaechtige: gemma26-factory auf q8_0 zuruecksetzen.
+  #
+  # Bis T002579 zeigte die Probe auf localhost:8081 — den toten TEI-Port — und
+  # skippte deshalb bei jedem Lauf, waehrend T002535 als done gefuehrt wurde.
   local offenders
   offenders=$(echo "$output" | awk '$2 == "q4_0" || $3 == "q4_0" { print $1 }' \
               | grep -vxF "$_KV_Q4_ALLOWED" || true)
@@ -123,26 +130,47 @@ _KV_Q4_ALLOWED="gemma26-factory"
   [ -z "$broken" ]
 }
 
-# T002535: Langkontext-Wörtlichkeitsprobe für gemma26-factory mit q4_0-KV.
-# Der bestehende Ausnahme-Test (T002534) ruht auf einer Kurzkontext-Probe
-# (~200 Tokens). Die Sorge aus T002501 betrifft Fehlerakkumulation über LANGE
-# Kontexte (~37k Tokens, der typische Factory-Prompt). Dieser Test schickt
-# einen Prompt mit ~35k Tokens Füller + 6 exakten Zeichenketten an
-# gemma26-factory (temperature 0) und prüft zeichengenaue Wiedergabe.
+# T002535/T002579: Langkontext-Wörtlichkeitsprobe für gemma26-factory mit q4_0-KV.
 #
-# ERGEBNIS: q4_0 besteht → Ausnahme bestätigen, Evidenz-Vorbehalt streichen.
-#           q4_0 versagt  → gemma26-factory auf q8_0, Ausnahme entfernen.
+# WARUM DIESER TEST FRÜHER NIE LIEF: er richtete seine Anfrage an localhost:8081
+# — den Port des am 2026-07-27 decommissionierten TEI-Embed-Dienstes.
+# gemma26-factory läuft auf 8091. Der Skip-Guard griff deshalb bei JEDEM Lauf,
+# die Probe hat nie gemessen, und T002535 wurde trotzdem auf done gesetzt.
 #
-# Voraussetzung: gemma26-factory läuft auf localhost:8081.
-# Bei nicht erreichbarem Server wird der Test übersprungen (skip).
-@test "T002535 Langkontext-Probe: q4_0-KV gibt exakte Zeichenketten nach ~35k Tokens zurück" {
-  LLM_URL="${LLM_URL:-http://localhost:8081/v1/chat/completions}"
-  if ! curl -s --max-time 3 "$LLM_URL" -H "Content-Type: application/json" \
-       -d '{"model":"gemma26-factory","messages":[{"role":"user","content":"ping"}],"max_tokens":5}' >/dev/null 2>&1; then
-    skip "gemma26-factory nicht erreichbar unter $LLM_URL"
-  fi
+# ERGEBNIS DER NACHGEHOLTEN MESSUNG (2026-08-02, T002579): bei 39388
+# Prompt-Tokens kamen in fünf von fünf Läufen alle sechs Zeichenketten
+# zeichengenau zurück (30/30). Die q4_0-Ausnahme aus T002534 ist damit für den
+# Langkontext belegt — anders als vorher, wo nur eine ~200-Token-Probe vorlag.
+#
+# VERBLEIBENDE EINSCHRÄNKUNG (der Vorbehalt ist präzisiert, nicht erledigt):
+# der Füllkontext ist ein wiederholter Satz und damit hochredundant. Echte
+# Factory-Prompts (Code, Diffs, Logs) sind heterogen und belasten den KV-Cache
+# stärker. Bei Fehlern in Tool-Call-Argumenten oder Pfaden bleibt die
+# q4_0-Ausnahme der erste Verdächtige; der Hebel ist -KvType q8_0.
+#
+# Voraussetzung: gemma26-factory läuft auf dem Port aus loadouts.json.
+# Bei nicht erreichbarem Server wird übersprungen (skip).
+@test "T002535 Langkontext-Probe: q4_0-KV gibt exakte Zeichenketten nach ~39k Tokens zurück" {
+  # Port aus der Registry statt hartkodiert — so kann eine Portänderung in
+  # loadouts.json die Probe nicht erneut stillschweigend abschalten.
+  local port
+  port=$(python3 -c "
+import json
+d=json.load(open('scripts/llm/loadouts.json'))
+lo=[x for x in d['loadouts'] if x['slug']=='gemma26-factory']
+print(lo[0]['port'] if lo else '')
+")
+  [ -n "$port" ] || { echo "kein gemma26-factory-Loadout in loadouts.json"; return 1; }
+  LLM_URL="${LLM_URL:-http://127.0.0.1:${port}/v1/chat/completions}"
 
-  # 6 exakte Zeichenketten die der Prompt zurückgeben muss
+  # Skip-Guard über den HTTP-Status, nicht über den curl-Exit: `curl -s`
+  # liefert auch bei HTTP 500 Exit 0 und würde einen kaputten Server für
+  # gesund halten (T002574).
+  source "$(dirname "$BATS_TEST_FILENAME")/helpers/llm-endpoint.bash"
+  local health_code
+  health_code=$(llm_endpoint_healthy "http://127.0.0.1:${port}/health") || \
+    skip "gemma26-factory auf :${port} nicht verfügbar (HTTP ${health_code})"
+
   local NEEDLE1="openspec/changes/fix-korczewski-zero-replicas-T002539/tasks.md"
   local NEEDLE2="kustomize build prod-fleet/korczewski --load-restrictor=LoadRestrictionsNone"
   local NEEDLE3='function buildServerArgv(loadout, modelPath, defaults, overrides)'
@@ -150,10 +178,12 @@ _KV_Q4_ALLOWED="gemma26-factory"
   local NEEDLE5="/usr/local/bin/kustomize"
   local NEEDLE6="--ctx-size 99328 --cache-type-k q4_0 -fa on"
 
-  # Füller: wiederhole einen Satz bis ~35k Tokens (≈70000 Wörter)
+  # 2800 statt 1400 Wiederholungen: 1400 ergaben gemessen nur 19788 Tokens.
+  # Ein wiederholter Satz tokenisiert mit ~14 Tokens je Wiederholung, deutlich
+  # effizienter als eine Überschlagsrechnung nach Zeichenzahl vermuten lässt.
   local filler="Der schnelle braune Fuchs springt über den faulen Hund. "
   local full_filler=""
-  for i in $(seq 1 1400); do full_filler+="$filler"; done
+  for i in $(seq 1 2800); do full_filler+="$filler"; done
 
   local prompt="Merke dir die folgenden sechs exakten Zeichenketten wörtlich:
 1. $NEEDLE1
@@ -168,31 +198,62 @@ $full_filler
 Gib jetzt die sechs Zeichenketten exakt so zurück wie oben, eine pro Zeile:
 1. "
 
+  # Prompt und Payload über DATEIEN, nicht über Argumente: bei ~160k Zeichen
+  # scheitert jq sonst mit "Argument list too long" (ARG_MAX) — der Server
+  # bekommt dann nichts, und ohne den prompt_tokens-Anker unten sähe das
+  # Ergebnis wie ein bestandener Lauf aus.
+  local prompt_file="$BATS_TEST_TMPDIR/kv-probe-prompt.txt"
+  local payload_file="$BATS_TEST_TMPDIR/kv-probe-payload.json"
+  printf '%s' "$prompt" > "$prompt_file"
+  # enable_thinking:false ist Pflicht, seit Thinking der Server-Default ist
+  # (T002579/P4): sonst bleibt content leer, bis die Denkphase endet, und die
+  # Probe misst das Reasoning-Budget statt der KV-Treue (T002501).
+  jq -n --rawfile p "$prompt_file" '{
+    model: "gemma26-factory",
+    messages: [{role:"user",content:$p}],
+    temperature: 0,
+    max_tokens: 900,
+    chat_template_kwargs: {enable_thinking: false}
+  }' > "$payload_file"
+
   local passes=0
   local runs=5
   for run in $(seq 1 $runs); do
     local response
-    response=$(curl -s --max-time 120 "$LLM_URL" \
-      -H "Content-Type: application/json" \
-      -d "$(jq -n --arg prompt "$prompt" '{
-        model: "gemma26-factory",
-        messages: [{role:"user",content:$prompt}],
-        temperature: 0,
-        max_tokens: 512
-      }')" 2>/dev/null)
+    response=$(curl -s --max-time 600 "$LLM_URL" \
+      -H "Content-Type: application/json" -d @"$payload_file" 2>/dev/null)
+
+    # POSITIV-ANKER (T002356-M1): ohne Beleg der tatsächlichen Prompt-Größe
+    # meldet die Probe auch dann Erfolg, wenn der Füllkontext gar nicht griff.
+    # Am 2026-08-02 ist genau das zweimal passiert — 19788 Tokens (Füller zu
+    # kurz) und 0 Tokens (jq an ARG_MAX gescheitert).
+    local ptok
+    ptok=$(echo "$response" | jq -r '.usage.prompt_tokens // 0' 2>/dev/null)
+    if [ "${ptok:-0}" -lt 20000 ]; then
+      echo "UNGÜLTIG: nur ${ptok:-0} Prompt-Tokens — Langkontext nicht erreicht."
+      echo "Die Probe misst dann nicht, was sie messen soll."
+      return 1
+    fi
+
     local content
     content=$(echo "$response" | jq -r '.choices[0].message.content // empty' 2>/dev/null)
-    [ -n "$content" ] || continue
+    # Leerer content ist ein FEHLSCHLAG, kein Grund zum Überspringen: genau so
+    # äußert sich der T002501-Ausfallmodus (Denkphase frisst max_tokens,
+    # finish_reason=length). Ein `continue` würde ihn unsichtbar machen.
+    if [ -z "$content" ]; then
+      echo "Lauf $run/$runs: LEERE ANTWORT (finish_reason=$(echo "$response" | jq -r '.choices[0].finish_reason // "?"'))"
+      continue
+    fi
 
     local ok=1
-    echo "$content" | grep -qF "$NEEDLE1" || ok=0
-    echo "$content" | grep -qF "$NEEDLE2" || ok=0
-    echo "$content" | grep -qF "$NEEDLE3" || ok=0
-    echo "$content" | grep -qF "$NEEDLE4" || ok=0
-    echo "$content" | grep -qF "$NEEDLE5" || ok=0
-    echo "$content" | grep -qF "$NEEDLE6" || ok=0
+    echo "$content" | grep -qF -- "$NEEDLE1" || ok=0
+    echo "$content" | grep -qF -- "$NEEDLE2" || ok=0
+    echo "$content" | grep -qF -- "$NEEDLE3" || ok=0
+    echo "$content" | grep -qF -- "$NEEDLE4" || ok=0
+    echo "$content" | grep -qF -- "$NEEDLE5" || ok=0
+    echo "$content" | grep -qF -- "$NEEDLE6" || ok=0
     [ "$ok" -eq 1 ] && passes=$((passes + 1))
-    echo "Lauf $run/$runs: $( [ "$ok" -eq 1 ] && echo 'BESTANDEN' || echo 'FEHLER' )"
+    echo "Lauf $run/$runs (${ptok} Tokens): $( [ "$ok" -eq 1 ] && echo 'BESTANDEN' || echo 'FEHLER' )"
   done
 
   echo "q4_0 Langkontext-Probe: $passes/$runs zeichengenau"

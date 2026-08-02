@@ -258,8 +258,29 @@ using a dedicated bot identity.
 
 ### Requirement: Dependency-Update via Renovate (selbstgehostet)
 
-The system SHALL run self-hosted Renovate weekly (montags 07:00 UTC) to open PRs
-for outdated dependencies, using a dedicated GitHub App token — nie `GITHUB_TOKEN`.
+The system SHALL run self-hosted Renovate weekly (montags 07:00 UTC) to open PRs for outdated
+dependencies, authenticating via a **per-run minted GitHub App installation token** — never
+`GITHUB_TOKEN`, and never a statically stored installation token. Because a GitHub App
+installation token expires after one hour, the workflow SHALL mint a fresh token on every run
+using a SHA-pinned `actions/create-github-app-token` step whose `app-id` and `private-key`
+inputs read the long-lived secrets `RENOVATE_APP_ID` and `RENOVATE_APP_PRIVATE_KEY`. The App
+installation SHALL carry the `Workflows: write` permission in addition to Contents and
+Pull requests, because the `github-actions` manager with `pinDigests: true` modifies files under
+`.github/workflows/`, and SHALL carry no permissions beyond those four (least privilege — the
+private key grants everything the App can do).
+
+The workflow SHALL additionally pass an explicit repository work list via
+`RENOVATE_REPOSITORIES: ${{ github.repository }}`. Self-hosted Renovate processes no repository
+without one: the run exits **successfully** while logging
+`WARN: No repositories found - did you want to run with flag --autodiscover?`, producing neither
+PRs nor a Dependency Dashboard issue. `renovatebot/github-action` does not forward
+`github.repository` on its own. An explicit list is REQUIRED over `RENOVATE_AUTODISCOVER` so the
+run stays deterministic regardless of how widely the GitHub App is installed.
+
+`renovate.json5` SHALL NOT use the deprecated `matchPackagePatterns` option; package matching
+SHALL use `matchPackageNames` with slash-wrapped regexes. It SHALL NOT carry rules for
+components the platform no longer runs — notably no Keycloak rule, since authentication migrated
+to Pocket ID and no `quay.io/keycloak` image remains in any manifest.
 
 #### Scenario: Renovate öffnet Dependency-Update-PR
 
@@ -267,14 +288,48 @@ for outdated dependencies, using a dedicated GitHub App token — nie `GITHUB_TO
 - **WHEN** Renovate montags um 07:00 UTC läuft
 - **THEN** öffnet Renovate einen PR mit dem gepinnten SHA-Digest-Update gemäß `renovate.json5`
 
+#### Scenario: Token wird pro Run frisch geprägt
+
+- **GIVEN** der Renovate-Workflow startet (per Cron oder `workflow_dispatch`)
+- **WHEN** die Steps ausgeführt werden
+- **THEN** läuft ein SHA-gepinnter `actions/create-github-app-token`-Step vor dem Renovate-Step
+- **AND** `renovatebot/github-action` erhält den Token als `steps.<id>.outputs.token`
+- **AND** kein statisch hinterlegtes `secrets.RENOVATE_TOKEN` wird referenziert
+
+#### Scenario: Renovate bekommt eine explizite Repo-Arbeitsliste
+
+- **GIVEN** der Renovate-Step wird ausgeführt
+- **WHEN** seine `env`-Sektion ausgewertet wird
+- **THEN** enthält sie `RENOVATE_REPOSITORIES` mit `github.repository`
+- **AND** das Log enthält KEINE `No repositories found`-Warnung
+
+#### Scenario: Grüner Lauf ohne Arbeit gilt als Fehlschlag
+
+- **GIVEN** ein Renovate-Run endet mit `conclusion=success`
+- **WHEN** er dabei `WARN: No repositories found` geloggt hat
+- **THEN** ist die Abnahme NICHT erfüllt — ein grüner Exit-Code ist kein Nachweis, dass Renovate
+  gearbeitet hat; der Nachweis sind Update-PRs bzw. das Dependency-Dashboard-Issue
+
+#### Scenario: Config nutzt keine deprecated Matcher
+
+- **GIVEN** `renovate.json5`
+- **WHEN** Renovate sie einliest
+- **THEN** erscheint keine `Config needs migrating`-Warnung
+- **AND** die Datei enthält keinen `"matchPackagePatterns"`-Key und keine Keycloak-Regel
+
+#### Scenario: Fehlende App-Secrets sind als Ausfallursache erkennbar
+
+- **GIVEN** `RENOVATE_APP_ID` oder `RENOVATE_APP_PRIVATE_KEY` ist nicht gesetzt
+- **WHEN** der Workflow läuft
+- **THEN** schlägt der Token-Step fehl, bevor Renovate startet — der Fehler benennt das fehlende
+  App-Credential statt eines undurchsichtigen `docker … exit code 1` aus dem Renovate-Container
+
 #### Scenario: Kein paralleler Renovate-Lauf
 
 - **GIVEN** ein Renovate-Run ist bereits aktiv
 - **WHEN** ein manueller `workflow_dispatch` getriggert wird
 - **THEN** verhindert `concurrency.cancel-in-progress: false` keinen Abbruch des laufenden Jobs —
   der neue Run wartet oder startet je nach concurrency-Gruppe-Semantik
-
----
 
 ### Requirement: Website-Deploy via kubectl set image mit dynamischem SHA_TAG
 
@@ -1149,6 +1204,135 @@ test failure. The visible reason is what makes that distinction possible.
 - **THEN** meldet die Ausgabe den Vollauf samt Laufzeiterwartung statt „Running changed
   spec tests"
 
+### Requirement: Batch processing of multiple pull requests in one run
+
+`scripts/pr-refresh.sh` SHALL process every pull request number given on the command line. A refusal SHALL skip only the affected pull request and SHALL NOT terminate the run. The run SHALL end with a balance line reporting how many pull requests were healed, skipped and refused. The exit code SHALL be non-zero if at least one pull request was refused, so automation still observes the refusal.
+
+Rationale: refusals are the normal case, not the exception. When the batch entry point was first used for real, three of four CONFLICTING pull requests were held by checked-out worktrees. With a terminating guard, the documented invocation `task pr:refresh -- 3448 3446 3442` never got past the first number.
+
+#### Scenario: A refused pull request does not end the run
+
+- **GIVEN** two pull request numbers, the first of which a guard refuses
+- **WHEN** `pr-refresh.sh <first> <second>` runs
+- **THEN** the refusal of the first is reported
+- **AND** the second pull request is still evaluated
+- **AND** the exit code is non-zero
+
+#### Scenario: The run reports a balance
+
+- **GIVEN** three pull requests — one already mergeable, one refused, one healable
+- **WHEN** the batch run finishes
+- **THEN** a balance line reports one healed, one skipped and one refused
+
+#### Scenario: A run without refusals exits zero
+
+- **GIVEN** pull request numbers that are all skipped or healed
+- **WHEN** the batch run finishes
+- **THEN** the exit code is zero
+
+#### Scenario: An unreachable pull request skips only itself
+
+- **GIVEN** a pull request number that cannot be fetched
+- **WHEN** it is followed by a further number in the same run
+- **THEN** the fetch failure is reported for that number only
+- **AND** the following pull request is still evaluated
+
+#### Scenario: A failed rebase leaves no worktree behind
+
+- **GIVEN** a pull request whose `rebase --continue` fails
+- **WHEN** the run continues with the remaining numbers
+- **THEN** the temporary worktree is removed
+- **AND** the branch is no longer checked out, so a later retry is not refused by the checkout guard
+
+### Requirement: Repohealth-Dashboard-Datenquelle triggert den Website-Build
+
+Health-Goal-Werte erreichen `/admin/repohealth` ausschliesslich ueber ein neu gebautes
+Website-Image, weil `website/src/lib/goals-data.generated.json` per statischem ESM-Import in
+`website/src/lib/goals-data.ts` ins Astro-Bundle gebacken wird. `.claude/lib/goals.md` ist der
+SSOT dieses Artefakts.
+
+The system SHALL trigger `build-website.yml` on changes to `.claude/lib/goals.md`, so that a
+goals-only commit produces a fresh website image. The workflow's existing
+`Regenerate freshness artifacts before build` step SHALL remain the transformation path —
+no separate emit step is required.
+
+#### Scenario: T002158-A: build-website triggert auf die Repohealth-Datenquelle *(BATS)*
+
+- **GIVEN** `.github/workflows/build-website.yml` ist vorhanden
+- **WHEN** die `paths`-Liste des `push`-Triggers geprueft wird
+- **THEN** enthaelt sie `.claude/lib/goals.md`
+- **AND** eine Aenderung, die nur die Health-Goals fortschreibt, loest einen Website-Build aus
+
+---
+
+### Requirement: Freshness-Bot-Commit unterdrueckt keinen Website-Build
+
+`freshness-regen.yml` ist der einzige Ort, an dem generierte `website/**`-Artefakte
+*ausserhalb* eines Pull Requests fortgeschrieben werden. Ein unbedingtes `[skip ci]` im
+Commit-Titel unterdrueckt dort genau den Pfad, der `build-website.yml` ausloesen wuerde, und
+friert damit den ausgelieferten Dashboard-Stand ein.
+
+The system SHALL append `[skip ci]` to the freshness bot commit ONLY when the regenerated diff
+contains no `website/**` paths. When a `website/**` artifact changed, the bot SHALL produce a
+normal commit so the target workflows react through their own `paths` filters. The check SHALL
+inspect the staged diff (`git diff --cached --name-only`) with a start-of-line anchored match
+on `website/`, evaluated between `git add` and `git commit`.
+
+The workflow SHALL continue to contain the literal `[skip ci]` for the non-website case,
+preserving the existing G-CI01-E requirement.
+
+#### Scenario: T002158-B: [skip ci] ist nicht unbedingt im Commit-Titel *(BATS)*
+
+- **GIVEN** `.github/workflows/freshness-regen.yml` ist vorhanden
+- **WHEN** die `git commit -m`-Zeile des Commit-Steps geprueft wird
+- **THEN** enthaelt sie kein hart eingebautes `[skip ci]`, sondern eine Variable
+- **AND** der Regen-Commit eines `website/**`-Artefakts loest `build-website.yml` aus
+
+#### Scenario: T002158-B: Regen-Diff wird auf website/-Pfade geprueft *(BATS)*
+
+- **GIVEN** `.github/workflows/freshness-regen.yml` ist vorhanden
+- **WHEN** der Commit-Step geprueft wird
+- **THEN** enthaelt er einen am Zeilenanfang verankerten `^website/`-Match auf den
+  Staged-Diff, der steuert, ob `[skip ci]` angehaengt wird
+- **AND** ein Pfad wie `docs/website-notes.md` zaehlt dadurch NICHT als Website-Artefakt
+
+### Requirement: PR-Gate — Full tests/spec/*.bats Suite is Required, Not a Subset
+
+The system SHALL run the entire `tests/spec/*.bats` glob (all files, not an
+enumerated subset) inside the `test-factory` job, which is already a
+required status check (`Factory + OpenSpec + Guards`) on `main`. A regression
+that silently narrows the invocation back to a hand-picked list of files
+SHALL be caught by a BATS assertion before merge.
+
+#### Scenario: CI invokes the full spec glob, not a hardcoded file list
+
+- **GIVEN** `.github/workflows/ci.yml` defines the `test-factory` job
+- **WHEN** the guard assertion inspects the job's steps
+- **THEN** it finds an invocation that resolves to every file under
+  `tests/spec/*.bats` (e.g. via `task test:spec` or an equivalent glob) and
+  fails if the invocation only lists specific `.bats` filenames
+
+#### Scenario: A regression in a previously-ungated spec file now blocks merge
+
+- **GIVEN** a PR introduces a regression in any `tests/spec/*.bats` file that
+  was not one of the four previously cherry-picked files
+  (`software-factory.bats`, `agent-library.bats`, `mcp-tooling.bats`,
+  `ci-cd.bats`)
+- **WHEN** the `test-factory` job runs
+- **THEN** the job fails and blocks auto-merge, because the file is now part
+  of the executed glob
+
+#### Scenario: mcp-task-runner binary is available on a fresh CI runner
+
+- **GIVEN** `tests/spec/mcp-task-runner.bats` requires the compiled
+  `/usr/local/bin/mcp-task-runner` binary and has no skip-guard for its
+  absence
+- **WHEN** the `test-factory` job runs on a fresh GitHub Actions runner with
+  no pre-installed binary
+- **THEN** a Go toolchain is available in the job so `task
+  test:spec:build-mcp-runner` can build and install the binary before the
+  spec suite runs
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1640,3 +1824,11 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (c5497ce75162) -->
 
 <!-- merged from change delta ci-cd.md (06492af19066) -->
+
+<!-- merged from change delta ci-cd.md (1129413b838e) -->
+
+<!-- merged from change delta ci-cd.md (6bb051e0d77c) -->
+
+<!-- merged from change delta ci-cd.md (b330e967471c) -->
+
+<!-- merged from change delta ci-cd.md (6a5728424c67) -->

@@ -653,8 +653,8 @@
   ],
   "T001381": [
     {
-      "slug": "rustdesk-web-client",
-      "status": "plan_staged"
+      "slug": "2026-08-02-rustdesk-web-client",
+      "status": "archived"
     }
   ],
   "T001382": [
@@ -1033,8 +1033,8 @@
   ],
   "T001802": [
     {
-      "slug": "smtp-password-sync",
-      "status": "plan_staged"
+      "slug": "2026-08-02-smtp-password-sync",
+      "status": "archived"
     }
   ],
   "T001803": [
@@ -1189,14 +1189,14 @@
   ],
   "T001995": [
     {
-      "slug": "pocket-id-seed-early-abort",
-      "status": "plan_staged"
+      "slug": "2026-08-02-pocket-id-seed-early-abort",
+      "status": "archived"
     }
   ],
   "T001996": [
     {
-      "slug": "pocket-id-seed-pagination",
-      "status": "plan_staged"
+      "slug": "2026-08-02-pocket-id-seed-pagination",
+      "status": "archived"
     }
   ],
   "T001997": [
@@ -1261,8 +1261,8 @@
   ],
   "T002044": [
     {
-      "slug": "plan-ref-lifecycle-fixes",
-      "status": "plan_staged"
+      "slug": "2026-08-02-plan-ref-lifecycle-fixes",
+      "status": "archived"
     }
   ],
   "T002050": [
@@ -1447,20 +1447,20 @@
   ],
   "T002158": [
     {
-      "slug": "repohealth-goals-trigger",
-      "status": "plan_staged"
+      "slug": "2026-08-02-repohealth-goals-trigger",
+      "status": "archived"
     }
   ],
   "T002162": [
     {
-      "slug": "repohealth-nightly",
-      "status": "plan_staged"
+      "slug": "2026-08-02-repohealth-nightly",
+      "status": "archived"
     }
   ],
   "T002165": [
     {
-      "slug": "renovate-repositories",
-      "status": "planning"
+      "slug": "2026-08-02-renovate-repositories",
+      "status": "archived"
     }
   ],
   "T002179": [
@@ -1483,8 +1483,8 @@
   ],
   "T002182": [
     {
-      "slug": "t002182-spec-tests-gate",
-      "status": "plan_staged"
+      "slug": "2026-08-02-t002182-spec-tests-gate",
+      "status": "archived"
     }
   ],
   "T002183": [
@@ -1777,8 +1777,8 @@
   ],
   "T002322": [
     {
-      "slug": "plan-context-summary",
-      "status": "plan_staged"
+      "slug": "2026-08-02-plan-context-summary",
+      "status": "archived"
     }
   ],
   "T002327": [
@@ -1969,8 +1969,8 @@
   ],
   "T002388": [
     {
-      "slug": "plan-meta-readiness-merge",
-      "status": "plan_staged"
+      "slug": "2026-08-02-plan-meta-readiness-merge",
+      "status": "archived"
     }
   ],
   "T002389": [
@@ -2017,8 +2017,8 @@
   ],
   "T002417": [
     {
-      "slug": "pr-refresh-batch-T002417",
-      "status": "plan_staged"
+      "slug": "2026-08-02-pr-refresh-batch-T002417",
+      "status": "archived"
     }
   ],
   "T002420": [
@@ -2161,11 +2161,11 @@
   ],
   "T002463": [
     {
-      "slug": "sdlc-cockpit-k4-steuerung",
-      "status": "plan_staged"
+      "slug": "2026-08-02-cockpit-auth-schnitt",
+      "status": "archived"
     },
     {
-      "slug": "2026-08-02-cockpit-auth-schnitt",
+      "slug": "2026-08-02-sdlc-cockpit-k4-steuerung",
       "status": "archived"
     }
   ],
@@ -2285,8 +2285,8 @@
   ],
   "T002531": [
     {
-      "slug": "sdlc-cockpit-k10-pipeline-slot",
-      "status": "plan_staged"
+      "slug": "2026-08-02-sdlc-cockpit-k10-pipeline-slot",
+      "status": "archived"
     }
   ],
   "T002537": [

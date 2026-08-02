@@ -122,7 +122,7 @@ beseitigen soll.
 JSONC wird mit einem Parser gelesen, nicht per Regex — `.opencode/opencode.jsonc`
 trägt Kommentare, die ein zeilenweiser Ersatz zerstört.
 
-## Task 4 — Chirurgisches Schreiben (p3)
+## Task 4 — Chirurgisches Schreiben (p3) - [x]
 
 `scripts/toolset/sync.mjs` rendert aus der Registry in die fünf Ziele und
 schreibt ausschließlich `enabledPlugins`, `disabledMcpjsonServers`,

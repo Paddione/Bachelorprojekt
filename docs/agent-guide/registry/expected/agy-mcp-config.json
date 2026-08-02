@@ -1,0 +1,39 @@
+// docs/agent-guide/registry/expected/agy-mcp-config.json
+{
+  "mcpServers": {
+    "bge-mcp": {
+      "serverUrl": "http://localhost:13005/mcp"
+    },
+    "codebase-memory-mcp": {
+      "command": "/home/patrick/.local/bin/codebase-memory-mcp"
+    },
+    "factory-mcp": {
+      "serverUrl": "http://localhost:13003/mcp"
+    },
+    "mcp-kubernetes": {
+      "serverUrl": "http://localhost:18080/mcp"
+    },
+    "mcp-postgres": {
+      "serverUrl": "http://localhost:13001/mcp"
+    },
+    "mcp-task-runner": {
+      "command": "mcp-task-runner",
+      "args": [
+        "--otel-endpoint",
+        "localhost:4317",
+        "--taskfile",
+        "/home/patrick/Bachelorprojekt/Taskfile.yml"
+      ]
+    },
+    "task-master-ai": {
+      "command": "/home/patrick/.npm-global/bin/task-master-ai",
+      "env": {
+        "OLLAMA_BASE_URL": "http://localhost:11434/api",
+        "TASK_MASTER_TOOLS": "all"
+      }
+    },
+    "ticket-mcp": {
+      "command": "ticket-mcp-go"
+    }
+  }
+}

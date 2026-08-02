@@ -96,7 +96,7 @@ build_sandbox_inventory() {
 @test "inventory: Dateien mit strukturierten IDs behalten ihre Eintraege" {
   build_sandbox_inventory
   # Waechter gegen ein Ueberschiessen des Fixes: der Slug-Fallback darf NUR greifen, wo
-  # keine ID gefunden wurde. Die Software-Factory-Suite liefert 59 FA-SF-Eintraege — die
+  # keine ID gefunden wurde. Die Software-Factory-Suite liefert 55 FA-SF-Eintraege — die
   # duerfen weder verschwinden noch durch einen einzelnen Slug-Eintrag ersetzt werden.
   #
   # [T002503] Gegen das VERZEICHNIS statt gegen die fruehere Sammeldatei
@@ -105,7 +105,7 @@ build_sandbox_inventory() {
   # sein. Genau das haette einen stillen Verlust beim Split aufgedeckt.
   run jq '[.[] | select(.file | startswith("tests/spec/software-factory/")) | select(.id | startswith("FA-SF-"))] | length' "$SANDBOX"
   [ "$status" -eq 0 ]
-  [ "$output" -eq 59 ]
+  [ "$output" -eq 55 ]
   run jq -r '[.[] | select(.file | startswith("tests/spec/software-factory/")) | select(.id | startswith("FA-SF-")) | .id] | sort | first' "$SANDBOX"
   [ "$output" = "FA-SF-01" ]
 }

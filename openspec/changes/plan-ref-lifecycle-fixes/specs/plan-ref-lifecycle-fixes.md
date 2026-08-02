@@ -18,4 +18,6 @@ stage-plan.sh MUST always INSERT a new FACTORY-PLAN-REF comment, superseding any
 - AND the old comment remains in history
 
 ### Requirement: Specs delta dir in plan template
+
+#### Scenario: Specs delta dir in plan template
 The dev-flow-execute plan template MUST document the mandatory `openspec/changes/<slug>/specs/*.md` and `.ticket` files.

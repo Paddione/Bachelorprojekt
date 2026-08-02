@@ -2,6 +2,8 @@
 
 ### Requirement: Alle bekannten Single-Column-FK-Spalten ohne Index werden indiziert
 
+#### Scenario: Alle bekannten Single-Column-FK-Spalten ohne Index werden indiziert
+
 Die G-DB01-Introspektionsquery (`.claude/lib/goals.md#G-DB01`, identisch mit dem
 `db_scalar`-Aufruf in `scripts/health-goals-check.sh`) MUSS gegen jede Brand-Datenbank,
 die vom `website`-Migrationsrunner verwaltet wird, auf 0 fehlende Indizes konvergieren —
@@ -18,6 +20,8 @@ mit Ausnahme von FK-Spalten in Schemas, die nicht der `website`-DB-Rolle gehöre
   Ausnahmen (aktuell: 1, `arena.match_players.brand`).
 
 ### Requirement: Migration ist additiv, idempotent und brand-übergreifend sicher
+
+#### Scenario: Migration ist additiv, idempotent und brand-übergreifend sicher
 
 Jede `CREATE INDEX`-Anweisung MUSS mit `to_regclass(...)` auf Tabellenexistenz geprüft
 und mit `IF NOT EXISTS` idempotent formuliert sein, da dieselbe Migrationsdatei gegen

@@ -7,12 +7,16 @@ ticket_id: T001972
 
 ### Requirement: ticket-mcp triage_ticket preserves component
 
+#### Scenario: ticket-mcp triage_ticket preserves component
+
 WHEN `ticket-mcp_triage_ticket` is invoked without a `component` argument
 AND the ticket already has a non-null `component`
 THEN the SQL UPDATE MUST keep the existing `component` value
 (coalesce semantics, not overwrite-with-NULL).
 
 ### Requirement: openspec-merge --create-new merges delta into fresh SSOT
+
+#### Scenario: openspec-merge --create-new merges delta into fresh SSOT
 
 WHEN `scripts/openspec-merge.mjs apply <delta> <ssot> --create-new` runs
 AND `<ssot>` does not exist
@@ -22,6 +26,8 @@ AND the resulting SSOT MUST contain at least one `### Requirement:` block
 (validated by `scripts/openspec-validate.ts`).
 
 ### Requirement: openspec archive forbidden in main checkout
+
+#### Scenario: openspec archive forbidden in main checkout
 
 WHEN `task openspec:archive` or `scripts/openspec.sh archive` is executed
 THEN the operation MUST only run inside a `.worktrees/*` worktree on a

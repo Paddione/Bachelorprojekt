@@ -2081,6 +2081,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002436": [
+    {
+      "slug": "2026-08-02-brain-k6-ticket-factory",
+      "status": "archived"
+    }
+  ],
   "T002437": [
     {
       "slug": "brain-k7-agenten-mcp",
@@ -2089,8 +2095,8 @@
   ],
   "T002438": [
     {
-      "slug": "brain-k8-gesamtbild",
-      "status": "plan_staged"
+      "slug": "2026-08-02-brain-k8-gesamtbild",
+      "status": "archived"
     }
   ],
   "T002439": [

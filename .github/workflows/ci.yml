@@ -311,6 +311,7 @@ jobs:
           # Macht das Gate fail-closed: ein nicht erreichbarer Daemon laesst die
           # betroffenen Tests durchfallen, statt sie zu ueberspringen.
           COCKPIT_DAEMON_REQUIRED: '1'
+          TMPDIR: ${{ runner.temp }}
         run: |
           if [ "$IS_PR" = "true" ] && git rev-parse --verify -q refs/remotes/origin/main >/dev/null; then
             task test:spec:changed

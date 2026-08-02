@@ -1985,3 +1985,16 @@ MOCKEOF
   [ ! -f "$AGENT_LOCK_DIR/ticket__T002374-m2.json" ] || { echo "lock file should be deleted after release"; false; }
   rm -rf "$AGENT_LOCK_DIR"
 }
+
+# T002517: GNU parallel (bats -j) puffert nach /tmp. Auf Shard 1 war /tmp
+# unbrauchbar — 0 statt 454 Tests. Fix: TMPDIR=$RUNNER_TEMP im CI-Workflow.
+@test "CI: Spec BATS suite step setzt TMPDIR (T002517)" {
+  CI_WF="${REPO_ROOT}/.github/workflows/ci.yml"
+  # Extrahiere den Spec-BATS-Suite-Step (von "Spec BATS suite" bis zum naechsten "- name:")
+  run bash -c "sed -n '/Spec BATS suite/,/^[[:space:]]*- name:/p' '$CI_WF' | grep -c 'TMPDIR'"
+  [ "$status" -eq 0 ] || {
+    echo "TMPDIR nicht im Spec-BATS-Suite-Step von ci.yml gefunden"
+    return 1
+  }
+  [ "$output" -ge 1 ]
+}

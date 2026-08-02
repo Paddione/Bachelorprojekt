@@ -2199,6 +2199,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002517": [
+    {
+      "slug": "fix-ci-shard1-parallel-buffer-T002517",
+      "status": "plan_staged"
+    }
+  ],
   "T002520": [
     {
       "slug": "2026-08-01-post-merge-branch-reaper",

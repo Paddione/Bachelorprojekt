@@ -193,6 +193,32 @@ async function defaultEmbed(texts) {
   return j.data.map((d) => d.embedding);
 }
 
+export function estimateSlugTokenWorst(slug, repoRoot) {
+  const changeDir = path.join(repoRoot, 'openspec', 'changes', slug);
+  const files = {
+    proposal: readIfExists(path.join(changeDir, 'proposal.md')) ?? undefined,
+    tasks: readIfExists(path.join(changeDir, 'tasks.md')) ?? undefined,
+    spec: readIfExists(path.join(changeDir, 'specs', `${slug}.md`)) ?? undefined,
+  };
+  let partials = null;
+  const tasksDir = path.join(changeDir, 'tasks.d');
+  if (existsSync(tasksDir)) {
+    partials = {};
+    for (const entry of readdirSync(tasksDir).filter(f => f.endsWith('.md')).sort()) {
+      partials[entry.replace(/\.md$/, '')] = readFileSync(path.join(tasksDir, entry), 'utf8');
+    }
+  }
+  files.partials = partials;
+  if (files.proposal == null && files.tasks == null && files.spec == null && partials == null) return null;
+  const chunks = buildChunks(files);
+  let maxTokens = 0;
+  for (const c of chunks) {
+    const t = approxTokens(c.text);
+    if (t > maxTokens) maxTokens = t;
+  }
+  return maxTokens;
+}
+
 export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
   const log = deps.log ?? ((...a) => console.error('[openspec-embed]', ...a));
   const embed = deps.embed ?? defaultEmbed;
@@ -334,13 +360,55 @@ async function main() {
   let slug = '';
   let dryRun = false;
   let checkCoverage = false;
+  let countSkipped = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--slug') slug = args[++i] ?? '';
     else if (args[i] === '--dry-run') dryRun = true;
     else if (args[i] === '--check-coverage') checkCoverage = true;
+    else if (args[i] === '--count-skipped') countSkipped = true;
+    else if (args[i] === '--help') {
+      console.log([
+        'Usage: node scripts/openspec-embed.mjs --slug <slug> [--dry-run]',
+        '       node scripts/openspec-embed.mjs --check-coverage',
+        '       node scripts/openspec-embed.mjs --count-skipped',
+        '',
+        '  --slug <slug>           Index one OpenSpec change into knowledge.chunks',
+        '  --dry-run               Print what would be indexed, do not write',
+        '  --check-coverage        Print count of local active plans',
+        '  --count-skipped         Count documents skipped due to context limit',
+        '                           (no DB writes — safe to run anytime)',
+        '  --help                  This help',
+      ].join('\n'));
+      process.exit(0);
+    }
   }
   const repoRoot = process.env.OPENSPEC_EMBED_REPO
     || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+
+  if (countSkipped) {
+    const CONTEXT_LIMIT = 2048;
+    let contextSkips = 0;
+    let otherSkips = 0;
+    const changesDir = path.join(repoRoot, 'openspec', 'changes');
+    if (existsSync(changesDir)) {
+      for (const entry of readdirSync(changesDir)) {
+        if (entry === 'archive') continue;
+        const tasksPath = path.join(changesDir, entry, 'tasks.md');
+        if (!existsSync(tasksPath)) continue;
+        const raw = readFileSync(tasksPath, 'utf8');
+        const { frontmatter } = stripFrontmatter(raw);
+        if (!ACTIVE_STATUSES.includes(frontmatter.status)) continue;
+        const worst = estimateSlugTokenWorst(entry, repoRoot);
+        if (worst === null) { otherSkips++; continue; }
+        if (worst > CONTEXT_LIMIT) {
+          contextSkips++;
+        }
+      }
+    }
+    console.log(`skipped: ${contextSkips + otherSkips} documents (${contextSkips} context limit > ${CONTEXT_LIMIT} tokens, ${otherSkips} other reasons)`);
+    console.log('Rebuild after context limit is resolved: task openspec:embed:backfill');
+    process.exit(0);
+  }
 
   if (checkCoverage) {
     const localCount = countLocalActivePlans(repoRoot);

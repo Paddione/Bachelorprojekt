@@ -134,7 +134,7 @@ _start_proxy() {
 
 # --- 3) Szenario "Starting one Gemma profile blocks the other" --------------
 
-@test "die beiden 8091-Loadouts schliessen einander per exclusiveGroup aus" {
+@test "alle 8091-Loadouts schliessen einander per exclusiveGroup aus" {
   # Der 409-port_busy-Pfad in server.mjs greift genau dann, wenn zwei Loadouts
   # denselben Port teilen und eines aktiv ist. Ohne User-systemd ist "aktiv"
   # nicht herstellbar — pruefbar ist die Vorbedingung als Laufzeitergebnis.
@@ -152,7 +152,14 @@ _start_proxy() {
     assert.ok(solo.length > 0, 'kein Loadout mit exklusivem Port — Anker verloren');
 
     const on8091 = doc.loadouts.filter((l) => l.port === 8091);
-    assert.equal(on8091.length, 2, 'erwartet genau zwei Loadouts auf 8091');
+    // Nicht auf eine feste Anzahl pruefen: die Aussage ist 'wer sich 8091 teilt,
+    // muss sich gegenseitig ausschliessen', nicht 'es sind genau zwei'. Eine
+    // harte Zahl bricht bei jedem neuen 8091-Loadout, ohne dass die gepruefte
+    // Eigenschaft verletzt waere (T002534: gemma26-factory kam als drittes dazu).
+    // Untergrenze 2 haelt die Aussage nicht-vakuos — bei einem einzigen Loadout
+    // gaebe es nichts auszuschliessen.
+    assert.ok(on8091.length >= 2,
+      'erwartet mindestens zwei Loadouts auf 8091, sonst ist der Ausschluss gegenstandslos');
     for (const l of on8091) {
       assert.equal(l.exclusiveGroup, 'chat-gpu',
         l.slug + ': teilt 8091, muss also in der chat-gpu-Gruppe liegen');

@@ -67,16 +67,46 @@ _argv_facts() {
   echo "$output" | awk '$1 == "gemma-multiagent"' | grep -q .
 }
 
-@test "kein GPU-Chat-Loadout startet mit q4_0-KV" {
+# Loadouts, die bewusst von der q4_0-Sperre ausgenommen sind. Jeder Eintrag
+# braucht eine Begruendung im Block darunter — die Liste ist keine Sammelstelle.
+_KV_Q4_ALLOWED="gemma26-factory"
+
+@test "nur ausdruecklich ausgenommene GPU-Chat-Loadouts starten mit q4_0-KV" {
   run _argv_facts
   [ "$status" -eq 0 ]
 
   # Der eigentliche Gegenstand. q4_0 degradiert Tool-Call-Argumente; das
   # ueberwachte Profil faehrt q8_0.
+  #
+  # AUSNAHME gemma26-factory (T002534): Das 26B-A4B-Modell belegt 14,25 GB von
+  # 16 GB VRAM, die es sich mit dem Windows-Desktop teilt. Mit q8_0 bleiben
+  # 62464 Kontext, mit q4_0 sind es 99328 — bei gemessen gleichem Durchsatz
+  # (160 vs. 166 tok/s). Eine Woertlichkeits-Probe mit sechs exakten
+  # Zeichenketten (Kustomize-Pfad, Manifest-Dateiname, Funktionssignatur mit
+  # Klammern und Kommata, OCI-Referenz, absoluter Binaerpfad, Flag-Kombination)
+  # kam bei temperature 0 fuenfmal von fuenf zeichengenau zurueck.
+  #
+  # DIESE AUSNAHME RUHT AUF UNVOLLSTAENDIGER EVIDENZ. Die Probe lief im KURZEN
+  # Kontext (~200 Tokens). Die Sorge aus T002501 betrifft Fehlerakkumulation
+  # ueber LANGE Kontexte — also genau den 37k-Factory-Prompt, fuer den der
+  # Kontext hier vergroessert wird. Dieser Fall ist ungemessen: T002535.
+  # Treten Fehler in Tool-Call-Argumenten oder Pfaden auf, ist diese Ausnahme
+  # der erste Verdaechtige: gemma26-factory auf q8_0 zuruecksetzen und pruefen,
+  # ob sie verschwinden.
   local offenders
-  offenders=$(echo "$output" | awk '$2 == "q4_0" || $3 == "q4_0" { print $1 }')
-  echo "q4_0-Loadouts: ${offenders:-<keine>}"
+  offenders=$(echo "$output" | awk '$2 == "q4_0" || $3 == "q4_0" { print $1 }' \
+              | grep -vxF "$_KV_Q4_ALLOWED" || true)
+  echo "unerlaubte q4_0-Loadouts: ${offenders:-<keine>}"
   [ -z "$offenders" ]
+}
+
+@test "die q4_0-Ausnahme ist wirksam und nicht bloss deklariert" {
+  # Positiv-Anker: Waere gemma26-factory nicht mehr auf q4_0 (oder ganz weg),
+  # liefe der Test darueber vakuos durch — er verbietet dann nur noch etwas,
+  # das ohnehin niemand tut. Dieser Test faellt in dem Fall auf.
+  run _argv_facts
+  [ "$status" -eq 0 ]
+  echo "$output" | awk '$1 == "gemma26-factory" && ($2 == "q4_0" && $3 == "q4_0")' | grep -q .
 }
 
 @test "quantisierter KV-Cache zieht FlashAttention nach sich" {

@@ -14,11 +14,14 @@ opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents b
 | `gemma26-1` | Gemma4 26B A4B QAT (UD-Q4_K_XL, ~99840 ctx, port 8091, 3 Slots via -kvu) | Local bulk work (slot 1 of 3). `write_capable: false` |
 | `gemma26-2` | same model, same server, slot 2 of 3 | Same as gemma26-1 — dispatch sequentially |
 | `gemma26-primary` | same model, `mode: primary` (Tab-selectable, not summonable via `task`) | Slot 3 of 3, ~99840 ctx shared pool via -kvu. `write_capable: false` |
-| `deepseek-helper` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `write_capable: true` | Escalation: local agent stuck or context exhausted |
+| `deepseek-helper` | DeepSeek-V3 (direct API, 128K ctx), `write_capable: true` | Escalation: local agent stuck or context exhausted |
+| `deepseek-pro` | DeepSeek-R1 (direct API, 128K ctx, max reasoning), `write_capable: true` | Deep analysis, complex debugging, hard refactors |
+| `deepseek-flash` | DeepSeek-V3 (direct API, 200K ctx), `write_capable: true` | Parallel throughput, up to 3 at a time |
+| `gemma26-vision` | Gemma4 26B (97840 ctx, `mode: primary`, `write_capable: false`) | Max context, no subagent dispatch. Vision-ready. |
 | `explore` | built-in | Read-only codebase exploration |
 | `general` | built-in | Read-only general research |
 
-Dispatch: `delegate(prompt, agent)` for read-only. `task` for write-capable — per registry that is `orchestrator` and `deepseek-helper`, **not** the gemma agents.
+Dispatch: `delegate(prompt, agent)` for read-only. `task` for write-capable — per registry that is `orchestrator`, `deepseek-helper`, `deepseek-pro`, and `deepseek-flash`, **not** the gemma agents.
 Agent definitions live in `.opencode/agent-models.jsonc`; the `write_capable` flags above are SSOT in `docs/agent-guide/registry/agents.yaml` (K5/T002304) → sync via `bash scripts/opencode-sync-agents.sh`.
 
 ## Core Commands

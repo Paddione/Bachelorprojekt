@@ -33,7 +33,7 @@
           // aber nicht gleichzeitig ausschoepfen - sie konkurrieren um
           // denselben Speicher.
           "limit": {
-            "context": 88832,
+            "context": 97840,
             "output": 8192
           }
         }
@@ -185,21 +185,66 @@
         "edit": "allow",
         "write": "deny",
         "bash": "allow",
-        "task": { "deepseek-helper": "allow", "gemma26-1": "deny", "gemma26-2": "deny" }
+        "task": { "deepseek-helper": "allow", "deepseek-pro": "allow", "deepseek-flash": "allow", "gemma26-1": "deny", "gemma26-2": "deny" }
+      }
+    },
+    // Gemma26 mit maximalem Kontext (97840 ctx, nahe am gemessenen 99840).
+    // Keinerlei Subagent-Dispatch — rein lokale Arbeit ohne Netzanbindung.
+    // Vision: derzeit KEIN mmproj im Loadout (nur 12B hat eins). Falls ein
+    // passender mmproj nachgeruestet wird, erkennt opencode das automatisch.
+    "gemma26-vision": {
+      "description": "Gemma4 26B A4B with maximum context (97840 ctx), no subagent dispatch. Fully local — use for long-context work that must stay on-device. Vision requires adding a gemma4-26B mmproj to the loadout (currently only 12B has one).",
+      "mode": "primary",
+      "model": "llamacpp-gemma26/gemma26-factory",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#A78BFA",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": {
+        "edit": "allow",
+        "write": "deny",
+        "bash": "allow",
+        "task": "deny"
       }
     },
     // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
     // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
-    // beides nicht reicht, wird hier dispatcht. Laeuft ueber die OpenCode-
-    // Go-Subscription (kein Pay-per-Token, s. "opencode-go"-Provider oben),
-    // nicht ueber eine direkte DeepSeek-API-Abrechnung.
+    // beides nicht reicht, wird hier dispatcht. Verwendet die direkte
+    // DeepSeek-API (deepseek-chat / V3) fuer schnelle Hilfestellung.
     "deepseek-helper": {
-      "description": "ESCALATION: DeepSeek V4 Flash via OpenCode Go (1M ctx) - dispatch when a local gemma26 subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed",
+      "description": "ESCALATION: DeepSeek-V3 via direct DeepSeek API (128K ctx) - dispatch when a local gemma26 subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed",
       "mode": "subagent",
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "deepseek/deepseek-chat",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F97316",
       "temperature": 0.3,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    // Tiefer Analyse-Agent: DeepSeek-R1 mit maximaler Reasoning-Tiefe fuer
+    // komplexe Architektur-Debugging, mehrschrittiges Reasoning und harte
+    // Multi-File-Refactorings, die ueber das hinausgehen, was deepseek-helper
+    // schnell loesen kann.
+    "deepseek-pro": {
+      "description": "DeepSeek-R1 reasoning via direct DeepSeek API (128K ctx, maximum reasoning effort). Use for deep analysis, complex multi-file debugging, architectural reasoning, or hard refactors that exceed what the fast deepseek-helper can handle.",
+      "mode": "subagent",
+      "model": "deepseek/deepseek-reasoner",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#EF4444",
+      "temperature": 0.1,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    // Schneller Parallel-Dispatcher: DeepSeek-V3 mit maximalem Reasoning-
+    // Effort, bis zu 3 Instanzen gleichzeitig (je 200K ctx). Gedacht fuer
+    // unabhaengige Teilaufgaben, die parallel abgearbeitet werden koennen.
+    "deepseek-flash": {
+      "description": "DeepSeek-V3 via direct DeepSeek API (200K ctx, max reasoning effort). Dispatch up to 3 at a time for parallel independent subtasks — each gets its own context window. Faster and cheaper than deepseek-pro, use for throughput not depth.",
+      "mode": "subagent",
+      "model": "deepseek/deepseek-chat",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#F59E0B",
+      "temperature": 0.2,
+      "steps": 30,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
@@ -218,7 +263,9 @@
         "task": {
           "gemma26-1": "allow",
           "gemma26-2": "allow",
-          "deepseek-helper": "allow"
+          "deepseek-helper": "allow",
+          "deepseek-pro": "allow",
+          "deepseek-flash": "allow"
         }
       }
     }

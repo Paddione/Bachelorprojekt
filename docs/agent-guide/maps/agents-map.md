@@ -20,8 +20,11 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 
 | Agent | Modus | Modell | Schreibfähig | Hinweis |
 | --- | --- | --- | --- | --- |
-| deepseek-helper | subagent | opencode-go/deepseek-v4-flash | ja | Escalation: 1M ctx via OpenCode Go subscription |
+| deepseek-flash | subagent | deepseek/deepseek-chat | ja | DeepSeek-V3 (200K ctx, max reasoning effort). Up to 3 parallel for independent subtasks. |
+| deepseek-helper | subagent | deepseek/deepseek-chat | ja | Escalation: DeepSeek-V3 (128K ctx) via direct DeepSeek API |
+| deepseek-pro | subagent | deepseek/deepseek-reasoner | ja | DeepSeek-R1 (128K ctx, max reasoning effort) for deep analysis and hard refactors |
 | gemma26-1 | subagent | llamacpp-gemma26/gemma26-factory | nein | Slot 1 of 3 (-np 3 -kvu, ~99840 ctx each). Own prefix cache; still serialized by llm-proxy (max_inflight=1) [T002545] |
 | gemma26-2 | subagent | llamacpp-gemma26/gemma26-factory | nein | Slot 2 of 3 — separate name so the two subagents keep distinct prefix caches [T002545] |
-| gemma26-primary | primary | llamacpp-gemma26/gemma26-factory | nein | Tab-selectable primary agent, slot 3 of 3, ~99840 ctx (measured, not n_ctx_train) [T002545] |
+| gemma26-primary | primary | llamacpp-gemma26/gemma26-factory | nein | Tab-selectable primary agent, slot 3 of 3, ~97840 ctx (measured, not n_ctx_train) [T002545] |
+| gemma26-vision | primary | llamacpp-gemma26/gemma26-factory | nein | Max context (97840 ctx), no subagent dispatch. Vision-ready (needs mmproj in loadout). |
 | orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the gemma26 subagents sequentially |

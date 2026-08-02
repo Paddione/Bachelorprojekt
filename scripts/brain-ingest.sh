@@ -238,6 +238,29 @@ echo ""
 echo ""
 echo "Phase 2 complete: Processed=$PROCESSED, Skipped=$SKIPPED, Failed=$FAILED (parallel, MAX_PARALLEL=$MAX_PARALLEL)"
 
+# Fehlerschwelle (T002533). Ohne dieses Gate endete ein Lauf, der 0 von 92
+# Quellen verarbeitet und 67-mal "LLM failed" gemeldet hatte, mit Exit 0 — von
+# einem Erfolg nicht zu unterscheiden, wenn man nicht in den Log sieht. Genau so
+# blieb ein toter LLM-Endpunkt unbemerkt bestehen.
+#
+# Die Schwelle ist bewusst grob: ein einzelner Ausfall (Zeitueberschreitung an
+# einer grossen Datei) soll den Lauf nicht kippen, ein systematischer schon.
+# Attempted = alles ausser Uebersprungenem; nur DAS ist die sinnvolle Bezugsmenge,
+# denn idempotent uebersprungene Quellen sagen ueber die Anbieter-Gesundheit nichts.
+INGEST_MAX_FAIL_PCT="${INGEST_MAX_FAIL_PCT:-20}"
+_attempted=$((PROCESSED + FAILED))
+if [ "$_attempted" -gt 0 ]; then
+  _fail_pct=$((FAILED * 100 / _attempted))
+  if [ "$_fail_pct" -gt "$INGEST_MAX_FAIL_PCT" ]; then
+    echo "" >&2
+    echo "ERROR: ${FAILED} von ${_attempted} versuchten Quellen fehlgeschlagen (${_fail_pct}%, Schwelle ${INGEST_MAX_FAIL_PCT}%)." >&2
+    echo "       Das ist kein Einzelausfall — pruefe zuerst den LLM-Endpunkt:" >&2
+    echo "         LM_STUDIO_URL=${LM_STUDIO_URL:-<nicht gesetzt>}  LM_MODEL=${LM_MODEL:-<nicht gesetzt>}" >&2
+    echo "       Es wurde nichts ausgeliefert. Schwelle anpassbar via INGEST_MAX_FAIL_PCT." >&2
+    exit 1
+  fi
+fi
+
 # ============================================================
 # Phase 2b: MOC Generation
 # ============================================================

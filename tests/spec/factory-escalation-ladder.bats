@@ -30,8 +30,16 @@ RP="scripts/factory/route-provider.sh"
   grep -q 'MODEL_TIERS' "$PM"
 }
 
-@test "T002369-D1: pipeline.mjs hat flash Tier (local LM Studio)" {
-  grep -q 'flash.*lmstudio' "$PM"
+# [T002582] Hiess "…hat flash Tier (local LM Studio)" und verlangte 'flash.*lmstudio'.
+# Damit war der Test an ein Backend gebunden, das seit T002551 gar kein Chat-Modell
+# mehr serviert — die unterste Sprosse der Eskalationsleiter war unbesetzt, und der
+# Test hielt genau das fest. Geprueft wird jetzt, was die Leiter tatsaechlich braucht:
+# eine lokale unterste Stufe, die ueber das Gateway laeuft.
+@test "T002369-D1: pipeline.mjs hat flash Tier lokal ueber das Gateway" {
+  grep -qE "flash:.*provider: 'llamacpp'" "$PM"
+  grep -qE "flash:.*127\.0\.0\.1:18235" "$PM"
+  # Negativ-Aussage mit den beiden Ankern oben: der tote LM-Studio-Port darf nicht zurueck.
+  ! grep -qE "flash:.*127\.0\.0\.1:1234" "$PM"
 }
 
 @test "T002369-D1: pipeline.mjs hat haiku Tier (deepseek-chat)" {

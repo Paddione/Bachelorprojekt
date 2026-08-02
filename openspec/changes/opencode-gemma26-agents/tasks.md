@@ -40,7 +40,8 @@ plant mit dem 2,6-fachen des Verfügbaren; das fällt erst beim Abschneiden auf.
 
 **Betreibervorgabe 2026-08-02:** Alle lokalen LLM-Jobs laufen auf
 `gemma26-factory`, und dieses Loadout soll **unified context für drei Agenten**
-fahren.
+fahren — drei **Slots**, aber weiterhin **eine** Anfrage gleichzeitig
+(`max_inflight` bleibt 1).
 
 ## Was `-kvu` tatsaechlich tut — gemessen, nicht abgeleitet
 
@@ -103,39 +104,46 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/opencode-agent-mode
       mit einem fremden JSON-Werkzeug zu schreiben erzeugt einen
       Vollzeilen-Diff.
 
-## 1b. Den Proxy-Engpass mit oeffnen — sonst wirkt Aufgabe 1 nicht
+## 1b. Was `parallel: 3` bewirkt — und was NICHT
 
-Gemessener IST-Zustand der ganzen Kette (2026-08-02):
+`llama-server --help`: `-np, --parallel N` = **number of server slots**. Ein
+Slot ist ein **Zustandshalter**: er behaelt den KV-Cache seiner Sequenz zwischen
+Anfragen. Ob gleichzeitig gerechnet wird, entscheidet `--cont-batching`, nicht
+`-np`.
+
+Der Gewinn von drei Slots ist deshalb **erhaltener Kontext je Factory-Slot**,
+nicht Durchsatz. Teilen sich drei Tickets einen Slot, wird bei jedem Wechsel der
+Prompt verworfen und neu berechnet — bei ~99840 Kontext ist das teuer.
+
+**`max_inflight` bleibt bei 1** (Betreibervorgabe 2026-08-02). Bei einer
+einzelnen GPU ist echte Nebenlaeufigkeit kaum ein Gewinn: die Inferenz ist
+GPU-gebunden, drei gleichzeitige Laeufe teilen sich dieselbe Rechenzeit. Ein
+Wert von 1 ist hier kein Verzicht, sondern die passende Einstellung.
+
+Gemessener IST-Zustand der Kette (2026-08-02):
 
 ```
 Factory                      llm-proxy                 llama-server
 FACTORY_SLOTS_PER_BRAND=3  → llamacpp-gemma          → :8091
 (scripts/factory/slots.sh)   max_inflight = 1          total_slots = 1
-                             ^ serialisiert            ^ ein KV-Slot, n_ctx=99840
+                             ^ bleibt so               ^ wird 3
 ```
 
-Drei Slots im Loadout einzurichten genuegt NICHT: der Proxy laesst weiterhin
-nur eine Anfrage gleichzeitig durch. Die Aenderung waere umgesetzt, die Messung
-in Aufgabe 2.3 wuerde fehlschlagen, und die Ursache staende nirgends.
+- [ ] **1b.1** `tickets.llm_proxy_backends.max_inflight` fuer `llamacpp-gemma`
+      **nicht anfassen** — der Wert 1 ist korrekt. Diese Aufgabe existiert, damit
+      niemand ihn "passend zu parallel=3" mitzieht: eine fruehere Fassung dieses
+      Plans forderte genau das, mit falscher Begruendung.
 
-- [ ] **1b.1** `tickets.llm_proxy_backends`: `max_inflight` fuer das Backend
-      `llamacpp-gemma` von 1 auf **3** setzen, passend zu `parallel=3`.
+- [ ] **1b.2** **Nicht mit erledigt betrachten:** die Zuordnung
+      `pipeline_slot` → llama.cpp-Slot-ID ist **T002483** (`in_progress`). Ohne
+      sie existieren zwar drei Slots, aber kein Ticket haelt verlaesslich seinen
+      eigenen — llama.cpp waehlt den Slot dann selbst. Erst die feste Bindung
+      macht aus drei Slots drei getrennte Ticket-Kontexte. Dieser Plan schafft
+      die Voraussetzung, er ersetzt T002483 nicht.
 
-      Der Wert liegt in der **Datenbank**, nicht in `loadouts.json` — ein Blick
-      nur in versionierte Dateien uebersieht ihn strukturell. Schreibzugriff
-      ueber `kubectl exec … psql`, nicht ueber mcp-postgres (read-only).
-
-- [ ] **1b.2** Nach der Aenderung den `llm-proxy` neu laden bzw. neu starten,
-      damit `loadBackends()` den neuen Wert zieht. Ob ein Reload genuegt oder
-      ein Neustart noetig ist, aus `scripts/llm-proxy/backends.mjs`
-      (`loadBackendsOnce`, Memoisierung) bestimmen — nicht raten.
-
-- [ ] **1b.3** **Nicht mit erledigt betrachten:** die dritte Ebene, die
-      Zuordnung `pipeline_slot` → llama.cpp-Slot-ID, ist **T002483**
-      (`in_progress`). Ohne sie landen drei Factory-Tickets zwar parallel beim
-      Server, aber ohne feste Slot-Bindung — die Kontexttrennung je Ticket ist
-      damit noch nicht hergestellt. Dieser Plan macht den Weg frei, er ersetzt
-      T002483 nicht.
+      Verwandt: `--slot-save-path` (KV-Cache eines Slots persistieren) ist der
+      Hebel hinter T002482, von dem T002483 abhaengt. Hier nicht setzen — das
+      gehoert in jenen Vorgang.
 
 ## 2. Unit neu starten und messen
 
@@ -156,13 +164,14 @@ in Aufgabe 2.3 wuerde fehlschlagen, und die Ursache staende nirgends.
       .default_generation_settings.n_ctx}'`. Die `--fit`-Automatik entscheidet
       den Endwert, nicht die Config. Ergebnis ins Ticket.
 
-- [ ] **2.3** Belegen, dass drei Slots wirklich nebeneinander arbeiten: drei
-      gleichzeitige Anfragen absetzen und über `/slots` prüfen, dass sie sich
-      auf verschiedene Slots verteilen statt zu serialisieren.
+- [ ] **2.3** Belegen, dass drei Slots **existieren und ihren Kontext behalten**
+      — nicht, dass sie gleichzeitig rechnen. `/slots` muss drei Eintraege
+      zeigen, jeder mit vollem `n_ctx`.
 
-      **Zweimal messen** — einmal direkt gegen :8091, einmal über den Proxy
-      (:18235). Weichen die Ergebnisse ab, ist Aufgabe 1b nicht wirksam
-      geworden: der Server kann parallel, das Tor davor nicht.
+      Danach zwei aufeinanderfolgende Anfragen mit unterschiedlichem Prompt
+      absetzen und pruefen, dass die zweite nicht den Prompt der ersten
+      verwirft. Genau dieses Neuberechnen ist der Kostenpunkt, den drei Slots
+      vermeiden — Durchsatz ist hier nicht das Ziel.
 
 ## 3. Agentendefinitionen korrigieren
 

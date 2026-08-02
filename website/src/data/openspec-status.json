@@ -2081,6 +2081,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002436": [
+    {
+      "slug": "brain-k6-ticket-factory",
+      "status": "plan_staged"
+    }
+  ],
   "T002437": [
     {
       "slug": "brain-k7-agenten-mcp",

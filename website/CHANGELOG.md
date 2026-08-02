@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.240.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.3...website-v1.240.4) (2026-08-02)
+
+
+### Bug Fixes
+
+* **factory:** Modell-Routing auf gemma26-factory ueber das Gateway [T002582] ([#3708](https://github.com/Paddione/Bachelorprojekt/issues/3708)) ([a7bde6f](https://github.com/Paddione/Bachelorprojekt/commit/a7bde6f2241273c1474f5dfffd8444fe320f0be3))
+
 ## [1.240.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.2...website-v1.240.3) (2026-08-02)
 
 

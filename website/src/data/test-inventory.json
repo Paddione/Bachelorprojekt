@@ -2700,6 +2700,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-bundle/rollup-heredoc-substitution",
+    "file": "tests/spec/mishap-bundle/rollup-heredoc-substitution.bats",
+    "category": "mishap-bundle",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-categorize-erden",
     "file": "tests/spec/mishap-categorize-erden.bats",
     "category": "mishap-categorize-erden",
@@ -2774,6 +2780,12 @@
   {
     "id": "openspec-workflow",
     "file": "tests/spec/openspec-workflow.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/delta-scenario-guard",
+    "file": "tests/spec/openspec-workflow/delta-scenario-guard.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },

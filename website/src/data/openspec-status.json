@@ -2075,6 +2075,12 @@
       "status": "archived"
     }
   ],
+  "T002434": [
+    {
+      "slug": "brain-k4-brain-wiki",
+      "status": "plan_staged"
+    }
+  ],
   "T002435": [
     {
       "slug": "brain-k5-openspec",

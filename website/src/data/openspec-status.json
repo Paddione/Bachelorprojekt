@@ -2081,6 +2081,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002437": [
+    {
+      "slug": "brain-k7-agenten-mcp",
+      "status": "plan_staged"
+    }
+  ],
   "T002439": [
     {
       "slug": "2026-07-28-db-pod-phase-guard-T002439",

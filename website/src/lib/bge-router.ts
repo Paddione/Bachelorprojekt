@@ -29,22 +29,22 @@ export class BgeRoutingError extends Error {
   }
 }
 
-const ENV_KEYS: Record<BgeRole, string> = {
-  embed: 'LLM_EMBED_URL',
-  rerank: 'LLM_RERANKER_URL',
-};
-
 /**
  * Liefert die konfigurierte URL fuer eine Rolle oder wirft BgeRoutingError.
  * Ein fehlender Wert ist ein Konfigurationsfehler, kein Degradationsgrund:
  * die bge-MCP-Unit (scripts/bge-mcp/bge-mcp.service) pinnt die Variablen auf
- * das lokale Port-Forward, die environments/*.yaml tragen sie fuer die API.
+ * das lokale Port-Forward, die environments/*.yaml tragen sie fuer die API
+ * (z. B. http://llm-gateway-embed:8081 fuer die Cluster-Services aus
+ * k3d/llm-gpu.yaml).
  */
 export function resolveEndpoint(kind: BgeRole): string {
-  const key = ENV_KEYS[kind];
-  const url = process.env[key];
+  // Bewusst zwei explizite Reads statt einer Map: die Variablennamen sind der
+  // Vertrag mit der bge-MCP-Unit und den environments/*.yaml.
+  const url = kind === 'embed' ? process.env.LLM_EMBED_URL : process.env.LLM_RERANKER_URL;
   if (!url) {
-    throw new BgeRoutingError(`${key} is not configured`);
+    throw new BgeRoutingError(
+      kind === 'embed' ? 'LLM_EMBED_URL is not configured' : 'LLM_RERANKER_URL is not configured',
+    );
   }
   return url;
 }

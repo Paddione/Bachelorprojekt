@@ -2484,18 +2484,6 @@
     "kind": "shell"
   },
   {
-    "id": "llm-pipeline/autostart-covers-both-pairs",
-    "file": "tests/spec/llm-pipeline/autostart-covers-both-pairs.bats",
-    "category": "llm-pipeline",
-    "kind": "shell"
-  },
-  {
-    "id": "llm-pipeline/dual-pair-failover",
-    "file": "tests/spec/llm-pipeline/dual-pair-failover.bats",
-    "category": "llm-pipeline",
-    "kind": "shell"
-  },
-  {
     "id": "llm-pipeline/gemma-thinking-budget",
     "file": "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
     "category": "llm-pipeline",

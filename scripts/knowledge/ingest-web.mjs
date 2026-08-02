@@ -210,7 +210,7 @@ async function main() {
       console.error(`Collection ${COLLECTION_ID} not found`);
       process.exit(1);
     }
-    const { name: colName, crawl_config, embedding_model } = colRes.rows[0];
+    const { name: colName, crawl_config } = colRes.rows[0];
     const cfg = crawl_config ?? {};
 
     const startUrl       = process.env.START_URL    || cfg.startUrl;
@@ -240,7 +240,9 @@ async function main() {
     console.log(`Embedding ${pages.length} pages…`);
     for (const page of pages) {
       const rawChunks = chunkPlain(page.text);
-      const embeddings = await embedAll(rawChunks.map(c => c.text), embedding_model);
+      // T002570: embedAll() no longer takes a model param — it tries bge-m3
+      // first and falls back to Voyage automatically.
+      const embeddings = await embedAll(rawChunks.map(c => c.text));
       const chunks = rawChunks.map((c, i) => ({ ...c, embedding: embeddings[i] }));
 
       await upsertDocumentAndChunks(pool, {

@@ -90,39 +90,52 @@ export async function callVoyage(inputs, inputType = 'document') {
   return { embeddings: j.data.map(d => d.embedding), tokens: j.usage.total_tokens };
 }
 
-function getRouterUrl() {
-  const u = process.env.LLM_ROUTER_URL;
-  try {
-    new URL(u);
-    return u;
-  } catch {
-    return 'http://llm-router.workspace.svc.cluster.local:4000';
-  }
-}
-
-export async function callRouter(texts, model = 'bge-m3') {
-  const url = getRouterUrl();
+// T002570: LLM_ROUTER_URL/llm-router.workspace.svc.cluster.local:4000 war toter
+// Code — dieser Service existiert im Cluster nicht. bge-m3 laeuft ueber
+// LLM_EMBED_URL, dieselbe Konvention wie website/src/lib/bge-router.ts
+// (http://llm-gateway-embed.workspace.svc.cluster.local:8081, k3d/llm-gpu.yaml).
+async function embedViaBge(texts, url) {
   const r = await fetch(`${url}/v1/embeddings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, input: texts }),
+    body: JSON.stringify({ model: 'bge-m3', input: texts }),
+    signal: AbortSignal.timeout(10_000),
   });
-  if (!r.ok) throw new Error(`router ${r.status} ${await r.text()}`);
+  if (!r.ok) throw new Error(`bge ${r.status} ${await r.text()}`);
   const j = await r.json();
   return { embeddings: j.data.map(d => d.embedding) };
 }
 
-export async function embedAll(texts, model = 'voyage-multilingual-2', batch = 128) {
-  const out = [];
-  if (model === 'bge-m3') {
-    const bgeBatch = 64;
-    for (let i = 0; i < texts.length; i += bgeBatch) {
-      const r = await callRouter(texts.slice(i, i + bgeBatch), model);
-      out.push(...r.embeddings);
+// T002570: bge-m3 ist primaer, Voyage AI nur Fallback. bgeDead lebt nur fuer
+// den aktuellen Prozesslauf (Modul-Variable, kein persistenter Zustand) —
+// die Ingest-Skripte rufen embedAll() pro Dokument in einer Schleife auf;
+// ohne diesen Cache wuerde bei totem bge jedes Dokument erneut 10s Timeout
+// kosten, bevor auf Voyage ausgewichen wird.
+let bgeDead = false;
+
+export async function embedAll(texts, batch = 128) {
+  const bgeUrl = process.env.LLM_EMBED_URL;
+  if (bgeUrl && !bgeDead) {
+    try {
+      const out = [];
+      const bgeBatch = 64;
+      for (let i = 0; i < texts.length; i += bgeBatch) {
+        const r = await embedViaBge(texts.slice(i, i + bgeBatch), bgeUrl);
+        out.push(...r.embeddings);
+      }
+      return out;
+    } catch (err) {
+      console.warn(
+        `[embedAll] bge-m3 (${bgeUrl}) fehlgeschlagen — falle fuer den Rest `
+        + `dieses Laufs auf Voyage AI zurueck: ${err.message}`,
+      );
+      bgeDead = true;
     }
-    return out;
+  } else if (!bgeUrl) {
+    console.warn('[embedAll] LLM_EMBED_URL nicht konfiguriert — falle auf Voyage AI zurueck');
   }
 
+  const out = [];
   for (let i = 0; i < texts.length; i += batch) {
     const r = await callVoyage(texts.slice(i, i + batch), 'document');
     out.push(...r.embeddings);

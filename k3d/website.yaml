@@ -73,6 +73,7 @@ data:
   WHISPER_URL: "http://whisper.${WORKSPACE_NAMESPACE}.svc.cluster.local:8000"
   # LLM (local-first pipeline — bge-embed/rerank in-cluster via llm-gateway Services)
   LLM_EMBED_URL: "${LLM_EMBED_URL}"
+  LLM_RERANKER_URL: "${LLM_RERANKER_URL}"
   LLM_ENABLED: "${LLM_ENABLED}"
   LLM_RERANK_ENABLED: "${LLM_RERANK_ENABLED}"
   # KORE-Assistent (no-LLM keyword-search mode for now)

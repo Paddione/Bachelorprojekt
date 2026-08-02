@@ -325,6 +325,8 @@ spec:
                     secretKeyRef:
                       name: knowledge-secrets
                       key: VOYAGE_API_KEY
+                - name: LLM_EMBED_URL
+                  value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
@@ -368,6 +370,9 @@ spec:
               image: node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2
               imagePullPolicy: IfNotPresent
               command: [node, /scripts/ingest-markdown.mjs]
+              env:
+                - name: LLM_EMBED_URL
+                  value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
@@ -440,6 +445,8 @@ spec:
                     secretKeyRef:
                       name: knowledge-secrets
                       key: VOYAGE_API_KEY
+                - name: LLM_EMBED_URL
+                  value: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
                 - name: BRAND
                   value: "mentolder"
               volumeMounts:

@@ -5,29 +5,37 @@
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   SCHEMA="$REPO/.claude/skills/references/schemas/plan-intel-bundle.schema.json"
-  SLUG="task-context-channel"
+  # [T002586] Der Slug ist ein EIGENES Fixture, kein fremder lebender Change.
+  #
+  # Bis 2026-08-02 stand hier SLUG="task-context-channel" — der produktive Change.
+  # Begruendet war das damit, dass die Gate-Tests die intel.json an ihrem echten Ort
+  # brauchen, weil plan-lint sie dort sucht. Der Preis dieser Entscheidung war
+  # unsichtbar, solange niemand archivierte: T002569 Charge 7 verschob den Change nach
+  # openspec/changes/archive/, und alle neun Tests brachen mit 'intel.json not found'.
+  # CI auf main war dadurch mehrere Laeufe lang rot, und jeder offene PR erbte den
+  # Fehlschlag. Jeder produktive Change wird irgendwann archiviert — eine Testsuite
+  # darf ihre Lebensdauer nicht erben.
+  #
+  # Die Eigenschaft, die die alte Entscheidung sichern wollte, bleibt erhalten: das
+  # Fixture wird unter openspec/changes/ materialisiert, also genau dort, wo plan-lint
+  # sucht. Es entsteht in setup() aus tests/fixtures/ und verschwindet in teardown().
+  SLUG="tcc-fixture-$$"
   CHANGE_DIR="$REPO/openspec/changes/$SLUG"
+  FIXTURE_SRC="$REPO/tests/fixtures/task-context-channel"
   # Wohin die Generator-Laeufe schreiben, die ihr Ergebnis nur lesen wollen.
   OUT="$BATS_TEST_TMPDIR/intel.json"
 
-  # [T002523-M4] Der echte intel.json-Stand wird gesichert und in teardown()
-  # wiederhergestellt. Diese Suite arbeitet gegen einen PRODUKTIVEN Change-Slug, nicht
-  # gegen ein Fixture: die Gate-Tests brauchen die Datei an ihrem echten Ort, weil
-  # plan-lint sie dort sucht. Ohne diese Klammer blieb nach jedem Suite-Lauf eine
-  # modifizierte Datei eines FREMDEN Changes im Arbeitsbaum liegen — wer danach
-  # `git status` las, musste erst herausfinden, ob das eigene Arbeit, fremder WIP oder
-  # Testmuell war. Genau aus dieser Unklarheit ist bei T001880 echter Verlust entstanden.
-  INTEL_BACKUP=""
-  if [ -f "$CHANGE_DIR/intel.json" ]; then
-    INTEL_BACKUP="$BATS_TEST_TMPDIR/intel.orig.json"
-    cp "$CHANGE_DIR/intel.json" "$INTEL_BACKUP"
-  fi
+  rm -rf "$CHANGE_DIR"
+  mkdir -p "$CHANGE_DIR"
+  cp -r "$FIXTURE_SRC/." "$CHANGE_DIR/"
 }
 
 teardown() {
-  if [ -n "${INTEL_BACKUP:-}" ] && [ -f "$INTEL_BACKUP" ]; then
-    cp "$INTEL_BACKUP" "$CHANGE_DIR/intel.json"
-  fi
+  # Nur ein Pfad, der wirklich unser Fixture ist — ein fehlgeleitetes rm -rf unter
+  # openspec/changes/ traefe sonst echte Vorgaenge. [T002586]
+  case "${CHANGE_DIR:-}" in
+    */openspec/changes/tcc-fixture-*) rm -rf "$CHANGE_DIR" ;;
+  esac
 }
 
 # ── Generator (p1) ──────────────────────────────────────

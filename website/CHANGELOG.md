@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.238.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.6...website-v1.238.7) (2026-08-02)
+
+
+### Bug Fixes
+
+* **ci:** freshness:check warns on origin/main divergence [T002561] ([#3663](https://github.com/Paddione/Bachelorprojekt/issues/3663)) ([84a862f](https://github.com/Paddione/Bachelorprojekt/commit/84a862f21a90d41c32fa7ba523c6970ca656609e))
+
 ## [1.238.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.5...website-v1.238.6) (2026-08-02)
 
 

@@ -1,0 +1,140 @@
+# batch	slug	ticket	ticket_status	target_spec(s)	archive_flag
+1	admin-redirect-map	T001789	done	admin-redirect-map	--create-new
+1	agent-lock-reap-rule0b-ttl	T002513	done	active-sessions-hub	
+1	agent-lock-release-guard	T002447	done	active-sessions-hub	
+1	agentic-skillmd-size	T002094	done	agentic-tooling-quality-goals	
+1	agentic-terminal-sidekick	T001565	done	sidekick-assistant,terminal-sidekick	--create-new
+1	auto-chore-plan-script	T002390	done	software-factory	
+1	auto-triage-grounding-T002399	T002399	done	auto-triage-grounding-T002399	--create-new
+1	bge-k8s-cpu-migration	T002551	done	llm-pipeline	
+1	bge-mcp-client-env-check	T002504	done	brain-k2-bge	
+1	brain-k4-brain-wiki	T002434	done	brain-k4-brain-wiki	--create-new
+1	brain-k5-openspec	T002435	done	brain-k5-openspec	--create-new
+1	brain-k7-agenten-mcp	T002437	done	brain-k7-agenten-mcp	--create-new
+1	brain-quality-goals	T001608	done	brain-foundation	
+1	brain-site-dockerfile-template	T001578	archived	brain-foundation	
+1	bug-consolidation-T002330	T002330	done	bug-consolidation-T002330	--create-new
+1	central-llm-provider-routing	T002015	done	llm-pipeline	
+1	ci-push-trigger	T002522	done	ci-cd	
+1	coaching-session-beat-choreography	T002138	done	coaching-sessions-polish-guide	
+1	cockpit-auth-schnitt	T002463	done	sdlc-cockpit	
+1	cockpit-daemon-runtime	T002508	done	sdlc-cockpit	
+2	db-backup-filen-fix	T001738	archived	backup-pipeline	
+2	db-slow-query	T002095	done	health-goals	
+2	dev-tool-secrets-ssot	T002214	done	secrets-deploy-automation	
+2	e2e-auth-setup-fail-closed	T002199	done	e2e-test-infrastructure	
+2	e2e-bug-report-testdata-T002385	T002385	done	e2e-bug-report-testdata-T002385	--create-new
+2	e2e-testdata-leak	T002096	done	ci-cd	
+2	embed-skip-visibility	T002546	done	local-llm-proxy	
+2	env-seal-empty-value-keys	T001198	archived	env-seal-empty-value-keys	--create-new
+2	exclude-latest-images	T001781	archived	exclude-latest-images	--create-new
+2	fa-sf-dedupe-T002427	T002427	done	software-factory	
+2	factory-attempt-counter-T002389	T002389	done	factory-attempt-counter-T002389	--create-new
+2	factory-escalation-ladder	T002369	done	factory-escalation-ladder	--create-new
+2	factory-flash-bonsai-gang	T002128	done	local-llm-proxy,software-factory	
+2	factory-reclaim-lock-respect	T002267	done	factory-reclaim-lock-respect	--create-new
+2	factory-resume-staged-work	T002327	done	software-factory	
+2	factory-scout-backoff	T002003	done	factory-scout-backoff	--create-new
+2	factory-session-reuse	T002072	done	factory-session-reuse	--create-new
+2	factory-slot-sandbox	T002483	done	software-factory	
+2	fix-arena-db-url-secrets	T001800	done	database	
+2	fix-factory-gang-drift	T002129	done	factory-gang	--create-new
+3	fix-flux-render-envsubst	T002127	done	flux-render-security	--create-new
+3	fix-phase-event-whitelist	T002130	done	phase-events	--create-new
+3	fix-ticket-tracking-T002279	T002279	done	fix-ticket-tracking-T002279	--create-new
+3	flux-render-image-tag	T002209	done	workspace-deploy	
+3	fluxcd-gitops	T002083	done	ci-cd,workspace-deploy	
+3	g-db01-fk-index-remediation	T001946	done	g-db01-fk-indexes	--create-new
+3	gate-agentic01-unresolved-tools	T002494	done	agentic-tooling-quality-goals	
+3	harness-workflow-split	T001611	archived	harness-workflow-split	--create-new
+3	health-goals-scan-streamline	T002107	done	health-goals	
+3	ingest-llm-argv-anchor	T002537	done	brain-foundation	
+3	k3d-dev-drift	T001853	done	workspace-deploy	
+3	k3d-kustomization-T002349	T002349	done	k3d-kustomization-T002349	--create-new
+3	k8-headed-tests	T002467	done	e2e-test-infrastructure	
+3	llama-stack	T002459	done	local-llm-proxy	
+3	llamacpp-embed-rerank	T002110	done	llm-pipeline	
+3	llm-proxy-readiness	T002336	done	local-llm-proxy	
+3	llm-start-port-cleanup	T002288	done	llm-local-dev	
+3	mcp-gateway-watchdog	T002543	done	mcp-gateway	
+3	mcp-registry-ssot	T002300	done	mcp-gateway	
+3	micro-spec-consolidation	T002014	done	agent-skills,micro-spec-consolidation	--create-new
+4	mishap-bundle-dev-flow-scripts	T002342	done	mishap-bundle-dev-flow-scripts	--create-new
+4	mishap-bundle-infra-testspec-ci	T002448	done	mishap-bundle-infra-testspec-ci	--create-new
+4	mishap-bundle-t002471	T002471	done	misc-scripts	--create-new
+4	mishap-consolidation-T002375	T002375	done	active-sessions-hub	
+4	mishap-docker-wsl-T002250	T002250	done	mishap-docker-wsl-T002250	--create-new
+4	mishap-t001867	T001867	done	mishap-t001867	--create-new
+4	mishap-t001868	T001868	done	mishap-t001868	--create-new
+4	mishap-t001873	T001873	done	mishap-t001873	--create-new
+4	mishap-t001927	T001927	done	mishap-t001927	--create-new
+4	mishap-t001973	T001973	done	mishap-t001973	--create-new
+4	mishap-t001974	T001974	done	mishap-t001974	--create-new
+4	mishap-t001978	T001978	done	mishap-t001978	--create-new
+4	mishap-t002137	T002137	done	mishap-t002137	--create-new
+4	mishap-t002239	T002239	done	mishap-t002239	--create-new
+4	mishap-t002261	T002261	done	mishap-t002261	--create-new
+4	mishap-t002273	T002273	done	mishap-t002273	--create-new
+4	mishap-t002284	T002284	done	mishap-t002284	--create-new
+4	mishap-t002291	T002291	done	mishap-t002291	--create-new
+4	mishap-t002339	T002339	done	mishap-t002339	--create-new
+4	mishap-t002341	T002341	done	mishap-t002341	--create-new
+5	mishap-t002352	T002352	done	mishap-t002352	--create-new
+5	mishap-t002354	T002354	done	openspec-workflow,software-factory	
+5	mishap-t002373	T002373	done	mishap-t002373	--create-new
+5	mishap-t002374	T002374	done	mishap-t002374	--create-new
+5	mishap-t002377	T002377	done	ci-cd	
+5	mishap-t002382	T002382	done	mishap-t002382	--create-new
+5	mishap-t002410	T002410	done	mishap-t002410	--create-new
+5	mishap-t002425	T002425	done	mishap-t002425	--create-new
+5	mishap-t002457	T002457	done	mishap-t002457	--create-new
+5	mishap-t002481	T002481	done	mishap-t002481	--create-new
+5	mishap-t002495	T002495	done	mishap-t002495	--create-new
+5	mishap-t002523	T002523	done	mishap-t002523	--create-new
+5	opencode-gemma26-agents	T002545	done	local-llm-proxy	
+5	opencode-local-model-runner	T001780	archived	opencode-local-model-runner	--create-new
+5	openspec-embedding-T002334	T002334	done	openspec-embedding-T002334	--create-new
+5	openspec-half-archive-T002428	T002428	done	openspec-workflow	
+5	openspec-merge-marker-drift	T001473	archived	openspec-workflow	
+5	openspec-worktree-anchor	T001997	done	openspec-worktree-anchor	--create-new
+5	partial-dependency-scheduling	T002082	done	software-factory	
+5	pipeline-divergence-T002393	T002393	done	pipeline-divergence-T002393	--create-new
+6	plan-context-summary	T002322	done	dev-flow-plan	
+6	plan-meta-readiness-merge	T002388	done	ticket-system	
+6	plan-partials-embedding	T002453	done	openspec-embedding	--create-new
+6	plan-ref-lifecycle-fixes	T002044	done	plan-ref-lifecycle-fixes	--create-new
+6	pocket-id-seed-early-abort	T001995	done	pocket-id-seed-early-abort	--create-new
+6	pocket-id-seed-pagination	T001996	done	pocket-id-seed-pagination	--create-new
+6	pr-refresh-batch-T002417	T002417	done	ci-cd	
+6	renovate-repositories	T002165	done	ci-cd	
+6	repohealth-goals-trigger	T002158	done	ci-cd	
+6	repohealth-nightly	T002162	done	health-goals	
+6	rustdesk-web-client	T001381	archived	rustdesk-server	
+6	sdlc-cockpit-k10-pipeline-slot	T002531	done	sdlc-cockpit	
+6	sdlc-cockpit-k4-steuerung	T002463	done	sdlc-cockpit	
+6	smtp-password-sync	T001802	archived	smtp-password-sync	--create-new
+6	spec-security-gaps	T002180	done	health-goals	
+6	spec-test-rot	T002181	done	ci-cd	
+6	specs-keycloak-pocketid	T002179	done	auth-sso	
+6	t001592	T001592	archived	t001592	--create-new
+6	t002105-mishap-bundle	T002105	done	auto-close-guard	--create-new
+6	t002182-spec-tests-gate	T002182	done	ci-cd	
+7	t002183-triage-fix	T002183	done	ticket-system	
+7	t002184-livekit-removal	T002184	done	fleet-operations,health-goals,website-interfaces,workspace-deploy	
+7	t002185-health-goals-cronjob	T002185	done	monitoring-alerts	
+7	t002186-ci-watch	T002186	done	ci-cd	
+7	t002187-pocket-id-seed-fix	T002187	done	auth-sso	
+7	t002188-dev-flow-plan-fix	T002188	done	dev-flow-plan	
+7	t002196-website-api-status	T002196	done	website-interfaces	
+7	t002207-flux-health-gate	T002207	done	workspace-deploy	
+7	t2429-stdio-mcps-bridge	T002429	done	local-llm-proxy	
+7	task-context-channel	T002420	done	dev-flow-plan	
+7	ticket-pgpod-running-pod-selector	T002307	done	mcp-gateway,ticket-system	
+7	ticket-sh-brand-derivation	T002280	done	ticket-system	
+7	ticket-type-vocabulary	T002329	done	software-factory,ticket-system	
+7	toolset-registry	T002560	done	toolset-registry	--create-new
+7	unified-llm-gateway	T002102	done	local-llm-proxy,software-factory	
+7	website-e2e-fixes	T002080	done	website-e2e-fixes	--create-new
+7	worktree-divergence-guard-T002387	T002387	done	worktree-divergence-guard-T002387	--create-new
+7	website-db-split	T002149	done	website-db-split	--create-new
+7	t002150-website-db-split-stage-2	T002150	done	website-db-split	

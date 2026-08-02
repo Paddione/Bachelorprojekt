@@ -49,6 +49,7 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   if (s.draftNgl != null) argv.push('-ngld', String(s.draftNgl));
 
   if (loadout.mcp?.serversConfig != null) argv.push('--mcp-servers-config', loadout.mcp.serversConfig);
+  if (loadout.uiConfigFile != null) argv.push('--ui-config-file', loadout.uiConfigFile);
 
   // T002426: GEGENRICHTUNG zu --mcp-servers-config. Jenes Flag macht llama-server
   // zum MCP-*Client* (das Modell ruft fremde Tools). --ui-mcp-proxy betrifft die

@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.234.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.233.0...website-v1.234.0) (2026-08-02)
+
+
+### Features
+
+* **agents:** K3 Layout-Engine — Fläche, Katalog, Ziehen, Pop-out, Vollfläche [T002462] ([#3609](https://github.com/Paddione/Bachelorprojekt/issues/3609)) ([8cb9236](https://github.com/Paddione/Bachelorprojekt/commit/8cb9236e229fc06aa93c0fab0458b40bd8d0e151))
+* **website:** K4 Steuerung, Bestätigungen und Audit-Log [T002463] ([#3607](https://github.com/Paddione/Bachelorprojekt/issues/3607)) ([7a72d1d](https://github.com/Paddione/Bachelorprojekt/commit/7a72d1d347e8d9084c0e2d318111b934b573c2ab))
+* **website:** K6 Brain-Anbindung — Ingress, Slug-Ableitung und Kontext-Slot [T002465] ([#3608](https://github.com/Paddione/Bachelorprojekt/issues/3608)) ([1b0f85d](https://github.com/Paddione/Bachelorprojekt/commit/1b0f85d7a4f1783d48a48d79d9969c2067999751))
+
+
+### Bug Fixes
+
+* **agents:** brain-ingest auf beliebigen OpenAI-kompatiblen Anbieter umstellen [T002533] ([#3612](https://github.com/Paddione/Bachelorprojekt/issues/3612)) ([33f7f8b](https://github.com/Paddione/Bachelorprojekt/commit/33f7f8b85d983f46fa72fb25704ed27e27f01ea7))
+* **ci:** Push-Trigger auf main wiederherstellen — Skip-Marker im Anchor-Commit [T002522] ([#3615](https://github.com/Paddione/Bachelorprojekt/issues/3615)) ([fea0b75](https://github.com/Paddione/Bachelorprojekt/commit/fea0b75ff93eda9755efe9d9d89a3f01f7017e26))
+* **ops:** Loadout-Start scheiterte an jedem GGUF über 2 GiB [T002536] ([#3614](https://github.com/Paddione/Bachelorprojekt/issues/3614)) ([963f29b](https://github.com/Paddione/Bachelorprojekt/commit/963f29bd0872203d3fb74fe5814d2b93ae24bef3))
+* **test:** E2E-Stabilisierung mentolder — Testids, Stub-Mechanik, Planungsbüro-Form [T002525] ([#3606](https://github.com/Paddione/Bachelorprojekt/issues/3606)) ([535eb47](https://github.com/Paddione/Bachelorprojekt/commit/535eb47310514ab16c4c1031feaaec4e5095f0ba))
+
 ## [1.233.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.232.0...website-v1.233.0) (2026-08-01)
 
 

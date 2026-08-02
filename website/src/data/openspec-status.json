@@ -2181,6 +2181,12 @@
       "status": "archived"
     }
   ],
+  "T002467": [
+    {
+      "slug": "k8-headed-tests",
+      "status": "plan_staged"
+    }
+  ],
   "T002468": [
     {
       "slug": "2026-08-01-k9-stil-datenbank",

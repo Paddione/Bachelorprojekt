@@ -7,6 +7,13 @@ name: E2E (Live Production)
 # Auth-gated specs need MM_TEST_USER / MM_TEST_PASS repo secrets (Keycloak
 # credentials of a workspace user). Without them, login flows fall back to
 # defaults and the affected tests will fail or skip.
+#
+# K8 headed-verify (T002467, optional/nicht CI-Gate): tests/e2e/specs/k8-headed-verify.spec.ts
+# ist absichtlich NICHT in tests/e2e/playwright.config.ts registriert (kein testMatch, kein
+# --project-Treffer) und läuft daher weder in diesem nächtlichen `npx playwright test`-Lauf noch
+# in e2e-pr.yml. Diese Stufe ist ausschließlich für den manuellen/agentischen Aufruf über
+# `.claude/skills/dev-flow-e2e/SKILL.md` Schritt 8.5 gedacht — kein Merge-Gate, keine
+# Workflow-Logik-Änderung hier.
 
 on:
   workflow_dispatch:

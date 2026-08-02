@@ -965,23 +965,4 @@ The system SHALL allow an authenticated admin to create a shortcut with a URL an
 
 ---
 
-### Requirement: Arena DB Health Check Endpoint Returns OK
-<!-- e2e: fa-39-arena-db.spec.ts -->
-
-The system SHALL serve `GET /healthz` on the arena-server URL with HTTP 200 and `{ "ok": true }` so that readiness probes and E2E smoke tests can verify arena database connectivity without cluster access.
-
-#### Scenario: /healthz gibt {"ok": true} zurück *(E2E)*
-
-- **GIVEN** `ARENA_WS_URL` oder `PROD_DOMAIN` ist gesetzt und der arena-server ist erreichbar
-- **WHEN** `GET <ARENA_URL>/healthz` abgerufen wird
-- **THEN** ist der HTTP-Statuscode 200 und der Response-Body enthält `{ "ok": true }`
-
-#### Scenario: Arena-Server-Basis-URL antwortet ohne 5xx *(E2E)*
-
-- **GIVEN** `ARENA_WS_URL` oder `PROD_DOMAIN` ist gesetzt
-- **WHEN** der Browser die arena-server-HTTP-URL aufruft
-- **THEN** ist der `<body>` sichtbar und enthält weder `"502 Bad Gateway"` noch `"Internal Server Error"`
-
-<!-- merged from change delta database.md (6daacaaf00f7) -->
-
-<!-- merged from change delta database.md (91f7389bbd7e) -->
+<!-- merged from change delta database.md (5ddc00340f58) -->

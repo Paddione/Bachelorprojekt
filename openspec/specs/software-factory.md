@@ -2047,6 +2047,199 @@ procedure, so prose and code cannot drift apart.
 - **THEN** the branch is `chore/mishap-T002382` with an uppercase `T`, while the OpenSpec
   directory is `openspec/changes/mishap-t002382`
 
+### Requirement: The Software Factory BATS suite has a single source
+
+The Software Factory regression cases SHALL live in exactly one file, `tests/spec/software-factory.bats`. The `tests/local/FA-SF-*.bats` tree from which that file was aggregated SHALL NOT be retained alongside it, and `task test:factory` SHALL run the consolidated file rather than the aggregated originals.
+
+Rationale: the consolidation never removed its 41 source files, so every case existed twice under the same `@test` name. That duplication actively hid a defect — after `scripts/factory/pipeline.js` was deleted, a filtered run over `tests/spec/` looked green while `task test:factory` went red over the stale copies, and each follow-up pull request in the factory area had to identify the breakage as foreign before it could proceed.
+
+#### Scenario: No aggregated duplicate of the consolidated suite remains
+
+- **GIVEN** the consolidated suite `tests/spec/software-factory.bats`
+- **WHEN** the test tree is inspected
+- **THEN** no `tests/local/FA-SF-*.bats` file exists
+
+#### Scenario: The factory task runs the consolidated suite
+
+- **GIVEN** `task test:factory`
+- **WHEN** it runs
+- **THEN** it executes `tests/spec/software-factory.bats`
+- **AND** it does not reference a `tests/local/FA-SF-*` glob that matches nothing
+
+#### Scenario: Removal preserved every case
+
+- **GIVEN** the cases that existed only in the removed files
+- **WHEN** the consolidated suite runs
+- **THEN** those cases are present in it, so no coverage was lost with the removal
+
+### Requirement: REQ-SF-AUTOTICK-001 — Stage löst automatisch einen Factory-Tick aus
+
+Beim Stagen eines Plans (`stage-plan`, nach dem `plan_staged`-Status-UPDATE) SHALL das
+System idempotent das Steuer-Flag `force-tick-requested` (Tabelle
+`tickets.factory_control`, `brand IS NULL`, `set_by='stage-plan'`) schreiben und
+best-effort `factory.service` starten. Ein Fehlschlag des Flag-Schreibens SHALL das
+Stagen NICHT fehlschlagen lassen (Degradation auf den `factory.timer`-Pfad, Warnung auf
+stderr). Dieses Requirement supersedet T002102-p3 Task 1/4/5.
+
+#### Scenario: Staging a plan wakes the factory without waiting for the timer
+
+- **GIVEN** a ticket with a committed plan and a pushed feature branch
+- **WHEN** `stage-plan --id T… --branch … --plan … --partials N` completes successfully
+- **THEN** `tickets.factory_control` contains `key='force-tick-requested'` with `brand IS NULL`
+- **AND** the existing consumer (`wakeup.sh`) picks up the flag on its next start and ticks immediately
+
+#### Scenario: Flag write failure degrades gracefully
+
+- **GIVEN** the tickets database is unreachable for the control-flag insert
+- **WHEN** `stage-plan` runs
+- **THEN** the plan is still staged (exit 0) and a warning is printed to stderr
+
+### Requirement: REQ-SF-EXECUTOR-001 — Umschaltbarer Factory-Executor
+
+`dispatcher-bridge.sh` SHALL pro Ticket-Launch anhand der Env-Variable
+`FACTORY_EXECUTOR` (`claude` = Default, `opencode`) den Executor wählen. Der
+`opencode`-Zweig SHALL `scripts/factory/opencode-exec.sh` im vorbereiteten
+Launch-Worktree aufrufen; der `claude`-Zweig SHALL byte-identisch zum heutigen
+Verhalten bleiben. Ein unbekannter Wert SHALL auf `claude` zurückfallen (Warnung).
+
+#### Scenario: Opt-in opencode executor is used when requested
+
+- **GIVEN** `FACTORY_EXECUTOR=opencode` in the factory environment
+- **WHEN** `dispatcher-bridge.sh` launches a ticket
+- **THEN** `opencode-exec.sh` is invoked in the launch worktree instead of `claude -p`
+
+#### Scenario: Default behavior unchanged
+
+- **GIVEN** `FACTORY_EXECUTOR` is unset
+- **WHEN** `dispatcher-bridge.sh` launches a ticket
+- **THEN** the existing `claude -p` spawn (flags unchanged) is used
+
+### Requirement: REQ-SF-EXECUTOR-002 — Orchestrator-Dispatch mit Gang-Telemetrie
+
+`opencode-exec.sh` SHALL `opencode run --agent orchestrator` mit einem Prompt aufrufen,
+der Ticket-ID, Branch, Worktree-Pfad, Plan-Pfad, das `## Partials`-Manifest und die
+Trial-Guardrails (kein Auto-Merge, `pr-ready`-Gate) enthält. Pro Lauf SHALL das Skript
+Phase-Events schreiben (`phase=implement`, `state=entered|done|blocked` — KEINE neuen
+State-Werte, vgl. T002130) mit strukturiertem `detail`-JSON
+(`executor`, `subagent`, `partial`, `duration_s`, `exit`). Bei Exit ≠ 0 SHALL ein
+`blocked`-Event geschrieben werden und KEIN stiller Fallback auf `claude -p` erfolgen.
+
+#### Scenario: Successful gang run leaves per-subagent telemetry
+
+- **GIVEN** a staged multi-partial plan and `FACTORY_EXECUTOR=opencode`
+- **WHEN** the orchestrator completes all partials via bonsai-8b subagents
+- **THEN** `tickets.factory_phase_events` contains `implement`/`done` events whose `detail` JSON names executor, subagent, and partial
+
+#### Scenario: Orchestrator failure is visible, not silently retried
+
+- **GIVEN** `opencode run` exits non-zero
+- **WHEN** `opencode-exec.sh` finishes
+- **THEN** an `implement`/`blocked` event with the exit code in `detail` exists and no `claude -p` fallback was spawned
+
+### Requirement: REQ-SF-OPENCODE-CANON-001 — Gang-Konfiguration ist Repo-Kanon
+
+Die Agenten `orchestrator`, `bonsai-8b-1..4`, `deepseek-helper` und der
+Orchestrator-Prompt SHALL in `.opencode/agent-models.jsonc` bzw.
+`.opencode/prompts/orchestrator.md` versioniert sein, sodass
+`scripts/opencode-sync-agents.sh` sie in die globale Config verteilt. Die
+Bonsai-Modell-ID SHALL `Ternary-Bonsai-8B-Q2_0.gguf` sein (TQ2_0 hat keine
+CUDA-Kernel — stiller CPU-Fallback, T002111). Doku-Aussagen zur Parallelität
+(`AGENTS.md`, jsonc-Kommentare) SHALL den Ist-Zustand beschreiben
+(Server `-np 1`, physische Parallelität via `max_inflight` konfigurierbar).
+
+#### Scenario: Agent sync propagates instead of destroying the gang config
+
+- **GIVEN** the repo canon contains orchestrator + 4 bonsai subagents
+- **WHEN** `scripts/opencode-sync-agents.sh` runs
+- **THEN** the global opencode config contains the same agent set afterwards
+
+### Requirement: The Factory resumes a partially implemented plan instead of replaying it
+
+When the Software Factory picks up a ticket whose plan was staged by a human (`FACTORY-PLAN-REF`
+present, REUSE path), the pipeline SHALL skip the plan partials that are already complete. The
+authority for completeness SHALL remain the existing `partial-done` entries in
+`tickets.factory_phase_events` as evaluated by `read-partials`; no second progress mechanism SHALL
+be introduced. The pipeline SHALL log the skipped partial identifiers so the decision is auditable,
+and SHALL proceed with the full task list when no partial is complete.
+
+#### Scenario: A branch with two finished partials resumes at the third
+
+- **GIVEN** a `plan_staged` ticket whose plan ships four partials and whose ticket carries
+  `partial-done` phase events for `p1` and `p2`
+- **WHEN** `scripts/factory/pipeline.js` enters the Plan-Reuse step
+- **THEN** the resulting task list contains only `p3` and `p4`, and the skipped identifiers `p1` and
+  `p2` are logged
+
+#### Scenario: An untouched staged branch runs the full plan
+
+- **GIVEN** a `plan_staged` ticket with no `partial-done` phase events
+- **WHEN** the pipeline enters the Plan-Reuse step
+- **THEN** every partial of the plan is scheduled and no partial is reported as skipped
+
+### Requirement: The partial manifest is read after the work tree exists
+
+The pipeline SHALL read the `tasks.d/` partial manifest of a reused plan only once the work tree
+for the reuse branch is present, so that a plan shipping partials drives the fan-out directly
+instead of falling back to a runtime LLM decompose. When no partial manifest exists, the LLM
+decompose SHALL remain the documented fallback, and the pipeline SHALL log that the fallback was
+taken so a silent regression to full-replay behaviour is visible in the run output.
+
+#### Scenario: A plan with partials uses them rather than an LLM decompose
+
+- **GIVEN** a reused plan whose change directory contains `tasks.d/` partials
+- **WHEN** the pipeline runs the Plan-Reuse step
+- **THEN** the partial manifest is read successfully and the task list comes from the partials, with
+  no LLM decompose call
+
+#### Scenario: A plan without partials still decomposes
+
+- **GIVEN** a reused plan with no `tasks.d/` directory
+- **WHEN** the pipeline runs the Plan-Reuse step
+- **THEN** the LLM decompose produces the task list as before, and the run output states that the
+  partial manifest was absent
+
+### Requirement: A branch owned by another work tree is deferred, not blocked
+
+When the work branch of a reused plan is already checked out in another work tree, the Factory
+SHALL treat this as foreign ownership: it SHALL release its slot and leave the ticket dispatchable
+for a later tick, and SHALL NOT set the ticket to `blocked`. The escalation path for a genuinely
+failed work-tree creation SHALL remain unchanged.
+
+#### Scenario: A live session holds the branch
+
+- **GIVEN** a `plan_staged` ticket whose branch is checked out in a work tree belonging to a live
+  session
+- **WHEN** the Factory reaches work-tree setup for that ticket
+- **THEN** the ticket keeps its dispatchable status, the slot is released, and no `blocked`
+  transition is recorded
+
+#### Scenario: A genuine work-tree failure still escalates
+
+- **GIVEN** work-tree creation fails for a reason other than the branch being checked out elsewhere
+- **WHEN** the Factory reaches work-tree setup
+- **THEN** the ticket is set to `blocked` and the existing escalation notification is sent
+
+### Requirement: The hold gate remains the default and reclaim remains manual
+
+Resumability SHALL NOT weaken the execution hold introduced for staged plans. `dev-flow-plan` SHALL
+continue to stage plans with `readiness.execution_released=false`, and the dispatcher SHALL
+continue to require an explicit release before dispatching such a ticket. `ticket.sh reclaim` SHALL
+remain a manually invoked escape hatch for derailed executions and SHALL NOT be triggered
+automatically by resume detection.
+
+#### Scenario: A held ticket stays untouched despite being resumable
+
+- **GIVEN** a `plan_staged` ticket with `readiness.execution_released=false` and a branch carrying
+  partial work
+- **WHEN** `scripts/factory/queue.sh` runs
+- **THEN** the ticket does not appear among the dispatch candidates
+
+#### Scenario: A released ticket is resumed rather than restarted
+
+- **GIVEN** the same ticket after `ticket.sh release-hold`
+- **WHEN** the Factory dispatches it
+- **THEN** it appears among the candidates and its already-complete tasks are skipped
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -3902,3 +4095,9 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (fcd09e84e92c) -->
 
 <!-- merged from change delta software-factory.md (d3fa5638cdb8) -->
+
+<!-- merged from change delta software-factory.md (4fb69a20a516) -->
+
+<!-- merged from change delta software-factory.md (a4ecd2161360) -->
+
+<!-- merged from change delta software-factory.md (99f56197f62c) -->

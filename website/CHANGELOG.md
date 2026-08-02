@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.237.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.236.0...website-v1.237.0) (2026-08-02)
+
+
+### Features
+
+* **factory:** Slot-Kopplung — pipeline_slot→llama.cpp-Slot-ID, Agent-Containerisierung, Per-Slot-Isolation [T002483] ([#3644](https://github.com/Paddione/Bachelorprojekt/issues/3644)) ([a10a742](https://github.com/Paddione/Bachelorprojekt/commit/a10a74289a780f6e1014e8aa9b507067f7e8a8e2))
+* **llm:** MCP-Serverliste der llama-WebUI vorbelegen [T002544] ([#3632](https://github.com/Paddione/Bachelorprojekt/issues/3632)) ([6fc0a59](https://github.com/Paddione/Bachelorprojekt/commit/6fc0a59ceb551961c0d50b8836e2d919d6cfc9b6))
+
 ## [1.236.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.235.2...website-v1.236.0) (2026-08-02)
 
 

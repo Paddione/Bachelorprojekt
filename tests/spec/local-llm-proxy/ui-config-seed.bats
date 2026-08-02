@@ -76,11 +76,15 @@ setup() {
     const raw = process.argv[1];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) process.exit(1);
-    if (parsed.length !== 7) process.exit(2);
+    if (parsed.length !== 8) process.exit(2);
     const k8s = parsed.find(s => s.name === "k8s");
     if (!k8s || k8s.url !== "http://localhost:18082/mcp") process.exit(3);
     const bge = parsed.find(s => s.name === "bge-mcp");
     if (!bge || bge.headers?.Authorization !== "Bearer test-token") process.exit(4);
+    // T002552: github-mcp NAMENTLICH, nicht nur ueber die Gesamtzahl. Der
+    // Rollback in #3638 nahm genau diesen Eintrag mit; "7 statt 8" liest sich
+    // wie ein gewollter Registry-Umbau, "github-mcp fehlt" nicht.
+    if (!parsed.find(s => s.name === "github-mcp")) process.exit(5);
   ' "${mcp_val}"
 
   [ "${status}" -eq 0 ]

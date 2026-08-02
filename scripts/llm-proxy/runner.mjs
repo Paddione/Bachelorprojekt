@@ -9,6 +9,7 @@
 //   30,9 tok/s decode; ungesetzt mit -fitt 2400 waren es 158-166 tok/s bei
 //   105.472 statt 65.536 Kontext.
 import { execFileSync } from 'node:child_process';
+import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
 
 export function unitName(slug) { return `llama-${slug}.service`; }
 
@@ -104,7 +105,36 @@ export function buildStartCommand(loadout, modelPath, defaults, binPath, resolve
   ];
 }
 
+/**
+ * T002549 — Erzeugt die Datei, auf die `--ui-config-file` zeigt.
+ *
+ * T002544 lieferte das Flag (buildServerArgv) und den Generator, aber keinen
+ * Aufruf: `--ui-config-file` zeigte auf einen Pfad, den niemand schrieb. Der
+ * Aufruf gehoert hierher und nicht in eine handgepflegte systemd-Unit — so
+ * wirkt er automatisch fuer jedes kuenftige Loadout mit dem Feld, und die
+ * Logik bleibt im Repo statt auf dem Host.
+ *
+ * Best-effort mit Absicht: schlaegt das Rendern fehl (z.B. weil BGE_MCP_TOKEN
+ * fehlt), soll der Modellstart trotzdem laufen. Ein Server ohne vorbelegte
+ * MCP-Liste ist brauchbar, ein nicht startender Server nicht. Der Fehler wird
+ * laut protokolliert, nicht verschluckt.
+ *
+ * @param {{slug?: string, uiConfigFile?: string|null}} loadout
+ */
+export function ensureUiConfigRendered(loadout) {
+  if (!loadout || !loadout.uiConfigFile) return;
+  try {
+    generateUiConfigSeed({ outputPath: loadout.uiConfigFile });
+  } catch (err) {
+    console.error(
+      `[runner] ui-config seed for '${loadout.slug}' not written: ${err.message}\n` +
+      `  Der Server startet ohne vorbelegte MCP-Liste; die WebUI faellt auf den Browser-Storage zurueck.`,
+    );
+  }
+}
+
 export function startUnit(loadout, modelPath, defaults, binPath, resolved = {}) {
+  ensureUiConfigRendered(loadout);
   const [cmd, ...args] = buildStartCommand(loadout, modelPath, defaults, binPath, resolved);
   execFileSync(cmd, args, { encoding: 'utf8', stdio: 'pipe' });
 }

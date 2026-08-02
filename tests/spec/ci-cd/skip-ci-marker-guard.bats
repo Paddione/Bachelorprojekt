@@ -92,8 +92,14 @@ teardown() { rm -rf "$TMP"; }
       echo "guard did not run at all (127) for marker '${marker}'" >&2
       return 1
     }
-    echo "$output" | grep -q "$branch" || {
-      echo "guard did not name the offending branch for marker '${marker}'" >&2
+    # The guard reports the offending COMMIT (sha + subject), not the branch —
+    # anchor on its verdict line plus the subject it echoed back.
+    echo "$output" | grep -q 'CI skip marker found' || {
+      echo "guard produced no verdict for marker '${marker}'" >&2
+      return 1
+    }
+    echo "$output" | grep -qF "$marker" || {
+      echo "guard did not echo the offending subject for marker '${marker}'" >&2
       return 1
     }
   done

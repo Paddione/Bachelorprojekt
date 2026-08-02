@@ -745,3 +745,17 @@ jobs:
             echo "  only test/spec/plan files. See T001434-mishap." >&2
             exit 1
           fi
+
+      # A squash merge folds every branch-commit subject into the BODY of the
+      # main commit, and GitHub reads its skip markers from the whole head-commit
+      # message. A `[skip ci]` written on a branch therefore silences ALL
+      # push-triggered workflows on main after the merge — with no failed run to
+      # notice. This belongs in the PR run, not a push run: on main the trigger
+      # is already suppressed and the finding would only be retrospective.
+      - name: No CI skip markers in branch commits [T002522]
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          BRANCH_BASE=$(git merge-base origin/main "$HEAD_SHA")
+          bash scripts/check-skip-ci-marker.sh "$BRANCH_BASE" "$HEAD_SHA"

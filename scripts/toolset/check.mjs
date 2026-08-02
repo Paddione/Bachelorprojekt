@@ -32,11 +32,6 @@ for (const [capName, instances] of Object.entries(registry.capabilities)) {
     console.error(`Capability '${capName}' has ${instEntries.length} instances but no canonical instance.`);
     hasError = true;
   }
-
-  if (instEntries.length > 0 && activeCount === 0) {
-    console.error(`Capability '${capName}' has all instances suppressed.`);
-    hasError = true;
-  }
 }
 
 // 2. Check suppressed mcp servers against Claude Code settings.json

@@ -1,4 +1,3 @@
-// docs/agent-guide/registry/expected/agy-mcp-config.json
 {
   "mcpServers": {
     "bge-mcp": {

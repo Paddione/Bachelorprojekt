@@ -189,7 +189,7 @@ agy-Ziel gibt weiterhin Status 0 zurück, meldet die Übersprungenheit aber als
 benannte `SKIP`-Zeile auf stdout statt auf stderr — damit machen `mcp:check` und
 `toolset:check` dieselbe, maschinell lesbare Aussage.
 
-## Task 8 — Restliche Tests (p7)
+## Task 8 — Restliche Tests (p7) - [x]
 
 Die fünf verbleibenden BATS-Dateien und die vier `*.test.mjs`-Dateien anlegen.
 Jeder Test führt das Kommando aus und prüft Status und die relevante

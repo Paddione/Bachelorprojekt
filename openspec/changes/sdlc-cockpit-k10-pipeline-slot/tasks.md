@@ -418,18 +418,18 @@ return Astro.redirect(`/admin/cockpit${Astro.url.search}`, 301);
 Diese Löschung steht bewusst **nach** dem Einhängen: solange das Panel nicht steht, ist die
 alte Fläche der einzige Weg zu den Factory-Ansichten.
 
-- [ ] Den Verwaisungslauf aus Task 1 **erneut** ausführen (der Baum kann sich zwischen
+- [x] Den Verwaisungslauf aus Task 1 **erneut** ausführen (der Baum kann sich zwischen
       Planung und Ausführung verändert haben) und nur löschen, was er als importeurfrei
       ausweist.
-- [ ] Die Dateien der Löschliste entfernen (`git rm`), Komponenten und ihre Testdateien
+- [x] Die Dateien der Löschliste entfernen (`git rm`), Komponenten und ihre Testdateien
       gemeinsam. Das leere Verzeichnis `website/src/components/admin/Cockpit/` verschwindet
       dabei mit.
-- [ ] `tests/spec/admin-cockpit.bats` bereinigen: die Dateivariablen `EXPAND_ROW`,
+- [x] `tests/spec/admin-cockpit.bats` bereinigen: die Dateivariablen `EXPAND_ROW`,
       `FILTER_BAR`, `TICKET_ROW`, `ADMIN_COCKPIT` und die vier daran hängenden Tests
       („T001433 expand: …", „T001433 toolbar: …", „AdminCockpit.svelte exists") entfallen —
       sie prüfen gelöschte Dateien. Die übrigen Tests der Datei (Coaching-Settings,
       admin-content-db, admin-nav-accordion) bleiben unverändert stehen.
-- [ ] Gegenprobe, dass die Bleibe-Liste unangetastet ist:
+- [x] Gegenprobe, dass die Bleibe-Liste unangetastet ist:
 
 ```bash
 test -f website/src/components/assistant/CockpitSidekickView.svelte
@@ -439,7 +439,7 @@ test -f website/src/lib/tickets/cockpit-db.ts
 ls website/src/pages/api/admin/cockpit/
 ```
 
-- [ ] `cd website && npx vitest run` — kein verbliebener Test darf auf eine gelöschte Datei
+- [x] `cd website && npx vitest run` — kein verbliebener Test darf auf eine gelöschte Datei
       importieren. Ein `Cannot find module`-Fehler hier heißt: eine Löschung war zu weit
       gefasst oder eine Testdatei wurde übersehen.
 

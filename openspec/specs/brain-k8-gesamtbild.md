@@ -8,6 +8,8 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu brain-k8-gesamtbild erg�
 
 ### Requirement: Gesamtdiagramm mit beschrifteten Kanten (REQ-k8-01)
 
+#### Scenario: Gesamtdiagramm-Erstellung
+
 **GIVEN** die Komponenten K1–K7 sind dokumentiert
 **WHEN** K8 erstellt wird
 **THEN** existiert ein Gesamtdiagramm, das alle sieben Komponenten und ihre Kanten beschriftet darstellt
@@ -15,12 +17,16 @@ _Purpose fehlt — beim nächsten inhaltlichen Delta zu brain-k8-gesamtbild erg�
 
 ### Requirement: Vollständige Defektliste (REQ-k8-02)
 
+#### Scenario: Defekt-Konsolidierung
+
 **GIVEN** T002430 definiert D1–D9 und die Einzelkinder haben weitere Defekte gefunden
 **WHEN** K8 konsolidiert die Defekte
 **THEN** existiert eine vollständige Liste aller Defekte mit betroffener Kante, Auswirkung und Typ
 **AND** jeder Defekt ist einer der Kategorien Fehlfunktion, Inkompatibilität oder falsche Richtung zugeordnet
 
 ### Requirement: Fehlende Kanten (REQ-k8-03)
+
+#### Scenario: Luecken-Analyse
 
 **GIVEN** die Architektur hat strukturelle Lücken
 **WHEN** K8 analysiert die Schnittstellen

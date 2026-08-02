@@ -53,7 +53,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/freshness-check-base-mismatch
 # control anchor)
 ```
 
-- [ ] **Task 2 (GREEN).** In `Taskfile.yml`, innerhalb der `freshness:check`-Task, direkt vor
+- [x] **Task 2 (GREEN).** In `Taskfile.yml`, innerhalb der `freshness:check`-Task, direkt vor
       Phase 1 (dem bestehenden `ERRORS=0`-Diff-Check-Block, ca. Zeile 1177), einen neuen
       Shell-Block einfügen, der:
       1. `BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)` ermittelt

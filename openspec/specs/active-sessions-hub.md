@@ -34,24 +34,34 @@ The system SHALL maintain a JSON registry at `~/.local/share/bachelorprojekt/act
 
 ### Requirement: Harness-Stable Session Identity for agent-lock
 
-The system SHALL identify the owner of an `agent-lock.sh` claim by a harness-stable session id — preferring `CLAUDE_SESSION_ID` (Claude Code / opencode), then the test override `AGENT_LOCK_SID`, then the per-call Unix `SID(2)` only as a last-resort fallback. Non-numeric session ids (those provided by the harness) SHALL be treated as always-alive by the reap logic and SHALL be reaped only by heartbeat TTL expiry, not by `pgrep -s`.
+The system SHALL identify the owner of an `agent-lock.sh` claim by a harness-stable session id, resolved in this order: the test override `AGENT_LOCK_SID` first, then the harness session variables (`CLAUDE_CODE_SESSION_ID`, then `CLAUDE_SESSION_ID`), and only as a last resort the per-call Unix `SID(2)`. The test override MUST take precedence over the harness variables, because the harness exports them ambiently into every session — an override that ambient state can outrank is not an override.
 
-#### Scenario: CLAUDE_SESSION_ID wins over Unix SID
+The system SHALL resolve the tool class of the caller by the same principle: the test override `AGENT_LOCK_TOOL` first, then the ambient harness markers. Non-numeric session ids (those provided by the harness) SHALL be treated as always-alive by the reap logic and SHALL be reaped only by heartbeat TTL expiry, not by `pgrep -s`.
 
-- **GIVEN** a Bash tool call is invoked from the Claude Code / opencode harness with `CLAUDE_SESSION_ID=claude-xyz-1234`
+#### Scenario: Test override AGENT_LOCK_SID outranks the ambient harness variable
+
+- **GIVEN** the harness has exported `CLAUDE_CODE_SESSION_ID=harness-abc` into the environment
+- **AND** the caller sets `AGENT_LOCK_SID=test-sid-7`
+- **WHEN** `bash scripts/agent-lock.sh claim ticket T000123` is executed
+- **THEN** the resulting lock file has `owner_sid="test-sid-7"`
+
+#### Scenario: Harness session id wins over the per-call Unix SID
+
+- **GIVEN** a Bash tool call is invoked from the harness with `CLAUDE_CODE_SESSION_ID=claude-xyz-1234` and no `AGENT_LOCK_SID`
 - **WHEN** `bash scripts/agent-lock.sh claim ticket T000123 --label execute` is executed
 - **THEN** the resulting lock file has `owner_sid="claude-xyz-1234"` (the harness env, not the per-call `ps -o sess=` value)
 
-#### Scenario: Test override AGENT_LOCK_SID remains authoritative
+#### Scenario: Test override AGENT_LOCK_TOOL outranks the ambient harness markers
 
-- **GIVEN** the environment sets `AGENT_LOCK_SID=test-sid-7`
+- **GIVEN** the harness has exported `CLAUDECODE=1` and `CLAUDE_CODE_SESSION_ID` into the environment
+- **AND** the caller sets `AGENT_LOCK_TOOL=gemini`
 - **WHEN** `bash scripts/agent-lock.sh claim ticket T000123` is executed
-- **THEN** the resulting lock file has `owner_sid="test-sid-7"` regardless of `CLAUDE_SESSION_ID` or Unix SID
+- **THEN** the resulting lock file has `tool="gemini"`
 
 #### Scenario: Harness-owned lock is not reaped by a different harness session
 
 - **GIVEN** lock `ticket__T000123.json` exists with `owner_sid=claude-xyz-1234`
-- **WHEN** a different harness session (`CLAUDE_SESSION_ID=claude-abc-5678`) attempts `bash scripts/agent-lock.sh claim ticket T000123`
+- **WHEN** a different harness session (`CLAUDE_CODE_SESSION_ID=claude-abc-5678`) attempts `bash scripts/agent-lock.sh claim ticket T000123`
 - **THEN** the claim is rejected with `AGENT-LOCK: ticket/T000123 bereits gehalten von …` and status 1
 
 ### Requirement: Pre-Commit Guards in dev-flow-plan
@@ -106,6 +116,14 @@ läuft. Konkret:
   "always alive" für nicht-numerische IDs) MUSS die Lock-Datei **vor
   jedem** anderen Reapability-Check schützen — `return 1` (nicht
   reapable).
+- **Der Worktree+Branch-Match (Session-Resume, Regel 0b) MUSS die
+  Heartbeat-TTL respektieren:** Er schützt die Lock-Datei nur, solange
+  `heartbeat_at` jünger als `AGENT_LOCK_TTL` ist (oder das Feld fehlt).
+  Ist der Heartbeat abgelaufen, MUSS `_reapable()` den Lock unabhängig
+  vom Worktree-Match als reapable werten (Reap-Grund `heartbeat-ttl`).
+  Ein Session-Resume erneuert den Heartbeat über Re-Claim/`refresh`; ein
+  toter Halter ruft nichts mehr auf und sein Lock wird nach Ablauf der
+  TTL entfernt.
 - `cmd_reap()` in `scripts/agent-lock.sh` MUSS vor dem iterativen
   `rm -f "$f"` über `agent-locks/*.json` dieselbe `_with_lock`-Sequenz
   aufrufen wie `cmd_claim`/`cmd_refresh`/`cmd_release`, sodass Reap und
@@ -118,54 +136,34 @@ läuft. Konkret:
   rufenden Skripts stabil ist. Der Fallback `/tmp/agent-locks` darf nur
   bei echtem `git rev-parse`-Fehler greifen.
 
-#### Scenario: claim überlebt reap mit lebendem SID trotz fehlendem Worktree-Pfad
+#### Scenario: Worktree+Branch-Match schützt den Lock nur bei frischem Heartbeat
 
-- **GIVEN** `AGENT_LOCK_DIR` zeigt auf ein leeres Temp-Dir und
-  `CLAUDE_SESSION_ID=claude-t001384` ist gesetzt
-- **AND** `agent-lock.sh claim branch fix/t001384-agent-lock-claim-persist
-  --worktree /tmp/wt-that-does-not-exist --label dev-flow-plan` wurde
-  erfolgreich ausgeführt (Lock-Datei existiert)
-- **WHEN** `agent-lock.sh reap` in derselben Session läuft
-- **THEN** ist die Lock-Datei `branch__fix-t001384-agent-lock-claim-persist.json`
-  **immer noch vorhanden** (lebender SID schützt vor worktree-missing)
-- **AND** der `.reap.log` enthält **keinen** Eintrag
-  `branch/fix/t001384-agent-lock-claim-persist worktree-missing`
+- **GIVEN** Lock `ticket__T002513.json` existiert mit `owner_sid` einer
+  toten numerischen Session, toter `owner_pid`, `worktree` einem
+  existierenden Git-Repo auf Branch `probe-branch`, `branch=probe-branch`
+  und `heartbeat_at` älter als `AGENT_LOCK_TTL`
+- **WHEN** `bash scripts/agent-lock.sh reap` läuft
+- **THEN** wird die Lock-Datei entfernt
+- **AND** der `.reap.log` enthält einen Eintrag
+  `ticket/T002513 heartbeat-ttl`
 
-#### Scenario: reap hält den Registry-Lock und serialisiert mit parallelem claim
+#### Scenario: Worktree+Branch-Match mit frischem Heartbeat überlebt reap
 
-- **GIVEN** `AGENT_LOCK_DIR` zeigt auf ein leeres Temp-Dir
-- **WHEN** zwei Subshells parallel laufen: (A) `agent-lock.sh claim ticket
-  T001384 --label A` und (B) `agent-lock.sh reap`
-- **THEN** ist nach Abschluss beider Prozesse **entweder** der Claim
-  vollwertig vorhanden (Claim gewann den Race), **oder** der Claim wurde
-  vom Reaper entfernt **bevor** `_write_lock` lief (Reap gewann) — nie
-  aber: Claim schreibt die Datei, Reap löscht sie danach
-  (TOCTOU)
-- **AND** der Reap-Vorgang hält mindestens einmal den `.registry.lock`
-  exklusiv (per `flock 9`)
+- **GIVEN** Lock `ticket__T002513b.json` existiert mit toter `owner_sid`
+  und toter `owner_pid`, passendem Worktree+Branch-Match und
+  `heartbeat_at` jünger als `AGENT_LOCK_TTL`
+- **WHEN** `bash scripts/agent-lock.sh reap` läuft
+- **THEN** bleibt die Lock-Datei bestehen (Resume-Semantik bleibt
+  erhalten — Regel 0b verliert ihre Schutzfunktion nicht)
+- **AND** der `.reap.log` enthält **keinen** Eintrag für diesen Lock
 
-#### Scenario: _lock_dir resolved identisch aus Main-Checkout und Worktree
+#### Scenario: Altformat ohne heartbeat_at bleibt durch Regel 0b geschützt
 
-- **GIVEN** `AGENT_LOCK_DIR` ist nicht gesetzt
-- **WHEN** `_lock_dir` einmal aus `/home/patrick/Bachelorprojekt` (Main)
-  und einmal aus einem Worktree-Pfad `$WT_PATH` aufgerufen wird
-- **THEN** liefern beide Aufrufe denselben absoluten Pfad
-  `<main-checkout>/.git/agent-locks`
-- **AND** `_lock_file ticket T001384` liefert aus beiden Shells den
-  identischen Ziel-Pfad
-
-#### Scenario: zweiter claim aus anderer Session bleibt abgewiesen
-
-- **GIVEN** ein Claim `ticket__T001384.json` mit
-  `owner_sid=claude-session-A` existiert
-- **WHEN** `bash scripts/agent-lock.sh claim ticket T001384
-  --label other` mit `CLAUDE_SESSION_ID=claude-session-B` aufgerufen wird
-- **THEN** exit status 1, stderr enthält `AGENT-LOCK: ticket/T001384
-  bereits gehalten`
-- **AND** die bestehende Lock-Datei wird **nicht** überschrieben (kein
-  Refresh durch fremde Session)
-
-<!-- merged from change delta active-sessions-hub.md on 2026-07-01 -->
+- **GIVEN** Lock `ticket__T002513c.json` existiert ohne `heartbeat_at`-Feld,
+  mit toter `owner_sid`, toter `owner_pid` und passendem
+  Worktree+Branch-Match
+- **WHEN** `bash scripts/agent-lock.sh reap` läuft
+- **THEN** bleibt die Lock-Datei bestehen (kein Reap für prä-Heartbeat-Claims)
 
 ### Requirement: BATS Placeholder Test Coverage
 
@@ -180,3 +178,57 @@ establishes initial, spec-linked test coverage for the active-sessions-hub SSOT 
 - **THEN** the placeholder test `active-sessions-hub spec covered` passes
 
 <!-- merged from change delta active-sessions-hub.md (72ffc78c2fef) -->
+
+<!-- merged from change delta active-sessions-hub.md (68c160604856) -->
+
+### Requirement: Releasing a foreign live lock requires --force
+
+The system SHALL permit `agent-lock.sh release` without `--force` only when the caller owns the lock (`owner_sid` equals the caller's session id) or when the recorded owner session is no longer alive. Matching tool class alone SHALL NOT authorise a release: in normal operation every participating session reports the same tool class, so such a rule would make the ownership check vacuous.
+
+When a release is refused, the system SHALL exit with status 1 and emit a diagnostic line to stderr naming the owning session id, the caller's session id, and the `--force` escape hatch.
+
+The same ownership rule SHALL apply to `agent-lock.sh refresh`: a session SHALL NOT extend the heartbeat of a lock held by a different live session.
+
+#### Scenario: Release of a live foreign lock is refused
+
+- **GIVEN** lock `ticket__T000123.json` exists with `owner_sid=session-A` and `tool=claude`, and `session-A` is alive
+- **WHEN** a caller with session id `session-B` and tool class `claude` runs `bash scripts/agent-lock.sh release ticket T000123`
+- **THEN** the command exits with status 1
+- **AND** stderr names `session-A`, `session-B` and `--force`
+- **AND** the lock file still exists
+
+#### Scenario: Release with --force succeeds against a live foreign lock
+
+- **GIVEN** the same live foreign lock as above
+- **WHEN** the caller runs `bash scripts/agent-lock.sh release ticket T000123 --force`
+- **THEN** the command exits with status 0 and the lock file is removed
+
+#### Scenario: Release of an abandoned lock succeeds without --force
+
+- **GIVEN** lock `ticket__T000123.json` exists with `owner_sid=session-A` and `session-A` is no longer alive
+- **WHEN** a caller with a different session id runs `bash scripts/agent-lock.sh release ticket T000123`
+- **THEN** the command exits with status 0 and the lock file is removed
+
+#### Scenario: Own lock is released without --force across tool-call boundaries
+
+- **GIVEN** a lock claimed by the current harness session
+- **WHEN** the same session runs `bash scripts/agent-lock.sh release` from a later, separate Bash invocation
+- **THEN** the command exits with status 0 without requiring `--force`
+
+#### Scenario: Refresh of a live foreign lock is refused
+
+- **GIVEN** lock `ticket__T000123.json` exists with `owner_sid=session-A` and `tool=claude`, and `session-A` is alive
+- **WHEN** a caller with session id `session-B` and tool class `claude` runs `bash scripts/agent-lock.sh refresh ticket T000123`
+- **THEN** the command exits with a non-zero status and `heartbeat_at` in the lock file is unchanged
+
+### Requirement: Lock guard tests must not depend on ambient harness environment
+
+The system SHALL provide the test overrides `AGENT_LOCK_SID` and `AGENT_LOCK_TOOL` so that BATS coverage of the ownership guards can state its preconditions explicitly. Tests covering these guards MUST set both overrides rather than relying on which harness variables happen to be exported, so that the same verdict is produced in CI and in an interactive agent session.
+
+#### Scenario: Guard tests produce the same verdict with and without harness environment
+
+- **GIVEN** the BATS files covering `agent-lock.sh` release and refresh guards
+- **WHEN** they are run once with `CLAUDECODE` and `CLAUDE_CODE_SESSION_ID` exported and once with both unset
+- **THEN** both runs report identical pass/fail results
+
+<!-- merged from change delta active-sessions-hub.md (ca5a66df033d) -->

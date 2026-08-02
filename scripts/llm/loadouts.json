@@ -10,7 +10,7 @@
   "loadouts": [
     {
       "slug": "gptoss-context",
-      "label": "gpt-oss-20b \u00b7 maximaler Kontext",
+      "label": "gpt-oss-20b · maximaler Kontext",
       "model": "gptoss20/gpt-oss-20b-Q8_0.gguf",
       "port": 8098,
       "fit": {
@@ -44,7 +44,7 @@
     },
     {
       "slug": "devstral-quality",
-      "label": "Devstral-Small-2 24B \u00b7 Code-Qualitaet",
+      "label": "Devstral-Small-2 24B · Code-Qualitaet",
       "model": "devstral24/Devstral-Small-2-24B-Instruct-2512-IQ4_XS.gguf",
       "port": 8099,
       "fit": {
@@ -78,7 +78,7 @@
     },
     {
       "slug": "bge-embed-batch",
-      "label": "bge-m3 \u00b7 Batch-Embedding (CPU)",
+      "label": "bge-m3 · Batch-Embedding (CPU)",
       "model": "F:/Embedding/bge-m3-Q8_0.gguf",
       "port": 8085,
       "fit": {
@@ -122,7 +122,7 @@
     },
     {
       "slug": "bge-rerank-batch",
-      "label": "bge-reranker-v2-m3 \u00b7 Batch-Rerank (CPU)",
+      "label": "bge-reranker-v2-m3 · Batch-Rerank (CPU)",
       "model": "gpustack/bge-reranker-v2-m3-GGUF/bge-reranker-v2-m3-Q8_0.gguf",
       "port": 8086,
       "fit": {
@@ -162,7 +162,7 @@
     },
     {
       "slug": "bge-embed",
-      "label": "bge-m3 \u00b7 Embedding (WSL, CPU)",
+      "label": "bge-m3 · Embedding (WSL, CPU)",
       "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",
       "port": 8095,
       "fit": {
@@ -209,7 +209,7 @@
     },
     {
       "slug": "bge-rerank",
-      "label": "bge-reranker-v2-m3 \u00b7 Rerank (WSL, CPU)",
+      "label": "bge-reranker-v2-m3 · Rerank (WSL, CPU)",
       "model": "gpustack/bge-reranker-v2-m3-GGUF/bge-reranker-v2-m3-Q8_0.gguf",
       "port": 8096,
       "fit": {
@@ -248,11 +248,11 @@
         "-ub",
         "8192"
       ],
-      "notes": "T002538. Der kanonische Rerank-Endpunkt :8096, Gegenstueck zu bge-embed. Eigener Prozess, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann \u2014 dieselbe Begruendung wie beim Batch-Paar. CUDA_VISIBLE_DEVICES='' siehe bge-embed. Der OpenAI-kompatible /v1/rerank-Pfad liefert dieselben Werte wie der native /rerank; verglichen wird die Reihenfolge der relevance_score, nicht deren Absolutwert (die sind rohe Logits, typisch um -11 fuer irrelevante Dokumente)."
+      "notes": "T002538. Der kanonische Rerank-Endpunkt :8096, Gegenstueck zu bge-embed. Eigener Prozess, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann — dieselbe Begruendung wie beim Batch-Paar. CUDA_VISIBLE_DEVICES='' siehe bge-embed. Der OpenAI-kompatible /v1/rerank-Pfad liefert dieselben Werte wie der native /rerank; verglichen wird die Reihenfolge der relevance_score, nicht deren Absolutwert (die sind rohe Logits, typisch um -11 fuer irrelevante Dokumente)."
     },
     {
       "slug": "gemma-factory",
-      "label": "Gemma 4 12B \u00b7 Factory Single-Agent",
+      "label": "Gemma 4 12B · Factory Single-Agent",
       "model": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8091,
       "fit": {
@@ -283,11 +283,11 @@
       },
       "extraArgs": [],
       "exclusiveGroup": "chat-gpu",
-      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 \u2014 aus dem UEBERWACHTEN Profil (-Ctx 262144 -Slots 1 -KvType q8_0, so starten watchdog-llm-servers.ps1 und install-startup-autostart.ps1), NICHT aus den param()-Defaults des Skripts (65536/q4_0). Die Defaults weichen vom laufenden Server ab; wer sie migriert, senkt still die Qualitaet. q8_0 ist Absicht: q4_0-KV degradiert das woertliche Zurueckholen von Pfaden, Symbolnamen und Tool-Call-Argumenten (T002501). -fit ersetzt das harte -c; minCtx haelt die Untergrenze."
+      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 — aus dem UEBERWACHTEN Profil (-Ctx 262144 -Slots 1 -KvType q8_0, so starten watchdog-llm-servers.ps1 und install-startup-autostart.ps1), NICHT aus den param()-Defaults des Skripts (65536/q4_0). Die Defaults weichen vom laufenden Server ab; wer sie migriert, senkt still die Qualitaet. q8_0 ist Absicht: q4_0-KV degradiert das woertliche Zurueckholen von Pfaden, Symbolnamen und Tool-Call-Argumenten (T002501). -fit ersetzt das harte -c; minCtx haelt die Untergrenze."
     },
     {
       "slug": "gemma-multiagent",
-      "label": "Gemma 4 12B \u00b7 Factory Multi-Agent",
+      "label": "Gemma 4 12B · Factory Multi-Agent",
       "model": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8091,
       "fit": {
@@ -320,11 +320,11 @@
         "-kvu"
       ],
       "exclusiveGroup": "chat-gpu",
-      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (-Slots-Profil, -np 5 -kvu). q8_0 wie gemma-factory und gptoss-context \u2014 siehe dortige Begruendung (T002501). Mit -kvu ist minCtx ein GEMEINSAMER Pool ueber alle Slots, kein Wert je Slot."
+      "notes": "Migriert aus scripts/llm/start-gemma-server.ps1 (-Slots-Profil, -np 5 -kvu). q8_0 wie gemma-factory und gptoss-context — siehe dortige Begruendung (T002501). Mit -kvu ist minCtx ein GEMEINSAMER Pool ueber alle Slots, kein Wert je Slot."
     },
     {
       "slug": "gemma26-factory",
-      "label": "Gemma 4 26B A4B \u00b7 Factory Single-Agent",
+      "label": "Gemma 4 26B A4B · Factory Single-Agent",
       "model": "gemma4/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf",
       "port": 8091,
       "fit": {

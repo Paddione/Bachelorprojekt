@@ -1,5 +1,9 @@
 // scripts/llm-proxy/loadouts.mjs
-// Einziger Ort, der scripts/llm/loadouts.json liest und schreibt.
+// Der einzige Ort, der scripts/llm/loadouts.json schreiben SOLL — nicht der
+// einzige, der es faktisch tut: die Datei wurde wiederholt mit fremden
+// JSON-Werkzeugen umgeschrieben (#3640, #3617, #3613, #3569). Weil ein
+// Kommentar das nicht verhindert, prueft `task llm:loadouts:check` die
+// kanonische Form (serializeLoadouts) fail-closed in CI [T002553].
 // Bewusst fail-closed bei der Validierung: eine kaputte Datei darf nicht als
 // halbgueltiges Dokument durchrutschen und spaeter beim argv-Bau explodieren.
 import { readFileSync, writeFileSync, statSync } from 'node:fs';
@@ -140,6 +144,28 @@ export function readLoadouts(path = DEFAULT_PATH) {
   return { doc: parseLoadouts(text), mtimeMs: statSync(path).mtimeMs };
 }
 
+/**
+ * T002553 — Die EINE kanonische Serialisierung von loadouts.json.
+ *
+ * Sowohl writeLoadouts() als auch der Format-Guard (scripts/llm/loadouts-format.mjs)
+ * gehen durch diese Funktion. Zwei getrennte Definitionen — eine im Schreiber, eine
+ * im Pruefer — koennten auseinanderlaufen und der Guard wuerde eine Form verlangen,
+ * die das Werkzeug gar nicht erzeugt.
+ *
+ * Verbindlich sind drei Eigenschaften, an denen fremde JSON-Werkzeuge scheitern:
+ *   - zwei Leerzeichen Einrueckung
+ *   - Nicht-ASCII UNESCAPED ('·', nicht '·'). Pythons json.dumps hat
+ *     ensure_ascii=True als Default und escaped stillschweigend.
+ *   - abschliessender Zeilenumbruch (json.dump schreibt keinen)
+ *
+ * Jede dieser Abweichungen normalisiert beim naechsten regulaeren Schreibvorgang
+ * die GANZE Datei zurueck und erzeugt einen Vollzeilen-Diff — in PR #3640 waren es
+ * ~360 statt ~15 Zeilen, die inhaltliche Aenderung war darin nicht mehr erkennbar.
+ */
+export function serializeLoadouts(doc) {
+  return `${JSON.stringify(doc, null, 2)}\n`;
+}
+
 /** Schreibt nur, wenn die Datei seit dem Lesen unveraendert ist (verhindert,
  *  dass das UI eine Handbearbeitung ueberschreibt). */
 export function writeLoadouts(doc, path = DEFAULT_PATH, expectedMtimeMs = null) {
@@ -150,7 +176,7 @@ export function writeLoadouts(doc, path = DEFAULT_PATH, expectedMtimeMs = null) 
       throw new Error(`loadouts.json: extern geaendert (conflict) — erneut laden und Aenderung wiederholen`);
     }
   }
-  writeFileSync(path, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
+  writeFileSync(path, serializeLoadouts(doc), 'utf8');
 }
 
 export function findLoadout(doc, slug) {

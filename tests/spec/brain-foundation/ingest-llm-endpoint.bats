@@ -41,9 +41,11 @@ teardown() {
 # `exec 3< <(...)` laesst den Testlauf blockieren statt zu scheitern.
 start_stub() {
   local body="$1"
+  local gate_dir="${2:-}"
   cat > "$STUB_DIR/server.py" <<PYEOF
-import http.server, socketserver, sys, json
+import http.server, socketserver, sys, json, os, time
 BODY = open(sys.argv[1], 'rb').read()
+GATE = sys.argv[4] if len(sys.argv) > 4 else None
 class H(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         with open(sys.argv[2], 'a') as f:
@@ -52,6 +54,14 @@ class H(http.server.BaseHTTPRequestHandler):
         body = self.rfile.read(int(self.headers.get('Content-Length', 0)))
         with open(sys.argv[2] + '.body', 'ab') as f:
             f.write(body + b"\n")
+        if GATE:
+            with open(os.path.join(GATE, 'arrived'), 'w') as f:
+                f.write('ok\n')
+            deadline = time.time() + 60
+            while time.time() < deadline:
+                if os.path.exists(os.path.join(GATE, 'release')):
+                    break
+                time.sleep(0.1)
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', str(len(BODY)))
@@ -68,7 +78,11 @@ PYEOF
   : > "$STUB_DIR/headers.txt"
   : > "$STUB_DIR/headers.txt.body"
   rm -f "$STUB_DIR/port"
-  python3 "$STUB_DIR/server.py" "$STUB_DIR/body.json" "$STUB_DIR/headers.txt" "$STUB_DIR/port" &
+  if [ -n "$gate_dir" ]; then
+    python3 "$STUB_DIR/server.py" "$STUB_DIR/body.json" "$STUB_DIR/headers.txt" "$STUB_DIR/port" "$gate_dir" &
+  else
+    python3 "$STUB_DIR/server.py" "$STUB_DIR/body.json" "$STUB_DIR/headers.txt" "$STUB_DIR/port" &
+  fi
   STUB_PID=$!
   local i
   for i in $(seq 1 50); do

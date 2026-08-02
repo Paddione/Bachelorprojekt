@@ -420,6 +420,12 @@
     "kind": "playwright"
   },
   {
+    "id": "E2E:k8-headed-verify",
+    "file": "tests/e2e/specs/k8-headed-verify.spec.ts",
+    "category": "E2E",
+    "kind": "playwright"
+  },
+  {
     "id": "E2E:korczewski-auth-setup",
     "file": "tests/e2e/specs/korczewski-auth-setup.spec.ts",
     "category": "E2E",
@@ -2469,6 +2475,12 @@
     "id": "image-drift",
     "file": "tests/spec/image-drift.bats",
     "category": "image-drift",
+    "kind": "shell"
+  },
+  {
+    "id": "k8-headed-tests/headed-verify-not-in-ci-path",
+    "file": "tests/spec/k8-headed-tests/headed-verify-not-in-ci-path.bats",
+    "category": "k8-headed-tests",
     "kind": "shell"
   },
   {

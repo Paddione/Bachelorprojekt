@@ -10,12 +10,15 @@
 # Services heißen unverändert llm-gateway-embed/-rerank, exponiert auf Port
 # 8081 (bestehender Vertrag), targetPort ist der Container-Port 8080.
 #
-# Modell-Population: pro Deployment ein eigener PVC (RWO, node-lokal via
-# Default-StorageClass local-path/longhorn) — ein geteilter ReadOnlyMany-PVC
-# würde auf dem Multi-Node-fleet zwischen zwei Deployments brechen und
-# bräuchte NFS/Longhorn, das k3d-dev nicht hat. Der InitContainer lädt das
-# Modell idempotent nach (skip wenn vorhanden); der App-Container mountet
-# read-only.
+# Modell-Population: pro Deployment ein eigener PVC (RWO) — ein geteilter
+# ReadOnlyMany-PVC würde auf dem Multi-Node-fleet zwischen zwei Deployments
+# brechen und bräuchte NFS/Longhorn mit ReadOnlyMany, das k3d-dev nicht hat.
+# Die Basis lässt storageClassName frei → k3d-dev nutzt die Default-SC
+# (local-path). Der Fleet-Cluster pinnt die Modell-PVCs im Prod-Overlay auf
+# longhorn (prod-fleet/components/llm-models-longhorn) — repliziert statt
+# node-lokal, kein erneuter HF-Download nach Node-Ausfall. Der InitContainer
+# lädt das Modell idempotent nach (skip wenn vorhanden); der App-Container
+# mountet read-only.
 #
 # Image: ghcr.io/ggml-org/llama.cpp:server-b10223 — CPU-fähiger Build-Pin
 # (kein server-cpu-Tag; der Rolling-Tag `server` bewegt sich unter dem

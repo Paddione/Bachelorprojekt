@@ -47,32 +47,30 @@ REMOTE
 echo "[3/6] Open ufw on wg-mesh interface only..."
 ssh "${SSH_OPTS[@]}" "${HOST}" "bash -s" <<'REMOTE'
 set -euo pipefail
-# Neue llama.cpp-Server auf dem Windows GPU-Host (via wg-gpu)
+# Seit T002551: nur noch Bonsai-Chat auf dem Windows GPU-Host (via wg-gpu).
+# bge embed/rerank sind Cluster-Deployments — die 8095/8096-Regeln entfallen.
 ufw allow in on wg-mesh to any port 8093 proto tcp comment "llama-bonsai (Windows)"
-ufw allow in on wg-mesh to any port 8095 proto tcp comment "llama-embed (Windows)"
-ufw allow in on wg-mesh to any port 8096 proto tcp comment "llama-rerank (Windows)"
 # Legacy: Ollama (bleibt auf dem Linux-Host, falls noch benötigt)
 ufw allow in on wg-mesh to any port 11434 proto tcp comment "ollama"
-ufw status numbered | grep -E "wg-mesh.*(8093|8095|8096|11434)"
+ufw status numbered | grep -E "wg-mesh.*(8093|11434)"
 REMOTE
 
 echo "[4/6] Verify llama.cpp services on Windows GPU host via wg-mesh..."
 echo ""
-echo "  The three llama.cpp servers run as Windows Scheduled Tasks on the"
-echo "  GPU host (Korczewski WSL), NOT as systemd units on this fleet node."
+echo "  Seit T002551 laufen bge-embed/bge-rerank als CPU-Deployments im"
+echo "  Fleet-Cluster (k3d/llm-gpu.yaml, Longhorn-Modelle) — der Windows-Host"
+echo "  dient nur noch dem Bonsai-Chat-Server als Scheduled Task."
 echo ""
-echo "  To set up the Windows Scheduled Tasks, run these PS1 scripts on"
-echo "  the GPU host (e.g. via WinRM or interactive RDP session):"
+echo "  Um den Scheduled Task einzurichten, auf dem GPU-Host ausfuehren"
+echo "  (z.B. via WinRM oder interaktiver RDP-Session):"
 echo ""
 echo "    scripts/llm/start-bonsai-server.ps1"
-echo "    scripts/llm/start-embed-server.ps1"
-echo "    scripts/llm/start-rerank-server.ps1"
-echo "    scripts/llm/register-scheduled-tasks.ps1"
+echo ""
+echo "  bge-Endpunkte erreicht der Host seit T002551 ueber die kubectl"
+echo "  port-forwards des bge-mcp-User-Services (127.0.0.1:8081/8082)."
 echo ""
 
 echo "[5/6] Smoke-test endpoints via wg-mesh..."
-echo "  Embedding: curl -s http://${LLM_HOST_IP:-192.168.100.10}:8095/v1/embeddings ..."
-echo "  Rerank:    curl -s http://${LLM_HOST_IP:-192.168.100.10}:8096/v1/rerank ..."
 echo "  Bonsai:    curl -s http://${LLM_HOST_IP:-192.168.100.10}:8093/v1/models"
 
 echo ""
@@ -80,7 +78,9 @@ echo "[6/6] Verify reachability..."
 ssh "${SSH_OPTS[@]}" "${HOST}" "bash -s" <<'REMOTE'
 set -euo pipefail
 echo "Probing GPU host via wg-mesh (192.168.100.10)..."
-for port in 8093 8095 8096; do
+# Seit T002551: nur noch Bonsai (Chat) auf dem Host; bge embed/rerank sind
+# Cluster-Deployments und werden ueber kubectl port-forward erreicht.
+for port in 8093; do
   timeout 3 bash -c "echo >/dev/tcp/192.168.100.10/$port" 2>/dev/null \
     && echo "  Port $port: reachable" \
     || echo "  Port $port: NOT reachable — ensure Windows Scheduled Tasks are running"
@@ -94,4 +94,3 @@ echo "  1. Run the Äquivalenzmessung: node scripts/llm/measure-embedding-equiva
 echo "  2. If pass (mean >= 0.99), cleanup old TEI containers:"
 echo "     sudo systemctl disable --now tei-embed tei-rerank tei-socat tei-rerank-socat lmstudio-socat"
 echo "     docker rm -f \$(docker ps -q --filter 'ancestor=ghcr.io/huggingface/text-embeddings-inference:cpu-1.9')"
-echo "  3. Re-register PS Scheduled Tasks after llama-server.exe updates"

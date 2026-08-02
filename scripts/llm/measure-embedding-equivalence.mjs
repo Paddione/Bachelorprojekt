@@ -12,11 +12,12 @@
  *
  * Endpunkt-URLs via Umgebungsvariablen überschreibbar:
  *   OLD_EMBED_URL  (Default: http://127.0.0.1:9081/embed)  — TEI-Dialekt
- *   NEW_EMBED_URL  (Default: http://127.0.0.1:8095/v1/embeddings) — llama.cpp
+ *   NEW_EMBED_URL  (Default: http://127.0.0.1:8081/v1/embeddings) — Cluster-llama.cpp
+ *                     (bge-mcp port-forward auf svc/llm-gateway-embed, T002551)
  */
 
 const OLD_URL = process.env.OLD_EMBED_URL || 'http://127.0.0.1:9081/embed';
-const NEW_URL = process.env.NEW_EMBED_URL || 'http://127.0.0.1:8095/v1/embeddings';
+const NEW_URL = process.env.NEW_EMBED_URL || 'http://127.0.0.1:8081/v1/embeddings';
 
 const testTexts = [
   // English, short

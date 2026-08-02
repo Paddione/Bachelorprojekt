@@ -12,10 +12,10 @@
 #                      backward compat with existing callers/CI config)
 #                      T002258: was :8095 — that port now serves the bge-m3
 #                      EMBEDDING model (T002110/PR #3150), not a chat model.
-#                      Port map (scripts/llm/register-scheduled-tasks.ps1):
+#                      T002551: bge embed/rerank sind seither Cluster-CPU-
+#                      Deployments (k3d/llm-gpu.yaml); die Host-Ports 8095/8096
+#                      existieren nicht mehr. Einziger Host-Server:
 #                        8093 = Bonsai chat / ingest pool (-np 4)
-#                        8095 = bge-m3 embeddings
-#                        8096 = bge-reranker-v2-m3 rerank
 #   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
 #   MAX_PARALLEL     — Concurrent process_page() jobs (default: 4, matching
 #                      the ingest-pool server's -np slot count — raising this

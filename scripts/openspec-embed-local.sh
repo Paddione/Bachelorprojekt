@@ -12,9 +12,10 @@
 #      Website-Deployment gelesen (Literal-Env) und über einen temporären
 #      port-forward auf die Fleet-shared-db umgeschrieben. Die URL enthält
 #      Credentials und wird NIE ausgegeben.
-#   2. LLM_EMBED_URL: Default lokaler TEI-socat (127.0.0.1:8081), Fallback
-#      TEI-Docker direkt (127.0.0.1:9081). Vorab-Probe; bei totem Backend
-#      klare Remediation statt Silent-Skip.
+#   2. LLM_EMBED_URL: Default http://127.0.0.1:8081 — der kubectl port-forward
+#      auf svc/llm-gateway-embed, den der bge-mcp systemd-User-Service
+#      (scripts/bge-mcp/bge-mcp.service) seit T002551 dauerhaft hält. Vorab-
+#      Probe; bei totem Backend klare Remediation statt Silent-Skip.
 #   3. Ausgabe von openspec-embed.mjs wird geprüft: nur "indexed slug=" ist
 #      Erfolg (Exit 0). "skipping"/"failure" => Exit 1 mit Hinweis.
 #
@@ -39,16 +40,17 @@ probe_embed() {
     -X POST "$1/v1/embeddings" -H 'Content-Type: application/json' \
     -d '{"input":["ping"],"model":"bge-m3"}' 2>/dev/null || echo 000
 }
-EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:8095}"
+EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:8081}"
 if [[ "$(probe_embed "$EMBED_URL")" != "200" ]]; then
   cat >&2 <<'EOF'
-[openspec-embed-local] FEHLER: kein Embedding-Backend erreichbar (:8095).
-Remediation (Windows GPU Host — llama.cpp läuft als Scheduled Task):
-  Stelle sicher, dass der Windows Scheduled Task "LlamaEmbedServer" läuft:
-    schtasks /run /tn LlamaEmbedServer
-  Oder starte den Server manuell via PowerShell:
-    powershell -ExecutionPolicy Bypass -File .\scripts\llm\start-embed-server.ps1
-  Prüfe dann: curl -s http://127.0.0.1:8095/v1/embeddings -H 'Content-Type: application/json' -d '{"model":"bge-m3","input":["test"]}'
+[openspec-embed-local] FEHLER: kein Embedding-Backend erreichbar (:8081).
+Remediation (seit T002551 läuft bge-embed als Cluster-CPU-Deployment):
+  Der bge-mcp systemd-User-Service hält den port-forward auf 127.0.0.1:8081:
+    systemctl --user status bge-mcp
+    systemctl --user restart bge-mcp
+  Manuell (Cluster-DNS ist auf dem WSL-Host nicht auflösbar, T002488):
+    kubectl --context fleet port-forward -n workspace svc/llm-gateway-embed 8081:8081 &
+  Prüfe dann: curl -s http://127.0.0.1:8081/v1/embeddings -H 'Content-Type: application/json' -d '{"model":"bge-m3","input":["test"]}'
 EOF
     exit 1
 fi

@@ -8,6 +8,7 @@ resources:
   - ../../prod/monitoring
 components:
   - ../components/fleet-common
+  - ../components/llm-models-longhorn
 
 # T002207: remove all one-shot Jobs from the brand overlay — they now
 # live in flux-<brand>-jobs Kustomization with force:true and wait:false.

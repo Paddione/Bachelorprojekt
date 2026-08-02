@@ -13,6 +13,7 @@ resources:
   - studio-ingress.yaml
 components:
   - ../components/fleet-common
+  - ../components/llm-models-longhorn
 
 # Exclude the dev.mentolder.de stack from fleet Phase 2a (dev migration is 2c).
 # prod-mentolder renders these dev resources; with DEV_* blanked in

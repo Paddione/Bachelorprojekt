@@ -71,11 +71,16 @@ assert_contains "$RESTORE_HELP" "pvc-restore" "SA-07" "T10" "backup-restore.sh u
 PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/.." && pwd)}"
 KUSTOMIZE_OUT=$(kustomize build "${PROJECT_DIR}/prod-fleet/mentolder" 2>/dev/null)
 # nextcloud-data-pvc excluded: Longhorn lacks disk headroom for 50Gi on 3 replicas (T000317)
-for pvc in vaultwarden-data-pvc docuseal-data-pvc; do
+# bge-embed-models/bge-rerank-models (T002551): Modelle repliziert, kein erneuter HF-Download.
+# docuseal-data-pvc entfernt: DocuSeal wurde durch das eigene Signingsystem ersetzt (T000557).
+for pvc in vaultwarden-data-pvc bge-embed-models bge-rerank-models; do
   # Extract storageClassName from the built manifest for this specific PVC
   SC=$(echo "$KUSTOMIZE_OUT" \
     | python3 -c "
 import sys, yaml
+# YAML-1.1-impliziter 'value'-Tag ('- =' als Plain-Scalar, z.B. in
+# PrometheusRules-enum) sprengt den SafeLoader. Als String konstruieren.
+yaml.SafeLoader.add_constructor('tag:yaml.org,2002:value', lambda l, n: l.construct_scalar(n))
 docs = list(yaml.safe_load_all(sys.stdin))
 for d in docs:
     if d and d.get('kind')=='PersistentVolumeClaim' and d.get('metadata',{}).get('name')=='${pvc}':

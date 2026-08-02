@@ -67,13 +67,8 @@ env_vars:
   TERMINAL_OVERLAY_IP: "10.20.0.10"
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "true"
-  LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace.svc.cluster.local:8096"
-  LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8095"
-  # T002426 — Paar A (Batch/Reindex, CPU-gebunden, belegt kein VRAM).
-  LLM_EMBED_BATCH_URL: "http://llm-gateway-embed-batch.workspace.svc.cluster.local:8085"
-  LLM_RERANKER_BATCH_URL: "http://llm-gateway-rerank-batch.workspace.svc.cluster.local:8086"
-  LLM_BGE_LATENCY_BUDGET_MS: "2000"
-  LLM_BGE_QUEUE_LIMIT: "4"
+  LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace.svc.cluster.local:8081"
+  LLM_EMBED_URL: "http://llm-gateway-embed.workspace.svc.cluster.local:8081"
   LLM_EMBED_MODEL: "bge-m3"
 
   STUDIO_DOMAIN: studio.mentolder.de

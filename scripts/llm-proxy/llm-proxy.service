@@ -7,9 +7,10 @@
 #
 # WARUM SYSTEMD UND NICHT DER WINDOWS-STARTUP-ORDNER (T002277):
 # Der Proxy ist ein Node-Prozess in WSL, kein Windows-Programm. Der
-# Startup-Ordner (install-startup-autostart.ps1) startet die llama.cpp-Server
-# auf der Windows-Seite und ist fuer WSL-Dienste der falsche Ort - er liefe nur
-# bei der Windows-Anmeldung und muesste den Umweg ueber wsl.exe nehmen.
+# Windows-Startup-Ordner (bis T002551 install-startup-autostart.ps1) startete
+# die llama.cpp-Server auf der Windows-Seite und ist fuer WSL-Dienste der
+# falsche Ort - er liefe nur bei der Windows-Anmeldung und muesste den Umweg
+# ueber wsl.exe nehmen.
 # systemd --user laeuft in dieser WSL-Distribution bereits (weitere Units:
 # factory.service, factory-mcp.service) und startet den Proxy beim Hochfahren
 # der Distribution mit.

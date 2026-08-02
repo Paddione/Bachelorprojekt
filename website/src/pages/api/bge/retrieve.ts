@@ -15,9 +15,9 @@ export const prerender = false;
  * Zweck: Agenten sollen die Einbettung nicht selbst richtig anwenden muessen.
  *
  * Failover: KEINE eigene Ausweichlogik. Embedding laeuft ueber `queryNearest` →
- * `embedQuery`, Reranking ueber `rerankCandidates` — beide fragen den
- * bge-Router (`website/src/lib/bge-router.ts`). Wird hier ein zweiter
- * Health-Check eingebaut, gibt es zwei Wahrheiten statt einer.
+ * `embedQuery`, Reranking ueber `rerankCandidates` — beide loesen die
+ * Zieladresse ueber den bge-Router (`website/src/lib/bge-router.ts`). Wird hier
+ * ein zweiter Health-Check eingebaut, gibt es zwei Wahrheiten statt einer.
  *
  * Cross-Space: `queryNearest` wirft `MixedEmbeddingModelError`, sobald die
  * gewaehlten Collections mehr als einen Vektorraum umfassen. Das wird als 400

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-01T10:08:31.724Z",
+  "generatedAt": "2026-08-02T07:47:29.793Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -174,6 +174,18 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "knowledge-reindex-all"
+    },
+    {
+      "id": "bge-embed",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "bge-embed"
+    },
+    {
+      "id": "bge-rerank",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "bge-rerank"
     },
     {
       "id": "mailpit",
@@ -504,6 +516,18 @@
       "namespace": "mentolder",
       "type": "Service",
       "name": "shared-db-dev-lb"
+    },
+    {
+      "id": "llm-gateway-embed",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "llm-gateway-embed"
+    },
+    {
+      "id": "llm-gateway-rerank",
+      "namespace": "mentolder",
+      "type": "Service",
+      "name": "llm-gateway-rerank"
     },
     {
       "id": "keycloak",
@@ -1356,6 +1380,18 @@
     {
       "from": "einvoice-sidecar",
       "to": "einvoice-sidecar",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "llm-gateway-embed",
+      "to": "bge-embed",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "llm-gateway-rerank",
+      "to": "bge-rerank",
       "via": "selector",
       "kind": "selector"
     },

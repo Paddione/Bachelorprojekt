@@ -7,12 +7,13 @@
 # wird die von buildStartCommand() erzeugte Kommandozeile und der Rueckgabewert
 # von parseLoadouts() — kein grep auf Script-Interna.
 #
-# Hintergrund: Die bge-Server sind CPU-gebunden (-ngl 0), allokieren aber
-# trotzdem je Prozess rund 600 MB CUDA-Kontext. Nur CUDA_VISIBLE_DEVICES=''
-# verhindert das. Ohne env-Unterstuetzung im Loadout-Schema waere ein
-# Registry-Eintrag nicht aequivalent zu den handangelegten Units, sondern
-# still schlechter — der VRAM-Gewinn (2,65 GB, entspricht rund 34.000 Tokens
-# Kontext beim Gemma 26B) ginge verloren, ohne dass irgendetwas rot wird.
+# Hintergrund: Das Loadout-Schema unterstuetzt env-Eintraege, die
+# buildStartCommand() als --property=Environment=... VOR den '--'-Trenner legt.
+# Anlass war CUDA_VISIBLE_DEVICES='' fuer die CPU-gebundenen bge-Server
+# (T002538). Seit T002551 laufen die bge-Server als CPU-Deployments im Cluster
+# (k3d/llm-gpu.yaml) und sind aus loadouts.json entfernt — das env-Feature
+# selbst bleibt generisch und wird hier deshalb an synthetischen Dokumenten
+# geprueft, nicht an bge-Slugs.
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
@@ -46,6 +47,16 @@ _doc_with_env() {
  {"slug":"t","label":"t","model":"a.gguf","port":9999,
   "fit":{"enabled":false},"args":{"ctx":8192,"ngl":0},"env":$1}]}
 EOF
+}
+
+# Baut die Kommandozeile fuer ein synthetisches Loadout-Dokument (T002551: die
+# bge-Slugs sind aus loadouts.json entfernt, das env-Feature bleibt generisch).
+_start_cmd_doc() {
+  node --input-type=module -e "
+    const { buildStartCommand } = await import('file://$REPO/scripts/llm-proxy/runner.mjs');
+    const l = $1;
+    console.log(buildStartCommand(l, '/m.gguf', { host: '127.0.0.1' }, '/bin/llama-server').join('\n'));
+  "
 }
 
 # ── Schema ───────────────────────────────────────────────────────────────────
@@ -87,16 +98,10 @@ EOF
 
 # ── Kommandozeile ────────────────────────────────────────────────────────────
 
-@test "T002538: bge-embed setzt CUDA_VISIBLE_DEVICES als systemd-Property" {
-  run _start_cmd bge-embed
+@test "T002538: env mit CUDA_VISIBLE_DEVICES erzeugt die systemd-Property" {
+  run _start_cmd_doc '{"slug":"t","label":"t","model":"a.gguf","port":9999,"fit":{"enabled":false},"args":{"ctx":8192,"ngl":0},"env":{"CUDA_VISIBLE_DEVICES":""}}'
   [ "$status" -eq 0 ]
   echo "$output"
-  echo "$output" | grep -Fxq -- '--property=Environment=CUDA_VISIBLE_DEVICES='
-}
-
-@test "T002538: bge-rerank setzt CUDA_VISIBLE_DEVICES als systemd-Property" {
-  run _start_cmd bge-rerank
-  [ "$status" -eq 0 ]
   echo "$output" | grep -Fxq -- '--property=Environment=CUDA_VISIBLE_DEVICES='
 }
 
@@ -104,7 +109,7 @@ EOF
   # Danach gaebe systemd-run sie als Argument an llama-server weiter, das die
   # Option nicht kennt und mit Fehler abbricht. Die Reihenfolge ist der
   # eigentliche Gegenstand — dass die Zeile ueberhaupt vorkommt, sagt nichts.
-  run _start_cmd bge-embed
+  run _start_cmd_doc '{"slug":"t","label":"t","model":"a.gguf","port":9999,"fit":{"enabled":false},"args":{"ctx":8192,"ngl":0},"env":{"CUDA_VISIBLE_DEVICES":""}}'
   [ "$status" -eq 0 ]
   local i_env i_sep
   i_env=$(echo "$output" | grep -nFx -- '--property=Environment=CUDA_VISIBLE_DEVICES=' | cut -d: -f1)
@@ -126,16 +131,4 @@ EOF
   n=$(echo "$output" | grep -cF -- '--property=Environment=' || true)
   echo "Environment-Properties: $n"
   [ "$n" -eq 0 ]
-}
-
-@test "T002538: bge-embed und bge-rerank halten -ngl 0 und eigene Ports" {
-  # Belegt, dass die Registry-Eintraege den laufenden Units entsprechen:
-  # CPU-gebunden, und die kanonischen Ports 8095/8096 statt der stillgelegten
-  # Batch-Ports 8085/8086.
-  run _start_cmd bge-embed
-  echo "$output" | grep -Fxq -- '8095'
-  echo "$output" | grep -Fxq -- '0'
-
-  run _start_cmd bge-rerank
-  echo "$output" | grep -Fxq -- '8096'
 }

@@ -1,5 +1,5 @@
 import { logger } from './logger';
-import { resolvePair, pairUrl, type PairId, type LlamaRerankResponse } from './bge-router';
+import { resolveEndpoint, type LlamaRerankResponse } from './bge-router';
 
 const rerankEnabled = () => process.env.LLM_RERANK_ENABLED === 'true';
 const rerankModelId = () => process.env.LLM_RERANK_MODEL ?? 'bge-reranker-v2-m3';
@@ -9,8 +9,8 @@ export interface RerankResult { doc: string; score: number; }
 const degrade = (docs: string[]): RerankResult[] => docs.map(doc => ({ doc, score: 0 }));
 
 /**
- * Ein Rerank-Versuch gegen genau ein Paar. Gibt `null` zurueck, wenn dieses Paar
- * nicht liefern konnte — der Aufrufer entscheidet dann ueber den Partner.
+ * Ein Rerank-Versuch gegen den bge-Endpoint. Gibt `null` zurueck, wenn er nicht
+ * liefern konnte — der Aufrufer degradiert dann auf `score: 0`.
  */
 async function tryPair(
   url: string, query: string, docs: string[], signal?: AbortSignal,
@@ -38,13 +38,17 @@ async function tryPair(
 }
 
 /**
- * T002426: bei Ausfall des primaeren Rerankers wird ERST der Partner versucht
- * und erst danach auf `score: 0` degradiert.
+ * T002426: bei Ausfall des Rerankers degradiert diese Funktion auf `score: 0`.
  *
- * Vorher fiel diese Funktion beim ersten Fehler still auf `score: 0` zurueck —
- * ein toter Reranker blieb dadurch wochenlang unbemerkt, weil ein unsortiertes
- * Ergebnis von aussen wie ein sortiertes aussieht. Deshalb wird jetzt sowohl
- * der Partner-Wechsel als auch die Degradation als Warnung protokolliert.
+ * Vorher (zwei Paare auf dem Windows-Host) fiel sie beim ersten Fehler still
+ * auf `score: 0` zurueck — ein toter Reranker blieb dadurch wochenlang
+ * unbemerkt, weil ein unsortiertes Ergebnis von aussen wie ein sortiertes
+ * aussieht. Deshalb wird die Degradation als Warnung protokolliert.
+ *
+ * T002551: seit die bge-Server im Cluster laufen (k3d/llm-gpu.yaml), gibt es
+ * nur noch einen Endpoint pro Rolle. Das bidirektionale Partner-Failover und
+ * die Pair-Auswahl entfallen; ein toter Endpoint faellt beim Fetch auf und wird
+ * genauso behandelt wie vorher der letzte verbleibende Partner.
  *
  * Signatur und Rueckgabetyp sind unveraendert; kein Aufrufer muss angefasst werden.
  */
@@ -59,25 +63,18 @@ export async function rerankCandidates(
     return degrade(docs);
   }
 
-  // Der Router bestimmt das Primaerpaar (und weicht dabei schon bei Ueberlast
-  // aus). Die Reihenfolge unten deckt zusaetzlich den Fall ab, dass das
-  // gewaehlte Paar zwischen Health-Probe und Anfrage wegbricht.
-  let first: PairId = 'interactive';
+  let url: string;
   try {
-    first = (await resolvePair('interactive', 'rerank', opts)).pair;
+    url = resolveEndpoint('rerank');
   } catch (err) {
     logger.warn({ err: err instanceof Error ? err.message : String(err), docs: docs.length },
-      '[rerank] no reachable pair — returning score:0');
+      '[rerank] no endpoint configured — returning score:0');
     return degrade(docs);
   }
 
-  const order: PairId[] = first === 'interactive' ? ['interactive', 'batch'] : ['batch', 'interactive'];
-  for (const pair of order) {
-    const out = await tryPair(pairUrl(pair, 'rerank'), query, docs, opts.signal);
-    if (out) return out;
-    logger.warn({ pair, docs: docs.length }, '[rerank] falling back to partner pair');
-  }
+  const out = await tryPair(url, query, docs, opts.signal);
+  if (out) return out;
 
-  logger.warn({ docs: docs.length }, '[rerank] both pairs failed — returning score:0');
+  logger.warn({ docs: docs.length }, '[rerank] endpoint failed — returning score:0');
   return degrade(docs);
 }

@@ -20,10 +20,10 @@ setup() {
 }
 
 @test "embeddings.ts routes through LLM gateway when LLM_ENABLED" {
-  # T002426: die Gateway-Adresse steht nicht mehr in dieser Datei. Sie kommt vom
-  # bge-Router, der zwischen dem interaktiven und dem Batch-Paar entscheidet -
-  # genau darum ging es: EINE Routing-Entscheidung statt einer pro Konsument.
-  # Geprueft wird deshalb die Indirektion, nicht mehr das Adressliteral.
+  # T002426/T002551: die Gateway-Adresse steht nicht mehr in dieser Datei. Sie
+  # kommt vom bge-Router — seit T002551 die reine resolveEndpoint-Aufloesung
+  # (ein Endpoint pro Rolle). Geprueft wird deshalb die Indirektion, nicht mehr
+  # das Adressliteral.
   run grep -q "from './bge-router'" "$REPO/website/src/lib/embeddings.ts"
   [ "$status" -eq 0 ]
   run grep -qE 'llm-gateway' "$REPO/website/src/lib/bge-router.ts"
@@ -91,18 +91,107 @@ dev_llm_host_ip() {
 
 # ── llama.cpp infrastructure [T002110] ──────────────────────────
 
-@test "k3d/llm-gpu.yaml defines llm-gateway-embed service on port 8095" {
+@test "k3d/llm-gpu.yaml defines llm-gateway-embed service on port 8081 (T002551)" {
   run grep -q 'name: llm-gateway-embed' "$REPO/k3d/llm-gpu.yaml"
   [ "$status" -eq 0 ]
-  run grep -q 'port: 8095' "$REPO/k3d/llm-gpu.yaml"
+  run grep -q 'port: 8081' "$REPO/k3d/llm-gpu.yaml"
   [ "$status" -eq 0 ]
 }
 
-@test "k3d/llm-gpu.yaml defines llm-gateway-rerank service on port 8096" {
+@test "k3d/llm-gpu.yaml defines llm-gateway-rerank service on port 8081 (T002551)" {
   run grep -q 'name: llm-gateway-rerank' "$REPO/k3d/llm-gpu.yaml"
   [ "$status" -eq 0 ]
-  run grep -q 'port: 8096' "$REPO/k3d/llm-gpu.yaml"
+  run grep -q 'port: 8081' "$REPO/k3d/llm-gpu.yaml"
   [ "$status" -eq 0 ]
+}
+
+# ── bge-K8s-Migration (T002551) ─────────────────────────────────────────
+# Die vier llama.cpp-Server wandern vom WSL-Host (Endpoints auf LLM_HOST_IP)
+# in CPU-only Kubernetes-Deployments (bge-embed/bge-rerank). Die Gateway-
+# Services bleiben unter demselben Namen erreichbar, aber der Vertrag ändert
+# sich: Selector statt Endpoints, Port 8081 statt 8095/8096, Batch-Services
+# entfallen. Live-Cluster-Tests skippen offline (Muster _skip_if_no_db).
+
+_skip_if_no_llm_gateway() {
+  if ! kubectl get svc llm-gateway-embed -n "${BGE_NS:-workspace}" \
+    --context "${BGE_CTX:-fleet}" -o name >/dev/null 2>&1; then
+    skip "no llm-gateway-embed service reachable (offline/CI)"
+  fi
+}
+
+@test "bge-k8s: llm-gateway-embed Service hat Selector app=bge-embed (ClusterIP statt Endpoints)" {
+  _skip_if_no_llm_gateway
+  local sel
+  sel="$(kubectl get svc llm-gateway-embed -n "${BGE_NS:-workspace}" --context "${BGE_CTX:-fleet}" \
+    -o jsonpath='{.spec.selector.app}' 2>/dev/null)"
+  [ "$sel" = "bge-embed" ]
+}
+
+@test "bge-k8s: llm-gateway-embed Service exponiert Port 8081" {
+  _skip_if_no_llm_gateway
+  local port
+  port="$(kubectl get svc llm-gateway-embed -n "${BGE_NS:-workspace}" --context "${BGE_CTX:-fleet}" \
+    -o jsonpath='{.spec.ports[0].port}' 2>/dev/null)"
+  [ "$port" = "8081" ]
+}
+
+@test "bge-k8s: llm-gateway-rerank Service hat Selector app=bge-rerank" {
+  _skip_if_no_llm_gateway
+  local sel
+  sel="$(kubectl get svc llm-gateway-rerank -n "${BGE_NS:-workspace}" --context "${BGE_CTX:-fleet}" \
+    -o jsonpath='{.spec.selector.app}' 2>/dev/null)"
+  [ "$sel" = "bge-rerank" ]
+}
+
+@test "bge-k8s: llm-gateway-rerank Service exponiert Port 8081" {
+  _skip_if_no_llm_gateway
+  local port
+  port="$(kubectl get svc llm-gateway-rerank -n "${BGE_NS:-workspace}" --context "${BGE_CTX:-fleet}" \
+    -o jsonpath='{.spec.ports[0].port}' 2>/dev/null)"
+  [ "$port" = "8081" ]
+}
+
+@test "bge-k8s: bge-embed Deployment existiert" {
+  _skip_if_no_llm_gateway
+  kubectl get deploy bge-embed -n "${BGE_NS:-workspace}" --context "${BGE_CTX:-fleet}" >/dev/null 2>&1
+}
+
+@test "bge-k8s: bge-rerank Deployment existiert" {
+  _skip_if_no_llm_gateway
+  kubectl get deploy bge-rerank -n "${BGE_NS:-workspace}" --context "${BGE_CTX:-fleet}" >/dev/null 2>&1
+}
+
+@test "bge-k8s: Batch-Services existieren nicht mehr" {
+  _skip_if_no_llm_gateway
+  for svc in llm-gateway-embed-batch llm-gateway-rerank-batch; do
+    if kubectl get svc "$svc" -n "${BGE_NS:-workspace}" --context "${BGE_CTX:-fleet}" \
+      -o name >/dev/null 2>&1; then
+      echo "Batch-Service $svc existiert noch" >&2
+      return 1
+    fi
+  done
+}
+
+@test "no environment file declares LLM_EMBED_BATCH_URL (T002551)" {
+  run grep -rE '^[[:space:]]*-[[:space:]]*name:[[:space:]]*LLM_EMBED_BATCH_URL[[:space:]]*$' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "no environment file declares LLM_RERANKER_BATCH_URL (T002551)" {
+  run grep -rE '^[[:space:]]*-[[:space:]]*name:[[:space:]]*LLM_RERANKER_BATCH_URL[[:space:]]*$' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "no environment file declares LLM_BGE_LATENCY_BUDGET_MS or LLM_BGE_QUEUE_LIMIT (T002551)" {
+  run grep -rE '^[[:space:]]*-[[:space:]]*name:[[:space:]]*(LLM_BGE_LATENCY_BUDGET_MS|LLM_BGE_QUEUE_LIMIT)[[:space:]]*$' "$REPO/environments/"
+  [ "$status" -eq 1 ]
+}
+
+@test "k3d/llm-gpu.yaml exponiert Port 8081 statt 8095/8096 (T002551)" {
+  run grep -q 'port: 8081' "$REPO/k3d/llm-gpu.yaml"
+  [ "$status" -eq 0 ]
+  run grep -qE 'port: 809[56]' "$REPO/k3d/llm-gpu.yaml"
+  [ "$status" -eq 1 ]
 }
 
 @test "no environment file references old llm-gateway-tei-embed service" {
@@ -198,10 +287,11 @@ assert_var_not_declared() {
 # Gemma laeuft seit T002297 mit -Ctx 262144 und belegt rund 15,1 von 16,3 GiB.
 # Der Reranker war der Beweis, dass ein einzelner Guard hier nicht reicht —
 # T002319 stellte den Embedder auf 0 um und liess start-rerank-server.ps1 auf
-# 99 stehen; weil install-startup-autostart.ps1 beide Skripte ARGUMENTLOS
-# aufruft, holte jeder Autostart die GPU-Variante zurueck, ohne dass etwas rot
-# wurde. Deshalb pruefen die Guards BEIDE Skripte gemeinsam. Der GPU-Rueckweg
-# bleibt ueber LLM_EMBED_NGL/LLM_RERANK_NGL offen — hier steht nur der Default.
+# 99 stehen; weil der Autostart (bis T002551 install-startup-autostart.ps1)
+# beide Skripte ARGUMENTLOS aufrief, holte jeder Autostart die GPU-Variante
+# zurueck, ohne dass etwas rot wurde. Deshalb pruefen die Guards BEIDE Skripte
+# gemeinsam. Der GPU-Rueckweg bleibt ueber LLM_EMBED_NGL/LLM_RERANK_NGL offen —
+# hier steht nur der Default.
 # Das [[:space:]]*$ am Ende ist kein Schoenheitsfehler: die .ps1-Dateien sind
 # durchgehend CRLF, ein blosses "$ scheitert am \r vor dem Zeilenende.
 
@@ -300,41 +390,26 @@ assert_var_not_declared() {
   [ -z "$missing" ] || { echo "ohne Port-Raeumung:$missing"; false; }
 }
 
-@test "install-startup-autostart.ps1 startet den bge-Stack in fester Reihenfolge (T002286/T002459)" {
-  [ -f "$REPO/scripts/llm/install-startup-autostart.ps1" ]
-  # Reihenfolge ist Absicht: das interaktive Paar zuerst, danach das Batch-Paar.
-  # Seit T002297 ist die flache Namensliste eine Liste von Hashtables mit
-  # Script/Arguments. Die Reihenfolge wird deshalb ueber die Zeilennummern der
-  # Script-Eintraege geprueft statt ueber einen Literal-Vergleich der Array-Zeile.
-  auto="$REPO/scripts/llm/install-startup-autostart.ps1"
-  emb="$(grep -n "Script *= *'start-embed-server.ps1'" "$auto" | cut -d: -f1)"
-  rer="$(grep -n "Script *= *'start-rerank-server.ps1'" "$auto" | cut -d: -f1)"
-  [ -n "$emb" ] && [ -n "$rer" ]
-  [ "$emb" -lt "$rer" ]
-  run bash -c "grep -nE '^[^#]*start-bonsai-server' '$REPO'/scripts/llm/*.ps1 2>/dev/null"
-  [ -z "$output" ]
+# ── Windows-Autostart entfernt (T002551) ─────────────────────────────
+# Mit dem Umzug aller vier bge-Server in Kubernetes-Deployments
+# (k3d/llm-gpu.yaml) ist auf dem Windows-Host kein bge-Server mehr zu starten
+# oder zu ueberwachen: install-startup-autostart.ps1 (Startup-Ordner) und
+# watchdog-llm-servers.ps1 hatten seit T002459 ausschliesslich bge-Eintraege,
+# das Batch-Paar startete ueber eigene Skripte. Gemma laeuft schon seit
+# T002459 nicht mehr ueber den Windows-Autostart, sondern als Loadout im
+# Linux-llm-proxy mit nativem 'systemd Restart=on-failure' (design.md D3).
+
+@test "Windows-Autostart und Watchdog sind mit dem bge-Umzug entfernt (T002551)" {
+  for f in install-startup-autostart.ps1 watchdog-llm-servers.ps1 \
+           start-embed-batch-server.ps1 start-rerank-batch-server.ps1; do
+    [ ! -f "$REPO/scripts/llm/$f" ] \
+      || { echo "erwartet entfernt: $f"; false; }
+  done
 }
 
-@test "Gemma ist seit dem Linux-Cutover NICHT mehr im Windows-Autostart (T002459)" {
-  # Bis T002459 startete dieses Skript Gemma mit '-Ctx 262144 -Slots 1 -KvType q8_0'.
-  # Der Cutover verschiebt ihn in den Linux-Loadout-Stack; bliebe der Eintrag hier
-  # stehen, konkurrierten nach einem Reboot zwei Server um Port 8091 und dasselbe
-  # VRAM, und der zweite scheiterte still am Bind.
-  auto="$REPO/scripts/llm/install-startup-autostart.ps1"
-
-  # POSITIV-ANKER (T002356-M1) zuerst: die Liste muss ueberhaupt Eintraege haben.
-  # Waere sie leer oder das Muster veraltet, waere "kein Gemma" trivial erfuellt.
-  local n_entries
-  n_entries="$(grep -c "Script *= *'start-[a-z-]*\.ps1'" "$auto")"
-  echo "Autostart-Eintraege: $n_entries"
-  [ "$n_entries" -ge 4 ]
-
-  # Der eigentliche Gegenstand.
-  run grep -n "Script *= *'start-gemma-server.ps1'" "$auto"
-  echo "Gemma-Eintrag: ${output:-<keiner>}"
-  [ -z "$output" ]
-
-  # Und der Ersatz muss existieren, sonst hat der Cutover nur entfernt.
+@test "Gemma laeuft als Linux-Loadout weiter, nicht im Windows-Autostart (T002459/T002551)" {
+  # Positiv-Anker (T002356-M1): die gemma-Loadouts muessen im Linux-Stack
+  # existieren, sonst hat die Migration nicht nur entfernt, sondern verloren.
   run node -e '
     const d = require("./scripts/llm/loadouts.json");
     const g = d.loadouts.filter(l => l.slug.startsWith("gemma-"));
@@ -523,78 +598,11 @@ assert_var_not_declared() {
   [ -z "$missing" ] || { echo "ohne -NoWait-Guard:$missing"; false; }
 }
 
-@test "install-startup-autostart.ps1 autostarts no SECOND chat model (T002286)" {
-  # Die urspruengliche Absicht (T002276) - der Embedding-Stack darf nicht
-  # verhungern - gilt weiter, nur nicht mehr pauschal gegen jedes Chat-Modell.
-  # Gemma ist mit festem -c 65536 planbar (12576 von 16303 MiB) und laesst
-  # bge-m3 + Reranker mit zusammen ~1,7 GB Platz. Ein ZWEITES Chat-Modell passt
-  # daneben nicht: gpt-oss-20b allein braucht 12,1 GB.
-  run bash -c "grep -E 'start-(gptoss|bonsai)' '$REPO/scripts/llm/install-startup-autostart.ps1'"
-  [ "$status" -ne 0 ]
-}
-
-# ── [T002335] Watchdog fuer die LLM-Server ────────────────────────────
-#
-# Der Autostart startet die Server EINMAL bei der Anmeldung. Stirbt danach einer,
-# bleibt er tot - unter \Llama\ war kein Scheduled Task registriert, der es haette
-# bemerken koennen. Diese Guards halten fest, was den Watchdog wirksam macht.
-
-@test "T002335: watchdog-llm-servers.ps1 existiert" {
-  [ -f "$REPO/scripts/llm/watchdog-llm-servers.ps1" ]
-}
-
-@test "T002335: jeder Watchdog-Server-Eintrag hat Name, Port, Script und Args" {
-  # Ein fehlender Hashtable-Key liefert in PowerShell still $null (T002264) - der
-  # Eintrag liefe dann mit leerem Skriptpfad los. Deshalb strukturell pruefen.
-  # T002426: nicht mehr gegen eine feste Zahl, sondern gegen die Gesamtzahl der
-  # Eintraege - der Watchdog deckt seit dem Batch-Paar fuenf Server ab und wird
-  # weiter wachsen. Die Aussage des Tests ist "JEDER Eintrag ist vollstaendig",
-  # nicht "es sind genau drei".
-  local entries total
-  entries=$(grep -cE '@\{ *Name *=.*Port *=.*Script *=.*Args *=' \
-    "$REPO/scripts/llm/watchdog-llm-servers.ps1")
-  total=$(grep -cE '@\{ *Name *=' "$REPO/scripts/llm/watchdog-llm-servers.ps1")
-  [ "$total" -ge 3 ] || { echo "erwartet mindestens 3 Server-Eintraege, gefunden: $total"; false; }
-  [ "$entries" -eq "$total" ] \
-    || { echo "$((total - entries)) von $total Eintraegen unvollstaendig"; false; }
-}
-
-@test "T002335: der Watchdog prueft localhost:PORT/health" {
-  run grep -qE 'http://localhost:\$Port/health' "$REPO/scripts/llm/watchdog-llm-servers.ps1"
-  [ "$status" -eq 0 ]
-}
-
-@test "T002335: install-startup-autostart.ps1 referenziert das Watchdog-Skript" {
-  run grep -q 'watchdog-llm-servers.ps1' "$REPO/scripts/llm/install-startup-autostart.ps1"
-  [ "$status" -eq 0 ]
-}
-
-@test "T002335: der Watchdog nutzt Start-Process, nie Start-Job" {
-  # T002276-Klasse: Start-Job bindet den Server an die erzeugende PowerShell-
-  # Sitzung. Endet sie, stirbt der Server mit - ein Watchdog, der so startet,
-  # produziert genau den Ausfall, den er verhindern soll.
-  # Nur Code pruefen: der <# .. #>-Hilfeblock und die Zeilenkommentare ERKLAEREN,
-  # warum Start-Job falsch ist. Ein ungefiltertes grep bliebe an der Erklaerung
-  # haengen und waere gruen, sobald jemand den Kommentar loescht - also genau
-  # falschherum. awk schneidet den Hilfeblock heraus, grep -v die Kommentarzeilen.
-  local code
-  code="$(awk '/^<#/{s=1} !s{print} /^#>/{s=0}' \
-    "$REPO/scripts/llm/watchdog-llm-servers.ps1" | grep -vE '^[[:space:]]*#')"
-  run bash -c "printf '%s' \"\$1\" | grep -q 'Start-Job'" _ "$code"
-  [ "$status" -ne 0 ] || { echo "Start-Job im Code des Watchdogs gefunden"; false; }
-  run bash -c "printf '%s' \"\$1\" | grep -q 'Start-Process'" _ "$code"
-  [ "$status" -eq 0 ] || { echo "Watchdog startet nicht per Start-Process"; false; }
-}
-
-@test "T002335: Write-WatchdogLog schreibt nicht in den Success-Stream" {
-  # Write-Output waere Teil des Rueckgabewerts jeder aufrufenden Funktion.
-  # Gemessen am 2026-07-28: Invoke-WatchdogCycle lieferte dadurch ein Array aus
-  # Log-Zeilen statt der Anzahl gesunder Server; '$alive -eq $Servers.Count'
-  # wirkt auf Arrays als Filter und war nur zufaellig wahr.
-  local body
-  body="$(awk '/^function Write-WatchdogLog/{s=1} s{print} s&&/^}/{exit}' \
-    "$REPO/scripts/llm/watchdog-llm-servers.ps1")"
-  [ -n "$body" ] || { echo "Write-WatchdogLog nicht gefunden"; false; }
-  run bash -c "printf '%s' \"\$1\" | grep -q 'Write-Output'" _ "$body"
-  [ "$status" -ne 0 ] || { echo "Write-WatchdogLog nutzt Write-Output"; false; }
-}
+# ── Watchdog entfaellt (T002551) ─────────────────────────────────────
+# Der T002335-Watchdog haelt die Windows-Server am Leben (Start-Process,
+# localhost:PORT/health-Poll, Write-WatchdogLog). Seit die bge-Server als
+# Kubernetes-Deployments laufen (k3d/llm-gpu.yaml), uebernimmt das der Cluster:
+# Readiness-Probe, Deployment-Rollout und der kubelet-Container-Neustart
+# ersetzen Poll-Loop und Start-Process. Damit entfaellt auch die Frage nach
+# einem zweiten Chat-Modell im Windows-Autostart — es gibt keinen Autostart
+# mehr, Gemma laeuft als Linux-Loadout.

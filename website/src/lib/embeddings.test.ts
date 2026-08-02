@@ -48,36 +48,29 @@ describe('embeddings client', () => {
 describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
   const ORIGINAL_ENV = process.env.LLM_ENABLED;
   const ORIGINAL_EMBED_URL = process.env.LLM_EMBED_URL;
-  const ORIGINAL_BATCH_URL = process.env.LLM_EMBED_BATCH_URL;
 
   const INTERACTIVE = 'http://llm-router.test:4000';
-  const BATCH = 'http://llm-batch.test:8085';
 
   /**
-   * T002426: seit `callRouter` seine Zieladresse vom bge-Router bezieht, geht
-   * jedem Embedding-Aufruf eine /health-Probe voraus. Die Mocks unterscheiden
-   * deshalb nach Pfad; ein Mock, der die Embedding-Antwort auch auf /health
-   * liefert, laesst den Router beide Paare fuer unerreichbar halten.
+   * T002551: seit dem Single-Pool entfaellt die /health-Probe — der Fetch geht
+   * direkt auf den einen Cluster-Endpoint, die Mock-Antwort ist die
+   * Embedding-Antwort selbst.
    */
-  const embedOrHealth = (embedBody: object) => (url: string) =>
-    Promise.resolve(String(url).endsWith('/health')
-      ? new Response(JSON.stringify({ status: 'ok', slots_processing: 0 }), { status: 200 })
-      : new Response(JSON.stringify(embedBody), { status: 200 }));
+  const embedBody = (body: object) =>
+    () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }));
 
   beforeEach(() => {
     process.env.LLM_ENABLED = 'true';
     process.env.LLM_EMBED_URL = INTERACTIVE;
-    process.env.LLM_EMBED_BATCH_URL = BATCH;
     global.fetch = ORIGINAL_FETCH;
   });
   afterEach(() => {
     process.env.LLM_ENABLED = ORIGINAL_ENV;
     process.env.LLM_EMBED_URL = ORIGINAL_EMBED_URL;
-    process.env.LLM_EMBED_BATCH_URL = ORIGINAL_BATCH_URL;
   });
 
   test('routes bge-m3 query to LLM_EMBED_URL with X-LLM-Purpose=query', async () => {
-    const fetchMock = vi.fn().mockImplementation(embedOrHealth(
+    const fetchMock = vi.fn().mockImplementation(embedBody(
       { data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 8 } }));
     global.fetch = fetchMock;
 
@@ -93,19 +86,19 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
     expect(body.model).toBe('bge-m3');
   });
 
-  test('callRouter takes its target from the bge-router: index purpose goes to the batch pair', async () => {
-    const fetchMock = vi.fn().mockImplementation(embedOrHealth(
+  test('callRouter takes its target from the bge-router: index purpose goes to the single embed URL', async () => {
+    const fetchMock = vi.fn().mockImplementation(embedBody(
       { data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 8 } }));
     global.fetch = fetchMock;
 
     await embedBatch(['a'], { model: 'bge-m3', purpose: 'index' });
 
     const call = fetchMock.mock.calls.find((c: unknown[]) => String(c[0]).endsWith('/v1/embeddings'));
-    expect(String((call as [string])[0])).toBe(`${BATCH}/v1/embeddings`);
+    expect(String((call as [string])[0])).toBe(`${INTERACTIVE}/v1/embeddings`);
   });
 
   test('public signatures of embedQuery and embedBatch are unchanged', async () => {
-    global.fetch = vi.fn().mockImplementation(embedOrHealth(
+    global.fetch = vi.fn().mockImplementation(embedBody(
       { data: [{ embedding: Array(1024).fill(0.02) }], usage: { total_tokens: 4 } }));
     const q = await embedQuery('x');
     expect(Array.isArray(q.embedding)).toBe(true);
@@ -116,7 +109,7 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
   });
 
   test('routes voyage-multilingual-2 model through the embed URL (no direct voyage call)', async () => {
-    const fetchMock = vi.fn().mockImplementation(embedOrHealth(
+    const fetchMock = vi.fn().mockImplementation(embedBody(
       { data: [{ embedding: Array(1024).fill(0.03) }], usage: { total_tokens: 9 } }));
     global.fetch = fetchMock;
     await embedQuery('hi', { model: 'voyage-multilingual-2', purpose: 'query' });
@@ -154,8 +147,8 @@ describe('embeddings client — router mode (LLM_ENABLED=true)', () => {
     let callCount = 0;
     global.fetch = vi.fn().mockImplementation((url: string) => {
       callCount++;
-      // Beide Paare sind weg — erst dann darf der Voyage-Weg greifen.
-      if (String(url).includes('llm-router.test') || String(url).includes('llm-batch.test')) {
+      // Der eine bge-Endpoint ist weg — erst dann darf der Voyage-Weg greifen.
+      if (String(url).includes('llm-router.test')) {
         return Promise.reject(Object.assign(new Error('ECONNREFUSED'), { code: 'ECONNREFUSED' }));
       }
       // Voyage fallback succeeds

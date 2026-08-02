@@ -35,6 +35,9 @@
     "(?i)openspec/changes/archive/.*",
     # Skill references with YAML examples containing fake private keys
     "(?i)\\.claude/skills/gitops-knowledge/references/.*",
+    # The config file itself — its comments contain example patterns that
+    # trigger the very rules they document (e.g. "sk-Automatisierungstool").
+    "(?i)\\.gitleaks\\.toml$",
     ".gitattributes",
     ".gitignore",
   ]

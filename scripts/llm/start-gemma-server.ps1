@@ -14,11 +14,11 @@
   unveraendert; ergaenzt wurden Existenzpruefungen, der Health-Poll und der
   VRAM-Hinweis, analog zu start-gptoss-server.ps1.
 
-  AUTOSTART: seit T002286 startet install-startup-autostart.ps1 auch Gemma.
-  Der fruehere Ausschlussgrund war "-fit on" - damit nahm sich der Server ALLES
-  freie VRAM und haette dem Embedding-Stack den Speicher weggenommen, wenn er
-  vor ihm gestartet waere. Mit dem festen -c unten ist der Bedarf deterministisch
-  und die Startreihenfolge damit unkritisch.
+  AUTOSTART: seit T002459 laeuft Gemma nicht mehr ueber den Windows-Autostart,
+  sondern als Loadout ('gemma-factory'/'gemma-multiagent', Port 8091) im
+  Linux-llm-proxy mit nativem 'systemd Restart=on-failure'. Den Windows-Startup-
+  Ordner (install-startup-autostart.ps1) gibt es seit T002551 nicht mehr - er
+  verwaltete nur noch den in den Cluster migrierten bge-Stack.
 
   WARUM FESTES -c 65536 (T002286): "-fit on" ohne -c laedt n_ctx_train (262144)
   und verkleinert ihn nur so weit, bis er ins VRAM passt - auf diesem Host also

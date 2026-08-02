@@ -53,8 +53,9 @@ if (-not (Test-Path $Model)) {
 # war damit nie ausfuehrbar. if/else ist versionsunabhaengig.
 # T002337: Default ist jetzt 0 - das Modell liegt im CPU-RAM statt im VRAM,
 # genau wie bge-m3 seit T002319. Der Reranker blieb dabei versehentlich auf 99
-# stehen; da install-startup-autostart.ps1 dieses Skript ARGUMENTLOS aufruft,
-# holte sich jeder Autostart die GPU-Variante zurueck. Das kollidiert mit dem
+# stehen; da der Autostart (bis T002551 install-startup-autostart.ps1) dieses
+# Skript ARGUMENTLOS aufrief, holte sich jeder Autostart die GPU-Variante
+# zurueck. Das kollidiert mit dem
 # Gemma-Profil aus T002297 (-Ctx 262144), das mit rund 15,1 von 16,3 GiB fast
 # das gesamte VRAM belegt und nur ~850 MiB Reserve laesst - zu wenig fuer
 # bge-reranker-v2-m3 Q8_0 (~0,6 GB) daneben. Fuer Massen-Reranking, wo der

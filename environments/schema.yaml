@@ -363,23 +363,23 @@ env_vars:
   - name: LLM_HOST_IP
     required: false
     default_dev: ""
-    description: "Mesh IP of the GPU host (Windows) running llama.cpp-Embed (bge-m3, :8095) and llama.cpp-Rerank (bge-reranker-v2-m3, :8096). Required when LLM_ENABLED=true. The dev env sets this explicitly in environments/dev.yaml."
+    description: "Mesh IP of the GPU host (Windows) running llama.cpp (chat) and Ollama. Required when LLM_ENABLED=true. bge-Embedding/Reranking laufen seit T002551 in-Cluster (k3d/llm-gpu.yaml) und verwenden diese Variable nicht mehr. The dev env sets this explicitly in environments/dev.yaml."
 
   - name: LLM_ENABLED
     required: true
     default_dev: "false"
-    description: "If true, bge-m3 embeddings go to llm-gateway-embed (llama.cpp, port 8095) and rerank goes to llm-gateway-rerank (llama.cpp, port 8096). If false, embeddings.ts calls Voyage directly."
+    description: "If true, bge-m3 embeddings go to llm-gateway-embed (llama.cpp, port 8081) and rerank goes to llm-gateway-rerank (llama.cpp, port 8081). If false, embeddings.ts calls Voyage directly."
     validate: "^(true|false)$"
 
   - name: LLM_RERANK_ENABLED
     required: true
     default_dev: "true"
-    description: "If true, knowledge query path reranks results via LLM_RERANKER_URL (llama.cpp bge-reranker-v2-m3 on port 8096)."
+    description: "If true, knowledge query path reranks results via LLM_RERANKER_URL (llama.cpp bge-reranker-v2-m3 on port 8081)."
     validate: "^(true|false)$"
 
   - name: LLM_RERANKER_URL
     required: false
-    default_dev: "http://llm-gateway-rerank:8096"
+    default_dev: "http://llm-gateway-rerank:8081"
     description: "Base URL of the llama.cpp reranker service (used when LLM_RERANK_ENABLED=true)."
 
   # LLM_LMSTUDIO_URL removed — LM Studio abgeschaltet.
@@ -417,37 +417,13 @@ env_vars:
 
   - name: LLM_EMBED_URL
     required: true
-    default_dev: "http://llm-gateway-embed:8095"
-    description: "Cluster-internal URL for embeddings — llama.cpp bge-m3 server port 8095 (via /v1/embeddings)."
+    default_dev: "http://llm-gateway-embed:8081"
+    description: "Cluster-internal URL for embeddings — llama.cpp bge-m3 server port 8081 (via /v1/embeddings)."
 
-  # ─────────────────────────────────────────────────────────────────
-  # T002426 — Paar A (Batch/Reindex, CPU-gebunden, kein VRAM).
-  # Beide Paare laufen auf DEMSELBEN Host; es entsteht bewusst keine zweite
-  # Host-Variable (LLM_HOST_IP gilt weiter fuer beide). Der Router in
-  # website/src/lib/bge-router.ts liest diese Adressen und weicht zwischen den
-  # Paaren aus — bei rotem Health-Check UND bei Ueberlast.
-  # ─────────────────────────────────────────────────────────────────
-  - name: LLM_EMBED_BATCH_URL
-    required: false
-    default_dev: "http://llm-gateway-embed-batch:8085"
-    description: "Cluster-internal URL of the batch (CPU) embedding pair — llama.cpp bge-m3 on port 8085. Primary for reindex/batch traffic, failover target for interactive traffic."
-
-  - name: LLM_RERANKER_BATCH_URL
-    required: false
-    default_dev: "http://llm-gateway-rerank-batch:8086"
-    description: "Cluster-internal URL of the batch (CPU) reranker — llama.cpp bge-reranker-v2-m3 on port 8086. Primary for reindex/batch traffic, failover target for interactive rerank."
-
-  - name: LLM_BGE_LATENCY_BUDGET_MS
-    required: false
-    default_dev: "2000"
-    validate: "^[0-9]+$"
-    description: "Latency threshold in milliseconds above which a bge pair counts as overloaded and the router redirects to its partner, even though the health check is green."
-
-  - name: LLM_BGE_QUEUE_LIMIT
-    required: false
-    default_dev: "4"
-    validate: "^[0-9]+$"
-    description: "Number of deferred (queued) tasks reported by llama-server /health above which a bge pair counts as saturated and the router redirects to its partner."
+  # T002551 — Batch-Paar (LLM_EMBED_BATCH_URL, LLM_RERANKER_BATCH_URL,
+  # LLM_BGE_LATENCY_BUDGET_MS, LLM_BGE_QUEUE_LIMIT) entfernt: die bge-Server
+  # laufen als CPU-only-Deployments im Cluster, Failover/Overload-Erkennung
+  # hat die K8s-Readiness uebernommen.
 
   # ─────────────────────────────────────────────────────────────────
   # Collabora (office-stack) — all five derived from PROD_DOMAIN inside

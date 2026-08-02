@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-  Registriert Windows Scheduled Tasks fuer die drei llama.cpp-Server.
+  Registriert Windows Scheduled Tasks fuer die beiden bge llama.cpp-Server
+  (Embedding/Rerank).
 .DESCRIPTION
   Erstellt/aktualisiert Scheduled Tasks fuer den automatischen Start der
   Embedding- und Rerank-Server beim Systemstart. Idempotent: bereits
@@ -25,8 +26,7 @@
 #
 # HINWEIS: auf diesem Host ist der Task-Weg policy-beschraenkt (siehe T002276) -
 # elevated meldet Erfolg ohne Persistenz, nicht-elevated verweigert den Zugriff.
-# Der genutzte Autostart laeuft daher ueber install-startup-autostart.ps1. Dieses
-# Skript bleibt fuer Umgebungen ohne diese Beschraenkung bzw. nach einer
+# Das Skript bleibt fuer Umgebungen ohne diese Beschraenkung bzw. nach einer
 # Intune-Freigabe.
 $Tasks = @(
   @{
@@ -38,18 +38,6 @@ $Tasks = @(
     Name = "LlamaRerankServer"
     Description = "bge-reranker-v2-m3 Rerank-Server (Port 8096)"
     Script = "$PSScriptRoot\start-rerank-server.ps1"
-  }
-  # T002426 - Paar A (Batch, CPU-gebunden). Eigene Tasks statt Parameter am
-  # Bestandsserver: beide Paare laufen GLEICHZEITIG, es ist kein Umschalten.
-  @{
-    Name = "LlamaEmbedBatchServer"
-    Description = "bge-m3 Batch-Embedding-Server, CPU (Port 8085)"
-    Script = "$PSScriptRoot\start-embed-batch-server.ps1"
-  }
-  @{
-    Name = "LlamaRerankBatchServer"
-    Description = "bge-reranker-v2-m3 Batch-Rerank-Server, CPU (Port 8086)"
-    Script = "$PSScriptRoot\start-rerank-batch-server.ps1"
   }
 )
 
@@ -105,7 +93,6 @@ foreach ($Task in $Tasks) {
   if ($LASTEXITCODE -ne 0) {
     Write-Host "FAILED Llama\$Name - schtasks meldete Erfolg, der Task existiert aber nicht."
     Write-Host "    Auf MDM-verwalteten Rechnern entfernt eine Policy ihn womoeglich wieder."
-    Write-Host "    Alternative: scripts/llm/install-startup-autostart.ps1"
     $failed++
     continue
   }
@@ -123,7 +110,5 @@ if ($failed -eq 0) {
   foreach ($t in $Tasks) { Write-Host ("  schtasks /run /tn " + '"Llama\' + $t.Name + '"') }
 } else {
   Write-Host "$failed von $($Tasks.Count) Tasks NICHT registriert - siehe Meldungen oben."
-  Write-Host "Autostart-Alternative ohne Task Scheduler:"
-  Write-Host "  scripts/llm/install-startup-autostart.ps1"
   exit 1
 }

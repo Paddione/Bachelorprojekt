@@ -55,7 +55,7 @@
   {/if}
   <div class="lpv-actions">
     <button onclick={reload} disabled={busy}>{busy ? 'Lädt…' : 'Neu proben'}</button>
-    <a href="/admin/pipeline?tab=control">Im Steuerung-Tab bearbeiten</a>
+    <a href="/admin/cockpit?tab=control">Im Steuerung-Tab bearbeiten</a>
   </div>
 </div>
 

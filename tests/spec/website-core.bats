@@ -422,6 +422,13 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   [ "$status" -eq 0 ]
 }
 
+@test "T002531 sidebar: AdminSidebarNav has exactly one /admin/cockpit link and no /admin/pipeline link" {
+  run grep -Eq "href:[[:space:]]*'/admin/cockpit'" "$SIDEBAR_NAV"
+  [ "$status" -eq 0 ]
+  run grep -Eq "href:[[:space:]]*'/admin/pipeline'" "$SIDEBAR_NAV"
+  [ "$status" -ne 0 ]
+}
+
 @test "T002058 perf: public Layout.astro does not render PortalSidekick (Astro hoists island CSS render-blocking)" {
   # Astro eagerly links ALL CSS reachable from a client island into the <head>,
   # so the sidekick's drawer-view CSS blocked render on every public page. The

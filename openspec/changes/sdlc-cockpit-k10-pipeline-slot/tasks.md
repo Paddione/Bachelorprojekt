@@ -300,20 +300,20 @@ tests/unit/lib/bats-core/bin/bats --count tests/spec/sdlc-cockpit/pipeline-slot-
 
 ## Task 3 — Menü-Slot übernehmen
 
-- [ ] `AdminSidebarNav.astro`: den Eintrag `{ href: '/admin/pipeline', label: 'Pipeline', … }`
+- [x] `AdminSidebarNav.astro`: den Eintrag `{ href: '/admin/pipeline', label: 'Pipeline', … }`
       in der Gruppe *Infrastruktur* (Zeile 59) entfernen. Den Cockpit-Eintrag (Zeile 39) auf
       `matches: ['/admin/cockpit', '/admin/pipeline', '/admin/tickets']` erweitern, damit die
       Aktiv-Markierung auch beim Weiterleitungs-Zwischenschritt greift. Label bleibt
       `Cockpit`.
-- [ ] `admin.astro:140`: `href="/admin/pipeline"` → `href="/admin/cockpit"`, Linktext
+- [x] `admin.astro:140`: `href="/admin/pipeline"` → `href="/admin/cockpit"`, Linktext
       „Pipeline →" → „Cockpit →". Das Widget selbst (`PipelineSidekickView`) bleibt
       unverändert — es ist eine Zusammenfassung auf dem Dashboard, keine zweite Fläche.
-- [ ] `AdminShortcuts.svelte:162`: `{ url: '/admin/pipeline', label: 'Pipeline' }` →
+- [x] `AdminShortcuts.svelte:162`: `{ url: '/admin/pipeline', label: 'Pipeline' }` →
       `{ url: '/admin/cockpit', label: 'Cockpit' }`.
-- [ ] `LlmProxyView.svelte:58` und `PortalSidekick.svelte:306`: beide Verweise
+- [x] `LlmProxyView.svelte:58` und `PortalSidekick.svelte:306`: beide Verweise
       `/admin/pipeline?tab=control` → `/admin/cockpit?tab=control`. Beide Änderungen sind
       zeilenneutral (`PortalSidekick.svelte` hat mit Budget 246 Reserve, nutzt sie aber nicht).
-- [ ] `tests/spec/website-core.bats`, Test „T001433 sidebar: AdminSidebarNav has exactly one
+- [x] `tests/spec/website-core.bats`, Test „T001433 sidebar: AdminSidebarNav has exactly one
       /admin/pipeline link labelled Pipeline": auf die neue Aussage umschreiben — genau ein
       `/admin/cockpit`-Eintrag, kein `/admin/pipeline`-Eintrag, und die bestehende
       Negativprüfung auf `/dev-status` bzw. `/admin/planungsbuero` beibehalten. Der

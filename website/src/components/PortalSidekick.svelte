@@ -303,7 +303,7 @@
             
             <div class="control-readonly">
               <p>Token-Budget {settings.contextBudget.toLocaleString()} · Spawn {settings.spawnHarness ? 'an' : 'aus'} · Lavish {settings.lavishDelegation ? 'an' : 'aus'}</p>
-              <a class="control-link" href="/admin/pipeline?tab=control">Im Steuerung-Tab bearbeiten</a>
+              <a class="control-link" href="/admin/cockpit?tab=control">Im Steuerung-Tab bearbeiten</a>
             </div>
 
             <div class="setting-item switch-row">

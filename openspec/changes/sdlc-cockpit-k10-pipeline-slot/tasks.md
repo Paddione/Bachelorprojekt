@@ -321,7 +321,7 @@ tests/unit/lib/bats-core/bin/bats --count tests/spec/sdlc-cockpit/pipeline-slot-
 
 ## Task 4 — Die vier Redirects auflösen
 
-- [ ] `redirect-map.ts` Zeilen 17-20 auf die neuen Ziele umstellen:
+- [x] `redirect-map.ts` Zeilen 17-20 auf die neuen Ziele umstellen:
 
 ```
 '/admin/planungsbuero'        -> '/admin/cockpit?tab=planung'
@@ -330,11 +330,11 @@ tests/unit/lib/bats-core/bin/bats --count tests/spec/sdlc-cockpit/pipeline-slot-
 '/admin/factory-observability'-> '/admin/cockpit?tab=kosten'
 ```
 
-- [ ] Den Kopfkommentar der Datei um einen Satz ergänzen, warum `/admin/pipeline` **nicht**
+- [x] Den Kopfkommentar der Datei um einen Satz ergänzen, warum `/admin/pipeline` **nicht**
       in der Karte steht: die Karte liefert ein vollständiges Ziel und reicht den
       eingehenden Query-String nicht durch; `/admin/pipeline?tab=kosten` würde seine Vorwahl
       verlieren. Die Weiterleitung liegt deshalb in der Seite (Task 5).
-- [ ] `redirect-map.test.ts` ist bereits in Task 2 mitgezogen — hier nur den Lauf gegenprüfen.
+- [x] `redirect-map.test.ts` ist bereits in Task 2 mitgezogen — hier nur den Lauf gegenprüfen.
 
 ## Task 5 — Das Pipeline-Panel bauen und einhängen
 

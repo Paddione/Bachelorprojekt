@@ -36,7 +36,7 @@ describe('resolveRedirect', () => {
   });
 
   it('normalisiert einen einzelnen Trailing-Slash', () => {
-    expect(resolveRedirect('/admin/dora/')).toBe('/admin/pipeline?tab=analytics');
+    expect(resolveRedirect('/admin/dora/')).toBe('/admin/cockpit?tab=analytics');
   });
 
   it('gibt null fuer nicht-gemappte Pfade zurueck (dynamische Routen bleiben unberuehrt)', () => {

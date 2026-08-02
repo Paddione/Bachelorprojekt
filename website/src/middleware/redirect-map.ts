@@ -2,6 +2,8 @@
 // Pfad -> Vollziel (inkl. Query-String, zeichengenau). Alle Treffer werden als 301 (permanent)
 // ausgeliefert (siehe middleware.ts). Dynamische Routen (bugs, meetings/[id], brett/*) sind
 // BEWUSST NICHT enthalten — sie bilden ihr Ziel zur Laufzeit aus Request-Daten.
+// /admin/pipeline steht NICHT in dieser Karte, da REDIRECT_MAP den Query-String nicht durchreicht;
+// die query-erhaltende Weiterleitung von /admin/pipeline erfolgt in pipeline.astro.
 export const REDIRECT_MAP: Record<string, string> = {
   '/admin/startseite': '/admin/inhalte?tab=website&section=startseite',
   '/admin/uebermich': '/admin/inhalte?tab=website&section=uebermich',
@@ -14,10 +16,10 @@ export const REDIRECT_MAP: Record<string, string> = {
   '/admin/50plus-digital': '/admin/inhalte?tab=website&section=50plus-digital',
   '/admin/fuehrung-persoenlichkeit': '/admin/inhalte?tab=website&section=fuehrung-persoenlichkeit',
   '/admin/ki-transition': '/admin/inhalte?tab=website&section=ki-transition',
-  '/admin/planungsbuero': '/admin/pipeline?tab=planung',
-  '/admin/dora': '/admin/pipeline?tab=analytics',
-  '/admin/factory-budget': '/admin/pipeline?tab=kosten',
-  '/admin/factory-observability': '/admin/pipeline?tab=kosten',
+  '/admin/planungsbuero': '/admin/cockpit?tab=planung',
+  '/admin/dora': '/admin/cockpit?tab=analytics',
+  '/admin/factory-budget': '/admin/cockpit?tab=kosten',
+  '/admin/factory-observability': '/admin/cockpit?tab=kosten',
   '/admin/ops': '/admin/platform',
   '/admin/monitoring': '/admin/platform',
   '/admin/tickets': '/admin/cockpit',

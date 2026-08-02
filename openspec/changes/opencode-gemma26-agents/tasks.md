@@ -42,17 +42,34 @@ plant mit dem 2,6-fachen des Verfügbaren; das fällt erst beim Abschneiden auf.
 `gemma26-factory`, und dieses Loadout soll **unified context für drei Agenten**
 fahren.
 
-## Die Falle, die dieser Plan vermeiden muss
+## Was `-kvu` tatsaechlich tut — gemessen, nicht abgeleitet
 
-Mit `-kvu` ist der Kontext ein **gemeinsamer Pool über alle Slots**, kein Wert
-je Slot. Das ist die *Umkehrung* der bge-Konstellation aus T002546, wo
-`ctx/parallel` **je** Slot geteilt wird — dieselbe Zahl bedeutet je nach Flag
-das Gegenteil. Die Warnung steht bereits in der `gemma-multiagent`-Notiz.
+`llama-server --help` (b10223): *"use single unified KV buffer shared across all
+sequences"*. Ein **geteilter Puffer**, keine feste Aufteilung.
 
-Konkret: aus heute gemessenen 99840 bei einem Slot werden mit drei Slots grob
-**~33000 je Agent**, nicht 3 × 99840. `fit.minCtx` steht auf 32768 — als
-*Pool*-Untergrenze wären das nur ~10900 je Agent, also unter dem Brauchbaren.
-Der Wert muss mitwachsen, sonst regelt `--fit` unbemerkt darunter.
+Gegenmessung mit demselben Modell, `-c 8192 -np 4`, nur das Flag unterschiedlich:
+
+```
+-kvu      n_slots = 4, n_ctx_slot = 8192, kv_unified = 'true'
+-no-kvu   n_slots = 4, n_ctx_slot = 2048, kv_unified = 'false'
+```
+
+Mit `-kvu` sieht **jeder Slot den vollen Kontext**. Die Sequenzen konkurrieren um
+denselben Speicher, statt starr zugeteilte Scheiben zu bekommen.
+
+**Eine fruehere Fassung dieses Plans behauptete das Gegenteil** ("aus 99840
+werden ~33000 je Agent, `fit.minCtx` muss mitwachsen"). Das war aus der
+`gemma-multiagent`-Notiz abgeleitet statt gemessen und ist falsch. `fit.minCtx`
+bleibt unveraendert.
+
+Die Kontexttrennung zwischen den Agenten leisten die **Factory-Slots** samt
+Sandbox-Isolation (T002483), nicht getrennte KV-Puffer — genau deshalb ist ein
+unified Buffer hier richtig.
+
+Zu beachten bleibt die Konkurrenz: drei Agenten, die gleichzeitig den vollen
+Kontext ziehen, passen nicht zusammen in den Puffer. Das ist ein Auslastungs-,
+kein Konfigurationsproblem — und im Betrieb zu beobachten, nicht vorab
+wegzukonfigurieren.
 
 ## Verify (RED → GREEN)
 
@@ -72,13 +89,14 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/opencode-agent-mode
       `args.parallel` von 1 auf **3**, und `-kvu` in `extraArgs` aufnehmen
       (Vorbild: `gemma-multiagent`, das `["-kvu"]` führt).
 
-- [ ] **1.2** `fit.minCtx` neu bemessen — als **Pool**-Untergrenze für drei
-      Agenten, nicht als Single-Slot-Wert. Der alte 32768 ergäbe ~10900 je
-      Agent. Den Zielwert aus dem ableiten, was ein Agent mindestens braucht,
-      mal drei.
+- [ ] **1.2** `fit.minCtx` **unveraendert lassen** (32768). Mit `-kvu` sieht
+      jeder Slot den vollen Kontext; eine Anhebung waere wirkungslos. Gemessen,
+      siehe Abschnitt oben — eine fruehere Planfassung forderte hier faelsch-
+      licherweise eine Erhoehung.
 
-- [ ] **1.3** KV bleibt `q4_0` — bereits gesetzt und Voraussetzung dafür, dass
-      drei Slots überhaupt in den Pool passen. **Nicht** auf q8_0 anheben.
+- [ ] **1.3** KV bleibt `q4_0` — bereits gesetzt. Bei einem geteilten Puffer
+      bestimmt die Quantisierung, wie viel Kontext insgesamt hineinpasst, also
+      wie weit drei Agenten gleichzeitig kommen. **Nicht** auf q8_0 anheben.
 
 - [ ] **1.4** Nach jeder Änderung an der Datei: `task llm:loadouts:check`
       (Guard aus T002554). Bei Abweichung `task llm:loadouts:format`. Die Datei
@@ -97,7 +115,9 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/opencode-agent-mode
       llama-gemma26-factory` zeigt bei Namespace-Problemen `226/NAMESPACE`
       oder `203/EXEC`.
 
-- [ ] **2.2** **Den tatsächlichen Kontext messen, nicht rechnen:**
+- [ ] **2.2** **Den tatsächlichen Kontext messen, nicht rechnen** — erwartet
+      wird `n_ctx_slot` nahe dem Single-Slot-Wert (~99840), NICHT ein Drittel
+      davon:
       `curl -s localhost:8091/props | jq '{total_slots, n_ctx:
       .default_generation_settings.n_ctx}'`. Die `--fit`-Automatik entscheidet
       den Endwert, nicht die Config. Ergebnis ins Ticket.
@@ -122,8 +142,9 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/opencode-agent-mode
       Serverstart komplett ab. Ein Name, der MTP verspricht, führt in die Irre.
 
 - [ ] **3.4** Die Kontextzahl in den Beschreibungen auf den in 2.2 **gemessenen**
-      Wert setzen — je Agent, nicht den Pool. Und dazuschreiben, dass es der
-      geteilte Pool ist; sonst entsteht dieselbe Verwechslung erneut.
+      `n_ctx_slot` setzen. Dazuschreiben, dass der Puffer geteilt ist: die Zahl
+      gilt je Agent, aber drei Agenten koennen sie nicht gleichzeitig
+      ausschoepfen. Ohne diesen Zusatz liest sie sich als Garantie.
 
 ## 4. Drift-Klasse schließen
 

@@ -16,6 +16,22 @@ const LOADOUT_KEYS = new Set([
   'env',
   // T002544: Vorschalten einer versionierten ui-config-file fuer llama.cpp WebUI
   'uiConfigFile',
+  // T002550: eingebaute llama-Tools (--tools), Werte siehe TOOL_NAMES
+  'tools',
+]);
+// T002550 — Namen aus `llama-server --help` (b10223). llama.cpp akzeptiert
+// zusaetzlich das Sammelwort 'all'; hier ist es bewusst NICHT gueltig.
+//
+// llama.cpp kennt weder Sandbox noch Wurzelverzeichnis-Beschraenkung: mit
+// exec_shell_command laeuft eine Shell mit den Rechten der Unit ueber das
+// gesamte Benutzerverzeichnis — ~/.ssh, ~/.config und die git-crypt-
+// entschluesselten Secrets im Repo eingeschlossen. Genau diese Faehigkeit darf
+// sich nicht hinter einem Wort verstecken, das nach Bequemlichkeit aussieht;
+// sie gehoert namentlich dorthin, wo sie erteilt wird. Ein spaeter
+// hinzugefuegtes llama-Tool erweitert 'all' still — die Allowlist nicht.
+const TOOL_NAMES = new Set([
+  'read_file', 'file_glob_search', 'grep_search',
+  'exec_shell_command', 'write_file', 'edit_file', 'get_datetime',
 ]);
 const ARG_KEYS = new Set([
   'ctx', 'ngl', 'parallel', 'cacheTypeK', 'cacheTypeV', 'loadMode',
@@ -71,6 +87,21 @@ function validateLoadout(l, index, seen) {
   }
 
   if (l.extraArgs != null && !Array.isArray(l.extraArgs)) fail(`${l.slug}: extraArgs muss ein Array sein`);
+
+  // T002550: Kommaliste aus TOOL_NAMES. 'all' wird eigens abgefangen, weil es
+  // fuer llama.cpp gueltig ist — die Fehlermeldung muss deshalb erklaeren,
+  // warum wir es trotzdem ablehnen, sonst liest sie sich wie ein Tippfehler.
+  if (l.tools != null) {
+    if (typeof l.tools !== 'string' || l.tools === '') {
+      fail(`${l.slug}: tools muss ein nicht-leerer String sein`);
+    }
+    if (l.tools === 'all') {
+      fail(`${l.slug}: tools='all' ist hier nicht erlaubt — die Tools namentlich auflisten (${[...TOOL_NAMES].join(',')})`);
+    }
+    for (const t of l.tools.split(',')) {
+      if (!TOOL_NAMES.has(t.trim())) fail(`${l.slug}: unbekanntes tool '${t.trim()}'`);
+    }
+  }
 
   // env: flaches Objekt String -> String. Der Wert DARF leer sein — genau das
   // ist der Anwendungsfall (CUDA_VISIBLE_DEVICES=''). Der Name muss dem

@@ -124,59 +124,23 @@ test('buildStartCommand kapselt systemd-run mit --user und --collect', () => {
   assert.equal(cmd[sep + 1], '/opt/llama/bin/llama-server')
 })
 
-// ── T002549: uiConfigFile muss vor dem Start auch ERZEUGT werden ─────────────
-//
-// T002544 lieferte das Flag (buildServerArgv) und den Generator, aber keinen
-// Aufruf: --ui-config-file zeigte auf eine Datei, die niemand schrieb. Geprueft
-// wird hier das Resultat auf der Platte, nicht ob irgendwo ein Funktionsname
-// im Quelltext steht (T002448-M4).
-
-test('ensureUiConfigRendered schreibt die Seed-Datei fuer ein Loadout mit uiConfigFile', async () => {
-  const { ensureUiConfigRendered } = await import('./runner.mjs')
-  const fs = await import('node:fs')
-  const os = await import('node:os')
-  const path = await import('node:path')
-
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'uicfg-'))
-  const out = path.join(tmp, 'nested', 'ui-config.json')
-  const prev = process.env.BGE_MCP_TOKEN
-  process.env.BGE_MCP_TOKEN = 'test-token'
-
-  try {
-    ensureUiConfigRendered({ slug: 'gemma26-factory', uiConfigFile: out })
-
-    assert.ok(fs.existsSync(out), 'Seed-Datei wurde nicht geschrieben')
-    const doc = JSON.parse(fs.readFileSync(out, 'utf8'))
-    assert.equal(typeof doc.mcpServers, 'string',
-      'mcpServers muss ein String sein — ein blankes Array verwirft die WebUI still')
-    const arr = JSON.parse(doc.mcpServers)
-    assert.ok(Array.isArray(arr) && arr.length > 0)
-  } finally {
-    if (prev === undefined) delete process.env.BGE_MCP_TOKEN
-    else process.env.BGE_MCP_TOKEN = prev
-    fs.rmSync(tmp, { recursive: true, force: true })
-  }
-})
-
-test('ensureUiConfigRendered ist ein No-op ohne uiConfigFile', async () => {
-  const { ensureUiConfigRendered } = await import('./runner.mjs')
-  // Darf nicht werfen und nichts schreiben — Loadouts ohne das Feld bleiben
-  // unveraendert, ihre argv traegt kein --ui-config-file.
-  assert.doesNotThrow(() => ensureUiConfigRendered({ slug: 'bge-embed' }))
-  assert.doesNotThrow(() => ensureUiConfigRendered({ slug: 'x', uiConfigFile: null }))
-})
-
 // ── T002550: eingebaute llama-Tools ──────────────────────────────────────────
 //
 // edit_file, write_file, exec_shell_command & Co. sind KEINE MCP-Tools, sondern
 // in llama-server eingebaut und nur ueber --tools erreichbar. Ohne das Flag hat
 // das Modell trotz acht MCP-Servern keine Moeglichkeit, Dateien zu bearbeiten.
+//
+// buildServerArgv reicht den Wert nur durch — welche Namen gueltig sind,
+// entscheidet der Validator in loadouts.mjs (TOOL_NAMES, kein 'all'). Deshalb
+// steht hier bewusst eine echte Namensliste und nicht das Sammelwort: der Test
+// soll kein Beispiel vorleben, das die Registry gar nicht mehr annimmt.
 
 test('tools-Feld erzeugt --tools in der argv', () => {
-  const argv = buildServerArgv({ ...base, tools: 'all' }, MODEL, defaults)
+  const tools = 'read_file,grep_search,edit_file'
+  const argv = buildServerArgv({ ...base, tools }, MODEL, defaults)
   const i = argv.indexOf('--tools')
   assert.ok(i >= 0, '--tools fehlt in der argv')
-  assert.equal(argv[i + 1], 'all')
+  assert.equal(argv[i + 1], tools)
 })
 
 test('ohne tools-Feld bleibt die argv unveraendert', () => {

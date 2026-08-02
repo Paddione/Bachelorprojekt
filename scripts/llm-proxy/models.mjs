@@ -83,6 +83,30 @@ export function expandRoot(root) {
   return root.startsWith('~') ? join(homedir(), root.slice(1)) : root;
 }
 
+// Loest loadout.model gegen doc.modelRoots auf. Gibt den ersten Treffer als
+// absoluten Pfad zurueck, sonst null.
+//
+// statSync, NICHT readFileSync (T002536): readFileSync kennt keine Option
+// 'length' — die gehoert zu fs.read. Der fruehere Aufruf in server.mjs,
+//   readFileSync(candidate, { flag: 'r', encoding: null, length: 0 })
+// las deshalb die KOMPLETTE Datei in den Speicher, statt nur die Existenz zu
+// pruefen. Node wirft ab 2 GiB ERR_FS_FILE_TOO_LARGE; das leere catch
+// verschluckte den Fehler und der Start meldete 'model_missing' — also fuer
+// praktisch jedes Chat-Modell. Kleinere Dateien gingen durch, wurden aber
+// vollstaendig in den RAM gelesen.
+//
+// Steht hier statt in server.mjs, weil ein Import von server.mjs den
+// HTTP-Server startet und den Proxy-Port bindet; die Funktion war dort nicht
+// ohne Nebenwirkungen pruefbar.
+export function resolveModelPath(doc, loadout) {
+  for (const root of doc.modelRoots) {
+    const candidate = join(expandRoot(root), loadout.model);
+    try { if (statSync(candidate).isFile()) return candidate; }
+    catch { /* naechste Wurzel */ }
+  }
+  return null;
+}
+
 function walk(dir, out) {
   let entries;
   try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }

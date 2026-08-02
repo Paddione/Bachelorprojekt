@@ -7,15 +7,20 @@ import { applyFixups, sanitizeToolSchemaPatterns } from './fixups.mjs';
 import { readFileSync, existsSync } from 'node:fs';
 import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart } from './loadouts.mjs';
 import os from 'node:os';
-import { scanModels, expandRoot } from './models.mjs';
+import { scanModels, resolveModelPath } from './models.mjs';
 import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
 import { join } from 'node:path';
 import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
+// Versionsneutraler Symlink statt eines gepinnten Builds (T002536): der
+// fruehere Default 'opt/llama-b10155-cuda13.3' zwang bei jedem llama.cpp-Update
+// zu einer Code-Aenderung und verhinderte, dass der abgeloeste Build entfernt
+// werden kann. 'opt/llama-current' zeigt auf den jeweils aktuellen Build; ein
+// Versionswechsel ist damit ein Symlink-Umhaengen ohne Repo-Aenderung.
 const LLAMA_BIN = process.env.LLAMA_SERVER_BIN
-  || join(process.env.HOME, 'opt/llama-b10155-cuda13.3/bin/llama-server');
+  || join(process.env.HOME, 'opt/llama-current/bin/llama-server');
 const HEALTH_TIMEOUT_MS = 240_000;
 
 startRegistryPoll(POLL_MS);
@@ -199,14 +204,9 @@ async function proxyV1(req, res, subpath) {
 }
 
 // Loesst den Loadout-Modellpfad gegen die konfigurierten modelRoots auf.
-function resolveModelPath(doc, loadout) {
-  for (const root of doc.modelRoots) {
-    const candidate = join(expandRoot(root), loadout.model);
-    try { readFileSync(candidate, { flag: 'r', encoding: null, length: 0 }); return candidate; }
-    catch { /* naechste Wurzel */ }
-  }
-  return null;
-}
+// resolveModelPath liegt in models.mjs (T002536) — dort ist es ohne
+// Nebenwirkungen testbar. Ein Import von server.mjs startet den HTTP-Server
+// und bindet den Proxy-Port; die Funktion war hier also nicht pruefbar.
 
 async function waitHealthy(port, timeoutMs) {
   const deadline = Date.now() + timeoutMs;

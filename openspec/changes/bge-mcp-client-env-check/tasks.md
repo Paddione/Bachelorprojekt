@@ -1,32 +1,24 @@
-# Tasks: bge-mcp Client-Env-Check
+---
+title: "Bge Mcp Client Env Check"
+ticket_id: T002504
+domains: [docs]
+status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: T002430
+depends_on_plans: []
+---
 
-| id | file | role | target_files | depends_on |
-|----|------|------|-------------|------------|
-| 1 | scripts/bge-mcp/check-client-env.sh | impl | scripts/bge-mcp/check-client-env.sh | — |
-| 2 | tests/spec/mcp-gateway/client-env-check.bats | test | tests/spec/mcp-gateway/client-env-check.bats | 1 |
-| 3 | .claude/skills/references/mcp-tool-guide.md | docs | .claude/skills/references/mcp-tool-guide.md | 1 |
+# Bge Mcp Client Env Check
+
+_Ticket: T002504_
 
 ## Partials
 
-### 1 — Diagnose-Check-Skript
+| id | file | role | target_files | depends_on |
+|----|------|------|-------------|------------|
+| 1 | tasks.d/p1-check-script.md | impl | — | — |
+| 2 | tasks.d/p2-bats-test.md | test | — | 1 |
+| 3 | tasks.d/p3-docs-update.md | docs | — | 2 |
 
-**target_files:** `scripts/bge-mcp/check-client-env.sh`
-
-- Prüft `~/.config/bge-mcp/server.env` Existenz + `BGE_MCP_TOKEN`
-- Probt Server mit/ohne Token
-- Exit codes: 0=ok, 1=Token fehlt, 2=Server down
-- Fix-Hinweis im Output bei Fehler
-
-### 2 — BATS-Test
-
-**target_files:** `tests/spec/mcp-gateway/client-env-check.bats`
-
-- Fake-Env im tmpdir (CI-sicher)
-- Alle drei Zustände testen
-- Kein Zugriff auf echte Secrets
-
-### 3 — Doku-Update
-
-**target_files:** `.claude/skills/references/mcp-tool-guide.md`
-
-- Diagnose-Block verweist auf das Check-Skript

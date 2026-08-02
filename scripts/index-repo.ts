@@ -41,7 +41,7 @@ const INDEXABLE_EXTS = new Set([
 // This script runs both in-cluster (CronJob) and on a developer's host (git hook,
 // `task scs:index`) where cluster-internal DNS never resolves. Resolve the
 // cluster hostname once; on failure fall back to the local dev stack
-// (llama-server embedding pool direct on :8095, port-forwarded/local Postgres)
+// (llama-server embedding pool direct on :8081, port-forwarded/local Postgres)
 // instead of silently hanging or failing every commit. Explicit env vars always win.
 async function clusterDnsResolves(hostname: string): Promise<boolean> {
   try {
@@ -73,9 +73,9 @@ let EMBED_MODEL: string;
 async function resolveEmbedConfig(): Promise<void> {
   // T002258: was llm-gateway-lmstudio:1234 (LM Studio). bge-m3 moved to a
   // dedicated llama-server, and LM Studio is gone. T002551: the host-local
-  // llama-server (was :8095) is decommissioned; the Service in k3d/llm-gpu.yaml
-  // is `llm-gateway-embed` on port 8081 (T002570 corrected the stale :8095
-  // fallback references below).
+  // llama-server port is decommissioned; the Service in k3d/llm-gpu.yaml is
+  // `llm-gateway-embed` on port 8081. T002570 corrected the stale fallback
+  // references below to that port — guard: tests/spec/llm-pipeline/index-repo-embed-port.bats
   const clusterHost = 'llm-gateway-embed.workspace.svc.cluster.local';
   const localUrl = 'http://localhost:8081';
   const configured = process.env.LLM_EMBED_URL;

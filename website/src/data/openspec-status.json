@@ -1171,8 +1171,8 @@
   ],
   "T001978": [
     {
-      "slug": "mishap-t001978",
-      "status": "plan_staged"
+      "slug": "2026-08-02-mishap-t001978",
+      "status": "archived"
     }
   ],
   "T001979": [
@@ -1621,8 +1621,8 @@
   ],
   "T002250": [
     {
-      "slug": "mishap-docker-wsl-T002250",
-      "status": "plan_staged"
+      "slug": "2026-08-02-mishap-docker-wsl-T002250",
+      "status": "archived"
     }
   ],
   "T002251": [
@@ -1705,8 +1705,8 @@
   ],
   "T002284": [
     {
-      "slug": "mishap-t002284",
-      "status": "plan_staged"
+      "slug": "2026-08-02-mishap-t002284",
+      "status": "archived"
     }
   ],
   "T002288": [
@@ -1843,8 +1843,8 @@
   ],
   "T002342": [
     {
-      "slug": "mishap-bundle-dev-flow-scripts",
-      "status": "plan_staged"
+      "slug": "2026-08-02-mishap-bundle-dev-flow-scripts",
+      "status": "archived"
     }
   ],
   "T002345": [
@@ -1933,8 +1933,8 @@
   ],
   "T002375": [
     {
-      "slug": "mishap-consolidation-T002375",
-      "status": "plan_staged"
+      "slug": "2026-08-02-mishap-consolidation-T002375",
+      "status": "archived"
     }
   ],
   "T002377": [
@@ -2131,8 +2131,8 @@
   ],
   "T002448": [
     {
-      "slug": "mishap-bundle-infra-testspec-ci",
-      "status": "plan_staged"
+      "slug": "2026-08-02-mishap-bundle-infra-testspec-ci",
+      "status": "archived"
     }
   ],
   "T002453": [

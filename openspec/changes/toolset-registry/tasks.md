@@ -60,7 +60,7 @@ GEÄNDERT
 
 ---
 
-## Task 1 — Failing-Test-Step (RED)
+## Task 1 — Failing-Test-Step (RED) - [x]
 
 Lege `tests/spec/toolset-registry/check-drift-detection.bats` an. Der Test baut
 über `TOOLSET_REGISTRY` und `TOOLSET_OUT_DIR` eine Fixture-Registry samt

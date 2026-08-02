@@ -2223,6 +2223,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002537": [
+    {
+      "slug": "ingest-llm-argv-anchor",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

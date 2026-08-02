@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.240.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.2...website-v1.240.3) (2026-08-02)
+
+
+### Bug Fixes
+
+* **scripts:** gemma26-factory Betriebsparameter setzen, Langkontext-Probe reparieren [T002579] ([#3707](https://github.com/Paddione/Bachelorprojekt/issues/3707)) ([e4e5a8a](https://github.com/Paddione/Bachelorprojekt/commit/e4e5a8a223fcaaab555568ff5798f2e18612857b))
+
 ## [1.240.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.1...website-v1.240.2) (2026-08-02)
 
 

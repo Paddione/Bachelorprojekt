@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.235.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.234.0...website-v1.235.0) (2026-08-02)
+
+
+### Features
+
+* **ops:** bge-Embed/Rerank als versionierte WSL-Loadouts, env-Feld im Schema [T002538] ([#3617](https://github.com/Paddione/Bachelorprojekt/issues/3617)) ([538fe60](https://github.com/Paddione/Bachelorprojekt/commit/538fe601cc88d32249da37d01a6f94b8205d8db6))
+
 ## [1.234.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.233.0...website-v1.234.0) (2026-08-02)
 
 

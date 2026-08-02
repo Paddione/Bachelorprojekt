@@ -472,6 +472,134 @@ else
   row target G-FE05 "-" ge 90 "Lighthouse Performance Score (erfordert @lhci/cli — nicht messbar)"
 fi
 
+# ── IF-TARGETS (T002441: Schnittstellen- und API-Drift) ──
+row target G-IF01 "$(python3 -c "
+import yaml, socket
+try:
+    with open('docs/agent-guide/registry/mcp.yaml') as f:
+        servers = [s for s in yaml.safe_load(f).get('servers', []) if s.get('command') != 'manual']
+    if not servers: print('-'); exit(0)
+    dead = 0
+    for s in servers:
+        env = s.get('env', {})
+        port = env.get('PORT') or env.get('MCP_PORT')
+        host = env.get('HOST', '127.0.0.1')
+        if port:
+            try:
+                sock = socket.create_connection((host, int(port)), timeout=2)
+                sock.close()
+            except: dead += 1
+    print(dead)
+except: print('-')
+" 2>/dev/null || echo "-")" le 0 "MCP-Endpunkte ohne Listener (Registry vs TCP)"
+
+row target G-IF02 "$(python3 -c "
+import re
+files = ['website/src/lib/embeddings.ts', 'website/src/lib/rerank.ts', 'website/src/lib/bge-router.ts']
+count = 0
+for f in files:
+    try:
+        with open(f) as fh: content = fh.read()
+        blocks = re.findall(r'catch\s*\([^)]*\)\s*\{([^}]*)\}', content, re.DOTALL)
+        for b in blocks:
+            if not re.search(r'(logger\.|console\.(error|warn))', b): count += 1
+    except: pass
+print(count)
+" 2>/dev/null || echo "-")" le 0 "Stille Degradation (catch ohne logger.error in Schnittstellen)"
+
+row target G-IF03 "$(kubectl get pods -n workspace --context fleet -o json 2>/dev/null \
+  | python3 -c "
+import json, sys, yaml
+try:
+    pods = json.load(sys.stdin)['items']
+    with open('docs/agent-guide/registry/mcp.yaml') as f:
+        servers = yaml.safe_load(f).get('servers', [])
+    if not pods: print('-'); exit(0)
+    cluster_ports = set()
+    for p in pods:
+        for c in p['spec'].get('containers', []):
+            for port in c.get('ports', []):
+                cluster_ports.add(port.get('containerPort'))
+    registry_ports = set()
+    for s in servers:
+        env = s.get('env', {})
+        port = env.get('PORT') or env.get('MCP_PORT')
+        if port: registry_ports.add(int(port))
+    print(len(registry_ports - cluster_ports))
+except: print('-')
+" 2>/dev/null || echo "-")" le 0 "Konfig-Drift MCP-Registry vs Cluster (Port-Mismatch)"
+
+# ── LLM-TARGETS (T002442: LLM-Stack-Betrieb) ──
+row target G-LLM01 "$(python3 -c "
+import json, urllib.request
+try:
+    with open('scripts/llm/loadouts.json') as f:
+        loadouts = json.load(f)
+    servers = [l for l in loadouts if l.get('port') and l.get('kind') == 'llamacpp']
+    if not servers: print('-'); exit(0)
+    dead = 0; alive = False
+    for s in servers:
+        try:
+            url = f'http://127.0.0.1:{s[\"port\"]}/health'
+            resp = urllib.request.urlopen(urllib.request.Request(url), timeout=5)
+            if resp.status == 200: alive = True
+            else: dead += 1
+        except: dead += 1
+    print(dead if alive else '-')
+except: print('-')
+" 2>/dev/null || echo "-")" le 0 "Modellserver-Verfügbarkeit (Loadout-Endpunkte health-check)"
+
+row target G-LLM02 "$(python3 -c "
+import json, urllib.request
+try:
+    resp = urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:18235/health'), timeout=5)
+    data = json.loads(resp.read())
+    if not data.get('ready', False): print('degraded')
+    else: print(sum(1 for p in data.get('providers', []) if not p.get('healthy', False)))
+except: print('-')
+" 2>/dev/null || echo "-")" le 0 "llm-proxy-Bereitschaft (ready + tote Provider)"
+
+# ── WT-TARGETS (T002443: Worktree- und Session-Hygiene) ──
+row target G-WT01 "$(
+REPO=\"${HG_REPO_ROOT:-$HOME/Bachelorprojekt}\"
+branch=$(git -C \"$REPO\" rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ \"$branch\" != \"main\" ]; then echo 1
+elif [ -z \"$(git -C \"$REPO\" status --porcelain 2>/dev/null)\" ]; then echo 0
+else echo 1; fi
+)" le 0 "Hauptcheckout auf main und sauber (binär: 0=ok)"
+
+row target G-WT02 "$(
+REPO=\"${HG_REPO_ROOT:-$HOME/Bachelorprojekt}\"
+count=0
+for wt in \"$REPO\"/.worktrees/*/; do
+  [ -d \"$wt\" ] || continue
+  branch=$(git -C \"$wt\" rev-parse --abbrev-ref HEAD 2>/dev/null) || continue
+  if git -C \"$REPO\" branch -r --contains \"$branch\" 2>/dev/null | grep -q 'origin/main'; then
+    count=$((count + 1)); continue
+  fi
+  last_commit=$(git -C \"$wt\" log -1 --format='%ct' 2>/dev/null)
+  now=$(date +%s)
+  if [ -n \"$last_commit\" ] && [ $(( (now - last_commit) / 86400 )) -gt 14 ]; then
+    count=$((count + 1))
+  fi
+done
+echo $count
+)" le 0 "Veraltete Worktrees (Branch gemergt oder >14d inaktiv)"
+
+row target G-WT03 "$(
+REPO=\"${HG_REPO_ROOT:-$HOME/Bachelorprojekt}\"
+lock_dir=\"$(git -C \"$REPO\" rev-parse --git-common-dir 2>/dev/null)/agent-locks\"
+[ -d \"$lock_dir\" ] || { echo '-'; exit 0; }
+count=0
+for lock in \"$lock_dir\"/*.json; do
+  [ -f \"$lock\" ] || continue
+  pid=$(jq -r '.owner_pid // empty' \"$lock\" 2>/dev/null)
+  [ -n \"$pid\" ] || continue
+  kill -0 \"$pid\" 2>/dev/null || count=$((count + 1))
+done
+echo $count
+)" le 0 "Verwaiste Agent-Locks (Prozess tot, Lock aktiv)"
+
 # ── Zusammenfassung ────────────────────────────────────────────────────────────
 TOTAL=$((PASS+OPEN+GATEFAIL+SKIP))
 printf "\n%s──────────────────────────────────────────%s\n" "$C_D" "$C_X"

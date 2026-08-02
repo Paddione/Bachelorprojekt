@@ -379,6 +379,239 @@ grep -rhE 'image:' k3d/ prod*/ | grep -v '#' | sed 's/.*image:\s*//' | sort -u |
 
 > **B · Baseline:** 2 → 0 (T001766 gefixt) → 1 (Regressions-Check 2026-07-25) → 0 (2026-07-25, `alpine/k8s:1.28.2` in `health-goals-cronjob.yaml` auf `1.36.2@sha256:...` gepinnt) · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** TBD (**gefixt**)
 
+## G-IF01 — MCP-Endpunkte ohne Listener: n/a → 0
+
+**Was:** Zählt die in der MCP-Registry (`docs/agent-guide/registry/mcp.yaml`) geführten
+Server, deren TCP-Port keinen Listener hat. Ein toter MCP-Server in der Registry erzeugt
+Client-seitig Timeouts, ohne dass ein Ziel es meldet. Belegte Fälle: mcp-postgres (:13001)
+und mcp-kubernetes (:18080) standen wochenlang ohne Listener in der Registry. Der
+Positiv-Anker prüft, dass mindestens ein Server erreichbar ist — eine komplett leere
+Registry soll nicht fälschlich grün melden.
+
+```bash
+python3 -c "
+import yaml, socket, sys
+with open('docs/agent-guide/registry/mcp.yaml') as f:
+    servers = [s for s in yaml.safe_load(f).get('servers', []) if s.get('command') != 'manual']
+total = len(servers)
+dead = 0
+for s in servers:
+    env = s.get('env', {})
+    port = env.get('PORT') or env.get('MCP_PORT')
+    host = env.get('HOST', '127.0.0.1')
+    if port:
+        try:
+            sock = socket.create_connection((host, int(port)), timeout=2)
+            sock.close()
+        except: dead += 1
+print(dead)
+" 2>/dev/null || echo n/a
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja (nur lokal — CI hat keine MCP-Server) · **Ticket:** T002441
+
+## G-IF02 — Stille Degradation (verschluckte Fehler auf Schnittstellenpfaden): n/a → 0
+
+**Was:** Zählt `catch`-Blöcke auf externen Schnittstellenpfaden (embedding, reranking, LLM-Proxy,
+Datenbank-Clients), die einen Fehler fangen, ohne ihn zu loggen. Das ist die gemeinsame
+Ursache des Reranker-Ausfalls (score:0 statt Fehler) und des tickets-embed-Falls
+(implementiert, 0 Aufrufer). Messung via grep nach `catch` ohne folgendes `logger.`/`console.`
+im selben Block. Positiv-Anker: mindestens ein `logger.error` in einem catch-Block muss
+gefunden werden, sonst ist die Messung selbst kaputt.
+
+```bash
+# Zählt catch-Blöcke in Schnittstellen-Dateien ohne unmittelbare Fehlerprotokollierung
+python3 -c "
+import re, sys
+files = ['website/src/lib/embeddings.ts', 'website/src/lib/rerank.ts', 'website/src/lib/bge-router.ts']
+count = 0
+for f in files:
+    try:
+        with open(f) as fh:
+            content = fh.read()
+        # Finde catch { ... } Blöcke ohne logger. oder console. im unmittelbaren Block
+        blocks = re.findall(r'catch\s*\([^)]*\)\s*\{([^}]*)\}', content, re.DOTALL)
+        for b in blocks:
+            if not re.search(r'(logger\.|console\.(error|warn))', b):
+                count += 1
+    except: pass
+print(count)
+" 2>/dev/null || echo n/a
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja · **Ticket:** T002441
+
+## G-IF03 — Konfig-gegen-Laufzeit-Drift (MCP-Registry vs Cluster): n/a → 0
+
+**Was:** Zählt MCP-Server in der Registry, deren gemeldete Adresse von der tatsächlich im
+Cluster laufenden abweicht. Der Positiv-Anker prüft, dass mindestens ein MCP-Server-Pod
+im Cluster existiert — ohne Cluster-Konnektivität soll das Ziel n/a melden, nicht 0.
+
+```bash
+kubectl get pods -n workspace --context fleet -o json 2>/dev/null \
+  | python3 -c "
+import json, sys, yaml
+try:
+    pods = json.load(sys.stdin)['items']
+    with open('docs/agent-guide/registry/mcp.yaml') as f:
+        servers = yaml.safe_load(f).get('servers', [])
+    if not pods: sys.exit(0)  # Positiv-Anker: Cluster muss Pods haben
+    # Drift-Check: registrierte Ports vs laufende Container-Ports
+    cluster_ports = set()
+    for p in pods:
+        for c in p['spec'].get('containers', []):
+            for port in c.get('ports', []):
+                cluster_ports.add(port.get('containerPort'))
+    registry_ports = set()
+    for s in servers:
+        env = s.get('env', {})
+        port = env.get('PORT') or env.get('MCP_PORT')
+        if port: registry_ports.add(int(port))
+    # Ports in Registry, die nicht im Cluster laufen
+    drift = len(registry_ports - cluster_ports)
+    print(drift)
+except: print('n/a')
+" 2>/dev/null || echo n/a
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** eingeschränkt (Cluster-Zugriff nötig) · **Ticket:** T002441
+
+---
+
+## G-LLM01 — Modellserver-Verfügbarkeit (Loadout-Endpunkte): n/a → 0
+
+**Was:** Zählt die in `scripts/llm/loadouts.json` geführten llama.cpp-Modellserver, deren
+`/health`-Endpunkt nicht mit 200 antwortet. Die Loadout-Datei ist die SSOT für Modellserver;
+ein toter Server darin bedeutet verlorene Inferenz-Kapazität. Der Positiv-Anker prüft, dass
+mindestens ein Server erreichbar ist — ein komplett toter Host soll sichtbar sein.
+
+```bash
+python3 -c "
+import json, urllib.request, sys
+with open('scripts/llm/loadouts.json') as f:
+    loadouts = json.load(f)
+servers = [l for l in loadouts if l.get('port') and l.get('kind') == 'llamacpp']
+total = len(servers)
+if total == 0:
+    print('n/a')
+    sys.exit(0)
+dead = 0
+alive = False
+for s in servers:
+    try:
+        url = f'http://127.0.0.1:{s[\"port\"]}/health'
+        req = urllib.request.Request(url)
+        resp = urllib.request.urlopen(req, timeout=5)
+        if resp.status == 200: alive = True
+        else: dead += 1
+    except: dead += 1
+if not alive and dead == total:
+    print('n/a')  # Positiv-Anker: mindestens einer muss erreichbar sein
+else:
+    print(dead)
+" 2>/dev/null || echo n/a
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+
+## G-LLM02 — llm-proxy-Bereitschaft (ready + tote Provider): n/a → 0
+
+**Was:** Prüft den llm-proxy (:18235) auf `ready: true` und zählt tote Provider. Der Proxy
+ist der alleinige LLM-Gateway; meldet er `degraded`, ist die gesamte Factory ohne
+Inferenz-Fähigkeit. Der `/health`-Endpunkt des Proxys liefert `ready` und `providers`.
+
+```bash
+python3 -c "
+import json, urllib.request, sys
+try:
+    req = urllib.request.Request('http://127.0.0.1:18235/health')
+    resp = urllib.request.urlopen(req, timeout=5)
+    data = json.loads(resp.read())
+    if not data.get('ready', False):
+        print('degraded')  # Proxy selbst nicht bereit
+    else:
+        dead = sum(1 for p in data.get('providers', []) if not p.get('healthy', False))
+        print(dead)
+except:
+    print('n/a')
+" 2>/dev/null || echo n/a
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+
+---
+
+## G-WT01 — Hauptcheckout auf main und sauber: n/a → 0
+
+**Was:** Prüft, ob der Hauptcheckout (`~/Bachelorprojekt`) auf Branch `main` steht und keinen
+uncommitteten Changes hat. Die Regel existiert seit T001880, wurde aber mehrfach verletzt —
+zuletzt am 2026-07-28 mit 15 uncommitteten Dateien auf `chore/mishap-T002422`. Eine
+Verletzung gefährdet Factory-Dispatcher und Worktree-Erstellung. Binaeres Ziel: 0 = ok,
+1 = Verletzung. Der Positiv-Anker ist der git-Befehl selbst — schlägt er fehl, ist das
+Ziel nicht messbar.
+
+```bash
+REPO="${HG_REPO_ROOT:-$HOME/Bachelorprojekt}"
+branch=$(git -C "$REPO" rev-parse --abbrev-ref HEAD 2>/dev/null)
+if [ "$branch" != "main" ]; then echo 1; exit 0; fi
+[ -z "$(git -C "$REPO" status --porcelain 2>/dev/null)" ] && echo 0 || echo 1
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** ja (nur lokal, CI hat keinen Hauptcheckout) · **Ticket:** T002443
+
+## G-WT02 — Veraltete Worktrees (Branch gemergt oder >14d inaktiv): n/a → 0
+
+**Was:** Zählt Worktrees unter `.worktrees/`, deren Branch bereits nach `main` gemergt wurde
+oder deren letzter Commit älter als 14 Tage ist. Aufgeräumte Worktrees verhindern
+versehentliches Arbeiten auf toten Branches und das Anwachsen des `.worktrees/`-Verzeichnisses
+(26 Stück am 2026-07-28). Der Positiv-Anker prüft die Existenz mindestens eines Worktrees —
+ohne Worktrees ist die Messung bedeutungslos.
+
+```bash
+REPO="${HG_REPO_ROOT:-$HOME/Bachelorprojekt}"
+count=0
+for wt in "$REPO"/.worktrees/*/; do
+  [ -d "$wt" ] || continue
+  branch=$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null) || continue
+  # Prüfe ob Branch auf main gemergt ist
+  if git -C "$REPO" branch -r --contains "$branch" 2>/dev/null | grep -q 'origin/main'; then
+    count=$((count + 1)); continue
+  fi
+  # Prüfe Alter des letzten Commits
+  last_commit=$(git -C "$wt" log -1 --format='%ct' 2>/dev/null)
+  now=$(date +%s)
+  if [ -n "$last_commit" ] && [ $(( (now - last_commit) / 86400 )) -gt 14 ]; then
+    count=$((count + 1))
+  fi
+done
+echo $count
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich (lokal) · **Reproduzierbar:** ja (nur lokal) · **Ticket:** T002443
+
+## G-WT03 — Verwaiste Agent-Locks (Prozess tot, Lock aktiv): n/a → 0
+
+**Was:** Zählt agent-locks unter `.git/agent-locks/`, deren `owner_pid` nicht mehr als
+laufender Prozess existiert. Tote Locks ohne lebenden Prozess blockieren den Reaper
+und verhindern, dass neue Sessions denselben Scope claimen. Der Positiv-Anker prüft
+die Existenz des Lock-Verzeichnisses — ohne Locks ist die Messung bedeutungslos.
+
+```bash
+REPO="${HG_REPO_ROOT:-$HOME/Bachelorprojekt}"
+lock_dir="$(git -C "$REPO" rev-parse --git-common-dir 2>/dev/null)/agent-locks"
+[ -d "$lock_dir" ] || { echo n/a; exit 0; }  # Positiv-Anker
+count=0
+for lock in "$lock_dir"/*.json; do
+  [ -f "$lock" ] || continue
+  pid=$(jq -r '.owner_pid // empty' "$lock" 2>/dev/null)
+  [ -n "$pid" ] || continue
+  kill -0 "$pid" 2>/dev/null || count=$((count + 1))
+done
+echo $count
+```
+
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** pro Session (lokal) · **Reproduzierbar:** ja (nur lokal) · **Ticket:** T002443
+
 
 # Priorität C — Green Gates {#prio-c}
 

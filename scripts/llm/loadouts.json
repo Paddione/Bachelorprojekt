@@ -79,6 +79,44 @@
       "notes": "T002426 Paar A: bewusst CPU-gebunden (-ngl 0). Eigener Prozess neben bge-embed-batch, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann."
     },
     {
+      "slug": "bge-embed",
+      "label": "bge-m3 · Embedding (WSL, CPU)",
+      "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",
+      "port": 8095,
+      "fit": { "enabled": false, "targetMarginMib": null, "minCtx": null },
+      "args": {
+        "ctx": 8192, "ngl": 0, "parallel": 4,
+        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
+        "flashAttention": false, "jinja": false, "metrics": true,
+        "reasoning": null, "reasoningBudget": null,
+        "uiMcpProxy": false
+      },
+      "speculative": { "draftHfRepo": null, "draftNgl": null },
+      "mcp": { "serversConfig": null },
+      "env": { "CUDA_VISIBLE_DEVICES": "" },
+      "extraArgs": ["--embedding", "--pooling", "cls", "--embd-normalize", "2", "-b", "8192", "-ub", "8192"],
+      "notes": "T002538. Der kanonische Embedding-Endpunkt: :8095 steht in Taskfile.yml, Taskfile.llm.yml, environments/dev.yaml, tests/local/NFA-11.sh und ~/.config/bge-mcp/server.env. Laeuft in WSL unter dem b10223-Build, nicht mehr als llama-server.exe auf Windows. CUDA_VISIBLE_DEVICES='' ist NICHT redundant zu -ngl 0: letzteres verhindert nur das Auslagern der Layer, llama.cpp allokiert trotzdem einen CUDA-Kontext. Gemessen 2026-08-02: die vier Windows-bge-Server hielten so zusammen 2,65 GB VRAM; deren Freigabe hob den Gemma-26B-Kontext von 12032 auf 45824. Kein fit: bei -ngl 0 waere es wirkungslos und wuerde Teilnahme am VRAM-Wettbewerb vortaeuschen. parallel 4 uebernimmt den Batch-Durchsatz des stillgelegten Paars auf :8085."
+    },
+    {
+      "slug": "bge-rerank",
+      "label": "bge-reranker-v2-m3 · Rerank (WSL, CPU)",
+      "model": "gpustack/bge-reranker-v2-m3-GGUF/bge-reranker-v2-m3-Q8_0.gguf",
+      "port": 8096,
+      "fit": { "enabled": false, "targetMarginMib": null, "minCtx": null },
+      "args": {
+        "ctx": 8192, "ngl": 0, "parallel": 4,
+        "cacheTypeK": null, "cacheTypeV": null, "loadMode": "mmap",
+        "flashAttention": false, "jinja": false, "metrics": true,
+        "reasoning": null, "reasoningBudget": null,
+        "uiMcpProxy": false
+      },
+      "speculative": { "draftHfRepo": null, "draftNgl": null },
+      "mcp": { "serversConfig": null },
+      "env": { "CUDA_VISIBLE_DEVICES": "" },
+      "extraArgs": ["--reranking", "-b", "8192", "-ub", "8192"],
+      "notes": "T002538. Der kanonische Rerank-Endpunkt :8096, Gegenstueck zu bge-embed. Eigener Prozess, weil llama.cpp CLS- und RANK-Pooling nicht in einem Server bedienen kann — dieselbe Begruendung wie beim Batch-Paar. CUDA_VISIBLE_DEVICES='' siehe bge-embed. Der OpenAI-kompatible /v1/rerank-Pfad liefert dieselben Werte wie der native /rerank; verglichen wird die Reihenfolge der relevance_score, nicht deren Absolutwert (die sind rohe Logits, typisch um -11 fuer irrelevante Dokumente)."
+    },
+    {
       "slug": "gemma-factory",
       "label": "Gemma 4 12B · Factory Single-Agent",
       "model": "unsloth/gemma-4-12B-it-qat-UD-Q4_K_XL/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf",

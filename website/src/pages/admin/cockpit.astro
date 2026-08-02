@@ -1,6 +1,10 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, isAdmin } from '../../lib/auth';
+import PipelinePanel from '../../components/cockpit/PipelinePanel.svelte';
+import { getFloor } from '../../lib/factory-floor';
+
+export const prerender = false;
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
@@ -8,6 +12,16 @@ const session = await getSession(Astro.request.headers.get('cookie'));
 if (!session || !isAdmin(session)) return Astro.redirect('/login');
 
 const brand = BRAND();
+const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
+
+let initial = null;
+try { initial = await getFloor(slotsCap); } catch { initial = null; }
+
+// 'tab' ist ein reservierter Query-Parameter für Cockpit/Pipeline (D-K10-2).
+type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten' | 'parallel';
+const ALLOWED: Tab[] = ['factory', 'planung', 'analytics', 'kosten', 'control', 'abhaengigkeiten', 'parallel'];
+const raw = Astro.url.searchParams.get('tab') ?? '';
+const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
 ---
 
 <AdminLayout title="SDLC Cockpit">
@@ -119,6 +133,8 @@ const brand = BRAND();
       </div>
     </aside>
     <main class="cockpit-workspace">
+      <PipelinePanel client:load {initial} {initialTab} {brand} />
+
       <div class="panel panel--card" data-panel-type="status" data-source="tickets" data-refresh-interval="30000" id="panel-tickets-card">
         <div class="panel__head">
           <span class="panel__title">Alle Tickets</span>

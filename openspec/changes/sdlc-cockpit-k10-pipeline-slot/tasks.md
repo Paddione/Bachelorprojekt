@@ -338,7 +338,7 @@ tests/unit/lib/bats-core/bin/bats --count tests/spec/sdlc-cockpit/pipeline-slot-
 
 ## Task 5 — Das Pipeline-Panel bauen und einhängen
 
-- [ ] `website/src/components/cockpit/PipelinePanel.svelte` anlegen: schlanker Rahmen um
+- [x] `website/src/components/cockpit/PipelinePanel.svelte` anlegen: schlanker Rahmen um
       `DevStatusTabs`, Props `initial`, `initialTab`, `brand` unverändert durchgereicht.
       Markup:
 
@@ -354,7 +354,7 @@ tests/unit/lib/bats-core/bin/bats --count tests/spec/sdlc-cockpit/pipeline-slot-
       in die Datei, sonst ergänzt sie jemand „der Vollständigkeit halber" und die Insel wird
       beim nächsten Refresh ausgeräumt. Eigene Stilregeln nur über Token-Bezüge; `tokens.css`
       bleibt unangetastet (E11).
-- [ ] `cockpit.astro` Frontmatter erweitern — wörtlich aus `pipeline.astro` übernommen,
+- [x] `cockpit.astro` Frontmatter erweitern — wörtlich aus `pipeline.astro` übernommen,
       damit die Vorbefüllung und die Tab-Vorwahl nicht verlorengehen:
       - `import DevStatusTabs`-Ersatz: `import PipelinePanel from
         '../../components/cockpit/PipelinePanel.svelte'`, `import { getFloor } from
@@ -371,18 +371,18 @@ tests/unit/lib/bats-core/bin/bats --count tests/spec/sdlc-cockpit/pipeline-slot-
         Wechsel der Ausgabeart — `pipeline.astro` trug es aus demselben Grund.
       - Kommentar: `tab` ist ab hier ein reservierter Query-Parameter der Cockpit-Seite;
         Layout-Parameter aus K3 dürfen ihn nicht überladen (D-K10-2).
-- [ ] Im Arbeitsbereich (`<main class="cockpit-workspace">`) das Panel als Insel einhängen:
+- [x] Im Arbeitsbereich (`<main class="cockpit-workspace">`) das Panel als Insel einhängen:
       `<PipelinePanel client:load {initial} {initialTab} {brand} />`. Es steht neben den
       bestehenden Kit-Panels; die Reihenfolge im Markup ist die heutige Platzierung, die
       Layout-Engine übernimmt sie später (Task 1).
-- [ ] **`is:inline` nicht anfassen.** Die vorhandenen `<script is:inline
+- [x] **`is:inline` nicht anfassen.** Die vorhandenen `<script is:inline
       src="/cockpit/kit/*.js">`-Zeilen bleiben unverändert. Dieser Plan fügt **kein**
       weiteres Skript-Tag hinzu; käme eines dazu, müsste es zwingend `is:inline` tragen —
       ohne das Attribut zieht Astro die Datei in den Bundle-Graph und der Build bricht mit
       „references an asset in the public/ directory" ab. Der Fehler fällt **nur** beim Build
       auf, `pnpm dev` und vitest laufen grün daran vorbei (Kommentar Zeile 15-23 der Datei).
       Deshalb ist der Astro-Build in Task 8 Pflicht.
-- [ ] Vitest aus Task 2 laufen lassen, bis er grün ist.
+- [x] Vitest aus Task 2 laufen lassen, bis er grün ist.
 
 ## Task 6 — `pipeline.astro` auflösen
 

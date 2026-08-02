@@ -1,15 +1,23 @@
-# Tasks: K8: Komponenten verknuepfen — Gesamtbild und Defektliste
+---
+title: "K8 Gesamtbild"
+ticket_id: T002438
+domains: [docs]
+status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: T002430
+depends_on_plans: []
+---
 
-| id | file | role | target_files | depends_on |
-|----|------|------|-------------|------------|
-| 1 | docs/brain/k8-gesamtbild.md | docs | docs/brain/k8-gesamtbild.md | — |
+# K8 Gesamtbild
+
+_Ticket: T002438_
 
 ## Partials
 
-### 1 — Diagramm + Erhebung + Defekte
+| id | file | role | target_files | depends_on |
+|----|------|------|-------------|------------|
+| 1 | tasks.d/p1-survey.md | spec | — | — |
+| 2 | tasks.d/p2-documentation.md | docs | — | 1 |
 
-**target_files:** docs/brain/k8-gesamtbild.md
-
-- Diagramm mit beschrifteten Kanten
-- Erhebung aller relevanten Aspekte
-- Defekt-Referenz aus T002430

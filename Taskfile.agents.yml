@@ -221,6 +221,45 @@ tasks:
         fi
         systemctl --user status mcp-gateway.service --no-pager -n 20 || true
 
+  # ── mcp-gateway-watchdog — Tunnel-Liveness Watchdog (T002543) ──
+  # Der kubectl port-forward hat einen Versagensmodus, in dem der PROZESS lebt,
+  # waehrend die SPDY-Streams tot sind. systemd meldet "active (running)",
+  # curl laeuft in den Timeout. Diese Units pruefen periodisch per MCP-initialize,
+  # ob der Tunnel wirklich antwortet, und starten den Gateway bei Bedarf neu.
+
+  mcp-gateway-watchdog:install:
+    desc: "Install the mcp-gateway Tunnel-Liveness Watchdog (systemd timer + oneshot service)."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! systemctl --user show-environment >/dev/null 2>&1; then
+          echo "No systemd --user manager on this host."
+          echo "Enable it: 'loginctl enable-linger $USER' then re-run."
+          exit 1
+        fi
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        SRC="$(pwd)/scripts/mcp-gateway"
+        mkdir -p "${UNIT_DIR}"
+        ln -sf "${SRC}/mcp-gateway-watchdog.service" "${UNIT_DIR}/mcp-gateway-watchdog.service"
+        ln -sf "${SRC}/mcp-gateway-watchdog.timer"  "${UNIT_DIR}/mcp-gateway-watchdog.timer"
+        systemctl --user daemon-reload
+        systemctl --user enable --now mcp-gateway-watchdog.timer
+        echo "mcp-gateway-watchdog installed — Timer feuert alle 60s, probe.sh prueft MCP-initialize."
+
+  mcp-gateway-watchdog:uninstall:
+    desc: "Stop + disable the mcp-gateway-watchdog timer and service, remove symlinked units."
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        UNIT_DIR="${HOME}/.config/systemd/user"
+        systemctl --user disable --now mcp-gateway-watchdog.timer 2>/dev/null || true
+        systemctl --user stop mcp-gateway-watchdog.service 2>/dev/null || true
+        rm -f "${UNIT_DIR}/mcp-gateway-watchdog.service" "${UNIT_DIR}/mcp-gateway-watchdog.timer"
+        systemctl --user daemon-reload 2>/dev/null || true
+        echo "mcp-gateway-watchdog uninstalled."
+
   # ── mcp-cors-proxy — CORS-Proxy vor mcp-kubernetes (:18082 -> :18080) ──
   # Das OTS-Image kubernetes_mcp_server kann kein CORS und wirft 403 auf
   # Origin-Header; der Browser-Client (llama-Web-UI) braucht deshalb diesen

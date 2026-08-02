@@ -1,0 +1,17 @@
+# scripts/mcp-gateway/mcp-gateway-watchdog.timer
+# T002543 — Wiederkehrender Timer für den MCP Gateway Watchdog.
+#
+# OnUnitActiveSec=60: feuert alle 60 Sekunden, solange die zugehörige
+# Watchdog-Unit läuft. Nicht nur OnBootSec: der Defekt (toter Tunnel bei
+# lebendem Prozess) tritt nach Stunden Laufzeit auf, ein einmaliger
+# Schuss beim Boot sähe ihn nie.
+[Unit]
+Description=MCP Gateway Watchdog Timer — alle 60s Tunnel-Liveness prüfen
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=60
+Unit=mcp-gateway-watchdog.service
+
+[Install]
+WantedBy=default.target

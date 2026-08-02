@@ -1,0 +1,21 @@
+# scripts/mcp-gateway/mcp-gateway-watchdog.service
+# T002543 — Watchdog for mcp-gateway.service tunnel liveness.
+#
+# Der Watchdog fuehrt probe.sh aus (echter MCP-initialize, kein TCP-Connect).
+# Scheitert der Probe, wird mcp-gateway.service neu gestartet — es sei denn,
+# der Ziel-Pod ist tot (dann hilft kein Tunnel-Neustart) oder der letzte
+# Restart liegt weniger als 5 Minuten zurück.
+#
+# Installiert via: systemctl --user enable --now mcp-gateway-watchdog.timer
+[Unit]
+Description=MCP Gateway Watchdog — Tunnel-Liveness Probe
+Documentation=file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md
+After=mcp-gateway.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/patrick/Bachelorprojekt
+ExecStartPre=-/usr/bin/test -f %h/.config/systemd/user/mcp-gateway-watchdog.last_restart && /usr/bin/find %h/.config/systemd/user/mcp-gateway-watchdog.last_restart -mmin -5 | /usr/bin/grep -q last_restart && /bin/echo "SKIP: restart rate-limited (< 5 min)" && /usr/bin/exit 1 || /usr/bin/true
+ExecStartPre=/bin/bash -c 'if ! curl -sS --max-time 3 http://127.0.0.1:18080 >/dev/null 2>&1; then echo "SKIP: mcp-gateway port 18080 not responding"; exit 1; fi'
+ExecStart=/home/patrick/Bachelorprojekt/scripts/mcp-gateway/probe.sh
+ExecStartPost=-/usr/bin/touch %h/.config/systemd/user/mcp-gateway-watchdog.last_restart

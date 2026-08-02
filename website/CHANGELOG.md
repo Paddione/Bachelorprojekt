@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.238.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.0...website-v1.238.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* **ops:** mcp-gateway Watchdog — Tunnel-Liveness statt Prozess-Liveness [T002543] ([#3650](https://github.com/Paddione/Bachelorprojekt/issues/3650)) ([72925c7](https://github.com/Paddione/Bachelorprojekt/commit/72925c723ac8c1d81df1e6ea1e58c3e4f8058d2b))
+
 ## [1.238.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.237.0...website-v1.238.0) (2026-08-02)
 
 

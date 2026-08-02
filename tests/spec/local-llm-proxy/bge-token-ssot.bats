@@ -55,7 +55,13 @@ write_env_var() {
   # kann dann per Konstruktion nichts finden. Das ist kein Fehlschlag, sondern
   # der erwartete Zustand: der Test prueft eine Eigenschaft des ENTSPERRTEN
   # Arbeitsbaums.
-  head -c 9 "${SSOT}" | grep -q "GITCRYPT" && skip "git-crypt gesperrt (CI) — Schluesselnamen nicht lesbar"
+  # '-a' ist Pflicht: die verschluesselte Datei beginnt mit einem NULL-Byte,
+  # und ohne -a schaltet grep in den Binaermodus und meldet KEINEN Treffer —
+  # der Skip griffe dann nicht und der Test waere in CI weiter rot. Selbst
+  # gemessen, bevor CI es zeigen konnte.
+  if head -c 9 "${SSOT}" | grep -qa "GITCRYPT"; then
+    skip "git-crypt gesperrt (CI) — Schluesselnamen nicht lesbar"
+  fi
 
   # Positiv-Anker zuerst [T002356-M1]: die bekannten Schluessel sind da. Waere
   # die Datei aus einem anderen Grund unlesbar, faellt das hier auf statt

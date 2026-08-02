@@ -78,7 +78,7 @@ setup() {
     if (!Array.isArray(parsed)) process.exit(1);
     if (parsed.length !== 7) process.exit(2);
     const k8s = parsed.find(s => s.name === "k8s");
-    if (!k8s || k8s.url !== "http://localhost:18082/mcp") process.exit(3);
+    if (!k8s || k8s.url !== "http://127.0.0.1:18082/mcp") process.exit(3);
     const bge = parsed.find(s => s.name === "bge-mcp");
     if (!bge || bge.headers?.Authorization !== "Bearer test-token") process.exit(4);
   ' "${mcp_val}"

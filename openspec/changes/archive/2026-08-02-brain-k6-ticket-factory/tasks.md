@@ -2,7 +2,7 @@
 title: "K6 Ticket Factory"
 ticket_id: T002436
 domains: [docs]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -188,6 +188,34 @@ cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_mod
 
 ---
 
+## Schritt 8.5: Optionale Stufe `headed-verify` (T002467)
+
+**Explizit optional — kein Pflichtschritt, kein CI-Gate.** Headed-Läufe gegen die Live-Umgebung
+sind langsam und flakeanfällig; als Merge-Gate würden sie den Durchsatz senken statt die Qualität
+zu heben (siehe `openspec/specs/k8-headed-tests/spec.md`, REQ-k8-02). Diese Stufe läuft **nur
+manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als required check.
+
+**Trigger:** `--headed` Flag beim Aufruf dieses Skills, oder Env `HEADED_VERIFY=true`.
+
+**Ablauf:**
+1. Der Agent parametrisiert `tests/e2e/specs/k8-headed-verify.spec.ts` (Ziel-URL, Selektoren,
+   Assertions) passend zur gerade verifizierten Implementierung.
+2. Ausführung **headed** (echter, sichtbarer Chrome — kein CI-Runner, kein Xvfb):
+   ```bash
+   cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL="$BASE_URL" ./node_modules/.bin/playwright test \
+     specs/k8-headed-verify.spec.ts --headed --project website
+   ```
+3. **Optional — Vision-gestützte Verifikation:** Screenshots aus dem Testlauf an den bereits
+   laufenden mmproj-Vision-Server (Port 8094, siehe `reference-bonsai-vision-server` Memory)
+   senden und die Antwort (UI-Elemente, Text, Positionierung korrekt?) ins Testergebnis
+   einbetten.
+4. **Kein Abbruch bei Fehler:** Diese Stufe informiert den Agenten, blockiert aber nicht den
+   Merge- oder Deploy-Flow — sie läuft grundsätzlich erst nach Merge/Deploy (Schritt 8).
+
+Details/Architektur: `openspec/specs/k8-headed-tests/spec.md`.
+
+---
+
 ## Schritt 9: Beendigung und Nachbereitung
 
 1. **Mishap Report**: Melde am Ende dieses Skills alle aufgetretenen Fehler über `mishap-tracker`.

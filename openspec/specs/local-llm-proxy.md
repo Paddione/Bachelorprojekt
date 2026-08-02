@@ -223,3 +223,119 @@ bleibt unverändert; Gang-Gating-Clients SHALL `/admin/state` verwenden.
 - **THEN** all four are in flight simultaneously and `/admin/state` reports `inflight=4, max_inflight=4`
 
 <!-- merged from change delta local-llm-proxy.md (ed4e423648d3) -->
+
+### Requirement: Loadout autorestart on failure
+
+The system SHALL restart a loadout-managed llama.cpp unit automatically after it exits
+unexpectedly, without requiring a separate polling watchdog process. The `systemd-run` command
+used to start a loadout SHALL set `Restart=on-failure` and a bounded `RestartSec`.
+
+#### Scenario: Killed loadout process restarts without operator action
+
+- **GIVEN** a loadout (e.g. `gptoss-context`) is running and healthy
+- **WHEN** its underlying `llama-server` process is killed (crash, OOM)
+- **THEN** systemd restarts the unit automatically within `RestartSec`, and `/admin/loadouts/status`
+  reports it as running and healthy again without any `/admin/loadouts/<slug>/start` call
+
+### Requirement: Auto-start and queue for conflict-free loadouts
+
+The system SHALL, when a chat completion request targets a model that has no healthy backend but
+matches a stopped loadout, automatically start that loadout and hold the request in the existing
+per-backend queue until the loadout becomes healthy — provided the loadout does not belong to the
+same `exclusiveGroup` as any currently running loadout. The system SHALL NOT stop a running
+loadout to satisfy a conflicting request.
+
+#### Scenario: Request auto-starts a conflict-free stopped loadout
+
+- **GIVEN** loadout `bge-rerank-batch` is configured and currently stopped, and no loadout with
+  the same `exclusiveGroup` is running
+- **WHEN** a client sends a request whose `model` resolves to `bge-rerank-batch`
+- **THEN** the proxy starts the loadout, waits for it to become healthy, and forwards the queued
+  request without returning an error to the client
+
+#### Scenario: Conflicting request is rejected, not auto-preempted
+
+- **GIVEN** loadout `gemma-factory` is running and belongs to `exclusiveGroup: "chat-gpu"`
+- **WHEN** a client sends a request whose `model` resolves to `gptoss-context`, which also
+  belongs to `exclusiveGroup: "chat-gpu"`
+- **THEN** the proxy responds with HTTP 409 naming the conflicting loadout and does not stop
+  `gemma-factory`
+
+### Requirement: Gemma single-agent and shared multi-agent loadout profiles
+
+The system SHALL provide two mutually exclusive Gemma loadout profiles sharing one port: a
+single-agent full-context profile (`-np 1`, fixed context) and a shared full-context multi-agent
+profile (`-np 5`, `-kvu`, larger context pool). Both SHALL use `-fit on` with configured
+`minCtx`/`targetMarginMib` instead of a hard-failing fixed context.
+
+#### Scenario: Starting one Gemma profile blocks the other
+
+- **GIVEN** `gemma-factory` is running on its configured port
+- **WHEN** an operator calls `POST /admin/loadouts/gemma-multiagent/start`
+- **THEN** the request fails with HTTP 409 `port_busy` and `gemma-factory` keeps running
+  unaffected
+
+#### Scenario: Reduced context from -fit is visible, not silent
+
+- **GIVEN** a Gemma loadout starts with `-fit on` and available VRAM forces a smaller context
+  than configured
+- **WHEN** an operator queries `/admin/loadouts/status`
+- **THEN** the response's `chosen.ctx` for that loadout reflects the actually granted context,
+  not the configured target
+
+<!-- merged from change delta local-llm-proxy.md (8bcab41279fc) -->
+
+### Requirement: Health endpoint reports readiness, not liveness
+
+The proxy SHALL answer `GET /health` with the question "can I serve requests",
+not "is my process alive". Readiness is determined by the **enabled backends
+with `priority = 1`** — the local primary path. A lower-priority backend
+(cloud fallback) is reported but SHALL NOT make the proxy ready on its own,
+because it is slower, costs money and sends data off-premises, which the
+platform's GDPR-by-design stance treats as a fallback rather than a substitute.
+
+The response body SHALL name the degraded backends in both the ready and the
+not-ready case, so a caller sees *which* backend is missing rather than only
+*that* something is missing.
+
+If no `priority = 1` backend is present at all, the proxy SHALL be considered
+not ready.
+
+#### Scenario: Local primary backend is down while a cloud fallback is healthy
+
+- **GIVEN** an enabled backend with `priority = 1` that is not healthy
+- **AND** an enabled backend with `priority = 2` that is healthy
+- **WHEN** a caller requests `GET /health`
+- **THEN** the proxy responds `503` with `ready: false` and lists the
+  unhealthy priority-1 backend in `degraded`
+
+#### Scenario: Only a lower-priority fallback is down
+
+- **GIVEN** all enabled `priority = 1` backends are healthy
+- **AND** an enabled backend with `priority = 2` is not healthy
+- **WHEN** a caller requests `GET /health`
+- **THEN** the proxy responds `200` with `ready: true` and still lists the
+  unhealthy fallback in `degraded`
+
+#### Scenario: No priority-1 backend is registered
+
+- **GIVEN** no enabled backend has `priority = 1`
+- **WHEN** a caller requests `GET /health`
+- **THEN** the proxy responds `503` with `ready: false`
+
+### Requirement: Liveness has its own endpoint
+
+The proxy SHALL expose `GET /livez` answering `200` unconditionally while the
+process is running, so callers that genuinely only need liveness are not
+affected by backend state.
+
+The systemd unit SHALL NOT gate restarts on readiness: restarting the proxy
+cannot recover a backend that runs as a separate process on the Windows host.
+
+#### Scenario: Liveness during a backend outage
+
+- **GIVEN** an enabled `priority = 1` backend is not healthy
+- **WHEN** a caller requests `GET /livez`
+- **THEN** the proxy responds `200`, while `GET /health` responds `503`
+
+<!-- merged from change delta local-llm-proxy.md (4f82bd58f549) -->

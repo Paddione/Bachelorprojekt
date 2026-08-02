@@ -1086,6 +1086,34 @@ remain in production (G-E2E02, T002096).
   aufruft, sodass `is_test_data=true`-Zeilen aus einem abgebrochenen Lauf nicht
   in Prod liegen bleiben
 
+### Requirement: CI rendert und pusht das Fleet-OCI-Artefakt statt push-based apply
+
+The system SHALL, on merge to `main`, render the fleet components into an OCI
+artifact and push it to the private registry
+(`oci://ghcr.io/paddione/fleet-manifests`) via `flux push artifact` with a
+git-derived `--source` and `--revision`, instead of applying manifests to the
+cluster with `kubectl apply`. After a successful push, CI SHALL ping the Flux
+`Receiver` webhook so the cluster reconciles immediately rather than waiting for the
+polling interval. The `fleet-manifests` package SHALL be private (rendered manifests
+expose internal topology).
+
+#### Scenario: Merge löst Render+Push+Ping aus
+
+- **GIVEN** a pull request is merged to `main`
+- **WHEN** the post-merge CI job runs
+- **THEN** the fleet components are rendered and pushed as an OCI artifact with a
+  `--revision` derived from the merge commit SHA
+- **AND** the Flux Receiver webhook is pinged to trigger an immediate reconcile
+- **AND** no `kubectl apply` of the rendered manifests runs in the job
+
+#### Scenario: Build-Workflows triggern Re-Render statt set image
+
+- **GIVEN** a component image (e.g. website, brett) is rebuilt with a new SHA tag
+- **WHEN** its build workflow completes
+- **THEN** the workflow triggers an artifact re-render passing the SHA tag as the
+  image input
+- **AND** it does NOT run `kubectl set image` or `kubectl rollout restart`
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1430,41 +1458,37 @@ The system SHALL generate `docs/generated/graph.json` via `node scripts/build-gr
 ---
 
 ### Requirement: Dependency-Versions-Erkennung (discover-versions)
-<!-- bats: discover-versions.bats -->
 
-The system SHALL discover current versions of k3s, sealed-secrets-chart, cert-manager, and longhorn-chart from GitHub API and Helm repos, SHALL print them in dry-run mode without writing a file, and SHALL write a `versions.yaml` with all required keys when `--update` is passed; Flux SHALL NOT be tracked (fleet is push-based, no GitOps controller).
+The system SHALL discover current versions of k3s, sealed-secrets-chart,
+cert-manager, and longhorn-chart from the GitHub API and Helm repos, SHALL print
+them in dry-run mode without writing a file, and SHALL write a `versions.yaml` with
+all four required keys when `--update` is passed. Because the fleet cluster now runs
+a pull-based GitOps controller (Flux Operator), the prior clause "Flux SHALL NOT be
+tracked" is REMOVED: the system MAY additionally track a Flux/flux-operator version
+key, and MUST NOT fail when that key is absent (the four core keys remain
+mandatory).
 
-#### Scenario: Dry-Run gibt alle erkannten Versionen aus *(BATS)*
-- **GIVEN** `curl` und `helm` sind durch Stubs ersetzt (k3s: v1.99.0+k3s1, sealed-secrets: 9.1.0, cert-manager: v9.2.0, longhorn: 9.3.0)
-- **WHEN** `bash scripts/discover-versions.sh` ohne Flags ausgeführt wird
-- **THEN** liefert Exit-Code 0 und die Ausgabe enthält alle vier Versionen — kein `flux:`-Eintrag
+#### Scenario: Dry-Run gibt alle Pflicht-Versionen aus *(BATS)*
+
+- **GIVEN** `curl` and `helm` are replaced by stubs (k3s: v1.99.0+k3s1,
+  sealed-secrets: 9.1.0, cert-manager: v9.2.0, longhorn: 9.3.0)
+- **WHEN** `bash scripts/discover-versions.sh` runs without flags
+- **THEN** exit code is 0 and the output contains all four versions
 
 #### Scenario: Dry-Run schreibt keine Datei *(BATS)*
-- **GIVEN** Stubs für `curl` und `helm` sind aktiv
-- **WHEN** `bash scripts/discover-versions.sh` ohne `--update` ausgeführt wird
-- **THEN** liefert Exit-Code 0 und keine `versions.yaml`-Datei wird erstellt
+
+- **GIVEN** stubs for `curl` and `helm` are active
+- **WHEN** `bash scripts/discover-versions.sh` runs without `--update`
+- **THEN** exit code is 0 and no `versions.yaml` file is created
 
 #### Scenario: --update schreibt versions.yaml mit allen Pflicht-Keys *(BATS)*
-- **GIVEN** Stubs für `curl` und `helm` sind aktiv
-- **WHEN** `bash scripts/discover-versions.sh --update --versions-file <pfad>` ausgeführt wird
-- **THEN** liefert Exit-Code 0, die Datei enthält `k3s:`, `sealed_secrets_chart:`, `cert_manager:`, `longhorn_chart:` — aber keinen `flux:`-Key
 
-#### Scenario: --update schreibt korrekte Werte in versions.yaml *(BATS)*
-- **GIVEN** Stubs liefern k3s v1.99.0+k3s1 und longhorn 9.3.0
-- **WHEN** `bash scripts/discover-versions.sh --update --versions-file <pfad>` ausgeführt wird
-- **THEN** enthält die Datei `k3s: v1.99.0+k3s1` und `longhorn_chart: 9.3.0`
-
-#### Scenario: versions.yaml hat managed-by-Kommentar auf erster Zeile *(BATS)*
-- **GIVEN** `--update` wurde ausgeführt
-- **WHEN** die erste Zeile von `versions.yaml` gelesen wird
-- **THEN** enthält sie "discover-versions.sh" — Maschinen-generiert, kein manuelles Editieren vorgesehen
-
-#### Scenario: Leerer tag_name aus curl führt zu Exit-Code ≠ 0 mit ERROR *(BATS)*
-- **GIVEN** `curl` gibt `{"tag_name":""}` zurück
-- **WHEN** `bash scripts/discover-versions.sh` ausgeführt wird
-- **THEN** liefert Exit-Code ≠ 0 und die Ausgabe enthält "ERROR"
-
----
+- **GIVEN** stubs for `curl` and `helm` are active
+- **WHEN** `bash scripts/discover-versions.sh --update --versions-file <path>` runs
+- **THEN** exit code is 0 and the file contains `k3s:`, `sealed_secrets_chart:`,
+  `cert_manager:`, and `longhorn_chart:`
+- **AND** an optional `flux:` key, whether present or absent, does not cause a
+  non-zero exit
 
 ### Requirement: Produktions-Deployment-Struktur (NFA-08)
 <!-- e2e: nfa-08-production-deploy.spec.ts -->
@@ -1577,3 +1601,5 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (676e3b2c8ba6) -->
 
 <!-- merged from change delta ci-cd.md (df050d9283fb) -->
+
+<!-- merged from change delta ci-cd.md (c5497ce75162) -->

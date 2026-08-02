@@ -903,8 +903,8 @@
   ],
   "T001611": [
     {
-      "slug": "harness-workflow-split",
-      "status": "plan_staged"
+      "slug": "2026-08-02-harness-workflow-split",
+      "status": "archived"
     }
   ],
   "T001612": [
@@ -1075,8 +1075,8 @@
   ],
   "T001853": [
     {
-      "slug": "k3d-dev-drift",
-      "status": "plan_staged"
+      "slug": "2026-08-02-k3d-dev-drift",
+      "status": "archived"
     }
   ],
   "T001858": [
@@ -1321,8 +1321,8 @@
   ],
   "T002083": [
     {
-      "slug": "fluxcd-gitops",
-      "status": "plan_staged"
+      "slug": "2026-08-02-fluxcd-gitops",
+      "status": "archived"
     }
   ],
   "T002094": [
@@ -1357,8 +1357,8 @@
   ],
   "T002107": [
     {
-      "slug": "health-goals-scan-streamline",
-      "status": "plan_staged"
+      "slug": "2026-08-02-health-goals-scan-streamline",
+      "status": "archived"
     }
   ],
   "T002110": [
@@ -1369,8 +1369,8 @@
   ],
   "T002127": [
     {
-      "slug": "fix-flux-render-envsubst",
-      "status": "plan_staged"
+      "slug": "2026-08-02-fix-flux-render-envsubst",
+      "status": "archived"
     }
   ],
   "T002128": [
@@ -1387,8 +1387,8 @@
   ],
   "T002130": [
     {
-      "slug": "fix-phase-event-whitelist",
-      "status": "plan_staged"
+      "slug": "2026-08-02-fix-phase-event-whitelist",
+      "status": "archived"
     }
   ],
   "T002137": [
@@ -1573,8 +1573,8 @@
   ],
   "T002209": [
     {
-      "slug": "flux-render-image-tag",
-      "status": "plan_staged"
+      "slug": "2026-08-02-flux-render-image-tag",
+      "status": "archived"
     }
   ],
   "T002214": [
@@ -1711,8 +1711,8 @@
   ],
   "T002288": [
     {
-      "slug": "llm-start-port-cleanup",
-      "status": "plan_staged"
+      "slug": "2026-08-02-llm-start-port-cleanup",
+      "status": "archived"
     }
   ],
   "T002291": [
@@ -1729,8 +1729,8 @@
   ],
   "T002300": [
     {
-      "slug": "mcp-registry-ssot",
-      "status": "plan_staged"
+      "slug": "2026-08-02-mcp-registry-ssot",
+      "status": "archived"
     }
   ],
   "T002301": [
@@ -1825,8 +1825,8 @@
   ],
   "T002336": [
     {
-      "slug": "llm-proxy-readiness",
-      "status": "plan_staged"
+      "slug": "2026-08-02-llm-proxy-readiness",
+      "status": "archived"
     }
   ],
   "T002339": [
@@ -2149,8 +2149,8 @@
   ],
   "T002459": [
     {
-      "slug": "llama-stack",
-      "status": "plan_staged"
+      "slug": "2026-08-02-llama-stack",
+      "status": "archived"
     }
   ],
   "T002462": [
@@ -2183,8 +2183,8 @@
   ],
   "T002467": [
     {
-      "slug": "k8-headed-tests",
-      "status": "plan_staged"
+      "slug": "2026-08-02-k8-headed-tests",
+      "status": "archived"
     }
   ],
   "T002468": [
@@ -2225,8 +2225,8 @@
   ],
   "T002494": [
     {
-      "slug": "gate-agentic01-unresolved-tools",
-      "status": "plan_staged"
+      "slug": "2026-08-02-gate-agentic01-unresolved-tools",
+      "status": "archived"
     }
   ],
   "T002495": [
@@ -2291,8 +2291,8 @@
   ],
   "T002537": [
     {
-      "slug": "ingest-llm-argv-anchor",
-      "status": "plan_staged"
+      "slug": "2026-08-02-ingest-llm-argv-anchor",
+      "status": "archived"
     }
   ],
   "T002540": [

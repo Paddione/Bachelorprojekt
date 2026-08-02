@@ -92,6 +92,69 @@ Format: Slug, Charge, betroffene SSOT-Spec, Fehlermeldung im Wortlaut.
   archiviert; der Rest der Charge wurde regulär ausgeliefert. Reparatur (Delta ausformulieren)
   folgt in einem eigenen PR gemäß Task 5.5 des Plans.
 
+## fix-ticket-tracking-T002279
+
+- **Charge**: 3
+- **SSOT-Spec**: `openspec/specs/fix-ticket-tracking-T002279.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: fix-ticket-tracking-T002279.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub, analog zu den Fällen aus Charge 1/2. Der Change
+  wurde von Charge 3 zurückgestellt und nicht archiviert; der Rest der Charge wurde regulär
+  ausgeliefert. Reparatur (Delta ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des
+  Plans.
+
+## g-db01-fk-index-remediation
+
+- **Charge**: 3
+- **SSOT-Spec**: n/a (`--create-new` verweigert)
+- **Fehlermeldung**: `ERROR: Refusing to create one-off spec 'g-db01-fk-indexes.md' (ticket/gate slug pattern). Use --target-spec <parent> to fold it into an existing component, or --force-new-component to override.`
+- **Befund**: Dritte Guard-Variante (zusätzlich zu den bekannten zwei aus Charge 1/2):
+  `scripts/openspec.sh archive` verweigert `--create-new` für einen Slug, der als
+  Ticket-/Gate-Kürzel erkannt wird, statt eine eigene SSOT-Komponente daraus zu machen. Der
+  Change wurde von Charge 3 zurückgestellt und nicht archiviert (kein `mv` erfolgt, Zustand
+  unverändert); der Rest der Charge wurde regulär ausgeliefert. Reparatur (`--target-spec
+  <parent>` oder `--force-new-component` wählen) folgt in einem eigenen PR gemäß Task 5.5 des
+  Plans.
+
+## k3d-kustomization-T002349
+
+- **Charge**: 3
+- **SSOT-Spec**: `openspec/specs/k3d-kustomization-T002349.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: k3d-kustomization-T002349.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub, analog zu den Fällen aus Charge 1/2. Der Change
+  wurde von Charge 3 zurückgestellt und nicht archiviert; der Rest der Charge wurde regulär
+  ausgeliefert. Reparatur (Delta ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des
+  Plans.
+
+## llamacpp-embed-rerank
+
+- **Charge**: 3
+- **SSOT-Spec**: `openspec/specs/llm-pipeline.md`
+- **Fehlermeldung**: `ERROR: llm-pipeline.md: MODIFIED target 'LLM-Router Strict-Fail bei Embedding-Ausfall (E2E)' not found in llm-pipeline.md`
+- **Befund**: Das Delta-`MODIFIED`-Ziel existiert in der aktuellen SSOT `llm-pipeline.md` nicht
+  (mehr). Der Change wurde von Charge 3 zurückgestellt und nicht archiviert; der Rest der Charge
+  wurde regulär ausgeliefert. Reparatur (Delta-Fix, nicht SSOT-Direktedit) folgt in einem eigenen
+  PR gemäß Task 5.5 des Plans.
+
+## mcp-gateway-watchdog
+
+- **Charge**: 3
+- **SSOT-Spec**: `openspec/specs/mcp-gateway.md`
+- **Fehlermeldung**: `ERROR: mcp-gateway.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub (diesmal in der SSOT selbst, nicht im Delta). Der
+  Change wurde von Charge 3 zurückgestellt und nicht archiviert; der Rest der Charge wurde
+  regulär ausgeliefert. Reparatur (Delta/SSOT ausformulieren) folgt in einem eigenen PR gemäß
+  Task 5.5 des Plans.
+
+## micro-spec-consolidation
+
+- **Charge**: 3
+- **SSOT-Spec**: `openspec/specs/micro-spec-consolidation.md` (neu, `--create-new`)
+- **Fehlermeldung**: `ERROR: micro-spec-consolidation.md: contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving`
+- **Befund**: Unbearbeiteter Skeleton-Stub, analog zu den Fällen aus Charge 1/2. Der Change
+  wurde von Charge 3 zurückgestellt und nicht archiviert; der Rest der Charge wurde regulär
+  ausgeliefert. Reparatur (Delta ausformulieren) folgt in einem eigenen PR gemäß Task 5.5 des
+  Plans.
+
 ## factory-slot-sandbox
 
 - **Charge**: 2

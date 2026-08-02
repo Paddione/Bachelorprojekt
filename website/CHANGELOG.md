@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.239.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.239.1...website-v1.239.2) (2026-08-02)
+
+
+### Bug Fixes
+
+* **factory:** repariere Heredoc-Substitution in mishap-rollup.sh [T002566] ([#3684](https://github.com/Paddione/Bachelorprojekt/issues/3684)) ([753441b](https://github.com/Paddione/Bachelorprojekt/commit/753441b9355196cab29840306b90c01dcdebca2c))
+* **scripts:** Scenario-Ratchet auch auf Delta-Specs anwenden [T002567] ([#3687](https://github.com/Paddione/Bachelorprojekt/issues/3687)) ([3747798](https://github.com/Paddione/Bachelorprojekt/commit/3747798ef84f075d1d156f39f59e0fab12ff27a3))
+
 ## [1.239.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.239.0...website-v1.239.1) (2026-08-02)
 
 

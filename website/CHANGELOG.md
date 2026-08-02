@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.238.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.1...website-v1.238.2) (2026-08-02)
+
+
+### Bug Fixes
+
+* **ops:** openspec-embed --count-skipped — Übersprungene Dokumente zählbar machen [T002546] ([#3651](https://github.com/Paddione/Bachelorprojekt/issues/3651)) ([0a4c92e](https://github.com/Paddione/Bachelorprojekt/commit/0a4c92e86365d1a9916af4ea980c7769a9b2eb20))
+
 ## [1.238.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.0...website-v1.238.1) (2026-08-02)
 
 

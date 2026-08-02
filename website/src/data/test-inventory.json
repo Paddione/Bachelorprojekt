@@ -2190,6 +2190,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/worktrees-not-tracked",
+    "file": "tests/spec/ci-cd/worktrees-not-tracked.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "coaching-sessions-polish-guide",
     "file": "tests/spec/coaching-sessions-polish-guide.bats",
     "category": "coaching-sessions-polish-guide",

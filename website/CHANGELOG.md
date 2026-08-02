@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.238.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.4...website-v1.238.5) (2026-08-02)
+
+
+### Bug Fixes
+
+* **ops:** opencode durch den llm-proxy routen statt direkt auf :8091 [T002558] ([#3656](https://github.com/Paddione/Bachelorprojekt/issues/3656)) ([93a9c50](https://github.com/Paddione/Bachelorprojekt/commit/93a9c501f2d32e661d6a2c63578846f6aa0b903d))
+
 ## [1.238.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.238.3...website-v1.238.4) (2026-08-02)
 
 

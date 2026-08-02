@@ -232,12 +232,16 @@ clients:
 
   github-mcp:
     transport: stdio
-    command: npx
-    args:
-      - -y
-      - "@modelcontextprotocol/server-github"
-    env:
-      GITHUB_TOKEN: "{env:GITHUB_TOKEN}"
+    browser_endpoint: http://127.0.0.1:18235/mcp/github-mcp
+    # T002547: offizieller Go-Server github/github-mcp-server statt
+    # @modelcontextprotocol/server-github — letzteres ist bei npm als
+    # deprecated markiert ("Package no longer supported").
+    #
+    # Der Wrapper existiert aus zwei Gruenden, die beide nicht kosmetisch sind:
+    # er holt den Token zur LAUFZEIT per 'gh auth token' (kein Credential auf
+    # Platte), und er adressiert das Binary absolut, weil die llm-proxy-Unit
+    # PATH=/usr/local/bin:/usr/bin:/bin setzt und ~/.local/bin darin fehlt.
+    command: /home/patrick/Bachelorprojekt/scripts/llm/github-mcp-wrapper.sh
     bridge:
       url: http://127.0.0.1:18235/mcp/github-mcp
       bind: 127.0.0.1:18235

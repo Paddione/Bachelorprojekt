@@ -48,6 +48,21 @@ Restart=always
 RestartSec=5
 # Optionale Overrides (LLM_PROXY_PORT, DEEPSEEK_API_KEY, ...) - fehlt die Datei,
 # startet die Unit trotzdem (fuehrendes Minus).
+#
+# BGE_MCP_TOKEN gehoert hier hinein und ist NICHT optional [T002556]:
+# ensureUiConfigRendered() in runner.mjs braucht es, um die ui-config-file zu
+# erzeugen, auf die --ui-config-file zeigt. Fehlt es, scheitert das Rendern
+# still (best-effort, nur eine Logzeile) — aber llama-server bricht bei einem
+# --ui-config-file, das auf eine fehlende Datei zeigt, HART ab (Exit 1). Aus
+# "Komfortfunktion fehlt" wird dann "Modell startet nicht"; am 2026-08-02 stand
+# gemma26-factory deshalb rund zehn Minuten still.
+#
+# Den Wert nicht abtippen, sondern aus der bereits vorhandenen Quelle uebernehmen:
+#   mkdir -p ~/.config/llm-proxy && touch ~/.config/llm-proxy/proxy.env
+#   chmod 0600 ~/.config/llm-proxy/proxy.env
+#   grep '^BGE_MCP_TOKEN=' ~/.config/bge-mcp/server.env >> ~/.config/llm-proxy/proxy.env
+#
+# `task llm:proxy:install-service` warnt, wenn die Variable fehlt.
 EnvironmentFile=-%h/.config/llm-proxy/proxy.env
 
 [Install]

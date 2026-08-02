@@ -157,7 +157,7 @@ Das Modul rendert in den Speicher und vergleicht. Es bekommt bewusst keinen
 Schreibpfad: Ein Gate, das intern `sync` aufruft, prüft gegen sein eigenes
 Ergebnis und ist dauerhaft grün.
 
-## Task 6 — Live-Probe mit Merge-Semantik (p5)
+## Task 6 — Live-Probe mit Merge-Semantik (p5) - [x]
 
 `scripts/toolset/probe.mjs` ruft `tools/list` gegen jeden erreichbaren
 HTTP-MCP-Server und schreibt die Zählwerte nach

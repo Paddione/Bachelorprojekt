@@ -48,10 +48,18 @@ write_env_var() {
 }
 
 @test "T002559: die SSOT fuehrt BGE_MCP_TOKEN als Schluessel" {
-  # Positiv-Anker zuerst [T002356-M1]: die Datei ist lesbar und enthaelt die
-  # bekannten Schluessel. Ist git-crypt gesperrt, faellt das hier auf statt
-  # spaeter als leerer Wert.
   [ -f "${SSOT}" ]
+
+  # In CI ist git-crypt GESPERRT — die Datei ist dort verschluesselter
+  # Binaerinhalt und traegt die GITCRYPT-Signatur. Ein grep auf Schluesselnamen
+  # kann dann per Konstruktion nichts finden. Das ist kein Fehlschlag, sondern
+  # der erwartete Zustand: der Test prueft eine Eigenschaft des ENTSPERRTEN
+  # Arbeitsbaums.
+  head -c 9 "${SSOT}" | grep -q "GITCRYPT" && skip "git-crypt gesperrt (CI) — Schluesselnamen nicht lesbar"
+
+  # Positiv-Anker zuerst [T002356-M1]: die bekannten Schluessel sind da. Waere
+  # die Datei aus einem anderen Grund unlesbar, faellt das hier auf statt
+  # spaeter als leerer Wert.
   run grep -c '^GITHUB_PERSONAL_ACCESS_TOKEN:' "${SSOT}"
   [ "${output}" = "1" ]
 

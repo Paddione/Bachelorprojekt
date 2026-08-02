@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.240.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.239.3...website-v1.240.0) (2026-08-02)
+
+
+### Features
+
+* **mcp:** bge-mcp Client-Env-Check fuer BGE_MCP_TOKEN [T002504] ([#3678](https://github.com/Paddione/Bachelorprojekt/issues/3678)) ([a39de2d](https://github.com/Paddione/Bachelorprojekt/commit/a39de2d69b1f1458e9d4ecff539d1666493895a7))
+
 ## [1.239.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.239.2...website-v1.239.3) (2026-08-02)
 
 

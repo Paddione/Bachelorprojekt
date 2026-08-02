@@ -1,15 +1,23 @@
-# Tasks: K4 Brain-Wiki
+---
+title: "K4 Wiki"
+ticket_id: T002434
+domains: [docs]
+status: plan_staged
+file_locks: []
+shared_changes: false
+batch_id: null
+parent_feature: T002430
+depends_on_plans: []
+---
 
-| id | file | role | target_files | depends_on |
-|----|------|------|-------------|------------|
-| 1 | docs/brain/k4-brain-wiki.md | docs | docs/brain/k4-brain-wiki.md | — |
+# K4 Wiki
+
+_Ticket: T002434_
 
 ## Partials
 
-### 1 — Diagramm + Quellgruppen + Integration
+| id | file | role | target_files | depends_on |
+|----|------|------|-------------|------------|
+| 1 | tasks.d/p1-survey.md | spec | — | — |
+| 2 | tasks.d/p2-documentation.md | docs | — | 1 |
 
-**target_files:** `docs/brain/k4-brain-wiki.md`
-
-- Diagramm der Ingest-Pipeline
-- Quellgruppen-Tabelle mit Ist-Status (D3: was ist wirklich befüllt?)
-- Lesepfad-Integration: verbunden mit K1/K3 oder dritte Wissensinsel?

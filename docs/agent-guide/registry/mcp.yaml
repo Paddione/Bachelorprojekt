@@ -151,6 +151,7 @@ clients:
 
   mcp-task-runner:
     transport: stdio
+    browser_endpoint: http://127.0.0.1:18235/mcp/mcp-task-runner
     command: mcp-task-runner
     args:
       - --otel-endpoint
@@ -178,6 +179,7 @@ clients:
   # `task ticket-mcp:build` nach /usr/local/bin, analog mcp-task-runner.
   ticket-mcp:
     transport: stdio
+    browser_endpoint: http://127.0.0.1:18235/mcp/ticket-mcp
     command: ticket-mcp-go
     bridge:
       url: http://127.0.0.1:18235/mcp/ticket-mcp
@@ -203,6 +205,7 @@ clients:
   # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
   codebase-memory-mcp:
     transport: stdio
+    browser_endpoint: http://127.0.0.1:18235/mcp/codebase-memory-mcp
     command: /home/patrick/.local/bin/codebase-memory-mcp
     bridge:
       url: http://127.0.0.1:18235/mcp/codebase-memory-mcp

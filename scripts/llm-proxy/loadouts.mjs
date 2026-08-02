@@ -14,6 +14,8 @@ const LOADOUT_KEYS = new Set([
   // verhindert nur das Auslagern der Layer, NICHT die Allokation eines
   // CUDA-Kontexts (gemessen rund 600 MB je Prozess).
   'env',
+  // T002544: Vorschalten einer versionierten ui-config-file fuer llama.cpp WebUI
+  'uiConfigFile',
 ]);
 const ARG_KEYS = new Set([
   'ctx', 'ngl', 'parallel', 'cacheTypeK', 'cacheTypeV', 'loadMode',

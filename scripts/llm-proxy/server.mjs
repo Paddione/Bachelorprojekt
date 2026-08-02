@@ -11,6 +11,7 @@ import { scanModels, resolveModelPath } from './models.mjs';
 import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
 import { join } from 'node:path';
 import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
+import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
@@ -280,6 +281,13 @@ async function startLoadout(slug) {
   }
   if (loadout.args?.mmprojPath) {
     resolved.mmprojPath = doc.modelRoots.map(r => join(r.replace(/^~/, os.homedir()), loadout.args.mmprojPath)).find(existsSync) ?? null;
+  }
+  if (loadout.uiConfigFile) {
+    try {
+      generateUiConfigSeed({ outputPath: loadout.uiConfigFile.replace(/^~/, os.homedir()) });
+    } catch (err) {
+      console.error(`[loadout] Failed to generate uiConfigFile seed for ${slug}:`, err.message);
+    }
   }
   startUnit(loadout, modelPath, doc.defaults, LLAMA_BIN, resolved);
   if (!await waitHealthy(loadout.port, HEALTH_TIMEOUT_MS)) {

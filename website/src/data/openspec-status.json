@@ -2235,6 +2235,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002544": [
+    {
+      "slug": "ui-config-mcp-seed",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

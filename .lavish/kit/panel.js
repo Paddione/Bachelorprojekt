@@ -30,6 +30,8 @@ class Panel {
     this.observer = null;
     this.canvasData = null;
     this.isModified = false;
+    this.actionState = 'available';
+    this.unlockToggle = null;
   }
 
   init() {
@@ -53,6 +55,14 @@ class Panel {
 
     if (this.type === 'status' || this.type === 'strom') {
       this.refresh();
+    }
+
+    // D6 (K4): Mobile-Sperre greift nicht nur beim Umschalten, sondern auch,
+    // wenn die Seite bereits in Mobilgroesse GELADEN wird — und bei jedem
+    // nachfolgenden resize.
+    this.applyMobileLock();
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('resize', () => this.applyMobileLock());
     }
   }
 
@@ -99,10 +109,10 @@ class Panel {
 
   render(data) {
     if (!this.body) return;
-    
+
     // D13: No null/0/dash
     const content = this.type === 'strom' ? this.appendStrom(data) : this.renderContent(data);
-    
+
     if (content !== null) {
       this.body.innerHTML = '';
       this.body.appendChild(content);
@@ -140,6 +150,12 @@ class Panel {
 
   appendStrom(data) {
     if (!this.body) return null;
+
+    // K4-Audit (Task 8): der Lese-Endpunkt liefert { entries, fetchedAt }.
+    // fetchedAt wird DAUERHAFT angezeigt, nicht nur im Fehlerfall (D12).
+    const entries = Array.isArray(data) ? data : (data && Array.isArray(data.entries) ? data.entries : []);
+    const fetchedAt = data && !Array.isArray(data) ? data.fetchedAt : undefined;
+
     let list = this.body.lastElementChild;
     if (!list || list.tagName !== 'UL') {
       this.body.innerHTML = '';
@@ -147,22 +163,28 @@ class Panel {
       this.body.appendChild(ul);
       list = ul;
     }
-    
-    if (Array.isArray(data)) {
-      data.forEach(item => {
+
+    if (Array.isArray(entries)) {
+      // D3-Rail: eine Zeile mit der juengsten Aktion und ihrem Zeitstempel.
+      const visible = this.el.classList.contains('panel--rail') ? entries.slice(0, 1) : entries;
+      visible.forEach(item => {
         const li = document.createElement('li');
         li.textContent = Object.entries(item).map(([k, v]) => `${k}: ${v}`).join(' | ');
         list.appendChild(li);
       });
     }
-    
+
+    if (fetchedAt) {
+      let meta = this.body.querySelector('.panel__fetched-at');
+      if (!meta) {
+        meta = document.createElement('div');
+        meta.className = 'panel__fetched-at';
+        this.body.appendChild(meta);
+      }
+      meta.textContent = `Stand: ${fetchedAt}`;
+    }
+
     // Auto-scroll — aber nur, wenn der Nutzer ohnehin am Ende steht.
-    //
-    // [T002528] Die Bedingung wurde berechnet und dann nicht angewendet: es
-    // wurde bedingungslos nach unten gescrollt. Wer weiter oben im Log las,
-    // wurde bei jedem Update herausgerissen. Sichtbar geworden ist das, weil
-    // ESLint die Kit-Dateien seit dem Symlink-Umbau erfasst und `isAtBottom`
-    // als ungenutzt meldete.
     const isAtBottom =
       this.body.scrollHeight - this.body.scrollTop <= this.body.clientHeight + 100;
     if (isAtBottom) {
@@ -211,12 +233,65 @@ class Panel {
 
   resize(size) {
     this.el.className = `panel panel--${size}`;
-    if (size === 'fullscreen' && window.innerWidth <= 768) {
-      const actionBtns = this.el.querySelectorAll('.panel__action-btn');
-      actionBtns.forEach(btn => {
-        if (btn.dataset.irreversible) btn.disabled = true;
-      });
+    // D6: Die Sperre haengt nicht am Umschalten auf 'fullscreen', sondern an der
+    // aktuellen Darstellung — erneut pruefen.
+    this.applyMobileLock();
+  }
+
+  // D6: Mobile-Sperre. Nicht umkehrbare Aktionen (Klassifikation aus
+  // window.actionPolicy) werden bei mobiler oder Vollbild-Darstellung gesperrt,
+  // bis sie in dieser Sitzung bewusst freigeschaltet wurden. Gesperrte Knoepfe
+  // bleiben sichtbar (D4), sie werden deaktiviert und als gesperrt markiert.
+  applyMobileLock() {
+    if (!this.actions || !window.actionPolicy) return;
+    const unlockedThisSession =
+      typeof sessionStorage !== 'undefined'
+      && sessionStorage.getItem(`cockpit-unlock-${this.el.id}`) === '1';
+    const viewport = this.currentViewport();
+    const lockedButtons = [];
+
+    this.actions.querySelectorAll('[data-action]').forEach(btn => {
+      const action = btn.dataset.action;
+      const locked = window.actionPolicy.mobileLock(action, { viewport, unlockedThisSession });
+      btn.disabled = locked;
+      btn.classList.toggle('panel__action-btn--locked', locked);
+      if (locked) lockedButtons.push(btn);
+    });
+
+    this.renderUnlockToggle(lockedButtons.length > 0, unlockedThisSession);
+  }
+
+  currentViewport() {
+    const isMobileViewport =
+      typeof window !== 'undefined' && window.innerWidth <= 768;
+    if (isMobileViewport) return 'mobile';
+    if (this.el.classList.contains('panel--fullscreen')) return 'fullscreen';
+    return 'card';
+  }
+
+  renderUnlockToggle(anyLocked, unlockedThisSession) {
+    if (!this.actions) return;
+    if (!anyLocked) {
+      if (this.unlockToggle) {
+        this.unlockToggle.remove();
+        this.unlockToggle = null;
+      }
+      return;
     }
+    if (unlockedThisSession) return;
+    if (this.unlockToggle) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'panel__action-btn panel__unlock-btn';
+    btn.textContent = 'Freischalten';
+    btn.onclick = () => {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(`cockpit-unlock-${this.el.id}`, '1');
+      }
+      this.applyMobileLock();
+    };
+    this.actions.appendChild(btn);
+    this.unlockToggle = btn;
   }
 
   setContext(links) {
@@ -235,21 +310,64 @@ class Panel {
     }
   }
 
+  // D4: Vier Zustände. Der Zustand wird gegen window.actionPolicy.ACTION_STATES
+  // validiert (ungueltig → Fehler statt stiller Klasse), auf this.actionState
+  // gehalten und als data-action-state am Slot gespiegelt. `locked` bleibt
+  // SICHTBAR: Knoepfe werden deaktiviert und als gesperrt markiert, nicht
+  // ausgeblendet — sonst ist nicht unterscheidbar, ob eine Aktion fehlt oder
+  // nur nicht freigeschaltet ist.
   setActionState(state) {
+    if (!window.actionPolicy || !window.actionPolicy.ACTION_STATES.includes(state)) {
+      throw new Error(`setActionState: unknown action state '${state}'`);
+    }
+    this.actionState = state;
     if (!this.actions) return;
     this.actions.className = `panel__actions panel__actions--${state}`;
+    this.actions.dataset.actionState = state;
+    if (state === 'locked') {
+      this.actions.querySelectorAll('.panel__action-btn').forEach(btn => {
+        if (!btn.classList.contains('panel__unlock-btn')) btn.disabled = true;
+      });
+    } else {
+      // Re-enable, damit die D6-Mobile-Sperre (falls aktiv) neu bewertet wird.
+      this.applyMobileLock();
+    }
   }
 
-  confirmAction(label, target, callback) {
+  // D5: Gestufte Bestätigung. Die Entscheidung kommt aus
+  // window.actionPolicy.confirmationFor(action, target):
+  // - null            → keine Rückfrage, callback läuft direkt
+  // - {level:'simple'}→ schlichte Bestätigen/Abbrechen-Rückfrage
+  // - {level:'named'} → Rückfrage, die das konkrete Ziel nennt
+  //
+  // K4-Defekt 1: kein blinder setTimeout — der callback gibt ein Promise
+  // zurueck, der Zustand wechselt erst nach dessen Aufloesung.
+  confirmAction(action, target, callback) {
     if (!this.actions) return;
+    const decision = window.actionPolicy.confirmationFor(action, target);
+
+    const run = async () => {
+      this.setActionState('running');
+      try {
+        await callback();
+        this.setActionState('available');
+      } catch (e) {
+        this.setActionState('available');
+        this.showActionError(e);
+      }
+    };
+
+    if (decision === null) {
+      run();
+      return;
+    }
+
     this.setActionState('confirming');
-    
+
     const confirmBtn = document.createElement('button');
     confirmBtn.textContent = 'Bestätigen';
     confirmBtn.onclick = () => {
-      this.setActionState('running');
-      callback();
-      setTimeout(() => this.setActionState('available'), 2000);
+      run();
     };
 
     const cancelBtn = document.createElement('button');
@@ -258,12 +376,27 @@ class Panel {
 
     const confirmText = document.createElement('span');
     confirmText.className = 'panel__confirm-target';
-    confirmText.textContent = target;
+    if (decision.level === 'named') {
+      confirmText.textContent = decision.target;
+    } else {
+      confirmText.textContent = target ?? '';
+    }
 
     this.actions.innerHTML = '';
     this.actions.appendChild(confirmText);
     this.actions.appendChild(confirmBtn);
     this.actions.appendChild(cancelBtn);
+  }
+
+  showActionError(e) {
+    const msg = (e && e.message) || String(e);
+    let errorEl = this.actions && this.actions.querySelector('.panel__action-error');
+    if (!errorEl) {
+      errorEl = document.createElement('div');
+      errorEl.className = 'panel__action-error';
+      if (this.actions) this.actions.appendChild(errorEl);
+    }
+    errorEl.textContent = `Fehler: ${msg}`;
   }
 }
 

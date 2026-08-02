@@ -6,6 +6,7 @@
   <title>SDLC Cockpit Shell</title>
   <link rel="stylesheet" href="/cockpit/kit/tokens.css">
   <link rel="stylesheet" href="/cockpit/kit/panel.css">
+  <script src="/cockpit/kit/action-policy.js"></script>
   <script src="/cockpit/kit/panel.js"></script>
   <script src="/cockpit/kit/adapter.js"></script>
   <style>
@@ -95,6 +96,19 @@
         </div>
         <div class="panel__context"></div>
       </div>
+
+      <div class="panel panel--rail" data-panel-type="strom" data-source="audit" data-refresh-interval="30000" id="panel-audit-rail">
+        <div class="panel__head">
+          <span class="panel__title">Audit-Log</span>
+          <span class="panel__type-badge" data-panel-type="strom"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-audit-rail').refresh()">Aktualisieren</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
     </aside>
 
     <!-- WORKSPACE — 2 card + 2 fullscreen panels -->
@@ -138,6 +152,20 @@
         <div class="panel__actions panel__actions--available">
           <button class="panel__action-btn" onclick="Panel.registry.get('panel-factory-log').refresh()">Neu laden</button>
           <button class="panel__action-btn panel__close-btn" onclick="Panel.registry.get('panel-factory-log').resize('card')">×</button>
+        </div>
+        <div class="panel__context"></div>
+      </div>
+
+      <div class="panel panel--fullscreen" data-panel-type="strom" data-source="audit" data-refresh-interval="15000" id="panel-audit-log">
+        <div class="panel__head">
+          <span class="panel__title">Audit-Log (Strom)</span>
+          <span class="panel__type-badge" data-panel-type="strom"></span>
+          <span class="panel__staleness"></span>
+        </div>
+        <div class="panel__body"></div>
+        <div class="panel__actions panel__actions--available">
+          <button class="panel__action-btn" onclick="Panel.registry.get('panel-audit-log').refresh()">Neu laden</button>
+          <button class="panel__action-btn panel__close-btn" onclick="Panel.registry.get('panel-audit-log').resize('card')">×</button>
         </div>
         <div class="panel__context"></div>
       </div>

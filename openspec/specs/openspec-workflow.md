@@ -466,6 +466,115 @@ tripping the TODO cleanup gate (G-CQ05).
 - **THEN** its `## Purpose` section contains a German placeholder sentence
 - **AND** the sentence contains no `TODO` token
 
+### Requirement: Plan-Phase editiert nicht die SSOT
+
+The Plan-Phase SHALL NOT edit SSOT files under `openspec/specs/` directly. All
+requirements changes SHALL be written exclusively as delta files under
+`openspec/changes/<slug>/specs/`. The merge into the SSOT is the responsibility
+of the `archive` verb — if both the SSOT and the delta are edited, the delta
+marker is necessarily wrong (ADDED where MODIFIED is correct, or vice versa) and
+the error surfaces only at archive time, i.e. after the PR has already been merged.
+
+This rule SHALL be documented in `AGENTS.md` and/or the `opencode-flow-plan`
+SKILL.md so that automated planners and human operators alike are bound by it.
+
+#### Scenario: Plan-Phase produziert einen Change nur via Delta
+
+- **GIVEN** ein Plan wird für ein Feature ausgearbeitet, das bestehende
+  Requirements unter `openspec/specs/<parent>.md` ändert
+- **WHEN** die Plan-Phase läuft
+- **THEN** wird `openspec/changes/<slug>/specs/<parent>.md` mit den ADDED/
+  MODIFIED/REMOVED Markern geschrieben
+- **AND** `openspec/specs/<parent>.md` bleibt unverändert
+- **AND** die SSOT-Änderung erfolgt ausschließlich beim `archive`-Schritt
+
+### Requirement: Archive refuses an occupied destination
+
+`openspec.sh archive` SHALL refuse to run when the archive destination directory already exists, and SHALL do so BEFORE merging any delta into the SSOT. The refusal message SHALL name the occupied path.
+
+Rationale: the archive step ends in `mv "$dir" "$dest"`. When `$dest` already exists, `mv` moves the source *into* it — producing `changes/archive/<date>-<slug>/<slug>/` silently, with no error. Checking after the merge would leave the delta already applied to the SSOT and the run non-repeatable.
+
+#### Scenario: An existing archive destination blocks the run
+
+- **GIVEN** a change whose archive destination directory already exists
+- **WHEN** `openspec.sh archive <slug>` runs
+- **THEN** it exits non-zero naming the occupied destination
+- **AND** the source change directory is untouched
+- **AND** no nested destination-inside-destination directory is created
+
+#### Scenario: A free destination archives normally
+
+- **GIVEN** a change whose archive destination does not exist
+- **WHEN** `openspec.sh archive <slug>` runs
+- **THEN** the delta is merged into the SSOT spec
+- **AND** the source directory is moved to the archive
+- **AND** the command exits zero
+
+### Requirement: Half-archived changes are detectable and fail the gate
+
+The repository SHALL provide a check that reports any slug present both under `openspec/changes/<slug>/` and under `openspec/changes/archive/<date>-<slug>/`. The check SHALL exit non-zero when such a slug exists, and SHALL run as part of the fail-closed OpenSpec validation gate.
+
+Rationale: archiving is not atomic — it merges the delta, moves the directory and regenerates the status map in sequence — and its result can be committed only in part. Seven slugs sat in this half state from 2026-07-03 onward, carrying 16 requirements that had shipped but appeared in no SSOT spec. Nothing in CI could observe the condition.
+
+#### Scenario: A slug present in both places fails the check
+
+- **GIVEN** a slug that exists both as an open change and as an archive entry
+- **WHEN** the half-archive check runs
+- **THEN** it exits non-zero and names the slug together with both paths
+
+#### Scenario: A clean tree passes
+
+- **GIVEN** a tree where every slug is either open or archived, never both
+- **WHEN** the check runs
+- **THEN** it exits zero
+
+#### Scenario: The check gates OpenSpec validation
+
+- **GIVEN** the OpenSpec validation task
+- **WHEN** it runs
+- **THEN** the half-archive check runs as part of it, so the condition fails CI rather than accumulating unnoticed
+
+### Requirement: applyDelta erkennt Merges eindeutig anhand des Delta-Inhalts, nicht anhand von Dateiname und Datum
+
+The system SHALL den Merge-Marker (`<!-- merged from change delta … -->`) aus einem
+Inhalts-Hash der Delta-Datei ableiten, statt aus `basename(deltaPath)` und dem
+Kalenderdatum. Zwei unterschiedliche Delta-Dateien mit demselben Dateinamen (die
+Parent-SSOT-Slug-Konvention benennt alle Deltas gegen dasselbe SSOT-Ziel identisch)
+SHALL unabhängig voneinander gemerged werden, auch wenn sie am selben Kalendertag
+angewendet werden. Ein erneutes Anwenden derselben (byte-identischen) Delta-Datei
+SHALL weiterhin als bereits gemergt übersprungen werden (idempotent).
+
+#### Scenario: Zwei unterschiedliche Deltas mit identischem Dateinamen werden beide gemerged
+
+- **GIVEN** zwei Delta-Dateien mit demselben Basisnamen (z.B. `openspec-workflow.md`),
+  aber unterschiedlichem Inhalt, beide gegen dasselbe SSOT gerichtet
+- **WHEN** beide am selben Kalendertag nacheinander per `applyDelta()` angewendet werden
+- **THEN** enthält die SSOT-Datei danach die Requirements aus beiden Deltas
+
+#### Scenario: Erneutes Anwenden derselben Delta-Datei ist ein No-op
+
+- **GIVEN** eine Delta-Datei wurde bereits erfolgreich gemergt
+- **WHEN** `applyDelta()` erneut mit derselben (byte-identischen) Delta-Datei gegen
+  dieselbe SSOT-Datei aufgerufen wird
+- **THEN** meldet der Befehl `skip (already merged): <deltaName>` und ändert die
+  SSOT-Datei nicht
+
+### Requirement: applyDelta verweigert ADDED-Requirements mit bereits existierendem Namen
+
+The system SHALL, wenn ein `## ADDED Requirements`-Eintrag einen Requirement-Namen
+trägt, der in der Ziel-SSOT-Datei bereits existiert, den Merge fail-closed abbrechen
+(Exit-Code ungleich 0), analog zum bestehenden Verhalten bei `MODIFIED`/`REMOVED`/
+`RENAMED` gegen einen fehlenden Namen.
+
+#### Scenario: ADDED mit bereits existierendem Requirement-Namen schlägt fehl
+
+- **GIVEN** die SSOT-Datei enthält bereits `### Requirement: Block A`
+- **WHEN** ein Delta mit `## ADDED Requirements` und `### Requirement: Block A`
+  gegen dieselbe SSOT-Datei angewendet wird
+- **THEN** bricht `applyDelta()` mit einer Fehlermeldung ab, die auf `MODIFIED` als
+  Alternative verweist
+- **AND** die SSOT-Datei bleibt unverändert
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1030,3 +1139,9 @@ The system SHALL set the environment variable `OPENSPEC_TELEMETRY=0` in every wo
 <!-- merged from change delta openspec-workflow.md on 2026-07-02 -->
 
 <!-- merged from change delta openspec-workflow.md (3f6f031c1866) -->
+
+<!-- merged from change delta openspec-workflow.md (8a5e3947f0f9) -->
+
+<!-- merged from change delta openspec-workflow.md (d103c6060f99) -->
+
+<!-- merged from change delta openspec-workflow.md (74f7c7515c21) -->

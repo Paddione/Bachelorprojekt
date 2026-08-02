@@ -5,6 +5,10 @@
 # AGENT_LOCK_FETCH_TTL.
 set -uo pipefail
 
+# [T002571] Der Heartbeat-Vergleich unten ist `-ge`, nicht `-gt`: die Zeitbasis ist
+# sekundengenau, also hiesse `-gt 0` faktisch "TTL 1s" statt "keine Toleranz".
+# Genau daran war T002448-M8 zu ~50% flaky — fielen claim und reap in dieselbe
+# Sekunde, ueberlebte der Lock. Bei Default 1800 ist der Unterschied wirkungslos.
 AGENT_LOCK_TTL="${AGENT_LOCK_TTL:-1800}"
 AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 # [T002502] cmd_reap-Fetch (pre-claim reap bei JEDEM claim) max 1x pro TTL-Fenster:
@@ -122,7 +126,7 @@ _reapable() {
   if [ -n "$sid" ] && _sid_alive "$sid"; then
     # [T002392-M3] Heartbeat-TTL-Check auch bei lebendiger SID: non-numeric UUIDs
     # gelten immer als "alive" — ein alter Heartbeat zeigt aber einen toten Halter.
-    if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
+    if [ -n "$hb" ] && [ "$(( now - hb ))" -ge "$AGENT_LOCK_TTL" ]; then
       _reap_log "$f" heartbeat-ttl; return 0
     fi
     return 1
@@ -139,7 +143,7 @@ _reapable() {
     local wt_branch
     wt_branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null)"
     if [ -n "$wt_branch" ] && [ "$wt_branch" = "$br" ]; then
-      if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then
+      if [ -n "$hb" ] && [ "$(( now - hb ))" -ge "$AGENT_LOCK_TTL" ]; then
         _reap_log "$f" heartbeat-ttl; return 0
       fi
       return 1
@@ -167,7 +171,7 @@ _reapable() {
       _reap_log "$f" sid-dead; return 0
     fi
   fi
-  if [ -n "$hb" ] && [ "$(( now - hb ))" -gt "$AGENT_LOCK_TTL" ]; then _reap_log "$f" heartbeat-ttl; return 0; fi
+  if [ -n "$hb" ] && [ "$(( now - hb ))" -ge "$AGENT_LOCK_TTL" ]; then _reap_log "$f" heartbeat-ttl; return 0; fi
   return 1
 }
 

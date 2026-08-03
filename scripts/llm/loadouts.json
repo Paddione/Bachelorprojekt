@@ -199,8 +199,8 @@
       "port": 8092,
       "fit": {
         "enabled": true,
-        "targetMarginMib": 128,
-        "minCtx": 65536
+        "targetMarginMib": 8192,
+        "minCtx": 8192
       },
       "args": {
         "ctx": null,

@@ -158,12 +158,17 @@ and SHALL advisory-warn if no ticket tag `[T000XXX]` is present.
 ### Requirement: Squash-Auto-Merge
 
 The system SHALL automatically enable squash-auto-merge on every non-draft PR against `main`
-as soon as it is opened or made ready for review, so that the PR merges itself once all
-required checks pass and branch protection is satisfied.
+that does **not** carry the `dependencies` label, as soon as it is opened or made ready for
+review, so that the PR merges itself once all required checks pass and branch protection is
+satisfied. PRs carrying the `dependencies` label are excluded because Renovate manages their
+auto-merge itself via `platformAutomerge`, gated by the staged policy in `renovate.json5`
+(`patch` and `devDependencies` only). Without this exclusion the blanket auto-merge would
+override that policy — `main` requires no reviews, so a `major` or production `minor` bump would
+merge unreviewed and reach both production brands through Flux reconciliation.
 
 #### Scenario: Auto-Merge wird bei PR-Öffnung aktiviert
 
-- **GIVEN** ein neuer nicht-Draft-PR gegen `main` wird geöffnet
+- **GIVEN** ein neuer nicht-Draft-PR gegen `main` ohne `dependencies`-Label wird geöffnet
 - **WHEN** der `auto-enable-automerge`-Workflow ausgelöst wird
 - **THEN** setzt `gh pr merge --auto --squash --delete-branch` das Auto-Merge-Flag via PAT (nicht GITHUB_TOKEN)
 
@@ -173,7 +178,21 @@ required checks pass and branch protection is satisfied.
 - **WHEN** der `auto-enable-automerge`-Workflow prüft `github.event.pull_request.draft`
 - **THEN** überspringt der Job den `enable-automerge`-Schritt — kein Auto-Merge-Flag gesetzt
 
----
+#### Scenario: Renovate-PRs werden per Label ausgenommen
+
+- **GIVEN** Renovate öffnet einen PR und labelt ihn gemäß `renovate.json5` mit `dependencies`
+- **WHEN** der `auto-enable-automerge`-Workflow seine `if:`-Bedingung auswertet
+- **THEN** überspringt der Job den `enable-automerge`-Schritt
+- **AND** die Ausnahme greift label-basiert, nicht über `pull_request.user.login` — der App-Slug
+  hängt am frei gewählten App-Namen und wäre eine stille Bruchstelle beim Umbenennen
+
+#### Scenario: Renovate setzt Auto-Merge nur im Rahmen seiner Policy
+
+- **GIVEN** `platformAutomerge: true` ist in `renovate.json5` gesetzt
+- **WHEN** Renovate einen `patch`- oder `devDependencies`-PR öffnet
+- **THEN** aktiviert Renovate selbst das Auto-Merge-Flag
+- **AND** bei `major`, produktiven `minor`- oder kubernetes-`major`-Updates bleibt der PR als
+  offener Review-PR ohne Auto-Merge stehen
 
 ### Requirement: Post-Merge Ticket-Lifecycle und Manifest-Deploy
 
@@ -263,24 +282,10 @@ dependencies, authenticating via a **per-run minted GitHub App installation toke
 `GITHUB_TOKEN`, and never a statically stored installation token. Because a GitHub App
 installation token expires after one hour, the workflow SHALL mint a fresh token on every run
 using a SHA-pinned `actions/create-github-app-token` step whose `app-id` and `private-key`
-inputs read the long-lived secrets `RENOVATE_APP_ID` and `RENOVATE_APP_PRIVATE_KEY`. The App
-installation SHALL carry the `Workflows: write` permission in addition to Contents and
+inputs read the long-lived secrets `RENOVATE_APP_ID` and `RENOVATE_APP_PRIVATE_KEY`. The
+App installation SHALL carry the `Workflows: write` permission in addition to Contents and
 Pull requests, because the `github-actions` manager with `pinDigests: true` modifies files under
-`.github/workflows/`, and SHALL carry no permissions beyond those four (least privilege — the
-private key grants everything the App can do).
-
-The workflow SHALL additionally pass an explicit repository work list via
-`RENOVATE_REPOSITORIES: ${{ github.repository }}`. Self-hosted Renovate processes no repository
-without one: the run exits **successfully** while logging
-`WARN: No repositories found - did you want to run with flag --autodiscover?`, producing neither
-PRs nor a Dependency Dashboard issue. `renovatebot/github-action` does not forward
-`github.repository` on its own. An explicit list is REQUIRED over `RENOVATE_AUTODISCOVER` so the
-run stays deterministic regardless of how widely the GitHub App is installed.
-
-`renovate.json5` SHALL NOT use the deprecated `matchPackagePatterns` option; package matching
-SHALL use `matchPackageNames` with slash-wrapped regexes. It SHALL NOT carry rules for
-components the platform no longer runs — notably no Keycloak rule, since authentication migrated
-to Pocket ID and no `quay.io/keycloak` image remains in any manifest.
+`.github/workflows/`.
 
 #### Scenario: Renovate öffnet Dependency-Update-PR
 
@@ -295,27 +300,6 @@ to Pocket ID and no `quay.io/keycloak` image remains in any manifest.
 - **THEN** läuft ein SHA-gepinnter `actions/create-github-app-token`-Step vor dem Renovate-Step
 - **AND** `renovatebot/github-action` erhält den Token als `steps.<id>.outputs.token`
 - **AND** kein statisch hinterlegtes `secrets.RENOVATE_TOKEN` wird referenziert
-
-#### Scenario: Renovate bekommt eine explizite Repo-Arbeitsliste
-
-- **GIVEN** der Renovate-Step wird ausgeführt
-- **WHEN** seine `env`-Sektion ausgewertet wird
-- **THEN** enthält sie `RENOVATE_REPOSITORIES` mit `github.repository`
-- **AND** das Log enthält KEINE `No repositories found`-Warnung
-
-#### Scenario: Grüner Lauf ohne Arbeit gilt als Fehlschlag
-
-- **GIVEN** ein Renovate-Run endet mit `conclusion=success`
-- **WHEN** er dabei `WARN: No repositories found` geloggt hat
-- **THEN** ist die Abnahme NICHT erfüllt — ein grüner Exit-Code ist kein Nachweis, dass Renovate
-  gearbeitet hat; der Nachweis sind Update-PRs bzw. das Dependency-Dashboard-Issue
-
-#### Scenario: Config nutzt keine deprecated Matcher
-
-- **GIVEN** `renovate.json5`
-- **WHEN** Renovate sie einliest
-- **THEN** erscheint keine `Config needs migrating`-Warnung
-- **AND** die Datei enthält keinen `"matchPackagePatterns"`-Key und keine Keycloak-Regel
 
 #### Scenario: Fehlende App-Secrets sind als Ausfallursache erkennbar
 
@@ -562,6 +546,12 @@ running `git checkout --ours <file>` for each conflicting file during rebase, be
 files are regenerated by `freshness-regen.yml` after every main push and the PR-branch version
 is always stale relative to main.
 
+The `merge=ours` attribute SHALL be understood as a **local-only** resolution. GitHub does not
+execute custom merge drivers server-side, so the same artifacts that resolve silently during a
+local rebase still surface as a conflicting merge state on the PR. A locally clean merge tree
+therefore does NOT disprove a conflict reported by GitHub, and the two observations MUST NOT be
+treated as contradictory evidence.
+
 #### Scenario: Freshness-Regen erzeugt Rebase-Konflikt auf generiertem Artefakt
 
 - **GIVEN** ein PR committed `docs/generated/graph.json` neu und `freshness-regen.yml` hat nach dem letzten main-Push dieselbe Datei automatisch neu committet
@@ -575,7 +565,26 @@ is always stale relative to main.
 - **WHEN** `git rebase origin/main` auf einem Branch läuft, der mit einem Freshness-Regen-Commit konfligiert
 - **THEN** wendet Git den `merge=ours`-Driver aus `.gitattributes` automatisch an und löst den Konflikt zugunsten des PR-Branch auf — kein manueller `git checkout --ours` nötig
 
----
+#### Scenario: Derselbe Driver wirkt auf GitHub nicht — Phantom-Konflikt
+
+- **GIVEN** ein PR berührt eines der 21 in `.gitattributes` mit `merge=ours` markierten Artefakte,
+  und dasselbe Artefakt wurde auf `main` ebenfalls regeneriert
+- **WHEN** `git merge origin/main` lokal ohne Konflikt durchläuft, `gh pr view <N> --json mergeStateStatus`
+  aber `DIRTY` oder `CONFLICTING` meldet
+- **THEN** ist das kein Widerspruch und kein Fehler in `.gitattributes`: GitHub führt serverseitig
+  keine Custom-Merge-Driver aus und sieht einen gewöhnlichen Inhaltskonflikt
+- **AND** die Auflösung ist, den Branch auf `main` nachzuziehen und die Artefakte danach mit
+  `task freshness:regenerate` gegen den neuen Stand neu zu erzeugen
+
+#### Scenario: gh pr update-branch ist nicht in jeder CLI-Version vorhanden
+
+- **GIVEN** das Runbook nennt `gh pr update-branch <N>` als Weg, den PR-Branch nachzuziehen
+- **WHEN** eine `gh`-Version ohne dieses Subkommando aufgerufen wird (verifiziert mit 2.45.0)
+- **THEN** gibt der Aufruf die generische `gh pr`-Hilfe aus, ohne den Branch zu aktualisieren,
+  und muss durch den REST-Aufruf `PUT repos/{owner}/{repo}/pulls/{n}/update-branch` mit
+  `expected_head_sha` ersetzt werden
+- **AND** `expected_head_sha` stammt aus `gh pr view <N> --json headRefOid`, nicht aus einem
+  lokalen `git rev-parse HEAD` — der lokale Branch kann veraltet sein
 
 ### Requirement: E2E PR ist kein Required Check — Auto-Merge wird nicht blockiert
 
@@ -1869,3 +1878,7 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (6a5728424c67) -->
 
 <!-- merged from change delta ci-cd.md (f20a97e73854) -->
+
+<!-- merged from change delta ci-cd.md (bac1c7e638d2) -->
+
+<!-- merged from change delta ci-cd.md (fb1e7338c8d4) -->

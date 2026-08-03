@@ -453,3 +453,13 @@ argument vector.
 - **THEN** the vector contains none of these flags
 
 <!-- merged from change delta local-llm-proxy.md (f1c6036c6a3e) -->
+
+### Requirement: KV Cache Budget Calculator
+The platform SHALL include a parameterizable KV cache RAM/VRAM budget calculation utility (`scripts/llm/kv-budget.sh`).
+
+#### Scenario: Running KV budget calculator
+- GIVEN the `scripts/llm/kv-budget.sh` script is executed
+- WHEN passed model context and slot flags
+- THEN it outputs expected memory footprints for `-kvu` and `-no-kvu` configurations.
+
+<!-- merged from change delta local-llm-proxy.md (53200db2856c) -->

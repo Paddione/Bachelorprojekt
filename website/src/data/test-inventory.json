@@ -2850,6 +2850,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-ticket-links-evaluation",
+    "file": "tests/spec/openspec-ticket-links-evaluation.bats",
+    "category": "openspec-ticket-links-evaluation",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-upstream-cli",
     "file": "tests/spec/openspec-upstream-cli.bats",
     "category": "openspec-upstream-cli",

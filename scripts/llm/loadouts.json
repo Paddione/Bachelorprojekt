@@ -198,13 +198,13 @@
       "model": "gemma9/gemma-2-9b-it-Q4_K_M.gguf",
       "port": 8092,
       "fit": {
-        "enabled": true,
+        "enabled": false,
         "targetMarginMib": 128,
-        "minCtx": 65536
+        "minCtx": 98304
       },
       "args": {
         "ctx": 98304,
-        "ngl": null,
+        "ngl": 99,
         "parallel": 2,
         "cacheTypeK": "q4_0",
         "cacheTypeV": "q4_0",
@@ -224,7 +224,7 @@
       ],
       "exclusiveGroup": "chat-gpu",
       "tools": "read_file,file_glob_search,grep_search,write_file,edit_file,get_datetime,exec_shell_command",
-      "notes": "Fein-getuntes Gemma 2 9B (Q4_K_M, 5.4 GB) für Factory-Agenten. T002587. GROSSES KONTEXT-FENSTER: Ersatz für gemma26-Factory als Dispatch-Subagent (nicht mehr Gemma4 26B nutzen) — mehr als 15 Aufgaben pro Session, dafür KV q4_0 wie beim 26B-Agenten-Loadout (T002501-Messung dort: q4_0 bei fitt 256 = 99328 ctx / 166 tok/s, Kurzkontext-Probe zeichengenau). targetMarginMib 128 gewinnt Kontext gegenübe r 768. Gemessene ctx nach erstem Start in opencode agent-models.jsonc übernehmen. 2 Slots mit unified KV (-kvu)."
+      "notes": "Fein-getuntes Gemma 2 9B (Q4_K_M, 5.4 GB) für Factory-Agenten. T002587. GROSSES KONTEXT-FENSTER: Ersatz für gemma26-Factory als Dispatch-Subagent (nicht mehr Gemma4 26B nutzen) — mehr als 15 Aufgaben pro Session, dafür KV q4_0 wie beim 26B-Agenten-Loadout (T002501-Messung dort: q4_0 bei fitt 256 = 99328 ctx / 166 tok/s, Kurzkontext-Probe zeichengenau). targetMarginMib 128 gewinnt Kontext gegenüber 768. Gemessene ctx nach erstem Start in opencode agent-models.jsonc übernehmen. fit=false, weil -kvu den minCtx als Slot-Pool interpretiert und der gepinnte 98304-Wert stabil bleiben soll (T002599). 2 Slots mit unified KV (-kvu)."
     }
   ]
 }

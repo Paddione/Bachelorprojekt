@@ -102,7 +102,7 @@ enqueued ist — parallel zum Schreiben des nächsten Partials.
 > **Ab hier trägt jeder Datei-Tool-Pfad den Worktree-Präfix [T002357].** `cd` und
 > `worktree-create.sh` wirken nur auf Bash; Read/Write/Edit nehmen absolute Pfade und haben
 > keinerlei Bezug zum Bash-cwd. Ein Pfad, der vor der Worktree-Anlage korrekt war
-> (`<repo>/tests/spec/x.bats`), bleibt danach syntaktisch gültig und trifft still den
+> (`<repo>/tests/spec/<name>.bats`), bleibt danach syntaktisch gültig und trifft still den
 > Hauptcheckout — der Verstoß gegen "Mutierende Tasks nie im Hauptcheckout" fällt erst beim
 > `git status` auf (Mishap T002350, Ursprung T001880). Prüfbefehl bei Verdacht, im
 > Hauptcheckout auszuführen: `git -C <repo-root> status --porcelain` muss leer bleiben.
@@ -327,7 +327,7 @@ Der Brainstorming-Output informiert sowohl den failing Test (Schritt 3) als auch
 kein Test schreiben, bevor Root-Cause und Fix-Ansatz im Board geklärt sind.
 ### Schritt 3: Failing Test schreiben
 Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (PASS/FAIL rot-grün Prinzip). Dies ist eine **harte Voraussetzung** für den Fix-Pfad.
-**Wo:** In `tests/spec/<spec-slug>.bats` (Spec zu diesem Fix aus `openspec/specs/`), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<spec-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/software-factory.bats`).
+**Wo:** In `tests/spec/<spec-slug>.bats` (Spec zu diesem Fix aus `openspec/specs/`), nicht in eine neue `tests/local/FA-XY-*.bats` Ticket-Datei. Falls `tests/spec/<spec-slug>.bats` noch nicht existiert, anlegen (Vorlage: `tests/spec/software-factory/`).
 ### Schritt 4: Plan schreiben
 Rufe `superpowers:writing-plans` auf (Claude Code — built-in) oder führe die Plan-Schreib-Schritte
 direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; schreibe den Plan nach

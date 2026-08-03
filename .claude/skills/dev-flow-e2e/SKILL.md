@@ -192,7 +192,7 @@ cd tests/e2e/ && SKIP_DB_PURGE=1 WEBSITE_URL=https://web.mentolder.de ./node_mod
 
 **Explizit optional — kein Pflichtschritt, kein CI-Gate.** Headed-Läufe gegen die Live-Umgebung
 sind langsam und flakeanfällig; als Merge-Gate würden sie den Durchsatz senken statt die Qualität
-zu heben (siehe `openspec/specs/k8-headed-tests/spec.md`, REQ-k8-02). Diese Stufe läuft **nur
+zu heben (siehe `openspec/specs/e2e-test-infrastructure.md`, REQ-k8-02). Diese Stufe läuft **nur
 manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als required check.
 
 **Trigger:** `--headed` Flag beim Aufruf dieses Skills, oder Env `HEADED_VERIFY=true`.
@@ -206,13 +206,21 @@ manuell/agentisch**, nie automatisiert in `.github/workflows/ci.yml` oder als re
      specs/k8-headed-verify.spec.ts --headed --project website
    ```
 3. **Optional — Vision-gestützte Verifikation:** Screenshots aus dem Testlauf an den bereits
-   laufenden mmproj-Vision-Server (Port 8094, siehe `reference-bonsai-vision-server` Memory)
-   senden und die Antwort (UI-Elemente, Text, Positionierung korrekt?) ins Testergebnis
-   einbetten.
+   laufenden mmproj-Vision-Server senden und die Antwort (UI-Elemente, Text, Positionierung
+   korrekt?) ins Testergebnis einbetten. Port **8094** ist der bevorzugte dedizierte Endpunkt,
+   **8091** der Rückfall (das Loadout `gemma26-factory` führt `mmprojPath`). Wähle den
+   verfügbaren Endpunkt mit:
+   ```bash
+   curl -s -m 3 http://localhost:8094/v1/models >/dev/null && echo "8094 (dediziert)" \
+     || { curl -s -m 3 http://localhost:8091/v1/models >/dev/null && echo "8091 (Rueckfall)" \
+          || echo "kein Vision-Endpunkt — Punkt 3 ueberspringen"; }
+   ```
+   Ist kein Endpunkt erreichbar, überspringe Punkt 3 — die Verifikation bleibt optional und
+   blockiert den Ablauf nicht.
 4. **Kein Abbruch bei Fehler:** Diese Stufe informiert den Agenten, blockiert aber nicht den
    Merge- oder Deploy-Flow — sie läuft grundsätzlich erst nach Merge/Deploy (Schritt 8).
 
-Details/Architektur: `openspec/specs/k8-headed-tests/spec.md`.
+Details/Architektur: `openspec/specs/e2e-test-infrastructure.md` (REQ-k8-01…REQ-k8-04).
 
 ---
 

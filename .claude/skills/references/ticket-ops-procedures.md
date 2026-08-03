@@ -79,7 +79,7 @@ FROM tickets.tickets
 WHERE status NOT IN ('done','archived')
   -- [T002375-p6] E2E-Testdaten ausschliessen. T002348 tauchte im Triage auf und kostete
   -- eine volle Untersuchungsschleife — es war kein Fehler: Titel und Beschreibung stammen
-  -- woertlich aus tests/e2e/specs/fa-26-bug-report-form.spec.ts:45, und der
+  -- woertlich aus einer inzwischen geloeschten E2E-Testdatei (historischer Beleg), und der
   -- Marker-Mechanismus aus T001453 hatte korrekt gegriffen (is_test_data = true). Diese
   -- Query filterte ihn nur nicht, obwohl der Produktivcode es durchgaengig tut (siehe
   -- website/src/pages/api/admin/cockpit/container-count.ts:16).

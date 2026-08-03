@@ -68,7 +68,7 @@ fehlenden Fortsetzungsfähigkeit — mit dieser ist er wieder das, was er sein s
 ## Was davon testbar ist
 
 `tickets.factory_phase_events` ist in CI nicht erreichbar. Die Absicherung in
-`tests/spec/software-factory.bats` prüft deshalb **Struktur und Verzweigung** im
+`tests/spec/software-factory/` prüft deshalb **Struktur und Verzweigung** im
 Quelltext — Aufrufreihenfolge, Markerzeile, Exit-Code, Abwesenheit des `blocked`-Pfads
 im Fremdbesitz-Zweig, Unverändertheit von `queue.sh` — nicht den Datenbank-Roundtrip.
 Wer dort einen DB-Test sucht: es gibt keinen, und das ist Absicht.

@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.243.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.0...website-v1.243.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **ops:** Turn-Marker aus dem content von Non-Streaming-Antworten strippen [T002609] ([#3752](https://github.com/Paddione/Bachelorprojekt/issues/3752)) ([be6b564](https://github.com/Paddione/Bachelorprojekt/commit/be6b564eaf1a46d2e8b78ff7b0ecf7149eedeaac))
+* **skills:** tote Pfadverweise in Skills — Guard + Korrekturen [T002613] ([#3750](https://github.com/Paddione/Bachelorprojekt/issues/3750)) ([c65213d](https://github.com/Paddione/Bachelorprojekt/commit/c65213d28115d0f20eedb3c55d7a7b68e3a7e4e9))
+
+## [1.243.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.242.1...website-v1.243.0) (2026-08-03)
+
+
+### Features
+
+* **ops:** exclusiveGroup auch beim expliziten Loadout-Start pruefen [T002616] ([#3751](https://github.com/Paddione/Bachelorprojekt/issues/3751)) ([c50fd60](https://github.com/Paddione/Bachelorprojekt/commit/c50fd607bc1c711915f9524722a47ec82967a38c))
+
+
+### Bug Fixes
+
+* **ops:** bge Embedding/Reranking in allen Nutzungspfaden erreichbar [T002604] ([#3739](https://github.com/Paddione/Bachelorprojekt/issues/3739)) ([9e9efcf](https://github.com/Paddione/Bachelorprojekt/commit/9e9efcf933fb7b0f968b40ca794dbb38d0eb4bee))
+* **plans:** Designs in openspec/changes/&lt;slug&gt;/design.md verorten + Design-Location-Guard [T002611 T002612 T002613] ([198f669](https://github.com/Paddione/Bachelorprojekt/commit/198f66986d8893b5e3bcc7a94a4cd816af230409))
+
 ## [1.242.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.242.0...website-v1.242.1) (2026-08-03)
 
 

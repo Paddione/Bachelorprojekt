@@ -317,7 +317,7 @@ git branch -D "<branch>"
   Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` (die Spec zum Feature/Fix aus `openspec/specs/`).
   Reihenfolge:
   1. **Spec-Slug ermitteln:** Welche OpenSpec-Spec (`openspec/specs/*.md`) deckt das zu testende Verhalten ab?
-  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<spec-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/software-factory.bats`).
+  2. **Spec-File prüfen/anlegen:** Existiert `tests/spec/<spec-slug>.bats`? Falls ja → `@test`-Block einfügen. Falls nein → neue Datei anlegen (Vorlage: `tests/spec/software-factory/`).
   3. **Fallback:** Für übergreifende Tests ohne Spec-Zuordnung → passende Datei in `tests/unit/` erweitern.
   ```bash
   # Spec-Slug herausfinden:

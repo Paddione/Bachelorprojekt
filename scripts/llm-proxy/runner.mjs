@@ -76,11 +76,26 @@ export function buildServerArgv(loadout, modelPath, defaults, resolved = {}) {
   const mmproj = resolved.mmprojPath ?? a.mmprojPath ?? null;
   if (mmproj != null) argv.push('--mmproj', mmproj);
   const s = loadout.speculative ?? {};
+  // T002633: '--spec-type' MUSS gesetzt werden, sonst ist der ganze Block wirkungslos.
+  // llama.cpp b10225 hat den Default 'none'; ein uebergebenes '--spec-draft-model' wird
+  // dann geladen (belegt also VRAM) und nie benutzt. Bis hierher setzte der Runner nur
+  // '--spec-draft-model' — spekulatives Dekodieren war auf dem Proxy-Pfad also durchgehend
+  // aus, waehrend der '.ps1'-Pfad es korrekt mit '--spec-type draft-mtp' startete. Der
+  // Fehler ist still: kein Startabbruch, keine Logzeile.
+  //
+  // Gueltige Werte des Builds: none, draft-simple, draft-eagle3, draft-mtp, draft-dflash,
+  // draft-dspark, ngram-simple, ngram-map-k, ngram-map-k4v, ngram-mod, ngram-cache.
+  // Die 'ngram-*'-Varianten brauchen KEIN Draft-Modell, kosten also kein VRAM — auf einer
+  // 16-GB-Karte mit einem 12-GB-Modell die einzige Variante, die noch hineinpasst.
+  if (s.specType != null) argv.push('--spec-type', s.specType);
   // D2: local draft path beats HF repo
   const draftPath = resolved.draftModelPath ?? s.draftModelPath ?? null;
   if (draftPath != null) argv.push('--spec-draft-model', draftPath);
   else if (s.draftHfRepo != null) argv.push('--spec-draft-hf', s.draftHfRepo);
   if (s.draftNgl != null) argv.push('-ngld', String(s.draftNgl));
+  // Default des Builds ist 3; der Sweep vom 2026-07-27 (T002293) mass 4 als Optimum
+  // fuer den Gemma-MTP-Head. Explizit statt implizit, weil der Default versionsabhaengig ist.
+  if (s.draftNMax != null) argv.push('--spec-draft-n-max', String(s.draftNMax));
 
   if (loadout.mcp?.serversConfig != null) argv.push('--mcp-servers-config', loadout.mcp.serversConfig);
   if (loadout.uiConfigFile != null) argv.push('--ui-config-file', loadout.uiConfigFile);

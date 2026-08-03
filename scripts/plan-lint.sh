@@ -442,6 +442,46 @@ while IFS= read -r g; do warn "${g/G1:/G1: }"; done < <(awk '
   END{ if (started && n>3) print "G1:" task " touches " n " files" }
 ' "$PLAN")
 
+# === G2: task-count corridor — warn outside 3..7 tasks (warn only, T002593) ===
+# Rationale: the task count is a SYMPTOM, not a target. Below 3 the work is a chore
+# with no plan-worthy structure; above 7 the ticket carries more than one core and
+# belongs to an epic with children. Deliberately NOT a hard fail — a gate on a number
+# produces plans cut to hit the number instead of the invariant (one task = one
+# verifiable claim ending in a green, committable state).
+#
+# TWO heading conventions coexist in openspec/changes and both must count, or the
+# warning fires on plans that are perfectly well structured and is learned-ignored —
+# taking the neighbouring W3/W4/G1 warnings down with it:
+#   a) "## Task 1 ", "## Task 1:", "## Task 1.", "### Task: x"
+#   b) "## 1. <title>" — the OpenSpec skeleton default (17 of 95 plans on 2026-08-03)
+#   c) "## T1 — <title>"
+#   d) "- [ ] **Task 1: <title>**" — tasks as checklist items, not headings
+# `## Tasks` and `## Task List` are section headers, not tasks — hence the required
+# digit-or-colon after `Task` in (a).
+G2_TASK_RE='(^#+[[:space:]]+([0-9]+\.[[:space:]]|T[0-9]+[[:space:]]|Task([[:space:]]+[0-9]|:)))|(^-[[:space:]]+\[[[:space:]x]\][[:space:]]+\*{0,2}Task[[:space:]]+[0-9])'
+# Partial mode (T002074): tasks.md is only an index — the real tasks live in tasks.d/.
+# Counting the index alone would flag EVERY partial plan as "too few tasks".
+g2_count=$(grep -cE "$G2_TASK_RE" "$PLAN" || true)
+if [[ $PARTIAL_MODE -eq 1 ]]; then
+  for pf in "${PARTIAL_FILES[@]:-}"; do
+    [[ -f "$PLAN_DIR/$pf" ]] || continue
+    g2_count=$(( g2_count + $(grep -cE "$G2_TASK_RE" "$PLAN_DIR/$pf" || true) ))
+  done
+fi
+if [[ $g2_count -eq 0 ]]; then
+  # SILENT BY DESIGN: zero recognised tasks means "heading format not recognised",
+  # not "the plan has no tasks" — the repo carries at least four task conventions and
+  # a fifth would silently re-break the regex. Warning here produced 38 of 46 hits on
+  # 2026-08-03 (83% noise), and noise is not free: readers learn to skim the whole ⚠
+  # block and lose W3/W4/G1 with it. Structureless plans are already caught HARD by
+  # STRUCT2/STRUCT3, so nothing goes unnoticed.
+  :
+elif [[ $g2_count -lt 3 ]]; then
+  warn "G2: only $g2_count task(s) — below the 3..7 corridor; if there is no plan-worthy structure this is a chore (dev-flow-chore)"
+elif [[ $g2_count -gt 7 ]]; then
+  warn "G2: $g2_count tasks — above the 3..7 corridor; consider splitting the ticket into an epic with children instead of lengthening the plan"
+fi
+
 # === verdict ===
 # Pure-bash JSON string escaper (no python3 fork). Escapes \ and " and the few
 # control chars that can appear; valid UTF-8 (e.g. ≤) passes through unchanged.

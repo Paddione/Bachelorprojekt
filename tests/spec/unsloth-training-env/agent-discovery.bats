@@ -38,6 +38,23 @@ setup() {
   done
 }
 
+@test "agent-discovery: der Fast-Path ueberlebt eine gefaerbte task-Ausgabe (T002587)" {
+  # Regression: der Fast-Path parst `task --list-all` mit grep '^\* '. Faerbt task die
+  # Ausgabe, beginnt jede Zeile mit einem ANSI-Escape statt mit "* " — die Task-Liste ist
+  # dann STILL leer und jede gueltige Task meldet "Unknown task". GitHub Actions faerbt per
+  # Default, lokale Subshells nicht; genau deshalb war dieser Pfad in CI rot und lokal gruen.
+  #
+  # Positiv-Anker zuerst: ohne erzwungene Farbe loest die Task auf.
+  run bash "$REPO_ROOT/scripts/vda.sh" oracle --dry-run 'llm:status'
+  [ "$status" -eq 0 ]
+
+  # Kern: dasselbe unter erzwungener Farbe. Ohne NO_COLOR=1 im Oracle scheitert das mit
+  # exit 1 und "Unknown task".
+  FORCE_COLOR=1 run bash "$REPO_ROOT/scripts/vda.sh" oracle --dry-run 'llm:status'
+  [ "$status" -eq 0 ] || { echo "gefaerbte Ausgabe bricht den Fast-Path: $output" >&2; false; }
+  [[ "$output" == *"task llm:status"* ]]
+}
+
 @test "agent-discovery: toolset-context.sh gibt die Repo-Instanz fuer eine berechtigte Rolle aus" {
   # Positiv-Anker zuerst: die Rolle bekommt ueberhaupt einen Werkzeug-Block.
   run bash "$REPO_ROOT/scripts/toolset-context.sh" bachelorprojekt-ops

@@ -790,7 +790,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 51,
+      "file_count": 53,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -842,7 +842,9 @@
         "scripts/migrations/2026-07-27-llm-proxy-gemma-backend.sql",
         "scripts/migrations/2026-07-27-provider-fallback-cascade.sql",
         "scripts/migrations/2026-07-27-provider-health-integrity.sql",
-        "scripts/migrations/2026-07-28-schema-diaet-T002331.sql"
+        "scripts/migrations/2026-07-28-schema-diaet-T002331.sql",
+        "scripts/migrations/2026-08-03-llm-proxy-gptoss-devstral.sql",
+        "scripts/migrations/2026-08-03-retire-stale-model-ids.sql"
       ]
     },
     {
@@ -2605,7 +2607,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 505,
+      "file_count": 507,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -2616,6 +2618,8 @@
         ".opencode/hooks/session-start.sh",
         ".opencode/ocx.jsonc",
         ".opencode/opencode.jsonc",
+        ".opencode/package-lock.json",
+        ".opencode/package.json",
         ".opencode/plugins/background-agents.ts",
         ".opencode/plugins/kdco-primitives/cmux.ts",
         ".opencode/plugins/kdco-primitives/get-project-id.ts",
@@ -3118,7 +3122,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 643,
+      "file_count": 644,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3540,6 +3544,7 @@
         "scripts/llm-proxy/discovery.mjs",
         "scripts/llm-proxy/exclusive-conflict.test.mjs",
         "scripts/llm-proxy/fixups.mjs",
+        "scripts/llm-proxy/fixups.test.mjs",
         "scripts/llm-proxy/llm-proxy.service",
         "scripts/llm-proxy/loadouts.mjs",
         "scripts/llm-proxy/loadouts.test.mjs",

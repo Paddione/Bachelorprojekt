@@ -10,7 +10,11 @@ interactive_mode() {
 
   set +o pipefail
   local ALL_TASKS
-  ALL_TASKS=$(cd "$REPO" && task --list-all 2>/dev/null | grep '^\* ' | sed 's/^\* //')
+  # NO_COLOR=1 ist Pflicht, nicht Kosmetik: faerbt `task` die Liste, beginnt jede Zeile mit
+  # einem ANSI-Escape statt mit "* ", das grep findet nichts und die Task-Liste ist STILL leer.
+  # In GitHub Actions faerbt task per Default — der Fast-Path meldete dort fuer jede gueltige
+  # Task "Unknown task", waehrend er lokal (unfarbige Ausgabe) fehlerfrei lief [T002587].
+  ALL_TASKS=$(cd "$REPO" && NO_COLOR=1 task --list-all 2>/dev/null | grep '^\* ' | sed 's/^\* //')
   set -o pipefail
 
   if [[ -z "$ALL_TASKS" ]]; then
@@ -187,7 +191,8 @@ if [[ "$GOAL" =~ $FASTPATH_REGEX ]]; then
 
   # Validate task exists in the Taskfile
   set +o pipefail
-  VALID_FP=$(cd "$REPO_FP" && task --list-all 2>/dev/null \
+  # NO_COLOR=1: siehe Begruendung an der ALL_TASKS-Stelle oben [T002587].
+  VALID_FP=$(cd "$REPO_FP" && NO_COLOR=1 task --list-all 2>/dev/null \
     | grep '^\* ' | sed 's/^\* //' \
     | awk '{n=split($0,p,/:  +/); if(n>=2) print p[1]}')
   set -o pipefail
@@ -261,7 +266,8 @@ if local_llm_available; then
 
   # Full task list — no truncation
   set +o pipefail
-  ALL_TASKS=$(cd "$REPO" && task --list-all 2>/dev/null | grep '^\* ' | sed 's/^\* //')
+  # NO_COLOR=1: siehe Begruendung an der ersten ALL_TASKS-Stelle [T002587].
+  ALL_TASKS=$(cd "$REPO" && NO_COLOR=1 task --list-all 2>/dev/null | grep '^\* ' | sed 's/^\* //')
   set -o pipefail
 
   # ── Phase 1: namespace selection ──────────────────────────────────────

@@ -1471,8 +1471,8 @@
   ],
   "T002180": [
     {
-      "slug": "spec-security-gaps",
-      "status": "plan_staged"
+      "slug": "2026-08-03-spec-security-gaps",
+      "status": "archived"
     }
   ],
   "T002181": [
@@ -1987,8 +1987,8 @@
   ],
   "T002393": [
     {
-      "slug": "pipeline-divergence-T002393",
-      "status": "plan_staged"
+      "slug": "2026-08-03-pipeline-divergence-T002393",
+      "status": "archived"
     }
   ],
   "T002399": [
@@ -2143,8 +2143,8 @@
   ],
   "T002453": [
     {
-      "slug": "plan-partials-embedding",
-      "status": "plan_staged"
+      "slug": "2026-08-03-plan-partials-embedding",
+      "status": "archived"
     }
   ],
   "T002457": [

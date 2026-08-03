@@ -32,11 +32,13 @@ mentolder:
     - name: gekko-hetzner-2
       endpoint: "178.104.169.206:51821"
       wg_ip: "192.168.100.30"
-      # ACHTUNG: Der wg-Peer lebt (frischer Handshake), aber der Node ist am
-      # 2026-08-01 NICHT mehr Teil des fleet-Clusters — `kubectl get nodes` kennt
-      # ihn nicht, das CIDR ist keinem Node zugeordnet. Bis zur Klaerung bleibt
-      # der Eintrag stehen, damit der bestehende Tunnel unveraendert bleibt.
-      pod_cidr: "10.42.6.0/24"
+      # T002630: gekko-hetzner-2 ist (nach dem Rejoin) die Dev-Node des fleet-Clusters
+      # — Label + Taint role=dev:NoSchedule, ausschliesslich Dev-Workloads (workspace-dev).
+      # pod_cidr wird ERST nach dem Join auf den tatsaechlich zugewiesenen Wert gesetzt:
+      #   kubectl --context fleet get node gekko-hetzner-2 -o jsonpath='{.spec.podCIDR}'
+      # Der alte Wert 10.42.6.0/24 stammt aus der Zeit vor dem Herausfallen und kann
+      # inzwischen neu vergeben sein. Ein falscher pod_cidr in AllowedIPs laesst
+      # WireGuard die Pod-Pakete lautlos verwerfen (T002491).
       schema_key: WG_MESH_GEKKO2
       public_key: "iXnGP9bIwrofD6a96D5Fz5rM7smbIAc3gXJcUx5m6j0="
 

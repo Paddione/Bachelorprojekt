@@ -199,15 +199,15 @@
       "port": 8092,
       "fit": {
         "enabled": true,
-        "targetMarginMib": 768,
-        "minCtx": 32768
+        "targetMarginMib": 128,
+        "minCtx": 65536
       },
       "args": {
-        "ctx": null,
+        "ctx": 98304,
         "ngl": null,
         "parallel": 2,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
+        "cacheTypeK": "q4_0",
+        "cacheTypeV": "q4_0",
         "loadMode": "mmap",
         "flashAttention": true,
         "jinja": true,
@@ -216,11 +216,15 @@
       "speculative": {},
       "mcp": {},
       "extraArgs": [
-        "-kvu"
+        "-kvu",
+        "--override-kv",
+        "gemma2.context_length=int:98304",
+        "--chat-template-file",
+        "/home/patrick/Bachelorprojekt/scripts/llm/templates/gemma2-tools.jinja"
       ],
       "exclusiveGroup": "chat-gpu",
       "tools": "read_file,file_glob_search,grep_search,write_file,edit_file,get_datetime,exec_shell_command",
-      "notes": "Fein-getuntes Gemma 2 9B (Q4_K_M, 5.4 GB) für Factory-Agenten. T002587. q8_0 KV wegen ca. 10 GB VRAM-Headroom. 2 Slots mit unified KV (-kvu)."
+      "notes": "Fein-getuntes Gemma 2 9B (Q4_K_M, 5.4 GB) für Factory-Agenten. T002587. GROSSES KONTEXT-FENSTER: Ersatz für gemma26-Factory als Dispatch-Subagent (nicht mehr Gemma4 26B nutzen) — mehr als 15 Aufgaben pro Session, dafür KV q4_0 wie beim 26B-Agenten-Loadout (T002501-Messung dort: q4_0 bei fitt 256 = 99328 ctx / 166 tok/s, Kurzkontext-Probe zeichengenau). targetMarginMib 128 gewinnt Kontext gegenübe r 768. Gemessene ctx nach erstem Start in opencode agent-models.jsonc übernehmen. 2 Slots mit unified KV (-kvu)."
     }
   ]
 }

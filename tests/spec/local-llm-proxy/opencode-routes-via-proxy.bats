@@ -57,8 +57,20 @@ EOF"
   [ "${live}" != "null" ]
 
   # Der Wert im gemma26-Modelleintrag muss dem entsprechen. --fit entscheidet
-  # ihn zur Laufzeit; bei drei Slots fiel er von 99840 auf 88832, weil der
-  # geteilte Puffer fuer drei Sequenzen reichen muss.
+  # ihn zur Laufzeit aus dem zum Startzeitpunkt FREIEN VRAM; die RTX 5070 Ti
+  # teilt sich den Speicher mit dem Windows-Desktop, der freie Betrag schwankt
+  # also zwischen zwei Starts desselben Loadouts. Gemessen: 88832 bei 13792 MiB
+  # frei, 99328 bei mehr, 99840 bei einem Slot. Punktgleichheit ist damit
+  # strukturell nicht stabil gruen [T002585].
+  #
+  # Stattdessen wird ein Toleranzkorridor um den Live-Wert geprueft: declared
+  # muss innerhalb [live * 0.8, live * 1.2] liegen. Das modelliert die
+  # VRAM-Schwankung (88832-99840, ~±6 % um 94080) und faengt die
+  # n_ctx_train-Regression (262144 ≈ 2,6× live) weiterhin zuverlaessig. Die
+  # statische Zahl in agent-models.jsonc bleibt bewusst bestehen, weil opencode
+  # sie zur Laufzeit fuer Auto-Compact (fasst bei 95 % der Grenze zusammen)
+  # braucht — entfernt man sie, faellt opencode auf n_ctx_train zurueck und
+  # Auto-Compact wuerde viel zu spaet feuern.
   local declared
   declared="$(python3 -c "
 import re,sys
@@ -66,5 +78,13 @@ s=open('${AGENTS}').read()
 m=re.search(r'\"gemma26-factory\"\s*:\s*\{.*?\"context\"\s*:\s*(\d+)', s, re.S)
 print(m.group(1) if m else 'NONE')
 ")"
-  [ "${declared}" = "${live}" ]
+  [ "${declared}" != "NONE" ]
+  python3 -c "
+import sys
+declared = int('${declared}')
+live = int('${live}')
+lo = int(live * 0.8)
+hi = int(live * 1.2)
+sys.exit(0 if lo <= declared <= hi else 1)
+"
 }

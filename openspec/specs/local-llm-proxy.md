@@ -463,3 +463,91 @@ The platform SHALL include a parameterizable KV cache RAM/VRAM budget calculatio
 - THEN it outputs expected memory footprints for `-kvu` and `-no-kvu` configurations.
 
 <!-- merged from change delta local-llm-proxy.md (53200db2856c) -->
+
+### Requirement: Embed-Skript bietet einen zählenden Skip-Modus ohne Index-Änderung
+
+The system SHALL provide a `--count-skipped` mode in `scripts/openspec-embed.mjs` that counts
+skipped embeddings without modifying the index, reports the count and the reason separately
+(at minimum distinguishing context-overflow from everything else), and names
+`task openspec:embed:backfill` as the way to reduce the number.
+
+#### Scenario: --count-skipped zählt ohne den Index zu verändern
+
+- **GIVEN** der Embed-Index enthält übersprungene Dokumente
+- **WHEN** `scripts/openspec-embed.mjs --count-skipped` ausgeführt wird
+- **THEN** wird die Anzahl der übersprungenen Dokumente ausgegeben
+- **AND** der Index wird dabei nicht verändert
+
+#### Scenario: Zahl und Grund werden getrennt ausgewiesen
+
+- **GIVEN** Dokumente wurden aus unterschiedlichen Gründen übersprungen
+- **WHEN** `--count-skipped` läuft
+- **THEN** nennt die Ausgabe die Zahl je Grund getrennt (z. B. Kontextüberschreitung
+  gegenüber Parse-Fehler)
+- **AND** die Ausgabe nennt `task openspec:embed:backfill` als Weg, die Zahl abzubauen
+
+### Requirement: Embed-Wrapper meldet die Gesamtlage non-fatal
+
+The system SHALL have `scripts/openspec-embed-local.sh` report the overall skip situation
+after indexing, without blocking the commit when only the count is reported. The existing hard
+error path for a failed embedding SHALL remain unchanged.
+
+#### Scenario: Wrapper meldet die Gesamtlage nach dem Indizieren
+
+- **GIVEN** ein Commit löst den Embed-Wrapper aus
+- **WHEN** das Indizieren abgeschlossen ist
+- **THEN** gibt der Wrapper die Gesamtzahl der übersprungenen Dokumente aus
+- **AND** der Commit wird dadurch nicht blockiert
+
+#### Scenario: Fehlgeschlagenes Embedding bleibt ein harter Fehler
+
+- **GIVEN** ein Embedding schlägt tatsächlich fehl
+- **WHEN** der Wrapper läuft
+- **THEN** wird der bestehende harte Fehlerpfad ausgelöst
+- **AND** die Meldung unterscheidet diesen Fall von einer reinen Zählung
+
+<!-- merged from change delta local-llm-proxy.md (2b68aa820ab5) -->
+
+### Requirement: Agent-Modell- und Kontextangaben entsprechen dem geladenen Loadout
+
+The system SHALL configure the opencode subagents to match the actually loaded model and
+context size, so that the agent definitions do not name a model that is not loaded and do not
+promise a context size larger than what is available.
+
+#### Scenario: Agent-Definition nennt das geladene Modell
+
+- **GIVEN** `.opencode/agent-models.jsonc` verdrahtet die Subagenten
+- **WHEN** die Modell-Referenz gegen das geladene Loadout geprüft wird
+- **THEN** nennt die Definition das tatsächlich geladene Modell
+  (`gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf`)
+- **AND** keine Referenz auf das nicht geladene 12B-Modell ist enthalten
+
+#### Scenario: Kontextangabe entspricht dem gemessenen n_ctx
+
+- **GIVEN** die Agent-Beschreibung nennt eine Kontextgröße
+- **WHEN** sie gegen den gemessenen Wert geprüft wird
+- **THEN** entspricht sie `n_ctx=99840`
+- **AND** die falsche Angabe von 262144 ist entfernt
+
+### Requirement: Gemma26-Loadout fährt drei Slots mit unified context
+
+The system SHALL configure the `gemma26-factory` loadout with three slots and the `-kvu`
+flag for a unified KV buffer shared across sequences, while keeping `max_inflight` at 1, so
+that each factory slot sees the full context without increasing KV memory fourfold.
+
+#### Scenario: Loadout hat drei Slots und -kvu
+
+- **GIVEN** `scripts/llm/loadouts.json` definiert `gemma26-factory`
+- **WHEN** die Loadout-Konfiguration geprüft wird
+- **THEN** ist `args.parallel` auf 3 gesetzt
+- **AND** `-kvu` ist in `extraArgs` enthalten
+- **AND** `max_inflight` bleibt bei 1
+
+#### Scenario: fit.minCtx bleibt unverändert
+
+- **GIVEN** das Loadout nutzt einen unified KV-Puffer
+- **WHEN** `fit.minCtx` geprüft wird
+- **THEN** bleibt es unverändert (32768)
+- **AND** die KV-Quantisierung bleibt `q4_0`
+
+<!-- merged from change delta local-llm-proxy.md (795a840968e8) -->

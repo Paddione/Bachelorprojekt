@@ -3456,6 +3456,24 @@
     "kind": "shell"
   },
   {
+    "id": "unsloth-eval-harness/regression-gate",
+    "file": "tests/spec/unsloth-eval-harness/regression-gate.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-eval-harness/scoring-rules",
+    "file": "tests/spec/unsloth-eval-harness/scoring-rules.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-eval-harness/testset-shape",
+    "file": "tests/spec/unsloth-eval-harness/testset-shape.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
     "id": "vaultwarden-integration",
     "file": "tests/spec/vaultwarden-integration.bats",
     "category": "vaultwarden-integration",

@@ -972,6 +972,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-58",
+    "file": "tests/e2e/specs/fa-58-admin-cockpit.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-AR-01",
     "file": "tests/local/FA-AR-01-filter-diff.bats",
     "category": "FA",
@@ -2274,6 +2280,24 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-lint-node-test",
+    "file": "tests/spec/dev-flow-plan/plan-lint-node-test.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/plan-lint-task-count",
+    "file": "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/plan-qa-payload",
+    "file": "tests/spec/dev-flow-plan/plan-qa-payload.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/task-context",
     "file": "tests/spec/dev-flow-plan/task-context.bats",
     "category": "dev-flow-plan",
@@ -2472,8 +2496,20 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/id-parity",
+    "file": "tests/spec/health-goals/id-parity.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/llm-stack-goals",
     "file": "tests/spec/health-goals/llm-stack-goals.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/measured-at-field",
+    "file": "tests/spec/health-goals/measured-at-field.bats",
     "category": "health-goals",
     "kind": "shell"
   },
@@ -2526,6 +2562,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/bge-usecase-reachability",
+    "file": "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline/gemma-thinking-budget",
     "file": "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
     "category": "llm-pipeline",
@@ -2544,6 +2586,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/bge-loadout-cpu-bound",
+    "file": "tests/spec/local-llm-proxy/bge-loadout-cpu-bound.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/bge-token-ssot",
     "file": "tests/spec/local-llm-proxy/bge-token-ssot.bats",
     "category": "local-llm-proxy",
@@ -2558,6 +2606,12 @@
   {
     "id": "local-llm-proxy/embed-skip-visibility",
     "file": "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/gateway-consumer-lint",
+    "file": "tests/spec/local-llm-proxy/gateway-consumer-lint.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -2820,6 +2874,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-ticket-links-evaluation",
+    "file": "tests/spec/openspec-ticket-links-evaluation.bats",
+    "category": "openspec-ticket-links-evaluation",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-upstream-cli",
     "file": "tests/spec/openspec-upstream-cli.bats",
     "category": "openspec-upstream-cli",
@@ -2838,6 +2898,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/archive-no-merge",
+    "file": "tests/spec/openspec-workflow/archive-no-merge.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/archive-terminal-ticket-status",
     "file": "tests/spec/openspec-workflow/archive-terminal-ticket-status.bats",
     "category": "openspec-workflow",
@@ -2846,6 +2912,12 @@
   {
     "id": "openspec-workflow/delta-scenario-guard",
     "file": "tests/spec/openspec-workflow/delta-scenario-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/design-location-guard",
+    "file": "tests/spec/openspec-workflow/design-location-guard.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },
@@ -3362,6 +3434,24 @@
   {
     "id": "toolset-registry/check-offline",
     "file": "tests/spec/toolset-registry/check-offline.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/collect-kinds",
+    "file": "tests/spec/toolset-registry/collect-kinds.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/context-injection",
+    "file": "tests/spec/toolset-registry/context-injection.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/schema-gate",
+    "file": "tests/spec/toolset-registry/schema-gate.bats",
     "category": "toolset-registry",
     "kind": "shell"
   },

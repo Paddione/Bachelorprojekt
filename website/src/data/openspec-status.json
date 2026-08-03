@@ -807,8 +807,8 @@
   ],
   "T001565": [
     {
-      "slug": "agentic-terminal-sidekick",
-      "status": "plan_staged"
+      "slug": "2026-08-03-agentic-terminal-sidekick",
+      "status": "archived"
     }
   ],
   "T001567": [
@@ -879,8 +879,8 @@
   ],
   "T001592": [
     {
-      "slug": "t001592",
-      "status": "plan_staged"
+      "slug": "2026-08-03-t001592",
+      "status": "archived"
     }
   ],
   "T001608": [
@@ -1003,8 +1003,8 @@
   ],
   "T001781": [
     {
-      "slug": "exclude-latest-images",
-      "status": "plan_staged"
+      "slug": "2026-08-03-exclude-latest-images",
+      "status": "archived"
     }
   ],
   "T001787": [
@@ -1087,20 +1087,20 @@
   ],
   "T001867": [
     {
-      "slug": "mishap-t001867",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t001867",
+      "status": "archived"
     }
   ],
   "T001868": [
     {
-      "slug": "mishap-t001868",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t001868",
+      "status": "archived"
     }
   ],
   "T001873": [
     {
-      "slug": "mishap-t001873",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t001873",
+      "status": "archived"
     }
   ],
   "T001884": [
@@ -1117,8 +1117,8 @@
   ],
   "T001927": [
     {
-      "slug": "mishap-t001927",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t001927",
+      "status": "archived"
     }
   ],
   "T001931": [
@@ -1135,8 +1135,8 @@
   ],
   "T001946": [
     {
-      "slug": "g-db01-fk-index-remediation",
-      "status": "plan_staged"
+      "slug": "2026-08-03-g-db01-fk-index-remediation",
+      "status": "archived"
     }
   ],
   "T001947": [
@@ -1159,14 +1159,14 @@
   ],
   "T001973": [
     {
-      "slug": "mishap-t001973",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t001973",
+      "status": "archived"
     }
   ],
   "T001974": [
     {
-      "slug": "mishap-t001974",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t001974",
+      "status": "archived"
     }
   ],
   "T001978": [
@@ -1207,8 +1207,8 @@
   ],
   "T002003": [
     {
-      "slug": "factory-scout-backoff",
-      "status": "plan_staged"
+      "slug": "2026-08-03-factory-scout-backoff",
+      "status": "archived"
     }
   ],
   "T002006": [
@@ -1243,8 +1243,8 @@
   ],
   "T002014": [
     {
-      "slug": "micro-spec-consolidation",
-      "status": "plan_staged"
+      "slug": "2026-08-03-micro-spec-consolidation",
+      "status": "archived"
     }
   ],
   "T002015": [
@@ -1303,8 +1303,8 @@
   ],
   "T002080": [
     {
-      "slug": "website-e2e-fixes",
-      "status": "plan_staged"
+      "slug": "2026-08-03-website-e2e-fixes",
+      "status": "archived"
     }
   ],
   "T002081": [
@@ -1351,8 +1351,8 @@
   ],
   "T002105": [
     {
-      "slug": "t002105-mishap-bundle",
-      "status": "plan_staged"
+      "slug": "2026-08-03-t002105-mishap-bundle",
+      "status": "archived"
     }
   ],
   "T002107": [
@@ -1363,8 +1363,8 @@
   ],
   "T002110": [
     {
-      "slug": "llamacpp-embed-rerank",
-      "status": "plan_staged"
+      "slug": "2026-08-03-llamacpp-embed-rerank",
+      "status": "archived"
     }
   ],
   "T002127": [
@@ -1393,8 +1393,8 @@
   ],
   "T002137": [
     {
-      "slug": "mishap-t002137",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002137",
+      "status": "archived"
     }
   ],
   "T002138": [
@@ -1465,20 +1465,20 @@
   ],
   "T002179": [
     {
-      "slug": "specs-keycloak-pocketid",
-      "status": "plan_staged"
+      "slug": "2026-08-03-specs-keycloak-pocketid",
+      "status": "archived"
     }
   ],
   "T002180": [
     {
-      "slug": "spec-security-gaps",
-      "status": "plan_staged"
+      "slug": "2026-08-03-spec-security-gaps",
+      "status": "archived"
     }
   ],
   "T002181": [
     {
-      "slug": "spec-test-rot",
-      "status": "plan_staged"
+      "slug": "2026-08-03-spec-test-rot",
+      "status": "archived"
     }
   ],
   "T002182": [
@@ -1495,8 +1495,8 @@
   ],
   "T002184": [
     {
-      "slug": "t002184-livekit-removal",
-      "status": "plan_staged"
+      "slug": "2026-08-03-t002184-livekit-removal",
+      "status": "archived"
     }
   ],
   "T002185": [
@@ -1585,8 +1585,8 @@
   ],
   "T002239": [
     {
-      "slug": "mishap-t002239",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002239",
+      "status": "archived"
     }
   ],
   "T002240": [
@@ -1645,8 +1645,8 @@
   ],
   "T002261": [
     {
-      "slug": "mishap-t002261",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002261",
+      "status": "archived"
     }
   ],
   "T002262": [
@@ -1681,8 +1681,8 @@
   ],
   "T002273": [
     {
-      "slug": "mishap-t002273",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002273",
+      "status": "archived"
     }
   ],
   "T002278": [
@@ -1693,8 +1693,8 @@
   ],
   "T002279": [
     {
-      "slug": "fix-ticket-tracking-T002279",
-      "status": "plan_staged"
+      "slug": "2026-08-03-fix-ticket-tracking-T002279",
+      "status": "archived"
     }
   ],
   "T002280": [
@@ -1717,8 +1717,8 @@
   ],
   "T002291": [
     {
-      "slug": "mishap-t002291",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002291",
+      "status": "archived"
     }
   ],
   "T002292": [
@@ -1765,8 +1765,8 @@
   ],
   "T002307": [
     {
-      "slug": "ticket-pgpod-running-pod-selector",
-      "status": "plan_staged"
+      "slug": "2026-08-03-ticket-pgpod-running-pod-selector",
+      "status": "archived"
     }
   ],
   "T002321": [
@@ -1801,8 +1801,8 @@
   ],
   "T002330": [
     {
-      "slug": "bug-consolidation-T002330",
-      "status": "plan_staged"
+      "slug": "2026-08-03-bug-consolidation-T002330",
+      "status": "archived"
     }
   ],
   "T002331": [
@@ -1831,14 +1831,14 @@
   ],
   "T002339": [
     {
-      "slug": "mishap-t002339",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002339",
+      "status": "archived"
     }
   ],
   "T002341": [
     {
-      "slug": "mishap-t002341",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002341",
+      "status": "archived"
     }
   ],
   "T002342": [
@@ -1855,8 +1855,8 @@
   ],
   "T002349": [
     {
-      "slug": "k3d-kustomization-T002349",
-      "status": "plan_staged"
+      "slug": "2026-08-03-k3d-kustomization-T002349",
+      "status": "archived"
     }
   ],
   "T002350": [
@@ -1867,8 +1867,8 @@
   ],
   "T002352": [
     {
-      "slug": "mishap-t002352",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002352",
+      "status": "archived"
     }
   ],
   "T002354": [
@@ -1921,14 +1921,14 @@
   ],
   "T002373": [
     {
-      "slug": "mishap-t002373",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002373",
+      "status": "archived"
     }
   ],
   "T002374": [
     {
-      "slug": "mishap-t002374",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002374",
+      "status": "archived"
     }
   ],
   "T002375": [
@@ -1945,8 +1945,8 @@
   ],
   "T002382": [
     {
-      "slug": "mishap-t002382",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002382",
+      "status": "archived"
     }
   ],
   "T002383": [
@@ -1957,14 +1957,14 @@
   ],
   "T002385": [
     {
-      "slug": "e2e-bug-report-testdata-T002385",
-      "status": "plan_staged"
+      "slug": "2026-08-03-e2e-bug-report-testdata-T002385",
+      "status": "archived"
     }
   ],
   "T002387": [
     {
-      "slug": "worktree-divergence-guard-T002387",
-      "status": "plan_staged"
+      "slug": "2026-08-03-worktree-divergence-guard-T002387",
+      "status": "archived"
     }
   ],
   "T002388": [
@@ -1975,8 +1975,8 @@
   ],
   "T002389": [
     {
-      "slug": "factory-attempt-counter-T002389",
-      "status": "plan_staged"
+      "slug": "2026-08-03-factory-attempt-counter-T002389",
+      "status": "archived"
     }
   ],
   "T002390": [
@@ -1987,14 +1987,14 @@
   ],
   "T002393": [
     {
-      "slug": "pipeline-divergence-T002393",
-      "status": "plan_staged"
+      "slug": "2026-08-03-pipeline-divergence-T002393",
+      "status": "archived"
     }
   ],
   "T002399": [
     {
-      "slug": "auto-triage-grounding-T002399",
-      "status": "plan_staged"
+      "slug": "2026-08-03-auto-triage-grounding-T002399",
+      "status": "archived"
     }
   ],
   "T002407": [
@@ -2005,8 +2005,8 @@
   ],
   "T002410": [
     {
-      "slug": "mishap-t002410",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002410",
+      "status": "archived"
     }
   ],
   "T002413": [
@@ -2035,8 +2035,8 @@
   ],
   "T002425": [
     {
-      "slug": "mishap-t002425",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002425",
+      "status": "archived"
     }
   ],
   "T002426": [
@@ -2149,8 +2149,8 @@
   ],
   "T002453": [
     {
-      "slug": "plan-partials-embedding",
-      "status": "plan_staged"
+      "slug": "2026-08-03-plan-partials-embedding",
+      "status": "archived"
     }
   ],
   "T002457": [
@@ -2213,20 +2213,20 @@
   ],
   "T002471": [
     {
-      "slug": "mishap-bundle-t002471",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-bundle-t002471",
+      "status": "archived"
     }
   ],
   "T002481": [
     {
-      "slug": "mishap-t002481",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002481",
+      "status": "archived"
     }
   ],
   "T002483": [
     {
-      "slug": "factory-slot-sandbox",
-      "status": "plan_staged"
+      "slug": "2026-08-03-factory-slot-sandbox",
+      "status": "archived"
     }
   ],
   "T002487": [
@@ -2243,8 +2243,8 @@
   ],
   "T002495": [
     {
-      "slug": "mishap-t002495",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002495",
+      "status": "archived"
     }
   ],
   "T002504": [
@@ -2291,8 +2291,8 @@
   ],
   "T002523": [
     {
-      "slug": "mishap-t002523",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mishap-t002523",
+      "status": "archived"
     }
   ],
   "T002531": [
@@ -2315,8 +2315,8 @@
   ],
   "T002543": [
     {
-      "slug": "mcp-gateway-watchdog",
-      "status": "plan_staged"
+      "slug": "2026-08-03-mcp-gateway-watchdog",
+      "status": "archived"
     }
   ],
   "T002544": [
@@ -2327,20 +2327,20 @@
   ],
   "T002545": [
     {
-      "slug": "opencode-gemma26-agents",
-      "status": "plan_staged"
+      "slug": "2026-08-03-opencode-gemma26-agents",
+      "status": "archived"
     }
   ],
   "T002546": [
     {
-      "slug": "embed-skip-visibility",
-      "status": "plan_staged"
+      "slug": "2026-08-03-embed-skip-visibility",
+      "status": "archived"
     }
   ],
   "T002551": [
     {
-      "slug": "bge-k8s-cpu-migration",
-      "status": "plan_staged"
+      "slug": "2026-08-03-bge-k8s-cpu-migration",
+      "status": "archived"
     }
   ],
   "T002560": [
@@ -2367,10 +2367,64 @@
       "status": "plan_staged"
     }
   ],
+  "T002577": [
+    {
+      "slug": "openspec-stragglers-T002577",
+      "status": "plan_staged"
+    }
+  ],
   "T002579": [
     {
       "slug": "2026-08-02-gemma26-betriebsparameter",
       "status": "archived"
+    }
+  ],
+  "T002580": [
+    {
+      "slug": "bge-embed-oom",
+      "status": "plan_staged"
+    }
+  ],
+  "T002582": [
+    {
+      "slug": "factory-model-routing-fix",
+      "status": "plan_staged"
+    }
+  ],
+  "T002592": [
+    {
+      "slug": "2026-08-03-toolset-usage-injection",
+      "status": "archived"
+    }
+  ],
+  "T002595": [
+    {
+      "slug": "2026-08-03-plan-qa-check-quoting",
+      "status": "archived"
+    }
+  ],
+  "T002611": [
+    {
+      "slug": "agentic-resource-lookup",
+      "status": "plan_staged"
+    }
+  ],
+  "T002612": [
+    {
+      "slug": "web-audit",
+      "status": "plan_staged"
+    }
+  ],
+  "T002613": [
+    {
+      "slug": "skill-path-guard",
+      "status": "plan_staged"
+    }
+  ],
+  "T002616": [
+    {
+      "slug": "gpu-loadout-exclusivity",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

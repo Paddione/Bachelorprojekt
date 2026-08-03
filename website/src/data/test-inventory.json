@@ -2904,6 +2904,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/design-location-guard",
+    "file": "tests/spec/openspec-workflow/design-location-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/half-archive-guard",
     "file": "tests/spec/openspec-workflow/half-archive-guard.bats",
     "category": "openspec-workflow",

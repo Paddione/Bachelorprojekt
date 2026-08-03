@@ -82,8 +82,8 @@ vars:
   # waeren sie strukturell gruen und damit wertlos; `freshness:check` ueberspringt sie
   # deshalb in CI mit sichtbarer Notiz statt sie gruen zu melden. [T002443]
   # Weitere lokal-only-Zielfamilien haengen ihre IDs hier an, statt einen zweiten
-  # Warn-Block anzulegen (Absprache mit T002442 / G-LLM*).
-  HG_LOCAL_ONLY_GOALS: G-WT01,G-WT02,G-WT03,G-WT04,G-WT05,G-WT06
+  # Warn-Block anzulegen. G-LLM* (T002442) misst den lokalen LLM-Stack-Betrieb.
+  HG_LOCAL_ONLY_GOALS: G-WT01,G-WT02,G-WT03,G-WT04,G-WT05,G-WT06,G-LLM01,G-LLM02,G-LLM03,G-LLM04,G-LLM05
 
 tasks:
   # ════════════════════════════════════════════════════════════════════
@@ -1211,7 +1211,7 @@ tasks:
       # auch in CI; dieser Block ist reine lokale Anzeige.
       - |
         if [ -n "${CI:-}" ]; then
-          echo "ℹ lokal-only Hygiene-Ziele ({{.HG_LOCAL_ONLY_GOALS}}) uebersprungen — Grund: CI-Runner hat weder Worktrees noch agent-locks noch einen Hauptcheckout; die Messung waere strukturell gruen und damit wertlos. Lokal pruefen mit 'task health:wt'."
+          echo "ℹ lokal-only Hygiene-Ziele ({{.HG_LOCAL_ONLY_GOALS}}) uebersprungen — Grund: CI-Runner hat weder Worktrees noch agent-locks noch einen Hauptcheckout noch lokale LLM-Endpunkte; die Messung waere strukturell gruen und damit wertlos. Lokal pruefen mit 'task health:wt'."
         else
           echo "ℹ lokale Worktree-/Session-Hygiene ({{.HG_LOCAL_ONLY_GOALS}}) — Warnung, kein Gate:"
           task health:wt || true
@@ -3486,9 +3486,14 @@ tasks:
       - bash scripts/health-goals-check.sh {{.CLI_ARGS}}
 
   health:wt:
-    desc: "Ampel-Report NUR der lokal messbaren Ziele (HG_LOCAL_ONLY_GOALS — Worktree-/Session-Hygiene G-WT*). Laeuft nicht in CI, siehe freshness:check."
+    desc: "Ampel-Report NUR der lokal messbaren Ziele (HG_LOCAL_ONLY_GOALS — Worktree-/Session-Hygiene G-WT* + LLM-Stack G-LLM*, T002442/T002443). Laeuft nicht in CI, siehe freshness:check."
     cmds:
       - bash scripts/health-goals-check.sh --fast --only={{.HG_LOCAL_ONLY_GOALS}} {{.CLI_ARGS}}
+
+  health:llm:
+    desc: "Ampel-Report NUR der lokal messbaren LLM-Stack-Ziele (G-LLM01..G-LLM05, T002442). Laeuft nicht in CI, siehe freshness:check."
+    cmds:
+      - bash scripts/health-goals-check.sh --fast --only=G-LLM01,G-LLM02,G-LLM03,G-LLM04,G-LLM05 {{.CLI_ARGS}}
 
   health:goals:update:
     desc: "Schreibt frisch gemessene Werte in die Aktuell-Spalte der Prio-C-Tabelle (Green Gates) in .claude/lib/goals.md. Freitextige Prio-A/B-Abschnitte bleiben unangetastet. Flags nach --, z.B. task health:goals:update -- --dry-run"

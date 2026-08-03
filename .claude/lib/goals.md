@@ -480,64 +480,82 @@ except: print('n/a')
 
 ## G-LLM01 — Modellserver-Verfügbarkeit (Loadout-Endpunkte): n/a → 0
 
-**Was:** Zählt die in `scripts/llm/loadouts.json` geführten llama.cpp-Modellserver, deren
-`/health`-Endpunkt nicht mit 200 antwortet. Die Loadout-Datei ist die SSOT für Modellserver;
-ein toter Server darin bedeutet verlorene Inferenz-Kapazität. Der Positiv-Anker prüft, dass
-mindestens ein Server erreichbar ist — ein komplett toter Host soll sichtbar sein.
+**Was:** Zählt die in `scripts/llm/loadouts.json` geführten Modellserver, die nicht erreichbar sind.
+Die Loadout-Datei ist die SSOT für Modellserver; ein toter Server darin bedeutet verlorene
+Inferenz-Kapazität. `exclusiveGroup`-Mitglieder einer Gruppe gelten nur als eine Zähleinheit —
+eine Gruppe ist verfügbar, sobald ein Mitglied lebt. Messquelle ist `scripts/lib/llm-stack-measure.sh`
+(`server-availability`); der Positiv-Anker (`/livez` des llm-proxy und eine auswertbare
+Loadout-Registry) entscheidet `n/a` gegen `0` — eine nicht durchgeführte Messung zählt nie als
+erreicht.
 
 ```bash
-python3 -c "
-import json, urllib.request, sys
-with open('scripts/llm/loadouts.json') as f:
-    loadouts = json.load(f)
-servers = [l for l in loadouts if l.get('port') and l.get('kind') == 'llamacpp']
-total = len(servers)
-if total == 0:
-    print('n/a')
-    sys.exit(0)
-dead = 0
-alive = False
-for s in servers:
-    try:
-        url = f'http://127.0.0.1:{s[\"port\"]}/health'
-        req = urllib.request.Request(url)
-        resp = urllib.request.urlopen(req, timeout=5)
-        if resp.status == 200: alive = True
-        else: dead += 1
-    except: dead += 1
-if not alive and dead == total:
-    print('n/a')  # Positiv-Anker: mindestens einer muss erreichbar sein
-else:
-    print(dead)
-" 2>/dev/null || echo n/a
+bash scripts/lib/llm-stack-measure.sh server-availability
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+> **B · Baseline:** 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ## G-LLM02 — llm-proxy-Bereitschaft (ready + tote Provider): n/a → 0
 
-**Was:** Prüft den llm-proxy (:18235) auf `ready: true` und zählt tote Provider. Der Proxy
-ist der alleinige LLM-Gateway; meldet er `degraded`, ist die gesamte Factory ohne
-Inferenz-Fähigkeit. Der `/health`-Endpunkt des Proxys liefert `ready` und `providers`.
+**Was:** Prüft den llm-proxy (:18235) auf `ready: true` und zählt degradierte Backends. Der Proxy
+ist der alleinige LLM-Gateway; meldet er `degraded`, ist die gesamte Factory ohne Inferenz-Fähigkeit.
+Der `/health`-Endpunkt des Proxys liefert `ready`, `checked` und `degraded` — **nicht** `providers`.
+Genau diese falsche Feld-Annahme (`data.get('providers', [])`) machte das Ziel strukturell grün,
+während 2 von 3 Backends tot waren; `proxy-readiness` liest jetzt `degraded` und zählt bei
+`ready:false` den Wert von `checked`. Messquelle ist `scripts/lib/llm-stack-measure.sh`
+(`proxy-readiness`).
 
 ```bash
-python3 -c "
-import json, urllib.request, sys
-try:
-    req = urllib.request.Request('http://127.0.0.1:18235/health')
-    resp = urllib.request.urlopen(req, timeout=5)
-    data = json.loads(resp.read())
-    if not data.get('ready', False):
-        print('degraded')  # Proxy selbst nicht bereit
-    else:
-        dead = sum(1 for p in data.get('providers', []) if not p.get('healthy', False))
-        print(dead)
-except:
-    print('n/a')
-" 2>/dev/null || echo n/a
+bash scripts/lib/llm-stack-measure.sh proxy-readiness
 ```
 
 > **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+
+## G-LLM03 — Konfig-gegen-Laufzeit-Drift (Modell-ID): n/a → 0
+
+**Was:** Zählt antwortende Loadout-Ports, deren `/v1/models` eine Modell-ID meldet, die für diesen
+Port in der Loadout-Registry nicht geführt ist. Ein Port kann mehrere Slugs tragen (z.B. `:8091`
+führt `gemma-factory`, `gemma-multiagent`, `gemma26-factory`); verglichen wird gegen die Menge der
+für den Port geführten Slugs und Modell-Dateinamen. Ports, die auf `/v1/models` nicht antworten,
+sind kein Drift-Fall, sondern Verfügbarkeit (G-LLM01). Messquelle ist
+`scripts/lib/llm-stack-measure.sh` (`model-drift`); der Positiv-Anker ist `/livez` des llm-proxy
+plus eine auswertbare Registry.
+
+```bash
+bash scripts/lib/llm-stack-measure.sh model-drift
+```
+
+> **B · Baseline:** 0 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+
+## G-LLM04 — Autostart-Abdeckung (LLM-Unit-Dateien): n/a → 0
+
+**Was:** Zählt deklarierte LLM-Unit-Dateien (`scripts/llm/*.service`, `scripts/llm-proxy/*.service`)
+ohne `enabled`-Zustand (`systemctl --user is-enabled`). Fehlt der Autostart, ist der Dienst nach
+einem Neustart weg, ohne dass es auffällt — der llm-proxy hatte keinen Autostart, während die
+Modellserver ihn seit T002110 hatten. `ollama.service` ist deklariert und bewusst nicht auf dieser
+Maschine installiert; es zählt als Fund und darf nicht wegdefiniert werden. Messquelle ist
+`scripts/lib/llm-stack-measure.sh` (`autostart-coverage`); der Positiv-Anker ist mindestens eine
+deklarierte Unit-Datei.
+
+```bash
+bash scripts/lib/llm-stack-measure.sh autostart-coverage
+```
+
+> **B · Baseline:** 1 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
+
+## G-LLM05 — Tote lokale Endpunkt-Verweise (Backend-Registry): n/a → 0
+
+**Was:** Zählt lokale Endpunkte (`127.0.0.1`/`localhost`) der Proxy-Backend-Registry
+(`tickets.llm_proxy_backends`, enabled) ohne Listener. Der historische LM-Studio-`:1234`-Fall —
+ein Eintrag, dessen Endpunkt längst weg war, ohne dass es auffiel — ist der Prototyp. Cluster-DNS
+und MCP-Registry-Endpunkte sind ausgeschlossen (G-OPS01 / G-IF01). Messquelle ist
+`scripts/lib/llm-stack-measure.sh` (`dead-endpoints`); der Positiv-Anker ist `/livez` des llm-proxy
+plus eine auswertbare Backend-Registry.
+
+```bash
+bash scripts/lib/llm-stack-measure.sh dead-endpoints
+```
+
+> **B · Baseline:** 2 · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** täglich · **Reproduzierbar:** ja (nur lokal/GPU-Host) · **Ticket:** T002442
 
 ---
 
@@ -788,7 +806,7 @@ bash scripts/health-goals-llm-fill.sh --apply      # schreibt Prio-C-Aktuell mit
 - **Täglich:** G-RH06, G-CI02, G-DB04, G-GIT01, G-CI03
 - **Wöchentlich:** G-RH01/03, G-TEST01/03, G-SIZE03, G-CI01, G-CD01, G-CQ02/05, G-IMG01, G-K8S03, G-SPEC03, G-GIT03, G-FE03/04, G-DB01, G-DB03, G-DB06, G-DB08, G-DB09, G-DB10, G-SEC06, G-FE05, G-BRAIN12, G-BRAIN13, G-BRAIN15, G-E2E01, G-E2E02, G-OPS01, G-OPS02, G-OPS03
 - **Monatlich/Quartal:** G-DEP02, G-SEC03/04, G-DOC02, G-FE01/02, G-BRAIN14, G-AGENTIC09, G-DB11
-- **Nur lokal (nicht in CI):** G-WT01–G-WT06. Diese Familie misst lokalen Maschinenzustand — Worktrees, Hauptcheckout-Branch, agent-locks, `main`-Divergenz. Ein CI-Runner hat davon nichts; die Ziele wären dort strukturell immer grün und damit wertlos. Messort ist `task health:wt` (Ziel-IDs aus der Taskfile-Variable `HG_LOCAL_ONLY_GOALS`) sowie ein **nicht failender** Warn-Block in `task freshness:check`, der in CI mit sichtbarer Notiz übersprungen wird. [T002443]
+- **Nur lokal (nicht in CI):** G-WT01–G-WT06, G-LLM01–G-LLM05. Diese Familien messen lokalen Maschinenzustand — Worktrees, Hauptcheckout-Branch, agent-locks, `main`-Divergenz sowie den Betrieb des lokalen LLM-Stacks (Modellserver, Proxy, Loadouts, Units, Backend-Endpunkte). Ein CI-Runner hat davon nichts; die Ziele wären dort strukturell immer grün und damit wertlos. Messort sind `task health:wt` und `task health:llm` (Ziel-IDs aus der Taskfile-Variable `HG_LOCAL_ONLY_GOALS`) sowie ein **nicht failender** Warn-Block in `task freshness:check`, der in CI mit sichtbarer Notiz übersprungen wird. [T002443] [T002442]
 
 **Sprint-Highlights 2026-07-01:** G-CI01 erreicht Target (85 %→95 %, 19/20 grün) und wechselt von Prio A nach Prio C. G-RH03 (OpenSpec-BATS-Abdeckung 50 %→82 %) und G-DEP02 (Major-Deps 9→2) erreichen ihr Target und wechseln von Prio B nach Prio C. G-CQ01 erstmals gemessen: 0 astro-check-Fehler. G-CQ02 (explizite `any`) fällt weiter von 154 auf 8. G-GIT03 (Dateien >1MB) erreicht Target 7→6 per Policy-Ausschluss von `.codebase-memory/` (T001348) und wechselt von Prio A nach Prio C. G-SEC05-Messfehler dokumentiert: das Skript filtert nur eine von zwei GitHub-Actions-Bot-Mail-Varianten heraus, wodurch 4 Bot-Commits fälschlich als unsigniert zählen — echter Wert 0/50, Skript-Fix noch offen.
 

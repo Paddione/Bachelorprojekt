@@ -181,28 +181,24 @@ newly submitted questionnaires, and received payments.
 ### Requirement: Sidekick-Panel-Navigation mit kontextabhängigem Menü
 
 The system SHALL render a role-aware home menu in the Sidekick panel that shows
-admin-exclusive views (Tickets, Postfach, Pipeline, Cockpit, Final Grilling) only
+admin-exclusive views (Projekttickets, KI-Qualität, Logs, Agentic Terminal) only
 to admin users, and SHALL display numeric badges for pending items on the corresponding
-menu entries.
+menu entries. The admin menu SHALL expose an `Agentic Terminal` entry (view id `terminal`)
+in place of the former `Final Grilling` entry; the `grilling` view id SHALL no longer be a
+selectable Sidekick view.
 
-#### Scenario: Admin-Nutzer sieht vollständiges Menü
+#### Scenario: Admin-Nutzer sieht Agentic-Terminal statt Final Grilling
 
 - **GIVEN** der Sidekick wird mit `helpContext = 'admin'` gemountet
 - **WHEN** die `SidekickHome`-Komponente rendert
-- **THEN** sind alle 11 Menüpunkte sichtbar (Tickets, Postfach, Pipeline, Cockpit, Final Grilling, Fragebögen, Feedback, Agent-Anleitung, Lernpfad, Mediaviewer, Hilfe)
+- **THEN** ist ein Menüeintrag mit dem Titel `Agentic Terminal` (id `terminal`, `show: isAdmin`) sichtbar
+- **AND** es existiert kein Menüeintrag mit dem Titel `Final Grilling`
 
-#### Scenario: Portal-Nutzer sieht reduziertes Menü ohne Admin-Bereiche
+#### Scenario: Portal-Nutzer sieht kein Agentic-Terminal
 
 - **GIVEN** der Sidekick wird mit `helpContext = 'portal'` gemountet
 - **WHEN** die `SidekickHome`-Komponente rendert
-- **THEN** sind Admin-exklusive Einträge (Tickets, Postfach, Pipeline, Cockpit, Final Grilling) nicht sichtbar
-
-#### Scenario: Badge für offene Fragebögen
-
-- **GIVEN** `pendingQuestionnaires = 3`
-- **WHEN** der Menüeintrag „Fragebögen" gerendert wird
-- **THEN** wird ein Brass-Badge mit dem Wert `3` neben dem Eintrag angezeigt
-- **AND** Badges größer als 99 werden auf `99` gekappt
+- **THEN** ist der `Agentic Terminal`-Eintrag nicht sichtbar (Admin-exklusiv)
 
 ---
 
@@ -405,6 +401,21 @@ The system SHALL estimate the token count of a string as approximately 1 token p
 
 ---
 
+### Requirement: Agentic-Terminal-View rendert eingebettetes ttyd-Terminal
+
+The system SHALL provide a `terminal` Sidekick view that renders a `TerminalSessionHost`
+component. The component SHALL embed an iframe pointing at `https://${terminalHost}/`
+(configured via a `terminalHost` prop, default `terminal.localhost`) and SHALL offer an
+"In neuem Tab öffnen" fallback link in the panel header. No `postMessage` host bridge SHALL
+be established (ttyd communicates over its own WebSocket).
+
+#### Scenario: Admin öffnet die Agentic-Terminal-View
+
+- **GIVEN** ein Admin hat den Sidekick geöffnet und `terminalHost = 'terminal.localhost'`
+- **WHEN** er den Menüeintrag `Agentic Terminal` auswählt
+- **THEN** wird ein iframe mit `title="Agentic Terminal"` und `src="https://terminal.localhost/"` gerendert
+- **AND** ein Link "In neuem Tab öffnen" mit `href="https://terminal.localhost/"` und `target="_blank"` ist sichtbar
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -448,18 +459,19 @@ also close it when the user presses the Escape key.
 ---
 
 ### Requirement: sidekick:navigate CustomEvent für bekannte Views
-<!-- e2e: fa-51-sidekick-navigation.spec.ts -->
 
-The system SHALL accept a `sidekick:navigate` CustomEvent with a known `view` value (`grilling`,
+The system SHALL accept a `sidekick:navigate` CustomEvent with a known `view` value (`terminal`,
 `mediaviewer`) without throwing a JavaScript error; unknown views SHALL return `null` and produce
-no navigation.
+no navigation. The `grilling` view value SHALL be removed from the known-view set.
 
-#### Scenario: Navigation zu View "grilling" löst keinen Fehler aus *(E2E)*
+#### Scenario: Navigation zu View "terminal" löst keinen Fehler aus
+
 - **GIVEN** der Sidekick ist geöffnet
-- **WHEN** `window.dispatchEvent(new CustomEvent('sidekick:navigate', { detail: { view: 'grilling', jumpTo: null } }))` aufgerufen wird
-- **THEN** wird kein JavaScript-Fehler geworfen
+- **WHEN** `window.dispatchEvent(new CustomEvent('sidekick:navigate', { detail: { view: 'terminal', jumpTo: null } }))` aufgerufen wird
+- **THEN** wird kein JavaScript-Fehler geworfen und die aktive View wechselt auf `terminal`
 
-#### Scenario: Navigation zu View "mediaviewer" löst keinen Fehler aus *(E2E)*
+#### Scenario: Navigation zu View "mediaviewer" löst keinen Fehler aus
+
 - **GIVEN** der Sidekick ist geöffnet
 - **WHEN** `window.dispatchEvent(new CustomEvent('sidekick:navigate', { detail: { view: 'mediaviewer', jumpTo: null } }))` aufgerufen wird
 - **THEN** wird kein JavaScript-Fehler geworfen
@@ -696,3 +708,5 @@ The system SHALL extend `HostInbound.setMode.mode` to accept `'brainstorm'`, and
 - **WHEN** die Brainstorm-Session startet
 - **THEN** sendet die Bridge `sessionStarted` mit Session-Metadaten
 - **AND** sendet periodisch `sessionProgress` Updates
+
+<!-- merged from change delta sidekick-assistant.md (e0eb1336c37a) -->

@@ -35,5 +35,5 @@ report_mishap(type)
 
 - **Ticket:** `Mishap Rollup — fortlaufende Sammlung` (type=task, status=triage, persistent)
 - **Branch:** `chore/mishap-rollup` (persistiert über Zyklen)
-- **Plan:** `openspec/changes/mishap-rollup/tasks.md`
+- **Plan:** `openspec/specs/mishap-rollup.md`
 - **Trigger:** `ticket-mcp-go --rollup-mishaps` (Factory-Tick, wakeup.sh)

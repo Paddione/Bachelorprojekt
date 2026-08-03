@@ -1,0 +1,27 @@
+# scripts/bge-mcp/bge-forward-rerank.service
+# Port-Forward 127.0.0.1:8093 -> svc/llm-gateway-rerank (ClusterIP :8081), ns workspace.
+#
+# Lokal 8093 und NICHT 8082: 8082 ist auf dem Windows-Host von einem svchost
+# belegt. Durch networkingMode=mirrored teilt WSL den Windows-Netzstack, der
+# Belegung ist in WSL aber unsichtbar — am 2026-08-02 nur per netstat.exe
+# gefunden. Die Gegenseite bleibt 8081, das ist der ClusterIP-Port des Service.
+#
+# Begruendung fuer die eigene Unit: siehe bge-forward-embed.service (T002604).
+#
+# Symlink zum Aktivieren:
+#   ln -sf $PWD/scripts/bge-mcp/bge-forward-rerank.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now bge-forward-rerank
+
+[Unit]
+Description=Port-forward llm-gateway-rerank (127.0.0.1:8093)
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/kubectl --context fleet port-forward -n workspace svc/llm-gateway-rerank 8093:8081
+Restart=always
+RestartSec=3
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=default.target

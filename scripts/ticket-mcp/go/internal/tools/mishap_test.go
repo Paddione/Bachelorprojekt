@@ -26,9 +26,13 @@ func TestIsIncidentType(t *testing.T) {
 func TestMishapEntryJSON(t *testing.T) {
 	entry := MishapEntry{Title: "Test", Description: "Desc", Component: "comp", Type: "broken", ReportedAt: "2026-06-21T10:00:00Z"}
 	data, err := json.Marshal(entry)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	var decoded MishapEntry
-	if err := json.Unmarshal(data, &decoded); err != nil { t.Fatal(err) }
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		t.Fatal(err)
+	}
 	if decoded.Title != "Test" || decoded.Type != "broken" || decoded.Component != "comp" {
 		t.Errorf("JSON roundtrip failed: %+v", decoded)
 	}
@@ -74,25 +78,35 @@ func TestBufferIsStaleEmptyBuffer(t *testing.T) {
 }
 
 func TestGitCommonDirResolvesWorktreeGitFile(t *testing.T) {
-	if _, err := exec.LookPath("git"); err != nil { t.Skip("git not available") }
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
 	main := t.TempDir()
 	run := func(dir string, args ...string) {
 		t.Helper()
 		cmd := exec.Command("git", args...)
 		cmd.Dir = dir
-		if out, err := cmd.CombinedOutput(); err != nil { t.Fatalf("git %v: %v\n%s", args, err, out) }
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
+		}
 	}
 	run(main, "init", "-q", "-b", "main")
 	run(main, "config", "user.email", "t@example.invalid")
 	run(main, "config", "user.name", "t")
-	if err := os.WriteFile(filepath.Join(main, "f"), []byte("x"), 0644); err != nil { t.Fatal(err) }
+	if err := os.WriteFile(filepath.Join(main, "f"), []byte("x"), 0644); err != nil {
+		t.Fatal(err)
+	}
 	run(main, "add", "f")
 	run(main, "commit", "-qm", "init")
 	wt := filepath.Join(t.TempDir(), "wt")
 	run(main, "worktree", "add", "-q", "-b", "side", wt)
 	info, err := os.Stat(filepath.Join(wt, ".git"))
-	if err != nil { t.Fatal(err) }
-	if info.IsDir() { t.Skip("worktree .git is dir — precondition not met") }
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.IsDir() {
+		t.Skip("worktree .git is dir — precondition not met")
+	}
 	dir := gitCommonDir(wt)
 	if fi, err := os.Stat(dir); err != nil || !fi.IsDir() {
 		t.Fatalf("gitCommonDir(%s) = %s is not dir (err=%v)", wt, dir, err)
@@ -103,9 +117,15 @@ func TestGitCommonDirResolvesWorktreeGitFile(t *testing.T) {
 }
 
 func TestRollupConstants(t *testing.T) {
-	if ROLLUP_TICKET_TITLE == "" { t.Error("ROLLUP_TICKET_TITLE must be set") }
-	if ROLLUP_BRANCH == "" { t.Error("ROLLUP_BRANCH must be set") }
-	if ROLLUP_CHANGE_DIR == "" { t.Error("ROLLUP_CHANGE_DIR must be set") }
+	if ROLLUP_TICKET_TITLE == "" {
+		t.Error("ROLLUP_TICKET_TITLE must be set")
+	}
+	if ROLLUP_BRANCH == "" {
+		t.Error("ROLLUP_BRANCH must be set")
+	}
+	if ROLLUP_CHANGE_DIR == "" {
+		t.Error("ROLLUP_CHANGE_DIR must be set")
+	}
 }
 
 // Flag helpers for args inspection.
@@ -315,5 +335,53 @@ func TestBuildersAreDeterministic(t *testing.T) {
 		if a1[i] != a2[i] {
 			t.Fatalf("non-deterministic at index %d: %q vs %q", i, a1[i], a2[i])
 		}
+	}
+}
+
+// --- T002601: Factory-Konversion + Dedupe-Guard ---
+
+func TestNormalizeTitle(t *testing.T) {
+	if normalizeTitle("  Foo  Bar\tBAZ  ") != "foo bar baz" {
+		t.Errorf("normalizeTitle spaces/case failed: %q", normalizeTitle("  Foo  Bar\tBAZ  "))
+	}
+	if normalizeTitle("A—B") != "a—b" {
+		t.Errorf("normalizeTitle dash failed: %q", normalizeTitle("A—B"))
+	}
+}
+
+func TestMishapSeverityMapping(t *testing.T) {
+	for _, tt := range []struct{ typ, sev, prio string }{
+		{"degraded", "minor", "mittel"},
+		{"suspicious", "minor", "mittel"},
+		{"drift", "trivial", "niedrig"},
+		{"process", "minor", "mittel"},
+	} {
+		sev, prio := mishapSeverity(tt.typ)
+		if sev != tt.sev || prio != tt.prio {
+			t.Errorf("mishapSeverity(%q) = (%q,%q), want (%q,%q)", tt.typ, sev, prio, tt.sev, tt.prio)
+		}
+	}
+}
+
+func TestFactoryFixTicketArgs_PlanStaged(t *testing.T) {
+	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "drift", ReportedAt: ""}
+	args := buildFactoryFixTicketArgs(entry, "mentolder")
+	if !hasFlagValue(args, "--type", "fix") {
+		t.Errorf("factory fix must use --type fix; got %v", args)
+	}
+	if !hasFlagValue(args, "--status", "plan_staged") {
+		t.Errorf("factory fix must use --status plan_staged (T002327 lane); got %v", args)
+	}
+	if !hasFlagValue(args, "--attention-mode", "ai_ready") {
+		t.Errorf("factory fix must be ai_ready; got %v", args)
+	}
+	if !hasFlagValue(args, "--severity", "trivial") {
+		t.Errorf("drift must map to severity trivial; got %v", args)
+	}
+	if hasFlagValue(args, "--type", "task") {
+		t.Error("factory fix must never use type=task")
+	}
+	if hasFlagValue(args, "--status", "backlog") {
+		t.Error("factory fix must not land in the T002327-protected backlog lane")
 	}
 }

@@ -192,8 +192,32 @@ _website_deploy_block() {
   sed -n '/^  website:deploy:$/,/^  website:dev:$/p' "$TASKFILE"
 }
 
+# Liefert nicht auskommentierte Treffer auf Prod-Host-Affinitaeten in <dir>/*.yaml.
+# Kommentarzeilen sind ausgenommen: sie dokumentieren, sie konfigurieren nicht.
+# Exit 0 = Verstoss gefunden, Exit 1 = sauber (Status der letzten Pipeline-Stufe).
+_affinity_violations() {
+  grep -rnE 'gekko-hetzner|pk-hetzner' "$1"/*.yaml 2>/dev/null \
+    | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#'
+}
+
 @test "T001853: k3d base manifests carry no prod/remote host affinities (gekko-/pk-hetzner)" {
-  run bash -c "grep -l 'gekko-hetzner\|pk-hetzner' \"$PROJECT_DIR\"/k3d/*.yaml"
+  # Positiv-Anker VOR der Negativ-Aussage (T002356-M1): ein echter, nicht
+  # auskommentierter Eintrag MUSS gefunden werden — und eine reine Kommentarzeile
+  # darf NICHT anschlagen. Ohne diesen Anker bestuende die Aussage unten vakuos,
+  # sobald das Matching kaputt geht.
+  local probe; probe="$(mktemp -d)"
+  printf 'spec:\n  nodeName: pk-hetzner-8\n'                        > "$probe/real.yaml"
+  printf '# Vorfall-Notiz zu pk-hetzner-8\nspec:\n  nodeName: k3d\n' > "$probe/commented.yaml"
+
+  run _affinity_violations "$probe"
+  local hits="$output"
+  rm -rf "$probe"
+  [ "$status" -eq 0 ]
+  [ "$(printf '%s\n' "$hits" | grep -c 'real.yaml')" -eq 1 ]
+  [ "$(printf '%s\n' "$hits" | grep -c 'commented.yaml')" -eq 0 ]
+
+  # Eigentliche Aussage: keine echten Affinitaeten in den Basis-Manifesten.
+  run _affinity_violations "$PROJECT_DIR/k3d"
   [ "$status" -ne 0 ]
 }
 

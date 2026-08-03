@@ -157,7 +157,13 @@ SQL
   # T002389: include the failure class (MODEL/INFRA) so the distinction is visible.
   # T002369: derive escalation tier from attempt count (1→flash, 2→haiku, 3+→sonnet)
   # so the comment tells which model tier the next pipeline run would use.
-  local tier_name="flash"
+  # [T002618] KEIN `local`: diese Schleife laeuft auf Top-Level, nicht in einer
+  # Funktion. Unter `set -euo pipefail` brach `local` hier den gesamten Watchdog-
+  # Lauf ab, sobald die Stale-Liste nicht leer war — Status-Reset, Slot-Freigabe,
+  # Comment, Worktree-Cleanup und der awaiting_deploy-Sweep darunter wurden dann
+  # nie erreicht. Bei leerer Liste lief das Skript durch, weshalb es im
+  # Normalbetrieb nie auffiel.
+  tier_name="flash"
   if [[ "$attempt" =~ ^[0-9]+$ ]]; then
     if (( attempt + 1 >= 3 )); then
       tier_name="sonnet"
@@ -194,6 +200,53 @@ for ext_id in "${ad_stale[@]}"; do
     --body "Watchdog: awaiting_deploy stale > ${AD_STALE_H}h. Merged but not deployed — needs manual intervention." >/dev/null
   BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" patch --id "$ext_id" --attention-mode needs_human >/dev/null
   escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
+done
+
+# ── orphaned pipeline_slot (T002610) ──────────────────────────────────────
+# Logische Umkehrung des Stale-Sweeps oben: dort haengt eine Pipeline, die laeuft;
+# hier traegt ein Ticket einen Slot, obwohl es NICHT laeuft. Dieser Zustand
+# blockiert jeden kuenftigen Claim (slots.sh claim-gang setzt
+# `WHERE pipeline_slot IS NULL`) und belegt zugleich keine Kapazitaet
+# (slots.sh count filtert auf status='in_progress') — rein blockierend und
+# nirgends sichtbar. So fiel T002482 ueber Stunden aus der Factory, ohne dass
+# irgendwo eine Meldung entstand.
+#
+# Eigener Schwellwert statt FACTORY_STALE_MIN: ein Waise ist ein anderer Zustand
+# als eine haengende Pipeline und darf schneller geraeumt werden, ohne den
+# Stale-Sweep umzuparametrieren. Die Karenzzeit schliesst zugleich jedes Rennen
+# mit einem gerade laufenden Claim aus.
+ORPHAN_MIN="${FACTORY_ORPHAN_SLOT_MIN:-10}"
+mapfile -t orphan_slots < <(printf "SELECT external_id FROM tickets.tickets WHERE pipeline_slot IS NOT NULL AND status <> 'in_progress' AND updated_at < now() - make_interval(mins => %s);" "$ORPHAN_MIN" | factory_psql)
+
+for ext_id in "${orphan_slots[@]}"; do
+  [[ -z "$ext_id" ]] && continue
+  # Status NICHT anfassen: bei einem Waisen ist er bereits korrekt, allein der
+  # Slot ist falsch. Genau das unterscheidet diesen Sweep vom Stale-Sweep.
+  #
+  # Freigabe ueber `ticket.sh release-slot` (ruft intern `slots.sh release`) —
+  # NICHT ueber scripts/factory/release-slot.sh: das dekrementiert trotz des
+  # gleichen Namens `active_agents` in tickets.provider_health, also
+  # LLM-Provider-Kapazitaet, und hat mit pipeline_slot nichts zu tun.
+  #
+  # Fail-open heisst weitermachen, nicht schweigen: ein einzelnes nicht
+  # raeumbares Ticket darf den Watchdog-Lauf nicht abbrechen, muss aber gemeldet
+  # werden. Ein `>/dev/null 2>&1 || true` waere hier genau das Muster, gegen das
+  # dieser Sweep gebaut ist — ein Waise, der sich nicht raeumen laesst, bliebe
+  # sonst wieder unsichtbar.
+  BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
+    --body "Watchdog: verwaister pipeline_slot (Status != in_progress, > ${ORPHAN_MIN}min unberuehrt) — Slot freigegeben, Status unveraendert. [T002610]" >/dev/null 2>&1 \
+    || echo "watchdog: WARN audit comment for orphan $ext_id failed — releasing the slot anyway" >&2
+  set +e
+  rel_err=$(BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" 2>&1 >/dev/null)
+  rel_rc=$?
+  set -e
+  if [[ "$rel_rc" -eq 0 ]]; then
+    # Nur ein tatsaechlich freigegebener Slot wird gemeldet — sonst wiese der
+    # Watchdog Arbeit als erledigt aus, die er nicht geleistet hat.
+    escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
+  else
+    echo "watchdog: WARN releasing orphaned slot for $ext_id failed — slot still blocks the queue: ${rel_err}" >&2
+  fi
 done
 
 echo "$escalated"

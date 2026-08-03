@@ -2,7 +2,15 @@
 
 ## Purpose
 
-_Purpose fehlt — beim nächsten inhaltlichen Delta zu local-llm-proxy ergänzen._
+Der lokale LLM-Proxy (`scripts/llm-proxy/`) ist das alleinige Gateway, über das jeder lokale
+Harness — Factory-Orchestrator, Factory-Phasenagenten, opencode und weitere Agenten — mit den
+llama.cpp-Backends spricht. Er hört auf Port 18235, löst Modellnamen auf Backends auf und
+verwaltet die Loadouts als transiente systemd-User-Units: er startet ein Loadout bei Bedarf
+selbst und setzt dabei durch, dass sich Loadouts derselben `exclusiveGroup` nicht gegenseitig
+von der GPU verdrängen.
+
+Der Zweck dieser Bündelung ist, dass Routing, Kontextbudget, Tool-Schema-Sanitizing und
+GPU-Belegung an genau einer Stelle entschieden werden statt in jedem Konsumenten einzeln.
 
 ## Requirements
 
@@ -463,3 +471,159 @@ The platform SHALL include a parameterizable KV cache RAM/VRAM budget calculatio
 - THEN it outputs expected memory footprints for `-kvu` and `-no-kvu` configurations.
 
 <!-- merged from change delta local-llm-proxy.md (53200db2856c) -->
+
+### Requirement: Embed-Skript bietet einen zählenden Skip-Modus ohne Index-Änderung
+
+The system SHALL provide a `--count-skipped` mode in `scripts/openspec-embed.mjs` that counts
+skipped embeddings without modifying the index, reports the count and the reason separately
+(at minimum distinguishing context-overflow from everything else), and names
+`task openspec:embed:backfill` as the way to reduce the number.
+
+#### Scenario: --count-skipped zählt ohne den Index zu verändern
+
+- **GIVEN** der Embed-Index enthält übersprungene Dokumente
+- **WHEN** `scripts/openspec-embed.mjs --count-skipped` ausgeführt wird
+- **THEN** wird die Anzahl der übersprungenen Dokumente ausgegeben
+- **AND** der Index wird dabei nicht verändert
+
+#### Scenario: Zahl und Grund werden getrennt ausgewiesen
+
+- **GIVEN** Dokumente wurden aus unterschiedlichen Gründen übersprungen
+- **WHEN** `--count-skipped` läuft
+- **THEN** nennt die Ausgabe die Zahl je Grund getrennt (z. B. Kontextüberschreitung
+  gegenüber Parse-Fehler)
+- **AND** die Ausgabe nennt `task openspec:embed:backfill` als Weg, die Zahl abzubauen
+
+### Requirement: Embed-Wrapper meldet die Gesamtlage non-fatal
+
+The system SHALL have `scripts/openspec-embed-local.sh` report the overall skip situation
+after indexing, without blocking the commit when only the count is reported. The existing hard
+error path for a failed embedding SHALL remain unchanged.
+
+#### Scenario: Wrapper meldet die Gesamtlage nach dem Indizieren
+
+- **GIVEN** ein Commit löst den Embed-Wrapper aus
+- **WHEN** das Indizieren abgeschlossen ist
+- **THEN** gibt der Wrapper die Gesamtzahl der übersprungenen Dokumente aus
+- **AND** der Commit wird dadurch nicht blockiert
+
+#### Scenario: Fehlgeschlagenes Embedding bleibt ein harter Fehler
+
+- **GIVEN** ein Embedding schlägt tatsächlich fehl
+- **WHEN** der Wrapper läuft
+- **THEN** wird der bestehende harte Fehlerpfad ausgelöst
+- **AND** die Meldung unterscheidet diesen Fall von einer reinen Zählung
+
+<!-- merged from change delta local-llm-proxy.md (2b68aa820ab5) -->
+
+### Requirement: Agent-Modell- und Kontextangaben entsprechen dem geladenen Loadout
+
+The system SHALL configure the opencode subagents to match the actually loaded model and
+context size, so that the agent definitions do not name a model that is not loaded and do not
+promise a context size larger than what is available.
+
+#### Scenario: Agent-Definition nennt das geladene Modell
+
+- **GIVEN** `.opencode/agent-models.jsonc` verdrahtet die Subagenten
+- **WHEN** die Modell-Referenz gegen das geladene Loadout geprüft wird
+- **THEN** nennt die Definition das tatsächlich geladene Modell
+  (`gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf`)
+- **AND** keine Referenz auf das nicht geladene 12B-Modell ist enthalten
+
+#### Scenario: Kontextangabe entspricht dem gemessenen n_ctx
+
+- **GIVEN** die Agent-Beschreibung nennt eine Kontextgröße
+- **WHEN** sie gegen den gemessenen Wert geprüft wird
+- **THEN** entspricht sie `n_ctx=99840`
+- **AND** die falsche Angabe von 262144 ist entfernt
+
+### Requirement: Gemma26-Loadout fährt drei Slots mit unified context
+
+The system SHALL configure the `gemma26-factory` loadout with three slots and the `-kvu`
+flag for a unified KV buffer shared across sequences, while keeping `max_inflight` at 1, so
+that each factory slot sees the full context without increasing KV memory fourfold.
+
+#### Scenario: Loadout hat drei Slots und -kvu
+
+- **GIVEN** `scripts/llm/loadouts.json` definiert `gemma26-factory`
+- **WHEN** die Loadout-Konfiguration geprüft wird
+- **THEN** ist `args.parallel` auf 3 gesetzt
+- **AND** `-kvu` ist in `extraArgs` enthalten
+- **AND** `max_inflight` bleibt bei 1
+
+#### Scenario: fit.minCtx bleibt unverändert
+
+- **GIVEN** das Loadout nutzt einen unified KV-Puffer
+- **WHEN** `fit.minCtx` geprüft wird
+- **THEN** bleibt es unverändert (32768)
+- **AND** die KV-Quantisierung bleibt `q4_0`
+
+<!-- merged from change delta local-llm-proxy.md (795a840968e8) -->
+
+### Requirement: Explicit loadout start honours exclusiveGroup
+
+The explicit start endpoint (`POST /admin/loadouts/<slug>/start`) SHALL refuse to start a loadout
+while another loadout sharing its `exclusiveGroup` is active, and SHALL do so with the same error
+code (`exclusive_conflict`), the same HTTP status (409) and the same wording as the auto-start
+path already uses. The proxy SHALL NOT stop the conflicting loadout by itself; the message SHALL
+name the blocking slug, the shared group and the stop command.
+
+The conflict predicate SHALL be defined exactly once and be shared by both start paths, so the
+two cannot drift apart. A loadout that is itself already active SHALL NOT count as its own
+conflict — that case remains `already_running`.
+
+Loadouts without an `exclusiveGroup`, and loadouts in a different group, SHALL NOT block a start.
+
+#### Scenario: Explicit start is refused across port boundaries
+
+- **GIVEN** `gemma9-factory` (group `chat-gpu`, port 8092) is active
+- **WHEN** `POST /admin/loadouts/gemma26-factory/start` is requested (group `chat-gpu`, port 8091)
+- **THEN** the response is `409` with code `exclusive_conflict`, the message names
+  `gemma9-factory` and its stop command, and no unit is started or stopped
+
+#### Scenario: A different exclusive group does not block
+
+- **GIVEN** only `bge-embed-cpu` (group `bge-cpu`) is active
+- **WHEN** `POST /admin/loadouts/gemma26-factory/start` is requested
+- **THEN** the start proceeds
+
+#### Scenario: Both start paths share one conflict definition
+
+- **GIVEN** the same set of active loadouts
+- **WHEN** the conflict is evaluated for the auto-start path and for the explicit start path
+- **THEN** both report the same blocking slug and group
+
+<!-- merged from change delta local-llm-proxy.md (e876c4926c38) -->
+
+### Requirement: Turn markers are stripped from non-streaming content
+
+The proxy SHALL remove known chat-template turn markers (`<|message_sep|>`, `<|role_sep|>`)
+from the `content` field of non-streaming chat completions before delivering them, and SHALL
+adjust `content-length` accordingly. Streaming responses SHALL pass through unchanged.
+
+Stripping SHALL apply only to the `content` field. `tool_calls` and every other field SHALL be
+delivered unchanged, because the tool-call path already consumes the marker and yields an empty
+`content`.
+
+An answer that contains no marker SHALL be delivered byte-identical to the upstream body.
+
+#### Scenario: Marker is removed from a plain-text answer
+
+- **GIVEN** the backend answers a non-streaming request with `content` `"Paris<|message_sep|>"`
+- **WHEN** the proxy delivers the response
+- **THEN** the client receives `content` `"Paris"` and an unchanged `finish_reason`
+
+#### Scenario: Tool-call responses are untouched
+
+- **GIVEN** the backend answers with `content` `""`, populated `tool_calls` and
+  `finish_reason` `tool_calls`
+- **WHEN** the proxy delivers the response
+- **THEN** `tool_calls` is delivered unchanged and `content` stays `""`
+
+#### Scenario: Streaming responses pass through
+
+- **GIVEN** the request carries `stream: true`
+- **WHEN** the proxy delivers the response
+- **THEN** the body is piped through unchanged, markers included
+
+<!-- merged from change delta local-llm-proxy.md (998e14031314) -->

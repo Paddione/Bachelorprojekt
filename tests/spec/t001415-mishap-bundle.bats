@@ -148,3 +148,25 @@ setup() {
   # auto-enqueue.sh + auto-triage.sh calls live in the same loop block).
   awk '/while true/,/done$/{print}' "$WAKEUP" | grep -q 'auto-close-merged'
 }
+
+@test "T002598-M1: auto-close-merged.sh unterscheidet plan-only von Execution per Dateiinhalt, nicht per Branch-Name" {
+  # Regression: die alte Branch-Heuristik '^chore/(archive|openspec)' matchte auch
+  # Execution-Branches chore/openspec-ticket-links-T002573 (#3734) und
+  # chore/openspec-stragglers-T002577 (#3737) als plan-only und ließ deren Tickets
+  # nach grünem Merge offen. Die neue Logik:
+  #  - chore/archive-* + openspec/*  → unverändert plan-only-Fast-Path
+  #  - chore/openspec-*              → per Dateiinhalt (pr_is_plan_only) entschieden
+  local script="$REPO/scripts/factory/auto-close-merged.sh"
+  # Fast-Path bleibt für archive-Branches
+  grep -Eq "\^chore/archive-|\^openspec/" "$script"
+  # chore/openspec-* ist nicht mehr pauschal plan-only, sondern wird per Inhalt geprüft
+  grep -q 'chore/openspec-' "$script"
+  grep -q 'pr_is_plan_only' "$script"
+  # Die alte zu breite Heuristik '^chore/(archive|openspec)' darf nicht mehr als
+  # aktive Code-Zeile vorkommen (Kommentar-Verweis auf die Historie ist ok).
+  if grep -qE '^\s*(if )?printf.*grep -qE .?\^chore/\(archive\|openspec\)' "$script"; then
+    echo "T002598-M1: alte zu breite Branch-Heuristik noch vorhanden" >&2
+    false
+  fi
+}
+

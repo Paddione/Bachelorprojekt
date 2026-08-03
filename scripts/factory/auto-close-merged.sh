@@ -37,6 +37,42 @@ fi
 
 factory_resolve
 
+# T002598-M1: Decide whether a PR is plan-only by file content, not by branch
+# name. `gh pr view --json files` caps at 100 files, which hides implementation
+# files in large PRs (e.g. #3737 — scripts/openspec.sh was beyond the cap), so
+# use the paginated gh api instead. A plan-only PR changes only openspec/**
+# plan/archive files plus regenerated artifacts; any implementation file
+# (scripts/, tests/, k3d/, website/src/, .github/, brett/, docs/ non-generated)
+# makes it an execution PR that must auto-close.
+#
+# Returns 0 (plan-only) or 1 (execution / cannot determine).
+pr_is_plan_only() {
+  local pr_num="$1"
+  local files
+  files="$(gh api "repos/{owner}/{repo}/pulls/${pr_num}/files?per_page=100" --paginate --jq '.[].filename' 2>/dev/null)" || return 1
+  [[ -z "$files" ]] && return 1
+  local f
+  while IFS= read -r f; do
+    case "$f" in
+      openspec/*) continue ;;
+      # Generated artifacts — plan-only PRs regenerate these (openspec-status-map,
+      # freshness:regenerate). Everything else is implementation.
+      website/src/data/openspec-status.json) continue ;;
+      website/src/data/test-inventory.json) continue ;;
+      website/src/data/route-manifest.json) continue ;;
+      website/src/lib/learning-assets.generated.json) continue ;;
+      website/src/lib/goals-data.generated.json) continue ;;
+      website/src/lib/agent-guide.generated.json) continue ;;
+      docs/code-quality/repo-index.json) continue ;;
+      docs/code-quality/loc-budget.json) continue ;;
+      docs/generated/*) continue ;;
+      k3d/docs-content-built/*) continue ;;
+      *) return 1 ;;
+    esac
+  done <<< "$files"
+  return 0
+}
+
 # Pull the most recent 30 merged PRs with metadata (branch name for T001580).
 # The branch name is needed to skip plan-only PRs (chore/archive-*, openspec/* branches).
 PRS=$(gh pr list --state merged --limit 30 --json number,title,headRefName --template '{{range .}}{{.number}}	{{.title}}	{{.headRefName}}{{"\n"}}{{end}}')
@@ -54,11 +90,25 @@ echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
   ticket=$(printf '%s' "$title" | sed -n 's/.*\[\(T[0-9]\{6\}\)\].*/\1/p' | head -1)
   [[ -z "$ticket" ]] && continue
 
-  # T001580 FIX: Skip plan-only PRs (chore/archive, openspec branches)
-  # These are implementation plans that shouldn't auto-close tickets.
-  if printf '%s\n' "$branch" | grep -qE '^chore/(archive|openspec)|^openspec/'; then
-    echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — SKIP (plan-only PR)" >&2
+  # T001580 FIX: Skip plan-only PRs. These are implementation plans that shouldn't
+  # auto-close tickets. Decided by FILE CONTENT, not branch name (T002598-M1): the
+  # old branch heuristic `^chore/(archive|openspec)|^openspec/` wrongly matched
+  # EXECUTION branches like chore/openspec-ticket-links-T002573 (#3734) and
+  # chore/openspec-stragglers-T002577 (#3737), leaving those tickets open after a
+  # green merge. Archive branches (chore/archive-*, openspec/*) never carry
+  # implementation, so they stay a fast-path skip.
+  if printf '%s\n' "$branch" | grep -qE '^chore/archive-|^openspec/'; then
+    echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — SKIP (archive/plan branch)" >&2
     continue
+  fi
+  # chore/openspec-* is ambiguous: it may be a plan-only branch (e.g.
+  # chore/openspec-archive-*) or an execution branch. Verify by file content.
+  if printf '%s\n' "$branch" | grep -qE '^chore/openspec-'; then
+    if pr_is_plan_only "$pr_num"; then
+      echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — SKIP (plan-only PR)" >&2
+      continue
+    fi
+    echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — kein plan-only (Implementierungsdateien) — schließe" >&2
   fi
 
   # Check partial plan completeness guard (T002105):

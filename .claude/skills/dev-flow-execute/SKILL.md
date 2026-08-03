@@ -73,7 +73,7 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
   - **Plan Intel Bundle (Optional):** Sofern vorhanden: `bash scripts/task-context.sh <slug>` — gemeinsamer Assembler, liefert statischen Kern aus intel.json + frische Signale. Format: [plan-intel-bundle](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-intel-bundle.md). Fehlt die Datei, ist das kein Blocker — der Implementer kann die Typen-Wahrheit selbst erheben.
 - **⚠️ BATS-Pflicht:** Neue `@test`-Einträge gehören in `tests/spec/<spec-slug>.bats` — die
   OpenSpec-Spec, die das Verhalten abdeckt. Existiert die Datei nicht, anlegen (Vorlage:
-  `tests/spec/software-factory.bats`); ohne klare Spec-Zuordnung `tests/unit/` erweitern.
+  `tests/spec/software-factory/`); ohne klare Spec-Zuordnung `tests/unit/` erweitern.
   Ticket-nummerierte Dateien (`FA-SF-42.bats`) sind Legacy und werden **nicht** neu angelegt.
   Vorgehen im Detail: [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-execute-phases.md) §BATS.
 - **Auftrag:**

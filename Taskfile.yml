@@ -2695,6 +2695,11 @@ tasks:
         kustomize build prod-fleet/platform/ --load-restrictor=LoadRestrictionsNone \
           | kubectl --context fleet apply --server-side --force-conflicts -f -
 
+  fleet:membership:
+    desc: "Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context fleet get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task fleet:membership"
+    cmds:
+      - bash scripts/fleet-membership-check.sh
+
   fleet:deploy:brand:
     desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
     requires:

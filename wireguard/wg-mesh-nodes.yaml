@@ -198,37 +198,48 @@ fleet:
       wg_ip: "10.20.0.1"
       schema_key: WG_MESH_PK4_FLEET
       public_key: "e10sA4GsXWQbbcPAx6J98sbKQbiO8VEm+5ywHgKT2Vg="
+      # k8s_node (T002630): Teil des fleet-Kubernetes-Clusters. Der
+      # fleet-membership-check vergleicht ausschliesslich Nodes mit diesem Marker —
+      # reine wg-Peers (terminal-sidekick) sind keine k8s-Nodes.
+      k8s_node: true
 
     - name: pk-hetzner-6
       endpoint: "37.27.251.38:51820"
       wg_ip: "10.20.0.2"
       schema_key: WG_MESH_PK6_FLEET
       public_key: "Fmx/zbyADzKElBEnEL/drun0VM6mt7NNBn4m2FeUklo="
+      k8s_node: true
 
     - name: pk-hetzner-8
       endpoint: "62.238.23.79:51820"
       wg_ip: "10.20.0.3"
       schema_key: WG_MESH_PK8_FLEET
       public_key: "buA4HrVLhaOQTRUf5azhubgWPqJeGLnMJXbf/nqlmB8="
+      k8s_node: true
 
   workers:
+    # T002630: gekko-hetzner-2 ist die Dev-Node (Label + Taint role=dev:NoSchedule,
+    # ausschliesslich Dev-Workloads). Siehe docs/runbooks/cluster-dev-node-umbau.md.
     - name: gekko-hetzner-2
       endpoint: "178.104.169.206:51820"
       wg_ip: "10.20.0.4"
       schema_key: WG_MESH_GEKKO2_FLEET
       public_key: "VBzLQBlMZZvygs9/90hNfOEmscCjbbKN+/Zv7Q0gsD8="
+      k8s_node: true
 
     - name: gekko-hetzner-3
       endpoint: "46.225.125.59:51820"
       wg_ip: "10.20.0.5"
       schema_key: WG_MESH_GEKKO3_FLEET
       public_key: "shjarf/+wXfxl4JlhTRtVvyDt8mzGodr8kj392WHa1I="
+      k8s_node: true
 
     - name: gekko-hetzner-4
       endpoint: "178.104.159.79:51820"
       wg_ip: "10.20.0.6"
       schema_key: WG_MESH_GEKKO4_FLEET
       public_key: "H8R7yyZ6W8lS2rlKUNF0bP0oYNtxnn1bjoy3SwmRvCY="
+      k8s_node: true
 
     # terminal-sidekick — WSL host on dev machine. No public endpoint (behind NAT);
     # reachable from fleet nodes only when the WireGuard tunnel is up. Key generated

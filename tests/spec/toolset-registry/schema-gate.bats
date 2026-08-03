@@ -219,9 +219,12 @@ EOF
   # Ein neu installiertes Plugin darf CI nicht rot machen, sonst wird die Quarantaene
   # zur Blockade und in der Praxis umgangen.
   #
-  # Die Fixture fuehrt ein Plugin als unreviewed, das im echten Repo aktiviert ist.
-  # Positiv-Anker: eine gleichzeitig vorhandene canonical-Instanz belegt, dass der Gate
-  # ueberhaupt gelaufen ist und nicht bloss frueh abgebrochen hat.
+  # TOOLSET_OUT_DIR zeigt bewusst auf das ECHTE Repo, nur die Registry ist eine Fixture:
+  # gegen ein leeres Temp-Verzeichnis findet collect.mjs weder .claude/settings.json noch
+  # .mcp.json noch Skills, die Fundmenge waere leer und der Bericht damit gegenstandslos.
+  # (In dieser Konstellation haengt das Ergebnis sonst an $HOME/.gemini/ des Entwicklers —
+  # lokal gruen, in CI rot.) Die Fixture kennt nur eine Instanz, alles uebrige ist folglich
+  # unreviewed.
   local fx
   fx="$(write_registry with-unreviewed <<'EOF'
 capabilities:
@@ -230,17 +233,18 @@ capabilities:
       state: canonical
       use_when: "Demo-Zweck"
       roles: [orchestrator]
-  quarantaene:
-    plugin:superpowers@claude-plugins-official:
-      state: unreviewed
-      reason: "Noch nicht entschieden."
 EOF
 )"
-  run_check "$fx"
+  run env TOOLSET_REGISTRY="$fx" TOOLSET_OUT_DIR="$REPO_ROOT" \
+    node "$REPO_ROOT/scripts/toolset/check.mjs"
   [ "$status" -eq 0 ]
 
+  # Positiv-Anker: es wurden ueberhaupt Instanzen als unreviewed gemeldet.
+  run bash -c "env TOOLSET_REGISTRY='$fx' TOOLSET_OUT_DIR='$REPO_ROOT' node '$REPO_ROOT/scripts/toolset/check.mjs' 2>&1 | grep -c '^  unreviewed: '"
+  [ "$output" -ge 1 ]
+
   # Der Bericht muss den Kurations-Skill nennen — sonst ist die Meldung nicht handlungsleitend.
-  run bash -c "env TOOLSET_REGISTRY='$fx' TOOLSET_OUT_DIR='$OUT_DIR' node '$REPO_ROOT/scripts/toolset/check.mjs' 2>&1 | grep -c 'toolset-curate'"
+  run bash -c "env TOOLSET_REGISTRY='$fx' TOOLSET_OUT_DIR='$REPO_ROOT' node '$REPO_ROOT/scripts/toolset/check.mjs' 2>&1 | grep -c 'toolset-curate'"
   [ "$output" -ge 1 ]
 }
 

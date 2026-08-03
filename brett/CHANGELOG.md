@@ -1,6 +1,13 @@
 # Changelog
 <!-- dev-deploy smoke test 2 -->
 
+## [0.41.1](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.41.0...brett-v0.41.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **scripts:** plan-lint STRUCT2 erkennt node --test als Testrunner [T002616] ([#3749](https://github.com/Paddione/Bachelorprojekt/issues/3749)) ([902466d](https://github.com/Paddione/Bachelorprojekt/commit/902466d580a9804c38115f6fd3dbd689ef756dd0))
+
 ## [0.41.0](https://github.com/Paddione/Bachelorprojekt/compare/brett-v0.40.3...brett-v0.41.0) (2026-07-21)
 
 

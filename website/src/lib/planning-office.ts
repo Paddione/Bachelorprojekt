@@ -15,7 +15,7 @@ export interface TriageSuggestion {
 }
 
 export interface OfficeItem {
-  extId: string; title: string; valueProp: string | null; priority: string;
+  extId: string; title: string; type: string; valueProp: string | null; priority: string;
   effort: string | null; areas: string[]; dependsOn: string[];
   rank: number | null; readiness: Readiness; dorScore: number;
   isNextCandidate: boolean; pinned: boolean; createdAt: string; updatedAt: string;
@@ -33,6 +33,7 @@ export function dorScore(r: Readiness | null): number {
 interface OfficeRow {
   external_id: string;
   title: string;
+  type: string;
   value_prop: string | null;
   priority: string;
   effort: string | null;
@@ -51,7 +52,7 @@ function mapRow(row: OfficeRow): OfficeItem {
   const readiness: Readiness = row.readiness ?? {};
   const grillingMeta: Record<string, unknown> = row.grilling_meta ?? {};
   return {
-    extId: row.external_id, title: row.title, valueProp: row.value_prop,
+    extId: row.external_id, title: row.title, type: row.type, valueProp: row.value_prop,
     priority: row.priority, effort: row.effort,
     areas: row.areas ?? [], dependsOn: row.depends_on ?? [],
     rank: row.planning_rank, readiness, dorScore: dorScore(readiness),
@@ -67,11 +68,11 @@ function mapRow(row: OfficeRow): OfficeItem {
 
 export async function listOffice(): Promise<OfficeItem[]> {
   const r = await pool.query(
-    `SELECT external_id, title, value_prop, priority, effort, areas, depends_on,
+    `SELECT external_id, title, type, value_prop, priority, effort, areas, depends_on,
             planning_rank, readiness, pinned, created_at, updated_at, requirements_list,
             grilling_meta
        FROM tickets.tickets
-      WHERE type IN ('feature','feat') AND status = 'planning'
+      WHERE type IN ('feature','feat','project') AND status = 'planning'
       ORDER BY pinned DESC, COALESCE(planning_rank, 2147483647), created_at`,
   );
   return r.rows.map(mapRow);
@@ -79,17 +80,20 @@ export async function listOffice(): Promise<OfficeItem[]> {
 
 export interface CreateInput {
   title: string; brand: string; valueProp?: string; priority?: string;
-  effort?: string; areas?: string[];
+  effort?: string; areas?: string[]; type?: string;
 }
 export async function createIdea(inp: CreateInput): Promise<string> {
+  // Epics (type='project') starten editierbar in 'planning' — derselbe Zustand wie
+  // ein Feature. Ohne Typangabe bleibt es beim bisherigen 'feat'.
+  const type = inp.type === 'project' ? 'project' : 'feat';
   const r = await pool.query(
     `INSERT INTO tickets.tickets
        (type, brand, title, status, value_prop, priority, effort, areas, planning_rank, readiness)
-     VALUES ('feat', $1, $2, 'planning', $3, COALESCE($4,'mittel'), $5, $6,
+     VALUES ($1, $2, $3, 'planning', $4, COALESCE($5,'mittel'), $6, $7,
        (SELECT COALESCE(MAX(planning_rank),0)+1 FROM tickets.tickets WHERE status='planning'),
        '{}'::jsonb)
      RETURNING external_id`,
-    [inp.brand, inp.title, inp.valueProp ?? null, inp.priority ?? null,
+    [type, inp.brand, inp.title, inp.valueProp ?? null, inp.priority ?? null,
      inp.effort ?? null, inp.areas ?? null],
   );
   return r.rows[0].external_id;

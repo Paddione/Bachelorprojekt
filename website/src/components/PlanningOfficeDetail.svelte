@@ -10,6 +10,7 @@
   interface PlanItem {
     extId: string;
     title: string;
+    type: string;
     valueProp: string | null;
     priority: string;
     effort: string | null;
@@ -58,7 +59,10 @@
   }
 </script>
 
-<h2 class="pb-detail-title">{item.title}</h2>
+<h2 class="pb-detail-title">
+  {#if item.type === 'project'}<span class="pb-epic-badge" data-testid="pb-epic-badge">Epic</span>{/if}
+  {item.title}
+</h2>
 <label class="pb-field-label">Kern-Nutzen
   <textarea
     class="pb-textarea"
@@ -139,6 +143,19 @@
     font-size: 1.1rem;
     margin: 0 0 12px;
     color: var(--admin-text);
+  }
+
+  .pb-epic-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--admin-bg);
+    background: var(--admin-amber);
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin-right: 6px;
+    vertical-align: middle;
   }
 
   .pb-field-label {

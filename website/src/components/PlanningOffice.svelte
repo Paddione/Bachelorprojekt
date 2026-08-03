@@ -10,6 +10,7 @@
   interface PlanItem {
     extId: string;
     title: string;
+    type: string;
     valueProp: string | null;
     priority: string;
     effort: string | null;

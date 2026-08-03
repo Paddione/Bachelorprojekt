@@ -4,6 +4,7 @@
   interface PlanItem {
     extId: string;
     title: string;
+    type: string;
     valueProp: string | null;
     priority: string;
     effort: string | null;
@@ -95,6 +96,7 @@
       >▲</button>
       <span class="pb-priority-dot" style="background:{priorityColor(it.priority)}"></span>
       <span class="pb-extid">{it.extId}</span>
+      {#if it.type === 'project'}<span class="pb-epic-badge" data-testid="office-epic-badge">Epic</span>{/if}
       <span class="pb-title">{it.title}</span>
       <span class="pb-dor-squares">
         {#each DOR_KEYS as k}
@@ -170,6 +172,17 @@
     color: var(--admin-amber);
     white-space: nowrap;
     min-width: 60px;
+  }
+
+  .pb-epic-badge {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--admin-bg);
+    background: var(--admin-amber);
+    border-radius: 3px;
+    padding: 1px 5px;
+    flex-shrink: 0;
   }
 
   .pb-title {

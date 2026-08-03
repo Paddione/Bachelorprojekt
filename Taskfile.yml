@@ -1451,6 +1451,24 @@ tasks:
         KORCZEWSKI_URL="${KORCZEWSKI_URL:-https://web.korczewski.de}" \
           ./node_modules/.bin/playwright test --project=korczewski {{.CLI_ARGS}}
 
+  web:audit:
+    desc: "Semantische Pruefung + Triage: axe, Lighthouse, LLM (T002612)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "web:audit requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  export PROD_DOMAIN=mentolder.de ;;
+          korczewski) export PROD_DOMAIN=korczewski.de ;;
+        esac
+        export ENV="{{.ENV}}"
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        node scripts/web-audit.mjs --brand "{{.ENV}}" {{.CLI_ARGS}}
+
   a11y:axe:
     desc: "axe-core a11y-Scan der Kern-Routen gegen ENV=mentolder|korczewski (G-FE01, T001361)"
     dir: tests/e2e

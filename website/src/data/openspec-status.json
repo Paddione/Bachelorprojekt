@@ -2373,6 +2373,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002592": [
+    {
+      "slug": "toolset-usage-injection",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

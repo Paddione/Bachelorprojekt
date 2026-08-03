@@ -11,11 +11,15 @@ load '../test_helper.bash'
 
   # 1) Fixture-Registry: github → cli:gh-axi canonical, mcp:github-mcp suppressed
   mkdir -p "$tmp/registry" "$tmp/out/.claude"
+  # use_when und roles sind seit T002592 Pflichtfelder jeder canonical-Instanz — ohne sie
+  # lehnt das Schema-Gate die Fixture ab, bevor die Drift-Pruefung ueberhaupt greift.
   cat > "$tmp/registry/capabilities.yaml" <<'YAML'
 capabilities:
   github:
     cli:gh-axi:
       state: canonical
+      use_when: "Fixture: alle GitHub-Operationen."
+      roles: [all]
     mcp:github-mcp:
       state: suppressed
       reason: "Fixture: gh-axi ist der mandatierte GitHub-Pfad."

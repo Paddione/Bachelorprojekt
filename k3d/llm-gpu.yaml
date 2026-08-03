@@ -109,7 +109,13 @@ spec:
               memory: "1Gi"
               cpu: "1000m"
             limits:
-              memory: "2Gi"
+              # T002580: limits.memory 2Gi -> 3Gi. Gemessener Peak-RSS unter
+              # 64er-Embedding-Batch-Last: ~1.94Gi (kubectl top pod, 2026-08-03),
+              # stabil auch bei 96 Requests mit langen Texten. 2Gi liess nur
+              # ~60Mi Headroom -> OOMKilled-Restart-Schleife (9 Restarts in 6h).
+              # 3Gi = Peak + ~1Gi Headroom; -np 4 -ub 8192 bleibt erhalten
+              # (Durchsatz fuer den T002572-Benchmark). Guard: llm-pipeline.bats.
+              memory: "3Gi"
               cpu: "2000m"
           readinessProbe:
             httpGet:

@@ -540,12 +540,12 @@ SHALL go through `kubectl` instead.
 
 ### Requirement: Architektur-Notiz beschreibt den tatsächlichen Betriebsmodus
 
-The `mcp-gateway` SSOT spec SHALL describe how the MCP servers are actually served. The
-claim that `claude-code-mcp-monolith` was decommissioned and that all MCP servers run as
-host-side CLI processes is wrong for `mcp-kubernetes` and `mcp-postgres`: both are
+The `mcp-gateway` SSOT spec SHALL describe how the MCP servers are actually served. For
+`mcp-kubernetes` and `mcp-postgres` the servers are NOT host-side CLI processes: both are
 `kubectl port-forward` targets on the in-cluster Deployment `claude-code-mcp-monolith` in
-namespace `default`. The spec SHALL state this, because the wrong claim is what made the
-read-only identity behind a denied `pods_exec` hard to locate.
+namespace `default`. The spec SHALL state this, because a description that omits the
+in-cluster Deployment is what made the read-only identity behind a denied `pods_exec` hard
+to locate.
 
 #### Scenario: Betriebsmodus ist aus der Spec ableitbar
 

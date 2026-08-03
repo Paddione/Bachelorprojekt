@@ -1,0 +1,5 @@
+.venv/
+outputs/
+data/
+logs/
+*.log

@@ -1,0 +1,28 @@
+{
+  "env_type": "uv-venv",
+  "isolation": "isolated",
+  "env_prefix": "/home/patrick/Bachelorprojekt/.claude/skills/unsloth-buddy/gemma_26b_qat_2026_08_02/.venv",
+  "python_version": "3.11.15",
+  "python_path": "/home/patrick/Bachelorprojekt/.claude/skills/unsloth-buddy/gemma_26b_qat_2026_08_02/.venv/bin/python",
+  "backend": "unsloth",
+  "versions": {
+    "unsloth": "2026.8.1",
+    "mlx_tune": null,
+    "mlx": null,
+    "torch": "2.13.0+cu130",
+    "transformers": "5.5.0",
+    "datasets": "4.3.0",
+    "trl": "0.24.0",
+    "peft": "0.20.0",
+    "accelerate": "1.14.0",
+    "safetensors": "0.8.0",
+    "huggingface_hub": "1.26.0"
+  },
+  "cuda_available": true,
+  "mps_available": false,
+  "hf_cache": "/home/patrick/.cache/huggingface/hub",
+  "hf_cache_ok": true,
+  "disk_free_gb": 759.9,
+  "ready": true,
+  "issues": []
+}

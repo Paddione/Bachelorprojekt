@@ -2403,6 +2403,12 @@
       "status": "archived"
     }
   ],
+  "T002609": [
+    {
+      "slug": "2026-08-03-message-sep-strip",
+      "status": "archived"
+    }
+  ],
   "T002611": [
     {
       "slug": "agentic-resource-lookup",
@@ -2423,8 +2429,8 @@
   ],
   "T002616": [
     {
-      "slug": "gpu-loadout-exclusivity",
-      "status": "plan_staged"
+      "slug": "2026-08-03-gpu-loadout-exclusivity",
+      "status": "archived"
     }
   ],
   "TBD": [

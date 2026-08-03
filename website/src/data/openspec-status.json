@@ -2111,6 +2111,12 @@
       "status": "archived"
     }
   ],
+  "T002442": [
+    {
+      "slug": "zielfamilie-llm-stack",
+      "status": "plan_staged"
+    }
+  ],
   "T002443": [
     {
       "slug": "zielfamilie-worktree-hygiene",
@@ -2401,6 +2407,42 @@
     {
       "slug": "unsloth-eval-harness",
       "status": "plan_staged"
+    }
+  ],
+  "T002609": [
+    {
+      "slug": "2026-08-03-message-sep-strip",
+      "status": "archived"
+    }
+  ],
+  "T002610": [
+    {
+      "slug": "2026-08-03-factory-orphan-slot-reap",
+      "status": "archived"
+    }
+  ],
+  "T002611": [
+    {
+      "slug": "agentic-resource-lookup",
+      "status": "plan_staged"
+    }
+  ],
+  "T002612": [
+    {
+      "slug": "web-audit",
+      "status": "plan_staged"
+    }
+  ],
+  "T002613": [
+    {
+      "slug": "skill-path-guard",
+      "status": "plan_staged"
+    }
+  ],
+  "T002616": [
+    {
+      "slug": "2026-08-03-gpu-loadout-exclusivity",
+      "status": "archived"
     }
   ],
   "TBD": [

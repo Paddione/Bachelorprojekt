@@ -225,6 +225,96 @@
       "exclusiveGroup": "chat-gpu",
       "tools": "read_file,file_glob_search,grep_search,write_file,edit_file,get_datetime,exec_shell_command",
       "notes": "Fein-getuntes Gemma 2 9B (Q4_K_M, 5.4 GB) für Factory-Agenten. T002587. GROSSES KONTEXT-FENSTER: Ersatz für gemma26-Factory als Dispatch-Subagent (nicht mehr Gemma4 26B nutzen) — mehr als 15 Aufgaben pro Session, dafür KV q4_0 wie beim 26B-Agenten-Loadout (T002501-Messung dort: q4_0 bei fitt 256 = 99328 ctx / 166 tok/s, Kurzkontext-Probe zeichengenau). targetMarginMib 128 gewinnt Kontext gegenüber 768. Gemessene ctx nach erstem Start in opencode agent-models.jsonc übernehmen. fit=false, weil -kvu den minCtx als Slot-Pool interpretiert und der gepinnte 98304-Wert stabil bleiben soll (T002599). 2 Slots mit unified KV (-kvu)."
+    },
+    {
+      "slug": "bge-embed-cpu",
+      "label": "bge-m3 · Embedding, CPU-gebunden",
+      "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",
+      "port": 8095,
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": 0,
+        "minCtx": 8192
+      },
+      "args": {
+        "ctx": 8192,
+        "ngl": 0,
+        "parallel": 4,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": true,
+        "reasoning": null,
+        "reasoningBudget": null
+      },
+      "env": {
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "exclusiveGroup": "bge-cpu",
+      "extraArgs": [
+        "-b",
+        "8192",
+        "-ub",
+        "8192",
+        "--embeddings",
+        "-t",
+        "4"
+      ],
+      "notes": "Spiegelt die Cluster-Args aus k3d/llm-gpu.yaml (bge-embed): -ngl 0, CUDA_VISIBLE_DEVICES=\"\", -b/-ub 8192, -np 4, --embeddings. Zusaetzlich -t 4: der Host hat 6 Kerne, zwei bleiben fuer das Dataloading eines parallel laufenden Finetunings frei (T002587). Regulaer bedient der Cluster Embedding; dieses Loadout ist der lokale Ersatzweg und startet NICHT von selbst."
+    },
+    {
+      "slug": "bge-rerank-cpu",
+      "label": "bge-reranker-v2-m3 · Reranking, CPU-gebunden",
+      "model": "gpustack/bge-reranker-v2-m3-GGUF/bge-reranker-v2-m3-Q8_0.gguf",
+      "port": 8096,
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": 0,
+        "minCtx": 8192
+      },
+      "args": {
+        "ctx": 8192,
+        "ngl": 0,
+        "parallel": 4,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": true,
+        "reasoning": null,
+        "reasoningBudget": null
+      },
+      "env": {
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "exclusiveGroup": "bge-cpu",
+      "extraArgs": [
+        "-b",
+        "8192",
+        "-ub",
+        "8192",
+        "--reranking",
+        "-t",
+        "4"
+      ],
+      "notes": "ACHTUNG PORT-KONFLIKT: auf :8096 laeuft bereits ein Windows-llama-server mit demselben Modell aus dem LM-Studio-Verzeichnis, und die Endpoints des Service llm-gateway-rerank in ns workspace-korczewski zeigen auf 192.168.100.10:8096 — also auf genau diesen Prozess. Dieses Loadout beschreibt ihn, startet ihn aber nicht; wird es gestartet, ohne den Windows-Prozess vorher zu beenden, ist der Port belegt. Args gespiegelt von k3d/llm-gpu.yaml (bge-rerank)."
     }
   ]
 }

@@ -74,8 +74,18 @@ setup() {
     > "${BATS_TEST_TMPDIR}/daemon.log" 2>&1 &
   echo $! > "${PIDFILE}"
 
+  # 30s statt der urspruenglichen 10s [T002602]: auf dem CI-Runner laeuft diese
+  # Suite unter `bats -j` parallel, und `npx tsx` braucht dort zum Aufloesen und
+  # Starten deutlich laenger als lokal bei warmem Cache. Beobachtet auf Shard 1
+  # als Flake in etwa jedem vierten Lauf — mit LEEREM daemon.log, weil der
+  # Prozess beim Abbruch noch gar nichts geschrieben hatte. Ausgeschlossen als
+  # Ursache wurden: volles /tmp (87G frei laut Diagnose-Step), Portkonflikt mit
+  # dem CI-Daemon (der laeuft auf 49152, dieser Test auf 49199) und ein echter
+  # Defekt (lokal gruen). Die Aussagekraft bleibt erhalten: ein wirklich kaputter
+  # Daemon beendet sich sofort und faellt weiterhin durch — nur das Warten auf
+  # einen langsamen Start ist grosszuegiger.
   local ok=0
-  for _ in $(seq 1 40); do
+  for _ in $(seq 1 120); do
     if curl -s -m 1 "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
       ok=1
       break

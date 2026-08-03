@@ -119,11 +119,45 @@ export function sanitizeToolSchemaPatterns(body) {
   return { ...body, tools: sanitizeSchemaTree(body.tools) };
 }
 
+/**
+ * Ergaenzt fehlende `items` bei Schema-Knoten mit `type: "array"`.
+ *
+ * Das Chat-Template von gpt-oss-20b prueft `{%- if param_spec['items'] -%}`.
+ * Fehlt der Schluessel, liefert Jinja NICHT `None`, sondern die gebundene
+ * Dict-Methode `.items` — und die ist kein Bool. Der Server bricht dann mit
+ * HTTP 500 ab: "Error: Function is not a bool value" (gemessen 2026-08-03,
+ * Loadout gptoss-context).
+ *
+ * Reproduktion: ein Tool mit `{"xs": {"type": "array"}}` scheitert, dasselbe
+ * Tool mit `{"xs": {"type": "array", "items": {"type": "string"}}}` laeuft.
+ * opencode sendet Schemas der ersten Form, weshalb jeder Tool-Aufruf gegen
+ * gpt-oss fehlschlug, waehrend reine Chat-Completions einwandfrei liefen.
+ *
+ * `{}` als Wert ist bewusst gewaehlt: es ist das JSON-Schema-Aequivalent zu
+ * "beliebiger Typ", aendert die Semantik des Schemas also nicht — im Gegensatz
+ * zu einem geratenen `{"type": "string"}`.
+ *
+ * @param {any} body @returns {any}
+ */
+export function fillMissingArrayItems(body) {
+  if (!Array.isArray(body?.tools)) return body;
+  const walk = (node) => {
+    if (Array.isArray(node)) return node.map(walk);
+    if (!node || typeof node !== 'object') return node;
+    const out = {};
+    for (const [k, v] of Object.entries(node)) out[k] = walk(v);
+    if (out.type === 'array' && !Object.prototype.hasOwnProperty.call(out, 'items')) out.items = {};
+    return out;
+  };
+  return { ...body, tools: walk(body.tools) };
+}
+
 export const FIXUPS = {
   'bonsai-system-role-fixup': bonsaiSystemRoleFixup,
   'flatten-content-blocks': flattenContentBlocks,
   'normalize-billing-header': normalizeBillingHeader,
   'sanitize-tool-schema-patterns': sanitizeToolSchemaPatterns,
+  'fill-missing-array-items': fillMissingArrayItems,
 };
 
 /** @param {string[]} names @param {any} body */

@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'website/**'
+      - '!website/src/pages/sdlc/**'
+      - '!website/src/lib/sdlc/**'
+      - '!website/src/components/sdlc/**'
       # T002158: SSOT von website/src/lib/goals-data.generated.json. Der JSON wird per
       # statischem ESM-Import (website/src/lib/goals-data.ts) ins Bundle gebacken —
       # ohne diesen Trigger baut eine goals-only-Änderung kein Image und
@@ -85,6 +88,7 @@ jobs:
           build-args: |
             GIT_SHA=${{ github.sha }}
             BUILT_AT=${{ steps.compute-tags.outputs.built_at }}
+            BUILD_TARGET=prod
           tags: |
             ${{ steps.compute-tags.outputs.image }}:${{ steps.compute-tags.outputs.sha_tag }}
             ${{ steps.compute-tags.outputs.image }}:latest

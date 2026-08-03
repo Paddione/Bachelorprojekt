@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { getPortfolio } from '../../../../lib/tickets/cockpit-db';
-import { buildFeatureList, parseSuggestions, SUGGEST_SYSTEM_PROMPT } from '../../../../lib/tickets/suggest-prompt';
+import { getPortfolio } from '../../../../lib/sdlc/tickets/cockpit-db';
+import { buildFeatureList, parseSuggestions, SUGGEST_SYSTEM_PROMPT } from '../../../../lib/sdlc/tickets/suggest-prompt';
 import OpenAI from 'openai';
 
 export const SUGGEST_TIMEOUT_MS = 10_000;

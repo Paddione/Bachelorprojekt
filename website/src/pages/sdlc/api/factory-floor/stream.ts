@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../lib/auth';
-import { pool } from '../../../lib/website-db';
-import { getPlanningCount } from '../../../lib/factory-floor';
-import { STREAM_POLL_MS, STREAM_HEARTBEAT_MS } from '../../../lib/factory-constants';
+import { getSession, isAdmin } from '../../../../lib/auth';
+import { pool } from '../../../../lib/website-db';
+import { getPlanningCount } from '../../../../lib/sdlc/factory-floor';
+import { STREAM_POLL_MS, STREAM_HEARTBEAT_MS } from '../../../../lib/sdlc/factory-constants';
 
 export const prerender = false;
 

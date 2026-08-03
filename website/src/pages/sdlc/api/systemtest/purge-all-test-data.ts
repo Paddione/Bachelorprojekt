@@ -14,7 +14,7 @@ import type { APIRoute } from 'astro';
 
 import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { purgeAllTestData } from '../../../../lib/systemtest/purge-all';
+import { purgeAllTestData } from '../../../../lib/sdlc/systemtest/purge-all';
 import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
 import { initTicketsSchema } from '../../../../lib/tickets-db';
 

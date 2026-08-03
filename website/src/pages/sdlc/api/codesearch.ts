@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../lib/auth';
-import { searchCode, searchCodeAugmented } from '../../lib/codesearch-db';
+import { getSession, isAdmin } from '../../../lib/auth';
+import { searchCode, searchCodeAugmented } from '../../../lib/sdlc/codesearch-db';
 
 export const prerender = false;
 

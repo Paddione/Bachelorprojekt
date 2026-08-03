@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import SuggestionBar from './SuggestionBar.svelte';
-import { makeFeature, makeRollup } from '../../lib/tickets/__tests__/fixtures';
+import { makeFeature, makeRollup } from '../../lib/sdlc/tickets/__tests__/fixtures';
 
 const features = [
   makeFeature({ id: 'f1', extId: 'f1', title: 'F1', priority: 'mittel', health: 'amber', rollup: makeRollup({ total: 0, open: 0 }), nextStep: true }),

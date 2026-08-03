@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { pool } from '../../../lib/website-db';
-import { toDeliveryMetric, summarize } from '../../../lib/delivery-metrics';
-import type { DeliveryRow, GhWorkflowRun, DeliveryMetric } from '../../../lib/delivery-metrics';
+import { toDeliveryMetric, summarize } from '../../../lib/sdlc/delivery-metrics';
+import type { DeliveryRow, GhWorkflowRun, DeliveryMetric } from '../../../lib/sdlc/delivery-metrics';
 
 
 export const prerender = false;

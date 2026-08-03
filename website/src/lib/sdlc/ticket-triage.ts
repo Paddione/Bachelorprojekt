@@ -1,9 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { getProviderConfig, setProviderCooldown } from './provider-config';
-import { SOURCE } from './ki-services';
+import { getProviderConfig, setProviderCooldown } from '../provider-config';
+import { SOURCE } from '../ki-services';
 import { getTicketDetail, addComment } from './tickets/admin';
-import { pool } from './website-db';
-import { logger } from './logger';
+import { pool } from '../website-db';
+import { logger } from '../logger';
 
 export interface TriageResult {
   priority: string;

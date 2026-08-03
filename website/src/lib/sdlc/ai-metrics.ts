@@ -1,6 +1,6 @@
 import type { Pool } from 'pg';
-import { pool as defaultPool } from './db-pool';
-import { logger } from './logger';
+import { pool as defaultPool } from '../db-pool';
+import { logger } from '../logger';
 
 export type AiWorkflow =
   | 'coaching_chat'

@@ -15,7 +15,7 @@
 //     (`admin` | `user`) plus the broader plan vocabulary; modules may treat
 //     anything other than `admin` as a customer-shaped role.
 import type { PoolClient } from 'pg';
-import type { CreateUserParams } from '../identity';
+import type { CreateUserParams } from '../../identity';
 
 export type SeedRole = 'admin' | 'coach' | 'customer' | 'guest' | 'user';
 

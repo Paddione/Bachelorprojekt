@@ -18,7 +18,7 @@ vi.mock('../../../../lib/auth', () => ({
 import { GET } from './board';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { pool } from '../../../../lib/website-db';
-import { ensureSystemtestSchema } from '../../../../lib/systemtest/db';
+import { ensureSystemtestSchema } from '../../../../lib/sdlc/systemtest/db';
 import { initTicketsSchema } from '../../../../lib/tickets-db';
 import type { BoardResponse } from './board';
 

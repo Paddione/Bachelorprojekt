@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../../lib/auth';
-import { deployFromAwaiting } from '../../../../lib/factory-floor';
+import { getSession, isAdmin } from '../../../../../lib/auth';
+import { deployFromAwaiting } from '../../../../../lib/sdlc/factory-floor';
 
 export const prerender = false;
 

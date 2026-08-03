@@ -11,7 +11,7 @@ import { render } from 'svelte/server';
 import { readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { tierLegend, guideMap } from '../../../lib/agentGuide';
+import { tierLegend, guideMap } from '../../../lib/sdlc/agentGuide';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const COMPILED = join(__dirname, '.GuideMap.compiled.svelte.mjs');

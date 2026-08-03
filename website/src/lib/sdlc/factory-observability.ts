@@ -3,7 +3,7 @@
 //  1) Prometheus HTTP API (server-side proxy) for OTel token/cost/phase metrics.
 //  2) The existing ticket phase timeline in Postgres (reused, no new table).
 // S2: imports only ./website-db + Node builtins — no API-layer back-imports.
-import { pool } from './website-db';
+import { pool } from '../website-db';
 
 const PROM_BASE =
   process.env.PROMETHEUS_URL ||

@@ -1,7 +1,7 @@
 // Pure DB access for the KI-Konfiguration admin UI.
 // Reads/writes tickets.provider_config, tickets.provider_health and the
 // embedding keys in site_settings. No imports of API/route modules (S2-safe).
-import { pool } from './website-db';
+import { pool } from '../website-db';
 
 export const EMBED_PRIMARY_KEY = 'ki_embed_primary';
 export const EMBED_FALLBACK_KEY = 'ki_embed_fallback';

@@ -1,8 +1,8 @@
 // website/src/pages/api/admin/tickets/bulk-status.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { bulkChangeStatus } from '../../../../lib/bulk-status';
-import { isValidStatus } from '../../../../lib/tickets/transition';
+import { bulkChangeStatus } from '../../../../lib/sdlc/bulk-status';
+import { isValidStatus } from '../../../../lib/sdlc/tickets/transition';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 

@@ -17,7 +17,7 @@ import { POST } from './seed';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import * as keycloak from '../../../../lib/identity';
 import { pool } from '../../../../lib/website-db';
-import { ensureSystemtestSchema } from '../../../../lib/systemtest/db';
+import { ensureSystemtestSchema } from '../../../../lib/sdlc/systemtest/db';
 
 const dbAvailable = !!(
   process.env.DATABASE_URL ||

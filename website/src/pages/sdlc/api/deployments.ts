@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createK8sClient, type KubeDeployment, type KubeList } from '../../../lib/k8s';
+import { createK8sClient, type KubeDeployment, type KubeList } from '../../../lib/sdlc/k8s';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { pool } from '../../../lib/website-db';
 import { recordAudit, clientIpFromRequest } from '../../../lib/audit-log';

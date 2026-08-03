@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../lib/auth';
-import { patchItem, DOR_KEYS, type Readiness } from '../../../lib/planning-office';
+import { getSession, isAdmin } from '../../../../lib/auth';
+import { patchItem, DOR_KEYS, type Readiness } from '../../../../lib/sdlc/planning-office';
 
 export const prerender = false;
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o),

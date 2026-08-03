@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { getProviderConfig } from './provider-config';
-import { SOURCE } from './ki-services';
-import { logger } from './logger';
+import { getProviderConfig } from '../provider-config';
+import { SOURCE } from '../ki-services';
+import { logger } from '../logger';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { verifyTalkSignature, postBotReply } from '../../../lib/brett-bot';
+import { verifyTalkSignature, postBotReply } from '../../../lib/sdlc/brett-bot';
 
 const BOT_SECRET   = process.env.BRETT_BOT_SECRET || '';
 const BRETT_DOMAIN = process.env.BRETT_DOMAIN || 'brett.localhost';

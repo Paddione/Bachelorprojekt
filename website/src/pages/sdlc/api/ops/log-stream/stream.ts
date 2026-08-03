@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import https from 'node:https';
-import { readK8sCredentials } from '../../../../../lib/k8s';
+import { readK8sCredentials } from '../../../../../lib/sdlc/k8s';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 
 const ALLOWED_NS = ['workspace', 'workspace-korczewski', 'website', 'website-korczewski'];

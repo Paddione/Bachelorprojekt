@@ -20,7 +20,7 @@ vi.mock('pg', () => {
 let embedBatch: ReturnType<typeof vi.fn>;
 let embedQuery: ReturnType<typeof vi.fn>;
 vi.mock('./embeddings', async (orig) => {
-  const actual = await orig<typeof import('./embeddings')>();
+  const actual = await orig<typeof import('./sdlc/embeddings')>();
   const _embedBatch = vi.fn();
   const _embedQuery = vi.fn();
   (globalThis as unknown as TestGlobals).__embeddingsMock = { embedBatch: _embedBatch, embedQuery: _embedQuery };
@@ -77,7 +77,7 @@ describe('embedTicket', () => {
   });
 
   it('is best-effort: an EmbeddingIndexError does not throw to the caller', async () => {
-    const { EmbeddingIndexError } = await import('./embeddings');
+    const { EmbeddingIndexError } = await import('./sdlc/embeddings');
     embedBatch.mockRejectedValueOnce(new EmbeddingIndexError('gpu down'));
     poolQuery.mockResolvedValue({ rows: [], rowCount: 0 });
 

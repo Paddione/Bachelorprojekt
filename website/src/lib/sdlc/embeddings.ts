@@ -1,5 +1,5 @@
 import { logAiCall } from './ai-metrics';
-import { logger } from './logger';
+import { logger } from '../logger';
 import { resolveEndpoint, BgeRoutingError } from './bge-router';
 
 const VOYAGE_URL = 'https://api.voyageai.com/v1/embeddings';

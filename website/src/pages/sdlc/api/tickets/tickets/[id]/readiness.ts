@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../../lib/auth';
-import { pool } from '../../../../lib/website-db';
-import { updateSuccessorReadiness } from '../../../../lib/ticket-readiness';
+import { getSession, isAdmin } from '../../../../../../lib/auth';
+import { pool } from '../../../../../../lib/website-db';
+import { updateSuccessorReadiness } from '../../../../../../lib/ticket-readiness';
 
 export const prerender = false;
 

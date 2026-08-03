@@ -10,8 +10,8 @@
 // `deleteUser()` (from `../identity`) for these rows.
 
 import type { SeedFn } from '../systemtest/seed-context';
-import { setUserPassword } from '../identity';
-import { mintMagicLink } from '../auth/magic-link';
+import { setUserPassword } from '../../identity';
+import { mintMagicLink } from '../../auth/magic-link';
 
 const authOnly: SeedFn = async (ctx) => {
   const localPart = `test-${ctx.assignmentId.slice(0, 8)}-${ctx.attempt}`;

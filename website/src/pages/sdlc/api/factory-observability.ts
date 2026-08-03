@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../lib/auth';
-import { queryRange, queryInstant, buildPromQL, listPhaseTimeline } from '../../lib/factory-observability';
+import { getSession, isAdmin } from '../../../lib/auth';
+import { queryRange, queryInstant, buildPromQL, listPhaseTimeline } from '../../../lib/sdlc/factory-observability';
 
 export const prerender = false;
 

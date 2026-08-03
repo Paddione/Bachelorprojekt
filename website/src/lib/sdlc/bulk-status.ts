@@ -1,4 +1,4 @@
-import { pool } from './website-db';
+import { pool } from '../website-db';
 import { isValidStatus } from './tickets/transition';
 
 export const MAX_BULK_SELECT = 10;

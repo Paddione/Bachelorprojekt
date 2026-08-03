@@ -125,7 +125,7 @@ describe('knowledge-db — model-aware query path', () => {
   test('queryNearest reads embedding_model from collection and passes to embedQuery', async () => {
     const c = await kdb.createCollection({ name: 'kn-bge', source: 'custom', embeddingModel: 'bge-m3' });
     const calls: Array<{ text: string; model?: string; purpose?: string }> = [];
-    const embedMod = await import('./embeddings');
+    const embedMod = await import('./sdlc/embeddings');
     vi.spyOn(embedMod, 'embedQuery').mockImplementationOnce(async (text, opts) => {
       calls.push({ text, model: opts?.model, purpose: opts?.purpose });
       return { embedding: Array(1024).fill(0.01), tokens: 1 };
@@ -226,7 +226,7 @@ describe('searchOpenspec', () => {
     await kdb.addDocument({ collectionId: c.id, title: 'spec-doc', sourceUri: 'uri:1', rawText: 'text' });
 
     const calls: Array<{ text: string; model?: string }> = [];
-    const embedMod = await import('./embeddings');
+    const embedMod = await import('./sdlc/embeddings');
     vi.spyOn(embedMod, 'embedQuery').mockImplementationOnce(async (text, opts) => {
       calls.push({ text, model: opts?.model });
       return { embedding: Array(1024).fill(0.01), tokens: 1 };

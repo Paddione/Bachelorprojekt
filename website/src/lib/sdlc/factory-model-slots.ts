@@ -1,4 +1,4 @@
-import { pool } from './db-pool';
+import { pool } from '../db-pool';
 
 export const PHASES = ['scout', 'plan', 'implement', 'verify', 'deploy'] as const;
 export type FactoryPhase = typeof PHASES[number];

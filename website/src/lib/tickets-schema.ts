@@ -5,11 +5,11 @@
 import { pool, ensureSchemaOnce } from './db-pool';
 import { MixedEmbeddingModelError } from './knowledge-db';
 import { initProviderConfigSchema } from './schema/provider-config-schema';
-import { applyTicketsCoreSchema } from './tickets/tables/tickets';
-import { applyFactoryControlSchema } from './tickets/tables/factory-control';
-import { applyFactoryModelSlotsSchema } from './tickets/tables/factory-model-slots';
-import { applySystemtestLinkback } from './tickets/tables/systemtest-linkback';
-import { applyLegacyMigrations } from './tickets/migrations';
+import { applyTicketsCoreSchema } from './sdlc/tickets/tables/tickets';
+import { applyFactoryControlSchema } from './sdlc/tickets/tables/factory-control';
+import { applyFactoryModelSlotsSchema } from './sdlc/tickets/tables/factory-model-slots';
+import { applySystemtestLinkback } from './sdlc/tickets/tables/systemtest-linkback';
+import { applyLegacyMigrations } from './sdlc/tickets/migrations';
 
 export { MixedEmbeddingModelError };
 

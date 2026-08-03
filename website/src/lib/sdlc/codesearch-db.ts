@@ -4,7 +4,7 @@
 // siehe T001676 Stufe C1.
 import pg from 'pg';
 import { lookup as dnsLookup } from 'node:dns/promises';
-import { pool as defaultPool } from './db-pool';
+import { pool as defaultPool } from '../db-pool';
 
 // Test-only escape hatch: tests in codesearch-db.test.ts mocken den Pool per pg-mem.
 // In Produktion wird ausschließlich `defaultPool` (aus db-pool.ts) verwendet.

@@ -7,8 +7,8 @@
 // Status changes go through transitionTicket() (lib/tickets/transition.ts) —
 // these helpers do NOT mutate `status` or `resolution`.
 
-import { pool } from '../website-db';
-import { initTicketsSchema } from '../tickets-db';
+import { pool } from '../../website-db';
+import { initTicketsSchema } from '../../tickets-db';
 import type { GrillingAnswers, GrillingMeta } from './grilling';
 
 // ── Types ───────────────────────────────────────────────────────────────────

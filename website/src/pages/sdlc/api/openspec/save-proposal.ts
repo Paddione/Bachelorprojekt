@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { isValidSlug, writeProposal } from '../../../../lib/openspec/proposal';
+import { isValidSlug, writeProposal } from '../../../../lib/sdlc/openspec/proposal';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

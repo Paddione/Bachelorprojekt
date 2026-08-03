@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { pool } from '../website-db';
+import { pool } from '../../website-db';
 
 export interface AuditEntry {
   actor: string;

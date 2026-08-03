@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { updateKiProvider, deleteKiProvider, type UpdateKiProviderFields } from '../../../../../lib/coaching-ki-config-db';
+import { updateKiProvider, deleteKiProvider, type UpdateKiProviderFields } from '../../../../../lib/sdlc/coaching-ki-config-db';
 import { pool } from '../../../../../lib/website-db';
 
 export const prerender = false;

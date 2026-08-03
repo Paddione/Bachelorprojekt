@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createK8sClient } from '../../../lib/k8s';
+import { createK8sClient } from '../../../lib/sdlc/k8s';
 import { getSession, isAdmin } from '../../../lib/auth';
 
 const DB_BACKUP_MAX_AGE_H = 48;

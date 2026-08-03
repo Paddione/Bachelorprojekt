@@ -3,7 +3,7 @@ import { createInterface } from 'readline';
 import { watch, existsSync, readdirSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import { logger } from './logger';
+import { logger } from '../logger';
 import {
   saveTestRun,
   saveTestResults,
@@ -11,7 +11,7 @@ import {
   pool,
   type TestResultRow,
   type SavedTestResult,
-} from './website-db.js';
+} from '../website-db';
 import { safeOpenTestRunFailureTicket } from './systemtest/test-run-bridge.js';
 
 interface TestResult {

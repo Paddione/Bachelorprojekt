@@ -1,4 +1,4 @@
-import { pool } from '../website-db';
+import { pool } from '../../website-db';
 import type {
   PortfolioPayload, ProductNode, FeatureNode,
   FeatureTickets, TicketRow, RollupMetrics, HealthStatus,
@@ -6,7 +6,7 @@ import type {
 } from './cockpit-types';
 import { recordAudit } from './cockpit-audit';
 import type { TicketStatus } from './admin';
-import openspecStatusMap from '../../data/openspec-status.json';
+import openspecStatusMap from '../../../data/openspec-status.json';
 import { ALL_TICKETS_ID, NO_FEATURE_ID, NO_PRODUCT_ID } from './cockpit-ids';
 
 function toRollup(r: Record<string, unknown> | undefined): RollupMetrics {

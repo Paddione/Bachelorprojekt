@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../lib/auth';
-import { readAllSlots, writeSlot, modelCatalog, isPhase } from '../../lib/factory-model-slots';
+import { getSession, isAdmin } from '../../../lib/auth';
+import { readAllSlots, writeSlot, modelCatalog, isPhase } from '../../../lib/sdlc/factory-model-slots';
 
 export const prerender = false;
 

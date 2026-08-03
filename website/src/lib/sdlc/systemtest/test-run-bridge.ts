@@ -33,7 +33,7 @@
 //     NULL (enforced by the `outbox_keys_by_kind` CHECK).
 
 import type { Pool } from 'pg';
-import { logger } from '../logger';
+import { logger } from '../../logger';
 
 export interface OpenTestRunFailureOpts {
   /** test_runs.id — TEXT primary key (UUID-shaped in practice). */
@@ -67,7 +67,7 @@ export interface OpenTestRunFailureOpts {
 let ticketsSchemaInitPromise: Promise<void> | null = null;
 async function ensureTicketsSchema(): Promise<void> {
   if (!ticketsSchemaInitPromise) {
-    ticketsSchemaInitPromise = import('../tickets-db').then(m => m.initTicketsSchema());
+    ticketsSchemaInitPromise = import('../../tickets-db').then(m => m.initTicketsSchema());
   }
   return ticketsSchemaInitPromise;
 }

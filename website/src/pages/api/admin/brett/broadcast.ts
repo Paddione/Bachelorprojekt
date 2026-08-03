@@ -15,7 +15,7 @@ import {
   listActiveCallRooms,
   ensureBrettBotEnabledForRoom,
 } from '../../../../lib/nextcloud-talk-db';
-import { postBotReply } from '../../../../lib/brett-bot';
+import { postBotReply } from '../../../../lib/sdlc/brett-bot';
 
 const BRETT_DOMAIN = process.env.BRETT_DOMAIN || 'brett.localhost';
 const BOT_SECRET = process.env.BRETT_BOT_SECRET || '';

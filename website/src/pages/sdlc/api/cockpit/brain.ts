@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { isIngestedSource, slugForSource, candidateHrefs, labelForSource } from '../../../../lib/brain-links';
+import { isIngestedSource, slugForSource, candidateHrefs, labelForSource } from '../../../../lib/sdlc/brain-links';
 
 const BRAIN_BASE_URL =
   process.env.BRAIN_INTERNAL_URL ?? 'http://brain.workspace.svc.cluster.local';

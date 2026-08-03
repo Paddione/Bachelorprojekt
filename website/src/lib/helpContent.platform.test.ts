@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { helpContent } from './helpContent';
-import { components } from './agentGuide';
+import { components } from './sdlc/agentGuide';
 
 describe('helpContent.admin.platform', () => {
   it('exists with a non-empty title and description', () => {

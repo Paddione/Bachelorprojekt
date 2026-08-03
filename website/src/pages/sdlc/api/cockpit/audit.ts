@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listAudit } from '../../../../lib/tickets/cockpit-audit';
+import { listAudit } from '../../../../lib/sdlc/tickets/cockpit-audit';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const json = (d: unknown, s = 200) =>

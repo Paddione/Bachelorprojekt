@@ -1,4 +1,4 @@
-import { pool } from './website-db';
+import { pool } from '../website-db';
 import { canLock, normalizeRequirements, isLastenheftLocked, LASTENHEFT_LOCK_KEY } from './tickets/lastenheft';
 
 export const DOR_KEYS = [

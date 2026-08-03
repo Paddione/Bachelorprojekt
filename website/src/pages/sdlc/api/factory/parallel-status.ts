@@ -1,12 +1,12 @@
 // website/src/pages/api/factory/parallel-status.ts
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../lib/auth';
-import { pool } from '../../../lib/website-db';
+import { getSession, isAdmin } from '../../../../lib/auth';
+import { pool } from '../../../../lib/website-db';
 import {
   deriveParallelStatus,
   deriveNextTickAt,
   type ParallelStatusRow,
-} from '../../../lib/parallel-status';
+} from '../../../../lib/parallel-status';
 
 export const prerender = false;
 

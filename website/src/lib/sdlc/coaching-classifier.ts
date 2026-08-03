@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
-import { getProviderByName } from './provider-config';
+import { getProviderByName } from '../provider-config';
 
 const CLASSIFIER_VERSION = 'v1-2026-05-10';
 const DEFAULT_MODEL = process.env.COACHING_CLASSIFIER_MODEL || 'claude-haiku-4-5-20251001';

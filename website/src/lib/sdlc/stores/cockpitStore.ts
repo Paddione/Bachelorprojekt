@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { CockpitFilterState } from '../cockpit-presets';
+import type { CockpitFilterState } from '../../cockpit-presets';
 
 interface OptimisticEdit {
   ticketId: string;

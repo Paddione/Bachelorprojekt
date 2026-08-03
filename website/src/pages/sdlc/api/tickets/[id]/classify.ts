@@ -2,7 +2,7 @@
 import type { APIRoute } from 'astro';
 import Anthropic from '@anthropic-ai/sdk';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getTicketDetail, patchAdminTicket } from '../../../../../lib/tickets/admin';
+import { getTicketDetail, patchAdminTicket } from '../../../../../lib/sdlc/tickets/admin';
 import { getProviderConfig, setProviderCooldown } from '../../../../../lib/provider-config';
 import { SOURCE } from '../../../../../lib/ki-services';
 import { pool } from '../../../../../lib/website-db';

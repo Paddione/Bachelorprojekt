@@ -5,7 +5,7 @@
 // Wenn ALLE Tests für einen Slug PASS sind und ein qa_review- oder
 // awaiting_deploy-Ticket mit diesem Slug existiert, wird das Ticket auf
 // 'done' gesetzt und der Feature-Flag für beide Brands aktiviert.
-import { pool } from './website-db';
+import { pool } from '../website-db';
 
 export type E2ETestStatus = 'pass' | 'fail' | 'skip';
 

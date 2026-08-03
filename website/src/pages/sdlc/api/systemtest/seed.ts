@@ -16,10 +16,10 @@ import type { APIRoute } from 'astro';
 import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import * as keycloak from '../../../../lib/identity';
-import authOnly from '../../../../lib/systemtest-seeds/auth-only';
-import bookingFlow from '../../../../lib/systemtest-seeds/booking-flow';
-import coachingProject from '../../../../lib/systemtest-seeds/coaching-project';
-import type { SeedFn, SeedRole } from '../../../../lib/systemtest/seed-context';
+import authOnly from '../../../../lib/sdlc/systemtest-seeds/auth-only';
+import bookingFlow from '../../../../lib/sdlc/systemtest-seeds/booking-flow';
+import coachingProject from '../../../../lib/sdlc/systemtest-seeds/coaching-project';
+import type { SeedFn, SeedRole } from '../../../../lib/sdlc/systemtest/seed-context';
 
 
 const REGISTRY: Record<string, SeedFn> = {

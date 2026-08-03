@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { X509Certificate } from 'node:crypto';
-import { createK8sClient } from '../../../../lib/k8s';
+import { createK8sClient } from '../../../../lib/sdlc/k8s';
 import { getSession, isAdmin } from '../../../../lib/auth';
 
 const TLS_SECRETS: Record<string, { ns: string; name: string }> = {

@@ -61,7 +61,7 @@ describe('purgeFixturesFor / drainOutbox / purgeExpiredMagicTokens (mocked pool)
     vi.doMock('./test-run-bridge', () => ({
       openTestRunFailureTicket: openTestRunFailureTicketMock,
     }));
-    const identityModule = await import('../identity');
+    const identityModule = await import('../../identity');
     deleteUserMock = vi.mocked(identityModule.deleteUser);
     const mod = await import('./cleanup');
     purgeFixturesForMocked = mod.purgeFixturesFor;

@@ -1,5 +1,5 @@
 import { logger } from './logger';
-import { resolveEndpoint, type LlamaRerankResponse } from './bge-router';
+import { resolveEndpoint, type LlamaRerankResponse } from './sdlc/bge-router';
 
 const rerankEnabled = () => process.env.LLM_RERANK_ENABLED === 'true';
 const rerankModelId = () => process.env.LLM_RERANK_MODEL ?? 'bge-reranker-v2-m3';

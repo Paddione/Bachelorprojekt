@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { getSiteSetting, setSiteSetting } from '../../../../lib/website-db';
-import { EMBED_PRIMARY_KEY, EMBED_FALLBACK_KEY } from '../../../../lib/ki-config-db';
+import { EMBED_PRIMARY_KEY, EMBED_FALLBACK_KEY } from '../../../../lib/sdlc/ki-config-db';
 
 export const prerender = false;
 

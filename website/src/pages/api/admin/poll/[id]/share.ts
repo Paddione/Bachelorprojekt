@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { lockPoll, getResults, buildResultsBotMessage } from '../../../../../lib/poll-db';
-import { postBotReply } from '../../../../../lib/brett-bot';
+import { postBotReply } from '../../../../../lib/sdlc/brett-bot';
 
 const SITE_URL = process.env.SITE_URL || 'https://web.localhost';
 const BOT_SECRET = process.env.BRETT_BOT_SECRET || '';

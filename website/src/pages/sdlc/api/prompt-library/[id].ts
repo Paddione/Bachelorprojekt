@@ -3,7 +3,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { pool } from '../../../../lib/website-db';
-import { upsertPrompt, deletePrompt, getPrompt } from '../../../../lib/prompt-library-db';
+import { upsertPrompt, deletePrompt, getPrompt } from '../../../../lib/sdlc/prompt-library-db';
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 

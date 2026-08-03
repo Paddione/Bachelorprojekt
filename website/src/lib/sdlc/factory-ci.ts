@@ -1,4 +1,4 @@
-import { logger } from './logger';
+import { logger } from '../logger';
 
 const GH_REPO = 'Paddione/Bachelorprojekt';
 

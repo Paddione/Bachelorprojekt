@@ -1,6 +1,6 @@
 // Pure DB access for the LLM-Proxy backend registry admin UI.
 // Reads/writes tickets.llm_proxy_backends. No imports of API/route modules (S2-safe).
-import { pool } from './website-db';
+import { pool } from '../website-db';
 
 export type BackendKind = 'llamacpp' | 'lmstudio' | 'openai-remote';
 export const LLM_PROXY_KINDS: readonly BackendKind[] = ['llamacpp', 'lmstudio', 'openai-remote'] as const;

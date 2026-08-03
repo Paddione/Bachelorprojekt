@@ -10,7 +10,7 @@ import type { APIRoute } from 'astro';
 
 import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { purgeFixturesFor, purgeExpiredMagicTokens } from '../../../../lib/systemtest/cleanup';
+import { purgeFixturesFor, purgeExpiredMagicTokens } from '../../../../lib/sdlc/systemtest/cleanup';
 import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
 
 export const POST: APIRoute = async ({ request , locals }) => {

@@ -6,7 +6,7 @@ import { resolveCoachingCollectionIds } from './coaching-collections';
 import { pool } from '../website-db';
 import { getProviderConfig, setProviderCooldown } from '../provider-config';
 import { SOURCE } from '../ki-services';
-import { withAiMetrics } from '../ai-metrics';
+import { withAiMetrics } from '../sdlc/ai-metrics';
 import { logger } from '../logger';
 
 export interface AssistantChatInput {

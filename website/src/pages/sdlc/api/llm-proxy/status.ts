@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listBackends } from '../../../../lib/llm-proxy-db';
+import { listBackends } from '../../../../lib/sdlc/llm-proxy-db';
 
 export const prerender = false;
 

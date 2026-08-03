@@ -1,4 +1,4 @@
-import { pool } from './website-db';
+import { pool } from '../website-db';
 
 interface GraphNode {
   id: string;

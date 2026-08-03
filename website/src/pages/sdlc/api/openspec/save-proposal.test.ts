@@ -7,7 +7,7 @@ vi.mock('../../../../lib/openspec/proposal', () => ({
 }));
 
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { isValidSlug, writeProposal } from '../../../../lib/openspec/proposal';
+import { isValidSlug, writeProposal } from '../../../../lib/sdlc/openspec/proposal';
 import { POST } from './save-proposal';
 
 function jsonReq(body: unknown, headers: Record<string, string> = { 'Content-Type': 'application/json', cookie: 'session=test' }) {

@@ -1,7 +1,7 @@
 // website/src/pages/api/factory/force-tick.ts
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../lib/auth';
-import { writeControl } from '../../../lib/factory-floor';
+import { getSession, isAdmin } from '../../../../lib/auth';
+import { writeControl } from '../../../../lib/sdlc/factory-floor';
 
 export const prerender = false;
 

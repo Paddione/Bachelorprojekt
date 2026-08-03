@@ -1,5 +1,5 @@
 import type { HelpVideo } from './help-videos';
-import type { GrillingSessionData } from './tickets/final-grilling';
+import type { GrillingSessionData } from './sdlc/tickets/final-grilling';
 
 export type HostInbound =
   | { type: 'setVideos'; videos: HelpVideo[] }

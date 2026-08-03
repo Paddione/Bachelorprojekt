@@ -37,7 +37,7 @@ vi.mock('../website-db', () => {
   return { pool, ensureSchemaOnce: async (_k: string, fn: () => Promise<void>) => fn() };
 });
 
-import { pool } from '../website-db';
+import { pool } from '../../website-db';
 import { getPortfolio, getFeatureTickets } from './cockpit-db';
 import { updatePlanningRanks, reparentTicket, batchMutate } from './cockpit-db';
 

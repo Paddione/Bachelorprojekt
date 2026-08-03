@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { STATUS_LABELS } from '../../lib/tickets/cockpit-labels';
+import { STATUS_LABELS } from '../../lib/sdlc/tickets/cockpit-labels';
 
 describe('Sidekick ticket status options', () => {
   it('cockpit-labels covers the states the Sidekick must show (no blank dropdown)', () => {

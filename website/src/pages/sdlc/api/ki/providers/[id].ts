@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import {
   updateProvider, deleteProvider, getProvider, countEnabledForSource, type Tier,
-} from '../../../../../lib/ki-config-db';
+} from '../../../../../lib/sdlc/ki-config-db';
 
 export const prerender = false;
 

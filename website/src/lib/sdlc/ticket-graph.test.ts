@@ -5,7 +5,7 @@ vi.mock('./website-db', () => ({
   pool: { query: vi.fn() },
 }));
 
-import { pool } from './website-db';
+import { pool } from '../website-db';
 const mockQuery = pool.query as unknown as ReturnType<typeof vi.fn>;
 
 describe('getTicketGraph', () => {

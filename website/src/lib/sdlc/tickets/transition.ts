@@ -1,9 +1,9 @@
 // website/src/lib/tickets/transition.ts
-import { pool } from '../db-pool';
+import { pool } from '../../db-pool';
 import { sendBugCloseEmail } from './email-templates';
 import { linkReporterByEmail } from './reporter-link';
-import { updateSuccessorReadiness } from '../ticket-readiness';
-import { logger } from '../logger';
+import { updateSuccessorReadiness } from '../../ticket-readiness';
+import { logger } from '../../logger';
 
 export type TicketStatus =
   'triage' | 'planning' | 'plan_staged' | 'backlog' | 'in_progress' | 'in_review' | 'qa_review' | 'blocked' | 'awaiting_deploy' | 'done' | 'archived';

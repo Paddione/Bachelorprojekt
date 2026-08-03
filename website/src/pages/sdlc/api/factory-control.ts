@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { pool } from '../../../lib/website-db';
-import { writeControl } from '../../../lib/factory-floor';
+import { writeControl } from '../../../lib/sdlc/factory-floor';
 import { recordAudit, clientIpFromRequest } from '../../../lib/audit-log';
 
 export const prerender = false;

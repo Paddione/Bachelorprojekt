@@ -9,8 +9,8 @@ import {
   type TestResultRow,
   type SavedTestResult,
 } from '../../../../lib/website-db';
-import { safeOpenTestRunFailureTicket } from '../../../../lib/systemtest/test-run-bridge';
-import { closeQaTicketsBySlug } from '../../../../lib/qa-ingest';
+import { safeOpenTestRunFailureTicket } from '../../../../lib/sdlc/systemtest/test-run-bridge';
+import { closeQaTicketsBySlug } from '../../../../lib/sdlc/qa-ingest';
 
 interface PlaywrightTestResult {
   status: 'passed' | 'failed' | 'skipped' | 'timedOut';

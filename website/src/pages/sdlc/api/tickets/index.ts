@@ -4,8 +4,8 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import {
   listAdminTickets, countAdminTickets, createAdminTicket,
   type ListFilters, type TicketType, type TicketPriority, type TicketSeverity,
-} from '../../../../lib/tickets/admin';
-import { autoTriage } from '../../../../lib/ticket-triage';
+} from '../../../../lib/sdlc/tickets/admin';
+import { autoTriage } from '../../../../lib/sdlc/ticket-triage';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 

@@ -30,7 +30,7 @@ vi.mock('../website-db', () => {
   return { pool, ensureSchemaOnce: async (_k: string, fn: () => Promise<void>) => fn() };
 });
 
-import { pool } from '../website-db';
+import { pool } from '../../website-db';
 import { getContainerRollup, getTicketPlan, getContainerDor } from './container-detail';
 
 // pg-mem-compatible 2-hop view approximating v_cockpit_rollup

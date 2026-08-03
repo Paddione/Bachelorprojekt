@@ -1,8 +1,8 @@
 // website/src/pages/api/admin/tickets/[id]/transition.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { transitionTicket } from '../../../../../lib/tickets/transition';
-import type { TicketStatus, TicketResolution } from '../../../../../lib/tickets/transition';
+import { transitionTicket } from '../../../../../lib/sdlc/tickets/transition';
+import type { TicketStatus, TicketResolution } from '../../../../../lib/sdlc/tickets/transition';
 import { pool } from '../../../../../lib/website-db';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';

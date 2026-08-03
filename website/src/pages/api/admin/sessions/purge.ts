@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { purgeOldSessions } from '../../../../lib/sessions/archive';
+import { purgeOldSessions } from '../../../../lib/sdlc/sessions/archive';
 
 export const prerender = false;
 

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { pool } from '../../../../lib/website-db';
-import { sendBugCloseEmail } from '../../../../lib/tickets/email-templates';
+import { sendBugCloseEmail } from '../../../../lib/sdlc/tickets/email-templates';
 
 const TOKEN = process.env.INTERNAL_API_TOKEN ?? '';
 

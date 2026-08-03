@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../../lib/auth';
-import { getTicketGraph } from '../../../lib/ticket-graph';
+import { getSession, isAdmin } from '../../../../lib/auth';
+import { getTicketGraph } from '../../../../lib/sdlc/ticket-graph';
 
 export const prerender = false;
 

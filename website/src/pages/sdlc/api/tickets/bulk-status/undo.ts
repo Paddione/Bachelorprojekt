@@ -1,7 +1,7 @@
 // website/src/pages/api/admin/tickets/bulk-status/undo.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { undoBulkStatus } from '../../../../../lib/bulk-status';
+import { undoBulkStatus } from '../../../../../lib/sdlc/bulk-status';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

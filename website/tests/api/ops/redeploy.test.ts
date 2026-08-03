@@ -19,7 +19,7 @@ vi.mock('../../../src/lib/website-db', () => {
   };
 });
 
-import { POST as redeployWebsite } from '../../../src/pages/api/admin/ops/redeploy/website';
+import { POST as redeployWebsite } from '../../../src/pages/sdlc/api/ops/redeploy/website';
 
 function makeReq(body: object, sessionCookie = 'session=ok'): Request {
   return new Request('http://test/api/admin/ops/redeploy/website', {

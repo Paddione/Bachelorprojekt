@@ -12,7 +12,7 @@ export interface HelpSection {
 
 export type HelpContext = 'portal' | 'admin';
 
-import { components } from './agentGuide';
+import { components } from './sdlc/agentGuide';
 
 // ── S2: Plattform-Hub help, built programmatically from the agent-guide registry. ──
 // Only `title`, `description`, and the static guide are hand-authored German;

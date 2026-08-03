@@ -18,7 +18,7 @@ vi.mock('../../../src/lib/website-db', () => {
   };
 });
 
-import { POST } from '../../../src/pages/api/admin/ops/ai/reindex';
+import { POST } from '../../../src/pages/sdlc/api/ops/ai/reindex';
 
 const adminReq = (body: unknown) => new Request('http://test', {
   method: 'POST', body: JSON.stringify(body),

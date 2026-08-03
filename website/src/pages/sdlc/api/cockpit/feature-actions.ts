@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { setFeatureAction, BrandMismatchError } from '../../../../lib/tickets/cockpit-db';
+import { setFeatureAction, BrandMismatchError } from '../../../../lib/sdlc/tickets/cockpit-db';
 
 const json = (d: unknown, s = 200) =>
   new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json' } });

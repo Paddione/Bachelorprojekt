@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createK8sClient } from '../../../../../../../lib/k8s';
+import { createK8sClient } from '../../../../../../../lib/sdlc/k8s';
 import { getSession, isAdmin } from '../../../../../../../lib/auth';
 
 const ALLOWED_NS = ['workspace', 'workspace-korczewski', 'website', 'website-korczewski'];

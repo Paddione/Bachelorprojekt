@@ -37,7 +37,7 @@ vi.mock('./tickets-schema', () => ({ initTicketsSchema: vi.fn().mockResolvedValu
 vi.mock('./tickets/transition', () => ({ transitionTicket: vi.fn().mockResolvedValue(undefined) }));
 
 import { listSoftwareAssets, listHardwareAssets } from './platform-db';
-import { pool, __resetSchemaInitCacheForTests } from './website-db';
+import { pool, __resetSchemaInitCacheForTests } from '../website-db';
 const CountingPool = (pool as unknown as { constructor: { platformCreateDdlCount: number } }).constructor;
 
 describe('ensurePlatformSchema seeds German descriptions safely', () => {

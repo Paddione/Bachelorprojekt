@@ -17,8 +17,8 @@ vi.mock('../../../lib/tickets/cockpit-db', () => ({
   BrandMismatchError: class BrandMismatchError extends Error { constructor(m?: string) { super(m); this.name = 'BrandMismatchError'; } },
 }));
 
-import { POST as FEATURE_ACTION } from '../../../pages/api/admin/cockpit/feature-action';
-import { POST as FEATURE_ACTIONS } from '../../../pages/api/admin/cockpit/feature-actions';
+import { POST as FEATURE_ACTION } from '../../../../pages/sdlc/api/cockpit/feature-action';
+import { POST as FEATURE_ACTIONS } from '../../../../pages/sdlc/api/cockpit/feature-actions';
 
 const post = (route: APIRoute, body: unknown): Promise<Response> => Promise.resolve(route({
   request: new Request('http://x', { method: 'POST', headers: { cookie: 'sid=1' }, body: JSON.stringify(body) }),
@@ -73,7 +73,7 @@ describe('POST /cockpit/feature-action', () => {
     expect(mocks.setFeatureAction).toHaveBeenCalledWith('mentolder', 'f1', 'comment', 'needs review');
   });
   it('400 on brand mismatch', async () => {
-    const { BrandMismatchError } = await import('../../../lib/tickets/cockpit-db');
+    const { BrandMismatchError } = await import('../cockpit-db');
     mocks.setFeatureAction.mockRejectedValue(new BrandMismatchError('wrong brand'));
     const res = await post(FEATURE_ACTION, { featureId: 'f1', action: 'next_step' });
     expect(res.status).toBe(400);
@@ -129,7 +129,7 @@ describe('POST /cockpit/feature-actions', () => {
   });
 
   it('reports per-action errors without failing the whole batch', async () => {
-    const { BrandMismatchError } = await import('../../../lib/tickets/cockpit-db');
+    const { BrandMismatchError } = await import('../cockpit-db');
     mocks.setFeatureAction
       .mockResolvedValueOnce({ ok: true })
       .mockRejectedValueOnce(new BrandMismatchError('cross-brand'));

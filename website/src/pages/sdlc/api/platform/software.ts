@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listSoftwareAssets, upsertSoftwareAsset } from '../../../../lib/platform-db';
-import { createK8sClient, K8sApiError, type K8sClient } from '../../../../lib/k8s';
+import { listSoftwareAssets, upsertSoftwareAsset } from '../../../../lib/sdlc/platform-db';
+import { createK8sClient, K8sApiError, type K8sClient } from '../../../../lib/sdlc/k8s';
 import { resolveServiceUrl } from '../../../../lib/platform-links';
 
 export const prerender = false;

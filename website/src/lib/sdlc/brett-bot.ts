@@ -11,7 +11,7 @@
 //     Controller/BotController.php getBotFromHeaders called with $message)
 
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
-import { logger } from './logger';
+import { logger } from '../logger';
 
 const NC_URL = process.env.NEXTCLOUD_URL || 'http://nextcloud.workspace.svc.cluster.local';
 

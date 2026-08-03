@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-02T01:04:33.376Z",
+  "generatedAt": "2026-08-03T20:58:46.296Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -9,14 +9,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/agent-push/settings.ts"
-    },
-    {
-      "path": "/api/admin/ai-quality",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ai-quality.ts"
     },
     {
       "path": "/api/admin/angebote/save",
@@ -49,14 +41,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/assets/upload.ts"
-    },
-    {
-      "path": "/api/admin/backup-status",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/backup-status.ts"
     },
     {
       "path": "/api/admin/billing/{id}",
@@ -416,38 +400,6 @@
       "file": "website/src/pages/api/admin/clients/update-crm.ts"
     },
     {
-      "path": "/api/admin/cluster/graph",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cluster/graph.ts"
-    },
-    {
-      "path": "/api/admin/cluster/logs",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cluster/logs.ts"
-    },
-    {
-      "path": "/api/admin/cluster/pods-list",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cluster/pods-list.ts"
-    },
-    {
-      "path": "/api/admin/cluster/warnings",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cluster/warnings.ts"
-    },
-    {
       "path": "/api/admin/coaching/books",
       "methods": [
         "GET"
@@ -741,102 +693,6 @@
       "file": "website/src/pages/api/admin/coaching/templates/[id]/versions.ts"
     },
     {
-      "path": "/api/admin/cockpit/audit",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/audit.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/batch",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/batch.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/brain",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/brain.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/container-count",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/container-count.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/feature",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/feature.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/feature-action",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/feature-action.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/feature-actions",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/feature-actions.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/portfolio",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/portfolio.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/reorder",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/reorder.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/reparent",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/reparent.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/suggest",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/suggest.ts"
-    },
-    {
-      "path": "/api/admin/cockpit/ticket-status",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/cockpit/ticket-status.ts"
-    },
-    {
       "path": "/api/admin/components",
       "methods": [
         "GET",
@@ -893,38 +749,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/customers-list.ts"
-    },
-    {
-      "path": "/api/admin/delivery-metrics",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/delivery-metrics.ts"
-    },
-    {
-      "path": "/api/admin/deployments",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/deployments.ts"
-    },
-    {
-      "path": "/api/admin/deployments/{name}/restart",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/deployments/[name]/restart.ts"
-    },
-    {
-      "path": "/api/admin/deployments/{name}/scale",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/deployments/[name]/scale.ts"
     },
     {
       "path": "/api/admin/documents/assign",
@@ -1041,31 +865,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/einstellungen/upload-logo.ts"
-    },
-    {
-      "path": "/api/admin/evidence/{id}/replay",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/evidence/[id]/replay.ts"
-    },
-    {
-      "path": "/api/admin/evidence/upload",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/evidence/upload.ts"
-    },
-    {
-      "path": "/api/admin/factory-control",
-      "methods": [
-        "GET",
-        "PATCH"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/factory-control.ts"
     },
     {
       "path": "/api/admin/faq/save",
@@ -1199,49 +998,6 @@
       "file": "website/src/pages/api/admin/inhalte/rechnungsvorlagen/save.ts"
     },
     {
-      "path": "/api/admin/ki/catalog",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ki/catalog.ts"
-    },
-    {
-      "path": "/api/admin/ki/embeddings",
-      "methods": [
-        "GET",
-        "PUT"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ki/embeddings.ts"
-    },
-    {
-      "path": "/api/admin/ki/env-status",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ki/env-status.ts"
-    },
-    {
-      "path": "/api/admin/ki/providers",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ki/providers.ts"
-    },
-    {
-      "path": "/api/admin/ki/providers/{id}",
-      "methods": [
-        "PUT",
-        "DELETE"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ki/providers/[id].ts"
-    },
-    {
       "path": "/api/admin/knowledge/collections",
       "methods": [
         "GET",
@@ -1366,40 +1122,6 @@
       "file": "website/src/pages/api/admin/legal/retokenize.ts"
     },
     {
-      "path": "/api/admin/llm-proxy/backends",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/llm-proxy/backends.ts"
-    },
-    {
-      "path": "/api/admin/llm-proxy/backends/{id}",
-      "methods": [
-        "PUT",
-        "DELETE"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/llm-proxy/backends/[id].ts"
-    },
-    {
-      "path": "/api/admin/llm-proxy/reload",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/llm-proxy/reload.ts"
-    },
-    {
-      "path": "/api/admin/llm-proxy/status",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/llm-proxy/status.ts"
-    },
-    {
       "path": "/api/admin/meetings",
       "methods": [
         "GET"
@@ -1457,14 +1179,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/messages/[threadId].ts"
-    },
-    {
-      "path": "/api/admin/monitoring",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/monitoring.ts"
     },
     {
       "path": "/api/admin/navigation/save",
@@ -1557,217 +1271,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/onboarding/update.ts"
-    },
-    {
-      "path": "/api/admin/openspec/save-proposal",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/openspec/save-proposal.ts"
-    },
-    {
-      "path": "/api/admin/ops/ai/reindex",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/ai/reindex.ts"
-    },
-    {
-      "path": "/api/admin/ops/audit/log",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/audit/log.ts"
-    },
-    {
-      "path": "/api/admin/ops/backup/list",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/backup/list.ts"
-    },
-    {
-      "path": "/api/admin/ops/backup/trigger",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/backup/trigger.ts"
-    },
-    {
-      "path": "/api/admin/ops/certs",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/certs.ts"
-    },
-    {
-      "path": "/api/admin/ops/deployments/{ns}/{name}/restart",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/deployments/[ns]/[name]/restart.ts"
-    },
-    {
-      "path": "/api/admin/ops/deployments/{ns}/{name}/scale",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/deployments/[ns]/[name]/scale.ts"
-    },
-    {
-      "path": "/api/admin/ops/deployments/list",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/deployments/list.ts"
-    },
-    {
-      "path": "/api/admin/ops/error-log",
-      "methods": [
-        "POST",
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/error-log.ts"
-    },
-    {
-      "path": "/api/admin/ops/health",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/health.ts"
-    },
-    {
-      "path": "/api/admin/ops/log-stream/stream",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/log-stream/stream.ts"
-    },
-    {
-      "path": "/api/admin/ops/redeploy/brett",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/redeploy/brett.ts"
-    },
-    {
-      "path": "/api/admin/ops/redeploy/docs",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/redeploy/docs.ts"
-    },
-    {
-      "path": "/api/admin/ops/redeploy/website",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/redeploy/website.ts"
-    },
-    {
-      "path": "/api/admin/ops/restore",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/restore.ts"
-    },
-    {
-      "path": "/api/admin/ops/server-logs/stream",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/server-logs/stream.ts"
-    },
-    {
-      "path": "/api/admin/ops/users/create",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/users/create.ts"
-    },
-    {
-      "path": "/api/admin/ops/users/groups",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/users/groups.ts"
-    },
-    {
-      "path": "/api/admin/ops/users/list",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/ops/users/list.ts"
-    },
-    {
-      "path": "/api/admin/planungsbuero",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/planungsbuero/index.ts"
-    },
-    {
-      "path": "/api/admin/planungsbuero/{extId}",
-      "methods": [
-        "PATCH"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/planungsbuero/[extId].ts"
-    },
-    {
-      "path": "/api/admin/platform/assets/{slug}/tickets",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/platform/assets/[slug]/tickets.ts"
-    },
-    {
-      "path": "/api/admin/platform/hardware",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/platform/hardware.ts"
-    },
-    {
-      "path": "/api/admin/platform/software",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/platform/software.ts"
-    },
-    {
-      "path": "/api/admin/platform/software/{id}",
-      "methods": [
-        "PUT",
-        "DELETE"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/platform/software/[id].ts"
     },
     {
       "path": "/api/admin/poll",
@@ -1888,56 +1391,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/projekttasks/update.ts"
-    },
-    {
-      "path": "/api/admin/prompt-library",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/prompt-library/index.ts"
-    },
-    {
-      "path": "/api/admin/prompt-library/{id}",
-      "methods": [
-        "PUT",
-        "DELETE"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/prompt-library/[id].ts"
-    },
-    {
-      "path": "/api/admin/prompt-library/{id}/use",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/prompt-library/[id]/use.ts"
-    },
-    {
-      "path": "/api/admin/qa-criteria",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/qa-criteria.ts"
-    },
-    {
-      "path": "/api/admin/qa-queue",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/qa-queue.ts"
-    },
-    {
-      "path": "/api/admin/qa-reviews",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/qa-reviews.ts"
     },
     {
       "path": "/api/admin/questionnaires/assign",
@@ -2219,46 +1672,6 @@
       "file": "website/src/pages/api/admin/subprojekte/update.ts"
     },
     {
-      "path": "/api/admin/systemtest/board",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/systemtest/board.ts"
-    },
-    {
-      "path": "/api/admin/systemtest/cleanup-fixtures",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/systemtest/cleanup-fixtures.ts"
-    },
-    {
-      "path": "/api/admin/systemtest/drain-outbox",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/systemtest/drain-outbox.ts"
-    },
-    {
-      "path": "/api/admin/systemtest/purge-all-test-data",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/systemtest/purge-all-test-data.ts"
-    },
-    {
-      "path": "/api/admin/systemtest/seed",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/systemtest/seed.ts"
-    },
-    {
       "path": "/api/admin/tax-monitor/status",
       "methods": [
         "GET"
@@ -2273,202 +1686,6 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/tax-monitor/ustvaexport.ts"
-    },
-    {
-      "path": "/api/admin/test-results",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/test-results.ts"
-    },
-    {
-      "path": "/api/admin/test-runs",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/test-runs.ts"
-    },
-    {
-      "path": "/api/admin/testdata/purge",
-      "methods": [
-        "DELETE"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/testdata/purge.ts"
-    },
-    {
-      "path": "/api/admin/testdata/seed",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/testdata/seed.ts"
-    },
-    {
-      "path": "/api/admin/tests/flake",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/flake.ts"
-    },
-    {
-      "path": "/api/admin/tests/ingest-e2e",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/ingest-e2e.ts"
-    },
-    {
-      "path": "/api/admin/tests/playwright-report",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/playwright-report.ts"
-    },
-    {
-      "path": "/api/admin/tests/report",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/report.ts"
-    },
-    {
-      "path": "/api/admin/tests/results/{jobId}",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/results/[jobId].ts"
-    },
-    {
-      "path": "/api/admin/tests/run",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/run.ts"
-    },
-    {
-      "path": "/api/admin/tests/stream/{jobId}",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/stream/[jobId].ts"
-    },
-    {
-      "path": "/api/admin/tests/traceability",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/traceability.ts"
-    },
-    {
-      "path": "/api/admin/tests/trend",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tests/trend.ts"
-    },
-    {
-      "path": "/api/admin/tickets",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/index.ts"
-    },
-    {
-      "path": "/api/admin/tickets/{id}",
-      "methods": [
-        "GET",
-        "PATCH"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/[id].ts"
-    },
-    {
-      "path": "/api/admin/tickets/{id}/attachments",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/[id]/attachments.ts"
-    },
-    {
-      "path": "/api/admin/tickets/{id}/attachments/{aid}",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/[id]/attachments/[aid].ts"
-    },
-    {
-      "path": "/api/admin/tickets/{id}/classify",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/[id]/classify.ts"
-    },
-    {
-      "path": "/api/admin/tickets/{id}/comments",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/[id]/comments.ts"
-    },
-    {
-      "path": "/api/admin/tickets/{id}/links",
-      "methods": [
-        "POST",
-        "DELETE"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/[id]/links.ts"
-    },
-    {
-      "path": "/api/admin/tickets/{id}/transition",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/[id]/transition.ts"
-    },
-    {
-      "path": "/api/admin/tickets/{id}/triage",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/[id]/triage.ts"
-    },
-    {
-      "path": "/api/admin/tickets/bulk-status",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/bulk-status.ts"
-    },
-    {
-      "path": "/api/admin/tickets/bulk-status/undo",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/admin/tickets/bulk-status/undo.ts"
     },
     {
       "path": "/api/admin/time-windows/add",
@@ -2721,22 +1938,6 @@
       "file": "website/src/pages/api/calendar/slots.ts"
     },
     {
-      "path": "/api/cluster/status",
-      "methods": [
-        "GET"
-      ],
-      "auth": "unclassified",
-      "file": "website/src/pages/api/cluster/status.ts"
-    },
-    {
-      "path": "/api/codesearch",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/codesearch.ts"
-    },
-    {
       "path": "/api/contact",
       "methods": [
         "POST"
@@ -2783,112 +1984,6 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/dsgvo-request.ts"
-    },
-    {
-      "path": "/api/factory-budget",
-      "methods": [
-        "GET",
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-budget.ts"
-    },
-    {
-      "path": "/api/factory-floor",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-floor.ts"
-    },
-    {
-      "path": "/api/factory-floor/{extId}",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-floor/[extId].ts"
-    },
-    {
-      "path": "/api/factory-floor/{extId}/ci",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-floor/[extId]/ci.ts"
-    },
-    {
-      "path": "/api/factory-floor/{extId}/deploy",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-floor/[extId]/deploy.ts"
-    },
-    {
-      "path": "/api/factory-floor/{extId}/inject",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-floor/[extId]/inject.ts"
-    },
-    {
-      "path": "/api/factory-floor/{extId}/release",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-floor/[extId]/release.ts"
-    },
-    {
-      "path": "/api/factory-floor/stream",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-floor/stream.ts"
-    },
-    {
-      "path": "/api/factory-metrics",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-metrics.ts"
-    },
-    {
-      "path": "/api/factory-model-slots",
-      "methods": [
-        "GET",
-        "PUT"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-model-slots.ts"
-    },
-    {
-      "path": "/api/factory-observability",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory-observability.ts"
-    },
-    {
-      "path": "/api/factory/force-tick",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory/force-tick.ts"
-    },
-    {
-      "path": "/api/factory/parallel-status",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/factory/parallel-status.ts"
     },
     {
       "path": "/api/health",
@@ -2986,48 +2081,6 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/newsletter/unsubscribe.ts"
-    },
-    {
-      "path": "/api/openspec/search",
-      "methods": [
-        "GET"
-      ],
-      "auth": "unclassified",
-      "file": "website/src/pages/api/openspec/search.ts"
-    },
-    {
-      "path": "/api/planning-office",
-      "methods": [
-        "GET",
-        "POST",
-        "DELETE"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/planning-office/index.ts"
-    },
-    {
-      "path": "/api/planning-office/{extId}",
-      "methods": [
-        "PATCH"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/planning-office/[extId].ts"
-    },
-    {
-      "path": "/api/planning-office/{extId}/clarify",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/planning-office/[extId]/clarify.ts"
-    },
-    {
-      "path": "/api/planning-office/{extId}/promote",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/planning-office/[extId]/promote.ts"
     },
     {
       "path": "/api/poll/{id}",
@@ -3303,31 +2356,6 @@
       ],
       "auth": "unclassified",
       "file": "website/src/pages/api/stripe/webhook.ts"
-    },
-    {
-      "path": "/api/tickets/{id}/readiness",
-      "methods": [
-        "POST"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/tickets/[id]/readiness.ts"
-    },
-    {
-      "path": "/api/tickets/comment",
-      "methods": [
-        "OPTIONS",
-        "POST"
-      ],
-      "auth": "unclassified",
-      "file": "website/src/pages/api/tickets/comment.ts"
-    },
-    {
-      "path": "/api/tickets/graph",
-      "methods": [
-        "GET"
-      ],
-      "auth": "admin",
-      "file": "website/src/pages/api/tickets/graph.ts"
     },
     {
       "path": "/api/timeline",

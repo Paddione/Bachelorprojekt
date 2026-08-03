@@ -63,7 +63,7 @@ async function ensureTicketsSchema(): Promise<void> {
     // Imported lazily to avoid a top-level circular import with website-db /
     // questionnaire-db (both pull in tickets-db). The dynamic import keeps
     // this module loadable from anywhere without triggering eager init.
-    ticketsSchemaInitPromise = import('../tickets-db').then(m => m.initTicketsSchema());
+    ticketsSchemaInitPromise = import('../../tickets-db').then(m => m.initTicketsSchema());
   }
   return ticketsSchemaInitPromise;
 }

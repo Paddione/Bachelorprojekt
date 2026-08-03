@@ -3,7 +3,7 @@ import { getSession, isAdmin } from '../../../../../lib/auth';
 import {
   updateBackend, deleteBackend, getBackend, countEnabledLocal,
   LLM_PROXY_KINDS, LLM_PROXY_FIXUPS, type BackendKind, type Fixup,
-} from '../../../../../lib/llm-proxy-db';
+} from '../../../../../lib/sdlc/llm-proxy-db';
 
 export const prerender = false;
 

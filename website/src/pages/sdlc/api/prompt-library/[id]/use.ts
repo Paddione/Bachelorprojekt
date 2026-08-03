@@ -3,7 +3,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { pool } from '../../../../../lib/website-db';
-import { incrementUsage } from '../../../../../lib/prompt-library-db';
+import { incrementUsage } from '../../../../../lib/sdlc/prompt-library-db';
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {

@@ -10,8 +10,8 @@ import type { APIRoute } from 'astro';
 
 import { pool } from '../../../../lib/website-db';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { drainOutbox } from '../../../../lib/systemtest/cleanup';
-import { runReconciler } from '../../../../lib/systemtest/reconciler';
+import { drainOutbox } from '../../../../lib/sdlc/systemtest/cleanup';
+import { runReconciler } from '../../../../lib/sdlc/systemtest/reconciler';
 import { ensureQuestionnaireSchemaOnce } from '../../../../lib/questionnaire-db';
 
 export const POST: APIRoute = async ({ request , locals }) => {

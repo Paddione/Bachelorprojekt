@@ -23,9 +23,9 @@ vi.mock('../identity', () => ({
   deleteUser: vi.fn().mockResolvedValue(true),
 }));
 
-import { pool } from '../website-db';
+import { pool } from '../../website-db';
 import { ensureSystemtestSchema } from './db';
-import { initTicketsSchema } from '../tickets-db';
+import { initTicketsSchema } from '../../tickets-db';
 import {
   purgeFixturesFor,
   drainOutbox,
@@ -245,7 +245,7 @@ describe.skipIf(!dbAvailable)('purgeFixturesFor', () => {
   });
 
   it('calls keycloak.deleteUser for keycloak.users fixtures', async () => {
-    const keycloakModule = await import('../identity');
+    const keycloakModule = await import('../../identity');
     const deleteSpy = vi.mocked(keycloakModule.deleteUser);
     deleteSpy.mockResolvedValueOnce(true);
 

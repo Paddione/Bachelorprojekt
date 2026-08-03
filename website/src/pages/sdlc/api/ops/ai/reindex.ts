@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createK8sClient } from '../../../../../lib/k8s';
+import { createK8sClient } from '../../../../../lib/sdlc/k8s';
 import { getSession, isAdmin } from '../../../../../lib/auth';
 import { platformPool } from '../../../../../lib/website-db';
 import { startAction, finishAction, ConcurrentActionError } from '../../../../../lib/admin-actions';

@@ -9,7 +9,7 @@ vi.mock('../identity', () => ({
 
 import authOnly from './auth-only';
 import type { SeedContext } from '../systemtest/seed-context';
-import { pool } from '../website-db';
+import { pool } from '../../website-db';
 import { ensureSystemtestSchema } from '../systemtest/db';
 
 const dbAvailable = !!(
@@ -76,7 +76,7 @@ describe.skipIf(!dbAvailable)('auth-only seed', () => {
   });
 
   it('cleans up the Keycloak user when password setting fails', async () => {
-    const { setUserPassword } = await import('../identity');
+    const { setUserPassword } = await import('../../identity');
     vi.mocked(setUserPassword).mockResolvedValueOnce(false);
 
     const client = await pool.connect();

@@ -7,7 +7,7 @@ vi.mock('../../../lib/auth', () => ({
 }));
 
 import { getSession, isAdmin } from '../../../lib/auth';
-import * as route from './ai-quality';
+import * as route from '../../sdlc/api/ai-quality';
 
 beforeEach(() => {
   queryMock.mockReset();

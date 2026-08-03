@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { Pool } from 'pg';
-import { embedBatch } from './embeddings';
+import { embedBatch } from './sdlc/embeddings';
 
 const EMBED_BATCH = 8;
 

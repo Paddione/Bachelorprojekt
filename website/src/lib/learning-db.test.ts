@@ -71,7 +71,7 @@ const { memPool } = vi.hoisted(() => {
 vi.mock('./website-db', () => ({ pool: memPool, platformPool: memPool }));
 
 import * as learningDb from './learning-db';
-import { goals, tools } from './agentGuide';
+import { goals, tools } from './sdlc/agentGuide';
 
 const USER = 'kc-user-1';
 const BRAND = 'mentolder';

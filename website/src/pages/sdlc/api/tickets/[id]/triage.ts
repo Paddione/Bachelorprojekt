@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { runTriage } from '../../../../../lib/ticket-triage';
+import { runTriage } from '../../../../../lib/sdlc/ticket-triage';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 

@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
-import { addComment, createAdminTicket } from '../../../lib/tickets/admin';
-import { checkRateLimit, getClientIp } from '../../../lib/rate-limit';
-import { config } from '../../../config/index.js';
-import { pool } from '../../../lib/website-db';
-import { autoTriage } from '../../../lib/ticket-triage';
+import { addComment, createAdminTicket } from '../../../../lib/sdlc/tickets/admin';
+import { checkRateLimit, getClientIp } from '../../../../lib/rate-limit';
+import { config } from '../../../../config/index.js';
+import { pool } from '../../../../lib/website-db';
+import { autoTriage } from '../../../../lib/sdlc/ticket-triage';
 
 const BRAND = config.brand;
 const EXTERNAL_ID_RE = /^T\d{6}$/i;

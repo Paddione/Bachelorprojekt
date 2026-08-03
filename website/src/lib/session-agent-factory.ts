@@ -1,6 +1,6 @@
-import type { KiConfig } from './coaching-ki-config-db';
+import type { KiConfig } from './sdlc/coaching-ki-config-db';
 import type { SessionAgent } from './session-agent';
-import { ClaudeSessionAgent } from './claude-session-agent';
+import { ClaudeSessionAgent } from './sdlc/claude-session-agent';
 import { LegacySessionAgent } from './legacy-session-agent';
 import { OpenAICompatibleSessionAgent } from './openai-compatible-session-agent';
 

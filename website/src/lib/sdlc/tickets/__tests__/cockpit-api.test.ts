@@ -45,12 +45,12 @@ vi.mock('../../../lib/tickets/cockpit-db', () => ({
   CycleError: class CycleError extends Error { constructor(m?: string) { super(m); this.name = 'CycleError'; } },
 }));
 
-import { GET } from '../../../pages/api/admin/cockpit/portfolio';
-import { GET as FEATURE_GET } from '../../../pages/api/admin/cockpit/feature';
-import { POST as REORDER } from '../../../pages/api/admin/cockpit/reorder';
-import { POST as REPARENT } from '../../../pages/api/admin/cockpit/reparent';
-import { POST as BATCH } from '../../../pages/api/admin/cockpit/batch';
-import { POST as SUGGEST } from '../../../pages/api/admin/cockpit/suggest';
+import { GET } from '../../../../pages/sdlc/api/cockpit/portfolio';
+import { GET as FEATURE_GET } from '../../../../pages/sdlc/api/cockpit/feature';
+import { POST as REORDER } from '../../../../pages/sdlc/api/cockpit/reorder';
+import { POST as REPARENT } from '../../../../pages/sdlc/api/cockpit/reparent';
+import { POST as BATCH } from '../../../../pages/sdlc/api/cockpit/batch';
+import { POST as SUGGEST } from '../../../../pages/sdlc/api/cockpit/suggest';
 
 const req = () => new Request('http://x/api/admin/cockpit/portfolio',
   { headers: { cookie: 'sid=1' } });
@@ -338,7 +338,7 @@ describe('resolveProvider', () => {
 // ---------------------------------------------------------------------------
 // parseSuggestions unit tests (B4)
 // ---------------------------------------------------------------------------
-import { parseSuggestions } from '../../../lib/tickets/suggest-prompt';
+import { parseSuggestions } from '../suggest-prompt';
 
 describe('parseSuggestions', () => {
   it('returns [] for prose without JSON array', () => {

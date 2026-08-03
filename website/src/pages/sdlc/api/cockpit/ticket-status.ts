@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { setTicketStatus, BrandMismatchError, NotFoundError } from '../../../../lib/tickets/cockpit-db';
-import type { TicketStatus } from '../../../../lib/tickets/admin';
+import { setTicketStatus, BrandMismatchError, NotFoundError } from '../../../../lib/sdlc/tickets/cockpit-db';
+import type { TicketStatus } from '../../../../lib/sdlc/tickets/admin';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const json = (d: unknown, s = 200) =>

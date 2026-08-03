@@ -321,7 +321,7 @@ describe('safeOpenTestRunFailureTicket', () => {
   });
 
   it('logs (does not throw) when the outbox enqueue itself also fails', async () => {
-    const { logger } = await import('../logger');
+    const { logger } = await import('../../logger');
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => logger);
 
     const { pool: fakePool } = scriptedPool([

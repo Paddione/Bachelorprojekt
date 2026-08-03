@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { toInboxPreview, relativeAge } from '../inbox-preview';
-import type { InboxItem } from '../../messaging-db';
+import type { InboxItem } from '../../../messaging-db';
 
 function item(over: Partial<InboxItem>): InboxItem {
   return {

@@ -1,4 +1,4 @@
-import type { KiConfig } from './coaching-ki-config-db';
+import type { KiConfig } from './sdlc/coaching-ki-config-db';
 
 export interface ConversationTurn {
   role: 'user' | 'assistant';

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/svelte';
 import PipelineSidekickView from './PipelineSidekickView.svelte';
-import { PIPELINE_LANES } from '../../lib/factory-floor';
+import { PIPELINE_LANES } from '../../lib/sdlc/factory-floor';
 
 const FLOOR = {
   planningCount: { total: 3, ready: 1 }, staged: [{ extId: 'T1' }], loadingDock: [{ extId: 'T2' }, { extId: 'T3' }],

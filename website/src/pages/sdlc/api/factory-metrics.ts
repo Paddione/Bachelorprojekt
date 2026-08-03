@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../lib/auth';
-import { listFactoryMetrics, listActiveFeatures, listActiveFlags } from '../../lib/factory-metrics';
+import { getSession, isAdmin } from '../../../lib/auth';
+import { listFactoryMetrics, listActiveFeatures, listActiveFlags } from '../../../lib/sdlc/factory-metrics';
 
 export const prerender = false;
 

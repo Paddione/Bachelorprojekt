@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { getSession, isAdmin } from '../../lib/auth';
+import { getSession, isAdmin } from '../../../lib/auth';
 import {
   getDailyBudgetSummary,
   getRunBudgetByTicket,
   setBudgetLimit,
   getRecentRuns
-} from '../../lib/factory-budget';
+} from '../../../lib/sdlc/factory-budget';
 
 export const prerender = false;
 

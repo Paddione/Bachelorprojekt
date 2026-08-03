@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listOffice } from '../../../../lib/planning-office';
+import { listOffice } from '../../../../lib/sdlc/planning-office';
 
 export const prerender = false;
 

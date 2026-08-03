@@ -6,7 +6,7 @@ vi.mock('../../../lib/knowledge-db', () => ({
 }));
 
 import { GET } from './search';
-import { searchOpenspec } from '../../../lib/knowledge-db';
+import { searchOpenspec } from '../../../../lib/knowledge-db';
 
 function req(qs: string) {
   return {

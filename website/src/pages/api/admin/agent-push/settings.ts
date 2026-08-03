@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { getEnabled, getAll, setEnabled } from '../../../../lib/agent-push-settings';
+import { getEnabled, getAll, setEnabled } from '../../../../lib/sdlc/agent-push-settings';
 import { errorResponse } from '../../_errors';
 
 export const prerender = false;

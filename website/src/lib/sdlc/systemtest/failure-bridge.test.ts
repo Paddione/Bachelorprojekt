@@ -13,9 +13,9 @@
 
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import { pool } from '../website-db';
+import { pool } from '../../website-db';
 import { ensureSystemtestSchema } from './db';
-import { initTicketsSchema } from '../tickets-db';
+import { initTicketsSchema } from '../../tickets-db';
 import { openFailureTicket, enqueueOutboxRetry } from './failure-bridge';
 
 const dbAvailable = !!(

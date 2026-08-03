@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { searchOpenspec } from '../../../lib/knowledge-db';
+import { searchOpenspec } from '../../../../lib/knowledge-db';
 
 export const prerender = false;
 

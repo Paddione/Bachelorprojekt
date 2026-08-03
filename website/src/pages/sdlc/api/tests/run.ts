@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { hasRunningJob, spawnTestRun } from '../../../../lib/test-runner';
+import { hasRunningJob, spawnTestRun } from '../../../../lib/sdlc/test-runner';
 
 export const POST: APIRoute = async ({ request }) => {
   const session = await getSession(request.headers.get('cookie'));

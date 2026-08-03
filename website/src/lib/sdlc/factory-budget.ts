@@ -2,7 +2,7 @@
 // Data Access Layer (DAL) for token and cost budget tracking.
 // Per-brand PostgreSQL access via the central pool.
 
-import { pool } from './website-db';
+import { pool } from '../website-db';
 
 interface FactoryRunBudget {
   id: string;

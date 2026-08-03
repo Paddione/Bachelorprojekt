@@ -84,6 +84,13 @@ tasks:
             -d '{"model":"bge-reranker-v2-m3","query":"capital of germany","documents":["paris","berlin","hamburg"]}' \
             | jq '.results | sort_by(-.relevance_score) | .[0].index'
 
+  bench-embed:
+    desc: "Measure bge-embed throughput (chunks/s) against the cluster. ENV=<env>"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    cmds:
+      - scripts/llm/bench-bge-embed.sh "{{.ENV}}" {{.CLI_ARGS}}
+
   proxy:start:
     desc: "Start the local LLM proxy (scripts/llm-proxy, Port 18235) detached with PID/log file"
     cmds:

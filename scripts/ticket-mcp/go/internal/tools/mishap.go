@@ -95,7 +95,7 @@ func buildIncidentTicketArgs(entry MishapEntry, brand string) []string {
 }
 
 func createIncidentTicket(entry MishapEntry, brand string) (string, error) {
-	// T002XXX-Dedupe-Failsafe: Bevor ein Incident-Ticket entsteht, pruefen, ob
+	// T002601-Dedupe-Failsafe: Bevor ein Incident-Ticket entsteht, pruefen, ob
 	// bereits ein offenes Ticket mit demselben normalisierten Titel existiert.
 	// Wiederverwendung statt Duplikat — die selbe Störung darf nicht N Tickets
 	// erzeugen, bevor der Fix überhaupt dispatched wurde.
@@ -254,7 +254,7 @@ func findRollupTicketByTitle(tickets []rollupTicket, title string) (*rollupTicke
 }
 
 func findOrCreateRollupTicket(brand string) (string, error) {
-	// T002XXX-Dedupe: Der Container wird ZUERST ueber alle offenen Status gesucht,
+	// T002601-Dedupe: Der Container wird ZUERST ueber alle offenen Status gesucht,
 	// nicht nur plan_staged. Ein Container, den die Factory gerade nach in_progress
 	// bewegt hat, wurde von der plan_staged-Suche verpasst — der naechste Flush
 	// legte dann einen ZWEITEN Container an (beobachtet an T002597/T002601).
@@ -333,7 +333,9 @@ func RegisterMishapTools(s *server.MCPServer) {
 			component, _ := a["component"].(string)
 			mtype, _ := a["type"].(string)
 			brand, _ := a["brand"].(string)
-			if brand == "" { brand = "mentolder" }
+			if brand == "" {
+				brand = "mentolder"
+			}
 			validTypes := []string{"incident", "broken", "degraded", "suspicious", "security", "drift", "process"}
 			if !slices.Contains(validTypes, mtype) {
 				return mcp.NewToolResultError(fmt.Sprintf("Ungueltiger Typ: %s. Erlaubt: %s", mtype, strings.Join(validTypes, ", "))), nil
@@ -341,7 +343,9 @@ func RegisterMishapTools(s *server.MCPServer) {
 			entry := MishapEntry{Title: title, Description: description, Component: component, Type: mtype, ReportedAt: time.Now().UTC().Format(time.RFC3339)}
 			if isIncidentType(mtype) {
 				extID, err := createIncidentTicket(entry, brand)
-				if err != nil { return nil, err }
+				if err != nil {
+					return nil, err
+				}
 				return mcp.NewToolResultText(fmt.Sprintf("Incident-Ticket angelegt: %s (attention_mode=needs_human). Kein Buffer-Eintrag.", extID)), nil
 			}
 			buffer := readBuffer()
@@ -373,7 +377,9 @@ func RegisterMishapTools(s *server.MCPServer) {
 		mcp.NewTool("get_mishap_buffer", mcp.WithDescription("Zeigt den aktuellen Inhalt des Mishap-Buffers.")),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			buffer := readBuffer()
-			if len(buffer) == 0 { return mcp.NewToolResultText("Mishap-Buffer ist leer."), nil }
+			if len(buffer) == 0 {
+				return mcp.NewToolResultText("Mishap-Buffer ist leer."), nil
+			}
 			var lines []string
 			for i, e := range buffer {
 				lines = append(lines, fmt.Sprintf("%d. [%s] %s (%s) — %s", i+1, e.Type, e.Title, e.Component, e.ReportedAt))
@@ -388,10 +394,16 @@ func RegisterMishapTools(s *server.MCPServer) {
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			a := getArgs(req)
 			brand, _ := a["brand"].(string)
-			if brand == "" { brand = "mentolder" }
+			if brand == "" {
+				brand = "mentolder"
+			}
 			buffer := readBuffer()
-			if len(buffer) == 0 { return mcp.NewToolResultText("Mishap-Buffer ist leer."), nil }
-			if err := appendToRollupContainer(buffer, brand); err != nil { return nil, err }
+			if len(buffer) == 0 {
+				return mcp.NewToolResultText("Mishap-Buffer ist leer."), nil
+			}
+			if err := appendToRollupContainer(buffer, brand); err != nil {
+				return nil, err
+			}
 			writeBuffer([]MishapEntry{})
 			return mcp.NewToolResultText(fmt.Sprintf("%d Mishaps an den Rollup-Container angehaengt. Buffer geleert.", len(buffer))), nil
 		},
@@ -401,17 +413,27 @@ func RegisterMishapTools(s *server.MCPServer) {
 func BufferIsStale(entries []MishapEntry, now time.Time, maxAge time.Duration) bool {
 	for _, e := range entries {
 		t, err := time.Parse(time.RFC3339, e.ReportedAt)
-		if err != nil { continue }
-		if now.Sub(t) >= maxAge { return true }
+		if err != nil {
+			continue
+		}
+		if now.Sub(t) >= maxAge {
+			return true
+		}
 	}
 	return false
 }
 
 func FlushStaleBuffer(brand string, maxAge time.Duration) (string, error) {
 	buffer := readBuffer()
-	if len(buffer) == 0 { return "", nil }
-	if !BufferIsStale(buffer, time.Now(), maxAge) { return "", nil }
-	if err := appendToRollupContainer(buffer, brand); err != nil { return "", err }
+	if len(buffer) == 0 {
+		return "", nil
+	}
+	if !BufferIsStale(buffer, time.Now(), maxAge) {
+		return "", nil
+	}
+	if err := appendToRollupContainer(buffer, brand); err != nil {
+		return "", err
+	}
 	for _, e := range buffer {
 		if _, err := createFactoryFixTicket(e, brand); err != nil {
 			return "", err

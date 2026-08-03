@@ -167,3 +167,26 @@ if [ "${SKIP_BONSAI_GUARD:-0}" != "1" ]; then
     exit 1
   fi
 fi
+
+# --- main-commit-guard: block commits on main/master [T002631] ---
+# Prevents agents from committing directly on main — they must use
+# the ticket → branch → worktree → PR workflow.
+# Exemptions: CI runners (Freshness bot, Release-Please), emergency bypass.
+# Bypass: SKIP_MAIN_COMMIT_GUARD=1 git commit ...
+if [ "${SKIP_MAIN_COMMIT_GUARD:-0}" != "1" ]; then
+  if [ -z "${CI:-}" ] && [ -z "${GITHUB_ACTIONS:-}" ]; then
+    _bn="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
+    if [ "$_bn" = "main" ] || [ "$_bn" = "master" ]; then
+      echo "✗  pre-commit: commits on '$_bn' are blocked." >&2
+      echo "" >&2
+      echo "  Agents must use the ticket → branch → worktree → PR workflow:" >&2
+      echo "    1. Create a ticket for your change" >&2
+      echo "    2. Create a feature/fix branch from main" >&2
+      echo "    3. Work in an isolated worktree (.worktrees/<slug>)" >&2
+      echo "    4. Open a PR — never commit directly to main" >&2
+      echo "" >&2
+      echo "  To bypass (emergency only): SKIP_MAIN_COMMIT_GUARD=1 git commit" >&2
+      exit 1
+    fi
+  fi
+fi

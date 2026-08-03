@@ -17,8 +17,8 @@ _Ticket: T002631_
 ## File Structure
 
 ```
-.githooks/pre-commit             # MODIFIED — Neue Section "main-commit-guard"
-tests/spec/main-commit-guard.bats # NEW — BATS test
+.githooks/pre-commit               # MODIFIED — Neue Section "main-commit-guard" [T002631]
+tests/spec/main-commit-guard.bats  # NEW — 5 BATS drift-guard tests
 ```
 
 ## Verify (RED → GREEN)

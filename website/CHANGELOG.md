@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.242.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.241.1...website-v1.242.0) (2026-08-03)
+
+
+### Features
+
+* health goals entschlackung T002598 ([#3728](https://github.com/Paddione/Bachelorprojekt/issues/3728)) ([af51ce3](https://github.com/Paddione/Bachelorprojekt/commit/af51ce32dcaa22a23c7683f11029d9ec61706ad2))
+
 ## [1.241.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.241.0...website-v1.241.1) (2026-08-03)
 
 

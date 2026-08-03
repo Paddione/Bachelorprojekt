@@ -3,3 +3,6 @@ outputs/
 data/
 logs/
 *.log
+_unsloth_sentencepiece_temp/
+unsloth_compiled_cache/
+detect_*_result.json

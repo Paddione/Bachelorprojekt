@@ -1980,6 +1980,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/skill-path-references",
+    "file": "tests/spec/agent-skills/skill-path-references.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agentic-review",
     "file": "tests/spec/agentic-review.bats",
     "category": "agentic-review",
@@ -2498,6 +2504,12 @@
   {
     "id": "health-goals/id-parity",
     "file": "tests/spec/health-goals/id-parity.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/llm-stack-goals",
+    "file": "tests/spec/health-goals/llm-stack-goals.bats",
     "category": "health-goals",
     "kind": "shell"
   },
@@ -3302,6 +3314,12 @@
   {
     "id": "software-factory/db-pod-phase-guard",
     "file": "tests/spec/software-factory/db-pod-phase-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/orphan-slot-reap",
+    "file": "tests/spec/software-factory/orphan-slot-reap.bats",
     "category": "software-factory",
     "kind": "shell"
   },

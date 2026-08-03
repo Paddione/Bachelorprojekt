@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.241.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.4...website-v1.241.0) (2026-08-03)
+
+
+### Features
+
+* **agents:** Toolset-Aggregator mit Nutzungssemantik und Rollen-Injektion [T002592] ([#3719](https://github.com/Paddione/Bachelorprojekt/issues/3719)) ([18c5bbb](https://github.com/Paddione/Bachelorprojekt/commit/18c5bbbb222ad79b2e552ccd43efa0c746b63780))
+
 ## [1.240.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.3...website-v1.240.4) (2026-08-02)
 
 

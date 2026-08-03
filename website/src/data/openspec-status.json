@@ -1303,8 +1303,8 @@
   ],
   "T002080": [
     {
-      "slug": "website-e2e-fixes",
-      "status": "plan_staged"
+      "slug": "2026-08-03-website-e2e-fixes",
+      "status": "archived"
     }
   ],
   "T002081": [
@@ -1465,8 +1465,8 @@
   ],
   "T002179": [
     {
-      "slug": "specs-keycloak-pocketid",
-      "status": "plan_staged"
+      "slug": "2026-08-03-specs-keycloak-pocketid",
+      "status": "archived"
     }
   ],
   "T002180": [
@@ -1477,8 +1477,8 @@
   ],
   "T002181": [
     {
-      "slug": "spec-test-rot",
-      "status": "plan_staged"
+      "slug": "2026-08-03-spec-test-rot",
+      "status": "archived"
     }
   ],
   "T002182": [

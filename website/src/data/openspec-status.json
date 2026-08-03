@@ -2367,6 +2367,12 @@
       "status": "archived"
     }
   ],
+  "T002580": [
+    {
+      "slug": "bge-embed-oom",
+      "status": "plan_staged"
+    }
+  ],
   "T002582": [
     {
       "slug": "factory-model-routing-fix",

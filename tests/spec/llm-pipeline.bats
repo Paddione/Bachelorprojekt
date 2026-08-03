@@ -297,6 +297,45 @@ assert_var_not_declared() {
   [ "$output" -eq 4 ]
 }
 
+# ── bge-embed OOM-Guard (T002580) ─────────────────────────────────────
+# bge-embed lief wiederholt in OOMKilled (limits.memory 2Gi, 9 Restarts in 6h).
+# Gemessener Peak-RSS unter 64er-Embedding-Batch-Last: ~1.94Gi (kubectl top pod,
+# 2026-08-03) — 2Gi liess nur ~60Mi Headroom. Fix: limits.memory auf 3Gi
+# angehoben, -np 4 -ub 8192 bleibt erhalten (Durchsatz fuer den T002572-
+# Benchmark). Dieser Guard sichert die gewaehlte Kombination statisch ab: eine
+# kuenftige Senkung des Limits unter den gemessenen Peak oder eine arglose
+# Aenderung der Batch-Parameter darf nicht unbemerkt durchrutschen.
+
+@test "bge-embed OOM-Guard: limits.memory >= 3Gi und dokumentiert (T002580)" {
+  local f="$REPO/k3d/llm-gpu.yaml"
+  # Das bge-embed-Deployment muss limits.memory auf mindestens 3Gi setzen.
+  # Der Wert steht im bge-embed-Block (vor dem bge-rerank-Block); geprueft wird
+  # das erste memory nach dem ersten limits:-Block im Manifest (awk findet den
+  # bge-embed-Limit-Wert, nicht die requests.memory 1Gi davor).
+  local first_limit
+  first_limit="$(awk '/limits:/{found=1} found && /memory:/{print; exit}' "$f" \
+    | sed -E 's/.*memory:[[:space:]]*"?([0-9]+)Gi"?.*/\1/')"
+  [ -n "$first_limit" ] || { echo "kein memory-Limit im bge-embed-Block gefunden"; false; }
+  [ "$first_limit" -ge 3 ] || { echo "bge-embed limits.memory=${first_limit}Gi < 3Gi — unter gemessenem Peak+Headroom"; false; }
+  # Die Begruendung (T002580) muss im Manifest stehen, damit die Wahl nicht
+  # stillschweigend zurueckgedreht wird.
+  run grep -q 'T002580' "$f"
+  [ "$status" -eq 0 ]
+}
+
+@test "bge-embed OOM-Guard: -np 4 -ub 8192 bleibt erhalten (T002580)" {
+  local f="$REPO/k3d/llm-gpu.yaml"
+  # Durchsatz fuer den T002572-Benchmark: -np 4 und -ub 8192 muessen im
+  # bge-embed-Block stehen bleiben. -np 4 kommt genau 2x vor (embed + rerank),
+  # -ub 8192 genau 2x.
+  run grep -cE '^[[:space:]]+- "-np"[[:space:]]*$' "$f"
+  [ "$output" -eq 2 ]
+  run grep -cE '^[[:space:]]+- "4"[[:space:]]*$' "$f"
+  [ "$output" -eq 2 ]
+  run grep -cE '^[[:space:]]+- "-ub"[[:space:]]*$' "$f"
+  [ "$output" -eq 2 ]
+}
+
 # ── CPU-only im Cluster (T002337) ─────────────────────────────────────
 # Beide Hilfsmodelle liegen im CPU-RAM, damit das VRAM dem Chat-Modell gehoert
 # (Gemma laeuft mit -Ctx 262144 und belegt rund 15,1 von 16,3 GiB). Im Cluster

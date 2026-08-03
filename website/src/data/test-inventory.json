@@ -3432,6 +3432,12 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/agentic-resource-lookup",
+    "file": "tests/spec/toolset-registry/agentic-resource-lookup.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/agy-expected-proxy",
     "file": "tests/spec/toolset-registry/agy-expected-proxy.bats",
     "category": "toolset-registry",

@@ -123,18 +123,33 @@ function main() {
   const errors = [];
   const goals = [];
 
-  // Baseline-Update markers are ordered thematically in goals.md (Prio-A section
-  // first, Prio-B/C history further down), NOT chronologically — so the last match
-  // in document order is not the newest one. Take the maximum instead; ISO dates
-  // sort lexicographically in chronological order, so no Date parsing is needed.
-  // [T002162: every goal carried a four-day-old measured_at because the
-  // 2026-07-25 marker sits above the 2026-07-22 ones.]
+  // measured_at comes from an explicit header field that health-goals-update.sh
+  // stamps on every measurement run. [T002598]
+  //
+  // It used to be derived from the newest `**Baseline-Update <date>` marker in the
+  // changelog prose. That worked only as long as the changelog lived in goals.md.
+  // Once it moved to docs/health-goals-history.md the markers were gone, and the
+  // derivation would have fallen back to the static Baseline-Stichtag — serving a
+  // month-old date as the current measurement without turning anything red. The
+  // last remaining marker in the file sits inside a *goal's* prose (G-E2E02), so
+  // the fallback would not even have failed loudly; it would have picked an
+  // unrelated date by accident.
+  //
+  // The fallback chain stays for files that predate the field: explicit field →
+  // Baseline-Stichtag → empty. Legacy Baseline-Update markers are still honoured
+  // ahead of the Stichtag so an un-migrated goals.md keeps working, but the
+  // explicit field always wins. [T002162 fixed the ordering bug in that legacy
+  // path: markers are sorted thematically, not chronologically, so the maximum —
+  // not the last in document order — is the newest.]
+  const explicitMatch = content.match(/\*\*Zuletzt gemessen:\*\*\s*`([\d-]+)`/);
   const updateDates = [...content.matchAll(/\*\*Baseline-Update\s+(\d{4}-\d{2}-\d{2})/g)]
     .map(m => m[1]);
   const dateMatch = content.match(/\*\*Baseline-Stichtag:\*\*\s*`([\d-]+)`/);
-  const measuredAt = updateDates.length > 0
-    ? updateDates.reduce((newest, d) => (d > newest ? d : newest))
-    : (dateMatch ? dateMatch[1] : '');
+  const measuredAt = explicitMatch
+    ? explicitMatch[1]
+    : updateDates.length > 0
+      ? updateDates.reduce((newest, d) => (d > newest ? d : newest))
+      : (dateMatch ? dateMatch[1] : '');
 
   // --- 1. H2-section entries (Prio A/B) ---
   // Fenced code blocks can contain shell comment lines ("# ...") that look

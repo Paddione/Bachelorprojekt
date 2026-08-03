@@ -15,21 +15,6 @@
     "measured_at": "2026-07-27"
   },
   {
-    "id": "G-AGENTIC09",
-    "title": "Projekteigene SKILL.md > 400 Zeilen",
-    "category": "Agent-Tooling",
-    "priority": "C",
-    "direction": "lower",
-    "baseline": 2,
-    "current": 0,
-    "target": 0,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "c=0; for d in $(project_owned_skills); do\n  [ \"$(wc -l < \".claude/skills/$d/SKILL.md\")\" -gt 400 ] && c=$((c+1)); done; echo $c",
-    "source": ".claude/lib/goals.md · G-AGENTIC09",
-    "measured_at": "2026-07-27"
-  },
-  {
     "id": "G-DB09",
     "title": "Slow Queries in pg_stat_statements (COPY+DDL-bereinigt)",
     "category": "Datenbank",
@@ -192,21 +177,6 @@
     "status": "unknown",
     "measurement": "bash scripts/brain-ingest-worklist.sh 2>/dev/null | python3 -c \"\nimport sys, json, hashlib\nstate=json.load(open('$HOME/.brain-ingest-state.json'))\ntodo=0\nfor line in sys.stdin:\n    path=line.split('\\t')[0].strip()\n    if not path: continue\n    st=state.get(path)\n    if not st or hashlib.sha256(open(path,'rb').read()).hexdigest()!=st['hash']: todo+=1\nprint(todo)\"",
     "source": ".claude/lib/goals.md · G-BRAIN14",
-    "measured_at": "2026-07-27"
-  },
-  {
-    "id": "G-IMG01",
-    "title": "Fremd-Image-Versions-Drift",
-    "category": "Dependencies",
-    "priority": "B",
-    "direction": "lower",
-    "baseline": 2,
-    "current": 0,
-    "target": 0,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "grep -rhE 'image:' k3d/ prod*/ | grep -v '#' | sed 's/.*image:\\s*//' | sort -u | awk -F'\\t' '{c[$1]++} END{for(k in c) if(c[k]>1) print k}'",
-    "source": ".claude/lib/goals.md · G-IMG01",
     "measured_at": "2026-07-27"
   },
   {
@@ -417,21 +387,6 @@
     "status": "unknown",
     "measurement": "git for-each-ref ... refs/remotes/origin | while IFS='",
     "source": ".claude/lib/goals.md · G-RH04",
-    "measured_at": "2026-07-27"
-  },
-  {
-    "id": "G-RH05",
-    "title": "Plan-Staged idle >14d",
-    "category": "Kern-Ziele",
-    "priority": "C",
-    "direction": "lower",
-    "baseline": null,
-    "current": 0,
-    "target": 0,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "bash scripts/vda.sh oracle 'list plan_staged tickets'",
-    "source": ".claude/lib/goals.md · G-RH05",
     "measured_at": "2026-07-27"
   },
   {
@@ -975,21 +930,6 @@
     "measured_at": "2026-07-27"
   },
   {
-    "id": "G-DOC01",
-    "title": "Defekte interne Doc-Links",
-    "category": "Dokumentation",
-    "priority": "C",
-    "direction": "lower",
-    "baseline": null,
-    "current": 0,
-    "target": 0,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "python3 scripts/check-links.py",
-    "source": ".claude/lib/goals.md · G-DOC01",
-    "measured_at": "2026-07-27"
-  },
-  {
     "id": "G-DOC02",
     "title": "Root-CLAUDE.md Zeilen",
     "category": "Dokumentation",
@@ -1017,36 +957,6 @@
     "status": "unknown",
     "measurement": "for d in website brett scripts tests k3d; do ls \"$d\"/README* ... done",
     "source": ".claude/lib/goals.md · G-DOC03",
-    "measured_at": "2026-07-27"
-  },
-  {
-    "id": "G-DOC04",
-    "title": "Architektur-ADRs",
-    "category": "Dokumentation",
-    "priority": "C",
-    "direction": "higher",
-    "baseline": null,
-    "current": 5,
-    "target": 5,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "find docs -ipath '*adr*' -name '*.md' | wc -l",
-    "source": ".claude/lib/goals.md · G-DOC04",
-    "measured_at": "2026-07-27"
-  },
-  {
-    "id": "G-DOC06",
-    "title": "Agent Guide Index",
-    "category": "Dokumentation",
-    "priority": "C",
-    "direction": "higher",
-    "baseline": null,
-    "current": 30,
-    "target": 30,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "find .claude/skills docs/agent-guide -name SKILL.md -o -name README.md | wc -l",
-    "source": ".claude/lib/goals.md · G-DOC06",
     "measured_at": "2026-07-27"
   },
   {
@@ -1092,21 +1002,6 @@
     "status": "unknown",
     "measurement": "gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt | python3 -c \"..p95..\"` (T001910: Messscript-Bug in `gh-axi run list --json` behoben, jetzt `gh` direkt)",
     "source": ".claude/lib/goals.md · G-CI03",
-    "measured_at": "2026-07-27"
-  },
-  {
-    "id": "G-RH03",
-    "title": "OpenSpec-BATS-Abdeckung",
-    "category": "Kern-Ziele",
-    "priority": "C",
-    "direction": "higher",
-    "baseline": null,
-    "current": 82,
-    "target": 60,
-    "unit": "",
-    "status": "unknown",
-    "measurement": "SPECS=$(ls openspec/specs/*.md | wc -l); BATS=$(ls tests/spec/*.bats | wc -l); echo \"$BATS/$SPECS\"",
-    "source": ".claude/lib/goals.md · G-RH03",
     "measured_at": "2026-07-27"
   },
   {
@@ -1345,7 +1240,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "for d in $(project_owned_skills); wc -l > 400 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md` (T002303; vorher `target` mit Schwelle 500 über alle Skills — Schwelle 250→400 in T002452, weil zwei Skills auf 0 bzw. 3 Zeilen Reserve standen)",
+    "measurement": "for d in $(project_owned_skills); wc -l > 400 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md`. **Die Schwelle 400 steht nur hier und in `scripts/health-goals-check.sh`** — die BATS-Guards (`agent-skills.bats`, `agentic-tooling-quality-goals.bats`) lesen sie von dort. Wer sie ändert, ändert genau diese zwei Stellen, sonst nichts; vor T002452 führten vier Stellen die Zahl unabhängig. Fehlt der Vendor-Marker-Block in `OVERVIEW.md`, gilt jeder Skill als projekteigen — das Gate wird dann strenger, nie schwächer. Historie: [T002303, T002452](../../docs/health-goals-history.md)",
     "source": ".claude/lib/goals.md · G-AGENTIC09",
     "measured_at": "2026-07-27"
   },

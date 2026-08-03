@@ -2484,6 +2484,18 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/id-parity",
+    "file": "tests/spec/health-goals/id-parity.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/measured-at-field",
+    "file": "tests/spec/health-goals/measured-at-field.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/worktree-hygiene-goals",
     "file": "tests/spec/health-goals/worktree-hygiene-goals.bats",
     "category": "health-goals",

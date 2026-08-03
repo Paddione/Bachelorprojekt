@@ -47,11 +47,18 @@ _osr_psql() {
     psql -U website -d website -qtAc "$sql"
 }
 
-# Ticket in den Waisen-Zustand versetzen: Slot gesetzt, Status NICHT in_progress,
-# updated_at um <mins> zurueckdatiert. Genau die Reproduktion aus T002610.
+# Ticket in den Waisen-Zustand versetzen: Slot gesetzt, Status NICHT in_progress.
+# Genau die Reproduktion aus T002610.
+#
+# Bewusst OHNE Zurueckdatieren von updated_at: der Trigger tickets.fn_lifecycle_ts
+# setzt `NEW.updated_at := now()` bei JEDEM Update, unbedingt — ein
+# `SET updated_at = now() - interval '40 minutes'` wird also im selben Statement
+# wieder ueberschrieben und bleibt wirkungslos. Die Alterung wird deshalb ueber
+# den Schwellwert gesteuert (FACTORY_ORPHAN_SLOT_MIN=0 => sofort faellig), nicht
+# ueber den Zeitstempel.
 _osr_make_orphan() {
-  local brand="$1" ext="$2" slot="$3" mins="$4"
-  _osr_psql "$brand" "UPDATE tickets.tickets SET pipeline_slot=${slot}, status='backlog', updated_at = now() - interval '${mins} minutes' WHERE external_id='${ext}';"
+  local brand="$1" ext="$2" slot="$3"
+  _osr_psql "$brand" "UPDATE tickets.tickets SET pipeline_slot=${slot}, status='backlog' WHERE external_id='${ext}';"
 }
 
 _osr_slot_of() {
@@ -82,9 +89,11 @@ _osr_toplevel_local() {
   [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-a.txt")
-  _osr_make_orphan "$brand" "$ext" 1 30
+  _osr_make_orphan "$brand" "$ext" 1
 
-  run env BRAND="$brand" FACTORY_ORPHAN_SLOT_MIN=10 bash scripts/factory/watchdog.sh
+  # Schwelle 0 macht den Waisen sofort faellig, ohne updated_at zu manipulieren.
+  run env BRAND="$brand" FACTORY_ORPHAN_SLOT_MIN=0 FACTORY_STALE_MIN=999 \
+    bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
 
   [ "$(_osr_slot_of "$brand" "$ext")" = "NULL" ]
@@ -97,42 +106,62 @@ _osr_toplevel_local() {
   [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-b.txt")
-  _osr_make_orphan "$brand" "$ext" 2 30
+  _osr_make_orphan "$brand" "$ext" 2
 
-  run env BRAND="$brand" FACTORY_ORPHAN_SLOT_MIN=10 bash scripts/factory/watchdog.sh
+  run env BRAND="$brand" FACTORY_ORPHAN_SLOT_MIN=0 FACTORY_STALE_MIN=999 \
+    bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
 
   [ "$(_osr_slot_of "$brand" "$ext")" = "NULL" ]
   [ "$(_osr_status_of "$brand" "$ext")" = "backlog" ]
 }
 
-@test "T002610: the sweep spares running tickets and fresh orphans" {
-  # POSITIV-ANKER [T002356-M1]: Ohne diesen Test bestuende "der Waise ist weg"
-  # auch dann, wenn der Sweep wahllos JEDEN Slot raeumt. Erst der gueltige Fall
-  # (Waise verschwindet), dann die Negativ-Aussagen (diese beiden bleiben).
+@test "T002610: the sweep spares a running ticket" {
+  # POSITIV-ANKER [T002356-M1]: Ohne ihn bestuende "das laufende Ticket behaelt
+  # seinen Slot" auch dann, wenn der Sweep gar nichts tut. Erst der gueltige Fall
+  # (Waise verschwindet), dann die Negativ-Aussage (das laufende bleibt).
   [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
   local brand="${TEST_BRAND:-korczewski}"
   orphan=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-c.txt")
   running=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-d.txt")
-  fresh=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-e.txt")
 
-  _osr_make_orphan "$brand" "$orphan" 1 30
-  # laufend: Slot gesetzt UND in_progress → kein Waise
-  _osr_psql "$brand" "UPDATE tickets.tickets SET pipeline_slot=2, status='in_progress', updated_at = now() - interval '30 minutes' WHERE external_id='${running}';"
-  # frischer Waise: Slot gesetzt, aber innerhalb der Karenzzeit
-  _osr_make_orphan "$brand" "$fresh" 3 1
+  _osr_make_orphan "$brand" "$orphan" 1
+  # laufend: Slot gesetzt UND in_progress → per Definition kein Waise
+  _osr_psql "$brand" "UPDATE tickets.tickets SET pipeline_slot=2, status='in_progress' WHERE external_id='${running}';"
 
-  # STALE_MIN hoch setzen, damit der bestehende Stale-Sweep das laufende Ticket
-  # nicht seinerseits abraeumt — hier wird ausschliesslich der Waisen-Sweep geprueft.
-  run env BRAND="$brand" FACTORY_ORPHAN_SLOT_MIN=10 FACTORY_STALE_MIN=999 \
+  # STALE_MIN hoch, damit der Stale-Sweep das laufende Ticket nicht seinerseits
+  # abraeumt — hier wird ausschliesslich der Waisen-Sweep geprueft.
+  run env BRAND="$brand" FACTORY_ORPHAN_SLOT_MIN=0 FACTORY_STALE_MIN=999 \
     bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
 
   # Positiv-Anker zuerst: der Sweep tut ueberhaupt etwas.
   [ "$(_osr_slot_of "$brand" "$orphan")" = "NULL" ]
-  # Negativ-Aussagen: diese beiden bleiben unangetastet.
+  # Negativ-Aussage: das laufende Ticket bleibt unangetastet.
   [ "$(_osr_slot_of "$brand" "$running")" = "2" ]
-  [ "$(_osr_slot_of "$brand" "$fresh")" = "3" ]
+}
+
+@test "T002610: the grace period spares a freshly slotted orphan" {
+  # Belegt, dass FACTORY_ORPHAN_SLOT_MIN tatsaechlich wirkt: derselbe Waise
+  # ueberlebt den Lauf mit Karenzzeit und wird im zweiten Lauf ohne sie geraeumt.
+  # Der zweite Lauf ist der Positiv-Anker [T002356-M1] — ohne ihn bestuende der
+  # Test auch, wenn der Sweep ueberhaupt nicht existierte.
+  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  local brand="${TEST_BRAND:-korczewski}"
+  ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-e.txt")
+  _osr_make_orphan "$brand" "$ext" 3
+
+  # Karenzzeit greift: gerade erst geschrieben, also juenger als 10 Minuten.
+  run env BRAND="$brand" FACTORY_ORPHAN_SLOT_MIN=10 FACTORY_STALE_MIN=999 \
+    bash scripts/factory/watchdog.sh
+  [ "$status" -eq 0 ]
+  [ "$(_osr_slot_of "$brand" "$ext")" = "3" ]
+
+  # Positiv-Anker: ohne Karenzzeit raeumt derselbe Sweep denselben Waisen.
+  run env BRAND="$brand" FACTORY_ORPHAN_SLOT_MIN=0 FACTORY_STALE_MIN=999 \
+    bash scripts/factory/watchdog.sh
+  [ "$status" -eq 0 ]
+  [ "$(_osr_slot_of "$brand" "$ext")" = "NULL" ]
 }
 
 # ── T002618: Watchdog laeuft ueberhaupt bis ans Ende ─────────────────────────#
@@ -145,13 +174,22 @@ _osr_toplevel_local() {
   [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-f.txt")
-  env BRAND="$brand" bash scripts/factory/slots.sh claim "$ext" 1 >/dev/null
-  _osr_psql "$brand" "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='${ext}';"
+  # Direktes UPDATE statt `slots.sh claim`: dessen Subkommando schreibt
+  # pipeline_slot_meta, eine Spalte, die in prod fehlt (T002619) — der Claim
+  # scheiterte hier mit Exit 3, bevor der Test ueberhaupt begann.
+  _osr_psql "$brand" "UPDATE tickets.tickets SET pipeline_slot=1, status='in_progress' WHERE external_id='${ext}';"
 
-  run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
+  # Schwelle 0 statt Zurueckdatieren: fn_lifecycle_ts ueberschreibt updated_at
+  # bei jedem Update, ein Backdating bliebe wirkungslos und die Stale-Liste leer
+  # — dann liefe das Skript durch und der Test bestuende vakuos.
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # Auf die Fehlerzeile eingegrenzt statt gegen das gesamte $output zu matchen.
   [ "$(printf '%s\n' "$output" | grep -c 'can only be used in a function')" -eq 0 ]
+  # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war. Ohne
+  # ihn waere "kein Fehler aufgetreten" auch bei leerer Liste wahr — genau so
+  # bestand dieser Test in einer frueheren Fassung, ohne je etwas zu pruefen.
+  printf '%s\n' "$output" | tail -1 | jq -e --arg e "$ext" 'any(.[]; . == $e)'
   # Der Lauf endet mit seinem JSON-Array — Beleg, dass er das Skriptende erreicht.
   printf '%s\n' "$output" | tail -1 | jq -e 'type == "array"'
 }
@@ -166,7 +204,18 @@ _osr_toplevel_local() {
   [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-g.txt")
-  _osr_make_orphan "$brand" "$ext" 1 1
+  _osr_make_orphan "$brand" "$ext" 1
+  # queue.sh nimmt ein backlog-Feature nur mit lastenheft_locked=true auf
+  # (queue.sh:31). Ohne das Flag erscheint der Kandidat gar nicht erst, es gibt
+  # keinen Claim-Versuch — und der Test pruefte die Meldung, die er erwartet,
+  # niemals. Genau dieser Zustand (backlog + locked + Slot) ist der aus T002482.
+  _osr_psql "$brand" "UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{\"lastenheft_locked\":true}'::jsonb WHERE external_id='${ext}';"
+
+  # Positiv-Anker [T002356-M1]: der Kandidat steht wirklich in der Queue. Ohne
+  # ihn bestuende ein leerer Lauf als "keine WARN-Zeile noetig" durch.
+  run env BRAND="$brand" bash scripts/factory/queue.sh
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | tail -1 | jq -e --arg e "$ext" 'any(.[]; .external_id == $e)'
 
   run env BRAND="$brand" FACTORY_GLOBAL_CAP=3 bash scripts/factory/schedule.sh
   [ "$status" -eq 0 ]

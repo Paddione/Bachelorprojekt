@@ -3372,6 +3372,24 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/collect-kinds",
+    "file": "tests/spec/toolset-registry/collect-kinds.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/context-injection",
+    "file": "tests/spec/toolset-registry/context-injection.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/schema-gate",
+    "file": "tests/spec/toolset-registry/schema-gate.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/sync-all-harnesses",
     "file": "tests/spec/toolset-registry/sync-all-harnesses.bats",
     "category": "toolset-registry",

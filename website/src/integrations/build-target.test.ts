@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { filterRoutesByBuildTarget } from './build-target.mjs';
 
 describe('build-target integration', () => {
-  const mockRoutes = [
+  const mockRoutes: Array<{ component: string; pathname: string }> = [
     { component: '/app/src/pages/index.astro', pathname: '/' },
     { component: '/app/src/pages/kontakt.astro', pathname: '/kontakt' },
     { component: '/app/src/pages/admin/rechnungen.astro', pathname: '/admin/rechnungen' },

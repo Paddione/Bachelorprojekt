@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { writeContent, ContentConflictError } from '../../../../lib/website-db';
-import { validateSection } from '../../../../lib/sdlc/admin/schemas';
+import { validateSection } from '../../../../lib/admin/schemas/index.ts';
 import { refFor } from '../../../../lib/content-registry';
 
 const BRAND = import.meta.env.BRAND || process.env.BRAND || 'mentolder';

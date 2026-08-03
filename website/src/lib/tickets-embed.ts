@@ -6,10 +6,10 @@
  * ticket creation or reads.
  */
 import { pool } from './website-db';
-import { embedBatch, embedQuery } from './sdlc/embeddings';
-import { chunkText } from './sdlc/chunking';
+import { embedBatch, embedQuery } from './embeddings.ts';
+import { chunkText } from './chunking.ts';
 import { ticketEmbeddingModel, MixedEmbeddingModelError } from './tickets-db';
-import type { EmbeddingModel } from './sdlc/embeddings';
+import type { EmbeddingModel } from './embeddings.ts';
 import { logger } from './logger';
 
 // ─── Shared helpers ─────────────────────────────────────────────────────────

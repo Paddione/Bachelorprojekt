@@ -1,4 +1,4 @@
-import type { OfficeItem, DorKey } from './planning-office';
+import type { OfficeItem, DorKey } from '../planning-office.ts';
 
 export interface ClarificationField {
   key: string;

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getKiProviderById } from '../../../../../lib/sdlc/coaching-ki-config-db';
+import { getKiProviderById } from '../../../../../lib/coaching-ki-config-db.ts';
 import { pool } from '../../../../../lib/website-db';
 import { getProviderByName } from '../../../../../lib/provider-config';
 import { fetchModelIds } from '../../../../../lib/llm-models-probe';

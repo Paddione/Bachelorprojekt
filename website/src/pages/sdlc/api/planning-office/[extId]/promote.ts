@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { promoteItem } from '../../../../../lib/sdlc/planning-office';
+import { promoteItem } from '../../../../../lib/planning-office.ts';
 
 export const prerender = false;
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o),

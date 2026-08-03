@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Pool } from 'pg';
-import { applyTypeVocabularyMigration, TICKET_TYPES } from '../migrate-type-vocabulary';
+import { applyTypeVocabularyMigration, TICKET_TYPES } from '../../../tickets/migrate-type-vocabulary.ts';
 
 // Fake-Pool statt echter DB: geprüft wird die REIHENFOLGE der abgesetzten
 // Statements, und die ist der eigentliche Fallstrick — ein UPDATE vor dem

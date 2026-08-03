@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { listCollections } from '../../../lib/knowledge-db';
-import { resolveEndpoint, BgeRoutingError } from '../../../lib/sdlc/bge-router';
+import { resolveEndpoint, BgeRoutingError } from '../../../lib/bge-router.ts';
 
 export const prerender = false;
 

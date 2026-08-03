@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isValidStatus } from './transition';
+import { isValidStatus } from '../../tickets/transition.ts';
 
 describe('transition status gate', () => {
   it('accepts qa_review (added on main parity)', () => {

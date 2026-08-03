@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { TicketDetail, InjectionKind } from '../../lib/factory-floor-types';
-  import type { CiCheck, CiRollup } from '../../lib/factory-ci';
+  import type { TicketDetail, InjectionKind } from '../../../lib/factory-floor-types.ts';
+  import type { CiCheck, CiRollup } from '../../../lib/sdlc/factory-ci.ts';
   import DetailPanelSidebar from './DetailPanelSidebar.svelte';
 
   let {

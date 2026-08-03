@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { pool } from '../../website-db';
-import { ensureSystemtestSchema } from './db';
+import { ensureSystemtestSchema } from '../../systemtest/db.ts';
 import { initTicketsSchema } from '../../tickets-db';
 import { openFailureTicket, enqueueOutboxRetry } from './failure-bridge';
 

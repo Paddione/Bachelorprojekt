@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ControlSnapshot } from '../../lib/factory-floor-types';
+  import type { ControlSnapshot } from '../../../lib/factory-floor-types.ts';
   let { control }: { control: ControlSnapshot } = $props();
 </script>
 

@@ -5,7 +5,7 @@
 
 import pg from 'pg';
 import { resolve4 } from 'dns';
-import { ensureSystemtestSchema } from '../sdlc/systemtest/db';
+import { ensureSystemtestSchema } from '../systemtest/db.ts';
 import { ensureSchemaOnce } from '../website-db';
 import { SYSTEM_TEST_TEMPLATES, type SystemTestTemplate } from '../system-test-seed-data';
 import { logger } from '../logger';

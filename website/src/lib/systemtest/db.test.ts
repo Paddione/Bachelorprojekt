@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { pool } from '../../website-db';
+import { pool } from '../website-db.ts';
 import { ensureSystemtestSchema } from './db';
 
 const dbAvailable = !!(process.env.DATABASE_URL || process.env.WEBSITE_DATABASE_URL || process.env.SESSIONS_DATABASE_URL);

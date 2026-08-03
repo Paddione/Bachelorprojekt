@@ -1,5 +1,5 @@
 import { pool } from '../website-db';
-import { isValidStatus } from './tickets/transition';
+import { isValidStatus } from '../tickets/transition.ts';
 
 export const MAX_BULK_SELECT = 10;
 

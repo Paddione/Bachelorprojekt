@@ -16,7 +16,7 @@ import {
   fetchEventsRaw,
   extractICalProp,
   parseICalDate
-} from './caldav-cache.js';
+} from './caldav-cache.ts';
 
 export interface CalEvent {
   start: Date;

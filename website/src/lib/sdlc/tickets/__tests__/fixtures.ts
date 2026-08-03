@@ -1,6 +1,6 @@
 // Test fixture factories for Cockpit types.
 // Import-only — no runtime dependencies on DB or API layers (S2-safe).
-import type { RollupMetrics, FeatureNode, ProductNode, PortfolioPayload } from '../cockpit-types';
+import type { RollupMetrics, FeatureNode, ProductNode, PortfolioPayload } from '../../../tickets/cockpit-types.ts';
 
 export function makeRollup(overrides?: Partial<RollupMetrics>): RollupMetrics {
   return {

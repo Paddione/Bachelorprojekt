@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listHardwareAssets } from '../../../../lib/sdlc/platform-db';
+import { listHardwareAssets } from '../../../../lib/platform-db.ts';
 import { createK8sClient, type K8sClient } from '../../../../lib/sdlc/k8s';
 
 export const prerender = false;

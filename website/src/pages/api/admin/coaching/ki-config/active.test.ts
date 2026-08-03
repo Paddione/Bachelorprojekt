@@ -11,7 +11,7 @@ vi.mock('../../../../../lib/website-db', () => ({
   pool: {},
 }));
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { setActiveProvider } from '../../../../../lib/sdlc/coaching-ki-config-db';
+import { setActiveProvider } from '../../../../../lib/coaching-ki-config-db.ts';
 import { PATCH } from './active';
 
 type RouteContext = Parameters<typeof PATCH>[0];

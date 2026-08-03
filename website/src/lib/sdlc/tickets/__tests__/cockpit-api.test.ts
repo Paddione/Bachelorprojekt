@@ -338,7 +338,7 @@ describe('resolveProvider', () => {
 // ---------------------------------------------------------------------------
 // parseSuggestions unit tests (B4)
 // ---------------------------------------------------------------------------
-import { parseSuggestions } from '../suggest-prompt';
+import { parseSuggestions } from '../../../tickets/suggest-prompt.ts';
 
 describe('parseSuggestions', () => {
   it('returns [] for prose without JSON array', () => {

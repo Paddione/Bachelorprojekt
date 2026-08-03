@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Phase, HallItem, ProviderConfigSummary } from '../../lib/factory-floor-types';
+  import type { Phase, HallItem, ProviderConfigSummary } from '../../../lib/factory-floor-types.ts';
   import StationColumn from './StationColumn.svelte';
 
   let {

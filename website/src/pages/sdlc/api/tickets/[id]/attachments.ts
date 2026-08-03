@@ -4,7 +4,7 @@
 // bug-report endpoint does). Nextcloud-backed uploads are deferred to v1.5.
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { addAttachment } from '../../../../../lib/sdlc/tickets/admin';
+import { addAttachment } from '../../../../../lib/tickets/admin.ts';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const MAX_BYTES = 5 * 1024 * 1024;

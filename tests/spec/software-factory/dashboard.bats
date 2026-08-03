@@ -21,7 +21,7 @@ teardown() { _sf_teardown; }
 # ── FA-SF-42-dashboard-route ────────────────────────────────────#
 # FA-SF-42: /api/factory-metrics enforces the getSession+isAdmin 401 gate.
 
-ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/api/factory-metrics.ts"
+ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/sdlc/api/factory-metrics.ts"
 
 @test "FA-SF-42: route exists and is server-rendered" {
   [ -f "$ROUTE" ]
@@ -56,8 +56,8 @@ ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/api/factory-metrics.ts"
 COCKPIT_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/admin/cockpit.astro"
 PIPELINE_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/admin/pipeline.astro"
 DEV_STATUS_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/dev-status.astro"
-FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../../website/src/components/factory/FactoryObservability.svelte"
-FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../../website/src/components/factory/factory-chart-colors.ts"
+FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../../website/src/sdlc/components/factory/FactoryObservability.svelte"
+FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../../website/src/sdlc/components/factory/factory-chart-colors.ts"
 
 @test "T001433 pipeline: pages/admin/cockpit.astro exists and mounts PipelinePanel" {
   [ -f "$COCKPIT_PAGE" ]

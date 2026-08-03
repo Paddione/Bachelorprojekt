@@ -1,4 +1,4 @@
-import type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
+import type { ShippedItem, AwaitingDeployItem } from '../factory-floor-lanes.ts';
 
 export const PHASE_ORDER = ['scout', 'design', 'plan', 'implement', 'verify', 'deploy'] as const;
 export type Phase = (typeof PHASE_ORDER)[number];

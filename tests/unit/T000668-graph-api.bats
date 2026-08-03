@@ -27,7 +27,7 @@ setup() {
 }
 
 @test "graph.ts API endpoint file exists" {
-  [ -f website/src/pages/api/admin/cluster/graph.ts ]
+  [ -f website/src/pages/sdlc/api/cluster/graph.ts ]
 }
 
 @test "architektur.astro page file exists" {

@@ -1,5 +1,5 @@
 import type { SessionAgent, GenerateOptions, GenerateResult } from './session-agent';
-import type { KiConfig } from './sdlc/coaching-ki-config-db';
+import type { KiConfig } from './coaching-ki-config-db.ts';
 import { searchCoachingKnowledgeTool } from './session-tools';
 import { getProviderByName } from './provider-config';
 

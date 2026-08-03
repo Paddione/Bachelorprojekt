@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import { SURFACE, BORDER, TEXT_MUTED, SUCCESS } from './factory-chart-colors';
-  import { getSharedMetrics } from '../../lib/stores/factory-floor-store';
+  import { getSharedMetrics } from '../../../lib/stores/factory-floor-store.ts';
 
   let {
     window: _window = '7d',

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Phase, HallItem, ProviderConfigSummary } from '../../lib/factory-floor-types';
+  import type { Phase, HallItem, ProviderConfigSummary } from '../../../lib/factory-floor-types.ts';
   import WorkpieceCard from './WorkpieceCard.svelte';
 
   // German display labels + agent personas for each phase key

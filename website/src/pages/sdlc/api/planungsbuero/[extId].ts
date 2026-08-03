@@ -6,7 +6,7 @@ import {
   discardTriage,
   DOR_KEYS,
   type Readiness,
-} from '../../../../lib/sdlc/planning-office';
+} from '../../../../lib/planning-office.ts';
 
 export const prerender = false;
 

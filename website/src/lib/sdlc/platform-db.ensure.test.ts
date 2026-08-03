@@ -36,7 +36,7 @@ vi.mock('pg', () => {
 vi.mock('./tickets-schema', () => ({ initTicketsSchema: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('./tickets/transition', () => ({ transitionTicket: vi.fn().mockResolvedValue(undefined) }));
 
-import { listSoftwareAssets, listHardwareAssets } from './platform-db';
+import { listSoftwareAssets, listHardwareAssets } from '../platform-db.ts';
 import { pool, __resetSchemaInitCacheForTests } from '../website-db';
 const CountingPool = (pool as unknown as { constructor: { platformCreateDdlCount: number } }).constructor;
 

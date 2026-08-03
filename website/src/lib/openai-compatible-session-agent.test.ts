@@ -18,7 +18,7 @@ vi.mock('./provider-config', () => ({
   getProviderByName: (...a: unknown[]) => getProviderByNameMock(...a),
 }));
 
-import type { KiConfig } from './sdlc/coaching-ki-config-db';
+import type { KiConfig } from './coaching-ki-config-db.ts';
 import { OpenAICompatibleSessionAgent } from './openai-compatible-session-agent';
 
 const baseConfig = (overrides: Partial<KiConfig> = {}): KiConfig => ({

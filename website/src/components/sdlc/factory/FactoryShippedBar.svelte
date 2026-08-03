@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { Chart, registerables } from 'chart.js';
   import { SURFACE, BORDER, TEXT_MUTED, PHASE_COLORS, PHASE_LABELS } from './factory-chart-colors';
-  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store';
+  import { floorStore, acquireFloor } from '../../../lib/stores/factory-floor-store.ts';
 
   interface HallItem {
     extId: string;

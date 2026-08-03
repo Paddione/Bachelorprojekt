@@ -5,13 +5,13 @@
 STORE="website/src/lib/stores/factory-floor-store.ts"
 FLOOR="website/src/components/FactoryFloor.svelte"
 TABS="website/src/components/DevStatusTabs.svelte"
-CTRL="website/src/components/factory/ControlPanel.svelte"
-STRIP="website/src/components/factory/StatusStrip.svelte"
+CTRL="website/src/sdlc/components/factory/ControlPanel.svelte"
+STRIP="website/src/sdlc/components/factory/StatusStrip.svelte"
 DAG="website/src/components/DependencyGraph.svelte"
 SIDEKICK="website/src/components/PortalSidekick.svelte"
 PIPEVIEW="website/src/components/assistant/PipelineSidekickView.svelte"
 NAV="website/src/components/admin/AdminSidebarNav.astro"
-BUDGETAPI="website/src/pages/api/factory-budget.ts"
+BUDGETAPI="website/src/pages/sdlc/api/factory-budget.ts"
 
 @test "D1: shared floor store exists and exports the public surface" {
   [ -f "$STORE" ]
@@ -23,15 +23,15 @@ BUDGETAPI="website/src/pages/api/factory-budget.ts"
 
 @test "D1: read-only consumers subscribe to the store" {
   for f in "$STRIP" \
-           "website/src/components/factory/FactoryPhaseHeatmap.svelte" \
-           "website/src/components/factory/FactoryShippedBar.svelte" \
+           "website/src/sdlc/components/factory/FactoryPhaseHeatmap.svelte" \
+           "website/src/sdlc/components/factory/FactoryShippedBar.svelte" \
            "$FLOOR" "$PIPEVIEW" "$DAG"; do
     grep -q "factory-floor-store" "$f"
   done
 }
 
 @test "D3: KI provider editor extracted; FactoryFloor drops KiProviderDrawer" {
-  [ -f "website/src/components/factory/KiRoutingPanel.svelte" ]
+  [ -f "website/src/sdlc/components/factory/KiRoutingPanel.svelte" ]
   run grep -q "KiProviderDrawer" "$FLOOR"
   [ "$status" -ne 0 ]
 }
@@ -70,16 +70,16 @@ BUDGETAPI="website/src/pages/api/factory-budget.ts"
       website/src/components/PlanningOfficeDetail.svelte \
       website/src/components/PlanningOfficeTriage.svelte \
       website/src/components/PlanningOfficeQueue.svelte \
-      website/src/components/factory/PhaseBadge.svelte
+      website/src/sdlc/components/factory/PhaseBadge.svelte
   [ "$status" -ne 0 ]
 }
 
 @test "D4: shared analytics window filter component exists" {
-  [ -f "website/src/components/factory/AnalyticsWindowFilter.svelte" ]
+  [ -f "website/src/sdlc/components/factory/AnalyticsWindowFilter.svelte" ]
 }
 
 @test "D7.3: orphan ViewSwitcher is deleted and unreferenced" {
-  [ ! -f "website/src/components/factory/ViewSwitcher.svelte" ]
+  [ ! -f "website/src/sdlc/components/factory/ViewSwitcher.svelte" ]
   run grep -rq "ViewSwitcher" website/src
   [ "$status" -ne 0 ]
 }

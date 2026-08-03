@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import FactoryKpiCard from './FactoryKpiCard.svelte';
-  import { getSharedMetrics } from '../../lib/stores/factory-floor-store';
+  import { getSharedMetrics } from '../../../lib/stores/factory-floor-store.ts';
 
   let {
     window: _window = '7d',

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import OpenAI from 'openai';
 import { getProviderByName } from '../../../lib/provider-config';
-import { getActiveProvider } from '../../../lib/sdlc/coaching-ki-config-db';
+import { getActiveProvider } from '../../../lib/coaching-ki-config-db.ts';
 import { getStepDef, isKiPromptBeat, buildUserPrompt } from '../../../lib/coaching-session-prompts';
 import type { StepDefinition, KiPromptBeat } from '../../../lib/coaching-session-prompts';
 import { pool } from '../../../lib/website-db';

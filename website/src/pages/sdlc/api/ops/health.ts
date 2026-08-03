@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import http from 'node:http';
 import https from 'node:https';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listSoftwareAssets } from '../../../../lib/sdlc/platform-db';
+import { listSoftwareAssets } from '../../../../lib/platform-db.ts';
 import { resolveHealthUrl } from '../../../../lib/platform-links';
 
 type ServiceCheck = {

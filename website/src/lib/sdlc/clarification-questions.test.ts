@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { deriveSections, buildCommentBody } from './clarification-questions';
-import type { OfficeItem } from './planning-office';
+import type { OfficeItem } from '../planning-office.ts';
 
 function item(partial: Partial<OfficeItem>): OfficeItem {
   return {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildSetVideosMessage, buildSetModeMessage, buildSetGrillingDataMessage, parseOutbound } from './mediaviewer-bridge';
 import type { HelpVideo } from './help-videos';
-import type { GrillingSessionData } from './sdlc/tickets/final-grilling';
+import type { GrillingSessionData } from './tickets/final-grilling.ts';
 
 const videos: HelpVideo[] = [{ id: 'v1', url: 'https://x/v.mp4', title: 'T', duration: 10 }];
 

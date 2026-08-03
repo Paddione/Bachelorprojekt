@@ -11,7 +11,7 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import type { UserSession } from '../../../../lib/auth';
 import { POST } from './upload';
 import { pool } from '../../../../lib/website-db';
-import { ensureSystemtestSchema } from '../../../../lib/sdlc/systemtest/db';
+import { ensureSystemtestSchema } from '../../../../lib/systemtest/db.ts';
 
 const dbAvailable = !!(
   process.env.DATABASE_URL ||

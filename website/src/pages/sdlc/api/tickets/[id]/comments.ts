@@ -1,7 +1,7 @@
 // website/src/pages/api/admin/tickets/[id]/comments.ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { addComment } from '../../../../../lib/sdlc/tickets/admin';
+import { addComment } from '../../../../../lib/tickets/admin.ts';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 

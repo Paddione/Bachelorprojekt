@@ -3,10 +3,10 @@
 // existing tickets/factory_control tables. PER-BRAND pool, same-namespace only.
 // factory-metrics.ts is intentionally left untouched; this is a separate module.
 import { pool } from '../website-db';
-import { officeCount } from './planning-office';
-import { mapShippedRow, mapAwaitingRow, isAwaitingDeployLaneVisible } from './factory-floor-lanes';
-import type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
-export type { ShippedItem, AwaitingDeployItem } from './factory-floor-lanes';
+import { officeCount } from '../planning-office.ts';
+import { mapShippedRow, mapAwaitingRow, isAwaitingDeployLaneVisible } from '../factory-floor-lanes.ts';
+import type { ShippedItem, AwaitingDeployItem } from '../factory-floor-lanes.ts';
+export type { ShippedItem, AwaitingDeployItem } from '../factory-floor-lanes.ts';
 
 
 import {
@@ -74,7 +74,7 @@ export {
   ALL_TICKET_STATUSES,
   PIPELINE_LANES,
   STATUS_BUCKETS,
-} from './tickets/pipeline-order';
+} from '../tickets/pipeline-order.ts';
 
 export async function writeControl(key: string, value: string, setBy = 'admin-ui'): Promise<void> {
   await pool.query(

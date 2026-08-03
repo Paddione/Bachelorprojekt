@@ -3,9 +3,9 @@ import type {
   PortfolioPayload, ProductNode, FeatureNode,
   FeatureTickets, TicketRow, RollupMetrics, HealthStatus,
   BatchMutation, BatchResult, OpenSpecProposal,
-} from './cockpit-types';
+} from '../../tickets/cockpit-types.ts';
 import { recordAudit } from './cockpit-audit';
-import type { TicketStatus } from './admin';
+import type { TicketStatus } from '../../tickets/admin.ts';
 import openspecStatusMap from '../../../data/openspec-status.json';
 import { ALL_TICKETS_ID, NO_FEATURE_ID, NO_PRODUCT_ID } from './cockpit-ids';
 

@@ -3,8 +3,8 @@
   import { logEntries, clearLog, filterEntries, type LogFilters } from '../../lib/logging/log-store';
   import { levelClass, levelLabel, formatMetaInline } from '../../lib/logging/log-format';
   import { openServerLogStream, openPodLogStream, type StreamHandle } from '../../lib/logging/log-streams';
-  import { postError, podLineToError, fetchErrorHistory } from '../../lib/logging/error-report.js';
-  import { browserLogger } from '../../lib/browser-logger.js';
+  import { postError, podLineToError, fetchErrorHistory } from '../../lib/logging/error-report.ts';
+  import { browserLogger } from '../../lib/browser-logger.ts';
   import type { LogLevel, LogSource, LogEntry } from '../../lib/logging/log-types';
 
   const ALL_LEVELS: LogLevel[] = ['debug', 'info', 'warn', 'error'];

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { listOffice, createIdea, cleanupEphemeral } from '../../../../lib/sdlc/planning-office';
+import { listOffice, createIdea, cleanupEphemeral } from '../../../../lib/planning-office.ts';
 
 export const prerender = false;
 const deny = () => new Response(JSON.stringify({ error: 'Unauthorized' }),

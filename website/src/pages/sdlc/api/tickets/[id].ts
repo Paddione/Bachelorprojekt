@@ -1,7 +1,7 @@
 // website/src/pages/api/admin/tickets/[id].ts
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
-import { getTicketDetail, getTicketTimeline, patchAdminTicket } from '../../../../lib/sdlc/tickets/admin';
+import { getTicketDetail, getTicketTimeline, patchAdminTicket } from '../../../../lib/tickets/admin.ts';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 

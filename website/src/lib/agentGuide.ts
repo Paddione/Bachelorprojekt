@@ -1,4 +1,4 @@
-import data from '../agent-guide.generated.json';
+import data from './agent-guide.generated.json';
 
 export interface TierEntry {
   id: string;

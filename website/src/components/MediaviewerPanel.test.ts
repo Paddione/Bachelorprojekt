@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/svelte';
 import MediaviewerPanel from './MediaviewerPanel.svelte';
 import type { HelpVideo } from '../lib/help-videos';
-import type { GrillingSessionData } from '../lib/sdlc/tickets/final-grilling';
+import type { GrillingSessionData } from '../lib/tickets/final-grilling.ts';
 
 const videos: HelpVideo[] = [{ id: 'v1', url: 'https://x/v.mp4', title: 'T', duration: 10 }];
 

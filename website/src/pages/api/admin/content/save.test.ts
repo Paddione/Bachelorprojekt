@@ -14,7 +14,7 @@ vi.mock('../../../../lib/admin/schemas/index', () => ({ validateSection: vi.fn()
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { writeContent, ContentConflictError } from '../../../../lib/website-db';
 import { refFor } from '../../../../lib/content-registry';
-import { validateSection } from '../../../../lib/sdlc/admin/schemas';
+import { validateSection } from '../../../../lib/admin/schemas/index.ts';
 import { POST } from './save';
 
 function jsonReq(body: unknown) {

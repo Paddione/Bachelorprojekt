@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FactoryTicket } from './types';
-  import type { HallItem } from '../../lib/factory-floor-types';
+  import type { HallItem } from '../../../lib/factory-floor-types.ts';
 
   let {
     ticket,

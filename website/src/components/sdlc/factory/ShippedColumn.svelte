@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { PIPELINE_LANES } from '../../lib/tickets/pipeline-order';
+  import { PIPELINE_LANES } from '../../../lib/tickets/pipeline-order.ts';
   const shippedLabel = PIPELINE_LANES.find((l) => l.key === 'shipped')?.label ?? 'Versand';
 
   let {

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import type { Pool } from 'pg';
 import { pool as defaultPool } from '../../../lib/db-pool';
 import { getSession, isAdmin } from '../../../lib/auth';
-import type { AiWorkflow } from '../../../lib/sdlc/ai-metrics';
+import type { AiWorkflow } from '../../../lib/ai-metrics.ts';
 
 const WORKFLOWS: AiWorkflow[] = ['coaching_chat', 'rag_search', 'embedding', 'grilling', 'plan_qa'];
 

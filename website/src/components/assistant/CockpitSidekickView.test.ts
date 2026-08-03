@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/svelte';
 import CockpitSidekickView from './CockpitSidekickView.svelte';
-import { selectFeature } from '../../lib/sdlc/stores/cockpitStore';
+import { selectFeature } from '../../lib/stores/cockpitStore.ts';
 
 const portfolio = {
   products: [{

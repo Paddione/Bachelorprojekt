@@ -1,6 +1,6 @@
 <script lang="ts">
   import ControlCard from './ControlCard.svelte';
-  import { Stepper } from '../ui';
+  import { Stepper } from '../../ui';
 
   let {
     value = 20,

@@ -1,6 +1,6 @@
 <script module lang="ts">
-  import { PHASE_ORDER } from '../lib/factory-floor-types';
-  import type { Phase } from '../lib/factory-floor-types';
+  import { PHASE_ORDER } from '../../lib/factory-floor-types.ts';
+  import type { Phase } from '../../lib/factory-floor-types.ts';
   import { MOBILE_COL_INDEX } from './factory/MobileTabBar.svelte';
   export { MOBILE_COL_INDEX }; // eslint-disable-line no-import-assign
   export const MOBILE_COL_COUNT = 11;
@@ -10,11 +10,11 @@
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { FloorPayload, TicketDetail, InjectionKind } from '../lib/factory-floor-types';
-  import { floorStore, acquireFloor, seedFloor, ingestFloorPayload } from '../lib/stores/factory-floor-store';
+  import type { FloorPayload, TicketDetail, InjectionKind } from '../../lib/factory-floor-types.ts';
+  import { floorStore, acquireFloor, seedFloor, ingestFloorPayload } from '../../lib/stores/factory-floor-store.ts';
 
-  import QaChip from './QaChip.svelte';
-  import QaModal from './QaModal.svelte';
+  import QaChip from '../QaChip.svelte';
+  import QaModal from '../QaModal.svelte';
   import DetailPanel from './factory/DetailPanel.svelte';
   import MobileTabBar from './factory/MobileTabBar.svelte';
   import StagedColumn from './factory/StagedColumn.svelte';
@@ -23,9 +23,9 @@
   import AttentionStrip from './factory/AttentionStrip.svelte';
   import FactoryFloorLane from './FactoryFloorLane.svelte';
   import FloorControlCard from './factory/FloorControlCard.svelte';
-  import type { QaItem } from '../lib/qa-dal';
-  import type { CiRollup } from '../lib/factory-ci';
-  import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../lib/factory-floor-client';
+  import type { QaItem } from '../../lib/qa-dal.ts';
+  import type { CiRollup } from '../../lib/sdlc/factory-ci.ts';
+  import { relTime, prUrl, ticketUrl, planUrl, prioDot } from '../../lib/sdlc/factory-floor-client.ts';
 
   let { initial }: { initial: FloorPayload | null } = $props();
 

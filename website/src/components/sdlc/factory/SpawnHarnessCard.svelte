@@ -1,7 +1,7 @@
 <script lang="ts">
   import ControlCard from './ControlCard.svelte';
   import PilotLight from './PilotLight.svelte';
-  import { ToggleSwitch } from '../ui';
+  import { ToggleSwitch } from '../../ui';
 
   let {
     value = false,

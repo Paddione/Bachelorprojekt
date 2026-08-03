@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { deleteSoftwareAsset, upsertSoftwareAsset } from '../../../../../lib/sdlc/platform-db';
+import { deleteSoftwareAsset, upsertSoftwareAsset } from '../../../../../lib/platform-db.ts';
 
 export const prerender = false;
 

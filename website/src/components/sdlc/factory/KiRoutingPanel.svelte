@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import KiProviderDrawer from '../admin/KiProviderDrawer.svelte';
-  import { interfaceById, type InterfaceDef } from '../../lib/ki-catalog';
-  import { browserLogger } from '../../lib/browser-logger';
+  import KiProviderDrawer from '../../admin/KiProviderDrawer.svelte';
+  import { interfaceById, type InterfaceDef } from '../../../lib/ki-catalog.ts';
+  import { browserLogger } from '../../../lib/browser-logger.ts';
 
   interface ProviderEntry {
     id: number; source: string; tier: 'sonnet' | 'haiku'; priority: number;

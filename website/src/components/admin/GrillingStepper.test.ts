@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import GrillingStepper from './GrillingStepper.svelte';
-import { QUESTIONNAIRES, type GrillingAnswers, type GrillingMeta } from '../../lib/sdlc/tickets/grilling';
+import { QUESTIONNAIRES, type GrillingAnswers, type GrillingMeta } from '../../lib/tickets/grilling.ts';
 
 const QN = 'coaching-sessions-v1';
 

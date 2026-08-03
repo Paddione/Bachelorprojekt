@@ -2,7 +2,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../lib/auth';
 import { bulkChangeStatus } from '../../../../lib/sdlc/bulk-status';
-import { isValidStatus } from '../../../../lib/sdlc/tickets/transition';
+import { isValidStatus } from '../../../../lib/tickets/transition.ts';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 

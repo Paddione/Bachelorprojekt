@@ -7,71 +7,71 @@ load test_helper
 
 PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 
-@test "SCS-2: website/src/pages/api/codesearch.ts exists" {
-  [[ -f "$PROJECT_DIR/website/src/pages/api/codesearch.ts" ]]
+@test "SCS-2: website/src/pages/sdlc/api/codesearch.ts exists" {
+  [[ -f "$PROJECT_DIR/website/src/pages/sdlc/api/codesearch.ts" ]]
 }
 
 @test "SCS-2: codesearch API requires admin auth" {
-  run grep -c 'isAdmin' "$PROJECT_DIR/website/src/pages/api/codesearch.ts"
+  run grep -c 'isAdmin' "$PROJECT_DIR/website/src/pages/sdlc/api/codesearch.ts"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-2: codesearch API validates query parameter q" {
-  run grep -c "searchParams.get('q')" "$PROJECT_DIR/website/src/pages/api/codesearch.ts"
+  run grep -c "searchParams.get('q')" "$PROJECT_DIR/website/src/pages/sdlc/api/codesearch.ts"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-2: codesearch API returns 503 when embedding service unavailable" {
-  run grep -c 'embedding service unavailable' "$PROJECT_DIR/website/src/pages/api/codesearch.ts"
+  run grep -c 'embedding service unavailable' "$PROJECT_DIR/website/src/pages/sdlc/api/codesearch.ts"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-2: codesearch API supports augmented query parameter" {
-  run grep -c 'augmented' "$PROJECT_DIR/website/src/pages/api/codesearch.ts"
+  run grep -c 'augmented' "$PROJECT_DIR/website/src/pages/sdlc/api/codesearch.ts"
   [[ "$output" -ge 2 ]]
 }
 
-@test "SCS-2: website/src/lib/codesearch-db.ts exists" {
-  [[ -f "$PROJECT_DIR/website/src/lib/codesearch-db.ts" ]]
+@test "SCS-2: website/src/lib/sdlc/codesearch-db.ts exists" {
+  [[ -f "$PROJECT_DIR/website/src/lib/sdlc/codesearch-db.ts" ]]
 }
 
 @test "SCS-2: codesearch-db.ts has searchCode function" {
-  run grep -c 'export async function searchCode' "$PROJECT_DIR/website/src/lib/codesearch-db.ts"
+  run grep -c 'export async function searchCode' "$PROJECT_DIR/website/src/lib/sdlc/codesearch-db.ts"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-2: codesearch-db.ts uses pgvector cosine distance operator" {
-  run grep -c '<=>' "$PROJECT_DIR/website/src/lib/codesearch-db.ts"
+  run grep -c '<=>' "$PROJECT_DIR/website/src/lib/sdlc/codesearch-db.ts"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-3: codesearch-db.ts has searchCodeAugmented function" {
-  run grep -c 'export async function searchCodeAugmented' "$PROJECT_DIR/website/src/lib/codesearch-db.ts"
+  run grep -c 'export async function searchCodeAugmented' "$PROJECT_DIR/website/src/lib/sdlc/codesearch-db.ts"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-3: searchCodeAugmented queries file_dependencies for 1-hop neighbors" {
-  run grep -c 'file_dependencies' "$PROJECT_DIR/website/src/lib/codesearch-db.ts"
+  run grep -c 'file_dependencies' "$PROJECT_DIR/website/src/lib/sdlc/codesearch-db.ts"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-3: augmented neighbors get score=0.7" {
-  run grep 'score: 0.7' "$PROJECT_DIR/website/src/lib/codesearch-db.ts"
+  run grep 'score: 0.7' "$PROJECT_DIR/website/src/lib/sdlc/codesearch-db.ts"
   [[ "$status" -eq 0 ]]
 }
 
 @test "SCS-4: DetailPanel.svelte has suggested_files section" {
-  run grep -c 'suggested_files' "$PROJECT_DIR/website/src/components/factory/DetailPanelSidebar.svelte"
+  run grep -c 'suggested_files' "$PROJECT_DIR/website/src/components/sdlc/factory/DetailPanelSidebar.svelte"
   [[ "$output" -ge 2 ]]
 }
 
 @test "SCS-4: DetailPanel.svelte has scoreColor function" {
-  run grep -c 'scoreColor' "$PROJECT_DIR/website/src/components/factory/SuggestedFiles.svelte"
+  run grep -c 'scoreColor' "$PROJECT_DIR/website/src/components/sdlc/factory/SuggestedFiles.svelte"
   [[ "$output" -ge 1 ]]
 }
 
 @test "SCS-4: factory-floor.ts TicketDetail has suggested_files field" {
-  run grep -c 'suggested_files' "$PROJECT_DIR/website/src/lib/factory-floor.ts"
+  run grep -c 'suggested_files' "$PROJECT_DIR/website/src/lib/sdlc/factory-floor.ts"
   [[ "$output" -ge 2 ]]
 }
 

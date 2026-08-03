@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { addComment, createAdminTicket } from '../../../../lib/sdlc/tickets/admin';
+import { addComment, createAdminTicket } from '../../../../lib/tickets/admin.ts';
 import { checkRateLimit, getClientIp } from '../../../../lib/rate-limit';
 import { config } from '../../../../config/index.js';
 import { pool } from '../../../../lib/website-db';

@@ -1,6 +1,6 @@
 // website/src/lib/tickets/email-templates.ts
-import { sendEmail } from '../../email';
-import { logger } from '../../logger';
+import { sendEmail } from '../email.ts';
+import { logger } from '../logger.ts';
 
 const FROM_NAME = process.env.FROM_NAME || process.env.BRAND_NAME || 'Workspace';
 const PROD_DOMAIN = process.env.PROD_DOMAIN || '';

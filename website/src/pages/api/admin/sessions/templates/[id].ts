@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { deleteTemplate } from '../../../../../lib/sdlc/sessions/templates';
+import { deleteTemplate } from '../../../../../lib/sessions/templates.ts';
 
 export const prerender = false;
 

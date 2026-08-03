@@ -2,7 +2,7 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, isAdmin } from '../../lib/auth';
 import PipelinePanel from '../../components/cockpit/PipelinePanel.svelte';
-import { getFloor } from '../../lib/factory-floor';
+import { getFloor } from '../../lib/sdlc/factory-floor.ts';
 
 export const prerender = false;
 

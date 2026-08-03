@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { embedQuery, embedBatch, costCentsForTokens, ANTHROPIC_FALLBACK_MODEL_DIM } from './embeddings';
-import * as loggerModule from '../logger';
+import * as loggerModule from './logger.ts';
 
 const ORIGINAL_FETCH = global.fetch;
 

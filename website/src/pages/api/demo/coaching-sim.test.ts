@@ -18,7 +18,7 @@ vi.mock('../../../lib/provider-config', () => ({
     modelId: 'hermes-3',
   })),
 }));
-import { getActiveProvider } from '../../../lib/sdlc/coaching-ki-config-db';
+import { getActiveProvider } from '../../../lib/coaching-ki-config-db.ts';
 import { POST } from './coaching-sim';
 
 type RouteContext = Parameters<typeof POST>[0];

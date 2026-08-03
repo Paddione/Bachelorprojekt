@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../../../../lib/auth';
 import { getSession as getCoachingSession, upsertStep, appendAuditLog } from '../../../../../../../../lib/coaching-session-db';
-import { getActiveProvider, getKiProviderById } from '../../../../../../../../lib/sdlc/coaching-ki-config-db';
+import { getActiveProvider, getKiProviderById } from '../../../../../../../../lib/coaching-ki-config-db.ts';
 import { getStepTemplate, buildPromptFromTemplate } from '../../../../../../../../lib/coaching-templates-db';
 import { getStepDef, getBeat, isKiPromptBeat, buildUserPrompt } from '../../../../../../../../lib/coaching-session-prompts';
 import type { BeatState } from '../../../../../../../../lib/coaching-session-beats-db';

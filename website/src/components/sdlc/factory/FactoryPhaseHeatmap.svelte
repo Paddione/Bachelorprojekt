@@ -13,7 +13,7 @@
     shipped: { extId: string; title: string; doneAt: string | null }[];
   }
 
-  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store';
+  import { floorStore, acquireFloor } from '../../../lib/stores/factory-floor-store.ts';
 
   let window = $state('7d');
   let loading = $state(true);

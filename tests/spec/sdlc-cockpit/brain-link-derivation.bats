@@ -3,7 +3,7 @@
 #
 # Pruefmodus (Test-Resultats-Konvention T002448-M4): OUTPUT-VERIFIKATION.
 # Der Test ruft die Ableitung auf, statt sie zu greppen. Die Ableitung liegt in
-# TypeScript (website/src/lib/brain-links.ts) — dieser Test laesst die Bash-
+# TypeScript (website/src/lib/sdlc/brain-links.ts) — dieser Test laesst die Bash-
 # Quelle (scripts/brain-ingest-worklist.sh) laufen, zieht drei bekannte Zeilen
 # heraus und vergleicht deren Slug mit dem, was die TypeScript-Regel fuer
 # denselben Pfad liefert. Weicht eine der beiden Seiten ab, ist der Test rot —
@@ -14,9 +14,9 @@ setup() {
 }
 
 @test "T002465 Die drei belegten Slug-Paare stimmen zwischen Pipeline und TS-Kopie ueberein" {
-  local ts_rule="$REPO/website/src/lib/brain-links.ts"
+  local ts_rule="$REPO/website/src/lib/sdlc/brain-links.ts"
   [ -f "$ts_rule" ] || {
-    echo "fehlt: website/src/lib/brain-links.ts (Task 4 noch offen)" >&2
+    echo "fehlt: website/src/lib/sdlc/brain-links.ts (Task 4 noch offen)" >&2
     return 1
   }
 
@@ -54,9 +54,9 @@ setup() {
 }
 
 @test "T002465 Ein weggeprunter Pfad unter website/ ist nicht ingestiert (Grenze)" {
-  local ts_rule="$REPO/website/src/lib/brain-links.ts"
+  local ts_rule="$REPO/website/src/lib/sdlc/brain-links.ts"
   [ -f "$ts_rule" ] || {
-    echo "fehlt: website/src/lib/brain-links.ts (Task 4 noch offen)" >&2
+    echo "fehlt: website/src/lib/sdlc/brain-links.ts (Task 4 noch offen)" >&2
     return 1
   }
 

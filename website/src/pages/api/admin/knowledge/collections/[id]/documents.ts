@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { addDocument, getCollection, recountChunks, upsertChunks } from '../../../../../../lib/knowledge-db';
-import { embedBatch } from '../../../../../../lib/sdlc/embeddings';
-import { chunkText } from '../../../../../../lib/sdlc/chunking';
+import { embedBatch } from '../../../../../../lib/embeddings.ts';
+import { chunkText } from '../../../../../../lib/chunking.ts';
 import { createHash } from 'node:crypto';
 
 // Hard cap for synchronous web uploads. Larger inputs (typically multi-hundred-page

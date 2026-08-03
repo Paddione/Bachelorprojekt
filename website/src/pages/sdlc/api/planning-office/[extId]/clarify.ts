@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { clarifyItem, CLARIFY_EFFORTS, DOR_KEYS, type Readiness } from '../../../../../lib/sdlc/planning-office';
+import { clarifyItem, CLARIFY_EFFORTS, DOR_KEYS, type Readiness } from '../../../../../lib/planning-office.ts';
 
 export const prerender = false;
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o),

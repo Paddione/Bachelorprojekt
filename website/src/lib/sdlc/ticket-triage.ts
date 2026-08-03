@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getProviderConfig, setProviderCooldown } from '../provider-config';
 import { SOURCE } from '../ki-services';
-import { getTicketDetail, addComment } from './tickets/admin';
+import { getTicketDetail, addComment } from '../tickets/admin.ts';
 import { pool } from '../website-db';
 import { logger } from '../logger';
 

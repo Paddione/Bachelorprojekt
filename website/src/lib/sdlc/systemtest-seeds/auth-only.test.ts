@@ -10,7 +10,7 @@ vi.mock('../identity', () => ({
 import authOnly from './auth-only';
 import type { SeedContext } from '../systemtest/seed-context';
 import { pool } from '../../website-db';
-import { ensureSystemtestSchema } from '../systemtest/db';
+import { ensureSystemtestSchema } from '../../systemtest/db.ts';
 
 const dbAvailable = !!(
   process.env.DATABASE_URL ||

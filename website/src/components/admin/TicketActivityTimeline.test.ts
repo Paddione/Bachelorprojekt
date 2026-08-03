@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import TicketActivityTimeline from './TicketActivityTimeline.svelte';
-import type { TimelineEntry } from '../../lib/sdlc/tickets/admin';
+import type { TimelineEntry } from '../../lib/tickets/admin.ts';
 
 function makeEntries(n: number): TimelineEntry[] {
   return Array.from({ length: n }, (_, i) => ({

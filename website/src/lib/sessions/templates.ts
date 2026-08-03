@@ -1,8 +1,8 @@
 // website/src/lib/sessions/templates.ts
 // CRUD logic for brainstorm session templates with hardcoded fallback.
 
-import { pool } from '../../website-db';
-import { logger } from '../../logger';
+import { pool } from '../website-db.ts';
+import { logger } from '../logger.ts';
 
 export interface SessionTemplate {
   id: string;

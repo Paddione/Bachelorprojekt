@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import PilotLight from './PilotLight.svelte';
-  import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store';
+  import { floorStore, acquireFloor } from '../../../lib/stores/factory-floor-store.ts';
 
   interface ControlState {
     killSwitch: boolean;

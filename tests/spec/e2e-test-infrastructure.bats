@@ -217,7 +217,7 @@ project_block() {
 # ── R3: drifted runs cannot open tickets ──────────────────────────────
 
 @test "ingest endpoint gates ticket creation on deploy drift" {
-  local ingest="$REPO/website/src/pages/api/admin/tests/ingest-e2e.ts"
+  local ingest="$REPO/website/src/pages/sdlc/api/tests/ingest-e2e.ts"
   run grep -q 'testedSha' "$ingest"
   [ "$status" -eq 0 ]
   run grep -q 'deploy-drift' "$ingest"
@@ -228,7 +228,7 @@ project_block() {
   # Fail closed. A gate that waves through a missing value is exactly the
   # T002199 mistake in new clothes: build-website.yml documents that this
   # build-arg chain has already snapped once.
-  run grep -q "unknown" "$REPO/website/src/pages/api/admin/tests/ingest-e2e.ts"
+  run grep -q "unknown" "$REPO/website/src/pages/sdlc/api/tests/ingest-e2e.ts"
   [ "$status" -eq 0 ]
 }
 

@@ -1,5 +1,5 @@
 // website/src/lib/tickets/reporter-link.ts
-import { pool } from '../../db-pool';
+import { pool } from '../db-pool.ts';
 
 /**
  * If a customer with this email exists and has a keycloak_user_id,

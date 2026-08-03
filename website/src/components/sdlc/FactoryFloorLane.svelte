@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { HallItem, LoadingDockItem, ProviderConfigSummary } from '../lib/factory-floor-types';
-  import { PHASE_ORDER } from '../lib/factory-floor-types';
-  import type { Phase } from '../lib/factory-floor-types';
+  import type { HallItem, LoadingDockItem, ProviderConfigSummary } from '../../lib/factory-floor-types.ts';
+  import { PHASE_ORDER } from '../../lib/factory-floor-types.ts';
+  import type { Phase } from '../../lib/factory-floor-types.ts';
   import ConveyorBelt from './factory/ConveyorBelt.svelte';
-  import { prioDot, ticketUrl } from '../lib/factory-floor-client';
+  import { prioDot, ticketUrl } from '../../lib/sdlc/factory-floor-client.ts';
 
   const STATIONS: { key: Phase; label: string }[] =
     PHASE_ORDER.map((key) => ({ key, label: key.charAt(0).toUpperCase() + key.slice(1) }));

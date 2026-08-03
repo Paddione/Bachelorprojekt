@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { serviceSchema } from './service';
+import { serviceSchema } from '../../../admin/schemas/service.ts';
 
 // Fields the bespoke CoachingSection/FuehrungSection editors bind to on their data object.
 // Extracted from:

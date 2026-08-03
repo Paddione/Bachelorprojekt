@@ -1,0 +1,34 @@
+# environments/dev-cluster.yaml
+# Cluster-Dev-Stack (workspace-dev) auf dem fleet-Cluster. Getrennt von
+# environments/dev.yaml, die NUR die lokale k3d-Umgebung beschreibt (T002630):
+# eine lokale Umgebung ohne oeffentliche Domain durfte den Cluster-Dev-Stack
+# abschalten, weil scripts/flux-render-artifact.sh DEV_DOMAIN aus dev.yaml las
+# (schema.yaml-Kontrakt "Empty disables the dev stack").
+#
+# Diese Datei wird ausschliesslich vom Renderer (scripts/flux-render-artifact.sh,
+# Block 1b) gesourct — sie ist KEIN deploybares Environment (kein overlay, keine
+# SealedSecrets). Fuer ein deploybares Environment ist sie bewusst nicht gedacht.
+environment: dev
+context: fleet
+domain: dev.mentolder.de
+
+env_vars:
+  DEV_DOMAIN: dev.mentolder.de
+  # Auto-abgeleitete Hosts (schema.yaml-Doku) — hier explizit, weil diese Umgebung
+  # keine dev-Defaults zieht (environment != dev).
+  DEV_WEBSITE_HOST: web.dev.mentolder.de
+  DEV_BRETT_HOST: brett.dev.mentolder.de
+  # Die Dev-Workloads referenzieren den Prod-Auth (auth.${PROD_DOMAIN}) und
+  # brainstorm.${PROD_DOMAIN} — die Traefik-Routen fuer *.dev.${PROD_DOMAIN}.
+  PROD_DOMAIN: mentolder.de
+  CONTACT_EMAIL: info@mentolder.de
+
+# Ziel-Namespace des gerenderten Dev-Stacks (k3d/dev-stack + prod-fleet/dev).
+workspace_namespace: workspace-dev
+
+# schema.yaml verlangt diese als required; ein Dev-Environment kann sie nicht aus
+# default_dev ziehen (setup_vars haben keinen Dev-Fallback). Dummy-Werte wie in dev.yaml.
+setup_vars:
+  KC_USER1_USERNAME: admin
+  KC_USER1_EMAIL: admin@localhost
+  KC_USER1_PASSWORD: DevAdmin123!

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.246.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.245.1...website-v1.246.0) (2026-08-03)
+
+
+### Features
+
+* **infra:** Cluster-Dev-Node auf gekko-hetzner-2 — Env-Entflechtung, Dev-Node-Bindung, Drift-Gate [T002630] ([#3764](https://github.com/Paddione/Bachelorprojekt/issues/3764)) ([767da1f](https://github.com/Paddione/Bachelorprojekt/commit/767da1f5c1706e4ed8fb6420fac8926bf1f3d8ee))
+
 ## [1.245.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.245.0...website-v1.245.1) (2026-08-03)
 
 

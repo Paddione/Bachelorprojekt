@@ -39,6 +39,24 @@
         }
       }
     },
+    "llamacpp-gemma9": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama.cpp b10223 (Gemma2 9B, 2 Slots, unified KV)",
+      "options": {
+        "baseURL": "http://127.0.0.1:18235/v1",
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "models": {
+        "gemma9-factory": {
+          "name": "Gemma 2 9B (Q4_K_M, bartowski), 2 Slots unified KV (-kvu), q4_0 KV, -c 98304 (override-kv gemma2.context_length), --fit on",
+          "limit": {
+            "context": 98304,
+            "output": 4096
+          }
+        }
+      }
+    },
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama (local)",
@@ -137,9 +155,9 @@
     // "Parallelitaet": ein Slot ist ein Zustandshalter. Wer die drei Namen
     // wieder zusammenstreicht, nimmt jedem Agenten seinen Praefix-Cache.
     "gemma26-1": {
-      "description": "Write-capable Gemma subagent on gemma26-factory (Gemma4 26B A4B, llama.cpp :8091, slot 1 of 3, ~99840 ctx). Three such subagents exist so each keeps its own prefix cache; they still execute one at a time because the llm-proxy serializes (max_inflight=1). Preferred for write-capable delegation.",
+      "description": "Write-capable Gemma subagent on gemma9-factory (Gemma2 9B, llama.cpp :8092, ~98304 ctx — replaces gemma26-factory; config switched 2026-08-03). Two subagents keep distinct prefix caches; they still execute one at a time because the llm-proxy serializes (max_inflight=1). Preferred for write-capable delegation.",
       "mode": "subagent",
-      "model": "llamacpp-gemma26/gemma26-factory",
+      "model": "llamacpp-gemma9/gemma9-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -150,11 +168,31 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma26-2": {
-      "description": "Second write-capable Gemma subagent on gemma26-factory (slot 2 of 3, ~99840 ctx). Identical configuration to gemma26-1 — the separate name exists so the two keep distinct prefix caches instead of evicting each other.",
+      "description": "Second write-capable Gemma subagent on gemma9-factory (Gemma2 9B, ~98304 ctx — replaces gemma26-factory; config switched 2026-08-03). Identical configuration to gemma26-1 — the separate name exists so the two keep distinct prefix caches instead of evicting each other.",
       "mode": "subagent",
-      "model": "llamacpp-gemma26/gemma26-factory",
+      "model": "llamacpp-gemma9/gemma9-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
+      "temperature": 0.4,
+      "steps": 10,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
+    "gemma9-1": {
+      "description": "Write-capable Gemma 9B subagent on gemma9-factory (Gemma2 9B, llama.cpp :8092, slot 1 of 2, ~98304 ctx, q4_0 KV). Two subagents for prefix cache separation. Preferred for small, atomic partial-plan implementations.",
+      "mode": "subagent",
+      "model": "llamacpp-gemma9/gemma9-factory",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#F59E0B",
+      "temperature": 0.4,
+      "steps": 10,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
+    "gemma9-2": {
+      "description": "Second write-capable Gemma 9B subagent on gemma9-factory (slot 2 of 2, ~98304 ctx, q4_0 KV). Identical to gemma9-1 — separate name preserves prefix cache.",
+      "mode": "subagent",
+      "model": "llamacpp-gemma9/gemma9-factory",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#F59E0B",
       "temperature": 0.4,
       "steps": 10,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
@@ -263,6 +301,8 @@
         "task": {
           "gemma26-1": "allow",
           "gemma26-2": "allow",
+          "gemma9-1": "allow",
+          "gemma9-2": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
           "deepseek-flash": "allow"

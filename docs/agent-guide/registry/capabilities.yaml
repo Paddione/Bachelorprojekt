@@ -1,71 +1,658 @@
 # docs/agent-guide/registry/capabilities.yaml
 # SSOT Toolset Capability Registry
-# Führt Fähigkeiten auf und ordnet sie den Instanzen in verschiedenen Harnesses zu.
+#
+# Führt Fähigkeiten auf, ordnet ihnen die Instanzen zu, die sie liefern können, und hält fest,
+# WANN eine Instanz benutzt werden soll. Zwei Zuständigkeiten, bewusst in einer Datei:
+#   - Auswahl:  welche Instanz ein Harness benutzen darf   (state, reason)
+#   - Nutzung:  wann sie einzusetzen ist und wann nicht    (use_when, avoid_when, fallback, …)
+#
+# Abgrenzung: `mcp.yaml` bleibt SSOT für die *Erreichbarkeit* eines Servers (Transport,
+# Endpunkt, Credentials). Diese Datei ist SSOT für *Auswahl und Nutzung*.
+#
+# Schema je Instanz — vollständig in
+# openspec/changes/toolset-usage-injection/CONTRACT.md §1:
+#
+#   <kind>:<id>:            # kind ∈ mcp | plugin | skill | cli | agent
+#     state:      canonical | suppressed | unreviewed
+#     reason:     PFLICHT wenn state != canonical
+#     use_when:   PFLICHT wenn state == canonical. Eine Zeile, ≤ 120 Zeichen.
+#     avoid_when: optional. Eine Zeile.
+#     fallback:   optional. Konkreter Befehl/Pfad.
+#     roles:      PFLICHT wenn state == canonical. Volle Rollennamen oder `all`.
+#     tier:       optional. safe | caution | assisted | dangerous
+#     deep_ref:   optional. Repo-relativer Pfad auf die Tiefenreferenz.
+#
+# `node scripts/toolset/check.mjs` erzwingt das fail-closed. Unkuratierte Funde meldet es als
+# `unreviewed`, ohne CI rot zu machen — auflösen mit dem Skill `toolset-curate`.
+# Den rollengefilterten Prompt-Block rendert `bash scripts/toolset-context.sh <rolle>`.
+#
+# Gültige Rollen:
+#   bachelorprojekt-website | -ops | -infra | -test | -db | -security | orchestrator | all
 ---
 capabilities:
+
+  # ─── Versionsverwaltung & GitHub ────────────────────────────────────────────────────
   github:
     cli:gh-axi:
       state: canonical
+      use_when: "Alle GitHub-Operationen: PRs, Issues, Runs, Releases, Labels."
+      fallback: "gh (nur wenn gh-axi ein Kommando nicht abdeckt)"
+      roles: [all]
+      tier: caution
+      deep_ref: ".claude/skills/references/gh-axi.md"
     mcp:github-mcp:
       state: suppressed
       reason: "gh-axi ist der mandatierte GitHub-Pfad."
-
-  browser-automation:
-    mcp:playwright:
+    plugin:github@claude-plugins-official:
       state: suppressed
-      reason: "Nicht project-relevant."
+      reason: "Doppelt gh-axi und zieht rund 40 Tool-Schemata in den Kontext."
+
+  git-lebenszyklus:
+    skill:git-workflow:
+      state: canonical
+      use_when: "Commit, Push, PR, CI-Fix-Schleife, Auto-Merge, Worktree-Cleanup."
+      avoid_when: "Reine Leseoperationen auf der Historie."
+      roles: [all]
+      tier: caution
+      deep_ref: ".claude/skills/git-workflow/SKILL.md"
+    plugin:commit-commands@claude-plugins-official:
+      state: suppressed
+      reason: "git-workflow ist der repo-spezifische Pfad und kennt Scope-Allowlist und Guards."
+
+  # ─── Cluster & Datenbank ────────────────────────────────────────────────────────────
+  kubernetes-inspektion:
+    mcp:mcp-kubernetes:
+      state: canonical
+      use_when: "Pods, Logs, Events, Nodes und Ressourcen lesen — Status statt Mutation."
+      avoid_when: "Jede Mutation: apply, rollout restart, scale, delete."
+      fallback: "kubectl --context fleet get/logs (bei Portforward-Ausfall)"
+      roles: [bachelorprojekt-ops, bachelorprojekt-infra, orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+
+  kubernetes-mutation:
+    cli:kubectl:
+      state: canonical
+      use_when: "Cluster-Mutationen: apply, rollout restart, scale, delete, RBAC, Sealed Secrets."
+      avoid_when: "Reine Status-Abfragen — dafür mcp-kubernetes."
+      fallback: "task workspace:deploy ENV=<brand> (break-glass; primär ist Flux)"
+      roles: [bachelorprojekt-infra, bachelorprojekt-ops]
+      tier: dangerous
+      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+
+  postgres-lesen:
+    mcp:mcp-postgres:
+      state: canonical
+      use_when: "Read-only SQL gegen die mentolder-DB, Nicht-Ticket-Tabellen."
+      avoid_when: "INSERT/UPDATE/DELETE/DDL — jede Query läuft READ ONLY und scheitert."
+      fallback: "kubectl exec -i … psql (ohne -i läuft psql mit leerem stdin durch)"
+      roles: [bachelorprojekt-db, orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+
+  postgres-schreiben:
+    cli:psql-via-kubectl:
+      state: canonical
+      use_when: "Schreibende SQL, DDL und Superuser-Operationen als postgres."
+      avoid_when: "Prod-Namespaces ohne prod-write-guard.sh — für Subagenten verboten."
+      fallback: "scripts/prod-write-guard.sh check <namespace> <sql>"
+      roles: [bachelorprojekt-db]
+      tier: dangerous
+      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+
+  datenbank-betrieb:
+    skill:database-specialist:
+      state: canonical
+      use_when: "Migrationen, Index-Optimierung, EXPLAIN ANALYZE, Backup und Restore."
+      roles: [bachelorprojekt-db]
+      tier: assisted
+      deep_ref: ".claude/skills/database-specialist/SKILL.md"
+
+  # ─── Tickets, Factory, Pläne ────────────────────────────────────────────────────────
+  ticket-lebenszyklus:
+    mcp:ticket-mcp:
+      state: canonical
+      use_when: "Tickets lesen, anlegen, Status setzen, Plan stagen, Phasen-Events schreiben."
+      avoid_when: "stage_plan im Worktree — schlägt dort immer fehl."
+      fallback: "scripts/ticket.sh (sanktionierter Write-Pfad, worktree-tauglich)"
+      roles: [bachelorprojekt-test, bachelorprojekt-db, orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+
+  ticket-inhalt:
+    skill:ticket-ops:
+      state: canonical
+      use_when: "Triage, Definition of Readiness, fehlende Angaben, Parallelarbeit planen."
+      avoid_when: "Repo-Zustand — Branches, Worktrees und PRs gehören zu repo-hygiene."
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/ticket-ops/SKILL.md"
+
+  factory-steuerung:
+    mcp:factory-mcp:
+      state: canonical
+      use_when: "Factory-Queue, Status, Enqueue, Trigger, ähnliche OpenSpec-Changes finden."
+      avoid_when: "type=task-Tickets — der Dispatcher scheduled ausschliesslich type=feature."
+      roles: [bachelorprojekt-test, orchestrator]
+      tier: assisted
+      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+
+  repo-task-ausfuehrung:
+    mcp:mcp-task-runner:
+      state: canonical
+      use_when: "Taskfile-Ziele auflösen und ausführen, Task-Graph inspizieren."
+      fallback: "bash scripts/vda.sh oracle '<ziel in klarem Deutsch>'"
+      roles: [orchestrator]
+      tier: caution
+
+  externes-task-management:
+    mcp:task-master-ai:
+      state: canonical
+      use_when: "PRD-getriebene Task-Zerlegung und Autopilot ausserhalb des Ticket-Systems."
+      avoid_when: "Reguläre Repo-Tickets — dafür ticket-mcp und die dev-flow-Skills."
+      roles: [orchestrator]
+      tier: caution
+
+  mishap-erfassung:
+    skill:mishap-tracker:
+      state: canonical
+      use_when: "Am Ende jedes dev-flow-Skills die gesammelten Frictionen als ein Ticket melden."
+      fallback: "bash scripts/hooks/mishap-tracker.sh --friction '<text>'"
+      roles: [all]
+      tier: safe
+      deep_ref: ".claude/skills/mishap-tracker/SKILL.md"
+
+  # ─── Entwicklungs-Workflow ──────────────────────────────────────────────────────────
+  entwicklungs-planung:
+    skill:dev-flow-plan:
+      state: canonical
+      use_when: "Startpunkt jeder Änderung: Pfadwahl, Brainstorming, Spec und Plan."
+      avoid_when: "Wartung ohne Verhaltensänderung — das ist dev-flow-chore."
+      roles: [orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/dev-flow-plan/SKILL.md"
+    plugin:feature-dev@claude-plugins-official:
+      state: suppressed
+      reason: "dev-flow-plan ist der repo-eigene Pfad inklusive OpenSpec- und Ticket-Anbindung."
+
+  plan-umsetzung:
+    skill:dev-flow-execute:
+      state: canonical
+      use_when: "Einen gestageten Plan implementieren, verifizieren und den PR mergen."
+      avoid_when: "Ohne gestageten Plan — dann zuerst dev-flow-plan."
+      roles: [orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/dev-flow-execute/SKILL.md"
+
+  wartung:
+    skill:dev-flow-chore:
+      state: canonical
+      use_when: "Doku, Dependency-Bumps, Config, Umbenennungen, Cleanup — ohne Verhaltensänderung."
+      avoid_when: "Sobald sich das Verhalten der Software ändert — dann dev-flow-plan."
+      roles: [orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/dev-flow-chore/SKILL.md"
+
+  e2e-tests:
+    skill:dev-flow-e2e:
+      state: canonical
+      use_when: "Playwright-Tests gegen die Live-Marken NACH Merge und Deploy."
+      avoid_when: "Unit- und BATS-Tests während der Implementierung."
+      roles: [bachelorprojekt-test]
+      tier: caution
+      deep_ref: ".claude/skills/dev-flow-e2e/SKILL.md"
+
+  unit-tests:
+    skill:vitest:
+      state: canonical
+      use_when: "Vitest-Tests schreiben, Mocking, Coverage und Test-Filter im website-Paket."
+      roles: [bachelorprojekt-test, bachelorprojekt-website]
+      tier: safe
+      deep_ref: ".claude/skills/vitest/SKILL.md"
+
+  abhaengigkeits-pflege:
+    skill:update-dependencies:
+      state: canonical
+      use_when: "Dependency-Bumps im Repo koordinieren."
+      roles: [orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/update-dependencies/SKILL.md"
+
+  # ─── OpenSpec ───────────────────────────────────────────────────────────────────────
+  openspec-vorschlag:
+    skill:openspec-propose:
+      state: canonical
+      use_when: "Neues Change-Proposal mit Design, Delta-Spec und Tasks anlegen."
+      avoid_when: "Innerhalb von dev-flow-plan — dessen Phase A ruft es bereits auf."
+      fallback: "bash scripts/openspec.sh propose <slug> --ticket T… --target-spec <parent>"
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/openspec-propose/SKILL.md"
+
+  openspec-umsetzung:
+    skill:openspec-apply-change:
+      state: canonical
+      use_when: "Tasks eines bestehenden Change abarbeiten ausserhalb von dev-flow-execute."
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/openspec-apply-change/SKILL.md"
+
+  openspec-archivierung:
+    skill:openspec-archive-change:
+      state: canonical
+      use_when: "Fertigen Change archivieren und sein Delta in den SSOT-Spec mergen — NACH Merge."
+      avoid_when: "Delta-Spec neben dem SSOT-Spec editieren — dann scheitert archive."
+      fallback: "bash scripts/openspec.sh archive <slug> [--create-new]"
+      roles: [orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/openspec-archive-change/SKILL.md"
+
+  denk-partner:
+    skill:openspec-explore:
+      state: canonical
+      use_when: "Idee durchdenken, Optionen vergleichen, festgefahrene Stelle lösen — ohne Artefakt."
+      avoid_when: "Wenn eine Entscheidung festgehalten werden soll — dann dev-flow-plan."
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/openspec-explore/SKILL.md"
+
+  # ─── Betrieb & Infrastruktur ────────────────────────────────────────────────────────
+  vorfall-behandlung:
+    skill:incident-response:
+      state: canonical
+      use_when: "Ein Kerndienst ist ausgefallen oder degradiert — zeitkritische Triage."
+      avoid_when: "Nicht-dringende Repo-Pflege."
+      roles: [bachelorprojekt-ops]
+      tier: assisted
+      deep_ref: ".claude/skills/incident-response/SKILL.md"
+
+  infrastruktur-runbook:
+    skill:infra-ops:
+      state: canonical
+      use_when: "Nur auf ausdrückliche Anfrage: Cluster-Setup, Deploy, Netz, SSO, Secrets, Migration."
+      avoid_when: "Automatisch auslösen — der Skill ist ausdrücklich invoke-only."
+      roles: [bachelorprojekt-infra]
+      tier: dangerous
+      deep_ref: ".claude/skills/infra-ops/SKILL.md"
+
+  repo-hygiene:
+    skill:repo-hygiene:
+      state: canonical
+      use_when: "Stale Branches und Worktrees, offene PRs, Issue-Intake, Factory-Queue."
+      avoid_when: "Ticket-Inhalt — Triage und Vollständigkeit gehören zu ticket-ops."
+      roles: [orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/repo-hygiene/SKILL.md"
+
+  betriebs-routing:
+    skill:operations-management:
+      state: canonical
+      use_when: "Wenn unklar ist, ob incident-response, ticket-ops oder repo-hygiene zuständig ist."
+      avoid_when: "Wenn die Zuständigkeit feststeht — dann direkt den passenden Skill."
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/operations-management/SKILL.md"
+
+  gitops-wissen:
+    skill:gitops-knowledge:
+      state: canonical
+      use_when: "Flux-Konzepte erklären und schema-validiertes YAML für Flux-CRDs erzeugen."
+      roles: [bachelorprojekt-infra]
+      tier: safe
+      deep_ref: ".claude/skills/gitops-knowledge/SKILL.md"
+
+  gitops-cluster-debug:
+    skill:gitops-cluster-debug:
+      state: canonical
+      use_when: "Flux auf dem Live-Cluster diagnostizieren: stuck, not-ready, Artefakt-Pull."
+      avoid_when: "Repo-Dateien prüfen — dafür gitops-repo-audit."
+      roles: [bachelorprojekt-infra, bachelorprojekt-ops]
+      tier: caution
+      deep_ref: ".claude/skills/gitops-cluster-debug/SKILL.md"
+
+  gitops-repo-audit:
+    skill:gitops-repo-audit:
+      state: canonical
+      use_when: "GitOps-Repo-Dateien prüfen: Schema, veraltete APIs, RBAC, Secrets."
+      avoid_when: "Live-Cluster-Zustand — dafür gitops-cluster-debug."
+      roles: [bachelorprojekt-infra]
+      tier: safe
+      deep_ref: ".claude/skills/gitops-repo-audit/SKILL.md"
+
+  # ─── Sicherheit ─────────────────────────────────────────────────────────────────────
+  security-analyse:
+    skill:security-specialist:
+      state: canonical
+      use_when: "SealedSecrets, Pocket-ID-OIDC-Clients, DSGVO-Prüfung, Secret-Rotation."
+      avoid_when: "Allgemeine Code-Sicherheit — dafür secure-coding-guidance."
+      roles: [bachelorprojekt-security]
+      tier: dangerous
+      deep_ref: ".claude/skills/security-specialist/SKILL.md"
+
+  secure-coding-guidance:
+    plugin:security-guidance@claude-plugins-official:
+      state: canonical
+      use_when: "Warnt beim Schreiben von Code vor unsicheren Mustern (Injection, unsicheres Parsen)."
+      avoid_when: "Repo-Secrets und OIDC — dafür security-specialist."
+      roles: [all]
+      tier: safe
+    plugin:semgrep@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; CI deckt den Secret-Scan über gitleaks 8.18.2 ab."
+
+  # ─── Wissen & Recherche ─────────────────────────────────────────────────────────────
+  code-graph:
+    mcp:codebase-memory-mcp:
+      state: canonical
+      use_when: "Erste Anlaufstelle für Code-Struktur: Symbole, Aufrufketten, Architektur, Impact."
+      avoid_when: "Nicht-Code-Dateien und freier Text — dafür Grep und Glob."
+      fallback: "Grep/Glob; bei nicht indiziertem Projekt zuerst index_repository"
+      roles: [all]
+      tier: safe
+
+  embedding-rerank:
+    mcp:bge-mcp:
+      state: canonical
+      use_when: "Embeddings und Reranking über den bge-Stack (semantische Plan- und Wiki-Suche)."
+      avoid_when: "Wenn bge-embed im Cluster nicht Ready ist — dann schlägt der Aufruf fehl."
+      roles: [orchestrator]
+      tier: safe
+
+  wissens-wiki:
+    skill:brain-ingest:
+      state: canonical
+      use_when: "Brain-Wiki kompilieren und ins externe Paddione/brain-Repo veröffentlichen."
+      avoid_when: "Zum Lesen des Wikis — dieser Skill schreibt es."
+      roles: [orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/brain-ingest/SKILL.md"
 
   dokumentations-lookup:
+    plugin:context7@claude-plugins-official:
+      state: canonical
+      use_when: "Aktuelle Doku zu Bibliotheken, Frameworks, SDKs und CLIs statt aus dem Gedächtnis."
+      avoid_when: "Refactoring, Business-Logik, allgemeine Programmierkonzepte."
+      roles: [all]
+      tier: safe
     mcp:docfork:
       state: suppressed
-      reason: "Vermeidet Kontext-Bloat."
+      reason: "Vermeidet Kontext-Bloat; context7 deckt den Doku-Lookup ab."
 
   websuche:
+    plugin:brightdata-plugin@claude-plugins-official:
+      state: canonical
+      use_when: "SERP-Suche und Scraping, wenn eine Antwort ausserhalb des Repos liegt."
+      avoid_when: "Repo-interne Fragen — dafür codebase-memory und Grep."
+      roles: [orchestrator]
+      tier: caution
     mcp:webresearch:
       state: suppressed
       reason: "Vermeidet Kontext-Bloat."
 
-  security-analyse:
-    skill:security-specialist:
+  # ─── Frontend ───────────────────────────────────────────────────────────────────────
+  website-entwicklung:
+    skill:website-specialist:
       state: canonical
+      use_when: "Astro- und Svelte-Komponenten, Seiten-Routing, Content und UI im website-Paket."
+      roles: [bachelorprojekt-website]
+      tier: caution
+      deep_ref: ".claude/skills/website-specialist/SKILL.md"
 
+  ui-design:
+    skill:ui-ux-pro-max:
+      state: canonical
+      use_when: "UI- und UX-Entwurf im Kore-Designsystem der Marken."
+      roles: [bachelorprojekt-website]
+      tier: safe
+      deep_ref: ".claude/skills/ui-ux-pro-max/SKILL.md"
+    plugin:frontend-design@claude-plugins-official:
+      state: suppressed
+      reason: "Generisch; das Kore-Designsystem ist in ui-ux-pro-max und WEBSITE-STANDARDS.md verbindlich."
+
+  interaktives-artefakt:
+    skill:lavish:
+      state: canonical
+      use_when: "Plan, Vergleich, Diagramm oder Report als annotierbares HTML zum Review geben."
+      avoid_when: "Ohne vorherige Zustimmung — der Skill hat ein Consent-Gate."
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/lavish/SKILL.md"
+
+  # ─── Browser & Debugging ────────────────────────────────────────────────────────────
+  browser-automation:
+    plugin:chrome-devtools-mcp@claude-plugins-official:
+      state: canonical
+      use_when: "Seiten debuggen: DOM, Konsole, Netzwerk, Performance, Screenshots."
+      avoid_when: "E2E-Testsuiten — die laufen über die Playwright-CLI in dev-flow-e2e."
+      roles: [bachelorprojekt-website, bachelorprojekt-test]
+      tier: caution
+    mcp:playwright:
+      state: suppressed
+      reason: "Nicht project-relevant; E2E läuft über die Playwright-CLI in dev-flow-e2e."
+    plugin:playwright@claude-plugins-official:
+      state: suppressed
+      reason: "Doppelt den chrome-devtools-Pfad und die Playwright-CLI."
+    plugin:superpowers-chrome@superpowers-marketplace:
+      state: suppressed
+      reason: "Read-only-Browser-Agent; chrome-devtools-mcp deckt den Bedarf vollständig ab."
+
+  # ─── Sprachwerkzeuge ────────────────────────────────────────────────────────────────
+  lsp-symbol-lookup:
+    plugin:typescript-lsp@claude-plugins-official:
+      state: canonical
+      use_when: "Typen, Signaturen und Referenzen in TypeScript und Svelte präzise auflösen."
+      avoid_when: "Python — dafür wäre pyright-lsp nötig, das hier nicht aktiviert ist."
+      roles: [bachelorprojekt-website, bachelorprojekt-test]
+      tier: safe
+    plugin:pyright-lsp@claude-plugins-official:
+      state: suppressed
+      reason: "Kein nennenswerter Python-Anteil im Repo."
+
+  # ─── Review & Codequalität ──────────────────────────────────────────────────────────
   code-review:
-    skill:dev-flow-plan:
+    plugin:pr-review-toolkit@claude-plugins-official:
       state: canonical
+      use_when: "PR-Review vor dem Merge: Bugs, stille Fehler, Testabdeckung, Typdesign."
+      avoid_when: "Reine Vereinfachung ohne Fehlersuche — dafür der /simplify-Pfad."
+      roles: [orchestrator, bachelorprojekt-test]
+      tier: safe
+    plugin:code-review@claude-plugins-official:
+      state: suppressed
+      reason: "pr-review-toolkit deckt dieselbe Fähigkeit mit spezialisierten Agenten ab."
+    plugin:code-simplifier@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; Vereinfachung läuft über den /simplify-Befehl."
 
-  mcp-kubernetes:
-    mcp:mcp-kubernetes:
+  # ─── Meta: Skills, Plugins, MCP bauen ───────────────────────────────────────────────
+  skill-erstellung:
+    plugin:skill-creator@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; superpowers:writing-skills ist der genutzte Pfad."
+
+  plugin-entwicklung:
+    plugin:plugin-dev@claude-plugins-official:
+      state: suppressed
+      reason: "Kein Plugin-Development in diesem Repo."
+
+  mcp-server-entwicklung:
+    plugin:mcp-server-dev@claude-plugins-official:
       state: canonical
+      use_when: "Einen MCP-Server oder ein MCPB-Bundle bauen und verpacken."
+      roles: [orchestrator]
+      tier: safe
+    plugin:agent-sdk-dev@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; keine Agent-SDK-Arbeit in diesem Repo."
 
-  mcp-postgres:
-    mcp:mcp-postgres:
+  harness-konfiguration:
+    plugin:hookify@claude-plugins-official:
       state: canonical
+      use_when: "Wiederkehrende Fehlgriffe als Hook-Regel festhalten statt sie zu wiederholen."
+      roles: [orchestrator]
+      tier: caution
+    plugin:claude-code-setup@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; settings.json wird über update-config und diese Registry gepflegt."
+    plugin:claude-md-management@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; CLAUDE.md wird bewusst von Hand gepflegt."
 
-  factory-mcp:
-    mcp:factory-mcp:
+  # ─── Ausgabestil ────────────────────────────────────────────────────────────────────
+  ausgabestil:
+    plugin:learning-output-style@claude-plugins-official:
       state: canonical
+      use_when: "Aktiver Ausgabestil dieser Sitzung: erklärend mit Lern-Einschüben."
+      roles: [orchestrator]
+      tier: safe
+    plugin:explanatory-output-style@claude-plugins-official:
+      state: suppressed
+      reason: "learning-output-style ist aktiv und enthält den erklärenden Teil bereits."
 
-  bge-mcp:
-    mcp:bge-mcp:
+  # ─── ML & Training ──────────────────────────────────────────────────────────────────
+  modell-finetuning:
+    skill:unsloth-buddy:
       state: canonical
+      use_when: "LLM-Finetuning mit Unsloth: SFT, DPO, GRPO, LoRA, GGUF-Export."
+      avoid_when: "Ohne lokale GPU oder ohne ausdrücklichen Trainingsauftrag."
+      roles: [orchestrator]
+      tier: assisted
+      deep_ref: ".claude/skills/unsloth-buddy/SKILL.md"
 
-  task-master-ai:
-    mcp:task-master-ai:
+  # huggingface-skills lag bis T002596 unter `modell-finetuning` und war dort suppressed,
+  # weil unsloth-buddy die kanonische Trainings-Instanz ist. Der Schnitt war falsch: das
+  # Paket liefert Hub-Operationen (hf-cli, Spaces, Datasets, Papers, SageMaker-Deployment),
+  # von denen Finetuning nur ein Teil ist. Als eigene Fähigkeit konkurriert es nicht mehr
+  # mit unsloth-buddy — beide dürfen nebeneinander kanonisch sein.
+  huggingface-hub-operationen:
+    plugin:huggingface-skills@claude-plugins-official:
       state: canonical
+      use_when: "Hugging-Face-Hub bedienen: hf-CLI, Modelle/Datasets suchen, Spaces, GGUF-Auswahl."
+      avoid_when: "Reines lokales Finetuning — dafür unsloth-buddy."
+      fallback: "hf CLI direkt (huggingface_hub), sofern installiert."
+      roles: [orchestrator]
+      tier: safe
 
-  mcp-task-runner:
-    mcp:mcp-task-runner:
+  # ─── Querschnitt ────────────────────────────────────────────────────────────────────
+  skill-bibliothek:
+    plugin:superpowers@claude-plugins-official:
       state: canonical
+      use_when: "Basis-Disziplin: Brainstorming, TDD, systematisches Debugging, Pläne schreiben."
+      roles: [all]
+      tier: safe
+    plugin:superpowers-lab@superpowers-marketplace:
+      state: suppressed
+      reason: "Experimentell, nicht aktiviert."
+    plugin:superpowers-developing-for-claude-code@superpowers-marketplace:
+      state: suppressed
+      reason: "Nicht aktiviert; kein Claude-Code-Plugin-Development in diesem Repo."
 
-  ticket-mcp:
-    mcp:ticket-mcp:
+  geteilte-referenzen:
+    skill:references:
       state: canonical
+      use_when: "Querschnitts-Referenz nachschlagen: MCP-Guide, Plan-Gates, Deploy-Routing, Locks."
+      roles: [all]
+      tier: safe
+      deep_ref: ".claude/skills/references/"
 
-  codebase-memory-mcp:
-    mcp:codebase-memory-mcp:
+  werkzeug-kuration:
+    skill:toolset-curate:
       state: canonical
+      use_when: "Unkuratierte Werkzeug-Instanzen entscheiden und ihre Nutzungssemantik erfassen."
+      fallback: "node scripts/toolset/collect.mjs --unreviewed"
+      roles: [orchestrator]
+      tier: caution
+      deep_ref: ".claude/skills/toolset-curate/SKILL.md"
 
-  sequential-thinking:
+  gedaechtnis:
+    plugin:remember@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; das dateibasierte Auto-Memory unter ~/.claude/projects/ ist der Pfad."
+
+  wiederholte-ausfuehrung:
+    plugin:ralph-loop@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; /loop deckt wiederkehrende Läufe ab."
+
+  desktop-steuerung:
+    plugin:desktop-commander@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; der Windows-Host wird über powershell.exe aus WSL bedient."
+
+  api-client:
+    plugin:postman@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert; HTTP-Prüfungen laufen über curl."
+
+  experimentierfeld:
+    plugin:playground@claude-plugins-official:
+      state: suppressed
+      reason: "Nicht aktiviert."
+
+  llm-evaluation:
+    plugin:braintrust@braintrust-claude-plugin:
+      state: suppressed
+      reason: "Nicht aktiviert; keine externe LLM-Evaluation im Einsatz."
+
+  session-tracing:
+    plugin:trace-claude-code@braintrust-claude-plugin:
+      state: suppressed
+      reason: "Nicht aktiviert; Telemetrie läuft über tickets.factory_phase_events."
+
+  sequentielles-denken:
     mcp:sequential-thinking:
       state: suppressed
       reason: "Nur in opencode (disabled)."
+
+  # ─── Lokal installierte, nicht versionierte Skills ──────────────────────────────────
+  # Beide liegen nur im Arbeitsplatz-Checkout unter .claude/skills/ und sind NICHT im Repo
+  # versioniert (`whisper` fängt zusätzlich das .gitignore-Muster in Zeile 125 ein). Ein
+  # `canonical` behauptete eine Verfügbarkeit, die in CI und in jedem frischen Klon nicht
+  # besteht — ein Subagent bekäme das Werkzeug injiziert und fände es nicht vor. Sie bleiben
+  # deshalb unterdrückt, bis sie versioniert werden; danach ist die Kuration neu zu führen.
+  ui-komponenten-katalog:
+    skill:react-bits:
+      state: suppressed
+      reason: "Nur lokal vorhanden, nicht im Repo versioniert; zudem React — das Frontend ist Astro/Svelte."
+
+  audio-transkription:
+    skill:whisper:
+      state: suppressed
+      reason: "Nur lokal vorhanden und von .gitignore erfasst; Talk-Transkription läuft über den talk-transcriber-Dienst."
+
+  # ─── Domänen-Agenten ────────────────────────────────────────────────────────────────
+  agent-website:
+    agent:agent-website:
+      state: canonical
+      use_when: "Website-Arbeit delegieren: Texte, Design, Komponenten, Svelte-Code."
+      roles: [orchestrator]
+      tier: caution
+  agent-ops:
+    agent:agent-ops:
+      state: canonical
+      use_when: "Nachsehen, warum etwas nicht läuft — Logs und Status, ohne zu verändern."
+      roles: [orchestrator]
+      tier: safe
+  agent-infra:
+    agent:agent-infra:
+      state: canonical
+      use_when: "Kubernetes-Manifeste, Overlays, Taskfile, Environments und Deploy delegieren."
+      roles: [orchestrator]
+      tier: assisted
+  agent-test:
+    agent:agent-test:
+      state: canonical
+      use_when: "Tests schreiben, reparieren oder ausführen (BATS, Playwright, vitest)."
+      roles: [orchestrator]
+      tier: caution
+  agent-db:
+    agent:agent-db:
+      state: canonical
+      use_when: "PostgreSQL-Schema, Migrationen, Queries und Backups delegieren."
+      roles: [orchestrator]
+      tier: assisted
+  agent-security:
+    agent:agent-security:
+      state: canonical
+      use_when: "Secrets rotieren, OIDC-Clients, SealedSecrets und DSGVO-Prüfungen delegieren."
+      roles: [orchestrator]
+      tier: assisted

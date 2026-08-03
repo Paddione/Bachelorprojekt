@@ -10,9 +10,11 @@ opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents b
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | DeepSeek V4 Flash (OpenCode Go), `mode: primary`, `write_capable: true` | Primary orchestrator — dispatches `gemma26-1`/`gemma26-2` sequentially |
+| `orchestrator` | DeepSeek V4 Flash (OpenCode Go), `mode: primary`, `write_capable: true` | Primary orchestrator — dispatches `gemma26-1`/`gemma26-2`/`gemma9-1`/`gemma9-2` sequentially |
 | `gemma26-1` | Gemma4 26B A4B QAT (UD-Q4_K_XL, ~99840 ctx, port 8091, 3 Slots via -kvu) | Local bulk work (slot 1 of 3). `write_capable: false` |
 | `gemma26-2` | same model, same server, slot 2 of 3 | Same as gemma26-1 — dispatch sequentially |
+| `gemma9-1` | Gemma2 9B (Q4_K_M, ~8192 ctx, port 8092, 2 Slots via -kvu) | Small atomic partials (slot 1 of 2). `write_capable: false` |
+| `gemma9-2` | same model, same server, slot 2 of 2 | Same as gemma9-1 — dispatch sequentially. Small partials only |
 | `gemma26-primary` | same model, `mode: primary` (Tab-selectable, not summonable via `task`) | Slot 3 of 3, ~99840 ctx shared pool via -kvu. `write_capable: false` |
 | `deepseek-helper` | DeepSeek-V3 (direct API, 128K ctx), `write_capable: true` | Escalation: local agent stuck or context exhausted |
 | `deepseek-pro` | DeepSeek-R1 (direct API, 128K ctx, max reasoning), `write_capable: true` | Deep analysis, complex debugging, hard refactors |
@@ -107,6 +109,20 @@ The following sections contain detailed reference material. **Do not load them i
 | SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` |
 
 Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → prepend as `<active-plans>`.
+
+Also prepend the curated toolset: `bash scripts/toolset-context.sh <role>` → wrap as `<toolset>`.
+It renders every tool the role may use from `docs/agent-guide/registry/capabilities.yaml`, with
+`use_when` / `avoid_when` / `fallback` / deep reference, so a subagent reaches for the canonical
+path (`gh-axi`, not `gh`) instead of guessing. Harness-neutral — plain bash plus `node -e`.
+
+> ⚠ `toolset-context.sh` is **fail-closed** on an unknown role: non-zero exit, no output. It
+> deliberately differs from `plan-context.sh`, whose silent `__ALL__` fallback disables the role
+> filter without failing (T002322) — for a toolset block that would inject the whole arsenal into
+> every prompt. Same role names, plus the wildcard `all`. Curation: skill `toolset-curate`; gate:
+> `task agents:toolset:check`.
+
+Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials);
+`capabilities.yaml` owns *selection and usage*.
 </details>
 
 <details>

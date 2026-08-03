@@ -143,6 +143,7 @@ export default defineConfig({
                                           // needs the admin session; in the unauthenticated
                                           // `website` project the FAB never renders (T002199)
         '**/factory-qs-abnahme.spec.ts',  // QS-Abnahme-Flow /dev-status (T000730)
+        '**/fa-58-admin-cockpit.spec.ts', // FA-58: Admin-Menü, SDLC Cockpit & Git-Flows (admin-gated)
       ],
       use: {
         ...devices['Desktop Chrome'],

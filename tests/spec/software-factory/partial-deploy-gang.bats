@@ -223,13 +223,24 @@ REG="scripts/factory/service-registry.sh"
   [ "$status" -eq 0 ]
 }
 
-@test "FA-SF-GANG: provider-register-bonsai.sh idempotent (ON CONFLICT) auf :8093" {
-  run bash -n scripts/factory/provider-register-bonsai.sh
+# [T002582] Hiess "…-bonsai.sh idempotent (ON CONFLICT) auf :8093" und verlangte
+# ausdruecklich 'http://127.0.0.1:8093/v1' im Skript. Damit schrieb der Test die
+# Verletzung der eigenen SSOT als Sollzustand fest: openspec/specs/software-factory.md
+# fordert das Gateway und "never a backend port directly", und :8093 serviert seit
+# T002551 den bge-Reranker. Der Test war der Grund, warum die Fehlkonfiguration
+# jeden CI-Lauf ueberlebte — er haette sie gemeldet, wenn jemand sie korrigiert haette.
+@test "FA-SF-GANG: provider-register-local.sh idempotent (ON CONFLICT) ueber das Gateway" {
+  run bash -n scripts/factory/provider-register-local.sh
   [ "$status" -eq 0 ]
-  run grep -Fq 'ON CONFLICT' scripts/factory/provider-register-bonsai.sh
+  run grep -Fq 'ON CONFLICT' scripts/factory/provider-register-local.sh
   [ "$status" -eq 0 ]
-  run grep -Fq 'http://127.0.0.1:8093/v1' scripts/factory/provider-register-bonsai.sh
+  run grep -Fq 'http://127.0.0.1:18235/v1' scripts/factory/provider-register-local.sh
   [ "$status" -eq 0 ]
+  # Negativ-Aussage mit dem Positiv-Anker oben: der alte Backend-Port darf als
+  # aktiver Wert nicht zurueck. Kommentarzeilen sind ausgenommen — der Header des
+  # Skripts nennt :8093 bewusst, um die Fehlkonfiguration nachvollziehbar zu halten.
+  run bash -c "grep -v '^[[:space:]]*#' scripts/factory/provider-register-local.sh | grep -Fq 'http://127.0.0.1:8093/v1'"
+  [ "$status" -ne 0 ]
 }
 
 @test "FA-SF-GANG: plan-intel-filter.sh filtert impact_files nach target_files" {

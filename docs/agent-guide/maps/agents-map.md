@@ -27,4 +27,6 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | gemma26-2 | subagent | llamacpp-gemma26/gemma26-factory | nein | Slot 2 of 3 — separate name so the two subagents keep distinct prefix caches [T002545] |
 | gemma26-primary | primary | llamacpp-gemma26/gemma26-factory | nein | Tab-selectable primary agent, slot 3 of 3, ~97840 ctx (measured, not n_ctx_train) [T002545] |
 | gemma26-vision | primary | llamacpp-gemma26/gemma26-factory | nein | Max context (97840 ctx), no subagent dispatch. Vision-ready (needs mmproj in loadout). |
+| gemma9-1 | subagent | llamacpp-gemma9/gemma9-factory | nein | Slot 1 of 2 (llama.cpp :8092). Own prefix cache; preferred for small, atomic partial-plan implementations [T002591] |
+| gemma9-2 | subagent | llamacpp-gemma9/gemma9-factory | nein | Slot 2 of 2 — separate name so the two subagents keep distinct prefix caches [T002591] |
 | orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the gemma26 subagents sequentially |

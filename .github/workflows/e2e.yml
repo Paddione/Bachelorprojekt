@@ -23,7 +23,11 @@ on:
         required: false
         default: both
         type: choice
-        options: [both, mentolder, korczewski]
+        # korczewski ist entfernt, weil der Brand eingefroren ist und in der
+        # Job-Matrix unten nicht mehr vorkommt [T002602]. Bliebe die Option
+        # stehen, startete eine Auswahl einen Lauf ohne einen einzigen Job —
+        # ein stiller Erfolg, der wie ein bestandener Test aussieht.
+        options: [both, mentolder]
   schedule:
     - cron: "0 3 * * *"  # 03:00 UTC nightly
 
@@ -50,12 +54,26 @@ jobs:
             contact_email: info@mentolder.de
             contact_phone: "+49 151 508 32 601"
             service_pages: /coaching,/beratung
-          - cluster: korczewski
-            website_url: https://web.korczewski.de
-            prod_domain: korczewski.de
-            contact_email: info@korczewski.de
-            contact_phone: ""
-            service_pages: /ki-beratung,/software-dev,/deployment
+          # [T002602] korczewski deaktiviert, solange der Brand eingefroren ist.
+          # Seit 2026-07-23 sind die Flux-Kustomizations ks-korczewski /
+          # ks-website-korczewski / ks-jobs-korczewski auf suspend: true (T002479,
+          # Commit 9667b24ef, Grund: Kosten/Wartung) und saemtliche Deployments in
+          # workspace-korczewski und website-korczewski stehen live auf 0/0.
+          # web.korczewski.de hat damit keinen Backend-Pod; Traefik antwortet mit
+          # 503 "no available server", woran schon der global-db-cleanup-Setup
+          # scheitert. Folge war ein dauerhaft roter nightly-Lauf (0 von 8
+          # abgeschlossenen Laeufen gruen) — ein Rot, das nichts ueber die
+          # Testsuite aussagt und echte Regressionen bei mentolder ueberdeckt.
+          #
+          # Beim Aufheben der Suspension in flux/clusters/fleet/ks-korczewski.yaml
+          # diesen Block UND die korczewski-Option unter workflow_dispatch.inputs
+          # wieder aktivieren.
+          # - cluster: korczewski
+          #   website_url: https://web.korczewski.de
+          #   prod_domain: korczewski.de
+          #   contact_email: info@korczewski.de
+          #   contact_phone: ""
+          #   service_pages: /ki-beratung,/software-dev,/deployment
     env:
       SELECTED_CLUSTER: ${{ inputs.cluster }}
       EVENT_NAME: ${{ github.event_name }}

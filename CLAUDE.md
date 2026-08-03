@@ -18,6 +18,8 @@ Before responding to any request, check these signals and delegate to the named 
 | SealedSecret, Pocket ID, OIDC client, DSGVO, credentials, rotate, certificate, secret | `bachelorprojekt-security` | — |
 
 > **MCP-Registry ist SSOT (T002300):** `docs/agent-guide/registry/mcp.yaml` ist die einzige Quelle für alle drei Harness-Configs. `task mcp:sync` regeneriert daraus `.mcp.json` (Claude Code), `.opencode/opencode.jsonc` (opencode) und `~/.gemini/config/mcp_config.json` (agy); `task mcp:check` prüft auf Drift. Configs nicht von Hand editieren — die Änderung geht in die Registry.
+>
+> **Zwei Registries, zwei Zuständigkeiten (T002592):** `mcp.yaml` ist SSOT für die *Erreichbarkeit* eines Servers (Transport, Endpunkt, Credentials). `docs/agent-guide/registry/capabilities.yaml` ist SSOT für *Auswahl und Nutzung* — welche Instanz eine Fähigkeit liefert, wann sie einzusetzen ist und welche Rollen sie führen. Das ist die häufigste Verwechslungsquelle zwischen beiden.
 
 > **MCP-Server names in this table refer to Claude-Code-only SSE servers** configured in `.claude/skills/references/mcp-tool-guide.md`. The opencode runtime registers its MCP servers in `.opencode/opencode.jsonc`: `bge-mcp`, `codebase-memory-mcp`, `docfork`, `factory-mcp`, `github-mcp`, `mcp-kubernetes`, `mcp-postgres`, `mcp-task-runner`, `playwright`, `sequential-thinking`, `task-master-ai`, `ticket-mcp`, `webresearch` (same `mcp-kubernetes` name as the table; `factory-mcp` is the HTTP factory server on `:13003`). If you are running in opencode, see the `MCP-Schnellweg` block below and the opencode config, not the table above.
 
@@ -42,6 +44,28 @@ context=$(bash scripts/plan-context.sh bachelorprojekt-infra --with-openspec)
 > unknown role` auf stderr aus und liefert **alle** Proposals ungefiltert — der Rollenfilter wirkt
 > dann gar nicht (T002322). Die Allowlist wird hier bewusst nicht dupliziert; maßgeblich ist die
 > Funktion im Skript.
+
+**Zusätzlich den kuratierten Werkzeug-Satz injizieren:**
+`bash scripts/toolset-context.sh <role>` rendert aus `docs/agent-guide/registry/capabilities.yaml`
+alle Werkzeuge, die diese Rolle führen darf — samt `use_when`, `avoid_when`, `fallback` und
+Verweis auf die Tiefenreferenz. Damit greift ein Subagent zum kanonischen Pfad (`gh-axi` statt
+`gh`, `ticket-mcp` statt `kubectl exec … psql`), statt zu raten.
+
+```bash
+context=$(bash scripts/plan-context.sh bachelorprojekt-infra --with-openspec)
+[ -n "$context" ] && prompt="<active-plans>\n${context}\n</active-plans>\n\n${task_prompt}"
+
+tools=$(bash scripts/toolset-context.sh bachelorprojekt-infra)
+[ -n "$tools" ] && prompt="<toolset>\n${tools}\n</toolset>\n\n${prompt}"
+```
+
+> **`toolset-context.sh` ist fail-closed — anders als `plan-context.sh`.** Eine unbekannte Rolle
+> beendet es mit Exit ≠ 0 und gibt **keine** Instanz aus, statt auf „alle" zurückzufallen. Für
+> einen Werkzeug-Block wäre der stille Fallback schädlich: eine vertippte Rolle injizierte das
+> vollständige Arsenal in jeden Prompt und erzeugte genau den Kontext-Bloat, gegen den kuriert
+> wird. Die Rollenliste ist dieselbe, erweitert um die Wildcard `all`. Kuration und
+> Registry-Schema: Skill [`toolset-curate`](.claude/skills/toolset-curate/SKILL.md), Gate
+> `task agents:toolset:check` (fail-closed), Karte `docs/agent-guide/maps/toolset-map.md`.
 
 Also: after `superpowers:writing-plans` skill creates a new plan file, run `bash scripts/vda.sh frontmatter <plan-file>` on it before committing. (`scripts/plan-frontmatter-hook.sh` ist deprecated und gibt bei jedem Aufruf eine Deprecation-Warnung aus — sie erschien bisher bei **jedem** Planlauf, weil diese Zeile genau das Skript verlangte [T002342-M2]. Das Skript selbst bleibt bestehen: es kann externe Aufrufer haben, und Löschen wäre ein eigener Vorgang mit eigener Prüfung.) This adds the required frontmatter (domains, status) that `plan-context.sh` and the GH Action depend on.
 

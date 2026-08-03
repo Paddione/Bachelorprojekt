@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.242.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.242.0...website-v1.242.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **infra:** bge-embed OOMKilled — limits.memory 2Gi -&gt; 3Gi [T002580] ([#3732](https://github.com/Paddione/Bachelorprojekt/issues/3732)) ([7cf344b](https://github.com/Paddione/Bachelorprojekt/commit/7cf344b9be8a44640d2601d04da2cbd9d8330e92))
+
+
+### Tests
+
+* **test:** add FA-58 E2E tests for Admin-Menü, SDLC Cockpit & Git-Flows [T002600] ([#3731](https://github.com/Paddione/Bachelorprojekt/issues/3731)) ([25b624f](https://github.com/Paddione/Bachelorprojekt/commit/25b624f50e28eee1f30923b0d143c924dded43af))
+
+## [1.242.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.241.1...website-v1.242.0) (2026-08-03)
+
+
+### Features
+
+* health goals entschlackung T002598 ([#3728](https://github.com/Paddione/Bachelorprojekt/issues/3728)) ([af51ce3](https://github.com/Paddione/Bachelorprojekt/commit/af51ce32dcaa22a23c7683f11029d9ec61706ad2))
+
+## [1.241.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.241.0...website-v1.241.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **scripts:** plan-qa-check.sh JSON-Payload, quoted Prompt, Gateway-Umstellung [T002595] ([#3722](https://github.com/Paddione/Bachelorprojekt/issues/3722)) ([3409fee](https://github.com/Paddione/Bachelorprojekt/commit/3409fee528e825c40bfbc3564920c39a7fa96db6))
+
+## [1.241.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.4...website-v1.241.0) (2026-08-03)
+
+
+### Features
+
+* **agents:** Toolset-Aggregator mit Nutzungssemantik und Rollen-Injektion [T002592] ([#3719](https://github.com/Paddione/Bachelorprojekt/issues/3719)) ([18c5bbb](https://github.com/Paddione/Bachelorprojekt/commit/18c5bbbb222ad79b2e552ccd43efa0c746b63780))
+
+## [1.240.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.3...website-v1.240.4) (2026-08-02)
+
+
+### Bug Fixes
+
+* **factory:** Modell-Routing auf gemma26-factory ueber das Gateway [T002582] ([#3708](https://github.com/Paddione/Bachelorprojekt/issues/3708)) ([a7bde6f](https://github.com/Paddione/Bachelorprojekt/commit/a7bde6f2241273c1474f5dfffd8444fe320f0be3))
+
 ## [1.240.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.240.2...website-v1.240.3) (2026-08-02)
 
 

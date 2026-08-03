@@ -46,7 +46,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 1
+          # Volle History, sonst sind die DORA-Ziele hier strukturell nicht messbar.
+          # G-DORA01/03/04 leiten Deployment Frequency, Change Failure Rate und den
+          # MTTR-Proxy aus `git log --since=…` über main ab. Mit fetch-depth: 1 gibt
+          # es genau einen Commit — die Auswertung liefert dann nicht "wenig
+          # Deployments", sondern eine falsche Zahl. Bis T002598 standen diese drei
+          # Ziele mit "Elite ✓" in goals.md, während der einzige automatisierte
+          # Messlauf sie gar nicht ermitteln konnte. health-goals-check.sh skippt sie
+          # jetzt bei einem Shallow Clone; damit sie nicht dauerhaft skippen, holt
+          # dieser Job die History. [T002598]
+          fetch-depth: 0
           fetch-tags: false
           token: ${{ secrets.GH_PAT }}
 

@@ -20,18 +20,26 @@ auf dem WSL-Host ohne offene Claude-Code-Session.
 The system SHALL execute exactly one Dispatcher tick per Timer-Aktivierung via `wakeup.sh`
 under a `flock`-Sperre, sodass simultane Ticks ausgeschlossen sind. Der Timer re-armt erst
 nach Tick-Ende (`OnUnitInactiveSec=10min`), und `RuntimeMaxSec=900s` killt hängende Runs.
+`wakeup.sh` SHALL den Tick über `scripts/factory/dispatcher-bridge.sh` (Bash, kein
+LLM/Tool-Call für den Tick selbst) dispatchen, statt das Modell zu einem
+`Workflow(dispatcher.js)`-Tool-Call zu zwingen.
 
 #### Scenario: Normaler Tick ohne parallele Instanz
 - **GIVEN** der systemd-Timer `factory.timer` feuert
 - **WHEN** keine andere Factory-Instanz läuft (`/tmp/factory-tick.lock` frei)
-- **THEN** `wakeup.sh` erwirbt die flock-Sperre, entsperrt git-crypt und startet `claude -p` mit `dispatcher.js`
+- **THEN** `wakeup.sh` erwirbt die flock-Sperre, entsperrt git-crypt und ruft
+  `dispatcher-bridge.sh` mit dem präparierten `prep_file` auf
 
 #### Scenario: Paralleler Start während laufendem Tick
 - **GIVEN** ein Factory-Tick ist aktiv (flock-Sperre gehalten)
 - **WHEN** der Timer erneut feuert (z.B. nach Reboot mit `Persistent=true`)
 - **THEN** `wakeup.sh` beendet sich ohne Aktion (flock blockiert); kein doppelter Dispatch
 
----
+#### Scenario: Leere Queue erfordert keinen LLM/Tool-Call
+- **GIVEN** beide Brand-Queues sind leer (kein Ticket zum Dispatchen)
+- **WHEN** `wakeup.sh` den Tick über `dispatcher-bridge.sh` startet
+- **THEN** `dispatcher-bridge.sh` beendet sich mit Exit 0, ohne `claude`/`Workflow`
+  aufzurufen — der Tick bleibt rein Bash-basiert
 
 ### Requirement: Queue-Poll und Slot-Claim
 
@@ -2335,6 +2343,121 @@ of thumb (one partial per disjoint subsystem, tests separate) instead of a hard 
 - **WHEN** a pipeline phase spawns an agent
 - **THEN** the agent's LLM call targets `http://127.0.0.1:18235` with model `ternary-bonsai`
 
+### Requirement: Stale test files SHALL be removed when superseded
+
+When a BATS test file in `tests/local/` has been fully consolidated into `tests/spec/software-factory.bats`, the legacy file SHALL be removed to prevent test duplication and false positives.
+
+#### Scenario: Legacy test removed after consolidation
+- **GIVEN** a legacy FA-SF-20 test in `tests/local/FA-SF-20-pipeline-contract.bats`
+- **AND** `tests/spec/software-factory.bats` contains identical tests with corrected references
+- **WHEN** the legacy file is removed
+- **THEN** `task test:factory` SHALL pass without failures
+- **AND** `task test:changed` SHALL pass when `scripts/factory/*` is touched
+
+### Requirement: Test inventory references SHALL match existing files
+
+Generated indexes and inventories (`docs/code-quality/repo-index.json`, `website/src/data/test-inventory.json`) SHALL only reference test files that exist on disk.
+
+#### Scenario: Inventory updated after file removal
+- **GIVEN** `tests/local/FA-SF-20-pipeline-contract.bats` is removed
+- **WHEN** inventory files are regenerated
+- **THEN** `docs/code-quality/repo-index.json` SHALL NOT reference the removed file
+- **AND** `website/src/data/test-inventory.json` SHALL NOT reference the removed file
+
+### Requirement: BATS-Tests legen Fixtures außerhalb des Arbeitsbaums an
+
+BATS tests SHALL create fixture files under `$BATS_TEST_TMPDIR` rather than in the working
+tree, and SHALL NOT rely on an in-body `rm -rf` to clean them up. A cleanup statement inside
+the test body does not run when the test is killed by SIGTERM or a timeout — precisely the
+situation in which leftover files matter. `$BATS_TEST_TMPDIR` is removed by the framework
+regardless of how the test ends.
+
+This is not a tidiness concern. A half-created `openspec/changes/<slug>/` directory containing
+only `tasks.md` is indistinguishable from a real, broken change: any concurrently running
+validation of the openspec tree fails against it, and the failure appears in an unrelated test.
+
+#### Scenario: stage-plan-Test erzeugt seinen Plan im Temp-Verzeichnis
+
+- **GIVEN** ein Test prüft `ticket.sh stage-plan` und braucht dafür eine Plan-Datei
+- **WHEN** der Test die Datei anlegt
+- **THEN** entsteht sie unter `$BATS_TEST_TMPDIR` und wird per absolutem Pfad an `--plan`
+  übergeben — `stage-plan` akzeptiert laut Vorbedingung neben `git cat-file` auch eine Datei
+  auf der Platte, ein `cd` oder `git init` im Sandbox-Verzeichnis ist also nicht nötig
+- **AND** im Arbeitsbaum entsteht kein `openspec/changes/`-Eintrag, auch nicht vorübergehend
+
+#### Scenario: Abgebrochener Test hinterlässt keine ungetrackten Dateien
+
+- **GIVEN** ein Test wird durch SIGTERM oder einen Timeout beendet, bevor sein Rumpf durchläuft
+- **WHEN** danach `git status --porcelain` im Arbeitsbaum ausgeführt wird
+- **THEN** meldet es keine vom Test erzeugten Dateien
+
+### Requirement: Scout-Keyword-Extraktion mit N-Gramm-Unterstützung
+
+The system SHALL extract search keywords from the ticket title using bigram (2-word) and trigram (3-word) combinations in addition to single words, to improve file discovery precision. Bigrams SHALL be generated from consecutive word pairs; trigrams from consecutive triples. The system SHALL also split camelCase identifiers into individual words and use filename-stem matching (match against file basenames without extensions).
+
+#### Scenario: Bigrams aus Titel generiert *(BATS)*
+- **GIVEN** Titel `"Add OIDC Client Secret Rotation"`
+- **WHEN** die Keyword-Extraktion läuft
+- **THEN** die extrahierten Keywords enthalten `"oidc-client"`, `"client-secret"`, `"secret-rotation"` als Bigramme
+
+#### Scenario: Trigrams aus Titel generiert *(BATS)*
+- **GIVEN** Titel `"Fix OIDC Client Secret Rotation Bug"`
+- **WHEN** die Keyword-Extraktion läuft
+- **THEN** die extrahierten Keywords enthalten `"oidc-client-secret"` als Trigramm (wenn ≥3 Wörter)
+
+#### Scenario: N-Gramm-Patterns auf 20 begrenzt *(BATS)*
+- **GIVEN** ein sehr langer Titel mit vielen möglichen N-Grammen
+- **WHEN** die Keyword-Extraktion läuft
+- **THEN** maximal 20 N-Gramm-Patterns werden generiert (ältere verworfen)
+
+#### Scenario: CamelCase-Wörter werden in Bestandteile zerlegt *(BATS)*
+- **GIVEN** Titel enthält `"OIDCClientConfigSecret"`
+- **WHEN** die Keyword-Extraktion läuft
+- **THEN** die extrahierten Keywords enthalten `"OIDC"`, `"Client"`, `"Config"`, `"Secret"` als Einzelwörter
+
+### Requirement: LLM-Fallback-Schwellenwertabsenkung
+
+The system SHALL invoke the LLM fallback (`scout-llm-fallback.sh`) when deterministic discovery finds fewer than 2 files (instead of the previous threshold of 4). The LLM prompt SHALL include the already-discovered paths and intermediate grep results so DeepSeek can build on existing findings rather than starting from zero context.
+
+#### Scenario: LLM-Fallback bei nur 1 deterministischem Treffer *(BATS)*
+- **GIVEN** deterministic scout findet genau 1 Datei
+- **WHEN** SCOUT_LLM_MIN_FILES=2 (default)
+- **THEN** der LLM-Fallback wird aufgerufen, um zusätzliche Dateien vorzuschlagen
+
+#### Scenario: LLM-Fallback bei 2+ Treffern nicht aufgerufen *(BATS)*
+- **GIVEN** deterministic scout findet 2 oder mehr Dateien
+- **WHEN** SCOUT_LLM_MIN_FILES=2 (default)
+- **THEN** der LLM-Fallback wird NICHT aufgerufen
+
+#### Scenario: LLM-Prompt enthält deterministische Zwischenergebnisse *(BATS)*
+- **GIVEN** deterministic scout hat 1 Datei (`src/auth/oidc-client.ts`) gefunden
+- **WHEN** der LLM-Fallback-Prompt generiert wird
+- **THEN** der Prompt enthält die bereits gefundenen Pfade als Kontext
+
+### Requirement: Scout-Drift-Feedback-Loop
+
+The system SHALL read historical drift scores and SHALL adjust scout.sh behavior when drift exceeds a threshold. The drift score SHALL be a running average of the last 3 post-merge drift measurements. If drift > 0.5, the system SHALL expand search scope (relax grep from fixed-string `-F` to regex `-E`, include broader file types). If drift > 0.7, the system SHALL apply a 1.5× multiplier to the discovered file count before complexity classification.
+
+#### Scenario: Niedriger Drift -> keine Anpassung *(BATS)*
+- **GIVEN** historischer Drift ist 0.2 (unter Threshold 0.5)
+- **WHEN** `scout.sh` die Drift-Daten einliest
+- **THEN** kein erweiterter Suchmodus; Standardverhalten
+
+#### Scenario: Mäßiger Drift (0.5–0.7) -> erweiterte Suche *(BATS)*
+- **GIVEN** historischer Drift ist 0.6 (über Threshold 0.5)
+- **WHEN** `scout.sh` die Drift-Daten einliest
+- **THEN** grep verwendet regex `-E` anstatt fixed-string `-F`; zusätzliche Dateitypen werden durchsucht
+
+#### Scenario: Hoher Drift (>0.7) -> erweiterte Suche + File-Count-Multiplikator *(BATS)*
+- **GIVEN** historischer Drift ist 0.8 (über Threshold 0.7)
+- **WHEN** `scout.sh` die Drift-Daten einliest und die Komplexität klassifiziert
+- **THEN** grep verwendet erweiterte Suche; der File-Count wird mit 1.5× multipliziert vor der Komplexitätsbestimmung
+
+#### Scenario: Keine Drift-Daten -> Standardverhalten *(BATS)*
+- **GIVEN** kein historischer Drift (neues Ticket oder erste Scout-Ausführung)
+- **WHEN** `scout.sh` nach Drift-Daten sucht
+- **THEN** Default-Drift=0; kein erweiterter Suchmodus
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -2423,7 +2546,21 @@ The system SHALL compute the Jaccard distance between the planned (`P`) and actu
 ### Requirement: Scout-Quality-Check
 <!-- bats: factory-scout-quality.bats -->
 
-The system SHALL evaluate the quality of a Scout-Phase output by checking for non-empty `touched_files`, a `spec_content` mit mindestens 300 Zeichen und einem gesetzten `plan_path`. Bei Verletzung eines dieser Kriterien gibt `evaluateScoutQuality` `weak: true` mit dem jeweiligen Reason zurück; bei Erfüllung aller Kriterien `weak: false` und `reasons: []`.
+The system SHALL evaluate the quality of a Scout-Phase output in two stages:
+
+**Stage 1 (Pre-Gate):** BEFORE invoking `scout.sh`, the system SHALL check the spec content length. If `spec_content` (title + description combined) has fewer than 300 characters, the system SHALL return SCOUT_WEAK with `spec_too_short` immediately, without running the deterministic scout.
+
+**Stage 2 (Post-Gate):** AFTER `scout.sh` completes, the system SHALL check for non-empty `touched_files`, a `spec_content` mit mindestens 300 Zeichen und einem gesetzten `plan_path`. Bei Verletzung eines dieser Kriterien gibt `evaluateScoutQuality` `weak: true` mit dem jeweiligen Reason zurück; bei Erfüllung aller Kriterien `weak: false` und `reasons: []`.
+
+#### Scenario: Pre-Gate fängt zu kurze Spec vor scout.sh-Aufruf *(BATS)*
+- **GIVEN** `spec_content` hat weniger als 300 Zeichen
+- **WHEN** der Scout-Phase-Quality-Check läuft
+- **THEN** der Check gibt SCOUT_WEAK mit `spec_too_short` zurück, OHNE `scout.sh` aufzurufen
+
+#### Scenario: Pre-Gate bei ausreichender Spec -> scout.sh wird ausgeführt *(BATS)*
+- **GIVEN** `spec_content` hat mindestens 300 Zeichen
+- **WHEN** der Scout-Phase-Quality-Check läuft
+- **THEN** der Check lässt `scout.sh` ausführen und wendet Stage 2 (Post-Gate) an
 
 #### Scenario: Leere touched_files -> weak mit touched_files_empty *(BATS)*
 - **GIVEN** `touched_files: []`, `spec_content` mit 400 Zeichen, `plan_path: 'p.md'`
@@ -4204,3 +4341,11 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (7f99dff50f19) -->
 
 <!-- merged from change delta software-factory.md (72ef25c44023) -->
+
+<!-- merged from change delta software-factory.md (d521630ad4c8) -->
+
+<!-- merged from change delta software-factory.md (e0529b6d7b75) -->
+
+<!-- merged from change delta software-factory.md (5e91001b7350) -->
+
+<!-- merged from change delta software-factory.md (3599a0df962c) -->

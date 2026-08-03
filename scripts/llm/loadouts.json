@@ -191,6 +191,40 @@
       "exclusiveGroup": "chat-gpu",
       "notes": "T002534, gemessen 2026-08-02 auf RTX 5070 Ti (16 GB, geteilt mit Windows-Desktop) unter llama.cpp b10223. targetMarginMib 256 und KV q4_0 sind BEIDE Messergebnisse, keine Uebernahme von den 12B-Loadouts. -fitt-Reihe bei KV q8_0: 512 -> 45824 ctx / 129 tok/s, 256 -> 62464 / 160, 128 -> 70912 / 121, 64 -> 75264 / 142. Eine kleinere Marge gewinnt Kontext UND Tempo, weil --fit dann mehr Layer auf der GPU behaelt statt sie auszulagern; ab ~128 verdraengt der grosse KV-Cache selbst wieder Layer. KV q4_0 bei fitt 256: 99328 ctx / 166 tok/s. Die T002501-Sorge (q4_0-KV degradiert woertliches Zurueckholen von Pfaden, Symbolnamen, Tool-Call-Argumenten) war hier NICHT reproduzierbar: Probe mit sechs exakten Zeichenketten bei temperature 0, fuenf von fuenf Durchlaeufen zeichengenau. ACHTUNG - diese Probe lief im KURZEN Kontext (~200 Tokens) und widerlegt T002501 damit nicht fuer den Langkontext-Fall; Fehlerakkumulation ueber 37k+ Tokens ist ungemessen. Deshalb bleiben die 12B-Loadouts bei q8_0. Kein Draft-Modell - und das ist belegt, nicht vermutet: der MTP-Drafter (Architektur gemma4-assistant) laesst sich unter b10223 nicht laden und bricht den Serverstart komplett ab. Upstream ggml-org/llama.cpp#24795, OFFEN, kein Fix gemerged - Regression zwischen b9553 (geht) und b9702 (kaputt). Nachgemessen 2026-08-02 unter b10223 MIT Positiv-Anker: der Kontroll-Lauf ohne Head laedt (n_ctx_slot=4096), ALLE Head-Praezisionen crashen identisch - der Root-Head (240 MiB) ebenso wie der von der Modellkarte empfohlene Q8_0 (440 MiB). Dass es kein VRAM-Problem ist, zeigt das Log: das Hauptmodell ist bei 0,20 s fertig geladen, der Draft-Load crasht 0,5 s spaeter. Die Meldung 'vector::_M_range_check: __n (which is 1) >= this->size() (which is 1)' benennt den Defekt genau - Zugriff auf Index 1 eines Vektors mit EINEM Element, der Loader erwartet also mindestens zwei Layer-Eintraege, waehrend ein MTP-Head genau einen hat. Kein Flag behebt das, und ein anderer Quant des Heads auch nicht. NICHT ueber b9553 ausweichen: --fit/-fitt gibt es erst ab b10155, MTP-Loader und --fit schliessen sich also gegenseitig aus (~600 Builds Abstand). Auf b9553 muesste -c/-ngl wieder von Hand gesetzt werden - dem bescheinigt die b10155-Messung Faktor rund 5 Rueckstand (30,9 gegen 158-166 tok/s), waehrend MTP realistisch 20-40 Prozent bringt. Erst wieder anfassen, wenn #24795 geschlossen ist; MTP waere ohnehin reine Beschleunigung, das Zielmodell verifiziert jeden gedrafteten Token. Kein mmproj: die vorhandene mmproj-F16.gguf gehoert zum 12B. -ncmoe verworfen: 6 von 30 Layern brachten 196864 ctx, kosteten aber Faktor 7 beim Decoding (21,5 tok/s). T002550/T002555 - tools ist namentlich aufgezaehlt statt 'all': ein spaeter hinzugefuegtes llama-Tool erweitert 'all' still, die Liste nicht. exec_shell_command ist seit T002555 dabei, aber erst NACHDEM die Unit gehaertet wurde (ProtectHome=tmpfs in buildHardeningProperties). Die Reihenfolge ist der Punkt: llama.cpp sandboxt selbst nicht, und die Factory-Sandbox aus T002483 umschliesst den Agenten, nicht den llama-server - diese Tools laufen im Serverprozess. Ohne das Hardening haette eine Shell hier Zugriff auf ~/.ssh und die git-crypt-entschluesselten Secrets (environments/.secrets/). T002579 - drei zuvor UNENTSCHIEDENE Betriebsparameter sind jetzt gesetzt. Sampling: temperature 1.0 / top-p 0.95 / top-k 64, die von Google und Unsloth fuer Gemma 4 kalibrierten Werte. Vorher setzte das Loadout nichts, es galten die llama.cpp-Defaults (temp 0.8, top-k 40) - das war eine Luecke, keine Wahl. chatTemplateKwargs.enable_thinking=true macht Thinking zum SERVER-DEFAULT; 'reasoning: auto' bleibt daneben bestehen, weil es etwas anderes steuert (Parsen von reasoning_content per -rea, nicht ob das Modell denkt). ACHTUNG FUER CONSUMER: bei aktivem Thinking bleibt 'content' leer, bis die Denkphase endet - wer knappes max_tokens faehrt, bekommt sonst still eine leere Antwort mit finish_reason=length (T002501). Clientseitig abschalten mit chat_template_kwargs {enable_thinking:false}; so machen es mishap-categorize.sh, plan-qa-check.sh, factory/ci-review.mjs, triage-body.sh, brain-ingest-transform.sh und scout-llm-fallback.sh. KV-AUSNAHME JETZT BELEGT: die Langkontext-Woertlichkeitsprobe aus T002535 lief bis T002579 nie - sie zeigte auf localhost:8081, den toten TEI-Port, und skippte bei jedem Lauf, waehrend das Ticket als done gefuehrt wurde. Nachgeholt am 2026-08-02: 39388 Prompt-Tokens, fuenf von fuenf Laeufen alle sechs Zeichenketten zeichengenau (30/30). Verbleibender Vorbehalt: der Fuellkontext war ein wiederholter Satz und damit redundant; echte Factory-Prompts aus Code und Diffs belasten den KV-Cache staerker. Die q4_0-Ausnahme bleibt der erste Verdaechtige bei Fehlern in Tool-Call-Argumenten oder Pfaden.",
       "tools": "read_file,file_glob_search,grep_search,write_file,edit_file,get_datetime,exec_shell_command"
+    },
+    {
+      "slug": "gemma9-factory",
+      "label": "Gemma 2 9B · Factory Agent",
+      "model": "gemma9/gemma-2-9b-it-Q4_K_M.gguf",
+      "port": 8092,
+      "fit": {
+        "enabled": false,
+        "targetMarginMib": 128,
+        "minCtx": 98304
+      },
+      "args": {
+        "ctx": 98304,
+        "ngl": 99,
+        "parallel": 2,
+        "cacheTypeK": "q4_0",
+        "cacheTypeV": "q4_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true
+      },
+      "speculative": {},
+      "mcp": {},
+      "extraArgs": [
+        "-kvu",
+        "--override-kv",
+        "gemma2.context_length=int:98304",
+        "--chat-template-file",
+        "/home/patrick/Bachelorprojekt/scripts/llm/templates/gemma2-tools.jinja"
+      ],
+      "exclusiveGroup": "chat-gpu",
+      "tools": "read_file,file_glob_search,grep_search,write_file,edit_file,get_datetime,exec_shell_command",
+      "notes": "Fein-getuntes Gemma 2 9B (Q4_K_M, 5.4 GB) für Factory-Agenten. T002587. GROSSES KONTEXT-FENSTER: Ersatz für gemma26-Factory als Dispatch-Subagent (nicht mehr Gemma4 26B nutzen) — mehr als 15 Aufgaben pro Session, dafür KV q4_0 wie beim 26B-Agenten-Loadout (T002501-Messung dort: q4_0 bei fitt 256 = 99328 ctx / 166 tok/s, Kurzkontext-Probe zeichengenau). targetMarginMib 128 gewinnt Kontext gegenüber 768. Gemessene ctx nach erstem Start in opencode agent-models.jsonc übernehmen. fit=false, weil -kvu den minCtx als Slot-Pool interpretiert und der gepinnte 98304-Wert stabil bleiben soll (T002599). 2 Slots mit unified KV (-kvu)."
     }
   ]
 }

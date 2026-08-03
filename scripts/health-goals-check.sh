@@ -576,6 +576,202 @@ row target G-WT04 "$(wt_measure unsafe-worktrees)"    le 0 "Löschbereite Worktr
 row target G-WT05 "$(wt_measure main-divergence)"     le 0 "Lokaler main hinter origin/main (Commits)"
 row target G-WT06 "$(wt_measure phantom-scope-locks)" le 0 "Phantom-Scope-Locks (Scope leer oder mit '-' beginnend)"
 
+# ── Bis T002598 nur dokumentiert, nie gemessen ────────────────────────────────
+#
+# 31 Ziele standen in .claude/lib/goals.md mit einem grünen Häkchen, das niemand
+# nachrechnete: gen-goals-data.mjs misst nichts, es parst die Datei. Ein Ziel ohne
+# row()-Aufruf zeigt daher für immer den Wert, den zuletzt jemand von Hand eintrug.
+# Präzedenzfall G-CD01 — der Messbefehl zeigte auf einen gelöschten Workflow und
+# lieferte falsches Grün, bis T001349 es korrigierte.
+#
+# Grundregel für jede Messung hier: nicht ermittelbar ⇒ "-" ⇒ SKIP (n/a, weder grün
+# noch rot). Ein Fallback auf 0 wäre falsches Grün und damit genau der Defekt, den
+# dieser Block behebt.
+#
+# Der bidirektionale Guard tests/spec/health-goals/id-parity.bats hält goals.md und
+# diese Datei ab jetzt deckungsgleich.
+
+# --- Helfer: gh-abhängige Messungen ------------------------------------------
+# gh ist netzabhängig und kann hängen. Ohne Binary, ohne Auth oder bei Timeout gibt
+# es SKIP statt einer Zahl.
+_gh_ready() { command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; }
+gh_json() { # <timeout-s> <gh-args…> — leer bei jedem Fehlschlag
+  local t="$1"; shift
+  _gh_ready || return 1
+  timeout "$t" gh "$@" 2>/dev/null || return 1
+}
+
+# Erfolgsrate eines Workflows in % über die letzten N abgeschlossenen Läufe.
+wf_success_rate() { # <workflow> <limit>
+  [ "$FAST" = 1 ] && { echo "-"; return; }
+  local out; out=$(gh_json 60 run list --workflow "$1" --branch main --limit "$2" \
+    --json conclusion) || { echo "-"; return; }
+  python3 -c "
+import json,sys
+try: r=[x['conclusion'] for x in json.loads(sys.argv[1]) if x.get('conclusion')]
+except Exception: print('-'); raise SystemExit
+print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else '-')
+" "$out" 2>/dev/null || echo "-"
+}
+
+# --- Helfer: Shallow-Clone-Guard für die DORA-Ziele ---------------------------
+# Auf einem Shallow Clone (CI-Default) liefert git log ein abgeschnittenes Fenster.
+# Eine Deployment-Frequenz aus 20 statt 200 Commits ist nicht "niedrig", sie ist
+# falsch — deshalb SKIP statt einer irreführenden Zahl.
+_git_full_history() { [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = "false" ]; }
+
+dora_count() { # <since> <grep-pattern|-> — Commits auf main im Zeitfenster
+  _git_full_history || { echo "-"; return; }
+  local since="$1" pat="${2:--}"
+  if [ "$pat" = "-" ]; then
+    git log --since="$since" --first-parent --oneline main 2>/dev/null | wc -l | tr -d ' '
+  else
+    git log --since="$since" --first-parent --format='%s' main 2>/dev/null \
+      | grep -ciE "$pat" || echo 0
+  fi
+}
+
+# --- Helfer: Kubernetes-Manifest-Audit (offline, gegen k3d/*.yaml) ------------
+k8s_audit() { # <limits|readiness|security> — Deployments, denen das Feld fehlt
+  python3 - "$1" <<'PY' 2>/dev/null || echo "-"
+import glob, sys, yaml
+what = sys.argv[1]
+missing = 0
+for path in sorted(glob.glob('k3d/*.yaml')):
+    try:
+        with open(path) as fh:
+            docs = list(yaml.safe_load_all(fh))
+    except Exception:
+        # Ein unparsbares Manifest darf nicht als "alles in Ordnung" durchgehen.
+        # Es zaehlt als Fund, damit der Fehler sichtbar wird statt zu verschwinden.
+        missing += 1
+        continue
+    for d in docs:
+        if not isinstance(d, dict) or d.get('kind') != 'Deployment':
+            continue
+        spec = (d.get('spec') or {}).get('template', {}).get('spec', {}) or {}
+        containers = spec.get('containers') or []
+        if not containers:
+            missing += 1
+            continue
+        for c in containers:
+            if what == 'limits':
+                if not (c.get('resources') or {}).get('limits'):
+                    missing += 1; break
+            elif what == 'readiness':
+                if not c.get('readinessProbe'):
+                    missing += 1; break
+            elif what == 'security':
+                if not c.get('securityContext') and not spec.get('securityContext'):
+                    missing += 1; break
+print(missing)
+PY
+}
+
+# --- Helfer: Exit-Code eines Kommandos als Messwert ---------------------------
+# Fehlt das Werkzeug, ist der Exit-Code keine Aussage ueber das Repo — dann SKIP.
+exit_code_of() { # <cmd> [args…]
+  command -v "$1" >/dev/null 2>&1 || { echo "-"; return; }
+  "$@" >/dev/null 2>&1; echo $?
+}
+exit_code_of_script() { # <script-pfad> [args…]
+  [ -f "$1" ] || { echo "-"; return; }
+  bash "$@" >/dev/null 2>&1; echo $?
+}
+
+# --- Offline + schnell (18) ---------------------------------------------------
+row target G-CQ06  "$(grep -rnE '@deprecated' website/src 2>/dev/null | wc -l | tr -d ' ')" le 1 "@deprecated-Symbole in website/src"
+# grep -c druckt bei null Treffern "0" und exitet trotzdem 1 — ein `|| echo 0`
+# haengt deshalb eine zweite Zeile an und macht aus dem gueltigen Wert "0" den
+# ungueltigen Wert "0\n0". Nur den Exit abfangen, nie die Ausgabe ersetzen.
+row gate   G-TEST01 "$(grep -rniE "skip [\"']" tests --include='*.bats' 2>/dev/null | grep -ciE 'pending|todo|WP-|disabled' || true)" eq 0 "BATS Debt-Skips (pending/todo/WP-/disabled)"
+row target G-TEST03 "$(grep -rnE '(describe|it|test)\.(skip|todo)\b' website/src --include='*.ts' 2>/dev/null | wc -l | tr -d ' ')" le 1 "Vitest Skipped/Todo-Suiten (Ist 1 bei Aufnahme T002598)"
+row gate   G-TEST04 "$(git status --porcelain website/src/data/test-inventory.json 2>/dev/null | wc -l | tr -d ' ')" eq 0 "Test-Inventory-Drift (uncommitted)"
+row gate   G-SPEC01 "$(exit_code_of_script scripts/openspec.sh validate)" eq 0 "openspec validate (Exit)"
+row gate   G-SPEC02 "$(c=0; cutoff=$(( $(date +%s) - 30*86400 )); for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; ts=$(git log -1 --format=%at -- "$d" 2>/dev/null); [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && c=$((c+1)); done; echo $c)" eq 0 "OpenSpec-Changes ohne Aktivitaet >30 Tage"
+row target G-SPEC03 "$(m=0; for d in openspec/changes/*/; do [ -d "$d" ] || continue; case "$d" in *archive*) continue;; esac; [ -f "$d/.ticket" ] || m=$((m+1)); done; echo $m)" le 41 "Proposals ohne .ticket-Verknuepfung (Ist 41 bei Aufnahme T002598)"
+row gate   G-SEC02 "$(exit_code_of_script scripts/git-crypt-guard.sh check-tracked)" eq 0 "git-crypt Guard (Exit)"
+row target G-SEC03 "$(ts=$(git log -1 --format=%at -- environments/sealed-secrets/*.yaml 2>/dev/null); [ -n "$ts" ] && echo $(( ( $(date +%s) - ts ) / 86400 )) || echo '-')" le 90 "Tage seit letzter SealedSecret-Rotation"
+row target G-SEC04 "$(min=''; for p in environments/certs/*.pem; do [ -f "$p" ] || continue; e=$(openssl x509 -enddate -noout -in "$p" 2>/dev/null | cut -d= -f2); [ -n "$e" ] || continue; d=$(( ( $(date -d "$e" +%s 2>/dev/null || echo 0) - $(date +%s) ) / 86400 )); { [ -z "$min" ] || [ "$d" -lt "$min" ]; } && min=$d; done; echo "${min:--}")" ge 30 "Sealing-Cert Restlaufzeit (Tage, Minimum)"
+row gate   G-DEP03 "$(grep -q 'npm ci' website/Dockerfile 2>/dev/null && echo 1 || echo 0)" eq 0 "PM-Konsistenz: npm ci in website/Dockerfile (0=nur pnpm)"
+row gate   G-RH04 "$(cutoff=$(( $(date +%s) - 30*86400 )); git for-each-ref --format='%(refname:short) %(committerdate:unix)' refs/remotes/origin 2>/dev/null | while read -r b ts; do case "$b" in origin/HEAD|origin/main) continue;; esac; [ -n "$ts" ] && [ "$ts" -lt "$cutoff" ] && echo "$b"; done | wc -l | tr -d ' ')" eq 0 "Stale Remote Branches (>30d)"
+row gate   G-RH07 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task freshness:check)" eq 0 "Freshness-Check (Exit)"
+row gate   G-K8S01 "$(k8s_audit limits)"     eq 0 "Deployments ohne resources.limits"
+row target G-K8S02 "$(k8s_audit readiness)"  le 3 "Deployments ohne readinessProbe"
+row gate   G-K8S03 "$(k8s_audit security)"   eq 0 "Deployments ohne securityContext"
+row gate   G-K8S04 "$([ "$FAST" = 1 ] && echo '-' || exit_code_of task workspace:validate)" eq 0 "workspace:validate (Exit)"
+
+# --- Netzabhängig: gh mit Timeout, sonst SKIP (7) -----------------------------
+row target G-CI01 "$(wf_success_rate ci.yml 20)" ge 95 "main CI-Erfolgsrate (%, letzte 20)"
+row gate   G-CI02 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 run list --workflow ci.yml --branch main --limit 5 --json conclusion) && python3 -c "
+import json,sys
+try: print(sum(1 for x in json.loads(sys.argv[1]) if x.get('conclusion')=='failure'))
+except Exception: print('-')
+" "$o" || echo '-'; })" eq 0 "Rote main-HEAD-Laeufe (letzte 5)"
+row gate   G-GIT01 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 pr list --state open --json createdAt) && python3 -c "
+import json,sys,datetime
+try:
+    now=datetime.datetime.now(datetime.timezone.utc)
+    n=sum(1 for x in json.loads(sys.argv[1])
+          if (now-datetime.datetime.fromisoformat(x['createdAt'].replace('Z','+00:00'))).days>7)
+    print(n)
+except Exception: print('-')
+" "$o" || echo '-'; })" eq 0 "Offene PRs aelter als 7 Tage"
+row target G-DEP05 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 pr list --state open --json author) && python3 -c "
+import json,sys
+try: print(sum(1 for x in json.loads(sys.argv[1]) if 'renovate' in (x.get('author') or {}).get('login','').lower()))
+except Exception: print('-')
+" "$o" || echo '-'; })" le 3 "Renovate-PR-Backlog"
+row target G-CD02 "$(wf_success_rate post-merge.yml 15)" ge 95 "post-merge.yml-Erfolgsrate (%, letzte 15)"
+row gate   G-RH06 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 60 issue list --label sentinel --state open --json createdAt) && python3 -c "
+import json,sys,datetime
+try:
+    now=datetime.datetime.now(datetime.timezone.utc)
+    print(sum(1 for x in json.loads(sys.argv[1])
+          if (now-datetime.datetime.fromisoformat(x['createdAt'].replace('Z','+00:00'))).total_seconds()>48*3600))
+except Exception: print('-')
+" "$o" || echo '-'; })" eq 0 "Offene Sentinel-Issues aelter als 48h"
+row target G-DORA02 "$([ "$FAST" = 1 ] && echo '-' || { o=$(gh_json 90 pr list --state merged --limit 30 --json createdAt,mergedAt) && python3 -c "
+import json,sys,datetime,statistics
+def p(s): return datetime.datetime.fromisoformat(s.replace('Z','+00:00'))
+try:
+    h=[(p(x['mergedAt'])-p(x['createdAt'])).total_seconds()/3600
+       for x in json.loads(sys.argv[1]) if x.get('mergedAt') and x.get('createdAt')]
+    print(round(statistics.median(h)) if h else '-')
+except Exception: print('-')
+" "$o" || echo '-'; })" le 1 "DORA Lead Time PR→Merge (Median, Stunden)"
+
+# --- Langsam: nur ohne --fast (3) ---------------------------------------------
+row gate   G-DEP01 "$([ "$FAST" = 1 ] && echo '-' || { [ -d website/node_modules ] && (cd website && timeout 180 pnpm audit --json 2>/dev/null | python3 -c "
+import json,sys
+n=0
+for line in sys.stdin:
+    line=line.strip()
+    if not line: continue
+    try: o=json.loads(line)
+    except Exception: continue
+    sev=(o.get('advisory') or {}).get('severity') or o.get('severity')
+    if sev in ('high','critical'): n+=1
+print(n)
+" ) || echo '-'; })" eq 0 "High/Critical npm-Vulnerabilities"
+row target G-DEP02 "$([ "$FAST" = 1 ] && echo '-' || { [ -d website/node_modules ] && (cd website && timeout 180 pnpm outdated --format json 2>/dev/null | python3 -c "
+import json,sys
+try: d=json.load(sys.stdin)
+except Exception: print('-'); raise SystemExit
+n=0
+for _,v in (d or {}).items():
+    cur=str(v.get('current','')).lstrip('^~').split('.')[0]
+    lat=str(v.get('latest','')).lstrip('^~').split('.')[0]
+    if cur.isdigit() and lat.isdigit() and int(lat)>int(cur): n+=1
+print(n)
+" ) || echo '-'; })" le 3 "Veraltete Major-Dependencies"
+row gate   G-BRAIN14 "$([ "$FAST" = 1 ] && echo '-' || { [ -f scripts/brain-ingest-worklist.sh ] && timeout 120 bash scripts/brain-ingest-worklist.sh 2>/dev/null | grep -c . || echo '-'; })" eq 0 "Brain-Ingest-Backlog (offene Seiten)"
+
+# --- DORA aus lokaler Git-History, Shallow-Clone-geschützt (3) -----------------
+row target G-DORA01 "$(dora_count '4 weeks ago')" ge 5 "DORA Deployment Frequency (main-Merges/4 Wochen)"
+row target G-DORA03 "$(t=$(dora_count '8 weeks ago'); f=$(dora_count '8 weeks ago' '^(fix|revert)'); { [ "$t" = "-" ] || [ "$f" = "-" ] || [ "$t" -eq 0 ]; } && echo '-' || echo $(( f * 100 / t )))" le 15 "DORA Change Failure Rate (fix/revert-Anteil in %)"
+row target G-DORA04 "$(dora_count '8 weeks ago' 'revert|hotfix')" le 5 "DORA MTTR-Proxy (revert/hotfix-Commits in 8 Wochen)"
+
 # ── Zusammenfassung ────────────────────────────────────────────────────────────
 TOTAL=$((PASS+OPEN+GATEFAIL+SKIP))
 printf "\n%s──────────────────────────────────────────%s\n" "$C_D" "$C_X"

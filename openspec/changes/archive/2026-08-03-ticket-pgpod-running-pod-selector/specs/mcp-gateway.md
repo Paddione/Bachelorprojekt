@@ -33,7 +33,7 @@ SHALL go through `kubectl` instead.
 - **THEN** antwortet PostgreSQL mit "cannot execute … in a read-only transaction", und der
   Tool-Guide weist diese Statements ausdrücklich dem `kubectl exec … psql`-Pfad zu
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Architektur-Notiz beschreibt den tatsächlichen Betriebsmodus
 

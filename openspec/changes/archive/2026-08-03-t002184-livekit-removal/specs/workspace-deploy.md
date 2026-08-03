@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Post-Deploy-Schritte nach dem Kustomize-Apply
 
@@ -20,8 +20,6 @@ brands (T002184).
 - **WHEN** the leftover-placeholder guard in `tests/spec/workspace-deploy.bats` scans them
 - **THEN** neither `${LIVEKIT_DOMAIN}` nor `${STREAM_DOMAIN}` appears in the guard's regex
   or in the rendered output
-
-## ADDED Requirements
 
 ### Requirement: LiveKit-Rückstände sind weder im Repo noch im Cluster erlaubt
 

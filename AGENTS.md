@@ -19,6 +19,8 @@ opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents b
 | `deepseek-helper` | DeepSeek-V3 (direct API, 128K ctx), `write_capable: true` | Escalation: local agent stuck or context exhausted |
 | `deepseek-pro` | DeepSeek-R1 (direct API, 128K ctx, max reasoning), `write_capable: true` | Deep analysis, complex debugging, hard refactors |
 | `deepseek-flash` | DeepSeek-V3 (direct API, 200K ctx), `write_capable: true` | Parallel throughput, up to 3 at a time |
+| `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API), `write_capable: true` | Same model as `deepseek-pro`, bypassing the OpenCode Go gateway when that gateway is the problem |
+| `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API), `write_capable: true` | Same model as `deepseek-flash`, bypassing the OpenCode Go gateway when that gateway is the problem |
 | `gemma26-vision` | Gemma4 26B (97840 ctx, `mode: primary`, `write_capable: false`) | Max context, no subagent dispatch. Vision-ready. |
 | `explore` | built-in | Read-only codebase exploration |
 | `general` | built-in | Read-only general research |

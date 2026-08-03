@@ -2688,6 +2688,12 @@
     "kind": "shell"
   },
   {
+    "id": "main-commit-guard",
+    "file": "tests/spec/main-commit-guard.bats",
+    "category": "main-commit-guard",
+    "kind": "shell"
+  },
+  {
     "id": "mandatory-sequences",
     "file": "tests/local/mandatory-sequences.bats",
     "category": "mandatory-sequences",

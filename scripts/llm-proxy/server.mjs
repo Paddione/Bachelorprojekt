@@ -5,7 +5,7 @@ import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
 import { applyFixups, sanitizeToolSchemaPatterns } from './fixups.mjs';
 import { readFileSync, existsSync } from 'node:fs';
-import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart } from './loadouts.mjs';
+import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict } from './loadouts.mjs';
 import os from 'node:os';
 import { scanModels, resolveModelPath } from './models.mjs';
 import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
@@ -241,6 +241,18 @@ async function startLoadout(slug) {
   }
   if (portInUse(doc, loadout.port, slug)) {
     throw new LoadoutStartError(409, 'port_busy', `Port ${loadout.port} belegt`);
+  }
+  // T002616: exclusiveGroup gilt AUCH hier, nicht nur im Auto-Start-Pfad.
+  // port_busy oben faengt einen Gruppenkonflikt nur zufaellig ab — naemlich
+  // dann, wenn beide Loadouts denselben Port belegen (die drei auf 8091).
+  // gemma9-factory (8092) gegen gemma26-factory (8091) rutschte durch.
+  const active = doc.loadouts.filter((l) => unitStatus(l.slug).active === 'active').map((l) => l.slug);
+  const conflict = findExclusiveConflict(doc, slug, active);
+  if (conflict) {
+    throw new LoadoutStartError(409, 'exclusive_conflict',
+      `${slug} teilt exclusiveGroup '${conflict.group}' mit dem laufenden Loadout ${conflict.conflictSlug}. `
+      + `Zuerst 'curl -XPOST http://127.0.0.1:${PORT}/admin/loadouts/${conflict.conflictSlug}/stop' `
+      + `ausfuehren, dann erneut starten — der Proxy stoppt nichts von selbst.`);
   }
   const modelPath = resolveModelPath(doc, loadout);
   if (!modelPath) {

@@ -2424,8 +2424,26 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/dev-env-split",
+    "file": "tests/spec/fleet-operations/dev-env-split.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/dev-node-binding",
+    "file": "tests/spec/fleet-operations/dev-node-binding.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/firewall-program-match",
     "file": "tests/spec/fleet-operations/firewall-program-match.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/membership-drift",
+    "file": "tests/spec/fleet-operations/membership-drift.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },

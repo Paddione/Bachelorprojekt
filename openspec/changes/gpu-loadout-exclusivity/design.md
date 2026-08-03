@@ -1,102 +1,91 @@
 ---
-title: GPU-Exklusivitäts-Guard für llama.cpp-Loadouts
+title: GPU-Exklusivität auch beim expliziten Loadout-Start
 ticket_id: T002616
 domains: [bachelorprojekt-infra, bachelorprojekt-ops]
 status: planning
 ---
 
-# Design: GPU-Exklusivitäts-Guard
+# Design: Exklusivitätsprüfung im expliziten Startpfad
 
 ## Ausgangslage
 
-`scripts/llm-proxy/runner.mjs` startet Loadouts als transiente systemd-User-Units
-(`systemd-run --user --unit=llama-<slug>`). `startUnit()` führt `execFileSync` ohne jede
-Vorprüfung aus. Die einzige Stelle, die `startUnit` aufruft, ist `server.mjs:264`.
+Der Mechanismus ist vorhanden und wird **nicht** neu gebaut:
 
-Vorhandene Bausteine, die wiederverwendet werden:
+- `scripts/llm/loadouts.json` — `exclusiveGroup` auf jedem Loadout: `chat-gpu` für
+  `gptoss-context`, `devstral-quality`, `gemma-factory`, `gemma-multiagent`,
+  `gemma26-factory`, `gemma9-factory`; `bge-cpu` für `bge-embed-cpu` und `bge-rerank-cpu`.
+- `scripts/llm-proxy/loadouts.mjs:202` — `planAutoStart({doc, model, activeSlugs})` liefert
+  `{action:'conflict', conflictSlug, group}`.
+- `scripts/llm-proxy/server.mjs:123` — `proxyV1` übersetzt das in HTTP 409
+  `exclusive_conflict` mit Stop-Befehl im Klartext.
 
-| Funktion | Datei | Rolle im Guard |
-|---|---|---|
-| `unitName(slug)` | `runner.mjs` | erzeugt `llama-<slug>.service` |
-| `unitStatus(slug)` | `runner.mjs` | liefert `{exists, active, sub}` via `systemctl --user show` |
-| `LoadoutStartError` | `server.mjs` | trägt HTTP-Status + Fehlercode zum Client |
+Die Lücke sitzt im zweiten Startweg. `startLoadout()` (`server.mjs:235`) prüft der Reihe nach:
+
+```
+not_found     404   Loadout unbekannt
+already_running 409 unitStatus(slug).active === 'active'
+port_busy     409   portInUse(doc, loadout.port, slug)
+model_missing 422   GGUF in keiner modelRoot
+```
+
+`port_busy` fängt einen Gruppenkonflikt nur dann ab, wenn beide Loadouts denselben Port
+belegen — das trifft auf die drei 8091er zu, nicht aber auf `gemma9-factory` (8092) gegen
+`gemma26-factory` (8091). Dieser Fall startet heute durch.
 
 ## Schnitt
 
-Drei Einheiten, jede für sich verständlich und einzeln testbar:
+### 1. `findExclusiveConflict(doc, slug, activeSlugs) → {conflictSlug, group} | null`
 
-### 1. `isGpuBound(loadout) → boolean`
+Herausgelöst aus `planAutoStart`, in `loadouts.mjs`, exportiert. Reine Funktion; `activeSlugs`
+wird übergeben, damit sie ohne systemd testbar bleibt — dasselbe Muster, das `planAutoStart`
+schon nutzt.
 
-Prädikat auf `loadout.fit?.enabled === true`.
+`planAutoStart` ruft sie anschließend selbst auf, statt die Suche ein zweites Mal zu
+formulieren. Zwei Kopien derselben Regel wären die eigentliche Gefahr: sie laufen auseinander,
+und dann verhält sich der eine Startweg anders als der andere — genau der Zustand, den dieser
+Change beseitigt.
 
-Die Alternative — ein eigenes Feld `exclusiveGroup: "gpu0"` in `loadouts.json` — wurde verworfen.
-Sie wäre eine zweite, handgepflegte Wahrheit über dieselbe Eigenschaft: ein Loadout mit
-`fit.enabled=true` *ist* GPU-gebunden, denn `--fit` verteilt Layer auf die Karte. Zwei Felder
-können auseinanderlaufen, eines nicht. Sollte je eine zweite GPU hinzukommen, ist das der
-Zeitpunkt für ein Gruppenfeld — nicht vorher (YAGNI).
+Der eigene Slug ist ausgeschlossen. Ein bereits laufendes Loadout ist kein Konflikt mit sich
+selbst; dafür greift weiterhin `already_running`.
 
-### 2. `findGpuConflict(slug, loadouts, statusOf) → string | null`
+### 2. Prüfung in `startLoadout()`
 
-Reine Funktion. Liefert den Slug des blockierenden Loadouts oder `null`.
+Direkt nach `port_busy`, vor `resolveModelPath`:
 
-```
-für jedes anderes Loadout L in loadouts:
-    wenn L.slug === slug            -> überspringen   (kein Selbstkonflikt)
-    wenn nicht isGpuBound(L)        -> überspringen   (CPU, egal)
-    wenn statusOf(L.slug).active === 'active' -> return L.slug
-return null
-```
-
-`statusOf` wird **injiziert** statt importiert. Der Test stubbt es und läuft damit ohne systemd;
-produktiv wird `unitStatus` übergeben. Ohne Injektion wäre die Funktion nur mit laufender
-Systemumgebung testbar — und ein Test, der echte Units startet, prüft am Ende die Testumgebung
-statt der Logik.
-
-**Der Selbstkonflikt-Fall ist nicht kosmetisch:** ohne `L.slug === slug`-Ausnahme würde ein
-Neustart desselben Loadouts sich selbst blockieren, solange die alte Unit noch läuft.
-
-### 3. `GpuBusyError` + Guard-Aufruf
-
-`startUnit()` ruft `findGpuConflict` **vor** `execFileSync` und wirft bei Konflikt einen
-`GpuBusyError` mit beiden Slugs. `server.mjs` fängt ihn und übersetzt in
-`LoadoutStartError(409, 'gpu_busy', …)`.
-
-Warum der Guard in `startUnit` sitzt und nicht im Aufrufer: heute gibt es genau einen Aufrufer.
-Ein Guard dort schützt genau diesen einen — der nächste, den jemand in sechs Monaten
-dazuschreibt, umgeht ihn lautlos. In `startUnit` ist er nicht umgehbar, und die HTTP-Semantik
-bleibt trotzdem korrekt, weil `server.mjs` den spezifischen Typ fängt.
-
-## Fehlerausgabe
-
-```
-FEHLER: gemma9-factory belegt die GPU (active/running).
-  Beide zusammen brauchen mehr VRAM als die Karte hat.
-  Zuerst stoppen:  task llm:stop LOADOUT=gemma9-factory
+```js
+const conflict = findExclusiveConflict(doc, slug, activeSlugs())
+if (conflict) throw new LoadoutStartError(409, 'exclusive_conflict', …)
 ```
 
-Nichts wird automatisch beendet: ein laufender Server könnte gerade eine Factory-Anfrage
-bedienen, und ein abgerissener Request fällt erst am Timeout auf.
+Fehlercode und Wortwahl bewusst identisch zum `/v1`-Pfad — ein Bediener, der beide Wege nutzt,
+soll nicht zwei Vokabulare für dieselbe Lage lernen. Die Meldung nennt blockierenden Slug,
+Gruppe und Stop-Befehl und hält fest, dass der Proxy nichts von selbst stoppt.
+
+**Warum nicht in `startUnit()` (runner.mjs):** dort läge der Guard tiefer und wäre unumgehbar,
+aber `runner.mjs` kennt weder das Loadout-Dokument noch `LoadoutStartError`; er müsste beides
+importieren und die HTTP-Semantik nachbilden. Der bestehende Aufbau legt Vorbedingungen
+durchgehend in `startLoadout` — `already_running` und `port_busy` sitzen genau dort. Der neue
+Check gehört in dieselbe Reihe.
 
 ## Tests
 
-Neue Datei `scripts/llm-proxy/runner.test.mjs` — bisher existieren nur `loadouts.test.mjs` und
-`server.test.mjs`, für `runner.mjs` gibt es keine.
+`scripts/llm-proxy/loadouts.test.mjs` deckt `planAutoStart` bereits ab; die neuen Fälle kommen
+in eine eigene Datei `scripts/llm-proxy/exclusive-conflict.test.mjs` (Konvention: eine Datei pro
+Vorgang, keine Append-Konflikte).
 
 | Fall | Erwartung |
 |---|---|
-| anderes GPU-Loadout `active` | Konflikt, dessen Slug |
-| nur CPU-Loadout `active` | `null` |
+| anderes Loadout derselben Gruppe aktiv | `{conflictSlug, group}` |
+| Loadout anderer Gruppe aktiv (`bge-cpu` vs `chat-gpu`) | `null` |
 | nichts aktiv | `null` |
-| **eigenes** Loadout `active` | `null` (kein Selbstkonflikt) |
-| `startUnit` bei Konflikt | wirft `GpuBusyError`, `execFileSync` wird **nicht** erreicht |
+| **eigener** Slug aktiv | `null` (kein Selbstkonflikt) |
+| Loadout ohne `exclusiveGroup` | `null` |
+| `planAutoStart` nach der Extraktion | unverändertes Verhalten (Regression) |
 
-Nach T002356-M1 trägt jeder Negativtest seinen Positiv-Anker im selben Test: erst prüfen, dass
-der erlaubte Start durchläuft, dann die Negativ-Aussage. Sonst bestünde der Test vakuos, falls
-`findGpuConflict` gar nicht existiert.
+Der letzte Fall ist der wichtige: die Extraktion darf `planAutoStart` nicht verändern. Nach
+T002356-M1 trägt jeder Negativfall seinen Positiv-Anker im selben Test.
 
 ## Bewusst nicht gelöst
 
-- **Nicht-systemd-Starts** (handgestarteter `llama-server`, Windows-`.ps1`) bleiben unsichtbar.
-- **Kein Lock** zwischen Prüfung und `systemd-run`. Zwei exakt gleichzeitige Starts können
-  durchrutschen; auf einem manuell bedienten Einzelplatz-Host wäre ein Lock mehr Maschinerie
-  als Problem.
+Unverändert gegenüber dem bestehenden Mechanismus: nicht-systemd-Starts bleiben unsichtbar, und
+zwischen Prüfung und `systemd-run` gibt es kein Lock.

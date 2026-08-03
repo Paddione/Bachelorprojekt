@@ -1,34 +1,34 @@
 ## ADDED Requirements
 
-### Requirement: GPU-bound loadouts are mutually exclusive
+### Requirement: Explicit loadout start honours exclusiveGroup
 
-The loadout runner SHALL refuse to start a GPU-bound loadout while another GPU-bound loadout is
-active as a systemd user unit. A loadout counts as GPU-bound exactly when `fit.enabled` is `true`
-in `scripts/llm/loadouts.json`; no separate declaration field is introduced. CPU-bound loadouts
-(`fit.enabled=false`, currently `bge-embed-cpu` and `bge-rerank-cpu`) SHALL neither block a start
-nor be blocked.
+The explicit start endpoint (`POST /admin/loadouts/<slug>/start`) SHALL refuse to start a loadout
+while another loadout sharing its `exclusiveGroup` is active, and SHALL do so with the same error
+code (`exclusive_conflict`), the same HTTP status (409) and the same wording as the auto-start
+path already uses. The proxy SHALL NOT stop the conflicting loadout by itself; the message SHALL
+name the blocking slug, the shared group and the stop command.
 
-The refusal SHALL abort the start. The runner SHALL NOT stop the conflicting unit, because it may
-be serving a request. The error SHALL name the blocking slug, its unit state, and the command to
-stop it. Over HTTP the proxy SHALL answer `409` rather than `500`.
+The conflict predicate SHALL be defined exactly once and be shared by both start paths, so the
+two cannot drift apart. A loadout that is itself already active SHALL NOT count as its own
+conflict — that case remains `already_running`.
 
-Restarting a loadout that is itself already active SHALL NOT be treated as a conflict.
+Loadouts without an `exclusiveGroup`, and loadouts in a different group, SHALL NOT block a start.
 
-#### Scenario: Second GPU loadout is refused while the first runs
+#### Scenario: Explicit start is refused across port boundaries
 
-- **GIVEN** `gemma9-factory` is active as unit `llama-gemma9-factory.service`
-- **WHEN** a start of `gemma26-factory` is requested
-- **THEN** no `systemd-run` is executed, the error names `gemma9-factory` and its stop command,
-  and the HTTP response status is `409`
+- **GIVEN** `gemma9-factory` (group `chat-gpu`, port 8092) is active
+- **WHEN** `POST /admin/loadouts/gemma26-factory/start` is requested (group `chat-gpu`, port 8091)
+- **THEN** the response is `409` with code `exclusive_conflict`, the message names
+  `gemma9-factory` and its stop command, and no unit is started or stopped
 
-#### Scenario: CPU loadout does not block a GPU loadout
+#### Scenario: A different exclusive group does not block
 
-- **GIVEN** only `bge-embed-cpu` (`fit.enabled=false`) is active
-- **WHEN** a start of `gemma26-factory` is requested
+- **GIVEN** only `bge-embed-cpu` (group `bge-cpu`) is active
+- **WHEN** `POST /admin/loadouts/gemma26-factory/start` is requested
 - **THEN** the start proceeds
 
-#### Scenario: Restarting the same loadout is not a self-conflict
+#### Scenario: Both start paths share one conflict definition
 
-- **GIVEN** `gemma26-factory` is active
-- **WHEN** a start of `gemma26-factory` is requested
-- **THEN** the guard reports no conflict
+- **GIVEN** the same set of active loadouts
+- **WHEN** the conflict is evaluated for the auto-start path and for the explicit start path
+- **THEN** both report the same blocking slug and group

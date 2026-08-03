@@ -35,15 +35,15 @@ selbst. `.claude/lib/goals.md` (`.md`) und `Taskfile.yml` (`.yml`) haben kein Li
 Die wirksame Schwelle ist in beiden Fällen das Extension-Limit 800, weil für keine der beiden
 Dateien ein Baseline-Eintrag existiert.
 
-| Datei | Ist | Budget |
+| Datei | Ist | Restbudget |
 |---|---|---|
-| `scripts/health-goals-check.sh` | 615 | 185 |
-| `scripts/lib/llm-stack-measure.sh` | 0 | 800 |
+| `scripts/health-goals-check.sh` | 591 | 209 |
+| `scripts/lib/llm-stack-measure.sh` | 282 | 518 |
 
 Der Umbau in `health-goals-check.sh` ist **netto zeilenreduzierend**: die zwei mehrzeiligen
-Python-Blöcke der Sektion `LLM-TARGETS` (rund 30 Zeilen) werden durch fünf einzeilige
-Skriptaufrufe ersetzt. `scripts/lib/llm-stack-measure.sh` wird auf Zielgröße unter 350 Zeilen
-geschnitten, damit Wachstumsreserve bleibt.
+Python-Blöcke der Sektion `LLM-TARGETS` (rund 30 Zeilen) wurden durch fünf einzeilige
+Skriptaufrufe ersetzt. `scripts/lib/llm-stack-measure.sh` bleibt mit 282 Zeilen deutlich unter
+dem `.sh`-Limit von 800 — Wachstumsreserve bleibt.
 
 ## Entscheidungen, die dieser Plan voraussetzt
 

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 742,
+      "file_count": 743,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -417,6 +417,7 @@
         "tests/spec/health-goal-latest-image-exclusions.bats",
         "tests/spec/health-goals-erden.bats",
         "tests/spec/health-goals.bats",
+        "tests/spec/health-goals/llm-stack-goals.bats",
         "tests/spec/health-goals/worktree-hygiene-goals.bats",
         "tests/spec/helpers/agent-tools.py",
         "tests/spec/hermes-mcp-access.bats",
@@ -3080,7 +3081,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 622,
+      "file_count": 623,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3467,6 +3468,7 @@
         "scripts/lib/count-unresolved-agent-tools.sh",
         "scripts/lib/export.sh",
         "scripts/lib/google-import.sh",
+        "scripts/lib/llm-stack-measure.sh",
         "scripts/lib/nextcloud-api.sh",
         "scripts/lib/notify.sh",
         "scripts/lib/post-deploy-watch.sh",

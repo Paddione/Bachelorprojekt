@@ -1,0 +1,41 @@
+[
+  {
+    "id": "image-alt",
+    "impact": "critical",
+    "help": "Images must have alternate text",
+    "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/image-alt",
+    "nodes": [
+      {
+        "target": ["#hero > img"],
+        "failureSummary": "Fix any of the following: Element does not have an alt attribute",
+        "html": "<img src=\"/images/banner.jpg\">"
+      }
+    ]
+  },
+  {
+    "id": "color-contrast",
+    "impact": "serious",
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/color-contrast",
+    "nodes": [
+      {
+        "target": ["h2", "span"],
+        "failureSummary": "Fix any of the following: Element has insufficient color contrast of 3.21 (foreground color: #888888, background color: #ffffff, font size: 18.0pt)",
+        "html": "<span style=\"color:#888\">Leistungen</span>"
+      }
+    ]
+  },
+  {
+    "id": "link-name",
+    "impact": "moderate",
+    "help": "Links must have discernible text",
+    "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/link-name",
+    "nodes": [
+      {
+        "target": ["a[href=\"/impressum\"]"],
+        "failureSummary": "Fix all of the following: Element is in tab order and does not have accessible text",
+        "html": "<a href=\"/impressum\"><img src=\"/images/doc.svg\"></a>"
+      }
+    ]
+  }
+]

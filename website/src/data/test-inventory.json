@@ -3558,6 +3558,12 @@
     "kind": "shell"
   },
   {
+    "id": "website-core/web-audit",
+    "file": "tests/spec/website-core/web-audit.bats",
+    "category": "website-core",
+    "kind": "shell"
+  },
+  {
     "id": "workspace-deploy",
     "file": "tests/spec/workspace-deploy.bats",
     "category": "workspace-deploy",

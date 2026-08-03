@@ -13,6 +13,22 @@ resources:
   - oauth2-proxy-brainstorm.yaml
   - oauth2-proxy-sessions.yaml
   - dev-ingress.yaml
+patches:
+  - path: dev-node-binding.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+  - path: dev-node-binding.yaml
+    target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+  - path: dev-node-binding.yaml
+    target:
+      group: batch
+      version: v1
+      kind: Job
 # images: populated by `task dev:deploy` with concrete tags at apply time.
 # Note: cert-manager.yaml + traefik-tls.yaml are applied OUTSIDE this bundle by
 # the dev:apply bootstrap (CRDs-first / kube-system namespace). [T000363]

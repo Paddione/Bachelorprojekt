@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.245.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.245.0...website-v1.245.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **scripts:** block commits on main — pre-commit guard enforces ticket→branch→worktree→PR workflow [T002631] ([#3763](https://github.com/Paddione/Bachelorprojekt/issues/3763)) ([cb6956b](https://github.com/Paddione/Bachelorprojekt/commit/cb6956bb7f65195e1dc1a8772a996a66e7b79559))
+
+## [1.245.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.244.0...website-v1.245.0) (2026-08-03)
+
+
+### Features
+
+* **scripts:** agentic-resource-lookup Skill — On-Demand MCP/Agent-Discovery [T002611] ([#3765](https://github.com/Paddione/Bachelorprojekt/issues/3765)) ([42744de](https://github.com/Paddione/Bachelorprojekt/commit/42744dedbc04ca3487033cce11317265c6785ce4))
+
+## [1.244.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.3...website-v1.244.0) (2026-08-03)
+
+
+### Features
+
+* **scripts:** Unsloth-Evaluationsharness — Base-vs-Tuned-Gate [T002606] ([#3747](https://github.com/Paddione/Bachelorprojekt/issues/3747)) ([e333437](https://github.com/Paddione/Bachelorprojekt/commit/e3334373c03e48e859d743c33c9f30ee4d0bbaee))
+
+## [1.243.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.2...website-v1.243.3) (2026-08-03)
+
+
+### Bug Fixes
+
+* **scripts:** plan-lint STRUCT2 erkennt node --test als Testrunner [T002616] ([#3749](https://github.com/Paddione/Bachelorprojekt/issues/3749)) ([902466d](https://github.com/Paddione/Bachelorprojekt/commit/902466d580a9804c38115f6fd3dbd689ef756dd0))
+
 ## [1.243.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.1...website-v1.243.2) (2026-08-03)
 
 

@@ -1,0 +1,50 @@
+# Taskfile.finetune-eval.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Base-vs-Tuned regression gate for Unsloth finetunes (T002606).
+# Included from Taskfile.yml under the "finetune-eval" namespace.
+#
+# `run`  — full evaluation against an adapter, prints/saves the JSON report.
+# `gate` — same evaluation, quiet, exit code only (for use as an acceptance
+#          step in a training pipeline).
+#
+# Both accept ADAPTER=<path to a PEFT adapter dir> and, for CI/tests without
+# GPU or model weights, FIXTURE_BASE=<json> FIXTURE_TUNED=<json> instead.
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3"
+
+vars:
+  TESTSET: '{{.TESTSET | default "scripts/finetune/testsets/agent-actions.jsonl"}}'
+
+tasks:
+
+  run:
+    desc: "Run the base-vs-tuned eval harness against ADAPTER=<path>, print the JSON report."
+    cmds:
+      - |
+        set -euo pipefail
+        args=(--testset "{{.TESTSET}}")
+        if [ -n "{{.FIXTURE_BASE}}" ] && [ -n "{{.FIXTURE_TUNED}}" ]; then
+          args+=(--fixture-base "{{.FIXTURE_BASE}}" --fixture-tuned "{{.FIXTURE_TUNED}}")
+        elif [ -n "{{.ADAPTER}}" ]; then
+          args+=(--adapter "{{.ADAPTER}}")
+        else
+          echo "ERROR: pass ADAPTER=<path> (real run) or FIXTURE_BASE=<json> FIXTURE_TUNED=<json> (test run)" >&2
+          exit 1
+        fi
+        python3 scripts/finetune/eval_harness.py "${args[@]}"
+
+  gate:
+    desc: "Same as run, but quiet — exit code only. Use as an acceptance step before export."
+    cmds:
+      - |
+        set -euo pipefail
+        args=(--testset "{{.TESTSET}}" --quiet)
+        if [ -n "{{.FIXTURE_BASE}}" ] && [ -n "{{.FIXTURE_TUNED}}" ]; then
+          args+=(--fixture-base "{{.FIXTURE_BASE}}" --fixture-tuned "{{.FIXTURE_TUNED}}")
+        elif [ -n "{{.ADAPTER}}" ]; then
+          args+=(--adapter "{{.ADAPTER}}")
+        else
+          echo "ERROR: pass ADAPTER=<path> (real run) or FIXTURE_BASE=<json> FIXTURE_TUNED=<json> (test run)" >&2
+          exit 1
+        fi
+        python3 scripts/finetune/eval_harness.py "${args[@]}"

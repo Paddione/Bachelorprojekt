@@ -251,7 +251,7 @@ gateway is unreachable the script SHALL exit `0` with a warning (cron-friendly),
 
 <!-- merged from change delta health-goals.md (10c126152d2d) -->
 
-### Requirement: REQ-HEALTH-GOALS-005 — Scheduled Measurement of Goal Values
+### Requirement: REQ-HEALTH-GOALS-008 — Scheduled Measurement of Goal Values
 
 Die vier bestehenden Requirements dieser Spec beschreiben, wie Goal-Werte aus
 `.claude/lib/goals.md` **abgeleitet** werden (SSOT, Generator, Freshness-Gate, Fail-Loud) — aber
@@ -293,7 +293,7 @@ derives work from these values.
 
 ---
 
-### Requirement: REQ-HEALTH-GOALS-006 — Atomic Commit of SSOT and Generated Artifact
+### Requirement: REQ-HEALTH-GOALS-009 — Atomic Commit of SSOT and Generated Artifact
 
 Schreibt ein unbeaufsichtigter Workflow `.claude/lib/goals.md` fort, ohne
 `website/src/lib/goals-data.generated.json` im selben Commit nachzuziehen, entsteht auf `main` ein
@@ -321,28 +321,101 @@ trigger the website image build that delivers the new values to the dashboard.
 
 ---
 
-### Requirement: REQ-HEALTH-GOALS-007 — Measurement Date Reflects the Newest Update
+### Requirement: REQ-HEALTH-GOALS-010 — Measurement Date Comes From an Explicit Stamped Field
 
-Die `**Baseline-Update <datum>`-Marker in `.claude/lib/goals.md` stehen thematisch sortiert —
-Prio-A-Abschnitt oben, Prio-B/C-Historie unten — nicht chronologisch. Der letzte Marker in
-Dokument-Reihenfolge ist deshalb nicht der jüngste.
+Das Messdatum steht als eigenes Feld `**Zuletzt gemessen:** \`<ISO>\`` im Kopf von
+`.claude/lib/goals.md` und wird von `scripts/health-goals-update.sh` bei jedem Messlauf
+gestempelt — auch dann, wenn kein einziger Wert sich geändert hat. Ein Lauf mit stabilen Werten
+ist trotzdem eine frische Messung; an eine Wertänderung gekoppelt würde das Dashboard Stillstand
+wie Aktualität aussehen lassen.
 
-`scripts/gen-goals-data.mjs` SHALL derive the `measured_at` field from the newest
-`**Baseline-Update <date>` marker by date comparison, not from the last occurrence in document
-order. When no such marker exists, it SHALL fall back to the `Baseline-Stichtag` value.
+Vor T002598 wurde das Datum aus dem jüngsten `**Baseline-Update <datum>`-Marker der Chronik-Prosa
+abgeleitet. Seit die Chronik in `docs/health-goals-history.md` liegt, gibt es dort nichts mehr zu
+finden; die Ableitung wäre still auf den statischen `Baseline-Stichtag` zurückgefallen und hätte
+ein Monat altes Datum als aktuell ausgewiesen, ohne dass ein Gate rot wird.
 
-#### Scenario: T002162-E: das jüngste Datum gewinnt gegen die Dokument-Reihenfolge *(BATS)*
+`scripts/gen-goals-data.mjs` SHALL read `measured_at` from the explicit
+`**Zuletzt gemessen:** \`<ISO>\`` field. When that field is absent it SHALL fall back — in this
+order — to the newest `**Baseline-Update <date>` marker by date comparison (legacy path, kept so
+an un-migrated `goals.md` keeps working), then to the `Baseline-Stichtag` value.
 
-- **GIVEN** eine `goals.md` mit einem `**Baseline-Update 2026-07-25`-Marker oberhalb eines
-  `**Baseline-Update 2026-07-22`-Markers
+`scripts/health-goals-update.sh` SHALL stamp the field whenever it processed at least one measured
+value, and SHALL warn on stderr when the field is missing from the target file.
+
+#### Scenario: Das explizite Feld bestimmt measured_at *(BATS)*
+
+- **GIVEN** eine `goals.md` mit `**Zuletzt gemessen:** \`2026-08-03\``
 - **WHEN** `scripts/gen-goals-data.mjs` läuft
-- **THEN** tragen die erzeugten Einträge `measured_at: "2026-07-25"`
+- **THEN** tragen die erzeugten Einträge `measured_at: "2026-08-03"`
 
-#### Scenario: Ohne Update-Marker gilt der Baseline-Stichtag *(BATS)*
+#### Scenario: Das explizite Feld schlägt einen älteren Legacy-Marker *(BATS)*
 
-- **GIVEN** eine `goals.md` ohne jeden `**Baseline-Update`-Marker, aber mit
+- **GIVEN** eine `goals.md` mit `**Zuletzt gemessen:** \`2026-08-03\`` im Kopf und einem
+  `**Baseline-Update 2026-07-25`-Marker weiter unten
+- **WHEN** `scripts/gen-goals-data.mjs` läuft
+- **THEN** tragen die erzeugten Einträge `measured_at: "2026-08-03"`
+
+#### Scenario: Ohne Feld und ohne Marker gilt der Baseline-Stichtag *(BATS)*
+
+- **GIVEN** eine `goals.md` ohne das Feld und ohne jeden `**Baseline-Update`-Marker, aber mit
   `**Baseline-Stichtag:** \`2026-07-01\``
 - **WHEN** `scripts/gen-goals-data.mjs` läuft
 - **THEN** tragen die erzeugten Einträge `measured_at: "2026-07-01"`
+
+#### Scenario: Ein Messlauf ohne Wertänderung stempelt trotzdem *(BATS)*
+
+- **GIVEN** ein Messlauf, dessen Werte alle mit den dokumentierten übereinstimmen
+- **WHEN** `scripts/health-goals-update.sh` läuft
+- **THEN** ist `**Zuletzt gemessen:**` auf das Laufdatum aktualisiert
+
+---
+
+### Requirement: REQ-HEALTH-GOALS-011 — Register and Measurement Stay in Parity
+
+`.claude/lib/goals.md` ist das Register (welche Ziele gelten), `scripts/health-goals-check.sh` ist
+die Messung (wie sie geprüft werden). Bis T002598 prüfte niemand, ob beide dieselbe Menge führen —
+dadurch sammelten sich **35 Ziele** an, die dokumentiert waren, aber nie gemessen wurden. Sie
+zeigten dauerhaft den zuletzt von Hand eingetragenen Wert, weil `gen-goals-data.mjs` nichts misst,
+sondern `goals.md` parst. Ein Ziel ohne `row()`-Aufruf ist damit für immer grün.
+
+The test suite SHALL fail when a goal ID documented in `.claude/lib/goals.md` has no `row` call in
+`scripts/health-goals-check.sh`, and SHALL equally fail when a `row` call measures an ID that is not
+documented. Every such test SHALL carry a positive anchor asserting that the ID extraction found
+known anchors, so a broken extraction fails loudly instead of yielding two empty sets and a
+vacuously green comparison.
+
+Die ID-Regex SHALL be `G-[A-Z0-9]+`. Das Muster `G-[A-Z]+[0-9]+` zerschneidet IDs mit Ziffern im
+Präfix — `G-E2E01` wird zu `G-E2`, und `G-K8S01`–`04` fallen vollständig durch.
+
+`.claude/lib/goals.md` SHALL carry at most **5** `Baseline-Update` entries; older ones belong in
+`docs/health-goals-history.md`.
+
+Ein Ziel SHALL NOT gleichzeitig als H2-Sektion und als Prio-C-Tabellenzeile geführt werden — die
+Dublette erzeugt zwei Einträge im generierten Artefakt, von denen
+`scripts/health-goals-update.sh` nur einen fortschreibt.
+
+#### Scenario: Ein dokumentiertes Ziel ohne Messung schlägt fehl *(BATS)*
+
+- **GIVEN** eine Ziel-ID in `.claude/lib/goals.md` ohne `row`-Aufruf in `health-goals-check.sh`
+- **WHEN** `tests/spec/health-goals/id-parity.bats` läuft
+- **THEN** schlägt der Paritätstest fehl und nennt die betroffene ID
+
+#### Scenario: Eine Messung ohne Dokumentation schlägt fehl *(BATS)*
+
+- **GIVEN** einen `row`-Aufruf für eine ID, die in `goals.md` fehlt
+- **WHEN** `tests/spec/health-goals/id-parity.bats` läuft
+- **THEN** schlägt der Paritätstest in der Gegenrichtung fehl
+
+#### Scenario: Eine gebrochene ID-Extraktion meldet sich, statt still grün zu werden *(BATS)*
+
+- **GIVEN** ein Register, in dem der bekannte Anker `G-K8S01` nicht mehr gefunden wird
+- **WHEN** `tests/spec/health-goals/id-parity.bats` läuft
+- **THEN** schlägt der Positiv-Anker-Test fehl
+
+#### Scenario: Ein nicht ermittelbarer Messwert wird als SKIP ausgewiesen, nicht als 0 *(BATS)*
+
+- **GIVEN** eine Messung, deren Werkzeug fehlt oder deren Netzaufruf scheitert
+- **WHEN** `scripts/health-goals-check.sh` läuft
+- **THEN** meldet die Zeile `n/a` (SKIP) statt eines Zahlenwerts, und weder Grün noch Rot
 
 <!-- merged from change delta health-goals.md (a4a86ec5536e) -->

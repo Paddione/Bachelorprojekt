@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 748,
+      "file_count": 750,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -419,6 +419,8 @@
         "tests/spec/health-goal-latest-image-exclusions.bats",
         "tests/spec/health-goals-erden.bats",
         "tests/spec/health-goals.bats",
+        "tests/spec/health-goals/id-parity.bats",
+        "tests/spec/health-goals/measured-at-field.bats",
         "tests/spec/health-goals/worktree-hygiene-goals.bats",
         "tests/spec/helpers/agent-tools.py",
         "tests/spec/hermes-mcp-access.bats",

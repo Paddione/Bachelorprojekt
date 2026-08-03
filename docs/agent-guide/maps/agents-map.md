@@ -20,13 +20,15 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 
 | Agent | Modus | Modell | Schreibfähig | Hinweis |
 | --- | --- | --- | --- | --- |
-| deepseek-flash | subagent | deepseek/deepseek-chat | ja | DeepSeek-V3 (200K ctx, max reasoning effort). Up to 3 parallel for independent subtasks. |
-| deepseek-helper | subagent | deepseek/deepseek-chat | ja | Escalation: DeepSeek-V3 (128K ctx) via direct DeepSeek API |
-| deepseek-pro | subagent | deepseek/deepseek-reasoner | ja | DeepSeek-R1 (128K ctx, max reasoning effort) for deep analysis and hard refactors |
-| gemma26-1 | subagent | llamacpp-gemma26/gemma26-factory | nein | Slot 1 of 3 (-np 3 -kvu, ~99840 ctx each). Own prefix cache; still serialized by llm-proxy (max_inflight=1) [T002545] |
-| gemma26-2 | subagent | llamacpp-gemma26/gemma26-factory | nein | Slot 2 of 3 — separate name so the two subagents keep distinct prefix caches [T002545] |
-| gemma26-primary | primary | llamacpp-gemma26/gemma26-factory | nein | Tab-selectable primary agent, slot 3 of 3, ~97840 ctx (measured, not n_ctx_train) [T002545] |
-| gemma26-vision | primary | llamacpp-gemma26/gemma26-factory | nein | Max context (97840 ctx), no subagent dispatch. Vision-ready (needs mmproj in loadout). |
-| gemma9-1 | subagent | llamacpp-gemma9/gemma9-factory | nein | Slot 1 of 2 (llama.cpp :8092). Own prefix cache; preferred for small, atomic partial-plan implementations [T002591] |
-| gemma9-2 | subagent | llamacpp-gemma9/gemma9-factory | nein | Slot 2 of 2 — separate name so the two subagents keep distinct prefix caches [T002591] |
+| deepseek-flash | subagent | opencode-go/deepseek-v4-flash | ja | DeepSeek-V4 Flash (1M ctx, max reasoning effort). Up to 3 parallel for independent subtasks [T002632] |
+| deepseek-flash-direct | subagent | deepseek/deepseek-v4-flash | ja | Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable [T002633] |
+| deepseek-helper | subagent | deepseek/deepseek-v4-flash | ja | Escalation: DeepSeek-V4 Flash (1M ctx) via direct DeepSeek API [T002632] |
+| deepseek-pro | subagent | opencode-go/deepseek-v4-pro | ja | DeepSeek-V4 Pro (1M ctx, max reasoning effort) for deep analysis and hard refactors [T002632] |
+| deepseek-pro-direct | subagent | deepseek/deepseek-v4-pro | ja | Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable [T002633] |
+| gemma26-1 | subagent | llamacpp-local/gptoss-context | nein | Own prefix cache; still serialized by llm-proxy (max_inflight=1) [T002545/T002633] |
+| gemma26-2 | subagent | llamacpp-local/gptoss-context | nein | Separate name so the two subagents keep distinct prefix caches [T002545/T002633] |
+| gemma26-primary | primary | llamacpp-local/gptoss-context | nein | Tab-selectable primary agent, 105472 ctx (measured, not n_ctx_train) [T002545/T002633] |
+| gemma26-vision | primary | llamacpp-local/gptoss-context | nein | Max context, no subagent dispatch. Text-only — gpt-oss-20b has no mmproj [T002633] |
+| gemma9-1 | subagent | llamacpp-local/gptoss-context | nein | Own prefix cache; preferred for small, atomic partial-plan implementations [T002591/T002633] |
+| gemma9-2 | subagent | llamacpp-local/gptoss-context | nein | Separate name so the two subagents keep distinct prefix caches [T002591/T002633] |
 | orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the gemma26 subagents sequentially |

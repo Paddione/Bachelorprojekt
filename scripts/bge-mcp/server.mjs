@@ -92,18 +92,43 @@ function target(role) {
   return resolveEndpoint(role);
 }
 
+/**
+ * Ruft den Upstream auf und macht den Fehlerfall diagnostizierbar (T002604).
+ *
+ * `fetch` wirft bei einem toten Ziel ein blankes `TypeError: fetch failed` —
+ * ohne Rolle, ohne Adresse. Am 2026-08-03 war genau das die vollstaendige
+ * Fehlermeldung beider Tools, waehrend die Ursache (tote Port-Forwards der
+ * systemd-Unit) mehrere Schritte entfernt lag. Die Rolle und die aufgeloeste
+ * Zieladresse gehoeren deshalb in die Meldung: sie zeigen sofort, ob der
+ * Router falsch aufloest oder der Endpoint nicht antwortet.
+ */
+async function callUpstream(role, url, path, payload) {
+  let r;
+  try {
+    r = await fetch(`${url}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (cause) {
+    throw new Error(
+      `bge_${role}: upstream unreachable at ${url}${path} (${cause?.message ?? String(cause)})`,
+      { cause },
+    );
+  }
+  if (!r.ok) throw new Error(`bge_${role}: upstream at ${url}${path} answered ${r.status}`);
+  return r.json();
+}
+
 async function embed(args) {
   const texts = Array.isArray(args?.texts) ? args.texts.filter((t) => typeof t === 'string') : [];
   if (texts.length === 0) throw new Error('bge_embed: "texts" must be a non-empty array of strings');
   const url = target('embed');
 
-  const r = await fetch(`${url}/v1/embeddings`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: process.env.LLM_EMBED_MODEL ?? 'bge-m3', input: texts }),
+  const body = await callUpstream('embed', url, '/v1/embeddings', {
+    model: process.env.LLM_EMBED_MODEL ?? 'bge-m3',
+    input: texts,
   });
-  if (!r.ok) throw new Error(`bge_embed: endpoint answered ${r.status}`);
-  const body = await r.json();
   return {
     dimensions: body.data?.[0]?.embedding?.length ?? 0,
     embeddings: (body.data ?? []).map((d) => d.embedding),
@@ -118,17 +143,11 @@ async function rerank(args) {
   if (documents.length === 0) throw new Error('bge_rerank: "documents" must be a non-empty array');
   const url = target('rerank');
 
-  const r = await fetch(`${url}/v1/rerank`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: process.env.LLM_RERANK_MODEL ?? 'bge-reranker-v2-m3',
-      query,
-      documents,
-    }),
+  const body = await callUpstream('rerank', url, '/v1/rerank', {
+    model: process.env.LLM_RERANK_MODEL ?? 'bge-reranker-v2-m3',
+    query,
+    documents,
   });
-  if (!r.ok) throw new Error(`bge_rerank: endpoint answered ${r.status}`);
-  const body = await r.json();
   const ranked = (body.results ?? [])
     .map(({ index, relevance_score }) => ({ document: documents[index], score: relevance_score }))
     .sort((a, b) => b.score - a.score);

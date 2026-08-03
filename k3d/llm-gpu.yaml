@@ -48,6 +48,17 @@ metadata:
     app: bge-embed
 spec:
   replicas: 1
+  # Recreate, nicht RollingUpdate: die models-PVC ist ReadWriteOnce (Longhorn).
+  # Mit maxSurge startet der neue Pod, bevor der alte das Volume freigibt — und
+  # wartet dann auf ein Attach, das erst kommt, wenn er selbst weicht. Am
+  # 2026-08-03 stand bge-embed-7cf55557c9-fhvzl deshalb 155min in Init:0/1
+  # (PodInitializing, der initContainer startete nicht einmal), waehrend das
+  # VolumeAttachment noch an pk-hetzner-8 hing und der neue Pod auf
+  # pk-hetzner-6 geschedult war. Ein kurzer Ausfall beim Rollout ist der Preis;
+  # ein Deployment, das seinen eigenen Rollout nicht abschliessen kann, ist die
+  # Alternative (T002604).
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: bge-embed
@@ -167,6 +178,11 @@ metadata:
     app: bge-rerank
 spec:
   replicas: 1
+  # Wie bei bge-embed: ReadWriteOnce-PVC vertraegt kein maxSurge. Dieses
+  # Deployment trug denselben Defekt und war nur zufaellig noch nicht
+  # haengengeblieben — sein Rollout traf bisher immer denselben Node (T002604).
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: bge-rerank

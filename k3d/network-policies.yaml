@@ -422,6 +422,56 @@ spec:
     - port: 8787
       protocol: TCP
 ---
+# bge-embed: ingress from the website namespace on the container port (T002604)
+#
+# Die Portangabe ist 8080, nicht 8081. NetworkPolicies filtern auf dem POD-Port;
+# der Service llm-gateway-embed mappt 8081 -> 8080. Eine Policy auf 8081 waere
+# wirkungslos und der Fehler bliebe unveraendert bestehen.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-to-bge-embed-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: bge-embed
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ${WEBSITE_NAMESPACE}
+    ports:
+    - port: 8080
+      protocol: TCP
+---
+# bge-rerank: ingress from the website namespace on the container port (T002604)
+#
+# Bei der Migration der bge-Server vom WSL-Host in den Cluster (T002551) wurden
+# diese beiden Ausnahmen vergessen. ns workspace faehrt default-deny-ingress,
+# deshalb lief jeder Aufruf der Website ins ECONNREFUSED (kube-router REJECT),
+# waehrend derselbe Aufruf aus ns workspace heraus 200 lieferte. Wirkung: alle
+# /api/bge/*-Endpunkte und die Knowledge-Suche antworteten mit 503.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-website-to-bge-rerank-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: bge-rerank
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ${WEBSITE_NAMESPACE}
+    ports:
+    - port: 8080
+      protocol: TCP
+---
 # brett: ingress from Traefik on 3000
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

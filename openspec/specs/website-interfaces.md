@@ -90,20 +90,23 @@ so the React SPA at `react.<brand>` keeps rendering even on a cold start.
 
 ### Requirement: Public-API Fail-soft für `/api/timeline` und Slot-Endpoints
 
-The system SHALL return `200` with an empty `rows` array (not `5xx`) when
-external services (LiveKit, caldav, Nextcloud OCS) are unreachable from
-`/api/timeline` and slot/booking endpoints, so a public visitor never sees
-a stack trace and the homepage continues to render without the widget.
+The system SHALL return `200` with an empty `rows` array (not `5xx`) when external services
+(caldav, Nextcloud OCS) are unreachable from `/api/timeline` and the slot/booking endpoints, so
+a public visitor never sees a stack trace and the homepage continues to render without the
+widget. LiveKit is no longer part of this dependency set — the stack was removed in T002184.
 
-#### Scenario: LiveKit ist down
+#### Scenario: Nextcloud OCS ist down
 
-- **GIVEN** `LLM_LIVEKIT_URL` ist nicht erreichbar (Connection refused)
-- **WHEN** `GET /api/timeline` auf `web.<brand>` aufgerufen wird
-- **THEN** antwortet der Server mit `200`, `{ rows: [], error:
-  'fetch_failed' }`, und der Timeline-Widget auf der Homepage blendet sich
-  client-seitig aus (kein Layout-Shift > 1 s)
+- **GIVEN** the Nextcloud OCS endpoint is unreachable (connection refused)
+- **WHEN** `GET /api/timeline` is called on `web.<brand>`
+- **THEN** the server responds with `200` and `{ rows: [], error: 'fetch_failed' }`, and the
+  timeline widget on the homepage hides itself
 
----
+#### Scenario: Keine LiveKit-Umgebungsvariable wird mehr gelesen
+
+- **GIVEN** the website build after the T002184 removal
+- **WHEN** the API handlers under `website/src/pages/api/` are scanned
+- **THEN** no handler reads `LLM_LIVEKIT_URL`, `LIVEKIT_DOMAIN` or `LIVEKIT_PIN_IP`
 
 ### Requirement: Admin-API mit SHA-Concurrency statt DB-Versionen
 
@@ -363,3 +366,5 @@ against unrelated endpoints in the same test run:
   Commit-Gap ist explizit nicht im Scope.
 
 <!-- merged from change delta website-interfaces.md (58a5b5d12f2e) -->
+
+<!-- merged from change delta website-interfaces.md (06d40c5668eb) -->

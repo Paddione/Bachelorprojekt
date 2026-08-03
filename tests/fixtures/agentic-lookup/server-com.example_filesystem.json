@@ -1,0 +1,12 @@
+{
+  "name": "com.example/filesystem",
+  "description": "Filesystem access MCP server.",
+  "source": "https://github.com/example/filesystem",
+  "packages": [
+    {
+      "type": "npm",
+      "id": "@example/filesystem-mcp"
+    }
+  ],
+  "repository": "https://github.com/example/filesystem"
+}

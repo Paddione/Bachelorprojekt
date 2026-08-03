@@ -474,7 +474,7 @@ env_vars:
   - name: DEV_DOMAIN
     required: false
     default_dev: ""
-    description: "Public base domain for the dev stack (e.g. dev.mentolder.de). Empty disables the dev stack."
+    description: "Public base domain for the dev stack (e.g. dev.mentolder.de). Empty disables the dev stack. scripts/flux-render-artifact.sh reads this value from environments/dev-cluster.yaml for the fleet-rendered stack (workspace-dev); environments/dev.yaml describes only the local k3d environment and no longer controls the cluster dev stack (T002630)."
 
   - name: DEV_NODE
     required: false

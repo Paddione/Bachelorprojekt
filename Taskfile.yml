@@ -260,6 +260,11 @@ tasks:
     cmds:
       - bash scripts/mcp-sync.sh check
 
+  toolset:lookup:
+    desc: "On-demand MCP/agent resource discovery — find, inspect, and record curation decisions"
+    cmds:
+      - node scripts/agentic-lookup.mjs {{.CLI_ARGS}}
+
   # ─────────────────────────────────────────────
   # Configuration Management
   # ─────────────────────────────────────────────
@@ -2694,6 +2699,11 @@ tasks:
         # Platform manifests are placeholder-free, so no envsubst is needed here.
         kustomize build prod-fleet/platform/ --load-restrictor=LoadRestrictionsNone \
           | kubectl --context fleet apply --server-side --force-conflicts -f -
+
+  fleet:membership:
+    desc: "Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context fleet get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task fleet:membership"
+    cmds:
+      - bash scripts/fleet-membership-check.sh
 
   fleet:deploy:brand:
     desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"

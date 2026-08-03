@@ -1,0 +1,19 @@
+# scripts/finetune/.gitignore — Trainingsartefakte (T002587).
+#
+# Umgezogen aus dem entfernten unsloth_training_setup/.gitignore (Vorversuch) plus den
+# Wurzel-.gitignore-Eintraegen fuer denselben Cache (T002590/T002587) — der Pfad
+# unsloth_training_setup/ existiert nicht mehr, die Regeln gelten jetzt fuer diesen Ort.
+.venv/
+outputs/
+data/
+logs/
+*.log
+
+# Unsloth-Kompilat-Cache (generiert beim Training, kein Quellartefakt) [T002590]
+unsloth_compiled_cache/
+# Dateisperren des Kompilat-Caches — bewusst eigene Regel, damit sie einen
+# Pfadwechsel des Cache-Verzeichnisses ueberlebt [T002587]
+**/.locks/
+# Tokenizer-Konvertierungs-Tempdir (37 MB tokenizer.json/.model pro Lauf) [T002587]
+_unsloth_sentencepiece_temp/
+detect_*_result.json

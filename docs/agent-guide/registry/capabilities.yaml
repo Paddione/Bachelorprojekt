@@ -518,6 +518,22 @@ capabilities:
       tier: assisted
       deep_ref: ".claude/skills/unsloth-buddy/SKILL.md"
 
+  # Eigene Faehigkeit statt einer zweiten canonical-Instanz unter modell-finetuning: das
+  # Registry-Schema erlaubt maximal eine canonical-Instanz je Faehigkeit (siehe
+  # scripts/toolset/lib/registry.mjs). modell-finetuning bleibt die generische
+  # Unsloth/TRL-API-Faehigkeit (skill:unsloth-buddy); diese hier ist die Repo-eigene
+  # Orchestrierung darueber (Vorbedingungs-Gates, Taskfile.finetune.yml) — dasselbe Muster
+  # wie die Trennung von huggingface-hub-operationen von modell-finetuning (T002596).
+  finetune-pipeline:
+    cli:scripts/finetune:
+      state: canonical
+      use_when: "Repo-Trainingslauf durchfuehren: Messschritt (measure_corpus.py) vor jeder Modellwahl, Template-Guard vor jedem Training, dann finetune:train/export ueber Taskfile.finetune.yml."
+      avoid_when: "Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer modell-finetuning/skill:unsloth-buddy direkt."
+      fallback: "unsloth-buddy-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist."
+      roles: [orchestrator, bachelorprojekt-ops]
+      tier: assisted
+      deep_ref: ".claude/skills/finetune-run/SKILL.md"
+
   # huggingface-skills lag bis T002596 unter `modell-finetuning` und war dort suppressed,
   # weil unsloth-buddy die kanonische Trainings-Instanz ist. Der Schnitt war falsch: das
   # Paket liefert Hub-Operationen (hf-cli, Spaces, Datasets, Papers, SageMaker-Deployment),

@@ -2508,6 +2508,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/llm-stack-goals",
+    "file": "tests/spec/health-goals/llm-stack-goals.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "health-goals/measured-at-field",
     "file": "tests/spec/health-goals/measured-at-field.bats",
     "category": "health-goals",

@@ -2,7 +2,15 @@
 
 ## Purpose
 
-_Purpose fehlt — beim nächsten inhaltlichen Delta zu local-llm-proxy ergänzen._
+Der lokale LLM-Proxy (`scripts/llm-proxy/`) ist das alleinige Gateway, über das jeder lokale
+Harness — Factory-Orchestrator, Factory-Phasenagenten, opencode und weitere Agenten — mit den
+llama.cpp-Backends spricht. Er hört auf Port 18235, löst Modellnamen auf Backends auf und
+verwaltet die Loadouts als transiente systemd-User-Units: er startet ein Loadout bei Bedarf
+selbst und setzt dabei durch, dass sich Loadouts derselben `exclusiveGroup` nicht gegenseitig
+von der GPU verdrängen.
+
+Der Zweck dieser Bündelung ist, dass Routing, Kontextbudget, Tool-Schema-Sanitizing und
+GPU-Belegung an genau einer Stelle entschieden werden statt in jedem Konsumenten einzeln.
 
 ## Requirements
 

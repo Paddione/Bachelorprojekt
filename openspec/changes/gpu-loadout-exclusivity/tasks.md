@@ -27,7 +27,7 @@ Kein Partial-Split: eine Extraktion und ihr Aufrufer, nicht sinnvoll disjunkt tr
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** `scripts/llm-proxy/exclusive-conflict.test.mjs` anlegen mit
+- [x] **Failing-Test-Step (RED).** `scripts/llm-proxy/exclusive-conflict.test.mjs` anlegen mit
       den sechs Fällen aus `design.md`. Der Test importiert `findExclusiveConflict` aus
       `loadouts.mjs` — die Funktion existiert noch nicht, der Import scheitert. `activeSlugs`
       wird als Array übergeben, nie aus `unitStatus` gelesen: der Test darf keine systemd-Unit
@@ -38,33 +38,33 @@ node --test scripts/llm-proxy/exclusive-conflict.test.mjs
 # expected: FAIL (rot — findExclusiveConflict existiert noch nicht)
 ```
 
-- [ ] **Konfliktsuche herauslösen (GREEN, Teil 1).** In `scripts/llm-proxy/loadouts.mjs`
+- [x] **Konfliktsuche herauslösen (GREEN, Teil 1).** In `scripts/llm-proxy/loadouts.mjs`
       `findExclusiveConflict(doc, slug, activeSlugs)` exportieren: liefert
       `{conflictSlug, group}` für das erste andere aktive Loadout derselben
       `exclusiveGroup`, sonst `null`. Ohne `exclusiveGroup` immer `null`, eigener Slug
       ausgeschlossen. Die Logik wird aus `planAutoStart` (Zeilen 207–212) übernommen, nicht
       neu formuliert.
 
-- [ ] **`planAutoStart` auf die neue Funktion umstellen (GREEN, Teil 2).** Der Block in
+- [x] **`planAutoStart` auf die neue Funktion umstellen (GREEN, Teil 2).** Der Block in
       `planAutoStart` ruft `findExclusiveConflict` auf, statt die Suche selbst zu führen. Das
       Rückgabeformat `{action:'conflict', slug, conflictSlug, group}` bleibt unverändert —
       `proxyV1` hängt daran. Die bestehenden Tests in `loadouts.test.mjs` müssen ohne Änderung
       grün bleiben; werden sie rot, ist die Extraktion nicht verhaltensgleich.
 
-- [ ] **Prüfung in `startLoadout` (GREEN, Teil 3).** In `scripts/llm-proxy/server.mjs` nach dem
+- [x] **Prüfung in `startLoadout` (GREEN, Teil 3).** In `scripts/llm-proxy/server.mjs` nach dem
       `port_busy`-Check und vor `resolveModelPath` den Konflikt prüfen und bei Treffer
       `LoadoutStartError(409, 'exclusive_conflict', …)` werfen. Die aktiven Slugs werden wie in
       `ensureLoadoutForModel` über `unitStatus(l.slug).active === 'active'` ermittelt. Meldung
       wortgleich zum `/v1`-Pfad: blockierender Slug, Gruppe, Stop-Befehl, Hinweis dass der
       Proxy nichts von selbst stoppt.
 
-- [ ] **Purpose des SSOT-Specs ergänzen.** In `openspec/specs/local-llm-proxy.md` den Platzhalter
+- [x] **Purpose des SSOT-Specs ergänzen.** In `openspec/specs/local-llm-proxy.md` den Platzhalter
       `_Purpose fehlt — beim nächsten inhaltlichen Delta zu local-llm-proxy ergänzen._` durch
       einen deutschen Purpose-Absatz ersetzen: der Node-Proxy als alleiniges lokales
       LLM-Gateway auf Port 18235, das Loadouts als systemd-User-Units verwaltet, sie bei Bedarf
       startet und dabei die `exclusiveGroup`-Belegung der GPU durchsetzt.
 
-- [ ] **Final Verification.** Die drei Pflicht-Gates:
+- [x] **Final Verification.** Die drei Pflicht-Gates:
 
 ```bash
 task test:changed

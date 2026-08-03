@@ -3097,7 +3097,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 626,
+      "file_count": 627,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3503,6 +3503,7 @@
         "scripts/llm-host-setup.sh",
         "scripts/llm-proxy/backends.mjs",
         "scripts/llm-proxy/discovery.mjs",
+        "scripts/llm-proxy/exclusive-conflict.test.mjs",
         "scripts/llm-proxy/fixups.mjs",
         "scripts/llm-proxy/llm-proxy.service",
         "scripts/llm-proxy/loadouts.mjs",

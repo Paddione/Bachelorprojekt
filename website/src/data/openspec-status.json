@@ -2379,6 +2379,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002587": [
+    {
+      "slug": "unsloth-training-env",
+      "status": "plan_staged"
+    }
+  ],
   "T002592": [
     {
       "slug": "2026-08-03-toolset-usage-injection",

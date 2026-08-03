@@ -3498,6 +3498,12 @@
     "kind": "shell"
   },
   {
+    "id": "unsloth-eval-harness/gguf-fixture-bridge",
+    "file": "tests/spec/unsloth-eval-harness/gguf-fixture-bridge.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
     "id": "unsloth-eval-harness/regression-gate",
     "file": "tests/spec/unsloth-eval-harness/regression-gate.bats",
     "category": "unsloth-eval-harness",

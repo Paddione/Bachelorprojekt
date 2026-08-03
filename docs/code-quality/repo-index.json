@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 769,
+      "file_count": 770,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -610,6 +610,7 @@
         "tests/spec/toolset-registry/sync-surgical.bats",
         "tests/spec/toolset-registry/unreviewed-quarantine.bats",
         "tests/spec/ts-suppression.bats",
+        "tests/spec/unsloth-eval-harness/gguf-fixture-bridge.bats",
         "tests/spec/unsloth-eval-harness/regression-gate.bats",
         "tests/spec/unsloth-eval-harness/scoring-rules.bats",
         "tests/spec/unsloth-eval-harness/testset-shape.bats",
@@ -782,7 +783,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 51,
+      "file_count": 53,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -834,7 +835,9 @@
         "scripts/migrations/2026-07-27-llm-proxy-gemma-backend.sql",
         "scripts/migrations/2026-07-27-provider-fallback-cascade.sql",
         "scripts/migrations/2026-07-27-provider-health-integrity.sql",
-        "scripts/migrations/2026-07-28-schema-diaet-T002331.sql"
+        "scripts/migrations/2026-07-28-schema-diaet-T002331.sql",
+        "scripts/migrations/2026-08-03-llm-proxy-gptoss-devstral.sql",
+        "scripts/migrations/2026-08-03-retire-stale-model-ids.sql"
       ]
     },
     {
@@ -3108,7 +3111,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 635,
+      "file_count": 637,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3451,6 +3454,7 @@
         "scripts/find-changed-tests.sh",
         "scripts/finetune/eval_harness.py",
         "scripts/finetune/eval_scoring.py",
+        "scripts/finetune/gen_fixtures.py",
         "scripts/finetune/testsets/README.md",
         "scripts/finetune/testsets/agent-actions.jsonl",
         "scripts/fix-archive-plan-status.sh",
@@ -3522,6 +3526,7 @@
         "scripts/llm-proxy/discovery.mjs",
         "scripts/llm-proxy/exclusive-conflict.test.mjs",
         "scripts/llm-proxy/fixups.mjs",
+        "scripts/llm-proxy/fixups.test.mjs",
         "scripts/llm-proxy/llm-proxy.service",
         "scripts/llm-proxy/loadouts.mjs",
         "scripts/llm-proxy/loadouts.test.mjs",

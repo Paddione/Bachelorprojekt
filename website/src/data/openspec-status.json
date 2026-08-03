@@ -1207,8 +1207,8 @@
   ],
   "T002003": [
     {
-      "slug": "factory-scout-backoff",
-      "status": "plan_staged"
+      "slug": "2026-08-03-factory-scout-backoff",
+      "status": "archived"
     }
   ],
   "T002006": [
@@ -1693,8 +1693,8 @@
   ],
   "T002279": [
     {
-      "slug": "fix-ticket-tracking-T002279",
-      "status": "plan_staged"
+      "slug": "2026-08-03-fix-ticket-tracking-T002279",
+      "status": "archived"
     }
   ],
   "T002280": [
@@ -1855,8 +1855,8 @@
   ],
   "T002349": [
     {
-      "slug": "k3d-kustomization-T002349",
-      "status": "plan_staged"
+      "slug": "2026-08-03-k3d-kustomization-T002349",
+      "status": "archived"
     }
   ],
   "T002350": [

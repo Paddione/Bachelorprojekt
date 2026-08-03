@@ -198,13 +198,13 @@
       "model": "gemma9/gemma-2-9b-it-Q4_K_M.gguf",
       "port": 8092,
       "fit": {
-        "enabled": false,
+        "enabled": true,
         "targetMarginMib": 128,
-        "minCtx": 98304
+        "minCtx": 65536
       },
       "args": {
-        "ctx": 98304,
-        "ngl": 99,
+        "ctx": null,
+        "ngl": null,
         "parallel": 1,
         "cacheTypeK": "q4_0",
         "cacheTypeV": "q4_0",
@@ -224,7 +224,7 @@
       ],
       "exclusiveGroup": "chat-gpu",
       "tools": "read_file,file_glob_search,grep_search,write_file,edit_file,get_datetime,exec_shell_command",
-      "notes": "Fein-getuntes Gemma 2 9B (Q4_K_M, 5.4 GB) für Factory-Agenten. T002587. GROSSES KONTEXT-FENSTER: Ersatz für gemma26-Factory als Dispatch-Subagent (nicht mehr Gemma4 26B nutzen) — mehr als 15 Aufgaben pro Session, dafür KV q4_0 wie beim 26B-Agenten-Loadout (T002501-Messung dort: q4_0 bei fitt 256 = 99328 ctx / 166 tok/s, Kurzkontext-Probe zeichengenau). targetMarginMib 128 gewinnt Kontext gegenüber 768. Gemessene ctx nach erstem Start in opencode agent-models.jsonc übernehmen. fit=false, weil -kvu den minCtx als Slot-Pool interpretiert und der gepinnte 98304-Wert stabil bleiben soll (T002599). 2 Slots mit unified KV (-kvu). T002608: parallel bewusst auf 1 — Single-Agent-Betrieb, bis der Einzelpfad belegt funktioniert. -kvu bleibt in extraArgs: bei einem Slot wirkungslos, aber nicht schaedlich; der Guard aus T002286 verlangt nur die Umkehrung (np > 1 MUSS -kvu tragen). Vor einer Rueckkehr auf parallel > 1 zuerst den Einzelpfad verifizieren."
+      "notes": "T002608: parallel = 1 (Single-Agent), bis der Einzelpfad belegt funktioniert. -kvu bleibt: bei einem Slot wirkungslos, aber nicht schaedlich; der Guard aus T002286 verlangt nur die Umkehrung (np > 1 MUSS -kvu tragen). ctx und ngl bleiben ungepinnt (Guard: \"kein Loadout MIT --fit pinnt ctx oder ngl\"); die Obergrenze traegt --override-kv in extraArgs, der Boden ist fit.minCtx. fit MUSS aktiviert bleiben: mit fit.enabled=false und ngl=99 laedt der Server alle 43 Layer plus den vollen 98k-Kontext fest auf die GPU und belegt ~13,1 GB von 16 GB (Modell 5488 MiB + KV 4536 + 402 + Compute 903, gemessen 2026-08-03). Uebrig bleiben 2,9 GB — zu wenig fuer ein paralleles Finetuning (T002587). Mit Auto-Fit waren es ~3,8 GB belegt und 12,1 GB frei. Die Abweichung fiel erst auf, als der Loadout-Neustart die veraltete Unit regenerierte und fit.enabled=false damit erstmals wirksam wurde."
     },
     {
       "slug": "bge-embed-cpu",

@@ -258,7 +258,8 @@ PY
 factory_psql_backends() {
   local pod
   pod="$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
-    -l 'app in (shared-db, shared-db-dev)' -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}' 2>/dev/null | awk '{print $1}')"
+    -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
+    -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | awk '{print $1}')"
   [ -n "$pod" ] || return 1
   kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" -c postgres -- \
     psql -U website -d website -qtA -c \

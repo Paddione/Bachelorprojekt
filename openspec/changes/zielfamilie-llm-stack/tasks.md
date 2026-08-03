@@ -246,25 +246,25 @@ CI=true task freshness:check 2>&1 | grep -ci 'uebersprungen\|übersprungen'
 
 ## Task 6 — Finale Verifikation
 
-- [ ] Testinventar neu erzeugen, weil eine BATS-Datei hinzugekommen ist:
+- [x] Testinventar neu erzeugen, weil eine BATS-Datei hinzugekommen ist:
 
 ```bash
 task test:inventory
 ```
 
-- [ ] OpenSpec-Delta validieren:
+- [x] OpenSpec-Delta validieren:
 
 ```bash
 bash scripts/openspec.sh validate zielfamilie-llm-stack
 ```
 
-- [ ] Plan-Linter über den eigenen Plan laufen lassen:
+- [x] Plan-Linter über den eigenen Plan laufen lassen:
 
 ```bash
 bash scripts/plan-lint.sh openspec/changes/zielfamilie-llm-stack/tasks.md
 ```
 
-- [ ] Die drei Pflicht-Gates:
+- [x] Die drei Pflicht-Gates:
 
 ```bash
 task test:changed

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.244.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.3...website-v1.244.0) (2026-08-03)
+
+
+### Features
+
+* **scripts:** Unsloth-Evaluationsharness — Base-vs-Tuned-Gate [T002606] ([#3747](https://github.com/Paddione/Bachelorprojekt/issues/3747)) ([e333437](https://github.com/Paddione/Bachelorprojekt/commit/e3334373c03e48e859d743c33c9f30ee4d0bbaee))
+
 ## [1.243.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.2...website-v1.243.3) (2026-08-03)
 
 

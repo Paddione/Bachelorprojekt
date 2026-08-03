@@ -3270,6 +3270,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-isolation/build-target-split",
+    "file": "tests/spec/sdlc-isolation/build-target-split.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
     "id": "sealed-secret-cluster-drift",
     "file": "tests/spec/sealed-secret-cluster-drift.bats",
     "category": "sealed-secret-cluster-drift",

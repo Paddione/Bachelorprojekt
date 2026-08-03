@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 758,
+      "file_count": 759,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -334,6 +334,7 @@
         "tests/spec/agent-lock-session-identity.bats",
         "tests/spec/agent-roster.bats",
         "tests/spec/agent-skills.bats",
+        "tests/spec/agent-skills/skill-path-references.bats",
         "tests/spec/agentic-review.bats",
         "tests/spec/agentic-tooling-quality-goals.bats",
         "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",

@@ -29,6 +29,16 @@ PARTITIONS = ("action", "no_action", "clarify")
 LANGUAGES = ("en", "de")
 MALFORMED_ACTION_NAME = "__malformed__"
 
+# T002634: war 512. Gemma 4 antwortet unter --jinja als Reasoning-Modell, und
+# der Denkteil geht aus DEMSELBEN Budget wie die Antwort. Gemessen am
+# 2026-08-04 gegen gemma4-base: bei 512 lief mindestens ein Fall des
+# 44-Faelle-Testsets in finish_reason=length mit leerem content — was still als
+# "keine Aktion" in die Wertung gegangen waere und damit fuer eine action-Zeile
+# 0.0, fuer eine no_action-Zeile faelschlich 1.0 ergeben haette. Bei 2048 trat
+# der Abbruch nicht mehr auf. Der Wert MUSS auf beiden Vergleichsseiten gleich
+# sein; gen_fixtures.py spiegelt ihn ueber --max-tokens.
+MAX_NEW_TOKENS = 2048
+
 
 def parse_action_output(raw_text: str) -> list:
     """Parses raw model text into a list of action dicts.
@@ -52,12 +62,32 @@ def parse_action_output(raw_text: str) -> list:
 
 
 def build_prompt(case: dict) -> str:
-    """Identical prompt path for base and tuned: schemas + the request."""
+    """Identical prompt path for base and tuned: schemas + the request.
+
+    The output contract is stated EXPLICITLY (T002634). It used to say only
+    "Respond with a JSON list of actions", while `_is_well_formed_action`
+    requires each element to be `{"name": str, "params": dict}` — an unspoken
+    coupling between two functions 50 lines apart. Measured against
+    gemma-4-12b-it on 2026-08-04, every single `action` case scored 0.0 with
+    `__malformed__`: the model picked the right action but wrapped it as
+    ```json fenced `{"action": ..., "parameters": ...}`. That measures
+    schema-guessing, not decision quality — and because BOTH sides guess wrong
+    identically, the regression gate still passes. A gate that cannot fail is
+    worse than no gate.
+
+    Naming the schema is the fix, not loosening the parser: the scoring rules
+    are the contract this harness exists to enforce, so the prompt has to state
+    that contract rather than the parser tolerating deviations from it.
+    """
     schemas = json.dumps(case.get("action_schemas", {}), sort_keys=True)
     return (
         f"Available actions: {schemas}\n"
         f"Request: {case['request']}\n"
-        "Respond with a JSON list of actions, or nothing if no action applies."
+        'Respond with a JSON list of actions in exactly this form: '
+        '[{"name": "<action name>", "params": {"<param>": "<value>"}}]. '
+        "Use the key \"name\" for the action and \"params\" for its arguments. "
+        "Output raw JSON only — no markdown code fences, no explanation. "
+        "If no action applies, output nothing at all."
     )
 
 
@@ -118,7 +148,9 @@ class ModelBackend:
         prompt = build_prompt(case)
         inputs = self._tokenizer(prompt, return_tensors="pt")
         with self._torch.no_grad():
-            output_ids = self._model.generate(**inputs, do_sample=False, max_new_tokens=512)
+            output_ids = self._model.generate(
+                **inputs, do_sample=False, max_new_tokens=MAX_NEW_TOKENS
+            )
         return self._tokenizer.decode(
             output_ids[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True
         )

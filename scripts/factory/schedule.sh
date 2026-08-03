@@ -113,9 +113,13 @@ SQL
   # Reihenfolge `2>&1 >/dev/null` ist wesentlich: sie leitet stderr in die
   # Kommandosubstitution und stdout ins Nichts. Umgekehrt notiert landet beides
   # im Nichts — genau der behobene Defekt.
+  #
+  # Der Aufruf bleibt bewusst EINZEILIG: tests/unit/factory-blocked.bats:40
+  # prueft `grep -q "slots.sh.*claim"`, matcht also zeilenweise. Ein
+  # Zeilenumbruch vor `claim-gang` faellt beim Lesen nicht auf, macht diesen
+  # Bestandstest aber rot.
   set +e
-  claim_err=$(BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" \
-    claim-gang "$ext_id" "$want" 1 2>&1 >/dev/null)
+  claim_err=$(BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" claim-gang "$ext_id" "$want" 1 2>&1 >/dev/null)
   claim_rc=$?
   set -e
   if [[ "$claim_rc" -eq 0 ]]; then

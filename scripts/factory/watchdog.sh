@@ -228,12 +228,25 @@ for ext_id in "${orphan_slots[@]}"; do
   # gleichen Namens `active_agents` in tickets.provider_health, also
   # LLM-Provider-Kapazitaet, und hat mit pipeline_slot nichts zu tun.
   #
-  # `|| true` haelt den Sweep fail-open wie den Zombie-Worktree-Cleanup: ein
-  # einzelnes nicht raeumbares Ticket darf den Watchdog-Lauf nicht abbrechen.
+  # Fail-open heisst weitermachen, nicht schweigen: ein einzelnes nicht
+  # raeumbares Ticket darf den Watchdog-Lauf nicht abbrechen, muss aber gemeldet
+  # werden. Ein `>/dev/null 2>&1 || true` waere hier genau das Muster, gegen das
+  # dieser Sweep gebaut ist — ein Waise, der sich nicht raeumen laesst, bliebe
+  # sonst wieder unsichtbar.
   BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
-    --body "Watchdog: verwaister pipeline_slot (Status != in_progress, > ${ORPHAN_MIN}min unberuehrt) — Slot freigegeben, Status unveraendert. [T002610]" >/dev/null 2>&1 || true
-  BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" >/dev/null 2>&1 || true
-  escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
+    --body "Watchdog: verwaister pipeline_slot (Status != in_progress, > ${ORPHAN_MIN}min unberuehrt) — Slot freigegeben, Status unveraendert. [T002610]" >/dev/null 2>&1 \
+    || echo "watchdog: WARN audit comment for orphan $ext_id failed — releasing the slot anyway" >&2
+  set +e
+  rel_err=$(BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" release-slot --id "$ext_id" 2>&1 >/dev/null)
+  rel_rc=$?
+  set -e
+  if [[ "$rel_rc" -eq 0 ]]; then
+    # Nur ein tatsaechlich freigegebener Slot wird gemeldet — sonst wiese der
+    # Watchdog Arbeit als erledigt aus, die er nicht geleistet hat.
+    escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
+  else
+    echo "watchdog: WARN releasing orphaned slot for $ext_id failed — slot still blocks the queue: ${rel_err}" >&2
+  fi
 done
 
 echo "$escalated"

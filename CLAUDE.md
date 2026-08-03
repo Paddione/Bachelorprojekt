@@ -65,7 +65,7 @@ tools=$(bash scripts/toolset-context.sh bachelorprojekt-infra)
 > vollständige Arsenal in jeden Prompt und erzeugte genau den Kontext-Bloat, gegen den kuriert
 > wird. Die Rollenliste ist dieselbe, erweitert um die Wildcard `all`. Kuration und
 > Registry-Schema: Skill [`toolset-curate`](.claude/skills/toolset-curate/SKILL.md), Gate
-> `task toolset:check` (fail-closed), Karte `docs/agent-guide/maps/toolset-map.md`.
+> `task agents:toolset:check` (fail-closed), Karte `docs/agent-guide/maps/toolset-map.md`.
 
 Also: after `superpowers:writing-plans` skill creates a new plan file, run `bash scripts/vda.sh frontmatter <plan-file>` on it before committing. (`scripts/plan-frontmatter-hook.sh` ist deprecated und gibt bei jedem Aufruf eine Deprecation-Warnung aus — sie erschien bisher bei **jedem** Planlauf, weil diese Zeile genau das Skript verlangte [T002342-M2]. Das Skript selbst bleibt bestehen: es kann externe Aufrufer haben, und Löschen wäre ein eigener Vorgang mit eigener Prüfung.) This adds the required frontmatter (domains, status) that `plan-context.sh` and the GH Action depend on.
 

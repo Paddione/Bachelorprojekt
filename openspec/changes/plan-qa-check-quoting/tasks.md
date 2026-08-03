@@ -18,7 +18,7 @@ _Ticket: T002595 · Design: `openspec/changes/plan-qa-check-quoting/design.md`_
 
 | File | Ist | Budget |
 |------|-----|--------|
-| `scripts/plan-qa-check.sh` | 215 | 585 |
+| `scripts/plan-qa-check.sh` | 227 | 573 |
 
 ```
 GEAENDERT:
@@ -29,7 +29,7 @@ NEU (liegt bereits als RED-Test im Branch):
   tests/spec/dev-flow-plan/plan-qa-payload.bats   ungated (.bats), kein S1-Budget
 ```
 
-Die geänderte Datei liegt mit 192 Zeilen weit unter ihrer wirksamen Schwelle (Restbudget 608);
+Die geänderte Datei liegt mit 227 Zeilen weit unter ihrer wirksamen Schwelle (Restbudget 573);
 ein Verkleinerungs- oder Split-Schritt ist nicht nötig.
 
 ## Ausgangslage

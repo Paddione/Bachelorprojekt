@@ -83,15 +83,25 @@ USER_PROMPT_PREFIX="Prüfe den folgenden Implementierungsplan gegen die 6 Kriter
 build_payload() {
   local plan_content
   plan_content=$(cat "$PLAN_FILE")
+  # Echte Newlines (nicht die Literale "\n"): bash expandiert \n in
+  # Doppelquotes nicht, jq --arg würde die 2-Zeichen-Sequenz sonst 1:1
+  # übernehmen. Die Trennzeile zwischen Prefix und Plan soll ankommen.
+  local usr_content
+  usr_content="$(printf '%s\n\n%s' "$USER_PROMPT_PREFIX" "$plan_content")"
   jq -n \
     --arg model "$MODEL" \
     --arg sys "$SYSTEM_PROMPT" \
-    --arg usr "${USER_PROMPT_PREFIX}\n\n${plan_content}" \
+    --arg usr "$usr_content" \
     --argjson et false \
     '{model: $model, max_tokens: 2048, enable_thinking: $et, chat_template_kwargs: {enable_thinking: $et}, messages: [{role: "system", content: $sys}, {role: "user", content: $usr}]}'
 }
 
-PAYLOAD=$(build_payload)
+# Payload ungültig (z.B. jq nicht installiert) → deutliche stderr-Warnung,
+# weiterhin exit 0 (advisory Charakter, siehe T002595 Task 4).
+PAYLOAD=$(build_payload) || {
+  err "Failed to build JSON payload — skipping QA (advisory)."
+  exit 0
+}
 
 # === --emit-payload mode: print payload and exit (no gateway/network) ===
 if [[ "$EMIT_PAYLOAD" -eq 1 ]]; then
@@ -100,7 +110,9 @@ if [[ "$EMIT_PAYLOAD" -eq 1 ]]; then
 fi
 
 # === Gateway reachability ===
-if ! curl -s --max-time 3 -o /dev/null "${GATEWAY_BASE_URL}/health"; then
+# -f: degraded (503) gilt als nicht erreichbar — sonst würde curl einen 503
+# als Erfolg werten und erst der POST-Call fiele in den Skip-Pfad (T002595).
+if ! curl -sf --max-time 3 -o /dev/null "${GATEWAY_BASE_URL}/health"; then
   warn "Gateway ${GATEWAY_BASE_URL} not reachable — skipping QA (advisory)."
   info "Manual check: review the plan against .claude/skills/references/plan-quality-gates.md"
   exit 0

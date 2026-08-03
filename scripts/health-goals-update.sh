@@ -146,6 +146,8 @@ for t in data:
 fi
 
 python3 - "$GOALS_FILE" "$VALUES_FILE" "$DRY_RUN" "$SUGGEST_TICKETS" "$EXISTING_GOAL_IDS_FILE" <<'PY'
+import datetime
+import os
 import re
 import sys
 
@@ -317,10 +319,44 @@ else:
         for gid in skipped_dup:
             print(f"    {gid}")
 
-if changed and not dry_run:
+# --- measured_at stempeln [T002598] -------------------------------------------
+# gen-goals-data.mjs liest das Messdatum aus dem Kopf-Feld "**Zuletzt gemessen:**".
+# Vorher leitete es das Datum aus dem jüngsten "Baseline-Update"-Marker der Chronik-
+# Prosa ab; seit die Chronik in docs/health-goals-history.md liegt, gibt es dort
+# nichts mehr zu finden und der Parser wäre still auf den statischen
+# Baseline-Stichtag zurückgefallen.
+#
+# Der Stempel hängt an "wurde gemessen", NICHT an "hat sich ein Wert geändert":
+# ein Messlauf, bei dem alle Werte gleich bleiben, ist trotzdem eine frische
+# Messung. An `changed` gekoppelt würde das Dashboard nach einem stabilen Lauf ein
+# altes Datum ausweisen und Stillstand wie Aktualität aussehen lassen.
+measured_any = bool(values)
+stamp_changed = False
+if measured_any:
+    today = os.environ.get("HG_MEASURED_AT") or datetime.date.today().isoformat()
+    stamp_re = re.compile(r"(\*\*Zuletzt gemessen:\*\*\s*`)([\d-]*)(`)")
+    for i, line in enumerate(lines):
+        m = stamp_re.search(line)
+        if m:
+            if m.group(2) != today:
+                lines[i] = stamp_re.sub(rf"\g<1>{today}\g<3>", line, count=1)
+                stamp_changed = True
+                print(f"\n  Zuletzt gemessen: {m.group(2) or '(leer)'} → {today}")
+            break
+    else:
+        print(
+            "\n⚠ Kopf-Feld '**Zuletzt gemessen:** `…`' fehlt in "
+            f"{goals_file} — gen-goals-data.mjs fällt auf den statischen "
+            "Baseline-Stichtag zurück und weist ein veraltetes Messdatum als "
+            "aktuell aus. Feld im Kopf der Datei ergänzen. [T002598]",
+            file=sys.stderr,
+        )
+
+write_needed = changed or stamp_changed
+if write_needed and not dry_run:
     with open(goals_file, "w") as f:
         f.writelines(lines)
     print(f"\n{goals_file} geschrieben — Narrative (Sprint-Highlights, Baseline-Update) bleibt manuell.")
-elif changed and dry_run:
+elif write_needed and dry_run:
     print("\n--dry-run: Datei nicht geschrieben.")
 PY

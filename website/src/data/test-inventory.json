@@ -2280,6 +2280,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-qa-payload",
+    "file": "tests/spec/dev-flow-plan/plan-qa-payload.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/task-context",
     "file": "tests/spec/dev-flow-plan/task-context.bats",
     "category": "dev-flow-plan",
@@ -2475,6 +2481,18 @@
     "id": "health-goals-erden",
     "file": "tests/spec/health-goals-erden.bats",
     "category": "health-goals-erden",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/id-parity",
+    "file": "tests/spec/health-goals/id-parity.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/measured-at-field",
+    "file": "tests/spec/health-goals/measured-at-field.bats",
+    "category": "health-goals",
     "kind": "shell"
   },
   {

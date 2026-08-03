@@ -1,0 +1,91 @@
+{#- OpenAI Chat Completions: hybrid template for Gemma 2 9B using the gigachat_v3 native tool format. -#}
+{#- Uses <|role_sep|>/<|message_sep|> turn markup (detected by the peg parser) but keeps the -#}
+{#- tool declaration block plain and readable for the 9B. The output grammar constrains the -#}
+{#- final assistant turn to plain JSON arguments: {"name": ..., "arguments": {...}}. -#}
+{%- macro format_plain_signature(tool_data) -%}
+{%- set fn = tool_data['function'] -%}
+{{- fn['name'] -}}(
+{%- set params = fn.get('parameters') -%}
+{%- set props = params.get('properties') if params and params is mapping else none -%}
+{%- if props -%}
+{%- for key, value in props | dictsort -%}
+{{- key -}}:{% if value and value.get('type') %}{{- value['type'] -}}{%- else -%}any{%- endif -%}{%- if not loop.last -%}, {%- endif -%}
+{%- endfor -%}
+{%- endif -%}
+)
+{%- if fn.get('description') %} - {{- fn['description'] -}}{%- endif -%}
+{%- endmacro -%}
+{%- macro format_call_json(tool_call) -%}
+{%- set fn = tool_call['function'] -%}
+{%- set args = fn['arguments'] -%}
+{"name": "{{- fn['name'] -}}", "arguments": {%- if args is string -%}{{- args -}}{%- else -%}{{- args | tojson -}}{%- endif -%}}
+{%- endmacro -%}
+
+{{- bos_token -}}
+{#- System + tool declarations -#}
+{%- set first_role = messages[0]['role'] if messages else 'user' -%}
+{%- if messages and first_role in ['system', 'developer'] -%}
+system<|role_sep|>
+{{- messages[0]['content'] | trim -}}
+<|message_sep|>
+
+{%- set loop_messages = messages[1:] -%}
+{%- else -%}
+{%- set loop_messages = messages -%}
+{%- endif -%}
+{%- if tools -%}
+function descriptions<|role_sep|>
+Available tools and their parameters:
+{%- for tool in tools %}
+
+{{- format_plain_signature(tool) -}}
+{%- endfor %}
+
+When you want to call a tool, output the assistant turn followed by exactly this and nothing else:
+<|message_sep|>
+
+function call<|role_sep|>
+{"name": "TOOL_NAME", "arguments": { ... parameter values as valid JSON ... }}
+Do not wrap the call in code fences and do not add text after it. Wait for the tool result, then answer normally.
+<|message_sep|>
+
+{%- endif -%}
+{#- Message loop -#}
+{%- for message in loop_messages -%}
+    {%- if message['role'] == 'user' -%}
+user<|role_sep|>
+{{- message['content'] | trim -}}
+<|message_sep|>
+
+    {%- elif message['role'] == 'assistant' -%}
+assistant<|role_sep|>
+{%- if message['content'] is string -%}
+{{- message['content'] | trim -}}
+{%- elif message['content'] is mapping -%}
+{%- elif message['content'] is sequence -%}
+{%- for item in message['content'] -%}{%- if item['type'] == 'text' -%}{{- item['text'] | trim -}}{%- endif -%}{%- endfor -%}
+{%- endif -%}
+{%- if message['tool_calls'] -%}
+<|message_sep|>
+
+function call<|role_sep|>
+{%- for tool_call in message['tool_calls'] -%}
+{{- format_call_json(tool_call) -}}
+{%- endfor -%}
+{%- endif -%}
+<|message_sep|>
+
+    {%- elif message['role'] == 'tool' -%}
+function result<|role_sep|>
+{{- message['content'] -}}
+<|message_sep|>
+
+    {%- endif -%}
+{%- endfor -%}
+{%- if add_generation_prompt -%}
+assistant<|role_sep|>
+{% if tools and messages and (messages | last)['role'] != 'tool' %}<|message_sep|>
+
+function call<|role_sep|>
+{% endif -%}
+{%- endif -%}

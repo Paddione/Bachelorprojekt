@@ -530,34 +530,27 @@ except: print('-')
 " 2>/dev/null || echo "-")" le 0 "Konfig-Drift MCP-Registry vs Cluster (Port-Mismatch)"
 
 # ── LLM-TARGETS (T002442: LLM-Stack-Betrieb) ──
-row target G-LLM01 "$(python3 -c "
-import json, urllib.request
-try:
-    with open('scripts/llm/loadouts.json') as f:
-        loadouts = json.load(f)
-    servers = [l for l in loadouts if l.get('port') and l.get('kind') == 'llamacpp']
-    if not servers: print('-'); exit(0)
-    dead = 0; alive = False
-    for s in servers:
-        try:
-            url = f'http://127.0.0.1:{s[\"port\"]}/health'
-            resp = urllib.request.urlopen(urllib.request.Request(url), timeout=5)
-            if resp.status == 200: alive = True
-            else: dead += 1
-        except: dead += 1
-    print(dead if alive else '-')
-except: print('-')
-" 2>/dev/null || echo "-")" le 0 "Modellserver-Verfügbarkeit (Loadout-Endpunkte health-check)"
+# Die Messlogik lebt ausschliesslich in scripts/lib/llm-stack-measure.sh — vorher standen
+# dieselben Python-Bloecke doppelt (hier und in .claude/lib/goals.md) und drifteten auseinander
+# (G-LLM02 las data.get('providers', []), real existiert nur 'degraded'). Beide Stellen rufen
+# jetzt nur noch dieses Skript auf.
+#
+# Das Skript meldet `n/a`, wenn die Messgrundlage fehlt; `row` erwartet dafuer `-` und zaehlt
+# den Fall als uebersprungen statt als erreicht. llm_measure uebersetzt das wie wt_measure.
+llm_measure() { # <subcommand>
+  local v
+  v="$(bash scripts/lib/llm-stack-measure.sh "$1" 2>/dev/null)" || { echo "-"; return; }
+  case "$v" in
+    ''|*[!0-9]*) echo "-" ;;
+    *)           echo "$v" ;;
+  esac
+}
 
-row target G-LLM02 "$(python3 -c "
-import json, urllib.request
-try:
-    resp = urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:18235/health'), timeout=5)
-    data = json.loads(resp.read())
-    if not data.get('ready', False): print('degraded')
-    else: print(sum(1 for p in data.get('providers', []) if not p.get('healthy', False)))
-except: print('-')
-" 2>/dev/null || echo "-")" le 0 "llm-proxy-Bereitschaft (ready + tote Provider)"
+row target G-LLM01 "$(llm_measure server-availability)" le 0 "Modellserver-Verfügbarkeit (exclusiveGroup-bewusst, /livez-Anker)"
+row target G-LLM02 "$(llm_measure proxy-readiness)"     le 0 "llm-proxy-Bereitschaft (degraded/checked statt providers)"
+row target G-LLM03 "$(llm_measure model-drift)"         le 0 "Konfig-gegen-Laufzeit-Drift (Modell-ID je Loadout-Port)"
+row target G-LLM04 "$(llm_measure autostart-coverage)"  le 0 "Autostart-Abdeckung (LLM-Unit-Dateien ohne enabled)"
+row target G-LLM05 "$(llm_measure dead-endpoints)"      le 0 "Tote lokale Endpunkt-Verweise (Backend-Registry)"
 
 # ── WT-TARGETS (T002443: Worktree- und Session-Hygiene) ──
 # Die Messlogik lebt ausschliesslich in scripts/lib/wt-hygiene-measure.sh. Vorher standen

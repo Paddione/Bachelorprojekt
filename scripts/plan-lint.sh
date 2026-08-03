@@ -309,11 +309,16 @@ fi
 # skeleton, so we ALSO require an actual test-runner invocation (bats/vitest/pytest/…).
 # The final `task test:*` gate does NOT count — every plan has it for STRUCT3 (T001791 #2).
 # Partial mode: STRUCT2 is checked against the mandatory tests partial (STRUCT2_FILE).
+# T002616: 'node --test' gehoert dazu. Die .mjs-Tests dieses Repos laufen durchgehend
+# ueber node:test (scripts/llm-proxy/*.test.mjs, scripts/code-quality/*, sieben
+# package.json-Skripte) — ohne den Eintrag scheitert JEDER Plan mit einem
+# node:test-RED-Step an STRUCT2, egal wie gut er ist. Das Gate erzwang damit ein
+# Framework, das das Repo fuer JS gar nicht verwendet.
 if grep -qiE 'expected:? *fail|verify (it|test).*fail|to verify (it|they) fail' "$STRUCT2_FILE"; then
-  if grep -qiE '\b(bats|vitest|pytest|jest|mocha|go test|playwright test)\b' "$STRUCT2_FILE"; then
+  if grep -qiE '\b(bats|vitest|pytest|jest|mocha|go test|playwright test|node --test)\b' "$STRUCT2_FILE"; then
     :
   else
-    hard "STRUCT2: failing-test phrase present but no test-runner invocation (bats/vitest/pytest/…) — the final 'task test:*' gate does not count as the failing test"
+    hard "STRUCT2: failing-test phrase present but no test-runner invocation (bats/vitest/pytest/node --test/…) — the final 'task test:*' gate does not count as the failing test"
   fi
 else
   hard "STRUCT2: no task contains a failing-test step (run a test + expect FAIL)"

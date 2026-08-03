@@ -219,3 +219,8 @@ scripts/ticket-mcp/go/ticket-mcp
 
 # ── Unsloth-Kompilat-Cache (generiert beim Training, kein Quellartefakt) [T002590] ──
 unsloth_compiled_cache/
+# Tokenizer-Konvertierungs-Tempdir (37 MB tokenizer.json/.model pro Lauf) [T002587]
+_unsloth_sentencepiece_temp/
+# Dateisperren des Kompilat-Caches — bewusst eigene Regel, damit sie einen
+# Pfadwechsel des Cache-Verzeichnisses ueberlebt [T002587]
+unsloth_training_setup/**/.locks/

@@ -190,18 +190,23 @@ cd "$PROJECT_DIR"
 
 # 1b. Dev (workspace-dev namespace)
 #
-# T002174: environments/schema.yaml:466 spezifiziert für DEV_DOMAIN
+# T002174: environments/schema.yaml:474 spezifiziert für DEV_DOMAIN
 # "Empty disables the dev stack." Der Renderer setzte den leeren Wert stattdessen
 # stumpf ein, wodurch k3d/dev-stack/dev-ingress.yaml als `host: "*."` und
 # `tls.hosts[0]: ""` im Artefakt landete. Beides ist für die Kubernetes-API ungültig,
 # die flux-dev-Kustomization scheiterte am Dry-Run — und Flux appliziert dann den
 # GESAMTEN Satz darin nicht mehr, nicht nur das kaputte Ingress.
 # Aus einer Abschaltung wurde so eine Fehlkonfiguration.
+#
+# T002630: DEV_DOMAIN kommt seit der Env-Entflechtung aus environments/dev-cluster.yaml.
+# environments/dev.yaml beschreibt die lokale k3d-Umgebung (keine oeffentliche Domain)
+# und darf den Cluster-Dev-Stack nicht mehr abschalten. Siehe environments/schema.yaml
+# DEV_DOMAIN-Doku.
 (
   set +u
   # Kein `|| true`: schlug env-resolve fehl, lief der Render mit leerer Umgebung
   # weiter und schrieb ein Manifest voller leer substituierter Werte ins Artefakt.
-  if ! source scripts/env-resolve.sh dev 2>/dev/null; then
+  if ! source scripts/env-resolve.sh dev-cluster 2>/dev/null; then
     echo "ERROR: env-resolve.sh dev failed — refusing to render the dev stack with" >&2
     echo "       an empty environment (would emit empty-substituted manifests)." >&2
     exit 1

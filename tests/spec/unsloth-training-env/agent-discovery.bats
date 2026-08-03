@@ -14,15 +14,26 @@ setup() {
 @test "agent-discovery: die finetune:-Tasks sind ueber den Task-Oracle im Trockenlauf aufloesbar" {
   # Positiv-Anker zuerst: eine bekannte, bereits etablierte Task (llm:status) loest ueber den
   # strukturellen Fast-Path auf, ohne die lokale LLM zu benoetigen.
+  #
+  # Der Fast-Path validiert gegen `task --list-all`. Schlaegt DIESER Aufruf fehl, meldet das
+  # Oracle "Unknown task" und der Anker wird rot — ohne zu sagen, warum. Genau das kostete
+  # in CI einen Ratezyklus (der Test war lokal gruen, in CI rot). Deshalb gibt der Anker im
+  # Fehlerfall die Ursache aus, statt nur den Status zu pruefen.
   run bash "$REPO_ROOT/scripts/vda.sh" oracle --dry-run 'llm:status'
-  [ "$status" -eq 0 ]
+  if [ "$status" -ne 0 ]; then
+    echo "oracle --dry-run 'llm:status' exit=$status" >&2
+    echo "oracle output: $output" >&2
+    echo "task --version: $(cd "$REPO_ROOT" && task --version 2>&1)" >&2
+    echo "task --list-all (erste 5 Zeilen): $(cd "$REPO_ROOT" && task --list-all 2>&1 | head -5)" >&2
+    false
+  fi
   [[ "$output" == *"task llm:status"* ]]
 
   # Negativ/Positiv-Kern dieses Tests: jede neue finetune:-Task muss denselben Fast-Path
   # nehmen (Task existiert im Taskfile) statt auf die LLM-Fallback-Kette angewiesen zu sein.
   for t in measure guard train traces export; do
     run bash "$REPO_ROOT/scripts/vda.sh" oracle --dry-run "finetune:${t}"
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 0 ] || { echo "finetune:${t} → exit=$status output=$output" >&2; false; }
     [[ "$output" == *"task finetune:${t}"* ]]
   done
 }

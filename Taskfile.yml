@@ -8,6 +8,11 @@ includes:
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
+  # Base-vs-Tuned regression gate for Unsloth finetunes (T002606).
+  # See Taskfile.finetune-eval.yml.
+  finetune-eval:
+    taskfile: ./Taskfile.finetune-eval.yml
+    dir: .
   # dev.mentolder.de — persistent staging stack via k3d on WSL host (context: k3d-mentolder-dev).
   # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
   dev:

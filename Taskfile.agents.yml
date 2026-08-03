@@ -397,3 +397,15 @@ tasks:
     cmds:
       - node scripts/toolset/probe.mjs
 
+  toolset:map:
+    desc: "Regenerate the human-readable toolset map from the registry"
+    cmds:
+      - node scripts/toolset/emit-map.mjs
+
+  toolset:context:
+    desc: "Render the curated toolset block for an agent role (ROLE=bachelorprojekt-db)"
+    cmds:
+      - bash scripts/toolset-context.sh {{.ROLE}}
+    requires:
+      vars: [ROLE]
+

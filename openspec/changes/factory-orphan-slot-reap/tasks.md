@@ -22,9 +22,9 @@ _Ticket: T002610 · mitbehoben: T002618_
 
 | Datei | Ist-Zeilen | S1-Budget | Art |
 |---|---|---|---|
-| `scripts/factory/watchdog.sh` | 199 | 601 | geändert (Waisen-Sweep + `local`-Korrektur) |
-| `scripts/factory/schedule.sh` | 111 | 689 | geändert (Claim-Fehlschlag melden) |
-| `tests/spec/software-factory/orphan-slot-reap.bats` | 227 | — | bereits angelegt (RED), wird erweitert |
+| `scripts/factory/watchdog.sh` | 199 → 239 | 601 | geändert (Waisen-Sweep + `local`-Korrektur) |
+| `scripts/factory/schedule.sh` | 111 → 128 | 689 | geändert (Claim-Fehlschlag melden) |
+| `tests/spec/software-factory/orphan-slot-reap.bats` | 276 | — | neu (RED → GREEN) |
 | `website/src/data/test-inventory.json` | — | — | generiert via `task test:inventory` |
 
 Beide Shell-Dateien sind **nicht gebaselined**; die wirksame Schwelle ist damit das
@@ -37,7 +37,7 @@ bleiben nach der Änderung deutlich unter 80 % ihrer Schwelle.
 Zuerst, weil alle folgenden Tasks davon abhängen: solange `watchdog.sh` bei jedem stale
 Ticket abbricht, wird der in Task 2 ergänzte Sweep nie erreicht.
 
-- [ ] **Failing-Test-Step (RED)** — in der Planungssitzung bereits erbracht, vor der
+- [x] **Failing-Test-Step (RED)** — in der Planungssitzung bereits erbracht, vor der
       Änderung erneut ausführen:
 
 ```bash
@@ -51,14 +51,14 @@ läuft (Exit 0), `local` auf Top-Level bricht ab (Exit ≠ 0), und der awk-Detek
 einer Fixture mit bekanntem Treffer genau einen Fund. Erst danach folgt die Aussage über
 `watchdog.sh`.
 
-- [ ] **Fix-Step (GREEN).** In `scripts/factory/watchdog.sh:160` `local tier_name="flash"`
+- [x] **Fix-Step (GREEN).** In `scripts/factory/watchdog.sh:160` `local tier_name="flash"`
       durch `tier_name="flash"` ersetzen. Die Variable wird ausschließlich im selben
       Schleifendurchlauf gelesen und zu dessen Beginn neu gesetzt — die Funktions-Lokalität
       trug keine Semantik. Danach derselbe Befehl, jetzt PASS.
 
 ## Task 2 — T002610: Waisen-Sweep in `watchdog.sh`
 
-- [ ] Neuer Block am Ende von `scripts/factory/watchdog.sh`, unmittelbar vor
+- [x] Neuer Block am Ende von `scripts/factory/watchdog.sh`, unmittelbar vor
       `echo "$escalated"`. Strukturell dem `awaiting_deploy`-Sweep (Zeile 187-197)
       nachgebildet: eigener Schwellwert, `mapfile`-Abfrage, Schleife, Eintrag ins
       `escalated`-Array.
@@ -95,7 +95,7 @@ Die `|| true` an beiden `ticket.sh`-Aufrufen halten den Sweep fail-open, analog 
 Zombie-Worktree-Cleanup: ein einzelnes nicht räumbares Ticket darf den Watchdog-Lauf nicht
 abbrechen.
 
-- [ ] Offline-Gegenprobe, dass der neue Block das Skript nicht bricht:
+- [x] Offline-Gegenprobe, dass der neue Block das Skript nicht bricht:
 
 ```bash
 bash -n scripts/factory/watchdog.sh
@@ -105,7 +105,7 @@ env BRAND=mentolder FACTORY_DRY_RESOLVE=1 bash scripts/factory/watchdog.sh
 
 ## Task 3 — T002610: Claim-Fehlschlag in `schedule.sh` melden
 
-- [ ] In `scripts/factory/schedule.sh:106` verschluckt der `claim-gang`-Aufruf per
+- [x] In `scripts/factory/schedule.sh:106` verschluckt der `claim-gang`-Aufruf per
       `>/dev/null 2>&1` sowohl Diagnose als auch Exit-Code. Künftig wird stderr
       aufgefangen und bei Fehlschlag als `WARN` ausgegeben:
 
@@ -133,7 +133,7 @@ landet beides im Nichts — genau der bestehende Defekt.
 
 Das JSON auf stdout bleibt unberührt, weil die Meldung auf stderr geht.
 
-- [ ] Gegenprobe:
+- [x] Gegenprobe:
 
 ```bash
 bash -n scripts/factory/schedule.sh
@@ -141,40 +141,63 @@ env BRAND=mentolder FACTORY_DRY_RESOLVE=1 bash scripts/factory/schedule.sh
 # Exit 0 — dry-resolve bleibt gruen
 ```
 
-## Task 4 — Live-Tests gegen einen Dev-Cluster rot→grün fahren
+## Task 4 — Live-Tests gegen einen Dev-Cluster rot→grün fahren ✅
 
-Die fünf Live-Tests in `tests/spec/software-factory/orphan-slot-reap.bats` sind
-geschrieben, konnten in der Planungssitzung aber **nicht** rot verifiziert werden: der
-einzige laufende k3d-Cluster (`k3d-korczewski-dev`) hat zwar einen `shared-db`-Pod, dessen
-Datenbank aber kein `tickets`-Schema; `k3d-mentolder-dev` existiert nicht mehr. Sie skippen
-ohne `FACTORY_CTX` — dieselbe Konvention wie alle FA-SF-Live-Tests.
+Durchgeführt. Der Weg dorthin ist hier festgehalten, weil er nicht offensichtlich ist und
+für jede künftige Live-Verifikation von Factory-Skripten wieder gebraucht wird.
 
-- [ ] Dev-Cluster mit Ticket-Schema bereitstellen. Den passenden Task ermittelt
-      `bash scripts/vda.sh oracle 'create a fresh k3d cluster'` — oder feststellen, dass
-      keiner verfügbar ist.
-- [ ] Live-Lauf **vor** den Tasks 1-3 (Rot-Nachweis):
+- [x] **Dev-Cluster mit Ticket-Schema.** `k3d-korczewski-dev` hat einen `shared-db`-Pod
+      (in Namespace `workspace`, **nicht** im brand-abgeleiteten Namespace), dessen `website`-DB
+      aber nur `public` kannte. Es gibt kein Bootstrap-Skript für das `tickets`-Schema — es ist
+      über Einzelmigrationen gewachsen. Weg: reiner Schema-Dump von prod (lesend) in die Dev-DB.
 
 ```bash
-env FACTORY_CTX=<dev-ctx> FACTORY_NS=<ns> TICKET_NS=<ns> TEST_BRAND=korczewski TICKET_TEST_DB_OK=1 \
-  tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/orphan-slot-reap.bats
-# expected: FAIL fuer die fuenf Live-Tests
+kubectl --context fleet -n workspace exec <shared-db-pod> -c postgres -- \
+  pg_dump -U postgres -d website --schema-only --schema=tickets --no-owner --no-privileges \
+  > tickets-schema.sql
+kubectl --context k3d-korczewski-dev -n workspace exec -i <dev-pod> -c postgres -- \
+  psql -U postgres -d website < tickets-schema.sql
+# 7 Fehler auf public-Abhaengigkeiten (Fremdschluessel/Trigger auf Tabellen, die im Dev
+# fehlen) sind erwartbar und unschaedlich; 26 Tabellen inkl. der Lifecycle-Trigger landen.
+kubectl … psql -U postgres -d website -qtAc \
+  "GRANT USAGE ON SCHEMA tickets TO website; GRANT ALL ON ALL TABLES IN SCHEMA tickets TO website; …"
 ```
 
-- [ ] Derselbe Lauf nach den Tasks 1-3 — alle acht grün.
+- [x] **Kontext-Alias statt Repo-Änderung.** `scripts/ticket.sh` leitet den Namespace hart aus
+      der Brand ab und hängt bei Kontexten mit `k3d-`-Präfix oder `-dev`-Suffix ein `-dev` an —
+      der Pod liegt aber in `workspace`. Ein kubeconfig-Alias ohne diese Namensmerkmale umgeht
+      das, ohne Produktionscode für Testzwecke zu biegen:
+
+```bash
+kubectl config set-context devlocal-t002610 --cluster=k3d-korczewski --user=admin@k3d-korczewski --namespace=workspace
+```
+
+- [x] **Rot vor, grün nach der Änderung** — beides ausgeführt:
+
+```bash
+env FACTORY_CTX=devlocal-t002610 FACTORY_NS=workspace TICKET_CTX=devlocal-t002610 \
+    TEST_BRAND=mentolder TICKET_TEST_DB_OK=1 \
+  tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/orphan-slot-reap.bats
+# vor der Aenderung:  7 von 9 rot (die zwei dry-resolve-Tests gruen)
+# nach der Aenderung: 9 von 9 gruen
+```
 
 `TICKET_TEST_DB_OK=1` ist das dokumentierte Opt-in aus T002224: ohne diese Variable biegt
 `scripts/vda/ticket/_ticket-core.sh` den Kontext unter BATS auf einen Sentinel um, damit
 Tests keine echten Tickets schreiben. Der Lauf darf **niemals** gegen `fleet` gehen;
 `seed_test_feature` verweigert das von sich aus mit Exit 3.
 
-Ist kein geeigneter Cluster verfügbar, wird dieser Task mit genau diesem Befund
-abgeschlossen und im PR vermerkt — die Live-Tests bleiben dann als skip stehen, wie die
-übrigen FA-SF-Tests auch. Die Offline-Abdeckung aus Task 1 und den dry-resolve-Tests trägt
-CI weiterhin.
+### Drei Befunde aus diesem Task — je ein eigenes Ticket
+
+| Ticket | Befund |
+|---|---|
+| **T002619** | `migrations/20260802-pipeline-slot-meta.sql` ist in prod nicht angewandt. `slots.sh claim` scheitert daran; `slot-id` (Produktivpfad, `pipeline.mjs:88`) fällt still auf `null` zurück. |
+| **T002620** | FA-SF-26 in `scheduling.bats:170/193` datiert `updated_at` zurück, um ein stale Ticket zu erzeugen. Der Trigger `fn_lifecycle_ts` überschreibt das sofort — die Tests bestehen vakuos. Genau deshalb fand FA-SF-26 den T002618-Defekt nicht, obwohl er in dem Pfad liegt, den der Test abdeckt. |
+| — | Konsequenz für diesen Vorgang: die Alterung läuft hier über den **Schwellwert** (`FACTORY_ORPHAN_SLOT_MIN=0` / `FACTORY_STALE_MIN=0`), nicht über den Zeitstempel. Jeder Live-Test trägt zusätzlich einen Positiv-Anker, der belegt, dass die geprüfte Liste nicht leer war. |
 
 ## Task 5 — Verifikation
 
-- [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
+- [x] **Final Verification.** Die drei verpflichtenden CI-Gates:
 
 ```bash
 task test:changed
@@ -182,7 +205,7 @@ task freshness:regenerate
 task freshness:check
 ```
 
-- [ ] Ergänzend:
+- [x] Ergänzend:
 
 ```bash
 task test:inventory   # neue Testdatei ins Inventar aufnehmen

@@ -18,7 +18,7 @@ _Ticket: T002595 · Design: `openspec/changes/plan-qa-check-quoting/design.md`_
 
 | File | Ist | Budget |
 |------|-----|--------|
-| `scripts/plan-qa-check.sh` | 192 | 608 |
+| `scripts/plan-qa-check.sh` | 215 | 585 |
 
 ```
 GEAENDERT:

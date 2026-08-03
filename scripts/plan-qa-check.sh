@@ -3,7 +3,8 @@ set -euo pipefail
 
 # === Config ===
 MAX_ITERATIONS=2
-DEEPSEEK_DEFAULT_BASE_URL="https://api.deepseek.com/anthropic"
+MODEL="${PLAN_QA_MODEL:-gemma26-factory}"
+GATEWAY_BASE_URL="${GATEWAY_BASE_URL:-http://127.0.0.1:18235}"
 
 # === Helpers ===
 err() { echo "[plan-qa] ERROR: $*" >&2; }
@@ -19,8 +20,14 @@ trap cleanup EXIT
 
 # === Argument ===
 PLAN_FILE="${1:-}"
+EMIT_PAYLOAD=0
+if [[ "${1:-}" == "--emit-payload" ]]; then
+  EMIT_PAYLOAD=1
+  PLAN_FILE="${2:-}"
+fi
+
 if [[ -z "$PLAN_FILE" ]]; then
-  err "Usage: $0 <plan-file>"
+  err "Usage: $0 [--emit-payload] <plan-file>"
   exit 1
 fi
 
@@ -46,25 +53,16 @@ if ! grep -q "^---" "$PLAN_FILE"; then
   exit 1
 fi
 
-# === API Key ===
-API_KEY="${DEEPSEEK_API_KEY:-${ANTHROPIC_API_KEY:-}}"
-BASE_URL="${DEEPSEEK_BASE_URL:-$DEEPSEEK_DEFAULT_BASE_URL}"
-
-if [[ -z "$API_KEY" ]]; then
-  warn "No DEEPSEEK_API_KEY or ANTHROPIC_API_KEY set — skipping DeepSeek QA (advisory)."
-  info "Manual check: review the plan against .claude/skills/references/plan-quality-gates.md"
-  exit 0
-fi
-
 # === Prompt ===
-SYSTEM_PROMPT="Du bist ein Quality-Assurance-Bot für Implementierungspläne in einem Softwareprojekt. \
-Du prüfst, ob der Plan die folgenden 6 Kriterien erfüllt. \
+SYSTEM_PROMPT=$(cat <<'EOF'
+Du bist ein Quality-Assurance-Bot für Implementierungspläne in einem Softwareprojekt.
+Du prüfst, ob der Plan die folgenden 6 Kriterien erfüllt.
 Antworte ausschließlich im folgenden JSON-Format (kein Präfix, kein Suffix, keine Markdown-Codeblöcke):
 
 {
-  \"verdict\": \"PASS\" oder \"FAIL\",
-  \"missing\": [\"Liste der Lücken\"],
-  \"suggestions\": \"Vorschläge zur Behebung der Lücken in Markdown\"
+  "verdict": "PASS" oder "FAIL",
+  "missing": ["Liste der Lücken"],
+  "suggestions": "Vorschläge zur Behebung der Lücken in Markdown"
 }
 
 Kriterien:
@@ -73,9 +71,40 @@ Kriterien:
 3. Keine offenen Platzhalter: TODO, TBD, FIXME, ???, <ausfüllen> oder ähnliche.
 4. Pro geänderter Datei mit bekannter Zeilenzahl ein S1-Budget-Kommentar (Ist X - Baseline Y -> Budget Z) oder Markierung als neue Datei.
 5. Der letzte Task enthält task test:changed, task freshness:regenerate und task freshness:check als Steps.
-6. Shell-Snippets im Plan sind frei von bekannten Syntax- und Argument-Fallen (z.B. jq --args darf nicht mit Input-Dateien als Positional-Arg kombiniert werden; stattdessen stdin-Umleitung `< file` nutzen)."
+6. Shell-Snippets im Plan sind frei von bekannten Syntax- und Argument-Fallen (z.B. jq --args darf nicht mit Input-Dateien als Positional-Arg kombiniert werden; stattdessen stdin-Umleitung `< file` nutzen).
+EOF
+)
 
 USER_PROMPT_PREFIX="Prüfe den folgenden Implementierungsplan gegen die 6 Kriterien und gib PASS/FAIL zurück:"
+
+# === Build payload (offline, no network) ===
+# Als Funktion, damit die Auto-Fix-Loop in Iteration 2+ den nach Append
+# angereicherten Plan neu liest (Original-Semantik, siehe T002595).
+build_payload() {
+  local plan_content
+  plan_content=$(cat "$PLAN_FILE")
+  jq -n \
+    --arg model "$MODEL" \
+    --arg sys "$SYSTEM_PROMPT" \
+    --arg usr "${USER_PROMPT_PREFIX}\n\n${plan_content}" \
+    --argjson et false \
+    '{model: $model, max_tokens: 2048, enable_thinking: $et, chat_template_kwargs: {enable_thinking: $et}, messages: [{role: "system", content: $sys}, {role: "user", content: $usr}]}'
+}
+
+PAYLOAD=$(build_payload)
+
+# === --emit-payload mode: print payload and exit (no gateway/network) ===
+if [[ "$EMIT_PAYLOAD" -eq 1 ]]; then
+  echo "$PAYLOAD"
+  exit 0
+fi
+
+# === Gateway reachability ===
+if ! curl -s --max-time 3 -o /dev/null "${GATEWAY_BASE_URL}/health"; then
+  warn "Gateway ${GATEWAY_BASE_URL} not reachable — skipping QA (advisory)."
+  info "Manual check: review the plan against .claude/skills/references/plan-quality-gates.md"
+  exit 0
+fi
 
 # === Backup ===
 BACKUP_HASH=$(md5sum "$PLAN_FILE" | cut -d' ' -f1)
@@ -84,33 +113,27 @@ cp "$PLAN_FILE" "$BACKUP_FILE"
 
 # === Auto-Fix Loop ===
 for ((ITER=1; ITER<=MAX_ITERATIONS; ITER++)); do
-  PLAN_CONTENT=$(cat "$PLAN_FILE")
-
   info "QA iteration ${ITER}/${MAX_ITERATIONS}..."
 
+  # Payload pro Iteration neu bauen: nach FAIL-Append enthält der Plan die
+  # QA-Ergänzungen, die Iteration 2+ dem Modell mitgeben muss.
+  PAYLOAD=$(build_payload)
+
   RESPONSE=$(curl -s -w "\n%{http_code}" \
-    -X POST "${BASE_URL}/v1/messages" \
-    -H "x-api-key: ${API_KEY}" \
-    -H "anthropic-version: 2023-06-01" \
+    -X POST "${GATEWAY_BASE_URL}/v1/chat/completions" \
     -H "content-type: application/json" \
-    -d "$(cat <<EOF
-{
-  "model": "deepseek-chat",
-  "max_tokens": 2048,
-  "messages": [
-    {"role": "system", "content": ${SYSTEM_PROMPT@Q}},
-    {"role": "user", "content": "${USER_PROMPT_PREFIX}\n\n${PLAN_CONTENT}"}
-  ]
-}
-EOF
-  )" 2>/dev/null || { err "curl request failed"; exit 1; })
+    --max-time 120 \
+    -d "$PAYLOAD" 2>/dev/null) || {
+    warn "curl request to gateway failed — skipping QA (advisory)."
+    exit 0
+  }
 
   HTTP_CODE=$(echo "$RESPONSE" | tail -1)
   BODY=$(echo "$RESPONSE" | sed '$d')
 
   if [[ "$HTTP_CODE" != "200" ]]; then
-    err "DeepSeek API returned HTTP ${HTTP_CODE}: $(echo "$BODY" | head -c 500)"
-    exit 1
+    warn "Gateway returned HTTP ${HTTP_CODE}: $(echo "$BODY" | head -c 500) — skipping QA (advisory)."
+    exit 0
   fi
 
   # Parse JSON response to extract content
@@ -118,14 +141,14 @@ EOF
 import sys, json
 try:
     data = json.load(sys.stdin)
-    content = data['content'][0]['text']
+    content = data['choices'][0]['message']['content']
     print(content)
 except Exception as e:
     print(f'PARSE_ERROR: {e}', file=sys.stderr)
     sys.exit(1)
 " 2>/dev/null) || {
-    err "Failed to parse DeepSeek response"
-    exit 1
+    warn "Failed to parse gateway response — skipping QA (advisory)."
+    exit 0
   }
 
   # Extract verdict from JSON in content

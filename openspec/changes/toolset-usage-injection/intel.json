@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "slug": "toolset-usage-injection",
+    "ticket_id": "T002592",
+    "generated_from": "main@8394e797f",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/toolset-curate/SKILL.md",
+      "language": "markdown",
+      "loc": 12,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "loc": 160,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 215,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.agents.yml",
+      "language": "config",
+      "loc": 399,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/maps/toolset-map.md",
+      "language": "markdown",
+      "loc": 65,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/capabilities.yaml",
+      "language": "config",
+      "loc": 71,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/toolset-context.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/toolset/check.mjs",
+      "language": "javascript",
+      "loc": 64,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 736
+    },
+    {
+      "path": "scripts/toolset/collect.mjs",
+      "language": "javascript",
+      "loc": 66,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 734
+    },
+    {
+      "path": "scripts/toolset/emit-map.mjs",
+      "language": "javascript",
+      "loc": 28,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 772
+    },
+    {
+      "path": "tests/spec/toolset-registry/collect-kinds.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/toolset-registry/context-injection.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/toolset-registry/schema-gate.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 3428,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.agents.yml:159:          probe() {",
+      "kind": "function",
+      "file": "Taskfile.agents.yml",
+      "signature": "159:          probe() {(...)",
+      "type_text": "159:          probe() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.agents.yml:341:        check() {",
+      "kind": "function",
+      "file": "Taskfile.agents.yml",
+      "signature": "341:        check() {(...)",
+      "type_text": "341:        check() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

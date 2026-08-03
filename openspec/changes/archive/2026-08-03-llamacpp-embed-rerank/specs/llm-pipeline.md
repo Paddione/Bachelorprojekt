@@ -160,6 +160,8 @@ pass unnoticed.
 
 ---
 
+## ADDED Requirements
+
 ### Requirement: LLM-Router Strict-Fail bei Embedding-Ausfall (E2E)
 <!-- e2e: fa-34-llm-strict-fail.spec.ts -->
 

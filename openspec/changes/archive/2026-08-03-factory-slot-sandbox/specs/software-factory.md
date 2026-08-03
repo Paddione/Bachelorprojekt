@@ -1,6 +1,6 @@
 # Delta: software-factory — Factory Slot Sandbox
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Pipeline-Slot → llama.cpp-Slot-Kopplung
 
@@ -31,8 +31,6 @@ consistently use llama.cpp slot N-1 for all inference requests during its lifeti
 - **AND** `pipeline_slot_meta` ist NULL oder auf released gesetzt
 
 ### Requirement: Agent-Session-Containerisierung (Sandbox Stufe 2)
-
-> **Ersetzt:** Sandbox Stufe 1 (nur Sub-Commands) aus `factory-qa-sandbox-design.md`
 
 The system SHALL execute agent sessions (`claude -p` / `opencode run`) inside Docker
 containers with per-slot resource limits, network isolation, and filesystem isolation.
@@ -82,8 +80,6 @@ llama.cpp server does not natively support slot-pinned requests.
 - **WHEN** der llm-proxy den Request verarbeitet
 - **THEN** wird der Request an einen beliebigen freien Slot weitergeleitet (heutiges Verhalten)
 
-## ADDED Requirements
-
 ### Requirement: Multi-Slot-Loadout aktiv
 
 The system SHALL run the Gemma model with `-np 3 -kvu` (3 slots, unified KV cache)
@@ -96,7 +92,3 @@ SHALL replace the current `gemma-factory` loadout as the active configuration.
 - **WHEN** `/slots` der llama.cpp-API abgefragt wird
 - **THEN** werden 3 Slots mit Status `idle` gemeldet
 - **AND** `total_slots` in `/props` ist 3
-
-## REMOVED Requirements
-
-Keine. Bestehende Funktionalität (Sandbox Stufe 1 für Sub-Commands) bleibt erhalten.

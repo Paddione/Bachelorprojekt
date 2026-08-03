@@ -44,6 +44,8 @@ no navigation. The `grilling` view value SHALL be removed from the known-view se
 
 ---
 
+## ADDED Requirements
+
 ### Requirement: Agentic-Terminal-View rendert eingebettetes ttyd-Terminal
 
 The system SHALL provide a `terminal` Sidekick view that renders a `TerminalSessionHost`

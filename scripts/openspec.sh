@@ -212,9 +212,11 @@ cmd_archive() {
   [[ -n "$slug" ]] || die "archive requires <slug>"
   local create_new=""
   local force_new=""
+  local no_merge=0
   while [[ $# -gt 0 ]]; do case "$1" in
     --create-new) create_new="--create-new"; shift ;;
     --force-new-component) force_new="--force-new-component"; shift ;;
+    --no-merge) no_merge=1; shift ;;
     *) die "Unknown archive option: $1" ;;
   esac; done
   local dir="$OPENSPEC_ROOT/changes/$slug"
@@ -247,7 +249,12 @@ cmd_archive() {
   # Der Vorab-Check ist vollstaendig, nicht heuristisch: die Delta-Dateinamen in
   # changes/<slug>/specs/ sind eindeutig, jedes Delta zielt also auf eine eigene SSOT.
   # Kein Pass kann das Ergebnis eines anderen im selben Lauf beeinflussen.
-  if [[ -d "$dir/specs" ]]; then
+  # [T002577] --no-merge: kein Delta wird in die SSOT gemergt, also laufen auch die
+  # Stub-/Target-Guards nicht — es findet kein Schreibvorgang statt, gegen den sie
+  # schuetzen muessten. Der Pfad ist fuer Prozess-Notizen (mishap-*-Bundles) gedacht,
+  # deren Skeleton-Delta nie ausgefuellt wurde. Ohne --no-merge bleibt das
+  # fail-closed Verhalten unveraendert.
+  if [[ "$no_merge" -ne 1 && -d "$dir/specs" ]]; then
     for capfile in "$dir/specs"/*.md; do
       [[ -e "$capfile" ]] || continue
       local cap; cap="$(basename "$capfile")"
@@ -266,7 +273,11 @@ cmd_archive() {
   fi
   # Refresh pgvector index via openspec-embed.mjs (best-effort, never aborts).
   _embed_slug "$slug"
-  echo "archived: $slug -> $dest (delta merged into SSOT)"
+  if [[ "$no_merge" -eq 1 ]]; then
+    echo "archived: $slug -> $dest (no delta merged into SSOT)"
+  else
+    echo "archived: $slug -> $dest (delta merged into SSOT)"
+  fi
 }
 
 _merge_delta() {
@@ -332,4 +343,12 @@ main() {
     *) echo "Unknown verb: $cmd" >&2; echo "Usage: $0 <propose|apply|archive|validate>" >&2; exit 2 ;;
   esac
 }
+
+# archive-Optionen:
+#   --create-new            Delta zielt auf eine neue SSOT-Komponente
+#   --force-new-component   --create-new auch fuer Ticket-/Gate-Slugs erlauben
+#   --no-merge              Change ins Archiv verschieben OHNE Delta-Merge in die
+#                           SSOT (fuer Prozess-Notizen wie mishap-*-Bundles, deren
+#                           Skeleton-Delta nie ausgefuellt wurde). Ohne dieses Flag
+#                           greift der fail-closed Stub-/Target-Guard weiterhin.
 main "$@"

@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Brand-Specific TURN IP Pinning
 
@@ -41,14 +41,3 @@ The system SHALL emit only `A|` change lines from `fleet-dns-cutover.sh plan`, c
 - **WHEN** `fleet-dns-cutover.sh plan` is executed
 - **THEN** the script exits with a non-zero exit code
 - **AND** the error output contains the substring `not set`
-
-## REMOVED Requirements
-
-### Requirement: Rollback-State enthält LiveKit-Records
-
-**Reason:** The `livekit` A-record no longer exists after T002184, so neither the cutover nor
-the rollback state file may reference it.
-
-**Migration:** Existing rollback state files under the state directory keep historic
-`A|livekit|…` lines; `fleet-dns-cutover.sh rollback` SHALL ignore unknown record names instead
-of failing, and operators delete the `livekit` and `stream` A-records at the ipv64 API once.

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.242.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.242.0...website-v1.242.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **infra:** bge-embed OOMKilled — limits.memory 2Gi -&gt; 3Gi [T002580] ([#3732](https://github.com/Paddione/Bachelorprojekt/issues/3732)) ([7cf344b](https://github.com/Paddione/Bachelorprojekt/commit/7cf344b9be8a44640d2601d04da2cbd9d8330e92))
+
+
+### Tests
+
+* **test:** add FA-58 E2E tests for Admin-Menü, SDLC Cockpit & Git-Flows [T002600] ([#3731](https://github.com/Paddione/Bachelorprojekt/issues/3731)) ([25b624f](https://github.com/Paddione/Bachelorprojekt/commit/25b624f50e28eee1f30923b0d143c924dded43af))
+
 ## [1.242.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.241.1...website-v1.242.0) (2026-08-03)
 
 

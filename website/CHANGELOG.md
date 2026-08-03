@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.243.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.1...website-v1.243.2) (2026-08-03)
+
+
+### Bug Fixes
+
+* **factory:** Waisen-Slot-Reaper im Watchdog + sichtbarer Claim-Fehlschlag [T002610 T002618] ([#3756](https://github.com/Paddione/Bachelorprojekt/issues/3756)) ([63b1f76](https://github.com/Paddione/Bachelorprojekt/commit/63b1f766dd6b955dabfef093c13a19912ade8ac3))
+
 ## [1.243.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.0...website-v1.243.1) (2026-08-03)
 
 

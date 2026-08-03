@@ -53,12 +53,14 @@ _Erstellt 2026-08-03. Deterministisches Bewertungsverfahren aus `tasks.md` (Inde
 | 39 | spec-bats-admin-ui | offen (Rest-Vermerk) | T002009 (done) — erfordert `--create-new` |
 | 40 | unpinned-latest-images | offen (Rest-Vermerk) | T001790 (done) — erfordert `--create-new` |
 | 41 | wakeup-dispatcher-bridge-wiring | archiviert | T001845 (done) |
+| 42 | context-guard-T002585 | offen | T002585 (done) — Plan-Change des gemergten PR #3730 ohne `.ticket`-Link gemergt; als Folgearbeit mit `.ticket` nachrüsten/archivieren |
 
 ## Zusammenfassung
 
 - **archiviert:** 11 (in diesem PR) — `fix-fa-sf-20-pipeline-contract`, `fix-llm-server-watchdog`, `mishap-10er-bundle`, `mishap-agent-lock`, `mishap-t002408`, `mishap-test-repo-hygiene-T002347`, `renovate-app-token`, `scout-prediction-quality`, `sdlc-cockpit-design`, `sdlc-cockpit-k2-daemon`, `wakeup-dispatcher-bridge-wiring`
 - **offen (mit Vermerk belassen):** 8 — `fix-e2e-test-ticket-generation`, `fix-mishap-subagent-ticket-mcp`, `fix-t001935-brett-admin-session`, `fix-t001936-mishap-bundle`, `fix-t001939-portal-sidekick-hydration`, `fix-t001940-coaching-generate-502` (keine Ticket-Referenz), `k3d-dev-llm-bridge`, `mishap-devflow-queue-T002272` (Delta zielt auf nie existierendes SSOT-Requirement)
 - **offen (Rest-Vermerk):** 20 — als `abgeschlossen` klassifiziert, erfordern `--create-new`, Archivierung als Folgearbeit (Liste unten)
+- **offen (Plan-Change ohne .ticket):** 1 — `context-guard-T002585` (durch PR #3730 gemergt, `.ticket` fehlt — T002585 ist done)
 - **obsoletes Duplikat entfernt:** 2 — `brain-ingest-pruefen`, `release-notes-erden`
 
 Alle referenzierten Tickets (87 eindeutige) sind `done` oder `archived` — reiner Vollzugs-Rueckstau, keine offene Arbeit.

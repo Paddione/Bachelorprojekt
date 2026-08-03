@@ -3088,7 +3088,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 623,
+      "file_count": 624,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3519,6 +3519,7 @@
         "scripts/llm/routing-check.sh",
         "scripts/llm/start-gemma-server.ps1",
         "scripts/llm/start-gptoss-server.ps1",
+        "scripts/llm/templates/gemma2-tools.jinja",
         "scripts/llm/ui-config-seed.mjs",
         "scripts/llm/ui-config-seed.test.mjs",
         "scripts/llm/ui-config.template.json",

@@ -70,7 +70,8 @@ _argv_facts() {
 
 # Loadouts, die bewusst von der q4_0-Sperre ausgenommen sind. Jeder Eintrag
 # braucht eine Begruendung im Block darunter — die Liste ist keine Sammelstelle.
-_KV_Q4_ALLOWED="gemma26-factory"
+_KV_Q4_ALLOWED="gemma26-factory
+gemma9-factory"
 
 @test "nur ausdruecklich ausgenommene GPU-Chat-Loadouts starten mit q4_0-KV" {
   run _argv_facts
@@ -98,6 +99,12 @@ _KV_Q4_ALLOWED="gemma26-factory"
   # geht, ist damit gemildert belegt, nicht ausgeschlossen.
   # Bei Fehlern in Tool-Call-Argumenten oder Pfaden bleibt diese Ausnahme der
   # erste Verdaechtige: gemma26-factory auf q8_0 zuruecksetzen.
+  #
+  # AUSNAHME gemma9-factory (T002599): Gemma 2 9B mit 98304 Kontext und 2 Slots.
+  # q8_0-KV wuerde ~55705 ctx pro Slot erlauben; q4_0 halbiert den KV-Fussabdruck
+  # und erreicht 98304 ctx — gebraucht fuer lange Agenten-Dispatch-Sessions.
+  # Tool-Call-Argumente in dieser Konfiguration verifiziert (smoke, auto,
+  # multi-arg, E2E — alle korrekt).
   #
   # Bis T002579 zeigte die Probe auf localhost:8081 — den toten TEI-Port — und
   # skippte deshalb bei jedem Lauf, waehrend T002535 als done gefuehrt wurde.

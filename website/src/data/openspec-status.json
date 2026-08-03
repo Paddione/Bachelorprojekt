@@ -2409,6 +2409,12 @@
       "status": "archived"
     }
   ],
+  "T002610": [
+    {
+      "slug": "factory-orphan-slot-reap",
+      "status": "plan_staged"
+    }
+  ],
   "T002611": [
     {
       "slug": "agentic-resource-lookup",

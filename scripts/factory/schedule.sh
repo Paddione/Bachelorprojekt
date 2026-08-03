@@ -103,9 +103,30 @@ SQL
   fi
   want=$(( needed < free ? needed : free ))
   (( global_used + want > GLOBAL_CAP )) && want=$(( GLOBAL_CAP - global_used ))
-  if BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" claim-gang "$ext_id" "$want" 1 >/dev/null 2>&1; then
+  # [T002610] Der Claim lief bis hier mit `>/dev/null 2>&1` und verwarf damit
+  # Fehlermeldung UND Exit-Code. Ein Ticket, das wegen eines verwaisten
+  # pipeline_slot nie claimbar ist, stand deshalb bei jedem Tick in der Queue,
+  # wurde uebersprungen und erzeugte nirgends ein Signal — so fiel T002482 aus
+  # der Factory. Fail-open bleibt bewusst (nur dieser Kandidat faellt aus), aber
+  # sichtbar; dasselbe Muster wie oben bei T002386 und T002418.
+  #
+  # Reihenfolge `2>&1 >/dev/null` ist wesentlich: sie leitet stderr in die
+  # Kommandosubstitution und stdout ins Nichts. Umgekehrt notiert landet beides
+  # im Nichts — genau der behobene Defekt.
+  #
+  # Der Aufruf bleibt bewusst EINZEILIG: tests/unit/factory-blocked.bats:40
+  # prueft `grep -q "slots.sh.*claim"`, matcht also zeilenweise. Ein
+  # Zeilenumbruch vor `claim-gang` faellt beim Lesen nicht auf, macht diesen
+  # Bestandstest aber rot.
+  set +e
+  claim_err=$(BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" bash "$HERE/slots.sh" claim-gang "$ext_id" "$want" 1 2>&1 >/dev/null)
+  claim_rc=$?
+  set -e
+  if [[ "$claim_rc" -eq 0 ]]; then
     plan=$(echo "$plan" | jq -c --arg b "$BRAND" --arg e "$ext_id" --argjson s "$want" '. + [{brand:$b, external_id:$e, slot:$s}]')
     global_used=$((global_used + want))
+  else
+    echo "schedule: WARN slot claim failed for ${ext_id} — skipping candidate: ${claim_err}" >&2
   fi
 done
 echo "$plan"

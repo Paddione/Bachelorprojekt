@@ -2397,6 +2397,24 @@
       "status": "archived"
     }
   ],
+  "T002611": [
+    {
+      "slug": "agentic-resource-lookup",
+      "status": "plan_staged"
+    }
+  ],
+  "T002612": [
+    {
+      "slug": "web-audit",
+      "status": "plan_staged"
+    }
+  ],
+  "T002613": [
+    {
+      "slug": "skill-path-guard",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

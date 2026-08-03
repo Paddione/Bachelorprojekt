@@ -260,6 +260,11 @@ tasks:
     cmds:
       - bash scripts/mcp-sync.sh check
 
+  toolset:lookup:
+    desc: "On-demand MCP/agent resource discovery — find, inspect, and record curation decisions"
+    cmds:
+      - node scripts/agentic-lookup.mjs {{.CLI_ARGS}}
+
   # ─────────────────────────────────────────────
   # Configuration Management
   # ─────────────────────────────────────────────

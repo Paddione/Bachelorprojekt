@@ -1,0 +1,18 @@
+{
+  "name": "com.pulsemcp/playwright-stealth",
+  "description": "Playwright browser automation with stealth capabilities.",
+  "source": "https://github.com/Pulsemcp/playwright-stealth",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://example.com/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "type": "npm",
+      "id": "@pulsemcp/playwright-stealth"
+    }
+  ],
+  "repository": "https://github.com/Pulsemcp/playwright-stealth"
+}

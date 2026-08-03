@@ -13,22 +13,32 @@
 #
 # Am 2026-08-03 landeten drei Designs (agentic-resource-lookup, skill-path-guard,
 # web-audit) dennoch in docs/superpowers/specs/, waehrend ihre Change-Ordner nur
-# Skelett-Artefakte enthielten. Diese Datei zieht den Guard eine Stufe nach vorn:
-# ein Change mit aktiver Design-Anforderung MUSS design.md tragen.
+# Skelett-Artefakte enthielten.
+#
+# Bewacht wird NICHT "jeder Change traegt ein design.md" — das waere falsch:
+# design.md ist optional, nur brainstormte Vorgaenge haben eines (am 2026-08-03
+# 7 von 36 aktiven Changes). Bewacht wird die Ablage: liegt ein Design fuer einen
+# AKTIVEN Change im Legacy-Pfad, ist das ein Verstoss gegen die SHALL-Anforderung.
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
 }
 
-@test "design-location: Regressions-Anker — die drei betroffenen Changes tragen design.md" {
-  # Positiv-Anker [T002356-M1]: die drei am 2026-08-03 fälschlich in
-  # docs/superpowers/specs/ abgelegten Designs müssen in ihren Change-Ordnern
-  # liegen. Ohne diesen Anker bestünde der Test vakuos grün, wenn der Guard
-  # nie greift.
-  for slug in agentic-resource-lookup skill-path-guard web-audit; do
-    [ -f "$REPO/openspec/changes/$slug/design.md" ] \
-      || { echo "design.md fehlt fuer change $slug" >&2; return 1; }
-  done
+@test "design-location: Positiv-Anker — die SSOT-Ablage wird tatsaechlich benutzt" {
+  # Positiv-Anker [T002356-M1] fuer den Negativtest weiter unten. Er belegt, dass
+  # die ERKENNUNG greift: mindestens ein design.md liegt am SSOT-Ort, der Glob
+  # findet es, und der Pfadaufbau in diesem Test stimmt. Ohne ihn bestuende der
+  # Negativtest vakuos gruen, falls der Glob ins Leere zeigt.
+  #
+  # Bewusst NICHT an einen konkreten Bestand gekoppelt (etwa "die drei Changes
+  # vom 2026-08-03 tragen design.md"): design.md ist optional — nur brainstormte
+  # Vorgaenge haben eines, am 2026-08-03 waren es 7 von 36 aktiven Changes. Ein
+  # bestandsgebundener Anker wuerde bei jeder Archivierung rot, ohne dass die
+  # bewachte Eigenschaft verletzt waere, und er schluege in jedem Worktree fehl,
+  # der nur seinen eigenen Change traegt.
+  run bash -c "ls '$REPO'/openspec/changes/*/design.md 2>/dev/null | wc -l"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
 }
 
 @test "design-location: kein neues Design in docs/superpowers/specs/ fuer aktives Change" {

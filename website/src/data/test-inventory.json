@@ -2424,8 +2424,26 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/dev-env-split",
+    "file": "tests/spec/fleet-operations/dev-env-split.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/dev-node-binding",
+    "file": "tests/spec/fleet-operations/dev-node-binding.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/firewall-program-match",
     "file": "tests/spec/fleet-operations/firewall-program-match.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
+    "id": "fleet-operations/membership-drift",
+    "file": "tests/spec/fleet-operations/membership-drift.bats",
     "category": "fleet-operations",
     "kind": "shell"
   },
@@ -2685,6 +2703,12 @@
     "id": "lockfile-drift",
     "file": "tests/spec/lockfile-drift.bats",
     "category": "lockfile-drift",
+    "kind": "shell"
+  },
+  {
+    "id": "main-commit-guard",
+    "file": "tests/spec/main-commit-guard.bats",
+    "category": "main-commit-guard",
     "kind": "shell"
   },
   {
@@ -3432,6 +3456,12 @@
     "kind": "shell"
   },
   {
+    "id": "toolset-registry/agentic-resource-lookup",
+    "file": "tests/spec/toolset-registry/agentic-resource-lookup.bats",
+    "category": "toolset-registry",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/agy-expected-proxy",
     "file": "tests/spec/toolset-registry/agy-expected-proxy.bats",
     "category": "toolset-registry",
@@ -3489,6 +3519,24 @@
     "id": "ts-suppression",
     "file": "tests/spec/ts-suppression.bats",
     "category": "ts-suppression",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-eval-harness/regression-gate",
+    "file": "tests/spec/unsloth-eval-harness/regression-gate.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-eval-harness/scoring-rules",
+    "file": "tests/spec/unsloth-eval-harness/scoring-rules.bats",
+    "category": "unsloth-eval-harness",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-eval-harness/testset-shape",
+    "file": "tests/spec/unsloth-eval-harness/testset-shape.bats",
+    "category": "unsloth-eval-harness",
     "kind": "shell"
   },
   {

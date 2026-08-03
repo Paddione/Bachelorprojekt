@@ -2409,6 +2409,12 @@
       "status": "archived"
     }
   ],
+  "T002606": [
+    {
+      "slug": "unsloth-eval-harness",
+      "status": "plan_staged"
+    }
+  ],
   "T002609": [
     {
       "slug": "2026-08-03-message-sep-strip",
@@ -2443,6 +2449,18 @@
     {
       "slug": "2026-08-03-gpu-loadout-exclusivity",
       "status": "archived"
+    }
+  ],
+  "T002630": [
+    {
+      "slug": "cluster-dev-node-gekko2",
+      "status": "plan_staged"
+    }
+  ],
+  "T002631": [
+    {
+      "slug": "main-commit-guard",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

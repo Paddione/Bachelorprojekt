@@ -1,0 +1,33 @@
+# k3d/dev-stack/dev-node-binding.yaml
+# T002630: bindet den Dev-Stack an den Dev-Node des fleet-Clusters.
+#
+# Der Dev-Node traegt das Label und den Taint `role=dev:NoSchedule`. Beide
+# Mechanismen sind noetig und ersetzen einander nicht:
+#   - Toleration  — erlaubt die Platzierung auf dem getainteten Node.
+#   - nodeAffinity — erzwingt die Platzierung (ohne sie landen die Pods auf
+#     beliebigen anderen Nodes; der Taint allein stuere nicht ab, weil der
+#     Stack sonst ueberall laufen darf).
+#
+# JSON-Patch (RFC 6902), eingebunden als `patches: - path:` mit je einem
+# `target`-Filter pro Workload-Kind in kustomization.yaml. `add` ersetzt die
+# Pfade; keiner der Dev-Stack-Workloads hat bisher Tolerationen oder Affinity,
+# ein Workload mit eigenen Tolerationen muesste den Patch hier erweitern
+# (Merge statt Replace).
+- op: add
+  path: /spec/template/spec/tolerations
+  value:
+    - key: role
+      operator: Equal
+      value: dev
+      effect: NoSchedule
+- op: add
+  path: /spec/template/spec/affinity
+  value:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                  - dev

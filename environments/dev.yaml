@@ -1,4 +1,9 @@
 # environments/dev.yaml
+# Diese Datei beschreibt NUR die lokale k3d-Umgebung (context: k3d-korczewski,
+# domain: localhost) — KEINEN Cluster-Dev-Stack. Der fleet-gerenderte Dev-Stack
+# (workspace-dev, dev.mentolder.de) laeuft ueber environments/dev-cluster.yaml
+# (T002630): eine lokale Umgebung ohne oeffentliche Domain kann den Cluster-Stack
+# nicht mehr abschalten.
 environment: dev
 context: gekko-hetzner-2-dev
 domain: localhost

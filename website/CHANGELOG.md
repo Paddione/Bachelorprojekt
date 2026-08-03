@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.243.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.0...website-v1.243.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **ops:** Turn-Marker aus dem content von Non-Streaming-Antworten strippen [T002609] ([#3752](https://github.com/Paddione/Bachelorprojekt/issues/3752)) ([be6b564](https://github.com/Paddione/Bachelorprojekt/commit/be6b564eaf1a46d2e8b78ff7b0ecf7149eedeaac))
+* **skills:** tote Pfadverweise in Skills — Guard + Korrekturen [T002613] ([#3750](https://github.com/Paddione/Bachelorprojekt/issues/3750)) ([c65213d](https://github.com/Paddione/Bachelorprojekt/commit/c65213d28115d0f20eedb3c55d7a7b68e3a7e4e9))
+
 ## [1.243.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.242.1...website-v1.243.0) (2026-08-03)
 
 

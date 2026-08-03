@@ -413,8 +413,14 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Ohne lokale GPU oder ohne ausdrücklichen Trainingsauftrag.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/unsloth-buddy/SKILL.md`
-- **`plugin:huggingface-skills@claude-plugins-official`** — Status `suppressed`
-  - _Grund:_ Sehr breites Skill-Paket; unsloth-buddy deckt den konkreten Trainingsbedarf ab.
+
+## Fähigkeit: `huggingface-hub-operationen`
+
+- **`plugin:huggingface-skills@claude-plugins-official`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Hugging-Face-Hub bedienen: hf-CLI, Modelle/Datasets suchen, Spaces, GGUF-Auswahl.
+  - _Nicht:_ Reines lokales Finetuning — dafür unsloth-buddy.
+  - _Fallback:_ `hf CLI direkt (huggingface_hub), sofern installiert.`
+  - _Rollen:_ `orchestrator`
 
 ## Fähigkeit: `skill-bibliothek`
 
@@ -480,6 +486,16 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
 
 - **`mcp:sequential-thinking`** — Status `suppressed`
   - _Grund:_ Nur in opencode (disabled).
+
+## Fähigkeit: `ui-komponenten-katalog`
+
+- **`skill:react-bits`** — Status `suppressed`
+  - _Grund:_ Nur lokal vorhanden, nicht im Repo versioniert; zudem React — das Frontend ist Astro/Svelte.
+
+## Fähigkeit: `audio-transkription`
+
+- **`skill:whisper`** — Status `suppressed`
+  - _Grund:_ Nur lokal vorhanden und von .gitignore erfasst; Talk-Transkription läuft über den talk-transcriber-Dienst.
 
 ## Fähigkeit: `agent-website`
 

@@ -119,7 +119,7 @@ path (`gh-axi`, not `gh`) instead of guessing. Harness-neutral — plain bash pl
 > deliberately differs from `plan-context.sh`, whose silent `__ALL__` fallback disables the role
 > filter without failing (T002322) — for a toolset block that would inject the whole arsenal into
 > every prompt. Same role names, plus the wildcard `all`. Curation: skill `toolset-curate`; gate:
-> `task toolset:check`.
+> `task agents:toolset:check`.
 
 Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials);
 `capabilities.yaml` owns *selection and usage*.

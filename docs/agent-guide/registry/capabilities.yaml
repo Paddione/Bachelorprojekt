@@ -517,9 +517,20 @@ capabilities:
       roles: [orchestrator]
       tier: assisted
       deep_ref: ".claude/skills/unsloth-buddy/SKILL.md"
+
+  # huggingface-skills lag bis T002596 unter `modell-finetuning` und war dort suppressed,
+  # weil unsloth-buddy die kanonische Trainings-Instanz ist. Der Schnitt war falsch: das
+  # Paket liefert Hub-Operationen (hf-cli, Spaces, Datasets, Papers, SageMaker-Deployment),
+  # von denen Finetuning nur ein Teil ist. Als eigene Fähigkeit konkurriert es nicht mehr
+  # mit unsloth-buddy — beide dürfen nebeneinander kanonisch sein.
+  huggingface-hub-operationen:
     plugin:huggingface-skills@claude-plugins-official:
-      state: suppressed
-      reason: "Sehr breites Skill-Paket; unsloth-buddy deckt den konkreten Trainingsbedarf ab."
+      state: canonical
+      use_when: "Hugging-Face-Hub bedienen: hf-CLI, Modelle/Datasets suchen, Spaces, GGUF-Auswahl."
+      avoid_when: "Reines lokales Finetuning — dafür unsloth-buddy."
+      fallback: "hf CLI direkt (huggingface_hub), sofern installiert."
+      roles: [orchestrator]
+      tier: safe
 
   # ─── Querschnitt ────────────────────────────────────────────────────────────────────
   skill-bibliothek:
@@ -591,6 +602,22 @@ capabilities:
     mcp:sequential-thinking:
       state: suppressed
       reason: "Nur in opencode (disabled)."
+
+  # ─── Lokal installierte, nicht versionierte Skills ──────────────────────────────────
+  # Beide liegen nur im Arbeitsplatz-Checkout unter .claude/skills/ und sind NICHT im Repo
+  # versioniert (`whisper` fängt zusätzlich das .gitignore-Muster in Zeile 125 ein). Ein
+  # `canonical` behauptete eine Verfügbarkeit, die in CI und in jedem frischen Klon nicht
+  # besteht — ein Subagent bekäme das Werkzeug injiziert und fände es nicht vor. Sie bleiben
+  # deshalb unterdrückt, bis sie versioniert werden; danach ist die Kuration neu zu führen.
+  ui-komponenten-katalog:
+    skill:react-bits:
+      state: suppressed
+      reason: "Nur lokal vorhanden, nicht im Repo versioniert; zudem React — das Frontend ist Astro/Svelte."
+
+  audio-transkription:
+    skill:whisper:
+      state: suppressed
+      reason: "Nur lokal vorhanden und von .gitignore erfasst; Talk-Transkription läuft über den talk-transcriber-Dienst."
 
   # ─── Domänen-Agenten ────────────────────────────────────────────────────────────────
   agent-website:

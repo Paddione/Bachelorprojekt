@@ -69,16 +69,24 @@
       "models": {}
     },
 
-    // OpenCode Zen/Go: Key aus ~/.config/opencode/secrets.env (chmod 600, nicht
-    // in git). "opencode-go" statt "opencode" (Zen) - Subscription-Tier ($10/mo),
-    // deepseek-v4-flash ist Teil des Go-Katalogs (verifiziert per curl gegen
-    // https://opencode.ai/zen/go/v1/chat/completions, cost:"0" = im Abo enthalten).
+    // OpenCode Zen/Go: "opencode-go" statt "opencode" (Zen) - Subscription-Tier
+    // ($10/mo), deepseek-v4-flash ist Teil des Go-Katalogs (verifiziert per curl
+    // gegen https://opencode.ai/zen/go/v1/chat/completions, cost:"0" = im Abo
+    // enthalten).
+    //
+    // Kein "apiKey" hier [2026-08-03]: Der Eintrag lautete frueher
+    // "{env:OPENCODE_API_KEY}" und verwies auf ~/.config/opencode/secrets.env.
+    // Diese Datei existiert nicht und die Variable ist in keiner Shell gesetzt —
+    // die Referenz loeste sich also ins Leere auf. Der Schluessel liegt
+    // tatsaechlich in ~/.local/share/opencode/auth.json, wo `opencode auth login`
+    // ihn ablegt (`opencode auth list` zeigt DeepSeek und OpenCode Go). Ohne
+    // apiKey-Feld greift opencode genau dort zu — so haelt es der
+    // deepseek-Provider oben ebenfalls.
     "opencode-go": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "OpenCode Go (Subscription, deepseek-v4-flash)",
+      "name": "OpenCode Go (Subscription)",
       "options": {
-        "baseURL": "https://opencode.ai/zen/go/v1",
-        "apiKey": "{env:OPENCODE_API_KEY}"
+        "baseURL": "https://opencode.ai/zen/go/v1"
       },
       "models": {
         "deepseek-v4-flash": {
@@ -86,6 +94,62 @@
           "limit": {
             "context": 1000000,
             "output": 8192
+          }
+        },
+        // 2026-08-03: v4-pro ist im Go-Katalog enthalten und antwortet
+        // (verifiziert per GET /models UND per chat/completions). Er fehlte
+        // hier, weshalb der Tiefen-Subagent unnoetig ueber die direkte API
+        // lief, statt das bezahlte Abo zu nutzen.
+        //
+        // Der Go-Katalog fuehrt weit mehr als diese zwei: minimax-m3,
+        // kimi-k3, glm-5.2, qwen3.8-max und andere. Sie sind hier bewusst
+        // NICHT eingetragen — jeder Eintrag will gemessen sein, bevor ein
+        // Agent darauf zeigt.
+        "deepseek-v4-pro": {
+          "name": "DeepSeek V4 Pro (OpenCode Go, 1M ctx, maximale Reasoning-Tiefe)",
+          "limit": {
+            "context": 1000000,
+            "output": 16384
+          }
+        }
+      }
+    },
+    // Direkte DeepSeek-API als Ausweichweg, wenn OpenCode Go nicht traegt
+    // (Abo-Limit, Zen-Ausfall). Key liegt in ~/.local/share/opencode/auth.json
+    // unter dem Provider-Schluessel "deepseek" (via `opencode auth`).
+    //
+    // Warum die IDs hier explizit stehen [2026-08-03, gemessen]:
+    // GET https://api.deepseek.com/models fuehrt nur noch deepseek-v4-flash
+    // und deepseek-v4-pro. Die frueher konfigurierten deepseek-chat und
+    // deepseek-reasoner sind aus der Liste verschwunden — sie ANTWORTEN aber
+    // weiterhin (beide per chat/completions gegengeprueft, finish_reason=stop).
+    // Es sind also undokumentierte Aliase, kein Totalausfall. Der Wechsel auf
+    // V4 erfolgt deshalb nicht als Fehlerbehebung, sondern wegen des
+    // Kontextfensters: 1M statt 128K/200K.
+    //
+    // Beide V4-Modelle sind Reasoning-Modelle und fuellen reasoning_content
+    // zusaetzlich zu content. Wer sie mit knappem max_tokens testet, sieht
+    // content="" bei finish_reason="length" — das Budget ging fuers Denken
+    // drauf und ist KEIN Fehler des Modells.
+    "deepseek": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "DeepSeek (direkte API, Ausweichweg zu OpenCode Go)",
+      "options": {
+        "baseURL": "https://api.deepseek.com/v1"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash (direkte API)",
+          "limit": {
+            "context": 1000000,
+            "output": 8192
+          }
+        },
+        "deepseek-v4-pro": {
+          "name": "DeepSeek V4 Pro (direkte API, maximale Reasoning-Tiefe)",
+          "limit": {
+            "context": 1000000,
+            "output": 16384
           }
         }
       }
@@ -250,9 +314,12 @@
     // beides nicht reicht, wird hier dispatcht. Verwendet die direkte
     // DeepSeek-API (deepseek-chat / V3) fuer schnelle Hilfestellung.
     "deepseek-helper": {
-      "description": "ESCALATION: DeepSeek-V3 via direct DeepSeek API (128K ctx) - dispatch when a local gemma26 subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed",
+      "description": "ESCALATION: DeepSeek V4 Flash via the direct DeepSeek API (1M ctx) — dispatch when a local subagent is stuck, needs help, or exhausted its context after local compaction/retry already failed. Uses the direct API rather than OpenCode Go on purpose: this is the fallback path, so it stays usable when the Go subscription is exhausted or Zen is down.",
       "mode": "subagent",
-      "model": "deepseek/deepseek-chat",
+      // War deepseek/deepseek-chat (V3, 128K). Gewechselt wegen des
+      // Kontextfensters, nicht wegen eines Fehlers — die alte ID antwortet
+      // weiterhin, ist aber nicht mehr in /models gelistet [2026-08-03].
+      "model": "deepseek/deepseek-v4-flash",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F97316",
       "temperature": 0.3,
@@ -263,9 +330,25 @@
     // Multi-File-Refactorings, die ueber das hinausgehen, was deepseek-helper
     // schnell loesen kann.
     "deepseek-pro": {
-      "description": "DeepSeek-R1 reasoning via direct DeepSeek API (128K ctx, maximum reasoning effort). Use for deep analysis, complex multi-file debugging, architectural reasoning, or hard refactors that exceed what the fast deepseek-helper can handle.",
+      "description": "DEPTH: DeepSeek V4 Pro via OpenCode Go (1M ctx, maximum reasoning effort). Use for deep analysis, complex multi-file debugging, architectural reasoning, or hard refactors that exceed what deepseek-flash can handle. Dispatch ONE at a time — this is the expensive, slow tier. If Go is unavailable, use deepseek-pro-direct.",
       "mode": "subagent",
-      "model": "deepseek/deepseek-reasoner",
+      // War deepseek/deepseek-reasoner (R1, 128K). Gewechselt auf V4 Pro
+      // wegen 1M Kontext; Primaerweg ist jetzt Go (im Abo enthalten) statt
+      // der direkten API [2026-08-03].
+      "model": "opencode-go/deepseek-v4-pro",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#EF4444",
+      "temperature": 0.1,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    // Ausweich-Zwilling von deepseek-pro auf der direkten API. opencode kennt
+    // kein Provider-Failover pro Agent — ein zweiter Agentname ist der
+    // einzige Weg, denselben Auftrag ueber den anderen Anbieter zu fahren.
+    "deepseek-pro-direct": {
+      "description": "FALLBACK twin of deepseek-pro on the direct DeepSeek API (1M ctx). Identical role and prompt — dispatch this instead of deepseek-pro when OpenCode Go is exhausted, rate-limited, or down. Not a second parallel slot: it is the same tier via another route.",
+      "mode": "subagent",
+      "model": "deepseek/deepseek-v4-pro",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#EF4444",
       "temperature": 0.1,
@@ -276,9 +359,21 @@
     // Effort, bis zu 3 Instanzen gleichzeitig (je 200K ctx). Gedacht fuer
     // unabhaengige Teilaufgaben, die parallel abgearbeitet werden koennen.
     "deepseek-flash": {
-      "description": "DeepSeek-V3 via direct DeepSeek API (200K ctx, max reasoning effort). Dispatch up to 3 at a time for parallel independent subtasks — each gets its own context window. Faster and cheaper than deepseek-pro, use for throughput not depth.",
+      "description": "THROUGHPUT: DeepSeek V4 Flash via OpenCode Go (1M ctx). Dispatch up to 3 at a time for independent parallel subtasks — each gets its own context window, and remote models do not contend for the single local GPU. Faster and cheaper than deepseek-pro; use for breadth, not depth. Default choice when no local model is loaded.",
       "mode": "subagent",
-      "model": "deepseek/deepseek-chat",
+      // War deepseek/deepseek-chat (V3, 200K). Auf V4 Flash wegen 1M
+      // Kontext; Primaerweg ist jetzt Go [2026-08-03].
+      "model": "opencode-go/deepseek-v4-flash",
+      "prompt": "{file:./prompts/deepseek-helper.md}",
+      "color": "#F59E0B",
+      "temperature": 0.2,
+      "steps": 30,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
+    },
+    "deepseek-flash-direct": {
+      "description": "FALLBACK twin of deepseek-flash on the direct DeepSeek API (1M ctx). Same role and prompt — dispatch when OpenCode Go is exhausted, rate-limited, or down.",
+      "mode": "subagent",
+      "model": "deepseek/deepseek-v4-flash",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F59E0B",
       "temperature": 0.2,
@@ -305,7 +400,12 @@
           "gemma9-2": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
-          "deepseek-flash": "allow"
+          "deepseek-flash": "allow",
+          // Ausweich-Zwillinge auf der direkten API. Bewusst freigegeben, aber
+          // als Ausweichweg gedacht: erst Go, bei Ausfall diese. Der
+          // Orchestrator-Prompt beschreibt, wann.
+          "deepseek-pro-direct": "allow",
+          "deepseek-flash-direct": "allow"
         }
       }
     }

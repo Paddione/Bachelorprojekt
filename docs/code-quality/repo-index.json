@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 769,
+      "file_count": 770,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -459,6 +459,7 @@
         "tests/spec/local-llm-proxy/proxy-env-token-guard.bats",
         "tests/spec/local-llm-proxy/ui-config-seed.bats",
         "tests/spec/lockfile-drift.bats",
+        "tests/spec/main-commit-guard.bats",
         "tests/spec/mcp-gateway.bats",
         "tests/spec/mcp-gateway/authenticated-http-headers.bats",
         "tests/spec/mcp-gateway/bge-host-routing.bats",

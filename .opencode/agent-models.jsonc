@@ -39,6 +39,24 @@
         }
       }
     },
+    "llamacpp-gemma9": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama.cpp b10223 (Gemma2 9B, 2 Slots, unified KV)",
+      "options": {
+        "baseURL": "http://127.0.0.1:18235/v1",
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      },
+      "models": {
+        "gemma9-factory": {
+          "name": "Gemma 2 9B (Q4_K_M, bartowski), 2 Slots unified KV (-kvu), q8_0 KV, --fit on",
+          "limit": {
+            "context": 32768,
+            "output": 4096
+          }
+        }
+      }
+    },
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama (local)",
@@ -159,6 +177,26 @@
       "steps": 10,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
+    "gemma9-1": {
+      "description": "Write-capable Gemma 9B subagent on gemma9-factory (Gemma2 9B, llama.cpp :8092, slot 1 of 2). Two subagents for prefix cache separation. Preferred for small, atomic partial-plan implementations.",
+      "mode": "subagent",
+      "model": "llamacpp-gemma9/gemma9-factory",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#F59E0B",
+      "temperature": 0.4,
+      "steps": 10,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
+    "gemma9-2": {
+      "description": "Second write-capable Gemma 9B subagent on gemma9-factory (slot 2 of 2). Identical to gemma9-1 — separate name preserves prefix cache.",
+      "mode": "subagent",
+      "model": "llamacpp-gemma9/gemma9-factory",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#F59E0B",
+      "temperature": 0.4,
+      "steps": 10,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
     // Primaerer (Tab-waehlbarer) Gemma-Agent, dritter der drei Kontexte.
     // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
     // summonbar.
@@ -263,6 +301,8 @@
         "task": {
           "gemma26-1": "allow",
           "gemma26-2": "allow",
+          "gemma9-1": "allow",
+          "gemma9-2": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
           "deepseek-flash": "allow"

@@ -317,3 +317,51 @@ func TestBuildersAreDeterministic(t *testing.T) {
 		}
 	}
 }
+
+// --- T002XXX: Factory-Konversion + Dedupe-Guard ---
+
+func TestNormalizeTitle(t *testing.T) {
+	if normalizeTitle("  Foo  Bar\tBAZ  ") != "foo bar baz" {
+		t.Errorf("normalizeTitle spaces/case failed: %q", normalizeTitle("  Foo  Bar\tBAZ  "))
+	}
+	if normalizeTitle("A—B") != "a—b" {
+		t.Errorf("normalizeTitle dash failed: %q", normalizeTitle("A—B"))
+	}
+}
+
+func TestMishapSeverityMapping(t *testing.T) {
+	for _, tt := range []struct{ typ, sev, prio string }{
+		{"degraded", "minor", "mittel"},
+		{"suspicious", "minor", "mittel"},
+		{"drift", "trivial", "niedrig"},
+		{"process", "minor", "mittel"},
+	} {
+		sev, prio := mishapSeverity(tt.typ)
+		if sev != tt.sev || prio != tt.prio {
+			t.Errorf("mishapSeverity(%q) = (%q,%q), want (%q,%q)", tt.typ, sev, prio, tt.sev, tt.prio)
+		}
+	}
+}
+
+func TestFactoryFixTicketArgs_PlanStaged(t *testing.T) {
+	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "drift", ReportedAt: ""}
+	args := buildFactoryFixTicketArgs(entry, "mentolder")
+	if !hasFlagValue(args, "--type", "fix") {
+		t.Errorf("factory fix must use --type fix; got %v", args)
+	}
+	if !hasFlagValue(args, "--status", "plan_staged") {
+		t.Errorf("factory fix must use --status plan_staged (T002327 lane); got %v", args)
+	}
+	if !hasFlagValue(args, "--attention-mode", "ai_ready") {
+		t.Errorf("factory fix must be ai_ready; got %v", args)
+	}
+	if !hasFlagValue(args, "--severity", "trivial") {
+		t.Errorf("drift must map to severity trivial; got %v", args)
+	}
+	if hasFlagValue(args, "--type", "task") {
+		t.Error("factory fix must never use type=task")
+	}
+	if hasFlagValue(args, "--status", "backlog") {
+		t.Error("factory fix must not land in the T002327-protected backlog lane")
+	}
+}

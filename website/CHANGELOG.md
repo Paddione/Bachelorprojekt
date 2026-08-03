@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.243.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.2...website-v1.243.3) (2026-08-03)
+
+
+### Bug Fixes
+
+* **scripts:** plan-lint STRUCT2 erkennt node --test als Testrunner [T002616] ([#3749](https://github.com/Paddione/Bachelorprojekt/issues/3749)) ([902466d](https://github.com/Paddione/Bachelorprojekt/commit/902466d580a9804c38115f6fd3dbd689ef756dd0))
+
 ## [1.243.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.1...website-v1.243.2) (2026-08-03)
 
 

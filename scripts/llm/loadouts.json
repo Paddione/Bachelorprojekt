@@ -203,7 +203,7 @@
         "minCtx": 32768
       },
       "args": {
-        "ctx": 32768,
+        "ctx": null,
         "ngl": null,
         "parallel": 2,
         "cacheTypeK": "q8_0",
@@ -213,10 +213,8 @@
         "jinja": true,
         "metrics": true
       },
-      "speculative": {
-      },
-      "mcp": {
-      },
+      "speculative": {},
+      "mcp": {},
       "extraArgs": [
         "-kvu"
       ],

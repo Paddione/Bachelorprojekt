@@ -64,6 +64,16 @@ runtimes:
     model: llamacpp-gemma26/gemma26-factory
     write_capable: false
     note: "Max context (97840 ctx), no subagent dispatch. Vision-ready (needs mmproj in loadout)."
+  gemma9-1:
+    mode: subagent
+    model: llamacpp-gemma9/gemma9-factory
+    write_capable: false
+    note: "Slot 1 of 2 (llama.cpp :8092). Own prefix cache; preferred for small, atomic partial-plan implementations [T002591]"
+  gemma9-2:
+    mode: subagent
+    model: llamacpp-gemma9/gemma9-factory
+    write_capable: false
+    note: "Slot 2 of 2 — separate name so the two subagents keep distinct prefix caches [T002591]"
   deepseek-helper:
     mode: subagent
     model: deepseek/deepseek-chat

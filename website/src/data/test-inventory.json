@@ -2550,6 +2550,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/bge-usecase-reachability",
+    "file": "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline/gemma-thinking-budget",
     "file": "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
     "category": "llm-pipeline",

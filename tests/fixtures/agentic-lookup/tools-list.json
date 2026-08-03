@@ -1,0 +1,35 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "name": "browser_navigate",
+        "description": "Navigate to a URL",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "The URL to navigate to"
+            }
+          },
+          "required": ["url"]
+        }
+      },
+      {
+        "name": "browser_screenshot",
+        "description": "Take a screenshot of the current page",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "fullPage": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      }
+    ]
+  }
+}

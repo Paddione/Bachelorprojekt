@@ -2688,6 +2688,12 @@
     "kind": "shell"
   },
   {
+    "id": "main-commit-guard",
+    "file": "tests/spec/main-commit-guard.bats",
+    "category": "main-commit-guard",
+    "kind": "shell"
+  },
+  {
     "id": "mandatory-sequences",
     "file": "tests/local/mandatory-sequences.bats",
     "category": "mandatory-sequences",
@@ -3429,6 +3435,12 @@
     "id": "ticket-system/schema-diaet-dead-columns",
     "file": "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
     "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "toolset-registry/agentic-resource-lookup",
+    "file": "tests/spec/toolset-registry/agentic-resource-lookup.bats",
+    "category": "toolset-registry",
     "kind": "shell"
   },
   {

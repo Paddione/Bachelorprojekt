@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.245.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.245.0...website-v1.245.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **scripts:** block commits on main — pre-commit guard enforces ticket→branch→worktree→PR workflow [T002631] ([#3763](https://github.com/Paddione/Bachelorprojekt/issues/3763)) ([cb6956b](https://github.com/Paddione/Bachelorprojekt/commit/cb6956bb7f65195e1dc1a8772a996a66e7b79559))
+
+## [1.245.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.244.0...website-v1.245.0) (2026-08-03)
+
+
+### Features
+
+* **scripts:** agentic-resource-lookup Skill — On-Demand MCP/Agent-Discovery [T002611] ([#3765](https://github.com/Paddione/Bachelorprojekt/issues/3765)) ([42744de](https://github.com/Paddione/Bachelorprojekt/commit/42744dedbc04ca3487033cce11317265c6785ce4))
+
 ## [1.244.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.243.3...website-v1.244.0) (2026-08-03)
 
 

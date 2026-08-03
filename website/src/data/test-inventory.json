@@ -2874,6 +2874,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/archive-no-merge",
+    "file": "tests/spec/openspec-workflow/archive-no-merge.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/archive-terminal-ticket-status",
     "file": "tests/spec/openspec-workflow/archive-terminal-ticket-status.bats",
     "category": "openspec-workflow",

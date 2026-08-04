@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.248.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.1...website-v1.248.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **website:** SDLC-Split-Nachlauf — G-CQ02-Duplikat, Goals und design-system ins richtige Target [T002639] ([#3774](https://github.com/Paddione/Bachelorprojekt/issues/3774)) ([6959c72](https://github.com/Paddione/Bachelorprojekt/commit/6959c722ef69f3993a7387971bfb94a6f3348153))
+
 ## [1.248.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.0...website-v1.248.1) (2026-08-04)
 
 

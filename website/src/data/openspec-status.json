@@ -2457,6 +2457,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002625": [
+    {
+      "slug": "e2-sdlc-local-stack",
+      "status": "plan_staged"
+    }
+  ],
   "T002630": [
     {
       "slug": "cluster-dev-node-gekko2",
@@ -2479,6 +2485,12 @@
     {
       "slug": "health-goals-silent-fallbacks",
       "status": "plan_staged"
+    }
+  ],
+  "T002651": [
+    {
+      "slug": "2026-08-04-agent-capability-drift-guards",
+      "status": "archived"
     }
   ],
   "TBD": [

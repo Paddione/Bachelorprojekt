@@ -3540,6 +3540,30 @@
     "kind": "shell"
   },
   {
+    "id": "unsloth-training-env/agent-discovery",
+    "file": "tests/spec/unsloth-training-env/agent-discovery.bats",
+    "category": "unsloth-training-env",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-training-env/factory-traces",
+    "file": "tests/spec/unsloth-training-env/factory-traces.bats",
+    "category": "unsloth-training-env",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-training-env/measure-corpus",
+    "file": "tests/spec/unsloth-training-env/measure-corpus.bats",
+    "category": "unsloth-training-env",
+    "kind": "shell"
+  },
+  {
+    "id": "unsloth-training-env/template-guard",
+    "file": "tests/spec/unsloth-training-env/template-guard.bats",
+    "category": "unsloth-training-env",
+    "kind": "shell"
+  },
+  {
     "id": "vaultwarden-integration",
     "file": "tests/spec/vaultwarden-integration.bats",
     "category": "vaultwarden-integration",

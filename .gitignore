@@ -217,5 +217,4 @@ brain-worklist.txt
 # ── ticket-mcp Go-Binary (Build-Artefakt, 12 MB — gehoert nicht in den Tree) ──
 scripts/ticket-mcp/go/ticket-mcp
 
-# ── Unsloth-Kompilat-Cache (generiert beim Training, kein Quellartefakt) [T002590] ──
-unsloth_compiled_cache/
+# Unsloth-Trainingsartefakte: siehe scripts/finetune/.gitignore [T002587]

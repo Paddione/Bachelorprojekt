@@ -60,9 +60,10 @@ tasks:
   sdlc:status:
     desc: "SDLC-Stack Health-Übersicht"
     cmds:
-      - kubectl --context k3d-mentolder-dev get pods -n workspace
-      - echo "---"
-      - kubectl --context k3d-mentolder-dev get svc -n workspace
-      - echo "---"
-      - echo "Console:  $(curl -sS -o /dev/null -w %{http_code} http://sdlc.localhost 2>/dev/null || echo unreachable)"
-      - echo "Auth:     $(curl -sS -o /dev/null -w %{http_code} http://auth.localhost 2>/dev/null || echo unreachable)"
+      - |
+        kubectl --context k3d-mentolder-dev get pods -n workspace
+        echo "---"
+        kubectl --context k3d-mentolder-dev get svc -n workspace
+        echo "---"
+        echo "Console:  $(curl -sS -o /dev/null -w %{http_code} http://sdlc.localhost 2>/dev/null || echo unreachable)"
+        echo "Auth:     $(curl -sS -o /dev/null -w %{http_code} http://auth.localhost 2>/dev/null || echo unreachable)"

@@ -204,13 +204,30 @@ spec:
               # POST (create) for every single row before `set -e` finally
               # kills the script, and restartPolicy: OnFailure repeats this
               # on every retry, each time adding more zombie oidc_clients
-              # rows (T001992). Only a genuine 401/403 aborts here --
-              # $CURL_RETRY (incl. --retry-connrefused) still covers
-              # transient connection refusals during pod startup (T001327).
+              # rows (T001992). $CURL_RETRY (incl. --retry-connrefused) still
+              # covers transient connection refusals during pod startup (T001327).
               auth_check_code=$(curl -fsS $CURL_RETRY -o /dev/null -w '%{http_code}' -H "$AUTH" "${API}/api/oidc/clients" </dev/null 2>/dev/null || echo "000")
               case "$auth_check_code" in
+                2??)
+                  # API-Key akzeptiert -- weiter mit dem Client-Seeding.
+                  ;;
                 401|403)
-                  echo "ERROR: POCKET_ID_API_KEY rejected by Pocket-ID (HTTP ${auth_check_code}) -- aborting before processing any client row. Check for API-key drift (see T001992)." >&2
+                  # T002676: auf einer FRISCHEN Instanz gibt es per Konstruktion
+                  # keinen User und damit keinen API-Key -- der Key kann nur in der
+                  # Pocket-ID-UI (Session) erzeugt werden, nicht per Secret/Env.
+                  # Der Job kann das nicht selbst aufloesen; statt still in
+                  # BackoffLimitExceeded zu laufen, terminiert er mit einer
+                  # handlungsleitenden Meldung.
+                  echo "ERROR: POCKET_ID_API_KEY von Pocket-ID abgelehnt (HTTP ${auth_check_code}) -- Abbruch vor der Verarbeitung irgendeiner Client-Zeile." >&2
+                  echo "  Ursache 1 (frische Instanz, T002676): API-Keys entstehen ausschliesslich in der Pocket-ID-UI. Bootstrap-Schritte: docs/runbooks/pocket-id-bootstrap.md" >&2
+                  echo "  Ursache 2 (Drift, T001992): der Key wurde rotiert/geaendert und workspace-secrets haengt hinterher." >&2
+                  exit 1
+                  ;;
+                *)
+                  # 000 (Verbindung fehlgeschlagen) oder unerwarteter Status
+                  # (z.B. 5xx): nicht blind weiterlaufen, sonst landen die
+                  # upsert()-Versuche im "client not found"-Pfad (T001992-Bugklasse).
+                  echo "ERROR: POCKET_ID_API_KEY kann nicht verifiziert werden (HTTP ${auth_check_code}) -- Pocket-ID nicht erreichbar oder unerwartete Antwort. Abbruch." >&2
                   exit 1
                   ;;
               esac

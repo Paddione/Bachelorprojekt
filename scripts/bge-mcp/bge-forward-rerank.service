@@ -18,7 +18,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/kubectl --context fleet port-forward -n workspace svc/llm-gateway-rerank 8093:8081
+ExecStart=/usr/local/bin/kubectl --context fleet port-forward -n workspace svc/llm-gateway-rerank 8093:8081
 Restart=always
 RestartSec=3
 StartLimitIntervalSec=0

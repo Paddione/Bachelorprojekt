@@ -389,6 +389,34 @@
         "4"
       ],
       "notes": "ACHTUNG PORT-KONFLIKT: auf :8096 laeuft bereits ein Windows-llama-server mit demselben Modell aus dem LM-Studio-Verzeichnis, und die Endpoints des Service llm-gateway-rerank in ns workspace-korczewski zeigen auf 192.168.100.10:8096 — also auf genau diesen Prozess. Dieses Loadout beschreibt ihn, startet ihn aber nicht; wird es gestartet, ohne den Windows-Prozess vorher zu beenden, ist der Port belegt. Args gespiegelt von k3d/llm-gpu.yaml (bge-rerank)."
+    },
+    {
+      "slug": "unsloth-studio",
+      "label": "Unsloth Studio · Inferenz-Server",
+      "model": "unsloth/inference",
+      "port": 45013,
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 0,
+        "minCtx": 4096
+      },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": null,
+        "cacheTypeV": null,
+        "loadMode": "mmap",
+        "flashAttention": false,
+        "jinja": false,
+        "metrics": false
+      },
+      "speculative": {},
+      "mcp": {},
+      "extraArgs": [],
+      "exclusiveGroup": "chat-gpu",
+      "managed": "external",
+      "notes": "Extern verwalteter llama-server, gestartet von Unsloth Studio (:8888) als Kindprozess im /init.scope. Keine systemd-Unit. Liveness wird ueber Port u. Prozess geprueft. Stop-Signale laufen ueber Studio-API — acquire schickt KEIN Signal an diesen Prozess, sondern meldet ihn im Fehlerfall."
     }
   ]
 }

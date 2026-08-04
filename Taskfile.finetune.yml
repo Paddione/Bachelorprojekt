@@ -38,12 +38,27 @@ tasks:
           --corpus "{{.CORPUS}}"
 
   train:
-    desc: "Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> [CONFIG=<json>] [DRY_RUN=1]"
+    desc: "Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> [CONFIG=<json>] [DRY_RUN=1] GPU_LOCK_REQUIRED_MIB=<mib>"
     preconditions:
       - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ] && [ -n "{{.MEASURE_REPORT}}" ]'
         msg: "CORPUS=, MODEL= und MEASURE_REPORT= sind erforderlich (MEASURE_REPORT aus 'task finetune:measure')."
     cmds:
       - |
+        # T002628 GPU-Arbitrierung: Trainings-Vorrang. acquire drainiert die lokalen
+        # Backends (Auslaufen abwarten, chat-gpu-Loadouts stoppen) und misst das freie
+        # VRAM. Der Lock wird per trap freigegeben — auch wenn train.py abbricht.
+        # Nach der Freigabe werden die gestoppten Loadouts wieder gestartet.
+        LOCK_SCRIPT="scripts/gpu-lock.sh"
+        STOPPED=""
+        trap 'T=$?; if [ -f "${GPU_LOCK_FILE:-/tmp/gpu-training-lock.json}" ]; then bash "$LOCK_SCRIPT" release >&2 || true; fi; for slug in $STOPPED; do curl -sf -X POST "http://127.0.0.1:18235/admin/loadouts/${slug}/start" >/dev/null 2>&1 || true; done; exit $T' EXIT
+
+        if [ -n "${GPU_LOCK_REQUIRED_MIB:-}" ]; then
+          bash "$LOCK_SCRIPT" acquire
+          STOPPED=$(python3 -c 'import json; d=json.load(open("scripts/llm/loadouts.json")); print(" ".join(l["slug"] for l in d.get("loadouts", []) if l.get("exclusiveGroup")=="chat-gpu" and l.get("managed")!="external"))')
+        else
+          echo "[finetune] GPU_LOCK_REQUIRED_MIB nicht gesetzt — Training ohne GPU-Arbitrierung."
+        fi
+
         python3 scripts/finetune/train.py \
           --corpus "{{.CORPUS}}" --model "{{.MODEL}}" --measure-report "{{.MEASURE_REPORT}}" \
           {{if .CONFIG}}--config "{{.CONFIG}}"{{end}} \

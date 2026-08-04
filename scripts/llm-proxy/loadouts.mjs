@@ -7,12 +7,16 @@
 // Bewusst fail-closed bei der Validierung: eine kaputte Datei darf nicht als
 // halbgueltiges Dokument durchrutschen und spaeter beim argv-Bau explodieren.
 import { readFileSync, writeFileSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 
 export const DEFAULT_PATH = 'scripts/llm/loadouts.json';
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const LOADOUT_KEYS = new Set([
   'slug', 'label', 'model', 'port', 'fit', 'args', 'speculative', 'mcp', 'extraArgs', 'notes', 'exclusiveGroup',
+  // T002628: managed=external markiert Loadouts ohne systemd-Unit (Unsloth Studio).
+  // Liveness wird ueber Port+Prozess bestimmt, Stop-Signale werden uebersprungen.
+  'managed',
   // T002538: Umgebungsvariablen fuer die systemd-Unit. Gebraucht fuer
   // CUDA_VISIBLE_DEVICES='' bei den CPU-gebundenen bge-Servern — '-ngl 0'
   // verhindert nur das Auslagern der Layer, NICHT die Allokation eines
@@ -189,6 +193,34 @@ export function writeLoadouts(doc, path = DEFAULT_PATH, expectedMtimeMs = null) 
 
 export function findLoadout(doc, slug) {
   return doc.loadouts.find((l) => l.slug === slug);
+}
+
+/**
+ * T002628 — Prueft, ob ein Loadout aktiv ist. Fuer managed=external wird die
+ * Liveness ueber den Port (TCP-Verbindung) bestimmt statt ueber systemd-Unit.
+ * Fuer alle anderen Loadouts wird unitStatus aus runner.mjs verwendet.
+ *
+ * @param {object} loadout
+ * @param {{active:string}} unitStatusResult — von runner.unitStatus(slug)
+ * @returns {boolean}
+ */
+export function isLoadoutActive(loadout, unitStatusResult) {
+  if (loadout.managed === 'external') {
+    return _portAliveSync(loadout.port);
+  }
+  return unitStatusResult?.active === 'active';
+}
+
+/** Synchroner TCP-Connect-Test — true wenn Port erreichbar. */
+function _portAliveSync(port) {
+  try {
+    execFileSync(
+      'bash', ['-c', `timeout 0.5 bash -c 'echo >/dev/tcp/127.0.0.1/${port}' 2>/dev/null`],
+      { timeout: 1000, stdio: 'pipe' });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**

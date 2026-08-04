@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getArchivedMarkdown } from '../../../../../lib/sessions/archive';
+import { getArchivedMarkdown } from '../../../../../lib/sessions/archive.ts';
 
 export const prerender = false;
 

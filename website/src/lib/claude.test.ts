@@ -20,7 +20,7 @@ vi.hoisted(() => {
 });
 
 import { generateMeetingInsights } from './claude';
-import * as loggerModule from './logger';
+import * as loggerModule from './logger.ts';
 
 beforeEach(() => {
   mockCreate.mockReset();

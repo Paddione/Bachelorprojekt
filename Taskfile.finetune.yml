@@ -1,0 +1,77 @@
+# Taskfile.finetune.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# LLM-Finetuning-Pipeline (Unsloth/TRL). Included from Taskfile.yml under the
+# "finetune" namespace [T002587].
+#
+# Reihenfolge: measure -> guard -> train -> export. traces ist ein optionaler
+# Korpus-Beschaffungsschritt vor measure. Details: scripts/finetune/README.md.
+#
+# Eigene Datei statt Anhaengen an eine bestehende Taskfile (siehe Taskfile.llm.yml
+# fuer den Grund: Parallelarbeit soll nicht am selben Dateiende kollidieren).
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3"
+
+tasks:
+
+  measure:
+    desc: "Token-Laengenverteilung + VRAM-Machbarkeitsmatrix. CORPUS=<jsonl> MODEL=<label> [TEMPLATE_FILE=<jinja>]"
+    preconditions:
+      - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ]'
+        msg: "CORPUS=<jsonl> und MODEL=<label> sind erforderlich."
+    cmds:
+      - |
+        python3 scripts/finetune/measure_corpus.py \
+          --corpus "{{.CORPUS}}" --model "{{.MODEL}}" \
+          {{if .TEMPLATE_FILE}}--template-file "{{.TEMPLATE_FILE}}"{{end}} \
+          {{if .OUT}}--out "{{.OUT}}"{{end}}
+
+  guard:
+    desc: "Byte-Gleichheit Hub- vs. gepatchtes Chat-Template. HUB_TEMPLATE=<datei> PATCHED_TEMPLATE=<datei> CORPUS=<jsonl>"
+    preconditions:
+      - sh: '[ -n "{{.HUB_TEMPLATE}}" ] && [ -n "{{.PATCHED_TEMPLATE}}" ] && [ -n "{{.CORPUS}}" ]'
+        msg: "HUB_TEMPLATE=, PATCHED_TEMPLATE= und CORPUS= sind erforderlich."
+    cmds:
+      - |
+        python3 scripts/finetune/template_guard.py \
+          --hub-template "{{.HUB_TEMPLATE}}" \
+          --patched-template "{{.PATCHED_TEMPLATE}}" \
+          --corpus "{{.CORPUS}}"
+
+  train:
+    desc: "Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> [CONFIG=<json>] [DRY_RUN=1]"
+    preconditions:
+      - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ] && [ -n "{{.MEASURE_REPORT}}" ]'
+        msg: "CORPUS=, MODEL= und MEASURE_REPORT= sind erforderlich (MEASURE_REPORT aus 'task finetune:measure')."
+    cmds:
+      - |
+        python3 scripts/finetune/train.py \
+          --corpus "{{.CORPUS}}" --model "{{.MODEL}}" --measure-report "{{.MEASURE_REPORT}}" \
+          {{if .CONFIG}}--config "{{.CONFIG}}"{{end}} \
+          {{if .DRY_RUN}}--dry-run{{end}}
+
+  traces:
+    desc: "Erfolgreiche Factory-Laeufe zu Trainingskorpus rendern. FIXTURE=<json>|ROWS_JSON=<json> OUT=<jsonl>"
+    preconditions:
+      - sh: '[ -n "{{.OUT}}" ]'
+        msg: "OUT=<jsonl> ist erforderlich."
+      - sh: '[ -n "{{.FIXTURE}}" ] || [ -n "{{.ROWS_JSON}}" ]'
+        msg: "FIXTURE=<json> (Tests) oder ROWS_JSON=<json> (mcp-postgres-Ergebnis) ist erforderlich."
+    cmds:
+      - |
+        python3 scripts/finetune/collect_factory_traces.py \
+          {{if .FIXTURE}}--fixture "{{.FIXTURE}}"{{end}} \
+          {{if .ROWS_JSON}}--rows-json "{{.ROWS_JSON}}"{{end}} \
+          --out "{{.OUT}}"
+
+  export:
+    desc: "GGUF-Export mit Template-Korrektur. ADAPTER_DIR=<dir> SLOT_NAME=<name> [HUB_TEMPLATE=<datei>] [DRY_RUN=1]"
+    preconditions:
+      - sh: '[ -n "{{.SLOT_NAME}}" ]'
+        msg: "SLOT_NAME=<name> ist erforderlich."
+    cmds:
+      - |
+        python3 scripts/finetune/export_gguf.py \
+          {{if .ADAPTER_DIR}}--adapter-dir "{{.ADAPTER_DIR}}"{{end}} \
+          --slot-name "{{.SLOT_NAME}}" \
+          {{if .HUB_TEMPLATE}}--hub-template "{{.HUB_TEMPLATE}}"{{end}} \
+          {{if .DRY_RUN}}--dry-run{{end}}

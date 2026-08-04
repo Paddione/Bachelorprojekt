@@ -1,5 +1,5 @@
-import { pool, platformPool } from './website-db';
-import { ensureSchemaOnce } from './website-db';
+import { pool, platformPool } from './website-db.ts';
+import { ensureSchemaOnce } from './website-db.ts';
 import platformDescriptions from './platform-descriptions.generated.json';
 
 export interface SoftwareAsset {

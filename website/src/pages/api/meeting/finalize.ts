@@ -7,7 +7,7 @@ import {
   saveTranscript, saveArtifact, saveInsight, getMeetingByRoomToken,
   initMeetingsDb,
 } from '../../../lib/website-db';
-import { generateMeetingInsights } from '../../../lib/claude';
+import { generateMeetingInsights } from '../../../lib/claude.ts';
 
 // Finalize a meeting: collect artifacts, transcribe, generate AI insights.
 // Called directly via API.

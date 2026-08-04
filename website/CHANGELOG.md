@@ -1,5 +1,62 @@
 # Changelog
 
+## [1.248.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.3...website-v1.248.4) (2026-08-04)
+
+
+### Bug Fixes
+
+* **agents:** Fähigkeits-Drift bei ops-Agent und Plugin-Aktivierung schließen [T002651] ([#3784](https://github.com/Paddione/Bachelorprojekt/issues/3784)) ([0fb2ec5](https://github.com/Paddione/Bachelorprojekt/commit/0fb2ec5fbb2b57850d86e99b0123d6d993fe6071))
+
+## [1.248.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.2...website-v1.248.3) (2026-08-04)
+
+
+### Bug Fixes
+
+* **scripts:** drei stille Health-Goal-Messausfaelle und tote goals-data-Pfade [T002648] ([#3779](https://github.com/Paddione/Bachelorprojekt/issues/3779)) ([b2fd151](https://github.com/Paddione/Bachelorprojekt/commit/b2fd15130dca69f5762d4448ecb683d75b855928))
+
+## [1.248.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.1...website-v1.248.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **website:** SDLC-Split-Nachlauf — G-CQ02-Duplikat, Goals und design-system ins richtige Target [T002639] ([#3774](https://github.com/Paddione/Bachelorprojekt/issues/3774)) ([6959c72](https://github.com/Paddione/Bachelorprojekt/commit/6959c722ef69f3993a7387971bfb94a6f3348153))
+
+## [1.248.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.0...website-v1.248.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **scripts:** llm-proxy Health-Probe fuehrt das Credential des Backends [T002638] ([#3775](https://github.com/Paddione/Bachelorprojekt/issues/3775)) ([f8f6cab](https://github.com/Paddione/Bachelorprojekt/commit/f8f6cab5ece1adda9530fba27055b3b3cf0dca7c))
+
+## [1.248.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.247.0...website-v1.248.0) (2026-08-04)
+
+
+### Features
+
+* **website:** SDLC build-target split — separate SDLC routes from production build [T002624] ([#3762](https://github.com/Paddione/Bachelorprojekt/issues/3762)) ([a6b6357](https://github.com/Paddione/Bachelorprojekt/commit/a6b6357223495d44b23d1d300a4cd67a61d5e139))
+
+## [1.247.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.246.0...website-v1.247.0) (2026-08-04)
+
+
+### Features
+
+* **scripts:** Unsloth-Trainingsumgebung — messgetrieben und factory-angebunden [T002587] ([#3745](https://github.com/Paddione/Bachelorprojekt/issues/3745)) ([ad8bdbd](https://github.com/Paddione/Bachelorprojekt/commit/ad8bdbd9a659474f21ca00a75bbdb4b88d40d2c0))
+* **website:** web-audit Skill — semantische Pruefung und Triage ueber axe/Lighthouse [T002612] ([#3766](https://github.com/Paddione/Bachelorprojekt/issues/3766)) ([d52f1ec](https://github.com/Paddione/Bachelorprojekt/commit/d52f1ec062169619278c6ad7a3178eb9b30a16e9))
+
+## [1.246.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.245.1...website-v1.246.0) (2026-08-03)
+
+
+### Features
+
+* **infra:** Cluster-Dev-Node auf gekko-hetzner-2 — Env-Entflechtung, Dev-Node-Bindung, Drift-Gate [T002630] ([#3764](https://github.com/Paddione/Bachelorprojekt/issues/3764)) ([767da1f](https://github.com/Paddione/Bachelorprojekt/commit/767da1f5c1706e4ed8fb6420fac8926bf1f3d8ee))
+
+## [1.245.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.245.0...website-v1.245.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **scripts:** block commits on main — pre-commit guard enforces ticket→branch→worktree→PR workflow [T002631] ([#3763](https://github.com/Paddione/Bachelorprojekt/issues/3763)) ([cb6956b](https://github.com/Paddione/Bachelorprojekt/commit/cb6956bb7f65195e1dc1a8772a996a66e7b79559))
+
 ## [1.245.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.244.0...website-v1.245.0) (2026-08-03)
 
 

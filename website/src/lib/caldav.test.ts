@@ -32,8 +32,8 @@ vi.mock('./website-db.js', () => ({
   getVacationPeriods: vi.fn(),
 }));
 
-import { fetchEventsRaw } from './caldav-cache.js';
-import { getFreeTimeWindows, getVacationPeriods } from './website-db.js';
+import { fetchEventsRaw } from './caldav-cache.ts';
+import { getFreeTimeWindows, getVacationPeriods } from './website-db.ts';
 import {
   getAllBookings,
   getClientBookings,

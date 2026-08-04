@@ -1,7 +1,7 @@
 import { pool, ensureSchemaOnce } from './db-pool';
 import { refFor } from './content-registry';
-import { idsToPrune } from './admin/version-prune';
-import { isConflict as detectConflict, nextVersion as bumpVersion } from './admin/conflict';
+import { idsToPrune } from './admin/version-prune.ts';
+import { isConflict as detectConflict, nextVersion as bumpVersion } from './admin/conflict.ts';
 import type { Pool, PoolClient } from 'pg';
 
 // ─── Service-page content store (per-slug) ────────────────────────────────────

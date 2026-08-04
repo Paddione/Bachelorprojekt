@@ -1,9 +1,8 @@
 // OIDC authentication helper for Pocket ID.
 // Implements Authorization Code Flow with cookie-based sessions.
 import { logger } from './logger';
+import { resolveEndpoints, resolveEndpointsSync, clearProviderCache, AuthUnavailableError } from './auth/provider';
 
-const PI_FRONTEND_URL = process.env.POCKET_ID_FRONTEND_URL || '';
-const PI_INTERNAL_URL = process.env.POCKET_ID_URL || 'http://pocket-id.workspace.svc.cluster.local:1411';
 const CLIENT_ID = 'website';
 const CLIENT_SECRET = process.env.POCKET_ID_WEBSITE_SECRET || process.env.WEBSITE_OIDC_SECRET || '';
 if (!CLIENT_SECRET) {
@@ -18,12 +17,6 @@ if (!CLIENT_SECRET) {
 const SITE_URL = process.env.SITE_URL || '';
 const CALLBACK_PATH = '/api/auth/callback';
 const COOKIE_NAME = 'workspace_session';
-
-// Well-known Pocket ID OIDC endpoints
-const AUTH_ENDPOINT = `${PI_FRONTEND_URL}/authorize`;
-const TOKEN_ENDPOINT = `${PI_INTERNAL_URL}/api/oidc/token`;
-const USERINFO_ENDPOINT = `${PI_INTERNAL_URL}/api/oidc/userinfo`;
-const LOGOUT_ENDPOINT = `${PI_FRONTEND_URL}/api/oidc/end-session`;
 
 export interface UserSession {
   sub: string;
@@ -94,6 +87,7 @@ function generateSessionId(): string {
 const oidcStateStore = new Map<string, string>();
 
 export function getLoginUrl(returnTo?: string): string {
+  const { auth: authEndpoint } = resolveEndpointsSync();
   const state = generateSessionId();
   if (returnTo) {
     oidcStateStore.set(state, returnTo);
@@ -105,7 +99,7 @@ export function getLoginUrl(returnTo?: string): string {
     scope: 'openid email profile',
     state,
   });
-  return `${AUTH_ENDPOINT}?${params}`;
+  return `${authEndpoint}?${params}`;
 }
 
 export function consumeReturnTo(state: string): string | undefined {
@@ -122,11 +116,12 @@ export async function getLogoutUrl(sessionId?: string): Promise<string> {
     } catch { /* best-effort cleanup */ }
   }
 
+  const { logout: logoutEndpoint } = await resolveEndpoints();
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     post_logout_redirect_uri: SITE_URL,
   });
-  return `${LOGOUT_ENDPOINT}?${params}`;
+  return `${logoutEndpoint}?${params}`;
 }
 
 // 8 hours — session lifetime in the DB (independent of the short-lived access token)
@@ -134,7 +129,8 @@ const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 
 async function refreshTokens(refreshToken: string): Promise<{ access_token: string; refresh_token: string; expires_in: number } | null> {
   try {
-    const res = await fetch(TOKEN_ENDPOINT, {
+    const { token: tokenEndpoint } = await resolveEndpoints();
+    const res = await fetch(tokenEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -154,7 +150,20 @@ async function refreshTokens(refreshToken: string): Promise<{ access_token: stri
 }
 
 export async function exchangeCode(code: string): Promise<{ sessionId: string; user: UserSession } | null> {
-  const res = await fetch(TOKEN_ENDPOINT, {
+  let tokenEndpoint: string;
+  let userinfoEndpoint: string;
+  try {
+    const endpoints = await resolveEndpoints();
+    tokenEndpoint = endpoints.token;
+    userinfoEndpoint = endpoints.userinfo;
+  } catch (err) {
+    if (err instanceof AuthUnavailableError) {
+      logger.error('[auth] No auth provider reachable for token exchange');
+      return null;
+    }
+    throw err;
+  }
+  const res = await fetch(tokenEndpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -174,7 +183,7 @@ export async function exchangeCode(code: string): Promise<{ sessionId: string; u
   const tokens = await res.json();
 
   // Fetch user info
-  const userRes = await fetch(USERINFO_ENDPOINT, {
+  const userRes = await fetch(userinfoEndpoint, {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
   });
 
@@ -267,7 +276,8 @@ export async function getSession(cookieHeader: string | null): Promise<UserSessi
           [JSON.stringify(session), new Date(newExpiry), sessionId]
         );
       } else {
-        // Refresh failed — session is expired, clean up
+        // Refresh failed — clear provider cache so the next attempt re-selects
+        clearProviderCache();
         await sessionPool.query('DELETE FROM web_sessions WHERE id = $1', [sessionId]);
         return null;
       }

@@ -1,4 +1,4 @@
-import { pool } from '../website-db';
+import { pool } from '../website-db.ts';
 import type { RollupMetrics, HealthStatus } from './cockpit-types';
 import { dorScore, DOR_KEYS, type Readiness } from '../planning-office';
 import { isLastenheftLocked } from './lastenheft';

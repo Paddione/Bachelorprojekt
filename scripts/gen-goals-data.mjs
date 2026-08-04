@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
  * gen-goals-data.mjs — parses .claude/lib/goals.md (the SSOT for repository
- * health goals) and emits website/src/lib/goals-data.generated.json, an
- * array matching the HealthGoal TypeScript shape (website/src/lib/goals-data.ts).
+ * health goals) and emits website/src/lib/sdlc/goals-data.generated.json, an
+ * array matching the HealthGoal TypeScript shape (website/src/lib/sdlc/goals-data.ts).
  *
  * Mirrors the scripts/openspec-status-map.sh -> website/src/data/openspec-status.json
  * pattern, wired into `task freshness:regenerate` / `task freshness:check`.
  *
  * Env overrides (for BATS fixtures, mirrors OPENSPEC_ROOT in openspec-status-map.sh):
  *   GOALS_MD_PATH  — default .claude/lib/goals.md
- *   GOALS_JSON_OUT — default website/src/lib/goals-data.generated.json
+ *   GOALS_JSON_OUT — default website/src/lib/sdlc/goals-data.generated.json
  *
  * Parses two goal representations:
  *   1. H2-section entries (Prio A/B): `## G-<id> — <title>` with a
@@ -33,7 +33,7 @@ const GOALS_MD_PATH = process.env.GOALS_MD_PATH
   : join(ROOT, '.claude/lib/goals.md');
 const GOALS_JSON_OUT = process.env.GOALS_JSON_OUT
   ? resolve(process.cwd(), process.env.GOALS_JSON_OUT)
-  : join(ROOT, 'website/src/lib/goals-data.generated.json');
+  : join(ROOT, 'website/src/lib/sdlc/goals-data.generated.json');
 
 const CATEGORY_MAP = {
   GIT: 'Repo-Hygiene',

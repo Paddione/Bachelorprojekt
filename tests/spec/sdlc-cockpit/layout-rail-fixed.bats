@@ -14,7 +14,7 @@
 setup() {
   REPO="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   PROOF_DIR="$REPO/.lavish"
-  ASTRO="$REPO/website/src/pages/admin/cockpit.astro"
+  ASTRO="$REPO/website/src/pages/sdlc/cockpit.astro"
 }
 
 @test "T002462 Die vier D7-Gruppen sind in der Shell-Hülle vorhanden" {

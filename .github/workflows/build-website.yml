@@ -5,11 +5,15 @@ on:
     branches: [main]
     paths:
       - 'website/**'
-      # T002158: SSOT von website/src/lib/goals-data.generated.json. Der JSON wird per
-      # statischem ESM-Import (website/src/lib/goals-data.ts) ins Bundle gebacken —
-      # ohne diesen Trigger baut eine goals-only-Änderung kein Image und
-      # /admin/repohealth bleibt stale (gleiche Klasse wie T002157).
-      - '.claude/lib/goals.md'
+      - '!website/src/pages/sdlc/**'
+      - '!website/src/lib/sdlc/**'
+      - '!website/src/components/sdlc/**'
+      # Hier bewusst KEIN '.claude/lib/goals.md' (T002639): der Trigger stammte aus
+      # T002158, als /admin/repohealth noch im Prod-Bundle steckte. Seit ADR-006 E1
+      # ist der einzige Konsument pages/sdlc/repohealth.astro, und die Daten liegen
+      # unter website/src/lib/sdlc/ — von den Negationen oben also ausgeschlossen.
+      # Gebaut wird das über build-sdlc-console.yml ('website/src/lib/**'), das der
+      # Bot-Commit aus health-goals.yml mitzieht (goals.md + JSON in EINEM Commit).
       - '.github/workflows/build-website.yml'
   workflow_dispatch:
 
@@ -85,6 +89,7 @@ jobs:
           build-args: |
             GIT_SHA=${{ github.sha }}
             BUILT_AT=${{ steps.compute-tags.outputs.built_at }}
+            BUILD_TARGET=prod
           tags: |
             ${{ steps.compute-tags.outputs.image }}:${{ steps.compute-tags.outputs.sha_tag }}
             ${{ steps.compute-tags.outputs.image }}:latest

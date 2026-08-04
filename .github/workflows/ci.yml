@@ -105,9 +105,13 @@ jobs:
       # Taskfile-Target noch in CI. "always", nicht selektiv: der Proxy ist
       # Infrastruktur fuer Factory und dev-flow, ein Bruch faellt sonst erst
       # zur Laufzeit auf (und dann still, siehe /health-Vorfall 2026-07-27).
+      # T002638: dasselbe Muster ein zweites Mal — exclusive-conflict, fixups und
+      # strip-markers (zusammen 19 Tests) standen ebenfalls in keiner Zeile. Der
+      # Guard tests/spec/local-llm-proxy/proxy-tests-registered.bats haelt diese
+      # handgepflegte Liste ab jetzt gegen die vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - name: llm-proxy routing + readiness (always)
-        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs
+        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
       - name: API auth regression gate
         run: |

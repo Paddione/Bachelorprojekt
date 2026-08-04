@@ -38,7 +38,7 @@ setup() {
 @test "T002531 deletion: orphaned Cockpit components deleted while keep-list remains" {
   # Positiv-Anker: Bleibe-Liste existiert
   [ -f "$REPO_ROOT/website/src/components/assistant/CockpitSidekickView.svelte" ]
-  [ -f "$REPO_ROOT/website/src/pages/api/admin/cockpit/portfolio.ts" ]
+  [ -f "$REPO_ROOT/website/src/pages/sdlc/api/cockpit/portfolio.ts" ]
 
   # Gelöschte Dateien dürfen nicht mehr existieren
   [ ! -f "$REPO_ROOT/website/src/components/admin/Cockpit.svelte" ]
@@ -50,8 +50,8 @@ setup() {
   [ ! -f "$REPO_ROOT/website/src/components/admin/BulkBar.svelte" ]
   [ ! -f "$REPO_ROOT/website/src/components/admin/Cockpit/MobileToggle.svelte" ]
   [ ! -f "$REPO_ROOT/website/src/components/admin/Cockpit/FilterBar.svelte" ]
-  [ ! -f "$REPO_ROOT/website/src/lib/admin/cockpit-expand.ts" ]
-  [ ! -f "$REPO_ROOT/website/src/lib/tickets/cockpit-table-actions.ts" ]
+  [ ! -f "$REPO_ROOT/website/src/lib/sdlc/admin/cockpit-expand.ts" ]
+  [ ! -f "$REPO_ROOT/website/src/lib/sdlc/tickets/cockpit-table-actions.ts" ]
 
   # Keine Quelltext-Importe mehr auf gelöschte Svelte-Komponenten
   run grep -rn "CockpitTable.svelte" "$REPO_ROOT/website/src"
@@ -72,7 +72,7 @@ setup() {
 }
 
 @test "T002531 redirect: pipeline.astro redirects query-preserving to /admin/cockpit" {
-  local pipe_file="$REPO_ROOT/website/src/pages/admin/pipeline.astro"
+  local pipe_file="$REPO_ROOT/website/src/pages/sdlc/pipeline.astro"
   # Positiv-Anker: pipeline.astro existiert
   [ -f "$pipe_file" ]
 

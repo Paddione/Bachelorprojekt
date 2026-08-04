@@ -1,0 +1,292 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { getTicketDetail, getTicketTimeline } from '../../../lib/tickets/admin';
+import TicketDetailSections from '../../../components/admin/TicketDetailSections.astro';
+import TicketActionBar from '../../../components/admin/TicketActionBar.svelte';
+import {
+  listQAssignmentsForProject,
+  listQQuestions,
+  listQAnswerOptionsForTemplate,
+  listQAnswers,
+} from '../../../lib/questionnaire-db';
+import { getDisplayScores } from '../../../lib/questionnaire-display';
+import ProjectQuestionnairesPanel, { type AssignmentBundle } from '../../../components/admin/ProjectQuestionnairesPanel.astro';
+import GrillingStepper from '../../../components/admin/GrillingStepper.svelte';
+import { renderMarkdown } from '../../../lib/markdown';
+import '../../../styles/markdown.css';
+import { statusLabel, typeLabel } from '../../../lib/tickets/cockpit-labels';
+import { getContainerRollup, getTicketPlan, getContainerDor } from '../../../lib/tickets/container-detail';
+import ContainerChildrenList from '../../../components/admin/ContainerChildrenList.astro';
+import ContainerRollupHeader from '../../../components/admin/ContainerRollupHeader.svelte';
+import ContainerDorPanel from '../../../components/admin/ContainerDorPanel.svelte';
+import TicketPlanPanel from '../../../components/admin/TicketPlanPanel.svelte';
+import TicketSpecProgress from '../../../components/admin/TicketSpecProgress.svelte';
+import TicketAttachmentsPanel from '../../../components/admin/TicketAttachmentsPanel.svelte';
+import OpenSpecProposalsPanel from '../../../components/admin/OpenSpecProposalsPanel.svelte';
+import openspecStatusMap from '../../../data/openspec-status.json';
+import { readProposal } from '../../../lib/sdlc/openspec/proposal.ts';
+import DorPanel from '../../../components/admin/DorPanel.svelte';
+import { logger } from '../../../lib/logger';
+
+const session = await getSession(Astro.request.headers.get('cookie'));
+if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!isAdmin(session)) return Astro.redirect('/admin');
+
+const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin/tickets');
+
+const [ticket, timeline] = await Promise.all([
+  getTicketDetail(BRAND, id),
+  getTicketTimeline(BRAND, id),
+]);
+
+if (!ticket) return Astro.redirect('/admin/tickets');
+
+const openspecProposals = (openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>)[ticket.externalId ?? ''] ?? [];
+
+let questionnaireBundles: AssignmentBundle[] = [];
+
+// Only fetch for project-type tickets — coaching questionnaires only link to projects.
+if (ticket.type === 'project') {
+  try {
+    const assignments = await listQAssignmentsForProject(ticket.id);
+    questionnaireBundles = await Promise.all(assignments.map(async a => {
+      const [questions, options, answers] = await Promise.all([
+        listQQuestions(a.template_id),
+        listQAnswerOptionsForTemplate(a.template_id),
+        listQAnswers(a.id),
+      ]);
+      const scores = await getDisplayScores(a);
+      return { assignment: a, questions, options, answers, scores };
+    }));
+  } catch (err) {
+    logger.error({ err }, '[admin/tickets/[id]] questionnaire fetch failed');
+    questionnaireBundles = [];
+  }
+}
+
+const isContainer = ['project','feature'].includes(ticket.type);
+const containerRollup = isContainer
+  ? await getContainerRollup(BRAND, id).catch(() => null) : null;
+const containerPlan = containerRollup
+  ? await getTicketPlan(BRAND, id).catch(() => null) : null;
+const containerDor = containerRollup
+  ? await getContainerDor(BRAND, id).catch(() => null) : null;
+const planHtml = containerPlan?.content ? renderMarkdown(containerPlan.content) : '';
+const grillingQnId = Object.keys(ticket.grillingAnswers ?? {}).filter((k) => k !== 'coaching-sessions-v1')[0] ?? 'final-grilling-v1';
+
+const dorSlug = isContainer && openspecProposals[0]?.slug ? openspecProposals[0].slug : null;
+const proposalContent = dorSlug ? await readProposal(dorSlug).catch(() => null) : null;
+
+const STATUS_CLS: Record<string, string> = { triage: 'bg-purple-900/40 text-purple-300 border-purple-800', backlog: 'bg-slate-900/40 text-slate-300 border-slate-700', in_progress: 'bg-yellow-900/40 text-yellow-300 border-yellow-800', in_review: 'bg-blue-900/40 text-blue-300 border-blue-800', blocked: 'bg-red-900/40 text-red-300 border-red-800', done: 'bg-green-900/40 text-green-300 border-green-800', archived: 'bg-dark text-muted border-dark-lighter' };
+const PRIO_CLS:  Record<string, string> = { hoch: 'text-red-400', mittel: 'text-yellow-400', niedrig: 'text-green-400' };
+const PRIO_ICON: Record<string, string> = { hoch: '▲', mittel: '●', niedrig: '▼' };
+
+function fmt(d: Date | string | null): string {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('de-DE',
+    { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+function fmtDateTime(d: Date | string | null): string {
+  if (!d) return '—';
+  return new Date(d).toLocaleString('de-DE',
+    { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+---
+
+<AdminLayout title={`Admin — ${ticket.externalId ?? ticket.id.slice(0, 8)}: ${ticket.title}`}>
+  <section class="pt-10 pb-20 bg-dark min-h-screen">
+    <div class="max-w-6xl mx-auto px-6">
+
+      {/* Breadcrumb */}
+      <nav class="text-sm mb-6 flex items-center gap-2">
+        <a href="/admin/tickets" class="text-muted hover:text-gold transition-colors">Tickets</a>
+        <span class="text-muted/30 select-none">›</span>
+        <span class="font-mono text-xs bg-gold/10 text-gold px-2 py-0.5 rounded">{ticket.externalId ?? ticket.id.slice(0, 8)}</span>
+      </nav>
+
+      {/* Header */}
+      <div class="mb-6 flex items-start gap-4 flex-wrap">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2.5 flex-wrap mb-3">
+            <span class="text-xs px-2.5 py-1 rounded-full bg-dark border border-dark-lighter/80 text-muted/80 whitespace-nowrap font-medium">
+              {typeLabel(ticket.type)}
+            </span>
+            <span class={`text-xs px-3 py-1 rounded-full border font-semibold whitespace-nowrap ${STATUS_CLS[ticket.status] ?? ''}`}>
+              {statusLabel(ticket.status)}{ticket.resolution ? ` · ${ticket.resolution}` : ''}
+            </span>
+            <span class={`text-sm font-bold ${PRIO_CLS[ticket.priority] ?? ''}`}>
+              {PRIO_ICON[ticket.priority]} {ticket.priority}
+            </span>
+            {ticket.severity && (
+              <span class="text-xs px-2 py-0.5 rounded-full bg-dark border border-dark-lighter text-muted/80">
+                {ticket.severity}
+              </span>
+            )}
+          </div>
+          <h1 class="text-2xl font-bold text-light font-serif leading-snug">{ticket.title}</h1>
+          {ticket.tagNames.length > 0 && (
+            <div class="flex flex-wrap gap-1.5 mt-2.5">
+              {ticket.tagNames.map(tag => (
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-dark border border-dark-lighter/60 text-muted/70">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Action bar (Svelte island) */}
+      <div class="mb-6">
+        <TicketActionBar client:load ticketId={ticket.id} currentStatus={ticket.status} />
+      </div>
+
+      {containerRollup && (
+        <div class="mb-6">
+          <ContainerRollupHeader client:load
+            rollup={containerRollup} status={ticket.status}
+            planBranch={containerPlan?.branch ?? null}
+            prNumber={containerPlan?.prNumber ?? null} />
+        </div>
+      )}
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main column */}
+        <div class="lg:col-span-2 space-y-6">
+
+          {/* Description */}
+          <div class="bg-dark-light rounded-2xl border border-dark-lighter p-6">
+            <h2 class="text-xs font-semibold text-muted uppercase tracking-widest mb-3 pb-2 border-b border-dark-lighter/50">Beschreibung</h2>
+            {ticket.description ? (
+              <div class="md-body text-light/90" set:html={renderMarkdown(ticket.description)} />
+            ) : (
+              <p class="text-sm text-yellow-300 italic">⚠ Noch leer — keine Beschreibung erfasst.</p>
+            )}
+            {ticket.url && (
+              <p class="text-xs text-muted mt-3">
+                URL: <a href={ticket.url} target="_blank" rel="noopener" class="text-gold hover:underline">{ticket.url}</a>
+              </p>
+            )}
+          </div>
+
+          {isContainer && containerDor && (<TicketSpecProgress client:load ticket={{ description: ticket.description }} dor={containerDor} hasPlan={containerPlan !== null} hasPr={containerPlan?.prNumber != null} />)}
+
+          {containerDor && <ContainerDorPanel client:load dor={containerDor} />}
+
+          {dorSlug && <DorPanel client:load slug={dorSlug} proposalContent={proposalContent} />}
+
+          {containerPlan && <TicketPlanPanel client:load plan={containerPlan} renderedHtml={planHtml} planContent={containerPlan.content ?? ''} />}
+
+          {ticket.children.length > 0 && (
+            <ContainerChildrenList children={ticket.children} />
+          )}
+
+          <GrillingStepper
+            client:load
+            ticketId={ticket.id}
+            questionnaireId={grillingQnId}
+            grillingAnswers={ticket.grillingAnswers ?? null}
+            grillingMeta={ticket.grillingMeta ?? null}
+          />
+
+          <ProjectQuestionnairesPanel assignments={questionnaireBundles} />
+
+          <TicketDetailSections ticket={ticket} timeline={timeline} />
+
+          <TicketAttachmentsPanel client:load ticketId={ticket.id} attachments={ticket.attachments} />
+
+          {openspecProposals.length > 0 && (
+            <OpenSpecProposalsPanel client:load proposals={openspecProposals} />
+          )}
+        </div>
+
+        {/* Sidebar */}
+        <aside class="space-y-4">
+          <div class="bg-dark-light rounded-2xl border border-dark-lighter p-5 text-sm">
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Erstellt</dt>
+                <dd class="text-light">{fmtDateTime(ticket.createdAt)}</dd>
+              </div>
+              <div>
+                <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Aktualisiert</dt>
+                <dd class="text-light">{fmtDateTime(ticket.updatedAt)}</dd>
+              </div>
+              {ticket.startDate && (
+                <div>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Start</dt>
+                  <dd class="text-light">{fmt(ticket.startDate)}</dd>
+                </div>
+              )}
+              {ticket.dueDate && (
+                <div>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Fällig</dt>
+                  <dd class="text-light">{fmt(ticket.dueDate)}</dd>
+                </div>
+              )}
+              {ticket.assigneeLabel && (
+                <div>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Zuständig</dt>
+                  <dd class="text-light">{ticket.assigneeLabel}</dd>
+                </div>
+              )}
+              {ticket.customerLabel && (
+                <div>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Kunde</dt>
+                  <dd class="text-light">{ticket.customerLabel}</dd>
+                </div>
+              )}
+              {ticket.reporterEmail && (
+                <div>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Reporter</dt>
+                  <dd class="text-light truncate">{ticket.reporterEmail}</dd>
+                </div>
+              )}
+              {ticket.component && (
+                <div>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Komponente</dt>
+                  <dd class="text-light">{ticket.component}</dd>
+                </div>
+              )}
+              {ticket.thesisTag && (
+                <div>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Thesis-Tag</dt>
+                  <dd class="text-light font-mono">{ticket.thesisTag}</dd>
+                </div>
+              )}
+              {ticket.parentId && (
+                <div>
+                  <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Parent</dt>
+                  <dd>
+                    <a href={`/admin/tickets/${ticket.parentId}`} class="text-gold hover:underline">
+                      Parent öffnen
+                    </a>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          <div class="bg-dark-light rounded-2xl border border-dark-lighter p-5 text-sm">
+            <h3 class="text-[10px] text-muted/70 uppercase tracking-widest mb-2 pb-1.5 border-b border-dark-lighter/40">Watcher ({ticket.watchers.length})</h3>
+            {ticket.watchers.length === 0 ? (
+              <p class="text-muted italic text-xs">Keine Watcher.</p>
+            ) : (
+              <ul class="space-y-1">
+                {ticket.watchers.map(w => <li class="text-light">{w.label}</li>)}
+              </ul>
+            )}
+          </div>
+        </aside>
+      </div>
+
+    </div>
+  </section>
+
+
+</AdminLayout>
+
+

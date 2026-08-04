@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sdlc-console-config
+  labels:
+    app: sdlc-console
+data:
+  BRAND_ID: "mentolder"
+  BRAND: "mentolder"
+  CLUSTER_ENV: "sdlc-local"
+  PINO_LOG_LEVEL: "info"
+  SITE_URL: "http://sdlc.localhost"
+  POCKET_ID_FRONTEND_URL: "http://auth.localhost"
+  POCKET_ID_URL: "http://pocket-id:1411"
+  POCKET_ID_FALLBACK_FRONTEND_URL: "${POCKET_ID_FALLBACK_FRONTEND_URL}"
+  POCKET_ID_FALLBACK_URL: "${POCKET_ID_FALLBACK_URL}"
+  PORTAL_ADMIN_USERNAME: "gekko,paddione,quamain,test-admin,tina-merlin@web.de"
+  LLM_ENABLED: "true"
+  LLM_RERANK_ENABLED: "true"
+  LLM_EMBED_URL: "http://llm-gateway-embed:8081"
+  LLM_RERANKER_URL: "http://llm-gateway-rerank:8081"
+  LLM_EMBED_MODEL: "bge-m3"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdlc-console
+  labels:
+    app: sdlc-console
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sdlc-console
+  template:
+    metadata:
+      labels:
+        app: sdlc-console
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "3"
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: sdlc-console
+          image: ghcr.io/paddione/website-sdlc:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          envFrom:
+            - configMapRef:
+                name: sdlc-console-config
+          env:
+            - name: SESSIONS_DATABASE_URL
+              value: "postgresql://website:devwebsitedb@shared-db:5432/website"
+            - name: WEBSITE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: WEBSITE_DB_PASSWORD
+            - name: POCKET_ID_WEBSITE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: POCKET_ID_WEBSITE_SECRET
+            - name: CRON_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: website-secrets
+                  key: CRON_SECRET
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sdlc-console
+  labels:
+    app: sdlc-console
+spec:
+  selector:
+    app: sdlc-console
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

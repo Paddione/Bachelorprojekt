@@ -9,7 +9,7 @@ vi.mock('../../../../../lib/sessions/templates', () => ({
   cloneTemplate: vi.fn(),
 }));
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { listTemplates, cloneTemplate } from '../../../../../lib/sessions/templates';
+import { listTemplates, cloneTemplate } from '../../../../../lib/sessions/templates.ts';
 import { GET, POST } from './index';
 
 const mkReq = (opts: { method?: string; body?: unknown } = {}) =>

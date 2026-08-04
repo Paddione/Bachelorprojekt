@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { embedQuery, type EmbeddingModel } from './embeddings';
-import { logAiCall } from './ai-metrics';
+import { embedQuery, type EmbeddingModel } from './embeddings.ts';
+import { logAiCall } from './ai-metrics.ts';
 import { pool as defaultPool } from './db-pool';
 
 export class MixedEmbeddingModelError extends Error {

@@ -60,13 +60,13 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 # ── Gap 3: CRON_SECRET auth in purge.ts ───────────────────────────
 
 @test "gap3: /api/admin/testdata/purge.ts accepts X-Cron-Secret auth" {
-  local f="$PROJECT_DIR/website/src/pages/api/admin/testdata/purge.ts"
+  local f="$PROJECT_DIR/website/src/pages/sdlc/api/testdata/purge.ts"
   [ -f "$f" ] || fail "purge.ts not found"
   grep -q "X-Cron-Secret" "$f"
 }
 
 @test "gap3: purge.ts CRON_SECRET check mirrors pattern from purge-all-test-data.ts" {
-  local f="$PROJECT_DIR/website/src/pages/api/admin/testdata/purge.ts"
+  local f="$PROJECT_DIR/website/src/pages/sdlc/api/testdata/purge.ts"
   [ -f "$f" ] || fail "purge.ts not found"
   grep -q "CRON_SECRET" "$f"
 }

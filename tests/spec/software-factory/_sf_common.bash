@@ -29,7 +29,7 @@ BABYSIT="${BATS_TEST_DIRNAME}/../../../scripts/factory/babysit-prs.sh"
 SERVICE="${BATS_TEST_DIRNAME}/../../../scripts/factory/factory.service"
 TIMER="${BATS_TEST_DIRNAME}/../../../scripts/factory/factory.timer"
 TASKFILE="${BATS_TEST_DIRNAME}/../../../Taskfile.factory.yml"
-ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/api/factory-metrics.ts"
+ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/sdlc/api/factory-metrics.ts"
 REG="scripts/factory/service-registry.sh"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

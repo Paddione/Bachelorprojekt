@@ -21,7 +21,7 @@ teardown() { _sf_teardown; }
 # ── FA-SF-42-dashboard-route ────────────────────────────────────#
 # FA-SF-42: /api/factory-metrics enforces the getSession+isAdmin 401 gate.
 
-ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/api/factory-metrics.ts"
+ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/sdlc/api/factory-metrics.ts"
 
 @test "FA-SF-42: route exists and is server-rendered" {
   [ -f "$ROUTE" ]
@@ -47,17 +47,17 @@ ROUTE="${BATS_TEST_DIRNAME}/../../../website/src/pages/api/factory-metrics.ts"
 
 # ── T001433 admin-redesign: Factory Floor conveyor-only (FA-SF-FLOOR) ─────────
 @test "FA-SF-FLOOR: FactoryFloor.svelte has no ff-view/kanban toggle" {
-  run grep -c "ff-view" website/src/components/FactoryFloor.svelte
+  run grep -c "ff-view" website/src/components/sdlc/FactoryFloor.svelte
   [ "$output" = "0" ]
-  run grep -c "ff-view-toggle" website/src/components/FactoryFloor.svelte
+  run grep -c "ff-view-toggle" website/src/components/sdlc/FactoryFloor.svelte
   [ "$output" = "0" ]
 }
 
-COCKPIT_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/admin/cockpit.astro"
-PIPELINE_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/admin/pipeline.astro"
+COCKPIT_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/sdlc/cockpit.astro"
+PIPELINE_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/sdlc/pipeline.astro"
 DEV_STATUS_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/dev-status.astro"
-FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../../website/src/components/factory/FactoryObservability.svelte"
-FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../../website/src/components/factory/factory-chart-colors.ts"
+FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../../website/src/components/sdlc/factory/FactoryObservability.svelte"
+FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../../website/src/components/sdlc/factory/factory-chart-colors.ts"
 
 @test "T001433 pipeline: pages/admin/cockpit.astro exists and mounts PipelinePanel" {
   [ -f "$COCKPIT_PAGE" ]

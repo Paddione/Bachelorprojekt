@@ -4,7 +4,7 @@
     "website/src/components/DevStatusTabs.svelte",
     "website/src/lib/delivery-metrics.ts",
     "website/src/lib/delivery-metrics.test.ts",
-    "website/src/pages/api/admin/delivery-metrics.ts"
+    "website/src/pages/sdlc/api/delivery-metrics.ts"
   ],
   "forbidden": [
     "k3d/configmap-domains.yaml",

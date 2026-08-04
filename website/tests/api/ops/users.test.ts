@@ -24,8 +24,8 @@ vi.mock('../../../src/lib/website-db', () => {
   };
 });
 
-import { GET as listUsersHandler } from '../../../src/pages/api/admin/ops/users/list';
-import { POST as createUserHandler } from '../../../src/pages/api/admin/ops/users/create';
+import { GET as listUsersHandler } from '../../../src/pages/sdlc/api/ops/users/list';
+import { POST as createUserHandler } from '../../../src/pages/sdlc/api/ops/users/create';
 
 const adminReq = (body?: unknown) => new Request('http://test', {
   method: body ? 'POST' : 'GET',

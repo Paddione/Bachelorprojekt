@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { GenerateOptions } from './session-agent';
+import type { GenerateOptions } from './session-agent.ts';
 import type { KiConfig } from './coaching-ki-config-db';
 
 const { getProviderByNameMock } = vi.hoisted(() => ({

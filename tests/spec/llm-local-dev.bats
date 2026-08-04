@@ -105,12 +105,15 @@ setup() {
   [ -z "$output" ]
 }
 
-@test "agent-models.jsonc defines the llamacpp-gemma26 provider (T002545)" {
-  run grep -q '"llamacpp-gemma26"' "$REPO/.opencode/agent-models.jsonc"
+@test "agent-models.jsonc defines the llamacpp-local provider (T002545/T002633)" {
+  # T002633: die Provider llamacpp-gemma26 und llamacpp-gemma9 wurden zurueckgezogen —
+  # ihre GGUF-Gewichte sind weg. Der lokale llama.cpp-Provider heisst seither
+  # llamacpp-local und traegt die Loadouts gptoss-context und devstral-quality.
+  run grep -q '"llamacpp-local"' "$REPO/.opencode/agent-models.jsonc"
   [ "$status" -eq 0 ]
 }
 
-@test "agent-models.jsonc points llamacpp-gemma26 at the llm-proxy, not at :8091 (T002558)" {
+@test "agent-models.jsonc points the local llama.cpp provider at the llm-proxy, not at :8091 (T002558)" {
   # T002558: opencode geht durch den Proxy. Damit gilt max_inflight=1 auch fuer
   # die Agenten (sie serialisieren statt gleichzeitig auf den Server zu gehen),
   # und die Fallback-Kette gemma -> deepseek -> opencode-zen greift auch lokal.
@@ -129,19 +132,21 @@ EOF"
   [ "$output" = "0" ]
 }
 
-@test "agent-models.jsonc declares a MEASURED context for Gemma4, not n_ctx_train (T002545/T002558)" {
+@test "agent-models.jsonc declares a MEASURED context for the local loadout, not n_ctx_train (T002545/T002558/T002633)" {
   # Keine harte Konstante mehr. --fit entscheidet den Wert zur Laufzeit, und er
-  # aendert sich mit der Slot-Zahl: bei einem Slot wurden 99840 gemessen, bei
-  # drei (T002545) nur noch 88832, weil der geteilte -kvu-Puffer fuer drei
-  # Sequenzen reichen muss. Eine gepflegte Zahl driftet damit bei jeder
-  # Loadout-Aenderung — genau die Klasse, die dieses Ticket schliesst.
+  # aendert sich mit der Slot-Zahl: fuer das fruehere gemma26-factory wurden bei
+  # einem Slot 99840 gemessen, bei drei (T002545) nur noch 88832, weil der
+  # geteilte -kvu-Puffer fuer drei Sequenzen reichen muss. Eine gepflegte Zahl
+  # driftet damit bei jeder Loadout-Aenderung — genau die Klasse, die dieses
+  # Ticket schliesst. Der Traeger ist seit T002633 gptoss-context (gpt-oss-20b),
+  # die Eigenschaft bleibt dieselbe.
   #
-  # Geprueft wird deshalb die EIGENSCHAFT: plausibel und nicht der alte
-  # 12B-Wert 262144 (= n_ctx_train, das 2,6-fache des real Verfuegbaren).
-  ctx="$(awk '/"gemma26-factory": *\{/,/"context"/' \
+  # Geprueft wird deshalb die EIGENSCHAFT: plausibel und nicht n_ctx_train
+  # (131072 fuer gpt-oss-20b), das ueber dem real Verfuegbaren liegt.
+  ctx="$(awk '/"gptoss-context": *\{/,/"context"/' \
     "$REPO/.opencode/agent-models.jsonc" | grep -oE '"context": *[0-9]+' | head -1 | grep -oE '[0-9]+')"
   [ -n "$ctx" ]
-  [ "$ctx" != "262144" ]
+  [ "$ctx" != "131072" ]
   [ "$ctx" -gt 50000 ]
   [ "$ctx" -lt 200000 ]
 }

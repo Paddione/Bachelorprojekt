@@ -1,4 +1,6 @@
 // scripts/llm-proxy/discovery.mjs
+import { resolveApiKey } from './backends.mjs';
+
 const PROBE_TIMEOUT_MS = 2500;
 const BACKOFF_MS = 15_000;
 
@@ -8,10 +10,23 @@ const health = new Map();
 let catalog = new Map();
 let lastProbeAt = 0;
 
-/** @returns {Promise<{healthy:boolean,models:string[],loaded:Set<string>}>} */
+/** @returns {Promise<{healthy:boolean,models:string[],loaded:Set<string>,reason:string|null}>} */
 export async function probeBackend(backend) {
   try {
-    const res = await fetch(`${backend.baseUrl}/models`, { signal: AbortSignal.timeout(PROBE_TIMEOUT_MS) });
+    // [T002638] Der Probe MUSS dasselbe Credential fuehren wie der Weiterleitungspfad
+    // (server.mjs nutzt dafuer dieselbe resolveApiKey). Ohne den Header antwortet jede
+    // API mit Pflicht-Auth 401 — gemessen an api.deepseek.com/v1/models: ohne Auth 401,
+    // mit Auth 200. Das catch{} unten bildete das auf healthy:false ab, das Backend galt
+    // also dauerhaft als tot, obwohl Anfragen dorthin funktioniert haetten. Folge: die
+    // Fallback-Kette konnte nie auf ein Remote-Backend ausweichen.
+    //
+    // Backends ohne apiKeyEnv (lokale llama.cpp-Server) senden bewusst KEINEN Header:
+    // ein leeres "Bearer " waere dort eine unnoetige Verhaltensaenderung.
+    const key = resolveApiKey(backend);
+    const res = await fetch(`${backend.baseUrl}/models`, {
+      headers: key ? { Authorization: `Bearer ${key}` } : {},
+      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    });
     if (!res.ok) throw new Error(`status ${res.status}`);
     const body = await res.json();
     const models = (body.data || []).map((m) => m.id);
@@ -21,9 +36,14 @@ export async function probeBackend(backend) {
       const v0 = await fetch(`${host}/api/v0/models`, { signal: AbortSignal.timeout(PROBE_TIMEOUT_MS) }).then((r) => r.json()).catch(() => null);
       for (const m of (v0?.data || [])) if (m.state === 'loaded') loaded.add(m.id);
     }
-    return { healthy: true, models, loaded };
-  } catch {
-    return { healthy: false, models: [], loaded: new Set() };
+    return { healthy: true, models, loaded, reason: null };
+  } catch (err) {
+    // [T002638] Den Grund mitgeben statt verwerfen. Bisher bildete dieses catch{}
+    // 401, Timeout und DNS-Fehler auf denselben stummen Zustand ab — eine
+    // Auth-Fehlkonfiguration war von Unerreichbarkeit nicht unterscheidbar, und
+    // genau deshalb blieb der fehlende Header lange unbemerkt. Geloggt wird der
+    // Grund nur beim Zustandswechsel (startDiscovery), nicht bei jedem Durchlauf.
+    return { healthy: false, models: [], loaded: new Set(), reason: err?.message || String(err) };
   }
 }
 
@@ -34,6 +54,23 @@ export function startDiscovery(getBackends, intervalMs) {
       const prev = health.get(b.name);
       if (prev && !prev.healthy && Date.now() < prev.backoffUntil) { health.set(b.name, prev); continue; }
       const r = await probeBackend(b);
+      // [T002638] Genau eine Zeile beim Uebergang nach unhealthy. Nicht bei jedem
+      // Durchlauf: der Probe laeuft im Intervall und wuerde das Journal sonst
+      // fluten — wie es die MCP-Bruecke am 2026-08-04 mit 10.486 Zeilen pro Stunde
+      // vorgemacht hat. "kein Eintrag" zaehlt als Uebergang, damit ein Backend, das
+      // beim ersten Probe schon tot ist, nicht stillschweigend verschwindet.
+      //
+      // Bewusst NICHT gegen das oben gelesene `prev` geprueft, sondern gegen den
+      // JETZT gueltigen Eintrag: setInterval feuert den naechsten Tick unabhaengig
+      // davon, ob der vorige fertig ist, und `startDiscovery` tickt beim Start
+      // zusaetzlich sofort. Zwei ueberlappende Ticks lesen beide dasselbe veraltete
+      // `prev` und melden denselben Uebergang doppelt (im Test reproduziert).
+      // Zwischen diesem Lesen und dem Schreiben unten liegt kein await, der
+      // Doppel-Log ist damit ausgeschlossen.
+      const current = health.get(b.name);
+      if (!r.healthy && (!current || current.healthy)) {
+        console.warn(`[discovery] ${b.name} unhealthy: ${r.reason ?? 'unknown'} (${b.baseUrl})`);
+      }
       health.set(b.name, { ...r, backoffUntil: r.healthy ? 0 : Date.now() + BACKOFF_MS, lastProbe: Date.now() });
       for (const id of r.models) { if (!next.has(id)) next.set(id, []); next.get(id).push(b.name); }
     }

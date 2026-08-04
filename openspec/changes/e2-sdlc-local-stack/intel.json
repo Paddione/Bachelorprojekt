@@ -1,0 +1,187 @@
+{
+  "meta": {
+    "slug": "e2-sdlc-local-stack",
+    "ticket_id": "T002625",
+    "generated_from": "main@5621b86be",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "Taskfile.sdlc.yml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5147,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/README.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sdlc-stack/k3d-config.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sdlc-stack/kustomization.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sdlc-stack/sdlc-console.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/sdlc-stack/sdlc-ingress.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e2-local-stack.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/lib/auth.ts",
+      "language": "javascript",
+      "loc": 322,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 578
+    },
+    {
+      "path": "website/src/lib/auth/provider.test.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/lib/auth/provider.ts",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "Taskfile.yml:3609:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3609:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3609:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3610:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3610:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3610:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3611:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3611:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3611:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3612:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3612:        _run()  {(...)",
+      "type_text": "3612:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:4761:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4761:        kexec_psql() {(...)",
+      "type_text": "4761:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/auth.ts:42:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {",
+      "kind": "function",
+      "file": "website/src/lib/auth.ts",
+      "signature": "42:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {(...)",
+      "type_text": "42:function decodeJwtPayload(accessToken: string): Record<string, unknown> | null {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/auth.ts:54:function decodeRealmRoles(accessToken: string): string[] {",
+      "kind": "function",
+      "file": "website/src/lib/auth.ts",
+      "signature": "54:function decodeRealmRoles(accessToken: string): string[] {(...)",
+      "type_text": "54:function decodeRealmRoles(accessToken: string): string[] {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "website/src/lib/auth.ts:86:function generateSessionId(): string {",
+      "kind": "function",
+      "file": "website/src/lib/auth.ts",
+      "signature": "86:function generateSessionId(): string {(...)",
+      "type_text": "86:function generateSessionId(): string {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

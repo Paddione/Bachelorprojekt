@@ -103,7 +103,7 @@ OpenSpec-Status und die Klassifikation (resolved · obsolete · ready · incompl
 ## Phase 2 — Human Escalation Round
 
 Auswahl der Eskalationsmenge, Subagent-Dispatch zur Validierung, Herleitung der Fragen aus den
-Lücken (spiegelt `website/src/lib/clarification-questions.ts`), der interaktive Frageweg je
+Lücken (spiegelt `website/src/lib/sdlc/clarification-questions.ts`), der interaktive Frageweg je
 Harness und das Zurückschreiben per JSONB-Merge:
 [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) §Phase 2.
 

@@ -8,6 +8,12 @@ includes:
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
+  sdlc:
+    taskfile: ./Taskfile.sdlc.yml
+    dir: .
+  finetune:
+    taskfile: ./Taskfile.finetune.yml
+    dir: .
   # Base-vs-Tuned regression gate for Unsloth finetunes (T002606).
   # See Taskfile.finetune-eval.yml.
   finetune-eval:
@@ -745,9 +751,14 @@ tasks:
       # T002336: diese Suite existierte seit T002102, lief aber in KEINEM Target
       # und in KEINEM CI-Job - sie war nie ein Regressionsschutz, nur eine Datei.
       # Aufgefallen erst, als /health bei totem Backend drei Stunden 200 meldete.
+      # T002638: dasselbe Muster ein zweites Mal — exclusive-conflict, fixups und
+      # strip-markers (zusammen 19 Tests) liefen ebenfalls in keinem Target. Diese
+      # Liste ist handgepflegt und damit strukturell unvollstaendig; der Guard
+      # tests/spec/local-llm-proxy/proxy-tests-registered.bats haelt sie ab jetzt
+      # gegen die tatsaechlich vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs
-      - node --test scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs
+      - node --test scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
   test:factory:
     desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."
@@ -1236,7 +1247,7 @@ tasks:
           website/public/learning-assets/THIRD-PARTY-ASSETS.md
           website/src/data/openspec-status.json
           docs/diagrams/architecture.md
-          website/src/lib/goals-data.generated.json
+          website/src/lib/sdlc/goals-data.generated.json
           docs/code-quality/repo-index.json
           docs/agent-guide/10-ziele.md
           docs/agent-guide/20-werkzeuge.md
@@ -1455,6 +1466,24 @@ tasks:
         ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
         KORCZEWSKI_URL="${KORCZEWSKI_URL:-https://web.korczewski.de}" \
           ./node_modules/.bin/playwright test --project=korczewski {{.CLI_ARGS}}
+
+  web:audit:
+    desc: "Semantische Pruefung + Triage: axe, Lighthouse, LLM (T002612)"
+    vars:
+      ENV: '{{.ENV | default "mentolder"}}'
+    preconditions:
+      - sh: '[ "{{.ENV}}" = "mentolder" ] || [ "{{.ENV}}" = "korczewski" ]'
+        msg: "web:audit requires ENV=mentolder or ENV=korczewski, got ENV={{.ENV}}"
+    cmds:
+      - |
+        case "{{.ENV}}" in
+          mentolder)  export PROD_DOMAIN=mentolder.de ;;
+          korczewski) export PROD_DOMAIN=korczewski.de ;;
+        esac
+        export ENV="{{.ENV}}"
+        [ -d node_modules ] || npm ci
+        ./node_modules/.bin/playwright install chromium >/dev/null 2>&1 || true
+        node scripts/web-audit.mjs --brand "{{.ENV}}" {{.CLI_ARGS}}
 
   a11y:axe:
     desc: "axe-core a11y-Scan der Kern-Routen gegen ENV=mentolder|korczewski (G-FE01, T001361)"
@@ -2700,6 +2729,11 @@ tasks:
         kustomize build prod-fleet/platform/ --load-restrictor=LoadRestrictionsNone \
           | kubectl --context fleet apply --server-side --force-conflicts -f -
 
+  fleet:membership:
+    desc: "Drift-Gate: deklarierte fleet-Node-Menge (wireguard/wg-mesh-nodes.yaml, k8s_node-Marker) vs. kubectl --context fleet get nodes. Exit != 0 bei Drift mit namentlicher Nennung; Skip (exit 0) ohne Cluster-Zugang. Usage: task fleet:membership"
+    cmds:
+      - bash scripts/fleet-membership-check.sh
+
   fleet:deploy:brand:
     desc: "Deploy ONE brand's core stack to fleet: workspace:deploy + post-setup. Talk/office wiring is deferred to the shared-services + per-brand talk phase. Usage: task fleet:deploy:brand BRAND=fleet-korczewski"
     requires:
@@ -3511,7 +3545,7 @@ tasks:
       - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
 
   health:goals:emit:
-    desc: "Regenerate website/src/lib/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)"
+    desc: "Regenerate website/src/lib/sdlc/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)"
     cmds:
       - node scripts/gen-goals-data.mjs
 

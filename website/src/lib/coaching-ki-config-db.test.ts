@@ -5,7 +5,7 @@ import {
   listKiProviders, getActiveProvider, setActiveProvider,
   updateKiProvider, createKiProvider, deleteKiProvider,
 } from './coaching-ki-config-db';
-import { initProviderConfigSchema } from './schema/provider-config-schema';
+import { initProviderConfigSchema } from './schema/provider-config-schema.ts';
 
 let pool: Pool;
 

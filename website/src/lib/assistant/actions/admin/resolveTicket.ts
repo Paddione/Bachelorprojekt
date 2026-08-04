@@ -1,6 +1,6 @@
 // website/src/lib/assistant/actions/admin/resolveTicket.ts
 import { registerAction } from '../../actions';
-import { transitionTicket, type TicketResolution } from '../../../tickets/transition';
+import { transitionTicket, type TicketResolution } from '../../../tickets/transition.ts';
 
 const VALID_RESOLUTIONS: ReadonlySet<TicketResolution> = new Set([
   'fixed', 'shipped', 'wontfix', 'duplicate', 'cant_reproduce', 'obsolete',

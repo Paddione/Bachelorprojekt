@@ -1,33 +1,25 @@
 #!/usr/bin/env bats
-# SSOT: openspec/changes/g-cq02-any-types-batch1/proposal.md
-# G-CQ02: Explizite any-Typen reduzieren — Batch 1 Gate
+# Querschnitts-Qualitaetstests ohne eigene SSOT-Spec.
+#
+# DIE G-CQ02-GATES STEHEN NICHT MEHR HIER, sondern in tests/spec/g-cq02-any-types.bats
+# (SSOT: openspec/changes/cq02-any-types-200/proposal.md) [T002624-Nachlauf].
+#
+# Grund: Diese Datei trug das Batch-1-Gate (Schwelle 373) aus dem inzwischen archivierten
+# openspec/specs/archive/g-cq02-any-types-batch1.md. Die Nachfolge-Etappe zog die Schwelle
+# auf 200 und legte dieselben drei Tests erneut an — mit dem Ergebnis, dass
+#   * 'monitoring.ts <= 2' WORTGLEICH doppelt existierte (ein Fix an einer Stelle liess die
+#     andere rot — genau das kostete beim SDLC-Split eine CI-Runde),
+#   * 'catch-blocks' hier die SCHWAECHERE Variante war (nur 'catch (err: any)', waehrend die
+#     200er-Datei zusaetzlich 'catch (error: any)' faengt),
+#   * das 373er-Gate seit der 200er-Stufe strukturell nicht mehr rot werden KANN: es ist in
+#     der strengeren Schwelle logisch enthalten.
+#
+# Die archivierte REQ-7 verlangt die drei Tests in DIESER Datei. Diese Anforderung ist mit
+# der 200er-Etappe sachlich abgeloest — die Tests existieren weiter, strenger, an einer
+# Stelle. Der archivierte Spec bleibt als Historie unangetastet.
 
 setup() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
-}
-
-@test "G-CQ02: any-count in website/src is at or below Batch-1 target (373)" {
-  count=$(grep -rn ': any\|<any>\|as any' \
-    "$REPO_ROOT/website/src" \
-    --include='*.ts' --include='*.svelte' --include='*.astro' \
-    | wc -l | tr -d ' ')
-  echo "current any count: $count (target: <=373)"
-  [ "$count" -le 373 ]
-}
-
-@test "G-CQ02: monitoring.ts has no more than 2 explicit any (was 13)" {
-  count=$(grep -c ': any\|<any>\|as any' \
-    "$REPO_ROOT/website/src/pages/api/admin/monitoring.ts" || true)
-  echo "monitoring.ts any count: $count (target: <=2)"
-  [ "$count" -le 2 ]
-}
-
-@test "G-CQ02: catch-blocks in admin API use err: unknown not err: any" {
-  hits=$(grep -rn 'catch (err: any)' \
-    "$REPO_ROOT/website/src/pages/api/admin" --include='*.ts' \
-    | wc -l | tr -d ' ')
-  echo "remaining err: any catch blocks: $hits (target: 0)"
-  [ "$hits" -eq 0 ]
 }
 
 @test "T002273: verification-block.md enthält Hinweis zu untracked Dateien in freshness:regenerate" {

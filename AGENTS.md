@@ -20,7 +20,8 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted |
 | `deepseek-pro` | `opencode-go/deepseek-v4-pro`, write-capable | Deep analysis, complex debugging, hard refactors |
 | `deepseek-flash` | `opencode-go/deepseek-v4-flash`, write-capable | Parallel throughput, up to 3 at a time |
-| `deepseek-pro-direct` / `deepseek-flash-direct` | same models via the `deepseek` provider instead of OpenCode Go | Bypass when the OpenCode Go gateway is the problem |
+| `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API), write-capable | Same model as `deepseek-pro`, bypassing the OpenCode Go gateway when that gateway is the problem |
+| `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Same model as `deepseek-flash`, bypassing the OpenCode Go gateway when that gateway is the problem |
 | `explore` / `general` | built-in | Read-only exploration / research |
 
 Dispatch:

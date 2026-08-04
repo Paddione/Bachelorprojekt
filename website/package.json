@@ -4,11 +4,13 @@
     "node": ">=22.13.0"
   },
   "type": "module",
-  "version": "1.245.0",
+  "version": "1.248.4",
   "private": true,
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:prod": "BUILD_TARGET=prod astro build",
+    "build:sdlc": "BUILD_TARGET=sdlc astro build",
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
     "test": "node tests/api.test.mjs",

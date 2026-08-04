@@ -23,7 +23,7 @@ setup() {
   run grep -rln "ai_question\|human_answer\|aiQuestion\|humanAnswer" \
     "$REPO/website/src/lib/tickets/admin.ts" \
     "$REPO/website/src/lib/tickets/admin.test.ts" \
-    "$REPO/website/src/pages/api/admin/tickets/[id].ts"
+    "$REPO/website/src/pages/sdlc/api/tickets/[id].ts"
   [ "$status" -eq 1 ]
 }
 

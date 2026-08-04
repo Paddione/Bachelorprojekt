@@ -2,8 +2,8 @@ import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { listCollections, queryNearest, MixedEmbeddingModelError } from '../../../lib/knowledge-db';
 import { rerankCandidates } from '../../../lib/rerank';
-import { BgeRoutingError } from '../../../lib/bge-router';
-import { EmbeddingQueryError } from '../../../lib/embeddings';
+import { BgeRoutingError } from '../../../lib/bge-router.ts';
+import { EmbeddingQueryError } from '../../../lib/embeddings.ts';
 
 export const prerender = false;
 

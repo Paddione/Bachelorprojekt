@@ -2223,6 +2223,12 @@
       "status": "archived"
     }
   ],
+  "T002482": [
+    {
+      "slug": "gemma-kv-offload-slot-cache",
+      "status": "plan_staged"
+    }
+  ],
   "T002483": [
     {
       "slug": "2026-08-03-factory-slot-sandbox",
@@ -2391,6 +2397,18 @@
       "status": "plan_staged"
     }
   ],
+  "T002584": [
+    {
+      "slug": "zielfamilien-audit",
+      "status": "plan_staged"
+    }
+  ],
+  "T002587": [
+    {
+      "slug": "unsloth-training-env",
+      "status": "plan_staged"
+    }
+  ],
   "T002592": [
     {
       "slug": "2026-08-03-toolset-usage-injection",
@@ -2442,6 +2460,48 @@
   "T002616": [
     {
       "slug": "2026-08-03-gpu-loadout-exclusivity",
+      "status": "archived"
+    }
+  ],
+  "T002624": [
+    {
+      "slug": "sdlc-build-target-split",
+      "status": "plan_staged"
+    }
+  ],
+  "T002625": [
+    {
+      "slug": "e2-sdlc-local-stack",
+      "status": "plan_staged"
+    }
+  ],
+  "T002630": [
+    {
+      "slug": "cluster-dev-node-gekko2",
+      "status": "plan_staged"
+    }
+  ],
+  "T002631": [
+    {
+      "slug": "main-commit-guard",
+      "status": "plan_staged"
+    }
+  ],
+  "T002638": [
+    {
+      "slug": "llm-proxy-probe-auth",
+      "status": "plan_staged"
+    }
+  ],
+  "T002648": [
+    {
+      "slug": "health-goals-silent-fallbacks",
+      "status": "plan_staged"
+    }
+  ],
+  "T002651": [
+    {
+      "slug": "2026-08-04-agent-capability-drift-guards",
       "status": "archived"
     }
   ],

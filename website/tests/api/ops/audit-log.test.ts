@@ -14,7 +14,7 @@ vi.mock('../../../src/lib/website-db', () => {
   };
 });
 
-import { GET } from '../../../src/pages/api/admin/ops/audit/log';
+import { GET } from '../../../src/pages/sdlc/api/ops/audit/log';
 
 describe('GET /api/admin/ops/audit/log', () => {
   it('returns rows from admin_actions', async () => {

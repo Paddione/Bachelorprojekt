@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { readAllSlots, writeSlot, isPhase } from '../factory-model-slots';
+import { readAllSlots, writeSlot, isPhase } from '../sdlc/factory-model-slots';
 
 const mockQuery = vi.fn();
 vi.mock('../db-pool', () => ({

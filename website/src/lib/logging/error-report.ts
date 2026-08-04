@@ -1,6 +1,6 @@
-import type { LogEntry } from './log-types.js';
-import { parsePodLine } from './log-format.js';
-import { browserLogger } from '../browser-logger.js';
+import type { LogEntry } from './log-types.ts';
+import { parsePodLine } from './log-format.ts';
+import { browserLogger } from '../browser-logger.ts';
 
 export interface ErrorReport {
   source: 'browser' | 'pod';

@@ -4,7 +4,7 @@
 // tickets/admin.ts, systemtest/*, 7 .test.ts-Dateien) ihre Imports nicht
 // anpassen müssen. Der frühere Body von initTicketsSchema/isFeatureEnabled
 // lebt jetzt in tickets-schema.ts — siehe G-CQ07 (S2-Import-Zyklus #1).
-import type { EmbeddingModel } from './embeddings';
+import type { EmbeddingModel } from './embeddings.ts';
 
 export {
   initTicketsSchema,

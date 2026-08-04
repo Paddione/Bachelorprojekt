@@ -23,7 +23,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/kubectl --context fleet port-forward -n workspace svc/llm-gateway-embed 8081:8081
+ExecStart=/usr/local/bin/kubectl --context fleet port-forward -n workspace svc/llm-gateway-embed 8081:8081
 # Kein Ratenlimit-Abbruch: bei einem Rollout kann der Forward mehrfach in kurzer
 # Folge sterben. Ohne StartLimitIntervalSec=0 gaebe systemd nach 5 Versuchen auf
 # und liesse genau den Zustand zurueck, den diese Unit verhindern soll.

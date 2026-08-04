@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-02T07:47:29.793Z",
+  "generatedAt": "2026-08-04T07:28:30.935Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -372,6 +372,12 @@
       "namespace": "rustdesk",
       "type": "Deployment",
       "name": "hbbs"
+    },
+    {
+      "id": "sdlc-console",
+      "namespace": "mentolder",
+      "type": "Deployment",
+      "name": "sdlc-console"
     },
     {
       "id": "sealed-secrets-controller",
@@ -886,6 +892,18 @@
       "kind": "command"
     },
     {
+      "from": "sdlc-console",
+      "to": "shared-db",
+      "via": "env:SESSIONS_DATABASE_URL",
+      "kind": "env"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "website",
+      "via": "env:SESSIONS_DATABASE_URL",
+      "kind": "env"
+    },
+    {
       "from": "shared-db",
       "to": "nextcloud",
       "via": "configmap:shared-db-init",
@@ -1265,6 +1283,12 @@
     },
     {
       "from": "traefik",
+      "to": "sdlc-console",
+      "via": "ingress",
+      "kind": "ingress"
+    },
+    {
+      "from": "traefik",
       "to": "oauth2-proxy-traefik",
       "via": "ingress",
       "kind": "ingress"
@@ -1458,6 +1482,12 @@
     {
       "from": "oauth2-proxy-recovery",
       "to": "oauth2-proxy-recovery",
+      "via": "selector",
+      "kind": "selector"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "sdlc-console",
       "via": "selector",
       "kind": "selector"
     },
@@ -11387,6 +11417,18 @@
     },
     {
       "from": "systemtest-cleanup",
+      "to": "sdlc-console",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "systemtest-cleanup",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "systemtest-cleanup",
       "to": "website",
       "via": "secret:website-secrets",
       "kind": "secret"
@@ -11411,6 +11453,18 @@
     },
     {
       "from": "systemtest-purge-all",
+      "to": "sdlc-console",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "systemtest-purge-all",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "systemtest-purge-all",
       "to": "website",
       "via": "secret:website-secrets",
       "kind": "secret"
@@ -11423,6 +11477,18 @@
     },
     {
       "from": "systemtest-outbox",
+      "to": "sdlc-console",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "systemtest-outbox",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "systemtest-outbox",
       "to": "website",
       "via": "secret:website-secrets",
       "kind": "secret"
@@ -11430,6 +11496,18 @@
     {
       "from": "website",
       "to": "systemtest-outbox",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "website",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website",
+      "to": "sdlc-console",
       "via": "secret:website-secrets",
       "kind": "secret"
     },

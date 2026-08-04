@@ -758,7 +758,7 @@ tasks:
       # gegen die tatsaechlich vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs
-      - node --test scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
+      - node --test scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
   test:factory:
     desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."

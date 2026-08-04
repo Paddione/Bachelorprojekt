@@ -38,12 +38,34 @@ tasks:
           --corpus "{{.CORPUS}}"
 
   train:
-    desc: "Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> [CONFIG=<json>] [DRY_RUN=1]"
+    desc: "Trainingslauf starten. CORPUS=<jsonl> MODEL=<hf-id> MEASURE_REPORT=<json> [CONFIG=<json>] [DRY_RUN=1] GPU_LOCK_REQUIRED_MIB=<mib>"
     preconditions:
       - sh: '[ -n "{{.CORPUS}}" ] && [ -n "{{.MODEL}}" ] && [ -n "{{.MEASURE_REPORT}}" ]'
         msg: "CORPUS=, MODEL= und MEASURE_REPORT= sind erforderlich (MEASURE_REPORT aus 'task finetune:measure')."
     cmds:
       - |
+        # T002628 GPU-Arbitrierung: Trainings-Vorrang. acquire drainiert die lokalen
+        # Backends (Auslaufen abwarten, chat-gpu-Loadouts stoppen) und misst das freie
+        # VRAM. Der Lock wird per trap freigegeben — auch wenn train.py abbricht.
+        # Nach der Freigabe werden die gestoppten Loadouts wieder gestartet.
+        #
+        # LOCKED unterscheidet "wir halten den Lock" von "Lock existiert": nur wer
+        # acquire erfolgreich abgeschlossen hat, darf release ausfuehren. Schlaegt
+        # acquire fehl (fremder Lock gehalten oder VRAM unzureichend), stoppt das
+        # Training — ohne den fremden Lock anzufassen oder fremde Loadouts zu starten.
+        LOCK_SCRIPT="scripts/gpu-lock.sh"
+        STOPPED=""
+        LOCKED=""
+        trap 'T=$?; if [ -n "$LOCKED" ]; then bash "$LOCK_SCRIPT" release >&2 || true; fi; for slug in $STOPPED; do curl -sf -X POST "http://127.0.0.1:18235/admin/loadouts/${slug}/start" >/dev/null 2>&1 || true; done; exit $T' EXIT
+
+        if [ -n "${GPU_LOCK_REQUIRED_MIB:-}" ]; then
+          bash "$LOCK_SCRIPT" acquire || { echo "[finetune] GPU-Arbitrierung fehlgeschlagen — Training wird NICHT gestartet." >&2; exit 3; }
+          LOCKED=1
+          STOPPED=$(python3 -c 'import json; d=json.load(open("scripts/llm/loadouts.json")); print(" ".join(l["slug"] for l in d.get("loadouts", []) if l.get("exclusiveGroup")=="chat-gpu" and l.get("managed")!="external"))')
+        else
+          echo "[finetune] GPU_LOCK_REQUIRED_MIB nicht gesetzt — Training ohne GPU-Arbitrierung."
+        fi
+
         python3 scripts/finetune/train.py \
           --corpus "{{.CORPUS}}" --model "{{.MODEL}}" --measure-report "{{.MEASURE_REPORT}}" \
           {{if .CONFIG}}--config "{{.CONFIG}}"{{end}} \

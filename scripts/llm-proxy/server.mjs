@@ -6,7 +6,7 @@ import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadin
 import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems } from './fixups.mjs';
 import { stripTurnMarkers } from './strip-markers.mjs';
 import { readFileSync, existsSync } from 'node:fs';
-import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict } from './loadouts.mjs';
+import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive } from './loadouts.mjs';
 import os from 'node:os';
 import { scanModels, resolveModelPath } from './models.mjs';
 import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
@@ -253,7 +253,7 @@ async function chosenSettings(port) {
 
 function portInUse(doc, port, exceptSlug) {
   return doc.loadouts.some((l) => l.port === port && l.slug !== exceptSlug
-    && unitStatus(l.slug).active === 'active');
+    && isLoadoutActive(l, unitStatus(l.slug)));
 }
 
 class LoadoutStartError extends Error {
@@ -276,7 +276,7 @@ async function startLoadout(slug) {
   // port_busy oben faengt einen Gruppenkonflikt nur zufaellig ab — naemlich
   // dann, wenn beide Loadouts denselben Port belegen (die drei auf 8091).
   // gemma9-factory (8092) gegen gemma26-factory (8091) rutschte durch.
-  const active = doc.loadouts.filter((l) => unitStatus(l.slug).active === 'active').map((l) => l.slug);
+  const active = doc.loadouts.filter((l) => isLoadoutActive(l, unitStatus(l.slug))).map((l) => l.slug);
   const conflict = findExclusiveConflict(doc, slug, active);
   if (conflict) {
     throw new LoadoutStartError(409, 'exclusive_conflict',
@@ -325,7 +325,7 @@ async function ensureLoadoutForModel(model) {
   let doc;
   try { ({ doc } = readLoadouts(DEFAULT_PATH)); } catch { return null; }
   const activeSlugs = doc.loadouts
-    .filter((l) => unitStatus(l.slug).active === 'active')
+    .filter((l) => isLoadoutActive(l, unitStatus(l.slug)))
     .map((l) => l.slug);
   const decision = planAutoStart({ doc, model, activeSlugs });
   if (decision.action === 'none') return null;
@@ -349,6 +349,10 @@ const server = http.createServer((req, res) => {
     // 2026-07-27 ein dreistuendiger Ausfall von llamacpp-gemma unsichtbar.
     // Die Wahrheit liegt bewusst auf /health und nicht auf einem additiven
     // /readyz: wer blind prueft, prueft /health, und genau der wurde getaeuscht.
+    // T002628: Waehrend des GPU-Drainings (Lock gehalten) sind lokale Backends
+    // absichtlich zurueckgenommen — der Proxy bedient ueber das Remote-Backend
+    // (deepseek). evaluateReadiness zaehlt drainende Backends als ready, nicht
+    // als degraded, damit /health gruen bleibt.
     if (path === '/health') {
       const r = evaluateReadiness(getBackends);
       // degraded kommt in BEIDEN Faellen mit - der Aufrufer soll sehen, WELCHES
@@ -416,7 +420,10 @@ const server = http.createServer((req, res) => {
         const { doc } = readLoadouts(DEFAULT_PATH);
         const status = await Promise.all(doc.loadouts.map(async (l) => {
           const u = unitStatus(l.slug);
-          const running = u.active === 'active';
+          // T002628: externe Loadouts (managed=external) haben keine Unit — ihre
+          // Liveness kommt ueber isLoadoutActive (Port/Prozess), sonst erschienen
+          // sie im Status immer als gestoppt. [P1-3]
+          const running = isLoadoutActive(l, u);
           return {
             slug: l.slug, unit: unitName(l.slug), port: l.port,
             active: u.active, sub: u.sub, running,

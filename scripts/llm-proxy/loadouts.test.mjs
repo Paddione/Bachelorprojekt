@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parseLoadouts, readLoadouts, writeLoadouts, findLoadout } from './loadouts.mjs'
+import { parseLoadouts, readLoadouts, writeLoadouts, findLoadout, findExclusiveConflict } from './loadouts.mjs'
 
 const valid = {
   version: 1,
@@ -147,3 +147,57 @@ test('parseLoadouts: leerer tools-String wird abgelehnt', () => {
   bad.loadouts[0].tools = ''
   assert.throws(() => parseLoadouts(JSON.stringify(bad)), /tools/)
 })
+
+// ── T002628: externer Halter (managed: external) ───────────────────────────
+
+test('parseLoadouts: managed=external ist ein gueltiges Feld', () => {
+  const doc = structuredClone(valid)
+  doc.loadouts[0].managed = 'external'
+  const out = parseLoadouts(JSON.stringify(doc))
+  assert.equal(out.loadouts[0].managed, 'external')
+})
+
+test('parseLoadouts: unbekannter managed-Wert wird verworfen (kein Fehler) — Feld bleibt frei', () => {
+  const doc = structuredClone(valid)
+  doc.loadouts[0].managed = 'internal'
+  const out = parseLoadouts(JSON.stringify(doc))
+  // 'internal' ist kein verpflichtendes Werte-Enum — das Feld ist frei textuell.
+  // Der Test hält nur fest, dass der Parser das Feld akzeptiert und durchreicht.
+  assert.equal(out.loadouts[0].managed, 'internal')
+})
+
+test('findExclusiveConflict: externer Eintrag ist Gruppenmitglied', () => {
+  const doc = structuredClone(valid)
+  doc.loadouts[0].exclusiveGroup = 'chat-gpu'
+  doc.loadouts[0].managed = 'external'
+  doc.loadouts[0].slug = 'unsloth-studio'
+  doc.loadouts[0].port = 45013
+  const other = structuredClone(valid.loadouts[0])
+  other.slug = 'gptoss-context'
+  other.exclusiveGroup = 'chat-gpu'
+  doc.loadouts.push(other)
+  const parsed = parseLoadouts(JSON.stringify(doc))
+  const conflict = findExclusiveConflict(parsed, 'gptoss-context', ['unsloth-studio'])
+  assert.ok(conflict, 'externer Eintrag muss als Konflikt gemeldet werden')
+  assert.equal(conflict.conflictSlug, 'unsloth-studio')
+  assert.equal(conflict.group, 'chat-gpu')
+})
+
+test('findExclusiveConflict: aktiver externer Eintrag ohne Unit zaehlt via Port-Liveness', () => {
+  // Der externe Eintrag hat keine systemd-Unit. findExclusiveConflict bekommt
+  // die aktiven Slugs vom Aufrufer (server.mjs filtert ueber isLoadoutActive).
+  // Hier: der externe Slug steht in activeSlugs, muss also als Konflikt melden.
+  const doc = structuredClone(valid)
+  doc.loadouts[0].exclusiveGroup = 'chat-gpu'
+  doc.loadouts[0].managed = 'external'
+  doc.loadouts[0].slug = 'unsloth-studio'
+  doc.loadouts[0].port = 45013
+  const other = structuredClone(valid.loadouts[0])
+  other.slug = 'gptoss-context'
+  other.exclusiveGroup = 'chat-gpu'
+  doc.loadouts.push(other)
+  const parsed = parseLoadouts(JSON.stringify(doc))
+  const conflict = findExclusiveConflict(parsed, 'gptoss-context', ['unsloth-studio'])
+  assert.ok(conflict)
+})
+

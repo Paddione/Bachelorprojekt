@@ -2700,6 +2700,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/gpu-lock",
+    "file": "tests/spec/local-llm-proxy/gpu-lock.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/kv-probe-endpoint-guard",
     "file": "tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats",
     "category": "local-llm-proxy",

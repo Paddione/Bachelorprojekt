@@ -328,6 +328,16 @@ tasks:
         fi
         systemctl --user status mcp-cors-proxy.service --no-pager -n 20 || true
 
+  # ── plugin-doctor — Aktivierung vs. Installation (T002651) ───────────
+  # Ein Plugin, das .claude/settings.json aktiviert, aber maschinenlokal nicht
+  # installiert (oder im User-Scope deaktiviert) ist, laedt still gar nicht.
+  # Der Doctor meldet genau diese Faehigkeitsverluste.
+
+  plugins:check:
+    desc: "T002651: Plugin-Aktivierung gegen Installation prüfen (scripts/plugin-doctor.sh)"
+    cmds:
+      - bash scripts/plugin-doctor.sh
+
   # ── stdio MCP servers — spawned per-session by the client (Claude Code /
   # opencode), not standalone daemons. Nothing to install/start here; this is
   # a read-only presence check for the stack overview below.

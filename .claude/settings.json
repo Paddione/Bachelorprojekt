@@ -99,6 +99,16 @@
         ]
       },
       {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/plugin-doctor.sh --json 2>/dev/null | python3 -c \"\nimport sys, json\ntry:\n    data = json.load(sys.stdin)\n    findings = data.get('findings', [])\n    if findings:\n        msg = 'PLUGIN-AKTIVIERUNGSDRIFT: ' + '; '.join(findings)\n        print(json.dumps({'hookSpecificOutput': {'hookEventName': 'SessionStart', 'additionalContext': msg}}))\nexcept:\n    pass\n\" 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Checking plugin activation vs installation..."
+          }
+        ]
+      },
+      {
         "matcher": "startup",
         "hooks": [
           {

@@ -30,7 +30,7 @@ for a in "$@"; do case "$a" in
 esac; done
 
 GOALS_FILE="${HG_GOALS_FILE:-.claude/lib/goals.md}"
-GEN_JSON="${HG_GEN_JSON:-website/src/lib/goals-data.generated.json}"
+GEN_JSON="${HG_GEN_JSON:-website/src/lib/sdlc/goals-data.generated.json}"
 LLM_URL="${HG_LLM_URL:-http://localhost:18235/v1}"
 LLM_MODEL="${HG_LLM_MODEL:-bonsai}"
 DATE_SUFFIX="$(date +%Y%m%d-%H%M%S)"

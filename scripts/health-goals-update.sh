@@ -35,7 +35,7 @@ for a in "$@"; do case "$a" in
 esac; done
 
 GOALS_FILE="${HG_GOALS_FILE:-.claude/lib/goals.md}"
-GEN_JSON="${HG_GEN_JSON:-website/src/lib/goals-data.generated.json}"
+GEN_JSON="${HG_GEN_JSON:-website/src/lib/sdlc/goals-data.generated.json}"
 CLEANUP_FILES=()
 trap 'rm -f "${CLEANUP_FILES[@]}"' EXIT
 

@@ -482,25 +482,10 @@ else
 fi
 
 # ── IF-TARGETS (T002441: Schnittstellen- und API-Drift) ──
-row target G-IF01 "$(python3 -c "
-import yaml, socket
-try:
-    with open('docs/agent-guide/registry/mcp.yaml') as f:
-        servers = [s for s in yaml.safe_load(f).get('servers', []) if s.get('command') != 'manual']
-    if not servers: print('-'); exit(0)
-    dead = 0
-    for s in servers:
-        env = s.get('env', {})
-        port = env.get('PORT') or env.get('MCP_PORT')
-        host = env.get('HOST', '127.0.0.1')
-        if port:
-            try:
-                sock = socket.create_connection((host, int(port)), timeout=2)
-                sock.close()
-            except: dead += 1
-    print(dead)
-except: print('-')
-" 2>/dev/null || echo "-")" le 0 "MCP-Endpunkte ohne Listener (Registry vs TCP)"
+# Der Prober meldet einen Strukturbruch (leere Kandidatenmenge) als Verletzung
+# statt als '-'. Kein '|| echo "-"' hier: ein Fehlschlag DIESES Aufrufs waere ein
+# Defekt der Messung, kein "nicht messbar" [T002648].
+row target G-IF01 "$(python3 scripts/lib/mcp-endpoint-probe.py)" le 0 "MCP-Endpunkte ohne Listener (Registry vs TCP)"
 
 row target G-IF02 "$(python3 -c "
 import os,re
@@ -748,29 +733,23 @@ except Exception: print('-')
 " "$o" || echo '-'; })" le 1 "DORA Lead Time PR→Merge (Median, Stunden)"
 
 # --- Langsam: nur ohne --fast (3) ---------------------------------------------
-row gate   G-DEP01 "$([ "$FAST" = 1 ] && echo '-' || { [ -d website/node_modules ] && (cd website && timeout 180 pnpm audit --json 2>/dev/null | python3 -c "
-import json,sys
-n=0
-for line in sys.stdin:
-    line=line.strip()
-    if not line: continue
-    try: o=json.loads(line)
-    except Exception: continue
-    sev=(o.get('advisory') or {}).get('severity') or o.get('severity')
-    if sev in ('high','critical'): n+=1
-print(n)
-" ) || echo '-'; })" eq 0 "High/Critical npm-Vulnerabilities"
-row target G-DEP02 "$([ "$FAST" = 1 ] && echo '-' || { [ -d website/node_modules ] && (cd website && timeout 180 pnpm outdated --format json 2>/dev/null | python3 -c "
-import json,sys
-try: d=json.load(sys.stdin)
-except Exception: print('-'); raise SystemExit
-n=0
-for _,v in (d or {}).items():
-    cur=str(v.get('current','')).lstrip('^~').split('.')[0]
-    lat=str(v.get('latest','')).lstrip('^~').split('.')[0]
-    if cur.isdigit() and lat.isdigit() and int(lat)>int(cur): n+=1
-print(n)
-" ) || echo '-'; })" le 3 "Veraltete Major-Dependencies"
+# pnpm-Messung: Ausgabe ERFASSEN, dann parsen — der Exit-Code von pnpm taugt nicht
+# als Fehlersignal. `pnpm outdated` endet mit gefundenen Paketen als Exit 1, unter
+# `set -o pipefail` (oben) haengte der frühere Fallback-Zweig deshalb ein zweites
+# Token an den bereits korrekten Wert ("3\n-") [T002648].
+# Fehlendes node_modules ist legitim nicht messbar ('-', so laeuft der CI-Job).
+# Ein gescheiterter Parser ist es NICHT: er meldet den Wert 99 und faellt damit
+# auf, statt sich als "nichts gefunden" auszugeben.
+pnpm_measure() {
+  local helper="$1"; shift
+  [ -d website/node_modules ] || { echo '-'; return; }
+  local out
+  out="$(cd website && timeout 180 pnpm "$@" 2>/dev/null)" || true
+  [ -n "$out" ] || { echo '-'; return; }
+  python3 "$helper" <<<"$out" || echo 99
+}
+row gate   G-DEP01 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-audit-count.py audit --json)" eq 0 "High/Critical npm-Vulnerabilities"
+row target G-DEP02 "$([ "$FAST" = 1 ] && echo '-' || pnpm_measure scripts/lib/pnpm-outdated-majors.py outdated --format json)" le 3 "Veraltete Major-Dependencies"
 row gate   G-BRAIN14 "$([ "$FAST" = 1 ] && echo '-' || { [ -f scripts/brain-ingest-worklist.sh ] && timeout 120 bash scripts/brain-ingest-worklist.sh 2>/dev/null | grep -c . || echo '-'; })" eq 0 "Brain-Ingest-Backlog (offene Seiten)"
 
 # --- DORA aus lokaler Git-History, Shallow-Clone-geschützt (3) -----------------

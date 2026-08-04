@@ -82,7 +82,7 @@ WHERE status NOT IN ('done','archived')
   -- woertlich aus einer inzwischen geloeschten E2E-Testdatei (historischer Beleg), und der
   -- Marker-Mechanismus aus T001453 hatte korrekt gegriffen (is_test_data = true). Diese
   -- Query filterte ihn nur nicht, obwohl der Produktivcode es durchgaengig tut (siehe
-  -- website/src/pages/api/admin/cockpit/container-count.ts:16).
+  -- website/src/pages/sdlc/api/cockpit/container-count.ts:16).
   AND is_test_data = false;
 ```
 
@@ -154,7 +154,7 @@ Process at most **~6 tickets per round**, highest priority first. Any eligible t
 
 ### Step 2.3: Derive the questions
 
-Mirror `website/src/lib/clarification-questions.ts` (`deriveSections`) — the source of truth. Map each gap to a concrete question:
+Mirror `website/src/lib/sdlc/clarification-questions.ts` (`deriveSections`) — the source of truth. Map each gap to a concrete question:
 
 | Gap | Question(s) |
 |---|---|

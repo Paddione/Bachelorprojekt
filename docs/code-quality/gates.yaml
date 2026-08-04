@@ -152,7 +152,11 @@ s3:
     - prod/cloud-init-dev-vm.yaml
     - website/src/lib/agent-guide.generated.json
     - website/src/lib/platform-descriptions.generated.json
-    - website/src/lib/goals-data.generated.json
+    # T002639: mit dem SDLC-Split nach lib/sdlc/ umgezogen. Diese Allowlist ist
+    # PFADGEBUNDEN — nach einer Verschiebung greift der alte Eintrag nicht mehr und
+    # der unveraenderte Inhalt erscheint als NEUER Verstoss. Beim Verschieben einer
+    # hier gelisteten Datei den Pfad mitziehen.
+    - website/src/lib/sdlc/goals-data.generated.json
 
 s4:
   manifest_globs:

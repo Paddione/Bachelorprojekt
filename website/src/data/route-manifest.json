@@ -631,14 +631,6 @@
       "media": false
     },
     {
-      "route": "/factory/design-system",
-      "authTier": "public",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/fuehrung-persoenlichkeit",
       "authTier": "public",
       "brand": "mentolder",
@@ -843,6 +835,14 @@
     },
     {
       "route": "/sdlc/cockpit",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/design-system",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

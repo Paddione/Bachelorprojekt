@@ -1244,7 +1244,7 @@ tasks:
           website/public/learning-assets/THIRD-PARTY-ASSETS.md
           website/src/data/openspec-status.json
           docs/diagrams/architecture.md
-          website/src/lib/goals-data.generated.json
+          website/src/lib/sdlc/goals-data.generated.json
           docs/code-quality/repo-index.json
           docs/agent-guide/10-ziele.md
           docs/agent-guide/20-werkzeuge.md
@@ -3542,7 +3542,7 @@ tasks:
       - bash scripts/health-goals-update.sh {{.CLI_ARGS}}
 
   health:goals:emit:
-    desc: "Regenerate website/src/lib/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)"
+    desc: "Regenerate website/src/lib/sdlc/goals-data.generated.json from .claude/lib/goals.md (SSOT, E4)"
     cmds:
       - node scripts/gen-goals-data.mjs
 

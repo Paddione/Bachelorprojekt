@@ -2166,6 +2166,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/freshness-paths-exist",
+    "file": "tests/spec/ci-cd/freshness-paths-exist.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/mishap-t002425",
     "file": "tests/spec/ci-cd/mishap-t002425.bats",
     "category": "ci-cd",
@@ -2517,6 +2523,12 @@
     "id": "health-goals-erden",
     "file": "tests/spec/health-goals-erden.bats",
     "category": "health-goals-erden",
+    "kind": "shell"
+  },
+  {
+    "id": "health-goals/goals-data-sdlc-target",
+    "file": "tests/spec/health-goals/goals-data-sdlc-target.bats",
+    "category": "health-goals",
     "kind": "shell"
   },
   {

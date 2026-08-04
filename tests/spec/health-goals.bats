@@ -496,11 +496,11 @@ hg_workflow_config() {
   }
 }
 
-@test "health-goals.yml: does not mark its commit [skip ci] (build-website must pick up the new values)" {
+@test "health-goals.yml: does not mark its commit [skip ci] (build-sdlc-console must pick up the new values)" {
   WF="$(hg_workflow)"
   [ -f "$WF" ] || { echo "FAIL: $WF fehlt"; return 1; }
   hg_workflow_config | grep -q '\[skip ci\]' && {
-    echo "FAIL: [skip ci] im Commit — build-website.yml triggert auf website/** und wuerde uebersprungen; das Dashboard bliebe auf dem alten Image"
+    echo "FAIL: [skip ci] im Commit — build-sdlc-console.yml triggert auf website/src/lib/** und wuerde uebersprungen; das Dashboard bliebe auf dem alten Image (seit T002639 baut die SDLC-Console, nicht build-website.yml)"
     return 1
   }
   return 0

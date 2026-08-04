@@ -101,7 +101,7 @@ git add \
   docs/generated/api-map.json \
   docs/generated/blast-radius.md \
   docs/diagrams/architecture.md \
-  website/src/lib/goals-data.generated.json 2>/dev/null || true
+  website/src/lib/sdlc/goals-data.generated.json 2>/dev/null || true
 git diff --cached --quiet || git commit -m "chore: regenerate freshness artifacts [$TICKET_ID]"
 ```
 

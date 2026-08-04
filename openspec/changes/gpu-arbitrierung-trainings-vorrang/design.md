@@ -97,6 +97,16 @@ Er wird als Loadout mit `managed: external` aufgenommen. Zwei Konsequenzen:
    ihn. Ein Halter, den das Werkzeug nicht besitzt, wird gemeldet und nicht getoetet:
    sonst zieht ein Trainingsstart einem laufenden Studio-Chat den Boden weg.
 
+   **Pruefschritt-Ergebnis (2026-08-04):** Die Studio-API auf `:8888` ist dokumentiert
+   (`/openapi.json`, `Unsloth UI Backend`), aber jeder `/api/inference/*`-Endpunkt
+   verlangt Authentifizierung (`{"detail":"Not authenticated"}`). Einen anonymen,
+   geordneten Stop des Inferenz-Servers gibt es nicht; `/api/inference/cancel` wirkt
+   nur auf aktive Generationen, nicht auf den Serverprozess. Der `llama-server` selbst
+   auf `:45013` beantwortet `POST /shutdown` mit 404. **Konsequenz: Es bleibt beim
+   Melden — `acquire` sendet kein Signal an den externen Halter, sondern bricht ab und
+   nennt ihn (PID, Port, Modell), wenn das VRAM nach dem Stoppen der Managed Loadouts
+   nicht reicht.**
+
 ## Fehlerbehandlung
 
 | Fall | Verhalten | Warum |

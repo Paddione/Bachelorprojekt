@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-91 Services · 1828 Abhängigkeitskanten · 289 API-Endpoints
+92 Services · 1840 Abhängigkeitskanten · 289 API-Endpoints
 
 ## Service-Map
 
@@ -73,6 +73,7 @@ flowchart LR
   oauth2_proxy_recovery["oauth2-proxy-recovery"]:::default
   hbbr["hbbr"]:::default
   hbbs["hbbs"]:::default
+  sdlc_console["sdlc-console"]:::default
   sealed_secrets_controller["sealed-secrets-controller"]:::default
   sessions_server["sessions-server"]:::default
   shared_db["shared-db"]:::db
@@ -144,6 +145,8 @@ flowchart LR
   pvc_backup -->|"command"| nextcloud
   pvc_backup -->|"command"| vaultwarden
   oauth2_proxy_recovery -->|"command"| recovery_browser
+  sdlc_console -->|"SESSIONS_DATABASE_…"| shared_db
+  sdlc_console -->|"SESSIONS_DATABASE_…"| website
   shared_db -->|"configmap:shared-d…"| nextcloud
   shared_db -->|"configmap:shared-d…"| vaultwarden
   shared_db -->|"configmap:shared-d…"| website
@@ -203,6 +206,7 @@ flowchart LR
   traefik -->|"ingress"| ntfy
   traefik -->|"ingress"| collabora
   traefik -->|"ingress"| oauth2_proxy_recovery
+  traefik -->|"ingress"| sdlc_console
   traefik -->|"ingress"| oauth2_proxy_traefik
   traefik -->|"ingress"| apiinternal
   traefik -->|"ingress"| WEBSITE_PRIMARY_SERVICE
@@ -236,6 +240,7 @@ flowchart LR
   collabora -->|"selector"| collabora
   recovery_browser -->|"selector"| recovery_browser
   oauth2_proxy_recovery -->|"selector"| oauth2_proxy_recovery
+  sdlc_console -->|"selector"| sdlc_console
   sealed_secrets_controller -->|"selector"| sealed_secrets_controller
   sessions_server -->|"selector"| sessions_server
   shared_db_staging -->|"selector"| shared_db_staging
@@ -1863,11 +1868,18 @@ flowchart LR
   systemtest_purge_all -->|"secret:website-sec…"| systemtest_cleanup
   systemtest_cleanup -->|"secret:website-sec…"| systemtest_outbox
   systemtest_outbox -->|"secret:website-sec…"| systemtest_cleanup
+  systemtest_cleanup -->|"secret:website-sec…"| sdlc_console
+  sdlc_console -->|"secret:website-sec…"| systemtest_cleanup
   website -->|"secret:website-sec…"| systemtest_cleanup
   systemtest_purge_all -->|"secret:website-sec…"| systemtest_outbox
   systemtest_outbox -->|"secret:website-sec…"| systemtest_purge_all
+  systemtest_purge_all -->|"secret:website-sec…"| sdlc_console
+  sdlc_console -->|"secret:website-sec…"| systemtest_purge_all
   website -->|"secret:website-sec…"| systemtest_purge_all
+  systemtest_outbox -->|"secret:website-sec…"| sdlc_console
+  sdlc_console -->|"secret:website-sec…"| systemtest_outbox
   website -->|"secret:website-sec…"| systemtest_outbox
+  website -->|"secret:website-sec…"| sdlc_console
   brett -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| brett
   shared_db_dev -->|"secret:shared-db-d…"| website
@@ -1929,6 +1941,7 @@ flowchart TB
     pvc_backup(["pvc-backup"])
     recovery_browser["recovery-browser"]
     oauth2_proxy_recovery["oauth2-proxy-recovery"]
+    sdlc_console["sdlc-console"]
     sessions_server["sessions-server"]
     shared_db["shared-db"]
     studio_server["studio-server"]

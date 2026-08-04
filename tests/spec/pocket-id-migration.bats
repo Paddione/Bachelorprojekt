@@ -355,9 +355,9 @@ migrated_oauth2_manifests() {
   ! grep -q 'realms/workspace' "${WEBSITE}/src/lib/auth.ts" || false
 }
 
-@test "pocket-id: website/src/lib/auth.ts uses POCKET_ID_URL/POCKET_ID_FRONTEND_URL" {
-  grep -q 'POCKET_ID_URL' "${WEBSITE}/src/lib/auth.ts"
-  grep -q 'POCKET_ID_FRONTEND_URL' "${WEBSITE}/src/lib/auth.ts"
+@test "pocket-id: website/src/lib/auth/provider.ts uses POCKET_ID_URL/POCKET_ID_FRONTEND_URL" {
+  grep -q 'POCKET_ID_URL' "${WEBSITE}/src/lib/auth/provider.ts"
+  grep -q 'POCKET_ID_FRONTEND_URL' "${WEBSITE}/src/lib/auth/provider.ts"
 }
 
 @test "pocket-id: website/src/lib/auth.ts sets realmRoles from userInfo.isAdmin" {

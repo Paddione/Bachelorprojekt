@@ -8,6 +8,9 @@ includes:
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
+  sdlc:
+    taskfile: ./Taskfile.sdlc.yml
+    dir: .
   finetune:
     taskfile: ./Taskfile.finetune.yml
     dir: .

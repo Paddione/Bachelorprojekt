@@ -3348,6 +3348,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-isolation/e2-local-stack",
+    "file": "tests/spec/sdlc-isolation/e2-local-stack.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
     "id": "sealed-secret-cluster-drift",
     "file": "tests/spec/sealed-secret-cluster-drift.bats",
     "category": "sealed-secret-cluster-drift",

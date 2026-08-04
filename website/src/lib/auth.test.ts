@@ -202,12 +202,12 @@ describe('exchangeCode', () => {
     expect(await m.exchangeCode('code-123')).toBeNull();
   });
 
-  it('propagates the network error when the token endpoint throws (no try/catch on the outer fetch)', async () => {
+  it('returns null when the auth provider is unreachable (fail-closed)', async () => {
     globalThis.fetch = (async () => {
       throw new Error('network down');
     }) as typeof fetch;
     const m = await loadModule();
-    await expect(m.exchangeCode('code-123')).rejects.toThrow(/network down/);
+    expect(await m.exchangeCode('code-123')).toBeNull();
   });
 
   it('returns null when userinfo endpoint returns a non-OK response', async () => {

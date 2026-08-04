@@ -2,7 +2,7 @@
 // Liest die GPU-Lock-Datei (von scripts/gpu-lock.sh geschrieben),
 // prueft PID-Liveness und exportiert eine Funktion fuer discovery.mjs
 // und server.mjs.  [T002628]
-import { readFileSync, existsSync, unlinkSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, unlinkSync } from 'node:fs';
 
 const DEFAULT_LOCK_FILE = '/tmp/gpu-training-lock.json';
 
@@ -35,11 +35,17 @@ export function evaluateLock(lockFile = DEFAULT_LOCK_FILE) {
     // PID-Liveness pruefen
     try {
       process.kill(pid, 0);
-    } catch {
-      // PID tot → Lock verwerfen
-      console.log(`[gpu-lock] Lock-PID ${pid} nicht mehr aktiv — Lock verworfen.`);
-      try { unlinkSync(lockFile); } catch { /* Rennbedingung mit release ok */ }
-      return { held: false };
+    } catch (err) {
+      // Nur ESRCH (kein solcher Prozess) heisst "tot". EPERM bedeutet: der
+      // Prozess EXISTIERT, gehoert nur nicht uns — ein lebender Lock, der
+      // fail-open verworfen wuerde (T002628 fail-closed-Philosophie). [P1-1]
+      if (err?.code === 'ESRCH') {
+        console.log(`[gpu-lock] Lock-PID ${pid} nicht mehr aktiv — Lock verworfen.`);
+        try { unlinkSync(lockFile); } catch { /* Rennbedingung mit release ok */ }
+        return { held: false };
+      }
+      console.warn(`[gpu-lock] Lock-PID ${pid} nicht pruefbar (${err?.code ?? err?.message}) — gilt als gehalten (fail-closed).`);
+      return { held: true, unverifiedPid: true };
     }
 
     return {

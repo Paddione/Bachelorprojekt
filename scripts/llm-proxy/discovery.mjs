@@ -177,10 +177,20 @@ export function evaluateReadiness(getBackends) {
   const primary = backends.filter((b) => b.priority === 1);
   // Ein Prio-1-Backend, das drained, ist NICHT unhealthy — es ist intentional
   // zurueckgenommen. Der Proxy kann ueber Prio-2+ bedienen.
-  const ready = primary.length > 0 && primary.every((b) => {
-    const h = health.get(b.name);
-    return !!h?.healthy || !!h?.draining;
-  });
+  // [P1-2] ready erfordert zusaetzlich, dass mindestens EIN Backend tatsaechlich
+  // bedienen kann (gesund UND nicht drainend): wenn alle Prio-1-Backends drainen
+  // und der Fallback tot ist, waere primary.every() still true, obwohl resolveModel
+  // fuer jede Anfrage 503 liefert — genau die T002336-Taeuschung, die /health
+  // verhindern soll.
+  const ready = primary.length > 0
+    && primary.every((b) => {
+      const h = health.get(b.name);
+      return !!h?.healthy || !!h?.draining;
+    })
+    && backends.some((b) => {
+      const h = health.get(b.name);
+      return !!h?.healthy && !h?.draining;
+    });
 
   return { ready, degraded, checked: backends.length };
 }

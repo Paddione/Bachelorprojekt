@@ -51,6 +51,17 @@ test('evaluateLock: tote PID -> Lock verworfen, Datei entfernt', () => {
   assert.ok(!exists(file), 'tote-PID-Lock-Datei muss entfernt werden')
 })
 
+test('evaluateLock: PID 1 (fremd, lebend) gilt als gehalten statt verworfen (fail-closed)', () => {
+  // PID 1 existiert immer und gehoert nicht dieser Test-Session. process.kill(1,0)
+  // wirft EPERM (kein Signalrecht), NICHT ESRCH — die Lock-Datei muss erhalten
+  // bleiben und der Lock als gehalten gelten. [P1-1]
+  const { file } = tmpLock()
+  withLockFile(file, { pid: 1, started_at: '2026-08-04T00:00:00Z', reason: 'init' })
+  const r = evaluateLock(file)
+  assert.equal(r.held, true, 'EPERM darf nicht als tote PID gewertet werden')
+  assert.ok(exists(file), 'fremder lebender Lock darf nicht geloescht werden')
+})
+
 test('evaluateLock: unparsbare Datei -> gilt als gehalten (fail-closed)', () => {
   const { file } = tmpLock()
   writeFileSync(file, 'not-json{')
@@ -121,6 +132,21 @@ test('draining darf nicht als unhealthy gemeldet werden', () => {
     assert.equal(r.ready, true, '/health bleibt gruen, solange ein Backend bedienen kann')
     assert.ok(!r.degraded.some((d) => d.name === 'llamacpp-gemma'),
       'drainende Backends sind nicht degraded (kein unhealthy-Gesicht)')
+  })
+})
+
+test('/health ist nicht ready, wenn alle Prio-1-Backends drainen UND der Fallback tot ist', () => {
+  return import('./discovery.mjs').then(async (mod) => {
+    _testSeed({ lock: { held: true, drainingKinds: ['llamacpp'] }, backends: [
+      { name: 'llamacpp-gemma', priority: 1, healthy: true, draining: true, models: ['gpt-oss-20b'] },
+      { name: 'deepseek', priority: 2, healthy: false, models: [] },
+    ] })
+    const r = mod.evaluateReadiness(() => [
+      backendLlamacpp,
+      { name: 'deepseek', baseUrl: 'https://api.deepseek.com/v1', kind: 'openai-remote', priority: 2 },
+    ])
+    assert.equal(r.ready, false,
+      'ohne bedienbares Backend ist /health nicht ready — drainende Backends allein taugen nicht')
   })
 })
 

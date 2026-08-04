@@ -13,7 +13,17 @@ NVIDIA_SMI="${GPU_LOCK_NVIDIA_SMI:-nvidia-smi}"
 DRAIN_TIMEOUT="${GPU_LOCK_DRAIN_TIMEOUT:-300}"
 LOADOUTS_PATH="${GPU_LOCK_LOADOUTS:-scripts/llm/loadouts.json}"
 
-_pid_alive() { [ -n "${1:-}" ] && kill -0 "$1" 2>/dev/null; }
+_pid_alive() {
+  [ -n "${1:-}" ] || return 1
+  # kill -0 prueft Existenz ohne Signal. ESRCH = tot; EPERM = Prozess existiert
+  # (gehoert nur nicht uns) → als lebendig werten (fail-closed, T002628). [P1-1]
+  local err
+  err=$(kill -0 "$1" 2>&1) && return 0
+  case "$err" in
+    *"No such process"*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
 
 _lock_held() {
   [ -f "$LOCK_FILE" ] || return 1
@@ -39,7 +49,9 @@ _poll_inflight_zero() {
   while true; do
     [ "$(date +%s)" -ge "$deadline_ts" ] && { echo "[gpu-lock] Auslauf-Deckel erreicht — breche ab." >&2; return 1; }
     state=$(curl -sf "${PROXY_URL}/admin/state" 2>/dev/null) || { echo "[gpu-lock] Proxy nicht erreichbar." >&2; return 1; }
-    inflight=$(echo "$state" | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(b.get('inflight',0) for b in d.get('backends',[]) if b.get('kind')=='llamacpp'))" 2>/dev/null) || inflight=0
+    # Fail-closed bei unparsbarer Antwort: ein unbekannter Zustand ist kein
+    # "0 Requests" — abbrechen statt das Auslaufen zu ueberspringen. [P2]
+    inflight=$(echo "$state" | python3 -c "import json,sys; d=json.load(sys.stdin); print(sum(b.get('inflight',0) for b in d.get('backends',[]) if b.get('kind')=='llamacpp'))" 2>/dev/null) || { echo "[gpu-lock] /admin/state nicht parsbar — breche ab." >&2; return 1; }
     [ "$inflight" -eq 0 ] && break
     sleep 1
   done
@@ -145,7 +157,7 @@ case "${1:-}" in
     shift; reason="GPU training run"
     while [ $# -gt 0 ]; do
       case "$1" in
-        --reason) reason="$2"; shift 2 ;; --reason=*) reason="${1#*=}"; shift ;;
+        --reason) [ $# -ge 2 ] || { echo "FEHLER: --reason braucht einen Wert." >&2; exit 2; }; reason="$2"; shift 2 ;; --reason=*) reason="${1#*=}"; shift ;;
         *) echo "Unbekannte Option: $1" >&2; exit 2 ;;
       esac
     done

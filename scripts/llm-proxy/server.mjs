@@ -420,7 +420,10 @@ const server = http.createServer((req, res) => {
         const { doc } = readLoadouts(DEFAULT_PATH);
         const status = await Promise.all(doc.loadouts.map(async (l) => {
           const u = unitStatus(l.slug);
-          const running = u.active === 'active';
+          // T002628: externe Loadouts (managed=external) haben keine Unit — ihre
+          // Liveness kommt ueber isLoadoutActive (Port/Prozess), sonst erschienen
+          // sie im Status immer als gestoppt. [P1-3]
+          const running = isLoadoutActive(l, u);
           return {
             slug: l.slug, unit: unitName(l.slug), port: l.port,
             active: u.active, sub: u.sub, running,

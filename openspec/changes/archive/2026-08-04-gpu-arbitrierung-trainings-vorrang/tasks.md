@@ -2,7 +2,7 @@
 title: "gpu-arbitrierung-trainings-vorrang — Implementation Plan"
 ticket_id: T002628
 domains: [local-llm-proxy, gpu-ops, ci-cd]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

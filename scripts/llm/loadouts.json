@@ -227,6 +227,80 @@
       "notes": "T002608: parallel = 1 (Single-Agent), bis der Einzelpfad belegt funktioniert. -kvu bleibt: bei einem Slot wirkungslos, aber nicht schaedlich; der Guard aus T002286 verlangt nur die Umkehrung (np > 1 MUSS -kvu tragen). ctx und ngl bleiben ungepinnt (Guard: \"kein Loadout MIT --fit pinnt ctx oder ngl\"); die Obergrenze traegt --override-kv in extraArgs, der Boden ist fit.minCtx. fit MUSS aktiviert bleiben: mit fit.enabled=false und ngl=99 laedt der Server alle 43 Layer plus den vollen 98k-Kontext fest auf die GPU und belegt ~13,1 GB von 16 GB (Modell 5488 MiB + KV 4536 + 402 + Compute 903, gemessen 2026-08-03). Uebrig bleiben 2,9 GB — zu wenig fuer ein paralleles Finetuning (T002587). Mit Auto-Fit waren es ~3,8 GB belegt und 12,1 GB frei. Die Abweichung fiel erst auf, als der Loadout-Neustart die veraltete Unit regenerierte und fit.enabled=false damit erstmals wirksam wurde."
     },
     {
+      "slug": "gemma4-base",
+      "label": "Gemma 4 12B it · Eval-Basis (Q4_K_M)",
+      "model": "gemma4-base/gemma-4-12b-it-Q4_K_M.gguf",
+      "port": 8091,
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 2400,
+        "minCtx": 32768
+      },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null,
+        "chatTemplateKwargs": {
+          "enable_thinking": false
+        }
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [],
+      "exclusiveGroup": "chat-gpu",
+      "notes": "Referenzseite: unsloth/gemma-4-12B-it-GGUF, das unveraenderte google/gemma-4-12B-it. Q4_K_M und NICHT die sonst bevorzugte UD-Q4_K_XL-Variante, weil das Tuned-Repo nur Q4_K_M anbietet — die bessere Basis-Quantisierung haette gegen den Tune gemessen. T002634 — Eval-Paar fuer den Base-vs-Tuned-Gate. base und tuned sind BIS AUF DIE MODELLDATEI zeichengleich konfiguriert (gleiche Quantisierung Q4_K_M, gleiches q8_0-KV, gleiches fit/minCtx, parallel 1). Jede Abweichung vermischt den Fine-Tuning-Effekt mit einem Konfigurationseffekt und macht die Messung wertlos. SPEKULATIVES DEKODIEREN IST HIER BEWUSST AUS: das Tuned-Repo bringt zwar einen MTP-Head mit (gemma4-tuned/MTP/gemma-4-12B-it-MTP-Q8_0.gguf), aber solange nicht gemessen ist, dass Draft-Verifikation unter greedy wirklich ausgabeneutral laeuft, bleibt er beim Vergleich draussen — Geschwindigkeit ist nicht die Frage, die dieser Gate beantwortet. Fuer den spaeteren Serving-Betrieb: speculative.specType='draft-mtp', draftModelPath auf den Head, draftNMax 4 (Sweep T002293). DENKEN IST AUS (chatTemplateKwargs.enable_thinking=false, T002634): mit aktivem Reasoning lief der Fall clar-01-de ('Plane ein Meeting.' — absichtlich unterbestimmt, erwartet KEINE Aktion) auch bei 8192 Token in finish_reason=length mit leerem content. Das Modell zerdenkt die Mehrdeutigkeit, statt zu antworten. Kein Budget behebt eine nicht terminierende Schleife. Fair ist das, weil es auf BEIDEN Seiten gilt — und es liegt naeher am Referenzpfad des Harness, dessen ModelBackend roh und ohne Thinking-Geruest generiert. Der Unterschied zu '-rea': jenes steuert nur das PARSEN von reasoning_content, nicht ob gedacht wird (T002579)."
+    },
+    {
+      "slug": "gemma4-tuned",
+      "label": "Gemma 4 12B · yuxinlu1 agentic-tau2 v2 (Q4_K_M)",
+      "model": "gemma4-tuned/gemma4-v2-Q4_K_M.gguf",
+      "port": 8091,
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 2400,
+        "minCtx": 32768
+      },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 1,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null,
+        "chatTemplateKwargs": {
+          "enable_thinking": false
+        }
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [],
+      "exclusiveGroup": "chat-gpu",
+      "notes": "Fremder Merge, KEIN eigener Fine-Tune: yuxinlu1/gemma-4-12B-agentic-fable5-composer2.5-v2-3.5x-tau2-GGUF, trainiert auf agentischen Tool-Use-Sequenzen und Coding-CoT. Modellkarte behauptet tau2-bench telecom ~55 vs ~15 Prozent Basis. Das ist eine ANDERE Achse als unser Testset (action/no_action/clarify) — ein ausbleibender 3,5x-Effekt widerlegt die Karte nicht, er misst nur unsere Last. T002634 — Eval-Paar fuer den Base-vs-Tuned-Gate. base und tuned sind BIS AUF DIE MODELLDATEI zeichengleich konfiguriert (gleiche Quantisierung Q4_K_M, gleiches q8_0-KV, gleiches fit/minCtx, parallel 1). Jede Abweichung vermischt den Fine-Tuning-Effekt mit einem Konfigurationseffekt und macht die Messung wertlos. SPEKULATIVES DEKODIEREN IST HIER BEWUSST AUS: das Tuned-Repo bringt zwar einen MTP-Head mit (gemma4-tuned/MTP/gemma-4-12B-it-MTP-Q8_0.gguf), aber solange nicht gemessen ist, dass Draft-Verifikation unter greedy wirklich ausgabeneutral laeuft, bleibt er beim Vergleich draussen — Geschwindigkeit ist nicht die Frage, die dieser Gate beantwortet. Fuer den spaeteren Serving-Betrieb: speculative.specType='draft-mtp', draftModelPath auf den Head, draftNMax 4 (Sweep T002293). DENKEN IST AUS (chatTemplateKwargs.enable_thinking=false, T002634): mit aktivem Reasoning lief der Fall clar-01-de ('Plane ein Meeting.' — absichtlich unterbestimmt, erwartet KEINE Aktion) auch bei 8192 Token in finish_reason=length mit leerem content. Das Modell zerdenkt die Mehrdeutigkeit, statt zu antworten. Kein Budget behebt eine nicht terminierende Schleife. Fair ist das, weil es auf BEIDEN Seiten gilt — und es liegt naeher am Referenzpfad des Harness, dessen ModelBackend roh und ohne Thinking-Geruest generiert. Der Unterschied zu '-rea': jenes steuert nur das PARSEN von reasoning_content, nicht ob gedacht wird (T002579)."
+    },
+    {
       "slug": "bge-embed-cpu",
       "label": "bge-m3 · Embedding, CPU-gebunden",
       "model": "gpustack/bge-m3-GGUF/bge-m3-Q8_0.gguf",

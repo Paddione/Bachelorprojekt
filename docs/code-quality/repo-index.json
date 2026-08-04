@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 792,
+      "file_count": 793,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -628,6 +628,7 @@
         "tests/spec/toolset-registry/sync-surgical.bats",
         "tests/spec/toolset-registry/unreviewed-quarantine.bats",
         "tests/spec/ts-suppression.bats",
+        "tests/spec/unsloth-eval-harness/gguf-fixture-bridge.bats",
         "tests/spec/unsloth-eval-harness/regression-gate.bats",
         "tests/spec/unsloth-eval-harness/scoring-rules.bats",
         "tests/spec/unsloth-eval-harness/testset-shape.bats",
@@ -3145,7 +3146,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 651,
+      "file_count": 652,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3492,6 +3493,7 @@
         "scripts/finetune/eval_harness.py",
         "scripts/finetune/eval_scoring.py",
         "scripts/finetune/export_gguf.py",
+        "scripts/finetune/gen_fixtures.py",
         "scripts/finetune/measure_corpus.py",
         "scripts/finetune/template_guard.py",
         "scripts/finetune/testsets/README.md",

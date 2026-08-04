@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 795,
+      "file_count": 796,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -378,6 +378,7 @@
         "tests/spec/ci-cd/freshness-paths-exist.bats",
         "tests/spec/ci-cd/mishap-t002425.bats",
         "tests/spec/ci-cd/pr-refresh-batch.bats",
+        "tests/spec/ci-cd/pre-push-artifact-guard.bats",
         "tests/spec/ci-cd/skip-ci-marker-guard.bats",
         "tests/spec/ci-cd/spec-dir-convention.bats",
         "tests/spec/ci-cd/spec-shard-partition.bats",
@@ -3149,7 +3150,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 656,
+      "file_count": 657,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3529,6 +3530,7 @@
         "scripts/hetzner/generate-wg-conf.sh",
         "scripts/hetzner/render-cloud-init.sh",
         "scripts/hetzner/snapshot-guide.md",
+        "scripts/hooks/check-freshness-artifacts.sh",
         "scripts/hooks/cleanup-tmp.sh",
         "scripts/hooks/inject-plan-context.sh",
         "scripts/hooks/mishap-tracker.sh",

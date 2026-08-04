@@ -72,13 +72,31 @@ if not os.path.isdir(claude_home):
         print(note)
     sys.exit(0)
 
-installed = load_json(os.path.join(claude_home, "plugins", "installed_plugins.json"),
-                      "installed_plugins.json") or {}
+installed_doc = load_json(os.path.join(claude_home, "plugins", "installed_plugins.json"),
+                          "installed_plugins.json") or {}
 user = load_json(os.path.join(claude_home, "settings.json"), "User-Settings") or {}
-if not isinstance(installed, dict):
+if not isinstance(installed_doc, dict):
     die("plugin-doctor: installed_plugins.json ist kein JSON-Objekt", 2)
 if not isinstance(user, dict):
     die("plugin-doctor: User-Settings sind kein JSON-Objekt", 2)
+
+# Die Datei hat die Form {"version": 2, "plugins": {"<name>@<market>": [...]}}.
+# Die Plugin-Namen stehen im Unterknoten "plugins", NICHT auf der obersten Ebene.
+# Wer hier gegen das Top-Level prueft, vergleicht gegen {"version","plugins"} und
+# haelt folgerichtig JEDES Plugin fuer nicht installiert — im Ersteinsatz waren
+# das 12 Fehlalarme bei sauberem Zustand. Ein Guard, der im Normalfall schreit,
+# wird weggeklickt und schuetzt danach nie wieder.
+#
+# Fehlt der Knoten, ist das Schema unerwartet: laut abbrechen statt still auf ein
+# flaches Format zurueckzufallen. Ein stiller Fallback wuerde genau diesen Fehler
+# erneut verbergen, wenn das Format sich wieder aendert.
+if "plugins" not in installed_doc:
+    die("plugin-doctor: installed_plugins.json ohne 'plugins'-Knoten — "
+        "unerwartetes Schema (gefunden: %s)" % ", ".join(sorted(installed_doc)) or "leer", 2)
+installed = installed_doc.get("plugins") or {}
+if not isinstance(installed, dict):
+    die("plugin-doctor: 'plugins' in installed_plugins.json ist kein JSON-Objekt", 2)
+
 user_plugins = user.get("enabledPlugins", {}) or {}
 
 findings = []

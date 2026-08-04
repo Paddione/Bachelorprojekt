@@ -38,11 +38,22 @@ setup() {
 }
 
 # Schreibt die drei Fixture-Dateien: Repo-Aktivierung, User-Aktivierung, Installation.
+#
+# WICHTIG — das Installations-Fixture muss das ECHTE Schema abbilden:
+#   {"version": 2, "plugins": {"<name>@<market>": [ {scope, installPath, ...} ]}}
+# Die urspruengliche Fassung dieser Datei schrieb eine flache Map ohne den
+# "plugins"-Knoten. Dieses Format existiert nirgends. Alle Tests waren gruen,
+# waehrend der Doctor gegen die echte Datei jedes einzelne Plugin fuer nicht
+# installiert hielt. Output-Verifikation schuetzt davor, Quelltext statt
+# Verhalten zu pruefen — nicht davor, dass die Fixture das Format der
+# Wirklichkeit verfehlt. Wer $3 anpasst, gleicht vorher mit
+# ~/.claude/plugins/installed_plugins.json ab.
 _fixture() {
-  local repo_enabled="$1" user_enabled="$2" installed="$3"
+  local repo_enabled="$1" user_enabled="$2" installed_plugins="$3"
   printf '{"enabledPlugins": %s}\n' "$repo_enabled" > "$REPO_SETTINGS"
   printf '{"enabledPlugins": %s}\n' "$user_enabled" > "$HOMEDIR/settings.json"
-  printf '%s\n' "$installed" > "$HOMEDIR/plugins/installed_plugins.json"
+  printf '{"version": 2, "plugins": %s}\n' "$installed_plugins" \
+    > "$HOMEDIR/plugins/installed_plugins.json"
 }
 
 @test "T002651: aktiviertes, nicht installiertes Plugin wird als Befund gemeldet" {
@@ -60,7 +71,7 @@ _fixture() {
   _fixture \
     '{"zeta-fixture-plugin@fixture-market": true}' \
     '{"zeta-fixture-plugin@fixture-market": false}' \
-    '{"zeta-fixture-plugin@fixture-market": {"version": "1.0.0"}}'
+    '{"zeta-fixture-plugin@fixture-market": [{"scope": "user", "installPath": "/tmp/fixture"}]}'
 
   run bash "$DOCTOR"
   [ "$status" -eq 1 ]
@@ -71,7 +82,7 @@ _fixture() {
   _fixture \
     '{"zeta-fixture-plugin@fixture-market": true}' \
     '{}' \
-    '{"zeta-fixture-plugin@fixture-market": {"version": "1.0.0"}}'
+    '{"zeta-fixture-plugin@fixture-market": [{"scope": "user", "installPath": "/tmp/fixture"}]}'
 
   run bash "$DOCTOR"
   [ "$status" -eq 1 ]
@@ -85,7 +96,7 @@ _fixture() {
   _fixture \
     '{}' \
     '{"zeta-fixture-plugin@fixture-market": true}' \
-    '{"zeta-fixture-plugin@fixture-market": {"version": "1.0.0"}}'
+    '{"zeta-fixture-plugin@fixture-market": [{"scope": "user", "installPath": "/tmp/fixture"}]}'
 
   run bash "$DOCTOR"
   [ "$status" -eq 0 ]
@@ -95,7 +106,7 @@ _fixture() {
   _fixture \
     '{"zeta-fixture-plugin@fixture-market": true, "andere@fixture-market": false}' \
     '{"zeta-fixture-plugin@fixture-market": true, "andere@fixture-market": false}' \
-    '{"zeta-fixture-plugin@fixture-market": {"version": "1.0.0"}}'
+    '{"zeta-fixture-plugin@fixture-market": [{"scope": "user", "installPath": "/tmp/fixture"}]}'
 
   run bash "$DOCTOR"
   [ "$status" -eq 0 ]
@@ -194,4 +205,39 @@ print('OK: %d keys' % len(d))
 "
   [ "$status" -eq 0 ] || { echo "$output"; return 1; }
   echo "$output" | grep -q '^OK:'
+}
+
+# ── Schema-Wachhund ───────────────────────────────────────────────────────────
+#
+# Der Ersteinsatz des Doctors meldete 12 von 12 aktivierten Plugins als "nicht
+# installiert", weil er gegen die oberste Ebene von installed_plugins.json prueft
+# statt gegen deren "plugins"-Knoten. Die Fixtures oben deckten das nicht auf: sie
+# schrieben ein flaches Format, das real nicht existiert. Diese beiden Tests
+# haengen deshalb am Schema selbst, nicht an einem erfundenen Abbild davon.
+
+@test "T002651: ein im echten Schema installiertes Plugin ist KEIN Befund" {
+  # Der Test, der den Schema-Bug gefangen haette: Plugin aktiviert (Repo + User)
+  # UND unter "plugins" eingetragen -> sauber. Vor dem Fix meldete der Doctor hier
+  # "nicht installiert", weil er 'zeta-...' gegen {"version","plugins"} verglich.
+  _fixture \
+    '{"zeta-fixture-plugin@fixture-market": true}' \
+    '{"zeta-fixture-plugin@fixture-market": true}' \
+    '{"zeta-fixture-plugin@fixture-market": [{"scope": "user", "installPath": "/tmp/fixture"}]}'
+
+  run bash "$DOCTOR"
+  [ "$status" -eq 0 ] || { echo "Fehlalarm bei sauberem Zustand:"; echo "$output"; return 1; }
+}
+
+@test "T002651: fehlender plugins-Knoten ist Exit 2, nicht stiller Fallback" {
+  # Aendert sich das Schema erneut, muss der Doctor laut werden. Ein stiller
+  # Rueckfall auf ein flaches Format wuerde exakt denselben Fehler wieder
+  # verbergen — jedes Plugin gaelte als nicht installiert, und das saehe aus wie
+  # ein Befund statt wie ein Defekt.
+  printf '{"enabledPlugins": {"zeta-fixture-plugin@fixture-market": true}}\n' > "$REPO_SETTINGS"
+  printf '{"enabledPlugins": {"zeta-fixture-plugin@fixture-market": true}}\n' > "$HOMEDIR/settings.json"
+  printf '{"version": 3, "entries": {}}\n' > "$HOMEDIR/plugins/installed_plugins.json"
+
+  run bash "$DOCTOR"
+  [ "$status" -eq 2 ] || { echo "erwartet Exit 2, war $status:"; echo "$output"; return 1; }
+  echo "$output" | grep -qi 'schema'
 }

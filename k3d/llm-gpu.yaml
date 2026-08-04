@@ -108,6 +108,18 @@ spec:
             - "8192"
             - "-np"
             - "4"
+            # T002661: -t MUSS zur CPU-Quota passen. Ohne das Flag waehlt
+            # llama.cpp nproc — im Container 8 (der Node hat 8 Kerne, cgroup
+            # maskiert nproc nicht), waehrend limits.cpu 2000m nur 2 Kerne
+            # erlaubt. Gemessen am 2026-08-04: 5003/9172 Perioden gedrosselt
+            # (54,5 %), throttled_usec 2028s gegen usage_usec 1181s — laenger
+            # gedrosselt als gerechnet. Alle Threads synchronisieren an jeder
+            # Layer-Barriere, ein gedrosselter haelt also den ganzen Batch bis
+            # zum Periodenende an: 10,7s fuer 13 Tokens.
+            # Wird limits.cpu geaendert, muss -t mitgezogen werden.
+            # Guard: tests/spec/llm-pipeline/bge-thread-quota.bats
+            - "-t"
+            - "2"
             - "--embeddings"
           env:
             - name: CUDA_VISIBLE_DEVICES
@@ -228,6 +240,13 @@ spec:
             - "8192"
             - "-np"
             - "4"
+            # T002661: analog zu bge-embed — -t an limits.cpu (2000m = 2 Kerne)
+            # gebunden. Hier war die Drosselung bisher nur latent (145/12354
+            # Perioden, 1,2 %), weil das Deployment kaum Last sieht; unter
+            # Rerank-Batches traefe es dasselbe Muster.
+            # Guard: tests/spec/llm-pipeline/bge-thread-quota.bats
+            - "-t"
+            - "2"
             - "--reranking"
           env:
             - name: CUDA_VISIBLE_DEVICES

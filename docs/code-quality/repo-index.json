@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 794,
+      "file_count": 795,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -451,6 +451,7 @@
         "tests/spec/lavish.bats",
         "tests/spec/llm-local-dev.bats",
         "tests/spec/llm-pipeline.bats",
+        "tests/spec/llm-pipeline/bge-thread-quota.bats",
         "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
         "tests/spec/llm-pipeline/gemma-thinking-budget.bats",
         "tests/spec/llm-pipeline/index-repo-embed-port.bats",

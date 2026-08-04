@@ -11,7 +11,7 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | --- | --- | --- | --- | --- | --- |
 | bachelorprojekt-db | PostgreSQL, Schema, Queries, Backup | sonnet | 🚫 unsupported | — | — |
 | bachelorprojekt-infra | Kubernetes, Kustomize, Deploy | opus | 🚫 unsupported | — | — |
-| bachelorprojekt-ops | Cluster-Operationen, LLM-Pipeline | sonnet | 🚫 unsupported | — | Bash, Read, Glob, Grep |
+| bachelorprojekt-ops | Cluster-Operationen, LLM-Pipeline | sonnet | 🚫 unsupported | — | — |
 | bachelorprojekt-security | SealedSecrets, Pocket ID, OIDC | opus | 🚫 unsupported | — | — |
 | bachelorprojekt-test | Tests, Factory, Autopilot | sonnet | 🚫 unsupported | — | — |
 | bachelorprojekt-website | Astro/Svelte, UI, Frontend | sonnet | 🚫 unsupported | — | — |

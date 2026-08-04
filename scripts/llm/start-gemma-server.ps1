@@ -99,6 +99,12 @@
 .PARAMETER NoMmproj
   Startet ohne Vision-/Audio-Tower. Spart ~200 MiB VRAM, macht :8091 aber zu
   einem reinen Textmodell (/props meldet dann vision:false, audio:false).
+.PARAMETER KvOffload
+  Default aus; der KV-Cache wandert in den Host-RAM, der VRAM-Sockel wird frei,
+  jeder Attention-Schritt erreicht den Cache ueber PCIe -- der Durchsatz sinkt,
+  der Kontext wird billiger. Fuer den Bedarf auf
+  scripts/llm/kv-budget.sh --no-kv-offload verweisen, statt die Formel ein
+  drittes Mal zu duplizieren.
 .EXAMPLE
   .\scripts\llm\start-gemma-server.ps1
   # Factory-Profil: 65536 ctx, 1 Slot, maximaler Praefix-Reuse
@@ -117,6 +123,7 @@ param(
   [ValidateSet("q4_0", "q8_0", "f16")]
   [string]$KvType = "q4_0",
   [switch]$NoMmproj,
+  [switch]$KvOffload,
   [switch]$NoWait
 )
 
@@ -167,7 +174,8 @@ foreach ($c in $conns) {
 $freeMiB = [int](& nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits).Trim()
 $slotWord = if ($Slots -gt 1) { "$Slots slots, -kvu (gemeinsamer Pool)" } else { "1 slot" }
 $mmWord = if ($NoMmproj) { "kein mmproj (nur Text)" } else { "mmproj F16 (Vision+Audio)" }
-Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port ($Ctx ctx, $KvType KV, $slotWord, n-max $NMax, $mmWord) ..."
+$kvWord = if ($KvOffload) { "KV im RAM" } else { "KV im VRAM" }
+Write-Output "Starting Gemma 4 12B QAT + MTP head on port $Port ($Ctx ctx, $KvType KV, $kvWord, $slotWord, n-max $NMax, $mmWord) ..."
 Write-Output "  Model:     $Model"
 Write-Output "  MTP head:  $MtpHead"
 Write-Output "  Free VRAM: $freeMiB MiB"
@@ -181,7 +189,13 @@ if ($KvType -eq "q4_0") { $perTokMiB = 0.0072 }
 if ($KvType -eq "f16")  { $perTokMiB = 0.0286 }
 $baseMiB = 8000
 if (-not $NoMmproj) { $baseMiB += 200 }
-$needMiB = $baseMiB + [int]($Ctx * $perTokMiB)
+$needMiB = $baseMiB
+if (-not $KvOffload) {
+  $needMiB += [int]($Ctx * $perTokMiB)
+}
+if ($KvOffload) {
+  Write-Output "  KV-Offload: KV-Cache liegt im Host-RAM (~$([int]($Ctx * $perTokMiB)) MiB), nicht im VRAM."
+}
 if ($freeMiB -lt $needMiB) {
   Write-Output "  WARNUNG: unter $needMiB MiB frei. Die Gewichte allein brauchen ~7.4 GB,"
   Write-Output "           dazu der MTP-Head (~0.25 GB) und $Ctx Tokens KV."
@@ -266,6 +280,8 @@ $Params = @(
 # Nur bei echter Parallelitaet. Mit einem Slot ist -kvu wirkungslos, macht die
 # Kommandozeile aber schwerer mit dem Default-Profil vergleichbar.
 if ($Slots -gt 1) { $Params += "-kvu" }
+
+if ($KvOffload) { $Params += "-nkvo" }
 
 # Fail-loud statt fail-silent: ein fehlender Tower wuerde den Server als reines
 # Textmodell hochbringen, und das faellt erst auf, wenn ein Client ein Bild

@@ -104,6 +104,48 @@ ohne BOM als CP1252, ein Em-Dash wird dann zu Mojibake. BATS-Regexes duerfen des
 `$` ankern — `\r` zaehlt zu `[[:space:]]`, also `[[:space:]]*$` verwenden. Beides gehoert in den
 Plan, nicht in die Erinnerung des Implementierers.
 
+## Ergebnis der Kapabilitaets-Probe
+
+Durchgefuehrt 2026-08-04 auf dem GPU-Host (WSL2, RTX 5070 Ti, 16 GiB VRAM). Der im Plan
+genannte Bonsai-Build (`llama-bonsai-cuda13.3`) ist auf dem Host nicht mehr vorhanden; die Probe
+wurde mit dem lokalen Upstream-Build `llama.cpp` (Commit 22dc605) und dem Modell
+`gemma-4-12b-it-Q4_K_M.gguf` gefahren. Relevant ist die llama.cpp-Core-Faehigkeit
+(SWA-State-Serialisierung), nicht die Build-Variante. Probe-Konfiguration: `-c 4096`,
+`--slot-save-path /tmp/kv-probe-slots`, `-np 1`, `--jinja`, CPU-only (VRAM war durch den
+Unsloth-Studio-Server belegt); Testserver auf Port 8094, Produktivserver :8091 unberuehrt.
+
+Rohausgabe, Durchgang 1 (ohne `--swa-full`):
+
+    POST /slots/0?action=save    -> 200, {"n_saved":523,"n_written":179961312}
+    POST /slots/0?action=restore -> 200, {"n_restored":523,"n_read":179961312}
+    Zweiter Completion-Call mit identischem Prompt:
+      usage.prompt_tokens_details.cached_tokens = 0
+      prompt eval time = 3384 ms / 374 tokens   (voller Re-Prefill)
+
+Rohausgabe, Durchgang 2 (mit `--swa-full`):
+
+    POST /slots/0?action=save    -> 200, {"n_saved":523,"n_written":179961312}
+    POST /slots/0?action=restore -> 200, {"n_restored":523,"n_read":179961312}
+    Zweiter Completion-Call mit identischem Prompt:
+      usage.prompt_tokens_details.cached_tokens = 373 von 374
+      prompt eval time = 261 ms / 1 token       (kein Re-Prefill)
+
+**Eingetretener Fall: Zeile 2 der Gate-Tabelle.** Save/Restore laufen zwar in beiden Durchgaengen
+fehlerfrei durch (HTTP 200, n_saved == n_restored), aber nur mit `--swa-full` wird der
+wiederhergestellte KV-Zustand beim Folge-Call als Cache-Treffer genutzt: ohne `--swa-full`
+re-evaluiert der Server den kompletten Prompt (cached_tokens=0), mit `--swa-full` bleiben 373 von
+374 Tokens gecacht. Das Ticket-Akzeptanzkriterium 2 ("Kontext ohne Re-Prefill vorhanden") ist
+also NUR mit `--swa-full` erfuellt. Ursache ist die in llama.cpp dokumentierte Einschraenkung der
+Sequenz-State-Serialisierung bei SWA-Modellen (Ringpuffer vs. voller Cache).
+
+**Konsequenz fuer Task 4:** `-SlotSavePath` wird zusammen mit `-SwaFull` implementiert; beide
+Schalter sind gekoppelt — `-SlotSavePath` ohne `-SwaFull` bricht mit erklaerender Meldung ab
+(fail-loud statt eines Servers, der Save-Aufrufe erst zur Laufzeit ins Leere laufen laesst).
+
+**Hinweis:** Die Laufzeit-Akzeptanz (Akzeptanzkriterium 1: VRAM-Differenz ~1,9 GB) und die
+Regression (Akzeptanzkriterium 3) bleiben wie im Plan vorgesehen der manuellen Verifikation in
+Task 5 vorbehalten.
+
 ## Abgrenzung
 
 - Keine Aenderung an `pipeline_slot` oder der Slot-Kopplung (eigenes Kind-Ticket von T002370).

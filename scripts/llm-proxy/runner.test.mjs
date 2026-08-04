@@ -328,3 +328,37 @@ test('T002579: ein Loadout OHNE die neuen Felder behaelt seine argv unveraendert
   assert.equal(argv.includes('--top-k'), false)
   assert.equal(argv.includes('--chat-template-kwargs'), false)
 })
+
+// ---------------------------------------------------------------------------
+// T002633 — Spekulatives Dekodieren. Geprueft wird das ERGEBNIS (argv), nicht
+// die Implementierung. Der Regressionsschutz ist der erste Test: ohne
+// '--spec-type' laedt llama.cpp b10225 das Draft-Modell und benutzt es nie
+// (Default 'none'), belegt also VRAM ohne Wirkung.
+// ---------------------------------------------------------------------------
+
+const specBase = (speculative) => ({ ...base, speculative })
+
+test('specType landet als --spec-type in argv', () => {
+  const argv = buildServerArgv(specBase({ specType: 'ngram-cache' }), MODEL, defaults)
+  const i = argv.indexOf('--spec-type')
+  assert.notEqual(i, -1, '--spec-type fehlt — Draft-Modell waere wirkungslos')
+  assert.equal(argv[i + 1], 'ngram-cache')
+})
+
+test('draftNMax landet als --spec-draft-n-max in argv', () => {
+  const argv = buildServerArgv(specBase({ specType: 'draft-mtp', draftNMax: 4 }), MODEL, defaults)
+  const i = argv.indexOf('--spec-draft-n-max')
+  assert.notEqual(i, -1, '--spec-draft-n-max fehlt — Build-Default 3 statt gemessener 4')
+  assert.equal(argv[i + 1], '4')
+})
+
+test('ngram-Variante kommt OHNE --spec-draft-model aus (kein VRAM fuer einen Drafter)', () => {
+  const argv = buildServerArgv(specBase({ specType: 'ngram-simple' }), MODEL, defaults)
+  assert.ok(argv.includes('--spec-type'), 'Positiv-Anker: --spec-type muss gesetzt sein')
+  assert.equal(argv.includes('--spec-draft-model'), false)
+})
+
+test('ohne speculative-Felder erscheint kein einziges spec-Flag', () => {
+  const argv = buildServerArgv(specBase({ draftHfRepo: null, draftNgl: null }), MODEL, defaults)
+  assert.equal(argv.filter((x) => String(x).startsWith('--spec-')).length, 0)
+})

@@ -97,18 +97,30 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
   CHANGED_BATS=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep '\.bats$' || true)
   [[ -z "$CHANGED_BATS" ]] && continue
 
-  CHANGED_INDEX=$(git diff --name-only "$BASE..$LOCAL_SHA" 2>/dev/null | grep 'repo-index\.json\|test-inventory\.json' || true)
-  if [[ -z "$CHANGED_INDEX" ]]; then
-    # Only warn if freshness:regenerate would actually produce a diff
+  # [T002672] Jedes generierte Artefakt EINZELN pruefen. Vorher lief das ueber
+  # einen ODER-grep ueber beide Dateinamen: lag eines im Push, galt die Lage als
+  # in Ordnung und der Warnblock wurde uebersprungen — auch wenn das andere
+  # fehlte (real bei PR #3794, CI fiel darueber). Die Pruefung selbst liegt in
+  # einem eigenen Skript, weil sie dort gegen ein temporaeres Git-Repo testbar
+  # ist; Guard: tests/spec/ci-cd/pre-push-artifact-guard.bats
+  MISSING_ARTIFACTS=$(bash "$repo_root/scripts/hooks/check-freshness-artifacts.sh" "$BASE" "$LOCAL_SHA" 2>/dev/null || true)
+  if [[ -n "$MISSING_ARTIFACTS" ]]; then
+    # Only warn if freshness:regenerate would actually produce a diff — fehlt ein
+    # Artefakt im Push, ist es womoeglich schlicht schon aktuell.
     _freshness_diff=""
     if command -v task &>/dev/null; then
-      _freshness_diff=$(cd "$repo_root" && task freshness:regenerate --quiet 2>/dev/null && git diff --stat -- docs/code-quality/repo-index.json website/src/data/test-inventory.json 2>/dev/null || true)
+      # Wortsplitting auf $MISSING_ARTIFACTS ist gewollt: mehrere Pfade.
+      # shellcheck disable=SC2086
+      _freshness_diff=$(cd "$repo_root" && task freshness:regenerate --quiet 2>/dev/null && git diff --stat -- $MISSING_ARTIFACTS 2>/dev/null || true)
     fi
     if [[ -n "$_freshness_diff" ]]; then
-      warn "BATS-Dateien geändert, aber repo-index.json/test-inventory.json fehlen im Push."
+      warn "BATS-Dateien geändert, aber diese generierten Artefakte fehlen im Push:"
+      while IFS= read -r _artifact; do
+        [[ -n "$_artifact" ]] && warn "  - $_artifact"
+      done <<<"$MISSING_ARTIFACTS"
       warn "CI schlägt möglicherweise fehl. Fix:"
       warn "  task freshness:regenerate"
-      warn "  git add docs/code-quality/repo-index.json website/src/data/test-inventory.json"
+      warn "  git add $(printf '%s ' $MISSING_ARTIFACTS)"
       warn "  git commit --amend --no-edit && git push --force-with-lease"
     fi
   fi

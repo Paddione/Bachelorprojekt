@@ -2196,6 +2196,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/pre-push-artifact-guard",
+    "file": "tests/spec/ci-cd/pre-push-artifact-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/skip-ci-marker-guard",
     "file": "tests/spec/ci-cd/skip-ci-marker-guard.bats",
     "category": "ci-cd",

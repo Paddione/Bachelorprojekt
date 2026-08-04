@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.248.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.0...website-v1.248.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **scripts:** llm-proxy Health-Probe fuehrt das Credential des Backends [T002638] ([#3775](https://github.com/Paddione/Bachelorprojekt/issues/3775)) ([f8f6cab](https://github.com/Paddione/Bachelorprojekt/commit/f8f6cab5ece1adda9530fba27055b3b3cf0dca7c))
+
 ## [1.248.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.247.0...website-v1.248.0) (2026-08-04)
 
 

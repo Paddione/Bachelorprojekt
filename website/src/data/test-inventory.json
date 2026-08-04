@@ -1932,6 +1932,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-behavior/no-tools-allowlist",
+    "file": "tests/spec/agent-behavior/no-tools-allowlist.bats",
+    "category": "agent-behavior",
+    "kind": "shell"
+  },
+  {
     "id": "agent-collision-false-positives",
     "file": "tests/spec/agent-collision-false-positives.bats",
     "category": "agent-collision-false-positives",
@@ -1976,6 +1982,12 @@
   {
     "id": "agent-skills",
     "file": "tests/spec/agent-skills.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/plugin-activation",
+    "file": "tests/spec/agent-skills/plugin-activation.bats",
     "category": "agent-skills",
     "kind": "shell"
   },

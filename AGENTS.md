@@ -2,31 +2,33 @@
 
 > **Goal:** Keep this file under 160 lines of must-know content. Reference details live in CLAUDE.md and the linked sections below — read them on-demand, not upfront.
 
-Loaded via `.opencode/opencode.jsonc` → `"instructions": ["AGENTS.md"]`.
+Auto-loaded by opencode from the repo root; referenced by `.opencode/prompts/orchestrator.md`.
 
 ## Agent Routing (opencode local LLM)
 
-opencode uses `agent-models.jsonc` — NOT `.agents/agents/`. Domain subagents below are Claude Code only.
+opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/agents/`. The `.claude/agents/*.md` domain agents below are Claude Code only.
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | DeepSeek V4 Flash (OpenCode Go), `mode: primary`, `write_capable: true` | Primary orchestrator — dispatches `gemma26-1`/`gemma26-2`/`gemma9-1`/`gemma9-2` sequentially |
-| `gemma26-1` | Gemma4 26B A4B QAT (UD-Q4_K_XL, ~99840 ctx, port 8091, 3 Slots via -kvu) | Local bulk work (slot 1 of 3). `write_capable: false` |
-| `gemma26-2` | same model, same server, slot 2 of 3 | Same as gemma26-1 — dispatch sequentially |
-| `gemma9-1` | Gemma2 9B (Q4_K_M, ~8192 ctx, port 8092, 2 Slots via -kvu) | Small atomic partials (slot 1 of 2). `write_capable: false` |
-| `gemma9-2` | same model, same server, slot 2 of 2 | Same as gemma9-1 — dispatch sequentially. Small partials only |
-| `gemma26-primary` | same model, `mode: primary` (Tab-selectable, not summonable via `task`) | Slot 3 of 3, ~99840 ctx shared pool via -kvu. `write_capable: false` |
-| `deepseek-helper` | DeepSeek-V3 (direct API, 128K ctx), `write_capable: true` | Escalation: local agent stuck or context exhausted |
-| `deepseek-pro` | DeepSeek-R1 (direct API, 128K ctx, max reasoning), `write_capable: true` | Deep analysis, complex debugging, hard refactors |
-| `deepseek-flash` | DeepSeek-V3 (direct API, 200K ctx), `write_capable: true` | Parallel throughput, up to 3 at a time |
-| `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API), `write_capable: true` | Same model as `deepseek-pro`, bypassing the OpenCode Go gateway when that gateway is the problem |
-| `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API), `write_capable: true` | Same model as `deepseek-flash`, bypassing the OpenCode Go gateway when that gateway is the problem |
-| `gemma26-vision` | Gemma4 26B (97840 ctx, `mode: primary`, `write_capable: false`) | Max context, no subagent dispatch. Vision-ready. |
-| `explore` | built-in | Read-only codebase exploration |
-| `general` | built-in | Read-only general research |
+| `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches `gemma26-1/2` + `gemma9-1/2` sequentially (llm-proxy serializes at max_inflight=1) |
+| `gemma26-1` | `llamacpp-local/gptoss-context` (gpt-oss-20b Q8_0, :8098) | Local bulk work. `write=deny`, `edit=allow` |
+| `gemma26-2` | same model/server | Same as gemma26-1 — separate name keeps a distinct prefix cache |
+| `gemma9-1` | `llamacpp-local/gptoss-context` | Small atomic partials (slot 1 of 2) |
+| `gemma9-2` | same | Same, slot 2 of 2 — preserve prefix cache |
+| `gemma26-primary` | `llamacpp-local/gptoss-context`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task` |
+| `gemma26-vision` | `llamacpp-local/gptoss-context`, `mode: primary` | Max context, no subagent dispatch. **Not actually vision-capable** since the switch off Gemma |
+| `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted |
+| `deepseek-pro` | `opencode-go/deepseek-v4-pro`, write-capable | Deep analysis, complex debugging, hard refactors |
+| `deepseek-flash` | `opencode-go/deepseek-v4-flash`, write-capable | Parallel throughput, up to 3 at a time |
+| `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API), write-capable | Same model as `deepseek-pro`, bypassing the OpenCode Go gateway when that gateway is the problem |
+| `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Same model as `deepseek-flash`, bypassing the OpenCode Go gateway when that gateway is the problem |
+| `explore` / `general` | built-in | Read-only exploration / research |
 
-Dispatch: `delegate(prompt, agent)` for read-only. `task` for write-capable — per registry that is `orchestrator`, `deepseek-helper`, `deepseek-pro`, and `deepseek-flash`, **not** the gemma agents.
-Agent definitions live in `.opencode/agent-models.jsonc`; the `write_capable` flags above are SSOT in `docs/agent-guide/registry/agents.yaml` (K5/T002304) → sync via `bash scripts/opencode-sync-agents.sh`.
+Dispatch:
+- `task` for `gemma26-1/2`, `gemma9-1/2` and the deepseek trio — the `orchestrator` permission block lists exactly those names, no wildcards (T002298).
+- Gemma agents `edit` but cannot `write` new files (`write=deny`) — the orchestrator creates new files from their output. Read-only work uses `delegate` (explore/general).
+- SSOT is `.opencode/agent-models.jsonc`. `docs/agent-guide/registry/agents.yaml` mirrors it but LAGS the config — trust the jsonc. Global config sync: `bash scripts/opencode-sync-agents.sh`.
+- **The `gemma*` names are historical (T002633).** All six now resolve to the same backend, `llamacpp-local/gptoss-context`. The Gemma loadouts (`gemma-factory`, `gemma-multiagent`, `gemma26-factory`, `gemma9-factory`) were retired on 2026-08-03 because their GGUF files no longer exist on this host; `2026-08-03-retire-stale-model-ids.sql` disables their backends with `enabled=false` rather than deleting them, so restoring a weight file plus `enabled=true` is enough to bring one back. The agent names were kept so existing prompts and the `orchestrator` permission block (which lists them explicitly, no wildcards — T002298) keep working. Distinct names still buy distinct prefix caches, which is why they were not collapsed into one.
 
 ## Core Commands
 
@@ -39,16 +41,16 @@ task workspace:validate                          # Kustomize dry-run
 
 ## Workflow Rules
 
-- Branches: `feature/*`, `fix/*`, `chore/*`, `docs/*`. All changes via PRs → squash-merge. No direct pushes to `main`. (CLAUDE.md Rule 7 lists only the first three; `scripts/preflight-pr-scope.sh` enforces worktrees for `feature/*` and `fix/*` and forbids neither list — the divergence is open, see T002305 design.md.)
+- Branches: `feature/*`, `fix/*`, `chore/*`, `docs/*`. All changes via PRs → squash-merge. No direct pushes to `main`. `scripts/preflight-pr-scope.sh` enforces worktrees for `feature/*`/`fix/*`.
+- opencode dev flow: `opencode-flow-plan` → `opencode-flow-execute`; chores via `opencode-flow-chore`. The Claude Code `dev-flow-*` skills are **denied** in opencode — use the opencode-native skills.
 - **Pipeline-Prinzip:** Planning-Agents (opencode-flow-plan) legen Worktree + Branch sofort an und enqueuen jedes Partial-Plan einzeln in die Factory, sobald es geschrieben ist. Die Factory beginnt mit der Ausführung, während der Planner das nächste Partial schreibt. Siehe `opencode-flow-plan` SKILL.md Phase B/C.
-- `dev-flow-plan` (brainstorm→spec→partial-plan→stage→enqueue→factory-executes→next-partial) dann `dev-flow-execute` (PR→deploy).
-- CI gate: `task test:changed` + `task freshness:check` + `task workspace:validate` — **vor** PR-Create lokal laufen lassen, nicht erst in CI.
-- **Merge = closure** (T001092): ticket closes on green auto-merge. The prod deploy is decoupled from that — it does **not** change the ticket status.
+- CI gate — **vor** PR-Create lokal laufen lassen: `task test:changed` + `task freshness:check` + `task workspace:validate`.
+- **Merge = closure** (T001092): ticket closes on green auto-merge. Prod deploy is decoupled — it does **not** change the ticket status.
 
 ## Architecture (30-second view)
 
 - **Fleet cluster** (single k3s): mentolder → ns `workspace`, korczewski → ns `workspace-korczewski`. Context: `fleet`.
-- **Pull-based deploy via FluxCD** (T002083): `.github/workflows/render-fleet-artifact.yml` renders the OCI artifact `ghcr.io/paddione/fleet-manifests` on every `main` push; Flux reconciles it on the fleet cluster (`flux/clusters/fleet/`). `task workspace:deploy` is break-glass fallback only.
+- **Pull-based deploy via FluxCD** (T002083): `.github/workflows/render-fleet-artifact.yml` renders the OCI artifact `ghcr.io/paddione/fleet-manifests` on every `main` push; Flux reconciles it (`flux/clusters/fleet/`). `task workspace:deploy` is break-glass fallback only.
 - k3d/ = base Kustomize. Prod overlays: `prod-fleet/mentolder/`, `prod-fleet/korczewski/`.
 - Centralized domains: `k3d/configmap-domains.yaml` — never hardcode hostnames.
 
@@ -60,6 +62,7 @@ task workspace:validate                          # Kustomize dry-run
 - OpenSpec archival ONLY in worktree — main-checkout commits leave orphaned files.
 - Website/Brett/Docs/etc. images use `:latest` intentionally — do not "fix" to digests.
 - Pre-commit blocks main-checkout when another session holds the lock. Use worktrees.
+- `website/` is pnpm-only (its package-lock.json was deleted, T001224); root and `brett/` use npm. Never `npm install` inside `website/`.
 
 ## Agent Coordination
 
@@ -79,8 +82,7 @@ bash scripts/agent-escalate.sh --agent "bachelorprojekt-<role>" --reason "<what>
 
 ## Code Discovery
 
-Use `codebase-memory-mcp` tools first (before grep/glob):
-- `search_graph(name_pattern=…)`, `trace_path(function_name=…)`, `get_code_snippet(qualified_name=…)`, `query_graph(query=…)`, `get_architecture(aspects=…)`, `search_code(pattern=…)`
+Use `codebase-memory-mcp` tools first (before grep/glob): `search_graph`, `trace_path`, `get_code_snippet`, `query_graph`, `get_architecture`, `search_code`.
 
 ## OpenSpec conventions
 
@@ -130,9 +132,8 @@ Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials
 <details>
 <summary>Skill Dispatch Protocol (read when routing skills to agents)</summary>
 
-- Skill HAS `agent:` → dispatch via `background-agents.ts` (read-only → `delegate`, write-capable → `task`).
-- Skill has NO `agent:` → loaded inline in main session.
-- Skill → agent map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`→website.
+- Claude Code only: a skill with `agent:` dispatches via `background-agents.ts` (read-only → `delegate`, write-capable → `task`); without `agent:` it loads inline. Skill → agent map: `dev-flow-e2e`→test, `incident-response`→ops, `infra-ops`→infra, `database-specialist`→db, `security-specialist`→security, `website-specialist`→website.
+- opencode: the `dev-flow-*` and domain skills are **denied** in `.opencode/opencode.jsonc`. Use the opencode-native skills instead: `opencode-flow-plan`, `opencode-flow-execute`, `opencode-flow-chore`, `openspec-*`, `git-workflow`.
 </details>
 
 <details>
@@ -143,17 +144,17 @@ Registry split: `mcp.yaml` owns *reachability* (transport, endpoint, credentials
 - `task freshness:check` — generated artifacts must be committed.
 - `task test:code-quality` — file-size caps, import-cycle detection, hardcoded-hostname scan.
 - Brett: `npm run typecheck --prefix brett && npm test --prefix brett && npm run build --prefix brett`
-- Website: `npm --prefix website run test:unit` (vitest)
+- Website: `(cd website && pnpm test:unit)` (vitest)
 - PR titles: Conventional Commits with `[T000XXX]` tag (advisory only, not blocking).
 </details>
 
 <details>
-<summary>Health Baseline Updates (read when updating goals.md)</summary>
+<summary>Health Baseline Updates (read when updating .claude/lib/goals.md)</summary>
 
 - `bash scripts/health-goals-check.sh` measures ~40 goals (G-* IDs).
 - Never renumber G-RH01–G-RH07.
 - Ticket creation is NOT automatic — use `--suggest-tickets` flag explicitly.
-- See `goals.md` for full baseline. Convention: redaktionell, no Feature-Ticket needed.
+- Full baseline lives in `.claude/lib/goals.md`. Convention: redaktionell, no Feature-Ticket needed.
 </details>
 
 <details>

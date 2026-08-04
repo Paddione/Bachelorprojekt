@@ -8,6 +8,9 @@ includes:
   llm:
     taskfile: ./Taskfile.llm.yml
     dir: .
+  finetune:
+    taskfile: ./Taskfile.finetune.yml
+    dir: .
   # Base-vs-Tuned regression gate for Unsloth finetunes (T002606).
   # See Taskfile.finetune-eval.yml.
   finetune-eval:

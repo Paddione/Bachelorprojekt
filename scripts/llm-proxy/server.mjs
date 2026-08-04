@@ -3,7 +3,7 @@ import http from 'node:http';
 import { Readable } from 'node:stream';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
-import { applyFixups, sanitizeToolSchemaPatterns } from './fixups.mjs';
+import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems } from './fixups.mjs';
 import { stripTurnMarkers } from './strip-markers.mjs';
 import { readFileSync, existsSync } from 'node:fs';
 import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict } from './loadouts.mjs';
@@ -143,7 +143,17 @@ async function proxyV1(req, res, subpath) {
   // llama.cpp-Backends (T002112). Ein Korrektheits-Fix, den man erst in
   // llm_proxy_backends.fixups aktivieren muss, ist genau dann aus, wenn er
   // gebraucht wird. Ohne betroffenes Pattern ist der Aufruf ein No-op.
-  const sanitized = sanitizeToolSchemaPatterns(body);
+  // fillMissingArrayItems ebenfalls UNBEDINGT, aus demselben Grund (T002633):
+  // ein Tool-Schema mit `type: "array"` ohne `items` laesst das Chat-Template
+  // von gpt-oss-20b mit HTTP 500 abbrechen ("Function is not a bool value"),
+  // weil Jinja dann die gebundene Dict-Methode `.items` statt eines Wertes
+  // liest. opencode sendet genau diese Form, also scheiterte JEDER Tool-Aufruf
+  // gegen gptoss-context, waehrend reine Chat-Completions liefen. Als benannter
+  // Fixup waere er wirkungslos gewesen: 2026-08-03-llm-proxy-gptoss-devstral.sql
+  // legt llamacpp-gptoss mit fixups='[]' an. Ohne betroffenes Schema ist der
+  // Aufruf ein No-op; er bleibt zusaetzlich in FIXUPS registriert, damit eine
+  // bestehende DB-Zeile, die ihn listet, nicht ins Leere zeigt.
+  const sanitized = fillMissingArrayItems(sanitizeToolSchemaPatterns(body));
   const budgetedBody = applyFixups(backend.fixups, await applyContextBudget(backend, sanitized));
   if (substituted) console.log(`[route] ${body.model} → ${backend.name}:${servedModel}`);
 

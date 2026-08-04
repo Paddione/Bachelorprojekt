@@ -10,25 +10,26 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches `gemma26-1/2` + `gemma9-1/2` sequentially (llm-proxy serializes at max_inflight=1) |
-| `gemma26-1` | `llamacpp-local/gptoss-context` (gpt-oss-20b Q8_0, :8098) | Local bulk work. `write=deny`, `edit=allow` |
-| `gemma26-2` | same model/server | Same as gemma26-1 — separate name keeps a distinct prefix cache |
-| `gemma9-1` | `llamacpp-local/gptoss-context` | Small atomic partials (slot 1 of 2) |
-| `gemma9-2` | same | Same, slot 2 of 2 — preserve prefix cache |
+| `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches the local family subagents (`gptoss`/`devstral`/`gemma`/`qwen`) sequentially (llm-proxy serializes at max_inflight=1) |
+| `gptoss` | `llamacpp-local/gptoss-context` (gpt-oss-20b Q8_0, :8098) | Local bulk work, gpt-oss family. `write=deny`, `edit=allow` |
+| `devstral` | `llamacpp-local/devstral-quality` (Devstral-Small-2 24B, :8099) | Local work, devstral family |
+| `gemma` | `llamacpp-local/gemma4` (Gemma 4 12B Q4_K_M, :8090) | Local work, gemma family |
+| `qwen` | `llamacpp-local/qwen3-coder-30b` (Qwen3-Coder-30B, :8094) | Local work, qwen family |
 | `gemma26-primary` | `llamacpp-local/gptoss-context`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task` |
 | `gemma26-vision` | `llamacpp-local/gptoss-context`, `mode: primary` | Max context, no subagent dispatch. **Not actually vision-capable** since the switch off Gemma |
+| `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries |
 | `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted |
-| `deepseek-pro` | `opencode-go/deepseek-v4-pro`, write-capable | Deep analysis, complex debugging, hard refactors |
-| `deepseek-flash` | `opencode-go/deepseek-v4-flash`, write-capable | Parallel throughput, up to 3 at a time |
-| `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API), write-capable | Same model as `deepseek-pro`, bypassing the OpenCode Go gateway when that gateway is the problem |
-| `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Same model as `deepseek-flash`, bypassing the OpenCode Go gateway when that gateway is the problem |
+| `deepseek-pro` | `opencode-go/deepseek-v4-pro`, `mode: all`, write-capable | Deep analysis, complex debugging, hard refactors; tab-selectable AND task-dispatchable |
+| `deepseek-flash` | `opencode-go/deepseek-v4-flash`, `mode: all`, write-capable | Parallel throughput, up to 3 at a time; tab-selectable AND task-dispatchable |
+| `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API), `mode: all`, write-capable | Same model as `deepseek-pro`, bypassing the OpenCode Go gateway when that gateway is the problem |
+| `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API), `mode: all`, write-capable | Same model as `deepseek-flash`, bypassing the OpenCode Go gateway when that gateway is the problem |
 | `explore` / `general` | built-in | Read-only exploration / research |
 
 Dispatch:
-- `task` for `gemma26-1/2`, `gemma9-1/2` and the deepseek trio — the `orchestrator` permission block lists exactly those names, no wildcards (T002298).
-- Gemma agents `edit` but cannot `write` new files (`write=deny`) — the orchestrator creates new files from their output. Read-only work uses `delegate` (explore/general).
+- `task` for the local family subagents (`gptoss`, `devstral`, `gemma`, `qwen`) and the deepseek agents — the `orchestrator` permission block lists exactly those names, no wildcards (T002298).
+- Local family agents `edit` but cannot `write` new files (`write=deny`) — the orchestrator creates new files from their output. Read-only work uses `delegate` (explore/general).
 - SSOT is `.opencode/agent-models.jsonc`. `docs/agent-guide/registry/agents.yaml` mirrors it but LAGS the config — trust the jsonc. Global config sync: `bash scripts/opencode-sync-agents.sh`.
-- **The `gemma*` names are historical (T002633).** All six now resolve to the same backend, `llamacpp-local/gptoss-context`. The Gemma loadouts (`gemma-factory`, `gemma-multiagent`, `gemma26-factory`, `gemma9-factory`) were retired on 2026-08-03 because their GGUF files no longer exist on this host; `2026-08-03-retire-stale-model-ids.sql` disables their backends with `enabled=false` rather than deleting them, so restoring a weight file plus `enabled=true` is enough to bring one back. The agent names were kept so existing prompts and the `orchestrator` permission block (which lists them explicitly, no wildcards — T002298) keep working. Distinct names still buy distinct prefix caches, which is why they were not collapsed into one.
+- **Local subagents are named by model FAMILY since 2026-08-04** (`gptoss`/`devstral`/`gemma`/`qwen`), each serving its own loadout through the llm-proxy. The old `gemma26-1/2`, `gemma9-1/2` names all pointed at gptoss-context — the name lied about the model. The four chat loadouts share `exclusiveGroup "chat-gpu"`: only one runs at a time. The retired Gemma loadouts (`gemma-factory`, `gemma-multiagent`, `gemma26-factory`, `gemma9-factory`) are still in loadouts.json with `fit.enabled=true` but their GGUFs are gone; `2026-08-03-retire-stale-model-ids.sql` disables their backends with `enabled=false`. `gemma26-primary`/`gemma26-vision` keep their historical names and run gptoss-context.
 
 ## Core Commands
 

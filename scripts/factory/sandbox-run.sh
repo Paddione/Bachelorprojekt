@@ -46,7 +46,18 @@ resolve_mode() {
 egress_allowlist() {
   local prod_domain="${PROD_DOMAIN:-}"
   [[ -n "$prod_domain" ]] || prod_domain="$(awk -F'"' '/^[[:space:]]*PROD_DOMAIN:/ {print $2; exit}' "${REPO}/k3d/configmap-domains.yaml")"
-  printf '%s\n' api.anthropic.com registry.npmjs.org github.com codeload.github.com "${prod_domain}" "staging.${prod_domain}"
+  # Modell-Endpunkte der Subagenten: opencode.ai (OpenCode-Go-Gateway) und
+  # api.deepseek.com (direkte DeepSeek-API) — ohne sie wuerde ein sandboxed
+  # Agent beim Modell-Call still gedroppt.
+  printf '%s\n' \
+    api.anthropic.com \
+    opencode.ai \
+    api.deepseek.com \
+    registry.npmjs.org \
+    github.com \
+    codeload.github.com \
+    "${prod_domain}" \
+    "staging.${prod_domain}"
 }
 
 ensure_network() {
@@ -72,9 +83,13 @@ enforce_egress() {
       [[ -n "$host" ]] || continue
       echo "iptables -I OUTPUT 1 -d ${host} -j ACCEPT;"
     done)"'
+    # DNS: EINE Regel pro Resolver-IP. iptables wertet bei mehreren -d in einer
+    # Regel nur das LETZTE aus — vorher wurden 1.1.1.1/8.8.8.8 still gedroppt.
+    for ns in 1.1.1.1 8.8.8.8 8.8.4.4; do
+      iptables -I OUTPUT 1 -d "$ns" -p udp --dport 53 -j ACCEPT
+      iptables -I OUTPUT 1 -d "$ns" -p tcp --dport 53 -j ACCEPT
+    done
     iptables -I OUTPUT 1 -d 127.0.0.1 -j ACCEPT
-    iptables -I OUTPUT 1 -d 1.1.1.1 -d 8.8.8.8 -d 8.8.4.4 -p udp --dport 53 -j ACCEPT
-    iptables -I OUTPUT 1 -d 1.1.1.1 -d 8.8.8.8 -d 8.8.4.4 -p tcp --dport 53 -j ACCEPT
     echo "egress rules applied to ${net}"
   ' 2>/dev/null || echo "sandbox-run: egress enforcement failed (non-fatal)" >&2
 }

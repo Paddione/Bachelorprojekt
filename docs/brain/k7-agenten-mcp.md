@@ -33,8 +33,8 @@ EBENE 1 — SSOT-REGISTRY (versioniert, im Repo)
 │  docs/agent-guide/registry/mcp.yaml        docs/agent-guide/registry/        │
 │  (T002300 — 13 MCP-Clients)                agents.yaml (6 Rollen + Runtimes) │
 │    clients.<name>.transport: http|stdio        roles.bachelorprojekt-*       │
-│    clients.<name>.harness.<harness>            runtimes.gemma26-1/2/primary  │
-│    clients.<name>.bridge.url  (NEU)            runtimes.gemma26-vision …     │
+│    clients.<name>.harness.<harness>            runtimes.gptoss/devstral/…    │
+│    clients.<name>.bridge.url  (NEU)            runtimes.gemma26-primary/…    │
 │    clients.<name>.browser_endpoint (NEU)                                     │
 └───────┬──────────────────────────────────────────────┬───────────────────────┘
         │  task mcp:sync / mcp:check                   │  task agent-guide:maps
@@ -91,7 +91,7 @@ EBENE 3 — LAUFENDE PROZESSE (gemessen 2026-08-02)
 │                                                                              │
 │  llama-gemma26-factory.service ══► :8091                                     │
 │     llama-server, gemma-4-26B-A4B-it-qat-UD-Q4_K_XL, --alias gemma26-factory │
-│     -np 3 -kvu → 3 Slots (gemma26-1 / gemma26-2 / gemma26-primary)          │
+│     -np 3 -kvu → 3 Slots (historisch: gemma26-1/2/primary)                   │
 │     ✗ KEIN --mcp-servers-config im Kommandozeilen-Aufruf                     │
 │                                                                              │
 │  :8098 gptoss-context   ✗ KEIN LISTENER MEHR (2026-07-28: lief als           │
@@ -151,11 +151,13 @@ EBENE 3 — LAUFENDE PROZESSE (gemessen 2026-08-02)
 | `bachelorprojekt-test` | sonnet | unsupported | null |
 | `bachelorprojekt-website` | sonnet | unsupported | null |
 
-**Runtimes** (opencode, Quelle `.opencode/agent-models.jsonc`): `gemma26-1`, `gemma26-2`,
-`gemma26-primary`, `gemma26-vision` u. a. — alle auf demselben Modell
-`llamacpp-gemma26/gemma26-factory`, das heißt auf **einem** llama-server (:8091) mit `-np 3 -kvu`.
-Die drei Namen existieren, damit jeder Slot seinen eigenen Prefix-Cache behält (T002545);
-serialisiert werden sie trotzdem, weil der llm-proxy `max_inflight=1` fährt.
+**Runtimes** (opencode, Quelle `.opencode/agent-models.jsonc`): die lokalen
+Familiensubagenten `gptoss`, `devstral`, `gemma`, `qwen` (je ein eigenes Loadout
+über den llm-proxy) sowie die Primaries `gemma26-primary`, `gemma26-vision`,
+`big-pickle`, die deepseek-Agenten und `orchestrator`.
+Seit 2026-08-04 teilen sich alle vier Chat-Loadouts `exclusiveGroup "chat-gpu"`
+— es läuft immer nur eines; serialisiert werden sie trotzdem, weil der
+llm-proxy `max_inflight=1` fährt.
 
 Die generierten Karten unter `docs/agent-guide/maps/` (`agents-map.md`, `tools-map.md`,
 `goals-map.md`, `danger-map.md`) leiten sich aus dieser Registry ab (`task agent-guide:maps`).

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.251.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.3...website-v1.251.4) (2026-08-04)
+
+
+### Bug Fixes
+
+* **website:** Infra-Allowlist in BUILD_TARGET=sdlc-Route-Filter [T002675] ([#3800](https://github.com/Paddione/Bachelorprojekt/issues/3800)) ([8935937](https://github.com/Paddione/Bachelorprojekt/commit/8935937d8573318761974b5a4032c27f4327bf90))
+
 ## [1.251.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.2...website-v1.251.3) (2026-08-04)
 
 

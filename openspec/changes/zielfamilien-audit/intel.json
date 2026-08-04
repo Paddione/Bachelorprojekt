@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "slug": "zielfamilien-audit",
+    "ticket_id": "T002584",
+    "generated_from": "main@014047588",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/lib/goals.md",
+      "language": "markdown",
+      "loc": 920,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/health-goals/zielfamilien-audit.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/health-goals-check.sh",
+      "language": "bash",
+      "loc": 615,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 185
+    },
+    {
+      "path": "scripts/lib/zielfamilien-audit.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/health-goals/zielfamilien-audit.bats",
+      "language": "bash",
+      "loc": 84,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/health-goals-check.sh:45:row() {",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "45:row() {(...)",
+      "type_text": "45:row() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:74:n_baseline_gate() { # $1=S1|S2|S3|S4|ALL",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "74:n_baseline_gate() { # $1=S1|S2|S3|S4|ALL(...)",
+      "type_text": "74:n_baseline_gate() { # $1=S1|S2|S3|S4|ALL(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:81:count() { grep -rEn \"$1\" $2 --include=\"*.ts\" --include=\"*.svelte\" --include=\"*.astro\" 2>/dev/null | grep -v 'goals-data\\.ts' | wc -l | tr -d ' '; }",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "81:count() { grep -rEn \"$1\" $2 --include=\"*.ts\" --include=\"*.svelte\" --include=\"*.astro\" 2>/dev/null | grep -v 'goals-data\\.ts' | wc -l | tr -d ' '; }(...)",
+      "type_text": "81:count() { grep -rEn \"$1\" $2 --include=\"*.ts\" --include=\"*.svelte\" --include=\"*.astro\" 2>/dev/null | grep -v 'goals-data\\.ts' | wc -l | tr -d ' '; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:86:project_owned_skills() { # gibt Verzeichnisnamen relativ zu .claude/skills aus",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "86:project_owned_skills() { # gibt Verzeichnisnamen relativ zu .claude/skills aus(...)",
+      "type_text": "86:project_owned_skills() { # gibt Verzeichnisnamen relativ zu .claude/skills aus(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:95:mcp_servers() { python3 - \"$1\" <<'PY' 2>/dev/null || true",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "95:mcp_servers() { python3 - \"$1\" <<'PY' 2>/dev/null || true(...)",
+      "type_text": "95:mcp_servers() { python3 - \"$1\" <<'PY' 2>/dev/null || true(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:105:_db_pod() {",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "105:_db_pod() {(...)",
+      "type_text": "105:_db_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:112:db_scalar() {",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "112:db_scalar() {(...)",
+      "type_text": "112:db_scalar() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:121:db_backup_age_h() {",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "121:db_backup_age_h() {(...)",
+      "type_text": "121:db_backup_age_h() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:133:restore_verify_age_d() { # G-DB11 — Alter des recovery-verify-status-Stempels in Tagen",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "133:restore_verify_age_d() { # G-DB11 — Alter des recovery-verify-status-Stempels in Tagen(...)",
+      "type_text": "133:restore_verify_age_d() { # G-DB11 — Alter des recovery-verify-status-Stempels in Tagen(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:146:ops_kubectl_count() { # $1=not_ready|restarts_24h — zählt über alle OPS-Namespaces",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "146:ops_kubectl_count() { # $1=not_ready|restarts_24h — zählt über alle OPS-Namespaces(...)",
+      "type_text": "146:ops_kubectl_count() { # $1=not_ready|restarts_24h — zählt über alle OPS-Namespaces(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:170:tls_min_days() { # G-OPS03 — min. Restlaufzeit über beide Brand-Frontends, 1 Retry pro Host",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "170:tls_min_days() { # G-OPS03 — min. Restlaufzeit über beide Brand-Frontends, 1 Retry pro Host(...)",
+      "type_text": "170:tls_min_days() { # G-OPS03 — min. Restlaufzeit über beide Brand-Frontends, 1 Retry pro Host(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/health-goals-check.sh:187:e2e_success_rate() { # G-E2E01 — %-Erfolgsrate der letzten 14 e2e.yml-Läufe",
+      "kind": "function",
+      "file": "scripts/health-goals-check.sh",
+      "signature": "187:e2e_success_rate() { # G-E2E01 — %-Erfolgsrate der letzten 14 e2e.yml-Läufe(...)",
+      "type_text": "187:e2e_success_rate() { # G-E2E01 — %-Erfolgsrate der letzten 14 e2e.yml-Läufe(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/health-goals/zielfamilien-audit.bats:16:setup() {",
+      "kind": "function",
+      "file": "tests/spec/health-goals/zielfamilien-audit.bats",
+      "signature": "16:setup() {(...)",
+      "type_text": "16:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

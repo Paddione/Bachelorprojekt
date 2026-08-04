@@ -15,7 +15,7 @@
 
 setup() {
   bats_require_minimum_version 1.5.0
-  RUNNER="${BATS_TEST_DIRNAME}/../../scripts/lib/zielfamilien-audit.sh"
+  RUNNER="${BATS_TEST_DIRNAME}/../../..//scripts/lib/zielfamilien-audit.sh"
 }
 
 # ── Familie-Liste ────────────────────────────────────────────────────────────

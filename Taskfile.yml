@@ -748,9 +748,14 @@ tasks:
       # T002336: diese Suite existierte seit T002102, lief aber in KEINEM Target
       # und in KEINEM CI-Job - sie war nie ein Regressionsschutz, nur eine Datei.
       # Aufgefallen erst, als /health bei totem Backend drei Stunden 200 meldete.
+      # T002638: dasselbe Muster ein zweites Mal — exclusive-conflict, fixups und
+      # strip-markers (zusammen 19 Tests) liefen ebenfalls in keinem Target. Diese
+      # Liste ist handgepflegt und damit strukturell unvollstaendig; der Guard
+      # tests/spec/local-llm-proxy/proxy-tests-registered.bats haelt sie ab jetzt
+      # gegen die tatsaechlich vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs
-      - node --test scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs
+      - node --test scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
   test:factory:
     desc: "Run the offline-safe Software Factory regression bats (tests/spec/software-factory/ + tests/local/FA-AR-*). Live-DB cases skip without a reachable cluster, so this is CI-safe."

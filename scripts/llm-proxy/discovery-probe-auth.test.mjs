@@ -11,7 +11,7 @@
 import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
-import { probeBackend } from './discovery.mjs'
+import { probeBackend, startDiscovery } from './discovery.mjs'
 
 const TOKEN = 'test-token-T002638'
 let server
@@ -68,4 +68,58 @@ test('Backend ohne apiKeyEnv sendet keinen Authorization-Header (lokale llama.cp
   const r = await probeBackend({ ...remoteBackend(null), kind: 'llamacpp' })
   assert.equal(r.healthy, false) // der Test-Server antwortet ohne Auth mit 401
   assert.deepEqual(seenAuth, [null])
+})
+
+// ── Diagnose: der Grund des Fehlschlags ist sichtbar, aber nicht wiederholt ──
+// Bis T002638 verwarf das catch{} in probeBackend jeden Grund. 401, Timeout und
+// DNS-Fehler ergaben denselben stummen Zustand — deshalb konnte ein fehlender
+// Header monatelang wie ein totes Backend aussehen.
+
+/** Faengt console.warn fuer die Dauer von fn ab und gibt die Zeilen zurueck. */
+async function captureWarnings(fn) {
+  const original = console.warn
+  const lines = []
+  console.warn = (...args) => lines.push(args.join(' '))
+  try { await fn() } finally { console.warn = original }
+  return lines
+}
+
+test('der Uebergang nach unhealthy nennt Backend und Statuscode — genau einmal', async () => {
+  delete process.env.T002638_TEST_KEY // -> Server antwortet 401
+  const backend = { ...remoteBackend('T002638_TEST_KEY'), name: 'transition-probe' }
+
+  const lines = await captureWarnings(async () => {
+    // Grosses Intervall: der Timer soll waehrend des Tests nicht selbst feuern,
+    // getickt wird ausschliesslich ueber das zurueckgegebene probeNow.
+    const { timer, probeNow } = startDiscovery(() => [backend], 3_600_000)
+    await probeNow()
+    clearInterval(timer)
+  })
+
+  const mine = lines.filter((l) => l.includes('transition-probe'))
+  assert.equal(mine.length, 1, `erwartet genau eine Zeile, erhalten: ${JSON.stringify(mine)}`)
+  assert.match(mine[0], /401/)
+  assert.match(mine[0], /unhealthy/)
+})
+
+test('ein bereits unhealthy Backend wiederholt seine Zeile nicht', async () => {
+  delete process.env.T002638_TEST_KEY
+  const backend = { ...remoteBackend('T002638_TEST_KEY'), name: 'repeat-probe' }
+
+  // Erster Durchlauf: der Uebergang wird gemeldet (Positiv-Anker — ohne ihn
+  // waere die Nicht-Wiederholung unten vakuos erfuellt, weil nie etwas kam).
+  const first = await captureWarnings(async () => {
+    const { timer, probeNow } = startDiscovery(() => [backend], 3_600_000)
+    await probeNow()
+    clearInterval(timer)
+  })
+  assert.equal(first.filter((l) => l.includes('repeat-probe')).length, 1)
+
+  // Zweiter Durchlauf auf demselben Zustand: keine weitere Zeile.
+  const second = await captureWarnings(async () => {
+    const { timer, probeNow } = startDiscovery(() => [backend], 3_600_000)
+    await probeNow()
+    clearInterval(timer)
+  })
+  assert.deepEqual(second.filter((l) => l.includes('repeat-probe')), [])
 })

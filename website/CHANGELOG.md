@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.251.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.2...website-v1.251.3) (2026-08-04)
+
+
+### Bug Fixes
+
+* **agents:** worktree-create meldet gescheiterten stash pop, stage-plan nach dem Commit [T002673] ([#3798](https://github.com/Paddione/Bachelorprojekt/issues/3798)) ([8aa52b8](https://github.com/Paddione/Bachelorprojekt/commit/8aa52b8997cdb26a4d45004b33d5a99d402e3384))
+
 ## [1.251.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.1...website-v1.251.2) (2026-08-04)
 
 

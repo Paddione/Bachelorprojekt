@@ -46,3 +46,38 @@ setup() {
   [ "$status" -eq 0 ]
   echo "$output" | grep -qE '401.*403|403.*401|"401"\)|"403"\)'
 }
+
+# ── T002676: frische Instanz (Deadlock) ────────────────────────────────────
+# Auf einem frischen Cluster existiert per Konstruktion kein API-Key (Henne-Ei).
+# Der 401/403-Abbruch muss eine handlungsleitende Meldung mit Bootstrap-Hinweis
+# ausgeben statt still in BackoffLimitExceeded zu laufen.
+
+@test "pocket-id-client-seed: 401/403-Abbruch verweist auf das Bootstrap-Runbook (T002676)" {
+  run grep -A8 '401|403)' "$MANIFEST"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "runbooks/pocket-id-bootstrap.md" \
+    || { echo "FAIL: 401/403-Zweig verweist nicht auf docs/runbooks/pocket-id-bootstrap.md"; return 1; }
+}
+
+@test "pocket-id-client-seed: auth-check faengt unerwartete Status (nicht 2xx/401/403) ab (T002676)" {
+  # 2xx-Zweig muss im auth-check case existieren
+  run grep -A3 'auth_check_code' "$MANIFEST"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q '2??' \
+    || { echo "FAIL: kein 2xx-Zweig im auth-check case"; return 1; }
+  # Wildcard-Zweig (*) muss NACH dem case stehen (kein stilles Durchfallen)
+  run grep -n 'auth_check_code' "$MANIFEST"
+  [ "$status" -eq 0 ]
+  case_line="${lines[0]%%:*}"
+  wild_line=""
+  for ln in $(grep -n '\*)$' "$MANIFEST" | cut -d: -f1); do
+    if [ "$ln" -gt "$case_line" ]; then wild_line="$ln"; break; fi
+  done
+  [ -n "$wild_line" ] \
+    || { echo "FAIL: kein Wildcard-Zweig nach dem auth-check case"; return 1; }
+}
+
+@test "pocket-id-client-seed: Bootstrap-Runbook existiert (T002676)" {
+  [ -f "${REPO_ROOT}/docs/runbooks/pocket-id-bootstrap.md" ] \
+    || { echo "MISSING: docs/runbooks/pocket-id-bootstrap.md"; return 1; }
+}

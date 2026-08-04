@@ -23,11 +23,20 @@ import socket
 import sys
 from urllib.parse import urlparse
 
-import yaml
-
 # Sentinel fuer "nicht messbar, aber nicht gruen": ueberschreitet jedes
 # realistische Target und faellt im Report sofort auf.
 STRUCTURE_BROKEN = 99
+
+# Auch der Import-Fehler muss einen WOHLGEFORMTEN Wert liefern. Ohne das faellt
+# ein fehlendes PyYAML als leerer Wert bei row() an und erzeugt wieder
+# "[: integer expression expected" — dasselbe Symptom, das dieser Fix beseitigt,
+# nur mit anderer Ursache. CI installiert PyYAML ausdruecklich (ci.yml).
+try:
+    import yaml
+except ImportError as exc:  # pragma: no cover — Umgebungsdefekt, nicht Logik
+    print(f"G-IF01: PyYAML nicht verfuegbar: {exc}", file=sys.stderr)
+    print(STRUCTURE_BROKEN)
+    sys.exit(0)
 
 registry = os.environ.get("HG_MCP_REGISTRY", "docs/agent-guide/registry/mcp.yaml")
 

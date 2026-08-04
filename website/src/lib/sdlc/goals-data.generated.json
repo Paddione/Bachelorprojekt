@@ -190,7 +190,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "python3 -c \"\nimport yaml, socket, sys\nwith open('docs/agent-guide/registry/mcp.yaml') as f:\n    servers = [s for s in yaml.safe_load(f).get('servers', []) if s.get('command') != 'manual']\ntotal = len(servers)\ndead = 0\nfor s in servers:\n    env = s.get('env', {})\n    port = env.get('PORT') or env.get('MCP_PORT')\n    host = env.get('HOST', '127.0.0.1')\n    if port:\n        try:\n            sock = socket.create_connection((host, int(port)), timeout=2)\n            sock.close()\n        except: dead += 1\nprint(dead)\n\" 2>/dev/null || echo n/a",
+    "measurement": "python3 scripts/lib/mcp-endpoint-probe.py\n# HG_MCP_REGISTRY überschreibt den Registry-Pfad (für Tests).",
     "source": ".claude/lib/goals.md · G-IF01",
     "measured_at": "2026-08-04"
   },
@@ -685,7 +685,7 @@
     "target": 0,
     "unit": "",
     "status": "unknown",
-    "measurement": "cd website && pnpm audit --json 2>/dev/null | python3 -c \"...\"",
+    "measurement": "cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0)",
     "source": ".claude/lib/goals.md · G-DEP01",
     "measured_at": "2026-08-04"
   },
@@ -745,7 +745,7 @@
     "target": 3,
     "unit": "",
     "status": "unknown",
-    "measurement": "cd website && pnpm outdated` (Major-Sprünge zählen: aktuell nur eslint-plugin-astro 1→2, knip 5→6)",
+    "measurement": "cd website && pnpm outdated --format json` → `scripts/lib/pnpm-outdated-majors.py` (stdin; pnpm endet mit Funden als Exit 1 — Ausgabe erfassen, nicht den Pipeline-Status werten)",
     "source": ".claude/lib/goals.md · G-DEP02",
     "measured_at": "2026-08-04"
   },

@@ -61,7 +61,7 @@ pr_is_plan_only() {
       website/src/data/test-inventory.json) continue ;;
       website/src/data/route-manifest.json) continue ;;
       website/src/lib/learning-assets.generated.json) continue ;;
-      website/src/lib/goals-data.generated.json) continue ;;
+      website/src/lib/sdlc/goals-data.generated.json) continue ;;
       website/src/lib/agent-guide.generated.json) continue ;;
       docs/code-quality/repo-index.json) continue ;;
       docs/code-quality/loc-budget.json) continue ;;

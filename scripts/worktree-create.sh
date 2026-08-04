@@ -106,6 +106,27 @@ if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
   fi
 fi
 
+# [T002673] Spielt den Auto-Stash zurueck. Scheitert der Pop, wird das LAUT
+# gemeldet statt verschluckt — die uncommitteten Aenderungen des Aufrufers liegen
+# dann noch im Stash, und ohne Hinweis haelt er sie fuer wiederhergestellt.
+# Rueckgabe immer 0: der Worktree ist trotzdem nutzbar, und ein Abbruch waere
+# hier schaedlicher als die Warnung (der Stash bliebe genauso liegen).
+_wc_stash_pop_or_warn() {
+  if git stash pop >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "" >&2
+  echo "⚠  worktree-create: DEINE UNCOMMITTETEN AENDERUNGEN LIEGEN NOCH IM STASH." >&2
+  echo "   Der automatische 'git stash pop' ist fehlgeschlagen — meist ein Konflikt" >&2
+  echo "   mit inzwischen gemergten main-Aenderungen. Der neue Worktree ist nutzbar," >&2
+  echo "   aber der Haupt-Checkout hat deine Aenderungen NICHT zurueck." >&2
+  echo "" >&2
+  echo "   Zurueckholen:  git stash apply stash@{0}    # 'worktree-create-auto-stash'" >&2
+  echo "   Auflisten:     git stash list" >&2
+  echo "" >&2
+  return 0
+}
+
 # T001302/T001332: Divergence guard — auto-sync if local main is behind origin/main,
 # reject if truly diverged.
 # Only fires when origin/main exists (e.g. real upstream repos), so BATS tests with
@@ -120,25 +141,40 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
         echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
         exit 1
       fi
+      # [T002673] Der Auto-Stash darf nicht stillschweigend liegenbleiben.
+      # Vorher stand hier `git stash push … 2>/dev/null || true` und spiegelbildlich
+      # `git stash pop 2>/dev/null || true`. Beides verschluckte Meldung UND
+      # Exit-Code. Scheiterte der Pop — typisch, wenn der Stash mit inzwischen
+      # gemergten main-Aenderungen kollidiert — meldete das Skript trotzdem
+      # "ready", und die uncommitteten Aenderungen des Aufrufers lagen unbemerkt
+      # im Stash. Real passiert am 2026-08-04.
+      # Guard: tests/spec/worktree-divergence-guard/stash-restore-visible.bats
       _needs_pop=false
       if ! git diff --quiet HEAD 2>/dev/null; then
-        git stash push -m "worktree-create-auto-stash" 2>/dev/null || true
-        _needs_pop=true
+        if git stash push -m "worktree-create-auto-stash" >/dev/null; then
+          _needs_pop=true
+        else
+          # Kein `|| true`: laeuft das Skript hier weiter, poppt der Schritt
+          # unten einen FREMDEN Stash-Eintrag in den Haupt-Checkout.
+          echo "FATAL: worktree-create: konnte den dirty Haupt-Checkout nicht stashen." >&2
+          echo "       Abbruch, damit kein fremder Stash-Eintrag angewendet wird." >&2
+          exit 1
+        fi
       fi
       if [ "$CURRENT_BRANCH" = "main" ]; then
         git pull --rebase origin main 2>/dev/null || {
           echo "FATAL: auto-sync failed — could not pull origin/main into main." >&2
-          $_needs_pop && git stash pop 2>/dev/null || true
+          if $_needs_pop; then _wc_stash_pop_or_warn; fi
           exit 1
         }
       else
         git fetch origin +refs/heads/main:refs/remotes/origin/main 2>/dev/null || {
           echo "FATAL: auto-sync failed — could not fast-forward main." >&2
-          $_needs_pop && git stash pop 2>/dev/null || true
+          if $_needs_pop; then _wc_stash_pop_or_warn; fi
           exit 1
         }
       fi
-      $_needs_pop && git stash pop 2>/dev/null || true
+      if $_needs_pop; then _wc_stash_pop_or_warn; fi
       echo "worktree-create: local main synced to origin/main" >&2
     else
       echo "FATAL: local 'main' has diverged from 'origin/main'." >&2

@@ -48,7 +48,7 @@ setup() {
 # ── Search API endpoint ───────────────────────────────────────────────
 
 @test "openspec search API route exists" {
-  [ -f "$REPO/website/src/pages/api/openspec/search.ts" ]
+  [ -f "$REPO/website/src/pages/sdlc/api/openspec/search.ts" ]
 }
 
 # ── MCP tool ──────────────────────────────────────────────────────────

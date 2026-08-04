@@ -31,7 +31,7 @@ setup() {
 }
 
 @test "architektur.astro page file exists" {
-  [ -f website/src/pages/admin/architektur.astro ]
+  [ -f website/src/pages/sdlc/architektur.astro ]
 }
 
 @test "ArchitekturGraph.svelte component exists" {
@@ -39,7 +39,7 @@ setup() {
 }
 
 @test "AdminLayout includes architektur page reference" {
-  [ -f website/src/pages/admin/architektur.astro ]
+  [ -f website/src/pages/sdlc/architektur.astro ]
 }
 
 @test "k3d kustomize builds without regression" {

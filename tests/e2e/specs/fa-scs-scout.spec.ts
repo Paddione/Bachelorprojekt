@@ -48,8 +48,8 @@ const HALL_ITEM: HallItem = {
 
 const SUGGESTED_FILES: SuggestedFile[] = [
   { path: 'scripts/index-repo.ts', score: 0.92, snippet: 'pgvector-based code indexer with bge-m3 embeddings' },
-  { path: 'website/src/lib/codesearch-db.ts', score: 0.87, snippet: 'Semantic search queries with graph augmentation' },
-  { path: 'website/src/pages/api/codesearch.ts', score: 0.81, snippet: 'GET /api/codesearch endpoint' },
+  { path: 'website/src/lib/sdlc/codesearch-db.ts', score: 0.87, snippet: 'Semantic search queries with graph augmentation' },
+  { path: 'website/src/pages/sdlc/api/codesearch.ts', score: 0.81, snippet: 'GET /api/codesearch endpoint' },
 ];
 
 function stubHallPayload(hall: HallItem[]) {

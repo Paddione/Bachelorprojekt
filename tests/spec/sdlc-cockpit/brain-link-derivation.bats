@@ -33,7 +33,7 @@ setup() {
 
     # TS-Kopie: die Regel fuer denselben Pfad ausfuehren.
     actual_ts="$(
-      cd "$REPO/website" && npx tsx -e "import {slugForSource} from './src/lib/brain-links.ts'; process.stdout.write(slugForSource('$rel'))" 2>/dev/null
+      cd "$REPO/website" && npx tsx -e "import {slugForSource} from './src/lib/sdlc/brain-links.ts'; process.stdout.write(slugForSource('$rel'))" 2>/dev/null
     )"
 
     # Bash-Quelle: die Pipeline selbst befragen.

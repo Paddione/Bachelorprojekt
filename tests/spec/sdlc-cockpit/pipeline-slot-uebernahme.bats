@@ -72,7 +72,7 @@ setup() {
 }
 
 @test "T002531 redirect: pipeline.astro redirects query-preserving to /admin/cockpit" {
-  local pipe_file="$REPO_ROOT/website/src/pages/admin/pipeline.astro"
+  local pipe_file="$REPO_ROOT/website/src/pages/sdlc/pipeline.astro"
   # Positiv-Anker: pipeline.astro existiert
   [ -f "$pipe_file" ]
 

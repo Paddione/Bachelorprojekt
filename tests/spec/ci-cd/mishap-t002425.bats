@@ -56,7 +56,7 @@ setup() {
   grep -q 'baseline-allow' "$ASSERT"
 
   # ... und weist zusaetzlich auf die andere Ursache samt konkreter Abhilfe hin.
-  # Gemessener Vorgang: der Key S1:website/src/components/FactoryFloor.svelte tauchte auf
+  # Gemessener Vorgang: der Key S1:website/src/components/sdlc/FactoryFloor.svelte tauchte auf
   # fix/conflict-gate-T002418 auf, weil der Branch aelter war als #3461, das ihn entfernte.
   grep -q 'veralteter Branch' "$ASSERT"
   grep -q 'git checkout origin/main -- docs/code-quality/baseline.json' "$ASSERT"

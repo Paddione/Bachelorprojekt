@@ -1,12 +1,12 @@
 # Skills Overview
 
-30 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
+33 project-local skills grouped by domain. Each skill has its own `SKILL.md` with full runbook details. Invoke any skill by its name.
 
 > **Konsolidierung (2026-06-21):** 7 Infra/Ops-Skills wurden in `infra-ops` zusammengeführt (nur bei explizitem Bedarf aufrufen). `update-dependencies` läuft als biweekly Cloud-Routine (https://claude.ai/code/routines/trig_01GiuyN6KP5iMcVUSvBQMKyQ). Die archivierten SKILL.md-Dateien haben kein `description`-Feld mehr und triggern nicht auto-matisch.
 
 > **Wartung:** Diese Anzahl stimmt mit `git ls-files -- .claude/skills | grep -c '/SKILL\.md$'` überein (nur **getrackte** Skills — lokal via market-cli installierte zählen nicht, Präzedenz T001783). Wenn ein Skill hinzukommt oder entfernt wird, hier nachziehen (Gate G-AGENTIC06).
 
-> **Projekteigen vs. Vendor (T002303):** Die Sektion [Vendor-Skills](#vendor-skills-upstream-gepflegt) unten ist die **maschinenlesbare Quelle** für diesen Schnitt. Ein getrackter Skill gilt als projekteigen, wenn sein Verzeichnisname dort **nicht** vorkommt. `G-AGENTIC09` (Zeilenbudget 250) und `tests/spec/agent-skills.bats` leiten ihren Scope daraus ab — der Marker-Block dort ist ein Kontrakt, kein Layout.
+> **Projekteigen vs. Vendor (T002303):** Die Sektion [Vendor-Skills](#vendor-skills-upstream-gepflegt) unten ist die **maschinenlesbare Quelle** für diesen Schnitt. Ein getrackter Skill gilt als projekteigen, wenn sein Verzeichnisname dort **nicht** vorkommt. `G-AGENTIC09` (Zeilenbudget — die Schwelle steht in `scripts/health-goals-check.sh`, hier bewusst nicht dupliziert) und `tests/spec/agent-skills.bats` leiten ihren Scope daraus ab — der Marker-Block dort ist ein Kontrakt, kein Layout.
 
 > **Für Agenten:** Schnelle Routing-Karten (Intention → Weg → Tier → Guardrails) unter `docs/agent-guide/maps/` — `goals-map.md`, `tools-map.md`, `danger-map.md`. Generiert aus `docs/agent-guide/registry/`.
 
@@ -121,6 +121,7 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 | [`website-specialist`](website-specialist/SKILL.md) | Astro/Svelte frontend development, component creation, page routing, content management, UI implementation. Dispatched as subagent via `bachelorprojekt-website`. |
 | [`security-specialist`](security-specialist/SKILL.md) | SealedSecrets lifecycle, Pocket ID OIDC client config, OIDC setup, DSGVO compliance, credential management. Dispatched as subagent via `bachelorprojekt-security`. |
 | [`database-specialist`](database-specialist/SKILL.md) | PostgreSQL schema migrations, data queries, backup/restore, index optimization, performance tuning. Dispatched as subagent via `bachelorprojekt-db`. |
+| [`web-audit`](web-audit/SKILL.md) | Semantische Prüfung und Triage der Brand-Seiten — kombiniert `a11y:axe` und Lighthouse mit einer LLM-Beurteilung (alt-Texte, Meta-Tags, Überschriften, Link-Labels) zu einer priorisierten Rangliste. **Kein Merge-Gate**, läuft manuell. Dispatched as subagent via `bachelorprojekt-website`. |
 
 ---
 
@@ -130,6 +131,8 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 |---|---|
 | [`brain-ingest`](brain-ingest/SKILL.md) | Brain-Wiki-Ingestion — Worklist aus `scripts/brain/ingest-sources.yaml` generieren, Quelldateien per LLM in Wiki-Seiten transformieren, Ergebnis per PR an das externe `Paddione/brain`-Repo ausliefern. |
 | [`references`](references/SKILL.md) | Geteilte Querschnitts-Referenzen für dev-flow-Skills und Subagenten — Subagent-Provisionierung, Plan-Quality-Gates, MCP-Tool-Guide, Session-Koordination, CI-Fix-Loop, Deploy-Routing. |
+| [`agentic-resource-lookup`](agentic-resource-lookup/SKILL.md) | Externe MCP-Server und Agent-Plugins **bei Bedarf** finden (`scripts/agentic-lookup.mjs`), ohne sie zu installieren und ohne ihre Beschreibungen dauerhaft im Kontext zu tragen. Findet und protokolliert nur — die Kuratierungs-Entscheidung selbst gehört zu [`toolset-curate`](toolset-curate/SKILL.md). |
+| [`finetune-run`](finetune-run/SKILL.md) | Trainingslauf **innerhalb dieses Repos** — `scripts/finetune/`, `Taskfile.finetune.yml`, `finetune:measure/guard/train/traces/export`. Verbindet die Repo-Konventionen (Ticket, Worktree, Vorbedingungs-Gates) mit dem Vendor-Skill `unsloth-buddy`, statt dessen Wissen zu duplizieren. Für allgemeine Unsloth/TRL-API-Fragen direkt `unsloth-buddy`. |
 
 ---
 
@@ -149,7 +152,7 @@ Fachspezifische Skills, die als Subagent dispatched werden:
 ## Vendor-Skills (upstream-gepflegt)
 
 Diese Skills stammen von Dritten und werden hier **nicht** gepflegt. Sie unterliegen deshalb
-weder dem 250-Zeilen-Budget noch dem projekteigenen description-Standard: eine Änderung würde
+weder dem Zeilenbudget aus `G-AGENTIC09` noch dem projekteigenen description-Standard: eine Änderung würde
 beim nächsten Upstream-Sync kollidieren.
 
 **Dieser Block ist ein Kontrakt.** `G-AGENTIC09` in `scripts/health-goals-check.sh` und

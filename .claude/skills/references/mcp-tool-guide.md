@@ -216,6 +216,26 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 - **Wann bevorzugen:** Aufgabenverwaltung mit KI-Kontextanalyse.
 - **Fallback:** manuelle Notiz / Ticketsystem.
 
+## `playwright` — Browser-Automatisierung
+
+- **Transport:** `npx -y @playwright/mcp@latest`, stdio. Nur Claude Code — in opencode ist der
+  Server registriert, aber `enabled: false`.
+- **Tools:** `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`,
+  `browser_evaluate`, `browser_take_screenshot`, `browser_console_messages`,
+  `browser_network_requests`.
+- **Wann bevorzugen:** interaktives Erkunden einer laufenden Seite — einen Fehler nachstellen,
+  einen Selektor suchen, einen Konsolen-/Netzwerk-Trace ansehen. Also die Fälle, in denen ein
+  Snapshot des lebenden DOM die Frage beantwortet.
+- **Wann NICHT:** für wiederholbare Regressionstests. Die gehören als `.spec.ts` unter
+  `website/e2e/` und laufen über [`dev-flow-e2e`](../dev-flow-e2e/SKILL.md) — eine MCP-Sitzung
+  hinterlässt kein Artefakt, das die CI erneut ausführen könnte.
+- **Fallback:** `npx playwright test --headed --debug` bzw. `codegen` in der Shell.
+
+> **Paketfalle:** Das offizielle Paket ist `@playwright/mcp` (Microsoft). Das unscoped
+> `playwright-mcp` in der npm-Registry ist ein anderes Projekt — ein Handeintrag mit diesem Namen
+> war die Ursache der G-AGENTIC12-Drift in T002678. Der Server heißt hier `playwright`, seine Tools
+> also `mcp__playwright__*`.
+
 ## `codebase-memory-mcp` — Code-Wissensgraph
 
 - **Transport:** lokales Binary (`codebase-memory-mcp`), stdio.

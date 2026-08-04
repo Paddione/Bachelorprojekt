@@ -2475,6 +2475,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002628": [
+    {
+      "slug": "gpu-arbitrierung-trainings-vorrang",
+      "status": "plan_staged"
+    }
+  ],
   "T002630": [
     {
       "slug": "cluster-dev-node-gekko2",

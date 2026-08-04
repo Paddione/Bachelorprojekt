@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.251.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.0...website-v1.251.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **infra:** bge-embed/-rerank Thread-Oversubscription gegen CPU-Quota [T002661] ([#3794](https://github.com/Paddione/Bachelorprojekt/issues/3794)) ([751de31](https://github.com/Paddione/Bachelorprojekt/commit/751de3124992ff4630a932699cdfd6b161770f95))
+
 ## [1.251.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.250.0...website-v1.251.0) (2026-08-04)
 
 

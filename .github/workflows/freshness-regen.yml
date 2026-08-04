@@ -62,7 +62,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           # T002158: [skip ci] nur wenn KEIN website/**-Artefakt betroffen ist. Dieser
-          # Bot-Commit ist der einzige Ort, an dem website/src/lib/goals-data.generated.json
+          # Bot-Commit ist der einzige Ort, an dem website/src/lib/sdlc/goals-data.generated.json
           # außerhalb eines PRs fortgeschrieben wird — also der einzige Pfad, der
           # build-website.yml auslösen würde. Ein unbedingtes [skip ci] fror den
           # ausgelieferten /admin/repohealth-Stand ein.

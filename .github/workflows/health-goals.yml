@@ -135,7 +135,7 @@ jobs:
         id: diff
         if: steps.measure.outputs.dry == 'false'
         run: |
-          if git diff --quiet -- .claude/lib/goals.md website/src/lib/goals-data.generated.json; then
+          if git diff --quiet -- .claude/lib/goals.md website/src/lib/sdlc/goals-data.generated.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -151,7 +151,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .claude/lib/goals.md website/src/lib/goals-data.generated.json
+          git add .claude/lib/goals.md website/src/lib/sdlc/goals-data.generated.json
           # Scope 'goals' ist in 'ci' aufgegangen (T002328). Der commit-lint-Job
           # laeuft nur auf pull_request und haette diesen Bot-Push auf main nicht
           # abgefangen — der Commit wuerde die Historie genau dort verschmutzen,

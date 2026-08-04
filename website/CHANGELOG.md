@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.249.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.4...website-v1.249.0) (2026-08-04)
+
+
+### Features
+
+* **infra:** E2 SDLC-Isolation — Lokaler k3d-Stack mit Console, PostgreSQL, bge, Auth [T002625] ([#3781](https://github.com/Paddione/Bachelorprojekt/issues/3781)) ([ba2ae32](https://github.com/Paddione/Bachelorprojekt/commit/ba2ae32ce38389a14da24a83fb783835506dc6a3))
+* **ops:** KV-Offload + SlotSavePath Guardrail-Cache [T002482] ([#3783](https://github.com/Paddione/Bachelorprojekt/issues/3783)) ([be80d37](https://github.com/Paddione/Bachelorprojekt/commit/be80d37a7839c0894398d89f0d36893b23f8e214))
+
+
+### Bug Fixes
+
+* **scripts:** sharpen 13 goals + audit runner + report [T002584] ([#3782](https://github.com/Paddione/Bachelorprojekt/issues/3782)) ([5dd3b61](https://github.com/Paddione/Bachelorprojekt/commit/5dd3b6172a310a93a500e32ef6b967ecb91c5add))
+
 ## [1.248.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.3...website-v1.248.4) (2026-08-04)
 
 

@@ -2628,6 +2628,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/bge-thread-quota",
+    "file": "tests/spec/llm-pipeline/bge-thread-quota.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline/bge-usecase-reachability",
     "file": "tests/spec/llm-pipeline/bge-usecase-reachability.bats",
     "category": "llm-pipeline",

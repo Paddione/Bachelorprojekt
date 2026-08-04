@@ -164,8 +164,10 @@ SSOT für Ticket-Anlage, Stage und Embedding: [ticket-stage-procedure](file:///h
 
 Dort steht auch der Ticket-Claim für diesen Schritt (`bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" …`, Session-Koordination [T000510]) — er muss laufen, bevor der Pre-Commit-Guard in Schritt 5 die Lock-Datei liest.
 
-> **`--hold`-Pflicht für interaktive Stage-Calls:** Der Aufruf von `stage-plan` in diesem Schritt MUSS `--hold` setzen (siehe `ticket-stage-procedure.md`). Dadurch wird `readiness.execution_released=false` gesetzt, was das Ticket vom Factory-Dispatch zurückhält, bis `dev-flow-execute` es explizit freigibt. Ohne `--hold` würde die Factory das Ticket sofort nach dem Stage-Commit dispatchen können, bevor der Operator die Ausführung freigegeben hat.
-### Schritt 5: Commit & Push — dann STOPP
+> **`--hold`-Pflicht für interaktive Stage-Calls:** Der Aufruf von `stage-plan` MUSS `--hold` setzen (siehe `ticket-stage-procedure.md`). Dadurch wird `readiness.execution_released=false` gesetzt, was das Ticket vom Factory-Dispatch zurückhält, bis `dev-flow-execute` es explizit freigibt. Ohne `--hold` würde die Factory das Ticket sofort dispatchen können, bevor der Operator die Ausführung freigegeben hat.
+
+> **⚠ `stage-plan` läuft NACH dem Commit aus Schritt 5, nicht hier [T002673].** In diesem Schritt werden nur **Ticket angelegt und geclaimt** — der Claim muss vor dem Pre-Commit-Guard liegen, der Stage-Aufruf nicht. Grund: `stage-plan` liest die Plandatei über `git cat-file -p "${branch}:${plan}"` aus dem **Branch-Commit**, nicht aus dem Arbeitsbaum (`scripts/vda/ticket/stage-plan.sh`). Vor dem Commit steht dort noch das `propose`-Skeleton, und die `touched_files`-Ableitung meldet dann `keine Pfade ableitbar` und lässt die Spalte leer — ohne dass es auffällt, weil die Meldung nur auf stderr steht und der Stage trotzdem Erfolg meldet. Die Ableitung selbst funktioniert (`scripts/plan-touched-files.sh` liefert gegen die reale Datei die vollständige Liste). `stage-plan` ist idempotent und vereinigt `touched_files` in SQL, ein späterer Zweitaufruf ist also unschädlich — die richtige Reihenfolge erspart ihn nur.
+### Schritt 5: Commit & Push, dann stagen — dann STOPP
 **Pre-Commit Guard (PFLICHT — Schritt 5) [T001268]:**
 Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:
 1. **Do not commit on main / Nicht auf main committen:**
@@ -190,6 +192,15 @@ Erst nach diesen drei Checks darf `git commit` und `git push` laufen. Damit verw
 git add openspec/changes/<slug>/
 git commit -m "chore(plans): stage <slug> for execution [$TICKET_EXT_ID]"
 git push -u origin $(git branch --show-current)
+
+# ERST JETZT stagen [T002673] — stage-plan liest den Plan aus dem Branch-Commit,
+# vorher stünde dort noch das propose-Skeleton und touched_files bliebe leer.
+# --partials N = Anzahl der Partials aus dem `## Partials`-Manifest (1..9, Pflicht).
+bash scripts/ticket.sh stage-plan \
+  --id "$TICKET_EXT_ID" \
+  --branch "$(git branch --show-current)" \
+  --plan "openspec/changes/<slug>/tasks.md" \
+  --partials <N> --hold
 ```
 ### Schritt 6: Optionaler Plan-Review (interaktiv)
 Bevor du den Plan committest und Ausführungsoptionen anzeigst, kannst du den Plan annotierbar rendern (`bash scripts/plan-review/plan-review.sh render openspec/changes/<slug>/tasks.md`) und im Browser reviewen. Details: [plan-review-ui](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-review-ui.md).

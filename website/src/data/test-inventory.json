@@ -3694,5 +3694,11 @@
     "file": "tests/spec/worktree-divergence-guard-T002387.bats",
     "category": "worktree-divergence-guard-T002387",
     "kind": "shell"
+  },
+  {
+    "id": "worktree-divergence-guard/stash-restore-visible",
+    "file": "tests/spec/worktree-divergence-guard/stash-restore-visible.bats",
+    "category": "worktree-divergence-guard",
+    "kind": "shell"
   }
 ]

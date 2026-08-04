@@ -1,3 +1,12 @@
+> **⚠ Reihenfolge: erst committen, dann stagen [T002673].** Schritt 4.5 legt das Ticket an und
+> claimt es; der eigentliche `stage-plan`-Aufruf gehört **hinter** den Plan-Commit aus Schritt 5.
+> `stage-plan.sh` liest die Plandatei per `git cat-file -p "${branch}:${plan}"` aus dem
+> **Branch-Commit**, nicht aus dem Arbeitsbaum. Läuft es vor dem Commit, findet es dort das
+> `propose`-Skeleton, meldet `touched_files: keine Pfade aus '<plan>' ableitbar` auf stderr und
+> lässt die Spalte leer — der Aufruf gilt trotzdem als erfolgreich. Der Aufruf ist idempotent
+> und vereinigt `touched_files` in SQL; ein Zweitaufruf nach dem Commit repariert es also,
+> die richtige Reihenfolge erspart ihn.
+
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
 Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
 **MCP-first** (`ticket-mcp`) — wenn noch kein `TICKET_EXT_ID` gesetzt ist, ein neues Ticket anlegen (Rückgabe-Parsing: MCP-Tool-Guide §ticket-mcp).

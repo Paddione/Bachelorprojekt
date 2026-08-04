@@ -1,8 +1,8 @@
 # ADR-006: SDLC-Isolation — Entwicklungsfläche auf den Dev-Host, Produktion bleibt auf fleet
 
-**Status:** Proposed
-**Datum:** 2026-08-03
-**Ticket:** T002623
+**Status:** Accepted — teilweise umgesetzt (E1 gemergt, E2–E6 offen)
+**Datum:** 2026-08-03 · Ist-Stand nachgezogen 2026-08-04
+**Ticket:** T002623 (Entscheidung) · T002624 (E1) · T002646 (Ist-Stand)
 
 ## Kontext
 
@@ -76,9 +76,17 @@ Verdopplung von Auth, Layouts und Design-Tokens. Stattdessen:
 - `build-website.yml` bekommt einen negativen Pfad-Filter
   (`paths: ['website/**', '!website/src/**/sdlc/**']`), sodass eine reine SDLC-Änderung den
   Produktions-Build nicht mehr auslöst.
-- Eine Astro-Integration filtert im Hook `astro:routes:resolved` (verfügbar in Astro 7.1.6) das
-  Route-Manifest anhand von `BUILD_TARGET=prod|sdlc`. Damit enthält das Produktions-Image die
-  SDLC-Routen nicht mehr — Abschaltung durch Abwesenheit, nicht durch eine Laufzeitprüfung.
+- Eine Astro-Integration filtert das Route-Manifest anhand von `BUILD_TARGET=prod|sdlc`. Damit
+  enthält das Produktions-Image die SDLC-Routen nicht mehr — Abschaltung durch Abwesenheit, nicht
+  durch eine Laufzeitprüfung.
+
+  > **Korrektur aus der Umsetzung (T002624):** Der hier ursprünglich genannte Hook
+  > `astro:routes:resolved` ist in Astro 7.1.6 **read-only** — Astro übergibt jeder Integration
+  > eine frische `.map()`-Kopie der Routen und verwirft den Rückgabewert; eine Mutation dort wäre
+  > toter Code gewesen, der grün baut und nichts tut. Die Implementierung
+  > (`website/src/integrations/build-target.mjs`) nutzt stattdessen `astro:build:ssr`: dieser Hook
+  > erhält das echte `manifest`-Objekt per Referenz, und `plugin-manifest.js` serialisiert es erst
+  > *nach* dem Hook in den Server-Entry.
 - Änderungen an echt geteiltem Code (Auth, Logger, DB-Pool, Basis-Layouts) lösen weiterhin beide
   Builds aus. Das ist korrekt und nicht vermeidbar.
 
@@ -144,6 +152,69 @@ E1 ist vollständig reversibel und liefert den größten Schmerzpunkt sofort. E4
 laufen: die Routen in Prod abzuschalten, bevor die Daten lokal liegen, hieße den Zugriff auf die
 Ticket-Historie zu verlieren.
 
+## Umsetzungsstand
+
+**Gemessen am 2026-08-04** (T002646). Dieser Abschnitt hält fest, was von der Entscheidung
+tatsächlich in `main` steht — nicht, was geplant ist. Der Rest des Dokuments beschreibt weiterhin
+das Zielbild.
+
+| # | Etappe | Stand | Beleg |
+|---|---|---|---|
+| **E1** | Verzeichnis-Umzug + Build-Target-Split + Pfad-Filter | **umgesetzt** (T002624) | s. u. |
+| **E2** | Lokaler SDLC-Stack im k3d | offen | kein Deployment-Manifest vorhanden |
+| **E3** | Datenumzug `tickets.*` + GitHub-Poller | offen | `tickets.*` weiterhin in `shared-db` auf fleet |
+| **E4** | SDLC-Routen aus dem Produktions-Image | **build-seitig bereits wirksam** | s. u. |
+| **E5** | GPU-Arbitrierung (Trainings-Lock, Draining) | offen | — |
+| **E6** | Modell-Registry + Training Grounds | offen | hängt an PR #3745 (T002587) |
+
+**E1 im Detail — was existiert:**
+
+- `website/src/pages/sdlc/` mit 14 Seiten und 137 API-Dateien; `website/src/pages/admin/` steht bei
+  19 Seiten (vorher 29 laut Kontext-Abschnitt).
+- `.github/workflows/build-website.yml` trägt die drei negativen Pfad-Filter
+  (`!website/src/pages/sdlc/**`, `!website/src/lib/sdlc/**`, `!website/src/components/sdlc/**`).
+- `.github/workflows/build-sdlc-console.yml` baut ein eigenes Image
+  `ghcr.io/paddione/website-sdlc` mit `BUILD_TARGET=sdlc`.
+- `website/src/integrations/build-target.mjs` ist in `website/astro.config.mjs` verdrahtet;
+  `website/Dockerfile` deklariert `ARG BUILD_TARGET=prod` **und** `ENV BUILD_TARGET=${BUILD_TARGET}`
+  — ohne beides wäre der `--build-arg` des Workflows ein stilles No-op.
+- `website/src/middleware/redirect-map.ts` leitet die 12 alten `/admin/*`-Pfade auf `/sdlc/*` um.
+
+**E4 — Abgrenzung zur Etappenreihenfolge.** Das ADR ordnet E4 hinter E3 an, weil das Abschalten der
+Routen vor dem Datenumzug den Zugriff auf die Ticket-Historie kostet. Faktisch trennt E1 aber
+bereits **build-seitig**: `BUILD_TARGET=prod` (Default im Dockerfile) entfernt die SDLC-Routen aus
+dem Kundenimage. Das ist kein Vorziehen von E4, sondern dessen Mechanik — E4 bleibt als eigene
+Etappe bestehen für das, was E1 nicht erledigt: die serverseitigen Datenpfade und die Frage, worüber
+die Historie erreichbar bleibt.
+
+**Das SDLC-Console-Image hat keine Laufzeit-Heimat.** `ghcr.io/paddione/website-sdlc` wird bei jedem
+qualifizierenden Push gebaut, ist aber in `k3d/`, `prod-fleet/`, `prod/`, `deploy/` und `flux/`
+**nirgends referenziert**. Bis E2 steht, ist die SDLC-Oberfläche als Image vorhanden und als Dienst
+nicht erreichbar. (Der lokale k3d-Cluster ließ sich zum Messzeitpunkt nicht prüfen — der
+Docker-Daemon lief nicht.)
+
+### Abweichungen zwischen Zielbild und Cluster-Realität
+
+Drei Stellen erfüllen das Trennkriterium heute nicht. Sie sind hier festgehalten, damit sie als
+bekannt gelten und nicht bei jeder Betrachtung neu entdeckt werden:
+
+1. **`dev.mentolder.de` läuft auf fleet, nicht auf dem Dev-Host.**
+   `flux/clusters/fleet/ks-dev.yaml` reconciled `prod-fleet/dev` → `k3d/dev-stack` in die Namespace
+   `workspace-dev` — auf den Produktionsknoten. Der Stack umfasst u. a. `shared-db-dev`,
+   `website-dev`, `brett-dev`, `sish` und drei oauth2-proxy-Gates. Das Runbook
+   `docs/dev-stack/README.md` ist als veraltet markiert und beschreibt den stillgelegten
+   k3s-1-Aufbau; maßgeblich ist das Flux-Manifest.
+2. **`terminal-sidekick` koppelt einen Prod-Ingress an die Workstation.**
+   `k3d/terminal-sidekick.yaml` definiert einen selector-losen Service auf `${TERMINAL_OVERLAY_IP}`
+   (wg-fleet) zu einem `ttyd`, das als systemd-User-Unit auf dem WSL-Host läuft; davor sitzt
+   `k3d/oauth2-proxy-terminal.yaml`. Ein Dienst im Prod-Cluster ist damit nur verfügbar, solange die
+   Heim-Workstation läuft — die Richtung, die das ADR ausdrücklich vermeiden will.
+3. **`brain` / `knowledge` sind bewusst geteilt.** Ingest läuft lokal, Ablage und Suche produktiv
+   (`k3d/brain.yaml`, `k3d/knowledge-ingest-cronjob.yaml`). Das ist im Abschnitt „Bewusst nicht
+   verlagert" gedeckt und hier nur der Vollständigkeit halber genannt.
+
+Punkt 1 und 2 sind **nicht entschieden** — siehe „Offene Punkte".
+
 ## Konsequenzen
 
 **Positive Konsequenzen:**
@@ -194,3 +265,13 @@ Diese Fragen werden nicht hier entschieden, sondern in der jeweiligen Etappe:
 - **WSL-Speicherzuteilung**: Wie viel von den 64 GB braucht die Windows-Seite tatsächlich, wenn
   llama.cpp mit vollem GPU-Offload und ComfyUI laufen? Messung vor E2; das Ergebnis bestimmt den
   neuen `memory`-Wert in `.wslconfig`.
+- **`dev.mentolder.de` (Abweichung 1)**: Zieht der Dev-Stack mit E2 auf den Dev-Host, oder bleibt er
+  als betriebene Vorschau-Umgebung auf fleet? Beides ist vertretbar — er bedient keinen
+  Kunden-Request, ist aber auch der einzige Ort, an dem sich ein Stand *vor* Prod unter echtem TLS
+  und echtem SSO prüfen lässt. Ein Umzug auf den Dev-Host macht ihn von der Workstation abhängig und
+  damit als Vorschau schwächer. Entscheidung in E2.
+- **`terminal-sidekick` (Abweichung 2)**: Der Prod-Ingress zeigt auf ein `ttyd` auf der Workstation.
+  Die Optionen sind, ihn mit E2 in die lokale Console zu überführen (konsistent mit dem
+  Trennkriterium, aber der Zugang von unterwegs entfällt) oder ihn als bewusste Ausnahme zu führen
+  (dann gehört die Ausnahme begründet und die Verfügbarkeitserwartung dokumentiert). Entscheidung
+  in E2.

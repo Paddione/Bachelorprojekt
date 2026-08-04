@@ -10,6 +10,8 @@ describe('build-target integration', () => {
     { component: '/app/src/pages/sdlc/pipeline.astro', pathname: '/sdlc/pipeline' },
     { component: '/app/src/pages/sdlc/api/ops/status.ts', pathname: '/sdlc/api/ops/status' },
     { component: '/app/src/pages/api/auth/login.ts', pathname: '/api/auth/login' },
+    { component: '/app/src/pages/api/health.ts', pathname: '/api/health' },
+    { component: '/app/src/pages/login.astro', pathname: '/login' },
   ];
 
   it('keeps all routes when BUILD_TARGET is not set', () => {
@@ -19,18 +21,21 @@ describe('build-target integration', () => {
 
   it('removes SDLC routes when BUILD_TARGET=prod', () => {
     const result = filterRoutesByBuildTarget(mockRoutes, 'prod');
-    expect(result).toHaveLength(4);
+    expect(result).toHaveLength(6);
     expect(result.find((r) => r.pathname === '/')).toBeDefined();
     expect(result.find((r) => r.pathname === '/kontakt')).toBeDefined();
     expect(result.find((r) => r.pathname === '/admin/rechnungen')).toBeDefined();
+    expect(result.find((r) => r.pathname === '/api/auth/login')).toBeDefined();
+    expect(result.find((r) => r.pathname === '/api/health')).toBeDefined();
+    expect(result.find((r) => r.pathname === '/login')).toBeDefined();
     expect(result.find((r) => r.pathname === '/sdlc/cockpit')).toBeUndefined();
     expect(result.find((r) => r.pathname === '/sdlc/pipeline')).toBeUndefined();
     expect(result.find((r) => r.pathname === '/sdlc/api/ops/status')).toBeUndefined();
   });
 
-  it('keeps only SDLC routes when BUILD_TARGET=sdlc', () => {
+  it('keeps SDLC + infra routes when BUILD_TARGET=sdlc', () => {
     const result = filterRoutesByBuildTarget(mockRoutes, 'sdlc');
-    expect(result).toHaveLength(3);
+    expect(result).toHaveLength(6);
     expect(result.find((r) => r.pathname === '/sdlc/cockpit')).toBeDefined();
     expect(result.find((r) => r.pathname === '/sdlc/pipeline')).toBeDefined();
     expect(result.find((r) => r.pathname === '/sdlc/api/ops/status')).toBeDefined();
@@ -39,10 +44,23 @@ describe('build-target integration', () => {
     expect(result.find((r) => r.pathname === '/admin/rechnungen')).toBeUndefined();
   });
 
-  it('removes all non-SDLC routes including api/auth when BUILD_TARGET=sdlc', () => {
+  it('keeps infrastructural routes for liveness probes and OIDC login when BUILD_TARGET=sdlc (T002675)', () => {
     const result = filterRoutesByBuildTarget(mockRoutes, 'sdlc');
     const paths = result.map((r) => r.pathname);
-    expect(paths).not.toContain('/api/auth/login');
+    expect(paths).toContain('/api/health');
+    expect(paths).toContain('/api/auth/login');
+    expect(paths).toContain('/login');
+  });
+
+  it('keeps all /api/auth/* and /api/health routes when BUILD_TARGET=sdlc', () => {
+    const infraOnly = [
+      { component: '/app/src/pages/api/health.ts', pathname: '/api/health' },
+      { component: '/app/src/pages/api/auth/callback.ts', pathname: '/api/auth/callback' },
+      { component: '/app/src/pages/api/auth/me.ts', pathname: '/api/auth/me' },
+      { component: '/app/src/pages/api/auth/logout.ts', pathname: '/api/auth/logout' },
+    ];
+    const result = filterRoutesByBuildTarget(infraOnly, 'sdlc');
+    expect(result).toHaveLength(4);
   });
 
   it('returns empty array when no routes match BUILD_TARGET=sdlc', () => {

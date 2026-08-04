@@ -16,19 +16,44 @@
 /** @typedef {{ component?: string; pathname?: string }} ResolvedRoute */
 
 /**
+ * Infrastrukturelle Routen, die in JEDEM Build-Ziel erhalten bleiben müssen
+ * (T002675). Ohne diese Allowlist filtert BUILD_TARGET=sdlc sie aus dem
+ * Route-Manifest und die sdlc-console crasht in der Probe-Schleife (HTTP 404
+ * auf /api/health) bzw. der OIDC-Login bricht ab (/api/auth/callback fehlt,
+ * /login fehlt):
+ *   - /api/health   → Liveness/Readiness-Probe (k3d/sdlc-stack/sdlc-console.yaml)
+ *   - /api/auth/*   → OIDC-Login-Oberfläche (login, callback, me, logout)
+ *   - /login.astro  → Login-Seite (sdlc-Seiten redirecten auf /login)
+ */
+const INFRA_ROUTE_SUBSTRINGS = ['/api/health', '/api/auth/'];
+const INFRA_ROUTE_SUFFIXES = ['/login.astro'];
+
+/** @param {string} component */
+function isInfraRoute(component) {
+  if (INFRA_ROUTE_SUBSTRINGS.some((s) => component.includes(s))) return true;
+  return INFRA_ROUTE_SUFFIXES.some((s) => component.endsWith(s));
+}
+
+/**
+ * @param {string} component
+ * @param {'prod'|'sdlc'|string|undefined} buildTarget
+ */
+function keepRoute(component, buildTarget) {
+  if (isInfraRoute(component)) return true;
+  const isSdlc = component.includes('/sdlc/') || component.includes('\\sdlc\\');
+  if (buildTarget === 'prod') return !isSdlc;
+  if (buildTarget === 'sdlc') return isSdlc;
+  return true;
+}
+
+/**
  * @param {ResolvedRoute[]} routes
  * @param {'prod'|'sdlc'|string|undefined} buildTarget
  * @returns {ResolvedRoute[]}
  */
 export function filterRoutesByBuildTarget(routes, buildTarget) {
   if (!buildTarget) return routes;
-  return routes.filter((route) => {
-    const component = route.component || '';
-    const isSdlc = component.includes('/sdlc/') || component.includes('\\sdlc\\');
-    if (buildTarget === 'prod') return !isSdlc;
-    if (buildTarget === 'sdlc') return isSdlc;
-    return true;
-  });
+  return routes.filter((route) => keepRoute(route.component || '', buildTarget));
 }
 
 /** @param {import('astro').RouteData} routeData */
@@ -44,14 +69,9 @@ export default function buildTargetIntegration() {
     hooks: {
       'astro:build:ssr'({ manifest }) {
         if (!buildTarget || !manifest?.routes) return;
-        const keep = (route) => {
-          const component = routeComponent(route?.routeData);
-          const isSdlc = component.includes('/sdlc/') || component.includes('\\sdlc\\');
-          if (buildTarget === 'prod') return !isSdlc;
-          if (buildTarget === 'sdlc') return isSdlc;
-          return true;
-        };
-        manifest.routes = manifest.routes.filter(keep);
+        manifest.routes = manifest.routes.filter((route) =>
+          keepRoute(routeComponent(route?.routeData), buildTarget)
+        );
       },
     },
   };

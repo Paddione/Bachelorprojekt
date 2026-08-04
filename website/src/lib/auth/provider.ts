@@ -1,5 +1,3 @@
-import { logger } from '../logger';
-
 export interface AuthProvider {
   id: 'local' | 'fleet';
   frontendUrl: string;

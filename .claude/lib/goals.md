@@ -331,33 +331,26 @@ print(todo)"
 ## G-IF01 — MCP-Endpunkte ohne Listener: n/a → 0
 
 **Was:** Zählt die in der MCP-Registry (`docs/agent-guide/registry/mcp.yaml`) geführten
-Server, deren TCP-Port keinen Listener hat. Ein toter MCP-Server in der Registry erzeugt
-Client-seitig Timeouts, ohne dass ein Ziel es meldet. Belegte Fälle: mcp-postgres (:13001)
-und mcp-kubernetes (:18080) standen wochenlang ohne Listener in der Registry. Der
-Positiv-Anker prüft, dass mindestens ein Server erreichbar ist — eine komplett leere
-Registry soll nicht fälschlich grün melden.
+Clients mit `transport: http`, deren TCP-Port keinen Listener hat. Ein toter MCP-Server in
+der Registry erzeugt Client-seitig Timeouts, ohne dass ein Ziel es meldet. Belegte Fälle:
+mcp-postgres (:13001) und mcp-kubernetes (:18080) standen wochenlang ohne Listener in der
+Registry.
+
+Die `stdio`-Clients bleiben außen vor: sie werden per `command` als Subprozess gestartet
+und haben gar keinen Port, der antworten könnte — sie gehören weder in den Zähler noch in
+den Nenner.
+
+**Leere Kandidatenmenge verletzt das Ziel**, statt es zu überspringen. Genau daran scheiterte
+die Messung von der Registry-Umstellung auf `clients`/`cluster` bis T002648: sie suchte
+weiter einen `servers`-Schlüssel, fand nie einen und meldete dauerhaft nichts, ohne dass ein
+Ziel es anzeigte. Ein erneuter Schema-Wandel fällt damit sofort auf.
 
 ```bash
-python3 -c "
-import yaml, socket, sys
-with open('docs/agent-guide/registry/mcp.yaml') as f:
-    servers = [s for s in yaml.safe_load(f).get('servers', []) if s.get('command') != 'manual']
-total = len(servers)
-dead = 0
-for s in servers:
-    env = s.get('env', {})
-    port = env.get('PORT') or env.get('MCP_PORT')
-    host = env.get('HOST', '127.0.0.1')
-    if port:
-        try:
-            sock = socket.create_connection((host, int(port)), timeout=2)
-            sock.close()
-        except: dead += 1
-print(dead)
-" 2>/dev/null || echo n/a
+python3 scripts/lib/mcp-endpoint-probe.py
+# HG_MCP_REGISTRY überschreibt den Registry-Pfad (für Tests).
 ```
 
-> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja (nur lokal — CI hat keine MCP-Server) · **Ticket:** T002441
+> **B · Baseline:** n/a · **Target:** 0 · **Aufwand:** gering · **Messzyklus:** wöchentlich · **Reproduzierbar:** ja (nur lokal — CI hat keine MCP-Server) · **Ticket:** T002441 → **T002648** (Messung repariert: Registry-Struktur, `except Exception`, lauter Strukturbruch)
 
 ## G-IF02 — Stille Degradation (verschluckte Fehler auf Schnittstellenpfaden): n/a → 0
 
@@ -671,11 +664,11 @@ Auf Target, nur halten. `bash scripts/health-goals-check.sh` prüft die ✅-repr
 | **G-SIZE03** | God-File `website/src/lib/website-db.ts` | 311 ✓ | ≤ 3000 | `wc -l < website/src/lib/website-db.ts` |
 | **G-GIT01** | Offene PRs >7 Tage | 0 ✓ | 0 | `gh pr list --state open --json number,createdAt` |
 | **G-GIT03** | Dateien >1MB im Tree (kein LFS) | 7 ⚠ | ≤ 6 | `git ls-files -z \| xargs -0 -I{} sh -c 'test -f "{}" && wc -c "{}"' 2>/dev/null \| awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar. |
-| **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json 2>/dev/null \| python3 -c "..."` |
+| **G-DEP01** | High/Critical npm-Vulnerabilities | 0 ✓ | 0 | `cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0) |
 | **G-DEP03** | PM-Konsistenz (pnpm) | 0 ✓ | 1 PM | `grep -q "npm ci" website/Dockerfile && echo inkonsistent \|\| echo ok` |
 | **G-DEP04** | `engines >= 22.13.0` | 0 ✓ | 0 | `for p in package.json website/package.json ...; do python3 -c "..engines.."; done` |
 | **G-DEP05** | Renovate-PR-Backlog | 0 ✓ | ≤ 3 | `gh pr list --state open --json author,labels \| python3 -c "..renovate.."` |
-| **G-DEP02** | Veraltete Major-Deps | 2 ✓ | ≤ 3 | `cd website && pnpm outdated` (Major-Sprünge zählen: aktuell nur eslint-plugin-astro 1→2, knip 5→6) |
+| **G-DEP02** | Veraltete Major-Deps | 2 ✓ | ≤ 3 | `cd website && pnpm outdated --format json` → `scripts/lib/pnpm-outdated-majors.py` (stdin; pnpm endet mit Funden als Exit 1 — Ausgabe erfassen, nicht den Pipeline-Status werten) |
 | **G-IMG01** | Fremd-Image-Versions-Drift | 2 ⚠ | 0 | `grep -rhE 'image:' k3d/ prod*/ \| ... sort -u \| awk -F'\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml) |
 | **G-K8S01** | Deployments ohne Limits | 0/34 ✓ | 0 | `python3 -c "..resources.limits.." k3d/*.yaml` |
 | **G-K8S02** | Deployments ohne readinessProbe | 1/34 ✓ | ≤ 3 | `python3 -c "..readinessProbe.." k3d/*.yaml` |

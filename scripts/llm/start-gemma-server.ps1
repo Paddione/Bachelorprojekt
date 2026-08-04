@@ -77,6 +77,21 @@
   Operation gemeldet. Ein blinder Retry killt den laufenden Server (Port-Cleanup).
   Mit -NoWait kehrt das Skript sofort nach Start-Process zurueck und ueberspringt
   Health-Poll und Hinweistext.
+
+  GUARDRAIL-CACHE (T002482): mit -SlotSavePath und -SwaFull aktiviert das Skript
+  persistente Slot-Caches. Der fixe Guardrail-Praefix (AGENTS.md-Regeln,
+  Toolset-Block) bleibt ueber Ticketgrenzen hinweg erhalten. Die Aufrufsequenz
+  liegt BEWUSST NICHT im Skript, sondern beim Aufrufer -- der Zeitpunkt des
+  Speicherns haengt am Factory-Lebenszyklus, nicht am Serverstart:
+
+    1. Guardrail-Prompt einmal an den Slot schicken (POST /v1/chat/completions).
+    2. Slot speichern: POST /slots/{id}?action=save  {"filename":"guardrail.bin"}
+    3. Spaeter wiederherstellen: POST /slots/{id}?action=restore {"filename":"guardrail.bin"}
+
+  Der wiederhergestellte Slot haelt den Kontext ohne Re-Prefill (cached_tokens).
+  Ohne -SwaFull funktioniert das Save/Restore zwar (HTTP 200), aber der
+  Folge-Call re-evaluiert den kompletten Prompt (cached_tokens=0) -- deshalb
+  sind beide Schalter gekoppelt: -SlotSavePath ohne -SwaFull bricht ab.
 .PARAMETER LlamaDir
   Verzeichnis mit dem Fork-Build. Default: C:\Users\PatrickKorczewski\llama-bonsai-cuda13.3
 .PARAMETER Port
@@ -105,6 +120,17 @@
   der Kontext wird billiger. Fuer den Bedarf auf
   scripts/llm/kv-budget.sh --no-kv-offload verweisen, statt die Formel ein
   drittes Mal zu duplizieren.
+.PARAMETER SlotSavePath
+  Pfad fuer persistente Slot-KV-Caches (--slot-save-path). Default leer (= aus).
+  Das Verzeichnis wird beim Start angelegt, falls es fehlt. Nur gemeinsam mit
+  -SwaFull verwendbar -- ohne -SwaFull bricht der Start mit erklaerender Meldung
+  ab, weil der wiederhergestellte Cache sonst ohne Treffer genutzt wird.
+.PARAMETER SwaFull
+  Voller SWA-Cache statt Ringpuffer (--swa-full). Notwendig fuer korrekte
+  Slot-Save/Restore bei SWA-Modellen (Gemma 4: 1024er-Fenster). Ohne dieses
+  Flag melden Save/Restore zwar HTTP 200, aber der wiederhergestellte KV-
+  Zustand wird nicht als Cache-Treffer genutzt (cached_tokens=0). Erzwungen
+  durch Kopplung an -SlotSavePath.
 .EXAMPLE
   .\scripts\llm\start-gemma-server.ps1
   # Factory-Profil: 65536 ctx, 1 Slot, maximaler Praefix-Reuse
@@ -112,6 +138,12 @@
   .\scripts\llm\start-gemma-server.ps1 -Ctx 200000 -Slots 3
   # Mehr-Agenten-Profil: 200k als GEMEINSAMER Pool ueber 3 Slots (-kvu).
   # Wirkt nur, wenn tickets.llm_proxy_backends.max_inflight ebenfalls >= 3 ist.
+.EXAMPLE
+  .\scripts\llm\start-gemma-server.ps1 -SlotSavePath C:\cache\gemma-slots -SwaFull
+  # Guardrail-Profil: persistente Slot-Caches aktivieren. Vor dem ersten
+  # Einsatz den Guardrail-Prompt laden, dann Slot per REST speichern
+  # (Aufrufsequenz in .DESCRIPTION). Der Slot bleibt ueber Neustarts
+  # hinweg erhalten, solange die Cache-Datei nicht geloescht wird.
 #>
 
 param(
@@ -124,6 +156,8 @@ param(
   [string]$KvType = "q4_0",
   [switch]$NoMmproj,
   [switch]$KvOffload,
+  [string]$SlotSavePath = "",
+  [switch]$SwaFull,
   [switch]$NoWait
 )
 
@@ -282,6 +316,27 @@ $Params = @(
 if ($Slots -gt 1) { $Params += "-kvu" }
 
 if ($KvOffload) { $Params += "-nkvo" }
+
+# GUARDRAIL-CACHE (T002482): persistente Slot-KV-Caches. Der Guardrail-Praefix
+# (AGENTS.md-Regeln, Toolset-Block) bleibt ueber Ticketgrenzen hinweg erhalten.
+# Die Save/Restore-Aufrufsequenz selbst liegt beim Aufrufer, nicht im Skript -
+# Begruendung und Sequenz in .DESCRIPTION.
+# Gekoppelt an -SwaFull: Das Gate-Ergebnis aus design.md zeigt, dass Save/Restore
+# ohne --swa-full zwar HTTP 200 liefert, aber der wiederhergestellte KV-Zustand
+# beim Folge-Call NICHT als Cache-Treffer genutzt wird (cached_tokens=0).
+if ($SlotSavePath -ne "") {
+  if (-not $SwaFull) {
+    Write-Error "-SlotSavePath erfordert -SwaFull (Grund: design.md, Gate-Ergebnis)."
+    Write-Output "  Ohne --swa-full laeuft Save/Restore durch (HTTP 200), aber der"
+    Write-Output "  wiederhergestellte KV-Zustand wird beim Folge-Call nicht als"
+    Write-Output "  Cache-Treffer genutzt (cached_tokens=0)."
+    Write-Output "  Starte mit -SlotSavePath <pfad> -SwaFull, um beide Flags zu setzen."
+    exit 1
+  }
+  New-Item -ItemType Directory -Force -Path $SlotSavePath | Out-Null
+  $Params += @("--slot-save-path", $SlotSavePath)
+}
+if ($SwaFull) { $Params += "--swa-full" }
 
 # Fail-loud statt fail-silent: ein fehlender Tower wuerde den Server als reines
 # Textmodell hochbringen, und das faellt erst auf, wenn ein Client ein Bild

@@ -41,7 +41,7 @@ describe('hasFallbackConfigured', () => {
     setEnv({
       POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
       POCKET_ID_URL: 'http://pocket-id:1411',
-      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.mentolder.de',
+      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.example.net',
     });
     expect(hasFallbackConfigured()).toBe(false);
   });
@@ -50,8 +50,8 @@ describe('hasFallbackConfigured', () => {
     setEnv({
       POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
       POCKET_ID_URL: 'http://pocket-id:1411',
-      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.mentolder.de',
-      POCKET_ID_FALLBACK_URL: 'https://auth.mentolder.de',
+      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.example.net',
+      POCKET_ID_FALLBACK_URL: 'https://auth.example.net',
     });
     expect(hasFallbackConfigured()).toBe(true);
   });
@@ -74,15 +74,15 @@ describe('resolveEndpointsSync', () => {
     setEnv({
       POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
       POCKET_ID_URL: 'http://pocket-id:1411',
-      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.mentolder.de',
-      POCKET_ID_FALLBACK_URL: 'https://auth.mentolder.de',
+      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.example.net',
+      POCKET_ID_FALLBACK_URL: 'https://auth.example.net',
     });
     global.fetch = vi.fn().mockRejectedValueOnce(new Error('primary down')).mockResolvedValueOnce({ ok: true } as Response);
     const provider = await resolveAuthProvider();
     expect(provider?.id).toBe('fleet');
     const ep = resolveEndpointsSync();
-    expect(ep.auth).toBe('https://auth.mentolder.de/authorize');
-    expect(ep.token).toBe('https://auth.mentolder.de/api/oidc/token');
+    expect(ep.auth).toBe('https://auth.example.net/authorize');
+    expect(ep.token).toBe('https://auth.example.net/api/oidc/token');
   });
 });
 
@@ -91,8 +91,8 @@ describe('resolveAuthProvider', () => {
     setEnv({
       POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
       POCKET_ID_URL: 'http://pocket-id:1411',
-      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.mentolder.de',
-      POCKET_ID_FALLBACK_URL: 'https://auth.mentolder.de',
+      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.example.net',
+      POCKET_ID_FALLBACK_URL: 'https://auth.example.net',
     });
     global.fetch = vi.fn().mockRejectedValue(new Error('connection refused'));
     const provider = await resolveAuthProvider();
@@ -103,15 +103,15 @@ describe('resolveAuthProvider', () => {
     setEnv({
       POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
       POCKET_ID_URL: 'http://pocket-id:1411',
-      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.mentolder.de',
-      POCKET_ID_FALLBACK_URL: 'https://auth.mentolder.de',
+      POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.example.net',
+      POCKET_ID_FALLBACK_URL: 'https://auth.example.net',
     });
     global.fetch = vi.fn()
       .mockRejectedValueOnce(new Error('primary down'))
       .mockResolvedValueOnce({ ok: true } as Response);
     const provider = await resolveAuthProvider();
     expect(provider?.id).toBe('fleet');
-    expect(provider?.frontendUrl).toBe('https://auth.mentolder.de');
+    expect(provider?.frontendUrl).toBe('https://auth.example.net');
   });
 
   it('Fall 3 — primary up returns local', async () => {

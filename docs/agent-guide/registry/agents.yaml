@@ -25,7 +25,6 @@ roles:
     claude_code: sonnet
     agy: unsupported
     opencode: null
-    tools: [Bash, Read, Glob, Grep]
   bachelorprojekt-security:
     claude_code: opus
     agy: unsupported

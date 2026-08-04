@@ -2481,6 +2481,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002651": [
+    {
+      "slug": "agent-capability-drift-guards",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -1,0 +1,69 @@
+version: "3"
+
+tasks:
+  sdlc:cluster:create:
+    desc: "k3d-Cluster mentolder-dev anlegen (Kontext k3d-mentolder-dev)"
+    preconditions:
+      - sh: docker info >/dev/null 2>&1
+        msg: "Docker muss laufen"
+      - sh: "! k3d cluster list 2>/dev/null | grep -q mentolder-dev"
+        msg: "Cluster mentolder-dev existiert bereits"
+    cmds:
+      - k3d cluster create --config k3d/sdlc-stack/k3d-config.yaml
+      - kubectl wait --for=condition=Ready nodes --all --timeout=120s --context k3d-mentolder-dev
+      - kubectl config delete-context k3d-korczewski 2>/dev/null || true
+      - echo "mentolder-dev bereit — Kontext: $(kubectl config current-context)"
+    silent: false
+
+  sdlc:cluster:delete:
+    desc: "k3d-Cluster mentolder-dev löschen"
+    cmds:
+      - k3d cluster delete mentolder-dev
+
+  sdlc:cluster:status:
+    desc: "Cluster-Status: Nodes, Pods"
+    cmds:
+      - k3d cluster list
+      - kubectl --context k3d-mentolder-dev get nodes
+      - kubectl --context k3d-mentolder-dev get pods -n workspace 2>/dev/null || echo "(namespace workspace nicht vorhanden)"
+
+  sdlc:deploy:
+    desc: "SDLC-Stack deployen (kustomize + envsubst + kubectl apply)"
+    cmds:
+      - |
+        set -e
+        WEBSITE_DB_PASSWORD="${WEBSITE_DB_PASSWORD:-devwebsitedb}"
+        SHARED_DB_PASSWORD="${SHARED_DB_PASSWORD:-devshareddb}"
+        POCKET_ID_DB_PASSWORD="${POCKET_ID_DB_PASSWORD:-devpocketiddb}"
+        NEXTCLOUD_DB_PASSWORD="${NEXTCLOUD_DB_PASSWORD:-devnextclouddb}"
+        VAULTWARDEN_DB_PASSWORD="${VAULTWARDEN_DB_PASSWORD:-devvaultwardendb}"
+        VIDEOVAULT_DB_PASSWORD="${VIDEOVAULT_DB_PASSWORD:-devvideovaultdb}"
+        export WEBSITE_DB_PASSWORD SHARED_DB_PASSWORD POCKET_ID_DB_PASSWORD
+        export NEXTCLOUD_DB_PASSWORD VAULTWARDEN_DB_PASSWORD VIDEOVAULT_DB_PASSWORD
+        export POCKET_ID_FRONTEND_URL="${POCKET_ID_FRONTEND_URL:-http://auth.localhost}"
+        export POCKET_ID_URL="${POCKET_ID_URL:-http://pocket-id:1411}"
+        export POCKET_ID_DOMAIN="${POCKET_ID_DOMAIN:-auth.localhost}"
+        export PROD_DOMAIN="${PROD_DOMAIN:-localhost}"
+        export WEBSITE_SITE_URL="${WEBSITE_SITE_URL:-http://sdlc.localhost}"
+        export SMTP_HOST="${SMTP_HOST:-}"
+        export SMTP_PORT="${SMTP_PORT:-}"
+        export SMTP_USER="${SMTP_USER:-}"
+        export SMTP_FROM="${SMTP_FROM:-}"
+        export POCKET_ID_SMTP_TLS="${POCKET_ID_SMTP_TLS:-}"
+        kubectl kustomize --load-restrictor=LoadRestrictionsNone k3d/sdlc-stack | envsubst | kubectl --context k3d-mentolder-dev apply -f -
+        echo "---"
+        kubectl --context k3d-mentolder-dev rollout status deployment/shared-db -n workspace --timeout=300s
+        kubectl --context k3d-mentolder-dev rollout status deployment/pocket-id -n workspace --timeout=300s
+        kubectl --context k3d-mentolder-dev rollout status deployment/sdlc-console -n workspace --timeout=300s
+        kubectl --context k3d-mentolder-dev rollout status deployment/llm-gateway-embed -n workspace --timeout=300s
+        kubectl --context k3d-mentolder-dev rollout status deployment/llm-gateway-rerank -n workspace --timeout=300s
+
+  sdlc:status:
+    desc: "SDLC-Stack Health-Übersicht"
+    cmds:
+      - kubectl --context k3d-mentolder-dev get pods -n workspace
+      - echo "---"
+      - kubectl --context k3d-mentolder-dev get svc -n workspace
+      - echo "---"
+      - echo "Console:  $(curl -sS -o /dev/null -w '%{http_code}' http://sdlc.localhost 2>/dev/null || echo unreachable)"
+      - echo "Auth:     $(curl -sS -o /dev/null -w '%{http_code}' http://auth.localhost 2>/dev/null || echo unreachable)"

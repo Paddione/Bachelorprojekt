@@ -2694,6 +2694,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/proxy-tests-registered",
+    "file": "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/ui-config-seed",
     "file": "tests/spec/local-llm-proxy/ui-config-seed.bats",
     "category": "local-llm-proxy",

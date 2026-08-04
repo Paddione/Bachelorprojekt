@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.251.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.1...website-v1.251.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **ci:** pre-push-Guard prueft generierte Artefakte einzeln statt per ODER [T002672] ([#3796](https://github.com/Paddione/Bachelorprojekt/issues/3796)) ([a3a053f](https://github.com/Paddione/Bachelorprojekt/commit/a3a053f661371481554cf71bca092bf051513987))
+
 ## [1.251.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.0...website-v1.251.1) (2026-08-04)
 
 

@@ -12,7 +12,7 @@ tasks:
       - k3d cluster create --config k3d/sdlc-stack/k3d-config.yaml
       - kubectl wait --for=condition=Ready nodes --all --timeout=120s --context k3d-mentolder-dev
       - kubectl config delete-context k3d-korczewski 2>/dev/null || true
-      - echo "mentolder-dev bereit - Kontext: $(kubectl config current-context)"
+      - 'echo "mentolder-dev bereit - Kontext: $(kubectl config current-context)"'
 
   sdlc:cluster:delete:
     desc: "k3d-Cluster mentolder-dev löschen"
@@ -64,5 +64,5 @@ tasks:
       - echo "---"
       - kubectl --context k3d-mentolder-dev get svc -n workspace
       - echo "---"
-      - echo "Console:  $(curl -sS -o /dev/null -w '%{http_code}' http://sdlc.localhost 2>/dev/null || echo unreachable)"
-      - echo "Auth:     $(curl -sS -o /dev/null -w '%{http_code}' http://auth.localhost 2>/dev/null || echo unreachable)"
+      - echo "Console:  $(curl -sS -o /dev/null -w %{http_code} http://sdlc.localhost 2>/dev/null || echo unreachable)"
+      - echo "Auth:     $(curl -sS -o /dev/null -w %{http_code} http://auth.localhost 2>/dev/null || echo unreachable)"

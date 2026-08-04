@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { GOALS, ACTIVE_GOALS, GREEN_GATES, CATEGORIES, healthPercent } from '../lib/goals-data';
-  import type { HealthGoal } from '../lib/goals-data';
+  import { GOALS, ACTIVE_GOALS, GREEN_GATES, CATEGORIES, healthPercent } from '../../lib/sdlc/goals-data';
+  import type { HealthGoal } from '../../lib/sdlc/goals-data';
 
   let selectedCategory = 'Alle';
   let expandedId: string | null = null;

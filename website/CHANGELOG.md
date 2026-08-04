@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.251.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.250.0...website-v1.251.0) (2026-08-04)
+
+
+### Features
+
+* **scripts:** GPU-Arbitrierung — Trainings-Vorrang, llm-proxy-Draining [T002628] ([#3790](https://github.com/Paddione/Bachelorprojekt/issues/3790)) ([7f0b004](https://github.com/Paddione/Bachelorprojekt/commit/7f0b004d319c6cb3053ff16f26fd309c7a376ac3))
+
 ## [1.250.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.249.0...website-v1.250.0) (2026-08-04)
 
 

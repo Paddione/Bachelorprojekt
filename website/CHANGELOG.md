@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.250.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.249.0...website-v1.250.0) (2026-08-04)
+
+
+### Features
+
+* **scripts:** Fine-Tune gegen Basis messbar machen — GGUF-Fixture-Brücke [T002634] ([#3788](https://github.com/Paddione/Bachelorprojekt/issues/3788)) ([19d587a](https://github.com/Paddione/Bachelorprojekt/commit/19d587a1d071d10da52eeccab7540fd3a4a54e56))
+
 ## [1.249.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.4...website-v1.249.0) (2026-08-04)
 
 

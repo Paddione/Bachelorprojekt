@@ -1,13 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { MessageParam, ToolResultBlockParam } from '@anthropic-ai/sdk/resources/messages';
-import type { SessionAgent, GenerateOptions, GenerateResult } from './session-agent';
+import type { SessionAgent, GenerateOptions, GenerateResult } from './session-agent.ts';
 import {
   SESSION_TOOLS,
   getSessionStepTool,
   searchCoachingKnowledgeTool,
   draftSessionReportTool,
-} from './session-tools';
-import { getProviderByName } from './provider-config';
+} from './session-tools.ts';
+import { getProviderByName } from './provider-config.ts';
 
 const MAX_TOOL_ROUNDS = 3;
 

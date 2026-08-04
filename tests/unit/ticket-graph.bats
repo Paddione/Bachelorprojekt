@@ -8,9 +8,9 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
 
 setup() {
   export PROJECT_DIR
-  GRAPH_LIB="${PROJECT_DIR}/website/src/lib/ticket-graph.ts"
+  GRAPH_LIB="${PROJECT_DIR}/website/src/lib/sdlc/ticket-graph.ts"
   READINESS_LIB="${PROJECT_DIR}/website/src/lib/ticket-readiness.ts"
-  GRAPH_API="${PROJECT_DIR}/website/src/pages/api/tickets/graph.ts"
+  GRAPH_API="${PROJECT_DIR}/website/src/pages/sdlc/api/tickets/graph.ts"
 }
 
 @test "static: ticket-graph.ts exists" {

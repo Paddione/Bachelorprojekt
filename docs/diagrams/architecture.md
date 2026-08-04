@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-91 Services · 1828 Abhängigkeitskanten · 408 API-Endpoints
+91 Services · 1828 Abhängigkeitskanten · 289 API-Endpoints
 
 ## Service-Map
 
@@ -2003,12 +2003,10 @@ flowchart TB
 | Path | Methods | Auth |
 |------|---------|------|
 | `/api/admin/agent-push/settings` | GET, POST | 🔐 admin |
-| `/api/admin/ai-quality` | GET | 🔐 admin |
 | `/api/admin/angebote/save` | POST | 🔐 admin |
 | `/api/admin/art-library` | GET | 🔐 admin |
 | `/api/admin/assets` | GET | 🔐 admin |
 | `/api/admin/assets/upload` | POST | 🔐 admin |
-| `/api/admin/backup-status` | GET | 🔐 admin |
 | `/api/admin/billing/{id}` | GET | 🔐 admin |
 | `/api/admin/billing/{id}/discard` | POST | 🔐 admin |
 | `/api/admin/billing/{id}/finalize-from-prepayment` | POST | 🔐 admin |
@@ -2053,10 +2051,6 @@ flowchart TB
 | `/api/admin/clients/set-is-admin` | POST | 🔐 admin |
 | `/api/admin/clients/update` | POST | 🔐 admin |
 | `/api/admin/clients/update-crm` | POST | 🔐 admin |
-| `/api/admin/cluster/graph` | GET | 🔐 admin |
-| `/api/admin/cluster/logs` | GET | 🔐 admin |
-| `/api/admin/cluster/pods-list` | GET | 🔐 admin |
-| `/api/admin/cluster/warnings` | GET | 🔐 admin |
 | `/api/admin/coaching/books` | GET | 🔐 admin |
 | `/api/admin/coaching/books/{id}` | GET, DELETE | 🔐 admin |
 | `/api/admin/coaching/books/{id}/acceptance-rate` | GET | 🔐 admin |
@@ -2092,18 +2086,6 @@ flowchart TB
 | `/api/admin/coaching/templates/{id}` | GET, PATCH | 🔐 admin |
 | `/api/admin/coaching/templates/{id}/publish` | POST | 🔐 admin |
 | `/api/admin/coaching/templates/{id}/versions` | GET | 🔐 admin |
-| `/api/admin/cockpit/audit` | GET | 🔐 admin |
-| `/api/admin/cockpit/batch` | POST | 🔐 admin |
-| `/api/admin/cockpit/brain` | GET | 🔐 admin |
-| `/api/admin/cockpit/container-count` | GET | 🔐 admin |
-| `/api/admin/cockpit/feature` | GET | 🔐 admin |
-| `/api/admin/cockpit/feature-action` | POST | 🔐 admin |
-| `/api/admin/cockpit/feature-actions` | POST | 🔐 admin |
-| `/api/admin/cockpit/portfolio` | GET | 🔐 admin |
-| `/api/admin/cockpit/reorder` | POST | 🔐 admin |
-| `/api/admin/cockpit/reparent` | POST | 🔐 admin |
-| `/api/admin/cockpit/suggest` | POST | 🔐 admin |
-| `/api/admin/cockpit/ticket-status` | POST | 🔐 admin |
 | `/api/admin/components` | GET, POST | 🔐 admin |
 | `/api/admin/components/{id}` | PATCH, DELETE | 🔐 admin |
 | `/api/admin/content/restore` | POST | 🔐 admin |
@@ -2111,10 +2093,6 @@ flowchart TB
 | `/api/admin/content/versions` | GET | 🔐 admin |
 | `/api/admin/customers` | GET | 🔐 admin |
 | `/api/admin/customers-list` | GET | 🔐 admin |
-| `/api/admin/delivery-metrics` | GET | 🔐 admin |
-| `/api/admin/deployments` | GET | 🔐 admin |
-| `/api/admin/deployments/{name}/restart` | POST | 🔐 admin |
-| `/api/admin/deployments/{name}/scale` | POST | 🔐 admin |
 | `/api/admin/documents/assign` | POST | 🔐 admin |
 | `/api/admin/documents/assignments` | GET | 🔐 admin |
 | `/api/admin/documents/assignments/{id}` | DELETE, PATCH | 🔐 admin |
@@ -2129,9 +2107,6 @@ flowchart TB
 | `/api/admin/einstellungen/email` | POST | 🔐 admin |
 | `/api/admin/einstellungen/rechnungen` | POST | 🔐 admin |
 | `/api/admin/einstellungen/upload-logo` | POST | 🔐 admin |
-| `/api/admin/evidence/{id}/replay` | GET | 🔐 admin |
-| `/api/admin/evidence/upload` | POST | 🔐 admin |
-| `/api/admin/factory-control` | GET, PATCH | 🔐 admin |
 | `/api/admin/faq/save` | POST | 🔐 admin |
 | `/api/admin/folder-templates/create` | POST | 🔐 admin |
 | `/api/admin/folder-templates/delete` | POST | 🔐 admin |
@@ -2148,11 +2123,6 @@ flowchart TB
 | `/api/admin/inhalte/custom/{slug}` | PUT, DELETE | 🔐 admin |
 | `/api/admin/inhalte/rechnungsvorlagen/preview` | GET | 🔐 admin |
 | `/api/admin/inhalte/rechnungsvorlagen/save` | POST | 🔐 admin |
-| `/api/admin/ki/catalog` | GET | 🔐 admin |
-| `/api/admin/ki/embeddings` | GET, PUT | 🔐 admin |
-| `/api/admin/ki/env-status` | GET | 🔐 admin |
-| `/api/admin/ki/providers` | GET, POST | 🔐 admin |
-| `/api/admin/ki/providers/{id}` | PUT, DELETE | 🔐 admin |
 | `/api/admin/knowledge/collections` | GET, POST | 🔐 admin |
 | `/api/admin/knowledge/collections/{id}` | GET, DELETE | 🔐 admin |
 | `/api/admin/knowledge/collections/{id}/context7` | POST, GET | 🔐 admin |
@@ -2168,10 +2138,6 @@ flowchart TB
 | `/api/admin/kore-flags/save` | POST | 🔐 admin |
 | `/api/admin/legal/{key}/save` | POST | 🔐 admin |
 | `/api/admin/legal/retokenize` | POST | 🔐 admin |
-| `/api/admin/llm-proxy/backends` | GET, POST | 🔐 admin |
-| `/api/admin/llm-proxy/backends/{id}` | PUT, DELETE | 🔐 admin |
-| `/api/admin/llm-proxy/reload` | POST | 🔐 admin |
-| `/api/admin/llm-proxy/status` | GET | 🔐 admin |
 | `/api/admin/meetings` | GET | 🔐 admin |
 | `/api/admin/meetings/{id}` | GET, PATCH | 🔐 admin |
 | `/api/admin/meetings/create` | POST | 🔐 admin |
@@ -2179,7 +2145,6 @@ flowchart TB
 | `/api/admin/members/list` | GET | 🔐 admin |
 | `/api/admin/messages` | GET, POST | 🔐 admin |
 | `/api/admin/messages/{threadId}` | GET, POST | 🔐 admin |
-| `/api/admin/monitoring` | GET | 🔐 admin |
 | `/api/admin/navigation/save` | POST | 🔐 admin |
 | `/api/admin/newsletter/blocks` | GET, POST | 🔐 admin |
 | `/api/admin/newsletter/blocks/{id}` | PUT, DELETE | 🔐 admin |
@@ -2191,32 +2156,6 @@ flowchart TB
 | `/api/admin/newsletter/subscribers/{id}` | DELETE | 🔐 admin |
 | `/api/admin/onboarding/reset` | POST | 🔐 admin |
 | `/api/admin/onboarding/update` | POST | 🔐 admin |
-| `/api/admin/openspec/save-proposal` | POST | 🔐 admin |
-| `/api/admin/ops/ai/reindex` | POST | 🔐 admin |
-| `/api/admin/ops/audit/log` | GET | 🔐 admin |
-| `/api/admin/ops/backup/list` | GET | 🔐 admin |
-| `/api/admin/ops/backup/trigger` | POST | 🔐 admin |
-| `/api/admin/ops/certs` | GET | 🔐 admin |
-| `/api/admin/ops/deployments/{ns}/{name}/restart` | POST | 🔐 admin |
-| `/api/admin/ops/deployments/{ns}/{name}/scale` | POST | 🔐 admin |
-| `/api/admin/ops/deployments/list` | GET | 🔐 admin |
-| `/api/admin/ops/error-log` | POST, GET | 🔐 admin |
-| `/api/admin/ops/health` | GET | 🔐 admin |
-| `/api/admin/ops/log-stream/stream` | GET | 🔐 admin |
-| `/api/admin/ops/redeploy/brett` | POST | 🔐 admin |
-| `/api/admin/ops/redeploy/docs` | POST | 🔐 admin |
-| `/api/admin/ops/redeploy/website` | POST | 🔐 admin |
-| `/api/admin/ops/restore` | POST | 🔐 admin |
-| `/api/admin/ops/server-logs/stream` | GET | 🔐 admin |
-| `/api/admin/ops/users/create` | POST | 🔐 admin |
-| `/api/admin/ops/users/groups` | GET | 🔐 admin |
-| `/api/admin/ops/users/list` | GET | 🔐 admin |
-| `/api/admin/planungsbuero` | GET | 🔐 admin |
-| `/api/admin/planungsbuero/{extId}` | PATCH | 🔐 admin |
-| `/api/admin/platform/assets/{slug}/tickets` | GET | 🔐 admin |
-| `/api/admin/platform/hardware` | GET | 🔐 admin |
-| `/api/admin/platform/software` | GET, POST | 🔐 admin |
-| `/api/admin/platform/software/{id}` | PUT, DELETE | 🔐 admin |
 | `/api/admin/poll` | POST | 🔐 admin |
 | `/api/admin/poll/{id}` | GET | 🔐 admin |
 | `/api/admin/poll/{id}/share` | POST | 🔐 admin |
@@ -2232,12 +2171,6 @@ flowchart TB
 | `/api/admin/projekttasks/create` | POST | 🔐 admin |
 | `/api/admin/projekttasks/delete` | POST | 🔐 admin |
 | `/api/admin/projekttasks/update` | POST | 🔐 admin |
-| `/api/admin/prompt-library` | GET, POST | 🔐 admin |
-| `/api/admin/prompt-library/{id}` | PUT, DELETE | 🔐 admin |
-| `/api/admin/prompt-library/{id}/use` | POST | 🔐 admin |
-| `/api/admin/qa-criteria` | GET | 🔐 admin |
-| `/api/admin/qa-queue` | GET | 🔐 admin |
-| `/api/admin/qa-reviews` | POST | 🔐 admin |
 | `/api/admin/questionnaires/assign` | POST | 🔐 admin |
 | `/api/admin/questionnaires/assignments` | GET | 🔐 admin |
 | `/api/admin/questionnaires/assignments/{id}` | GET, PUT | 🔐 admin |
@@ -2272,37 +2205,8 @@ flowchart TB
 | `/api/admin/subprojekte/create` | POST | 🔐 admin |
 | `/api/admin/subprojekte/delete` | POST | 🔐 admin |
 | `/api/admin/subprojekte/update` | POST | 🔐 admin |
-| `/api/admin/systemtest/board` | GET | 🔐 admin |
-| `/api/admin/systemtest/cleanup-fixtures` | POST | 🔐 admin |
-| `/api/admin/systemtest/drain-outbox` | POST | 🔐 admin |
-| `/api/admin/systemtest/purge-all-test-data` | POST | 🔐 admin |
-| `/api/admin/systemtest/seed` | POST | 🔐 admin |
 | `/api/admin/tax-monitor/status` | GET | 🔐 admin |
 | `/api/admin/tax-monitor/ustvaexport` | GET | 🔐 admin |
-| `/api/admin/test-results` | GET | 🔐 admin |
-| `/api/admin/test-runs` | GET | 🔐 admin |
-| `/api/admin/testdata/purge` | DELETE | 🔐 admin |
-| `/api/admin/testdata/seed` | POST | 🔐 admin |
-| `/api/admin/tests/flake` | GET | 🔐 admin |
-| `/api/admin/tests/ingest-e2e` | POST | 🔐 admin |
-| `/api/admin/tests/playwright-report` | GET, POST | 🔐 admin |
-| `/api/admin/tests/report` | POST | 🔐 admin |
-| `/api/admin/tests/results/{jobId}` | GET | 🔐 admin |
-| `/api/admin/tests/run` | POST | 🔐 admin |
-| `/api/admin/tests/stream/{jobId}` | GET | 🔐 admin |
-| `/api/admin/tests/traceability` | GET | 🔐 admin |
-| `/api/admin/tests/trend` | GET | 🔐 admin |
-| `/api/admin/tickets` | GET, POST | 🔐 admin |
-| `/api/admin/tickets/{id}` | GET, PATCH | 🔐 admin |
-| `/api/admin/tickets/{id}/attachments` | POST | 🔐 admin |
-| `/api/admin/tickets/{id}/attachments/{aid}` | GET | 🔐 admin |
-| `/api/admin/tickets/{id}/classify` | POST | 🔐 admin |
-| `/api/admin/tickets/{id}/comments` | POST | 🔐 admin |
-| `/api/admin/tickets/{id}/links` | POST, DELETE | 🔐 admin |
-| `/api/admin/tickets/{id}/transition` | POST | 🔐 admin |
-| `/api/admin/tickets/{id}/triage` | POST | 🔐 admin |
-| `/api/admin/tickets/bulk-status` | POST | 🔐 admin |
-| `/api/admin/tickets/bulk-status/undo` | POST | 🔐 admin |
 | `/api/admin/time-windows/add` | POST | 🔐 admin |
 | `/api/admin/time-windows/remove` | DELETE | 🔐 admin |
 | `/api/admin/transcription` | GET, POST | 🔐 admin |
@@ -2334,27 +2238,12 @@ flowchart TB
 | `/api/bookings/{uid}/project` | PATCH | 🔐 admin |
 | `/api/brett/bot` | POST | ❓ unclassified |
 | `/api/calendar/slots` | GET | ❓ unclassified |
-| `/api/cluster/status` | GET | ❓ unclassified |
-| `/api/codesearch` | GET | 🔐 admin |
 | `/api/contact` | POST | ❓ unclassified |
 | `/api/cron/error-log-retention` | POST | ❓ cron |
 | `/api/cron/notify-unread` | POST | 🔐 admin |
 | `/api/cron/scheduled-publish` | GET | ❓ cron |
 | `/api/demo/coaching-sim` | POST | ❓ unclassified |
 | `/api/dsgvo-request` | POST | ❓ unclassified |
-| `/api/factory-budget` | GET, POST | 🔐 admin |
-| `/api/factory-floor` | GET | 🔐 admin |
-| `/api/factory-floor/{extId}` | GET | 🔐 admin |
-| `/api/factory-floor/{extId}/ci` | GET | 🔐 admin |
-| `/api/factory-floor/{extId}/deploy` | POST | 🔐 admin |
-| `/api/factory-floor/{extId}/inject` | POST | 🔐 admin |
-| `/api/factory-floor/{extId}/release` | POST | 🔐 admin |
-| `/api/factory-floor/stream` | GET | 🔐 admin |
-| `/api/factory-metrics` | GET | 🔐 admin |
-| `/api/factory-model-slots` | GET, PUT | 🔐 admin |
-| `/api/factory-observability` | GET | 🔐 admin |
-| `/api/factory/force-tick` | POST | 🔐 admin |
-| `/api/factory/parallel-status` | GET | 🔐 admin |
 | `/api/health` | GET | ❓ unclassified |
 | `/api/homepage` | OPTIONS, GET | ❓ unclassified |
 | `/api/internal/tickets/notify-close` | POST | ❓ internal |
@@ -2367,11 +2256,6 @@ flowchart TB
 | `/api/newsletter/confirm` | GET | ❓ unclassified |
 | `/api/newsletter/subscribe` | POST | ❓ unclassified |
 | `/api/newsletter/unsubscribe` | GET | ❓ unclassified |
-| `/api/openspec/search` | GET | ❓ unclassified |
-| `/api/planning-office` | GET, POST, DELETE | 🔐 admin |
-| `/api/planning-office/{extId}` | PATCH | 🔐 admin |
-| `/api/planning-office/{extId}/clarify` | POST | 🔐 admin |
-| `/api/planning-office/{extId}/promote` | POST | 🔐 admin |
 | `/api/poll/{id}` | GET | ❓ unclassified |
 | `/api/poll/{id}/answer` | POST | ❓ unclassified |
 | `/api/poll/{id}/results` | GET | ❓ unclassified |
@@ -2406,7 +2290,4 @@ flowchart TB
 | `/api/stripe/checkout` | POST | ❓ unclassified |
 | `/api/stripe/invoice-payment-intent` | POST | ❓ unclassified |
 | `/api/stripe/webhook` | POST | ❓ unclassified |
-| `/api/tickets/{id}/readiness` | POST | 🔐 admin |
-| `/api/tickets/comment` | OPTIONS, POST | ❓ unclassified |
-| `/api/tickets/graph` | GET | 🔐 admin |
 | `/api/timeline` | GET | ❓ unclassified |

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import Anthropic from '@anthropic-ai/sdk';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getSession as getCoachingSession, completeSession } from '../../../../../../lib/coaching-session-db';
-import { DEFAULT_CLAUDE_SESSION_MODEL } from '../../../../../../lib/claude-session-agent';
+import { DEFAULT_CLAUDE_SESSION_MODEL } from '../../../../../../lib/claude-session-agent.ts';
 import { pool } from '../../../../../../lib/website-db';
 import { getProviderByName } from '../../../../../../lib/provider-config';
 import { buildProtocol, buildExecutiveSummaryInput } from '../../../../../../lib/coaching-report';

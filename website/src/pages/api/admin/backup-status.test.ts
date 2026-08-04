@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { derivePipelineStatus, pickLatest } from './backup-status';
+import { derivePipelineStatus, pickLatest } from '../../sdlc/api/backup-status';
 
 interface PipelineJob {
   name: string;
@@ -16,7 +16,7 @@ vi.mock('../../../lib/auth', () => ({
 }));
 
 import { getSession, isAdmin } from '../../../lib/auth';
-import { GET } from './backup-status';
+import { GET } from '../../sdlc/api/backup-status';
 
 function makeJob(overrides: Partial<PipelineJob> = {}): PipelineJob {
   return {

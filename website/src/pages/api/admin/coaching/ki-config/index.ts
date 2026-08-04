@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { listKiProviders, createKiProvider } from '../../../../../lib/coaching-ki-config-db';
+import { listKiProviders, createKiProvider } from '../../../../../lib/coaching-ki-config-db.ts';
 import { KI_CATALOG } from '../../../../../lib/ki-catalog';
 import { pool } from '../../../../../lib/website-db';
 

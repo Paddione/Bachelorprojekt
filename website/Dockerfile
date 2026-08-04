@@ -40,6 +40,13 @@ COPY .lavish/reference-board.html ./public/cockpit/reference-board.html
 # The pixi.js + Astro build is memory-hungry; without an explicit limit,
 # the dev node (k3s-1) crashes with SIGSEGV or esbuild memory-corruption.
 ENV NODE_OPTIONS=--max-old-space-size=3072
+# ADR-006 Etappe 1 (T002624): BUILD_TARGET steuert die Astro-Integration
+# build-target (filtert das Route-Manifest). Der Workflow reicht ihn als
+# --build-arg; ohne ARG/ENV hier wird er ein stilles No-Op (T002202-Bugklasse).
+# Default "prod": der lokale `pnpm build` und CI ohne Variablen bauen die
+# Kunden-Website; nur das SDLC-Console-Image setzt BUILD_TARGET=sdlc.
+ARG BUILD_TARGET=prod
+ENV BUILD_TARGET=${BUILD_TARGET}
 RUN pnpm run build
 
 # Prune devDependencies so the runtime stage copies only prod node_modules

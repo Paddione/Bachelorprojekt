@@ -17,8 +17,8 @@ vi.mock('../../../../../lib/provider-config', () => ({
   getProviderByName: (...a: unknown[]) => getProviderByNameMock(...a),
 }));
 import { getSession, isAdmin } from '../../../../../lib/auth';
-import { getKiProviderById } from '../../../../../lib/coaching-ki-config-db';
-import type { KiConfig } from '../../../../../lib/coaching-ki-config-db';
+import { getKiProviderById } from '../../../../../lib/coaching-ki-config-db.ts';
+import type { KiConfig } from '../../../../../lib/coaching-ki-config-db.ts';
 import { GET } from './models';
 
 type RouteContext = Parameters<typeof GET>[0];

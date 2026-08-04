@@ -16,8 +16,13 @@ setup() {
 }
 
 @test "G-CQ02: monitoring.ts has no more than 2 explicit any (was 13)" {
-  count=$(grep -c ': any\|<any>\|as any' \
-    "$REPO_ROOT/website/src/pages/api/admin/monitoring.ts" || true)
+  # T002624: monitoring.ts liegt seit dem SDLC-Build-Target-Split unter pages/sdlc/api/.
+  # Positiv-Anker vor der Zaehlung: fehlt die Datei, liefert `grep -c … || true` einen
+  # LEEREN count, und die Zaehlung liefe ins Leere statt zu scheitern.
+  local f="$REPO_ROOT/website/src/pages/sdlc/api/monitoring.ts"
+  [ -f "$f" ] || { echo "monitoring.ts nicht gefunden unter $f" >&2; false; }
+
+  count=$(grep -c ': any\|<any>\|as any' "$f" || true)
   echo "monitoring.ts any count: $count (target: <=2)"
   [ "$count" -le 2 ]
 }

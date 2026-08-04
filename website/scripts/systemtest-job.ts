@@ -23,8 +23,8 @@ import {
   purgeFixturesFor,
   drainOutbox,
   purgeExpiredMagicTokens,
-} from '../src/lib/systemtest/cleanup';
-import { runReconciler } from '../src/lib/systemtest/reconciler';
+} from '../src/lib/sdlc/systemtest/cleanup';
+import { runReconciler } from '../src/lib/sdlc/systemtest/reconciler';
 
 const mode = process.argv[2];
 

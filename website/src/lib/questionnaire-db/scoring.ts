@@ -140,7 +140,7 @@ export async function reopenQAssignment(id: string): Promise<
 }
 
 export async function updateTestStatuses(assignmentId: string): Promise<void> {
-  const { openFailureTicket, enqueueOutboxRetry } = await import('../systemtest/failure-bridge');
+  const { openFailureTicket, enqueueOutboxRetry } = await import('../sdlc/systemtest/failure-bridge');
   const r = await pool.query(
     `SELECT qa.question_id, qa.option_key, qa.saved_at, qa.details_text
      FROM questionnaire_answers qa

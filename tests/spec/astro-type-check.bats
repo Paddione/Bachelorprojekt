@@ -29,11 +29,11 @@ setup() {
 
 # ── REQ-ASTRO-TC-002: Fixture Factory ────────────────────────────────
 
-@test "REQ-ASTRO-TC-002: fixture factory exists at website/src/lib/tickets/__tests__/fixtures.ts" {
-  [ -f "$REPO/website/src/lib/tickets/__tests__/fixtures.ts" ]
+@test "REQ-ASTRO-TC-002: fixture factory exists at website/src/lib/sdlc/tickets/__tests__/fixtures.ts" {
+  [ -f "$REPO/website/src/lib/sdlc/tickets/__tests__/fixtures.ts" ]
 }
 
 @test "REQ-ASTRO-TC-002: fixture factory exports makeRollup" {
-  run grep -q 'makeRollup' "$REPO/website/src/lib/tickets/__tests__/fixtures.ts"
+  run grep -q 'makeRollup' "$REPO/website/src/lib/sdlc/tickets/__tests__/fixtures.ts"
   [ "$status" -eq 0 ]
 }

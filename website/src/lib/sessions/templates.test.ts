@@ -6,8 +6,8 @@ vi.mock('../website-db', () => ({
 vi.mock('../logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn() },
 }));
-import { pool } from '../website-db';
-import { logger } from '../logger';
+import { pool } from '../website-db.ts';
+import { logger } from '../logger.ts';
 import { DEFAULT_TEMPLATES, listTemplates, cloneTemplate, deleteTemplate } from './templates';
 
 describe('DEFAULT_TEMPLATES', () => {

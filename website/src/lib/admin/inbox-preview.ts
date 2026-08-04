@@ -1,4 +1,4 @@
-import type { InboxItem } from '../messaging-db';
+import type { InboxItem } from '../messaging-db.ts';
 
 export interface InboxPreviewRow {
   id: number;

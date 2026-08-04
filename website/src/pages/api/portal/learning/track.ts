@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession } from '../../../../lib/auth';
 import { upsertLearningItem } from '../../../../lib/learning-db';
-import { goals, tools } from '../../../../lib/agentGuide';
+import { goals, tools } from '../../../../lib/agentGuide.ts';
 
 const goalIds = new Set(goals.map(g => g.id));
 const toolIds = new Set(tools.map(t => t.id));

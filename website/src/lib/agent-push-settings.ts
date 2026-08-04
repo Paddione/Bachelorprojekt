@@ -1,4 +1,4 @@
-import { pool, ensureSchemaOnce } from './website-db';
+import { pool, ensureSchemaOnce } from './website-db.ts';
 
 export async function initAgentPushSettingsTable(): Promise<void> {
   return ensureSchemaOnce('agent_push_settings', async () => {

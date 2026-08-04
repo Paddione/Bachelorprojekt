@@ -6,8 +6,8 @@ import { randomUUID } from 'node:crypto';
 import { createHash } from 'node:crypto';
 import { PDFParse } from 'pdf-parse';
 import EPub from 'epub2';
-import { chunkText } from '../../../../../lib/chunking';
-import { embedBatch } from '../../../../../lib/embeddings';
+import { chunkText } from '../../../../../lib/chunking.ts';
+import { embedBatch } from '../../../../../lib/embeddings.ts';
 import {
   ensureCollection,
   addDocument,

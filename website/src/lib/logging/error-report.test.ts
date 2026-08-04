@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { postError, fetchErrorHistory, podLineToError } from './error-report.js';
+import { postError, fetchErrorHistory, podLineToError } from './error-report.ts';
 
 describe('error-report', () => {
   let mockFetch: ReturnType<typeof vi.fn>;

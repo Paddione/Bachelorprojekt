@@ -112,7 +112,7 @@ build_sandbox_inventory() {
 
 @test "inventory: Schema bleibt unveraendert (id, file, category, kind; kein tier)" {
   build_sandbox_inventory
-  # Der Konsument website/src/pages/api/admin/tests/traceability.ts liest genau diese Felder.
+  # Der Konsument website/src/pages/sdlc/api/tests/traceability.ts liest genau diese Felder.
   # tier ist ein Zwischenfeld des Builders und wird vor dem Schreiben entfernt.
   run jq '[.[] | select((.id|type) != "string" or (.file|type) != "string"
                         or (.category|type) != "string" or (.kind|type) != "string")] | length' "$SANDBOX"

@@ -44,22 +44,6 @@
       "media": false
     },
     {
-      "route": "/admin/app-catalog",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/architektur",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/asset-generation",
       "authTier": "admin",
       "brand": "both",
@@ -109,14 +93,6 @@
     },
     {
       "route": "/admin/buchhaltung",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/bugs",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -181,14 +157,6 @@
     },
     {
       "route": "/admin/coaching/settings",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/cockpit",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
@@ -292,14 +260,6 @@
       "media": false
     },
     {
-      "route": "/admin/ki-konfiguration",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/knowledge/drafts",
       "authTier": "admin",
       "brand": "both",
@@ -364,30 +324,6 @@
       "media": false
     },
     {
-      "route": "/admin/observability",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/pipeline",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/platform",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/projekte",
       "authTier": "admin",
       "brand": "both",
@@ -400,14 +336,6 @@
       "authTier": "admin",
       "brand": "both",
       "dynamic": true,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/prompts",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
       "excludeFromSweep": false,
       "media": false
     },
@@ -428,22 +356,6 @@
       "media": false
     },
     {
-      "route": "/admin/repohealth",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/software-history",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/admin/steuer",
       "authTier": "admin",
       "brand": "both",
@@ -452,26 +364,10 @@
       "media": false
     },
     {
-      "route": "/admin/systemtest/board",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": true,
-      "media": false
-    },
-    {
       "route": "/admin/termine",
       "authTier": "admin",
       "brand": "both",
       "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/admin/tickets/[id]",
-      "authTier": "admin",
-      "brand": "both",
-      "dynamic": true,
       "excludeFromSweep": false,
       "media": false
     },
@@ -918,6 +814,110 @@
       "authTier": "public",
       "brand": "both",
       "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/app-catalog",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/architektur",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/bugs",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/cockpit",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/ki-konfiguration",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/observability",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/pipeline",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/platform",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/prompts",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/repohealth",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/software-history",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/systemtest/board",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": false,
+      "excludeFromSweep": false,
+      "media": false
+    },
+    {
+      "route": "/sdlc/tickets/[id]",
+      "authTier": "public",
+      "brand": "both",
+      "dynamic": true,
       "excludeFromSweep": false,
       "media": false
     },

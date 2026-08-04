@@ -3,7 +3,7 @@
   import { PIPELINE_LANES } from '../../lib/tickets/pipeline-order';
   import type { FloorPayload, HallItem, StagedItem, LoadingDockItem, ShippedItem } from '../../lib/factory-floor-types';
   import { floorStore, acquireFloor } from '../../lib/stores/factory-floor-store';
-  import PhaseStepper from '../factory/PhaseStepper.svelte';
+  import PhaseStepper from '../sdlc/factory/PhaseStepper.svelte';
 
   let { onClose: _onClose }: { onClose: () => void } = $props();
 

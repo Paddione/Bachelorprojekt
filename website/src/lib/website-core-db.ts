@@ -7,7 +7,7 @@
  */
 import { pool, ensureSchemaOnce } from './db-pool';
 import { initTicketsSchema } from './tickets-schema';
-import { transitionTicket } from './tickets/transition';
+import { transitionTicket } from './tickets/transition.ts';
 import type { Customer } from './customer-types';
 
 export type { Customer } from './customer-types';

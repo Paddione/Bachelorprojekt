@@ -2580,6 +2580,12 @@
     "kind": "shell"
   },
   {
+    "id": "health-goals/zielfamilien-audit",
+    "file": "tests/spec/health-goals/zielfamilien-audit.bats",
+    "category": "health-goals",
+    "kind": "shell"
+  },
+  {
     "id": "hermes-mcp-access",
     "file": "tests/spec/hermes-mcp-access.bats",
     "category": "hermes-mcp-access",
@@ -2636,6 +2642,12 @@
   {
     "id": "llm-pipeline/index-repo-embed-port",
     "file": "tests/spec/llm-pipeline/index-repo-embed-port.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "llm-pipeline/kv-offload",
+    "file": "tests/spec/llm-pipeline/kv-offload.bats",
     "category": "llm-pipeline",
     "kind": "shell"
   },

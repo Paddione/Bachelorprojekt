@@ -2223,6 +2223,12 @@
       "status": "archived"
     }
   ],
+  "T002482": [
+    {
+      "slug": "gemma-kv-offload-slot-cache",
+      "status": "plan_staged"
+    }
+  ],
   "T002483": [
     {
       "slug": "2026-08-03-factory-slot-sandbox",
@@ -2388,6 +2394,12 @@
   "T002582": [
     {
       "slug": "factory-model-routing-fix",
+      "status": "plan_staged"
+    }
+  ],
+  "T002584": [
+    {
+      "slug": "zielfamilien-audit",
       "status": "plan_staged"
     }
   ],

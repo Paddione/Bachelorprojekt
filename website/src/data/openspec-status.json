@@ -2481,6 +2481,18 @@
       "status": "plan_staged"
     }
   ],
+  "T002648": [
+    {
+      "slug": "health-goals-silent-fallbacks",
+      "status": "plan_staged"
+    }
+  ],
+  "T002651": [
+    {
+      "slug": "2026-08-04-agent-capability-drift-guards",
+      "status": "archived"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

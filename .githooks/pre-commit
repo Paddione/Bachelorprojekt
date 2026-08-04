@@ -55,7 +55,7 @@ _FRESHNESS_FILES=(
   website/public/learning-assets/THIRD-PARTY-ASSETS.md
   website/src/data/openspec-status.json
   docs/diagrams/architecture.md
-  website/src/lib/goals-data.generated.json
+  website/src/lib/sdlc/goals-data.generated.json
   docs/code-quality/repo-index.json
   docs/code-quality/loc-budget.json
   docs/agent-guide/10-ziele.md

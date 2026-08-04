@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.248.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.3...website-v1.248.4) (2026-08-04)
+
+
+### Bug Fixes
+
+* **agents:** Fähigkeits-Drift bei ops-Agent und Plugin-Aktivierung schließen [T002651] ([#3784](https://github.com/Paddione/Bachelorprojekt/issues/3784)) ([0fb2ec5](https://github.com/Paddione/Bachelorprojekt/commit/0fb2ec5fbb2b57850d86e99b0123d6d993fe6071))
+
+## [1.248.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.2...website-v1.248.3) (2026-08-04)
+
+
+### Bug Fixes
+
+* **scripts:** drei stille Health-Goal-Messausfaelle und tote goals-data-Pfade [T002648] ([#3779](https://github.com/Paddione/Bachelorprojekt/issues/3779)) ([b2fd151](https://github.com/Paddione/Bachelorprojekt/commit/b2fd15130dca69f5762d4448ecb683d75b855928))
+
 ## [1.248.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.1...website-v1.248.2) (2026-08-04)
 
 

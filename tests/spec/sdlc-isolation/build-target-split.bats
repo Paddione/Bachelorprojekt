@@ -8,7 +8,39 @@ setup() {
   BUILD_WEBSITE_YML="$REPO_ROOT/.github/workflows/build-website.yml"
   SDLC_PAGES_DIR="$REPO_ROOT/website/src/pages/sdlc"
   ADMIN_PAGES_DIR="$REPO_ROOT/website/src/pages/admin"
+  BUILD_TARGET_MJS="$REPO_ROOT/website/src/integrations/build-target.mjs"
+  SDLC_CONSOLE_YAML="$REPO_ROOT/k3d/sdlc-stack/sdlc-console.yaml"
 }
+
+# ── T002675: Infra-Allowlist im BUILD_TARGET=sdlc-Filter ──────────────────
+# Die sdlc-console probet /api/health und braucht /api/auth/* + /login für den
+# OIDC-Login. Diese Routen müssen im sdlc-Route-Manifest erhalten bleiben,
+# sonst crasht der Container in der Probe-Schleife (HTTP 404, T002675).
+
+@test "T002675: build-target.mjs enthaelt Infra-Allowlist /api/health und /api/auth/" {
+  [ -f "$BUILD_TARGET_MJS" ] || { echo "MISSING: $BUILD_TARGET_MJS"; return 1; }
+  grep -q "/api/health" "$BUILD_TARGET_MJS" \
+    || { echo "MISSING '/api/health' in der Infra-Allowlist von build-target.mjs"; return 1; }
+  grep -q "/api/auth/" "$BUILD_TARGET_MJS" \
+    || { echo "MISSING '/api/auth/' in der Infra-Allowlist von build-target.mjs"; return 1; }
+}
+
+@test "T002675: sdlc-console Probe-Pfad /api/health ist von der Allowlist abgedeckt" {
+  [ -f "$SDLC_CONSOLE_YAML" ] || { echo "MISSING: $SDLC_CONSOLE_YAML"; return 1; }
+  [ -f "$BUILD_TARGET_MJS" ] || { echo "MISSING: $BUILD_TARGET_MJS"; return 1; }
+  # Proben dürfen nie auf eine Route zeigen, die der sdlc-Filter entfernt.
+  probe_path=$(grep -A2 "readinessProbe:" "$SDLC_CONSOLE_YAML" | grep "path:" | head -1 | sed -E 's/.*path: *"?([^" ]+)"?.*/\1/')
+  [ -n "$probe_path" ] || { echo "FAIL: keine Probe-Path in $SDLC_CONSOLE_YAML gefunden"; return 1; }
+  grep -q "$probe_path" "$BUILD_TARGET_MJS" \
+    || { echo "FAIL: Probe-Path '$probe_path' ist nicht in der build-target.mjs-Allowlist"; return 1; }
+}
+
+@test "T002675: build-target.mjs haelt /login.astro als Infra-Route (Login-Seite)" {
+  [ -f "$BUILD_TARGET_MJS" ] || { echo "MISSING: $BUILD_TARGET_MJS"; return 1; }
+  grep -qE "login\.astro" "$BUILD_TARGET_MJS" \
+    || { echo "MISSING '/login.astro' in der Infra-Allowlist von build-target.mjs"; return 1; }
+}
+
 
 # Assertion 1: build-website.yml enthält die drei negativen Pfad-Muster.
 @test "T002624: build-website.yml enthaelt negativen Pfad-Filter für pages/sdlc (RED vor Task 5)" {

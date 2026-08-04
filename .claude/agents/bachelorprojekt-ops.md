@@ -7,7 +7,14 @@ description: >
   Triggers on: pod, logs, status, restart, crash, health, kubectl, "what's wrong",
   "why is X failing", "is X running", llm:, GPU, Ollama, model.
 model: sonnet
-tools: [Bash, Read, Glob, Grep]
+# [T002651] No `tools:` key on purpose — the agent inherits every tool, as the
+# five sibling domain agents already do. The previous allowlist `[Bash, Read,
+# Glob, Grep]` withheld all MCP tools and the `Skill` tool while leaving Bash
+# unrestricted, silently costing the cluster access the routing table in CLAUDE.md
+# assigns (`mcp-kubernetes` as MCP-Primaer). The guard that should have caught it
+# (T002221) only asserted a declared list resolves to non-empty. Omitting the key
+# is the only form that survives an MCP server rename — a hand-maintained list
+# silently goes stale instead.
 ---
 
 ## Library

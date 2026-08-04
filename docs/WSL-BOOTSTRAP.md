@@ -29,6 +29,10 @@ When bootstrapping a new WSL workstation for the Workspace MVP development, keep
   ```
   Verify with `psql --version` (expect `16.x`), then re-run the refresh task.
 
+### 5. WSL DNS Flakiness
+* **Problem**: `git push` / Subagenten-Calls scheitern transient mit `Could not resolve host: github.com`. Ursache: `resolv.conf` zeigt auf den WSL-NAT-Gateway (`10.255.255.254`), dessen DNS flaky ist. Betrifft jeden Host-Prozess gleich — auch die Subagenten.
+* **Fix**: `scripts/wsl-dns-fix.sh --apply` setzt `[network] generateResolvConf = false` in `/etc/wsl.conf` (WSL überschreibt die Datei dann nicht mehr) und pinnt `resolv.conf` auf stabile Nameserver (`1.1.1.1`, `8.8.8.8` — dieselben, die die Factory-Sandbox ohnehin erlaubt). Danach einmal `wsl --shutdown` aus Windows, damit die `wsl.conf`-Änderung greift. Der Fix ist idempotent; die Originale bleiben als `/etc/*.bak.<epoch>` erhalten. `setup.sh --check` warnt, solange die flaky Konfiguration besteht.
+
 ## Syncing secrets (git-crypt)
 
 Operator secrets under `environments/.secrets/` (per-env secret YAMLs, the SSH

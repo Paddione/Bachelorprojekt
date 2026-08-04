@@ -26,6 +26,18 @@ fix_wsl_docker_creds() {
 }
 fix_wsl_docker_creds
 
+# WSL-DNS-Flakiness: Host-Prozesse (git push, Subagenten-Calls) scheitern transient
+# mit "Could not resolve host" wenn resolv.conf auf den WSL-NAT-Gateway zeigt.
+# Non-fataler Warnhinweis — anwenden tut scripts/wsl-dns-fix.sh --apply.
+check_wsl_dns() {
+  if [ -z "${WSL_DISTRO_NAME:-}" ]; then return 0; fi
+  if bash "$(dirname "${BASH_SOURCE[0]}")/wsl-dns-fix.sh" --check >/dev/null 2>&1; then
+    echo "  [OK]  WSL DNS — stabile Resolver konfiguriert"
+  else
+    echo "  [WARN] WSL DNS flaky — resolv.conf zeigt auf den NAT-Gateway. Fix: sudo scripts/wsl-dns-fix.sh --apply (danach 'wsl --shutdown')" >&2
+  fi
+}
+
 check_prerequisites() {
   local exit_code=0
 
@@ -64,6 +76,7 @@ check_prerequisites() {
 case "${1:-}" in
   --check|"")
     echo "Checking prerequisites..."
+    check_wsl_dns
     if check_prerequisites; then
       echo ""
       echo "All required prerequisites met."

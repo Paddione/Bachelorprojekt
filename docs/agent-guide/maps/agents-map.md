@@ -20,15 +20,16 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 
 | Agent | Modus | Modell | Schreibfähig | Hinweis |
 | --- | --- | --- | --- | --- |
-| deepseek-flash | subagent | opencode-go/deepseek-v4-flash | ja | DeepSeek-V4 Flash (1M ctx, max reasoning effort). Up to 3 parallel for independent subtasks [T002632] |
-| deepseek-flash-direct | subagent | deepseek/deepseek-v4-flash | ja | Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable [T002633] |
+| big-pickle | primary | opencode-zen/big-pickle | ja | PRIMARY: Big Pickle on OpenCode Zen (free tier) — tab-selectable until the free quota is spent [2026-08-04] |
+| deepseek-flash | all | opencode-go/deepseek-v4-flash | ja | DeepSeek-V4 Flash (1M ctx, max reasoning effort). Up to 3 parallel for independent subtasks; tab-selectable + task-dispatchable [T002632] |
+| deepseek-flash-direct | all | deepseek/deepseek-v4-flash | ja | Same model as deepseek-flash, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633] |
 | deepseek-helper | subagent | deepseek/deepseek-v4-flash | ja | Escalation: DeepSeek-V4 Flash (1M ctx) via direct DeepSeek API [T002632] |
-| deepseek-pro | subagent | opencode-go/deepseek-v4-pro | ja | DeepSeek-V4 Pro (1M ctx, max reasoning effort) for deep analysis and hard refactors [T002632] |
-| deepseek-pro-direct | subagent | deepseek/deepseek-v4-pro | ja | Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable [T002633] |
-| gemma26-1 | subagent | llamacpp-local/gptoss-context | nein | Own prefix cache; still serialized by llm-proxy (max_inflight=1) [T002545/T002633] |
-| gemma26-2 | subagent | llamacpp-local/gptoss-context | nein | Separate name so the two subagents keep distinct prefix caches [T002545/T002633] |
-| gemma26-primary | primary | llamacpp-local/gptoss-context | nein | Tab-selectable primary agent, 105472 ctx (measured, not n_ctx_train) [T002545/T002633] |
+| deepseek-pro | all | opencode-go/deepseek-v4-pro | ja | DeepSeek-V4 Pro (1M ctx, max reasoning effort) for deep analysis and hard refactors; tab-selectable + task-dispatchable [T002632] |
+| deepseek-pro-direct | all | deepseek/deepseek-v4-pro | ja | Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633] |
+| devstral | subagent | llamacpp-local/devstral-quality | nein | devstral family: Devstral-Small-2 24B IQ4_XS [2026-08-04] |
+| gemma | subagent | llamacpp-local/gemma4 | nein | gemma family: Gemma 4 12B Q4_K_M, Loadout gemma4 auf Port 8090 [2026-08-04] |
+| gemma26-primary | primary | llamacpp-local/gptoss-context | nein | Tab-selectable primary local agent, 105472 ctx (measured, not n_ctx_train) [T002545/T002633] |
 | gemma26-vision | primary | llamacpp-local/gptoss-context | nein | Max context, no subagent dispatch. Text-only — gpt-oss-20b has no mmproj [T002633] |
-| gemma9-1 | subagent | llamacpp-local/gptoss-context | nein | Own prefix cache; preferred for small, atomic partial-plan implementations [T002591/T002633] |
-| gemma9-2 | subagent | llamacpp-local/gptoss-context | nein | Separate name so the two subagents keep distinct prefix caches [T002591/T002633] |
-| orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the gemma26 subagents sequentially |
+| gptoss | subagent | llamacpp-local/gptoss-context | nein | gpt-oss family: gpt-oss-20b Q8_0, 105472 ctx (measured, not n_ctx_train) [T002545/T002633] |
+| orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/qwen) sequentially |
+| qwen | subagent | llamacpp-local/qwen3-coder-30b | nein | qwen family: Qwen3-Coder-30B-A3B UD-Q4_K_XL, Loadout qwen3-coder-30b auf Port 8094 [2026-08-04] |

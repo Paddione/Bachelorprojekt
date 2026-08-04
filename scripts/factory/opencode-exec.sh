@@ -47,8 +47,9 @@ PROMPT="$(printf '%s\n' \
   "Worktree (your cwd): ${LAUNCH_DIR}" \
   "Plan file: ${PLAN_PATH:-<none>}" \
   "" \
-  "Dispatch up to 4 bonsai-8b subagents onto the DISJOINT partials below; each owns" \
-  "its partial end-to-end (edit, test) inside this worktree." \
+  "Dispatch up to 4 local family subagents (gptoss/devstral/gemma/qwen) onto the" \
+  "DISJOINT partials below; each owns its partial end-to-end (edit, test) inside" \
+  "this worktree." \
   "" \
   "## Partials" \
   "${partials_manifest}" \
@@ -56,8 +57,12 @@ PROMPT="$(printf '%s\n' \
   "Guardrails (opt-in trial, D3):" \
   "- Do NOT merge the PR and do NOT enable auto-merge — stop at the pr-ready gate." \
   "- Respect the existing pr-ready / CI gate; never bypass it." \
+  "- Empty-return rule (M2/M3): if a dispatched subagent returns an empty/blank" \
+  "  final message, switch model on the FIRST empty return — deepseek-flash-direct" \
+  "  (M2), then deepseek-pro (M3). Never re-dispatch the same model after an empty" \
+  "  return; resume the session instead (T002620) or escalate (T002482)." \
   "- After 2 failed attempts on a single partial, escalate THAT partial to the" \
-  "  deepseek-helper subagent (do not loop the same bonsai-8b agent)." \
+  "  deepseek-helper subagent (do not loop the same local agent)." \
   "- Report only the final JSON result.")"
 
 # --- run opencode in the launch worktree, measure duration ---------------------------

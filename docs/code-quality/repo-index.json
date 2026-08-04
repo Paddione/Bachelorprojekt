@@ -807,7 +807,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 53,
+      "file_count": 54,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -861,7 +861,8 @@
         "scripts/migrations/2026-07-27-provider-health-integrity.sql",
         "scripts/migrations/2026-07-28-schema-diaet-T002331.sql",
         "scripts/migrations/2026-08-03-llm-proxy-gptoss-devstral.sql",
-        "scripts/migrations/2026-08-03-retire-stale-model-ids.sql"
+        "scripts/migrations/2026-08-03-retire-stale-model-ids.sql",
+        "scripts/migrations/2026-08-04-llm-proxy-gemma-qwen-families.sql"
       ]
     },
     {
@@ -3147,7 +3148,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 655,
+      "file_count": 656,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3803,6 +3804,7 @@
         "scripts/weekly-dep-schema-audit.sh",
         "scripts/whiteboard-setup.sh",
         "scripts/worktree-create.sh",
+        "scripts/wsl-dns-fix.sh",
         "scripts/wsl-open.sh"
       ]
     },

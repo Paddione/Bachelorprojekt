@@ -37,6 +37,25 @@
             "context": 32768,
             "output": 8192
           }
+        },
+        // 2026-08-04: Familiensubagenten gemma/qwen brauchen eigene Loadouts.
+        // gemma4 (Gemma 4 12B Q4_K_M, 7,1 GB) und qwen3-coder-30b (Qwen3-Coder
+        // 30B A3B, 17,6 GB) liegen wieder auf der Platte — die Retire-Migration
+        // vom 2026-08-03 kannte sie noch nicht. Ports 8090/8094 frei. Beide
+        // teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
+        "gemma4": {
+          "name": "Gemma 4 12B Q4_K_M, Loadout gemma4 auf Port 8090 - exclusiveGroup chat-gpu",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
+        },
+        "qwen3-coder-30b": {
+          "name": "Qwen3-Coder-30B-A3B UD-Q4_K_XL, Loadout qwen3-coder-30b auf Port 8094 - exclusiveGroup chat-gpu",
+          "limit": {
+            "context": 32768,
+            "output": 8192
+          }
         }
       }
     },
@@ -90,6 +109,28 @@
         // Agent darauf zeigt.
         "deepseek-v4-pro": {
           "name": "DeepSeek V4 Pro (OpenCode Go, 1M ctx, maximale Reasoning-Tiefe)",
+          "limit": {
+            "context": 1000000,
+            "output": 16384
+          }
+        }
+      }
+    },
+    // OpenCode Zen (https://opencode.ai/zen/v1) — der Katalog MIT `big-pickle`,
+    // das auf dem Go-Katalog (/zen/go/v1) fehlt. Gleicher Auth-Schluessel wie
+    // opencode-go: der Key wird via `opencode auth` unter dem Provider-Namen
+    // "opencode-zen" in ~/.local/share/opencode/auth.json gehalten. big-pickle
+    // laeuft im Free-Kontingent — bis das verbraucht ist, dann auf die
+    // deepseek-Primaries wechseln.
+    "opencode-zen": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OpenCode Zen (big-pickle, bis Free-Kontingent verbraucht)",
+      "options": {
+        "baseURL": "https://opencode.ai/zen/v1"
+      },
+      "models": {
+        "big-pickle": {
+          "name": "Big Pickle (OpenCode Zen, free tier — bis das Free-Kontingent verbraucht ist)",
           "limit": {
             "context": 1000000,
             "output": 16384
@@ -185,25 +226,25 @@
     }
   },
   "agent": {
-    // VIER lokale Subagenten-Namen auf EINEM Modell (gptoss-context) [2026-08-03].
+    // LOKALE SUBAGENTEN NACH MODELL-FAMILIE [2026-08-04].
     //
-    // Historie: T002545 begruendete drei Namen mit den drei Server-Slots des
-    // Loadouts gemma26-factory. Dieses Loadout hat seine Gewichte verloren; das
-    // aktuelle Loadout gptoss-context laeuft mit "parallel": 1, also EINEM Slot.
-    // Die Namen behalten trotzdem ihren Sinn, aber aus einem anderen Grund als
-    // damals: opencode fuehrt den Praefix-Cache pro Agentnamen, nicht pro
-    // Server-Slot. Vier Namen heisst vier getrennte Gespraechsverlaeufe.
+    // Frueher hiessen sie gemma26-1/2 und gemma9-1/2 und zeigten ALLE auf
+    // gptoss-context — der Name log ueber das Modell. Seit 2026-08-04 traegt
+    // jeder lokale Subagent den Namen der Familie, die er tatsaechlich serviert
+    // (gptoss, devstral, gemma, qwen), und der Orchestrator ruft ihn damit auf:
+    // `task gemma` gibt die Gemma-Familie, `task qwen` die Qwen-Familie.
     //
     // Was unveraendert gilt: der llm-proxy hat max_inflight=1, die Agenten
     // rechnen nacheinander. Mehr Namen bringen erhaltenen Kontext, nicht
     // Durchsatz — bei einer einzelnen GPU waere echte Nebenlaeufigkeit ohnehin
-    // kaum ein Gewinn.
+    // kaum ein Gewinn. Alle vier Chat-Loadouts teilen exclusiveGroup
+    // "chat-gpu": es laeuft immer nur eines.
     //
     // Der urspruengliche Hinweis aus T002298 bleibt gueltig: "-np" heisst in
     // llama.cpp "number of server slots", nicht "Parallelitaet". Wer die Namen
     // zusammenstreicht, nimmt jedem Agenten seinen Praefix-Cache.
-    "gemma26-1": {
-      "description": "Write-capable local subagent on gptoss-context (gpt-oss-20b Q8_0, 105472 ctx measured, via llm-proxy :18235). Two subagents keep distinct prefix caches; they still execute one at a time because the proxy serializes (max_inflight=1). Preferred for write-capable delegation. NOTE: the agent name still says gemma \u2014 it runs on gpt-oss-20b since 2026-08-03. Renaming touches 53 references across CLAUDE.md, AGENTS.md and agents.yaml and is tracked separately.",
+    "gptoss": {
+      "description": "Local subagent for the gpt-oss family (gpt-oss-20b Q8_0, 105472 ctx measured, via llm-proxy :18235). Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
       "mode": "subagent",
       "model": "llamacpp-local/gptoss-context",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -215,46 +256,47 @@
       // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "gemma26-2": {
-      "description": "Second write-capable local subagent on gptoss-context \u2014 identical configuration to gemma26-1. The separate name exists so the two keep distinct prefix caches instead of evicting each other. NOTE: the agent name still says gemma \u2014 it runs on gpt-oss-20b since 2026-08-03. Renaming touches 53 references across CLAUDE.md, AGENTS.md and agents.yaml and is tracked separately.",
+    "devstral": {
+      "description": "Local subagent for the devstral family (Devstral-Small-2-24B IQ4_XS, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu with the other local loadouts (only one runs at a time).",
       "mode": "subagent",
-      "model": "llamacpp-local/gptoss-context",
+      "model": "llamacpp-local/devstral-quality",
       "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#34D399",
+      "color": "#60A5FA",
       "temperature": 0.4,
       "steps": 10,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    "gemma9-1": {
-      "description": "Third write-capable local subagent on gptoss-context. Preferred for small, atomic partial-plan implementations. NOTE: the agent name still says gemma \u2014 it runs on gpt-oss-20b since 2026-08-03. Renaming touches 53 references across CLAUDE.md, AGENTS.md and agents.yaml and is tracked separately.",
+    "gemma": {
+      "description": "Local subagent for the gemma family (Gemma 4 12B Q4_K_M, Loadout gemma4 auf Port 8090, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
       "mode": "subagent",
-      "model": "llamacpp-local/gptoss-context",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#F59E0B",
-      "temperature": 0.4,
-      "steps": 10,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "gemma9-2": {
-      "description": "Fourth write-capable local subagent on gptoss-context \u2014 identical to gemma9-1, separate name preserves the prefix cache. NOTE: the agent name still says gemma \u2014 it runs on gpt-oss-20b since 2026-08-03. Renaming touches 53 references across CLAUDE.md, AGENTS.md and agents.yaml and is tracked separately.",
-      "mode": "subagent",
-      "model": "llamacpp-local/gptoss-context",
+      "model": "llamacpp-local/gemma4",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
       "steps": 10,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // Primaerer (Tab-waehlbarer) Gemma-Agent, dritter der drei Kontexte.
+    "qwen": {
+      "description": "Local subagent for the qwen family (Qwen3-Coder-30B-A3B UD-Q4_K_XL, Loadout qwen3-coder-30b auf Port 8094, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
+      "mode": "subagent",
+      "model": "llamacpp-local/qwen3-coder-30b",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#A78BFA",
+      "temperature": 0.4,
+      "steps": 10,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
+    // Primaerer (Tab-waehlbarer) Lokal-Agent auf gptoss-context.
     // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
     // summonbar.
     //
     // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
-    // Orchestrator davor. `task` bewusst nur auf deepseek-helper: wuerde er
-    // gemma26-1/-2 dispatchen, laegen mehr als drei Gemma-Kontexte auf drei
-    // Slots und wuerden sich gegenseitig verdraengen.
+    // Orchestrator davor. `task` bewusst nur auf deepseek-helper: wuerde er die
+    // lokalen Familiensubagenten (gptoss/devstral/gemma/qwen) dispatchen,
+    // laegen mehrere Kontexte auf einer GPU und wuerden sich gegenseitig
+    // verdraengen.
     "gemma26-primary": {
-      "description": "Primary (Tab-selectable) local agent on gptoss-context (gpt-oss-20b, 105472 ctx). Use for fully local work without the DeepSeek orchestrator in front. Can escalate to the deepseek subagents but must not dispatch the local subagents: with one GPU they would only contend for the same weights. NOTE: the agent name still says gemma \u2014 it runs on gpt-oss-20b since 2026-08-03. Renaming touches 53 references across CLAUDE.md, AGENTS.md and agents.yaml and is tracked separately.",
+      "description": "Primary (Tab-selectable) local agent on gptoss-context (gpt-oss-20b, 105472 ctx). Use for fully local work without the DeepSeek orchestrator in front. Can escalate to the deepseek subagents but must not dispatch the local subagents: with one GPU they would only contend for the same weights.",
       "mode": "primary",
       "model": "llamacpp-local/gptoss-context",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -271,7 +313,7 @@
         "edit": "allow",
         "write": "deny",
         "bash": "allow",
-        "task": { "deepseek-helper": "allow", "deepseek-pro": "allow", "deepseek-flash": "allow", "gemma26-1": "deny", "gemma26-2": "deny" }
+        "task": { "deepseek-helper": "allow", "deepseek-pro": "allow", "deepseek-flash": "allow", "gptoss": "deny", "devstral": "deny", "gemma": "deny", "qwen": "deny" }
       }
     },
     // Maximaler lokaler Kontext (105472, gemessen beim Laden am 2026-08-03).
@@ -282,7 +324,7 @@
     // hatte. Wird ein vision-faehiges lokales Modell geladen, erkennt opencode
     // das automatisch — bis dahin ist dieser Agent text-only.
     "gemma26-vision": {
-      "description": "Local agent on gptoss-context with no subagent dispatch \u2014 for long-context work that must stay on-device. Vision is NOT available: gpt-oss-20b has no mmproj, so this agent is text-only until a vision-capable local model is loaded. NOTE: the agent name still says gemma \u2014 it runs on gpt-oss-20b since 2026-08-03. Renaming touches 53 references across CLAUDE.md, AGENTS.md and agents.yaml and is tracked separately.",
+      "description": "Local agent on gptoss-context with no subagent dispatch \u2014 for long-context work that must stay on-device. Vision is NOT available: gpt-oss-20b has no mmproj, so this agent is text-only until a vision-capable local model is loaded.",
       "mode": "primary",
       "model": "llamacpp-local/gptoss-context",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -317,8 +359,8 @@
     // Multi-File-Refactorings, die ueber das hinausgehen, was deepseek-helper
     // schnell loesen kann.
     "deepseek-pro": {
-      "description": "DEPTH: DeepSeek V4 Pro via OpenCode Go (1M ctx, maximum reasoning effort). Use for deep analysis, complex multi-file debugging, architectural reasoning, or hard refactors that exceed what deepseek-flash can handle. Dispatch ONE at a time — this is the expensive, slow tier. If Go is unavailable, use deepseek-pro-direct.",
-      "mode": "subagent",
+      "description": "DEPTH: DeepSeek V4 Pro via OpenCode Go (1M ctx, maximum reasoning effort). Use for deep analysis, complex multi-file debugging, architectural reasoning, or hard refactors that exceed what deepseek-flash can handle. Dispatch ONE at a time — this is the expensive, slow tier. If Go is unavailable, use deepseek-pro-direct. Mode all: tab-selectable AND task-dispatchable.",
+      "mode": "all",
       // War deepseek/deepseek-reasoner (R1, 128K). Gewechselt auf V4 Pro
       // wegen 1M Kontext; Primaerweg ist jetzt Go (im Abo enthalten) statt
       // der direkten API [2026-08-03].
@@ -333,8 +375,8 @@
     // kein Provider-Failover pro Agent — ein zweiter Agentname ist der
     // einzige Weg, denselben Auftrag ueber den anderen Anbieter zu fahren.
     "deepseek-pro-direct": {
-      "description": "FALLBACK twin of deepseek-pro on the direct DeepSeek API (1M ctx). Identical role and prompt — dispatch this instead of deepseek-pro when OpenCode Go is exhausted, rate-limited, or down. Not a second parallel slot: it is the same tier via another route.",
-      "mode": "subagent",
+      "description": "FALLBACK twin of deepseek-pro on the direct DeepSeek API (1M ctx). Identical role and prompt — dispatch this instead of deepseek-pro when OpenCode Go is exhausted, rate-limited, or down. Not a second parallel slot: it is the same tier via another route. Mode all: tab-selectable AND task-dispatchable.",
+      "mode": "all",
       "model": "deepseek/deepseek-v4-pro",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#EF4444",
@@ -346,8 +388,8 @@
     // Effort, bis zu 3 Instanzen gleichzeitig (je 200K ctx). Gedacht fuer
     // unabhaengige Teilaufgaben, die parallel abgearbeitet werden koennen.
     "deepseek-flash": {
-      "description": "THROUGHPUT: DeepSeek V4 Flash via OpenCode Go (1M ctx). Dispatch up to 3 at a time for independent parallel subtasks — each gets its own context window, and remote models do not contend for the single local GPU. Faster and cheaper than deepseek-pro; use for breadth, not depth. Default choice when no local model is loaded.",
-      "mode": "subagent",
+      "description": "THROUGHPUT: DeepSeek V4 Flash via OpenCode Go (1M ctx). Dispatch up to 3 at a time for independent parallel subtasks — each gets its own context window, and remote models do not contend for the single local GPU. Faster and cheaper than deepseek-pro; use for breadth, not depth. Default choice when no local model is loaded. Mode all: tab-selectable AND task-dispatchable.",
+      "mode": "all",
       // War deepseek/deepseek-chat (V3, 200K). Auf V4 Flash wegen 1M
       // Kontext; Primaerweg ist jetzt Go [2026-08-03].
       "model": "opencode-go/deepseek-v4-flash",
@@ -358,8 +400,8 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "deepseek-flash-direct": {
-      "description": "FALLBACK twin of deepseek-flash on the direct DeepSeek API (1M ctx). Same role and prompt — dispatch when OpenCode Go is exhausted, rate-limited, or down.",
-      "mode": "subagent",
+      "description": "FALLBACK twin of deepseek-flash on the direct DeepSeek API (1M ctx). Same role and prompt — dispatch when OpenCode Go is exhausted, rate-limited, or down. Mode all: tab-selectable AND task-dispatchable.",
+      "mode": "all",
       "model": "deepseek/deepseek-v4-flash",
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F59E0B",
@@ -368,7 +410,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the gemma26 subagents sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the local family subagents (gptoss/devstral/gemma/qwen) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "opencode-go/deepseek-v4-flash",
       "prompt": "{file:./prompts/orchestrator.md}",
@@ -376,15 +418,13 @@
       "temperature": 0.2,
       "steps": 50,
       // Exakte Namen statt "gemma26-*" (Prinzip aus T002298): ein Wildcard
-      // wuerde jeden neu hinzugefuegten Gemma-Subagenten automatisch
-      // mitfreigeben. Ein vierter muss hier bewusst eingetragen werden - und
-      // dann faellt auf, dass es nur drei Slots gibt [T002545].
+      // wuerde jeden neu hinzugefuegten Subagenten automatisch mitfreigeben.
       "permission": {
         "task": {
-          "gemma26-1": "allow",
-          "gemma26-2": "allow",
-          "gemma9-1": "allow",
-          "gemma9-2": "allow",
+          "gptoss": "allow",
+          "devstral": "allow",
+          "gemma": "allow",
+          "qwen": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
           "deepseek-flash": "allow",
@@ -395,6 +435,18 @@
           "deepseek-flash-direct": "allow"
         }
       }
+    },
+    // Big Pickle auf OpenCode Zen — als primaerer (Tab-waehlbarer) Agent bis das
+    // Free-Kontingent verbraucht ist, danach auf die deepseek-Primaries wechseln.
+    "big-pickle": {
+      "description": "PRIMARY: Big Pickle on OpenCode Zen (free tier). Tab-selectable singleagent model — use it while the free Zen quota lasts, then switch to the deepseek-pro/flash primaries. Runs through the zen gateway (opencode-zen/big-pickle), not the Go catalog.",
+      "mode": "primary",
+      "model": "opencode-zen/big-pickle",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#F472B6",
+      "temperature": 0.2,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     }
   }
 }

@@ -120,9 +120,16 @@ Verworfen: ein Test, der bei fehlendem `~/.claude` `skip`t. Er liefe in CI immer
 Skip-Zweig und meldete dort nie etwas — dieselbe fail-open-Form, die `CLAUDE.md` am
 gitleaks-Fall bereits als Fallstrick führt.
 
-Ablage nach der Verzeichniskonvention aus T002416: `tests/spec/agent-skills/` für den
-Plugin-Teil, Erweiterung der bestehenden `tests/spec/agent-library.bats` für Einheit A
-(dort liegt die Regel, die verschärft wird).
+Ablage nach der Verzeichniskonvention aus T002416 — je ein Verzeichnis pro SSOT-Spec, je
+eine Datei pro Vorgang:
+
+- `tests/spec/agent-behavior/no-tools-allowlist.bats` für Einheit A
+- `tests/spec/agent-skills/plugin-activation.bats` für Einheit B
+
+Die bestehende Sammeldatei `tests/spec/agent-library.bats` wird **nicht** erweitert. Die
+Konvention verbietet das Anhängen ausdrücklich, weil Parallelarbeit sonst strukturell am
+Dateiende kollidiert. Der dortige T002221-Test bleibt unverändert stehen: er ist eine
+Teilmenge der neuen Regel und damit nie falsch, nur nicht mehr die schärfste Aussage.
 
 ## Test-Reihenfolge
 

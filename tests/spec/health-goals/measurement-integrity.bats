@@ -112,8 +112,11 @@ cluster:
   context: fleet
 YAML
 
-  : > "$VALUES"
-  run env HG_MCP_REGISTRY="$fixture" HG_VALUES_FILE="$VALUES" \
+  # Eigene Werte-Datei: measure_value() unten leert und ueberschreibt $VALUES,
+  # der Fixture-Wert wuerde sonst vom Positiv-Anker-Lauf verdraengt.
+  local fixture_values="$BATS_TEST_TMPDIR/fixture-values.txt"
+  : > "$fixture_values"
+  run env HG_MCP_REGISTRY="$fixture" HG_VALUES_FILE="$fixture_values" \
     bash "$SCRIPT" --fast --only=G-IF01
 
   # Positiv-Anker: derselbe Aufruf gegen die ECHTE Registry muss eine messbare
@@ -127,7 +130,7 @@ YAML
   }
 
   local fixture_val
-  fixture_val="$(awk '$1 == "G-IF01" { print $2 }' "$VALUES")"
+  fixture_val="$(awk '$1 == "G-IF01" { print $2 }' "$fixture_values")"
 
   [ -n "$fixture_val" ] || {
     echo "FAIL: G-IF01 fiel bei leerer Registry auf 'nicht messbar' zurueck."

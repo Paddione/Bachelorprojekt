@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.248.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.3...website-v1.248.4) (2026-08-04)
+
+
+### Bug Fixes
+
+* **agents:** Fähigkeits-Drift bei ops-Agent und Plugin-Aktivierung schließen [T002651] ([#3784](https://github.com/Paddione/Bachelorprojekt/issues/3784)) ([0fb2ec5](https://github.com/Paddione/Bachelorprojekt/commit/0fb2ec5fbb2b57850d86e99b0123d6d993fe6071))
+
 ## [1.248.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.248.2...website-v1.248.3) (2026-08-04)
 
 

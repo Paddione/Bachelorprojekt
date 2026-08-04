@@ -259,17 +259,21 @@ clients:
     transport: stdio
     command: npx
     args:
+      - -y
       - "@playwright/mcp@latest"
     bridge:
       url: http://127.0.0.1:18235/mcp/playwright
       bind: 127.0.0.1:18235
       auth: null
     harness:
+      claude_code:
+        command: npx
+        args: [-y, "@playwright/mcp@latest"]
       opencode:
         type: local
-        command: [npx, "@playwright/mcp@latest"]
+        command: [npx, -y, "@playwright/mcp@latest"]
         enabled: false
-    note: "Nur in opencode (disabled). Nicht project-relevant."
+    note: "In Claude Code aktiv (T002678) — Browser-Automatisierung fuer dev-flow-e2e und web-audit. In opencode weiterhin disabled. Das offizielle Paket ist @playwright/mcp; das unscoped playwright-mcp ist ein anderes Projekt und darf hier nicht eingetragen werden."
 
   docfork:
     transport: stdio

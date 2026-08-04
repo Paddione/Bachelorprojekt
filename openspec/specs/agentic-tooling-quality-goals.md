@@ -155,27 +155,42 @@ would report them as dead.
 - **THEN** the file is not inspected and the Gate stays green, because vendor skills are out of
   scope
 
-### Requirement: G-AGENTIC09 God-Skill Line Budget Tracked
+### Requirement: G-AGENTIC09 God-Skill Line Budget Gate
 
-The count of `SKILL.md` files exceeding 500 lines SHALL be measured and documented as a Target
-baseline in `goals.md`, without a forced split and without failing CI. `dev-flow-plan/SKILL.md`
-and `dev-flow-execute/SKILL.md` SHALL each stay at or below 500 lines by extracting verbose or
-duplicated operational blocks into `.claude/skills/references/*.md` and linking to them via
-`file://` references, per the T001904 precedent — without losing any operational instruction.
+The count of **project-owned** `SKILL.md` files exceeding 400 lines SHALL be measured as a
+fail-closed Gate with target 0. Verbose or duplicated operational blocks are extracted into
+`.claude/skills/references/*.md` and linked via `file://` references, per the T001904 precedent —
+without losing any operational instruction.
 
-#### Scenario: Counting oversized skills
+The threshold was 500 and a Target when this goal was introduced; T002303 tightened it to 400 and
+promoted it to a Gate (baseline note in `goals.md`). The number is carried in exactly two places —
+`scripts/health-goals-check.sh` and the `goals.md` row — and the BATS guards read it from there.
+Repeating it in a third location is what produced the drift this requirement now records.
 
-- **GIVEN** all `.claude/skills/*/SKILL.md` files
+Scope is **project-owned skills only**: a tracked skill counts as project-owned when its directory
+name does not appear in the vendor marker block of `.claude/skills/OVERVIEW.md`. Vendor skills are
+excluded because they are upstream-maintained and shrinking them would collide with the next sync —
+`unsloth-buddy` at ~1250 lines is the standing example.
+
+#### Scenario: Counting oversized project-owned skills
+
+- **GIVEN** the tracked `SKILL.md` files minus those named in the vendor marker block
 - **WHEN** the G-AGENTIC09 measure command counts lines per file
-- **THEN** the count of files exceeding 500 lines is recorded as the documented Target baseline
+- **THEN** the count of files exceeding 400 lines is 0 and the Gate passes
 
-#### Scenario: dev-flow-plan and dev-flow-execute stay under the 500-line threshold
+#### Scenario: A vendor skill above the threshold does not fail the Gate
 
-- **GIVEN** `.claude/skills/dev-flow-plan/SKILL.md` and `.claude/skills/dev-flow-execute/SKILL.md`
-  after extracting verbose/duplicated blocks into `.claude/skills/references/*.md`
-- **WHEN** `find .claude/skills -name SKILL.md -exec wc -l {} + | awk '$2!="total"&&$1>500{c++} END{print c+0}'`
-  is executed
-- **THEN** it prints `0`
+- **GIVEN** `.claude/skills/unsloth-buddy/SKILL.md` at well over 400 lines, listed in the vendor
+  marker block
+- **WHEN** the G-AGENTIC09 measure command runs
+- **THEN** it is not counted and the Gate stays green
+
+#### Scenario: A missing vendor marker block tightens rather than weakens the Gate
+
+- **GIVEN** an `OVERVIEW.md` whose vendor marker block is absent
+- **WHEN** the G-AGENTIC09 measure command runs
+- **THEN** every tracked skill is treated as project-owned, so the Gate can only become stricter —
+  a broken contract file can never silently disable the check
 
 ### Requirement: G-AGENTIC10 Agent Skill-Dispatch Backreference Tracked
 
@@ -274,8 +289,8 @@ reference sources.
 
 ## Acceptance Criteria
 
-- THEN `bash scripts/health-goals-check.sh --only=G-AGENTIC02,G-AGENTIC03,G-AGENTIC04,G-AGENTIC05,G-AGENTIC06,G-AGENTIC07,G-AGENTIC08,G-AGENTIC11,G-AGENTIC12,G-AGENTIC13,G-AGENTIC14,G-AGENTIC15,G-AGENTIC16,G-AGENTIC17` exits 0 (all 14 Gates green)
-- THEN `bash scripts/health-goals-check.sh --only=G-AGENTIC01,G-AGENTIC09,G-AGENTIC10` prints the documented Target baselines without a non-zero exit code
+- THEN `bash scripts/health-goals-check.sh --only=G-AGENTIC02,G-AGENTIC03,G-AGENTIC04,G-AGENTIC05,G-AGENTIC06,G-AGENTIC07,G-AGENTIC08,G-AGENTIC09,G-AGENTIC11,G-AGENTIC12,G-AGENTIC13,G-AGENTIC14,G-AGENTIC15,G-AGENTIC16,G-AGENTIC17` exits 0 (all 15 Gates green)
+- THEN `bash scripts/health-goals-check.sh --only=G-AGENTIC01,G-AGENTIC10` prints the documented Target baselines without a non-zero exit code
 - THEN `task test:changed`, `task freshness:regenerate`, and `task freshness:check` all pass
 - THEN `node scripts/code-quality/gates/s4-orphans.mjs` reports 0 orphaned command files
 

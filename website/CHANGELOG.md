@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.248.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.247.0...website-v1.248.0) (2026-08-04)
+
+
+### Features
+
+* **website:** SDLC build-target split — separate SDLC routes from production build [T002624] ([#3762](https://github.com/Paddione/Bachelorprojekt/issues/3762)) ([a6b6357](https://github.com/Paddione/Bachelorprojekt/commit/a6b6357223495d44b23d1d300a4cd67a61d5e139))
+
 ## [1.247.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.246.0...website-v1.247.0) (2026-08-04)
 
 

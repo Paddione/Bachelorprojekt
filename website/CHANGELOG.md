@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.247.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.246.0...website-v1.247.0) (2026-08-04)
+
+
+### Features
+
+* **scripts:** Unsloth-Trainingsumgebung — messgetrieben und factory-angebunden [T002587] ([#3745](https://github.com/Paddione/Bachelorprojekt/issues/3745)) ([ad8bdbd](https://github.com/Paddione/Bachelorprojekt/commit/ad8bdbd9a659474f21ca00a75bbdb4b88d40d2c0))
+* **website:** web-audit Skill — semantische Pruefung und Triage ueber axe/Lighthouse [T002612] ([#3766](https://github.com/Paddione/Bachelorprojekt/issues/3766)) ([d52f1ec](https://github.com/Paddione/Bachelorprojekt/commit/d52f1ec062169619278c6ad7a3178eb9b30a16e9))
+
 ## [1.246.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.245.1...website-v1.246.0) (2026-08-03)
 
 

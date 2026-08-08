@@ -23,7 +23,11 @@ teardown() { _sf_teardown; }
 # FACTORY_NS hat Vorrang: der lokale k3d-Dev-Cluster haelt seinen shared-db-Pod
 # in 'workspace', nicht im brand-abgeleiteten Namespace.
 _osr_ns() {
-  local brand="$1" ctx="${FACTORY_CTX:-fleet}" ns
+  # [T002626] Default folgt scripts/factory/lib.sh: seit ADR-006 E3 liegen die
+  # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
+  # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
+  # am lokalen Cluster.
+  local brand="$1" ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
   if [[ -n "${FACTORY_NS:-}" ]]; then echo "$FACTORY_NS"; return 0; fi
   case "$brand" in
     mentolder)  ns=workspace ;;
@@ -37,7 +41,7 @@ _osr_ns() {
 # psql gegen den shared-db-Pod der Brand. Heredoc-Eingaben brauchen `exec -i`,
 # sonst laeuft psql mit leerem stdin und meldet trotzdem Exit 0.
 _osr_psql() {
-  local brand="$1" sql="$2" ctx="${FACTORY_CTX:-fleet}" ns pod
+  local brand="$1" sql="$2" ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns pod
   ns="$(_osr_ns "$brand")" || return 2
   pod=$(kubectl get pod -n "$ns" --context "$ctx" \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \

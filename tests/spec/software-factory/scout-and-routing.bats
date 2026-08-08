@@ -275,7 +275,12 @@ teardown() { _sf_teardown; }
   # RC2: cheap/flash/sonnet hatten je genau EINE enabled Zeile — der Tier-Name im
   # Aufruf traf nie eine DeepSeek-Zeile (die lagen in haiku/sonnet hinter prio 0).
   command -v kubectl >/dev/null || skip "kubectl not available"
-  kubectl --context fleet get ns workspace >/dev/null 2>&1 || skip "fleet cluster not reachable"
+  # [T002626] Frueher prueste der Guard hier `--context fleet`, waehrend der
+  # Testkoerper `factory_psql` aufruft. Seit ADR-006 E3 zeigt factory_psql auf
+  # den lokalen Cluster — Guard und Koerper massen damit verschiedene Cluster,
+  # und der Test scheiterte statt zu skippen. _skip_if_no_db (aus _sf_common)
+  # prueft denselben Cluster, den der Koerper anspricht.
+  _skip_if_no_db
   local sql="SELECT tier, count(*) FROM tickets.provider_config
              WHERE source='*' AND enabled=true AND tier IN ('cheap','flash','sonnet')
              GROUP BY tier HAVING count(*) < 2;"

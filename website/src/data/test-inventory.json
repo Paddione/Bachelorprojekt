@@ -3426,6 +3426,24 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-isolation/e3-backup",
+    "file": "tests/spec/sdlc-isolation/e3-backup.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-isolation/e3-poller",
+    "file": "tests/spec/sdlc-isolation/e3-poller.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-isolation/e3-tickets-lokal",
+    "file": "tests/spec/sdlc-isolation/e3-tickets-lokal.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
     "id": "sealed-secret-cluster-drift",
     "file": "tests/spec/sealed-secret-cluster-drift.bats",
     "category": "sealed-secret-cluster-drift",

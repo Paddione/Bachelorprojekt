@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 798,
+      "file_count": 799,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -528,6 +528,7 @@
         "tests/spec/plan-partials-embedding/coverage-gate.bats",
         "tests/spec/plan-partials-embedding/manifest-parser.bats",
         "tests/spec/plan-partials-embedding/size-gate.bats",
+        "tests/spec/planning-office/epic-lastenheft.bats",
         "tests/spec/pocket-id-client-seed-auth-header.bats",
         "tests/spec/pocket-id-client-seed-early-abort.bats",
         "tests/spec/pocket-id-client-seed-pagination.bats",

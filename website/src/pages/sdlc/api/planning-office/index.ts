@@ -25,6 +25,7 @@ export const POST: APIRoute = async ({ request , locals }) => {
     const extId = await createIdea({
       title: String(b.title), brand: String(b.brand), valueProp: b.valueProp,
       priority: b.priority, effort: b.effort, areas: Array.isArray(b.areas) ? b.areas : undefined,
+      type: b.type === 'project' ? 'project' : undefined,
     });
     return json({ extId }, 201);
   } catch (e) { locals.requestLogger.error({ e }, '[api/planning-office POST]'); return json({ error: 'create_failed' }, 500); }

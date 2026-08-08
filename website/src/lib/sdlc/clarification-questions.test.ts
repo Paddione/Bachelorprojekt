@@ -4,7 +4,11 @@ import type { OfficeItem } from '../planning-office.ts';
 
 function item(partial: Partial<OfficeItem>): OfficeItem {
   return {
-    extId: 'T000571', title: 'X', valueProp: null, priority: 'mittel',
+    // type ist seit T002617 Pflichtfeld auf OfficeItem — Epics (type='project')
+    // werden darueber von feat-Tickets unterschieden. 'feat' als Default haelt
+    // die Fixtures bei dem Fall, den diese Suite bisher schon abdeckte;
+    // abweichende Typen setzen die Tests per `partial`.
+    extId: 'T000571', title: 'X', type: 'feat', valueProp: null, priority: 'mittel',
     effort: null, areas: [], dependsOn: [], rank: null,
     readiness: {}, dorScore: 0, isNextCandidate: false, pinned: false,
     requirementsList: [], lastenheftLocked: false, triage: null,

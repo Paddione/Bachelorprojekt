@@ -234,6 +234,83 @@ describe('createIdea + listOffice', () => {
   });
 });
 
+describe('Epics (type=project)', () => {
+  it('lists a project ticket in planning', async () => {
+    const extId = await createIdea({ title: 'Epic Kindheit', brand: 'mentolder', type: 'project' });
+    const list = await listOffice();
+    expect(list).toHaveLength(1);
+    expect(list[0].extId).toBe(extId);
+    expect(list[0].type).toBe('project');
+  });
+
+  it('still lists feat tickets alongside epics', async () => {
+    await createIdea({ title: 'Feature A', brand: 'mentolder' });
+    await createIdea({ title: 'Epic B', brand: 'mentolder', type: 'project' });
+    const list = await listOffice();
+    expect(list).toHaveLength(2);
+    expect(list.map((i) => i.type).sort()).toEqual(['feat', 'project']);
+  });
+
+  it('creates an epic with type=project and status=planning', async () => {
+    const extId = await createIdea({ title: 'Epic X', brand: 'mentolder', type: 'project' });
+    const raw2 = memPool as unknown as { query(t: string, p?: unknown[]): Promise<{ rows: RawRow[] }> };
+    const row = (await raw2.query('SELECT type, status FROM tickets.tickets WHERE external_id = $1', [extId])).rows[0];
+    expect(row.type).toBe('project');
+    expect(row.status).toBe('planning');
+  });
+
+  it('creates a feat ticket when no type is given (unchanged default)', async () => {
+    const extId = await createIdea({ title: 'Feature Y', brand: 'mentolder' });
+    const raw2 = memPool as unknown as { query(t: string, p?: unknown[]): Promise<{ rows: RawRow[] }> };
+    const row = (await raw2.query('SELECT type FROM tickets.tickets WHERE external_id = $1', [extId])).rows[0];
+    expect(row.type).toBe('feat');
+  });
+
+  it('patches requirements onto an epic and returns them unchanged', async () => {
+    const extId = await createIdea({ title: 'Epic R', brand: 'mentolder', type: 'project' });
+    const ok = await patchItem(extId, { requirements: ['Muss Kinder bündeln', 'Muss Priorität tragen'] });
+    expect(ok).toBe(true);
+    const item = (await listOffice()).find((i) => i.extId === extId)!;
+    expect(item.requirementsList).toEqual(['Muss Kinder bündeln', 'Muss Priorität tragen']);
+  });
+
+  it('locks an epic with >=1 requirement and sets the lock flag', async () => {
+    const extId = await createIdea({ title: 'Epic L', brand: 'mentolder', type: 'project' });
+    const ok = await patchItem(extId, { requirements: ['Muss Lastenheft tragen'], lastenheftLocked: true });
+    expect(ok).toBe(true);
+
+    // Left planning → gone from the office.
+    expect(await listOffice()).toHaveLength(0);
+
+    const raw2 = memPool as unknown as { query(t: string, p?: unknown[]): Promise<{ rows: RawRow[] }> };
+    const row = (await raw2.query('SELECT * FROM tickets.tickets WHERE external_id = $1', [extId])).rows[0];
+    expect(row.status).toBe('backlog');
+    expect((row.readiness as Record<string, unknown>).lastenheft_locked).toBe(true);
+  });
+
+  it('refuses to lock an epic with an empty Lastenheft and leaves the flag unset', async () => {
+    const extId = await createIdea({ title: 'Epic E', brand: 'mentolder', type: 'project' });
+    await expect(patchItem(extId, { lastenheftLocked: true })).rejects.toThrow('lastenheft_empty');
+
+    const raw2 = memPool as unknown as { query(t: string, p?: unknown[]): Promise<{ rows: RawRow[] }> };
+    const row = (await raw2.query('SELECT * FROM tickets.tickets WHERE external_id = $1', [extId])).rows[0];
+    expect(row.status).toBe('planning');
+    expect((row.readiness as Record<string, unknown>).lastenheft_locked).not.toBe(true);
+  });
+
+  it('rejects requirements edits on a locked epic', async () => {
+    const extId = await createIdea({ title: 'Epic F', brand: 'mentolder', type: 'project' });
+    await patchItem(extId, { requirements: ['Muss eingefroren sein'], lastenheftLocked: true });
+    // Locked → status left planning, so the guard (status='planning') rejects the patch.
+    const ok = await patchItem(extId, { requirements: ['Muss geändert werden'] });
+    expect(ok).toBe(false);
+
+    const raw2 = memPool as unknown as { query(t: string, p?: unknown[]): Promise<{ rows: RawRow[] }> };
+    const row = (await raw2.query('SELECT requirements_list FROM tickets.tickets WHERE external_id = $1', [extId])).rows[0];
+    expect(row.requirements_list).toEqual(['Muss eingefroren sein']);
+  });
+});
+
 describe('patchItem', () => {
   it('updates simple scalar fields', async () => {
     const extId = await createIdea({ title: 'T', brand: 'mentolder' });

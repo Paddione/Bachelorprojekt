@@ -2475,6 +2475,12 @@
       "status": "archived"
     }
   ],
+  "T002617": [
+    {
+      "slug": "epic-lastenheft-gate",
+      "status": "plan_staged"
+    }
+  ],
   "T002620": [
     {
       "slug": "fix-watchdog-sf26-vakuos-T002620",

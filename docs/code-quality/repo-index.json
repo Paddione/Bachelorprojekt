@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 799,
+      "file_count": 798,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -25,7 +25,6 @@
         "tests/e2e/lib/nav-graph.ts",
         "tests/e2e/lib/sweep-guard.public.spec.ts",
         "tests/e2e/lib/sweep-guard.ts",
-        "tests/e2e/lib/systemtest-runner.test.ts",
         "tests/e2e/lib/visual-sweep-helpers.ts",
         "tests/e2e/lib/wissensquellen-fixtures.ts",
         "tests/e2e/observability-health.spec.ts",

@@ -250,7 +250,13 @@ _self_claim_main_checkout() {
 # caller finds out. [T002363]
 _reject_arg() {
   echo "AGENT-LOCK: $1: unbekanntes Argument '$2'" >&2
-  echo "  Erwartet werden benannte Flags: --label <l> --worktree <p> --branch <b> --ticket <id>" >&2
+  # [T002692] Die Zeile nannte zuvor nur die Flags. Wer auf einen abgelehnten
+  # Aufruf hin '--ticket <id>' voranstellte, erzeugte damit einen Lock mit
+  # scope='--ticket' — die Meldung riet also zur kaputten Form. Scope und id
+  # gehoeren zuerst und positional.
+  echo "  Scope und id stehen zuerst und positional: $1 <scope> <id> [flags]" >&2
+  echo "  Erwartete Flags: --label <l> --worktree <p> --branch <b> --ticket <id>" >&2
+  echo "  Dabei ist --ticket die Ticket-REFERENZ, nicht der Scope." >&2
   [ "$1" = "check-and-claim" ] && echo "  sowie --status-check <pfad>" >&2
   return 0
 }
@@ -372,6 +378,24 @@ cmd_check() {
 # (0=ok, 1=held by other) but never writes a lock if the ticket-status DB check
 # signals the ticket is already done/merged. [T002038]
 cmd_check_and_claim() {
+  # [T002692/T002693] Scope und id sind POSITIONAL. Ohne diese Pruefung las
+  # `local scope="$1"` ein vorangestelltes Flag als Scope-Namen: aus
+  # `check-and-claim --ticket T002657` wurde ein Lock mit scope='--ticket',
+  # gemeldet mit Exit 0. So ein Lock wird von scope-basierten Abfragen und vom
+  # Reap nicht als ticket-Lock erkannt — er sperrt faktisch nichts und bleibt
+  # liegen. `--ticket` ist weiterhin gueltig, aber als Ticket-REFERENZ an einem
+  # Branch-Lock (`check-and-claim branch feature/x --ticket T123`).
+  #
+  # Ohne Argumente schlug zuvor `set -u` mit '$1: unbound variable' zu — eine
+  # Zeilennummer statt der erwarteten Form.
+  # Guard: tests/spec/software-factory/agent-lock-scope-argument.bats
+  if [ $# -lt 2 ] || [ "${1#-}" != "$1" ]; then
+    echo "AGENT-LOCK: check-and-claim erwartet <scope> <id> als Positionsargumente." >&2
+    echo "  Beispiel: agent-lock.sh check-and-claim ticket T002657 --label dev-flow-execute" >&2
+    echo "  Optionale Flags: --label <l> --worktree <p> --branch <b> --ticket <id> --status-check <pfad>" >&2
+    echo "  Hinweis: --ticket ist die Ticket-REFERENZ (z.B. an einem branch-Lock), kein Scope." >&2
+    return 2
+  fi
   local scope="$1" id="${2:-}"; shift 2 2>/dev/null || shift $#
   # --status-check <path> is optional: point to a script that returns 0 iff the
   # ticket is still live (plan_staged) and not yet done/merged.

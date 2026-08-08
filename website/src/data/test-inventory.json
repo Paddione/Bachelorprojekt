@@ -3432,6 +3432,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/agent-lock-scope-argument",
+    "file": "tests/spec/software-factory/agent-lock-scope-argument.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/conflict-gate",
     "file": "tests/spec/software-factory/conflict-gate.bats",
     "category": "software-factory",

@@ -114,41 +114,6 @@ clients:
         url: http://localhost:13005/mcp
         enabled: true
 
-  # task-master-ai:
-  #   claude_code: npx -y task-master-ai (portable)
-  #   agy:         /home/patrick/.npm-global/bin/task-master-ai (absoluter Pfad, NICHT portabel)
-  #   opencode:    npx -y task-master-ai, aber enabled: false
-  # Resolution: npx -y ist die portable Form (P1.2).
-  task-master-ai:
-    transport: stdio
-    command: npx
-    args:
-      - -y
-      - task-master-ai
-    env:
-      OLLAMA_BASE_URL: http://localhost:11434/api
-      TASK_MASTER_TOOLS: all
-    harness:
-      claude_code:
-        command: npx
-        args: [-y, task-master-ai]
-        env:
-          OLLAMA_BASE_URL: http://localhost:11434/api
-          TASK_MASTER_TOOLS: all
-      agy:
-        command: /home/patrick/.npm-global/bin/task-master-ai
-        note: "Absoluter Pfad — nicht portabel. npx -y waere portabel, aber agy setzt den globalen Installationspfad."
-        env:
-          OLLAMA_BASE_URL: http://localhost:11434/api
-          TASK_MASTER_TOOLS: all
-      opencode:
-        type: local
-        command: [npx, -y, task-master-ai]
-        enabled: false
-        environment:
-          OLLAMA_BASE_URL: http://localhost:11434/api
-          TASK_MASTER_TOOLS: all
-
   mcp-task-runner:
     transport: stdio
     browser_endpoint: http://127.0.0.1:18235/mcp/mcp-task-runner

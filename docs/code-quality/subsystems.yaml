@@ -31,7 +31,6 @@
     - "environments/**"
     - "wireguard/**"
     - "docker/**"
-    - "mcp-browser/**"
     - "claude-code/**"
     - ".opencode/**"
   owner_agent: bachelorprojekt-infra

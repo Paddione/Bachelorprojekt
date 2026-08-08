@@ -2577,6 +2577,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002688": [
+    {
+      "slug": "repo-cleanup-dead-paths",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

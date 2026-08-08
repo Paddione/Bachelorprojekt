@@ -3192,6 +3192,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-hygiene/dead-path-references",
+    "file": "tests/spec/repo-hygiene/dead-path-references.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
     "id": "rustdesk-server",
     "file": "tests/spec/rustdesk-server.bats",
     "category": "rustdesk-server",

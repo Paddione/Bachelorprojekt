@@ -25,7 +25,7 @@
  *   - /api/auth/*   → OIDC-Login-Oberfläche (login, callback, me, logout)
  *   - /login.astro  → Login-Seite (sdlc-Seiten redirecten auf /login)
  */
-const INFRA_ROUTE_SUBSTRINGS = ['/api/health', '/api/auth/'];
+const INFRA_ROUTE_SUBSTRINGS = ['/api/health', '/api/auth/', '/sdlc/api/systemtest/'];
 const INFRA_ROUTE_SUFFIXES = ['/login.astro'];
 
 /** @param {string} component */

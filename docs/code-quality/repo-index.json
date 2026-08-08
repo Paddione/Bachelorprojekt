@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 806,
+      "file_count": 807,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -560,6 +560,7 @@
         "tests/spec/sdlc-cockpit/brain-link-derivation.bats",
         "tests/spec/sdlc-cockpit/daemon-endpoints.bats",
         "tests/spec/sdlc-cockpit/daemon-helper.bash",
+        "tests/spec/sdlc-cockpit/daemon-port-binding.bats",
         "tests/spec/sdlc-cockpit/daemon-runtime-contract.bats",
         "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
         "tests/spec/sdlc-cockpit/daemon-token-mode.bats",

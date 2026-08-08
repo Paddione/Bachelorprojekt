@@ -67,7 +67,11 @@ setup() {
 # ---------------------------------------------------------------------------
 
 @test "T002508 Daemon startet aus dem Checkout und antwortet auf /health" {
-  local PORT=49199
+  # 39199 statt 49199 [T002708]: der alte Port lag im Bereich 49152-49251, den
+  # Windows/Hyper-V auf WSL2-Hosts reserviert. Dort scheitert bind() mit
+  # EADDRINUSE, obwohl niemand lauscht — dieser Test war deshalb auf jedem
+  # WSL2-Rechner reproduzierbar rot und auf dem Linux-Runner gruen.
+  local PORT=39199
   local PIDFILE="${BATS_TEST_TMPDIR}/daemon.pid"
 
   COCKPIT_DAEMON_PORT="${PORT}" npx tsx .lavish/kit/daemon/server.ts \
@@ -80,10 +84,16 @@ setup() {
   # als Flake in etwa jedem vierten Lauf — mit LEEREM daemon.log, weil der
   # Prozess beim Abbruch noch gar nichts geschrieben hatte. Ausgeschlossen als
   # Ursache wurden: volles /tmp (87G frei laut Diagnose-Step), Portkonflikt mit
-  # dem CI-Daemon (der laeuft auf 49152, dieser Test auf 49199) und ein echter
-  # Defekt (lokal gruen). Die Aussagekraft bleibt erhalten: ein wirklich kaputter
-  # Daemon beendet sich sofort und faellt weiterhin durch — nur das Warten auf
-  # einen langsamen Start ist grosszuegiger.
+  # dem CI-Daemon (der laeuft auf dem Default-Port, dieser Test auf einem
+  # eigenen) und ein echter Defekt (lokal gruen). Die Aussagekraft bleibt
+  # erhalten: ein wirklich kaputter Daemon beendet sich sofort und faellt
+  # weiterhin durch — nur das Warten auf einen langsamen Start ist
+  # grosszuegiger.
+  #
+  # Nachtrag [T002708]: die damals als "flaky" eingeordnete Rotfaerbung war auf
+  # WSL2-Hosts kein Rennen, sondern deterministisch — der Testport lag im
+  # Hyper-V-Reservierungsbereich. Der grosszuegigere Timeout bleibt trotzdem
+  # richtig, er adressiert nur ein anderes Problem als angenommen.
   local ok=0
   for _ in $(seq 1 120); do
     if curl -s -m 1 "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
@@ -109,8 +119,11 @@ setup() {
 # ---------------------------------------------------------------------------
 
 @test "T002508 mit COCKPIT_DAEMON_REQUIRED schlaegt ein fehlender Daemon FEHL statt zu skippen" {
-  # Ein Port, auf dem garantiert nichts lauscht.
-  local DEAD_PORT=49198
+  # Ein Port, auf dem garantiert nichts lauscht — und der auch nicht reserviert
+  # ist [T002708]. Der alte Wert 49198 lag im Hyper-V-Block; das war fuer diesen
+  # Test zufaellig folgenlos, weil er ohnehin einen toten Port braucht, haette
+  # aber jede spaetere Umnutzung der Konstante in eine Falle laufen lassen.
+  local DEAD_PORT=39198
 
   # POSITIV-ANKER: ohne die Variable ist Skippen weiterhin das gewollte
   # Verhalten (lokale Ergonomie). Waere die Datei schlicht kaputt, wuerde die
@@ -130,7 +143,15 @@ setup() {
   COCKPIT_DAEMON_REQUIRED=1 COCKPIT_DAEMON_PORT="${DEAD_PORT}" \
     run ./tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/daemon-endpoints.bats
   [ "$status" -ne 0 ]
-  ! echo "$output" | grep -q "# skip"
+
+  # Gezaehlt statt invertiert [T002708]: `! echo "$output" | grep -q "# skip"`
+  # stand hier und konnte diesen Test nie rot machen. POSIX schaltet `set -e`
+  # ab, sobald der Rueckgabewert eines Kommandos mit `!` invertiert wird — die
+  # Zeile war seit T002508 wirkungslos. Das `|| true` faengt nur den Exit-Code
+  # von grep bei null Treffern ab; geprueft wird die Zahl.
+  local skip_count
+  skip_count=$(printf '%s' "$output" | grep -c '# skip' || true)
+  [ "$skip_count" -eq 0 ]
 }
 
 @test "T002508 CI startet den Daemon und setzt COCKPIT_DAEMON_REQUIRED" {

@@ -3276,6 +3276,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/daemon-port-binding",
+    "file": "tests/spec/sdlc-cockpit/daemon-port-binding.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/daemon-runtime-contract",
     "file": "tests/spec/sdlc-cockpit/daemon-runtime-contract.bats",
     "category": "sdlc-cockpit",

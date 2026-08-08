@@ -14,7 +14,7 @@ const src = fs.readFileSync(process.argv[2], 'utf8');
 const noop = () => {};
 const win = {};
 const document = { addEventListener: noop, hidden: false };
-const location = { protocol: 'file:', port: '49152' };
+const location = { protocol: 'file:', port: '39152' };
 const fetch = async () => ({ ok: true, json: async () => ({}) });
 global.window = win;
 global.document = document;

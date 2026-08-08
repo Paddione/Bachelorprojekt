@@ -2607,6 +2607,12 @@
       "status": "archived"
     }
   ],
+  "T002708": [
+    {
+      "slug": "cockpit-daemon-port-reserved",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

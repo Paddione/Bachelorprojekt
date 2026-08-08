@@ -24,7 +24,7 @@ load daemon-helper
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   SERVER="$REPO/.lavish/kit/daemon/server.ts"
-  DAEMON_PORT="${COCKPIT_DAEMON_PORT:-49152}"
+  DAEMON_PORT="${COCKPIT_DAEMON_PORT:-39152}"
   BASE="http://127.0.0.1:${DAEMON_PORT}"
 }
 

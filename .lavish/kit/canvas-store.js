@@ -68,7 +68,7 @@ export async function deleteCanvas(epicId) {
 // Der Aufruf geht über window.data (adapter.js), nicht über ein eigenes fetch().
 // E1 verlangt das, und hier zeigt sich auch warum: die Kit-Seiten werden von
 // file:// geladen, ein relativer Pfad wie '/api/cockpit/…' hätte den Daemon auf
-// 127.0.0.1:49152 also nie erreicht. Die Basis-URL kennt nur der Adapter.
+// 127.0.0.1:39152 also nie erreicht. Die Basis-URL kennt nur der Adapter.
 //
 // Ohne Adapter (z.B. im Unit-Test) ist die konservative Antwort `true`:
 // "möglicherweise geändert" führt zur Rückfrage, `false` würde stillschweigend

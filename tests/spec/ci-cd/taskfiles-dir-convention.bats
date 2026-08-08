@@ -12,13 +12,24 @@ setup() {
 }
 
 @test "T002700: task loest die ausgelagerten Taskfiles auf (Positiv-Anker)" {
+  # Der Exit-Code ist das belastbare Signal: zeigt EIN include-Pfad ins Leere,
+  # bricht `task --list` mit 100 ab, statt die uebrigen Namespaces zu listen
+  # (lokal gegengeprueft). Das Ausgabe-FORMAT ist es nicht — eine Prüfung auf
+  # '^* llm:' fiel in CI rot, weil die dortige task-Version anders formatiert,
+  # obwohl die Aufloesung einwandfrei war.
   run bash -c "cd '$REPO_ROOT' && task --list 2>&1"
-  [ "$status" -eq 0 ]
-  # Je ein Namespace aus einem ausgelagerten Taskfile — faellt rot, sobald ein
-  # include-Pfad nach dem Move ins Leere zeigt.
-  for ns in llm: factory: staging: brain:; do
-    echo "$output" | grep -q "^\* ${ns}" || {
-      echo "Namespace '${ns}' fehlt in task --list — include-Pfad kaputt?" >&2
+  [ "$status" -eq 0 ] || {
+    echo "task --list scheitert (exit $status) — vermutlich ein toter include-Pfad:" >&2
+    echo "$output" >&2
+    return 1
+  }
+
+  # Zusaetzlich formatfrei: je ein Namespace aus einem ausgelagerten Taskfile
+  # taucht ueberhaupt auf. Ohne Zeilenanker, damit die Zusicherung ueber
+  # task-Versionen hinweg gilt.
+  for ns in 'llm:' 'factory:' 'staging:' 'brain:'; do
+    echo "$output" | grep -qF "$ns" || {
+      echo "Namespace '${ns}' fehlt in task --list — include nicht eingebunden?" >&2
       return 1
     }
   done

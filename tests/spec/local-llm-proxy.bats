@@ -262,7 +262,7 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   #   2. Das Muster akzeptiert livez UND health - geprueft wird die Absicht aus
   #      dem Testnamen (ein HTTP-Port-Check existiert), nicht der Endpunktname.
   run bash -c "sed -n '/^  proxy:start:/,/^  [a-z]/p' \
-    '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' \
+    '${BATS_TEST_DIRNAME}/../../taskfiles/Taskfile.llm.yml' \
     | grep -cE 'curl .*127\.0\.0\.1:\\\$PORT/(livez|health)'"
   [ "$output" != "0" ]
 }
@@ -309,7 +309,7 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   # meldet: ein 503 bei totem Backend haette die Kill-Schleife als "Port frei"
   # gelesen und die Altinstanz ueberleben lassen - genau der T002281-Fall.
   run bash -c "sed -n '/proxy:install-service:/,/^  [a-z]/p' \
-    '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' | grep -cE 'curl .*(livez|health)'"
+    '${BATS_TEST_DIRNAME}/../../taskfiles/Taskfile.llm.yml' | grep -cE 'curl .*(livez|health)'"
   [ "$output" != "0" ]
 }
 
@@ -318,7 +318,7 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
   # gefunden hat. enable --now kann erfolgreich zurueckkehren, waehrend die Unit
   # in auto-restart haengt.
   run bash -c "sed -n '/proxy:install-service:/,/^  [a-z]/p' \
-    '${BATS_TEST_DIRNAME}/../../Taskfile.llm.yml' | grep -cE 'is-active|ActiveState'"
+    '${BATS_TEST_DIRNAME}/../../taskfiles/Taskfile.llm.yml' | grep -cE 'is-active|ActiveState'"
   [ "$output" != "0" ]
 }
 

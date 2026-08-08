@@ -382,6 +382,7 @@
         "tests/spec/ci-cd/skip-ci-marker-guard.bats",
         "tests/spec/ci-cd/spec-dir-convention.bats",
         "tests/spec/ci-cd/spec-shard-partition.bats",
+        "tests/spec/ci-cd/taskfiles-dir-convention.bats",
         "tests/spec/ci-cd/test-inventory-coverage.bats",
         "tests/spec/ci-cd/worktrees-not-tracked.bats",
         "tests/spec/coaching-sessions-polish-guide.bats",

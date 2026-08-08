@@ -7,13 +7,13 @@ setup() {
 }
 
 @test "Taskfile.openclaw.yml parses as YAML" {
-  run python3 -c "import yaml,sys; yaml.safe_load(open('Taskfile.openclaw.yml'))"
+  run python3 -c "import yaml,sys; yaml.safe_load(open('taskfiles/Taskfile.openclaw.yml'))"
   [ "$status" -eq 0 ]
 }
 
 @test "Taskfile.openclaw.yml declares all required tasks" {
   for t in backup install configure start status logs restore wipe; do
-    run grep -E "^  ${t}:" Taskfile.openclaw.yml
+    run grep -E "^  ${t}:" taskfiles/Taskfile.openclaw.yml
     [ "$status" -eq 0 ] || { echo "missing task: ${t}"; return 1; }
   done
 }

@@ -2226,6 +2226,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/taskfiles-dir-convention",
+    "file": "tests/spec/ci-cd/taskfiles-dir-convention.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/test-inventory-coverage",
     "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
     "category": "ci-cd",

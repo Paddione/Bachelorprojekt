@@ -3,30 +3,30 @@ version: "3"
 
 includes:
   assets:
-    taskfile: ./Taskfile.assets.yml
+    taskfile: ./taskfiles/Taskfile.assets.yml
     dir: .
   llm:
-    taskfile: ./Taskfile.llm.yml
+    taskfile: ./taskfiles/Taskfile.llm.yml
     dir: .
   sdlc:
-    taskfile: ./Taskfile.sdlc.yml
+    taskfile: ./taskfiles/Taskfile.sdlc.yml
     dir: .
   finetune:
-    taskfile: ./Taskfile.finetune.yml
+    taskfile: ./taskfiles/Taskfile.finetune.yml
     dir: .
   # Base-vs-Tuned regression gate for Unsloth finetunes (T002606).
   # See Taskfile.finetune-eval.yml.
   finetune-eval:
-    taskfile: ./Taskfile.finetune-eval.yml
+    taskfile: ./taskfiles/Taskfile.finetune-eval.yml
     dir: .
   # dev.mentolder.de — persistent staging stack via k3d on WSL host (context: k3d-mentolder-dev).
   # See Taskfile.dev-stack.yml + docs/dev-stack/README.md.
   dev:
-    taskfile: ./Taskfile.dev-stack.yml
+    taskfile: ./taskfiles/Taskfile.dev-stack.yml
     dir: .
   # dev.korczewski.de — persistent staging stack on PK-L-1 (local WSL2).
   dev-korczewski:
-    taskfile: ./Taskfile.dev-stack.yml
+    taskfile: ./taskfiles/Taskfile.dev-stack.yml
     dir: .
     vars:
       ENV: korczewski
@@ -38,45 +38,45 @@ includes:
   # Staging on-demand — per-branch isolated k3d namespaces.
   # See Taskfile.staging.yml + docs/superpowers/specs/2026-06-11-staging-on-demand-design.md.
   staging:
-    taskfile: ./Taskfile.staging.yml
+    taskfile: ./taskfiles/Taskfile.staging.yml
     dir: .
   # dev.mentolder.de — DECOMMISSIONED devc HA k3s taskfile kept for reference (dead context).
   # The 3-node devc k3s cluster was shelved 2026-05-30. Dev runs via local k3d.
   devcluster:
-    taskfile: ./Taskfile.devcluster.yml
+    taskfile: ./taskfiles/Taskfile.devcluster.yml
     dir: .
   # brainstorm.mentolder.de — reverse-SSH-tunnel broker (sish) for the
   # brainstorming visual companion. See Taskfile.brainstorm.yml.
   brainstorm:
-    taskfile: ./Taskfile.brainstorm.yml
+    taskfile: ./taskfiles/Taskfile.brainstorm.yml
     dir: .
 
   # Active Sessions Hub — register/list local dev sessions for the Mediaviewer.
   # See Taskfile.session.yml + scripts/session-hub.sh.
   session:
-    taskfile: ./Taskfile.session.yml
+    taskfile: ./taskfiles/Taskfile.session.yml
     dir: .
 
   # OpenClaw — personal AI assistant gateway on the WSL host.
   # See Taskfile.openclaw.yml + openclaw/README.md.
   openclaw:
-    taskfile: ./Taskfile.openclaw.yml
+    taskfile: ./taskfiles/Taskfile.openclaw.yml
     dir: .
   # Cross-harness agent infrastructure (MCP servers, etc.) shared by every
   # agent harness in this repo — Claude Code, opencode, Hermes. See Taskfile.agents.yml.
   agents:
-    taskfile: ./Taskfile.agents.yml
+    taskfile: ./taskfiles/Taskfile.agents.yml
     dir: .
   # Software Factory — Phase 1 pipeline documentation wrapper.
   # See scripts/factory/pipeline.mjs + docs/superpowers/references/factory-usage.md.
   factory:
-    taskfile: ./Taskfile.factory.yml
+    taskfile: ./taskfiles/Taskfile.factory.yml
     dir: .
 
   # Brain-Quartz Wiki — initial ingest worklist (T001570).
   # See Taskfile.brain.yaml + scripts/brain-ingest-worklist.sh.
   brain:
-    taskfile: ./Taskfile.brain.yaml
+    taskfile: ./taskfiles/Taskfile.brain.yaml
     dir: .
 
 vars:

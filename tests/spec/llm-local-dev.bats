@@ -6,7 +6,7 @@
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-  TASKFILE="$REPO/Taskfile.openclaw.yml"
+  TASKFILE="$REPO/taskfiles/Taskfile.openclaw.yml"
   ENV_EXAMPLE="$REPO/openclaw/.env.example"
 }
 

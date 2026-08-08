@@ -102,7 +102,7 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
   while read -r ref; do
     [ -n "$ref" ] || continue
     [ -e "$REPO/$ref" ] || missing="${missing}${ref}\n"
-  done < <(grep -vE '^[[:space:]]*#' "$REPO/Taskfile.llm.yml" \
+  done < <(grep -vE '^[[:space:]]*#' "$REPO/taskfiles/Taskfile.llm.yml" \
              | grep -oE 'scripts/llm/[A-Za-z0-9_.-]+\.ps1' | sort -u)
   if [ -n "$missing" ]; then
     printf 'Taskfile.llm.yml nennt nicht vorhandene Skripte:\n' >&2

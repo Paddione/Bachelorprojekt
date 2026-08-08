@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 803,
+      "file_count": 804,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -482,6 +482,7 @@
         "tests/spec/mcp-gateway.bats",
         "tests/spec/mcp-gateway/authenticated-http-headers.bats",
         "tests/spec/mcp-gateway/bge-host-routing.bats",
+        "tests/spec/mcp-gateway/bge-http-only-get.bats",
         "tests/spec/mcp-gateway/client-env-check.bats",
         "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
         "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",

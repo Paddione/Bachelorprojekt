@@ -37,7 +37,7 @@ Koordinationsaufwand.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Der Test `tests/spec/mcp-gateway/bge-http-only-get.bats`
+- [x] **Failing-Test-Step (RED).** Der Test `tests/spec/mcp-gateway/bge-http-only-get.bats`
       liegt bereits im Stage-Commit dieses Branches. Er startet den echten Shim auf einem freien
       Port und prüft, dass `GET /mcp` mit gültigem Bearer nicht in einem Event-Stream endet.
       Vor dem Fix schlägt er fehl, weil `curl` in `--max-time` läuft (der Kanal bleibt offen und
@@ -48,7 +48,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/bge-http-only-get.bats
 # expected: FAIL (rot — Test 1 fällt, Tests 2 und 3 sind bereits grün)
 ```
 
-- [ ] **Fix-Step (GREEN).** In `scripts/bge-mcp/server.mjs` den `if (req.method === 'GET')`-Block
+- [x] **Fix-Step (GREEN).** In `scripts/bge-mcp/server.mjs` den `if (req.method === 'GET')`-Block
       (samt `res.writeHead`, `setInterval`-Keep-Alive und `req.on('close')`) ersatzlos entfernen.
       `GET` fällt damit in den bestehenden `if (req.method !== 'POST') return send(405, …)`-Zweig.
       Die Bearer-Prüfung darüber bleibt unberührt — ein unauthentifizierter `GET` muss weiterhin
@@ -59,20 +59,29 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/bge-http-only-get.bats
 # erwartet: 3 von 3 grün
 ```
 
-- [ ] **End-to-End-Beleg (H1 entscheiden).** Der Test oben belegt das geänderte HTTP-Verhalten,
-      nicht die Behauptung, dass genau dieses Verhalten agy blockiert hat. Deshalb den Dienst neu
-      starten und agy nach seinen MCP-Servern fragen — `bge-mcp` muss in der Aufzählung
-      erscheinen. Das Ergebnis wird als Kommentar an T002703 vermerkt.
+- [x] **End-to-End-Beleg (H1 entscheiden) — durchgeführt, H1 WIDERLEGT.**
 
-```bash
-systemctl --user restart bge-mcp.service
-agy --print-timeout 2m -p 'Liste NUR die Namen aller dir verfuegbaren MCP-Server auf, kommasepariert. Wenn du keine hast, antworte exakt: KEINE.'
-# erwartet: die Ausgabe enthält bge-mcp
-```
+Der Beleg wurde am 2026-08-08 geführt. Weil die systemd-Unit den Shim aus dem **Hauptcheckout**
+startet (`ExecStart=… /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs`), hätte ein
+blosses `systemctl restart` den ungepatchten Code geladen und H1 fälschlich widerlegt. Der Dienst
+wurde deshalb kurz durch eine Instanz aus diesem Worktree auf :13005 ersetzt (`GET` → `405`
+verifiziert), danach vollständig wiederhergestellt.
 
-> Erscheint `bge-mcp` nicht, ist H1 widerlegt: der Fix bleibt trotzdem richtig (der stumme Kanal
-> ist eine Sackgasse), aber die Ursache für agys Ausfall liegt dann woanders und braucht ein
-> Folgeticket. In diesem Fall wird der Vorgang **nicht** als Behebung von T002703 verbucht.
+Ergebnis: `bge-mcp` erschien **weiterhin nicht** in agys Server-Aufzählung. Der GET-Fix allein
+macht den Shim für agy nicht erreichbar.
+
+Die anschliessende Messung fand die tatsächliche Ursache — sie liegt nicht in diesem Repo-Pfad:
+`~/.gemini/config/mcp_config.json` trägt `Authorization: "Bearer ${BGE_MCP_TOKEN}"` unexpandiert.
+Ein POST mit dem literalen Platzhalter beantwortet der Shim mit `401`, mit echtem Token mit `200`;
+setzt man den echten Wert in die agy-Config, erscheint `bge-mcp` sofort in der Aufzählung.
+`bge-mcp` ist der einzige Server der agy-Config mit einem `headers`-Feld — das erklärt, warum
+genau er als einziger fehlte. Für opencode existiert die nötige Übersetzung bereits (T002488,
+`${VAR}` → `{env:VAR}` in `scripts/mcp-sync.sh`), für agy nicht.
+
+Konsequenz gemäss der Vorgabe dieses Plans: der Vorgang wird **nicht** als Behebung des
+ursprünglichen agy-Symptoms verbucht. Der GET-Fix bleibt eigenständig richtig — ein Kanal, in den
+nie geschrieben wird, lässt Clients warten statt schnell zu scheitern. Die Ursache läuft als
+eigenes Ticket weiter.
 
 - [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
 

@@ -9,3 +9,8 @@ resources:
   # T002052: website-scoped security-headers (no noindex) — keeps the public site crawlable
   - website-security-headers.yaml
   - website-ingress-web.yaml
+patches:
+  - target:
+      kind: Deployment
+      name: website
+    path: website-patch.yaml

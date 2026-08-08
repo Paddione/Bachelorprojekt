@@ -30,6 +30,7 @@ jobs:
     outputs:
       image: ${{ steps.compute-tags.outputs.image }}
       sha_tag: ${{ steps.compute-tags.outputs.sha_tag }}
+      digest: ${{ steps.build-push.outputs.digest }}
 
     steps:
       - uses: actions/checkout@v7
@@ -81,6 +82,7 @@ jobs:
       # at all, which silently turned build-args into no-ops — keep the ARG
       # declarations and these values in sync.
       - name: Build & push Docker image
+        id: build-push
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a  # v7
         with:
           context: .
@@ -102,7 +104,7 @@ jobs:
     if: vars.FLUX_ENABLED == 'true'
     uses: ./.github/workflows/render-fleet-artifact.yml
     with:
-      website_image_tag: ${{ needs.build-image.outputs.sha_tag }}
+      website_image_digest: ${{ needs.build-image.outputs.digest }}
     secrets: inherit
 
   deploy-mentolder:

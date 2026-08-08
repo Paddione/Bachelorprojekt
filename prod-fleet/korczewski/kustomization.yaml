@@ -13,6 +13,10 @@ components:
 # T002207: remove all one-shot Jobs from the brand overlay — they now
 # live in flux-<brand>-jobs Kustomization with force:true and wait:false.
 patches:
+  - target:
+      kind: Deployment
+      name: brett
+    path: brett-patch.yaml
   - target: { group: batch, version: v1, kind: Job }
     patch: |-
       $patch: delete

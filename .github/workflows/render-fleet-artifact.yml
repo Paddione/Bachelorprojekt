@@ -2,13 +2,13 @@ name: Render Fleet Artifact
 on:
   workflow_call:
     inputs:
-      website_image_tag:
-        description: 'SHA-Tag für das Website-Image (leer = latest aus Overlay)'
+      website_image_digest:
+        description: 'SHA256-Digest für das Website-Image (leer = online via crane auflösen)'
         required: false
         type: string
         default: ''
-      brett_image_tag:
-        description: 'SHA-Tag für das Brett-Image (leer = latest aus Overlay)'
+      brett_image_digest:
+        description: 'SHA256-Digest für das Brett-Image (leer = online via crane auflösen)'
         required: false
         type: string
         default: ''
@@ -28,6 +28,7 @@ on:
       # zufaellig ein Manifest angefasst wird, und Flux rollt weiter den alten
       # Stand aus. Genau so blieb der T002156-Fix nach dem Merge wirkungslos.
       - 'scripts/flux-render-artifact.sh'
+      - 'scripts/resolve-image-digest.sh'
       - 'scripts/website-config-sha.sh'
       - 'Taskfile.yml'
 
@@ -58,21 +59,13 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install kustomize + flux CLI
+      - name: Install kustomize + flux CLI + crane
         run: |
           rm -f /usr/local/bin/kustomize
           curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
             | bash -s -- 5.4.3 /usr/local/bin
           curl -sSL https://fluxcd.io/install.sh | sudo bash
-
-      - name: Provide CI dummy secrets for render
-        run: bash scripts/ci-dummy-secrets.sh
-
-      - name: Render fleet manifests to out/
-        env:
-          WEBSITE_IMAGE_TAG: ${{ inputs.website_image_tag }}
-          BRETT_IMAGE_TAG: ${{ inputs.brett_image_tag }}
-        run: task flux:render
+          curl -sL https://github.com/google/go-containerregistry/releases/download/v0.20.2/go-containerregistry_Linux_x86_64.tar.gz | tar -xz -C /usr/local/bin crane
 
       - name: Log in to GHCR
         uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7  # v5
@@ -80,6 +73,32 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Provide CI dummy secrets for render
+        run: bash scripts/ci-dummy-secrets.sh
+
+      - name: Resolve image digests
+        id: resolve-digests
+        run: |
+          set -euo pipefail
+          WEBSITE_DIGEST="${{ inputs.website_image_digest }}"
+          if [[ -z "$WEBSITE_DIGEST" ]]; then
+            WEBSITE_DIGEST="$(bash scripts/resolve-image-digest.sh --image ghcr.io/paddione/website:latest)"
+          fi
+
+          BRETT_DIGEST="${{ inputs.brett_image_digest }}"
+          if [[ -z "$BRETT_DIGEST" ]]; then
+            BRETT_DIGEST="$(bash scripts/resolve-image-digest.sh --image ghcr.io/paddione/workspace-brett:latest)"
+          fi
+
+          echo "website_digest=${WEBSITE_DIGEST}" >> $GITHUB_OUTPUT
+          echo "brett_digest=${BRETT_DIGEST}" >> $GITHUB_OUTPUT
+
+      - name: Render fleet manifests to out/
+        env:
+          WEBSITE_IMAGE_DIGEST: ${{ steps.resolve-digests.outputs.website_digest }}
+          BRETT_IMAGE_DIGEST: ${{ steps.resolve-digests.outputs.brett_digest }}
+        run: task flux:render
 
       - name: Push OCI artifact
         run: |
@@ -89,6 +108,9 @@ jobs:
             --path=./out \
             --source="$(git config --get remote.origin.url)" \
             --revision="${GITHUB_REF_NAME}@sha1:${GITHUB_SHA}"
+          flux tag artifact \
+            oci://ghcr.io/paddione/fleet-manifests:latest \
+            --tag "sha-${GITHUB_SHA}"
 
       - name: Ping Flux receiver (immediate reconcile)
         if: success()

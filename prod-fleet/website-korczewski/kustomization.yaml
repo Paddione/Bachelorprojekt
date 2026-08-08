@@ -11,6 +11,10 @@ resources:
   # gegen die IngressRoute, daher trägt es die compress/static-cache-Annotationen.
   - website-ingress-web.yaml
 patches:
+  - target:
+      kind: Deployment
+      name: website
+    path: website-patch.yaml
   # Fix HTTPS: add websecure entryPoint + wildcard TLS cert (T000144)
   # Also adds security-headers middleware to the route so SA-01 headers are present (T000171)
   # Note: allowCrossNamespace is disabled on korczewski Traefik — middleware must be in

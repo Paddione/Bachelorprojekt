@@ -103,7 +103,19 @@ env_vars:
   - name: WEBSITE_IMAGE_TAG
     required: false
     default_dev: "latest"
-    description: "Docker image tag for the website; set by CI (render-fleet-artifact.yml) or defaults to latest."
+    description: "Docker image tag for the website in dev/k3d; CI resolves to digest for prod."
+
+  - name: WEBSITE_IMAGE_DIGEST
+    required: false
+    default_dev: ""
+    validate: "^(sha256:[a-f0-9]{64})?$"
+    description: "SHA256 digest for the website image in prod overlays (e.g. sha256:1111...)."
+
+  - name: BRETT_IMAGE_DIGEST
+    required: false
+    default_dev: ""
+    validate: "^(sha256:[a-f0-9]{64})?$"
+    description: "SHA256 digest for the workspace-brett image in prod overlays."
 
   - name: BRETT_IMAGE
     required: false

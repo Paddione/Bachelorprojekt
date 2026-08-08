@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.2...website-v1.254.3) (2026-08-08)
+
+
+### Bug Fixes
+
+* **scripts:** ticket.sh nennt bei unbekanntem Argument die erwartete Form [T002697] ([#3834](https://github.com/Paddione/Bachelorprojekt/issues/3834)) ([2b49d4f](https://github.com/Paddione/Bachelorprojekt/commit/2b49d4ffc79da4956804441209f78e31b446b8f4))
+
 ## [1.254.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.1...website-v1.254.2) (2026-08-08)
 
 

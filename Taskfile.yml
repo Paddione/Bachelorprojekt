@@ -1868,6 +1868,18 @@ tasks:
       - chmod +x .githooks/post-merge
       - git config merge.ours.driver true
       - echo "hooksPath set to .githooks; merge.ours driver registered"
+      # T002760: post-commit-index hook needs pgvector reachable at localhost:5432.
+      # Enable the systemd port-forward unit (pattern from bge-forward-embed, T002604).
+      - |
+        svc="scripts/semantic-code-search/pgvector-forward.service"
+        if [ -f "$svc" ]; then
+          mkdir -p ~/.config/systemd/user
+          ln -sf "$PWD/$svc" ~/.config/systemd/user/pgvector-forward.service
+          systemctl --user daemon-reload 2>/dev/null || true
+          systemctl --user enable --now pgvector-forward.service 2>/dev/null || true
+          state=$(systemctl --user is-active pgvector-forward.service 2>/dev/null || echo 'inactive')
+          echo "  pgvector-forward: ${state}"
+        fi
 
   secrets:unlock:
     desc: "Decrypt git-crypt secrets on a new machine (KEY=/path/to/bp-secrets.key)"

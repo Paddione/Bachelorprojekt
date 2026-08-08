@@ -34,7 +34,7 @@ spec:
         - name: sish
           image: antoniomika/sish:v2.23.0@sha256:c03329d1b8182ac8a928c1b928174dc2621619b824d0dcb11f045d02761bb327
           args:
-            - --domain=${PROD_DOMAIN}
+            - --domain=${DEV_DOMAIN}
             - --ssh-address=:2222
             - --http-address=:80
             - --authentication=true
@@ -45,7 +45,7 @@ spec:
             - --idle-connection-timeout=24h
             - --service-console=false
             - --tcp-aliases=false
-            - --bind-hosts=brainstorm.${PROD_DOMAIN}
+            - --bind-hosts=*.${DEV_DOMAIN}
           ports:
             - containerPort: 2222
               name: ssh

@@ -17,7 +17,7 @@ export type CockpitEvent = { domain: string; op: string; at: number };
 type Subscriber = (ev: CockpitEvent) => void;
 
 let client: Client | null = null;
-let subscribers = new Set<Subscriber>();
+const subscribers = new Set<Subscriber>();
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let listenActive = false;
 
@@ -26,11 +26,11 @@ const RECONNECT_DELAY_MS = 5_000;
 function ensureClient(): Client {
   if (!client) {
     // Derive connection config from pool but create a standalone Client.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const poolOpts = (pool as any).options;
+    // `options` is not in the public pg.PoolConfig typing — read via unknown.
+    const poolOpts = (pool as unknown as { options?: object }).options;
     client = new Client(
       poolOpts && typeof poolOpts === 'object'
-        ? { ...poolOpts as object }
+        ? { ...poolOpts }
         : { connectionString: process.env.SESSIONS_DATABASE_URL || process.env.DATABASE_URL },
     );
   }

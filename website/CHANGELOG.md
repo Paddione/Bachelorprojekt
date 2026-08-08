@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.4...website-v1.254.5) (2026-08-08)
+
+
+### Bug Fixes
+
+* **infra:** dev-stack sish bindet wieder die Dev-Domain [T002705] ([#3844](https://github.com/Paddione/Bachelorprojekt/issues/3844)) ([edbfb9e](https://github.com/Paddione/Bachelorprojekt/commit/edbfb9e4f4e193e797877f8b68543232432f077b))
+
 ## [1.254.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.3...website-v1.254.4) (2026-08-08)
 
 

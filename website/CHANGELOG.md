@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.251.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.5...website-v1.251.6) (2026-08-08)
+
+
+### Bug Fixes
+
+* **website:** ungeprobten Login-Rueckfall sichtbar machen [T002682] ([#3809](https://github.com/Paddione/Bachelorprojekt/issues/3809)) ([b159001](https://github.com/Paddione/Bachelorprojekt/commit/b15900128f7f5950934ad656ccac743d862df302))
+
 ## [1.251.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.4...website-v1.251.5) (2026-08-08)
 
 

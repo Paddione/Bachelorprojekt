@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 800,
+      "file_count": 801,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -605,6 +605,7 @@
         "tests/spec/software-factory/slot-mapping.bats",
         "tests/spec/software-factory/stage-plan-touched-files.bats",
         "tests/spec/software-factory/ticket-lifecycle.bats",
+        "tests/spec/software-factory/ticket-usage-hints.bats",
         "tests/spec/software-factory/wakeup.bats",
         "tests/spec/studio-sessions-reorganize.bats",
         "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",

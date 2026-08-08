@@ -41,7 +41,11 @@ REG="scripts/factory/service-registry.sh"
 # im Verify von T002418.
 _skip_if_no_db() {
   local _pod
-  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  # [T002626] Default folgt scripts/factory/lib.sh: seit ADR-006 E3 liegen die
+  # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
+  # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
+  # am lokalen Cluster.
+  _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
     -l 'app in (shared-db,shared-db-dev)' --field-selector status.phase=Running \
     -o name 2>/dev/null | head -1) || true
   if [[ -z "$_pod" ]]; then

@@ -2511,6 +2511,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002626": [
+    {
+      "slug": "e3-sdlc-tickets-lokal",
+      "status": "plan_staged"
+    }
+  ],
   "T002628": [
     {
       "slug": "2026-08-04-gpu-arbitrierung-trainings-vorrang",

@@ -20,7 +20,19 @@
 
 set -euo pipefail
 
-CTX="${TICKET_CTX:-fleet}"
+# Default-Kontext der SDLC-Datenhoheit [T002626, ADR-006 E3].
+# Seit E3 liegt das tickets-Schema lokal; die fleet-Kopie ist eingefroren
+# (SELECT ja, INSERT/UPDATE/DELETE nein). `TICKET_CTX=fleet` bleibt als
+# Override gueltig, um die eingefrorene Historie zu lesen.
+#
+# Derselbe Default steht in scripts/vda/ticket/_ticket-core.sh — die Datei wird
+# erst weiter unten gesourct, CTX wird hier aber schon fuer die
+# Namespace-Ableitung gebraucht. Beide Stellen zusammen aendern.
+#
+# Der Default nennt den mentolder-Cluster: nur dieser Brand hat einen lokalen
+# SDLC-Stack. Korczewski-Tickets liegen weiterhin auf fleet und brauchen ein
+# explizites TICKET_CTX=fleet.
+CTX="${TICKET_CTX:-k3d-mentolder-dev}"
 NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"
@@ -66,14 +78,29 @@ case "$BRAND" in
   *)           echo "ERROR: unknown BRAND '$BRAND' (use mentolder|korczewski)" >&2; exit 2 ;;
 esac
 
-# If context is a dev cluster, append -dev to namespace
-if [[ "$CTX" == k3d-* || "$CTX" == *-dev ]]; then
-  if [[ "$NS" == "workspace" ]]; then
-    NS="workspace-dev"
-  elif [[ "$NS" == "workspace-korczewski" ]]; then
-    NS="workspace-korczewski-dev"
-  fi
-fi
+# Namespace-Ableitung je Kontext [T002626].
+#
+# Bis E3 hing die Regel am NAMEN des Kontexts: alles, was `k3d-*` hiess oder auf
+# `-dev` endete, bekam `workspace-dev`. Das galt fuer den alten dev-Stack auf
+# fleet und ist fuer den SDLC-Cluster falsch — E2 deployt ihn nach `workspace`
+# (k3d/sdlc-stack/kustomization.yaml: `namespace: workspace`). Mit der alten
+# Regel faende _pgpod dort keinen Pod und JEDER Ticket-Befehl braeche mit
+# "no shared-db pod found" ab.
+#
+# Der Namensanker war ohnehin der falsche: wie ein Cluster heisst, sagt nichts
+# darueber, in welchem Namespace er seine Datenbank betreibt. Deshalb wird der
+# Sonderfall jetzt explizit aufgezaehlt statt gemustert.
+case "$CTX" in
+  # SDLC-Cluster (E2/E3): Stack liegt in `workspace`, kein Suffix.
+  k3d-mentolder-dev|k3d-korczewski-dev) : ;;
+  # Historischer dev-Stack auf fleet: dort existieren die -dev-Namespaces.
+  *-dev)
+    case "$NS" in
+      workspace)            NS="workspace-dev" ;;
+      workspace-korczewski) NS="workspace-korczewski-dev" ;;
+    esac
+    ;;
+esac
 
 # --resolve-ns-only: print resolved NS and exit (test/diagnosis hook, no cluster access) [T002280]
 if "$_RESOLVE_NS_ONLY"; then

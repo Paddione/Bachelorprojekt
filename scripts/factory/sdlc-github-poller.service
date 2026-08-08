@@ -1,0 +1,23 @@
+# scripts/factory/sdlc-github-poller.service
+# GitHub-Rueckkanal im Pull-Modell — systemd USER service (E3/T002626, ADR-006).
+# Gepaart mit sdlc-github-poller.timer.
+#
+# GitHub kann den Dev-Host nicht erreichen, also gibt es keine Webhooks. Dieser
+# Dienst holt aktiv: gemergte PRs (Ticket-Closure), PR-Zustand und Check-Laeufe.
+# Waehrend die Workstation aus ist, puffert GitHub; beim Wiederanlauf wird ab
+# Cursor nachgeholt.
+[Unit]
+Description=GitHub-Zustand in die lokale SDLC-Datenbank holen
+Documentation=file:///home/patrick/Bachelorprojekt/docs/sdlc-stack/e3-cutover.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/patrick/Bachelorprojekt
+ExecStart=/home/patrick/Bachelorprojekt/scripts/factory/github-poller.sh
+# Ein Lauf sind zwei gh-Abfragen plus auto-close-merged. 600s faengt eine
+# haengende Verbindung ab; ein normaler Lauf braucht Sekunden.
+RuntimeMaxSec=600
+TimeoutStartSec=660
+# gh braucht das Token des Benutzers; dieselbe Env-Datei wie die Factory.
+EnvironmentFile=-%h/.config/factory/autopilot.env

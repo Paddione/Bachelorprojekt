@@ -130,6 +130,69 @@ tasks:
     cmds:
       - bash scripts/sdlc-sync-oidc-secret.sh
 
+  # --- E3/T002626: Datenhoheit ------------------------------------------------
+  # Der Cutover ist ein Betriebsvorgang, kein Task-Lauf. Diese Tasks sind die
+  # Einzelschritte daraus; die Reihenfolge steht in docs/sdlc-stack/e3-cutover.md.
+
+  sdlc:migrate:preflight:
+    desc: "E3: Vorbedingungen des tickets-Umzugs pruefen (aendert nichts)"
+    cmds:
+      - bash scripts/sdlc/migrate-tickets.sh preflight
+
+  sdlc:migrate:dump:
+    desc: "E3: tickets-Schema aus fleet dumpen (ohne provider_config)"
+    cmds:
+      - bash scripts/sdlc/migrate-tickets.sh dump {{.CLI_ARGS}}
+
+  sdlc:migrate:restore:
+    desc: "E3: Dump in die lokale DB einspielen und Zeilenzahlen vergleichen"
+    cmds:
+      - bash scripts/sdlc/migrate-tickets.sh restore {{.CLI_ARGS}}
+
+  sdlc:migrate:seed-provider-config:
+    desc: "E3: lokale tickets.provider_config anlegen (bewusst keine fleet-Kopie)"
+    cmds:
+      - bash scripts/sdlc/migrate-tickets.sh seed-provider-config
+
+  sdlc:migrate:freeze:
+    desc: "E3: fleet-Kopie schreibgeschuetzt stellen (SELECT bleibt, provider_config bleibt schreibbar)"
+    cmds:
+      - bash scripts/sdlc/migrate-tickets.sh freeze {{.CLI_ARGS}}
+
+  sdlc:migrate:status:
+    desc: "E3: Zeilenzahlen fleet vs. lokal nebeneinander"
+    cmds:
+      - bash scripts/sdlc/migrate-tickets.sh status
+
+  sdlc:backup:
+    desc: "E3: lokale SDLC-DB nach fleet sichern (verschluesselt)"
+    cmds:
+      - bash scripts/sdlc/backup-tickets.sh run {{.CLI_ARGS}}
+
+  sdlc:backup:list:
+    desc: "E3: vorhandene SDLC-Sicherungen auf fleet auflisten"
+    cmds:
+      - bash scripts/sdlc/backup-tickets.sh list
+
+  sdlc:restore-check:
+    desc: "E3: Nachweis, dass die juengste Sicherung wiederherstellbar ist"
+    # Ein Backup ohne durchgefuehrten Restore ist eine Vermutung, keine Sicherung.
+    cmds:
+      - bash scripts/sdlc/backup-tickets.sh restore-check
+
+  sdlc:backup:install:
+    desc: "E3: systemd-User-Timer fuer die taegliche Sicherung installieren"
+    cmds:
+      - |
+        set -e
+        UNIT_DIR="$HOME/.config/systemd/user"
+        mkdir -p "$UNIT_DIR"
+        ln -sf "$PWD/scripts/sdlc/sdlc-backup.service" "$UNIT_DIR/sdlc-backup.service"
+        ln -sf "$PWD/scripts/sdlc/sdlc-backup.timer"   "$UNIT_DIR/sdlc-backup.timer"
+        systemctl --user daemon-reload
+        systemctl --user enable --now sdlc-backup.timer
+        systemctl --user list-timers sdlc-backup.timer --no-pager
+
   sdlc:smoke:
     desc: "E2E-Nachweis: Login-Roundtrip + /sdlc/cockpit rendert als Admin"
     # Prueft, dass das Cockpit tatsaechlich GERENDERT wird — nicht nur, dass die

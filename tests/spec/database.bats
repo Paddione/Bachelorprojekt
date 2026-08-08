@@ -24,6 +24,12 @@ PLAN_MIGRATION="scripts/migrations/2026-07-09-coaching-phase2-drop-legacy.sql"
 # Selektion auch einen Completed-Pod, der Skip bleibt aus, und das folgende `kubectl exec`
 # endet mit rc=1 statt in einem sauberen Skip. Genau so entstand der "DB-Nachweis rc=1"
 # im Verify von T002418.
+# [T002626] Dieser Guard BLEIBT bewusst auf fleet, obwohl die uebrigen
+# SDLC-Test-Guards mit ADR-006 E3 auf den lokalen Cluster umgestellt wurden:
+# database.bats prueft `tickets.provider_config`, und genau diese Tabelle ist von
+# der Migration ausgenommen. Sie bleibt auf fleet, weil
+# `coaching.sessions.ki_config_id` sie referenziert und Coaching Produktionsdaten
+# sind. Guard und Testkoerper messen hier also korrekterweise fleet.
 _skip_if_no_db() {
   local _pod
   _pod=$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \

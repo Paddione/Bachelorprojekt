@@ -14,95 +14,21 @@ env:
   OPENSPEC_TELEMETRY: '0'
 
 jobs:
-  mark-awaiting:
-    name: Mark ticket awaiting_deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2
-          fetch-tags: false
-      - name: Set ticket status to awaiting_deploy
-        env:
-          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
-        run: |
-          set -euo pipefail
-          TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"
-          if [[ -z "$TICKET_ID" ]]; then
-            echo "No T###### id in merge commit — nothing to mark."
-            exit 0
-          fi
-          echo "Setting ticket $TICKET_ID to awaiting_deploy."
-          mkdir -p "$HOME/.kube"
-          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          export KUBECONFIG="$HOME/.kube/config"
-          export TICKET_CTX=fleet BRAND=mentolder
-          # retry <cmd...> — bis zu 5 Versuche, Exponential-Backoff 2/4/8/16 s.
-          # Non-fatal: gibt nach Erschöpfung 0 zurück (wie das bisherige || echo WARNING).
-          retry() {
-            local max=5 delay=2 attempt=1
-            until "$@"; do
-              if (( attempt >= max )); then
-                echo "WARNING: '$*' failed after ${max} attempts (non-fatal)."
-                return 0
-              fi
-              echo "attempt ${attempt}/${max} failed; retry in ${delay}s"
-              sleep "${delay}"
-              delay=$(( delay * 2 ))
-              attempt=$(( attempt + 1 ))
-            done
-          }
-          retry bash scripts/ticket.sh update-status --id "$TICKET_ID" --status awaiting_deploy
-
-  reap-branches:
-    name: Reap orphaned remote branches
-    runs-on: ubuntu-latest
-    needs: mark-awaiting
-    # Haengt bewusst NICHT am Deploy-Pfad: ein Fehler beim Aufraeumen darf nie einen Deploy
-    # blockieren. continue-on-error entspricht dem non-fatalen Verhalten der uebrigen
-    # Post-Merge-Schritte.
-    continue-on-error: true
-    # contents: write wird NUR hier gesetzt, nicht workflowweit — das Skript loescht Refs und
-    # pusht Archiv-Tags. Begruendung analog zum Kommentar am Job render-artifact weiter unten:
-    # Rechte bleiben auf den Job begrenzt, der sie braucht.
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2
-          fetch-tags: false
-      - name: Reap branches whose ticket is closed
-        env:
-          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"
-          if [[ -z "$TICKET_ID" ]]; then
-            echo "No T###### id in merge commit — nothing to reap."
-            exit 0
-          fi
-          # ticket.sh braucht Cluster-Zugriff fuer die Statusabfrage.
-          mkdir -p "$HOME/.kube"
-          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          export KUBECONFIG="$HOME/.kube/config"
-          export TICKET_CTX=fleet BRAND=mentolder
-          bash scripts/branch-reaper.sh --ticket "$TICKET_ID" | tee /tmp/reap.log
-          {
-            echo "### Branch reaper — $TICKET_ID"
-            echo ''
-            echo '```'
-            cat /tmp/reap.log
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
+  # ENTFERNT mit E3/T002626 (ADR-006): die Jobs "mark-awaiting" und
+  # "reap-branches".
+  #
+  # mark-awaiting setzte den Status awaiting_deploy — der ist seit T001092
+  # ohnehin aus dem Happy-Path genommen (Closure trackt den Merge, nicht
+  # Prod-Live). reap-branches las den Ticket-Status, um zu entscheiden, ob ein
+  # Branch geraeumt werden darf.
+  #
+  # Beide brauchten Zugriff auf die Ticket-Datenbank, die seit E3 auf dem
+  # Dev-Host liegt. Ersatz: der Branch-Reaper laeuft lokal ueber
+  # scripts/branch-reaper.sh (Skill repo-hygiene), die Closure ueber
+  # scripts/factory/github-poller.sh.
   detect:
     name: Detect manifest changes
     runs-on: ubuntu-latest
-    needs: mark-awaiting
     outputs:
       manifests_changed: ${{ steps.detect.outputs.manifests_changed }}
     steps:
@@ -120,7 +46,7 @@ jobs:
 
   render-artifact:
     name: Render fleet artifact (GitOps)
-    needs: [mark-awaiting, detect]
+    needs: [detect]
     if: vars.FLUX_ENABLED == 'true' && needs.detect.outputs.manifests_changed == 'true'
     # render-fleet-artifact.yml verlangt packages: write (docker/login-action →
     # ghcr). Ein via `uses:` aufgerufener Workflow darf nie mehr Rechte
@@ -138,7 +64,7 @@ jobs:
   deploy-legacy:
     name: Deploy manifests (legacy push, pre-Flux)
     runs-on: ubuntu-latest
-    needs: [mark-awaiting, detect]
+    needs: [detect]
     if: vars.FLUX_ENABLED != 'true' && needs.detect.outputs.manifests_changed == 'true'
     timeout-minutes: 30
     steps:
@@ -235,104 +161,16 @@ jobs:
           task website:migrate ENV=mentolder
           task website:migrate ENV=korczewski
 
-      - name: Mark ticket done
-        id: close
-        # always() statt success(): Closure trackt laut T001092 den MERGE, nicht
-        # Prod-Live — der Deploy ist ausdruecklich entkoppelt. Eine
-        # fehlgeschlagene Migration darf das Ticket also nicht offen halten.
-        # Vorher riss jeder Fehler im Migrationsschritt die Closure mit. [T002121]
-        if: always()
-        env:
-          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
-        run: |
-          set -euo pipefail
-          TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"
-          if [[ -z "$TICKET_ID" ]]; then
-            echo "No T###### id in merge commit — nothing to close."
-            echo "ticket_id=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "Closing ticket $TICKET_ID (deployed to both brands)."
-          echo "ticket_id=$TICKET_ID" >> "$GITHUB_OUTPUT"
-          mkdir -p "$HOME/.kube"
-          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          export KUBECONFIG="$HOME/.kube/config"
-          export TICKET_CTX=fleet BRAND=mentolder
-          # retry <cmd...> — bis zu 5 Versuche, Exponential-Backoff 2/4/8/16 s.
-          # Non-fatal: gibt nach Erschöpfung 0 zurück (wie das bisherige || echo WARNING).
-          retry() {
-            local max=5 delay=2 attempt=1
-            until "$@"; do
-              if (( attempt >= max )); then
-                echo "WARNING: '$*' failed after ${max} attempts (non-fatal)."
-                return 0
-              fi
-              echo "attempt ${attempt}/${max} failed; retry in ${delay}s"
-              sleep "${delay}"
-              delay=$(( delay * 2 ))
-              attempt=$(( attempt + 1 ))
-            done
-          }
-          retry bash scripts/ticket.sh update-status --id "$TICKET_ID" --status done
-      - name: Ticket closure scan (incidental references)
-        if: always()
-        env:
-          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
-        run: |
-          set -euo pipefail
-          TICKET_ID="$(git log -1 --pretty=%B | grep -oE 'T[0-9]{6}' | head -1 || true)"
-          if [[ -z "$TICKET_ID" ]]; then
-            echo "No T###### id in merge commit — nothing to scan for."
-          fi
-          echo "Scanning merge for incidental ticket references (T002279)..."
-          mkdir -p "$HOME/.kube"
-          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          export KUBECONFIG="$HOME/.kube/config"
-          export TICKET_CTX=fleet BRAND=mentolder
-          retry() {
-            local max=5 delay=2 attempt=1
-            until "$@"; do
-              if (( attempt >= max )); then
-                echo "WARNING: '$*' failed after ${max} attempts (non-fatal)."
-                return 0
-              fi
-              echo "attempt ${attempt}/${max} failed; retry in ${delay}s"
-              sleep "${delay}"
-              delay=$(( delay * 2 ))
-              attempt=$(( attempt + 1 ))
-            done
-          }
-          retry bash scripts/devflow-post-merge-ticket-closure.sh
-
-      - name: Scout drift ratchet
-        if: steps.close.outputs.ticket_id != ''
-        env:
-          FLEET_KUBECONFIG: ${{ secrets.FLEET_KUBECONFIG }}
-        run: |
-          set -euo pipefail
-          TICKET_ID="${{ steps.close.outputs.ticket_id }}"
-          # Only feature/fix merges produce meaningful drift — skip chore/docs/archive
-          COMMIT_TITLE="$(git log -1 --pretty=%s)"
-          case "$COMMIT_TITLE" in
-            feat:*|fix:*) ;;
-            *) echo "scout-drift: skipping — not a feature/fix merge ($COMMIT_TITLE)"; exit 0 ;;
-          esac
-          mkdir -p "$HOME/.kube"
-          echo "$FLEET_KUBECONFIG" | base64 -d > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          export KUBECONFIG="$HOME/.kube/config"
-          export TICKET_CTX=fleet BRAND=mentolder
-          BASE="$(git rev-parse HEAD~1)" || BASE=""
-          HEAD="$(git rev-parse HEAD)"   || HEAD=""
-          if [[ -n "$BASE" && -n "$HEAD" ]]; then
-            bash scripts/factory/scout-drift.sh \
-              --ticket "$TICKET_ID" \
-              --base "$BASE" \
-              --head "$HEAD" \
-              --repo "$PWD" \
-              || echo "WARNING: scout-drift failed (non-fatal)."
-          else
-            echo "WARNING: could not resolve base/head for drift ratchet (non-fatal)."
-          fi
+      # ENTFERNT mit E3/T002626 (ADR-006): "Mark ticket done" und
+      # "Ticket closure scan".
+      # Beide schrieben mit TICKET_CTX=fleet in die Ticket-Datenbank. Seit E3
+      # liegt sie auf dem Dev-Host, den GitHub nicht erreichen kann.
+      # Ersatz: scripts/factory/github-poller.sh holt gemergte PRs aktiv ab und
+      # schliesst die Tickets lokal (Aufgabe "merges", delegiert an
+      # auto-close-merged.sh). Der Poller laeuft als systemd-User-Timer neben
+      # der Factory.
+      # ENTFERNT mit E3/T002626 (ADR-006): "Scout drift ratchet".
+      # Die Messung schrieb in tickets.tickets. Seit dem Umzug der SDLC-Daten auf
+      # den Dev-Host erreicht CI diese Datenbank nicht mehr. Die Drift-Messung
+      # entfaellt damit vorerst ersatzlos — sie laesst sich nachtraeglich aus dem
+      # Merge-Diff rekonstruieren, aber das ist nicht Teil dieser Etappe.

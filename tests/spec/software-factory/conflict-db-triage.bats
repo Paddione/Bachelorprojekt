@@ -106,7 +106,11 @@ teardown() { _sf_teardown; }
 
 psql_tickets() {
   local query="$1"
-  local ctx="${FACTORY_CTX:-fleet}"
+  # [T002626] Default folgt scripts/factory/lib.sh: seit ADR-006 E3 liegen die
+  # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
+  # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
+  # am lokalen Cluster.
+  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}"
   local ns="${FACTORY_NS:-workspace}"
   local pod
   pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)

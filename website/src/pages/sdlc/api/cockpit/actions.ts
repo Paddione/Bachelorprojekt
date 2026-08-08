@@ -143,15 +143,17 @@ async function runAction(
 
     // ---- Deploy / CI (irreversible — shell exec) ----
     case 'flux_reconcile': {
-      const targetFlag = target ? ` --target "${target}"` : '';
-      const cmd = `bash scripts/flux.sh reconcile${targetFlag}`;
-      const { stdout, stderr } = await execAsync(cmd, { timeout: 30_000 });
+      // Fleet cluster: reconcile the brand Kustomization with source sync.
+      // flux reconcile kustomization <name> [--with-source] [--context <ctx>]
+      const ksName = target || 'flux-website-mentolder';
+      const cmd = `flux reconcile kustomization ${ksName} --with-source --context fleet`;
+      const { stdout, stderr } = await execAsync(cmd, { timeout: 60_000 });
       return { status: 200, body: { ok: true, action: 'flux_reconcile', stdout, stderr } };
     }
     case 'ci_rerun': {
       const runId = target || String(body.runId || '');
       if (!runId) return { status: 400, body: { error: 'runId required for ci_rerun' } };
-      const { stdout, stderr } = await execAsync(`gh-axi rerun ${runId}`, { timeout: 15_000 });
+      const { stdout, stderr } = await execAsync(`gh-axi run rerun ${runId} --failed`, { timeout: 15_000 });
       return { status: 200, body: { ok: true, action: 'ci_rerun', runId, stdout, stderr } };
     }
 
@@ -176,7 +178,7 @@ async function runAction(
       const ticketId = target || String(body.ticketId || '');
       if (!ticketId) return { status: 400, body: { error: 'ticketId required' } };
       const resolution = String(body.resolution || 'fixed');
-      const { stdout, stderr } = await execAsync(`bash scripts/ticket.sh close ${ticketId} --resolution "${resolution}"`, { timeout: 15_000 });
+      const { stdout, stderr } = await execAsync(`bash scripts/ticket.sh update-status --id ${ticketId} --status done --resolution "${resolution}"`, { timeout: 15_000 });
       return { status: 200, body: { ok: true, action: 'close', ticketId, stdout, stderr } };
     }
 

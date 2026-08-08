@@ -203,14 +203,21 @@ const data = (() => {
   let pushEventSource = null;
   let pushEventSourceState = 'polling'; // 'polling' | 'live' | 'error'
   const pushDomainReloaders = {}; // domain -> Set<() => void>
+  const pushDomainListeners = {}; // domain -> () => void
+
+  function dispatchDomain(domain) {
+    for (const fn of pushDomainReloaders[domain] || []) {
+      try { fn(); } catch {}
+    }
+  }
 
   function ensurePushStream() {
     if (pushEventSource) return;
     pushEventSource = new EventSource('/sdlc/api/cockpit/stream');
 
     pushEventSource.addEventListener('reconnect', () => {
-      for (const reloaders of Object.values(pushDomainReloaders)) {
-        for (const fn of reloaders) { try { fn(); } catch {} }
+      for (const domain of Object.keys(pushDomainReloaders)) {
+        dispatchDomain(domain);
       }
     });
 
@@ -219,16 +226,19 @@ const data = (() => {
   }
 
   function registerDomainReload(domain, reload) {
-    if (!pushDomainReloaders[domain]) pushDomainReloaders[domain] = new Set();
-    pushDomainReloaders[domain].add(reload);
-
-    if (pushEventSource) {
-      pushEventSource.addEventListener(domain, () => {
-        for (const fn of pushDomainReloaders[domain] || []) {
-          try { fn(); } catch {}
-        }
-      });
+    if (!pushDomainReloaders[domain]) {
+      pushDomainReloaders[domain] = new Set();
+      // Ein EventSource-Listener pro Domain, der alle Reloader im Set
+      // benachrichtigt — verhindert O(N²)-Dispatching bei N Panels derselben
+      // Quelle (ein addEventListener pro Panel wuerde jedes Event N-mal ueber
+      // das Set iterieren lassen).
+      if (pushEventSource) {
+        const listener = () => dispatchDomain(domain);
+        pushDomainListeners[domain] = listener;
+        pushEventSource.addEventListener(domain, listener);
+      }
     }
+    pushDomainReloaders[domain].add(reload);
   }
 
   function releaseDomainReload(domain, reload) {
@@ -236,6 +246,10 @@ const data = (() => {
     pushDomainReloaders[domain].delete(reload);
     if (pushDomainReloaders[domain].size === 0) {
       delete pushDomainReloaders[domain];
+      if (pushEventSource && pushDomainListeners[domain]) {
+        pushEventSource.removeEventListener(domain, pushDomainListeners[domain]);
+      }
+      delete pushDomainListeners[domain];
     }
   }
 

@@ -2589,6 +2589,12 @@
       "status": "archived"
     }
   ],
+  "T002703": [
+    {
+      "slug": "bge-mcp-http-only-get",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.255.0...website-v1.256.0) (2026-08-08)
+
+
+### Features
+
+* **db:** E3 SDLC-Isolation — tickets-Schema lokal-primär + GitHub-Poller [T002626] ([#3856](https://github.com/Paddione/Bachelorprojekt/issues/3856)) ([8a0e518](https://github.com/Paddione/Bachelorprojekt/commit/8a0e518f25f9a3b409cc25f0f759e07125ed3d5c))
+
 ## [1.255.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.10...website-v1.255.0) (2026-08-08)
 
 

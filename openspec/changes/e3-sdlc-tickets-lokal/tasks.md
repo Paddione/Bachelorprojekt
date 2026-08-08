@@ -1,7 +1,7 @@
 ---
 title: "e3-sdlc-tickets-lokal — Implementation Plan"
 ticket_id: T002626
-domains: [db, infra, scripts]
+domains: [db, infra, scripts, factory, website, test]
 status: active
 file_locks: []
 shared_changes: false
@@ -12,35 +12,106 @@ depends_on_plans: [T002625]
 
 # e3-sdlc-tickets-lokal — Implementation Plan
 
-_Ticket: T002626 (E3) · Epic T002623 (ADR-006) · E2 T002625 merging · E4 T002627 folgt_
+_Ticket: T002626 (E3) · Epic T002623 (ADR-006) · E2 T002625 gemergt · E4 T002627 folgt_
+
+Verlagert die Datenhoheit ueber die SDLC-Daten auf den Dev-Host und stellt den CI-Rueckkanal
+im Pull-Modell her. Entwurf und Messwerte: `design.md`, `intel.json`.
+
+## File Structure
+
+| Datei | Partial | Rolle | S1 |
+|---|---|---|---|
+| `scripts/sdlc/migrate-tickets.sh` | p1 | neu — Dump/Restore/Freeze | `.sh` / 800, Budget 800 |
+| `scripts/sdlc/backup-tickets.sh` | p1 | neu — taeglicher Dump nach fleet | `.sh` / 800, Budget 800 |
+| `systemd/sdlc-backup.service` | p1 | neu | n/a |
+| `systemd/sdlc-backup.timer` | p1 | neu | n/a |
+| `Taskfile.sdlc.yml` | p1 | geaendert — migrate/freeze/backup/restore-check | n/a |
+| `docs/sdlc-stack/e3-cutover.md` | p1 | neu — Cutover- und Rollback-Runbook | n/a |
+| `scripts/ticket.sh` | p2 | geaendert — Default-Kontext, Namespace | ignore (gates.yaml) |
+| `scripts/vda/ticket/_ticket-core.sh` | p2 | geaendert — Default-Kontext | `.sh` / 800, Bestand 181, Budget 619 |
+| `scripts/factory/lib.sh` | p2 | geaendert — `FACTORY_CTX` | `.sh` / 800, Bestand 72, Budget 728 |
+| `docs/sdlc-stack/README.md` | p2 | geaendert — Betriebshinweise | n/a |
+| `scripts/factory/github-poller.sh` | p3 | neu — Merges/PR-Zustand/Checks | `.sh` / 800, Budget 800 |
+| `systemd/sdlc-github-poller.service` | p3 | neu | n/a |
+| `systemd/sdlc-github-poller.timer` | p3 | neu | n/a |
+| `.github/workflows/post-merge.yml` | p3 | geaendert — Ticket-Schritte entfernen | n/a |
+| `migrations/2026-08-08-bug-report-outbox.sql` | p4 | neu — Outbox auf fleet | n/a |
+| `website/src/lib/sdlc/inbox/bug-outbox.ts` | p4 | neu — Schreibpfad | `.ts` / 900, Budget 900 |
+| `website/src/lib/sdlc/inbox/bug-outbox.test.ts` | p4 | neu — Vitest | `.ts` / 900, Budget 900 |
+| `website/src/lib/messaging-db.ts` | p4 | geaendert — Outbox statt Ticket | `.ts` / 900, Bestand 296, Budget 604 |
+| `tests/spec/sdlc-isolation/e3-tickets-lokal.bats` | p5 | neu | n/a |
+| `tests/spec/sdlc-isolation/e3-poller.bats` | p5 | neu | n/a |
+| `tests/spec/sdlc-isolation/e3-backup.bats` | p5 | neu | n/a |
 
 ## Partials
 
 | id | file | role | target_files | depends_on |
 |----|------|------|--------------|------------|
-| p1 | tasks.d/p1-schema.md | impl | migrations/, k3d/sdlc-stack/ | |
-| p2 | tasks.d/p2-poller.md | impl | scripts/github-poller.sh, systemd/ | p1 |
-| p3 | tasks.d/p3-outbox.md | impl | website/src/, migrations/ | p1 |
-| p4 | tasks.d/p4-tests.md | tests | tests/spec/sdlc-isolation/e3-tickets-lokal.bats | p3 |
+| p1 | tasks.d/p1-data.md | impl | scripts/sdlc/migrate-tickets.sh, scripts/sdlc/backup-tickets.sh, systemd/sdlc-backup.service, systemd/sdlc-backup.timer, Taskfile.sdlc.yml, docs/sdlc-stack/e3-cutover.md | |
+| p2 | tasks.d/p2-redirect.md | impl | scripts/ticket.sh, scripts/vda/ticket/_ticket-core.sh, scripts/factory/lib.sh, docs/sdlc-stack/README.md | p1 |
+| p3 | tasks.d/p3-poller.md | impl | scripts/factory/github-poller.sh, systemd/sdlc-github-poller.service, systemd/sdlc-github-poller.timer, .github/workflows/post-merge.yml | p2 |
+| p4 | tasks.d/p4-outbox.md | impl | migrations/2026-08-08-bug-report-outbox.sql, website/src/lib/sdlc/inbox/bug-outbox.ts, website/src/lib/sdlc/inbox/bug-outbox.test.ts, website/src/lib/messaging-db.ts | p3 |
+| p5 | tasks.d/p5-tests.md | tests | tests/spec/sdlc-isolation/e3-tickets-lokal.bats, tests/spec/sdlc-isolation/e3-poller.bats, tests/spec/sdlc-isolation/e3-backup.bats | p4 |
 
-### p1 — schema: tickets-Schema lokal bootstrappen, fleet read-only
+### p1 — data: Migration, fleet-Freeze, Backup
 
-Schema-Migration von fleet in die lokale DB. `tickets`-Schema bootstrappt sich selbst (D7 aus E2), muss aber das fleet-Readonly-Archiv schaffen.
+Verlagert den Bestand (36.700 Zeilen, ohne `provider_config`), friert die fleet-Kopie gegen
+Schreibzugriffe ein und richtet das Backup nach fleet samt Restore-Nachweis ein.
 
-### p2 — poller: GitHub-Poller- CronJob lokal
+### p2 — redirect: Zugriffspfade umstellen
 
-GitHub-Events (PRs, Checks, Comments) via Poller in lokale DB schreiben. `babysit-prs.sh` + `auto-close-merged.sh` generalisieren.
+Dreht den Default-Kontext an drei Stellen um und korrigiert **zuerst** die
+Namespace-Ableitung in `ticket.sh`, die sonst jeden Ticket-Befehl unbrauchbar machen wuerde.
 
-### p3 — outbox: Bug-Report-Outbox auf fleet → Poller liest lokal ein
+### p3 — poller: GitHub-Poller, danach CI entkernen
 
-`public.bug_report_outbox`-Tabelle auf fleet. Poller liest und schreibt in lokale tickets.
+Baut den cursor-basierten Poller (Merges, PR-Zustand, Checks) und entfernt **erst nach dessen
+Nachweis** die fuenf Ticket-Bloecke aus `post-merge.yml`.
 
-### p4 — tests: BATS-Guard + Backup-Nachweis
+### p4 — outbox: Kunden-Bugmeldungen
+
+Legt `public.bug_report_outbox` auf fleet an, stellt den Schreibpfad der Website um und
+ergaenzt die Leseseite im Poller.
+
+### p5 — tests: BATS-Nachweis
+
+Belegt Umstellung, Cursor-Semantik und Restore ueber Kommandoausgaben statt Quelltext-Greps.
+
+## Reihenfolge ist bindend
+
+p3 entfernt die CI-Ticket-Schritte. Geschieht das, bevor der Poller nachweislich arbeitet,
+bleiben Tickets nach dem Merge still offen liegen — ein Fehler, der nicht knallt, sondern erst
+Tage spaeter bei einer Durchsicht auffaellt. Ebenso steht die Namespace-Korrektur in p2 vor der
+Default-Umstellung: andernfalls ist der Zwischenstand ein Repository, in dem kein einziger
+Ticket-Befehl mehr laeuft.
 
 ## Verify
 
+Abschliessend, nach p1–p5:
+
 ```bash
 bash scripts/openspec.sh validate
+tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-isolation*
 task test:changed
 task freshness:regenerate && task freshness:check
 ```
+
+Zusaetzlich die DoD des Tickets, die kein Testrunner abdecken kann:
+
+```bash
+# Factory-Tick ohne Verbindung zur Hetzner-DB
+sudo wg-quick down wg-fleet && bash scripts/factory/wakeup.sh --once
+
+# Kein CI-Ereignis geht verloren
+systemctl --user stop sdlc-github-poller.timer
+#   … PR mergen …
+systemctl --user start sdlc-github-poller.timer && bash scripts/factory/github-poller.sh --once
+
+# fleet ist eingefroren
+kubectl exec -i "$(kubectl --context fleet get pod -n workspace -l app=shared-db -o name | head -1)" \
+  -n workspace --context fleet -c postgres -- \
+  psql -U website -d website -c "INSERT INTO tickets.tickets (type,brand,title) VALUES ('chore','mentolder','x')"
+```
+
+Erwartet: der Tick laeuft vollstaendig durch, das Ticket des gemergten PR ist danach
+geschlossen, und der `INSERT` scheitert mit einem Berechtigungsfehler.

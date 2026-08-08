@@ -113,6 +113,37 @@ _attr_files() {
   }
 }
 
+# Das fuenfte Register: die Auto-Stage-Liste im pre-commit-Hook. T001388 in
+# tests/spec/pre-commit-freshness.bats prueft bereits, dass sie ein Superset der
+# FILES-Liste ist — aber nicht, ob die Pfade existieren. Beide Luecken zusammen
+# liessen docs/code-quality/loc-budget.json ueberleben: eine Datei ohne
+# Generator, die es nirgends gibt.
+_autostage_files() {
+  sed -n '/_FRESHNESS_FILES=(/,/^)/p' .githooks/pre-commit \
+    | grep -v '^\s*#' \
+    | grep -oE "^\s+[a-zA-Z0-9/._-]+" \
+    | tr -d ' ' \
+    | LC_ALL=C sort -u
+}
+
+@test "pre-commit: kein Eintrag der Auto-Stage-Liste zeigt auf einen toten Pfad" {
+  local dead=""
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    [ -e "$f" ] || dead="${dead}${f}"$'\n'
+  done < <(_autostage_files)
+
+  # Positiv-Anker: die Liste muss ueberhaupt gefunden worden sein.
+  [ "$(_autostage_files | wc -l)" -gt 10 ]
+
+  [ -z "$dead" ] || {
+    echo "_FRESHNESS_FILES enthaelt nicht existierende Pfade:"
+    echo "$dead"
+    echo "Der Hook staged sie nie — der Eintrag taeuscht Abdeckung vor."
+    return 1
+  }
+}
+
 @test "agent-guide: alle vier maps sind im Gate und merge=ours" {
   # Die vier Karten entstehen aus EINEM Generator (scripts/agent-guide/emit-maps.mjs)
   # und muessen deshalb identisch behandelt werden. agents-map.md fehlte in beiden

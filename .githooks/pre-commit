@@ -57,13 +57,13 @@ _FRESHNESS_FILES=(
   docs/diagrams/architecture.md
   website/src/lib/sdlc/goals-data.generated.json
   docs/code-quality/repo-index.json
-  docs/code-quality/loc-budget.json
   docs/agent-guide/10-ziele.md
   docs/agent-guide/20-werkzeuge.md
   docs/agent-guide/30-bausteine.md
   docs/agent-guide/maps/goals-map.md
   docs/agent-guide/maps/tools-map.md
   docs/agent-guide/maps/danger-map.md
+  docs/agent-guide/maps/agents-map.md
   website/src/lib/agent-guide.generated.json
   website/src/lib/platform-descriptions.generated.json
   docs/generated/api-map.json

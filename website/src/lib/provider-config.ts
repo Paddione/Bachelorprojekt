@@ -2,6 +2,28 @@ import { pool } from './website-db';
 import type { Pool } from 'pg';
 import { logger } from './logger';
 
+/**
+ * Betreiberschaft des Providers [T002657]. NICHT zu verwechseln mit
+ * `eu_endpoint`: das beschreibt den Rechtsraum eines fremden Betreibers, nicht
+ * die Betreiberschaft selbst — ein EU-gehosteter Fremdanbieter ist weiterhin
+ * ein Fremdanbieter.
+ */
+export type DataResidency = 'on_premises' | 'external';
+
+/**
+ * Eine fehlende oder unbekannte Deklaration gilt als `external`. Das ist der
+ * Kern der Zusage: nur wer sich ausdruecklich als on-premises deklariert, gilt
+ * als solcher. Ein vergessener Migrationseintrag fuehrt damit zum Fehlschlag,
+ * nicht zur stillen Uebertragung.
+ *
+ * Die Normalisierung liegt bewusst HIER und nicht an den Aufrufstellen — sonst
+ * muesste jeder kuenftige Konsument sie wiederholen, und genau eine Stelle
+ * wuerde sie irgendwann vergessen.
+ */
+export function normalizeDataResidency(raw: unknown): DataResidency {
+  return raw === 'on_premises' ? 'on_premises' : 'external';
+}
+
 export interface ProviderChoice {
   provider: string;
   modelId: string;
@@ -9,12 +31,16 @@ export interface ProviderChoice {
   apiKey: string;
   contextWindow: number | null;
   contextBudget: number | null;
+  dataResidency: DataResidency;
 }
 
 const OPUS_MODEL = 'claude-opus-4-6';
+// dataResidency: 'external' — der Fallback ist ein Fremdanbieter. Ihn hier
+// versehentlich als on_premises zu fuehren wuerde den Guard genau dann
+// aushebeln, wenn die DB-Abfrage fehlschlaegt [T002657].
 const FALLBACK: Omit<ProviderChoice, 'apiKey'> = {
   provider: 'anthropic', modelId: 'claude-sonnet-4-6', baseUrl: null,
-  contextWindow: null, contextBudget: null,
+  contextWindow: null, contextBudget: null, dataResidency: 'external',
 };
 
 export class DisabledProviderError extends Error {
@@ -40,11 +66,13 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
     return {
       provider: 'anthropic', modelId: OPUS_MODEL, baseUrl: null,
       apiKey: process.env.ANTHROPIC_API_KEY || '', contextWindow: null, contextBudget: null,
+      dataResidency: 'external',
     };
   }
   try {
     const { rows } = await pool.query(
-      `SELECT pc.provider, pc.model_id, pc.base_url, pc.api_key, pc.context_window, pc.context_budget
+      `SELECT pc.provider, pc.model_id, pc.base_url, pc.api_key, pc.context_window, pc.context_budget,
+              pc.data_residency
          FROM tickets.provider_config pc
          LEFT JOIN tickets.provider_health ph ON ph.provider = pc.provider
         WHERE (pc.source = $1 OR pc.source = '*') AND pc.tier = $2 AND pc.enabled = true
@@ -54,11 +82,12 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
       [source, tier],
     );
     if (rows.length) {
-      const { provider, model_id, base_url, api_key, context_window, context_budget } = rows[0];
+      const { provider, model_id, base_url, api_key, context_window, context_budget, data_residency } = rows[0];
       const apiKey = (typeof api_key === 'string' && api_key) ? api_key : apiKeyForProvider(provider);
       return {
         provider, modelId: model_id, baseUrl: base_url ?? null, apiKey,
         contextWindow: context_window ?? null, contextBudget: context_budget ?? null,
+        dataResidency: normalizeDataResidency(data_residency),
       };
     }
   } catch (err) {
@@ -69,7 +98,7 @@ export async function getProviderConfig(source: string, tier: 'sonnet' | 'haiku'
 
 export async function getProviderByName(providerName: string, _brand?: string): Promise<ProviderChoice> {
   const { rows } = await pool.query(
-    `SELECT provider, model_id, base_url, api_key, context_window, context_budget
+    `SELECT provider, model_id, base_url, api_key, context_window, context_budget, data_residency
        FROM tickets.provider_config
       WHERE provider = $1 AND enabled = true
       LIMIT 1`,
@@ -78,11 +107,12 @@ export async function getProviderByName(providerName: string, _brand?: string): 
   if (!rows.length) {
     throw new DisabledProviderError(providerName);
   }
-  const { provider, model_id, base_url, api_key, context_window, context_budget } = rows[0];
+  const { provider, model_id, base_url, api_key, context_window, context_budget, data_residency } = rows[0];
   const apiKey = (typeof api_key === 'string' && api_key) ? api_key : apiKeyForProvider(provider);
   return {
     provider, modelId: model_id, baseUrl: base_url ?? null, apiKey,
     contextWindow: context_window ?? null, contextBudget: context_budget ?? null,
+    dataResidency: normalizeDataResidency(data_residency),
   };
 }
 

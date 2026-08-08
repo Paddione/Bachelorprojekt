@@ -134,8 +134,23 @@ async function proxyV1(req, res, subpath) {
     const e = auto.failed;
     return sendJson(res, e.status ?? 502, { error: { code: e.code ?? 'start_error', message: e.message } });
   }
-  const routed = resolveModel(body.model, getBackends);
-  if (!routed) return sendJson(res, 503, { error: { code: 'no_backend', message: 'no healthy backend' } });
+  // [T002657] Lokal-only-Anforderung: der Aufrufer verlangt, dass die Inhalte
+  // die eigene Infrastruktur nicht verlassen. Ohne diesen Weg faellt eine
+  // korrekt auf on-premises umgestellte Coaching-Konfiguration beim naechsten
+  // Trainingslauf ueber die Prioritaetskette wieder auf ein remote-Backend
+  // zurueck — der Guard in der Website waere dann umgangen, ohne dass jemand
+  // etwas falsch gemacht haette.
+  const localOnly = String(req.headers['x-llm-local-only'] ?? '') === '1';
+  const routed = resolveModel(body.model, getBackends, { localOnly });
+  if (!routed) {
+    // Bewusst KEINE Substitution auf ein remote-Backend: bei lokal-only ist
+    // Fehlschlagen das richtige Ergebnis, Ausweichen waere der Schaden.
+    return localOnly
+      ? sendJson(res, 503, { error: { code: 'no_local_backend', message:
+          'x-llm-local-only: 1 angefordert, aber kein lokales Backend verfuegbar — '
+          + 'es wurde NICHT auf ein remote-Backend ausgewichen' } })
+      : sendJson(res, 503, { error: { code: 'no_backend', message: 'no healthy backend' } });
+  }
 
   const { backend, servedModel, substituted } = routed;
   // sanitizeToolSchemaPatterns laeuft UNBEDINGT, nicht als benannter Fixup:

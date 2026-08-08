@@ -93,7 +93,7 @@ cmd_grill() {
       --dry-run-json)  dry_run_json="true"; shift ;;
       --no-comment)    no_comment="true"; shift ;;
       --brand)         shift 2 ;;  # consumed pre-source by ticket.sh BRAND handling; ignore here
-      *)               echo "Unknown grill option: $1" >&2; exit 2 ;;
+      *)               echo "Unknown grill option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh grill" >&2; exit 2 ;;
     esac; done
 
   # --- Validate BEFORE _pgpod so bad-arg errors are deterministic w/o a cluster (FA-SF-35/50). ---

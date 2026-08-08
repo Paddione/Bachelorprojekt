@@ -13,7 +13,7 @@ cmd_add_pr_link() {
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
       --pr) pr="$2"; shift 2 ;;
-      *)    echo "Unknown add-pr-link option: $1" >&2; exit 2 ;;
+      *)    echo "Unknown add-pr-link option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh add-pr-link" >&2; exit 2 ;;
     esac; done
 
   if [[ -z "$id" || -z "$pr" ]]; then
@@ -65,7 +65,7 @@ cmd_link_tickets() {
     --from)  from_ext="$2"; shift 2 ;;
     --to)    to_ext="$2"; shift 2 ;;
     --kind)  kind="$2"; shift 2 ;;
-    *)       echo "Unknown link-tickets option: $1" >&2; exit 2 ;;
+    *)       echo "Unknown link-tickets option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh link-tickets" >&2; exit 2 ;;
   esac; done
 
   if [[ -z "$from_ext" || -z "$to_ext" || -z "$kind" ]]; then
@@ -100,7 +100,7 @@ cmd_get_ticket_links() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
     --id)  id="$2"; shift 2 ;;
-    *)     echo "Unknown get-ticket-links option: $1" >&2; exit 2 ;;
+    *)     echo "Unknown get-ticket-links option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh get-ticket-links" >&2; exit 2 ;;
   esac; done
 
   if [[ -z "$id" ]]; then

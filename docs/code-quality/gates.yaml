@@ -169,6 +169,12 @@ s4:
     - ".opencode/commands/**/*.md"
   reference_sources:
     - "Taskfile*.yml"
+    # Die 14 eingebundenen Taskfiles liegen seit T002700 unter taskfiles/ — der
+    # Glob oben ist wurzelgebunden und erreicht sie nicht mehr. Die .yaml-Variante
+    # ist bewusst mitaufgefuehrt: Taskfile.brain.yaml wurde vom .yml-Glob auch
+    # vorher nie erfasst, ihre Task-Skripte galten also faelschlich als Waisen.
+    - "taskfiles/Taskfile*.yml"
+    - "taskfiles/Taskfile*.yaml"
     - "**/kustomization.yaml"
     - "**/kustomization.yml"
     - "docs/**/*.md"

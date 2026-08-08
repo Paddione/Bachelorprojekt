@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.253.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.252.2...website-v1.253.0) (2026-08-08)
+
+
+### Features
+
+* **ops:** Benchmark-Werkzeug fuer bge-CPU-Tuning [T002572] ([#3824](https://github.com/Paddione/Bachelorprojekt/issues/3824)) ([9699365](https://github.com/Paddione/Bachelorprojekt/commit/9699365a62568b612c38bd80d7b2477a517fab5e))
+
 ## [1.252.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.252.1...website-v1.252.2) (2026-08-08)
 
 

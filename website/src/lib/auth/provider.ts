@@ -43,18 +43,38 @@ export function clearProviderCache(): void {
   cacheExpiresAt = 0;
 }
 
+// Pocket ID serviert die OIDC-Discovery unter /.well-known/openid-configuration.
+// Der zuvor allein geprobte Pfad /api/oidc/.well-known/... liefert 404 —
+// verifiziert aus dem Website-Pod auf fleet gegen POCKET_ID_URL und gegen den
+// lokalen SDLC-Stack (T002680, 2026-08-08). Damit schlug probeProvider()
+// IMMER fehl, fuer primary
+// wie fallback: resolveAuthProvider() lieferte null und resolveEndpoints()
+// warf AuthUnavailableError. Sichtbar wurde das erst beim Token-Exchange
+// ("No auth provider reachable for token exchange" -> auth_error=exchange_failed),
+// weil der Authorize-Redirect ueber resolveEndpointsSync() laeuft, das ohne
+// Probe auf 'local' zurueckfaellt.
+//
+// Beide Pfade werden geprobt, damit der Fix nicht an einer Pocket-ID-Version
+// haengt: der erste Treffer gewinnt.
+const DISCOVERY_PATHS = [
+  '/.well-known/openid-configuration',
+  '/api/oidc/.well-known/openid-configuration',
+];
+
 async function probeProvider(internalUrl: string): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000);
-    const res = await fetch(`${internalUrl}/api/oidc/.well-known/openid-configuration`, {
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    return res.ok;
-  } catch {
-    return false;
+  for (const path of DISCOVERY_PATHS) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch(`${internalUrl}${path}`, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (res.ok) return true;
+    } catch {
+      // naechsten Pfad versuchen; erst wenn alle scheitern, gilt der
+      // Provider als nicht erreichbar.
+    }
   }
+  return false;
 }
 
 export async function resolveAuthProvider(): Promise<AuthProvider | null> {

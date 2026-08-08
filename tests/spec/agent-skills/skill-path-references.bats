@@ -35,12 +35,14 @@ PATH_PATTERN='\b(openspec|scripts|tests|docs|website|k3d|environments|flux)/[A-Z
 # `references/`), außer `OVERVIEW.md` an der Wurzel und außer der Ausnahmeliste.
 # Liefert absolute Pfade, damit `extract_paths` unabhängig vom Arbeitsverzeichnis greift.
 skill_files() {
-  local ex find_args=()
+  local ex find_args=() dirs=()
   for ex in "${EXCLUDED_SKILLS[@]}"; do
-    find_args+=(-not -path "$REPO/.claude/skills/$ex/*")
+    find_args+=(-not -path "*/$ex/*")
   done
-  find "$REPO/.claude/skills" -name '*.md' \
-    -not -path "$REPO/.claude/skills/OVERVIEW.md" \
+  [ -d "$REPO/.claude/skills" ] && dirs+=("$REPO/.claude/skills")
+  [ -d "$REPO/.agents/skills" ] && dirs+=("$REPO/.agents/skills")
+  find "${dirs[@]}" -name '*.md' \
+    -not -path "*/OVERVIEW.md" \
     "${find_args[@]}" \
     -print
 }

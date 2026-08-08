@@ -72,11 +72,22 @@ setup() {
   # EADDRINUSE, obwohl niemand lauscht — dieser Test war deshalb auf jedem
   # WSL2-Rechner reproduzierbar rot und auf dem Linux-Runner gruen.
   local PORT=39199
-  local PIDFILE="${BATS_TEST_TMPDIR}/daemon.pid"
 
-  COCKPIT_DAEMON_PORT="${PORT}" npx tsx .lavish/kit/daemon/server.ts \
+  # `./node_modules/.bin/tsx` statt `npx tsx` [T002724]: npx erzeugt eine
+  # vierstufige Prozesskette (npm exec -> sh -c -> node cli.mjs -> node
+  # server.ts). `$!` benennt davon nur die oberste Ebene — das kill unten
+  # beendete deshalb den Wrapper und liess den Server weiterlaufen, der danach
+  # dauerhaft auf diesem Port lauschte. Der cockpit:daemon-Task startet aus
+  # demselben Grund direkt ueber node_modules.
+  #
+  # COCKPIT_DAEMON_STATE_DIR [T002721] haelt PID- und Token-Datei im
+  # Test-Tempverzeichnis. Ohne das schriebe dieser Test nach
+  # /tmp/cockpit-daemon.* und ueberschriebe den Zustand eines echten
+  # Entwickler-Daemons.
+  COCKPIT_DAEMON_PORT="${PORT}" COCKPIT_DAEMON_STATE_DIR="${BATS_TEST_TMPDIR}" \
+    ./node_modules/.bin/tsx .lavish/kit/daemon/server.ts \
     > "${BATS_TEST_TMPDIR}/daemon.log" 2>&1 &
-  echo $! > "${PIDFILE}"
+  local WRAPPER_PID=$!
 
   # 30s statt der urspruenglichen 10s [T002602]: auf dem CI-Runner laeuft diese
   # Suite unter `bats -j` parallel, und `npx tsx` braucht dort zum Aufloesen und
@@ -94,6 +105,13 @@ setup() {
   # WSL2-Hosts kein Rennen, sondern deterministisch — der Testport lag im
   # Hyper-V-Reservierungsbereich. Der grosszuegigere Timeout bleibt trotzdem
   # richtig, er adressiert nur ein anderes Problem als angenommen.
+  #
+  # Zweiter Nachtrag [T002724]: eine WEITERE Ursache kam hinzu, die die obige
+  # Aufzaehlung nicht kannte — dieser Test hinterliess bei jedem Lauf einen
+  # Daemon auf dem Testport (siehe Start- und Aufraeum-Block). Der naechste
+  # Lauf fand den Port belegt. Die Liste der ausgeschlossenen Ursachen oben ist
+  # damit nicht mehr vollstaendig; wer hier erneut sucht, faengt nicht bei ihr
+  # an. Guard gegen den Rueckfall: tests/spec/sdlc-cockpit/daemon-test-no-leak.bats
   local ok=0
   for _ in $(seq 1 120); do
     if curl -s -m 1 "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
@@ -105,7 +123,17 @@ setup() {
 
   # Aufraeumen vor der Assertion, damit ein fehlgeschlagener Test keinen
   # Prozess zuruecklaesst, der den Port fuer den naechsten Lauf blockiert.
-  kill "$(cat "${PIDFILE}")" 2>/dev/null || true
+  #
+  # Beide Enden [T002724]: der Server ueber die PID, die er SELBST schreibt,
+  # und zusaetzlich der Wrapper. Bis hierher stand in der Datei `daemon.pid`
+  # die PID des npm-Wrappers — der Name legte eine Bedeutung nahe, die der
+  # Inhalt nicht hatte, und das kill darauf beendete den Server nie. Der
+  # Wrapper-kill bleibt fuer den Fall, dass der Start abbricht, bevor der
+  # Daemon seine PID-Datei schreiben konnte.
+  if [ -f "${BATS_TEST_TMPDIR}/cockpit-daemon.pid" ]; then
+    kill "$(cat "${BATS_TEST_TMPDIR}/cockpit-daemon.pid")" 2>/dev/null || true
+  fi
+  kill "${WRAPPER_PID}" 2>/dev/null || true
 
   if [ "$ok" -ne 1 ]; then
     echo "--- daemon.log ---"

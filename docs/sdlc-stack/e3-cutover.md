@@ -118,6 +118,48 @@ task sdlc:sdlc:migrate:freeze -- --dry-run
 `TICKET_CTX=fleet` schreibt dort weiter, ohne dass es auffällt — genau der Zustand, den der
 Freeze verhindern sollte. Wer auf fleet schreibt, tut das ab jetzt bewusst.
 
+#### Überbrückung: getrennter Nummernraum
+
+Bis der Freeze in E4 greift, verhindert ein getrennter Nummernraum Kollisionen zwischen
+beiden Datenbanken. Das Werkzeug dafür ist `migrate-tickets.sh split-sequence`, eingeführt
+mit T002731:
+
+```bash
+# fleet-Sequenz in den Bereich ≥ 900000 heben
+bash scripts/sdlc/migrate-tickets.sh split-sequence
+
+# Zustand prüfen
+bash scripts/sdlc/migrate-tickets.sh status
+```
+
+**Startwert 900000:** `external_id` verwendet das Format `T` + `LPAD(n,6,'0')` und bleibt
+damit bis 999999 sechsstellig (`^T[0-9]{6}$`). Ein höherer Startwert bräche das Format und
+wäre deshalb unsicher.
+
+**Idempotenz:** Liegt die Sequenz bereits bei 900000 oder darüber, ändert das Kommando nichts
+und meldet das ausdrücklich. Die Sequenz wird **nie gesenkt** — ein Rücksetzen gäbe bereits
+vergebene Nummern erneut aus.
+
+**Sofortmaßnahme:** Am 2026-08-08 wurde die fleet-Sequenz von 2729 auf 900000 von Hand
+gestellt. Die lokale Sequenz blieb auf 2730. Der Sprung in der fleet-Nummerierung von
+T002729 auf T900001 ist damit erklärt.
+
+**Rückweg:** Die fleet-Sequenz kann mit
+```sql
+SELECT setval('tickets.external_id_seq', <alter Wert>, true);
+```
+zurückgenommen werden. Das Kommando ist transaktional — ein Rollback stellt auch die
+Sequenz auf ihren vorherigen Stand zurück.
+
+**Kopplung an restore:** `migrate-tickets.sh restore` ruft `split-sequence` nach
+erfolgreichem Restore automatisch auf. Der Dump sichert die Sequenz mit (`pg_dump
+--schema=tickets`), ohne diesen Schritt käme die Kopie ohne Trennung zurück — im
+Wiederanlauf nach einem Zwischenfall also genau dann, wenn niemand daran denkt.
+
+**Diese Überbrückung ersetzt den Freeze nicht.** T002722 bleibt unberührt. Sie schützt nur
+vor der spezifischen Gefahr, dass beide DBs dieselbe ID vergeben und denselben Branch-Namen
+unterschiedlich auflösen — genau der Vorfall, der am 2026-08-08 auftrat und T002731 auslöste.
+
 ### 8. Sicherung einrichten
 
 ```bash
@@ -172,6 +214,10 @@ Zwei Dinge greifen weiterhin aktiv darauf zu:
 Dazu fünf Fremdschlüssel, die auf die Kopie zeigen und praktisch unbelegt sind
 (`inbox_items.bug_ticket_id` 2 Zeilen; `meetings.project_id`, `time_entries.project_id`,
 `time_entries.task_id`, `questionnaire_assignments.project_id` je 0).
+
+Seit 2026-08-08 ist der Ticket-Nummernraum getrennt (T002731): fleet vergibt IDs ab 900000,
+lokal läuft die Sequenz im Bereich unter 900000 weiter (`migrate-tickets.sh split-sequence`).
+Siehe [Überbrückung: getrennter Nummernraum](#überbrückung-getrennter-nummernraum) in §7.
 
 **Eine Lehre aus dieser Etappe:** Die ursprüngliche Planung stützte sich auf genau diese
 FK-Zählung und schloss daraus, die Doppelnutzung von `tickets.tickets` sei folgenlos. Der

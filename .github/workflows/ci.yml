@@ -160,7 +160,8 @@ jobs:
       - name: Run manifest tests
         run: |
           ./tests/unit/lib/bats-core/bin/bats \
-            tests/unit/manifests.bats tests/unit/changed-manifests.bats
+            tests/unit/manifests.bats tests/unit/changed-manifests.bats \
+            tests/unit/dead-node-affinity.bats
 
   # ── Factory: schneller Gate-Job, dann geshardete Spec-Suite, dann Aggregator ──
   #

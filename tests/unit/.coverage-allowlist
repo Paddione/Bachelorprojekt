@@ -57,6 +57,11 @@ portal-profile-update
 # --- Requires kubectl kustomize (CronJob validation — needs cluster context):
 newsletter-scheduled-publish
 #
+# --- Requires kubectl kustomize (baut prod-fleet-Overlays und prueft den GEBAUTEN
+# --- Output auf stillgelegte Knoten). Laeuft NICHT ins Leere: die Datei ist im
+# --- CI-Job `test-manifests` explizit gelistet — dem einzigen Job mit kubectl. [T002699]
+dead-node-affinity
+#
 # --- Requires a live API server (graph API integration — needs Kubernetes cluster):
 T000668-graph-api
 #

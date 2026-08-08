@@ -42,20 +42,35 @@ The test suite SHALL fail when a base overlay renders a resource that every one 
 wrapper overlays removes.
 
 The rule targets the specific waste this change removes: a resource produced by `prod-mentolder`
-that neither `prod-fleet/mentolder` nor `prod-fleet/mentolder-jobs` lets through. Such a resource
-reaches no cluster, so its definition, its `$patch: delete` counterpart and the reasoning
-connecting them are three places that must be kept consistent for no effect.
+that no consumer lets through. Such a resource reaches no cluster, so its definition, its
+`$patch: delete` counterpart and the reasoning connecting them are three places that must be kept
+consistent for no effect.
+
+The comparison set SHALL comprise **three** consumers, not only the brand wrapper:
+`prod-fleet/mentolder`, `prod-fleet/mentolder-jobs` (which owns all Jobs since T002207) and
+`prod-fleet/platform` (which owns the cluster singletons that `fleet-common` deletes from the
+brand overlay). Omitting `prod-fleet/platform` makes the check report four legitimate resources —
+`ClusterIssuer/letsencrypt-prod`, `IngressClass/traefik` and the `tls-sync`
+`ClusterRole`/`ClusterRoleBinding` — as dead. A resource relocated to another Kustomization is not
+waste; it is ownership moved.
 
 The check SHALL compare the set of resource identities rendered by the base against the union of
-those surviving in the wrappers, and SHALL verify both sets are non-empty before reporting a
-difference.
+those surviving in the three consumers, and SHALL verify both sets are non-empty before reporting
+a difference.
 
 #### Scenario: Every base resource survives somewhere
 
-- **GIVEN** each resource rendered by `prod-mentolder` appears in at least one wrapper's built
-  output
+- **GIVEN** each resource rendered by `prod-mentolder` appears in the built output of at least one
+  of the three consumers
 - **WHEN** the test suite runs
 - **THEN** the check passes
+
+#### Scenario: A cluster singleton relocated to platform is not waste
+
+- **GIVEN** `fleet-common` deletes `IngressClass/traefik` from the brand overlay because
+  `prod-fleet/platform` renders it
+- **WHEN** the test suite runs
+- **THEN** the check passes, because `prod-fleet/platform` is part of the comparison set
 
 #### Scenario: A resource is deleted by every consumer
 

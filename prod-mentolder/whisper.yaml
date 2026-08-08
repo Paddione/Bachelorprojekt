@@ -1,10 +1,13 @@
 # Whisper transcription service — mentolder.
-# Copied from prod-korczewski/whisper.yaml; now that mentolder has k3s home
-# workers (k3s-1: 8 CPU / 16 GB, k3s-2/3: 4 CPU / 16 GB each at <5% util),
-# there is plenty of headroom for whisper's 2 CPU / 4 GB request.
-# The prod-mentolder global NotIn patch (kustomization.yaml) would pin this
-# to Hetzner CPs (already 43–69% memory) — an explicit JSON patch override in
-# kustomization.yaml redirects whisper to In: [k3s-1, k3s-2, k3s-3] instead.
+# Copied from prod-korczewski/whisper.yaml.
+#
+# Placement: whisper laeuft auf den fleet-Control-Plane-Knoten
+# (pk-hetzner-4/6/8). Gesetzt wird das NICHT hier, sondern vom Wrapper
+# prod-fleet/mentolder/kustomization.yaml per strategic-merge-Patch.
+# Die frueheren k3s-Home-Worker (k3s-1/2/3), auf die dieser Kommentar bis
+# T002699 verwies, sind seit der Fleet-Konsolidierung stillgelegt.
+# Die fleet-CPs haben keine GPU — Transkription ist hier best-effort.
+#
 # faster-whisper-server is amd64-only; nodeSelector enforces that.
 apiVersion: apps/v1
 kind: Deployment

@@ -28,26 +28,12 @@ patches:
   # NOTE: the dev SSO/TLS edge (workspace-ingress-dev, workspace-dev-wildcard-tls
   # Certificate, oauth2-proxy-dev Service/Deployment/Middleware) is no longer
   # rendered by prod-mentolder — it moved into the self-contained k3d dev stack
-  # (k3d/dev-stack/). Their $patch:delete blocks were removed here [T000363];
-  # only the dev-db-refresh deletes remain (those resources still render).
-  - target: { group: batch, version: v1, kind: CronJob, name: dev-db-refresh }
-    patch: |-
-      $patch: delete
-      apiVersion: batch/v1
-      kind: CronJob
-      metadata: { name: dev-db-refresh }
-  - target: { version: v1, kind: ConfigMap, name: dev-db-refresh-script }
-    patch: |-
-      $patch: delete
-      apiVersion: v1
-      kind: ConfigMap
-      metadata: { name: dev-db-refresh-script }
-  - target: { group: networking.k8s.io, version: v1, kind: NetworkPolicy, name: allow-devnode-hostnet-to-shared-db-ingress }
-    patch: |-
-      $patch: delete
-      apiVersion: networking.k8s.io/v1
-      kind: NetworkPolicy
-      metadata: { name: allow-devnode-hostnet-to-shared-db-ingress }
+  # (k3d/dev-stack/). Their $patch:delete blocks were removed here [T000363].
+  # Die drei dev-db-refresh-Deletes (CronJob, Script-ConfigMap, NetworkPolicy)
+  # sind mit T002699 ebenfalls entfallen: prod-mentolder rendert diese Ressourcen
+  # nicht mehr, es gibt also nichts zu loeschen. Ein $patch:delete auf eine
+  # Ressource, die gar nicht entsteht, ist folgenlos — behauptet aber die Existenz
+  # von etwas, das es nicht gibt.
 
   # T002207: remove all one-shot Jobs from the brand overlay — they now
   # live in flux-<brand>-jobs Kustomization with force:true and wait:false,

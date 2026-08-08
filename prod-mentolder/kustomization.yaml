@@ -9,132 +9,32 @@ resources:
   # The dev SSO gate + TLS edge (oauth2-proxy-dev, dev-ingress,
   # cert-dev-wildcard, oauth2-proxy-dev-middleware) moved into the
   # self-contained k3d dev stack (k3d/dev-stack/) — [T000363].
-  - dev-db-refresh-cron.yaml
-  - dev-db-refresh-netpol.yaml  # T000286: allow dev-node hostNetwork → shared-db:5432
-  # Whisper + Talk-Transcriber — now also on mentolder.
-  # k3s home workers (k3s-1/2/3: amd64, 8–16 GB, <5% util) have headroom.
-  # See whisper placement override in patches below.
+  # Der dev-db-refresh-CronJob samt NetworkPolicy und Script-ConfigMap ist mit
+  # T002699 entfallen: beide Konsumenten dieses Overlays verwarfen ihn, er
+  # erreichte also keinen Cluster. prod-fleet/mentolder loeschte ihn explizit,
+  # prod-fleet/mentolder-jobs implizit (es entfernt alle Nicht-Job-Typen).
+  # Whisper + Talk-Transcriber laufen auf den fleet-CPs; die Platzierung setzt
+  # prod-fleet/mentolder.
   - whisper.yaml
   - talk-transcriber.yaml
 
-configMapGenerator:
-  # ── dev.mentolder.de — mount scripts/dev-db-refresh.sh as ConfigMap ──
-  - name: dev-db-refresh-script
-    namespace: workspace
-    files:
-      - dev-db-refresh.sh
-generatorOptions:
-  disableNameSuffixHash: true
-
-# Prevent pods from drifting to home workers (k3s-1/2/3, k3w-1/2/3)
+# Hier standen bis T002699 drei globale nodeAffinity-Patches (Deployment, CronJob,
+# Job), die k3s-1/2/3 und k3w-1/2/3 per NotIn ausschlossen — die Worker des
+# stillgelegten mentolder-Standalone-Clusters. Seit der Fleet-Konsolidierung
+# (2026-05-31) existiert keiner dieser Knoten; der Cluster hat pk-hetzner-4/6/8
+# und gekko-hetzner-3/4. Ein NotIn gegen nicht existierende Knoten schliesst
+# nichts aus, ging aber mit rund 300 Zeilen bei jedem Reconcile nach Produktion.
+#
+# Mit ihnen fielen zwei JSON6902-op:replace-Overrides weg, die sich auf die von
+# ihnen erzeugte Struktur bezogen: whisper (In: k3s-1/2/3) und dev-db-refresh
+# (In: k3s-1). whisper wird ohnehin von prod-fleet/mentolder auf die
+# pk-hetzner-Knoten gesetzt; dev-db-refresh entfaellt vollstaendig.
+#
+# Praezedenzfall derselben Bereinigung: k3d/pvc-backup-cronjob.yaml [T000368].
+# Nicht wieder einfuegen, ohne vorher `kubectl get nodes` gegen fleet zu halten.
 patches:
-  - patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: _placeholder_
-      spec:
-        template:
-          spec:
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                    - matchExpressions:
-                        - key: kubernetes.io/hostname
-                          operator: NotIn
-                          values:
-                            - k3s-1
-                            - k3s-2
-                            - k3s-3
-                            - k3w-1
-                            - k3w-2
-                            - k3w-3
-    target:
-      kind: Deployment
-  - patch: |-
-      apiVersion: batch/v1
-      kind: CronJob
-      metadata:
-        name: _placeholder_
-      spec:
-        jobTemplate:
-          spec:
-            template:
-              spec:
-                affinity:
-                  nodeAffinity:
-                    requiredDuringSchedulingIgnoredDuringExecution:
-                      nodeSelectorTerms:
-                        - matchExpressions:
-                            - key: kubernetes.io/hostname
-                              operator: NotIn
-                              values:
-                                - k3s-1
-                                - k3s-2
-                                - k3s-3
-                                - k3w-1
-                                - k3w-2
-                                - k3w-3
-    target:
-      kind: CronJob
-  - patch: |-
-      apiVersion: batch/v1
-      kind: Job
-      metadata:
-        name: _placeholder_
-      spec:
-        template:
-          spec:
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                    - matchExpressions:
-                        - key: kubernetes.io/hostname
-                          operator: NotIn
-                          values:
-                            - k3s-1
-                            - k3s-2
-                            - k3s-3
-                            - k3w-1
-                            - k3w-2
-                            - k3w-3
-    target:
-      kind: Job
   - path: patch-backup-config.yaml
   - path: patch-data-pvc-storage.yaml
-  # whisper Deployment: override the global NotIn patch so it lands on
-  # k3s-1/2/3 (amd64, 8–16 GB, <5% util) not on the already-loaded Hetzner CPs.
-  # Path matches what the global strategic-merge patch created.
-  - target:
-      kind: Deployment
-      name: whisper
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
-        value:
-          key: kubernetes.io/hostname
-          operator: In
-          values:
-            - k3s-1
-            - k3s-2
-            - k3s-3
-  # dev-db-refresh CronJob: must run on DEV_NODE (k3s-1) — uses hostNetwork to
-  # reach the k3d Postgres at 127.0.0.1:15432. Override the global CronJob
-  # NotIn patch so k3s-1 is allowed. The JSON path includes jobTemplate because
-  # CronJob wraps the PodSpec one level deeper than a Deployment.
-  - target:
-      kind: CronJob
-      name: dev-db-refresh
-    patch: |-
-      - op: replace
-        path: /spec/jobTemplate/spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0
-        value:
-          key: kubernetes.io/hostname
-          operator: In
-          values:
-            - k3s-1
   - target:
       kind: Deployment
       name: brett

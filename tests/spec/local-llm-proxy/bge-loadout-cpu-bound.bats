@@ -105,6 +105,24 @@ bge_slugs() {
 }
 
 @test "loadouts: bge-Loadouts stehen nicht in der GPU-Gruppe der Chat-Modelle" {
+  # Positiv-Anker auf einer Kontrollgruppe statt Existenz-Zwang (T002356-M1,
+  # T002729): frueher forderte der Anker "!= null" eine gesetzte
+  # exclusiveGroup — seit T002729 haben die bge-CPU-Loadouts aber BEWUSST keine
+  # Gruppe mehr (die Gruppe modellierte VRAM-Exklusivitaet, CPU-Loadouts
+  # belegen kein VRAM), der Anker haette also genau die entfernte Eigenschaft
+  # wieder zur Anforderung gemacht. Der neue Anker weist zuerst nach, dass die
+  # Ausleseroutine bei einem bekannten GPU-Loadout (gptoss-context) tatsaechlich
+  # 'chat-gpu' liefert — damit misst der Test eine fremde Eigenschaft und schlaegt
+  # nicht auf leerer Kandidatenliste fehl.
+  run node --input-type=module -e "
+    import { parseLoadouts, findLoadout } from '${REPO_ROOT}/scripts/llm-proxy/loadouts.mjs';
+    import { readFileSync } from 'node:fs';
+    const doc = parseLoadouts(readFileSync('${REPO_ROOT}/scripts/llm/loadouts.json', 'utf8'));
+    console.log(findLoadout(doc, 'gptoss-context').exclusiveGroup ?? 'null');
+  "
+  [ "$status" -eq 0 ]
+  [ "$output" = "chat-gpu" ]
+
   run bge_slugs
   [ "$status" -eq 0 ]
   [ -n "$output" ]
@@ -117,9 +135,6 @@ bge_slugs() {
       console.log(findLoadout(doc, '${slug}').exclusiveGroup ?? 'null');
     "
     [ "$status" -eq 0 ]
-    # Positiv-Anker: eine Gruppe ist ueberhaupt gesetzt — sonst bestuende der
-    # Test auch bei einem Loadout ohne jede Gruppenzuordnung.
-    [ "$output" != "null" ]
     [ "$output" != "chat-gpu" ]
   done
 }

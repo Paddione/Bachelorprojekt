@@ -333,7 +333,6 @@
       "mcp": {
         "serversConfig": null
       },
-      "exclusiveGroup": "bge-cpu",
       "extraArgs": [
         "-b",
         "8192",
@@ -378,7 +377,6 @@
       "mcp": {
         "serversConfig": null
       },
-      "exclusiveGroup": "bge-cpu",
       "extraArgs": [
         "-b",
         "8192",
@@ -388,7 +386,7 @@
         "-t",
         "4"
       ],
-      "notes": "ACHTUNG PORT-KONFLIKT: auf :8096 laeuft bereits ein Windows-llama-server mit demselben Modell aus dem LM-Studio-Verzeichnis, und die Endpoints des Service llm-gateway-rerank in ns workspace-korczewski zeigen auf 192.168.100.10:8096 — also auf genau diesen Prozess. Dieses Loadout beschreibt ihn, startet ihn aber nicht; wird es gestartet, ohne den Windows-Prozess vorher zu beenden, ist der Port belegt. Args gespiegelt von k3d/llm-gpu.yaml (bge-rerank)."
+      "notes": "Windows-Tasks deaktiviert (T002729): die vier Scheduled Tasks unter \\Llama\\ (darunter der llama-server auf :8096) sind deaktiviert, XML-Backups liegen unter C:\\Users\\PatrickKorczewski\\llama-tasks-backup\\. Reaktivierung mit Enable-ScheduledTask -TaskPath '\\Llama\\' -TaskName '<name>' (elevated). :8096 ist damit frei; dieses Loadout ist der reguläre lokale Weg, startet aber weiterhin nicht von selbst. Args gespiegelt von k3d/llm-gpu.yaml (bge-rerank). Keine exclusiveGroup: die Gruppe modellierte VRAM-Exklusivität, dieses Loadout belegt kein VRAM — Verweis auf tests/spec/local-llm-proxy/bge-cpu-parallel-start.bats."
     },
     {
       "slug": "unsloth-studio",

@@ -537,9 +537,9 @@ WEBSITE_MANIFEST="${PROJECT_DIR}/k3d/website.yaml"
   [ "$status" -eq 0 ]
 }
 
-@test "flux render script reads BRETT_IMAGE_TAG from the environment" {
-  # Identical wiring defect on the brett side (--brett-image).
-  run grep -q 'BRETT_IMAGE_TAG' "$RENDER_SCRIPT"
+@test "flux render script reads BRETT_IMAGE_DIGEST from the environment" {
+  # T002706: brett delivery switched from mutable tag to immutable digest.
+  run grep -q 'BRETT_IMAGE_DIGEST' "$RENDER_SCRIPT"
   [ "$status" -eq 0 ]
 }
 

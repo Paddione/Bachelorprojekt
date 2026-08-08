@@ -14,7 +14,7 @@ import { findExclusiveConflict, planAutoStart } from './loadouts.mjs'
 // chat-gpu, die bge in bge-cpu.
 const DOC = {
   loadouts: [
-    { slug: 'gemma9-factory', port: 8092, exclusiveGroup: 'chat-gpu' },
+    { slug: 'devstral-quality', port: 8099, exclusiveGroup: 'chat-gpu' },
     { slug: 'gemma26-factory', port: 8091, exclusiveGroup: 'chat-gpu' },
     { slug: 'gptoss-context', port: 8098, exclusiveGroup: 'chat-gpu' },
     { slug: 'bge-embed-cpu', port: 8095, exclusiveGroup: 'bge-cpu' },
@@ -27,8 +27,8 @@ test('anderes Loadout derselben Gruppe aktiv -> Konflikt', () => {
   // Konflikt. Waere das schon rot, sagte die Aussage darunter nichts aus.
   assert.equal(findExclusiveConflict(DOC, 'gemma26-factory', []), null)
 
-  const c = findExclusiveConflict(DOC, 'gemma26-factory', ['gemma9-factory'])
-  assert.equal(c?.conflictSlug, 'gemma9-factory')
+  const c = findExclusiveConflict(DOC, 'gemma26-factory', ['devstral-quality'])
+  assert.equal(c?.conflictSlug, 'devstral-quality')
   assert.equal(c?.group, 'chat-gpu')
 })
 
@@ -49,21 +49,21 @@ test('eigener Slug aktiv ist kein Selbstkonflikt', () => {
 })
 
 test('Loadout ohne exclusiveGroup wird nie blockiert', () => {
-  assert.equal(findExclusiveConflict(DOC, 'ungrouped', ['gemma9-factory']), null)
+  assert.equal(findExclusiveConflict(DOC, 'ungrouped', ['devstral-quality']), null)
 })
 
 test('unbekannter Slug liefert null statt zu werfen', () => {
-  assert.equal(findExclusiveConflict(DOC, 'gibt-es-nicht', ['gemma9-factory']), null)
+  assert.equal(findExclusiveConflict(DOC, 'gibt-es-nicht', ['devstral-quality']), null)
 })
 
 test('planAutoStart verhaelt sich nach der Extraktion unveraendert', () => {
   // Regressionsprobe: die Extraktion darf den Auto-Start-Pfad nicht aendern.
   // proxyV1 haengt an genau diesem Rueckgabeformat.
   const conflict = planAutoStart({
-    doc: DOC, model: 'gemma26-factory', activeSlugs: ['gemma9-factory'],
+    doc: DOC, model: 'gemma26-factory', activeSlugs: ['devstral-quality'],
   })
   assert.equal(conflict.action, 'conflict')
-  assert.equal(conflict.conflictSlug, 'gemma9-factory')
+  assert.equal(conflict.conflictSlug, 'devstral-quality')
   assert.equal(conflict.group, 'chat-gpu')
 
   const start = planAutoStart({ doc: DOC, model: 'gemma26-factory', activeSlugs: [] })

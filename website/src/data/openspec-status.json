@@ -2619,6 +2619,12 @@
       "status": "archived"
     }
   ],
+  "T002724": [
+    {
+      "slug": "cockpit-daemon-test-no-leak",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

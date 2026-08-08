@@ -39,7 +39,7 @@
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch(`/api/factory-floor/${encodeURIComponent(selected)}/ci`, { credentials: 'same-origin' });
+        const r = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(selected)}/ci`, { credentials: 'same-origin' });
         if (r.ok && !cancelled) {
           const d = await r.json();
           ciChecks = d.checks ?? [];

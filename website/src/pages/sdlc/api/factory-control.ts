@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../lib/auth';
 import { pool } from '../../../lib/website-db';
+import { initTicketsSchema } from '../../../lib/tickets-schema';
 import { writeControl } from '../../../lib/sdlc/factory-floor';
 import { recordAudit, clientIpFromRequest } from '../../../lib/audit-log';
 
@@ -87,6 +88,14 @@ export const GET: APIRoute = async ({ request , locals }) => {
   if (guard) return guard;
 
   try {
+    // Dieser Endpunkt liest tickets.factory_control direkt ueber den Pool und
+    // stellt das Schema sonst nirgends sicher. Auf einem frisch aufgesetzten
+    // Cluster existiert die Tabelle daher nicht ("relation
+    // tickets.factory_control does not exist", HTTP 500) und das Cockpit zeigt
+    // durchgehend "Error loading data.". initTicketsSchema() legt das gesamte
+    // tickets-Schema idempotent an und ist ueber ensureSchemaOnce memoisiert —
+    // die Kosten fallen einmal pro Prozess an, nicht pro Request.
+    await initTicketsSchema();
     const state = await getControlState();
     return new Response(JSON.stringify(state), {
       status: 200,

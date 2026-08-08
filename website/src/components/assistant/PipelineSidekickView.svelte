@@ -78,7 +78,7 @@
 
   async function loadQa() {
     try {
-      const qaRes = await fetch('/api/admin/qa-queue', { credentials: 'same-origin' });
+      const qaRes = await fetch('/sdlc/api/qa-queue', { credentials: 'same-origin' });
       if (qaRes.ok) {
         qaItems = await qaRes.json() as { extId: string }[];
       }

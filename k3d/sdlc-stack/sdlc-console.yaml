@@ -9,7 +9,11 @@ data:
   BRAND: "mentolder"
   CLUSTER_ENV: "sdlc-local"
   PINO_LOG_LEVEL: "info"
-  SITE_URL: "http://sdlc.localhost"
+  # Muss zum registrierten OIDC-Callback passen: der Seed-Job leitet ihn als
+  # web.<suffix>/api/auth/callback aus POCKET_ID_FRONTEND_URL ab. Mit
+  # sdlc.localhost sendet die Console eine redirect_uri, die Pocket ID nicht
+  # kennt. sdlc.localhost bleibt als zweiter Ingress-Host erreichbar.
+  SITE_URL: "http://web.localhost"
   POCKET_ID_FRONTEND_URL: "http://auth.localhost"
   POCKET_ID_URL: "http://pocket-id:1411"
   POCKET_ID_FALLBACK_FRONTEND_URL: "${POCKET_ID_FALLBACK_FRONTEND_URL}"
@@ -83,7 +87,12 @@ spec:
                   key: CRON_SECRET
           ports:
             - name: http
-              containerPort: 8080
+              # Der Astro-Node-Adapter lauscht ohne gesetztes PORT auf 4321 —
+              # so wie k3d/website.yaml es auch deklariert. Hier stand 8080,
+              # ohne dass PORT gesetzt wurde: auf 8080 lauschte nie etwas, die
+              # Readiness-Probe lief dauerhaft in "connection refused" und der
+              # Rollout in seine progress deadline.
+              containerPort: 4321
           resources:
             requests:
               memory: "256Mi"
@@ -94,14 +103,14 @@ spec:
           readinessProbe:
             httpGet:
               path: /api/health
-              port: 8080
+              port: 4321
             initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
           livenessProbe:
             httpGet:
               path: /api/health
-              port: 8080
+              port: 4321
             initialDelaySeconds: 5
             periodSeconds: 30
             timeoutSeconds: 3
@@ -117,5 +126,7 @@ spec:
     app: sdlc-console
   ports:
     - name: http
+      # Service-Port bleibt 8080 (der Ingress verweist darauf); nur das Ziel im
+      # Container wandert auf den tatsächlichen Astro-Port 4321.
       port: 8080
-      targetPort: 8080
+      targetPort: 4321

@@ -52,7 +52,7 @@ import { POST as REPARENT } from '../../../../pages/sdlc/api/cockpit/reparent';
 import { POST as BATCH } from '../../../../pages/sdlc/api/cockpit/batch';
 import { POST as SUGGEST } from '../../../../pages/sdlc/api/cockpit/suggest';
 
-const req = () => new Request('http://x/api/admin/cockpit/portfolio',
+const req = () => new Request('http://x/sdlc/api/cockpit/portfolio',
   { headers: { cookie: 'sid=1' } });
 
 beforeEach(() => { vi.clearAllMocks(); process.env.BRAND_ID = 'mentolder'; });
@@ -82,7 +82,7 @@ describe('GET /cockpit/portfolio', () => {
 // ---------------------------------------------------------------------------
 describe('GET /cockpit/feature', () => {
   const url = (id?: string) =>
-    new URL(`http://x/api/admin/cockpit/feature${id ? `?id=${id}` : ''}`);
+    new URL(`http://x/sdlc/api/cockpit/feature${id ? `?id=${id}` : ''}`);
   const ctx = (id?: string) => ({
     request: new Request(url(id), { headers: { cookie: 'sid=1' } }),
     url: url(id),

@@ -1,5 +1,5 @@
 // Pure, side-effect-free helpers for the cockpit feature-suggestion route
-// (`POST /api/admin/cockpit/suggest`). Kept out of the route so the prompt
+// (`POST /sdlc/api/cockpit/suggest`). Kept out of the route so the prompt
 // building and (brittle) LLM-output parsing are unit-testable without HTTP or
 // a live model, and so the route stays line-budget-lean (S1). No imports other
 // than the portfolio types — no import cycles (S2).

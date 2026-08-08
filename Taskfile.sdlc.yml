@@ -6,7 +6,12 @@ tasks:
     preconditions:
       - sh: docker info >/dev/null 2>&1
         msg: "Docker muss laufen"
-      - sh: "! k3d cluster list 2>/dev/null | grep -q mentolder-dev"
+      # go-task nutzt mvdan/sh, nicht bash: dort bindet `! cmd | grep` als
+      # `(! cmd) | grep`, der Exit-Status ist also der von grep statt der
+      # negierten Pipeline. Die Bedingung war damit invertiert und meldete
+      # "existiert bereits" genau dann, wenn der Cluster fehlte. Die
+      # if-Form ist in beiden Shells eindeutig.
+      - sh: "if k3d cluster list 2>/dev/null | grep -q mentolder-dev; then exit 1; fi"
         msg: "Cluster mentolder-dev existiert bereits"
     cmds:
       - k3d cluster create --config k3d/sdlc-stack/k3d-config.yaml
@@ -29,6 +34,11 @@ tasks:
   sdlc:deploy:
     desc: "SDLC-Stack deployen (kustomize + envsubst + kubectl apply)"
     cmds:
+      # Auf einem frisch angelegten Cluster installiert k3s Traefik asynchron
+      # per HelmChart. Der Stack enthält eine IngressRoute (traefik.io/v1alpha1),
+      # deren CRD dann noch fehlt — der apply bricht mit "no matches for kind
+      # IngressRoute" ab. Erst warten, dann applyen.
+      - kubectl --context k3d-mentolder-dev wait --for=create crd/ingressroutes.traefik.io --timeout=180s
       - |
         set -e
         WEBSITE_DB_PASSWORD="${WEBSITE_DB_PASSWORD:-devwebsitedb}"
@@ -51,13 +61,53 @@ tasks:
         export SMTP_USER="${SMTP_USER:-}"
         export SMTP_FROM="${SMTP_FROM:-}"
         export POCKET_ID_SMTP_TLS="${POCKET_ID_SMTP_TLS:-}"
-        kubectl kustomize --load-restrictor=LoadRestrictionsNone k3d/sdlc-stack | envsubst | kubectl --context k3d-mentolder-dev apply -f -
+        # Der SDLC-Stack hat keinen eigenen website-Namespace: das website-secrets
+        # liegt hier mit in `workspace`, dorthin synct der Seed-Job auch das
+        # Website-Client-Secret. WORKSPACE_NAMESPACE steht im subjects-Feld eines
+        # RoleBindings, das der Namespace-Transformer von kustomize nicht anfasst.
+        export WEBSITE_NAMESPACE="${WEBSITE_NAMESPACE:-workspace}"
+        export WORKSPACE_NAMESPACE="${WORKSPACE_NAMESPACE:-workspace}"
+        # envsubst MUSS eine explizite Variablenliste bekommen — so wie jeder
+        # andere envsubst-Aufruf im Repo. Ohne sie ersetzt es JEDES ${…} im
+        # Dokument, also auch die Shell-Variablen des Skripts, das in
+        # pocket-id-client-seed.yaml inline im Job steckt: ${API}, ${AUTH},
+        # ${auth_check_code} und ${POCKET_ID_API_KEY} wurden zur Deploy-Zeit zu
+        # Leerstrings, statt zur Laufzeit im Container ausgewertet zu werden.
+        # Sichtbar wurde das als "ERROR: POCKET_ID_API_KEY kann nicht verifiziert
+        # werden (HTTP )" — mit leerem Code, wo das Runbook 401 erwartet.
+        # Die DB-Passwoerter stehen bewusst NICHT in der Liste: sie kommen im
+        # Manifest ausschliesslich als $${VAR} vor und sollen erst IM CONTAINER
+        # aus der Env (workspace-secrets) expandiert werden — genau so, wie der
+        # Flux-Renderer es fuer Prod erzeugt. Substituiert man sie hier, wird aus
+        # '$${WEBSITE_DB_PASSWORD}' der String '$devwebsitedb', den die Shell des
+        # postStart-Hooks als (leere) Variable liest: "ALTER USER website WITH
+        # PASSWORD ''" -> "User website has no password assigned".
+        #
+        # Das abschliessende sed stellt die Escape-Konvention des Renderers her:
+        # $$ -> $. envsubst kennt dieses Escape nicht (verifiziert 2026-08-04) —
+        # ohne Liste macht es aus '$$db' ein '$', mit Liste bleibt '$$db' stehen
+        # und die Shell setzt dafuer ihre PID ein. Beides liess den Self-Heal-Loop
+        # in shared-db.yaml ins Leere laufen, weshalb die Datenbank `website` auf
+        # einem frischen Cluster nie angelegt wurde.
+        #
+        # Reduziert wird NUR vor einer Variablenreferenz ($$name / $${name}) —
+        # exakt so steht es im Prod-Container. Ein pauschales s/$$/$/g wuerde
+        # auch das PL/pgSQL-Dollar-Quoting treffen: aus "DO \$\$ BEGIN" wuerde
+        # "DO \$ BEGIN" und der Rollen-Block scheitert an einem Syntaxfehler.
+        # Vor Leerzeichen oder ';' bleibt $$ deshalb unangetastet.
+        kubectl kustomize --load-restrictor=LoadRestrictionsNone k3d/sdlc-stack \
+          | envsubst '$POCKET_ID_FRONTEND_URL $POCKET_ID_URL $POCKET_ID_DOMAIN $POCKET_ID_FALLBACK_FRONTEND_URL $POCKET_ID_FALLBACK_URL $POCKET_ID_SMTP_TLS $PROD_DOMAIN $WEBSITE_SITE_URL $SMTP_HOST $SMTP_PORT $SMTP_USER $SMTP_FROM $WEBSITE_NAMESPACE $WORKSPACE_NAMESPACE' \
+          | sed -E 's/\$\$(\{?[A-Za-z_])/$\1/g' \
+          | kubectl --context k3d-mentolder-dev apply -f -
         echo "---"
         kubectl --context k3d-mentolder-dev rollout status deployment/shared-db -n workspace --timeout=300s
         kubectl --context k3d-mentolder-dev rollout status deployment/pocket-id -n workspace --timeout=300s
         kubectl --context k3d-mentolder-dev rollout status deployment/sdlc-console -n workspace --timeout=300s
-        kubectl --context k3d-mentolder-dev rollout status deployment/llm-gateway-embed -n workspace --timeout=300s
-        kubectl --context k3d-mentolder-dev rollout status deployment/llm-gateway-rerank -n workspace --timeout=300s
+        # llm-gateway-embed/-rerank sind die Service-Namen aus k3d/llm-gpu.yaml;
+        # die zugehörigen Deployments heißen bge-embed / bge-rerank. Auf die
+        # Service-Namen zu warten endete in "deployments.apps not found".
+        kubectl --context k3d-mentolder-dev rollout status deployment/bge-embed -n workspace --timeout=300s
+        kubectl --context k3d-mentolder-dev rollout status deployment/bge-rerank -n workspace --timeout=300s
 
   sdlc:status:
     desc: "SDLC-Stack Health-Übersicht"
@@ -69,3 +119,23 @@ tasks:
         echo "---"
         echo "Console:  $(curl -sS -o /dev/null -w %{http_code} http://sdlc.localhost 2>/dev/null || echo unreachable)"
         echo "Auth:     $(curl -sS -o /dev/null -w %{http_code} http://auth.localhost 2>/dev/null || echo unreachable)"
+
+  sdlc:oidc:sync:
+    desc: "OIDC-Client-Secret zwischen Pocket ID und den SDLC-Secrets angleichen"
+    # Nach jedem sdlc:deploy noetig: pocket-id-client-seed schreibt ein
+    # generiertes Secret nur beim ERSTMALIGEN Anlegen zurueck, der Deploy setzt
+    # k3d/secrets.yaml aber jedes Mal auf den festen Dev-Wert. Ohne den Abgleich
+    # kennt Pocket ID ein anderes Secret als die Console und der Token-Exchange
+    # scheitert mit invalid_client.
+    cmds:
+      - bash scripts/sdlc-sync-oidc-secret.sh
+
+  sdlc:smoke:
+    desc: "E2E-Nachweis: Login-Roundtrip + /sdlc/cockpit rendert als Admin"
+    # Prueft, dass das Cockpit tatsaechlich GERENDERT wird — nicht nur, dass die
+    # Route antwortet. Braucht ein One-Time-Access-Token, weil es im Gegensatz
+    # zum Passkey serverseitig erzeugbar ist:
+    #   kubectl exec -n workspace <pocket-id-pod> -c pocket-id -- \
+    #     /app/pocket-id one-time-access-token paddione
+    cmds:
+      - node scripts/sdlc-cockpit-smoke.mjs {{.CLI_ARGS}}

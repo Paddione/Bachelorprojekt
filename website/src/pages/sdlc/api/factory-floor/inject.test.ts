@@ -13,14 +13,14 @@ vi.mock('../../../lib/factory-floor', () => ({ insertInjection: (...a: unknown[]
 import { POST } from './[extId]/inject';
 
 function req(cookie: string | null, body: unknown): Request {
-  return new Request('http://x/api/factory-floor/T000459/inject', {
+  return new Request('http://x/sdlc/api/factory-floor/T000459/inject', {
     method: 'POST',
     headers: cookie ? { cookie, 'content-type': 'application/json' } : { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
 }
 
-describe('POST /api/factory-floor/[extId]/inject', () => {
+describe('POST /sdlc/api/factory-floor/[extId]/inject', () => {
   it('401 without an admin session', async () => {
     const res = await POST({ request: req(null, { kind: 'note', content: 'x' }), params: { extId: 'T000459' } } as unknown as Parameters<typeof POST>[0]);
     expect(res.status).toBe(401);

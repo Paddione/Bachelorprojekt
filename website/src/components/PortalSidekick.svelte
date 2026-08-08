@@ -80,7 +80,7 @@
   async function fetchSettings() {
     try {
       settingsLoading = true;
-      const res = await fetch('/api/admin/factory-control', { credentials: 'same-origin' });
+      const res = await fetch('/sdlc/api/factory-control', { credentials: 'same-origin' });
       if (res.ok) {
         const data = await res.json();
         settings.contextBudget = data.contextBudget ?? 180000;
@@ -97,7 +97,7 @@
 
   async function saveSettings() {
     try {
-      await fetch('/api/admin/factory-control', {
+      await fetch('/sdlc/api/factory-control', {
         method: 'PATCH',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
@@ -155,14 +155,14 @@
 
         if (helpContext === 'admin') {
           try {
-            const cRes = await fetch('/api/admin/cockpit/container-count', { credentials: 'same-origin' });
+            const cRes = await fetch('/sdlc/api/cockpit/container-count', { credentials: 'same-origin' });
             if (cRes.ok) {
               const cd = await cRes.json() as { total?: number };
               pendingContainerCount = cd.total ?? 0;
             }
           } catch { /* badge stays 0 */ }
           try {
-            const aRes = await fetch('/api/admin/ai-quality', { credentials: 'same-origin' });
+            const aRes = await fetch('/sdlc/api/ai-quality', { credentials: 'same-origin' });
             if (aRes.ok) {
               const ad = await aRes.json() as { recentErrors?: unknown[] };
               aiErrorCount = Array.isArray(ad.recentErrors) ? ad.recentErrors.length : 0;

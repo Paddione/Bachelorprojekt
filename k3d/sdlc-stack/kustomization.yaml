@@ -5,6 +5,13 @@ resources:
   - ../namespace.yaml
   - ../configmap-domains.yaml
   - ../secrets.yaml
+  # sdlc-console referenziert website-secrets per secretKeyRef (WEBSITE_DB_PASSWORD,
+  # POCKET_ID_WEBSITE_SECRET, CRON_SECRET). Das Secret ist nur hier definiert; ohne
+  # diese Zeile bleibt der Pod in CreateContainerConfigError ("secret website-secrets
+  # not found"). Das `namespace: ${WEBSITE_NAMESPACE}` der Datei wird vom
+  # `namespace: workspace` dieser Kustomization überschrieben — kustomize läuft vor
+  # envsubst, der Platzhalter wird also nie ausgewertet.
+  - ../website-dev-secrets.yaml
   - ../shared-db.yaml
   - ../website-schema.yaml
   - ../pocket-id.yaml
@@ -15,3 +22,6 @@ resources:
   - ../llm-gpu.yaml
   - sdlc-console.yaml
   - sdlc-ingress.yaml
+
+patches:
+  - path: sdlc-secrets-patch.yaml

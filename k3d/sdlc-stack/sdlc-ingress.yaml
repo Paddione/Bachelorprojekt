@@ -16,6 +16,22 @@ spec:
                 name: sdlc-console
                 port:
                   number: 8080
+    # web.localhost ist der Host, der zum OIDC-Callback passt: der
+    # pocket-id-client-seed-Job leitet die Callback-URL des website-Clients aus
+    # POCKET_ID_FRONTEND_URL als `web.<suffix>/api/auth/callback` ab. Ein Login
+    # ueber sdlc.localhost sendet dagegen eine redirect_uri, die dort nicht
+    # registriert ist. Beide Hosts zeigen auf dieselbe Console; der Login-Pfad
+    # laeuft ueber web.localhost (SITE_URL in sdlc-console.yaml).
+    - host: web.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sdlc-console
+                port:
+                  number: 8080
     - host: auth.localhost
       http:
         paths:

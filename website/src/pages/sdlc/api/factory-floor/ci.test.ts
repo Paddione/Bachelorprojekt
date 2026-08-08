@@ -10,9 +10,9 @@ const fetchCiChecks = vi.fn();
 vi.mock('../../../lib/factory-ci', () => ({ fetchCiChecks: (...a: unknown[]) => fetchCiChecks(...a) }));
 
 import { GET } from './[extId]/ci';
-const req = (c: string | null) => new Request('http://x/api/factory-floor/T1/ci', { headers: c ? { cookie: c } : {} });
+const req = (c: string | null) => new Request('http://x/sdlc/api/factory-floor/T1/ci', { headers: c ? { cookie: c } : {} });
 
-describe('GET /api/factory-floor/[extId]/ci', () => {
+describe('GET /sdlc/api/factory-floor/[extId]/ci', () => {
   it('401 without admin', async () => {
     const res = await GET({ request: req(null), params: { extId: 'T1' } } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(401);

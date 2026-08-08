@@ -17,11 +17,11 @@ const data = (() => {
   //                    `daemonOnly` kennzeichnet Endpunkte, die dauerhaft nur
   //                    daemon-gestuetzt sind (lesen lokalen Zustand).
   const ENDPOINT_MAP = {
-    'portfolio':        { path: '/api/admin/cockpit/portfolio', website: true },
-    'pods-list':        { path: '/api/admin/cluster/pods-list', website: true },
-    'factory-control':  { path: '/api/admin/factory-control', website: true },
-    'ticket-status':    { path: '/api/admin/cockpit/ticket-status', website: true },
-    'audit':            { path: '/api/admin/cockpit/audit', website: true },
+    'portfolio':        { path: '/sdlc/api/cockpit/portfolio', website: true },
+    'pods-list':        { path: '/sdlc/api/cluster/pods-list', website: true },
+    'factory-control':  { path: '/sdlc/api/factory-control', website: true },
+    'ticket-status':    { path: '/sdlc/api/cockpit/ticket-status', website: true },
+    'audit':            { path: '/sdlc/api/cockpit/audit', website: true },
     'epics':            { path: '/api/cockpit/epics', website: false },
     'styles':           { path: '/api/cockpit/styles', website: false },
     'ci':               { path: '/api/cockpit/ci', website: false },
@@ -353,7 +353,7 @@ const data = (() => {
     if (!paths || paths.length === 0) {
       return { links: [], uncovered: [], missing: [], fetchedAt: new Date().toISOString() };
     }
-    return fetchEndpoint(`/api/admin/cockpit/brain?paths=${encodeURIComponent(paths.join(','))}`);
+    return fetchEndpoint(`/sdlc/api/cockpit/brain?paths=${encodeURIComponent(paths.join(','))}`);
   }
 
   /** @param {function} onEvent */

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.0...website-v1.254.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* **website:** Coaching-Inhalte nur an on-premises-Provider [T002657] ([#3828](https://github.com/Paddione/Bachelorprojekt/issues/3828)) ([bf489b1](https://github.com/Paddione/Bachelorprojekt/commit/bf489b15a938b40003719d3a40652e2805d4bd84))
+
 ## [1.254.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.253.0...website-v1.254.0) (2026-08-08)
 
 

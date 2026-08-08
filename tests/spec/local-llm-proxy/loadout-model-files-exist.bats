@@ -41,6 +41,13 @@ _resolve_all() {
   # ist trivial wahr. Erst belegen, dass ueberhaupt aufgeloest WIRD.
   local ok_count
   ok_count=$(echo "$output" | grep -c ' OK$' || true)
+  if [ "$ok_count" -eq 0 ]; then
+    skip "keine Modelldateien im Testumfeld vorhanden (CI-Runner ohne GGUF-Gewichte)"
+  fi
+
+  # POSITIV-ANKER (T002356-M1) ZUERST: ohne ihn bestuende der Test vakuos,
+  # sobald die Aufloesung gar nichts liefert — "0 MISSING in einer leeren Liste"
+  # ist trivial wahr. Erst belegen, dass ueberhaupt aufgeloest WIRD.
   [ "$ok_count" -ge 1 ]
 
   # Und dass ein konkretes, nachweislich vorhandenes Loadout durchlaeuft.

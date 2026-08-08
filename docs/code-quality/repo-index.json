@@ -812,7 +812,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 54,
+      "file_count": 55,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -867,14 +867,15 @@
         "scripts/migrations/2026-07-28-schema-diaet-T002331.sql",
         "scripts/migrations/2026-08-03-llm-proxy-gptoss-devstral.sql",
         "scripts/migrations/2026-08-03-retire-stale-model-ids.sql",
-        "scripts/migrations/2026-08-04-llm-proxy-gemma-qwen-families.sql"
+        "scripts/migrations/2026-08-04-llm-proxy-gemma-qwen-families.sql",
+        "scripts/migrations/2026-08-04-provider-config-data-residency.sql"
       ]
     },
     {
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1753,
+      "file_count": 1754,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -1609,6 +1610,7 @@
         "website/src/lib/claude.ts",
         "website/src/lib/coaching-content.test.ts",
         "website/src/lib/coaching-content.ts",
+        "website/src/lib/coaching-data-residency.test.ts",
         "website/src/lib/coaching-db.test.ts",
         "website/src/lib/coaching-db.ts",
         "website/src/lib/coaching-ki-config-db.test.ts",
@@ -3155,7 +3157,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 661,
+      "file_count": 662,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3591,6 +3593,7 @@
         "scripts/llm-proxy/llm-proxy.service",
         "scripts/llm-proxy/loadouts.mjs",
         "scripts/llm-proxy/loadouts.test.mjs",
+        "scripts/llm-proxy/local-only.test.mjs",
         "scripts/llm-proxy/mcp-bridge.mjs",
         "scripts/llm-proxy/mcp-bridge.test.mjs",
         "scripts/llm-proxy/models.mjs",

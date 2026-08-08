@@ -1,0 +1,28 @@
+# scripts/semantic-code-search/pgvector-forward.service
+# Port-Forward 127.0.0.1:5432 -> svc/shared-db (ClusterIP :5432), ns workspace.
+#
+# Ermoeglicht dem SCS Post-Commit-Hook (scripts/index-repo.ts) und anderen
+# lokalen Tools Zugriff auf pgvector, ohne dass sie im Cluster laufen muessen.
+#
+# T002604: gleiches Muster wie bge-forward-embed.service — eigene Unit statt
+# Hintergrundjob in einer Parent-Unit. Restart=always ueberlebt Pod-Rollouts.
+#
+# Aktivieren:
+#   ln -sf $PWD/scripts/semantic-code-search/pgvector-forward.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now pgvector-forward
+#
+# T002757: pgvector war nicht erreichbar, weil der Port-Forward fehlte.
+
+[Unit]
+Description=Port-forward shared-db pgvector (127.0.0.1:5432)
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/kubectl --context fleet port-forward -n workspace svc/shared-db 5432:5432
+Restart=always
+RestartSec=3
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=default.target

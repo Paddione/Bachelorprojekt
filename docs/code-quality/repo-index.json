@@ -872,7 +872,7 @@
       "id": "website",
       "name": "Astro + Svelte website",
       "owner_agent": "bachelorprojekt-website",
-      "file_count": 1752,
+      "file_count": 1753,
       "files": [
         "website/.build-trigger",
         "website/.design-sync/NOTES.md",
@@ -1753,6 +1753,7 @@
         "website/src/lib/logger.ts",
         "website/src/lib/logging/browser-collector.test.ts",
         "website/src/lib/logging/browser-collector.ts",
+        "website/src/lib/logging/error-log-store-pool.test.ts",
         "website/src/lib/logging/error-log-store.test.ts",
         "website/src/lib/logging/error-log-store.ts",
         "website/src/lib/logging/error-report.test.ts",

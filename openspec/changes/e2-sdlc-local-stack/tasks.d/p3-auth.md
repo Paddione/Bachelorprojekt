@@ -29,9 +29,12 @@ u.a.) — Import-Stil beibehalten.
         `POCKET_ID_FALLBACK_URL` — **fehlt eine der beiden, ist kein Fallback konfiguriert**
         (Prod-Pfad unverändert)
 - [ ] **1.2** Funktion `resolveAuthProvider(): Promise<AuthProvider>` mit:
-      - Health-Probe auf den Primary (`GET <internalUrl>/api/oidc/.well-known/openid-configuration`
-        oder `/health` — beim Implementieren gegen die Pocket-ID-API verifizieren, welche Route
-        existiert; bei 2xx → `local`)
+      - Health-Probe auf den Primary (bei 2xx → `local`). Die Route ist gegen die laufende
+        Pocket-ID-Instanz verifiziert (T002680, 2026-08-08): es gilt
+        `GET <internalUrl>/.well-known/openid-configuration`.
+        **`/api/oidc/.well-known/openid-configuration` antwortet mit 404** — dieser Pfad stand
+        hier zunächst als unverifiziertes Beispiel und wurde wörtlich implementiert, wodurch
+        jede Probe fehlschlug und der Token-Exchange in Prod abbrach.
       - Primary nicht erreichbar UND Fallback konfiguriert → Probe auf den Fallback; bei 2xx →
         `fleet`
       - Beide nicht erreichbar (oder Fehler) → `null` (fail-closed)

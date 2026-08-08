@@ -22,6 +22,24 @@ function resetEnv() {
   process.env = { ...originalEnv };
 }
 
+// probeProvider() versucht mehrere Discovery-Pfade pro Host. Mocks, die an der
+// Aufrufreihenfolge haengen (mockRejectedValueOnce...), kippen deshalb, sobald
+// sich die Zahl der Pfade aendert — und schreiben ausserdem den geprobten Pfad
+// fest, was den 404-Bug in probeProvider ueberhaupt erst zementiert hatte.
+// Dieser Helper mockt nach HOST: erreichbar oder nicht, unabhaengig davon,
+// ueber welchen Pfad und in welcher Reihenfolge gefragt wird.
+function mockReachableHosts(hosts: string[]) {
+  global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (hosts.some((h) => url.startsWith(h))) return { ok: true } as Response;
+    throw new Error(`unreachable: ${url}`);
+  }) as unknown as typeof fetch;
+}
+
+// Der Pfad, unter dem Pocket ID die OIDC-Discovery tatsaechlich serviert
+// (verifiziert gegen die laufende Instanz, 2026-08-04).
+const REAL_DISCOVERY_PATH = '/.well-known/openid-configuration';
+
 beforeEach(() => {
   clearProviderCache();
   vi.resetAllMocks();
@@ -77,7 +95,7 @@ describe('resolveEndpointsSync', () => {
       POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.example.net',
       POCKET_ID_FALLBACK_URL: 'https://auth.example.net',
     });
-    global.fetch = vi.fn().mockRejectedValueOnce(new Error('primary down')).mockResolvedValueOnce({ ok: true } as Response);
+    mockReachableHosts(['https://auth.example.net']);
     const provider = await resolveAuthProvider();
     expect(provider?.id).toBe('fleet');
     const ep = resolveEndpointsSync();
@@ -106,9 +124,7 @@ describe('resolveAuthProvider', () => {
       POCKET_ID_FALLBACK_FRONTEND_URL: 'https://auth.example.net',
       POCKET_ID_FALLBACK_URL: 'https://auth.example.net',
     });
-    global.fetch = vi.fn()
-      .mockRejectedValueOnce(new Error('primary down'))
-      .mockResolvedValueOnce({ ok: true } as Response);
+    mockReachableHosts(['https://auth.example.net']);
     const provider = await resolveAuthProvider();
     expect(provider?.id).toBe('fleet');
     expect(provider?.frontendUrl).toBe('https://auth.example.net');
@@ -136,9 +152,37 @@ describe('resolveAuthProvider', () => {
     expect(provider?.id).toBe('local');
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
-      'http://pocket-id:1411/api/oidc/.well-known/openid-configuration',
+      `http://pocket-id:1411${REAL_DISCOVERY_PATH}`,
       expect.anything(),
     );
+  });
+
+  // Regression: probeProvider() probte ausschliesslich
+  // /api/oidc/.well-known/openid-configuration. Pocket ID antwortet dort mit
+  // 404 (gemessen gegen den lokalen SDLC-Stack und gegen fleet), womit JEDER
+  // Provider als unerreichbar galt — primary wie fallback. resolveEndpoints()
+  // warf dann AuthUnavailableError und der Token-Exchange brach mit
+  // auth_error=exchange_failed ab, waehrend der Authorize-Redirect (ueber
+  // resolveEndpointsSync, ohne Probe) weiter funktionierte und den Fehler
+  // verdeckte.
+  it('erkennt einen Provider, der NUR den echten Discovery-Pfad serviert', async () => {
+    setEnv({
+      POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
+      POCKET_ID_URL: 'http://pocket-id:1411',
+    });
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      // Genau das Verhalten der realen Instanz: der alte Pfad ist 404.
+      if (url.endsWith('/api/oidc/.well-known/openid-configuration')) {
+        return { ok: false, status: 404 } as Response;
+      }
+      if (url.endsWith(REAL_DISCOVERY_PATH)) return { ok: true } as Response;
+      throw new Error(`unerwartete URL: ${url}`);
+    }) as unknown as typeof fetch;
+
+    const provider = await resolveAuthProvider();
+    expect(provider).not.toBeNull();
+    expect(provider?.id).toBe('local');
   });
 });
 
@@ -193,15 +237,24 @@ describe('provider cache', () => {
       POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
       POCKET_ID_URL: 'http://pocket-id:1411',
     });
-    global.fetch = vi.fn()
-      .mockResolvedValueOnce({ ok: true } as Response)
-      .mockRejectedValueOnce(new Error('down'))
-      .mockResolvedValueOnce({ ok: true } as Response);
-    await resolveAuthProvider();
+    // Ergebnisse pruefen, nicht Aufrufzahlen: probeProvider() darf mehrere
+    // Discovery-Pfade versuchen, ohne dass dieser Test kippt. Entscheidend
+    // ist, dass ein Fehlschlag nicht dauerhaft gecacht wird und ein spaeter
+    // wieder erreichbarer Provider erneut gefunden wird.
+    let reachable = true;
+    global.fetch = vi.fn(async () => {
+      if (!reachable) throw new Error('down');
+      return { ok: true } as Response;
+    }) as unknown as typeof fetch;
+
+    expect((await resolveAuthProvider())?.id).toBe('local');
+
+    reachable = false;
     clearProviderCache();
-    await resolveAuthProvider();
+    expect(await resolveAuthProvider()).toBeNull();
+
+    reachable = true;
     clearProviderCache();
-    await resolveAuthProvider();
-    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect((await resolveAuthProvider())?.id).toBe('local');
   });
 });

@@ -110,7 +110,7 @@ cmd_add_comment() {
       --body)        body="$2"; shift 2 ;;
       --author)      author="$2"; shift 2 ;;
       --visibility)  visibility="$2"; shift 2 ;;
-      *)             echo "Unknown add-comment option: $1" >&2; exit 2 ;;
+      *)             echo "Unknown add-comment option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh add-comment" >&2; exit 2 ;;
     esac; done
 
   if [[ -z "$id" || -z "$body" ]]; then
@@ -145,7 +145,7 @@ cmd_archive_plan() {
       --branch)    branch="$2"; shift 2 ;;
       --plan-file) plan_file="$2"; shift 2 ;;
       --pr)        pr="$2"; shift 2 ;;
-      *)           echo "Unknown archive-plan option: $1" >&2; exit 2 ;;
+      *)           echo "Unknown archive-plan option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh archive-plan" >&2; exit 2 ;;
     esac; done
 
   if [[ -z "$id" || -z "$slug" || -z "$branch" || -z "$plan_file" ]]; then
@@ -309,7 +309,7 @@ cmd_release_hold() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown release-hold option: $1" >&2; exit 2 ;;
+      *)    echo "Unknown release-hold option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh release-hold" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   if _ticket_offline_skip "release-hold" "--id" "$id"; then return 0; fi
@@ -338,7 +338,7 @@ cmd_set_touched_files() {
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)    id="$2"; shift 2 ;;
       --files) files="$2"; shift 2 ;;
-      *)       echo "Unknown set-touched-files option: $1" >&2; exit 2 ;;
+      *)       echo "Unknown set-touched-files option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh set-touched-files" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" || -z "$files" ]]; then echo "ERROR: --id and --files are required." >&2; exit 2; fi
   if _ticket_offline_skip "set-touched-files" "--id" "$id"; then return 0; fi
@@ -360,7 +360,7 @@ cmd_set_scout_drift() {
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)    id="$2"; shift 2 ;;
       --drift) drift="$2"; shift 2 ;;
-      *)       echo "Unknown set-scout-drift option: $1" >&2; exit 2 ;;
+      *)       echo "Unknown set-scout-drift option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh set-scout-drift" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" || -z "$drift" ]]; then echo "ERROR: --id and --drift are required." >&2; exit 2; fi
   if _ticket_offline_skip "set-scout-drift" "--id" "$id"; then return 0; fi
@@ -376,7 +376,7 @@ cmd_set_pipeline_slot() {
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)   id="$2"; shift 2 ;;
       --slot) slot="$2"; shift 2 ;;
-      *)      echo "Unknown set-pipeline-slot option: $1" >&2; exit 2 ;;
+      *)      echo "Unknown set-pipeline-slot option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh set-pipeline-slot" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" || -z "$slot" ]]; then echo "ERROR: --id and --slot are required (use --slot null to clear)." >&2; exit 2; fi
   if _ticket_offline_skip "set-pipeline-slot" "--id" "$id"; then return 0; fi
@@ -391,7 +391,7 @@ cmd_release_slot() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown release-slot option: $1" >&2; exit 2 ;;
+      *)    echo "Unknown release-slot option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh release-slot" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   if _ticket_offline_skip "release-slot" "--id" "$id"; then return 0; fi
@@ -406,7 +406,7 @@ cmd_touch() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown touch option: $1" >&2; exit 2 ;;
+      *)    echo "Unknown touch option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh touch" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
@@ -422,7 +422,7 @@ cmd_retry_count() {
   if [[ $# -gt 0 && "$1" != --* ]]; then action="$1"; shift; fi
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown retry-count option: $1" >&2; exit 2 ;;
+      *)    echo "Unknown retry-count option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh retry-count" >&2; exit 2 ;;
     esac; done
   if [[ "$action" != "get" && "$action" != "incr" && "$action" != "reset" ]]; then
     echo "ERROR: retry-count requires an action (get|incr|reset)." >&2; exit 2
@@ -464,7 +464,7 @@ cmd_unfactory() {
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)       id="$2"; shift 2 ;;
       --attempts) attempts="$2"; shift 2 ;;
-      *)          echo "Unknown unfactory option: $1" >&2; exit 2 ;;
+      *)          echo "Unknown unfactory option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh unfactory" >&2; exit 2 ;;
     esac; done
   # Validate BEFORE _pgpod so bad-arg errors stay deterministic without a cluster
   # (same convention as cmd_phase / FA-SF-48).
@@ -516,7 +516,7 @@ cmd_factory_control() {
       --brand)  brand="$2"; shift 2 ;;
       --value)  value="$2"; shift 2 ;;
       --set-by) set_by="$2"; shift 2 ;;
-      *)        echo "Unknown factory-control option: $1" >&2; exit 2 ;;
+      *)        echo "Unknown factory-control option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh factory-control" >&2; exit 2 ;;
     esac; done
   if [[ "$action" != "get" && "$action" != "set" ]]; then
     echo "ERROR: factory-control requires an action (get|set)." >&2; exit 2
@@ -545,7 +545,7 @@ cmd_dryrun_mark() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown dryrun-mark option: $1" >&2; exit 2 ;;
+      *)    echo "Unknown dryrun-mark option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh dryrun-mark" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
@@ -561,7 +561,7 @@ cmd_dryrun_check() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
-      *)    echo "Unknown dryrun-check option: $1" >&2; exit 2 ;;
+      *)    echo "Unknown dryrun-check option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh dryrun-check" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod found
@@ -581,7 +581,7 @@ cmd_feature_flag() {
       --key)     key="$2"; shift 2 ;;
       --enabled) enabled="$2"; shift 2 ;;
       --set-by)  set_by="$2"; shift 2 ;;
-      *)         echo "Unknown feature-flag option: $1" >&2; exit 2 ;;
+      *)         echo "Unknown feature-flag option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh feature-flag" >&2; exit 2 ;;
     esac; done
   if [[ "$action" != "set" && "$action" != "get" && "$action" != "list" ]]; then
     echo "ERROR: feature-flag requires an action (set|get|list)." >&2; exit 2
@@ -623,7 +623,7 @@ cmd_phase() {
   while [[ $# -gt 0 ]]; do case "$1" in
       --detail) detail="$2"; shift 2 ;;
       --driver) driver="$2"; shift 2 ;;
-      *) echo "Unknown phase option: $1" >&2; exit 2 ;;
+      *) echo "Unknown phase option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh phase" >&2; exit 2 ;;
     esac; done
   # Validate BEFORE _pgpod so bad-arg errors are deterministic w/o a cluster (FA-SF-48).
   [[ -z "$id" || -z "$phase" || -z "$state" ]] && { echo "Usage: $0 phase <ext_id> <phase> <state> [--detail \"...\"] [--driver factory|devflow]" >&2; exit 2; }
@@ -647,7 +647,7 @@ cmd_inject() {
       --id) id="$2"; shift 2 ;; --kind) kind="$2"; shift 2 ;; --phase) phase="$2"; shift 2 ;;
       --title) title="$2"; shift 2 ;; --content) content="$2"; shift 2 ;; --target-files) tfiles="$2"; shift 2 ;;
       --file) file="$2"; shift 2 ;; --nc-path) nc_path="$2"; shift 2 ;; --by) by="$2"; shift 2 ;;
-      *) echo "Unknown inject option: $1" >&2; exit 2 ;;
+      *) echo "Unknown inject option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh inject" >&2; exit 2 ;;
     esac; done
   [[ -z "$id" || -z "$kind" ]] && { echo "ERROR: --id and --kind are required." >&2; exit 2; }
   case "$kind" in context|note|asset) ;; *) echo "ERROR: kind must be one of context|note|asset." >&2; exit 2 ;; esac
@@ -687,7 +687,7 @@ cmd_get_injections() {
   local id="" phase="" consume="false" format="text"
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;; --phase) phase="$2"; shift 2 ;; --consume) consume="true"; shift ;; --format) format="$2"; shift 2 ;;
-      *) echo "Unknown get-injections option: $1" >&2; exit 2 ;;
+      *) echo "Unknown get-injections option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh get-injections" >&2; exit 2 ;;
     esac; done
   [[ -z "$id" ]] && { echo "ERROR: --id is required." >&2; exit 2; }
   [[ -n "$phase" ]] && case "$phase" in scout|design|plan|implement|verify|deploy) ;; *) echo "ERROR: phase must be one of scout|design|plan|implement|verify|deploy." >&2; exit 2 ;; esac
@@ -726,7 +726,7 @@ cmd_plan_meta() {
       --rank)        rank="$2"; shift 2 ;;
       --readiness)   readiness="$2"; shift 2 ;;
       --requirements) requirements="$2"; shift 2 ;;  # Pflichtenheft list; '|'-separated (reqs may contain commas)
-      *) echo "Unknown plan-meta option: $1" >&2; exit 2 ;;
+      *) echo "Unknown plan-meta option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh plan-meta" >&2; exit 2 ;;
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   if [[ -n "$effort" && "$effort" != "klein" && "$effort" != "mittel" && "$effort" != "gross" ]]; then
@@ -800,7 +800,7 @@ cmd_lastenheft() {
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
-      *) echo "Unknown lastenheft option: $1" >&2; exit 2 ;;
+      *) echo "Unknown lastenheft option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh lastenheft" >&2; exit 2 ;;
     esac; done
   # Validate before _pgpod so bad-arg errors are deterministic without a cluster.
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
@@ -861,7 +861,7 @@ cmd_get_timeline() {
   while [[ $# -gt 0 ]]; do case "$1" in
     --id)    id="$2"; shift 2 ;;
     --brand) brand="$2"; shift 2 ;;
-    *)       echo "Unknown get-timeline option: $1" >&2; exit 2 ;;
+    *)       echo "Unknown get-timeline option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh get-timeline" >&2; exit 2 ;;
   esac; done
 
   if [[ -z "$id" ]]; then

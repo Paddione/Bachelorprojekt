@@ -3468,6 +3468,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/ticket-usage-hints",
+    "file": "tests/spec/software-factory/ticket-usage-hints.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "studio-sessions-reorganize",
     "file": "tests/spec/studio-sessions-reorganize.bats",
     "category": "studio-sessions-reorganize",

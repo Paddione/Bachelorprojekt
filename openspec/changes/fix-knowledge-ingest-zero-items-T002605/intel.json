@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "slug": "fix-knowledge-ingest-zero-items-T002605",
+    "ticket_id": "T002605",
+    "generated_from": "main@b2fd15130",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "(diagnose-only)",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "k3d/knowledge-ingest-cronjob.yaml",
+      "language": "config",
+      "loc": 551,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/knowledge/ingest-bug-tickets.mjs",
+      "language": "javascript",
+      "loc": 68,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 732
+    },
+    {
+      "path": "scripts/knowledge/ingest-prs.mjs",
+      "language": "javascript",
+      "loc": 65,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 735
+    },
+    {
+      "path": "scripts/knowledge/lib-knowledge-pg.mjs",
+      "language": "javascript",
+      "loc": 166,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 634
+    },
+    {
+      "path": "tests/spec/llm-pipeline/knowledge-ingest-live-sources.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "k3d/knowledge-ingest-cronjob.yaml:192:    main().catch(err => { console.error(err); process.exit(1); });",
+      "kind": "function",
+      "file": "k3d/knowledge-ingest-cronjob.yaml",
+      "signature": "192:    main().catch(err => { console.error(err); process.exit(1); });(...)",
+      "type_text": "192:    main().catch(err => { console.error(err); process.exit(1); });(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "k3d/knowledge-ingest-cronjob.yaml:268:    main().catch(err => { console.error(err); process.exit(1); });",
+      "kind": "function",
+      "file": "k3d/knowledge-ingest-cronjob.yaml",
+      "signature": "268:    main().catch(err => { console.error(err); process.exit(1); });(...)",
+      "type_text": "268:    main().catch(err => { console.error(err); process.exit(1); });(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/knowledge/ingest-bug-tickets.mjs:68:main().catch(err => { console.error(err); process.exit(1); });",
+      "kind": "function",
+      "file": "scripts/knowledge/ingest-bug-tickets.mjs",
+      "signature": "68:main().catch(err => { console.error(err); process.exit(1); });(...)",
+      "type_text": "68:main().catch(err => { console.error(err); process.exit(1); });(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/knowledge/ingest-prs.mjs:65:main().catch(err => { console.error(err); process.exit(1); });",
+      "kind": "function",
+      "file": "scripts/knowledge/ingest-prs.mjs",
+      "signature": "65:main().catch(err => { console.error(err); process.exit(1); });(...)",
+      "type_text": "65:main().catch(err => { console.error(err); process.exit(1); });(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

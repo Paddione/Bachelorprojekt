@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.1...website-v1.256.2) (2026-08-08)
+
+
+### Bug Fixes
+
+* **scripts:** backfill-id uses canonical external_id_seq with hit count reporting [T002732] ([#3873](https://github.com/Paddione/Bachelorprojekt/issues/3873)) ([19e792c](https://github.com/Paddione/Bachelorprojekt/commit/19e792cdb4cc0fb5b28ead41dc1514d482893c73))
+
 ## [1.256.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.0...website-v1.256.1) (2026-08-08)
 
 

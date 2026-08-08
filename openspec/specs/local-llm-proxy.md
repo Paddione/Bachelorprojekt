@@ -581,9 +581,9 @@ Loadouts without an `exclusiveGroup`, and loadouts in a different group, SHALL N
 - **THEN** the response is `409` with code `exclusive_conflict`, the message names
   `gemma9-factory` and its stop command, and no unit is started or stopped
 
-#### Scenario: A different exclusive group does not block
+#### Scenario: A loadout without an exclusiveGroup does not block
 
-- **GIVEN** only `bge-embed-cpu` (group `bge-cpu`) is active
+- **GIVEN** only `bge-embed-cpu` is active (no `exclusiveGroup` since T002729)
 - **WHEN** `POST /admin/loadouts/gemma26-factory/start` is requested
 - **THEN** the start proceeds
 
@@ -592,8 +592,6 @@ Loadouts without an `exclusiveGroup`, and loadouts in a different group, SHALL N
 - **GIVEN** the same set of active loadouts
 - **WHEN** the conflict is evaluated for the auto-start path and for the explicit start path
 - **THEN** both report the same blocking slug and group
-
-<!-- merged from change delta local-llm-proxy.md (e876c4926c38) -->
 
 ### Requirement: Turn markers are stripped from non-streaming content
 
@@ -897,3 +895,33 @@ prevent.
 - **THEN** it is served by the remote backend as before
 
 <!-- merged from change delta local-llm-proxy.md (e8843681fa39) -->
+
+### Requirement: bge-CPU loadouts start in parallel without an exclusiveGroup
+
+The two bge-CPU loadouts (`bge-embed-cpu`, `bge-rerank-cpu`) SHALL NOT share an `exclusiveGroup`
+and SHALL be startable simultaneously. `exclusiveGroup` models VRAM exclusivity — both loadouts
+run CPU-bound (`args.ngl: 0`, `env.CUDA_VISIBLE_DEVICES: ""`) and allocate no VRAM, so the group
+that previously serialized them (embedding and reranking are the two halves of the same RAG query)
+has no justification.
+
+The CPU-bound configuration SHALL remain in place and SHALL stay guarded by
+`tests/spec/local-llm-proxy/bge-loadout-cpu-bound.bats`; that suite's group-absence assertion
+SHALL anchor on a control group (a known GPU loadout reports `chat-gpu`) instead of asserting
+that any group exists on the bge loadouts (T002356-M1).
+
+`tests/spec/local-llm-proxy/bge-cpu-parallel-start.bats` SHALL assert that starting the second
+bge-CPU loadout while the first runs succeeds without `exclusive_conflict`.
+
+#### Scenario: Both bge-CPU loadouts run simultaneously
+
+- **GIVEN** `bge-rerank-cpu` is active on port 8096
+- **WHEN** `POST /admin/loadouts/bge-embed-cpu/start` is requested
+- **THEN** the start succeeds (no `exclusive_conflict`) and both `/health` endpoints answer `200`
+
+#### Scenario: The guard checks group absence via a control group
+
+- **GIVEN** a known GPU loadout (`gptoss-context`) reports `exclusiveGroup: "chat-gpu"`
+- **WHEN** the spec suite asserts the bge-CPU loadouts are not in `chat-gpu`
+- **THEN** the assertion holds without requiring any group to exist on the bge loadouts
+
+<!-- merged from change delta local-llm-proxy.md (918e9799efb5) -->

@@ -119,3 +119,23 @@ tasks:
         echo "---"
         echo "Console:  $(curl -sS -o /dev/null -w %{http_code} http://sdlc.localhost 2>/dev/null || echo unreachable)"
         echo "Auth:     $(curl -sS -o /dev/null -w %{http_code} http://auth.localhost 2>/dev/null || echo unreachable)"
+
+  sdlc:oidc:sync:
+    desc: "OIDC-Client-Secret zwischen Pocket ID und den SDLC-Secrets angleichen"
+    # Nach jedem sdlc:deploy noetig: pocket-id-client-seed schreibt ein
+    # generiertes Secret nur beim ERSTMALIGEN Anlegen zurueck, der Deploy setzt
+    # k3d/secrets.yaml aber jedes Mal auf den festen Dev-Wert. Ohne den Abgleich
+    # kennt Pocket ID ein anderes Secret als die Console und der Token-Exchange
+    # scheitert mit invalid_client.
+    cmds:
+      - bash scripts/sdlc-sync-oidc-secret.sh
+
+  sdlc:smoke:
+    desc: "E2E-Nachweis: Login-Roundtrip + /sdlc/cockpit rendert als Admin"
+    # Prueft, dass das Cockpit tatsaechlich GERENDERT wird — nicht nur, dass die
+    # Route antwortet. Braucht ein One-Time-Access-Token, weil es im Gegensatz
+    # zum Passkey serverseitig erzeugbar ist:
+    #   kubectl exec -n workspace <pocket-id-pod> -c pocket-id -- \
+    #     /app/pocket-id one-time-access-token paddione
+    cmds:
+      - node scripts/sdlc-cockpit-smoke.mjs {{.CLI_ARGS}}

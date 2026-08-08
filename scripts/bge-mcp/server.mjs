@@ -240,10 +240,14 @@ const server = createServer(async (req, res) => {
 
   // GET wird bewusst abgelehnt und NICHT zu einem SSE-Kanal aufgewertet [T002703].
   // Bis 2026-08-08 oeffnete GET hier einen text/event-stream, in den der Shim nie
-  // schrieb — jede Antwort kommt im POST-Body zurueck. Ein Client, der dem Kanal
-  // folgt, wartet dort statt schnell zu scheitern: agy war deshalb der einzige
-  // Harness, der bge-mcp nicht sah, waehrend mcp-postgres und factory-mcp bei
-  // identischer Konfiguration liefen — die antworten auf GET mit 405.
+  // schrieb — jede Antwort kommt im POST-Body zurueck. Ein Client, der diesem Kanal
+  // folgt, wartet also auf Daten, die nie kommen, statt schnell zu scheitern. Die
+  // uebrigen HTTP-MCP-Server des Repos (mcp-postgres, factory-mcp) antworten auf GET
+  // mit 405; dieser Shim tut es jetzt auch.
+  //
+  // Kein Kausalzusammenhang mit dem Ausfall, der zu T002703 fuehrte: dass agy
+  // bge-mcp nicht sah, lag am unexpandierten ${BGE_MCP_TOKEN} in der agy-Config
+  // (T002704) und blieb nach dieser Aenderung unveraendert bestehen.
   if (req.method !== 'POST') return send(405, { error: 'method not allowed' });
 
   let parsed;

@@ -15,7 +15,7 @@ setup() {
 }
 
 @test "T002688: .dockerignore deklariert keine fehlenden Literale" {
-  local missing=0 offenders=""
+  local missing=0 offenders="" candidates=0
   while IFS= read -r line; do
     [ -n "$line" ] || continue
     # Scope-Ausschluss: Kommentar, Negation, Glob-Zeichen, runtime-Marker
@@ -25,11 +25,27 @@ setup() {
       *'*'*|*'?'*|*'['*) continue ;;
       *'# runtime'*) continue ;;
     esac
+    # Scope-Ausschluss: gitignorierte Pfade [T002701]. Ein gitignorierter Eintrag
+    # kann in einem frischen Klon nie existieren — seine Abwesenheit sagt nichts
+    # ueber tote Referenzen aus, sondern nur darueber, ob jemand hier gebaut hat.
+    # Ohne diese Zeile war der Block umgebungsabhaengig: lokal gruen (weil
+    # website/node_modules existierte), auf jedem CI-Runner rot. Der "# runtime"-
+    # Marker allein reicht nicht, weil er pro Eintrag von Hand gesetzt werden muss
+    # und genau dann vergessen wird, wenn der Pfad lokal zufaellig existiert.
+    if git -C "$REPO_ROOT" check-ignore -q "$line" 2>/dev/null; then
+      continue
+    fi
+    candidates=$((candidates + 1))
     if [ ! -e "$REPO_ROOT/$line" ]; then
       missing=1
       offenders="$offenders$line "
     fi
   done < "$REPO_ROOT/.dockerignore"
+
+  # Positiv-Anker: die Kandidatenliste ist nicht leer. Ohne ihn bestuende der
+  # Block vakuos, sobald die Extraktion nichts mehr findet [T002356-M1].
+  [ "$candidates" -gt 0 ] \
+    || { echo "FATAL: keine pruefbaren Literale aus .dockerignore extrahiert — Extraktion defekt"; return 1; }
 
   [ "$missing" -eq 0 ] || { echo "FEHLT: .dockerignore verweist auf: $offenders"; return 1; }
 }

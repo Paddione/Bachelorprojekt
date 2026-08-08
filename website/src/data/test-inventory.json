@@ -3252,8 +3252,20 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/action-inventory",
+    "file": "tests/spec/sdlc-cockpit/action-inventory.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/adapter-contract",
     "file": "tests/spec/sdlc-cockpit/adapter-contract.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/adapter-sdlc-paths",
+    "file": "tests/spec/sdlc-cockpit/adapter-sdlc-paths.bats",
     "category": "sdlc-cockpit",
     "kind": "shell"
   },

@@ -2609,8 +2609,8 @@
   ],
   "T002708": [
     {
-      "slug": "cockpit-daemon-port-reserved",
-      "status": "plan_staged"
+      "slug": "2026-08-08-cockpit-daemon-port-reserved",
+      "status": "archived"
     }
   ],
   "TBD": [

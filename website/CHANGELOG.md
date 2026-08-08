@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.252.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.252.1...website-v1.252.2) (2026-08-08)
+
+
+### Bug Fixes
+
+* **ci:** Drift zwischen den Freshness-Registern beheben und absichern [T002686] ([#3820](https://github.com/Paddione/Bachelorprojekt/issues/3820)) ([3d9c69c](https://github.com/Paddione/Bachelorprojekt/commit/3d9c69c042b14b3db60ad7d040adcc4c5406e7ec))
+
 ## [1.252.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.252.0...website-v1.252.1) (2026-08-08)
 
 

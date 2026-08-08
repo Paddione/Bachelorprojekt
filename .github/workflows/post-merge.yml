@@ -125,7 +125,8 @@ jobs:
     if: |
       always() &&
       needs.render-artifact.result != 'failure' &&
-      needs.deploy-legacy.result != 'failure'
+      needs.deploy-legacy.result != 'failure' &&
+      (needs.render-artifact.result != 'skipped' || needs.deploy-legacy.result != 'skipped')
     steps:
       - uses: actions/checkout@v7
         with: { fetch-tags: false }

@@ -1,3 +1,5 @@
+import { logger } from '../logger';
+
 export interface AuthProvider {
   id: 'local' | 'fleet';
   frontendUrl: string;
@@ -143,31 +145,39 @@ type SyncFallbackReason = 'never-probed' | 'cache-expired' | 'probe-failed';
 
 /**
  * Wird aufgerufen, kurz bevor resolveEndpointsSync() Endpoints aus einem NICHT
- * geprobten Provider baut. Aktuell ein No-op — das Verhalten ist damit exakt das
- * bisherige (fail-open, siehe Variante b unten).
+ * geprobten Provider baut.
  *
- * TODO(T002682): Verhalten festlegen. Zur Wahl stehen:
+ * Gewaehlt ist "tolerant + laut" (T002682): der Login bleibt tolerant — ein
+ * kurzer Pocket-ID-Aussetzer sperrt niemanden aus, und ein bereits laufender
+ * Flow kommt durch. Aber der Rueckfall wird sichtbar, statt bis zum Callback
+ * zu schweigen.
  *
- *   a) fail-closed — bei 'probe-failed' (ggf. auch 'cache-expired') werfen.
- *      Der Login schlaegt sofort sichtbar fehl statt erst im Callback.
- *      ACHTUNG: Der einzige Produktions-Aufrufer ist getLoginUrl() in
- *      website/src/lib/auth.ts:90. Die Funktion ist synchron und gibt `string`
- *      zurueck; ein Wurf muss dort und in /api/auth/login behandelt werden
- *      (503 statt kaputtem Redirect). Das ist der teuerste, aber ehrlichste Weg.
+ * Verworfen wurde fail-closed (sofortiger Wurf): der einzige Produktions-
+ * Aufrufer getLoginUrl() (website/src/lib/auth.ts) ist synchron und liefert
+ * `string`; ein Wurf muesste bis /api/auth/login als 503 durchgereicht werden.
+ * Das macht aus jedem Sekunden-Aussetzer eine harte Sperre — ein hoher Preis
+ * fuer Sichtbarkeit, die auch ein Log liefert.
  *
- *   b) fail-open — No-op belassen. Robust gegen kurzes Pocket-ID-Flackern,
- *      verschiebt den Fehler aber weiterhin hinter die Credential-Eingabe.
- *
- *   c) tolerant + laut — Login bleibt tolerant, aber der Rueckfall wird
- *      protokolliert bzw. als Health-Signal exponiert. Naheliegender Kompromiss;
- *      dann vermutlich nach `reason` differenzieren, damit 'never-probed' beim
- *      Kaltstart kein Fehler-Rauschen erzeugt.
- *
- * Die Wahl praegt das Verhalten bei JEDEM kuenftigen Pocket-ID-Ausfall — sie ist
- * eine Betriebs-, keine Implementierungsentscheidung.
+ * Differenziert nach Grund, weil die drei Faelle nicht gleich schwer wiegen:
+ * nur 'probe-failed' ignoriert FRISCHES Wissen ueber einen Ausfall und ist
+ * deshalb Fehler-Level. 'never-probed' ist der Normalfall beim Kaltstart und
+ * schweigt, sonst raucht jedes Pod-Start-Log voll.
  */
-function onUnprobedFallback(_reason: SyncFallbackReason, _provider: AuthProvider): void {
-  // TODO(T002682): siehe oben.
+function onUnprobedFallback(reason: SyncFallbackReason, provider: AuthProvider): void {
+  if (reason === 'never-probed') return;
+
+  const context = { reason, providerId: provider.id, frontendUrl: provider.frontendUrl };
+
+  if (reason === 'probe-failed') {
+    logger.error(
+      context,
+      '[auth] Login-Redirect nutzt ungeprobten Provider, obwohl die letzte Probe fehlschlug — ' +
+        'der Nutzer wird sich anmelden und erst im Callback scheitern',
+    );
+    return;
+  }
+
+  logger.warn(context, '[auth] Login-Redirect nutzt Provider mit abgelaufener Probe');
 }
 
 export function resolveEndpointsSync(): {

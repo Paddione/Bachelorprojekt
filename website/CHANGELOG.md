@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.5...website-v1.254.6) (2026-08-08)
+
+
+### Bug Fixes
+
+* **ops:** agy-Header-Platzhalter beim Rendern aufloesen [T002704] ([#3843](https://github.com/Paddione/Bachelorprojekt/issues/3843)) ([97a15ea](https://github.com/Paddione/Bachelorprojekt/commit/97a15ea8f01c229b1fae53add3e92cefe32f9763))
+
 ## [1.254.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.4...website-v1.254.5) (2026-08-08)
 
 

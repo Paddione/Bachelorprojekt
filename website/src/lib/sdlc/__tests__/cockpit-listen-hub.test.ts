@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import type { CockpitEvent } from '../cockpit-listen-hub';
 
 const { mockOnFns, mockClient } = vi.hoisted(() => {
-  const fns: Record<string, (...args: any[]) => void> = {};
+  const fns: Record<string, (...args: unknown[]) => void> = {};
   const client = {
     connect: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
     query: vi.fn<(_: string) => Promise<{ rows: unknown[] }>>().mockResolvedValue({ rows: [] }),
-    on: vi.fn((event: string, fn: (...args: any[]) => void) => {
+    on: vi.fn((event: string, fn: (...args: unknown[]) => void) => {
       fns[event] = fn;
     }),
     removeAllListeners: vi.fn(),

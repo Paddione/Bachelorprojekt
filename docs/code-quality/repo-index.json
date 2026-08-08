@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 801,
+      "file_count": 802,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -545,6 +545,7 @@
         "tests/spec/react-login-edit-homepage.bats",
         "tests/spec/release-notes-erden.bats",
         "tests/spec/repo-health-goals.bats",
+        "tests/spec/repo-hygiene/dead-path-references.bats",
         "tests/spec/rustdesk-server.bats",
         "tests/spec/s1-violations-batch2.bats",
         "tests/spec/s1-violations.bats",
@@ -2639,7 +2640,7 @@
       "id": "infra-manifests",
       "name": "Kubernetes manifests, overlays, env registry",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 512,
+      "file_count": 511,
       "files": [
         ".opencode/agent-models.jsonc",
         ".opencode/commands/opsx-apply.md",
@@ -3049,7 +3050,6 @@
         "k3d/website.yaml",
         "k3d/whiteboard/kustomization.yaml",
         "k3d/whiteboard/whiteboard.yaml",
-        "mcp-browser/Dockerfile",
         "prod-fleet/components/fleet-common/kustomization.yaml",
         "prod-fleet/components/fleet-common/netpol-deny-cross-brand.yaml",
         "prod-fleet/components/llm-models-longhorn/kustomization.yaml",

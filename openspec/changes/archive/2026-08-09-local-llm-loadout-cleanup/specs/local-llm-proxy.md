@@ -28,8 +28,6 @@ a foreign process rather than a path.
 - **WHEN** the guard runs
 - **THEN** the loadout is skipped and does not fail the guard
 
-## MODIFIED Requirements
-
 ### Requirement: Chat template provenance for Gemma 4 loadouts
 
 A Gemma 4 loadout used for multi-turn tool calling SHALL load its chat template from a file
@@ -50,13 +48,3 @@ agentic tool chains into verbatim repetition; a re-download silently restores it
 - **GIVEN** the unpatched upstream template
 - **WHEN** the same conversation is rendered against it
 - **THEN** the check reports the re-injection and fails, proving the passing case is not vacuous
-
-## REMOVED Requirements
-
-### Requirement: gemma9-factory context extension
-
-**Reason:** The loadout is removed. Its weights are absent from the host, no consumer
-dispatches to it since 2026-08-03, and its `--override-kv gemma2.context_length=int:98304`
-stretched the context to twelve times the trained range — `unsloth/gemma-2-9b-it/config.json`
-reports `max_position_embeddings: 8192` with `rope_theta: 10000.0` unscaled. The number
-appeared in the log; the capability did not exist.

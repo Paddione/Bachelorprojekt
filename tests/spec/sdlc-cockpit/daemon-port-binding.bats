@@ -125,12 +125,34 @@ setup() {
   # Der eigentliche Gegenstand: keine der Cockpit-Portstellen darf im
   # reservierten Block liegen. Der Adapter zaehlt mit — er verdrahtet die
   # Basis-URL, die der Browser anspricht.
+  #
+  # Diese Datei selbst ist vom Scan ausgenommen: sie MUSS die alten Werte
+  # nennen, um den Bereich zu dokumentieren und zu pruefen. Der Ausschluss ist
+  # namentlich und nicht per Muster, damit er nicht versehentlich weitere
+  # Dateien mitnimmt.
+  local files=() f
+  for f in .lavish/kit/daemon/server.ts .lavish/kit/adapter.js .lavish/kit/canvas-store.js \
+           tests/spec/sdlc-cockpit/*.bats tests/spec/sdlc-cockpit/*.bash; do
+    [ "$(basename "$f")" = "daemon-port-binding.bats" ] && continue
+    files+=("$f")
+  done
+
+  # POSITIV-ANKER fuer den Scan selbst: die Dateiliste ist nicht leer. Ein
+  # fehlgeschlagenes Glob liesse den Scan sonst ins Leere laufen und die
+  # Negativaussage vakuos bestehen.
+  [ "${#files[@]}" -gt 3 ]
+
+  # Reine Kommentarzeilen sind ausgenommen: die alten Werte MUESSEN dort
+  # vorkommen duerfen, sonst laesst sich nicht erklaeren, warum der Port
+  # gewechselt wurde — und eine Aenderung, die man nicht begruenden darf, wird
+  # bei der naechsten Aufraeumaktion zurueckgedreht. Gegenstand des Guards ist
+  # die Konfiguration, nicht die Prosa. Ein Portwert in einer Code-Zeile wird
+  # weiterhin gefunden, auch mit angehaengtem Kommentar.
   local hits
-  hits=$(grep -ohE '\b(4915[2-9]|491[6-9][0-9]|492[0-4][0-9]|4925[01])\b' \
-    .lavish/kit/daemon/server.ts \
-    .lavish/kit/adapter.js \
-    tests/spec/sdlc-cockpit/*.bats \
-    2>/dev/null | sort -u | tr '\n' ' ')
+  hits=$(cat "${files[@]}" 2>/dev/null \
+    | grep -vE '^[[:space:]]*(#|//)' \
+    | grep -ohE '\b(4915[2-9]|491[6-9][0-9]|492[0-4][0-9]|4925[01])\b' \
+    | sort -u | tr '\n' ' ')
   [ -z "$hits" ] || {
     echo "Ports im reservierten Bereich 49152-49251 gefunden: ${hits}"
     false

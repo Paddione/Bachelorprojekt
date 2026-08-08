@@ -4148,7 +4148,10 @@ tasks:
     desc: "Start the SDLC Cockpit daemon in the background and wait until it answers (PORT= to override)"
     silent: true
     vars:
-      PORT: '{{.PORT | default "49152"}}'
+      # Muss dem Default in .lavish/kit/daemon/server.ts entsprechen — ein
+      # abweichender Wert liesse diesen Task gegen einen anderen Port pruefen,
+      # als der Daemon bindet. 49152 lag im Hyper-V-Reservierungsbereich [T002708].
+      PORT: '{{.PORT | default "39152"}}'
     cmds:
       # Ein still im Hintergrund gestorbener Daemon darf nicht als Erfolg
       # durchgehen — genau diese Art stiller Erfolg liess die Cockpit-Tests

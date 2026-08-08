@@ -14,7 +14,7 @@
 # Setzt DAEMON_PORT und BASE und stellt sicher, dass ein Daemon antwortet.
 # Ruft je nach COCKPIT_DAEMON_REQUIRED entweder `skip` oder `fail` auf.
 require_daemon() {
-  DAEMON_PORT="${COCKPIT_DAEMON_PORT:-49152}"
+  DAEMON_PORT="${COCKPIT_DAEMON_PORT:-39152}"
   BASE="http://127.0.0.1:${DAEMON_PORT}"
 
   local health

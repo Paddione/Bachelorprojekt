@@ -45,7 +45,7 @@ Fehlerbehandlung in `server.ts` (rund +15 Zeilen) — Budget bleibt weit im Plus
 
 ## p1 — Daemon, Adapter, Taskfile
 
-- [ ] **Failing-Test-Step (RED).** Der Guard liegt bereits als
+- [x] **Failing-Test-Step (RED).** Der Guard liegt bereits als
       `tests/spec/sdlc-cockpit/daemon-port-binding.bats` auf dem Branch. Vor der Implementierung
       ausführen und den roten Stand bestätigen — beide Tests müssen fehlschlagen, und zwar aus
       den benannten Gründen: Test 1 an `[ "$output" -eq 0 ]` (der Daemon loggt `listening on`,
@@ -57,7 +57,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/daemon-port-binding.ba
 # expected: FAIL (rot — Port und Startmeldung sind noch unverändert)
 ```
 
-- [ ] **Default-Port in `.lavish/kit/daemon/server.ts` auf 39152 ziehen.** Zeile 19:
+- [x] **Default-Port in `.lavish/kit/daemon/server.ts` auf 39152 ziehen.** Zeile 19:
       `process.env.COCKPIT_DAEMON_PORT || '49152'` → `'39152'`. Im Kommentar festhalten, warum
       nicht der IANA-dynamic range verwendet wird — sonst wandert der Wert bei der nächsten
       Aufräumaktion zurück.
@@ -70,11 +70,11 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/daemon-port-binding.ba
 const PORT = parseInt(process.env.COCKPIT_DAEMON_PORT || '39152', 10);
 ```
 
-- [ ] **Startmeldung in den `serve()`-Callback verschieben.** Die drei `console.log`-Zeilen
+- [x] **Startmeldung in den `serve()`-Callback verschieben.** Die drei `console.log`-Zeilen
       (aktuell 118–120) stehen vor `serve()` und melden Erfolg, bevor gebunden wurde. Sie gehören
       in den Listening-Callback, den `serve()` als zweites Argument annimmt.
 
-- [ ] **`EADDRINUSE` verständlich behandeln.** Den von `serve()` zurückgegebenen Server auf
+- [x] **`EADDRINUSE` verständlich behandeln.** Den von `serve()` zurückgegebenen Server auf
       `error` hören lassen: bei `EADDRINUSE` Port, Ursache und Abhilfe im Klartext ausgeben und
       mit `process.exit(1)` beenden, statt den Unhandled-`error`-Stacktrace zu werfen. Andere
       Fehler unverändert weiterreichen, damit der Handler keine echten Defekte verschluckt.
@@ -99,26 +99,26 @@ server.on('error', (err: NodeJS.ErrnoException) => {
 });
 ```
 
-- [ ] **`.lavish/kit/adapter.js` nachziehen.** Zeile 10 `DAEMON_BASE` und Zeile 37 der
+- [x] **`.lavish/kit/adapter.js` nachziehen.** Zeile 10 `DAEMON_BASE` und Zeile 37 der
       `Number(location.port) === 49152`-Vergleich auf 39152. Beide Stellen müssen zusammen
       geändert werden: Zeile 37 entscheidet, ob der Adapter überhaupt in den Daemon-Modus geht.
 
-- [ ] **`.lavish/kit/canvas-store.js` Kommentar (Zeile 71)** auf 39152 korrigieren — er nennt die
+- [x] **`.lavish/kit/canvas-store.js` Kommentar (Zeile 71)** auf 39152 korrigieren — er nennt die
       Basis-URL, die der Adapter ansteuert, und würde sonst auf einen toten Port verweisen.
 
-- [ ] **`Taskfile.yml` Zeile 4151:** `PORT: '{{.PORT | default "49152"}}'` → `"39152"`. Der Task
+- [x] **`Taskfile.yml` Zeile 4151:** `PORT: '{{.PORT | default "49152"}}'` → `"39152"`. Der Task
       startet denselben Daemon; ein abweichender Default würde `cockpit:daemon` gegen einen
       anderen Port prüfen lassen, als der Daemon bindet.
 
 ## p2 — Tests und Helper
 
-- [ ] **`tests/spec/sdlc-cockpit/daemon-runtime-contract.bats` auf freie Ports ziehen.**
+- [x] **`tests/spec/sdlc-cockpit/daemon-runtime-contract.bats` auf freie Ports ziehen.**
       `PORT=49199` → `39199` (Zeile 70), `DEAD_PORT=49198` → `39198` (Zeile 113). Den
       Kommentarblock ab Zeile 83 richtigstellen: die dort als ausgeschlossen notierte Ursache
       („Portkonflikt mit dem CI-Daemon") war die falsche Fährte — die Flakiness aus T002602
       erklärt sich durch die Hyper-V-Reservierung, nicht durch einen konkurrierenden Prozess.
 
-- [ ] **Die wirkungslose Assertion in derselben Datei reparieren (Zeile 132).**
+- [x] **Die wirkungslose Assertion in derselben Datei reparieren (Zeile 132).**
       `! echo "$output" | grep -q "# skip"` schaltet `set -e` ab und kann nie fehlschlagen.
       Ersetzen durch eine gezählte Prüfung, die tatsächlich rot werden kann:
 
@@ -133,17 +133,17 @@ run bash -c "echo \"\$output\" | grep -c '# skip'"
       war die Aussage schon immer falsch und der Befund gehört ins Ticket, nicht in eine
       Anpassung der Erwartung.
 
-- [ ] **`tests/spec/sdlc-cockpit/daemon-helper.bash` Zeile 17** und
+- [x] **`tests/spec/sdlc-cockpit/daemon-helper.bash` Zeile 17** und
       **`tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats` Zeile 27**:
       `${COCKPIT_DAEMON_PORT:-49152}` → `:-39152`. Beide bilden den Default des Daemons nach und
       würden sonst gegen einen Port prüfen, auf dem nichts läuft.
 
-- [ ] **`tests/spec/sdlc-cockpit/write-token-removed.bats` Zeile 17:** das simulierte
+- [x] **`tests/spec/sdlc-cockpit/write-token-removed.bats` Zeile 17:** das simulierte
       `location = { protocol: 'file:', port: '49152' }` auf `'39152'` ziehen — der Wert muss zum
       Vergleich in `adapter.js:37` passen, sonst prüft der Test einen Pfad, den der Adapter nie
       nimmt.
 
-- [ ] **Gesamte Cockpit-Suite grün fahren.** Beide Dateiformen erfassen (Sammeldatei *und*
+- [x] **Gesamte Cockpit-Suite grün fahren.** Beide Dateiformen erfassen (Sammeldatei *und*
       Verzeichnis, T002696):
 
 ```bash
@@ -153,7 +153,7 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
 
 ## Verify
 
-- [ ] **Abschluss-Verifikation.** Die drei Pflicht-Gates laufen lassen:
+- [x] **Abschluss-Verifikation.** Die drei Pflicht-Gates laufen lassen:
 
 ```bash
 task test:changed
@@ -161,7 +161,7 @@ task freshness:regenerate
 task freshness:check
 ```
 
-- [ ] **Ticket-Nachtrag.** T002524 wurde als `cant_reproduce` geschlossen und ist damit falsch
+- [x] **Ticket-Nachtrag.** T002524 wurde als `cant_reproduce` geschlossen und ist damit falsch
       abgelegt: reproduzierbar war der Defekt sehr wohl, nur lag die Ursache nicht bei den
       Dependencies. Einen Kommentar an T002524 hängen, der auf T002708 und die verifizierte
       Ursache verweist.

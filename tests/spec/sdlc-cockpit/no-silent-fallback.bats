@@ -16,8 +16,9 @@ setup() {
 }
 
 @test "D13 NEGATIV: unreachable endpoint returns error field, not null" {
-  # Stop daemon or use a non-existent port
-  local DEAD_PORT=49153
+  # Stop daemon or use a non-existent port. 39153 statt 49153 [T002708]: der
+  # alte Wert lag im Bereich, den Windows/Hyper-V auf WSL2-Hosts reserviert.
+  local DEAD_PORT=39153
   run curl -s "http://127.0.0.1:${DEAD_PORT}/health"
   # curl returns error — that's fine for D13
   # But if the daemon returns data, it MUST have error field

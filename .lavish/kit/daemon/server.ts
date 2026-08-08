@@ -16,7 +16,18 @@ import { epicsHandler, epicsChangesSinceHandler } from './routes/epics';
 import { stylesHandler } from './routes/styles';
 import { agentStreamHandler, factoryStreamHandler } from './routes/stream';
 
-const PORT = parseInt(process.env.COCKPIT_DAEMON_PORT || '49152', 10);
+// 39152 statt des IANA-dynamic range: Windows/Hyper-V reserviert auf WSL2-Hosts
+// blockweise Portbereiche ab 49152 (`netsh interface ipv4 show excludedportrange
+// protocol=tcp` weist u.a. 49152-49251 aus). Ein bind() dort liefert EADDRINUSE,
+// OBWOHL `ss -ltnp` niemanden zeigt und kein Prozess laeuft — der Daemon war
+// damit auf jedem WSL2-Rechner unstartbar [T002708]. Auf einem Linux-CI-Runner
+// existiert die Reservierung nicht, weshalb CI den Defekt nie sehen konnte.
+//
+// 39152 liegt ausserhalb dieser Bloecke und ausserhalb des lokalen
+// Ephemeral-Range (/proc/sys/net/ipv4/ip_local_port_range). Wer den Wert wieder
+// in den "IANA-dynamic range" zurueckziehen will — genau diese Begruendung stand
+// hinter dem alten 49152 — liest zuerst T002708.
+const PORT = parseInt(process.env.COCKPIT_DAEMON_PORT || '39152', 10);
 const token = generateToken();
 
 // Write token file with tight permissions BEFORE starting server
@@ -115,8 +126,30 @@ app.get('/health', (c) => c.json({
   fetchedAt: new Date().toISOString(),
 }));
 
-console.log(`[cockpit-daemon] listening on http://127.0.0.1:${PORT}`);
-console.log(`[cockpit-daemon] token at /tmp/cockpit-daemon.token (0600)`);
-console.log(`[cockpit-daemon] pid ${process.pid}`);
+// Die Startmeldung gehoert in den listen-Callback, nicht davor [T002708]. Sie
+// stand frueher ueber dem serve()-Aufruf und meldete damit Erfolg, bevor
+// ueberhaupt gebunden wurde. Bei einem fehlgeschlagenen bind entstand dadurch
+// die Ausgabe "listening on ..." unmittelbar gefolgt von EADDRINUSE auf genau
+// diesem Port — ein Bild, das wie ein doppelter bind() im selben Prozess
+// aussieht und die Fehlersuche in T002708 zunaechst genau dorthin geschickt hat.
+const server = serve({ fetch: app.fetch, port: PORT, hostname: '127.0.0.1' }, (info) => {
+  console.log(`[cockpit-daemon] listening on http://127.0.0.1:${info.port}`);
+  console.log(`[cockpit-daemon] token at /tmp/cockpit-daemon.token (0600)`);
+  console.log(`[cockpit-daemon] pid ${process.pid}`);
+});
 
-serve({ fetch: app.fetch, port: PORT, hostname: '127.0.0.1' });
+// Ein belegter oder reservierter Port ist ein Bedienfehler, kein Programmfehler —
+// er verdient eine Anweisung statt eines Stacktraces. Alle anderen Fehler werden
+// unveraendert weitergereicht, damit dieser Handler keine echten Defekte
+// verschluckt.
+server.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code !== 'EADDRINUSE') { throw err; }
+  console.error(
+    `[cockpit-daemon] FEHLER: Port ${PORT} auf 127.0.0.1 ist belegt oder reserviert (EADDRINUSE).\n` +
+    `  Laeuft bereits ein Daemon?      ss -ltnp | grep ${PORT}\n` +
+    `  Auf WSL2 kann der Port auch OHNE Lauscher reserviert sein:\n` +
+    `    netsh.exe interface ipv4 show excludedportrange protocol=tcp\n` +
+    `  Anderen Port waehlen:           COCKPIT_DAEMON_PORT=<frei> npx tsx .lavish/kit/daemon/server.ts`
+  );
+  process.exit(1);
+});

@@ -7,7 +7,10 @@
 // Teil der Endpunkte, ein Umschalten stellte die uebrigen auf 404.
 
 const data = (() => {
-  const DAEMON_BASE = 'http://127.0.0.1:49152';
+  // Port 39152, nicht 49152: der alte Wert lag im Bereich, den Windows/Hyper-V
+  // auf WSL2-Hosts reserviert [T002708]. Muss mit dem Default in
+  // .lavish/kit/daemon/server.ts uebereinstimmen.
+  const DAEMON_BASE = 'http://127.0.0.1:39152';
   const brand = 'mentolder';
 
   // ---- Endpunkt-Karte: pro Endpunkt, welche Quelle ihn bedient ----
@@ -34,7 +37,7 @@ const data = (() => {
   // Kontext wird EINMAL beim Laden bestimmt. Standalone = die Seite wird nicht
   // von der Admin-Flaeche ausgeliefert (file:// oder der Daemon-Port selbst).
   const isStandalone = typeof location !== 'undefined'
-    && (location.protocol === 'file:' || Number(location.port) === 49152);
+    && (location.protocol === 'file:' || Number(location.port) === 39152);
   const HOST = isStandalone ? DAEMON_BASE : '';
   const UNAVAILABLE_MSG = 'Quelle in diesem Kontext nicht verfügbar';
 

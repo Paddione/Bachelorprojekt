@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.8...website-v1.254.9) (2026-08-08)
+
+
+### Bug Fixes
+
+* **website:** Daemon-Runtime-Test beendet den Server statt nur den Wrapper [T002724] ([#3857](https://github.com/Paddione/Bachelorprojekt/issues/3857)) ([73ffdfb](https://github.com/Paddione/Bachelorprojekt/commit/73ffdfb9cde47c35689570a9f36c98da412eac14))
+
 ## [1.254.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.7...website-v1.254.8) (2026-08-08)
 
 

@@ -2481,6 +2481,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002622": [
+    {
+      "slug": "worktree-reap",
+      "status": "plan_staged"
+    }
+  ],
   "T002623": [
     {
       "slug": "adr006-sdlc-topologie",

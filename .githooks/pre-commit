@@ -48,6 +48,13 @@ fi
 # the same commit (see T001388). Keep this list in sync with `task
 # freshness:regenerate` and the FILES list in `Taskfile.yml` `freshness:check`.
 # Best-effort: never blocks the commit if task or node is unavailable.
+#
+# Bewusst NICHT enthalten: docs/code-quality/repo-index.json [T002687]. Wuerde
+# es hier auto-gestaged, landete es in jedem Commit und damit in jedem PR — und
+# seine acht file_count-Zaehler kollidieren zwischen parallelen PRs
+# zwangslaeufig. Es wird nirgends gelesen (quality:check scannt live) und von
+# freshness-regen.yml auf main aktuell gehalten.
+# Guard: tests/spec/ci-cd/generated-artifacts-registry.bats
 _FRESHNESS_FILES=(
   website/src/data/test-inventory.json
   website/src/data/route-manifest.json
@@ -56,7 +63,6 @@ _FRESHNESS_FILES=(
   website/src/data/openspec-status.json
   docs/diagrams/architecture.md
   website/src/lib/sdlc/goals-data.generated.json
-  docs/code-quality/repo-index.json
   docs/agent-guide/10-ziele.md
   docs/agent-guide/20-werkzeuge.md
   docs/agent-guide/30-bausteine.md

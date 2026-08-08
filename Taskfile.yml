@@ -1240,6 +1240,15 @@ tasks:
       # --- Phase 1: diff-check each file ---
       - |
         ERRORS=0
+        # NICHT in dieser Liste: docs/code-quality/repo-index.json [T002687].
+        # Es enthaelt acht file_count-Zaehler; jeder PR mit einer hinzugefuegten
+        # oder entfernten Datei aendert dieselbe Zeile, womit parallele PRs
+        # zwangslaeufig kollidieren — merge=ours greift auf GitHub nicht, und ein
+        # konfliktbehafteter PR unterdrueckt dort die CI. Die Datei wird nirgends
+        # gelesen (quality:check scannt live per trackedFiles -> git ls-files),
+        # ist also reines Reporting. freshness-regen.yml haelt sie auf main
+        # aktuell; sie muss dafuer nicht durch jeden PR wandern.
+        #
         # ACHTUNG: FILES ist ein Shell-String, der unten per Wortsplitting
         # durchlaufen wird — KEINE Kommentare hineinschreiben. Jedes Wort gilt
         # als Pfad; ein Kommentar erzeugt Phantom-Eintraege wie "an" oder "PR"
@@ -1258,7 +1267,6 @@ tasks:
           website/src/data/openspec-status.json
           docs/diagrams/architecture.md
           website/src/lib/sdlc/goals-data.generated.json
-          docs/code-quality/repo-index.json
           docs/agent-guide/10-ziele.md
           docs/agent-guide/20-werkzeuge.md
           docs/agent-guide/30-bausteine.md

@@ -51,6 +51,23 @@ setup() {
   assert_success
 }
 
+@test "T002705: this guard runs in the offline gate — not parked in .coverage-allowlist" {
+  # Positiv-Anker zuerst: die Ausschlussliste existiert und ist befuellt. Ohne ihn
+  # waere die Negativ-Aussage unten auch dann wahr, wenn die Datei fehlte oder leer
+  # waere — und der Test bestuende vakuos (T002356-M1).
+  local list="${PROJECT_DIR}/tests/unit/.coverage-allowlist"
+  [ -f "$list" ]
+  local entries
+  entries=$(grep -cvE '^\s*(#|$)' "$list")
+  [ "$entries" -gt 0 ]
+
+  # Dieser Guard prueft ausschliesslich Repo-Dateien — er braucht weder Cluster
+  # noch DB noch SSH und gehoert deshalb ins Offline-Gate. Stand er hier drin,
+  # lief er nirgends: genau so blieb die sish-Regression zwei Monate unentdeckt.
+  run grep -qE '^brainstorm-dev-host$' "$list"
+  assert_failure
+}
+
 @test "brainstorm Taskfile targets the dev sish SSH ingress :2222, not the removed prod broker NodePort 32223" {
   run grep -F "32223" "$BRAINSTORM_TASKFILE"
   assert_failure

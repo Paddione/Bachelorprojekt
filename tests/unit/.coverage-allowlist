@@ -8,7 +8,6 @@
 backup-restore-filen-pull
 backup-restore-namespace
 backup-restore-recovery
-brainstorm-dev-host
 dev-build-safety
 dev-cluster-autostart
 keycloak-entrypoint-escaping

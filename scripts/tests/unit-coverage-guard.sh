@@ -15,10 +15,31 @@ cd "$ROOT"
 allowlist="tests/unit/.coverage-allowlist"
 missing=()
 
+# `test:unit` selects its files with `find tests/unit -maxdepth 1 -name "*.bats"`
+# and drops only what the allowlist names. A file swept up by that loop is run —
+# even though no task mentions it by name. Without recognising this, the guard
+# reports every such file as "run by no task", and its own remedy text ("add its
+# basename to the allowlist") is the easier of the two options it offers. That is
+# how a working guard gets parked: brainstorm-dev-host.bats sat in the allowlist
+# from 2026-06-06 until T002705, and the regression it guarded against shipped six
+# minutes after it was parked.
+#
+# The strict rule still applies if that sweep ever disappears — hence the probe
+# rather than an unconditional pass.
+sweeps_all_unit_bats=false
+if grep -qF 'find tests/unit -maxdepth 1 -name "*.bats"' Taskfile.yml; then
+  sweeps_all_unit_bats=true
+fi
+
 while IFS= read -r f; do
   b="$(basename "$f" .bats)"
   # Referenced by a test task (subtasks invoke `tests/unit/<name>.bats`)?
   if grep -qF "${b}.bats" Taskfile.yml; then
+    continue
+  fi
+  # Swept up by the test:unit find-loop (i.e. not allowlisted → it runs)?
+  if [[ "$sweeps_all_unit_bats" == true ]] \
+     && { [[ ! -f "$allowlist" ]] || ! grep -qxF "$b" "$allowlist"; }; then
     continue
   fi
   # Explicitly allowlisted (exact bare-basename line)?

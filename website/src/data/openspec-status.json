@@ -2465,8 +2465,8 @@
   ],
   "T002613": [
     {
-      "slug": "skill-path-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-08-skill-path-guard",
+      "status": "archived"
     }
   ],
   "T002616": [
@@ -2622,6 +2622,12 @@
   "T002721": [
     {
       "slug": "2026-08-08-cockpit-daemon-runtime-files",
+      "status": "archived"
+    }
+  ],
+  "T002724": [
+    {
+      "slug": "2026-08-08-cockpit-daemon-test-no-leak",
       "status": "archived"
     }
   ],

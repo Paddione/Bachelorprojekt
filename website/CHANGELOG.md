@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.252.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.252.0...website-v1.252.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* **factory:** Watchdog filtert Ticket-Typen per Ausschlussliste [T002674] ([#3816](https://github.com/Paddione/Bachelorprojekt/issues/3816)) ([c9e8b56](https://github.com/Paddione/Bachelorprojekt/commit/c9e8b5674ac97937af3c9f1a2500ca4166a9cb49))
+
 ## [1.252.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.7...website-v1.252.0) (2026-08-08)
 
 

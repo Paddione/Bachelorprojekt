@@ -442,7 +442,7 @@ assert_var_not_declared() {
   # existieren, sonst hat die Migration nicht nur entfernt, sondern verloren.
   run node -e '
     const d = require("./scripts/llm/loadouts.json");
-    const g = d.loadouts.filter(l => l.slug.startsWith("gemma-"));
+    const g = d.loadouts.filter(l => l.slug.includes("gemma"));
     if (!g.length) process.exit(1);
     console.log(g.map(l => l.slug).join(","));
   '

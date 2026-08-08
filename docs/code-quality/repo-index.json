@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 797,
+      "file_count": 798,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -414,6 +414,7 @@
         "tests/spec/factory-escalation-ladder.bats",
         "tests/spec/factory-merge-hooks.bats",
         "tests/spec/factory-reclaim-lock-respect.bats",
+        "tests/spec/factory-watchdog/stale-type-coverage.bats",
         "tests/spec/feature-product-linking.bats",
         "tests/spec/fix-ci-concurrency.bats",
         "tests/spec/fix-ticket-tracking-T002279.bats",

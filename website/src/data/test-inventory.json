@@ -2418,6 +2418,12 @@
     "kind": "shell"
   },
   {
+    "id": "factory-watchdog/stale-type-coverage",
+    "file": "tests/spec/factory-watchdog/stale-type-coverage.bats",
+    "category": "factory-watchdog",
+    "kind": "shell"
+  },
+  {
     "id": "feature-product-linking",
     "file": "tests/spec/feature-product-linking.bats",
     "category": "feature-product-linking",

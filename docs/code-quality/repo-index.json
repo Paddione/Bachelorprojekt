@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 808,
+      "file_count": 809,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -563,6 +563,7 @@
         "tests/spec/sdlc-cockpit/daemon-port-binding.bats",
         "tests/spec/sdlc-cockpit/daemon-runtime-contract.bats",
         "tests/spec/sdlc-cockpit/daemon-runtime-files.bats",
+        "tests/spec/sdlc-cockpit/daemon-test-no-leak.bats",
         "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
         "tests/spec/sdlc-cockpit/daemon-token-mode.bats",
         "tests/spec/sdlc-cockpit/document-tokens-only.bats",

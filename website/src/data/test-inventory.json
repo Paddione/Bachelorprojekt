@@ -3294,6 +3294,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/daemon-test-no-leak",
+    "file": "tests/spec/sdlc-cockpit/daemon-test-no-leak.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/daemon-token-endpoint-removed",
     "file": "tests/spec/sdlc-cockpit/daemon-token-endpoint-removed.bats",
     "category": "sdlc-cockpit",

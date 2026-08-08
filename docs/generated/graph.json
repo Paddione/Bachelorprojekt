@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T13:37:02.175Z",
+  "generatedAt": "2026-08-08T19:56:15.894Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1913,6 +1913,18 @@
     },
     {
       "from": "admin-actions-cleanup",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-cleanup",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2381,6 +2393,18 @@
     },
     {
       "from": "admin-actions-prune",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "admin-actions-prune",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2837,6 +2861,18 @@
     },
     {
       "from": "sessions-purge",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "sessions-purge",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sessions-purge",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3281,6 +3317,18 @@
     },
     {
       "from": "db-backup",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "db-backup",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3713,6 +3761,18 @@
     },
     {
       "from": "brett",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "brett",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4133,6 +4193,18 @@
     },
     {
       "from": "billing-dunning-detection",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "billing-dunning-detection",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4541,6 +4613,18 @@
     },
     {
       "from": "monthly-billing",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "monthly-billing",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4937,6 +5021,18 @@
     },
     {
       "from": "scheduled-publish",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "scheduled-publish",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5321,6 +5417,18 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brainstorm",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5693,6 +5801,18 @@
     },
     {
       "from": "oauth2-proxy-dev",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-dev",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6053,6 +6173,18 @@
     },
     {
       "from": "oauth2-proxy-session-hub",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-session-hub",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-session-hub",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6401,6 +6533,18 @@
     },
     {
       "from": "error-log-retention",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "error-log-retention",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "error-log-retention",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6737,6 +6881,18 @@
     },
     {
       "from": "knowledge-ingest-prs",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-prs",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7061,6 +7217,18 @@
     },
     {
       "from": "knowledge-ingest-bugs",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-ingest-bugs",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7373,6 +7541,18 @@
     },
     {
       "from": "knowledge-reindex-all",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "knowledge-reindex-all",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7673,6 +7853,18 @@
     },
     {
       "from": "nextcloud",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "nextcloud",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7961,6 +8153,18 @@
     },
     {
       "from": "notify-unread",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "notify-unread",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8237,6 +8441,18 @@
     },
     {
       "from": "oauth2-proxy-brain",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brain",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8501,6 +8717,18 @@
     },
     {
       "from": "oauth2-proxy-brett",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-brett",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8753,6 +8981,18 @@
     },
     {
       "from": "oauth2-proxy-comfy",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-comfy",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8993,6 +9233,18 @@
     },
     {
       "from": "oauth2-proxy-docs",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-docs",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9221,6 +9473,18 @@
     },
     {
       "from": "oauth2-proxy-downloads",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-downloads",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-downloads",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9437,6 +9701,18 @@
     },
     {
       "from": "oauth2-proxy-mailpit",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mailpit",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9641,6 +9917,18 @@
     },
     {
       "from": "oauth2-proxy-mediaviewer",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-mediaviewer",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9833,6 +10121,18 @@
     },
     {
       "from": "oauth2-proxy-rustdesk-web",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-rustdesk-web",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10013,6 +10313,18 @@
     },
     {
       "from": "oauth2-proxy-studio",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-studio",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-studio",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10181,6 +10493,18 @@
     },
     {
       "from": "oauth2-proxy-terminal",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-terminal",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-terminal",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10337,6 +10661,18 @@
     },
     {
       "from": "oauth2-proxy-traefik",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-traefik",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10481,6 +10817,18 @@
     },
     {
       "from": "oauth2-proxy-videovault",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-videovault",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10613,6 +10961,18 @@
     },
     {
       "from": "pocket-id",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "pocket-id",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "pocket-id",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10733,6 +11093,18 @@
     },
     {
       "from": "oauth2-proxy-recovery",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "oauth2-proxy-recovery",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10848,6 +11220,126 @@
     {
       "from": "dev-db-refresh",
       "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "shared-db",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "studio-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "studio-server",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "spreed-signaling",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-recording",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "vaultwarden",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "videovault",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "whiteboard",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "whiteboard",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "ddns-updater",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "sdlc-console",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "sdlc-console",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

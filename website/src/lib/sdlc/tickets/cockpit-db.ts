@@ -438,3 +438,212 @@ export async function setTicketStatus(
     client.release();
   }
 }
+
+// ── Ticket lifecycle actions (T002643, C3) ───────────────────────────────
+// The cockpit action buttons used to shell out to scripts/ticket.sh, which is
+// not available inside the website container (and would have hit the fleet
+// cluster). These DB-backed implementations mirror the SQL semantics of the
+// scripts (stage-plan.sh / release-hold.sh / update-status.sh) so the cockpit
+// behaves identically — without a shell, and without the container needing
+// kubectl + a fleet kubeconfig.
+//
+// The scripts address tickets by external_id (T-Nummer); the cockpit routes by
+// UUID `id` (see setTicketStatus). Both tables use the same row, so the SQL
+// below resolves the id the same way the scripts resolve external_id.
+
+const TICKET_ID_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isValidTicketId(id: string): boolean {
+  return TICKET_ID_UUID.test(id);
+}
+
+async function upsertForceTick(actor: string): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO tickets.factory_control (key, brand, value, set_by, updated_at)
+       VALUES ('force-tick-requested', NULL, now()::text, $1, now())
+       ON CONFLICT (key, brand) DO UPDATE
+         SET value = EXCLUDED.value, set_by = EXCLUDED.set_by, updated_at = now()`,
+      [actor],
+    );
+  } catch { /* best-effort — factory ticks on its own interval */ }
+}
+
+// Mirrors stage-plan.sh (without the plan-file/touched_files derivation, which
+// requires git + the repo checkout — unavailable in the container). Sets
+// status=plan_staged, writes the FACTORY-PLAN-REF comment and the scout/design/
+// plan phase events, and (unless held) requests a factory tick.
+export async function stageTicketPlan(
+  brand: string,
+  ticketId: string,
+  plan: string,
+  branch: string,
+  actor: string,
+  opts: { hold?: boolean; partials?: number } = {},
+): Promise<{ ok: true; ticketId: string; status: string }> {
+  await assertSameBrand(brand, [ticketId]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE tickets.tickets
+          SET status = 'plan_staged',
+              slot_count = $1::integer,
+              updated_at = now()
+        WHERE id = $2 AND brand = $3`,
+      [opts.partials ?? 1, ticketId, brand],
+    );
+    if (opts.hold) {
+      await client.query(
+        `UPDATE tickets.tickets
+            SET readiness = COALESCE(readiness, '{}'::jsonb) || '{"execution_released":false}'::jsonb
+          WHERE id = $1 AND brand = $2`,
+        [ticketId, brand],
+      );
+    }
+    await client.query(
+      `DELETE FROM tickets.ticket_comments c
+         USING tickets.tickets t
+        WHERE t.id = $1 AND t.brand = $2
+          AND c.ticket_id = t.id
+          AND c.body LIKE 'FACTORY-PLAN-REF %'`,
+      [ticketId, brand],
+    );
+    await client.query(
+      `INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
+       SELECT t.id, 'dev-flow-plan', $3, 'internal'
+         FROM tickets.tickets t
+        WHERE t.id = $1 AND t.brand = $2`,
+      [ticketId, brand, `FACTORY-PLAN-REF branch=${branch} plan=${plan}`],
+    );
+    await client.query(
+      `INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver)
+       SELECT t.id, p.phase, 'done', 'auto: stage-plan', 'devflow'
+         FROM tickets.tickets t
+         CROSS JOIN (VALUES ('scout'), ('design'), ('plan')) AS p(phase)
+        WHERE t.id = $1 AND t.brand = $2
+          AND NOT EXISTS (
+            SELECT 1 FROM tickets.factory_phase_events e
+             WHERE e.ticket_id = t.id AND e.phase = p.phase AND e.state = 'done'
+          )`,
+      [ticketId, brand],
+    );
+    await recordAudit(client, {
+      actor,
+      action: 'ticket_stage_plan',
+      target: ticketId,
+      outcome: 'success',
+      brand,
+      detail: { plan, branch, hold: !!opts.hold },
+    });
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+  if (!opts.hold) await upsertForceTick(actor);
+  return { ok: true, ticketId, status: 'plan_staged' };
+}
+
+// Mirrors release-hold.sh: clears the execution hold and requests a factory tick.
+export async function releaseTicketHold(
+  brand: string,
+  ticketId: string,
+  actor: string,
+): Promise<{ ok: true; ticketId: string }> {
+  await assertSameBrand(brand, [ticketId]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE tickets.tickets
+          SET readiness = COALESCE(readiness, '{}'::jsonb) || '{"execution_released":true}'::jsonb,
+              updated_at = now()
+        WHERE id = $1 AND brand = $2`,
+      [ticketId, brand],
+    );
+    await recordAudit(client, {
+      actor,
+      action: 'ticket_release_hold',
+      target: ticketId,
+      outcome: 'success',
+      brand,
+      detail: {},
+    });
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+  await upsertForceTick(actor);
+  return { ok: true, ticketId };
+}
+
+// Mirrors update-status.sh --status done: guards the terminal transition
+// (done → archived only), sets resolution + done_at + clears pipeline_slot.
+export async function closeTicket(
+  brand: string,
+  ticketId: string,
+  resolution: string,
+  actor: string,
+): Promise<{ ok: true; ticketId: string; from: string; to: 'done' }> {
+  await assertSameBrand(brand, [ticketId]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(
+      `SELECT status, resolution FROM tickets.tickets WHERE id = $1 AND brand = $2`,
+      [ticketId, brand],
+    );
+    if (rows.length === 0) throw new NotFoundError(`ticket ${ticketId} not found`);
+    const from = String(rows[0].status);
+    if (from === 'done') {
+      // idempotent — mirrors update-status.sh `done:done` (always allowed)
+      await client.query('COMMIT');
+      return { ok: true, ticketId, from, to: 'done' };
+    }
+    if (from === 'archived') {
+      throw new Error('cannot close an archived ticket');
+    }
+    await client.query(
+      `UPDATE tickets.tickets
+          SET status = 'done',
+              resolution = COALESCE(NULLIF($1, ''), resolution),
+              done_at = now(),
+              pipeline_slot = NULL,
+              updated_at = now()
+        WHERE id = $2 AND brand = $3`,
+      [resolution, ticketId, brand],
+    );
+    await client.query(
+      `INSERT INTO tickets.factory_phase_events (ticket_id, phase, state, detail, driver)
+       SELECT t.id, 'deploy', 'done', 'auto: ticket close', 'devflow'
+         FROM tickets.tickets t
+        WHERE t.id = $1 AND t.brand = $2
+          AND NOT EXISTS (
+            SELECT 1 FROM tickets.factory_phase_events e
+             WHERE e.ticket_id = t.id AND e.phase = 'deploy' AND e.state = 'done'
+          )`,
+      [ticketId, brand],
+    );
+    await recordAudit(client, {
+      actor,
+      action: 'ticket_close',
+      target: ticketId,
+      outcome: 'success',
+      brand,
+      detail: { from, to: 'done', resolution },
+    });
+    await client.query('COMMIT');
+    return { ok: true, ticketId, from, to: 'done' };
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}

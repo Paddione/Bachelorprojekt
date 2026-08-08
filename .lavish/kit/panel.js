@@ -92,6 +92,10 @@ class Panel {
 
   startPolling() {
     if (this.pollTimeout) return;
+    // T002643 Task 7: Push-versorgte Quellen brauchen keinen eigenen Refresh-Timer —
+    // der Stream liefert die Daten automatisch. Ohne diese Prüfung liefen Poll und
+    // Push nebeneinander, und das Ergebnis wäre Push *und* Poll statt Push statt Poll.
+    if (this.handle && this.handle.pushed === true) return;
     this.pollTimeout = setTimeout(() => {
       this.refresh();
       this.startPolling();
@@ -104,6 +108,7 @@ class Panel {
     const source = this.el.dataset.source;
     try {
       const handle = window.data[source]();
+      this.handle = handle;
       this.lastError = null;
       this.isStale = false;
       this.isDisconnected = false;

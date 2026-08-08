@@ -16,9 +16,20 @@
 
   // D5: Einordnung einer Aktion nach Umkehrbarkeit.
   // Unbekannte Aktionen gelten als NICHT umkehrbar — die sichere Richtung.
+  // Klassifikation der in Task 8 (T002643) erreichbaren SDLC-Aktionen.
   function classify(action) {
-    if (['refresh', 'reconcile', 'tick', 'enqueue'].includes(action)) return 'repeatable';
-    if (['ticket_status', 'panel_close'].includes(action)) return 'reversible';
+    // repeatable — keine Rueckfrage (D5)
+    if (['refresh', 'reconcile', 'tick', 'enqueue',
+         'factory_tick', 'factory_enqueue'].includes(action)) return 'repeatable';
+    // reversible — einfache Bestaetigen/Abbrechen-Rueckfrage
+    if (['ticket_status', 'panel_close',
+         'feature_action', 'feature_actions', 'batch', 'reorder', 'reparent',
+         'factory_release_slot',
+         'ticket_stage_plan', 'ticket_release_hold'].includes(action)) return 'reversible';
+    // irreversible — Rueckfrage mit benanntem Ziel (D5)
+    if (['suggest',
+         'flux_reconcile', 'ci_rerun',
+         'ticket_close'].includes(action)) return 'irreversible';
     return 'irreversible';
   }
 

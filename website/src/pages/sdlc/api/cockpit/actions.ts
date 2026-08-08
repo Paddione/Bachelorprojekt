@@ -1,0 +1,276 @@
+import type { APIRoute } from 'astro';
+import { getSession, isAdmin } from '../../../../lib/auth';
+import { pool } from '../../../../lib/website-db';
+import {
+  setFeatureAction, batchMutate, updatePlanningRanks, reparentTicket,
+  stageTicketPlan, releaseTicketHold, closeTicket, isValidTicketId,
+  BrandMismatchError, CycleError, NotFoundError,
+} from '../../../../lib/sdlc/tickets/cockpit-db';
+import { writeControl } from '../../../../lib/sdlc/factory-floor';
+import { createHmac } from 'node:crypto';
+import type { BatchMutation } from '../../../../lib/tickets/cockpit-types.ts';
+
+const GITHUB_REPO = 'Paddione/Bachelorprojekt';
+const GITHUB_API = 'https://api.github.com';
+
+const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
+
+const json = (d: unknown, s = 200) =>
+  new Response(JSON.stringify(d), { status: s, headers: { 'Content-Type': 'application/json' } });
+
+// ---- Audit helper ----
+// Every write MUST leave a record in tickets.cockpit_audit (spec D5).
+// Uses the general pool (no transaction) — best-effort, never throws.
+async function writeAudit(actor: string, action: string, target: string, outcome: 'success' | 'failure', detail?: unknown): Promise<void> {
+  try {
+    await pool.query(
+      `INSERT INTO tickets.cockpit_audit (actor, action, target, outcome, brand, detail)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [actor, action, target, outcome, BRAND(), detail != null ? JSON.stringify(detail) : null],
+    );
+  } catch { /* best-effort */ }
+}
+
+// ---- Action dispatcher ----
+// Maps action names to their implementation. Returns { status, body } so the
+// caller can wrap the response in a uniform JSON envelope and attach the audit
+// line. Throws on unexpected errors — caught by the main handler.
+async function runAction(
+  action: string,
+  target: string | undefined,
+  body: Record<string, unknown>,
+  actor: string,
+): Promise<{ status: number; body: unknown }> {
+  const brand = BRAND();
+
+  switch (action) {
+    // ---- Cockpit ticket/feature endpoints (reversible) ----
+    case 'feature_action': {
+      // The top-level JSON 'action' field is the routing key (feature_action).
+      // The inner action type (next_step/discard/major/comment) comes as
+      // 'featAction' to avoid clashing with the routing key.
+      const { featureId, featAction, value } = body;
+      if (!featureId || !featAction) return { status: 400, body: { error: 'featureId and featAction required' } };
+      return { status: 200, body: await setFeatureAction(brand, String(featureId), String(featAction), value as boolean | string | undefined) };
+    }
+    case 'feature_actions': {
+      const { actions } = body as { actions?: { featureId: string; action: string; value?: boolean | string }[] };
+      if (!Array.isArray(actions) || actions.length === 0) return { status: 400, body: { error: 'actions array required' } };
+      const results: { featureId: string; success: boolean; error?: string }[] = [];
+      for (const entry of actions) {
+        try {
+          await setFeatureAction(brand, entry.featureId, entry.action, entry.value);
+          results.push({ featureId: entry.featureId, success: true });
+        } catch (e) {
+          if (e instanceof BrandMismatchError) {
+            results.push({ featureId: entry.featureId, success: false, error: 'cross-brand' });
+          } else {
+            throw e;
+          }
+        }
+      }
+      return { status: 200, body: { ok: true, results } };
+    }
+    case 'batch': {
+      const { ticketIds, mutation } = body as { ticketIds?: string[]; mutation?: BatchMutation };
+      if (!Array.isArray(ticketIds) || ticketIds.length === 0) return { status: 400, body: { error: 'ticketIds required' } };
+      if (ticketIds.length > 100) return { status: 400, body: { error: 'too many' } };
+      if (!mutation || Object.keys(mutation).length === 0) return { status: 400, body: { error: 'mutation required' } };
+      return { status: 200, body: await batchMutate(brand, ticketIds, mutation) };
+    }
+    case 'reorder': {
+      const { updates } = body as { updates?: { ticketId: string; planningRank: number }[] };
+      if (!Array.isArray(updates) || updates.length === 0) return { status: 400, body: { error: 'updates required' } };
+      if (updates.length > 100) return { status: 400, body: { error: 'too many updates' } };
+      await updatePlanningRanks(brand, updates);
+      return { status: 200, body: { ok: true, updated: updates.length } };
+    }
+    case 'reparent': {
+      const { ticketId, newParentId } = body as { ticketId?: string; newParentId?: string | null };
+      if (!ticketId) return { status: 400, body: { error: 'ticketId required' } };
+      await reparentTicket(brand, String(ticketId), newParentId ?? null);
+      return { status: 200, body: { ok: true, ticketId, newParentId } };
+    }
+    case 'suggest': {
+      // --- suggest is LLM-backed and heavyweight; delegate to its dedicated
+      //     handler by importing and calling the same logic inline. ---
+      const { getPortfolio } = await import('../../../../lib/sdlc/tickets/cockpit-db');
+      const { buildFeatureList, parseSuggestions, SUGGEST_SYSTEM_PROMPT } = await import('../../../../lib/tickets/suggest-prompt');
+      const OpenAI = (await import('openai')).default;
+      const providerId = String(body.provider || 'deepseek');
+      const model = String(body.model || (providerId === 'deepseek' ? 'deepseek-chat' : 'claude-sonnet-4-20250514'));
+      const apiKeyEnv = providerId === 'deepseek' ? 'DEEPSEEK_API_KEY' : 'ANTHROPIC_API_KEY';
+      const baseURL = providerId === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.anthropic.com/v1';
+      const apiKey = process.env[apiKeyEnv] ?? '';
+      if (!apiKey) return { status: 503, body: { error: `provider not configured: ${providerId}` } };
+      const port = await getPortfolio(brand);
+      const featureList = buildFeatureList(port);
+      if (featureList === '') return { status: 200, body: { suggestions: [] } };
+      const client = new OpenAI({ apiKey, baseURL });
+      const resp = await client.chat.completions.create({
+        model,
+        max_tokens: 2000,
+        temperature: 0.3,
+        messages: [
+          { role: 'system', content: SUGGEST_SYSTEM_PROMPT },
+          { role: 'user', content: `Hier sind die Features:\n\n${featureList}` },
+        ],
+      }, { timeout: 10_000 });
+      const text = resp.choices[0]?.message.content ?? '';
+      return { status: 200, body: { suggestions: parseSuggestions(text) } };
+    }
+
+    // ---- Factory control (repeatable / reversible) ----
+    case 'factory_tick': {
+      const requestedAt = new Date().toISOString();
+      await writeControl('force-tick-requested', requestedAt, actor);
+      return { status: 200, body: { ok: true, action: 'tick', requestedAt } };
+    }
+    case 'factory_enqueue': {
+      const ticketId = target || String(body.ticketId || '');
+      if (!ticketId) return { status: 400, body: { error: 'ticketId required for enqueue' } };
+      const requestedAt = new Date().toISOString();
+      await writeControl('enqueue-requested', JSON.stringify({ ticketId, at: requestedAt }), actor);
+      return { status: 200, body: { ok: true, action: 'enqueue', ticketId, requestedAt } };
+    }
+    case 'factory_release_slot': {
+      const slotId = target || String(body.slotId || '');
+      if (!slotId) return { status: 400, body: { error: 'slotId required for release' } };
+      const requestedAt = new Date().toISOString();
+      await writeControl('release-slot-requested', JSON.stringify({ slotId, at: requestedAt }), actor);
+      return { status: 200, body: { ok: true, action: 'release_slot', slotId, requestedAt } };
+    }
+
+    // ---- Deploy / CI (irreversible — external API) ----
+    // C3 (T002643): these no longer shell out to `flux` / `gh-axi` — the tools
+    // are not installed in the website container. flux_reconcile pings the
+    // Flux receiver (HMAC-authenticated webhook, same as render-fleet-artifact
+    // does); ci_rerun uses the GitHub REST API with GITHUB_PAT.
+    case 'flux_reconcile': {
+      // Fleet cluster: reconcile the brand Kustomization via the Flux
+      // webhook receiver (generic, token-authenticated). No shell, no CLI.
+      const ksName = target || 'flux-website-mentolder';
+      if (!/^[a-z0-9-]+$/.test(ksName)) return { status: 400, body: { error: 'invalid kustomization name' } };
+      const webhookUrl = process.env.FLUX_WEBHOOK_URL ?? '';
+      const webhookToken = process.env.FLUX_WEBHOOK_TOKEN ?? '';
+      if (!webhookUrl) return { status: 503, body: { error: 'FLUX_WEBHOOK_URL not configured' } };
+      if (!webhookToken) return { status: 503, body: { error: 'FLUX_WEBHOOK_TOKEN not configured' } };
+      const payload = '{}';
+      const signature = `sha256=${createHmac('sha256', webhookToken).update(payload).digest('hex')}`;
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Signature': signature,
+        },
+        body: payload,
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        return { status: 502, body: { ok: false, action: 'flux_reconcile', ksName, status: res.status, body } };
+      }
+      return { status: 200, body: { ok: true, action: 'flux_reconcile', ksName } };
+    }
+    case 'ci_rerun': {
+      const runId = target || String(body.runId || '');
+      if (!/^\d+$/.test(runId)) return { status: 400, body: { error: 'runId must be a numeric run id' } };
+      const pat = process.env.GITHUB_PAT ?? '';
+      if (!pat) return { status: 503, body: { error: 'GITHUB_PAT not configured' } };
+      // Rerun failed jobs of an Actions workflow run.
+      const res = await fetch(`${GITHUB_API}/repos/${GITHUB_REPO}/actions/runs/${runId}/rerun-failed-jobs`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${pat}`,
+          'Content-Type': 'application/json',
+        },
+        body: '{}',
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        return { status: 502, body: { ok: false, action: 'ci_rerun', runId, status: res.status, body } };
+      }
+      return { status: 200, body: { ok: true, action: 'ci_rerun', runId } };
+    }
+
+    // ---- Ticket lifecycle (DB-backed — C3) ----
+    // The scripts address tickets by external_id; the cockpit routes by UUID
+    // `id`. The DB functions resolve the same row.
+    case 'ticket_stage_plan': {
+      const ticketId = target || String(body.ticketId || '');
+      if (!isValidTicketId(ticketId)) return { status: 400, body: { error: 'ticketId must be a valid ticket UUID' } };
+      const plan = String(body.plan || '');
+      const branch = String(body.branch || '');
+      if (!plan || !branch) return { status: 400, body: { error: 'plan and branch required for stage-plan' } };
+      const hold = body.hold === true;
+      const partials = Number.isInteger(body.partials) && Number(body.partials) > 0 && Number(body.partials) <= 9 ? Number(body.partials) : 1;
+      const result = await stageTicketPlan(brand, ticketId, plan, branch, actor, { hold, partials });
+      return { status: 200, body: { action: 'stage_plan', ...result } };
+    }
+    case 'ticket_release_hold': {
+      const ticketId = target || String(body.ticketId || '');
+      if (!isValidTicketId(ticketId)) return { status: 400, body: { error: 'ticketId must be a valid ticket UUID' } };
+      const result = await releaseTicketHold(brand, ticketId, actor);
+      return { status: 200, body: { action: 'release_hold', ...result } };
+    }
+    case 'ticket_close': {
+      const ticketId = target || String(body.ticketId || '');
+      if (!isValidTicketId(ticketId)) return { status: 400, body: { error: 'ticketId must be a valid ticket UUID' } };
+      const resolution = String(body.resolution || 'fixed');
+      if (!['fixed', 'shipped', 'obsolete'].includes(resolution)) return { status: 400, body: { error: 'invalid resolution' } };
+      const result = await closeTicket(brand, ticketId, resolution, actor);
+      return { status: 200, body: { action: 'close', ...result } };
+    }
+
+    default:
+      return { status: 400, body: { error: `unknown action: ${action}` } };
+  }
+}
+
+// ---- Route handler ----
+export const POST: APIRoute = async ({ request, locals }) => {
+  const session = await getSession(request.headers.get('cookie'));
+  if (!session || !isAdmin(session)) {
+    return new Response(JSON.stringify({ error: session ? 'Forbidden' : 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  let body: { action?: string; target?: string; [key: string]: unknown };
+  try { body = await request.json() as Record<string, unknown>; } catch {
+    return json({ error: 'bad json' }, 400);
+  }
+
+  const { action, target, ...params } = body;
+  if (!action) return json({ error: 'action required' }, 400);
+
+  const actor = session.preferred_username ?? session.email ?? 'admin';
+
+  try {
+    const result = await runAction(action, target, params, actor);
+
+    // Audit: success
+    await writeAudit(actor, action, target ?? action, 'success', {
+      status: result.status,
+      ...(result.body as Record<string, unknown>),
+    });
+
+    return json(result.body, result.status);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+
+    // Audit: failure — must be recorded per spec requirement
+    await writeAudit(actor, action, target ?? action, 'failure', {
+      error: message,
+    });
+
+    // Route known errors to appropriate status codes
+    if (err instanceof BrandMismatchError) return json({ error: 'cross-brand' }, 400);
+    if (err instanceof CycleError) return json({ error: 'cycle detected' }, 400);
+    if (err instanceof NotFoundError) return json({ error: 'not found' }, 404);
+
+    locals?.requestLogger?.error?.({ err }, `[actions] ${action} failed:`);
+    return json({ error: message }, 500);
+  }
+};

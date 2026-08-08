@@ -101,10 +101,18 @@ _commit_bats_with() {
   [ -z "$output" ]
 }
 
-@test "check-freshness-artifacts: schweigt, wenn gar keine .bats-Datei geändert wurde" {
-  echo "irgendwas" > README.md
-  git add README.md
-  git commit -qm "no bats"
+# [T002686] Frueher lautete dieser Test "schweigt, wenn gar keine .bats-Datei
+# geaendert wurde" und legte dazu eine NEUE Datei an. Genau das ist der Fall, in
+# dem der Hook nicht mehr schweigen darf: repo-index.json zaehlt alle getrackten
+# Dateien und wird von jedem Hinzufuegen stale. Die Bedingung ist jetzt pro
+# Artefakt getrennt — dieser Test prueft den unveraenderten Teil (test-inventory
+# bleibt bei einer Nicht-Test-Datei stumm), die beiden folgenden den neuen.
+@test "check-freshness-artifacts: fordert bei reiner Aenderung einer Nicht-Test-Datei nichts" {
+  # docs/code-quality/repo-index.json existiert im Fixture -> Modify, kein Add.
+  # Zugleich ist es selbst eines der Artefakte, liegt also im Push.
+  echo '{"x":1}' > docs/code-quality/repo-index.json
+  git add docs/code-quality/repo-index.json
+  git commit -qm "modify only"
   local head
   head="$(git rev-parse HEAD)"
 
@@ -112,4 +120,38 @@ _commit_bats_with() {
 
   [ "$status" -eq 0 ]
   [ -z "$output" ]
+}
+
+@test "check-freshness-artifacts: fordert repo-index bei NEUER Nicht-Test-Datei" {
+  # Der Fall, der dreimal an einem Tag durch den Hook fiel (T002681, T002684):
+  # eine hinzugefuegte .test.ts ist keine .bats-Datei, macht repo-index.json aber
+  # trotzdem stale.
+  mkdir -p website/src/lib
+  echo "export const x = 1;" > website/src/lib/neu.test.ts
+  git add website/src/lib/neu.test.ts
+  git commit -qm "add non-bats file"
+  local head
+  head="$(git rev-parse HEAD)"
+
+  run bash "$SCRIPT" "$BASE_SHA" "$head"
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"docs/code-quality/repo-index.json"* ]]
+  # test-inventory speist sich nicht aus .test.ts -> darf hier NICHT gefordert
+  # werden. Ohne diese Zeile wuerde der Test auch bei einer pauschalen
+  # "fordere immer beides"-Regel bestehen.
+  [[ "$output" != *"test-inventory.json"* ]]
+}
+
+@test "check-freshness-artifacts: fordert repo-index auch beim LOESCHEN einer Datei" {
+  # tests/spec/alt.bats stammt aus dem Fixture-Setup.
+  git rm -q tests/spec/alt.bats
+  git commit -qm "delete file"
+  local head
+  head="$(git rev-parse HEAD)"
+
+  run bash "$SCRIPT" "$BASE_SHA" "$head"
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"docs/code-quality/repo-index.json"* ]]
 }

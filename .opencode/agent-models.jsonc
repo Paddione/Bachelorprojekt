@@ -250,7 +250,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
-      "steps": 10,
+      "steps": 50,
       // write=deny: subagent überschreibt sonst ganze Dateien statt surgical edit
       // (beobachtet 2026-07-23, T002137: subagents löschten existierende Files).
       // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
@@ -263,7 +263,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
-      "steps": 10,
+      "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
@@ -273,7 +273,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
-      "steps": 10,
+      "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "qwen": {
@@ -283,7 +283,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#A78BFA",
       "temperature": 0.4,
-      "steps": 10,
+      "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     // Primaerer (Tab-waehlbarer) Lokal-Agent auf gptoss-context.
@@ -352,6 +352,7 @@
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F97316",
       "temperature": 0.3,
+      "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     // Tiefer Analyse-Agent: DeepSeek-R1 mit maximaler Reasoning-Tiefe fuer
@@ -368,7 +369,7 @@
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#EF4444",
       "temperature": 0.1,
-      "steps": 50,
+      "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     // Ausweich-Zwilling von deepseek-pro auf der direkten API. opencode kennt
@@ -381,7 +382,7 @@
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#EF4444",
       "temperature": 0.1,
-      "steps": 50,
+      "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     // Schneller Parallel-Dispatcher: DeepSeek-V3 mit maximalem Reasoning-
@@ -396,7 +397,7 @@
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F59E0B",
       "temperature": 0.2,
-      "steps": 30,
+      "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "deepseek-flash-direct": {
@@ -406,7 +407,7 @@
       "prompt": "{file:./prompts/deepseek-helper.md}",
       "color": "#F59E0B",
       "temperature": 0.2,
-      "steps": 30,
+      "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
@@ -416,7 +417,7 @@
       "prompt": "{file:./prompts/orchestrator.md}",
       "color": "#8B5CF6",
       "temperature": 0.2,
-      "steps": 50,
+      "steps": 150,
       // Exakte Namen statt "gemma26-*" (Prinzip aus T002298): ein Wildcard
       // wuerde jeden neu hinzugefuegten Subagenten automatisch mitfreigeben.
       "permission": {
@@ -445,7 +446,7 @@
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F472B6",
       "temperature": 0.2,
-      "steps": 50,
+      "steps": 150,
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     }
   }

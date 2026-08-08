@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T19:56:15.894Z",
+  "generatedAt": "2026-08-08T22:52:48.384Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -1380,12 +1380,6 @@
     {
       "from": "sish",
       "to": "sish",
-      "via": "selector",
-      "kind": "selector"
-    },
-    {
-      "from": "website",
-      "to": "website",
       "via": "selector",
       "kind": "selector"
     },

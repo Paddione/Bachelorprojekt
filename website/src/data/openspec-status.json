@@ -2613,6 +2613,12 @@
       "status": "archived"
     }
   ],
+  "T002706": [
+    {
+      "slug": "flux-artifact-versioning",
+      "status": "plan_staged"
+    }
+  ],
   "T002708": [
     {
       "slug": "2026-08-08-cockpit-daemon-port-reserved",

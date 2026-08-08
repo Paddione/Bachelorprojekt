@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1922 Abhängigkeitskanten · 289 API-Endpoints
+92 Services · 1921 Abhängigkeitskanten · 289 API-Endpoints
 
 ## Service-Map
 
@@ -223,7 +223,6 @@ flowchart LR
   shared_db_dev_lb -->|"selector"| shared_db_dev
   shared_db_dev -->|"selector"| shared_db_dev
   sish -->|"selector"| sish
-  website -->|"selector"| website
   docs -->|"selector"| docs
   downloads -->|"selector"| downloads
   einvoice_sidecar -->|"selector"| einvoice_sidecar

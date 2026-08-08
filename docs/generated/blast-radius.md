@@ -1,6 +1,6 @@
 # Blast-Radius-Report
-> Generated: 2026-08-08T19:56:16.036Z
-> Nodes: 92 | Edges: 1922 | Isolated: 4
+> Generated: 2026-08-08T22:52:48.522Z
+> Nodes: 92 | Edges: 1921 | Isolated: 4
 
 ## Ranking (transitive Abhängige)
 
@@ -59,7 +59,7 @@
 | 51 | studio-server | 41 | 54 | 41 |
 | 52 | ddns-updater | 41 | 54 | 41 |
 | 53 | dev-db-refresh | 41 | 54 | 41 |
-| 54 | website | 25 | 54 | 25 |
+| 54 | website | 24 | 54 | 24 |
 | 55 | traefik | 6 | 54 | 6 |
 | 56 | systemtest-cleanup | 4 | 54 | 4 |
 | 57 | systemtest-purge-all | 4 | 54 | 4 |
@@ -356,9 +356,9 @@
 **Upstream (In-Degree):** 41
 
 ### website
-**Direkte Abhängige:** 25 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, claude-code-mcp-monolith, db-backup, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, notify-unread, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-staging, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, tests-results-retention, traefik, website
+**Direkte Abhängige:** 24 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, claude-code-mcp-monolith, db-backup, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, notify-unread, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-staging, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, tests-results-retention, traefik
 **Transitive Abhängige:** 54 — admin-actions-cleanup, admin-actions-prune, billing-dunning-detection, brett, claude-code-mcp-monolith, db-backup, ddns-updater, dev-db-refresh, error-log-retention, knowledge-ingest-bugs, knowledge-ingest-markdown, knowledge-ingest-prs, knowledge-reindex-all, monthly-billing, nextcloud, notify-unread, oauth2-proxy-brain, oauth2-proxy-brainstorm, oauth2-proxy-brett, oauth2-proxy-comfy, oauth2-proxy-dev, oauth2-proxy-docs, oauth2-proxy-downloads, oauth2-proxy-mailpit, oauth2-proxy-mediaviewer, oauth2-proxy-recovery, oauth2-proxy-rustdesk-web, oauth2-proxy-session-hub, oauth2-proxy-studio, oauth2-proxy-terminal, oauth2-proxy-traefik, oauth2-proxy-videovault, pocket-id, pvc-backup, scheduled-publish, sdlc-console, sessions-purge, shared-db, shared-db-dev, shared-db-dev-lb, shared-db-staging, spreed-signaling, studio-server, systemtest-cleanup, systemtest-outbox, systemtest-purge-all, talk-recording, talk-transcriber, tests-results-retention, traefik, vaultwarden, videovault, website, whiteboard
-**Upstream (In-Degree):** 25
+**Upstream (In-Degree):** 24
 
 ### traefik
 **Direkte Abhängige:** 6 — nextcloud, oauth2-proxy-dev, oauth2-proxy-traefik, pocket-id, vaultwarden, website

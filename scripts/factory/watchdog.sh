@@ -15,10 +15,40 @@
 set -euo pipefail
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/lib.sh"
+
+# [T002674] Ausschlussliste statt Allowlist — dieselbe Lektion, die queue.sh
+# unter T002329/T002333/T002407 bereits gelernt hat und dort ausformuliert
+# kommentiert: eine positive Typenliste altert in die UNSICHERE Richtung, weil
+# jeder neue Typ per Default durchfaellt. Der Watchdog wurde damals nicht
+# nachgezogen und filterte weiter auf type IN ('feature','feat','task','chore').
+# Gemessen am 2026-08-04: 'feature' und 'task' haben null Zeilen (bei der
+# Typ-Konsolidierung abgeloest), waehrend 'fix' mit 670 Zeilen der
+# zweithaeufigste Typ ist — und komplett unsichtbar war. Folge: drei haengende
+# fix-Tickets belegten alle drei Slots 2h54m lang ohne ein einziges
+# factory_phase_events; der Watchdog haette nach 30 Minuten zurueckgesetzt.
+# Ausgeschlossen bleiben nur die Typen, die nie selbst einen Slot belegen:
+# 'project' (Epic-Container) und 'incident' (needs_human) — identisch zu queue.sh.
+STALE_EXCLUDED_TYPES="'project','incident'"
+STALE_MIN="${FACTORY_STALE_MIN:-30}"
+
+_stale_query() {
+  printf "SELECT external_id, type FROM tickets.tickets WHERE type NOT IN (%s) AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" \
+    "$STALE_EXCLUDED_TYPES" "$STALE_MIN"
+}
+
+# Diagnosemodus: gibt die Stale-Query aus, ohne Cluster oder DB anzufassen.
+# Steht bewusst VOR factory_resolve — im Stoerfall ist der Cluster oft genau das,
+# was nicht erreichbar ist, und dann muss die Frage "welche Tickets sieht der
+# Watchdog ueberhaupt?" trotzdem beantwortbar bleiben.
+# Guard: tests/spec/factory-watchdog/stale-type-coverage.bats
+if [[ "${1:-}" == "--print-stale-query" ]]; then
+  _stale_query
+  exit 0
+fi
+
 BRAND="${BRAND:-}"
 factory_resolve
 [[ -n "${FACTORY_DRY_RESOLVE:-}" ]] && { echo "resolved: ctx=${FACTORY_CTX} ns=${FACTORY_NS}"; exit 0; }
-STALE_MIN="${FACTORY_STALE_MIN:-30}"
 # After this many consecutive stale rounds WITHOUT real phase progress a ticket is
 # handed to `ticket.sh unfactory` instead of being reset into the queue again
 # (T002361). At the 30-minute default that is ~90 minutes before a human is asked.
@@ -29,7 +59,7 @@ MAX_ATTEMPTS="${FACTORY_MAX_ATTEMPTS:-3}"
 # the same level more often before escalating.
 MAX_INFRA_ATTEMPTS="${FACTORY_INFRA_MAX_ATTEMPTS:-3}"
 
-mapfile -t stale < <(printf "SELECT external_id, type FROM tickets.tickets WHERE type IN ('feature','feat','task','chore') AND status='in_progress' AND updated_at < now() - make_interval(mins => %s);" "$STALE_MIN" | factory_psql)
+mapfile -t stale < <(_stale_query | factory_psql)
 
 # Zombie-Worktree-Cleanup: a hung pipeline leaves .worktrees/sf-* behind. Remove the
 # worktree whose branch matches this ticket (idempotent; never fails the loop).
@@ -172,10 +202,16 @@ SQL
     fi
   fi
   attempt_note=" [${failure_class:-MODEL} ${attempt}/${max_allowed} | tier=${tier_name}]"
-  if [[ -n "$plan_ref" && "$ticket_type" == "feature" ]]; then
+  # [T002674] Zweite Stelle mit veralteten Typnamen: 'feature' und 'task' haben
+  # null Zeilen, also fiel JEDES Ticket mit Plan in den triage-Zweig und wurde
+  # zum vollen Re-Plan gezwungen — genau das, was T001850 verhindern wollte.
+  # 'feat' geht nach backlog (dort dispatcht queue.sh die Feature-Lane),
+  # alle uebrigen Arbeits-Typen nach plan_staged (die "staged tickets of any
+  # workable type"-Lane, ohne lastenheft-Gate).
+  if [[ -n "$plan_ref" && ( "$ticket_type" == "feature" || "$ticket_type" == "feat" ) ]]; then
     reset_status="backlog"
     reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write, class=${failure_class:-MODEL}). Plan already staged (${plan_ref}) — resuming via backlog instead of restarting from Scout.${attempt_note}"
-  elif [[ -n "$plan_ref" && "$ticket_type" == "task" ]]; then
+  elif [[ -n "$plan_ref" ]]; then
     reset_status="plan_staged"
     reset_msg="Watchdog: pipeline stale > ${STALE_MIN}min (no phase progress write, class=${failure_class:-MODEL}). Plan already staged (${plan_ref}) — resuming via plan_staged instead of restarting from Scout.${attempt_note}"
   else

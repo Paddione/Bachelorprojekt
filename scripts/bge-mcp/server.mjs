@@ -238,20 +238,16 @@ const server = createServer(async (req, res) => {
     return send(401, { error: 'unauthorized' }, { 'www-authenticate': 'Bearer' });
   }
 
-  if (req.method === 'GET') {
-    // SSE-Kanal fuer Clients, die ihn erwarten. Der Shim sendet von sich aus
-    // nichts; er haelt die Verbindung nur offen.
-    res.writeHead(200, {
-      'content-type': 'text/event-stream',
-      'cache-control': 'no-cache',
-      connection: 'keep-alive',
-      ...CORS_HEADERS,
-    });
-    const beat = setInterval(() => res.write(': keep-alive\n\n'), 20_000);
-    req.on('close', () => clearInterval(beat));
-    return undefined;
-  }
-
+  // GET wird bewusst abgelehnt und NICHT zu einem SSE-Kanal aufgewertet [T002703].
+  // Bis 2026-08-08 oeffnete GET hier einen text/event-stream, in den der Shim nie
+  // schrieb — jede Antwort kommt im POST-Body zurueck. Ein Client, der diesem Kanal
+  // folgt, wartet also auf Daten, die nie kommen, statt schnell zu scheitern. Die
+  // uebrigen HTTP-MCP-Server des Repos (mcp-postgres, factory-mcp) antworten auf GET
+  // mit 405; dieser Shim tut es jetzt auch.
+  //
+  // Kein Kausalzusammenhang mit dem Ausfall, der zu T002703 fuehrte: dass agy
+  // bge-mcp nicht sah, lag am unexpandierten ${BGE_MCP_TOKEN} in der agy-Config
+  // (T002704) und blieb nach dieser Aenderung unveraendert bestehen.
   if (req.method !== 'POST') return send(405, { error: 'method not allowed' });
 
   let parsed;

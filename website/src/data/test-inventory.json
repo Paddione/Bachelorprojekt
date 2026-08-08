@@ -2820,6 +2820,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/bge-http-only-get",
+    "file": "tests/spec/mcp-gateway/bge-http-only-get.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/client-env-check",
     "file": "tests/spec/mcp-gateway/client-env-check.bats",
     "category": "mcp-gateway",

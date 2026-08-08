@@ -2421,6 +2421,12 @@
       "status": "archived"
     }
   ],
+  "T002605": [
+    {
+      "slug": "fix-knowledge-ingest-zero-items-T002605",
+      "status": "plan_staged"
+    }
+  ],
   "T002606": [
     {
       "slug": "unsloth-eval-harness",
@@ -2463,6 +2469,18 @@
       "status": "archived"
     }
   ],
+  "T002620": [
+    {
+      "slug": "fix-watchdog-sf26-vakuos-T002620",
+      "status": "plan_staged"
+    }
+  ],
+  "T002623": [
+    {
+      "slug": "adr006-sdlc-topologie",
+      "status": "plan_staged"
+    }
+  ],
   "T002624": [
     {
       "slug": "sdlc-build-target-split",
@@ -2499,6 +2517,18 @@
       "status": "plan_staged"
     }
   ],
+  "T002643": [
+    {
+      "slug": "cockpit-realtime-push",
+      "status": "plan_staged"
+    }
+  ],
+  "T002645": [
+    {
+      "slug": "qwen3-coder-loadout",
+      "status": "plan_staged"
+    }
+  ],
   "T002648": [
     {
       "slug": "health-goals-silent-fallbacks",
@@ -2509,6 +2539,18 @@
     {
       "slug": "2026-08-04-agent-capability-drift-guards",
       "status": "archived"
+    }
+  ],
+  "T002657": [
+    {
+      "slug": "coaching-daten-lokal-only",
+      "status": "plan_staged"
+    }
+  ],
+  "T002658": [
+    {
+      "slug": "context-retrieval-layer",
+      "status": "plan_staged"
     }
   ],
   "T002677": [

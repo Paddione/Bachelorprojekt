@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "slug": "fix-watchdog-sf26-vakuos-T002620",
+    "ticket_id": "T002620",
+    "generated_from": "main@5621b86be",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "tests/spec/software-factory/scheduling.bats",
+      "language": "bash",
+      "loc": 281,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/software-factory/scheduling.bats:18:setup()    { _sf_setup; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/scheduling.bats",
+      "signature": "18:setup()    { _sf_setup; }(...)",
+      "type_text": "18:setup()    { _sf_setup; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/scheduling.bats:19:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/scheduling.bats",
+      "signature": "19:teardown() { _sf_teardown; }(...)",
+      "type_text": "19:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

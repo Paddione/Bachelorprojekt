@@ -3090,6 +3090,12 @@
     "kind": "shell"
   },
   {
+    "id": "planning-office/epic-lastenheft",
+    "file": "tests/spec/planning-office/epic-lastenheft.bats",
+    "category": "planning-office",
+    "kind": "shell"
+  },
+  {
     "id": "pocket-id-client-seed-auth-header",
     "file": "tests/spec/pocket-id-client-seed-auth-header.bats",
     "category": "pocket-id-client-seed-auth-header",

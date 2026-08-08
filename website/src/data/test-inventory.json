@@ -2508,6 +2508,18 @@
     "kind": "shell"
   },
   {
+    "id": "flux-artifact-versioning/flux-artifact-versioning",
+    "file": "tests/spec/flux-artifact-versioning/flux-artifact-versioning.bats",
+    "category": "flux-artifact-versioning",
+    "kind": "shell"
+  },
+  {
+    "id": "flux-render-security/immutable-image-refs",
+    "file": "tests/spec/flux-render-security/immutable-image-refs.bats",
+    "category": "flux-render-security",
+    "kind": "shell"
+  },
+  {
     "id": "g-cq02-any-types",
     "file": "tests/spec/g-cq02-any-types.bats",
     "category": "g-cq02-any-types",

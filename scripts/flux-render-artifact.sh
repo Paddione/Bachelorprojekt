@@ -44,8 +44,9 @@ OUT_DIR="$(cd "${OUT_DIR}" && pwd)"
 # artifact.yml) setzt WEBSITE_IMAGE_TAG aus dem Build-SHA, der Break-glass-Pfad und
 # der Dev-Modus brauchen einen sicheren Fallback.
 : "${WEBSITE_IMAGE_TAG:=latest}"
-: "${BRETT_IMAGE_TAG:=latest}"
-export WEBSITE_IMAGE_TAG BRETT_IMAGE_TAG
+: "${WEBSITE_IMAGE_DIGEST:=}"
+: "${BRETT_IMAGE_DIGEST:=}"
+export WEBSITE_IMAGE_TAG WEBSITE_IMAGE_DIGEST BRETT_IMAGE_DIGEST
 
 # T002174: environments/schema.yaml ist die autoritative Spezifikation und definiert für
 # einzelne optionale Variablen ein Verhalten im leeren Fall. Der Taskfile-Render-Pfad

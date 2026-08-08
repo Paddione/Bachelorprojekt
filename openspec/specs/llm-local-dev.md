@@ -247,7 +247,11 @@ The system SHALL list `openclaw/.env` in `.gitignore` so that local credentials 
 ### Requirement: Brainstorm Tunnel Runs on Dev Node Only
 <!-- bats: brainstorm-dev-host.bats -->
 
-The system SHALL route the brainstorm tunnel exclusively through the dev-stack sish broker (`*.dev.mentolder.de`) and SHALL NOT ship a dedicated brainstorm-sish deployment in the prod-mentolder or prod-fleet overlays.
+The system SHALL route the brainstorm tunnel exclusively through the dev-stack sish broker
+(`*.dev.mentolder.de`) and SHALL NOT ship a dedicated brainstorm-sish deployment in the
+prod-mentolder or prod-fleet overlays. The guard enforcing this requirement SHALL be registered
+in the offline per-PR gate (`task test:unit`) and SHALL NOT be listed in
+`tests/unit/.coverage-allowlist`.
 
 #### Scenario: Kein dediziertes brainstorm-sish-Manifest in prod-mentolder *(BATS)*
 - **GIVEN** das prod-mentolder Overlay-Verzeichnis ist ausgecheckt
@@ -273,15 +277,14 @@ The system SHALL route the brainstorm tunnel exclusively through the dev-stack s
 - **GIVEN** `Taskfile.brainstorm.yml` existiert
 - **WHEN** die Datei nach `brainstorm.${PROD_DOMAIN}` oder `brainstorm.mentolder.de` durchsucht wird
 - **THEN** kein Treffer für Prod-Domain-Referenzen
-- **AND** `${DEV_DOMAIN}` ist in der Datei vorhanden
 
-#### Scenario: Brainstorm-Taskfile nutzt SSH-Port 2222 des dev-sish, nicht den entfernten NodePort 32223 *(BATS)*
-- **GIVEN** `Taskfile.brainstorm.yml` existiert
-- **WHEN** die Datei nach `32223` und nach `2222` durchsucht wird
-- **THEN** `32223` ist nicht vorhanden (entfernter NodePort des abgeschafften Prod-Brokers)
-- **AND** `2222` ist vorhanden (SSH-Ingress-Port des dev-sish)
-
----
+#### Scenario: Der Guard läuft im Offline-Gate und ist nicht stillgelegt *(BATS)*
+- **GIVEN** `tests/unit/.coverage-allowlist` ist die dokumentierte Liste der aus `task test:unit`
+  ausgeschlossenen Testdateien, und `tests/unit/brainstorm-dev-host.bats` prüft ausschließlich
+  Repo-Dateien (kein Cluster, keine DB, kein SSH)
+- **WHEN** die Ausschlussliste nach dem Eintrag `brainstorm-dev-host` durchsucht wird
+- **THEN** kein Treffer — der Guard wird von `task test:unit` ausgeführt und meldet eine
+  Abweichung des sish-Manifests vor dem Merge statt Monate danach
 
 ### Requirement: Dev MCP Public Route is Wired Correctly
 <!-- bats: dev-mcp-route.bats -->
@@ -396,3 +399,5 @@ The system SHALL keep `brainstorm.mentolder.de` reachable via the dev-stack sish
 <!-- merged from change delta llm-local-dev.md (6a596093557f) -->
 
 <!-- merged from change delta llm-local-dev.md (82b9a43d90f4) -->
+
+<!-- merged from change delta llm-local-dev.md (d296000fd8b1) -->

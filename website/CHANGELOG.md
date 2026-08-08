@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.9...website-v1.254.10) (2026-08-08)
+
+
+### Tests
+
+* **website:** add E2E tests for systemtest purge endpoint preservation [T002728] ([#3862](https://github.com/Paddione/Bachelorprojekt/issues/3862)) ([b60563c](https://github.com/Paddione/Bachelorprojekt/commit/b60563cba13593e4bb9a5ff430e42afde51f42a4))
+
 ## [1.254.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.8...website-v1.254.9) (2026-08-08)
 
 

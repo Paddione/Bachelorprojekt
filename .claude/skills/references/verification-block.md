@@ -29,6 +29,23 @@ seine Datei-Universe aus `git ls-files` — untracked Dateien werden nicht erfas
 führt zu einem zweiten Durchlauf: erst `git add` der neuen Datei, dann `task
 freshness:regenerate` erneut, dann `freshness:check`. Planbar zwei Runden einplanen.
 
+Bei Änderungen unter `website/` zusätzlich: **`cd website && npx astro check`** [T002694].
+
+> **`tsc --noEmit` ist dafür kein Ersatz.** Der CI-Job heißt `Vitest (website)`, führt aber
+> `vitest + astro check + Knip` aus. `astro check` ist strenger als `tsc` und prüft zusätzlich
+> `.astro`-Dateien. Am 2026-08-08 fiel PR #3823 mit `ts(2322)` in `astro check`, während `tsc`
+> und die gezielt ausgeführte Testdatei lokal grün waren — der Jobname führte die Diagnose in
+> die Vitest-Ergebnisse, die grün waren.
+>
+> Der Job wird **nicht** umbenannt: `Vitest (website)` ist ein Required Check der
+> Branch-Protection (siehe `docs/superpowers/references/gotchas-footguns.md`). Ein neuer Name
+> erschiene als neuer Check, während die Protection weiter auf den alten wartet — das blockiert
+> jeden PR. Eine Umbenennung wäre nur zusammen mit einer Änderung der Branch-Protection möglich
+> und ist diese Kopplung nicht wert.
+>
+> Besonders relevant bei Änderungen an **exportierten Typen**: Die Menge der betroffenen Dateien
+> ist dann per Konstruktion unbekannt, eine gezielt ausgewählte Testdatei greift zu kurz.
+
 Bei Manifest-Änderungen zusätzlich: `./tests/runner.sh local <TEST-ID>` für die relevanten Tests.
 
 Bei Änderungen an `tests/spec/` zusätzlich: `task test:spec:changed` — CI fährt eine separate spec-Suite, die `test:changed` nicht abdeckt. Ohne diesen Schritt werden spec-Guard-Verletzungen erst nach dem Push sichtbar (T002291).

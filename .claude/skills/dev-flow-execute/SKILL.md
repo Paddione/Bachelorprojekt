@@ -89,6 +89,27 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
     Plan-Archivierung laufen im Orchestrator. **Der Worktree wird NICHT von dir entfernt** (T002352-M1),
     das ist Orchestrator-Aufgabe (Schritt 7.5). Notification abwarten, dann bei Schritt 5.5 weiter — nicht Schritt 8.
 
+### Wenn keine Delegation möglich ist [T002698]
+
+Steht kein Subagent zur Verfügung — Session-Policy untersagt Agent-Aufrufe, Harness ohne
+Agent-Tool, Offline-Betrieb —, dann **implementiert der Orchestrator in-context** und führt die
+Schritte 3 bis 7.5 selbst aus. Das ist kein Regelbruch: `superpowers:using-superpowers` stellt
+User-Anweisungen ausdrücklich über Skills.
+
+Zwei Dinge ändern sich dadurch:
+
+- **Die Ein-Ebenen-Regel entfällt gegenstandslos** — es gibt keine zweite Ebene, auf der
+  verschachtelt delegiert werden könnte. `superpowers:executing-plans` wird wie sonst
+  in-context aufgerufen.
+- **Die CI-Fix-Schleife (5.5) kann nicht per `SendMessage` zurückgegeben werden.** Rote Checks
+  und Rebase-Konflikte (`devflow-ci-watch.sh` Exit 3/4) löst der Orchestrator selbst. Das
+  Verbot aus [T001969] bleibt: keine Hintergrund-Monitore, auf deren Output in einer Schleife
+  gewartet wird — synchron mit Timeout ausführen.
+
+Der Vorteil der Delegation (frischer Kontext per Konstruktion) fällt weg; entsprechend
+sorgfältiger ist beim Verifizieren vorzugehen, weil derselbe Kontext Implementierung *und*
+Prüfung trägt.
+
 ## Schritt 2.5 — Lokaler Self-Correcting-Loop (optional)
 
 `bash scripts/devflow-build-loop.sh "$TICKET_ID"` — läuft **vor** der Verifikation und lokal

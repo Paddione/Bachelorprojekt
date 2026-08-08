@@ -1240,6 +1240,16 @@ tasks:
       # --- Phase 1: diff-check each file ---
       - |
         ERRORS=0
+        # ACHTUNG: FILES ist ein Shell-String, der unten per Wortsplitting
+        # durchlaufen wird — KEINE Kommentare hineinschreiben. Jedes Wort gilt
+        # als Pfad; ein Kommentar erzeugt Phantom-Eintraege wie "an" oder "PR"
+        # und der Guard meldet 40 fehlende Artefakte (T002686, beim Bau dieses
+        # Fixes selbst hineingelaufen). Erklaerungen gehoeren hierher, ueber die
+        # Zuweisung. agents-map.md steht bewusst in der Liste: es stammt aus
+        # demselben Emitter wie die drei Karten darueber, fehlte aber bis
+        # T002686 — Staleness fiel dadurch erst in agent-roster.bats (P4.5) auf,
+        # also in einem ANDEREN CI-Job (beobachtet an PR #3813).
+        # Guard: tests/spec/ci-cd/generated-artifacts-registry.bats
         FILES="
           website/src/data/test-inventory.json
           website/src/data/route-manifest.json
@@ -1255,6 +1265,7 @@ tasks:
           docs/agent-guide/maps/goals-map.md
           docs/agent-guide/maps/tools-map.md
           docs/agent-guide/maps/danger-map.md
+          docs/agent-guide/maps/agents-map.md
           website/src/lib/agent-guide.generated.json
           website/src/lib/platform-descriptions.generated.json
         "

@@ -30,24 +30,42 @@ if [[ -z "$BASE" || -z "$HEAD_SHA" ]]; then
   exit 2
 fi
 
-# Artefakte, die bei einer .bats-Änderung mitgepflegt werden müssen. Beide
-# werden EINZELN geprüft — genau das war der Fehler in der Vorgängerfassung.
-ARTIFACTS=(
-  "docs/code-quality/repo-index.json"
-  "website/src/data/test-inventory.json"
-)
+# [T002686] Der Ausloeser war eine gemeinsame `.bats`-Bedingung fuer beide
+# Artefakte. Das war fuer repo-index.json zu eng: es zaehlt ALLE getrackten
+# Dateien (scan.mjs -> git ls-files), wird also von jeder hinzugefuegten oder
+# entfernten Datei stale — unabhaengig vom Typ. Dreimal an einem Tag lief CI
+# genau darauf: T002681 und T002684 (je eine .test.ts, der Hook schwieg) sowie
+# T002674 (.bats, der Hook warnte). Jedes Artefakt bekommt deshalb seine eigene
+# Bedingung.
+#
+# test-inventory.json speist sich aus *.bats und *.sh unter tests/ sowie
+# tests/e2e/specs/*.spec.ts (build-test-inventory.sh). Hier zaehlt auch eine
+# reine Aenderung, weil @test-Namen die Inventar-IDs bilden.
 
 changed="$(git diff --name-only "${BASE}..${HEAD_SHA}" 2>/dev/null)"
+# Nur Hinzufuegen/Loeschen aendert die Dateimenge, die repo-index.json zaehlt.
+added_deleted="$(git diff --name-only --diff-filter=AD "${BASE}..${HEAD_SHA}" 2>/dev/null)"
 
-# Ohne .bats-Änderung gibt es nichts zu melden.
-printf '%s\n' "$changed" | grep -q '\.bats$' || exit 0
+_needs_repo_index() {
+  [[ -n "$added_deleted" ]]
+}
+
+_needs_test_inventory() {
+  printf '%s\n' "$changed" | grep -qE '\.bats$|^tests/.*\.sh$|^tests/e2e/specs/.*\.spec\.ts$'
+}
 
 rc=0
-for artifact in "${ARTIFACTS[@]}"; do
+_require() {
+  local artifact="$1"
   if ! printf '%s\n' "$changed" | grep -qxF "$artifact"; then
     printf '%s\n' "$artifact"
     rc=1
   fi
-done
+}
+
+# Beide werden EINZELN geprueft — ein gemeinsamer ODER-grep war der Fehler der
+# Vorgaengerfassung (siehe Vorgeschichte oben).
+_needs_repo_index     && _require "docs/code-quality/repo-index.json"
+_needs_test_inventory && _require "website/src/data/test-inventory.json"
 
 exit "$rc"

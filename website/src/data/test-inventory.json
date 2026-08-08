@@ -2184,6 +2184,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/generated-artifacts-registry",
+    "file": "tests/spec/ci-cd/generated-artifacts-registry.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/mishap-t002425",
     "file": "tests/spec/ci-cd/mishap-t002425.bats",
     "category": "ci-cd",

@@ -46,11 +46,16 @@ _freshness_check_files() {
     || { echo "MISSING website/src/data/openspec-status.json from pre-commit _FRESHNESS_FILES"; return 1; }
 }
 
-@test "T001388: pre-commit _FRESHNESS_FILES includes loc-budget.json (RED against main)" {
-  [ -f "$HOOK" ] || { echo "MISSING hook: $HOOK"; return 1; }
-  _pre_commit_files | grep -qxF 'docs/code-quality/loc-budget.json' \
-    || { echo "MISSING docs/code-quality/loc-budget.json from pre-commit _FRESHNESS_FILES"; return 1; }
-}
+# [T002686] Der Test "pre-commit _FRESHNESS_FILES includes loc-budget.json"
+# stand hier und ist entfernt: PR #2701 ("remove LOC-budget gate") hat Generator
+# UND Datei abgeschafft — belegt per
+# `git log --diff-filter=D -- docs/code-quality/loc-budget.json`. Der Test blieb
+# zurueck und forderte seither einen Eintrag fuer ein Feature, das es nicht mehr
+# gibt; derselbe Eintrag ueberlebte dadurch auch in .gitattributes und in der
+# Auto-Stage-Liste und taeuschte dort Abdeckung vor. Ein Test, der einen toten
+# Pfad einfordert, macht das Aufraeumen unmoeglich statt es zu sichern.
+# Gegenprobe uebernimmt jetzt tests/spec/ci-cd/generated-artifacts-registry.bats:
+# "pre-commit: kein Eintrag der Auto-Stage-Liste zeigt auf einen toten Pfad".
 
 # ── (2) Drift-Guard — pre-commit list ⊇ freshness:check list ──────────────
 @test "T001388: pre-commit auto-stage list is a superset of freshness:check FILES" {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.251.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.6...website-v1.251.7) (2026-08-08)
+
+
+### Bug Fixes
+
+* **website:** Error-Log-Store auf die richtige Datenbank zeigen [T002681] ([#3811](https://github.com/Paddione/Bachelorprojekt/issues/3811)) ([966073b](https://github.com/Paddione/Bachelorprojekt/commit/966073b573fbe99037afcd4e66ff7bfbad8df963))
+
 ## [1.251.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.5...website-v1.251.6) (2026-08-08)
 
 

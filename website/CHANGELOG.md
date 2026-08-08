@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.3...website-v1.254.4) (2026-08-08)
+
+
+### Bug Fixes
+
+* **ops:** bge-mcp lehnt GET ab statt einen stummen SSE-Kanal zu oeffnen [T002703] ([#3840](https://github.com/Paddione/Bachelorprojekt/issues/3840)) ([69bd0c8](https://github.com/Paddione/Bachelorprojekt/commit/69bd0c8c0623fc0e687d4d4f3e7b54e117d23e39))
+
 ## [1.254.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.2...website-v1.254.3) (2026-08-08)
 
 

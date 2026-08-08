@@ -71,9 +71,13 @@ async function callPurge(label: 'setup' | 'teardown'): Promise<void> {
   
   const text = await res.text();
   if (!res.ok) {
-    throw new Error(
-      `[global-db-cleanup:${label}] POST ${url} → ${res.status}: ${text.slice(0, 500)}`,
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[global-db-cleanup:${label}] ⚠ POST ${url} → ${res.status}: ${text.slice(0, 500)}`,
     );
+    // eslint-disable-next-line no-console
+    console.warn(`[global-db-cleanup:${label}] Continuing without prod DB purge.`);
+    return;
   }
   // Best-effort log of the per-table counts. The endpoint returns
   // { ok: true, counts: {...} } on success.

@@ -7,6 +7,7 @@ import {
   hasFallbackConfigured,
   AuthUnavailableError,
 } from './provider';
+import { logger } from '../logger';
 
 vi.mock('../logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
@@ -256,5 +257,55 @@ describe('provider cache', () => {
     reachable = true;
     clearProviderCache();
     expect((await resolveAuthProvider())?.id).toBe('local');
+  });
+});
+
+// T002682: resolveEndpointsSync() ist grosszuegiger als resolveEndpoints() —
+// es faellt ohne Probe auf 'local' zurueck. Dadurch baut /api/auth/login eine
+// funktionierende Authorize-URL, obwohl kein Provider erreichbar ist; der
+// Nutzer scheitert erst im Callback, nach der Credential-Eingabe. Genau das
+// verdeckte T002680.
+//
+// Gewaehlt ist "tolerant + laut": der Login bleibt tolerant (ein kurzer
+// Pocket-ID-Aussetzer sperrt niemanden aus), aber der Rueckfall wird
+// protokolliert. Differenziert nach Grund, damit der Kaltstart kein
+// Fehler-Rauschen erzeugt.
+describe('resolveEndpointsSync — Sichtbarkeit des ungeprobten Rueckfalls', () => {
+  it('loggt auf Fehler-Level, wenn eine FRISCHE Probe fehlschlug (probe-failed)', async () => {
+    setEnv({
+      POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
+      POCKET_ID_URL: 'http://pocket-id:1411',
+    });
+    global.fetch = vi.fn(async () => {
+      throw new Error('down');
+    }) as unknown as typeof fetch;
+
+    // Probe laufen lassen -> cachedProvider === null, TTL noch gueltig.
+    expect(await resolveAuthProvider()).toBeNull();
+    vi.mocked(logger.error).mockClear();
+
+    const ep = resolveEndpointsSync();
+
+    // Tolerant: Endpoints werden trotzdem geliefert, der Login bricht nicht ab.
+    expect(ep.auth).toBe('http://auth.localhost/authorize');
+    // Laut: der ignorierte Ausfall ist sichtbar.
+    expect(logger.error).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(logger.error).mock.calls[0]).toEqual([
+      expect.objectContaining({ reason: 'probe-failed' }),
+      expect.stringContaining('[auth]'),
+    ]);
+  });
+
+  it('schweigt beim Kaltstart, solange nie geprobt wurde (never-probed)', () => {
+    setEnv({
+      POCKET_ID_FRONTEND_URL: 'http://auth.localhost',
+      POCKET_ID_URL: 'http://pocket-id:1411',
+    });
+    // clearProviderCache() lief in beforeEach -> cachedProvider === undefined.
+    const ep = resolveEndpointsSync();
+
+    expect(ep.auth).toBe('http://auth.localhost/authorize');
+    // Kein Wissen ueber einen Ausfall -> kein Fehler-Rauschen bei jedem Boot.
+    expect(logger.error).not.toHaveBeenCalled();
   });
 });

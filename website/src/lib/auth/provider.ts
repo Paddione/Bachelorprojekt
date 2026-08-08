@@ -1,3 +1,5 @@
+import { logger } from '../logger';
+
 export interface AuthProvider {
   id: 'local' | 'fleet';
   frontendUrl: string;
@@ -127,6 +129,57 @@ export async function resolveEndpoints(): Promise<{
   return buildEndpoints(provider);
 }
 
+// Warum resolveEndpointsSync() auf den ungeprobten Zweig faellt. Die drei Faelle
+// sind NICHT gleich schwerwiegend:
+//
+//   'never-probed'  — es gab in diesem Prozess noch keine Probe. Kein Wissen
+//                     ueber den Provider, also auch kein ignoriertes Wissen.
+//   'cache-expired' — die letzte Probe ist aelter als PROVIDER_CACHE_TTL.
+//                     Veraltetes Wissen; der Provider kann laengst zurueck sein.
+//   'probe-failed'  — eine FRISCHE Probe hat ergeben, dass kein Provider
+//                     erreichbar ist (cachedProvider === null, TTL laeuft noch).
+//                     Hier liegt positives Wissen ueber den Ausfall vor und der
+//                     Sync-Pfad baut trotzdem eine Login-URL. Genau dieser Fall
+//                     verdeckte T002680 bis nach der Credential-Eingabe.
+type SyncFallbackReason = 'never-probed' | 'cache-expired' | 'probe-failed';
+
+/**
+ * Wird aufgerufen, kurz bevor resolveEndpointsSync() Endpoints aus einem NICHT
+ * geprobten Provider baut.
+ *
+ * Gewaehlt ist "tolerant + laut" (T002682): der Login bleibt tolerant — ein
+ * kurzer Pocket-ID-Aussetzer sperrt niemanden aus, und ein bereits laufender
+ * Flow kommt durch. Aber der Rueckfall wird sichtbar, statt bis zum Callback
+ * zu schweigen.
+ *
+ * Verworfen wurde fail-closed (sofortiger Wurf): der einzige Produktions-
+ * Aufrufer getLoginUrl() (website/src/lib/auth.ts) ist synchron und liefert
+ * `string`; ein Wurf muesste bis /api/auth/login als 503 durchgereicht werden.
+ * Das macht aus jedem Sekunden-Aussetzer eine harte Sperre — ein hoher Preis
+ * fuer Sichtbarkeit, die auch ein Log liefert.
+ *
+ * Differenziert nach Grund, weil die drei Faelle nicht gleich schwer wiegen:
+ * nur 'probe-failed' ignoriert FRISCHES Wissen ueber einen Ausfall und ist
+ * deshalb Fehler-Level. 'never-probed' ist der Normalfall beim Kaltstart und
+ * schweigt, sonst raucht jedes Pod-Start-Log voll.
+ */
+function onUnprobedFallback(reason: SyncFallbackReason, provider: AuthProvider): void {
+  if (reason === 'never-probed') return;
+
+  const context = { reason, providerId: provider.id, frontendUrl: provider.frontendUrl };
+
+  if (reason === 'probe-failed') {
+    logger.error(
+      context,
+      '[auth] Login-Redirect nutzt ungeprobten Provider, obwohl die letzte Probe fehlschlug — ' +
+        'der Nutzer wird sich anmelden und erst im Callback scheitern',
+    );
+    return;
+  }
+
+  logger.warn(context, '[auth] Login-Redirect nutzt Provider mit abgelaufener Probe');
+}
+
 export function resolveEndpointsSync(): {
   auth: string;
   token: string;
@@ -136,11 +189,22 @@ export function resolveEndpointsSync(): {
   if (cachedProvider !== undefined && cachedProvider !== null && Date.now() < cacheExpiresAt) {
     return buildEndpoints(cachedProvider);
   }
-  return buildEndpoints({
+
+  const cacheStillValid = Date.now() < cacheExpiresAt;
+  const reason: SyncFallbackReason =
+    cachedProvider === undefined
+      ? 'never-probed'
+      : cachedProvider === null && cacheStillValid
+        ? 'probe-failed'
+        : 'cache-expired';
+
+  const fallback: AuthProvider = {
     id: 'local',
     frontendUrl: getPrimaryFrontendUrl(),
     internalUrl: getPrimaryInternalUrl(),
-  });
+  };
+  onUnprobedFallback(reason, fallback);
+  return buildEndpoints(fallback);
 }
 
 function buildEndpoints(provider: AuthProvider) {

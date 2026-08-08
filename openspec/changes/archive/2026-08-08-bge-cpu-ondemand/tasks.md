@@ -2,7 +2,7 @@
 title: "bge-CPU-Stack on demand — exclusiveGroup aufheben, Flux-Waisen entfernen"
 ticket_id: T002729
 domains: [ops, infra]
-status: plan_staged
+status: completed
 ---
 
 # bge-CPU-Stack on demand — Implementation Plan [T002729]

@@ -65,17 +65,65 @@ render_claude_json() {
 
 render_agy_json() {
   node -e "
-    const fs = require('fs'), yaml = require('yaml');
+    const fs = require('fs'), yaml = require('yaml'), os = require('os'), path = require('path');
     const reg = yaml.parse(fs.readFileSync('$REGISTRY', 'utf8'));
     const clients = reg.clients;
     const out = { mcpServers: {} };
+
+    // [T002704] agy loest \${VAR} in Header-Werten NICHT auf und kennt auch
+    // opencodes {env:VAR} nicht — es sendet den Literal-String, der Zielserver
+    // antwortet 401 und agy verwirft ihn. Deshalb wird hier zum echten Wert
+    // aufgeloest. Das ist nur fuer dieses Ziel vertretbar: mcp_config.json liegt
+    // unter \$HOME, ausserhalb jeder Versionierung. .mcp.json und
+    // .opencode/opencode.jsonc sind getrackt und behalten ihre Platzhalter.
+    //
+    // Quellen in dieser Reihenfolge: Umgebung des Aufrufers, dann server.env.
+    // Nur die Umgebung zu lesen hiesse, das Ergebnis davon abhaengig zu machen,
+    // aus welcher Shell gesynct wird — genau daran ist es gescheitert: der Token
+    // war in server.env gepflegt, nur nicht in der Umgebung des Harness.
+    const envFileVars = {};
+    try {
+      const envFile = path.join(os.homedir(), '.config', 'bge-mcp', 'server.env');
+      for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {
+        // systemd-EnvironmentFile (KEY=VALUE), kein Shell-Skript: zeilenweise
+        // lesen statt sourcen — sourcen wuerde beliebigen Code ausfuehren und
+        // Anfuehrungszeichen anders behandeln als systemd.
+        const eq = line.indexOf('=');
+        if (eq < 1 || line.trimStart().startsWith('#')) continue;
+        const key = line.slice(0, eq).trim();
+        if (!/^[A-Za-z_][A-Za-z0-9_]*\$/.test(key)) continue;
+        let val = line.slice(eq + 1).trim();
+        if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === '\'' || val[0] === '\"')) {
+          val = val.slice(1, -1);
+        }
+        envFileVars[key] = val;
+      }
+    } catch { /* keine server.env — dann bleibt nur die Umgebung */ }
+
+    // Das Dollarzeichen ueber seinen Zeichencode, damit der Ausdruck nicht durch
+    // drei Quoting-Ebenen (bash -> node -e -> RegExp) escaped werden muss.
+    const PLACEHOLDER = new RegExp('[' + String.fromCharCode(36) + ']\\{([A-Za-z_][A-Za-z0-9_]*)\\}', 'g');
+    const unresolved = new Set();
+    const resolveValue = (raw) => String(raw).replace(PLACEHOLDER, (whole, varName) => {
+      const value = process.env[varName] !== undefined && process.env[varName] !== ''
+        ? process.env[varName]
+        : envFileVars[varName];
+      if (value === undefined || value === '') { unresolved.add(varName); return whole; }
+      return value;
+    });
+    const resolveHeaders = (headers) => {
+      const outHeaders = {};
+      for (const [k, v] of Object.entries(headers)) outHeaders[k] = resolveValue(v);
+      return outHeaders;
+    };
+
     for (const name of Object.keys(clients).sort()) {
       const c = clients[name];
       if (!c.harness || !c.harness.agy) continue;
       const h = c.harness.agy;
       if (c.transport === 'http') {
         out.mcpServers[name] = { serverUrl: c.endpoint };
-        if (c.headers) out.mcpServers[name].headers = c.headers;
+        if (c.headers) out.mcpServers[name].headers = resolveHeaders(c.headers);
       } else {
         const server = {};
         if (h.command) server.command = h.command;
@@ -83,6 +131,16 @@ render_agy_json() {
         if (h.env) server.env = h.env;
         out.mcpServers[name] = server;
       }
+    }
+    if (unresolved.size) {
+      // Kein Abbruch: sonst scheiterte jeder Sync an einem Token, auch wenn man
+      // einen ganz anderen Server aendert. Der Platzhalter bleibt stehen — der
+      // heutige Zustand, nur nicht mehr stillschweigend.
+      process.stderr.write(
+        'mcp-sync: WARN: agy-Header nicht aufloesbar: ' + [...unresolved].sort().join(', ') +
+        ' — weder in der Umgebung noch in ~/.config/bge-mcp/server.env. ' +
+        'Der Platzhalter bleibt stehen; agy wird den Server mit HTTP 401 verwerfen.\n'
+      );
     }
     fs.writeFileSync('/dev/stdout', JSON.stringify(out, null, 4) + '\n');
   "
@@ -215,7 +273,14 @@ cmd_render() {
 
   if [ -d "$(dirname "$AGY_TARGET")" ]; then
     echo "mcp-sync: render: writing $AGY_TARGET"
-    render_agy_json > "$AGY_TARGET"
+    # [T002704] Diese Datei ist die einzige, die einen AUFGELOESTEN Token traegt
+    # (siehe render_agy_json). Sie muss deshalb dieselben Rechte haben wie ihre
+    # Quelle ~/.config/bge-mcp/server.env, naemlich 600 — sonst wandert das
+    # Geheimnis aus einer nutzereigenen in eine world-readable Datei. Die umask
+    # deckt den Neuanlage-Fall ab, das chmod eine bereits bestehende Datei: eine
+    # Ausgabe-Umlenkung auf eine existierende Datei laesst deren Rechte unberuehrt.
+    ( umask 077; render_agy_json > "$AGY_TARGET" )
+    chmod 600 "$AGY_TARGET"
   else
     echo "mcp-sync: render: $AGY_TARGET dir missing — skipped" >&2
   fi

@@ -195,7 +195,7 @@ Note: `tracking-import` CronJob was removed in PR #788 (2026-05-15); `track-pr.y
 
 ## Image Exclusions
 
-The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber.
+The following components intentionally use `:latest` images and are excluded from standard pinning requirements: Website, Brett, Docs, Videovault, Mediaviewer-Widget, Mentolder-Web, Downloads, Brain, Studio, Talk-Transcriber, SDLC-Console (`website-sdlc`).
 This ensures that Infrastructure and Dev workflows correctly identify these as "live" targets that do not require manual digest pinning.
 
 ## Development Rules

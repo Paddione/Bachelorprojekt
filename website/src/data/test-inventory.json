@@ -2814,6 +2814,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/agy-token-expansion",
+    "file": "tests/spec/mcp-gateway/agy-token-expansion.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/authenticated-http-headers",
     "file": "tests/spec/mcp-gateway/authenticated-http-headers.bats",
     "category": "mcp-gateway",

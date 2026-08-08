@@ -1,0 +1,25 @@
+# scripts/sdlc/sdlc-backup.service
+# Taegliche Sicherung der lokalen SDLC-Datenbank nach fleet — systemd USER
+# service (E3/T002626, ADR-006). Gepaart mit sdlc-backup.timer.
+#
+# USER-Unit, nicht system-weit: die Sicherung braucht die Kubeconfig des
+# Benutzers (beide Kontexte) und teilt damit dieselbe Verfuegbarkeitserwartung
+# wie die Factory — sie laeuft, wenn die Workstation laeuft.
+[Unit]
+Description=SDLC-Datenbank nach fleet sichern (taeglich)
+Documentation=file:///home/patrick/Bachelorprojekt/docs/sdlc-stack/e3-cutover.md
+# Ohne Netz erreicht weder der lokale Cluster noch fleet irgendetwas.
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/patrick/Bachelorprojekt
+ExecStart=/home/patrick/Bachelorprojekt/scripts/sdlc/backup-tickets.sh run
+# Dump, Verschluesselung und Uebertragung von ~36k Zeilen dauern Sekunden;
+# 600s faengt eine haengende kubectl-Verbindung ab, ohne einen echten Lauf zu
+# treffen.
+RuntimeMaxSec=600
+TimeoutStartSec=660
+# Ein fehlgeschlagener Lauf bleibt im Journal sichtbar und darf den Timer nicht
+# blockieren — die naechste Sicherung ist einen Tag entfernt, nicht verloren.
+SuccessExitStatus=0

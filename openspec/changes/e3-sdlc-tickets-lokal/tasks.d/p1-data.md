@@ -15,11 +15,11 @@ fleet-Kopie ist schreibgeschuetzt, und ein wiederherstellbares Backup existiert.
 
 | Datei | Rolle | S1-Budget |
 |---|---|---|
-| `scripts/sdlc/migrate-tickets.sh` | neu — Dump/Restore + REVOKE, idempotent, `--dry-run` | `.sh` / 800, Budget 800 |
-| `scripts/sdlc/backup-tickets.sh` | neu — taeglicher Dump nach fleet | `.sh` / 800, Budget 800 |
-| `systemd/sdlc-backup.service` | neu — Backup-Unit | n/a |
-| `systemd/sdlc-backup.timer` | neu — taeglicher Trigger | n/a |
-| `Taskfile.sdlc.yml` | geaendert — `migrate`, `freeze`, `backup`, `restore-check` | n/a |
+| `scripts/sdlc/migrate-tickets.sh` | neu — Dump/Restore + REVOKE, idempotent, `--dry-run` | `.sh` / 800, Bestand 315, Budget 485 |
+| `scripts/sdlc/backup-tickets.sh` | neu — taeglicher Dump nach fleet | `.sh` / 800, Bestand 222, Budget 578 |
+| `scripts/sdlc/sdlc-backup.service` | neu — Backup-Unit | n/a |
+| `scripts/sdlc/sdlc-backup.timer` | neu — taeglicher Trigger | n/a |
+| `taskfiles/Taskfile.sdlc.yml` | geaendert — `migrate`, `freeze`, `backup`, `restore-check` | n/a |
 | `docs/sdlc-stack/e3-cutover.md` | neu — Cutover- und Rollback-Runbook | n/a |
 
 ## Aufgaben
@@ -70,12 +70,12 @@ entstandene Zeilen nachgezogen werden muessten.
 ab. Alte Staende werden nach Aufbewahrungsfrist entfernt — die Frist steht als Konstante im
 Kopf des Skripts, nicht verstreut im Code.
 
-`systemd/sdlc-backup.timer` triggert taeglich; die Unit laeuft als **User**-Unit, wie die
+`scripts/sdlc/sdlc-backup.timer` triggert taeglich; die Unit laeuft als **User**-Unit, wie die
 Factory, damit sie dieselbe Verfuegbarkeitserwartung teilt.
 
 ### 5. Restore nachweisen
 
-`Taskfile.sdlc.yml` bekommt `sdlc:restore-check`: spielt den juengsten Dump in eine
+`taskfiles/Taskfile.sdlc.yml` bekommt `sdlc:restore-check`: spielt den juengsten Dump in eine
 Wegwerf-Datenbank ein und vergleicht die Zeilenzahlen. Das ist kein optionaler Komfort —
 ein Backup ohne durchgefuehrten Restore ist eine Vermutung (D6).
 

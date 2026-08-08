@@ -185,9 +185,10 @@ scripts/sdlc/
   backup-tickets.sh         taeglicher pg_dump → fleet
 scripts/factory/
   github-poller.sh          Merges + PR-Zustand + Checks, cursor-basiert
-systemd/
+scripts/sdlc/
+  sdlc-backup.{service,timer}       systemd-User-Units (Repo-Konvention: Unit neben Skript)
+scripts/factory/
   sdlc-github-poller.{service,timer}
-  sdlc-backup.{service,timer}
 website/src/lib/sdlc/inbox/
   bug-outbox.ts             Schreibpfad in public.bug_report_outbox
   bug-outbox.test.ts        Vitest

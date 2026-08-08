@@ -3,8 +3,18 @@
     "slug": "e3-sdlc-tickets-lokal",
     "ticket_id": "T002626",
     "generated_from": "main@c9c22feed",
-    "domains": ["db", "infra", "scripts", "factory"],
-    "intel_sources": ["psql-live-fleet", "grep", "wc -l", "docs/code-quality/gates.yaml"]
+    "domains": [
+      "db",
+      "infra",
+      "scripts",
+      "factory"
+    ],
+    "intel_sources": [
+      "psql-live-fleet",
+      "grep",
+      "wc -l",
+      "docs/code-quality/gates.yaml"
+    ]
   },
   "db_tables": {
     "source": "kubectl exec shared-db (context fleet, ns workspace, db website) — 2026-08-08",
@@ -12,48 +22,186 @@
     "table_count": 23,
     "row_total_approx": 36700,
     "largest": [
-      { "table": "ticket_comments", "rows": 12820 },
-      { "table": "ticket_activity", "rows": 12193 },
-      { "table": "factory_phase_events", "rows": 4976 },
-      { "table": "factory_control", "rows": 3107 },
-      { "table": "tickets", "rows": 2080 },
-      { "table": "factory_run_budget", "rows": 570 },
-      { "table": "ticket_links", "rows": 560 },
-      { "table": "ticket_plans", "rows": 298 },
-      { "table": "provider_config", "rows": 39 }
+      {
+        "table": "ticket_comments",
+        "rows": 12820
+      },
+      {
+        "table": "ticket_activity",
+        "rows": 12193
+      },
+      {
+        "table": "factory_phase_events",
+        "rows": 4976
+      },
+      {
+        "table": "factory_control",
+        "rows": 3107
+      },
+      {
+        "table": "tickets",
+        "rows": 2080
+      },
+      {
+        "table": "factory_run_budget",
+        "rows": 570
+      },
+      {
+        "table": "ticket_links",
+        "rows": 560
+      },
+      {
+        "table": "ticket_plans",
+        "rows": 298
+      },
+      {
+        "table": "provider_config",
+        "rows": 39
+      }
     ],
-    "empty_tables": ["pr_events", "ticket_watchers", "ticket_embeddings", "feature_flags", "qa_reviews", "cockpit_audit"],
+    "empty_tables": [
+      "pr_events",
+      "ticket_watchers",
+      "ticket_embeddings",
+      "feature_flags",
+      "qa_reviews",
+      "cockpit_audit"
+    ],
     "fk_out_of_tickets": [
-      { "column": "tickets.tickets.brand", "target": "brands", "populated": 2080 },
-      { "column": "tickets.tickets.customer_id", "target": "customers", "populated": 13 },
-      { "column": "tickets.tickets.assignee_id", "target": "customers", "populated": 1 },
-      { "column": "tickets.tickets.reporter_id", "target": "customers", "populated": 0 },
-      { "column": "tickets.tickets.source_test_question_id", "target": "questionnaire_questions", "populated": 0 },
-      { "column": "tickets.tickets.source_test_assignment_id", "target": "questionnaire_assignments", "populated": 0 },
-      { "column": "tickets.tickets.source_test_run_id", "target": "test_runs", "populated": 0 },
-      { "column": "tickets.tickets.source_test_result_id", "target": "test_results", "populated": 0 },
-      { "column": "tickets.ticket_comments.author_id", "target": "customers", "populated": 0 },
-      { "column": "tickets.ticket_activity.actor_id", "target": "customers", "populated": 0 },
-      { "column": "tickets.ticket_links.created_by", "target": "customers", "populated": 0 },
-      { "column": "tickets.ticket_attachments.uploaded_by", "target": "customers", "populated": 0 },
-      { "column": "tickets.ticket_watchers.user_id", "target": "customers", "populated": 0 },
-      { "column": "tickets.ticket_counters.brand", "target": "brands", "populated": 2 },
-      { "column": "tickets.tags.brand", "target": "brands", "populated": 6 },
-      { "column": "tickets.feature_flags.brand", "target": "brands", "populated": 0 },
-      { "column": "tickets.pr_events.brand", "target": "brands", "populated": 0 }
+      {
+        "column": "tickets.tickets.brand",
+        "target": "brands",
+        "populated": 2080
+      },
+      {
+        "column": "tickets.tickets.customer_id",
+        "target": "customers",
+        "populated": 13
+      },
+      {
+        "column": "tickets.tickets.assignee_id",
+        "target": "customers",
+        "populated": 1
+      },
+      {
+        "column": "tickets.tickets.reporter_id",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.tickets.source_test_question_id",
+        "target": "questionnaire_questions",
+        "populated": 0
+      },
+      {
+        "column": "tickets.tickets.source_test_assignment_id",
+        "target": "questionnaire_assignments",
+        "populated": 0
+      },
+      {
+        "column": "tickets.tickets.source_test_run_id",
+        "target": "test_runs",
+        "populated": 0
+      },
+      {
+        "column": "tickets.tickets.source_test_result_id",
+        "target": "test_results",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_comments.author_id",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_activity.actor_id",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_links.created_by",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_attachments.uploaded_by",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_watchers.user_id",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_counters.brand",
+        "target": "brands",
+        "populated": 2
+      },
+      {
+        "column": "tickets.tags.brand",
+        "target": "brands",
+        "populated": 6
+      },
+      {
+        "column": "tickets.feature_flags.brand",
+        "target": "brands",
+        "populated": 0
+      },
+      {
+        "column": "tickets.pr_events.brand",
+        "target": "brands",
+        "populated": 0
+      }
     ],
     "fk_into_tickets": [
-      { "column": "coaching.sessions.ki_config_id", "target": "tickets.provider_config", "populated": 13, "note": "blocking — coaching stays on fleet (D1)" },
-      { "column": "inbox_items.bug_ticket_id", "target": "tickets.tickets", "populated": 2, "note": "customer bug reports — outbox path (D5)" },
-      { "column": "meetings.project_id", "target": "tickets.tickets", "populated": 0 },
-      { "column": "time_entries.project_id", "target": "tickets.tickets", "populated": 0 },
-      { "column": "time_entries.task_id", "target": "tickets.tickets", "populated": 0 },
-      { "column": "questionnaire_assignments.project_id", "target": "tickets.tickets", "populated": 0 },
-      { "column": "questionnaire_test_status.last_failure_ticket_id", "target": "tickets.tickets", "populated": 0 }
+      {
+        "column": "coaching.sessions.ki_config_id",
+        "target": "tickets.provider_config",
+        "populated": 13,
+        "note": "blocking — coaching stays on fleet (D1)"
+      },
+      {
+        "column": "inbox_items.bug_ticket_id",
+        "target": "tickets.tickets",
+        "populated": 2,
+        "note": "customer bug reports — outbox path (D5)"
+      },
+      {
+        "column": "meetings.project_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      },
+      {
+        "column": "time_entries.project_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      },
+      {
+        "column": "time_entries.task_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      },
+      {
+        "column": "questionnaire_assignments.project_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      },
+      {
+        "column": "questionnaire_test_status.last_failure_ticket_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      }
     ],
     "reference_tables": [
-      { "table": "brands", "rows": 2 },
-      { "table": "customers", "rows": 4 }
+      {
+        "table": "brands",
+        "rows": 2
+      },
+      {
+        "table": "customers",
+        "rows": 4
+      }
     ]
   },
   "symbols": [
@@ -109,54 +257,255 @@
   ],
   "call_graph": {
     "db_access_paths": [
-      { "path": "scripts/ticket.sh:23", "symbol": "CTX", "current": "${TICKET_CTX:-fleet}" },
-      { "path": "scripts/vda/ticket/_ticket-core.sh:7", "symbol": "CTX", "current": "${CTX:=${TICKET_CTX:-fleet}}" },
-      { "path": "scripts/vda/ticket/_ticket-core.sh:46", "symbol": "_pgpod", "current": "kubectl get pod -n $NS --context $CTX -l app in (shared-db, shared-db-dev)" },
-      { "path": "scripts/vda/ticket/_ticket-core.sh:64", "symbol": "_exec_sql", "current": "kubectl exec -i $pod -c postgres -- psql -U website -d website" },
-      { "path": "scripts/factory/lib.sh:47", "symbol": "factory_pgpod", "current": "kubectl get pod -n $FACTORY_NS --context $FACTORY_CTX" },
-      { "path": "scripts/ticket.sh:69-75", "symbol": "NS auto-rewrite", "current": "CTX == k3d-* → NS=workspace-dev", "note": "wrong for the E2 stack which deploys to workspace (D7)" },
-      { "path": "scripts/ticket-mcp/go/internal/runner/run_ticket.go:60", "symbol": "runTicket", "current": "exec.Command(bash, scripts/ticket.sh)", "note": "thin wrapper — inherits TICKET_CTX automatically" }
+      {
+        "path": "scripts/ticket.sh:23",
+        "symbol": "CTX",
+        "current": "${TICKET_CTX:-fleet}"
+      },
+      {
+        "path": "scripts/vda/ticket/_ticket-core.sh:7",
+        "symbol": "CTX",
+        "current": "${CTX:=${TICKET_CTX:-fleet}}"
+      },
+      {
+        "path": "scripts/vda/ticket/_ticket-core.sh:46",
+        "symbol": "_pgpod",
+        "current": "kubectl get pod -n $NS --context $CTX -l app in (shared-db, shared-db-dev)"
+      },
+      {
+        "path": "scripts/vda/ticket/_ticket-core.sh:64",
+        "symbol": "_exec_sql",
+        "current": "kubectl exec -i $pod -c postgres -- psql -U website -d website"
+      },
+      {
+        "path": "scripts/factory/lib.sh:47",
+        "symbol": "factory_pgpod",
+        "current": "kubectl get pod -n $FACTORY_NS --context $FACTORY_CTX"
+      },
+      {
+        "path": "scripts/ticket.sh:69-75",
+        "symbol": "NS auto-rewrite",
+        "current": "CTX == k3d-* → NS=workspace-dev",
+        "note": "wrong for the E2 stack which deploys to workspace (D7)"
+      },
+      {
+        "path": "scripts/ticket-mcp/go/internal/runner/run_ticket.go:60",
+        "symbol": "runTicket",
+        "current": "exec.Command(bash, scripts/ticket.sh)",
+        "note": "thin wrapper — inherits TICKET_CTX automatically"
+      }
     ],
     "ci_write_paths": [
-      { "path": ".github/workflows/post-merge.yml:40", "current": "export TICKET_CTX=fleet" },
-      { "path": ".github/workflows/post-merge.yml:56", "current": "ticket.sh update-status --status awaiting_deploy" },
-      { "path": ".github/workflows/post-merge.yml:92", "current": "export TICKET_CTX=fleet" },
-      { "path": ".github/workflows/post-merge.yml:261", "current": "export TICKET_CTX=fleet" },
-      { "path": ".github/workflows/post-merge.yml:277", "current": "ticket.sh update-status --status done" },
-      { "path": ".github/workflows/post-merge.yml:293", "current": "export TICKET_CTX=fleet" },
-      { "path": ".github/workflows/post-merge.yml:307", "current": "devflow-post-merge-ticket-closure.sh" },
-      { "path": ".github/workflows/post-merge.yml:326", "current": "export TICKET_CTX=fleet" }
+      {
+        "path": ".github/workflows/post-merge.yml:40",
+        "current": "export TICKET_CTX=fleet"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:56",
+        "current": "ticket.sh update-status --status awaiting_deploy"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:92",
+        "current": "export TICKET_CTX=fleet"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:261",
+        "current": "export TICKET_CTX=fleet"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:277",
+        "current": "ticket.sh update-status --status done"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:293",
+        "current": "export TICKET_CTX=fleet"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:307",
+        "current": "devflow-post-merge-ticket-closure.sh"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:326",
+        "current": "export TICKET_CTX=fleet"
+      }
     ],
     "outbox_pattern_reference": [
-      { "path": "website/src/lib/sdlc/systemtest/failure-bridge.ts:329", "symbol": "enqueueOutboxRetry", "note": "retry semantics to mirror for bug_report_outbox" }
+      {
+        "path": "website/src/lib/sdlc/systemtest/failure-bridge.ts:329",
+        "symbol": "enqueueOutboxRetry",
+        "note": "retry semantics to mirror for bug_report_outbox"
+      }
     ],
     "poller_pattern_reference": [
-      { "path": "scripts/factory/auto-close-merged.sh", "loc": 172, "note": "already pull-based; poller generalises it" },
-      { "path": "scripts/factory/babysit-prs.sh", "loc": 233, "note": "already pull-based" }
+      {
+        "path": "scripts/factory/auto-close-merged.sh",
+        "loc": 172,
+        "note": "already pull-based; poller generalises it"
+      },
+      {
+        "path": "scripts/factory/babysit-prs.sh",
+        "loc": 233,
+        "note": "already pull-based"
+      }
     ]
   },
   "impact_files": [
-    { "path": "scripts/sdlc/migrate-tickets.sh", "language": "sh", "loc": 0, "s1_limit": 800, "s1_baseline": null, "s1_budget": 800 },
-    { "path": "scripts/sdlc/backup-tickets.sh", "language": "sh", "loc": 0, "s1_limit": 800, "s1_baseline": null, "s1_budget": 800 },
-    { "path": "scripts/factory/github-poller.sh", "language": "sh", "loc": 0, "s1_limit": 800, "s1_baseline": null, "s1_budget": 800 },
-    { "path": "scripts/ticket.sh", "language": "sh", "loc": 990, "s1_limit": null, "s1_baseline": null, "s1_budget": null, "note": "listed in gates.yaml ignore — sanctioned single-file CLI" },
-    { "path": "scripts/vda/ticket/_ticket-core.sh", "language": "sh", "loc": 181, "s1_limit": 800, "s1_baseline": null, "s1_budget": 619 },
-    { "path": "scripts/factory/lib.sh", "language": "sh", "loc": 72, "s1_limit": 800, "s1_baseline": null, "s1_budget": 728 },
-    { "path": ".github/workflows/post-merge.yml", "language": "config", "loc": 338, "s1_limit": null, "s1_baseline": null, "s1_budget": null },
-    { "path": "website/src/lib/messaging-db.ts", "language": "ts", "loc": 296, "s1_limit": 900, "s1_baseline": null, "s1_budget": 604 },
-    { "path": "website/src/lib/sdlc/inbox/bug-outbox.ts", "language": "ts", "loc": 0, "s1_limit": 900, "s1_budget": 900 },
-    { "path": "website/src/lib/sdlc/inbox/bug-outbox.test.ts", "language": "ts", "loc": 0, "s1_limit": 900, "s1_budget": 900 },
-    { "path": "systemd/sdlc-backup.service", "language": "config", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "systemd/sdlc-backup.timer", "language": "config", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "systemd/sdlc-github-poller.service", "language": "config", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "systemd/sdlc-github-poller.timer", "language": "config", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "migrations/2026-08-08-bug-report-outbox.sql", "language": "sql", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "Taskfile.sdlc.yml", "language": "config", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "docs/sdlc-stack/e3-cutover.md", "language": "markdown", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "docs/sdlc-stack/README.md", "language": "markdown", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "tests/spec/sdlc-isolation/e3-tickets-lokal.bats", "language": "bats", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "tests/spec/sdlc-isolation/e3-poller.bats", "language": "bats", "loc": 0, "s1_limit": null, "s1_budget": null },
-    { "path": "tests/spec/sdlc-isolation/e3-backup.bats", "language": "bats", "loc": 0, "s1_limit": null, "s1_budget": null }
+    {
+      "path": "scripts/sdlc/migrate-tickets.sh",
+      "language": "sh",
+      "loc": 315,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 485
+    },
+    {
+      "path": "scripts/sdlc/backup-tickets.sh",
+      "language": "sh",
+      "loc": 222,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 578
+    },
+    {
+      "path": "scripts/factory/github-poller.sh",
+      "language": "sh",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 800
+    },
+    {
+      "path": "scripts/ticket.sh",
+      "language": "sh",
+      "loc": 990,
+      "s1_limit": null,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "note": "listed in gates.yaml ignore — sanctioned single-file CLI"
+    },
+    {
+      "path": "scripts/vda/ticket/_ticket-core.sh",
+      "language": "sh",
+      "loc": 181,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 619
+    },
+    {
+      "path": "scripts/factory/lib.sh",
+      "language": "sh",
+      "loc": 72,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 728
+    },
+    {
+      "path": ".github/workflows/post-merge.yml",
+      "language": "config",
+      "loc": 338,
+      "s1_limit": null,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/lib/messaging-db.ts",
+      "language": "ts",
+      "loc": 296,
+      "s1_limit": 900,
+      "s1_baseline": null,
+      "s1_budget": 604
+    },
+    {
+      "path": "website/src/lib/sdlc/inbox/bug-outbox.ts",
+      "language": "ts",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_budget": 900
+    },
+    {
+      "path": "website/src/lib/sdlc/inbox/bug-outbox.test.ts",
+      "language": "ts",
+      "loc": 0,
+      "s1_limit": 900,
+      "s1_budget": 900
+    },
+    {
+      "path": "scripts/sdlc/sdlc-backup.service",
+      "language": "config",
+      "loc": 25,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/sdlc/sdlc-backup.timer",
+      "language": "config",
+      "loc": 17,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/sdlc-github-poller.service",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/sdlc-github-poller.timer",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "migrations/2026-08-08-bug-report-outbox.sql",
+      "language": "sql",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.sdlc.yml",
+      "language": "config",
+      "loc": 204,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/e3-cutover.md",
+      "language": "markdown",
+      "loc": 169,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/README.md",
+      "language": "markdown",
+      "loc": 125,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-tickets-lokal.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-poller.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-backup.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    }
   ],
   "risks": [
     {

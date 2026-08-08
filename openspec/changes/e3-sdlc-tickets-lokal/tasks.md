@@ -21,19 +21,19 @@ im Pull-Modell her. Entwurf und Messwerte: `design.md`, `intel.json`.
 
 | Datei | Partial | Rolle | S1 |
 |---|---|---|---|
-| `scripts/sdlc/migrate-tickets.sh` | p1 | neu — Dump/Restore/Freeze | `.sh` / 800, Budget 800 |
-| `scripts/sdlc/backup-tickets.sh` | p1 | neu — taeglicher Dump nach fleet | `.sh` / 800, Budget 800 |
-| `systemd/sdlc-backup.service` | p1 | neu | n/a |
-| `systemd/sdlc-backup.timer` | p1 | neu | n/a |
-| `Taskfile.sdlc.yml` | p1 | geaendert — migrate/freeze/backup/restore-check | n/a |
+| `scripts/sdlc/migrate-tickets.sh` | p1 | neu — Dump/Restore/Freeze | `.sh` / 800, Bestand 315, Budget 485 |
+| `scripts/sdlc/backup-tickets.sh` | p1 | neu — taeglicher Dump nach fleet | `.sh` / 800, Bestand 222, Budget 578 |
+| `scripts/sdlc/sdlc-backup.service` | p1 | neu | n/a |
+| `scripts/sdlc/sdlc-backup.timer` | p1 | neu | n/a |
+| `taskfiles/Taskfile.sdlc.yml` | p1 | geaendert — migrate/freeze/backup/restore-check | n/a |
 | `docs/sdlc-stack/e3-cutover.md` | p1 | neu — Cutover- und Rollback-Runbook | n/a |
 | `scripts/ticket.sh` | p2 | geaendert — Default-Kontext, Namespace | ignore (gates.yaml) |
 | `scripts/vda/ticket/_ticket-core.sh` | p2 | geaendert — Default-Kontext | `.sh` / 800, Bestand 181, Budget 619 |
 | `scripts/factory/lib.sh` | p2 | geaendert — `FACTORY_CTX` | `.sh` / 800, Bestand 72, Budget 728 |
 | `docs/sdlc-stack/README.md` | p2 | geaendert — Betriebshinweise | n/a |
 | `scripts/factory/github-poller.sh` | p3 | neu — Merges/PR-Zustand/Checks | `.sh` / 800, Budget 800 |
-| `systemd/sdlc-github-poller.service` | p3 | neu | n/a |
-| `systemd/sdlc-github-poller.timer` | p3 | neu | n/a |
+| `scripts/factory/sdlc-github-poller.service` | p3 | neu | n/a |
+| `scripts/factory/sdlc-github-poller.timer` | p3 | neu | n/a |
 | `.github/workflows/post-merge.yml` | p3 | geaendert — Ticket-Schritte entfernen | n/a |
 | `migrations/2026-08-08-bug-report-outbox.sql` | p4 | neu — Outbox auf fleet | n/a |
 | `website/src/lib/sdlc/inbox/bug-outbox.ts` | p4 | neu — Schreibpfad | `.ts` / 900, Budget 900 |
@@ -47,9 +47,9 @@ im Pull-Modell her. Entwurf und Messwerte: `design.md`, `intel.json`.
 
 | id | file | role | target_files | depends_on |
 |----|------|------|--------------|------------|
-| p1 | tasks.d/p1-data.md | impl | scripts/sdlc/migrate-tickets.sh, scripts/sdlc/backup-tickets.sh, systemd/sdlc-backup.service, systemd/sdlc-backup.timer, Taskfile.sdlc.yml, docs/sdlc-stack/e3-cutover.md | |
+| p1 | tasks.d/p1-data.md | impl | scripts/sdlc/migrate-tickets.sh, scripts/sdlc/backup-tickets.sh, scripts/sdlc/sdlc-backup.service, scripts/sdlc/sdlc-backup.timer, taskfiles/Taskfile.sdlc.yml, docs/sdlc-stack/e3-cutover.md | |
 | p2 | tasks.d/p2-redirect.md | impl | scripts/ticket.sh, scripts/vda/ticket/_ticket-core.sh, scripts/factory/lib.sh, docs/sdlc-stack/README.md | p1 |
-| p3 | tasks.d/p3-poller.md | impl | scripts/factory/github-poller.sh, systemd/sdlc-github-poller.service, systemd/sdlc-github-poller.timer, .github/workflows/post-merge.yml | p2 |
+| p3 | tasks.d/p3-poller.md | impl | scripts/factory/github-poller.sh, scripts/factory/sdlc-github-poller.service, scripts/factory/sdlc-github-poller.timer, .github/workflows/post-merge.yml | p2 |
 | p4 | tasks.d/p4-outbox.md | impl | migrations/2026-08-08-bug-report-outbox.sql, website/src/lib/sdlc/inbox/bug-outbox.ts, website/src/lib/sdlc/inbox/bug-outbox.test.ts, website/src/lib/messaging-db.ts | p3 |
 | p5 | tasks.d/p5-tests.md | tests | tests/spec/sdlc-isolation/e3-tickets-lokal.bats, tests/spec/sdlc-isolation/e3-poller.bats, tests/spec/sdlc-isolation/e3-backup.bats | p4 |
 

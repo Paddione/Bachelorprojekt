@@ -57,8 +57,8 @@ einer pauschalen.
 - `scripts/sdlc/migrate-tickets.sh` — Dump/Restore + fleet-REVOKE, idempotent, mit `--dry-run`
 - `scripts/sdlc/backup-tickets.sh` — taeglicher Dump nach fleet
 - `scripts/factory/github-poller.sh` — Merges, PR-Zustand, Checks
-- `systemd/sdlc-github-poller.service` / `.timer`
-- `systemd/sdlc-backup.service` / `.timer`
+- `scripts/factory/sdlc-github-poller.service` / `.timer`
+- `scripts/sdlc/sdlc-backup.service` / `.timer`
 - `website/src/lib/sdlc/inbox/bug-outbox.ts` + `bug-outbox.test.ts`
 - `migrations/<datum>-bug-report-outbox.sql`
 - `tests/spec/sdlc-isolation/e3-tickets-lokal.bats`, `e3-poller.bats`, `e3-backup.bats`
@@ -70,7 +70,7 @@ einer pauschalen.
 - `scripts/factory/lib.sh` — `FACTORY_CTX`-Default
 - `.github/workflows/post-merge.yml` — Ticket-Schritte entfernen
 - `website/src/lib/messaging-db.ts` — Bugmeldung in die Outbox statt direkt ins Ticket
-- `Taskfile.sdlc.yml` — Migrations-, Backup- und Poller-Tasks
+- `taskfiles/Taskfile.sdlc.yml` — Migrations-, Backup- und Poller-Tasks
 - `docs/sdlc-stack/README.md` — zwei `provider_config`-Instanzen, Verfuegbarkeitserwartung
 
 **Risiken:** hoch. Nicht wegen der Migration — 36.700 Zeilen sind in Sekunden kopiert — sondern

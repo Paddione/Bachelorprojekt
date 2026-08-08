@@ -2373,6 +2373,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002572": [
+    {
+      "slug": "bge-k8s-cpu-tuning",
+      "status": "plan_staged"
+    }
+  ],
   "T002577": [
     {
       "slug": "openspec-stragglers-T002577",

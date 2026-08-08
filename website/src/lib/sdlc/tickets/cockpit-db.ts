@@ -601,6 +601,11 @@ export async function closeTicket(
     );
     if (rows.length === 0) throw new NotFoundError(`ticket ${ticketId} not found`);
     const from = String(rows[0].status);
+    if (from === 'done') {
+      // idempotent — mirrors update-status.sh `done:done` (always allowed)
+      await client.query('COMMIT');
+      return { ok: true, ticketId, from, to: 'done' };
+    }
     if (from === 'archived') {
       throw new Error('cannot close an archived ticket');
     }

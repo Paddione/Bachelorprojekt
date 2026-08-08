@@ -203,7 +203,7 @@ async function runAction(
       const branch = String(body.branch || '');
       if (!plan || !branch) return { status: 400, body: { error: 'plan and branch required for stage-plan' } };
       const hold = body.hold === true;
-      const partials = Number.isInteger(body.partials) ? Number(body.partials) : 1;
+      const partials = Number.isInteger(body.partials) && Number(body.partials) > 0 && Number(body.partials) <= 9 ? Number(body.partials) : 1;
       const result = await stageTicketPlan(brand, ticketId, plan, branch, actor, { hold, partials });
       return { status: 200, body: { action: 'stage_plan', ...result } };
     }

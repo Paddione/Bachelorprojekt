@@ -138,6 +138,30 @@ describe('POST /sdlc/api/cockpit/actions (Task 8)', () => {
     expect(stageTicketPlan).not.toHaveBeenCalled();
   });
 
+  it('clamps ticket_stage_plan partials to 1..9 (mirrors stage-plan.sh [1-9])', async () => {
+    const res = await POST({
+      request: req('admin', { action: 'ticket_stage_plan', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', plan: 'p.md', branch: 'b', partials: 0 }),
+    } as never);
+    expect(res.status).toBe(200);
+    expect(stageTicketPlan).toHaveBeenCalledTimes(1);
+    const opts = vi.mocked(stageTicketPlan).mock.calls[0][5];
+    expect(opts).toEqual({ hold: false, partials: 1 });
+
+    vi.mocked(stageTicketPlan).mockClear();
+    await POST({
+      request: req('admin', { action: 'ticket_stage_plan', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', plan: 'p.md', branch: 'b', partials: 12 }),
+    } as never);
+    const opts2 = vi.mocked(stageTicketPlan).mock.calls[0][5];
+    expect(opts2).toEqual({ hold: false, partials: 1 });
+
+    vi.mocked(stageTicketPlan).mockClear();
+    await POST({
+      request: req('admin', { action: 'ticket_stage_plan', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', plan: 'p.md', branch: 'b', partials: 5 }),
+    } as never);
+    const opts3 = vi.mocked(stageTicketPlan).mock.calls[0][5];
+    expect(opts3).toEqual({ hold: false, partials: 5 });
+  });
+
   it('rejects ticket_close with an invalid resolution', async () => {
     const res = await POST({
       request: req('admin', { action: 'ticket_close', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', resolution: 'whoops' }),

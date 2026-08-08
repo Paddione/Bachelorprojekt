@@ -46,19 +46,38 @@ setup() {
 }
 
 teardown() {
-  [ -n "${DAEMON_A_PID:-}" ] && kill "${DAEMON_A_PID}" 2>/dev/null || true
+  # Beide Enden der Prozesskette: der Wrapper aus $! UND der Server, dessen
+  # echte PID in der State-Datei steht. Siehe start_daemon zur Begruendung.
+  [ -n "${WRAPPER_PID:-}" ] && kill "${WRAPPER_PID}" 2>/dev/null || true
+  [ -f "${STATE_DIR}/cockpit-daemon.pid" ] && kill "$(cat "${STATE_DIR}/cockpit-daemon.pid")" 2>/dev/null || true
   [ -f "${BATS_TEST_TMPDIR}/real.pid.bak" ]   && cp "${BATS_TEST_TMPDIR}/real.pid.bak"   /tmp/cockpit-daemon.pid   || true
   [ -f "${BATS_TEST_TMPDIR}/real.token.bak" ] && cp "${BATS_TEST_TMPDIR}/real.token.bak" /tmp/cockpit-daemon.token || true
   return 0
 }
 
-# start_daemon <port> <logfile> — startet einen Daemon im isolierten State-Dir
-# und gibt dessen PID auf stdout aus. Wartet NICHT auf Bereitschaft.
+# start_daemon <port> <logfile> — startet einen Daemon im isolierten State-Dir.
+# Setzt WRAPPER_PID; die ECHTE Server-PID holt daemon_pid() aus der State-Datei.
+#
+# Der Umweg ist noetig, nicht umstaendlich: `npx tsx` erzeugt eine vierstufige
+# Prozesskette (npm exec -> sh -c -> node cli.mjs -> node). `$!` liefert davon
+# nur die oberste Ebene, und ein kill darauf laesst den eigentlichen Server
+# weiterlaufen — er haelt dann den Port und antwortet auf /health, waehrend er
+# in ein laengst geloeschtes BATS_TEST_TMPDIR schreibt. Beim Entwickeln dieses
+# Tests sind so drei Zombie-Daemons entstanden; der Positiv-Anker hat den
+# daraus folgenden falschen Erfolg abgefangen. `./node_modules/.bin/tsx` statt
+# `npx` verkuerzt die Kette (so macht es auch der cockpit:daemon-Task), und die
+# PID aus der Datei adressiert genau den Prozess, den die Datei benennt — also
+# den Gegenstand dieses Tests.
 start_daemon() {
   local port="$1" log="$2"
   COCKPIT_DAEMON_PORT="${port}" COCKPIT_DAEMON_STATE_DIR="${STATE_DIR}" \
-    npx tsx .lavish/kit/daemon/server.ts > "${log}" 2>&1 &
-  echo $!
+    ./node_modules/.bin/tsx .lavish/kit/daemon/server.ts > "${log}" 2>&1 &
+  WRAPPER_PID=$!
+}
+
+# daemon_pid — die vom Daemon selbst geschriebene PID.
+daemon_pid() {
+  cat "${STATE_DIR}/cockpit-daemon.pid"
 }
 
 # wait_health <port> — pollt /health, gibt 0 bei Erreichbarkeit zurueck.
@@ -80,7 +99,7 @@ wait_health() {
   local PIDFILE="${STATE_DIR}/cockpit-daemon.pid"
   local TOKENFILE="${STATE_DIR}/cockpit-daemon.token"
 
-  DAEMON_A_PID="$(start_daemon "${PORT}" "${BATS_TEST_TMPDIR}/A.log")"
+  start_daemon "${PORT}" "${BATS_TEST_TMPDIR}/A.log"
 
   # POSITIV-ANKER: Daemon A laeuft wirklich und hat beide Dateien im isolierten
   # State-Dir angelegt. Ohne diesen Anker bestuende die Aussage "Dateien
@@ -93,12 +112,15 @@ wait_health() {
   local pid_before token_before
   pid_before="$(cat "${PIDFILE}")"
   token_before="$(cat "${TOKENFILE}")"
-  [ "$pid_before" = "$DAEMON_A_PID" ] || [ -n "$pid_before" ]
+
+  # Die Datei benennt einen LEBENDEN Prozess — sonst pruefte der Test unten die
+  # Unveraenderlichkeit einer ohnehin wertlosen Angabe.
+  kill -0 "$pid_before"
 
   # Zweiter Daemon auf demselben Port — er MUSS scheitern.
   local b_status=0
   COCKPIT_DAEMON_PORT="${PORT}" COCKPIT_DAEMON_STATE_DIR="${STATE_DIR}" \
-    timeout 60 npx tsx .lavish/kit/daemon/server.ts \
+    timeout 60 ./node_modules/.bin/tsx .lavish/kit/daemon/server.ts \
     > "${BATS_TEST_TMPDIR}/B.log" 2>&1 || b_status=$?
   [ "$b_status" -ne 0 ]
 
@@ -123,7 +145,7 @@ wait_health() {
   local PIDFILE="${STATE_DIR}/cockpit-daemon.pid"
   local TOKENFILE="${STATE_DIR}/cockpit-daemon.token"
 
-  DAEMON_A_PID="$(start_daemon "${PORT}" "${BATS_TEST_TMPDIR}/C.log")"
+  start_daemon "${PORT}" "${BATS_TEST_TMPDIR}/C.log"
 
   # POSITIV-ANKER: die Dateien existieren ueberhaupt, bevor ihr Verschwinden
   # geprueft wird. Sonst bestuende "Datei ist weg" trivial.
@@ -131,7 +153,11 @@ wait_health() {
   [ -f "${PIDFILE}" ]
   [ -f "${TOKENFILE}" ]
 
-  kill -TERM "${DAEMON_A_PID}"
+  # Signal an die PID, die der Daemon selbst geschrieben hat — nicht an den
+  # npx/tsx-Wrapper. Genau dieser Prozess ist der Gegenstand.
+  local server_pid
+  server_pid="$(daemon_pid)"
+  kill -TERM "${server_pid}"
   local gone=0 _
   for _ in $(seq 1 40); do
     if [ ! -f "${PIDFILE}" ] && [ ! -f "${TOKENFILE}" ]; then
@@ -149,6 +175,18 @@ wait_health() {
 
   # Der Prozess ist wirklich beendet — ein Cleanup, der den Daemon am Leben
   # laesst, waere kein Cleanup.
-  run kill -0 "${DAEMON_A_PID}"
-  [ "$status" -ne 0 ]
+  #
+  # Gepollt statt sofort geprueft: cleanup() entfernt die Dateien und ruft
+  # DANACH process.exit(0). Zwischen beidem liegt ein kurzer Moment, in dem die
+  # Dateien schon weg sind und der Prozess noch lebt. Eine Sofortpruefung war
+  # deshalb isoliert gruen und im Sammellauf rot — also flaky, nicht falsch.
+  local dead=0 _
+  for _ in $(seq 1 40); do
+    if ! kill -0 "${server_pid}" 2>/dev/null; then
+      dead=1
+      break
+    fi
+    sleep 0.25
+  done
+  [ "$dead" -eq 1 ]
 }

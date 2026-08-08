@@ -36,7 +36,7 @@ Der Zuwachs liegt bei rund +25 Zeilen; kein Split nötig. Die `.bats`-Datei ist 
 
 ## p1 — Daemon
 
-- [ ] **Failing-Test-Step (RED).** Der Guard liegt bereits als
+- [x] **Failing-Test-Step (RED).** Der Guard liegt bereits als
       `tests/spec/sdlc-cockpit/daemon-runtime-files.bats` auf dem Branch. Vor der Implementierung
       ausführen und den roten Stand bestätigen. Beide Tests scheitern derzeit am Positiv-Anker
       `[ -f "${PIDFILE}" ]`, weil `COCKPIT_DAEMON_STATE_DIR` noch nicht beachtet wird.
@@ -46,7 +46,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/daemon-runtime-files.b
 # expected: FAIL (rot — State-Dir, Schreibzeitpunkt und Cleanup fehlen)
 ```
 
-- [ ] **`COCKPIT_DAEMON_STATE_DIR` einführen.** Verzeichnis aus der Umgebung lesen, Default `/tmp`,
+- [x] **`COCKPIT_DAEMON_STATE_DIR` einführen.** Verzeichnis aus der Umgebung lesen, Default `/tmp`,
       und daraus die beiden Dateipfade ableiten. Die Pfade werden anschließend nur noch über diese
       Konstanten verwendet — kein zweites Literal im Code.
 
@@ -59,7 +59,7 @@ const TOKEN_FILE = `${STATE_DIR}/cockpit-daemon.token`;
 const PID_FILE = `${STATE_DIR}/cockpit-daemon.pid`;
 ```
 
-- [ ] **Mutationsprobe (Zwischenschritt, nicht überspringen).** Nach dem State-Dir, aber VOR dem
+- [x] **Mutationsprobe (Zwischenschritt, nicht überspringen).** Nach dem State-Dir, aber VOR dem
       Verschieben der Schreibvorgänge, den Guard erneut laufen lassen. Test 1 muss **weiterhin rot**
       sein — jetzt aber an der eigentlichen Aussage (`[ "$(cat "${PIDFILE}")" = "$pid_before" ]`),
       nicht mehr am Positiv-Anker. Das belegt, dass der Test den Defekt misst und nicht bloß die
@@ -70,7 +70,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/daemon-runtime-files.b
 # expected: FAIL — Test 1 an der Zustandsgleichheit, nicht mehr an [ -f "${PIDFILE}" ]
 ```
 
-- [ ] **Schreibvorgänge in den `listen`-Callback verschieben.** Die beiden Aufrufe am
+- [x] **Schreibvorgänge in den `listen`-Callback verschieben.** Die beiden Aufrufe am
       Modul-Top-Level entfallen; sie stehen künftig neben der Startmeldung, die aus demselben
       Grund bereits dort steht (T002708). Den vorhandenen Kommentar mitnehmen und um den Grund
       ergänzen, warum „vor dem Serverstart" durch „im listen-Callback" erfüllt bleibt: der
@@ -91,7 +91,7 @@ const server = serve({ fetch: app.fetch, port: PORT, hostname: '127.0.0.1' }, (i
 });
 ```
 
-- [ ] **Cleanup beim Beenden.** Eine `cleanup()`-Funktion entfernt beide Dateien und wird an
+- [x] **Cleanup beim Beenden.** Eine `cleanup()`-Funktion entfernt beide Dateien und wird an
       `SIGINT`, `SIGTERM` und `exit` gehängt. Die Funktion MUSS vor dem Löschen prüfen, dass die
       PID-Datei die eigene PID enthält — sonst entfernt ein Prozess die Dateien eines fremden
       Daemons, also genau die Klasse von Fremdeingriff, gegen die dieses Ticket sich richtet.
@@ -114,19 +114,19 @@ process.on('SIGTERM', () => { cleanup(); process.exit(0); });
 process.on('exit', cleanup);
 ```
 
-- [ ] **Der `EADDRINUSE`-Pfad darf nichts aufräumen.** Der Handler aus T002708 beendet mit
+- [x] **Der `EADDRINUSE`-Pfad darf nichts aufräumen.** Der Handler aus T002708 beendet mit
       `process.exit(1)`, was `exit` und damit `cleanup()` auslöst. Da zu diesem Zeitpunkt keine
       Datei mit der eigenen PID existiert, greift der Ownership-Check und lässt den Zustand des
       laufenden Daemons unberührt. Diesen Zusammenhang im Code festhalten — er ist der Grund,
       warum der Check nicht optional ist.
 
-- [ ] **Token-Pfad in der Fehlermeldung nachziehen.** Die `EADDRINUSE`-Meldung und der
+- [x] **Token-Pfad in der Fehlermeldung nachziehen.** Die `EADDRINUSE`-Meldung und der
       Dateikopf-Kommentar (`Stop: kill $(cat /tmp/cockpit-daemon.pid)`) nennen feste `/tmp`-Pfade.
       Beide auf die Konstanten bzw. auf den Default mit Hinweis auf die Variable umstellen.
 
 ## p2 — Tests
 
-- [ ] **Guard grün fahren.** Beide Tests müssen bestehen, Test 1 einschließlich der
+- [x] **Guard grün fahren.** Beide Tests müssen bestehen, Test 1 einschließlich der
       HTTP-200-Assertion mit dem Token aus der Datei.
 
 ```bash
@@ -134,7 +134,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/daemon-runtime-files.b
 # expected: PASS
 ```
 
-- [ ] **Gesamte Cockpit-Suite grün fahren.** Beide Dateiformen erfassen (T002696) — insbesondere
+- [x] **Gesamte Cockpit-Suite grün fahren.** Beide Dateiformen erfassen (T002696) — insbesondere
       `daemon-runtime-contract.bats` und `daemon-token-mode.bats`, die den Token-Pfad ebenfalls
       berühren:
 
@@ -143,7 +143,7 @@ tests/unit/lib/bats-core/bin/bats -r tests/spec/sdlc-cockpit*
 # expected: PASS
 ```
 
-- [ ] **Realprobe ohne State-Dir.** Der Default-Pfad muss unverändert funktionieren — sonst bricht
+- [x] **Realprobe ohne State-Dir.** Der Default-Pfad muss unverändert funktionieren — sonst bricht
       der Adapter, der die Token-Datei unter `/tmp` erwartet:
 
 ```bash
@@ -155,7 +155,7 @@ test ! -f /tmp/cockpit-daemon.token && test ! -f /tmp/cockpit-daemon.pid && echo
 
 ## Verify
 
-- [ ] **Abschluss-Verifikation.** Die drei Pflicht-Gates laufen lassen:
+- [x] **Abschluss-Verifikation.** Die drei Pflicht-Gates laufen lassen:
 
 ```bash
 task test:changed
@@ -163,7 +163,7 @@ task freshness:regenerate
 task freshness:check
 ```
 
-- [ ] **TypeScript unter `strict` prüfen** — der Daemon hat eine eigene tsconfig und wird von
+- [x] **TypeScript unter `strict` prüfen** — der Daemon hat eine eigene tsconfig und wird von
       keinem CI-Job typgeprüft, ein Fehler fiele sonst erst zur Laufzeit auf:
 
 ```bash

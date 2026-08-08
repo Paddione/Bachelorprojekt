@@ -218,3 +218,7 @@ brain-worklist.txt
 scripts/ticket-mcp/go/ticket-mcp
 
 # Unsloth-Trainingsartefakte: siehe scripts/finetune/.gitignore [T002587]
+
+# Audit-Log des Cockpit-Daemons — Laufzeitartefakt, entsteht bei jedem Start
+# und bei jedem Testlauf gegen die Write-Endpunkte [T002721].
+audit.jsonl

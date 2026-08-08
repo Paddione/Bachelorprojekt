@@ -202,6 +202,7 @@ const data = (() => {
   // keine Quelle sie mehr hält.
   let pushEventSource = null;
   let pushEventSourceState = 'polling'; // 'polling' | 'live' | 'error'
+  let pushReconnectTimer = null;
   const pushDomainReloaders = {}; // domain -> Set<() => void>
   const pushDomainListeners = {}; // domain -> () => void
 
@@ -211,9 +212,20 @@ const data = (() => {
     }
   }
 
+  // Registrierte Domain-Listener an einem (neuen) EventSource nachtragen —
+  // beim Reconnect entsteht ein frisches EventSource, das die alten
+  // addEventListener-Bindungen nicht mehr kennt.
+  function attachDomainListeners() {
+    if (!pushEventSource) return;
+    for (const domain of Object.keys(pushDomainListeners)) {
+      pushEventSource.addEventListener(domain, pushDomainListeners[domain]);
+    }
+  }
+
   function ensurePushStream() {
     if (pushEventSource) return;
     pushEventSource = new EventSource('/sdlc/api/cockpit/stream');
+    pushEventSourceState = 'polling';
 
     pushEventSource.addEventListener('reconnect', () => {
       for (const domain of Object.keys(pushDomainReloaders)) {
@@ -222,7 +234,25 @@ const data = (() => {
     });
 
     pushEventSource.onopen = () => { pushEventSourceState = 'live'; };
-    pushEventSource.onerror = () => { pushEventSourceState = 'error'; };
+    pushEventSource.onerror = () => {
+      // Netzwerkfehler: Stream schliessen und nach 5s neu aufbauen (analog
+      // zur createStream-Logik unten). Ohne Reconnect bliebe der Push-Stream
+      // dauerhaft auf 'error' haengen — erst ein Page-Reload wuerde ihn
+      // reparieren.
+      pushEventSourceState = 'error';
+      if (pushEventSource) {
+        pushEventSource.close();
+        pushEventSource = null;
+      }
+      if (!pushReconnectTimer) {
+        pushReconnectTimer = setTimeout(() => {
+          pushReconnectTimer = null;
+          ensurePushStream();
+        }, 5000);
+      }
+    };
+
+    attachDomainListeners();
   }
 
   function registerDomainReload(domain, reload) {
@@ -231,10 +261,12 @@ const data = (() => {
       // Ein EventSource-Listener pro Domain, der alle Reloader im Set
       // benachrichtigt — verhindert O(N²)-Dispatching bei N Panels derselben
       // Quelle (ein addEventListener pro Panel wuerde jedes Event N-mal ueber
-      // das Set iterieren lassen).
+      // das Set iterieren lassen). Der Listener wird zentral gemerkt, damit
+      // er bei einem Reconnect auf das neue EventSource nachgezogen werden
+      // kann.
+      const listener = () => dispatchDomain(domain);
+      pushDomainListeners[domain] = listener;
       if (pushEventSource) {
-        const listener = () => dispatchDomain(domain);
-        pushDomainListeners[domain] = listener;
         pushEventSource.addEventListener(domain, listener);
       }
     }

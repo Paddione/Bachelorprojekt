@@ -41,10 +41,24 @@ Unbekannte Aktionen gelten als `irreversible`.
   Die separate Route `GET /sdlc/api/factory-control` (`factory-control.ts`)
   liefert den lesenden Zugriff.
 - `flux_reconcile`, `ci_rerun`:
-  Shell-Ausführung (`scripts/flux.sh`, `gh-axi`). Irreversible externe Effekte.
+  Externe API-Aufrufe statt Shell (C3, T002643 — die CLI-Tools sind nicht im
+  Container installiert): `flux_reconcile` pingt den Flux-Webhook-Receiver
+  (HMAC-SHA256-Signatur gegen `FLUX_WEBHOOK_TOKEN`, POST an
+  `FLUX_WEBHOOK_URL` — identisch zum `render-fleet-artifact`-Workflow);
+  `ci_rerun` ruft die GitHub REST API
+  (`POST /repos/Paddione/Bachelorprojekt/actions/runs/{id}/rerun-failed-jobs`)
+  mit `GITHUB_PAT`. Fehlt die jeweilige Env-Variable → 503. Irreversible
+  externe Effekte.
 - `ticket_stage_plan`, `ticket_release_hold`, `ticket_close`:
-  Shell-Ausführung (`scripts/ticket.sh`). `close` ist irreversibel (Ticket
-  geschlossen), die übrigen sind durch erneuten Aufruf revidierbar.
+  DB-Ausführung über `stageTicketPlan()`/`releaseTicketHold()`/`closeTicket()`
+  in `cockpit-db.ts` (kein Shell-Zugriff mehr; die Container haben weder
+  `scripts/ticket.sh` noch eine fleet-Kubeconfig). Die SQL-Semantik spiegelt
+  `stage-plan.sh`/`release-hold.sh`/`update-status.sh` (status=plan_staged,
+  FACTORY-PLAN-REF-Kommentar, scout/design/plan-Phase-Events,
+  execution_released-Flag, done/resolution/done_at, force-tick-Request).
+  Adressierung per Ticket-UUID `id` (wie `setTicketStatus`). `close` ist
+  irreversibel (Ticket geschlossen), die übrigen sind durch erneuten Aufruf
+  revidierbar.
 
 ## Gepollte Restmenge
 

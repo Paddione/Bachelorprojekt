@@ -3,15 +3,15 @@ import { getSession, isAdmin } from '../../../../lib/auth';
 import { pool } from '../../../../lib/website-db';
 import {
   setFeatureAction, batchMutate, updatePlanningRanks, reparentTicket,
+  stageTicketPlan, releaseTicketHold, closeTicket, isValidTicketId,
   BrandMismatchError, CycleError, NotFoundError,
 } from '../../../../lib/sdlc/tickets/cockpit-db';
 import { writeControl } from '../../../../lib/sdlc/factory-floor';
+import { createHmac } from 'node:crypto';
 import type { BatchMutation } from '../../../../lib/tickets/cockpit-types.ts';
-// Shell commands for irreversible / CLI-backed actions
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 
-const execAsync = promisify(exec);
+const GITHUB_REPO = 'Paddione/Bachelorprojekt';
+const GITHUB_API = 'https://api.github.com';
 
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
@@ -141,45 +141,85 @@ async function runAction(
       return { status: 200, body: { ok: true, action: 'release_slot', slotId, requestedAt } };
     }
 
-    // ---- Deploy / CI (irreversible — shell exec) ----
+    // ---- Deploy / CI (irreversible — external API) ----
+    // C3 (T002643): these no longer shell out to `flux` / `gh-axi` — the tools
+    // are not installed in the website container. flux_reconcile pings the
+    // Flux receiver (HMAC-authenticated webhook, same as render-fleet-artifact
+    // does); ci_rerun uses the GitHub REST API with GITHUB_PAT.
     case 'flux_reconcile': {
-      // Fleet cluster: reconcile the brand Kustomization with source sync.
-      // flux reconcile kustomization <name> [--with-source] [--context <ctx>]
+      // Fleet cluster: reconcile the brand Kustomization via the Flux
+      // webhook receiver (generic, token-authenticated). No shell, no CLI.
       const ksName = target || 'flux-website-mentolder';
-      const cmd = `flux reconcile kustomization ${ksName} --with-source --context fleet`;
-      const { stdout, stderr } = await execAsync(cmd, { timeout: 60_000 });
-      return { status: 200, body: { ok: true, action: 'flux_reconcile', stdout, stderr } };
+      if (!/^[a-z0-9-]+$/.test(ksName)) return { status: 400, body: { error: 'invalid kustomization name' } };
+      const webhookUrl = process.env.FLUX_WEBHOOK_URL ?? '';
+      const webhookToken = process.env.FLUX_WEBHOOK_TOKEN ?? '';
+      if (!webhookUrl) return { status: 503, body: { error: 'FLUX_WEBHOOK_URL not configured' } };
+      if (!webhookToken) return { status: 503, body: { error: 'FLUX_WEBHOOK_TOKEN not configured' } };
+      const payload = '{}';
+      const signature = `sha256=${createHmac('sha256', webhookToken).update(payload).digest('hex')}`;
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Signature': signature,
+        },
+        body: payload,
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        return { status: 502, body: { ok: false, action: 'flux_reconcile', ksName, status: res.status, body } };
+      }
+      return { status: 200, body: { ok: true, action: 'flux_reconcile', ksName } };
     }
     case 'ci_rerun': {
       const runId = target || String(body.runId || '');
-      if (!runId) return { status: 400, body: { error: 'runId required for ci_rerun' } };
-      const { stdout, stderr } = await execAsync(`gh-axi run rerun ${runId} --failed`, { timeout: 15_000 });
-      return { status: 200, body: { ok: true, action: 'ci_rerun', runId, stdout, stderr } };
+      if (!/^\d+$/.test(runId)) return { status: 400, body: { error: 'runId must be a numeric run id' } };
+      const pat = process.env.GITHUB_PAT ?? '';
+      if (!pat) return { status: 503, body: { error: 'GITHUB_PAT not configured' } };
+      // Rerun failed jobs of an Actions workflow run.
+      const res = await fetch(`${GITHUB_API}/repos/${GITHUB_REPO}/actions/runs/${runId}/rerun-failed-jobs`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${pat}`,
+          'Content-Type': 'application/json',
+        },
+        body: '{}',
+      });
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        return { status: 502, body: { ok: false, action: 'ci_rerun', runId, status: res.status, body } };
+      }
+      return { status: 200, body: { ok: true, action: 'ci_rerun', runId } };
     }
 
-    // ---- Ticket lifecycle (scripts/ticket.sh — reversible / irreversible) ----
+    // ---- Ticket lifecycle (DB-backed — C3) ----
+    // The scripts address tickets by external_id; the cockpit routes by UUID
+    // `id`. The DB functions resolve the same row.
     case 'ticket_stage_plan': {
       const ticketId = target || String(body.ticketId || '');
-      if (!ticketId) return { status: 400, body: { error: 'ticketId required' } };
+      if (!isValidTicketId(ticketId)) return { status: 400, body: { error: 'ticketId must be a valid ticket UUID' } };
       const plan = String(body.plan || '');
       const branch = String(body.branch || '');
-      const planArg = plan ? `--plan "${plan}"` : '';
-      const branchArg = branch ? `--branch "${branch}"` : '';
-      const { stdout, stderr } = await execAsync(`bash scripts/ticket.sh stage-plan ${ticketId} ${planArg} ${branchArg}`, { timeout: 15_000 });
-      return { status: 200, body: { ok: true, action: 'stage_plan', ticketId, stdout, stderr } };
+      if (!plan || !branch) return { status: 400, body: { error: 'plan and branch required for stage-plan' } };
+      const hold = body.hold === true;
+      const partials = Number.isInteger(body.partials) ? Number(body.partials) : 1;
+      const result = await stageTicketPlan(brand, ticketId, plan, branch, actor, { hold, partials });
+      return { status: 200, body: { action: 'stage_plan', ...result } };
     }
     case 'ticket_release_hold': {
       const ticketId = target || String(body.ticketId || '');
-      if (!ticketId) return { status: 400, body: { error: 'ticketId required' } };
-      const { stdout, stderr } = await execAsync(`bash scripts/ticket.sh release-hold ${ticketId}`, { timeout: 15_000 });
-      return { status: 200, body: { ok: true, action: 'release_hold', ticketId, stdout, stderr } };
+      if (!isValidTicketId(ticketId)) return { status: 400, body: { error: 'ticketId must be a valid ticket UUID' } };
+      const result = await releaseTicketHold(brand, ticketId, actor);
+      return { status: 200, body: { action: 'release_hold', ...result } };
     }
     case 'ticket_close': {
       const ticketId = target || String(body.ticketId || '');
-      if (!ticketId) return { status: 400, body: { error: 'ticketId required' } };
+      if (!isValidTicketId(ticketId)) return { status: 400, body: { error: 'ticketId must be a valid ticket UUID' } };
       const resolution = String(body.resolution || 'fixed');
-      const { stdout, stderr } = await execAsync(`bash scripts/ticket.sh update-status --id ${ticketId} --status done --resolution "${resolution}"`, { timeout: 15_000 });
-      return { status: 200, body: { ok: true, action: 'close', ticketId, stdout, stderr } };
+      if (!['fixed', 'shipped', 'obsolete'].includes(resolution)) return { status: 400, body: { error: 'invalid resolution' } };
+      const result = await closeTicket(brand, ticketId, resolution, actor);
+      return { status: 200, body: { action: 'close', ...result } };
     }
 
     default:
@@ -211,7 +251,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const result = await runAction(action, target, params, actor);
 
     // Audit: success
-    await writeAudit(actor, action, target ?? JSON.stringify(params), 'success', {
+    await writeAudit(actor, action, target ?? action, 'success', {
       status: result.status,
       ...(result.body as Record<string, unknown>),
     });
@@ -221,7 +261,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const message = err instanceof Error ? err.message : String(err);
 
     // Audit: failure — must be recorded per spec requirement
-    await writeAudit(actor, action, target ?? JSON.stringify(params), 'failure', {
+    await writeAudit(actor, action, target ?? action, 'failure', {
       error: message,
     });
 

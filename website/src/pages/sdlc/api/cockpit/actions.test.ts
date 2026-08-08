@@ -18,6 +18,10 @@ vi.mock('../../../../lib/sdlc/tickets/cockpit-db', () => ({
   batchMutate: vi.fn(async () => ({ ok: true, results: [] })),
   updatePlanningRanks: vi.fn(async () => ({ ok: true })),
   reparentTicket: vi.fn(async () => ({ ok: true })),
+  stageTicketPlan: vi.fn(async () => ({ ok: true, ticketId: 't', status: 'plan_staged' })),
+  releaseTicketHold: vi.fn(async () => ({ ok: true, ticketId: 't' })),
+  closeTicket: vi.fn(async () => ({ ok: true, ticketId: 't', from: 'in_review', to: 'done' })),
+  isValidTicketId: vi.fn((id: string) => /^[0-9a-f-]{36}$/i.test(id)),
   BrandMismatchError: class extends Error {},
   CycleError: class extends Error {},
   NotFoundError: class extends Error {},
@@ -42,6 +46,10 @@ const setFeatureAction = vi.mocked(cockpitDb.setFeatureAction);
 const batchMutate = vi.mocked(cockpitDb.batchMutate);
 const updatePlanningRanks = vi.mocked(cockpitDb.updatePlanningRanks);
 const reparentTicket = vi.mocked(cockpitDb.reparentTicket);
+const stageTicketPlan = vi.mocked(cockpitDb.stageTicketPlan);
+const releaseTicketHold = vi.mocked(cockpitDb.releaseTicketHold);
+const closeTicket = vi.mocked(cockpitDb.closeTicket);
+const isValidTicketId = vi.mocked(cockpitDb.isValidTicketId);
 const writeControl = vi.mocked(factoryFloor.writeControl);
 const poolQuery = vi.mocked(websiteDb.pool.query);
 
@@ -51,6 +59,10 @@ beforeEach(() => {
   batchMutate.mockResolvedValue({ ok: true, results: [] });
   updatePlanningRanks.mockResolvedValue({ ok: true });
   reparentTicket.mockResolvedValue({ ok: true });
+  stageTicketPlan.mockResolvedValue({ ok: true, ticketId: 't', status: 'plan_staged' });
+  releaseTicketHold.mockResolvedValue({ ok: true, ticketId: 't' });
+  closeTicket.mockResolvedValue({ ok: true, ticketId: 't', from: 'in_review', to: 'done' });
+  isValidTicketId.mockImplementation((id: string) => /^[0-9a-f-]{36}$/i.test(id));
   writeControl.mockResolvedValue(undefined);
 });
 
@@ -101,6 +113,63 @@ describe('POST /sdlc/api/cockpit/actions (Task 8)', () => {
     const res = await POST({ request: req('admin', { action: 'factory_tick' }) } as never);
     expect(res.status).toBe(200);
     expect(writeControl).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes ticket_stage_plan to stageTicketPlan (DB, no shell)', async () => {
+    const res = await POST({
+      request: req('admin', { action: 'ticket_stage_plan', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', plan: 'openspec/changes/foo/tasks.md', branch: 'feature/foo' }),
+    } as never);
+    expect(res.status).toBe(200);
+    expect(stageTicketPlan).toHaveBeenCalledTimes(1);
+    const [brand, ticketId, plan, branch, actor, opts] = vi.mocked(stageTicketPlan).mock.calls[0];
+    expect(brand).toBe('mentolder');
+    expect(ticketId).toBe('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    expect(plan).toContain('foo');
+    expect(branch).toContain('feature');
+    expect(actor).toBe('admin');
+    expect(opts).toEqual({ hold: false, partials: 1 });
+  });
+
+  it('rejects ticket_stage_plan with a non-UUID ticketId', async () => {
+    const res = await POST({
+      request: req('admin', { action: 'ticket_stage_plan', ticketId: 'T000123', plan: 'p.md', branch: 'b' }),
+    } as never);
+    expect(res.status).toBe(400);
+    expect(stageTicketPlan).not.toHaveBeenCalled();
+  });
+
+  it('rejects ticket_close with an invalid resolution', async () => {
+    const res = await POST({
+      request: req('admin', { action: 'ticket_close', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', resolution: 'whoops' }),
+    } as never);
+    expect(res.status).toBe(400);
+    expect(closeTicket).not.toHaveBeenCalled();
+  });
+
+  it('routes ticket_close to closeTicket', async () => {
+    const res = await POST({
+      request: req('admin', { action: 'ticket_close', ticketId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', resolution: 'shipped' }),
+    } as never);
+    expect(res.status).toBe(200);
+    expect(closeTicket).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(closeTicket).mock.calls[0][2]).toBe('shipped');
+  });
+
+  it('flux_reconcile returns 503 when FLUX_WEBHOOK_URL is missing', async () => {
+    delete process.env.FLUX_WEBHOOK_URL;
+    const res = await POST({ request: req('admin', { action: 'flux_reconcile' }) } as never);
+    expect(res.status).toBe(503);
+  });
+
+  it('flux_reconcile rejects an invalid kustomization name', async () => {
+    const res = await POST({ request: req('admin', { action: 'flux_reconcile', target: '../evil' }) } as never);
+    expect(res.status).toBe(400);
+  });
+
+  it('ci_rerun returns 503 when GITHUB_PAT is missing', async () => {
+    delete process.env.GITHUB_PAT;
+    const res = await POST({ request: req('admin', { action: 'ci_rerun', runId: '42' }) } as never);
+    expect(res.status).toBe(503);
   });
 
   // ---- Audit: success line ----

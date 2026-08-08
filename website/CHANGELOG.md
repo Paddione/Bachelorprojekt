@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.3...website-v1.256.4) (2026-08-08)
+
+
+### Bug Fixes
+
+* **tests:** guidance fix for coverage guard recommendations [T002718] ([#3878](https://github.com/Paddione/Bachelorprojekt/issues/3878)) ([dbd0239](https://github.com/Paddione/Bachelorprojekt/commit/dbd023969de8d7af97b080d62fa043bee08109ff))
+
 ## [1.256.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.2...website-v1.256.3) (2026-08-08)
 
 

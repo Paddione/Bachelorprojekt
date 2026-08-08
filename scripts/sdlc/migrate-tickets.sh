@@ -95,6 +95,44 @@ _counts_for() {
   _psql "$ctx" "$ns" -c "SELECT t || '|' || n FROM ($sql) q ORDER BY t"
 }
 
+# Port-Forward statt `kubectl exec`-Streaming.
+#
+# Gemessen 2026-08-08: ein Dump ueber `kubectl exec` brach reproduzierbar bei
+# ~5,8 MB ab — einmal als "i/o timeout", einmal als "unexpected EOF". Die Datei
+# trug dabei gueltige Magic-Bytes und ein lesbares Inhaltsverzeichnis, endete
+# aber mitten in der groessten Tabelle. `pg_restore -l` liest nur das TOC am
+# Dateianfang und meldet solche Archive faelschlich als in Ordnung; die
+# Unvollstaendigkeit zeigte sich erst beim Restore ("could not read from input
+# file: end of file").
+#
+# Der Port-Forward ist ein Datenkanal statt eines Terminal-Multiplex und traegt
+# grosse Transfers zuverlaessig. Er ist im Repo etabliert (website-Entwicklung
+# gegen 15432).
+_PF_PID=""
+_pf_stop() { [[ -n "$_PF_PID" ]] && kill "$_PF_PID" 2>/dev/null; _PF_PID=""; }
+
+# _pf_start <ctx> <ns> <lokaler-port> — oeffnet den Tunnel und wartet, bis er traegt.
+_pf_start() {
+  local ctx="$1" ns="$2" port="$3" i
+  kubectl port-forward -n "$ns" --context "$ctx" svc/shared-db "${port}:5432" \
+    >/dev/null 2>&1 &
+  _PF_PID=$!
+  for i in $(seq 1 30); do
+    (exec 3<>"/dev/tcp/127.0.0.1/${port}") 2>/dev/null && { exec 3>&- 3<&-; return 0; }
+    sleep 1
+  done
+  echo "ERROR: Port-Forward auf 127.0.0.1:${port} kam nicht hoch ($ctx/$ns)" >&2
+  _pf_stop
+  return 1
+}
+
+# Passwort der website-Rolle aus dem Secret des jeweiligen Clusters.
+_db_password() {
+  local ctx="$1" ns="$2"
+  kubectl get secret workspace-secrets -n "$ns" --context "$ctx" \
+    -o jsonpath='{.data.WEBSITE_DB_PASSWORD}' 2>/dev/null | base64 -d
+}
+
 _say_or_run() {
   if $DRY_RUN; then
     echo "[dry-run] $*"
@@ -176,14 +214,51 @@ cmd_dump() {
   # Zaehlung der Quelle koennte bereits abweichen.
   _counts_for "$SRC_CTX" "$SRC_NS" > "$counts"
 
-  kubectl exec -i "$pod" -n "$SRC_NS" --context "$SRC_CTX" -c postgres -- \
-    pg_dump -U "$DB_USER" -d "$DB" \
+  # -Fc (custom, komprimiert) statt Plain-SQL: der erste reale Lauf brach bei
+  # 5,8 MB Klartext mit "i/o timeout" auf der kubectl-exec-Verbindung zu fleet
+  # ab. Das komprimierte Format ist ein Bruchteil davon und traegt ausserdem
+  # einen pruefbaren Header — Plain-SQL laesst sich nur an seiner letzten Zeile
+  # erkennen, und genau die fehlte.
+  # --request-timeout=0 nimmt kubectl die eigene Frist; die Vollstaendigkeit
+  # sichert danach die Magic-Byte-Pruefung, nicht die Laufzeit.
+  local port="${SDLC_PF_PORT_SRC:-15433}"
+  trap '_pf_stop' RETURN
+  _pf_start "$SRC_CTX" "$SRC_NS" "$port" || return 1
+
+  PGPASSWORD="$(_db_password "$SRC_CTX" "$SRC_NS")" \
+  pg_dump -h 127.0.0.1 -p "$port" -U "$DB_USER" -d "$DB" \
       --schema=tickets \
       --exclude-table="tickets.$KEEP_ON_FLEET" \
-      --no-owner --no-privileges \
+      --no-owner --no-privileges -Fc \
     > "$dump"
+  _pf_stop
 
-  echo "Dump:     $dump ($(wc -l < "$dump") Zeilen SQL)"
+  # Ohne diese Pruefung bleibt ein abgebrochener Transfer als vermeintlicher
+  # Dump liegen: der `>`-Redirect legt die Datei an, bevor pg_dump ueberhaupt
+  # scheitern kann. Beim ersten realen Lauf entstand so eine 5,8-MB-Datei, die
+  # mitten in einem JSON-Feld endete. Derselbe Guard steht in
+  # scripts/sdlc/backup-tickets.sh — er fehlte hier.
+  local size; size=$(stat -c%s "$dump")
+  if [[ "$size" -lt 100 ]] || [[ "$(head -c5 "$dump")" != "PGDMP" ]]; then
+    echo "FATAL: Dump ist $size Bytes und kein gueltiges pg_dump-Archiv — Transfer abgebrochen." >&2
+    echo "       Unvollstaendige Datei entfernt: $dump" >&2
+    rm -f "$dump" "$counts"
+    return 1
+  fi
+  # `pg_restore -l` genuegt NICHT: es liest nur das Inhaltsverzeichnis am
+  # Dateianfang und meldete ein bei 5,8 MB abgeschnittenes Archiv als in
+  # Ordnung. Erst `--data-only -f /dev/null` laeuft die Datenbloecke bis zum
+  # Ende durch und faellt bei einem abgebrochenen Transfer mit "could not read
+  # from input file: end of file". Das ist der einzige Nachweis, der die
+  # Vollstaendigkeit wirklich belegt (verifiziert 2026-08-08).
+  if ! pg_restore --data-only -f /dev/null "$dump" >/dev/null 2>&1; then
+    echo "FATAL: Archiv ist unvollstaendig — der Transfer brach ab." >&2
+    echo "       Unvollstaendige Datei entfernt: $dump" >&2
+    rm -f "$dump" "$counts"
+    return 1
+  fi
+
+  echo "Dump:     $dump ($size Bytes, Archiv vollstaendig)"
   echo "Zaehlung: $counts ($(grep -c . < "$counts") Tabellen)"
   echo "$dump"
 }
@@ -203,11 +278,43 @@ cmd_restore() {
     return 0
   fi
 
+  # SICHERUNG ZUERST: dieser Befehl laesst das Zielschema fallen. Ein vertippter
+  # DST_CTX wuerde die Produktionsdaten loeschen, deshalb steht der Riegel vor
+  # jeder anderen Pruefung — auch vor dem Preflight, der selbst schon einen
+  # Cluster anspricht.
+  case "$DST_CTX" in
+    fleet|*prod*)
+      echo "FATAL: restore verweigert — DST_CTX='$DST_CTX' zeigt auf Produktion." >&2
+      echo "       Dieser Befehl laesst das Zielschema fallen und darf nur gegen" >&2
+      echo "       den lokalen SDLC-Cluster laufen." >&2
+      return 1 ;;
+  esac
+
   cmd_preflight >/dev/null || { cmd_preflight; return 1; }
 
+  # Das Zielschema wird VOR dem Restore fallen gelassen. Ohne das schlaegt der
+  # Restore fehl, und zwar irrefuehrend: E2 laesst `initTicketsSchema()` das
+  # lokale Schema bootstrappen, und dessen Stand weicht von fleet ab (gemessen
+  # 2026-08-08: `api_key_env` in factory_model_slots und `claimed_at` in
+  # provider_health fehlten lokal). pg_restore stolpert dann ueber bestehende
+  # Objekte, die COPYs laufen in Fremdschluesselverletzungen, und am Ende
+  # stehen leere Tabellen ohne erkennbaren Grund.
+  #
+  # Der Bestand geht dabei nicht verloren: der Preflight hat unmittelbar zuvor
+  # bestaetigt, dass ausser provider_config nichts drin steht, und die wird
+  # anschliessend per seed-provider-config neu angelegt.
+  #
   local pod; pod=$(_pod "$DST_CTX" "$DST_NS")
-  kubectl exec -i "$pod" -n "$DST_NS" --context "$DST_CTX" -c postgres -- \
-    psql -U "$DB_USER" -d "$DB" -v ON_ERROR_STOP=1 < "$dump" > /dev/null
+  echo "Lasse lokales tickets-Schema fallen (Ziel: $DST_CTX/$DST_NS) …"
+  _psql "$DST_CTX" "$DST_NS" -c 'DROP SCHEMA IF EXISTS tickets CASCADE' >/dev/null
+  # Custom-Format-Archiv (dump erzeugt -Fc), also pg_restore statt psql.
+  # --no-owner/--no-privileges spiegeln die Dump-Flags; ohne sie scheitert der
+  # Restore an Rollen, die es lokal nicht gibt.
+  kubectl exec -i "$pod" -n "$DST_NS" --context "$DST_CTX" -c postgres \
+    --request-timeout=0 -- \
+    pg_restore -U "$DB_USER" -d "$DB" --no-owner --no-privileges < "$dump" \
+    > /dev/null 2>&1 || true   # Einzelfehler (bereits vorhandene Objekte) sind
+                               # tolerierbar — massgeblich ist der Zeilenvergleich.
 
   echo "Restore abgeschlossen — vergleiche Zeilenzahlen:"
   _verify_counts "$counts"
@@ -264,7 +371,29 @@ cmd_seed_provider_config() {
 
   [[ -n "$ddl" ]] || { echo "ERROR: Struktur von $KEEP_ON_FLEET nicht ermittelbar" >&2; return 1; }
   _psql "$DST_CTX" "$DST_NS" -c "$ddl"
-  echo "Lokale tickets.$KEEP_ON_FLEET angelegt (leer — Inhalt ist bewusst unabhaengig von fleet)."
+
+  # Struktur allein genuegt nicht: ohne Provider-Zeilen findet die Factory kein
+  # Backend und jeder Tick bliebe stehen. Uebernommen werden deshalb die
+  # Factory-Tiers — aber NICHT die coaching-Zeilen: die gehoeren zur
+  # Geschaeftsfunktion, die auf fleet bleibt (D1). Genau darin liegt der
+  # Unterschied zu einer Kopie: dieselbe Struktur, bewusst anderer Inhalt.
+  local port="${SDLC_PF_PORT_SRC:-15433}"
+  trap '_pf_stop' RETURN
+  _pf_start "$SRC_CTX" "$SRC_NS" "$port" || return 1
+  local rows
+  rows=$(PGPASSWORD="$(_db_password "$SRC_CTX" "$SRC_NS")" \
+    pg_dump -h 127.0.0.1 -p "$port" -U "$DB_USER" -d "$DB" \
+      --table="tickets.$KEEP_ON_FLEET" --data-only --no-owner --no-privileges \
+      2>/dev/null | grep -v "^--" | grep -v "^$")
+  _pf_stop
+
+  # coaching-Zeilen aus dem COPY-Block entfernen, bevor er eingespielt wird.
+  printf '%s\n' "$rows" | grep -v $'\tcoaching\t' | grep -v '^coaching' \
+    | _psql "$DST_CTX" "$DST_NS" >/dev/null 2>&1 || true
+
+  local n
+  n=$(_psql "$DST_CTX" "$DST_NS" -c "SELECT count(*) FROM tickets.$KEEP_ON_FLEET")
+  echo "Lokale tickets.$KEEP_ON_FLEET angelegt: $n Zeile(n) (Factory-Tiers; coaching bleibt auf fleet)."
 }
 
 # --- freeze ------------------------------------------------------------------

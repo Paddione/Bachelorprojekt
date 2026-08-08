@@ -64,13 +64,20 @@ _passphrase() {
 # Kurzlebiger Pod mit backup-pvc-Mount. Es laeuft kein dauerhafter Ablage-Pod:
 # der Mount existiert nur fuer die Dauer der Uebertragung. Muster uebernommen
 # aus scripts/backup-restore-recovery.sh.
+# $1 = Kommando (JSON-String), $2 = Pod-/Containername.
+# Beide muessen uebereinstimmen: `kubectl run` benennt den Container nach dem
+# Pod, und weicht der Name in den Overrides ab, findet `-i` den Container nicht
+# und faellt auf Log-Streaming zurueck. Bei Textausgabe faellt das nicht auf,
+# bei einem Binaerstrom kommt die Datei beschaedigt an — genau daran scheiterte
+# der erste restore-check (T002626).
 _helper_overrides() {
+  local _name="${2:-sdlc-backup}"
   cat <<JSON
 {
   "spec": {
-    "securityContext": { "runAsNonRoot": true, "runAsUser": 65534, "fsGroup": 65534 },
+    "securityContext": { "runAsNonRoot": true, "runAsUser": 65534, "fsGroup": 65534, "seccompProfile": { "type": "RuntimeDefault" } },
     "containers": [{
-      "name": "sdlc-backup",
+      "name": "$_name",
       "image": "$HELPER_IMAGE",
       "stdin": true,
       "stdinOnce": true,
@@ -79,7 +86,8 @@ _helper_overrides() {
         "allowPrivilegeEscalation": false,
         "runAsNonRoot": true,
         "runAsUser": 65534,
-        "capabilities": { "drop": ["ALL"] }
+        "capabilities": { "drop": ["ALL"] },
+        "seccompProfile": { "type": "RuntimeDefault" }
       },
       "volumeMounts": [{ "name": "backup-storage", "mountPath": "/backups" }],
       "resources": {
@@ -128,15 +136,40 @@ cmd_run() {
     echo "FATAL: Dump ist $size Bytes und kein gueltiges pg_dump-Archiv." >&2
     return 1
   fi
+  # Magic-Bytes belegen nur den Anfang. Ein bei der Uebertragung abgebrochenes
+  # Archiv traegt sie ebenso und faellt erst beim Zurueckspielen auf — deshalb
+  # laeuft die Pruefung die Datenbloecke bis zum Ende durch (T002626, gemessen
+  # an einem bei 5,8 MB abgeschnittenen Dump, den `pg_restore -l` durchwinkte).
+  if ! pg_restore --data-only -f /dev/null "$tmp" >/dev/null 2>&1; then
+    echo "FATAL: Dump ist unvollstaendig — der Transfer brach ab." >&2
+    return 1
+  fi
 
   openssl enc -aes-256-cbc -pbkdf2 -in "$tmp" -out "$tmp.enc" -pass env:SDLC_BACKUP_PASS
   echo "Dump: $size Bytes, verschluesselt: $(stat -c%s "$tmp.enc") Bytes"
 
-  kubectl run "sdlc-backup-$stamp" \
+  # Pod-Namen brauchen RFC-1123-Kleinschreibung; der ISO-Zeitstempel traegt
+  # jedoch T und Z. Ohne die Umwandlung lehnt die API den Pod ab.
+  local podname="sdlc-backup-$(printf '%s' "$stamp" | tr '[:upper:]' '[:lower:]')"
+  local local_sum; local_sum="$(sha256sum "$tmp.enc" | cut -d" " -f1)"
+
+  # Die Pruefsumme wird IM Container neu gebildet und zurueckgegeben. Ein
+  # abgebrochener Upload faellt damit sofort auf, statt als vermeintliche
+  # Sicherung liegenzubleiben — dieselbe Lehre wie beim Dump selbst.
+  local remote_sum
+  remote_sum="$(kubectl run "$podname" \
     -n "$DST_NS" --context "$DST_CTX" \
     --image="$HELPER_IMAGE" --restart=Never --rm -i --quiet \
-    --overrides="$(_helper_overrides "\"mkdir -p $REMOTE_DIR && cat > $target && ls -l $target\"")" \
-    < "$tmp.enc"
+    --overrides="$(_helper_overrides "\"mkdir -p $REMOTE_DIR && cat > $target && sha256sum $target | cut -d\\\" \\\" -f1\"" "$podname")" \
+    < "$tmp.enc" 2>/dev/null | tr -d "\r" | tail -1)"
+
+  if [[ "$remote_sum" != "$local_sum" ]]; then
+    echo "FATAL: Pruefsumme nach der Uebertragung weicht ab." >&2
+    echo "  lokal:  $local_sum" >&2
+    echo "  auf fleet: ${remote_sum:-<leer>}" >&2
+    return 1
+  fi
+  echo "Pruefsumme bestaetigt: ${local_sum:0:16}…"
 
   cmd_prune
   echo "Sicherung abgelegt: $target"
@@ -147,15 +180,16 @@ cmd_prune() {
   if $DRY_RUN; then echo "[dry-run] $cmd"; return 0; fi
   kubectl run "sdlc-backup-prune-$(date -u +%s)" \
     -n "$DST_NS" --context "$DST_CTX" \
-    --image="$HELPER_IMAGE" --restart=Never --rm -i --quiet \
-    --overrides="$(_helper_overrides "\"$cmd\"")" < /dev/null || true
+    --image="$HELPER_IMAGE" --restart=Never --rm --quiet \
+    --overrides="$(_helper_overrides "\"$cmd\"")" >/dev/null 2>&1 || true
 }
 
 cmd_list() {
-  kubectl run "sdlc-backup-list-$(date -u +%s)" \
+  local listname="sdlc-backup-list-$(date -u +%s)"
+  kubectl run "$listname" \
     -n "$DST_NS" --context "$DST_CTX" \
     --image="$HELPER_IMAGE" --restart=Never --rm -i --quiet \
-    --overrides="$(_helper_overrides "\"ls -lh $REMOTE_DIR 2>/dev/null || echo '(noch keine Sicherung)'\"")" < /dev/null
+    --overrides="$(_helper_overrides "\"ls -lh $REMOTE_DIR 2>/dev/null || echo '(noch keine Sicherung)'\"" "$listname")" < /dev/null
 }
 
 # Ein Backup, das nie zurueckgespielt wurde, ist eine Vermutung (D6). Dieser
@@ -174,32 +208,62 @@ cmd_restore_check() {
   # shellcheck disable=SC2064
   trap "rm -f '$tmp' '$tmp.dump'" EXIT
 
-  kubectl run "sdlc-restore-fetch-$(date -u +%s)" \
+  # Den Dateinamen VORHER ermitteln und als festen Pfad uebergeben. Ihn im
+  # Container per $(ls …) zu bestimmen bedeutete, eine Kommandosubstitution
+  # durch Heredoc, JSON und zwei Shells zu escapen — das brach als
+  # "Invalid JSON Patch", ohne zu verraten, an welcher Stelle.
+  local lsname="sdlc-restore-ls-$(date -u +%s)"
+  local latest
+  latest="$(kubectl run "$lsname" \
     -n "$DST_NS" --context "$DST_CTX" \
     --image="$HELPER_IMAGE" --restart=Never --rm -i --quiet \
-    --overrides="$(_helper_overrides "\"cat \\\$(ls -1t $REMOTE_DIR/tickets-*.dump.enc | head -1)\"")" \
+    --overrides="$(_helper_overrides "\"ls -1t $REMOTE_DIR/tickets-*.dump.enc 2>/dev/null | head -1\"" "$lsname")" \
+    < /dev/null 2>/dev/null | tr -d '\r' | head -1)"
+  [[ -n "$latest" ]] || { echo "ERROR: keine Sicherung auf fleet gefunden" >&2; return 1; }
+  echo "Juengste Sicherung: $latest"
+
+  local fetchname="sdlc-restore-fetch-$(date -u +%s)"
+  kubectl run "$fetchname" \
+    -n "$DST_NS" --context "$DST_CTX" \
+    --image="$HELPER_IMAGE" --restart=Never --rm -i --quiet \
+    --overrides="$(_helper_overrides "\"cat $latest\"" "$fetchname")" \
     < /dev/null > "$tmp"
 
   [[ -s "$tmp" ]] || { echo "ERROR: keine Sicherung auf fleet gefunden" >&2; return 1; }
   openssl enc -d -aes-256-cbc -pbkdf2 -in "$tmp" -out "$tmp.dump" -pass env:SDLC_BACKUP_PASS
 
+  # Die Wegwerf-DB legt der Superuser an: die website-Rolle traegt kein
+  # CREATEDB ("permission denied to create database"). Eigentuemer wird
+  # trotzdem website, damit der Restore ohne Rechteproblem durchlaeuft.
   local checkdb="sdlc_restore_check"
   local pod; pod="$(_pod "$SRC_CTX" "$SRC_NS")"
   kubectl exec -i "$pod" -n "$SRC_NS" --context "$SRC_CTX" -c postgres -- \
-    psql -U "$DB_USER" -d postgres -v ON_ERROR_STOP=1 \
-    -c "DROP DATABASE IF EXISTS $checkdb" -c "CREATE DATABASE $checkdb"
+    psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+    -c "DROP DATABASE IF EXISTS $checkdb" -c "CREATE DATABASE $checkdb OWNER $DB_USER"
 
   kubectl exec -i "$pod" -n "$SRC_NS" --context "$SRC_CTX" -c postgres -- \
     pg_restore -U "$DB_USER" -d "$checkdb" --no-owner --no-privileges < "$tmp.dump" >/dev/null 2>&1 || true
 
   echo "== Zeilen in der wiederhergestellten Kopie =="
-  kubectl exec -i "$pod" -n "$SRC_NS" --context "$SRC_CTX" -c postgres -- \
+  local counts
+  counts="$(kubectl exec -i "$pod" -n "$SRC_NS" --context "$SRC_CTX" -c postgres -- \
     psql -U "$DB_USER" -d "$checkdb" -qtA -c \
-    "SELECT relname || '|' || n_live_tup FROM pg_stat_user_tables WHERE schemaname='tickets' ORDER BY relname"
+    "SELECT relname || '|' || n_live_tup FROM pg_stat_user_tables WHERE schemaname='tickets' ORDER BY relname" 2>/dev/null)"
+  printf '%s\n' "$counts" | sed 's/^/  /'
 
   kubectl exec -i "$pod" -n "$SRC_NS" --context "$SRC_CTX" -c postgres -- \
-    psql -U "$DB_USER" -d postgres -c "DROP DATABASE IF EXISTS $checkdb" >/dev/null
-  echo "Restore-Nachweis abgeschlossen (Wegwerf-DB wieder entfernt)."
+    psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS $checkdb" >/dev/null
+
+  # Ein leeres Ergebnis ist KEIN bestandener Nachweis. Ohne diesen Riegel
+  # meldete der Befehl "abgeschlossen", obwohl der Download leer war und gar
+  # nichts eingespielt wurde — ein vakuos gruener Test ist schlimmer als
+  # keiner, weil er Sicherheit vortaeuscht (vgl. T002356-M1).
+  if [[ -z "${counts//[[:space:]]/}" ]]; then
+    echo "FEHLER: die wiederhergestellte Kopie ist leer — der Nachweis ist NICHT erbracht." >&2
+    echo "        Ursache pruefen: kam die Datei vollstaendig an? (kubectl-Attach-Problem)" >&2
+    return 1
+  fi
+  echo "Restore-Nachweis erbracht (Wegwerf-DB wieder entfernt)."
 }
 
 CMD=""

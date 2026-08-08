@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.7...website-v1.254.8) (2026-08-08)
+
+
+### Bug Fixes
+
+* **website:** Cockpit-Daemon-Laufzeitdateien erst nach dem Bind schreiben [T002721] ([#3853](https://github.com/Paddione/Bachelorprojekt/issues/3853)) ([b7f6685](https://github.com/Paddione/Bachelorprojekt/commit/b7f66851a3ce39c132332c36ce9981615c8a894c))
+
 ## [1.254.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.6...website-v1.254.7) (2026-08-08)
 
 

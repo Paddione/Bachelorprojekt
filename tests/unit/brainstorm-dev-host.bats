@@ -18,7 +18,7 @@ setup() {
   export PROD_OVERLAY="${PROJECT_DIR}/prod-mentolder"
   export FLEET_OVERLAY="${PROJECT_DIR}/prod-fleet/mentolder"
   export DEV_SISH="${PROJECT_DIR}/k3d/dev-stack/sish.yaml"
-  export BRAINSTORM_TASKFILE="${PROJECT_DIR}/Taskfile.brainstorm.yml"
+  export BRAINSTORM_TASKFILE="${PROJECT_DIR}/taskfiles/Taskfile.brainstorm.yml"
 }
 
 @test "prod-mentolder no longer ships a dedicated brainstorm-sish manifest" {

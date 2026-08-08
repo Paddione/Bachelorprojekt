@@ -25,7 +25,7 @@ teardown() { _sf_teardown; }
 WAKEUP="${BATS_TEST_DIRNAME}/../../../scripts/factory/wakeup.sh"
 SERVICE="${BATS_TEST_DIRNAME}/../../../scripts/factory/factory.service"
 TIMER="${BATS_TEST_DIRNAME}/../../../scripts/factory/factory.timer"
-TASKFILE="${BATS_TEST_DIRNAME}/../../../Taskfile.factory.yml"
+TASKFILE="${BATS_TEST_DIRNAME}/../../../taskfiles/Taskfile.factory.yml"
 
 @test "FA-SF-41: wakeup.sh exists and is bash -n clean" {
   [ -f "$WAKEUP" ]

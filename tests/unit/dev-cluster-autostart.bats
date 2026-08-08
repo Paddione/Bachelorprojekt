@@ -59,6 +59,6 @@ SCRIPT="${PROJECT_DIR}/scripts/dev-cluster-autostart.sh"
 }
 
 @test "dev Taskfile exposes a cluster:autostart task" {
-  run grep -qE '^[[:space:]]*cluster:autostart:' "${PROJECT_DIR}/Taskfile.dev-stack.yml"
+  run grep -qE '^[[:space:]]*cluster:autostart:' "${PROJECT_DIR}/taskfiles/Taskfile.dev-stack.yml"
   assert_success
 }

@@ -19,7 +19,7 @@
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   UNIT="${REPO_ROOT}/scripts/llm-proxy/llm-proxy.service"
-  TASKFILE="${REPO_ROOT}/Taskfile.llm.yml"
+  TASKFILE="${REPO_ROOT}/taskfiles/Taskfile.llm.yml"
   TMP="$(mktemp -d)"
 }
 

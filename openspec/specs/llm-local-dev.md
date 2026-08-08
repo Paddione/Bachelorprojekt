@@ -178,7 +178,7 @@ to a single value rather than a repeated literal.
 The system SHALL provide a `Taskfile.openclaw.yml` that is valid YAML and can be parsed without errors.
 
 #### Scenario: Syntaxprüfung des OpenClaw-Taskfiles *(BATS)*
-- **GIVEN** das Repository ist ausgecheckt und `Taskfile.openclaw.yml` existiert im Wurzelverzeichnis
+- **GIVEN** das Repository ist ausgecheckt und `taskfiles/Taskfile.openclaw.yml` existiert
 - **WHEN** Python mit `yaml.safe_load` die Datei einliest
 - **THEN** der Prozess endet mit Exit-Code 0 ohne Fehler
 

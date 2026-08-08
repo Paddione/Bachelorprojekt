@@ -59,7 +59,7 @@ load test_helper
 @test "Taskfile.dev-stack.yml build:website kills stale docker builds before starting" {
   # When a previous SSH session times out (20m), docker build keeps running
   # on k3s-1. The next push starts a second concurrent build -> OOM.
-  local taskfile="${PROJECT_DIR}/Taskfile.dev-stack.yml"
+  local taskfile="${PROJECT_DIR}/taskfiles/Taskfile.dev-stack.yml"
   [[ -f "$taskfile" ]] || fail "Taskfile.dev-stack.yml not found"
 
   # The build:website task must contain a stale-process cleanup before docker build.

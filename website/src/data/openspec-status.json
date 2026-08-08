@@ -2585,8 +2585,8 @@
   ],
   "T002699": [
     {
-      "slug": "deploy-dead-node-affinity",
-      "status": "plan_staged"
+      "slug": "2026-08-08-deploy-dead-node-affinity",
+      "status": "archived"
     }
   ],
   "TBD": [

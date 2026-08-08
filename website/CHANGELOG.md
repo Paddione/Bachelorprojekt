@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.251.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.4...website-v1.251.5) (2026-08-08)
+
+
+### Bug Fixes
+
+* **website:** OIDC-Discovery-Pfad in probeProvider korrigieren [T002680] ([#3807](https://github.com/Paddione/Bachelorprojekt/issues/3807)) ([a1e728e](https://github.com/Paddione/Bachelorprojekt/commit/a1e728ef34d40ac33ae0addd71c167a38f89212a))
+
 ## [1.251.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.3...website-v1.251.4) (2026-08-04)
 
 

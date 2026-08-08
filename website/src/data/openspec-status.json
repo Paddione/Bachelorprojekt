@@ -2621,8 +2621,8 @@
   ],
   "T002724": [
     {
-      "slug": "cockpit-daemon-test-no-leak",
-      "status": "plan_staged"
+      "slug": "2026-08-08-cockpit-daemon-test-no-leak",
+      "status": "archived"
     }
   ],
   "TBD": [

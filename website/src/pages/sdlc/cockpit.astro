@@ -209,12 +209,13 @@ const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
       </div>
     </main>
   </div>
-  <script is:inline>
+  <script>
     // T002643 Task 9: cockpit action helper — uses the action-policy for
     // confirmation grading and the adapter for the bundled POST endpoint.
     // No fetch() directly in the page (E1).
+    import { browserLogger } from '$lib/browser-logger';
 
-    function cockpitAct(action, target) {
+    function cockpitAct(action: string, target?: string) {
       try {
         const prompt = window.actionPolicy.confirmationFor(action, target);
         if (prompt !== null) {
@@ -226,16 +227,20 @@ const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
       } catch (e) {
         // confirmationFor throws for irreversible without target —
         // this button should not have been rendered. Log and abort.
-        console.error('[cockpit] action blocked:', e.message);
+        browserLogger.error('[cockpit] action blocked: ' + (e as Error).message);
         return;
       }
 
       window.data.performAction(action, target ? { target } : {}).then((r) => {
-        if (!r.ok && r.error) console.error('[cockpit]', action, 'failed:', r.error);
+        if (!r.ok && r.error) browserLogger.error('[cockpit] ' + action + ' failed: ' + r.error);
       }).catch((e) => {
-        console.error('[cockpit]', action, 'error:', e);
+        browserLogger.error({ err: e }, '[cockpit] ' + action + ' error');
       });
     }
+
+    // Buttons rufen cockpitAct per globalem onclick auf — explizit
+    // auf window exponieren (Modul-Script, kein is:inline).
+    window.cockpitAct = cockpitAct;
 
     // Header: bind stream state indicator
     (function updateHeader() {

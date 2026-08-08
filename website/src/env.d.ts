@@ -69,3 +69,17 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
+// Globals from the .lavish/kit scripts (SSOT .lavish/kit/adapter.js,
+// .lavish/kit/action-policy.js), served statically under /cockpit/kit/.
+// Ambient script file — merged into the global Window scope.
+interface Window {
+  data: {
+    performAction: (action: string, body?: Record<string, unknown>) => Promise<{ ok: boolean; error?: string }>;
+    streamState: () => 'live' | 'polling' | 'error';
+  };
+  actionPolicy: {
+    confirmationFor: (action: string, target?: string) => { level: 'simple' | 'named'; target?: string } | null;
+  };
+  cockpitAct: (action: string, target?: string) => void;
+}
+

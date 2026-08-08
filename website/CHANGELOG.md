@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.2...website-v1.256.3) (2026-08-08)
+
+
+### Bug Fixes
+
+* **db:** fleet-Ticketsequenz in getrennten Nummernraum — split-sequence, restore-Kopplung, status [T002731] ([#3875](https://github.com/Paddione/Bachelorprojekt/issues/3875)) ([914bd3b](https://github.com/Paddione/Bachelorprojekt/commit/914bd3b6b3ad8bb259769ca5f0be32c3b7b7ee4b))
+
 ## [1.256.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.1...website-v1.256.2) (2026-08-08)
 
 

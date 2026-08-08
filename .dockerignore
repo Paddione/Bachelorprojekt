@@ -1,37 +1,28 @@
 # Exclude large directories not needed for Docker build
 website/node_modules
-mentolder-web/node_modules
-website/dist
-website/.env
+mentolder-web/node_modules  # runtime: npm install
+website/dist                # runtime: astro build
+website/.env                # runtime: local env file
 website/.env.*
 !website/.env.example
 
 # Exclude non-essential top-level dirs to keep build context lean
 .git
 .github
-argocd
-docs-site
 environments/.secrets
 environments/sealed-secrets
 environments/certs
 prod
 prod-mentolder
 prod-korczewski
-deploy
 scripts
 !scripts/knowledge
-whisper
 brett
-korczewski-website
-vault-exports
-billing-bot
 docker
 wireguard
-memory
-mcp-browser
 
 # Exclude test artifacts that don't belong in the runtime image
-tests/e2e/node_modules
-tests/e2e/test-results
-tests/results
+tests/e2e/node_modules      # runtime: npm install
+tests/e2e/test-results      # runtime: playwright test
+tests/results               # runtime: test run
 tests/unit/lib

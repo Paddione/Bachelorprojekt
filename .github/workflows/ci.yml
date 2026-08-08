@@ -157,7 +157,7 @@ jobs:
       # downloads it. On hit, it's already in /usr/local/bin.
       - name: Cache kubectl binary
         id: cache-kubectl
-        uses: actions/cache@v7
+        uses: actions/cache@v4
         with:
           path: /usr/local/bin/kubectl
           key: kubectl-v1.31.0-linux-amd64
@@ -412,7 +412,7 @@ jobs:
       # and the following step uses it directly.
       - name: Cache gitleaks binary
         id: cache-gitleaks
-        uses: actions/cache@v7
+        uses: actions/cache@v4
         with:
           path: /usr/local/bin/gitleaks
           key: gitleaks-v8.18.2-linux-amd64

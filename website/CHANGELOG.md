@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.4...website-v1.256.5) (2026-08-08)
+
+
+### Bug Fixes
+
+* immutable flux artifact versioning and image digest pinning [T002706] ([#3877](https://github.com/Paddione/Bachelorprojekt/issues/3877)) ([c8d6113](https://github.com/Paddione/Bachelorprojekt/commit/c8d6113664cdb94a0e78cec2849f0f246809b2f7))
+
 ## [1.256.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.3...website-v1.256.4) (2026-08-08)
 
 

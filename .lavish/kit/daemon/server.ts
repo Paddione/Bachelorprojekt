@@ -1,6 +1,8 @@
 // server.ts — SDLC Cockpit Daemon (K2)
 // Start: npx tsx .lavish/kit/daemon/server.ts
 // Stop:  kill $(cat /tmp/cockpit-daemon.pid)
+//        Das Verzeichnis der Laufzeitdateien ist per COCKPIT_DAEMON_STATE_DIR
+//        umstellbar (Default /tmp); der Daemon entfernt sie beim Beenden.
 
 import fs from 'node:fs';
 import { Hono } from 'hono';
@@ -28,13 +30,16 @@ import { agentStreamHandler, factoryStreamHandler } from './routes/stream';
 // in den "IANA-dynamic range" zurueckziehen will — genau diese Begruendung stand
 // hinter dem alten 49152 — liest zuerst T002708.
 const PORT = parseInt(process.env.COCKPIT_DAEMON_PORT || '39152', 10);
+
+// Umstellbar, damit Tests nicht den Zustand eines echten Entwickler-Daemons
+// ueberschreiben [T002721]. Ohne das waere der Cleanup-Test selbst die
+// Schadensquelle, gegen die er sich richtet: er wuerde /tmp/cockpit-daemon.*
+// eines laufenden Daemons loeschen.
+const STATE_DIR = process.env.COCKPIT_DAEMON_STATE_DIR || '/tmp';
+const TOKEN_FILE = `${STATE_DIR}/cockpit-daemon.token`;
+const PID_FILE = `${STATE_DIR}/cockpit-daemon.pid`;
+
 const token = generateToken();
-
-// Write token file with tight permissions BEFORE starting server
-writeTokenFile('/tmp/cockpit-daemon.token', token);
-
-// Write PID file
-fs.writeFileSync('/tmp/cockpit-daemon.pid', String(process.pid));
 
 const app = new Hono();
 
@@ -133,10 +138,51 @@ app.get('/health', (c) => c.json({
 // diesem Port — ein Bild, das wie ein doppelter bind() im selben Prozess
 // aussieht und die Fehlersuche in T002708 zunaechst genau dorthin geschickt hat.
 const server = serve({ fetch: app.fetch, port: PORT, hostname: '127.0.0.1' }, (info) => {
+  // Erst JETZT schreiben [T002721]. Vorher standen diese beiden Zeilen am
+  // Modul-Top-Level — ein Prozess, der nie ein Socket bekam, hinterliess damit
+  // trotzdem seine Spuren und ueberschrieb den Zustand eines LAUFENDEN Daemons:
+  // die PID-Datei zeigte danach auf den toten Fehlstart, und das rotierte Token
+  // wurde vom lebenden Daemon mit HTTP 401 abgelehnt.
+  //
+  // Die urspruengliche Anforderung ("Token mit 0600 schreiben, BEVOR der Server
+  // bedient") bleibt erfuellt: dieser Callback laeuft beim 'listening'-Event,
+  // also bevor die erste Anfrage angenommen und verarbeitet wird.
+  writeTokenFile(TOKEN_FILE, token);
+  fs.writeFileSync(PID_FILE, String(process.pid));
+
   console.log(`[cockpit-daemon] listening on http://127.0.0.1:${info.port}`);
-  console.log(`[cockpit-daemon] token at /tmp/cockpit-daemon.token (0600)`);
+  console.log(`[cockpit-daemon] token at ${TOKEN_FILE} (0600)`);
   console.log(`[cockpit-daemon] pid ${process.pid}`);
 });
+
+// Beim Beenden nichts zuruecklassen, das einen laufenden Daemon vortaeuscht
+// [T002721]. Verwaiste Dateien entstehen auch ohne zweiten Start: nach jedem
+// kill blieben PID- und Token-Datei bisher liegen und zeigten auf einen toten
+// Prozess.
+//
+// Der Ownership-Check ist nicht kosmetisch, sondern der Kern dieser Funktion.
+// Der EADDRINUSE-Handler unten beendet mit process.exit(1) und loest damit
+// 'exit' aus — ohne die Pruefung wuerde ausgerechnet der gescheiterte Start die
+// Dateien des LAUFENDEN Daemons loeschen und damit denselben Fremdeingriff
+// wiederholen, gegen den diese Aenderung sich richtet, nur mit umgekehrtem
+// Vorzeichen. Geloescht wird deshalb nur, was diese Prozess-ID traegt.
+let cleanedUp = false;
+function cleanup(): void {
+  if (cleanedUp) { return; }   // 'exit' feuert nach SIGINT/SIGTERM erneut
+  cleanedUp = true;
+  try {
+    if (fs.readFileSync(PID_FILE, 'utf8').trim() !== String(process.pid)) { return; }
+    fs.rmSync(PID_FILE, { force: true });
+    fs.rmSync(TOKEN_FILE, { force: true });
+  } catch {
+    // Fehlende oder unlesbare PID-Datei heisst: hier gibt es nichts von uns
+    // aufzuraeumen. Ein Fehler im Cleanup darf den Shutdown nicht aufhalten.
+  }
+}
+
+process.on('SIGINT', () => { cleanup(); process.exit(0); });
+process.on('SIGTERM', () => { cleanup(); process.exit(0); });
+process.on('exit', cleanup);
 
 // Ein belegter oder reservierter Port ist ein Bedienfehler, kein Programmfehler —
 // er verdient eine Anweisung statt eines Stacktraces. Alle anderen Fehler werden
@@ -146,7 +192,7 @@ server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code !== 'EADDRINUSE') { throw err; }
   console.error(
     `[cockpit-daemon] FEHLER: Port ${PORT} auf 127.0.0.1 ist belegt oder reserviert (EADDRINUSE).\n` +
-    `  Laeuft bereits ein Daemon?      ss -ltnp | grep ${PORT}\n` +
+    `  Laeuft bereits ein Daemon?      cat ${PID_FILE}  bzw.  ss -ltnp | grep ${PORT}\n` +
     `  Auf WSL2 kann der Port auch OHNE Lauscher reserviert sein:\n` +
     `    netsh.exe interface ipv4 show excludedportrange protocol=tcp\n` +
     `  Anderen Port waehlen:           COCKPIT_DAEMON_PORT=<frei> npx tsx .lavish/kit/daemon/server.ts`

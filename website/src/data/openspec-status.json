@@ -2613,6 +2613,12 @@
       "status": "archived"
     }
   ],
+  "T002721": [
+    {
+      "slug": "cockpit-daemon-runtime-files",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

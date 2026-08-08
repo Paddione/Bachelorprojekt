@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 820,
+      "file_count": 821,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -475,6 +475,7 @@
         "tests/spec/local-llm-proxy/helpers/llm-endpoint.bash",
         "tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats",
         "tests/spec/local-llm-proxy/loadout-env-property.bats",
+        "tests/spec/local-llm-proxy/loadout-model-files-exist.bats",
         "tests/spec/local-llm-proxy/loadouts-format.bats",
         "tests/spec/local-llm-proxy/model-path-large-file.bats",
         "tests/spec/local-llm-proxy/opencode-agent-model-drift.bats",
@@ -3185,7 +3186,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 671,
+      "file_count": 672,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3652,6 +3653,7 @@
         "scripts/llm/start-gemma-server.ps1",
         "scripts/llm/start-gptoss-server.ps1",
         "scripts/llm/templates/gemma2-tools.jinja",
+        "scripts/llm/templates/gemma4-26b-tools.jinja",
         "scripts/llm/ui-config-seed.mjs",
         "scripts/llm/ui-config-seed.test.mjs",
         "scripts/llm/ui-config.template.json",

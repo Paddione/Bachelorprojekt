@@ -55,6 +55,8 @@ const data = (() => {
 
   // Poll registry: maps handle → { intervalId, paused, refreshMs }
   const polls = new Map();
+  // Push registry (T002643): maps handle → { domain, reload, controller }
+  const pushHandles = new Map();
   let nextHandle = 1;
   let visibilityPaused = false;
 
@@ -193,9 +195,125 @@ const data = (() => {
     };
   }
 
+  // ---- Push handler (T002643 Task 6) ----
+  // Genau EIN EventSource für alle push-versorgten Quellen — Browser begrenzen
+  // die gleichzeitigen Verbindungen pro Ursprung, und das Cockpit zeigt sechs
+  // Panels. Die Referenzzählung teilt die Verbindung und baut sie ab, wenn
+  // keine Quelle sie mehr hält.
+  let pushEventSource = null;
+  let pushEventSourceState = 'polling'; // 'polling' | 'live' | 'error'
+  const pushDomainReloaders = {}; // domain -> Set<() => void>
+
+  function ensurePushStream() {
+    if (pushEventSource) return;
+    pushEventSource = new EventSource('/sdlc/api/cockpit/stream');
+
+    pushEventSource.addEventListener('reconnect', () => {
+      for (const reloaders of Object.values(pushDomainReloaders)) {
+        for (const fn of reloaders) { try { fn(); } catch {} }
+      }
+    });
+
+    pushEventSource.onopen = () => { pushEventSourceState = 'live'; };
+    pushEventSource.onerror = () => { pushEventSourceState = 'error'; };
+  }
+
+  function registerDomainReload(domain, reload) {
+    if (!pushDomainReloaders[domain]) pushDomainReloaders[domain] = new Set();
+    pushDomainReloaders[domain].add(reload);
+
+    if (pushEventSource) {
+      pushEventSource.addEventListener(domain, () => {
+        for (const fn of pushDomainReloaders[domain] || []) {
+          try { fn(); } catch {}
+        }
+      });
+    }
+  }
+
+  function releaseDomainReload(domain, reload) {
+    if (!pushDomainReloaders[domain]) return;
+    pushDomainReloaders[domain].delete(reload);
+    if (pushDomainReloaders[domain].size === 0) {
+      delete pushDomainReloaders[domain];
+    }
+  }
+
+  function createPush(key, domain, query = '') {
+    let lastData = null;
+    let lastFetchedAt = null;
+    let error = null;
+    let staleSince = null;
+    let listeners = [];
+
+    const handle = nextHandle++;
+
+    const reload = async () => {
+      try {
+        const result = await fetchEndpoint(key, { query });
+        lastFetchedAt = result.fetchedAt;
+
+        if (result.error) {
+          error = result.error;
+          if (!staleSince) staleSince = lastFetchedAt;
+          if (lastData) {
+            lastData = { ...lastData, error, staleSince, fetchedAt: lastFetchedAt };
+          } else {
+            lastData = { error, staleSince, fetchedAt: lastFetchedAt };
+          }
+        } else {
+          error = null;
+          staleSince = null;
+          lastData = { ...result, fetchedAt: lastFetchedAt };
+        }
+      } catch (e) {
+        error = `Push reload failed: ${e.message}`;
+        if (!staleSince) staleSince = new Date().toISOString();
+      }
+
+      for (const fn of listeners) {
+        try { fn(lastData); } catch {}
+      }
+    };
+
+    // Initial load
+    reload();
+
+    // Register for domain events
+    ensurePushStream();
+    registerDomainReload(domain, reload);
+
+    pushHandles.set(handle, { domain, reload, controller: { fetchNow: reload, getLastData: () => lastData } });
+
+    return {
+      _handle: handle,
+      pushed: true,
+      get data() { return lastData; },
+      subscribe: (fn) => {
+        listeners.push(fn);
+        if (lastData) fn(lastData);
+        return () => {
+          listeners = listeners.filter(l => l !== fn);
+        };
+      },
+    };
+  }
+
+  function streamState() {
+    return pushEventSourceState;
+  }
+
   // ---- Unsubscribe ----
   function unsubscribe(handleObj) {
     if (!handleObj || !handleObj._handle) return;
+    // Push handle
+    const pushH = pushHandles.get(handleObj._handle);
+    if (pushH) {
+      releaseDomainReload(pushH.domain, pushH.reload);
+      pushHandles.delete(handleObj._handle);
+      return;
+    }
+    // Poll handle
     const poll = polls.get(handleObj._handle);
     if (poll) {
       if (poll.intervalId) clearInterval(poll.intervalId);
@@ -268,7 +386,8 @@ const data = (() => {
 
   /** @param {{ refreshMs?: number }} [opts] */
   function tickets(opts) {
-    return createPoll('portfolio', 300000, `brand=${brand}`)(opts?.refreshMs);
+    // refreshMs accepted and ignored — push delivers on notification, not on timer (D10).
+    return createPush('portfolio', 'tickets', `brand=${brand}`)(opts?.refreshMs);
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
@@ -278,21 +397,27 @@ const data = (() => {
 
   /** @param {{ refreshMs?: number }} [opts] */
   function ci(opts) {
+    // Bleibt gepollt — CI-Läufe kommen von GitHub, haben keine Postgres-Quelle.
+    // Kein NOTIFY möglich.
     return createPoll('ci', 120000)(opts?.refreshMs);
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
   function cluster(opts) {
+    // Bleibt gepollt — Pod-Zustände kommen von kubectl, haben keine Postgres-Quelle.
+    // Kein NOTIFY möglich.
     return createPoll('pods-list', 30000, 'namespace=workspace')(opts?.refreshMs);
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
   function factory(opts) {
-    return createPoll('factory-control', 60000)(opts?.refreshMs);
+    return createPush('factory-control', 'factory')(opts?.refreshMs);
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
   function models(opts) {
+    // Bleibt gepollt — Modell-Gesundheit kommt von Ollama, hat keine Postgres-Quelle.
+    // Kein NOTIFY möglich.
     return createPoll('models', 30000)(opts?.refreshMs);
   }
 
@@ -403,7 +528,7 @@ const data = (() => {
    * @param {{ refreshMs?: number }} [opts]
    */
   function audit(opts) {
-    return createPoll('audit', 30000)(opts?.refreshMs);
+    return createPush('audit', 'audit')(opts?.refreshMs);
   }
 
   return {
@@ -423,6 +548,7 @@ const data = (() => {
     audit,
     resolveEndpoint,
     unsubscribe,
+    streamState,
   };
 })();
 

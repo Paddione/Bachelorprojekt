@@ -51,7 +51,7 @@ Die drei Punkte, an denen dieser Vorgang typischerweise falsch umgesetzt wird:
 
 ## Tasks
 
-- [ ] **RED bestaetigen.** Der Test liegt bereits im Branch. Erwartet sind 3 rote von 4;
+- [x] **RED bestaetigen.** Der Test liegt bereits im Branch. Erwartet sind 3 rote von 4;
       der gruene ist der Positiv-Anker (`on_premises` laeuft durch — heute mangels Guard
       trivial). Der aussagekraeftigste Fehlschlag ist der letzte: er meldet
       `ECONNREFUSED` statt einer Residenz-Ablehnung und belegt damit, dass der Netzaufruf
@@ -62,7 +62,7 @@ cd website && npx vitest run src/lib/coaching-data-residency.test.ts
 # expected: FAIL (rot — weder dataResidency im Provider-Typ noch ein Guard)
 ```
 
-- [ ] **Migration schreiben.** `scripts/migrations/2026-08-04-provider-config-data-residency.sql`:
+- [x] **Migration schreiben.** `scripts/migrations/2026-08-04-provider-config-data-residency.sql`:
 
 ```sql
 ALTER TABLE tickets.provider_config
@@ -77,18 +77,18 @@ ALTER TABLE tickets.provider_config
       llm-proxy-Zugang), damit Coaching nach dem Guard nutzbar bleibt. Die
       DeepSeek-Zeilen werden nicht umgewidmet.
 
-- [ ] **`data_residency` durchreichen.** In `website/src/lib/provider-config.ts` die
+- [x] **`data_residency` durchreichen.** In `website/src/lib/provider-config.ts` die
       Spalte in die SELECT-Liste und in den Rueckgabetyp aufnehmen. Fehlender oder
       NULL-Wert wird auf `external` normalisiert — die Normalisierung gehoert hierher,
       damit sie nicht an jeder Aufrufstelle wiederholt werden muss.
 
-- [ ] **Guard einziehen.** In `website/src/lib/openai-compatible-session-agent.ts` prueft
+- [x] **Guard einziehen.** In `website/src/lib/openai-compatible-session-agent.ts` prueft
       `resolveProvider` die Residenz und wirft bei allem ausser `on_premises` einen
       Fehler, der Provider und Grund nennt. Der Wurf erfolgt VOR dem Aufbau des
       OpenAI-Clients und vor jedem `create`-Aufruf. Kein Fallback auf einen anderen
       Provider.
 
-- [ ] **Gruen sehen (Coaching-Guard).** Der Vitest-Test
+- [x] **Gruen sehen (Coaching-Guard).** Der Vitest-Test
       `website/src/lib/coaching-data-residency.test.ts` liegt bereits im Branch und muss
       jetzt vollstaendig durchlaufen — inklusive des Falls, der die Ablehnung vor dem
       Netzaufruf nachweist.
@@ -97,7 +97,7 @@ ALTER TABLE tickets.provider_config
 cd website && npx vitest run src/lib/coaching-data-residency.test.ts
 ```
 
-- [ ] **Lokal-only im Proxy.** `server.mjs` nimmt die Anforderung entgegen (Header
+- [x] **Lokal-only im Proxy.** `server.mjs` nimmt die Anforderung entgegen (Header
       `x-llm-local-only: 1`), `discovery.mjs` beruecksichtigt sie bei der Auswahl: nur
       Backends lokaler Art kommen infrage, und ist keines verfuegbar, schlaegt die
       Anfrage fehl statt auf ein `openai-remote`-Backend zu substituieren. Gewoehnliche
@@ -105,7 +105,7 @@ cd website && npx vitest run src/lib/coaching-data-residency.test.ts
       nicht ueber Backend-Namen — eine Namensliste veraltet still, sobald ein Backend
       hinzukommt.
 
-- [ ] **Proxy-Tests.** `scripts/llm-proxy/local-only.test.mjs` nach der Konvention des
+- [x] **Proxy-Tests.** `scripts/llm-proxy/local-only.test.mjs` nach der Konvention des
       Verzeichnisses (`node:test`, Funktionen aufrufen und Rueckgabe pruefen): lokal-only
       waehlt kein remote-Backend, wird lokal bedient wenn moeglich, schlaegt bei
       gedrainten Backends fehl, und eine gewoehnliche Anfrage faellt weiterhin auf remote.
@@ -114,22 +114,22 @@ cd website && npx vitest run src/lib/coaching-data-residency.test.ts
 node --test scripts/llm-proxy/local-only.test.mjs
 ```
 
-- [ ] **Coaching auf den lokal-only-Weg legen.** Der Coaching-Pfad setzt die
+- [x] **Coaching auf den lokal-only-Weg legen.** Der Coaching-Pfad setzt die
       lokal-only-Anforderung, wenn er ueber den Proxy geht. Damit behaelt er Slot-Queue
       und Loadout-Verwaltung, ohne die Prioritaetskette zum Ausweichen zu erben.
 
-- [ ] **Bestandsdaten pruefen, nicht umhaengen.** Belegen, dass die 13 Sessions auf
+- [x] **Bestandsdaten pruefen, nicht umhaengen.** Belegen, dass die 13 Sessions auf
       `ki_config_id = 82` nach der Migration in den Guard laufen. Sie bleiben, wie sie
       sind — es sind Testdaten, und ihr Fehlschlag ist der sichtbare Beleg, dass der
       Guard greift. Ein stilles Umhaengen wuerde die Pruefung verstecken.
 
-- [ ] **Test-Inventar regenerieren.** Zwei neue Testdateien bedeuten neue Eintraege.
+- [x] **Test-Inventar regenerieren.** Zwei neue Testdateien bedeuten neue Eintraege.
 
 ```bash
 task test:inventory
 ```
 
-- [ ] **Final Verification.** Die drei Pflicht-Gates:
+- [x] **Final Verification.** Die drei Pflicht-Gates:
 
 ```bash
 task test:changed

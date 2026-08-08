@@ -13,8 +13,48 @@ function gatewayOverrideFor(provider: string): string | null {
   return process.env.LLM_GATEWAY_URL || null;
 }
 
+/**
+ * Coaching-Inhalte duerfen nur an Provider gehen, die sich als on-premises
+ * deklarieren [T002657].
+ */
+export class DataResidencyError extends Error {
+  constructor(provider: string, residency: string) {
+    super(
+      `Coaching-Inhalte duerfen nur an on-premises-Provider gehen. `
+      + `Provider '${provider}' ist als data_residency='${residency}' deklariert — `
+      + `die Anfrage wurde NICHT gesendet.`,
+    );
+    this.name = 'DataResidencyError';
+  }
+}
+
+/**
+ * Zweiter Fluchtweg [T002657]. Der Guard oben stellt sicher, dass Coaching nur
+ * an einen on-premises-Provider geht. Ist dieser Provider der llm-proxy, kann
+ * der seinerseits ueber seine Prioritaetskette auf ein remote-Backend
+ * ausweichen — die Konfiguration waere korrekt und die Inhalte trotzdem
+ * draussen. Der Header verlangt vom Proxy, das zu unterlassen und lieber
+ * fehlzuschlagen (scripts/llm-proxy/server.mjs).
+ *
+ * Unbeteiligte Endpunkte ignorieren einen unbekannten Header — er ist deshalb
+ * unbedingt gesetzt und nicht an eine Endpunkt-Erkennung geknuepft. Eine
+ * solche Erkennung waere eine zweite Stelle, die veralten koennte.
+ */
+const LOCAL_ONLY_HEADERS = { 'x-llm-local-only': '1' } as const;
+
 async function resolveProvider(kiConfig: KiConfig) {
   const cfg = await getProviderByName(kiConfig.provider);
+
+  // Der Guard steht hier und NICHT im Fehlerpfad des Aufrufs: resolveProvider
+  // laeuft vor `new OpenAI(...)` und vor jedem `create`. Ein Guard, der erst
+  // die Antwort bewertet, haette den Payload bereits uebertragen — bei
+  // Coaching-Inhalten ist genau das der Schaden, der nicht mehr ruecknehmbar
+  // ist. Kein Fallback auf einen anderen Provider: still auf ein anderes Ziel
+  // auszuweichen wuerde dieselbe Frage nur verschieben.
+  if (cfg.dataResidency !== 'on_premises') {
+    throw new DataResidencyError(cfg.provider, cfg.dataResidency);
+  }
+
   return {
     endpoint: kiConfig.apiEndpoint ?? cfg.baseUrl ?? gatewayOverrideFor(cfg.provider),
     apiKey: kiConfig.apiKey ?? cfg.apiKey,
@@ -48,7 +88,7 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
     const enrichedSystem = await buildEnrichedSystemPrompt(effectiveSystemPrompt, assembledUserPrompt);
 
     const { default: OpenAI } = await import('openai');
-    const client = new OpenAI({ apiKey, baseURL: endpoint ?? undefined });
+    const client = new OpenAI({ apiKey, baseURL: endpoint ?? undefined, defaultHeaders: LOCAL_ONLY_HEADERS });
 
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: enrichedSystem },
@@ -75,7 +115,7 @@ export class OpenAICompatibleSessionAgent implements SessionAgent {
     const enrichedSystem = await buildEnrichedSystemPrompt(effectiveSystemPrompt, assembledUserPrompt);
 
     const { default: OpenAI } = await import('openai');
-    const client = new OpenAI({ apiKey, baseURL: endpoint ?? undefined });
+    const client = new OpenAI({ apiKey, baseURL: endpoint ?? undefined, defaultHeaders: LOCAL_ONLY_HEADERS });
 
     const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: enrichedSystem },

@@ -108,27 +108,59 @@ export function startDiscovery(getBackends, intervalMs) {
   return { timer: t, probeNow: tick };
 }
 
-/** @returns {{backend:import('./backends.mjs').Backend, servedModel:string, substituted:boolean}|null} */
-export function resolveModel(requestedId, getBackends) {
-  const backends = getBackends();
-  const byName = (n) => backends.find((b) => b.name === n);
+/**
+ * Backend-Arten, die auf eigener Infrastruktur laufen [T002657].
+ *
+ * Bewusst eine POSITIVliste, obwohl T002674 fuer den Watchdog das Gegenteil
+ * gelernt hat — entscheidend ist die Richtung, in die eine Liste altert. Beim
+ * Watchdog liess eine Allowlist neue Typen unbemerkt durchfallen: sie alterte
+ * ins Unsichere. Hier ist es umgekehrt: ein kuenftiges, unbekanntes `kind` gilt
+ * als NICHT lokal, faellt also aus dem lokal-only-Weg heraus und fuehrt zum
+ * Fehlschlag statt zur Uebertragung. Dieselbe Regel wie bei data_residency:
+ * eine fehlende Zusage ist keine Zusage.
+ *
+ * Gefiltert wird ueber `kind`, nicht ueber Backend-Namen — eine Namensliste
+ * veraltet still, sobald ein Backend hinzukommt.
+ */
+const LOCAL_BACKEND_KINDS = new Set(['llamacpp', 'lmstudio']);
+
+/** @param {{kind?:string}} b */
+export function isLocalBackend(b) {
+  return LOCAL_BACKEND_KINDS.has(b?.kind);
+}
+
+/**
+ * @param {string} requestedId
+ * @param {() => import('./backends.mjs').Backend[]} getBackends
+ * @param {{localOnly?: boolean}} [opts] localOnly: nur eigene Infrastruktur;
+ *   ist keine verfuegbar, wird NICHT auf ein remote-Backend substituiert,
+ *   sondern null geliefert (der Aufrufer meldet das als Fehlschlag).
+ * @returns {{backend:import('./backends.mjs').Backend, servedModel:string, substituted:boolean}|null}
+ */
+export function resolveModel(requestedId, getBackends, opts = {}) {
+  const localOnly = opts.localOnly === true;
+  // Gewoehnliche Anfragen behalten ihren Fallback unveraendert — der
+  // lokal-only-Weg ist eine zusaetzliche Einschraenkung, keine Umstellung.
+  const eligible = getBackends().filter((b) => !localOnly || isLocalBackend(b));
+  const byName = (n) => eligible.find((b) => b.name === n);
   const isServing = (n) => {
     const h = health.get(n);
     return h?.healthy && !h.draining;
   };
-  const healthyNames = (id) => (catalog.get(id) || []).filter(isServing);
+  const isEligible = (n) => eligible.some((b) => b.name === n);
+  const healthyNames = (id) => (catalog.get(id) || []).filter((n) => isServing(n) && isEligible(n));
 
   const exact = healthyNames(requestedId);
   if (exact.length) return { backend: byName(exact[0]), servedModel: requestedId, substituted: false };
 
-  for (const b of backends) {
+  for (const b of eligible) {
     const aliased = b.modelAliases[requestedId];
     if (aliased && healthyNames(aliased).includes(b.name) && isServing(b.name)) {
       return { backend: b, servedModel: aliased, substituted: true };
     }
   }
 
-  for (const b of backends) {
+  for (const b of eligible) {
     const h = health.get(b.name);
     if (h?.healthy && !h.draining && h.models.length) return { backend: b, servedModel: h.models[0], substituted: true };
   }

@@ -16,9 +16,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockCreate = vi.fn();
+/** Konfigurationen, mit denen der OpenAI-Client tatsaechlich gebaut wurde. */
+const clientConfigs: Array<Record<string, unknown>> = [];
 vi.mock('openai', () => ({
   default: class {
     chat = { completions: { create: (...a: unknown[]) => mockCreate(...a) } };
+    constructor(cfg: Record<string, unknown>) { clientConfigs.push(cfg); }
   },
 }));
 
@@ -144,5 +147,30 @@ describe('T002657: Datenresidenz-Guard im Coaching-Pfad', () => {
     const agent = new OpenAICompatibleSessionAgent();
     await expect(agent.generate(baseOptions() as never)).rejects.toThrow(/residency|on_premises|extern/i);
     expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  // Zweiter Fluchtweg: der Guard oben laesst nur on-premises-Provider durch.
+  // Ist dieser Provider der llm-proxy, kann der ueber seine Prioritaetskette
+  // trotzdem auf ein remote-Backend ausweichen. Der Header verlangt, das zu
+  // unterlassen. Ohne diesen Test faellt sein Fehlen still aus — die Anfrage
+  // liefe weiterhin durch, nur eben moeglicherweise nach draussen.
+  it('fordert vom Proxy lokal-only an, wenn der Provider durchgelassen wird', async () => {
+    clientConfigs.length = 0;
+    getProviderByNameMock.mockResolvedValue({
+      provider: 'local-cluster',
+      modelId: 'gpt-oss-20b',
+      baseUrl: 'http://127.0.0.1:8081/v1',
+      apiKey: 'not-required',
+      dataResidency: 'on_premises',
+    });
+
+    const agent = new OpenAICompatibleSessionAgent();
+    await agent.generate(baseOptions() as never);
+
+    // Positiv-Anker: der Aufruf ist tatsaechlich gelaufen und hat einen Client
+    // gebaut — sonst waere die Header-Aussage unten trivial erfuellt.
+    expect(mockCreate).toHaveBeenCalled();
+    expect(clientConfigs).toHaveLength(1);
+    expect(clientConfigs[0].defaultHeaders).toMatchObject({ 'x-llm-local-only': '1' });
   });
 });

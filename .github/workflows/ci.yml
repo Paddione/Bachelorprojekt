@@ -437,7 +437,6 @@ jobs:
       # curl|sh install that re-downloaded every run.
       - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567  # v0.3.1
         with:
-          version: v0.62.3
           cache: 'true'
 
       - name: Trivy container image scan (pinned images)

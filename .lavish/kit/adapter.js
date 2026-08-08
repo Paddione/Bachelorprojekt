@@ -531,6 +531,32 @@ const data = (() => {
     return createPush('audit', 'audit')(opts?.refreshMs);
   }
 
+  /**
+   * T002643 Task 9: unified action dispatch.
+   *
+   * POSTs to the bundled actions endpoint under the current origin (the
+   * Cockpit runs in the Admin-Kontext, so credentials: 'include' sends the
+   * session cookie). The action-policy confirmation runs *before* calling
+   * this — the caller is responsible for respecting the policy.
+   *
+   * @param {string} action  action name (see Task 8 table)
+   * @param {object} [body]  extra fields merged into the POST body
+   * @returns {Promise<object>} the JSON response from the actions endpoint
+   */
+  async function performAction(action, body = {}) {
+    try {
+      const res = await fetch('/sdlc/api/cockpit/actions', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...body }),
+      });
+      return res.json();
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  }
+
   return {
     tickets,
     agents,
@@ -546,6 +572,7 @@ const data = (() => {
     factoryStream,
     ticketAction,
     audit,
+    performAction,
     resolveEndpoint,
     unsubscribe,
     streamState,

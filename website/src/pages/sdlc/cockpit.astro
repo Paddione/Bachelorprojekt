@@ -44,7 +44,7 @@ const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
   <div class="cockpit-header">
     <h1>SDLC Cockpit</h1>
     <span data-brand="mentolder" style="font-size:var(--text-xs);color:var(--color-text-tertiary)">{brand}</span>
-    <span class="cockpit-status" style="margin-left:auto;font-size:var(--text-xs);color:var(--color-status-ok)">● Fixtures (K1)</span>
+    <span id="cockpit-stream-state" class="cockpit-status" style="margin-left:auto;font-size:var(--text-xs);color:var(--color-status-ok)">● live</span>
   </div>
 
   <div class="cockpit-layout">
@@ -62,7 +62,8 @@ const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
         </div>
         <div class="panel__body"></div>
         <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn">Aktualisieren</button>
+          <button class="panel__action-btn" onclick="cockpitAct('ticket_stage_plan')">Plan stagen</button>
+          <button class="panel__action-btn" onclick="cockpitAct('ticket_release_hold')">Freigabe aufheben</button>
         </div>
         <div class="panel__context"></div>
       </div>
@@ -101,7 +102,9 @@ const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
         </div>
         <div class="panel__body"></div>
         <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn">Aktualisieren</button>
+          <button class="panel__action-btn" onclick="cockpitAct('factory_tick')">Tick</button>
+          <button class="panel__action-btn" onclick="cockpitAct('factory_enqueue')">Enqueue</button>
+          <button class="panel__action-btn" onclick="cockpitAct('factory_release_slot')">Slot freigeben</button>
         </div>
         <div class="panel__context"></div>
       </div>
@@ -206,4 +209,56 @@ const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
       </div>
     </main>
   </div>
+  <script>
+    // T002643 Task 9: cockpit action helper — uses the action-policy for
+    // confirmation grading and the adapter for the bundled POST endpoint.
+    // No fetch() directly in the page (E1).
+    import { browserLogger } from '$lib/browser-logger';
+
+    function cockpitAct(action: string, target?: string) {
+      try {
+        const prompt = window.actionPolicy.confirmationFor(action, target);
+        if (prompt !== null) {
+          const msg = prompt.level === 'named'
+            ? `${action} auf ${prompt.target} ausführen?`
+            : `${action} ausführen?`;
+          if (!window.confirm(msg)) return;
+        }
+      } catch (e) {
+        // confirmationFor throws for irreversible without target —
+        // this button should not have been rendered. Log and abort.
+        browserLogger.error('[cockpit] action blocked: ' + (e as Error).message);
+        return;
+      }
+
+      window.data.performAction(action, target ? { target } : {}).then((r) => {
+        if (!r.ok && r.error) browserLogger.error('[cockpit] ' + action + ' failed: ' + r.error);
+      }).catch((e) => {
+        browserLogger.error({ err: e }, '[cockpit] ' + action + ' error');
+      });
+    }
+
+    // Buttons rufen cockpitAct per globalem onclick auf — explizit
+    // auf window exponieren (Modul-Script, kein is:inline).
+    window.cockpitAct = cockpitAct;
+
+    // Header: bind stream state indicator
+    (function updateHeader() {
+      const el = document.getElementById('cockpit-stream-state');
+      if (!el || !window.data || !window.data.streamState) return;
+      const state = window.data.streamState();
+      if (state === 'live') {
+        el.textContent = '● live';
+        el.style.color = 'var(--color-status-ok)';
+      } else if (state === 'polling') {
+        el.textContent = '● Poll';
+        el.style.color = 'var(--color-status-warning)';
+      } else {
+        el.textContent = '● getrennt';
+        el.style.color = 'var(--color-status-error)';
+      }
+      // Re-check periodically since streamState can change
+      setTimeout(updateHeader, 5000);
+    })();
+  </script>
 </AdminLayout>

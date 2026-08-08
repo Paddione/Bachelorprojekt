@@ -85,6 +85,17 @@ spec:
                 secretKeyRef:
                   name: website-secrets
                   key: CRON_SECRET
+            # C3 (T002643): ci_rerun spricht die GitHub REST API an (kein
+            # gh-axi im Container). PAT kommt aus workspace-secrets; der
+            # Dev-Placeholder ist bewusst unbrauchbar, Prod wird per
+            # SealedSecret eingespielt. FLUX_WEBHOOK_URL/TOKEN existieren nur
+            # im fleet-Cluster — im Dev-k3d liefern die flux-Aktionen deshalb
+            # sauber 503 statt zu scheitern.
+            - name: GITHUB_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: workspace-secrets
+                  key: GITHUB_PAT
           ports:
             - name: http
               # Der Astro-Node-Adapter lauscht ohne gesetztes PORT auf 4321 —

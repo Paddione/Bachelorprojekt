@@ -25,6 +25,7 @@ const data = (() => {
     'factory-control':  { path: '/sdlc/api/factory-control', website: true },
     'ticket-status':    { path: '/sdlc/api/cockpit/ticket-status', website: true },
     'audit':            { path: '/sdlc/api/cockpit/audit', website: true },
+    'brain':            { path: '/sdlc/api/cockpit/brain', website: true },
     'epics':            { path: '/api/cockpit/epics', website: false },
     'styles':           { path: '/api/cockpit/styles', website: false },
     'ci':               { path: '/api/cockpit/ci', website: false },
@@ -54,6 +55,8 @@ const data = (() => {
 
   // Poll registry: maps handle → { intervalId, paused, refreshMs }
   const polls = new Map();
+  // Push registry (T002643): maps handle → { domain, reload, controller }
+  const pushHandles = new Map();
   let nextHandle = 1;
   let visibilityPaused = false;
 
@@ -192,9 +195,171 @@ const data = (() => {
     };
   }
 
+  // ---- Push handler (T002643 Task 6) ----
+  // Genau EIN EventSource für alle push-versorgten Quellen — Browser begrenzen
+  // die gleichzeitigen Verbindungen pro Ursprung, und das Cockpit zeigt sechs
+  // Panels. Die Referenzzählung teilt die Verbindung und baut sie ab, wenn
+  // keine Quelle sie mehr hält.
+  let pushEventSource = null;
+  let pushEventSourceState = 'polling'; // 'polling' | 'live' | 'error'
+  let pushReconnectTimer = null;
+  const pushDomainReloaders = {}; // domain -> Set<() => void>
+  const pushDomainListeners = {}; // domain -> () => void
+
+  function dispatchDomain(domain) {
+    for (const fn of pushDomainReloaders[domain] || []) {
+      try { fn(); } catch {}
+    }
+  }
+
+  // Registrierte Domain-Listener an einem (neuen) EventSource nachtragen —
+  // beim Reconnect entsteht ein frisches EventSource, das die alten
+  // addEventListener-Bindungen nicht mehr kennt.
+  function attachDomainListeners() {
+    if (!pushEventSource) return;
+    for (const domain of Object.keys(pushDomainListeners)) {
+      pushEventSource.addEventListener(domain, pushDomainListeners[domain]);
+    }
+  }
+
+  function ensurePushStream() {
+    if (pushEventSource) return;
+    pushEventSource = new EventSource('/sdlc/api/cockpit/stream');
+    pushEventSourceState = 'polling';
+
+    pushEventSource.addEventListener('reconnect', () => {
+      for (const domain of Object.keys(pushDomainReloaders)) {
+        dispatchDomain(domain);
+      }
+    });
+
+    pushEventSource.onopen = () => { pushEventSourceState = 'live'; };
+    pushEventSource.onerror = () => {
+      // Netzwerkfehler: Stream schliessen und nach 5s neu aufbauen (analog
+      // zur createStream-Logik unten). Ohne Reconnect bliebe der Push-Stream
+      // dauerhaft auf 'error' haengen — erst ein Page-Reload wuerde ihn
+      // reparieren.
+      pushEventSourceState = 'error';
+      if (pushEventSource) {
+        pushEventSource.close();
+        pushEventSource = null;
+      }
+      if (!pushReconnectTimer) {
+        pushReconnectTimer = setTimeout(() => {
+          pushReconnectTimer = null;
+          ensurePushStream();
+        }, 5000);
+      }
+    };
+
+    attachDomainListeners();
+  }
+
+  function registerDomainReload(domain, reload) {
+    if (!pushDomainReloaders[domain]) {
+      pushDomainReloaders[domain] = new Set();
+      // Ein EventSource-Listener pro Domain, der alle Reloader im Set
+      // benachrichtigt — verhindert O(N²)-Dispatching bei N Panels derselben
+      // Quelle (ein addEventListener pro Panel wuerde jedes Event N-mal ueber
+      // das Set iterieren lassen). Der Listener wird zentral gemerkt, damit
+      // er bei einem Reconnect auf das neue EventSource nachgezogen werden
+      // kann.
+      const listener = () => dispatchDomain(domain);
+      pushDomainListeners[domain] = listener;
+      if (pushEventSource) {
+        pushEventSource.addEventListener(domain, listener);
+      }
+    }
+    pushDomainReloaders[domain].add(reload);
+  }
+
+  function releaseDomainReload(domain, reload) {
+    if (!pushDomainReloaders[domain]) return;
+    pushDomainReloaders[domain].delete(reload);
+    if (pushDomainReloaders[domain].size === 0) {
+      delete pushDomainReloaders[domain];
+      if (pushEventSource && pushDomainListeners[domain]) {
+        pushEventSource.removeEventListener(domain, pushDomainListeners[domain]);
+      }
+      delete pushDomainListeners[domain];
+    }
+  }
+
+  function createPush(key, domain, query = '') {
+    let lastData = null;
+    let lastFetchedAt = null;
+    let error = null;
+    let staleSince = null;
+    let listeners = [];
+
+    const handle = nextHandle++;
+
+    const reload = async () => {
+      try {
+        const result = await fetchEndpoint(key, { query });
+        lastFetchedAt = result.fetchedAt;
+
+        if (result.error) {
+          error = result.error;
+          if (!staleSince) staleSince = lastFetchedAt;
+          if (lastData) {
+            lastData = { ...lastData, error, staleSince, fetchedAt: lastFetchedAt };
+          } else {
+            lastData = { error, staleSince, fetchedAt: lastFetchedAt };
+          }
+        } else {
+          error = null;
+          staleSince = null;
+          lastData = { ...result, fetchedAt: lastFetchedAt };
+        }
+      } catch (e) {
+        error = `Push reload failed: ${e.message}`;
+        if (!staleSince) staleSince = new Date().toISOString();
+      }
+
+      for (const fn of listeners) {
+        try { fn(lastData); } catch {}
+      }
+    };
+
+    // Initial load
+    reload();
+
+    // Register for domain events
+    ensurePushStream();
+    registerDomainReload(domain, reload);
+
+    pushHandles.set(handle, { domain, reload, controller: { fetchNow: reload, getLastData: () => lastData } });
+
+    return {
+      _handle: handle,
+      pushed: true,
+      get data() { return lastData; },
+      subscribe: (fn) => {
+        listeners.push(fn);
+        if (lastData) fn(lastData);
+        return () => {
+          listeners = listeners.filter(l => l !== fn);
+        };
+      },
+    };
+  }
+
+  function streamState() {
+    return pushEventSourceState;
+  }
+
   // ---- Unsubscribe ----
   function unsubscribe(handleObj) {
     if (!handleObj || !handleObj._handle) return;
+    // Push handle
+    const pushH = pushHandles.get(handleObj._handle);
+    if (pushH) {
+      releaseDomainReload(pushH.domain, pushH.reload);
+      pushHandles.delete(handleObj._handle);
+      return;
+    }
+    // Poll handle
     const poll = polls.get(handleObj._handle);
     if (poll) {
       if (poll.intervalId) clearInterval(poll.intervalId);
@@ -267,7 +432,8 @@ const data = (() => {
 
   /** @param {{ refreshMs?: number }} [opts] */
   function tickets(opts) {
-    return createPoll('portfolio', 300000, `brand=${brand}`)(opts?.refreshMs);
+    // refreshMs accepted and ignored — push delivers on notification, not on timer (D10).
+    return createPush('portfolio', 'tickets', `brand=${brand}`)(opts?.refreshMs);
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
@@ -277,21 +443,27 @@ const data = (() => {
 
   /** @param {{ refreshMs?: number }} [opts] */
   function ci(opts) {
+    // Bleibt gepollt — CI-Läufe kommen von GitHub, haben keine Postgres-Quelle.
+    // Kein NOTIFY möglich.
     return createPoll('ci', 120000)(opts?.refreshMs);
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
   function cluster(opts) {
+    // Bleibt gepollt — Pod-Zustände kommen von kubectl, haben keine Postgres-Quelle.
+    // Kein NOTIFY möglich.
     return createPoll('pods-list', 30000, 'namespace=workspace')(opts?.refreshMs);
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
   function factory(opts) {
-    return createPoll('factory-control', 60000)(opts?.refreshMs);
+    return createPush('factory-control', 'factory')(opts?.refreshMs);
   }
 
   /** @param {{ refreshMs?: number }} [opts] */
   function models(opts) {
+    // Bleibt gepollt — Modell-Gesundheit kommt von Ollama, hat keine Postgres-Quelle.
+    // Kein NOTIFY möglich.
     return createPoll('models', 30000)(opts?.refreshMs);
   }
 
@@ -356,7 +528,7 @@ const data = (() => {
     if (!paths || paths.length === 0) {
       return { links: [], uncovered: [], missing: [], fetchedAt: new Date().toISOString() };
     }
-    return fetchEndpoint(`/sdlc/api/cockpit/brain?paths=${encodeURIComponent(paths.join(','))}`);
+    return fetchEndpoint('brain', { query: `paths=${encodeURIComponent(paths.join(','))}` });
   }
 
   /** @param {function} onEvent */
@@ -402,7 +574,33 @@ const data = (() => {
    * @param {{ refreshMs?: number }} [opts]
    */
   function audit(opts) {
-    return createPoll('audit', 30000)(opts?.refreshMs);
+    return createPush('audit', 'audit')(opts?.refreshMs);
+  }
+
+  /**
+   * T002643 Task 9: unified action dispatch.
+   *
+   * POSTs to the bundled actions endpoint under the current origin (the
+   * Cockpit runs in the Admin-Kontext, so credentials: 'include' sends the
+   * session cookie). The action-policy confirmation runs *before* calling
+   * this — the caller is responsible for respecting the policy.
+   *
+   * @param {string} action  action name (see Task 8 table)
+   * @param {object} [body]  extra fields merged into the POST body
+   * @returns {Promise<object>} the JSON response from the actions endpoint
+   */
+  async function performAction(action, body = {}) {
+    try {
+      const res = await fetch('/sdlc/api/cockpit/actions', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...body }),
+      });
+      return res.json();
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
   }
 
   return {
@@ -420,8 +618,10 @@ const data = (() => {
     factoryStream,
     ticketAction,
     audit,
+    performAction,
     resolveEndpoint,
     unsubscribe,
+    streamState,
   };
 })();
 

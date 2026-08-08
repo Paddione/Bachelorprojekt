@@ -295,3 +295,84 @@ describe('Panel-Fenster-Export (T002462)', () => {
     expect(Panel.get(el)).toBe(panel);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Push-aware polling (T002643 Task 7) — lädt panel.js mit einem window.data,
+// das push-versorgte und poll-versorgte Handles liefert. Prüft, dass
+// startPolling() für push-versorgte Quellen kein Intervall startet, für
+// poll-versorgte weiterhin eines (Positiv-Anker).
+// ---------------------------------------------------------------------------
+
+function makeElWithSource(id: string, panelType: string, source: string): HTMLElement {
+  return {
+    id,
+    dataset: { panelType, source },
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    classList: { contains: () => false, add: () => {}, remove: () => {} },
+  } as unknown as HTMLElement;
+}
+
+function loadPanelWithData(
+  sources: Record<string, () => { pushed: boolean; data: unknown; subscribe: (fn: (d: unknown) => void) => () => void }>,
+) {
+  const windowObj: Record<string, unknown> = {
+    data: sources,
+    innerWidth: 1280,
+    addEventListener: () => {},
+  };
+  const src = PANEL_SRC + '\nwindow.__Panel = Panel;';
+  // eslint-disable-next-line no-new-func
+  new Function('window', 'document', 'localStorage', src)(
+    windowObj,
+    { addEventListener: () => {}, querySelectorAll: () => [] },
+    { getItem: () => null, setItem: () => {} },
+  );
+  return {
+    Panel: windowObj.__Panel as new () => { init(): void; destroy(): void; startPolling(): void; pollTimeout: ReturnType<typeof setTimeout> | null; handle?: { pushed: boolean } },
+    getPanel: (el: HTMLElement) => (windowObj.__Panel as { get: (el: HTMLElement) => { handle?: { pushed: boolean }; pollTimeout: ReturnType<typeof setTimeout> | null } }).get(el),
+  };
+}
+
+describe('Push-aware polling (T002643 Task 7)', () => {
+  beforeEach(() => {
+    (globalThis as Record<string, unknown>).IntersectionObserver = class {
+      observe() {}
+      disconnect() {}
+    };
+  });
+  afterEach(() => {
+    delete (globalThis as Record<string, unknown>).IntersectionObserver;
+  });
+
+  const noopUnsub = () => {};
+
+  it('panel with pushed:true handle does NOT start a polling interval', () => {
+    const { Panel, getPanel } = loadPanelWithData({
+      tickets: () => ({ pushed: true, data: { phase: 'idle' }, subscribe: () => noopUnsub }),
+    });
+    const el = makeElWithSource('panel-push-test', 'status', 'tickets');
+    (Panel as any).create(el);
+    const instance = getPanel(el) as any;
+    expect(instance.handle?.pushed).toBe(true);
+
+    // startPolling should return immediately without setting pollTimeout
+    instance.startPolling();
+    expect(instance.pollTimeout).toBeNull();
+  });
+
+  it('panel with pushed:false handle starts a polling interval (positive anchor)', () => {
+    const { Panel, getPanel } = loadPanelWithData({
+      cluster: () => ({ pushed: false, data: { pods: 3 }, subscribe: () => noopUnsub }),
+    });
+    const el = makeElWithSource('panel-poll-test', 'status', 'cluster');
+    (Panel as any).create(el);
+    const instance = getPanel(el) as any;
+    expect(instance.handle?.pushed).toBe(false);
+
+    instance.startPolling();
+    expect(instance.pollTimeout).toBeTruthy();
+    // Clean up the interval so it doesn't leak into the test runner's timer tracking
+    if (instance.pollTimeout) clearTimeout(instance.pollTimeout);
+  });
+});

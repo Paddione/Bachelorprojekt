@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.0...website-v1.256.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* **ops:** bge-CPU-Loadouts parallel startbar — exclusiveGroup entfernt, Flux-Waisen entfernt [T002729] ([#3870](https://github.com/Paddione/Bachelorprojekt/issues/3870)) ([a728622](https://github.com/Paddione/Bachelorprojekt/commit/a72862208f551d89b46397eedc70c999526ca984))
+
 ## [1.256.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.255.0...website-v1.256.0) (2026-08-08)
 
 

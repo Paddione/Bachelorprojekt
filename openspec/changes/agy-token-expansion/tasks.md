@@ -38,7 +38,7 @@ erzeugte nur Koordinationsaufwand.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** `tests/spec/mcp-gateway/agy-token-expansion.bats` liegt bereits
+- [x] **Failing-Test-Step (RED).** `tests/spec/mcp-gateway/agy-token-expansion.bats` liegt bereits
       im Stage-Commit. Er rendert gegen eine Fixture-Registry in einem tmpdir und prüft die
       erzeugte agy-Config. Vor dem Fix fallen drei der fünf Tests: der Header trägt weiterhin
       `Bearer ${PROBE_TOKEN}` statt des Werts (Umgebung **und** `server.env`-Fallback), und die
@@ -51,7 +51,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/agy-token-expansion.bat
 # expected: FAIL (rot — 3 von 5 fallen, 2 sind Regressionsanker)
 ```
 
-- [ ] **Fix-Step (GREEN).** In `scripts/mcp-sync.sh` eine Auflösungsfunktion ergänzen und in
+- [x] **Fix-Step (GREEN).** In `scripts/mcp-sync.sh` eine Auflösungsfunktion ergänzen und in
       `render_agy_json` auf jeden Header-Wert anwenden:
       - Variablenquelle: zuerst die Umgebung des Aufrufers, dann `$HOME/.config/bge-mcp/server.env`.
         Die Datei zeilenweise als `KEY=VALUE` lesen, **nicht** `source`-n — sie ist eine
@@ -69,7 +69,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/mcp-gateway/agy-token-expansion.bat
 # erwartet: 5 von 5 grün
 ```
 
-- [ ] **Drift-Prüfung.** `check` rendert frisch und vergleicht gegen die reale Datei. Weil beide
+- [x] **Drift-Prüfung.** `check` rendert frisch und vergleicht gegen die reale Datei. Weil beide
       Pfade dieselbe Auflösungsfunktion benutzen, muss der Vergleich nach einem `render` sauber
       sein:
 
@@ -79,18 +79,23 @@ task mcp:check
 # erwartet: OK für alle vier Ziele, insbesondere mcp_config.json
 ```
 
-- [ ] **End-to-End-Beleg.** Der Test misst die Generator-Ausgabe, nicht agys Verhalten. Deshalb
-      abschliessend agy selbst befragen — `bge-mcp` muss in der Aufzählung erscheinen:
+- [x] **End-to-End-Beleg — erbracht.** Der Sync lief bewusst **ohne** `BGE_MCP_TOKEN` in der
+      Umgebung, also über den `server.env`-Fallback — genau der Normalfall, an dem es gescheitert
+      war. Danach zählte agy **sieben** Server statt sechs, `bge-mcp` inbegriffen:
 
 ```bash
+env -u BGE_MCP_TOKEN bash scripts/mcp-sync.sh render
 agy --print-timeout 2m -p 'Liste NUR die Namen aller dir verfuegbaren MCP-Server auf, kommasepariert. Wenn du keine hast, antworte exakt: KEINE.'
-# erwartet: die Ausgabe enthält bge-mcp
+# Ergebnis 2026-08-08:
+#   bge-mcp, codebase-memory-mcp, factory-mcp, mcp-kubernetes, mcp-postgres, mcp-task-runner, ticket-mcp
 ```
 
-> Erscheint `bge-mcp` weiterhin nicht, ist die Ursachenanalyse aus T002703 unvollständig: dann
-> wird der Vorgang **nicht** als Behebung verbucht, sondern die verbleibende Unbekannte (löst agy
-> Platzhalter grundsätzlich nicht auf, oder sieht es nur die Umgebung seines Sidecars?) zuerst
-> geklärt.
+> **Was dieser Beleg NICHT zeigt:** ein anschliessender Versuch, `bge_embed` über agy aufzurufen,
+> endete mit `a tool required the "mcp" permission that headless mode cannot prompt for, so it was
+> auto-denied`. Das ist agys Berechtigungssystem im Headless-Betrieb, nicht die Verbindung — ein
+> nicht erreichbarer Server erschiene gar nicht erst in der Aufzählung. Wer agy headless mit
+> MCP-Tools fahren will, braucht dafür eine `permissions.allow`-Regel; das ist ein eigener
+> Vorgang und nicht Teil dieses Fixes.
 
 - [ ] **Final Verification.** Die drei verpflichtenden CI-Gates:
 

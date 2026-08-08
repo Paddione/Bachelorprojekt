@@ -127,6 +127,32 @@ write_server_env() {
   [ "$output" = "no-placeholder-here" ]
 }
 
+@test "the agy config is written user-readable only, because it carries a resolved secret" {
+  # Die Quelle ~/.config/bge-mcp/server.env ist 600. Wandert der Wert in eine
+  # 644-Datei, ist das eine Verschlechterung — auch ohne Versionierung.
+  # Beide Faelle pruefen: neu angelegt und bereits vorhanden.
+  run env HOME="$TMPD/fakehome" PROBE_TOKEN="env-value-4711" \
+      MCP_REGISTRY="$TMPD/registry.yaml" MCP_OUT_DIR="$TMPD" \
+      bash "$SYNC" render
+  [ "$status" -eq 0 ]
+
+  run stat -c '%a' "$AGY_OUT"
+  echo "mode (neu angelegt): $output"
+  [ "$output" = "600" ]
+
+  # Bestandsfall: eine Ausgabe-Umlenkung auf eine existierende Datei laesst
+  # deren Rechte unberuehrt — ohne explizites chmod bliebe sie 644.
+  chmod 644 "$AGY_OUT"
+  run env HOME="$TMPD/fakehome" PROBE_TOKEN="env-value-4711" \
+      MCP_REGISTRY="$TMPD/registry.yaml" MCP_OUT_DIR="$TMPD" \
+      bash "$SYNC" render
+  [ "$status" -eq 0 ]
+
+  run stat -c '%a' "$AGY_OUT"
+  echo "mode (bestehende Datei): $output"
+  [ "$output" = "600" ]
+}
+
 @test "the repository-tracked renderers never receive the resolved value" {
   # Sicherheits-Guard: .mcp.json und .opencode/opencode.jsonc sind getrackt.
   # Ein expandierter Token waere dort ein committetes Geheimnis.

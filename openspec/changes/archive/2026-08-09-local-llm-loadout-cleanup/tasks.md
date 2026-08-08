@@ -2,7 +2,7 @@
 title: "Lokale Loadouts ohne Gewichte entfernen, gemma26/qwen mit gemessenem Kontext verdrahten"
 ticket_id: T002753
 domains: [bachelorprojekt-ops, bachelorprojekt-test]
-status: plan_staged
+status: completed
 ---
 
 # local-llm-loadout-cleanup — Implementation Plan

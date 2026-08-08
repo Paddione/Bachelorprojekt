@@ -22,8 +22,6 @@ budget it does not have; a smaller one wastes capacity that was paid for in VRAM
 - **WHEN** the slug is looked up in `scripts/llm/loadouts.json`
 - **THEN** a loadout with that slug is present
 
-## MODIFIED Requirements
-
 ### Requirement: Agent naming matches the backing model
 
 An agent whose name states a model family or a capability SHALL be backed by a model that

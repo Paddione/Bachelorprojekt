@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.252.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.7...website-v1.252.0) (2026-08-08)
+
+
+### Features
+
+* **website:** Cockpit-Routen nach /sdlc/api umziehen + SDLC-Stack [T002677] ([#3813](https://github.com/Paddione/Bachelorprojekt/issues/3813)) ([ba82d6e](https://github.com/Paddione/Bachelorprojekt/commit/ba82d6e0c56790f6b4b446377aa495fe9ca38230))
+
 ## [1.251.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.251.6...website-v1.251.7) (2026-08-08)
 
 

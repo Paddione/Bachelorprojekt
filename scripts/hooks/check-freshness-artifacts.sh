@@ -30,25 +30,19 @@ if [[ -z "$BASE" || -z "$HEAD_SHA" ]]; then
   exit 2
 fi
 
-# [T002686] Der Ausloeser war eine gemeinsame `.bats`-Bedingung fuer beide
-# Artefakte. Das war fuer repo-index.json zu eng: es zaehlt ALLE getrackten
-# Dateien (scan.mjs -> git ls-files), wird also von jeder hinzugefuegten oder
-# entfernten Datei stale — unabhaengig vom Typ. Dreimal an einem Tag lief CI
-# genau darauf: T002681 und T002684 (je eine .test.ts, der Hook schwieg) sowie
-# T002674 (.bats, der Hook warnte). Jedes Artefakt bekommt deshalb seine eigene
-# Bedingung.
+# [T002687] repo-index.json wird hier NICHT mehr eingefordert. Es gehoert seit
+# T002687 nicht mehr in PRs: seine acht file_count-Zaehler machen Konflikte
+# zwischen parallelen PRs unvermeidbar, es wird nirgends gelesen (quality:check
+# scannt live per trackedFiles -> git ls-files) und freshness-regen.yml haelt es
+# auf main aktuell. Ein Hook, der es einfordert, wuerde genau die Kollision
+# wieder herbeifuehren.
 #
-# test-inventory.json speist sich aus *.bats und *.sh unter tests/ sowie
-# tests/e2e/specs/*.spec.ts (build-test-inventory.sh). Hier zaehlt auch eine
-# reine Aenderung, weil @test-Namen die Inventar-IDs bilden.
+# [T002686] Geblieben ist die artefaktgenaue Bedingung: test-inventory.json
+# speist sich aus *.bats und *.sh unter tests/ sowie tests/e2e/specs/*.spec.ts
+# (build-test-inventory.sh). Hier zaehlt auch eine reine Aenderung, weil
+# @test-Namen die Inventar-IDs bilden — nicht nur Hinzufuegen/Loeschen.
 
 changed="$(git diff --name-only "${BASE}..${HEAD_SHA}" 2>/dev/null)"
-# Nur Hinzufuegen/Loeschen aendert die Dateimenge, die repo-index.json zaehlt.
-added_deleted="$(git diff --name-only --diff-filter=AD "${BASE}..${HEAD_SHA}" 2>/dev/null)"
-
-_needs_repo_index() {
-  [[ -n "$added_deleted" ]]
-}
 
 _needs_test_inventory() {
   printf '%s\n' "$changed" | grep -qE '\.bats$|^tests/.*\.sh$|^tests/e2e/specs/.*\.spec\.ts$'
@@ -63,9 +57,6 @@ _require() {
   fi
 }
 
-# Beide werden EINZELN geprueft — ein gemeinsamer ODER-grep war der Fehler der
-# Vorgaengerfassung (siehe Vorgeschichte oben).
-_needs_repo_index     && _require "docs/code-quality/repo-index.json"
 _needs_test_inventory && _require "website/src/data/test-inventory.json"
 
 exit "$rc"

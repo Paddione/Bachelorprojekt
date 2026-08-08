@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "slug": "deploy-dead-node-affinity",
+    "ticket_id": "T002699",
+    "generated_from": "main@3d472770a",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 239,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/mentolder/kustomization.yaml",
+      "language": "config",
+      "loc": 81,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-fleet/staging/kustomization.yaml",
+      "language": "config",
+      "loc": 74,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-mentolder/dev-db-refresh-cron.yaml",
+      "language": "config",
+      "loc": 83,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-mentolder/dev-db-refresh-netpol.yaml",
+      "language": "config",
+      "loc": 41,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-mentolder/dev-db-refresh.sh",
+      "language": "bash",
+      "loc": 91,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 709
+    },
+    {
+      "path": "prod-mentolder/kustomization.yaml",
+      "language": "config",
+      "loc": 155,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "prod-mentolder/whisper.yaml",
+      "language": "config",
+      "loc": 68,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/fleet-operations/dead-node-affinity.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 3722,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "prod-mentolder/dev-db-refresh.sh:32:recreate_db() {",
+      "kind": "function",
+      "file": "prod-mentolder/dev-db-refresh.sh",
+      "signature": "32:recreate_db() {(...)",
+      "type_text": "32:recreate_db() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

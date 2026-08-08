@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-04T07:28:30.935Z",
+  "generatedAt": "2026-08-08T13:37:02.175Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -464,12 +464,6 @@
       "name": "tls-sync"
     },
     {
-      "id": "dev-db-refresh",
-      "namespace": "${WORKSPACE_NAMESPACE}",
-      "type": "CronJob",
-      "name": "dev-db-refresh"
-    },
-    {
       "id": "talk-transcriber",
       "namespace": "mentolder",
       "type": "Deployment",
@@ -486,6 +480,12 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "ddns-updater"
+    },
+    {
+      "id": "dev-db-refresh",
+      "namespace": "${WORKSPACE_NAMESPACE}",
+      "type": "CronJob",
+      "name": "dev-db-refresh"
     },
     {
       "id": "traefik",
@@ -1072,12 +1072,6 @@
       "kind": "command"
     },
     {
-      "from": "dev-db-refresh",
-      "to": "shared-db",
-      "via": "env:SOURCE_PGHOST",
-      "kind": "env"
-    },
-    {
       "from": "talk-transcriber",
       "to": "shared-db",
       "via": "env:NC_DB_HOST",
@@ -1106,6 +1100,12 @@
       "to": "janus",
       "via": "command",
       "kind": "command"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "shared-db",
+      "via": "env:SOURCE_PGHOST",
+      "kind": "env"
     },
     {
       "from": "traefik",
@@ -1997,18 +1997,6 @@
     },
     {
       "from": "admin-actions-cleanup",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "admin-actions-cleanup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-cleanup",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2032,6 +2020,18 @@
       "kind": "secret"
     },
     {
+      "from": "admin-actions-cleanup",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "admin-actions-cleanup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "admin-actions-prune",
       "to": "sessions-purge",
       "via": "secret:workspace-secrets",
@@ -2465,18 +2465,6 @@
     },
     {
       "from": "admin-actions-prune",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "admin-actions-prune",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "admin-actions-prune",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2500,6 +2488,18 @@
       "kind": "secret"
     },
     {
+      "from": "admin-actions-prune",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "admin-actions-prune",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "sessions-purge",
       "to": "db-backup",
       "via": "secret:workspace-secrets",
@@ -2921,18 +2921,6 @@
     },
     {
       "from": "sessions-purge",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "sessions-purge",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sessions-purge",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -2956,6 +2944,18 @@
       "kind": "secret"
     },
     {
+      "from": "sessions-purge",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "sessions-purge",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "db-backup",
       "to": "brett",
       "via": "secret:workspace-secrets",
@@ -3365,18 +3365,6 @@
     },
     {
       "from": "db-backup",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "db-backup",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "db-backup",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3400,6 +3388,18 @@
       "kind": "secret"
     },
     {
+      "from": "db-backup",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "db-backup",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "brett",
       "to": "billing-dunning-detection",
       "via": "secret:workspace-secrets",
@@ -3797,18 +3797,6 @@
     },
     {
       "from": "brett",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "brett",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -3832,6 +3820,18 @@
       "kind": "secret"
     },
     {
+      "from": "brett",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "billing-dunning-detection",
       "to": "monthly-billing",
       "via": "secret:workspace-secrets",
@@ -4217,18 +4217,6 @@
     },
     {
       "from": "billing-dunning-detection",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "billing-dunning-detection",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "billing-dunning-detection",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4252,6 +4240,18 @@
       "kind": "secret"
     },
     {
+      "from": "billing-dunning-detection",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "billing-dunning-detection",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "monthly-billing",
       "to": "scheduled-publish",
       "via": "secret:workspace-secrets",
@@ -4625,18 +4625,6 @@
     },
     {
       "from": "monthly-billing",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "monthly-billing",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "monthly-billing",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -4660,6 +4648,18 @@
       "kind": "secret"
     },
     {
+      "from": "monthly-billing",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "monthly-billing",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "scheduled-publish",
       "to": "oauth2-proxy-brainstorm",
       "via": "secret:workspace-secrets",
@@ -5021,18 +5021,6 @@
     },
     {
       "from": "scheduled-publish",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "scheduled-publish",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "scheduled-publish",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5056,6 +5044,18 @@
       "kind": "secret"
     },
     {
+      "from": "scheduled-publish",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "scheduled-publish",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-brainstorm",
       "to": "oauth2-proxy-dev",
       "via": "secret:workspace-secrets",
@@ -5405,18 +5405,6 @@
     },
     {
       "from": "oauth2-proxy-brainstorm",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-brainstorm",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brainstorm",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5440,6 +5428,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-brainstorm",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-brainstorm",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-dev",
       "to": "oauth2-proxy-session-hub",
       "via": "secret:workspace-secrets",
@@ -5777,18 +5777,6 @@
     },
     {
       "from": "oauth2-proxy-dev",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-dev",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-dev",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -5812,6 +5800,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-dev",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-dev",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-session-hub",
       "to": "error-log-retention",
       "via": "secret:workspace-secrets",
@@ -6137,18 +6137,6 @@
     },
     {
       "from": "oauth2-proxy-session-hub",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-session-hub",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-session-hub",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6172,6 +6160,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-session-hub",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-session-hub",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "error-log-retention",
       "to": "knowledge-ingest-prs",
       "via": "secret:workspace-secrets",
@@ -6485,18 +6485,6 @@
     },
     {
       "from": "error-log-retention",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "error-log-retention",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "error-log-retention",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6520,6 +6508,18 @@
       "kind": "secret"
     },
     {
+      "from": "error-log-retention",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "error-log-retention",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "knowledge-ingest-prs",
       "to": "knowledge-ingest-bugs",
       "via": "secret:workspace-secrets",
@@ -6821,18 +6821,6 @@
     },
     {
       "from": "knowledge-ingest-prs",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "knowledge-ingest-prs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-prs",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -6856,6 +6844,18 @@
       "kind": "secret"
     },
     {
+      "from": "knowledge-ingest-prs",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "knowledge-ingest-prs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "knowledge-ingest-bugs",
       "to": "knowledge-reindex-all",
       "via": "secret:workspace-secrets",
@@ -7145,18 +7145,6 @@
     },
     {
       "from": "knowledge-ingest-bugs",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "knowledge-ingest-bugs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-ingest-bugs",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7180,6 +7168,18 @@
       "kind": "secret"
     },
     {
+      "from": "knowledge-ingest-bugs",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "knowledge-ingest-bugs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "knowledge-reindex-all",
       "to": "nextcloud",
       "via": "secret:workspace-secrets",
@@ -7457,18 +7457,6 @@
     },
     {
       "from": "knowledge-reindex-all",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "knowledge-reindex-all",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "knowledge-reindex-all",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7492,6 +7480,18 @@
       "kind": "secret"
     },
     {
+      "from": "knowledge-reindex-all",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "knowledge-reindex-all",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "nextcloud",
       "to": "notify-unread",
       "via": "secret:workspace-secrets",
@@ -7757,18 +7757,6 @@
     },
     {
       "from": "nextcloud",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "nextcloud",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "nextcloud",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -7792,6 +7780,18 @@
       "kind": "secret"
     },
     {
+      "from": "nextcloud",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "nextcloud",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "notify-unread",
       "to": "oauth2-proxy-brain",
       "via": "secret:workspace-secrets",
@@ -8045,18 +8045,6 @@
     },
     {
       "from": "notify-unread",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "notify-unread",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "notify-unread",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8080,6 +8068,18 @@
       "kind": "secret"
     },
     {
+      "from": "notify-unread",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "notify-unread",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-brain",
       "to": "oauth2-proxy-brett",
       "via": "secret:workspace-secrets",
@@ -8321,18 +8321,6 @@
     },
     {
       "from": "oauth2-proxy-brain",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-brain",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brain",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8356,6 +8344,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-brain",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-brain",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-brett",
       "to": "oauth2-proxy-comfy",
       "via": "secret:workspace-secrets",
@@ -8585,18 +8585,6 @@
     },
     {
       "from": "oauth2-proxy-brett",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-brett",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-brett",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8620,6 +8608,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-brett",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-brett",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-comfy",
       "to": "oauth2-proxy-docs",
       "via": "secret:workspace-secrets",
@@ -8837,18 +8837,6 @@
     },
     {
       "from": "oauth2-proxy-comfy",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-comfy",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-comfy",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -8872,6 +8860,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-comfy",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-comfy",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-docs",
       "to": "oauth2-proxy-downloads",
       "via": "secret:workspace-secrets",
@@ -9077,18 +9077,6 @@
     },
     {
       "from": "oauth2-proxy-docs",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-docs",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-docs",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9112,6 +9100,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-docs",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-docs",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-downloads",
       "to": "oauth2-proxy-mailpit",
       "via": "secret:workspace-secrets",
@@ -9305,18 +9305,6 @@
     },
     {
       "from": "oauth2-proxy-downloads",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-downloads",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-downloads",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9340,6 +9328,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-downloads",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-downloads",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-mailpit",
       "to": "oauth2-proxy-mediaviewer",
       "via": "secret:workspace-secrets",
@@ -9521,18 +9521,6 @@
     },
     {
       "from": "oauth2-proxy-mailpit",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-mailpit",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mailpit",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9556,6 +9544,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-mailpit",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-mailpit",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-mediaviewer",
       "to": "oauth2-proxy-rustdesk-web",
       "via": "secret:workspace-secrets",
@@ -9725,18 +9725,6 @@
     },
     {
       "from": "oauth2-proxy-mediaviewer",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-mediaviewer",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-mediaviewer",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9760,6 +9748,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-mediaviewer",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-mediaviewer",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-rustdesk-web",
       "to": "oauth2-proxy-studio",
       "via": "secret:workspace-secrets",
@@ -9917,18 +9917,6 @@
     },
     {
       "from": "oauth2-proxy-rustdesk-web",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-rustdesk-web",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-rustdesk-web",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -9952,6 +9940,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-rustdesk-web",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-rustdesk-web",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-studio",
       "to": "oauth2-proxy-terminal",
       "via": "secret:workspace-secrets",
@@ -10097,18 +10097,6 @@
     },
     {
       "from": "oauth2-proxy-studio",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-studio",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-studio",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10132,6 +10120,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-studio",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-studio",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-terminal",
       "to": "oauth2-proxy-traefik",
       "via": "secret:workspace-secrets",
@@ -10265,18 +10265,6 @@
     },
     {
       "from": "oauth2-proxy-terminal",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-terminal",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-terminal",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10300,6 +10288,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-terminal",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-terminal",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-traefik",
       "to": "oauth2-proxy-videovault",
       "via": "secret:workspace-secrets",
@@ -10421,18 +10421,6 @@
     },
     {
       "from": "oauth2-proxy-traefik",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-traefik",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-traefik",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10456,6 +10444,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-traefik",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-traefik",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-videovault",
       "to": "pocket-id",
       "via": "secret:workspace-secrets",
@@ -10565,18 +10565,6 @@
     },
     {
       "from": "oauth2-proxy-videovault",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-videovault",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10600,6 +10588,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-videovault",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-videovault",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "pocket-id",
       "to": "oauth2-proxy-recovery",
       "via": "secret:workspace-secrets",
@@ -10697,18 +10697,6 @@
     },
     {
       "from": "pocket-id",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "pocket-id",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "pocket-id",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10732,6 +10720,18 @@
       "kind": "secret"
     },
     {
+      "from": "pocket-id",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "pocket-id",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "oauth2-proxy-recovery",
       "to": "shared-db",
       "via": "secret:workspace-secrets",
@@ -10817,18 +10817,6 @@
     },
     {
       "from": "oauth2-proxy-recovery",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "oauth2-proxy-recovery",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "oauth2-proxy-recovery",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10852,6 +10840,18 @@
       "kind": "secret"
     },
     {
+      "from": "oauth2-proxy-recovery",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "oauth2-proxy-recovery",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "shared-db",
       "to": "studio-server",
       "via": "secret:workspace-secrets",
@@ -10925,18 +10925,6 @@
     },
     {
       "from": "shared-db",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "shared-db",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "shared-db",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -10960,6 +10948,18 @@
       "kind": "secret"
     },
     {
+      "from": "shared-db",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "shared-db",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "studio-server",
       "to": "spreed-signaling",
       "via": "secret:workspace-secrets",
@@ -11021,18 +11021,6 @@
     },
     {
       "from": "studio-server",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "studio-server",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "studio-server",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11056,6 +11044,18 @@
       "kind": "secret"
     },
     {
+      "from": "studio-server",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "studio-server",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "spreed-signaling",
       "to": "talk-recording",
       "via": "secret:workspace-secrets",
@@ -11105,18 +11105,6 @@
     },
     {
       "from": "spreed-signaling",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "spreed-signaling",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "spreed-signaling",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11140,6 +11128,18 @@
       "kind": "secret"
     },
     {
+      "from": "spreed-signaling",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "spreed-signaling",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "talk-recording",
       "to": "vaultwarden",
       "via": "secret:workspace-secrets",
@@ -11177,18 +11177,6 @@
     },
     {
       "from": "talk-recording",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
-      "to": "talk-recording",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-recording",
       "to": "talk-transcriber",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11212,6 +11200,18 @@
       "kind": "secret"
     },
     {
+      "from": "talk-recording",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "talk-recording",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "vaultwarden",
       "to": "videovault",
       "via": "secret:workspace-secrets",
@@ -11231,18 +11231,6 @@
     },
     {
       "from": "whiteboard",
-      "to": "vaultwarden",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "vaultwarden",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
       "to": "vaultwarden",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11272,6 +11260,18 @@
       "kind": "secret"
     },
     {
+      "from": "vaultwarden",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "vaultwarden",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
       "from": "videovault",
       "to": "whiteboard",
       "via": "secret:workspace-secrets",
@@ -11279,18 +11279,6 @@
     },
     {
       "from": "whiteboard",
-      "to": "videovault",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "videovault",
-      "to": "dev-db-refresh",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "dev-db-refresh",
       "to": "videovault",
       "via": "secret:workspace-secrets",
       "kind": "secret"
@@ -11320,14 +11308,14 @@
       "kind": "secret"
     },
     {
-      "from": "whiteboard",
+      "from": "videovault",
       "to": "dev-db-refresh",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "dev-db-refresh",
-      "to": "whiteboard",
+      "to": "videovault",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
@@ -11356,26 +11344,14 @@
       "kind": "secret"
     },
     {
-      "from": "dev-db-refresh",
-      "to": "talk-transcriber",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "talk-transcriber",
+      "from": "whiteboard",
       "to": "dev-db-refresh",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
     {
       "from": "dev-db-refresh",
-      "to": "ddns-updater",
-      "via": "secret:workspace-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "ddns-updater",
-      "to": "dev-db-refresh",
+      "to": "whiteboard",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },
@@ -11388,6 +11364,30 @@
     {
       "from": "ddns-updater",
       "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "talk-transcriber",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "talk-transcriber",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "ddns-updater",
+      "to": "dev-db-refresh",
+      "via": "secret:workspace-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "dev-db-refresh",
+      "to": "ddns-updater",
       "via": "secret:workspace-secrets",
       "kind": "secret"
     },

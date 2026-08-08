@@ -33,7 +33,10 @@ patches:
       kind: Certificate
       metadata: { name: workspace-wildcard }
   # ── Node-affinity repoints for fleet pk nodes ──
-  #     Most workloads schedule fine via NotIn on home workers (from prod-mentolder).
+  #     Workloads ohne eigene Affinitaet schedulen frei auf den fleet-Knoten.
+  #     (Bis T002699 stand hier "NotIn on home workers (from prod-mentolder)" —
+  #     dieses Overlay bezieht ../../prod, nicht prod-mentolder, und die
+  #     NotIn-Patches auf die stillgelegten Home-Worker gibt es nicht mehr.)
   #     whisper needs a fleet node (no GPU, but at least schedules instead of Pending).
   - target:
       kind: Deployment

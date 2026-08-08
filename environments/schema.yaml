@@ -479,7 +479,7 @@ env_vars:
   - name: DEV_NODE
     required: false
     default_dev: ""
-    description: "Hostname of the k3s node that runs the dev k3d cluster (e.g. gekko-hetzner-2). Used as nodeSelector for the dev-db-refresh CronJob."
+    description: "Hostname of the k3s node that runs the dev k3d cluster (e.g. gekko-hetzner-2). Used by the dev-stack tasks (cluster creation, SSH, firewall) in Taskfile.dev-stack.yml. The dev-db-refresh CronJob that formerly used it as nodeSelector was removed in T002699."
 
   - name: DEV_WEBSITE_HOST
     required: false

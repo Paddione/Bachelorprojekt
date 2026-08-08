@@ -127,6 +127,49 @@ export async function resolveEndpoints(): Promise<{
   return buildEndpoints(provider);
 }
 
+// Warum resolveEndpointsSync() auf den ungeprobten Zweig faellt. Die drei Faelle
+// sind NICHT gleich schwerwiegend:
+//
+//   'never-probed'  — es gab in diesem Prozess noch keine Probe. Kein Wissen
+//                     ueber den Provider, also auch kein ignoriertes Wissen.
+//   'cache-expired' — die letzte Probe ist aelter als PROVIDER_CACHE_TTL.
+//                     Veraltetes Wissen; der Provider kann laengst zurueck sein.
+//   'probe-failed'  — eine FRISCHE Probe hat ergeben, dass kein Provider
+//                     erreichbar ist (cachedProvider === null, TTL laeuft noch).
+//                     Hier liegt positives Wissen ueber den Ausfall vor und der
+//                     Sync-Pfad baut trotzdem eine Login-URL. Genau dieser Fall
+//                     verdeckte T002680 bis nach der Credential-Eingabe.
+type SyncFallbackReason = 'never-probed' | 'cache-expired' | 'probe-failed';
+
+/**
+ * Wird aufgerufen, kurz bevor resolveEndpointsSync() Endpoints aus einem NICHT
+ * geprobten Provider baut. Aktuell ein No-op — das Verhalten ist damit exakt das
+ * bisherige (fail-open, siehe Variante b unten).
+ *
+ * TODO(T002682): Verhalten festlegen. Zur Wahl stehen:
+ *
+ *   a) fail-closed — bei 'probe-failed' (ggf. auch 'cache-expired') werfen.
+ *      Der Login schlaegt sofort sichtbar fehl statt erst im Callback.
+ *      ACHTUNG: Der einzige Produktions-Aufrufer ist getLoginUrl() in
+ *      website/src/lib/auth.ts:90. Die Funktion ist synchron und gibt `string`
+ *      zurueck; ein Wurf muss dort und in /api/auth/login behandelt werden
+ *      (503 statt kaputtem Redirect). Das ist der teuerste, aber ehrlichste Weg.
+ *
+ *   b) fail-open — No-op belassen. Robust gegen kurzes Pocket-ID-Flackern,
+ *      verschiebt den Fehler aber weiterhin hinter die Credential-Eingabe.
+ *
+ *   c) tolerant + laut — Login bleibt tolerant, aber der Rueckfall wird
+ *      protokolliert bzw. als Health-Signal exponiert. Naheliegender Kompromiss;
+ *      dann vermutlich nach `reason` differenzieren, damit 'never-probed' beim
+ *      Kaltstart kein Fehler-Rauschen erzeugt.
+ *
+ * Die Wahl praegt das Verhalten bei JEDEM kuenftigen Pocket-ID-Ausfall — sie ist
+ * eine Betriebs-, keine Implementierungsentscheidung.
+ */
+function onUnprobedFallback(_reason: SyncFallbackReason, _provider: AuthProvider): void {
+  // TODO(T002682): siehe oben.
+}
+
 export function resolveEndpointsSync(): {
   auth: string;
   token: string;
@@ -136,11 +179,22 @@ export function resolveEndpointsSync(): {
   if (cachedProvider !== undefined && cachedProvider !== null && Date.now() < cacheExpiresAt) {
     return buildEndpoints(cachedProvider);
   }
-  return buildEndpoints({
+
+  const cacheStillValid = Date.now() < cacheExpiresAt;
+  const reason: SyncFallbackReason =
+    cachedProvider === undefined
+      ? 'never-probed'
+      : cachedProvider === null && cacheStillValid
+        ? 'probe-failed'
+        : 'cache-expired';
+
+  const fallback: AuthProvider = {
     id: 'local',
     frontendUrl: getPrimaryFrontendUrl(),
     internalUrl: getPrimaryInternalUrl(),
-  });
+  };
+  onUnprobedFallback(reason, fallback);
+  return buildEndpoints(fallback);
 }
 
 function buildEndpoints(provider: AuthProvider) {

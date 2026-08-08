@@ -152,7 +152,18 @@ jobs:
         with:
           fetch-tags: false
 
-      - name: Install kubectl
+      # [T002754] Cache the kubectl binary (~50MB download). Keyed on version
+      # so it auto-busts when we bump k8s. On cache miss, the next step
+      # downloads it. On hit, it's already in /usr/local/bin.
+      - name: Cache kubectl binary
+        id: cache-kubectl
+        uses: actions/cache@v7
+        with:
+          path: /usr/local/bin/kubectl
+          key: kubectl-v1.31.0-linux-amd64
+
+      - name: Install kubectl (if not cached)
+        if: steps.cache-kubectl.outputs.cache-hit != 'true'
         run: |
           curl --fail -sSL "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl" \
             -o /usr/local/bin/kubectl && chmod +x /usr/local/bin/kubectl
@@ -395,30 +406,39 @@ jobs:
           fi
           echo "All managed secret files are git-crypt-encrypted"
 
-      - name: gitleaks secret scan (fail-closed)
-        run: |
-          if command -v gitleaks >/dev/null 2>&1; then
-            echo "→ Running gitleaks..."
-            if ! gitleaks detect --config .gitleaks.toml --no-git --redact; then
-              echo "ERROR: gitleaks detected potential secrets — see findings above"
-              exit 1
-            fi
-            echo "No secrets detected by gitleaks"
-          else
-            echo "Installing gitleaks..."
-            curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
-              | tar -xz -C /usr/local/bin gitleaks
-            echo "→ Running gitleaks..."
-            if ! gitleaks detect --config .gitleaks.toml --no-git --redact; then
-              echo "ERROR: gitleaks detected potential secrets — see findings above"
-              exit 1
-            fi
-            echo "No secrets detected by gitleaks"
-          fi
+      # [T002754] Cache the gitleaks binary to avoid re-downloading from GitHub
+      # releases on every run. The cache key includes the version so it
+      # auto-busts on upgrades. Post-restore the binary is in /usr/local/bin
+      # and the following step uses it directly.
+      - name: Cache gitleaks binary
+        id: cache-gitleaks
+        uses: actions/cache@v7
+        with:
+          path: /usr/local/bin/gitleaks
+          key: gitleaks-v8.18.2-linux-amd64
 
-      - name: Install Trivy
+      - name: Install gitleaks (if not cached)
+        if: steps.cache-gitleaks.outputs.cache-hit != 'true'
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+          sudo chmod +x /usr/local/bin/gitleaks
+
+      - name: Gitleaks secret scan (fail-closed)
+        run: |
+          if ! gitleaks detect --config .gitleaks.toml --no-git --redact; then
+            echo "ERROR: gitleaks detected potential secrets — see findings above"
+            exit 1
+          fi
+          echo "No secrets detected by gitleaks"
+
+      # [T002754] aquasecurity/setup-trivy caches the binary automatically
+      # (actions/cache under the hood, keyed on version). Replaces the manual
+      # curl|sh install that re-downloaded every run.
+      - uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567  # v0.3.1
+        with:
+          version: v0.62.3
+          cache: 'true'
 
       - name: Trivy container image scan (pinned images)
         continue-on-error: true
@@ -570,37 +590,20 @@ jobs:
       - name: Build website
         run: cd website && pnpm build
 
+      - name: Check client-JS bundle budget
+        # [T002754] Previously a separate job (bundle-budget) that spun up a
+        # fresh runner, checked out the repo, downloaded the dist artifact, and
+        # ran this script. Folding it into vitest-website saves ~30s of job
+        # startup + artifact upload/download overhead. check-bundle-size.mjs
+        # uses only Node built-ins (fs, path, zlib) — no npm deps needed.
+        run: node scripts/check-bundle-size.mjs --check --fail --threshold=5
+
       - name: Upload website dist artifact
         uses: actions/upload-artifact@v7
         with:
           name: website-dist
           path: website/dist
           retention-days: 1
-
-  bundle-budget:
-    name: Client-JS Bundle Budget
-    if: github.event.action != 'edited'
-    needs: [vitest-website]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-tags: false
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: 'npm'
-
-      - name: Download website dist artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: website-dist
-          path: website/dist
-
-      - name: Check client-JS bundle budget
-        run: node scripts/check-bundle-size.mjs --check --fail --threshold=5
 
   lighthouse:
     name: Lighthouse Performance

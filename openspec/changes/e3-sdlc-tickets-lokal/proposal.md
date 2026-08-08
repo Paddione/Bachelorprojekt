@@ -28,9 +28,10 @@ einer pauschalen.
    Ausgenommen `tickets.provider_config` — daran haengt `coaching.sessions` (13 Zeilen), und
    Coaching bleibt laut ADR-006 auf fleet. Der lokale Stack legt eine eigene an.
 2. **Cutover:** Big-Bang in einem Fenster (Factory anhalten, dump/restore, Default umstellen,
-   Factory starten). Danach wird die fleet-Kopie per `REVOKE INSERT/UPDATE/DELETE`
-   schreibgeschuetzt, damit ein vergessenes `TICKET_CTX=fleet` laut scheitert statt still zu
-   divergieren. `SELECT` bleibt erlaubt.
+   Factory starten). **Das Einfrieren der fleet-Kopie entfaellt hier** und wandert nach
+   E4/T002722: `projects-db.ts` schreibt aus dem Produktions-Build nach `tickets.tickets`
+   (41 Kundenprojekte), ein `REVOKE` haette das Kundenportal gebrochen. Das Werkzeug bleibt und
+   verlangt bis dahin eine ausdrueckliche Bestaetigung.
 3. **Umleitung:** Der Default-Kontext wird in `scripts/ticket.sh`,
    `scripts/vda/ticket/_ticket-core.sh` und `scripts/factory/lib.sh` auf lokal gestellt; die
    uebrigen Aufrufer erben ihn, `ticket-mcp-go` ebenfalls (duenner Wrapper um `ticket.sh`).
@@ -42,14 +43,17 @@ einer pauschalen.
    Laeuft als systemd-User-Timer neben der Factory.
 5. **CI entkernen:** `post-merge.yml` verliert seine fuenf Ticket-Schritte — ihre Wirkung stellt
    der Poller her. **Erst nachdem** der Poller nachgewiesen ist.
-6. **Outbox:** `public.bug_report_outbox` auf fleet nach dem Muster von
-   `systemtest_failure_outbox`; die Website schreibt Kunden-Bugmeldungen dorthin, der Poller
-   liest sie ein und erzeugt das Ticket lokal.
-7. **Backup:** Taeglicher `pg_dump` der lokalen DB nach fleet, mit Restore-Test als
+6. **Backup:** Taeglicher `pg_dump` der lokalen DB nach fleet, mit Restore-Test als
    DoD-Bestandteil.
 
-**Nicht in dieser Etappe:** SDLC-Routen aus dem Prod-Image (E4/T002627), Modell-Registry
-(E6/T002629), Umzug von `dev.mentolder.de` und `terminal-sidekick` (in E2-D6 bewusst belassen).
+**Nicht in dieser Etappe:**
+- **Der fleet-Freeze** — verschoben nach T002722 (siehe oben).
+- **Eine Outbox fuer Kunden-Bugmeldungen.** Urspruenglich vorgesehen, aber gegenstandslos:
+  `/api/bug-report` wurde bereits in T002330 (PR #3461, "Bug-Konsolidierung") abgebaut. Es gibt
+  keinen produktiven Schreibpfad mehr, den man umleiten muesste — nur noch drei Kommentare, die
+  auf den entfernten Endpunkt verweisen.
+- SDLC-Routen aus dem Prod-Image (E4/T002627), Modell-Registry (E6/T002629), Umzug von
+  `dev.mentolder.de` und `terminal-sidekick` (in E2-D6 bewusst belassen).
 
 ## Impact
 
@@ -59,8 +63,7 @@ einer pauschalen.
 - `scripts/factory/github-poller.sh` — Merges, PR-Zustand, Checks
 - `scripts/factory/sdlc-github-poller.service` / `.timer`
 - `scripts/sdlc/sdlc-backup.service` / `.timer`
-- `website/src/lib/sdlc/inbox/bug-outbox.ts` + `bug-outbox.test.ts`
-- `migrations/<datum>-bug-report-outbox.sql`
+- `scripts/factory/sdlc-github-poller.service` / `.timer`
 - `tests/spec/sdlc-isolation/e3-tickets-lokal.bats`, `e3-poller.bats`, `e3-backup.bats`
 - `docs/sdlc-stack/e3-cutover.md` — Cutover- und Rollback-Runbook
 
@@ -69,7 +72,6 @@ einer pauschalen.
 - `scripts/vda/ticket/_ticket-core.sh` — Default-Kontext
 - `scripts/factory/lib.sh` — `FACTORY_CTX`-Default
 - `.github/workflows/post-merge.yml` — Ticket-Schritte entfernen
-- `website/src/lib/messaging-db.ts` — Bugmeldung in die Outbox statt direkt ins Ticket
 - `taskfiles/Taskfile.sdlc.yml` — Migrations-, Backup- und Poller-Tasks
 - `docs/sdlc-stack/README.md` — zwei `provider_config`-Instanzen, Verfuegbarkeitserwartung
 

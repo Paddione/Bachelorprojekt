@@ -76,21 +76,32 @@ Inhalt). Der Preis ist bekannt und wird bewusst getragen: LLM-Provider-Konfigura
 danach an zwei Orten und kann auseinanderlaufen. Das Runbook haelt fest, dass die lokale die
 Factory steuert und die fleet-Kopie ausschliesslich Coaching bedient.
 
-### D2 — Cutover als Big-Bang, fleet danach schreibgeschuetzt
+### D2 — Cutover als Big-Bang; der Freeze wandert nach E4
 
-Ablauf in einem Fenster: Factory anhalten → `pg_dump` des `tickets`-Schemas (ohne
-`provider_config`) → Restore in die lokale DB → Default-Kontext umstellen → Factory starten.
+Ablauf in einem Fenster: Factory anhalten -> `pg_dump` des `tickets`-Schemas (ohne
+`provider_config`) -> Restore in die lokale DB -> Default-Kontext umstellen -> Factory starten.
 Bei 36.700 Zeilen ist das ein Vorgang von Sekunden; ein Dual-Write-Uebergang waere Aufwand
 ohne Gegenwert.
 
-Danach wird die fleet-Kopie **stillgelegt**: `REVOKE INSERT, UPDATE, DELETE ON ALL TABLES IN
-SCHEMA tickets FROM website`, mit Ausnahme von `provider_config`. Ohne diesen Schritt schreibt
-ein vergessenes `TICKET_CTX=fleet` weiter in die tote Kopie und niemand merkt es — genau die
-Klasse stiller Drift, die dieses Repo wiederholt getroffen hat (T002619, T002563). Nach dem
-REVOKE scheitert ein solcher Zugriff laut.
+**Das urspruenglich hier vorgesehene Einfrieren der fleet-Kopie entfaellt in dieser Etappe**
+und wandert nach E4 (T002722). Grund, gemessen waehrend der Umsetzung:
+`website/src/lib/projects-db.ts` fuehrt aus dem **Produktions-Build** `INSERT`, `UPDATE` und
+`DELETE` auf `tickets.tickets` (`type='project'`) aus — aufgerufen von
+`api/portal/projekte.ts`, `portal.astro` und `admin.astro`. Bestand: 41 Projekt-Tickets.
+Ein `REVOKE` haette die Projektverwaltung im Kundenportal gebrochen.
 
-`SELECT` bleibt erlaubt: die Historie bleibt lesbar, und E4 entscheidet spaeter, worueber sie
-erreichbar bleibt.
+Bemerkenswert ist, warum die urspruengliche Messung das nicht zeigte: erhoben wurde die
+**Belegung der FK-Kanten** (`meetings.project_id`, `time_entries.project_id`, … alle 0 Zeilen),
+und daraus wurde geschlossen, die Doppelnutzung von `tickets.tickets` sei folgenlos. Der reale
+Nutzungspfad laeuft aber nicht ueber die Fremdschluessel, sondern direkt ueber die Spalte
+`type`. Eine Kante zu zaehlen ist nicht dasselbe wie eine Nutzung zu messen.
+
+Das Werkzeug (`migrate-tickets.sh freeze`) bleibt bestehen — E4 braucht es. Es verlangt eine
+ausdrueckliche Bestaetigung (`SDLC_FREEZE_CONFIRM=T002722`) und laeuft sonst nicht.
+
+**Der Preis dieser Verschiebung:** bis E4 kann ein vergessenes `TICKET_CTX=fleet` still in die
+alte Kopie schreiben. Genau das sollte der Freeze verhindern. Die Alternative — eine
+Kundenfunktion brechen — waere teurer.
 
 ### D3 — GitHub-Poller (Pull-Modell), cursor-basiert
 
@@ -205,7 +216,7 @@ tests/spec/sdlc-isolation/
 | Factory-Tick ohne Verbindung zur Hetzner-DB | `wg-quick down wg-fleet`, danach vollstaendiger Tick gruen |
 | Kein CI-Ereignis geht verloren | Poller anhalten, PR mergen, Poller starten → Ticket geschlossen |
 | `tickets`-Schema lokal | Zeilenzahlen lokal == fleet (ohne `provider_config`) |
-| fleet bereinigt | Schreibversuch auf `tickets.tickets` scheitert; `SELECT` funktioniert |
+| fleet bereinigt | **verschoben nach E4/T002722** — der Freeze haette das Kundenportal gebrochen |
 | Backup wiederherstellbar | Dump in Wegwerf-DB einspielen, Zeilenzahlen vergleichen |
 
 ## Risiken und Trade-offs
@@ -215,6 +226,8 @@ tests/spec/sdlc-isolation/
   ist deshalb bindend.
 - **Zwei `provider_config`-Instanzen** koennen auseinanderlaufen (D1). Bewusst getragen,
   dokumentiert im Runbook.
+- **Ohne Freeze bleibt fleet beschreibbar** (T002722): ein vergessenes `TICKET_CTX=fleet`
+  divergiert still. Bewusst getragen, bis E4 die Doppelnutzung von `tickets.tickets` aufloest.
 - **Die Altlast auf fleet:** `meetings.project_id` und die uebrigen leeren FKs zeigen danach auf
   eingefrorenen Bestand. Folgenlos bei 0 Zeilen, aber ein kuenftiges Geschaeftsfeature, das
   `project_id` benutzen will, haengt an toten Daten. Gehoert dokumentiert, nicht geloest.

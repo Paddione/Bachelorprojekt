@@ -15,7 +15,7 @@ Ticket-Aufgaben. Setzt p2 voraus.
 
 | Datei | Rolle | S1-Budget |
 |---|---|---|
-| `scripts/factory/github-poller.sh` | neu — Merges, PR-Zustand, Checks | `.sh` / 800, Budget 800 |
+| `scripts/factory/github-poller.sh` | neu — Merges, PR-Zustand, Checks | `.sh` / 800, Bestand 216, Budget 584 |
 | `scripts/factory/sdlc-github-poller.service` | neu — Poller-Unit | n/a |
 | `scripts/factory/sdlc-github-poller.timer` | neu — Poll-Intervall | n/a |
 | `.github/workflows/post-merge.yml` | geaendert — Ticket-Schritte entfernen | n/a (338 Zeilen, `.yml` ohne S1-Limit) |

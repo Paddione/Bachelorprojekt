@@ -353,10 +353,10 @@
     {
       "path": "scripts/sdlc/migrate-tickets.sh",
       "language": "sh",
-      "loc": 315,
+      "loc": 346,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 485
+      "s1_budget": 454
     },
     {
       "path": "scripts/sdlc/backup-tickets.sh",
@@ -369,15 +369,15 @@
     {
       "path": "scripts/factory/github-poller.sh",
       "language": "sh",
-      "loc": 0,
+      "loc": 216,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 800
+      "s1_budget": 584
     },
     {
       "path": "scripts/ticket.sh",
       "language": "sh",
-      "loc": 990,
+      "loc": 1017,
       "s1_limit": null,
       "s1_baseline": null,
       "s1_budget": null,
@@ -386,48 +386,26 @@
     {
       "path": "scripts/vda/ticket/_ticket-core.sh",
       "language": "sh",
-      "loc": 181,
+      "loc": 185,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 619
+      "s1_budget": 615
     },
     {
       "path": "scripts/factory/lib.sh",
       "language": "sh",
-      "loc": 72,
+      "loc": 79,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 728
+      "s1_budget": 721
     },
     {
       "path": ".github/workflows/post-merge.yml",
       "language": "config",
-      "loc": 338,
+      "loc": 176,
       "s1_limit": null,
       "s1_baseline": null,
       "s1_budget": null
-    },
-    {
-      "path": "website/src/lib/messaging-db.ts",
-      "language": "ts",
-      "loc": 296,
-      "s1_limit": 900,
-      "s1_baseline": null,
-      "s1_budget": 604
-    },
-    {
-      "path": "website/src/lib/sdlc/inbox/bug-outbox.ts",
-      "language": "ts",
-      "loc": 0,
-      "s1_limit": 900,
-      "s1_budget": 900
-    },
-    {
-      "path": "website/src/lib/sdlc/inbox/bug-outbox.test.ts",
-      "language": "ts",
-      "loc": 0,
-      "s1_limit": 900,
-      "s1_budget": 900
     },
     {
       "path": "scripts/sdlc/sdlc-backup.service",
@@ -446,21 +424,14 @@
     {
       "path": "scripts/factory/sdlc-github-poller.service",
       "language": "config",
-      "loc": 0,
+      "loc": 23,
       "s1_limit": null,
       "s1_budget": null
     },
     {
       "path": "scripts/factory/sdlc-github-poller.timer",
       "language": "config",
-      "loc": 0,
-      "s1_limit": null,
-      "s1_budget": null
-    },
-    {
-      "path": "migrations/2026-08-08-bug-report-outbox.sql",
-      "language": "sql",
-      "loc": 0,
+      "loc": 18,
       "s1_limit": null,
       "s1_budget": null
     },
@@ -474,14 +445,14 @@
     {
       "path": "docs/sdlc-stack/e3-cutover.md",
       "language": "markdown",
-      "loc": 169,
+      "loc": 180,
       "s1_limit": null,
       "s1_budget": null
     },
     {
       "path": "docs/sdlc-stack/README.md",
       "language": "markdown",
-      "loc": 125,
+      "loc": 165,
       "s1_limit": null,
       "s1_budget": null
     },
@@ -532,12 +503,18 @@
       "id": "R5",
       "risk": "Docker-Daemon lief zum Planungszeitpunkt nicht — der lokale Cluster konnte nicht verifiziert werden",
       "mitigation": "p1 beginnt mit einem Erreichbarkeits-Check des lokalen Clusters, bevor irgendetwas migriert wird"
+    },
+    {
+      "id": "R6",
+      "risk": "projects-db.ts schreibt aus dem Prod-Build nach tickets.tickets (41 Projekte) — der geplante Freeze haette das Kundenportal gebrochen",
+      "mitigation": "Freeze aus E3 herausgenommen und nach T002722 verschoben; migrate-tickets.sh freeze verlangt SDLC_FREEZE_CONFIRM"
     }
   ],
   "external_types": [],
   "notes": [
     "Die Scaffold-These 'tickets-Schema ist self-contained' ist durch die FK-Messung widerlegt; die Schlussfolgerung (vollstaendige Migration) traegt dennoch, weil die Kanten bis auf zwei unbelegt sind.",
     "tickets.tickets wird strukturell auch als Projekt-/Aufgabenverzeichnis fuer Geschaeftsdaten benutzt (meetings.project_id, time_entries.project_id/task_id, questionnaire_assignments.project_id) — aktuell 0 Zeilen.",
-    "ticket-mcp-go braucht keine Aenderung: es ruft scripts/ticket.sh auf und erbt den Default."
+    "ticket-mcp-go braucht keine Aenderung: es ruft scripts/ticket.sh auf und erbt den Default.",
+    "p4 (Bug-Outbox) entfaellt: /api/bug-report wurde in T002330/PR #3461 abgebaut, es gibt keinen produktiven Schreibpfad mehr."
   ]
 }

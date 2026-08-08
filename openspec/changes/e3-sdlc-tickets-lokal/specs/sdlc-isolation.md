@@ -28,30 +28,24 @@ same structure and independent content.
 
 ---
 
-### Requirement: The fleet copy is frozen against writes after cutover
+### Requirement: Coaching keeps its provider configuration on fleet
 
-After cutover the fleet `tickets` schema SHALL reject `INSERT`, `UPDATE` and `DELETE` from the
-`website` role, so that a stale `TICKET_CTX=fleet` fails loudly instead of diverging silently.
-`SELECT` SHALL remain permitted so the history stays readable. `provider_config` is exempt and
-SHALL stay writable for coaching.
-
-#### Scenario: Writing to the frozen copy fails
-
-- **GIVEN** the cutover has completed
-- **WHEN** a write is attempted against `tickets.tickets` on fleet
-- **THEN** the statement fails with a permission error
-
-#### Scenario: Reading the frozen copy still works
-
-- **GIVEN** the cutover has completed
-- **WHEN** a `SELECT` is issued against `tickets.tickets` on fleet
-- **THEN** it returns the archived rows
+`tickets.provider_config` SHALL remain on fleet and SHALL NOT be migrated, because
+`coaching.sessions.ki_config_id` references it and coaching is production data under ADR-006.
+The local stack SHALL maintain its own table of the same structure, whose content is
+independent of the fleet one.
 
 #### Scenario: Coaching keeps writing its provider configuration
 
-- **GIVEN** the cutover has completed
+- **GIVEN** the migration has completed
 - **WHEN** coaching updates a row in `tickets.provider_config` on fleet
 - **THEN** the write succeeds
+
+#### Scenario: The local stack has its own provider configuration
+
+- **GIVEN** the migration has completed
+- **WHEN** the local `tickets.provider_config` is inspected
+- **THEN** it exists with the same structure and is independent of the fleet content
 
 ---
 
@@ -79,27 +73,6 @@ idempotent so at-least-once delivery cannot produce duplicates.
 - **GIVEN** an event has already been processed
 - **WHEN** the same event is polled a second time
 - **THEN** the local state is unchanged and no duplicate row is created
-
----
-
-### Requirement: Customer bug reports reach the local database through an outbox
-
-The production website SHALL write customer bug reports into `public.bug_report_outbox` on
-fleet instead of creating a ticket directly, following the retry semantics of
-`public.systemtest_failure_outbox`. The poller SHALL consume that outbox, create the ticket
-locally and mark the row as processed.
-
-#### Scenario: A bug report becomes a local ticket
-
-- **GIVEN** a customer submits a bug report on the production website
-- **WHEN** the poller runs its next cycle
-- **THEN** a ticket exists in the local database and the outbox row is marked processed
-
-#### Scenario: An unprocessable row does not block the queue
-
-- **GIVEN** one outbox row cannot be processed
-- **WHEN** the poller runs
-- **THEN** that row keeps its error text and retry timestamp, and the remaining rows are still processed
 
 ---
 

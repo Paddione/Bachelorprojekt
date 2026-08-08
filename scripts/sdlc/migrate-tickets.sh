@@ -261,22 +261,53 @@ cmd_seed_provider_config() {
 }
 
 # --- freeze ------------------------------------------------------------------
+# ACHTUNG — in E3 NICHT ausfuehren [T002722].
+#
+# Der Freeze wuerde die Projektverwaltung im Kundenportal brechen:
+# website/src/lib/projects-db.ts fuehrt aus dem PRODUKTIONS-Build INSERT,
+# UPDATE und DELETE auf tickets.tickets (type='project') aus — aufgerufen von
+# api/portal/projekte.ts, portal.astro und admin.astro. Bestand: 41 Projekte.
+#
+# Die E3-Messung hatte das nicht gezeigt, weil sie die Belegung der FK-Kanten
+# erhob (meetings.project_id & Co., alle 0 Zeilen). Der reale Nutzungspfad
+# laeuft aber nicht ueber die Fremdschluessel, sondern direkt ueber type.
+#
+# Das Werkzeug bleibt hier, weil E4/T002722 es braucht — erst wenn Prod keine
+# Schreibzugriffe mehr auf tickets.* hat, darf die Kopie eingefroren werden.
+# Bis dahin verlangt der Befehl eine ausdrueckliche Bestaetigung.
 cmd_freeze() {
-  # SELECT bleibt erlaubt: die Historie soll lesbar bleiben (D2). Entzogen
-  # werden nur die schreibenden Rechte, und provider_config bekommt sie sofort
-  # zurueck, weil Coaching weiter darauf schreibt.
   local sql
   sql=$(cat <<SQL
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA tickets FROM $DB_USER;
 GRANT INSERT, UPDATE, DELETE ON tickets.$KEEP_ON_FLEET TO $DB_USER;
 SQL
 )
+  # Der Dry-Run steht VOR dem Guard: das SQL anzusehen ist genau der Weg, den
+  # die Warnung unten anbietet, und aendert nichts.
   if $DRY_RUN; then
     echo "[dry-run] auf $SRC_CTX/$SRC_NS:"
     echo "$sql" | sed 's/^/  /'
+    echo "[dry-run] HINWEIS: in E3 nicht ausfuehren — siehe T002722."
     return 0
   fi
 
+  if [[ "${SDLC_FREEZE_CONFIRM:-}" != "T002722" ]]; then
+    cat >&2 <<'WARN'
+ABBRUCH: freeze ist in E3 nicht vorgesehen.
+
+Der REVOKE wuerde die Projektverwaltung im Kundenportal brechen —
+projects-db.ts schreibt aus dem Prod-Build nach tickets.tickets (41 Projekte).
+Die Entscheidung darueber liegt bei T002722 (ADR-006 E4).
+
+Zum Ansehen des SQL:      migrate-tickets.sh freeze --dry-run
+Wenn T002722 entschieden:  SDLC_FREEZE_CONFIRM=T002722 migrate-tickets.sh freeze
+WARN
+    return 1
+  fi
+
+  # SELECT bleibt erlaubt: die Historie soll lesbar bleiben. Entzogen werden nur
+  # die schreibenden Rechte, und provider_config bekommt sie sofort zurueck,
+  # weil Coaching weiter darauf schreibt.
   _psql "$SRC_CTX" "$SRC_NS" -c "$sql"
   echo "fleet-Kopie eingefroren. SELECT bleibt moeglich, $KEEP_ON_FLEET bleibt schreibbar."
   echo "Rollback: GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA tickets TO $DB_USER;"

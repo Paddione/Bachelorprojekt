@@ -1,13 +1,13 @@
 ---
-title: "p5-tests — BATS-Nachweis fuer Umstellung, Poller und Backup"
+title: "p4-tests — BATS-Nachweis fuer Umstellung, Poller und Backup"
 ticket_id: T002626
 domains: [test]
 status: active
 ---
 
-# p5-tests — BATS-Nachweis fuer Umstellung, Poller und Backup
+# p4-tests — BATS-Nachweis fuer Umstellung, Poller und Backup
 
-Belegt die DoD dieser Etappe mit ausfuehrbaren Tests. Setzt p1–p4 voraus.
+Belegt die DoD dieser Etappe mit ausfuehrbaren Tests. Setzt p1–p3 voraus.
 
 ## File Structure
 

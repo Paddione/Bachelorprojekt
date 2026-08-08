@@ -1,4 +1,4 @@
-# E3-Cutover — tickets-Schema nach lokal, fleet einfrieren
+# E3-Cutover — tickets-Schema nach lokal
 
 **Ticket:** T002626 · **ADR:** [ADR-006](../adr/ADR-006-sdlc-isolation-dev-host.md) Etappe 3
 **Entwurf:** `openspec/changes/e3-sdlc-tickets-lokal/design.md`
@@ -98,26 +98,25 @@ systemctl --user start factory.timer
 
 Einen vollständigen Tick abwarten und prüfen, dass er lokal schreibt.
 
-### 7. Erst jetzt: fleet einfrieren
+### 7. fleet einfrieren — NICHT in dieser Etappe
+
+Ursprünglich war hier der `REVOKE` vorgesehen, der die fleet-Kopie gegen Schreibzugriffe
+sperrt. **Er entfällt** und wandert nach [T002722](../../openspec/changes/) (ADR-006 E4).
+
+Der Grund wurde bei der Umsetzung gemessen: `website/src/lib/projects-db.ts` führt aus dem
+**Produktions-Build** `INSERT`, `UPDATE` und `DELETE` auf `tickets.tickets` (`type='project'`)
+aus, aufgerufen von `api/portal/projekte.ts`, `portal.astro` und `admin.astro`. Es liegen 41
+Projekt-Tickets. Ein Freeze hätte die Projektverwaltung im Kundenportal gebrochen.
+
+Das SQL lässt sich ansehen, ausgeführt wird es nicht:
 
 ```bash
-task sdlc:sdlc:migrate:freeze -- --dry-run   # SQL ansehen
-task sdlc:sdlc:migrate:freeze
+task sdlc:sdlc:migrate:freeze -- --dry-run
 ```
 
-Das Einfrieren steht bewusst **hinter** dem Neustart der Factory: solange nicht belegt ist,
-dass der lokale Betrieb trägt, bleibt der Rückweg offen.
-
-Nachweis:
-
-```bash
-kubectl exec -i "$(kubectl --context fleet get pod -n workspace -l app=shared-db -o name | head -1)" \
-  -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -c \
-  "INSERT INTO tickets.tickets (type,brand,title) VALUES ('chore','mentolder','freeze-probe')"
-```
-
-Erwartet: `ERROR: permission denied for table tickets`.
+**Konsequenz für den Betrieb bis E4:** die fleet-Kopie bleibt beschreibbar. Ein vergessenes
+`TICKET_CTX=fleet` schreibt dort weiter, ohne dass es auffällt — genau der Zustand, den der
+Freeze verhindern sollte. Wer auf fleet schreibt, tut das ab jetzt bewusst.
 
 ### 8. Sicherung einrichten
 
@@ -138,13 +137,10 @@ Wenn Schritt 1–8 durch sind und die Factory nachweislich lokal arbeitet, wird 
 
 ## Rückweg
 
-Möglich, solange die eingefrorene fleet-Kopie liegt:
+Möglich, solange die fleet-Kopie liegt. Da sie in dieser Etappe **nicht** eingefroren wird,
+genügt es, den Default zurückzunehmen:
 
 ```bash
-kubectl exec -i "$(kubectl --context fleet get pod -n workspace -l app=shared-db -o name | head -1)" \
-  -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -c \
-  "GRANT INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA tickets TO website"
 export TICKET_CTX=fleet   # bzw. die Default-Änderung aus p2 zurücknehmen
 ```
 
@@ -163,19 +159,22 @@ Der Preis ist bekannt und wird getragen: LLM-Provider-Konfiguration existiert da
 Orten und kann auseinanderlaufen. **Zuständigkeit:** die lokale Instanz steuert die Factory,
 die fleet-Instanz bedient ausschließlich Coaching. Wer eine ändert, ändert nicht die andere.
 
-## Was auf fleet als Altlast zurückbleibt
+## Was auf fleet zurückbleibt
 
-Fünf Fremdschlüssel zeigen weiter auf die eingefrorene Kopie:
+Die Kopie bleibt vollständig lesbar **und schreibbar** (der Freeze wandert nach E4/T002722).
+Zwei Dinge greifen weiterhin aktiv darauf zu:
 
-| Spalte | belegte Zeilen |
-|---|---|
-| `inbox_items.bug_ticket_id` | 2 |
-| `meetings.project_id` | 0 |
-| `time_entries.project_id` | 0 |
-| `time_entries.task_id` | 0 |
-| `questionnaire_assignments.project_id` | 0 |
+| Zugriff | Umfang | Status |
+|---|---|---|
+| `coaching.sessions.ki_config_id` → `tickets.provider_config` | 13 Zeilen | gelöst — Tabelle bleibt bewusst auf fleet |
+| `projects-db.ts` → `tickets.tickets` (`type='project'`) | 41 Projekte | **offen — T002722** |
 
-Bei diesem Belegungsgrad folgenlos. Bemerkenswert ist aber, wofür sie stehen: `tickets.tickets`
-wurde strukturell auch als Projekt- und Aufgabenverzeichnis für Geschäftsdaten angelegt. Ein
-künftiges Geschäftsfeature, das `project_id` benutzen will, hinge damit an totem Bestand — das
-ist dann zu lösen, nicht hier.
+Dazu fünf Fremdschlüssel, die auf die Kopie zeigen und praktisch unbelegt sind
+(`inbox_items.bug_ticket_id` 2 Zeilen; `meetings.project_id`, `time_entries.project_id`,
+`time_entries.task_id`, `questionnaire_assignments.project_id` je 0).
+
+**Eine Lehre aus dieser Etappe:** Die ursprüngliche Planung stützte sich auf genau diese
+FK-Zählung und schloss daraus, die Doppelnutzung von `tickets.tickets` sei folgenlos. Der
+reale Nutzungspfad des Kundenportals läuft aber nicht über die Fremdschlüssel, sondern direkt
+über die Spalte `type`. Eine Kante zu zählen ist nicht dasselbe, wie eine Nutzung zu messen —
+wer das nächste Mal eine Tabelle verlagert, sucht zuerst die schreibenden Aufrufer im Code.

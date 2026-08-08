@@ -31,17 +31,13 @@ im Pull-Modell her. Entwurf und Messwerte: `design.md`, `intel.json`.
 | `scripts/vda/ticket/_ticket-core.sh` | p2 | geaendert — Default-Kontext | `.sh` / 800, Bestand 181, Budget 619 |
 | `scripts/factory/lib.sh` | p2 | geaendert — `FACTORY_CTX` | `.sh` / 800, Bestand 72, Budget 728 |
 | `docs/sdlc-stack/README.md` | p2 | geaendert — Betriebshinweise | n/a |
-| `scripts/factory/github-poller.sh` | p3 | neu — Merges/PR-Zustand/Checks | `.sh` / 800, Budget 800 |
+| `scripts/factory/github-poller.sh` | p3 | neu — Merges/PR-Zustand/Checks | `.sh` / 800, Bestand 216, Budget 584 |
 | `scripts/factory/sdlc-github-poller.service` | p3 | neu | n/a |
 | `scripts/factory/sdlc-github-poller.timer` | p3 | neu | n/a |
 | `.github/workflows/post-merge.yml` | p3 | geaendert — Ticket-Schritte entfernen | n/a |
-| `migrations/2026-08-08-bug-report-outbox.sql` | p4 | neu — Outbox auf fleet | n/a |
-| `website/src/lib/sdlc/inbox/bug-outbox.ts` | p4 | neu — Schreibpfad | `.ts` / 900, Budget 900 |
-| `website/src/lib/sdlc/inbox/bug-outbox.test.ts` | p4 | neu — Vitest | `.ts` / 900, Budget 900 |
-| `website/src/lib/messaging-db.ts` | p4 | geaendert — Outbox statt Ticket | `.ts` / 900, Bestand 296, Budget 604 |
-| `tests/spec/sdlc-isolation/e3-tickets-lokal.bats` | p5 | neu | n/a |
-| `tests/spec/sdlc-isolation/e3-poller.bats` | p5 | neu | n/a |
-| `tests/spec/sdlc-isolation/e3-backup.bats` | p5 | neu | n/a |
+| `tests/spec/sdlc-isolation/e3-tickets-lokal.bats` | p4 | neu | n/a |
+| `tests/spec/sdlc-isolation/e3-poller.bats` | p4 | neu | n/a |
+| `tests/spec/sdlc-isolation/e3-backup.bats` | p4 | neu | n/a |
 
 ## Partials
 
@@ -50,8 +46,7 @@ im Pull-Modell her. Entwurf und Messwerte: `design.md`, `intel.json`.
 | p1 | tasks.d/p1-data.md | impl | scripts/sdlc/migrate-tickets.sh, scripts/sdlc/backup-tickets.sh, scripts/sdlc/sdlc-backup.service, scripts/sdlc/sdlc-backup.timer, taskfiles/Taskfile.sdlc.yml, docs/sdlc-stack/e3-cutover.md | |
 | p2 | tasks.d/p2-redirect.md | impl | scripts/ticket.sh, scripts/vda/ticket/_ticket-core.sh, scripts/factory/lib.sh, docs/sdlc-stack/README.md | p1 |
 | p3 | tasks.d/p3-poller.md | impl | scripts/factory/github-poller.sh, scripts/factory/sdlc-github-poller.service, scripts/factory/sdlc-github-poller.timer, .github/workflows/post-merge.yml | p2 |
-| p4 | tasks.d/p4-outbox.md | impl | migrations/2026-08-08-bug-report-outbox.sql, website/src/lib/sdlc/inbox/bug-outbox.ts, website/src/lib/sdlc/inbox/bug-outbox.test.ts, website/src/lib/messaging-db.ts | p3 |
-| p5 | tasks.d/p5-tests.md | tests | tests/spec/sdlc-isolation/e3-tickets-lokal.bats, tests/spec/sdlc-isolation/e3-poller.bats, tests/spec/sdlc-isolation/e3-backup.bats | p4 |
+| p4 | tasks.d/p4-tests.md | tests | tests/spec/sdlc-isolation/e3-tickets-lokal.bats, tests/spec/sdlc-isolation/e3-poller.bats, tests/spec/sdlc-isolation/e3-backup.bats | p3 |
 
 ### p1 — data: Migration, fleet-Freeze, Backup
 
@@ -68,14 +63,13 @@ Namespace-Ableitung in `ticket.sh`, die sonst jeden Ticket-Befehl unbrauchbar ma
 Baut den cursor-basierten Poller (Merges, PR-Zustand, Checks) und entfernt **erst nach dessen
 Nachweis** die fuenf Ticket-Bloecke aus `post-merge.yml`.
 
-### p4 — outbox: Kunden-Bugmeldungen
-
-Legt `public.bug_report_outbox` auf fleet an, stellt den Schreibpfad der Website um und
-ergaenzt die Leseseite im Poller.
-
-### p5 — tests: BATS-Nachweis
+### p4 — tests: BATS-Nachweis
 
 Belegt Umstellung, Cursor-Semantik und Restore ueber Kommandoausgaben statt Quelltext-Greps.
+
+> **Entfallen:** Das urspruengliche p4 (Outbox fuer Kunden-Bugmeldungen) ist gegenstandslos —
+> `/api/bug-report` wurde bereits in T002330 (PR #3461) abgebaut. Es gibt keinen produktiven
+> Schreibpfad, den man umleiten muesste.
 
 ## Reihenfolge ist bindend
 
@@ -87,7 +81,7 @@ Ticket-Befehl mehr laeuft.
 
 ## Verify
 
-Abschliessend, nach p1–p5:
+Abschliessend, nach p1–p4:
 
 ```bash
 bash scripts/openspec.sh validate
@@ -107,11 +101,11 @@ systemctl --user stop sdlc-github-poller.timer
 #   … PR mergen …
 systemctl --user start sdlc-github-poller.timer && bash scripts/factory/github-poller.sh --once
 
-# fleet ist eingefroren
-kubectl exec -i "$(kubectl --context fleet get pod -n workspace -l app=shared-db -o name | head -1)" \
-  -n workspace --context fleet -c postgres -- \
-  psql -U website -d website -c "INSERT INTO tickets.tickets (type,brand,title) VALUES ('chore','mentolder','x')"
+# Backup wiederherstellbar
+task sdlc:sdlc:backup && task sdlc:sdlc:restore-check
 ```
 
 Erwartet: der Tick laeuft vollstaendig durch, das Ticket des gemergten PR ist danach
-geschlossen, und der `INSERT` scheitert mit einem Berechtigungsfehler.
+geschlossen, und der Restore meldet uebereinstimmende Zeilenzahlen.
+
+Der Freeze-Nachweis entfaellt — er gehoert jetzt zu T002722.

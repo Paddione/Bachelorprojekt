@@ -5,7 +5,8 @@
 
 set -euo pipefail
 
-CTX="${TICKET_CTX:-fleet}"
+# Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
+CTX="${TICKET_CTX:-k3d-mentolder-dev}"
 NS="${TICKET_NS:-workspace}"
 DB="website"
 USER="website"

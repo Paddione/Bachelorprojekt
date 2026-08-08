@@ -5,7 +5,8 @@
 set -euo pipefail
 
 ENV="${1:-${ENV:-dev}}"
-CTX="${TICKET_CTX:-fleet}"
+# Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
+CTX="${TICKET_CTX:-k3d-mentolder-dev}"
 NS="${TICKET_NS:-workspace}"
 
 # [T002386] Phase Running serverseitig filtern — sonst kann ein liegengebliebener

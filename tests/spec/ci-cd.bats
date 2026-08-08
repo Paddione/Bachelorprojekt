@@ -52,10 +52,20 @@ setup() {
   grep -qE 'cancel-in-progress:[[:space:]]*false' "$WF"
 }
 
-@test "G-CD02: beide Ticket-Status-Updates laufen durch retry()" {
-  run grep -cE 'retry[[:space:]]+bash[[:space:]]+scripts/ticket.sh[[:space:]]+update-status' "$WF"
-  [ "$status" -eq 0 ]
-  [ "$output" -ge 2 ]
+# [T002626] Der frühere Guard verlangte zwei `retry bash scripts/ticket.sh
+# update-status`-Aufrufe in post-merge.yml. Seit ADR-006 E3 liegt die
+# SDLC-Datenbank auf dem Dev-Host, den GitHub Actions nicht erreicht — CI
+# schreibt keinen Ticket-Status mehr, die Closure leitet der lokale Poller ab.
+# Der Guard prüft deshalb jetzt die Gegenrichtung.
+@test "G-CD02: post-merge.yml schreibt keinen Ticket-Status mehr [T002626]" {
+  # Positiv-Anker zuerst (T002356-M1): der Workflow existiert und tut weiterhin,
+  # wofür er da ist. Ohne ihn bestünde die Negativ-Aussage auch bei gelöschter Datei.
+  [ -f "$WF" ]
+  grep -q 'render-artifact:' "$WF"
+  grep -q 'deploy-legacy:' "$WF"
+  # Erst jetzt: keine ausführbare Ticket-Schreibzeile mehr (Kommentare zählen nicht).
+  run grep -cE '^[^#]*scripts/ticket\.sh[[:space:]]+update-status' "$WF"
+  [ "$output" = "0" ]
 }
 
 @test "G-CQ03: website/eslint.config.js exists" {
@@ -661,15 +671,29 @@ PYEOF
   [ "$status" -eq 0 ]
 }
 
-@test "T002121: 'Mark ticket done' haengt an always(), nicht an success()" {
-  # Closure trackt laut T001092 den MERGE, nicht Prod-Live. Eine
-  # fehlgeschlagene Migration darf das Ticket nicht offen halten.
+# [T002626] Der Schritt "Mark ticket done" existiert nicht mehr — siehe G-CD02
+# oben. Der frühere Guard prüfte, dass er an always() hängt (T002121), damit
+# eine fehlgeschlagene Migration das Ticket nicht offen hält. Diese Sorge ist
+# gegenstandslos geworden, seit die Closure gar nicht mehr in CI entsteht.
+#
+# Was bleibt und weiterhin gilt: der Workflow muss ohne unauflösbare
+# needs-Kanten dastehen. mark-awaiting wurde mit entfernt, und ein
+# zurückgebliebenes `needs: mark-awaiting` ließe GitHub den gesamten Workflow
+# beim Start verwerfen — ein Fehler, der nicht in einem einzelnen Job auffällt,
+# sondern alles stillegt.
+@test "T002626: post-merge.yml hat keine unaufloesbaren needs-Kanten" {
   run python3 -c "
 import yaml,sys
 d=yaml.safe_load(open('$REPO_ROOT/.github/workflows/post-merge.yml'))
-steps=d['jobs']['post-deploy-imperative']['steps']
-s=[x for x in steps if x.get('name')=='Mark ticket done']
-sys.exit(0 if s and 'always()' in str(s[0].get('if','')) else 1)
+jobs=set(d['jobs'])
+for name,job in d['jobs'].items():
+    needs=job.get('needs') or []
+    if isinstance(needs,str): needs=[needs]
+    for n in needs:
+        if n not in jobs:
+            print(f'{name} needs {n!r} which does not exist'); sys.exit(1)
+# Positiv-Anker: es gibt ueberhaupt Jobs mit Abhaengigkeiten.
+sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 "
   [ "$status" -eq 0 ]
 }

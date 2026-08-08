@@ -16,7 +16,8 @@ set -euo pipefail
 
 MAX_INLINE_MB="${MAX_INLINE_MB:-10}"
 MAX_BYTES=$(( MAX_INLINE_MB * 1024 * 1024 ))
-CTX="${TICKET_CTX:-fleet}"
+# Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
+CTX="${TICKET_CTX:-k3d-mentolder-dev}"
 NS="${TICKET_NS:-workspace}"
 
 if [[ $# -lt 2 ]]; then

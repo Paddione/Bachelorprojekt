@@ -4,7 +4,11 @@
 # Expects: NS, CTX, DB, USER from sourcing context; defaults from TICKET_* env vars.
 
 : "${NS:=${TICKET_NS:-workspace}}"
-: "${CTX:=${TICKET_CTX:-fleet}}"
+# Default-Kontext seit E3/T002626: die SDLC-Daten liegen lokal, die fleet-Kopie
+# ist eingefroren. Derselbe Wert steht in scripts/ticket.sh (dort wird er vor
+# dem Sourcen dieser Datei fuer die Namespace-Ableitung gebraucht) — beide
+# Stellen zusammen aendern.
+: "${CTX:=${TICKET_CTX:-k3d-mentolder-dev}}"
 : "${DB:=website}"
 USER="website"
 

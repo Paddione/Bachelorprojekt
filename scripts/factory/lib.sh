@@ -15,16 +15,23 @@ factory_resolve() {
     *)           echo '{"error":"unknown BRAND (use mentolder|korczewski)"}' >&2; exit 2 ;;
   esac
   FACTORY_NS="${FACTORY_NS:-workspace}"
-  FACTORY_CTX="${FACTORY_CTX:-fleet}"
+  # Default-Kontext seit E3/T002626 (ADR-006): die SDLC-Daten liegen lokal.
+  # Spiegelt scripts/ticket.sh und scripts/vda/ticket/_ticket-core.sh — die drei
+  # Stellen zusammen aendern. FACTORY_CTX bleibt als Override gueltig.
+  FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}"
 
-  # If context is a dev cluster, append -dev to namespace
-  if [[ "$FACTORY_CTX" == k3d-* || "$FACTORY_CTX" == *-dev ]]; then
-    if [[ "$FACTORY_NS" == "workspace" ]]; then
-      FACTORY_NS="workspace-dev"
-    elif [[ "$FACTORY_NS" == "workspace-korczewski" ]]; then
-      FACTORY_NS="workspace-korczewski-dev"
-    fi
-  fi
+  # Namespace je Kontext — dieselbe Korrektur wie in scripts/ticket.sh [T002626]:
+  # der SDLC-Cluster betreibt seine Datenbank in `workspace`, nicht in
+  # `workspace-dev`. Der Kontextname taugt nicht als Anker dafuer.
+  case "$FACTORY_CTX" in
+    k3d-mentolder-dev|k3d-korczewski-dev) : ;;
+    *-dev)
+      case "$FACTORY_NS" in
+        workspace)            FACTORY_NS="workspace-dev" ;;
+        workspace-korczewski) FACTORY_NS="workspace-korczewski-dev" ;;
+      esac
+      ;;
+  esac
 }
 
 # [T002386] Serverseitig auf Phase Running filtern. kubectl sortiert nach Name,

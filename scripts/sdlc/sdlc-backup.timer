@@ -1,0 +1,17 @@
+# scripts/sdlc/sdlc-backup.timer
+# Taeglicher Trigger fuer sdlc-backup.service (E3/T002626).
+[Unit]
+Description=Taegliche SDLC-Datenbanksicherung nach fleet
+
+[Timer]
+# 03:00 lokal — eine Stunde nach dem fleet-eigenen backup-cronjob (02:00 UTC),
+# damit die beiden Sicherungslaeufe nicht gleichzeitig auf backup-pvc schreiben.
+OnCalendar=*-*-* 03:00:00
+# Die Workstation laeuft nicht durch. Ohne Persistent bliebe jede Sicherung aus,
+# deren Zeitpunkt in eine Ausschaltphase fiel — genau der haeufige Fall.
+Persistent=true
+# Streuung gegen exakte Gleichzeitigkeit mit anderen Timern.
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

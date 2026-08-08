@@ -1,0 +1,520 @@
+{
+  "meta": {
+    "slug": "e3-sdlc-tickets-lokal",
+    "ticket_id": "T002626",
+    "generated_from": "main@c9c22feed",
+    "domains": [
+      "db",
+      "infra",
+      "scripts",
+      "factory"
+    ],
+    "intel_sources": [
+      "psql-live-fleet",
+      "grep",
+      "wc -l",
+      "docs/code-quality/gates.yaml"
+    ]
+  },
+  "db_tables": {
+    "source": "kubectl exec shared-db (context fleet, ns workspace, db website) — 2026-08-08",
+    "schema": "tickets",
+    "table_count": 23,
+    "row_total_approx": 36700,
+    "largest": [
+      {
+        "table": "ticket_comments",
+        "rows": 12820
+      },
+      {
+        "table": "ticket_activity",
+        "rows": 12193
+      },
+      {
+        "table": "factory_phase_events",
+        "rows": 4976
+      },
+      {
+        "table": "factory_control",
+        "rows": 3107
+      },
+      {
+        "table": "tickets",
+        "rows": 2080
+      },
+      {
+        "table": "factory_run_budget",
+        "rows": 570
+      },
+      {
+        "table": "ticket_links",
+        "rows": 560
+      },
+      {
+        "table": "ticket_plans",
+        "rows": 298
+      },
+      {
+        "table": "provider_config",
+        "rows": 39
+      }
+    ],
+    "empty_tables": [
+      "pr_events",
+      "ticket_watchers",
+      "ticket_embeddings",
+      "feature_flags",
+      "qa_reviews",
+      "cockpit_audit"
+    ],
+    "fk_out_of_tickets": [
+      {
+        "column": "tickets.tickets.brand",
+        "target": "brands",
+        "populated": 2080
+      },
+      {
+        "column": "tickets.tickets.customer_id",
+        "target": "customers",
+        "populated": 13
+      },
+      {
+        "column": "tickets.tickets.assignee_id",
+        "target": "customers",
+        "populated": 1
+      },
+      {
+        "column": "tickets.tickets.reporter_id",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.tickets.source_test_question_id",
+        "target": "questionnaire_questions",
+        "populated": 0
+      },
+      {
+        "column": "tickets.tickets.source_test_assignment_id",
+        "target": "questionnaire_assignments",
+        "populated": 0
+      },
+      {
+        "column": "tickets.tickets.source_test_run_id",
+        "target": "test_runs",
+        "populated": 0
+      },
+      {
+        "column": "tickets.tickets.source_test_result_id",
+        "target": "test_results",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_comments.author_id",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_activity.actor_id",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_links.created_by",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_attachments.uploaded_by",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_watchers.user_id",
+        "target": "customers",
+        "populated": 0
+      },
+      {
+        "column": "tickets.ticket_counters.brand",
+        "target": "brands",
+        "populated": 2
+      },
+      {
+        "column": "tickets.tags.brand",
+        "target": "brands",
+        "populated": 6
+      },
+      {
+        "column": "tickets.feature_flags.brand",
+        "target": "brands",
+        "populated": 0
+      },
+      {
+        "column": "tickets.pr_events.brand",
+        "target": "brands",
+        "populated": 0
+      }
+    ],
+    "fk_into_tickets": [
+      {
+        "column": "coaching.sessions.ki_config_id",
+        "target": "tickets.provider_config",
+        "populated": 13,
+        "note": "blocking — coaching stays on fleet (D1)"
+      },
+      {
+        "column": "inbox_items.bug_ticket_id",
+        "target": "tickets.tickets",
+        "populated": 2,
+        "note": "customer bug reports — outbox path (D5)"
+      },
+      {
+        "column": "meetings.project_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      },
+      {
+        "column": "time_entries.project_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      },
+      {
+        "column": "time_entries.task_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      },
+      {
+        "column": "questionnaire_assignments.project_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      },
+      {
+        "column": "questionnaire_test_status.last_failure_ticket_id",
+        "target": "tickets.tickets",
+        "populated": 0
+      }
+    ],
+    "reference_tables": [
+      {
+        "table": "brands",
+        "rows": 2
+      },
+      {
+        "table": "customers",
+        "rows": 4
+      }
+    ]
+  },
+  "symbols": [
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh::_pgpod",
+      "signature": "_pgpod() -> pod_name",
+      "type_text": "bash function; resolves the shared-db pod via kubectl in $NS/$CTX, exits 1 when none is Running",
+      "source": "grep",
+      "role": "central choke point — every ticket read/write passes through it; the cutover succeeds or fails here"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/_ticket-core.sh::_exec_sql",
+      "signature": "_exec_sql(pod, psql_args...) -> stdout",
+      "type_text": "bash function; kubectl exec -c postgres -- psql -U website -d website -qtA",
+      "source": "grep",
+      "role": "SQL transport; unchanged by this change, only its target cluster moves"
+    },
+    {
+      "qualified_name": "scripts/factory/lib.sh::factory_pgpod",
+      "signature": "factory_pgpod() -> pod_name",
+      "type_text": "bash function; same resolution as _pgpod but keyed on $FACTORY_NS/$FACTORY_CTX",
+      "source": "grep",
+      "role": "second, independent access path — must be redirected together with the first or the factory keeps writing to fleet"
+    },
+    {
+      "qualified_name": "scripts/ticket-mcp/go/internal/runner/run_ticket.go::runTicket",
+      "signature": "runTicket(args []string) (string, error)",
+      "type_text": "exec.Command(\"bash\", scripts/ticket.sh, args...) with inherited os.Environ()",
+      "source": "grep",
+      "role": "thin wrapper — inherits the new default, needs no change of its own"
+    },
+    {
+      "qualified_name": "website/src/lib/sdlc/systemtest/failure-bridge.ts::enqueueOutboxRetry",
+      "signature": "enqueueOutboxRetry(pool: Pool, opts: { assignmentId, questionId, attempt, error }) => Promise<void>",
+      "type_text": "INSERT INTO systemtest_failure_outbox (…, retry_count, retry_after, created_at)",
+      "source": "read",
+      "role": "the established outbox pattern p4 mirrors for bug_report_outbox"
+    },
+    {
+      "qualified_name": "website/src/lib/sdlc/systemtest/failure-bridge.ts::openFailureTicket",
+      "signature": "openFailureTicket(pool: Pool, opts: OpenFailureOpts) => Promise<string | null>",
+      "type_text": "dedup via source_test_question_id, best-effort, throws so the caller can enqueue a retry",
+      "source": "read",
+      "role": "reference for the best-effort + retry semantics the bug outbox must preserve"
+    },
+    {
+      "qualified_name": "website/src/lib/tickets-schema.ts::initTicketsSchema",
+      "signature": "initTicketsSchema() => Promise<void>",
+      "type_text": "idempotent schema bootstrap, cached via ensureSchemaOnce",
+      "source": "grep",
+      "role": "creates the empty local schema E2 relies on; the restore in p1 fills it"
+    }
+  ],
+  "call_graph": {
+    "db_access_paths": [
+      {
+        "path": "scripts/ticket.sh:23",
+        "symbol": "CTX",
+        "current": "${TICKET_CTX:-fleet}"
+      },
+      {
+        "path": "scripts/vda/ticket/_ticket-core.sh:7",
+        "symbol": "CTX",
+        "current": "${CTX:=${TICKET_CTX:-fleet}}"
+      },
+      {
+        "path": "scripts/vda/ticket/_ticket-core.sh:46",
+        "symbol": "_pgpod",
+        "current": "kubectl get pod -n $NS --context $CTX -l app in (shared-db, shared-db-dev)"
+      },
+      {
+        "path": "scripts/vda/ticket/_ticket-core.sh:64",
+        "symbol": "_exec_sql",
+        "current": "kubectl exec -i $pod -c postgres -- psql -U website -d website"
+      },
+      {
+        "path": "scripts/factory/lib.sh:47",
+        "symbol": "factory_pgpod",
+        "current": "kubectl get pod -n $FACTORY_NS --context $FACTORY_CTX"
+      },
+      {
+        "path": "scripts/ticket.sh:69-75",
+        "symbol": "NS auto-rewrite",
+        "current": "CTX == k3d-* → NS=workspace-dev",
+        "note": "wrong for the E2 stack which deploys to workspace (D7)"
+      },
+      {
+        "path": "scripts/ticket-mcp/go/internal/runner/run_ticket.go:60",
+        "symbol": "runTicket",
+        "current": "exec.Command(bash, scripts/ticket.sh)",
+        "note": "thin wrapper — inherits TICKET_CTX automatically"
+      }
+    ],
+    "ci_write_paths": [
+      {
+        "path": ".github/workflows/post-merge.yml:40",
+        "current": "export TICKET_CTX=fleet"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:56",
+        "current": "ticket.sh update-status --status awaiting_deploy"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:92",
+        "current": "export TICKET_CTX=fleet"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:261",
+        "current": "export TICKET_CTX=fleet"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:277",
+        "current": "ticket.sh update-status --status done"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:293",
+        "current": "export TICKET_CTX=fleet"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:307",
+        "current": "devflow-post-merge-ticket-closure.sh"
+      },
+      {
+        "path": ".github/workflows/post-merge.yml:326",
+        "current": "export TICKET_CTX=fleet"
+      }
+    ],
+    "outbox_pattern_reference": [
+      {
+        "path": "website/src/lib/sdlc/systemtest/failure-bridge.ts:329",
+        "symbol": "enqueueOutboxRetry",
+        "note": "retry semantics to mirror for bug_report_outbox"
+      }
+    ],
+    "poller_pattern_reference": [
+      {
+        "path": "scripts/factory/auto-close-merged.sh",
+        "loc": 172,
+        "note": "already pull-based; poller generalises it"
+      },
+      {
+        "path": "scripts/factory/babysit-prs.sh",
+        "loc": 233,
+        "note": "already pull-based"
+      }
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/sdlc/migrate-tickets.sh",
+      "language": "sh",
+      "loc": 346,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 454
+    },
+    {
+      "path": "scripts/sdlc/backup-tickets.sh",
+      "language": "sh",
+      "loc": 222,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 578
+    },
+    {
+      "path": "scripts/factory/github-poller.sh",
+      "language": "sh",
+      "loc": 216,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 584
+    },
+    {
+      "path": "scripts/ticket.sh",
+      "language": "sh",
+      "loc": 1017,
+      "s1_limit": null,
+      "s1_baseline": null,
+      "s1_budget": null,
+      "note": "listed in gates.yaml ignore — sanctioned single-file CLI"
+    },
+    {
+      "path": "scripts/vda/ticket/_ticket-core.sh",
+      "language": "sh",
+      "loc": 185,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 615
+    },
+    {
+      "path": "scripts/factory/lib.sh",
+      "language": "sh",
+      "loc": 79,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 721
+    },
+    {
+      "path": ".github/workflows/post-merge.yml",
+      "language": "config",
+      "loc": 176,
+      "s1_limit": null,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/sdlc/sdlc-backup.service",
+      "language": "config",
+      "loc": 25,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/sdlc/sdlc-backup.timer",
+      "language": "config",
+      "loc": 17,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/sdlc-github-poller.service",
+      "language": "config",
+      "loc": 23,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/sdlc-github-poller.timer",
+      "language": "config",
+      "loc": 18,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.sdlc.yml",
+      "language": "config",
+      "loc": 204,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/e3-cutover.md",
+      "language": "markdown",
+      "loc": 180,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/sdlc-stack/README.md",
+      "language": "markdown",
+      "loc": 165,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-tickets-lokal.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-poller.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-backup.bats",
+      "language": "bats",
+      "loc": 0,
+      "s1_limit": null,
+      "s1_budget": null
+    }
+  ],
+  "risks": [
+    {
+      "id": "R1",
+      "risk": "post-merge.yml entkernen ohne nachgewiesenen Poller laesst Tickets nach dem Merge still offen",
+      "mitigation": "Reihenfolge im Plan bindend: p3 weist den Poller nach, bevor die CI-Schritte fallen"
+    },
+    {
+      "id": "R2",
+      "risk": "Cursor vor dem Schreiben vorruecken verliert genau die Ereignisse, die die DoD schuetzt",
+      "mitigation": "Cursor-nach-Schreiben plus idempotente Writes; eigener BATS-Fall in p5"
+    },
+    {
+      "id": "R3",
+      "risk": "Namespace-Umbiegung in ticket.sh:69-75 macht jeden Ticket-Befehl nach dem Cutover unbrauchbar",
+      "mitigation": "D7 korrigiert sie in p2, vor der Default-Umstellung"
+    },
+    {
+      "id": "R4",
+      "risk": "Zwei provider_config-Instanzen laufen auseinander",
+      "mitigation": "bewusst getragen (D1); Zustaendigkeit im Runbook festgehalten"
+    },
+    {
+      "id": "R5",
+      "risk": "Docker-Daemon lief zum Planungszeitpunkt nicht — der lokale Cluster konnte nicht verifiziert werden",
+      "mitigation": "p1 beginnt mit einem Erreichbarkeits-Check des lokalen Clusters, bevor irgendetwas migriert wird"
+    },
+    {
+      "id": "R6",
+      "risk": "projects-db.ts schreibt aus dem Prod-Build nach tickets.tickets (41 Projekte) — der geplante Freeze haette das Kundenportal gebrochen",
+      "mitigation": "Freeze aus E3 herausgenommen und nach T002722 verschoben; migrate-tickets.sh freeze verlangt SDLC_FREEZE_CONFIRM"
+    }
+  ],
+  "external_types": [],
+  "notes": [
+    "Die Scaffold-These 'tickets-Schema ist self-contained' ist durch die FK-Messung widerlegt; die Schlussfolgerung (vollstaendige Migration) traegt dennoch, weil die Kanten bis auf zwei unbelegt sind.",
+    "tickets.tickets wird strukturell auch als Projekt-/Aufgabenverzeichnis fuer Geschaeftsdaten benutzt (meetings.project_id, time_entries.project_id/task_id, questionnaire_assignments.project_id) — aktuell 0 Zeilen.",
+    "ticket-mcp-go braucht keine Aenderung: es ruft scripts/ticket.sh auf und erbt den Default.",
+    "p4 (Bug-Outbox) entfaellt: /api/bug-report wurde in T002330/PR #3461 abgebaut, es gibt keinen produktiven Schreibpfad mehr."
+  ]
+}

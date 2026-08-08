@@ -1,0 +1,18 @@
+# scripts/factory/sdlc-github-poller.timer
+# Trigger fuer sdlc-github-poller.service (E3/T002626).
+[Unit]
+Description=GitHub-Poller regelmaessig ausfuehren
+
+[Timer]
+# 5 Minuten, am Factory-Tick orientiert. Haeufiger bringt nichts: die Ereignisse
+# werden ohnehin nur bei laufender Workstation verarbeitet, und GitHub puffert
+# sie in der Zwischenzeit verlustfrei.
+OnBootSec=2min
+OnUnitInactiveSec=5min
+# Nach einer Auszeit einmal sofort nachholen, statt bis zum naechsten
+# regulaeren Zeitpunkt zu warten — genau der Fall, fuer den der Cursor da ist.
+Persistent=true
+RandomizedDelaySec=30
+
+[Install]
+WantedBy=timers.target

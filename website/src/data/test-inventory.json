@@ -978,6 +978,12 @@
     "kind": "playwright"
   },
   {
+    "id": "FA-59",
+    "file": "tests/e2e/specs/fa-59-systemtest-purge-endpoint.spec.ts",
+    "category": "FA",
+    "kind": "playwright"
+  },
+  {
     "id": "FA-AR-01",
     "file": "tests/local/FA-AR-01-filter-diff.bats",
     "category": "FA",

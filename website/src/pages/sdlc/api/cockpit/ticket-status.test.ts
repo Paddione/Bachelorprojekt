@@ -19,14 +19,14 @@ beforeEach(() => {
 });
 
 function req(cookie: string | null, body: unknown): Request {
-  return new Request('http://x/api/admin/cockpit/ticket-status', {
+  return new Request('http://x/sdlc/api/cockpit/ticket-status', {
     method: 'POST',
     headers: cookie ? { cookie, 'content-type': 'application/json' } : { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
 }
 
-describe('POST /api/admin/cockpit/ticket-status', () => {
+describe('POST /sdlc/api/cockpit/ticket-status', () => {
   it('200 with a valid admin session and target status, returns from/to', async () => {
     const res = await POST({ request: req('admin', { ticketId: '42', status: 'in_progress' }) } as never);
     expect(res.status).toBe(200);

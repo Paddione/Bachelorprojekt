@@ -12,7 +12,7 @@
   async function doDeploy(extId: string) {
     deploying = extId; deployErr = null;
     try {
-      const res = await fetch(`/api/factory-floor/${encodeURIComponent(extId)}/deploy`, {
+      const res = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(extId)}/deploy`, {
         method: 'POST', credentials: 'same-origin',
       });
       if (!res.ok) { deployErr = `Deploy fehlgeschlagen (${res.status})`; return; }

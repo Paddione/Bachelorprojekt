@@ -13,14 +13,14 @@ vi.stubGlobal('fetch', fetchMock);
 function req(cookie: string | null, qs: string): Request {
   const headers: Record<string, string> = {};
   if (cookie) headers.cookie = cookie;
-  return new Request(`http://x/api/admin/cockpit/brain?${qs}`, { headers });
+  return new Request(`http://x/sdlc/api/cockpit/brain?${qs}`, { headers });
 }
 
 beforeEach(() => {
   fetchMock.mockReset();
 });
 
-describe('GET /api/admin/cockpit/brain', () => {
+describe('GET /sdlc/api/cockpit/brain', () => {
   it('403 without an admin session', async () => {
     const res = await GET({ request: req(null, 'paths=a.md') } as unknown as Parameters<typeof GET>[0]);
     expect(res.status).toBe(403);

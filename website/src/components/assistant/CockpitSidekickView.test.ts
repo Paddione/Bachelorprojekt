@@ -23,7 +23,7 @@ beforeEach(() => {
   vi.spyOn(window.history, 'replaceState').mockImplementation(() => {});
   selectFeature(null);
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
-    if (String(url).includes('/api/admin/cockpit/portfolio')) {
+    if (String(url).includes('/sdlc/api/cockpit/portfolio')) {
       return new Response(JSON.stringify(portfolio), { status: 200 });
     }
     return new Response('{}', { status: 200 });
@@ -112,7 +112,7 @@ describe('CockpitSidekickView', () => {
   it('refetcht Portfolio bei cockpit:portfolio-mutated Event', async () => {
     let callCount = 0;
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
-      if (String(url).includes('/api/admin/cockpit/portfolio')) callCount++;
+      if (String(url).includes('/sdlc/api/cockpit/portfolio')) callCount++;
       return new Response(JSON.stringify(portfolio), { status: 200 });
     }));
     const { findByText } = render(CockpitSidekickView);

@@ -353,8 +353,19 @@ spec:
                     "${API}/api/oidc/clients/${real_id}" </dev/null >/dev/null
                   echo "updated ${cid} (id=${real_id}), secret unchanged"
                 else
+                  # T002677: id EXPLIZIT mitgeben. Ohne "id" vergibt Pocket ID
+                  # eine UUID -- die Konsumenten erwarten aber die sprechende
+                  # ID: website/src/lib/auth.ts hat CLIENT_ID = 'website' fest
+                  # verdrahtet, die oauth2-proxy-Gates ebenso. In Prod faellt
+                  # das nicht auf, weil die Clients dort laengst mit Text-IDs
+                  # existieren und find_client_id() sie per Name findet -- der
+                  # create-Zweig laeuft dort also nie. Auf einem FRISCHEN
+                  # Cluster dagegen entstand ein Client mit UUID, und jeder
+                  # Login endete in "The requested OAuth 2.0 Client does not
+                  # exist." Die API akzeptiert eine gesetzte id (verifiziert
+                  # gegen v2.x: POST mit "id" -> 201, id uebernommen).
                   created=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \
-                    -d "$(printf '{"name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cb_json")" \
+                    -d "$(printf '{"id":"%s","name":"%s","callbackURLs":["%s"],"logoutCallbackURLs":[],"isPublic":false,"pkceEnabled":false,"requiresReauthentication":false,"requiresPushedAuthorizationRequests":false}' "$cid" "$cid" "$cb_json")" \
                     "${API}/api/oidc/clients" </dev/null)
                   new_id=$(echo "$created" | sed -E 's/.*"id":"([^"]+)".*/\1/')
                   gen=$(curl -fsS $CURL_RETRY -X POST -H "$AUTH" -H "$CT" \

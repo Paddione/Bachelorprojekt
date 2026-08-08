@@ -67,6 +67,49 @@ export async function applyTicketsCoreSchema(pool: Pool | PoolClient): Promise<v
     END $$
   `);
 
+  // Diese Spalten werden sonst erst in applyLegacyMigrations() ergaenzt — also
+  // NACH diesem Modul. Auf einer bestehenden DB faellt das nicht auf, weil sie
+  // laengst existieren; auf einem FRISCH angelegten Schema scheitern die
+  // Funktionen, Indizes und Views weiter unten dagegen ("column ... does not
+  // exist"), initTicketsSchema() bricht ab, und alles danach —
+  // tickets.factory_control, Model-Slots, Provider-Config — wird nie angelegt.
+  // Das Cockpit zeigt dann durchgehend "Error loading data.".
+  //
+  // Aufgefuehrt sind genau die Spalten, die DIESES Modul referenziert. Alle
+  // Statements sind idempotent (ADD COLUMN IF NOT EXISTS) und damit an
+  // bestehenden Datenbanken ein No-Op; applyLegacyMigrations() bleibt fuer die
+  // uebrigen Alt-Schema-Nachtraege zustaendig.
+  await pool.query(`
+    ALTER TABLE tickets.tickets
+      ADD COLUMN IF NOT EXISTS type          TEXT,
+      ADD COLUMN IF NOT EXISTS parent_id     UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL,
+      ADD COLUMN IF NOT EXISTS brand         TEXT,
+      ADD COLUMN IF NOT EXISTS url           TEXT,
+      ADD COLUMN IF NOT EXISTS thesis_tag    TEXT,
+      ADD COLUMN IF NOT EXISTS component     TEXT,
+      ADD COLUMN IF NOT EXISTS notes         TEXT,
+      ADD COLUMN IF NOT EXISTS effort        TEXT,
+      ADD COLUMN IF NOT EXISTS touched_files TEXT[],
+      ADD COLUMN IF NOT EXISTS pipeline_slot INTEGER,
+      ADD COLUMN IF NOT EXISTS attention_mode TEXT NOT NULL DEFAULT 'auto'
+  `);
+
+  // Cockpit-Vorschlagsspalten. Sie werden von getPortfolio() in
+  // lib/sdlc/tickets/cockpit-db.ts selektiert (t.next_step, t.discarded,
+  // t.major_feature, t.suggestion_comment), waren aber in KEINEM Schema-Modul
+  // und in keiner Migration definiert: in Prod existieren sie nur, weil sie
+  // dort seinerzeit von Hand angelegt wurden (verifiziert gegen fleet,
+  // 2026-08-04). Auf jeder frisch aufgebauten Datenbank fehlten sie deshalb und
+  // /sdlc/api/cockpit/portfolio antwortete mit 500 "column t.next_step does not
+  // exist". Typen und Defaults sind aus dem Prod-Schema uebernommen.
+  await pool.query(`
+    ALTER TABLE tickets.tickets
+      ADD COLUMN IF NOT EXISTS next_step          BOOLEAN NOT NULL DEFAULT false,
+      ADD COLUMN IF NOT EXISTS discarded          BOOLEAN NOT NULL DEFAULT false,
+      ADD COLUMN IF NOT EXISTS major_feature      BOOLEAN NOT NULL DEFAULT false,
+      ADD COLUMN IF NOT EXISTS suggestion_comment TEXT
+  `);
+
   await pool.query(`
     CREATE OR REPLACE FUNCTION tickets.fn_effective_attention_mode(t tickets.tickets)
     RETURNS text AS $$

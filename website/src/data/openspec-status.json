@@ -2511,6 +2511,12 @@
       "status": "archived"
     }
   ],
+  "T002677": [
+    {
+      "slug": "cockpit-verfuegbarkeit-realtime",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

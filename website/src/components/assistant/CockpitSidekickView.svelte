@@ -43,7 +43,7 @@
     loading = true;
     error = null;
     try {
-      const res = await fetch('/api/admin/cockpit/portfolio');
+      const res = await fetch('/sdlc/api/cockpit/portfolio');
       if (!res.ok) throw new Error(`portfolio ${res.status}`);
       portfolio = await res.json() as PortfolioPayload;
     } catch (e) {
@@ -87,7 +87,7 @@
 
   async function featureAction(featureId: string, action: string, value?: boolean | string) {
     try {
-      const res = await fetch('/api/admin/cockpit/feature-action', {
+      const res = await fetch('/sdlc/api/cockpit/feature-action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ featureId, action, value }),
@@ -103,7 +103,7 @@
     actions: { featureId: string; action: string; value?: boolean | string }[]
   ) {
     try {
-      const res = await fetch('/api/admin/cockpit/feature-actions', {
+      const res = await fetch('/sdlc/api/cockpit/feature-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ actions }),
@@ -118,7 +118,7 @@
   async function handleRoll(detail: { provider: string; model: string }) {
     isRolling = true;
     try {
-      const res = await fetch('/api/admin/cockpit/suggest', {
+      const res = await fetch('/sdlc/api/cockpit/suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: detail.provider, model: detail.model }),

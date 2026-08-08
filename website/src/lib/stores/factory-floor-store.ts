@@ -20,7 +20,7 @@ export function floorSubscriberCount(): number { return refCount; }
 
 async function loadOnce(): Promise<void> {
   try {
-    const res = await fetch('/api/factory-floor', { credentials: 'same-origin' });
+    const res = await fetch('/sdlc/api/factory-floor', { credentials: 'same-origin' });
     if (res.ok) ingestFloorPayload(await res.json() as FloorPayload);
     else store.update((s) => ({ ...s, stale: true }));
   } catch { store.update((s) => ({ ...s, stale: true })); }
@@ -28,7 +28,7 @@ async function loadOnce(): Promise<void> {
 
 function connect(): void {
   if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
-  es = new EventSource('/api/factory-floor/stream', { withCredentials: true });
+  es = new EventSource('/sdlc/api/factory-floor/stream', { withCredentials: true });
   es.addEventListener('phase', () => { void loadOnce(); });
   es.addEventListener('heartbeat', () => store.update((s) => ({ ...s, stale: false })));
   es.onerror = () => {

@@ -75,8 +75,8 @@
   async function refresh() {
     try {
       const [qaRes, criteriaRes] = await Promise.all([
-        fetch('/api/admin/qa-queue', { credentials: 'same-origin' }),
-        fetch('/api/admin/qa-criteria', { credentials: 'same-origin' }),
+        fetch('/sdlc/api/qa-queue', { credentials: 'same-origin' }),
+        fetch('/sdlc/api/qa-criteria', { credentials: 'same-origin' }),
       ]);
       if (qaRes.ok) { const { items } = await qaRes.json(); qaItems = items ?? []; }
       if (criteriaRes.ok) { const { criteria } = await criteriaRes.json(); qaCriteria = criteria ?? []; }
@@ -86,7 +86,7 @@
   async function refreshCi(extIds: string[]) {
     await Promise.all(extIds.map(async (id) => {
       try {
-        const r = await fetch(`/api/factory-floor/${encodeURIComponent(id)}/ci`, { credentials: 'same-origin' });
+        const r = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(id)}/ci`, { credentials: 'same-origin' });
         if (r.ok) { const { rollup } = await r.json(); ciByExt = { ...ciByExt, [id]: rollup }; }
       } catch { /* CI badge stays absent on error */ }
     }));
@@ -95,7 +95,7 @@
   async function openDetail(extId: string) {
     selected = extId; detail = null;
     try {
-      const res = await fetch(`/api/factory-floor/${encodeURIComponent(extId)}`, { credentials: 'same-origin' });
+      const res = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(extId)}`, { credentials: 'same-origin' });
       if (res.ok) detail = await res.json() as TicketDetail;
     } catch { /* keep panel open with a spinner */ }
   }
@@ -112,7 +112,7 @@
     const payload: Record<string, unknown> = { kind: injKind, title: injTitle || undefined, content: injContent || undefined };
     if (injPhase) payload.phase = injPhase;
     try {
-      const res = await fetch(`/api/factory-floor/${encodeURIComponent(selected)}/inject`, {
+      const res = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(selected)}/inject`, {
         method: 'POST', credentials: 'same-origin',
         headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload),
       });
@@ -127,7 +127,7 @@
   async function releaseToFactory(extId: string) {
     releasing = extId; releaseErr = null;
     try {
-      const res = await fetch(`/api/factory-floor/${encodeURIComponent(extId)}/release`, {
+      const res = await fetch(`/sdlc/api/factory-floor/${encodeURIComponent(extId)}/release`, {
         method: 'POST', credentials: 'same-origin',
       });
       if (!res.ok) { releaseErr = `Freigabe fehlgeschlagen (${res.status})`; return; }

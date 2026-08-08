@@ -15,10 +15,10 @@ beforeEach(() => {
 });
 
 function req(): Request {
-  return new Request('http://localhost/api/admin/ai-quality', { headers: { cookie: 'sid=x' } });
+  return new Request('http://localhost/sdlc/api/ai-quality', { headers: { cookie: 'sid=x' } });
 }
 
-describe('GET /api/admin/ai-quality', () => {
+describe('GET /sdlc/api/ai-quality', () => {
   test('401 ohne Admin-Session', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
     vi.mocked(isAdmin).mockReturnValue(false);

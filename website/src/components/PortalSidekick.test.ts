@@ -49,7 +49,7 @@ describe('PortalSidekick — agent-settings view', () => {
           json: () => Promise.resolve({ authenticated: true, user: { givenName: 'Admin' } }),
         });
       }
-      if (url.includes('/api/admin/factory-control')) {
+      if (url.includes('/sdlc/api/factory-control')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({

@@ -18,7 +18,7 @@
 
   async function load() {
     try {
-      const res = await fetch('/api/admin/ai-quality');
+      const res = await fetch('/sdlc/api/ai-quality');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       data = await res.json();
       error = null;

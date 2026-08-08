@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.5...website-v1.256.6) (2026-08-08)
+
+
+### Bug Fixes
+
+* **ops:** remove weightless loadouts, tune gemma26/qwen context [T002753] ([#3882](https://github.com/Paddione/Bachelorprojekt/issues/3882)) ([066fa95](https://github.com/Paddione/Bachelorprojekt/commit/066fa95db7d141cc9440d9f635dcebefc9a41e13))
+
 ## [1.256.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.4...website-v1.256.5) (2026-08-08)
 
 

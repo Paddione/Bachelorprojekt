@@ -104,28 +104,24 @@ _start_proxy() {
 
 # --- 2) Requirement "Gemma single-agent and shared multi-agent profiles" ----
 
-@test "beide Gemma-Profile stehen in der ausgelieferten Registry und lassen -fit intakt" {
+@test "gemma26-factory steht in der ausgelieferten Registry und laesst -fit intakt" {
   run node --input-type=module -e "
     import assert from 'node:assert/strict';
     const { readLoadouts } = await import('file://${REPO_ROOT}/scripts/llm-proxy/loadouts.mjs');
     const { doc } = readLoadouts('${REPO_ROOT}/scripts/llm/loadouts.json');
     const by = (s) => doc.loadouts.find((l) => l.slug === s);
 
-    const f = by('gemma-factory'), m = by('gemma-multiagent');
-    assert.ok(f, 'gemma-factory fehlt');
-    assert.ok(m, 'gemma-multiagent fehlt');
+    const f = by('gemma26-factory');
+    assert.ok(f, 'gemma26-factory fehlt');
 
-    for (const l of [f, m]) {
-      assert.equal(l.port, 8091, l.slug + ': Port muss 8091 sein');
-      assert.equal(l.fit?.enabled, true, l.slug + ': fit muss aktiv sein');
-      assert.ok(l.fit.targetMarginMib != null, l.slug + ': targetMarginMib fehlt');
-      assert.ok(l.fit.minCtx != null, l.slug + ': minCtx fehlt');
-      // Ein gesetztes ctx/ngl schaltet die VRAM-Anpassung ab — dann waere -fit tot.
-      assert.equal(l.args.ctx, null, l.slug + ': ctx darf nicht gepinnt sein');
-      assert.equal(l.args.ngl, null, l.slug + ': ngl darf nicht gepinnt sein');
-    }
-    assert.equal(f.args.parallel, 1, 'gemma-factory ist das Single-Agent-Profil');
-    assert.equal(m.args.parallel, 5, 'gemma-multiagent ist das Multi-Agent-Profil');
+    assert.equal(f.port, 8091, 'Port muss 8091 sein');
+    assert.equal(f.fit?.enabled, true, 'fit muss aktiv sein');
+    assert.ok(f.fit.targetMarginMib != null, 'targetMarginMib fehlt');
+    assert.ok(f.fit.minCtx != null, 'minCtx fehlt');
+    // Ein gesetztes ctx/ngl schaltet die VRAM-Anpassung ab — dann waere -fit tot.
+    assert.equal(f.args.ctx, null, 'ctx darf nicht gepinnt sein');
+    assert.equal(f.args.ngl, null, 'ngl darf nicht gepinnt sein');
+    assert.equal(f.args.parallel, 3, 'gemma26-factory ist das 3-Slot-Profil');
     console.log('ok');
   "
   echo "$output"
@@ -172,7 +168,7 @@ _start_proxy() {
 
 # --- 4) -kvu nur im Multi-Agent-Profil --------------------------------------
 
-@test "nur gemma-multiagent traegt -kvu, gemma-factory nicht" {
+@test "gemma26-factory traegt -kvu, gptoss-context nicht" {
   run node --input-type=module -e "
     import assert from 'node:assert/strict';
     const { readLoadouts } = await import('file://${REPO_ROOT}/scripts/llm-proxy/loadouts.mjs');
@@ -184,10 +180,10 @@ _start_proxy() {
     // Mit -kvu ist der Kontext ein GEMEINSAMER Pool ueber alle Slots; ohne es
     // teilt llama.cpp ihn stur durch die Slotzahl. Das ist der inhaltliche
     // Unterschied beider Profile.
-    assert.ok(argv('gemma-multiagent').includes('-kvu'), 'gemma-multiagent ohne -kvu');
+    assert.ok(argv('gemma26-factory').includes('-kvu'), 'gemma26-factory ohne -kvu');
     // Anker in derselben Pruefung: beim Single-Slot-Profil waere -kvu wirkungslos
     // und wuerde die Kommandozeilen nur schwerer vergleichbar machen.
-    assert.ok(!argv('gemma-factory').includes('-kvu'), 'gemma-factory traegt faelschlich -kvu');
+    assert.ok(!argv('gptoss-context').includes('-kvu'), 'gptoss-context traegt faelschlich -kvu');
     console.log('ok');
   "
   echo "$output"
@@ -201,9 +197,9 @@ _start_proxy() {
     import assert from 'node:assert/strict';
     const { readLoadouts, planAutoStart } = await import('file://${REPO_ROOT}/scripts/llm-proxy/loadouts.mjs');
     const { doc } = readLoadouts('${REPO_ROOT}/scripts/llm/loadouts.json');
-    const r = planAutoStart({ doc, model: 'gemma-factory', activeSlugs: [] });
+    const r = planAutoStart({ doc, model: 'gemma26-factory', activeSlugs: [] });
     assert.equal(r.action, 'start');
-    assert.equal(r.slug, 'gemma-factory');
+    assert.equal(r.slug, 'gemma26-factory');
     console.log('ok');
   "
   echo "$output"
@@ -220,11 +216,11 @@ _start_proxy() {
     // Ohne ihn koennte 'conflict' auch von einem kaputten Lookup kommen.
     assert.equal(planAutoStart({ doc, model: 'gptoss-context', activeSlugs: [] }).action, 'start');
 
-    const active = ['gemma-factory'];
+    const active = ['devstral-quality'];
     const before = JSON.stringify({ active, doc });
     const r = planAutoStart({ doc, model: 'gptoss-context', activeSlugs: active });
     assert.equal(r.action, 'conflict');
-    assert.equal(r.conflictSlug, 'gemma-factory');
+    assert.equal(r.conflictSlug, 'devstral-quality');
     assert.equal(r.group, 'chat-gpu');
     // Planen heisst planen: die Funktion darf nichts stoppen und nichts mutieren.
     assert.equal(JSON.stringify({ active, doc }), before, 'planAutoStart hat den Zustand mutiert');

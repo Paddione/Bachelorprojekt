@@ -62,16 +62,15 @@ _argv_facts() {
   # Negativ-Aussage im naechsten Test vakuos.
   [ "$n_with_ctk" -ge 1 ]
 
-  # Die beiden Gemma-Loadouts sind der Gegenstand dieser Datei und MUESSEN
-  # quantisieren; fehlt einer, ist der Guard blind geworden.
-  echo "$output" | awk '$1 == "gemma-factory"'    | grep -q .
-  echo "$output" | awk '$1 == "gemma-multiagent"' | grep -q .
+  # gemma26-factory ist der Gegenstand dieser Datei und MUSS quantisieren;
+  # fehlt es, ist der Guard blind geworden.
+  echo "$output" | awk '$1 == "gemma26-factory"' | grep -q .
 }
 
 # Loadouts, die bewusst von der q4_0-Sperre ausgenommen sind. Jeder Eintrag
 # braucht eine Begruendung im Block darunter — die Liste ist keine Sammelstelle.
 _KV_Q4_ALLOWED="gemma26-factory
-gemma9-factory"
+qwen3-coder-30b"
 
 @test "nur ausdruecklich ausgenommene GPU-Chat-Loadouts starten mit q4_0-KV" {
   run _argv_facts
@@ -100,14 +99,13 @@ gemma9-factory"
   # Bei Fehlern in Tool-Call-Argumenten oder Pfaden bleibt diese Ausnahme der
   # erste Verdaechtige: gemma26-factory auf q8_0 zuruecksetzen.
   #
-  # AUSNAHME gemma9-factory (T002599): Gemma 2 9B mit 98304 Kontext und 2 Slots.
-  # q8_0-KV wuerde ~55705 ctx pro Slot erlauben; q4_0 halbiert den KV-Fussabdruck
-  # und erreicht 98304 ctx — gebraucht fuer lange Agenten-Dispatch-Sessions.
-  # Tool-Call-Argumente in dieser Konfiguration verifiziert (smoke, auto,
-  # multi-arg, E2E — alle korrekt).
-  #
-  # Bis T002579 zeigte die Probe auf localhost:8081 — den toten TEI-Port — und
-  # skippte deshalb bei jedem Lauf, waehrend T002535 als done gefuehrt wurde.
+  # AUSNAHME qwen3-coder-30b (T002753): gesetzt GEGEN den T002501-Befund vom
+  # 2026-08-08 (39k Tokens, temperature 0: Symbole vertauscht, Pfade verwechselt,
+  # Tool-Call-Argument nicht wortgetreu) und auf ausdrueckliche Betreiber-Anweisung,
+  # NICHT auf einer bestandenen Probe. q4_0 bringt 96000 ctx statt 52992 bei q8_0;
+  # der Durchsatz-Unterschied ist vernachlaessigbar (177,4 vs 177,1 tok/s).
+  # Bei Fehlern in Tool-Call-Argumenten oder Pfaden: dieses Loadout auf q8_0
+  # zuruecksetzen und aus _KV_Q4_ALLOWED entfernen.
   local offenders
   offenders=$(echo "$output" | awk '$2 == "q4_0" || $3 == "q4_0" { print $1 }' \
               | grep -vxF "$_KV_Q4_ALLOWED" || true)

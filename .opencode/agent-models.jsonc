@@ -38,11 +38,19 @@
             "output": 8192
           }
         },
+        "gemma26-factory": {
+          "name": "Gemma 4 26B A4B IQ4_XS + mmproj, Loadout gemma26-factory auf Port 8091 (np=3, -kvu, q4_0, fitt 128) - exclusiveGroup chat-gpu",
+          // 161024 ist GEMESSEN (n_ctx_slot im Serverlog, 2026-08-09, b10241, np=3 -kvu
+          // q4_0 fitt 128): GEMEINSAMER Pool ueber die drei Slots, nicht je Slot.
+          "limit": {
+            "context": 161024,
+            "output": 8192
+          }
+        },
         // 2026-08-04: Familiensubagenten gemma/qwen brauchen eigene Loadouts.
         // gemma4 (Gemma 4 12B Q4_K_M, 7,1 GB) und qwen3-coder-30b (Qwen3-Coder
-        // 30B A3B, 17,6 GB) liegen wieder auf der Platte — die Retire-Migration
-        // vom 2026-08-03 kannte sie noch nicht. Ports 8090/8094 frei. Beide
-        // teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
+        // 30B A3B, 11,9 GB UD-IQ3_XXS) liegen auf der Platte. Ports 8090/8094 frei.
+        // Beide teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
         "gemma4": {
           "name": "Gemma 4 12B Q4_K_M, Loadout gemma4 auf Port 8090 - exclusiveGroup chat-gpu",
           "limit": {
@@ -51,9 +59,11 @@
           }
         },
         "qwen3-coder-30b": {
-          "name": "Qwen3-Coder-30B-A3B UD-Q4_K_XL, Loadout qwen3-coder-30b auf Port 8094 - exclusiveGroup chat-gpu",
+          "name": "Qwen3-Coder-30B-A3B UD-IQ3_XXS, Loadout qwen3-coder-30b auf Port 8094 - exclusiveGroup chat-gpu",
+          // 96000 ist GEMESSEN (n_ctx_slot im Serverlog, 2026-08-09, b10241, np=1
+          // q4_0 fitt 64). Vorher 32768 (Platzhalter, nie gemessen).
           "limit": {
-            "context": 32768,
+            "context": 96000,
             "output": 8192
           }
         }
@@ -267,9 +277,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "gemma": {
-      "description": "Local subagent for the gemma family (Gemma 4 12B Q4_K_M, Loadout gemma4 auf Port 8090, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
+      "description": "Local subagent for the gemma family (Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
       "mode": "subagent",
-      "model": "llamacpp-local/gemma4",
+      "model": "llamacpp-local/gemma26-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
       "temperature": 0.4,
@@ -286,7 +296,7 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
-    // Primaerer (Tab-waehlbarer) Lokal-Agent auf gptoss-context.
+    // Primaerer (Tab-waehlbarer) Lokal-Agent auf gemma26-factory.
     // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
     // summonbar.
     //
@@ -296,9 +306,9 @@
     // laegen mehrere Kontexte auf einer GPU und wuerden sich gegenseitig
     // verdraengen.
     "gemma26-primary": {
-      "description": "Primary (Tab-selectable) local agent on gptoss-context (gpt-oss-20b, 105472 ctx). Use for fully local work without the DeepSeek orchestrator in front. Can escalate to the deepseek subagents but must not dispatch the local subagents: with one GPU they would only contend for the same weights.",
+      "description": "Primary (Tab-selectable) local agent on gemma26-factory (Gemma 4 26B A4B IQ4_XS, 161024 ctx measured, np=3 -kvu q4_0). Use for fully local work without the DeepSeek orchestrator in front. Can escalate to the deepseek subagents but must not dispatch the local subagents: with one GPU they would only contend for the same weights.",
       "mode": "primary",
-      "model": "llamacpp-local/gptoss-context",
+      "model": "llamacpp-local/gemma26-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#6EE7B7",
       // Zwischen Orchestrator (0.2) und Subagent (0.4): der primaere Agent
@@ -316,17 +326,16 @@
         "task": { "deepseek-helper": "allow", "deepseek-pro": "allow", "deepseek-flash": "allow", "gptoss": "deny", "devstral": "deny", "gemma": "deny", "qwen": "deny" }
       }
     },
-    // Maximaler lokaler Kontext (105472, gemessen beim Laden am 2026-08-03).
+    // Maximaler lokaler Kontext (161024, gemessen beim Laden am 2026-08-09,
+    // np=3 -kvu q4_0 fitt 128, gemeinsamer Pool).
     // Keinerlei Subagent-Dispatch — rein lokale Arbeit ohne Netzanbindung.
     //
-    // Vision ist trotz des Namens NICHT verfuegbar: gpt-oss-20b bringt kein
-    // mmproj mit. Der Name stammt aus der Gemma-Zeit, als ein 12B-Loadout eines
-    // hatte. Wird ein vision-faehiges lokales Modell geladen, erkennt opencode
-    // das automatisch — bis dahin ist dieser Agent text-only.
+    // Vision ist JETZT verfuegbar: gemma26-factory laedt mmproj-F16.gguf (Task 3,
+    // T002753). Der Name passt wieder.
     "gemma26-vision": {
-      "description": "Local agent on gptoss-context with no subagent dispatch \u2014 for long-context work that must stay on-device. Vision is NOT available: gpt-oss-20b has no mmproj, so this agent is text-only until a vision-capable local model is loaded.",
+      "description": "Local agent on gemma26-factory with no subagent dispatch \u2014 for long-context work that must stay on-device. Vision IS available: gemma26-factory loads mmproj-F16.gguf since T002753.",
       "mode": "primary",
-      "model": "llamacpp-local/gptoss-context",
+      "model": "llamacpp-local/gemma26-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#A78BFA",
       "temperature": 0.3,

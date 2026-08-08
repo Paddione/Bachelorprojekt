@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.255.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.10...website-v1.255.0) (2026-08-08)
+
+
+### Features
+
+* **website:** cockpit-Aktionen via DB/API statt Shell-Exec + Push-Reconnect [T002643] ([#3867](https://github.com/Paddione/Bachelorprojekt/issues/3867)) ([2dbaef3](https://github.com/Paddione/Bachelorprojekt/commit/2dbaef3b5d84eb55986228d106934db38d1656ec))
+
 ## [1.254.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.9...website-v1.254.10) (2026-08-08)
 
 

@@ -73,11 +73,6 @@ includes:
     taskfile: ./Taskfile.factory.yml
     dir: .
 
-  # Task Master AI — task management CLI integration
-  taskmaster:
-    taskfile: ./Taskfile.taskmaster.yml
-    dir: .
-
   # Brain-Quartz Wiki — initial ingest worklist (T001570).
   # See Taskfile.brain.yaml + scripts/brain-ingest-worklist.sh.
   brain:

@@ -173,18 +173,6 @@
 
     },
 
-    "task-master-ai": {
-
-      "type": "local",
-
-      "command": ["npx","-y","task-master-ai"],
-
-      "environment": {"OLLAMA_BASE_URL":"http://localhost:11434/api","TASK_MASTER_TOOLS":"all"},
-
-      "enabled": false
-
-    },
-
     "ticket-mcp": {
 
       "type": "local",

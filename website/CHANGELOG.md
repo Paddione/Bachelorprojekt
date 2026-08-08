@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.6...website-v1.254.7) (2026-08-08)
+
+
+### Bug Fixes
+
+* **website:** Cockpit-Daemon-Port aus dem Hyper-V-Reservierungsbereich ziehen [T002708] ([#3849](https://github.com/Paddione/Bachelorprojekt/issues/3849)) ([99e8ff6](https://github.com/Paddione/Bachelorprojekt/commit/99e8ff62bc9f6201d90d370da509c4c14ca4d6b4))
+
 ## [1.254.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.5...website-v1.254.6) (2026-08-08)
 
 

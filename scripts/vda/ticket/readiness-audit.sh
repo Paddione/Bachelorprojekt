@@ -33,8 +33,9 @@ main() {
     brand="${BRAND:-mentolder}"
   fi
   case "$brand" in
-    mentolder)  NS="workspace";              CTX="${TICKET_CTX:-fleet}" ;;
-    korczewski) NS="workspace-korczewski";   CTX="${TICKET_CTX:-fleet}" ;;
+    # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
+    mentolder)  NS="workspace";              CTX="${TICKET_CTX:-k3d-mentolder-dev}" ;;
+    korczewski) NS="workspace-korczewski";   CTX="${TICKET_CTX:-k3d-mentolder-dev}" ;;
     *) echo "ERROR: unknown brand '$brand' (use mentolder|korczewski)" >&2; exit 2 ;;
   esac
 

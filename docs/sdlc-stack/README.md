@@ -117,9 +117,49 @@ task sdlc:cluster:delete
 - **website/src/lib/auth/provider.ts** — fail-closed Provider-Auswahl
 - **tests/spec/sdlc-isolation/e2-local-stack.bats** — Struktur- + DoD-Guard
 
+## Datenhoheit seit E3 (T002626)
+
+Das `tickets`-Schema liegt **lokal**. Der Default-Kontext aller Ticket-Befehle ist
+`k3d-mentolder-dev`; die fleet-Kopie ist eingefroren (`SELECT` ja, Schreibzugriffe nein).
+Ablauf und Rückweg: [e3-cutover.md](e3-cutover.md).
+
+### Verfügbarkeitserwartung
+
+**Ticket-Operationen setzen ab jetzt einen laufenden lokalen Cluster voraus.** Ohne ihn
+scheitert jeder Befehl mit `no shared-db pod found` — das ist die beabsichtigte Konsequenz von
+ADR-006, kein Defekt. Ein stiller Rückfall auf fleet wäre die schlechtere Alternative: er
+ließe Schreibvorgänge in einer toten Kopie landen, ohne dass es auffällt.
+
+Die eingefrorene Historie lesen:
+
+```bash
+TICKET_CTX=fleet bash scripts/ticket.sh get --id T000123
+```
+
+Korczewski-Tickets liegen weiterhin auf fleet und brauchen dieses explizite `TICKET_CTX`.
+
+### Zwei `provider_config`-Instanzen
+
+`tickets.provider_config` ist als einzige Tabelle **nicht** migriert: `coaching.sessions`
+referenziert sie mit 13 Zeilen, und Coaching bleibt laut ADR-006 auf fleet.
+
+| Instanz | Zuständig für |
+|---|---|
+| lokal (`k3d-mentolder-dev`) | LLM-Provider-Wahl der Factory |
+| fleet | ausschließlich Coaching |
+
+Sie sind bewusst unabhängig. **Wer eine ändert, ändert nicht die andere** — das ist der
+getragene Preis dafür, dass Coaching seine referentielle Integrität behält.
+
+### Sicherung
+
+Täglich um 03:00 nach fleet, verschlüsselt (`task sdlc:sdlc:backup:install` richtet den Timer
+ein). Der Nachweis, dass eine Sicherung zurückspielbar ist, läuft über
+`task sdlc:sdlc:restore-check` — nicht über die bloße Existenz der Datei.
+
 ## ADR-006 Bezug
 
 - **dev.mentolder.de (dev-stack auf fleet)** bleibt — dokumentierte Ausnahme
 - **terminal-sidekick** bleibt — dokumentierte Ausnahme
-- **Keine Datenmigration** hier — das lokale `tickets`-Schema bootstrappt sich selbst
-  (leer); Migration folgt in E3 (T002626)
+- **`knowledge`/`wissen`** bleibt produktiv — `scripts/openspec-embed-local.sh` schreibt
+  deshalb weiterhin gegen fleet, obwohl alles andere lokal liegt

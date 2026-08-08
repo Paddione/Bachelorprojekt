@@ -34,7 +34,8 @@ if [[ -z "${BRAND:-}" && -z "${FACTORY_NS:-}" ]]; then
   echo "WARN: no BRAND set; defaulting FACTORY_NS=workspace (mentolder/prod). Set BRAND=mentolder|korczewski to be explicit." >&2
 fi
 FACTORY_NS="${FACTORY_NS:-workspace}"
-FACTORY_CTX="${FACTORY_CTX:-fleet}"
+# Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
+FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}"
 
 # If context is a dev cluster, append -dev to namespace
 if [[ "$FACTORY_CTX" == k3d-* || "$FACTORY_CTX" == *-dev ]]; then

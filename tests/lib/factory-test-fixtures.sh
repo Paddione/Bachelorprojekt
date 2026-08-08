@@ -19,7 +19,8 @@ _FIXTURE_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # seed_test_feature <brand> [touched_file ...] → echoes the new external_id
 seed_test_feature() {
   local brand="$1"; shift
-  local ctx="${FACTORY_CTX:-fleet}"
+  # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
+  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}"
   if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
     echo "refusing to seed test data into prod context 'fleet' (set FACTORY_ALLOW_PROD_SEED=1 to override)" >&2
     return 3
@@ -40,7 +41,7 @@ seed_test_feature() {
 # purge_factory_test_data <brand> — reap all is_test_data=true rows on that brand
 purge_factory_test_data() {
   local brand="$1"
-  local ctx="${FACTORY_CTX:-fleet}" ns
+  local ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
   case "$brand" in
     mentolder)  ns="workspace" ;;
     korczewski) ns="workspace-korczewski" ;;

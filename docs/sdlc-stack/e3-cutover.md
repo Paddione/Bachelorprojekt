@@ -75,12 +75,18 @@ kubectl exec -i "$(kubectl --context fleet get pod -n workspace -l app=shared-db
   psql -U website -d website -c "SELECT * FROM tickets.provider_config"
 ```
 
-### 5. Zugriffspfade umstellen
+### 5. Zugriffspfade prüfen — auf dem Branch, vor dem Merge
 
-Der Default-Kontext dreht sich mit dem Merge dieses Branches um (p2). Nach dem Merge:
+Der Default-Kontext ist im Branch bereits auf `k3d-mentolder-dev` gestellt. **Der Cutover wird
+deshalb auf dem Branch durchgeführt und erst danach gemergt.**
+
+Der Grund: ab dem Merge trägt `main` einen Default, der einen laufenden lokalen Cluster
+voraussetzt. Würde erst gemergt und dann umgezogen, wäre in der Zwischenzeit jeder
+Ticket-Befehl im gesamten Repo tot — für die Factory, für `dev-flow-*` und für jede parallele
+Session. Diese Reihenfolge vermeidet das Fenster vollständig.
 
 ```bash
-git -C ~/Bachelorprojekt pull
+cd .worktrees/e3-sdlc-tickets-lokal
 bash scripts/ticket.sh get --id T002626    # muss aus der LOKALEN DB antworten
 ```
 
@@ -123,6 +129,12 @@ task sdlc:sdlc:backup:install   # täglicher Timer
 
 Der `restore-check` ist kein optionaler Komfort. Ein Backup, das nie zurückgespielt wurde, ist
 eine Vermutung.
+
+### 9. Erst jetzt mergen
+
+Wenn Schritt 1–8 durch sind und die Factory nachweislich lokal arbeitet, wird der PR gemergt.
+`main` trägt ab diesem Moment den lokalen Default — und der stimmt dann mit der Wirklichkeit
+überein.
 
 ## Rückweg
 

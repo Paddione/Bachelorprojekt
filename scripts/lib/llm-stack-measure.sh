@@ -257,11 +257,12 @@ PY
 # Backend-Registry in Produktion: factory_psql-Abfrage auf tickets.llm_proxy_backends.
 factory_psql_backends() {
   local pod
-  pod="$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" \
+  # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
+  pod="$(kubectl get pod -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" \
     -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
     -o jsonpath='{.items[*].metadata.name}' 2>/dev/null | awk '{print $1}')"
   [ -n "$pod" ] || return 1
-  kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-fleet}" -c postgres -- \
+  kubectl exec -i "$pod" -n "${FACTORY_NS:-workspace}" --context "${FACTORY_CTX:-k3d-mentolder-dev}" -c postgres -- \
     psql -U website -d website -qtA -c \
     "SELECT name||E'\t'||base_url FROM tickets.llm_proxy_backends WHERE enabled = true" 2>/dev/null
 }

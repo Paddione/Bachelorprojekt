@@ -131,9 +131,16 @@ cmd_preflight() {
 
   # Ein bereits befuelltes Zielschema ist der gefaehrlichste Zustand: ein
   # Restore darueber mischt zwei Bestaende, ohne dass es auffaellt.
+  #
+  # provider_config ist dabei ausgenommen: sie wird nicht migriert (D1), sondern
+  # lokal eigenstaendig gefuehrt — die SDLC-Console legt sie beim Bootstrap
+  # bereits mit ihren Default-Providern an. Zaehlte man sie mit, blockierte der
+  # Preflight den Cutover dauerhaft, sobald der lokale Stack einmal lief.
   local dst_rows
-  dst_rows=$(_counts_for "$DST_CTX" "$DST_NS" | awk -F'|' '{s+=$2} END {print s+0}')
-  echo "  Zeilen im lokalen tickets-Schema: ${dst_rows}"
+  dst_rows=$(_counts_for "$DST_CTX" "$DST_NS" \
+             | grep -v "^${KEEP_ON_FLEET}|" \
+             | awk -F'|' '{s+=$2} END {print s+0}')
+  echo "  Zeilen im lokalen tickets-Schema (ohne $KEEP_ON_FLEET): ${dst_rows}"
   if [[ "${dst_rows:-0}" -gt 0 ]] && ! $FORCE; then
     echo "  ABBRUCH: das lokale tickets-Schema ist nicht leer." >&2
     echo "           Ein Restore darueber vermischt zwei Bestaende. Mit --force erzwingen." >&2

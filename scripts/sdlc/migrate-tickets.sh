@@ -23,6 +23,7 @@
 #   restore                Dumpdatei -> lokale DB, danach Zeilenvergleich
 #   seed-provider-config   lokale provider_config anlegen (keine Kopie)
 #   freeze                 fleet-Kopie schreibgeschuetzt stellen
+#   split-sequence         fleet-Ticketsequenz in getrennten Nummernraum (ab 900000)
 #   status                 Zeilenzahlen beider Seiten nebeneinander
 #
 # Globale Flags:
@@ -40,6 +41,11 @@ DB_USER="${SDLC_DB_USER:-website}"
 # Die einzige Tabelle, die auf fleet bleibt (D1). Als Variable, damit
 # freeze/dump/status dieselbe Wahrheit benutzen statt sie je einzeln zu nennen.
 KEEP_ON_FLEET="provider_config"
+
+# Sequenzgrenze, ab der fleets Ticket-Nummernraum vom lokalen getrennt ist.
+# Unterhalb 1000000 bleibt LPAD(n,6,'0') sechsstellig (Format ^T[0-9]{6}$).
+# Eine hoehere Grenze braeche das Format und waere deshalb unsicher.
+SEQUENCE_BOUNDARY=900000
 
 DUMP_DIR="${SDLC_DUMP_DIR:-tmp/sdlc-migration}"
 DRY_RUN=false
@@ -318,6 +324,13 @@ cmd_restore() {
 
   echo "Restore abgeschlossen — vergleiche Zeilenzahlen:"
   _verify_counts "$counts"
+
+  # Nach erfolgreichem Restore die Sequenz in den getrennten Nummernraum
+  # heben. cmd_dump sichert die Sequenz mit, ohne diesen Schritt kaeme die
+  # Kopie ohne Trennung zurueck — im Wiederanlauf nach einem Zwischenfall
+  # also genau dann, wenn niemand daran denkt.
+  echo "Hebe lokale Ticketsequenz in getrennten Nummernraum …"
+  cmd_split_sequence
 }
 
 # Vergleicht die lokale Zaehlung gegen die beim Dump erhobene. Der Vergleich ist
@@ -452,9 +465,74 @@ WARN
 # --- status ------------------------------------------------------------------
 cmd_status() {
   echo "== fleet ($SRC_CTX/$SRC_NS) =="
-  _counts_for "$SRC_CTX" "$SRC_NS" | sed 's/^/  /' || echo "  (nicht erreichbar)"
+  _counts_for "$SRC_CTX" "$SRC_NS" 2>/dev/null | sed 's/^/  /' || echo "  (nicht erreichbar)"
   echo "== lokal ($DST_CTX/$DST_NS) =="
   _counts_for "$DST_CTX" "$DST_NS" 2>/dev/null | sed 's/^/  /' || echo "  (nicht erreichbar)"
+
+  # Sequenzstand und Trennung benennen: eine nackte Zahlenkolonne verraet
+  # nicht, ob die Trennung intakt oder revertiert ist. Der Text benennt den
+  # Zustand ausdruecklich und verweist im Verlustfall auf split-sequence.
+  echo ""
+  echo "== Sequenzstand =="
+  local fleet_seq local_seq
+  fleet_seq=$(_psql "$SRC_CTX" "$SRC_NS" -c \
+    "SELECT last_value FROM tickets.external_id_seq" 2>/dev/null || true)
+  if [[ -n "$fleet_seq" ]]; then
+    echo "  fleet external_id_seq = $fleet_seq"
+    if [[ "$fleet_seq" -ge "$SEQUENCE_BOUNDARY" ]]; then
+      echo "  → Nummernraum getrennt (>= $SEQUENCE_BOUNDARY), split ist aktiv"
+    else
+      echo "  → Nummernraum NICHT getrennt (< $SEQUENCE_BOUNDARY) — split-sequence ausfuehren"
+    fi
+  else
+    echo "  fleet external_id_seq = (nicht erreichbar)"
+  fi
+
+  local_seq=$(_psql "$DST_CTX" "$DST_NS" -c \
+    "SELECT last_value FROM tickets.external_id_seq" 2>/dev/null || true)
+  if [[ -n "$local_seq" ]]; then
+    echo "  lokal external_id_seq = $local_seq"
+    if [[ "$local_seq" -ge "$SEQUENCE_BOUNDARY" ]]; then
+      echo "  → Nummernraum getrennt (>= $SEQUENCE_BOUNDARY), split ist aktiv"
+    else
+      echo "  → Nummernraum NICHT getrennt (< $SEQUENCE_BOUNDARY) — split-sequence ausfuehren"
+    fi
+  else
+    echo "  lokal external_id_seq = (nicht erreichbar)"
+  fi
+}
+
+# --- split-sequence ----------------------------------------------------------
+# Trennt fleets Ticket-Nummernraum vom lokalen, indem die Sequenz
+# tickets.external_id_seq auf SEQUENCE_BOUNDARY oder hoeher gestellt wird.
+# Ist sie bereits darueber, bleibt sie unveraendert — das Kommando ist
+# idempotent. Die Sequenz wird NIE gesenkt: eine rueckwaerts gestellte
+# Sequenz wuerde bereits vergebene Nummern erneut ausgeben.
+cmd_split_sequence() {
+  local sql
+  sql=$(cat <<SQL
+DO \$\$
+DECLARE
+  cur bigint;
+BEGIN
+  SELECT last_value INTO cur FROM tickets.external_id_seq;
+  IF cur < $SEQUENCE_BOUNDARY THEN
+    RAISE NOTICE 'split-sequence: % -> %', cur, $SEQUENCE_BOUNDARY;
+    PERFORM setval('tickets.external_id_seq', $SEQUENCE_BOUNDARY, true);
+  ELSE
+    RAISE NOTICE 'split-sequence: Sequenz bereits bei % (unveraendert, >= %), no change', cur, $SEQUENCE_BOUNDARY;
+  END IF;
+END;
+\$\$;
+SQL
+)
+  if $DRY_RUN; then
+    echo "[dry-run] auf $SRC_CTX/$SRC_NS:"
+    echo "$sql" | sed 's/^/  /'
+    return 0
+  fi
+
+  _psql "$SRC_CTX" "$SRC_NS" -c "$sql"
 }
 
 # --- main --------------------------------------------------------------------
@@ -476,6 +554,7 @@ case "$CMD" in
   restore)               cmd_restore "${ARGS[@]:-}" ;;
   seed-provider-config)  cmd_seed_provider_config ;;
   freeze)                cmd_freeze ;;
+  split-sequence)        cmd_split_sequence ;;
   status)                cmd_status ;;
   ""|help)               usage 0 ;;
   *)                     echo "Unbekannter Befehl: $CMD" >&2; usage 2 ;;

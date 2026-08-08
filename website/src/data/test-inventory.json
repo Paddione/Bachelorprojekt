@@ -3474,6 +3474,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-isolation/fleet-sequence-split",
+    "file": "tests/spec/sdlc-isolation/fleet-sequence-split.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
     "id": "sealed-secret-cluster-drift",
     "file": "tests/spec/sealed-secret-cluster-drift.bats",
     "category": "sealed-secret-cluster-drift",

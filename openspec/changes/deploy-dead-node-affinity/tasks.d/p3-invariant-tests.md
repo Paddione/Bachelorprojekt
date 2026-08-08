@@ -38,6 +38,19 @@ Aus dem gebauten mentolder-Output das `whisper`-Deployment ziehen. Anker: das De
 im Output. Aussage: seine `nodeAffinity` verlangt einen Hostnamen aus `pk-hetzner-4`,
 `pk-hetzner-6`, `pk-hetzner-8`.
 
+Die Extraktion MUSS dokumentenweise über `yq` laufen, nicht über ein `grep -A<n>`-Zeilenfenster:
+
+```bash
+WQ='select(.kind == "Deployment" and .metadata.name == "whisper")'
+yq eval-all "$WQ | .spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values" "$build"
+```
+
+Grund, belegt am 2026-08-08 gegen den realen Build: `name: whisper` steht dort dreimal (Service,
+Deployment, Container), und die Affinität liegt rund **20 Zeilen** unter dem Deployment-Namen. Ein
+`grep -A8` findet sie nicht und meldet den Verlust einer Platzierung, die tatsächlich intakt ist.
+Der Anker (`.metadata.name` ist nicht leer) unterscheidet dabei „Deployment fehlt" von
+„Deployment da, Affinität weg" — beide Fälle sind Fehler, aber nicht derselbe.
+
 Dieser Block ist der wichtigste der drei. Der whisper-Patch wird in p1 von einem JSON6902
 `op: replace` auf einen strategic-merge-Patch umgestellt. Geht dabei etwas schief, **schlägt der
 Build nicht fehl** — whisper verlöre nur seine Platzierung und würde künftig irgendwo scheduled.

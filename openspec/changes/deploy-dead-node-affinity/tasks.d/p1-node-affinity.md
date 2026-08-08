@@ -39,7 +39,13 @@ Patch **ersetzt** also einen fremd erzeugten Ausdruck, statt die Affinität selb
 set -a; . <(bash scripts/env-resolve.sh mentolder); set +a
 kustomize build prod-fleet/mentolder --load-restrictor=LoadRestrictionsNone > /tmp/mid-mentolder.yaml
 [ -s /tmp/mid-mentolder.yaml ] || { echo "FATAL: Build nach Patch-Umstellung leer"; exit 1; }
-grep -A8 'name: whisper' /tmp/mid-mentolder.yaml | grep -q 'pk-hetzner-4' || { echo "FATAL: whisper-Platzierung verloren"; exit 1; }
+
+# yq statt grep -A<n>: die Affinitaet steht rund 20 Zeilen unter dem Deployment-Namen.
+# Ein zu kleines Zeilenfenster meldet falsch-negativ und bricht eine korrekte Aenderung ab.
+WQ='select(.kind == "Deployment" and .metadata.name == "whisper")'
+[ -n "$(yq eval-all "$WQ | .metadata.name" /tmp/mid-mentolder.yaml)" ] || { echo "FATAL: whisper-Deployment fehlt im Build"; exit 1; }
+yq eval-all "$WQ | .spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values" /tmp/mid-mentolder.yaml \
+  | grep -q 'pk-hetzner-4' || { echo "FATAL: whisper-Platzierung verloren"; exit 1; }
 echo "OK: whisper-Patch umgestellt, Platzierung intakt"
 ```
 

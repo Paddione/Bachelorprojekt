@@ -96,8 +96,15 @@ kustomize build prod-fleet/mentolder --load-restrictor=LoadRestrictionsNone > /t
 # Invariante 1: Ressourcenzahl unveraendert
 [ "$(grep -c '^kind:' /tmp/after-mentolder.yaml)" -eq 342 ] || { echo "FATAL: Ressourcenzahl weicht ab"; exit 1; }
 
-# Invariante 2: whisper behaelt seine Fleet-Platzierung
-grep -A8 'name: whisper' /tmp/after-mentolder.yaml | grep -q 'pk-hetzner-4' || { echo "FATAL: whisper-Platzierung verloren"; exit 1; }
+# Invariante 2: whisper behaelt seine Fleet-Platzierung.
+# yq statt grep -A<n>: die Affinitaet steht rund 20 Zeilen unter dem Deployment-Namen,
+# ein Zeilenfenster trifft sie nicht zuverlaessig und meldet falsch-negativ.
+WQ='select(.kind == "Deployment" and .metadata.name == "whisper")'
+# Anker: das Deployment ist ueberhaupt im Build
+[ -n "$(yq eval-all "$WQ | .metadata.name" /tmp/after-mentolder.yaml)" ] || { echo "FATAL: whisper-Deployment fehlt im Build"; exit 1; }
+# Aussage: es verlangt einen Fleet-CP-Knoten
+yq eval-all "$WQ | .spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values" /tmp/after-mentolder.yaml \
+  | grep -q 'pk-hetzner-4' || { echo "FATAL: whisper-Platzierung verloren"; exit 1; }
 
 # Invariante 3: keine toten Knoten mehr
 for n in k3s-1 k3s-2 k3s-3 k3w-1 k3w-2 k3w-3; do

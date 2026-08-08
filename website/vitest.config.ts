@@ -57,7 +57,6 @@ export default defineConfig({
           include: [
             'src/**/*.{test,spec}.ts',
             'tests/**/*.{test,spec}.ts',
-            '../tests/**/*.{test,spec}.ts',
             '../scripts/openspec-embed.test.mjs',
           ],
           exclude: ['node_modules/**', 'dist/**', ...COMPONENT_TESTS],

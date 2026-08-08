@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.1...website-v1.254.2) (2026-08-08)
+
+
+### Bug Fixes
+
+* **scripts:** check-and-claim akzeptiert kein Flag als Scope [T002692][T002693] ([#3831](https://github.com/Paddione/Bachelorprojekt/issues/3831)) ([59cf0fd](https://github.com/Paddione/Bachelorprojekt/commit/59cf0fdc1cabfe00a3cc54815efd9d77092a0712))
+
 ## [1.254.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.254.0...website-v1.254.1) (2026-08-08)
 
 

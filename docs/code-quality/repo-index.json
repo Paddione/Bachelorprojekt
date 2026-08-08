@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 799,
+      "file_count": 800,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -587,6 +587,7 @@
         "tests/spec/sessions-server.bats",
         "tests/spec/sidekick-assistant.bats",
         "tests/spec/software-factory/_sf_common.bash",
+        "tests/spec/software-factory/agent-lock-scope-argument.bats",
         "tests/spec/software-factory/canary-and-cleanup.bats",
         "tests/spec/software-factory/catalog-eval-telemetry.bats",
         "tests/spec/software-factory/conflict-db-triage.bats",

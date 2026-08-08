@@ -25,6 +25,7 @@ const data = (() => {
     'factory-control':  { path: '/sdlc/api/factory-control', website: true },
     'ticket-status':    { path: '/sdlc/api/cockpit/ticket-status', website: true },
     'audit':            { path: '/sdlc/api/cockpit/audit', website: true },
+    'brain':            { path: '/sdlc/api/cockpit/brain', website: true },
     'epics':            { path: '/api/cockpit/epics', website: false },
     'styles':           { path: '/api/cockpit/styles', website: false },
     'ci':               { path: '/api/cockpit/ci', website: false },
@@ -356,7 +357,7 @@ const data = (() => {
     if (!paths || paths.length === 0) {
       return { links: [], uncovered: [], missing: [], fetchedAt: new Date().toISOString() };
     }
-    return fetchEndpoint(`/sdlc/api/cockpit/brain?paths=${encodeURIComponent(paths.join(','))}`);
+    return fetchEndpoint('brain', { query: `paths=${encodeURIComponent(paths.join(','))}` });
   }
 
   /** @param {function} onEvent */

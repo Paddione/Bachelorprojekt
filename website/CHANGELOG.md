@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.254.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.253.0...website-v1.254.0) (2026-08-08)
+
+
+### Features
+
+* **website:** Epics durchlaufen das Lastenheft-Gate [T002617] ([#3823](https://github.com/Paddione/Bachelorprojekt/issues/3823)) ([a8813f0](https://github.com/Paddione/Bachelorprojekt/commit/a8813f0b2ab7f88ebd07c32159800618a84aee46))
+
 ## [1.253.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.252.2...website-v1.253.0) (2026-08-08)
 
 

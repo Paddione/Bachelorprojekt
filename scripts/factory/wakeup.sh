@@ -27,6 +27,28 @@
 #     FACTORY_IDLE_RETICK_DELAY     seconds to wait between reticks (default: 5)
 set -euo pipefail
 
+# ── Argument handling [T002662] ─────────────────────────────────────────────
+# wakeup.sh is fired by the systemd USER timer (factory.timer → factory.service)
+# and takes NO arguments in its operational path. Before any side effect (env
+# sourcing, flock, git pull, force-tick consumption, tick loop):
+#   --help / -h  → print usage, exit 0
+#   anything else → error on stderr, exit 2
+# Pre-fix, a --help call was silently ignored and ran a real dry-run tick. [T002662]
+_usage() {
+  sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+}
+case "${1:-}" in
+  '' ) : ;;
+  --help|-h )
+    _usage
+    exit 0
+    ;;
+  * )
+    echo "wakeup.sh: unknown argument '${1}' — this wrapper takes no arguments (see --help)" >&2
+    exit 2
+    ;;
+esac
+
 # Production config (real claude bin, DeepSeek creds, dry_run policy). Sourced
 # with set -a so it exports everything — which means it CLOBBERS pre-set env.
 # Tests point FACTORY_ENV_FILE at a non-existent path for full env isolation. [T000523]

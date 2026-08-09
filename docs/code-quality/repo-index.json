@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 846,
+      "file_count": 847,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -401,6 +401,7 @@
         "tests/spec/collabora-integration.bats",
         "tests/spec/commit-signing.bats",
         "tests/spec/coverage-gate.bats",
+        "tests/spec/database-migrations-runner.bats",
         "tests/spec/database.bats",
         "tests/spec/datev-export.bats",
         "tests/spec/db-quality-goals.bats",
@@ -859,7 +860,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 56,
+      "file_count": 57,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -916,7 +917,8 @@
         "scripts/migrations/2026-08-03-retire-stale-model-ids.sql",
         "scripts/migrations/2026-08-04-llm-proxy-gemma-qwen-families.sql",
         "scripts/migrations/2026-08-04-provider-config-data-residency.sql",
-        "scripts/migrations/2026-08-09-customer-projects-copy.sql"
+        "scripts/migrations/2026-08-09-customer-projects-copy.sql",
+        "scripts/migrations/2026-08-09-enable-gemma-backend-proxy-T002640.sql"
       ]
     },
     {

@@ -36,32 +36,56 @@ func repo() string   { return envOr("FACTORY_REPO", "/home/patrick/Bachelorproje
 func port() string   { return envOr("FACTORY_MCP_PORT", "13003") }
 func llmKey() string { return envOr("FACTORY_LLM_API_KEY", "lmstudio") }
 
-// resolveLLM calls route-provider.sh to get baseUrl + modelId from provider_config DB.
-func resolveLLM() (baseURL, model string) {
+// resolveAuthKey resolves the LLM API key: if apiKeyEnv names a set env var, use its value;
+// otherwise fall back to llmKey() (envOr("FACTORY_LLM_API_KEY", "lmstudio")).
+func resolveAuthKey(apiKeyEnv string) string {
+	if apiKeyEnv == "" {
+		return llmKey()
+	}
+	if v := os.Getenv(apiKeyEnv); v != "" {
+		return v
+	}
+	return llmKey()
+}
+
+// resolveLLM calls route-provider.sh to get baseUrl + modelId + slotId + apiKeyEnv + ctx from provider_config DB.
+func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
 	script := repo() + "/scripts/factory/route-provider.sh"
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	out, err := exec.CommandContext(ctx, "bash", script, "factory-ask", "haiku").Output()
+	out, err := exec.CommandContext(timeoutCtx, "bash", script, "factory-ask", "haiku").Output()
 	if err != nil {
 		// Fallback: env overrides (backwards compat for local dev)
 		return envOr("FACTORY_LLM_URL", "http://192.168.100.10:1234/v1"),
-			envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b")
+			envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b"),
+			"", "", 0
 	}
 	var route struct {
-		Provider string  `json:"provider"`
-		ModelID  string  `json:"modelId"`
-		BaseURL  *string `json:"baseUrl"`
+		Provider  string  `json:"provider"`
+		ModelID   string  `json:"modelId"`
+		BaseURL   *string `json:"baseUrl"`
+		SlotID    *string `json:"slotId"`
+		ApiKeyEnv *string `json:"apiKeyEnv"`
+		Ctx       int     `json:"ctx"`
 	}
 	if err := json.Unmarshal(bytes.TrimSpace(out), &route); err != nil || route.BaseURL == nil || *route.BaseURL == "" {
 		return envOr("FACTORY_LLM_URL", "http://192.168.100.10:1234/v1"),
-			envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b")
+			envOr("FACTORY_LLM_MODEL", "hermes-3-llama-3.1-8b"),
+			"", "", 0
+	}
+	// Resolve nullable slotId/apiKeyEnv from pointers to empty strings.
+	if route.SlotID != nil {
+		slotID = *route.SlotID
+	}
+	if route.ApiKeyEnv != nil {
+		apiKeyEnv = *route.ApiKeyEnv
 	}
 	// Ensure base URL ends with /v1 for OpenAI-compatible chat/completions path
 	u := strings.TrimRight(*route.BaseURL, "/")
 	if !strings.HasSuffix(u, "/v1") {
 		u += "/v1"
 	}
-	return u, route.ModelID
+	return u, route.ModelID, slotID, apiKeyEnv, route.Ctx
 }
 
 func openspecURL() string {
@@ -474,7 +498,20 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	if q == "" {
 		return "", true, fmt.Errorf("question is required")
 	}
-	llmBase, model := resolveLLM()
+	llmBase, model, slotID, apiKeyEnv, slotCtx := resolveLLM()
+
+	// Slot release: always called via defer, regardless of success/failure.
+	// release-slot.sh treats empty/null slotIDs as no-op itself.
+	success := false
+	defer func() {
+		cmd := exec.Command("bash", repo()+"/scripts/factory/release-slot.sh",
+			slotID, strconv.FormatBool(success), strconv.Itoa(slotCtx))
+		if err := cmd.Run(); err != nil {
+			log.Printf("release-slot.sh failed (slot=%s, success=%v, ctx=%d): %v",
+				slotID, success, slotCtx, err)
+		}
+	}()
+
 	body := map[string]any{
 		"model": model,
 		"messages": []map[string]string{
@@ -492,7 +529,7 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	defer cancel()
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, llmBase+"/chat/completions", bytes.NewReader(bb))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+llmKey())
+	req.Header.Set("Authorization", "Bearer "+resolveAuthKey(apiKeyEnv))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", true, fmt.Errorf("llm request: %w", err)
@@ -514,6 +551,7 @@ func toolFactoryAsk(question string) (string, bool, error) {
 	if err := json.Unmarshal(raw, &parsed); err != nil {
 		return "", true, fmt.Errorf("llm parse: %w (body: %s)", err, truncate(string(raw), 500))
 	}
+	success = true // Parsed an actual chat-completion — mark slot release as success.
 	if len(parsed.Choices) == 0 {
 		return `{"answer":"(empty)","model":"` + model + `"}`, false, nil
 	}

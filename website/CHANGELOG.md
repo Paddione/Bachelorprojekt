@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.258.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.258.1...website-v1.258.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ops:** align loadouts registry with model files on disk [T002886] ([#3953](https://github.com/Paddione/Bachelorprojekt/issues/3953)) ([c109c46](https://github.com/Paddione/Bachelorprojekt/commit/c109c461c0a049387515193a466f0f442d0559cb))
+
 ## [1.258.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.258.0...website-v1.258.1) (2026-08-09)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.11...website-v1.259.12) (2026-08-09)
+
+
+### Bug Fixes
+
+* **factory:** Mishap-Bundle 2026-08-09 — unfactory CLASS-N, Branch-Lock-Reap, mcp-postgres-Doku [T002785] ([#3991](https://github.com/Paddione/Bachelorprojekt/issues/3991)) ([60d99bf](https://github.com/Paddione/Bachelorprojekt/commit/60d99bfe146ef43cc9ca5d3e83fff3b381467b81))
+
 ## [1.259.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.10...website-v1.259.11) (2026-08-09)
 
 

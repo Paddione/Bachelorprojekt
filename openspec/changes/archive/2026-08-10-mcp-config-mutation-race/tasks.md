@@ -2,7 +2,7 @@
 title: "mcp-config-mutation-race — Implementation Plan"
 ticket_id: T002941
 domains: [test, ci-cd]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

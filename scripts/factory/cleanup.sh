@@ -22,7 +22,14 @@ done
 cleaned=()
 
 # Belt-and-suspenders: even if a later step aborts, ensure the worktree is gone.
+# [T002896] Guard: ueberspringe Worktree-Removal im EXIT-Trap, wenn der Branch
+# einen live Agent-Lock traegt — sonst entfernt ein vorzeitiger Skript-Abbruch
+# den Worktree ueber den Trap-Pfad, obwohl der Hauptpfad ihn ueberspringt.
 _trap_cleanup() {
+  if [[ -n "${BRANCH:-}" ]] && bash "$(dirname "$0")/../agent-lock.sh" check-branch-live "$BRANCH" >/dev/null 2>&1; then
+    echo "cleanup.sh: branch $BRANCH traegt einen live Agent-Lock — Worktree-Removal im EXIT-Trap uebersprungen (T002896)" >&2
+    return 0
+  fi
   [[ -n "${WT_PATH:-}" && -d "${WT_PATH:-/nonexistent}" ]] && \
     git worktree remove --force "$WT_PATH" 2>/dev/null || true
 }
@@ -30,7 +37,12 @@ trap _trap_cleanup EXIT
 
 # 1) Remove the worktree (force — even if dirty). Idempotent: a missing worktree
 #    is not an error (exit 0 from `git worktree remove --force`).
-if [[ -n "$WT_PATH" ]] && [[ -d "$WT_PATH" ]]; then
+# [T002896] Guard: ueberspringe Worktree-Removal, wenn der Branch einen live
+# Agent-Lock traegt. Der Factory-Autopilot darf aktiv geclaimte Fremd-Worktrees
+# nicht entfernen.
+if [[ -n "$BRANCH" ]] && bash "$(dirname "$0")/../agent-lock.sh" check-branch-live "$BRANCH" >/dev/null 2>&1; then
+  echo "cleanup.sh: branch $BRANCH traegt einen live Agent-Lock — Worktree-Removal uebersprungen (T002896)" >&2
+elif [[ -n "$WT_PATH" ]] && [[ -d "$WT_PATH" ]]; then
   if git worktree remove --force "$WT_PATH" 2>/dev/null; then
     cleaned+=("worktree $WT_PATH")
   else
@@ -46,15 +58,21 @@ fi
 git worktree prune 2>/dev/null || true
 
 # 3) Delete the local branch if it exists.
+# [T002896] Guard: ueberspringe Branch-Deletion, wenn der Branch einen live
+# Agent-Lock traegt.
 if [[ -n "$BRANCH" ]]; then
-  if git show-ref --verify --quiet "refs/heads/$BRANCH" 2>/dev/null; then
-    if git branch -D "$BRANCH" 2>/dev/null; then
-      cleaned+=("branch $BRANCH")
+  if ! bash "$(dirname "$0")/../agent-lock.sh" check-branch-live "$BRANCH" >/dev/null 2>&1; then
+    if git show-ref --verify --quiet "refs/heads/$BRANCH" 2>/dev/null; then
+      if git branch -D "$BRANCH" 2>/dev/null; then
+        cleaned+=("branch $BRANCH")
+      else
+        echo "cleanup.sh: could not delete branch $BRANCH (may be checked out elsewhere)" >&2
+      fi
     else
-      echo "cleanup.sh: could not delete branch $BRANCH (may be checked out elsewhere)" >&2
+      echo "cleanup.sh: branch $BRANCH does not exist locally — nothing to delete" >&2
     fi
   else
-    echo "cleanup.sh: branch $BRANCH does not exist locally — nothing to delete" >&2
+    echo "cleanup.sh: branch $BRANCH traegt einen live Agent-Lock — Branch-Deletion uebersprungen (T002896)" >&2
   fi
 fi
 

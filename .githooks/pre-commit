@@ -55,6 +55,7 @@ fi
 # zwangslaeufig. Es wird nirgends gelesen (quality:check scannt live) und von
 # freshness-regen.yml auf main aktuell gehalten.
 # Guard: tests/spec/ci-cd/generated-artifacts-registry.bats
+# Bypass: SKIP_FRESHNESS_REGEN=1 git commit ...
 _FRESHNESS_FILES=(
   website/src/data/test-inventory.json
   website/src/data/route-manifest.json
@@ -91,7 +92,9 @@ if [ "${FRESHNESS_HOOK_DISABLED:-0}" != "1" ]; then
           _pre_staged_freshness+=("$_f")
         fi
       done
-      if (cd "$repo_root" && task freshness:regenerate > /dev/null 2>&1); then
+      if [ "${SKIP_FRESHNESS_REGEN:-0}" = "1" ]; then
+        echo "  ⚠ freshness: SKIP_FRESHNESS_REGEN=1 — regeneration skipped, artifacts may be stale." >&2
+      elif (cd "$repo_root" && task freshness:regenerate > /dev/null 2>&1); then
         _staged=0
         for _f in "${_FRESHNESS_FILES[@]}"; do
           if ! git -C "$repo_root" diff --quiet -- "$_f" 2>/dev/null; then
@@ -108,7 +111,10 @@ if [ "${FRESHNESS_HOOK_DISABLED:-0}" != "1" ]; then
         done
         [ "$_staged" -gt 0 ] && echo "  ↻ freshness: $_staged artifact(s) updated — included in this commit."
       else
-        echo "  ⚠ freshness:regenerate failed — verify generated artifacts are current." >&2
+        echo "  ✗ freshness:regenerate failed — refusing to commit with possibly stale generated artifacts." >&2
+        echo "    Run 'task freshness:regenerate' manually to see the underlying error." >&2
+        echo "    Emergency bypass (use sparingly): SKIP_FRESHNESS_REGEN=1 git commit ..." >&2
+        exit 1
       fi
     fi
   else

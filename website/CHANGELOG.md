@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.259.22](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.21...website-v1.259.22) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** make pre-commit hook block on freshness failure [T003075] ([#4067](https://github.com/Paddione/Bachelorprojekt/issues/4067)) ([90b90b2](https://github.com/Paddione/Bachelorprojekt/commit/90b90b2a7eb0b5e172a05da50e719ec0251092c0))
+* **factory:** Worktree-Reaper-Lock-Guard — live Fremd-Claims respektieren [T002896] ([#4068](https://github.com/Paddione/Bachelorprojekt/issues/4068)) ([e78a307](https://github.com/Paddione/Bachelorprojekt/commit/e78a307771b57f8cf2b9f767940e49a581f065d5))
+
 ## [1.259.21](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.20...website-v1.259.21) (2026-08-09)
 
 

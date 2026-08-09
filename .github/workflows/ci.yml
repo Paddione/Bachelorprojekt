@@ -357,6 +357,11 @@ jobs:
           # Macht das Gate fail-closed: ein nicht erreichbarer Daemon laesst die
           # betroffenen Tests durchfallen, statt sie zu ueberspringen.
           COCKPIT_DAEMON_REQUIRED: '1'
+          # [T003025] junit-Report einschalten: Taskfile legt junit-report/ an
+          # und schreibt die Reporte dort hinein; der naechste Step laedt sie
+          # als Artifakt hoch. Aus den XMLs regeneriert scripts/spec-junit-weights.sh
+          # die Laufzeit-Gewichte (tests/spec/.spec-runtime.tsv) fuer spec-shard.sh.
+          BATS_JUNIT_DIR: junit-report
         run: |
           if [ "$IS_PR" = "true" ] && git rev-parse --verify -q refs/remotes/origin/main >/dev/null; then
             task test:spec:changed
@@ -382,6 +387,20 @@ jobs:
 
           echo "→ Full spec suite (schedule / dispatch / force-push / Delta nicht ermittelbar)"
           task test:spec
+
+      # [T003025] Timing-Diagnose: junit-Reporte jedes Shards als Artifakt, damit
+      # aus einem Full-Suite-Lauf die Laufzeit-Gewichte regeneriert werden koennen
+      # (scripts/spec-junit-weights.sh). Best-effort: scoped Laeufe liefern nur
+      # partielle Reporte, und bei ausgelassenen Dateien fehlt das XML — beides
+      # ist eine Warnung, kein Fehler.
+      - name: Upload spec junit report (timing diagnostics)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spec-junit-shard-${{ matrix.shard }}
+          path: junit-report/report.xml
+          if-no-files-found: warn
+          retention-days: 14
 
   test-factory:
     # Aggregator. Traegt den Required-Check-Namen und ist fail-closed: alles,

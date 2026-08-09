@@ -17,11 +17,17 @@ setup() {
   TCC_FILE="$REPO/tests/spec/dev-flow-plan/task-context.bats"
   STALE_DIR="$REPO/openspec/changes/tcc-fixture-999999999"
   ANCHOR_DIR="$REPO/openspec/changes/_t002710-anchor-fixture"
+  # [T003025] Seit dem Archivieren des T002710-Plans (2026-08-09, Commit 0a23ae709)
+  # existiert openspec/changes/tcc-fixture-cleanup nicht mehr im Arbeitsbaum — der
+  # Test legt sein Negativ-Fixture (tcc-fixture-* OHNE Ziffern-Suffix) jetzt selbst an,
+  # statt sich auf einen committeten, vergaenglichen Plan zu stuetzen. Der Aussagekern
+  # bleibt: der Reaper darf Verzeichnisse im tcc-fixture-*-Muster ohne Ziffern-Suffix
+  # nicht anfassen.
   PLAN_LIKE_DIR="$REPO/openspec/changes/tcc-fixture-cleanup"
 }
 
 teardown() {
-  rm -rf "$STALE_DIR" "$ANCHOR_DIR"
+  rm -rf "$STALE_DIR" "$ANCHOR_DIR" "$PLAN_LIKE_DIR"
 }
 
 @test "TCC-reap: verwaistes tcc-fixture-* Verzeichnis wird beim naechsten setup() entfernt" {
@@ -38,6 +44,12 @@ teardown() {
   mkdir -p "$ANCHOR_DIR"
   echo "keep me" > "$ANCHOR_DIR/marker.txt"
 
+  # Zweiter Positiv-Anker: tcc-fixture-*-Verzeichnis OHNE Ziffern-Suffix (Plan-Slug-
+  # Muster aus T002710). Wird ebenfalls selbst angelegt, siehe setup().
+  rm -rf "$PLAN_LIKE_DIR"
+  mkdir -p "$PLAN_LIKE_DIR"
+  echo "keep me" > "$PLAN_LIKE_DIR/marker.txt"
+
   # Ein einzelner, schneller Test aus task-context.bats reicht, um dessen setup()
   # auszuloesen — er braucht kein plan-intel.sh-Generatorlauf, nur die vorhandene
   # intel.json aus der Fixture.
@@ -51,5 +63,5 @@ teardown() {
   # tcc-fixture-cleanup — bleibt unangetastet. Der erste Entwurf des
   # Reap-Schritts nutzte ein blankes tcc-fixture-*-Muster und loeschte
   # damit beim Testlauf den gestagten Plan (Realunfall, aus git restauriert).
-  [ -d "$PLAN_LIKE_DIR" ] || { echo "Plan-Slug-aehnliches Verzeichnis wurde entfernt: $PLAN_LIKE_DIR"; false; }
+  [ -f "$PLAN_LIKE_DIR/marker.txt" ] || { echo "Plan-Slug-aehnliches Verzeichnis wurde entfernt: $PLAN_LIKE_DIR"; false; }
 }

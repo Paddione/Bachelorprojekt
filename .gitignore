@@ -2,6 +2,8 @@
 presentation/
 .taskmaster/state.json
 vitest-junit-report/
+# bats junit-Reporte (BATS_JUNIT_DIR, [T003025]) — CI-artefakt, nie committen
+junit-report/
 website-dist/
 .lighthouseci/
 # Windows Lighthouse cache dirs (cross-platform artifact, literal backslash names)

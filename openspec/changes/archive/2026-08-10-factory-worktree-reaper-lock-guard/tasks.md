@@ -2,7 +2,7 @@
 title: "factory-worktree-reaper-lock-guard — Implementation Plan"
 ticket_id: T002896
 domains: [factory, devflow]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

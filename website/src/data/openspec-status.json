@@ -2991,6 +2991,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003068": [
+    {
+      "slug": "rollup-container-selfheal-T003068",
+      "status": "plan_staged"
+    }
+  ],
   "T003075": [
     {
       "slug": "freshness-gate-artifacts",

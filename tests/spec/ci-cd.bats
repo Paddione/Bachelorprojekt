@@ -1054,7 +1054,14 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
 
   # origin/main must be fetched, otherwise the diff is empty and the scoped
   # selection silently resolves to zero spec files.
-  echo "$block" | grep -qF 'origin main:refs/remotes/origin/main' || {
+  #
+  # [T003054] Das fuehrende + (Force-Update) ist optional gematcht: die
+  # Zusicherung ist "origin/main WIRD gefetcht", nicht "der Refspec ist
+  # zeichengleich so geschrieben". Vorher stand hier ein -qF auf die
+  # unforcierte Form; das Forcen des Refspecs (ohne das main-CI in jedem Job
+  # vor dem ersten Test starb) faerbte damit diesen Guard rot, obwohl der
+  # Fetch unveraendert stattfindet — Darstellung statt Semantik [T002716].
+  echo "$block" | grep -qE 'origin \+?main:refs/remotes/origin/main' || {
     echo "FAIL: test-factory does not fetch origin/main — a diff-scoped run"
     echo "      would select nothing and report green."
     return 1

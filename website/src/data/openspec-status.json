@@ -2963,10 +2963,6 @@
   ],
   "T002896": [
     {
-      "slug": "factory-worktree-reaper-lock-guard",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-08-10-factory-worktree-reaper-lock-guard",
       "status": "archived"
     }

@@ -3,8 +3,11 @@
 > **⚠️ Veraltet (Stand 2026-05-31).** Der hier beschriebene standalone k3d-in-k3s-Stack
 > auf `k3s-1` ist Legacy: `k3s-1` wurde dauerhaft **DECOMMISSIONED** (Speicherfehler 2026-05-31).
 > Das geplante `devc`-3-Knoten-k3s-HA-Cluster wurde nie gebaut (shelved 2026-05-30).
-> Die aktuelle Dev-Umgebung läuft als lokales k3d auf dem WSL-Host (Proxmox VM 10.0.0.26,
-> context: `k3d-mentolder-dev`). Die k3d-Schritte unten bleiben als historische Referenz erhalten.
+> Die aktuelle Dev-Umgebung ist der Flux-Kustomization `flux-dev` (`flux/clusters/fleet/ks-dev.yaml`,
+> `path: ./dev`) unterworfen: sie reconciled `prod-fleet/dev` → `k3d/dev-stack` in den Namespace
+> `workspace-dev` auf dem **`fleet`**-Cluster (Produktionsknoten) — nicht lokal auf dem WSL-Host.
+> Details und offene Frage zum Zielbild: ADR-006, Abschnitt "Umsetzungsstand" (Abweichung 1).
+> Die k3d-Schritte unten bleiben als historische Referenz erhalten.
 
 Persistent staging stack hosted as a k3d-in-k3s sibling on
 `k3s-1` (10.0.3.1, wg-mesh 192.168.100.20). Mirrors the website + Brett

@@ -80,3 +80,65 @@ describe('middleware.ts — Astro entry point', () => {
   });
 });
 
+// Prüfmodus: Output-Verifikation — die Tests führen die Middleware aus und prüfen
+// die zurückgegebene Response, nicht den Quelltext. [T003036]
+//
+// Hintergrund: Im sdlc-Build filtert `integrations/build-target.mjs` alle Routen
+// heraus, die weder unter `/sdlc/` liegen noch in der Infra-Allowlist stehen —
+// `index.astro` gehört dazu. Ein Login, dessen returnTo fail-closed auf `/`
+// zurückfällt, landete deshalb auf Astros Default-404. Diese Stufe fängt das ab.
+describe('middleware.ts — sdlc root redirect', () => {
+  function makeContextForPath(pathname: string) {
+    const request = new Request(`https://sdlc.test${pathname}`, { method: 'GET' });
+    const url = new URL(request.url);
+    return {
+      request,
+      url,
+      locals: {} as FakeLocals,
+      redirect: (location: string, status = 302) =>
+        new Response(null, { status, headers: { Location: location } }),
+    } as unknown as Parameters<typeof onRequest>[0];
+  }
+
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('redirects / to the cockpit when BUILD_TARGET is sdlc', async () => {
+    vi.stubEnv('BUILD_TARGET', 'sdlc');
+    const ctx = makeContextForPath('/');
+    const next = vi.fn(async () => new Response('ok', { status: 200 }));
+    const res = (await onRequest(ctx, next)) as Response;
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toBe('/sdlc/cockpit');
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('leaves / untouched in the prod build', async () => {
+    vi.stubEnv('BUILD_TARGET', 'prod');
+    const ctx = makeContextForPath('/');
+    const next = vi.fn(async () => new Response('ok', { status: 200 }));
+    const res = (await onRequest(ctx, next)) as Response;
+    expect(next).toHaveBeenCalled();
+    expect(res.status).toBe(200);
+  });
+
+  it('leaves / untouched when BUILD_TARGET is unset', async () => {
+    const ctx = makeContextForPath('/');
+    const next = vi.fn(async () => new Response('ok', { status: 200 }));
+    await onRequest(ctx, next);
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('does not touch other paths in the sdlc build', async () => {
+    // Positiv-Anker: belegt, dass der Redirect gezielt auf "/" wirkt und nicht
+    // etwa jede Anfrage umleitet — sonst wäre der Test oben auch bei einer
+    // pauschalen Weiterleitung grün.
+    vi.stubEnv('BUILD_TARGET', 'sdlc');
+    const ctx = makeContextForPath('/sdlc/cockpit');
+    const next = vi.fn(async () => new Response('ok', { status: 200 }));
+    await onRequest(ctx, next);
+    expect(next).toHaveBeenCalled();
+  });
+});
+

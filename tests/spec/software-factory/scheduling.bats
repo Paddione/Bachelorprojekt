@@ -15,7 +15,12 @@
 
 load '_sf_common'
 
-setup()    { _sf_setup; }
+# factory-test-fixtures traegt die Endung .sh und ist damit nicht ueber `load`
+# erreichbar (bats sucht .bash); die Bestandstests sourcen es ebenso direkt
+# (Vorlage: orphan-slot-reap.bats). Ohne diesen Source scheitert jeder Live-Test
+# in dieser Datei, der `seed_test_feature` aufruft, mit "command not found"
+# (status 127) statt mit einem aussagekraeftigen Ergebnis.
+setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }
 teardown() { _sf_teardown; }
 
 # ── FA-SF-23-slots ──────────────────────────────────────────────#
@@ -161,19 +166,30 @@ teardown() { _sf_teardown; }
   [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-a.txt")
-  env BRAND="$brand" bash scripts/factory/slots.sh claim "$ext" 1 >/dev/null
-  # Derive the namespace from the brand (do not rely on a FACTORY_NS default).
+  # Zustand direkt setzen statt `slots.sh claim`: dessen Subkommando schreibt
+  # pipeline_slot_meta, eine Spalte, die in prod fehlt (T002619) — der Claim
+  # scheiterte dort mit Exit 3, bevor der Test begann.
   local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
-  # Backdate updated_at by 40 minutes to simulate a hung pipeline.
   pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
-    psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
-  run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
+    psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=1, status='in_progress' WHERE external_id='$ext';"
+  # Alterung ueber den Schwellwert statt ueber den Zeitstempel [T002620]:
+  # fn_lifecycle_ts ueberschreibt `updated_at := now()` bei JEDEM Update, ein
+  # Backdating bliebe wirkungslos und die Stale-Liste leer — dann liefe der
+  # Watchdog ohne Arbeit durch und der Test bestuende vakuos. ORPHAN_MIN=999
+  # blendet den Waisen-Sweep aus (Isolation, Spiegel von orphan-slot-reap.bats).
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ORPHAN_SLOT_MIN=999 \
+    bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
+  # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war.
   echo "$output" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
   # Confirm status=triage and pipeline_slot cleared.
   st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
   [ "$st" = "triage" ]
+  # Slot-Freigabe nachpruefen — nicht nur den Status (der Testtitel verspricht beides).
+  slot=$(kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtAc "SELECT COALESCE(pipeline_slot::text,'NULL') FROM tickets.tickets WHERE external_id='$ext';")
+  [ "$slot" = "NULL" ]
 }
 
 @test "FA-SF-26: a stale in_progress feature WITH a staged plan (FACTORY-PLAN-REF) is returned to backlog, not triage [T001850]" {
@@ -183,16 +199,19 @@ teardown() { _sf_teardown; }
   [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-b.txt")
-  env BRAND="$brand" bash scripts/factory/slots.sh claim "$ext" 1 >/dev/null
-  # Simuliert, dass dev-flow-plan fuer dieses Ticket bereits einen Plan gestaged hat.
-  BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh add-comment --id "$ext" \
-    --body "FACTORY-PLAN-REF branch=feature/sf-test-wd-$$ plan=openspec/changes/sf-test-wd-$$/tasks.md" >/dev/null
+  # Zustand direkt setzen statt `slots.sh claim` (T002619) — siehe Test oben.
   local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
   pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
-    psql -U website -d website -qtAc "UPDATE tickets.tickets SET updated_at = now() - interval '40 minutes' WHERE external_id='$ext';"
-  run env BRAND="$brand" FACTORY_STALE_MIN=30 bash scripts/factory/watchdog.sh
+    psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=1, status='in_progress' WHERE external_id='$ext';"
+  # Simuliert, dass dev-flow-plan fuer dieses Ticket bereits einen Plan gestaged hat.
+  BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh add-comment --id "$ext" \
+    --body "FACTORY-PLAN-REF branch=feature/sf-test-wd-$$ plan=openspec/changes/sf-test-wd-$$/tasks.md" >/dev/null
+  # Schwellwert 0 statt Zurueckdatieren [T002620] — siehe Test oben.
+  run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ORPHAN_SLOT_MIN=999 \
+    bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
+  # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war.
   echo "$output" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
   st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
   [ "$st" = "backlog" ]

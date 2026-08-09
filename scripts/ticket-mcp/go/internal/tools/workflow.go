@@ -139,6 +139,12 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			typ, _ := a["type"].(string)
 			title, _ := a["title"].(string)
 			desc, _ := a["description"].(string)
+			// [T002876] MCP-seitiger plan_staged Guard (Belt-and-Suspenders zum CLI-Guard
+			// in create.sh): plan_staged ist ausschliesslich Tickets vorbehalten, die via
+			// stage-plan.sh mit validiertem --plan und --branch gestaged wurden.
+			if status, _ := a["status"].(string); status == "plan_staged" {
+				return mcp.NewToolResultError("Cannot create a ticket with status 'plan_staged' — stage the plan first (stage_plan). Use status 'triage' for new tickets."), nil
+			}
 			args := []string{"create", "--type", typ, "--title", title, "--description", desc, "--brand", brand}
 			for flag, key := range map[string]string{"--priority": "priority", "--severity": "severity", "--status": "status", "--attention-mode": "attention_mode", "--areas": "areas", "--product-id": "product_id"} {
 				if v, _ := a[key].(string); v != "" {

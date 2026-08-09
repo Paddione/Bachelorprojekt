@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.10...website-v1.257.11) (2026-08-09)
+
+
+### Bug Fixes
+
+* **test:** isolate spec tests from tracked MCP configs — guard script + fixture isolation [T002779] ([#3936](https://github.com/Paddione/Bachelorprojekt/issues/3936)) ([4c1e210](https://github.com/Paddione/Bachelorprojekt/commit/4c1e2104e6e40e27904565a65c8ba933ae1b36be))
+
 ## [1.257.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.9...website-v1.257.10) (2026-08-09)
 
 

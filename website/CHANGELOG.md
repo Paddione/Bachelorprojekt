@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.12...website-v1.257.13) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** GHCR-Login auf GH_PAT umstellen, damit Digest-Resolve private Packages erreicht [T002837] ([#3943](https://github.com/Paddione/Bachelorprojekt/issues/3943)) ([f813fec](https://github.com/Paddione/Bachelorprojekt/commit/f813fec4b6b7a01f2a1828747ceee48e4f5ecf99))
+
 ## [1.257.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.11...website-v1.257.12) (2026-08-09)
 
 

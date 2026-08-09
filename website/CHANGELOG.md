@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.14...website-v1.259.15) (2026-08-09)
+
+
+### Bug Fixes
+
+* **website:** sdlc login returns to cockpit instead of 404 on / [T003036] ([#4019](https://github.com/Paddione/Bachelorprojekt/issues/4019)) ([4994b93](https://github.com/Paddione/Bachelorprojekt/commit/4994b9378712739dd7ccea762385f0f0f51a333a))
+
 ## [1.259.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.13...website-v1.259.14) (2026-08-09)
 
 

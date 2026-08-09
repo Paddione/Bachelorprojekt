@@ -2886,6 +2886,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/lib/pick-small-model",
+    "file": "tests/spec/local-llm-proxy/lib/pick-small-model.sh",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/loadout-aux-files-exist",
     "file": "tests/spec/local-llm-proxy/loadout-aux-files-exist.bats",
     "category": "local-llm-proxy",
@@ -2924,6 +2930,12 @@
   {
     "id": "local-llm-proxy/opencode-routes-via-proxy",
     "file": "tests/spec/local-llm-proxy/opencode-routes-via-proxy.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/pick-small-model-deterministic",
+    "file": "tests/spec/local-llm-proxy/pick-small-model-deterministic.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },

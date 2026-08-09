@@ -2853,6 +2853,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002872": [
+    {
+      "slug": "llm-proxy-bats-local-red",
+      "status": "plan_staged"
+    }
+  ],
   "T002876": [
     {
       "slug": "fix-update-status-planstaged-guard-T002876",

@@ -52,9 +52,23 @@
         // 30B A3B, 11,9 GB UD-IQ3_XXS) liegen auf der Platte. Ports 8090/8094 frei.
         // Beide teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
         "gemma4": {
-          "name": "Gemma 4 12B Q4_K_M, Loadout gemma4 auf Port 8090 - exclusiveGroup chat-gpu",
+          "name": "Gemma 4 26B A4B UD-IQ4_XS (Serving, Loadout gemma4 auf Port 8090, np=1, q4_0 KV, gemessen 177.920 ctx) - exclusiveGroup chat-gpu",
           "limit": {
-            "context": 32768,
+            "context": 177920,
+            "output": 8192
+          }
+        },
+        "gemma12-vision": {
+          "name": "Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP-Drafter, Loadout gemma12-vision auf Port 8089 - exclusiveGroup chat-gpu. Vision-capable.",
+          "limit": {
+            "context": 262144,
+            "output": 8192
+          }
+        },
+        "gemma26-throughput": {
+          "name": "Gemma 4 26B A4B QAT-Q4_K_XL (Durchsatz, Loadout gemma26-throughput auf Port 8092, gemessen 118.016 ctx, 159-169 tok/s) - exclusiveGroup chat-gpu",
+          "limit": {
+            "context": 118016,
             "output": 8192
           }
         },
@@ -298,15 +312,12 @@
     },
     // Primaerer (Tab-waehlbarer) Lokal-Agent auf gemma26-factory.
     // "mode": "primary" heisst: vom Benutzer direkt gewaehlt, NICHT per `task`
-    // summonbar.
+    // summonbar. Kann beliebige Subagenten dispatchen (deepseek + lokal).
     //
     // Gedacht fuer Arbeit, die komplett lokal laufen soll, ohne DeepSeek-
-    // Orchestrator davor. `task` bewusst nur auf deepseek-helper: wuerde er die
-    // lokalen Familiensubagenten (gptoss/devstral/gemma/qwen) dispatchen,
-    // laegen mehrere Kontexte auf einer GPU und wuerden sich gegenseitig
-    // verdraengen.
+    // Orchestrator davor.
     "gemma26-primary": {
-      "description": "Primary (Tab-selectable) local agent on gemma26-factory (Gemma 4 26B A4B IQ4_XS, 161024 ctx measured, np=3 -kvu q4_0). Use for fully local work without the DeepSeek orchestrator in front. Can escalate to the deepseek subagents but must not dispatch the local subagents: with one GPU they would only contend for the same weights.",
+      "description": "Primary (Tab-selectable) local agent on gemma26-factory (Gemma 4 26B A4B IQ4_XS, 161024 ctx measured, np=3 -kvu q4_0). Use for fully local work without the DeepSeek orchestrator in front. Can dispatch any subagent (deepseek + local).",
       "mode": "primary",
       "model": "llamacpp-local/gemma26-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
@@ -319,12 +330,7 @@
       // write=deny aus demselben Grund wie beim Subagenten - das ist eine
       // Modell-Eigenschaft (Ganzdatei-Overwrite statt Edit), keine Frage des
       // Agent-Modus. Neue Dateien legt der Benutzer bzw. ein Folgeschritt an.
-      "permission": {
-        "edit": "allow",
-        "write": "deny",
-        "bash": "allow",
-        "task": { "deepseek-helper": "allow", "deepseek-pro": "allow", "deepseek-flash": "allow", "gptoss": "deny", "devstral": "deny", "gemma": "deny", "qwen": "deny" }
-      }
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     // Maximaler lokaler Kontext (161024, gemessen beim Laden am 2026-08-09,
     // np=3 -kvu q4_0 fitt 128, gemeinsamer Pool).
@@ -346,6 +352,63 @@
         "bash": "allow",
         "task": "deny"
       }
+    },
+    // ── Primaere (Tab-waehlbare) Agenten fuer jedes lokale Modell ───────
+    //
+    // Ergaenzung zu gemma26-primary / gemma26-vision: ein primaerer Agent pro
+    // lokalem GGUF-Modell, damit der Benutzer jedes Modell direkt per Tab
+    // auswaehlen kann, ohne den Orchestrator davor. Alle nutzen den gleichen
+    // Prompt (local-subagent.md) und das gleiche Berechtigungsprofil:
+    // edit=allow, write=deny, bash=allow, task nur deepseek-Eskalation.
+    "gptoss-primary": {
+      "description": "PRIMARY: gpt-oss-20b Q8_0 (105.472 ctx, MXFP4-nativ). Tab-selectable singleagent on the gptoss-context loadout (Port 8098). Fast 147-215 tok/s decode; broad general knowledge. Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "llamacpp-local/gptoss-context",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#34D399",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "devstral-primary": {
+      "description": "PRIMARY: Devstral-Small-2 24B IQ4_XS (32.768 ctx). Tab-selectable singleagent on the devstral-quality loadout (Port 8099). Optimised for code quality review. Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "llamacpp-local/devstral-quality",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#60A5FA",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "gemma12-primary": {
+      "description": "PRIMARY: Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16 + MTP (262.144 ctx). Tab-selectable singleagent on the gemma12-vision loadout (Port 8089). Vision-capable (mmproj loaded), speculative decoding via MTP drafter. Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "llamacpp-local/gemma12-vision",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#F472B6",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "gemma26-throughput-primary": {
+      "description": "PRIMARY: Gemma 4 26B A4B QAT-Q4_K_XL (118.016 ctx, 159-169 tok/s). Tab-selectable singleagent on the gemma26-throughput loadout (Port 8092). Fastest 26B option — QAT quant trades some quality for 30% higher throughput. Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "llamacpp-local/gemma26-throughput",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#FBBF24",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
+    },
+    "qwen-primary": {
+      "description": "PRIMARY: Qwen3-Coder-30B-A3B UD-IQ3_XXS (96.000 ctx measured). Tab-selectable singleagent on the qwen3-coder-30b loadout (Port 8094). MoE architecture, strong coding performance per parameter. Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "llamacpp-local/qwen3-coder-30b",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#A78BFA",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
     // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn

@@ -50,6 +50,20 @@ if [[ "$MERGEABLE" == "CONFLICTING" ]]; then
   exit 4
 fi
 
+# [T002671] MERGED-Preflight: a PR that is already MERGED never needs (re-)polling —
+# its checks were, by branch-protection definition, already green. Without this check
+# the loop's first action is the BLOCKING `gh pr checks --watch` call, which can hang
+# indefinitely against a closed PR (observed T002628/T002671).
+PR_STATE=$(gh pr view "$PR_URL" --json state -q '.state' 2>/dev/null || echo "")
+if [[ "$PR_STATE" == "MERGED" ]]; then
+  echo "✅ PR bereits gemergt (state=MERGED) — Checks waren per Branch-Protection bereits grün. Überspringe Poll-Loop."
+  if ! ./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"; then
+    echo "❌ Phase-Chain nicht vollständig — siehe Meldungen oben." >&2
+    exit 6
+  fi
+  exit 0
+fi
+
 CI_ATTEMPT=0
 while true; do
   CI_ATTEMPT=$((CI_ATTEMPT + 1))

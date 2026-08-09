@@ -10,7 +10,7 @@
 # CLAUDE_CODE_SESSION_ID zuerst, weil Claude Code sie real exportiert;
 # CLAUDE_SESSION_ID bleibt gültig — opencode und agy können sie setzen, und die
 # bestehenden Tests hängen daran.
-_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID"
+_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID"
 
 _now() { date +%s; }
 
@@ -74,6 +74,12 @@ _detect_tool() {
   # CLAUDE_SESSION_ID alone is enough to identify the Claude harness. [T001268]
   # [T002375-p1] Dieselbe Namensliste wie _my_sid — sonst erkennt der eine die Harness
   # und der andere nicht.
+  # [T002671] opencode setzt OPENCODE_SESSION_ID statt CLAUDE_SESSION_ID.
+  # Da OPENCODE_SESSION_ID jetzt in _AGENT_LOCK_SID_ENVS steht, wird _sid_env
+  # auch für opencode-Sessions wahr — der opencode-Zweig MUSS vor dem generischen
+  # _sid_env-Zweig stehen, sonst klassifiziert der generische Zweig eine opencode-
+  # Session weiterhin als claude.
+  if [ -n "${OPENCODE_SESSION_ID:-}" ]; then echo opencode; return; fi
   local _v _sid_env=""
   for _v in $_AGENT_LOCK_SID_ENVS; do [ -n "${!_v:-}" ] && _sid_env="1" && break; done
   if [ -n "${_sid_env}${CLAUDECODE:-}${CLAUDE_CODE:-}" ]; then echo claude

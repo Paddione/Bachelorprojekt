@@ -16,7 +16,10 @@ AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 AGENT_LOCK_FETCH_TTL="${AGENT_LOCK_FETCH_TTL:-300}"
 
 # Harness-Session-Variablen in Prüfreihenfolge: CLAUDE_CODE_SESSION_ID zuerst. [T002375-p1]
-_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID"
+# [T002671] OPENCODE_SESSION_ID ergaenzt; Sync mit agent-lock-identity.sh halten
+# (diese Kopf-Definition dient als Diagnose-Quelle fuer die Warnmeldung, die
+# agent-lock-identity.sh-Ueberschreibung laeuft erst beim source in Zeile ~559).
+_AGENT_LOCK_SID_ENVS="CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID"
 # Harness-Marker ohne Session-ID, fuer _detect_tool als benannte Liste. [T002451]
 _AGENT_LOCK_TOOL_MARKER_ENVS="CLAUDECODE CLAUDE_CODE"
 

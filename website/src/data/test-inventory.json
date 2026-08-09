@@ -1920,6 +1920,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/opencode-session-id-stable",
+    "file": "tests/spec/active-sessions-hub/opencode-session-id-stable.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/release-foreign-lock-guard",
     "file": "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
     "category": "active-sessions-hub",
@@ -2234,6 +2240,12 @@
   {
     "id": "ci-cd/changed-tests-collection-parity",
     "file": "tests/spec/ci-cd/changed-tests-collection-parity.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/devflow-ci-watch-merged-exit",
+    "file": "tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats",
     "category": "ci-cd",
     "kind": "shell"
   },

@@ -85,8 +85,21 @@ EOF
 @test "fehlendes openssl: Exit 2 (Vorbedingung), nicht Exit 1 (Befund)" {
   _stub_cluster "172.23.0.4" "172.23.0.3"
   rm -f "${STUB_BIN}/openssl"
-  PATH="${STUB_BIN}:/usr/bin:/bin" run "$SCRIPT" --context k3d-mentolder-dev
+  # PATH darf /usr/bin und /bin NICHT enthalten: dort liegt das echte openssl,
+  # das den geloeschten Stub sonst ersetzt. Der Test prueft dann eine
+  # Vorbedingung, die er nie hergestellt hat, und ist auf jeder Maschine mit
+  # installiertem openssl rot — beobachtet in CI und lokal (T002999).
+  #
+  # bash muss trotzdem auffindbar bleiben: der Shebang ist `#!/usr/bin/env bash`,
+  # und `env` sucht bash ueber PATH. Ohne diesen Symlink endet der Lauf mit 127
+  # ('command not found') statt mit der geprueften 2 — gruen waere der Test dann
+  # nie, aber aus dem falschen Grund rot.
+  ln -sf "$(command -v bash)" "${STUB_BIN}/bash"
+  PATH="${STUB_BIN}" run "$SCRIPT" --context k3d-mentolder-dev
   [ "$status" -eq 2 ]
+  # Ohne diese Zusicherung wuerde der Test auch gruen, wenn Exit 2 aus einer
+  # ANDEREN fehlenden Vorbedingung stammt (kubectl, docker, Kontext).
+  echo "$output" | grep -qF 'openssl'
 }
 
 # ── Fehlerpfad-Hinweis im Ticket-Werkzeug ────────────────────────────────────

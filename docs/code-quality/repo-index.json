@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 845,
+      "file_count": 846,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -488,6 +488,7 @@
         "tests/spec/local-llm-proxy/gpu-lock.bats",
         "tests/spec/local-llm-proxy/helpers/llm-endpoint.bash",
         "tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats",
+        "tests/spec/local-llm-proxy/loadout-aux-files-exist.bats",
         "tests/spec/local-llm-proxy/loadout-env-property.bats",
         "tests/spec/local-llm-proxy/loadout-model-files-exist.bats",
         "tests/spec/local-llm-proxy/loadouts-format.bats",

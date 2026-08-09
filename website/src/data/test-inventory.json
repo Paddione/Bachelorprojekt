@@ -2850,6 +2850,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/loadout-aux-files-exist",
+    "file": "tests/spec/local-llm-proxy/loadout-aux-files-exist.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/loadout-env-property",
     "file": "tests/spec/local-llm-proxy/loadout-env-property.bats",
     "category": "local-llm-proxy",

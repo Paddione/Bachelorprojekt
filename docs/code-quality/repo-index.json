@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 878,
+      "file_count": 879,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -448,6 +448,7 @@
         "tests/spec/factory-escalation-ladder.bats",
         "tests/spec/factory-merge-hooks.bats",
         "tests/spec/factory-reclaim-lock-respect.bats",
+        "tests/spec/factory-reclaim-lock-respect/pid-dead-worktree-match-T002849.bats",
         "tests/spec/factory-watchdog/stale-type-coverage.bats",
         "tests/spec/feature-product-linking.bats",
         "tests/spec/fix-ci-concurrency.bats",

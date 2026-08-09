@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.6...website-v1.259.7) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** Arbitration bekommt scoped Kubeconfig als Secret [T002944] ([#3979](https://github.com/Paddione/Bachelorprojekt/issues/3979)) ([31d99e9](https://github.com/Paddione/Bachelorprojekt/commit/31d99e9cd95285dd51547830a021d586e1cd1ecb))
+
 ## [1.259.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.5...website-v1.259.6) (2026-08-09)
 
 

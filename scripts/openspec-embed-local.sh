@@ -71,26 +71,44 @@ if [[ -z "$DB_URL" ]]; then
     echo "[openspec-embed-local] FEHLER: SESSIONS_DATABASE_URL nicht gesetzt und nicht aus dem Cluster (--context $CTX) auflösbar." >&2
     exit 1
   fi
-  PF_PORT="${OPENSPEC_EMBED_PF_PORT:-15432}"
-  kubectl --context "$CTX" -n workspace port-forward svc/shared-db "${PF_PORT}:5432" >/dev/null 2>&1 &
-  PF_PID=$!
-  FOUND=0
-  for _ in $(seq 1 10); do
-    LISTENER_PID="$(pf_listener_pid "$PF_PORT")"
-    if [[ -n "$LISTENER_PID" ]]; then
-      if [[ "$LISTENER_PID" == "$PF_PID" ]]; then
-        FOUND=1
-        break
+  if [[ -n "${OPENSPEC_EMBED_PF_PORT:-}" ]]; then
+    # --- Opt-in: fester Port, bestehendes Verhalten unveraendert -------------
+    PF_PORT="$OPENSPEC_EMBED_PF_PORT"
+    kubectl --context "$CTX" -n workspace port-forward svc/shared-db "${PF_PORT}:5432" >/dev/null 2>&1 &
+    PF_PID=$!
+    FOUND=0
+    for _ in $(seq 1 10); do
+      LISTENER_PID="$(pf_listener_pid "$PF_PORT")"
+      if [[ -n "$LISTENER_PID" ]]; then
+        if [[ "$LISTENER_PID" == "$PF_PID" ]]; then
+          FOUND=1
+          break
+        fi
+        FOREIGN_CMD="$(ps -p "$LISTENER_PID" -o cmd= 2>/dev/null || echo unbekannt)"
+        echo "[openspec-embed-local] FEHLER: Port ${PF_PORT} wird von einem fremden Prozess (PID ${LISTENER_PID}: ${FOREIGN_CMD}) belegt, nicht vom eigenen Port-Forward (PID ${PF_PID}). Beende den fremden Prozess oder setze OPENSPEC_EMBED_PF_PORT auf einen freien Port." >&2
+        exit 1
       fi
-      FOREIGN_CMD="$(ps -p "$LISTENER_PID" -o cmd= 2>/dev/null || echo unbekannt)"
-      echo "[openspec-embed-local] FEHLER: Port ${PF_PORT} wird von einem fremden Prozess (PID ${LISTENER_PID}: ${FOREIGN_CMD}) belegt, nicht vom eigenen Port-Forward (PID ${PF_PID}). Beende den fremden Prozess oder setze OPENSPEC_EMBED_PF_PORT auf einen freien Port." >&2
+      sleep 1
+    done
+    if [[ "$FOUND" -ne 1 ]]; then
+      echo "[openspec-embed-local] FEHLER: eigener Port-Forward (PID ${PF_PID}) hat Port ${PF_PORT} nicht innerhalb von 10s gebunden." >&2
       exit 1
     fi
-    sleep 1
-  done
-  if [[ "$FOUND" -ne 1 ]]; then
-    echo "[openspec-embed-local] FEHLER: eigener Port-Forward (PID ${PF_PID}) hat Port ${PF_PORT} nicht innerhalb von 10s gebunden." >&2
-    exit 1
+  else
+    # --- Default: kubectl waehlt einen freien lokalen Port selbst ------------
+    # Kein gemeinsamer fester Port mehr noetig -- der Hook braucht ihn nur fuer
+    # die Dauer seines eigenen Laufs (T003077).
+    PF_LOG="$(mktemp)"
+    kubectl --context "$CTX" -n workspace port-forward svc/shared-db :5432 >"$PF_LOG" 2>&1 &
+    PF_PID=$!
+    PF_PORT=""
+    for _ in $(seq 1 10); do
+      PF_PORT="$(parse_pf_local_port "$(cat "$PF_LOG")")"
+      [[ -n "$PF_PORT" ]] && break
+      sleep 1
+    done
+    rm -f "$PF_LOG"
+    [[ -n "$PF_PORT" ]] || { echo "[openspec-embed-local] FEHLER: eigener Port-Forward (PID ${PF_PID}) hat innerhalb von 10s keinen Port gebunden (Cluster --context $CTX erreichbar?)." >&2; exit 1; }
   fi
   DB_URL="$(printf '%s' "$RAW_URL" | sed -E "s#@[^/]+/#@127.0.0.1:${PF_PORT}/#")"
 fi

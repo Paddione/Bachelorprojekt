@@ -109,24 +109,11 @@ clients:
 cluster: {}
 YAML
 
-  # SICHERHEIT: Solange MCP_OUT_DIR nicht unterstuetzt wird (RED-Zustand), faellt
-  # `render` auf die echten Ziele zurueck statt zu scheitern. Deshalb werden die
-  # Repo-Ziele gesichert und danach zurueckgespielt; HOME zeigt auf das tmpdir,
-  # damit der agy-Renderer nicht die reale ~/.gemini-Config ausserhalb des Repos
-  # ueberschreibt (dort greift kein git als Sicherheitsnetz).
-  local backup="$tmpd/backup"
-  mkdir -p "$backup/.opencode" "$backup/scripts/llm"
-  cp "$REPO/.mcp.json" "$backup/.mcp.json"
-  cp "$REPO/.opencode/opencode.jsonc" "$backup/.opencode/opencode.jsonc"
-  cp "$REPO/scripts/llm/mcp-servers.json" "$backup/scripts/llm/mcp-servers.json"
-
+  # Der Generator laeuft vollstaendig gegen MCP_OUT_DIR, sodass die getrackten
+  # Repo-Zieldateien unberuehrt bleiben.
   run env HOME="$tmpd/fakehome" MCP_REGISTRY="$fixture" MCP_OUT_DIR="$tmpd" bash "$SYNC" render
   local render_status="$status"
   local render_output="$output"
-
-  cp "$backup/.mcp.json" "$REPO/.mcp.json"
-  cp "$backup/.opencode/opencode.jsonc" "$REPO/.opencode/opencode.jsonc"
-  cp "$backup/scripts/llm/mcp-servers.json" "$REPO/scripts/llm/mcp-servers.json"
 
   echo "render output: $render_output"
   [ "$render_status" -eq 0 ]

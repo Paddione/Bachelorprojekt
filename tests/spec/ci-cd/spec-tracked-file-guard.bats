@@ -38,16 +38,57 @@ _stamp() {
 }
 
 @test "T002779: mcp-tooling.bats laesst die getrackte MCP-Registry unberuehrt" {
-  local before after
-  before="$(_stamp)"
+  local sandbox="$BATS_TEST_TMPDIR/mcp-tooling-sandbox"
+  mkdir -p "$sandbox/tests/spec"
+  mkdir -p "$sandbox/tests/local"
+  mkdir -p "$sandbox/tests/lib"
+  mkdir -p "$sandbox/scripts/llm"
+  mkdir -p "$sandbox/docs/agent-guide/registry"
+  mkdir -p "$sandbox/.opencode"
 
-  # Positiv-Anker: der Lauf muss ueberhaupt stattfinden und gruen sein. Waere
-  # die Datei nicht ausfuehrbar, blieben die mtimes trivialerweise gleich und
-  # die Aussage unten waere vakuos wahr.
-  run "$BATS_BIN" "$REPO_ROOT/tests/spec/mcp-tooling.bats"
+  # Kopiere notwendige Dateien für mcp-tooling.bats
+  cp -a "$REPO_ROOT/tests/spec/mcp-tooling.bats" "$sandbox/tests/spec/"
+  cp -a "$REPO_ROOT/tests/spec/test_helper.bash" "$sandbox/tests/spec/"
+  cp -a "$REPO_ROOT/tests/local/test_helper.bash" "$sandbox/tests/local/"
+  cp -a "$REPO_ROOT/tests/lib/assert.sh" "$sandbox/tests/lib/"
+  cp -a "$REPO_ROOT/tests/lib/k3d.sh" "$sandbox/tests/lib/"
+  cp -a "$REPO_ROOT/scripts/mcp-sync.sh" "$sandbox/scripts/"
+  cp -a "$REPO_ROOT/docs/agent-guide/registry/mcp.yaml" "$sandbox/docs/agent-guide/registry/"
+  cp -a "$REPO_ROOT/scripts/llm/mcp-servers.json" "$sandbox/scripts/llm/"
+  cp -a "$REPO_ROOT/.mcp.json" "$sandbox/"
+  cp -a "$REPO_ROOT/.opencode/opencode.jsonc" "$sandbox/.opencode/"
+  mkdir -p "$sandbox/.claude/skills/references"
+  cp -a "$REPO_ROOT/.claude/skills/references/mcp-tool-guide.md" "$sandbox/.claude/skills/references/"
+
+  # mcp-tooling.bats lädt test_helper.bats, das PROJECT_DIR relativ auflöst.
+  # Um node_modules zu finden, verlinken wir es.
+  ln -s "$REPO_ROOT/node_modules" "$sandbox/node_modules"
+
+  # Vorbereitung: git init und alle Dateien committen, damit git ls-files funktioniert
+  git -C "$sandbox" init -q
+  git -C "$sandbox" config user.email "t@t"
+  git -C "$sandbox" config user.name "t"
+  git -C "$sandbox" add .
+  git -C "$sandbox" commit -qm init
+
+  # Stempel-Funktion für die Sandbox-Dateien
+  _sandbox_stamp() {
+    ( cd "$sandbox" && stat -c '%n %Y %s' \
+        docs/agent-guide/registry/mcp.yaml \
+        scripts/llm/mcp-servers.json \
+        .mcp.json \
+        .opencode/opencode.jsonc 2>/dev/null | sort )
+  }
+
+  local before after
+  before="$(_sandbox_stamp)"
+
+  # Führe bats im Sandbox-Verzeichnis aus
+  run env PROJECT_DIR="$sandbox" "$BATS_BIN" "$sandbox/tests/spec/mcp-tooling.bats"
+  echo "Sandbox output: $output"
   [ "$status" -eq 0 ]
 
-  after="$(_stamp)"
+  after="$(_sandbox_stamp)"
   [ "$before" = "$after" ]
 }
 

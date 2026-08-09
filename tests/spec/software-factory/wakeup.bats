@@ -260,6 +260,44 @@ STUB
   [ "$status" -eq 0 ]   # confirms the break path exists when disabled
 }
 
+# ── FA-SF-41-wakeup-args [T002662] ─────────────────────────────#
+# wakeup.sh must answer --help / -h with usage and reject unknown args,
+# WITHOUT any factory side effect (no env source, no flock, no git pull,
+# no force-tick consumption, no dispatcher tick). The pre-fix behavior
+# silently ignored --help and ran a real dry-run tick. [T002662]
+
+@test "FA-SF-41: wakeup.sh --help prints usage and never invokes the dispatcher-bridge" {
+  tmp="$(mktemp -d)"
+  bridgefile="${tmp}/bridge-invoked"
+  cat > "${tmp}/bridge-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${bridgefile}"
+STUB
+  chmod +x "${tmp}/bridge-stub"
+  FACTORY_REPO="${tmp}" FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" \
+    FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" run bash "$WAKEUP" --help
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -qE 'Usage|usage|Env knobs'
+  [ ! -f "${bridgefile}" ]
+  rm -rf "${tmp}"
+}
+
+@test "FA-SF-41: wakeup.sh rejects unknown arguments without side effects" {
+  tmp="$(mktemp -d)"
+  bridgefile="${tmp}/bridge-invoked"
+  cat > "${tmp}/bridge-stub" <<STUB
+#!/usr/bin/env bash
+printf '%s\n' "\$@" > "${bridgefile}"
+STUB
+  chmod +x "${tmp}/bridge-stub"
+  FACTORY_REPO="${tmp}" FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" \
+    FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" run bash "$WAKEUP" --bogus
+  [ "$status" -ne 0 ]
+  echo "$output" | grep -qi 'unknown'
+  [ ! -f "${bridgefile}" ]
+  rm -rf "${tmp}"
+}
+
 # ── FA-SF-47-wakeup-reasoning-effort ────────────────────────────#
 # FA-SF-47: wakeup.sh must NOT set reasoning_effort. [T000519]
 # The Workflow harness forces thinking.type=disabled for nested agent() spawns.

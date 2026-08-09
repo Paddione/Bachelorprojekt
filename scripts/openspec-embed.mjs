@@ -92,9 +92,22 @@ function splitByTokenBudget(text, target, overlap) {
   return out;
 }
 
-export function chunkProposal(body) {
-  return [{ position: 0, text: body.trim(), sectionTitle: '', charOffset: 0 }];
+export function chunkProposal(body, opts = {}) {
+  const target = opts.targetTokens ?? 400;
+  const overlap = opts.overlapTokens ?? 50;
+  const trimmed = body.trim();
+  if (approxTokens(trimmed) <= target) {
+    return [{ position: 0, text: trimmed, sectionTitle: '', charOffset: 0 }];
+  }
+  return splitByTokenBudget(trimmed, target, overlap).map((text, i) => ({
+    position: i,
+    text,
+    sectionTitle: '',
+    charOffset: 0,
+  }));
+
 }
+
 
 export function chunkSections(body, opts = {}) {
   const target = opts.targetTokens ?? 400;
@@ -220,12 +233,17 @@ export function estimateSlugTokenWorst(slug, repoRoot) {
   files.partials = partials;
   if (files.proposal == null && files.tasks == null && files.spec == null && partials == null) return null;
   const chunks = buildChunks(files);
+  if (chunks.length === 0) return null;
   let maxTokens = 0;
+  let maxType = null;
   for (const c of chunks) {
     const t = approxTokens(c.text);
-    if (t > maxTokens) maxTokens = t;
+    if (t > maxTokens) {
+      maxTokens = t;
+      maxType = c.fileType;
+    }
   }
-  return maxTokens;
+  return { tokens: maxTokens, fileType: maxType };
 }
 
 export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
@@ -395,9 +413,11 @@ async function main() {
     || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 
   if (countSkipped) {
-    const CONTEXT_LIMIT = 2048;
+    const CONTEXT_LIMIT = 2048; // proposal/task_section/spec_section chunks (post-Task-2: max ~450)
+    const PARTIAL_TOKEN_LIMIT = 7000; // matches scripts/plan-lint.sh T002453-C partial size gate
     let contextSkips = 0;
     let otherSkips = 0;
+    const skippedSlugs = [];
     const changesDir = path.join(repoRoot, 'openspec', 'changes');
     if (existsSync(changesDir)) {
       for (const entry of readdirSync(changesDir)) {
@@ -409,15 +429,20 @@ async function main() {
         if (!ACTIVE_STATUSES.includes(frontmatter.status)) continue;
         const worst = estimateSlugTokenWorst(entry, repoRoot);
         if (worst === null) { otherSkips++; continue; }
-        if (worst > CONTEXT_LIMIT) {
+        const limit = worst.fileType === 'partial' ? PARTIAL_TOKEN_LIMIT : CONTEXT_LIMIT;
+        if (worst.tokens > limit) {
           contextSkips++;
+          skippedSlugs.push(`${entry} (~${worst.tokens} tokens, ${worst.fileType ?? 'unknown'})`);
         }
       }
     }
     console.log(`skipped: ${contextSkips + otherSkips} documents (${contextSkips} context limit > ${CONTEXT_LIMIT} tokens, ${otherSkips} other reasons)`);
+    for (const line of skippedSlugs) console.log(`  - ${line}`);
     console.log('Rebuild after context limit is resolved: task openspec:embed:backfill');
     process.exit(0);
+
   }
+
 
   if (checkCoverage) {
     const localCount = countLocalActivePlans(repoRoot);

@@ -3654,6 +3654,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/unparsable-lock-reap",
+    "file": "tests/spec/software-factory/unparsable-lock-reap.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "studio-sessions-reorganize",
     "file": "tests/spec/studio-sessions-reorganize.bats",
     "category": "studio-sessions-reorganize",

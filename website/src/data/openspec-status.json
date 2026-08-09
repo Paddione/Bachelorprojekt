@@ -2619,6 +2619,12 @@
       "status": "archived"
     }
   ],
+  "T002702": [
+    {
+      "slug": "agent-lock-unparsable-lock-reap",
+      "status": "plan_staged"
+    }
+  ],
   "T002703": [
     {
       "slug": "2026-08-08-bge-mcp-http-only-get",

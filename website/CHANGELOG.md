@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.259.16](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.15...website-v1.259.16) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** remove live-branch precondition blocking CI on main [T003045] ([#4025](https://github.com/Paddione/Bachelorprojekt/issues/4025)) ([0a99a3f](https://github.com/Paddione/Bachelorprojekt/commit/0a99a3f2db9c9e508d70161c35c3aa1b1cc1f351))
+* **factory:** resolveLLM reads slotId/apiKeyEnv/ctx, toolFactoryAsk uses routed key + releases slot [T002663] ([#4021](https://github.com/Paddione/Bachelorprojekt/issues/4021)) ([fae74e8](https://github.com/Paddione/Bachelorprojekt/commit/fae74e8689a1ec0ba7b4579129b4124dd3e74d95))
+
 ## [1.259.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.14...website-v1.259.15) (2026-08-09)
 
 

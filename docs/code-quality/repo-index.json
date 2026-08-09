@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 846,
+      "file_count": 847,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -401,6 +401,7 @@
         "tests/spec/collabora-integration.bats",
         "tests/spec/commit-signing.bats",
         "tests/spec/coverage-gate.bats",
+        "tests/spec/database-migrations-runner.bats",
         "tests/spec/database.bats",
         "tests/spec/datev-export.bats",
         "tests/spec/db-quality-goals.bats",

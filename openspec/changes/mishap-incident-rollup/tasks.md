@@ -15,7 +15,7 @@ depends_on_plans: []
 _Container-Ticket: T002784_
 
 Automatisch erzeugt von `scripts/factory/mishap-rollup.sh` [T002407] am
-2026-08-09 10:39 UTC. Die Eintraege stammen aus den
+2026-08-09 10:41 UTC. Die Eintraege stammen aus den
 Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung".
 
 ## File Structure

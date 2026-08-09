@@ -2565,6 +2565,12 @@
       "status": "archived"
     }
   ],
+  "T002655": [
+    {
+      "slug": "sdlc-up-command",
+      "status": "plan_staged"
+    }
+  ],
   "T002657": [
     {
       "slug": "2026-08-08-coaching-daten-lokal-only",

@@ -27,6 +27,7 @@ on:
       # aendert ein Fix am Renderer das Artefakt NICHT — es bleibt stale, bis
       # zufaellig ein Manifest angefasst wird, und Flux rollt weiter den alten
       # Stand aus. Genau so blieb der T002156-Fix nach dem Merge wirkungslos.
+      - '.github/workflows/render-fleet-artifact.yml'
       - 'scripts/flux-render-artifact.sh'
       - 'scripts/resolve-image-digest.sh'
       - 'scripts/website-config-sha.sh'

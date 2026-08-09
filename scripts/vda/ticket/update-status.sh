@@ -18,6 +18,28 @@ main() {
     exit 2
   fi
 
+  # [T002906] Strikte Allowlist auf external_id. Zwei Gruende, in dieser Reihenfolge:
+  #
+  # 1) SQL-Injection. Beide Guard-Queries unten binden $id per psql-Variable (:'tid'),
+  #    aber diese Allowlist ist die Schicht davor: sie stellt sicher, dass gar kein
+  #    fremdes Byte in die Naehe der Query kommt, egal was ein spaeterer Umbau an der
+  #    Bindung aendert. Vor T002906 wurde $id an zwei Stellen roh interpoliert; die
+  #    zweite kam am 2026-08-09 per #3964 (T002876) dazu, ohne dass CI es bemerkte —
+  #    der security-scan-Job prueft Image-Pinning und Secrets in k3d/*.yaml, nicht
+  #    Shell-SQL. Der Aufrufer ist scripts/ticket.sh, das in der Factory-Pipeline von
+  #    LLM-Agenten mit IDs aus Modellausgaben und Ticketinhalten gerufen wird — die
+  #    Eingabe ist also nicht per Konstruktion vertrauenswuerdig.
+  # 2) Tippfehler. Ein vertipptes --id lief bisher bis zum UPDATE durch und traf
+  #    schlicht keine Zeile. Jetzt scheitert es sofort mit klarer Meldung.
+  #
+  # Das Format ist eng und belegt: alle 2190 Zeilen in tickets.tickets matchen
+  # ^T[0-9]{6}$ (Stand 2026-08-09, null Abweichler). {6,} laesst Raum fuer den
+  # Uebergang auf siebenstellige Nummern, ohne den Guard erneut anfassen zu muessen.
+  if [[ ! "$id" =~ ^T[0-9]{6,}$ ]]; then
+    echo "ERROR: --id '$id' ist keine gueltige external_id (erwartet: T gefolgt von mindestens 6 Ziffern, z.B. T002906)." >&2
+    exit 2
+  fi
+
   # Status → auto-emitted phase event (T001444). Leere auto_phase = keine Emission.
   local auto_phase="" auto_state=""
   case "$status" in
@@ -45,8 +67,10 @@ main() {
   # Note: scripts/factory/reconcile-ticket-status.sh bypasses this guard by writing
   # SQL directly via kubectl exec — that's intentional for its watchdog patterns.
   local _cur_status
-  local _sql="SELECT status FROM tickets.tickets WHERE external_id = '${id}' LIMIT 1;"
-  _cur_status=$(echo "$_sql" | _exec_sql "$pod" 2>/dev/null | tr -d '[:space:]')
+  # [T002906] $id per psql-Variable binden statt in den String zu interpolieren.
+  # :'tid' quotet und escapet serverseitig — der Wert kann den String nicht verlassen.
+  local _sql="SELECT status FROM tickets.tickets WHERE external_id = :'tid' LIMIT 1;"
+  _cur_status=$(echo "$_sql" | _exec_sql "$pod" -v tid="$id" 2>/dev/null | tr -d '[:space:]')
   case "${_cur_status}:${status}" in
     done:done|archived:archived)
       ;; # idempotent — always allowed
@@ -70,10 +94,11 @@ main() {
   # per direktem SQL (dort dokumentiert) — dieser Guard laeuft also NICHT im Watchdog-Pfad.
   if [[ "${status}" == "plan_staged" ]]; then
     local _plan_ref
+    # [T002906] wie oben: :'tid' statt Interpolation von $id.
     _plan_ref=$(echo "SELECT 1 FROM tickets.ticket_comments c
   JOIN tickets.tickets t ON t.id = c.ticket_id
- WHERE t.external_id = '${id}' AND c.body LIKE 'FACTORY-PLAN-REF %' LIMIT 1;" \
-      | _exec_sql "$pod" 2>/dev/null | tr -d '[:space:]')
+ WHERE t.external_id = :'tid' AND c.body LIKE 'FACTORY-PLAN-REF %' LIMIT 1;" \
+      | _exec_sql "$pod" -v tid="$id" 2>/dev/null | tr -d '[:space:]')
     if [[ -z "${_plan_ref}" ]]; then
       echo "ERROR: Cannot transition to 'plan_staged' without a FACTORY-PLAN-REF comment — stage the plan first (ticket.sh stage-plan --id ${id} --branch <b> --plan <tasks.md>)." >&2
       exit 2

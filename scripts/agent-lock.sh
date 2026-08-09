@@ -466,6 +466,33 @@ cmd_list() {
   done
 }
 
+# [T002809] Deliberater Takeover des main-Checkout-Locks, wenn er nur als auto-claimed
+# Bookkeeping (Label _SELF_CLAIM_LABEL) einer ANDEREN Session gefuehrt wird. cmd_claim
+# ueberschreibt einen fremden Lock nie und cmd_guard_postcheckout revertiert nur bei
+# SID-Match — eine spaetere Session mit anderer SID konnte den Lock daher nie fuer ihren
+# Branch-Wechsel uebernehmen und der Wechsel wurde still revertiert.
+cmd_reclaim_main_checkout() {
+  local f; f="$(_lock_file main-checkout)"
+  [ -f "$f" ] || return 0
+  _with_lock
+  local owner_sid label
+  owner_sid="$(_lock_field "$f" owner_sid)"
+  label="$(_lock_field "$f" label)"
+  [ "$owner_sid" = "$(_my_sid)" ] && return 0
+  if [ "$label" != "$_SELF_CLAIM_LABEL" ]; then
+    echo "AGENT-LOCK: reclaim-main-checkout abgelehnt — main-Checkout $(_holder_msg "$f")" >&2
+    echo "  Das ist ein deliberater Claim, keine Bookkeeping-Eintragung. Koordiniere mit" >&2
+    echo "  der haltenden Session oder nutze einen Worktree." >&2
+    return 1
+  fi
+  local br; br="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+  [ "$br" = "HEAD" ] && br=""
+  SCOPE=main-checkout; ID=""; LABEL="$_SELF_CLAIM_LABEL"; WT=""; BRANCH="$br"; TICKET=""
+  CREATED="$(_now)"; _write_lock "$f"
+  echo "AGENT-LOCK: main-checkout reclaimed (vorher $owner_sid, jetzt $(_my_sid))." >&2
+  return 0
+}
+
 # NOTE: cmd_reap() does NOT delete worktree directories.
 # It only (1) kills orphan processes with deleted cwd, (2) prunes git worktree
 # admin metadata, (2c) deletes local branches already merged into main, and
@@ -551,7 +578,8 @@ main() {
     mine)    _my_sid;;
     guard-precommit)    cmd_guard_precommit "$@";;
     guard-postcheckout) cmd_guard_postcheckout "$@";;
-    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-merged|list|reap|mine|guard-precommit|guard-postcheckout}" >&2; return 2;;
+    reclaim-main-checkout) cmd_reclaim_main_checkout "$@";;
+    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-merged|list|reap|mine|guard-precommit|guard-postcheckout|reclaim-main-checkout}" >&2; return 2;;
   esac
 }
 main "$@"

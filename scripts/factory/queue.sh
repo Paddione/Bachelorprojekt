@@ -49,6 +49,11 @@ FROM (
           AND COALESCE((readiness->>'execution_released')::boolean, true) = true
           AND COALESCE((readiness->>'factory_excluded')::boolean, false) = false)
     )
+    -- is_test_data (T002830): SF-TEST-Fixtures (seed_test_feature) duerfen nie im
+    -- Dispatch-Pfad landen. T002781 hat den Filter in list.sh eingebaut, queue.sh
+    -- las die Tabelle mit eigener WHERE-Klausel und war der zweite von drei
+    -- Lesepfaden. Derselbe Guard wie in scripts/factory/auto-triage.sh:357.
+    AND is_test_data = false
   ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 WHEN 'niedrig' THEN 3 END, created_at
 ) q;
 SQL

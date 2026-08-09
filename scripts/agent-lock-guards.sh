@@ -56,6 +56,8 @@ cmd_guard_postcheckout() {
   [ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = "$br" ] && return 0
   if git checkout "$br" >/dev/null 2>&1; then
     echo "AGENT-LOCK: main-Checkout auf '$br' zurückgesetzt (Lock-Halter aktiv)." >&2
+    echo "  Eigener Wechsel gewuenscht? 'bash scripts/agent-lock.sh reclaim-main-checkout'" >&2
+    echo "  VOR dem naechsten checkout, falls der Lock nur Bookkeeping ist." >&2
   else
     echo "AGENT-LOCK: Revert auf '$br' fehlgeschlagen — bitte manuell prüfen." >&2
   fi

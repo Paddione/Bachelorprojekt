@@ -60,6 +60,26 @@ main() {
       exit 2 ;;
   esac
 
+  # [T002876] plan_staged guard: ohne FACTORY-PLAN-REF-Kommentar ist der Zustand
+  # "plan_staged ohne Plan" fuer JEDEN Aufrufer erreichbar (CLI, MCP, Agent, Skript) —
+  # am 2026-08-09 28-fach eingetreten (halbgestagte Plans). Der Guard macht ihn
+  # strukturell unerreichbar, unabhaengig vom Aufrufer: nur stage-plan schreibt den
+  # FACTORY-PLAN-REF-Kommentar (scripts/vda/ticket/stage-plan.sh), also ist ein Ticket
+  # mit diesem Kommentar immer durch einen Plan gestaged.
+  # Hinweis: scripts/factory/reconcile-ticket-status.sh umgeht update-status.sh bewusst
+  # per direktem SQL (dort dokumentiert) — dieser Guard laeuft also NICHT im Watchdog-Pfad.
+  if [[ "${status}" == "plan_staged" ]]; then
+    local _plan_ref
+    _plan_ref=$(echo "SELECT 1 FROM tickets.ticket_comments c
+  JOIN tickets.tickets t ON t.id = c.ticket_id
+ WHERE t.external_id = '${id}' AND c.body LIKE 'FACTORY-PLAN-REF %' LIMIT 1;" \
+      | _exec_sql "$pod" 2>/dev/null | tr -d '[:space:]')
+    if [[ -z "${_plan_ref}" ]]; then
+      echo "ERROR: Cannot transition to 'plan_staged' without a FACTORY-PLAN-REF comment — stage the plan first (ticket.sh stage-plan --id ${id} --branch <b> --plan <tasks.md>)." >&2
+      exit 2
+    fi
+  fi
+
   # UPDATE (autocommit) läuft VOR dem Event-INSERT — Telemetrie kann den
   # Statuswechsel nicht zurückrollen. blocked löst die letzte Phase per Lookup auf
   # (Fallback implement). Dedup: kein Insert bei vorhandenem (ticket,phase,state).

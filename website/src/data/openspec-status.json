@@ -2601,6 +2601,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002662": [
+    {
+      "slug": "fix-wakeup-help-T002662",
+      "status": "plan_staged"
+    }
+  ],
   "T002664": [
     {
       "slug": "main-checkout-freshness-cleanup-T002664",
@@ -2832,6 +2838,12 @@
   "T002869": [
     {
       "slug": "flux-webhook-tls",
+      "status": "plan_staged"
+    }
+  ],
+  "T002876": [
+    {
+      "slug": "fix-update-status-planstaged-guard-T002876",
       "status": "plan_staged"
     }
   ],

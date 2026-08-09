@@ -5192,7 +5192,10 @@ tasks:
         kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/flux-webhook-token-sealedsecret.yaml
         kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/flux-instance.yaml
         kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/receiver.yaml
-        envsubst "\$FLUX_WEBHOOK_HOST \$TLS_SECRET_NAME" \
+        envsubst "\$PROD_DOMAIN" \
+          < flux/clusters/fleet/bootstrap/certificate-flux-webhook.yaml \
+          | kubectl --context "$ENV_CONTEXT" apply -f -
+        envsubst "\$FLUX_WEBHOOK_HOST" \
           < flux/clusters/fleet/bootstrap/ingressroute-flux-webhook.yaml \
           | kubectl --context "$ENV_CONTEXT" apply -f -
         flux check --context "$ENV_CONTEXT" || true

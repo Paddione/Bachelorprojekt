@@ -297,16 +297,20 @@ assert_var_not_declared() {
   [ "$output" -eq 4 ]
 }
 
-# ── bge-embed OOM-Guard (T002580) ─────────────────────────────────────
+# ── bge-embed OOM-Guard (T002580, verschaerft durch T002835) ──────────
 # bge-embed lief wiederholt in OOMKilled (limits.memory 2Gi, 9 Restarts in 6h).
-# Gemessener Peak-RSS unter 64er-Embedding-Batch-Last: ~1.94Gi (kubectl top pod,
-# 2026-08-03) — 2Gi liess nur ~60Mi Headroom. Fix: limits.memory auf 3Gi
-# angehoben, -np 4 -ub 8192 bleibt erhalten (Durchsatz fuer den T002572-
-# Benchmark). Dieser Guard sichert die gewaehlte Kombination statisch ab: eine
-# kuenftige Senkung des Limits unter den gemessenen Peak oder eine arglose
-# Aenderung der Batch-Parameter darf nicht unbemerkt durchrutschen.
+# T002580 hob das Limit auf 3Gi (Peak-RSS ~1.94Gi, gemessen 2026-08-03) und
+# liess -np 4 -ub 8192 stehen. Das reichte nicht: am 2026-08-09 lag der Pod bei
+# 2647Mi von 3072Mi (86 %) mit 6 weiteren OOMKills in 11h. T002835 zieht daher
+# beide Haelften — limits.memory 4Gi UND -np 2 — und dieser Guard sichert sie
+# gemeinsam ab. Ein Limit-Bump ohne die gesenkte Parallelitaet verschiebt die
+# Grenze nur; genau das war der Fehler von T002580.
+#
+# -ub bleibt bewusst bei 8192 und ist KEIN Stellhebel — siehe den Guard
+# "bge-K8s-Manifest setzt -b und -ub auf volle Kontextlaenge (T002260)" oben:
+# bge-m3 ist nicht-kausal, eine Senkung braeche jeden Input > -ub still.
 
-@test "bge-embed OOM-Guard: limits.memory >= 3Gi und dokumentiert (T002580)" {
+@test "bge-embed OOM-Guard: limits.memory >= 4Gi und dokumentiert (T002835)" {
   local f="$REPO/k3d/llm-gpu.yaml"
   # Das bge-embed-Deployment muss limits.memory auf mindestens 3Gi setzen.
   # Der Wert steht im bge-embed-Block (vor dem bge-rerank-Block); geprueft wird
@@ -316,24 +320,27 @@ assert_var_not_declared() {
   first_limit="$(awk '/limits:/{found=1} found && /memory:/{print; exit}' "$f" \
     | sed -E 's/.*memory:[[:space:]]*"?([0-9]+)Gi"?.*/\1/')"
   [ -n "$first_limit" ] || { echo "kein memory-Limit im bge-embed-Block gefunden"; false; }
-  [ "$first_limit" -ge 3 ] || { echo "bge-embed limits.memory=${first_limit}Gi < 3Gi — unter gemessenem Peak+Headroom"; false; }
-  # Die Begruendung (T002580) muss im Manifest stehen, damit die Wahl nicht
-  # stillschweigend zurueckgedreht wird.
-  run grep -q 'T002580' "$f"
+  [ "$first_limit" -ge 4 ] || { echo "bge-embed limits.memory=${first_limit}Gi < 4Gi — unter gemessenem Peak (2647Mi) plus Headroom"; false; }
+  # Die Begruendung muss im Manifest stehen, damit die Wahl nicht
+  # stillschweigend zurueckgedreht wird. Beide Ticket-Referenzen: T002580 haelt
+  # die Vorgeschichte, T002835 die geltende Entscheidung.
+  run grep -q 'T002835' "$f"
   [ "$status" -eq 0 ]
 }
 
-@test "bge-embed OOM-Guard: -np 4 -ub 8192 bleibt erhalten (T002580)" {
+@test "bge-embed OOM-Guard: -np im bge-embed-Block ist 2 (T002835)" {
   local f="$REPO/k3d/llm-gpu.yaml"
-  # Durchsatz fuer den T002572-Benchmark: -np 4 und -ub 8192 muessen im
-  # bge-embed-Block stehen bleiben. -np 4 kommt genau 2x vor (embed + rerank),
-  # -ub 8192 genau 2x.
+  # Positiv-Anker zuerst (T002356-M1): -np muss ueberhaupt in beiden
+  # bge-Deployments gesetzt sein, sonst prueft der Wert-Test unten ins Leere.
   run grep -cE '^[[:space:]]+- "-np"[[:space:]]*$' "$f"
-  [ "$output" -eq 2 ]
-  run grep -cE '^[[:space:]]+- "4"[[:space:]]*$' "$f"
-  [ "$output" -eq 2 ]
-  run grep -cE '^[[:space:]]+- "-ub"[[:space:]]*$' "$f"
-  [ "$output" -eq 2 ]
+  [ "$output" -eq 2 ] || { echo "-np steht nicht 2x im Manifest (embed + rerank) — Guard prueft ins Leere"; false; }
+
+  # Der Wert im bge-embed-Block: erster -np-Eintrag nach 'name: bge-embed'.
+  # llama.cpp nimmt den Wert als eigenen Listeneintrag direkt nach dem Flag.
+  local np
+  np="$(awk '/^  name: bge-embed$/{f=1} f && /- "-np"/{getline; gsub(/[^0-9]/,""); print; exit}' "$f")"
+  [ -n "$np" ] || { echo "kein -np-Wert im bge-embed-Block gefunden"; false; }
+  [ "$np" -le 2 ] || { echo "bge-embed -np=${np} > 2 — vier Slots ueber -t 2 Threads erzeugten die OOM-Peaks (T002835)"; false; }
 }
 
 # ── CPU-only im Cluster (T002337) ─────────────────────────────────────

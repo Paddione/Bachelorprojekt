@@ -3018,8 +3018,9 @@ tasks:
           # they land in WEBSITE_NAMESPACE alongside the website pod (kustomize's
           # top-level `namespace: workspace` would otherwise force them into the
           # wrong ns). Default WEBSITE_NAMESPACE=website if not set in env file.
-          WEBSITE_NAMESPACE="${WEBSITE_NAMESPACE:-website}" envsubst "\$WEBSITE_NAMESPACE" \
-            < k3d/cronjob-systemtest-cleanup.yaml | kubectl apply -f -
+          # NOTE: cronjob-systemtest-cleanup.yaml is intentionally empty — the three
+          # systemtest CronJobs were removed in T002644 (their /sdlc/ routes no longer
+          # exist in prod after the SDLC-split T002624).
         else
           # Prod: build from overlay, apply to target cluster
           _ws_ns="${WORKSPACE_NAMESPACE:-workspace}"
@@ -3204,10 +3205,8 @@ tasks:
           # Cross-namespace RBAC for pocket-id-client-seed to also patch website-secrets (T001435)
           envsubst "\$WORKSPACE_NAMESPACE \$WEBSITE_NAMESPACE" < k3d/pocket-id-client-seed-website-rbac.yaml \
             | kubectl --context "$ENV_CONTEXT" apply -f -
-          # System-test failure-loop cleanup CronJobs — applied separately so
-          # they land in WEBSITE_NAMESPACE alongside the website pod.
-          envsubst "\$WEBSITE_NAMESPACE" < k3d/cronjob-systemtest-cleanup.yaml \
-            | kubectl --context "$ENV_CONTEXT" apply -f -
+          # NOTE: systemtest cleanup CronJobs removed in T002644 — their /sdlc/ routes
+          # no longer exist in prod after SDLC-split (T002624).
         fi
       - task: workspace:sync-db-passwords
         vars: { ENV: "{{.ENV}}" }

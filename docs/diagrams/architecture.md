@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1921 Abhängigkeitskanten · 289 API-Endpoints
+89 Services · 1900 Abhängigkeitskanten · 289 API-Endpoints
 
 ## Service-Map
 
@@ -22,9 +22,6 @@ flowchart LR
   billing_dunning_detection["billing-dunning-detection"]:::default
   monthly_billing["monthly-billing"]:::default
   scheduled_publish["scheduled-publish"]:::default
-  systemtest_cleanup["systemtest-cleanup"]:::default
-  systemtest_purge_all["systemtest-purge-all"]:::default
-  systemtest_outbox["systemtest-outbox"]:::default
   claude_code_mcp_monolith["claude-code-mcp-monolith"]:::default
   oauth2_proxy_brainstorm["oauth2-proxy-brainstorm"]:::default
   oauth2_proxy_dev["oauth2-proxy-dev"]:::default
@@ -117,9 +114,6 @@ flowchart LR
   billing_dunning_detection -->|"command"| website
   monthly_billing -->|"command"| website
   scheduled_publish -->|"command"| website
-  systemtest_cleanup -->|"command"| website
-  systemtest_purge_all -->|"command"| website
-  systemtest_outbox -->|"command"| website
   claude_code_mcp_monolith -->|"DATABASE_URL"| shared_db
   claude_code_mcp_monolith -->|"DATABASE_URL"| website
   oauth2_proxy_dev -->|"command"| traefik
@@ -1944,26 +1938,11 @@ flowchart LR
   dev_db_refresh -->|"secret:workspace-s…"| talk_transcriber
   ddns_updater -->|"secret:workspace-s…"| dev_db_refresh
   dev_db_refresh -->|"secret:workspace-s…"| ddns_updater
-  systemtest_cleanup -->|"secret:website-sec…"| systemtest_purge_all
-  systemtest_purge_all -->|"secret:website-sec…"| systemtest_cleanup
-  systemtest_cleanup -->|"secret:website-sec…"| systemtest_outbox
-  systemtest_outbox -->|"secret:website-sec…"| systemtest_cleanup
-  systemtest_cleanup -->|"secret:website-sec…"| sdlc_console
-  sdlc_console -->|"secret:website-sec…"| systemtest_cleanup
-  website -->|"secret:website-sec…"| systemtest_cleanup
-  systemtest_purge_all -->|"secret:website-sec…"| systemtest_outbox
-  systemtest_outbox -->|"secret:website-sec…"| systemtest_purge_all
-  systemtest_purge_all -->|"secret:website-sec…"| sdlc_console
-  sdlc_console -->|"secret:website-sec…"| systemtest_purge_all
-  website -->|"secret:website-sec…"| systemtest_purge_all
-  systemtest_outbox -->|"secret:website-sec…"| sdlc_console
-  sdlc_console -->|"secret:website-sec…"| systemtest_outbox
-  website -->|"secret:website-sec…"| systemtest_outbox
-  website -->|"secret:website-sec…"| sdlc_console
   brett -->|"secret:shared-db-d…"| shared_db_dev
   shared_db_dev -->|"secret:shared-db-d…"| brett
   shared_db_dev -->|"secret:shared-db-d…"| website
   website -->|"secret:shared-db-d…"| shared_db_dev
+  website -->|"secret:website-sec…"| sdlc_console
   shared_db_staging -->|"secret:staging-db-…"| website
   website -->|"secret:staging-db-…"| shared_db_staging
 ```
@@ -2049,11 +2028,6 @@ flowchart TB
   subgraph coturn["coturn"]
     coturn["coturn"]
     janus["janus"]
-  end
-  subgraph WEBSITE_NAMESPACE["${WEBSITE_NAMESPACE}"]
-    systemtest_cleanup(["systemtest-cleanup"])
-    systemtest_purge_all(["systemtest-purge-all"])
-    systemtest_outbox(["systemtest-outbox"])
   end
   subgraph default["default"]
     claude_code_mcp_monolith["claude-code-mcp-monolith"]

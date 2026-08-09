@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-08T22:52:48.384Z",
+  "generatedAt": "2026-08-09T11:09:55.505Z",
   "nodes": [
     {
       "id": "admin-actions-cleanup",
@@ -66,24 +66,6 @@
       "namespace": "mentolder",
       "type": "CronJob",
       "name": "scheduled-publish"
-    },
-    {
-      "id": "systemtest-cleanup",
-      "namespace": "${WEBSITE_NAMESPACE}",
-      "type": "CronJob",
-      "name": "systemtest-cleanup"
-    },
-    {
-      "id": "systemtest-purge-all",
-      "namespace": "${WEBSITE_NAMESPACE}",
-      "type": "CronJob",
-      "name": "systemtest-purge-all"
-    },
-    {
-      "id": "systemtest-outbox",
-      "namespace": "${WEBSITE_NAMESPACE}",
-      "type": "CronJob",
-      "name": "systemtest-outbox"
     },
     {
       "id": "claude-code-mcp-monolith",
@@ -659,24 +641,6 @@
     },
     {
       "from": "scheduled-publish",
-      "to": "website",
-      "via": "command",
-      "kind": "command"
-    },
-    {
-      "from": "systemtest-cleanup",
-      "to": "website",
-      "via": "command",
-      "kind": "command"
-    },
-    {
-      "from": "systemtest-purge-all",
-      "to": "website",
-      "via": "command",
-      "kind": "command"
-    },
-    {
-      "from": "systemtest-outbox",
       "to": "website",
       "via": "command",
       "kind": "command"
@@ -11878,126 +11842,6 @@
       "kind": "secret"
     },
     {
-      "from": "systemtest-cleanup",
-      "to": "systemtest-purge-all",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-purge-all",
-      "to": "systemtest-cleanup",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-cleanup",
-      "to": "systemtest-outbox",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-outbox",
-      "to": "systemtest-cleanup",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-cleanup",
-      "to": "sdlc-console",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "systemtest-cleanup",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-cleanup",
-      "to": "website",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "website",
-      "to": "systemtest-cleanup",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-purge-all",
-      "to": "systemtest-outbox",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-outbox",
-      "to": "systemtest-purge-all",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-purge-all",
-      "to": "sdlc-console",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "systemtest-purge-all",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-purge-all",
-      "to": "website",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "website",
-      "to": "systemtest-purge-all",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-outbox",
-      "to": "sdlc-console",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "systemtest-outbox",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "systemtest-outbox",
-      "to": "website",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "website",
-      "to": "systemtest-outbox",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "sdlc-console",
-      "to": "website",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
-      "from": "website",
-      "to": "sdlc-console",
-      "via": "secret:website-secrets",
-      "kind": "secret"
-    },
-    {
       "from": "brett",
       "to": "shared-db-dev",
       "via": "secret:shared-db-dev-secrets",
@@ -12067,6 +11911,18 @@
       "from": "knowledge-reindex-all",
       "to": "knowledge-ingest-bugs",
       "via": "secret:knowledge-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "sdlc-console",
+      "to": "website",
+      "via": "secret:website-secrets",
+      "kind": "secret"
+    },
+    {
+      "from": "website",
+      "to": "sdlc-console",
+      "via": "secret:website-secrets",
       "kind": "secret"
     },
     {

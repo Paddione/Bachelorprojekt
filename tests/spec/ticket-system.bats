@@ -458,6 +458,31 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
   [ "$status" -eq 0 ]
 }
 
+# ── [T002876] update-status.sh guard: plan_staged braucht FACTORY-PLAN-REF ────
+# Der widerspruechliche Zustand "plan_staged ohne Plan" war fuer jeden Aufrufer
+# erreichbar (28x am 2026-08-09). Der Guard macht ihn strukturell unerreichbar.
+# reconcile-ticket-status.sh umgeht update-status.sh per direktem SQL — bewusst
+# ausgenommen, der Watchdog-Pfad bleibt offen.
+
+@test "T002876: update-status.sh forbids plan_staged without a FACTORY-PLAN-REF comment" {
+  run grep -Fq "plan_staged" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq "FACTORY-PLAN-REF" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+  run grep -Fq "ERROR: Cannot transition to 'plan_staged'" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002876: update-status.sh checks ticket_comments for the plan reference" {
+  run grep -Fq "ticket_comments" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
+@test "T002876: update-status.sh plan_staged guard is a pre-UPDATE SELECT (like T002382)" {
+  run grep -Fq "SELECT status FROM tickets.tickets" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ]
+}
+
 # ── [T002382-M3] transition.ts guard: done → non-terminal verboten ───────────#
 
 @test "T002382-M3: transition.ts forbids done → non-terminal" {

@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.257.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.3...website-v1.257.4) (2026-08-09)
+
+
+### Tests
+
+* **ops:** Guard fuer qwen3-coder — Loadout-Port und Proxy-Registrierung muessen uebereinstimmen [T002645] ([#3921](https://github.com/Paddione/Bachelorprojekt/issues/3921)) ([754c791](https://github.com/Paddione/Bachelorprojekt/commit/754c7918c1895afe136b37b258015d2ca9a66b5a))
+
+## [1.257.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.2...website-v1.257.3) (2026-08-09)
+
+
+### Bug Fixes
+
+* **routes:** routes:manifest suppresses tsx stderr stacktrace [T002666] ([#3913](https://github.com/Paddione/Bachelorprojekt/issues/3913)) ([3ad6454](https://github.com/Paddione/Bachelorprojekt/commit/3ad64546ce56a9102426f1d21fea25352ba34572))
+
+## [1.257.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.1...website-v1.257.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **factory:** shared rollup-container resolution via ticket.sh, --unattended worktree mode [T002783] ([#3911](https://github.com/Paddione/Bachelorprojekt/issues/3911)) ([2dfe574](https://github.com/Paddione/Bachelorprojekt/commit/2dfe5743dc3bf112e1d0bba03a7d6f04edc3a130))
+
 ## [1.257.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.0...website-v1.257.1) (2026-08-09)
 
 

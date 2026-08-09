@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "slug": "routes-manifest-stacktrace-fallback-T002666",
+    "ticket_id": "T002666",
+    "generated_from": "main@2dfe5743d",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/build-route-manifest.mjs",
+      "language": "javascript",
+      "loc": 63,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 737
+    },
+    {
+      "path": "tests/spec/website-core.bats",
+      "language": "bash",
+      "loc": 447,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/build-route-manifest.mjs:20:function loadBrandSlugsViaTsx() {",
+      "kind": "function",
+      "file": "scripts/build-route-manifest.mjs",
+      "signature": "20:function loadBrandSlugsViaTsx() {(...)",
+      "type_text": "20:function loadBrandSlugsViaTsx() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-route-manifest.mjs:40:function extractSlugsFromSource(relPath) {",
+      "kind": "function",
+      "file": "scripts/build-route-manifest.mjs",
+      "signature": "40:function extractSlugsFromSource(relPath) {(...)",
+      "type_text": "40:function extractSlugsFromSource(relPath) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/build-route-manifest.mjs:49:function loadBrandSlugs() {",
+      "kind": "function",
+      "file": "scripts/build-route-manifest.mjs",
+      "signature": "49:function loadBrandSlugs() {(...)",
+      "type_text": "49:function loadBrandSlugs() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

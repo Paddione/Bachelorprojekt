@@ -2583,6 +2583,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002666": [
+    {
+      "slug": "routes-manifest-stacktrace-fallback-T002666",
+      "status": "plan_staged"
+    }
+  ],
   "T002677": [
     {
       "slug": "cockpit-verfuegbarkeit-realtime",
@@ -2670,6 +2676,12 @@
   "T002729": [
     {
       "slug": "2026-08-08-bge-cpu-ondemand",
+      "status": "archived"
+    }
+  ],
+  "T002730": [
+    {
+      "slug": "2026-08-09-fa-59-e2e-spec-positive-assertion",
       "status": "archived"
     }
   ],

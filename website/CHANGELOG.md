@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.258.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.15...website-v1.258.0) (2026-08-09)
+
+
+### Features
+
+* **scripts:** add sdlc:up/down/dev orchestration and health-gate [T002655] ([#3949](https://github.com/Paddione/Bachelorprojekt/issues/3949)) ([c40dcde](https://github.com/Paddione/Bachelorprojekt/commit/c40dcde647b253dee4c09efa688a48033c185634))
+
 ## [1.257.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.14...website-v1.257.15) (2026-08-09)
 
 

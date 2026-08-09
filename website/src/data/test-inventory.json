@@ -2346,6 +2346,12 @@
     "kind": "shell"
   },
   {
+    "id": "database-migrations-runner",
+    "file": "tests/spec/database-migrations-runner.bats",
+    "category": "database-migrations-runner",
+    "kind": "shell"
+  },
+  {
     "id": "datev-export",
     "file": "tests/spec/datev-export.bats",
     "category": "datev-export",

@@ -6,6 +6,44 @@ Beide Skills verlinken hierher; Änderungen NUR in dieser Datei.
 DB-Zugriff (MCP-first, `psql()`-Fallback, `ticket_plans`-Warnung): siehe
 [`mcp-tool-guide.md`](mcp-tool-guide.md).
 
+## 0. Arbeitsbaum & Stashes
+
+Vor jeder Worktree- oder Branch-Aufräumaktion den Arbeitsbaum des Hauptcheckouts und die
+Stashes ansehen — sie sind die Quelle von Arbeit, die nirgendwo sonst auftaucht.
+
+1. **Befund im Hauptcheckout.** `git status --porcelain` im Hauptcheckout — nicht leer ist ein
+   Befund, kein Rauschen. Pro Änderung entscheiden: gehört sie zu einem laufenden Ticket
+   (→ in dessen Worktree ziehen), oder ist es ein funktionaler Patch ohne Ticket
+   (→ Ticket anlegen und Worktree, **nicht** verwerfen)? Realer Auslöser: der ungetickte Patch
+   an `scripts/bge-mcp/server.mjs` vom 2026-08-08.
+
+2. **Stash-Inventar.** `git stash list` — ohne Datum ist das Alter nicht sichtbar. Die
+   Relevanzprüfung aus Falle 2 ist nötig, weil ein Stash nichts über seinen eigenen Zustand
+   erzählt.
+
+3. **Falle 1 — pfadgefilterte Inspektion.** `git stash show -p "stash@{N}" -- <pfad>` scheitert:
+   `stash show` nimmt genau eine Revision entgegen, die Pfadangabe wird als zweite gelesen
+   („Too many revisions specified"). Brauchbar ist eine Zwei-Revisions-Diff-Form:
+
+   ```bash
+   git diff "stash@{N}^" "stash@{N}" -- <pfad>
+   ```
+
+4. **Falle 2 — Relevanz entscheiden.** Der Stash-Diff gegen den eigenen Basiscommit sieht
+   **immer** ungemergt aus — er beantwortet die Frage „ist der Stash noch relevant?" nicht.
+   Maßgeblich sind die konkreten Marker aus dem Stash-Diff, gesucht im heutigen `main`:
+
+   ```bash
+   git grep -F <marker> origin/main -- <pfad>
+   ```
+
+   Beleg: die drei Stashes vom 2026-08-08 waren über Commit `0a2493ffd` längst in `main`
+   angekommen, ihr eigener Diff zeigte das nicht.
+
+5. **Fail-Closed-Regel.** Lässt sich ein Marker nicht bilden oder die Prüfung nicht abschließen
+   (leere Antwort, Fehler): Stash **behalten**. Eine leere Antwort ist kein Urteil — dasselbe
+   Muster, das §3 bereits für `mergedAt` festhält.
+
 ## 1. Stale Git Worktrees
 
 Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit-Bereich allein reicht nicht — ein Worktree kann ungetrackte Änderungen enthalten, die kein `git log` anzeigt.

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.18](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.17...website-v1.259.18) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** origin/main-Fetch-Refspecs forcen — main-CI starb vor jedem Test [T003054] ([#4034](https://github.com/Paddione/Bachelorprojekt/issues/4034)) ([0730d8c](https://github.com/Paddione/Bachelorprojekt/commit/0730d8c306665c62f2af7ddfb47f6f9ab3fc599a))
+
 ## [1.259.17](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.16...website-v1.259.17) (2026-08-09)
 
 

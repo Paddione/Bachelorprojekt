@@ -2,7 +2,7 @@
 title: "commit-scope-vokabular-T002814 — Implementation Plan"
 ticket_id: T002814
 domains: [bachelorprojekt-test, ci-cd]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

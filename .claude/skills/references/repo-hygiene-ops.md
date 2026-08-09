@@ -29,9 +29,13 @@ Stashes ansehen — sie sind die Quelle von Arbeit, die nirgendwo sonst auftauch
    git diff "stash@{N}^" "stash@{N}" -- <pfad>
    ```
 
+   Bei Stashes mit ungetrackten Dateien (`git stash push -u`) zeigt diese Zwei-Revisions-Form
+   die Untracked-Teilmenge nicht — ein leerer Diff ist dann kein Relevanzurteil.
+
 4. **Falle 2 — Relevanz entscheiden.** Der Stash-Diff gegen den eigenen Basiscommit sieht
    **immer** ungemergt aus — er beantwortet die Frage „ist der Stash noch relevant?" nicht.
-   Maßgeblich sind die konkreten Marker aus dem Stash-Diff, gesucht im heutigen `main`:
+   Maßgeblich sind die konkreten Marker aus dem Stash-Diff, gesucht im heutigen `main`
+   (vorher `git fetch origin main`, damit die remote-tracking Ref nicht veraltet ist):
 
    ```bash
    git grep -F <marker> origin/main -- <pfad>

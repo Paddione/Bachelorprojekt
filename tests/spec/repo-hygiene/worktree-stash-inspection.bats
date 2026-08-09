@@ -97,9 +97,21 @@ _make_stash_repo() {
 
   local wt="${BATS_TEST_TMPDIR}/relevance"
   _make_stash_repo "$wt"
+  # Die dokumentierte Form referenziert `origin/main` — der Fixture hat kein Origin-Remote.
+  # Ein remote-tracking ref reicht, damit die Form im Wegwerf-Repo ausführbar wird.
+  git -C "$wt" update-ref refs/remotes/origin/main main
+
+  # Die dokumentierte Marker-Prüfung wird aus der realen SSOT-Datei gelesen — nicht im Test
+  # nachgebaut. Dieselbe Extraktion wie in Block 2, angewendet auf die git-grep-Form.
+  local form
+  form="$(grep -F 'git grep' "$OPS" | grep 'main' | head -1 \
+          | sed 's/.*\(git grep[^`]*\).*/\1/')"
+  form="${form//<marker>/MARKER_ALPHA_T002709}"
+  form="${form//<pfad>/alpha.txt}"
+  [ -n "$form" ]
 
   # Vor dem Landen: der Marker ist nicht in main — die dokumentierte Prüfung sagt "behalten".
-  run bash -c "cd '$wt' && git grep -F MARKER_ALPHA_T002709 main -- alpha.txt"
+  run bash -c "cd '$wt' && $form"
   [ "$status" -ne 0 ]
 
   local before
@@ -110,6 +122,9 @@ _make_stash_repo() {
   printf 'MARKER_ALPHA_T002709\n' >> "$wt/alpha.txt"
   git -C "$wt" add -A
   git -C "$wt" commit -qm "landet in main"
+  # Das Fixture simuliert kein echtes Fetch; damit die dokumentierte `origin/main`-Form
+  # den neuen Stand sieht, muss die remote-tracking Ref nachgezogen werden.
+  git -C "$wt" update-ref refs/remotes/origin/main main
 
   # Kernaussage 1: der Stash-Diff ist UNVERÄNDERT. Er wird gegen den eigenen Basiscommit
   # gerechnet, der sich nicht bewegt — er trägt also kein Relevanzsignal, egal wie der
@@ -119,6 +134,6 @@ _make_stash_repo() {
   [ "$before" = "$after" ]
 
   # Kernaussage 2: die dokumentierte Prüfung gegen main löst die Entscheidung dagegen auf.
-  run bash -c "cd '$wt' && git grep -F MARKER_ALPHA_T002709 main -- alpha.txt"
+  run bash -c "cd '$wt' && $form"
   [ "$status" -eq 0 ]
 }

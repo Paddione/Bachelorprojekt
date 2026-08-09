@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.7...website-v1.259.8) (2026-08-09)
+
+
+### Bug Fixes
+
+* **test:** deterministische Kleinmodell-Wahl + skalierendes Health-Budget [T002872] ([#3984](https://github.com/Paddione/Bachelorprojekt/issues/3984)) ([2eca639](https://github.com/Paddione/Bachelorprojekt/commit/2eca63999c6a81db80f35fbc7f0fea077fece461))
+
 ## [1.259.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.6...website-v1.259.7) (2026-08-09)
 
 

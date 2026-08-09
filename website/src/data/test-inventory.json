@@ -3252,6 +3252,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-hygiene/worktree-stash-inspection",
+    "file": "tests/spec/repo-hygiene/worktree-stash-inspection.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
     "id": "rustdesk-server",
     "file": "tests/spec/rustdesk-server.bats",
     "category": "rustdesk-server",

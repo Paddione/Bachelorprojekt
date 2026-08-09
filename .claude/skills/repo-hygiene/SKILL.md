@@ -19,8 +19,9 @@ Der interne Postgres-Tracker `tickets.tickets` ist die SSOT für Issues. DB-Zugr
 
 Die gesamte Housekeeping-Mechanik ist **SSOT** in
 [`repo-hygiene-ops`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/repo-hygiene-ops.md) —
-die fünf Abschnitte der Reihe nach ausführen:
+die sechs Abschnitte der Reihe nach ausführen:
 
+0. **Arbeitsbaum & Stashes** — §0
 1. **Stale Git Worktrees** — §1
 2. **Stale Branches** (inkl. squash-`[gone]`-Prune) — §2
 3. **PR-Triage → verknüpftes Ticket schließen** — §3

@@ -253,7 +253,12 @@ diff_or_drift() {
   local label="$1" expected="$2" actual="$3"
   if ! diff -q "$expected" "$actual" >/dev/null 2>&1; then
     echo "mcp-sync: check: DRIFT in $label" >&2
-    diff "$expected" "$actual" 2>/dev/null || true
+    if [ "$label" = "mcp_config.json" ]; then
+      # [T002941] Redigiere Authorization-Werte, um Secret-Leaks in CI-Logs zu verhindern
+      diff "$expected" "$actual" 2>/dev/null | sed -E 's/("Authorization"[[:space:]]*:[[:space:]]*")[^"]*(")/\1***REDACTED***\2/g' || true
+    else
+      diff "$expected" "$actual" 2>/dev/null || true
+    fi
     return 1
   fi
   echo "mcp-sync: check: OK $label"

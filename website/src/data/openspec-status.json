@@ -2853,6 +2853,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002839": [
+    {
+      "slug": "fix-openspec-embed-token-limit-T002839",
+      "status": "plan_staged"
+    }
+  ],
   "T002868": [
     {
       "slug": "2026-08-09-workflow-self-trigger",

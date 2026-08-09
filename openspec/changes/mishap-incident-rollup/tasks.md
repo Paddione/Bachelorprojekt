@@ -15,7 +15,7 @@ depends_on_plans: []
 _Container-Ticket: T002784_
 
 Automatisch erzeugt von `scripts/factory/mishap-rollup.sh` [T002407] am
-2026-08-09 05:56 UTC. Die Eintraege stammen aus den
+2026-08-09 10:31 UTC. Die Eintraege stammen aus den
 Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung".
 
 ## File Structure
@@ -1069,6 +1069,331 @@ ABLEITUNG: Vor einer Architekturfrage an den User gehört eine Suche nach besteh
 NEBENBEFUND, in den Change eingearbeitet: der Drift-Guard aus T002470 hat den Drift, der T002817 auslöste, nicht gefunden. Er vergleicht Ticket-ID-Regex, Exemption-Liste und Typ-Präfixe zwischen Hook und Helper — die _unattended_allowlist (worktree-create.sh:49, mit T002783 hinzugekommen) fällt in keinen der drei Vergleiche. Eine bewusst duplizierte Regel ist nur so vollständig abgesichert wie die Aufzählung der Drift-Tests gepflegt wird.
 
 ZWEITER, KLEINERER BEFUND: Ich habe .githooks/pre-push zunächst als zweiten Blocker der Kette bezeichnet. Der Abschnitt ist advisory (warn + exit 0), blockiert also nicht. Korrigiert, bevor der Plan geschrieben wurde; der Hook bleibt im Scope, weil die Warnung falsch ist, aber er war nie Ursache.
+### Mishap-Rollup — 10 Eintraege (2026-08-09 06:49 UTC)
+
+| # | Typ | Komponente | Titel |
+|---|---|---|---|
+| 1 | drift | scripts/factory/mishap-rollup.sh · tickets/lifecycle | Rollup-Plan lokal committet, nie gepusht — Container blieb triage mit plan_ref=null |
+| 2 | degraded | scripts/bge-mcp · systemd-user-units · openspec-embed-hook | bge-forward-embed: Unit active, Socket lauscht, Tunnel tot — openspec-embed schlägt bei jedem Commit still fehl |
+| 3 | degraded | k3d/llm-gpu.yaml · bge-embed · scripts/bge-mcp | KORREKTUR zum bge-forward-embed-Mishap: Restart wirkungslos, Ursache liegt cluster-seitig — readiness=true bei totem Endpoint |
+| 4 | degraded | scripts/ticket.sh | ticket.sh: --help auf Subkommando-Ebene fuehrt in eine Fehlermeldung statt zur Optionsliste |
+| 5 | drift | .claude/skills/references/repo-hygiene-ops.md §4 · mishap-tracker | Dedupe-Guard prueft nur offene Tickets, nicht den Mishap-Buffer — Doppelerfassung real eingetreten |
+| 6 | suspicious | tickets/plan_staged | 18 Tickets stehen auf plan_staged ohne plan-Zeile/Branch — halbgestagte Plans |
+| 7 | suspicious | tickets/t002629 | T002629-Beschreibung behauptet offenen Blocker, PR #3745 ist seit 4 Tagen gemergt |
+| 8 | process | skills/repo-hygiene | Probe-Schleife mit 2>/dev/null macht harten Fehler zu stillem Leerergebnis |
+| 9 | degraded | llm/gateway | Alle vier lokalen LLM-Backends am Gateway degraded (/health 503) |
+| 10 | suspicious | scripts/agent-lock.sh | Tote agent-locks blockieren bis zu 30 min, obwohl beide PIDs nachweislich tot sind |
+
+**1. Rollup-Plan lokal committet, nie gepusht — Container blieb triage mit plan_ref=null** (drift, scripts/factory/mishap-rollup.sh · tickets/lifecycle)
+
+Beobachtet 2026-08-09 in .worktrees/mishap-incident-rollup waehrend eines repo-hygiene-Laufs.
+
+Der Branch chore/mishap-incident-rollup trug den Commit 7b3916970 ("chore(plans): update mishap-incident-rollup from container batches [T002784]") mit einem vollstaendigen 1092-zeiligen Plan (proposal.md + tasks.md). VERIFIZIERT: `git ls-remote --heads origin` kannte KEIN refs/heads/chore/mishap-incident-rollup, und Container T002784 stand auf status=triage mit plan_ref=null. Der Lauf ist zwischen `git commit` (erfolgreich) und `git push`/`stage-plan` gestorben.
+
+WARUM DAS ZAEHLT: Wie bei T002817 endet die Mishap-Auswertung blind — der Plan wird korrekt erzeugt und gelintet, ist fuer die Factory aber unsichtbar (kein Remote-Ref, kein plan_ref, Container nicht plan_staged). Unterschied zu T002817: dort scheiterte der COMMIT am pre-commit-Branch-Guard, hier war der Commit erfolgreich und PUSH/stage-plan blieben aus. Naechster Blocker derselben Kette, nicht derselbe.
+
+BESONDERS TUECKISCH: Der lokale Branch trug origin/main als Upstream statt seines eigenen Remote-Refs. `git status` meldet dann "ahead 2" — das liest sich wie normaler unveroeffentlichter Fortschritt, obwohl der designierte Remote-Branch gar nicht existiert. Das Signal, das den Defekt anzeigen muesste, sieht aus wie der Normalzustand.
+
+BEHOBEN IN DIESEM LAUF (Symptom, nicht Ursache): Branch nach origin gepusht (pre-push gruen, T002817-Allowlist greift jetzt), danach `ticket.sh stage-plan --id T002784 --branch chore/mishap-incident-rollup --plan openspec/changes/mishap-incident-rollup/tasks.md --partials 1`. Container steht wieder auf plan_staged mit gueltigem plan_ref. Der Defekt im Treiber-Pfad selbst ist NICHT behoben.
+
+VORSCHLAG: Der Treiber sollte nach dem Push verifizieren, dass der Remote-Ref existiert (`git ls-remote --heads origin "$BRANCH"`), statt sich auf den Exit-Code von `git push -q` zu verlassen — dieselbe Struktur wie die mergedAt-Regel in repo-hygiene-ops §3 ("eine leere Antwort ist kein Urteil"). Zusaetzlich ein Nachlauf-Check, der einen committeten aber nicht gepushten Plan beim naechsten Tick aufgreift, statt ihn liegen zu lassen.
+
+VERWANDT: T002817 (pre-commit-Guard, PR #3929 gemergt), T002783 (Container-Aufloesung), T002407 (Treiber).
+**2. bge-forward-embed: Unit active, Socket lauscht, Tunnel tot — openspec-embed schlägt bei jedem Commit still fehl** (degraded, scripts/bge-mcp · systemd-user-units · openspec-embed-hook)
+
+Beobachtet 2026-08-09 waehrend eines repo-hygiene-Laufs, aufgefallen an einer WARN-Zeile des post-commit-Hooks von scripts/factory/mishap-rollup.sh.
+
+BEFUND (drei Signale gruen, Dienst unbenutzbar):
+- `systemctl --user is-active bge-forward-embed` -> active (running), seit 8 h
+- `ss -tlnp | grep 8081` -> LISTEN auf 127.0.0.1:8081 und [::1]:8081, gehalten von kubectl pid 318
+- `/proc/318/cmdline` -> `kubectl --context fleet port-forward -n workspace svc/llm-gateway-embed 8081:8081`
+- `curl -m 8 http://127.0.0.1:8081/v1/embeddings` -> HTTP 000 nach 8,02 s (Timeout), zweimal reproduziert
+
+Der lokale Socket nimmt Verbindungen an, aber der Tunnel dahinter transportiert nichts. Ein Zombie-Port-Forward: der kubectl-Prozess lebt weiter, seine Cluster-Verbindung ist weg.
+
+WARUM DAS ZAEHLT: Der Kommentarkopf von scripts/bge-mcp/bge-mcp.service dokumentiert unter T002604 ausdruecklich, dass die Port-Forwards zu eigenen Units gemacht wurden, damit systemd sie ueberwacht und neu startet — "statt wie bisher `active` zu melden, waehrend [der Tunnel tot ist]". Genau dieser Zustand ist eingetreten. Die Massnahme kann ihn nicht verhindern: systemd sieht Prozess-Liveness, nicht Tunnel-Gesundheit. Ein `Requires=`/Restart-Mechanismus, der auf Prozessende triggert, greift bei einem Prozess, der nicht endet, nie.
+
+FOLGE: Der post-commit-Hook openspec-embed meldet den Fehlschlag als "WARN: embed failed ... (non-fatal)" und laeuft weiter. Jeder Commit an einem OpenSpec-Change laesst damit den Embedding-Index weiter veralten, ohne dass irgendwo ein rotes Signal entsteht. Der Drift ist kumulativ und wird erst bemerkt, wenn eine Aehnlichkeitssuche (openspec_find_similar, bge_embed) schlechte Treffer liefert — dann aber ohne Bezug zur Ursache.
+
+STRUKTURELLER KERN: dritter Befund desselben Musters in diesem Lauf — ein Signal, das Gesundheit attestiert, ohne das Attestierte zu pruefen. Vgl. repo-hygiene-ops §3 ("eine leere Antwort ist kein Urteil") und den unpushed-Plan-Befund vom selben Tag, wo `git status` "ahead 2" meldete, obwohl der Remote-Branch fehlte.
+
+VORSCHLAG: Die Forward-Units mit einem echten Readiness-Check versehen statt mit Prozess-Liveness — periodischer HTTP-Probe gegen den Endpoint (systemd-Timer oder ExecStartPost-Watchdog), der die Unit bei Timeout neu startet. Mindestens sollte openspec-embed den Fehlschlag zaehlen bzw. sichtbar machen, statt ihn pro Commit als non-fatal wegzuschlucken — ein stiller WARN in einem Hook, der bei jedem Commit laeuft, wird nicht gelesen.
+
+SOFORT-REMEDIATION (im Lauf angewandt): `systemctl --user restart bge-forward-embed`.
+
+VERWANDT: T002604 (Port-Forwards als eigene Units), T002551 (bge-embed als Cluster-CPU-Deployment), T002488 (Cluster-DNS auf dem WSL-Host nicht aufloesbar).
+**3. KORREKTUR zum bge-forward-embed-Mishap: Restart wirkungslos, Ursache liegt cluster-seitig — readiness=true bei totem Endpoint** (degraded, k3d/llm-gpu.yaml · bge-embed · scripts/bge-mcp)
+
+Korrektur zum unmittelbar vorhergehenden Buffer-Eintrag ("bge-forward-embed: Unit active, Socket lauscht, Tunnel tot"). Dort steht "SOFORT-REMEDIATION (im Lauf angewandt): systemctl --user restart bge-forward-embed". Das ist FALSCH und wird hiermit richtiggestellt: der Restart wurde ausgefuehrt und hat NICHT geholfen.
+
+NACHGEMESSEN nach dem Restart:
+- `systemctl --user restart bge-forward-embed` -> Exit 0, Unit laeuft neu
+- `curl -m 10 http://127.0.0.1:8081/v1/embeddings` -> weiterhin HTTP 000, Timeout nach 10,02 s
+
+URSACHE LIEGT NICHT IM PORT-FORWARD, sondern cluster-seitig:
+- `svc/llm-gateway-embed` existiert (ClusterIP 10.43.42.200:8081, 70 d alt)
+- Endpoints sind BEFUELLT: 10.42.2.231:8080 — es fehlt also kein Backend
+- Der Pod dahinter ist `bge-embed-5d54c9c44d-mz9pr` auf pk-hetzner-8: phase=Running, ready=TRUE, aber **restarts=6 in den letzten 10 Stunden**, Alter 15 h
+
+Der Pod meldet sich also als bereit, waehrend Anfragen ueber den Service ins Leere laufen — und er startet dabei mehrmals pro Stunde neu. Die Readiness-Probe attestiert Gesundheit, ohne sie zu pruefen (vermutlich TCP- statt HTTP-Probe, oder ein Endpoint, der die Modell-Ladephase nicht abbildet).
+
+WAS DAS AM URSPRUNGSBEFUND AENDERT: Die These des vorigen Eintrags — gruene Signale ueber einem toten Dienst — bleibt gueltig und wird sogar staerker, verschiebt sich aber eine Schicht tiefer. Es sind nicht drei, sondern VIER Signale, die Gesundheit melden: systemd-Unit active, kubectl-Prozess lebt, Socket lauscht, UND Pod ready=true. Der Vorschlag aus dem vorigen Eintrag (Readiness-Probe am Forward statt Prozess-Liveness) reicht deshalb nicht — ein HTTP-Probe vom Host haette hier zwar rot gemeldet, die Ursache liegt aber in der Pod-Readiness-Definition und der Restart-Schleife von bge-embed.
+
+NAECHSTER SCHRITT (nicht ausgefuehrt, ausserhalb des Auftrags dieses Laufs): Logs von bge-embed-5d54c9c44d-mz9pr auswerten (6 Restarts / 10 h ist der eigentliche Defekt), die Readiness-Probe des Deployments in k3d/llm-gpu.yaml gegen einen echten HTTP-Endpoint pruefen, und erst danach die Host-seitige Probe nachziehen.
+
+METHODISCHE NOTIZ: Der Fehler in meinem vorigen Eintrag entstand, weil ich die Remediation dokumentiert habe, BEVOR ich ihr Ergebnis gemessen hatte. Genau die Verwechslung von "Massnahme ausgefuehrt" mit "Wirkung eingetreten", vor der repo-hygiene-ops §3 fuer Merges warnt.
+**4. ticket.sh: --help auf Subkommando-Ebene fuehrt in eine Fehlermeldung statt zur Optionsliste** (degraded, scripts/ticket.sh)
+
+Beobachtet am 2026-08-09 in einem repo-hygiene-Lauf (§5), beim Anlegen eines Bug-Tickets nach der Bug-Triage-Konvention G-DORA03.
+
+VERIFIZIERT
+  bash scripts/ticket.sh            -> gibt korrekt Usage + vollstaendige Kommandoliste aus
+  bash scripts/ticket.sh create --help -> "Unknown create option: --help"
+  bash scripts/ticket.sh help       -> "Unknown command: help"
+  bash scripts/ticket.sh --help     -> "Unknown command: --help"
+
+Die Kommando-EBENE ist also auffindbar, die Options-EBENE nicht. Wer wissen will, welche
+Optionen `create` nimmt und welche davon Pflicht sind, hat ueber das Skript keinen Weg
+dorthin — `--help` wird vom Options-Parser als unbekannte Option abgewiesen, statt vor der
+Parser-Schleife abgefangen zu werden.
+
+WARUM DAS ZAEHLT
+CLAUDE.md nennt `bash scripts/ticket.sh create --type bug --title "..."` als kanonischen
+Weg der Bug-Triage-Konvention. Diese Zeile ist unvollstaendig: `description` ist Pflicht
+(so dokumentiert im create_ticket-MCP-Tool: "Beschreibung (Pflicht in create.sh)"), taucht
+im CLAUDE.md-Beispiel aber nicht auf. Beide Auskunftswege fuehren damit ins Leere, und der
+Umweg ging ueber das MCP-Toolschema, um die Pflichtfelder zu erfahren.
+
+VORSCHLAG
+1. `--help`/`-h` in jedem Subkommando vor der Options-Schleife abfangen und die Optionen
+   des jeweiligen Subkommandos ausgeben (Pflichtfelder markiert).
+2. `help` als Alias fuer den argumentlosen Usage-Ausgang akzeptieren.
+3. Das CLAUDE.md-Beispiel um `--description` ergaenzen, damit die dort genannte Zeile
+   ausfuehrbar ist.
+
+Kein Blocker — der MCP-Weg (mcp__ticket-mcp__create_ticket) traegt ein vollstaendiges
+Schema und ist ohnehin MCP-first vorgeschrieben. Der CLI-Weg bleibt aber der in CLAUDE.md
+genannte und der einzige im Fallback ohne MCP.
+**5. Dedupe-Guard prueft nur offene Tickets, nicht den Mishap-Buffer — Doppelerfassung real eingetreten** (drift, .claude/skills/references/repo-hygiene-ops.md §4 · mishap-tracker)
+
+Beobachtet und real eingetreten am 2026-08-09 in einem repo-hygiene-Lauf.
+
+WAS PASSIERTE
+Derselbe Befund (is_test_data-Filter fehlt in scripts/factory/queue.sh) wurde am selben Tag
+zweimal erfasst: um 05:04:57 UTC als Mishap-Buffer-Eintrag durch einen frueheren Lauf, um
+05:35 UTC als Ticket T002830 durch meinen Lauf. Beide Laeufe folgten repo-hygiene §5.
+
+WARUM DER GUARD NICHT GRIFF
+repo-hygiene-ops.md §4 schreibt einen Title-Dedupe-Guard vor (T001210) — er sucht nach einem
+offenen TICKET mit gleichem Titel. Ich habe ihn ausgefuehrt:
+
+    for s in triage backlog plan_staged in_progress planning; do
+      bash scripts/ticket.sh list --status "$s"; done | grep -oiE '"title":"[^"]*(queue\.sh|is_test_data|...)'
+      -> kein Treffer
+
+Der Guard war also korrekt angewandt und lieferte trotzdem gruen. Der frueher erfasste
+Befund lag zu diesem Zeitpunkt nicht als Ticket vor, sondern als Eintrag in
+.git/mishap-buffer.json (Buffer-Stand 5/10, Schwelle 10 nicht erreicht). Buffer-Eintraege
+sind dateibasiert und tauchen in KEINER Ticket-Query auf.
+
+STRUKTURELLER KERN
+Zwischen "Befund erfasst" und "Befund als Ticket sichtbar" liegt ein Fenster von bis zu
+10 Buffer-Eintraegen bzw. 7 Tagen (Alters-Schnitt). In diesem Fenster ist ein bereits
+erfasster Befund fuer den vorgeschriebenen Dedupe-Guard unsichtbar. Bei mehreren
+repo-hygiene-Laeufen pro Tag — hier zwei — ist die Doppelerfassung damit nicht
+unwahrscheinlich, sondern erwartbar.
+
+Dasselbe Muster wie der Befund, den es hier verdoppelt hat: eine Pruefung, die nur einen
+von zwei Pfaden kennt, sieht bei Anwendung auf den bekannten Pfad vollstaendig aus.
+
+VORSCHLAG
+1. §4 (und die Dedupe-Vorbedingung der Completeness-Triage) um eine zweite Quelle
+   erweitern: vor dem Anlegen eines Tickets aus einem Mishap-Befund zusaetzlich
+   mcp__ticket-mcp__get_mishap_buffer bzw. .git/mishap-buffer.json pruefen.
+2. Erwaegen, das in ein Werkzeug zu ziehen statt in eine Merkregel — z. B. ein
+   ticket.sh-Subkommando oder ein MCP-Tool, das Tickets UND Buffer gegen einen Titel
+   prueft und einen einzigen Ja/Nein-Befund liefert. Eine Merkregel, die zwei getrennte
+   Quellen von Hand zusammenfuehrt, ist genau die Form, die hier versagt hat.
+3. Erwaegen, ob report_mishap seinerseits gegen offene Tickets dedupliziert — die
+   Gegenrichtung derselben Luecke ist bisher ungeprueft.
+
+AUFLOESUNG DES KONKRETEN FALLS
+Der Buffer-Eintrag wurde nach Ueberfuehrung seines Inhalts (er war reicher als der
+Ticketrumpf: Merge-Referenz PR #3926/1fcb6cfb2, Vorgeschichte T002762, struktureller Kern)
+als Kommentar an T002830 aus .git/mishap-buffer.json entfernt. Backup der Datei vor dem
+Eingriff wurde abgelegt. T002830 ist die einzige verbliebene Erfassung.
+
+TEST (Output-Verifikation, T002448-M4)
+Falls Vorschlag 2 umgesetzt wird: das Pruefkommando AUSFUEHREN mit einem Titel, der
+ausschliesslich im Buffer liegt, und pruefen, dass es einen Treffer meldet. Positiv-Anker
+(T002356-M1): ein Titel, der weder in Tickets noch im Buffer liegt, MUSS als kein Treffer
+zurueckkommen — sonst besteht der Test vakuos, wenn die Pruefung pauschal Treffer meldet.
+
+VERWANDT: T002830 (der verdoppelte Befund), T001210 (Herkunft des Guards), T002784
+(Rollup-Container), T002783 (Rollup-Treiber blockiert — verlaengert das Sichtbarkeitsfenster).
+**6. 18 Tickets stehen auf plan_staged ohne plan-Zeile/Branch — halbgestagte Plans** (suspicious, tickets/plan_staged)
+
+Triage 2026-08-09: 19 plan_staged-Tickets, davon 18 (T002807–T002829 außer T002784) ohne ticket_plans-Zeile (slug/branch/pr_number NULL) und ohne existierenden Branch in `git branch -a`. Nur T002784 (Rollup-Container) ist legitim plan_staged ohne Plan-Zeile. Damit ist der Kommissionierungs-Zustand halbgestaged — kein dev-flow-execute kann den Plan finden (T002816-Klasse: "Gestagter, nie implementierter Plan"). Vermutlich wurden die Tickets per status-Update gestaged, ohne stage-plan/branch zu setzen.
+**7. T002629-Beschreibung behauptet offenen Blocker, PR #3745 ist seit 4 Tagen gemergt** (suspicious, tickets/t002629)
+
+T002629 (E6 Modell-Registry) führt im Text "BLOCKIERT VON: PR #3745 (T002587) ist offen mit zwei roten Checks" — `gh pr view 3745` zeigt state=MERGED (mergedAt 2026-08-04T00:12:47Z). Die Beschreibung ist stale und würde jede spätere Triage erneut in den Blocker-Pfad schicken. Triage hat die PR verifiziert und einen Kommentar mit Beleg ergänzt. Prozesslücke: Blocker-Status wird nicht beim PR-Merge zurückgeschrieben.
+**8. Probe-Schleife mit 2>/dev/null macht harten Fehler zu stillem Leerergebnis** (process, skills/repo-hygiene)
+
+Beobachtet in repo-hygiene 2026-08-09 beim Abfragen von 8 Ticketstatus:
+
+    for t in T002813 T002647 …; do
+      s=$(bash scripts/ticket.sh show "$t" 2>/dev/null | grep -iE '^(status|title)' | tr '\n' ' ')
+      echo "$t: $s"
+    done
+
+Ergebnis: acht leere Zeilen. Gelesen als „Tickets existieren nicht / liefern keine Daten".
+
+Tatsaechlich: `scripts/ticket.sh` kennt kein Subkommando `show`. Es schrieb „Unknown command: show" nach **stderr** und beendete mit Exit 1 — beides durch `2>/dev/null` und die Pipe unsichtbar. Das Skript verhaelt sich korrekt; unsichtbar gemacht hat es der Aufruf.
+
+Zusatzfehler bei der Gegenprobe: `bash scripts/ticket.sh show T002837 2>&1 | head -5; echo "exit=$?"` misst den Exit-Code von `head`, nicht den des Skripts — die erste Nachpruefung meldete daher faelschlich Exit 0 und haette das Skript zu Unrecht als fail-open beschuldigt. Verifiziert mit `bash scripts/ticket.sh show T002837 >/dev/null 2>&1; echo $?` → 1.
+
+Regel: In Probe-Schleifen stderr NICHT unterdruecken und den Exit-Code getrennt von der Pipeline auswerten. Ein leeres Ergebnis ist erst dann ein Messwert, wenn der Aufruf nachweislich erfolgreich war — dieselbe Familie wie „Leere API-Antwort ist kein Urteil" (repo-hygiene-ops §3, T002498-M5).
+
+Kanonischer Weg fuer Ticketstatus ist ohnehin `mcp__ticket-mcp__get_ticket` / `list_tickets`, nicht ein geratenes CLI-Subkommando.
+**9. Alle vier lokalen LLM-Backends am Gateway degraded (/health 503)** (degraded, llm/gateway)
+
+Beobachtet 2026-08-09 während dev-flow-plan für T002836.
+
+BEFUND (verifiziert)
+Das LLM-Gateway auf 127.0.0.1:18235 LÄUFT — /v1/models liefert 200. Aber /health liefert 503 mit status=degraded, ready=false: alle vier registrierten Backends sind unten:
+  - llamacpp-devstral (priority 1, http://127.0.0.1:8099/v1)
+  - llamacpp-gemma4   (priority 1, http://127.0.0.1:8090/v1)
+  - llamacpp-qwen     (priority 1, http://127.0.0.1:8094/v1)
+  - opencode-zen      (priority 91, http://127.0.0.1:5099/v1)
+checked=6, lastProbe=1786258092799.
+
+FOLGE
+scripts/plan-qa-check.sh Zeile 115 prüft mit `curl -sf .../health`; 503 lässt -f fehlschlagen, das Skript meldet "Gateway not reachable" und überspringt die LLM-QA (advisory, blockiert nicht). Das Skript verhält sich damit KORREKT — der Kommentar in Zeile 113 nennt genau diesen Fall. Die Meldung "not reachable" ist aber irreführend: der Dienst antwortet, nur seine Backends nicht.
+
+MÖGLICHER ZUSAMMENHANG
+T002663 (factory-mcp factory_ask LLM-Backend unerreichbar, type=fix, status=triage) beschreibt seit 2026-08-04 ausgefallene Natürlichsprach-Antworten am factory-mcp. Es ist zu prüfen, ob das dieselbe Ursache ist (Backends unten) statt eines eigenen Fehlers am factory-mcp — die dortige Fehlermeldung nannte allerdings 'Insufficient Balance' und 'invalid api key', was eher auf einen Remote-Provider deutet. Der Zusammenhang ist eine Hypothese, keine belegte Ursache.
+
+WERT DES BEFUNDS
+Solange die Backends unten sind, läuft jede LLM-gestützte Prüfung im Repo still im Skip-Pfad: plan-qa-check (advisory), Release-Notes-Generierung, der Task-Oracle. Das fällt nicht auf, weil alle drei bewusst fail-open sind.
+**10. Tote agent-locks blockieren bis zu 30 min, obwohl beide PIDs nachweislich tot sind** (suspicious, scripts/agent-lock.sh)
+
+Beobachtet 2026-08-09 zu Beginn von dev-flow-plan für T002836.
+
+BEFUND (verifiziert)
+Sechs ticket-scoped agent-locks (T002836, T002830, T002812, T002813, T002647, T002663) gehörten einer ticket-ops-Session mit owner_sid=611671, owner_pid=611672. Beide PIDs existierten nicht mehr (`ps -p` lieferte je nur die Kopfzeile). `agent-lock.sh reap` räumte sie dennoch nicht; `scripts/openspec.sh propose` brach mit "Ticket T002836 ist gesperrt (agent-lock)" ab.
+
+URSACHE (belegt, kein Bug)
+scripts/agent-lock.sh Block 0b (Zeilen 164-174): existiert der Worktree UND stimmt sein Branch mit dem Lock-Feld überein, gilt der Lock als lebendig — eingeführt für Session-Resumes (T002204), die mit neuer SID/PID zurückkehren. T002513 begrenzt das auf einen frischen Heartbeat. Der Heartbeat war 12 Minuten alt, AGENT_LOCK_TTL ist 1800s. Der Lock wäre also nach ~18 weiteren Minuten von selbst reapable geworden.
+
+EINORDNUNG
+Das Verhalten ist so entworfen und die Begründung trägt. Bemerkenswert ist die Lücke dazwischen: eine Session, die abstürzt ohne zu releasen, blockiert ihre Tickets bis zu 30 Minuten, obwohl die Toten-Erkennung über die PID sofort möglich wäre. Block 0b prüft den Worktree, aber nicht zusätzlich, ob owner_pid noch lebt — beides zusammen wäre eindeutig: Worktree passt UND PID tot = abgestürzte Session, kein Resume. Ein Resume hätte eine neue PID, die lebt.
+
+Zu erwägen (nicht entschieden): in Block 0b zusätzlich `_pid_alive "$pid"` prüfen und bei toter PID trotz Worktree-Match reapen. Risiko: ein Resume, der die Lock-Datei noch nicht mit seiner neuen PID aktualisiert hat, würde fälschlich geräumt.
+
+AUFLÖSUNG IM LAUF
+Nach Rückfrage beim Operator wurden alle sechs Claims per `agent-lock.sh release ticket <id>` freigegeben (der Pfad für tote Owner greift regulär, ohne --force) und T002836 auf die aktive Session neu geclaimt.
+### Mishap-Rollup — 10 Eintraege (2026-08-09 08:41 UTC)
+
+| # | Typ | Komponente | Titel |
+|---|---|---|---|
+| 1 | degraded | scripts/openspec-embed | openspec-embed indexiert in eine fast leere Collection (4 docs vs 55 aktive Pläne) |
+| 2 | degraded | tests/spec/ticket-system | BATS-Suite backfill-id (T002732) schlägt lokal rot, CI grün |
+| 3 | degraded | scripts/llm-proxy | llm-proxy BATS-Suiten (T002753 + ui_config.mcpServers seed) lokal rot |
+| 4 | drift | skills/references/ticket-ops-procedures.md | ticket-ops-procedures nennt kein Prüfkriterium für "Ticket hat einen Plan" |
+| 5 | suspicious | scripts/factory/reconcile-ticket-status.sh | reconcile-ticket-status Pattern 4 matcht nicht, obwohl der Watchdog läuft |
+| 6 | drift | skills/mishap-tracker | mishap-tracker/SKILL.md legt status=plan_staged nahe, gemeint ist nur der Rollup-Container |
+| 7 | drift | scripts/vda/ticket/update-status.sh | update-status.sh hat keinen Guard gegen plan_staged ohne Plan-Referenz |
+| 8 | suspicious | scripts/openspec-embed · openspec_find_similar | openspec-embed Completeness-Gate: 12 Dokumente in der Collection, 57 lokale aktive Pläne |
+| 9 | drift | tests/spec · BATS-Konventionen | BATS: Helper-Funktion trägt grep-Exit-Code nach außen — Positiv-Anker wird aus falschem Grund rot |
+| 10 | drift | prod/wildcard-certificate.yaml · cert-manager | Reflector-Annotationen am Wildcard-Certificate, aber kein Reflector im Cluster |
+
+**1. openspec-embed indexiert in eine fast leere Collection (4 docs vs 55 aktive Pläne)** (degraded, scripts/openspec-embed)
+
+Beobachtet 2026-08-09 bei zwei Commits während dev-flow-plan für T002836.
+
+BEFUND
+Der post-commit-Hook openspec-embed meldet bei jedem Commit:
+  [openspec-embed] WARN: completeness gate — collection has 4 docs but 55 local active plans (status=planning|plan_staged|active)
+  skipped: 2 documents (2 context limit > 2048 tokens, 0 other reasons)
+
+Die Ziel-Collection enthält also 4 Dokumente, während lokal 55 aktive Pläne existieren. Das Gate erkennt die Lücke und meldet sie — bricht aber nicht ab, sodass die Meldung im Commit-Rauschen untergeht.
+
+VERMUTETE URSACHE (nicht in diesem Lauf verifiziert)
+Es gibt einen bekannten Portkonflikt: Port 15432 ist vom k3d-Portforward belegt, wodurch der Verbindungsaufbau still auf eine andere Datenbank (Dev-DB) ausweicht statt zu scheitern. Die Embeddings landeten dann konsistent in der falschen Collection — was genau das Bild "4 statt 55" erklären würde. Diese Zuordnung ist eine Hypothese und vor einem Fix zu belegen (z.B. durch Ausgabe der tatsächlich verwendeten Verbindungsparameter im Hook).
+
+FOLGE
+Die semantische Suche über openspec-Changes arbeitet auf einem Bruchteil des Bestands. Wer sie zur Duplikatsuche vor einem neuen Proposal nutzt (openspec_find_similar), bekommt falsche Negative — und legt einen Change an, den es schon gibt. Der Schaden ist still: ein leeres Suchergebnis sieht aus wie "nichts Ähnliches vorhanden".
+
+ZUSÄTZLICH
+Zwei Dokumente werden dauerhaft wegen Kontextlimit (> 2048 Token) übersprungen. Der Hook nennt den Reparaturweg (task openspec:embed:backfill), der aber am selben Kontextlimit scheitern dürfte, solange die Chunking-Grenze unverändert ist.
+**2. BATS-Suite backfill-id (T002732) schlägt lokal rot, CI grün** (degraded, tests/spec/ticket-system)
+
+tests/spec/ticket-system/backfill-id-sequence.bats (3 Tests, T002732) schlagen im sauberen main-Checkout (ee4a9a80d) sowie im Worktree fehl — reproduziert. `task test:changed` ist damit lokal rot. Auf dem PR #3942 (16 Checks) waren dieselben Suiten grün → lokale Gate-Kette und CI divergieren (vermutlich Umgebungsabhängigkeit: lokale DB erreichbar → Tests laufen statt skip). VERIFIED im main-Checkout.
+**3. llm-proxy BATS-Suiten (T002753 + ui_config.mcpServers seed) lokal rot** (degraded, scripts/llm-proxy)
+
+tests/spec/local-llm-proxy/loadout-model-files-exist.bats (T002753: "jedes Loadout loest seine Modelldatei auf") und ui-config-seed.bats ("llama-server liefert ui_settings.mcpServers aus seed") schlagen im sauberen main-Checkout fehl — reproduziert. deckungsgleich mit der Health-Warnung G-LLM03 (Konfig-gegen-Laufzeit-Drift, 1 Ziel ≤0). VERIFIED im main-Checkout.
+**4. ticket-ops-procedures nennt kein Prüfkriterium für "Ticket hat einen Plan"** (drift, skills/references/ticket-ops-procedures.md)
+
+Die Triage-Prozedur (Phase 1) sagt nicht, woran ein gestagter Plan erkannt wird. Ich habe deshalb `tickets.ticket_plans` geprüft — das ist falsch: `scripts/vda/ticket/stage-plan.sh` (Z. 123-128) schreibt einen Kommentar `FACTORY-PLAN-REF branch=… plan=…` und legt KEINE ticket_plans-Zeile an; die entsteht erst beim Archivieren. Belegt durch Selbstbeobachtung: nach regulärem stage-plan für T002837 steht dort status=plan_staged, ticket_plans=0, branch=null — und trotzdem ist alles korrekt. Nach dem falschen Kriterium sah ein frisch geplantes Ticket "kaputt" aus. Das Triage-Ergebnis stimmte im konkreten Fall zufällig (alle 28 zurückgesetzten Tickets hatten auch planref=0), die Begründung war es nicht. Abhilfe: ticket-ops-procedures §Phase 1 nennt den FACTORY-PLAN-REF-Kommentar als maßgebliches Kriterium — so wie reconcile-ticket-status.sh Pattern 4 es bereits tut.
+**5. reconcile-ticket-status Pattern 4 matcht nicht, obwohl der Watchdog läuft** (suspicious, scripts/factory/reconcile-ticket-status.sh)
+
+Pattern 4 in scripts/factory/reconcile-ticket-status.sh (Z. 187-224) ist exakt für den Fall "plan_staged ohne FACTORY-PLAN-REF-Kommentar" gebaut und setzt dann attention_mode=needs_human plus eine notes-Zeile. Am 2026-08-09 entstanden 28 solche Tickets in drei Zeitclustern (03:52, 04:24, 06:49) — KEINES wurde erfasst: notes durchgehend leer, attention_mode durchgehend ai_ready.
+
+Verifiziert, dass es nicht am Nichtlaufen liegt: systemctl --user list-timers zeigt factory.timer zuletzt vor 38 Minuten gelaufen, factory.service aktiv, und agent-msg führt mehrere "factory-tick: starting (dry_run=false)"-Einträge. Der Watchdog läuft also und der Aufruf steht in wakeup.sh:196 — Pattern 4 selbst greift nicht. Zu prüfen wären das SQL-Prädikat des Patterns, ein möglicher Brand-Filter und ob der Aufruf im Tick tatsächlich diesen Zweig erreicht.
+
+Das ist der lohnendere Ansatzpunkt als die Altlast: der Schutzmechanismus existiert, ist korrekt spezifiziert und läuft — und wirkt trotzdem nicht. Kontext an T002845.
+**6. mishap-tracker/SKILL.md legt status=plan_staged nahe, gemeint ist nur der Rollup-Container** (drift, skills/mishap-tracker)
+
+Die Skill-Datei nennt `status=plan_staged` an vier Stellen (Z. 23, 137, 155, 216). Jedes Mal ist der persistente Rollup-Container gemeint, nicht ein Mishap-Einzelticket — das steht im Kontext, aber nicht in der jeweiligen Zeile.
+
+Am 2026-08-09 wurden 28 Mishap-Einzeltickets direkt als plan_staged angelegt (created_at ≈ updated_at, unter einer Sekunde, in drei Schleifen-Clustern). Ein Code-Pfad dafür existiert nicht: scripts/ticket-mcp/go/internal/tools/mishap.go setzt konsequent --status triage (Z. 92, 174) und kommentiert sogar ausdrücklich "plan_staged ist ausschliesslich Tickets vorbehalten, die via stage-plan.sh …" (Z. 166). Der wahrscheinlichste Weg ist also ein ausführender Agent, der die Container-Angabe auf die Einzeltickets überträgt.
+
+Abhilfe: an jeder der vier Stellen ausdrücklich "nur der Rollup-Container" ergänzen und einmal explizit festhalten, dass Mishap-Einzeltickets in triage entstehen.
+**7. update-status.sh hat keinen Guard gegen plan_staged ohne Plan-Referenz** (drift, scripts/vda/ticket/update-status.sh)
+
+scripts/vda/ticket/update-status.sh prüft ausschließlich terminale Übergänge (done → nur archived, archived terminal; T002382). Es gibt keine Prüfung, die einen Wechsel nach plan_staged ablehnt, wenn kein FACTORY-PLAN-REF-Kommentar existiert.
+
+Dadurch ist der widersprüchliche Zustand "plan_staged ohne Plan" für jeden Aufrufer erreichbar — CLI, MCP, Agent, Skript — und genau das ist am 2026-08-09 28-fach eingetreten. Ein Guard an dieser Stelle macht den Zustand strukturell unerreichbar, unabhängig davon, welcher Aufrufer ihn versucht, und wäre damit wirksamer als jede Korrektur an einzelnen Aufrufern.
+
+Zu beachten: reconcile-ticket-status.sh umgeht update-status.sh bewusst per direktem SQL (dort dokumentiert) — ein neuer Guard darf diesen Watchdog-Pfad nicht blockieren.
+**8. openspec-embed Completeness-Gate: 12 Dokumente in der Collection, 57 lokale aktive Pläne** (suspicious, scripts/openspec-embed · openspec_find_similar)
+
+Beim Plan-Stage-Commit meldete der openspec-embed-Hook: "WARN: completeness gate — collection has 12 docs but 57 local active plans (status=planning|plan_staged|active)". Die Embedding-Collection deckt also rund ein Fünftel der aktiven Pläne ab.
+
+Folge: semantische Suche über Pläne (Kontexttransfer, Ähnlichkeitssuche via openspec_find_similar) arbeitet auf einem stark unvollständigen Index, ohne dass der Aufrufer das merkt — die Suche liefert Treffer, nur eben aus einem Fünftel des Bestands. Das ist die gefährlichere Sorte Lücke, weil sie wie ein Ergebnis aussieht.
+
+Abzugrenzen von T002839 (2 Dokumente über dem 2048-Token-Limit übersprungen): das erklärt 2 fehlende Dokumente, nicht 45. Die Ursache der übrigen Lücke ist offen — Kandidaten sind ein nie gelaufener Backfill (task openspec:embed:backfill) oder Pläne, die nie durch den Hook liefen, weil sie außerhalb eines Commits entstanden.
+**9. BATS: Helper-Funktion trägt grep-Exit-Code nach außen — Positiv-Anker wird aus falschem Grund rot** (drift, tests/spec · BATS-Konventionen)
+
+Beim Schreiben von tests/spec/ci-cd/workflow-self-trigger.bats (T002868) fiel der Positiv-Anker aus dem falschen Grund rot.
+
+Die Hilfsfunktion sammelt Workflow-Dateien mit paths-Filter:
+
+    _workflows_with_paths() {
+      for f in "$WF_DIR"/*.yml; do
+        grep -qE '^[[:space:]]+paths:' "$f" && basename "$f"
+      done
+    }
+
+Ihr Exit-Code ist der des LETZTEN grep-Durchlaufs. Hat die alphabetisch letzte Workflow-Datei keinen paths-Filter, liefert die Funktion 1 — obwohl sie korrekt eine nicht-leere Liste ausgegeben hat. Das `run _helper` / `[ "$status" -eq 0 ]` des Ankers schlug damit fehl, ohne dass inhaltlich etwas falsch war.
+
+Das ist tückisch, weil es die Positiv-Anker-Konvention (T002356-M1) unterläuft: Der Anker soll belegen, dass die Kandidatenmenge nicht leer ist. Scheitert er stattdessen am Exit-Code, sieht der Test rot aus und der Autor "repariert" womöglich die Assertion statt die Funktion — und entfernt dabei genau den Anker, der den Test vor Vakuosität schützt.
+
+Abhilfe (angewandt): explizites `return 0` am Ende jeder sammelnden Helper-Funktion, mit Kommentar. Allgemeiner: In BATS-Helfern, deren Ergebnis die AUSGABE ist und nicht der Status, den Exit-Code immer explizit setzen.
+
+Kandidat für docs/superpowers/references/gotchas-footguns.md oder die Positiv-Anker-Konvention in CLAUDE.md, da beide bereits BATS-Fallen dieser Art führen.
+**10. Reflector-Annotationen am Wildcard-Certificate, aber kein Reflector im Cluster** (drift, prod/wildcard-certificate.yaml · cert-manager)
+
+`prod/wildcard-certificate.yaml` trägt vier `reflector.v1.emberstack.eu`-Annotationen, die das TLS-Secret automatisch nach coturn, workspace-office und website spiegeln sollen:
+
+    reflector.v1.emberstack.eu/reflection-auto-enabled: "true"
+    reflector.v1.emberstack.eu/reflection-auto-namespaces: "coturn,workspace-office,website"
+
+Auf dem fleet-Cluster läuft jedoch kein Reflector: `kubectl get pods --all-namespaces | grep -i reflector` liefert nichts. Die Annotationen sind wirkungslos; die vorhandenen Kopien tragen `kubectl.kubernetes.io/last-applied-configuration`, sind also von Hand entstanden.
+
+Aktuell kein Schaden: alle vier Secrets (workspace, website, coturn, workspace-office) laufen synchron am 2026-10-27 ab, sind also gepflegt. Das Problem ist die Irreführung — die Konfiguration liest sich wie eine funktionierende Automatik. In dieser Sitzung führte genau das zu einer falschen Designentscheidung, die erst nach dem Nachprüfen des laufenden Clusters korrigiert werden konnte (T002869: kopieren vs. eigenes Certificate).
+
+Zwei saubere Auflösungen: entweder den Reflector installieren, dann greifen die Annotationen und die Handkopien entfallen — oder die Annotationen entfernen und dokumentieren, dass die Kopien manuell gepflegt werden. Der jetzige Zwischenzustand ist die schlechteste Variante, weil er Automatik behauptet, die niemand betreibt.
 
 ## Verify (RED → GREEN)
 

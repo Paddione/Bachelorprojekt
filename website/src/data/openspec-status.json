@@ -2625,6 +2625,12 @@
       "status": "archived"
     }
   ],
+  "T002709": [
+    {
+      "slug": "repo-hygiene-arbeitsbaum-stashes",
+      "status": "plan_staged"
+    }
+  ],
   "T002718": [
     {
       "slug": "mishap-t002718",

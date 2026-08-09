@@ -1,0 +1,74 @@
+# Lokale Entwicklungs-Umgebung (T003055) — NICHT für Produktion.
+#
+# Prod läuft ausschließlich über Kubernetes/Kustomize (k3d/ als Basis, Flux auf
+# fleet). Diese Datei existiert nur, damit `astro dev` reproduzierbar auf dem
+# lokalen Docker-Host startet, ohne die process.env-Falle aus auth.ts:13.
+#
+#   docker compose -f compose.dev.yaml up --build     # starten
+#   docker compose -f compose.dev.yaml down           # stoppen
+#   docker compose -f compose.dev.yaml down -v        # + node_modules-Volume weg
+#
+# Liegt im Repo-Root, nicht in website/: der Build-Kontext muss das Repo-Root sein
+# (das Prod-Dockerfile macht es genauso), und .lavish/ unten liegt außerhalb von
+# website/.
+
+services:
+  website-dev:
+    container_name: website-dev
+    build:
+      context: .
+      dockerfile: website/Dockerfile.dev
+
+    # Die Variablen landen so in der PROZESSUMGEBUNG des Node-Prozesses. Genau
+    # das ist der Punkt: Vite lädt .env nur nach import.meta.env, während
+    # src/lib/auth.ts aus process.env liest. Auf dem Host braucht es dafür
+    # `set -a; . ./.env; set +a` — hier erledigt es Docker.
+    env_file:
+      - website/.env
+
+    # Nicht in env_file duplizieren: env_file wird von `environment` überschrieben,
+    # und was hier steht, landet im Repository. Deshalb stehen hier ausschließlich
+    # Werte ohne Geheimnisgehalt.
+    environment:
+      # Die .env zeigt auf 127.0.0.1-Forwards des Hosts; der Entrypoint biegt die
+      # ausgehenden URLs auf diesen Alias um. Auf nativem Linux-Docker müsste hier
+      # ggf. die Host-IP stehen.
+      DEV_CONTAINER_HOST_ALIAS: host.docker.internal
+
+    extra_hosts:
+      # Ohne diesen Eintrag existiert host.docker.internal im Container nicht und
+      # der Dev-Server erreicht die per kubectl port-forward bereitgestellte
+      # Datenbank nicht.
+      - "host.docker.internal:host-gateway"
+
+    volumes:
+      # Quellcode als Bind-Mount — das ist der Unterschied zum Prod-Image, das den
+      # Code zur Build-Zeit einfriert. Änderungen wirken hier sofort.
+      - ./website:/app
+
+      # Anonymes Volume ÜBER dem Bind-Mount: es maskiert website/node_modules vom
+      # Host. Die Pakete im Container sind für Alpine/musl gebaut, deine lokale
+      # Installation ggf. für glibc — würde der Host-Ordner durchschlagen, brächen
+      # native Module (esbuild, sharp) mit "invalid ELF header".
+      - /app/node_modules
+
+      # website/public/cockpit/{kit,cockpit-shell.html,reference-board.html} sind
+      # im Repo Symlinks nach ../../../.lavish/ — vom Container aus aufgelöst also
+      # /.lavish/. Ohne diesen Mount zeigen sie ins Leere und /cockpit/ liefert 404,
+      # während auf dem Host alles korrekt aussieht. Das Prod-Image löst dasselbe
+      # Problem mit COPY (website/Dockerfile, Zeilen 35–37); read-only, weil der
+      # Dev-Server dort nichts zu schreiben hat.
+      - ./.lavish:/.lavish:ro
+
+    ports:
+      # 4321 muss es sein, nicht irgendein freier Port: website/.env setzt
+      # SITE_URL=http://localhost:4321, und daraus baut auth.ts die
+      # OIDC-redirect_uri. Ein abweichender Port bricht den Login-Rückkanal.
+      # 80/443 sind ohnehin von k3d-mentolder-dev-serverlb belegt.
+      - "4321:4321"
+
+    # Ohne init bleibt Node PID 1 und ignoriert SIGTERM — `docker compose down`
+    # liefe dann jedes Mal in den 10-Sekunden-Timeout.
+    init: true
+
+    restart: "no"

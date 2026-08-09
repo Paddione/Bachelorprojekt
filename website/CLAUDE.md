@@ -6,13 +6,46 @@ Full standards in `website/WEBSITE-STANDARDS.md`. This file is the quick referen
 
 ## Dev Quick-Start
 
+### Variante A — Docker-Container (empfohlen, T003055)
+
+```bash
+docker compose -f compose.dev.yaml up --build   # aus dem Repo-Root
+# http://localhost:4321
+```
+
+Nimmt `website/.env` per `env_file` und legt die Werte damit in die **Prozessumgebung**.
+Live-Reload läuft über einen Bind-Mount (~2 s Latenz). Stoppen mit `down`, das
+`node_modules`-Volume zusätzlich wegräumen mit `down -v`.
+
+### Variante B — direkt auf dem Host
+
 ```bash
 cd website
 pnpm install
-pnpm dev          # http://localhost:4321
+set -a; . ./.env; set +a   # PFLICHT — sonst bricht der Start ab, siehe unten
+pnpm dev                   # http://localhost:4321
 ```
 
-Requires a local Postgres with the `bachelorprojekt` database (or `DATABASE_URL` pointing to dev cluster via port-forward on 15432).
+> **`pnpm dev` ohne `set -a` scheitert an `src/lib/auth.ts:13`** mit
+> `POCKET_ID_WEBSITE_SECRET ... is not set`, obwohl `website/.env` existiert und den
+> Schlüssel enthält. Grund: Vite lädt `.env` nach `import.meta.env` (Build-Zeit-Substitution
+> fürs Client-Bundle), `auth.ts` liest den Wert aber aus `process.env` — dort ist er nie
+> angekommen. `process.env` ist für Server-Code korrekt, denn im Cluster kommt der Wert aus
+> einem Secret als Container-Env. `set -a` schaltet Auto-Export ein, sodass die Zuweisungen
+> in die Umgebung der Kindprozesse gelangen. Der Fehler feuert auf Modul-Top-Level, also
+> beim ersten Import einer auth-nutzenden Route — nicht erst beim Login (T001593).
+
+Beide Varianten brauchen die Backing-Services: Postgres mit der `website`-DB und Pocket ID.
+`website/.env` zeigt dafür auf `127.0.0.1`-Ports, die per `kubectl port-forward` bereitstehen.
+Im Container ist `127.0.0.1` ein anderer Netzwerk-Namespace — `website/docker-entrypoint.dev.sh`
+biegt die **ausgehenden** URLs deshalb zur Laufzeit auf `host.docker.internal` um.
+`SITE_URL` bleibt dabei absichtlich auf `localhost`: sie wird an den Browser ausgeliefert
+(OIDC-`redirect_uri`), und dort ist `host.docker.internal` nicht auflösbar.
+
+> **Abgrenzung:** `website/Dockerfile` ist das **Produktions**-Image (`pnpm run build` →
+> `dist/server/entry.mjs`, Code zur Build-Zeit eingefroren). `website/Dockerfile.dev` ist
+> ausschließlich für lokale Entwicklung — kein Build, Quellcode per Bind-Mount. Guards:
+> `tests/unit/website-dev-container.bats`.
 
 ## Two-Group Content Model
 

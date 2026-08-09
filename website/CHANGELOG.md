@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.259.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.13...website-v1.259.14) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** OPENCODE_SESSION_ID in Session-Allowlist und MERGED-Preflight für devflow-ci-watch [T002671] ([#4017](https://github.com/Paddione/Bachelorprojekt/issues/4017)) ([39df3ed](https://github.com/Paddione/Bachelorprojekt/commit/39df3ed668ee41dc69196f1fbcf560cf75ad300a))
+* **test:** isolate BATS assertions from side-effects — kein festes sleep, keine Arbeitsbaum-Mutation [T002925] ([#4014](https://github.com/Paddione/Bachelorprojekt/issues/4014)) ([a121fc8](https://github.com/Paddione/Bachelorprojekt/commit/a121fc8c7de6de9cc35e550550ec5ec50c942f1a))
+
 ## [1.259.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.12...website-v1.259.13) (2026-08-09)
 
 

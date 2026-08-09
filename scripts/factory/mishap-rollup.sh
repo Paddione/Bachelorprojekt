@@ -110,10 +110,15 @@ cd "$WT"
 # ── Branch auf Remote → rebasen ─────────────────────────────────────────────
 # Wenn der Branch auf origin existiert, rebasen wir auf origin/main, damit der
 # Plan den aktuellen Stand des main-Branches reflektiert.
+# [T002913] Der post-commit-embed-Hook feuert bei JEDEM rebasierten Commit und
+# kann am Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so
+# hing der Factory-Tick stundenlang im Rebase, hielt den Flock und blockierte
+# jeden weiteren Tick. Ein Factory-interner Rollup-Rebase braucht den Hook nicht
+# (der Embed laeuft ohnehin nach dem stage-plan) — also deaktivieren.
 if git rev-parse --verify --quiet "origin/${BRANCH}" >/dev/null 2>&1; then
-  echo "mishap-rollup: rebase ${BRANCH} auf origin/main"
+  echo "mishap-rollup: rebase ${BRANCH} auf origin/main (post-commit-embed deaktiviert)"
   git fetch origin main 2>/dev/null || true
-  git rebase origin/main 2>/dev/null || {
+  git -c core.hooksPath=/dev/null rebase origin/main 2>/dev/null || {
     echo "mishap-rollup: rebase fehlgeschlagen — breche ab" >&2
     exit 1
   }
@@ -253,7 +258,7 @@ else
   git push -q -u origin "$BRANCH" 2>/dev/null || {
     echo "mishap-rollup: push fehlgeschlagen — rebase + retry"
     git fetch origin main 2>/dev/null || true
-    git rebase origin/main 2>/dev/null || true
+    git -c core.hooksPath=/dev/null rebase origin/main 2>/dev/null || true
     git push -q -u origin "$BRANCH" || {
       echo "mishap-rollup: FEHLER — push auf '${BRANCH}' auch nach rebase fehlgeschlagen." >&2
       echo "  Der Plan ist lokal committet, aber nicht auf origin: ${CHANGE_DIR}" >&2

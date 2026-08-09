@@ -2963,6 +2963,10 @@
   ],
   "T002896": [
     {
+      "slug": "factory-worktree-reaper-lock-guard",
+      "status": "plan_staged"
+    },
+    {
       "slug": "2026-08-10-factory-worktree-reaper-lock-guard",
       "status": "archived"
     }
@@ -2976,6 +2980,12 @@
   "T002941": [
     {
       "slug": "mcp-config-mutation-race",
+      "status": "plan_staged"
+    }
+  ],
+  "T002999": [
+    {
+      "slug": "fix-k3d-kubelet-cert-T002999",
       "status": "plan_staged"
     }
   ],

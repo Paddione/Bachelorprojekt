@@ -2808,6 +2808,12 @@
     "kind": "shell"
   },
   {
+    "id": "llm-pipeline/knowledge-ingest-live-sources",
+    "file": "tests/spec/llm-pipeline/knowledge-ingest-live-sources.bats",
+    "category": "llm-pipeline",
+    "kind": "shell"
+  },
+  {
     "id": "llm-pipeline/kv-offload",
     "file": "tests/spec/llm-pipeline/kv-offload.bats",
     "category": "llm-pipeline",

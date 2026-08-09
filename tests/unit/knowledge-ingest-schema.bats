@@ -9,8 +9,10 @@ setup_file() {
 }
 
 @test "ingest-prs.mjs does NOT query non-existent columns (body, labels)" {
-  # The broken columns should NOT be found in the SELECT query
-  run grep -A 10 "SELECT pr_number" "$RENDERED"
+  # The broken columns should NOT be found in the SELECT query.
+  # [T002605] Quelle ist jetzt tickets.ticket_links — der SELECT beginnt mit
+  # 'SELECT DISTINCT l.pr_number' (Live-Quelle statt bachelorprojekt.features).
+  run grep -A 10 "SELECT DISTINCT l.pr_number" "$RENDERED"
   assert_success
   
   refute_line --partial "body,"

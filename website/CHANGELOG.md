@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.14...website-v1.257.15) (2026-08-09)
+
+
+### Bug Fixes
+
+* **infra:** add flux webhook certificate and decouple ingressroute [T002869] ([#3947](https://github.com/Paddione/Bachelorprojekt/issues/3947)) ([18591f5](https://github.com/Paddione/Bachelorprojekt/commit/18591f520ccbe9350b2482b9ad9d5de61d2b64a1))
+
 ## [1.257.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.13...website-v1.257.14) (2026-08-09)
 
 

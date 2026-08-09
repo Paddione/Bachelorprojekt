@@ -184,17 +184,20 @@ setup() {
   [ "$status" -eq 0 ]
 }
 
-@test "T002407-M5c: buildFindRollupTicketArgs sucht type=chore" {
-  run grep -Fq '"--type", "chore"' \
+@test "T002407-M5c: buildRollupContainerArgs verwendet rollup-container (T002783)" {
+  # T002783: Die gemeinsame Container-Aufloesung verwendet ticket.sh rollup-container.
+  run grep -Fq '"rollup-container"' \
     "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
-  [ "$status" -eq 0 ]
+  [ "$status" -eq 0 ] || { echo "rollup-container fehlt in buildRollupContainerArgs"; false; }
 }
 
-@test "T002407-M5d: buildCreateRollupTicketArgs verwendet --type chore" {
-  # Der Container selbst wird als chore angelegt, nie als task.
-  run grep -Fq '"create", "--type", "chore"' \
-    "$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go"
-  [ "$status" -eq 0 ]
+@test "T002407-M5d: findOrCreateRollupTicket nutzt rollup-container, nicht list/create (T002783)" {
+  # T002783: Vorher wurde der Container ueber list/create geloest. Jetzt ueber
+  # das gemeinsame rollup-container-Kommando, das beides in ticket.sh kapselt.
+  run bash -c "grep -A10 'findOrCreateRollupTicket' \
+    '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' 2>/dev/null \
+    | grep -c 'rollup-container'"
+  [ "$output" != "0" ]
 }
 
 @test "T002407-M5e: kein Pfad in mishap.go erzeugt type=task" {
@@ -209,19 +212,23 @@ setup() {
 # findOrCreateRollupTicket erzeugt den Container mit status=plan_staged, nie triage.
 # Das ermöglicht dem Rollup-Treiber, direkt auf den Plan zuzugreifen.
 
-@test "T002407-M6a: buildCreateRollupTicketArgs setzt --status plan_staged" {
-  run bash -c "grep -A10 'buildCreateRollupTicketArgs' \
+@test "T002407-M6a: Rollup-Container-Status wird von ticket.sh rollup-container verwaltet (T002783)" {
+  # T002783: Der Go-Code traegt keinen eigenen --status mehr. ticket.sh rollup-container
+  # verwaltet den Status intern (plant_staged bei Neuanlage).
+  run bash -c "grep -A5 'buildRollupContainerArgs' \
     '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' 2>/dev/null \
-    | grep -c '\"plan_staged\"'"
-  [ "$output" != "0" ] || { echo "plan_staged nicht in buildCreateRollupTicketArgs gefunden (Doppelhochtriche)"; false; }
+    | grep -c 'status'"
+  [ "$output" = "0" ] || { echo "buildRollupContainerArgs darf keinen --status hartcodieren — ticket.sh managed das"; false; }
 }
 
-@test "T002407-M6b: buildCreateRollupTicketArgs setzt --status plan_staged, NICHT triage" {
-  # Der Container darf nie in triage landen.
-  run bash -c "grep -A10 'buildCreateRollupTicketArgs' \
-    '$REPO/scripts/ticket-mcp/go/internal/tools/mishap.go' 2>/dev/null \
-    | grep -c \"'triage'\""
-  [ "$output" = "0" ]
+@test "T002407-M6b: ticket.sh rollup-container dokumentiert status=plan_staged (T002783)" {
+  # T002783: plan_staged lebt jetzt in ticket.sh, nicht in mishap.go.
+  run bash -c "grep -c 'plan_staged' \
+    '$REPO/scripts/ticket.sh' 2>/dev/null"
+  [ "$output" != "0" ]
+  # Der Container wird als plan_staged angelegt (create... --status plan_staged)
+  run bash -c "grep -B2 -A10 'ROLLUP_TITLE' '$REPO/scripts/ticket.sh' 2>/dev/null | grep -c 'plan_staged'"
+  [ "$output" != "0" ] || { echo "rollup-container muss den Container mit status=plan_staged anlegen"; false; }
 }
 
 @test "T002407-M6c: ROLLUP_TICKET_TITLE ist definiert" {

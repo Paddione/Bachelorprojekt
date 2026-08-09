@@ -2112,9 +2112,39 @@
     "kind": "shell"
   },
   {
-    "id": "brain-mcp",
-    "file": "tests/spec/brain-mcp.bats",
-    "category": "brain-mcp",
+    "id": "brain-k4-brain-wiki/brain-mcp-server",
+    "file": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/chunking",
+    "file": "tests/spec/brain-k4-brain-wiki/chunking.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/coverage-gate",
+    "file": "tests/spec/brain-k4-brain-wiki/coverage-gate.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/max-source-chars-guard",
+    "file": "tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/mcp-registry",
+    "file": "tests/spec/brain-k4-brain-wiki/mcp-registry.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/parent-moc",
+    "file": "tests/spec/brain-k4-brain-wiki/parent-moc.bats",
+    "category": "brain-k4-brain-wiki",
     "kind": "shell"
   },
   {

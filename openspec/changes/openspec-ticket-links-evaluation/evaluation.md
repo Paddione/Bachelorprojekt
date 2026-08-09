@@ -1,4 +1,4 @@
-# Bewertungsprotokoll: 41 `.ticket`-lose OpenSpec-Changes (T002573)
+# Bewertungsprotokoll: 48 `.ticket`-lose OpenSpec-Changes (T002573)
 
 _Erstellt 2026-08-03. Deterministisches Bewertungsverfahren aus `tasks.md` (Index) angewendet._
 
@@ -54,11 +54,18 @@ _Erstellt 2026-08-03. Deterministisches Bewertungsverfahren aus `tasks.md` (Inde
 | 40 | unpinned-latest-images | offen (Rest-Vermerk) | T001790 (done) — erfordert `--create-new` |
 | 41 | wakeup-dispatcher-bridge-wiring | archiviert | T001845 (done) |
 | 42 | context-guard-T002585 | offen | T002585 (done) — Plan-Change des gemergten PR #3730 ohne `.ticket`-Link gemergt; als Folgearbeit mit `.ticket` nachrüsten/archivieren |
+| 43 | stage-plan-hold-doc-T002774 | offen | keine Ticket-Referenz im Inhalt, Abschluss nicht belegbar |
+| 44 | ticket-plans-schema-doc-T002768 | offen | keine Ticket-Referenz im Inhalt, Abschluss nicht belegbar |
+| 45 | brain-ingest-model-default-T002773 | offen | keine Ticket-Referenz im Inhalt, Abschluss nicht belegbar |
+| 46 | dead-path-ssot-ref-T002772 | offen | keine Ticket-Referenz im Inhalt, Abschluss nicht belegbar |
+| 47 | plan-staged-guard-T002769 | offen | keine Ticket-Referenz im Inhalt, Abschluss nicht belegbar |
+| 48 | prosa-blocker-detection-T002771 | offen | keine Ticket-Referenz im Inhalt, Abschluss nicht belegbar |
+| 49 | reaper-orphan-tickets-T002770 | offen | keine Ticket-Referenz im Inhalt, Abschluss nicht belegbar |
 
 ## Zusammenfassung
 
 - **archiviert:** 11 (in diesem PR) — `fix-fa-sf-20-pipeline-contract`, `fix-llm-server-watchdog`, `mishap-10er-bundle`, `mishap-agent-lock`, `mishap-t002408`, `mishap-test-repo-hygiene-T002347`, `renovate-app-token`, `scout-prediction-quality`, `sdlc-cockpit-design`, `sdlc-cockpit-k2-daemon`, `wakeup-dispatcher-bridge-wiring`
-- **offen (mit Vermerk belassen):** 8 — `fix-e2e-test-ticket-generation`, `fix-mishap-subagent-ticket-mcp`, `fix-t001935-brett-admin-session`, `fix-t001936-mishap-bundle`, `fix-t001939-portal-sidekick-hydration`, `fix-t001940-coaching-generate-502` (keine Ticket-Referenz), `k3d-dev-llm-bridge`, `mishap-devflow-queue-T002272` (Delta zielt auf nie existierendes SSOT-Requirement)
+- **offen (mit Vermerk belassen):** 15 — `fix-e2e-test-ticket-generation`, `fix-mishap-subagent-ticket-mcp`, `fix-t001935-brett-admin-session`, `fix-t001936-mishap-bundle`, `fix-t001939-portal-sidekick-hydration`, `fix-t001940-coaching-generate-502` (keine Ticket-Referenz), `k3d-dev-llm-bridge`, `mishap-devflow-queue-T002272` (Delta zielt auf nie existierendes SSOT-Requirement), `stage-plan-hold-doc-T002774`, `ticket-plans-schema-doc-T002768`, `brain-ingest-model-default-T002773`, `dead-path-ssot-ref-T002772`, `plan-staged-guard-T002769`, `prosa-blocker-detection-T002771`, `reaper-orphan-tickets-T002770`
 - **offen (Rest-Vermerk):** 20 — als `abgeschlossen` klassifiziert, erfordern `--create-new`, Archivierung als Folgearbeit (Liste unten)
 - **offen (Plan-Change ohne .ticket):** 1 — `context-guard-T002585` (durch PR #3730 gemergt, `.ticket` fehlt — T002585 ist done)
 - **obsoletes Duplikat entfernt:** 2 — `brain-ingest-pruefen`, `release-notes-erden`

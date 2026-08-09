@@ -2727,6 +2727,12 @@
       "status": "archived"
     }
   ],
+  "T002779": [
+    {
+      "slug": "spec-test-tracked-file-isolation",
+      "status": "plan_staged"
+    }
+  ],
   "T002781": [
     {
       "slug": "ticket-list-test-data-filter",

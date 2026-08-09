@@ -3834,6 +3834,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-isolation/kubelet-cert-guard",
+    "file": "tests/spec/sdlc-isolation/kubelet-cert-guard.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-isolation/sdlc-up-command",
     "file": "tests/spec/sdlc-isolation/sdlc-up-command.bats",
     "category": "sdlc-isolation",

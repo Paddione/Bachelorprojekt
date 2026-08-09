@@ -2979,6 +2979,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002999": [
+    {
+      "slug": "fix-k3d-kubelet-cert-T002999",
+      "status": "plan_staged"
+    }
+  ],
   "T003036": [
     {
       "slug": "sdlc-login-404-root",

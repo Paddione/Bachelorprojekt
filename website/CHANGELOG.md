@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.12...website-v1.259.13) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** port-forward identity check, completeness-gate escalation, rebase skip [T002870] ([#4005](https://github.com/Paddione/Bachelorprojekt/issues/4005)) ([9f3c6e1](https://github.com/Paddione/Bachelorprojekt/commit/9f3c6e167543403e19212f1c36c31ff0ad79dfb0))
+
 ## [1.259.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.11...website-v1.259.12) (2026-08-09)
 
 

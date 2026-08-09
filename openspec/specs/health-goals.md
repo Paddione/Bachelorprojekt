@@ -490,3 +490,441 @@ misconfigured on that brand.
 - **AND** es nutzt eine Recreate-Rollout-Strategie
 
 <!-- merged from change delta health-goals.md (f38b85f730ca) -->
+
+### Requirement: REQ-HEALTH-GOALS-LLM-001 — LLM stack operation goal family
+
+The system SHALL define a goal family `G-LLM01` through `G-LLM05` in `.claude/lib/goals.md`
+covering the operating state of the local LLM stack: model server availability, llm-proxy
+readiness, configuration-versus-runtime model drift, autostart coverage of declared LLM stack
+services, and dead local LLM endpoint references.
+
+Each goal SHALL be measurable through a single command whose output is either a non-negative
+integer or the literal `n/a`.
+
+#### Scenario: Every family member is documented and measurable
+
+- **GIVEN** `.claude/lib/goals.md` as the single source of truth for health goals
+- **WHEN** the goal family is read
+- **THEN** each of `G-LLM01`, `G-LLM02`, `G-LLM03`, `G-LLM04` and `G-LLM05` carries a title, a
+  measurement command and a meta line with priority, baseline, target, effort, cycle,
+  reproducibility and ticket reference
+- **AND** each measurement command resolves to an invocation of `scripts/lib/llm-stack-measure.sh`
+
+### Requirement: REQ-HEALTH-GOALS-LLM-002 — Positive anchor in every measurement
+
+Every `G-LLM*` measurement SHALL emit `n/a` instead of a numeric value when its measurement
+precondition is not satisfied, so that a missing measurement base is reported as skipped rather
+than as a met target.
+
+The preconditions are: for `G-LLM01` and `G-LLM03` a parseable loadout registry holding at least
+one entry with a port, plus a llm-proxy answering on `/livez`; for `G-LLM02` a `/health` response
+that parses as JSON and carries both a `ready` field and a `checked` count of at least one; for
+`G-LLM04` an available service manager and at least one declared unit file; for `G-LLM05` a
+backend registry query that returns at least one local endpoint.
+
+A measurement SHALL NOT treat an absent, unparseable or unexpectedly shaped input as an empty
+collection.
+
+#### Scenario: Unparseable loadout registry reports n/a rather than zero
+
+- **GIVEN** a loadout registry fixture that is not valid JSON
+- **WHEN** `scripts/lib/llm-stack-measure.sh server-availability` is executed against it
+- **THEN** the command prints `n/a`
+- **AND** it does not print `0`
+
+#### Scenario: A health payload without the expected fields reports n/a rather than zero
+
+- **GIVEN** a llm-proxy fixture whose `/health` response carries neither a `degraded` list nor a
+  `checked` count
+- **WHEN** `scripts/lib/llm-stack-measure.sh proxy-readiness` is executed against it
+- **THEN** the command prints `n/a`
+- **AND** it does not print `0`
+
+#### Scenario: A populated measurement base still reports a number
+
+- **GIVEN** a loadout registry fixture with at least one entry carrying a port and a reachable
+  liveness endpoint
+- **WHEN** `scripts/lib/llm-stack-measure.sh server-availability` is executed against it
+- **THEN** the command prints a non-negative integer
+
+### Requirement: REQ-HEALTH-GOALS-LLM-003 — Exclusive group aware availability
+
+`G-LLM01` SHALL count a group of loadouts sharing an `exclusiveGroup` as available when at least
+one member of that group answers its health endpoint, because members of such a group share one
+GPU and cannot run simultaneously.
+
+Loadouts without an `exclusiveGroup` SHALL be counted individually per port.
+
+#### Scenario: One live member makes its exclusive group available
+
+- **GIVEN** a loadout registry fixture with three entries in the same `exclusiveGroup` of which
+  exactly one answers its health endpoint
+- **WHEN** `scripts/lib/llm-stack-measure.sh server-availability` is executed
+- **THEN** the reported count does not include that group
+
+#### Scenario: A group without any live member is counted
+
+- **GIVEN** a loadout registry fixture with two entries in one `exclusiveGroup`, neither of which
+  answers its health endpoint, alongside a second group with a live member
+- **WHEN** `scripts/lib/llm-stack-measure.sh server-availability` is executed
+- **THEN** the reported count is 1
+
+### Requirement: REQ-HEALTH-GOALS-LLM-004 — Numeric-only measurement output
+
+Every `G-LLM*` measurement SHALL print either a non-negative integer or `n/a`, and SHALL NOT print
+any other status word.
+
+A llm-proxy reporting `ready: false` SHALL be expressed as the number of backends that cannot
+serve, so the value stays comparable with the target and safe to append to `HG_VALUES_FILE`.
+
+#### Scenario: A not-ready proxy yields a non-zero number rather than a status word
+
+- **GIVEN** a llm-proxy fixture whose `/health` response carries `ready: false` and `checked: 3`
+- **WHEN** `scripts/lib/llm-stack-measure.sh proxy-readiness` is executed against it
+- **THEN** the command prints `3`
+- **AND** the output matches an integer, not a word
+
+### Requirement: REQ-HEALTH-GOALS-LLM-005 — Family boundary against the interface family
+
+`G-LLM05` SHALL only consider endpoints declared by LLM stack artifacts, and SHALL exclude
+endpoints declared in the MCP registry, because those are owned by `G-IF01`.
+
+The boundary rule SHALL be the declaring artifact, not the failure mode.
+
+#### Scenario: An endpoint declared in the MCP registry is not counted twice
+
+- **GIVEN** a backend registry fixture listing a local endpoint without a listener that is also
+  present in the MCP registry fixture
+- **WHEN** `scripts/lib/llm-stack-measure.sh dead-endpoints` is executed
+- **THEN** that endpoint is not included in the reported count
+- **AND** a second local endpoint without a listener that appears only in the backend registry is
+  included
+
+### Requirement: REQ-HEALTH-GOALS-LLM-006 — Local measurement location
+
+The `G-LLM*` family SHALL be measured locally through `task freshness:check` and SHALL NOT be
+measured in CI, because a CI runner has no LLM endpoints and would report every goal as met.
+
+When `CI` is set, `task freshness:check` SHALL print a skip note naming the reason and SHALL NOT
+run the measurement. The measurement SHALL NOT change the exit status of `task freshness:check` in
+either branch.
+
+The goal identifiers of this family SHALL be appended to the existing `HG_LOCAL_ONLY_GOALS` list
+rather than introducing a second warning block.
+
+#### Scenario: CI run skips the family with a visible note
+
+- **GIVEN** the environment variable `CI` is set
+- **WHEN** `task freshness:check` is executed
+- **THEN** the output contains a skip note for the local-only goals
+- **AND** no `G-LLM*` measurement value is printed
+
+#### Scenario: Local run reports the family without affecting the gate
+
+- **GIVEN** the environment variable `CI` is unset
+- **WHEN** `task freshness:check` is executed
+- **THEN** the output contains the `G-LLM*` goal identifiers
+- **AND** the exit status is the one the gate would have produced without the block
+
+<!-- merged from change delta health-goals.md (f9df02d1fca8) -->
+
+### Requirement: REQ-HEALTH-GOALS-WT-001 — Worktree and session hygiene goal family
+
+The system SHALL define a goal family `G-WT01` through `G-WT06` in `.claude/lib/goals.md` covering
+the local working state of the repository: main-checkout branch and cleanliness, stale worktrees,
+worktrees holding unsaved work, orphaned agent-locks, phantom-scope agent-locks, and local `main`
+divergence from `origin/main`.
+
+Each goal SHALL be measurable through a single command whose numeric output is the goal value.
+
+#### Scenario: Every family member is documented and measurable
+
+- **GIVEN** `.claude/lib/goals.md` as the single source of truth for health goals
+- **WHEN** the goal family is read
+- **THEN** each of `G-WT01`, `G-WT02`, `G-WT03`, `G-WT04`, `G-WT05` and `G-WT06` carries a title,
+  a measurement command and a meta line with priority, baseline, target, effort, cycle,
+  reproducibility and ticket reference
+- **AND** each measurement command resolves to an invocation of `scripts/lib/wt-hygiene-measure.sh`
+
+### Requirement: REQ-HEALTH-GOALS-WT-002 — Positive anchor in every measurement
+
+Every `G-WT*` measurement SHALL emit `n/a` instead of a numeric value when its measurement
+precondition is not satisfied, so that a missing measurement base is reported as skipped rather
+than as a met target.
+
+The preconditions are: for `G-WT01` a resolvable main-checkout git directory; for `G-WT02` and
+`G-WT04` at least one registered worktree and a resolvable `origin/main` reference; for `G-WT03`
+and `G-WT06` an existing lock directory holding at least one well-formed lock; for `G-WT05` both a
+local `main` and an `origin/main` reference plus a fetch not older than 24 hours.
+
+#### Scenario: Empty measurement base reports n/a rather than zero
+
+- **GIVEN** a repository fixture with no worktrees registered
+- **WHEN** `scripts/lib/wt-hygiene-measure.sh stale-worktrees` is executed against it
+- **THEN** the command prints `n/a`
+- **AND** it does not print `0`
+
+#### Scenario: A populated measurement base still reports a number
+
+- **GIVEN** a repository fixture with at least one registered worktree and a resolvable
+  `origin/main` reference
+- **WHEN** `scripts/lib/wt-hygiene-measure.sh stale-worktrees` is executed against it
+- **THEN** the command prints a non-negative integer
+
+### Requirement: REQ-HEALTH-GOALS-WT-003 — Heartbeat-based orphan detection
+
+`G-WT03` SHALL classify an agent-lock as orphaned when its `owner_pid` no longer refers to a
+running process OR when its `heartbeat_at` is older than twice the configured lock TTL, whichever
+occurs first.
+
+The measurement SHALL NOT rely on `owner_pid` alone, because process IDs are reused on a
+long-running host, whereas a heartbeat that was never advanced is unambiguous.
+
+#### Scenario: Never-advanced heartbeat is detected as orphaned
+
+- **GIVEN** a lock fixture whose `heartbeat_at` equals its `created_at` and whose timestamp is
+  older than twice the lock TTL
+- **WHEN** `scripts/lib/wt-hygiene-measure.sh orphan-locks` is executed
+- **THEN** the reported count includes that lock
+
+#### Scenario: The live lock of the running session is not counted
+
+- **GIVEN** a lock fixture with a running `owner_pid` and a heartbeat refreshed within the TTL
+- **WHEN** `scripts/lib/wt-hygiene-measure.sh orphan-locks` is executed
+- **THEN** the reported count does not include that lock
+
+### Requirement: REQ-HEALTH-GOALS-WT-004 — Phantom-scope lock detection
+
+`G-WT06` SHALL count agent-locks whose `scope` field is empty or begins with a hyphen, because such
+a scope can only originate from a command-line flag that was consumed as a positional argument.
+
+The measurement SHALL NOT validate the scope against a fixed list of known scope names, because
+scope names are open-ended.
+
+#### Scenario: A flag consumed as scope is counted
+
+- **GIVEN** a lock fixture whose `scope` field holds a value beginning with a hyphen
+- **WHEN** `scripts/lib/wt-hygiene-measure.sh phantom-scope-locks` is executed
+- **THEN** the reported count includes that lock
+- **AND** a lock with a well-formed scope in the same directory is not included
+
+### Requirement: REQ-HEALTH-GOALS-WT-005 — Local-only measurement location
+
+The `G-WT*` family SHALL be measured locally and SHALL NOT be evaluated as a CI gate, because a CI
+runner has neither worktrees, nor agent-locks, nor a main checkout, which would render every goal
+structurally green.
+
+`task freshness:check` SHALL surface the family as a non-failing warning block when running
+locally, and SHALL print a visible skip notice instead of a measurement when running in CI.
+
+The warning block SHALL take its goal IDs from a parameterised list so that further local-only goal
+families can be added to the same block.
+
+#### Scenario: Local run surfaces the measurement
+
+- **GIVEN** an environment where the `CI` variable is unset
+- **WHEN** the local hygiene warning block executes
+- **THEN** the output contains the reported `G-WT*` values
+- **AND** the exit status is unaffected by those values
+
+#### Scenario: CI run skips the measurement visibly
+
+- **GIVEN** an environment where the `CI` variable is set
+- **WHEN** the warning block executes
+- **THEN** the output contains a skip notice naming the reason
+- **AND** no `G-WT*` value is reported as met
+
+<!-- merged from change delta health-goals.md (d1ba6426af7e) -->
+
+### Requirement: REQ-HG-MEASURE-FAIL-LOUD-001
+
+A health-goal measurement that cannot measure SHALL make that visible instead of
+emitting a value indistinguishable from a real result. A measurement whose input
+structure is absent, unparsable, or empty SHALL NOT report the goal as met, and
+SHALL NOT be silently downgraded to "not measurable" when the cause is a broken
+precondition rather than a legitimately unavailable environment.
+
+#### Scenario: Registry structure no longer provides candidates
+
+- **GIVEN** `docs/agent-guide/registry/mcp.yaml` contains no client with
+  `transport: http`
+- **WHEN** G-IF01 is measured
+- **THEN** the reported value violates the goal's target and a diagnostic is
+  written to stderr
+- **AND** the goal is NOT reported as skipped or met
+
+#### Scenario: Audit output cannot be parsed
+
+- **GIVEN** `pnpm audit --json` emits output that is not valid JSON
+- **WHEN** the G-DEP01 parser processes it
+- **THEN** the parser exits non-zero
+- **AND** it does NOT print `0`, which would read as "no high/critical
+  vulnerabilities found"
+
+#### Scenario: Legitimately unavailable environment stays skippable
+
+- **GIVEN** `website/node_modules` is absent, as in the CI security-scan job
+- **WHEN** G-DEP01 is measured
+- **THEN** the goal is reported as not measurable
+- **AND** no failure is raised, because the absent dependency tree is an
+  environment property and not a defect
+
+### Requirement: REQ-HG-MEASURE-ISOLATED-002
+
+Measurement logic whose only execution path is a full check run SHALL be
+extractable into a helper that accepts its input on stdin, so it can be verified
+against fixtures without the runtime cost or environment prerequisites of the
+real data source.
+
+#### Scenario: Audit parser verified without a package manager run
+
+- **GIVEN** a fixture containing a pretty-printed `pnpm audit --json` object with
+  an `advisories` map holding one `high` and one `critical` entry
+- **WHEN** the fixture is piped into `scripts/lib/pnpm-audit-count.py`
+- **THEN** it prints `2` and exits zero
+
+#### Scenario: Outdated parser survives a producer that exits non-zero
+
+- **GIVEN** a producer that writes valid `pnpm outdated --format json` output and
+  then exits 1, as pnpm does whenever outdated packages exist
+- **WHEN** it is piped into `scripts/lib/pnpm-outdated-majors.py` under
+  `set -uo pipefail`
+- **THEN** the major-version count is printed as the sole output token
+- **AND** no fallback token is appended after it
+
+### Requirement: REQ-HG-MEASURE-PORTS-003
+
+An endpoint-reachability measurement SHALL only consider registry entries that
+declare a network endpoint. Entries started as a subprocess expose no port and
+SHALL be excluded from both the numerator and the denominator.
+
+#### Scenario: stdio clients are not counted as unreachable
+
+- **GIVEN** the registry declares four `transport: http` clients and nine
+  `transport: stdio` clients
+- **WHEN** G-IF01 is measured while no local MCP server is listening
+- **THEN** the reported count of dead endpoints is at most four
+
+### Requirement: REQ-HG-GENERATED-JSON-PATH-004
+
+Every component that reads the generated goals JSON SHALL reference the path the
+generator actually writes. A reader that cannot find the file SHALL NOT terminate
+with a success status.
+
+#### Scenario: Reader path follows the generator
+
+- **GIVEN** `scripts/gen-goals-data.mjs` writes to
+  `website/src/lib/sdlc/goals-data.generated.json`
+- **WHEN** `scripts/health-goals-update.sh`, `scripts/health-goals-llm-fill.sh`
+  or `scripts/factory/auto-close-merged.sh` reference that artifact
+- **THEN** each reference resolves to an existing file
+
+<!-- merged from change delta health-goals.md (e5545f9c1e7a) -->
+
+### Requirement: REQ-HEALTH-GOALS-AUDIT-001 — Audit-Runner als wiederholbarer Durchgang
+
+`scripts/lib/zielfamilien-audit.sh` SHALL expose a `check` subcommand that evaluates every goal
+measurement of a given family in `scripts/health-goals-check.sh` against a fixture corpus, and a
+`list-families` subcommand that enumerates the audited families. `check` SHALL exit `0` when no
+goal of the family violates an audit rule and exit `1` when at least one violation is found; per
+goal it SHALL print one line `PASS <id>` or `FAIL <id> <rule>: <reason>` on stdout. The fixture
+corpus SHALL be supplied via a `--fixture <dir>` option or the `ZF_AUDIT_FIXTURES` environment
+variable, so the runner works without network, database or cluster access.
+
+#### Scenario: A family with a violating goal exits non-zero
+
+- **GIVEN** a fixture corpus where the `G-CQ02` measurement basis (directory `website/src`) is
+  absent
+- **WHEN** `scripts/lib/zielfamilien-audit.sh check --family CQ --fixture <corpus>` runs
+- **THEN** it prints a `FAIL G-CQ02` line naming the existence-anchor rule
+- **AND** exits `1`
+
+#### Scenario: A clean family exits zero
+
+- **GIVEN** a fixture corpus where every goal of family `DB` measures a real value against its
+  basis
+- **WHEN** `scripts/lib/zielfamilien-audit.sh check --family DB --fixture <corpus>` runs
+- **THEN** it prints `PASS` lines only
+- **AND** exits `0`
+
+### Requirement: REQ-HEALTH-GOALS-AUDIT-002 — Fehlerklassen-Regeln
+
+The audit runner SHALL implement at least the following rules, each mapped to the T002583/T002356
+error class it detects:
+
+- **E1 (M1 — vakuos grün):** a measurement that yields `0` or empty while its declared basis
+  (file, field, endpoint, directory) is missing or empty SHALL be flagged.
+- **E2 (SKIP-forever):** a measurement whose sole failure path is a catch-all fallback that
+  returns the `-` skip sentinel SHALL be flagged unless a positive anchor distinguishes
+  "basis missing" from "parse/format error".
+- **E3 (toter Filter):** a measurement filtering on a key that does not exist in the fixture's
+  real response SHALL be flagged.
+- **E4 (Text im Vergleich):** a measurement that can emit a non-numeric value into
+  `health-goals-check.sh`'s arithmetic comparison (`[ "$actual" -le "$target" ]`) SHALL be
+  flagged.
+- **E5 (Existenz-Anker):** a path/endpoint-based count (`grep`/`wc`/`find` over a directory or
+  an HTTP call) without a preceding existence check SHALL be flagged — a vanished basis must not
+  silently read as `0` = success.
+
+#### Scenario: The M1 class is flagged before it reports green
+
+- **GIVEN** a fixture where a goal's measurement counts `providers` in a response that only has a
+  `degraded` list
+- **WHEN** the runner evaluates that goal
+- **THEN** it prints `FAIL <id> E1`
+- **AND** never reports the goal as green
+
+#### Scenario: A missing directory without anchor is flagged
+
+- **GIVEN** a goal whose measurement greps `website/src` for `: any` and the directory does not
+  exist in the fixture
+- **WHEN** the runner evaluates that goal
+- **THEN** it prints `FAIL <id> E5` (vanished basis → `0` would be vacuously green)
+
+### Requirement: REQ-HEALTH-GOALS-AUDIT-003 — Committed Audit-Protokoll
+
+`docs/health-goals/zielfamilien-audit.md` SHALL document the audit result per family in a table
+(family, goals, verdict, error class, measure, status). Every family covered by the audit SHALL
+have a row; families excluded (`G-LLM*` → T002442, `G-WT*` → T002443) SHALL be listed as excluded
+with their ticket reference. The protocol SHALL be committed in the same PR as the goal changes it
+documents, so the report survives OpenSpec archival and stays linkable from ticket T002584.
+
+#### Scenario: Every audited family has a verdict row
+
+- **GIVEN** the audit run over all in-scope families
+- **WHEN** `docs/health-goals/zielfamilien-audit.md` is inspected
+- **THEN** it contains one row per family with verdict `geprüft` and, for each found violation, the
+  error class and the sharpening measure applied
+
+### Requirement: REQ-HEALTH-GOALS-AUDIT-004 — Fixture-Suite als permanenter Guard
+
+`tests/spec/health-goals/zielfamilien-audit.bats` SHALL run the audit runner against fixture
+corpora in command-output verification mode (T002448-M4): an anchor test asserting the measurement
+emits `n/a` (never `0`) when the basis is missing, and a violation test asserting the measurement
+counts a prepared violation. The suite SHALL fail when a goal regresses into SKIP-forever or
+vacuously-green behaviour. It SHALL run without network, database or cluster access.
+
+#### Scenario: A regressed goal turns the suite red
+
+- **GIVEN** a goal that after a later change measures `0` on a missing basis instead of `n/a`
+- **WHEN** `tests/unit/lib/bats-core/bin/bats tests/spec/health-goals/zielfamilien-audit.bats`
+  runs
+- **THEN** the anchor test for that goal fails
+
+### Requirement: REQ-HEALTH-GOALS-AUDIT-005 — Schärfung nur fehlerhafter Ziele
+
+A goal flagged by the audit SHALL be sharpened following the T002442 pattern: a positive anchor as
+the first statement of its measurement (anchor failure ⇒ `n/a`, never `0`), one measurement source
+per family where practical, and `n/a` instead of `0` for a missing basis. Goals that pass the audit
+SHALL NOT be rewritten; their fixture tests serve as regression protection only. The sharpening
+SHALL NOT change the merge-gate semantics of `health-goals-check.sh` for unrelated goals.
+
+#### Scenario: A passing goal is left untouched
+
+- **GIVEN** a goal whose measurement produces a real number against its fixture and passes all
+  audit rules
+- **WHEN** the audit fix commit is inspected
+- **THEN** the goal's section in `.claude/lib/goals.md` and its `row` line in
+  `scripts/health-goals-check.sh` are byte-for-byte unchanged
+
+<!-- merged from change delta health-goals.md (a9274fd82115) -->

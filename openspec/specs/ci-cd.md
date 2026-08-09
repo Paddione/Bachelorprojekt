@@ -1351,10 +1351,18 @@ bedeutet „CI wurde nie gestartet oder läuft noch" — nicht „CI ist grün".
 SHALL die tatsächliche Anzahl geprüfter Checks nennen, damit ein Null- oder Teilzustand für
 Menschen wie für Automaten sichtbar ist.
 
+Zusätzlich SHALL das Skript vor Eintritt in die Poll-Schleife prüfen, ob die beobachtete PR
+bereits `state=MERGED` trägt. Ist dies der Fall, SHALL es sofort mit Exit-Code 0 erfolgreich
+terminieren, ohne den blockierenden `gh pr checks --watch`-Aufruf zu erreichen — eine gemergte
+PR hat ihre Checks per Branch-Protection bereits als grün bewiesen, ein erneutes Poll ist
+sinnlos und kann für eine bereits geschlossene PR unbegrenzt blockieren.
+
 Hintergrund: Beobachtet bei T002162/T002174 — ein PR mit `mergeStateStatus=CONFLICTING` hatte
 über ~35 Minuten null Check-Runs, und das Skript meldete durchgehend „Alle CI-Checks grün"
 mit Exit-Code 0. Das ist ein falsch-grünes Gate: die Merge-Pipeline hält einen ungeprüften
-Stand für verifiziert.
+Stand für verifiziert. Zusätzlich beobachtet bei T002628/T002671: nach erfolgreichem
+Auto-Merge blieb der Poll-Loop im blockierenden `gh pr checks --watch`-Aufruf hängen und
+musste manuell beendet werden — es gab keinen Preflight für den bereits gemergten Zustand.
 
 #### Scenario: Null Check-Runs führen zu Exit-Code 5 statt zu falschem Grün
 
@@ -1376,6 +1384,13 @@ Stand für verifiziert.
 - **GIVEN** ein PR steht auf `mergeStateStatus=CONFLICTING`
 - **WHEN** `devflow-ci-watch.sh` startet
 - **THEN** bricht der Preflight mit Exit-Code 4 ab, bevor die Poll-Schleife betreten wird
+
+#### Scenario: Eine bereits gemergte PR terminiert erfolgreich, ohne den blockierenden Poll-Call zu erreichen
+
+- **GIVEN** ein PR steht auf `state=MERGED`
+- **WHEN** `devflow-ci-watch.sh` startet
+- **THEN** terminiert es mit Exit-Code 0
+- **AND** `gh pr checks --watch` wird zu keinem Zeitpunkt aufgerufen
 
 ### Requirement: Spec-Tests spiegeln die umformulierte Doku-Prosa
 
@@ -1460,6 +1475,92 @@ Because the CI PR-title check (`amannn/action-semantic-pull-request`) validates 
 - **WHEN** `scripts/validate-commit-msg.sh message` das Subject prüft
 - **THEN** liefert das Skript Exit-Code 0 ohne jede Ablehnungsdiagnose
 
+### Requirement: Single source for ticketless branch exemptions
+
+The system SHALL keep the list of branches exempt from the ticket-ID naming requirement in exactly
+one file, `scripts/lib/branch-allowlist.sh`, and every guard enforcing that requirement SHALL read
+its exemptions from that file rather than from a locally maintained list.
+
+Membership SHALL be decided by exact branch-name comparison, not by glob or prefix matching, so a
+typo cannot exempt an entire class of branches.
+
+#### Scenario: A listed ticketless branch can commit
+
+- **GIVEN** the branch `chore/mishap-incident-rollup` is listed in `TICKETLESS_BRANCHES`
+- **WHEN** a commit is made on that branch with the `pre-commit` hook active
+- **THEN** the hook exits 0 and the commit is created
+
+#### Scenario: An unlisted ticketless branch is still blocked
+
+- **GIVEN** a branch such as `chore/some-other-work` carrying no ticket ID and not listed in
+  `TICKETLESS_BRANCHES`
+- **WHEN** a commit is made on that branch with the `pre-commit` hook active
+- **THEN** the hook exits non-zero and reports the missing ticket ID
+
+#### Scenario: A listed branch produces no push warning
+
+- **GIVEN** the branch `chore/mishap-incident-rollup`
+- **WHEN** the `pre-push` hook runs its advisory branch-naming check
+- **THEN** no missing-ticket-ID warning is emitted
+
+#### Scenario: The allowlist file is absent
+
+- **GIVEN** a checkout in which `scripts/lib/branch-allowlist.sh` does not exist
+- **WHEN** the `pre-commit` hook runs on any branch
+- **THEN** the hook behaves as it did before the shared source existed — the exemption list is
+  empty and no branch is exempted, so a missing file can never permit an otherwise invalid branch
+
+### Requirement: The mishap rollup driver fails loudly
+
+The mishap rollup driver SHALL check the exit status of its `git commit` and `git push` calls and
+SHALL terminate with a non-zero exit code and a diagnostic message when either fails, rather than
+continuing and leaving generated plan files uncommitted.
+
+#### Scenario: Commit is rejected by a hook
+
+- **GIVEN** `scripts/factory/mishap-rollup.sh` has generated and linted a plan
+- **WHEN** its `git commit` call is rejected by a git hook
+- **THEN** the script prints the failing step and exits non-zero, instead of reporting success
+
+### Requirement: Diff-scoped test selection sees uncommitted changes
+
+`scripts/find-changed-tests.sh` SHALL compute its default changed-file list
+from a diff basis that includes uncommitted working-tree changes (staged and
+unstaged), not only committed drift between `HEAD` and `origin/main`. When
+`origin/main` is not resolvable, the script SHALL fall back to a
+working-tree diff against `HEAD`.
+
+The script SHALL always emit one line to stderr naming which diff source
+produced the changed-file list and how many raw entries it contained,
+regardless of whether the resulting test selection is empty. This applies
+whether the source is `origin/main`, the `HEAD` fallback, or the
+`FIND_CHANGED_TESTS_FILES` override.
+
+#### Scenario: Uncommitted spec file changes are detected
+
+- **GIVEN** a git worktree whose `HEAD` is behind `origin/main` by unrelated
+  commits
+- **AND** a `tests/spec/**/*.bats` file has an uncommitted (unstaged) edit
+- **WHEN** `scripts/find-changed-tests.sh spec` runs
+- **THEN** the uncommitted file appears in the script's output as a matched
+  candidate
+
+#### Scenario: True "no changes" stays distinguishable from a missed diff
+
+- **GIVEN** a git worktree with no uncommitted changes and no committed
+  drift against `origin/main`
+- **WHEN** `scripts/find-changed-tests.sh spec` runs
+- **THEN** the script exits 0 with empty stdout
+- **AND** the stderr provenance line reports 0 raw entries from the
+  `origin/main` diff source
+
+#### Scenario: FIND_CHANGED_TESTS_FILES override still short-circuits the diff
+
+- **GIVEN** `FIND_CHANGED_TESTS_FILES` is set to a newline-separated file list
+- **WHEN** `scripts/find-changed-tests.sh` runs
+- **THEN** the script uses that list verbatim instead of invoking `git diff`
+- **AND** the stderr provenance line labels the source as `override`
+
 ### Requirement: Pre-Commit-Freshness-Block blockiert bei Regenerationsfehler (nicht nur bei fehlendem Werkzeug)
 
 Der Freshness-Block in `.githooks/pre-commit` SHALL zwischen zwei Fehlerfällen unterscheiden:
@@ -1490,6 +1591,260 @@ selben Hook.
 - **GIVEN** `task freshness:regenerate` würde fehlschlagen
 - **WHEN** ein `git commit` mit `SKIP_FRESHNESS_REGEN=1` läuft
 - **THEN** wird der Commit trotz des Fehlschlags nicht blockiert (mit sichtbarer Warnung)
+
+### Requirement: git-workflow rebased vor dem Freshness-Regen-Lauf gegen origin/main
+
+Der `git-workflow`-Skill MUSS in Schritt 1 (Verifikation & Freshness Guard), unmittelbar vor
+dem Verweis auf `task freshness:regenerate`, einen expliziten Divergenz-Check gegen
+`origin/main` beschreiben (`git fetch origin main` + `git rev-list --count HEAD..origin/main`)
+und bei Divergenz > 0 ein Rebase auf `origin/main` **vor** der Regeneration verlangen. Damit
+wird vermieden, dass Freshness-Artefakte gegen eine Baumkonfiguration erzeugt werden, die
+bereits beim Push wieder hinter `origin/main` zurückliegt (T002669 / Mishap PR #3788).
+
+#### Scenario: git-workflow Schritt 1 beschreibt einen Rebase-Preflight vor dem Regen-Lauf *(BATS, source verification)*
+
+- **GIVEN** `.claude/skills/git-workflow/SKILL.md`
+- **WHEN** der Abschnitt "Schritt 1 — Verifikation & Freshness Guard" gelesen wird
+- **THEN** enthält er vor dem Verweis auf `task freshness:regenerate` einen expliziten
+  `origin/main`-Divergenz-Check (`git rev-list --count HEAD..origin/main` oder äquivalent)
+  und eine Anweisung, bei Divergenz zuerst zu rebasen
+
+#### Scenario: Schritt 0 (Pull-First) bleibt als eigener, früherer Checkpoint erhalten *(BATS, control test)*
+
+- **GIVEN** `.claude/skills/git-workflow/SKILL.md`
+- **WHEN** der Abschnitt "Schritt 0 — Pull-First" gelesen wird
+- **THEN** enthält er weiterhin `git pull --rebase origin main`, unverändert durch diese Änderung
+
+### Requirement: GHCR Authentication for Private Unlinked Packages
+
+Any workflow that resolves image digests from GHCR packages which are private and not linked to
+the repository MUST authenticate with `secrets.GH_PAT` and `github.repository_owner`. The
+repository-scoped `GITHUB_TOKEN` cannot read such packages regardless of the declared
+`packages:` permission, and `github.actor` is the triggering actor rather than the token owner,
+which breaks the login on bot-initiated pushes.
+
+#### Scenario: Renderer resolves a private unlinked package digest
+
+- **GIVEN** `.github/workflows/render-fleet-artifact.yml` invokes `scripts/resolve-image-digest.sh`
+  for `ghcr.io/paddione/workspace-brett:latest`
+- **WHEN** the workflow's GHCR login step is inspected
+- **THEN** its `password` is `secrets.GH_PAT`
+- **AND** its `username` is `github.repository_owner`
+
+#### Scenario: Bot-initiated push authenticates as the token owner
+
+- **GIVEN** a push to `main` authored by a bot such as release-please
+- **WHEN** the GHCR login step runs
+- **THEN** the login uses the repository owner as username rather than the triggering actor
+- **AND** the digest resolve step does not fail with `DENIED`
+
+### Requirement: REQ-CI-BATS-ENVBRANCH-001 — Tests must not assert on the live checkout's branch
+
+BATS test files SHALL NOT read or assert on the current branch of the live checkout. Branch
+assertions SHALL be made against a throwaway repository fixture the test creates and controls
+(`git -C "$TMP/…"`), never against the repository the test is running in.
+
+A CI guard SHALL enforce this by scanning every `.bats` file under `tests/` and failing when a
+non-comment line reads the live checkout's branch — either explicitly (`git -C "$REPO_ROOT" …`)
+or implicitly (a `git rev-parse --abbrev-ref HEAD` / `git branch --show-current` invocation
+without `-C`). The guard SHALL exclude its own file, whose detection patterns necessarily
+contain the forbidden strings.
+
+#### Scenario: A test making the live checkout's branch a precondition fails the guard
+
+- **GIVEN** a `.bats` file containing `current_branch="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"`
+  followed by an assertion on that value
+- **WHEN** the CI guard runs
+- **THEN** the guard fails and names the offending file and line
+
+#### Scenario: A test asserting on a fixture repository's branch passes the guard
+
+- **GIVEN** a `.bats` file containing `[ "$(git -C "$TMP/repo" rev-parse --abbrev-ref HEAD)" = "main" ]`
+- **WHEN** the CI guard runs
+- **THEN** the guard passes, because the assertion targets a fixture the test controls
+
+#### Scenario: A comment mentioning the pattern does not trip the guard
+
+- **GIVEN** a `.bats` file whose comment text mentions `rev-parse --abbrev-ref HEAD` without
+  invoking it
+- **WHEN** the CI guard runs
+- **THEN** the guard passes, because comment lines are excluded from the scan
+
+#### Scenario: The guard is not vacuous when no offender exists
+
+- **GIVEN** a repository in which no `.bats` file reads the live checkout's branch
+- **WHEN** the CI guard runs
+- **THEN** the guard passes only after confirming that it found `.bats` files at all and that it
+  found at least one fixture-form branch assertion in a file other than its own
+
+#### Scenario: worktree-create.sh --help succeeds regardless of the current branch
+
+- **GIVEN** a checkout standing on `main`
+- **WHEN** `scripts/worktree-create.sh --help` runs
+- **THEN** it exits 0, prints no `FATAL` line, and documents the `--unattended` option
+
+### Requirement: Direct pushes to main SHALL be prevented server-side
+
+The repository SHALL enforce the pull-request workflow for `main` through GitHub branch
+protection, not through local git hooks alone. Protection SHALL apply to administrators
+(`enforce_admins`) and SHALL require a pull request before merging
+(`required_pull_request_reviews`).
+
+Local hooks MAY warn earlier, but SHALL NOT be relied upon as the enforcing mechanism, because
+`git commit --no-verify` bypasses them by design.
+
+#### Scenario: An administrator attempts to push a commit straight to main
+
+- **GIVEN** branch protection on `main` has `enforce_admins` enabled and requires a pull request
+- **WHEN** a repository administrator pushes a commit directly to `main`
+- **THEN** GitHub rejects the push
+- **AND** the change can only reach `main` through a pull request that satisfies the required
+  status checks
+
+#### Scenario: The protection configuration is audited
+
+- **GIVEN** the current protection settings of `main` as JSON
+- **WHEN** `scripts/check-branch-protection.sh` evaluates them
+- **THEN** it exits zero if `enforce_admins` is enabled and `required_pull_request_reviews` is
+  present
+- **AND** it exits non-zero otherwise, naming every unmet requirement individually rather than
+  stopping at the first
+
+### Requirement: Automated artifact regeneration SHALL reach main through a pull request
+
+The freshness regeneration workflow SHALL NOT push to `main` directly. It SHALL commit to a
+dedicated branch, open a pull request and enable auto-merge, so the same required status checks
+apply to bot changes as to human ones.
+
+The workflow SHALL NOT mark these commits with `[skip ci]`. Under required status checks a
+skipped run never reports a result, which would leave the pull request permanently unmergeable.
+
+#### Scenario: Regeneration finds changed artifacts
+
+- **GIVEN** `task freshness:regenerate` produces a non-empty diff
+- **WHEN** the workflow publishes the result
+- **THEN** it pushes a branch and opens a pull request against `main`
+- **AND** it enables auto-merge on that pull request
+- **AND** no commit reaches `main` outside of that pull request
+
+#### Scenario: Regeneration finds nothing to change
+
+- **GIVEN** `task freshness:regenerate` produces no diff
+- **WHEN** the workflow evaluates the result
+- **THEN** it creates neither a branch nor a pull request
+
+### Requirement: Spec-Tests SHALL NOT mutate tracked repository files
+
+A `tests/spec/*.bats` test SHALL NOT leave the working tree in a state different from the
+one before the test ran — neither in content nor in modification time — when it invokes a
+task or script that regenerates tracked, committed output files. Where the test's purpose is
+to assert "the tracked file is up to date", it SHALL perform the regeneration into an
+untracked/tempdir location and diff against that, rather than overwriting the tracked file
+in place.
+
+#### Scenario: Freshness-style assertion regenerates into a tempdir
+
+- **GIVEN** a spec test that asserts a generated, tracked Markdown file (e.g.
+  `docs/agent-guide/maps/agents-map.md`) is up to date with its emitter
+- **WHEN** the test runs the emitter to check freshness
+- **THEN** the emitter writes its output to a tempdir path, and the test diffs that tempdir
+  output against the tracked file, without overwriting the tracked file or changing its
+  modification time
+
+#### Scenario: Regenerating in place is rejected by the spec-tracked-file-guard
+
+- **GIVEN** a spec test that calls a task wrapper (e.g. `task agent-guide:maps`) that writes
+  directly to tracked file paths under `docs/agent-guide/maps/`
+- **WHEN** the spec-tracked-file-guard runs after the spec suite in CI
+- **THEN** the guard reports the tracked files as changed (by content or mtime), flagging the
+  test as a working-tree mutator
+
+### Requirement: Spec-Tests SHALL NOT rely on a fixed sleep to synchronize with background processes
+
+A `tests/spec/*.bats` test that starts a background process (e.g. a helper HTTP server) and
+then asserts something about reachability or behavior of that process SHALL wait for the
+process's actual readiness signal (e.g. successful TCP connect to its port) with a bounded
+retry loop, instead of a single fixed `sleep` duration. A positive-anchor assertion
+(T002356-M1) that exists to prove a healthy dependency is reachable SHALL fail only because
+the dependency is genuinely unreachable — not because a fixed wait was too short under load.
+
+#### Scenario: A background HTTP server readiness wait uses active polling
+
+- **GIVEN** a spec test that starts one or more Python `http.server` instances as background
+  processes for a probe test
+- **WHEN** the test needs to wait for those servers to be ready to accept connections
+- **THEN** it polls each server's port (e.g. via `/dev/tcp/127.0.0.1/<port>`) in a bounded
+  retry loop with a short interval and an explicit timeout, rather than a single fixed
+  `sleep <N>`
+
+#### Scenario: Under artificial CPU load, the positive anchor still passes once the server is ready
+
+- **GIVEN** the same background-HTTP-server spec test running under contention (e.g. parallel
+  spec shards or synthetic load)
+- **WHEN** the test's active-wait loop is used instead of a fixed sleep
+- **THEN** the positive-anchor assertion (verifying the healthy server is reported as
+  reachable) passes once the server actually starts accepting connections, regardless of
+  scheduling delay, up to the configured timeout
+
+### Requirement: Spec tests do not mutate tracked files in the working tree
+
+No test under `tests/spec/` SHALL write to a tracked file of the working tree while running. Tests
+that need to exercise a script against modified input SHALL place that input in `$BATS_TEST_TMPDIR`
+and point the script at it through its documented overrides — for `scripts/mcp-sync.sh` these are
+`MCP_REGISTRY` and `MCP_OUT_DIR` (T002487).
+
+This is a hard requirement rather than a style preference because `task test:spec` and
+`task test:spec:changed` run bats with `-j $(nproc) --no-parallelize-within-files`: spec files
+execute in parallel, so any in-place mutation is visible to every concurrently running file that
+reads the same artifact. Restoring the file afterwards does not remove the hazard — it only narrows
+the window.
+
+#### Scenario: mcp-sync render test uses a fixture registry
+
+- **GIVEN** the spec test that asserts a `llamacpp` block on an http client makes `mcp-sync.sh render` fail
+- **WHEN** the test runs
+- **THEN** `docs/agent-guide/registry/mcp.yaml` is not modified at any point during the run
+- **AND** the assertion still holds: `mcp-sync.sh render` exits non-zero for that input
+
+#### Scenario: mcp-servers check test uses a fixture
+
+- **GIVEN** the spec test that mutates `scripts/llm/mcp-servers.json` to make `mcp-sync.sh check` fail
+- **WHEN** the test runs
+- **THEN** `scripts/llm/mcp-servers.json` is not modified at any point during the run
+
+### Requirement: Spec suite guards against in-place mutation of tracked files
+
+`task test:spec` and `task test:spec:changed` SHALL capture a snapshot of path, modification time and
+size for every tracked file immediately before invoking bats, and compare it against a second
+snapshot taken after the run. When the snapshots differ, the task SHALL fail and print the differing
+paths.
+
+The snapshot SHALL compare modification times rather than content, because a test that mutates a
+tracked file and restores it leaves the content unchanged while the modification time still records
+the write. A content- or `git status`-based check would report success for exactly the failure mode
+this guard exists to catch.
+
+A bats run that already failed SHALL keep its own exit code; the guard SHALL NOT mask it.
+
+#### Scenario: Guard fails when a spec test touches a tracked file
+
+- **GIVEN** a spec test that writes to a tracked file and restores its original content afterwards
+- **WHEN** `task test:spec` runs
+- **THEN** the task exits non-zero
+- **AND** the output names the tracked file that was touched
+
+#### Scenario: Guard stays green for a clean suite
+
+- **GIVEN** a spec suite in which no test writes to a tracked file
+- **WHEN** `task test:spec` runs
+- **THEN** the guard reports no differing paths
+- **AND** the task exit code is the bats exit code
+
+#### Scenario: Guard does not mask a failing bats run
+
+- **GIVEN** a spec suite with a genuinely failing test and no tracked-file mutation
+- **WHEN** `task test:spec` runs
+- **THEN** the task exits non-zero with the bats exit code
 
 ## Testszenarien
 
@@ -2007,4 +2362,22 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 
 <!-- merged from change delta ci-cd.md (3c9a61602ce7) -->
 
+<!-- merged from change delta ci-cd.md (1e9a07f67116) -->
+
+<!-- merged from change delta ci-cd.md (700bbc7507d7) -->
+
+<!-- merged from change delta ci-cd.md (4e849e06de49) -->
+
 <!-- merged from change delta ci-cd.md (911eddb19f4c) -->
+
+<!-- merged from change delta ci-cd.md (b838e35ed592) -->
+
+<!-- merged from change delta ci-cd.md (a38b8b2e439e) -->
+
+<!-- merged from change delta ci-cd.md (91d34647d237) -->
+
+<!-- merged from change delta ci-cd.md (416126c6027e) -->
+
+<!-- merged from change delta ci-cd.md (c9b7eee15cd1) -->
+
+<!-- merged from change delta ci-cd.md (263e2c3094c5) -->

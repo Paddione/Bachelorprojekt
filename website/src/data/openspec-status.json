@@ -2113,14 +2113,14 @@
   ],
   "T002442": [
     {
-      "slug": "zielfamilie-llm-stack",
-      "status": "plan_staged"
+      "slug": "2026-08-10-zielfamilie-llm-stack",
+      "status": "archived"
     }
   ],
   "T002443": [
     {
-      "slug": "zielfamilie-worktree-hygiene",
-      "status": "plan_staged"
+      "slug": "2026-08-10-zielfamilie-worktree-hygiene",
+      "status": "archived"
     }
   ],
   "T002445": [
@@ -2225,8 +2225,8 @@
   ],
   "T002482": [
     {
-      "slug": "gemma-kv-offload-slot-cache",
-      "status": "plan_staged"
+      "slug": "2026-08-10-gemma-kv-offload-slot-cache",
+      "status": "archived"
     }
   ],
   "T002483": [
@@ -2369,20 +2369,20 @@
   ],
   "T002570": [
     {
-      "slug": "bge-embed-routing",
-      "status": "plan_staged"
+      "slug": "2026-08-10-bge-embed-routing",
+      "status": "archived"
     }
   ],
   "T002572": [
     {
-      "slug": "bge-k8s-cpu-tuning",
-      "status": "plan_staged"
+      "slug": "2026-08-10-bge-k8s-cpu-tuning",
+      "status": "archived"
     }
   ],
   "T002577": [
     {
-      "slug": "openspec-stragglers-T002577",
-      "status": "plan_staged"
+      "slug": "2026-08-10-openspec-stragglers-T002577",
+      "status": "archived"
     }
   ],
   "T002579": [
@@ -2393,20 +2393,20 @@
   ],
   "T002580": [
     {
-      "slug": "bge-embed-oom",
-      "status": "plan_staged"
+      "slug": "2026-08-10-bge-embed-oom",
+      "status": "archived"
     }
   ],
   "T002582": [
     {
-      "slug": "factory-model-routing-fix",
-      "status": "plan_staged"
+      "slug": "2026-08-10-factory-model-routing-fix",
+      "status": "archived"
     }
   ],
   "T002584": [
     {
-      "slug": "zielfamilien-audit",
-      "status": "plan_staged"
+      "slug": "2026-08-10-zielfamilien-audit",
+      "status": "archived"
     }
   ],
   "T002587": [
@@ -2429,8 +2429,8 @@
   ],
   "T002605": [
     {
-      "slug": "fix-knowledge-ingest-zero-items-T002605",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-knowledge-ingest-zero-items-T002605",
+      "status": "archived"
     }
   ],
   "T002606": [
@@ -2453,14 +2453,14 @@
   ],
   "T002611": [
     {
-      "slug": "agentic-resource-lookup",
-      "status": "plan_staged"
+      "slug": "2026-08-10-agentic-resource-lookup",
+      "status": "archived"
     }
   ],
   "T002612": [
     {
-      "slug": "web-audit",
-      "status": "plan_staged"
+      "slug": "2026-08-10-web-audit",
+      "status": "archived"
     }
   ],
   "T002613": [
@@ -2477,20 +2477,20 @@
   ],
   "T002617": [
     {
-      "slug": "epic-lastenheft-gate",
-      "status": "plan_staged"
+      "slug": "2026-08-10-epic-lastenheft-gate",
+      "status": "archived"
     }
   ],
   "T002620": [
     {
-      "slug": "fix-watchdog-sf26-vakuos-T002620",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-watchdog-sf26-vakuos-T002620",
+      "status": "archived"
     }
   ],
   "T002622": [
     {
-      "slug": "worktree-reap",
-      "status": "plan_staged"
+      "slug": "2026-08-10-worktree-reap",
+      "status": "archived"
     }
   ],
   "T002623": [
@@ -2501,14 +2501,14 @@
   ],
   "T002624": [
     {
-      "slug": "sdlc-build-target-split",
-      "status": "plan_staged"
+      "slug": "2026-08-10-sdlc-build-target-split",
+      "status": "archived"
     }
   ],
   "T002625": [
     {
-      "slug": "e2-sdlc-local-stack",
-      "status": "plan_staged"
+      "slug": "2026-08-10-e2-sdlc-local-stack",
+      "status": "archived"
     }
   ],
   "T002626": [
@@ -2525,8 +2525,8 @@
   ],
   "T002630": [
     {
-      "slug": "cluster-dev-node-gekko2",
-      "status": "plan_staged"
+      "slug": "2026-08-10-cluster-dev-node-gekko2",
+      "status": "archived"
     }
   ],
   "T002631": [
@@ -2537,20 +2537,20 @@
   ],
   "T002638": [
     {
-      "slug": "llm-proxy-probe-auth",
-      "status": "plan_staged"
+      "slug": "2026-08-10-llm-proxy-probe-auth",
+      "status": "archived"
     }
   ],
   "T002641": [
     {
-      "slug": "plan-qa-livez-probe",
-      "status": "plan_staged"
+      "slug": "2026-08-10-plan-qa-livez-probe",
+      "status": "archived"
     }
   ],
   "T002643": [
     {
-      "slug": "cockpit-realtime-push",
-      "status": "plan_staged"
+      "slug": "2026-08-10-cockpit-realtime-push",
+      "status": "archived"
     }
   ],
   "T002644": [
@@ -2567,14 +2567,14 @@
   ],
   "T002647": [
     {
-      "slug": "feature-migrations-runner-auto-T002647",
-      "status": "plan_staged"
+      "slug": "2026-08-10-feature-migrations-runner-auto-T002647",
+      "status": "archived"
     }
   ],
   "T002648": [
     {
-      "slug": "health-goals-silent-fallbacks",
-      "status": "plan_staged"
+      "slug": "2026-08-10-health-goals-silent-fallbacks",
+      "status": "archived"
     }
   ],
   "T002651": [
@@ -2585,8 +2585,8 @@
   ],
   "T002655": [
     {
-      "slug": "sdlc-up-command",
-      "status": "plan_staged"
+      "slug": "2026-08-10-sdlc-up-command",
+      "status": "archived"
     }
   ],
   "T002657": [
@@ -2603,8 +2603,8 @@
   ],
   "T002659": [
     {
-      "slug": "openspec-embed-probe-timeout",
-      "status": "plan_staged"
+      "slug": "2026-08-10-openspec-embed-probe-timeout",
+      "status": "archived"
     }
   ],
   "T002662": [
@@ -2615,8 +2615,8 @@
   ],
   "T002663": [
     {
-      "slug": "factory-mcp-ask-key-slots",
-      "status": "plan_staged"
+      "slug": "2026-08-10-factory-mcp-ask-key-slots",
+      "status": "archived"
     }
   ],
   "T002664": [
@@ -2633,20 +2633,20 @@
   ],
   "T002669": [
     {
-      "slug": "freshness-regen-rebase-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-10-freshness-regen-rebase-guard",
+      "status": "archived"
     }
   ],
   "T002671": [
     {
-      "slug": "devflow-flow-frictions-T002671",
-      "status": "plan_staged"
+      "slug": "2026-08-10-devflow-flow-frictions-T002671",
+      "status": "archived"
     }
   ],
   "T002677": [
     {
-      "slug": "cockpit-verfuegbarkeit-realtime",
-      "status": "plan_staged"
+      "slug": "2026-08-10-cockpit-verfuegbarkeit-realtime",
+      "status": "archived"
     }
   ],
   "T002679": [
@@ -2657,14 +2657,14 @@
   ],
   "T002688": [
     {
-      "slug": "repo-cleanup-dead-paths",
-      "status": "plan_staged"
+      "slug": "2026-08-10-repo-cleanup-dead-paths",
+      "status": "archived"
     }
   ],
   "T002689": [
     {
-      "slug": "fix-korczewski-brand-db-location-T002689",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-korczewski-brand-db-location-T002689",
+      "status": "archived"
     }
   ],
   "T002699": [
@@ -2699,8 +2699,8 @@
   ],
   "T002706": [
     {
-      "slug": "flux-artifact-versioning",
-      "status": "plan_staged"
+      "slug": "2026-08-10-flux-artifact-versioning",
+      "status": "archived"
     }
   ],
   "T002708": [
@@ -2723,14 +2723,14 @@
   ],
   "T002713": [
     {
-      "slug": "find-changed-tests-empty-T002713",
-      "status": "plan_staged"
+      "slug": "2026-08-10-find-changed-tests-empty-T002713",
+      "status": "archived"
     }
   ],
   "T002714": [
     {
-      "slug": "ticket-mcp-update-fields-T002714",
-      "status": "plan_staged"
+      "slug": "2026-08-10-ticket-mcp-update-fields-T002714",
+      "status": "archived"
     }
   ],
   "T002718": [
@@ -2777,8 +2777,8 @@
   ],
   "T002731": [
     {
-      "slug": "fleet-sequence-split",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fleet-sequence-split",
+      "status": "archived"
     }
   ],
   "T002732": [
@@ -2837,14 +2837,14 @@
   ],
   "T002779": [
     {
-      "slug": "spec-test-tracked-file-isolation",
-      "status": "plan_staged"
+      "slug": "2026-08-10-spec-test-tracked-file-isolation",
+      "status": "archived"
     }
   ],
   "T002781": [
     {
-      "slug": "ticket-list-test-data-filter",
-      "status": "plan_staged"
+      "slug": "2026-08-10-ticket-list-test-data-filter",
+      "status": "archived"
     }
   ],
   "T002783": [
@@ -2867,8 +2867,8 @@
   ],
   "T002809": [
     {
-      "slug": "agent-lock-main-checkout-reclaim",
-      "status": "plan_staged"
+      "slug": "2026-08-10-agent-lock-main-checkout-reclaim",
+      "status": "archived"
     }
   ],
   "T002814": [
@@ -2879,20 +2879,20 @@
   ],
   "T002817": [
     {
-      "slug": "branch-allowlist-ssot",
-      "status": "plan_staged"
+      "slug": "2026-08-10-branch-allowlist-ssot",
+      "status": "archived"
     }
   ],
   "T002836": [
     {
-      "slug": "ci-ticketless-changes",
-      "status": "plan_staged"
+      "slug": "2026-08-10-ci-ticketless-changes",
+      "status": "archived"
     }
   ],
   "T002837": [
     {
-      "slug": "ghcr-digest-auth",
-      "status": "plan_staged"
+      "slug": "2026-08-10-ghcr-digest-auth",
+      "status": "archived"
     }
   ],
   "T002839": [
@@ -2915,26 +2915,26 @@
   ],
   "T002869": [
     {
-      "slug": "flux-webhook-tls",
-      "status": "plan_staged"
+      "slug": "2026-08-10-flux-webhook-tls",
+      "status": "archived"
     }
   ],
   "T002870": [
     {
-      "slug": "openspec-embed-collection-T002870",
-      "status": "plan_staged"
+      "slug": "2026-08-10-openspec-embed-collection-T002870",
+      "status": "archived"
     }
   ],
   "T002871": [
     {
-      "slug": "backfill-id-bats-local-red",
-      "status": "plan_staged"
+      "slug": "2026-08-10-backfill-id-bats-local-red",
+      "status": "archived"
     }
   ],
   "T002872": [
     {
-      "slug": "llm-proxy-bats-local-red",
-      "status": "plan_staged"
+      "slug": "2026-08-10-llm-proxy-bats-local-red",
+      "status": "archived"
     }
   ],
   "T002876": [
@@ -2951,8 +2951,8 @@
   ],
   "T002889": [
     {
-      "slug": "main-direct-push-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-10-main-direct-push-guard",
+      "status": "archived"
     }
   ],
   "T002894": [
@@ -2969,8 +2969,8 @@
   ],
   "T002925": [
     {
-      "slug": "sammel-bats-hygiene-T002925",
-      "status": "plan_staged"
+      "slug": "2026-08-10-sammel-bats-hygiene-T002925",
+      "status": "archived"
     }
   ],
   "T002941": [
@@ -2981,20 +2981,20 @@
   ],
   "T002999": [
     {
-      "slug": "fix-k3d-kubelet-cert-T002999",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-k3d-kubelet-cert-T002999",
+      "status": "archived"
     }
   ],
   "T003036": [
     {
-      "slug": "sdlc-login-404-root",
-      "status": "plan_staged"
+      "slug": "2026-08-10-sdlc-login-404-root",
+      "status": "archived"
     }
   ],
   "T003045": [
     {
-      "slug": "main-ci-branch-precondition",
-      "status": "plan_staged"
+      "slug": "2026-08-10-main-ci-branch-precondition",
+      "status": "archived"
     }
   ],
   "T003068": [
@@ -3011,8 +3011,8 @@
   ],
   "T003077": [
     {
-      "slug": "openspec-embed-dynamic-port",
-      "status": "plan_staged"
+      "slug": "2026-08-10-openspec-embed-dynamic-port",
+      "status": "archived"
     }
   ],
   "TBD": [

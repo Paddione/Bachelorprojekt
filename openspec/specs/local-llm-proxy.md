@@ -18,6 +18,8 @@ GPU-Belegung an genau einer Stelle entschieden werden statt in jedem Konsumenten
 
 The Node proxy (`scripts/llm-proxy/server.mjs`) SHALL be the sole listener on port 18235 and the sole LLM endpoint all local harnesses (factory orchestrator, factory phase agents, opencode, other agents) use. The legacy ad-hoc proxy (`bonsai-msg-fixup-proxy.service`) SHALL be stopped and disabled by the cutover procedure; no enabled `tickets.provider_config` or `tickets.factory_model_slots` row and no tracked agent-config surface may reference a backend port (`:8093`, `:1234`) directly.
 
+The static lint that enforces this SHALL exist as an executable test, not as a description alone: `tests/spec/local-llm-proxy/gateway-consumer-lint.bats`. Until T002582 this scenario described a lint that was never implemented, and `provider-register-bonsai.sh` carried four `:8093` literals that nothing caught.
+
 #### Scenario: Cutover replaces the legacy proxy in place
 
 - **GIVEN** the legacy systemd user unit is active on port 18235
@@ -26,9 +28,21 @@ The Node proxy (`scripts/llm-proxy/server.mjs`) SHALL be the sole listener on po
 
 #### Scenario: Static config lint blocks backend-port bypasses
 
-- **GIVEN** a tracked gateway-consumer surface (`.opencode/agent-models.jsonc`, `scripts/factory/provider-register-bonsai.sh`, `scripts/factory/route-provider.sh`, `scripts/factory/pipeline.mjs`)
+- **GIVEN** a tracked gateway-consumer surface (`.opencode/agent-models.jsonc`, `scripts/factory/provider-register-local.sh`, `scripts/factory/route-provider.sh`, `scripts/factory/pipeline.mjs`)
 - **WHEN** the spec BATS suite runs in CI
-- **THEN** any direct `:8093` or `127.0.0.1:1234` literal in those surfaces fails the test (backend URLs are only allowed inside the `tickets.llm_proxy_backends` registry seeds/migrations and explicitly marked backend-internal docs)
+- **THEN** any non-comment `:8093` or `127.0.0.1:1234` literal in those surfaces fails the test (backend URLs are only allowed inside the `tickets.llm_proxy_backends` registry seeds/migrations and explicitly marked backend-internal docs; comment lines stay exempt so retired configurations remain documentable)
+
+#### Scenario: Lint fails when a tracked surface goes missing
+
+- **GIVEN** a tracked surface file is renamed or deleted without updating the tracked set
+- **WHEN** the lint runs
+- **THEN** it fails on the missing file rather than passing vacuously over an empty candidate set
+
+#### Scenario: Taskfile never references a missing start script
+
+- **GIVEN** `Taskfile.llm.yml` names a PowerShell start script under `scripts/llm/`
+- **WHEN** the lint runs
+- **THEN** the referenced file must exist in the repository, so a task cannot advertise a start path that was never committed
 
 ### Requirement: Dynamic model discovery with availability fallback
 
@@ -925,3 +939,136 @@ bge-CPU loadout while the first runs succeeds without `exclusive_conflict`.
 - **THEN** the assertion holds without requiring any group to exist on the bge loadouts
 
 <!-- merged from change delta local-llm-proxy.md (918e9799efb5) -->
+
+### Requirement: Kontextzahl-Guard prueft einen Toleranzkorridor statt Punktgleichheit
+
+Der Guard-Test `tests/spec/local-llm-proxy/opencode-routes-via-proxy.bats` SHALL die deklarierte
+Kontextzahl eines `--fit`-Loadouts (z.B. `gemma26-factory.limit.context` in
+`.opencode/agent-models.jsonc`) gegen den LAUFENDEN Server pruefen, indem er einen Toleranzkorridor
+um den Live-Wert anlegt: `declared` muss innerhalb `[live * 0.8, live * 1.2]` liegen. Der Test SHALL
+NICHT auf Punktgleichheit pruefen, weil `--fit` den `n_ctx` zur Ladezeit aus dem zum Startzeitpunkt
+FREIEN VRAM bestimmt und dieser Betrag zwischen zwei Starts desselben Loadouts schwankt (gemessen
+88832–99840). Die statische Deklaration SHALL bestehen bleiben, weil opencode sie zur Laufzeit fuer
+Auto-Compact (fasst bei 95 % der Grenze zusammen) benoetigt.
+
+#### Scenario: Deklaration liegt im Korridor um den Live-Wert
+
+- **GIVEN** ein `gemma26-factory`-Server laeuft auf `:8091` und meldet per `/props` einen Live-`n_ctx`
+- **WHEN** der Guard-Test die deklarierte Kontextzahl (97840) mit dem Live-Wert vergleicht
+- **THEN** der Test besteht, solange `declared` innerhalb `[live * 0.8, live * 1.2]` liegt — fuer alle
+  gemessenen Live-Werte (88832, 99328, 99840)
+
+#### Scenario: n_ctx_train-Regression faellt weiterhin durch
+
+- **GIVEN** die deklarierte Kontextzahl faellt auf den Modell-Default `n_ctx_train` (262144) zurueck
+- **WHEN** der Guard-Test diesen Wert gegen den Live-Wert (~88832) prueft
+- **THEN** der Test schlaegt fehl, weil 262144 ausserhalb des ±20 %-Korridors liegt
+
+<!-- merged from change delta local-llm-proxy.md (9c1e92f4d6c6) -->
+
+<!-- merged from change delta local-llm-proxy.md (118b27dbff37) -->
+
+### Requirement: Health probe authenticates like the forwarding path
+
+The health probe SHALL carry the same credential as the request-forwarding path. When a backend
+declares an `api_key_env` and that variable resolves to a non-empty value, the probe request to
+`GET {baseUrl}/models` SHALL send `Authorization: Bearer <key>`. When a backend declares no
+`api_key_env`, the probe SHALL send no `Authorization` header, so local llama.cpp servers keep
+their current behaviour.
+
+A backend that answers the authenticated probe successfully SHALL be reported as healthy and its
+model catalogue SHALL enter discovery — the credential state of the probe MUST NOT be able to
+mark a reachable backend as dead.
+
+#### Scenario: Remote backend with a resolvable key is healthy
+
+- **GIVEN** an enabled backend of kind `openai-remote` whose `api_key_env` resolves to the value
+  the remote API accepts
+- **AND** the remote API answers `GET /v1/models` with HTTP 401 when no credential is presented
+- **WHEN** the discovery loop probes that backend
+- **THEN** the probe carries `Authorization: Bearer <key>`, the backend is reported healthy, and
+  the model ids from the response enter the discovery catalogue
+
+#### Scenario: Remote backend without a resolvable key stays unhealthy
+
+- **GIVEN** an enabled backend of kind `openai-remote` whose `api_key_env` is unset in the
+  process environment
+- **WHEN** the discovery loop probes that backend
+- **THEN** no `Authorization` header is sent, the backend is reported unhealthy, and no model ids
+  from it enter the catalogue
+
+#### Scenario: Local backend is probed without a credential
+
+- **GIVEN** an enabled backend that declares no `api_key_env`
+- **WHEN** the discovery loop probes that backend
+- **THEN** the probe request carries no `Authorization` header
+
+### Requirement: A failed probe records why it failed
+
+A probe that transitions a backend from healthy to unhealthy SHALL emit exactly one log line
+naming the backend and the reason — an HTTP status code when the backend answered, the error
+otherwise. The line SHALL NOT be repeated while the backend stays unhealthy, so interval polling
+cannot flood the journal.
+
+The rationale is diagnostic separability: an authentication failure (HTTP 401) and an
+unreachable host produce the same `healthy: false` today, which is why a misconfigured
+credential can persist unnoticed.
+
+#### Scenario: Authentication failure is distinguishable from unreachability
+
+- **GIVEN** a healthy backend whose remote API starts answering the probe with HTTP 401
+- **WHEN** the discovery loop probes it twice in a row
+- **THEN** exactly one log line is emitted, and it names the backend and the status code 401
+
+#### Scenario: A backend that stays unhealthy does not repeat its log line
+
+- **GIVEN** a backend that is already unhealthy
+- **WHEN** the discovery loop probes it again with the same failure
+- **THEN** no further log line is emitted for that backend
+
+### Requirement: Every proxy test file is registered in a runner
+
+Every `scripts/llm-proxy/*.test.mjs` file SHALL be referenced by the `test:llm-proxy` task in
+`Taskfile.yml` and by the llm-proxy step in `.github/workflows/ci.yml`. A test file that exists
+but runs in no target is not regression protection.
+
+The lists in both files are hand-maintained and therefore structurally incomplete; the guard
+below holds them against the files actually present on disk.
+
+#### Scenario: An unregistered test file fails the guard
+
+- **GIVEN** a file `scripts/llm-proxy/<name>.test.mjs` that appears in neither runner list
+- **WHEN** the guard runs
+- **THEN** it fails and names the unregistered file
+
+#### Scenario: The current tree passes the guard
+
+- **GIVEN** the repository as committed by this change
+- **WHEN** the guard runs
+- **THEN** it passes, and every test file under `scripts/llm-proxy/` is named in both runners
+
+<!-- merged from change delta local-llm-proxy.md (2d798a96683d) -->
+
+### Requirement: Local smoke-test tooling picks a deterministic, small model
+
+The BATS suite under `tests/spec/local-llm-proxy/` that launches a short-lived real
+`llama-server` process to verify UI-config seeding (`ui-config-seed.bats`) SHALL select the
+model file deterministically by size rather than by filesystem enumeration order, and SHALL
+exclude auxiliary files (`mmproj-*`, `*draft*`) from that selection, so the test's runtime does
+not depend on which model happens to be found first on disk.
+
+#### Scenario: Smallest eligible model file is chosen among multiple candidates
+
+- **GIVEN** multiple `*.gguf` files of different sizes exist under the configured model roots
+- **WHEN** the test selects a model to launch the short-lived `llama-server` with
+- **THEN** it selects the file with the smallest byte size among the eligible candidates,
+  independent of directory traversal order
+
+#### Scenario: Auxiliary model files are never selected
+
+- **GIVEN** the only `*.gguf` files present match `mmproj-*` or `*draft*`
+- **WHEN** the test selects a model to launch the short-lived `llama-server` with
+- **THEN** no candidate is selected and the caller is told none is available, rather than
+  launching `llama-server` with an auxiliary (non-primary) weight file
+
+<!-- merged from change delta local-llm-proxy.md (c626b6ff841e) -->

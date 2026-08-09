@@ -1197,6 +1197,115 @@ so CI catches the next such drift without a live database.
 - **WHEN** the offline consistency check runs
 - **THEN** it fails and names the offending sequence and file
 
+### Requirement: backfill-id BATS-Verhaltenstests laufen bei erreichbarem Cluster tatsächlich
+
+`tests/spec/ticket-system/backfill-id-sequence.bats` SHALL bei erreichbarem
+`k3d-mentolder-dev`-Cluster den unter Test stehenden Befehl (`scripts/ticket.sh backfill-id`)
+tatsächlich gegen die reale Datenbank ausführen, statt sich über den fail-closed
+BATS-Guard aus `scripts/vda/ticket/_ticket-core.sh` (T002224, Sentinel-Kontext
+`bats-no-cluster-t002224`) selbst zu blockieren.
+
+#### Scenario: Verhaltenstests opten sich explizit in echten Cluster-Zugriff ein
+
+- **GIVEN** ein Checkout mit erreichbarem `k3d-mentolder-dev`-Cluster (`cluster_running()`
+  liefert `true`)
+- **WHEN** `tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system/backfill-id-sequence.bats`
+  läuft
+- **THEN** setzt `setup()` `export TICKET_TEST_DB_OK=1`, sodass `scripts/ticket.sh backfill-id`
+  mit dem im Test übergebenen `--brand`-Kontext gegen den echten `shared-db`-Pod läuft, statt
+  gegen den nicht auflösbaren Sentinel-Kontext `bats-no-cluster-t002224`
+- **AND** alle drei Tests (`assigns an external_id`, `reports the number of rows`,
+  `an empty backfill-id run says so`) enden mit Exit-Code 0 und den dokumentierten
+  Positiv-Ankern (`^T[0-9]{6}$`, `^backfill-id: [0-9]+ Zeile`, `^backfill-id: 0 Zeilen ohne
+  external_id`)
+
+### Requirement: Ticket listings hide test data by default
+
+`scripts/ticket.sh list` SHALL exclude rows marked `is_test_data = true` from its result by
+default. It SHALL accept `--include-test-data` as an explicit opt-out that restores the
+unfiltered result. The filter SHALL apply to every other filter combination
+(`--status`, `--type`, `--attention-mode`, `--missing-id`) rather than only to the
+unfiltered call. Because `mcp__ticket-mcp__list_tickets` wraps this command, the same
+behaviour SHALL apply there, and the wrapper SHALL be able to pass the opt-out through.
+
+Single-ticket commands addressed by `external_id` — notably `get` and `triage` — SHALL NOT
+filter on `is_test_data`: a deliberately addressed test ticket must remain reachable.
+
+#### Scenario: A seeded test ticket is absent from the default listing
+
+- **GIVEN** a ticket exists with `is_test_data = true` and status `backlog`
+- **WHEN** `scripts/ticket.sh list --status backlog` runs
+- **THEN** the command SHALL exit 0 and return a JSON array
+- **AND** the array SHALL NOT contain that ticket
+
+#### Scenario: The opt-out restores the test ticket
+
+- **GIVEN** the same seeded ticket
+- **WHEN** `scripts/ticket.sh list --status backlog --include-test-data` runs
+- **THEN** the command SHALL exit 0
+- **AND** the array SHALL contain that ticket
+
+#### Scenario: A ticket addressed by id stays reachable
+
+- **GIVEN** the same seeded ticket
+- **WHEN** `scripts/ticket.sh get --id <external_id>` runs
+- **THEN** the ticket SHALL be returned
+
+### Requirement: The fixture teardown actually reaps its test data
+
+`purge_factory_test_data` in `tests/lib/factory-test-fixtures.sh` SHALL resolve the database
+pod in the namespace that actually holds it for the given context, so that a `teardown`
+calling it removes the rows it seeded. It SHALL NOT silently succeed when no pod was found.
+
+#### Scenario: Seeded fixture is gone after teardown
+
+- **GIVEN** a test seeded a ticket through `seed_test_feature`
+- **WHEN** the test file's teardown calls `purge_factory_test_data` for that brand
+- **THEN** no row with `is_test_data = true` SHALL remain for that brand
+
+#### Scenario: An unreachable database is reported, not swallowed
+
+- **GIVEN** no database pod can be resolved for the given context
+- **WHEN** `purge_factory_test_data` runs
+- **THEN** it SHALL return a non-zero status
+- **AND** it SHALL name the namespace and context it searched
+
+### Requirement: Title and Description Patch
+
+The system SHALL provide a write path (`scripts/ticket.sh update-fields` and the
+`mcp__ticket-mcp__update_fields` tool) that patches a ticket's `title` and/or `description`
+columns directly, so a title or description formulated on an unverified hypothesis stays
+correctable once root-cause verification (T002448-M5) changes the picture. The write path SHALL
+require at least one of `--title`/`--description` (or `title`/`description`/`notes` for the MCP
+tool), SHALL respect the existing ticket agent-lock guard, and SHALL support `TICKET_OFFLINE=1`
+for offline skip.
+
+#### Scenario: CLI patches the title
+
+- **GIVEN** ein Ticket mit `external_id = 'T000001'`
+- **WHEN** `scripts/ticket.sh update-fields --id T000001 --title "Neuer Titel"` läuft
+- **THEN** endet der Aufruf mit Exit-Code 0, und `title` des Tickets ist `"Neuer Titel"`
+
+#### Scenario: CLI rejects a call with no fields
+
+- **GIVEN** kein `--title`, `--description` oder `--notes` wird übergeben
+- **WHEN** `scripts/ticket.sh update-fields --id T000001` läuft
+- **THEN** endet der Aufruf mit Exit-Code 2 und einer Fehlermeldung auf stderr
+
+#### Scenario: CLI honours TICKET_OFFLINE
+
+- **GIVEN** `TICKET_OFFLINE=1` ist gesetzt
+- **WHEN** `scripts/ticket.sh update-fields --id T000001 --title "x"` läuft
+- **THEN** endet der Aufruf mit Exit-Code 0, ohne die Datenbank zu erreichen, und die Ausgabe
+  enthält `OFFLINE`
+
+#### Scenario: MCP tool schema accepts title and description
+
+- **GIVEN** der `mcp__ticket-mcp__update_fields`-Tool-Aufruf
+- **WHEN** das JSON-Schema des Tools inspiziert wird
+- **THEN** enthält es `title`, `description` und `notes` als patchbare String-Properties, passend
+  zur Tool-Beschreibung „Bulk-Patch: ändert title, description oder notes eines Tickets."
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1863,3 +1972,9 @@ than the baselined 1096 (frozen at commit `8b581ebe` per
 <!-- merged from change delta ticket-system.md (ee48e8e7fbb8) -->
 
 <!-- merged from change delta ticket-system.md (0b338b2a825e) -->
+
+<!-- merged from change delta ticket-system.md (fb9f30ac67ee) -->
+
+<!-- merged from change delta ticket-system.md (0b9b171fe0e2) -->
+
+<!-- merged from change delta ticket-system.md (207e11452e7a) -->

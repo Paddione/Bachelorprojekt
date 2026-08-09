@@ -1431,13 +1431,27 @@ unchanged (Merge = Abschluss).
 
 ### Requirement: Bonsai Provider Registration for Implement and Review
 
-`scripts/factory/provider-register-bonsai.sh` SHALL register the logical model id `ternary-bonsai` with base URL `http://127.0.0.1:18235` (the unified gateway) in `tickets.provider_config` and `tickets.factory_model_slots` — never a backend port directly. This resolves the previous contradiction with the local-llm-proxy spec ("no enabled row references :8093 or :1234").
+`scripts/factory/provider-register-local.sh` SHALL register the local chat model for implement and review in `tickets.provider_config` and `tickets.factory_model_slots`, using the unified gateway `http://127.0.0.1:18235/v1` as `base_url` — never a backend port directly. The model id SHALL be read from the environment variable `FACTORY_MODEL_ID`, defaulting to `gemma26-factory`; it SHALL NOT be a source-code literal.
 
-#### Scenario: Registration writes gateway URL
+**Renamed-to:** Local Provider Registration for Implement and Review
+
+#### Scenario: Registration writes gateway URL and configurable model id
 
 - **GIVEN** the registration script runs against a brand database
 - **WHEN** its idempotent upserts complete
-- **THEN** every row it touched has `base_url = http://127.0.0.1:18235` and `model_id = ternary-bonsai`, and re-running it never reintroduces `:8093`
+- **THEN** every row it touched has `base_url = http://127.0.0.1:18235/v1` and `model_id` equal to `FACTORY_MODEL_ID` (default `gemma26-factory`), and re-running it never reintroduces `:8093`
+
+#### Scenario: Retired model ids never reach a routing surface
+
+- **GIVEN** the routing surfaces `scripts/factory/provider-register-local.sh`, `scripts/factory/route-provider.sh` and `scripts/factory/pipeline.mjs`
+- **WHEN** the spec BATS suite runs in CI
+- **THEN** any non-comment line naming a retired model id (`ternary-bonsai-27b`, `gemma-4-12b`) fails the test, because no backend serves those ids and the proxy would silently reroute the request instead of erroring
+
+#### Scenario: Emergency fallback routes through the gateway
+
+- **GIVEN** every candidate provider for a source/tier is claimed or on cooldown
+- **WHEN** `route-provider.sh` emits its emergency fallback
+- **THEN** the emitted `baseUrl` is the gateway `http://127.0.0.1:18235` and the `modelId` is the configured local model — not an LM Studio backend port, which since T002551 serves embedding and reranking models only and therefore hosts no chat model at all
 
 ### Requirement: PR Creation Gate after Local Verify and Completed Review
 
@@ -1553,13 +1567,20 @@ zero, and offers a "Force next tick" button that posts to `/api/factory/force-ti
 
 ### Requirement: Every claimed provider slot is released on all return paths
 
-Any script that obtains a slot from `scripts/factory/route-provider.sh` SHALL release it again on
-**every** return path, including error paths. A claim increments
+Any script or program that obtains a slot from `scripts/factory/route-provider.sh` SHALL release
+it again on **every** return path, including error paths. A claim increments
 `tickets.provider_health.active_agents`; a provider whose counter reaches `max_concurrent` is
 silently skipped by the candidate chain, without any error being surfaced to the caller.
 
 Scripts that claim more than once per run SHALL NOT rely on an `EXIT` trap alone, because such a
 trap releases only the final claim.
+
+This SHALL hold for non-shell callers as well: `factory-mcp` (`scripts/factory/mcp-go/main.go`,
+Go), the MCP tool `factory_ask`'s only production caller of `route-provider.sh`, SHALL invoke
+`scripts/factory/release-slot.sh <slotId> <success> <ctx>` after every LLM request it issues,
+regardless of whether the request succeeded, failed, or the process returned early — mirroring
+the shell-caller obligation above rather than being exempt from it because the caller happens to
+be compiled Go instead of bash.
 
 #### Scenario: The triage helper releases its slot after a successful call
 
@@ -1578,6 +1599,27 @@ trap releases only the final claim.
 - **GIVEN** `tickets.provider_health.active_agents` for a provider equals its `max_concurrent`
 - **WHEN** `route-provider.sh` walks the candidate chain
 - **THEN** that provider is passed over and the next candidate is claimed instead
+
+#### Scenario: factory-mcp releases its slot after a successful factory_ask call
+
+- **GIVEN** `factory_ask` routed to a provider and holds a slot (`slotId` non-null)
+- **WHEN** the LLM chat-completion request returns successfully
+- **THEN** `scripts/factory/release-slot.sh <slotId> true <ctx>` is invoked before the tool
+  returns its answer
+
+#### Scenario: factory-mcp releases its slot after a failed factory_ask call
+
+- **GIVEN** `factory_ask` routed to a provider and holds a slot
+- **WHEN** the LLM request errors (network failure, non-2xx status, or unparsable body)
+- **THEN** `scripts/factory/release-slot.sh <slotId> false <ctx>` is invoked before the tool
+  returns its error
+
+#### Scenario: factory-mcp does not attempt to release a null slot
+
+- **GIVEN** `route-provider.sh` returned `slotId:null` (opus/emergency lookup, no claim made)
+- **WHEN** `factory_ask` completes
+- **THEN** no release call blocks the response, matching `release-slot.sh`'s own no-op for a
+  null/empty provider argument
 
 ### Requirement: Orphaned provider slots are reclaimed after a TTL
 
@@ -2675,6 +2717,222 @@ that an entry with empty scope and id remains attributable.
 - **WHEN** `bash scripts/agent-lock.sh list` runs
 - **THEN** the row for that file shows state `stale`
 - **AND** the row identifies the file as `main-checkout`
+
+### Requirement: Watchdog live tests SHALL age tickets via the staleness threshold, not updated_at backdating
+
+The trigger `tickets.fn_lifecycle_ts` unconditionally overwrites
+`NEW.updated_at := now()` on every UPDATE, so a test that backdates `updated_at` to
+fabricate a stale ticket never ages the row: the watchdog then runs against an empty
+stale list and the escalation path — status reset, slot release, audit comment,
+worktree cleanup, attempt counter — is not exercised. A test whose setup relies on
+backdating therefore cannot distinguish a working watchdog from a broken one.
+
+Live watchdog tests SHALL fabricate staleness by running `watchdog.sh` with
+`FACTORY_STALE_MIN=0` — every `in_progress` ticket is immediately due — instead of
+manipulating `updated_at`. Each such test SHALL assert a positive anchor, the seeded
+`external_id` present in the emitted JSON array, so a run whose stale list is empty
+cannot pass. Live tests SHALL set the ticket state (`pipeline_slot`, `status`) via a
+direct UPDATE rather than `slots.sh claim`, because `claim` writes the
+`pipeline_slot_meta` column that is missing in production (T002619).
+
+#### Scenario: Stale test fabricates staleness through the threshold
+
+- **GIVEN** a live test seeds an `in_progress` feature with `pipeline_slot` set and does not backdate `updated_at`
+- **WHEN** `watchdog.sh` runs for that brand with `FACTORY_STALE_MIN=0`
+- **THEN** the emitted JSON array contains the seeded `external_id`
+- **AND** the ticket's status is reset and its `pipeline_slot` released
+
+#### Scenario: An empty stale list fails the positive anchor
+
+- **GIVEN** `watchdog.sh` runs for that brand and its stale list is empty
+- **WHEN** the test asserts the seeded `external_id` appears in the JSON array
+- **THEN** the assertion fails — exit 0 with an empty array must not satisfy the test
+
+### Requirement: Session-Start Reaper removes orphaned worktrees and squash-merged branches
+
+`bash scripts/agent-lock.sh reap` SHALL remove a local worktree directory and its branch when the
+branch is provably obsolete, and SHALL preserve every worktree and branch that is not. This
+extends the existing session-start reaper, which until now only dropped stale lock files and
+pruned git worktree administrative metadata.
+
+A branch counts as obsolete only when ALL of the following hold:
+
+1. an upstream was configured for it AND the corresponding remote-tracking ref no longer exists
+   (a branch with no upstream at all SHALL NOT qualify — it may be unpushed local work),
+2. its name contains a ticket id matching `T[0-9]{6}` whose ticket status is `done` or `archived`
+   (no id in the name, or an unreadable status, SHALL disqualify the branch),
+3. if a worktree holds the branch, `git status --porcelain` in that worktree is empty,
+4. no live agent-lock claim exists for the branch.
+
+Obsolescence SHALL NOT be decided by `git branch --merged main`. Squash-merge is the repository's
+merge mode, and a squash-merged branch tip is never an ancestor of `origin/main`, so that filter
+matches no merged branch at all.
+
+Before deleting a branch, the system SHALL create the local tag `reaped/<branch>` on its tip SHA,
+so the commit remains recoverable after the branch ref is gone. Deletion SHALL use `git branch -D`
+— `git branch -d` can never succeed for a squash-merged branch.
+
+The worktree from which `reap` is currently running SHALL NEVER be a candidate for removal.
+
+Every candidate that is skipped by one of the criteria above SHALL produce one line on stderr
+naming the worktree or branch and the reason. Branches whose remote-tracking ref still exists
+SHALL produce no output.
+
+The ticket status lookup SHALL be performed only after criteria 1, 3 and 4 have passed, so that a
+normal `reap` with no obsolete candidates performs no ticket lookups at all. The lookup SHALL be
+routed through the `TICKET_SH` environment override, as `scripts/branch-reaper.sh` already does,
+so the behaviour is testable against a fixture repository without a cluster.
+
+#### Scenario: Orphaned worktree of a squash-merged branch is reaped
+
+- **GIVEN** a local branch whose name carries a ticket id with status `done`, whose upstream was
+  configured but whose remote-tracking ref is gone, held by a worktree with a clean working tree
+  and no live agent-lock claim
+- **WHEN** `bash scripts/agent-lock.sh reap` runs
+- **THEN** the worktree directory no longer exists, the branch ref is gone, the tag
+  `reaped/<branch>` points at the former tip SHA, and stderr names the reaped worktree
+
+#### Scenario: Active worktree with a live upstream survives
+
+- **GIVEN** a local branch whose remote-tracking ref still exists, held by a worktree
+- **WHEN** `bash scripts/agent-lock.sh reap` runs
+- **THEN** the worktree directory and the branch still exist, and stderr contains no line naming
+  that worktree
+
+#### Scenario: Uncommitted changes block the removal
+
+- **GIVEN** an otherwise obsolete branch whose worktree has at least one entry in
+  `git status --porcelain`
+- **WHEN** `bash scripts/agent-lock.sh reap` runs
+- **THEN** the worktree directory and the branch still exist, and stderr names the worktree with
+  the reason
+
+#### Scenario: Branch without upstream is never reaped
+
+- **GIVEN** a local branch that has no upstream configured at all, with a clean worktree and a
+  ticket status of `done`
+- **WHEN** `bash scripts/agent-lock.sh reap` runs
+- **THEN** the worktree directory and the branch still exist
+
+#### Scenario: Squash-merged branch without a worktree is reaped by the same criteria
+
+- **GIVEN** an obsolete branch as defined above that is not checked out in any worktree
+- **WHEN** `bash scripts/agent-lock.sh reap` runs
+- **THEN** the branch ref is gone and the tag `reaped/<branch>` points at its former tip SHA
+
+### Requirement: factory_ask authenticates with the routed provider's API key
+
+`factory_ask` (`scripts/factory/mcp-go/main.go`) SHALL authenticate its LLM chat-completion
+request with the credential named by the `apiKeyEnv` field of the `route-provider.sh` response
+(the environment variable holding that provider's real secret), not with a hardcoded literal.
+
+When `apiKeyEnv` is empty/null (a local, unauthenticated backend) or the named environment
+variable is itself unset, `factory_ask` SHALL fall back to
+`envOr("FACTORY_LLM_API_KEY", "lmstudio")` as the last resort, so local backends that need no
+real credential keep working and a misrouted external provider fails on an already-known,
+documented fallback value rather than silently sending an empty bearer token.
+
+#### Scenario: A local, unauthenticated route needs no real secret
+
+- **GIVEN** `route-provider.sh` returns `apiKeyEnv:null` for the llamacpp candidate
+- **WHEN** `factory_ask` builds its request
+- **THEN** the `Authorization` header carries the `FACTORY_LLM_API_KEY`/`lmstudio` fallback, not
+  an attempt to read an empty variable name
+
+#### Scenario: A routed external provider is authenticated with its real key
+
+- **GIVEN** `route-provider.sh` falls back to `deepseek` and returns
+  `apiKeyEnv:"DEEPSEEK_API_KEY_PK"`, with that environment variable set to a real secret
+- **WHEN** `factory_ask` builds its request
+- **THEN** the `Authorization` header carries the value of `DEEPSEEK_API_KEY_PK`, not the
+  literal `lmstudio`
+
+#### Scenario: A routed provider's named key variable is unset
+
+- **GIVEN** `route-provider.sh` returns `apiKeyEnv:"SOME_UNSET_VAR"` and that variable is not
+  set in the process environment
+- **WHEN** `factory_ask` builds its request
+- **THEN** it falls back to `FACTORY_LLM_API_KEY`/`lmstudio` instead of sending an empty bearer
+  token
+
+### Requirement: REQ-SF-BRAND-ROWFILTER-001 — brand selects rows, not a namespace
+
+The SDLC data path SHALL treat `brand` exclusively as a row filter on
+`tickets.tickets`. Namespace resolution for the SDLC database SHALL depend only on
+the kubectl context (`TICKET_CTX` / `FACTORY_CTX`) and SHALL NOT be derived from
+`BRAND`.
+
+`BRAND` SHALL still be validated against the allowed set (`mentolder`,
+`korczewski`) and SHALL still be resolved with the existing precedence
+(`--brand` flag > `BRAND` env > `TICKET_NS` env > default `mentolder`). An
+explicitly supplied `TICKET_NS` / `FACTORY_NS` SHALL be honoured rather than
+overwritten by a brand-derived value.
+
+This requirement covers every copy of the resolution on the data path:
+`scripts/ticket.sh`, `scripts/factory/lib.sh`, `scripts/factory/conflict-check.sh`
+and `scripts/vda/ticket/readiness-audit.sh`. Workload-facing brand-to-namespace
+mappings (deploy, promote, ingress overlays) are out of scope and SHALL remain
+unchanged.
+
+#### Scenario: korczewski resolves to the SDLC namespace
+
+- **GIVEN** the SDLC database holds rows for both brands in a single instance
+- **WHEN** a caller runs `scripts/ticket.sh --resolve-ns-only get --id T000001 --brand korczewski`
+- **THEN** the resolved namespace equals the namespace resolved for `--brand mentolder`
+- **AND** it is the SDLC stack namespace `workspace`, not `workspace-korczewski`
+
+#### Scenario: factory resolution is brand-independent
+
+- **GIVEN** `FACTORY_CTX` points at the local SDLC cluster
+- **WHEN** `BRAND=korczewski FACTORY_DRY_RESOLVE=1 scripts/factory/schedule.sh` is run
+- **THEN** the reported namespace equals the one reported for `BRAND=mentolder`
+
+#### Scenario: the conflict gate resolves to a namespace that exists
+
+- **GIVEN** `scripts/factory/conflict-check.sh` carries its own resolution copy
+- **WHEN** it is dry-resolved for either brand against the local SDLC context
+- **THEN** it reports the SDLC stack namespace
+- **AND** it does not append a `-dev` suffix for a `k3d-*` SDLC context
+
+#### Scenario: a korczewski ticket query returns rows
+
+- **GIVEN** the SDLC database contains tickets with `brand = 'korczewski'`
+- **WHEN** a caller runs `scripts/ticket.sh list --brand korczewski`
+- **THEN** the command exits 0 and returns those rows
+- **AND** rows belonging to other brands are not included
+
+### Requirement: REQ-SF-BACKLOG-FAILCLOSED-002 — brand backlog counts fail closed
+
+The factory SHALL NOT report an unreachable SDLC data path as an empty backlog.
+A backlog count SHALL either yield a numeric value with exit code 0, or fail with a
+non-zero exit code and no numeric value. Callers SHALL surface such a failure
+distinctly from a legitimately empty backlog.
+
+#### Scenario: unreachable database is not reported as zero backlog
+
+- **GIVEN** the SDLC database cannot be reached for a brand
+- **WHEN** the factory computes that brand's backlog count
+- **THEN** the count fails with a non-zero exit code
+- **AND** it does not emit `0`
+
+#### Scenario: reachable database yields a count
+
+- **GIVEN** the SDLC database is reachable
+- **WHEN** the factory computes a brand's backlog count
+- **THEN** it exits 0 and emits a non-negative integer
+
+### Requirement: REQ-SF-PODERROR-ACTIONABLE-003 — pod lookup errors name the override
+
+When a `shared-db` pod lookup fails, the error message SHALL name the namespace
+queried, the kubectl context used, and the environment variable that overrides that
+context (`TICKET_CTX` on the ticket path, `FACTORY_CTX` on the factory path).
+
+#### Scenario: error message is actionable
+
+- **GIVEN** no reachable `shared-db` pod for the resolved context
+- **WHEN** any ticket CLI command fails on the pod lookup
+- **THEN** the message names the namespace and the context
+- **AND** the message names the override variable that changes the context
 
 ## Testszenarien
 
@@ -4573,3 +4831,13 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (d81c61899c6f) -->
 
 <!-- merged from change delta software-factory.md (9f3a8acdfda1) -->
+
+<!-- merged from change delta software-factory.md (128787563f3a) -->
+
+<!-- merged from change delta software-factory.md (16af00a7b4e3) -->
+
+<!-- merged from change delta software-factory.md (5dc0580dd468) -->
+
+<!-- merged from change delta software-factory.md (7b97aa4e43fc) -->
+
+<!-- merged from change delta software-factory.md (72c937f76b68) -->

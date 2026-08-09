@@ -122,18 +122,29 @@ fi
 #   2. Contain a ticket ID (T000XXX) to prevent WIP separation from its ticket
 # Format: type/<optional-scope>-<slug>-T000XXX
 # Exemptions: main, develop, release-please--*, dependabot/*, renovate/*
+#   plus the persistent ticketless branches listed in scripts/lib/branch-allowlist.sh
+#   (SSOT, shared with pre-push and worktree-create.sh) [T002817]
 # Bypass: SKIP_BRANCH_CHECK=1 git commit ...
 if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
+  # Bedingt sourcen: fehlt die Datei, bleibt branch_is_ticketless undefiniert, die
+  # Abfrage unten ist falsch und der Guard verhaelt sich exakt wie vor T002817.
+  # Ein fehlendes SSOT kann so nie einen unerlaubten Branch durchlassen.
+  [ -f "$repo_root/scripts/lib/branch-allowlist.sh" ] \
+    && . "$repo_root/scripts/lib/branch-allowlist.sh"
   _bn="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
   if [ -n "$_bn" ]; then
     case "$_bn" in
       main|develop|master|release-please--*|dependabot/*|renovate/*) ;;
       *)
+        _exempt=0
+        if command -v branch_is_ticketless >/dev/null 2>&1 && branch_is_ticketless "$_bn"; then
+          _exempt=1
+        fi
         _has_ticket=0
         _has_type=0
         [[ "$_bn" =~ ^feature/|^fix/|^chore/|^docs/ ]] && _has_type=1
         [[ "$_bn" =~ T[0-9]{6,} ]] && _has_ticket=1
-        if [ "$_has_type" -eq 0 ] || [ "$_has_ticket" -eq 0 ]; then
+        if [ "$_exempt" -eq 0 ] && { [ "$_has_type" -eq 0 ] || [ "$_has_ticket" -eq 0 ]; }; then
           echo "✗  pre-commit: branch '$_bn' does not follow naming convention." >&2
           echo "" >&2
           # [T002375-p6] Sagen, WELCHE der beiden Bedingungen gerissen ist — die alte

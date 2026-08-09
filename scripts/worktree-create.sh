@@ -35,8 +35,10 @@ if [[ "${1:-}" == "--help" ]]; then
   cat <<'HELP'
 Usage: scripts/worktree-create.sh [--unattended] <branch> <path> [<base>]
   --unattended  Skips main-checkout and ticket-ID guards for allowlisted
-                branches (e.g. chore/mishap-incident-rollup). WT_SKIP_NAME_CHECK
-                remains available as emergency bypass for any branch.
+                branches. The allowlist lives in scripts/lib/branch-allowlist.sh
+                (shared with the pre-commit and pre-push hooks).
+                WT_SKIP_NAME_CHECK remains available as emergency bypass for any
+                branch.
   <branch>      branch name, e.g. fix/foo
   <path>        worktree path, e.g. .worktrees/foo
   <base>        base ref for NEW branch (default: origin/main)
@@ -45,8 +47,13 @@ HELP
 fi
 
 # ── --unattended (T002783) ─────────────────────────────────────────────────
+# Die Allowlist selbst steht in scripts/lib/branch-allowlist.sh — derselben Quelle,
+# die .githooks/pre-commit und .githooks/pre-push lesen [T002817]. Bedingt sourcen:
+# fehlt die Datei, bleibt branch_is_ticketless undefiniert und der Guard laesst nichts
+# durch, was er vorher blockiert haette.
 _unattended=false
-_unattended_allowlist="chore/mishap-incident-rollup"  # space-separated
+[ -f "$(dirname "${BASH_SOURCE[0]}")/lib/branch-allowlist.sh" ] \
+  && . "$(dirname "${BASH_SOURCE[0]}")/lib/branch-allowlist.sh"
 if [[ "${1:-}" == "--unattended" ]]; then
   _unattended=true
   shift
@@ -71,21 +78,21 @@ fi
 # T002409 Mishap 2 (repeat with feat/), and measured 2026-07-29:
 # 4 of 13 active worktrees had non-conforming branches.
 #
-# Why duplicated and not extracted to scripts/lib/: the pre-commit hook has no
-# dependency on a repo file today, and a missing lib file would block every commit.
-# Three drift-tests in tests/spec/divergence-guard/branch-name-guard.bats ensure
-# both implementations stay in sync.
+# Die Ausnahmeliste fuer ticketlose Branches kommt aus scripts/lib/branch-allowlist.sh
+# [T002817]. Bis dahin fuehrte dieses Skript sie selbst — und lief gegen .githooks/pre-commit
+# auseinander: chore/mishap-incident-rollup war anlegbar, aber nicht committebar. Die frueher
+# hier genannten drift-tests verglichen die statischen Muster, nicht diese Allowlist, und
+# konnten den Drift deshalb nicht sehen.
 #
-# Exemptions and patterns are literal copies from .githooks/pre-commit (lines 120-156).
+# Die uebrigen Muster (Typ-Praefixe, Exemptions) sind weiterhin literale Kopien aus
+# .githooks/pre-commit.
 if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
   _bn="${1:-}"
   if [ -n "$_bn" ]; then
-    # T002783: --unattended allowlist. Nur der explizite Branch ist freigeschaltet,
+    # T002783: --unattended schaltet die Allowlist frei. Nur exakt gelistete Branches,
     # kein Wildcard-Muster. Der Emergency-Bypass WT_SKIP_NAME_CHECK bleibt bestehen.
-    if $_unattended; then
-      for _allowed in $_unattended_allowlist; do
-        [ "$_bn" == "$_allowed" ] && _bn="" && break
-      done
+    if $_unattended && command -v branch_is_ticketless >/dev/null 2>&1; then
+      branch_is_ticketless "$_bn" && _bn=""
     fi
     case "$_bn" in
       main|develop|master|release-please--*|dependabot/*|renovate/*|"") ;;

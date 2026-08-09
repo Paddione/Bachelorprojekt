@@ -84,27 +84,42 @@ _all_spec_files() {
   [ "$sorted" = "$shuffled" ]
 }
 
-@test "T002500: die Shards sind nach @test-Anzahl balanciert (schwerster <= 1.5x leichtester)" {
-  input="$(_all_spec_files)"
-  weights=()
-  for s in 1 2 3 4; do
-    files=$(printf '%s\n' "$input" | bash "$SHARD_SH" --shard "$s" --of 4)
-    w=0
-    while IFS= read -r f; do
-      [ -n "$f" ] || continue
-      n=$(grep -c '^[[:space:]]*@test' "$REPO_ROOT/$f" 2>/dev/null || echo 0)
-      w=$((w + n))
-    done <<< "$files"
-    weights+=("$w")
-  done
-  min=${weights[0]}; max=${weights[0]}
-  for w in "${weights[@]}"; do
-    [ "$w" -lt "$min" ] && min=$w
-    [ "$w" -gt "$max" ] && max=$w
-  done
-  # Positiv-Anker: es muss ueberhaupt Gewicht geben.
-  [ "$min" -gt 0 ]
-  [ $((max * 2)) -le $((min * 3)) ]
+@test "T002500: die Shards sind nach gemessener Laufzeit balanciert (schwerster <= 1.5x leichtester) [T003026]" {
+  # Gewichtet wird seit T003026 nach gemessener Laufzeit aus
+  # tests/spec/.spec-runtime.tsv, nicht nach @test-Anzahl. Die Anzahl ist ein
+  # unzuverlaessiger Proxy: wenige lange Tests koennen mehr Zeit kosten als viele
+  # kurze. Der Vorgaenger dieses Tests mass die Anzahl und wurde durch die
+  # Umstellung rot, obwohl die Verteilung sich VERBESSERT hatte — gemessen am
+  # 2026-08-09: Laufzeit-Balance 100 %, @test-Anzahl 652..1049 (Faktor 1.61).
+  # Ein Guard, der die ersetzte Regel weiter festschreibt, meldet einen Defekt,
+  # den es nicht gibt.
+  #
+  # Geprueft wird der von --verify SELBST gemeldete Wert, nicht eine im Test
+  # nachgebaute Gewichtung: eine zweite Implementierung derselben Rechnung wuerde
+  # bei der naechsten Aenderung erneut auseinanderlaufen. Gegriffen wird ohne
+  # Zeilenanker (T002716), damit eine umformulierte Meldung den Test nicht kippt.
+  run bash -c "cd '$REPO_ROOT' && find tests/spec -name '*.bats' -type f | bash '$SHARD_SH' --verify --of 4"
+  [ "$status" -eq 0 ] || { echo "--verify schlug fehl (status=$status): $output"; false; }
+
+  # Positiv-Anker 1: es wurde ueberhaupt Gewicht verteilt. Ohne diese Pruefung
+  # liefe ein Lauf mit lauter Nullgewichten als perfekt balanciert durch.
+  local shard1_weight
+  shard1_weight=$(printf '%s\n' "$output" | grep -F 'shard 1:' | grep -oE 'Gewicht[[:space:]]+[0-9.]+' | grep -oE '[0-9.]+$')
+  [ -n "$shard1_weight" ] \
+    || { echo "--verify meldet kein Shard-Gewicht; Output: $output"; false; }
+  awk -v w="$shard1_weight" 'BEGIN { exit !(w + 0 > 0) }' \
+    || { echo "Shard 1 traegt Gewicht $shard1_weight, erwartet > 0"; false; }
+
+  # Positiv-Anker 2: die Balance-Zeile existiert. Fehlt sie, waere $balance leer
+  # und der Vergleich unten wuerde nicht messen, sondern nur nicht scheitern.
+  local balance
+  balance=$(printf '%s\n' "$output" | grep -F 'Balance' | grep -oE '[0-9]+' | head -1)
+  [ -n "$balance" ] \
+    || { echo "--verify meldet keine Balance-Zeile; Output: $output"; false; }
+
+  # Zusicherung: min/max >= 67 % ist gleichbedeutend mit schwerster <= 1.5x leichtester.
+  [ "$balance" -ge 67 ] \
+    || { echo "Laufzeit-Balance nur ${balance}% (min/max), erwartet >= 67%"; false; }
 }
 
 @test "T002500: ungueltige --shard/--of-Werte werden abgewiesen" {

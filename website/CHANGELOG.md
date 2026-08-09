@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.6...website-v1.257.7) (2026-08-09)
+
+
+### Bug Fixes
+
+* **mcp:** allow updating title and description via update-fields [T002714] ([#3915](https://github.com/Paddione/Bachelorprojekt/issues/3915)) ([ade7613](https://github.com/Paddione/Bachelorprojekt/commit/ade761344718574cdeaac91894bb2de873647081))
+
 ## [1.257.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.5...website-v1.257.6) (2026-08-09)
 
 

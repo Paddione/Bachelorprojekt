@@ -655,22 +655,45 @@ SH
 @test "T002407-M7c: mishap-rollup.sh verwendet branch-exists-Pfad (rebase statt Neu-Anlage)" {
   local script="$REPO/scripts/factory/mishap-rollup.sh"
   # Der Branch lebt dauerhaft auf dem Remote. Statt neu anlegen: checkout + rebase.
-  # [T002913] rebase laeuft mit deaktivierten Hooks (`-c core.hooksPath=/dev/null`),
-  # damit der post-commit-embed-Hook den Factory-Tick nicht haengen laesst.
-  run grep -Eq "BRANCH_EXISTS|git checkout.*BRANCH|rebase origin/main" "$script"
+  # Das Rebase-ZIEL ist seit T002914 origin/${BRANCH} statt origin/main — geprueft
+  # wird hier nur, DASS ueber einen Rebase-Pfad gearbeitet wird, nicht wohin; das
+  # Ziel sichert der eigene T002914-Guard. Die Alternation nennt deshalb beide
+  # Formen: sie an eine einzelne festzuschreiben liess diesen Test rot werden,
+  # obwohl der branch-exists-Pfad unveraendert vorhanden war.
+  run grep -Eq 'BRANCH_EXISTS|git checkout.*BRANCH|rebase .*origin/|rollup_rebase_onto_remote' "$script"
   [ "$status" -eq 0 ] || { echo "Branch-Existenz-Pfad fehlt in mishap-rollup.sh"; false; }
 }
 
-@test "T002913-M8a: mishap-rollup.sh rebased mit deaktiviertem post-commit-Hook (hooksPath=/dev/null)" {
+@test "T002913-M8a: kein Rebase in mishap-rollup.sh laeuft mit aktiven Hooks" {
   # Der post-commit-embed-Hook feuert bei JEDEM rebasierten Commit und kann am
   # Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so hing der
   # Factory-Tick stundenlang im Rollup-Rebase, hielt den Flock und blockierte alle
-  # weiteren Ticks. Beide Rebase-Aufrufe muessen den Hook deaktivieren.
+  # weiteren Ticks.
+  #
+  # Geprueft wird die EIGENSCHAFT ("kein ungesicherter Rebase"), nicht die Anzahl
+  # der Aufrufe. Die Vorgaengerfassung verlangte exakt zwei Vorkommen von
+  # `git -c core.hooksPath=/dev/null rebase`; als T002914 beide Aufrufstellen auf
+  # eine gemeinsame Funktion zusammenzog, sank die Zahl auf eins — der Guard
+  # meldete eine Verschlechterung, wo der Schutz tatsaechlich zentraler und damit
+  # schwerer zu umgehen wurde. Eine Zaehlung schreibt die Form der Implementierung
+  # fest, nicht ihre Zusicherung.
   local script="$REPO/scripts/factory/mishap-rollup.sh"
   [ -f "$script" ]
-  local count
-  count=$(grep -c 'git -c core.hooksPath=/dev/null rebase' "$script")
-  [ "$count" -eq 2 ] || { echo "erwarte 2 hooksPath-rebase-Aufrufe in mishap-rollup.sh, gefunden: $count"; false; }
+
+  # Positiv-Anker: es muss ueberhaupt einen Rebase-Aufruf geben, sonst waere die
+  # Aussage unten leer erfuellt. Das Muster MUSS die ungesicherte Form
+  # `git rebase ...` mitfinden — ein Muster, das Inhalt zwischen `git` und
+  # `rebase` verlangt, traefe nur die bereits abgesicherte Form, und beim Wegfall
+  # des Guards fiele der ANKER statt der Zusicherung (Defektbild aus T002878).
+  local rebase_calls
+  rebase_calls=$(grep -E '\bgit\b.*\brebase\b' "$script" | grep -vE '^[[:space:]]*#' || true)
+  [ -n "$rebase_calls" ] \
+    || { echo "kein git-rebase-Aufruf in mishap-rollup.sh gefunden — Anker verfehlt"; false; }
+
+  local unguarded
+  unguarded=$(printf '%s\n' "$rebase_calls" | grep -v 'core.hooksPath=/dev/null' || true)
+  [ -z "$unguarded" ] \
+    || { echo "Rebase ohne core.hooksPath=/dev/null:"; printf '%s\n' "$unguarded"; false; }
 }
 
 @test "T002407-M7d: mishap-rollup.sh hat plan-lint als Hard Gate" {

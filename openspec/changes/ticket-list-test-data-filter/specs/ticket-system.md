@@ -44,13 +44,6 @@ calling it removes the rows it seeded. It SHALL NOT silently succeed when no pod
 - **WHEN** the test file's teardown calls `purge_factory_test_data` for that brand
 - **THEN** no row with `is_test_data = true` SHALL remain for that brand
 
-#### Scenario: The purge function tolerates a schema without the optional tables
-
-- **GIVEN** a database in which an optional table referenced by the purge function is absent
-- **WHEN** `tickets.fn_purge_test_data()` runs
-- **THEN** it SHALL complete rather than abort
-- **AND** its result SHALL record that the corresponding block was skipped
-
 #### Scenario: An unreachable database is reported, not swallowed
 
 - **GIVEN** no database pod can be resolved for the given context

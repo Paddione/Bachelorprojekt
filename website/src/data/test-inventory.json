@@ -3732,6 +3732,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/update-status-id-allowlist-T002906",
+    "file": "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "studio-sessions-reorganize",
     "file": "tests/spec/studio-sessions-reorganize.bats",
     "category": "studio-sessions-reorganize",

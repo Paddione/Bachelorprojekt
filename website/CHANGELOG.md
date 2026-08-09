@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.259.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.0...website-v1.259.1) (2026-08-09)
+
+
+### Bug Fixes
+
+* **factory:** filter is_test_data in all queue read paths [T002830] ([#3957](https://github.com/Paddione/Bachelorprojekt/issues/3957)) ([f8e6c2a](https://github.com/Paddione/Bachelorprojekt/commit/f8e6c2aab79ecef1a8c0c73f3668ccfa7e4ca26e))
+* **scripts:** reclaim-main-checkout command lets a new session take over bookkeeping lock [T002809] ([#3966](https://github.com/Paddione/Bachelorprojekt/issues/3966)) ([548d527](https://github.com/Paddione/Bachelorprojekt/commit/548d527eab50103ac93c21bfcd7b8cc78e06181d))
+
 ## [1.259.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.258.2...website-v1.259.0) (2026-08-09)
 
 

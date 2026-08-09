@@ -7,24 +7,15 @@
 #   BRAND=korczewski bash scripts/factory/conflict-check.sh <new_ticket_external_id> [touched_file...]
 #
 # Environment variables:
-#   BRAND           mentolder | korczewski — sets FACTORY_NS automatically
-#   FACTORY_NS      override namespace (ignored when BRAND is set)
-#   FACTORY_CTX     kubectl context (default: fleet)
+#   BRAND           mentolder | korczewski — row filter only, NOT a namespace [T002689]
+#   FACTORY_NS      namespace of the SDLC database (default: workspace)
+#   FACTORY_CTX     kubectl context (default: k3d-mentolder-dev)
 #   FACTORY_DRY_RESOLVE  if non-empty, prints resolved ctx+ns and exits 0 (used by tests)
 #
 # Output: JSON array of conflicting ticket external_ids, or empty array [].
 # Exit 0 = no conflicts, Exit 1 = conflicts found, Exit 2 = error.
 
 set -euo pipefail
-
-# Brand → namespace map. BRAND wins over a bare FACTORY_NS default so a
-# pipeline/human cannot silently hit prod-mentolder when targeting korczewski.
-case "${BRAND:-}" in
-  mentolder)   FACTORY_NS="workspace" ;;
-  korczewski)  FACTORY_NS="workspace-korczewski" ;;
-  "")          : ;;  # no BRAND given — fall through to explicit FACTORY_NS
-  *)           echo '{"error":"unknown BRAND (use mentolder|korczewski)"}' >&2; exit 2 ;;
-esac
 
 # Warn only when the caller gave NEITHER a BRAND nor an explicit FACTORY_NS. The guard
 # must read FACTORY_NS (what pipeline.js / schedule.sh actually export) — the old
@@ -33,18 +24,17 @@ esac
 if [[ -z "${BRAND:-}" && -z "${FACTORY_NS:-}" ]]; then
   echo "WARN: no BRAND set; defaulting FACTORY_NS=workspace (mentolder/prod). Set BRAND=mentolder|korczewski to be explicit." >&2
 fi
-FACTORY_NS="${FACTORY_NS:-workspace}"
-# Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
-FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}"
 
-# If context is a dev cluster, append -dev to namespace
-if [[ "$FACTORY_CTX" == k3d-* || "$FACTORY_CTX" == *-dev ]]; then
-  if [[ "$FACTORY_NS" == "workspace" ]]; then
-    FACTORY_NS="workspace-dev"
-  elif [[ "$FACTORY_NS" == "workspace-korczewski" ]]; then
-    FACTORY_NS="workspace-korczewski-dev"
-  fi
-fi
+# [T002689] Die eigene Kopie der Aufloesung ist entfallen. Sie hielt neben der
+# Brand-Abbildung eine ZWEITE, veraltete Kontext-Suffix-Regel, der die
+# k3d-Ausnahme aus T002626 fehlte: `k3d-*` bekam unbedingt `-dev` angehaengt.
+# Damit loeste dieses Skript auch fuer den DEFAULT-Brand auf `workspace-dev`
+# auf — ein Namespace, den es nicht gibt. Das Conflict-Gate lief seit T002626
+# fuer beide Brands ins Leere. Durch das Sourcen von lib.sh erbt es jetzt die
+# eine gepflegte Aufloesung samt k3d-Ausnahme.
+# shellcheck source=scripts/factory/lib.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+factory_resolve_data_ns
 
 # Dry-resolve: print the resolved namespace and exit (used by tests).
 if [[ -n "${FACTORY_DRY_RESOLVE:-}" ]]; then

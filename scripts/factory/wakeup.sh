@@ -84,6 +84,11 @@ fi
 bash "${REPO}/scripts/agent-msg.sh" read --unread 2>/dev/null || true
 AGENT_MSG_LABEL=factory bash "${REPO}/scripts/agent-msg.sh" post "factory-tick: starting (dry_run=${DRY_RUN})" 2>/dev/null || true
 
+# [T002689] Nur Funktionsdefinitionen — lib.sh setzt weder Optionen noch
+# Variablen im Top-Level. Gebraucht fuer factory_backlog_count (Idle-Retick).
+# shellcheck source=scripts/factory/lib.sh
+source "${REPO}/scripts/factory/lib.sh"
+
 # ── factory_control helper (best-effort, per brand) ───────────────────────────
 # Runs factory_psql for BRAND=$1 in a subshell so lib.sh's `set -euo pipefail`
 # and factory_resolve's `exit 2` can never abort this tick. SQL on stdin, extra
@@ -289,15 +294,36 @@ while true; do
   fi
 
   # Check both brand backlogs; retick if either has pending work.
-  BL_M=$(BRAND=mentolder bash "${REPO}/scripts/factory/queue.sh" 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
-  BL_K=$(BRAND=korczewski bash "${REPO}/scripts/factory/queue.sh" 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
+  #
+  # [T002689/D4] Fail-closed statt "0 Backlog". Hier stand
+  #   BL_K=$(BRAND=korczewski bash .../queue.sh 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
+  # und das war doppelt defekt: queue.sh endet bei unerreichbarem Datenpfad
+  # rc=2, `jq` bekommt LEEREN Input und liefert selbst rc=0 mit leerer Ausgabe —
+  # der `|| echo 0`-Zweig feuerte also nicht einmal, die Variable blieb schlicht
+  # LEER. Der Ausfall einer ganzen Brand las sich als "nichts zu tun". Genau
+  # diese Klasse legte die korczewski-Brand am 2026-07-28 still lahm.
+  # factory_backlog_count liefert entweder eine Zahl mit rc=0 oder rc!=0 OHNE
+  # Zahl; der Ausfall wird unten sichtbar berichtet statt verrechnet.
+  BACKLOG_FAILED=()
+  BL_M="" BL_K=""
+  BL_M=$(factory_backlog_count mentolder)  || { BL_M=0; BACKLOG_FAILED+=("mentolder"); }
+  BL_K=$(factory_backlog_count korczewski) || { BL_K=0; BACKLOG_FAILED+=("korczewski"); }
   TOTAL=$(( BL_M + BL_K ))
   bash "${REPO}/scripts/factory/otel-emit.sh" metric factory.tick.queue_depth "${TOTAL}" || true
+
+  if [[ ${#BACKLOG_FAILED[@]} -gt 0 ]]; then
+    echo "wakeup.sh: WARN backlog count FAILED for: ${BACKLOG_FAILED[*]} — the SDLC data path is unreachable for those brands, their backlog is UNKNOWN (not empty). Check FACTORY_CTX/FACTORY_NS." >&2
+  fi
 
   if [[ "${TOTAL}" -gt 0 ]]; then
     echo "wakeup.sh: idle-retick — ${TOTAL} item(s) in queue (mentolder=${BL_M}, korczewski=${BL_K}), re-arming in ${RETICK_DELAY}s" >&2
     sleep "${RETICK_DELAY}"
     continue
+  fi
+
+  if [[ ${#BACKLOG_FAILED[@]} -gt 0 ]]; then
+    echo "wakeup.sh: idle-retick — exiting after tick #${TICK}, but the backlog of ${BACKLOG_FAILED[*]} could NOT be counted; 'queue empty' is NOT confirmed for those brands." >&2
+    break
   fi
 
   echo "wakeup.sh: idle-retick — queue empty after tick #${TICK}, exiting (timer handles future work)" >&2

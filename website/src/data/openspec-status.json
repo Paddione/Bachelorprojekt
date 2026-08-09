@@ -2661,6 +2661,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002689": [
+    {
+      "slug": "fix-korczewski-brand-db-location-T002689",
+      "status": "plan_staged"
+    }
+  ],
   "T002699": [
     {
       "slug": "2026-08-08-deploy-dead-node-affinity",

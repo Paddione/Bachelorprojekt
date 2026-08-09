@@ -27,14 +27,19 @@ _osr_ns() {
   # SDLC-Daten lokal. Guard und Testkoerper muessen denselben Cluster messen —
   # sonst prueft der Guard fleet (erreichbar, kein Skip) und der Test scheitert
   # am lokalen Cluster.
+  # [T002689] Die Brand geht NICHT in den Namespace ein — sie ist ein
+  # Zeilenfilter. Die Aufloesung folgt scripts/factory/lib.sh: Namespace am
+  # Kontext, k3d-Ausnahme aus T002626 (k3d-* bekommt KEIN -dev-Suffix).
   local brand="$1" ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
   if [[ -n "${FACTORY_NS:-}" ]]; then echo "$FACTORY_NS"; return 0; fi
   case "$brand" in
-    mentolder)  ns=workspace ;;
-    korczewski) ns=workspace-korczewski ;;
+    mentolder|korczewski) ns=workspace ;;
     *) return 2 ;;
   esac
-  if [[ "$ctx" == k3d-* || "$ctx" == *-dev ]]; then ns="${ns}-dev"; fi
+  case "$ctx" in
+    k3d-mentolder-dev|k3d-korczewski-dev) : ;;
+    *-dev) ns="${ns}-dev" ;;
+  esac
   echo "$ns"
 }
 

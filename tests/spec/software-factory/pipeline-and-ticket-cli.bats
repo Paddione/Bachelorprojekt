@@ -282,10 +282,19 @@ process.stdout.write(a+'/'+b)"
 # ── FA-SF-22-fixtures ───────────────────────────────────────────#
 # FA-SF-22: factory shared lib + test fixtures contract (offline assertions only).
 
-@test "FA-SF-22: lib.sh dry-resolve maps korczewski to workspace-korczewski" {
+@test "FA-SF-22: lib.sh dry-resolve is brand-independent [T002689]" {
+  # Frueher: "maps korczewski to workspace-korczewski". Die Abbildung
+  # brand->Namespace ist auf dem SDLC-Datenpfad entfallen — beide Brands liegen
+  # in derselben Datenbank, der Namespace haengt am Kontext. Positiv-Anker
+  # zuerst: mentolder liefert ueberhaupt eine Aufloesung.
+  run env BRAND=mentolder FACTORY_DRY_RESOLVE=1 bash -c 'source scripts/factory/lib.sh; factory_resolve; echo "ns=$FACTORY_NS ctx=$FACTORY_CTX"'
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"ns=workspace "* ]]
+
   run env BRAND=korczewski FACTORY_DRY_RESOLVE=1 bash -c 'source scripts/factory/lib.sh; factory_resolve; echo "ns=$FACTORY_NS ctx=$FACTORY_CTX"'
   [ "$status" -eq 0 ]
-  [[ "$output" == *"ns=workspace-korczewski"* ]]
+  [[ "$output" == *"ns=workspace "* ]]
+  [[ "$output" != *"workspace-korczewski"* ]]
 }
 
 @test "FA-SF-22: lib.sh rejects unknown BRAND" {

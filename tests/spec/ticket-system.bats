@@ -81,10 +81,38 @@
 }
 
 @test "T002280: explizites --brand gewinnt gegen widerspruechlichen Freitext" {
+  # [T002689] Die Absicht dieses Tests ist unveraendert — Freitext darf die
+  # Aufloesung nicht beeinflussen, explizites --brand gewinnt. Geaendert hat
+  # sich nur der BEOBACHTETE WERT: frueher stand hier NS=workspace-korczewski,
+  # also der Namespace. `brand` ist aber eine SPALTE in tickets.tickets, kein
+  # Ort; beide Brands liegen in derselben Datenbank, und der Namespace haengt
+  # seither allein am Kontext. Gemessen wird deshalb der ZEILENFILTER: der
+  # top-level BRAND, den ticket.sh aufloest und exportiert.
+  #
+  # Sichtbar wird er ueber den Kontrast-Check in vda/ticket/create.sh (T002280):
+  # widerspricht --brand dem top-level BRAND, bricht create mit rc=2 ab.
+
+  # POSITIV-ANKER: Der Kontrast-Check greift ueberhaupt. Ohne ihn waere die
+  # Kern-Aussage unten vakuos — sie besteht dann, weil nie etwas prueft.
+  run env BRAND=mentolder bash scripts/ticket.sh create --type bug --brand korczewski \
+    --title "irrelevant" --description "irrelevant"
+  [ "$status" -eq 2 ]
+  [[ "$output" == *"widerspricht top-level BRAND"* ]]
+
+  # KERN: derselbe Widerspruch, aber NUR im Freitext. Haette der Freitext den
+  # Zeilenfilter auf mentolder gezogen, schluege derselbe Kontrast-Check an.
+  run env -u BRAND bash scripts/ticket.sh create --type bug --brand korczewski \
+    --title "mentolder rollout notes" --description "irrelevant"
+  [[ "$output" != *"widerspricht top-level BRAND"* ]]
+  # ... und die Aufloesung ist bis zum Datenpfad durchgelaufen (BATS-Sentinel
+  # aus T002224 blockt dort, das ist der erwartete Endpunkt offline).
+  [[ "$output" == *"no shared-db pod"* ]]
+
+  # Der Namespace ist dabei brand-unabhaengig geworden.
   run bash scripts/ticket.sh --resolve-ns-only create --type bug --brand korczewski \
     --title "mentolder rollout notes" --description "irrelevant"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"NS=workspace-korczewski"* ]]
+  [ "$output" = "NS=workspace" ]
 }
 
 @test "T002280: ungueltiger --brand-Wert wird abgelehnt" {

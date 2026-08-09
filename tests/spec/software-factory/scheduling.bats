@@ -169,7 +169,10 @@ teardown() { _sf_teardown; }
   # Zustand direkt setzen statt `slots.sh claim`: dessen Subkommando schreibt
   # pipeline_slot_meta, eine Spalte, die in prod fehlt (T002619) — der Claim
   # scheiterte dort mit Exit 3, bevor der Test begann.
-  local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
+  # [T002689] Beide Brands liegen in derselben SDLC-Datenbank; die Brand ist ein
+  # Zeilenfilter, kein Namespace. seed_test_feature schreibt entsprechend nach
+  # `workspace` — eine brand-abhaengige Ableitung suchte hier ins Leere.
+  local ns="${FACTORY_NS:-workspace}"
   pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=1, status='in_progress' WHERE external_id='$ext';"
@@ -200,7 +203,10 @@ teardown() { _sf_teardown; }
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-wd-$$-b.txt")
   # Zustand direkt setzen statt `slots.sh claim` (T002619) — siehe Test oben.
-  local ns; case "$brand" in mentolder) ns=workspace ;; korczewski) ns=workspace-korczewski ;; esac
+  # [T002689] Beide Brands liegen in derselben SDLC-Datenbank; die Brand ist ein
+  # Zeilenfilter, kein Namespace. seed_test_feature schreibt entsprechend nach
+  # `workspace` — eine brand-abhaengige Ableitung suchte hier ins Leere.
+  local ns="${FACTORY_NS:-workspace}"
   pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtAc "UPDATE tickets.tickets SET pipeline_slot=1, status='in_progress' WHERE external_id='$ext';"

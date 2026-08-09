@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 861,
+      "file_count": 862,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -548,6 +548,7 @@
         "tests/spec/observability.bats",
         "tests/spec/opencode-local-model-runner.bats",
         "tests/spec/openspec-embedding.bats",
+        "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
         "tests/spec/openspec-pgvector.bats",
         "tests/spec/openspec-ticket-links-evaluation.bats",
         "tests/spec/openspec-upstream-cli.bats",
@@ -3229,7 +3230,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 684,
+      "file_count": 685,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3748,6 +3749,7 @@
         "scripts/opencode-sync-agents.sh",
         "scripts/openspec-context.sh",
         "scripts/openspec-drift-check.sh",
+        "scripts/openspec-embed-lib.sh",
         "scripts/openspec-embed-local.sh",
         "scripts/openspec-embed.mjs",
         "scripts/openspec-embed.test.mjs",

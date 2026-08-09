@@ -129,3 +129,21 @@ build_sandbox_inventory() {
   run bash -c "diff <(jq -S . '$COMMITTED') <(jq -S . '$SANDBOX')"
   [ "$status" -eq 0 ]
 }
+
+@test "T002664: inventory builder ignoriert durch .gitignore ausgeschlossene Testdateien" {
+  local stray_file="${REPO_ROOT}/tests/spec/ci-cd/stray-ignored-test-T002664.bats"
+  touch "$stray_file"
+  trap 'rm -f "$stray_file"' EXIT
+
+  # Gitignore rule for stray file
+  local gitignore="${REPO_ROOT}/.gitignore"
+  echo "tests/spec/ci-cd/stray-ignored-test-T002664.bats" >> "$gitignore"
+  trap 'git checkout -- "$gitignore"; rm -f "$stray_file"' EXIT
+
+  build_sandbox_inventory
+  run jq --arg p 'tests/spec/ci-cd/stray-ignored-test-T002664.bats' \
+    '[.[] | select(.file == $p)] | length' "$SANDBOX"
+
+  [ "$status" -eq 0 ]
+  [ "$output" -eq 0 ]
+}

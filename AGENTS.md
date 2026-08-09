@@ -17,6 +17,11 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `qwen` | `llamacpp-local/qwen3-coder-30b` (Qwen3-Coder-30B UD-IQ3_XXS, :8094) | Local work, qwen family |
 | `gemma26-primary` | `llamacpp-local/gemma26-factory`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task` |
 | `gemma26-vision` | `llamacpp-local/gemma26-factory`, `mode: primary` | Max local context (161024, measured), no subagent dispatch. **Vision-capable**: gemma26-factory loads mmproj-F16.gguf since T002753 |
+| `gptoss-primary` | `llamacpp-local/gptoss-context`, `mode: primary` | Tab-selectable primary, 105472 ctx measured (:8098) |
+| `devstral-primary` | `llamacpp-local/devstral-quality`, `mode: primary` | Tab-selectable primary, 32768 ctx, code-quality review (:8099) |
+| `gemma12-primary` | `llamacpp-local/gemma12-vision`, `mode: primary` | Tab-selectable primary, 262144 ctx measured. **Vision-capable** via mmproj-F16 (:8089) |
+| `gemma26-throughput-primary` | `llamacpp-local/gemma26-throughput`, `mode: primary` | Tab-selectable primary, 118016 ctx measured, 159-169 tok/s (:8092) |
+| `qwen-primary` | `llamacpp-local/qwen3-coder-30b`, `mode: primary` | Tab-selectable primary, 96000 ctx measured (:8094) |
 | `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries |
 | `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted |
 | `deepseek-pro` | `opencode-go/deepseek-v4-pro`, `mode: all`, write-capable | Deep analysis, complex debugging, hard refactors; tab-selectable AND task-dispatchable |

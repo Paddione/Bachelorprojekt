@@ -2,7 +2,7 @@
 title: "plan-lint-w3-prose-path — Implementation Plan"
 ticket_id: T002807
 domains: [test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

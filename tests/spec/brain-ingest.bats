@@ -8,6 +8,9 @@ setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../.." && pwd)"
   INGEST="$REPO_ROOT/scripts/brain-ingest.sh"
   TRANSFORM="$REPO_ROOT/scripts/brain-ingest-transform.sh"
+  # Phase 2b (parent MOCs, group MOCs, index.md) lives in its own script since
+  # T002679 — brain-ingest.sh would otherwise have crossed its S1 line budget.
+  MOC="$REPO_ROOT/scripts/brain-ingest-moc.sh"
   MANIFEST="$REPO_ROOT/scripts/brain/ingest-sources.yaml"
   WORK="$(mktemp -d)"
   export LM_STUDIO_URL="http://localhost:1234"
@@ -282,8 +285,15 @@ YAML
 # --- T001884: Phase 2b MOC loop covers the new groups (E1 cont.) ---
 
 @test "Phase 2b MOC loop includes health-goals and diagrams groups" {
+  # The loop moved from brain-ingest.sh to brain-ingest-moc.sh with the Phase 2b
+  # extraction (T002679). What T001884 guards is that the two groups are covered,
+  # not which file happens to hold the loop — so the assertion follows the code.
   grep -q 'for group in ssot-specs runbooks adr gotchas-footguns agent-guide-maps core-docs health-goals diagrams; do' \
-    "$INGEST" || { echo "FAIL: Phase 2b loop not extended with new groups"; return 1; }
+    "$MOC" || { echo "FAIL: Phase 2b loop not extended with new groups"; return 1; }
+  # Positiv-Anker: brain-ingest.sh must still reach that loop, otherwise the
+  # groups would be covered in a script nobody calls.
+  grep -q 'brain-ingest-moc.sh' "$INGEST" \
+    || { echo "FAIL: brain-ingest.sh no longer invokes brain-ingest-moc.sh"; return 1; }
 }
 
 @test "PR description doc-string lists health-goals and diagrams as source groups" {

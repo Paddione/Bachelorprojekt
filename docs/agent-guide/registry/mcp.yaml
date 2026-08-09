@@ -12,6 +12,24 @@
 # Transport-Implementierung; ein llamacpp-Block an einem http-Server laesst mcp-sync
 # fail-closed abbrechen. Opt-in mit Absicht: jeder Eintrag ist ein zusaetzlicher
 # Kindprozess beim Modellstart.
+#
+# HARNESS-EINTRAG ERGAENZEN (T002690): Wer bei einem bestehenden Server einen
+# WEITEREN harness.*-Eintrag hinzufuegt, muss command UND args ueber ALLE
+# harness-Eintraege desselben Servers plus die Top-Level-args angleichen —
+# sonst tauscht man nur ein rotes Gate gegen ein anderes.
+# Beobachtet in T002678 (PR #3803): fuer playwright wurde harness.claude_code
+# mit args [-y, "@playwright/mcp@latest"] ergaenzt, waehrend harness.opencode
+# dieselbe Kombination OHNE -y fuehrte. Danach war G-AGENTIC12 gruen, aber
+# G-AGENTIC14 (Parity .mcp.json <-> .opencode/opencode.jsonc fuer gemeinsame
+# Server) rot mit Wert 1; erst -y auch im opencode-Eintrag UND in den
+# Top-Level-args brachte 0.
+# Warum das vorher nie auffiel: G-AGENTIC14 vergleicht ausschliesslich Server,
+# die in BEIDEN Configs vorkommen. Ein Server in nur einer Config wird gar nicht
+# geprueft — die Divergenz schlaegt deshalb erst in dem Moment zu, in dem ein
+# zweiter Harness hinzukommt.
+# Nach jeder Aenderung: task mcp:sync, dann task mcp:check (fail-closed). Die
+# generierten Configs (.mcp.json, .opencode/opencode.jsonc, mcp_config.json,
+# scripts/llm/mcp-servers.json) nie von Hand editieren.
 clients:
   mcp-kubernetes:
     transport: http

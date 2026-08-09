@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 881,
+      "file_count": 882,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -603,6 +603,7 @@
         "tests/spec/repo-health-goals.bats",
         "tests/spec/repo-hygiene/dead-path-references.bats",
         "tests/spec/repo-hygiene/signal-gaps.bats",
+        "tests/spec/repo-hygiene/worktree-remove-generat-allowlist.bats",
         "tests/spec/repo-hygiene/worktree-stash-inspection.bats",
         "tests/spec/rustdesk-server.bats",
         "tests/spec/s1-violations-batch2.bats",

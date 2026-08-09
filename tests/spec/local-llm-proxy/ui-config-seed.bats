@@ -31,19 +31,37 @@ setup() {
   # Start llama-server CPU-only without a real heavy model if possible or small model if available
   # We test flags: --ui-config-file ${seed_path} --port ${port} --host 127.0.0.1
   # To avoid GPU VRAM collision, pass -ngl 0
-  local model_file
-  model_file="$(find ~/models/gguf /mnt/c/Users/PatrickKorczewski/.lmstudio/models -name "*.gguf" ! -name "mtp-*" 2>/dev/null | head -n 1 || true)"
-
-  if [ -z "${model_file}" ]; then
+  # T002872: deterministische Modellwahl ueber den Helper (kleinste GGUF, ohne
+  # mmproj-/draft-Nebendateien) statt `find … | head -n1` — vorher hing die
+  # Ladezeit und damit der Health-Wait-Erfolg vom Dateisystem-Cache-Zustand ab
+  # (teils zufaellig ein 12B-Modell). Das feste 10s-Budget war Testfragilitaet,
+  # kein Konfig-Drift (G-LLM03 widerlegt). Root-Cause-Analyse:
+  # openspec/changes/llm-proxy-bats-local-red/design.md
+  local model_file helper
+  helper="${REPO_ROOT}/tests/spec/local-llm-proxy/lib/pick-small-model.sh"
+  # shellcheck source=/dev/null
+  source "${helper}"
+  if ! model_file="$(pick_small_test_model ~/models/gguf /mnt/c/Users/PatrickKorczewski/.lmstudio/models)"; then
     skip "No GGUF model file found to launch short-lived llama-server"
   fi
 
   "${bin}" -m "${model_file}" --port "${port}" --host 127.0.0.1 -ngl 0 -c 512 --ui-config-file "${seed_path}" >/dev/null 2>&1 &
   local server_pid=$!
 
-  # Wait for server to respond on /props or /health
-  local healthy=0
-  for _ in $(seq 1 40); do
+  # Wait for server to respond on /props or /health.
+  # T002872: Das Wartebudget skaliert mit der Modellgroesse — grosse Modelle
+  # brauchen mehr Zeit als die alten fixen 40 Loops (10s), kleine laden schneller:
+  # loops = 40 + (size_mib / 200), gedeckelt auf 240 (60s bei 0.25s-Intervall).
+  local size_bytes size_mib loops healthy=0
+  if command -v stat >/dev/null 2>&1 && stat --version >/dev/null 2>&1; then
+    size_bytes="$(stat -c%s "${model_file}" 2>/dev/null || true)"
+  else
+    size_bytes="$(wc -c < "${model_file}" 2>/dev/null || true)"
+  fi
+  size_mib=$(( (size_bytes + 1048575) / 1048576 ))
+  loops=$(( 40 + size_mib / 200 ))
+  [[ ${loops} -gt 240 ]] && loops=240
+  for _ in $(seq 1 "${loops}"); do
     if curl -sf "http://127.0.0.1:${port}/health" >/dev/null 2>&1; then
       healthy=1
       break

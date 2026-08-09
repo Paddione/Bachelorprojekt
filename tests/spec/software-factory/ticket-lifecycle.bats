@@ -576,40 +576,47 @@ SH
   [ "$output" -ge 4 ] || { echo "zu wenige Fallback-Meldungen in pipeline.js: $output"; false; }
 }
 
-@test "T002327: das Hold-Gate aus T002272 bleibt unangetastet (queue.sh unveraendert)" {
-  # Verglichen werden die BLOB-HASHES an beiden Revisionen, nicht per `git diff`.
-  # [T002519]
+@test "T002327: das Hold-Gate aus T002272 bleibt unangetastet (queue.sh)" {
+  # Pruefmodus: Source-Grep. Ausnahme nach der Test-Resultats-Konvention
+  # [T002448-M4] — die geschuetzte Eigenschaft ist eine WHERE-Klausel in einem
+  # SQL-Heredoc. Sie zur Laufzeit zu messen verlangte eine bespielte Ticket-DB;
+  # das Ergebnis manifestiert sich ausschliesslich im Quelltext.
   #
-  # Vorher: `git diff --exit-code origin/main -- scripts/factory/queue.sh`. Zwei
-  # Fehler in einer Zeile:
-  #   1. `git diff <commit> -- <pfad>` vergleicht den Commit gegen den
-  #      ARBEITSBAUM, nicht gegen HEAD — jede Verunreinigung durch einen
-  #      nebenlaeufigen Test faellt dem Guard zur Last.
-  #   2. `[ "$status" -eq 0 ]` unterscheidet nicht zwischen "Diff nicht leer" und
-  #      "git-Kommando fehlgeschlagen". Beides ergab dieselbe Meldung.
+  # Vorgeschichte, zwei aufgegebene Formen:
+  #   1. `git diff --exit-code origin/main -- scripts/factory/queue.sh` verglich
+  #      gegen den ARBEITSBAUM statt gegen HEAD, und `[ "$status" -eq 0 ]`
+  #      konnte "Diff nicht leer" nicht von "git-Kommando fehlgeschlagen"
+  #      unterscheiden. Auf dem depth-1-Checkout in CI trat der zweite Fall ein
+  #      und faerbte main rot, ohne dass queue.sh sich geaendert hatte [T002519].
+  #   2. Der Blob-Hash-Vergleich behob (1), fror aber die GANZE Datei ein. Der
+  #      Guard heisst "das Hold-Gate bleibt unangetastet" und pruefte
+  #      "queue.sh bleibt byteidentisch" — zwei verschiedene Aussagen. T002830
+  #      musste einen is_test_data-Filter ergaenzen, der das Hold-Gate
+  #      nachweislich nicht beruehrt, und fiel trotzdem durch. Ein Guard, der
+  #      jede legitime Aenderung blockiert, wird umgangen statt befolgt.
   #
-  # Auf dem depth-1-Checkout in CI (actions/checkout + `git fetch --depth=1
-  # origin main`) trat der zweite Fall ein: der Test war auf main reproduzierbar
-  # rot (zwei unabhaengige Laeufe), waehrend queue.sh nachweislich seit #3527
-  # unveraendert und zwischen den beteiligten SHAs identisch war — und die
-  # gesamte Shard-Menge lokal gruen durchlief, ohne queue.sh anzufassen.
-  #
-  # Blob-Hashes brauchen nur die beiden Baeume (in einem --depth=1-Fetch
-  # vorhanden), nie eine Merge-Base, und ignorieren den Arbeitsbaum.
-  local path="scripts/factory/queue.sh" ref_blob head_blob
-  ref_blob="$(cd "$REPO" && git rev-parse "origin/main:$path" 2>&1)" || {
-    skip "origin/main:$path nicht aufloesbar ($ref_blob) — kein Urteil moeglich"
-  }
-  head_blob="$(cd "$REPO" && git rev-parse "HEAD:$path" 2>&1)" || {
-    echo "HEAD:$path nicht aufloesbar: $head_blob" >&2; return 1
-  }
-  [ "$head_blob" = "$ref_blob" ] || {
-    echo "queue.sh wurde veraendert — das Hold-Gate ist tabu" >&2
-    echo "  origin/main: $ref_blob" >&2
-    echo "  HEAD:        $head_blob" >&2
-    (cd "$REPO" && git diff "origin/main" HEAD -- "$path" | head -40) >&2
-    return 1
-  }
+  # Jetzt geprueft wird die Invariante selbst: die Gates, die verhindern, dass
+  # der Dispatcher zurueckgehaltene Tickets aufgreift.
+  local q="$REPO/scripts/factory/queue.sh"
+
+  # Positiv-Anker [T002356-M1]: ohne ihn liefe jeder grep auf einer fehlenden
+  # oder kaputten Datei ins Leere und der Test bestuende vakuos.
+  [ -f "$q" ] || { echo "queue.sh fehlt: $q" >&2; return 1; }
+  run bash -n "$q"
+  [ "$status" -eq 0 ] || { echo "queue.sh ist syntaktisch kaputt: $output" >&2; false; }
+
+  # execution_released: stage-plan --hold setzt es auf false. Genau ein
+  # Vorkommen — in der plan_staged-Lane.
+  run grep -c "readiness->>'execution_released'" "$q"
+  [ "$output" -ge 1 ] || {
+    echo "Hold-Gate entfernt: keine execution_released-Klausel in queue.sh" >&2; false; }
+
+  # factory_excluded: gilt in BEIDEN Lanes (feature-backlog und plan_staged).
+  # Faellt eine weg, dispatcht sich ein ausgeschlossenes Ticket wieder selbst —
+  # genau der Regress, den der Kommentar in queue.sh zu T002329 beschreibt.
+  run grep -c "readiness->>'factory_excluded'" "$q"
+  [ "$output" -ge 2 ] || {
+    echo "factory_excluded-Gate unvollstaendig: $output von 2 Lanes" >&2; false; }
 }
 
 # ── [T002407-M7] Container-Lifecycle: plan_staged, Recycling, Treiber-Idempotenz ──#

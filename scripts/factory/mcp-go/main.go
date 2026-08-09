@@ -373,8 +373,8 @@ func toolFactoryStatus() (string, bool, error) {
 		return "", false, err
 	}
 	lockHeld = strings.TrimSpace(lockHeld)
-	backlog := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='backlog'")
-	planStaged := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='plan_staged'")
+	backlog := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='backlog' AND is_test_data = false")
+	planStaged := psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='plan_staged' AND is_test_data = false")
 	out := map[string]any{
 		"backlog":      backlog,
 		"plan_staged":  planStaged,
@@ -385,7 +385,7 @@ func toolFactoryStatus() (string, bool, error) {
 }
 
 func toolFactoryQueue() (string, bool, error) {
-	sql := `SELECT COALESCE(json_agg(row_to_json(q)), '[]') FROM (SELECT external_id, title, priority, status FROM tickets.tickets WHERE status IN ('backlog','plan_staged') ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 ELSE 3 END, created_at) q;`
+	sql := `SELECT COALESCE(json_agg(row_to_json(q)), '[]') FROM (SELECT external_id, title, priority, status FROM tickets.tickets WHERE status IN ('backlog','plan_staged') AND is_test_data = false ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 ELSE 3 END, created_at) q;`
 	return psqlJSON(sql), false, nil
 }
 

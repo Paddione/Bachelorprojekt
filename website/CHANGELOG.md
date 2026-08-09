@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.9...website-v1.257.10) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** treat unparsable lock as dead — reap + guard + list [T002702] ([#3933](https://github.com/Paddione/Bachelorprojekt/issues/3933)) ([f1b5101](https://github.com/Paddione/Bachelorprojekt/commit/f1b5101408a494ed04f1c0dc1de72cf64996c84f))
+
 ## [1.257.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.8...website-v1.257.9) (2026-08-09)
 
 

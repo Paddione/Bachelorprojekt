@@ -106,8 +106,21 @@ spec:
             - "8192"
             - "-ub"
             - "8192"
+            # T002835: -np 4 -> 2. Der Speicherbedarf skaliert mit -np x -ub;
+            # vier Slots erzeugten die Peaks, die T002580 durch ein hoeheres
+            # Limit aufzufangen versuchte. Durchsatz kosten sie nichts: bei
+            # limits.cpu 2000m / -t 2 stehen hinter vier Slots nur zwei
+            # Threads. Gemessen am 2026-08-09: CPU 1977m von 2000m (99 %) —
+            # die Parallelitaet wartet auf Kerne, die es nicht gibt.
+            #
+            # -ub bleibt bei 8192 und ist KEIN Stellhebel: bge-m3 ist
+            # nicht-kausal (XLM-RoBERTa), llama.cpp kann eine solche Sequenz
+            # nicht ueber mehrere physische Batches aufteilen. Jeder Input
+            # laenger als -ub scheitert mit "input is too large to process"
+            # (T002260) — eine Senkung braeche lange Texte still, waehrend
+            # Kurztext-Smoke-Tests gruen blieben.
             - "-np"
-            - "4"
+            - "2"
             # T002661: -t MUSS zur CPU-Quota passen. Ohne das Flag waehlt
             # llama.cpp nproc — im Container 8 (der Node hat 8 Kerne, cgroup
             # maskiert nproc nicht), waehrend limits.cpu 2000m nur 2 Kerne
@@ -132,13 +145,16 @@ spec:
               memory: "1Gi"
               cpu: "1000m"
             limits:
-              # T002580: limits.memory 2Gi -> 3Gi. Gemessener Peak-RSS unter
-              # 64er-Embedding-Batch-Last: ~1.94Gi (kubectl top pod, 2026-08-03),
-              # stabil auch bei 96 Requests mit langen Texten. 2Gi liess nur
-              # ~60Mi Headroom -> OOMKilled-Restart-Schleife (9 Restarts in 6h).
-              # 3Gi = Peak + ~1Gi Headroom; -np 4 -ub 8192 bleibt erhalten
-              # (Durchsatz fuer den T002572-Benchmark). Guard: llm-pipeline.bats.
-              memory: "3Gi"
+              # T002835: limits.memory 3Gi -> 4Gi. T002580 hob 2Gi -> 3Gi auf
+              # Basis eines Peak-RSS von ~1.94Gi (2026-08-03) und liess -np 4
+              # -ub 8192 stehen. Das reichte nicht: gemessen am 2026-08-09
+              # 2647Mi von 3072Mi (86 %) und 6 OOMKills in 11h, letzter
+              # exitCode 137 am 2026-08-08 18:22. Der Fix hat zwei Haelften —
+              # das Limit gibt Kopfraum ueber dem realen Peak, die gesenkte
+              # Parallelitaet (-np 2, oben) nimmt den Peaks die Ursache.
+              # Ohne die zweite Haelfte verschoebe sich die Grenze nur.
+              # Guard: llm-pipeline.bats.
+              memory: "4Gi"
               cpu: "2000m"
           readinessProbe:
             httpGet:

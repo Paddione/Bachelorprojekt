@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - '.github/workflows/build-docs.yml'
       - 'scripts/build-docs.mjs'
       - 'scripts/docs-gen/**'
       - 'scripts/docs.Dockerfile'

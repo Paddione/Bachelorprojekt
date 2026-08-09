@@ -767,15 +767,30 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   }
 }
 
-@test "T002158-B: freshness-regen prueft den Regen-Diff auf website/-Pfade" {
+@test "T002158-B: freshness-regen unterdrueckt CI ueberhaupt nicht mehr (T002889)" {
   local wf="$REPO_ROOT/.github/workflows/freshness-regen.yml"
-  grep -q '\^website/' "$wf" || {
-    echo "FAIL: kein am Zeilenanfang verankerter website/-Check im Commit-Step."
-    echo "      Erwartet: git diff --cached --name-only | grep -q '^website/' —"
-    echo "      steuert, ob [skip ci] angehaengt wird. Der Anker verhindert, dass"
-    echo "      z.B. docs/website-notes.md faelschlich als Website-Artefakt zaehlt."
-    return 1
-  }
+  # ABGELOEST: Dieser Test prueft seit T002889 die Nachfolge-Eigenschaft.
+  #
+  # Urspruenglich verlangte er den am Zeilenanfang verankerten '^website/'-Check
+  # im Commit-Step, der steuerte, OB [skip ci] angehaengt wird. T002889 hat den
+  # Bot vom Direkt-Push auf einen Auto-Merge-PR umgestellt und [skip ci] dabei
+  # vollstaendig entfernt — unter Required Status Checks meldet ein
+  # uebersprungener Lauf nie ein Ergebnis, der PR bliebe unbegrenzt offen.
+  #
+  # Damit ist das Anliegen von T002158 nicht entfallen, sondern staerker erfuellt:
+  # wo gar nichts mehr uebersprungen wird, kann der Website-Build auch nicht mehr
+  # faelschlich unterdrueckt werden. Der alte Test verteidigte das Mittel; dieser
+  # verteidigt den Zweck. Kommentarzeilen sind ausgenommen, damit diese
+  # Begruendung nicht ihre eigene Assertion verletzt.
+  #
+  # Positiv-Anker (T002356-M1): der Workflow existiert und committet ueberhaupt.
+  [ -f "$wf" ]
+  run bash -c "grep -c 'git commit' '$wf'"
+  [ "$status" -eq 0 ]
+  [ "$output" -gt 0 ]
+
+  run bash -c "grep -v '^[[:space:]]*#' '$wf' | grep -cF '[skip ci]' || true"
+  [ "$output" -eq 0 ]
 }
 
 # ── T002161: Renovate lief seit Einfuehrung nie (5/5 Cron-Runs failure).

@@ -828,8 +828,17 @@ tasks:
         GUARD_SNAP="$(mktemp)"
         bash scripts/spec-tracked-file-guard.sh snapshot "$GUARD_SNAP"
 
+        # [T003025] BATS_JUNIT_DIR schaltet den junit-Report an (CI laedt ihn als
+        # Artifakt hoch, scripts/spec-junit-weights.sh macht daraus die
+        # Laufzeit-Gewichte fuer spec-shard.sh). Ohne die Variable: exakt wie vorher.
+        BATS_EXTRA_ARGS=()
+        if [ -n "${BATS_JUNIT_DIR:-}" ]; then
+          mkdir -p "$BATS_JUNIT_DIR"
+          BATS_EXTRA_ARGS+=(--report-formatter junit -o "$BATS_JUNIT_DIR")
+        fi
+
         set +e
-        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $FILES
+        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $FILES
         BATS_STATUS=$?
         bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
         GUARD_STATUS=$?
@@ -844,6 +853,29 @@ tasks:
         if [ "$GUARD_STATUS" -ne 0 ]; then
           echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
         fi
+        exit 0
+
+  test:spec:timing:
+    desc: "Run the full offline-safe spec suite and write tests/spec/.spec-runtime.tsv (measured seconds per file) — the runtime weights for spec-shard.sh. [T003025] Am besten auf einem CI-gleichen Host (kein Live-Cluster/keine DB), damit die Gewichte die CI-Realitaet abbilden. CI-Alternative: junit-Artifakte aus ci.yml herunterladen und scripts/spec-junit-weights.sh darauf laufen lassen."
+    cmds:
+      - task: test:spec:build-mcp-runner
+      - |
+        FILES=$(find tests/spec -name '*.bats' -type f | LC_ALL=C sort)
+        if [ "$(printf '%s' "$FILES" | grep -c .)" -eq 0 ]; then
+          echo "test:spec:timing: FEHLER — keine Spec-Dateien gefunden" >&2
+          exit 1
+        fi
+        REPORT_DIR="$(mktemp -d)"
+        echo "→ Full spec suite mit junit-Report ($(printf '%s' "$FILES" | grep -c .) Dateien) — kann >10 min dauern"
+        set +e
+        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files --report-formatter junit -o "$REPORT_DIR" $FILES
+        BATS_STATUS=$?
+        set -e
+        bash scripts/spec-junit-weights.sh "$REPORT_DIR"/report.xml --to tests/spec/.spec-runtime.tsv
+        rm -rf "$REPORT_DIR"
+        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
+        echo "→ tests/spec/.spec-runtime.tsv geschrieben — Balance pruefen:"
+        find tests/spec -name '*.bats' -type f | bash scripts/spec-shard.sh --verify --of 4 | tail -8
         exit 0
 
   test:spec:changed:
@@ -887,8 +919,15 @@ tasks:
         GUARD_SNAP="$(mktemp)"
         bash scripts/spec-tracked-file-guard.sh snapshot "$GUARD_SNAP"
 
+        # [T003025] junit-Report wie in test:spec (siehe dort).
+        BATS_EXTRA_ARGS=()
+        if [ -n "${BATS_JUNIT_DIR:-}" ]; then
+          mkdir -p "$BATS_JUNIT_DIR"
+          BATS_EXTRA_ARGS+=(--report-formatter junit -o "$BATS_JUNIT_DIR")
+        fi
+
         set +e
-        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $CHANGED_FILES
+        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $CHANGED_FILES
         BATS_STATUS=$?
         bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
         GUARD_STATUS=$?

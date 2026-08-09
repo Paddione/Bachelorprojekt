@@ -2574,6 +2574,12 @@
     "kind": "shell"
   },
   {
+    "id": "flux-render-security/bootstrap-envsubst",
+    "file": "tests/spec/flux-render-security/bootstrap-envsubst.bats",
+    "category": "flux-render-security",
+    "kind": "shell"
+  },
+  {
     "id": "flux-render-security/immutable-image-refs",
     "file": "tests/spec/flux-render-security/immutable-image-refs.bats",
     "category": "flux-render-security",

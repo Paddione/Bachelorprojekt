@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.3...website-v1.259.4) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** enforce branch protection via PR-based freshness bot [T002889] ([#3963](https://github.com/Paddione/Bachelorprojekt/issues/3963)) ([b20080d](https://github.com/Paddione/Bachelorprojekt/commit/b20080d890de7f9e85c92e429ccb8b209eeb8e8e))
+
 ## [1.259.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.2...website-v1.259.3) (2026-08-09)
 
 

@@ -115,21 +115,20 @@ done
 
 # Manifest schreiben: nur Dateien MIT Messwert. Ohne Eintrag faellt spec-shard.sh
 # deterministisch auf die @test-Anzahl zurueck.
-MISSING=0
 OUT_TSV=$(
   for p in "${PATHS[@]}"; do
     if [ -n "${SECS["$p"]:-}" ]; then
       printf '%.3f\t%s\n' "${SECS["$p"]}" "$p"
     else
-      MISSING=$((MISSING + 1))
       echo "spec-junit-weights: keine Messung fuer $p — faellt auf @test-Anzahl zurueck" >&2
     fi
   done | LC_ALL=C sort -k2,2
 )
 
+MEASURED=$(printf '%s\n' "$OUT_TSV" | grep -c .)
 if [ -n "$OUT" ]; then
   printf '%s\n' "$OUT_TSV" > "$OUT"
-  echo "spec-junit-weights: $OUT geschrieben ($(printf '%s\n' "$OUT_TSV" | grep -c .) von ${#PATHS[@]} Dateien gemessen, $MISSING ohne Messung)" >&2
+  echo "spec-junit-weights: $OUT geschrieben ($MEASURED von ${#PATHS[@]} Dateien gemessen, $(( ${#PATHS[@]} - MEASURED )) ohne Messung)" >&2
 else
   printf '%s\n' "$OUT_TSV"
 fi

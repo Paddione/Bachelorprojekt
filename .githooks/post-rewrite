@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# post-rewrite: Laeuft nach git rebase / git commit --amend.
+#
+# Regeneriert openspec-status.json nach Rebase, weil die darin hartkodierten
+# Commit-SHAs durch den Rewrite obsolet werden. Ohne diesen Hook fuehrt jeder
+# Rebase auf einem Feature-Branch zu einem stale artefakt, das erst in CI
+# (freshness:check) auffaellt und den Merge blockiert.
+#
+# Die Regeneration ist absichtlich kein Commit — der naechste pre-push meldet
+# ein dirty working tree, und der Entwickler committed es bewusst. Das ist
+# sicherer als ein unsichtbarer Auto-Commit im Hook.
+set -euo pipefail
+
+# Nur bei rebase (nicht bei amend) — amend aendert keine SHAs anderer Commits.
+# Die stdin enthaelt die Liste der umgeschriebenen Commits (old new).
+is_rebase=false
+while IFS=' ' read -r old new; do
+  [[ -n "$old" && -n "$new" ]] && is_rebase=true
+done
+
+if ! $is_rebase; then
+  exit 0
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[[ -z "$REPO_ROOT" ]] && exit 0
+
+STATUS_MAP="$REPO_ROOT/website/src/data/openspec-status.json"
+SCRIPT="$REPO_ROOT/scripts/openspec-status-map.sh"
+
+if [[ -x "$SCRIPT" && -f "$STATUS_MAP" ]]; then
+  echo "post-rewrite: regenerating openspec-status.json (SHAs changed after rebase)"
+  if bash "$SCRIPT" 2>/dev/null; then
+    echo "post-rewrite: openspec-status.json regenerated — commit before pushing"
+  else
+    echo "post-rewrite: WARNING — openspec-status-map.sh failed (non-fatal)" >&2
+  fi
+fi

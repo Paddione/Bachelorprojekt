@@ -2975,8 +2975,8 @@
   ],
   "T002941": [
     {
-      "slug": "mcp-config-mutation-race",
-      "status": "plan_staged"
+      "slug": "2026-08-10-mcp-config-mutation-race",
+      "status": "archived"
     }
   ],
   "T002999": [
@@ -3005,8 +3005,8 @@
   ],
   "T003075": [
     {
-      "slug": "freshness-gate-artifacts",
-      "status": "plan_staged"
+      "slug": "2026-08-10-freshness-gate-artifacts",
+      "status": "archived"
     }
   ],
   "T003077": [

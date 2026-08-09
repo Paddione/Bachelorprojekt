@@ -2,7 +2,7 @@
 title: "freshness-gate-artifacts — Implementation Plan"
 ticket_id: T003075
 domains: [git-workflow, ci-cd]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

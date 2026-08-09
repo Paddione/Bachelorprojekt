@@ -48,16 +48,16 @@ purge_factory_test_data() {
     *) echo "purge_factory_test_data: unknown brand $brand" >&2; return 2 ;;
   esac
 
-  # If context is a dev cluster, append -dev to namespace
-  if [[ "$ctx" == k3d-* || "$ctx" == *-dev ]]; then
-    if [[ "$ns" == "workspace" ]]; then
-      ns="workspace-dev"
-    elif [[ "$ns" == "workspace-korczewski" ]]; then
-      ns="workspace-korczewski-dev"
-    fi
-  fi
-  local pod
-  pod=$(kubectl get pod -n "$ns" --context "$ctx" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name 2>/dev/null | head -1)
+  # Resolve namespace by searching in likely candidates, not by guessing from the
+  # context name. The k3d dev cluster runs shared-db in 'workspace', not
+  # 'workspace-dev' — the old hardcoded -dev suffix was wrong. [T002781]
+  local pod candidate_ns
+  for candidate_ns in "$ns" "${ns}-dev"; do
+    pod=$(kubectl get pod -n "$candidate_ns" --context "$ctx" \
+      -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
+      -o name 2>/dev/null | head -1)
+    [[ -n "$pod" ]] && { ns="$candidate_ns"; break; }
+  done
   [[ -z "$pod" ]] && { echo "no shared-db pod in $ns" >&2; return 1; }
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
     psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null

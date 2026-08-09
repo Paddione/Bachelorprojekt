@@ -2997,6 +2997,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003077": [
+    {
+      "slug": "openspec-embed-dynamic-port",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

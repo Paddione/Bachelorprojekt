@@ -3318,6 +3318,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-embedding/dynamic-port-T003077",
+    "file": "tests/spec/openspec-embedding/dynamic-port-T003077.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-embedding/port-forward-identity-T002870",
     "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
     "category": "openspec-embedding",

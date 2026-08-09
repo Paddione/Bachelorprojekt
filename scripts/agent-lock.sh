@@ -106,15 +106,37 @@ _branch_is_live_claimed() {
 }
 
 _reap_log() {  # <lock-file> <reason>
-  printf '%s %s/%s %s\n' "$(_now)" \
-    "$(_lock_field "$1" scope)" "$(_lock_field "$1" id)" "$2" \
-    >> "$(_lock_dir)/.reap.log" 2>/dev/null || true
+  local _sc _id _what
+  _sc="$(_lock_field "$1" scope)"; _id="$(_lock_field "$1" id)"
+  # [T002702] Fallback auf den Basename, wenn WEDER scope NOCH id gesetzt sind.
+  if [ -z "$_sc" ] && [ -z "$_id" ]; then
+    _what="$(basename "$1" .json)"
+  else
+    _what="$_sc/$_id"
+  fi
+  printf '%s %s %s\n' "$(_now)" "$_what" "$2" >> "$(_lock_dir)/.reap.log" 2>/dev/null || true
+}
+
+# Identitätsfelder: trägt ein Lock keines davon, benennt er keinen Halter.
+_AGENT_LOCK_IDENTITY_FIELDS="owner_sid owner_pid worktree branch created_at heartbeat_at"
+
+# 0 = die Datei trägt keinen auswertbaren Inhalt (leer / kein gültiges JSON /
+# gültiges JSON ohne jedes Identitätsfeld).
+_unparsable_lock() {  # <lock-file>
+  local f="$1" _fld
+  [ -s "$f" ] || return 0                      # Groesse 0 — der gemeldete Fall, kostenlos geprueft
+  for _fld in $_AGENT_LOCK_IDENTITY_FIELDS; do
+    [ -n "$(_lock_field "$f" "$_fld")" ] && return 1
+  done
+  return 0
 }
 
 # 0 = reapable (clearly dead). Confirmed-alive SID/live-PID/worktree-match NEVER reapable.
 _reapable() {
   local f="$1" sid wt hb ct now age pid br
   [ -f "$f" ] || return 0
+  # [T002702] Unparsbar => tot, OHNE Grace-Periode.
+  if _unparsable_lock "$f"; then _reap_log "$f" unparsable; return 0; fi
   sid="$(_lock_field "$f" owner_sid)"; wt="$(_lock_field "$f" worktree)"
   hb="$(_lock_field "$f" heartbeat_at)"; ct="$(_lock_field "$f" created_at)"; now="$(_now)"
   br="$(_lock_field "$f" branch)"
@@ -433,14 +455,14 @@ cmd_check_and_claim() {
 
 cmd_list() {
   local d; d="$(_lock_dir)"; [ -d "$d" ] || { echo "(keine aktiven Claims)"; return 0; }
-  printf '%-14s %-24s %-8s %-10s %-6s %s\n' SCOPE ID TOOL SID STATE LABEL
+  printf '%-14s %-24s %-8s %-10s %-6s %-20s %s\n' SCOPE ID TOOL SID STATE LABEL FILE
   local f state
   for f in "$d"/*.json; do
     [ -e "$f" ] || continue
     state=live; _reapable "$f" && state=stale
-    printf '%-14s %-24s %-8s %-10s %-6s %s\n' \
+    printf '%-14s %-24s %-8s %-10s %-6s %-20s %s\n' \
       "$(_lock_field "$f" scope)" "$(_lock_field "$f" id)" "$(_lock_field "$f" tool)" \
-      "$(_lock_field "$f" owner_sid)" "$state" "$(_lock_field "$f" label)"
+      "$(_lock_field "$f" owner_sid)" "$state" "$(_lock_field "$f" label)" "$(basename "$f" .json)"
   done
 }
 

@@ -25,8 +25,8 @@ async function initTimeEntriesTable(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS time_entries (
       id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-      project_id        UUID        NOT NULL REFERENCES tickets.tickets(id) ON DELETE CASCADE,
-      task_id           UUID        REFERENCES tickets.tickets(id) ON DELETE SET NULL,
+      project_id        UUID        NOT NULL REFERENCES public.customer_projects(id) ON DELETE CASCADE,
+      task_id           UUID        REFERENCES public.customer_projects(id) ON DELETE SET NULL,
       description       TEXT,
       minutes           INTEGER     NOT NULL CHECK (minutes > 0),
       billable          BOOLEAN     NOT NULL DEFAULT true,
@@ -118,8 +118,8 @@ export async function listTimeEntries(projectId: string): Promise<TimeEntry[]> {
             te.entry_date        AS "entryDate",
             te.created_at        AS "createdAt"
      FROM time_entries te
-     JOIN tickets.tickets p    ON p.id  = te.project_id
-     LEFT JOIN tickets.tickets task ON task.id = te.task_id
+     JOIN public.customer_projects p    ON p.id  = te.project_id
+     LEFT JOIN public.customer_projects task ON task.id = te.task_id
      WHERE te.project_id = $1
      ORDER BY te.entry_date DESC`,
     [projectId]
@@ -147,8 +147,8 @@ export async function listAllTimeEntries(params?: {
             te.entry_date        AS "entryDate",
             te.created_at        AS "createdAt"
      FROM time_entries te
-     JOIN tickets.tickets p    ON p.id  = te.project_id
-     LEFT JOIN tickets.tickets task ON task.id = te.task_id
+     JOIN public.customer_projects p    ON p.id  = te.project_id
+     LEFT JOIN public.customer_projects task ON task.id = te.task_id
      WHERE ($1::boolean IS NULL OR te.billable = $1)
        AND ($2::date    IS NULL OR te.entry_date >= $2::date)
      ORDER BY te.entry_date DESC`,
@@ -212,7 +212,7 @@ export async function getUnbilledBillableEntriesByCustomer(
             c.name               AS "customerName",
             c.email              AS "customerEmail"
      FROM time_entries te
-     JOIN tickets.tickets p ON p.id = te.project_id
+     JOIN public.customer_projects p ON p.id = te.project_id
      JOIN customers c ON c.id = p.customer_id
      WHERE te.billable = true
        AND te.stripe_invoice_id IS NULL

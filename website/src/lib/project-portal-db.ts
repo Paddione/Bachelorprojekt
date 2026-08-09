@@ -53,7 +53,7 @@ export async function listProjectsForCustomer(keycloakUserId: string): Promise<P
     `SELECT id, title AS name, description,
             (${STATUS_BACK_SQL.replace(/__TBL__/g, 't')}) AS status,
             due_date
-       FROM tickets.tickets t
+       FROM public.customer_projects t
       WHERE type='project' AND parent_id IS NULL
         AND customer_id = $1 AND status <> 'archived'
       ORDER BY created_at DESC`,
@@ -66,9 +66,9 @@ export async function listProjectsForCustomer(keycloakUserId: string): Promise<P
       `SELECT pt.id, pt.title AS name,
               (${STATUS_BACK_SQL.replace(/__TBL__/g, 'pt')}) AS status,
               pt.customer_id
-         FROM tickets.tickets pt
-         LEFT JOIN tickets.tickets sp ON sp.id = pt.parent_id AND sp.type = 'project'
-        WHERE pt.type IN ('task','chore') AND (pt.parent_id = $1 OR sp.parent_id = $1)
+         FROM public.customer_projects pt
+         LEFT JOIN public.customer_projects sp ON sp.id = pt.parent_id AND sp.type = 'project'
+        WHERE pt.type = 'task' AND (pt.parent_id = $1 OR sp.parent_id = $1)
         ORDER BY pt.created_at ASC`,
       [p.id],
     );
@@ -100,7 +100,7 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
   const customerId = cust.rows[0].id;
 
   const task = await pool.query<{ status: string }>(
-    `SELECT status FROM tickets.tickets WHERE id = $1 AND type IN ('task','chore') AND customer_id = $2`,
+    `SELECT status FROM public.customer_projects WHERE id = $1 AND type = 'task' AND customer_id = $2`,
     [taskId, customerId],
   );
   if (!task.rows[0]) return { ok: false };
@@ -109,11 +109,11 @@ export async function togglePortalTaskDone(taskId: string, keycloakUserId: strin
   const newStatus     = flippingClosed ? 'in_progress' : 'done';
   const newResolution = flippingClosed ? null          : 'shipped';
   await pool.query(
-    `UPDATE tickets.tickets
+    `UPDATE public.customer_projects
         SET status = $1, resolution = $2,
             done_at = CASE WHEN $1 = 'done' THEN now() ELSE NULL END,
             updated_at = now()
-      WHERE id = $3 AND type IN ('task','chore')`,
+      WHERE id = $3 AND type = 'task'`,
     [newStatus, newResolution, taskId],
   );
   return { ok: true };

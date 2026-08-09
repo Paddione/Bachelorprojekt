@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.257.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.13...website-v1.257.14) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** list self workflow file in push.paths [T002868] ([#3945](https://github.com/Paddione/Bachelorprojekt/issues/3945)) ([3462b27](https://github.com/Paddione/Bachelorprojekt/commit/3462b27f57e7663b00b599b1416386ff22e7c9a6))
+
+
+### Documentation
+
+* **plans:** archive workflow-self-trigger [T002868] ([bbbeaf2](https://github.com/Paddione/Bachelorprojekt/commit/bbbeaf26037b76ac1141d544106d621f3c2199b1))
+
 ## [1.257.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.12...website-v1.257.13) (2026-08-09)
 
 

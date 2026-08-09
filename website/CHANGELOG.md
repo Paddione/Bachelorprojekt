@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.258.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.258.0...website-v1.258.1) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** plan-qa-check probes /livez instead of /health for liveness [T002641] ([#3951](https://github.com/Paddione/Bachelorprojekt/issues/3951)) ([f87dee9](https://github.com/Paddione/Bachelorprojekt/commit/f87dee9df55b91f3c022c0a19988efe9476faa09))
+
 ## [1.258.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.15...website-v1.258.0) (2026-08-09)
 
 

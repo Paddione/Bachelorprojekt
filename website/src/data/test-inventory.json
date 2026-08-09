@@ -1902,6 +1902,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/agent-lock-main-checkout-reclaim",
+    "file": "tests/spec/active-sessions-hub/agent-lock-main-checkout-reclaim.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/release-foreign-lock-guard",
     "file": "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
     "category": "active-sessions-hub",
@@ -3708,6 +3714,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/queue-test-data-filter",
+    "file": "tests/spec/software-factory/queue-test-data-filter.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/stage-plan-touched-files",
     "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
     "category": "software-factory",
@@ -3722,6 +3734,12 @@
   {
     "id": "software-factory/unparsable-lock-reap",
     "file": "tests/spec/software-factory/unparsable-lock-reap.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/update-status-id-allowlist-T002906",
+    "file": "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
     "category": "software-factory",
     "kind": "shell"
   },

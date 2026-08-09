@@ -2553,6 +2553,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002644": [
+    {
+      "slug": "fix-systemtest-cronjobs-sdlc-T002644",
+      "status": "plan_staged"
+    }
+  ],
   "T002645": [
     {
       "slug": "qwen3-coder-loadout",

@@ -21,12 +21,14 @@ fi
 if [ -d "$repo_root/node_modules" ]; then
   task -d "$repo_root" freshness:regenerate 2>/dev/null || true
 fi
-# The docs-content-built and mermaid-snapshots paths are generated during
+# The docs-content-built, mermaid-snapshots, test-inventory and repo-index paths are generated during
 # freshness:regenerate. They are tracked artifacts whose canonical version
 # lives in CI (build-docs.yml / freshness-regen.yml) — restore them to HEAD
-# so a plain `git pull` doesn't leave the tree dirty. [T002239-M1]
+# so a plain `git pull` doesn't leave the tree dirty. [T002239-M1, T002664]
 git -C "$repo_root" checkout -- k3d/docs-content-built/ 2>/dev/null || true
 git -C "$repo_root" checkout -- docs/mermaid-snapshots/ 2>/dev/null || true
+git -C "$repo_root" checkout -- website/src/data/test-inventory.json 2>/dev/null || true
+git -C "$repo_root" checkout -- docs/code-quality/repo-index.json 2>/dev/null || true
 
 # loc-budget.json always gets a fresh `commit`/`measured_at` stamp from
 # freshness:regenerate — that alone is diff noise, not a real LOC change.

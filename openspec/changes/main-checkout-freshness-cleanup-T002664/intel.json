@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "slug": "main-checkout-freshness-cleanup-T002664",
+    "ticket_id": "T002664",
+    "generated_from": "main@2dfe5743d",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".githooks/post-merge",
+      "language": "text",
+      "loc": 49,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/build-test-inventory.sh",
+      "language": "bash",
+      "loc": 130,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 670
+    },
+    {
+      "path": "tests/spec/ci-cd/test-inventory-coverage.bats",
+      "language": "bash",
+      "loc": 149,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/ci-cd/test-inventory-coverage.bats:23:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
+      "signature": "23:setup() {(...)",
+      "type_text": "23:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd/test-inventory-coverage.bats:33:build_sandbox_inventory() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
+      "signature": "33:build_sandbox_inventory() {(...)",
+      "type_text": "33:build_sandbox_inventory() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

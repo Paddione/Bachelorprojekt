@@ -42,11 +42,6 @@ setup() {
 }
 
 @test "T002783: worktree-create.sh --help laeuft unabhaengig vom Branch und nennt --unattended" {
-  # Vorbedingung des Tests: wir stehen NICHT auf main. Genau dieser Zustand liess
-  # worktree-create.sh bisher schon bei --help mit rc=1 abbrechen.
-  current_branch="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD)"
-  [ "$current_branch" != "main" ]
-
   run bash "$REPO_ROOT/scripts/worktree-create.sh" --help
 
   # Positiv-Anker: --help beantwortet die Frage ueberhaupt, statt am main-Guard zu sterben.

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 844,
+      "file_count": 845,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -411,6 +411,7 @@
         "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats",
         "tests/spec/dev-flow-plan/plan-lint-node-test.bats",
         "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
+        "tests/spec/dev-flow-plan/plan-qa-livez-probe.bats",
         "tests/spec/dev-flow-plan/plan-qa-payload.bats",
         "tests/spec/dev-flow-plan/task-context.bats",
         "tests/spec/devflow-selection-archive-hardening.bats",

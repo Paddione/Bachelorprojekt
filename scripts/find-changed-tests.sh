@@ -14,7 +14,24 @@ ALLOWLIST="tests/unit/.coverage-allowlist"
 # origin/main und laesst sich nicht gezielt ausloesen — ein Test muesste die
 # Sammel-Logik nachbauen und wuerde damit seine eigene Kopie pruefen statt
 # dieses Skript. [T002518]
-CHANGED="${FIND_CHANGED_TESTS_FILES:-$(git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null || true)}"
+#
+# [T002713] Die diff-Quelle (override, origin/main, HEAD) wird nach stderr
+# gemeldet, damit der Aufrufer weiss, auf welcher Basis die Auswahl stattfand.
+# Anders als der Vorgaenger `git diff --name-only HEAD origin/main` (zwei-commit
+# Diff — sah nie den Arbeitsbaum) diffed der single-ref-Aufruf `git diff
+# --name-only origin/main` den genannten Commit gegen den Arbeitsbaum und deckt
+# damit sowohl committete als auch uncommittete Aenderungen ab.
+if [ -n "${FIND_CHANGED_TESTS_FILES:-}" ]; then
+  CHANGED="$FIND_CHANGED_TESTS_FILES"
+  DIFF_SOURCE="override"
+elif CHANGED="$(git diff --name-only origin/main 2>/dev/null)"; then
+  DIFF_SOURCE="origin/main"
+else
+  CHANGED="$(git diff --name-only HEAD 2>/dev/null || true)"
+  DIFF_SOURCE="HEAD"
+fi
+_changed_count=$(printf '%s\n' "$CHANGED" | grep -c '.' || true)
+echo "find-changed-tests: diff-source=${DIFF_SOURCE} files=${_changed_count}" >&2
 
 if [ -z "$CHANGED" ]; then
   exit 0

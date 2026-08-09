@@ -105,7 +105,15 @@ done
 SCOUT_DRIFT=0
 SCOUT_GREP_FLAGS="-rliFi"
 SCOUT_FILE_MULTIPLIER=1.0
-DRIFT_CACHE_FILE="/tmp/scout-drift-cache.json"
+# [T003053] Pfad ueberschreibbar, Default unveraendert. Der feste /tmp-Pfad ist
+# eine GLOBALE, veraenderliche Datei ausserhalb von BATS_TEST_TMPDIR: schrieb
+# eine parallel laufende Spec-Datei dort einen Drift > 0.5, sah ein anderer Test
+# diesen Wert, scout.sh meldete "drift=... > 0.5" auf stderr, und `run` buendelte
+# das in $output — jq brach mit "Invalid numeric literal at line 1, column 9" ab
+# (Spalte 9 = der Doppelpunkt nach "scout.sh"). Deterministisch, aber
+# shard-abhaengig, und die Shard-Zusammensetzung wechselt pro PR — deshalb sah es
+# wie Flakiness aus.
+DRIFT_CACHE_FILE="${SCOUT_DRIFT_CACHE_FILE:-/tmp/scout-drift-cache.json}"
 DRIFT_BRAND="${BRAND:-mentolder}"
 if [[ -f "$DRIFT_CACHE_FILE" ]]; then
   cached_drift="$(jq -r --arg b "$DRIFT_BRAND" '.[$b] // 0' "$DRIFT_CACHE_FILE" 2>/dev/null || echo 0)"

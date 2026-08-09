@@ -10,6 +10,15 @@ setup() {
   load 'test_helper.bash' 2>/dev/null || true
   export SCOUT_LLM_ENABLED=false
   export SCOUT_LLM_MIN_FILES=2
+  # [T003053] Drift-Cache pro Test isolieren. Vorher schrieb 5.7a nach
+  # /tmp/scout-drift-cache.json — eine GLOBALE Datei ausserhalb von
+  # BATS_TEST_TMPDIR. Das rm -f kam nach dem `run`, und CI faehrt Spec-Dateien
+  # parallel: im Fenster dazwischen las
+  # tests/spec/software-factory/scout-and-routing.bats einen Drift > 0.5, scout.sh
+  # schrieb daraufhin "scout.sh: drift=... > 0.5" nach stderr, `run` buendelte das
+  # in $output, und jq brach ab ("Invalid numeric literal at line 1, column 9").
+  # BATS_TEST_TMPDIR ist pro Test frisch — damit kann kein Fenster mehr entstehen.
+  export SCOUT_DRIFT_CACHE_FILE="$BATS_TEST_TMPDIR/scout-drift-cache.json"
 }
 
 # ── 5.1 N-gram extraction ──────────────────────────────────────
@@ -188,9 +197,9 @@ setup() {
 # ── 5.7 Drift feedback expands search ──────────────────────────
 
 @test "5.7a: scout.sh reads drift-cache before file discovery" {
-  # When /tmp/scout-drift-cache.json exists and drift > 0.5,
+  # When the drift cache (SCOUT_DRIFT_CACHE_FILE) exists and drift > 0.5,
   # scout.sh should switch grep to -E regex mode
-  echo '{"mentolder":0.6}' > /tmp/scout-drift-cache.json
+  echo '{"mentolder":0.6}' > "$SCOUT_DRIFT_CACHE_FILE"
   run bash scripts/factory/scout.sh \
     --ticket-id T002241 \
     --title "Test Feature" \
@@ -198,7 +207,7 @@ setup() {
     --repo "$PWD" 2>/dev/null || true
 
   echo "output=$output" >&2
-  rm -f /tmp/scout-drift-cache.json
+  rm -f "$SCOUT_DRIFT_CACHE_FILE"
   [[ "$output" != "" ]]
 }
 
@@ -220,7 +229,7 @@ setup() {
 # ── 5.9 No drift data ──────────────────────────────────────────
 
 @test "5.9a: no drift cache file -> drift=0 fallback" {
-  rm -f /tmp/scout-drift-cache.json
+  rm -f "$SCOUT_DRIFT_CACHE_FILE"
   run bash scripts/factory/scout.sh \
     --ticket-id T002241 \
     --title "Test Feature" \
@@ -233,7 +242,7 @@ setup() {
 }
 
 @test "5.9b: scout works without any drift mechanism installed" {
-  rm -f /tmp/scout-drift-cache.json
+  rm -f "$SCOUT_DRIFT_CACHE_FILE"
   run bash scripts/factory/scout.sh \
     --ticket-id T002241 \
     --title "Simple Query" \

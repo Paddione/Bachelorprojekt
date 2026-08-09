@@ -103,7 +103,21 @@ teardown() { _sf_teardown; }
 }
 
 @test "scout.sh with SCOUT_LLM_ENABLED=false runs deterministic path only (no crash, valid JSON)" {
-  run env SCOUT_LLM_ENABLED=false bash "$SCOUT" --title "zzzxqq fffvvv" --slug "" --repo "$REPO_ROOT"
+  # [T003053] Zwei Absicherungen, beide gegen dieselbe Ursache:
+  #
+  # 1. SCOUT_DRIFT_CACHE_FILE auf einen frischen, NICHT existierenden Pfad in
+  #    BATS_TEST_TMPDIR. Vorher las scout.sh den festen /tmp/scout-drift-cache.json;
+  #    schrieb tests/spec/scout-prediction-quality.bats dort parallel einen Drift
+  #    > 0.5, meldete scout.sh das auf stderr.
+  # 2. --separate-stderr: $output enthaelt dann nur stdout. scout.sh DARF auf
+  #    stderr diagnostizieren — der Vertrag ist "stdout ist reines JSON". Ohne
+  #    das Flag buendelt `run` beide Stroeme und jq brach ab mit
+  #    "Invalid numeric literal at line 1, column 9" (Spalte 9 = der Doppelpunkt
+  #    nach "scout.sh"). Damit ist die Zusicherung unabhaengig davon, ob scout.sh
+  #    kuenftig weitere Diagnosen ausgibt.
+  run --separate-stderr env SCOUT_LLM_ENABLED=false \
+    SCOUT_DRIFT_CACHE_FILE="$BATS_TEST_TMPDIR/no-drift-cache.json" \
+    bash "$SCOUT" --title "zzzxqq fffvvv" --slug "" --repo "$REPO_ROOT"
   [ "$status" -eq 0 ]
   echo "$output" | jq -e . >/dev/null
   c="$(echo "$output" | jq -r '.complexity')"

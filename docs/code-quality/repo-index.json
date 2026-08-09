@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 837,
+      "file_count": 838,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -390,6 +390,7 @@
         "tests/spec/ci-cd/skip-ci-marker-guard.bats",
         "tests/spec/ci-cd/spec-dir-convention.bats",
         "tests/spec/ci-cd/spec-shard-partition.bats",
+        "tests/spec/ci-cd/spec-tracked-file-guard.bats",
         "tests/spec/ci-cd/taskfiles-dir-convention.bats",
         "tests/spec/ci-cd/test-inventory-coverage.bats",
         "tests/spec/ci-cd/worktrees-not-tracked.bats",
@@ -3204,7 +3205,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 680,
+      "file_count": 681,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3784,6 +3785,7 @@
         "scripts/setup.sh",
         "scripts/skill-orchestrator.sh",
         "scripts/spec-shard.sh",
+        "scripts/spec-tracked-file-guard.sh",
         "scripts/staging-db-anonymize.sh",
         "scripts/staging-id.sh",
         "scripts/start-comfyui.sh",

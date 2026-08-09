@@ -2250,6 +2250,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/changed-tests-uncommitted-diff",
+    "file": "tests/spec/ci-cd/changed-tests-uncommitted-diff.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/devflow-ci-watch-merged-exit",
     "file": "tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats",
     "category": "ci-cd",

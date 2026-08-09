@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.7...website-v1.256.8) (2026-08-09)
+
+
+### Bug Fixes
+
+* **skills:** repo-hygiene deckt Arbeitsbaum und Stashes ab [T002709] ([#3890](https://github.com/Paddione/Bachelorprojekt/issues/3890)) ([2d5c706](https://github.com/Paddione/Bachelorprojekt/commit/2d5c7060cef02a9e431ef9a4916c42add1d1cd7c))
+
 ## [1.256.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.6...website-v1.256.7) (2026-08-09)
 
 

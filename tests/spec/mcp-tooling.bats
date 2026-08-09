@@ -84,9 +84,12 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
 # Guards stellen sicher, dass der Generator die Fehler stattdessen meldet.
 
 @test "T002398: mcp-sync render erzeugt gueltiges scripts/llm/mcp-servers.json" {
-  run bash scripts/mcp-sync.sh render
+  # [T002779] Render in tmpdir statt auf die getrackten Dateien.
+  local tmpd="$BATS_TEST_TMPDIR/mcp-render-valid"
+  mkdir -p "$tmpd/scripts/llm"
+  run env MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh render
   [ "$status" -eq 0 ]
-  run node -e 'const d=require("./scripts/llm/mcp-servers.json"); if(typeof d.mcpServers!=="object") process.exit(1)'
+  run node -e "const d=require('$tmpd/scripts/llm/mcp-servers.json'); if(typeof d.mcpServers!=='object') process.exit(1)"
   [ "$status" -eq 0 ]
 }
 
@@ -112,29 +115,57 @@ MCP_GUIDE="${PROJECT_DIR}/.claude/skills/references/mcp-tool-guide.md"
 }
 
 @test "T002398: mcp:check erkennt Drift in der llama.cpp-Config" {
-  cp scripts/llm/mcp-servers.json "$BATS_TEST_TMPDIR/backup.json"
+  # [T002779] Fixture im tmpdir statt in-place-Mutation der getrackten Datei.
+  # MCP_OUT_DIR leitet den Output in die Sandbox um; die echte Datei bleibt
+  # unangetastet — keine Race mit parallel laufenden Spec-Dateien mehr.
+  local tmpd="$BATS_TEST_TMPDIR/mcp-check"
+  mkdir -p "$tmpd/scripts/llm" "$tmpd/.opencode"
+
+  # Alle drei Ziel-Dateien kopieren — check vergleicht gegen alle Targets.
+  cp .mcp.json "$tmpd/.mcp.json"
+  cp .opencode/opencode.jsonc "$tmpd/.opencode/opencode.jsonc"
+  cp scripts/llm/mcp-servers.json "$tmpd/scripts/llm/mcp-servers.json"
+
+  # Positiv-Anker [T002356-M1]: unmanipulierter Lauf muss gruen sein.
+  # Waere das Skript nicht ausfuehrbar oder die Fixture kaputt, bliebe
+  # status=0 trivial — die Negativ-Aussage unten waere vakuos wahr.
+  run env MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh check
+  [ "$status" -eq 0 ]
+
+  # Drift injizieren und prufen dass check ihn erkennt.
   node -e '
-    const fs=require("fs");
-    const d=JSON.parse(fs.readFileSync("scripts/llm/mcp-servers.json","utf8"));
+    const fs=require("fs"), path=require("path");
+    const fn=path.join(process.argv[1],"scripts/llm/mcp-servers.json");
+    const d=JSON.parse(fs.readFileSync(fn,"utf8"));
     d.mcpServers["drift-probe"]={command:"nope"};
-    fs.writeFileSync("scripts/llm/mcp-servers.json", JSON.stringify(d,null,2)+"\n");
-  '
-  run bash scripts/mcp-sync.sh check
-  cp "$BATS_TEST_TMPDIR/backup.json" scripts/llm/mcp-servers.json
+    fs.writeFileSync(fn, JSON.stringify(d,null,2)+"\n");
+  ' "$tmpd"
+  run env MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh check
   [ "$status" -ne 0 ]
 }
 
 @test "T002398: llamacpp-Block an einem http-Server laesst render fehlschlagen" {
-  cp docs/agent-guide/registry/mcp.yaml "$BATS_TEST_TMPDIR/reg.yaml"
+  # [T002779] Fixture im tmpdir statt in-place-Mutation der getrackten Datei.
+  # MCP_REGISTRY setzt auf eine Sandbox-Kopie, MCP_OUT_DIR leitet alle Outputs
+  # dorthin um, und HOME verhindert Seiteneffekte des agy-Renderers.
+  local tmpd="$BATS_TEST_TMPDIR/mcp-llamacpp"
+  mkdir -p "$tmpd/fakehome"
+
+  # Positiv-Anker [T002356-M1]: die Fixture muss existieren und der
+  # unmanipulierte Lauf gruen sein.
+  cp docs/agent-guide/registry/mcp.yaml "$tmpd/registry.yaml"
+  run env HOME="$tmpd/fakehome" MCP_REGISTRY="$tmpd/registry.yaml" MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh render
+  [ "$status" -eq 0 ]
+
+  # llamacpp-Block an den ersten http-Client haengen und erwarten, dass
+  # render den Fehler meldet (exit != 0).
   node -e '
     const fs=require("fs"), yaml=require("yaml");
-    const reg=yaml.parse(fs.readFileSync("docs/agent-guide/registry/mcp.yaml","utf8"));
+    const reg=yaml.parse(fs.readFileSync(process.argv[1],"utf8"));
     const httpName=Object.entries(reg.clients).find(([,c])=>c.transport==="http")[0];
     reg.clients[httpName].harness.llamacpp={command:"should-not-be-emitted"};
-    fs.writeFileSync("docs/agent-guide/registry/mcp.yaml", yaml.stringify(reg));
-  '
-  run bash scripts/mcp-sync.sh render
-  cp "$BATS_TEST_TMPDIR/reg.yaml" docs/agent-guide/registry/mcp.yaml
-  bash scripts/mcp-sync.sh render >/dev/null 2>&1 || true
+    fs.writeFileSync(process.argv[1], yaml.stringify(reg));
+  ' "$tmpd/registry.yaml"
+  run env HOME="$tmpd/fakehome" MCP_REGISTRY="$tmpd/registry.yaml" MCP_OUT_DIR="$tmpd" bash scripts/mcp-sync.sh render
   [ "$status" -ne 0 ]
 }

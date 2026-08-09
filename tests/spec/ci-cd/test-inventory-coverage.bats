@@ -25,6 +25,17 @@ setup() {
   BUILDER="${REPO_ROOT}/scripts/build-test-inventory.sh"
   COMMITTED="${REPO_ROOT}/website/src/data/test-inventory.json"
   SANDBOX="${BATS_TEST_TMPDIR}/inventory.json"
+  STRAY_REL="tests/spec/ci-cd/stray-ignored-test-T002664.bats"
+}
+
+teardown() {
+  rm -f "${REPO_ROOT:?}/${STRAY_REL:?}"
+  # Nur die vom Test angehaengte Zeile entfernen. Ein 'git checkout -- .gitignore'
+  # wuerde unbeteiligte lokale Aenderungen an der Datei mitverwerfen.
+  local gitignore="${REPO_ROOT}/.gitignore"
+  if [ -f "$gitignore" ] && grep -qF "$STRAY_REL" "$gitignore"; then
+    grep -vF "$STRAY_REL" "$gitignore" > "${gitignore}.tmp" && mv "${gitignore}.tmp" "$gitignore"
+  fi
 }
 
 # Erzeugt das Inventar in die Sandbox, damit kein Test das committete JSON mutiert.
@@ -131,14 +142,14 @@ build_sandbox_inventory() {
 }
 
 @test "T002664: inventory builder ignoriert durch .gitignore ausgeschlossene Testdateien" {
-  local stray_file="${REPO_ROOT}/tests/spec/ci-cd/stray-ignored-test-T002664.bats"
+  local stray_file="${REPO_ROOT}/${STRAY_REL}"
   touch "$stray_file"
-  trap 'rm -f "$stray_file"' EXIT
 
-  # Gitignore rule for stray file
-  local gitignore="${REPO_ROOT}/.gitignore"
-  echo "tests/spec/ci-cd/stray-ignored-test-T002664.bats" >> "$gitignore"
-  trap 'git checkout -- "$gitignore"; rm -f "$stray_file"' EXIT
+  # Aufraeumen passiert in teardown(), NICHT ueber 'trap ... EXIT' im Testkoerper:
+  # BATS installiert fuer jeden @test seinen eigenen EXIT-Trap, der einen hier
+  # gesetzten ueberschreibt — die Bereinigung liefe dann nie, und .gitignore
+  # bliebe nach dem Testlauf veraendert im Arbeitsbaum zurueck.
+  echo "$STRAY_REL" >> "${REPO_ROOT}/.gitignore"
 
   build_sandbox_inventory
   run jq --arg p 'tests/spec/ci-cd/stray-ignored-test-T002664.bats' \

@@ -28,7 +28,7 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 Dispatch:
 - `task` for the local family subagents (`gptoss`, `devstral`, `gemma`, `qwen`) and the deepseek agents — the `orchestrator` permission block lists exactly those names, no wildcards (T002298).
 - Local family agents `edit` but cannot `write` new files (`write=deny`) — the orchestrator creates new files from their output. Read-only work uses `delegate` (explore/general).
-- SSOT is `.opencode/agent-models.jsonc`. `docs/agent-guide/registry/agents.yaml` mirrors it but LAGS the config — trust the jsonc. Global config sync: `bash scripts/opencode-sync-agents.sh`.
+- SSOT is `.opencode/agent-models.jsonc` — the only source of truth for agent→model mapping. `docs/agent-guide/registry/agents.yaml` mirrors it for the agent-guide docs; `tests/spec/agent-roster.bats` (P4.3b) fails on any model-string drift, so the mirror cannot lag silently. Global config sync: `bash scripts/opencode-sync-agents.sh`.
 - **Local subagents are named by model FAMILY since 2026-08-04** (`gptoss`/`devstral`/`gemma`/`qwen`), each serving its own loadout through the llm-proxy. The old `gemma26-1/2`, `gemma9-1/2` names all pointed at gptoss-context — the name lied about the model. Every GPU loadout shares `exclusiveGroup "chat-gpu"`: only one runs at a time (all of `loadouts.json` except the two CPU bge loadouts). The weightless loadouts (`gemma-factory`, `gemma-multiagent`, `gemma9-factory`) were removed on 2026-08-09 (T002753); `gemma`/`gemma26-primary`/`gemma26-vision` serve `gemma26-factory` (Gemma 4 26B A4B UD-IQ4_XS, 161024 ctx measured).
 
 ## Core Commands

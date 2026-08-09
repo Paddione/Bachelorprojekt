@@ -2,7 +2,7 @@
 title: "tickets-projects-split — Implementation Plan"
 ticket_id: T002722
 domains: [db, website, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -342,7 +342,11 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const here = dirname(fileURLToPath(import.meta.url));        // scripts/agent-guide
   const repoRoot = join(here, '..', '..');                    // repo root
   const registryDir = join(repoRoot, 'docs', 'agent-guide', 'registry');
-  const mapsDir = join(repoRoot, 'docs', 'agent-guide', 'maps');
+  // Override lets callers (e.g. tests) redirect emission away from the tracked repo paths
+  // without mutating the working tree; default stays docs/agent-guide/maps for normal use.
+  const mapsDir = process.env.AGENT_GUIDE_MAPS_OUT_DIR
+    ? join(process.env.AGENT_GUIDE_MAPS_OUT_DIR)
+    : join(repoRoot, 'docs', 'agent-guide', 'maps');
 
   // Fail-closed: validate before writing anything (same validator F+B/S1 use).
   const { validateRegistry } = await import('./validate.mjs');

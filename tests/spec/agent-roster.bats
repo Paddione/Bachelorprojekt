@@ -143,9 +143,14 @@ setup_file() {
 
 @test "P4.5: agents-map.md ist aktuell (kein Diff nach task agent-guide:maps)" {
   cd "$REPO_ROOT"
-  task agent-guide:maps >/dev/null 2>&1
-  git diff --exit-code docs/agent-guide/maps/agents-map.md \
-    || { echo "agents-map.md nicht aktuell — task agent-guide:maps erzeugt Diff"; return 1; }
+  local tmp_out
+  tmp_out=$(mktemp -d)
+  # Emit into a tempdir instead of the tracked docs/agent-guide/maps/ path, so this
+  # freshness assertion never mutates the working tree (T002834).
+  AGENT_GUIDE_MAPS_OUT_DIR="$tmp_out" node scripts/agent-guide/emit-maps.mjs >/dev/null 2>&1
+  diff -u docs/agent-guide/maps/agents-map.md "$tmp_out/agents-map.md" \
+    || { echo "agents-map.md nicht aktuell — task agent-guide:maps erzeugt Diff"; rm -rf "$tmp_out"; return 1; }
+  rm -rf "$tmp_out"
 }
 
 @test "P4.6: keine .tmp-Reste aus abgebrochenen Emitter-Läufen (T002308)" {

@@ -21,7 +21,11 @@ cmd_guard_precommit() {
   # Only a DELIBERATE foreign claim (any label other than the auto self-claim one) still
   # hard-blocks — an auto-claimed lock is bookkeeping, not a real exclusive hold, so it must
   # never block a different session's ordinary commit. [T001383]
-  if [ -f "$f" ] && ! _reapable "$f" \
+  if [ -f "$f" ] && _unparsable_lock "$f"; then
+    echo "AGENT-LOCK: Lockdatei $f ist beschaedigt (kein auswertbarer Inhalt)." >&2
+    echo "  Sie benennt keinen Halter — kein Commit wird dadurch blockiert." >&2
+    echo "  Beheben: 'bash scripts/agent-lock.sh reap' oder die Datei entfernen." >&2
+  elif [ -f "$f" ] && ! _reapable "$f" \
      && [ "$(_lock_field "$f" owner_sid)" != "$(_my_sid)" ] \
      && [ "$(_lock_field "$f" label)" != "$_SELF_CLAIM_LABEL" ]; then
     echo "AGENT-LOCK: main-Checkout $(_holder_msg "$f")" >&2

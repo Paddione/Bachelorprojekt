@@ -4,6 +4,7 @@
 # Commands:
 #   create --type <type> --title <title> --description <description> [--brand <brand>] [--severity critical|major|minor|trivial] [--priority <priority>] [--is-test-data]
 #   update-status --id <external_id> --status <status> [--resolution <resolution>] [--notes <notes>]
+#   update-fields --id <external_id> [--title <title>] [--description <description>]
 #   add-comment --id <external_id> --body <body> [--author <author_label>] [--visibility <visibility>]
 #   archive-plan --id <external_id> --slug <slug> --branch <branch> --plan-file <plan_file> [--pr <pr_number>]
 #   get-attachments --id <external_id> --out-dir <out_dir>
@@ -121,6 +122,12 @@ cmd_create() {
 cmd_update_status() {
   if _ticket_offline_skip "update-status" "$@"; then exit 0; fi
   source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/update-status.sh"
+  main "$@"
+}
+
+cmd_update_fields() {
+  if _ticket_offline_skip "update-fields" "$@"; then exit 0; fi
+  source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/update-fields.sh"
   main "$@"
 }
 
@@ -968,13 +975,14 @@ cmd_triage() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
+  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline" >&2
   exit 1
 fi
 cmd="$1"; shift
 case "$cmd" in
   create)            cmd_create "$@" ;;
   update-status)     cmd_update_status "$@" ;;
+  update-fields)     cmd_update_fields "$@" ;;
   set-parent)        cmd_set_parent "$@" ;;
   add-comment|comment) cmd_add_comment "$@" ;;
   add-pr-link)       cmd_add_pr_link "$@" ;;

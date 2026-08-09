@@ -29,7 +29,7 @@ tests/spec/ticket-system/update-fields-cli.bats                (bereits vorhande
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Der BATS-Test wurde bereits im Plan-Stage-Commit dieses
+- [x] **Failing-Test-Step (RED).** Der BATS-Test wurde bereits im Plan-Stage-Commit dieses
       Vorgangs hinzugefügt (`tests/spec/ticket-system/update-fields-cli.bats`) und schlägt auf
       diesem Branch fehl, weil weder `scripts/ticket.sh update-fields` noch die
       `title`/`description`-Schema-Properties existieren.
@@ -40,7 +40,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system/update-fields-cli.bat
 # Schema-Eintrag für title/description)
 ```
 
-- [ ] **Fix-Step 1 — CLI-Kommando (GREEN für Tests 1-4).**
+- [x] **Fix-Step 1 — CLI-Kommando (GREEN für Tests 1-4).**
       `scripts/vda/ticket/update-fields.sh` neu anlegen, analog zu
       `scripts/vda/ticket/update-status.sh`: `main()` liest `--id`, optional `--title`,
       `--description`. Ist weder `--title` noch `--description` gesetzt → `echo "ERROR: at
@@ -55,7 +55,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system/update-fields-cli.bat
       `update-fields) cmd_update_fields "$@" ;;`-Zweig hinzufügen und `update-fields` in die
       `Commands:`-Usage-Zeile aufnehmen.
 
-- [ ] **Fix-Step 2 — MCP-Schema (GREEN für Test 5).** In
+- [x] **Fix-Step 2 — MCP-Schema (GREEN für Test 5).** In
       `scripts/ticket-mcp/go/internal/tools/lifecycle.go` beim `update_fields`-Tool
       `mcp.WithString("title", mcp.Description("Neuer Titel"))` und
       `mcp.WithString("description", mcp.Description("Neue Beschreibung"))` neben `notes`
@@ -72,13 +72,13 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ticket-system/update-fields-cli.bat
 # expected: PASS (5/5, grün nach Fix-Step 1 + 2)
 ```
 
-- [ ] **Go-Build-Check.** `scripts/ticket-mcp/go` kompiliert weiterhin:
+- [x] **Go-Build-Check.** `scripts/ticket-mcp/go` kompiliert weiterhin:
 
 ```bash
 cd scripts/ticket-mcp/go && go build ./...
 ```
 
-- [ ] **Final Verification.** Run the three mandatory CI gates:
+- [x] **Final Verification.** Run the three mandatory CI gates:
 
 ```bash
 task test:changed

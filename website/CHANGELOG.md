@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.11...website-v1.257.12) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** .ticket-Guard verankern, 7 Bestandschanges archivieren [T002836] ([#3940](https://github.com/Paddione/Bachelorprojekt/issues/3940)) ([b79b73c](https://github.com/Paddione/Bachelorprojekt/commit/b79b73c3491267aa4992e23e4f4a1d10725b0d52))
+
 ## [1.257.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.10...website-v1.257.11) (2026-08-09)
 
 

@@ -2,7 +2,7 @@
 title: "agent-lock-liveness-t002849 — Implementation Plan"
 ticket_id: T002849
 domains: [test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

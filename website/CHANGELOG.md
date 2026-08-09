@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.8...website-v1.257.9) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** share ticketless branch allowlist across all naming guards [T002817] ([#3929](https://github.com/Paddione/Bachelorprojekt/issues/3929)) ([6c02a2d](https://github.com/Paddione/Bachelorprojekt/commit/6c02a2d72793aa404caa43ea379192e6ec4bc763))
+
 ## [1.257.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.7...website-v1.257.8) (2026-08-09)
 
 

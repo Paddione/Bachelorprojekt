@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.5...website-v1.259.6) (2026-08-09)
+
+
+### Bug Fixes
+
+* **db:** guard all drift-affected tables + dynamic customer sweep [T002894] ([#3977](https://github.com/Paddione/Bachelorprojekt/issues/3977)) ([932c475](https://github.com/Paddione/Bachelorprojekt/commit/932c4758300034d3267192d5c566a6b01e8926c0))
+
 ## [1.259.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.4...website-v1.259.5) (2026-08-09)
 
 

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 829,
+      "file_count": 830,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -489,6 +489,7 @@
         "tests/spec/local-llm-proxy/opencode-routes-via-proxy.bats",
         "tests/spec/local-llm-proxy/proxy-env-token-guard.bats",
         "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
+        "tests/spec/local-llm-proxy/qwen3-coder-loadout.bats",
         "tests/spec/local-llm-proxy/ui-config-seed.bats",
         "tests/spec/lockfile-drift.bats",
         "tests/spec/main-commit-guard.bats",

@@ -2655,6 +2655,12 @@
       "status": "archived"
     }
   ],
+  "T002714": [
+    {
+      "slug": "ticket-mcp-update-fields-T002714",
+      "status": "plan_staged"
+    }
+  ],
   "T002718": [
     {
       "slug": "mishap-t002718",

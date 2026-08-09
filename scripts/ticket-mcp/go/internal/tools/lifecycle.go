@@ -102,6 +102,8 @@ func RegisterLifecycleTools(s *server.MCPServer) {
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
+			mcp.WithString("title", mcp.Description("Neuer Titel")),
+			mcp.WithString("description", mcp.Description("Neue Beschreibung")),
 			mcp.WithString("notes", mcp.Description("Wird an bestehende notes angehängt")),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -111,18 +113,39 @@ func RegisterLifecycleTools(s *server.MCPServer) {
 			if brand == "" {
 				brand = "mentolder"
 			}
+			title, _ := a["title"].(string)
+			description, _ := a["description"].(string)
 			notes, _ := a["notes"].(string)
-			if notes == "" {
+
+			if title == "" && description == "" && notes == "" {
 				return mcp.NewToolResultText("Keine Felder zum Aktualisieren angegeben."), nil
 			}
-			raw, err := runner.RunTicket(
-				[]string{"add-comment", "--id", id, "--body", notes, "--author", "ticket-mcp", "--visibility", "internal"},
-				map[string]string{"BRAND": brand},
-			)
-			if err != nil {
-				return nil, err
+
+			var outputs []string
+
+			if title != "" || description != "" {
+				raw, err := runner.RunTicket(
+					[]string{"update-fields", "--id", id, "--title", title, "--description", description},
+					map[string]string{"BRAND": brand},
+				)
+				if err != nil {
+					return nil, err
+				}
+				outputs = append(outputs, strings.TrimSpace(raw))
 			}
-			return mcp.NewToolResultText(strings.TrimSpace(raw)), nil
+
+			if notes != "" {
+				raw, err := runner.RunTicket(
+					[]string{"add-comment", "--id", id, "--body", notes, "--author", "ticket-mcp", "--visibility", "internal"},
+					map[string]string{"BRAND": brand},
+				)
+				if err != nil {
+					return nil, err
+				}
+				outputs = append(outputs, strings.TrimSpace(raw))
+			}
+
+			return mcp.NewToolResultText(strings.Join(outputs, "\n")), nil
 		},
 	)
 }

@@ -3750,6 +3750,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-system/update-fields-cli",
+    "file": "tests/spec/ticket-system/update-fields-cli.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
     "id": "toolset-registry/agentic-resource-lookup",
     "file": "tests/spec/toolset-registry/agentic-resource-lookup.bats",
     "category": "toolset-registry",

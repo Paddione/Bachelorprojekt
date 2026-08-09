@@ -3168,6 +3168,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/ticket-file-required",
+    "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-worktree-anchor",
     "file": "tests/spec/openspec-worktree-anchor.bats",
     "category": "openspec-worktree-anchor",

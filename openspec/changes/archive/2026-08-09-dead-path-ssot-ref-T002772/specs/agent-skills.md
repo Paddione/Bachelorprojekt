@@ -1,6 +1,6 @@
 # Delta: agent-skills
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: dead-path-references.bats referenziert existierende SSOT
 Die SSOT-Kopfzeile in `tests/spec/repo-hygiene/dead-path-references.bats` MUSS auf

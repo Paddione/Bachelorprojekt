@@ -97,6 +97,12 @@ werden.
 
 #### Scenario: Registry ist Quelle, Konfigurationen sind generiert
 
-- **GIVEN** `docs/agent-guide/registry/mcp.yaml` declares the brain MCP server with `transport: stdio`
+- **GIVEN** `docs/agent-guide/registry/mcp.yaml` declares the brain MCP server with `transport: stdio` and harness blocks for claude_code, agy and opencode
 - **WHEN** `task mcp:check` runs
-- **THEN** it reports no drift, and `.mcp.json`, `.opencode/opencode.jsonc` and `scripts/llm/mcp-servers.json` each contain the generated brain server entry
+- **THEN** it reports no drift, and both `.mcp.json` and `.opencode/opencode.jsonc` contain the generated brain server entry
+
+#### Scenario: Kein llama.cpp-Kindprozess
+
+- **GIVEN** the brain MCP server declares no `harness.llamacpp` block
+- **WHEN** `scripts/llm/mcp-servers.json` is regenerated
+- **THEN** it contains no brain server entry, because that file only takes servers that llama-server should spawn as a child process on every model start

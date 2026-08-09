@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "slug": "brain-ingest-chunking",
+    "ticket_id": "T002679",
+    "generated_from": "main@e56d65858",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".mcp.json",
+      "language": "config",
+      "loc": 45,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/opencode.jsonc",
+      "language": "text",
+      "loc": 196,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/mcp.yaml",
+      "language": "config",
+      "loc": 329,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain-chunk.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain-ingest-coverage.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/brain-ingest-transform.sh",
+      "language": "bash",
+      "loc": 175,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 625
+    },
+    {
+      "path": "scripts/brain-ingest.sh",
+      "language": "bash",
+      "loc": 540,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 260
+    },
+    {
+      "path": "scripts/brain-mcp-server.py",
+      "language": "python",
+      "loc": 45,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 755
+    },
+    {
+      "path": "scripts/llm/loadouts.json",
+      "language": "config",
+      "loc": 385,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm/mcp-servers.json",
+      "language": "config",
+      "loc": 17,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.brain.yaml",
+      "language": "config",
+      "loc": 41,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/chunking.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/coverage-gate.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/mcp-registry.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-k4-brain-wiki/parent-moc.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/brain-mcp.bats",
+      "language": "bash",
+      "loc": 28,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "website/src/data/test-inventory.json",
+      "language": "config",
+      "loc": 3848,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/brain-ingest-transform.sh:99:call_llm() {",
+      "kind": "function",
+      "file": "scripts/brain-ingest-transform.sh",
+      "signature": "99:call_llm() {(...)",
+      "type_text": "99:call_llm() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-ingest-transform.sh:148:validate_output() {",
+      "kind": "function",
+      "file": "scripts/brain-ingest-transform.sh",
+      "signature": "148:validate_output() {(...)",
+      "type_text": "148:validate_output() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-ingest.sh:137:determine_group() {",
+      "kind": "function",
+      "file": "scripts/brain-ingest.sh",
+      "signature": "137:determine_group() {(...)",
+      "type_text": "137:determine_group() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/brain-ingest.sh:146:process_page() {",
+      "kind": "function",
+      "file": "scripts/brain-ingest.sh",
+      "signature": "146:process_page() {(...)",
+      "type_text": "146:process_page() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/brain-mcp.bats:4:setup() {",
+      "kind": "function",
+      "file": "tests/spec/brain-mcp.bats",
+      "signature": "4:setup() {(...)",
+      "type_text": "4:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/brain-mcp.bats:11:teardown() { rm -rf \"$WORK\"; }",
+      "kind": "function",
+      "file": "tests/spec/brain-mcp.bats",
+      "signature": "11:teardown() { rm -rf \"$WORK\"; }(...)",
+      "type_text": "11:teardown() { rm -rf \"$WORK\"; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

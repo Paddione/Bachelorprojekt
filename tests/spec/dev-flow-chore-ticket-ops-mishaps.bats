@@ -93,7 +93,12 @@ setup() {
   local step4 keyword
   step4="$(grep -nE '^##[[:space:]]+4\.[[:space:]]' "$REPO_HYGIENE_OPS" | head -1 | cut -d: -f1)"
   [ -n "$step4" ]
-  keyword="$(grep -nEi 'dedup|deduplicate|duplicate ticket|same title' "$REPO_HYGIENE_OPS" | head -1 | cut -d: -f1)"
+  # Die Suche ist auf den Bereich AB "## 4." beschränkt statt "erster Treffer in der
+  # ganzen Datei, muss hinter §4 liegen" [T002844]: §3 verweist inzwischen selbst auf
+  # den Dedupe-Guard, und dieser Verweis wäre als erster Treffer aufgetaucht — der
+  # Guard wäre rot geworden, obwohl der Wortlaut in §4 unverändert dort steht.
+  keyword="$(awk 'NR > start && tolower($0) ~ /dedup|deduplicate|duplicate ticket|same title/ { print NR; exit }' \
+    start="$step4" "$REPO_HYGIENE_OPS")"
   [ -n "$keyword" ]
   [ "$keyword" -gt "$step4" ]
 }

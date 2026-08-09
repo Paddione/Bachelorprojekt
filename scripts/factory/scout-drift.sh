@@ -88,7 +88,9 @@ bash "$TICKET_SH" set-scout-drift --id "$TICKET" --drift "$drift" 2>/dev/null ||
 # ── Drift-cache JSON (T002241: consumed by scout.sh Phase 6) ────────────────
 # Write brand-keyed drift to /tmp for scout.sh to read during file discovery.
 # Fail-soft: if writing fails, next scout will fall back to drift=0.
-CACHE_FILE="/tmp/scout-drift-cache.json"
+# [T003053] Ueberschreibbar wie in scout.sh — beide Seiten muessen denselben
+# Pfad sehen, sonst schreibt der Producer woanders hin als der Consumer liest.
+CACHE_FILE="${SCOUT_DRIFT_CACHE_FILE:-/tmp/scout-drift-cache.json}"
 BRAND="${BRAND:-mentolder}"
 if command -v jq >/dev/null 2>&1; then
   # Read existing cache, merge new drift value for this brand

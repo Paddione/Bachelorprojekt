@@ -31,6 +31,13 @@ Helper voraus.
 
 The triaging agent **autonomously decides** severity, component, areas, and readiness flags using the rubrics below. Only **significant decisions** that genuinely need human judgement are escalated via `attention_mode='needs_human'`. Use all available subagents (`bachelorprojekt-test`, `bachelorprojekt-infra`, `bachelorprojekt-security`, `bachelorprojekt-website`, etc.) to validate and complete ticket data in parallel up until plans are staged.
 
+**Prüfkriterium "Ticket hat einen Plan" [T002873]:** Nicht `tickets.ticket_plans` abfragen —
+`scripts/vda/ticket/stage-plan.sh` legt dort **keine** Zeile an; die entsteht erst beim
+Archivieren. Maßgeblich ist der `FACTORY-PLAN-REF branch=… plan=…`-Kommentar, den `stage-plan.sh`
+beim regulären Staging schreibt (so wie `reconcile-ticket-status.sh` Pattern 4 es bereits prüft).
+Ein frisch gestagtes Ticket zeigt `status=plan_staged`, `ticket_plans`-Zeilenzahl `0` und
+`branch=null` — das ist der Normalfall, kein Defekt.
+
 ### Decision Rubric (AI-Autonomous)
 
 | Field | Autonomous Default Values | Escalate to Human When... |

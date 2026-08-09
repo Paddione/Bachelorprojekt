@@ -20,7 +20,8 @@ branch="chore/mishap-incident-rollup"   # persistenter Branch, kein Ticket-Suffi
 ```
 
 Der Branch wird nie gelöscht, das Ticket (`"Mishap Rollup — fortlaufende Sammlung"`,
-`type=chore`, `status=plan_staged`) bleibt dauerhaft offen. `worktree-create.sh --unattended`
+`type=chore`, `status=plan_staged` — **nur der Rollup-Container**, nicht die einzelnen
+Mishap-Tickets) bleibt dauerhaft offen. `worktree-create.sh --unattended`
 überspringt den Namens-Guard für diesen Branch (Allowlist). Die gemeinsame Auflösung
 erfolgt über `ticket.sh rollup-container --brand <brand>`.
 
@@ -134,10 +135,13 @@ An den Rollup-Container angehängt wird auf zwei Wegen, beide ohne Session-Bezug
 | Schwelle | `report_mishap` hängt ab **10** Einträgen an den Rollup-Container an |
 | Alters-Schnitt | Der Factory-Tick (`scripts/factory/wakeup.sh`) ruft periodisch `ticket-mcp-go --flush-stale-mishaps` auf und hängt an, sobald der älteste Eintrag ≥ 7 Tage alt ist |
 
-**Zum Rollup-Container:** Ein persistentes Ticket (`type=chore`, `status=plan_staged`) mit dem Titel
-"Mishap Rollup — fortlaufende Sammlung". Es wird niemals geschlossen — nicht-kritische Mishaps
-werden als Kommentar-Batches an dieses Ticket gehängt. Der Rollup-Treiber
-(`scripts/factory/mishap-rollup.sh`) extrahiert daraus periodisch einen Plan und staged ihn.
+**Zum Rollup-Container:** Ein persistentes Ticket (`type=chore`, `status=plan_staged` — nur
+der Rollup-Container selbst) mit dem Titel "Mishap Rollup — fortlaufende Sammlung". Es wird
+niemals geschlossen — nicht-kritische Mishaps werden als Kommentar-Batches an dieses Ticket
+gehängt. Der Rollup-Treiber (`scripts/factory/mishap-rollup.sh`) extrahiert daraus periodisch
+einen Plan und staged ihn. Die einzelnen Mishap-Tickets selbst entstehen immer mit
+`status=triage` (`scripts/ticket-mcp/go/internal/tools/mishap.go` setzt konsequent
+`--status triage`) — nie direkt als `plan_staged`.
 
 `flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfügbar — z. B. wenn ein
 Befund sofort ein Ticket braucht. Es ist kein Pflichtschritt dieses Skills mehr:
@@ -152,7 +156,8 @@ mcp__ticket-mcp__flush_mishap_buffer({ brand: "<brand>" })
 
 Nicht-kritische Mishaps, die den Buffer-Schwellwert erreicht oder den Alters-Schnitt
 ausgelöst haben, liegen als Kommentar-Batches am Rollup-Container-Ticket
-("Mishap Rollup — fortlaufende Sammlung", `type=chore`, `status=plan_staged`).
+("Mishap Rollup — fortlaufende Sammlung", `type=chore`, `status=plan_staged` — auch hier
+nur der Rollup-Container, nicht die angehängten Einzel-Mishaps).
 
 **Ausgeführt wird das Extrahieren von `scripts/factory/mishap-rollup.sh` [T002407]** — nicht von Hand:
 
@@ -213,8 +218,9 @@ Report:
 - Ob ein Bundle-Ticket ausgelöst wurde (und welches `T000xxx`)
 - Wie viele Einträge im Buffer liegen bleiben (Normalfall — kein Flush)
 - Bei nicht-kritischem Bundle zusätzlich: ob ein Auto-Chore-Plan gestaged wurde
-  (Branch `$branch` = `chore/mishap-<ext-id>`, `status=plan_staged`) oder übersprungen wurde
-  (Lint-Fehler → `status=triage`)
+  (Branch `$branch` = `chore/mishap-<ext-id>`, `status=plan_staged` — der aus dem
+  Rollup-Container extrahierte Bundle-Plan, nicht ein rohes Einzel-Mishap-Ticket) oder
+  übersprungen wurde (Lint-Fehler → `status=triage`)
 
 ---
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.4...website-v1.259.5) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** Fork-Guard fuer arbitration.yml + cron-Trigger entfernen [T002927] ([#3975](https://github.com/Paddione/Bachelorprojekt/issues/3975)) ([c310909](https://github.com/Paddione/Bachelorprojekt/commit/c31090929aee5d3caaef4466b63a5f27c6d644f1))
+
 ## [1.259.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.3...website-v1.259.4) (2026-08-09)
 
 

@@ -202,3 +202,50 @@ tasks:
     #     /app/pocket-id one-time-access-token paddione
     cmds:
       - node scripts/sdlc-cockpit-smoke.mjs {{.CLI_ARGS}}
+
+  # ── T002655: sdlc:up / sdlc:down / sdlc:dev ─────────────────────────────
+
+  sdlc:up:
+    desc: "SDLC-Stack komplett starten: Cluster → Stack → llm-proxy → Health-Gate"
+    cmds:
+      # Idempotent: Cluster nur anlegen, wenn er fehlt.
+      # Die if-Form wird in mvdan/sh und bash gleich ausgewertet
+      # (anders als ! cmd | grep, das in mvdan/sh als (! cmd) | grep bindet).
+      - |
+        if k3d cluster list 2>/dev/null | grep -q mentolder-dev; then
+          echo "[sdlc:up] Cluster mentolder-dev existiert bereits — ueberspringe cluster:create"
+        else
+          task sdlc:sdlc:cluster:create
+        fi
+      - task sdlc:sdlc:deploy
+      # Proxy nur starten, wenn er noch nicht antwortet — /livez, nicht /health
+      # (ein 503-wegen-fehlendem-Backend sieht fuer /health aus wie "not running").
+      - |
+        PORT="${LLM_PROXY_PORT:-18235}"
+        if curl -fsS --max-time 2 "http://127.0.0.1:$PORT/livez" >/dev/null 2>&1; then
+          echo "[sdlc:up] llm-proxy laeuft bereits — ueberspringe proxy:start"
+        else
+          task llm:proxy:start
+        fi
+      - scripts/sdlc/health-gate.sh --timeout 120
+
+  sdlc:down:
+    desc: "SDLC-Stack herunterfahren: llm-proxy → Cluster"
+    cmds:
+      - task llm:proxy:stop
+      # sdlc:cluster:delete is idempotent — k3d cluster delete does not fail
+      # when the cluster does not exist. We still catch the edge case where k3d
+      # itself is missing or the cluster name was never registered.
+      - task sdlc:sdlc:cluster:delete || echo "[sdlc:down] Cluster mentolder-dev nicht gefunden — nichts zu loeschen"
+
+  sdlc:dev:
+    desc: "Astro-Devserver mit BUILD_TARGET=sdlc starten (blockierend)"
+    dir: website
+    cmds:
+      # .env in die Umgebung exportieren — ohne sie antwortet der Devserver
+      # mit HTTP 500, weil PUBLIC_POCKET_ID_CLIENT_ID und andere Clients
+      # nicht gesetzt sind.
+      - |
+        set -a; . ../.env; set +a
+        export BUILD_TARGET=sdlc
+        pnpm dev

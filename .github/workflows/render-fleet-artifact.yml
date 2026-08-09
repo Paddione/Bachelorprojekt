@@ -71,8 +71,8 @@ jobs:
         uses: docker/login-action@abd2ef45e78c5afb21d64d4ca52ee8550d9572c7  # v5
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PAT }}
 
       - name: Provide CI dummy secrets for render
         run: bash scripts/ci-dummy-secrets.sh

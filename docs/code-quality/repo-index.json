@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 840,
+      "file_count": 841,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -384,6 +384,7 @@
         "tests/spec/ci-cd/freshness-check-base-mismatch.bats",
         "tests/spec/ci-cd/freshness-paths-exist.bats",
         "tests/spec/ci-cd/generated-artifacts-registry.bats",
+        "tests/spec/ci-cd/ghcr-digest-auth.bats",
         "tests/spec/ci-cd/mishap-t002425.bats",
         "tests/spec/ci-cd/pr-refresh-batch.bats",
         "tests/spec/ci-cd/pre-push-artifact-guard.bats",

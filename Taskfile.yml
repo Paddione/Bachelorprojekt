@@ -681,6 +681,11 @@ tasks:
     cmds:
       - bash scripts/admin-menu-gate.sh
 
+  test:branch-protection:
+    desc: Prüft Branch Protection auf main (enforce_admins + PR-Pflicht) [T002889]
+    cmds:
+      - bash scripts/check-branch-protection.sh
+
   test:dry-run:
     desc: Dry-run key tasks to catch Taskfile syntax errors
     cmds:

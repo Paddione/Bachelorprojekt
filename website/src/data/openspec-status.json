@@ -2679,6 +2679,12 @@
       "status": "archived"
     }
   ],
+  "T002730": [
+    {
+      "slug": "2026-08-09-fa-59-e2e-spec-positive-assertion",
+      "status": "archived"
+    }
+  ],
   "T002731": [
     {
       "slug": "fleet-sequence-split",

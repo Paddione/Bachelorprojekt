@@ -3216,6 +3216,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-embedding/port-forward-identity-T002870",
+    "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-pgvector",
     "file": "tests/spec/openspec-pgvector.bats",
     "category": "openspec-pgvector",

@@ -2877,6 +2877,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002870": [
+    {
+      "slug": "openspec-embed-collection-T002870",
+      "status": "plan_staged"
+    }
+  ],
   "T002871": [
     {
       "slug": "backfill-id-bats-local-red",

@@ -35,6 +35,8 @@ EMBED_REPO="${2:-$REPO_ROOT}"
 # einen Index, den niemand liest.
 CTX="${FACTORY_CTX:-fleet}"
 
+source "$HERE/openspec-embed-lib.sh"
+
 PF_PID=""
 cleanup() { [[ -n "$PF_PID" ]] && kill "$PF_PID" 2>/dev/null || true; }
 trap cleanup EXIT
@@ -72,9 +74,24 @@ if [[ -z "$DB_URL" ]]; then
   PF_PORT="${OPENSPEC_EMBED_PF_PORT:-15432}"
   kubectl --context "$CTX" -n workspace port-forward svc/shared-db "${PF_PORT}:5432" >/dev/null 2>&1 &
   PF_PID=$!
+  FOUND=0
   for _ in $(seq 1 10); do
-    (exec 3<>"/dev/tcp/127.0.0.1/${PF_PORT}") 2>/dev/null && { exec 3>&- 3<&-; break; } || sleep 1
+    LISTENER_PID="$(pf_listener_pid "$PF_PORT")"
+    if [[ -n "$LISTENER_PID" ]]; then
+      if [[ "$LISTENER_PID" == "$PF_PID" ]]; then
+        FOUND=1
+        break
+      fi
+      FOREIGN_CMD="$(ps -p "$LISTENER_PID" -o cmd= 2>/dev/null || echo unbekannt)"
+      echo "[openspec-embed-local] FEHLER: Port ${PF_PORT} wird von einem fremden Prozess (PID ${LISTENER_PID}: ${FOREIGN_CMD}) belegt, nicht vom eigenen Port-Forward (PID ${PF_PID}). Beende den fremden Prozess oder setze OPENSPEC_EMBED_PF_PORT auf einen freien Port." >&2
+      exit 1
+    fi
+    sleep 1
   done
+  if [[ "$FOUND" -ne 1 ]]; then
+    echo "[openspec-embed-local] FEHLER: eigener Port-Forward (PID ${PF_PID}) hat Port ${PF_PORT} nicht innerhalb von 10s gebunden." >&2
+    exit 1
+  fi
   DB_URL="$(printf '%s' "$RAW_URL" | sed -E "s#@[^/]+/#@127.0.0.1:${PF_PORT}/#")"
 fi
 
@@ -85,7 +102,7 @@ OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=tr
 # Credentials-sicher loggen (URLs rausfiltern)
 printf '%s\n' "$OUT" | grep -v '://' >&2 || true
 
-if printf '%s' "$OUT" | grep -q "indexed slug='"; then
+if embed_output_is_success "$OUT"; then
   # Gesamtlage nach erfolgreichem Embedding zeigen
   COUNT_OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=true \
     OPENSPEC_EMBED_REPO="$EMBED_REPO" \

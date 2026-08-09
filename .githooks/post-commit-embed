@@ -25,6 +25,11 @@ if [[ -n "${CI:-}" ]]; then
 fi
 
 repo_root="$(git rev-parse --show-toplevel)"
+source "$repo_root/scripts/openspec-embed-lib.sh"
+
+if in_rebase; then
+  exit 0
+fi
 
 # Detect which openspec slugs this commit touched.
 # Use diff-tree instead of diff HEAD~1 HEAD so it works on the initial commit too

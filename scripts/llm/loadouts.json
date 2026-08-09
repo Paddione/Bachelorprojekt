@@ -414,40 +414,6 @@
       "extraArgs": [],
       "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). Port 8093 ist die dort seit je dokumentierte LM_STUDIO_URL-Vorgabe (brain-ingest.sh:42, \"ingest pool\") und wird hier zum ersten Mal real. parallel=4 deckungsgleich mit MAX_PARALLEL (brain-ingest.sh:44) - mehr Ingest-Jobs als Slots stellen sich nur in die Warteschlange. Aufrufer setzen LM_STUDIO_URL=http://127.0.0.1:8093/v1 und LM_MODEL=brain-ingest; beide bleiben Pflichtvariablen (T002533), dieses Loadout stellt nur den Server bereit. Der Slug IST die Modell-ID, weil llm-proxy/runner.mjs --alias <slug> uebergibt.",
       "exclusiveGroup": "chat-gpu"
-    },
-    {
-      "slug": "brain-ingest",
-      "label": "Brain Ingest · gpt-oss-20b · 4 Slots",
-      "model": "gptoss20/gpt-oss-20b-Q8_0.gguf",
-      "port": 8093,
-      "fit": {
-        "enabled": true,
-        "targetMarginMib": 2400,
-        "minCtx": 8192
-      },
-      "args": {
-        "ctx": null,
-        "ngl": null,
-        "parallel": 4,
-        "cacheTypeK": "q8_0",
-        "cacheTypeV": "q8_0",
-        "loadMode": "mmap",
-        "flashAttention": true,
-        "jinja": true,
-        "metrics": true,
-        "reasoning": "auto",
-        "reasoningBudget": null
-      },
-      "speculative": {
-        "draftHfRepo": null,
-        "draftNgl": null
-      },
-      "mcp": {
-        "serversConfig": null
-      },
-      "extraArgs": [],
-      "notes": "Ingest-Loadout fuer brain-ingest.sh (T002679). Port 8093 ist in brain-ingest.sh:42 als LM_STUDIO_URL-Vorgabe dokumentiert und wird hier zum ersten Mal real. gpt-oss-20b: MXFP4-nativ bei 11,5-12,1 GB, 4 Slots unter 16 GB VRAM. LM_STUDIO_URL und LM_MODEL bleiben Pflichtvariablen (T002533).",
-      "exclusiveGroup": "chat-gpu"
     }
   ]
 }

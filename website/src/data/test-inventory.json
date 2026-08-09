@@ -2628,6 +2628,12 @@
     "kind": "shell"
   },
   {
+    "id": "factory-reclaim-lock-respect/pid-dead-worktree-match-T002849",
+    "file": "tests/spec/factory-reclaim-lock-respect/pid-dead-worktree-match-T002849.bats",
+    "category": "factory-reclaim-lock-respect",
+    "kind": "shell"
+  },
+  {
     "id": "factory-watchdog/stale-type-coverage",
     "file": "tests/spec/factory-watchdog/stale-type-coverage.bats",
     "category": "factory-watchdog",

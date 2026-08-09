@@ -38,6 +38,31 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
+# [T002914] Rebase gegen den REMOTE-BRANCH statt gegen origin/main.
+# Ein divergierter Rollup-Branch (Remote hat eigene Commits — z.B. den Anker
+# ee4b350c1 oder parallele Rollup-Runs, die die lokale Chain nicht kennt) wird
+# durch ein Rebase auf origin/main NIE zusammenfuehrbar: die lokale Kette bleibt
+# gegenueber origin/<BRANCH> divergiert und jeder Push bleibt non-fast-forward
+# (abgelehnt) — der Rollup-Branch deadlockt dauerhaft. Erst das Rebase auf
+# origin/${BRANCH} (nach fetch) integriert die Remote-Chain und macht den naechsten
+# Push wieder fast-forward. Da der Plan pro Lauf idempotent aus den Container-
+# Kommentaren regeneriert wird, ist die Remote-Chain die saubere Basis.
+#
+# [T002913] core.hooksPath=/dev/null ist hier NICHT optional: der
+# post-commit-embed-Hook feuert bei JEDEM rebasierten Commit und kann am
+# Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so hing der
+# Factory-Tick stundenlang im Rebase, hielt den Flock und blockierte jeden
+# weiteren Tick. Ein Factory-interner Rollup-Rebase braucht den Hook nicht — der
+# Embed laeuft ohnehin nach dem stage-plan.
+rollup_rebase_onto_remote() {
+  git fetch -q origin "$BRANCH" 2>/dev/null || true
+  if git -c core.hooksPath=/dev/null rebase "origin/${BRANCH}" 2>/dev/null; then
+    return 0
+  fi
+  echo "mishap-rollup: rebase auf origin/${BRANCH} fehlgeschlagen (Konflikt?) — breche ab" >&2
+  return 1
+}
+
 # ── Load factory lib ────────────────────────────────────────────────────────
 source "$HERE/lib.sh"
 
@@ -108,20 +133,14 @@ fi
 cd "$WT"
 
 # ── Branch auf Remote → rebasen ─────────────────────────────────────────────
-# Wenn der Branch auf origin existiert, rebasen wir auf origin/main, damit der
-# Plan den aktuellen Stand des main-Branches reflektiert.
-# [T002913] Der post-commit-embed-Hook feuert bei JEDEM rebasierten Commit und
-# kann am Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so
-# hing der Factory-Tick stundenlang im Rebase, hielt den Flock und blockierte
-# jeden weiteren Tick. Ein Factory-interner Rollup-Rebase braucht den Hook nicht
-# (der Embed laeuft ohnehin nach dem stage-plan) — also deaktivieren.
+# Wenn der Branch auf origin existiert, rebasen wir auf origin/${BRANCH} (statt
+# auf origin/main), damit die lokale Kette die Remote-Commits integriert und der
+# Push fast-forward bleibt. [T002914]
+# Der Hook-Guard aus [T002913] steckt in rollup_rebase_onto_remote — beide Fixes
+# betreffen denselben Rebase und schliessen sich nicht aus.
 if git rev-parse --verify --quiet "origin/${BRANCH}" >/dev/null 2>&1; then
-  echo "mishap-rollup: rebase ${BRANCH} auf origin/main (post-commit-embed deaktiviert)"
-  git fetch origin main 2>/dev/null || true
-  git -c core.hooksPath=/dev/null rebase origin/main 2>/dev/null || {
-    echo "mishap-rollup: rebase fehlgeschlagen — breche ab" >&2
-    exit 1
-  }
+  echo "mishap-rollup: rebase ${BRANCH} auf origin/${BRANCH} (post-commit-embed deaktiviert)"
+  rollup_rebase_onto_remote || exit 1
 fi
 
 # ── Plan-Erzeugung / -Update ────────────────────────────────────────────────
@@ -254,16 +273,22 @@ else
     exit 1
   fi
   # Push scheitert, wenn der Branch remote bereits weiter ist (z.B. durch
-  # einen parallelen merge). Dann holen wir neu und rebasen.
+  # einen parallelen merge). Dann holen wir neu und rebasen — gegen die
+  # REMOTE-BRANCH-Kette, nicht gegen origin/main (sonst bleibt ein divergierter
+  # Branch dauerhaft non-fast-forward, siehe T002914).
   git push -q -u origin "$BRANCH" 2>/dev/null || {
-    echo "mishap-rollup: push fehlgeschlagen — rebase + retry"
-    git fetch origin main 2>/dev/null || true
-    git -c core.hooksPath=/dev/null rebase origin/main 2>/dev/null || true
-    git push -q -u origin "$BRANCH" || {
-      echo "mishap-rollup: FEHLER — push auf '${BRANCH}' auch nach rebase fehlgeschlagen." >&2
+    echo "mishap-rollup: push fehlgeschlagen — rebase auf origin/${BRANCH} + retry"
+    if rollup_rebase_onto_remote; then
+      git push -q -u origin "$BRANCH" || {
+        echo "mishap-rollup: FEHLER — push auf '${BRANCH}' auch nach rebase fehlgeschlagen." >&2
+        echo "  Der Plan ist lokal committet, aber nicht auf origin: ${CHANGE_DIR}" >&2
+        exit 1
+      }
+    else
+      echo "mishap-rollup: FEHLER — rebase nach push-Fehlschlag nicht aufloesbar." >&2
       echo "  Der Plan ist lokal committet, aber nicht auf origin: ${CHANGE_DIR}" >&2
       exit 1
-    }
+    fi
   }
 fi
 

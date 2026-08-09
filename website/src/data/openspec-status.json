@@ -2965,6 +2965,12 @@
       "status": "archived"
     }
   ],
+  "T002896": [
+    {
+      "slug": "factory-worktree-reaper-lock-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T002925": [
     {
       "slug": "sammel-bats-hygiene-T002925",

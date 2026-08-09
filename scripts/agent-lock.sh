@@ -486,6 +486,20 @@ cmd_check_and_claim() {
   cmd_claim "$scope" "$id" --label "$LABEL" --worktree "$WT" --branch "$BRANCH" --ticket "$TICKET"
 }
 
+# [T002896] Oeffentlicher Wrapper um _branch_is_live_claimed — erlaubt
+# worktree-create.sh und cleanup.sh, einen live Agent-Claim zu respektieren,
+# ohne die interne Logik von _branch_is_live_claimed zu duplizieren.
+cmd_check_branch_live() {
+  local br="$1"
+  if _branch_is_live_claimed "$br"; then
+    echo "live"
+    return 0
+  else
+    echo "free"
+    return 1
+  fi
+}
+
 cmd_list() {
   local d; d="$(_lock_dir)"; [ -d "$d" ] || { echo "(keine aktiven Claims)"; return 0; }
   printf '%-14s %-24s %-8s %-10s %-6s %-20s %s\n' SCOPE ID TOOL SID STATE LABEL FILE
@@ -605,6 +619,7 @@ main() {
     release) cmd_release "$@";;
     check)   cmd_check "$@";;
     check-and-claim) cmd_check_and_claim "$@";;
+    check-branch-live) cmd_check_branch_live "$@";;
     check-merged)    cmd_check_merged "$@";;
     list)    cmd_list "$@";;
     reap)    cmd_reap "$@";;
@@ -612,7 +627,7 @@ main() {
     guard-precommit)    cmd_guard_precommit "$@";;
     guard-postcheckout) cmd_guard_postcheckout "$@";;
     reclaim-main-checkout) cmd_reclaim_main_checkout "$@";;
-    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-merged|list|reap|mine|guard-precommit|guard-postcheckout|reclaim-main-checkout}" >&2; return 2;;
+    *) echo "Usage: agent-lock.sh {claim|refresh|release|check|check-and-claim|check-branch-live|check-merged|list|reap|mine|guard-precommit|guard-postcheckout|reclaim-main-checkout}" >&2; return 2;;
   esac
 }
 main "$@"

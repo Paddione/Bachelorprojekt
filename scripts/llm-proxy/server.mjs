@@ -123,10 +123,19 @@ async function forwardToBackend(backend, servedModel, subpath, budgetedBody) {
 
 async function proxyV1(req, res, subpath) {
   const body = await readBody(req);
-  const auto = await ensureLoadoutForModel(body.model);
+  const requestedModel = body.model;
+
+  // T002753 — Auto-Switch mit Preemptions-Schutz.
+  //
+  // ensureLoadoutForModel startet das angeforderte Modell und stoppt ggf.
+  // Konflikt-Loadouts. Danach kann das Modell von einem anderen Request
+  // wieder gestoppt werden (Preemption), bevor wir es benutzen. Wir pruefen
+  // nach dem Routing, ob das angeforderte Modell noch lebt — wenn nicht,
+  // retryen wir den Switch einmal.
+  let auto = await ensureLoadoutForModel(requestedModel);
   if (auto?.conflict) {
     return sendJson(res, 409, { error: { code: 'exclusive_conflict', message:
-      `${body.model} teilt exclusiveGroup mit dem laufenden Loadout ${auto.conflict}. `
+      `${requestedModel} teilt exclusiveGroup mit dem laufenden Loadout ${auto.conflict}. `
       + `Zuerst 'curl -XPOST http://127.0.0.1:${PORT}/admin/loadouts/${auto.conflict}/stop' `
       + `ausfuehren, dann die Anfrage wiederholen — der Proxy stoppt nichts von selbst.` } });
   }
@@ -134,6 +143,7 @@ async function proxyV1(req, res, subpath) {
     const e = auto.failed;
     return sendJson(res, e.status ?? 502, { error: { code: e.code ?? 'start_error', message: e.message } });
   }
+
   // [T002657] Lokal-only-Anforderung: der Aufrufer verlangt, dass die Inhalte
   // die eigene Infrastruktur nicht verlassen. Ohne diesen Weg faellt eine
   // korrekt auf on-premises umgestellte Coaching-Konfiguration beim naechsten
@@ -141,8 +151,23 @@ async function proxyV1(req, res, subpath) {
   // zurueck — der Guard in der Website waere dann umgangen, ohne dass jemand
   // etwas falsch gemacht haette.
   const localOnly = String(req.headers['x-llm-local-only'] ?? '') === '1';
-  const routed = resolveModel(body.model, getBackends, { localOnly });
+  let routed = resolveModel(requestedModel, getBackends, { localOnly });
+  // T002753: Wenn das Modell nach dem Switch nicht mehr gefunden wird (von
+  // einem anderen Request gestoppt), genau einen Retry.
+  if (!routed && auto?.started) {
+    console.log(`[switch] ${auto.started} wurde vor Routing gestoppt — retry (resolveModel ergab null)`);
+    auto = await ensureLoadoutForModel(requestedModel);
+    if (auto?.failed) {
+      const e = auto.failed;
+      return sendJson(res, e.status ?? 502, { error: { code: e.code ?? 'start_error', message: e.message } });
+    }
+    // auto ist null oder { started } — bei null ist das Modell schon da, bei
+    // started hat der Retry es neu gestartet. Ein erneuter resolveModel-Versuch.
+    routed = resolveModel(requestedModel, getBackends, { localOnly });
+  }
+
   if (!routed) {
+    console.log(`[route] ${requestedModel}: resolveModel ergab null (localOnly=${localOnly}, auto=${auto ? JSON.stringify(Object.keys(auto)) : 'null'})`);
     // Bewusst KEINE Substitution auf ein remote-Backend: bei lokal-only ist
     // Fehlschlagen das richtige Ergebnis, Ausweichen waere der Schaden.
     return localOnly
@@ -236,6 +261,31 @@ async function waitHealthy(port, timeoutMs) {
     await new Promise((r) => setTimeout(r, 1000));
   }
   return false;
+}
+
+/** Wartet, bis eine systemd-Unit gestoppt ist (active !== 'active'). Timeout in ms. */
+async function waitUntilStopped(slug, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const s = unitStatus(slug);
+    if (s.active !== 'active') return true;
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  return false;
+}
+
+/**
+ * T002753 — Auto-Switch-Semaphor: serialisiert Modellwechsel (stop alt + start neu)
+ * damit nicht zwei Requests gleichzeitig verschiedene Loadouts starten.
+ * Der Aufrufer (proxyV1) serialisiert bereits ueber den per-Backend-Semaphor;
+ * dieser Lock schuetzt den Switch VOR dem Routing, also bevor der Backend bekannt ist.
+ */
+let switchLock = Promise.resolve();
+function withSwitchLock(fn) {
+  const p = switchLock.then(() => fn()).finally(() => {});
+  // next waiter gets this promise, even if it rejects — we never want to deadlock
+  switchLock = p.catch(() => {});
+  return p;
 }
 
 // Ein Server kann auf /health antworten und trotzdem unfaehig sein, ein
@@ -335,23 +385,89 @@ async function startLoadout(slug) {
 }
 
 const startsInFlight = new Map();
+/** T002753 — Grace-Period: ein gerade gestarteter Loadout darf fuer diese Zeitspanne
+ *  nicht von einem anderen Request gestoppt werden (Preemptions-Schutz). Der
+ *  ausloesende Request hat so Zeit, zu routen und das Modell zu benutzen. */
+const SWITCH_GRACE_MS = 3_000;
+const loadoutStartedAt = new Map(); // slug -> timestamp (Date.now())
 
 async function ensureLoadoutForModel(model) {
   let doc;
   try { ({ doc } = readLoadouts(DEFAULT_PATH)); } catch { return null; }
+
+  // T002753 — Auto-Switch mit Re-Evaluation unter dem Lock.
+  //
+  // Der erste Blick auf planAutoStart entscheidet, OB ueberhaupt ein Switch
+  // noetig ist (none: Modell laeuft schon; conflict/start: etwas muss passieren).
+  // Bei none kehren wir sofort ohne Lock zurueck. Bei conflict/start betreten
+  // wir den Lock und lesen activeSlugs ERNEUT: ein anderer Request koennte
+  // zwischenzeitlich den Konflikt schon geloest haben — dann starten wir nicht
+  // doppelt.
   const activeSlugs = doc.loadouts
     .filter((l) => isLoadoutActive(l, unitStatus(l.slug)))
     .map((l) => l.slug);
   const decision = planAutoStart({ doc, model, activeSlugs });
   if (decision.action === 'none') return null;
-  if (decision.action === 'conflict') return { conflict: decision.conflictSlug };
-  const pending = startsInFlight.get(decision.slug);
+
+  return withSwitchLock(async () => {
+    // Re-read active slugs under the lock — another switch may have resolved
+    // the conflict while we were waiting.
+    const currentActive = doc.loadouts
+      .filter((l) => isLoadoutActive(l, unitStatus(l.slug)))
+      .map((l) => l.slug);
+    const reDecide = planAutoStart({ doc, model, activeSlugs: currentActive });
+    if (reDecide.action === 'none') return null;
+
+    // Nur wenn das angeforderte Modell WIRKLICH noch nicht laeuft, stoppen wir.
+    // `reDecide` kann `start` sein (kein Konflikt, Modell nicht aktiv)
+    // oder `conflict` (Konflikt mit einem laufenden Loadout).
+    if (reDecide.action === 'conflict') {
+      const group = reDecide.group;
+      const toStop = currentActive.filter((slug) => {
+        const l = findLoadout(doc, slug);
+        return l && l.exclusiveGroup === group && l.slug !== reDecide.slug && l.managed !== 'external';
+      });
+      // T002753 — Grace-Period: ein gerade gestarteter Loadout darf nicht sofort
+      // wieder gestoppt werden. Der ausloesende Request braucht Zeit zum Routen.
+      const inGrace = toStop.filter((slug) => {
+        const at = loadoutStartedAt.get(slug);
+        return at && (Date.now() - at) < SWITCH_GRACE_MS;
+      });
+      if (inGrace.length > 0) {
+        console.log(`[switch] ${reDecide.slug}: Konflikt-Loadout(s) ${inGrace.join(',')} in Grace-Period — switch abgelehnt`);
+        return { failed: new LoadoutStartError(503, 'grace_period',
+          `${inGrace.join(', ')} wurde gerade erst gestartet (Grace-Period ${SWITCH_GRACE_MS}ms). `
+          + `Bitte in ${Math.ceil(SWITCH_GRACE_MS / 1000)}s erneut versuchen.`) };
+      }
+      for (const slug of toStop) {
+        console.log(`[switch] ${reDecide.slug}: stoppe Konflikt-Loadout ${slug} (Gruppe '${group}')`);
+        try { stopUnit(slug); } catch (err) {
+          return { failed: new LoadoutStartError(502, 'stop_error',
+            `Konnte ${slug} nicht stoppen: ${err.message}`) };
+        }
+        const stopped = await waitUntilStopped(slug, 30_000);
+        if (!stopped) {
+          return { failed: new LoadoutStartError(502, 'stop_timeout',
+            `${slug} wurde nach 30s nicht inaktiv`) };
+        }
+        console.log(`[switch] ${slug} gestoppt`);
+      }
+      await discovery.probeNow();
+    }
+
+    console.log(`[switch] starte ${reDecide.slug}`);
+    return startRequestedLoadout(doc, reDecide.slug);
+  });
+}
+
+async function startRequestedLoadout(doc, slug) {
+  const pending = startsInFlight.get(slug);
   if (pending) return pending;
-  const p = startLoadout(decision.slug)
-    .then(() => ({ started: decision.slug }))
+  const p = startLoadout(slug)
+    .then((r) => { loadoutStartedAt.set(slug, Date.now()); return { started: slug, ...r }; })
     .catch((err) => ({ failed: err }))
-    .finally(() => startsInFlight.delete(decision.slug));
-  startsInFlight.set(decision.slug, p);
+    .finally(() => startsInFlight.delete(slug));
+  startsInFlight.set(slug, p);
   return p;
 }
 

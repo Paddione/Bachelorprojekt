@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 843,
+      "file_count": 844,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -616,6 +616,7 @@
         "tests/spec/sdlc-isolation/e3-poller.bats",
         "tests/spec/sdlc-isolation/e3-tickets-lokal.bats",
         "tests/spec/sdlc-isolation/fleet-sequence-split.bats",
+        "tests/spec/sdlc-isolation/sdlc-up-command.bats",
         "tests/spec/sealed-secret-cluster-drift.bats",
         "tests/spec/secret-rotation-exposure.bats",
         "tests/spec/secret-rotation.bats",
@@ -3210,7 +3211,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 681,
+      "file_count": 682,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3774,6 +3775,7 @@
         "scripts/sdlc-cockpit-smoke.mjs",
         "scripts/sdlc-sync-oidc-secret.sh",
         "scripts/sdlc/backup-tickets.sh",
+        "scripts/sdlc/health-gate.sh",
         "scripts/sdlc/migrate-customer-projects.sh",
         "scripts/sdlc/migrate-tickets.sh",
         "scripts/sdlc/sdlc-backup.service",

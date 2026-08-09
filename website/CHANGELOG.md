@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.17](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.16...website-v1.259.17) (2026-08-09)
+
+
+### Bug Fixes
+
+* **factory:** korczewski brand DB resolves shared-db Pod durch Namespace statt hartem Pod-Namen [T002689] ([#4015](https://github.com/Paddione/Bachelorprojekt/issues/4015)) ([4ff9188](https://github.com/Paddione/Bachelorprojekt/commit/4ff9188b88f0eb4f87f5963f198d9b45084bbcbc))
+
 ## [1.259.16](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.15...website-v1.259.16) (2026-08-09)
 
 

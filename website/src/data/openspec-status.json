@@ -2697,6 +2697,12 @@
       "status": "archived"
     }
   ],
+  "T002710": [
+    {
+      "slug": "tcc-fixture-cleanup",
+      "status": "plan_staged"
+    }
+  ],
   "T002714": [
     {
       "slug": "ticket-mcp-update-fields-T002714",

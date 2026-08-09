@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.23](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.22...website-v1.259.23) (2026-08-09)
+
+
+### Bug Fixes
+
+* **mcp:** resolve config mutation race and redact secrets [T002941] ([#4066](https://github.com/Paddione/Bachelorprojekt/issues/4066)) ([3dfcbc8](https://github.com/Paddione/Bachelorprojekt/commit/3dfcbc8c2c00389b4cccb8ec00c917e308473628))
+
 ## [1.259.22](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.21...website-v1.259.22) (2026-08-09)
 
 

@@ -19,6 +19,7 @@ depends_on_plans: []
 | `tests/spec/ticket-system/list-test-data-filter.bats` | vorhanden (RED) | 95 | — | — | `.bats` ungated; liegt bereits im Branch |
 | `scripts/vda/ticket/list.sh` | ändern | 62 | 800 | 738 | Zuwachs ~6 Zeilen |
 | `tests/lib/factory-test-fixtures.sh` | ändern | 64 | 800 | 736 | Zuwachs ~6 Zeilen |
+| `scripts/one-shot/purge-fn-v7.sql` | neu | — | — | — | Nachfolger von `purge-fn-v6.sql`, Tabellenprüfung ergänzt |
 | `scripts/ticket-mcp/go/internal/tools/list.go` | ändern | 192 | — | — | `.go` ungated und unbaselined → S1 nicht anwendbar |
 
 Alle Budgets sind weit; kein Verkleinerungsschritt nötig. Das leere Feld bei der `.go`-Datei
@@ -102,6 +103,37 @@ kubectl get pod -n workspace --context k3d-mentolder-dev \
 - Aufrufer, die `purge_factory_test_data … || true` schreiben, sind davon unberührt; dieser
   Plan ändert sie nicht. Der Test dieses Changes ruft ohne `|| true` auf und belegt damit,
   dass der Purge wirkt.
+
+### 4b. `tickets.fn_purge_test_data()` gegen fehlende Tabellen absichern
+
+Task 4 allein repariert den teardown **nicht**. Auch mit korrekt aufgelöstem Namespace
+bricht der Purge ab:
+
+```
+ERROR: relation "questionnaire_test_status" does not exist
+CONTEXT: PL/pgSQL function fn_purge_test_data() line 80 at SQL statement
+```
+
+Die Tabelle existiert in der Datenbank `website` **nirgends** — geprüft über
+`information_schema.tables` mit `LIKE '%questionnaire%'`: kein Treffer in irgendeinem Schema.
+
+Die Ursache ist eine halbe Absicherung. `scripts/one-shot/purge-fn-v6.sql` prüft mehrfach
+per `information_schema.columns`, ob einzelne **Spalten** vorhanden sind (`has_qts_evidence`,
+`has_src_assn_col`, `has_coaching_flag`) — der Autor kannte die Schema-Drift also. Schritt 1
+der Funktion führt dann aber ein unbedingtes `UPDATE questionnaire_test_status` aus, ohne zu
+prüfen, ob die **Tabelle** existiert. Wo sie fehlt, stirbt der gesamte Purge an dieser
+Stelle, noch bevor eine einzige Ticketzeile angefasst wird.
+
+- Die vorhandenen Existenzprüfungen um eine Tabellenprüfung ergänzen (`to_regclass` oder
+  `information_schema.tables`) und den `UPDATE` nur dann ausführen. Dasselbe Muster für jeden
+  weiteren unbedingt referenzierten Block in der Funktion prüfen — die drei
+  Spalten-Flags zeigen, dass diese Funktion über mehrere Umgebungen mit unterschiedlichem
+  Schema läuft.
+- Die neue Fassung als nächste Version unter `scripts/one-shot/` ablegen, der Reihe
+  `purge-fn-v5/v6` folgend, und in der Datenbank ersetzen.
+- Im Ergebnis-JSON kenntlich machen, wenn ein Block wegen fehlender Tabelle übersprungen
+  wurde, statt ihn stillschweigend auszulassen — sonst ist „0 gepurgt" nicht von
+  „nichts zu purgen" unterscheidbar.
 
 ### 5. Liegengebliebene Testdaten abräumen
 

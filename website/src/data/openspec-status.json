@@ -2727,6 +2727,48 @@
       "status": "archived"
     }
   ],
+  "T002768": [
+    {
+      "slug": "2026-08-09-ticket-plans-schema-doc-T002768",
+      "status": "archived"
+    }
+  ],
+  "T002769": [
+    {
+      "slug": "2026-08-09-plan-staged-guard-T002769",
+      "status": "archived"
+    }
+  ],
+  "T002770": [
+    {
+      "slug": "2026-08-09-reaper-orphan-tickets-T002770",
+      "status": "archived"
+    }
+  ],
+  "T002771": [
+    {
+      "slug": "2026-08-09-prosa-blocker-detection-T002771",
+      "status": "archived"
+    }
+  ],
+  "T002772": [
+    {
+      "slug": "2026-08-09-dead-path-ssot-ref-T002772",
+      "status": "archived"
+    }
+  ],
+  "T002773": [
+    {
+      "slug": "2026-08-09-brain-ingest-model-default-T002773",
+      "status": "archived"
+    }
+  ],
+  "T002774": [
+    {
+      "slug": "2026-08-09-stage-plan-hold-doc-T002774",
+      "status": "archived"
+    }
+  ],
   "T002779": [
     {
       "slug": "spec-test-tracked-file-isolation",
@@ -2748,6 +2790,12 @@
   "T002817": [
     {
       "slug": "branch-allowlist-ssot",
+      "status": "plan_staged"
+    }
+  ],
+  "T002836": [
+    {
+      "slug": "ci-ticketless-changes",
       "status": "plan_staged"
     }
   ],

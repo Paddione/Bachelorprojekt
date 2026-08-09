@@ -698,3 +698,29 @@ completed or its result is inconclusive, the documented outcome SHALL be to keep
 - **AND** the stash is kept
 
 <!-- merged from change delta agent-skills.md (5c286af968d3) -->
+
+### Requirement: dead-path-references.bats referenziert existierende SSOT
+Die SSOT-Kopfzeile in `tests/spec/repo-hygiene/dead-path-references.bats` MUSS auf
+`openspec/specs/agent-skills.md` zeigen (existiert), nicht auf
+`openspec/specs/repo-hygiene.md` (existiert nicht).
+
+#### Scenario: SSOT-Kopfzeile verweist auf agent-skills.md
+
+- **GIVEN** die Datei `tests/spec/repo-hygiene/dead-path-references.bats`
+- **WHEN** die SSOT-Kopfzeile gelesen wird
+- **THEN** sie verweist auf `openspec/specs/agent-skills.md`
+
+<!-- merged from change delta agent-skills.md (4b6c8ce40fae) -->
+
+### Requirement: mcp-tool-guide dokumentiert ticket_plans-Spalten
+Der mcp-tool-guide MUSS die vorhandenen Spalten von `tickets.ticket_plans` nennen und
+klarstellen, dass `status` NICHT zu dieser Tabelle gehört.
+
+#### Scenario: mcp-tool-guide listet ticket_plans-Spalten
+
+- **GIVEN** die Datei `.claude/skills/references/mcp-tool-guide.md`
+- **WHEN** die ticket_plans-Dokumentation gelesen wird
+- **THEN** sie listet die vorhandenen Spalten `id`, `branch`, `pr_number`, `content`
+- **AND** sie stellt klar, dass `status` nicht zu dieser Tabelle gehört
+
+<!-- merged from change delta agent-skills.md (3b0a50566e91) -->

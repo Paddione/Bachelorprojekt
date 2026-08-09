@@ -34,39 +34,21 @@ The system SHALL maintain a JSON registry at `~/.local/share/bachelorprojekt/act
 
 ### Requirement: Harness-Stable Session Identity for agent-lock
 
-The system SHALL identify the owner of an `agent-lock.sh` claim by a harness-stable session id, resolved in this order: the explicit test override `AGENT_LOCK_SID` first, then the first non-empty value among the harness session-id variables (`CLAUDE_CODE_SESSION_ID`, `CLAUDE_SESSION_ID`), then the per-call Unix `SID(2)` only as a last-resort fallback. The override must come first: behind the harness variables it would itself be overridden by whatever the ambient session exports, which is not an override at all. Non-numeric session ids (those provided by the harness) SHALL be treated as always-alive by the reap logic and SHALL be reaped only by heartbeat TTL expiry, not by `pgrep -s`.
+The system SHALL identify the owner of an `agent-lock.sh` claim by a harness-stable session id, resolved in this order: the explicit test override `AGENT_LOCK_SID` first, then the first non-empty value among the harness session-id variables (`CLAUDE_CODE_SESSION_ID`, `CLAUDE_SESSION_ID`, `OPENCODE_SESSION_ID`), then the per-call Unix `SID(2)` only as a last-resort fallback. The override must come first: behind the harness variables it would itself be overridden by whatever the ambient session exports, which is not an override at all. Non-numeric session ids (those provided by the harness) SHALL be treated as always-alive by the reap logic and SHALL be reaped only by heartbeat TTL expiry, not by `pgrep -s`. Tool detection (`_detect_tool`) SHALL report `opencode` when `OPENCODE_SESSION_ID` is the harness variable that resolved the session id, checked before the generic Claude-harness branch so an opencode session is never misreported as `claude`.
 
 The set of accepted harness variable names SHALL be verified against the variables the harness actually exports. A name that the harness never sets MUST NOT be the only accepted name, and the test suite MUST contain at least one case that asserts the resolution order without pre-setting the variable under test.
 
-#### Scenario: CLAUDE_CODE_SESSION_ID wins over Unix SID
+#### Scenario: opencode session id resolves to a stable owner_sid instead of the per-call Unix SID
 
-- **GIVEN** a Bash tool call is invoked from the Claude Code harness, which exports `CLAUDE_CODE_SESSION_ID=ab1744d9-01d1-4f3e` and does not export `CLAUDE_SESSION_ID`
-- **WHEN** `bash scripts/agent-lock.sh claim ticket T000123 --label execute` is executed
-- **THEN** the resulting lock file has `owner_sid="ab1744d9-01d1-4f3e"` (the harness env, not the per-call `ps -o sess=` value)
+- **GIVEN** only `OPENCODE_SESSION_ID` is set in the environment (no `AGENT_LOCK_SID`, `CLAUDE_CODE_SESSION_ID`, `CLAUDE_SESSION_ID`)
+- **WHEN** `scripts/agent-lock.sh claim branch <name> --label test` runs
+- **THEN** the written lock file's `owner_sid` equals the value of `OPENCODE_SESSION_ID`, not the process's transient Unix session id
 
-#### Scenario: CLAUDE_SESSION_ID remains accepted
+#### Scenario: opencode session is reported as tool `opencode`, not `unknown` or `claude`
 
-- **GIVEN** an environment that exports `CLAUDE_SESSION_ID=claude-xyz-1234` and does not export `CLAUDE_CODE_SESSION_ID`
-- **WHEN** `bash scripts/agent-lock.sh claim ticket T000123` is executed
-- **THEN** the resulting lock file has `owner_sid="claude-xyz-1234"`
-
-#### Scenario: Release succeeds across separate tool calls of the same session
-
-- **GIVEN** `bash scripts/agent-lock.sh claim ticket T000123` ran in one Bash tool call under a harness session
-- **WHEN** `bash scripts/agent-lock.sh release ticket T000123` runs in a later, separate Bash tool call of the same harness session
-- **THEN** the release succeeds without `--force` and the lock file is removed
-
-#### Scenario: Test override AGENT_LOCK_SID remains authoritative
-
-- **GIVEN** the environment sets `AGENT_LOCK_SID=test-sid-7`
-- **WHEN** `bash scripts/agent-lock.sh claim ticket T000123` is executed
-- **THEN** the resulting lock file has `owner_sid="test-sid-7"` regardless of any harness session variable or Unix SID
-
-#### Scenario: Harness-owned lock is not reaped by a different harness session
-
-- **GIVEN** lock `ticket__T000123.json` exists with `owner_sid=claude-xyz-1234`
-- **WHEN** a different harness session (`CLAUDE_CODE_SESSION_ID=claude-abc-5678`) attempts `bash scripts/agent-lock.sh claim ticket T000123`
-- **THEN** the claim is rejected with `AGENT-LOCK: ticket/T000123 bereits gehalten von …` and status 1
+- **GIVEN** only `OPENCODE_SESSION_ID` is set in the environment
+- **WHEN** `_detect_tool` (sourced from `scripts/agent-lock-identity.sh`) runs
+- **THEN** it prints `opencode`
 
 ### Requirement: Pre-Commit Guards in dev-flow-plan
 
@@ -311,3 +293,57 @@ The collision guard SHALL skip the blob comparison for files that do not exist i
 - **THEN** the guard reports no collision for this file
 
 <!-- merged from change delta active-sessions-hub.md (9edbbdf09a31) -->
+
+### Requirement: Deliberate Main-Checkout Reclaim for Bookkeeping Locks
+
+`scripts/agent-lock.sh` SHALL provide a `reclaim-main-checkout` command that lets the
+current session deliberately take over the `main-checkout` lock when it is currently held
+only as auto-claimed bookkeeping (label `auto: pre-commit self-claim`), so that a
+subsequent branch checkout in the main checkout is not reverted by
+`cmd_guard_postcheckout`'s SID-mismatch protection. The command SHALL refuse to take over
+a lock carrying any other (deliberate) label, leaving the existing protection for a
+genuinely active foreign holder unchanged.
+
+Rationale: `cmd_guard_precommit` already treats a bookkeeping-labelled lock as "not a real
+exclusive hold" for the purposes of blocking another session's commit. Before this change,
+`cmd_guard_postcheckout` had no equivalent path for the CURRENT session to act on that same
+distinction — its only escape was `AGENT_LOCK_POSTCHECKOUT_REVERT=0`, a global kill-switch
+that also disables the revert against a genuinely different, deliberately-claiming session.
+
+#### Scenario: A new session reclaims a bookkeeping lock left by an earlier session
+
+- **GIVEN** the `main-checkout` lock is held with label `auto: pre-commit self-claim` and
+  an `owner_sid` different from the current session's SID
+- **WHEN** the current session runs `bash scripts/agent-lock.sh reclaim-main-checkout`
+- **THEN** the command exits 0
+- **AND** the lock's `owner_sid` is now the current session's SID
+
+#### Scenario: A reclaimed session's subsequent checkout is not reverted
+
+- **GIVEN** the current session has just reclaimed the `main-checkout` lock per the
+  scenario above
+- **WHEN** the current session checks out a different branch and
+  `cmd_guard_postcheckout` runs (e.g. via `.githooks/post-checkout`)
+- **THEN** the checkout is not reverted
+- **AND** `HEAD` remains on the branch the session checked out
+
+#### Scenario: Reclaim refuses a deliberate (non-bookkeeping) foreign claim
+
+- **GIVEN** the `main-checkout` lock is held with a label other than
+  `auto: pre-commit self-claim` (a deliberate claim, e.g. `dev-flow-chore`) and an
+  `owner_sid` different from the current session's SID
+- **WHEN** the current session runs `bash scripts/agent-lock.sh reclaim-main-checkout`
+- **THEN** the command exits 1
+- **AND** the lock file is unchanged — `owner_sid` still names the original holder
+
+#### Scenario: Reclaim is a no-op when there is nothing to take over
+
+- **GIVEN** either no `main-checkout` lock exists, or it is already owned by the current
+  session's SID
+- **WHEN** the current session runs `bash scripts/agent-lock.sh reclaim-main-checkout`
+- **THEN** the command exits 0
+- **AND** it does not modify a lock it does not own
+
+<!-- merged from change delta active-sessions-hub.md (473cb3f1601c) -->
+
+<!-- merged from change delta active-sessions-hub.md (f2fab835a5a2) -->

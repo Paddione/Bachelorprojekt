@@ -1005,15 +1005,28 @@ stream panel can show missing data ranges (Design Table 4.2, Typ "Strom").
 
 ### Requirement: D10 — Panel-deklarierte Refresh-Rate
 
-The adapter SHALL accept a `refreshMs` parameter per method call and SHALL poll at that interval.
+The adapter SHALL accept a `refreshMs` parameter per method call. For sources that
+carry no push channel, the adapter SHALL poll at that interval. For sources served
+by the notification stream, `refreshMs` SHALL be accepted and ignored, and the
+adapter SHALL deliver updates when the stream emits them.
 
-#### Scenario: refreshMs wird respektiert
+The set of poll-served sources SHALL be limited to those with no PostgreSQL
+origin — pod state (kubectl), CI runs (GitHub) and model health (Ollama). Every
+poll-served source SHALL be named in the action and source inventory together
+with the reason it cannot be pushed.
 
-- **GIVEN** der Adapter wird mit `data.tickets({ refreshMs: 5000 })` aufgerufen
-- **WHEN** 10 Sekunden vergehen
-- **THEN** wurden mindestens 2 Fetch-Aufrufe an den Daemon gemacht
+#### Scenario: refreshMs is honoured for a poll-served source
 
----
+- **GIVEN** the adapter is called as `data.cluster({ refreshMs: 5000 })`
+- **WHEN** 10 seconds pass
+- **THEN** at least 2 fetches were issued for that source
+
+#### Scenario: A push-served source does not poll
+
+- **GIVEN** the adapter is called as `data.tickets({ refreshMs: 5000 })` and the
+  notification stream is connected
+- **WHEN** 10 seconds pass without any notification
+- **THEN** no fetch was issued for that source
 
 ### Requirement: D11 — Kein Polling unsichtbarer Panels
 
@@ -1116,6 +1129,299 @@ listening on a test port after the run.
 - **THEN** liegen PID- und Token-Datei dort
 - **AND** `/tmp/cockpit-daemon.pid` bleibt unberührt
 
+### Requirement: Cockpit sources resolve against the SDLC build target
+
+Every website-served endpoint in the adapter's endpoint map SHALL resolve to a
+route that exists in `website/src/pages/sdlc/`. An endpoint entry whose path has
+no corresponding route file SHALL NOT be shipped.
+
+This requirement exists because the build target split (T002624) moved the SDLC
+routes and the adapter kept pointing at the retired `/api/admin/cockpit/*` paths,
+which turned every panel fetch into a 404 that the adapter reported as an
+unreachable source.
+
+#### Scenario: Every mapped website endpoint has a route
+
+- **GIVEN** the adapter's endpoint map
+- **WHEN** each entry marked `website: true` is resolved against the repository
+- **THEN** a route file exists for its path under `website/src/pages/sdlc/`
+
+#### Scenario: A retired path is not reachable
+
+- **GIVEN** the retired prefix `/api/admin/cockpit/`
+- **WHEN** the adapter's endpoint map is inspected
+- **THEN** no entry uses that prefix
+
+### Requirement: Database changes reach the cockpit as notifications
+
+The system SHALL emit a PostgreSQL notification when the tables backing the
+cockpit change — factory phase events, cockpit audit entries and ticket status
+transitions. The notification payload SHALL name the affected domain and SHALL
+stay small enough to survive the payload limit; consumers SHALL re-read the
+authoritative row rather than trust the payload as a full record.
+
+#### Scenario: A phase event produces a notification
+
+- **GIVEN** a listener holds `LISTEN` on the cockpit channel
+- **WHEN** a row is inserted into `tickets.factory_phase_events`
+- **THEN** the listener receives a notification naming the factory domain
+
+#### Scenario: The payload stays within the limit
+
+- **GIVEN** a row whose textual content exceeds the notification payload limit
+- **WHEN** the trigger fires
+- **THEN** the notification is delivered and carries identifying fields, not the
+  full row
+
+### Requirement: The notification stream is served by the website under admin session
+
+The system SHALL expose the cockpit event stream as a server-sent-event route in
+the SDLC build target. The route SHALL reject a request without a valid admin
+session. The route SHALL send a heartbeat so an idle connection is
+distinguishable from a broken one, and SHALL release its resources when the
+client disconnects.
+
+A single listening connection SHALL serve all connected cockpit clients; the
+route SHALL NOT open one database connection per browser.
+
+#### Scenario: An unauthenticated request is rejected
+
+- **GIVEN** a request to the stream route without an admin session
+- **WHEN** the route handles it
+- **THEN** it responds 401 and opens no stream
+
+#### Scenario: Two clients share one listening connection
+
+- **GIVEN** the stream route is serving one connected client
+- **WHEN** a second client connects
+- **THEN** the number of listening database connections stays at one
+
+#### Scenario: A disconnect releases the subscription
+
+- **GIVEN** a connected client
+- **WHEN** the client disconnects
+- **THEN** its subscription is removed and its timers are cleared
+
+### Requirement: The adapter contract is unchanged by the switch to push
+
+The adapter SHALL keep the method signatures and the returned handle shape
+(`subscribe`, `data`) that the panel runtime consumes. A panel SHALL NOT need to
+know whether its source is served by poll or by notification.
+
+Where a source is push-served, the panel runtime SHALL NOT additionally run its
+own refresh timer for that source.
+
+#### Scenario: The handle shape is stable
+
+- **GIVEN** a push-served adapter method
+- **WHEN** it is called
+- **THEN** it returns a handle exposing `subscribe` and `data`, as the poll
+  implementation did
+
+#### Scenario: No double delivery
+
+- **GIVEN** a panel bound to a push-served source
+- **WHEN** the panel is mounted
+- **THEN** no refresh timer is running for that panel
+
+### Requirement: Frequently used SDLC actions are reachable from the cockpit
+
+The system SHALL make the following actions executable from the cockpit:
+the six existing ticket and feature endpoints (`feature-action`,
+`feature-actions`, `batch`, `reorder`, `reparent`, `suggest`); factory control
+(tick, enqueue, slot release); deploy and CI (Flux reconcile, CI rerun); and the
+ticket lifecycle (stage plan, release hold, close).
+
+Every action SHALL be classified by reversibility in the action policy. An action
+that is not classified SHALL be treated as irreversible. Every execution SHALL be
+recorded in `tickets.cockpit_audit` with actor, action, target and outcome —
+including failed attempts.
+
+#### Scenario: An unclassified action is treated as irreversible
+
+- **GIVEN** an action name absent from the policy's classification
+- **WHEN** the policy is asked to classify it
+- **THEN** it returns the irreversible class and requires a confirmation naming
+  the target
+
+#### Scenario: A failed action is still recorded
+
+- **GIVEN** an action whose execution fails
+- **WHEN** the request completes
+- **THEN** an audit row exists with outcome `failure`
+
+#### Scenario: An action requires an admin session
+
+- **GIVEN** a request to an action endpoint without an admin session
+- **WHEN** the endpoint handles it
+- **THEN** it responds 401 and performs no write
+
+### Requirement: Reachability of exposed actions is demonstrated, not asserted
+
+The system SHALL carry an inventory naming every action exposed to the cockpit
+with its endpoint, its reversibility class and its audit behaviour. The inventory
+SHALL be covered by a test that invokes each listed action and checks the
+observed result — the presence of an entry in the document SHALL NOT by itself
+count as evidence of reachability.
+
+#### Scenario: Every inventory entry resolves to a route
+
+- **GIVEN** the action inventory
+- **WHEN** each entry's endpoint is resolved against the repository
+- **THEN** a route file exists for it and the route accepts the documented method
+
+#### Scenario: An inventory entry without a classification fails the check
+
+- **GIVEN** an inventory entry carrying no reversibility class
+- **WHEN** the inventory check runs
+- **THEN** it fails and names the entry
+
+### Requirement: The cockpit header reports its actual data source
+
+The cockpit SHALL indicate whether it is serving live data or fixtures based on
+the adapter's actual state. A fixed label SHALL NOT be used.
+
+#### Scenario: Live data is labelled as live
+
+- **GIVEN** the adapter is serving live endpoints
+- **WHEN** the cockpit header renders
+- **THEN** it does not claim fixture mode
+
+### Requirement: Dev-Deployment — SDLC-Console auf mentolder-dev-Cluster
+
+Das Repository SHALL einen ausführbaren Deployment-Pfad bereitstellen, der das
+SDLC-Cockpit auf einem dedizierten k3d-Cluster `mentolder-dev` erreichbar macht
+(`Taskfile.sdlc.yml` `sdlc:cluster:create` + `sdlc:deploy`). Das Ergebnis SHALL
+per BATS-Test nachgewiesen sein, nicht per Behauptung.
+
+#### Scenario: SDLC-Stack ist deployed und erreichbar
+
+- **GIVEN** der `mentolder-dev`-Cluster läuft und der SDLC-Stack wurde per `sdlc:deploy` ausgerollt
+- **WHEN** `GET http://sdlc.localhost/sdlc/cockpit` aufgerufen wird
+- **THEN** antwortet die SDLC-Console mit HTTP 200 oder einem gültigen Auth-Redirect
+- **AND** der BATS-Test `tests/spec/cockpit-availability/*.bats` läuft grün
+
+#### Scenario: Cluster-Ziel ist dokumentiert
+
+- **GIVEN** die Deployment-Doku des SDLC-Stacks
+- **WHEN** der Zielcluster nachgeschlagen wird
+- **THEN** heißt er `mentolder-dev` und der Ausführungspfad ist `task sdlc:cluster:create` gefolgt von `task sdlc:deploy`
+
+### Requirement: Dev-Login — OAuth-Client für die lokale Website
+
+Der lokale Login-Pfad SHALL funktionieren: Der Pocket-ID-Client `website` SHALL den
+Callback `http://web.localhost/api/auth/callback` akzeptieren, und die Dev-`SITE_URL`
+SHALL konsistent mit diesem Callback sein, sodass `GET /sdlc/cockpit` ohne
+*"OAuth 2.0 Client does not exist"* bis zum authentifizierten Cockpit führt.
+
+#### Scenario: Admin meldet sich lokal an und erreicht das Cockpit
+
+- **GIVEN** ein Admin-Benutzer existiert im lokalen Pocket ID
+- **WHEN** der Benutzer `http://localhost:4321/sdlc/cockpit` öffnet und sich über den OAuth-Flow anmeldet
+- **THEN** endet der Flow im Cockpit (kein OAuth-Client-Fehler)
+- **AND** die Session gilt als gültige Admin-Session
+
+### Requirement: Header-Status spiegelt Livedaten statt Fixtures
+
+Das Cockpit-Header-Badge SHALL den realen Datenmodus (Livedaten) anzeigen und nicht mehr
+"Fixtures (K1)", sobald `adapter.js` Livedaten liefert.
+
+#### Scenario: Badge zeigt Livedaten
+
+- **GIVEN** das Cockpit lädt mit einem konfigurierten Adapter, der Livedaten liefert
+- **WHEN** der Header gerendert wird
+- **THEN** zeigt das Status-Element den Livedaten-Status an
+- **AND** es zeigt nicht "Fixtures (K1)"
+
+### Requirement: Realtime-Push — LISTEN/NOTIFY-SSE statt Polling
+
+DB-gestützte Cockpit-Domänen (Tickets, Audit, Factory-Phasen) SHALL über
+PostgreSQL `LISTEN/NOTIFY` als Event-Quelle in Echtzeit aktualisiert werden. Die
+Website-API SHALL einen SSE-Endpunkt `/api/admin/cockpit/stream` mit Admin-Session-Auth
+bereitstellen, der DB-Events an verbundene Cockpit-Clients fan-out. Polling SHALL nur noch
+für Quellen ohne Postgres-Quelle (Pods, CI/GitHub, Modell-Health) als Fallback dienen.
+
+#### Scenario: DB-Event wird an verbundene Clients gepusht
+
+- **GIVEN** ein Admin-Client ist mit `/api/admin/cockpit/stream` verbunden
+- **WHEN** ein Trigger ein `NOTIFY` auf dem Ticket-Kanal auslöst
+- **THEN** erhält der Client ein SSE-Event mit den geänderten Daten
+- **AND** das Poll-Intervall der betroffenen Panel wird nicht abgewartet
+
+#### Scenario: Nicht-push-fähige Quelle bleibt gepollt
+
+- **GIVEN** eine Pod-/CI-Quelle besitzt keine Postgres-Quelle
+- **WHEN** das zugehörige Panel aktualisiert wird
+- **THEN** erfolgt die Aktualisierung über das bestehende Polling
+
+### Requirement: SDLC-Aktionsknöpfe und Aktions-Inventur
+
+Die vorhandenen, aber nicht exponierten POST-Endpunkte (feature-action, feature-actions,
+batch, reorder, reparent, suggest) SHALL im Cockpit erreichbar sein. Jede freigeschaltete
+Aktion SHALL in einer Inventur (`docs/sdlc/cockpit-action-inventory.md`) mit
+`action-policy.js`-Klassifikation dokumentiert und per BATS-Test auf Erreichbarkeit
+belegt werden. Schreibaktionen SHALL in `tickets.cockpit_audit` protokolliert werden.
+
+#### Scenario: Aktion ist freigeschaltet und auditiert
+
+- **GIVEN** eine Admin-Session ist aktiv und die Aktion "feature-action" ist freigeschaltet
+- **WHEN** die Aktion über das Cockpit ausgelöst wird
+- **THEN** wird der POST-Endpunkt erfolgreich aufgerufen
+- **AND** der Vorgang erscheint im Audit-Log `tickets.cockpit_audit`
+- **AND** der BATS-Test `tests/spec/sdlc-cockpit/action-inventory.bats` läuft grün
+
+### Requirement: SDLC pages preserve the requested target across login
+
+SDLC pages that redirect unauthenticated visitors to the login flow SHALL pass the originally
+requested path — including its query string — as a `returnTo` parameter, so the visitor returns
+to that exact location after authenticating.
+
+#### Scenario: Unauthenticated cockpit request returns to the cockpit
+
+- **GIVEN** a visitor without an admin session
+- **WHEN** they request `/sdlc/cockpit?tab=kosten` and complete the OIDC login
+- **THEN** they are redirected back to `/sdlc/cockpit?tab=kosten`, not to `/`
+
+#### Scenario: Login page forwards the returnTo parameter
+
+- **GIVEN** a request to `/login?returnTo=/sdlc/app-catalog`
+- **WHEN** the login page redirects to the auth endpoint
+- **THEN** the `returnTo` value reaches `/api/auth/login` and is stored for the OIDC state
+
+#### Scenario: A hostile returnTo still falls back safely
+
+- **GIVEN** a `returnTo` value pointing at a foreign origin
+- **WHEN** the OIDC callback resolves the redirect target
+- **THEN** the existing fail-closed guard discards it and falls back to the safe default
+
+### Requirement: The SDLC build serves a usable root path
+
+In the SDLC build target the site root SHALL redirect to the cockpit instead of returning a
+not-found response, so that any fallback redirect ends on a working page.
+
+#### Scenario: Root redirects to the cockpit in the SDLC build
+
+- **GIVEN** an application built with `BUILD_TARGET=sdlc`
+- **WHEN** `/` is requested
+- **THEN** the response is a redirect to `/sdlc/cockpit`
+
+#### Scenario: Root is unaffected in the production build
+
+- **GIVEN** an application built with `BUILD_TARGET=prod`
+- **WHEN** `/` is requested
+- **THEN** the request is handled by the regular start page, with no added redirect
+
+### Requirement: The build target is observable at runtime
+
+The website container image SHALL expose its build target as a runtime environment variable, so
+that request-time logic can distinguish the SDLC build from the production build.
+
+#### Scenario: The running container reports its build target
+
+- **GIVEN** an image built with the `BUILD_TARGET=sdlc` build argument
+- **WHEN** the environment of the running container is inspected
+- **THEN** `BUILD_TARGET` is present and set to `sdlc`
+
 ## Kind-Verteilung
 
 | Kind | Ticket | Status |
@@ -1159,3 +1465,9 @@ Siehe `openspec/changes/sdlc-cockpit-design/design.md`, Abschnitt „Getroffene 
 <!-- merged from change delta sdlc-cockpit.md (3366ddaa30a0) -->
 
 <!-- merged from change delta sdlc-cockpit.md (85c295f2204e) -->
+
+<!-- merged from change delta sdlc-cockpit.md (eb6290a87806) -->
+
+<!-- merged from change delta sdlc-cockpit.md (f8f2f1855906) -->
+
+<!-- merged from change delta sdlc-cockpit.md (b6143e719691) -->

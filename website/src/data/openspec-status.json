@@ -2655,6 +2655,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002719": [
+    {
+      "slug": "agy-headless-mcp-permissions",
+      "status": "plan_staged"
+    }
+  ],
   "T002721": [
     {
       "slug": "2026-08-08-cockpit-daemon-runtime-files",

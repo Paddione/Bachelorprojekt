@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "slug": "agy-headless-mcp-permissions",
+    "ticket_id": "T002719",
+    "generated_from": "main@615c68187",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "openspec/specs/mcp-gateway.md",
+      "language": "markdown",
+      "loc": 680,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-gateway/agy-mcp-permissions.bats",
+      "language": "bash",
+      "loc": 21,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/mcp-gateway/agy-mcp-permissions.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/agy-mcp-permissions.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

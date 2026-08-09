@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.10...website-v1.259.11) (2026-08-09)
+
+
+### Bug Fixes
+
+* **test:** task-context.bats setup() reapt verwaiste tcc-fixture-*-Ordner [T002710] ([#3990](https://github.com/Paddione/Bachelorprojekt/issues/3990)) ([c31c359](https://github.com/Paddione/Bachelorprojekt/commit/c31c35996b3c537b09fcabc57f7236db56d9491f))
+
 ## [1.259.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.9...website-v1.259.10) (2026-08-09)
 
 

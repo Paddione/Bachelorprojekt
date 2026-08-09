@@ -50,7 +50,11 @@ Reap-Schritt, der **vor** dem `mkdir -p "$CHANGE_DIR"` läuft:
 - Finde alle `openspec/changes/tcc-fixture-*`-Verzeichnisse **außer** dem für den aktuellen Lauf
   vorgesehenen `$CHANGE_DIR`, deren mtime älter als 10 Minuten ist:
   ```bash
-  find "$REPO/openspec/changes" -maxdepth 1 -type d -name 'tcc-fixture-*' -mmin +10 -print0 \
+  # [T002710-Nachtrag] MUSTER MIT ZIFFERN-SUFFIX: der Plan-Slug heisst selbst
+  # tcc-fixture-cleanup. Ein blankes tcc-fixture-*-Muster loescht ihn beim
+  # ersten Testlauf (Realunfall — Plan-Verzeichnis wurde aus git restauriert).
+  # Echte Fixtures heissen immer tcc-fixture-<pid> (SLUG="tcc-fixture-$$").
+  find "$REPO/openspec/changes" -maxdepth 1 -type d -name 'tcc-fixture-*[0-9]' -mmin +10 -print0 \
     | while IFS= read -r -d '' orphan; do
         case "$orphan" in
           */openspec/changes/tcc-fixture-*) rm -rf "$orphan" ;;

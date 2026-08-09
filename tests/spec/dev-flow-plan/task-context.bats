@@ -25,6 +25,32 @@ setup() {
   # Wohin die Generator-Laeufe schreiben, die ihr Ergebnis nur lesen wollen.
   OUT="$BATS_TEST_TMPDIR/intel.json"
 
+  # [T002710] Verwaiste tcc-fixture-*-Verzeichnisse aus abgebrochenen Laeufen
+  # aufraeumen: teardown() feuert nur, wenn der erzeugende Prozess ueberlebt.
+  # Ein abgebrochener Lauf (WSL-Crash, Session-Kill, systemd-Timeout) hinterlaesst
+  # den Fixture-Ordner als 0-Byte-Leiche im getrackten Arbeitsbaum. Der naechste
+  # setup()-Lauf raeumt sie statt sich auf den toten Prozess zu verlassen.
+  #
+  # MUSTER NUR MIT ZIFFERN-SUFFIX: das eigene Change-Verzeichnis heisst
+  # "tcc-fixture-cleanup" (der Plan-Slug zu T002710) — ein blankes
+  # tcc-fixture-*-Muster haette beim ersten Testlauf den gestagten Plan
+  # selber geloescht (real passiert, Plan-Verzeichnis musste aus git
+  # restauriert werden). Die echten Fixture-Ordner heissen immer
+  # tcc-fixture-<pid> (SLUG="tcc-fixture-$$"), also numerisch.
+  #
+  # Schwelle: aelter als 10 Minuten (wie scripts/hooks/cleanup-tmp.sh, nur enger —
+  # ein Testlauf dauert Sekunden). Ein tatsaechlich paralleler, laufender
+  # Nachbarprozess waere juenger und bleibt verschont. Das eigene $CHANGE_DIR
+  # existiert zu diesem Zeitpunkt noch nicht (mkdir laeuft erst NACH diesem Schritt)
+  # und wird von find folglich gar nicht gesehen.
+  find "$REPO/openspec/changes" -maxdepth 1 -type d -name 'tcc-fixture-*[0-9]' -mmin +10 -print0 \
+    | while IFS= read -r -d '' orphan; do
+        # Guard wie in teardown(): kein rm -rf ausserhalb von openspec/changes/tcc-fixture-*.
+        case "$orphan" in
+          */openspec/changes/tcc-fixture-*) rm -rf "$orphan" ;;
+        esac
+      done
+
   rm -rf "$CHANGE_DIR"
   mkdir -p "$CHANGE_DIR"
   cp -r "$FIXTURE_SRC/." "$CHANGE_DIR/"

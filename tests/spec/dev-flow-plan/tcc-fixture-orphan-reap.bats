@@ -17,6 +17,7 @@ setup() {
   TCC_FILE="$REPO/tests/spec/dev-flow-plan/task-context.bats"
   STALE_DIR="$REPO/openspec/changes/tcc-fixture-999999999"
   ANCHOR_DIR="$REPO/openspec/changes/_t002710-anchor-fixture"
+  PLAN_LIKE_DIR="$REPO/openspec/changes/tcc-fixture-cleanup"
 }
 
 teardown() {
@@ -45,4 +46,10 @@ teardown() {
 
   [ ! -d "$STALE_DIR" ] || { echo "verwaistes tcc-fixture-Verzeichnis wurde NICHT entfernt: $STALE_DIR"; false; }
   [ -f "$ANCHOR_DIR/marker.txt" ] || { echo "Positiv-Anker wurde faelschlich entfernt: $ANCHOR_DIR"; false; }
+  # Zweiter Positiv-Anker (T002710-Nachtrag): ein Verzeichnis im
+  # tcc-fixture-*-Muster OHNE Ziffern-Suffix — genau der Plan-Slug
+  # tcc-fixture-cleanup — bleibt unangetastet. Der erste Entwurf des
+  # Reap-Schritts nutzte ein blankes tcc-fixture-*-Muster und loeschte
+  # damit beim Testlauf den gestagten Plan (Realunfall, aus git restauriert).
+  [ -d "$PLAN_LIKE_DIR" ] || { echo "Plan-Slug-aehnliches Verzeichnis wurde entfernt: $PLAN_LIKE_DIR"; false; }
 }

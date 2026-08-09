@@ -1902,6 +1902,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/agent-lock-main-checkout-reclaim",
+    "file": "tests/spec/active-sessions-hub/agent-lock-main-checkout-reclaim.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/release-foreign-lock-guard",
     "file": "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
     "category": "active-sessions-hub",

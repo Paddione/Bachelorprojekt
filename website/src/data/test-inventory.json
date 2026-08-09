@@ -2376,6 +2376,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/spec-tracked-file-guard-isolation",
+    "file": "tests/spec/ci-cd/spec-tracked-file-guard-isolation.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/taskfiles-dir-convention",
     "file": "tests/spec/ci-cd/taskfiles-dir-convention.bats",
     "category": "ci-cd",
@@ -3120,6 +3126,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/authenticated-http-headers-isolation",
+    "file": "tests/spec/mcp-gateway/authenticated-http-headers-isolation.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/bge-host-routing",
     "file": "tests/spec/mcp-gateway/bge-host-routing.bats",
     "category": "mcp-gateway",
@@ -3134,6 +3146,12 @@
   {
     "id": "mcp-gateway/client-env-check",
     "file": "tests/spec/mcp-gateway/client-env-check.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
+    "id": "mcp-gateway/mcp-sync-drift-no-secret-leak",
+    "file": "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
     "category": "mcp-gateway",
     "kind": "shell"
   },

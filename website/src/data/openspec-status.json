@@ -2903,10 +2903,6 @@
   ],
   "T002849": [
     {
-      "slug": "agent-lock-liveness-t002849",
-      "status": "plan_staged"
-    },
-    {
       "slug": "2026-08-09-agent-lock-liveness-t002849",
       "status": "archived"
     }
@@ -2974,6 +2970,12 @@
   "T002925": [
     {
       "slug": "sammel-bats-hygiene-T002925",
+      "status": "plan_staged"
+    }
+  ],
+  "T002941": [
+    {
+      "slug": "mcp-config-mutation-race",
       "status": "plan_staged"
     }
   ],

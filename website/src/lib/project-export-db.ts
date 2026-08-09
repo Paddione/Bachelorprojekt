@@ -127,7 +127,7 @@ export async function findProjectByName(
 ): Promise<{ id: string; name: string } | null> {
   await initTicketsSchema();
   const result = await pool.query(
-    `SELECT id, title AS name FROM tickets.tickets
+    `SELECT id, title AS name FROM public.customer_projects
      WHERE type='project' AND parent_id IS NULL
        AND brand = $1 AND title ILIKE $2
      ORDER BY CASE status

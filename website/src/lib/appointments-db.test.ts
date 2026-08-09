@@ -94,6 +94,27 @@ vi.mock('pg', () => {
       due_date    DATE
     );
 
+    -- T002722: Kundenprojekte aus tickets.tickets in eigene Geschaeftstabelle
+    CREATE TABLE public.customer_projects (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      parent_id UUID,
+      type TEXT NOT NULL,
+      brand TEXT NOT NULL REFERENCES public.brands(id),
+      title TEXT NOT NULL,
+      description TEXT,
+      notes TEXT,
+      start_date DATE,
+      due_date DATE,
+      status TEXT NOT NULL DEFAULT 'backlog',
+      resolution TEXT,
+      priority TEXT NOT NULL DEFAULT 'mittel',
+      customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+      assignee_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+      done_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
     CREATE TABLE meetings (
       id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       customer_id     UUID NOT NULL REFERENCES customers(id),
@@ -239,7 +260,23 @@ async function seedTicket(opts: {
       opts.dueDate ?? null,
     ],
   );
-  return r.rows[0].id as string;
+  const id = r.rows[0].id as string;
+
+  // T002722: also seed public.customer_projects for project/task types
+  // so the refactored appointments-db.ts queries find the rows.
+  const projectTypes = ['project', 'task', 'chore'];
+  if (projectTypes.includes(opts.type)) {
+    const mappedType = opts.type === 'chore' ? 'task' : opts.type;
+    await pool.query(
+      `INSERT INTO public.customer_projects (id, type, parent_id, brand, title, status, priority, customer_id, start_date, due_date)
+       VALUES ($1, $2, $3, $4, $5, COALESCE($6, 'backlog'), COALESCE($7, 'mittel'), $8, $9::date, $10::date)`,
+      [id, mappedType, opts.parentId ?? null, opts.brand ?? 'mentolder', opts.title,
+       opts.status ?? null, opts.priority ?? null, opts.customerId ?? null,
+       opts.startDate ?? null, opts.dueDate ?? null],
+    );
+  }
+
+  return id;
 }
 
 beforeAll(async () => {
@@ -252,6 +289,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await pool.query(`DELETE FROM tickets.tickets`);
+  await pool.query(`DELETE FROM public.customer_projects`);
   await pool.query(`DELETE FROM meetings`);
   await pool.query(`DELETE FROM customers`);
   await pool.query(`TRUNCATE slot_whitelist`);

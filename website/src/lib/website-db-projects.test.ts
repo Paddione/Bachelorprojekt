@@ -114,6 +114,40 @@ vi.mock('pg', () => {
       status TEXT DEFAULT 'shipped', created_at TIMESTAMPTZ DEFAULT now()
     );
 
+    -- T002722: Kundenprojekte ziehen aus tickets.tickets in eine eigene
+    -- Geschaeftstabelle AUSSERHALB des Schemas tickets um (sonst faengt sie
+    -- der naechste ADR-006-Freeze wieder ein). Siehe
+    -- openspec/changes/tickets-projects-split/design.md D2.
+    CREATE TABLE public.customer_projects (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      parent_id UUID,
+      type TEXT NOT NULL,
+      brand TEXT REFERENCES public.brands(id),
+      title TEXT NOT NULL,
+      description TEXT,
+      notes TEXT,
+      start_date DATE,
+      due_date DATE,
+      status TEXT NOT NULL DEFAULT 'backlog',
+      resolution TEXT,
+      priority TEXT NOT NULL DEFAULT 'mittel',
+      customer_id UUID,
+      assignee_id UUID,
+      done_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    CREATE TABLE public.customer_project_attachments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      project_id UUID NOT NULL,
+      filename TEXT,
+      data_url TEXT,
+      nc_path TEXT,
+      mime_type TEXT,
+      file_size INT,
+      uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
     CREATE TABLE meetings (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       customer_id UUID REFERENCES customers(id),
@@ -336,20 +370,20 @@ describe('projects / sub-projects / tasks', () => {
     const id = await createProject({
       brand: 'mentolder', name: 'Website Relaunch', status: 'aktiv', priority: 'hoch', customerId,
     });
-    const row = (await pool.query(`SELECT title, status, customer_id, type, parent_id FROM tickets.tickets WHERE id=$1`, [id])).rows[0];
+    const row = (await pool.query(`SELECT title, status, customer_id, type, parent_id FROM public.customer_projects WHERE id=$1`, [id])).rows[0];
     expect(row.title).toBe('Website Relaunch');
     expect(row.status).toBe('in_progress'); // 'aktiv' forward-mapped
     expect(row.type).toBe('project');
     expect(row.parent_id).toBeNull();
 
     await updateProject(id, { name: 'Website Relaunch v2', status: 'erledigt', priority: 'niedrig', customerId });
-    const updated = (await pool.query(`SELECT title, status, resolution FROM tickets.tickets WHERE id=$1`, [id])).rows[0];
+    const updated = (await pool.query(`SELECT title, status, resolution FROM public.customer_projects WHERE id=$1`, [id])).rows[0];
     expect(updated.title).toBe('Website Relaunch v2');
     expect(updated.status).toBe('done');
     expect(updated.resolution).toBe('shipped');
 
     await deleteProject(id);
-    expect((await pool.query(`SELECT id FROM tickets.tickets WHERE id=$1`, [id])).rows).toHaveLength(0);
+    expect((await pool.query(`SELECT id FROM public.customer_projects WHERE id=$1`, [id])).rows).toHaveLength(0);
   });
 
   test('sub-projects: create/update/delete + parent existence check (verified via raw SQL)', async () => {
@@ -361,16 +395,16 @@ describe('projects / sub-projects / tasks', () => {
     })).rejects.toThrow(/not found/);
 
     const subId = await createSubProject({ projectId, name: 'Teilprojekt A', status: 'aktiv', priority: 'mittel' });
-    const sub = (await pool.query(`SELECT title, parent_id, type FROM tickets.tickets WHERE id=$1`, [subId])).rows[0];
+    const sub = (await pool.query(`SELECT title, parent_id, type FROM public.customer_projects WHERE id=$1`, [subId])).rows[0];
     expect(sub.title).toBe('Teilprojekt A');
     expect(sub.parent_id).toBe(projectId);
     expect(sub.type).toBe('project');
 
     await updateSubProject(subId, { name: 'Teilprojekt A2', status: 'erledigt', priority: 'niedrig' });
-    expect((await pool.query(`SELECT title FROM tickets.tickets WHERE id=$1`, [subId])).rows[0].title).toBe('Teilprojekt A2');
+    expect((await pool.query(`SELECT title FROM public.customer_projects WHERE id=$1`, [subId])).rows[0].title).toBe('Teilprojekt A2');
 
     await deleteSubProject(subId);
-    expect((await pool.query(`SELECT id FROM tickets.tickets WHERE id=$1`, [subId])).rows).toHaveLength(0);
+    expect((await pool.query(`SELECT id FROM public.customer_projects WHERE id=$1`, [subId])).rows).toHaveLength(0);
   });
 
   test('tasks: create direct + sub-project task, list, update, delete + parent existence check', async () => {
@@ -417,6 +451,32 @@ describe('projects / sub-projects / tasks', () => {
 
   // exportProjectsFlat calls listProjects()/listSubProjects() internally
   // (both broken under pg-mem, see note above) — not exercised here.
+
+  // T002722 (GREEN — passes after implementation): createProject() must
+  // write to public.customer_projects, NOT tickets.tickets. After the
+  // implementation in this PR, projects-db.ts targets public.customer_projects
+  // so the ADR-006 freeze (REVOKE on ALL TABLES IN SCHEMA tickets) won't
+  // break the customer portal.
+  test('T002722: createProject writes to public.customer_projects, not tickets.tickets', async () => {
+    const customerId = await seedCustomer();
+    const id = await createProject({
+      brand: 'mentolder', name: 'Nach dem Umbau', status: 'aktiv', priority: 'hoch', customerId,
+    });
+
+    const inNewTable = (await pool.query(
+      `SELECT title, status, type, parent_id FROM public.customer_projects WHERE id=$1`, [id]
+    )).rows[0];
+    expect(inNewTable).toBeDefined();
+    expect(inNewTable.title).toBe('Nach dem Umbau');
+    expect(inNewTable.status).toBe('in_progress'); // 'aktiv' forward-mapped
+    expect(inNewTable.type).toBe('project');
+    expect(inNewTable.parent_id).toBeNull();
+
+    const inOldTable = (await pool.query(
+      `SELECT id FROM tickets.tickets WHERE id=$1`, [id]
+    )).rows;
+    expect(inOldTable).toHaveLength(0);
+  });
 });
 
 describe('portal (customer-scoped) project access', () => {

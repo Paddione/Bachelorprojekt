@@ -2655,6 +2655,12 @@
       "status": "archived"
     }
   ],
+  "T002722": [
+    {
+      "slug": "tickets-projects-split",
+      "status": "plan_staged"
+    }
+  ],
   "T002724": [
     {
       "slug": "2026-08-08-cockpit-daemon-test-no-leak",

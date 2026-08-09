@@ -1,0 +1,79 @@
+# syntax=docker/dockerfile:1
+# ── Lokaler Entwicklungs-Container für website/ (T003055) ─────────────────────
+#
+# ABGRENZUNG zu website/Dockerfile: jenes ist das PRODUKTIONS-Image — es baut mit
+# `pnpm run build` und startet den kompilierten Server (dist/server/entry.mjs).
+# Der Code ist dort zur Build-Zeit eingefroren. Diese Datei macht das Gegenteil:
+# sie installiert nur die Abhängigkeiten und startet `astro dev`, während der
+# Quellcode zur Laufzeit als Bind-Mount hereinkommt. Beide Dateien haben denselben
+# Build-Kontext (Repo-Root), damit die website/-Pfade unten identisch aussehen.
+#
+# Der eigentliche Zweck: `astro dev` auf dem Host scheitert an
+# website/src/lib/auth.ts:13, weil Vite die .env nur nach `import.meta.env` lädt,
+# auth.ts den Wert aber aus `process.env` liest. Docker kennt `env_file`, das die
+# Variablen direkt in die Prozessumgebung legt — damit verschwindet die
+# `set -a`-Falle strukturell statt bei jedem Start manuell umgangen zu werden.
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Prod-Image pinnt pnpm@10.15.0 (siehe website/Dockerfile) — hier dieselbe
+# Version, sonst könnten Lockfile-Auflösungen zwischen Dev und Prod divergieren.
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+
+# COREPACK_HOME muss explizit auf einen für ALLE User lesbaren Pfad zeigen.
+# `corepack prepare --activate` hinterlegt die aktivierte Version dort — per
+# Default in ~/.cache/node/corepack. Da `prepare` unten als root läuft, der
+# Container aber als `node`, fände corepack die Aktivierung sonst nicht und
+# fiele still auf die neueste pnpm-Version zurück (beobachtet: 11.21.0 statt
+# 10.15.0). Der Pin wäre damit wirkungslos, ohne dass etwas fehlschlägt.
+ENV COREPACK_HOME=/pnpm/corepack
+
+# bash für den Entrypoint; corepack als root, danach läuft alles als `node`.
+# Host-UID ist 1000 und `node` im Image ebenfalls 1000 — dadurch gehören Dateien,
+# die der Dev-Server in den Bind-Mount schreibt (.astro/, node_modules/.vite),
+# auf dem Host weiterhin dir und nicht root.
+RUN apk add --no-cache bash \
+ && mkdir -p "$COREPACK_HOME" \
+ && corepack enable \
+ && corepack prepare pnpm@10.15.0 --activate \
+ && chown -R node:node /pnpm /app
+
+USER node
+
+# Nur Manifest + Lockfile + Workspace-Config zuerst, damit der Dependency-Layer
+# sauber cached. pnpm-workspace.yaml MUSS mit — sie trägt die overrides-Sektion,
+# mit der das Lockfile erzeugt wurde; fehlt sie, bricht --frozen-lockfile mit
+# ERR_PNPM_LOCKFILE_CONFIG_MISMATCH ab (identisch zum Prod-Dockerfile).
+COPY --chown=node:node website/package.json website/pnpm-lock.yaml website/pnpm-workspace.yaml ./
+RUN --mount=type=cache,target=/pnpm/store,uid=1000,gid=1000 \
+    pnpm install --frozen-lockfile
+
+# Erststempel für die Drift-Erkennung des Entrypoints. Beim ersten Start kopiert
+# Docker den Image-Inhalt von /app/node_modules in das anonyme Volume — die Datei
+# fährt also mit und der allererste Container-Start installiert nicht unnötig nach.
+RUN sha256sum pnpm-lock.yaml | cut -d' ' -f1 > /app/node_modules/.dev-container-lock-hash
+
+# --chmod ist hier nicht optional: ohne das Bit bricht der Container mit
+# "exec /usr/local/bin/dev-entrypoint failed: Permission denied" (Exit 126) ab.
+# Das Mode-Bit der Quelldatei ist zwar in git gesetzt, aber ein COPY würde es von
+# einem Checkout mit anderer umask stillschweigend anders übernehmen.
+COPY --chmod=755 website/docker-entrypoint.dev.sh /usr/local/bin/dev-entrypoint
+
+# astro.config.mjs setzt bereits `server: { host: true, port: 4321 }` — host:true
+# bindet an 0.0.0.0, ohne das wäre der Dev-Server nur im Container-Loopback
+# erreichbar und das Port-Mapping liefe ins Leere.
+ENV PORT=4321
+
+# Bind-Mounts von der WSL2-Distro in die Docker-Desktop-VM reichen inotify-Events
+# nicht durch — ohne Polling bemerkt der Watcher deine Dateiänderungen nie und
+# Live-Reload wirkt "kaputt", obwohl der Server läuft. chokidar (von Vite genutzt)
+# liest diese beiden Variablen. Auf nativem Linux-Docker kann man sie abschalten.
+ENV CHOKIDAR_USEPOLLING=true
+ENV CHOKIDAR_INTERVAL=400
+
+EXPOSE 4321
+
+ENTRYPOINT ["/usr/local/bin/dev-entrypoint"]
+CMD ["pnpm", "dev"]

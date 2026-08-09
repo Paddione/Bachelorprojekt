@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.1...website-v1.257.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **factory:** shared rollup-container resolution via ticket.sh, --unattended worktree mode [T002783] ([#3911](https://github.com/Paddione/Bachelorprojekt/issues/3911)) ([2dfe574](https://github.com/Paddione/Bachelorprojekt/commit/2dfe5743dc3bf112e1d0bba03a7d6f04edc3a130))
+
 ## [1.257.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.0...website-v1.257.1) (2026-08-09)
 
 

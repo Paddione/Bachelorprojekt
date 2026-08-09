@@ -2418,6 +2418,12 @@
     "kind": "shell"
   },
   {
+    "id": "commit-scope-vokabular/mcp-gateway-alias",
+    "file": "tests/spec/commit-scope-vokabular/mcp-gateway-alias.bats",
+    "category": "commit-scope-vokabular",
+    "kind": "shell"
+  },
+  {
     "id": "commit-signing",
     "file": "tests/spec/commit-signing.bats",
     "category": "commit-signing",

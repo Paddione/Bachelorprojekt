@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.24](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.23...website-v1.259.24) (2026-08-09)
+
+
+### Bug Fixes
+
+* **plans:** support dynamic port-forwarding [T003077] ([#4073](https://github.com/Paddione/Bachelorprojekt/issues/4073)) ([2989a25](https://github.com/Paddione/Bachelorprojekt/commit/2989a25fc9441c018fd52986995aed5b094f4180))
+
 ## [1.259.23](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.22...website-v1.259.23) (2026-08-09)
 
 

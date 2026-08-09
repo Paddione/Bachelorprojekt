@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.1...website-v1.259.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **infra:** remove systemtest CronJobs after SDLC-split (prod routes gone) [T002644] ([#3961](https://github.com/Paddione/Bachelorprojekt/issues/3961)) ([d30580d](https://github.com/Paddione/Bachelorprojekt/commit/d30580da1ef9bf4f602e59f65ce4d591c73fc704))
+
 ## [1.259.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.0...website-v1.259.1) (2026-08-09)
 
 

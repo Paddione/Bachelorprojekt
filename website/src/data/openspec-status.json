@@ -2625,6 +2625,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002669": [
+    {
+      "slug": "freshness-regen-rebase-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T002677": [
     {
       "slug": "cockpit-verfuegbarkeit-realtime",

@@ -7,10 +7,35 @@ OUT="${TEST_INVENTORY_OUT:-${REPO_ROOT}/website/src/data/test-inventory.json}"
 
 declare -a entries=()
 
+# Test-Discovery [T002664]. Innerhalb eines Git-Arbeitsbaums liefert `git ls-files`
+# die Dateien unter Beachtung von .gitignore — gitignorierte oder verirrte Dateien
+# verschmutzen das Inventar dadurch nicht.
+#
+# Ausserhalb eines Arbeitsbaums (Test-Fixture unter mktemp, Tarball-Export,
+# Docker-Build-Kontext) liefert `git ls-files` jedoch NICHTS, und mit
+# unterdruecktem stderr ist das ununterscheidbar von "keine Testdateien
+# vorhanden": das Skript schriebe stillschweigend 0 Eintraege und beendete sich
+# mit Exit 0 — die Duplikat-Erkennung koennte nie ausloesen. Eine leere Antwort
+# ist kein Urteil, deshalb wird der Arbeitsbaum hier EXPLIZIT geprueft statt den
+# Fehler zu verschlucken, und ohne Git faellt die Discovery auf `find` zurueck.
+if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  _discover_tests() {
+    git -C "$REPO_ROOT" ls-files -z --cached --others --exclude-standard "$1" \
+      | grep -z -E '\.(sh|bats)$' | sort -z
+  }
+else
+  # maxdepth 2 [T002416]: Spec-Tests liegen seit der Verzeichniskonvention auch
+  # unter tests/spec/<spec-slug>/.
+  _discover_tests() {
+    find "$1" -maxdepth 2 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z
+  }
+fi
+
 for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/tests/spec"; do
   [[ -d "$dir" ]] || continue
   tier="$(basename "$dir")"
-  while IFS= read -r -d '' f; do
+  while IFS= read -r -d '' item; do
+    f="${REPO_ROOT}/${item#${REPO_ROOT}/}"
     base="$(basename "$f")"
     # was: id="$(echo "$base" | sed -E 's/^(FA|SA|NFA|AK)-([0-9]+).*/\1-\2/')"
     # Extended to accept an optional uppercase sub-tag (e.g. FA-SF-04 → FA-SF-04).
@@ -53,10 +78,7 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/te
       continue
     fi
     entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "${id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")
-  # maxdepth 2 statt 1 [T002416]: seit der Verzeichniskonvention liegen Spec-Tests auch
-  # unter tests/spec/<spec-slug>/. Mit maxdepth 1 fehlten sie im Inventar, und der
-  # CI-Check "test-inventory differs" wuerde erst beim naechsten Regenerieren auffallen.
-  done < <(find "$dir" -maxdepth 2 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z)
+  done < <(_discover_tests "$dir")
 done
 
 for f in "${REPO_ROOT}"/tests/e2e/specs/*.spec.ts; do
@@ -116,12 +138,13 @@ fi
 missing=()
 for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/tests/spec"; do
   [[ -d "$dir" ]] || continue
-  while IFS= read -r -d '' f; do
+  while IFS= read -r -d '' item; do
+    f="${REPO_ROOT}/${item#${REPO_ROOT}/}"
     rel="${f#${REPO_ROOT}/}"
     if [[ "$(jq --arg p "$rel" '[.[] | select(.file == $p)] | length' "$OUT")" -eq 0 ]]; then
       missing+=("$rel")
     fi
-  done < <(find "$dir" -maxdepth 2 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z)
+  done < <(_discover_tests "$dir")
 done
 if [[ "${#missing[@]}" -gt 0 ]]; then
   echo "Error: the following shell test files produced no inventory entry:" >&2

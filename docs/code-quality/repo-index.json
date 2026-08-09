@@ -3196,7 +3196,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 676,
+      "file_count": 677,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3676,6 +3676,7 @@
         "scripts/mcp-gateway/mcp-gateway-watchdog.service",
         "scripts/mcp-gateway/mcp-gateway-watchdog.timer",
         "scripts/mcp-gateway/mcp-gateway.service",
+        "scripts/mcp-gateway/mcp-postgres-local.mjs",
         "scripts/mcp-gateway/probe.sh",
         "scripts/mcp-sync.sh",
         "scripts/merge-domains.mjs",

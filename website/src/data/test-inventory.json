@@ -2466,6 +2466,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/tcc-fixture-orphan-reap",
+    "file": "tests/spec/dev-flow-plan/tcc-fixture-orphan-reap.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "devflow-selection-archive-hardening",
     "file": "tests/spec/devflow-selection-archive-hardening.bats",
     "category": "devflow-selection-archive-hardening",

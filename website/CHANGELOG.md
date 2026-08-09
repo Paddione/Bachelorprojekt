@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.19](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.18...website-v1.259.19) (2026-08-09)
+
+
+### Bug Fixes
+
+* **test:** FIND_CHANGED_TESTS_FILES leckt nicht mehr in die Spec-Tests [T003056] ([#4042](https://github.com/Paddione/Bachelorprojekt/issues/4042)) ([40c9c21](https://github.com/Paddione/Bachelorprojekt/commit/40c9c21d7cac13dbcb332efbfe334380ad7442bf))
+
 ## [1.259.18](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.17...website-v1.259.18) (2026-08-09)
 
 

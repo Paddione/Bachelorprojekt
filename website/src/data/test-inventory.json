@@ -2484,6 +2484,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-lint-b1b-prose-path",
+    "file": "tests/spec/dev-flow-plan/plan-lint-b1b-prose-path.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-lint-node-test",
     "file": "tests/spec/dev-flow-plan/plan-lint-node-test.bats",
     "category": "dev-flow-plan",
@@ -2492,6 +2498,12 @@
   {
     "id": "dev-flow-plan/plan-lint-task-count",
     "file": "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/plan-lint-w3-prose-path",
+    "file": "tests/spec/dev-flow-plan/plan-lint-w3-prose-path.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },

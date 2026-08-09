@@ -58,6 +58,11 @@ func RunTicket(args []string, extraEnv map[string]string) (string, error) {
 		return "", fmt.Errorf("ticket.sh path %s is outside repo root %s", cleaned, repoRoot)
 	}
 	cmd := exec.Command("bash", append([]string{ticketSh}, args...)...)
+	// [T002999-M10] Worktree kann nach Merge geloescht sein — die CWD des
+	// MCP-Servers existiert dann nicht mehr und exec.Command scheitert mit
+	// "FileSystem.access" bevor bash startet. cmd.Dir explizit auf repoRoot
+	// setzen entkoppelt den Kindprozess von der (moeglicherweise toten) CWD.
+	cmd.Dir = repoRoot
 	env := os.Environ()
 	for k, v := range extraEnv {
 		env = append(env, k+"="+v)

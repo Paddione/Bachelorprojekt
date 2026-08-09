@@ -30,13 +30,35 @@
 #   1  any other setup failure (the half-created worktree is rolled back)
 set -euo pipefail
 
+# ── --help (vor allen Guards, T002783) ─────────────────────────────────────
+if [[ "${1:-}" == "--help" ]]; then
+  cat <<'HELP'
+Usage: scripts/worktree-create.sh [--unattended] <branch> <path> [<base>]
+  --unattended  Skips main-checkout and ticket-ID guards for allowlisted
+                branches (e.g. chore/mishap-incident-rollup). WT_SKIP_NAME_CHECK
+                remains available as emergency bypass for any branch.
+  <branch>      branch name, e.g. fix/foo
+  <path>        worktree path, e.g. .worktrees/foo
+  <base>        base ref for NEW branch (default: origin/main)
+HELP
+  exit 0
+fi
+
+# ── --unattended (T002783) ─────────────────────────────────────────────────
+_unattended=false
+_unattended_allowlist="chore/mishap-incident-rollup"  # space-separated
+if [[ "${1:-}" == "--unattended" ]]; then
+  _unattended=true
+  shift
+fi
+
 # T002448-M1: fail fast when the source checkout is not on main — but ONLY in
 # real upstream repos (origin/main exists). Ephemeral BATS repos without a
 # remote must keep the T002204 warn-path (exit 0), because there is no canonical
 # main to protect. Mirrors the divergence-guard's origin/main precondition.
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")"
-  if [ "$CURRENT_BRANCH" != "main" ]; then
+  if [ "$CURRENT_BRANCH" != "main" ] && ! $_unattended; then
     echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgefuehrt werden." >&2
     echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
     exit 1
@@ -58,8 +80,15 @@ fi
 if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
   _bn="${1:-}"
   if [ -n "$_bn" ]; then
+    # T002783: --unattended allowlist. Nur der explizite Branch ist freigeschaltet,
+    # kein Wildcard-Muster. Der Emergency-Bypass WT_SKIP_NAME_CHECK bleibt bestehen.
+    if $_unattended; then
+      for _allowed in $_unattended_allowlist; do
+        [ "$_bn" == "$_allowed" ] && _bn="" && break
+      done
+    fi
     case "$_bn" in
-      main|develop|master|release-please--*|dependabot/*|renovate/*) ;;
+      main|develop|master|release-please--*|dependabot/*|renovate/*|"") ;;
       *)
         _has_ticket=0
         _has_type=0
@@ -136,7 +165,7 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
     if git merge-base --is-ancestor main origin/main 2>/dev/null; then
       echo "worktree-create: local main is behind origin/main — fast-forwarding..." >&2
       CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
-      if [ "$CURRENT_BRANCH" != "main" ]; then
+      if [ "$CURRENT_BRANCH" != "main" ] && ! $_unattended; then
         echo "FATAL: worktree-create muss vom main-Branch des Haupt-Checkouts ausgeführt werden." >&2
         echo "       Aktueller Branch: $CURRENT_BRANCH. Bitte: git checkout main" >&2
         exit 1

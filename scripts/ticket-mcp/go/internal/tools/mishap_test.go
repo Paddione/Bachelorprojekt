@@ -196,63 +196,41 @@ func TestIncidentTicketArgs_BrandAndSeverity(t *testing.T) {
 	}
 }
 
-// --- Rollup-Find-Args ---
+// --- Rollup-Container-Args (T002783: gemeinsame ticket.sh rollup-container Aufloesung) ---
 
-func TestRollupFindArgs_UsesChoreAndPlanStaged(t *testing.T) {
-	args := buildFindRollupTicketArgs("mentolder")
-	if !hasFlagValue(args, "--type", "chore") {
-		t.Errorf("buildFindRollupTicketArgs missing --type chore; got args: %v", args)
-	}
-	if !hasFlagValue(args, "--status", "plan_staged") {
-		t.Errorf("buildFindRollupTicketArgs missing --status plan_staged; got args: %v", args)
-	}
+func TestRollupContainerArgs_BrandIsSet(t *testing.T) {
+	args := buildRollupContainerArgs("mentolder")
 	if !hasFlagValue(args, "--brand", "mentolder") {
-		t.Errorf("buildFindRollupTicketArgs missing --brand mentolder; got args: %v", args)
+		t.Errorf("buildRollupContainerArgs missing --brand mentolder; got args: %v", args)
 	}
 }
 
-func TestRollupFindArgs_NotTask(t *testing.T) {
-	args := buildFindRollupTicketArgs("mentolder")
-	if hasFlagValue(args, "--type", "task") {
-		t.Error("buildFindRollupTicketArgs must NOT use --type task; should use --type chore")
+func TestRollupContainerArgs_UsesRollupContainer(t *testing.T) {
+	args := buildRollupContainerArgs("mentolder")
+	if len(args) < 2 || args[0] != "rollup-container" {
+		t.Errorf("buildRollupContainerArgs must start with 'rollup-container'; got args: %v", args)
 	}
 }
 
-// --- Rollup-Create-Args ---
-
-func TestRollupCreateArgs_UsesChore(t *testing.T) {
-	args := buildCreateRollupTicketArgs("mentolder")
-	if !hasFlagValue(args, "--type", "chore") {
-		t.Errorf("buildCreateRollupTicketArgs missing --type chore; got args: %v", args)
+func TestRollupContainerArgs_NotListOrCreate(t *testing.T) {
+	args := buildRollupContainerArgs("mentolder")
+	for _, banned := range []string{"list", "create", "find"} {
+		if args[0] == banned {
+			t.Errorf("buildRollupContainerArgs must not use '%s' — T002783 unified into rollup-container", banned)
+		}
 	}
 }
 
-func TestRollupCreateArgs_NotTask(t *testing.T) {
-	args := buildCreateRollupTicketArgs("mentolder")
-	if hasFlagValue(args, "--type", "task") {
-		t.Error("buildCreateRollupTicketArgs must NOT use --type task; should use --type chore")
+func TestRollupConstants_BranchMatchesMishapRollupSh(t *testing.T) {
+	// T002783: Rollup-Container-Branch muss mit mishap-rollup.sh:BRANCH identisch sein.
+	// Vor T002783 stand hier "chore/mishap-rollup", aber mishap-rollup.sh verwendete
+	// "chore/mishap-incident-rollup". Der Mismatch versteckte sich hinter dem Umstand,
+	// dass der Go-Code den Container nur aufloeste, nicht den Branch anlegte.
+	if ROLLUP_BRANCH != "chore/mishap-incident-rollup" {
+		t.Errorf("ROLLUP_BRANCH=%q, erwartet 'chore/mishap-incident-rollup' — muss mit mishap-rollup.sh synchron sein", ROLLUP_BRANCH)
 	}
-}
-
-func TestRollupCreateArgs_StatusIsPlanStaged(t *testing.T) {
-	args := buildCreateRollupTicketArgs("mentolder")
-	if !hasFlagValue(args, "--status", "plan_staged") {
-		t.Errorf("buildCreateRollupTicketArgs missing --status plan_staged; got args: %v", args)
-	}
-}
-
-func TestRollupCreateArgs_NotTriage(t *testing.T) {
-	args := buildCreateRollupTicketArgs("mentolder")
-	if hasFlagValue(args, "--status", "triage") {
-		t.Error("buildCreateRollupTicketArgs must NOT use --status triage; should use --status plan_staged")
-	}
-}
-
-func TestRollupCreateArgs_NoIncidentType(t *testing.T) {
-	args := buildCreateRollupTicketArgs("mentolder")
-	// Rollup container is a chore, not an incident
-	if hasFlagValue(args, "--type", "incident") {
-		t.Error("rollup container must be --type chore, not incident")
+	if ROLLUP_CHANGE_DIR != "openspec/changes/mishap-incident-rollup" {
+		t.Errorf("ROLLUP_CHANGE_DIR=%q, erwartet 'openspec/changes/mishap-incident-rollup'", ROLLUP_CHANGE_DIR)
 	}
 }
 
@@ -311,16 +289,19 @@ func TestNoTaskTypeInAnyBuilder(t *testing.T) {
 		}
 	}
 	assertNoTask("buildIncidentTicketArgs", buildIncidentTicketArgs(entry, "mentolder"))
-	assertNoTask("buildFindRollupTicketArgs", buildFindRollupTicketArgs("mentolder"))
-	assertNoTask("buildCreateRollupTicketArgs", buildCreateRollupTicketArgs("mentolder"))
+	assertNoTask("buildRollupContainerArgs", buildRollupContainerArgs("mentolder"))
 }
 
-func TestNoTriageStatusInRollupCreate(t *testing.T) {
-	if hasFlagValue(buildCreateRollupTicketArgs("mentolder"), "--status", "triage") {
-		t.Error("rollup create must not use --status triage")
+func TestNoTriageStatusInRollupContainer(t *testing.T) {
+	// T002783: rollup-container manages its own status; the Go side
+	// delegates the decision entirely to ticket.sh.
+	args := buildRollupContainerArgs("mentolder")
+	if args[0] != "rollup-container" {
+		t.Errorf("expected 'rollup-container', got %q", args[0])
 	}
-	if hasFlagValue(buildFindRollupTicketArgs("mentolder"), "--status", "triage") {
-		t.Error("rollup find must not use --status triage")
+	// rollup-container should not carry any --status flag — ticket.sh decides
+	if hasFlagValue(args, "--status", "triage") || hasFlagValue(args, "--status", "plan_staged") {
+		t.Error("rollup-container args must not carry --status — ticket.sh manages status internally")
 	}
 }
 

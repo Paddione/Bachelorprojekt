@@ -42,19 +42,15 @@ fi
 source "$HERE/lib.sh"
 
 # ── Find container ticket ───────────────────────────────────────────────────
+# T002783: Gemeinsame Aufloesung ueber ticket.sh rollup-container statt eigener
+# SQL. Die Shell-Implementierung sucht offene Chore-Tickets (nicht done/archived)
+# und legt notfalls einen neuen an. Ein leerer Rueckgabewert ist ein harter Fehler
+# (nicht exit 0), denn ein Container MUSS nach dieser Aufloesung existieren.
 factory_resolve
-CONTAINER_ID=$(cat <<SQL | factory_psql 2>/dev/null | head -1
-SELECT external_id FROM tickets.tickets
-WHERE title = '${ROLLUP_TITLE}'
-  AND status = 'plan_staged'
-  AND type = 'chore'
-LIMIT 1;
-SQL
-)
-
+CONTAINER_ID="$(bash "$REPO/scripts/ticket.sh" rollup-container --brand "$BRAND" 2>/dev/null)"
 if [[ -z "${CONTAINER_ID}" ]]; then
-  echo "mishap-rollup: kein Container-Ticket (\"${ROLLUP_TITLE}\") fuer ${BRAND} — exit 0"
-  exit 0
+  echo "mishap-rollup: FEHLER — rollup-container lieferte keine ID fuer ${BRAND}" >&2
+  exit 1
 fi
 echo "mishap-rollup: Container-Ticket = ${CONTAINER_ID} (${BRAND})"
 
@@ -97,7 +93,7 @@ fi
 # Branch nicht vorkommen, aber sicherheitshalber abfangen).
 if ! git -C "$REPO" worktree list 2>/dev/null | grep -qF "$WT"; then
   echo "mishap-rollup: lege Worktree an (branch=${BRANCH}, path=${WT})"
-  wt_out="$(bash "$REPO/scripts/worktree-create.sh" "$BRANCH" "$WT" 2>&1)" || {
+  wt_out="$(bash "$REPO/scripts/worktree-create.sh" --unattended "$BRANCH" "$WT" 2>&1)" || {
     rc=$?
     if [[ "$rc" == "3" ]]; then
       echo "mishap-rollup: Branch ${BRANCH} ist in einem anderen Worktree ausgecheckt — skip" >&2

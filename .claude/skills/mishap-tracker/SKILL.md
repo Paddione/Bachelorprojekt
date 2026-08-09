@@ -9,9 +9,22 @@ Batches all execution mishaps into **one aggregate ticket** rather than creating
 
 Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 
-### Branch-Naming-Konvention (T002240 — Groß-/Kleinschreibung)
+### Branch-Naming-Konvention (T002240 + T002783 — Groß-/Kleinschreibung)
 
-Beim Anlegen eines Mishap-Branches gilt:
+Es gibt zwei Fälle:
+
+**1. Rollup-Container-Branch (persistent, ticketlos, allowlistet):**
+
+```bash
+branch="chore/mishap-incident-rollup"   # persistenter Branch, kein Ticket-Suffix
+```
+
+Der Branch wird nie gelöscht, das Ticket (`"Mishap Rollup — fortlaufende Sammlung"`,
+`type=chore`, `status=plan_staged`) bleibt dauerhaft offen. `worktree-create.sh --unattended`
+überspringt den Namens-Guard für diesen Branch (Allowlist). Die gemeinsame Auflösung
+erfolgt über `ticket.sh rollup-container --brand <brand>`.
+
+**2. Einzel-Mishap-Branch (mit Ticket-ID):**
 
 ```bash
 ext_id="<T-ID aus ticket.sh>"       # z.B. T002239 — bleibt GROSS (pre-commit: T[0-9]{6,})

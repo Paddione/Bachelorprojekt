@@ -58,6 +58,29 @@ fi
 
 ## Schritt 1 — Verifikation & Freshness Guard (vor dem Commit)
 
+### Rebase-Preflight (T002669)
+
+Schritt 0 (Pull-First) lief ggf. vor Minuten oder Stunden. In langen Sessions kann
+`origin/main` seitdem weitergerückt sein (z. B. durch parallele Releases oder andere gemergte
+PRs, die ebenfalls generierte Artefakte berühren). Die Artefakt-Regeneration weiter unten
+erzeugt Artefakte aus dem aktuellen Arbeitsbaum — ist der veraltet, produziert sie Artefakte,
+die beim Push erneut hinter `origin/main` zurückliegen (beobachtet bei PR #3788 / T002634:
+zwei Regen-Commit-Push-Zyklen à ~1–2 min). Deshalb unmittelbar davor ein zweites Mal auf
+Divergenz prüfen und bei Bedarf rebasen:
+
+```bash
+git fetch origin main
+BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null || echo 0)
+if [ "${BEHIND:-0}" -gt 0 ]; then
+  echo "⚠ ${BEHIND} commit(s) hinter origin/main — rebase VOR dem Freshness-Regen-Lauf:"
+  git pull --rebase origin main
+  # Konflikte? Dem User anzeigen und klären (wie Schritt 0).
+fi
+```
+
+Erst danach `task freshness:regenerate` ausführen — sonst regeneriert man gegen eine bereits
+veraltete Basis und der Zyklus beginnt von vorn.
+
 Vollständiger Verify-Block (die vier Befehle, S1-Ratchet, Freshness-Artefakt-Liste zum Stagen):
 **SSOT** in [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md).
 

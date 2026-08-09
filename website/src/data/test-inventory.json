@@ -2244,6 +2244,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/freshness-regen-rebase-guard",
+    "file": "tests/spec/ci-cd/freshness-regen-rebase-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/generated-artifacts-registry",
     "file": "tests/spec/ci-cd/generated-artifacts-registry.bats",
     "category": "ci-cd",

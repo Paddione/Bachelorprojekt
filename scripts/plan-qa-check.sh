@@ -110,9 +110,11 @@ if [[ "$EMIT_PAYLOAD" -eq 1 ]]; then
 fi
 
 # === Gateway reachability ===
-# -f: degraded (503) gilt als nicht erreichbar — sonst würde curl einen 503
-# als Erfolg werten und erst der POST-Call fiele in den Skip-Pfad (T002595).
-if ! curl -sf --max-time 3 -o /dev/null "${GATEWAY_BASE_URL}/health"; then
+# /livez (liveness) misst "Prozess antwortet" — /health (readiness) meldet 503,
+# sobald ein Prio-1-Backend fehlt. /livez ist das richtige Signal für Port-Belegung
+# und Erreichbarkeit (gleiche Lehre wie T002336 in Taskfile.llm.yml).
+# -f bleibt: "Prozess antwortet" vs. "niemand da" (T002595).
+if ! curl -sf --max-time 3 -o /dev/null "${GATEWAY_BASE_URL}/livez"; then
   warn "Gateway ${GATEWAY_BASE_URL} not reachable — skipping QA (advisory)."
   info "Manual check: review the plan against .claude/skills/references/plan-quality-gates.md"
   exit 0

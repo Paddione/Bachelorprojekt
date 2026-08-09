@@ -35,3 +35,28 @@ WF_DIR="${BATS_TEST_DIRNAME}/../../../.github/workflows"
   run bash -c "grep -rhoE '.main:refs/remotes/origin/main' '$WF_DIR' | grep -cv '^\\+'"
   [ "$output" -eq 0 ]
 }
+
+@test "T003095: kein --prune auf den origin/main-Fetch-Zeilen" {
+  # [T003095] TEILKORREKTUR zu T003054: das fuehrende + allein genuegt nicht.
+  # --prune loescht refs/remotes/origin/main, BEVOR derselbe Fetch sie
+  # aktualisiert. actions/checkout setzt refs/remotes/origin/HEAD auf
+  # refs/remotes/origin/main; nach dem Prune haengt HEAD in der Luft und die
+  # Aktualisierung kann die Ref nicht mehr sperren:
+  #   - [deleted]  (none)  -> origin/main
+  #     (refs/remotes/origin/HEAD has become dangling)
+  #   error: cannot lock ref 'refs/remotes/origin/main': unable to resolve reference
+  #   ! d224ed0...06cc3d9 main -> origin/main  (unable to update local ref)
+  # Das + hat die Meldung veraendert (vorher '[rejected] non-fast-forward'), nicht
+  # die Ursache. --prune ist hier ohnehin zwecklos: geholt wird genau EINE Ref per
+  # explizitem Refspec. Lokal zeichengleich reproduziert (mit --prune rc=1, ohne
+  # rc=0). Belegt an Run 31334724203.
+  #
+  # Positiv-Anker zuerst [T002356-M1]: die Fetch-Zeilen existieren ueberhaupt.
+  run bash -c "grep -rhc 'git fetch .*main:refs/remotes/origin/main' '$WF_DIR' | paste -sd+ | bc"
+  [ "$status" -eq 0 ]
+  [ "$output" -ge 1 ]
+
+  # Und keine davon traegt --prune.
+  run bash -c "grep -rh 'git fetch .*main:refs/remotes/origin/main' '$WF_DIR' | grep -c -- '--prune' || true"
+  [ "$output" -eq 0 ]
+}

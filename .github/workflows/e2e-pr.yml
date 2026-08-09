@@ -62,7 +62,7 @@ jobs:
           fetch-tags: false
 
       - name: Fetch origin/main for diffing (shallow)
-        run: git fetch --no-tags --prune --depth=1 origin +main:refs/remotes/origin/main
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
       - name: Check if E2E-relevant files changed
         id: filter

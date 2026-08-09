@@ -118,3 +118,39 @@ task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+---
+
+## Nachtrag 2026-08-09 — der Plan wurde von der Wirklichkeit überholt
+
+Dieser Plan entstand am 2026-08-04 und beschreibt ein **neues** Loadout `qwen3-coder` auf
+Port 8097 mit `Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf`. Beides ist überholt und der
+Loadout-Schritt wäre heute **nicht ausführbar**:
+
+- Die Datei `…-UD-Q4_K_XL.gguf` existiert nicht. Unter `~/models/gguf/qwen3coder30/` liegen
+  `…-Q3_K_M.gguf` und `…-UD-IQ3_XXS.gguf`. Der seit T002753 bestehende Guard
+  `tests/spec/local-llm-proxy/loadout-model-files-exist.bats` ließe einen Eintrag auf die
+  fehlende Datei sofort rot fallen.
+- Das Loadout existiert bereits: **T002753** hat es am 2026-08-08 unter dem Slug
+  `qwen3-coder-30b` auf **Port 8094** mit **UD-IQ3_XXS** und KV `q4_0` angelegt.
+- Die Proxy-Registrierung existiert ebenfalls, aber unter anderem Namen als geplant:
+  `scripts/migrations/2026-08-04-llm-proxy-gemma-qwen-families.sql` legt das Backend
+  `llamacpp-qwen` auf `http://127.0.0.1:8094/v1` an; in der Datenbank steht es mit
+  `enabled = true`.
+
+Zwei der drei Deliverables waren damit erfüllt, ohne dass dieser Plan je ausgeführt wurde.
+Offen war allein der BATS-Guard.
+
+**Geliefert wurde deshalb ein anderer Test als geplant.** Statt „Eintrag existiert und meldet
+Port 8097" prüft `tests/spec/local-llm-proxy/qwen3-coder-loadout.bats`, dass Loadout und
+Proxy-Registrierung **denselben** Port nennen — die Invariante, die zwischen zwei getrennt
+gepflegten Quellen tatsächlich brechen kann. Belegt durch Mutationsprobe: wird der Port im
+Loadout auf 8097 verstellt (also auf den ursprünglich geplanten Wert), fällt der Test rot,
+während der Positiv-Anker grün bleibt.
+
+Die im Plan vorgesehene Eindeutigkeitsprüfung auf Ports wurde **verworfen**: Port 8091 wird
+von `gemma26-factory`, `gemma4-base` und `gemma4-tuned` geteilt, was durch die gemeinsame
+`exclusiveGroup "chat-gpu"` zulässig ist. Ein Guard „jeder Port genau einmal" wäre falsch.
+
+Der Loadout-Step und der Migrations-Step dieses Plans bleiben unausgeführt und sind es auch
+nicht mehr wert — sie würden ein Duplikat auf einem zweiten Port anlegen.

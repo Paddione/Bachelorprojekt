@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.4...website-v1.257.5) (2026-08-09)
+
+
+### Bug Fixes
+
+* **mcp-gateway:** agy headless mcp tool permissions via --dangerously-skip-permissions [T002719] ([#3918](https://github.com/Paddione/Bachelorprojekt/issues/3918)) ([1dbb143](https://github.com/Paddione/Bachelorprojekt/commit/1dbb1434c8358dc92df7f2e3993263ec5d6a466e))
+
 ## [1.257.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.3...website-v1.257.4) (2026-08-09)
 
 

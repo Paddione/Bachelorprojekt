@@ -884,6 +884,14 @@ tasks:
       - task: test:spec:build-mcp-runner
       - |
         CHANGED_FILES=$(bash scripts/find-changed-tests.sh spec)
+        # [T003056] Ab hier ist die Variable verbraucht: sie steuert AUSSCHLIESSLICH
+        # die Auswahl oben. Bliebe sie in der Umgebung, erbte sie jeder von bats
+        # gestartete Test — und Tests, die find-changed-tests.sh in einem eigenen
+        # tmp-Repo gegen dessen Default-Diff pruefen, bekaemen stattdessen den
+        # override-Zweig mit den Dateien des aeusseren Repos. Genau das machte auf
+        # main sechs Guards rot (T002245/T002345/T002377), waehrend sie lokal und
+        # auf PRs gruen blieben: nur auf main setzt ci.yml die Variable.
+        unset FIND_CHANGED_TESTS_FILES
         if [ -z "$CHANGED_FILES" ]; then
           echo "→ No matching spec tests for this diff"
           exit 0

@@ -5,6 +5,20 @@
 
 setup() {
   bats_require_minimum_version 1.5.0
+  # [T003056] Die Tests dieser Datei pruefen den DEFAULT-Diff-Pfad von
+  # scripts/find-changed-tests.sh in einem eigenen tmp-Repo. Auf main ruft
+  # .github/workflows/ci.yml den Runner als
+  #   FIND_CHANGED_TESTS_FILES="$DELTA" task test:spec:changed
+  # auf, um das Merge-Delta zu uebergeben (auf main ist HEAD == origin/main,
+  # der Default-Diff also leer). Die Variable liegt damit in der Umgebung jedes
+  # gestarteten BATS-Tests — das Skript nimmt drinnen den override-Zweig und
+  # liefert die Dateien des AEUSSEREN Repos statt den Diff des tmp-Repos.
+  # Folge: sechs Guards rot, ausschliesslich auf main, gruen lokal und auf PRs.
+  # Hier unsetzen macht die Datei hermetisch, unabhaengig vom Aufrufer.
+  # Der override-Pfad selbst wird in
+  # tests/spec/ci-cd/changed-tests-uncommitted-diff.bats geprueft, dort mit
+  # explizitem export.
+  unset FIND_CHANGED_TESTS_FILES
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   WF="$REPO_ROOT/.github/workflows/post-merge.yml"
   BUILD_WF="$REPO_ROOT/.github/workflows/build-website.yml"

@@ -188,6 +188,7 @@ validate_subject() {
         elif _suggestion="$(suggest_scope "$scope")" && [ -n "$_suggestion" ]; then
           echo "    ↳ did you mean '${_suggestion}'?" >&2
         fi
+        echo "    ↳ Hinweis: Der CI-PR-Titel-Check (amannn/action-semantic-pull-request) prueft keinen Scope — ein gruener PR-Titel ist keine Garantie fuer diesen Scope." >&2
         return 1
       fi
     fi

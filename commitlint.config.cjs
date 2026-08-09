@@ -43,7 +43,7 @@ const SCOPE_ALIAS_GROUPS = {
   agents: ['agent-guide', 'opencode', 'prompt-library', 'knowledge-ingest',
     'openclaw'],
   ci: ['quality', 'goals', 'cqg', 'docs-gen'],
-  mcp: ['mcp-task-runner'],
+  mcp: ['mcp-task-runner', 'mcp-gateway'],
 };
 
 const SCOPE_ALIASES = Object.fromEntries(

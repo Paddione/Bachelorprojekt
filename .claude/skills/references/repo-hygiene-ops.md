@@ -45,8 +45,8 @@ Stashes ansehen — sie sind die Quelle von Arbeit, die nirgendwo sonst auftauch
    angekommen, ihr eigener Diff zeigte das nicht.
 
 5. **Fail-Closed-Regel.** Lässt sich ein Marker nicht bilden oder die Prüfung nicht abschließen
-   (leere Antwort, Fehler): Stash **behalten**. Eine leere Antwort ist kein Urteil — dasselbe
-   Muster, das §3 bereits für `mergedAt` festhält.
+   (leere Antwort, Fehler): Stash **behalten**. Eine leere Antwort ist kein Urteil — Instanz
+   der Grundregel, die §3 einleitend für alle Signale dieses Runbooks festhält.
 
 ## 1. Stale Git Worktrees
 
@@ -138,6 +138,28 @@ allein hätte auch die einzige Kopie eines nie gemergten Deliverables gelöscht 
 
 ## 3. PR-Triage → verknüpftes Ticket schließen
 
+### Grundregel: ein leeres Signal ist kein Urteil
+
+Alle Fehldiagnosen, die dieser Abschnitt sammelt, sind Instanzen **einer** Fehlerklasse: ein
+Signal meldet Gesundheit, ohne das Attestierte geprüft zu haben. Es entsteht immer gleich —
+eine Abfrage liefert nichts zurück, und die auswertende Logik liest „nichts" als „nichts
+Schlechtes". Deshalb gilt für jede Prüfung in diesem Abschnitt:
+
+> **Eine leere Antwort muss von einer negativen unterscheidbar sein.** Erst prüfen, dass die
+> Messung überhaupt stattgefunden hat (Antwort da? Aufruf erfolgreich?), dann auf das
+> **positive** Signal prüfen — nie auf die Abwesenheit des negativen. Lässt sich das erste
+> nicht belegen, ist das Ergebnis kein Messwert, sondern ein Fehler.
+
+Belegte Fundstellen, jede mit ihrer Gegenprobe unten im Detail:
+
+| Signal | Trügerisch leer, weil … | Gegenprobe |
+|--------|-------------------------|------------|
+| `mergedAt` [T002498-M5] | `gh` konnte nicht antworten | Rohantwort auf Nichtleere prüfen, dann Feld |
+| `statusCheckRollup` / `gh pr checks` [T002821] | GitHub liefert leeres Rollup trotz existierender Runs | `gh run list --branch <b>` |
+| leere Checkliste bei CONFLICTING PR [T002822] | Konflikt unterdrückt CI — Symptom identisch mit „noch nicht gestartet" | `mergeStateStatus` + lokaler Probe-Merge |
+| Probe-Schleife mit `2>/dev/null` [T002847] | harter Fehler wurde zu stiller Leerzeile | stderr sichtbar lassen, Exit-Code getrennt messen |
+| Title-Dedupe-Guard (§4) [T002844] | prüft nur Tickets, nicht den Mishap-Buffer | zweite Quelle abfragen |
+
 ```bash
 gh pr list --state open --json number,title,headRefName,statusCheckRollup,reviewDecision,isDraft,mergeStateStatus
 ```
@@ -201,6 +223,36 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 * **CI-Failures:** `gh pr checks <number>` diagnostizieren. Rote PRs nie mergen. Bekannter Flake →
   re-run; sonst PR offen lassen und (falls Ticket vorhanden) auf `in_progress` belassen.
 
+  > **„no checks reported" ist kein CI-Zustand [T002821]:** `gh pr checks <n>` antwortete an
+  > PR #3916 mit „no checks reported on the branch", `gh pr view --json statusCheckRollup`
+  > lieferte ein **leeres Array** — während `gh run list --branch <b>` fünf abgeschlossene
+  > Runs zeigte, darunter einen CI-Run mit `conclusion=failure`. Der PR-HEAD war identisch mit
+  > dem Remote-Branch-Tip, es lag also kein nachträglicher Push vor. Die Meldung liest sich als
+  > „Workflows noch nicht gestartet" und lenkt auf die Actions-Infrastruktur, obwohl der PR
+  > schlicht an zwei BATS-Tests scheiterte. Bei leerem Rollup deshalb **immer** gegenprüfen:
+  > ```bash
+  > gh run list --branch "$BRANCH" --limit 10 \
+  >   --json databaseId,name,headSha,status,conclusion
+  > ```
+  > und die Runs auf den PR-HEAD (`gh pr view <n> --json headRefOid`) filtern.
+
+  > **Leere Checkliste kann auch Konflikt heißen [T002822]:** An PR #3915 existierten **null**
+  > Workflow-Runs, weil der PR mit `main` konfligierte — dass ein CONFLICTING PR die CI
+  > unterdrückt, steht in
+  > [`gotchas-footguns.md`](../../../docs/superpowers/references/gotchas-footguns.md), sein
+  > **Symptom** war bisher nirgends notiert: `gh pr checks` liefert exakt dieselbe Meldung wie
+  > bei einem nicht gestarteten Lauf, und `mergeStateStatus` stand auf `UNKNOWN`. Reihenfolge
+  > bei leerer Checkliste deshalb: erst `mergeStateStatus` lesen, und bei `UNKNOWN` oder
+  > `DIRTY` lokal probe-mergen — das trennt „Konflikt" von „noch nicht gestartet" eindeutig:
+  > ```bash
+  > gh pr view <n> --json mergeStateStatus -q '.mergeStateStatus'
+  > git fetch origin main
+  > git merge origin/main --no-commit --no-ff   # danach: git merge --abort
+  > git diff --name-only --diff-filter=U        # nicht leer = echter Konflikt
+  > ```
+  > `UNKNOWN` bedeutet dabei nur, dass GitHub die Mergebarkeit noch nicht berechnet hat — auch
+  > das ist eine fehlende Messung, kein Befund.
+
 ### PR-Branch auf `main` nachziehen
 
 Nötig bei `mergeStateStatus=BEHIND` und bei den Phantom-Konflikten aus `merge=ours`
@@ -208,7 +260,28 @@ Nötig bei `mergeStateStatus=BEHIND` und bei den Phantom-Konflikten aus `merge=o
 GitHub führt keine Custom-Merge-Driver aus; Details in
 [`gotchas-footguns.md`](../../../docs/superpowers/references/gotchas-footguns.md#mergeours-erzeugt-github-only-phantom-konflikte)).
 
-1. **Wenn die `gh`-Version es kann:**
+> **Erst den Fall bestimmen — die beiden Fälle haben verschiedene Wege [T002823]:**
+> Bei **`BEHIND`** ist `update-branch` (Schritt 1/2) der Weg. Bei einem
+> **`merge=ours`-Phantomkonflikt** ist er es **nicht**: er scheitert an genau demselben
+> Phantomkonflikt. Real beobachtet an PR #3915: `mergeStateStatus=DIRTY`,
+> `gh api --method PUT …/update-branch` antwortete **HTTP 422 „merge conflict between base and
+> head"** — während lokal `git merge origin/main` glatt durchlief und
+> `git diff --name-only --diff-filter=U` **leer** blieb. Ursache sind die Freshness-Generate
+> (`website/src/data/openspec-status.json`, `test-inventory.json`), die in `.gitattributes`
+> einen Custom-Merge-Driver tragen, den GitHub nicht ausführt.
+>
+> Unterscheiden mit dem lokalen Probe-Merge aus §3 („Leere Checkliste kann auch Konflikt
+> heißen"): bleibt `--diff-filter=U` leer, ist es der Phantomkonflikt. Dann ist der **lokale
+> Merge der einzige Weg** — Schritt 1/2 überspringen und direkt so vorgehen:
+> ```bash
+> git fetch origin main && git merge origin/main    # läuft lokal konfliktfrei durch
+> task freshness:regenerate                          # Generate gegen den neuen Stand neu bauen
+> git add -- website/src/data/openspec-status.json website/src/data/test-inventory.json
+> git commit --amend --no-edit || git commit -m "chore: regenerate freshness artifacts"
+> git push origin HEAD                               # Merge-Commit pushen — danach ist der PR sauber
+> ```
+
+1. **Wenn die `gh`-Version es kann** (nur bei `BEHIND`):
    ```bash
    gh pr update-branch <number>
    ```
@@ -230,12 +303,60 @@ GitHub führt keine Custom-Merge-Driver aus; Details in
    Den SHA deshalb per `gh pr view` frisch holen und **nicht** aus einem lokalen
    `git rev-parse HEAD` nehmen — lokal kann der Branch veraltet sein.
 
+   > **422 ist nicht immer das Rennen [T002823]:** Lautet der Fehlertext „merge conflict
+   > between base and head" (statt eines SHA-Mismatch), ist es der Phantomkonflikt von oben,
+   > und ein Retry hilft nie — auf den lokalen Merge wechseln.
+
 3. Danach die generierten Artefakte gegen den neuen Stand neu bauen und committen:
    ```bash
    git fetch origin <branch> && git reset --hard origin/<branch>
    task freshness:regenerate
    ```
    [T002347]
+
+### Probe-Schleifen: stderr nicht unterdrücken [T002847]
+
+Dieselbe Fehlerklasse trifft nicht nur GitHub-Antworten, sondern jede Schleife, die einen
+Zustand über mehrere IDs abfragt. Real beobachtet beim Abfragen von acht Ticketstatus:
+
+```bash
+# FALSCH — acht leere Zeilen, gelesen als "Tickets existieren nicht"
+for t in T00…; do
+  s=$(bash scripts/ticket.sh show "$t" 2>/dev/null | grep -iE '^(status|title)')
+  echo "$t: $s"
+done
+```
+
+Tatsächlich kennt `ticket.sh` **kein** Subkommando `show`; es schrieb „Unknown command: show"
+nach stderr und beendete mit Exit 1 — beides durch `2>/dev/null` und die Pipe unsichtbar. Der
+Fehlerfall war von acht leeren Messwerten nicht zu unterscheiden.
+
+Auch die naheliegende Gegenprobe misst das Falsche:
+
+```bash
+bash scripts/ticket.sh show T00… 2>&1 | head -5; echo "exit=$?"   # FALSCH: Exit von head
+```
+
+Regeln:
+
+1. In Probe-Schleifen stderr **nicht** unterdrücken.
+2. Den Exit-Code **getrennt von der Pipeline** auswerten (Aufruf zuerst in eine Variable oder
+   Datei, `$?` direkt danach; alternativ `set -o pipefail` bzw. `${PIPESTATUS[0]}`).
+3. Ein leeres Ergebnis ist erst dann ein Messwert, wenn der Aufruf **nachweislich erfolgreich**
+   war — sonst gilt die Fail-Closed-Regel aus §0 Punkt 5: kein Urteil.
+
+```bash
+for t in T00…; do
+  if ! out=$(bash scripts/ticket.sh <subkommando> "$t" 2>&1); then
+    echo "$t: FEHLER — $(printf '%s' "$out" | head -1)"; continue
+  fi
+  echo "$t: $(printf '%s' "$out" | grep -iE '^(status|title)')"
+done
+```
+
+Für Ticketstatus ist der kanonische Weg ohnehin `mcp__ticket-mcp__get_ticket` /
+`mcp__ticket-mcp__list_tickets`, nicht ein geratenes CLI-Subkommando (siehe
+[`mcp-tool-guide.md`](mcp-tool-guide.md)).
 
 ## 4. GitHub-Issue-Intake (selten)
 
@@ -248,6 +369,27 @@ Issues leben in Postgres, nicht auf GitHub. Falls `gh issue list --state open` e
    `gh issue close <n> --comment "Duplicate of <external_id>."`. (Die 4 Duplikate
    T001196/T001197/T001201/T001202 entstanden 2026-06-27 genau, weil dieser Guard fehlte.)
    Dieselbe Dedupe-Vorbedingung gilt bei der Completeness-Triage vor Auto-Intake-Zeilen.
+
+   > **Der Guard braucht eine zweite Quelle: den Mishap-Buffer [T002844].** Die Ticket-Suche
+   > allein ist dieselbe Signallücke wie in §3 — sie meldet „kein Duplikat", ohne alle Orte
+   > geprüft zu haben, an denen ein Befund liegen kann. Am 2026-08-09 wurde derselbe Befund
+   > zweimal erfasst: 05:04 UTC als Mishap-Buffer-Eintrag, 05:35 UTC als Ticket T002830. Der
+   > Guard war korrekt angewandt und lieferte trotzdem grün, weil der frühere Befund als
+   > Eintrag in `.git/mishap-buffer.json` lag (Buffer-Stand 5/10) — **Buffer-Einträge tauchen
+   > in keiner Ticket-Query auf**. Zwischen „Befund erfasst" und „Befund als Ticket sichtbar"
+   > liegt ein Fenster von bis zu 10 Buffer-Einträgen bzw. 7 Tagen.
+   >
+   > Vor dem Anlegen deshalb **beide** Quellen prüfen:
+   > ```
+   > mcp__ticket-mcp__list_tickets({ … })      # offene Tickets, wie gehabt
+   > mcp__ticket-mcp__get_mishap_buffer({})    # ungeflushte Befunde
+   > ```
+   > Fallback ohne MCP: `jq -r '.[].title' .git/mishap-buffer.json` (Datei fehlt = Buffer leer;
+   > ein Lesefehler ist **kein** „leer" — dann gilt Fail-Closed, siehe §3-Grundregel).
+   >
+   > Das bleibt vorerst eine Merkregel, ist aber ein Kandidat fürs Werkzeug: eine Regel, die
+   > zwei getrennte Quellen von Hand zusammenführt, ist genau die Form, die hier versagt hat.
+   > Der belastbare Zuschnitt wäre ein Dedupe, das beide Quellen in **einem** Aufruf abfragt.
 2. `tickets.tickets`-Zeile aus dem Issue anlegen (`type`, `brand`, `title`, `description`, `status='triage'`).
 3. `gh issue close <n> --comment "Tracked internally as <external_id>."`
 

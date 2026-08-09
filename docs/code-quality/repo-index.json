@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 847,
+      "file_count": 848,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -328,6 +328,7 @@
         "tests/scripts/admin-menu-gate.bats",
         "tests/scripts/helper-collab-mock-runner.mjs",
         "tests/spec/active-sessions-hub.bats",
+        "tests/spec/active-sessions-hub/agent-lock-main-checkout-reclaim.bats",
         "tests/spec/active-sessions-hub/release-foreign-lock-guard.bats",
         "tests/spec/admin-cockpit.bats",
         "tests/spec/admin-token-consolidation.bats",

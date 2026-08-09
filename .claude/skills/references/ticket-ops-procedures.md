@@ -40,6 +40,27 @@ The triaging agent **autonomously decides** severity, component, areas, and read
 | **areas** | Extract from component + title context (e.g., "sealed-secret" → ["infra","security"], "oauth2-proxy" → ["auth"], "deployment" → ["infra"]), default to ["ops"] for generic tasks | Multi-area with no clear focus |
 | **readiness.flags** | `spec_skizziert: true` if description ≥ 100 chars, `aufwand_geschaetzt: false`, `abhaengigkeiten_klar: true` (if depends_on null/empty), `offene_fragen_geklaert: false` (default) | Description too thin (<30 chars) or explicitly asks clarifying questions |
 
+### Step 1.0: Prosa-Blocker-Erkennung [T002771]
+
+Vor oder parallel zur Vollständigkeitsprüfung: Jede Ticket-Beschreibung auf Schlüsselwörter
+scannen, die auf einen Blocker hinweisen:
+
+| Muster | Regex | Aktion |
+|--------|-------|--------|
+| `BLOCKIERT VON` | `(?i)blockiert\s+von` | Extrahiere folgende PR#- und T000XXX-Referenzen |
+| `hängt an` | `(?i)h(ä|ae)ngt\s+an` | Extrahiere folgende PR#- und T000XXX-Referenzen |
+| `ABHÄNGT VON` | `(?i)abh(ä|ae)ng(ig|t)\s+von` | Extrahiere folgende PR#- und T000XXX-Referenzen |
+
+Gefundene Referenzen:
+- **T000XXX**: In `depends_on` überführen, falls noch nicht vorhanden
+- **PR #N**: Via `gh pr view N --json state,mergedAt` prüfen:
+  - `state=MERGED` → Blocker ist aufgelöst; `abhaengigkeiten_klar=true` setzen
+  - `state=OPEN` → PR-ID in `depends_on` als Prosa notieren (kein FK möglich)
+
+**Positiv-Anker:** Ein Ticket mit `depends_on` nicht NULL **und** in der Beschreibung
+`BLOCKIERT VON:` **und** der referenzierte PR `state=MERGED` → `depends_on` bleibt
+unverändert (der Blocker wurde bereits formal erfasst).
+
 ### Step 1.1: Fetch open tickets (enriched)
 
 **MCP-first** (`mcp-postgres`, read-only): pass the query below to `mcp__mcp-postgres__query({ sql: "…" })`. Fallback: `psql -c "<query>"` via the `psql()` helper above.

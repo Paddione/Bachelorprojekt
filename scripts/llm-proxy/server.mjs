@@ -238,6 +238,31 @@ async function waitHealthy(port, timeoutMs) {
   return false;
 }
 
+/** Wartet, bis eine systemd-Unit gestoppt ist (active !== 'active'). Timeout in ms. */
+async function waitUntilStopped(slug, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const s = unitStatus(slug);
+    if (s.active !== 'active') return true;
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  return false;
+}
+
+/**
+ * T002753 — Auto-Switch-Semaphor: serialisiert Modellwechsel (stop alt + start neu)
+ * damit nicht zwei Requests gleichzeitig verschiedene Loadouts starten.
+ * Der Aufrufer (proxyV1) serialisiert bereits ueber den per-Backend-Semaphor;
+ * dieser Lock schuetzt den Switch VOR dem Routing, also bevor der Backend bekannt ist.
+ */
+let switchLock = Promise.resolve();
+function withSwitchLock(fn) {
+  const p = switchLock.then(() => fn()).finally(() => {});
+  // next waiter gets this promise, even if it rejects — we never want to deadlock
+  switchLock = p.catch(() => {});
+  return p;
+}
+
 // Ein Server kann auf /health antworten und trotzdem unfaehig sein, ein
 // tool_calls-Objekt zu erzeugen -- fuer tool-basiertes Coding wertlos.
 async function smokeTestToolCall(port) {
@@ -339,19 +364,68 @@ const startsInFlight = new Map();
 async function ensureLoadoutForModel(model) {
   let doc;
   try { ({ doc } = readLoadouts(DEFAULT_PATH)); } catch { return null; }
+
+  // T002753 — Auto-Switch mit Re-Evaluation unter dem Lock.
+  //
+  // Der erste Blick auf planAutoStart entscheidet, OB ueberhaupt ein Switch
+  // noetig ist (none: Modell laeuft schon; conflict/start: etwas muss passieren).
+  // Bei none kehren wir sofort ohne Lock zurueck. Bei conflict/start betreten
+  // wir den Lock und lesen activeSlugs ERNEUT: ein anderer Request koennte
+  // zwischenzeitlich den Konflikt schon geloest haben — dann starten wir nicht
+  // doppelt.
   const activeSlugs = doc.loadouts
     .filter((l) => isLoadoutActive(l, unitStatus(l.slug)))
     .map((l) => l.slug);
   const decision = planAutoStart({ doc, model, activeSlugs });
   if (decision.action === 'none') return null;
-  if (decision.action === 'conflict') return { conflict: decision.conflictSlug };
-  const pending = startsInFlight.get(decision.slug);
+
+  return withSwitchLock(async () => {
+    // Re-read active slugs under the lock — another switch may have resolved
+    // the conflict while we were waiting.
+    const currentActive = doc.loadouts
+      .filter((l) => isLoadoutActive(l, unitStatus(l.slug)))
+      .map((l) => l.slug);
+    const reDecide = planAutoStart({ doc, model, activeSlugs: currentActive });
+    if (reDecide.action === 'none') return null;
+
+    // Nur wenn das angeforderte Modell WIRKLICH noch nicht laeuft, stoppen wir.
+    // `reDecide` kann `start` sein (kein Konflikt, Modell nicht aktiv)
+    // oder `conflict` (Konflikt mit einem laufenden Loadout).
+    if (reDecide.action === 'conflict') {
+      const group = reDecide.group;
+      const toStop = currentActive.filter((slug) => {
+        const l = findLoadout(doc, slug);
+        return l && l.exclusiveGroup === group && l.slug !== reDecide.slug && l.managed !== 'external';
+      });
+      for (const slug of toStop) {
+        console.log(`[switch] ${reDecide.slug}: stoppe Konflikt-Loadout ${slug} (Gruppe '${group}')`);
+        try { stopUnit(slug); } catch (err) {
+          return { failed: new LoadoutStartError(502, 'stop_error',
+            `Konnte ${slug} nicht stoppen: ${err.message}`) };
+        }
+        const stopped = await waitUntilStopped(slug, 30_000);
+        if (!stopped) {
+          return { failed: new LoadoutStartError(502, 'stop_timeout',
+            `${slug} wurde nach 30s nicht inaktiv`) };
+        }
+        console.log(`[switch] ${slug} gestoppt`);
+      }
+      await discovery.probeNow();
+    }
+
+    console.log(`[switch] starte ${reDecide.slug}`);
+    return startRequestedLoadout(doc, reDecide.slug);
+  });
+}
+
+async function startRequestedLoadout(doc, slug) {
+  const pending = startsInFlight.get(slug);
   if (pending) return pending;
-  const p = startLoadout(decision.slug)
-    .then(() => ({ started: decision.slug }))
+  const p = startLoadout(slug)
+    .then(() => ({ started: slug }))
     .catch((err) => ({ failed: err }))
-    .finally(() => startsInFlight.delete(decision.slug));
-  startsInFlight.set(decision.slug, p);
+    .finally(() => startsInFlight.delete(slug));
+  startsInFlight.set(slug, p);
   return p;
 }
 

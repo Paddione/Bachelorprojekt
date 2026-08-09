@@ -2871,6 +2871,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002894": [
+    {
+      "slug": "purge-test-data-schema-drift-T002894",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

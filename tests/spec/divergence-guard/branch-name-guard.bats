@@ -111,29 +111,74 @@ teardown() { rm -rf "$TMP"; }
   [ -d "$TMP/wt-bypass" ]
 }
 
-# ── Drift-Guard: Hook und Helper duerfen nicht auseinanderlaufen ──────
+# ── Gemeinsame Quelle statt Drift-Guard [T002817] ─────────────────────
 #
-# Die Regel steht bewusst an zwei Stellen (siehe Design-Spec): der pre-commit-Hook
-# bleibt standalone, damit eine fehlende Lib-Datei nicht jeden Commit blockiert.
-# Diese Tests machen den Drift beobachtbar.
+# Bis T002817 standen hier drei grep-Tests, die Ticket-ID-Regex, Exemption-Liste und
+# Typ-Praefixe zwischen Hook und Helper auf Textgleichheit verglichen. Begruendung
+# damals: die Regel sei bewusst dupliziert, weil der pre-commit-Hook frei von
+# Repo-Dateiabhaengigkeiten bleiben solle.
+#
+# Diese Absicherung hat nicht gehalten. Die --unattended-Allowlist (mit T002783
+# hinzugekommen) fiel in keinen der drei Vergleiche, lief auseinander und machte
+# chore/mishap-incident-rollup anlegbar, aber nicht committebar — die gesamte
+# Mishap-Auswertung lief ins Leere. Eine duplizierte Regel ist nur so vollstaendig
+# abgesichert wie die Aufzaehlung ihrer Drift-Tests gepflegt wird.
+#
+# Die Ausnahmeliste lebt jetzt in scripts/lib/branch-allowlist.sh. Die urspruengliche
+# Sorge bleibt adressiert: beide Guards sourcen bedingt, fehlt die Datei verhalten sie
+# sich wie zuvor. Der folgende Test misst die Eigenschaft, die das Requirement fordert
+# (openspec/specs/divergence-guard.md) — dass beide Guards derselben Quelle folgen —
+# statt Textgleichheit zu vergleichen.
 
-@test "T002470: Helper und Hook nutzen dieselbe Ticket-ID-Regex" {
-  hook_re="$(grep -oE 'T\[0-9\]\{6,\}' "$HOOK" | head -1)"
-  [ -n "$hook_re" ]
-  help_re="$(grep -oE 'T\[0-9\]\{6,\}' "$HELPER" | head -1)"
-  [ "$help_re" = "$hook_re" ]
-}
+@test "T002817: Hook und Helper folgen derselben Allowlist-Quelle" {
+  LIB="$REPO/scripts/lib/branch-allowlist.sh"
+  [ -f "$LIB" ]
 
-@test "T002470: Helper und Hook nutzen dieselbe Exemption-Liste" {
-  hook_ex="$(grep -oE 'main\|develop\|master\|release-please--\*\|dependabot/\*\|renovate/\*' "$HOOK" | head -1)"
-  [ -n "$hook_ex" ]
-  help_ex="$(grep -oE 'main\|develop\|master\|release-please--\*\|dependabot/\*\|renovate/\*' "$HELPER" | head -1)"
-  [ "$help_ex" = "$hook_ex" ]
-}
+  # Sandbox mit einer ERWEITERTEN Kopie der Lib: ein Name, der in der echten Liste
+  # nicht steht. Wirkt er auf beide Guards, lesen beide dieselbe Quelle.
+  SB="$TMP/shared"; mkdir -p "$SB/.githooks" "$SB/scripts/lib"
+  git init -q -b main "$SB"
+  git -C "$SB" config user.email t@example.com
+  git -C "$SB" config user.name Tester
+  git -C "$SB" config core.hooksPath .githooks
+  cp "$HOOK" "$SB/.githooks/pre-commit"
+  cp "$HELPER" "$SB/scripts/worktree-create.sh"
+  cp "$REPO/.gitleaks.toml" "$SB/.gitleaks.toml" 2>/dev/null || true
+  sed 's|^TICKETLESS_BRANCHES=.*|TICKETLESS_BRANCHES="chore/probe-shared-source"|' \
+    "$LIB" > "$SB/scripts/lib/branch-allowlist.sh"
+  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh guard-bonsai-overwrite.sh; do
+    printf '#!/usr/bin/env bash\nexit 0\n' > "$SB/scripts/$s"; chmod +x "$SB/scripts/$s"
+  done
+  export FRESHNESS_HOOK_DISABLED=1 SKIP_BONSAI_GUARD=1
 
-@test "T002470: Helper und Hook erlauben dieselben Typ-Praefixe" {
-  hook_ty="$(grep -oE '\^feature/\|\^fix/\|\^chore/\|\^docs/' "$HOOK" | head -1)"
-  [ -n "$hook_ty" ]
-  help_ty="$(grep -oE '\^feature/\|\^fix/\|\^chore/\|\^docs/' "$HELPER" | head -1)"
-  [ "$help_ty" = "$hook_ty" ]
+  # Basis-Commit auf main mit --no-verify: der Guard darf hier noch nicht greifen,
+  # sonst haette das Repo gar keinen Commit und weder main noch eine Worktree-Basis.
+  printf 'base\n' > "$SB/base.txt"
+  git -C "$SB" add base.txt
+  git -C "$SB" commit -q --no-verify -m "chore: base"
+
+  # Positiv-Anker zuerst [T002356-M1]: der Guard wirkt ueberhaupt. Ohne ihn bestuenden
+  # die folgenden Zusagen auch dann, wenn beide Guards vollstaendig ausgehaengt waeren.
+  git -C "$SB" checkout -q -b chore/nicht-in-der-liste
+  printf 'x\n' > "$SB/anchor.txt"
+  git -C "$SB" add anchor.txt
+  run git -C "$SB" commit -m "chore: anker"
+  [ "$status" -ne 0 ]
+
+  # Der Hook folgt der erweiterten Liste — dieselbe Datei, nur ein anderer Branch.
+  git -C "$SB" checkout -q -b chore/probe-shared-source
+  run git -C "$SB" commit -m "chore: probe"
+  [ "$status" -eq 0 ]
+
+  # Der Helper folgt derselben Liste — ohne eigene Kopie des Namens.
+  # Vorher zurueck auf main: fuer einen bereits ausgecheckten Branch legt
+  # worktree-create.sh grundsaetzlich keinen Worktree an ('branch in use').
+  git -C "$SB" checkout -q main
+  run bash -c "cd '$SB' && bash scripts/worktree-create.sh --unattended chore/probe-shared-source '$TMP/wt-shared' HEAD"
+  [ "$status" -eq 0 ]
+  [ -d "$TMP/wt-shared" ]
+
+  # Und keiner von beiden traegt den Namen selbst.
+  run grep -c 'probe-shared-source' "$SB/.githooks/pre-commit" "$SB/scripts/worktree-create.sh"
+  [ "$status" -ne 0 ]
 }

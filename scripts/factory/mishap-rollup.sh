@@ -235,7 +235,19 @@ git add "$CHANGE_DIR"
 if git diff --cached --quiet; then
   echo "mishap-rollup: keine Aenderungen seit letztem Commit — skip commit"
 else
-  git commit -q -m "chore(plans): update ${SLUG} from container batches [${CONTAINER_ID}]"
+  # [T002817] Den Commit-Fehlschlag ausdruecklich benennen. Unter `set -e` brach das
+  # Skript hier zwar ab, aber stumm: die Meldung kam vom git-Hook, nicht vom Treiber,
+  # und der erzeugte Plan blieb als staged-but-uncommitted im Worktree liegen. Genau so
+  # entstanden zwei Fossil-Dateien, die den frueheren Fehlschlag ueberdauerten — ein
+  # `git add` ohne folgenden `commit` sieht im Index aus wie fertige Arbeit, ist aber
+  # nirgends dauerhaft.
+  if ! git commit -q -m "chore(plans): update ${SLUG} from container batches [${CONTAINER_ID}]"; then
+    echo "mishap-rollup: FEHLER — git commit auf '${BRANCH}' abgelehnt." >&2
+    echo "  Der erzeugte Plan liegt STAGED, aber uncommitted in: ${CHANGE_DIR}" >&2
+    echo "  Die Meldung oben stammt von einem git-Hook. Haeufigste Ursache: der Branch" >&2
+    echo "  fehlt in scripts/lib/branch-allowlist.sh (SSOT der ticketlosen Branches)." >&2
+    exit 1
+  fi
   # Push scheitert, wenn der Branch remote bereits weiter ist (z.B. durch
   # einen parallelen merge). Dann holen wir neu und rebasen.
   git push -q -u origin "$BRANCH" 2>/dev/null || {
@@ -243,7 +255,8 @@ else
     git fetch origin main 2>/dev/null || true
     git rebase origin/main 2>/dev/null || true
     git push -q -u origin "$BRANCH" || {
-      echo "mishap-rollup: push auch nach rebase fehlgeschlagen" >&2
+      echo "mishap-rollup: FEHLER — push auf '${BRANCH}' auch nach rebase fehlgeschlagen." >&2
+      echo "  Der Plan ist lokal committet, aber nicht auf origin: ${CHANGE_DIR}" >&2
       exit 1
     }
   }

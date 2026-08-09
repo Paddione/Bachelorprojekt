@@ -40,6 +40,11 @@ const readPrompt = (lens) => readFileSync(PROMPT_DIR + LENS_FILE[lens], 'utf8')
 const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY, ...(ANTHROPIC_BASE_URL ? { baseURL: ANTHROPIC_BASE_URL } : {}) })
 
 function parseJson(text, fallback) {
+  // Strip Markdown code fences that LLMs wrap around JSON responses.
+  if (typeof text === 'string') {
+    const fenced = text.match(/^```(?:json|javascript|js)?\s*\r?\n?([\s\S]*?)\r?\n?```\s*$/m)
+    if (fenced) text = fenced[1].trim()
+  }
   const m = text && text.match(/\{[\s\S]*\}/)
   if (!m) return fallback
   try { return JSON.parse(m[0]) } catch { return fallback }

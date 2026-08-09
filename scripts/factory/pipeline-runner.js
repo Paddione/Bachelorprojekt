@@ -21,6 +21,22 @@ const evalCtxModule = await import('./eval-context.cjs');
 
 const REPO = '/home/patrick/Bachelorprojekt';
 
+/**
+ * Strip Markdown code fences from an LLM response before JSON.parse.
+ * Handles ```json … ```, ``` … ```, and leading/trailing whitespace.
+ * Returns the raw text unchanged if no fence is found, so callers can
+ * always do JSON.parse(stripCodefence(llmOutput)).
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function stripCodefence(text) {
+  if (typeof text !== 'string') return text;
+  const m = text.match(/^```(?:json|javascript|js)?\s*\r?\n?([\s\S]*?)\r?\n?```\s*$/m);
+  if (m) return m[1].trim();
+  return text.trim();
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
@@ -81,7 +97,7 @@ async function main() {
       '--repo', REPO
     ], { encoding: 'utf8', timeout: 60000 });
 
-    let scout = JSON.parse(scoutJson);
+    let scout = JSON.parse(stripCodefence(scoutJson));
 
     try {
       execFileSync('bash', [

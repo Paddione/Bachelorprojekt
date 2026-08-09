@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.2...website-v1.257.3) (2026-08-09)
+
+
+### Bug Fixes
+
+* **routes:** routes:manifest suppresses tsx stderr stacktrace [T002666] ([#3913](https://github.com/Paddione/Bachelorprojekt/issues/3913)) ([3ad6454](https://github.com/Paddione/Bachelorprojekt/commit/3ad64546ce56a9102426f1d21fea25352ba34572))
+
 ## [1.257.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.1...website-v1.257.2) (2026-08-09)
 
 

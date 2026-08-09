@@ -50,7 +50,7 @@ Bei Manifest-Änderungen zusätzlich: `./tests/runner.sh local <TEST-ID>` für d
 
 Bei Änderungen an `tests/spec/` zusätzlich: `task test:spec:changed` — CI fährt eine separate spec-Suite, die `test:changed` nicht abdeckt. Ohne diesen Schritt werden spec-Guard-Verletzungen erst nach dem Push sichtbar (T002291).
 
-### Zwei rote Ergebnisse, die keine sind [T002375-p4]
+### Drei rote Ergebnisse, die keine sind [T002375-p4, T002691]
 
 **(a) Neue Dateien und der Freshness-Index.** Seit T002375-p4 zählt das Scan-Universum auch
 untracked-aber-nicht-ignorierte Dateien, der Regelfall braucht also nur **einen** Durchlauf.
@@ -74,6 +74,35 @@ CI-äquivalenten Kommandos:
 task test:spec:changed
 tests/unit/lib/bats-core/bin/bats tests/unit/manifests.bats tests/unit/changed-manifests.bats
 ```
+
+**(c) Rote `test:e2e:website` sind auch MIT laufendem Dev-Server kein PR-Blocker** [T002691].
+Der Fall unter (b) ist am fehlenden Dev-Stack erkennbar — dieser hier nicht: `test:e2e:website`
+läuft bei Änderungen unter `website/(src|pages|components|layouts|lib)/` an und liefert auch dann
+rund 30 Fehlschläge, wenn `curl http://localhost:4321/` sauber mit 200 antwortet. Wer den
+Dev-Server prüft und ihn laufen sieht, schließt daraus leicht auf eine echte Regression.
+
+Gemessen am 2026-08-09 auf **unverändertem `main`** (2e37ad8bc, sauberer Arbeitsbaum, Dev-Server
+verifiziert auf HTTP 200): `32 failed · 88 skipped · 224 passed` in 13,5 Minuten. Betroffen sind
+durchgängig dieselben Gruppen — Auth-Guards der `/api/admin/*`- und `/api/poll/*`-Routen,
+OIDC-Logout, Billing, Onboarding und der a11y-Scan gegen die Live-Domain. Sie brauchen
+Datenbank, Session und teils die Produktionsumgebung; lokal fehlt beides.
+
+Die Konsequenz ist dieselbe wie unter (b): **erst gegen `main` messen, bevor rote E2E-Website-Specs
+als Regression des eigenen Branches gelten.** Der Baseline-Lauf kostet gut zehn Minuten und ist die
+einzige Aussage, die trägt:
+
+```bash
+git stash list                     # sicherstellen, dass nichts Ungesichertes im Weg ist
+git -C <main-checkout> status --porcelain   # muss leer sein
+task test:e2e:website              # gegen main, mit laufendem Dev-Server
+```
+
+> Auslöser war eine reine Doku-Chore (T002678/PR #3803): `task freshness:regenerate` schrieb
+> `website/src/lib/sdlc/goals-data.generated.json` neu, die Datei liegt unter `website/src/` und
+> zog damit den E2E-Bucket. Dieser Selektionspfad ist seit T002255 geschlossen —
+> `scripts/filter-generated.sh` entfernt alle Pfade mit `linguist-generated=true` vor der Auswahl
+> (`Taskfile.yml`, `CHANGED=`-Zeile). Die roten Specs bleiben davon unberührt: sie waren schon
+> vorher rot und werden nur seltener sichtbar.
 
 ## S1-Ratchet — Kurzform
 

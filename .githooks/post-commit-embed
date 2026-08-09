@@ -49,7 +49,23 @@ for slug in $SLUGS; do
     continue
   fi
   echo "[openspec-embed] post-commit: embedding slug='$slug'..."
-  if ! bash "$repo_root/scripts/openspec-embed-local.sh" "$slug" 2>&1; then
-    echo "[openspec-embed] WARN: embed failed for '$slug' (non-fatal — see above)" >&2
+  # T002916: Retry transient backend failures (port-forward restarting, etc.)
+  # Connection-refused fails instantly (not subject to probe timeout), so a
+  # few retries add at most ~15s — acceptable for a post-commit hook.
+  EMBEDDED=0
+  EMBED_MAX_RETRIES="${OPENSPEC_EMBED_HOOK_RETRIES:-3}"
+  EMBED_RETRY_DELAY="${OPENSPEC_EMBED_HOOK_RETRY_DELAY:-5}"
+  for attempt in $(seq 1 "$EMBED_MAX_RETRIES"); do
+    if bash "$repo_root/scripts/openspec-embed-local.sh" "$slug" 2>&1; then
+      EMBEDDED=1
+      break
+    fi
+    if [ "$attempt" -lt "$EMBED_MAX_RETRIES" ]; then
+      echo "[openspec-embed] retry ${attempt}/$EMBED_MAX_RETRIES for '$slug' in ${EMBED_RETRY_DELAY}s…" >&2
+      sleep "$EMBED_RETRY_DELAY"
+    fi
+  done
+  if [ "$EMBEDDED" -eq 0 ]; then
+    echo "[openspec-embed] WARN: embed failed for '$slug' after $EMBED_MAX_RETRIES attempts (non-fatal — see above)" >&2
   fi
 done

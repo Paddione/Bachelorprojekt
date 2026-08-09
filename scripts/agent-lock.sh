@@ -189,6 +189,18 @@ _reapable() {
       if [ -n "$hb" ] && [ "$(( now - hb ))" -ge "$AGENT_LOCK_TTL" ]; then
         _reap_log "$f" heartbeat-ttl; return 0
       fi
+      # T002849: a crashed holder leaves a matching worktree+branch but a dead
+      # owner_pid. _pid_alive alone cannot distinguish crash from resume —
+      # owner_pid belongs to the OLD process in both cases. AGENT_LOCK_GRACE is
+      # the differentiating signal: a resume renews heartbeat_at within the
+      # grace window, a dead holder never does. Block 0a (lines above) uses the
+      # same pid+grace pattern for the no-worktree path.
+      if [ -n "$pid" ] && ! _pid_alive "$pid"; then
+        age=$(( now - age_base ))
+        if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
+          _reap_log "$f" pid-dead; return 0
+        fi
+      fi
       return 1
     fi
   fi

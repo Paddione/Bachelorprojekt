@@ -24,6 +24,26 @@ teardown() { _sf_teardown; }
 
 WAKEUP="${BATS_TEST_DIRNAME}/../../../scripts/factory/wakeup.sh"
 SERVICE="${BATS_TEST_DIRNAME}/../../../scripts/factory/factory.service"
+
+# [T002689] wakeup.sh sourced seit dem fail-closed Backlog-Zaehler
+# "${REPO}/scripts/factory/lib.sh" auf Top-Level — VOR jeder Tick-Logik. Tests,
+# die FACTORY_REPO auf ein leeres tmp-Verzeichnis richten, brachen damit schon
+# beim source ab (rc=1, "No such file or directory"), also bevor das eigentlich
+# Gepruefte lief. lib.sh ist eine Abhaengigkeit wie das claude-Binary und die
+# Bridge und wird wie diese gestubbt, statt die Produktionsdatei aufzuweichen.
+#
+# $1 = tmp-Repo-Wurzel. $2 (optional) = Datei, in der der Stub jede angefragte
+# Brand protokolliert; damit laesst sich "beide Brands wurden gezaehlt"
+# ergebnisbasiert pruefen statt per Quelltext-grep [T002448-M4].
+_stub_factory_lib() {
+  local root="$1" brandlog="${2:-/dev/null}"
+  mkdir -p "${root}/scripts/factory"
+  cat > "${root}/scripts/factory/lib.sh" <<LIB
+#!/usr/bin/env bash
+# Test-Stub (siehe _stub_factory_lib in wakeup.bats) — kein DB-Zugriff.
+factory_backlog_count() { printf '%s\n' "\$1" >> "${brandlog}"; echo 0; }
+LIB
+}
 TIMER="${BATS_TEST_DIRNAME}/../../../scripts/factory/factory.timer"
 TASKFILE="${BATS_TEST_DIRNAME}/../../../taskfiles/Taskfile.factory.yml"
 
@@ -135,6 +155,7 @@ STUB
 printf '%s\n' "\$@" > "${claudefile}"
 STUB
   chmod +x "${tmp}/claude-stub"
+  _stub_factory_lib "${tmp}"
   FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" \
     FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" FACTORY_DRY_RUN=true \
     FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" run bash "$WAKEUP"
@@ -225,10 +246,29 @@ README="${BATS_TEST_DIRNAME}/../../../scripts/factory/README.md"
 }
 
 @test "FA-SF-41: wakeup.sh checks both brand queues before retick" {
-  run grep -E 'BRAND=mentolder.*queue\.sh' "$WAKEUP"
+  # [T002689] Vorher greppte dieser Test den Quelltext nach
+  # 'BRAND=mentolder.*queue.sh'. Dieses Aufrufmuster wurde durch
+  # factory_backlog_count ersetzt — der Test wurde rot, obwohl beide Brands
+  # weiterhin gezaehlt werden. Er prueft jetzt das Ergebnis: der lib.sh-Stub
+  # protokolliert jede angefragte Brand, und die Assertion liest dieses
+  # Protokoll. Damit ueberlebt er das naechste Refactoring der Aufrufstelle
+  # [T002448-M4].
+  tmp="$(mktemp -d)"
+  brandlog="${tmp}/brands-counted"
+  printf '#!/usr/bin/env bash\nexit 0\n' > "${tmp}/bridge-stub"
+  chmod +x "${tmp}/bridge-stub"
+  _stub_factory_lib "${tmp}" "${brandlog}"
+  FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/bridge-stub" \
+    FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" FACTORY_DRY_RUN=true \
+    FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" \
+    FACTORY_IDLE_RETICK_ENABLED=true run bash "$WAKEUP"
   [ "$status" -eq 0 ]
-  run grep -E 'BRAND=korczewski.*queue\.sh' "$WAKEUP"
-  [ "$status" -eq 0 ]
+  # Positiv-Anker: das Protokoll existiert ueberhaupt — sonst wuerden die
+  # beiden Brand-Assertions gegen eine leere Datei trivial gelten [T002356-M1].
+  [ -s "${brandlog}" ]
+  grep -qFx 'mentolder' "${brandlog}"
+  grep -qFx 'korczewski' "${brandlog}"
+  rm -rf "${tmp}"
 }
 
 @test "FA-SF-41: wakeup.sh idle-retick exits cleanly when queue is empty" {
@@ -246,6 +286,7 @@ STUB
 exit 0
 STUB
   chmod +x "${tmp}/bridge-stub"
+  _stub_factory_lib "${tmp}"
   FACTORY_REPO="${tmp}" FACTORY_CLAUDE_BIN="${tmp}/claude-stub" \
     FACTORY_DISPATCHER_BRIDGE="${tmp}/bridge-stub" FACTORY_DRY_RUN=true \
     FACTORY_TICK_LOCK="${tmp}/tick.lock" FACTORY_ENV_FILE="${tmp}/no-env" \

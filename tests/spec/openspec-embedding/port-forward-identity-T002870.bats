@@ -34,7 +34,7 @@ time.sleep(8)
 " &
   DECOY_PID=$!
   for _ in $(seq 1 30); do
-    (exec 3<>"/dev/tcp/127.0.0.1/${port}") 2>/dev/null && { exec 3>&- 3<&-; return 0; } || sleep 0.25
+    (exec 9<>"/dev/tcp/127.0.0.1/${port}") 2>/dev/null && { exec 9>&- 9<&-; return 0; } || sleep 0.25
   done
   return 1
 }
@@ -125,6 +125,17 @@ setup_hook_repo() {
   mkdir -p "$TMPGIT/scripts"
   MARKER="$TMPGIT/marker.log"
   : > "$MARKER"
+  cat > "$TMPGIT/scripts/openspec-embed-lib.sh" <<'LIBEOF'
+#!/usr/bin/env bash
+# Stub — minimal implementations for test isolation.
+pf_listener_pid() { :; }
+embed_output_is_success() { return 0; }
+in_rebase() {
+  [[ -d "$(git rev-parse --git-path rebase-merge 2>/dev/null)" ]] && return 0
+  [[ -d "$(git rev-parse --git-path rebase-apply 2>/dev/null)" ]] && return 0
+  return 1
+}
+LIBEOF
   cat > "$TMPGIT/scripts/openspec-embed-local.sh" <<EOF
 #!/usr/bin/env bash
 echo "CALLED" >> "$MARKER"

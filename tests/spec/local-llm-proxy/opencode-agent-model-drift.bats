@@ -76,14 +76,40 @@ setup() {
 }
 
 @test "T002545: keine handgepflegte Kontextzahl widerspricht dem Loadout" {
-  # 262144 war der Wert des abgeloesten 12B-Servers. Er steht fuer die Drift-
-  # Klasse, die T002300 fuer die MCP-Configs geloest hat: eine Zahl, die von
-  # Hand gepflegt wird und niemandem auffaellt, wenn sich die Quelle aendert.
+  # Die Zusicherung ist "keine handgepflegte Zahl WIDERSPRICHT dem Loadout" —
+  # geprueft wird sie als Abgleich gegen loadouts.json, nicht als Schwarze
+  # Liste eines Integers.
+  #
+  # [T003065] Vorher stand hier `grep -c '262144'` mit der Erwartung 0: 262144
+  # war der Wert des abgeloesten 12B-Servers und stand fuer die Drift-Klasse,
+  # die T002300 fuer die MCP-Configs geloest hat. Inzwischen MISST das Loadout
+  # gemma12-vision genau diesen Wert ("Gemessen: 262.144 Kontext" in
+  # loadouts.json), und der Guard meldete einen Defekt, den es nicht gibt —
+  # Darstellung statt Semantik [T002716]. Eine Zahl ist nicht falsch, weil sie
+  # frueher falsch war; falsch ist sie, wenn die SSOT sie nicht deckt.
   [ -f "${AGENTS}" ]
-  # Nur in den wirksamen limit.context-Werten, nicht im Fliesstext: ein
-  # Kommentar darf festhalten, dass dort frueher 262144 stand.
-  run bash -c "grep -A2 '\"limit\"' '${AGENTS}' | grep -c '262144' || true"
-  [ "${output}" = "0" ]
+  [ -f "${LOADOUTS}" ]
+
+  # Nur limit.context-Werte, deren Eintrag ein "Loadout <slug>" nennt, sind an
+  # loadouts.json gebunden. API-Modelle (deepseek u.a.) tragen legitim Kontexte,
+  # die dort nicht vorkommen, und bleiben ausgeklammert.
+  run bash -c "grep -A3 '\"name\": \".*Loadout ' '${AGENTS}' | grep -oE '\"context\": [0-9]+' | grep -oE '[0-9]+' | sort -u"
+  [ "${status}" -eq 0 ]
+  # Positiv-Anker zuerst [T002356-M1]: ohne mindestens einen Kandidaten wuerde
+  # die Negativ-Aussage unten vakuos gelten.
+  [ -n "${output}" ]
+
+  local unbacked=0 n dotted
+  for n in ${output}; do
+    # loadouts.json notiert die Messwerte mit deutschem Tausenderpunkt
+    # ("Gemessen: 262.144 Kontext"), deshalb beide Schreibweisen akzeptieren.
+    dotted="$(printf '%s' "${n}" | sed ':a;s/\B[0-9]\{3\}\>/.&/;ta')"
+    if ! grep -qF "${n}" "${LOADOUTS}" && ! grep -qF "${dotted}" "${LOADOUTS}"; then
+      echo "FAIL: limit.context ${n} (auch nicht als ${dotted}) ist in loadouts.json nicht belegt"
+      unbacked=$((unbacked + 1))
+    fi
+  done
+  [ "${unbacked}" -eq 0 ]
 }
 
 @test "T002545: der Providername behauptet kein Draft-Modell, das nicht laedt" {

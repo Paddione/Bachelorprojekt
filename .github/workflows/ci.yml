@@ -73,7 +73,7 @@ jobs:
           fetch-tags: false
 
       - name: Fetch origin/main for diffing (shallow)
-        run: git fetch --no-tags --prune --depth=1 origin +main:refs/remotes/origin/main
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
       - uses: actions/setup-node@v7
         with:
@@ -216,7 +216,7 @@ jobs:
           fetch-tags: false
 
       - name: Fetch origin/main for diffing (shallow)
-        run: git fetch --no-tags --prune --depth=1 origin +main:refs/remotes/origin/main
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
       - uses: actions/setup-node@v7
         with:
@@ -262,7 +262,7 @@ jobs:
           fetch-tags: false
 
       - name: Fetch origin/main for diffing (shallow)
-        run: git fetch --no-tags --prune --depth=1 origin +main:refs/remotes/origin/main
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
       - uses: actions/setup-node@v7
         with:
@@ -578,7 +578,7 @@ jobs:
         run: cd website && pnpm install --frozen-lockfile
 
       - name: Fetch origin/main for --changed diffing
-        run: git fetch --no-tags --prune --depth=1 origin +main:refs/remotes/origin/main
+        run: git fetch --no-tags --depth=1 origin +main:refs/remotes/origin/main
 
       - name: Check coverage relevance
         id: check-cov

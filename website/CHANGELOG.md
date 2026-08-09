@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.25](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.24...website-v1.259.25) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** rollup-container pipefail-Abbruch bei leerer Trefferliste [T003068] ([#4076](https://github.com/Paddione/Bachelorprojekt/issues/4076)) ([32e0ddc](https://github.com/Paddione/Bachelorprojekt/commit/32e0ddc779b01914419a880962e0ae47567d3871))
+
 ## [1.259.24](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.23...website-v1.259.24) (2026-08-09)
 
 

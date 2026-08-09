@@ -10,7 +10,8 @@ declare -a entries=()
 for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/tests/spec"; do
   [[ -d "$dir" ]] || continue
   tier="$(basename "$dir")"
-  while IFS= read -r -d '' f; do
+  while IFS= read -r -d '' item; do
+    f="${REPO_ROOT}/${item#${REPO_ROOT}/}"
     base="$(basename "$f")"
     # was: id="$(echo "$base" | sed -E 's/^(FA|SA|NFA|AK)-([0-9]+).*/\1-\2/')"
     # Extended to accept an optional uppercase sub-tag (e.g. FA-SF-04 → FA-SF-04).
@@ -53,10 +54,9 @@ for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/te
       continue
     fi
     entries+=("$(jq -nc --arg id "$id" --arg path "$rel" --arg category "${id%%-*}" --arg tier "$tier" '{id:$id, file:$path, category:$category, kind:"shell", tier:$tier}')")
-  # maxdepth 2 statt 1 [T002416]: seit der Verzeichniskonvention liegen Spec-Tests auch
-  # unter tests/spec/<spec-slug>/. Mit maxdepth 1 fehlten sie im Inventar, und der
-  # CI-Check "test-inventory differs" wuerde erst beim naechsten Regenerieren auffallen.
-  done < <(find "$dir" -maxdepth 2 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z)
+  # git ls-files discovery [T002664]: respects .gitignore so ignored or stray files
+  # do not pollute test-inventory.json.
+  done < <(git -C "$REPO_ROOT" ls-files -z --cached --others --exclude-standard "$dir" 2>/dev/null | grep -z -E '\.(sh|bats)$' | sort -z)
 done
 
 for f in "${REPO_ROOT}"/tests/e2e/specs/*.spec.ts; do
@@ -116,12 +116,13 @@ fi
 missing=()
 for dir in "${REPO_ROOT}/tests/local" "${REPO_ROOT}/tests/prod" "${REPO_ROOT}/tests/spec"; do
   [[ -d "$dir" ]] || continue
-  while IFS= read -r -d '' f; do
+  while IFS= read -r -d '' item; do
+    f="${REPO_ROOT}/${item#${REPO_ROOT}/}"
     rel="${f#${REPO_ROOT}/}"
     if [[ "$(jq --arg p "$rel" '[.[] | select(.file == $p)] | length' "$OUT")" -eq 0 ]]; then
       missing+=("$rel")
     fi
-  done < <(find "$dir" -maxdepth 2 \( -name '*.sh' -o -name '*.bats' \) -print0 | sort -z)
+  done < <(git -C "$REPO_ROOT" ls-files -z --cached --others --exclude-standard "$dir" 2>/dev/null | grep -z -E '\.(sh|bats)$' | sort -z)
 done
 if [[ "${#missing[@]}" -gt 0 ]]; then
   echo "Error: the following shell test files produced no inventory entry:" >&2

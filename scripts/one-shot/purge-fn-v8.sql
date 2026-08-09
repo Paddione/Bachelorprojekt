@@ -1,12 +1,14 @@
 -- 2026-08-09 — Migration: tickets.fn_purge_test_data() v8 (T002894).
 --
--- Adds a `to_regclass` existence guard for the questionnaire_test_status table
--- on top of v7. The table exists on fleet mentolder but not on the local k3d
--- dev shared-db (schema drift). Without this guard, the unconditional UPDATE
--- at the start of the function throws before any DELETE runs, so
--- purge_factory_test_data() silently purges nothing. The guard uses the same
--- to_regclass pattern already employed for the has_qts_evidence column probe
--- two lines below it.
+-- Adds `to_regclass` existence guards for all questionnaire tables
+-- (questionnaire_test_status, questionnaire_assignments, questionnaire_test_evidence,
+-- questionnaire_test_fixtures, questionnaire_templates) and systemtest tables
+-- (systemtest_failure_outbox, systemtest_magic_tokens) that are absent on the
+-- local k3d dev shared-db (schema drift vs. fleet). Without these guards,
+-- unconditional DELETE/UPDATE statements throw before any sweep runs, so
+-- purge_factory_test_data() silently purges nothing. Also tightens existing
+-- has_src_assn_col/has_qts_evidence/has_scores/has_answers guards to additionally
+-- check has_assignments, so subqueries referencing the missing table are skipped.
 --
 -- All other steps are identical to v7.
 
@@ -32,11 +34,18 @@ DECLARE
   has_meetings      BOOLEAN;
   has_qts_evidence  BOOLEAN;
   has_qts           BOOLEAN;
+  has_assignments   BOOLEAN;
+  has_test_evidence BOOLEAN;
+  has_test_fixtures BOOLEAN;
+  has_templates     BOOLEAN;
+  has_systest_out   BOOLEAN;
+  has_systest_tok   BOOLEAN;
   has_inbox_flag    BOOLEAN;
   has_thread_flag   BOOLEAN;
   has_messages_flag BOOLEAN;
   has_coaching_flag BOOLEAN;
   has_is_test_data  BOOLEAN;
+  cust_sql          TEXT;
   keep_emails       TEXT[] := ARRAY[
                        'patrick@korczewski.de',
                        'p.korczewski@gmail.com',
@@ -76,9 +85,15 @@ BEGIN
      AND column_name='evidence_id')
    INTO has_qts_evidence;
  SELECT to_regclass('questionnaire_test_status') IS NOT NULL INTO has_qts;
+ SELECT to_regclass('questionnaire_assignments') IS NOT NULL INTO has_assignments;
+ SELECT to_regclass('questionnaire_test_evidence') IS NOT NULL INTO has_test_evidence;
+ SELECT to_regclass('questionnaire_test_fixtures') IS NOT NULL INTO has_test_fixtures;
+ SELECT to_regclass('questionnaire_templates') IS NOT NULL INTO has_templates;
+ SELECT to_regclass('systemtest_failure_outbox') IS NOT NULL INTO has_systest_out;
+ SELECT to_regclass('systemtest_magic_tokens') IS NOT NULL INTO has_systest_tok;
  SELECT EXISTS(SELECT 1 FROM information_schema.columns
-                 WHERE table_schema='public'
-                   AND table_name='inbox_items'
+                  WHERE table_schema='public'
+                    AND table_name='inbox_items'
                    AND column_name='is_test_data')
     INTO has_inbox_flag;
   SELECT EXISTS(SELECT 1 FROM information_schema.columns
@@ -119,7 +134,7 @@ BEGIN
   ----------------------------------------------------------------------------
   -- 2) Null out tickets.source_test_assignment_id refs to test assignments.
   ----------------------------------------------------------------------------
-  IF has_src_assn_col THEN
+  IF has_src_assn_col AND has_assignments THEN
     UPDATE tickets.tickets
        SET source_test_assignment_id = NULL
      WHERE source_test_assignment_id IN (
@@ -133,7 +148,7 @@ BEGIN
   -- 3a) NULL out questionnaire_test_status.evidence_id refs we're about to
   --     delete.
   ----------------------------------------------------------------------------
-  IF has_qts_evidence THEN
+  IF has_qts_evidence AND has_qts AND has_test_evidence AND has_assignments THEN
     UPDATE questionnaire_test_status
        SET evidence_id = NULL
      WHERE evidence_id IN (
@@ -149,27 +164,31 @@ BEGIN
   ----------------------------------------------------------------------------
   -- 3b) Delete questionnaire_test_evidence for test-data assignments.
   ----------------------------------------------------------------------------
-  DELETE FROM questionnaire_test_evidence
-   WHERE assignment_id IN (
-           SELECT id FROM questionnaire_assignments WHERE is_test_data = true
-         );
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('questionnaire_test_evidence', cnt);
+  IF has_test_evidence AND has_assignments THEN
+    DELETE FROM questionnaire_test_evidence
+     WHERE assignment_id IN (
+             SELECT id FROM questionnaire_assignments WHERE is_test_data = true
+           );
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('questionnaire_test_evidence', cnt);
+  END IF;
 
   ----------------------------------------------------------------------------
   -- 4) Delete questionnaire_test_fixtures for test-data assignments.
   ----------------------------------------------------------------------------
-  DELETE FROM questionnaire_test_fixtures
-   WHERE assignment_id IN (
-           SELECT id FROM questionnaire_assignments WHERE is_test_data = true
-         );
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('questionnaire_test_fixtures', cnt);
+  IF has_test_fixtures AND has_assignments THEN
+    DELETE FROM questionnaire_test_fixtures
+     WHERE assignment_id IN (
+             SELECT id FROM questionnaire_assignments WHERE is_test_data = true
+           );
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('questionnaire_test_fixtures', cnt);
+  END IF;
 
   ----------------------------------------------------------------------------
   -- 5) Delete questionnaire_assignment_scores (if table present).
   ----------------------------------------------------------------------------
-  IF has_scores THEN
+  IF has_scores AND has_assignments THEN
     DELETE FROM questionnaire_assignment_scores
      WHERE assignment_id IN (
              SELECT id FROM questionnaire_assignments WHERE is_test_data = true
@@ -181,7 +200,7 @@ BEGIN
   ----------------------------------------------------------------------------
   -- 6) Delete questionnaire_answers (if table present).
   ----------------------------------------------------------------------------
-  IF has_answers THEN
+  IF has_answers AND has_assignments THEN
     DELETE FROM questionnaire_answers
      WHERE assignment_id IN (
              SELECT id FROM questionnaire_assignments WHERE is_test_data = true
@@ -197,27 +216,35 @@ BEGIN
   --     Sweep here, before assignments (7), so any FK from assignment →
   --     template is already resolved.
   ----------------------------------------------------------------------------
-  DELETE FROM questionnaire_templates WHERE title LIKE 'e2e-%';
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('questionnaire_templates', cnt);
+  IF has_templates THEN
+    DELETE FROM questionnaire_templates WHERE title LIKE 'e2e-%';
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('questionnaire_templates', cnt);
+  END IF;
 
   ----------------------------------------------------------------------------
   -- 7) Delete the test-data assignments themselves.
   ----------------------------------------------------------------------------
-  DELETE FROM questionnaire_assignments WHERE is_test_data = true;
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('questionnaire_assignments', cnt);
+  IF has_assignments THEN
+    DELETE FROM questionnaire_assignments WHERE is_test_data = true;
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('questionnaire_assignments', cnt);
+  END IF;
 
   ----------------------------------------------------------------------------
   -- 8) Drain transient systemtest plumbing.
   ----------------------------------------------------------------------------
-  DELETE FROM systemtest_failure_outbox;
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('systemtest_failure_outbox', cnt);
+  IF has_systest_out THEN
+    DELETE FROM systemtest_failure_outbox;
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('systemtest_failure_outbox', cnt);
+  END IF;
 
-  DELETE FROM systemtest_magic_tokens;
-  GET DIAGNOSTICS cnt = ROW_COUNT;
-  result := result || jsonb_build_object('systemtest_magic_tokens', cnt);
+  IF has_systest_tok THEN
+    DELETE FROM systemtest_magic_tokens;
+    GET DIAGNOSTICS cnt = ROW_COUNT;
+    result := result || jsonb_build_object('systemtest_magic_tokens', cnt);
+  END IF;
 
   ----------------------------------------------------------------------------
   -- 9) Optional reporting / run-history tables.
@@ -367,29 +394,49 @@ BEGIN
 
   ----------------------------------------------------------------------------
   -- 12) Customer allowlist sweep.
+  --
+  --     Dynamisch zusammengesetzt (T002894). Ein fehlendes optionales Relation
+  --     laesst sich NICHT per Boolescher Kurzschluss-Bedingung entschaerfen —
+  --     die frueher hier stehende Form
+  --         AND (NOT has_billing_inv OR NOT EXISTS (SELECT 1 FROM billing_invoices ...))
+  --     hat nie geschuetzt: PostgreSQL loest Relationsnamen beim Parsen/Planen
+  --     auf, also BEVOR irgendein Boolescher Ausdruck ausgewertet wird. Fehlt
+  --     die Tabelle, scheitert das Statement mit
+  --     `relation "billing_invoices" does not exist`, unabhaengig vom Wert von
+  --     has_billing_inv. Der Guard muss deshalb den TEXT des Statements
+  --     steuern, nicht seinen Wahrheitswert.
+  --
+  --     Weglassen ist semantisch exakt: existiert die Tabelle nicht, kann kein
+  --     Kunde eine Zeile darin haben, die NOT EXISTS-Bedingung waere ohnehin
+  --     TRUE, und `TRUE AND x` ist `x`. Der Sweep wird durch das Weglassen also
+  --     nicht aggressiver — was hier zaehlt, weil das Statement `customers`
+  --     loescht.
   ----------------------------------------------------------------------------
-  DELETE FROM customers c
-   WHERE c.email <> ALL (keep_emails)
-     AND NOT EXISTS (
-           SELECT 1 FROM meetings m WHERE m.customer_id = c.id
-         )
-     AND (
-           NOT has_billing_inv
-           OR NOT EXISTS (
-                SELECT 1 FROM billing_invoices bi
-                 WHERE bi.customer_id = c.id::text
-              )
-         )
-     AND NOT EXISTS (SELECT 1 FROM chat_room_members      WHERE customer_id        = c.id)
-     AND NOT EXISTS (SELECT 1 FROM chat_messages          WHERE sender_customer_id = c.id)
-     AND NOT EXISTS (SELECT 1 FROM chat_message_reads     WHERE customer_id        = c.id)
-     AND NOT EXISTS (SELECT 1 FROM chat_rooms             WHERE direct_customer_id = c.id)
-     AND NOT EXISTS (SELECT 1 FROM document_assignments   WHERE customer_id        = c.id)
-     AND NOT EXISTS (SELECT 1 FROM message_threads        WHERE customer_id        = c.id)
-     AND NOT EXISTS (SELECT 1 FROM messages               WHERE sender_customer_id = c.id)
-     AND NOT EXISTS (SELECT 1 FROM brett_snapshots        WHERE customer_id        = c.id)
-     AND NOT EXISTS (SELECT 1 FROM questionnaire_assignments WHERE customer_id     = c.id)
-     AND NOT EXISTS (SELECT 1 FROM tickets.tickets        WHERE customer_id        = c.id);
+  cust_sql :=
+    'DELETE FROM customers c'
+    || ' WHERE c.email <> ALL ($1)'
+    || '   AND NOT EXISTS (SELECT 1 FROM meetings m           WHERE m.customer_id      = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM chat_room_members    WHERE customer_id        = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM chat_messages        WHERE sender_customer_id = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM chat_message_reads   WHERE customer_id        = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM chat_rooms           WHERE direct_customer_id = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM document_assignments WHERE customer_id        = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM message_threads      WHERE customer_id        = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM messages             WHERE sender_customer_id = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM brett_snapshots      WHERE customer_id        = c.id)'
+    || '   AND NOT EXISTS (SELECT 1 FROM tickets.tickets      WHERE customer_id        = c.id)';
+
+  IF has_billing_inv THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM billing_invoices bi WHERE bi.customer_id = c.id::text)';
+  END IF;
+
+  IF has_assignments THEN
+    cust_sql := cust_sql
+      || '   AND NOT EXISTS (SELECT 1 FROM questionnaire_assignments WHERE customer_id = c.id)';
+  END IF;
+
+  EXECUTE cust_sql USING keep_emails;
   GET DIAGNOSTICS cnt = ROW_COUNT;
   result := result || jsonb_build_object('customers', cnt);
 
@@ -398,7 +445,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION tickets.fn_purge_test_data() IS
-  'Idempotent test-data purge. v8 (2026-08-09, T002894): guards questionnaire_test_status against schema drift (table absent on local k3d dev).';
+  'Idempotent test-data purge. v8 (2026-08-09, T002894): adds to_regclass guards for all tables absent on local k3d dev (questionnaire + systemtest schemas — 7 tables).';
 
 GRANT EXECUTE ON FUNCTION tickets.fn_purge_test_data() TO website;
 

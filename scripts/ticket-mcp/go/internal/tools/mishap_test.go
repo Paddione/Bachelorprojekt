@@ -363,14 +363,14 @@ func TestMishapSeverityMapping(t *testing.T) {
 	}
 }
 
-func TestFactoryFixTicketArgs_PlanStaged(t *testing.T) {
+func TestFactoryFixTicketArgs_NotPlanStaged(t *testing.T) {
 	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "drift", ReportedAt: ""}
 	args := buildFactoryFixTicketArgs(entry, "mentolder")
 	if !hasFlagValue(args, "--type", "fix") {
 		t.Errorf("factory fix must use --type fix; got %v", args)
 	}
-	if !hasFlagValue(args, "--status", "plan_staged") {
-		t.Errorf("factory fix must use --status plan_staged (T002327 lane); got %v", args)
+	if !hasFlagValue(args, "--status", "triage") {
+		t.Errorf("factory fix must use --status triage (T002769: no plan exists yet); got %v", args)
 	}
 	if !hasFlagValue(args, "--attention-mode", "ai_ready") {
 		t.Errorf("factory fix must be ai_ready; got %v", args)
@@ -383,5 +383,16 @@ func TestFactoryFixTicketArgs_PlanStaged(t *testing.T) {
 	}
 	if hasFlagValue(args, "--status", "backlog") {
 		t.Error("factory fix must not land in the T002327-protected backlog lane")
+	}
+}
+
+func TestFactoryFixTicketArgs_NeverUsesPlanStaged(t *testing.T) {
+	// T002769: Factory fix tickets have NO plan — they MUST NOT use plan_staged.
+	// plan_staged is reserved for tickets staged via stage-plan.sh with validated
+	// --plan and --branch.
+	entry := MishapEntry{Title: "X", Description: "Y", Component: "c", Type: "drift", ReportedAt: ""}
+	args := buildFactoryFixTicketArgs(entry, "mentolder")
+	if hasFlagValue(args, "--status", "plan_staged") {
+		t.Error("T002769: factory fix must NEVER use --status plan_staged — no plan exists. Use --status triage instead.")
 	}
 }

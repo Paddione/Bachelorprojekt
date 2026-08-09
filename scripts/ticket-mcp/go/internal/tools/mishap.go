@@ -160,19 +160,18 @@ func mishapSeverity(mtype string) (severity, priority string) {
 	}
 }
 
-// buildFactoryFixTicketArgs erzeugt ein DIREKT dispatchenbares fix-Ticket:
-// type=fix, status=plan_staged, execution_released bleibt Default true.
-// Die plan_staged-Lane in queue.sh akzeptiert type NOT IN ('project','incident')
-// und ist damit die einzige Lane, die 'fix' OHNE Aenderung an der
-// T002327-geschuetzten backlog-Lane dispatchen kann. Der Dispatcher fuehrt
-// fuer solche Tickets Scout→Design→Plan selbst (branch/plan_path=null).
+// buildFactoryFixTicketArgs erzeugt ein fix-Ticket fuer den normalen
+// Planungs-Flow (triage → planning → plan_staged → backlog).
+// status=triage, weil zum Zeitpunkt der Mishap-Konversion KEIN Plan existiert.
+// plan_staged ist ausschliesslich Tickets vorbehalten, die via stage-plan.sh
+// mit validiertem --plan und --branch gestaged wurden (T002769).
 func buildFactoryFixTicketArgs(entry MishapEntry, brand string) []string {
 	sev, prio := mishapSeverity(entry.Type)
 	return []string{
 		"create", "--type", "fix", "--brand", brand,
 		"--title", entry.Title,
 		"--description", fmt.Sprintf("### Mishap-Fix\n\n**Typ:** %s | **Komponente:** %s\n\n%s", entry.Type, entry.Component, entry.Description),
-		"--status", "plan_staged", "--severity", sev, "--priority", prio,
+		"--status", "triage", "--severity", sev, "--priority", prio,
 		"--attention-mode", "ai_ready", "--areas", entry.Component,
 	}
 }
@@ -196,14 +195,6 @@ func createFactoryFixTicket(entry MishapEntry, brand string) (string, error) {
 	ext := strings.TrimSpace(out)
 	if i := strings.Index(ext, "|"); i >= 0 {
 		ext = ext[:i]
-	}
-	// DoR-Flags setzen, damit das Ticket in der plan_staged-Lane vollstaendig ist.
-	_, err = runner.RunTicket([]string{
-		"plan-meta", "set", "--id", ext,
-		"--readiness", "spec_skizziert=true,aufwand_geschaetzt=true,abhaengigkeiten_klar=true,offene_fragen_geklaert=true",
-	}, map[string]string{"BRAND": brand})
-	if err != nil {
-		return "", fmt.Errorf("plan-meta set fehlgeschlagen: %w", err)
 	}
 	return ext, nil
 }

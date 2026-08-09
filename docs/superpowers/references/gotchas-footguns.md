@@ -22,6 +22,7 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 16. [merge=ours erzeugt GitHub-only Phantom-Konflikte](#mergeours-erzeugt-github-only-phantom-konflikte) — DIRTY auf GitHub bei lokal sauberem Merge; REST-`update-branch`-Fallback
 17. [WireGuard unter Windows: `wg set` & `.dpapi`-Recovery](#wireguard-unter-windows-wg-set--dpapi-recovery-t002495-m9) — `wg set` setzt keine Windows-Routen; SYSTEM-ACL auf DPAPI
 18. [git worktree add mit git-crypt-geschützten Pfaden: Smudge-Fehler erwartet](#git-worktree-add-mit-git-crypt-geschutzten-pfaden-smudge-fehler-erwartet-t002495-m5) — bei direktem `git worktree add` auf Locked-Repo
+19. [skip-worktree: git status schweigt, pull scheitert](#skip-worktree-git-status-schweigt-pull-scheitert-t002712) — stille Blockade im Hauptcheckout
 
 ---
 
@@ -211,3 +212,32 @@ Der Worktree wird trotzdem angelegt, HEAD steht korrekt, und BATS-Suites, die di
 - Die Fehlermeldung kommt nur einmal (beim Anlegen), nicht bei späterer Nutzung.
 
 **Lösung.** Immer `scripts/worktree-create.sh <branch> <path>` verwenden. Das Skript legt den Worktree ohne Checkout an und konfiguriert dann entweder den Schlüssel (unlocked) oder neutralisiert den Filter auf `cat` (locked), bevor es checked out — ohne Smudge-Fehler in beiden Fällen.
+
+### skip-worktree: git status schweigt, pull scheitert [T002712]
+
+**Symptom.** `git pull --rebase` im Hauptcheckout scheitert mit:
+```
+error: Your local changes to the following files would be overwritten by merge:
+        Taskfile.dev-stack.yml
+```
+Zugleich melden `git status --porcelain` NICHTS und `git diff HEAD` ist leer — die beiden Signale, mit denen man einen blockierten Pull normalerweise diagnostiziert, sind beide stumm.
+
+**Ursache.** `git update-index --skip-worktree` blendet eine Datei aus `status` und `diff` aus, verhindert aber NICHT, dass `checkout`/`merge`/`rebase` sie schützen. Eine echte lokale Änderung — versteckt hinter dem Bit — blockiert jeden Pull unsichtbar.
+
+**Diagnose.** Der einzige Befehl, der das sofort zeigt:
+```bash
+git ls-files -v | grep "^[a-z]"    # nicht-S = skip-worktree aktiv
+# Ausgabe: S Taskfile.dev-stack.yml
+```
+Das `S` in der ersten Spalte zeigt: diese Datei hat skip-worktree gesetzt. Normale Dateien erscheinen mit `H` (cached) und werden von `grep "^[a-z]"` NICHT gefunden — nur Dateien mit gesetztem Bit leuchten auf.
+
+**Behebung.** Sicherung der lokalen Änderung, dann Bit löschen:
+```bash
+cp Taskfile.dev-stack.yml /tmp/Taskfile.dev-stack.yml.local
+git update-index --no-skip-worktree Taskfile.dev-stack.yml
+git checkout -- Taskfile.dev-stack.yml
+git pull --rebase origin main
+# lokale Änderung bei Bedarf am neuen Pfad neu anwenden
+```
+
+**Fußnote: skip-worktree überlebt Datei-Verschiebungen nicht.** Ein per skip-worktree versteckter lokaler Override auf einer Datei, die später im Repo verschoben wird (z. B. `Taskfile.dev-stack.yml` → `taskfiles/Taskfile.dev-stack.yml`), geht still verloren — das Bit haftet am alten Pfad, der nach dem Rebase nicht mehr existiert. Nach dem Umzug muss der Override am neuen Pfad neu gesetzt werden.

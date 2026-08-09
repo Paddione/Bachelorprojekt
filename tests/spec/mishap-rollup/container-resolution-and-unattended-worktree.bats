@@ -57,3 +57,18 @@ setup() {
   # Eigentliche Aussage: der unbeaufsichtigte Modus ist dokumentiert und damit vorhanden.
   [ "$(printf '%s\n' "$output" | grep -c -- '--unattended')" -ge 1 ]
 }
+
+# ── [T002914] Rollup-Rebase gegen origin/<BRANCH>, nicht origin/main ─────────
+# Ein divergierter Rollup-Branch (Remote hat eigene Commits, die die lokale
+# Chain nicht kennt) bleibt bei einem Rebase auf origin/main dauerhaft
+# non-fast-forward — jeder Push wird abgelehnt. Das Skript muss deshalb gegen
+# origin/${BRANCH} rebasen (nach fetch), damit die Remote-Chain integriert wird.
+
+@test "T002914: mishap-rollup.sh rebased gegen origin/<BRANCH> statt origin/main" {
+  run grep -n "rollup_rebase_onto_remote\|origin/\${BRANCH}" "$REPO_ROOT/scripts/factory/mishap-rollup.sh"
+  [ "$status" -eq 0 ] || { echo "MISSING rebase-onto-origin-branch in mishap-rollup.sh"; false; }
+
+  # Negativ-Anker: der alte, toedliche Pfad darf nicht mehr aktiv sein.
+  run grep -n "git rebase origin/main" "$REPO_ROOT/scripts/factory/mishap-rollup.sh"
+  [ "$status" -eq 1 ] || { echo "STILL rebasing onto origin/main in mishap-rollup.sh"; false; }
+}

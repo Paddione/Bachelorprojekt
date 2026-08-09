@@ -380,6 +380,74 @@
       "extraArgs": [],
       "notes": "UD-IQ3_XXS, 11,9 GB auf Platte. Die zuvor hier eingetragene UD-Q4_K_XL (17,6 GB) EXISTIERT NICHT auf Platte - das Loadout war damit nicht startbar. MESSREIHE 2026-08-09 auf RTX 5070 Ti (16303 MiB, geteilt mit dem Windows-Desktop, der 1365 MiB belegte) unter llama.cpp b10241, jeweils -np 1 -fa on -fitc 8192; n_ctx aus n_ctx_slot im Serverlog, tok/s aus timings.predicted_per_second bei 256 Ausgabe-Tokens und temperature 0. DER QUANT IST DER HEBEL, NICHT DIE MARGE: bei identischer Marge 256 lieferte Q3_K_M (13,7 GB) nur 26880 ctx / 207,9 tok/s (q4_0) bzw. 14848 / 200,2 (q8_0); UD-IQ3_XXS dagegen 89344 / 187,9 bzw. 49408 / 184,8. Das ist Faktor 3,32 in BEIDEN KV-Modi fuer 1,8 GB weniger Modellgewicht, bezahlt mit rund 10 Prozent Decode-Tempo (IQ3_XXS dequantisiert aufwendiger). Grund fuer den ueberproportionalen Gewinn ist der MoE-Zuschnitt: A3B aktiviert wenige Parameter, der KV je Token ist entsprechend klein, freigegebenes Modellgewicht wird also in ungewoehnlich viele Tokens umgesetzt. FITT-SWEEP q8_0 (Betriebsmodus): 256 -> 49408 / 184,8; 128 -> 51968 / 181,0; 64 -> 52992 / 177,1. Zum Vergleich q4_0: 256 -> 89344 / 187,9; 128 -> 93696 / 175,7; 64 -> 96000 / 177,4. Betriebspunkt ist fitt 64 bei q8_0. ACHTUNG - der gemma26-Befund aus T002534 ('eine kleinere Marge gewinnt Kontext UND Tempo, ab ~128 verdraengt der KV-Cache wieder Layer', dort 128 -> 121 tok/s, ein Minus von 24 Prozent) REPRODUZIERT HIER NICHT: die tok/s-Kurve ist ueber 256..64 flach (184,8 -> 177,1, also 4,2 Prozent), und bei q4_0 misst 64 sogar knapp ueber 128. Der Einbruch war modellspezifisch, keine Eigenschaft von --fit; wer ihn fuer ein drittes Modell annimmt, muss neu messen. RISIKO DER MARGE 64: --fit dimensioniert EINMALIG beim Start aus dem dann freien VRAM. Waechst der Windows-Desktop spaeter (Browser, Spiel), ist kein Puffer mehr da und WDDM beginnt auszulagern. Ruecknahme ist eine Zahl - targetMarginMib zurueck auf 256 kostet 3584 ctx. WARUM NICHT q4_0 TROTZ 96000 ctx: der Guard gemma-kv-quant.bats verbietet q4_0 fuer GPU-Chat-Loadouts und fuehrt dieses Loadout nicht auf der Ausnahmeliste - und der T002501-Befund unten wurde an genau diesem Modell erhoben. Mehr q4_0-Kontext vergroessert genau die Distanz, an der es nachweislich versagt. KORREKTUR: eine fruehere Fassung dieser Notiz nannte 'q8_0-KV + fitt 256 (~62k ctx)'; 62464 ist der gemma26-Wert aus der T002534-Reihe und war an diesem Modell nie gemessen. Gemessen sind es 49408. T002501 BEFUND 2026-08-08: q4_0-KV degradiert im NICHT-redundanten Langkontext (39k Tokens, temp 0): 2 Runs lieferten verschiedene Fehler - Symbole vertauscht (marker_sym<->marker_sym2), Pfade mit aehnlichen Strings aus dem Kontext verwechselt (scripts/agent-guide/load.mjs statt scripts/llm-proxy/loadouts.mjs), Tool-Call-Argument nicht wortgetreu. Kurzkontext 6/6 exakt. MoE A3B: wenige aktive Parameter, KV klein. Backend llamacpp-qwen :8094 (Migration 2026-08-04).",
       "exclusiveGroup": "chat-gpu"
+    },
+    {
+      "slug": "brain-ingest",
+      "label": "gpt-oss-20b - Brain-Ingest-Pool",
+      "model": "gptoss20/gpt-oss-20b-Q8_0.gguf",
+      "port": 8093,
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 2400,
+        "minCtx": 32768
+      },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 4,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [],
+      "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). Port 8093 ist die dort seit je dokumentierte LM_STUDIO_URL-Vorgabe (brain-ingest.sh:42, \"ingest pool\") und wird hier zum ersten Mal real. parallel=4 deckungsgleich mit MAX_PARALLEL (brain-ingest.sh:44) - mehr Ingest-Jobs als Slots stellen sich nur in die Warteschlange. Aufrufer setzen LM_STUDIO_URL=http://127.0.0.1:8093/v1 und LM_MODEL=brain-ingest; beide bleiben Pflichtvariablen (T002533), dieses Loadout stellt nur den Server bereit. Der Slug IST die Modell-ID, weil llm-proxy/runner.mjs --alias <slug> uebergibt.",
+      "exclusiveGroup": "chat-gpu"
+    },
+    {
+      "slug": "brain-ingest",
+      "label": "Brain Ingest · gpt-oss-20b · 4 Slots",
+      "model": "gptoss20/gpt-oss-20b-Q8_0.gguf",
+      "port": 8093,
+      "fit": {
+        "enabled": true,
+        "targetMarginMib": 2400,
+        "minCtx": 8192
+      },
+      "args": {
+        "ctx": null,
+        "ngl": null,
+        "parallel": 4,
+        "cacheTypeK": "q8_0",
+        "cacheTypeV": "q8_0",
+        "loadMode": "mmap",
+        "flashAttention": true,
+        "jinja": true,
+        "metrics": true,
+        "reasoning": "auto",
+        "reasoningBudget": null
+      },
+      "speculative": {
+        "draftHfRepo": null,
+        "draftNgl": null
+      },
+      "mcp": {
+        "serversConfig": null
+      },
+      "extraArgs": [],
+      "notes": "Ingest-Loadout fuer brain-ingest.sh (T002679). Port 8093 ist in brain-ingest.sh:42 als LM_STUDIO_URL-Vorgabe dokumentiert und wird hier zum ersten Mal real. gpt-oss-20b: MXFP4-nativ bei 11,5-12,1 GB, 4 Slots unter 16 GB VRAM. LM_STUDIO_URL und LM_MODEL bleiben Pflichtvariablen (T002533).",
+      "exclusiveGroup": "chat-gpu"
     }
   ]
 }

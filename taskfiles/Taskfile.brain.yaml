@@ -39,3 +39,45 @@ tasks:
     desc: "Dry-run ingestion (no PR, no writes to brain repo)"
     cmds:
       - bash scripts/brain-ingest.sh --brain-repo ~/brain --dry-run "$@"
+
+  brain:chunk:
+    desc: "Run the section-aware chunker (T002679)"
+    cmds:
+      - bash scripts/brain-chunk.sh {{.CLI_ARGS}}
+
+  brain:mcp:
+    desc: "Start the brain MCP server on stdio (T002679)"
+    cmds:
+      - python3 scripts/brain-mcp-server.py
+
+  brain:mcp:tools:
+    desc: "Verify brain MCP server responds with tool list"
+    cmds:
+      - |-
+        printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}\n{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}\n' | python3 scripts/brain-mcp-server.py
+
+  # ── T002679: Chunking und Retrieval ────────────────────────────────────
+  chunk:
+    desc: "Zerlege eine Quelldatei an Abschnittsgrenzen in Chunks (TSV-Manifest auf stdout)"
+    summary: |
+      Ruft den Chunker mit seiner vollstaendigen Aufrufkonvention auf, damit er
+      ohne Kenntnis derselben benutzbar ist:
+        task brain:chunk -- --source openspec/specs/software-factory.md \
+          --slug openspec-specs-software-factory --out-dir /tmp/chunks
+      Zusaetzliche Flags (--moc, --target-chars) werden durchgereicht.
+    cmds:
+      - bash scripts/brain-chunk.sh "$@"
+
+  mcp:
+    desc: "Starte den Brain-MCP-Server auf stdio (manuelles Anschliessen, Fehlersuche)"
+    cmds:
+      - BRAIN_WIKI_DIR="${BRAIN_WIKI_DIR:-$HOME/brain/wiki}" python3 scripts/brain-mcp-server.py "$@"
+
+  mcp:tools:
+    desc: "Pruefe den Brain-MCP-Server: initialize + tools/list, Antwortzeilen auf stdout"
+    cmds:
+      - |
+        printf '%s\n%s\n' \
+          '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"task","version":"1.0"}}}' \
+          '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+          | BRAIN_WIKI_DIR="${BRAIN_WIKI_DIR:-$HOME/brain/wiki}" python3 scripts/brain-mcp-server.py

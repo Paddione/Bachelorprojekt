@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.257.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.8...website-v1.257.0) (2026-08-09)
+
+
+### Features
+
+* **scripts:** section-aware chunking, BM25 MCP server, coverage gate [T002679] ([#3892](https://github.com/Paddione/Bachelorprojekt/issues/3892)) ([bbd66f1](https://github.com/Paddione/Bachelorprojekt/commit/bbd66f1d62e5a6ed0edfc7bbe4ba55e99b9a5a87))
+
+
+### Bug Fixes
+
+* **db:** migrate customer projects to public.customer_projects [T002722] ([#3894](https://github.com/Paddione/Bachelorprojekt/issues/3894)) ([db5f2f4](https://github.com/Paddione/Bachelorprojekt/commit/db5f2f4986f6cc06938932e7c7fe7e7820549217))
+
 ## [1.256.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.7...website-v1.256.8) (2026-08-09)
 
 

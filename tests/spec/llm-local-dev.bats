@@ -168,11 +168,41 @@ EOF"
 }
 
 @test "agent-models.jsonc provides a primary gemma agent with measured context (T002545)" {
-  # T002545: mode:primary, ~99840 ctx gemessen, kein 262144.
+  # T002545: mode:primary, und der genannte Kontext ist ein GEMESSENER Wert,
+  # kein n_ctx_train.
+  #
+  # [T003065] Vorher lautete die Bedingung
+  #   ctx === 262144 || ctx <= 50000 || ctx >= 200000  ->  implausible
+  # 262144 war der n_ctx_train-Wert des abgeloesten 12B-Servers, die Obergrenze
+  # 200000 eine daraus abgeleitete Faustzahl. Beides bricht, sobald ein Loadout
+  # legitim mehr misst: gemma12-vision belegt genau 262144 in
+  # scripts/llm/loadouts.json ("Gemessen: 262.144 Kontext"). Geprueft wird jetzt
+  # die Zahl gegen das im Loadout DOKUMENTIERTE Maximum: ctx <= gemessen.
+  # Semantik statt Darstellung [T002716].
+  #
+  # Warum <= und nicht ==: gemma26-factory nennt 161024 (gemessen bei fitt 128),
+  # loadouts.json fuer dasselbe Loadout 166.912 (andere Messgelegenheit). Beide
+  # Zahlen sind echt. Ein niedrigerer Wert ist konservativ und harmlos — etwa
+  # weil np=3 mit -kvu einen GETEILTEN Pool fahren. Schaden entsteht nur in der
+  # anderen Richtung: wenn die Config MEHR verspricht als gemessen wurde, und
+  # genau das war der Ursprungsfall (262144 behauptet, 99840 gemessen).
   run node -e "
-    const s = require('fs').readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
+    const fs = require('fs');
+    const s = fs.readFileSync('$REPO/.opencode/agent-models.jsonc','utf8');
     const j = s.replace(/^\s*\/\/.*\$/gm,'').replace(/\/\*[\s\S]*?\*\//g,'');
     const o = JSON.parse(j);
+    const ld = JSON.parse(fs.readFileSync('$REPO/scripts/llm/loadouts.json','utf8'));
+    // Messwerte stehen im notes-Feld des Loadouts, mit deutschem Tausenderpunkt
+    // und in wechselnder Formulierung ('Gemessen: 262.144 Kontext',
+    // 'gemessen 118.016 ctx'). Das groesste genannte Maximum gilt.
+    const measuredFor = (slug) => {
+      const l = (ld.loadouts || []).find((x) => x.slug === slug);
+      const notes = (l && l.notes) || '';
+      const ms = [...notes.matchAll(/([0-9][0-9.]*)\s*(?:Kontext|ctx)/gi)]
+        .map((m) => parseInt(m[1].replace(/\./g, ''), 10))
+        .filter((n) => Number.isInteger(n) && n > 0);
+      return ms.length ? Math.max(...ms) : null;
+    };
     const prim = Object.entries(o.agent || {})
       .filter(([n,v]) => n.startsWith('gemma') && v.mode === 'primary');
     if (prim.length < 1) { console.error('no primary gemma agents found'); process.exit(1); }
@@ -180,8 +210,19 @@ EOF"
       const model = agent.model;
       const [prov, mid] = model.split('/');
       const ctx = o.provider[prov].models[mid].limit.context;
-      if (!Number.isInteger(ctx) || ctx === 262144 || ctx <= 50000 || ctx >= 200000) {
-        console.error(name + ' ctx ' + ctx + ' implausible (expected a measured value, not n_ctx_train)');
+      if (!Number.isInteger(ctx) || ctx <= 0) {
+        console.error(name + ' ctx ' + ctx + ' is not a positive integer');
+        process.exit(1);
+      }
+      const max = measuredFor(mid);
+      if (max === null) {
+        console.error(name + ': loadout ' + mid + ' dokumentiert keinen gemessenen Kontext in loadouts.json');
+        process.exit(1);
+      }
+      // Kleiner als gemessen ist zulaessig (konservativ, z.B. geteilter -kvu-Pool).
+      // Schaden entsteht nur, wenn die Config MEHR verspricht als gemessen wurde.
+      if (ctx > max) {
+        console.error(name + ' ctx ' + ctx + ' > gemessenes Maximum ' + max + ' des Loadouts ' + mid);
         process.exit(1);
       }
     }

@@ -79,6 +79,35 @@ runtimes:
     model: llamacpp-local/gemma26-factory
     write_capable: false
     note: "Max context, no subagent dispatch. Vision IS available — gemma26-factory loads mmproj-F16.gguf since T002753"
+  # [T003065] Ein tab-waehlbarer Primaeragent pro lokalem GGUF-Modell. Alle
+  # Kontextwerte sind in scripts/llm/loadouts.json als Messwert belegt — keine
+  # n_ctx_train-Zahlen. Der Semaphor in scripts/llm-proxy/server.mjs serialisiert
+  # den Modellwechsel, deshalb duerfen diese Agenten Subagenten dispatchen.
+  gptoss-primary:
+    mode: primary
+    model: llamacpp-local/gptoss-context
+    write_capable: false
+    note: "Tab-selectable primary on gptoss-context (Port 8098), 105472 ctx measured [T003065]"
+  devstral-primary:
+    mode: primary
+    model: llamacpp-local/devstral-quality
+    write_capable: false
+    note: "Tab-selectable primary on devstral-quality (Port 8099), 32768 ctx, code-quality review [T003065]"
+  gemma12-primary:
+    mode: primary
+    model: llamacpp-local/gemma12-vision
+    write_capable: false
+    note: "Tab-selectable primary on gemma12-vision (Port 8089), 262144 ctx measured, vision-capable via mmproj-F16 [T003065]"
+  gemma26-throughput-primary:
+    mode: primary
+    model: llamacpp-local/gemma26-throughput
+    write_capable: false
+    note: "Tab-selectable primary on gemma26-throughput (Port 8092), 118016 ctx measured, 159-169 tok/s [T003065]"
+  qwen-primary:
+    mode: primary
+    model: llamacpp-local/qwen3-coder-30b
+    write_capable: false
+    note: "Tab-selectable primary on qwen3-coder-30b (Port 8094), 96000 ctx measured [T003065]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle

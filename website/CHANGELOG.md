@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.256.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.6...website-v1.256.7) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** make openspec embed probe timeout configurable [T002659] ([#3888](https://github.com/Paddione/Bachelorprojekt/issues/3888)) ([c1452bb](https://github.com/Paddione/Bachelorprojekt/commit/c1452bbcde35623e515945a521b2a60dcca63d53))
+
 ## [1.256.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.5...website-v1.256.6) (2026-08-08)
 
 

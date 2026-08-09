@@ -105,6 +105,14 @@ ARG BUILT_AT=unknown
 ENV GIT_SHA=${GIT_SHA}
 ENV BUILT_AT=${BUILT_AT}
 
+# T003036: BUILD_TARGET muss in der runtime-Stage sichtbar sein, damit die
+# Middleware zur Laufzeit prüfen kann, ob sie der sdlc-Build ist. ARG gilt
+# pro Stage — ohne diese Wiederholung wäre das Build-Arg aus der build-Stage
+# in der runtime-Stage unsichtbar (identischer Defekt wie bei GIT_SHA/BUILT_AT
+# vor T002202, dokumentiert in website/CLAUDE.md).
+ARG BUILD_TARGET=prod
+ENV BUILD_TARGET=${BUILD_TARGET}
+
 ENV HOST=0.0.0.0
 ENV PORT=4321
 EXPOSE 4321

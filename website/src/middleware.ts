@@ -19,4 +19,15 @@ const redirectMiddleware = defineMiddleware(async (context, next) => {
   return next();
 });
 
-export const onRequest = sequence(loggingMiddleware, redirectMiddleware, localeMiddleware);
+// T003036: Im sdlc-Build leitet / auf das Cockpit um, damit ein fail-closed
+// auf / zurückgefallener returnTo nicht in Astros Default-404 endet. Der
+// Check auf process.env erfolgt pro Request, nicht beim Modul-Laden — sonst
+// ließe sich die Stufe nicht mit vi.stubEnv testen.
+const sdlcRootRedirect = defineMiddleware(async (context, next) => {
+  if (process.env.BUILD_TARGET === 'sdlc' && context.url.pathname === '/') {
+    return context.redirect('/sdlc/cockpit', 302);
+  }
+  return next();
+});
+
+export const onRequest = sequence(loggingMiddleware, sdlcRootRedirect, redirectMiddleware, localeMiddleware);

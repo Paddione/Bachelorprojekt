@@ -6,10 +6,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import AppCatalog from '../../components/admin/AppCatalog.svelte';
 import { getSession, isAdmin } from '../../lib/auth';
+import { buildLoginRedirect } from '../../lib/login-redirect';
 import { logger } from '../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session || !isAdmin(session)) return Astro.redirect('/login');
+if (!session || !isAdmin(session)) return Astro.redirect(buildLoginRedirect(Astro.url));
 
 const env = process.env.CLUSTER_ENV ?? 'dev';
 const brandId = process.env.BRAND_ID ?? 'mentolder';

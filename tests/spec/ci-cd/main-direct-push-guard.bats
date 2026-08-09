@@ -50,6 +50,25 @@ setup() {
   run bash -c "grep -nE '^[[:space:]]*git push([[:space:]]*(#.*)?)?[[:space:]]*\$' '$WF' | wc -l"
   [ "$status" -eq 0 ]
   [ "$output" -eq 0 ]
+
+  # Positiv: auf dem erzeugten PR wird Auto-Merge aktiviert. Ohne das bliebe der PR
+  # liegen und der Bot waere faktisch tot, waehrend die Aussagen oben gruen melden —
+  # ein PR-Schritt ohne Auto-Merge ist keine Umstellung, sondern ein Stillstand.
+  run bash -c "grep -Ec 'gh(-axi)? pr merge[^\\n]*--auto' '$WF'"
+  [ "$status" -eq 0 ]
+  [ "$output" -gt 0 ]
+
+  # Negativ: kein wirksames `[skip ci]` mehr. Unter Required Status Checks meldet ein
+  # uebersprungener Lauf nie ein Ergebnis — der PR bliebe unbegrenzt offen.
+  # Positiv-Anker dafuer ist der `git commit`-Zaehler ganz oben in diesem Test:
+  # ohne ihn waere die Abwesenheit trivial erfuellt, sobald der Schritt verschwindet.
+  #
+  # Kommentarzeilen sind ausgenommen: der Hinweis IM Workflow, warum die Logik aus
+  # T002158 entfallen ist, ist genau das, was eine Wiedereinfuehrung verhindert. Ein
+  # dateiweites Verbot wuerde die eigene Begruendung mitverbieten und zum wortlosen
+  # Entfernen erziehen. Verboten ist der Marker dort, wo er wirkt.
+  run bash -c "grep -v '^[[:space:]]*#' '$WF' | grep -cF '[skip ci]' || true"
+  [ "$output" -eq 0 ]
 }
 
 @test "check-branch-protection: meldet enforce_admins=false und fehlende PR-Pflicht" {

@@ -18,6 +18,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -53,24 +54,45 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Commit and push if changed
+      # T002889: Der Bot schreibt über einen PR statt direkt auf main. Grund: main
+      # trug enforce_admins=false, und dieser Schritt war der produktive Nutzer
+      # genau dieses Spalts. Wird die Protection scharfgestellt, ohne dass der Bot
+      # vorher auf den PR-Pfad umgestellt ist, brechen die Freshness-Läufe.
+      #
+      # Die [skip ci]-Logik aus T002158 entfällt hier vollständig: unter Required
+      # Status Checks meldet ein übersprungener Lauf nie ein Ergebnis, der PR bliebe
+      # unbegrenzt offen. Ihr ursprünglicher Zweck — build-website.yml nicht bei
+      # jedem Artefakt-Lauf auszulösen — entfällt mit dem PR-Pfad ohnehin, weil der
+      # Push nicht mehr auf main erfolgt.
+      - name: Open PR if changed
         if: steps.diff.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
+          # Je Lauf eindeutig — sonst kollidieren zwei Läufe auf demselben Ref.
+          BRANCH: chore/freshness-regen-${{ github.run_id }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
           git add -A
-          # T002158: [skip ci] nur wenn KEIN website/**-Artefakt betroffen ist. Dieser
-          # Bot-Commit ist der einzige Ort, an dem website/src/lib/sdlc/goals-data.generated.json
-          # außerhalb eines PRs fortgeschrieben wird — also der einzige Pfad, der
-          # build-website.yml auslösen würde. Ein unbedingtes [skip ci] fror den
-          # ausgelieferten /admin/repohealth-Stand ein.
-          # Der ^-Anker verhindert Fehlmatches wie docs/website-notes.md.
-          if git diff --cached --name-only | grep -q '^website/'; then
-            SKIP=""
-          else
-            SKIP=" [skip ci]"
-          fi
-          git commit -m "chore: auto-regenerate freshness artifacts${SKIP}"
-          git push
+          git commit -m "chore: auto-regenerate freshness artifacts"
+          git push -u origin "$BRANCH"
+
+          # Conventional-Commit-Titel: "Conventional Commits" gehört zu den Required
+          # Checks — ein abweichender Titel würde nie grün und der PR nie mergen.
+          cat >/tmp/pr-body.md <<EOF
+          Automatisch erzeugt von \`freshness-regen.yml\` (run ${RUN_ID}).
+
+          Regenerierte Freshness-Artefakte, die auf \`main\` veraltet waren.
+          Ersetzt den früheren Direkt-Push auf \`main\` (T002889).
+          EOF
+
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: auto-regenerate freshness artifacts" \
+            --body-file /tmp/pr-body.md
+
+          # Ohne Auto-Merge bliebe der PR liegen und der Bot wäre faktisch tot.
+          gh pr merge "$BRANCH" --auto --squash --delete-branch

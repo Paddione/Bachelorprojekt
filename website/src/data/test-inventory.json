@@ -2244,6 +2244,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/main-direct-push-guard",
+    "file": "tests/spec/ci-cd/main-direct-push-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/mishap-t002425",
     "file": "tests/spec/ci-cd/mishap-t002425.bats",
     "category": "ci-cd",

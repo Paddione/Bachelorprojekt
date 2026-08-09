@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 847,
+      "file_count": 848,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -385,6 +385,7 @@
         "tests/spec/ci-cd/freshness-paths-exist.bats",
         "tests/spec/ci-cd/generated-artifacts-registry.bats",
         "tests/spec/ci-cd/ghcr-digest-auth.bats",
+        "tests/spec/ci-cd/main-direct-push-guard.bats",
         "tests/spec/ci-cd/mishap-t002425.bats",
         "tests/spec/ci-cd/pr-refresh-batch.bats",
         "tests/spec/ci-cd/pre-push-artifact-guard.bats",
@@ -3215,7 +3216,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 682,
+      "file_count": 683,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3332,6 +3333,7 @@
         "scripts/build-srgb-icc.mjs",
         "scripts/build-test-inventory.sh",
         "scripts/changed-manifests.sh",
+        "scripts/check-branch-protection.sh",
         "scripts/check-bundle-size.mjs",
         "scripts/check-commit-vs-diff.sh",
         "scripts/check-connectivity.sh",

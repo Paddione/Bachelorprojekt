@@ -181,12 +181,21 @@ function vecLiteral(v) {
 const DEFAULT_EMBED_URL = () =>
   process.env.LLM_EMBED_URL ?? 'http://llm-gateway-embed.workspace.svc.cluster.local:8081';
 
-async function defaultEmbed(texts) {
+// T002913: ohne hartes Timeout haengt defaultEmbed fuer immer, wenn das Backend
+// TCP akzeptiert aber nie antwortet (readiness=true bei totem Endpoint). Genau so
+// blockierte der post-commit-embed-Hook den `git rebase` im Factory-Tick und damit
+// den gesamten Dispatcher (flock gehalten, keine weiteren Ticks). Konfigurierbar,
+// Default 60s — fuer den Hook-Kontext reicht das, ein laengeres Embedding duerfte
+// ohnehin ein Symptom sein.
+const embedFetchTimeoutMs = () => Number(process.env.OPENSPEC_EMBED_FETCH_TIMEOUT_MS ?? 60_000);
+
+export async function defaultEmbed(texts) {
   const model = resolveEmbeddingModel();
   const r = await fetch(`${DEFAULT_EMBED_URL()}/v1/embeddings`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-LLM-Purpose': 'index' },
     body: JSON.stringify({ model, input: texts }),
+    signal: AbortSignal.timeout(embedFetchTimeoutMs()),
   });
   if (!r.ok) throw new Error(`embed ${r.status} ${await r.text().catch(() => '')}`);
   const j = await r.json();

@@ -655,8 +655,22 @@ SH
 @test "T002407-M7c: mishap-rollup.sh verwendet branch-exists-Pfad (rebase statt Neu-Anlage)" {
   local script="$REPO/scripts/factory/mishap-rollup.sh"
   # Der Branch lebt dauerhaft auf dem Remote. Statt neu anlegen: checkout + rebase.
-  run grep -Eq "BRANCH_EXISTS|git checkout.*BRANCH|git rebase" "$script"
+  # [T002913] rebase laeuft mit deaktivierten Hooks (`-c core.hooksPath=/dev/null`),
+  # damit der post-commit-embed-Hook den Factory-Tick nicht haengen laesst.
+  run grep -Eq "BRANCH_EXISTS|git checkout.*BRANCH|rebase origin/main" "$script"
   [ "$status" -eq 0 ] || { echo "Branch-Existenz-Pfad fehlt in mishap-rollup.sh"; false; }
+}
+
+@test "T002913-M8a: mishap-rollup.sh rebased mit deaktiviertem post-commit-Hook (hooksPath=/dev/null)" {
+  # Der post-commit-embed-Hook feuert bei JEDEM rebasierten Commit und kann am
+  # Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so hing der
+  # Factory-Tick stundenlang im Rollup-Rebase, hielt den Flock und blockierte alle
+  # weiteren Ticks. Beide Rebase-Aufrufe muessen den Hook deaktivieren.
+  local script="$REPO/scripts/factory/mishap-rollup.sh"
+  [ -f "$script" ]
+  local count
+  count=$(grep -c 'git -c core.hooksPath=/dev/null rebase' "$script")
+  [ "$count" -eq 2 ] || { echo "erwarte 2 hooksPath-rebase-Aufrufe in mishap-rollup.sh, gefunden: $count"; false; }
 }
 
 @test "T002407-M7d: mishap-rollup.sh hat plan-lint als Hard Gate" {

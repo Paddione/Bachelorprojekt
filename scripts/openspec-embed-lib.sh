@@ -33,3 +33,8 @@ in_rebase() {
   [[ -d "$(git rev-parse --git-path rebase-apply 2>/dev/null)" ]] && return 0
   return 1
 }
+# parse_pf_local_port <kubectl-forwarding-stdout> -> stdout: der von kubectl auf
+# 127.0.0.1 zugewiesene lokale Port (leer, falls (noch) keine Forwarding-Zeile vorhanden).
+parse_pf_local_port() {
+  printf '%s' "$1" | grep -oP 'Forwarding from 127\.0\.0\.1:\K[0-9]+' | head -1
+}

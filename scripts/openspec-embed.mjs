@@ -105,6 +105,7 @@ export function chunkProposal(body, opts = {}) {
     sectionTitle: '',
     charOffset: 0,
   }));
+
 }
 
 
@@ -439,6 +440,7 @@ async function main() {
     for (const line of skippedSlugs) console.log(`  - ${line}`);
     console.log('Rebuild after context limit is resolved: task openspec:embed:backfill');
     process.exit(0);
+
   }
 
 

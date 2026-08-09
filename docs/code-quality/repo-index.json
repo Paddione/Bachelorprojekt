@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 833,
+      "file_count": 834,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -653,6 +653,7 @@
         "tests/spec/ticket-mcp.bats",
         "tests/spec/ticket-system.bats",
         "tests/spec/ticket-system/backfill-id-sequence.bats",
+        "tests/spec/ticket-system/list-test-data-filter.bats",
         "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
         "tests/spec/ticket-system/update-fields-cli.bats",
         "tests/spec/toolset-registry/agentic-resource-lookup.bats",
@@ -3200,7 +3201,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 678,
+      "file_count": 679,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3712,6 +3713,7 @@
         "scripts/one-shot/archive/20260519-context7-source.sql",
         "scripts/one-shot/purge-fn-v5.sql",
         "scripts/one-shot/purge-fn-v6.sql",
+        "scripts/one-shot/purge-fn-v7.sql",
         "scripts/opencode-sync-agents.sh",
         "scripts/openspec-context.sh",
         "scripts/openspec-drift-check.sh",

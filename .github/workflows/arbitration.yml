@@ -8,12 +8,19 @@ name: Merge Arbitration
 # Strikt fail-open: kein Required Check, kein Force-Push, keine fremden
 # Branches. continue-on-error auf jedem Schritt — ein Ausfall (GPU-Runner
 # down, LLM antwortet nicht) darf niemals gegen einen PR zählen.
+#
+# [T002927] Das obige fail-open galt nur für LAUFENDE Schritte. Startet der
+# Job gar nicht — weil kein Runner mit dem Label online ist —, greift kein
+# continue-on-error: der Run bleibt unbegrenzt in `queued`. Mit cron */30
+# waren das 48 Zombie-Runs pro Tag; am 2026-08-09 mussten 100 hängende Runs
+# abgebrochen werden, der älteste knapp zwei Stunden alt. Deshalb ist der
+# schedule-Trigger entfernt — Arbitration läuft jetzt ereignisgetrieben am
+# PR und auf Zuruf. Ein Ausfall des Runners kostet damit höchstens einen
+# übersprungenen PR-Lauf statt einer wachsenden Warteschlange.
 
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review]
-  schedule:
-    - cron: '*/30 * * * *'
   workflow_dispatch: {}
 
 env:
@@ -21,6 +28,16 @@ env:
 
 jobs:
   arbitrate:
+    # [T002927] Fork-Guard — Pflicht, weil dieser Job auf einem SELF-HOSTED
+    # Runner läuft und das Repo PUBLIC ist. `actions/checkout` holt bei einem
+    # pull_request-Event den PR-HEAD; die Schritte darunter führen daraus
+    # scripts/arbitration/detect.sh und apply.sh aus. Ohne diesen Guard könnte
+    # ein beliebiger Fork-PR fremden Code auf dem Runner-Host ausführen.
+    # opencode.yml (derselbe fleet-gpu-Pool) trägt den gleichen Guard; hier
+    # fehlte er. Folgenlos blieb das nur, solange gar kein Runner online war.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, fleet-gpu]
     permissions:
       contents: read
@@ -33,6 +50,11 @@ jobs:
         continue-on-error: true
         with:
           fetch-depth: 0
+          # persist-credentials bleibt bewusst true: scripts/arbitration/apply.sh
+          # pusht den Arbitrations-Branch (`git push -q origin "$branch"`) und
+          # braucht dafür die Credentials im Checkout. Vertretbar ist das erst
+          # durch den Fork-Guard oben — der ausgecheckte Code stammt dann
+          # ausschließlich aus diesem Repo. [T002927]
           persist-credentials: true
 
       - name: Fetch all open PR branches

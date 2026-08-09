@@ -200,7 +200,7 @@ mapfile -t ps_no_ref < <(
              AND NOT EXISTS (
                SELECT 1 FROM tickets.ticket_comments c
                WHERE c.ticket_id = t.id
-                 AND c.body LIKE 'FACTORY-PLAN-REF %'
+                 AND c.body ~ '^FACTORY-PLAN-REF[[:space:]]'
              )
            ORDER BY t.updated_at DESC;" 2>/dev/null || true
 )
@@ -237,7 +237,7 @@ mapfile -t ps_orphan < <(
           FROM tickets.tickets t
           JOIN tickets.ticket_comments c ON c.ticket_id = t.id
           WHERE t.status = 'plan_staged'
-            AND c.body LIKE 'FACTORY-PLAN-REF %branch=%'
+            AND c.body ~ '^FACTORY-PLAN-REF[[:space:]].*branch='
             AND t.updated_at < now() - interval '1 hour'
           ORDER BY t.updated_at DESC;" 2>/dev/null || true
 )

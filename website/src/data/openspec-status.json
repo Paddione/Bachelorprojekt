@@ -2631,6 +2631,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002671": [
+    {
+      "slug": "devflow-flow-frictions-T002671",
+      "status": "plan_staged"
+    }
+  ],
   "T002677": [
     {
       "slug": "cockpit-verfuegbarkeit-realtime",

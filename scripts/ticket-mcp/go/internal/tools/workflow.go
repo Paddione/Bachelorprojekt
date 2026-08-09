@@ -89,13 +89,14 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 		},
 	)
 
-	// stage_plan → ticket.sh stage-plan --id --branch --plan
+	// stage_plan → ticket.sh stage-plan --id --branch --plan [--hold]
 	s.AddTool(
 		mcp.NewTool("stage_plan",
 			mcp.WithDescription("Stellt ein Ticket in die Kommissionierung (status=plan_staged) mit Branch + Plan-Pfad."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("branch", mcp.Description("Feature/Fix-Branch"), mcp.Required()),
 			mcp.WithString("plan", mcp.Description("Plan-Datei-Pfad"), mcp.Required()),
+			mcp.WithBoolean("hold", mcp.Description("Bei true: execution_released=false — Ticket wird NICHT sofort dispatched (default false)")),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
 		),
@@ -104,7 +105,11 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			id, _ := a["id"].(string)
 			branch, _ := a["branch"].(string)
 			plan, _ := a["plan"].(string)
-			return text(runner.RunTicket([]string{"stage-plan", "--id", id, "--branch", branch, "--plan", plan}, map[string]string{"BRAND": brandOf(a)}))
+			args := []string{"stage-plan", "--id", id, "--branch", branch, "--plan", plan}
+			if hold, _ := a["hold"].(bool); hold {
+				args = append(args, "--hold")
+			}
+			return text(runner.RunTicket(args, map[string]string{"BRAND": brandOf(a)}))
 		},
 	)
 

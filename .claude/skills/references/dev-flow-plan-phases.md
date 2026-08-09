@@ -335,13 +335,14 @@ direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; sc
 Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.
 ### Schritt 4.5: Plan stagen (Fix 6)
 **MCP-first** (`ticket-mcp`):
-> `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: "openspec/changes/<slug>/tasks.md" })`
+> `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`
 Fallback (ticket-mcp nicht erreichbar):
 ```bash
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "fix/<slug>" \
-  --plan "openspec/changes/<slug>/tasks.md"
+  --plan "openspec/changes/<slug>/tasks.md" \
+  --hold
 ```
 Damit ist das Fix-Ticket als `plan_staged` in der DB verankert und für `dev-flow-execute` bereit.
 ### Schritt 5: Commit & Push

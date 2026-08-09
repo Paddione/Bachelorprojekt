@@ -99,7 +99,21 @@ for cls,p in ((OK,$port_ok),(Err,$port_500)):
 import time; time.sleep(20)
 " &
   local pypid=$!
-  sleep 1
+
+  # Aktives Port-Polling statt festem 'sleep 1' (T002850): unter CPU-Kontention
+  # (parallele bats -j-Shards) reicht eine feste Wartezeit nicht immer bis zum
+  # bind() beider Server. Poll in kurzen Schritten mit klarer Obergrenze.
+  local attempt=0 max_attempts=50
+  until (exec 3<>"/dev/tcp/127.0.0.1/$port_ok") 2>/dev/null \
+     && (exec 3<>"/dev/tcp/127.0.0.1/$port_500") 2>/dev/null; do
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge "$max_attempts" ]; then
+      kill "$pypid" 2>/dev/null || true
+      echo "TIMEOUT: Ports $port_ok/$port_500 banden nicht innerhalb von $((max_attempts / 10))s"
+      return 1
+    fi
+    sleep 0.1
+  done
 
   # Positiv-Anker ZUERST: der gesunde Server MUSS als verfuegbar gelten.
   # Faellt der durch, sagt das Negativ-Ergebnis unten nichts aus.

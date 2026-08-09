@@ -23,6 +23,7 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 17. [WireGuard unter Windows: `wg set` & `.dpapi`-Recovery](#wireguard-unter-windows-wg-set--dpapi-recovery-t002495-m9) — `wg set` setzt keine Windows-Routen; SYSTEM-ACL auf DPAPI
 18. [git worktree add mit git-crypt-geschützten Pfaden: Smudge-Fehler erwartet](#git-worktree-add-mit-git-crypt-geschutzten-pfaden-smudge-fehler-erwartet-t002495-m5) — bei direktem `git worktree add` auf Locked-Repo
 19. [skip-worktree: git status schweigt, pull scheitert](#skip-worktree-git-status-schweigt-pull-scheitert-t002712) — stille Blockade im Hauptcheckout
+20. [Assertions dürfen nur an der geprüften Sache scheitern](#assertions-durfen-nur-an-der-gepruften-sache-scheitern-t002834t002850t002878) — Helper-Funktionen ohne `return 0`, mutierende Freshness-Checks, feste `sleep`-Wartezeiten
 
 ---
 
@@ -241,3 +242,44 @@ git pull --rebase origin main
 ```
 
 **Fußnote: skip-worktree überlebt Datei-Verschiebungen nicht.** Ein per skip-worktree versteckter lokaler Override auf einer Datei, die später im Repo verschoben wird (z. B. `Taskfile.dev-stack.yml` → `taskfiles/Taskfile.dev-stack.yml`), geht still verloren — das Bit haftet am alten Pfad, der nach dem Rebase nicht mehr existiert. Nach dem Umzug muss der Override am neuen Pfad neu gesetzt werden.
+
+### Assertions dürfen nur an der geprüften Sache scheitern [T002834/T002850/T002878]
+
+Die Positiv-Anker-Pflicht (T002356-M1) verlangt, dass eine Assertion ausschließlich über die
+geprüfte Sache entscheidet. Drei unabhängig gefundene Fälle zeigen, wie ein Test aus dem
+FALSCHEN Grund kippt (oder fälschlich grün bleibt) — jeweils, weil die Testmechanik selbst zur
+Fehlerquelle wurde, nicht der geprüfte Sachverhalt:
+
+- **T002878 — Helper-Funktion ohne explizites `return 0`.** Eine Bash-Helper-Funktion, die in
+  einer Schleife `grep` aufruft und Treffer sammelt (z. B. `_workflows_with_paths()` in
+  `tests/spec/ci-cd/workflow-self-trigger.bats`), gibt ohne expliziten `return`-Statement den
+  Exit-Code des ZULETZT ausgeführten `grep` nach außen — nicht "die Funktion ist fertig
+  gelaufen". Hat die alphabetisch letzte Kandidatendatei keinen Treffer, kippt der
+  Positiv-Anker, obwohl die Funktion korrekt lief und valide (leere oder nicht-leere)
+  Ergebnisse sammelte. Fix: die Funktion schließt explizit mit `return 0` — mit Kommentar,
+  der erklärt, warum (siehe Datei, Zeile `return 0` nach der Sammel-Schleife).
+- **T002834 — Freshness-Check mutiert den Arbeitsbaum, den er prüft.** Ein Test, der
+  `task agent-guide:maps` direkt aufruft und danach `git diff --exit-code` auf die getrackten
+  Karten unter `docs/agent-guide/maps/` prüft, schreibt dabei selbst in genau die Dateien, über
+  die er urteilt — ein RÄUMLICHER Nebeneffekt. Der Test bleibt zwar über die Aussage
+  (Freshness) korrekt, hinterlässt aber mtime-Änderungen auf getrackten Dateien, die
+  nachgelagerte Guards (`spec-tracked-file-guard`) als Verstoß gegen "Testläufe verändern den
+  Arbeitsbaum nicht" melden. Fix: den Emitter in ein Tempdir schreiben lassen
+  (`AGENT_GUIDE_MAPS_OUT_DIR`-Override in `scripts/agent-guide/emit-maps.mjs`) und dort per
+  `diff -u` gegen die getrackte Datei vergleichen — die Freshness-Aussage bleibt unverändert
+  wahr, nur der Seiteneffekt auf den Arbeitsbaum entfällt.
+- **T002850 — fester `sleep` statt Bereitschaftsprüfung.** Ein Test, der einen Hintergrund-Server
+  startet und danach mit einem festen `sleep 1` wartet, bevor er die Erreichbarkeit prüft, ist
+  ein ZEITLICHER Nebeneffekt: unter CPU-Kontention (parallele `bats -j`-Shards) reicht die
+  Sekunde nicht immer bis zum `bind()` des Servers — der Positiv-Anker kippt dann aus einem
+  Scheduling-Grund, nicht weil der Server ungesund wäre. Fix: aktives Polling auf den Port
+  (`/dev/tcp/127.0.0.1/$port`) mit kurzer Schrittweite und klarer Obergrenze statt eines festen
+  `sleep`; wird die Obergrenze erreicht, meldet der Test einen expliziten Timeout statt einer
+  irreführenden Positiv-Anker-Meldung.
+
+**Gemeinsames Muster:** räumlich (mutierter Arbeitsbaum) und zeitlich (fester Sleep) sind zwei
+Ausprägungen derselben verletzten Erwartung — die Assertion soll ausschließlich über die Sache
+entscheiden, die sie behauptet zu prüfen. Bei jedem neuen Guard-/Freshness-/Warte-Test prüfen:
+lässt der Testlauf einen beobachtbaren Nebeneffekt zurück (Datei-Mutation, feste Wartezeit,
+globaler Zustand), der die Assertion aus einem anderen Grund kippen lassen könnte als dem
+geprüften? Wenn ja, den Nebeneffekt isolieren (Tempdir, Polling, Mock) statt ihn hinzunehmen.

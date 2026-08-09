@@ -50,12 +50,13 @@ _resolve_all() {
   # ist trivial wahr. Erst belegen, dass ueberhaupt aufgeloest WIRD.
   [ "$ok_count" -ge 1 ]
 
-  # Und dass ein konkretes, nachweislich vorhandenes Loadout durchlaeuft.
-  echo "$output" | grep -qx 'gptoss-context OK'
-
   local missing
   missing=$(echo "$output" | awk '$2 == "MISSING" { print $1 }')
   echo "Loadouts ohne Modelldatei: ${missing:-<keine>}"
+
+  # Und dass ein konkretes, nachweislich vorhandenes Loadout durchlaeuft.
+  echo "$output" | grep -qx 'gptoss-context OK'
+
   [ -z "$missing" ]
 }
 

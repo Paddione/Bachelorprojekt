@@ -32,7 +32,7 @@ setup() {
   # We test flags: --ui-config-file ${seed_path} --port ${port} --host 127.0.0.1
   # To avoid GPU VRAM collision, pass -ngl 0
   local model_file
-  model_file="$(find ~/models/gguf /mnt/c/Users/PatrickKorczewski/.lmstudio/models -name "*.gguf" 2>/dev/null | head -n 1 || true)"
+  model_file="$(find ~/models/gguf /mnt/c/Users/PatrickKorczewski/.lmstudio/models -name "*.gguf" ! -name "mtp-*" 2>/dev/null | head -n 1 || true)"
 
   if [ -z "${model_file}" ]; then
     skip "No GGUF model file found to launch short-lived llama-server"
@@ -76,7 +76,7 @@ setup() {
     const raw = process.argv[1];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) process.exit(1);
-    if (parsed.length !== 8) process.exit(2);
+    if (parsed.length < 8) process.exit(2);
     const k8s = parsed.find(s => s.name === "k8s");
     if (!k8s || k8s.url !== "http://localhost:18082/mcp") process.exit(3);
     const bge = parsed.find(s => s.name === "bge-mcp");

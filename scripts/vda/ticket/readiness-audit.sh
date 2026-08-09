@@ -32,12 +32,18 @@ main() {
   if [[ -z "$brand" ]]; then
     brand="${BRAND:-mentolder}"
   fi
+  # [T002689] `brand` bleibt Zeilenfilter (WHERE brand = …) und Report-Kopf —
+  # es bestimmt NICHT den Namespace. Die Zeilen beider Brands liegen seit
+  # ADR-006 E3/T002626 in derselben Datenbank; die frueher hier stehende
+  # Zuweisung NS="workspace-korczewski" liess den Pod-Lookup garantiert
+  # scheitern. Der Namespace kommt aus _ticket-core.sh (TICKET_NS, Default
+  # `workspace`), der Kontext aus TICKET_CTX.
   case "$brand" in
-    # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
-    mentolder)  NS="workspace";              CTX="${TICKET_CTX:-k3d-mentolder-dev}" ;;
-    korczewski) NS="workspace-korczewski";   CTX="${TICKET_CTX:-k3d-mentolder-dev}" ;;
+    mentolder|korczewski) : ;;
     *) echo "ERROR: unknown brand '$brand' (use mentolder|korczewski)" >&2; exit 2 ;;
   esac
+  # Default seit E3/T002626: SDLC-Daten liegen lokal (siehe scripts/ticket.sh).
+  CTX="${TICKET_CTX:-k3d-mentolder-dev}"
 
   local pod; pod=$(_pgpod)
 

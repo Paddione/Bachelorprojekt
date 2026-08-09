@@ -2,17 +2,34 @@
 # scripts/factory/lib.sh — shared helpers for the Software Factory Dispatcher
 # primitives (slots/queue/schedule/watchdog/metrics). SOURCE, do not execute.
 #
-#   BRAND               mentolder|korczewski → resolves FACTORY_NS
-#   FACTORY_NS          explicit namespace (used when BRAND unset; default workspace)
-#   FACTORY_CTX         kubectl context (default: fleet)
+#   BRAND               mentolder|korczewski → ROW FILTER (WHERE brand = …), NOT a namespace
+#   FACTORY_NS          explicit namespace (default workspace)
+#   FACTORY_CTX         kubectl context (default: k3d-mentolder-dev)
 #   FACTORY_DRY_RESOLVE if set, callers print resolved ctx+ns and exit 0
 
-factory_resolve() {
+# factory_resolve_data_ns — resolves the namespace/context of the SDLC DATABASE.
+#
+# [T002689] Die Brand geht hier BEWUSST NICHT in den Namespace ein. `brand` ist
+# eine SPALTE in tickets.tickets, kein Ort: seit ADR-006 E3/T002626 liegen die
+# SDLC-Zeilen BEIDER Brands in DERSELBEN lokalen Datenbank (korczewski|36,
+# mentolder|2138). Die fruehere Abbildung brand→Namespace stammt aus der
+# Zwei-Cluster-Zeit und schickte jeden korczewski-Aufruf in den nicht
+# existierenden Namespace `workspace-korczewski`. Wo die Datenbank liegt, haengt
+# allein am KONTEXT (FACTORY_CTX) — nicht daran, wessen Zeilen man lesen will.
+# Wer die Abbildung wieder einbaut, bricht die korczewski-Brand erneut.
+#
+# BRAND bleibt validiert: der Zeilenfilter lebt davon, dass nur bekannte Werte
+# durchgehen. Die echten Workload-Abbildungen brand→Namespace (Deploy, Promote,
+# Ingress, scripts/lib/promote-phases.sh, prod-fleet/*) sind davon unberuehrt —
+# dort betreiben die Brands tatsaechlich getrennte Workloads.
+#
+# Alle Konsumenten von FACTORY_NS/FACTORY_CTX sind `kubectl exec … -c postgres
+# -- psql`, also reiner Datenpfad; ein Workload-Resolver waere ein Resolver ohne
+# Aufrufer. Deshalb wird die Funktion benannt statt gespalten.
+factory_resolve_data_ns() {
   case "${BRAND:-}" in
-    mentolder)   FACTORY_NS="workspace" ;;
-    korczewski)  FACTORY_NS="workspace-korczewski" ;;
-    "")          : ;;
-    *)           echo '{"error":"unknown BRAND (use mentolder|korczewski)"}' >&2; exit 2 ;;
+    mentolder|korczewski|"") : ;;
+    *) echo '{"error":"unknown BRAND (use mentolder|korczewski)"}' >&2; exit 2 ;;
   esac
   FACTORY_NS="${FACTORY_NS:-workspace}"
   # Default-Kontext seit E3/T002626 (ADR-006): die SDLC-Daten liegen lokal.
@@ -27,12 +44,16 @@ factory_resolve() {
     k3d-mentolder-dev|k3d-korczewski-dev) : ;;
     *-dev)
       case "$FACTORY_NS" in
-        workspace)            FACTORY_NS="workspace-dev" ;;
-        workspace-korczewski) FACTORY_NS="workspace-korczewski-dev" ;;
+        workspace) FACTORY_NS="workspace-dev" ;;
       esac
       ;;
   esac
 }
+
+# Alias unter dem historischen Namen — rund ein Dutzend Aufrufer (queue.sh,
+# slots.sh, schedule.sh, metrics.sh, watchdog.sh, reconcile-ticket-status.sh, …)
+# rufen `factory_resolve`. Sie bleiben in diesem Commit unangetastet [T002689/D3].
+factory_resolve() { factory_resolve_data_ns; }
 
 # [T002386] Serverseitig auf Phase Running filtern. kubectl sortiert nach Name,
 # also kann ein liegengebliebener Succeeded/Failed-Pod (Rollout, Node-Drain,
@@ -59,10 +80,13 @@ factory_pgpod() {
     # Nur auf dem Fehlerpfad nochmal ungefiltert fragen, um "gar kein Pod" von
     # "Pods da, keiner Running" zu unterscheiden. Der Happy Path bleibt ein Call.
     all=$(kubectl get pod -n "$FACTORY_NS" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' -o name 2>/dev/null | tr '\n' ' ')  # pod-phase-filter: intentional-unfiltered
+    # [T002689/D5] Die Meldung nennt Ort, Kontext UND den Hebel: ohne den
+    # Override-Hinweis beschreibt sie nur einen Zustand, statt eine Handlung zu
+    # ermoeglichen. Bleibt gueltiges JSON — Aufrufer parsen stderr mit jq.
     if [[ -n "${all// /}" ]]; then
-      echo "{\"error\":\"no Running shared-db pod in ${FACTORY_NS}; found but not Running: ${all% }\"}" >&2
+      echo "{\"error\":\"no Running shared-db pod in namespace ${FACTORY_NS} (context ${FACTORY_CTX}); found but not Running: ${all% }; override the context with FACTORY_CTX\"}" >&2
     else
-      echo '{"error":"no shared-db pod found"}' >&2
+      echo "{\"error\":\"no shared-db pod found in namespace ${FACTORY_NS} (context ${FACTORY_CTX}); override the context with FACTORY_CTX\"}" >&2
     fi
     exit 2
   fi
@@ -76,4 +100,28 @@ factory_psql() {
   local pod; pod=$(factory_pgpod)
   kubectl exec -i "$pod" -n "$FACTORY_NS" --context "$FACTORY_CTX" -c postgres -- \
     psql -U website -d website -qtA -v ON_ERROR_STOP=1 "$@"
+}
+
+# factory_backlog_count <brand> — Groesse des schedulebaren Backlogs einer Brand.
+#
+# [T002689/D4] FAIL-CLOSED: auf Erfolg genau eine Zahl auf stdout und rc=0, auf
+# Fehler rc!=0 und KEINE Zahl. Der Aufrufer muss "Datenpfad unerreichbar" von
+# "nichts zu tun" unterscheiden koennen.
+#
+# Ersetzt das Muster `queue.sh 2>/dev/null | jq 'length' 2>/dev/null || echo 0`.
+# Das war doppelt defekt: queue.sh endet rc=2, jq bekommt LEEREN Input und
+# liefert selbst rc=0 mit leerer Ausgabe — der `|| echo 0`-Zweig feuerte also
+# nicht einmal, die Variable blieb schlicht leer. Der Ausfall einer Brand
+# erschien als leerer Backlog; genau diese Klasse legte die korczewski-Brand am
+# 2026-07-28 still lahm.
+factory_backlog_count() {
+  local brand="${1:-}" json count
+  if [[ -z "$brand" ]]; then
+    echo '{"error":"factory_backlog_count: brand argument required"}' >&2
+    return 2
+  fi
+  json=$(BRAND="$brand" bash "$(dirname "${BASH_SOURCE[0]}")/queue.sh") || return $?
+  count=$(printf '%s' "$json" | jq 'length') || return 3
+  [[ "$count" =~ ^[0-9]+$ ]] || return 3
+  printf '%s\n' "$count"
 }

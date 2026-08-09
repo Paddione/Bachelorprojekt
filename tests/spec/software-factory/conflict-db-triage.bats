@@ -58,10 +58,19 @@ teardown() { _sf_teardown; }
   [[ "$err" != *"WARN: no BRAND"* ]]
 }
 
-@test "FA-SF-03b: BRAND=korczewski resolves namespace to workspace-korczewski" {
+@test "FA-SF-03b: BRAND does not select the namespace — it selects rows [T002689]" {
+  # Frueher: "BRAND=korczewski resolves namespace to workspace-korczewski".
+  # conflict-check.sh hielt eine eigene Kopie der Abbildung UND eine eigene,
+  # veraltete Suffix-Regel ohne die k3d-Ausnahme aus T002626 — es loeste damit
+  # auch fuer den DEFAULT-Brand auf `workspace-dev` auf, einen Namespace, den es
+  # nicht gibt. Das Gate lief fuer beide Brands ins Leere.
+  run env BRAND=mentolder FACTORY_DRY_RESOLVE=1 bash scripts/factory/conflict-check.sh T000001
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"ns=workspace" ]]
+
   run env BRAND=korczewski FACTORY_DRY_RESOLVE=1 bash scripts/factory/conflict-check.sh T000001
   [ "$status" -eq 0 ]
-  [[ "$output" == *"workspace-korczewski"* ]]
+  [[ "$output" == *"ns=workspace" ]]
 }
 
 @test "FA-SF-04: conflict-check detects in-flight task tickets" {

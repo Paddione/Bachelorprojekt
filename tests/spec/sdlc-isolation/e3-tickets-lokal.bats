@@ -37,11 +37,18 @@ setup() {
   [ "$output" = "NS=workspace-dev" ]
 }
 
-@test "E3: korczewski behaelt seinen eigenen Namespace" {
+@test "E3/T002689: korczewski loest auf denselben SDLC-Namespace auf wie mentolder" {
+  # Bis T002689 stand hier die Erwartung NS=workspace-korczewski ("korczewski
+  # behaelt seinen eigenen Namespace"). Das war ein Ueberbleibsel der
+  # Zwei-Cluster-Zeit: seit genau dieser E3-Umstellung liegen die SDLC-Zeilen
+  # BEIDER Brands in DERSELBEN lokalen Datenbank (korczewski|36, mentolder|2138),
+  # und `workspace-korczewski` existiert im k3d-Kontext gar nicht. Die
+  # Erwartung fixierte damit den Fehler, den E3 selbst erzeugt hatte: jeder
+  # korczewski-Aufruf brach am Pod-Lookup ab. `brand` ist ein Zeilenfilter.
   run env TICKET_CTX=k3d-mentolder-dev BRAND=korczewski \
       bash "$TICKET_SH" --resolve-ns-only get --id T000001
   [ "$status" -eq 0 ]
-  [ "$output" = "NS=workspace-korczewski" ]
+  [ "$output" = "NS=workspace" ]
 }
 
 # ── Default-Kontext ─────────────────────────────────────────────────────────

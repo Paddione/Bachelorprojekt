@@ -30,9 +30,10 @@ set -euo pipefail
 # erst weiter unten gesourct, CTX wird hier aber schon fuer die
 # Namespace-Ableitung gebraucht. Beide Stellen zusammen aendern.
 #
-# Der Default nennt den mentolder-Cluster: nur dieser Brand hat einen lokalen
-# SDLC-Stack. Korczewski-Tickets liegen weiterhin auf fleet und brauchen ein
-# explizites TICKET_CTX=fleet.
+# Der Default nennt den mentolder-Cluster, weil dort der lokale SDLC-Stack
+# laeuft. Er ist NICHT brand-spezifisch: die Zeilen beider Brands liegen in
+# genau dieser Datenbank, korczewski-Tickets eingeschlossen [T002689]. Wer die
+# eingefrorene fleet-Historie lesen will, setzt TICKET_CTX=fleet.
 CTX="${TICKET_CTX:-k3d-mentolder-dev}"
 NS="${TICKET_NS:-workspace}"
 DB="website"
@@ -73,10 +74,16 @@ fi
 BRAND="${BRAND:-mentolder}"
 export BRAND
 
+# [T002689] BRAND wird validiert, aber NICHT in einen Namespace uebersetzt.
+# `brand` ist eine SPALTE in tickets.tickets (`WHERE brand = …`, siehe
+# vda/ticket/list.sh), kein Ort: seit ADR-006 E3/T002626 liegen die Zeilen
+# BEIDER Brands in DERSELBEN lokalen Datenbank. Die frueher hier stehende
+# Zuweisung NS="workspace-korczewski" schickte jeden korczewski-Aufruf in einen
+# nicht existierenden Namespace und ueberschrieb dabei ein explizit gesetztes
+# TICKET_NS bedingungslos. Der Namespace haengt allein am Kontext (unten).
 case "$BRAND" in
-  mentolder)   NS="workspace" ;;
-  korczewski)  NS="workspace-korczewski" ;;
-  *)           echo "ERROR: unknown BRAND '$BRAND' (use mentolder|korczewski)" >&2; exit 2 ;;
+  mentolder|korczewski) : ;;
+  *) echo "ERROR: unknown BRAND '$BRAND' (use mentolder|korczewski)" >&2; exit 2 ;;
 esac
 
 # Namespace-Ableitung je Kontext [T002626].
@@ -97,8 +104,7 @@ case "$CTX" in
   # Historischer dev-Stack auf fleet: dort existieren die -dev-Namespaces.
   *-dev)
     case "$NS" in
-      workspace)            NS="workspace-dev" ;;
-      workspace-korczewski) NS="workspace-korczewski-dev" ;;
+      workspace) NS="workspace-dev" ;;
     esac
     ;;
 esac

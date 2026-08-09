@@ -42,9 +42,12 @@ seed_test_feature() {
 purge_factory_test_data() {
   local brand="$1"
   local ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
+  # [T002689] Die Brand waehlt ZEILEN, nicht den Ort. seed_test_feature schreibt
+  # ueber scripts/ticket.sh, das seit T002689 fuer beide Brands nach `workspace`
+  # aufloest — eine Purge in `workspace-korczewski` fand die eigenen Fixtures
+  # daher nicht mehr und liesse Testzeilen stehen.
   case "$brand" in
-    mentolder)  ns="workspace" ;;
-    korczewski) ns="workspace-korczewski" ;;
+    mentolder|korczewski) ns="${FACTORY_NS:-workspace}" ;;
     *) echo "purge_factory_test_data: unknown brand $brand" >&2; return 2 ;;
   esac
 

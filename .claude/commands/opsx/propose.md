@@ -35,6 +35,13 @@ When ready to implement, run /opsx:apply
    ```
    This creates a scaffolded change at `openspec/changes/<name>/` with `.openspec.yaml`.
 
+   **Write the `.ticket` file.** After creating the directory, persist the Ticket-ID so the
+   CI guard can verify that every change is tracked (T002836). Use the same Ticket-ID that
+   was passed to the proposal:
+   ```bash
+   echo "$TICKET_ID" > "openspec/changes/<name>/.ticket"
+   ```
+
 3. **Get the artifact build order**
    ```bash
    openspec status --change "<name>" --json

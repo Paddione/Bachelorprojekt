@@ -2,7 +2,7 @@
 title: "repo-hygiene-arbeitsbaum-stashes — Implementation Plan"
 ticket_id: T002709
 domains: [bachelorprojekt-infra, plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

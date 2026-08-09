@@ -1,5 +1,59 @@
 # Changelog
 
+## [1.257.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.3...website-v1.257.4) (2026-08-09)
+
+
+### Tests
+
+* **ops:** Guard fuer qwen3-coder — Loadout-Port und Proxy-Registrierung muessen uebereinstimmen [T002645] ([#3921](https://github.com/Paddione/Bachelorprojekt/issues/3921)) ([754c791](https://github.com/Paddione/Bachelorprojekt/commit/754c7918c1895afe136b37b258015d2ca9a66b5a))
+
+## [1.257.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.2...website-v1.257.3) (2026-08-09)
+
+
+### Bug Fixes
+
+* **routes:** routes:manifest suppresses tsx stderr stacktrace [T002666] ([#3913](https://github.com/Paddione/Bachelorprojekt/issues/3913)) ([3ad6454](https://github.com/Paddione/Bachelorprojekt/commit/3ad64546ce56a9102426f1d21fea25352ba34572))
+
+## [1.257.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.1...website-v1.257.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **factory:** shared rollup-container resolution via ticket.sh, --unattended worktree mode [T002783] ([#3911](https://github.com/Paddione/Bachelorprojekt/issues/3911)) ([2dfe574](https://github.com/Paddione/Bachelorprojekt/commit/2dfe5743dc3bf112e1d0bba03a7d6f04edc3a130))
+
+## [1.257.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.0...website-v1.257.1) (2026-08-09)
+
+
+### CI/CD
+
+* **ci:** CI-Automerge fährt nur noch das Merge-Delta [T002780] ([#3898](https://github.com/Paddione/Bachelorprojekt/issues/3898)) ([8375b34](https://github.com/Paddione/Bachelorprojekt/commit/8375b3474d81f8f52045657e182fdf0cf9b2b16e))
+
+## [1.257.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.8...website-v1.257.0) (2026-08-09)
+
+
+### Features
+
+* **scripts:** section-aware chunking, BM25 MCP server, coverage gate [T002679] ([#3892](https://github.com/Paddione/Bachelorprojekt/issues/3892)) ([bbd66f1](https://github.com/Paddione/Bachelorprojekt/commit/bbd66f1d62e5a6ed0edfc7bbe4ba55e99b9a5a87))
+
+
+### Bug Fixes
+
+* **db:** migrate customer projects to public.customer_projects [T002722] ([#3894](https://github.com/Paddione/Bachelorprojekt/issues/3894)) ([db5f2f4](https://github.com/Paddione/Bachelorprojekt/commit/db5f2f4986f6cc06938932e7c7fe7e7820549217))
+
+## [1.256.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.7...website-v1.256.8) (2026-08-09)
+
+
+### Bug Fixes
+
+* **skills:** repo-hygiene deckt Arbeitsbaum und Stashes ab [T002709] ([#3890](https://github.com/Paddione/Bachelorprojekt/issues/3890)) ([2d5c706](https://github.com/Paddione/Bachelorprojekt/commit/2d5c7060cef02a9e431ef9a4916c42add1d1cd7c))
+
+## [1.256.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.6...website-v1.256.7) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** make openspec embed probe timeout configurable [T002659] ([#3888](https://github.com/Paddione/Bachelorprojekt/issues/3888)) ([c1452bb](https://github.com/Paddione/Bachelorprojekt/commit/c1452bbcde35623e515945a521b2a60dcca63d53))
+
 ## [1.256.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.5...website-v1.256.6) (2026-08-08)
 
 

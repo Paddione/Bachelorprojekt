@@ -301,7 +301,7 @@ hier harte Voraussetzung, nicht Stilfrage. Der Test gehört nach `tests/spec/<sp
 (die Spec aus `openspec/specs/`), nicht in eine neue ticket-nummerierte Datei.
 
 - Lege Bug-Ticket an (via ticket-mcp `create_ticket`), schreibe failing Test, erstelle Plan, stage, commit und push.
-- Hinweis: Erstelle zusätzlich zu `design.md` auch `openspec/changes/<slug>/specs/<parent-ssot-slug>.md` nach der T001304-Delta-Konvention.
+- Hinweis: Erstelle zusätzlich zu `design.md` auch `openspec/changes/<slug>/specs/<parent-ssot-slug>.md` nach der T001304-Delta-Konvention. **Pflicht-Format:** Die Delta-Spec MUSS exakt einen der vier Abschnitts-Header verwenden: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements` oder `## RENAMED Requirements`. Jede Anforderung beginnt mit `### Requirement: <Titel>` und enthält **mindestens einen** `#### Scenario:`-Block im GIVEN/WHEN/THEN-Format. `## ADDED:` / `## MODIFIED:` (ohne "Requirements") und Szenario-lose Requirements werden von `scripts/openspec-validate.test.ts` → `validateTree` abgelehnt und blockieren den CI-Merge.
 - `--hold`-Pflicht für interaktive Stage-Calls: Der Aufruf von `stage-plan` in diesem Schritt
   MUSS `--hold` setzen. Dadurch wird das Ticket vom Factory-Dispatch zurückgehalten, bis
   `opencode-flow-execute` es explizit freigibt.

@@ -102,7 +102,7 @@ export async function ensureQuestionnaireSchema(targetPool: pg.Pool = pool): Pro
     ADD COLUMN IF NOT EXISTS is_system_test BOOLEAN NOT NULL DEFAULT false`);
   await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS dismissed_at TIMESTAMPTZ`);
   await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS dismiss_reason TEXT`);
-  await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL`);
+  await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES public.customer_projects(id) ON DELETE SET NULL`);
   await targetPool.query(`ALTER TABLE questionnaire_assignments ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ`);
   await targetPool.query(`
     CREATE TABLE IF NOT EXISTS questionnaire_test_status (

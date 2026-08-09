@@ -285,4 +285,47 @@ for ext_id in "${orphan_slots[@]}"; do
   fi
 done
 
+# ── orphaned in_progress tickets (T002770) ────────────────────────────────
+# Tickets in in_progress ohne laufende Session (kein Agent-Lock, kein Remote-
+# Branch) sind Waisen: der Status bildet keine reale Arbeit mehr ab. Der
+# ticket-ops-Guard "laufende Arbeit nicht anfassen" vertraut auf den Statuswert
+# und uebersieht sie. Dieser Sweep setzt sie nach einer Karenzzeit zurueck.
+#
+# Drei unabhaengige Signale werden geprueft, bevor der Status angetastet wird:
+#   1. agent-lock check ticket → free (keine aktive Session)
+#   2. git ls-remote --heads origin → kein Branch (kein offener PR-Arbeitszweig)
+#   3. git worktree list → kein Worktree mit der Ticket-ID (kein lokaler Checkout)
+#
+# Karenzzeit ist separat parametrierbar (ORPHAN_TICKET_MIN), Default 60min.
+ORPHAN_TICKET_MIN="${FACTORY_ORPHAN_TICKET_MIN:-60}"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$(dirname "${BASH_SOURCE[0]}")/../..")"
+mapfile -t orphan_tickets < <(printf "SELECT external_id FROM tickets.tickets WHERE status='in_progress' AND updated_at < now() - make_interval(mins => %s) AND type NOT IN ('project','incident') ORDER BY updated_at;" "$ORPHAN_TICKET_MIN" | factory_psql)
+
+for ext_id in "${orphan_tickets[@]}"; do
+  [[ -z "$ext_id" ]] && continue
+
+  # Signal 1: Agent-Lock
+  if bash "$REPO_ROOT/scripts/agent-lock.sh" check ticket "$ext_id" >/dev/null 2>&1; then
+    continue  # lock held — session is active
+  fi
+
+  # Signal 2: Remote-Branch (sucht Branches mit dem Ticket-Suffix)
+  if git ls-remote --heads origin "*/${ext_id}" 2>/dev/null | grep -q .; then
+    continue  # branch exists — work may still be in flight
+  fi
+
+  # Signal 3: Lokaler Worktree
+  if git worktree list 2>/dev/null | grep -qi "$ext_id"; then
+    continue  # local worktree — developer may be working offline
+  fi
+
+  # Alle drei Signale negativ → Waise. Zuruecksetzen auf triage.
+  BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" update-status --id "$ext_id" --status triage >/dev/null 2>&1 \
+    || { echo "watchdog: WARN status reset for orphan $ext_id failed" >&2; continue; }
+  BRAND="$BRAND" TICKET_CTX="$FACTORY_CTX" bash "$HERE/../ticket.sh" add-comment --id "$ext_id" \
+    --body "Watchdog: in_progress > ${ORPHAN_TICKET_MIN}min ohne Agent-Lock, Remote-Branch oder Worktree — Status auf triage zuruecksgesetzt. [T002770]" >/dev/null 2>&1 \
+    || echo "watchdog: WARN audit comment for orphan ticket $ext_id failed" >&2
+  escalated=$(echo "$escalated" | jq -c --arg e "$ext_id" '. + [$e]')
+done
+
 echo "$escalated"

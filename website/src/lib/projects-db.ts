@@ -127,14 +127,14 @@ const PROJECT_SELECT = `
          c.name         AS "customerName", c.email AS "customerEmail",
          t.assignee_id  AS "adminId",
          a.name         AS "adminName",   a.email AS "adminEmail",
-         (SELECT COUNT(*)::int FROM tickets.tickets sp
-            WHERE sp.parent_id = t.id AND sp.type = 'project') AS "subProjectCount",
-         (SELECT COUNT(*)::int FROM tickets.tickets pt
-            LEFT JOIN tickets.tickets sp ON sp.id = pt.parent_id AND sp.type = 'project'
-           WHERE pt.type IN ('task','chore')
-             AND (pt.parent_id = t.id OR sp.parent_id = t.id)) AS "taskCount",
+         (SELECT COUNT(*)::int FROM public.customer_projects sp
+             WHERE sp.parent_id = t.id AND sp.type = 'project') AS "subProjectCount",
+         (SELECT COUNT(*)::int FROM public.customer_projects pt
+             LEFT JOIN public.customer_projects sp ON sp.id = pt.parent_id AND sp.type = 'project'
+            WHERE pt.type = 'task'
+              AND (pt.parent_id = t.id OR sp.parent_id = t.id)) AS "taskCount",
          t.created_at   AS "createdAt",  t.updated_at AS "updatedAt"
-  FROM tickets.tickets t
+  FROM public.customer_projects t
   LEFT JOIN customers c ON t.customer_id = c.id
   LEFT JOIN customers a ON t.assignee_id = a.id
 `;
@@ -156,10 +156,10 @@ const SUBPROJECT_SELECT = `
          c.name         AS "customerName", c.email AS "customerEmail",
          sp.assignee_id AS "adminId",
          a.name         AS "adminName",   a.email AS "adminEmail",
-         (SELECT COUNT(*)::int FROM tickets.tickets pt
-            WHERE pt.type IN ('task','chore') AND pt.parent_id = sp.id) AS "taskCount",
+         (SELECT COUNT(*)::int FROM public.customer_projects pt
+             WHERE pt.type = 'task' AND pt.parent_id = sp.id) AS "taskCount",
          sp.created_at AS "createdAt", sp.updated_at AS "updatedAt"
-  FROM tickets.tickets sp
+  FROM public.customer_projects sp
   LEFT JOIN customers c ON sp.customer_id = c.id
   LEFT JOIN customers a ON sp.assignee_id = a.id
 `;
@@ -186,8 +186,8 @@ const TASK_SELECT = `
          pt.assignee_id AS "adminId",
          a.name         AS "adminName",    a.email AS "adminEmail",
          pt.created_at AS "createdAt", pt.updated_at AS "updatedAt"
-  FROM tickets.tickets pt
-  LEFT JOIN tickets.tickets parent ON parent.id = pt.parent_id
+  FROM public.customer_projects pt
+  LEFT JOIN public.customer_projects parent ON parent.id = pt.parent_id
   LEFT JOIN customers c ON pt.customer_id = c.id
   LEFT JOIN customers a ON pt.assignee_id = a.id
 `;
@@ -243,7 +243,7 @@ export async function createProject(params: {
   }
   const m = mapStatusFwd(params.status);
   const result = await pool.query(
-    `INSERT INTO tickets.tickets
+    `INSERT INTO public.customer_projects
        (type, brand, title, description, notes, start_date, due_date,
         status, resolution, priority, customer_id, assignee_id)
      VALUES ('project', $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
@@ -262,7 +262,7 @@ export async function updateProject(id: string, params: {
 }): Promise<void> {
   const m = mapStatusFwd(params.status);
   await pool.query(
-    `UPDATE tickets.tickets
+    `UPDATE public.customer_projects
        SET title=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
            status=$7, resolution=$8, priority=$9,
            customer_id=$10, assignee_id=$11, updated_at=now()
@@ -276,7 +276,7 @@ export async function updateProject(id: string, params: {
 
 export async function deleteProject(id: string): Promise<void> {
   await pool.query(
-    `DELETE FROM tickets.tickets WHERE id=$1 AND type='project' AND parent_id IS NULL`,
+    `DELETE FROM public.customer_projects WHERE id=$1 AND type='project' AND parent_id IS NULL`,
     [id]
   );
 }
@@ -311,12 +311,12 @@ export async function createSubProject(params: {
 }): Promise<string> {
   await initTicketsSchema();
   const parent = await pool.query<{ brand: string }>(
-    `SELECT brand FROM tickets.tickets WHERE id=$1 AND type='project' AND parent_id IS NULL`,
+    `SELECT brand FROM public.customer_projects WHERE id=$1 AND type='project' AND parent_id IS NULL`,
     [params.projectId]);
   if (parent.rowCount === 0) throw new Error(`createSubProject: parent project ${params.projectId} not found`);
   const m = mapStatusFwd(params.status);
   const result = await pool.query(
-    `INSERT INTO tickets.tickets
+    `INSERT INTO public.customer_projects
        (type, parent_id, brand, title, description, notes, start_date, due_date,
         status, resolution, priority, customer_id, assignee_id)
      VALUES ('project', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
@@ -336,7 +336,7 @@ export async function updateSubProject(id: string, params: {
 }): Promise<void> {
   const m = mapStatusFwd(params.status);
   await pool.query(
-    `UPDATE tickets.tickets
+    `UPDATE public.customer_projects
        SET title=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
            status=$7, resolution=$8, priority=$9,
            customer_id=$10, assignee_id=$11, updated_at=now()
@@ -350,7 +350,7 @@ export async function updateSubProject(id: string, params: {
 
 export async function deleteSubProject(id: string): Promise<void> {
   await pool.query(
-    `DELETE FROM tickets.tickets WHERE id=$1 AND type='project' AND parent_id IS NOT NULL`,
+    `DELETE FROM public.customer_projects WHERE id=$1 AND type='project' AND parent_id IS NOT NULL`,
     [id]
   );
 }
@@ -361,7 +361,7 @@ export async function listDirectTasks(projectId: string): Promise<ProjectTask[]>
   await initTicketsSchema();
   const result = await pool.query(
     `${TASK_SELECT}
-     WHERE pt.type IN ('task','chore')
+     WHERE pt.type = 'task'
        AND pt.parent_id = $1
        AND parent.parent_id IS NULL
      ${TASK_ORDER}`,
@@ -374,7 +374,7 @@ export async function listSubProjectTasks(subProjectId: string): Promise<Project
   await initTicketsSchema();
   const result = await pool.query(
     `${TASK_SELECT}
-     WHERE pt.type IN ('task','chore') AND pt.parent_id=$1
+     WHERE pt.type = 'task' AND pt.parent_id=$1
      ${TASK_ORDER}`,
     [subProjectId]
   );
@@ -389,14 +389,14 @@ export async function createProjectTask(params: {
   await initTicketsSchema();
   const parentId = params.subProjectId || params.projectId;
   const parent = await pool.query<{ brand: string }>(
-    `SELECT brand FROM tickets.tickets WHERE id=$1 AND type='project'`, [parentId]);
+    `SELECT brand FROM public.customer_projects WHERE id=$1 AND type='project'`, [parentId]);
   if (parent.rowCount === 0) throw new Error(`createProjectTask: parent ticket ${parentId} not found`);
   const m = mapStatusFwd(params.status);
   const result = await pool.query(
-    `INSERT INTO tickets.tickets
+    `INSERT INTO public.customer_projects
        (type, parent_id, brand, title, description, notes, start_date, due_date,
         status, resolution, priority, customer_id, assignee_id)
-     VALUES ('chore', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+     VALUES ('task', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
     [parentId, parent.rows[0].brand, params.name,
      params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
@@ -413,11 +413,11 @@ export async function updateProjectTask(id: string, params: {
 }): Promise<void> {
   const m = mapStatusFwd(params.status);
   await pool.query(
-    `UPDATE tickets.tickets
+    `UPDATE public.customer_projects
        SET title=$2, description=$3, notes=$4, start_date=$5, due_date=$6,
            status=$7, resolution=$8, priority=$9,
            customer_id=$10, assignee_id=$11, updated_at=now()
-     WHERE id=$1 AND type IN ('task','chore')`,
+     WHERE id=$1 AND type = 'task'`,
     [id, params.name, params.description || null, params.notes || null,
      params.startDate || null, params.dueDate || null,
      m.status, m.resolution, params.priority,
@@ -426,5 +426,5 @@ export async function updateProjectTask(id: string, params: {
 }
 
 export async function deleteProjectTask(id: string): Promise<void> {
-  await pool.query(`DELETE FROM tickets.tickets WHERE id=$1 AND type IN ('task','chore')`, [id]);
+  await pool.query(`DELETE FROM public.customer_projects WHERE id=$1 AND type = 'task'`, [id]);
 }

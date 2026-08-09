@@ -7,6 +7,15 @@
         "Authorization": "Bearer ${BGE_MCP_TOKEN}"
       }
     },
+    "brain-mcp": {
+      "command": "python3",
+      "args": [
+        "/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py"
+      ],
+      "env": {
+        "BRAIN_WIKI_DIR": "~/brain/wiki"
+      }
+    },
     "codebase-memory-mcp": {
       "command": "/home/patrick/.local/bin/codebase-memory-mcp"
     },

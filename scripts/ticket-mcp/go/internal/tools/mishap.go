@@ -22,8 +22,8 @@ const MISHAP_TRIGGER = 10
 const MISHAP_MAX_AGE = 7 * 24 * time.Hour
 
 const ROLLUP_TICKET_TITLE = "Mishap Rollup — fortlaufende Sammlung"
-const ROLLUP_BRANCH = "chore/mishap-rollup"
-const ROLLUP_CHANGE_DIR = "openspec/changes/mishap-rollup"
+const ROLLUP_BRANCH = "chore/mishap-incident-rollup"
+const ROLLUP_CHANGE_DIR = "openspec/changes/mishap-incident-rollup"
 
 type MishapEntry struct {
 	Title       string `json:"title"`
@@ -160,19 +160,18 @@ func mishapSeverity(mtype string) (severity, priority string) {
 	}
 }
 
-// buildFactoryFixTicketArgs erzeugt ein DIREKT dispatchenbares fix-Ticket:
-// type=fix, status=plan_staged, execution_released bleibt Default true.
-// Die plan_staged-Lane in queue.sh akzeptiert type NOT IN ('project','incident')
-// und ist damit die einzige Lane, die 'fix' OHNE Aenderung an der
-// T002327-geschuetzten backlog-Lane dispatchen kann. Der Dispatcher fuehrt
-// fuer solche Tickets Scout→Design→Plan selbst (branch/plan_path=null).
+// buildFactoryFixTicketArgs erzeugt ein fix-Ticket fuer den normalen
+// Planungs-Flow (triage → planning → plan_staged → backlog).
+// status=triage, weil zum Zeitpunkt der Mishap-Konversion KEIN Plan existiert.
+// plan_staged ist ausschliesslich Tickets vorbehalten, die via stage-plan.sh
+// mit validiertem --plan und --branch gestaged wurden (T002769).
 func buildFactoryFixTicketArgs(entry MishapEntry, brand string) []string {
 	sev, prio := mishapSeverity(entry.Type)
 	return []string{
 		"create", "--type", "fix", "--brand", brand,
 		"--title", entry.Title,
 		"--description", fmt.Sprintf("### Mishap-Fix\n\n**Typ:** %s | **Komponente:** %s\n\n%s", entry.Type, entry.Component, entry.Description),
-		"--status", "plan_staged", "--severity", sev, "--priority", prio,
+		"--status", "triage", "--severity", sev, "--priority", prio,
 		"--attention-mode", "ai_ready", "--areas", entry.Component,
 	}
 }
@@ -197,36 +196,7 @@ func createFactoryFixTicket(entry MishapEntry, brand string) (string, error) {
 	if i := strings.Index(ext, "|"); i >= 0 {
 		ext = ext[:i]
 	}
-	// DoR-Flags setzen, damit das Ticket in der plan_staged-Lane vollstaendig ist.
-	_, err = runner.RunTicket([]string{
-		"plan-meta", "set", "--id", ext,
-		"--readiness", "spec_skizziert=true,aufwand_geschaetzt=true,abhaengigkeiten_klar=true,offene_fragen_geklaert=true",
-	}, map[string]string{"BRAND": brand})
-	if err != nil {
-		return "", fmt.Errorf("plan-meta set fehlgeschlagen: %w", err)
-	}
 	return ext, nil
-}
-
-func buildFindRollupTicketArgs(brand string) []string {
-	return []string{
-		"list", "--brand", brand, "--status", "plan_staged", "--type", "chore", "--limit", "200",
-	}
-}
-
-func buildFindAnyRollupTicketArgs(brand string) []string {
-	return []string{
-		"list", "--brand", brand, "--type", "chore", "--limit", "200",
-	}
-}
-
-func buildCreateRollupTicketArgs(brand string) []string {
-	return []string{
-		"create", "--type", "chore", "--brand", brand,
-		"--title", ROLLUP_TICKET_TITLE,
-		"--description", "Fortlaufende Sammlung nicht-kritischer Mishaps. Dieses Ticket bleibt dauerhaft offen.",
-		"--status", "plan_staged", "--severity", "minor",
-	}
 }
 
 // rollupTicket is the minimal projection needed for container lookup.
@@ -244,45 +214,31 @@ func parseTicketList(raw string) []rollupTicket {
 	return tickets
 }
 
-func findRollupTicketByTitle(tickets []rollupTicket, title string) (*rollupTicket, bool) {
-	for i := range tickets {
-		if tickets[i].ExternalID != nil && tickets[i].Title == title {
-			return &tickets[i], true
-		}
-	}
-	return nil, false
-}
-
 func findOrCreateRollupTicket(brand string) (string, error) {
-	// T002601-Dedupe: Der Container wird ZUERST ueber alle offenen Status gesucht,
-	// nicht nur plan_staged. Ein Container, den die Factory gerade nach in_progress
-	// bewegt hat, wurde von der plan_staged-Suche verpasst — der naechste Flush
-	// legte dann einen ZWEITEN Container an (beobachtet an T002597/T002601).
-	raw, err := runner.RunTicket(buildFindAnyRollupTicketArgs(brand), map[string]string{"BRAND": brand})
+	// T002783: Gemeinsame Container-Aufloesung ueber ticket.sh rollup-container.
+	// Der Shell-Code sucht offene Chore-Tickets (nicht done/archived) und legt
+	// notfalls einen neuen Container an. Beide Seiten (Flush und Rollup-Treiber)
+	// loesen denselben Code-Pfad auf — das verhindert die Diskrepanz, die
+	// den Doppel-Container-Vorfall T002597/T002601 und die gestrandeten Batches
+	// verursacht hat.
+	out, err := runner.RunTicket(buildRollupContainerArgs(brand), map[string]string{"BRAND": brand})
 	if err != nil {
-		return "", fmt.Errorf("Rollup-Container-Suche fehlgeschlagen: %w", err)
-	}
-	tickets := parseTicketList(raw)
-	if t, ok := findRollupTicketByTitle(tickets, ROLLUP_TICKET_TITLE); ok {
-		return *t.ExternalID, nil
-	}
-	// Fallback fuer alte Builds / Tests: gezielte plan_staged-Suche.
-	raw2, err := runner.RunTicket(buildFindRollupTicketArgs(brand), map[string]string{"BRAND": brand})
-	if err == nil {
-		tickets2 := parseTicketList(raw2)
-		if t, ok := findRollupTicketByTitle(tickets2, ROLLUP_TICKET_TITLE); ok {
-			return *t.ExternalID, nil
-		}
-	}
-	out, err := runner.RunTicket(buildCreateRollupTicketArgs(brand), map[string]string{"BRAND": brand})
-	if err != nil {
-		return "", fmt.Errorf("Rollup-Container-Erstellung fehlgeschlagen: %w", err)
+		return "", fmt.Errorf("Rollup-Container-Aufloesung fehlgeschlagen: %w", err)
 	}
 	ext := strings.TrimSpace(out)
 	if i := strings.Index(ext, "|"); i >= 0 {
 		ext = ext[:i]
 	}
+	if ext == "" {
+		return "", fmt.Errorf("Rollup-Container-Aufloesung lieferte leere ID")
+	}
 	return ext, nil
+}
+
+func buildRollupContainerArgs(brand string) []string {
+	return []string{
+		"rollup-container", "--brand", brand,
+	}
 }
 
 func appendToRollupContainer(entries []MishapEntry, brand string) error {

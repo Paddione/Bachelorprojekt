@@ -166,6 +166,40 @@ clients:
         cwd: /home/patrick/Bachelorprojekt
         timeout_ms: 30000
 
+  # brain-mcp (T002679): Retrieval ueber das Brain-Wiki (BM25, brain_search +
+  # brain_read). BEWUSST OHNE harness.llamacpp — jeder Eintrag dort wird ein
+  # Kindprozess bei jedem Modellstart (Kommentarkopf oben), und der Lesepfad
+  # gehoert zu den Agenten-Harnesses, nicht zum Modellserver. Folge: der Server
+  # erscheint NICHT in scripts/llm/mcp-servers.json. Das ist beabsichtigt.
+  brain-mcp:
+    transport: stdio
+    browser_endpoint: http://127.0.0.1:18235/mcp/brain-mcp
+    command: python3
+    args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]
+    bridge:
+      url: http://127.0.0.1:18235/mcp/brain-mcp
+      bind: 127.0.0.1:18235
+      auth: null
+    env:
+      BRAIN_WIKI_DIR: ~/brain/wiki
+    harness:
+      claude_code:
+        command: python3
+        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]
+        env:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+      agy:
+        command: python3
+        args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]
+        env:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+      opencode:
+        type: local
+        command: [python3, /home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]
+        environment:
+          BRAIN_WIKI_DIR: ~/brain/wiki
+        enabled: true
+
   # codebase-memory-mcp: absoluter Pfad /home/patrick/.local/bin/codebase-memory-mcp
   # Nicht portabel — wird durch MCPB-Bundle ersetzt (T002301)
   codebase-memory-mcp:

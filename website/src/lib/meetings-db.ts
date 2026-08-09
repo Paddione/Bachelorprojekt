@@ -36,10 +36,10 @@ export async function initMeetingsDb(): Promise<void> {
 
 /** Exported so that website-db.ts can call it for meeting-project cross-domain functions. */
 export async function initMeetingProjectLink(): Promise<void> {
-  await initTicketsSchema(); // tickets.tickets must exist before the FK column
+  await initTicketsSchema(); // public.customer_projects must exist before the FK column
   await pool.query(`
     ALTER TABLE meetings
-      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL
+      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES public.customer_projects(id) ON DELETE SET NULL
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_meetings_project ON meetings(project_id)
@@ -262,7 +262,7 @@ export async function getMeetingsForClient(
            m.project_id as "projectId", p.title as "projectName"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN tickets.tickets p ON m.project_id = p.id
+    LEFT JOIN public.customer_projects p ON m.project_id = p.id
     WHERE c.email = $1`;
 
   const query = onlyReleased
@@ -312,7 +312,7 @@ export async function listAllMeetings(opts?: {
            (SELECT COUNT(*) FROM meeting_artifacts a WHERE a.meeting_id = m.id)::int AS "artifactCount"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN tickets.tickets p ON m.project_id = p.id
+    LEFT JOIN public.customer_projects p ON m.project_id = p.id
     ${where}
     ORDER BY m.created_at DESC
     LIMIT $1
@@ -346,7 +346,7 @@ export async function getMeetingDetail(meetingId: string): Promise<{
            p.title AS "projectName", p.id AS "projectId"
     FROM meetings m
     JOIN customers c ON m.customer_id = c.id
-    LEFT JOIN tickets.tickets p ON m.project_id = p.id
+    LEFT JOIN public.customer_projects p ON m.project_id = p.id
     WHERE m.id = $1
   `, [meetingId]);
   if (!r.rows[0]) return null;

@@ -29,10 +29,10 @@ const STATUS_BACK_SQL = `
  * Private helper — mirrors the same init in website-db.ts meetings block.
  */
 async function initMeetingProjectLink(): Promise<void> {
-  await initTicketsSchema(); // tickets.tickets must exist before the FK column
+  await initTicketsSchema(); // public.customer_projects must exist before the FK column
   await pool.query(`
     ALTER TABLE meetings
-      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES tickets.tickets(id) ON DELETE SET NULL
+      ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES public.customer_projects(id) ON DELETE SET NULL
   `);
   await pool.query(`
     CREATE INDEX IF NOT EXISTS idx_meetings_project ON meetings(project_id)
@@ -63,10 +63,10 @@ export async function listTasksInMonth(year: number, month: number): Promise<Cal
             pt.due_date AS "dueDate",
             (${STATUS_BACK_SQL.replace(/__TBL__/g, 'pt')}) AS status,
             pt.priority
-     FROM tickets.tickets pt
-     LEFT JOIN tickets.tickets parent ON parent.id = pt.parent_id
-     LEFT JOIN tickets.tickets root   ON root.id   = parent.parent_id
-     WHERE pt.type IN ('task','chore')
+     FROM public.customer_projects pt
+     LEFT JOIN public.customer_projects parent ON parent.id = pt.parent_id
+     LEFT JOIN public.customer_projects root   ON root.id   = parent.parent_id
+     WHERE pt.type = 'task'
        AND pt.due_date BETWEEN $1::date AND $2::date
      ORDER BY pt.due_date ASC, pt.priority DESC`,
     [firstDay, lastDay]
@@ -98,7 +98,7 @@ export async function listProjectsInMonth(year: number, month: number, brand?: s
             c.name        AS "customerName",
             p.start_date  AS "startDate",
             p.due_date    AS "dueDate"
-     FROM tickets.tickets p
+     FROM public.customer_projects p
      LEFT JOIN customers c ON c.id = p.customer_id
      WHERE p.type='project' AND p.parent_id IS NULL
        AND p.status NOT IN ('archived', 'done')
@@ -148,7 +148,7 @@ export async function listMeetingsInRange(fromIso: string, toIso: string): Promi
             p.title AS "projectName"
        FROM meetings m
        JOIN customers c ON m.customer_id = c.id
-       LEFT JOIN tickets.tickets p ON m.project_id = p.id
+       LEFT JOIN public.customer_projects p ON m.project_id = p.id
       WHERE m.scheduled_at IS NOT NULL
         AND m.scheduled_at >= $1::timestamptz
         AND m.scheduled_at <= $2::timestamptz
@@ -168,7 +168,7 @@ async function initBookingProjectLinks(): Promise<void> {
     CREATE TABLE IF NOT EXISTS booking_project_links (
       caldav_uid  TEXT    NOT NULL,
       brand       TEXT REFERENCES public.brands(id) ON UPDATE CASCADE ON DELETE RESTRICT    NOT NULL,
-      project_id  UUID    REFERENCES tickets.tickets(id) ON DELETE SET NULL,
+      project_id  UUID    REFERENCES public.customer_projects(id) ON DELETE SET NULL,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       PRIMARY KEY (caldav_uid, brand)
     );

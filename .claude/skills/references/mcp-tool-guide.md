@@ -124,6 +124,9 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
 - ⚠️ `tickets.ticket_plans`: nie `SELECT *` oder die `content`-Spalte über die ganze Tabelle (MB-Transfer
   über `kubectl exec` → Timeout). Immer Metadaten (`id`, `ticket_id`, `slug`, `branch`, `pr_number`,
   `archived_at`) oder gezielt nach `ticket_id`/`slug` filtern.
+- ⚠️ **`tickets.ticket_plans`-Schema:** Die Spalten sind `id` (UUID), `ticket_id` (FK→tickets.id),
+  `slug`, `branch`, `pr_number` (int), `content` (text, MB), `archived_at` (timestamptz).
+  Es gibt **kein** `status`-Feld — Status steht auf `tickets.tickets`, nicht auf `ticket_plans`.
 
 ## `mcp-kubernetes` — k8s-Status/Read
 

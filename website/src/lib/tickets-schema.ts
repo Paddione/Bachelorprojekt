@@ -4,6 +4,7 @@
 // Import-Zyklus zwischen tickets-db.ts und website-db.ts aufzubrechen.
 import { pool, ensureSchemaOnce } from './db-pool';
 import { MixedEmbeddingModelError } from './knowledge-db';
+import { initCustomerProjectsSchema } from './schema/customer-projects-schema';
 import { initProviderConfigSchema } from './schema/provider-config-schema';
 import { applyTicketsCoreSchema } from './tickets/tables/tickets.ts';
 import { applyFactoryControlSchema } from './tickets/tables/factory-control.ts';
@@ -32,6 +33,7 @@ export async function initTicketsSchema(): Promise<void> {
         await applyFactoryModelSlotsSchema(pool);
         await applySystemtestLinkback(pool);
         await applyLegacyMigrations(pool);
+        await initCustomerProjectsSchema(client);
         await initProviderConfigSchema(client);
         schemaReady = true;
       } finally {

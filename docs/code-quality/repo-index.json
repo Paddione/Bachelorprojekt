@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 869,
+      "file_count": 870,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -386,6 +386,7 @@
         "tests/spec/ci-cd/branch-allowlist-ssot.bats",
         "tests/spec/ci-cd/branch-reaper.bats",
         "tests/spec/ci-cd/changed-tests-collection-parity.bats",
+        "tests/spec/ci-cd/changed-tests-uncommitted-diff.bats",
         "tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats",
         "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
         "tests/spec/ci-cd/freshness-check-base-mismatch.bats",
@@ -3239,7 +3240,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 686,
+      "file_count": 687,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3510,6 +3511,7 @@
         "scripts/factory/mcp-go/factory-mcp.service",
         "scripts/factory/mcp-go/go.mod",
         "scripts/factory/mcp-go/main.go",
+        "scripts/factory/mcp-go/main_test.go",
         "scripts/factory/mcp-server.mjs",
         "scripts/factory/merge-hooks.sh",
         "scripts/factory/metrics.sh",

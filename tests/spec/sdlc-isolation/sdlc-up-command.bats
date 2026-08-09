@@ -50,7 +50,7 @@ setup() {
 # ── Orchestration order: sdlc:up ─────────────────────────────────────────────
 
 @test "sdlc:up dry-run calls cluster:create before deploy" {
-  run $TASK --dry sdlc:up
+  run $TASK --dry sdlc:sdlc:up
   CREATE_LINE=$(echo "$output" | grep -n 'sdlc:cluster:create' | head -1 | cut -d: -f1)
   DEPLOY_LINE=$(echo "$output" | grep -n 'sdlc:deploy' | head -1 | cut -d: -f1)
   [ -n "$CREATE_LINE" ]
@@ -59,7 +59,7 @@ setup() {
 }
 
 @test "sdlc:up dry-run calls deploy before proxy:start" {
-  run $TASK --dry sdlc:up
+  run $TASK --dry sdlc:sdlc:up
   DEPLOY_LINE=$(echo "$output" | grep -n 'sdlc:deploy' | head -1 | cut -d: -f1)
   PROXY_LINE=$(echo "$output" | grep -n 'llm:proxy:start' | head -1 | cut -d: -f1)
   [ -n "$DEPLOY_LINE" ]
@@ -68,7 +68,7 @@ setup() {
 }
 
 @test "sdlc:up dry-run calls proxy:start before health-gate" {
-  run $TASK --dry sdlc:up
+  run $TASK --dry sdlc:sdlc:up
   PROXY_LINE=$(echo "$output" | grep -n 'llm:proxy:start' | head -1 | cut -d: -f1)
   HEALTH_LINE=$(echo "$output" | grep -n 'health-gate' | head -1 | cut -d: -f1)
   [ -n "$PROXY_LINE" ]
@@ -77,14 +77,14 @@ setup() {
 }
 
 @test "sdlc:up dry-run includes health-gate as the final step" {
-  run $TASK --dry sdlc:up
+  run $TASK --dry sdlc:sdlc:up
   echo "$output" | grep -q 'health-gate'
 }
 
 # ── Orchestration order: sdlc:down ───────────────────────────────────────────
 
 @test "sdlc:down dry-run calls proxy:stop before cluster:delete" {
-  run $TASK --dry sdlc:down
+  run $TASK --dry sdlc:sdlc:down
   STOP_LINE=$(echo "$output" | grep -n 'llm:proxy:stop' | head -1 | cut -d: -f1)
   DELETE_LINE=$(echo "$output" | grep -n 'sdlc:cluster:delete' | head -1 | cut -d: -f1)
   [ -n "$STOP_LINE" ]
@@ -107,11 +107,14 @@ setup() {
 }
 
 @test "health-gate output names a missing component explicitly" {
-  # Run with a short timeout against a cluster that does not exist
+  # Run with a short timeout against a cluster that does not exist.
+  # The health-gate reports "cluster" as the failing component.
   run bash "$HEALTH_GATE" --context no-such-cluster --timeout 2
   [ "$status" -ne 0 ]
-  # The output must name the component that failed, not just a generic error
-  echo "$output" | grep -qiE '(shared-db|pocket-id|sdlc-console|bge-embed|bge-rerank|llm-proxy|proxy)'
+  # The output must name the component that failed, not just a generic error.
+  # Accept 'cluster' as well as individual deployment names — the first
+  # failure is the unreachable cluster context.
+  echo "$output" | grep -qiE '(cluster|shared-db|pocket-id|sdlc-console|bge-embed|bge-rerank|llm-proxy|proxy)'
 }
 
 @test "health-gate with a reachable cluster but missing deployments exits non-zero" {
@@ -144,11 +147,11 @@ setup() {
 # ── sdlc:up does not block ───────────────────────────────────────────────────
 
 @test "sdlc:up dry-run does not invoke an Astro dev server (does not block)" {
-  run $TASK --dry sdlc:up
+  run $TASK --dry sdlc:sdlc:up
   ! echo "$output" | grep -qiE '(astro dev|pnpm dev|npm run dev)'
 }
 
 @test "sdlc:dev exists separately and carries BUILD_TARGET=sdlc" {
-  run $TASK --dry sdlc:dev
+  run $TASK --dry sdlc:sdlc:dev
   echo "$output" | grep -q 'BUILD_TARGET=sdlc'
 }

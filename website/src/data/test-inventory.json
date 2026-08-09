@@ -2190,6 +2190,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/automerge-run-scope",
+    "file": "tests/spec/ci-cd/automerge-run-scope.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/branch-reaper",
     "file": "tests/spec/ci-cd/branch-reaper.bats",
     "category": "ci-cd",

@@ -2873,8 +2873,8 @@
   ],
   "T002814": [
     {
-      "slug": "commit-scope-vokabular-T002814",
-      "status": "plan_staged"
+      "slug": "2026-08-09-commit-scope-vokabular-T002814",
+      "status": "archived"
     }
   ],
   "T002817": [
@@ -2961,6 +2961,12 @@
       "status": "archived"
     }
   ],
+  "T002896": [
+    {
+      "slug": "2026-08-10-factory-worktree-reaper-lock-guard",
+      "status": "archived"
+    }
+  ],
   "T002925": [
     {
       "slug": "sammel-bats-hygiene-T002925",
@@ -2976,6 +2982,12 @@
   "T003045": [
     {
       "slug": "main-ci-branch-precondition",
+      "status": "plan_staged"
+    }
+  ],
+  "T003075": [
+    {
+      "slug": "freshness-gate-artifacts",
       "status": "plan_staged"
     }
   ],

@@ -1896,6 +1896,18 @@
     "kind": "shell"
   },
   {
+    "id": "T002785-1",
+    "file": "tests/spec/ticket-system/unfactory-attempts-T002785.bats",
+    "category": "T002785",
+    "kind": "shell"
+  },
+  {
+    "id": "T002785-7",
+    "file": "tests/spec/agent-lock-branch-reap-T002785.bats",
+    "category": "T002785",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",

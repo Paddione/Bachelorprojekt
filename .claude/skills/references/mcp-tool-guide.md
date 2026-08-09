@@ -96,6 +96,14 @@ Schlägt der MCP-Zugriff fehl oder ist der Cluster-Kontext nicht gesetzt → **F
   **stillschweigend die gleichnamige mentolder-Zeile** (das brand-gefilterte Query liefert leer
   und legt fälschlich nahe, der Filter sei falsch). Ticket-Reads (`tickets.*`) gehören zu
   `mcp__ticket-mcp__*` mit explizitem `brand`-Argument, **nicht** zu diesem Server.
+- ⚠️ **Eingefrorene fleet-Kopie, nicht die lokale SSOT [T002785-4].** Port 13001 wird per
+  `kubectl --context fleet port-forward` auf die **fleet**-Postgres-Kopie bedient (ADR-006 E3:
+  SELECT ja, Writes nein) — nicht auf die lokale Dev-DB. Der Freeze ist historisch gewachsen
+  und steht bisher nur im Kopf von `scripts/ticket.sh`. Ein Triage-Lauf las dadurch drei
+  bereits-done Tickets als offen und löste redundante Closure-Writes aus. Für
+  **Ticket-Zustand** (offen/geschlossen, Status, `readiness`) IMMER `mcp__ticket-mcp__*` oder
+  den `psql()`-Fallback gegen die richtige DB nutzen; `mcp-postgres` nur für Nicht-Ticket-Reads
+  (`knowledge.*`, `v_timeline`), deren Freeze-Stand unkritisch ist.
 - **Wann bevorzugen:** Read-only SELECTs gegen `knowledge.*`, `v_timeline` oder andere
   Nicht-Ticket-Tabellen. Für Ticket-Queries → `mcp__ticket-mcp__get_ticket` /
   `mcp__ticket-mcp__list_tickets` mit gesetztem `brand`.

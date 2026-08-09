@@ -503,8 +503,13 @@ cmd_unfactory() {
   # Validate BEFORE _pgpod so bad-arg errors stay deterministic without a cluster
   # (same convention as cmd_phase / FA-SF-48).
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
-  if [[ -n "$attempts" && ! "$attempts" =~ ^[0-9]+$ ]]; then
-    echo "ERROR: --attempts must be a non-negative integer." >&2; exit 2
+  # [T002785-1] Der Watchdog uebergibt den Attempts-Wert mit failure_class-Praefix
+  # (INFRA-3, MODEL-2 — scripts/factory/watchdog.sh:178, T002389). Reine-Ziffern-
+  # Validierung liess den regulaeren Eskalationspfad mit exit 2 scheitern; der
+  # Terminal-State (blocked + factory_excluded) wurde nie gesetzt. Erlaubt sind
+  # weiterhin reine Ziffern UND [A-Z]+-<Ziffern>.
+  if [[ -n "$attempts" && ! "$attempts" =~ ^([A-Z]+-)?[0-9]+$ ]]; then
+    echo "ERROR: --attempts must be a non-negative integer (or CLASS-N, e.g. INFRA-3)." >&2; exit 2
   fi
   if _ticket_offline_skip "unfactory" "--id" "$id"; then return 0; fi
   local pod; pod=$(_pgpod)

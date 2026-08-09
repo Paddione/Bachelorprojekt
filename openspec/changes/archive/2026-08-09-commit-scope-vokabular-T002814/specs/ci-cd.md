@@ -24,6 +24,8 @@ The system SHALL reject a commit scope that was consolidated into another scope 
 - **WHEN** `scripts/validate-commit-msg.sh message` das Subject prüft
 - **THEN** liefert das Skript Exit-Code 1 und die Diagnose nennt `factory` als Zielscope
 
+## ADDED Requirements
+
 ### Requirement: Ablehnung eines unbekannten Scopes verweist auf den scope-blinden PR-Titel-Check
 
 Because the CI PR-title check (`amannn/action-semantic-pull-request`) validates commit **type** but deliberately not **scope** — named-scope enforcement happens only in `scripts/validate-commit-msg.sh` — a green PR-title check carries no information about scope validity. The system SHALL, whenever it rejects a commit subject for an unknown scope, additionally print a note that the CI PR-title check does not validate scope, so a green PR title is not evidence that the scope will be accepted.

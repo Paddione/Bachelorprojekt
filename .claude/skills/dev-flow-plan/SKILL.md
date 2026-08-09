@@ -71,6 +71,38 @@ Die feature/fix/chore-Wahl oben ist die *Pfad*-Wahl durch diese Skill; davor ste
 *Artefakt*-Wahl (PRD vs. ADR vs. Change-Proposal vs. Chore-Ticket). Entscheidungstabelle +
 PRD-Checkliste: [plan-artifact-level](file:///home/patrick/Bachelorprojekt/.claude/skills/references/plan-artifact-level.md).
 
+## Schritt 0.7: Prior-Art-Suche vor der ersten Architekturfrage [T002829]
+
+Bevor dem User eine **Architekturfrage** gestellt wird („gemeinsame Quelle oder duplizieren?",
+„Bibliothek oder Inline?", „Hook oder Helper?"), MUSS geprüft sein, ob dieselbe Frage im Repo
+schon einmal entschieden wurde. Das gilt für **beide** Pfade und liegt **vor** dem Brainstorming:
+eine Antwort, die eine dokumentierte Entscheidung unbemerkt umkehrt, fällt sonst erst im Review
+auf — oder gar nicht.
+
+Die Suche geht über die **Requirements**, nicht nur über den Code. Eine bewusst verworfene
+Lösungsrichtung hinterlässt im Code definitionsgemäß keine Spur; sie steht nur im Spec:
+
+```bash
+# 1) Requirements zum betroffenen Gegenstand — über die Dateipfade, nicht nur Stichworte
+grep -rn -e '<pfad/der/betroffenen/datei>' -e '<zweiter-pfad>' openspec/specs/
+# 2) Die Guards, die diese Entscheidung absichern (Drift-/Konventionstests)
+grep -rln '<pfad/der/betroffenen/datei>' tests/spec/
+```
+
+Liefert die Suche ein Requirement zum selben Gegenstand, wird es **zitiert** (Datei + Zeilen) und
+die Frage an den User lautet nicht mehr „welche Richtung?", sondern „bestehende Entscheidung
+beibehalten oder ersetzen?". Fällt die Wahl auf Ersetzen, geht das über ein `RENAMED`/`MODIFIED`-
+Delta auf den SSOT-Spec — nicht durch stilles Danebenschreiben.
+
+> Beobachtet an T002817: Die Frage „gemeinsame Quelle vs. Allowlist spiegeln" war in
+> `openspec/specs/divergence-guard.md` (aus T002470) bereits zugunsten der Duplikation entschieden
+> und mit drei Drift-Tests abgesichert. Gefunden wurde das erst beim Schreiben des failing Tests —
+> also nach der Nutzerfrage, die daraufhin ein zweites Mal beantwortet werden musste.
+>
+> Verwandt, aber nicht dasselbe: T002448-M5 (Fix-Pfad) verlangt, dass die **Ursache** vor dem
+> Lösungsdesign belegt ist. Dieser Schritt verlangt zusätzlich, dass die **Lösungsrichtung** nicht
+> schon einmal bewusst verworfen wurde.
+
 ## Feature-Pfad
 > **Proposal-Konvention:** Die gesamte Proposal-Phase (Brainstorming + `openspec:propose`) läuft
 > auf dem `main`-Branch — erst danach wird der Worktree angelegt. So sieht OpenSpec beim
@@ -212,6 +244,20 @@ Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird
 hier harte Voraussetzung, nicht Stilfrage. Der Test gehört nach `tests/spec/<spec-slug>.bats`
 (die Spec aus `openspec/specs/`), nicht in eine neue ticket-nummerierte Datei.
 
+> **Externe Abhängigkeiten schon in der Rotphase absichern [T002820]:** Setzt der failing Test ein
+> externes Binary oder einen externen Dienst voraus (Drittanbieter-CLI, erreichbarer Cluster,
+> laufende DB), gehört der Verfügbarkeits-Guard **in die Rotphase** — nicht erst in die Grünphase:
+> ```bash
+> command -v <binary> >/dev/null 2>&1 || skip "<binary> binary not installed"
+> ```
+> Etabliertes Muster im Repo: `tests/spec/sealed-secret-cluster-drift.bats`. Vor dem Schreiben des
+> Tests prüfen, ob CI die Abhängigkeit überhaupt einrichtet — `grep -rn '<binary>'
+> .github/workflows/`; **0 Treffer heißt: in CI nicht vorhanden**. Ohne Guard ist der Test in CI
+> dauerhaft rot und misst die Ausstattung des Runners statt den Zustand des Codes. Genau das
+> zerstört den Zweck der Rotphase: „rot, weil Implementierung fehlt" und „rot, weil das Binary
+> fehlt" sind in der CI-Ausgabe nicht zu unterscheiden. Beide Richtungen verifizieren — mit dem
+> Binary im PATH läuft der Test, mit `PATH=/usr/bin:/bin` skippt er sauber.
+
 Schritte 1–5 im Detail (Ticket anlegen, Worktree, Claims, Lavish-Board, Brainstorming mit
 Root-Cause-Fokus, failing Test, Plan, `stage-plan`, Commit):
 [dev-flow-plan-phases](file:///home/patrick/Bachelorprojekt/.claude/skills/references/dev-flow-plan-phases.md) §Fix-Pfad.
@@ -242,6 +288,18 @@ und gemergt. In Schritt 0 für Chores sofort `dev-flow-chore` aufrufen und hier 
 - Plan `openspec/changes/<slug>/tasks.md` committed
 - Ticket status = `plan_staged`
 - Branch-Lock aktiv (andere Sessions sehen diesen Branch als belegt)
+- **Kein PR** — der Plan-Stand ist ein gepushter Branch, nichts weiter
+
+> **Kein fertig aussehender PR aus dem Plan-Stand [T002816]:** Ein offener PR, dessen Titel einen
+> fertigen Fix ankündigt, während der Branch nur `chore: anchor branch` und `chore(plans): add
+> failing test + stage plan` trägt, liest sich von außen als „kaputter Fix, Diagnose nötig" statt
+> als „Plan gestagt, Implementierung ausstehend". Die roten Checks stammen dann aus der schlicht
+> nicht committeten Implementierung — untracked `specs/`-Delta („missing specs/ delta dir") und
+> uncommittete SSOT-Ergänzung, auf die ein BATS-Guard greppt — und in einer Queue mit mehreren PRs
+> kostet das gezielt Zeit an der falschen Stelle (beobachtet an PR #3918/T002719).
+> Wird aus anderem Grund dennoch früh ein PR gebraucht, dann **als Draft**
+> (`gh pr create --draft`) und mit erkennbarem Titel-Präfix `[plan-only]`, damit der Zustand aus
+> der PR-Liste ablesbar ist. Den regulären PR eröffnet `dev-flow-execute` nach der Implementierung.
 **Nächster Schritt im Kreislauf:** `dev-flow-execute` aufrufen.  
 Der Skill liest den Plan automatisch aus der DB (`FACTORY-PLAN-REF` Kommentar) — kein manuelle Pfad-Übergabe nötig.
 ## Verwandte Skills

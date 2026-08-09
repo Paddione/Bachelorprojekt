@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 875,
+      "file_count": 876,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -429,6 +429,7 @@
         "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
         "tests/spec/dev-flow-plan/plan-qa-livez-probe.bats",
         "tests/spec/dev-flow-plan/plan-qa-payload.bats",
+        "tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats",
         "tests/spec/dev-flow-plan/task-context.bats",
         "tests/spec/dev-flow-plan/tcc-fixture-orphan-reap.bats",
         "tests/spec/devflow-selection-archive-hardening.bats",

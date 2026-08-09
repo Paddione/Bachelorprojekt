@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.2...website-v1.259.3) (2026-08-09)
+
+
+### Bug Fixes
+
+* **security:** bind external_id as psql variable + allowlist guard in update-status [T002906] ([#3970](https://github.com/Paddione/Bachelorprojekt/issues/3970)) ([70edfff](https://github.com/Paddione/Bachelorprojekt/commit/70edfff57a83bd8da24d67c98539a3e261c6d3cb))
+
 ## [1.259.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.1...website-v1.259.2) (2026-08-09)
 
 

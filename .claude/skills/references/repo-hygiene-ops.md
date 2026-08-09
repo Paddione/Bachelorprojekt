@@ -55,13 +55,47 @@ Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit
 ```bash
 git worktree list
 # Für jeden Worktree (außer main, außer aktuell gehaltener):
-git status --porcelain   # MUSS leer sein — sonst kein Remove
-git log main..<branch> --oneline   # Info: leer = Branch vollständig gemergt
-git worktree remove <path>          # ohne --force (Schutz bei ungetrackten Dateien)
+git -C <path> status --porcelain   # Abweichungen gegen die Allowlist unten prüfen
+git worktree remove <path>
 ```
 
-`--force` nur als bewusste Eskalation verwenden, wenn der Vorcheck sauber ist und
-`git worktree remove` trotzdem verweigert (z.B. bei.locked Worktrees).
+> **`git log main..<branch>` taugt hier nicht als Merge-Nachweis.** Dieses Repo mergt via
+> squash-and-merge — der Branch-Tip ist danach kein Ancestor von `main`, und die Ausgabe listet
+> sämtliche Commits des Branches, auch wenn ihr Inhalt längst in `main` liegt. Real beobachtet an
+> `.worktrees/factory-worktree-reaper-T002896`: sieben scheinbar ungemergte Commits, während der
+> zugehörige Squash-Commit `e78a30777` bereits in `main` stand. Maßgeblich ist der Blob-Vergleich
+> pro Datei aus §2 („Three-dot-Diff-Falle").
+
+### Generat-Abweichungen sind kein Befund
+
+Die frühere Regel „`--porcelain` MUSS leer sein" misst zu grob, um allein zu entscheiden. Jeder
+Worktree, in dem ein Plan gestaged oder archiviert wurde, trägt danach ein regeneriertes
+`website/src/data/openspec-status.json` und ist damit dauerhaft dirty — ohne dass ein Byte eigener
+Arbeit darin steht. Wörtlich genommen landet der Aufräumpfad deshalb im Normalfall im
+`--force`-Zweig, und ein Schutz, der bei fast jedem legitimen Aufruf übersprungen werden muss,
+macht `--force` zum Standardgriff. Danach fällt echte ungesicherte Arbeit im selben Zweig nicht
+mehr auf — der Schutz schützt dann nichts mehr.
+
+Es entscheidet also nicht die Leere der Ausgabe, sondern **welche Pfade** abweichen. Folgenlos
+sind Plan-Artefakte und Generate, die auf `main` ohnehin fortgeschrieben werden:
+
+```bash
+# Nicht-allowlistete Abweichungen — nur diese blockieren den Remove.
+git -C <path> status --porcelain | cut -c4- \
+  | grep -Ev '^(openspec/changes/|docs/code-quality/|website/src/data/)' \
+  | grep -Ev '^(\.release-please-manifest\.json|website/CHANGELOG\.md|website/package\.json)$'
+```
+
+Bleibt die Ausgabe leer, ist der Worktree im Sinne dieses Runbooks sauber. `--force` ist dann
+keine Eskalation, sondern der belegte Normalfall — `git worktree remove` verweigert sonst allein
+wegen der Generate. Kommt etwas zurück, ist das ein echter Befund: **kein Remove**, erst sichern.
+
+> Die Musterliste ist eine Arbeitskopie, keine zweite Quelle: maßgeblich ist `ALLOWLIST=` in
+> [`scripts/branch-reaper.sh`](../../../scripts/branch-reaper.sh), das für Branches dieselbe
+> Unterscheidung trifft. Wächst sie dort, gehört der Ausdruck oben nachgezogen.
+
+`--force` bleibt eine bewusste Eskalation, sobald der Vorcheck **nicht** sauber ist — etwa bei
+`.locked` Worktrees oder wenn nicht-allowlistete Pfade abweichen und man sich trotzdem entscheidet.
 
 ## 2. Stale Branches
 

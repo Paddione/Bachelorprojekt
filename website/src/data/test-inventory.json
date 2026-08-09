@@ -3552,6 +3552,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-hygiene/worktree-remove-generat-allowlist",
+    "file": "tests/spec/repo-hygiene/worktree-remove-generat-allowlist.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
     "id": "repo-hygiene/worktree-stash-inspection",
     "file": "tests/spec/repo-hygiene/worktree-stash-inspection.bats",
     "category": "repo-hygiene",

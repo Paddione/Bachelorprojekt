@@ -25,11 +25,11 @@ const server = new McpServer({ name: 'factory', version: '1.0.0' })
 
 server.tool('factory_status', 'Show factory queue depth and whether a tick is running', async () => {
   const lockHeld = execFileSync('bash', ['-c', `test -f /tmp/factory-tick.lock || { echo 'false'; exit; }; (flock -n 9 2>/dev/null && echo 'false' || echo 'true') 9>/tmp/factory-tick.lock`], { encoding: 'utf8', timeout: 3000 }).trim()
-  return { content: [{ type: 'text', text: JSON.stringify({ backlog: psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='backlog'"), plan_staged: psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='plan_staged'"), tick_running: lockHeld === 'true' }, null, 2) }] }
+  return { content: [{ type: 'text', text: JSON.stringify({ backlog: psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='backlog' AND is_test_data = false"), plan_staged: psqlJSON("SELECT count(*) FROM tickets.tickets WHERE status='plan_staged' AND is_test_data = false"), tick_running: lockHeld === 'true' }, null, 2) }] }
 })
 
 server.tool('factory_queue', 'List waiting tickets (backlog + plan_staged)', async () => {
-  const sql = `SELECT COALESCE(json_agg(row_to_json(q)), '[]') FROM (SELECT external_id, title, priority, status FROM tickets.tickets WHERE status IN ('backlog','plan_staged') ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 ELSE 3 END, created_at) q;`
+  const sql = `SELECT COALESCE(json_agg(row_to_json(q)), '[]') FROM (SELECT external_id, title, priority, status FROM tickets.tickets WHERE status IN ('backlog','plan_staged') AND is_test_data = false ORDER BY CASE priority WHEN 'hoch' THEN 1 WHEN 'mittel' THEN 2 ELSE 3 END, created_at) q;`
   return { content: [{ type: 'text', text: psqlJSON(sql) }] }
 })
 

@@ -276,8 +276,8 @@ bash "$WT/scripts/ticket.sh" stage-plan \
   --partials 1 >/dev/null
 
 # ── execution_released=true explizit setzen (idempotent) ────────────────────
-# Der Container wurde von mishap.go mit status=plan_staged angelegt, aber
-# ohne execution_released. Der stage-plan-Schritt aktualisiert den Plan-Ref.
+# Der Container startet als triage und bekommt hier plan_staged + FACTORY-PLAN-REF.
+# Der stage-plan-Schritt setzt Status und Plan-Ref in einem Schritt.
 # Mit release-hold stellen wir sicher, dass execution_released=true gesetzt
 # UND die Factory aufgeweckt wird.
 echo "mishap-rollup: release-hold (execution_released=true) ..."

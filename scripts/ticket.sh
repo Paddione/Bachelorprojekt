@@ -1012,7 +1012,7 @@ cmd_rollup_container() {
     --type chore --brand "$brand" \
     --title "$ROLLUP_TITLE" \
     --description "Fortlaufende Sammlung nicht-kritischer Mishaps. Dieses Ticket bleibt dauerhaft offen." \
-    --status plan_staged --severity minor 2>&1)
+    --status triage --severity minor 2>&1)
   echo "$ext_id"
 }
 

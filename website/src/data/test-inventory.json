@@ -3702,6 +3702,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/queue-test-data-filter",
+    "file": "tests/spec/software-factory/queue-test-data-filter.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/stage-plan-touched-files",
     "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
     "category": "software-factory",

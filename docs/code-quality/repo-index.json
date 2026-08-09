@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 847,
+      "file_count": 848,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -640,6 +640,7 @@
         "tests/spec/software-factory/partial-deploy-gang.bats",
         "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
         "tests/spec/software-factory/pr-babysit.bats",
+        "tests/spec/software-factory/queue-test-data-filter.bats",
         "tests/spec/software-factory/retry-and-build-loop.bats",
         "tests/spec/software-factory/scheduling.bats",
         "tests/spec/software-factory/scout-and-routing.bats",

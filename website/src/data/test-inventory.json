@@ -3270,6 +3270,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/rollup-container-empty-list-selfheal",
+    "file": "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-t002422",
     "file": "tests/spec/mishap-t002422.bats",
     "category": "mishap-t002422",

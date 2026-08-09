@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.7...website-v1.257.8) (2026-08-09)
+
+
+### Bug Fixes
+
+* **factory:** exclude is_test_data rows from ticket.sh list by default [T002781] ([#3926](https://github.com/Paddione/Bachelorprojekt/issues/3926)) ([1fcb6cf](https://github.com/Paddione/Bachelorprojekt/commit/1fcb6cfb2d43c92cc72c4979c323a17d545eca4d))
+
 ## [1.257.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.6...website-v1.257.7) (2026-08-09)
 
 

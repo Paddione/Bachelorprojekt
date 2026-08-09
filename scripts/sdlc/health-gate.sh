@@ -63,6 +63,26 @@ else
   exit 1
 fi
 
+# ── kubelet-cert check (T002999) ─────────────────────────────────────────────
+# Prueft das Kubelet-Serving-Zertifikat JEDES Nodes. Exit 2 (Vorbedingung fehlt,
+# z.B. openssl nicht im PATH) ist eine Warnung, kein Gate-Fehlschlag — sonst
+# scheitert das Gate auf Maschinen ohne openssl an der eigenen Ausstattung.
+# Der Check kommt VOR den Deployment-Prüfungen: kubectl rollout status läuft
+# über den API-Server und bleibt grün, während jedes kubectl exec scheitert.
+CERT_CHECK="$(cd "$(dirname "$0")" && pwd)/kubelet-cert-check.sh"
+if [[ -x "$CERT_CHECK" ]]; then
+  if "$CERT_CHECK" --context "$CTX" 2>/dev/null; then
+    pass "kubelet-cert" "SAN matches InternalIP on all nodes"
+  else
+    cert_rc=$?
+    if [[ $cert_rc -eq 2 ]]; then
+      echo "[$(ts)] WARN  kubelet-cert           Vorbedingung fehlt (z.B. openssl) — uebersprungen" >&2
+    else
+      fail "kubelet-cert" "SAN mismatch detected — run scripts/sdlc/kubelet-cert-check.sh --repair"
+    fi
+  fi
+fi
+
 # ── deployments (namespace: workspace) ───────────────────────────────────────
 
 declare -A DEPLOYMENTS=(

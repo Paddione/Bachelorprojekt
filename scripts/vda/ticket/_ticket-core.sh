@@ -70,8 +70,29 @@ _pgpod() {
 
 _exec_sql() {
   local pod="$1"; shift
+  local stderr_tmp
+  stderr_tmp="$(mktemp)"
+  # [T002999] Capture stderr from kubectl exec, pass through unchanged, then
+  # apply the kubelet-cert-hint on it. The hint enriches the output without
+  # replacing it — the original error and exit code are preserved.
   kubectl exec -i "$pod" -n "$NS" --context "$CTX" -c postgres -- \
-    psql -U "${USER:-website}" -d "${DB:-website}" -qtA -v ON_ERROR_STOP=1 "$@"
+    psql -U "${USER:-website}" -d "${DB:-website}" -qtA -v ON_ERROR_STOP=1 "$@" 2>"$stderr_tmp"
+  local rc=$?
+  if [[ -s "$stderr_tmp" ]]; then
+    local stderr_text
+    stderr_text="$(cat "$stderr_tmp")"
+    echo "$stderr_text" >&2
+    # Source hint library relative to this script's location
+    local hint_lib
+    hint_lib="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/lib/kubelet-cert-hint.sh"
+    if [[ -f "$hint_lib" ]]; then
+      # shellcheck source=scripts/lib/kubelet-cert-hint.sh
+      source "$hint_lib"
+      _kubelet_cert_hint "$stderr_text"
+    fi
+  fi
+  rm -f "$stderr_tmp"
+  return $rc
 }
 
 # TICKET_OFFLINE=1 — skip the cluster call for writes (dev-flow-execute best-effort).

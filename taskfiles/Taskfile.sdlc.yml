@@ -203,6 +203,11 @@ tasks:
     cmds:
       - node scripts/sdlc-cockpit-smoke.mjs {{.CLI_ARGS}}
 
+  sdlc:cert:check:
+    desc: "Kubelet-Serving-Zertifikat aller k3d-Nodes pruefen (T002999)"
+    cmds:
+      - bash scripts/sdlc/kubelet-cert-check.sh {{.CLI_ARGS}}
+
   # ── T002655: sdlc:up / sdlc:down / sdlc:dev ─────────────────────────────
 
   sdlc:up:

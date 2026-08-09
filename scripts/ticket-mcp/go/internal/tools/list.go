@@ -31,6 +31,7 @@ func RegisterListTools(s *server.MCPServer) {
 			mcp.WithString("attention_mode", mcp.Description("auto, ai_ready, needs_human"),
 				mcp.Enum("auto", "ai_ready", "needs_human")),
 			mcp.WithBoolean("missing_id", mcp.Description("Nur Tickets ohne external_id zurückgeben")),
+			mcp.WithBoolean("include_test_data", mcp.Description("Testdaten einschließen (default: false — is_test_data=true-Zeilen sind standardmäßig ausgeblendet)")),
 			mcp.WithInteger("limit", mcp.Description("Maximale Anzahl Ergebnisse (default: 200)"), mcp.Min(1), mcp.Max(1000)),
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -43,6 +44,7 @@ func RegisterListTools(s *server.MCPServer) {
 			mtype, _ := a["type"].(string)
 			attentionMode, _ := a["attention_mode"].(string)
 			missingID, _ := a["missing_id"].(bool)
+			includeTestData, _ := a["include_test_data"].(bool)
 			limit := 200
 			if v, ok := a["limit"].(float64); ok {
 				limit = int(v)
@@ -60,6 +62,9 @@ func RegisterListTools(s *server.MCPServer) {
 			}
 			if missingID {
 				args = append(args, "--missing-id")
+			}
+			if includeTestData {
+				args = append(args, "--include-test-data")
 			}
 
 			raw, err := runner.RunTicket(args, map[string]string{"BRAND": brand})

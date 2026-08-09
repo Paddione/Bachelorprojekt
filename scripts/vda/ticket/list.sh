@@ -3,6 +3,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
 
 main() {
   local brand="${BRAND:-mentolder}" status="" type="" attention_mode="" missing_id=false limit=200 sort="desc"
+  local include_test_data=false
 
   while [[ $# -gt 0 ]]; do case "$1" in
     --brand)          brand="$2"; shift 2 ;;
@@ -12,6 +13,7 @@ main() {
     --missing-id)     missing_id=true; shift ;;
     --limit)          limit="$2"; shift 2 ;;
     --sort)           sort="$2"; shift 2 ;;
+    --include-test-data) include_test_data=true; shift ;;
     *)                echo "Unknown list option: $1" >&2; exit 2 ;;
   esac; done
 
@@ -34,6 +36,7 @@ main() {
   [[ -n "$type" ]]           && where+=" AND type = :'type'"
   [[ -n "$attention_mode" ]] && where+=" AND attention_mode = :'attn'"
   [[ "$missing_id" == "true" ]] && where+=" AND external_id IS NULL"
+  [[ "$include_test_data" != "true" ]] && where+=" AND is_test_data IS NOT TRUE"
 
   # T001916: default is now newest-first (created_at DESC). With more than
   # `--limit` rows in the brand, an ASC default silently dropped the newest

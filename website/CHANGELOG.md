@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.3...website-v1.257.4) (2026-08-09)
+
+
+### Tests
+
+* **ops:** Guard fuer qwen3-coder — Loadout-Port und Proxy-Registrierung muessen uebereinstimmen [T002645] ([#3921](https://github.com/Paddione/Bachelorprojekt/issues/3921)) ([754c791](https://github.com/Paddione/Bachelorprojekt/commit/754c7918c1895afe136b37b258015d2ca9a66b5a))
+
 ## [1.257.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.2...website-v1.257.3) (2026-08-09)
 
 

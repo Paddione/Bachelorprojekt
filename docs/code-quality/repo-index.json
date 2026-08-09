@@ -377,6 +377,7 @@
         "tests/spec/centralized-logging.bats",
         "tests/spec/chat-inbox.bats",
         "tests/spec/ci-cd.bats",
+        "tests/spec/ci-cd/arbitration-scoped-kubeconfig.bats",
         "tests/spec/ci-cd/automerge-run-scope.bats",
         "tests/spec/ci-cd/branch-allowlist-ssot.bats",
         "tests/spec/ci-cd/branch-reaper.bats",

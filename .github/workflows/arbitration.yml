@@ -44,6 +44,10 @@ jobs:
       pull-requests: write
     env:
       GH_TOKEN: ${{ github.token }}
+      # Auf JOB-Ebene gebunden, nicht am Schritt: `steps.*.if` kann weder den
+      # `secrets`-Kontext lesen noch das step-eigene `env`. Nur so laesst sich
+      # unten auf "Secret gesetzt?" pruefen. [T002944]
+      ARBITRATION_KUBECONFIG: ${{ secrets.ARBITRATION_KUBECONFIG }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,6 +76,32 @@ jobs:
           echo "count=${COUNT}" >> "$GITHUB_OUTPUT"
           echo "Found ${COUNT} cluster(s) at/above threshold"
 
+      # [T002944] Der Runner laeuft als unprivilegierter Dienst-User (ghrunner)
+      # ohne Zugriff auf ein Entwickler-Home — vorher lief er als der
+      # Desktop-User mit NOPASSWD-root, dessen SSH-Keys fuer die Prod-Nodes und
+      # dessen Fleet-Kubeconfig. Damit hat er auch keine Kubeconfig mehr, und
+      # apply.sh braucht eine: bei Eskalation ruft es `ticket.sh create`, das
+      # ueber `kubectl exec … psql` in den shared-db-Pod geht.
+      #
+      # Statt der Admin-Kubeconfig eine eng geschnittene ServiceAccount-
+      # Credential aus dem Secret ARBITRATION_KUBECONFIG. Sie kann genau zwei
+      # Dinge im Namespace workspace des DEV-Clusters: Pods auflisten und
+      # `pods --subresource=exec` erzeugen. Kein Secret-Lesezugriff, kein
+      # anderer Namespace, nichts cluster-weit, und insbesondere kein Zugang
+      # zum prod-Cluster `fleet`.
+      #
+      # Fehlt das Secret, bleibt KUBECONFIG leer und `ticket.sh` scheitert wie
+      # bisher still (apply.sh ruft es mit `|| true`) — der Guard degradiert
+      # also, statt den Lauf zu brechen.
+      - name: Provide scoped kubeconfig for ticket escalation
+        if: steps.detect.outputs.count != '0' && env.ARBITRATION_KUBECONFIG != ''
+        continue-on-error: true
+        run: |
+          install -m 600 /dev/null "${RUNNER_TEMP}/arbitration.kubeconfig"
+          printf '%s' "$ARBITRATION_KUBECONFIG" > "${RUNNER_TEMP}/arbitration.kubeconfig"
+          echo "KUBECONFIG=${RUNNER_TEMP}/arbitration.kubeconfig" >> "$GITHUB_ENV"
+          echo "TICKET_CTX=k3d-mentolder-dev" >> "$GITHUB_ENV"
+
       - name: Apply arbitration (per Cluster)
         if: steps.detect.outputs.count != '0'
         continue-on-error: true
@@ -79,3 +109,14 @@ jobs:
           jq -c '.[]' /tmp/arbitration-clusters.json | while IFS= read -r cluster; do
             echo "$cluster" | bash scripts/arbitration/apply.sh || true
           done
+
+      # Die Credential darf den Lauf nicht ueberleben: _work wird zwischen Jobs
+      # nicht zuverlaessig geleert, und RUNNER_TEMP liegt im Home des
+      # Dienst-Users. `if: always()`, damit auch ein Abbruch aufraeumt.
+      - name: Shred scoped kubeconfig
+        if: always()
+        continue-on-error: true
+        run: |
+          shred -u "${RUNNER_TEMP}/arbitration.kubeconfig" 2>/dev/null \
+            || rm -f "${RUNNER_TEMP}/arbitration.kubeconfig" \
+            || true

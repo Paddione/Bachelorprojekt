@@ -10,15 +10,30 @@ async function main() {
     const collectionId = await ensureCollection(pool, {
       name: COLLECTION_NAME,
       source: COLLECTION_SOURCE,
-      description: 'Merged pull requests from bachelorprojekt.features',
+      description: 'Merged pull requests (live source: tickets.ticket_links)',
     });
 
     const { rows } = await pool.query(
-      `SELECT pr_number, title, description, body, merged_at, labels
-         FROM bachelorprojekt.features
-        WHERE merged_at IS NOT NULL
-        ORDER BY merged_at DESC`,
+      `SELECT DISTINCT l.pr_number, t.title, t.description
+         FROM tickets.ticket_links l
+         JOIN tickets.tickets t ON t.id = l.from_id
+        WHERE l.pr_number IS NOT NULL
+        ORDER BY l.pr_number DESC`,
     );
+
+    if (rows.length === 0) {
+      // [T002605] Zero-Item-Guard: siehe ingest-bug-tickets.mjs — stille-gruene
+      // Fehlerklasse beheben, bevor der Live-Store uebersehen bleibt.
+      const { rows: live } = await pool.query(
+        `SELECT COUNT(DISTINCT pr_number) AS n FROM tickets.ticket_links WHERE pr_number IS NOT NULL`,
+      );
+      const liveCount = Number(live[0]?.n ?? 0);
+      if (liveCount > 0) {
+        console.error(`0 PRs, but live store has ${liveCount} — source misconfiguration?`);
+        process.exit(1);
+      }
+      console.log('0 PRs (live store empty — nothing to ingest)');
+    }
 
     console.log(`Found ${rows.length} PRs to ingest`);
 
@@ -26,8 +41,6 @@ async function main() {
       const text = [
         `PR #${row.pr_number}: ${row.title}`,
         row.description ?? '',
-        row.body ?? '',
-        row.labels?.length ? `Labels: ${row.labels.join(', ')}` : '',
       ].filter(Boolean).join('\n\n');
 
       const hash = sha256(text);
@@ -46,8 +59,6 @@ async function main() {
         hash,
         metadata: {
           pr_number: row.pr_number,
-          merged_at: row.merged_at,
-          labels: row.labels ?? [],
         },
         chunks: chunksWithEmbed,
       });

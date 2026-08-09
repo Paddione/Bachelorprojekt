@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.9...website-v1.259.10) (2026-08-09)
+
+
+### Bug Fixes
+
+* **db:** Knowledge-Ingest liest Live-Ticket-Quellen statt leerer Legacy-Tabellen [T002605] ([#3992](https://github.com/Paddione/Bachelorprojekt/issues/3992)) ([2530cb1](https://github.com/Paddione/Bachelorprojekt/commit/2530cb1682bb2e4d1eb4ce71da56de47955541df))
+
 ## [1.259.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.8...website-v1.259.9) (2026-08-09)
 
 

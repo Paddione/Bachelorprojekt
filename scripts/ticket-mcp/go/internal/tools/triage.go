@@ -60,6 +60,12 @@ func RegisterTriageTools(s *server.MCPServer) {
 			if attentionMode != "" && !slices.Contains(validAttentionModes, attentionMode) {
 				return mcp.NewToolResultError(fmt.Sprintf("Ungültiger attention_mode: %s. Erlaubt: %s", attentionMode, strings.Join(validAttentionModes, ", "))), nil
 			}
+			// [T002876] MCP-seitiger plan_staged Guard (Belt-and-Suspenders zum triage.sh-Guard):
+			// triage darf NIEMALS auf plan_staged setzen — plan_staged ist ausschliesslich
+			// Tickets vorbehalten, die via stage-plan.sh mit validiertem Plan gestaged wurden.
+			if status == "plan_staged" {
+				return mcp.NewToolResultError("Cannot triage to status 'plan_staged' — stage the plan first (stage_plan). Use 'triage' or 'planning' instead."), nil
+			}
 
 			args := buildTriageArgs(id, status, priority, severity, mtype, attentionMode, component)
 

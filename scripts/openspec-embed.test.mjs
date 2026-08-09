@@ -1,3 +1,4 @@
+import http from 'node:http';
 import { describe, it, expect } from 'vitest';
 import {
   stripFrontmatter,
@@ -7,6 +8,7 @@ import {
   buildChunks,
   embedSlug,
   resolveEmbeddingModel,
+  defaultEmbed,
 } from './openspec-embed.mjs';
 
 describe('stripFrontmatter', () => {
@@ -119,5 +121,32 @@ describe('embedSlug', () => {
     const res = await embedSlug({ slug: 'demo', repoRoot: '/nonexistent', dryRun: true, deps: fake });
     expect(res.dryRun).toBe(true);
     expect(queries.some((q) => /INSERT/i.test(q.sql))).toBe(false);
+  });
+});
+
+describe('defaultEmbed', () => {
+  // T002913: a backend that accepts TCP but never answers must NOT hang the
+  // embed call forever — the post-commit hook ran inside the factory tick's
+  // `git rebase` and wedged the whole dispatcher (flock held, no further ticks).
+  it('aborts after the fetch timeout when the backend never responds', async () => {
+    const server = http.createServer((_req, _res) => {
+      // Accept the connection, never send a response (dead-but-accepting).
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const { port } = server.address();
+
+    const prevUrl = process.env.LLM_EMBED_URL;
+    const prevTimeout = process.env.OPENSPEC_EMBED_FETCH_TIMEOUT_MS;
+    process.env.LLM_EMBED_URL = `http://127.0.0.1:${port}`;
+    process.env.OPENSPEC_EMBED_FETCH_TIMEOUT_MS = '300';
+
+    try {
+      await expect(defaultEmbed(['ping'])).rejects.toThrow(/aborted|timed out/i);
+    } finally {
+      process.env.LLM_EMBED_URL = prevUrl;
+      if (prevTimeout === undefined) delete process.env.OPENSPEC_EMBED_FETCH_TIMEOUT_MS;
+      else process.env.OPENSPEC_EMBED_FETCH_TIMEOUT_MS = prevTimeout;
+      await new Promise((resolve) => server.close(resolve));
+    }
   });
 });

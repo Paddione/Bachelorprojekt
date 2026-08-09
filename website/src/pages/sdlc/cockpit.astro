@@ -1,6 +1,7 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, isAdmin } from '../../lib/auth';
+import { buildLoginRedirect } from '../../lib/login-redirect';
 import PipelinePanel from '../../components/cockpit/PipelinePanel.svelte';
 import { getFloor } from '../../lib/sdlc/factory-floor.ts';
 
@@ -9,7 +10,7 @@ export const prerender = false;
 const BRAND = (): string => process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session || !isAdmin(session)) return Astro.redirect('/login');
+if (!session || !isAdmin(session)) return Astro.redirect(buildLoginRedirect(Astro.url));
 
 const brand = BRAND();
 const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);

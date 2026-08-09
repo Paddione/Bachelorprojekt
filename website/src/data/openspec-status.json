@@ -2931,6 +2931,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003036": [
+    {
+      "slug": "sdlc-login-404-root",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

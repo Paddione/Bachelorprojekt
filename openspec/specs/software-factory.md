@@ -1431,13 +1431,27 @@ unchanged (Merge = Abschluss).
 
 ### Requirement: Bonsai Provider Registration for Implement and Review
 
-`scripts/factory/provider-register-bonsai.sh` SHALL register the logical model id `ternary-bonsai` with base URL `http://127.0.0.1:18235` (the unified gateway) in `tickets.provider_config` and `tickets.factory_model_slots` — never a backend port directly. This resolves the previous contradiction with the local-llm-proxy spec ("no enabled row references :8093 or :1234").
+`scripts/factory/provider-register-local.sh` SHALL register the local chat model for implement and review in `tickets.provider_config` and `tickets.factory_model_slots`, using the unified gateway `http://127.0.0.1:18235/v1` as `base_url` — never a backend port directly. The model id SHALL be read from the environment variable `FACTORY_MODEL_ID`, defaulting to `gemma26-factory`; it SHALL NOT be a source-code literal.
 
-#### Scenario: Registration writes gateway URL
+**Renamed-to:** Local Provider Registration for Implement and Review
+
+#### Scenario: Registration writes gateway URL and configurable model id
 
 - **GIVEN** the registration script runs against a brand database
 - **WHEN** its idempotent upserts complete
-- **THEN** every row it touched has `base_url = http://127.0.0.1:18235` and `model_id = ternary-bonsai`, and re-running it never reintroduces `:8093`
+- **THEN** every row it touched has `base_url = http://127.0.0.1:18235/v1` and `model_id` equal to `FACTORY_MODEL_ID` (default `gemma26-factory`), and re-running it never reintroduces `:8093`
+
+#### Scenario: Retired model ids never reach a routing surface
+
+- **GIVEN** the routing surfaces `scripts/factory/provider-register-local.sh`, `scripts/factory/route-provider.sh` and `scripts/factory/pipeline.mjs`
+- **WHEN** the spec BATS suite runs in CI
+- **THEN** any non-comment line naming a retired model id (`ternary-bonsai-27b`, `gemma-4-12b`) fails the test, because no backend serves those ids and the proxy would silently reroute the request instead of erroring
+
+#### Scenario: Emergency fallback routes through the gateway
+
+- **GIVEN** every candidate provider for a source/tier is claimed or on cooldown
+- **WHEN** `route-provider.sh` emits its emergency fallback
+- **THEN** the emitted `baseUrl` is the gateway `http://127.0.0.1:18235` and the `modelId` is the configured local model — not an LM Studio backend port, which since T002551 serves embedding and reranking models only and therefore hosts no chat model at all
 
 ### Requirement: PR Creation Gate after Local Verify and Completed Review
 
@@ -2675,6 +2689,36 @@ that an entry with empty scope and id remains attributable.
 - **WHEN** `bash scripts/agent-lock.sh list` runs
 - **THEN** the row for that file shows state `stale`
 - **AND** the row identifies the file as `main-checkout`
+
+### Requirement: Watchdog live tests SHALL age tickets via the staleness threshold, not updated_at backdating
+
+The trigger `tickets.fn_lifecycle_ts` unconditionally overwrites
+`NEW.updated_at := now()` on every UPDATE, so a test that backdates `updated_at` to
+fabricate a stale ticket never ages the row: the watchdog then runs against an empty
+stale list and the escalation path — status reset, slot release, audit comment,
+worktree cleanup, attempt counter — is not exercised. A test whose setup relies on
+backdating therefore cannot distinguish a working watchdog from a broken one.
+
+Live watchdog tests SHALL fabricate staleness by running `watchdog.sh` with
+`FACTORY_STALE_MIN=0` — every `in_progress` ticket is immediately due — instead of
+manipulating `updated_at`. Each such test SHALL assert a positive anchor, the seeded
+`external_id` present in the emitted JSON array, so a run whose stale list is empty
+cannot pass. Live tests SHALL set the ticket state (`pipeline_slot`, `status`) via a
+direct UPDATE rather than `slots.sh claim`, because `claim` writes the
+`pipeline_slot_meta` column that is missing in production (T002619).
+
+#### Scenario: Stale test fabricates staleness through the threshold
+
+- **GIVEN** a live test seeds an `in_progress` feature with `pipeline_slot` set and does not backdate `updated_at`
+- **WHEN** `watchdog.sh` runs for that brand with `FACTORY_STALE_MIN=0`
+- **THEN** the emitted JSON array contains the seeded `external_id`
+- **AND** the ticket's status is reset and its `pipeline_slot` released
+
+#### Scenario: An empty stale list fails the positive anchor
+
+- **GIVEN** `watchdog.sh` runs for that brand and its stale list is empty
+- **WHEN** the test asserts the seeded `external_id` appears in the JSON array
+- **THEN** the assertion fails — exit 0 with an empty array must not satisfy the test
 
 ## Testszenarien
 
@@ -4573,3 +4617,7 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (d81c61899c6f) -->
 
 <!-- merged from change delta software-factory.md (9f3a8acdfda1) -->
+
+<!-- merged from change delta software-factory.md (128787563f3a) -->
+
+<!-- merged from change delta software-factory.md (16af00a7b4e3) -->

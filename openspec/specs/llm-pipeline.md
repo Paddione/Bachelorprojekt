@@ -1227,6 +1227,207 @@ path.
 - **THEN** antwortet der Router mit HTTP 5xx — ein HTTP 200 würde einen verbotenen
   Silent-Fallback signalisieren
 
+### Requirement: bge-m3 als primärer Embedding-Provider mit Voyage-Fallback
+
+The system SHALL call the bge-m3 embedding endpoint at `LLM_EMBED_URL` first from `embedAll()` in
+`scripts/knowledge/lib-knowledge-pg.mjs`, and SHALL fall back to the Voyage AI API for the rest of
+the current process run — with a logged warning — only when the bge call fails or `LLM_EMBED_URL`
+is not configured. The system SHALL NOT depend on `LLM_ROUTER_URL` /
+`llm-router.workspace.svc.cluster.local:4000`, because that Service does not exist in the cluster
+(dead code path).
+
+#### Scenario: bge erreichbar → bge-Vektoren
+
+- **GIVEN** `LLM_EMBED_URL` zeigt auf `http://llm-gateway-embed.workspace.svc.cluster.local:8081` und der Endpoint antwortet
+- **WHEN** `embedAll(['text'])` aufgerufen wird
+- **THEN** liefert das System die 1024-dimensionalen bge-m3-Embeddings des Endpoints ohne Voyage-Aufruf
+
+#### Scenario: bge unerreichbar → Voyage-Fallback mit Warnung
+
+- **GIVEN** `LLM_EMBED_URL` gesetzt ist, aber der Endpoint nicht erreichbar ist
+- **WHEN** `embedAll(['text'])` aufgerufen wird
+- **THEN** loggt das System eine Fallback-Warnung und liefert Voyage-Embeddings, und bge wird für den Rest des Prozesslaufs nicht erneut versucht
+
+#### Scenario: LLM_EMBED_URL nicht konfiguriert
+
+- **GIVEN** `LLM_EMBED_URL` ist nicht gesetzt
+- **WHEN** `embedAll(['text'])` aufgerufen wird
+- **THEN** loggt das System eine Warnung und nutzt direkt die Voyage-API
+
+---
+
+### Requirement: LLM_EMBED_URL in knowledge-ingest CronJobs verdrahtet
+
+The system SHALL provide `LLM_EMBED_URL` (value `http://llm-gateway-embed.workspace.svc.cluster.local:8081`)
+in the env block of all three knowledge-ingest CronJob containers (`knowledge-ingest-bugs`,
+`knowledge-ingest-prs`, `knowledge-ingest-markdown`) in `k3d/knowledge-ingest-cronjob.yaml`, so the
+new bge-primär embedding path can be reached from the cluster.
+
+#### Scenario: CronJob-Container haben die Env-Var
+
+- **GIVEN** `k3d/knowledge-ingest-cronjob.yaml`
+- **WHEN** die env-Blöcke der drei CronJob-Container geprüft werden
+- **THEN** enthält jeder `LLM_EMBED_URL` mit dem Cluster-DNS-Wert auf Port 8081
+
+---
+
+### Requirement: LLM_RERANKER_URL im website-Deployment verdrahtet
+
+The system SHALL wire `LLM_RERANKER_URL: "${LLM_RERANKER_URL}"` into the website Deployment env
+block in `k3d/website.yaml`, directly next to the existing `LLM_EMBED_URL` entry, so reranking is
+functional as soon as `LLM_RERANK_ENABLED=true` is set (previously a silent gap).
+
+#### Scenario: website-Deployment hat die Env-Var
+
+- **GIVEN** `k3d/website.yaml`
+- **WHEN** der env-Block des website-Deployments geprüft wird
+- **THEN** enthält er `LLM_RERANKER_URL` mit dem `${LLM_RERANKER_URL}`-Platzhalter
+
+---
+
+### Requirement: Keine toten :8095-Fallbacks in index-repo
+
+The system SHALL reference port 8081 instead of the decommissioned port 8095 in
+`resolveEmbedConfig()` of `scripts/index-repo.ts` — both the host-local fallback URL and the
+cluster-DNS fallback — and SHALL keep the explanatory comment in sync with the actual Service
+port.
+
+#### Scenario: Fallbacks zeigen auf 8081
+
+- **GIVEN** `scripts/index-repo.ts`
+- **WHEN** der Code von `resolveEmbedConfig()` geprüft wird
+- **THEN** referenziert weder `localUrl` noch der Cluster-Fallback den Port 8095
+
+### Requirement: Gemma server supports host-RAM KV cache
+
+The Gemma start script SHALL provide an opt-in switch that moves the KV cache from VRAM into
+host RAM by passing llama.cpp's `-nkvo` flag, and its VRAM estimate SHALL account for the mode.
+
+#### Scenario: KV offload enabled
+
+- **GIVEN** the Gemma start script is invoked with the KV-offload switch
+- **WHEN** it assembles the llama-server argument list
+- **THEN** the list contains `-nkvo`
+- **AND** the printed VRAM requirement excludes the per-context-token KV term
+- **AND** the script reports the corresponding host-RAM requirement instead
+
+#### Scenario: KV offload not requested
+
+- **GIVEN** the Gemma start script is invoked without the KV-offload switch
+- **WHEN** it assembles the llama-server argument list
+- **THEN** the list contains no `-nkvo` flag
+- **AND** the VRAM estimate keeps the per-context-token KV term
+
+### Requirement: Gemma server supports persistent slot caches
+
+The Gemma start script SHALL provide an opt-in path parameter that enables llama.cpp's slot
+save/restore endpoints, so a prefilled guardrail prefix survives across factory runs.
+
+#### Scenario: Slot save path configured
+
+- **GIVEN** the Gemma start script is invoked with a slot-save path
+- **WHEN** it assembles the llama-server argument list
+- **THEN** the directory is created if it does not exist
+- **AND** the list contains `--slot-save-path` followed by that directory
+
+#### Scenario: Slot save path omitted
+
+- **GIVEN** the Gemma start script is invoked without a slot-save path
+- **WHEN** it assembles the llama-server argument list
+- **THEN** the list contains no `--slot-save-path` flag
+
+### Requirement: Gemma start script stays ASCII and CRLF safe
+
+Every PowerShell script under the LLM script directory SHALL remain pure ASCII without a byte
+order mark, because Windows PowerShell 5.1 decodes BOM-less UTF-8 as CP1252.
+
+#### Scenario: Script encoding guard
+
+- **GIVEN** the Gemma start script in the repository
+- **WHEN** its bytes are inspected
+- **THEN** no byte outside the ASCII range is present
+- **AND** no UTF-8 byte order mark precedes the first line
+
+### Requirement: bge-embed Memory-Limit ueber gemessenem Peak
+
+The system SHALL run the `bge-embed` Deployment with a `limits.memory` of at least
+3Gi, keeping the llama.cpp batch parameters `-np 4 -ub 8192` unchanged, so that the
+embedding server survives a 64-embedding batch load without an OOMKilled restart.
+
+#### Scenario: Batch-Last ohne OOMKilled
+
+- **GIVEN** the `bge-embed` Deployment in `k3d/llm-gpu.yaml` has `limits.memory: 3Gi`
+- **WHEN** a 64-embedding batch is sent to the embedding gateway
+- **THEN** the container stays within the memory limit and does not restart with
+  `reason=OOMKilled`
+
+#### Scenario: Batch-Parameter bleiben erhalten
+
+- **GIVEN** the `bge-embed` Deployment in `k3d/llm-gpu.yaml`
+- **WHEN** the llama.cpp server starts
+- **THEN** it runs with `-np 4 -ub 8192` so the throughput for the T002572 benchmark
+  is preserved
+
+### Requirement: bge CPU thread count is declared explicitly
+
+The `bge-embed` and `bge-rerank` Deployments in `k3d/llm-gpu.yaml` SHALL pass an
+explicit `-t <threads>` argument to llama.cpp. The declared thread count SHALL NOT
+exceed the allocatable CPU core count of the smallest node the pod can be scheduled
+onto, because the Deployments carry no `nodeSelector` or `affinity` and may land on
+any Ready node of the cluster.
+
+#### Scenario: Manifest declares a thread count
+
+- **GIVEN** the manifest `k3d/llm-gpu.yaml`
+- **WHEN** the args of the `llama-cpp` container of `bge-embed` and of `bge-rerank`
+  are read
+- **THEN** each contains a `-t` flag followed by a positive integer
+
+#### Scenario: Thread count fits the smallest schedulable node
+
+- **GIVEN** a cluster whose smallest Ready node has N allocatable CPU cores
+- **WHEN** the declared `-t` value is compared against N
+- **THEN** the declared value is less than or equal to N
+
+### Requirement: bge CPU limit permits opportunistic burst
+
+The `bge-embed` and `bge-rerank` containers SHALL declare `limits.cpu` above their
+`requests.cpu`, so that batch embedding can burst beyond the guaranteed share while
+the scheduling footprint stays unchanged.
+
+#### Scenario: Limit exceeds request
+
+- **GIVEN** the resource block of either bge container
+- **WHEN** `requests.cpu` and `limits.cpu` are compared
+- **THEN** `requests.cpu` is `1000m` and `limits.cpu` is strictly greater
+
+#### Scenario: Raising the limit does not change scheduling
+
+- **GIVEN** a change that raises only `limits.cpu`
+- **WHEN** the rendered manifest is diffed against the previous revision
+- **THEN** `requests.cpu` is unchanged, so the scheduler's placement decision is
+  unaffected and the change is a burst-headroom decision only
+
+### Requirement: Embedding throughput is measurable and reproducible
+
+The repository SHALL provide a benchmark entry point that measures embedding
+throughput against the `llm-gateway-embed` Service with a fixed document count and
+a fixed document size, and reports both `chunks/s` and the document size the figure
+refers to.
+
+#### Scenario: Benchmark reports throughput with its measurement basis
+
+- **GIVEN** a reachable `llm-gateway-embed` Service
+- **WHEN** the benchmark entry point is invoked
+- **THEN** it prints the achieved `chunks/s` together with the document count, the
+  approximate tokens per document and the batch size used
+
+#### Scenario: Benchmark run invalidated by a container restart
+
+- **GIVEN** a benchmark run against `bge-embed`
+- **WHEN** the container restart counter increases during the run
+- **THEN** the run is reported as invalid rather than as a throughput figure
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1663,3 +1864,11 @@ The system SHALL require authentication for all coaching knowledge admin endpoin
 <!-- merged from change delta llm-pipeline.md (1497c417d26b) -->
 
 <!-- merged from change delta llm-pipeline.md (aacce93b907d) -->
+
+<!-- merged from change delta llm-pipeline.md (225d73aa5778) -->
+
+<!-- merged from change delta llm-pipeline.md (7e498e162f6b) -->
+
+<!-- merged from change delta llm-pipeline.md (27d436dcc319) -->
+
+<!-- merged from change delta llm-pipeline.md (8bdd01d72c10) -->

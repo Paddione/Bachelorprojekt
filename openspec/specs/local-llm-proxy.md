@@ -18,6 +18,8 @@ GPU-Belegung an genau einer Stelle entschieden werden statt in jedem Konsumenten
 
 The Node proxy (`scripts/llm-proxy/server.mjs`) SHALL be the sole listener on port 18235 and the sole LLM endpoint all local harnesses (factory orchestrator, factory phase agents, opencode, other agents) use. The legacy ad-hoc proxy (`bonsai-msg-fixup-proxy.service`) SHALL be stopped and disabled by the cutover procedure; no enabled `tickets.provider_config` or `tickets.factory_model_slots` row and no tracked agent-config surface may reference a backend port (`:8093`, `:1234`) directly.
 
+The static lint that enforces this SHALL exist as an executable test, not as a description alone: `tests/spec/local-llm-proxy/gateway-consumer-lint.bats`. Until T002582 this scenario described a lint that was never implemented, and `provider-register-bonsai.sh` carried four `:8093` literals that nothing caught.
+
 #### Scenario: Cutover replaces the legacy proxy in place
 
 - **GIVEN** the legacy systemd user unit is active on port 18235
@@ -26,9 +28,21 @@ The Node proxy (`scripts/llm-proxy/server.mjs`) SHALL be the sole listener on po
 
 #### Scenario: Static config lint blocks backend-port bypasses
 
-- **GIVEN** a tracked gateway-consumer surface (`.opencode/agent-models.jsonc`, `scripts/factory/provider-register-bonsai.sh`, `scripts/factory/route-provider.sh`, `scripts/factory/pipeline.mjs`)
+- **GIVEN** a tracked gateway-consumer surface (`.opencode/agent-models.jsonc`, `scripts/factory/provider-register-local.sh`, `scripts/factory/route-provider.sh`, `scripts/factory/pipeline.mjs`)
 - **WHEN** the spec BATS suite runs in CI
-- **THEN** any direct `:8093` or `127.0.0.1:1234` literal in those surfaces fails the test (backend URLs are only allowed inside the `tickets.llm_proxy_backends` registry seeds/migrations and explicitly marked backend-internal docs)
+- **THEN** any non-comment `:8093` or `127.0.0.1:1234` literal in those surfaces fails the test (backend URLs are only allowed inside the `tickets.llm_proxy_backends` registry seeds/migrations and explicitly marked backend-internal docs; comment lines stay exempt so retired configurations remain documentable)
+
+#### Scenario: Lint fails when a tracked surface goes missing
+
+- **GIVEN** a tracked surface file is renamed or deleted without updating the tracked set
+- **WHEN** the lint runs
+- **THEN** it fails on the missing file rather than passing vacuously over an empty candidate set
+
+#### Scenario: Taskfile never references a missing start script
+
+- **GIVEN** `Taskfile.llm.yml` names a PowerShell start script under `scripts/llm/`
+- **WHEN** the lint runs
+- **THEN** the referenced file must exist in the repository, so a task cannot advertise a start path that was never committed
 
 ### Requirement: Dynamic model discovery with availability fallback
 
@@ -925,3 +939,31 @@ bge-CPU loadout while the first runs succeeds without `exclusive_conflict`.
 - **THEN** the assertion holds without requiring any group to exist on the bge loadouts
 
 <!-- merged from change delta local-llm-proxy.md (918e9799efb5) -->
+
+### Requirement: Kontextzahl-Guard prueft einen Toleranzkorridor statt Punktgleichheit
+
+Der Guard-Test `tests/spec/local-llm-proxy/opencode-routes-via-proxy.bats` SHALL die deklarierte
+Kontextzahl eines `--fit`-Loadouts (z.B. `gemma26-factory.limit.context` in
+`.opencode/agent-models.jsonc`) gegen den LAUFENDEN Server pruefen, indem er einen Toleranzkorridor
+um den Live-Wert anlegt: `declared` muss innerhalb `[live * 0.8, live * 1.2]` liegen. Der Test SHALL
+NICHT auf Punktgleichheit pruefen, weil `--fit` den `n_ctx` zur Ladezeit aus dem zum Startzeitpunkt
+FREIEN VRAM bestimmt und dieser Betrag zwischen zwei Starts desselben Loadouts schwankt (gemessen
+88832–99840). Die statische Deklaration SHALL bestehen bleiben, weil opencode sie zur Laufzeit fuer
+Auto-Compact (fasst bei 95 % der Grenze zusammen) benoetigt.
+
+#### Scenario: Deklaration liegt im Korridor um den Live-Wert
+
+- **GIVEN** ein `gemma26-factory`-Server laeuft auf `:8091` und meldet per `/props` einen Live-`n_ctx`
+- **WHEN** der Guard-Test die deklarierte Kontextzahl (97840) mit dem Live-Wert vergleicht
+- **THEN** der Test besteht, solange `declared` innerhalb `[live * 0.8, live * 1.2]` liegt — fuer alle
+  gemessenen Live-Werte (88832, 99328, 99840)
+
+#### Scenario: n_ctx_train-Regression faellt weiterhin durch
+
+- **GIVEN** die deklarierte Kontextzahl faellt auf den Modell-Default `n_ctx_train` (262144) zurueck
+- **WHEN** der Guard-Test diesen Wert gegen den Live-Wert (~88832) prueft
+- **THEN** der Test schlaegt fehl, weil 262144 ausserhalb des ±20 %-Korridors liegt
+
+<!-- merged from change delta local-llm-proxy.md (9c1e92f4d6c6) -->
+
+<!-- merged from change delta local-llm-proxy.md (118b27dbff37) -->

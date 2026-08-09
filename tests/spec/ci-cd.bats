@@ -1077,12 +1077,19 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m tree
   git update-ref refs/remotes/origin/main HEAD
 
-  # The finder diffs HEAD against origin/main, so changes must be committed.
+  # Seit T002713 diffed der Finder single-ref gegen origin/main und sieht damit
+  # auch den Arbeitsbaum — committet wird hier trotzdem, damit die Fixture den
+  # geprueften Zustand eindeutig festlegt.
+  #
+  # `--separate-stderr` ist Pflicht: der Finder meldet seine diff-source auf
+  # stderr, und `run` ohne das Flag buendelt stdout+stderr in $output. Eine
+  # Gleichheits-Assertion auf die reine Dateiliste sieht sonst die Diagnose als
+  # zusaetzliche Zeile. [T002713]
   # openspec/specs/alpha/** → tests/spec/alpha.bats, and nothing else
   git checkout -q -b topic
   echo change >> openspec/specs/alpha/spec.md
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m openspec
-  run bash scripts/find-changed-tests.sh spec
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   [ "$output" = "tests/spec/alpha.bats" ]
 
@@ -1122,7 +1129,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   git checkout -q -b topic
   echo change >> website/src/pages/admin/dora.astro
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m deep
-  run bash scripts/find-changed-tests.sh spec
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   [ "$output" = "tests/spec/deep.bats" ]
 
@@ -1130,7 +1137,7 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   git checkout -q main && git checkout -q -b topic2
   echo change >> website/loose.txt
   git add -A && git -c user.email=t@t -c user.name=t commit -q -m floor
-  run bash scripts/find-changed-tests.sh spec
+  run --separate-stderr bash scripts/find-changed-tests.sh spec
   [ "$status" -eq 0 ]
   [ -z "$output" ]
 }

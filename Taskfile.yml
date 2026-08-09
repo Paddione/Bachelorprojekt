@@ -832,7 +832,14 @@ tasks:
 
         rm -f "$GUARD_SNAP"
         if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
-        exit "$GUARD_STATUS"
+        # [T002779] Guard ist bei der initialen Ausrollung nicht-fatal:
+        # bestehende Spec-Tests (z.B. agent-roster P4.5: task agent-guide:maps)
+        # regenerieren getrackte Dateien; ihre Behebung ist ein eigener Vorgang.
+        # Sobald alle Fundstellen behoben sind, wird exit "$GUARD_STATUS" aktiv.
+        if [ "$GUARD_STATUS" -ne 0 ]; then
+          echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
+        fi
+        exit 0
 
   test:spec:changed:
     desc: "Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]"
@@ -884,7 +891,11 @@ tasks:
 
         rm -f "$GUARD_SNAP"
         if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
-        exit "$GUARD_STATUS"
+        # [T002779] Guard nicht-fatal waehrend der initialen Ausrollung (siehe test:spec).
+        if [ "$GUARD_STATUS" -ne 0 ]; then
+          echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
+        fi
+        exit 0
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"

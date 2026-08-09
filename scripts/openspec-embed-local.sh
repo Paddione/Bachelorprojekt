@@ -41,7 +41,7 @@ trap cleanup EXIT
 
 # --- 1. Embedding-Backend proben (fail-fast, bevor wir die DB anfassen) -----
 probe_embed() {
-  curl -s --max-time 3 -o /dev/null -w '%{http_code}' \
+  curl -s --max-time "${OPENSPEC_EMBED_PROBE_TIMEOUT:-20}" -o /dev/null -w '%{http_code}' \
     -X POST "$1/v1/embeddings" -H 'Content-Type: application/json' \
     -d '{"input":["ping"],"model":"bge-m3"}' 2>/dev/null || echo 000
 }

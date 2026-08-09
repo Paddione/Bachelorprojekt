@@ -2730,6 +2730,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/embed-probe-timeout",
+    "file": "tests/spec/local-llm-proxy/embed-probe-timeout.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/embed-skip-visibility",
     "file": "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
     "category": "local-llm-proxy",

@@ -18,6 +18,12 @@ setup() {
   CTX="k3d-mentolder-dev"
   NS="workspace"
   TESTROW_TITLE="T002732 backfill-id testrow"
+  # [T002871] Ohne dieses Opt-in biegt scripts/vda/ticket/_ticket-core.sh:30 (T002224-Guard)
+  # CTX unter BATS auf einen nicht aufloesbaren Sentinel um -> jeder Aufruf von
+  # scripts/ticket.sh backfill-id in diesem File schlaegt lokal fehl, obwohl CI die
+  # Tests wegen fehlenden Clusters ohnehin nur skippt oder (diff-scoped) gar nicht
+  # selektiert -- Befund zur CI-Bindungsluecke in T002922.
+  export TICKET_TEST_DB_OK=1
 }
 
 teardown() {

@@ -221,14 +221,37 @@ setup() {
   [ "$output" = "0" ] || { echo "buildRollupContainerArgs darf keinen --status hartcodieren — ticket.sh managed das"; false; }
 }
 
-@test "T002407-M6b: ticket.sh rollup-container dokumentiert status=plan_staged (T002783)" {
-  # T002783: plan_staged lebt jetzt in ticket.sh, nicht in mishap.go.
-  run bash -c "grep -c 'plan_staged' \
-    '$REPO/scripts/ticket.sh' 2>/dev/null"
-  [ "$output" != "0" ]
-  # Der Container wird als plan_staged angelegt (create... --status plan_staged)
-  run bash -c "grep -B2 -A10 'ROLLUP_TITLE' '$REPO/scripts/ticket.sh' 2>/dev/null | grep -c 'plan_staged'"
-  [ "$output" != "0" ] || { echo "rollup-container muss den Container mit status=plan_staged anlegen"; false; }
+@test "T002407-M6b: rollup-container legt den Container als triage an [T003027]" {
+  # Pruefmodus: Quelltext-Pruefung. cmd_rollup_container loest seinen Pod ueber
+  # _pgpod auf und braucht damit eine lebende DB — in der Offline-CI nicht
+  # ausfuehrbar. Das ist die in CLAUDE.md (T002448-M4) dokumentierte Ausnahme fuer
+  # Querschnittstests, nicht die bequeme Abkuerzung: eine Output-Verifikation waere
+  # hier schlicht nicht lauffaehig.
+  #
+  # Sachlage (T003027): Bis T002876 legte rollup-container den Container direkt als
+  # plan_staged an. Seit T002876 lehnt update-status.sh genau das fail-closed ab —
+  # plan_staged ohne FACTORY-PLAN-REF ist ein widerspruechlicher Zustand. Der
+  # Container entsteht deshalb als triage; stage-plan hebt ihn spaeter zusammen mit
+  # dem Plan-Ref auf plan_staged.
+  local block
+  block=$(awk '/^cmd_rollup_container\(\)/,/^\}/' "$REPO/scripts/ticket.sh")
+
+  # Positiv-Anker 1 — ohne ihn liefe alles Folgende auf leerem Text vakuos durch.
+  [ -n "$block" ] || { echo "cmd_rollup_container nicht in scripts/ticket.sh gefunden"; false; }
+
+  # Positiv-Anker 2: der Anlage-Pfad setzt ueberhaupt einen expliziten Status.
+  local status_flag
+  status_flag=$(printf '%s\n' "$block" | grep -oE '\-\-status[[:space:]]+[a-z_]+' | head -1)
+  [ -n "$status_flag" ] || { echo "cmd_rollup_container legt den Container ohne explizites --status an"; false; }
+
+  # Zusicherung: dieser Status ist triage (und damit nicht plan_staged).
+  printf '%s' "$status_flag" | grep -q 'triage' \
+    || { echo "rollup-container muss den Container als triage anlegen, gefunden: $status_flag"; false; }
+
+  # Der Wiederfinde-Pfad muss plan_staged weiterhin als offenen Status fuehren —
+  # sonst legt jeder Lauf neben dem bereits gestagten Container einen neuen an.
+  printf '%s\n' "$block" | grep -q "status IN.*plan_staged" \
+    || { echo "SELECT im Wiederfinde-Pfad fuehrt plan_staged nicht mehr als offenen Status"; false; }
 }
 
 @test "T002407-M6c: ROLLUP_TICKET_TITLE ist definiert" {

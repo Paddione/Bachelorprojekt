@@ -135,13 +135,19 @@ An den Rollup-Container angehängt wird auf zwei Wegen, beide ohne Session-Bezug
 | Schwelle | `report_mishap` hängt ab **10** Einträgen an den Rollup-Container an |
 | Alters-Schnitt | Der Factory-Tick (`scripts/factory/wakeup.sh`) ruft periodisch `ticket-mcp-go --flush-stale-mishaps` auf und hängt an, sobald der älteste Eintrag ≥ 7 Tage alt ist |
 
-**Zum Rollup-Container:** Ein persistentes Ticket (`type=chore`, `status=plan_staged` — nur
-der Rollup-Container selbst) mit dem Titel "Mishap Rollup — fortlaufende Sammlung". Es wird
-niemals geschlossen — nicht-kritische Mishaps werden als Kommentar-Batches an dieses Ticket
-gehängt. Der Rollup-Treiber (`scripts/factory/mishap-rollup.sh`) extrahiert daraus periodisch
-einen Plan und staged ihn. Die einzelnen Mishap-Tickets selbst entstehen immer mit
-`status=triage` (`scripts/ticket-mcp/go/internal/tools/mishap.go` setzt konsequent
-`--status triage`) — nie direkt als `plan_staged`.
+**Zum Rollup-Container:** Ein persistentes Ticket (`type=chore`) mit dem Titel "Mishap Rollup —
+fortlaufende Sammlung". Es wird niemals geschlossen — nicht-kritische Mishaps werden als
+Kommentar-Batches an dieses Ticket gehängt. Der Rollup-Treiber
+(`scripts/factory/mishap-rollup.sh`) extrahiert daraus periodisch einen Plan und staged ihn.
+
+**Nichts entsteht direkt als `plan_staged` [T003027].** Sowohl die einzelnen Mishap-Tickets
+(`scripts/ticket-mcp/go/internal/tools/mishap.go`) als auch der Container selbst
+(`ticket.sh rollup-container`) werden mit `status=triage` angelegt. Der Grund ist der Guard aus
+T002876: `update-status.sh` lehnt `plan_staged` ohne `FACTORY-PLAN-REF` fail-closed ab — ein
+Ticket, das den gestagten Zustand behauptet, ohne einen Plan zu haben, ist widersprüchlich.
+Der Unterschied zwischen beiden liegt also **nicht** in der Anlage, sondern danach: nur der
+Container durchläuft `stage-plan` und erreicht dabei `plan_staged` **zusammen mit** seinem
+Plan-Ref. Im eingeschwungenen Zustand steht er deshalb auf `plan_staged`.
 
 `flush_mishap_buffer` bleibt als **bewusster manueller Schnitt** verfügbar — z. B. wenn ein
 Befund sofort ein Ticket braucht. Es ist kein Pflichtschritt dieses Skills mehr:

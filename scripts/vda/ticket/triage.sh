@@ -42,6 +42,14 @@ main() {
   if [[ -n "$status" ]] && ! [[ " $_VALID_STATUSES " == *" ${status,,} "* ]]; then
     vda_error "Invalid status: $status (triage|planning|plan_staged|backlog|in_progress|in_review|qa_review|awaiting_deploy|blocked|done|archived)"; exit 2
   fi
+  # [T002876] plan_staged guard (erweitert auf triage-Pfad, 2026-08-09):
+  # Der triage-Pfad darf NIEMALS nach plan_staged wechseln — plan_staged ist
+  # ausschliesslich Tickets vorbehalten, die via stage-plan.sh mit validiertem
+  # --plan und --branch gestaged wurden. Ohne diesen Guard kann jeder MCP-Aufrufer
+  # (z.B. ein LLM-Agent) via triage_ticket direkt plan_staged setzen.
+  if [[ -n "$status" && "${status,,}" == "plan_staged" ]]; then
+    vda_error "Cannot triage to 'plan_staged' — stage the plan first (ticket.sh stage-plan --id ${id} --branch <b> --plan <tasks.md>). Use --status triage or planning instead."; exit 2
+  fi
   # Dual-Vokabular waehrend des Uebergangs [T002329]: die drei Altwerte bleiben
   # gueltig, bis Teil D (T002331) sie aus dem DB-CHECK entfernt.
   if [[ -n "$type" ]] && ! [[ " fix feat chore project docs refactor perf test ci build bug feature task " == *" ${type,,} "* ]]; then

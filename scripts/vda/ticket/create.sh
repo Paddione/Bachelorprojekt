@@ -28,6 +28,16 @@ main() {
     echo "ERROR: --type, --title, and --description are required." >&2
     exit 2
   fi
+  # [T002876] plan_staged guard (erweitert auf create-Pfad, 2026-08-09):
+  # Tickets duerfen NIEMALS direkt mit status=plan_staged erstellt werden —
+  # plan_staged ist ausschliesslich Tickets vorbehalten, die via stage-plan.sh
+  # mit validiertem --plan und --branch gestaged wurden und einen
+  # FACTORY-PLAN-REF-Kommentar tragen. create.sh ist der CLI-Pfad; update-status.sh
+  # hat einen analogen Guard (transition, nicht creation).
+  if [[ "${status}" == "plan_staged" ]]; then
+    echo "ERROR: Cannot create a ticket with status 'plan_staged' — stage the plan first (ticket.sh stage-plan --id <id> --branch <b> --plan <tasks.md>). Use --status triage for new tickets." >&2
+    exit 2
+  fi
   # [T002280] BRAND resolution: authoritative source is top-level $BRAND from
   # ticket.sh. If --brand was passed explicitly here, validate it matches.
   # Standalone call (no BRAND env, no --brand) falls back to default mentolder.

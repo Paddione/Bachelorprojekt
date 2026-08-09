@@ -242,10 +242,8 @@ tasks:
     desc: "Astro-Devserver mit BUILD_TARGET=sdlc starten (blockierend)"
     dir: website
     cmds:
-      # .env in die Umgebung exportieren — ohne sie antwortet der Devserver
-      # mit HTTP 500, weil PUBLIC_POCKET_ID_CLIENT_ID und andere Clients
-      # nicht gesetzt sind.
+      # .env in die Umgebung exportieren (falls vorhanden) — sonst Standard-Build-Target setzen.
       - |
-        set -a; . ../.env; set +a
+        if [ -f ../.env ]; then set -a; . ../.env; set +a; fi
         export BUILD_TARGET=sdlc
-        pnpm dev
+        pnpm dev -- --force

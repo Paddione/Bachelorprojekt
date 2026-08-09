@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.0...website-v1.257.1) (2026-08-09)
+
+
+### CI/CD
+
+* **ci:** CI-Automerge fährt nur noch das Merge-Delta [T002780] ([#3898](https://github.com/Paddione/Bachelorprojekt/issues/3898)) ([8375b34](https://github.com/Paddione/Bachelorprojekt/commit/8375b3474d81f8f52045657e182fdf0cf9b2b16e))
+
 ## [1.257.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.256.8...website-v1.257.0) (2026-08-09)
 
 

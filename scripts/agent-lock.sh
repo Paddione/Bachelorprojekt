@@ -143,6 +143,24 @@ _reapable() {
   # Age base for grace checks: heartbeat first (last confirmed-live refresh),
   # created_at fallback for pre-heartbeat claim files. [T001582-M1]
   local age_base="${hb:-${ct:-0}}"
+  # 0a) [T002785-7] Fast-Signal fuer tote Branch-Locks: der Worktree-Pfad ist
+  #     nachweislich weg UND owner_pid ist tot UND der Claim ist aelter als die
+  #     Grace-Frist. Die SID-Alive-Kurzschlusspruefung unten schuetzt sonst JEDEN
+  #     Claim mit non-numeric Harness-SID (die gelten per Konvention immer als
+  #     lebendig, siehe _sid_alive), sodass die schnellen Signale pid-dead und
+  #     worktree-missing bei scope=branch strukturell nie greifen und der Lock
+  #     erst nach der heartbeat-TTL (~35 min) geerntet wird (T002785 Befund 7).
+  #     Eine Session, deren Arbeitsbaum nachweislich fehlt UND deren Prozess tot
+  #     ist, arbeitet dort nicht mehr — lebendige SID hin oder her.
+  #     T001384-D1 bleibt erhalten: ein junger Claim (< AGENT_LOCK_GRACE) wird
+  #     von der Grace-Frist geschuetzt, ein lebender Prozess faellt nie hierher.
+  pid="$(_lock_field "$f" owner_pid)"
+  if [ -n "$wt" ] && [ "$wt" != "-" ] && [ ! -d "$wt" ] && [ -n "$pid" ] && ! _pid_alive "$pid"; then
+    age=$(( now - age_base ))
+    if [ -z "$ct" ] || [ "$age" -ge "$AGENT_LOCK_GRACE" ]; then
+      _reap_log "$f" worktree-missing; return 0
+    fi
+  fi
   # 0) A CONFIRMED-ALIVE SID ALWAYS WINS — even if the worktree path is stale
   #    or missing, a live session owns the claim. [T001384]
   if [ -n "$sid" ] && _sid_alive "$sid"; then

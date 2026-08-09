@@ -22,8 +22,28 @@ stammen unveraendert aus der Ticket-Beschreibung; die Diagnose dort ist die Vorg
 ## File Structure
 
 ```
-<der Implementer traegt hier die tatsaechlich geaenderten Dateien nach>
+scripts/ticket.sh                                   # Befund 1: unfactory --attempts akzeptiert CLASS-N
+tests/spec/ticket-system/unfactory-attempts-T002785.bats  # Befund 1: RED→GREEN-Spec
+scripts/agent-lock.sh                               # Befund 7: 0a-Fast-Signal fuer tote Branch-Locks
+tests/spec/agent-lock-branch-reap-T002785.bats      # Befund 7: RED→GREEN-Spec
+.claude/skills/references/mcp-tool-guide.md         # Befund 4: fleet-Freeze-Hinweis §mcp-postgres
 ```
+
+## Disposition der sieben Befunde (Recon-Ergebnis)
+
+| # | Befund | Status |
+|---|--------|--------|
+| 1 | ticket.sh --attempts-Validierung | **GEFIXT** — Validierung akzeptiert `[A-Z]+-[0-9]+` (Watchdog-Aufrufform `INFRA-3`); Spec gruen |
+| 2 | Agent-Lock schuetzt nicht (zweiter Akteur ohne Lock) | DEFERRED — Design-Entscheidung (Worktree-interne Lockdatei vs. beidseitiger Pre-Check); QUERSCHNITT-Nr. 2/6/7, Kern 7 ist behoben; keine Regression seit Beobachtung |
+| 3 | Cancelled-CI ununterscheidbar von Fehlschlag | DEFERRED — Forensik-Frage ("wer hat PR #3892 abgebrochen"), kein lokalisierter Code-Defekt; fuer weitere Untersuchung separat zu verfolgen |
+| 4 | mcp-postgres liest eingefrorene fleet-Kopie | **GEFIXT** — Freeze-Hinweis in den MCP-Tool-Guide §mcp-postgres eingetragen |
+| 5 | Sieben plan_staged ohne Plan-Artefakte | **BEREITS GELOEST** — T002768–T002774 sind inzwischen alle `done` (DB verifiziert) |
+| 6 | repo-hygiene §0 ohne Lock auf Hauptcheckout | DEFERRED — Design-Entscheidung; ueberlappt mit T002995/T002998 (Repo-Hygiene-Mess-Suite), dort wird der Lese-Pfad mitbehandelt |
+| 7 | Branch-Locks nicht von schnellen Reap-Signalen erfasst | **GEFIXT** — `_reapable` 0a: Worktree weg + PID tot + aelter als Grace → sofort `worktree-missing`-Reap statt heartbeat-TTL-Warten; T001384-D1 bleibt gruen |
+
+TEST-KONVENTION: Output-Verifikation (T002448-M4) und Positiv-Anker bei Negativtests
+(T002356-M1) gelten fuer alle Punkte. Eigene Datei je Vorgang unter
+tests/spec/&lt;spec-slug&gt;/ (T002416).
 
 ## Mishap-Eintraege
 

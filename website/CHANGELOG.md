@@ -1,5 +1,73 @@
 # Changelog
 
+## [1.259.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.258.2...website-v1.259.0) (2026-08-09)
+
+
+### Features
+
+* **db:** introduce automated migration runner for migrations/ [T002647] ([#3955](https://github.com/Paddione/Bachelorprojekt/issues/3955)) ([ef7c4b8](https://github.com/Paddione/Bachelorprojekt/commit/ef7c4b824d9b24510644e678f4415d80c394708f))
+
+## [1.258.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.258.1...website-v1.258.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ops:** align loadouts registry with model files on disk [T002886] ([#3953](https://github.com/Paddione/Bachelorprojekt/issues/3953)) ([c109c46](https://github.com/Paddione/Bachelorprojekt/commit/c109c461c0a049387515193a466f0f442d0559cb))
+
+## [1.258.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.258.0...website-v1.258.1) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** plan-qa-check probes /livez instead of /health for liveness [T002641] ([#3951](https://github.com/Paddione/Bachelorprojekt/issues/3951)) ([f87dee9](https://github.com/Paddione/Bachelorprojekt/commit/f87dee9df55b91f3c022c0a19988efe9476faa09))
+
+## [1.258.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.15...website-v1.258.0) (2026-08-09)
+
+
+### Features
+
+* **scripts:** add sdlc:up/down/dev orchestration and health-gate [T002655] ([#3949](https://github.com/Paddione/Bachelorprojekt/issues/3949)) ([c40dcde](https://github.com/Paddione/Bachelorprojekt/commit/c40dcde647b253dee4c09efa688a48033c185634))
+
+## [1.257.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.14...website-v1.257.15) (2026-08-09)
+
+
+### Bug Fixes
+
+* **infra:** add flux webhook certificate and decouple ingressroute [T002869] ([#3947](https://github.com/Paddione/Bachelorprojekt/issues/3947)) ([18591f5](https://github.com/Paddione/Bachelorprojekt/commit/18591f520ccbe9350b2482b9ad9d5de61d2b64a1))
+
+## [1.257.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.13...website-v1.257.14) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** list self workflow file in push.paths [T002868] ([#3945](https://github.com/Paddione/Bachelorprojekt/issues/3945)) ([3462b27](https://github.com/Paddione/Bachelorprojekt/commit/3462b27f57e7663b00b599b1416386ff22e7c9a6))
+
+
+### Documentation
+
+* **plans:** archive workflow-self-trigger [T002868] ([bbbeaf2](https://github.com/Paddione/Bachelorprojekt/commit/bbbeaf26037b76ac1141d544106d621f3c2199b1))
+
+## [1.257.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.12...website-v1.257.13) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** GHCR-Login auf GH_PAT umstellen, damit Digest-Resolve private Packages erreicht [T002837] ([#3943](https://github.com/Paddione/Bachelorprojekt/issues/3943)) ([f813fec](https://github.com/Paddione/Bachelorprojekt/commit/f813fec4b6b7a01f2a1828747ceee48e4f5ecf99))
+
+## [1.257.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.11...website-v1.257.12) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** .ticket-Guard verankern, 7 Bestandschanges archivieren [T002836] ([#3940](https://github.com/Paddione/Bachelorprojekt/issues/3940)) ([b79b73c](https://github.com/Paddione/Bachelorprojekt/commit/b79b73c3491267aa4992e23e4f4a1d10725b0d52))
+
+## [1.257.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.10...website-v1.257.11) (2026-08-09)
+
+
+### Bug Fixes
+
+* **test:** isolate spec tests from tracked MCP configs — guard script + fixture isolation [T002779] ([#3936](https://github.com/Paddione/Bachelorprojekt/issues/3936)) ([4c1e210](https://github.com/Paddione/Bachelorprojekt/commit/4c1e2104e6e40e27904565a65c8ba933ae1b36be))
+
 ## [1.257.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.9...website-v1.257.10) (2026-08-09)
 
 

@@ -196,7 +196,7 @@ mapfile -t ps_no_ref < <(
       -c "SELECT t.external_id
            FROM tickets.tickets t
            WHERE t.status = 'plan_staged'
-             AND t.updated_at < now() - interval '1 hour'
+             AND t.updated_at < now() - interval '30 minutes'
              AND NOT EXISTS (
                SELECT 1 FROM tickets.ticket_comments c
                WHERE c.ticket_id = t.id
@@ -237,8 +237,8 @@ mapfile -t ps_orphan < <(
           FROM tickets.tickets t
           JOIN tickets.ticket_comments c ON c.ticket_id = t.id
           WHERE t.status = 'plan_staged'
-            AND c.body LIKE 'FACTORY-PLAN-REF %branch=%'
-            AND t.updated_at < now() - interval '1 hour'
+            AND c.body LIKE 'FACTORY-PLAN-REF % branch=%'
+            AND t.updated_at < now() - interval '30 minutes'
           ORDER BY t.updated_at DESC;" 2>/dev/null || true
 )
 

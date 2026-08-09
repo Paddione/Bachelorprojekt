@@ -27,9 +27,9 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | deepseek-pro | all | opencode-go/deepseek-v4-pro | ja | DeepSeek-V4 Pro (1M ctx, max reasoning effort) for deep analysis and hard refactors; tab-selectable + task-dispatchable [T002632] |
 | deepseek-pro-direct | all | deepseek/deepseek-v4-pro | ja | Same model as deepseek-pro, but over the direct DeepSeek API instead of opencode-go — fallback when the gateway is unavailable; tab-selectable + task-dispatchable [T002633] |
 | devstral | subagent | llamacpp-local/devstral-quality | nein | devstral family: Devstral-Small-2 24B IQ4_XS [2026-08-04] |
-| gemma | subagent | llamacpp-local/gemma4 | nein | gemma family: Gemma 4 12B Q4_K_M, Loadout gemma4 auf Port 8090 [2026-08-04] |
-| gemma26-primary | primary | llamacpp-local/gptoss-context | nein | Tab-selectable primary local agent, 105472 ctx (measured, not n_ctx_train) [T002545/T002633] |
-| gemma26-vision | primary | llamacpp-local/gptoss-context | nein | Max context, no subagent dispatch. Text-only — gpt-oss-20b has no mmproj [T002633] |
+| gemma | subagent | llamacpp-local/gemma26-factory | nein | gemma family: Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091 (exclusiveGroup chat-gpu) [2026-08-09 T002753] |
+| gemma26-primary | primary | llamacpp-local/gemma26-factory | nein | Tab-selectable primary local agent, 161024 ctx measured (np=3 -kvu q4_0 fitt 128) [T002753] |
+| gemma26-vision | primary | llamacpp-local/gemma26-factory | nein | Max context, no subagent dispatch. Vision IS available — gemma26-factory loads mmproj-F16.gguf since T002753 |
 | gptoss | subagent | llamacpp-local/gptoss-context | nein | gpt-oss family: gpt-oss-20b Q8_0, 105472 ctx (measured, not n_ctx_train) [T002545/T002633] |
 | orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/qwen) sequentially |
 | qwen | subagent | llamacpp-local/qwen3-coder-30b | nein | qwen family: Qwen3-Coder-30B-A3B UD-Q4_K_XL, Loadout qwen3-coder-30b auf Port 8094 [2026-08-04] |

@@ -338,6 +338,12 @@ PROMPT
     return 1
   fi
 
+  # Strip Markdown code fences in case the LLM wraps its JSON despite the prompt.
+  # Removes leading ```json / ``` and trailing ``` lines.
+  content=$(printf '%s' "$content" | sed -e '1s/^```[a-zA-Z]*[[:space:]]*//' -e '1s/^```//' -e '$s/[[:space:]]*```[[:space:]]*$//')
+  # Trim surrounding whitespace/newlines.
+  content=$(printf '%s' "$content" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
   echo "$content"
   return 0
 }

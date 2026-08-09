@@ -1,12 +1,13 @@
 #!/usr/bin/env bats
 # tests/spec/agent-roster.bats — Drift-Gates für die Agenten-Registry
 #
-# Prüft fünf Zusicherungen:
+# Prüft sechs Zusicherungen:
 #   1. roles ↔ .claude/agents/*.md  (beidseitig)
 #   2. runtimes ↔ .opencode/agent-models.jsonc  (beidseitig)
-#   3. Agentennamen in CLAUDE.md ↔ Registry
-#   4. agents-map.md ist aktuell (task agent-guide:maps erzeugt keinen Diff)
-#   5. Keine .tmp-Reste aus abgebrochenen Emitter-Läufen (T002308)
+#   3. runtimes.model ↔ .opencode/agent-models.jsonc agent.model (Modell-Zuordnung)
+#   4. Agentennamen in CLAUDE.md ↔ Registry
+#   5. agents-map.md ist aktuell (task agent-guide:maps erzeugt keinen Diff)
+#   6. Keine .tmp-Reste aus abgebrochenen Emitter-Läufen (T002308)
 
 setup_file() {
   REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
@@ -81,6 +82,39 @@ setup_file() {
     " || extra="${extra}${key} "
   done
   [ -z "$extra" ] || { echo "agent-models.jsonc-Einträge ohne runtime: $extra"; return 1; }
+}
+
+@test "P4.3b: runtimes.model ↔ agent-models.jsonc agent.model (Modell-Zuordnung synchron)" {
+  cd "$REPO_ROOT"
+
+  # .opencode/agent-models.jsonc ist die SSOT für die Modell-Zuordnung. Jede
+  # runtime in agents.yaml muss denselben Modell-String tragen — Namens-Gleichheit
+  # allein (P4.3) hat den Drift nicht gefangen (gemma zeigte auf gemma4,
+  # gemma26-primary/-vision auf gptoss-context statt gemma26-factory, T002851).
+  local drift=""
+  while IFS='|' read -r rt reg_model; do
+    local json_model
+    json_model=$(node -e "
+      const fs = require('fs');
+      const j5 = require('json5');
+      const d = j5.parse(fs.readFileSync('.opencode/agent-models.jsonc','utf8'));
+      const m = d.agent && d.agent['${rt}'] && d.agent['${rt}'].model;
+      console.log(m || '');
+    ")
+    if [ -z "$json_model" ]; then
+      drift="${drift}${rt} (agent-models.jsonc ohne model) "
+    elif [ "$json_model" != "$reg_model" ]; then
+      drift="${drift}${rt} (registry=${reg_model}, jsonc=${json_model}) "
+    fi
+  done < <(node -e "
+    const y = require('yaml');
+    const fs = require('fs');
+    const d = y.parse(fs.readFileSync('docs/agent-guide/registry/agents.yaml','utf8'));
+    for (const [k, v] of Object.entries(d.runtimes || {})) {
+      if (v.model) console.log(k + '|' + v.model);
+    }
+  ")
+  [ -z "$drift" ] || { echo "Modell-Drift registry vs. agent-models.jsonc: $drift"; return 1; }
 }
 
 @test "P4.4: CLAUDE.md nennt nur Agenten aus der Registry" {

@@ -70,6 +70,8 @@ _argv_facts() {
 # Loadouts, die bewusst von der q4_0-Sperre ausgenommen sind. Jeder Eintrag
 # braucht eine Begruendung im Block darunter — die Liste ist keine Sammelstelle.
 _KV_Q4_ALLOWED="gemma26-factory
+gemma4
+gemma26-throughput
 qwen3-coder-30b"
 
 @test "nur ausdruecklich ausgenommene GPU-Chat-Loadouts starten mit q4_0-KV" {

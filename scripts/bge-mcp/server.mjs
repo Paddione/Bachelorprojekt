@@ -101,7 +101,20 @@ function target(role) {
  * systemd-Unit) mehrere Schritte entfernt lag. Die Rolle und die aufgeloeste
  * Zieladresse gehoeren deshalb in die Meldung: sie zeigen sofort, ob der
  * Router falsch aufloest oder der Endpoint nicht antwortet.
+ *
+ * Der Aufruf ist zeitlich begrenzt (T002838). Ein *toter* Endpoint wirft
+ * sofort; ein *ueberlasteter* nahm die Verbindung an und antwortete dann nie —
+ * ohne Signal wartete `fetch` unbegrenzt. Am 2026-08-09 hing bge_embed so
+ * ueber 60s am Cluster-Endpoint, waehrend dessen /health weiter 200 lieferte:
+ * der MCP-Client sah ein blockiertes Werkzeug statt einer Fehlermeldung.
+ * Ein Timeout macht daraus einen Fehler, den der Aufrufer sehen und
+ * weiterreichen kann. Ueberschreibbar per BGE_MCP_UPSTREAM_TIMEOUT_MS.
  */
+const UPSTREAM_TIMEOUT_MS = Number.parseInt(
+  process.env.BGE_MCP_UPSTREAM_TIMEOUT_MS ?? '30000',
+  10,
+);
+
 async function callUpstream(role, url, path, payload) {
   let r;
   try {
@@ -109,8 +122,18 @@ async function callUpstream(role, url, path, payload) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
   } catch (cause) {
+    // TimeoutError vom Abort getrennt melden: "nicht erreichbar" und "hat
+    // angenommen, aber nicht geantwortet" fuehren zu verschiedenen Diagnosen.
+    if (cause?.name === 'TimeoutError') {
+      throw new Error(
+        `bge_${role}: upstream at ${url}${path} did not answer within ${UPSTREAM_TIMEOUT_MS}ms `
+          + '(connection accepted — endpoint overloaded or queue saturated)',
+        { cause },
+      );
+    }
     throw new Error(
       `bge_${role}: upstream unreachable at ${url}${path} (${cause?.message ?? String(cause)})`,
       { cause },

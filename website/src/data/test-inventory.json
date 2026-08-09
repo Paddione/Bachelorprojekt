@@ -2238,6 +2238,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/ghcr-digest-auth",
+    "file": "tests/spec/ci-cd/ghcr-digest-auth.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/mishap-t002425",
     "file": "tests/spec/ci-cd/mishap-t002425.bats",
     "category": "ci-cd",
@@ -2274,6 +2280,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/spec-tracked-file-guard",
+    "file": "tests/spec/ci-cd/spec-tracked-file-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/taskfiles-dir-convention",
     "file": "tests/spec/ci-cd/taskfiles-dir-convention.bats",
     "category": "ci-cd",
@@ -2282,6 +2294,12 @@
   {
     "id": "ci-cd/test-inventory-coverage",
     "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/workflow-self-trigger",
+    "file": "tests/spec/ci-cd/workflow-self-trigger.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2325,6 +2343,12 @@
     "id": "database",
     "file": "tests/spec/database.bats",
     "category": "database",
+    "kind": "shell"
+  },
+  {
+    "id": "database-migrations-runner",
+    "file": "tests/spec/database-migrations-runner.bats",
+    "category": "database-migrations-runner",
     "kind": "shell"
   },
   {
@@ -2378,6 +2402,12 @@
   {
     "id": "dev-flow-plan/plan-lint-task-count",
     "file": "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/plan-qa-livez-probe",
+    "file": "tests/spec/dev-flow-plan/plan-qa-livez-probe.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },
@@ -2553,6 +2583,12 @@
     "id": "flux-artifact-versioning/flux-artifact-versioning",
     "file": "tests/spec/flux-artifact-versioning/flux-artifact-versioning.bats",
     "category": "flux-artifact-versioning",
+    "kind": "shell"
+  },
+  {
+    "id": "flux-render-security/bootstrap-envsubst",
+    "file": "tests/spec/flux-render-security/bootstrap-envsubst.bats",
+    "category": "flux-render-security",
     "kind": "shell"
   },
   {
@@ -2760,6 +2796,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/bge-mcp-upstream-timeout",
+    "file": "tests/spec/local-llm-proxy/bge-mcp-upstream-timeout.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/bge-token-ssot",
     "file": "tests/spec/local-llm-proxy/bge-token-ssot.bats",
     "category": "local-llm-proxy",
@@ -2810,6 +2852,12 @@
   {
     "id": "local-llm-proxy/kv-probe-endpoint-guard",
     "file": "tests/spec/local-llm-proxy/kv-probe-endpoint-guard.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/loadout-aux-files-exist",
+    "file": "tests/spec/local-llm-proxy/loadout-aux-files-exist.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -3152,6 +3200,12 @@
   {
     "id": "openspec-workflow/half-archive-guard",
     "file": "tests/spec/openspec-workflow/half-archive-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/ticket-file-required",
+    "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },
@@ -3566,6 +3620,12 @@
   {
     "id": "sdlc-isolation/fleet-sequence-split",
     "file": "tests/spec/sdlc-isolation/fleet-sequence-split.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-isolation/sdlc-up-command",
+    "file": "tests/spec/sdlc-isolation/sdlc-up-command.bats",
     "category": "sdlc-isolation",
     "kind": "shell"
   },

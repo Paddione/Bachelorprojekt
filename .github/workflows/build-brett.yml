@@ -3,7 +3,7 @@ name: Build Brett
 on:
   push:
     branches: [main]
-    paths: ['brett/**']
+    paths: ['brett/**', '.github/workflows/build-brett.yml']
 
 env:
   OPENSPEC_TELEMETRY: '0'

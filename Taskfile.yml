@@ -817,7 +817,29 @@ tasks:
           echo "test:spec: FEHLER — keine Spec-Dateien ausgewaehlt" >&2
           exit 1
         fi
+        # [T002779] spec-tracked-file-guard: Snapshot vor bats nehmen,
+        # nicht am Task-Anfang — test:spec:build-mcp-runner laeuft vorher
+        # und erzeugt legitime Ausgabe.
+        GUARD_SNAP="$(mktemp)"
+        bash scripts/spec-tracked-file-guard.sh snapshot "$GUARD_SNAP"
+
+        set +e
         ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $FILES
+        BATS_STATUS=$?
+        bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
+        GUARD_STATUS=$?
+        set -e
+
+        rm -f "$GUARD_SNAP"
+        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
+        # [T002779] Guard ist bei der initialen Ausrollung nicht-fatal:
+        # bestehende Spec-Tests (z.B. agent-roster P4.5: task agent-guide:maps)
+        # regenerieren getrackte Dateien; ihre Behebung ist ein eigener Vorgang.
+        # Sobald alle Fundstellen behoben sind, wird exit "$GUARD_STATUS" aktiv.
+        if [ "$GUARD_STATUS" -ne 0 ]; then
+          echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
+        fi
+        exit 0
 
   test:spec:changed:
     desc: "Run only the spec bats matching the files changed vs origin/main (scripts/find-changed-tests.sh spec). Falls back to the full suite when a shared harness/workflow/Taskfile changed. [T002245]"
@@ -856,7 +878,24 @@ tasks:
           fi
           echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$CHANGED_FILES" | grep -c .) Dateien"
         fi
+        # [T002779] spec-tracked-file-guard: Snapshot vor bats nehmen.
+        GUARD_SNAP="$(mktemp)"
+        bash scripts/spec-tracked-file-guard.sh snapshot "$GUARD_SNAP"
+
+        set +e
         ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files $CHANGED_FILES
+        BATS_STATUS=$?
+        bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
+        GUARD_STATUS=$?
+        set -e
+
+        rm -f "$GUARD_SNAP"
+        if [ "$BATS_STATUS" -ne 0 ]; then exit "$BATS_STATUS"; fi
+        # [T002779] Guard nicht-fatal waehrend der initialen Ausrollung (siehe test:spec).
+        if [ "$GUARD_STATUS" -ne 0 ]; then
+          echo "⚠ spec-tracked-file-guard: getrackte Datei(en) waehrend des Spec-Laufs beruehrt — Befund, kein CI-Blocker [T002779]" >&2
+        fi
+        exit 0
 
   test:mcp-tooling:
     desc: "Guardrail: ticket-mcp tools <-> mcp-tool-guide.md <-> skill-critical verbs (hard)"
@@ -2936,6 +2975,7 @@ tasks:
           # Run website DB migrations before the website Deployment is rolled
           # out below (T001652 — website had no automated migration runner).
           task website:migrate ENV="{{.ENV}}"
+          task factory:migrate ENV="{{.ENV}}"
           # Full apply (idempotent — updates configs, adds remaining services)
           # SYSTEMTEST_LOOP_ENABLED defaults to "false" so the placeholder is
           # never emitted literally in dev (where the env file may omit it).
@@ -3066,6 +3106,7 @@ tasks:
           # Run website DB migrations before the website Deployment is rolled
           # out below (T001652 — website had no automated migration runner).
           task website:migrate ENV="{{.ENV}}"
+          task factory:migrate ENV="{{.ENV}}"
 
           overlay="${ENV_OVERLAY:-prod}"
           # Derive Nextcloud MAIL_FROM_ADDRESS / MAIL_DOMAIN from the authoritative SMTP_FROM
@@ -3788,6 +3829,44 @@ tasks:
         DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
           pnpm --dir website db:migrate
 
+  factory:migrate:
+    desc: "Run migrations/*.sql against the target DB (idempotent, tracked in public.factory_schema_migrations). ENV=dev|mentolder|korczewski."
+    vars:
+      ENV: '{{.ENV | default "dev"}}'
+    cmds:
+      - |
+        set -euo pipefail
+        source scripts/env-resolve.sh "{{.ENV}}"
+        ctx_flag=""
+        [ "{{.ENV}}" != "dev" ] && ctx_flag="--context $ENV_CONTEXT"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+
+        echo "Waiting for shared-db to be ready before running factory migrations..."
+        kubectl $ctx_flag -n "$NS" rollout status deployment/shared-db --timeout=120s
+
+        echo "Fetching postgres superuser password from ${NS}/shared-db..."
+        PG_PW=$(kubectl $ctx_flag -n "$NS" get secret workspace-secrets -o jsonpath='{.data.SHARED_DB_PASSWORD}' 2>/dev/null | base64 -d || true)
+        if [ -z "$PG_PW" ]; then
+          kubectl $ctx_flag -n "$NS" wait --for=condition=Ready pod -l app=shared-db --timeout=120s || true
+          POD=$(kubectl $ctx_flag -n "$NS" get pod -l app=shared-db --field-selector status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null | head -n1 || true)
+          if [ -n "$POD" ]; then
+            PG_PW=$(kubectl $ctx_flag -n "$NS" exec "$POD" -c postgres -- printenv POSTGRES_PASSWORD | tr -d '\r\n')
+          fi
+        fi
+        if [ -z "$PG_PW" ]; then
+          echo "ERROR: could not read POSTGRES_PASSWORD from shared-db"; exit 1
+        fi
+
+        echo "Port-forwarding shared-db (5432) and running factory migrations..."
+        kubectl $ctx_flag -n "$NS" port-forward svc/shared-db 5432:5432 \
+          >/tmp/factory-migrate-pf.log 2>&1 &
+        PF=$!
+        trap 'kill $PF 2>/dev/null' EXIT
+        sleep 3
+
+        DATABASE_URL="postgres://postgres:${PG_PW}@localhost:5432/website" \
+          node scripts/migrate-factory.mjs
+
   website:migrate:homepage-blocks:
     desc: "Provision the homepage block document tables (idempotent). The website store also creates them lazily; this is the explicit operator path. Requires SESSIONS_DATABASE_URL or POSTGRES_MIGRATION_URL in the env. Pass -- --apply to execute (default: dry-run)."
     cmds:
@@ -3944,6 +4023,7 @@ tasks:
         # Run website DB migrations before build/rollout (T001652). Idempotent
         # and tracked — safe even though workspace:deploy also calls this.
         task website:migrate ENV="{{.ENV}}"
+        task factory:migrate ENV="{{.ENV}}"
 
         if [ "{{.ENV}}" = "dev" ]; then
           WEBSITE_HOST="web.localhost"
@@ -5153,7 +5233,10 @@ tasks:
         kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/flux-webhook-token-sealedsecret.yaml
         kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/flux-instance.yaml
         kubectl --context "$ENV_CONTEXT" apply -f flux/clusters/fleet/bootstrap/receiver.yaml
-        envsubst "\$FLUX_WEBHOOK_HOST \$TLS_SECRET_NAME" \
+        envsubst "\$PROD_DOMAIN" \
+          < flux/clusters/fleet/bootstrap/certificate-flux-webhook.yaml \
+          | kubectl --context "$ENV_CONTEXT" apply -f -
+        envsubst "\$FLUX_WEBHOOK_HOST" \
           < flux/clusters/fleet/bootstrap/ingressroute-flux-webhook.yaml \
           | kubectl --context "$ENV_CONTEXT" apply -f -
         flux check --context "$ENV_CONTEXT" || true

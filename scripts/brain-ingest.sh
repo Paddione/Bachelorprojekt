@@ -16,7 +16,7 @@
 #                      Deployments (k3d/llm-gpu.yaml); die Host-Ports 8095/8096
 #                      existieren nicht mehr. Einziger Host-Server:
 #                        8093 = Bonsai chat / ingest pool (-np 4)
-#   LM_MODEL         — Model to use (default: qwen3.6-14b-a3b-fablevibes)
+#   LM_MODEL         — Model to use (PFLICHT, kein Default; siehe T002533)
 #   MAX_PARALLEL     — Concurrent process_page() jobs (default: 4, matching
 #                      the ingest-pool server's -np slot count — raising this
 #                      above the server's slot count just queues requests)
@@ -41,7 +41,7 @@ PRUNE=0
 STATE_FILE="${BRAIN_INGEST_STATE:-$HOME/.brain-ingest-state.json}"
 BRANCH="feature/brain-initial-ingest"
 LM_URL="${LM_STUDIO_URL:-http://localhost:8093}"
-LM_MODEL="${LM_MODEL:-qwen3.6-14b-a3b-fablevibes}"
+LM_MODEL="${LM_MODEL:?LM_MODEL ist Pflicht (siehe T002533)}"
 MAX_PARALLEL="${MAX_PARALLEL:-4}"
 CHUNK_TARGET_CHARS="${BRAIN_CHUNK_TARGET_CHARS:-8000}"
 # transform.sh's MAX_SOURCE_CHARS is a fail-closed guard since T002679 — it no

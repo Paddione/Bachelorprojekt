@@ -2,7 +2,25 @@
 
 ## Purpose
 
-_Purpose fehlt — beim nächsten inhaltlichen Delta zu brain-k2-bge ergänzen._
+Dokumentiert die bge-Architektur des Brain-Bausteins K2: das Ist/Soll-Diagramm der Knoten und
+Kanten, die vollständige Aufrufer-Erhebung mit Vektorraum-Zuordnung, die still degradierenden
+Pfade und den Host-SPOF beider GPU-Server.
+
+> **Zuständigkeitsgrenze zu `mcp-gateway` (T002711) — vor `--target-spec` lesen.**
+> Diese Spec beschreibt die **Architektur und Diagnose** von bge (Diagramm, Aufrufer, SPOF,
+> `scripts/bge-mcp/check-client-env.sh`). Alles, was **Transport und Erreichbarkeit für Clients**
+> betrifft — Registry-Eintrag, `headers.Authorization`, Token-Auflösung, Streamable-HTTP-Verhalten
+> des Shims, Host-Routing, Harness-Env — gehört nach `openspec/specs/mcp-gateway.md`, wo diese
+> Requirements bereits stehen. Entsprechend liegen die BATS-Tests unter `tests/spec/mcp-gateway/`,
+> `tests/spec/llm-pipeline/` und `tests/spec/local-llm-proxy/`; ein Verzeichnis
+> `tests/spec/brain-k2-bge/` existiert bewusst nicht.
+>
+> Der Grund für die Notiz: Wer die Spec zuerst liest, wählt zuverlässig falsch. Weil die einzigen
+> mit `bge` benannten Requirements (REQ-bge-01 bis REQ-bge-03) hier unten stehen, war
+> `openspec.sh propose --target-spec brain-k2-bge` am 2026-08-08 (T002703) die naheliegende Wahl —
+> die Delta-Datei musste danach von Hand nach `specs/mcp-gateway.md` umgezogen werden, nachdem der
+> Testort die tatsächliche Zuständigkeit zeigte. Die Zuordnung ist nicht falsch, sie war nur
+> nirgends festgehalten.
 
 ## Requirements
 

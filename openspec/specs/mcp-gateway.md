@@ -8,6 +8,13 @@ Das MCP-Gateway stellt MCP-Server (PostgreSQL, GitHub, Browser, Kubernetes) übe
 
 > **Architektur-Notiz (korrigiert T002321):** Der `claude-code-mcp-monolith` Kubernetes-Pod (Supergateway-basiert, Manifest `k3d/default/claude-code-mcp-monolith-deploy.yaml`) läuft weiterhin aktiv im `fleet`-Cluster (Namespace `default`) — die frühere Notiz vom 2026-06-22, wonach dieser Pod ausser Betrieb genommen worden sei, war unzutreffend. Die Ablösung durch die lokalen CLI-Prozesse ist unter T002311/T002312 noch zur Entscheidung offen, nicht vollzogen. Beide Betriebsformen existieren aktuell parallel: lokale CLI-MCP-Server auf dem WSL-Host (primär genutzt) und der In-Cluster-Monolith (weiterhin ausgeliefert und aktiv).
 >
+> **bge-mcp gehört hierher (T002711):** Transport- und Erreichbarkeitsfragen zu `bge-mcp` —
+> Registry-Eintrag, `headers.Authorization`, Token-Auflösung, Streamable-HTTP-Verhalten des Shims,
+> Host-Routing, Harness-Env — sind Requirements **dieser** Spec, und ihre BATS-Tests liegen unter
+> `tests/spec/mcp-gateway/`. Die Architektur- und Diagnose-Seite von bge (Diagramm, Aufrufer-Survey,
+> Host-SPOF, `scripts/bge-mcp/check-client-env.sh`) steht dagegen in
+> `openspec/specs/brain-k2-bge.md`. Beim `--target-spec` beide Seiten der Grenze prüfen.
+>
 > **Apply-Weg:** `k3d/default/` wird von keiner Overlay- (`prod-fleet/*`) oder Flux-Kustomization referenziert — die Ressourcen gehen **nicht** über die Flux-GitOps-Pipeline live. Änderungen an `k3d/default/claude-code-mcp-monolith-deploy.yaml` werden erst wirksam nach einem expliziten manuellen `kubectl apply -k k3d/default --context fleet`.
 
 ---

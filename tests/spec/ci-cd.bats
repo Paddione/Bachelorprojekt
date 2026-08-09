@@ -979,28 +979,60 @@ sys.exit(0 if any(j.get('needs') for j in d['jobs'].values()) else 1)
   }
 }
 
-# ── T002245: the factory job may scope the spec suite to the diff on PRs, but
-# the full-glob path MUST stay reachable for push-to-main. Without it, scoping
-# reintroduces exactly the T002182 failure mode: a spec file that no required
-# check ever runs, rotting on main undetected.
+# ── T002245: the factory job may scope the spec suite to the diff, but a
+# full-glob path MUST stay reachable. Without it, scoping reintroduces exactly
+# the T002182 failure mode: a spec file that no check ever runs, rotting on
+# main undetected.
+#
+# [T002780] Der Traeger dieser Zusage hat sich verschoben. Vorher: push-auf-main
+# fuhr die volle Suite, also einmal pro Merge (~13 Runner-Minuten, bei ~20
+# Merges/Tag — und der PR-Lauf hatte dieselben Dateien Minuten vorher schon
+# geprueft). Jetzt: push-auf-main prueft nur noch das Merge-Delta, und die
+# Vollabdeckung haengt am nightly `schedule`-Trigger. Die Schutzabsicht ist
+# unveraendert — deshalb ist der Schedule-Trigger hier ab sofort PFLICHT,
+# sobald ueberhaupt gescopt wird. Faellt er weg, gibt es wieder Spec-Dateien,
+# die in keinem Lauf mehr vorkommen.
 
-@test "T002245: test-factory keeps a non-PR full-suite path for the spec bats" {
+@test "T002245/T002780: gescopte Spec-Suite behaelt einen erreichbaren Vollauf" {
   local ci="$REPO_ROOT/.github/workflows/ci.yml"
   local block
   # [T002500] siehe Kommentar an T002182 oben: die Suite lebt in test-factory-shard.
   block=$(awk '/^  test-factory-shard:/{flag=1; next} /^  [a-z]/ && flag {exit} flag' "$ci")
 
-  # Scoping is optional; if present it must be gated on the event being a PR.
+  # Positiv-Anker [T002356-M1]: der Job-Block muss ueberhaupt gefunden worden
+  # sein. Ohne ihn waeren alle folgenden greps auf Leerstring und die
+  # Bedingung unten (`if ... grep -qF`) fiele trivial durch — der Test waere
+  # vakuos gruen, gerade wenn jemand den Job umbenennt oder loescht.
+  [ -n "$block" ] || {
+    echo "FAIL: Job-Block 'test-factory-shard:' in ci.yml nicht gefunden."
+    return 1
+  }
+
+  # Scoping is optional; if present it must be gated on the event being a PR...
   if echo "$block" | grep -qF 'task test:spec:changed'; then
     echo "$block" | grep -qF "github.event_name == 'pull_request'" || {
       echo "FAIL: scoped spec run is not gated on github.event_name == 'pull_request'."
-      echo "      Push-to-main must still run the full suite."
       return 1
     }
-    # ...and the unscoped fallback must survive alongside it.
+    # ...the unscoped fallback must survive alongside it...
     echo "$block" | grep -qE '^\s+(task )?test:spec\s*$|task test:spec$' || {
       echo "FAIL: no bare 'task test:spec' fallback left in the test-factory job."
       echo "      Current block:"; echo "$block" | sed 's/^/  /'
+      return 1
+    }
+    # ...und der Vollauf muss tatsaechlich regelmaessig STATTFINDEN. Ein bloss
+    # erreichbarer Fallback-Zweig genuegt seit T002780 nicht mehr: auf main
+    # laeuft nur noch das Merge-Delta, der Zweig traegt also im Normalbetrieb
+    # nichts. Der schedule-Trigger ist der einzige Lauf, der garantiert jede
+    # Spec-Datei anfasst.
+    grep -qE '^  schedule:' "$ci" || {
+      echo "FAIL: kein 'schedule:'-Trigger in ci.yml, obwohl die Spec-Suite gescopt wird."
+      echo "      Damit laeuft die VOLLE Suite in keinem Lauf mehr — eine Spec-Datei,"
+      echo "      die kein Diff beruehrt, verrottet unbemerkt (T002182/T002245)."
+      return 1
+    }
+    grep -qE "^\s+- cron: '" "$ci" || {
+      echo "FAIL: 'schedule:' ohne cron-Eintrag — der Trigger feuert nie."
       return 1
     }
   fi

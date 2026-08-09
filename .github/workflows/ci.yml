@@ -14,15 +14,25 @@ on:
   push:
     branches:
       - main
-      # release-please PRs are opened by github-actions[bot] with GITHUB_TOKEN,
-      # which GitHub does not re-trigger pull_request workflows for (loop-prevention).
-      # Triggering on push to the release-please branch gives branch-protection the
-      # required check run so the PR can auto-merge.
-      - 'release-please--branches--main'
+      # [T002780] Der Zweig 'release-please--branches--main' ist hier entfallen.
+      # Er war ein Workaround dagegen, dass GitHub fuer PRs von
+      # github-actions[bot] (GITHUB_TOKEN) keine pull_request-Workflows
+      # ausloest. Release-Please laeuft inzwischen unter secrets.GH_PAT
+      # (.github/workflows/release-please.yml), damit greift die
+      # Loop-Prevention nicht mehr und der regulaere pull_request-Trigger
+      # feuert. Der push-Zweig erzeugte daneben nur einen zweiten,
+      # identischen Lauf pro Release-PR.
     paths-ignore:
       - 'docs/**'
       - '*.md'
       - '**/CLAUDE.md'
+  # [T002780] Traegt seit dem Merge-Delta-Scoping unten die Vollabdeckung der
+  # Spec-Suite: push-auf-main prueft nur noch das Merge-Delta, eine Spec-Datei
+  # ohne Diff-Bezug liefe sonst in gar keinem Lauf mehr (T002245). Nachts um
+  # 03:17 UTC, versetzt zu den vollen Stunden, an denen Actions-Runner knapp
+  # sind.
+  schedule:
+    - cron: '17 3 * * *'
   # Rettungsanker [T002425-M5]: GitHub loest fuer einen frisch gepushten SHA gelegentlich
   # gar keinen Lauf aus — `gh pr checks` meldet dann minutenlang "no checks reported on the
   # branch" und `.../commits/<sha>/check-runs` liefert total_count: 0, waehrend die letzten
@@ -319,21 +329,59 @@ jobs:
           fi
           echo "── TMPDIR=${TMPDIR:-<nicht gesetzt>} ──"
 
-      # Fail closed: ist origin/main nicht erreichbar, waere der Diff leer und
-      # wuerde still nichts auswaehlen — dann lieber alles laufen lassen.
+      # Fail closed: ist der Diff-Bezugspunkt nicht ermittelbar, waere die
+      # Auswahl leer und wuerde still nichts ausfuehren — dann lieber alles
+      # laufen lassen.
+      #
+      # [T002780] Drei Pfade statt zwei. Vorher fuhr JEDER Merge auf main die
+      # volle Suite ein zweites Mal (~13 Runner-Minuten pro Merge, bei ~20
+      # Merges/Tag), obwohl der PR-Lauf dieselben Dateien Minuten vorher schon
+      # geprueft hatte. Der Merge-Delta-Pfad prueft stattdessen genau das, was
+      # der PR-Lauf NICHT gesehen haben kann: das Ergebnis des Squash-Commits.
+      # Das ist keine Formalie — `strict` ist in der Branch Protection false,
+      # PRs muessen also nicht aktuell zu main sein, und zwei gleichzeitig
+      # gruene PRs koennen sich auf main semantisch widersprechen.
+      #
+      # Die Vollabdeckung ist damit NICHT gestrichen, sondern verlegt: der
+      # nightly `schedule`-Trigger oben faehrt `task test:spec` ueber alles.
+      # Ohne ihn waere eine Spec-Datei, die kein Diff je beruehrt, in keinem
+      # Lauf mehr enthalten — genau die Verrottung, vor der T002245 warnt.
       - name: Spec BATS suite (shard ${{ matrix.shard }}/4)
         env:
           IS_PR: ${{ github.event_name == 'pull_request' }}
+          IS_PUSH: ${{ github.event_name == 'push' }}
+          # Vorgaenger-Commit von main bei einem push-Event. Leer/Nullen bei
+          # Force-Push und beim allerersten Push — beides faellt auf die volle
+          # Suite zurueck.
+          BEFORE_SHA: ${{ github.event.before }}
           # Macht das Gate fail-closed: ein nicht erreichbarer Daemon laesst die
           # betroffenen Tests durchfallen, statt sie zu ueberspringen.
           COCKPIT_DAEMON_REQUIRED: '1'
         run: |
           if [ "$IS_PR" = "true" ] && git rev-parse --verify -q refs/remotes/origin/main >/dev/null; then
             task test:spec:changed
-          else
-            echo "→ Full spec suite (push-to-main or origin/main unavailable)"
-            task test:spec
+            exit 0
           fi
+
+          # Merge-Delta auf main. FIND_CHANGED_TESTS_FILES ist die dafuer
+          # vorgesehene Naht in scripts/find-changed-tests.sh: auf main ist
+          # HEAD == origin/main, dessen eigener Default-Diff also leer.
+          if [ "$IS_PUSH" = "true" ] \
+             && [ -n "$BEFORE_SHA" ] \
+             && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ] \
+             && git fetch --no-tags --depth=1 origin "$BEFORE_SHA" >/dev/null 2>&1 \
+             && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            DELTA=$(git diff --name-only "$BEFORE_SHA" HEAD || true)
+            if [ -n "$DELTA" ]; then
+              echo "→ Merge-Delta gegen ${BEFORE_SHA} ($(printf '%s\n' "$DELTA" | grep -c .) Dateien)"
+              FIND_CHANGED_TESTS_FILES="$DELTA" task test:spec:changed
+              exit 0
+            fi
+            echo "→ Merge-Delta leer — fahre die volle Suite"
+          fi
+
+          echo "→ Full spec suite (schedule / dispatch / force-push / Delta nicht ermittelbar)"
+          task test:spec
 
   test-factory:
     # Aggregator. Traegt den Required-Check-Namen und ist fail-closed: alles,
@@ -606,7 +654,12 @@ jobs:
 
   lighthouse:
     name: Lighthouse Performance
-    if: github.event.action != 'edited'
+    # [T002780] Nur auf PRs. Der Lauf ist `continue-on-error` und blockiert
+    # nichts; sein einziges Produkt ist ein advisory Commit-Status, den auf
+    # main niemand vor einer Entscheidung liest. Er auditiert ausserdem die
+    # LIVE-URL web.mentolder.de, nicht den gemergten Stand — nach einem Merge
+    # ist der dort noch gar nicht deployt.
+    if: github.event.action != 'edited' && github.event_name == 'pull_request'
     needs: [vitest-website]
     runs-on: ubuntu-latest
     timeout-minutes: 10

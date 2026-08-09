@@ -254,6 +254,24 @@ fi
 
 # Idempotency: drop a stale worktree at this path left by a prior aborted run
 # (removing a worktree never deletes its branch). Lets the factory retry cleanly.
+#
+# [T002896] Vor dem Entfernen pruefen, ob der aktuell am Zielpfad ausgecheckte
+# Branch einen live Agent-Lock traegt — ist das der Fall, darf der Worktree NICHT
+# entfernt werden (fremde Session arbeitet aktiv). Dieser Guard verhindert, dass
+# der Factory-Autopilot aktiv geclaimte Fremd-Worktrees ueberschreibt.
+# Symmetrie zum "branch in use"-Check weiter unten (Zeile 283-286): jener prueft,
+# ob der ANGEFORDERTE Branch bereits in EINEM ANDEREN Worktree liegt; dieser Guard
+# prueft, ob der ZIELPFAD bereits von einem live geclaimten Branch belegt ist.
+_existing_branch=""
+if [ -d "$WT_PATH" ]; then
+  _existing_branch="$(git -C "$WT_PATH" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  if [ -n "$_existing_branch" ] && [ "$_existing_branch" != "HEAD" ]; then
+    if bash "$(dirname "$0")/agent-lock.sh" check-branch-live "$_existing_branch" >/dev/null 2>&1; then
+      echo "worktree-create: Zielpfad $WT_PATH ist belegt von Branch $_existing_branch mit live Agent-Lock — breche ab (T002896)." >&2
+      exit 4
+    fi
+  fi
+fi
 git worktree remove --force "$WT_PATH" 2>/dev/null || true
 git worktree prune 2>/dev/null || true
 

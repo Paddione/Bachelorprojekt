@@ -2640,6 +2640,12 @@
     "kind": "shell"
   },
   {
+    "id": "factory-reclaim-lock-respect/worktree-reaper-lock-guard-T002896",
+    "file": "tests/spec/factory-reclaim-lock-respect/worktree-reaper-lock-guard-T002896.bats",
+    "category": "factory-reclaim-lock-respect",
+    "kind": "shell"
+  },
+  {
     "id": "factory-watchdog/stale-type-coverage",
     "file": "tests/spec/factory-watchdog/stale-type-coverage.bats",
     "category": "factory-watchdog",

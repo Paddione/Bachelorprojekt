@@ -54,3 +54,17 @@ KORCZEWSKI_SPEC="${BATS_TEST_DIRNAME}/../e2e/specs/korczewski-home.spec.ts"
   run grep -n "getByRole('link', { name: /\^korczewski" "$KORCZEWSKI_SPEC"
   [ "$status" -eq 0 ]
 }
+
+# --- T002730: FA-59 systemtest purge endpoint positive assertions -----------
+PURGE_SPEC="${BATS_TEST_DIRNAME}/../e2e/specs/fa-59-systemtest-purge-endpoint.spec.ts"
+
+@test "T002730: FA-59 systemtest purge endpoint spec does not use negative assertion (not.toBe)" {
+  run grep -n "not\.toBe" "$PURGE_SPEC"
+  [ "$status" -ne 0 ]
+}
+
+@test "T002730: FA-59 systemtest purge endpoint spec asserts positive 403 status" {
+  run grep -n "toBe(403)" "$PURGE_SPEC"
+  [ "$status" -eq 0 ]
+}
+

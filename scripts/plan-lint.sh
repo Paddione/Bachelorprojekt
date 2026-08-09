@@ -341,6 +341,17 @@ if grep -nE '\b(TBD|TODO|FIXME)\b|\?\?\?|<ausfüllen>|similar to Task [0-9]' <<<
   hard "P1: open placeholder found (TBD/TODO/FIXME/???/'similar to Task N')"
 fi
 
+# _structural_file_tokens <text> — extracts unique backtick-quoted file path tokens
+# with a source-code extension, but ONLY from lines that look structural:
+# table rows (`|...`) or bullet-list items (`-`/`*` at line start). Free-form prose
+# lines mentioning the same path are excluded (T002807: plan-lint W3/B1b false-
+# positives from prose mentions inside File Structure sections).
+_structural_file_tokens() {
+  grep -E '^[[:space:]]*([|]|[-*])' <<<"$1" \
+    | grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php|css)`' \
+    | tr -d '`' | sort -u
+}
+
 # === B1a/B1b: per-file budget integrity + strategy ===
 # Scanned on FENCE-STRIPPED prose so reproduced fixture tables inside ```code```
 # blocks never count as a real self-reported budget. A claimed budget is only read
@@ -380,7 +391,7 @@ while IFS= read -r path; do
       warn "B1b: $path residual budget $computed ≤ 0 and no split/shrink step planned"
     fi
   fi
-done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php)`' <<<"$PLAN_PROSE" | tr -d '`' | sort -u)
+done < <(_structural_file_tokens "$PLAN_PROSE")
 
 # === W1: Vitest advisory — website/src .ts/.svelte/.astro files without a test mention ===
 # If the plan lists website/src lib or API files but never mentions vitest/test, warn.
@@ -433,7 +444,7 @@ while IFS= read -r ftok; do
   # references the same file by its basename (e.g. FS `website/src/x/Foo.svelte`, task
   # "migrate `Foo.svelte`"). A full-path match would false-positive on nearly every plan.
   grep -qF -- "${ftok##*/}" <<<"$PLAN_OUTSIDE_FS" || warn "W3: \`$ftok\` is listed in File Structure but no task references it"
-done < <(grep -oE '`[A-Za-z0-9_./-]+\.(sh|bash|ts|tsx|js|jsx|mjs|mts|cjs|py|svelte|astro|java|php|css)`' <<<"$FS_SECTION" | tr -d '`' | sort -u)
+done < <(_structural_file_tokens "$FS_SECTION")
 
 # === G1: granularity warning — a single task touching >3 files (warn only) ===
 # Count `path` tokens inside each "## Task" block; warn if any block lists >3. Only

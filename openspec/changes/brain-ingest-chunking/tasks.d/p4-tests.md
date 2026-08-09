@@ -53,7 +53,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
 
 ## Aufgaben
 
-- [ ] **RED-Schritt: alle sechs Testdateien anlegen und rot laufen lassen.**
+- [x] **RED-Schritt: alle sechs Testdateien anlegen und rot laufen lassen.**
   Die Dateien `tests/spec/brain-k4-brain-wiki/chunking.bats`,
   `max-source-chars-guard.bats`, `parent-moc.bats`, `coverage-gate.bats`,
   `brain-mcp-server.bats` und `mcp-registry.bats` werden in den folgenden
@@ -72,7 +72,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   eine Testzahl > 0, und der Gesamtlauf endet mit Exit ≠ 0 wegen fehlender
   Implementierung — nicht wegen eines Syntaxfehlers.
 
-- [ ] **`tests/spec/brain-k4-brain-wiki/chunking.bats` schreiben (REQ-k4-04).**
+- [x] **`tests/spec/brain-k4-brain-wiki/chunking.bats` schreiben (REQ-k4-04).**
   Fixtures in `setup()`: (a) `spec-mit-requirements.md` mit vier
   `### Requirement:`-Überschriften und je ~4000 Zeichen Fülltext, damit die
   Zielgröße 8000 sicher überschritten wird; (b) `ohne-requirements.md` mit
@@ -109,7 +109,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   *Danach beobachtbar:* Die Datei enthält sechs `@test`-Blöcke, läuft ohne
   `scripts/brain-chunk.sh` rot und deckt alle drei Scenarios von REQ-k4-04 ab.
 
-- [ ] **`tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats` schreiben (REQ-k4-05).**
+- [x] **`tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats` schreiben (REQ-k4-05).**
   `setup()` exportiert `LM_STUDIO_URL` und `LM_MODEL` (Pflichtvariablen,
   T002533) auf einen lokalen Stub-Port und legt zwei Quellen an: eine über und
   eine unter `MAX_SOURCE_CHARS`, das im Test auf einen kleinen Wert (etwa 500)
@@ -136,7 +136,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   Tests tragen ihren Positiv-Anker im selben Block, und ohne den p1-Umbau
   laufen sie rot (heute kürzt das Skript still und endet mit Exit 0).
 
-- [ ] **`tests/spec/brain-k4-brain-wiki/parent-moc.bats` schreiben (REQ-k4-06).**
+- [x] **`tests/spec/brain-k4-brain-wiki/parent-moc.bats` schreiben (REQ-k4-06).**
   Fixture: dieselbe mehrteilige Quelle wie in `chunking.bats`, Chunker-Aufruf
   mit gesetztem MOC-Ziel. Der Test liest die MOC-Datei und das TSV und
   vergleicht beide gegeneinander.
@@ -157,7 +157,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   *Danach beobachtbar:* Das einzige Scenario von REQ-k4-06 ist mit drei
   unabhängigen Assertions abgedeckt (Anzahl, Auflösbarkeit, Rückverweis).
 
-- [ ] **`tests/spec/brain-k4-brain-wiki/coverage-gate.bats` schreiben (REQ-k4-07).**
+- [x] **`tests/spec/brain-k4-brain-wiki/coverage-gate.bats` schreiben (REQ-k4-07).**
   Das Gate wird über `bash scripts/brain-ingest-coverage.sh` in einem
   isolierten Arbeitsverzeichnis geprüft. Die Eingaben (übertragene Zeichen
   gegen Worklist-Zeichen) werden als Fixture-Dateien in `$BATS_TEST_TMPDIR`
@@ -183,7 +183,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   *Danach beobachtbar:* Beide Scenarios von REQ-k4-07 sind abgedeckt, und der
   Negativtest kann nicht mehr durch ein fehlendes Skript grün werden.
 
-- [ ] **stdio-Harness für den MCP-Server entwerfen und in `brain-mcp-server.bats` verankern (REQ-k4-08, Teil 1).**
+- [x] **stdio-Harness für den MCP-Server entwerfen und in `brain-mcp-server.bats` verankern (REQ-k4-08, Teil 1).**
   Der Server liest JSON-RPC zeilenweise von stdin und antwortet zeilenweise auf
   stdout (D6). Der Test braucht deshalb keine Nebenläufigkeit: eine
   Hilfsfunktion `rpc()` in der Testdatei baut mit `printf` einen
@@ -204,7 +204,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   allen Tests der Datei genutzt, und ein Aufruf gegen den noch nicht
   umgebauten Server endet innerhalb des Timeouts mit Exit ≠ 0.
 
-- [ ] **`tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats` ausformulieren (REQ-k4-08, Teil 2).**
+- [x] **`tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats` ausformulieren (REQ-k4-08, Teil 2).**
   Zu schreibende `@test`-Blöcke, alle über die `rpc()`-Hilfsfunktion:
   - `"tools/list advertises exactly brain_search and brain_read"` — die Liste
     der `name`-Felder aus `result.tools` extrahieren, sortieren und exakt
@@ -229,7 +229,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   Datei läuft gegen die heutige argparse-CLI rot, weil diese auf
   JSON-RPC-Eingaben keine gültige Antwortzeile erzeugt.
 
-- [ ] **`tests/spec/brain-k4-brain-wiki/mcp-registry.bats` schreiben (REQ-k4-09).**
+- [x] **`tests/spec/brain-k4-brain-wiki/mcp-registry.bats` schreiben (REQ-k4-09).**
   Kopfkommentar begründet den Prüfmodus: Die Aussage „Registry ist Quelle,
   Konfigurationen sind generiert" manifestiert sich in Dateiinhalten, deshalb
   ist hier neben dem Kommandolauf auch Dateiprüfung das angemessene Mittel
@@ -262,7 +262,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   *Danach beobachtbar:* Das Scenario von REQ-k4-09 ist abgedeckt; ohne den
   p3-Registry-Eintrag laufen mindestens zwei der drei Tests rot.
 
-- [ ] **`tests/spec/brain-mcp.bats` entfernen.**
+- [x] **`tests/spec/brain-mcp.bats` entfernen.**
   Die Datei prüft die abgelöste argparse-CLI (`--resource brain://…`,
   `--search`) und wird durch den Umbau in p3 ungültig — sie kann nicht
   repariert werden, weil die geprüfte Oberfläche verschwindet und laut D6
@@ -278,7 +278,7 @@ Vertragsbruch und nicht als Testfehler gelesen wird.
   tests/spec/brain-k4-brain-wiki` deckt die drei alten Fähigkeiten weiterhin
   ab.
 
-- [ ] **Gesamtlauf grün stellen und Testinventar regenerieren.**
+- [x] **Gesamtlauf grün stellen und Testinventar regenerieren.**
   Nach p1, p2 und p3 beide Formen der Spec-Ablage prüfen (T002696), weil
   Sammeldatei und Verzeichnis gleichzeitig gültig sind:
   ```bash

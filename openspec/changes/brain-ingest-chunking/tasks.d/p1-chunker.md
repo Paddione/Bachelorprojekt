@@ -43,7 +43,7 @@ kennt kein LLM, kein Wiki-Repo und keinen Zustand.
 
 ## Aufgaben
 
-- [ ] **Gerüst und Argumentparsing für `scripts/brain-chunk.sh`.**
+- [x] **Gerüst und Argumentparsing für `scripts/brain-chunk.sh`.**
   Neue Datei anlegen: `#!/usr/bin/env bash`, `set -euo pipefail`, Kopfkommentar
   im Stil von `scripts/brain-ingest-worklist.sh:1-9` (Usage, TSV-Spalten,
   Ticket-Verweis T002679). Benannte Optionen `--source` und `--slug` (beide
@@ -58,7 +58,7 @@ kennt kein LLM, kein Wiki-Repo und keinen Zustand.
   Exit ≠ 0; mit gültigen Argumenten läuft das Skript (noch ohne Ausgabe)
   durch und legt das Ausgabeverzeichnis an.
 
-- [ ] **Split-Fallback-Kette implementieren (D1, REQ-k4-04).**
+- [x] **Split-Fallback-Kette implementieren (D1, REQ-k4-04).**
   Funktion `detect_split_pattern()` in `scripts/brain-chunk.sh`: zählt
   `grep -c '^### Requirement:'` in der Quelle; bei ≥ 2 Treffern ist das
   Split-Muster `^### Requirement:`. Sonst zählt sie `^## ` und nimmt bei
@@ -73,7 +73,7 @@ kennt kein LLM, kein Wiki-Repo und keinen Zustand.
   genau diesen Zeilen zerlegt; `docs/diagrams/architecture.md` (keine
   Requirement-Ebene, D1) fällt sichtbar auf `^## ` zurück.
 
-- [ ] **Greedy-Packing bis Zielgröße plus harter Absatz-Split.**
+- [x] **Greedy-Packing bis Zielgröße plus harter Absatz-Split.**
   Funktion `pack_sections()` in `scripts/brain-chunk.sh`: hängt Abschnitte
   nacheinander an den laufenden Chunk an, solange die Zeichenlänge des
   Ergebnisses `BRAIN_CHUNK_TARGET_CHARS` (Vorgabe 8000) nicht überschreitet;
@@ -87,7 +87,7 @@ kennt kein LLM, kein Wiki-Repo und keinen Zustand.
   Quelltext; kein Chunk aus einer normal strukturierten Quelle liegt über der
   Zielgröße.
 
-- [ ] **Chunk-Dateien schreiben und TSV-Manifest emittieren (D2, REQ-k4-04).**
+- [x] **Chunk-Dateien schreiben und TSV-Manifest emittieren (D2, REQ-k4-04).**
   In `scripts/brain-chunk.sh`: je Chunk eine Datei
   `<out-dir>/<chunk-slug>.md` schreiben. Der Chunk-Slug ist
   `<source-slug>-<index>` mit `printf '%03d'`-Nullenauffüllung, damit die
@@ -110,7 +110,7 @@ kennt kein LLM, kein Wiki-Repo und keinen Zustand.
   mit vier Spalten, und `sort` über Spalte 2 ergibt dieselbe Reihenfolge wie
   `sort -n` über Spalte 3.
 
-- [ ] **Deterministische Eltern-MOC aus dem Chunk-TSV erzeugen (D4, REQ-k4-06).**
+- [x] **Deterministische Eltern-MOC aus dem Chunk-TSV erzeugen (D4, REQ-k4-06).**
   Funktion `emit_parent_moc()` in `scripts/brain-chunk.sh`, aktiv nur bei
   gesetztem `--moc` und mehr als einem Chunk. Sie baut die Seite ausschließlich
   aus dem bereits berechneten TSV — kein LLM-Aufruf, kein Netzwerkzugriff
@@ -127,7 +127,7 @@ kennt kein LLM, kein Wiki-Repo und keinen Zustand.
   aus Spalte 2 des TSV entsprechen, plus eine `source::`-Zeile auf die
   Originalquelle.
 
-- [ ] **`MAX_SOURCE_CHARS` in `scripts/brain-ingest-transform.sh` fail-closed machen (D3, REQ-k4-05).**
+- [x] **`MAX_SOURCE_CHARS` in `scripts/brain-ingest-transform.sh` fail-closed machen (D3, REQ-k4-05).**
   Zeilen 59-66 ersetzen: `CONTENT="$(head -c "$MAX_SOURCE_CHARS" "$SOURCE")"`
   entfällt zugunsten von `CONTENT="$(cat "$SOURCE")"`; `SRC_LEN` bleibt
   (`wc -c < "$SOURCE"`). Übersteigt `SRC_LEN` die Grenze, bricht das Skript mit
@@ -156,7 +156,7 @@ kennt kein LLM, kein Wiki-Repo und keinen Zustand.
   Zahlen und der Skriptname `brain-chunk.sh` vorkommen; eine Quelle unter der
   Grenze erreicht den Prompt vollständig und ohne Marker.
 
-- [ ] **Ausführbarkeit und Syntax der beiden Dateien sichern.**
+- [x] **Ausführbarkeit und Syntax der beiden Dateien sichern.**
   `chmod +x scripts/brain-chunk.sh` und `bash -n` auf beide Dateien laufen
   lassen. Zusätzlich `shellcheck scripts/brain-chunk.sh
   scripts/brain-ingest-transform.sh`, sofern lokal vorhanden, und die

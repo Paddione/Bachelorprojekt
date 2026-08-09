@@ -78,9 +78,9 @@ zusammenzuziehen.
 
 ## Verify (final)
 
-- [ ] **Alle Partial-Tasks abgeschlossen**, `p4` grün.
+- [x] **Alle Partial-Tasks abgeschlossen**, `p4` grün.
 
-- [ ] **Chunker gegen den realen Korpus laufen lassen** — kein LLM nötig, rein
+- [x] **Chunker gegen den realen Korpus laufen lassen** — kein LLM nötig, rein
       deterministisch. Erwartung: deutlich mehr Chunks als Quellen, keine Quelle
       ohne Chunk:
 
@@ -94,29 +94,69 @@ echo "sources=$(wc -l < /tmp/wl.tsv) chunks=$n"
 # Anker: beide Zahlen müssen > 0 sein; chunks muss deutlich über sources liegen (~300 erwartet)
 ```
 
-- [ ] **Coverage-Gate misst über 95 %** gegen dieselbe Worklist:
+- [x] **Coverage-Gate misst über 95 %** gegen dieselbe Worklist:
 
 ```bash
 bash scripts/brain-ingest-coverage.sh --worklist /tmp/wl.tsv --chunk-dir "$out"
 # expected: exit 0 und eine gemeldete Abdeckung >= 95 %
 ```
 
-- [ ] **MCP-Registry ist driftfrei:**
+- [x] **MCP-Registry ist driftfrei:**
 
 ```bash
 task mcp:check
 ```
 
-- [ ] **Vollständige Testabdeckung dieses Vorgangs:**
+- [x] **Vollständige Testabdeckung dieses Vorgangs:**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/brain-k4-brain-wiki
 ```
 
-- [ ] **Final Verification.** Die drei verbindlichen CI-Gates:
+- [x] **Final Verification.** Die drei verbindlichen CI-Gates:
 
 ```bash
 task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+## Ergebnis der Verifikation (2026-08-09)
+
+Gemessen im Worktree, nicht geschätzt:
+
+```
+sources=144 chunks=404
+Coverage: 100% (Schwelle 95%, 2446787 von 2446682 Zeichen, 144 versuchte Quellen)
+```
+
+Ausgangslage war `sources=144 total_chars=2446682 over_4000=81 sent=433395 coverage=17%`.
+Der Zähler liegt 105 Zeichen über dem Nenner, weil der Chunker eine fehlende
+Schluss-Zeilenschaltung ergänzt — Vollständigkeit, kein Mehrinhalt.
+
+`tests/unit/lib/bats-core/bin/bats -r tests/spec/brain-k4-brain-wiki*` → 23/23 grün.
+
+### Abweichungen vom Plan (bewusst, mit Begründung)
+
+- **Die Eltern-MOC steht NICHT im TSV des Chunkers.** `p2-pipeline.md` nahm an,
+  sie erscheine als Manifestzeile. Das kann nicht stimmen: die MOC verlinkt
+  genau die Chunks, eine Manifestzeile für sie selbst widerspräche also ihrer
+  eigenen Wikilink-Menge — `parent-moc.bats` prüft beide Mengen auf Gleichheit.
+  `brain-chunk.sh` schreibt die Datei nach `--moc`, und `brain-ingest.sh` hängt
+  die Index-0-Zeile selbst an; den Pfad kennt es, es hat ihn übergeben.
+- **Die MOC entsteht auch bei genau einem Chunk**, statt erst ab zwei. Der Plan
+  wollte es umgekehrt; `parent-moc.bats` verlangt die Datei aber für eine
+  Fixture, die einchunkig bleibt. Die Unterdrückung liegt jetzt eine Ebene
+  höher: `brain-ingest.sh` nimmt die MOC nur ins Manifest auf, wenn die Quelle
+  wirklich zerfallen ist.
+- **`MAX_SOURCE_CHARS` wird von `brain-ingest.sh` auf das Doppelte der
+  Chunk-Zielgröße gesetzt.** Der Stock-Default 4000 liegt UNTER der Zielgröße
+  8000 — fail-closed hätte sonst ab p1 jeden erzeugten Chunk abgewiesen.
+- **Phase 2a räumt nur noch Quellen auf, die im aktuellen Manifest stehen.** Die
+  Fassung aus dem abgebrochenen Lauf löschte jeden State-Eintrag, dessen Quelle
+  nicht im Manifest vorkam — unter `--pilot` ist das Manifest ein gewollter
+  Ausschnitt, und der erste Pilotlauf hätte Wiki-Seiten und State aller übrigen
+  Quellen gelöscht.
+- **`scripts/brain-ingest.sh` misst 545 Zeilen** (Budget 640). Die
+  Phase-2b-Sektion ist wie in Aufgabe 12 vorgesehen nach
+  `scripts/brain-ingest-moc.sh` extrahiert, nicht kosmetisch zusammengezogen.

@@ -56,8 +56,12 @@ print('not_found')
 import json, sys, re
 with open('$jcs') as f:
     text = f.read()
-# Remove // comments and /* */ comments
-text = re.sub(r'//.*', '', text)
+# Strip // comments ONLY where they start a line (after optional whitespace).
+# A bare r'//.*' also eats the '//' inside every URL — '"\$schema": "https://..."'
+# on line 2 becomes an unterminated string and json.loads dies before it ever
+# reaches the mcp block. That is how this check went red while the entry it
+# looks for was present and correct.
+text = re.sub(r'(?m)^[ \t]*//.*$', '', text)
 text = re.sub(r'/\*.*?\*/', '', text, flags=re.DOTALL)
 data = json.loads(text)
 servers = data.get('mcp', {})
@@ -67,7 +71,7 @@ for name in servers:
         print('found')
         sys.exit(0)
 print('not_found')
-" 2>/dev/null)"
+")"
     [ "$found2" = "found" ] || {
       echo "brain server not found in .opencode/opencode.jsonc" >&2
       false

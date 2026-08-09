@@ -22,7 +22,7 @@ keine Zahl.
 
 ### Aufgaben
 
-- [ ] **JSON-RPC-Rahmen in `scripts/brain-mcp-server.py`** — die argparse-CLI
+- [x] **JSON-RPC-Rahmen in `scripts/brain-mcp-server.py`** — die argparse-CLI
       (`--wiki`, `--resource`, `--search`) entfällt vollständig, es entsteht ein
       Zeilenprotokoll über stdin/stdout: je Zeile eine JSON-RPC-Nachricht,
       Antwort als eine Zeile auf stdout, Diagnose ausschließlich auf stderr.
@@ -44,7 +44,7 @@ keine Zahl.
       Bestandsserver `bge-mcp` implementiert das Protokoll aus demselben Grund
       von Hand; dessen `ok()`/`fail()`-Hilfsfunktionen sind die Vorlage.
 
-- [ ] **Seiten-Index in `scripts/brain-mcp-server.py`** — beim Start werden alle
+- [x] **Seiten-Index in `scripts/brain-mcp-server.py`** — beim Start werden alle
       `*.md` unterhalb des Wiki-Verzeichnisses rekursiv eingelesen (`rglob`, wie
       in der abgelösten Fassung) und je Seite Slug (Dateiname ohne Endung),
       Frontmatter, Titel, Tags und Body gehalten. Die Frontmatter-Zerlegung der
@@ -54,7 +54,7 @@ keine Zahl.
       ist ein Neuaufbau je Anfrage messbar teurer als der Speicher, und der
       Server lebt genau so lange wie die Harness-Sitzung.
 
-- [ ] **BM25-Ranking in `scripts/brain-mcp-server.py`** — Tokenisierung von
+- [x] **BM25-Ranking in `scripts/brain-mcp-server.py`** — Tokenisierung von
       Titel, Tags und Body auf Kleinschreibung und Wortgrenzen; Dokumentfrequenz
       je Term, durchschnittliche Dokumentlänge, Scoring mit k1=1.5 und b=0.75
       über die Standardformel. Titel- und Tag-Treffer gehen mit in dasselbe
@@ -63,7 +63,7 @@ keine Zahl.
       Substring-Suche lieferte eine unsortierte Pfadliste — für einen Agenten
       unbrauchbar, weil er nicht entscheiden kann, welche Datei er lesen soll.
 
-- [ ] **Werkzeug `brain_search` in `scripts/brain-mcp-server.py`** —
+- [x] **Werkzeug `brain_search` in `scripts/brain-mcp-server.py`** —
       `inputSchema` mit `query` (string, erforderlich) und `top_k` (integer,
       `minimum: 1`, Vorgabe 5), Aufbau wie die `TOOLS`-Konstante in
       `scripts/bge-mcp/server.mjs:59-88`. Rückgabe sind höchstens `top_k`
@@ -72,7 +72,7 @@ keine Zahl.
       beschnitten, Kürzungen markiert). Leere Trefferliste ist ein gültiger
       Erfolg — nur der Werkzeugfehler ist ein Fehler.
 
-- [ ] **Werkzeug `brain_read` in `scripts/brain-mcp-server.py`** —
+- [x] **Werkzeug `brain_read` in `scripts/brain-mcp-server.py`** —
       `inputSchema` mit `slug` (string, erforderlich). Bekannter Slug liefert
       Frontmatter, Body und Pfad. Unbekannter Slug antwortet mit einem
       JSON-RPC-Fehler, dessen Meldung den angefragten Slug und das durchsuchte
@@ -80,7 +80,7 @@ keine Zahl.
       Tippfehler nicht von einer leeren Seite unterscheiden. Die Fehlerantwort
       ist die JSON-RPC-`error`-Form, nicht ein `result` mit `isError`.
 
-- [ ] **Registry-Eintrag `brain-mcp` in `docs/agent-guide/registry/mcp.yaml`** —
+- [x] **Registry-Eintrag `brain-mcp` in `docs/agent-guide/registry/mcp.yaml`** —
       unter `clients:` nach dem Vorbild der bestehenden `transport: stdio`-Einträge
       `ticket-mcp` und `codebase-memory-mcp`: `transport: stdio`,
       `command: python3`, `args: [/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py]`,
@@ -98,7 +98,7 @@ keine Zahl.
       überspringt und `scripts/llm/mcp-servers.json` unverändert bleibt — das ist
       die beabsichtigte Wirkung, kein übersehener Schritt.
 
-- [ ] **Zielkonfigurationen regenerieren** — `task mcp:sync` ausführen und die
+- [x] **Zielkonfigurationen regenerieren** — `task mcp:sync` ausführen und die
       erzeugten Dateien mitcommitten: `.mcp.json` (Objekt unter `mcpServers`,
       `command` + `args`), `.opencode/opencode.jsonc` (Block unter `mcp`,
       `type: "local"`, `command: [...]`, `enabled: true`) und
@@ -108,7 +108,7 @@ keine Zahl.
       selben Lauf mitgeschrieben. Anschließend `task mcp:check` als Drift-Gate —
       es muss für alle Ziele `OK` melden und mit 0 enden.
 
-- [ ] **Ingest-Loadout in `scripts/llm/loadouts.json`** — neuer Eintrag im Array
+- [x] **Ingest-Loadout in `scripts/llm/loadouts.json`** — neuer Eintrag im Array
       `loadouts` mit den Feldern der Bestandseinträge (`slug`, `label`, `model`,
       `port`, `fit`, `args`, `speculative`, `mcp`, `extraArgs`, `notes`,
       `exclusiveGroup`).
@@ -143,7 +143,7 @@ keine Zahl.
       Danach `task llm:loadouts:check` — die Datei muss der kanonischen
       `writeLoadouts()`-Form entsprechen, Reparatur über `task llm:loadouts:format`.
 
-- [ ] **Tasks in `taskfiles/Taskfile.brain.yaml`** — die neuen Skripte dürfen
+- [x] **Tasks in `taskfiles/Taskfile.brain.yaml`** — die neuen Skripte dürfen
       nicht verwaisen (S4). Ergänzt werden:
       `brain:chunk` (ruft `scripts/brain-chunk.sh` mit `--source`, `--slug` und
       `--out-dir` auf und reicht `$@` durch, damit der Chunker ohne Kenntnis

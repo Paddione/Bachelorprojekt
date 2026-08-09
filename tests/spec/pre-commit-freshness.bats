@@ -215,3 +215,65 @@ setup_t002239_m1() {
   grep -qE 'task[[:space:]]+.*freshness:regenerate' "$PRE_COMMIT" \
     || { echo "MISSING 'task ... freshness:regenerate' in $PRE_COMMIT — guard over-suppressed!"; return 1; }
 }
+
+# ────────────────────────────────────────────────────────────────────────────
+# T003075: 4/4 open PRs failed the CI freshness gate because the pre-commit
+# hook's freshness block is best-effort — when `task freshness:regenerate`
+# fails (tool present, run itself errors: timeout, `npm ci` failure, script
+# error), the hook only warns and lets the commit through unblocked. Evidence:
+# commit 68982b4c5 (PR #4046/T002925) adds two new .bats files with no
+# accompanying test-inventory.json change, even though
+# scripts/build-test-inventory.sh scans the working tree independent of the
+# git index — a successful regen run would have produced that diff.
+#
+# Fix distinguishes two failure modes:
+#   - tool missing (task/node not in PATH)              -> stays fail-open
+#   - tool present, `task freshness:regenerate` fails    -> now blocking (exit 1)
+# with an emergency bypass SKIP_FRESHNESS_REGEN=1, consistent with the other
+# SKIP_* bypasses already in this hook (SKIP_BRANCH_CHECK, SKIP_BONSAI_GUARD,
+# SKIP_MAIN_COMMIT_GUARD).
+#
+# Strategy: source-inspection of .githooks/pre-commit, same convention as the
+# T001973 tests above (the hook's own control flow is the SUT; full execution
+# would require faking agent-lock/gitleaks/branch-naming context that isn't
+# part of what's under test here).
+# ────────────────────────────────────────────────────────────────────────────
+
+setup_t003075() {
+  REPO_ROOT="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
+  PRE_COMMIT="$REPO_ROOT/.githooks/pre-commit"
+}
+
+# ── RED: the failure branch of `task freshness:regenerate` must block ────────
+@test "T003075: pre-commit blocks the commit (exit 1) when task freshness:regenerate fails" {
+  setup_t003075
+  [ -f "$PRE_COMMIT" ] || { echo "MISSING hook: $PRE_COMMIT"; return 1; }
+  # Isolate the freshness block: from the "task freshness:regenerate" invocation
+  # up to (but not including) the next top-level "# ---" section header.
+  block="$(awk '
+    /task freshness:regenerate/ { capture=1 }
+    capture { print }
+    capture && /^# --- branch-naming/ { exit }
+  ' "$PRE_COMMIT")"
+  [ -n "$block" ] || { echo "could not isolate freshness block in $PRE_COMMIT"; return 1; }
+  # The failure branch (else, after the regenerate call) must exit non-zero —
+  # not merely print a warning and fall through.
+  printf '%s\n' "$block" | grep -qE 'exit 1' \
+    || { echo "freshness block has no 'exit 1' in its failure branch — regen failures are still only warned about"; return 1; }
+}
+
+# ── Positive anchor: SKIP_FRESHNESS_REGEN=1 emergency bypass exists ─────────
+@test "T003075: pre-commit supports SKIP_FRESHNESS_REGEN=1 as an emergency bypass" {
+  setup_t003075
+  [ -f "$PRE_COMMIT" ] || { echo "MISSING hook: $PRE_COMMIT"; return 1; }
+  grep -qE 'SKIP_FRESHNESS_REGEN' "$PRE_COMMIT" \
+    || { echo "MISSING 'SKIP_FRESHNESS_REGEN' bypass env var in $PRE_COMMIT"; return 1; }
+}
+
+# ── Control: tool-missing case stays fail-open (must NOT regress) ──────────
+@test "T003075: pre-commit still skips the whole freshness block when task is not in PATH (control, must stay green)" {
+  setup_t003075
+  [ -f "$PRE_COMMIT" ] || { echo "MISSING hook: $PRE_COMMIT"; return 1; }
+  grep -qE "command -v task >/dev/null" "$PRE_COMMIT" \
+    || { echo "MISSING outer 'command -v task' guard in $PRE_COMMIT — tool-missing exemption may have been removed"; return 1; }
+}

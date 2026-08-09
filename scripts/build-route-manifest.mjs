@@ -30,7 +30,7 @@ function loadBrandSlugsViaTsx() {
     }));
   `;
   try {
-    const json = execFileSync(tsx, ['--eval', snippet], { cwd: REPO_ROOT, encoding: 'utf8' });
+    const json = execFileSync(tsx, ['--eval', snippet], { cwd: REPO_ROOT, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
     return JSON.parse(json);
   } catch {
     return null;

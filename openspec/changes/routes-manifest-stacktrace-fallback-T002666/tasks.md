@@ -21,21 +21,21 @@ _Ticket: T002666_
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Add the BATS test in `tests/spec/website-core.bats` that verifies `scripts/build-route-manifest.mjs` configures stdio properly to suppress unhandled subprocess stacktraces on stderr.
+- [x] **Failing-Test-Step (RED).** Add the BATS test in `tests/spec/website-core.bats` that verifies `scripts/build-route-manifest.mjs` configures stdio properly to suppress unhandled subprocess stacktraces on stderr.
       Run test command:
       ```bash
       tests/unit/lib/bats-core/bin/bats tests/spec/website-core.bats
       ```
       expected: FAIL (red — `scripts/build-route-manifest.mjs` does not yet set stdio on `execFileSync`).
 
-- [ ] **Fix-Step (GREEN).** Update `loadBrandSlugsViaTsx()` in `scripts/build-route-manifest.mjs` to specify `stdio: ['pipe', 'pipe', 'pipe']` on `execFileSync`.
+- [x] **Fix-Step (GREEN).** Update `loadBrandSlugsViaTsx()` in `scripts/build-route-manifest.mjs` to specify `stdio: ['pipe', 'pipe', 'pipe']` on `execFileSync`.
       Run test command:
       ```bash
       tests/unit/lib/bats-core/bin/bats tests/spec/website-core.bats
       ```
       The test must pass (GREEN).
 
-- [ ] **Final Verification Task.** Run the three mandatory CI gates:
+- [x] **Final Verification Task.** Run the three mandatory CI gates:
       ```bash
       task test:changed
       task freshness:regenerate

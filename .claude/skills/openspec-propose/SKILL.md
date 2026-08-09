@@ -77,15 +77,18 @@ When ready to implement, run /opsx:apply (`/opsx-apply` in opencode)
   new capability with no existing SSOT spec, use the `outputPath` filename unchanged.
   See CLAUDE.md "Delta-Spec-Konvention (T001304)".
 
-> **Spec-Directory Pflicht-Inhalt (T001974 Mishap 3).** Jeder Change-Ordner
+> **Spec-Directory Pflicht-Inhalt (T001974 Mishap 3 + T002772).** Jeder Change-Ordner
 > unter `openspec/changes/<slug>/specs/` muss mindestens **eine** `.md`-Datei
-> mit gültigem Delta-Spec-Format enthalten (`## ADDED Requirements` +
-> `### Requirement:`-Blöcke). `openspec:validate` schlägt fehl, wenn das
-> Verzeichnis leer ist oder nur Löschungen (`## REMOVED Requirements`) ohne
-> Hinzufügungen enthält. Löschen einer ungültigen Spec-Datei ohne Ersatz
-> erzeugt einen leeren `specs/`-Ordner — das schlägt ebenfalls fehl. Vor
-> dem Commit: `bash scripts/openspec.sh validate` (oder
-> `openspec validate <slug>`) ausführen.
+> mit gültigem Delta-Spec-Format enthalten. Der Abschnitts-Header MUSS exakt
+> `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements`
+> oder `## RENAMED Requirements` lauten (nicht `## ADDED:` / `## MODIFIED:` ohne
+> "Requirements"). Jeder `### Requirement:`-Block MUSS mindestens einen
+> `#### Scenario:`-Block im GIVEN/WHEN/THEN-Format enthalten.
+> `openspec:validate` schlägt fehl, wenn das Verzeichnis leer ist oder nur
+> Löschungen (`## REMOVED Requirements`) ohne Hinzufügungen enthält. Löschen
+> einer ungültigen Spec-Datei ohne Ersatz erzeugt einen leeren `specs/`-Ordner
+> — das schlägt ebenfalls fehl. Vor dem Commit:
+> `bash scripts/openspec.sh validate` (oder `openspec validate <slug>`) ausführen.
       - Create the artifact file using `template` as the structure
       - Apply `context` and `rules` as constraints - but do NOT copy them into the file
       - Show brief progress: "Created <artifact-id>"

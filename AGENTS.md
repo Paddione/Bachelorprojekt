@@ -13,10 +13,10 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches the local family subagents (`gptoss`/`devstral`/`gemma`/`qwen`) sequentially (llm-proxy serializes at max_inflight=1) |
 | `gptoss` | `llamacpp-local/gptoss-context` (gpt-oss-20b Q8_0, :8098) | Local bulk work, gpt-oss family. `write=deny`, `edit=allow` |
 | `devstral` | `llamacpp-local/devstral-quality` (Devstral-Small-2 24B, :8099) | Local work, devstral family |
-| `gemma` | `llamacpp-local/gemma4` (Gemma 4 12B Q4_K_M, :8090) | Local work, gemma family |
-| `qwen` | `llamacpp-local/qwen3-coder-30b` (Qwen3-Coder-30B, :8094) | Local work, qwen family |
-| `gemma26-primary` | `llamacpp-local/gptoss-context`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task` |
-| `gemma26-vision` | `llamacpp-local/gptoss-context`, `mode: primary` | Max context, no subagent dispatch. **Not actually vision-capable** since the switch off Gemma |
+| `gemma` | `llamacpp-local/gemma26-factory` (Gemma 4 26B A4B IQ4_XS, :8091) | Local work, gemma family |
+| `qwen` | `llamacpp-local/qwen3-coder-30b` (Qwen3-Coder-30B UD-IQ3_XXS, :8094) | Local work, qwen family |
+| `gemma26-primary` | `llamacpp-local/gemma26-factory`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task` |
+| `gemma26-vision` | `llamacpp-local/gemma26-factory`, `mode: primary` | Max local context (161024, measured), no subagent dispatch. **Vision-capable**: gemma26-factory loads mmproj-F16.gguf since T002753 |
 | `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries |
 | `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted |
 | `deepseek-pro` | `opencode-go/deepseek-v4-pro`, `mode: all`, write-capable | Deep analysis, complex debugging, hard refactors; tab-selectable AND task-dispatchable |
@@ -29,7 +29,7 @@ Dispatch:
 - `task` for the local family subagents (`gptoss`, `devstral`, `gemma`, `qwen`) and the deepseek agents — the `orchestrator` permission block lists exactly those names, no wildcards (T002298).
 - Local family agents `edit` but cannot `write` new files (`write=deny`) — the orchestrator creates new files from their output. Read-only work uses `delegate` (explore/general).
 - SSOT is `.opencode/agent-models.jsonc`. `docs/agent-guide/registry/agents.yaml` mirrors it but LAGS the config — trust the jsonc. Global config sync: `bash scripts/opencode-sync-agents.sh`.
-- **Local subagents are named by model FAMILY since 2026-08-04** (`gptoss`/`devstral`/`gemma`/`qwen`), each serving its own loadout through the llm-proxy. The old `gemma26-1/2`, `gemma9-1/2` names all pointed at gptoss-context — the name lied about the model. The four chat loadouts share `exclusiveGroup "chat-gpu"`: only one runs at a time. The retired Gemma loadouts (`gemma-factory`, `gemma-multiagent`, `gemma26-factory`, `gemma9-factory`) are still in loadouts.json with `fit.enabled=true` but their GGUFs are gone; `2026-08-03-retire-stale-model-ids.sql` disables their backends with `enabled=false`. `gemma26-primary`/`gemma26-vision` keep their historical names and run gptoss-context.
+- **Local subagents are named by model FAMILY since 2026-08-04** (`gptoss`/`devstral`/`gemma`/`qwen`), each serving its own loadout through the llm-proxy. The old `gemma26-1/2`, `gemma9-1/2` names all pointed at gptoss-context — the name lied about the model. Every GPU loadout shares `exclusiveGroup "chat-gpu"`: only one runs at a time (all of `loadouts.json` except the two CPU bge loadouts). The weightless loadouts (`gemma-factory`, `gemma-multiagent`, `gemma9-factory`) were removed on 2026-08-09 (T002753); `gemma`/`gemma26-primary`/`gemma26-vision` serve `gemma26-factory` (Gemma 4 26B A4B UD-IQ4_XS, 161024 ctx measured).
 
 ## Core Commands
 

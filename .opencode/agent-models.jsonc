@@ -287,7 +287,7 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
     "qwen": {
-      "description": "Local subagent for the qwen family (Qwen3-Coder-30B-A3B UD-Q4_K_XL, Loadout qwen3-coder-30b auf Port 8094, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
+      "description": "Local subagent for the qwen family (Qwen3-Coder-30B-A3B UD-IQ3_XXS, Loadout qwen3-coder-30b auf Port 8094, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
       "mode": "subagent",
       "model": "llamacpp-local/qwen3-coder-30b",
       "prompt": "{file:./prompts/local-subagent.md}",

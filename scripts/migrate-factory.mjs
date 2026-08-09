@@ -1,8 +1,10 @@
+#!/usr/bin/env node
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Pool } from 'pg';
+import pg from 'pg';
 
+const { Pool } = pg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const ALREADY_EXISTS_SQLSTATES = new Set(['42P07', '42710', '42701']);
@@ -16,7 +18,7 @@ function isPgError(e) {
   );
 }
 
-export async function runMigrations(pool, opts = {}) {
+export async function runFactoryMigrations(pool, migrationsDirOverride = null) {
   const client = await pool.connect();
   try {
     await client.query(
@@ -26,13 +28,16 @@ export async function runMigrations(pool, opts = {}) {
       )`,
     );
 
-    const migrationsDir = opts.migrationsDir || join(__dirname, 'migrations');
-    if (!existsSync(migrationsDir)) {
-      console.log('[factory-migrate] migrations dir missing — skipping');
+    const targetDir = migrationsDirOverride
+      ? resolve(migrationsDirOverride)
+      : join(__dirname, '..', 'migrations');
+
+    if (!existsSync(targetDir)) {
+      console.warn(`[migrate-factory] migrations dir missing at ${targetDir} — skipping`);
       return;
     }
 
-    const files = readdirSync(migrationsDir)
+    const files = readdirSync(targetDir)
       .filter((f) => f.endsWith('.sql'))
       .sort();
 
@@ -43,12 +48,12 @@ export async function runMigrations(pool, opts = {}) {
 
     for (const f of files) {
       if (applied.has(f)) {
-        console.log(`[factory-migrate] ${f} already applied — skipping`);
+        console.log(`[migrate-factory] ${f}: already applied — skipping`);
         continue;
       }
 
-      const sql = readFileSync(join(migrationsDir, f), 'utf8');
-      console.log(`[factory-migrate] applying ${f}`);
+      const sql = readFileSync(join(targetDir, f), 'utf8');
+      console.log(`[migrate-factory] ${f}: applying`);
       try {
         await client.query('BEGIN');
         await client.query(sql);
@@ -61,7 +66,7 @@ export async function runMigrations(pool, opts = {}) {
         await client.query('ROLLBACK');
         if (isPgError(e) && ALREADY_EXISTS_SQLSTATES.has(e.code)) {
           console.log(
-            `[factory-migrate] ${f} already applied (backfill: ${e.code}) — tracking and continuing`,
+            `[migrate-factory] ${f}: already applied (backfill ${e.code}) — tracking`,
           );
           await client.query(
             'INSERT INTO public.factory_schema_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',
@@ -79,13 +84,35 @@ export async function runMigrations(pool, opts = {}) {
 }
 
 async function main() {
+  const args = process.argv.slice(2);
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`Usage: node scripts/migrate-factory.mjs [options]
+
+Options:
+  --help, -h          Show this help message
+  --dir <path>        Override migrations directory path
+
+Environment Variables:
+  DATABASE_URL        Postgres connection URL (required unless showing help)
+`);
+    process.exit(0);
+  }
+
+  let customDir = null;
+  const dirIdx = args.indexOf('--dir');
+  if (dirIdx !== -1 && args[dirIdx + 1]) {
+    customDir = args[dirIdx + 1];
+  }
+
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error('DATABASE_URL is not set — cannot run factory migrations');
+    console.error('DATABASE_URL is not set — cannot run migrations');
+    process.exit(1);
   }
+
   const pool = new Pool({ connectionString });
   try {
-    await runMigrations(pool);
+    await runFactoryMigrations(pool, customDir);
   } finally {
     await pool.end();
   }
@@ -94,7 +121,7 @@ async function main() {
 const isMain = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
   main().catch((e) => {
-    console.error('[factory-migrate] failed:', e.message);
+    console.error('[migrate-factory] failed:', e);
     process.exit(1);
   });
 }

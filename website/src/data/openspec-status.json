@@ -2559,6 +2559,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002647": [
+    {
+      "slug": "feature-migrations-runner-auto-T002647",
+      "status": "plan_staged"
+    }
+  ],
   "T002648": [
     {
       "slug": "health-goals-silent-fallbacks",

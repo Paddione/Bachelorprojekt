@@ -2,7 +2,7 @@
 // Reads tickets.factory_phase_events (current phase per ticket) joined with the
 // existing tickets/factory_control tables. PER-BRAND pool, same-namespace only.
 // factory-metrics.ts is intentionally left untouched; this is a separate module.
-import { pool } from '../website-db';
+import { pool } from '../db-pool';
 import { officeCount } from '../planning-office.ts';
 import { mapShippedRow, mapAwaitingRow, isAwaitingDeployLaneVisible } from '../factory-floor-lanes.ts';
 import type { ShippedItem, AwaitingDeployItem } from '../factory-floor-lanes.ts';

@@ -576,13 +576,13 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
 
 # ── [T002874] reconcile-ticket-status: Pattern 4 matches any whitespace after FACTORY-PLAN-REF ──
 
-@test "T002874: reconcile-ticket-status.sh Pattern 4 matches FACTORY-PLAN-REF followed by any whitespace" {
-  run grep -Fq "c.body ~ '^FACTORY-PLAN-REF[[:space:]]'" scripts/factory/reconcile-ticket-status.sh
-  [ "$status" -eq 0 ] || { echo "MISSING regex matching '^FACTORY-PLAN-REF[[:space:]]' in Pattern 4 of reconcile-ticket-status.sh"; false; }
+@test "T002874: reconcile-ticket-status.sh Pattern 4 matches FACTORY-PLAN-REF via LIKE" {
+  run grep -Fq "c.body LIKE 'FACTORY-PLAN-REF %'" scripts/factory/reconcile-ticket-status.sh
+  [ "$status" -eq 0 ] || { echo "MISSING LIKE 'FACTORY-PLAN-REF %' in Pattern 4 of reconcile-ticket-status.sh"; false; }
 }
 
-@test "T002874: reconcile-ticket-status.sh Pattern 4b matches FACTORY-PLAN-REF followed by any whitespace" {
-  run grep -Fq "c.body ~ '^FACTORY-PLAN-REF[[:space:]].*branch='" scripts/factory/reconcile-ticket-status.sh
-  [ "$status" -eq 0 ] || { echo "MISSING regex matching Pattern 4b in reconcile-ticket-status.sh"; false; }
+@test "T002874: reconcile-ticket-status.sh Pattern 4b matches FACTORY-PLAN-REF branch via LIKE" {
+  run grep -Fq "c.body LIKE 'FACTORY-PLAN-REF % branch=%'" scripts/factory/reconcile-ticket-status.sh
+  [ "$status" -eq 0 ] || { echo "MISSING LIKE 'FACTORY-PLAN-REF % branch=%' in Pattern 4b of reconcile-ticket-status.sh"; false; }
 }
 

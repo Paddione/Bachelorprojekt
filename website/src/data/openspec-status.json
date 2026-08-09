@@ -2583,6 +2583,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002664": [
+    {
+      "slug": "main-checkout-freshness-cleanup-T002664",
+      "status": "plan_staged"
+    }
+  ],
   "T002666": [
     {
       "slug": "routes-manifest-stacktrace-fallback-T002666",
@@ -2658,6 +2664,12 @@
   "T002718": [
     {
       "slug": "mishap-t002718",
+      "status": "plan_staged"
+    }
+  ],
+  "T002719": [
+    {
+      "slug": "agy-headless-mcp-permissions",
       "status": "plan_staged"
     }
   ],

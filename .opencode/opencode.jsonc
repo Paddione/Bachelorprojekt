@@ -81,6 +81,18 @@
 
     },
 
+    "brain-mcp": {
+
+      "type": "local",
+
+      "command": ["python3","/home/patrick/Bachelorprojekt/scripts/brain-mcp-server.py"],
+
+      "environment": {"BRAIN_WIKI_DIR":"~/brain/wiki"},
+
+      "enabled": true
+
+    },
+
     "codebase-memory-mcp": {
 
       "type": "local",

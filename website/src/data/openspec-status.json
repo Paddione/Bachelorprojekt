@@ -2589,6 +2589,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002679": [
+    {
+      "slug": "brain-ingest-chunking",
+      "status": "plan_staged"
+    }
+  ],
   "T002688": [
     {
       "slug": "repo-cleanup-dead-paths",

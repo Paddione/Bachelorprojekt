@@ -33,7 +33,10 @@
 #                      `content`. Mehr max_tokens hilft nicht — das Denken
 #                      waechst mit. Bei DeepSeek wirkt `thinking.type=disabled`;
 #                      `enable_thinking:false` wird dort ignoriert. [T002533]
-#   MAX_SOURCE_CHARS — Max source chars to send to LLM (default: 4000)
+#   MAX_SOURCE_CHARS — Max source chars guard (fail-closed, default: 4000).
+#                      Überschreitet die übergebene Quelle diese Grenze, bricht
+#                      das Skript ab — es kürzt nicht mehr. Quellen über der
+#                      Grenze müssen vorher durch scripts/brain-chunk.sh laufen.
 #
 # Output: Transformed markdown with frontmatter to stdout
 # Exit: 0 on success, 1 on failure
@@ -56,17 +59,24 @@ MAX_SOURCE_CHARS="${MAX_SOURCE_CHARS:-4000}"
 # Validate source file exists
 [ -f "$SOURCE" ] || { echo "error: source file not found: $SOURCE" >&2; exit 1; }
 
-# Read source content (truncated to keep prompt manageable)
-CONTENT="$(head -c "$MAX_SOURCE_CHARS" "$SOURCE")"
+# Read source content — no more truncation (T002679, D3).
+# MAX_SOURCE_CHARS is now a fail-closed guard: if the source exceeds the limit,
+# the script aborts with a clear message instead of silently losing data.
+CONTENT="$(cat "$SOURCE")"
 SRC_LEN="$(wc -c < "$SOURCE")"
 if [ "$SRC_LEN" -gt "$MAX_SOURCE_CHARS" ]; then
-  CONTENT="${CONTENT}
-
-[...truncated at ${MAX_SOURCE_CHARS} chars of ${SRC_LEN} total...]"
+  # Both numbers AND the remedy stay on ONE line: callers (and tests) narrow the
+  # output to the offending line before asserting on it, and a diagnosis split
+  # across two lines loses half of itself in that narrowing.
+  echo "ERROR: source $SOURCE has $SRC_LEN chars and exceeds MAX_SOURCE_CHARS=$MAX_SOURCE_CHARS — split it with scripts/brain-chunk.sh before transforming." >&2
+  exit 1
 fi
 
-# Read source path relative to repo root
-SRC_PATH="$(echo "$SOURCE" | sed -E 's|.*/Bachelorprojekt/||')"
+# Read source path relative to repo root.
+# BRAIN_SOURCE_PATH overrides the automatic derivation — callers (brain-ingest.sh)
+# set it to the original source path so that chunk files in temp directories
+# still carry the correct source:: back-reference (T002679, D2).
+SRC_PATH="${BRAIN_SOURCE_PATH:-$(echo "$SOURCE" | sed -E 's|.*/Bachelorprojekt/||')}"
 
 # Compact prompt — less tokens = faster generation
 PROMPT="Transformiere diese Quelldatei in eine brain-Wiki-Seite.

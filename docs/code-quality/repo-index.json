@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 831,
+      "file_count": 832,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -494,6 +494,7 @@
         "tests/spec/lockfile-drift.bats",
         "tests/spec/main-commit-guard.bats",
         "tests/spec/mcp-gateway.bats",
+        "tests/spec/mcp-gateway/agy-mcp-permissions.bats",
         "tests/spec/mcp-gateway/agy-token-expansion.bats",
         "tests/spec/mcp-gateway/authenticated-http-headers.bats",
         "tests/spec/mcp-gateway/bge-host-routing.bats",

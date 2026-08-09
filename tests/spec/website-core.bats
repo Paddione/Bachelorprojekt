@@ -439,3 +439,9 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   run grep -q "sidekick-panels\.css" "$PERF_LAYOUT"
   [ "$status" -ne 0 ]
 }
+
+@test "T002666: build-route-manifest.mjs suppresses tsx error stacktrace on stderr when tsx fails" {
+  run grep -E "stdio:[[:space:]]*\['pipe',[[:space:]]*'pipe',[[:space:]]*'pipe'\]|stdio:[[:space:]]*'pipe'" "$BATS_TEST_DIRNAME/../../scripts/build-route-manifest.mjs"
+  [ "$status" -eq 0 ]
+}
+

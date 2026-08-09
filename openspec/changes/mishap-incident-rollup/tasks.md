@@ -15,7 +15,7 @@ depends_on_plans: []
 _Container-Ticket: T003067_
 
 Automatisch erzeugt von `scripts/factory/mishap-rollup.sh` [T002407] am
-2026-08-09 23:46 UTC. Die Eintraege stammen aus den
+2026-08-09 23:52 UTC. Die Eintraege stammen aus den
 Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung".
 
 ## File Structure
@@ -560,6 +560,177 @@ VORHANDENE BAUSTEINE FUER EINEN BESSEREN GUARD:
 FOLGEKOSTEN, falls unveraendert: Beinahe-Duplikate werden getrennt geplant und getrennt
 dispatcht. In diesem Lauf haette das drei Agenten gleichzeitig an denselben roten
 Shard-4-Guard gesetzt (T002941 / T003001 / T003006).
+### Mishap-Rollup — 10 Eintraege (2026-08-09 23:49 UTC)
+
+| # | Typ | Komponente | Titel |
+|---|---|---|---|
+| 1 | degraded | scripts/hooks/worktree-write-guard.sh | worktree-write-guard: SID-basiertes Besitzmodell unterscheidet nebenlaeufige Subagenten einer Session nicht — Meldung fuehrt in die Irre |
+| 2 | suspicious | skills/ticket-ops Step 3.6 (Dispatch-Prompt) | ticket-ops-Dispatchvorlage sagt nicht, welchen Lock-Scope der Subagent selbst setzen soll |
+| 3 | process | skills/repo-hygiene (repo-hygiene-ops.md §1) | repo-hygiene §1: Freshness-Generat macht jeden fertigen Worktree dauerhaft dirty — `worktree remove` ohne `--force` schlägt regelhaft fehl |
+| 4 | process | scripts/ticket.sh + ticket-mcp (mishap-buffer) | Mishap-Buffer kennt keinen Rücknahmepfad — ein behobener Befund erscheint beim Flush trotzdem als offener Punkt im Rollup |
+| 5 | drift | scripts/openspec.sh | Half-archived change mcp-config-mutation-race detected during repo-hygiene |
+| 6 | suspicious | ci/freshness-gate | Archive PR #4083 failed freshness gate — openspec-status.json not committed after archive |
+| 7 | suspicious | scripts/factory/babysit-prs.sh | babysit-prs.sh entfernt Worktrees ohne den live-Lock-Guard aus T002896 |
+| 8 | degraded | Taskfile.yml:test:changed | test:changed startet Live-E2E gegen korczewski bei reiner openspec/-Aenderung |
+| 9 | drift | scripts/validate-commit-msg.sh | Commit-Scope 'openspec' abgelehnt, obwohl das ganze Repo von OpenSpec spricht |
+| 10 | degraded | scripts/openspec.sh | openspec.sh archive skaliert nicht im Batch (~3s pro Change, Node-Start je Delta) |
+
+**1. worktree-write-guard: SID-basiertes Besitzmodell unterscheidet nebenlaeufige Subagenten einer Session nicht — Meldung fuehrt in die Irre** (degraded, scripts/hooks/worktree-write-guard.sh)
+
+Beobachtet 2026-08-09 bei einem ticket-ops-Dispatch mit 6 parallelen Subagenten. WICHTIG: Der urspruengliche Agentenbericht war ungenau; die hier beschriebene Fassung ist gegen den Quellcode korrigiert.
+
+BERICHTET WURDE: "Die Meldung listet unter 'Dieser Session gehoeren:' die Worktrees FREMDER Sessions auf."
+
+TATSAECHLICH (scripts/hooks/worktree-write-guard.sh:132-157): `MY_WTS` sammelt alle
+Worktrees, deren Lock-Owner dieselbe SID traegt. Alle sechs Subagenten liefen unter
+DERSELBEN Session-SID (im Lock-Bestand nachgeprueft: sechs branch-Claims, identisches
+owner_sid). Aus Sicht des Guards gehoerten die Worktrees also korrekt "dieser Session".
+Die Meldung ist im Modell des Guards richtig — sie wurde nur als "fremd" gelesen.
+
+DER EIGENTLICHE DEFEKT liegt eine Ebene tiefer: das SID-basierte Besitzmodell kann
+NEBENLAEUFIGE SUBAGENTEN einer Session nicht voneinander unterscheiden. Fuer Regel 2
+(Zeile 147-152) heisst das: Agent A darf in Agent B's Worktree schreiben, weil beide
+dieselbe SID tragen. Der Guard schuetzt gegen fremde SESSIONS, nicht gegen paralleles
+Arbeiten INNERHALB einer Session — genau das Szenario, das ticket-ops erzeugt.
+
+DAS IST DIESELBE GEBROCHENE ANNAHME WIE IN T003102: "eine Session = eine SID" haelt
+nicht, sobald MCP-Server, Subagenten und CI-Workflows im selben Vorgang schreiben.
+Dort verhindert sie den Abschluss, hier den Schutz. Beide Tickets sollten gemeinsam
+betrachtet werden — eine Vererbungskennung (Parent-SID plus Actor-Kennung) wuerde
+beide Faelle adressieren.
+
+ZUSATZBEFUND: In der Auflistung erschienen Worktrees doppelt. Ursache ist plausibel,
+dass mehrere Locks unterschiedlichen Scopes (branch- und worktree-Scope) auf denselben
+Pfad zeigen und die Schleife jeden Treffer anhaengt, ohne zu deduplizieren
+(Zeile 138: `MY_WTS+=("$wt")` ohne Existenzpruefung).
+
+KLEINE VERBESSERUNG UNABHAENGIG DAVON: Die Meldezeile "Dieser Session gehoeren:" sollte
+sagen, WOHER der Besitz stammt (z. B. "Claims dieser SID (auch anderer Subagenten):"),
+damit sie nicht als Eigenbesitz des aufrufenden Akteurs gelesen wird. Genau diese
+Fehllesung kostete beim Debuggen Zeit.
+**2. ticket-ops-Dispatchvorlage sagt nicht, welchen Lock-Scope der Subagent selbst setzen soll** (suspicious, skills/ticket-ops Step 3.6 (Dispatch-Prompt))
+
+Beobachtet 2026-08-09, von einem der sechs Welle-1-Agenten ausdruecklich als Verbesserungswunsch zurueckgemeldet ("Dispatch-Prompt sollte kuenftig klarstellen, welcher Claim (branch vs. ticket) vom Sub-Agenten selbst zu setzen ist").
+
+BEFUND: ticket-ops Step 3.6 beschreibt die Lock-Vergabe ausschliesslich aus Sicht des
+ORCHESTRATORS ("agent-lock.sh claim ticket <ext-id> ... --label ticket-ops"). Was der
+dispatchte Subagent in seinem Worktree selbst claimen muss, steht nirgends — obwohl
+scripts/hooks/worktree-write-guard.sh Regel 2 ohne eigenen Claim jeden Write ablehnt.
+
+FOLGE IN DIESEM LAUF: Vier von sechs Agenten liefen in die Guard-Blockade und mussten
+den richtigen Claim selbst herleiten. Zwei setzten den falschen (ticket-scoped), der
+nach T003102 den spaeteren Abschluss blockiert und vom Orchestrator manuell wieder
+freigegeben werden musste. Sechs Agenten, vier unabhaengige Herleitungen desselben
+Schrittes, zwei Fehlgriffe — das ist ein Vorlagen-Problem, kein Agenten-Problem.
+
+ZU ERGAENZEN in der Dispatch-Vorlage von Step 3.6, woertlich als Prompt-Baustein:
+    "Setze zu Beginn im Worktree:
+       bash scripts/agent-lock.sh claim branch <branch> --worktree <pfad> --branch <branch>
+     Setze KEINEN ticket-scoped Lock (T003102 — blockiert den spaeteren Abschluss durch
+     Subagent, ticket-mcp und post-merge.yml).
+     Gib den Branch-Lock am Ende deiner Arbeit wieder frei."
+
+Haengt inhaltlich am Mishap "Drei Regelwerke widersprechen sich beim agent-lock-Scope"
+aus demselben Lauf — dort liegt die Ursache, hier die konkrete Textstelle, die sie
+weitertraegt.
+**3. repo-hygiene §1: Freshness-Generat macht jeden fertigen Worktree dauerhaft dirty — `worktree remove` ohne `--force` schlägt regelhaft fehl** (process, skills/repo-hygiene (repo-hygiene-ops.md §1))
+
+BEOBACHTET (repo-hygiene-Lauf 2026-08-09/10, Worktree .worktrees/factory-worktree-reaper-T002896)
+
+repo-hygiene-ops.md §1 schreibt vor, `git worktree remove <pfad>` OHNE `--force` aufzurufen, und begründet das ausdrücklich als "Schutz bei ungetrackten Dateien". Dieser Schutz greift in der Praxis nicht, weil er regelhaft am falschen Signal scheitert.
+
+BEFUND
+Der Worktree war inhaltlich vollständig abgeschlossen: PR #4068 gemergt (mergedAt 2026-08-09T21:55:02Z), Squash-Commit e78a30777 in origin/main, Upstream [gone]. Der Blob-Vergleich pro Datei gegen origin/main (§2-Form) zeigte genau EINE Abweichung: website/src/data/openspec-status.json — ein reines Freshness-Generat. Der Inhalt der Abweichung war ausschliesslich regenerierter Archivstatus FREMDER Tickets (T002814 plan_staged -> archived, T002849 zusaetzlicher archived-Eintrag), also kein Byte eigener Arbeit.
+
+`git status --porcelain` meldet dafuer ` M website/src/data/openspec-status.json`. Nach der woertlichen Regel aus §1 ("MUSS leer sein — sonst kein Remove") ist der Worktree damit nicht entfernbar, und `git worktree remove` ohne `--force` verweigert.
+
+WARUM DAS STOERT
+Das ist keine Ausnahme, sondern der Normalfall: jeder Worktree, in dem ein Plan gestaged oder archiviert wurde, traegt danach ein regeneriertes openspec-status.json. Der Aufraeumpfad landet damit routinemaessig im `--force`-Zweig — also in genau der Eskalation, die §1 als bewusste Ausnahme kennzeichnet. Ein Schutzmechanismus, der bei fast jedem legitimen Aufruf uebersprungen werden muss, schuetzt nicht mehr: er trainiert `--force` als Standardgriff an, und dann faellt echte ungesicherte Arbeit im selben Zweig nicht mehr auf.
+
+ABGRENZUNG
+Der Vorcheck selbst ist nicht falsch — er misst nur zu grob. Die verlaessliche Messung stand im selben Runbook bereits daneben (§2, Blob-Vergleich pro Datei gegen origin/main); sie unterscheidet Generat von Arbeit, `git status --porcelain` nicht.
+
+MOEGLICHE AUFLOESUNG (nicht entschieden)
+a) §1-Vorcheck um eine Generat-Allowlist ergaenzen (dieselbe, die scripts/branch-reaper.sh bereits fuehrt): Abweichungen ausschliesslich in Plan-/Generat-Pfaden gelten als sauber, `--force` ist dann keine Eskalation mehr, sondern der belegte Normalfall.
+b) Vor dem Remove `git checkout -- <generat-pfade>` im Worktree, damit der Vorcheck wieder eine echte Aussage trifft.
+**4. Mishap-Buffer kennt keinen Rücknahmepfad — ein behobener Befund erscheint beim Flush trotzdem als offener Punkt im Rollup** (process, scripts/ticket.sh + ticket-mcp (mishap-buffer))
+
+BEOBACHTET (2026-08-09/10, repo-hygiene-Lauf + anschliessende Chore T003121)
+
+ABLAUF
+1. 22:02Z: Befund als Mishap gemeldet — "repo-hygiene §1: Freshness-Generat macht jeden fertigen Worktree dauerhaft dirty" (Buffer-Eintrag 3/10).
+2. Direkt danach in derselben Sitzung behoben: Ticket T003121, PR #4075, gemergt 22:35Z. Der Befund existiert seit 33 Minuten nicht mehr.
+3. Der Buffer-Eintrag steht unveraendert weiter drin. `get_mishap_buffer` zeigt ihn, `report_mishap` kann nur anfuegen, `flush_mishap_buffer` schreibt ALLE Eintraege in den Rollup-Container.
+
+WIRKUNG
+Beim naechsten Flush (spaetestens bei 10 Eintraegen oder nach 7 Tagen) landet ein bereits geschlossener Befund als offener Punkt im Rollup-Ticket. Wer den Rollup abarbeitet, untersucht etwas, das auf main schon behoben ist — im Zweifel inklusive erneutem Fix. Das Fenster ist genau die Spanne zwischen Erfassung und Flush, also bis zu 7 Tage; in dieser Spanne liegt jeder Befund, den eine Sitzung selbst behebt, und "selbst beheben" ist der Normalfall, nicht die Ausnahme.
+
+ABGRENZUNG — das ist NICHT der Dedupe-Fall aus T002844
+T002844 beschreibt die umgekehrte Richtung: der Buffer ist fuer die Ticket-Suche unsichtbar, deshalb entsteht ein DUPLIKAT. Hier ist der Eintrag sichtbar und korrekt erfasst — er ist nur inzwischen GEGENSTANDSLOS, und dafuer gibt es keinen Weg. Beide Faelle teilen die Ursache (Buffer und Tickets sind zwei Zustandsraeume ohne Verbindung), aber nicht die Auswirkung.
+
+UMGEHUNG im aktuellen Lauf
+Hinweis als Kommentar an T003121 gehaengt, damit die Spur beim Rollup auffindbar ist. Das ist Handarbeit und traegt nur, solange jemand daran denkt.
+
+MOEGLICHE AUFLOESUNGEN (nicht entschieden)
+a) `resolve_mishap`/`withdraw_mishap` mit Index oder Titel-Match, das den Eintrag mit Verweis auf das loesende Ticket aus dem Buffer nimmt.
+b) Beim Flush jeden Eintrag gegen die Tickets pruefen und geschlossene als "bereits behoben durch T00XXXX" markieren statt sie als offenen Punkt zu fuehren — loest zugleich die Richtung aus T002844, weil beide Quellen dann in EINEM Aufruf zusammenkommen.
+c) Nichts tun und die Handarbeit als Konvention im mishap-tracker-Skill festhalten (schwaechste Variante, aber billig).
+**5. Half-archived change mcp-config-mutation-race detected during repo-hygiene** (drift, scripts/openspec.sh)
+
+During repo-hygiene run, mcp-config-mutation-race was found in a half-archived state: the archive target 2026-08-10-mcp-config-mutation-race already existed in openspec/changes/archive/ while the source directory was still present in openspec/changes/. openspec.sh archive refuses to re-archive an existing target. The half-archive-check.sh script detected it correctly. Manual cleanup: verify delta was in SSOT, then rm -rf the source. Root cause unknown — possibly a prior archive that crashed after moving files but before removing source.
+**6. Archive PR #4083 failed freshness gate — openspec-status.json not committed after archive** (suspicious, ci/freshness-gate)
+
+PR #4083 (archive-only, no code changes) failed CI because website/src/data/openspec-status.json was regenerated by task freshness:check but not committed to the PR branch. The pre-commit hook did not catch this because the archive work was done in a worktree where the artifact was staged but the commit didn't include it. The openspec archive operation (moving/deleting change dirs) changes the openspec status map, which in turn triggers a freshness regeneration — but the regenerated artifact wasn't added to the commit.
+**7. babysit-prs.sh entfernt Worktrees ohne den live-Lock-Guard aus T002896** (suspicious, scripts/factory/babysit-prs.sh)
+
+Beobachtung (T003129): Ein aktiver Worktree unter .worktrees/openspec-archive-backlog-T003129 verschwand mitten in einem laufenden Batch ("getcwd: cannot access parent directories"), obwohl der Branch einen frisch geclaimten, lebenden agent-lock trug. 41 bereits verarbeitete Archivierungen gingen verloren, der Lauf musste komplett neu aufgesetzt werden.
+
+Verifikation korrigiert die naheliegende Hypothese: .git/agent-locks/.reap.log zeigt fuer 01:27:45 den Eintrag "branch/chore/openspec-archive-backlog-T003129 worktree-missing". Der Lock wurde also stale, WEIL der Worktree fehlte — nicht umgekehrt. agent-lock hat korrekt gearbeitet; "agent-lock.sh reap" ruft ohnehin nur "git worktree prune" auf und entfernt keine existierenden Verzeichnisse.
+
+Wer den Worktree entfernt hat, bleibt ungeklaert. Bei der Suche nach Kandidaten faellt aber eine reale Inkonsistenz auf, unabhaengig davon ob sie hier zugeschlagen hat:
+
+- scripts/factory/cleanup.sh prueft VOR dem Removal "agent-lock.sh check-branch-live" und ueberspringt dann (Guard aus T002896, an zwei Stellen: EXIT-Trap Zeile 29 und Hauptpfad Zeile 43). Begruendung im Kommentar: "Der Factory-Autopilot darf aktiv geclaimte Fremd-Worktrees nicht entfernen."
+- scripts/factory/watchdog.sh Zeile 76 prueft wenigstens auf uncommitted changes und ueberspringt dann mit Kommentar am Ticket.
+- scripts/factory/babysit-prs.sh Zeile 222 hat WEDER das eine noch das andere: "git worktree remove "$WT" --force >/dev/null 2>&1 || rm -rf "$WT"". Kein check-branch-live, keine Dirty-Pruefung, und der rm -rf-Fallback setzt sich sogar ueber ein fehlgeschlagenes git worktree remove hinweg.
+
+Der Guard aus T002896 wurde offenbar nur in cleanup.sh eingezogen, obwohl babysit-prs.sh dieselbe Operation ausfuehrt. Vorschlag: check-branch-live auch dort vorschalten, und den rm -rf-Fallback entfernen oder ebenfalls hinter den Guard legen.
+
+Praktischer Workaround bis dahin: Worktrees fuer laengere Batch-Laeufe ausserhalb von .worktrees/ anlegen (z.B. im Session-Scratchpad). Der zweite Anlauf lief dort unbehelligt durch.
+**8. test:changed startet Live-E2E gegen korczewski bei reiner openspec/-Aenderung** (degraded, Taskfile.yml:test:changed)
+
+Beobachtung (T003129): Ein Diff, der ausschliesslich openspec/ und das generierte website/src/data/openspec-status.json beruehrt (kein einziger ausfuehrbarer Code), loeste in "task test:changed" den Teiltask test:e2e:korczewski aus. Der scheiterte am Auth-Setup gegen die Live-Site (korczewski-auth-setup.spec.ts:44, "authenticate korczewski website admin"), 48 Tests liefen gar nicht erst. Exit 201.
+
+Der Taskfile-Kommentar beschreibt genau diesen Fall als bereits geloest (T002255): "Generierte Artefakte (linguist-generated in .gitattributes) vor der Selektion entfernen: sie liegen im Diff JEDES Changes mit OpenSpec-Artefakt und wuerden sonst Playwright fuer Changes ohne Website-Bezug starten." Der Filter greift hier nicht — vermutlich weil openspec/specs/website-core.md im Diff liegt und als website-Bezug gewertet wird, obwohl es eine Spezifikationsdatei ist.
+
+Warum das mehr als kosmetisch ist: derselbe Taskfile-Kommentar haelt fest, dass CI fuer PRs nur test:spec:changed plus manifests.bats faehrt, NICHT das volle test:changed — "der lokale Lauf war also strenger als das Gate, das er simuliert". Ein Agent, der den Verifikationsblock woertlich befolgt, steht damit vor einem roten Ergebnis, das keine Regression ist, und muss zwischen "falsche Regression melden", "blind weitermachen" und "Zeit an einem Umgebungsproblem verbrennen" waehlen. Genau diese Wahl beschreibt der Kommentar zu T002375-p4 bereits fuer den k3d-Fall, wo daraufhin ein sichtbarer Skip eingebaut wurde.
+
+Bestaetigung, dass es ein Fehlalarm war: test:spec:changed lief mit 220 ok / 0 Fehlschlaegen, task openspec:validate 11/11 gruen, freshness:check exit 0, und PR #4086 ging mit 18/18 gruenen Checks durch.
+
+Vorschlag: dieselbe Erreichbarkeits-/Relevanzpruefung wie fuer die k3d-Gruppe auch fuer die E2E-Gruppe, oder openspec/specs/*.md aus der Website-Domain-Zuordnung nehmen — eine Spec-Datei ist kein Website-Code.
+**9. Commit-Scope 'openspec' abgelehnt, obwohl das ganze Repo von OpenSpec spricht** (drift, scripts/validate-commit-msg.sh)
+
+Beobachtung (T003129): "chore(openspec): 54 gemergte Changes archivieren [T003129]" wurde vom commit-msg-Hook abgelehnt: "unknown scope 'openspec' — 'openspec' wurde zu 'plans' konsolidiert (T002328)". Korrekt ist chore(plans).
+
+Warum das wiederholt Zeit kostet: der abgelehnte Scope ist ueberall sonst der etablierte Begriff. Das Verzeichnis heisst openspec/, die Tasks heissen openspec:validate / openspec:propose / openspec:apply / openspec:archive, die Slash-Commands heissen /opsx:*, die Skills heissen openspec-propose / openspec-apply-change / openspec-archive-change, und CLAUDE.md hat einen eigenen Abschnitt "OpenSpec native change workflow". Ein Agent, der einen Commit fuer eine openspec/-Aenderung schreibt, waehlt den naheliegenden Scope — und der ist der falsche.
+
+Der Hook selbst weist darauf hin, dass CI hier nicht schuetzt: "Der CI-PR-Titel-Check (amannn/action-semantic-pull-request) prueft keinen Scope — ein gruener PR-Titel ist keine Garantie fuer diesen Scope." Der Fehler faellt also erst lokal beim Commit auf, nach dem Verfassen der vollstaendigen Message.
+
+Kosten pro Vorfall gering (ein Fehlversuch), Haeufigkeit aber strukturell: jede openspec-Aenderung eines Agenten, der die Konsolidierung nicht auswendig kennt.
+
+Vorschlag (eines von beiden, nicht beide):
+(a) 'openspec' als Alias auf 'plans' in validate-commit-msg.sh zulassen — die Konsolidierung bliebe inhaltlich bestehen, nur der naheliegende Name wuerde nicht mehr bestrafen; oder
+(b) einen Satz in CLAUDE.md beim OpenSpec-Abschnitt: "Commits zu openspec/ tragen den Scope 'plans', nicht 'openspec' (T002328)."
+**10. openspec.sh archive skaliert nicht im Batch (~3s pro Change, Node-Start je Delta)** (degraded, scripts/openspec.sh)
+
+Beobachtung (T003129): Beim Abbau des Archivierungsrueckstands (98 offene Changes) brauchte "scripts/openspec.sh archive <slug>" rund 3 Sekunden pro Change. Ursache: _merge_delta startet fuer jede einzelne Delta-Datei einen eigenen Node-Prozess ("node scripts/openspec-merge.mjs apply ..."), der Prozessstart dominiert die eigentliche Arbeit.
+
+Praktische Folge: eine Schleife ueber 59 Changes laeuft rund drei Minuten und schlaegt damit in jedes Default-Kommandotimeout (2 Minuten). Der erste Lauf brach nach 41 verarbeiteten Changes ab und musste gestueckelt bzw. mit erhoehtem Timeout wiederholt werden. Fuer den Normalfall — ein Change am Ende eines dev-flow-execute — ist das irrelevant; relevant wird es genau dann, wenn ein Rueckstand aufgeholt werden soll, also im Wartungsfall.
+
+Das ist kein Fehlverhalten, nur schlechte Batch-Ergonomie. Zwei denkbare Wege:
+(a) ein Batch-Modus, der mehrere Slugs in EINEM Node-Prozess abarbeitet (openspec-merge.mjs bekaeme eine Liste statt eines Paares); oder
+(b) schlicht dokumentieren, dass Block-Archivierungen im Hintergrund oder in Portionen zu fahren sind.
+
+Randnotiz aus demselben Lauf, gleiche Ursachenklasse: openspec.sh archive prueft den Ticket-Status fail-closed (done/archived) und verweigert sonst — das hat sauber funktioniert und mehrere nicht abgeschlossene Changes korrekt abgewiesen. Der Guard ist nicht das Problem, nur die Wiederholrate.
 
 ## Verify (RED → GREEN)
 

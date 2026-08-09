@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.259.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.8...website-v1.259.9) (2026-08-09)
+
+
+### Bug Fixes
+
+* **devflow:** rebase preflight before freshness:regenerate [T002669] ([#3985](https://github.com/Paddione/Bachelorprojekt/issues/3985)) ([bef25c1](https://github.com/Paddione/Bachelorprojekt/commit/bef25c1765042cc78f705454120e1c6842ae29d9))
+* **test:** export TICKET_TEST_DB_OK=1 in backfill-id-sequence.bats [T002871] ([#3986](https://github.com/Paddione/Bachelorprojekt/issues/3986)) ([f03ca53](https://github.com/Paddione/Bachelorprojekt/commit/f03ca5383bf9635b56bfa71c9980abb8a9753f36))
+
 ## [1.259.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.7...website-v1.259.8) (2026-08-09)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.257.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.5...website-v1.257.6) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci-cd:** Main-Checkout freshness cleanup [] ([#3916](https://github.com/Paddione/Bachelorprojekt/issues/3916)) ([9116e7f](https://github.com/Paddione/Bachelorprojekt/commit/9116e7f3dbacf132a49aeb8d40e2b9039a519f5d))
+
 ## [1.257.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.257.4...website-v1.257.5) (2026-08-09)
 
 

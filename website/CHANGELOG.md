@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.20](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.19...website-v1.259.20) (2026-08-09)
+
+
+### Bug Fixes
+
+* **scripts:** W3 and B1b no longer flag prose-only backtick paths as structural file tokens [T002807] ([#4052](https://github.com/Paddione/Bachelorprojekt/issues/4052)) ([86b7f36](https://github.com/Paddione/Bachelorprojekt/commit/86b7f360eb81ac6cad26314774e098facfbde90a))
+
 ## [1.259.19](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.18...website-v1.259.19) (2026-08-09)
 
 

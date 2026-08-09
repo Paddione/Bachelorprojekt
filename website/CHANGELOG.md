@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.259.21](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.20...website-v1.259.21) (2026-08-09)
+
+
+### Bug Fixes
+
+* **agents:** agent-lock Block 0b checks owner_pid liveness; dead PID + stale grace = reapable [T002849] ([#4056](https://github.com/Paddione/Bachelorprojekt/issues/4056)) ([48a15c8](https://github.com/Paddione/Bachelorprojekt/commit/48a15c878123ca321113121a4b8b53fb22cb3e92))
+* **ci:** add mcp-gateway alias and PR-title hint to commit-scope validation [T002814] ([#4057](https://github.com/Paddione/Bachelorprojekt/issues/4057)) ([61d681b](https://github.com/Paddione/Bachelorprojekt/commit/61d681b79be995df1c713b6c6213b07a4bf5626d))
+
 ## [1.259.20](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.19...website-v1.259.20) (2026-08-09)
 
 

@@ -2577,10 +2577,28 @@
       "status": "plan_staged"
     }
   ],
+  "T002659": [
+    {
+      "slug": "openspec-embed-probe-timeout",
+      "status": "plan_staged"
+    }
+  ],
+  "T002666": [
+    {
+      "slug": "routes-manifest-stacktrace-fallback-T002666",
+      "status": "plan_staged"
+    }
+  ],
   "T002677": [
     {
       "slug": "cockpit-verfuegbarkeit-realtime",
       "status": "plan_staged"
+    }
+  ],
+  "T002679": [
+    {
+      "slug": "2026-08-09-brain-ingest-chunking",
+      "status": "archived"
     }
   ],
   "T002688": [
@@ -2625,6 +2643,12 @@
       "status": "archived"
     }
   ],
+  "T002709": [
+    {
+      "slug": "2026-08-09-repo-hygiene-arbeitsbaum-stashes",
+      "status": "archived"
+    }
+  ],
   "T002714": [
     {
       "slug": "ticket-mcp-update-fields-T002714",
@@ -2643,6 +2667,12 @@
       "status": "archived"
     }
   ],
+  "T002722": [
+    {
+      "slug": "2026-08-09-tickets-projects-split",
+      "status": "archived"
+    }
+  ],
   "T002724": [
     {
       "slug": "2026-08-08-cockpit-daemon-test-no-leak",
@@ -2652,6 +2682,12 @@
   "T002729": [
     {
       "slug": "2026-08-08-bge-cpu-ondemand",
+      "status": "archived"
+    }
+  ],
+  "T002730": [
+    {
+      "slug": "2026-08-09-fa-59-e2e-spec-positive-assertion",
       "status": "archived"
     }
   ],
@@ -2670,6 +2706,12 @@
   "T002753": [
     {
       "slug": "2026-08-09-local-llm-loadout-cleanup",
+      "status": "archived"
+    }
+  ],
+  "T002783": [
+    {
+      "slug": "2026-08-09-mishap-rollup-pipeline",
       "status": "archived"
     }
   ],

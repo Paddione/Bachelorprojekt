@@ -2112,9 +2112,39 @@
     "kind": "shell"
   },
   {
-    "id": "brain-mcp",
-    "file": "tests/spec/brain-mcp.bats",
-    "category": "brain-mcp",
+    "id": "brain-k4-brain-wiki/brain-mcp-server",
+    "file": "tests/spec/brain-k4-brain-wiki/brain-mcp-server.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/chunking",
+    "file": "tests/spec/brain-k4-brain-wiki/chunking.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/coverage-gate",
+    "file": "tests/spec/brain-k4-brain-wiki/coverage-gate.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/max-source-chars-guard",
+    "file": "tests/spec/brain-k4-brain-wiki/max-source-chars-guard.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/mcp-registry",
+    "file": "tests/spec/brain-k4-brain-wiki/mcp-registry.bats",
+    "category": "brain-k4-brain-wiki",
+    "kind": "shell"
+  },
+  {
+    "id": "brain-k4-brain-wiki/parent-moc",
+    "file": "tests/spec/brain-k4-brain-wiki/parent-moc.bats",
+    "category": "brain-k4-brain-wiki",
     "kind": "shell"
   },
   {
@@ -2156,6 +2186,12 @@
   {
     "id": "ci-cd",
     "file": "tests/spec/ci-cd.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/automerge-run-scope",
+    "file": "tests/spec/ci-cd/automerge-run-scope.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2730,6 +2766,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/embed-probe-timeout",
+    "file": "tests/spec/local-llm-proxy/embed-probe-timeout.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/embed-skip-visibility",
     "file": "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
     "category": "local-llm-proxy",
@@ -2810,6 +2852,12 @@
   {
     "id": "local-llm-proxy/proxy-tests-registered",
     "file": "tests/spec/local-llm-proxy/proxy-tests-registered.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/qwen3-coder-loadout",
+    "file": "tests/spec/local-llm-proxy/qwen3-coder-loadout.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -2979,6 +3027,12 @@
     "id": "mishap-docker-wsl-T002250",
     "file": "tests/spec/mishap-docker-wsl-T002250.bats",
     "category": "mishap-docker-wsl-T002250",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/container-resolution-and-unattended-worktree",
+    "file": "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
+    "category": "mishap-rollup",
     "kind": "shell"
   },
   {
@@ -3242,6 +3296,12 @@
   {
     "id": "repo-hygiene/dead-path-references",
     "file": "tests/spec/repo-hygiene/dead-path-references.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-hygiene/worktree-stash-inspection",
+    "file": "tests/spec/repo-hygiene/worktree-stash-inspection.bats",
     "category": "repo-hygiene",
     "kind": "shell"
   },

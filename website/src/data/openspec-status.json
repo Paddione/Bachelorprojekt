@@ -2853,6 +2853,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002871": [
+    {
+      "slug": "backfill-id-bats-local-red",
+      "status": "plan_staged"
+    }
+  ],
   "T002872": [
     {
       "slug": "llm-proxy-bats-local-red",

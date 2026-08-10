@@ -162,7 +162,7 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 	// enqueue_ticket → ticket.sh enqueue --id [--branch --plan]
 	s.AddTool(
 		mcp.NewTool("enqueue_ticket",
-			mcp.WithDescription("Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog)."),
+			mcp.WithDescription("Reiht ein Ticket in den Software-Factory-Backlog ein (status=backlog). Ein bereits plan_staged Ticket bleibt unveraendert — es ist ueber die Staged-Lane schon dispatchbar [T003575]."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("branch", mcp.Description("Optionaler Branch")),
 			mcp.WithString("plan", mcp.Description("Optionaler Plan-Pfad")),

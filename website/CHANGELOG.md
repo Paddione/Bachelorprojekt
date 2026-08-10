@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.27](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.26...website-v1.259.27) (2026-08-10)
+
+
+### Bug Fixes
+
+* **agents:** unify lock scope rules — branch-scoped claims in docs, dedup worktree list, release-before-override hint [T003116] ([#4091](https://github.com/Paddione/Bachelorprojekt/issues/4091)) ([6bd21c1](https://github.com/Paddione/Bachelorprojekt/commit/6bd21c173ef3d7b497ebe2f54d8f489dc0717b2a))
+
 ## [1.259.26](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.25...website-v1.259.26) (2026-08-10)
 
 

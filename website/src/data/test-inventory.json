@@ -2436,6 +2436,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/unknown-scope-names-source",
+    "file": "tests/spec/ci-cd/unknown-scope-names-source.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/workflow-self-trigger",
     "file": "tests/spec/ci-cd/workflow-self-trigger.bats",
     "category": "ci-cd",

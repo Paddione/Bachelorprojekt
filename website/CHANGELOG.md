@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.261.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.3...website-v1.261.4) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** opencode-exec prueft das Ergebnis statt nur den Exit-Code [T003335] ([#4140](https://github.com/Paddione/Bachelorprojekt/issues/4140)) ([ae340a3](https://github.com/Paddione/Bachelorprojekt/commit/ae340a3a8f69fde548f7c07d3e50a61a5f3d13c8))
+
+## [1.261.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.2...website-v1.261.3) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** openspec.sh propose --help vor Guards behandelt [T002908] ([#4137](https://github.com/Paddione/Bachelorprojekt/issues/4137)) ([420dadd](https://github.com/Paddione/Bachelorprojekt/commit/420dadd7a0566934457c7cebaa09c25923597f83))
+
+## [1.261.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.1...website-v1.261.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** ticket.sh --help/-h auf Kommando- und Optionsebene [T002843] ([#4133](https://github.com/Paddione/Bachelorprojekt/issues/4133)) ([a48aa63](https://github.com/Paddione/Bachelorprojekt/commit/a48aa63f5afbfcb7bdf93c4eb38e730e15a24359))
+
+## [1.261.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.0...website-v1.261.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** factory-prep stdout-Leck zerstoert Launch-Plan des gesamten Ticks [T003269] ([#4131](https://github.com/Paddione/Bachelorprojekt/issues/4131)) ([9055fdb](https://github.com/Paddione/Bachelorprojekt/commit/9055fdb17d99b27889386d4c009ba9665e948114))
+
 ## [1.261.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.260.1...website-v1.261.0) (2026-08-10)
 
 

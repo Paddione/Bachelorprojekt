@@ -161,7 +161,7 @@ _ticket_lock_guard() {
     # AGENT_LOCK_SID und OPENCODE_SESSION_ID nicht — dieselbe Duplikations-Falle,
     # vor der der T002424-Kommentar hier bereits warnt.
     local my_sid holder_sid
-    my_sid="$(bash "$lock_sh" mine 2>/dev/null)"
+    my_sid="$(AGENT_LOCK_SID= bash "$lock_sh" mine 2>/dev/null)"
     holder_sid="$(printf '%s' "$out" | sed -n 's/.*"owner_sid": *"\([^"]*\)".*/\1/p' | head -1)"
     if [[ -n "$my_sid" && -n "$holder_sid" && "$my_sid" == "$holder_sid" ]]; then
       return 0

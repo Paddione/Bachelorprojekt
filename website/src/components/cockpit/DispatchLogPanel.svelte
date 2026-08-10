@@ -1,7 +1,7 @@
 <!--
   DispatchLogPanel.svelte — Live-Liste der Dispatch-Mitschnitte im SDLC Cockpit (T003277).
 
-  WICHTIG (wie PipelinePanel, E22): Dieser Rahmen traegt BEWUSST KEIN
+  WICHTIG (E22): Dieser Rahmen traegt BEWUSST KEIN
   `data-panel-type`-Attribut. .lavish/kit/panel.js adoptiert beim DOMContentLoaded alle
   [data-panel-type]-Elemente und raeumt bei refresh() den Body leer — eine Svelte-Insel
   darin wuerde ausgeraeumt. Genutzt wird nur die geteilte CSS-Schicht (panel.css).

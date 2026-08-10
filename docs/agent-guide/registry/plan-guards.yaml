@@ -1,0 +1,96 @@
+# plan-guards.yaml — Katalog der Prozess-Guards des Planungs-Flows. [T003267]
+#
+# Zweck: deklarative Pruefgrundlage fuer tests/spec/dev-flow-plan/guard-parity.bats.
+# Jeder Guard MUSS in jeder applies_to-Datei per anchor-Substring auffindbar sein —
+# so kann die Skill-Prosa der Harnesse (Claude Code, opencode/agy) nicht mehr still
+# auseinanderdriften (Audit 2026-08-10: ~16 Drift-Punkte, nur der Claude-Pfad wurde
+# gepflegt).
+#
+# Pflegeregel: neuer Prozess-Guard im Planungs-Flow => HIER eintragen UND in allen
+# applies_to-Dateien verankern. Asymmetrien sind legitim und werden ueber die
+# applies_to-Liste deklariert (Beispiel: T002444 gilt nur fuer opencode).
+# KEIN Generator: die Prosa bleibt handgepflegt, dieser Katalog prueft nur Praesenz.
+# Design: openspec/changes/cross-harness-plan-guardrails/design.md (archiviert:
+# openspec/specs/dev-flow-plan.md).
+guards:
+  - id: T002673
+    title: "stage-plan erst NACH dem Plan-Commit (touched_files sonst still leer)"
+    anchor: "T002673"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .claude/skills/references/ticket-stage-procedure.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: T002816
+    title: "kein fertig aussehender PR aus dem Plan-Stand (Draft + [plan-only])"
+    anchor: "T002816"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: T002829
+    title: "Prior-Art-Suche vor der ersten Architekturfrage (Schritt 0.7)"
+    anchor: "T002829"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: T002279
+    title: "check-merged-Preflight vor der Worktree-Anlage"
+    anchor: "T002279"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .claude/skills/references/dev-flow-plan-phases.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: T003102
+    title: "Pre-Commit-Lock-Match akzeptiert ticket- UND branch-scoped Claims"
+    anchor: "T003102"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: T002820
+    title: "Verfuegbarkeits-Guard fuer externe Binaries schon in der Rotphase"
+    anchor: "T002820"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: T002448-M5
+    title: "Bug-Triage: Symptom vs. Ursachen-Hypothese VOR dem Loesungsdesign trennen"
+    anchor: "T002448-M5"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: hold-decision
+    title: "stage-plan: explizite Hold-Entscheidung (--hold interaktiv, --no-hold headless)"
+    anchor: "--hold"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .claude/skills/references/ticket-stage-procedure.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: plan-preflight
+    title: "Pre-Commit-/Worktree-Guards laufen ueber scripts/plan-preflight.sh, nicht als Inline-Snippet"
+    anchor: "plan-preflight.sh"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: plan-intel
+    title: "intel.json wird deterministisch von scripts/plan-intel.sh erzeugt, nicht von Hand"
+    anchor: "plan-intel.sh"
+    applies_to:
+      - .claude/skills/references/dev-flow-plan-phases.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: plan-quality-gates
+    title: "Plan-Subagenten-Prompt bindet plan-quality-gates + plan-lint --rules verbindlich ein"
+    anchor: "plan-quality-gates"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: plan-stage-commit-title
+    title: "Stage-Commits heissen chore(plans):, nie fix()/feat() (T001434)"
+    anchor: "chore(plans):"
+    applies_to:
+      - .claude/skills/dev-flow-plan/SKILL.md
+      - .claude/skills/references/dev-flow-plan-phases.md
+      - .opencode/skills/opencode-flow-plan/SKILL.md
+  - id: T002444
+    title: "opencode-only: agent-collision.sh check --branch vor der Worktree-Anlage"
+    anchor: "T002444"
+    applies_to:
+      - .opencode/skills/opencode-flow-plan/SKILL.md

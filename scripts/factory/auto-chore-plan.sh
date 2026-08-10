@@ -210,6 +210,6 @@ git add "openspec/changes/${slug}" \
 # stage-plan erst NACH dem Push: es verankert den FACTORY-PLAN-REF auf einen
 # Branch, den der Dispatcher auschecken koennen muss. Umgekehrt zeigte das Ticket
 # kurzzeitig auf etwas, das noch nicht auf dem Remote liegt.
-bash "$WT/scripts/ticket.sh" stage-plan --id "$EXT_ID" --branch "$branch" --plan "$plan_path" >/dev/null
+bash "$WT/scripts/ticket.sh" stage-plan --id "$EXT_ID" --branch "$branch" --plan "$plan_path" --no-hold >/dev/null
 
 echo "auto-chore-plan: $EXT_ID gestaged (branch=$branch plan=$plan_path)"

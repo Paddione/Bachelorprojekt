@@ -4020,6 +4020,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-prep-stdout-json",
+    "file": "tests/spec/software-factory/factory-prep-stdout-json.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/orphan-slot-reap",
     "file": "tests/spec/software-factory/orphan-slot-reap.bats",
     "category": "software-factory",

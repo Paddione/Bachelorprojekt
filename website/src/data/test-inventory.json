@@ -3498,6 +3498,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-embedding/probe-diagnosis",
+    "file": "tests/spec/openspec-embedding/probe-diagnosis.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-pgvector",
     "file": "tests/spec/openspec-pgvector.bats",
     "category": "openspec-pgvector",

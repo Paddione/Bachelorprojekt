@@ -43,25 +43,63 @@ cleanup() { [[ -n "$PF_PID" ]] && kill "$PF_PID" 2>/dev/null || true; }
 trap cleanup EXIT
 
 # --- 1. Embedding-Backend proben (fail-fast, bevor wir die DB anfassen) -----
+# T003177: Der Probe-Code kollabierte bisher JEDEN Fehlschlag auf einen
+# HTTP-Code-String ("000" im curl-Fehlerfall) und die Meldung nannte daraufhin
+# pauschal "nicht erreichbar" — auch dann, wenn das Backend antwortete und nur
+# der Status ungleich 200 war. Eine Fehlermeldung mit falscher Ursache kostet
+# beim Debuggen mehr als gar keine. Deshalb werden curl-Exit-Code, HTTP-Status
+# und curl-stderr jetzt GETRENNT erfasst und der konkrete Zustand benannt.
+PROBE_HTTP=""
+PROBE_RC=0
+PROBE_ERR=""
 probe_embed() {
-  curl -s --max-time "${OPENSPEC_EMBED_PROBE_TIMEOUT:-20}" -o /dev/null -w '%{http_code}' \
+  local err_file
+  err_file="$(mktemp)"
+  PROBE_RC=0
+  # `|| PROBE_RC=$?` statt `; PROBE_RC=$?`: unter `set -e` bricht eine
+  # Zuweisung aus fehlgeschlagener Kommandosubstitution das Skript ab, bevor
+  # der Exit-Code ueberhaupt ausgewertet werden kann.
+  PROBE_HTTP="$(curl -s --max-time "${OPENSPEC_EMBED_PROBE_TIMEOUT:-20}" -o /dev/null -w '%{http_code}' \
     -X POST "$1/v1/embeddings" -H 'Content-Type: application/json' \
-    -d '{"input":["ping"],"model":"bge-m3"}' 2>/dev/null || echo 000
+    -d '{"input":["ping"],"model":"bge-m3"}' 2>"$err_file")" || PROBE_RC=$?
+  PROBE_ERR="$(tr -d '\r' < "$err_file" | head -3)"
+  rm -f "$err_file"
 }
+
+# Benennt den curl-Exit-Code, statt ihn zu "nicht erreichbar" zu verallgemeinern.
+probe_diagnosis() {
+  case "$PROBE_RC" in
+    0)  echo "Backend ANTWORTET (HTTP ${PROBE_HTTP}), aber nicht mit 200 — das ist KEIN Erreichbarkeitsproblem." ;;
+    6)  echo "DNS-Auflösung fehlgeschlagen (curl 6)." ;;
+    7)  echo "Verbindung abgelehnt / kein Lauscher am Port (curl 7)." ;;
+    28) echo "Zeitüberschreitung nach ${OPENSPEC_EMBED_PROBE_TIMEOUT:-20}s (curl 28) — Port belegt, aber keine Antwort." ;;
+    35|60) echo "TLS-Handshake fehlgeschlagen (curl ${PROBE_RC})." ;;
+    *)  echo "curl brach mit Exit ${PROBE_RC} ab." ;;
+  esac
+}
+
 EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:18235}"
-if [[ "$(probe_embed "$EMBED_URL")" != "200" ]]; then
-  cat >&2 <<'EOF'
-[openspec-embed-local] FEHLER: kein Embedding-Backend erreichbar (:18235).
+probe_embed "$EMBED_URL"
+if [[ "$PROBE_RC" -ne 0 || "$PROBE_HTTP" != "200" ]]; then
+  {
+    # Die tatsächlich geprobte URL nennen, nicht den Default-Port: bei gesetztem
+    # LLM_EMBED_URL nannte die alte Meldung :18235, obwohl ein anderer Endpunkt
+    # geprüft wurde — der Widerspruch, mit dem T003177 gemeldet wurde.
+    echo "[openspec-embed-local] FEHLER: Embedding-Probe gegen ${EMBED_URL}/v1/embeddings fehlgeschlagen."
+    echo "  Befund: $(probe_diagnosis)"
+    [[ -n "$PROBE_ERR" ]] && echo "  curl:   ${PROBE_ERR}"
+    cat <<'EOF'
 Remediation (seit T003205 läuft bge über den llm-proxy, lokal zuerst):
   Der llm-proxy startet das lokale bge-embed-cpu-Loadout bei Bedarf und fällt
   auf den Cluster-Forward (bge-forward-embed.service, :8081) zurück:
     systemctl --user status llm-proxy.service
     systemctl --user restart llm-proxy.service
-  Prüfe dann: curl -s http://127.0.0.1:18235/v1/embeddings -H 'Content-Type: application/json' -d '{"model":"bge-m3","input":["test"]}'
   Überschreibbar per LLM_EMBED_URL, falls gezielt ein anderes Backend
   angesprochen werden soll.
 EOF
-    exit 1
+    echo "  Gegenprobe: curl -s ${EMBED_URL}/v1/embeddings -H 'Content-Type: application/json' -d '{\"model\":\"bge-m3\",\"input\":[\"test\"]}'"
+  } >&2
+  exit 1
 fi
 
 # --- 2. DB-URL beschaffen (nie ausgeben!) -----------------------------------

@@ -15,7 +15,7 @@ depends_on_plans: []
 _Container-Ticket: T003067_
 
 Automatisch erzeugt von `scripts/factory/mishap-rollup.sh` [T002407] am
-2026-08-10 01:53 UTC. Die Eintraege stammen aus den
+2026-08-10 01:57 UTC. Die Eintraege stammen aus den
 Batch-Kommentaren des Container-Tickets "Mishap Rollup — fortlaufende Sammlung".
 
 ## File Structure
@@ -731,6 +731,158 @@ Das ist kein Fehlverhalten, nur schlechte Batch-Ergonomie. Zwei denkbare Wege:
 (b) schlicht dokumentieren, dass Block-Archivierungen im Hintergrund oder in Portionen zu fahren sind.
 
 Randnotiz aus demselben Lauf, gleiche Ursachenklasse: openspec.sh archive prueft den Ticket-Status fail-closed (done/archived) und verweigert sonst — das hat sauber funktioniert und mehrere nicht abgeschlossene Changes korrekt abgewiesen. Der Guard ist nicht das Problem, nur die Wiederholrate.
+### Mishap-Rollup — 10 Eintraege (2026-08-10 01:56 UTC)
+
+| # | Typ | Komponente | Titel |
+|---|---|---|---|
+| 1 | degraded | skills/references/ticket-ops-procedures.md | ticket-ops Step 1.1: Triage-Query überschreitet bei ~96 offenen Tickets das mcp-postgres-Token-Limit |
+| 2 | degraded | skills/references/ticket-ops-procedures.md | ticket-ops Step 1.1 dokumentiert einen jq-Ausdruck, der am MCP-Ergebnis scheitert |
+| 3 | degraded | skills/references/ticket-ops-procedures.md (Step 3.1/3.2) | ticket-ops Wellenbildung: areas-Konfliktheuristik erkennt Kollisionen über generierte Artefakte nicht |
+| 4 | suspicious | .githooks/post-commit (openspec-embed) | openspec-embed post-commit meldet "Backend nicht erreichbar" auf :8081, das Backend antwortet aber mit 200 |
+| 5 | suspicious | repo/git | 4 Stashes verschwanden während repo-hygiene §0-Inventur — refs/stash komplett weg, Mechanismus ungeklärt |
+| 6 | drift | tickets | 285 von 881 done-Tickets ohne resolution (32%) — darunter T003121/T003129 von heute |
+| 7 | process | scripts/branch-reaper.sh + skills/references/repo-hygiene-ops.md §2 | branch-reaper.sh --dry-run ohne --ticket nicht aufrufbar, Runbook dokumentiert ihn als manuellen Inspektionsblick |
+| 8 | process | .claude/skills/references/repo-hygiene-ops.md §3 (Konfliktprobe) | repo-hygiene-ops §3: dokumentierte Konfliktprobe ist im Normalfall nicht gangbar (invasiver Arbeitsbaum-Merge in dirty Worktree) |
+| 9 | process | scripts/branch-reaper.sh | branch-reaper.sh meldet "DELETED", löscht aber nur den Remote-Ref — lokaler Branch überlebt |
+| 10 | process | .claude/skills/references/repo-hygiene-ops.md §2 | repo-hygiene §2: [gone]-Prune läuft VOR branch-reaper, der selbst neue [gone]-Refs erzeugt |
+
+**1. ticket-ops Step 1.1: Triage-Query überschreitet bei ~96 offenen Tickets das mcp-postgres-Token-Limit** (degraded, skills/references/ticket-ops-procedures.md)
+
+Beobachtet 2026-08-10 im ticket-ops-Lauf (96 offene Tickets, is_test_data=false).
+
+BEFUND: Die in ticket-ops-procedures.md §Step 1.1 vorgeschriebene json_agg-Query liefert 52.548 Zeichen und wird von mcp__mcp-postgres__query mit "exceeds maximum allowed tokens" abgewiesen. Das Ergebnis landet stattdessen in einer Datei im Tool-Results-Verzeichnis; die Query ist über MCP nicht mehr direkt konsumierbar.
+
+VERIFIZIERT: Die Abweisung trat beim ersten Aufruf auf, Zeichenzahl aus der Fehlermeldung.
+
+WARUM RELEVANT: Der Skalierungsbruch ist nicht dokumentiert. Die Prozedur wurde erkennbar für kleinere Ticketmengen geschrieben (das Beispiel im Entscheidungsbaum nennt "Open Tickets (N=17)"). Ein Agent, der sie wörtlich befolgt, läuft bei wachsendem Backlog in einen Fehlschlag und muss den Umweg selbst herleiten — hier über die Ergebnisdatei plus jq/python.
+
+VORSCHLAG: Entweder die Query von vornherein in eine Datei schreiben lassen und dort weiterverarbeiten, oder sie chunken (LIMIT/OFFSET nach Priorität), oder die Feldliste kürzen — 'readiness' und 'depends_on' machen einen erheblichen Teil der Nutzlast aus und werden in Phase 1 nur aggregiert gebraucht.
+
+ABGRENZUNG: Kein Defekt von mcp-postgres — das Limit ist gewollt. Der Defekt liegt in der Prozedur, die ihn nicht berücksichtigt.
+**2. ticket-ops Step 1.1 dokumentiert einen jq-Ausdruck, der am MCP-Ergebnis scheitert** (degraded, skills/references/ticket-ops-procedures.md)
+
+Beobachtet 2026-08-10 im ticket-ops-Lauf.
+
+BEFUND: ticket-ops-procedures.md Zeile 79 schreibt zur Weiterverarbeitung der Triage-Query vor: "das Ergebnis wird mit `jq -r '.result[]'` verarbeitet, nicht mit Split-by-Pipe".
+
+Das mcp-postgres-Ergebnis hat aber die Form `[{"result": "<json-string>"}]` — ein Array mit einem Objekt, dessen Feld 'result' einen JSON-STRING enthält (nicht ein Array). Der dokumentierte Ausdruck scheitert; korrekt ist `jq -r '.[0].result'`, dessen Ausgabe dann erneut als JSON geparst wird.
+
+VERIFIZIERT: `grep -n "result\[\]" .claude/skills/references/ticket-ops-procedures.md` → Treffer in Zeile 79. Der erste Parse-Versuch dieses Laufs scheiterte entsprechend mit einem JSONDecodeError; `jq -r '.[0].result'` lief durch.
+
+WARUM RELEVANT: Die Zeile stammt aus T002422, wo sie die Umstellung von Pipe-Spalten auf JSON begründet — die Begründung ist richtig, nur der konkrete Ausdruck stimmt nicht mit dem Ausgabeformat überein. Kostet jeden Nutzer der Prozedur einen Fehlschlag.
+
+VORSCHLAG: Zeile 79 auf `jq -r '.[0].result'` korrigieren und den doppelten Parse-Schritt benennen. Hängt inhaltlich am separat gemeldeten Skalierungsbruch derselben Query — beide Korrekturen betreffen denselben Absatz.
+**3. ticket-ops Wellenbildung: areas-Konfliktheuristik erkennt Kollisionen über generierte Artefakte nicht** (degraded, skills/references/ticket-ops-procedures.md (Step 3.1/3.2))
+
+Beobachtet 2026-08-10 im ticket-ops-Welle-1-Dispatch mit 4 parallelen dev-flow-plan-Einheiten.
+
+BEFUND: Die Soft-Conflict-Kante aus Step 3.1 serialisiert zwei Tickets, wenn sie einen `areas`-Eintrag teilen. Sie fängt nicht, dass ALLE VIER Welle-1-Branches dieselbe generierte Datei ändern: website/src/data/openspec-status.json. Jede dev-flow-plan-Einheit legt ein openspec/changes/<slug>/ an, woraus die Statuskarte regeneriert und mitcommittet wird.
+
+VERIFIZIERT (alle vier Branches, nicht nur eine Stichprobe):
+  git diff --name-only origin/main..fix/agent-lock-scope-regelwerk-T003116   -> Treffer
+  git diff --name-only origin/main..fix/agent-lock-sid-detection-T003110     -> Treffer
+  git diff --name-only origin/main..fix/no-unasked-stash-T003078             -> Treffer
+  git diff --name-only origin/main..fix/babysit-prs-live-lock-guard-T003137  -> Treffer
+
+WARUM DIE HEURISTIK VERSAGT: Keine der vier Einheiten trägt `website` in ihren areas — die areas lauten scripts/agent-lock.sh, skills/dev-flow-chore, scripts/factory/babysit-prs.sh usw. Die Kollision entsteht nicht über die inhaltlich berührten Bereiche, sondern über ein GENERIERTES Artefakt, das jeder Planlauf als Nebenwirkung anfasst. Eine areas-basierte Heuristik kann das strukturell nicht sehen.
+
+FOLGE: Die vier PRs sind nicht gleichzeitig merge-fähig. Sie müssen seriell durch, jede nach dem Merge der vorigen mit `task freshness:regenerate`. Das war beim Aufstellen des Masterplans nicht sichtbar und fiel erst beim Nachprüfen der fertigen Branches auf.
+
+VORSCHLAG: Freshness-Generate (openspec-status.json, test-inventory.json) als implizite geteilte area der Wellenbildung behandeln — oder schlichter: Wellen aus dev-flow-plan grundsätzlich als seriell-mergend kennzeichnen und das im Masterplan-Format ausweisen, statt Merge-Parallelität zu suggerieren, die es nicht gibt.
+
+ABGRENZUNG: T003133 (Freshness-Generat macht Worktrees dirty), T003136 (Archive-PR am Freshness-Gate gescheitert) und T003105 (Rebase verliert Freshness-Artefakte) beschreiben Folgen desselben Generats. Dieser Befund ist ein anderer: die fehlende ERKENNUNG in der Wellenbildung von ticket-ops.
+**4. openspec-embed post-commit meldet "Backend nicht erreichbar" auf :8081, das Backend antwortet aber mit 200** (suspicious, .githooks/post-commit (openspec-embed))
+
+Beobachtet 2026-08-10, bei DREI von vier parallel laufenden dev-flow-plan-Agenten.
+
+BERICHTET WURDE: Der post-commit-Hook openspec-embed schlug fehl, weil kein Embedding-Backend erreichbar sei — genannt wurden 127.0.0.1:8081 (bge-mcp) und, von einem weiteren Agenten, der bekannte Port-15432-Konflikt. Non-fatal, kein Commit wurde blockiert.
+
+NACHERHEBUNG WIDERSPRICHT DER MELDUNG (das ist der eigentliche Befund):
+  curl http://127.0.0.1:8081/health   -> HTTP 200
+  ss -ltnp | grep -E ':(8081|15432)'  -> beide Ports haben einen Lauscher
+      127.0.0.1:8081  kubectl pid=753980
+      127.0.0.1:15432 kubectl pid=50718
+
+Die Port-Forwards standen also zum Zeitpunkt der Nacherhebung. Ob sie während der Agentenläufe kurzzeitig weg waren, lässt sich nachträglich nicht klären — deshalb ist die naheliegende Lesart ("Backend war tot") NICHT belegt, und die Meldung des Hooks bleibt fragwürdig: sie behauptet Nichterreichbarkeit als Ursache, obwohl das Backend erreichbar ist.
+
+WARUM RELEVANT: Eine Fehlermeldung, die eine falsche Ursache nennt, kostet beim Debuggen mehr als gar keine. Dasselbe Muster ist im Bestand bereits zweimal erfasst — T002909 (plan-qa-check.sh meldet "Gateway not reachable", obwohl der Gateway erreichbar ist) und T002912 (Postgres-Socket-Meldung trotz erreichbarer DB). Drei Werkzeuge mit demselben Fehlbild deuten auf eine gemeinsame Ursache im Erreichbarkeits-Check, nicht auf drei unabhängige Defekte.
+
+VORSCHLAG: Prüfen, ob die drei Stellen denselben Probe-Code teilen. Falls ja, dort ansetzen statt dreimal einzeln. Mindestens sollte der Hook den tatsächlichen Fehler (Timeout? HTTP-Status? DNS?) ausgeben statt ihn zu "nicht erreichbar" zu verallgemeinern.
+
+[Teilweise UNVERIFIED — der Zustand während der Agentenläufe ist nachträglich nicht rekonstruierbar; verifiziert ist nur der Widerspruch zur Nacherhebung.]
+**5. 4 Stashes verschwanden während repo-hygiene §0-Inventur — refs/stash komplett weg, Mechanismus ungeklärt** (suspicious, repo/git)
+
+Während repo-hygiene §0 (2026-08-10 ~02:30Z) wurden 4 Stashes inventarisiert (stash@{0} worktree-create-auto-stash 02:06, stash@{1} wip-before-chore T002649 01:48, stash@{2} WIP auf 7815d6592 (#4082) 01:19, stash@{3} WIP auf 0cee50e43 [T002896] 00:04). Minuten später war refs/stash vollständig weg — weder git stash list noch reflog show refs/stash liefern etwas. Kein Hook, kein Script im Repo droppt Stashes (grep über scripts/ + .git/hooks/ leer). Inhalte sind verifiziert NICHT verloren: stash@{2}/stash@{3}-Inhalt steht in origin/main (Archiv-Commits #4083 + factory-reclaim-lock-respect-Delta), stash@{0} enthielt keine unikaten Bytes (nur Deletionen eines aktiven Changes, T002658 planning), stash@{1} war ein regenerierbarer openspec-status.json-Generat. Commit-Objekte hängen noch (dangling, via git fsck auffindbar) und wären bis GC wiederherstellbar. Befund: unerklärte Fremd-Drop-Aktion (vermutlich parallele Session/Workflow mit git stash clear) — Problemraum T003078 (ungefragtes Stashen). Kein Datenverlust, aber Mechanismus ungeklärt und Folge-Läufe können echte Arbeit treffen.
+**6. 285 von 881 done-Tickets ohne resolution (32%) — darunter T003121/T003129 von heute** (drift, tickets)
+
+SELECT count FILTER (status='done' AND resolution IS NULL) über tickets.tickets ergibt 285/881 (32%). Die Konvention (repo-hygiene-ops §3, mishap-tracker) verlangt bei status=done eine resolution (fixed für fix/*, shipped für feature/*). Heute gemergte PRs #4075 (T003121) und #4086 (T003129) wurden als done ohne resolution abgeschlossen — auch frische Tickets betroffen, nicht nur Altbestand. Kein offenes Ticket dazu vorhanden. Empfehlung: Backfill-Regel (z.B. per Post-Merge-Hook oder cockpit_audit) für done ohne resolution, oder resolution bei done-Writes verpflichtend erzwingen.
+**7. branch-reaper.sh --dry-run ohne --ticket nicht aufrufbar, Runbook dokumentiert ihn als manuellen Inspektionsblick** (process, scripts/branch-reaper.sh + skills/references/repo-hygiene-ops.md §2)
+
+`.claude/skills/references/repo-hygiene-ops.md` §2 ("Verwaiste Remote-Branches") dokumentiert:
+
+    bash scripts/branch-reaper.sh --ticket T00XXXX --dry-run   # zeigt REAP-/KEEP-Zeilen mit Begründung
+
+und rahmt das als "im Post-Merge-Workflow läuft er automatisch, manuell zum Nachsehen". Der Nachsehen-Fall braucht aber gerade kein Ticket — man will die Kandidatenliste sehen, nicht eine Löschung einem Vorgang zuordnen.
+
+BELEG: `bash scripts/branch-reaper.sh --dry-run` bricht mit Exit 2 ab: "FEHLER: --ticket ist erforderlich (Format T######)". Usage: `branch-reaper.sh --ticket T###### [--dry-run] [--remote <name>] [--repo <pfad>]`.
+
+FOLGE: Wer §2 zum reinen Nachsehen befolgt, muss eine Ticketnummer erfinden oder eine fremde einsetzen. Beides ist unerwünscht — eine erfundene Nummer erzeugt im Zweifel einen Archiv-Tag unter falscher Zuordnung, eine fremde hängt die Aktion an einen unbeteiligten Vorgang.
+
+Beobachtet im repo-hygiene-Lauf 2026-08-10: 17 Remote-Branches außer main, davon 5 mit lokalem Worktree — die Kandidatenliste blieb ungeprüft, weil der Dry-Run nicht ohne Ticket lief.
+
+ZUSCHNITT: Entweder `--dry-run` das `--ticket` erlassen (der Dry-Run schreibt per Definition nichts, ein Archiv-Tag entsteht dabei nicht), oder die Runbook-Zeile so korrigieren, dass sie den Zwang nennt statt einen ticketlosen Blick zu suggerieren.
+**8. repo-hygiene-ops §3: dokumentierte Konfliktprobe ist im Normalfall nicht gangbar (invasiver Arbeitsbaum-Merge in dirty Worktree)** (process, .claude/skills/references/repo-hygiene-ops.md §3 (Konfliktprobe))
+
+Beobachtet 2026-08-10 während eines repo-hygiene-Laufs an PR #4091. VERIFIZIERT durch Messung, nicht nur berichtet.
+
+DER WIDERSPRUCH (zwei Stellen desselben Runbooks):
+
+(a) §3 „Leere Checkliste kann auch Konflikt heißen" [T002822] schreibt als Gegenprobe einen
+    invasiven Arbeitsbaum-Merge vor:
+        git merge origin/main --no-commit --no-ff   # danach: git merge --abort
+        git diff --name-only --diff-filter=U
+
+(b) §1 „Generat-Abweichungen sind kein Befund" hält an anderer Stelle desselben Dokuments fest,
+    dass jeder Worktree, in dem ein Plan gestaged oder archiviert wurde, dauerhaft ein
+    abweichendes website/src/data/openspec-status.json trägt — das ist ausdrücklich der
+    NORMALFALL, nicht die Ausnahme.
+
+Ein PR-Worktree erfüllt (b) praktisch immer. Damit läuft (a) auf einen Merge in einen dirty
+Arbeitsbaum hinaus, und zwar genau in der Datei, die main ebenfalls fortschreibt.
+
+GEMESSEN:
+- git -C .worktrees/agent-lock-scope-regelwerk-T003116 status --porcelain
+  → " M website/src/data/openspec-status.json"
+- PR #4091: mergeStateStatus=DIRTY, statusCheckRollup=[] (0 Einträge),
+  gh run list --branch … → [] (null Runs) — exakt das T002822-Symptom.
+
+DIE NICHT-INVASIVE ALTERNATIVE, die dieselbe Frage beantwortet:
+    git merge-tree --write-tree --name-only origin/main <branch>
+Exit 0 + Tree-SHA  = konfliktfrei → Phantomkonflikt aus merge=ours (T002823)
+Exit != 0 + Dateiliste = echter Konflikt
+Der Aufruf fasst weder Working Tree noch Index an, braucht also keinen sauberen Worktree und
+kein anschließendes --abort (dessen Vergessen im dokumentierten Weg einen halbfertigen Merge
+hinterlässt — verwandt mit T002766).
+
+Hier lieferte er sofort: exit=0, Tree a9984a261215047e18e3322a3f4d75db609fb891 → Phantomkonflikt.
+Auf dieser Grundlage wurde der lokale Merge-Weg aus §3 gefahren (merge + freshness:regenerate +
+push); PR #4091 wechselte danach von DIRTY auf BLOCKED mit 15 Checks, CI lief an, Auto-Merge ist
+aktiv.
+
+ZU ÄNDERN (Vorschlag, nicht präjudiziert):
+In §3 die merge-tree-Form als primäre Gegenprobe nennen und den Arbeitsbaum-Merge auf den Fall
+zurücknehmen, in dem man die Konfliktmarker tatsächlich sehen will. Die Reihenfolge
+„mergeStateStatus lesen → bei UNKNOWN/DIRTY probe-mergen" bleibt unverändert richtig; nur das
+Werkzeug des zweiten Schritts passt nicht zum dokumentierten Normalzustand der Worktrees.
+
+Kein Defekt an einem Skript — eine Runbook-Lücke: der empfohlene Weg kollidiert mit einer
+Bedingung, die dasselbe Runbook 200 Zeilen weiter oben als Regelfall beschreibt.
+**9. branch-reaper.sh meldet "DELETED", löscht aber nur den Remote-Ref — lokaler Branch überlebt** (process, scripts/branch-reaper.sh)
+
+`bash scripts/branch-reaper.sh --ticket T002623` gab "DELETED chore/adr006-sdlc-topologie-T002623 (archiviert als refs/tags/reaped/...)" aus. Danach war der Remote-Branch weg und der Archiv-Tag lokal wie remote gesetzt — der LOKALE Branch-Ref existierte aber unverändert weiter (`git rev-parse --verify` lieferte 3c600d7bf). Belegt in scripts/branch-reaper.sh Zeilen 189-205: die Schleife führt ausschliesslich `git push $REMOTE $sha:refs/tags/...` und `git push $REMOTE --delete $branch` aus; ein `git branch -d/-D` kommt im gesamten Skript nicht vor (`grep -nE 'branch -D|git branch'` findet nur die echo-Zeile). Die Meldung "DELETED $branch" ist unqualifiziert und liest sich als vollstaendige Loeschung — sie beschreibt aber nur die Remote-Haelfte. Folge: nach jedem Reap bleiben lokale Leichen liegen, deren Upstream ab da [gone] ist. Zuschnitt eines Fixes: entweder Meldung auf "DELETED remote/$branch" praezisieren, oder den lokalen Ref mitloeschen, wenn er auf denselben SHA zeigt wie der Archiv-Tag.
+**10. repo-hygiene §2: [gone]-Prune läuft VOR branch-reaper, der selbst neue [gone]-Refs erzeugt** (process, .claude/skills/references/repo-hygiene-ops.md §2)
+
+In repo-hygiene-ops.md §2 steht der [gone]-Aufraeumpfad (git fetch --prune + force-delete gemergter Branches) VOR dem Unterabschnitt "Verwaiste Remote-Branches (ohne PR)", der branch-reaper.sh aufruft. Der Reaper loescht aber Remote-Branches und erzeugt damit GENAU die [gone]-Refs, die der vorangegangene Schritt haette aufraeumen sollen. Real beobachtet am 2026-08-10: der Prune zu Beginn fand null [gone]-Branches, nach dem Reap von chore/adr006-sdlc-topologie-T002623 war dieser eine [gone] — im selben Lauf raeumte ihn nichts mehr weg. Erschwerend: der §2-[gone]-Pfad verlangt einen nachweislich gemergten PR, und Reaper-Kandidaten haben per Definition KEINEN PR (deshalb greift der Reaper ueberhaupt). Der [gone]-Pfad haette ihn also auch beim naechsten Lauf uebersprungen ("SKIP — upstream gone but no merged PR found"). Manuell aufgeraeumt ueber den Archiv-Tag als Sicherheitsanker (`git rev-parse --verify refs/tags/reaped/$b` vorhanden -> `git branch -D` belegt sicher). Zuschnitt: entweder Reihenfolge umdrehen, oder den Archiv-Tag als zweites zulaessiges Positiv-Signal im [gone]-Pfad dokumentieren.
 
 ## Verify (RED → GREEN)
 

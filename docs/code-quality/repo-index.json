@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 901,
+      "file_count": 903,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -354,6 +354,7 @@
         "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
         "tests/spec/agent-skills/plugin-activation.bats",
         "tests/spec/agent-skills/skill-path-references.bats",
+        "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
         "tests/spec/agentic-review.bats",
         "tests/spec/agentic-tooling-quality-goals.bats",
         "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",
@@ -586,6 +587,7 @@
         "tests/spec/openspec-upstream-cli.bats",
         "tests/spec/openspec-workflow.bats",
         "tests/spec/openspec-workflow/archive-atomic-guards.bats",
+        "tests/spec/openspec-workflow/archive-deliverable-guard.bats",
         "tests/spec/openspec-workflow/archive-no-merge.bats",
         "tests/spec/openspec-workflow/archive-terminal-ticket-status.bats",
         "tests/spec/openspec-workflow/delta-scenario-guard.bats",
@@ -3274,7 +3276,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 695,
+      "file_count": 696,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3969,6 +3971,7 @@
         "scripts/weekly-dep-schema-audit.sh",
         "scripts/whiteboard-setup.sh",
         "scripts/worktree-create.sh",
+        "scripts/worktree-git-op-guard.sh",
         "scripts/wsl-dns-fix.sh",
         "scripts/wsl-open.sh"
       ]

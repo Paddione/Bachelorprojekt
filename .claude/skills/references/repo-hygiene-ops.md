@@ -221,8 +221,11 @@ Belegte Fundstellen, jede mit ihrer Gegenprobe unten im Detail:
 | `mergedAt` [T002498-M5] | `gh` konnte nicht antworten | Rohantwort auf Nichtleere prüfen, dann Feld |
 | `statusCheckRollup` / `gh pr checks` [T002821] | GitHub liefert leeres Rollup trotz existierender Runs | `gh run list --branch <b>` |
 | leere Checkliste bei CONFLICTING PR [T002822] | Konflikt unterdrückt CI — Symptom identisch mit „noch nicht gestartet" | `mergeStateStatus` + lokaler Probe-Merge |
+| `all(...)`-Prädikat über der Check-Liste [T003109] | `all` über der leeren Menge ist per Definition `true` — die Warteschleife liest „keine Checks mehr pending" | Nichtleere zuerst prüfen (eigenständiger `length == 0`-Schritt), dann das Prädikat — gemeinsame Funktion `ci_checks_verdict` (scripts/lib/ci-checks.sh) |
 | Probe-Schleife mit `2>/dev/null` [T002847] | harter Fehler wurde zu stiller Leerzeile | stderr sichtbar lassen, Exit-Code getrennt messen |
 | Title-Dedupe-Guard (§4) [T002844] | prüft nur Tickets, nicht den Mishap-Buffer | zweite Quelle abfragen |
+
+Unterschied zu T002822: Dort handelt es sich um die MANUELLE Fehllesart einer leeren Checkliste — man sieht die leere Liste wenigstens; hier ist es das AUTOMATISIERTE `all(...)`-Prädikat — man sieht nur `true`. Verwandt, aber nicht deckend. Analog zur Positiv-Anker-Pflicht (CLAUDE.md T002356-M1): Ein Prädikat über einer womöglich leeren Menge braucht eine vorgeschaltete Nichtleere-Prüfung — anderer Gegenstand. Die Logik ist zentral in `ci_checks_verdict` (scripts/lib/ci-checks.sh) implementiert, um vakuose Zustände zu vermeiden.
 
 ```bash
 gh pr list --state open --json number,title,headRefName,statusCheckRollup,reviewDecision,isDraft,mergeStateStatus

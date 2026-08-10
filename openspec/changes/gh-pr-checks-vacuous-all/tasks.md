@@ -19,8 +19,8 @@ liest daraus Erfolg._
 
 | Datei | Ist-Zeilen | Budget |
 | --- | --- | --- |
-| `scripts/lib/ci-checks.sh` | 0 | 800 |
-| `scripts/factory/pr-babysit-ticket.sh` | 103 | 697 |
+| `scripts/lib/ci-checks.sh` | 62 | 738 |
+| `scripts/factory/pr-babysit-ticket.sh` | 117 | 683 |
 
 Weitere berührte Dateien (Markdown, kein S1-Limit für `.md`):
 

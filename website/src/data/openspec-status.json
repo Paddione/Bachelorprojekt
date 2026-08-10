@@ -3093,6 +3093,12 @@
       "status": "archived"
     }
   ],
+  "T003112": [
+    {
+      "slug": "plan-qa-check-parse",
+      "status": "plan_staged"
+    }
+  ],
   "T003116": [
     {
       "slug": "2026-08-10-agent-lock-scope-regelwerk",

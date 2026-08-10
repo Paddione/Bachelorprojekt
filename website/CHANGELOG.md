@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.0...website-v1.263.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** Metrik-Endpunkt unter seinem echten Pfad ansprechen [T003459] ([#4151](https://github.com/Paddione/Bachelorprojekt/issues/4151)) ([33f9ba5](https://github.com/Paddione/Bachelorprojekt/commit/33f9ba52672720f2c6758850a55284df03ab6bc3))
+
 ## [1.263.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.262.0...website-v1.263.0) (2026-08-10)
 
 

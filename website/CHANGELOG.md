@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.265.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.2...website-v1.265.3) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** Nichtleere-Guard fuer CI-Warteschleifen — leere Check-Liste ist nicht gruen [T003109] ([#4224](https://github.com/Paddione/Bachelorprojekt/issues/4224)) ([fab0ae7](https://github.com/Paddione/Bachelorprojekt/commit/fab0ae7f4c1be2cfc721df3a988ad4b1ff91fc99))
+
 ## [1.265.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.1...website-v1.265.2) (2026-08-10)
 
 

@@ -12,6 +12,8 @@ bash scripts/agent-lock.sh list           # "Wer macht was": laufende Claims and
 bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessions sichten [T000882]
 ```
 
+**Sichtbarkeitslücke (T003098):** `agent-lock.sh list` zeigt eine Session erst ab ihrem ersten Commit — der `main-checkout`-Claim entsteht im Pre-Commit-Hook, nicht beim Worktree-Anlegen. Eine leere `list`-Ausgabe beweist deshalb **nicht**, dass niemand arbeitet. Für diese Frage `agent-lock.sh activity` verwenden: das Kommando listet zusätzlich laufende Prozesse, deren `cwd` in einem Worktree-Pfad liegt.
+
 ## Claimen (vor der Arbeit)
 
 ```bash

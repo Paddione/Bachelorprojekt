@@ -35,7 +35,7 @@ fi
 # Use diff-tree instead of diff HEAD~1 HEAD so it works on the initial commit too
 # (diff-tree compares the tree of HEAD against its parents — for the root commit
 # there is no parent, so it shows the full tree; that's fine, we'll just filter).
-CHANGED="$(git diff-tree --no-commit-id -r --name-only HEAD 2>/dev/null || true)"
+CHANGED="$(git diff-tree --no-commit-id -r --name-only --root HEAD 2>/dev/null || true)"
 
 # Extract unique slugs from paths like openspec/changes/<slug>/...
 SLUGS="$(echo "$CHANGED" | grep -oP '^openspec/changes/\K[^/]+' | sort -u || true)"

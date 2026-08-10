@@ -2435,8 +2435,8 @@
   ],
   "T002606": [
     {
-      "slug": "unsloth-eval-harness",
-      "status": "plan_staged"
+      "slug": "2026-08-10-unsloth-eval-harness",
+      "status": "archived"
     }
   ],
   "T002609": [
@@ -2531,8 +2531,8 @@
   ],
   "T002631": [
     {
-      "slug": "main-commit-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-10-main-commit-guard",
+      "status": "archived"
     }
   ],
   "T002638": [
@@ -2615,8 +2615,8 @@
   ],
   "T002662": [
     {
-      "slug": "fix-wakeup-help-T002662",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-wakeup-help-T002662",
+      "status": "archived"
     }
   ],
   "T002663": [
@@ -2747,8 +2747,8 @@
   ],
   "T002718": [
     {
-      "slug": "mishap-t002718",
-      "status": "plan_staged"
+      "slug": "2026-08-10-mishap-t002718",
+      "status": "archived"
     }
   ],
   "T002719": [
@@ -2981,8 +2981,8 @@
   ],
   "T002876": [
     {
-      "slug": "fix-update-status-planstaged-guard-T002876",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-update-status-planstaged-guard-T002876",
+      "status": "archived"
     }
   ],
   "T002886": [

@@ -76,7 +76,6 @@ task freshness:check
 ```
 
 - [ ] **Erfolgskriterien am laufenden System prüfen** (nicht CI-fähig, deshalb hier als
-- [ ] **Erfolgskriterien am laufenden System prüfen** (nicht CI-fähig, deshalb hier als
       Abnahme-Schritt und nicht als Test) — **offen, gehört NACH den Merge.**
 
       Teilweise vorab belegt (2026-08-10, ohne Eingriff in die laufenden Dienste): eine

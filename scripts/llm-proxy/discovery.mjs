@@ -209,13 +209,17 @@ export function evaluateReadiness(getBackends) {
   const primary = backends.filter((b) => b.priority === 1);
   // Ein Prio-1-Backend, das drained, ist NICHT unhealthy — es ist intentional
   // zurueckgenommen. Der Proxy kann ueber Prio-2+ bedienen.
-  // [P1-2] ready erfordert zusaetzlich, dass mindestens EIN Backend tatsaechlich
-  // bedienen kann (gesund UND nicht drainend): wenn alle Prio-1-Backends drainen
-  // und der Fallback tot ist, waere primary.every() still true, obwohl resolveModel
-  // fuer jede Anfrage 503 liefert — genau die T002336-Taeuschung, die /health
-  // verhindern soll.
+  //
+  // [P1-2] primary.some statt primary.every: die Prio-1-Backends teilen sich
+  // exclusiveGroup "chat-gpu" — es laeuft immer nur eines (siehe loadouts.json).
+  // primary.every wuerde verlangen, dass ALLE gleichzeitig gesund sind, was mit
+  // exklusiver GPU-Belegung nie der Fall ist. primary.some prueft "mindestens
+  // eines gesund", was fuer einen exklusiven Gruppenmodell die korrekte
+  // Erwartung ist. Uralt-Szenario "Factory ins Leere" (2026-07-27) bleibt
+  // abgesichert: primary.some + backends.some verhindern ready=true, wenn KEIN
+  // Prio-1-Backend gesund ist und der Cloud-Fallback der einzige bleibt.
   const ready = primary.length > 0
-    && primary.every((b) => {
+    && primary.some((b) => {
       const h = health.get(b.name);
       return !!h?.healthy || !!h?.draining;
     })

@@ -18,7 +18,7 @@
     saving = true;
     toast = null;
     try {
-      const response = await fetch('/api/admin/openspec/save-proposal', {
+      const response = await fetch('/sdlc/api/openspec/save-proposal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

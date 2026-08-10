@@ -2,10 +2,11 @@
 > claimt es; der eigentliche `stage-plan`-Aufruf gehört **hinter** den Plan-Commit aus Schritt 5.
 > `stage-plan.sh` liest die Plandatei per `git cat-file -p "${branch}:${plan}"` aus dem
 > **Branch-Commit**, nicht aus dem Arbeitsbaum. Läuft es vor dem Commit, findet es dort das
-> `propose`-Skeleton, meldet `touched_files: keine Pfade aus '<plan>' ableitbar` auf stderr und
-> lässt die Spalte leer — der Aufruf gilt trotzdem als erfolgreich. Der Aufruf ist idempotent
-> und vereinigt `touched_files` in SQL; ein Zweitaufruf nach dem Commit repariert es also,
-> die richtige Reihenfolge erspart ihn.
+> `propose`-Skeleton, die `touched_files`-Ableitung ist leer — und seit T003267 **bricht
+> `stage-plan` dann mit Exit 1 ab** statt still zu melden. Override für legitime Sonderfälle
+> ohne File-Structure-Pfade: `--allow-empty-touched`. Der Aufruf ist idempotent und vereinigt
+> `touched_files` in SQL; ein Zweitaufruf nach dem Commit repariert es also, die richtige
+> Reihenfolge erspart ihn.
 
 ### Schritt 4.5: Ticket anlegen oder wiederverwenden
 Prüfe ob ein bestehendes Ticket-ID übergeben wurde (z.B. von `feature-intake`).
@@ -25,10 +26,10 @@ lebt in `scripts/vda/ticket/stage-plan.sh` — `scripts/ticket.sh` bleibt unber�
 > `stage-plan.sh` validiert `case "$partials" in [1-9]`. Das stand bisher nirgends, und die
 > Formulierung „bei einem Multi-Partial-Plan" liest sich wie eine Ausnahme. [T002372-M2]
 
-> **⚠️ Ohne `--hold` ist das Ticket SOFORT factory-greifbar.** `stage-plan.sh` weckt am Ende
-> `factory.service` (`systemctl --user start --no-block`) und setzt eine Force-Tick-Flag. Das
-> ist keine Randnotiz: wer interaktiv plant und den Zeitpunkt der Ausführung selbst bestimmen
-> will, muss `--hold` setzen — sonst greift die Factory zu, bevor der Mensch entschieden hat.
+> **⚠️ `stage-plan` verlangt seit T003267 eine explizite Hold-Entscheidung.** Ohne
+> `--hold` ODER `--no-hold` beendet sich `stage-plan.sh` mit Exit 1. `--no-hold` weckt
+> `factory.service` und setzt eine Force-Tick-Flag — die Factory greift sofort zu.
+> Wer interaktiv plant und den Zeitpunkt selbst bestimmen will, muss `--hold` setzen.
 > `dev-flow-execute` gibt später per `ticket.sh release-hold` frei. [T002372-M2]
 
 > **Flag-Drift zu `archive-plan`:** `stage-plan` akzeptiert seit [T002375-p3] **beides**,
@@ -83,13 +84,14 @@ else
 fi
 
 # Plan stagen: Branch + Plan-Pfad im Ticket verankern (Single Source of Truth für dev-flow-execute).
+# Seit T003267 ist --hold/--no-hold Pflicht; interaktiv immer --hold.
 ./scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \
   --branch "feature/<slug>" \
   --plan "openspec/changes/<slug>/tasks.md" \
   --hold
 ```
-**`--hold`-Flag:** When present, `stage-plan` sets `readiness.execution_released=false`, which gates the ticket from factory dispatch until `dev-flow-execute` explicitly releases it via `ticket.sh release-hold`. Use `--hold` in all interactive dev-flow-plan calls so the human operator controls when the factory picks up the ticket.
+**`--hold`-Flag Pflicht seit T003267:** `stage-plan` verlangt entweder `--hold` oder `--no-hold`. `--hold` setzt `readiness.execution_released=false` — der Factory-Dispatch wird zurückgehalten, bis `dev-flow-execute` per `ticket.sh release-hold` freigibt. Verwende `--hold` in allen interaktiven dev-flow-plan Calls, damit der Operator die Kontrolle behält. `--no-hold` ist für headless Factory-Pfade reserviert.
 
 Hänge gesammelte Assets mit `bash scripts/ticket-attach.sh "$TICKET_UUID" <pfade>` an.
 Ticket-Claim jetzt nachholen (Session-Koordination [T000510]) — der Feature-Pfad kennt

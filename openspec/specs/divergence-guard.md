@@ -241,3 +241,96 @@ dangles.
 <!-- merged from change delta divergence-guard.md (17ddcee4d4b6) -->
 
 <!-- merged from change delta divergence-guard.md (ed706757ec2f) -->
+
+### Requirement: Divergence-Guard skips the auto-stash when a foreign process holds the main checkout dirty
+
+`scripts/worktree-create.sh`'s divergence-guard sync path (local `main` behind `origin/main`)
+SHALL NOT run `git stash push` on the main checkout when BOTH of the following hold:
+
+- a foreign `claude` or `opencode` process has its `cwd` inside the main checkout (detected
+  via `/proc/<pid>/cwd`, excluding the current session's own PID/parent chain), AND
+- `git status --porcelain` on the main checkout is non-empty.
+
+In that case the guard SHALL print a warning naming the skipped sync and proceed to create
+the worktree from `origin/main` directly (`BASE=origin/main`), without mutating the main
+checkout. The existing safeguard against the script's OWN failed `stash pop`
+(`_wc_stash_pop_or_warn`, T002673) remains unchanged and still applies whenever a stash IS
+performed (i.e. the foreign-activity guard did not fire).
+
+#### Scenario: Foreign session with uncommitted changes blocks the auto-stash
+
+- **GIVEN** local `main` is behind `origin/main`
+- **AND** the main checkout has uncommitted changes (`git status --porcelain` non-empty)
+- **AND** a `claude` or `opencode` process other than the current session has its `cwd`
+  inside the main checkout
+- **WHEN** `scripts/worktree-create.sh` runs the divergence-guard sync path
+- **THEN** it does NOT run `git stash push` on the main checkout
+- **AND** the main checkout's working tree is unchanged afterward (same uncommitted diff as
+  before the run)
+- **AND** the new worktree is created successfully from `origin/main`
+
+#### Scenario: Dirty checkout without any foreign process still auto-stashes (regression guard)
+
+- **GIVEN** local `main` is behind `origin/main`
+- **AND** the main checkout has uncommitted changes
+- **AND** no foreign `claude`/`opencode` process has its `cwd` inside the main checkout
+- **WHEN** `scripts/worktree-create.sh` runs the divergence-guard sync path
+- **THEN** it stashes, pulls, and pops as before (unchanged behavior — this is the
+  positive-anchor case for the guard above: it must still stash when there is no foreign
+  activity to protect)
+
+<!-- merged from change delta divergence-guard.md (defc0c2bfb3e) -->
+
+### Requirement: Corrective prefix suggestion for non-conforming type prefixes
+
+When `scripts/worktree-create.sh` rejects a branch name whose type prefix is a Conventional-Commit
+ticket type outside the four allowed branch prefixes, it SHALL print a corrected invocation that
+maps that ticket type onto a conforming branch prefix, instead of only stating that the prefix is
+invalid.
+
+The mapping SHALL be `refactor`, `perf`, `test`, `ci` and `build` onto `chore`; `feat` and
+`project` onto `feature`; and `bug` onto `fix`. The set of allowed branch prefixes SHALL remain
+unchanged at `feature/`, `fix/`, `chore/` and `docs/`, because the same set is mirrored in
+`.githooks/pre-commit` and — in a narrower three-prefix form — in the Software Factory hard guard,
+so that widening it in one place alone would move the rejection downstream rather than remove it.
+
+The guard SHALL NOT rewrite the branch name and proceed. It SHALL keep exiting non-zero without
+creating a worktree, because the caller reuses the branch name it passed in for the later commit,
+push and pull request, and a silently substituted name would not match.
+
+The mapping SHALL live in `scripts/lib/branch-allowlist.sh` and SHALL be sourced conditionally. If
+that file is absent, the guard SHALL omit the suggestion and otherwise behave exactly as before, so
+that a missing library can never admit a branch name that would previously have been rejected.
+
+#### Scenario: A refactor branch is rejected with a chore suggestion
+
+- **GIVEN** the branch name `refactor/sdlc-routes-remove-T002627`
+- **WHEN** `scripts/worktree-create.sh` runs with that name
+- **THEN** it exits non-zero, creates no worktree, and its output contains
+  `chore/sdlc-routes-remove-T002627`
+
+#### Scenario: A conforming branch is still created
+
+- **GIVEN** the branch name `chore/sdlc-routes-remove-T002627`
+- **WHEN** `scripts/worktree-create.sh` runs with that name
+- **THEN** it exits zero and the worktree is created
+
+#### Scenario: The mapping does not widen the allowlist
+
+- **GIVEN** the branch name `refactor/sdlc-routes-remove-T002627`
+- **WHEN** `scripts/worktree-create.sh` runs with that name
+- **THEN** no worktree directory exists at the requested path afterwards
+
+#### Scenario: A perf prefix maps onto chore as well
+
+- **GIVEN** the branch name `perf/query-batching-T002811`
+- **WHEN** `scripts/worktree-create.sh` runs with that name
+- **THEN** it exits non-zero and its output contains `chore/query-batching-T002811`
+
+#### Scenario: An unmapped invalid prefix keeps the plain rejection
+
+- **GIVEN** the branch name `wip/something-T002811`, whose prefix is not a known ticket type
+- **WHEN** `scripts/worktree-create.sh` runs with that name
+- **THEN** it exits non-zero and prints no corrected invocation for the prefix
+
+<!-- merged from change delta divergence-guard.md (098c74f2316c) -->

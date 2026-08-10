@@ -720,6 +720,139 @@ cannot drift apart.
 - **WHEN** die Spec-Suite läuft
 - **THEN** schlägt das Register-Gate fehl und nennt den Slug
 
+### Requirement: Archiving a change checks the declared deliverable is present, not only the ticket status
+
+`scripts/openspec.sh archive` (`cmd_archive`) SHALL, in addition to its existing ticket-status
+guard (status must be `done` or `archived`), read the linked ticket's `touched_files` and
+compare each declared path against the working tree being archived from.
+
+If `touched_files` is empty or unset, the command SHALL proceed and print an advisory noting
+that deliverable presence could not be machine-checked for this change.
+
+If `touched_files` is non-empty and at least one, but not all, declared paths exist, the
+command SHALL proceed and print a warning naming the missing paths.
+
+If `touched_files` is non-empty and none of the declared paths exist, the command SHALL refuse
+to archive (non-zero exit, no move into `openspec/changes/archive/`, no delta merge into the
+SSOT spec).
+
+Rationale: a `done`/`archived` ticket status is a label a session can set incorrectly or
+prematurely; it does not by itself prove the change's deliverable ever landed on the tree being
+archived. On 2026-08-09, PR #3919 archived a change and merged its delta into the SSOT spec
+while the change's actual deliverable (a spec-file assertion and two BATS guards) was still on
+an open, unmerged PR — the ticket-status guard alone could not catch this because the ticket's
+status label did not encode deliverable presence. The check is intentionally graded (advisory
+for missing data, warning for partial drift, hard refusal only for total absence) because a
+plan's declared files can legitimately evolve between staging and archiving without that being
+a bug; failing closed on any single missing path would make the guard worse than no guard by
+forcing operators to fight false positives on ordinary drift.
+
+#### Scenario: Archive proceeds when all declared touched_files are present
+
+- **GIVEN** a change whose linked ticket has status `done` and a non-empty `touched_files` list
+- **AND** every declared path exists in the working tree
+- **WHEN** `scripts/openspec.sh archive <slug>` runs
+- **THEN** the archive proceeds and the change is moved into `openspec/changes/archive/`
+
+#### Scenario: Archive is refused when none of the declared touched_files are present
+
+- **GIVEN** a change whose linked ticket has status `done` and a non-empty `touched_files` list
+- **AND** none of the declared paths exist in the working tree
+- **WHEN** `scripts/openspec.sh archive <slug>` runs
+- **THEN** the command exits non-zero
+- **AND** the change directory is not moved into `openspec/changes/archive/`
+- **AND** no delta is merged into the SSOT spec
+
+#### Scenario: Archive proceeds with a warning when some declared touched_files are missing
+
+- **GIVEN** a change whose linked ticket has status `done` and a `touched_files` list with at
+  least two entries
+- **AND** at least one declared path exists and at least one does not
+- **WHEN** `scripts/openspec.sh archive <slug>` runs
+- **THEN** the archive proceeds
+- **AND** the output names the missing path(s) as a warning
+
+#### Scenario: Archive proceeds with an advisory when touched_files carries no data
+
+- **GIVEN** a change whose linked ticket has status `done` and an empty or unset `touched_files`
+- **WHEN** `scripts/openspec.sh archive <slug>` runs
+- **THEN** the archive proceeds
+- **AND** the output prints an advisory that deliverable presence could not be machine-checked
+
+### Requirement: Half-archive detection runs before a commit lands and during session hygiene, not only in CI
+
+The repository SHALL invoke the half-archive check (see "Half-archived changes are
+detectable and fail the gate") from two additional points beyond the
+`test:openspec` CI gate, both operating on the live working tree rather than a
+committed ref:
+
+1. The pre-commit hook SHALL run the check unconditionally and refuse the commit
+   (fail-closed, non-zero exit) if it reports a half-archived slug.
+2. `scripts/agent-lock.sh reap` SHALL run the check and print an advisory warning to
+   stderr if it reports a half-archived slug, without failing the reap itself.
+
+Rationale: the check's detection logic is correct against an uncommitted working
+tree — verified by direct reproduction — but was wired only into `task test:openspec`,
+which nothing calls automatically against a live session's working tree. A half state
+produced by an interrupted `openspec.sh archive` run (dead session, no commit ever
+attempted) went unnoticed until found by chance via `git status`. The pre-commit hook
+closes the path where such a state gets committed piecemeal; the `reap` advisory
+surfaces the drift proactively during the session-hygiene audit that already targets
+dead-session residue, without requiring a commit attempt first.
+
+#### Scenario: A commit that would leave a half-archived slug is refused
+
+- **GIVEN** a working tree where a slug exists both under `openspec/changes/<slug>/`
+  and `openspec/changes/archive/<date>-<slug>/`
+- **WHEN** `git commit` runs with the repository's pre-commit hook installed
+- **THEN** the commit is refused
+- **AND** the half-archive check's output naming the slug is visible to the user
+
+#### Scenario: A commit against a clean tree is not blocked by the half-archive check
+
+- **GIVEN** a working tree where every slug is either open or archived, never both
+- **WHEN** `git commit` runs with the repository's pre-commit hook installed
+- **THEN** the half-archive check does not refuse the commit
+
+#### Scenario: Session hygiene reap warns on a half-archived slug without failing
+
+- **GIVEN** a working tree where a slug exists both under `openspec/changes/<slug>/`
+  and `openspec/changes/archive/<date>-<slug>/`
+- **WHEN** `scripts/agent-lock.sh reap` runs
+- **THEN** it prints a warning naming the slug to stderr
+- **AND** it still exits zero
+
+### Requirement: propose --help gibt Hilfe aus, statt in die Argument-Guards zu laufen
+
+The system SHALL print a usage message listing the options of the `propose` verb
+and exit with status 0 when `--help` is passed to `scripts/openspec.sh propose`,
+without evaluating the `<slug>` or `--ticket` guards, without creating a change
+directory and without performing any ticket status transition.
+
+#### Scenario: propose --help liefert Usage statt Ticket-Guard-Fehler
+
+- **GIVEN** `scripts/openspec.sh` ist vorhanden
+- **WHEN** `bash scripts/openspec.sh propose --help` ausgeführt wird
+- **THEN** endet der Befehl mit Exit-Code 0
+- **AND** die Ausgabe enthält eine Usage-Angabe
+- **AND** die Ausgabe enthält die Optionsnamen `--ticket`, `--target-spec` und `--resume`
+- **AND** die Ausgabe enthält NICHT den Guard-Text `requires --ticket`
+
+#### Scenario: propose --help legt kein Change-Verzeichnis an
+
+- **GIVEN** ein leeres `OPENSPEC_ROOT` mit vorhandenem `changes/`-Verzeichnis
+- **WHEN** `bash scripts/openspec.sh propose --help` mit diesem `OPENSPEC_ROOT` ausgeführt wird
+- **THEN** endet der Befehl mit Exit-Code 0
+- **AND** `changes/` enthält danach keinen einzigen Eintrag
+
+#### Scenario: Die Argument-Guards bleiben für echte Aufrufe scharf
+
+- **GIVEN** `scripts/openspec.sh` ist vorhanden
+- **WHEN** `bash scripts/openspec.sh propose <slug>` ohne `--ticket` ausgeführt wird
+- **THEN** endet der Befehl mit Exit-Code ungleich 0
+- **AND** die Ausgabe enthält `requires --ticket`
+- **AND** es wird kein Change-Verzeichnis für `<slug>` angelegt
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1296,3 +1429,9 @@ The system SHALL set the environment variable `OPENSPEC_TELEMETRY=0` in every wo
 <!-- merged from change delta openspec-workflow.md (7d448d29223d) -->
 
 <!-- merged from change delta openspec-workflow.md (9e634db4ef30) -->
+
+<!-- merged from change delta openspec-workflow.md (1bd53463dd03) -->
+
+<!-- merged from change delta openspec-workflow.md (c059ceeb15fe) -->
+
+<!-- merged from change delta openspec-workflow.md (68332c5cfda1) -->

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.5...website-v1.263.6) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 8/8 — Assistant-Views [T003484] ([#4165](https://github.com/Paddione/Bachelorprojekt/issues/4165)) ([75575af](https://github.com/Paddione/Bachelorprojekt/commit/75575afd31eab79ae02cbaf3580803206ea9445d))
+
 ## [1.263.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.4...website-v1.263.5) (2026-08-10)
 
 

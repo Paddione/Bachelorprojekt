@@ -314,19 +314,17 @@ func RegisterMishapTools(s *server.MCPServer) {
 				writeBuffer(buffer)
 				return nil, err
 			}
-			// Factory-Konversion: Jeder nicht-kritische Mishap wird zusaetzlich
-			// als direkt dispatchenbares fix-Ticket (lastenheft_locked) angelegt,
-			// damit der Dispatcher ihn ohne den Rollup-Umweg aufnimmt. Dedupe
-			// schuetzt vor Doppelanlage.
-			converted := 0
-			for _, e := range buffer[:MISHAP_TRIGGER] {
-				if ext, err := createFactoryFixTicket(e, brand); err == nil && ext != "" {
-					converted++
-				}
-			}
+			// [T003553] Der Buffer aggregiert, er konvertiert nicht — SSOT:
+			// openspec/specs/mishap-tracking.md, Requirement "Der Mishap-Buffer
+			// aggregiert, er konvertiert nicht". Vorher entstand hier zusaetzlich
+			// je ein Factory-Fix-Ticket pro Buffer-Eintrag; damit erzeugte ein
+			// einzelner Flush 10 Tickets statt einen Sammel-Append.
+			//
+			// Incident-Typen sind davon nicht beruehrt: sie gehen oben am Buffer
+			// vorbei und legen weiterhin je ein Ticket ueber createIncidentTicket an.
 			writeBuffer(buffer[MISHAP_TRIGGER:])
 			remaining := len(buffer) - MISHAP_TRIGGER
-			return mcp.NewToolResultText(fmt.Sprintf("Rollup-Container-Append: %d Mishaps an den Container angehaengt. Factory-Fix-Tickets: %d. Verbleibend: %d.", MISHAP_TRIGGER, converted, remaining)), nil
+			return mcp.NewToolResultText(fmt.Sprintf("Rollup-Container-Append: %d Mishaps an den Container angehaengt. Verbleibend: %d.", MISHAP_TRIGGER, remaining)), nil
 		},
 	)
 	s.AddTool(
@@ -390,11 +388,9 @@ func FlushStaleBuffer(brand string, maxAge time.Duration) (string, error) {
 	if err := appendToRollupContainer(buffer, brand); err != nil {
 		return "", err
 	}
-	for _, e := range buffer {
-		if _, err := createFactoryFixTicket(e, brand); err != nil {
-			return "", err
-		}
-	}
+	// [T003553] Keine Konversion zu Einzeltickets — derselbe Vertrag wie im
+	// Schwellwert-Pfad. Die SSOT-Spec verlangt ausdruecklich, dass sich alle drei
+	// Abfluesse (Schwelle, Watchdog, manueller flush_mishap_buffer) gleich verhalten.
 	writeBuffer([]MishapEntry{})
 	return "rollup-container", nil
 }

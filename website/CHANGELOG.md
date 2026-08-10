@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.8...website-v1.263.9) (2026-08-10)
+
+
+### Bug Fixes
+
+* **plans:** 13 halb-archivierte OpenSpec-Slugs auf main heilen [T003488] ([#4179](https://github.com/Paddione/Bachelorprojekt/issues/4179)) ([fd1e8fc](https://github.com/Paddione/Bachelorprojekt/commit/fd1e8fc2330ce2d40a97a6b4d6a8df057e4b0d5b))
+
 ## [1.263.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.7...website-v1.263.8) (2026-08-10)
 
 

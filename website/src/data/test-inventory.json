@@ -2568,6 +2568,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-qa-parse-and-outcome",
+    "file": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-qa-payload",
     "file": "tests/spec/dev-flow-plan/plan-qa-payload.bats",
     "category": "dev-flow-plan",

@@ -3069,6 +3069,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003112": [
+    {
+      "slug": "plan-qa-check-parse",
+      "status": "plan_staged"
+    }
+  ],
   "T003116": [
     {
       "slug": "agent-lock-scope-regelwerk",

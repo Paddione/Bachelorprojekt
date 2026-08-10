@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.262.0...website-v1.263.0) (2026-08-10)
+
+
+### Features
+
+* **website:** SDLC Cockpit redesign — Command Bar + Lifecycle Overview [T003417] ([#4145](https://github.com/Paddione/Bachelorprojekt/issues/4145)) ([15b09b1](https://github.com/Paddione/Bachelorprojekt/commit/15b09b100d54a77b9e77606a32245139c98cf162))
+
 ## [1.262.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.5...website-v1.262.0) (2026-08-10)
 
 

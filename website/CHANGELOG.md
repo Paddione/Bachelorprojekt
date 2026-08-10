@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.260.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.32...website-v1.260.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** rollenbasierte bge-Routen /v1/embeddings + /v1/rerank am llm-proxy [T003205] ([#4117](https://github.com/Paddione/Bachelorprojekt/issues/4117)) ([da63e9e](https://github.com/Paddione/Bachelorprojekt/commit/da63e9eb7bf224a7c12c1bf21a021d3e5d6cb62d))
+
+
+### Bug Fixes
+
+* **scripts:** pre-commit + agent-lock reap block/post on half-archived OpenSpec slugs [T002824] ([#4110](https://github.com/Paddione/Bachelorprojekt/issues/4110)) ([73276a4](https://github.com/Paddione/Bachelorprojekt/commit/73276a4b4ac08a5842530c2414d329af454a999a))
+* **scripts:** worktree-create schlägt bei refactor/, perf/, bug/ das konforme Präfix vor [T002811] ([#4116](https://github.com/Paddione/Bachelorprojekt/issues/4116)) ([6fef31a](https://github.com/Paddione/Bachelorprojekt/commit/6fef31a53a7060ee24b0abd37c0e6b90281f48ae))
+
 ## [1.259.32](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.31...website-v1.259.32) (2026-08-10)
 
 

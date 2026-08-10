@@ -395,7 +395,7 @@
       "slug": "brain-ingest",
       "label": "gpt-oss-20b - Brain-Ingest-Pool",
       "model": "gptoss20/gpt-oss-20b-UD-Q4_K_XL.gguf",
-      "port": 8093,
+      "port": 8100,
       "fit": {
         "enabled": true,
         "targetMarginMib": 256,
@@ -422,7 +422,7 @@
         "serversConfig": null
       },
       "extraArgs": [],
-      "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). parallel=4, gpt-oss-20b UD-Q4_K_XL. 32.768 ctx je Slot.",
+      "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). parallel=4, gpt-oss-20b UD-Q4_K_XL. 32.768 ctx je Slot. Port 8100 seit T003203: 8093 belegt der kubectl-Forward auf llm-gateway-rerank (scripts/bge-mcp/bge-forward-rerank.service), 8097 ein Factory-Provider (scripts/factory/provider-register-gptoss.sh).",
       "exclusiveGroup": "chat-gpu"
     }
   ]

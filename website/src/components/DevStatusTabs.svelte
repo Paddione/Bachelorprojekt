@@ -6,15 +6,10 @@
   import FactoryModelSlots from './sdlc/factory/FactoryModelSlots.svelte';
   import KiRoutingPanel from './sdlc/factory/KiRoutingPanel.svelte';
   import LlmProxyPanel from './sdlc/factory/LlmProxyPanel.svelte';
-  import FactoryKpiGrid from './sdlc/factory/FactoryKpiGrid.svelte';
-  import FactoryThroughputChart from './sdlc/factory/FactoryThroughputChart.svelte';
-  import FactoryPhaseHeatmap from './sdlc/factory/FactoryPhaseHeatmap.svelte';
-  import FactoryShippedBar from './sdlc/factory/FactoryShippedBar.svelte';
   import DependencyGraph from './DependencyGraph.svelte';
   import DeliveryHistory from './DeliveryHistory.svelte';
   import AdminTabs from './admin/ui/AdminTabs.svelte';
   import KostenTab from './sdlc/factory/KostenTab.svelte';
-  import AnalyticsWindowFilter from './sdlc/factory/AnalyticsWindowFilter.svelte';
   import type { FloorPayload } from '../lib/factory-floor-types';
   import { floorStore, ingestFloorPayload, seedFloor } from '../lib/stores/factory-floor-store';
   import { deriveCountdownSec } from '../lib/parallel-status';
@@ -197,12 +192,10 @@
   <div class="control-extras"><FactoryModelSlots /><KiRoutingPanel /><LlmProxyPanel /></div>
 {:else if activeTab === 'analytics'}
   <div class="analytics-tab-wrap">
-    <AnalyticsWindowFilter value={analyticsWindow} onchange={(w) => (analyticsWindow = w)} />
-    <DeliveryHistory window={analyticsWindow} />
-    <FactoryKpiGrid window={analyticsWindow} />
-    <FactoryThroughputChart window={analyticsWindow} />
-    <FactoryPhaseHeatmap window={analyticsWindow} />
-    <FactoryShippedBar window={analyticsWindow} />
+    <p style="color: var(--admin-text-mute); padding: 2rem; text-align: center;">
+      Analytics-Ansicht wurde in den neuen Insights-Tab verschoben.
+      <br><small>Bitte das SDLC Cockpit (&uuml;ber Command Bar → Insights) nutzen.</small>
+    </p>
   </div>
 {:else if activeTab === 'kosten'}
   <KostenTab />

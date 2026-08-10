@@ -5,6 +5,10 @@ import { buildLoginRedirect } from '../../lib/login-redirect';
 import CommandBar from '../../components/cockpit/CommandBar.svelte';
 import OverviewDashboard from '../../components/cockpit/OverviewDashboard.svelte';
 import CockpitRail from '../../components/cockpit/CockpitRail.svelte';
+import FactoryFloor from '../../components/sdlc/FactoryFloor.svelte';
+import PlanningOffice from '../../components/PlanningOffice.svelte';
+import DependencyGraph from '../../components/DependencyGraph.svelte';
+import InsightsTab from '../../components/sdlc/factory/InsightsTab.svelte';
 import { getFloor } from '../../lib/sdlc/factory-floor.ts';
 
 export const prerender = false;
@@ -51,19 +55,40 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
         {initialMode === 'overview' && (
           <OverviewDashboard client:load />
         )}
-        {initialMode === 'fokus' && (
-          <div class="fokus-phase" data-phase={initialPhase}>
-            <p class="fokus-phase__placeholder">
-              Fokus-Modus: {initialPhase}
-              <br><small>Phaseninhalt wird in nachfolgendem Partial implementiert</small>
-            </p>
+        {initialMode === 'fokus' && initialPhase === 'bauen' && (
+          <FactoryFloor client:load initial={initial} />
+        )}
+        {initialMode === 'fokus' && initialPhase === 'planung' && (
+          <PlanningOffice client:load {brand} />
+        )}
+        {initialMode === 'fokus' && initialPhase === 'triage' && (
+          <PlanningOffice client:load {brand} />
+        )}
+        {initialMode === 'fokus' && initialPhase === 'review' && (
+          <div class="fokus-phase" data-phase="review">
+            <h2 class="fokus-phase__title">Review</h2>
+            <p class="fokus-phase__info">Offene PRs und CI-Status werden hier angezeigt (kommendes Feature).</p>
+          </div>
+        )}
+        {initialMode === 'fokus' && initialPhase === 'deploy' && (
+          <div class="fokus-phase" data-phase="deploy">
+            <h2 class="fokus-phase__title">Deploy</h2>
+            <p class="fokus-phase__info">Awaiting-Deploy-Tickets und FluxCD-Status (kommendes Feature).</p>
+          </div>
+        )}
+        {initialMode === 'fokus' && initialPhase === 'ship' && (
+          <div class="fokus-phase" data-phase="ship">
+            <h2 class="fokus-phase__title">Ship</h2>
+            <p class="fokus-phase__info">Ausgelieferte Tickets dieser Woche (kommendes Feature).</p>
+          </div>
+        )}
+        {initialMode === 'fokus' && !ALLOWED_PHASES.includes(initialPhase) && (
+          <div class="fokus-phase">
+            <p class="fokus-phase__placeholder">Unbekannte Phase: {initialPhase}</p>
           </div>
         )}
         {initialMode === 'insights' && (
-          <div class="insights-panel">
-            <h2>Insights</h2>
-            <p>Metriken und Traces — wird in p3 implementiert</p>
-          </div>
+          <InsightsTab client:load />
         )}
       </main>
     </div>
@@ -155,11 +180,18 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
     font-size: var(--admin-text-lg, 1.1rem);
   }
 
-  .fokus-phase__placeholder small {
-    display: block;
-    margin-top: 0.5rem;
-    font-size: var(--admin-text-xs, 0.75rem);
+  .fokus-phase__title {
+    font-size: var(--admin-text-lg, 1.1rem);
+    color: var(--admin-text, #ccd6f6);
+    margin: 0 0 1rem;
+    padding: 1.5rem;
+    font-family: var(--admin-font-mono, monospace);
+  }
+
+  .fokus-phase__info {
+    padding: 0 1.5rem;
     color: var(--admin-text-mute, #555);
+    font-size: var(--admin-text-sm, 0.85rem);
   }
 
   .insights-panel {

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 927,
+      "file_count": 928,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -596,6 +596,7 @@
         "tests/spec/openspec-embedding.bats",
         "tests/spec/openspec-embedding/dynamic-port-T003077.bats",
         "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+        "tests/spec/openspec-embedding/probe-diagnosis.bats",
         "tests/spec/openspec-pgvector.bats",
         "tests/spec/openspec-ticket-links-evaluation.bats",
         "tests/spec/openspec-upstream-cli.bats",

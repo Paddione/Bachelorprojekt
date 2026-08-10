@@ -244,6 +244,21 @@ while true; do
     BRAND="$_ae_brand" bash "${REPO}/scripts/factory/auto-enqueue.sh" 2>&1 \
       | sed "s/^/[auto-enqueue:${_ae_brand}] /" >&2 || true
   done
+  # [T003538] Routing-Guard VOR den LLM-Schritten dieses Ticks. scripts/llm/routing-check.sh
+  # existierte, wurde aber von nirgendwo aufgerufen — weder hier noch in einem Workflow.
+  # Genau deshalb blieb eine driftende Modell-ID unsichtbar: resolveModel() im llm-proxy
+  # leitet eine unbekannte ID STILL auf das erste gesunde Backend um, es entsteht also
+  # nirgends ein Fehler. Landet die Umleitung beim Cloud-Backend, kommt dessen HTTP 402
+  # ("Insufficient Balance") zurück — und sieht aus wie ein sporadischer Modellfehler.
+  # Zweiter Fall dieser Art (T002582: 'gemma-4-12b'), deshalb jetzt ein Aufrufer.
+  #
+  # FAIL-SOFT mit Absicht: eine rote Prüfung ist ein Befund, kein Grund den Tick
+  # anzuhalten — sonst legt ein nicht geladenes Loadout die gesamte Factory still.
+  # Das Skript ist ohnehin fail-soft ohne erreichbares Backend (es meldet "übersprungen"
+  # und endet mit 0), sagt also nichts, wo es nichts sagen kann.
+  bash "${REPO}/scripts/llm/routing-check.sh" 2>&1 \
+    | sed "s/^/[routing-check] /" >&2 || true
+
   # T000933: KI-Ticket-Auto-Triage — DeepSeek klassifiziert untriagierte Tickets
   # und schreibt Vorschläge nach grilling_meta.triage. Best-effort, nicht fatal.
   for _t_brand in mentolder korczewski; do

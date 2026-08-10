@@ -24,7 +24,7 @@ WorkingDirectory=/home/patrick/Bachelorprojekt
 # dekommissioniert. Dieser Prozess laeuft aber auf dem WSL-Host, wo
 # Cluster-DNS (llm-gateway-*.workspace.svc.cluster.local) nicht aufloesbar ist
 # (T002488). Deshalb holen sich zwei eigene Units die Services per kubectl
-# port-forward auf 127.0.0.1 (siehe Requires= oben):
+# port-forward auf 127.0.0.1:
 #   8081 -> svc/llm-gateway-embed  (bge-forward-embed.service)
 #   8093 -> svc/llm-gateway-rerank (bge-forward-rerank.service)
 #
@@ -34,13 +34,19 @@ WorkingDirectory=/home/patrick/Bachelorprojekt
 # geparst und brach mit "does not have a named port 'svc/llm-gateway-rerank'"
 # ab - 2026-08-02 entdeckt).
 #
+# T003205: beide Upstreams laufen seit diesem Change ueber den llm-proxy
+# (http://127.0.0.1:18235). Der Proxy startet das lokale Loadout bei Bedarf
+# (bge-embed-cpu :8095 / bge-rerank-cpu :8096) und faellt auf die Forwards
+# oben zurueck — die Forward-Units sind damit ZWEITES Kettenglied, keine
+# Vorbedingung mehr, und der Shim startet auch ohne Cluster-Verbindung.
+#
 # T002604: die Forwards standen bis hierher als Hintergrundjobs IN diesem
 # ExecStart. systemd ueberwachte damit nur den Node-Prozess — starben sie,
 # blieb die Unit `active` und jeder Tool-Call gab "fetch failed" zurueck. Am
 # 2026-08-03 war genau das der Zustand. Das ExecStart startet deshalb jetzt nur
-# noch den Shim; das Warten auf die Ports bleibt, weil Requires= zwar die
-# Reihenfolge sichert, aber nicht die TCP-Bereitschaft von `kubectl`.
-ExecStart=/bin/bash -c 'i=0; until (exec 3<>/dev/tcp/127.0.0.1/8081) 2>/dev/null; do i=$((i+1)); [ $i -ge 60 ] && break; sleep 1; done; j=0; until (exec 3<>/dev/tcp/127.0.0.1/8093) 2>/dev/null; do j=$((j+1)); [ $j -ge 60 ] && break; sleep 1; done; exec /usr/bin/node /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs'
+# noch den Shim; das Warten auf den Port bleibt, weil Requires= zwar die
+# Reihenfolge sichert, aber nicht die TCP-Bereitschaft des Proxys.
+ExecStart=/bin/bash -c 'i=0; until (exec 3<>/dev/tcp/127.0.0.1/18235) 2>/dev/null; do i=$((i+1)); [ $i -ge 60 ] && break; sleep 1; done; exec /usr/bin/node /home/patrick/Bachelorprojekt/scripts/bge-mcp/server.mjs'
 Restart=always
 RestartSec=5
 
@@ -49,9 +55,10 @@ RestartSec=5
 # Variablen unten liest. Ohne sie greifen dort keine Defaults — ein fehlender
 # Wert wird geworfen (fail-closed, 503 im API-Pfad). Cluster-DNS waere fuer
 # diesen Prozess falsch: er laeuft auf dem WSL-Host, wo der Name nicht
-# aufloesbar ist. Ziel sind deshalb die lokalen port-forward-Adressen oben.
-Environment=LLM_EMBED_URL=http://127.0.0.1:8081
-Environment=LLM_RERANKER_URL=http://127.0.0.1:8093
+# aufloesbar ist. Ziel ist seit T003205 der llm-proxy auf 127.0.0.1:18235,
+# dessen bge-Routen (/v1/embeddings, /v1/rerank) die Aufloesung uebernehmen.
+Environment=LLM_EMBED_URL=http://127.0.0.1:18235
+Environment=LLM_RERANKER_URL=http://127.0.0.1:18235
 
 # NACH den Environment=-Zeilen: eine gleichnamige Variable in der Datei
 # ueberschreibt den Default oben. Hier liegt auch BGE_MCP_TOKEN, ohne das der

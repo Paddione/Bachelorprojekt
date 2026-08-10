@@ -211,35 +211,23 @@ Das Admin-Menü SHALL weiterhin genau einen Eintrag auf die SDLC-Fläche führen
 
 ## REMOVED Requirements
 
-### Requirement: PipelinePanel als Schutzschild gegen Kit-Runtime (E22)
+<!--
+  [T003130] Dieser Abschnitt war beim Archivieren leer zu raeumen. Er trug drei
+  Blöcke, deren Ziele im SSOT `openspec/specs/sdlc-cockpit.md` nie als eigene
+  Requirement existierten — `archive` bricht dann fail-closed ab
+  ("REMOVED target … not found"):
 
-Der `PipelinePanel`-Wrapper, der ausschließlich existierte um Svelte-Inseln vor der Kit-Panel-Runtime zu schützen, entfällt. Das Unified Panel System behandelt Svelte-Komponenten als native Panel-Typen und benötigt keinen Schutzschild.
+    - "PipelinePanel als Schutzschild gegen Kit-Runtime (E22)" — E22 ist kein
+      eigener Requirement-Titel, sondern eine Zusicherung INNERHALB von
+      "Pipeline-Inhalt lebt als Panel im Cockpit". Diese Requirement fuehrt das
+      Delta bereits unter MODIFIED und beschreibt dort den Wegfall des Wrappers
+      samt Szenario — der REMOVED-Block war reine Doppelung.
+    - "Sieben Tabs in DevStatusTabs"
+    - "Alte Analytics-KPIs"
 
-#### Scenario: PipelinePanel is absent from the codebase
-
-- **GIVEN** the repository after this change
-- **WHEN** the file `website/src/components/cockpit/PipelinePanel.svelte` is looked up
-- **THEN** it does not exist
-- **AND** its test file `PipelinePanel.test.ts` is also removed
-
-### Requirement: Sieben Tabs in DevStatusTabs
-
-Der `DevStatusTabs`-Komponentenbaum mit sieben flachen Tabs (Floor, Planung, Analytics, Kosten, Steuerung, Abhängigkeiten, Parallel) SHALL durch die Zwei-Modi-Architektur (Overview + Fokus) ersetzt werden.
-
-#### Scenario: DevStatusTabs tab bar is replaced
-
-- **GIVEN** the repository after this change
-- **WHEN** the cockpit page is inspected
-- **THEN** the seven-tab bar from DevStatusTabs no longer exists
-- **AND** the individual tab content components (FactoryFloor, PlanningOffice, etc.) are preserved and integrated into the new architecture
-
-### Requirement: Alte Analytics-KPIs
-
-Die alten Analytics-Komponenten (`FactoryKpiGrid`, `FactoryThroughputChart`, `FactoryPhaseHeatmap`, `FactoryShippedBar`) SHALL entfernt werden. Sie lieferten keine verwertbaren Insights ("never worked") und werden durch den reduzierten Insights-Tab mit Trace-Recording ersetzt.
-
-#### Scenario: Old analytics components are removed
-
-- **GIVEN** the repository after this change
-- **WHEN** the `website/src/components/sdlc/factory/` directory is inspected
-- **THEN** `FactoryKpiGrid.svelte`, `FactoryThroughputChart.svelte`, `FactoryPhaseHeatmap.svelte`, and `FactoryShippedBar.svelte` no longer exist
-- **AND** the `AnalyticsWindowFilter.svelte` component is also removed
+  Die letzten beiden beschrieben Code-Zustaende, die nie spezifiziert waren: die
+  vier Analytics-Komponenten und die Tab-Zahl standen in keinem SSOT-Spec. Ihr
+  Wegfall ist durch die Guards in tests/spec/sdlc-cockpit/redesign-struktur.bats
+  abgesichert, nicht durch eine Anforderung. Ein REMOVED-Block kann nur
+  aufheben, was zuvor zugesichert war.
+-->

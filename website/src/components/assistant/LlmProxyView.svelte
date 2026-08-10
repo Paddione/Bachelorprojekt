@@ -11,7 +11,7 @@
   async function load() {
     try {
       loading = true;
-      const res = await fetch('/api/admin/llm-proxy/status', { credentials: 'same-origin' });
+      const res = await fetch('/sdlc/api/llm-proxy/status', { credentials: 'same-origin' });
       state = res.ok ? ((await res.json()) as ProxyState) : null;
     } finally {
       loading = false;
@@ -19,13 +19,13 @@
   }
 
   async function reload() {
-    try { busy = true; await fetch('/api/admin/llm-proxy/reload', { method: 'POST', credentials: 'same-origin' }); await load(); }
+    try { busy = true; await fetch('/sdlc/api/llm-proxy/reload', { method: 'POST', credentials: 'same-origin' }); await load(); }
     finally { busy = false; }
   }
 
   async function toggle(b: BackendState) {
     busy = true;
-    await fetch(`/api/admin/llm-proxy/backends/${b.id}`, {
+    await fetch(`/sdlc/api/llm-proxy/backends/${b.id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled: !b.enabled }),
     });

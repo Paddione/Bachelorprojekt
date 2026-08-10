@@ -29,7 +29,7 @@ export function insertPromptBody(draft: string, body: string): string {
  */
 export async function loadActivePrompts(): Promise<PromptOption[]> {
   try {
-    const res = await fetch('/api/admin/prompt-library');
+    const res = await fetch('/sdlc/api/prompt-library');
     if (!res.ok) return [];
     const data = (await res.json()) as { prompts?: PromptOption[] };
     return data.prompts ?? [];
@@ -44,7 +44,7 @@ export async function loadActivePrompts(): Promise<PromptOption[]> {
  */
 export async function recordPromptUse(id: number): Promise<void> {
   try {
-    await fetch(`/api/admin/prompt-library/${id}/use`, { method: 'POST' });
+    await fetch(`/sdlc/api/prompt-library/${id}/use`, { method: 'POST' });
   } catch {
     /* best-effort: ignore */
   }

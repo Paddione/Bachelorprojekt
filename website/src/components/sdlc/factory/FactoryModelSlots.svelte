@@ -24,7 +24,7 @@
   async function loadData() {
     try {
       loading = true;
-      const res = await fetch('/api/factory-model-slots');
+      const res = await fetch('/sdlc/api/factory-model-slots');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       slots = data.slots;
@@ -49,7 +49,7 @@
     }
 
     try {
-      const res = await fetch('/api/factory-model-slots', {
+      const res = await fetch('/sdlc/api/factory-model-slots', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phase, provider, modelId, baseUrl }),

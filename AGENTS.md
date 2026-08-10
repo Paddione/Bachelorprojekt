@@ -10,19 +10,17 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 
 | Agent | Model | Use case |
 |-------|-------|----------|
-| `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches the local family subagents (`gptoss`/`devstral`/`gemma`/`gemma12`/`qwen`) sequentially (llm-proxy serializes at max_inflight=1) |
+| `orchestrator` | DeepSeek V4 Flash (OpenCode Go, 1M ctx), `mode: primary`, write-capable | Primary orchestrator — dispatches the local family subagents (`gptoss`/`devstral`/`gemma`/`gemma12`) sequentially (llm-proxy serializes at max_inflight=1) |
 | `gptoss` | `llamacpp-local/gemma26-throughput` (Gemma 4 26B A4B QAT, :8092) | Local bulk work. **Der Name lügt über das Modell seit T003204** — `gptoss-context` ist abgeschaltet, der Name bleibt als Dispatch-Schnittstelle. `write=deny`, `edit=allow` |
 | `devstral` | `llamacpp-local/gemma26-factory` (Gemma 4 26B A4B IQ4_XS, :8091) | Local work. **Name lügt über das Modell seit T003204** — `devstral-quality` war in allen Dimensionen dominiert und ist abgeschaltet |
 | `gemma` | `llamacpp-local/gemma26-factory` (Gemma 4 26B A4B IQ4_XS, :8091) | Local work, gemma family |
 | `gemma12` | `llamacpp-local/gemma12-vision` (Gemma 4 12B QAT + mmproj-F16, :8089) | Local work, 262144 ctx — größter lokaler Kontext und einziges vision-fähiges Loadout. Seit T003204 per `task` dispatchbar |
-| `qwen` | `llamacpp-local/qwen3-coder-30b` (Qwen3-Coder-30B UD-IQ3_XXS, :8094) | Local work, qwen family |
 | `gemma26-primary` | `llamacpp-local/gemma26-factory`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task` |
 | `gemma26-vision` | `llamacpp-local/gemma26-factory`, `mode: primary` | Max local context (161024, measured), no subagent dispatch. **Vision-capable**: gemma26-factory loads mmproj-F16.gguf since T002753 |
 | `gptoss-primary` | `llamacpp-local/gemma26-throughput`, `mode: primary` | Tab-selectable primary, 118016 ctx (:8092) — seit T003204 |
 | `devstral-primary` | `llamacpp-local/gemma26-factory`, `mode: primary` | Tab-selectable primary, 177920 ctx, code-quality review (:8091) — seit T003204 |
 | `gemma12-primary` | `llamacpp-local/gemma12-vision`, `mode: primary` | Tab-selectable primary, 262144 ctx measured. **Vision-capable** via mmproj-F16 (:8089) |
 | `gemma26-throughput-primary` | `llamacpp-local/gemma26-throughput`, `mode: primary` | Tab-selectable primary, 118016 ctx measured, 159-169 tok/s (:8092) |
-| `qwen-primary` | `llamacpp-local/qwen3-coder-30b`, `mode: primary` | Tab-selectable primary, 96000 ctx measured (:8094) |
 | `big-pickle` | `opencode-zen/big-pickle`, `mode: primary`, write-capable | Tab-selectable singleagent on OpenCode Zen — use while the free quota lasts, then switch to the deepseek primaries |
 | `deepseek-helper` | `deepseek/deepseek-v4-flash` (direct API), write-capable | Escalation when a local agent is stuck or context-exhausted |
 | `deepseek-pro` | `opencode-go/deepseek-v4-pro`, `mode: all`, write-capable | Deep analysis, complex debugging, hard refactors; tab-selectable AND task-dispatchable |
@@ -32,10 +30,10 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `explore` / `general` | built-in | Read-only exploration / research |
 
 Dispatch:
-- `task` for the local family subagents (`gptoss`, `devstral`, `gemma`, `gemma12`, `qwen`) and the deepseek agents — the `orchestrator` permission block lists exactly those names, no wildcards (T002298).
+- `task` for the local family subagents (`gptoss`, `devstral`, `gemma`, `gemma12`) and the deepseek agents — the `orchestrator` permission block lists exactly those names, no wildcards (T002298).
 - Local family agents `edit` but cannot `write` new files (`write=deny`) — the orchestrator creates new files from their output. Read-only work uses `delegate` (explore/general).
 - SSOT is `.opencode/agent-models.jsonc` — the only source of truth for agent→model mapping. `docs/agent-guide/registry/agents.yaml` mirrors it for the agent-guide docs; `tests/spec/agent-roster.bats` (P4.3b) fails on any model-string drift, so the mirror cannot lag silently. Global config sync: `bash scripts/opencode-sync-agents.sh`.
-- **Local subagents are named by model FAMILY since 2026-08-04** (`gptoss`/`devstral`/`gemma`/`qwen`), each serving its own loadout through the llm-proxy. The old `gemma26-1/2`, `gemma9-1/2` names all pointed at gptoss-context — the name lied about the model. Every GPU loadout shares `exclusiveGroup "chat-gpu"`: only one runs at a time (all of `loadouts.json` except the two CPU bge loadouts). The weightless loadouts (`gemma-factory`, `gemma-multiagent`, `gemma9-factory`) were removed on 2026-08-09 (T002753); `gemma`/`gemma26-primary`/`gemma26-vision` serve `gemma26-factory` (Gemma 4 26B A4B UD-IQ4_XS, 161024 ctx measured).
+- **Local subagents are named by model FAMILY since 2026-08-04** (`gptoss`/`devstral`/`gemma`/`gemma12`), each serving its own loadout through the llm-proxy. The old `gemma26-1/2`, `gemma9-1/2` names all pointed at gptoss-context — the name lied about the model. Every GPU loadout shares `exclusiveGroup "chat-gpu"`: only one runs at a time (all of `loadouts.json` except the two CPU bge loadouts). The weightless loadouts (`gemma-factory`, `gemma-multiagent`, `gemma9-factory`) were removed on 2026-08-09 (T002753); `gemma`/`gemma26-primary`/`gemma26-vision` serve `gemma26-factory` (Gemma 4 26B A4B UD-IQ4_XS, 161024 ctx measured). T003204: die Familie `qwen` ist abgeschaltet (Loadout `qwen3-coder-30b` `enabled: false`).
 
 ## Core Commands
 

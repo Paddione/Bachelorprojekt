@@ -2,6 +2,8 @@
 # scripts/lib/ticket-links.sh
 # Pure helper sourced by ticket.sh — declares cmd_add_pr_link only.
 # No top-level side effects, no back-imports.
+# [T002843] Hilfe-Vorabgriff — Modul selbst sourcen (S4: keine Orphans).
+source "$(dirname "${BASH_SOURCE[0]}")/ticket-help.sh"
 # Schema: tickets.ticket_links (from_id uuid NOT NULL, to_id uuid NOT NULL,
 #   kind text, pr_number int, UNIQUE(from_id, to_id, kind)). A PR has no target
 #   ticket, so we self-link (to_id = from_id) to satisfy the NOT NULL FK.
@@ -9,6 +11,8 @@
 #   AND pr_number IS NOT NULL and join l.from_id = t.id (to_id is ignored).
 
 cmd_add_pr_link() {
+  # [T002843] --help/-h VOR der Options-Schleife abfangen (Muster T002783).
+  if ticket_help_wanted "$@"; then ticket_help_subcommand add-pr-link; exit 0; fi
   local id="" pr=""
   while [[ $# -gt 0 ]]; do case "$1" in
       --id) id="$2"; shift 2 ;;
@@ -60,6 +64,8 @@ EOF
 # Creates a directed dependency link between two tickets. Idempotent via ON CONFLICT DO NOTHING.
 # Offline-safe: TICKET_OFFLINE=1 skips the cluster write.
 cmd_link_tickets() {
+  # [T002843] --help/-h VOR der Options-Schleife abfangen.
+  if ticket_help_wanted "$@"; then ticket_help_subcommand link-tickets; exit 0; fi
   local from_ext="" to_ext="" kind=""
   while [[ $# -gt 0 ]]; do case "$1" in
     --from)  from_ext="$2"; shift 2 ;;
@@ -97,6 +103,8 @@ EOF
 # Returns JSON: {"blocks": [...], "blocked_by": [...], "relates": [...], "child_of": [...], "pr": [{"external_id": ..., "pr_number": ...}]}
 # Refuses offline reads (exits 9 with TICKET_OFFLINE=1).
 cmd_get_ticket_links() {
+  # [T002843] --help/-h VOR der Options-Schleife abfangen.
+  if ticket_help_wanted "$@"; then ticket_help_subcommand get-ticket-links; exit 0; fi
   local id=""
   while [[ $# -gt 0 ]]; do case "$1" in
     --id)  id="$2"; shift 2 ;;

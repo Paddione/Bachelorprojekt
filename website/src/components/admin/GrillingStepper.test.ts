@@ -41,7 +41,7 @@ describe('GrillingStepper', () => {
     await new Promise((r) => setTimeout(r, 1000));
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
     const [url, opts] = vi.mocked(global.fetch).mock.calls.at(-1)!;
-    expect(url).toBe('/api/admin/tickets/t1');
+    expect(url).toBe('/sdlc/api/tickets/t1');
     expect(opts?.method).toBe('PATCH');
     const body = JSON.parse(opts?.body as string);
     expect(body.grillingAnswers[QN].q1).toBe('Meine Antwort');

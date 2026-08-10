@@ -81,7 +81,7 @@
     if (!adminCanSubmit) return;
     submitting = true; result = null;
     try {
-      const res = await fetch('/api/admin/tickets', {
+      const res = await fetch('/sdlc/api/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,7 +97,7 @@
         // Fetch external_id (T######) — POST returns UUID only
         let externalId = '';
         if (data.id) {
-          const detail = await fetch(`/api/admin/tickets/${data.id}`).then(r => r.json()).catch(() => null);
+          const detail = await fetch(`/sdlc/api/tickets/${data.id}`).then(r => r.json()).catch(() => null);
           externalId = detail?.ticket?.externalId ?? '';
         }
         result = { success: true, message: `Ticket angelegt${externalId ? ` (${externalId})` : ''}.` };
@@ -124,7 +124,7 @@
     try {
       const title = `[${CATEGORY_LABELS[portalCategory]}] ${portalDescription.trim().slice(0, 80)}${portalDescription.length > 80 ? '…' : ''}`;
       const desc = `Kategorie: ${CATEGORY_LABELS[portalCategory]}\nE-Mail: ${portalEmail.trim()}\nURL: ${window.location.href}\n\n${portalDescription.trim()}${portalFiles.length > 0 ? `\n\n(${portalFiles.length} Screenshot(s) beigefügt — konnten nicht hochgeladen werden.)` : ''}`;
-      const res = await fetch('/api/admin/tickets', {
+      const res = await fetch('/sdlc/api/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -138,7 +138,7 @@
       if (res.ok) {
         let externalId = '';
         if (data.id) {
-          const detail = await fetch(`/api/admin/tickets/${data.id}`).then(r => r.json()).catch(() => null);
+          const detail = await fetch(`/sdlc/api/tickets/${data.id}`).then(r => r.json()).catch(() => null);
           externalId = detail?.ticket?.externalId ?? '';
         }
         result = { success: true, message: externalId ? `Meldung als ${externalId} aufgenommen.` : 'Vielen Dank! Meldung übermittelt.' };

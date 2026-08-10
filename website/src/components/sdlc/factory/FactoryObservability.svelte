@@ -65,7 +65,7 @@
 
   onMount(async () => {
     try {
-      const res = await fetch('/api/factory-observability', { credentials: 'same-origin' });
+      const res = await fetch('/sdlc/api/factory-observability', { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`API ${res.status}`);
       data = await res.json();
     } catch (e) {

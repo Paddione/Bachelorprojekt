@@ -16,7 +16,10 @@ setup() {
 }
 
 cluster_running() {
-  kubectl config current-context 2>/dev/null | grep -q k3d-mentolder-dev
+  # Prüft echte Cluster-Erreichbarkeit statt nur des Kontextnamens.
+  # kubectl config current-context kann auf einen nicht erreichbaren Cluster zeigen
+  # (anderer Rechner, Docker-Reset) — die Tests würden dann rot statt skip.
+  kubectl get nodes --request-timeout=3s &>/dev/null
 }
 
 # ── Struktur-Anker ──────────────────────────────────────────────────────────

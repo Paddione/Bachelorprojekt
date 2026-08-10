@@ -630,7 +630,7 @@ STUB
   # `run` ist eine BATS-Funktion und darf nicht in einer Subshell stehen; der cd
   # wandert daher in einen bash -c-Aufruf. Der Plan-Pfad ist repo-relativ (nicht
   # absolut): git cat-file von stage-plan prueft `HEAD:<pfad>` gegen den Tree.
-  run bash -c "cd '$sbox' && bash scripts/ticket.sh stage-plan --id T000001 --branch feature/x --plan '$plan'"
+  run bash -c "cd '$sbox' && bash scripts/ticket.sh stage-plan --id T000001 --branch feature/x --plan '$plan' --hold --allow-empty-touched"
   [ "$status" -eq 0 ]
   grep -qF "VALUES ('scout'),('design'),('plan')" "$CAP_FILE"
   grep -q  "auto: stage-plan"                     "$CAP_FILE"

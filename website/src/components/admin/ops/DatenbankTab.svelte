@@ -22,7 +22,7 @@
   async function loadJobs() {
     jobsLoading = true;
     try {
-      const res = await fetch(`/api/admin/ops/backup/list?cluster=${cluster}`);
+      const res = await fetch(`/sdlc/api/ops/backup/list?cluster=${cluster}`);
       const j = await res.json();
       if (res.ok) jobs = j.jobs;
       else triggerError = j.error ?? `Fehler ${res.status}`;
@@ -33,7 +33,7 @@
   async function triggerBackup() {
     triggerLoading = true; triggerMsg = null; triggerError = null;
     try {
-      const res = await fetch('/api/admin/ops/backup/trigger', {
+      const res = await fetch('/sdlc/api/ops/backup/trigger', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cluster }),
       });
@@ -49,7 +49,7 @@
     if (!restoreJob) return;
     restoreLoading = true; restoreError = null;
     try {
-      const res = await fetch('/api/admin/ops/restore', {
+      const res = await fetch('/sdlc/api/ops/restore', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cluster, db: restoreDb, backupJobName: restoreJob.name }),
       });

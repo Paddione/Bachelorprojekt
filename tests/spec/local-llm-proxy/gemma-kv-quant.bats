@@ -101,13 +101,9 @@ qwen3-coder-30b"
   # Bei Fehlern in Tool-Call-Argumenten oder Pfaden bleibt diese Ausnahme der
   # erste Verdaechtige: gemma26-factory auf q8_0 zuruecksetzen.
   #
-  # AUSNAHME qwen3-coder-30b (T002753): gesetzt GEGEN den T002501-Befund vom
-  # 2026-08-08 (39k Tokens, temperature 0: Symbole vertauscht, Pfade verwechselt,
-  # Tool-Call-Argument nicht wortgetreu) und auf ausdrueckliche Betreiber-Anweisung,
-  # NICHT auf einer bestandenen Probe. q4_0 bringt 96000 ctx statt 52992 bei q8_0;
-  # der Durchsatz-Unterschied ist vernachlaessigbar (177,4 vs 177,1 tok/s).
-  # Bei Fehlern in Tool-Call-Argumenten oder Pfaden: dieses Loadout auf q8_0
-  # zuruecksetzen und aus _KV_Q4_ALLOWED entfernen.
+  # AUSNAHME qwen3-coder-30b: Loadout ist seit T003204 disabled (enabled: false),
+  # die Ausnahme bleibt als No-Op in der Liste, weil der Test alle konfigurierten
+  # Loadouts unabhaengig vom enabled-Flag scannt.
   local offenders
   offenders=$(echo "$output" | awk '$2 == "q4_0" || $3 == "q4_0" { print $1 }' \
               | grep -vxF "$_KV_Q4_ALLOWED" || true)

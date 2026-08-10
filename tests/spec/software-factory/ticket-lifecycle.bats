@@ -652,48 +652,48 @@ SH
   fi
 }
 
-@test "T002407-M7c: mishap-rollup.sh verwendet branch-exists-Pfad (rebase statt Neu-Anlage)" {
-  local script="$REPO/scripts/factory/mishap-rollup.sh"
-  # Der Branch lebt dauerhaft auf dem Remote. Statt neu anlegen: checkout + rebase.
-  # Das Rebase-ZIEL ist seit T002914 origin/${BRANCH} statt origin/main — geprueft
-  # wird hier nur, DASS ueber einen Rebase-Pfad gearbeitet wird, nicht wohin; das
-  # Ziel sichert der eigene T002914-Guard. Die Alternation nennt deshalb beide
-  # Formen: sie an eine einzelne festzuschreiben liess diesen Test rot werden,
-  # obwohl der branch-exists-Pfad unveraendert vorhanden war.
-  run grep -Eq 'BRANCH_EXISTS|git checkout.*BRANCH|rebase .*origin/|rollup_rebase_onto_remote' "$script"
-  [ "$status" -eq 0 ] || { echo "Branch-Existenz-Pfad fehlt in mishap-rollup.sh"; false; }
+@test "T002407-M7c: rollup-publish.sh integriert einen existierenden Remote-Branch statt Neu-Anlage" {
+  # Der Divergenz-/Rebase-Pfad lebt seit T002931 nicht mehr in mishap-rollup.sh,
+  # sondern in rollup-publish.sh: bei Lease-Fehler wird origin/${BRANCH} gefetcht
+  # und der eigene Stand darauf neu gebaut. Ein existierender Remote-Branch wird
+  # damit integriert statt ueberschrieben (T002914 bleibt erhalten).
+  local script="$REPO/scripts/factory/rollup-publish.sh"
+  [ -f "$script" ] || { echo "rollup-publish.sh fehlt"; false; }
+  run bash -n "$script"
+  [ "$status" -eq 0 ] || { echo "rollup-publish.sh ist syntaktisch kaputt: $output" >&2; false; }
+  run grep -Eq 'fetch .*BRANCH|origin/\$\{BRANCH\}' "$script"
+  [ "$status" -eq 0 ] || { echo "Divergenz-Pfad (fetch + origin/\${BRANCH}) fehlt in rollup-publish.sh"; false; }
 }
 
-@test "T002913-M8a: kein Rebase in mishap-rollup.sh laeuft mit aktiven Hooks" {
-  # Der post-commit-embed-Hook feuert bei JEDEM rebasierten Commit und kann am
-  # Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so hing der
-  # Factory-Tick stundenlang im Rollup-Rebase, hielt den Flock und blockierte alle
-  # weiteren Ticks.
+@test "T002913-M8a: kein Rebase/Commit in rollup-publish.sh laeuft mit aktiven Hooks" {
+  # Der post-commit-embed-Hook feuert bei JEDEM rebasierten/committeten Commit und
+  # kann am Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so
+  # hing der Factory-Tick stundenlang im Rollup-Rebase, hielt den Flock und blockierte
+  # alle weiteren Ticks.
   #
-  # Geprueft wird die EIGENSCHAFT ("kein ungesicherter Rebase"), nicht die Anzahl
-  # der Aufrufe. Die Vorgaengerfassung verlangte exakt zwei Vorkommen von
-  # `git -c core.hooksPath=/dev/null rebase`; als T002914 beide Aufrufstellen auf
-  # eine gemeinsame Funktion zusammenzog, sank die Zahl auf eins — der Guard
-  # meldete eine Verschlechterung, wo der Schutz tatsaechlich zentraler und damit
-  # schwerer zu umgehen wurde. Eine Zaehlung schreibt die Form der Implementierung
-  # fest, nicht ihre Zusicherung.
-  local script="$REPO/scripts/factory/mishap-rollup.sh"
+  # Seit T002931 leben alle git-Schreiboperationen (commit, reset, rebase) in
+  # rollup-publish.sh und laufen ueber die zentrale GIT-Variable mit
+  # core.hooksPath=/dev/null.
+  local script="$REPO/scripts/factory/rollup-publish.sh"
   [ -f "$script" ]
 
-  # Positiv-Anker: es muss ueberhaupt einen Rebase-Aufruf geben, sonst waere die
-  # Aussage unten leer erfuellt. Das Muster MUSS die ungesicherte Form
-  # `git rebase ...` mitfinden — ein Muster, das Inhalt zwischen `git` und
-  # `rebase` verlangt, traefe nur die bereits abgesicherte Form, und beim Wegfall
-  # des Guards fiele der ANKER statt der Zusicherung (Defektbild aus T002878).
-  local rebase_calls
-  rebase_calls=$(grep -E '\bgit\b.*\brebase\b' "$script" | grep -vE '^[[:space:]]*#' || true)
-  [ -n "$rebase_calls" ] \
-    || { echo "kein git-rebase-Aufruf in mishap-rollup.sh gefunden — Anker verfehlt"; false; }
+  # Positiv-Anker: die zentrale GIT-Variable traegt core.hooksPath=/dev/null und
+  # wird tatsaechlich fuer Schreiboperationen (commit/reset) benutzt — sonst waere
+  # die Aussage unten leer erfuellt.
+  run grep -nE '^GIT=.*core.hooksPath=/dev/null' "$script"
+  [ "$status" -eq 0 ] || { echo "GIT-Variable ohne core.hooksPath=/dev/null fehlt"; false; }
+  local hook_calls
+  hook_calls=$(grep -nE '\$GIT (commit|reset|rebase)' "$script" || true)
+  [ -n "$hook_calls" ] \
+    || { echo "kein \$GIT commit/reset/rebase-Aufruf in rollup-publish.sh — Anker verfehlt"; false; }
 
+  # Kein nacktes `git commit/reset/rebase` ohne Hook-Abschirmung. Die GIT-Variable
+  # ist der EINZIGE Weg, hier zu schreiben; ein direkter git-Aufruf waere ein
+  # Regress. Kommentarzeilen zaehlen nicht.
   local unguarded
-  unguarded=$(printf '%s\n' "$rebase_calls" | grep -v 'core.hooksPath=/dev/null' || true)
+  unguarded=$(grep -nE '\bgit\b (commit|reset|rebase)' "$script" | grep -vE '^[0-9]+:[[:space:]]*#' || true)
   [ -z "$unguarded" ] \
-    || { echo "Rebase ohne core.hooksPath=/dev/null:"; printf '%s\n' "$unguarded"; false; }
+    || { echo "Hook-tragendes git ohne core.hooksPath=/dev/null:"; printf '%s\n' "$unguarded"; false; }
 }
 
 @test "T002407-M7d: mishap-rollup.sh hat plan-lint als Hard Gate" {

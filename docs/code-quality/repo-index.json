@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 901,
+      "file_count": 897,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -351,10 +351,8 @@
         "tests/spec/agent-lock-session-identity.bats",
         "tests/spec/agent-roster.bats",
         "tests/spec/agent-skills.bats",
-        "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
         "tests/spec/agent-skills/plugin-activation.bats",
         "tests/spec/agent-skills/skill-path-references.bats",
-        "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
         "tests/spec/agentic-review.bats",
         "tests/spec/agentic-tooling-quality-goals.bats",
         "tests/spec/agentic-tooling-quality-goals/g-agentic01-unresolved-tools.bats",
@@ -446,7 +444,6 @@
         "tests/spec/devflow-selection-archive-hardening.bats",
         "tests/spec/divergence-guard.bats",
         "tests/spec/divergence-guard/branch-name-guard.bats",
-        "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
         "tests/spec/docker-build-speedup.bats",
         "tests/spec/dora-dashboard.bats",
         "tests/spec/e2e-test-infrastructure.bats",
@@ -513,7 +510,6 @@
         "tests/spec/local-llm-proxy/bge-loadout-cpu-bound.bats",
         "tests/spec/local-llm-proxy/bge-mcp-upstream-timeout.bats",
         "tests/spec/local-llm-proxy/bge-token-ssot.bats",
-        "tests/spec/local-llm-proxy/brain-ingest-port.bats",
         "tests/spec/local-llm-proxy/embed-bge-fallback.bats",
         "tests/spec/local-llm-proxy/embed-probe-timeout.bats",
         "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
@@ -914,7 +910,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 58,
+      "file_count": 57,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -972,8 +968,7 @@
         "scripts/migrations/2026-08-04-llm-proxy-gemma-qwen-families.sql",
         "scripts/migrations/2026-08-04-provider-config-data-residency.sql",
         "scripts/migrations/2026-08-09-customer-projects-copy.sql",
-        "scripts/migrations/2026-08-09-enable-gemma-backend-proxy-T002640.sql",
-        "scripts/migrations/2026-08-10-brain-ingest-port.sql"
+        "scripts/migrations/2026-08-09-enable-gemma-backend-proxy-T002640.sql"
       ]
     },
     {
@@ -3274,7 +3269,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 694,
+      "file_count": 692,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3692,7 +3687,6 @@
         "scripts/lib/google-import.sh",
         "scripts/lib/kubelet-cert-hint.sh",
         "scripts/lib/llm-stack-measure.sh",
-        "scripts/lib/main-checkout-foreign-guard.sh",
         "scripts/lib/mcp-endpoint-probe.py",
         "scripts/lib/nextcloud-api.sh",
         "scripts/lib/notify.sh",
@@ -3967,7 +3961,6 @@
         "scripts/weekly-dep-schema-audit.sh",
         "scripts/whiteboard-setup.sh",
         "scripts/worktree-create.sh",
-        "scripts/worktree-git-op-guard.sh",
         "scripts/wsl-dns-fix.sh",
         "scripts/wsl-open.sh"
       ]

@@ -3129,6 +3129,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003180": [
+    {
+      "slug": "branch-reaper-sweep-cli",
+      "status": "plan_staged"
+    }
+  ],
   "T003203": [
     {
       "slug": "2026-08-10-fix-brain-ingest-port-T003203",

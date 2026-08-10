@@ -4,7 +4,7 @@
 
 Definiert die Verhaltensregeln für Test-Inventar-Erfassung (`build-test-inventory.sh`) und Post-Merge-Freshness-Bereinigung (`.githooks/post-merge`), um verwaiste/ungetrackte Dateien und dirty State nach `git pull --ff-only` auf `main` zu verhindern.
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: FRESHNESS-001 — Test-Inventar discovery ignoriert .gitignore-Einträge
 

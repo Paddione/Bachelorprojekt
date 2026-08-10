@@ -3141,12 +3141,6 @@
       "status": "plan_staged"
     }
   ],
-  "T003202": [
-    {
-      "slug": "llm-proxy-group-readiness",
-      "status": "plan_staged"
-    }
-  ],
   "T003203": [
     {
       "slug": "2026-08-10-fix-brain-ingest-port-T003203",

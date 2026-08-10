@@ -3294,6 +3294,18 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-tracking/dedupe-korpus",
+    "file": "tests/spec/mishap-tracking/dedupe-korpus.bats",
+    "category": "mishap-tracking",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-tracking/go-tests-registriert",
+    "file": "tests/spec/mishap-tracking/go-tests-registriert.bats",
+    "category": "mishap-tracking",
+    "kind": "shell"
+  },
+  {
     "id": "monitoring-alerts",
     "file": "tests/spec/monitoring-alerts.bats",
     "category": "monitoring-alerts",

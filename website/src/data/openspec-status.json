@@ -2577,6 +2577,12 @@
       "status": "archived"
     }
   ],
+  "T002650": [
+    {
+      "slug": "one-command-dev-environment",
+      "status": "plan_staged"
+    }
+  ],
   "T002651": [
     {
       "slug": "2026-08-04-agent-capability-drift-guards",
@@ -3018,6 +3024,18 @@
   "T003078": [
     {
       "slug": "no-unasked-stash-T003078",
+      "status": "plan_staged"
+    }
+  ],
+  "T003116": [
+    {
+      "slug": "agent-lock-scope-regelwerk",
+      "status": "plan_staged"
+    }
+  ],
+  "T003137": [
+    {
+      "slug": "babysit-prs-live-lock-guard",
       "status": "plan_staged"
     }
   ],

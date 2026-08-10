@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.263.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.12...website-v1.263.13) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** auto-triage-Pfad heilen — baseUrl-Konvention und Typ-Vokabular [T003492] ([#4184](https://github.com/Paddione/Bachelorprojekt/issues/4184)) ([f85711e](https://github.com/Paddione/Bachelorprojekt/commit/f85711e79de399af3813d18b1e27e0c0f105623b))
+* **test:** remove obsolete docs-content paths and fix topology references [T003142] ([#4185](https://github.com/Paddione/Bachelorprojekt/issues/4185)) ([60d04d2](https://github.com/Paddione/Bachelorprojekt/commit/60d04d2fd19d1d2ba6c6c432d9bd9610861bd38b))
+
 ## [1.263.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.11...website-v1.263.12) (2026-08-10)
 
 

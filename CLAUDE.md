@@ -244,3 +244,23 @@ PowerShell-Skripte unter `scripts/llm/*.ps1`, die aus WSL bearbeitet werden:
 
 Ablauf: Bug entdecken → `bash scripts/ticket.sh create --type bug --title "..."` → Branch + PR → nach Merge wird Ticket automatisch `done`.
 
+### Mess-Konvention [T002717]
+
+**Wer eine Messung als Entscheidungsgrundlage in ein Ticket schreibt, notiert den ausführbaren Befehl mit, der sie erzeugt hat.** Ohne ihn ist die Zahl kein Beleg, sondern eine Behauptung — und der Zweck des Festhaltens („damit die Analyse nicht wiederholt werden muss") ist verfehlt, weil genau die Wiederholung unmöglich wird.
+
+Der belegte Fall: T002700 stellte einen Vorgang zurück, weil eine Messung ihn zu teuer erscheinen ließ — „rund 23 lebende Dateien". Die Nachmessung bei der späteren Umsetzung ergab 149 Vorkommen in 63 Dateien, Faktor ~2,6. Eine Entscheidung, etwas **nicht** zu tun, ruhte damit auf einer Zahl, die niemand nachrechnen konnte.
+
+**Das fehlende Stück ist das Suchmuster, nicht die Methode.** Das ist die unscheinbare Stelle: T002700 nannte Datum, Match-Modus und Ausschlussverzeichnisse (`MESSUNG (2026-08-08, Fixed-String, ohne node_modules/.git/.opencode)`) — es sah vollständig aus. Bei gleichen dokumentierten Randbedingungen liefert die Suche je nach **Suchmuster** aber 66 oder 216 Dateien; keine der Rekonstruktionen trifft die genannte Zahl. Ein Metadaten-Block ohne das Muster dokumentiert die Sorgfalt, nicht die Messung.
+
+Konkret gehört in die Beschreibung ein Block, der so ausführbar ist:
+
+```bash
+# Stand, gegen den gemessen wurde — sonst ist die Zahl später nicht nachstellbar
+PRE=6a6d4c302c1afcb4a12a6c0b7c2401505f5fd602
+git grep -F -l 'Taskfile.' "$PRE" -- . ':!openspec/changes/archive' ':!docs/superpowers/plans' | wc -l
+```
+
+Den **Commit** mitnennen, gegen den gemessen wurde: Ein Guard, der später prüfen wollte, ob die Zahl stimmt, hätte den Repo-Stand des Messzeitpunkts nicht mehr — deshalb ist diese Regel nicht automatisierbar und liegt beim Schreibenden.
+
+**Redaktioneller Hinweis, kein automatisierter Guard** — dieselbe Klasse wie der Deliverable-Check (M10, T002506). Maschinell geprüft wird ausschließlich, **dass diese Regel im Repo steht** (`tests/spec/agent-skills/messung-mit-befehl.bats`, Drift-Schutz für den Text); ob sie befolgt wird, ist zum Lesezeitpunkt nicht entscheidbar. Eine Heuristik „Beschreibung enthält `MESSUNG` ⇒ muss einen Code-Fence tragen" hätte den realen Fall in beide Richtungen verfehlt: T002700 trug bereits Methoden-Metadaten und hätte sie bestanden, und wer sie umgehen will, lässt das Wort weg.
+

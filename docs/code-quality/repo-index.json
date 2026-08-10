@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 905,
+      "file_count": 906,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -352,6 +352,7 @@
         "tests/spec/agent-roster.bats",
         "tests/spec/agent-skills.bats",
         "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
+        "tests/spec/agent-skills/messung-mit-befehl.bats",
         "tests/spec/agent-skills/plugin-activation.bats",
         "tests/spec/agent-skills/skill-path-references.bats",
         "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",

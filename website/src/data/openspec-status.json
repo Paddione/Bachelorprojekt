@@ -2799,6 +2799,12 @@
       "status": "archived"
     }
   ],
+  "T002766": [
+    {
+      "slug": "interactive-rebase-worktree-broken-T002766",
+      "status": "plan_staged"
+    }
+  ],
   "T002768": [
     {
       "slug": "2026-08-09-ticket-plans-schema-doc-T002768",
@@ -3027,6 +3033,12 @@
       "status": "archived"
     }
   ],
+  "T003078": [
+    {
+      "slug": "no-unasked-stash-T003078",
+      "status": "plan_staged"
+    }
+  ],
   "T003110": [
     {
       "slug": "agent-lock-sid-detection-T003110",
@@ -3048,6 +3060,12 @@
   "T003137": [
     {
       "slug": "babysit-prs-live-lock-guard",
+      "status": "plan_staged"
+    }
+  ],
+  "T003203": [
+    {
+      "slug": "fix-brain-ingest-port-T003203",
       "status": "plan_staged"
     }
   ],

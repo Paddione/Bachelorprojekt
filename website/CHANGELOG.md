@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.259.31](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.30...website-v1.259.31) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** worktree-git-op-guard — detects interrupted rebase/merge/cherry-pick in any worktree [T002766] ([#4107](https://github.com/Paddione/Bachelorprojekt/issues/4107)) ([6d3d139](https://github.com/Paddione/Bachelorprojekt/commit/6d3d13992ee2e3b5534f546206dfb288ab32a68d))
+
+## [1.259.30](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.29...website-v1.259.30) (2026-08-10)
+
+
+### Bug Fixes
+
+* **ops:** brain-ingest von Port 8093 auf 8100 — 8093 belegt der bge-Rerank-Forward [T003203] ([#4104](https://github.com/Paddione/Bachelorprojekt/issues/4104)) ([bee07d8](https://github.com/Paddione/Bachelorprojekt/commit/bee07d888d8189654c4d762d54d6cc6e321cd947))
+
+## [1.259.29](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.28...website-v1.259.29) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** mishap-rollup.sh ersetzt eigenen Generator-Commit statt anzuhaengen — rollup-publish.sh + tests [T002931] ([#4099](https://github.com/Paddione/Bachelorprojekt/issues/4099)) ([997b241](https://github.com/Paddione/Bachelorprojekt/commit/997b2415e0ae540a7641ead19032d3d6b6306ee1))
+* **scripts:** foreign-activity guard prevents unasked stash in worktree-create + dev-flow-chore [T003078][T003097] ([#4095](https://github.com/Paddione/Bachelorprojekt/issues/4095)) ([665f192](https://github.com/Paddione/Bachelorprojekt/commit/665f1926ea886725bd93fa3536f0ded3f6f6304e))
+
 ## [1.259.28](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.27...website-v1.259.28) (2026-08-10)
 
 

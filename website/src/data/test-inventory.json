@@ -2040,6 +2040,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/dev-flow-chore-step0-foreign-guard",
+    "file": "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/plugin-activation",
     "file": "tests/spec/agent-skills/plugin-activation.bats",
     "category": "agent-skills",
@@ -2048,6 +2054,12 @@
   {
     "id": "agent-skills/skill-path-references",
     "file": "tests/spec/agent-skills/skill-path-references.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
+    "id": "agent-skills/worktree-mid-rebase-guard",
+    "file": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
     "category": "agent-skills",
     "kind": "shell"
   },
@@ -2592,6 +2604,12 @@
     "kind": "shell"
   },
   {
+    "id": "divergence-guard/main-checkout-foreign-guard",
+    "file": "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
     "id": "docker-build-speedup",
     "file": "tests/spec/docker-build-speedup.bats",
     "category": "docker-build-speedup",
@@ -2978,6 +2996,12 @@
   {
     "id": "local-llm-proxy/bge-token-ssot",
     "file": "tests/spec/local-llm-proxy/bge-token-ssot.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/brain-ingest-port",
+    "file": "tests/spec/local-llm-proxy/brain-ingest-port.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },

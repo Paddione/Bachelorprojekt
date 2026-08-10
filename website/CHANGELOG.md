@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.14...website-v1.263.15) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** Modell-ID-Drift beenden und den Routing-Guard endlich aufrufen [T003538] ([#4201](https://github.com/Paddione/Bachelorprojekt/issues/4201)) ([df4a206](https://github.com/Paddione/Bachelorprojekt/commit/df4a2062c227b68109cdd7be24075770f9d997bb))
+
 ## [1.263.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.13...website-v1.263.14) (2026-08-10)
 
 

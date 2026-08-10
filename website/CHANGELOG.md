@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.265.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.1...website-v1.265.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** enqueue demoted gestagte Tickets nicht mehr nach backlog [T003575] ([#4222](https://github.com/Paddione/Bachelorprojekt/issues/4222)) ([5941ea3](https://github.com/Paddione/Bachelorprojekt/commit/5941ea3311bc06b310c455bcb73cd3590859eefe))
+
 ## [1.265.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.0...website-v1.265.1) (2026-08-10)
 
 

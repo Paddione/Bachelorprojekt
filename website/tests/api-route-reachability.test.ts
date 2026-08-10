@@ -117,13 +117,6 @@ function sdlcCounterpart(path: string): string {
 // Einträge. Steht hier eine Datei, die längst sauber ist, schlägt der Test an:
 // eine Ausnahmeliste, die niemand aufräumt, verdeckt sonst neue Fehler.
 const PENDING_FILES: string[] = [
-  // Etappe 7 — Factory-Budget und Systemtest [T003483]
-  'src/components/sdlc/factory/FactoryBudgetPage.svelte',
-  'src/components/sdlc/factory/FactoryModelSlots.svelte',
-  'src/components/SystemtestReplayDrawer.svelte',
-  'src/lib/systemtest/recorder.ts',
-  'src/pages/sdlc/systemtest/board.astro',
-  'src/layouts/AdminLayout.astro',
   // Etappe 8 — Assistant-Views [T003484]
   'src/components/assistant/LlmProxyView.svelte',
   'src/components/assistant/SupportView.svelte',

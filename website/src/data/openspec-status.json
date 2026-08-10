@@ -3189,6 +3189,12 @@
       "status": "archived"
     }
   ],
+  "T003270": [
+    {
+      "slug": "factory-prep-worktree-reuse",
+      "status": "plan_staged"
+    }
+  ],
   "T003276": [
     {
       "slug": "2026-08-10-quickwins-script-fixes",

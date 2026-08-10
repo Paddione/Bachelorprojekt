@@ -3024,6 +3024,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/dispatch-capture",
+    "file": "tests/spec/local-llm-proxy/dispatch-capture.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/embed-bge-fallback",
     "file": "tests/spec/local-llm-proxy/embed-bge-fallback.bats",
     "category": "local-llm-proxy",

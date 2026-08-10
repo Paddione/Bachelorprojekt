@@ -4026,6 +4026,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-prep-stdout-json",
+    "file": "tests/spec/software-factory/factory-prep-stdout-json.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/orphan-slot-reap",
     "file": "tests/spec/software-factory/orphan-slot-reap.bats",
     "category": "software-factory",
@@ -4172,6 +4178,12 @@
   {
     "id": "ticket-system/schema-diaet-dead-columns",
     "file": "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-system/subcommand-help",
+    "file": "tests/spec/ticket-system/subcommand-help.bats",
     "category": "ticket-system",
     "kind": "shell"
   },

@@ -2805,6 +2805,12 @@
       "status": "archived"
     }
   ],
+  "T002766": [
+    {
+      "slug": "interactive-rebase-worktree-broken-T002766",
+      "status": "plan_staged"
+    }
+  ],
   "T002768": [
     {
       "slug": "2026-08-09-ticket-plans-schema-doc-T002768",
@@ -2883,6 +2889,18 @@
       "status": "archived"
     }
   ],
+  "T002811": [
+    {
+      "slug": "worktree-create-refactor-prefix",
+      "status": "plan_staged"
+    }
+  ],
+  "T002813": [
+    {
+      "slug": "archive-deliverable-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T002814": [
     {
       "slug": "2026-08-09-commit-scope-vokabular-T002814",
@@ -2893,6 +2911,12 @@
     {
       "slug": "2026-08-10-branch-allowlist-ssot",
       "status": "archived"
+    }
+  ],
+  "T002824": [
+    {
+      "slug": "half-archive-check-edge-case",
+      "status": "plan_staged"
     }
   ],
   "T002836": [
@@ -3066,6 +3090,12 @@
   "T003203": [
     {
       "slug": "fix-brain-ingest-port-T003203",
+      "status": "plan_staged"
+    }
+  ],
+  "T003205": [
+    {
+      "slug": "feat-bge-proxy-role-routes-T003205",
       "status": "plan_staged"
     }
   ],

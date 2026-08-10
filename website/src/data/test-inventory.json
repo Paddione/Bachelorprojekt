@@ -2064,6 +2064,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/worktree-mid-rebase-guard",
+    "file": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agentic-review",
     "file": "tests/spec/agentic-review.bats",
     "category": "agentic-review",
@@ -2604,6 +2610,12 @@
     "kind": "shell"
   },
   {
+    "id": "divergence-guard/branch-prefix-suggestion",
+    "file": "tests/spec/divergence-guard/branch-prefix-suggestion.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
     "id": "divergence-guard/main-checkout-foreign-guard",
     "file": "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
     "category": "divergence-guard",
@@ -2990,6 +3002,12 @@
   {
     "id": "local-llm-proxy/bge-mcp-upstream-timeout",
     "file": "tests/spec/local-llm-proxy/bge-mcp-upstream-timeout.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
+    "id": "local-llm-proxy/bge-role-routes",
+    "file": "tests/spec/local-llm-proxy/bge-role-routes.bats",
     "category": "local-llm-proxy",
     "kind": "shell"
   },
@@ -3432,6 +3450,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/archive-deliverable-guard",
+    "file": "tests/spec/openspec-workflow/archive-deliverable-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/archive-no-merge",
     "file": "tests/spec/openspec-workflow/archive-no-merge.bats",
     "category": "openspec-workflow",
@@ -3458,6 +3482,12 @@
   {
     "id": "openspec-workflow/half-archive-guard",
     "file": "tests/spec/openspec-workflow/half-archive-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/half-archive-uncommitted",
+    "file": "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },

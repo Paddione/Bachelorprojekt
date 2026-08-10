@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.32](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.31...website-v1.259.32) (2026-08-10)
+
+
+### Bug Fixes
+
+* **plans:** archive refuses when none of the ticket's touched_files exist in tree [T002813] ([#4111](https://github.com/Paddione/Bachelorprojekt/issues/4111)) ([3728bbe](https://github.com/Paddione/Bachelorprojekt/commit/3728bbee712ab2fefabf7baa94c7ec0420620972))
+
 ## [1.259.31](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.30...website-v1.259.31) (2026-08-10)
 
 

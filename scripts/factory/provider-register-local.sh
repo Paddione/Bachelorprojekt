@@ -24,7 +24,7 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-MODEL_ID="${FACTORY_MODEL_ID:-gemma26-factory}"
+MODEL_ID="${FACTORY_MODEL_ID:-gemma26-throughput}"
 # Immer das vereinheitlichte Gateway, nie ein Backend-Port. Welches Backend
 # dahinter haengt, entscheidet die Registry tickets.llm_proxy_backends.
 # [T003492] OHNE '/v1' — die Konsumenten haengen '/v1/chat/completions' selbst an

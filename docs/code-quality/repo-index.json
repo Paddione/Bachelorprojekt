@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 908,
+      "file_count": 909,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -626,6 +626,7 @@
         "tests/spec/repo-health-goals.bats",
         "tests/spec/repo-hygiene/dead-path-references.bats",
         "tests/spec/repo-hygiene/signal-gaps.bats",
+        "tests/spec/repo-hygiene/worktree-clean-check-existence.bats",
         "tests/spec/repo-hygiene/worktree-remove-generat-allowlist.bats",
         "tests/spec/repo-hygiene/worktree-stash-inspection.bats",
         "tests/spec/rustdesk-server.bats",
@@ -3282,7 +3283,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 696,
+      "file_count": 697,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3976,6 +3977,7 @@
         "scripts/website-config-sha.sh",
         "scripts/weekly-dep-schema-audit.sh",
         "scripts/whiteboard-setup.sh",
+        "scripts/worktree-clean-check.sh",
         "scripts/worktree-create.sh",
         "scripts/worktree-git-op-guard.sh",
         "scripts/wsl-dns-fix.sh",

@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "slug": "factory-prep-worktree-reuse",
+    "ticket_id": "T003270",
+    "generated_from": "main@be28a09fe",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/vda/factory-prep.sh",
+      "language": "bash",
+      "loc": 233,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 567
+    },
+    {
+      "path": "scripts/factory/dispatcher-bridge.sh",
+      "language": "bash",
+      "loc": 159,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 641
+    },
+    {
+      "path": "scripts/factory/dispatcher.js",
+      "language": "javascript",
+      "loc": 210,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 590
+    },
+    {
+      "path": "scripts/factory/pipeline.mjs",
+      "language": "javascript",
+      "loc": 731,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+      "language": "bash",
+      "loc": 238,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/vda/factory-prep.sh:11:log() { echo \"[PREP] $*\" >&2; }",
+      "kind": "function",
+      "file": "scripts/vda/factory-prep.sh",
+      "signature": "11:log() { echo \"[PREP] $*\" >&2; }(...)",
+      "type_text": "11:log() { echo \"[PREP] $*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/factory-prep.sh:44:release_slot_and_restore() {",
+      "kind": "function",
+      "file": "scripts/vda/factory-prep.sh",
+      "signature": "44:release_slot_and_restore() {(...)",
+      "type_text": "44:release_slot_and_restore() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/factory-prep.sh:65:run_dry_run() {",
+      "kind": "function",
+      "file": "scripts/vda/factory-prep.sh",
+      "signature": "65:run_dry_run() {(...)",
+      "type_text": "65:run_dry_run() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/factory-prep.sh:87:run_prep() {",
+      "kind": "function",
+      "file": "scripts/vda/factory-prep.sh",
+      "signature": "87:run_prep() {(...)",
+      "type_text": "87:run_prep() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/factory-prep.sh:219:main() {",
+      "kind": "function",
+      "file": "scripts/vda/factory-prep.sh",
+      "signature": "219:main() {(...)",
+      "type_text": "219:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/factory-prep-worktree-reuse.bats:24:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+      "signature": "24:setup() {(...)",
+      "type_text": "24:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/factory-prep-worktree-reuse.bats:35:vda_error() { echo \"ERROR: $*\" >&2; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+      "signature": "35:vda_error() { echo \"ERROR: $*\" >&2; }(...)",
+      "type_text": "35:vda_error() { echo \"ERROR: $*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/factory-prep-worktree-reuse.bats:40:guard_killswitch_on() { return 1; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+      "signature": "40:guard_killswitch_on() { return 1; }(...)",
+      "type_text": "40:guard_killswitch_on() { return 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/factory-prep-worktree-reuse.bats:41:guard_daily_cap_reached() { return 1; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+      "signature": "41:guard_daily_cap_reached() { return 1; }(...)",
+      "type_text": "41:guard_daily_cap_reached() { return 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/factory-prep-worktree-reuse.bats:42:guard_dryrun_ok() { return 0; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+      "signature": "42:guard_dryrun_ok() { return 0; }(...)",
+      "type_text": "42:guard_dryrun_ok() { return 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/factory-prep-worktree-reuse.bats:109:_make_worktrees() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+      "signature": "109:_make_worktrees() {(...)",
+      "type_text": "109:_make_worktrees() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

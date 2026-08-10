@@ -6,6 +6,7 @@
 ### Bug Fixes
 
 * **website:** Metrik-Endpunkt unter seinem echten Pfad ansprechen [T003459] ([#4151](https://github.com/Paddione/Bachelorprojekt/issues/4151)) ([33f9ba5](https://github.com/Paddione/Bachelorprojekt/commit/33f9ba52672720f2c6758850a55284df03ab6bc3))
+* **website:** SDLC-API-Pfade Etappe 2/8 — Ticket-Interaktion [T003478] ([#4154](https://github.com/Paddione/Bachelorprojekt/issues/4154)) ([eec618e](https://github.com/Paddione/Bachelorprojekt/commit/eec618e122043840dadd8798e2ce8882c765d2c0))
 
 ## [1.263.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.262.0...website-v1.263.0) (2026-08-10)
 

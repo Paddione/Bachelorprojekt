@@ -2604,6 +2604,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-qa-parse-and-outcome",
+    "file": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-qa-payload",
     "file": "tests/spec/dev-flow-plan/plan-qa-payload.bats",
     "category": "dev-flow-plan",
@@ -3710,6 +3716,12 @@
   {
     "id": "repo-hygiene/signal-gaps",
     "file": "tests/spec/repo-hygiene/signal-gaps.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-hygiene/worktree-clean-check-existence",
+    "file": "tests/spec/repo-hygiene/worktree-clean-check-existence.bats",
     "category": "repo-hygiene",
     "kind": "shell"
   },

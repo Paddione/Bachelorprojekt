@@ -19,7 +19,6 @@ recovery-browser-manifest
 # --- nicht mehr → k3d/docs-content-built/; docs-site/index.html existiert nicht).
 # --- Die ersten 4 Assertions laufen vacuously gruen (grep || true auf fehlendes
 # --- Verzeichnis), 7 von 12 schlagen fehl. [T003142]
-test-docs-content
 #
 tickets-migration
 tickets-pr-events

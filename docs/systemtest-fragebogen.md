@@ -998,7 +998,7 @@ Bemerkungen: ___________________________________________________________________
 
 ### SA-12: Korczewski-Realm JWT-Akzeptanz
 
-> **Beschreibung:** Prüft, dass ein JWT aus dem korczewski-Keycloak-Realm vom Arena-Server (korczewski-Cluster) akzeptiert wird.
+> **Beschreibung:** Prüft, dass ein JWT aus dem korczewski-Keycloak-Realm vom Arena-Server (Cluster fleet, Brand korczewski im Namespace workspace-korczewski) akzeptiert wird.
 
 **Vorbedingungen:** Arena-Server auf korczewski deployed, Keycloak korczewski erreichbar, `ARENA_WS_URL` und `KEYCLOAK_KORCZEWSKI` gesetzt
 
@@ -1011,7 +1011,7 @@ Bemerkungen: ___________________________________________________________________
 
 Tatsächliches Ergebnis: ______________________________________________________________________________________________
 
-Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein korczewski-Cluster)
+Status: ☐ Bestanden  ☐ Fehlgeschlagen  ☐ Übersprungen  ☐ Entfällt (kein Cluster fleet)
 
 Bemerkungen: ______________________________________________________________________________________________
 

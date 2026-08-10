@@ -77,7 +77,7 @@
   async function loadRecent() {
     loadingList = true;
     try {
-      const res = await fetch('/api/admin/tickets?status=open&limit=5');
+      const res = await fetch('/sdlc/api/tickets?status=open&limit=5');
       if (res.ok) {
         const data = await res.json();
         recentTickets = data.items ?? [];
@@ -90,7 +90,7 @@
     clearTimeout(searchTimer);
     if (query.length < 2) { searchResults = []; return; }
     searchTimer = setTimeout(async () => {
-      const res = await fetch(`/api/admin/tickets?q=${encodeURIComponent(query)}&limit=5`);
+      const res = await fetch(`/sdlc/api/tickets?q=${encodeURIComponent(query)}&limit=5`);
       if (res.ok) {
         const data = await res.json();
         searchResults = data.items ?? [];
@@ -99,7 +99,7 @@
   }
 
   async function selectTicket(t: TicketSummary) {
-    const res = await fetch(`/api/admin/tickets/${t.id}`);
+    const res = await fetch(`/sdlc/api/tickets/${t.id}`);
     if (!res.ok) return;
     const data = await res.json();
     const ticket = data.ticket;
@@ -126,7 +126,7 @@
     savingField = 'status'; fieldError = null;
     const prev = selectedTicket.status;
     try {
-      const res = await fetch(`/api/admin/tickets/${selectedTicket.id}/transition`, {
+      const res = await fetch(`/sdlc/api/tickets/${selectedTicket.id}/transition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: editStatus }),
@@ -150,7 +150,7 @@
     if (!selectedTicket) return;
     savingField = field; fieldError = null;
     try {
-      const res = await fetch(`/api/admin/tickets/${selectedTicket.id}`, {
+      const res = await fetch(`/sdlc/api/tickets/${selectedTicket.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: value || null }),
@@ -172,7 +172,7 @@
     if (!portalComment.trim()) return;
     portalSubmitting = true; portalResult = null;
     try {
-      const res = await fetch('/api/tickets/comment', {
+      const res = await fetch('/sdlc/api/tickets/comment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 925,
+      "file_count": 926,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -459,6 +459,7 @@
         "tests/spec/divergence-guard/branch-name-guard.bats",
         "tests/spec/divergence-guard/branch-prefix-suggestion.bats",
         "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
+        "tests/spec/divergence-guard/worktree-create-git-op-guard.bats",
         "tests/spec/docker-build-speedup.bats",
         "tests/spec/dora-dashboard.bats",
         "tests/spec/e2e-test-infrastructure.bats",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.2...website-v1.263.3) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 4/8 — KI-Konfiguration und Prompts [T003480] ([#4158](https://github.com/Paddione/Bachelorprojekt/issues/4158)) ([7fa4a9e](https://github.com/Paddione/Bachelorprojekt/commit/7fa4a9e5e6ce63f61a92c9af5b8f67a486032b8d))
+
 ## [1.263.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.1...website-v1.263.2) (2026-08-10)
 
 

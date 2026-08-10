@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.6...website-v1.263.7) (2026-08-10)
+
+
+### Bug Fixes
+
+* **ci:** preflight-pr-scope matcht ALLE Ticket-IDs im PR-Titel [T003103] ([#4168](https://github.com/Paddione/Bachelorprojekt/issues/4168)) ([cd2bdaf](https://github.com/Paddione/Bachelorprojekt/commit/cd2bdaf987d3333bee37fb10d2881bd014b0a478))
+
 ## [1.263.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.5...website-v1.263.6) (2026-08-10)
 
 

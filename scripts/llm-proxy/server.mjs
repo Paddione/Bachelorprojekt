@@ -131,7 +131,7 @@ async function forwardToBackend(backend, servedModel, subpath, budgetedBody) {
 
 async function proxyV1(req, res, subpath) {
   const body = await readBody(req);
-  const requestedModel = body.model;
+  const requestedModel = typeof body.model === 'string' ? body.model.replace(/^[^/]+\//, '') : body.model;
 
   // T002753 — Auto-Switch mit Preemptions-Schutz.
   //

@@ -146,7 +146,11 @@ if (!REUSE && A.ticket_id) {
 // Ensure slug is never "null" — fall back to ticket-based slug
 const safeSlug = (!slug || slug === 'null') ? `sf-${(A.ticket_id || '').toLowerCase()}` : slug
 const WORK_BRANCH = REUSE ? REUSE_BRANCH : `feature/${safeSlug}`
-const WORK_WT = REUSE ? `${REPO}/.worktrees/${safeSlug}-reuse` : WT
+// [T003270] Ein wiederverwendeter Worktree (factory-prep V1-Reuse) kann an
+// einem nicht-kanonischen Pfad liegen (.worktrees/mishap-incident-rollup statt
+// .worktrees/<slug>-reuse). A.worktree_path traegt den tatsaechlich verwendeten
+// Pfad und hat Vorrang vor der slug-basierten Berechnung.
+const WORK_WT = _normNull(A.worktree_path) || (REUSE ? `${REPO}/.worktrees/${safeSlug}-reuse` : WT)
 const titlePrefix = WORK_BRANCH.startsWith('chore/') ? 'chore' : 'feat'
 
 let specPath = null

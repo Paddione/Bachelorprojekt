@@ -234,5 +234,18 @@ EOF
   run bash -c "FAKE_PREP_SKIP=2 bash '${FAKE}/scripts/vda/factory-prep.sh' 2>/dev/null"
   [ "$status" -eq 0 ]
   # Der Zaehler-Reset geht als factory-control set mit Wert 0 in den Log.
-  grep -q 'factory-control set: prep_skip:T009902=0' "$TICKET_LOG"
+  grep -q 'factory-control set .*--key prep_skip:T009902 --value 0' "$TICKET_LOG"
+}
+
+@test "T003270 Durchreichung: dispatcher.js gibt worktree_path an pipeline.mjs weiter" {
+  # V1-Reuse funktioniert nur, wenn der tatsaechlich verwendete Worktree-Pfad
+  # bis in die Pipeline durchgereicht wird — pipeline.mjs darf ihn nicht
+  # ueberschreiben. dispatcher.js reicht f.worktree_path als A.worktree_path
+  # durch; pipeline.mjs nutzt ihn als WORK_WT-Override.
+  run grep -n 'worktree_path: f.worktree_path || null' "${REPO_ROOT}/scripts/factory/dispatcher.js"
+  [ "$status" -eq 0 ]
+  run grep -n 'worktree_path:' "${REPO_ROOT}/scripts/factory/dispatcher-bridge.sh"
+  [ "$status" -eq 0 ]
+  run grep -n '_normNull(A.worktree_path)' "${REPO_ROOT}/scripts/factory/pipeline.mjs"
+  [ "$status" -eq 0 ]
 }

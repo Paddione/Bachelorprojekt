@@ -108,7 +108,8 @@ Invoke the Workflow tool with these exact arguments to run the pipeline:
     attempt:${attempt},
     model_tier:\"${model_tier}\",
     branch:$(if [[ -n "$branch" ]]; then echo "\"${branch}\""; else echo 'null'; fi),
-    plan_path:$(if [[ -n "$plan_path" ]]; then echo "\"${plan_path}\""; else echo 'null'; fi)
+    plan_path:$(if [[ -n "$plan_path" ]]; then echo "\"${plan_path}\""; else echo 'null'; fi),
+    worktree_path:$(if [[ -n "$wt_path" && "$wt_path" != "null" ]]; then echo "\"${wt_path}\""; else echo 'null'; fi)
   })
 
 Report only the pipeline's final JSON result. The pipeline.js workflow is the

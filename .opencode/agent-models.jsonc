@@ -47,10 +47,14 @@
             "output": 8192
           }
         },
-        // 2026-08-04: Familiensubagenten gemma/qwen brauchen eigene Loadouts.
+        // 2026-08-04: Familiensubagenten gemma/qwen brauchten eigene Loadouts.
         // gemma4 (Gemma 4 12B Q4_K_M, 7,1 GB) und qwen3-coder-30b (Qwen3-Coder
-        // 30B A3B, 11,9 GB UD-IQ3_XXS) liegen auf der Platte. Ports 8090/8094 frei.
+        // 30B A3B, 11,9 GB UD-IQ3_XXS) lagen auf der Platte. Ports 8090/8094 frei.
         // Beide teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
+        // T003204: qwen3-coder-30b ist abgeschaltet (enabled: false in
+        // loadouts.json) — gleicher VRAM wie gemma26-factory bei aggressiverer
+        // Quantisierung, weniger Kontext, langsamer gemessen. Der Eintrag bleibt
+        // als historische Referenz, wird aber von keinem Agenten mehr referenziert.
         "gemma4": {
           "name": "Gemma 4 26B A4B UD-IQ4_XS (Serving, Loadout gemma4 auf Port 8090, np=1, q4_0 KV, gemessen 177.920 ctx) - exclusiveGroup chat-gpu",
           "limit": {
@@ -71,16 +75,11 @@
             "context": 118016,
             "output": 8192
           }
-        },
-        "qwen3-coder-30b": {
-          "name": "Qwen3-Coder-30B-A3B UD-IQ3_XXS, Loadout qwen3-coder-30b auf Port 8094 - exclusiveGroup chat-gpu",
-          // 96000 ist GEMESSEN (n_ctx_slot im Serverlog, 2026-08-09, b10241, np=1
-          // q4_0 fitt 64). Vorher 32768 (Platzhalter, nie gemessen).
-          "limit": {
-            "context": 96000,
-            "output": 8192
-          }
         }
+        // T003204: qwen3-coder-30b ist abgeschaltet (enabled: false in
+        // loadouts.json) — gleicher VRAM wie gemma26-factory bei aggressiverer
+        // Quantisierung, weniger Kontext, langsamer gemessen. Der Eintrag bleibt
+        // als historische Referenz, wird aber von keinem Agenten mehr referenziert.
       }
     },
     "ollama": {
@@ -255,8 +254,9 @@
     // Frueher hiessen sie gemma26-1/2 und gemma9-1/2 und zeigten ALLE auf
     // gptoss-context — der Name log ueber das Modell. Seit 2026-08-04 traegt
     // jeder lokale Subagent den Namen der Familie, die er tatsaechlich serviert
-    // (gptoss, devstral, gemma, qwen), und der Orchestrator ruft ihn damit auf:
-    // `task gemma` gibt die Gemma-Familie, `task qwen` die Qwen-Familie.
+    // (gptoss, devstral, gemma, gemma12), und der Orchestrator ruft ihn damit auf:
+    // `task gemma` gibt die Gemma-Familie. T003204: die Familie qwen ist
+    // abgeschaltet — ihr Loadout qwen3-coder-30b ist enabled: false.
     //
     // Was unveraendert gilt: der llm-proxy hat max_inflight=1, die Agenten
     // rechnen nacheinander. Mehr Namen bringen erhaltenen Kontext, nicht
@@ -306,16 +306,6 @@
       "model": "llamacpp-local/gemma26-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#F59E0B",
-      "temperature": 0.4,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
-    },
-    "qwen": {
-      "description": "Local subagent for the qwen family (Qwen3-Coder-30B-A3B UD-IQ3_XXS, Loadout qwen3-coder-30b auf Port 8094, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu.",
-      "mode": "subagent",
-      "model": "llamacpp-local/qwen3-coder-30b",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#A78BFA",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
@@ -432,16 +422,6 @@
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
-    "qwen-primary": {
-      "description": "PRIMARY: Qwen3-Coder-30B-A3B UD-IQ3_XXS (96.000 ctx measured). Tab-selectable singleagent on the qwen3-coder-30b loadout (Port 8094). MoE architecture, strong coding performance per parameter. Can dispatch any subagent.",
-      "mode": "primary",
-      "model": "llamacpp-local/qwen3-coder-30b",
-      "prompt": "{file:./prompts/local-subagent.md}",
-      "color": "#A78BFA",
-      "temperature": 0.3,
-      "steps": 50,
-      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
-    },
     // Eskalationsstufe fuer Parallel-Agenten, NACH lokaler Kontext-
     // Kompaktierung/Retry und opencodes eigener Kompaktierung - erst wenn
     // beides nicht reicht, wird hier dispatcht. Verwendet die direkte
@@ -515,7 +495,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12/qwen) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "opencode-go/deepseek-v4-flash",
       "prompt": "{file:./prompts/orchestrator.md}",
@@ -533,7 +513,6 @@
           // nicht dispatchbar — die Liste nennt bewusst exakte Namen statt einer
           // Wildcard (Prinzip aus T002298).
           "gemma12": "allow",
-          "qwen": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",
           "deepseek-flash": "allow",

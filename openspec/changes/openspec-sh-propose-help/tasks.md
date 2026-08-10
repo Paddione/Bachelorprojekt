@@ -18,13 +18,13 @@ _Ticket: T002908_
 
 | Datei | Ist-Zeilen | Budget | Art |
 |---|---|---|---|
-| `scripts/openspec.sh` | 404 | 396 | geändert (Hilfe-Block in `cmd_propose`, ca. +14 Zeilen) |
+| `scripts/openspec.sh` | 417 | 383 | geändert (Hilfe-Block in `cmd_propose`, +13 Zeilen) |
 | `tests/spec/openspec-workflow/propose-help.bats` | 98 | 800 | neu (bereits in diesem Branch angelegt, RED) |
 | `openspec/changes/openspec-sh-propose-help/specs/openspec-workflow.md` | — | — | Delta-Spec (bereits angelegt) |
 
 `scripts/openspec.sh` ist nicht baselined (`jq -r '."S1:scripts/openspec.sh".metric // "nicht-baselined"'
 docs/code-quality/baseline.json` → `nicht-baselined`), wirksame Schwelle ist damit das
-statische `.sh`-Limit 800 aus `docs/code-quality/gates.yaml`. Ist 404 → Budget 396, die
+statische `.sh`-Limit 800 aus `docs/code-quality/gates.yaml`. Ist 417 → Budget 383, die
 Änderung liegt weit darunter.
 
 <!-- vitest: kein neuer Test nötig, weil ausschließlich Bash-Code unter scripts/ geändert wird -->

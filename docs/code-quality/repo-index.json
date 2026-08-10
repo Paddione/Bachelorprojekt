@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 923,
+      "file_count": 925,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -695,6 +695,7 @@
         "tests/spec/sidekick-assistant.bats",
         "tests/spec/software-factory/_sf_common.bash",
         "tests/spec/software-factory/agent-lock-scope-argument.bats",
+        "tests/spec/software-factory/auto-triage-type-vocab.bats",
         "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
         "tests/spec/software-factory/brand-is-row-filter-not-namespace.bats",
         "tests/spec/software-factory/canary-and-cleanup.bats",
@@ -710,6 +711,7 @@
         "tests/spec/software-factory/partial-deploy-gang.bats",
         "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
         "tests/spec/software-factory/pr-babysit.bats",
+        "tests/spec/software-factory/provider-config-baseurl-convention.bats",
         "tests/spec/software-factory/queue-test-data-filter.bats",
         "tests/spec/software-factory/retry-and-build-loop.bats",
         "tests/spec/software-factory/scheduling.bats",
@@ -936,7 +938,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 60,
+      "file_count": 61,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -997,7 +999,8 @@
         "scripts/migrations/2026-08-09-enable-gemma-backend-proxy-T002640.sql",
         "scripts/migrations/2026-08-10-brain-ingest-port.sql",
         "scripts/migrations/2026-08-10-disable-gptoss-devstral.sql",
-        "scripts/migrations/2026-08-10-disable-qwen.sql"
+        "scripts/migrations/2026-08-10-disable-qwen.sql",
+        "scripts/migrations/2026-08-10-provider-config-baseurl-drop-v1.sql"
       ]
     },
     {

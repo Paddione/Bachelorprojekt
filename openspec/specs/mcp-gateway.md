@@ -759,3 +759,5 @@ prints a usable credential into a public Actions log.
   placeholder appears in its place
 
 <!-- merged from change delta mcp-gateway.md (febf379dca66) -->
+
+<!-- merged from change delta mcp-gateway.md (2037c820878e) -->

@@ -3015,6 +3015,12 @@
       "status": "plan_staged"
     }
   ],
+  "T002932": [
+    {
+      "slug": "worktree-status-check-existence",
+      "status": "plan_staged"
+    }
+  ],
   "T002941": [
     {
       "slug": "2026-08-10-mcp-config-mutation-race",

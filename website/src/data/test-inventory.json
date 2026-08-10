@@ -3666,6 +3666,12 @@
     "kind": "shell"
   },
   {
+    "id": "repo-hygiene/worktree-clean-check-existence",
+    "file": "tests/spec/repo-hygiene/worktree-clean-check-existence.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
     "id": "repo-hygiene/worktree-remove-generat-allowlist",
     "file": "tests/spec/repo-hygiene/worktree-remove-generat-allowlist.bats",
     "category": "repo-hygiene",

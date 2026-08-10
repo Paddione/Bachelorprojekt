@@ -117,13 +117,25 @@ if [ "${WT_SKIP_NAME_CHECK:-0}" != "1" ]; then
           echo "    feature/flux-gaps-brainless-T002093" >&2
           echo "    fix/pocket-id-retry-T001234" >&2
           echo "    chore/deps-bump-T001500" >&2
-          # Build suggested correction (lowercase ticket ID + feat/ → feature/)
+          # Build suggested correction (lowercase ticket ID + Typ-Praefix-Abbildung)
           _suggested="$_bn"
           _suggested_changed=0
-          if [[ "$_suggested" =~ ^feat/ ]]; then
-            _suggested="feature/${_suggested#feat/}"
-            _suggested_changed=1
-          fi
+          # Typ-Praefix-Abbildung [T002811]: gaengige Ticket-Typ-Praefixe, die NICHT in
+          # der Allowlist stehen, auf ihr konformes Gegenstueck abbilden.
+          #
+          # Die Allowlist bleibt bewusst bei vier Praefixen — hier wird nur die konforme
+          # Alternative GENANNT, nicht eine fuenfte zugelassen. Der Unterschied ist der
+          # Punkt des Vorgangs: bei T002627 wurde refactor/sdlc-routes-remove-T002627
+          # abgelehnt, woraufhin der Operator geraten auf feature/ auswich — also auf ein
+          # Praefix, das den Vorgang falsch einordnet. Eine breitere Allowlist liefe zudem
+          # am commit-msg-Hook auseinander, dessen Scope-Liste 'refactor' ebenfalls nicht
+          # kennt.
+          case "$_suggested" in
+            feat/*)     _suggested="feature/${_suggested#feat/}"   ; _suggested_changed=1 ;;
+            refactor/*) _suggested="chore/${_suggested#refactor/}" ; _suggested_changed=1 ;;
+            perf/*)     _suggested="chore/${_suggested#perf/}"     ; _suggested_changed=1 ;;
+            bug/*)      _suggested="fix/${_suggested#bug/}"        ; _suggested_changed=1 ;;
+          esac
           if [[ "$_suggested" =~ (.*)t([0-9]{6,})(.*) ]]; then
             _suggested="${BASH_REMATCH[1]}T${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
             _suggested_changed=1

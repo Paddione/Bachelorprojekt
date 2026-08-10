@@ -2883,6 +2883,12 @@
       "status": "archived"
     }
   ],
+  "T002811": [
+    {
+      "slug": "worktree-create-refactor-prefix",
+      "status": "plan_staged"
+    }
+  ],
   "T002813": [
     {
       "slug": "archive-deliverable-guard",

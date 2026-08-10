@@ -446,6 +446,7 @@
         "tests/spec/devflow-selection-archive-hardening.bats",
         "tests/spec/divergence-guard.bats",
         "tests/spec/divergence-guard/branch-name-guard.bats",
+        "tests/spec/divergence-guard/branch-prefix-suggestion.bats",
         "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
         "tests/spec/docker-build-speedup.bats",
         "tests/spec/dora-dashboard.bats",

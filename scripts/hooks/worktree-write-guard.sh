@@ -135,7 +135,14 @@ for f in "$LOCK_DIR"/*.json; do
     # dispatcht). Der frühere `[ -z "$MY_WT" ] && MY_WT="$wt"` sperrte sie aus allen
     # ausser dem zuerst gefundenen aus — und welcher das ist, entscheidet die
     # Glob-Reihenfolge, also der Ticketname. [T002412]
-    MY_WTS+=("$wt")
+    # Dedup: ein Worktree, auf den mehrere Locks (unterschiedlichen Scopes)
+    # zeigen, erscheint nur einmal in der Liste. Reine Bash-Prüfung über
+    # das Array — keine neue Abhängigkeit.
+    _dedup_found=0
+    for _existing in "${MY_WTS[@]}"; do
+      [ "$_existing" = "$wt" ] && { _dedup_found=1; break; }
+    done
+    [ "$_dedup_found" -eq 0 ] && MY_WTS+=("$wt")
   else
     case "$TARGET" in
       "$wt"/*|"$wt") FOREIGN_WT="$wt"; FOREIGN_SID="$owner";;
@@ -144,6 +151,10 @@ for f in "$LOCK_DIR"/*.json; do
 done
 
 # 2) Eigener Claim gewinnt: nur unterhalb der eigenen Worktrees darf geschrieben werden.
+#     Die Zusicherung ist session-bezogen (SID-Match), nicht akteur-bezogen — ein
+#     Subagent derselben Session schreibt unter derselben SID und passiert den Guard
+#     legitimerweise. Eine Verengung auf Akteur-Kennung (Parent-SID) würde T002412
+#     umkehren und ist bewusste Gegenentscheidung (T003131).
 if [ "${#MY_WTS[@]}" -gt 0 ]; then
   for mw in "${MY_WTS[@]}"; do
     case "$TARGET" in
@@ -153,7 +164,7 @@ if [ "${#MY_WTS[@]}" -gt 0 ]; then
   {
     echo "WORKTREE-GUARD: Schreibzugriff abgelehnt."
     echo "  Pfad:            $TARGET"
-    echo "  Dieser Session gehoeren:"
+    echo "  Dieser Session (SID $SID) gehoeren — ggf. ueber Subagenten:"
     for mw in "${MY_WTS[@]}"; do echo "    - $mw"; done
     echo "  Der Pfad liegt ausserhalb — vermutlich im Hauptcheckout oder in einem"
     echo "  fremden Worktree. Ruf denselben Pfad mit einem der Praefixe oben erneut auf."

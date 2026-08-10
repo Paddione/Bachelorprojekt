@@ -175,7 +175,8 @@ _ticket_lock_guard() {
     # Meldung nicht ersichtlich, WARUM der Halter als fremd gilt — genau das
     # kostete bei T002424 eine Untersuchungsschleife.
     echo "       Eigene SID: ${my_sid:-<nicht gesetzt>} (Shell-PID $$)" >&2
-    echo "       Falls der Halter diese Session ist, gezielt durchlassen: TICKET_LOCK_OVERRIDE=1" >&2
+    echo "       Regulaerer Weg: den Claim nach getaner Arbeit mit 'agent-lock.sh release' freigeben." >&2
+    echo "       Falls der Halter diese Session ist, gezielt durchlassen: TICKET_LOCK_OVERRIDE=1 (deaktiviert den Schutz auch gegen echte Fremdsessions)" >&2
     return 7
   fi
   return 0

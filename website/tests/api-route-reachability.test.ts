@@ -111,17 +111,12 @@ function sdlcCounterpart(path: string): string {
   return path.replace(/^\/api\/(admin\/)?/, '/sdlc/api/');
 }
 
-// Die Sanierung läuft in Etappen zu je sechs Dateien (ein Ticket pro Etappe).
-// Bis alle durch sind, hält diese Liste die noch nicht sanierten Dateien fest.
-// Sie darf ausschliesslich SCHRUMPFEN — jede Etappe streicht ihre sechs
-// Einträge. Steht hier eine Datei, die längst sauber ist, schlägt der Test an:
-// eine Ausnahmeliste, die niemand aufräumt, verdeckt sonst neue Fehler.
-const PENDING_FILES: string[] = [
-  // Etappe 8 — Assistant-Views [T003484]
-  'src/components/assistant/LlmProxyView.svelte',
-  'src/components/assistant/SupportView.svelte',
-];
-
+// [T003484] Die etappenweise Sanierung ist abgeschlossen; die Uebergangsliste
+// PENDING_FILES ist entfallen. Sie hielt waehrend der acht Etappen die noch
+// nicht sanierten Dateien und wurde von einem eigenen Test bewacht, der
+// erzwang, dass sie nur schrumpft. Mit leerer Liste waere dieser Test vakuos
+// gewesen — er haette nichts mehr behauptet. Wird wieder etappenweise
+// migriert, gehoert beides zurueck: Liste UND Schrumpf-Guard.
 describe('API-Routen sind erreichbar', () => {
   const routes = routePaths();
   const fetched = fetchedApiPaths();
@@ -145,20 +140,11 @@ describe('API-Routen sind erreichbar', () => {
 
   it('jeder gefetchte /api/-Pfad trifft eine existierende Route', () => {
     const dead = fetched.filter((f) => !resolves(f.path, routes, f.partial));
-    const report = dead
-      .filter((d) => !PENDING_FILES.includes(d.file))
-      .map((d) => {
-        const sdlc = sdlcCounterpart(d.path);
-        return `${d.file}: ${d.path}${resolves(sdlc, routes, d.partial) ? `  → existiert als ${sdlc}` : ''}`;
-      });
+    const report = dead.map((d) => {
+      const sdlc = sdlcCounterpart(d.path);
+      return `${d.file}: ${d.path}${resolves(sdlc, routes, d.partial) ? `  → existiert als ${sdlc}` : ''}`;
+    });
     expect(report).toEqual([]);
   });
 
-  it('die Übergangsliste enthält nur Dateien, die wirklich noch defekt sind', () => {
-    // Verhindert, dass PENDING_FILES zur toten Ausnahmeliste verkommt.
-    const stillDead = new Set(
-      fetched.filter((f) => !resolves(f.path, routes, f.partial)).map((f) => f.file),
-    );
-    expect(PENDING_FILES.filter((f) => !stillDead.has(f))).toEqual([]);
-  });
 });

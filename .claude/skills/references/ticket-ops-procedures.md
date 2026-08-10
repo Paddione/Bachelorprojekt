@@ -161,6 +161,86 @@ T000738 | Unbekanntes Feature  | backlog     | niedrig | —       | description
 
 ---
 
+## Phase 1.5 — Backlog Grouping Scan
+
+Nach Phase 1 sind alle Tickets klassifiziert. Bei vielen Tickets im Backlog (>10) lohnt es sich,
+zusammengehörige Tickets zu **Batch-Gruppen** zu bündeln: ein Parent-Ticket, dessen Branch alle
+enthaltenen Änderungen in einem Durchlauf abdeckt — statt N getrennter Planungs- und Merge-Zyklen.
+
+### Step 1.5.1: Grouping-Heuristiken
+
+Für jedes ready/incomplete-Ticket prüfen, ob es einer Gruppe zugeordnet werden kann:
+
+| Heuristik | Bedingung | Gewicht |
+|-----------|-----------|---------|
+| **Same-area** | Mindestens ein `areas`-Eintrag gemeinsam, **und** die `impact_files` (aus `intel.json` oder Ticket-Beschreibung) disjunkt — kein Dateikonflikt | stark (auto-group wenn ≥2 Treffer) |
+| **Explicit link** | `ticket_links` enthält `kind='relates_to'` zwischen beiden Tickets | stark (auto-group) |
+| **Bulk pattern** | Titel-Muster erkennbar: gleiches Verb + Objekt über mehrere Tickets, z.B. "Add X to dashboard", "Fix Y in all handlers", "Update Z across components" | mittel (Candidate-Flag) |
+| **Same component** | Gleicher `component`-Wert **und** `effort IN (klein, mittel)` | schwach (nur wenn ≥3) |
+| **Common dependency** | Beide Tickets hängen von demselben Dritt-Ticket ab (in `depends_on`) | mittel (Sub-Group) |
+
+**Ausschlusskriterien — diese Tickets NIEMALS gruppieren:**
+- `severity = 'critical'` → braucht eigenen Fokus
+- `status IN ('in_progress', 'plan_staged')` → wird bereits bearbeitet
+- Bereits in einer anderen Gruppe als Kind verlinkt
+- `attention_mode = 'needs_human'` → erst Phase 2 abwarten
+
+### Step 1.5.2: Batch Parent erstellen
+
+Für jede gefundene Gruppe (≥2 Tickets):
+
+1. **Parent-Ticket anlegen:**
+   ```bash
+   # Via ticket-mcp:
+   mcp__ticket-mcp__create_ticket({
+     type: "feat",
+     brand: "mentolder",
+     title: "Batch: <kurzer-gruppen-titel>",
+     description: "Batch-Gruppe aus N Tickets:\n- T000AAA: <titel>\n- T000BBB: <titel>\n...",
+     priority: "<höchste Prio der Kinder>",
+     severity: "<höchste Severity der Kinder>",
+     areas: "<Union aller Kinder-Areas>"
+   })
+   ```
+   Die Rückgabe liefert `BATCH_PARENT_ID`.
+
+2. **`child_of`-Links setzen** (für jedes Kind-Ticket):
+   ```
+   mcp__ticket-mcp__link_tickets({ from: "<child_ext_id>", to: "<BATCH_PARENT_ID>", kind: "child_of" })
+   ```
+
+3. **Kind-Tickets markieren:**
+   ```
+   mcp__ticket-mcp__add_comment({
+     id: "<child_ext_id>",
+     body: "🔗 Batch-Gruppe: Parent <BATCH_PARENT_ID>. Wird gemeinsam mit N anderen Tickets geplant."
+   })
+   ```
+
+### Step 1.5.3: Batch-Map ausgeben
+
+```json
+{
+  "groups": [
+    {
+      "parent_id": "T000XXX",
+      "title": "Batch: Dashboard-Verbesserungen",
+      "children": ["T000AAA", "T000BBB", "T000CCC"],
+      "areas": ["website", "dashboard"],
+      "total_effort": "mittel",
+      "rationale": "3 Tickets teilen area=website+dashboard, keine Dateikonflikte"
+    }
+  ],
+  "ungrouped_ready": ["T000DDD", "T000EEE"],
+  "deferred_to_phase2": ["T000FFF"]
+}
+```
+
+Diese Map fließt in Phase 3 ein — Batch-Gruppen werden als **eine Einheit** in die Wellen-Sortierung
+aufgenommen (alle Kinder einer Gruppe sitzen in derselben Welle).
+
+---
+
 ## Phase 2 — Human Escalation Round
 
 Escalate to the user **only for significant decisions** that AI cannot resolve autonomously: ambiguous business impact, unclear scope boundaries, multi-area conflicts without clear owner. All other tickets proceed with AI-decided values. Use subagent dispatch when validation/clarification requires domain expertise.
@@ -257,9 +337,52 @@ Edges come from two sources — merge both:
 **Soft conflict edges:** two ready tickets that share any `areas` entry have a file-collision risk → they may not sit in the **same** wave (serialise them). This is conservative by design (the approved heuristic); flag it rather than hide it.
 
 ### Step 3.2: Topologically sort into waves
-- **Wave N** = every ready ticket whose hard dependencies are all satisfied by waves `< N` **and** which has no `areas` conflict with another ticket already placed in wave N.
+
+- **Input:** Ready-Tickets + Batch-Gruppen (aus Phase 1.5).
+- **Batch-Gruppen** werden als **atomare Einheiten** behandelt — alle Kinder einer Gruppe landen in derselben Welle (der Parent-Branch deckt sie ab).
+- **Wave N** = every ready ticket/group whose hard dependencies are all satisfied by waves `< N` **and** which has no `areas` conflict with another ticket/group already placed in wave N.
 - **Maximise wave width** (the goal is "as much in parallel as possible") subject to those two constraints.
-- Order ties by `priority` (hoch > mittel > niedrig), then smaller `effort` first (quick wins).
+
+**Impact-gewichtete Reihenfolge innerhalb einer Welle:**
+
+Tickets/Groupen innerhalb einer Welle werden nach **Impact-Score** sortiert (höchster zuerst):
+
+```
+impact_score = blocked_count * 10 + age_days * 0.5 + priority_bonus
+```
+
+| Faktor | Berechnung |
+|--------|-----------|
+| `blocked_count` | Wie viele andere Tickets hängen via `depends_on` oder `ticket_links(kind='blocked_by')` von diesem Ticket ab? (Query: siehe Step 3.2a) |
+| `age_days` | `now() - created_at` in Tagen. Ältere Tickets bekommen Boost, damit sie nicht ewig liegen. |
+| `priority_bonus` | `hoch=30`, `mittel=15`, `niedrig=0` |
+
+**Tie-Breaking:** Bei gleichem Score: kleinere `effort` zuerst (Quick Wins), dann `planning_rank` (niedriger = höhere Priorität).
+
+#### Step 3.2a: Blocked-Count pro Ticket ermitteln
+
+```sql
+-- Tickets, die von diesem Ticket geblockt werden (hard deps + ticket_links):
+SELECT t.external_id AS blocker,
+       COUNT(DISTINCT blocked.id) AS blocked_count
+FROM tickets.tickets t
+LEFT JOIN tickets.tickets blocked ON t.external_id = ANY(blocked.depends_on)
+LEFT JOIN tickets.ticket_links l ON l.to_id = t.id AND l.kind = 'blocked_by'
+LEFT JOIN tickets.tickets blocked2 ON l.from_id = blocked2.id
+WHERE t.external_id = ANY($ready_ticket_ids)
+GROUP BY t.external_id;
+```
+
+#### Step 3.2b: Quick-Win Detection
+
+Tickets, die alle drei Bedingungen erfüllen, werden im Masterplan mit `⚡ QUICK WIN` markiert:
+1. `effort = 'klein'`
+2. `depends_on IS NULL` (keine harten Abhängigkeiten)
+3. Nur ein `areas`-Eintrag (kein Cross-Cutting → geringeres Kollisionsrisiko)
+
+Quick Wins sind ideale Kandidaten für eine **Quick-Win-Batch**: bis zu 5 Quick Wins ohne
+Dateikonflikte können in eine Ad-hoc-Gruppe (ohne Parent-Ticket) zusammengefasst werden.
+Der Gruppe wird im Masterplan eine eigene Zeile mit `[QUICK-WIN BATCH: N]` gegeben.
 ### Step 3.3: Pre-Check — Lock-Status der Wave-1-Tickets prüfen
 
 > **Pre-Check-Invariante [T002422]:** Vor dem ersten `claim`-Aufruf wird für jedes Wave-1-Ticket
@@ -300,6 +423,7 @@ Edges come from two sources — merge both:
 The dev-flow contract splits the parallel unit, orchestrated by all available subagents:
 - `status = 'plan_staged'` → **execution wave**: dispatch `dev-flow-execute` via relevant subagent (`website-specialist`, `bachelorprojekt-test`, etc.)
 - `attention_mode = 'ai_ready'` / DoR-complete → **planning wave**: dispatch `dev-flow-plan` via domain-specific subagent for plan creation and staging
+- **Batch parent** (`type='feat'`, hat `child_of`-Kinder) → **batch planning wave**: EIN `dev-flow-plan`-Lauf für den Parent, dessen `tasks.md` die Änderungen aller Kind-Tickets als Partials enthält. Der Parent-Branch `feature/batch-<slug>` deckt alle Kinder ab.
 - **Any other ready ticket** → **parallel planning wave**: all available subagents work in parallel to create plans, set readiness flags, stage branches. No ready ticket is left without a route or owner.
 
 Any subagent that lands a `type='feat'` ticket in `status='backlog'` must, in the same pass, populate `requirements_list` and > **Wichtig [T002471-M3]:** Vor `lastenheft lock` muss `requirements_list` gefüllt sein:
@@ -310,17 +434,53 @@ Any subagent that lands a `type='feat'` ticket in `status='backlog'` must, in th
 All subagents report back with: ticket_id, decisions made, branch created, plan staged, **lastenheft locked (y/n)**. Consolidate for Phase 3 masterplan completion.
 
 ### Step 3.5: Present the masterplan
+
 ```
-WELLE 1  (parallel · keine offenen Abh.)
-  T000953  Cockpit Fullscreen   hoch   area:website  plan_staged → execute (wt-A)
-  T000801  DB-Index Backfill    hoch   area:db       plan_staged → execute (wt-B)
-WELLE 2  (nach T000953)
-  T000959  Status-Badge         mittel area:website  ai_ready    → plan    (wt-C)  ⊳ depends T000953
-⚠ KONFLIKT: T000953 & T000961 beide area:website/admin → seriell (T000961 → Welle 2)
-LOCK-KONFLIKTE: [T002424]  (erscheint nur bei Konflikten)
+┌─ BACKLOG SUMMARY ─────────────────────────────────────────────────────┐
+│ Total offen: 23  │  Ready (Triage done): 14  │  Blocked (deps): 5    │
+│ Batch-Gruppen: 2 (deckt 6 Tickets ab)  │  Quick Wins: 4             │
+│ Offene PRs: 3 (1 mergeable, 1 CI-failing, 1 in review)              │
+│ Factory-Queue: 2 wartend, 1 aktiv                                    │
+└──────────────────────────────────────────────────────────────────────┘
+
+WELLE 1  (parallel · keine offenen Abh. · 3 Einheiten)
+  [BATCH:3] T000987  Batch: Dashboard-Fixes          hoch   area:website  plan      (wt-batch-dash)
+            ├─ T000953 Cockpit Fullscreen                                            (child)
+            ├─ T000959 Status-Badge                                                  (child)
+            └─ T000961 Admin-Table                                                    (child)
+  T000801  DB-Index Backfill                         hoch   area:db       plan_staged → execute (wt-db)
+  [QUICK-WIN BATCH:4]                                ⚡     areas:mixed   plan      (wt-quickwins)
+            ├─ T001002 README-Link fix               ⚡klein area:docs
+            ├─ T001003 Typo in footer                 ⚡klein area:website
+            ├─ T001004 Dead import cleanup            ⚡klein area:scripts
+            └─ T001005 CI badge URL update            ⚡klein area:ci
+
+WELLE 2  (nach T000801 · 1 Einheit)
+  T000977  Auth-Token Refresh                        mittel area:auth     ai_ready → plan (wt-auth) ⊳ depends T000801
+  Age: 14d | Impact: blockiert 3 Tickets
+
+WELLE 3  (nach Welle 2 · 2 Einheiten)
+  T000965  Brett-Mobile-Layout                       mittel area:brett    ai_ready → plan  ⊳ depends T000977
+  T000972  Chat-Notification-Throttle                mittel area:chat     ai_ready → plan  ⊳ depends T000977
+
+⚠ SOFT-KONFLIKT: T000965 & T000972 beide area:brett → seriell
+⚠ LOCK-KONFLIKTE:
   T002XXX bereits gehalten von claude (sid …, label …, seit …)  → deferred
-DEFERRED (needs_human, ungeklärt): T000738
+
+DEFERRED (needs_human, ungeklärt): T000738, T000740
+DEFERRED (severity=critical, eigener Fokus): T001001
+
+AGE-ALERT: 3 Tickets >30 Tage ohne Aktivität — Review empfohlen
+HYGIENE-EMPFEHLUNG: 5 stale Worktrees, 8 [gone]-Branches — `repo-hygiene` ausführen
 ```
+
+**Format-Regeln:**
+- Batch-Gruppen: `[BATCH:N]` mit Parent-Ticket, eingerückte Kinder mit `├─`/`└─`
+- Quick-Win-Batch: `[QUICK-WIN BATCH:N]` mit `⚡`-Marker
+- Impact: Nur anzeigen wenn `blocked_count > 0` — als `blockiert N Tickets`
+- Age: Nur anzeigen wenn `age_days > 7`
+- Age-Alert: Automatisch wenn Tickets >30 Tage ohne Update
+- Hygiene-Empfehlung: Wenn `repo-hygiene` seit >5 Tagen oder >10 stale Artifacts
 
 ### Step 3.6: Dispatch wave 1 (after the user approves)
 
@@ -349,30 +509,33 @@ Merge = Abschluss: each ticket closes on its own green auto-merge; the masterpla
 │                    Open Tickets (N=17)                       │
 └─────────────────────┬───────────────────────────────────────┘
                       │
-          ┌───────────┴───────────────────────────────────────┐
-          │                                                   │
-    Autonomous AI Decisions                          Significant Human Decisions
-    (severity/component/areas/readiness)                    ↑
-          │                                                  │
-    Dispatch subagents for validation &             └────────┘
-    enrichment                                        Escalation gate
-          │
-    Set attention_mode = 'ai_ready' or              (ambiguous impact, unclear scope)
-    add to missing[] list                          → needs_human flag
-          │
-          ▼
-    Parallel execution across all subagents:
-    - bachelorprojekt-test
-    - bachelorprojekt-infra  
-    - bachelorprojekt-website
-    - database-specialist
-    - security-specialist
-          │
-          ▼
-    Consolidate decisions & set readiness flags
-          │
-          ▼
-    Phase 3: Masterplan with ALL tickets → Plan staging
+           ┌──────────┴───────────────────────────────────────┐
+           │                                                   │
+     Autonomous AI Decisions                          Significant Human Decisions
+     (severity/component/areas/readiness)                    ↑
+           │                                                  │
+           ├──► Phase 1.5: Grouping Scan             └────────┘
+           │     (Batch-Gruppen bilden)                Escalation gate
+           │                                                   │
+     Dispatch subagents for validation &              (ambiguous impact, unclear scope)
+     enrichment                                      → needs_human flag
+           │
+     Set attention_mode = 'ai_ready' or
+     add to missing[] list
+           │
+           ▼
+     Parallel execution across all subagents:
+     - bachelorprojekt-test
+     - bachelorprojekt-infra
+     - bachelorprojekt-website
+     - database-specialist
+     - security-specialist
+           │
+           ▼
+     Consolidate decisions & set readiness flags
+           │
+           ▼
+     Phase 3: Masterplan with ALL tickets & Batch-Gruppen → Plan staging
 ```
 
 ### Key Changes
@@ -381,6 +544,9 @@ Merge = Abschluss: each ticket closes on its own green auto-merge; the masterpla
 2. **Human gate only for significant ambiguity** — unclear business impact or scope boundaries
 3. **Full subagent fan-out** — all available subagents work in parallel to complete planning/staging
 4. **All tickets to plan_staged** — no backlog waiting, every ticket gets a domain expert assigned
+5. **Batch grouping (Phase 1.5)** — zusammengehörige Tickets zu Gruppen bündeln, um Planungs-Overhead zu senken
+6. **Impact-weighted ordering** — Tickets, die viele andere blockieren, werden priorisiert
+7. **Quick-Win detection** — `effort=klein`-Tickets ohne Abhängigkeiten automatisch erkennen und batchen
 
 ### Subagent Responsibilities Matrix
 

@@ -19,16 +19,23 @@ und werden gelesen, wenn die jeweilige Phase dran ist.
 
 ## Workflow at a glance
 
-Ein vollständiger Durchlauf hat drei Phasen. Für eine enge Anfrage direkt in die passende Phase
-springen; für „triagiere alles / was kann ich parallel machen" 1 → 2 → 3 der Reihe nach.
+Ein vollständiger Durchlauf hat vier Phasen. Für eine enge Anfrage direkt in die passende Phase
+springen; für „triagiere alles / was kann ich parallel machen" 1 → 2 → 3 → 4 der Reihe nach.
 
 1. **Completeness triage** — alle offenen Tickets holen, pro Ticket berechnen *was fehlt*,
    klassifizieren. Der Agent entscheidet Severity, Component, Areas und Readiness-Flags
    autonom nach Rubrik; nur echte Ermessensfragen werden eskaliert.
-2. **Human clarification** — für die gefilterte Teilmenge die fehlenden Angaben beim Menschen
+2. **Backlog grouping scan** — nach der Triage: zusammengehörige Tickets zu **Batch-Gruppen**
+   bündeln, um den Planungs- und Merge-Overhead bei vielen kleinen Tickets zu senken.
+   Heuristiken: gleiche `areas` + kein Dateikonflikt, explizite `relates_to`-Links,
+   Bulk-Operationen mit gleichförmigem Titel. Jede Gruppe bekommt ein Parent-Ticket
+   (`type='feat'`, `child_of`-Links), dessen Branch alle enthaltenen Tickets abdeckt.
+3. **Human clarification** — für die gefilterte Teilmenge die fehlenden Angaben beim Menschen
    erfragen (gebündelt), Antworten in die DB zurückschreiben.
-3. **Parallelization masterplan** — Abhängigkeitsgraph über die nun fertigen Tickets bauen, in
-   Wellen sortieren, Konflikte sichtbar machen und nach Freigabe Welle 1 dispatchen.
+4. **Parallelization masterplan** — Abhängigkeitsgraph über die nun fertigen Tickets bauen, in
+   Wellen sortieren (Impact-gewichtete Reihenfolge, Batch-Gruppen als Einheiten), Konflikte
+   sichtbar machen und nach Freigabe Welle 1 dispatchen. Enthält **Quick-Win-Detection**
+   für `effort=klein`-Tickets ohne Abhängigkeiten.
 
 Repo-Housekeeping (stale Worktrees/Branches, PR-Triage, Issue-Intake, Factory-Queue) ist **nicht
 mehr Teil dieses Skills** — es liegt vollständig bei [`repo-hygiene`](../repo-hygiene/SKILL.md),
@@ -93,12 +100,31 @@ alles Mehrdeutige bleibt unangetastet und wird zur Phase-2-Frage.
 `ticket-mcp`-Wrapper oder den `psql()`-Helper — SSOT:
 [`MCP-Tool-Guide`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/mcp-tool-guide.md) §mcp-postgres.
 
+**Batch-Grouping-Regel [T003550]:** Bei >10 offenen Tickets im Backlog lohnt sich Batch-Gruppierung.
+Tickets, die in denselben `areas` liegen, keine disjunkten Dateimengen berühren und keinen
+harten Blockierer (`depends_on`) untereinander haben, KÖNNEN in eine Batch-Gruppe. Eine Gruppe
+erhält ein neu angelegtes Parent-Ticket (`type='feat'`, `child_of`-Links von den Kind-Tickets);
+der Parent-Branch `feature/batch-<slug>` deckt alle Kinder in einem Durchlauf ab. Kind-Tickets
+behalten ihre eigene `external_id` und schließen einzeln — der Parent dient nur als
+Planungsanker. **Nicht** gruppieren: Tickets mit `severity=critical`, Tickets in `in_progress`,
+oder Tickets, die bereits einen gestagten Plan haben.
+
 ## Phase 1 — Completeness Triage
 
 Entscheidungsrubrik (severity/component/areas/readiness mit Eskalationsschwellen), die
 Enriched-Fetch-Query, die Tier-A/Tier-B-Berechnung der `missing[]`-Liste, das Laden des
 OpenSpec-Status und die Klassifikation (resolved · obsolete · ready · incomplete):
 [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) §Phase 1.
+
+## Phase 1.5 — Backlog Grouping Scan
+
+Nachdem alle Tickets klassifiziert sind: zusammengehörige Tickets zu Batch-Gruppen bündeln.
+Die Heuristiken, Parent-Ticket-Erstellung und die Ausgabe als `batch-map.json`:
+[`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) §Phase 1.5.
+
+> **Wann lohnt sich das?** Ab ~10 offenen Tickets im Backlog. Darunter ist der Overhead
+> (Parent-Ticket anlegen, `child_of`-Links setzen) größer als der Gewinn durch gebündelte
+> Planung und einen Merge statt N.
 
 ## Phase 2 — Human Escalation Round
 
@@ -112,7 +138,8 @@ Harness und das Zurückschreiben per JSONB-Merge:
 
 ## Phase 3 — Parallelization Masterplan
 
-Aufbau des Abhängigkeitsgraphen aus beiden Quellen, topologische Sortierung in Wellen, das
+Aufbau des Abhängigkeitsgraphen aus beiden Quellen, topologische Sortierung in Wellen
+(Impact-gewichtet, Batch-Gruppen als Einheiten), Quick-Win-Detection, das
 Routing (plan vs. execute), das Masterplan-Format und der Wave-1-Dispatch:
 [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) §Phase 3.
 

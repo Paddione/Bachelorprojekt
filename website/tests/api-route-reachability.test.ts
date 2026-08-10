@@ -117,13 +117,6 @@ function sdlcCounterpart(path: string): string {
 // Einträge. Steht hier eine Datei, die längst sauber ist, schlägt der Test an:
 // eine Ausnahmeliste, die niemand aufräumt, verdeckt sonst neue Fehler.
 const PENDING_FILES: string[] = [
-  // Etappe 4 — KI-Konfiguration und Prompts [T003480]
-  'src/components/admin/KiKonfiguration.svelte',
-  'src/components/admin/KiCoachingDrawer.svelte',
-  'src/components/sdlc/factory/KiRoutingPanel.svelte',
-  'src/components/admin/PromptLibraryManager.svelte',
-  'src/lib/prompt-insert.ts',
-  'src/components/sdlc/factory/LlmProxyPanel.svelte',
   // Etappe 5 — Ops-Tabs und Logging [T003481]
   'src/components/admin/ops/DatenbankTab.svelte',
   'src/components/admin/ops/DienstTab.svelte',

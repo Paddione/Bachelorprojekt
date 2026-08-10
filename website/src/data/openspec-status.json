@@ -2409,12 +2409,6 @@
       "status": "archived"
     }
   ],
-  "T002587": [
-    {
-      "slug": "unsloth-training-env",
-      "status": "plan_staged"
-    }
-  ],
   "T002592": [
     {
       "slug": "2026-08-03-toolset-usage-injection",
@@ -2513,8 +2507,8 @@
   ],
   "T002626": [
     {
-      "slug": "e3-sdlc-tickets-lokal",
-      "status": "plan_staged"
+      "slug": "2026-08-10-e3-sdlc-tickets-lokal",
+      "status": "archived"
     }
   ],
   "T002628": [
@@ -2555,8 +2549,8 @@
   ],
   "T002644": [
     {
-      "slug": "fix-systemtest-cronjobs-sdlc-T002644",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-systemtest-cronjobs-sdlc-T002644",
+      "status": "archived"
     }
   ],
   "T002645": [
@@ -2627,14 +2621,14 @@
   ],
   "T002664": [
     {
-      "slug": "main-checkout-freshness-cleanup-T002664",
-      "status": "plan_staged"
+      "slug": "2026-08-10-main-checkout-freshness-cleanup-T002664",
+      "status": "archived"
     }
   ],
   "T002666": [
     {
-      "slug": "routes-manifest-stacktrace-fallback-T002666",
-      "status": "plan_staged"
+      "slug": "2026-08-10-routes-manifest-stacktrace-fallback-T002666",
+      "status": "archived"
     }
   ],
   "T002669": [
@@ -2987,8 +2981,8 @@
   ],
   "T002886": [
     {
-      "slug": "fix-loadout-model-paths-T002886",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-loadout-model-paths-T002886",
+      "status": "archived"
     }
   ],
   "T002889": [
@@ -3025,6 +3019,12 @@
     {
       "slug": "2026-08-10-mishap-rollup-loop",
       "status": "archived"
+    }
+  ],
+  "T002932": [
+    {
+      "slug": "worktree-status-check-existence",
+      "status": "plan_staged"
     }
   ],
   "T002941": [
@@ -3097,6 +3097,12 @@
     {
       "slug": "2026-08-10-agent-lock-sid-detection-T003110",
       "status": "archived"
+    }
+  ],
+  "T003112": [
+    {
+      "slug": "plan-qa-check-parse",
+      "status": "plan_staged"
     }
   ],
   "T003116": [

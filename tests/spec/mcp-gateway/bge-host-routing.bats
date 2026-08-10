@@ -11,11 +11,12 @@
 #
 # Hintergrund: Der Shim importiert website/src/lib/bge-router.ts. Dessen
 # resolveEndpoint('embed'|'rerank') liest LLM_EMBED_URL bzw. LLM_RERANKER_URL
-# und wirft ohne Wert (fail-closed). Seit T002551 laufen die bge-Server als
-# CPU-Deployments im Cluster (k3d/llm-gpu.yaml, Port 8081). Der bge-mcp-Prozess
-# lebt auf dem WSL-Host, wo Cluster-DNS nicht aufloesbar ist (T002488) — die
-# Unit holt sich die Services deshalb per kubectl port-forward auf 127.0.0.1
-# und pinnt die beiden Variablen dorthin.
+# und wirft ohne Wert (fail-closed). Seit T002551 liefen die bge-Server als
+# CPU-Deployments im Cluster (k3d/llm-gpu.yaml, Port 8081) und die Unit holte
+# sie per kubectl port-forward auf 127.0.0.1. Seit T003205 zeigen beide URLs
+# auf den llm-proxy (127.0.0.1:18235): dessen Rollen-Routen (/v1/embeddings,
+# /v1/rerank) starten das lokale CPU-Loadout bei Bedarf und fallen auf die
+# port-forwards zurueck — der Shim selbst kennt nur noch die Proxy-Adresse.
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
@@ -27,18 +28,19 @@ setup() {
   [ -f "$UNIT" ]
 }
 
-@test "unit pins both bge endpoint URLs to the local port-forward" {
+@test "unit pins both bge endpoint URLs to the llm-proxy" {
   # Positiv-Anker: beide Variablen, die bge-router.ts liest, zeigen auf
-  # 127.0.0.1 — das 8081/8081- und 8093/8081-Port-Forward der Unit.
+  # 127.0.0.1 — seit T003205 auf den llm-proxy :18235, dessen Rollen-Routen
+  # das lokale Loadout starten und auf die Cluster-Forwards zurueckfallen.
   # 8093 statt 8082 (T002565): Port 8082 ist auf dem GPU-Host von einem
   # Windows-svchost belegt (networkingMode=mirrored, in WSL selbst mit
   # ss/lsof unsichtbar, nur ueber netstat.exe von der Windows-Seite sichtbar).
-  run grep -c "^Environment=LLM_EMBED_URL=http://127\.0\.0\.1:8081$" "$UNIT"
+  run grep -c "^Environment=LLM_EMBED_URL=http://127\.0\.0\.1:18235$" "$UNIT"
   echo "LLM_EMBED_URL -> $output"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]
 
-  run grep -c "^Environment=LLM_RERANKER_URL=http://127\.0\.0\.1:8093$" "$UNIT"
+  run grep -c "^Environment=LLM_RERANKER_URL=http://127\.0\.0\.1:18235$" "$UNIT"
   echo "LLM_RERANKER_URL -> $output"
   [ "$status" -eq 0 ]
   [ "$output" -ge 1 ]

@@ -25,11 +25,18 @@ setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   # Ueberwachte Flaeche laut SSOT-Szenario. provider-register-local.sh ist der
   # umbenannte provider-register-bonsai.sh (T002582).
+  # T003205: die bge-Konsumenten bge-mcp.service und openspec-embed-local.sh
+  # kommen dazu — sie duerfen kein direktes Backend-Port-Literal mehr tragen.
+  # scripts/llm/loadouts.json ist BEWUSST NICHT dabei: dort stehen die
+  # Backend-Adressen bestimmungsgemaess (die Rollen-Ketten referenzieren die
+  # Ports), genau wie bei den Registry-Seeds.
   SURFACES=(
     ".opencode/agent-models.jsonc"
     "scripts/factory/provider-register-local.sh"
     "scripts/factory/route-provider.sh"
     "scripts/factory/pipeline.mjs"
+    "scripts/bge-mcp/bge-mcp.service"
+    "scripts/openspec-embed-local.sh"
   )
   # Nur die Routing-Flaechen: hier entscheidet ein Modellname, wohin ein
   # Request tatsaechlich geht. .opencode/agent-models.jsonc ist bewusst NICHT
@@ -71,11 +78,13 @@ _active_lines() { grep -nE "$1" "$2" | grep -vE '^[0-9]+:[[:space:]]*(#|//)' || 
   for f in "${SURFACES[@]}"; do
     [ -e "$REPO/$f" ] || continue
     local h
-    h="$(_active_lines '127\.0\.0\.1:(8093|1234)|localhost:(8093|1234)' "$REPO/$f")"
+    # T003205: 8081/8095/8096 sind die bge-Backend-Ports; die Rollen-Ketten in
+    # scripts/llm/loadouts.json sind von dieser Flaeche ausgenommen.
+    h="$(_active_lines '127\.0\.0\.1:(8093|1234|8081|8095|8096)|localhost:(8093|1234|8081|8095|8096)' "$REPO/$f")"
     [ -n "$h" ] && hits="${hits}${f}:\n${h}\n"
   done
   if [ -n "$hits" ]; then
-    printf 'Direkte Backend-Ports gefunden (erlaubt nur in Registry-Seeds/Migrationen):\n' >&2
+    printf 'Direkte Backend-Ports gefunden (erlaubt nur in Registry-Seeds/Migrationen und in scripts/llm/loadouts.json):\n' >&2
     printf "$hits" >&2
     return 1
   fi

@@ -43,6 +43,15 @@ else
   echo "  ⚠ gitleaks binary not found — skipping secret scan (CI runs fail-closed). Install with: sudo apt install gitleaks || brew install gitleaks" >&2
 fi
 
+# --- openspec half-archive guard: reject commits with an uncommitted half-archived slug [T002824] ---
+# scripts/openspec-half-archive-check.sh (T002428) detects slugs present in BOTH
+# openspec/changes/ and openspec/changes/archive/ — a state that can only exist
+# uncommitted (the committed-tree check in task:openspec catches it post-commit).
+if ! bash "$repo_root/scripts/openspec-half-archive-check.sh"; then
+  echo "ERROR: refusing commit — half-archived OpenSpec slug detected (see above)." >&2
+  exit 1
+fi
+
 # --- freshness: auto-regenerate generated artifacts before commit [T000581] ---
 # Prevents CI freshness failures by capturing every regen-produced file in
 # the same commit (see T001388). Keep this list in sync with `task

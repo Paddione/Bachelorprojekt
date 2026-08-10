@@ -12,10 +12,11 @@
 #      Website-Deployment gelesen (Literal-Env) und über einen temporären
 #      port-forward auf die Fleet-shared-db umgeschrieben. Die URL enthält
 #      Credentials und wird NIE ausgegeben.
-#   2. LLM_EMBED_URL: Default http://127.0.0.1:8081 — der kubectl port-forward
-#      auf svc/llm-gateway-embed, den der bge-mcp systemd-User-Service
-#      (scripts/bge-mcp/bge-mcp.service) seit T002551 dauerhaft hält. Vorab-
-#      Probe; bei totem Backend klare Remediation statt Silent-Skip.
+#   2. LLM_EMBED_URL: Default http://127.0.0.1:18235 — der llm-proxy
+#      (scripts/llm-proxy/server.mjs). Seit T003205 beantwortet der Proxy
+#      /v1/embeddings ueber die Rollenkette 'embed': lokal zuerst
+#      (bge-embed-cpu), Cluster-Forward als Rueckfall. Vorab-Probe; bei totem
+#      Backend klare Remediation statt Silent-Skip.
 #   3. Ausgabe von openspec-embed.mjs wird geprüft: nur "indexed slug=" ist
 #      Erfolg (Exit 0). "skipping"/"failure" => Exit 1 mit Hinweis.
 #
@@ -47,17 +48,18 @@ probe_embed() {
     -X POST "$1/v1/embeddings" -H 'Content-Type: application/json' \
     -d '{"input":["ping"],"model":"bge-m3"}' 2>/dev/null || echo 000
 }
-EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:8081}"
+EMBED_URL="${LLM_EMBED_URL:-http://127.0.0.1:18235}"
 if [[ "$(probe_embed "$EMBED_URL")" != "200" ]]; then
   cat >&2 <<'EOF'
-[openspec-embed-local] FEHLER: kein Embedding-Backend erreichbar (:8081).
-Remediation (seit T002551 läuft bge-embed als Cluster-CPU-Deployment):
-  Der bge-mcp systemd-User-Service hält den port-forward auf 127.0.0.1:8081:
-    systemctl --user status bge-mcp
-    systemctl --user restart bge-mcp
-  Manuell (Cluster-DNS ist auf dem WSL-Host nicht auflösbar, T002488):
-    kubectl --context fleet port-forward -n workspace svc/llm-gateway-embed 8081:8081 &
-  Prüfe dann: curl -s http://127.0.0.1:8081/v1/embeddings -H 'Content-Type: application/json' -d '{"model":"bge-m3","input":["test"]}'
+[openspec-embed-local] FEHLER: kein Embedding-Backend erreichbar (:18235).
+Remediation (seit T003205 läuft bge über den llm-proxy, lokal zuerst):
+  Der llm-proxy startet das lokale bge-embed-cpu-Loadout bei Bedarf und fällt
+  auf den Cluster-Forward (bge-forward-embed.service, :8081) zurück:
+    systemctl --user status llm-proxy.service
+    systemctl --user restart llm-proxy.service
+  Prüfe dann: curl -s http://127.0.0.1:18235/v1/embeddings -H 'Content-Type: application/json' -d '{"model":"bge-m3","input":["test"]}'
+  Überschreibbar per LLM_EMBED_URL, falls gezielt ein anderes Backend
+  angesprochen werden soll.
 EOF
     exit 1
 fi

@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.260.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.32...website-v1.260.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** rollenbasierte bge-Routen /v1/embeddings + /v1/rerank am llm-proxy [T003205] ([#4117](https://github.com/Paddione/Bachelorprojekt/issues/4117)) ([da63e9e](https://github.com/Paddione/Bachelorprojekt/commit/da63e9eb7bf224a7c12c1bf21a021d3e5d6cb62d))
+
+
+### Bug Fixes
+
+* **scripts:** pre-commit + agent-lock reap block/post on half-archived OpenSpec slugs [T002824] ([#4110](https://github.com/Paddione/Bachelorprojekt/issues/4110)) ([73276a4](https://github.com/Paddione/Bachelorprojekt/commit/73276a4b4ac08a5842530c2414d329af454a999a))
+* **scripts:** worktree-create schlägt bei refactor/, perf/, bug/ das konforme Präfix vor [T002811] ([#4116](https://github.com/Paddione/Bachelorprojekt/issues/4116)) ([6fef31a](https://github.com/Paddione/Bachelorprojekt/commit/6fef31a53a7060ee24b0abd37c0e6b90281f48ae))
+
+## [1.259.32](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.31...website-v1.259.32) (2026-08-10)
+
+
+### Bug Fixes
+
+* **plans:** archive refuses when none of the ticket's touched_files exist in tree [T002813] ([#4111](https://github.com/Paddione/Bachelorprojekt/issues/4111)) ([3728bbe](https://github.com/Paddione/Bachelorprojekt/commit/3728bbee712ab2fefabf7baa94c7ec0420620972))
+
+## [1.259.31](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.30...website-v1.259.31) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** worktree-git-op-guard — detects interrupted rebase/merge/cherry-pick in any worktree [T002766] ([#4107](https://github.com/Paddione/Bachelorprojekt/issues/4107)) ([6d3d139](https://github.com/Paddione/Bachelorprojekt/commit/6d3d13992ee2e3b5534f546206dfb288ab32a68d))
+
 ## [1.259.30](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.29...website-v1.259.30) (2026-08-10)
 
 

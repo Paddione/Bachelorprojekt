@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.13...website-v1.263.14) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** add --worktree flag to git-op guard and wire into worktree-create reuse path [T003215] ([#4194](https://github.com/Paddione/Bachelorprojekt/issues/4194)) ([ea0894a](https://github.com/Paddione/Bachelorprojekt/commit/ea0894abcab5fcb2e750377962eb87b7d7c031a5))
+
 ## [1.263.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.12...website-v1.263.13) (2026-08-10)
 
 

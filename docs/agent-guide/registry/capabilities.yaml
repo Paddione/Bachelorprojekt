@@ -367,6 +367,16 @@ capabilities:
       tier: caution
       deep_ref: ".claude/skills/brain-ingest/SKILL.md"
 
+  wiki-nachschlagen:
+    mcp:brain-mcp:
+      state: canonical
+      use_when: "Im Brain-Wiki nachschlagen: BM25-Suche und Seiten lesen (brain_search, brain_read)."
+      avoid_when: "Wiki kompilieren/veröffentlichen — dafür wissens-wiki/brain-ingest."
+      fallback: "grep -r <begriff> ~/brain/wiki"
+      roles: [all]
+      tier: safe
+      deep_ref: ".claude/skills/references/mcp-tool-guide.md"
+
   dokumentations-lookup:
     plugin:context7@claude-plugins-official:
       state: canonical
@@ -417,6 +427,16 @@ capabilities:
       roles: [orchestrator]
       tier: safe
       deep_ref: ".claude/skills/lavish/SKILL.md"
+
+  web-audit:
+    skill:web-audit:
+      state: canonical
+      use_when: "Brand-Seiten semantisch prüfen: axe, Lighthouse und LLM-Triage manuell gegen die Live-Marken."
+      avoid_when: "PR-Entscheidungen — der Skill ist bewusst kein Merge-Gate."
+      fallback: "task web:audit ENV=<brand> [WEB_AUDIT_ROUTES=...]"
+      roles: [bachelorprojekt-website, bachelorprojekt-test]
+      tier: assisted
+      deep_ref: ".claude/skills/web-audit/SKILL.md"
 
   # ─── Browser & Debugging ────────────────────────────────────────────────────────────
   browser-automation:
@@ -533,6 +553,9 @@ capabilities:
       roles: [orchestrator, bachelorprojekt-ops]
       tier: assisted
       deep_ref: ".claude/skills/finetune-run/SKILL.md"
+    skill:finetune-run:
+      state: suppressed
+      reason: "cli:scripts/finetune ist die kanonische Instanz und verlinkt dieses SKILL.md bereits als deep_ref — das Skill wird nicht separat injiziert."
 
   # huggingface-skills lag bis T002596 unter `modell-finetuning` und war dort suppressed,
   # weil unsloth-buddy die kanonische Trainings-Instanz ist. Der Schnitt war falsch: das
@@ -578,6 +601,16 @@ capabilities:
       roles: [orchestrator]
       tier: caution
       deep_ref: ".claude/skills/toolset-curate/SKILL.md"
+
+  werkzeug-discovery:
+    skill:agentic-resource-lookup:
+      state: canonical
+      use_when: "Externe MCP-Server/Plugins suchen, Live-Schema inspizieren, Urteil festhalten — ohne Installation."
+      avoid_when: "Bereits vorhandene Instanzen kuratieren — dafür werkzeug-kuration/toolset-curate."
+      fallback: "node scripts/agentic-lookup.mjs find <query>"
+      roles: [orchestrator]
+      tier: safe
+      deep_ref: ".claude/skills/agentic-resource-lookup/SKILL.md"
 
   gedaechtnis:
     plugin:remember@claude-plugins-official:

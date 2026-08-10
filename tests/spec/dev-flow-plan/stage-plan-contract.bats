@@ -20,7 +20,9 @@ setup() {
   GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
     GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
     git -C "$TEST_DIR" add test-plan.md \
-    && git -C "$TEST_DIR" commit -q -m "add plan" >/dev/null
+    && GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
+    GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
+    git -C "$TEST_DIR" commit -q -m "add plan" >/dev/null
 
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
   STAGE="$REPO_ROOT/scripts/ticket.sh stage-plan"

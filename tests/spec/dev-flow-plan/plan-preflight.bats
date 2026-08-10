@@ -18,7 +18,9 @@ setup() {
   GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
     GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
     git -C "$TEST_DIR" add initial.txt \
-    && git -C "$TEST_DIR" commit -q -m "initial commit" >/dev/null
+    && GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
+    GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
+    git -C "$TEST_DIR" commit -q -m "initial commit" >/dev/null
 
   GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
     GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
@@ -67,7 +69,9 @@ setup() {
   # Positiv-Anker: nach commit → rc=0
   GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
     GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
-    git -C "$TEST_DIR" add dirty.txt && git -C "$TEST_DIR" commit -q -m "clean" >/dev/null
+    git -C "$TEST_DIR" add dirty.txt && GIT_AUTHOR_NAME="Test" GIT_AUTHOR_EMAIL="test@test" \
+    GIT_COMMITTER_NAME="Test" GIT_COMMITTER_EMAIL="test@test" \
+    git -C "$TEST_DIR" commit -q -m "clean" >/dev/null
   run bash "$SCRIPT" pre-commit --ticket T009999
   [ "$status" -eq 0 ]
 }

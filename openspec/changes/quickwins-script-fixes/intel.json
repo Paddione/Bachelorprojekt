@@ -1,0 +1,163 @@
+{
+  "meta": {
+    "slug": "quickwins-script-fixes",
+    "ticket_id": "T003276",
+    "generated_from": "main@cdd5f69e8",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/plan-touched-files.sh",
+      "language": "bash",
+      "loc": 100,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 700
+    },
+    {
+      "path": "scripts/preflight-pr-scope.sh",
+      "language": "bash",
+      "loc": 139,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 661
+    },
+    {
+      "path": "tests/spec/ci-cd/preflight-pr-scope.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/sdlc/backup-tickets.sh",
+      "language": "bash",
+      "loc": 286,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 514
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-backup.bats",
+      "language": "bash",
+      "loc": 83,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/quickwins-script-fixes.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/quickwins-script-fixes/specs/quickwins-script-fixes.md",
+      "language": "markdown",
+      "loc": 37,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:45:usage() { sed -n '2,25p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "45:usage() { sed -n '2,25p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }(...)",
+      "type_text": "45:usage() { sed -n '2,25p' \"$0\" | sed 's/^# \\{0,1\\}//'; exit \"${1:-0}\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:47:_pod() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "47:_pod() {(...)",
+      "type_text": "47:_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:59:_passphrase() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "59:_passphrase() {(...)",
+      "type_text": "59:_passphrase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:73:_helper_overrides() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "73:_helper_overrides() {(...)",
+      "type_text": "73:_helper_overrides() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:105:cmd_run() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "105:cmd_run() {(...)",
+      "type_text": "105:cmd_run() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:178:cmd_prune() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "178:cmd_prune() {(...)",
+      "type_text": "178:cmd_prune() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:187:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "187:cmd_list() {(...)",
+      "type_text": "187:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/backup-tickets.sh:198:cmd_restore_check() {",
+      "kind": "function",
+      "file": "scripts/sdlc/backup-tickets.sh",
+      "signature": "198:cmd_restore_check() {(...)",
+      "type_text": "198:cmd_restore_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e3-backup.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e3-backup.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

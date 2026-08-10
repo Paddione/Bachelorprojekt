@@ -648,6 +648,8 @@ secrets:
 
   - name: RUSTDESK_ID_ED25519
     required: false
+    dev_absent: true
+    dev_absent_reason: "Host-generiertes Schluesselmaterial; kein Konsument in k3d/ oder prod*/."
     extra_namespaces:
       - namespace: rustdesk
         secret: rustdesk-secrets
@@ -656,6 +658,8 @@ secrets:
 
   - name: RUSTDESK_ID_ED25519_PUB
     required: false
+    dev_absent: true
+    dev_absent_reason: "Host-generiertes Schluesselmaterial; kein Konsument in k3d/ oder prod*/."
     extra_namespaces:
       - namespace: rustdesk
         secret: rustdesk-secrets
@@ -883,6 +887,12 @@ secrets:
       - namespace: website
         secret: website-secrets
 
+  - name: POCKET_ID_CLAUDE_CODE_SECRET
+    required: false
+    generate: true
+    length: 40
+    description: "OIDC client secret for the claude-code Pocket ID client (k3d/pocket-id-client-seed.yaml)."
+
   # POCKET_ID_BRAINSTORM_SECRET is dev-only (brainstorm.dev.mentolder.de; no prod broker).
   - name: POCKET_ID_BRAINSTORM_SECRET
     required: false
@@ -968,6 +978,8 @@ secrets:
   # k3d/website-content-token-secret.yaml.
   - name: GITHUB_CONTENT_TOKEN
     required: false
+    dev_absent: true
+    dev_absent_reason: "Externes GitHub-PAT; kein Dev-Aequivalent, ein Fake-Wert wuerde Konfigurationsfehler maskieren."
     generate: false
     description: "Fine-grained GitHub token for the content publish bot. contents:write + pull-requests:write on website/content/**."
     extra_namespaces:
@@ -987,6 +999,8 @@ secrets:
   # Ciphertext über den laufenden zu schreiben.
   - name: GHCR_USERNAME
     required: false
+    dev_absent: true
+    dev_absent_reason: "Nur flux-system (ghcr-auth); k3d-Base hat kein Flux."
     generate: false
     description: "GitHub-Benutzername für den ghcr.io-Pull des Flux-OCI-Artefakts. Bildet mit GHCR_PAT das Secret flux-system/ghcr-auth. [T002254]"
 
@@ -1006,6 +1020,8 @@ secrets:
 
   - name: FLUX_WEBHOOK_TOKEN
     required: false
+    dev_absent: true
+    dev_absent_reason: "Nur flux-system (flux-webhook-token); k3d-Base hat kein Flux."
     generate: true
     length: 32
     description: "Shared Secret des Flux-Receiver-Webhooks (flux-system/flux-webhook-token). Reines Shared Secret ohne externe Bindung — darf generiert werden. [T002254]"
@@ -1139,6 +1155,8 @@ secrets:
 
   - name: OPENROUTER_API_KEY
     required: false
+    dev_absent: true
+    dev_absent_reason: "Externes Provider-Credential; Fake-Wert maskiert Fehlkonfiguration."
     generate: false
     description: "OpenRouter API key for the OpenRouter provider in provider_config routing. Injected into the website pod via website-secrets."
     extra_namespaces:
@@ -1147,6 +1165,8 @@ secrets:
 
   - name: OPENCODE_API_KEY
     required: false
+    dev_absent: true
+    dev_absent_reason: "Externes Provider-Credential; Fake-Wert maskiert Fehlkonfiguration."
     generate: false
     description: "opencode Zen API key (covers the opencode Go subscription) for provider_config routing. Injected into the website pod via website-secrets."
     extra_namespaces:
@@ -1155,6 +1175,8 @@ secrets:
 
   - name: GEMINI_API_KEY
     required: false
+    dev_absent: true
+    dev_absent_reason: "Externes Provider-Credential; Fake-Wert maskiert Fehlkonfiguration."
     generate: false
     description: "Google Gemini API key for the google-gemini provider in provider_config routing. Injected into the website pod via website-secrets."
     extra_namespaces:
@@ -1163,6 +1185,8 @@ secrets:
 
   - name: GITHUB_MODELS_TOKEN
     required: false
+    dev_absent: true
+    dev_absent_reason: "Externes Provider-Credential; Fake-Wert maskiert Fehlkonfiguration."
     generate: false
     description: "GitHub Models token for the github-models provider in provider_config routing. Injected into the website pod via website-secrets."
     extra_namespaces:
@@ -1192,6 +1216,8 @@ secrets:
 
   - name: PUSHOVER_TOKEN
     required: false
+    dev_absent: true
+    dev_absent_reason: "Not deployed to prod; dev hat kein Pushover-Backend."
     generate: false
     description: "Pushover API token for Alertmanager + deploy notifications. Not deployed to prod (prod overlay deletes the alertmanager-pushover Secret); scripts/lib/notify.sh handles absence gracefully."
     extra_namespaces:
@@ -1200,6 +1226,8 @@ secrets:
 
   - name: PUSHOVER_USER
     required: false
+    dev_absent: true
+    dev_absent_reason: "Not deployed to prod; dev hat kein Pushover-Backend."
     generate: false
     description: "Pushover user key for Alertmanager + deploy notifications. Not deployed to prod (prod overlay deletes the alertmanager-pushover Secret); scripts/lib/notify.sh handles absence gracefully."
     extra_namespaces:

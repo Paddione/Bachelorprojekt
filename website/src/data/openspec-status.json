@@ -3057,6 +3057,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003203": [
+    {
+      "slug": "fix-brain-ingest-port-T003203",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

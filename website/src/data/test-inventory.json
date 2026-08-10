@@ -1920,6 +1920,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/agent-lock-scope-regelwerk",
+    "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/opencode-session-id-stable",
     "file": "tests/spec/active-sessions-hub/opencode-session-id-stable.bats",
     "category": "active-sessions-hub",

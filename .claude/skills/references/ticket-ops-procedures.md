@@ -325,7 +325,14 @@ DEFERRED (needs_human, ungeklärt): T000738
 ### Step 3.6: Dispatch wave 1 (after the user approves)
 
 For each remaining wave-1 ticket, in parallel (use `dispatching-parallel-agents`):
-1. `bash scripts/agent-lock.sh claim ticket <ext-id> --branch <b> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it).
+1. `bash scripts/agent-lock.sh claim branch <branch> --worktree <wt> --label ticket-ops` (skip/coordinate on exit 1 — a live session already owns it). **Warum branch-scoped und nicht ticket-scoped (T003102):** der ticket-scoped Lock blockiert nicht den zweiten Bearbeiter, sondern den späteren Abschluss durch Subagent, `ticket-mcp` und `post-merge.yml` — der branch-scoped Claim hingegen schützt genau den Worktree, den `dev-flow-execute` betritt und ändert.
+
+   Der Subagent soll zu Beginn im Worktree selbst claimen:
+   ```bash
+   bash scripts/agent-lock.sh claim branch <branch> --worktree <pfad> --branch <branch>
+   ```
+   Setze **keinen** ticket-scoped Lock (T003102 — blockiert den späteren Abschluss durch Subagent, ticket-mcp und post-merge.yml). Gib den Branch-Lock am Ende deiner Arbeit wieder frei.
+
 2. Create the worktree: `bash scripts/worktree-create.sh <branch> .worktrees/<slug>`.
 3. Hand to `dev-flow-execute` (plan_staged) or `dev-flow-plan` (unplanned) inside that worktree.
 

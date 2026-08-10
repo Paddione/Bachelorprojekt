@@ -30,8 +30,8 @@ openspec/changes/agent-lock-scope-regelwerk/**              (Proposal + Delta-Sp
 
 | Datei | Ist | Budget |
 | --- | --- | --- |
-| `scripts/hooks/worktree-write-guard.sh` | 181 | 619 |
-| `scripts/vda/ticket/_ticket-core.sh` | 209 | 591 |
+| `scripts/hooks/worktree-write-guard.sh` | 192 | 608 |
+| `scripts/vda/ticket/_ticket-core.sh` | 210 | 590 |
 
 Beide `.sh`-Dateien sind **nicht gebaselined**; wirksame Schwelle ist das statische
 Extension-Limit 800 aus `docs/code-quality/gates.yaml`. Für `.md` definiert `gates.yaml` kein

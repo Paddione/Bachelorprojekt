@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.261.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.0...website-v1.261.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** factory-prep stdout-Leck zerstoert Launch-Plan des gesamten Ticks [T003269] ([#4131](https://github.com/Paddione/Bachelorprojekt/issues/4131)) ([9055fdb](https://github.com/Paddione/Bachelorprojekt/commit/9055fdb17d99b27889386d4c009ba9665e948114))
+
 ## [1.261.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.260.1...website-v1.261.0) (2026-08-10)
 
 

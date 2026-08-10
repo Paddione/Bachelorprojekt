@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.261.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.4...website-v1.261.5) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock claim -h/--help gibt Optionsliste statt Muell-Lock [T003107] ([#4138](https://github.com/Paddione/Bachelorprojekt/issues/4138)) ([5f882de](https://github.com/Paddione/Bachelorprojekt/commit/5f882ded2fa4b549fa78f9b86a2258cfc54b73a2))
+
 ## [1.261.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.3...website-v1.261.4) (2026-08-10)
 
 

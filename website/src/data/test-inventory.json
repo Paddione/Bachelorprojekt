@@ -2040,6 +2040,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/agent-lock-claim-help-flag",
+    "file": "tests/spec/agent-skills/agent-lock-claim-help-flag.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/dev-flow-chore-step0-foreign-guard",
     "file": "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
     "category": "agent-skills",
@@ -3522,6 +3528,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/propose-help",
+    "file": "tests/spec/openspec-workflow/propose-help.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/ticket-file-required",
     "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",
@@ -4044,6 +4056,18 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-prep-stdout-json",
+    "file": "tests/spec/software-factory/factory-prep-stdout-json.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-result-check",
+    "file": "tests/spec/software-factory/opencode-exec-result-check.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/orphan-slot-reap",
     "file": "tests/spec/software-factory/orphan-slot-reap.bats",
     "category": "software-factory",
@@ -4190,6 +4214,12 @@
   {
     "id": "ticket-system/schema-diaet-dead-columns",
     "file": "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-system/subcommand-help",
+    "file": "tests/spec/ticket-system/subcommand-help.bats",
     "category": "ticket-system",
     "kind": "shell"
   },

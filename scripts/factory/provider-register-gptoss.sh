@@ -28,7 +28,9 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 MODEL_ID="gpt-oss-20b"
-BASE_URL="http://127.0.0.1:8097/v1"
+# [T003492] OHNE '/v1' — siehe provider-register-local.sh: die Konsumenten von
+# provider_config.base_url haengen '/v1/chat/completions' selbst an.
+BASE_URL="http://127.0.0.1:8097"
 PRIORITY=1
 
 # --- Health-Gate --------------------------------------------------------------

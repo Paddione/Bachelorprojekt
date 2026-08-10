@@ -2513,8 +2513,8 @@
   ],
   "T002626": [
     {
-      "slug": "e3-sdlc-tickets-lokal",
-      "status": "plan_staged"
+      "slug": "2026-08-10-e3-sdlc-tickets-lokal",
+      "status": "archived"
     }
   ],
   "T002628": [
@@ -2555,8 +2555,8 @@
   ],
   "T002644": [
     {
-      "slug": "fix-systemtest-cronjobs-sdlc-T002644",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-systemtest-cronjobs-sdlc-T002644",
+      "status": "archived"
     }
   ],
   "T002645": [
@@ -2633,8 +2633,8 @@
   ],
   "T002666": [
     {
-      "slug": "routes-manifest-stacktrace-fallback-T002666",
-      "status": "plan_staged"
+      "slug": "2026-08-10-routes-manifest-stacktrace-fallback-T002666",
+      "status": "archived"
     }
   ],
   "T002669": [
@@ -2987,8 +2987,8 @@
   ],
   "T002886": [
     {
-      "slug": "fix-loadout-model-paths-T002886",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-loadout-model-paths-T002886",
+      "status": "archived"
     }
   ],
   "T002889": [

@@ -38,30 +38,11 @@ if [[ "${1:-}" == "--help" ]]; then
   exit 0
 fi
 
-# [T002914] Rebase gegen den REMOTE-BRANCH statt gegen origin/main.
-# Ein divergierter Rollup-Branch (Remote hat eigene Commits — z.B. den Anker
-# ee4b350c1 oder parallele Rollup-Runs, die die lokale Chain nicht kennt) wird
-# durch ein Rebase auf origin/main NIE zusammenfuehrbar: die lokale Kette bleibt
-# gegenueber origin/<BRANCH> divergiert und jeder Push bleibt non-fast-forward
-# (abgelehnt) — der Rollup-Branch deadlockt dauerhaft. Erst das Rebase auf
-# origin/${BRANCH} (nach fetch) integriert die Remote-Chain und macht den naechsten
-# Push wieder fast-forward. Da der Plan pro Lauf idempotent aus den Container-
-# Kommentaren regeneriert wird, ist die Remote-Chain die saubere Basis.
-#
-# [T002913] core.hooksPath=/dev/null ist hier NICHT optional: der
-# post-commit-embed-Hook feuert bei JEDEM rebasierten Commit und kann am
-# Embedding-Backend haengen (readiness=true bei totem Endpoint). Genau so hing der
-# Factory-Tick stundenlang im Rebase, hielt den Flock und blockierte jeden
-# weiteren Tick. Ein Factory-interner Rollup-Rebase braucht den Hook nicht — der
-# Embed laeuft ohnehin nach dem stage-plan.
-rollup_rebase_onto_remote() {
-  git fetch -q origin "$BRANCH" 2>/dev/null || true
-  if git -c core.hooksPath=/dev/null rebase "origin/${BRANCH}" 2>/dev/null; then
-    return 0
-  fi
-  echo "mishap-rollup: rebase auf origin/${BRANCH} fehlgeschlagen (Konflikt?) — breche ab" >&2
-  return 1
-}
+# [T002914] Der Rebase gegen origin/<BRANCH> lebt seit T002931 in
+# rollup-publish.sh als Konfliktbehandlung (Lease-Fehler → fetch → rebase →
+# retry). Hier entfaellt der Vorab-Rebase: er existierte allein, um eine wachsende
+# Kette anschlussfaehig zu halten, und diese Kette gibt es mit dem Amend-Modus
+# nicht mehr (scripts/factory/rollup-publish.sh, T002931).
 
 # ── Load factory lib ────────────────────────────────────────────────────────
 source "$HERE/lib.sh"
@@ -131,17 +112,6 @@ if ! git -C "$REPO" worktree list 2>/dev/null | grep -qF "$WT"; then
 fi
 
 cd "$WT"
-
-# ── Branch auf Remote → rebasen ─────────────────────────────────────────────
-# Wenn der Branch auf origin existiert, rebasen wir auf origin/${BRANCH} (statt
-# auf origin/main), damit die lokale Kette die Remote-Commits integriert und der
-# Push fast-forward bleibt. [T002914]
-# Der Hook-Guard aus [T002913] steckt in rollup_rebase_onto_remote — beide Fixes
-# betreffen denselben Rebase und schliessen sich nicht aus.
-if git rev-parse --verify --quiet "origin/${BRANCH}" >/dev/null 2>&1; then
-  echo "mishap-rollup: rebase ${BRANCH} auf origin/${BRANCH} (post-commit-embed deaktiviert)"
-  rollup_rebase_onto_remote || exit 1
-fi
 
 # ── Plan-Erzeugung / -Update ────────────────────────────────────────────────
 # Sammle alle Content-Kommentare (non-FACTORY-PLAN-REF) als Plan-Beschreibung.
@@ -252,44 +222,28 @@ lint_out="$(bash "$WT/scripts/plan-lint.sh" "$WT/$PLAN_PATH" 2>&1)" || {
 }
 echo "mishap-rollup: plan-lint OK"
 
-# ── Commit + Push (verketten) ──────────────────────────────────────────────
+# ── Commit + Push (rollup-publish.sh) ───────────────────────────────────────
+# [T002931] Der Generator ersetzt seinen eigenen letzten Commit (Amend + Lease)
+# statt anzuhaengen; der Commit+Push-Block wurde dorthin ausgelagert, damit der
+# Test ihn gegen ein Wegwerf-Repo fahren kann. [T002914] Der Rebase-Pfad lebt
+# dort als Konfliktbehandlung bei Lease-Fehler weiter.
 echo "mishap-rollup: commit + push ..."
-git add "$CHANGE_DIR"
-# Nur committen, wenn es Aenderungen gibt
-if git diff --cached --quiet; then
-  echo "mishap-rollup: keine Aenderungen seit letztem Commit — skip commit"
-else
-  # [T002817] Den Commit-Fehlschlag ausdruecklich benennen. Unter `set -e` brach das
-  # Skript hier zwar ab, aber stumm: die Meldung kam vom git-Hook, nicht vom Treiber,
-  # und der erzeugte Plan blieb als staged-but-uncommitted im Worktree liegen. Genau so
-  # entstanden zwei Fossil-Dateien, die den frueheren Fehlschlag ueberdauerten — ein
-  # `git add` ohne folgenden `commit` sieht im Index aus wie fertige Arbeit, ist aber
-  # nirgends dauerhaft.
-  if ! git commit -q -m "chore(plans): update ${SLUG} from container batches [${CONTAINER_ID}]"; then
-    echo "mishap-rollup: FEHLER — git commit auf '${BRANCH}' abgelehnt." >&2
-    echo "  Der erzeugte Plan liegt STAGED, aber uncommitted in: ${CHANGE_DIR}" >&2
-    echo "  Die Meldung oben stammt von einem git-Hook. Haeufigste Ursache: der Branch" >&2
-    echo "  fehlt in scripts/lib/branch-allowlist.sh (SSOT der ticketlosen Branches)." >&2
-    exit 1
-  fi
-  # Push scheitert, wenn der Branch remote bereits weiter ist (z.B. durch
-  # einen parallelen merge). Dann holen wir neu und rebasen — gegen die
-  # REMOTE-BRANCH-Kette, nicht gegen origin/main (sonst bleibt ein divergierter
-  # Branch dauerhaft non-fast-forward, siehe T002914).
-  git push -q -u origin "$BRANCH" 2>/dev/null || {
-    echo "mishap-rollup: push fehlgeschlagen — rebase auf origin/${BRANCH} + retry"
-    if rollup_rebase_onto_remote; then
-      git push -q -u origin "$BRANCH" || {
-        echo "mishap-rollup: FEHLER — push auf '${BRANCH}' auch nach rebase fehlgeschlagen." >&2
-        echo "  Der Plan ist lokal committet, aber nicht auf origin: ${CHANGE_DIR}" >&2
-        exit 1
-      }
-    else
-      echo "mishap-rollup: FEHLER — rebase nach push-Fehlschlag nicht aufloesbar." >&2
-      echo "  Der Plan ist lokal committet, aber nicht auf origin: ${CHANGE_DIR}" >&2
-      exit 1
-    fi
-  }
+if ! bash "$REPO/scripts/factory/rollup-publish.sh" \
+  --repo "$WT" \
+  --branch "$BRANCH" \
+  --change-dir "$CHANGE_DIR" \
+  --message "chore(plans): update ${SLUG} from container batches [${CONTAINER_ID}]"; then
+  # [T002817] Den Fehlschlag ausdruecklich benennen. Unter `set -e` brach das
+  # Skript hier zwar ab, aber stumm: die Meldung kam vom git-Hook, nicht vom
+  # Treiber, und der erzeugte Plan blieb als staged-but-uncommitted im Worktree
+  # liegen. Genau so entstanden zwei Fossil-Dateien, die den frueheren Fehlschlag
+  # ueberdauerten — ein `git add` ohne folgenden `commit` sieht im Index aus wie
+  # fertige Arbeit, ist aber nirgends dauerhaft.
+  echo "mishap-rollup: FEHLER — publish auf '${BRANCH}' fehlgeschlagen." >&2
+  echo "  Der Plan liegt lokal committet oder staged, aber nicht auf origin: ${CHANGE_DIR}" >&2
+  echo "  Details liefert rollup-publish.sh oben. Hauefigste Ursache: ein nicht" >&2
+  echo "  aufloesbarer Konflikt beim Rebase gegen origin/${BRANCH} (T002914-Pfad)." >&2
+  exit 1
 fi
 
 # ── stage-plan (ohne --hold, damit das Ticket released ist) ─────────────────

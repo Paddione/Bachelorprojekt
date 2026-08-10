@@ -118,11 +118,9 @@ remote_count() {
 }
 
 @test "T002931: ein fremder Commit auf dem Branch wird nicht ueberschrieben" {
-  run_publish "plan v1"
-  [ "$status" -eq 0 ]
-
-  # Fremdarbeit: aendert eine Datei AUSSERHALB des Change-Verzeichnisses und traegt eine
-  # fremde Nachricht. Genau diese Kombination unterscheidet sie vom Generator-Commit.
+  # Aufbau (plan: fremd + eigen = 2 Commits): der fremde Commit ist der ERSTE Commit
+  # auf dem Branch — direkt auf der Basis. Ein vorheriger eigener Generator-Commit
+  # wuerde die Kette auf base→eigen→fremd→eigen = 3 aufblaehen.
   echo "implementer work" >> "$TR/README.md"
   git -C "$TR" add README.md
   git -C "$TR" commit -q -m "fix(rollup): Implementer-Arbeit am Container-Plan"

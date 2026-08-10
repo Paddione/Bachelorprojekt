@@ -182,8 +182,17 @@ ohne jeden PR). Diese Fälle deckt `scripts/branch-reaper.sh` ab; im Post-Merge-
 automatisch, manuell zum Nachsehen:
 
 ```bash
+# Einzel-Ticket-Lauf (Post-Merge-Pfad)
 bash scripts/branch-reaper.sh --ticket T00XXXX --dry-run   # zeigt REAP-/KEEP-Zeilen mit Begründung
 bash scripts/branch-reaper.sh --ticket T00XXXX             # löscht, nach Archiv-Tag-Push
+
+# Ticketloser Inspektionsblick über ALLE Remote-Branches
+bash scripts/branch-reaper.sh --dry-run                    # Kandidatenliste ohne Ticketzwang
+
+# Lösch-Sweep: alle verwaisten Branches (braucht kein --ticket — die ID wird aus dem
+# Branch-Namen extrahiert, das Archiv-Tag dokumentiert den gelöschten Ref)
+bash scripts/branch-reaper.sh --sweep --dry-run            # zeigt, was gelöscht würde
+bash scripts/branch-reaper.sh --sweep                      # löscht mit Archiv-Tag
 ```
 
 Gelöscht wird nur, wenn kein offener PR existiert, das Ticket `done`/`archived` ist **und** jede

@@ -234,7 +234,15 @@ REG="scripts/factory/service-registry.sh"
   [ "$status" -eq 0 ]
   run grep -Fq 'ON CONFLICT' scripts/factory/provider-register-local.sh
   [ "$status" -eq 0 ]
-  run grep -Fq 'http://127.0.0.1:18235/v1' scripts/factory/provider-register-local.sh
+  # [T003492] Anker auf Host:Port verkuerzt — vorher stand hier das vollstaendige
+  # Literal 'http://127.0.0.1:18235/v1'. Die Zusicherung dieses Tests ist laut dem
+  # Kommentar oben "das Gateway, nie ein Backend-Port direkt"; der Pfadanteil war
+  # nur zufaellig Teil des damaligen Werts. Das '/v1' musste weichen, weil die
+  # Konsumenten von provider_config.base_url es selbst anhaengen und daraus sonst
+  # '.../v1/v1/chat/completions' wird (HTTP 404). Ein Anker auf die Darstellung
+  # statt auf die Semantik haette diese Korrektur blockiert — genau der Fall aus
+  # der Konvention "Semantik statt Darstellung" (T002716).
+  run grep -Fq 'http://127.0.0.1:18235' scripts/factory/provider-register-local.sh
   [ "$status" -eq 0 ]
   # Negativ-Aussage mit dem Positiv-Anker oben: der alte Backend-Port darf als
   # aktiver Wert nicht zurueck. Kommentarzeilen sind ausgenommen — der Header des

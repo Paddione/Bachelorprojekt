@@ -39,5 +39,22 @@
   "assignees": [
     "patrick",
     "factory"
-  ]
+  ],
+  "types": [
+    "fix",
+    "feat",
+    "chore",
+    "project",
+    "docs",
+    "refactor",
+    "perf",
+    "test",
+    "ci",
+    "build"
+  ],
+  "type_aliases": {
+    "bug": "fix",
+    "feature": "feat",
+    "task": "chore"
+  }
 }

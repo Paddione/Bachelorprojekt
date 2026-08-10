@@ -1,5 +1,62 @@
 # Changelog
 
+## [1.264.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.15...website-v1.264.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** quickwin script fixes — plan-touched-files, preflight, backup [T003276] ([#4204](https://github.com/Paddione/Bachelorprojekt/issues/4204)) ([b7f2bf3](https://github.com/Paddione/Bachelorprojekt/commit/b7f2bf32251197b307ab76f984c1e759fd5eadfb))
+
+## [1.263.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.14...website-v1.263.15) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** Modell-ID-Drift beenden und den Routing-Guard endlich aufrufen [T003538] ([#4201](https://github.com/Paddione/Bachelorprojekt/issues/4201)) ([df4a206](https://github.com/Paddione/Bachelorprojekt/commit/df4a2062c227b68109cdd7be24075770f9d997bb))
+
+## [1.263.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.13...website-v1.263.14) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** add --worktree flag to git-op guard and wire into worktree-create reuse path [T003215] ([#4194](https://github.com/Paddione/Bachelorprojekt/issues/4194)) ([ea0894a](https://github.com/Paddione/Bachelorprojekt/commit/ea0894abcab5fcb2e750377962eb87b7d7c031a5))
+
+## [1.263.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.12...website-v1.263.13) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** auto-triage-Pfad heilen — baseUrl-Konvention und Typ-Vokabular [T003492] ([#4184](https://github.com/Paddione/Bachelorprojekt/issues/4184)) ([f85711e](https://github.com/Paddione/Bachelorprojekt/commit/f85711e79de399af3813d18b1e27e0c0f105623b))
+* **test:** remove obsolete docs-content paths and fix topology references [T003142] ([#4185](https://github.com/Paddione/Bachelorprojekt/issues/4185)) ([60d04d2](https://github.com/Paddione/Bachelorprojekt/commit/60d04d2fd19d1d2ba6c6c432d9bd9610861bd38b))
+
+## [1.263.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.11...website-v1.263.12) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** add --sweep mode and ticketless --dry-run to branch-reaper [T003180] ([#4188](https://github.com/Paddione/Bachelorprojekt/issues/4188)) ([e10a009](https://github.com/Paddione/Bachelorprojekt/commit/e10a00985046169d78e5e3a89b7a1dda98825a57))
+
+## [1.263.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.10...website-v1.263.11) (2026-08-10)
+
+
+### Bug Fixes
+
+* **plans:** Vor-Wellen-Stand der 8 OpenSpec-Change-Ordner wiederherstellen [T003489] ([#4182](https://github.com/Paddione/Bachelorprojekt/issues/4182)) ([853f4cb](https://github.com/Paddione/Bachelorprojekt/commit/853f4cb869b83d9a84de42c4d80ed2c8bf167476))
+
+## [1.263.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.9...website-v1.263.10) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** abgelehnter Commit-Scope nennt SSOT-Datei und Auflistungsbefehl [T003139] ([#4173](https://github.com/Paddione/Bachelorprojekt/issues/4173)) ([1ece0b0](https://github.com/Paddione/Bachelorprojekt/commit/1ece0b0a6f150c5780f35a1acac2292cec40e1fe))
+
+## [1.263.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.8...website-v1.263.9) (2026-08-10)
+
+
+### Bug Fixes
+
+* **plans:** 13 halb-archivierte OpenSpec-Slugs auf main heilen [T003488] ([#4179](https://github.com/Paddione/Bachelorprojekt/issues/4179)) ([fd1e8fc](https://github.com/Paddione/Bachelorprojekt/commit/fd1e8fc2330ce2d40a97a6b4d6a8df057e4b0d5b))
+
 ## [1.263.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.7...website-v1.263.8) (2026-08-10)
 
 

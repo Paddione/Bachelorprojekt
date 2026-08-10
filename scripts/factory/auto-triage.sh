@@ -19,7 +19,12 @@ HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/lib.sh"
 source "$HERE/triage-body.sh"
 
-DRY_RUN=false
+# [T003492] Umgebung respektieren statt unbedingt zu ueberschreiben. Vorher stand
+# hier `DRY_RUN=false`, weshalb `DRY_RUN=true bash auto-triage.sh` real schrieb und
+# am Ende trotzdem "DRY_RUN=false" meldete. Der Factory-Pfad ist davon nicht
+# betroffen: wakeup.sh haelt zwar eine eigene DRY_RUN-Variable (Default true),
+# exportiert sie aber nicht und ruft dieses Skript nur mit BRAND= auf.
+DRY_RUN="${DRY_RUN:-false}"
 TRIAGE_BATCH="${TRIAGE_BATCH:-5}"
 ENUMS_FILE="$HERE/triage-enums.json"
 
@@ -46,6 +51,18 @@ fi
 
 factory_resolve
 
+# ── normalize_triage_type: deprecated Alias → Conventional Commit ────────
+#
+# [T003492] Ein Provider ohne json_schema-Unterstuetzung (Cloud-Fallback) kann
+# weiterhin bug/feature/task liefern. Die werden angenommen und hier auf das
+# aktuelle Vokabular abgebildet, statt das Ticket zu verwerfen — ticket-mcp
+# fuehrt die alten Werte als deprecated, nicht als ungueltig.
+normalize_triage_type() {
+  local t="$1"
+  jq -rn --slurpfile e "$ENUMS_FILE" --arg t "$t" \
+    '($e[0].type_aliases // {})[$t] // $t'
+}
+
 # ── validate_triage: fail-closed validation of KI response ───────────────
 validate_triage() {
   local json="$1"
@@ -58,8 +75,17 @@ validate_triage() {
   fi
 
   # type must be valid
+  #
+  # [T003492] Die erlaubten Werte kommen aus triage-enums.json, nicht mehr aus
+  # einem hier eingebauten Regex. Der lautete `^(bug|feature|task|project)$` und
+  # widersprach dem JSON-Schema weiter unten, das beim Sampling Conventional-
+  # Commit-Vokabular erzwingt. Die Schnittmenge war genau `project`, weshalb die
+  # Triage jedes Nicht-Epic verwarf — sichtbar als "invalid type 'fix'" fuer
+  # jedes Ticket. Ein zweiter Ort fuer dieselbe Liste ist die Ursache, nicht der
+  # falsche Inhalt des Regex; deshalb gibt es jetzt nur noch die Enum-Datei.
   local t; t=$(echo "$json" | jq -r '.type // ""')
-  if [[ ! "$t" =~ ^(bug|feature|task|project)$ ]]; then
+  if ! echo "$enums" | jq -e --arg t "$t" \
+       '((.types // []) + ((.type_aliases // {}) | keys)) | index($t)' >/dev/null; then
     echo "auto-triage: validate_triage: invalid type '${t}'" >&2
     return 1
   fi
@@ -180,7 +206,7 @@ Du bist ein Ticket-Triage-Assistent. Klassifiziere das folgende Ticket und antwo
 
 Das JSON MUSS dieses Schema haben:
 {
-  "type": "<bug|feature|task|project>",
+  "type": "<fix|feat|chore|project|docs|refactor|perf|test|ci|build>",
   "priority": "<hoch|mittel|niedrig>",
   "severity": "<critical|major|minor|trivial>",
   "areas": ["<area1>", "<area2>"],
@@ -307,7 +333,7 @@ PROMPT
       additionalProperties: false,
       required: ["type","priority","severity","areas","component","assignee_suggested","rationale"],
       properties: {
-        type: { type: "string", enum: ["fix","feat","chore","project","docs","refactor","perf","test","ci","build"] },
+        type: { type: "string", enum: $enums.types },
         priority: { type: "string", enum: ["hoch","mittel","niedrig"] },
         severity: { type: "string", enum: ["critical","major","minor","trivial"] },
         areas: { type: "array", items: { type: "string", enum: $enums.areas }, minItems: 1, maxItems: 3 },
@@ -347,6 +373,18 @@ PROMPT
   echo "$content"
   return 0
 }
+
+# [T003492] Testbarkeits-Ausstieg: mit AUTO_TRIAGE_LIB_ONLY=1 endet das Skript
+# hier, nachdem alle Funktionen definiert sind, aber bevor die Datenbank
+# angefasst wird. Damit laesst sich validate_triage in BATS direkt aufrufen und
+# an Exit-Code und stderr messen, statt den Quelltext zu greppen
+# (Test-Resultats-Konvention T002448-M4). Alles oberhalb ist offline: lib.sh und
+# triage-body.sh definieren nur Funktionen, factory_resolve setzt bloss
+# Variablen. Kein `exit` verwenden — beim source wuerde das die aufrufende Shell
+# beenden.
+if [[ -n "${AUTO_TRIAGE_LIB_ONLY:-}" ]]; then
+  return 0 2>/dev/null || exit 0
+fi
 
 # ── Pull untriaged tickets ─────────────────────────────────────────────
 UNTRIAGED_JSON=$(cat <<SQL | factory_psql 2>/dev/null || echo ""
@@ -398,9 +436,16 @@ for ticket in "${TICKETS[@]}"; do
   echo "[auto-triage:${BRAND}] triagiere ${ext_id}…" >&2
 
   # Call LLM
+  #
+  # [T003492] KEIN `2>/dev/null` mehr. call_llm schreibt die eigentliche Diagnose
+  # auf stderr ("no content in llamacpp response", "curl to … failed", "route-provider
+  # returned empty baseUrl"); das Verwerfen liess wochenlang nur die nichtssagende
+  # Sammelmeldung unten im Journal stehen. Der auslösende Defekt — eine baseUrl mit
+  # doppeltem /v1, die in einen HTTP 404 lief — war dadurch von aussen nicht von
+  # einem Modellfehler zu unterscheiden.
   suggestion=""
-  if ! suggestion=$(call_llm "$title" "$description" "$ENUMS_STR" 2>/dev/null); then
-    echo "[auto-triage:${BRAND}] KI-Aufruf für ${ext_id} fehlgeschlagen — überspringe" >&2
+  if ! suggestion=$(call_llm "$title" "$description" "$ENUMS_STR"); then
+    echo "[auto-triage:${BRAND}] KI-Aufruf für ${ext_id} fehlgeschlagen — überspringe (Grund siehe stderr-Zeile darüber)" >&2
     ((SKIPPED++)) || true
     continue
   fi
@@ -413,12 +458,18 @@ for ticket in "${TICKETS[@]}"; do
   fi
 
   # Add metadata to suggestion
+  #
+  # [T003492] Der type wird vor dem Schreiben auf das aktuelle Vokabular
+  # normalisiert, damit ein Provider ohne json_schema-Unterstuetzung keine
+  # deprecated Werte in die Tabelle traegt.
   model_used="${LAST_MODEL_USED:-unknown}"
   timestamp=$(date -u +%FT%TZ)
+  normalized_type=$(normalize_triage_type "$(echo "$suggestion" | jq -r '.type')")
   final_json=$(echo "$suggestion" | jq \
     --arg model "$model_used" \
     --arg at "$timestamp" \
-    '{triage: (. + {model: $model, at: $at})}')
+    --arg type "$normalized_type" \
+    '{triage: (. + {type: $type, model: $model, at: $at})}')
 
   # Idempotent write: only if triaged_at is still NULL
   updated=$(cat <<SQL | factory_psql -v ext_id="$ext_id" -v meta="$final_json" 2>/dev/null || echo "0"

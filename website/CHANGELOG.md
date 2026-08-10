@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.10...website-v1.263.11) (2026-08-10)
+
+
+### Bug Fixes
+
+* **plans:** Vor-Wellen-Stand der 8 OpenSpec-Change-Ordner wiederherstellen [T003489] ([#4182](https://github.com/Paddione/Bachelorprojekt/issues/4182)) ([853f4cb](https://github.com/Paddione/Bachelorprojekt/commit/853f4cb869b83d9a84de42c4d80ed2c8bf167476))
+
 ## [1.263.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.9...website-v1.263.10) (2026-08-10)
 
 

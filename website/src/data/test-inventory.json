@@ -3498,6 +3498,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/propose-help",
+    "file": "tests/spec/openspec-workflow/propose-help.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/ticket-file-required",
     "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",

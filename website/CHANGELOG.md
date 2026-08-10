@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.261.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.1...website-v1.261.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** ticket.sh --help/-h auf Kommando- und Optionsebene [T002843] ([#4133](https://github.com/Paddione/Bachelorprojekt/issues/4133)) ([a48aa63](https://github.com/Paddione/Bachelorprojekt/commit/a48aa63f5afbfcb7bdf93c4eb38e730e15a24359))
+
 ## [1.261.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.0...website-v1.261.1) (2026-08-10)
 
 

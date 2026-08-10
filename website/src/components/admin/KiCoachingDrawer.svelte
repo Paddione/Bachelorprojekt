@@ -32,7 +32,7 @@
   let newCatalogId = $state('');
   let newDisplayName = $state('');
 
-  async function load() { loadError = ''; try { const [cRes, pRes] = await Promise.all([fetch('/api/admin/ki/catalog'), fetch('/api/admin/coaching/ki-config')]); if (!cRes.ok || !pRes.ok) throw new Error('Laden fehlgeschlagen'); catalog = (await cRes.json()).catalog; providers = (await pRes.json()).providers; loaded = true; } catch (err) { loadError = err instanceof Error ? err.message : 'Unbekannter Fehler'; } }
+  async function load() { loadError = ''; try { const [cRes, pRes] = await Promise.all([fetch('/sdlc/api/ki/catalog'), fetch('/api/admin/coaching/ki-config')]); if (!cRes.ok || !pRes.ok) throw new Error('Laden fehlgeschlagen'); catalog = (await cRes.json()).catalog; providers = (await pRes.json()).providers; loaded = true; } catch (err) { loadError = err instanceof Error ? err.message : 'Unbekannter Fehler'; } }
 
   $effect(() => { load(); });
 

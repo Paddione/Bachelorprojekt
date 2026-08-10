@@ -44,7 +44,7 @@ describe('loadActivePrompts', () => {
       json: async () => ({ prompts }),
     });
     const result = await loadActivePrompts();
-    expect(fetchMock).toHaveBeenCalledWith('/api/admin/prompt-library');
+    expect(fetchMock).toHaveBeenCalledWith('/sdlc/api/prompt-library');
     expect(result).toEqual(prompts);
   });
 
@@ -72,7 +72,7 @@ describe('recordPromptUse', () => {
   it('POSTs to the per-id use endpoint', async () => {
     fetchMock.mockResolvedValue({ ok: true });
     await recordPromptUse(7);
-    expect(fetchMock).toHaveBeenCalledWith('/api/admin/prompt-library/7/use', { method: 'POST' });
+    expect(fetchMock).toHaveBeenCalledWith('/sdlc/api/prompt-library/7/use', { method: 'POST' });
   });
 
   it('swallows network errors (usage tracking is best-effort)', async () => {

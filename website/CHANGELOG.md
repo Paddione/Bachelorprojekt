@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.9...website-v1.263.10) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** abgelehnter Commit-Scope nennt SSOT-Datei und Auflistungsbefehl [T003139] ([#4173](https://github.com/Paddione/Bachelorprojekt/issues/4173)) ([1ece0b0](https://github.com/Paddione/Bachelorprojekt/commit/1ece0b0a6f150c5780f35a1acac2292cec40e1fe))
+
 ## [1.263.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.8...website-v1.263.9) (2026-08-10)
 
 

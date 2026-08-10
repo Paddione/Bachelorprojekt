@@ -28,8 +28,16 @@ setup() {
 
 teardown() {
   # Alle gestarteten http.server-Prozesse dieser Fixture beenden.
-  if [ -n "${HTTP_PIDS:-}" ]; then
-    for p in $HTTP_PIDS; do kill "$p" 2>/dev/null || true; done
+  # [T003171] Die PIDs stehen in einer Datei, nicht in einer Shell-Variable:
+  # serve_dir() wird per Command-Substitution in einer Subshell aufgerufen,
+  # die Zuweisung an HTTP_PIDS verfiel beim Ruecksprung — der teardown
+  # durchlief seine Kill-Schleife nie und jeder Lauf hinterliess einen
+  # verwaisten http.server-Prozess pro Aufruf.
+  local pid_file="${FIX:-}/http.pids"
+  if [ -f "$pid_file" ]; then
+    while read -r p; do
+      [ -n "$p" ] && kill "$p" 2>/dev/null || true
+    done < "$pid_file"
   fi
   [ -n "${FIX:-}" ] && rm -rf "$FIX"
   return 0
@@ -46,12 +54,18 @@ free_port() {
 # (ein Verzeichnis) ausliefert. Gibt den Port aus und registriert die PID.
 # Ein "toter Port" ist ein Port, auf dem NICHTS gestartet wurde.
 # Alle FDs werden umgeleitet, damit bats nicht auf offene Kanäle wartet.
+#
+# [T003171] Die PID wird in $FIX/http.pids geschrieben, nicht in eine
+# Shell-Variable: die Funktion wird per Command-Substitution aufgerufen
+# ($(serve_dir ...)), das oeffnet eine Subshell — jede Zuweisung dort ist
+# lokal und verfaellt beim Ruecksprung. Die Datei ueberlebt die Subshell,
+# weil sie im Dateisystem liegt, und der teardown liest sie aus.
 serve_dir() { # <verzeichnis>
   local dir="$1" port
   port="$(free_port)"
   python3 -m http.server "$port" --bind 127.0.0.1 --directory "$dir" \
     >"$FIX/http-$port.log" 2>&1 </dev/null &
-  HTTP_PIDS="${HTTP_PIDS:-} $!"
+  echo "$!" >> "$FIX/http.pids"
   # Warten, bis der Server wirklich lauscht.
   for _ in $(seq 1 50); do
     if curl -s -m 1 "http://127.0.0.1:$port/" >/dev/null 2>&1; then break; fi

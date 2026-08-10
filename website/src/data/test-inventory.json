@@ -2286,6 +2286,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-sweep",
+    "file": "tests/spec/ci-cd/branch-reaper-sweep.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/changed-tests-collection-parity",
     "file": "tests/spec/ci-cd/changed-tests-collection-parity.bats",
     "category": "ci-cd",

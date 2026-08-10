@@ -2298,6 +2298,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-sweep",
+    "file": "tests/spec/ci-cd/branch-reaper-sweep.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/changed-tests-collection-parity",
     "file": "tests/spec/ci-cd/changed-tests-collection-parity.bats",
     "category": "ci-cd",
@@ -2324,6 +2330,12 @@
   {
     "id": "ci-cd/devflow-execute-hardening-t002365",
     "file": "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/docs-content-guards",
+    "file": "tests/spec/ci-cd/docs-content-guards.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2450,6 +2462,12 @@
   {
     "id": "ci-cd/test-inventory-coverage",
     "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/unknown-scope-names-source",
+    "file": "tests/spec/ci-cd/unknown-scope-names-source.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2666,6 +2684,12 @@
   {
     "id": "divergence-guard/main-checkout-foreign-guard",
     "file": "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
+    "id": "divergence-guard/worktree-create-git-op-guard",
+    "file": "tests/spec/divergence-guard/worktree-create-git-op-guard.bats",
     "category": "divergence-guard",
     "kind": "shell"
   },
@@ -4062,6 +4086,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/auto-triage-type-vocab",
+    "file": "tests/spec/software-factory/auto-triage-type-vocab.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/babysit-prs-live-lock-guard-T003137",
     "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
     "category": "software-factory",
@@ -4086,6 +4116,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-model-id-default",
+    "file": "tests/spec/software-factory/factory-model-id-default.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/factory-prep-stdout-json",
     "file": "tests/spec/software-factory/factory-prep-stdout-json.bats",
     "category": "software-factory",
@@ -4106,6 +4142,12 @@
   {
     "id": "software-factory/pr-babysit",
     "file": "tests/spec/software-factory/pr-babysit.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/provider-config-baseurl-convention",
+    "file": "tests/spec/software-factory/provider-config-baseurl-convention.bats",
     "category": "software-factory",
     "kind": "shell"
   },

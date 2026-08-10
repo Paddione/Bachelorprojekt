@@ -2409,6 +2409,12 @@
       "status": "archived"
     }
   ],
+  "T002587": [
+    {
+      "slug": "unsloth-training-env",
+      "status": "plan_staged"
+    }
+  ],
   "T002592": [
     {
       "slug": "2026-08-03-toolset-usage-injection",
@@ -3123,6 +3129,24 @@
       "status": "archived"
     }
   ],
+  "T003139": [
+    {
+      "slug": "commit-scope-openspec",
+      "status": "plan_staged"
+    }
+  ],
+  "T003142": [
+    {
+      "slug": "docs-content-test-paths",
+      "status": "plan_staged"
+    }
+  ],
+  "T003180": [
+    {
+      "slug": "branch-reaper-sweep-cli",
+      "status": "plan_staged"
+    }
+  ],
   "T003203": [
     {
       "slug": "2026-08-10-fix-brain-ingest-port-T003203",
@@ -3141,6 +3165,12 @@
       "status": "archived"
     }
   ],
+  "T003215": [
+    {
+      "slug": "worktree-create-git-op-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T003267": [
     {
       "slug": "cross-harness-plan-guardrails",
@@ -3150,6 +3180,12 @@
   "T003269": [
     {
       "slug": "2026-08-10-factory-prep-stdout-leak",
+      "status": "archived"
+    }
+  ],
+  "T003276": [
+    {
+      "slug": "2026-08-10-quickwins-script-fixes",
       "status": "archived"
     }
   ],

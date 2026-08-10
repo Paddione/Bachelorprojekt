@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import PilotLight from '../sdlc/factory/PilotLight.svelte';
   import type { CockpitMode } from './CommandBar.svelte';
 
@@ -19,14 +18,17 @@
     href?: string;
   }
 
-  let { mode = 'overview', phase = 'bauen' as Phase, brand = 'mentolder' }: {
+  // `brand` wird von cockpit.astro durchgereicht und bleibt Teil der oeffentlichen
+  // Prop-Signatur (die Rail-Inhalte werden brand-spezifisch), ist aber noch nicht
+  // ausgewertet — daher der `_`-Alias, den die ESLint-Regel als bewusst ungenutzt
+  // akzeptiert.
+  let { mode = 'overview', phase = 'bauen' as Phase, brand: _brand = 'mentolder' }: {
     mode: CockpitMode;
     phase?: Phase;
     brand: string;
   } = $props();
 
   let sections = $state<RailSection[]>([]);
-  let loading = $state(true);
 
   function buildSections(): RailSection[] {
     switch (mode) {
@@ -157,17 +159,11 @@
     }
   }
 
-  onMount(() => {
-    sections = buildSections();
-    loading = false;
-  });
-
-  // Re-build when mode or phase changes
+  // Der `$effect` laeuft auch beim ersten Rendern — ein zusaetzliches `onMount`
+  // mit demselben Rumpf war redundant und baute die Sektionen doppelt auf.
   $effect(() => {
-    // Reactively rebuild when props change
     void mode; void phase; // consume reactive deps
     sections = buildSections();
-    loading = false;
   });
 </script>
 

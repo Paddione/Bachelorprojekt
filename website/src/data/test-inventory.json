@@ -3906,6 +3906,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/redesign-struktur",
+    "file": "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/write-token-removed",
     "file": "tests/spec/sdlc-cockpit/write-token-removed.bats",
     "category": "sdlc-cockpit",

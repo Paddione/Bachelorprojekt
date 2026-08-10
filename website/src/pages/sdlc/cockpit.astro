@@ -7,7 +7,6 @@ import OverviewDashboard from '../../components/cockpit/OverviewDashboard.svelte
 import CockpitRail from '../../components/cockpit/CockpitRail.svelte';
 import FactoryFloor from '../../components/sdlc/FactoryFloor.svelte';
 import PlanningOffice from '../../components/PlanningOffice.svelte';
-import DependencyGraph from '../../components/DependencyGraph.svelte';
 import InsightsTab from '../../components/sdlc/factory/InsightsTab.svelte';
 import { getFloor } from '../../lib/sdlc/factory-floor.ts';
 
@@ -82,11 +81,6 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
             <p class="fokus-phase__info">Ausgelieferte Tickets dieser Woche (kommendes Feature).</p>
           </div>
         )}
-        {initialMode === 'fokus' && !ALLOWED_PHASES.includes(initialPhase) && (
-          <div class="fokus-phase">
-            <p class="fokus-phase__placeholder">Unbekannte Phase: {initialPhase}</p>
-          </div>
-        )}
         {initialMode === 'insights' && (
           <InsightsTab client:load />
         )}
@@ -96,6 +90,21 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
 
   <script>
     import { browserLogger } from '$lib/browser-logger';
+
+    // Die Cockpit-Kit-Skripte (public/cockpit/kit/*.js) haengen `actionPolicy`
+    // und `data` zur Laufzeit an `window`. Ohne Deklaration braeuchte jeder
+    // Zugriff ein `as any` — was der fail-closed ESLint-Gate abweist.
+    interface ActionPrompt { level: 'named' | 'plain'; target?: string }
+    interface ActionResult { ok: boolean; error?: string }
+    interface CockpitWindow extends Window {
+      actionPolicy?: { confirmationFor(action: string, target?: string): ActionPrompt | null };
+      data?: {
+        performAction(action: string, params: Record<string, string>): Promise<ActionResult>;
+        streamState?(): 'live' | 'polling' | 'disconnected';
+      };
+      cockpitAct?: (action: string, target?: string) => void;
+    }
+    const win = window as unknown as CockpitWindow;
 
     // Mode switching via CommandBar custom events
     document.addEventListener('cockpit-modechange', ((e: CustomEvent) => {
@@ -110,8 +119,12 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
 
     function cockpitAct(action: string, target?: string) {
       try {
-        const prompt = (window as any).actionPolicy?.confirmationFor(action, target);
-        if (prompt !== null) {
+        const prompt = win.actionPolicy?.confirmationFor(action, target);
+        // `!= null` statt `!== null`: fehlt das Kit-Skript, liefert das optional
+        // chaining `undefined` — mit `!== null` liefe der Code dann in einen
+        // TypeError auf `prompt.level`, den der catch als "action blocked"
+        // meldet. Jede Aktion waere blockiert statt bestaetigungsfrei.
+        if (prompt != null) {
           const msg = prompt.level === 'named'
             ? `${action} auf ${prompt.target} ausführen?`
             : `${action} ausführen?`;
@@ -122,20 +135,20 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
         return;
       }
 
-      (window as any).data?.performAction(action, target ? { target } : {}).then((r: any) => {
+      win.data?.performAction(action, target ? { target } : {}).then((r) => {
         if (!r.ok && r.error) browserLogger.error('[cockpit] ' + action + ' failed: ' + r.error);
-      }).catch((e: any) => {
+      }).catch((e: unknown) => {
         browserLogger.error({ err: e }, '[cockpit] ' + action + ' error');
       });
     }
 
-    (window as any).cockpitAct = cockpitAct;
+    win.cockpitAct = cockpitAct;
 
     // Stream state indicator
     (function updateHeader() {
       const el = document.getElementById('cockpit-stream-state');
-      if (!el || !(window as any).data || !(window as any).data.streamState) return;
-      const state = (window as any).data.streamState();
+      if (!el || !win.data?.streamState) return;
+      const state = win.data.streamState();
       if (state === 'live') {
         el.textContent = '● live';
         el.style.color = 'var(--color-status-ok)';

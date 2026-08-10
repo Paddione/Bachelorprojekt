@@ -7,7 +7,6 @@
   import KiRoutingPanel from './sdlc/factory/KiRoutingPanel.svelte';
   import LlmProxyPanel from './sdlc/factory/LlmProxyPanel.svelte';
   import DependencyGraph from './DependencyGraph.svelte';
-  import DeliveryHistory from './DeliveryHistory.svelte';
   import AdminTabs from './admin/ui/AdminTabs.svelte';
   import KostenTab from './sdlc/factory/KostenTab.svelte';
   import type { FloorPayload } from '../lib/factory-floor-types';
@@ -24,7 +23,6 @@
   } = $props();
 
   let activeTab = $state<Tab>(initialTab);
-  let analyticsWindow = $state<'7d' | '30d' | 'all'>('7d');
 
   function switchTab(tab: Tab) {
     activeTab = tab;

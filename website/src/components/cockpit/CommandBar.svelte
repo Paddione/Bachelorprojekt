@@ -49,13 +49,12 @@
     dispatch('modechange', { mode });
   }
 
-  const dispatch = (() => {
-    let _el: HTMLElement;
-    return (name: string, detail: unknown) => {
-      if (!_el) _el = document.createElement('div');
-      _el.dispatchEvent(new CustomEvent(`cockpit-${name}`, { detail, bubbles: true }));
-    };
-  })();
+  // Direkt auf `document` dispatchen. Ein `document.createElement(...)`-Element
+  // haengt an keinem Baum: sein Event bubbelt nur bis zu diesem losen Knoten und
+  // erreicht `document` nie — der Listener in cockpit.astro feuerte dann gar nicht.
+  function dispatch(name: string, detail: unknown) {
+    document.dispatchEvent(new CustomEvent(`cockpit-${name}`, { detail }));
+  }
 
   onMount(() => {
     const release = acquireFloor();

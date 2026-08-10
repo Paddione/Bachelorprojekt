@@ -111,6 +111,16 @@ jobs:
       - name: Code-quality gates (always)
         run: node --test scripts/code-quality/*.test.mjs scripts/code-quality/gates/*.test.mjs
 
+      - name: Install actionlint (pinned)
+        run: |
+          curl -sSfL https://github.com/rhysd/actionlint/releases/download/v1.7.7/actionlint_1.7.7_linux_amd64.tar.gz \
+            | tar -xz -C /tmp actionlint
+          sudo install -m 0755 /tmp/actionlint /usr/local/bin/actionlint
+          actionlint --version
+
+      - name: Workflow lint (always)
+        run: bash scripts/lint-workflows.sh
+
       # T002336: bis hierher lief diese Suite nirgends - weder in einem
       # Taskfile-Target noch in CI. "always", nicht selektiv: der Proxy ist
       # Infrastruktur fuer Factory und dev-flow, ein Bruch faellt sonst erst

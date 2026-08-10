@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 927,
+      "file_count": 928,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -389,6 +389,7 @@
         "tests/spec/centralized-logging.bats",
         "tests/spec/chat-inbox.bats",
         "tests/spec/ci-cd.bats",
+        "tests/spec/ci-cd/actionlint-workflow-gate.bats",
         "tests/spec/ci-cd/arbitration-scoped-kubeconfig.bats",
         "tests/spec/ci-cd/automerge-run-scope.bats",
         "tests/spec/ci-cd/bats-no-live-branch-assertion.bats",
@@ -3304,7 +3305,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 700,
+      "file_count": 701,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3742,6 +3743,7 @@
         "scripts/lib/vda-core.sh",
         "scripts/lib/wt-hygiene-measure.sh",
         "scripts/lib/zielfamilien-audit.sh",
+        "scripts/lint-workflows.sh",
         "scripts/llm-host-setup.sh",
         "scripts/llm-proxy/backends.mjs",
         "scripts/llm-proxy/bge-routes.mjs",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 931,
+      "file_count": 932,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -399,6 +399,7 @@
         "tests/spec/ci-cd/changed-tests-collection-parity.bats",
         "tests/spec/ci-cd/changed-tests-env-hermetic.bats",
         "tests/spec/ci-cd/changed-tests-uncommitted-diff.bats",
+        "tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats",
         "tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats",
         "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
         "tests/spec/ci-cd/docs-content-guards.bats",
@@ -3314,7 +3315,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 706,
+      "file_count": 707,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3727,6 +3728,7 @@
         "scripts/knowledge/reindex.sh",
         "scripts/knowledge/search-similar.mjs",
         "scripts/lib/branch-allowlist.sh",
+        "scripts/lib/ci-checks.sh",
         "scripts/lib/count-unresolved-agent-tools.sh",
         "scripts/lib/export.sh",
         "scripts/lib/google-import.sh",

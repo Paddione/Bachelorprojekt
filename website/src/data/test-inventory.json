@@ -2322,6 +2322,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/ci-wait-loop-nonempty-guard",
+    "file": "tests/spec/ci-cd/ci-wait-loop-nonempty-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/devflow-ci-watch-merged-exit",
     "file": "tests/spec/ci-cd/devflow-ci-watch-merged-exit.bats",
     "category": "ci-cd",

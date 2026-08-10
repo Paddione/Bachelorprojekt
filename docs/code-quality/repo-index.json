@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 919,
+      "file_count": 920,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -420,6 +420,7 @@
         "tests/spec/ci-cd/spec-tracked-file-guard.bats",
         "tests/spec/ci-cd/taskfiles-dir-convention.bats",
         "tests/spec/ci-cd/test-inventory-coverage.bats",
+        "tests/spec/ci-cd/unknown-scope-names-source.bats",
         "tests/spec/ci-cd/workflow-self-trigger.bats",
         "tests/spec/ci-cd/worktrees-not-tracked.bats",
         "tests/spec/coaching-sessions-polish-guide.bats",

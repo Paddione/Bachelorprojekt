@@ -3009,6 +3009,12 @@
       "status": "archived"
     }
   ],
+  "T002908": [
+    {
+      "slug": "openspec-sh-propose-help",
+      "status": "plan_staged"
+    }
+  ],
   "T002925": [
     {
       "slug": "2026-08-10-sammel-bats-hygiene-T002925",

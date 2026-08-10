@@ -2979,6 +2979,12 @@
       "status": "archived"
     }
   ],
+  "T002931": [
+    {
+      "slug": "mishap-rollup-loop",
+      "status": "plan_staged"
+    }
+  ],
   "T002941": [
     {
       "slug": "2026-08-10-mcp-config-mutation-race",

@@ -17,86 +17,6 @@
   },
   "impact_files": [
     {
-      "path": "scripts/plan-preflight.sh",
-      "language": "bash",
-      "loc": 0,
-      "s1_limit": 800,
-      "s1_baseline": null,
-      "s1_budget": null
-    },
-    {
-      "path": "scripts/vda/ticket/stage-plan.sh",
-      "language": "bash",
-      "loc": 170,
-      "s1_limit": 800,
-      "s1_baseline": null,
-      "s1_budget": 630
-    },
-    {
-      "path": "scripts/plan-lint.sh",
-      "language": "bash",
-      "loc": 533,
-      "s1_limit": 800,
-      "s1_baseline": null,
-      "s1_budget": 267
-    },
-    {
-      "path": "scripts/factory/pipeline.mjs",
-      "language": "javascript",
-      "loc": 717,
-      "s1_limit": 800,
-      "s1_baseline": null,
-      "s1_budget": null
-    },
-    {
-      "path": "scripts/factory/mishap-rollup.sh",
-      "language": "bash",
-      "loc": 265,
-      "s1_limit": 800,
-      "s1_baseline": null,
-      "s1_budget": 535
-    },
-    {
-      "path": "scripts/factory/auto-chore-plan.sh",
-      "language": "bash",
-      "loc": 215,
-      "s1_limit": 800,
-      "s1_baseline": null,
-      "s1_budget": 585
-    },
-    {
-      "path": "scripts/batch-workflow-gen.sh",
-      "language": "bash",
-      "loc": 162,
-      "s1_limit": 800,
-      "s1_baseline": null,
-      "s1_budget": 638
-    },
-    {
-      "path": "scripts/ticket-mcp/go/internal/tools/workflow.go",
-      "language": "text",
-      "loc": 258,
-      "s1_limit": 0,
-      "s1_baseline": null,
-      "s1_budget": null
-    },
-    {
-      "path": "docs/agent-guide/registry/plan-guards.yaml",
-      "language": "config",
-      "loc": 0,
-      "s1_limit": 0,
-      "s1_baseline": null,
-      "s1_budget": null
-    },
-    {
-      "path": ".opencode/skills/opencode-flow-plan/SKILL.md",
-      "language": "markdown",
-      "loc": 352,
-      "s1_limit": 0,
-      "s1_baseline": null,
-      "s1_budget": null
-    },
-    {
       "path": ".claude/skills/dev-flow-plan/SKILL.md",
       "language": "markdown",
       "loc": 329,
@@ -121,15 +41,95 @@
       "s1_budget": null
     },
     {
-      "path": "tests/spec/dev-flow-plan/plan-preflight.bats",
-      "language": "bash",
+      "path": ".opencode/skills/opencode-flow-plan/SKILL.md",
+      "language": "markdown",
+      "loc": 352,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/plan-guards.yaml",
+      "language": "config",
       "loc": 0,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
     },
     {
-      "path": "tests/spec/dev-flow-plan/stage-plan-contract.bats",
+      "path": "openspec/changes/cross-harness-plan-guardrails/specs/dev-flow-plan.md",
+      "language": "markdown",
+      "loc": 11,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/batch-workflow-gen.sh",
+      "language": "bash",
+      "loc": 162,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 638
+    },
+    {
+      "path": "scripts/factory/auto-chore-plan.sh",
+      "language": "bash",
+      "loc": 215,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 585
+    },
+    {
+      "path": "scripts/factory/mishap-rollup.sh",
+      "language": "bash",
+      "loc": 265,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 535
+    },
+    {
+      "path": "scripts/factory/pipeline.mjs",
+      "language": "javascript",
+      "loc": 717,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/plan-lint.sh",
+      "language": "bash",
+      "loc": 533,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 267
+    },
+    {
+      "path": "scripts/plan-preflight.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/ticket-mcp/go/internal/tools/workflow.go",
+      "language": "text",
+      "loc": 258,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/vda/ticket/stage-plan.sh",
+      "language": "bash",
+      "loc": 170,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 630
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/guard-parity.bats",
       "language": "bash",
       "loc": 0,
       "s1_limit": 0,
@@ -145,7 +145,15 @@
       "s1_budget": null
     },
     {
-      "path": "tests/spec/dev-flow-plan/guard-parity.bats",
+      "path": "tests/spec/dev-flow-plan/plan-preflight.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/stage-plan-contract.bats",
       "language": "bash",
       "loc": 0,
       "s1_limit": 0,
@@ -155,19 +163,19 @@
   ],
   "symbols": [
     {
-      "qualified_name": "scripts/vda/ticket/stage-plan.sh:14:_exec_sql_with_timeout() {",
+      "qualified_name": "scripts/factory/auto-chore-plan.sh:70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }",
       "kind": "function",
-      "file": "scripts/vda/ticket/stage-plan.sh",
-      "signature": "14:_exec_sql_with_timeout() {(...)",
-      "type_text": "14:_exec_sql_with_timeout() {(...)",
+      "file": "scripts/factory/auto-chore-plan.sh",
+      "signature": "70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }(...)",
+      "type_text": "70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/vda/ticket/stage-plan.sh:39:main() {",
+      "qualified_name": "scripts/factory/auto-chore-plan.sh:116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }",
       "kind": "function",
-      "file": "scripts/vda/ticket/stage-plan.sh",
-      "signature": "39:main() {(...)",
-      "type_text": "39:main() {(...)",
+      "file": "scripts/factory/auto-chore-plan.sh",
+      "signature": "116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }(...)",
+      "type_text": "116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }(...)",
       "source": "grep"
     },
     {
@@ -275,19 +283,19 @@
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/factory/auto-chore-plan.sh:70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }",
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:14:_exec_sql_with_timeout() {",
       "kind": "function",
-      "file": "scripts/factory/auto-chore-plan.sh",
-      "signature": "70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }(...)",
-      "type_text": "70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }(...)",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "14:_exec_sql_with_timeout() {(...)",
+      "type_text": "14:_exec_sql_with_timeout() {(...)",
       "source": "grep"
     },
     {
-      "qualified_name": "scripts/factory/auto-chore-plan.sh:116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }",
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:39:main() {",
       "kind": "function",
-      "file": "scripts/factory/auto-chore-plan.sh",
-      "signature": "116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }(...)",
-      "type_text": "116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }(...)",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "39:main() {(...)",
+      "type_text": "39:main() {(...)",
       "source": "grep"
     }
   ],

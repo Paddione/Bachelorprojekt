@@ -211,10 +211,17 @@ Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:
    ```bash
    [ -z "$(git status --porcelain)" ] || { echo "FATAL: working tree ist nicht sauber — stash oder commit zuerst." >&2; exit 1; }
    ```
-3. **Branch stimmt mit agent-lock claim überein:**
+3. **Branch stimmt mit agent-lock claim überein (T003102 — akzeptiert ticket- UND branch-scoped Claims):**
    ```bash
-    LOCK_FILE="$(git rev-parse --git-common-dir)/agent-locks/ticket__${TICKET_EXT_ID}.json"
-   [ -f "$LOCK_FILE" ] || { echo "FATAL: kein ticket-scoped agent-lock-Claim für $TICKET_EXT_ID gefunden ($LOCK_FILE fehlt) — claim zuerst mit agent-lock.sh claim ticket (siehe Schritt B.1 / Schritt 4.5)." >&2; exit 1; }
+    LOCK_DIR="$(git rev-parse --git-common-dir)/agent-locks"
+    # Lock files live under agent-locks/ in the git common dir.
+    BRANCH_SLUG="$(echo "$CURRENT_BRANCH" | sed 's#/#-#g')"
+    # Prefer ticket-scoped lock; fall back to branch-scoped (T003102 — branch-locks
+    # are valid for plan staging and do not block the later ticket completion by
+    # subagent, ticket-mcp, or post-merge.yml)
+    LOCK_FILE="${LOCK_DIR}/ticket__${TICKET_EXT_ID}.json"
+    [ -f "$LOCK_FILE" ] || LOCK_FILE="${LOCK_DIR}/branch__${BRANCH_SLUG}.json"
+   [ -f "$LOCK_FILE" ] || { echo "FATAL: kein agent-lock-Claim für $TICKET_EXT_ID gefunden (weder ticket__${TICKET_EXT_ID}.json noch branch__${BRANCH_SLUG}.json in $LOCK_DIR) — claim zuerst mit agent-lock.sh claim ticket|branch (siehe Schritt B.1 / Schritt 4.5)." >&2; exit 1; }
    CLAIMED_BRANCH="$(jq -r '.branch' "$LOCK_FILE" 2>/dev/null)"
    [ "$CLAIMED_BRANCH" = "$CURRENT_BRANCH" ] || { echo "FATAL: branch mismatch — agent-lock claim = $CLAIMED_BRANCH, HEAD = $CURRENT_BRANCH." >&2; exit 1; }
    ```

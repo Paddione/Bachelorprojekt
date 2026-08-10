@@ -129,3 +129,23 @@ git fetch origin main && git rebase origin/main && task freshness:regenerate \
 ```
 
 Details: [dev-flow-gotchas T001395](dev-flow-gotchas.md).
+
+## cherry-pick --abort verwirft die GANZE Sequenz [T002637-M6]
+
+Bei `git cherry-pick A B` mit einem Konflikt in B setzt `--abort` auf den Zustand VOR der
+gesamten Sequenz zurück — der bereits erfolgreich gepickte Commit A ist damit ebenfalls weg.
+Nicht offensichtlich; kostete eine Wiederholungsrunde (verifiziert am 2026-08-04).
+
+**Regel:** Bei Mehr-Commit-Sequenzen entweder einzeln picken (jeder Commit separat,
+Konflikt löst nur diesen ab) oder `--quit` statt `--abort` verwenden: `--quit` belässt die
+bereits angewendeten Commits im Arbeitsbaum und verwirft nur den Sequenzer-Zustand
+(HEAD bleibt auf dem zuletzt gepickten Commit). `--abort` nur, wenn wirklich ALLE Commits
+der Sequenz verworfen werden sollen.
+
+```bash
+git cherry-pick A B          # Konflikt in B
+git cherry-pick --quit       # A bleibt angewendet; Sequenz beenden
+# vs.
+git cherry-pick --abort      # verwirft AUCH A — Zustand vor der Sequenz
+```
+

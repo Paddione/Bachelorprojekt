@@ -540,6 +540,27 @@ does not break portal or admin project management.
 - **WHEN** ein Admin ein Projekt anlegt, aktualisiert oder loescht
 - **THEN** gelingt die Operation, weil sie ausschliesslich `public.customer_projects` schreibt
 
+### Requirement: Browser-Compatible Logger Import
+
+`PortalSidekick.svelte` must use `browser-logger` instead of the server-only pino logger.
+
+#### Scenario: PortalSidekick hydrates on the client
+
+```gherkin
+GIVEN PortalSidekick.svelte is loaded with client:load or client:idle
+WHEN the component hydrates on the client
+THEN no "process is not defined" error occurs
+AND the component renders without hydration warnings
+```
+
+#### Scenario: Logging still works in PortalSidekick
+
+```gherkin
+GIVEN PortalSidekick.svelte needs to log messages
+WHEN a log call is made
+THEN the message is written to the browser console via browser-logger
+```
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -682,3 +703,5 @@ KI-supported 10-level systemic coaching sessions with international clients.
 - **THEN** the request is rejected or redirected to login (no studio content is served)
 
 <!-- merged from change delta portal.md (99e9fdf95b44) -->
+
+<!-- merged from change delta portal.md (49b7a593890a) -->

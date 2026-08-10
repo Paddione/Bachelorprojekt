@@ -66,9 +66,16 @@ git worktree list
 bash scripts/worktree-git-op-guard.sh
 
 # Für jeden Worktree (außer main, außer aktuell gehaltener):
-git -C <path> status --porcelain   # Abweichungen gegen die Allowlist unten prüfen
+bash scripts/worktree-clean-check.sh <path>   # 0 sauber, 1 Befund, 2 nicht prüfbar
 git worktree remove <path>
 ```
+
+Die Piping-Form des Vorchecks war trügerisch: `git -C <path> status --porcelain | cut -c4- |
+grep -Ev …` verwirft den Exit-Code von `git status`. Fehlt das Worktree-Verzeichnis physisch
+(die Registrierung in `.git/worktrees` besteht noch, das Verzeichnis ist weg), schreibt git
+`fatal: cannot change to '<path>'` nach stderr und endet mit Exit 128 — die Pipe liefert
+trotzdem leere Ausgabe, ununterscheidbar von einem sauberen Worktree, also einer Freigabe zum
+Remove. Es gilt dieselbe Grundregel wie in §0 Punkt 5 und §3: eine leere Antwort ist kein Urteil.
 
 > **`git log main..<branch>` taugt hier nicht als Merge-Nachweis.** Dieses Repo mergt via
 > squash-and-merge — der Branch-Tip ist danach kein Ancestor von `main`, und die Ausgabe listet
@@ -89,6 +96,9 @@ mehr auf — der Schutz schützt dann nichts mehr.
 
 Es entscheidet also nicht die Leere der Ausgabe, sondern **welche Pfade** abweichen. Folgenlos
 sind Plan-Artefakte und Generate, die auf `main` ohnehin fortgeschrieben werden:
+
+Der folgende Block dokumentiert den Filter, den `scripts/worktree-clean-check.sh` anwendet —
+er ist Filterbeschreibung, nicht der operative Aufruf.
 
 ```bash
 # Nicht-allowlistete Abweichungen — nur diese blockieren den Remove.

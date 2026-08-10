@@ -1920,6 +1920,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/agent-lock-scope-regelwerk",
+    "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub/claim-persistence-verified-T002826",
     "file": "tests/spec/active-sessions-hub/claim-persistence-verified-T002826.bats",
     "category": "active-sessions-hub",
@@ -3908,6 +3914,12 @@
   {
     "id": "software-factory/agent-lock-scope-argument",
     "file": "tests/spec/software-factory/agent-lock-scope-argument.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/babysit-prs-live-lock-guard-T003137",
+    "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
     "category": "software-factory",
     "kind": "shell"
   },

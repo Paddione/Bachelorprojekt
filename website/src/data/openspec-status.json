@@ -2937,6 +2937,12 @@
       "status": "archived"
     }
   ],
+  "T002843": [
+    {
+      "slug": "ticket-sh-subcommand-help",
+      "status": "plan_staged"
+    }
+  ],
   "T002849": [
     {
       "slug": "2026-08-09-agent-lock-liveness-t002849",

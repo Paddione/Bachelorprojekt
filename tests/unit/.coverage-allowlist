@@ -9,13 +9,18 @@ backup-restore-filen-pull
 backup-restore-namespace
 backup-restore-recovery
 dev-build-safety
-dev-cluster-autostart
 keycloak-entrypoint-escaping
 knowledge-ingest-bugs-schema
 knowledge-ingest-manifest
 knowledge-ingest-schema
 recovery-browser-manifest
+#
+# --- Currently FAILS offline: referenziert tote Pfade (k3d/docs-content/ existiert
+# --- nicht mehr → k3d/docs-content-built/; docs-site/index.html existiert nicht).
+# --- Die ersten 4 Assertions laufen vacuously gruen (grep || true auf fehlendes
+# --- Verzeichnis), 7 von 12 schlagen fehl. [T003142]
 test-docs-content
+#
 tickets-migration
 tickets-pr-events
 tickets-projects-migration
@@ -24,13 +29,18 @@ tickets-sunset
 tickets-tracking-migration
 tickets-transition
 #
-# --- Runs a real `npx tsx` ingest against a (deliberately unreachable) DB — needs website deps:
+# --- coaching-json-ingest: Currently FAILS offline — Assertion-Drift in Test 5
+# --- (Substring "content fehlt" vs. aktuelle Message mit Quotes). Verhalten/Exit-Code
+# --- korrekt, nur Assertion veraltet. [T003143]
 coaching-json-ingest
+#
+# --- test_art_library_manifest: laeuft offline GRUEN, aber braucht node_modules in
+# --- art-library/_tooling (ajv) — die installiert der Offline-Gate `test:unit` nicht
+# --- (nur der dedizierte Task `test:art-library`). Daher weiterhin exkludiert.
 test_art_library_manifest
 #
-# --- Currently FAILS offline: asserts every schema secret exists in k3d/secrets.yaml,
-# --- but TRACKING_DB_URL / ANTHROPIC_API_KEY / DEV_* are absent there.
-# --- Excluded pending triage of whether that is intentional dev-vs-prod secret drift.
+# --- Currently FAILS offline: 19 Schema-Secrets fehlen in k3d/secrets.yaml +
+# --- 11 Orphans (OIDC-* nicht im Schema). Echter Drift — Triage ob intentional. [T003141]
 secrets-sync
 #
 # --- Currently FAILS offline: stale assertion (test 29 expects a files.* aliasgroup,
@@ -42,15 +52,12 @@ fleet-dns-cutover
 # --- without a configured env. Needs a `task` stub before it can join the offline gate.
 task-oracle-fastpath
 #
-# --- Intentionally RED TDD guard (T000478): tests assert prod-safety guards and
-# --- dual-brand Ingress wiring that are not yet implemented. Excluded until
-# --- fleet:deploy:shared-services and workspace:office:deploy guards are in place.
-collabora-wopi-single-brand-guard
-#
 # --- Requires postgres (skips offline):
 qa-dal
 #
-# --- Requires a live DB (tests portal profile update API against real postgres):
+# --- Currently FAILS offline: website/src/lib/customer-crm-db.ts importiert transitiv
+# --- content-bundle.ts, das die Vite-only API import.meta.glob nutzt → TypeError unter
+# --- plain tsx/node. Kein Live-DB-Problem, wie die alte Begruendung behauptete. [T003144]
 portal-profile-update
 #
 # --- Requires kubectl kustomize (CronJob validation — needs cluster context):
@@ -63,6 +70,3 @@ dead-node-affinity
 #
 # --- Requires a live API server (graph API integration — needs Kubernetes cluster):
 T000668-graph-api
-#
-# --- Requires VDA core + DB/cluster (factory slot operations):
-vda-factory-slots

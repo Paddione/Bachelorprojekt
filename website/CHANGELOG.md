@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.264.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.264.1...website-v1.264.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* **ci:** actionlint-Gate über alle GitHub-Actions-Workflows [T003008] ([#4171](https://github.com/Paddione/Bachelorprojekt/issues/4171)) ([0c9ceca](https://github.com/Paddione/Bachelorprojekt/commit/0c9cecaa9be3528afd91da24350340cb6d6c71ca))
+* **scripts:** openspec-embed-Probe nennt den konkreten Fehlerzustand statt pauschal 'nicht erreichbar' [T003177] ([#4213](https://github.com/Paddione/Bachelorprojekt/issues/4213)) ([a4d8315](https://github.com/Paddione/Bachelorprojekt/commit/a4d83158944c89a39b3fbe86bdfa6cb94d770126))
+
 ## [1.264.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.264.0...website-v1.264.1) (2026-08-10)
 
 

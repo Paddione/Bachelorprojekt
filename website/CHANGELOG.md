@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.3...website-v1.263.4) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 6/8 — Platform-Tabs und Architektur [T003482] ([#4161](https://github.com/Paddione/Bachelorprojekt/issues/4161)) ([339dfbd](https://github.com/Paddione/Bachelorprojekt/commit/339dfbdd7300db263e7aa9cf2d2859cd345375c0))
+
 ## [1.263.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.2...website-v1.263.3) (2026-08-10)
 
 

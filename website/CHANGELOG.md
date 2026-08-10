@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.259.29](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.28...website-v1.259.29) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** mishap-rollup.sh ersetzt eigenen Generator-Commit statt anzuhaengen — rollup-publish.sh + tests [T002931] ([#4099](https://github.com/Paddione/Bachelorprojekt/issues/4099)) ([997b241](https://github.com/Paddione/Bachelorprojekt/commit/997b2415e0ae540a7641ead19032d3d6b6306ee1))
+* **scripts:** foreign-activity guard prevents unasked stash in worktree-create + dev-flow-chore [T003078][T003097] ([#4095](https://github.com/Paddione/Bachelorprojekt/issues/4095)) ([665f192](https://github.com/Paddione/Bachelorprojekt/commit/665f1926ea886725bd93fa3536f0ded3f6f6304e))
+
 ## [1.259.28](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.27...website-v1.259.28) (2026-08-10)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.261.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.260.1...website-v1.261.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** enabled-Flag für Loadouts; gptoss-context + devstral-quality abgeschaltet [T003204] ([#4126](https://github.com/Paddione/Bachelorprojekt/issues/4126)) ([59ff5d2](https://github.com/Paddione/Bachelorprojekt/commit/59ff5d2f78f58e12d55cce7ecf339b746ca81895))
+
 ## [1.260.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.260.0...website-v1.260.1) (2026-08-10)
 
 

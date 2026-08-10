@@ -68,7 +68,7 @@ describe('startRecorder', () => {
     expect(result).toEqual({ evidenceId: 'ev-1', partial: false });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('/api/admin/evidence/upload');
+    expect(url).toBe('/sdlc/api/evidence/upload');
     expect(init?.method).toBe('POST');
     const body = lastBody(fetchMock);
     expect(body).toMatchObject({
@@ -260,7 +260,7 @@ describe('startRecorder', () => {
     const pageFetch = vi.fn(async (input: RequestInfo | URL) => {
       n++;
       // Every call after boot is a "page" fetch except the final upload call.
-      if (String(input) === '/api/admin/evidence/upload') return uploadFetch();
+      if (String(input) === '/sdlc/api/evidence/upload') return uploadFetch();
       return new Response('ok', { status: 200 });
     });
     vi.stubGlobal('fetch', pageFetch);
@@ -288,7 +288,7 @@ describe('startRecorder', () => {
     let calls = 0;
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       calls++;
-      if (String(input) === '/api/admin/evidence/upload') {
+      if (String(input) === '/sdlc/api/evidence/upload') {
         return new Response(JSON.stringify({}), { status: 200 });
       }
       throw new Error('offline');
@@ -339,7 +339,7 @@ describe('startRecorder', () => {
 
     expect(sendBeaconMock).toHaveBeenCalledTimes(1);
     const [url, blob] = sendBeaconMock.mock.calls[0];
-    expect(url).toBe('/api/admin/evidence/upload');
+    expect(url).toBe('/sdlc/api/evidence/upload');
     expect(blob).toBeInstanceOf(Blob);
 
     // A second pagehide with an empty buffer is a no-op.

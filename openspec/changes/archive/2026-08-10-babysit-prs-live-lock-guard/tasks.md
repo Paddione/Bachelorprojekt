@@ -2,7 +2,7 @@
 title: "babysit-prs-live-lock-guard — Implementation Plan"
 ticket_id: T003137
 domains: [bachelorprojekt-test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -105,13 +105,28 @@ PLANEOF
 }
 
 @test "T002595: Payload nennt das Gateway-Modell und deaktiviert Thinking" {
-  # gemma26-factory liefert ohne enable_thinking:false ein leeres content-Feld
+  # Die Gemma-Loadouts liefern ohne enable_thinking:false ein leeres content-Feld
   # (finish_reason=length, Budget im reasoning verbraucht) — gemessen 2026-08-03.
   # Das Flag ist damit Funktionsbedingung, nicht Optimierung.
+  #
+  # [T003538] Der Modellname wird NICHT mehr als Literal gepinnt. Hier stand
+  # '.model == "gemma26-factory"'; die ID war zu dem Zeitpunkt bereits tot (Loadout
+  # aktiviert, Backend nicht geladen), und der Test schrieb sie als Sollzustand fest.
+  # Ein Modellwechsel soll moeglich bleiben — geprueft wird die Semantik: das Payload
+  # traegt UEBERHAUPT ein Modell, und dieses kommt aus PLAN_QA_MODEL. Damit belegt der
+  # Test die Verdrahtung statt den Tageswert (Konvention "Semantik statt Darstellung",
+  # T002716).
   mkplan "$BATS_TEST_TMPDIR/plan.md"
+
   run bash "$QA" --emit-payload "$BATS_TEST_TMPDIR/plan.md"
   [ "$status" -eq 0 ]
-  echo "$output" | jq -e '.model == "gemma26-factory"' >/dev/null
+  echo "$output" | jq -e '.model | type == "string" and length > 0' >/dev/null
   echo "$output" | jq -e '.enable_thinking == false' >/dev/null
   echo "$output" | jq -e '.chat_template_kwargs.enable_thinking == false' >/dev/null
+
+  # Gegenprobe: der Wert stammt tatsaechlich aus PLAN_QA_MODEL und ist nicht
+  # irgendwo im Skript festverdrahtet.
+  run env PLAN_QA_MODEL=pruefmodell-xyz bash "$QA" --emit-payload "$BATS_TEST_TMPDIR/plan.md"
+  [ "$status" -eq 0 ]
+  echo "$output" | jq -e '.model == "pruefmodell-xyz"' >/dev/null
 }

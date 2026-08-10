@@ -118,3 +118,8 @@ Use the correct project name in `playwright.config.ts` depending on the targeted
 ### [T001393] Lavish reload can discard in-flight form input
 **Context**: Re-running `npx -y lavish-axi <html-file>` (e.g. to fix a layout warning) reloads the existing browser tab.
 **Rule**: See `.claude/skills/lavish/SKILL.md#reload-safety` for the full lavish reload-safety protocol — never reload while a poll is outstanding, and check the last poll status before reloading.
+
+### [T002637-M5] Massenverschiebung: Referenzliste zuerst erheben, nicht aus CI ernten
+**Context**: Nach der sdlc/-Verschiebung (T002624) waren Testpfade in `tests/` nicht nachgezogen. Das kam über DREI CI-Runden einzeln hoch (dashboard.bats; dann G-CQ02 in zwei Kopien; dann pipeline-interface/openspec-pgvector/brain-link-derivation), weil jeweils nur der gemeldete Fehler behoben wurde — statt einmal die Gesamtliste zu erheben. Ein Teil zeigte sogar auf eine ZWISCHENFORM der Verschiebung (`website/src/sdlc/components/`), die nie existierte.
+**Rule**: Bei einer Massenverschiebung VOR dem ersten Commit systematisch alle Referenzen auf die alten Pfade suchen (git grep über den ganzen Baum, inkl. tests/), NICHT CI-Runde für CI-Runde die gemeldeten Fehler abarbeiten. Erwartete Fehlerliste einmal vollständig erheben und abhaken.
+

@@ -31,7 +31,7 @@
   async function loadTickets() {
     loading = true;
     try {
-      const res = await fetch(`/api/admin/platform/assets/${slug}/tickets`);
+      const res = await fetch(`/sdlc/api/platform/assets/${slug}/tickets`);
       if (!res.ok) throw new Error('Failed to fetch tickets');
       const data = await res.json();
       tickets = data.tickets;

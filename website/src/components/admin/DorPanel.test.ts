@@ -51,7 +51,7 @@ describe('DorPanel', () => {
     const saveBtn = screen.getByRole('button', { name: 'Speichern' });
     await fireEvent.click(saveBtn);
 
-    expect(fetchSpy).toHaveBeenCalledWith('/api/admin/openspec/save-proposal', {
+    expect(fetchSpy).toHaveBeenCalledWith('/sdlc/api/openspec/save-proposal', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

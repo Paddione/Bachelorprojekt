@@ -184,8 +184,23 @@ while true; do
   # a file and passing only the path keeps BOTH properties: no lossy JSON-in-prompt
   # relay, and a fast/synchronous Workflow call (dispatcher.js just reads the file).
   PREP_FILE="/tmp/factory-prep-tick${TICK}-$$.json"
+  # [T003269] Der `null`-Fallback bleibt (ein kaputter PREP darf den Tick nicht
+  # abbrechen), aber er ist NICHT mehr still. Bis T003269 verschluckte
+  # `jq … 2>/dev/null` den Parse-Fehler: ein stdout-Leck in factory-prep schrieb
+  # `null` in die Prep-Datei, dispatcher-bridge.sh meldete "0 feature(s)
+  # scheduled", und das Fliessband stand ab 2026-07-22 wochenlang still, ohne
+  # dass irgendwo eine Fehlermeldung erschien. Der jq-Fehler geht jetzt aufs
+  # Journal, samt Kopf des unlesbaren Streams — ohne diese Sichtbarkeit wiederholt
+  # sich derselbe Defekt unbemerkt.
+  PREP_RAW="/tmp/factory-prep-tick${TICK}-$$.raw"
   FACTORY_DAILY_DEPLOY_CAP="${FACTORY_DAILY_DEPLOY_CAP:-5}" FACTORY_GLOBAL_CAP="${FACTORY_GLOBAL_CAP:-3}" \
-    bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null | jq -c . > "${PREP_FILE}" 2>/dev/null || echo 'null' > "${PREP_FILE}"
+    bash "${REPO}/scripts/vda.sh" factory-prep 2>/dev/null > "${PREP_RAW}" || true
+  if ! jq -c . < "${PREP_RAW}" > "${PREP_FILE}"; then
+    echo "wakeup.sh: FEHLER — factory-prep lieferte kein gueltiges JSON; Prep-Datei faellt auf 'null' zurueck (es wird NICHTS gestartet)." >&2
+    echo "wakeup.sh: erste 200 Bytes des unlesbaren Streams: $(head -c 200 "${PREP_RAW}" | tr '\n' ' ')" >&2
+    echo 'null' > "${PREP_FILE}"
+  fi
+  rm -f "${PREP_RAW}"
 
   echo "wakeup.sh: starting tick #${TICK} at ${TIMESTAMP}" >&2
 

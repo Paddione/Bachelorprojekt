@@ -10,6 +10,58 @@ source "${SCRIPT_DIR}/../factory/guards.sh"
 
 log() { echo "[PREP] $*" >&2; }
 
+# release_slot_and_restore <brand> <ext_id> [prior_status]
+#
+# Slot freigeben UND den Vorzustand wiederherstellen (T003269).
+#
+# Zwei Eigenschaften, die beide nicht verhandelbar sind:
+#
+# 1) STUMM auf stdout. `run_prep` erzeugt auf stdout ausschliesslich sein
+#    Abschluss-JSON; wakeup.sh pipet genau dieses stdout in `jq -c .`. Bis
+#    T003269 lief `ticket.sh release-slot` hier nur mit `2>/dev/null`, seine
+#    Erfolgsmeldung ("pipeline_slot released for ticket …") ging also auf stdout
+#    mitten in den JSON-Stream. Ergebnis: Parse-Fehler, `null` in der Prep-Datei,
+#    "0 feature(s) scheduled" — fuer ALLE Tickets des Ticks, nicht nur fuer das
+#    uebersprungene. Deshalb `>/dev/null 2>&1` und nicht nur `2>/dev/null`.
+#
+# 2) Status zuruecksetzen. `slots.sh claim` setzt pipeline_slot UND
+#    status='in_progress' gemeinsam; `release-slot` nimmt nur den Slot zurueck.
+#    Ein so hinterlassenes Ticket steht auf `in_progress` ohne Slot — und
+#    queue.sh liest ausschliesslich backlog/plan_staged. Es ist damit dauerhaft
+#    unsichtbar und nie wieder schedulebar.
+#
+# Der Restore sitzt bewusst HIER und nicht in `cmd_release_slot`: `release-slot`
+# ist ein generisches Primitiv mit fuenf weiteren Aufrufern (watchdog.sh,
+# pipeline-runner.js, dispatcher.js, ticket-reclaim.sh), bei denen der Zielstatus
+# ein voellig anderer ist — der Watchdog eskaliert auf `blocked`, der
+# Pipeline-Runner gibt den Slot nach `done`/`in_review` frei. Ein in das Primitiv
+# eingebauter Zwangs-Restore auf plan_staged wuerde diese Pfade beschaedigen.
+# Nur der PREP-SKIP kennt den Vorzustand, also gehoert die Entscheidung hierher.
+#
+# Der Vorzustand ist nach dem Claim nicht mehr aus der DB lesbar (er wurde
+# ueberschrieben), aber ableitbar: ein Ticket mit plan_ref war `plan_staged`,
+# eines ohne kam als `backlog` aus der Queue.
+release_slot_and_restore() {
+  local brand="$1" ext_id="$2" prior="${3:-}"
+
+  BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" release-slot --id "${ext_id}" >/dev/null 2>&1 || true
+
+  if [[ -z "${prior}" ]]; then
+    local tj
+    tj=$(BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" get --id "${ext_id}" 2>/dev/null || echo '{}')
+    if [[ -n "$(echo "${tj}" | jq -r '.plan_ref // ""' 2>/dev/null)" ]]; then
+      prior="plan_staged"
+    else
+      prior="backlog"
+    fi
+  fi
+
+  if ! BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" update-status \
+       --id "${ext_id}" --status "${prior}" >/dev/null 2>&1; then
+    log "WARN status restore to ${prior} failed for ${ext_id} — ticket may be stranded on in_progress"
+  fi
+}
+
 run_dry_run() {
   echo "PREP STEP START"
   echo "---guard_killswitch_on mentolder---"
@@ -95,7 +147,7 @@ run_prep() {
       bash "${REPO}/scripts/agent-lock.sh" check ticket "${ext_id}" >/dev/null 2>&1; al=$? || true
       if [[ "${al}" -eq 3 ]]; then
         log "Ticket ${ext_id} claimed by live interactive session -> releasing slot"
-        BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" release-slot --id "${ext_id}" 2>/dev/null || true
+        release_slot_and_restore "${brand}" "${ext_id}"
         final_skipped=$(echo "${final_skipped}" | jq -c --arg b "${brand}" --arg r "claimed by live interactive session" '. + [{"brand":$b,"reason":$r}]')
         continue
       fi
@@ -145,7 +197,8 @@ run_prep() {
         wt_path="${REPO}/.worktrees/${wt_slug}-reuse"
         if ! bash "${REPO}/scripts/worktree-create.sh" "${branch}" "${wt_path}" "origin/${branch}" >/dev/null 2>&1; then
           log "SKIP reason=worktree_failed ticket=${ext_id} (pre-create at ${wt_path} failed)"
-          BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" release-slot --id "${ext_id}" 2>/dev/null || true
+          # branch != null ⇒ das Ticket hatte einen plan_ref, war also plan_staged.
+          release_slot_and_restore "${brand}" "${ext_id}" "plan_staged"
           final_skipped=$(echo "${final_skipped}" | jq -c --arg b "${brand}" --arg r "worktree_failed" '. + [{"brand":$b,"reason":$r}]')
           continue
         fi

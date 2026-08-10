@@ -13,7 +13,7 @@ damit der dokumentierte Grep-Fall.
 
 ## Tasks
 
-- [ ] **RED zuerst: `tests/spec/local-llm-proxy/loadout-enabled-flag.bats`.** Der Test lädt ein
+- [x] **RED zuerst: `tests/spec/local-llm-proxy/loadout-enabled-flag.bats`.** Der Test lädt ein
       Fixture-Dokument mit `"enabled": false` durch `parseLoadouts` und erwartet, dass es
       **akzeptiert** wird und `isLoadoutEnabled` `false` liefert. Heute rot: `LOADOUT_KEYS` kennt
       das Feld nicht, `parseLoadouts` scheitert mit „unbekanntes Feld 'enabled'".
@@ -30,22 +30,22 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/loadout-enabled-fla
       Keine externe Abhängigkeit: `parseLoadouts` liest einen String, kein Dateisystem, kein
       Netz, kein laufender Proxy. Der Test läuft in CI regulär und braucht keinen Skip-Guard.
 
-- [ ] **Default-Verhalten festhalten.** Eigener `@test`: ein Loadout ohne `enabled` liefert
+- [x] **Default-Verhalten festhalten.** Eigener `@test`: ein Loadout ohne `enabled` liefert
       `isLoadoutEnabled === true`. Das ist die Rückwärtskompatibilität, an der alle elf
       bestehenden Einträge hängen — sie ist wichtiger als der Negativfall und darf nicht nur
       implizit in einem anderen Test mitlaufen.
 
-- [ ] **Typprüfung.** `"enabled": "false"` (String) muss `parseLoadouts` scheitern lassen. Ein
+- [x] **Typprüfung.** `"enabled": "false"` (String) muss `parseLoadouts` scheitern lassen. Ein
       truthy String wäre sonst „abgeschaltet" in der Datei und „läuft" im Verhalten — der
       schlimmste Ausgang, weil er wie Erfolg aussieht.
 
-- [ ] **`scripts/llm-proxy/loadouts.test.mjs` erweitern.** Die Datei prüft bereits
+- [x] **`scripts/llm-proxy/loadouts.test.mjs` erweitern.** Die Datei prüft bereits
       Schema-Grenzfälle (`fit.enabled=false` ohne `ctx` …). Die drei Fälle oben gehören
       zusätzlich dorthin, weil sie dort ohne BATS-Rahmen laufen und in
       `proxy-tests-registered.bats` bereits erfasst sind.
       **Nicht** `isLoadoutEnabled` doppelt prüfen — ein Ort pro Aussage.
 
-- [ ] **Drift-Guard erweitern** (`tests/spec/local-llm-proxy/opencode-agent-model-drift.bats`).
+- [x] **Drift-Guard erweitern** (`tests/spec/local-llm-proxy/opencode-agent-model-drift.bats`).
       Neue Zusicherung: kein `model`-Wert in `.opencode/agent-models.jsonc` und kein Eintrag der
       Orchestrator-Permission-Liste darf auf ein Loadout zeigen, das in `loadouts.json`
       deaktiviert ist. Fehlermeldung nennt **Agent und Loadout**, nicht nur „drift".
@@ -55,20 +55,20 @@ tests/unit/lib/bats-core/bin/bats tests/spec/local-llm-proxy/loadout-enabled-fla
       „kein Agent zeigt auf ein deaktiviertes Loadout" trivial erfüllt, sobald ein Pfad sich
       ändert und der Parser ins Leere greift. Genau diese Falle beschreibt T002356-M1.
 
-- [ ] **Semantik statt Darstellung** (T002716). Die Zusicherungen hängen am **Ergebnis** —
+- [x] **Semantik statt Darstellung** (T002716). Die Zusicherungen hängen am **Ergebnis** —
       Rückgabewert von `isLoadoutEnabled`, Vorhandensein eines Slugs in der Kandidatenmenge,
       Exit-Status von `parseLoadouts`. Nicht am Wortlaut einer Fehlermeldung und nicht an
       Zeilenankern über Tabellenspalten; beides bricht, sobald jemand eine Meldung umformuliert,
       und meldet dann einen Defekt, den es nicht gibt.
 
-- [ ] **Syntaxprüfung.** Nicht `bash -n` — `@test "…" { … }` ist keine gültige Bash-Syntax und
+- [x] **Syntaxprüfung.** Nicht `bash -n` — `@test "…" { … }` ist keine gültige Bash-Syntax und
       erzeugt eine irreführende Meldung:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats --count tests/spec/local-llm-proxy/loadout-enabled-flag.bats
 ```
 
-- [ ] **Lokal beide Formen prüfen.** Sammeldatei und Verzeichnis sind gleichzeitig gültig:
+- [x] **Lokal beide Formen prüfen.** Sammeldatei und Verzeichnis sind gleichzeitig gültig:
 
 ```bash
 tests/unit/lib/bats-core/bin/bats -r tests/spec/local-llm-proxy*

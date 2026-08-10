@@ -131,3 +131,75 @@ setup() {
   run node "${REPO_ROOT}/scripts/llm/loadouts-format.mjs" --check "${LOADOUTS}"
   [ "${status}" -eq 0 ]
 }
+
+@test "T003204: kein Agent zeigt auf ein abgeschaltetes Loadout" {
+  # Ohne diese Zusicherung bliebe die Abschaltung halb sichtbar: loadouts.json
+  # lehnt den Start ab, aber ein Agent verwiese weiter auf den toten Slug und
+  # liefe erst zur Laufzeit in die Ablehnung — also genau dann, wenn jemand
+  # arbeiten will.
+  [ -f "${AGENTS}" ]
+  [ -f "${LOADOUTS}" ]
+
+  # Positiv-Anker 1 [T002356-M1]: es gibt ueberhaupt Agent-Modellzuweisungen auf
+  # llamacpp-local/. Greift der Parser ins Leere (Pfad umbenannt, Format
+  # geaendert), waere die Negativ-Aussage unten trivial erfuellt.
+  run bash -c "grep -oE '\"model\": \"llamacpp-local/[a-z0-9-]+\"' '${AGENTS}' | grep -oE 'llamacpp-local/[a-z0-9-]+' | cut -d/ -f2 | sort -u"
+  [ "${status}" -eq 0 ]
+  [ -n "${output}" ]
+  local referenced="${output}"
+
+  # Positiv-Anker 2: loadouts.json wird gelesen UND enthaelt tatsaechlich
+  # abgeschaltete Eintraege. Ohne diesen Anker bestuende der Test auch dann,
+  # wenn das enabled-Feld gar nicht mehr ausgewertet wird.
+  run jq -r '[.loadouts[] | select(.enabled == false)] | length' "${LOADOUTS}"
+  [ "${status}" -eq 0 ]
+  [ "${output}" -gt 0 ]
+
+  local offenders=0 slug
+  for slug in ${referenced}; do
+    # NICHT '.enabled // true' verwenden: der jq-Operator '//' greift nicht nur
+    # bei null, sondern auch bei FALSE — beides gilt ihm als leer. Der Ausdruck
+    # lieferte damit ausgerechnet fuer abgeschaltete Loadouts 'true', und dieser
+    # Guard bestuende vakuos. Beim Gegentest (Agent absichtlich auf ein
+    # abgeschaltetes Loadout gezeigt) blieb er gruen.
+    run jq -r --arg s "${slug}" \
+      '.loadouts[] | select(.slug == $s) | if has("enabled") then .enabled else true end' "${LOADOUTS}"
+    if [ "${output}" = "false" ]; then
+      # Meldung nennt Loadout UND Agent — "drift" allein zwingt zum Suchen.
+      echo "FAIL: Loadout '${slug}' ist abgeschaltet, wird aber referenziert von:"
+      grep -B12 "\"model\": \"llamacpp-local/${slug}\"" "${AGENTS}" \
+        | grep -oE '^    "[a-z0-9-]+": \{' | tail -1
+      offenders=$((offenders + 1))
+    fi
+  done
+  [ "${offenders}" -eq 0 ]
+}
+
+@test "T003204: jeder Familien-Subagent steht in der Permission-Liste des Orchestrators" {
+  # Ein Subagent ohne Eintrag existiert, ist aber nicht dispatchbar — er faellt
+  # nicht auf, weil nichts bricht: der Orchestrator ruft ihn schlicht nie.
+  [ -f "${AGENTS}" ]
+
+  # Positiv-Anker: die Permission-Liste wird gefunden und ist nicht leer.
+  run bash -c "sed -n '/\"task\": {/,/}/p' '${AGENTS}' | grep -oE '\"[a-z0-9-]+\": \"allow\"' | grep -oE '\"[a-z0-9-]+\"' | tr -d '\"' | sort -u"
+  [ "${status}" -eq 0 ]
+  [ -n "${output}" ]
+  local allowed="${output}"
+
+  # Familien-Subagenten sind die mode=subagent-Eintraege auf llamacpp-local/.
+  run bash -c "grep -B4 '\"model\": \"llamacpp-local/' '${AGENTS}' | grep -oE '^    \"[a-z0-9-]+\": \{' | grep -oE '\"[a-z0-9-]+\"' | tr -d '\"' | sort -u"
+  [ "${status}" -eq 0 ]
+  [ -n "${output}" ]
+
+  local missing=0 agent
+  for agent in ${output}; do
+    # Nur Subagenten pruefen; Primaries sind per Tab waehlbar und brauchen
+    # keinen task-Eintrag.
+    grep -A3 "^    \"${agent}\": {" "${AGENTS}" | grep -q '"mode": "subagent"' || continue
+    printf '%s\n' "${allowed}" | grep -qx "${agent}" || {
+      echo "FAIL: Subagent '${agent}' fehlt in der task-Permission-Liste des Orchestrators"
+      missing=$((missing + 1))
+    }
+  done
+  [ "${missing}" -eq 0 ]
+}

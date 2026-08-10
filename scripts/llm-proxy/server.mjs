@@ -6,7 +6,7 @@ import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadin
 import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems } from './fixups.mjs';
 import { stripTurnMarkers } from './strip-markers.mjs';
 import { readFileSync, existsSync } from 'node:fs';
-import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive } from './loadouts.mjs';
+import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive, isLoadoutEnabled } from './loadouts.mjs';
 import os from 'node:os';
 import { scanModels, resolveModelPath } from './models.mjs';
 import { unitName, startUnit, stopUnit, unitStatus, recentLogs } from './runner.mjs';
@@ -339,6 +339,16 @@ async function startLoadout(slug) {
   const { doc } = readLoadouts(DEFAULT_PATH);
   const loadout = findLoadout(doc, slug);
   if (!loadout) throw new LoadoutStartError(404, 'not_found', slug);
+  // T003204: VOR already_running. Die Reihenfolge ist Absicht — ein
+  // abgeschaltetes Loadout, das noch laeuft (weil es vor der Abschaltung
+  // gestartet wurde), soll als DEAKTIVIERT gemeldet werden und nicht als
+  // "laeuft bereits"; sonst liest sich die Antwort wie ein Erfolg.
+  // Eigener Code statt not_found: "gibt es nicht" und "ist abgeschaltet" fuehren
+  // zu verschiedenen Diagnosen — wer not_found sieht, sucht einen Tippfehler.
+  if (!isLoadoutEnabled(loadout)) {
+    throw new LoadoutStartError(409, 'disabled',
+      `${slug} ist in loadouts.json abgeschaltet (enabled: false) und wird nicht gestartet.`);
+  }
   if (unitStatus(slug).active === 'active') {
     throw new LoadoutStartError(409, 'already_running', `${slug} laeuft bereits`);
   }
@@ -566,6 +576,11 @@ const server = http.createServer((req, res) => {
           return {
             slug: l.slug, unit: unitName(l.slug), port: l.port,
             active: u.active, sub: u.sub, running,
+            // T003204: gestoppt und abgeschaltet sehen ohne dieses Feld gleich
+            // aus — obwohl nur eines von beiden durch einen Klick behebbar ist.
+            // Die Web-UI kann ein deaktiviertes Loadout damit als solches zeigen,
+            // statt es als "gestoppt" auszugeben und zum Startversuch einzuladen.
+            enabled: isLoadoutEnabled(l),
             chosen: running ? await chosenSettings(l.port) : null,
           };
         }));

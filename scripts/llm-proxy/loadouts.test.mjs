@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parseLoadouts, readLoadouts, writeLoadouts, findLoadout, findExclusiveConflict } from './loadouts.mjs'
+import { parseLoadouts, readLoadouts, writeLoadouts, findLoadout, findExclusiveConflict, planAutoStart, isLoadoutEnabled } from './loadouts.mjs'
 
 const valid = {
   version: 1,
@@ -201,3 +201,70 @@ test('findExclusiveConflict: aktiver externer Eintrag ohne Unit zaehlt via Port-
   assert.ok(conflict)
 })
 
+
+// --- T003204: enabled-Feld (Abschalten ohne Loeschen) -----------------------
+// Hier NUR die Schema-Faelle. isLoadoutEnabled selbst wird in
+// tests/spec/local-llm-proxy/loadout-enabled-flag.bats geprueft — ein Ort pro
+// Aussage, sonst laufen zwei Formulierungen derselben Regel auseinander.
+
+test('T003204: enabled=false wird vom Schema akzeptiert', () => {
+  const doc = structuredClone(valid)
+  doc.loadouts[0].enabled = false
+  const parsed = parseLoadouts(JSON.stringify(doc))
+  assert.equal(parsed.loadouts[0].enabled, false)
+})
+
+test('T003204: fehlendes enabled bleibt fehlend (kein stiller Default in die Datei)', () => {
+  // Der Default lebt in isLoadoutEnabled, nicht im Dokument. Schriebe
+  // parseLoadouts ein enabled:true hinein, erzeugte der naechste regulaere
+  // Schreibvorgang einen Vollzeilen-Diff ueber alle elf Eintraege.
+  const parsed = parseLoadouts(JSON.stringify(valid))
+  assert.equal('enabled' in parsed.loadouts[0], false)
+})
+
+test('T003204: enabled als String scheitert, und die Meldung nennt das Loadout', () => {
+  const doc = structuredClone(valid)
+  doc.loadouts[0].enabled = 'false'
+  assert.throws(() => parseLoadouts(JSON.stringify(doc)), /gptoss-context.*enabled/)
+})
+
+test('T003204: enabled=false kollidiert nicht mit fit.enabled', () => {
+  // Namensgleichheit mit voellig verschiedener Bedeutung: fit.enabled steuert
+  // llama.cpp --fit. Beide muessen unabhaengig voneinander setzbar sein.
+  const doc = structuredClone(valid)
+  doc.loadouts[0].enabled = false
+  doc.loadouts[0].fit.enabled = false
+  doc.loadouts[0].args.ctx = 32768
+  doc.loadouts[0].args.ngl = 99
+  const parsed = parseLoadouts(JSON.stringify(doc))
+  assert.equal(parsed.loadouts[0].enabled, false)
+  assert.equal(parsed.loadouts[0].fit.enabled, false)
+})
+
+test('T003204: planAutoStart startet ein abgeschaltetes Loadout NICHT', () => {
+  // Der wichtigere der beiden Startwege: der explizite Start ueber
+  // /admin/loadouts/<slug>/start ist die Ausnahme, der implizite ueber die
+  // Modellaufloesung der Regelfall. Ohne diesen Ausschluss bliebe die
+  // Abschaltung halb — gesperrt waere nur der seltenere Weg.
+  const doc = structuredClone(valid)
+
+  // Positiv-Anker: aktiv wird das Loadout sehr wohl vorgeschlagen. Ohne ihn
+  // waere 'action !== start' auch dann erfuellt, wenn planAutoStart aus einem
+  // ganz anderen Grund nichts mehr findet (Slug-Tippfehler im Test etwa).
+  assert.deepEqual(
+    planAutoStart({ doc, model: 'gptoss-context', activeSlugs: [] }),
+    { action: 'start', slug: 'gptoss-context' },
+  )
+
+  doc.loadouts[0].enabled = false
+  assert.deepEqual(
+    planAutoStart({ doc, model: 'gptoss-context', activeSlugs: [] }),
+    { action: 'none' },
+  )
+})
+
+test('T003204: isLoadoutEnabled ist der EINE Ort der Default-Regel', () => {
+  assert.equal(isLoadoutEnabled({ slug: 'x' }), true)
+  assert.equal(isLoadoutEnabled({ slug: 'x', enabled: true }), true)
+  assert.equal(isLoadoutEnabled({ slug: 'x', enabled: false }), false)
+})

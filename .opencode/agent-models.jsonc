@@ -267,10 +267,17 @@
     // Der urspruengliche Hinweis aus T002298 bleibt gueltig: "-np" heisst in
     // llama.cpp "number of server slots", nicht "Parallelitaet". Wer die Namen
     // zusammenstreicht, nimmt jedem Agenten seinen Praefix-Cache.
+    // T003204: faehrt seit dem Abschalten von gptoss-context das Loadout
+    // gemma26-throughput (118.016 ctx). Der NAME bleibt "gptoss", obwohl er nun
+    // ueber das Modell luegt — er ist die Aufruf-Schnittstelle des Orchestrators
+    // ("gptoss": "allow" in dessen Permission-Liste) und steht zusaetzlich in
+    // docs/agent-guide/registry/agents.yaml sowie in der Skill-Dokumentation.
+    // Umbenennen ist ein eigener Vorgang mit eigener Pruefung; hier sagt die
+    // description, welches Modell tatsaechlich dahintersteht.
     "gptoss": {
-      "description": "Local subagent for the gpt-oss family (gpt-oss-20b Q8_0, 105472 ctx measured, via llm-proxy :18235). Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
+      "description": "Local subagent, now on the gemma26-throughput loadout (Gemma 4 26B A4B QAT UD-Q4_K_XL, 118016 ctx, Port 8092, via llm-proxy :18235) — the gptoss-context loadout was disabled in T003204; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; executes one at a time because the proxy serializes (max_inflight=1).",
       "mode": "subagent",
-      "model": "llamacpp-local/gptoss-context",
+      "model": "llamacpp-local/gemma26-throughput",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.4,
@@ -280,10 +287,13 @@
       // Neue Dateien erzeugt der Orchestrator nach Erhalt des Contents.
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
     },
+    // T003204: faehrt seit dem Abschalten von devstral-quality das Loadout
+    // gemma26-factory (177.920 ctx). Zum beibehaltenen Namen siehe den Hinweis
+    // bei "gptoss" oben.
     "devstral": {
-      "description": "Local subagent for the devstral family (Devstral-Small-2-24B IQ4_XS, via llm-proxy :18235). Write-capable delegation; shares exclusiveGroup chat-gpu with the other local loadouts (only one runs at a time).",
+      "description": "Local subagent, now on the gemma26-factory loadout (Gemma 4 26B A4B UD-IQ4_XS, 177920 ctx, Port 8091, via llm-proxy :18235) — the devstral-quality loadout was disabled in T003204 because gemma26-factory dominates it in every dimension; the agent name is kept because it is the orchestrator's dispatch handle. Write-capable delegation; shares exclusiveGroup chat-gpu with the other local loadouts (only one runs at a time).",
       "mode": "subagent",
-      "model": "llamacpp-local/devstral-quality",
+      "model": "llamacpp-local/gemma26-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.4,
@@ -306,6 +316,22 @@
       "model": "llamacpp-local/qwen3-coder-30b",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#A78BFA",
+      "temperature": 0.4,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
+    },
+    // T003204: gemma12-vision als Familien-Subagent aufgenommen. Es ist mit
+    // 262.144 ctx das kontextstaerkste lokale Loadout und das EINZIGE mit Vision
+    // (mmproj-F16). Bisher war es nur als Primary (gemma12-primary) erreichbar,
+    // also nicht per `task` dispatchbar — der Orchestrator konnte es nicht rufen.
+    // Der Eintrag in der Permission-Liste weiter unten gehoert dazu: ohne ihn
+    // existiert der Agent, ist aber nicht dispatchbar.
+    "gemma12": {
+      "description": "Local subagent for the gemma12 family (Gemma 4 12B QAT UD-Q4_K_XL + mmproj-F16, Loadout gemma12-vision auf Port 8089, 262144 ctx, via llm-proxy :18235). The only vision-capable local loadout and the largest local context. Write-capable delegation; shares exclusiveGroup chat-gpu.",
+      "mode": "subagent",
+      "model": "llamacpp-local/gemma12-vision",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#F0ABFC",
       "temperature": 0.4,
       "steps": 50,
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "deny" }
@@ -360,10 +386,16 @@
     // auswaehlen kann, ohne den Orchestrator davor. Alle nutzen den gleichen
     // Prompt (local-subagent.md) und das gleiche Berechtigungsprofil:
     // edit=allow, write=deny, bash=allow, task nur deepseek-Eskalation.
+    // T003204: Kontextzahl mitgezogen — sie ist NICHT kosmetisch. opencode nutzt
+    // die deklarierte Zahl zur Laufzeit fuer Auto-Compact (fasst bei 95 % der
+    // Grenze zusammen); eine stehengebliebene 105.472 gegen die tatsaechlichen
+    // 118.016 fuehrte zu falsch getimtem Compact. Der Guard
+    // opencode-routes-via-proxy.bats prueft die Deklaration gegen den LAUFENDEN
+    // Server in einem +/-20-%-Korridor.
     "gptoss-primary": {
-      "description": "PRIMARY: gpt-oss-20b Q8_0 (105.472 ctx, MXFP4-nativ). Tab-selectable singleagent on the gptoss-context loadout (Port 8098). Fast 147-215 tok/s decode; broad general knowledge. Can dispatch any subagent.",
+      "description": "PRIMARY: Gemma 4 26B A4B QAT UD-Q4_K_XL (118.016 ctx). Tab-selectable singleagent on the gemma26-throughput loadout (Port 8092) — moved off the gptoss-context loadout, disabled in T003204. Broad general knowledge. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/gptoss-context",
+      "model": "llamacpp-local/gemma26-throughput",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#34D399",
       "temperature": 0.3,
@@ -371,9 +403,9 @@
       "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     "devstral-primary": {
-      "description": "PRIMARY: Devstral-Small-2 24B IQ4_XS (32.768 ctx). Tab-selectable singleagent on the devstral-quality loadout (Port 8099). Optimised for code quality review. Can dispatch any subagent.",
+      "description": "PRIMARY: Gemma 4 26B A4B UD-IQ4_XS (177.920 ctx). Tab-selectable singleagent on the gemma26-factory loadout (Port 8091) — moved off the devstral-quality loadout, disabled in T003204 (dominated in every dimension). Optimised for code quality review. Can dispatch any subagent.",
       "mode": "primary",
-      "model": "llamacpp-local/devstral-quality",
+      "model": "llamacpp-local/gemma26-factory",
       "prompt": "{file:./prompts/local-subagent.md}",
       "color": "#60A5FA",
       "temperature": 0.3,
@@ -483,7 +515,7 @@
       "permission": { "edit": "allow", "write": "allow", "bash": "allow", "task": "deny", "webfetch": "deny", "websearch": "deny" }
     },
     "orchestrator": {
-      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the local family subagents (gptoss/devstral/gemma/qwen) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
+      "description": "Primary orchestrator: DeepSeek V4 Flash (1M ctx) dispatches the local family subagents (gptoss/devstral/gemma/gemma12/qwen) sequentially for implementation - the llm-proxy serializes anyway (max_inflight=1). Handles git/workflow/CI checkpoints. Tab-selectable via Tab key.",
       "mode": "primary",
       "model": "opencode-go/deepseek-v4-flash",
       "prompt": "{file:./prompts/orchestrator.md}",
@@ -497,6 +529,10 @@
           "gptoss": "allow",
           "devstral": "allow",
           "gemma": "allow",
+          // T003204: ohne diesen Eintrag existierte der Subagent, waere aber
+          // nicht dispatchbar — die Liste nennt bewusst exakte Namen statt einer
+          // Wildcard (Prinzip aus T002298).
+          "gemma12": "allow",
           "qwen": "allow",
           "deepseek-helper": "allow",
           "deepseek-pro": "allow",

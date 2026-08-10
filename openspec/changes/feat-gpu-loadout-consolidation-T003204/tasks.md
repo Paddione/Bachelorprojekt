@@ -65,7 +65,7 @@ auflösbar — verschiedene Stellen derselben Datei —, kostet aber Zeit ohne G
 
 Der Failing-Test-Step liegt in `tasks.d/p3-tests.md` (Rolle `tests`).
 
-- [ ] **Final Verification.** Die drei verpflichtenden Gates laufen lassen:
+- [x] **Final Verification.** Die drei verpflichtenden Gates laufen lassen:
 
 ```bash
 task test:changed

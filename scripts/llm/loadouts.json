@@ -10,6 +10,7 @@
   "loadouts": [
     {
       "slug": "gptoss-context",
+      "enabled": false,
       "label": "gpt-oss-20b · maximaler Kontext",
       "model": "gptoss20/gpt-oss-20b-UD-Q4_K_XL.gguf",
       "port": 8098,
@@ -39,11 +40,12 @@
         "serversConfig": null
       },
       "extraArgs": [],
-      "notes": "MXFP4-nativ: alle Quants 11,5-12,1 GB, Q8_0 ist praktisch gratis. Gemessen 198-215 tok/s decode bei 131.072 Kontext (Architekturmax).",
+      "notes": "MXFP4-nativ: alle Quants 11,5-12,1 GB, Q8_0 ist praktisch gratis. Gemessen 198-215 tok/s decode bei 131.072 Kontext (Architekturmax). ABGESCHALTET seit T003204 (enabled: false) — Operator-Entscheidung im Zuge der GPU-Loadout-Konsolidierung; die Agenten wurden auf gemma26-throughput umgehaengt. Die Messwerte oben bleiben absichtlich stehen: sie sind der Grund, warum abgeschaltet statt geloescht wurde. NICHT verwechseln mit brain-ingest auf :8100 — dasselbe Modell, eigener Eintrag, weiterhin aktiv.",
       "exclusiveGroup": "chat-gpu"
     },
     {
       "slug": "devstral-quality",
+      "enabled": false,
       "label": "Devstral-Small-2 24B · Code-Qualitaet",
       "model": "devstral24/Devstral-Small-2-24B-Instruct-2512-IQ4_XS.gguf",
       "port": 8099,
@@ -73,7 +75,7 @@
         "serversConfig": null
       },
       "extraArgs": [],
-      "notes": "IQ4_XS (12,78 GB). q8_0 KV-Cache fuer Code-Qualitaet (T002501); 33.536 Kontext bei 59 tok/s.",
+      "notes": "IQ4_XS (12,78 GB). q8_0 KV-Cache fuer Code-Qualitaet (T002501); 33.536 Kontext bei 59 tok/s. ABGESCHALTET seit T003204 (enabled: false) — in ALLEN Dimensionen dominiert: gemma26-factory liefert mehr Kontext (177.920 gegen 33.536) bei hoeherem Durchsatz. Es gibt damit keine Anfrage mehr, fuer die dieses Loadout die bessere Wahl waere. Die Messwerte oben bleiben absichtlich stehen — sie belegen die Dominanz und sind der Grund fuer das Abschalten statt Loeschen.",
       "exclusiveGroup": "chat-gpu"
     },
     {
@@ -412,7 +414,7 @@
         "jinja": true,
         "metrics": true,
         "reasoning": "auto",
-        "reasoningBudget": null
+        "reasoningBudget": 0
       },
       "speculative": {
         "draftHfRepo": null,
@@ -422,7 +424,7 @@
         "serversConfig": null
       },
       "extraArgs": [],
-      "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). parallel=4, gpt-oss-20b UD-Q4_K_XL. 32.768 ctx je Slot. Port 8100 seit T003203: 8093 belegt der kubectl-Forward auf llm-gateway-rerank (scripts/bge-mcp/bge-forward-rerank.service), 8097 ein Factory-Provider (scripts/factory/provider-register-gptoss.sh).",
+      "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). parallel=4, gpt-oss-20b UD-Q4_K_XL. 32.768 ctx je Slot. Port 8100 seit T003203: 8093 belegt der kubectl-Forward auf llm-gateway-rerank (scripts/bge-mcp/bge-forward-rerank.service), 8097 ein Factory-Provider (scripts/factory/provider-register-gptoss.sh). T003204: reasoningBudget=0 — Formattreue bei temperature 0.2 braucht keine Denkphase, die Tokens kostet, ohne die Einhaltung der sechs harten Constraints zu verbessern. Abgeschaltet wird das Denken ueber reasoningBudget (--reasoning-budget 0) und NICHT ueber args.reasoning: '-rea' steuert nur, ob llama-server reasoning_content PARST (siehe runner.mjs). Es auf null zu setzen haette die Denkphase unberuehrt gelassen und bloss deren Ausgabe unterdrueckt — die Tokens waeren weiter angefallen. Das Loadout selbst bleibt aktiv; abgeschaltet ist nur gptoss-context auf :8098, das dieselbe Modelldatei faehrt.",
       "exclusiveGroup": "chat-gpu"
     }
   ],

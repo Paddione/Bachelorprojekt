@@ -3093,6 +3093,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003204": [
+    {
+      "slug": "feat-gpu-loadout-consolidation-T003204",
+      "status": "plan_staged"
+    }
+  ],
   "T003205": [
     {
       "slug": "feat-bge-proxy-role-routes-T003205",

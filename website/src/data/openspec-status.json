@@ -2435,8 +2435,8 @@
   ],
   "T002606": [
     {
-      "slug": "unsloth-eval-harness",
-      "status": "plan_staged"
+      "slug": "2026-08-10-unsloth-eval-harness",
+      "status": "archived"
     }
   ],
   "T002609": [
@@ -2495,8 +2495,8 @@
   ],
   "T002623": [
     {
-      "slug": "adr006-sdlc-topologie",
-      "status": "plan_staged"
+      "slug": "2026-08-10-adr006-sdlc-topologie",
+      "status": "archived"
     }
   ],
   "T002624": [
@@ -2531,8 +2531,8 @@
   ],
   "T002631": [
     {
-      "slug": "main-commit-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-10-main-commit-guard",
+      "status": "archived"
     }
   ],
   "T002638": [
@@ -2561,8 +2561,8 @@
   ],
   "T002645": [
     {
-      "slug": "qwen3-coder-loadout",
-      "status": "plan_staged"
+      "slug": "2026-08-10-qwen3-coder-loadout",
+      "status": "archived"
     }
   ],
   "T002647": [
@@ -2615,8 +2615,8 @@
   ],
   "T002662": [
     {
-      "slug": "fix-wakeup-help-T002662",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-wakeup-help-T002662",
+      "status": "archived"
     }
   ],
   "T002663": [
@@ -2741,20 +2741,20 @@
   ],
   "T002717": [
     {
-      "slug": "ticket-messung-mit-befehl",
-      "status": "plan_staged"
+      "slug": "2026-08-10-ticket-messung-mit-befehl",
+      "status": "archived"
     }
   ],
   "T002718": [
     {
-      "slug": "mishap-t002718",
-      "status": "plan_staged"
+      "slug": "2026-08-10-mishap-t002718",
+      "status": "archived"
     }
   ],
   "T002719": [
     {
-      "slug": "agy-headless-mcp-permissions",
-      "status": "plan_staged"
+      "slug": "2026-08-10-agy-headless-mcp-permissions",
+      "status": "archived"
     }
   ],
   "T002721": [
@@ -2807,8 +2807,8 @@
   ],
   "T002766": [
     {
-      "slug": "interactive-rebase-worktree-broken-T002766",
-      "status": "plan_staged"
+      "slug": "2026-08-10-interactive-rebase-worktree-broken-T002766",
+      "status": "archived"
     }
   ],
   "T002768": [
@@ -2891,14 +2891,14 @@
   ],
   "T002811": [
     {
-      "slug": "worktree-create-refactor-prefix",
-      "status": "plan_staged"
+      "slug": "2026-08-10-worktree-create-refactor-prefix",
+      "status": "archived"
     }
   ],
   "T002813": [
     {
-      "slug": "archive-deliverable-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-10-archive-deliverable-guard",
+      "status": "archived"
     }
   ],
   "T002814": [
@@ -2915,8 +2915,8 @@
   ],
   "T002824": [
     {
-      "slug": "half-archive-check-edge-case",
-      "status": "plan_staged"
+      "slug": "2026-08-10-half-archive-check-edge-case",
+      "status": "archived"
     }
   ],
   "T002836": [
@@ -2934,6 +2934,12 @@
   "T002839": [
     {
       "slug": "2026-08-09-fix-openspec-embed-token-limit-T002839",
+      "status": "archived"
+    }
+  ],
+  "T002843": [
+    {
+      "slug": "2026-08-10-ticket-sh-subcommand-help",
       "status": "archived"
     }
   ],
@@ -2975,8 +2981,8 @@
   ],
   "T002876": [
     {
-      "slug": "fix-update-status-planstaged-guard-T002876",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-update-status-planstaged-guard-T002876",
+      "status": "archived"
     }
   ],
   "T002886": [
@@ -3003,6 +3009,12 @@
       "status": "archived"
     }
   ],
+  "T002908": [
+    {
+      "slug": "2026-08-10-openspec-sh-propose-help",
+      "status": "archived"
+    }
+  ],
   "T002925": [
     {
       "slug": "2026-08-10-sammel-bats-hygiene-T002925",
@@ -3011,8 +3023,8 @@
   ],
   "T002931": [
     {
-      "slug": "mishap-rollup-loop",
-      "status": "plan_staged"
+      "slug": "2026-08-10-mishap-rollup-loop",
+      "status": "archived"
     }
   ],
   "T002941": [
@@ -3059,14 +3071,26 @@
   ],
   "T003078": [
     {
-      "slug": "no-unasked-stash-T003078",
+      "slug": "2026-08-10-no-unasked-stash-T003078",
+      "status": "archived"
+    }
+  ],
+  "T003103": [
+    {
+      "slug": "preflight-scope-multi-ticket",
       "status": "plan_staged"
+    }
+  ],
+  "T003107": [
+    {
+      "slug": "2026-08-10-agent-lock-claim-help",
+      "status": "archived"
     }
   ],
   "T003110": [
     {
-      "slug": "agent-lock-sid-detection-T003110",
-      "status": "plan_staged"
+      "slug": "2026-08-10-agent-lock-sid-detection-T003110",
+      "status": "archived"
     }
   ],
   "T003112": [
@@ -3077,32 +3101,32 @@
   ],
   "T003116": [
     {
-      "slug": "agent-lock-scope-regelwerk",
-      "status": "plan_staged"
+      "slug": "2026-08-10-agent-lock-scope-regelwerk",
+      "status": "archived"
     }
   ],
   "T003120": [
     {
-      "slug": "mishap-dedupe-konversion",
-      "status": "plan_staged"
+      "slug": "2026-08-10-mishap-dedupe-konversion",
+      "status": "archived"
     }
   ],
   "T003137": [
     {
-      "slug": "babysit-prs-live-lock-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-10-babysit-prs-live-lock-guard",
+      "status": "archived"
     }
   ],
   "T003203": [
     {
-      "slug": "fix-brain-ingest-port-T003203",
-      "status": "plan_staged"
+      "slug": "2026-08-10-fix-brain-ingest-port-T003203",
+      "status": "archived"
     }
   ],
   "T003204": [
     {
-      "slug": "feat-gpu-loadout-consolidation-T003204",
-      "status": "plan_staged"
+      "slug": "2026-08-10-feat-gpu-loadout-consolidation-T003204",
+      "status": "archived"
     }
   ],
   "T003205": [
@@ -3111,10 +3135,22 @@
       "status": "archived"
     }
   ],
+  "T003267": [
+    {
+      "slug": "cross-harness-plan-guardrails",
+      "status": "plan_staged"
+    }
+  ],
   "T003269": [
     {
-      "slug": "factory-prep-stdout-leak",
-      "status": "plan_staged"
+      "slug": "2026-08-10-factory-prep-stdout-leak",
+      "status": "archived"
+    }
+  ],
+  "T003417": [
+    {
+      "slug": "2026-08-10-sdlc-dashboard-redesign",
+      "status": "archived"
     }
   ],
   "TBD": [

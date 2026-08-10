@@ -3111,6 +3111,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003277": [
+    {
+      "slug": "llm-proxy-dispatch-capture",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

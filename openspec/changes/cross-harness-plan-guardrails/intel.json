@@ -1,0 +1,307 @@
+{
+  "meta": {
+    "slug": "cross-harness-plan-guardrails",
+    "ticket_id": "T003267",
+    "generated_from": "main@0d9ea8efb",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/plan-preflight.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/vda/ticket/stage-plan.sh",
+      "language": "bash",
+      "loc": 170,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 630
+    },
+    {
+      "path": "scripts/plan-lint.sh",
+      "language": "bash",
+      "loc": 533,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 267
+    },
+    {
+      "path": "scripts/factory/pipeline.mjs",
+      "language": "javascript",
+      "loc": 717,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/factory/mishap-rollup.sh",
+      "language": "bash",
+      "loc": 265,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 535
+    },
+    {
+      "path": "scripts/factory/auto-chore-plan.sh",
+      "language": "bash",
+      "loc": 215,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 585
+    },
+    {
+      "path": "scripts/batch-workflow-gen.sh",
+      "language": "bash",
+      "loc": 162,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 638
+    },
+    {
+      "path": "scripts/ticket-mcp/go/internal/tools/workflow.go",
+      "language": "text",
+      "loc": 258,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/registry/plan-guards.yaml",
+      "language": "config",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/opencode-flow-plan/SKILL.md",
+      "language": "markdown",
+      "loc": 352,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/dev-flow-plan/SKILL.md",
+      "language": "markdown",
+      "loc": 329,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/dev-flow-plan-phases.md",
+      "language": "markdown",
+      "loc": 382,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/ticket-stage-procedure.md",
+      "language": "markdown",
+      "loc": 104,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/plan-preflight.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/stage-plan-contract.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/plan-lint-rules.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/guard-parity.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:14:_exec_sql_with_timeout() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "14:_exec_sql_with_timeout() {(...)",
+      "type_text": "14:_exec_sql_with_timeout() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/vda/ticket/stage-plan.sh:39:main() {",
+      "kind": "function",
+      "file": "scripts/vda/ticket/stage-plan.sh",
+      "signature": "39:main() {(...)",
+      "type_text": "39:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:14:_load_s1_limits() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "14:_load_s1_limits() {(...)",
+      "type_text": "14:_load_s1_limits() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "type_text": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:49:_load_s1_ignore() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "49:_load_s1_ignore() {(...)",
+      "type_text": "49:_load_s1_ignore() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "type_text": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:71:effective_threshold() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "71:effective_threshold() {(...)",
+      "type_text": "71:effective_threshold() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:85:residual_budget() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "85:residual_budget() {(...)",
+      "type_text": "85:residual_budget() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:127:hard() { HARD+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "127:hard() { HARD+=(\"$1\"); }(...)",
+      "type_text": "127:hard() { HARD+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:128:warn() { WARN+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "128:warn() { WARN+=(\"$1\"); }(...)",
+      "type_text": "128:warn() { WARN+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:135:fm_field() {  # fm_field <key> -> value (empty if absent)",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "135:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "type_text": "135:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:259:  _check_intel_completeness() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "259:  _check_intel_completeness() {(...)",
+      "type_text": "259:  _check_intel_completeness() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:349:_structural_file_tokens() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "349:_structural_file_tokens() {(...)",
+      "type_text": "349:_structural_file_tokens() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:504:_json_str() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "504:_json_str() {(...)",
+      "type_text": "504:_json_str() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:514:emit_verdict() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "514:emit_verdict() {(...)",
+      "type_text": "514:emit_verdict() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/auto-chore-plan.sh:70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }",
+      "kind": "function",
+      "file": "scripts/factory/auto-chore-plan.sh",
+      "signature": "70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }(...)",
+      "type_text": "70:_field() { printf '%s' \"$ticket_json\" | jq -r --arg k \"$1\" '.[$k] // \"\"'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/auto-chore-plan.sh:116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }",
+      "kind": "function",
+      "file": "scripts/factory/auto-chore-plan.sh",
+      "signature": "116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }(...)",
+      "type_text": "116:cleanup_wt() { git -C \"$REPO\" worktree remove --force \"$WT\" >/dev/null 2>&1 || true; }(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

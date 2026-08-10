@@ -626,6 +626,14 @@ cmd_reap() {
     local f
     for f in "$d"/*.json; do [ -e "$f" ] || continue; _reapable "$f" && rm -f "$f"; done
   fi
+  # Advisory half-archive check (non-fatal): surfaces uncommitted half-archived
+  # OpenSpec slugs that the committed-tree check in task:openspec cannot see. [T002824]
+  local _haguard _hasc
+  _haguard="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/openspec-half-archive-check.sh"
+  if [ -x "$_haguard" ] && ! bash "$_haguard"; then
+    _hasc=$?
+    echo "AGENT-LOCK: half-archived OpenSpec slug(s) detected (see above)." >&2
+  fi
   return 0
 }
 

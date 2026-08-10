@@ -148,6 +148,41 @@ export function parseLoadouts(text) {
   if (!Array.isArray(doc.loadouts)) fail('loadouts muss ein Array sein');
   const seen = new Set();
   doc.loadouts.forEach((l, i) => validateLoadout(l, i, seen));
+
+  // T003205 — Rollen-Ketten (Top-Level-Schluessel 'roles'). Optional: ein
+  // Proxy kann ohne bge laufen. Wenn vorhanden, wird die Struktur fail-closed
+  // validiert — ein Tippfehler im Loadout-Slug soll beim Schreiben auffallen,
+  // nicht beim ersten Request.
+  if (doc.roles != null) {
+    if (typeof doc.roles !== 'object' || Array.isArray(doc.roles)) {
+      fail('roles muss ein Objekt sein');
+    }
+    for (const [role, cfg] of Object.entries(doc.roles)) {
+      if (typeof cfg !== 'object' || cfg === null || Array.isArray(cfg)) {
+        fail(`roles.${role} muss ein Objekt sein`);
+      }
+      for (const k of Object.keys(cfg)) {
+        if (k !== 'chain') fail(`roles.${role}: unbekanntes Feld '${k}'`);
+      }
+      if (!Array.isArray(cfg.chain) || cfg.chain.length === 0) {
+        fail(`roles.${role}: chain muss ein nicht-leeres Array sein`);
+      }
+      cfg.chain.forEach((entry, i) => {
+        if (typeof entry !== 'string' || entry === '') {
+          fail(`roles.${role}.chain[${i}] muss ein nicht-leerer String sein`);
+        }
+        if (entry.startsWith('loadout:')) {
+          const slug = entry.slice('loadout:'.length);
+          if (!SLUG_RE.test(slug)) fail(`roles.${role}.chain[${i}]: '${slug}' ist kein gueltiger Loadout-Slug`);
+          if (!doc.loadouts.some((l) => l.slug === slug)) {
+            fail(`roles.${role}.chain[${i}]: loadout:${slug} existiert nicht in loadouts`);
+          }
+        } else if (!/^https?:\/\//.test(entry)) {
+          fail(`roles.${role}.chain[${i}]: '${entry}' ist weder 'loadout:<slug>' noch eine http(s)-URL`);
+        }
+      });
+    }
+  }
   return doc;
 }
 

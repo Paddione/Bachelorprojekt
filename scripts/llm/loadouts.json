@@ -164,7 +164,7 @@
         "-t",
         "4"
       ],
-      "notes": "Spiegelt die Cluster-Args aus k3d/llm-gpu.yaml (bge-embed): -ngl 0, CUDA_VISIBLE_DEVICES=\"\", -b/-ub 8192, -np 4, --embeddings. Zusaetzlich -t 4: der Host hat 6 Kerne, zwei bleiben fuer das Dataloading eines parallel laufenden Finetunings frei (T002587). Regulaer bedient der Cluster Embedding; dieses Loadout ist der lokale Ersatzweg und startet NICHT von selbst."
+      "notes": "Erstes Glied der Rollenkette 'embed' (T003205): der Proxy startet es bei Bedarf, der Cluster-Forward (:8081) ist der Rueckfall. Spiegelt die Cluster-Args aus k3d/llm-gpu.yaml (bge-embed): -ngl 0, CUDA_VISIBLE_DEVICES=\"\", -b/-ub 8192, -np 4, --embeddings. Zusaetzlich -t 4: der Host hat 6 Kerne, zwei bleiben fuer das Dataloading eines parallel laufenden Finetunings frei (T002587)."
     },
     {
       "slug": "bge-rerank-cpu",
@@ -208,7 +208,7 @@
         "-t",
         "4"
       ],
-      "notes": "Windows-Tasks deaktiviert (T002729): die vier Scheduled Tasks unter \\Llama\\ (darunter der llama-server auf :8096) sind deaktiviert, XML-Backups liegen unter C:\\Users\\PatrickKorczewski\\llama-tasks-backup\\. Reaktivierung mit Enable-ScheduledTask -TaskPath '\\Llama\\' -TaskName '<name>' (elevated). :8096 ist damit frei; dieses Loadout ist der reguläre lokale Weg, startet aber weiterhin nicht von selbst. Args gespiegelt von k3d/llm-gpu.yaml (bge-rerank). Keine exclusiveGroup: die Gruppe modellierte VRAM-Exklusivität, dieses Loadout belegt kein VRAM — Verweis auf tests/spec/local-llm-proxy/bge-cpu-parallel-start.bats."
+      "notes": "Windows-Tasks deaktiviert (T002729): die vier Scheduled Tasks unter \\Llama\\ (darunter der llama-server auf :8096) sind deaktiviert, XML-Backups liegen unter C:\\Users\\PatrickKorczewski\\llama-tasks-backup\\. Reaktivierung mit Enable-ScheduledTask -TaskPath '\\Llama\\' -TaskName '<name>' (elevated). :8096 ist damit frei; erstes Glied der Rollenkette 'rerank' (T003205) — der Proxy startet es bei Bedarf, der Cluster-Forward (:8093) ist der Rueckfall. Args gespiegelt von k3d/llm-gpu.yaml (bge-rerank). Keine exclusiveGroup: die Gruppe modellierte VRAM-Exklusivität, dieses Loadout belegt kein VRAM — Verweis auf tests/spec/local-llm-proxy/bge-cpu-parallel-start.bats."
     },
     {
       "slug": "unsloth-studio",
@@ -425,5 +425,19 @@
       "notes": "Serverseite fuer scripts/brain-ingest.sh (T002679). parallel=4, gpt-oss-20b UD-Q4_K_XL. 32.768 ctx je Slot. Port 8100 seit T003203: 8093 belegt der kubectl-Forward auf llm-gateway-rerank (scripts/bge-mcp/bge-forward-rerank.service), 8097 ein Factory-Provider (scripts/factory/provider-register-gptoss.sh).",
       "exclusiveGroup": "chat-gpu"
     }
-  ]
+  ],
+  "roles": {
+    "embed": {
+      "chain": [
+        "loadout:bge-embed-cpu",
+        "http://127.0.0.1:8081"
+      ]
+    },
+    "rerank": {
+      "chain": [
+        "loadout:bge-rerank-cpu",
+        "http://127.0.0.1:8093"
+      ]
+    }
+  }
 }

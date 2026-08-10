@@ -14,6 +14,7 @@ import { join } from 'node:path';
 import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
 import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
 import { enqueue, inflightOf, extractSlotId } from './slot-queue.mjs';
+import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, LOADOUT_START_BUDGET_MS } from './bge-routes.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
@@ -31,6 +32,13 @@ const discovery = startDiscovery(getBackends, POLL_MS);
 
 // MCP-Bridge init (best-effort: logs errors, never prevents server start)
 initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));
+
+// T003205 — bge-Rollen-Routen. Die Konfiguration wird beim Start geprueft:
+// ein kaputter bge-Block loggt eine Zeile und beantwortet die Rollen-Routen
+// mit 503, darf aber die Chat-Routen nicht insgesamt lahmlegen.
+let rolesError = null;
+try { loadRoles(readLoadouts(DEFAULT_PATH).doc); } catch (err) { rolesError = err; }
+if (rolesError) console.error(`[bge-routes] ${rolesError.message}`);
 
 // Serialisierung + Kontext-Budget (T002102-Folgevorfall, 2026-07-23; erweitert
 // um per-Backend-Semaphor T002128-p4): mehrere gleichzeitige Requests an DENSELBEN
@@ -598,6 +606,31 @@ const server = http.createServer((req, res) => {
     // MCP Bridge — stdio-MCPs via HTTP/SSE
     const mcpMatch = path.match(/^\/mcp\/([a-z0-9-]+)$/);
     if (mcpMatch) return handleMcp(req, res, mcpMatch[1], method);
+
+    // T003205 — bge-Rollen-Routen, GETRENNT von der Chat-Modellaufloesung.
+    // Die Rolle kommt aus dem PFAD; die gesamte Failover-Logik liegt in
+    // bge-routes.mjs, hier stehen nur die beiden Weiterleitungen.
+    if ((path === '/v1/embeddings' || path === '/v1/rerank') && method === 'POST') {
+      if (rolesError) {
+        return sendJson(res, 503, { error: { code: 'bge_roles_unconfigured', message: rolesError.message } });
+      }
+      try {
+        const body = await readBody(req);
+        const { doc } = readLoadouts(DEFAULT_PATH);
+        const role = roleForPath(path);
+        const result = await routeRequest({
+          role, path, body, chain: loadRoles(doc).get(role), doc,
+          timeoutMs: ROLE_TIMEOUT_MS, startBudgetMs: LOADOUT_START_BUDGET_MS,
+        });
+        const headers = { 'content-type': result.contentType ?? 'application/json' };
+        if (result.upstream) headers['x-llm-proxy-bge-upstream'] = result.upstream;
+        const buf = Buffer.from(result.body, 'utf8');
+        res.writeHead(result.status, { ...headers, 'content-length': buf.length });
+        return res.end(buf);
+      } catch (err) {
+        return sendJson(res, 503, { error: { code: 'bge_route_error', message: err.message } });
+      }
+    }
 
     if (path.startsWith('/v1/') && method === 'POST') return proxyV1(req, res, path.slice(3));
     return sendJson(res, 404, { error: { code: 'not_found', message: path } });

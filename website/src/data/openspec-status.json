@@ -3081,6 +3081,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003205": [
+    {
+      "slug": "feat-bge-proxy-role-routes-T003205",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

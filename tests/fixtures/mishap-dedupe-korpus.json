@@ -1,0 +1,183 @@
+{
+    "note": "Fixture-Korpus fuer den Dedupe-Vergleich (T003120/T003117). Einmalig aus der Ticket-DB extrahiert; die Tests lesen ausschliesslich diese Datei und oeffnen keine DB-Verbindung. Beschreibungen auf 1200 Zeichen gekuerzt.",
+    "tickets": [
+        {
+            "id": "T002765",
+            "areas": "scripts/plan-touched-files.sh",
+            "title": "plan-touched-files nimmt nur erwaehnte Pfade als beruehrte Dateien auf",
+            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/plan-touched-files.sh\n\nBeobachtet am 2026-08-08 bei T002732 (stage-plan fuer fix/backfill-id-sequence-T002732).\n\n`scripts/ticket.sh stage-plan` meldete \"touched_files: 5 Pfad(e) aus dem Plan uebernommen\".\nEiner davon ist `docs/code-quality/gates.yaml` — die Datei wird im Plan ausschliesslich in\nProsa erwaehnt (\"wirksame Schwelle ist das Extension-Limit fuer .sh (800) aus\ndocs/code-quality/gates.yaml\") und vom Change nicht angefasst. Die uebrigen vier Pfade\nstimmen.\n\nDie Ableitung in `scripts/plan-touched-files.sh` unterscheidet also nicht zwischen einem\nPfad, den der Plan AENDERN will, und einem, den er als Quelle ZITIERT. Das ist deshalb\nrelevant, weil `plan-quality-gates.md` das Zitieren von `gates.yaml` ausdruecklich\nvorschreibt (Lesebefehl statt kopierter Zahlen, T002523-M9) — die Konvention erzeugt den\nFalschtreffer also systematisch, nicht zufaellig. Jeder korrekt geschriebene Plan mit\nS1-Budgetangabe duerfte betroffen sein.\n\nFolge: `touched_files` ist die Grundlage fuer File-Locks und Konflikterkennung zwischen\nparallelen Sessions. Ein Plan, der gates.yaml nur zitiert, belegt sie damit fuer andere\nLaeufe mit — falsche "
+        },
+        {
+            "id": "T002811",
+            "areas": "scripts/worktree-create.sh",
+            "title": "worktree-create.sh: refactor-Präfix nicht in Branch-Allowlist (nur feature/fix/chore/docs)",
+            "description": "### Mishap-Fix\n\n**Typ:** process | **Komponente:** scripts/worktree-create.sh\n\nBeim Dispatch von T002627 (type=refactor) wurde der Branch refactor/sdlc-routes-remove-T002627 von worktree-create.sh abgelehnt. Erlaubt sind nur feature/fix/chore/docs. Workaround: feature/ statt refactor/ verwendet. Ticket-Typ \"refactor\" sollte entweder ein erlaubtes Branch-Präfix bekommen oder beim Anlegen automatisch auf feature/chore normalisiert werden."
+        },
+        {
+            "id": "T002877",
+            "areas": "scripts/openspec-embed · openspec_find_similar",
+            "title": "openspec-embed Completeness-Gate: 12 Dokumente in der Collection, 57 lokale aktive Pläne",
+            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** scripts/openspec-embed · openspec_find_similar\n\nBeim Plan-Stage-Commit meldete der openspec-embed-Hook: \"WARN: completeness gate — collection has 12 docs but 57 local active plans (status=planning|plan_staged|active)\". Die Embedding-Collection deckt also rund ein Fünftel der aktiven Pläne ab.\n\nFolge: semantische Suche über Pläne (Kontexttransfer, Ähnlichkeitssuche via openspec_find_similar) arbeitet auf einem stark unvollständigen Index, ohne dass der Aufrufer das merkt — die Suche liefert Treffer, nur eben aus einem Fünftel des Bestands. Das ist die gefährlichere Sorte Lücke, weil sie wie ein Ergebnis aussieht.\n\nAbzugrenzen von T002839 (2 Dokumente über dem 2048-Token-Limit übersprungen): das erklärt 2 fehlende Dokumente, nicht 45. Die Ursache der übrigen Lücke ist offen — Kandidaten sind ein nie gelaufener Backfill (task openspec:embed:backfill) oder Pläne, die nie durch den Hook liefen, weil sie außerhalb eines Commits entstanden."
+        },
+        {
+            "id": "T002909",
+            "areas": "scripts/plan-qa-check.sh",
+            "title": "plan-qa-check.sh meldet \"Gateway not reachable\", obwohl der Port mit HTTP 404 antwortet",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** scripts/plan-qa-check.sh\n\n`scripts/plan-qa-check.sh` brach mit `WARNING: Gateway http://127.0.0.1:18235 not reachable — skipping QA (advisory)` ab. Gegenprobe widerlegt die Diagnose: `curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:18235` liefert **404**, der Port lauscht also und der Dienst antwortet. Die Probe deutet offenbar jeden Nicht-Erfolgscode als \"nicht erreichbar\", statt zwischen \"kein Listener\" und \"falscher Pfad/Route fehlt\" zu unterscheiden. Folge: die advisory LLM-QA-Stufe fiel für den Plan sdlc-up-command komplett aus, und die ausgegebene Ursache weist in die falsche Richtung (Dienst starten statt Pfad korrigieren). Betrifft jeden dev-flow-plan-Lauf auf dieser Maschine."
+        },
+        {
+            "id": "T002910",
+            "areas": "scripts/hooks openspec-embed",
+            "title": "openspec-embed: Collection deckt 14 von 58 aktiven Plänen ab, ohne dass ein Gate greift",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** scripts/hooks openspec-embed\n\nDer post-commit-Hook meldet bei jedem Commit `WARN: completeness gate — collection has 14 docs but 58 local active plans (status=planning|plan_staged|active)` sowie `skipped: 2 documents (2 context limit > 2048 tokens, 0 other reasons)`. Die Embedding-Abdeckung liegt damit bei rund 24 Prozent. Das \"completeness gate\" ist nur eine Warnung: der Commit läuft durch, und die Lücke wird bei jedem weiteren Commit erneut gemeldet, ohne dass etwas sie schließt. Zwei Dokumente sind wegen Kontextlimit dauerhaft ausgeschlossen; der vorgeschlagene `task openspec:embed:backfill` behebt das nicht, solange die Dokumente über 2048 Tokens bleiben. Beobachtet bei zwei Commits auf feature/sdlc-up-T002655."
+        },
+        {
+            "id": "T002911",
+            "areas": "scripts/plan-touched-files.sh",
+            "title": "stage-plan nimmt nur gelesene Dateien in touched_files auf",
+            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** scripts/plan-touched-files.sh\n\n`scripts/ticket.sh stage-plan --id T002655` hat vier Pfade abgeleitet, darunter `docs/code-quality/gates.yaml`. Der Plan ändert diese Datei nicht — er nennt sie zweimal in Prosa als Nachschlagequelle für die S1-Limits (verifiziert: `grep -c 'gates.yaml' tasks.md` = 2, beide Vorkommen in erklärendem Fließtext, die File-Structure-Tabelle listet sie nicht). Die Ableitung in scripts/plan-touched-files.sh unterscheidet nicht zwischen erwähnten und geänderten Pfaden. Folge: touched_files ist zu weit. Da die Factory touched_files zur Konflikterkennung zwischen parallelen Tickets nutzt, blockiert ein solcher Eintrag potenziell fremde Tickets, die eine reine Referenzdatei tatsächlich anfassen — gates.yaml ist als zentrale Gate-Definition ein wahrscheinlicher Kandidat dafür. Konservative Richtung (zu viel statt zu wenig), aber sie kostet Parallelität."
+        },
+        {
+            "id": "T002994",
+            "areas": "repo-hygiene/worktrees",
+            "title": "Kaputte 0-Byte-Loose-Objects in einem Worktree blockieren `git fetch` im gesamten Repo",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** repo-hygiene/worktrees\n\nBeobachtet im repo-hygiene-Lauf am 2026-08-09. Der Worktree `.worktrees/mishap-incident-rollup` steckte nach einem WSL-Crash in einem interaktiven Rebase; vier Loose Objects waren auf 0 Byte truncated, darunter sein detached HEAD `ace450108`. Wirkung war NICHT lokal begrenzt: `git fetch origin main` scheiterte im Hauptcheckout mit `fatal: bad object worktrees/mishap-incident-rollup/HEAD` und `did not send all necessary objects`. Damit war der Pflicht-Schritt \"gegen origin/main vergleichen\" für ALLE 15 Worktrees blockiert, obwohl nur einer beschaedigt war.\n\nRettung ohne Datenverlust: den letzten gueltigen Commit aus `.git/worktrees/<name>/logs/HEAD` in `.git/worktrees/<name>/HEAD` schreiben, dann `git rebase --abort`. Der Branch-Ref `chore/mishap-incident-rollup` war unversehrt — Git bewegt den Branch-Ref waehrend eines Rebase nicht, sondern arbeitet mit detached HEAD und setzt ihn erst am Ende um. Anschliessend `find .git/objects -type f -size 0 -delete` (loescht nichts Werthaltiges: die Dateien waren bereits vor dem Eingriff unlesbar) und `git reflog expire --stale-fix --all`. Danach `git fsck --no-reflogs"
+        },
+        {
+            "id": "T002998",
+            "areas": "repo-hygiene/worktrees",
+            "title": "Worktree-Schleife ueber `.worktrees/*/` misst bei Waisenverzeichnissen stillschweigend das Hauptrepo",
+            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** repo-hygiene/worktrees\n\nBeobachtet im repo-hygiene-Lauf am 2026-08-09. `.worktrees/factory-mcp-ask-backend-T002663` existierte als Verzeichnis, enthielt nur einen `scripts/`-Unterbaum, besass KEIN `.git` und stand nie in `git worktree list` — ein Ueberrest, kein Worktree.\n\nEine Auswertungsschleife ueber das Dateisystem-Glob `.worktrees/*/` meldete dafuer `branch=main, dirty=0, abweichende_dateien=0`. Der Grund ist Git's Aufwaertssuche: ohne eigenes Repository im Verzeichnis beantwortet `git -C <dir> ...` die Frage fuer das Elternrepo `/home/patrick/Bachelorprojekt`. Das Ergebnis war also ein Messwert aus dem falschen Repo — und es war ausgerechnet derjenige Messwert, der im Ablauf ein \"sauber und vollstaendig gemergt, kann weg\"-Urteil ausloest. Aufgefallen ist es nur, weil `branch=main` fuer einen Feature-Worktree unplausibel war; bei einem Waisenverzeichnis, dessen Name zu einem tatsaechlich gemergten Branch passt, waere der Fehlschluss nicht sichtbar gewesen.\n\n[TEILWEISE UNVERIFIZIERT — das Verzeichnis wurde waehrend des Laufs von einer parallelen Session entfernt und ist nicht mehr nachpruefbar; die Beobachtung selbst stammt "
+        },
+        {
+            "id": "T003001",
+            "areas": "tests/spec/ci-cd/spec-tracked-file-guard.bats · Taskfile test:spec:changed",
+            "title": "spec-tracked-file-guard.bats ist unter `bats -j` selbst nicht isolationsfest — Flake blockiert PRs, die mcp.yaml anfassen",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** tests/spec/ci-cd/spec-tracked-file-guard.bats · Taskfile test:spec:changed\n\nBEOBACHTET in PR #3974 (Chore T002924, Diff = 4 reine Doku-Dateien). CI-Job \"Factory spec shard 4\" rot mit:\n\n  not ok 13 T002779: mcp-tooling.bats laesst die getrackte MCP-Registry unberuehrt\n  (tests/spec/ci-cd/spec-tracked-file-guard.bats, line 51: `[ \"$before\" = \"$after\" ]` failed)\n\nNICHT REPRODUZIERBAR, also ein Flake — belegt durch Messung, nicht vermutet:\n- `bats tests/spec/mcp-tooling.bats` isoliert: exit 0, mtimes der vier Artefakte UNVERAENDERT.\n- `task test:spec:changed` mit SPEC_SHARD=4, Lauf A: `not ok 13`. Lauf B: 0 Treffer (gruen).\nGleicher Commit, gleiche Auswahl, unterschiedliches Ergebnis.\n\nURSACHE: Der Runner startet die ausgewaehlten Dateien mit\n`bats -j $(nproc) --no-parallelize-within-files` (Taskfile, test:spec:changed).\nDer Test in Zeile 40-52 misst mit _stamp() die mtime von vier GLOBALEN, getrackten\nPfaden (docs/agent-guide/registry/mcp.yaml, scripts/llm/mcp-servers.json, .mcp.json,\n.opencode/opencode.jsonc), waehrend parallel andere ausgewaehlte Spec-Dateien laufen.\nDer Test schliesst aus einer mtime-Aenderung auf ein Fehlverhalte"
+        },
+        {
+            "id": "T003006",
+            "areas": "tests/spec/ci-cd/spec-tracked-file-guard.bats",
+            "title": "spec-tracked-file-guard.bats wird unter bats -j falsch rot und beschuldigt den falschen Test",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** tests/spec/ci-cd/spec-tracked-file-guard.bats\n\nBelegt vom Agenten des Sammel-Chore T002924 waehrend PR #3974.\n\nSYMPTOM: CI-Job \"Factory spec shard 4\" fiel mit `not ok 13 T002779` in `tests/spec/ci-cd/spec-tracked-file-guard.bats:51`. Der Guard schrieb die Aenderung `mcp-tooling.bats` zu.\n\nBELEGT statt vermutet:\n- Isoliert ausgefuehrt ist der Guard GRUEN (mtimes unveraendert).\n- Zwei identische lokale Laeufe lieferten unterschiedliche Ergebnisse — nichtdeterministisch.\n- `mcp-tooling.bats` sandboxt nachweislich korrekt: `MCP_OUT_DIR` wurde nachgemessen.\n- Der Rerun des CI-Jobs war gruen.\n\nURSACHE: Der Guard misst GLOBALE mtimes von vier getrackten Pfaden, waehrend `bats -j $(nproc)` Nachbardateien parallel faehrt. Jede Aenderung durch einen beliebigen parallelen Test wird dem gerade betrachteten Test zugeschrieben. Die Assertion misst also Fremdwirkung statt der Wirkung des geprueften Tests.\n\nREICHWEITE: Trifft JEDEN PR, der `docs/agent-guide/registry/mcp.yaml` anfasst — erst dessen Auswahl planen Guard und mcp-Tests gemeinsam ein. Der Fehlschlag sieht wie ein Inhaltsfehler aus und kostet einen CI-Zyklus plus Untersuchungszeit.\n\nVE"
+        },
+        {
+            "id": "T003077",
+            "areas": "scripts/openspec-embed (post-commit hook)",
+            "title": "openspec-embed scheitert bei jedem Commit an Port 15432 — k3d-Port-Forward belegt ihn dauerhaft",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** scripts/openspec-embed (post-commit hook)\n\nBEOBACHTET (2026-08-09, dev-flow-plan T003045, Stage-Commit b78616a60)\n\nDer post-commit-Hook `openspec-embed` scheiterte dreimal in Folge und gab auf:\n\n  [openspec-embed-local] FEHLER: Port 15432 wird von einem fremden Prozess\n  (PID 50718: kubectl --context k3d-mentolder-dev port-forward -n workspace\n  svc/shared-db 15432:5432) belegt, nicht vom eigenen Port-Forward (PID 1660165).\n  Beende den fremden Prozess oder setze OPENSPEC_EMBED_PF_PORT auf einen freien Port.\n  [openspec-embed] retry 1/3 … retry 2/3 …\n  [openspec-embed] WARN: embed failed for 'main-ci-branch-precondition'\n                   after 3 attempts (non-fatal — see above)\n\nDer Change 'main-ci-branch-precondition' ist damit nicht eingebettet. Die\nAehnlichkeitssuche (openspec_find_similar) findet ihn nicht — genau die Funktion,\ndie Doppelarbeit an derselben Sache verhindern soll.\n\nEINORDNUNG — das Verhalten ist BESSER als frueher, nicht schlechter\nDer Guard erkennt den Fremdprozess und verweigert die Arbeit. Aeltere Notizen\nbeschreiben denselben Portkonflikt mit stillem Fallback auf die falsche Datenbank\n(Embedding landete i"
+        },
+        {
+            "id": "T003078",
+            "areas": "skills/dev-flow-chore",
+            "title": "dev-flow-chore Schritt 0 stasht den Haupt-Checkout ungefragt (Datenverlustrisiko bei Parallelsessions)",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** skills/dev-flow-chore\n\nBEOBACHTUNG (T003055, 2026-08-09): Schritt 0 von dev-flow-chore schreibt vor:\n  git stash && git pull --rebase origin main && git stash pop\nZum Ausfuehrungszeitpunkt liefen im Haupt-Checkout DREI fremde Agent-Sessions (claude PID 1291909 seit 19:49, claude PID 2154793 seit 20:46 — beide mit --dangerously-skip-permissions —, opencode PID 2165174 seit 20:48). Sie hatten 7 uncommittete Dateien offen; .github/workflows/{ai-review,ci,e2e-pr}.yml waren 2 Minuten zuvor (20:49:31) geschrieben worden, tests/spec/ci-cd/fetch-refspec-forced.bats war untracked.\n\nWARUM RELEVANT: git stash ist eine Mutation des Arbeitsbaums, den ein anderer Prozess offen haelt. Schreibt die fremde Session zwischen stash und pop weiter, kollidiert der pop und die Aufloesung ist manuell. Der Skill hat dafuer KEINEN Guard — er setzt implizit voraus, dass der Haupt-Checkout dem ausfuehrenden Agenten allein gehoert.\n\nVERIFIKATION: Skill-Text .claude/skills/dev-flow-chore/SKILL.md Schritt 0; Prozessliste via ps; Datei-mtimes via ls --time-style. Der Schritt wurde in diesem Durchlauf bewusst NICHT ausgefuehrt; stattdessen wurde der Worktree dire"
+        },
+        {
+            "id": "T003096",
+            "areas": "skills/dev-flow-chore",
+            "title": "dev-flow-chore Schritt 0 stasht den Haupt-Checkout ungefragt (Risiko bei Parallelsessions)",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** skills/dev-flow-chore\n\nBEOBACHTUNG (T003055, 2026-08-09): Schritt 0 von dev-flow-chore schreibt vor:\n    git stash && git pull --rebase origin main && git stash pop\nZum Ausfuehrungszeitpunkt liefen im Haupt-Checkout DREI fremde Agent-Sessions: claude PID 1291909 (seit 19:49), claude PID 2154793 (seit 20:46) — beide mit --dangerously-skip-permissions —, opencode PID 2165174 (seit 20:48). Sie hatten 7 uncommittete Dateien offen; .github/workflows/{ai-review,ci,e2e-pr}.yml waren zwei Minuten zuvor (20:49:31) geschrieben worden, tests/spec/ci-cd/fetch-refspec-forced.bats war untracked.\n\nWARUM RELEVANT: `git stash` mutiert den Arbeitsbaum, den ein anderer Prozess offen haelt. Schreibt die fremde Session zwischen stash und pop weiter, kollidiert der pop und die Aufloesung ist manuell. Der Skill hat dafuer keinen Guard — er setzt implizit voraus, dass der Haupt-Checkout dem ausfuehrenden Agenten allein gehoert.\n\nVERIFIKATION: Skill-Text (dev-flow-chore Schritt 0); Prozessliste via ps; Datei-mtimes via `ls --time-style=+%H:%M:%S`. Der Schritt wurde bewusst NICHT ausgefuehrt; stattdessen `git worktree add -b <branch> <pfad> origin/main`, w"
+        },
+        {
+            "id": "T003097",
+            "areas": "scripts/worktree-create.sh",
+            "title": "worktree-create.sh Divergence-Guard stasht den Haupt-Checkout (gleiche Klasse wie dev-flow-chore Schritt 0)",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** scripts/worktree-create.sh\n\nBEOBACHTUNG (T003055, 2026-08-09): Der Divergence-Guard in scripts/worktree-create.sh (Zeilen 166-214) synchronisiert lokales main auf origin/main. Ist der Haupt-Checkout dabei dirty, stasht er ihn:\n    Zeile 189-199: if ! git diff --quiet HEAD; then git stash push -m \"worktree-create-auto-stash\" ...\n    Zeile 201:     git pull --rebase origin main\n    Zeile 213:     _wc_stash_pop_or_warn\n\nWARUM RELEVANT: Identische Fehlerklasse wie dev-flow-chore Schritt 0 (separat gemeldet). Zum Ausfuehrungszeitpunkt liefen drei fremde Agent-Sessions mit 7 uncommitteten Dateien im Haupt-Checkout; lokales main lag 2 Commits hinter origin/main, der Guard haette also gefeuert. Bemerkenswert: das Skript ist gegen den EIGENEN Stash bereits sorgfaeltig abgesichert (T002673 hat die stillen `|| true` entfernt, damit ein fehlgeschlagener Pop nicht unbemerkt bleibt) — es kennt aber keinen Begriff davon, dass der Arbeitsbaum einem ANDEREN Prozess gehoeren koennte.\n\nVERIFIKATION: Quelltext gelesen (Zeilen 166-226); Divergenz gemessen (`git rev-list --count HEAD..origin/main` = 2); fremde Prozesse via ps belegt. Der Guard wurde be"
+        },
+        {
+            "id": "T003101",
+            "areas": "scripts/openspec-embed (post-commit hook)",
+            "title": "openspec-embed post-commit Hook scheitert erneut an Port-15432-Konflikt",
+            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/openspec-embed (post-commit hook)\n\nBeim Commit fuer T002807 (openspec change plan-lint-w3-prose-path) schlug der openspec-embed post-commit Hook dreimal mit \"Port 15432 wird von einem fremden Prozess belegt (kubectl port-forward -n workspace svc/shared-db)\" fehl, bevor er non-fatal aufgab. Bekanntes, bereits dokumentiertes Verhalten (siehe User-MEMORY openspec-embed-port-collision.md) — kein neuer Defekt, aber weiterhin sichtbares Rauschen bei jedem Commit, solange ein k3d-dev-Port-Forward auf demselben Port laeuft. Nur zur Haeufigkeits-Dokumentation gemeldet, keine Handlungsaufforderung."
+        },
+        {
+            "id": "T003111",
+            "areas": "dev-flow-plan",
+            "title": "dev-flow-plan Schritt 5 verlangt ticket-scoped agent-lock, den der ticket-ops-Dispatch verbietet",
+            "description": "### Mishap-Fix\n\n**Typ:** process | **Komponente:** dev-flow-plan\n\nBei T002999 (Welle-1-Dispatch) standen zwei Vorgaben gegeneinander:\n\n1. Der Dispatch verbietet ausdruecklich einen agent-lock im **ticket**-Scope (T003102 — blockiert den spaeteren Abschluss).\n2. `dev-flow-plan` Schritt 5 (Pre-Commit Guard, Punkt 3) verlangt genau diese Lock-Datei: `$(git rev-parse --git-common-dir)/agent-locks/ticket__<ID>.json` — fehlt sie, soll der Commit mit FATAL abbrechen.\n\nZusaetzlich blockierte `scripts/hooks/worktree-write-guard.sh` jeden Write im eigenen Worktree, solange gar kein Claim existierte. Aufloesung war ein **branch**-scoped Claim (`agent-lock.sh claim branch`) — Regel 2 des Guards greift auf den Branch-Claim, nicht auf den Ticket-Claim. Damit sind beide Vorgaben erfuellbar, aber das steht nirgends: Schritt 5 nennt nur den Ticket-Claim.\n\nNebenbefund zur Meldung des Guards: unter \"Dieser Session gehoeren:\" listet er die Worktrees **fremder** Sessions (hier zwei andere T003xxx-Worktrees, doppelt). Das liest sich, als besaesse die eigene Session diese Verzeichnisse, und fuehrt beim Debuggen in die falsche Richtung.\n\nVorschlag: Schritt 5 Punkt 3 auf \"ticket- ODER branch-scoped Claim\" "
+        },
+        {
+            "id": "T003112",
+            "areas": "scripts/plan-qa-check.sh",
+            "title": "plan-qa-check.sh liefert Parse-Fehler statt inhaltlicher QA-Rückmeldung",
+            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** scripts/plan-qa-check.sh\n\nBeim Plan-Stage für T003077 (openspec-embed-dynamic-port) lieferte die advisory LLM-QA (scripts/plan-qa-check.sh) in Iteration 2 \"FAIL — Missing criteria: Could not parse missing items\" statt einer inhaltlichen Rückmeldung — ein Parse-Fehler des LLM-Antwortformats, keine echte Lücke (das harte Gate scripts/plan-lint.sh war zu diesem Zeitpunkt bereits PASS). Nicht blockierend (Skill-Konvention: bricht nie, `|| true`), aber Rauschen, das potenziell bei jedem Plan-Stage-Lauf auftritt und den Nutzen der advisory QA mindert."
+        },
+        {
+            "id": "T003113",
+            "areas": "scripts/plan-touched-files.sh",
+            "title": "touched_files-Ableitung nimmt reine Lesebefehl-Pfade als geänderte Dateien auf",
+            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/plan-touched-files.sh\n\nscripts/ticket.sh stage-plan (Ableitung via plan-touched-files.sh) trug für T003077 (openspec-embed-dynamic-port) docs/code-quality/baseline.json und docs/code-quality/gates.yaml als touched_files ein, obwohl der Plan diese Dateien nur per jq/grep-Lesebefehl referenziert (zur S1-Budget-Ermittlung in der Plan-Prosa), nicht verändert. touched_files zeigt dadurch zwei Dateien, die dieser Fix nicht anfasst — die Ableitung unterscheidet nicht zwischen \"im Plan als MODIFIED/NEW markierter Pfad\" und \"im Plan als Lesebefehl-Argument zitierter Pfad\"."
+        },
+        {
+            "id": "T003114",
+            "areas": "skills/dev-flow-plan · scripts/hooks/worktree-write-guard.sh",
+            "title": "worktree-write-guard blockiert Sub-Agenten in vom Orchestrator vorbereiteten Worktrees ohne eigenen agent-lock-Claim",
+            "description": "### Mishap-Fix\n\n**Typ:** suspicious | **Komponente:** skills/dev-flow-plan · scripts/hooks/worktree-write-guard.sh\n\nBeobachtet 2026-08-09 waehrend eines ticket-ops-Welle-1-Dispatch fuer T003075. Der Dispatch-Prompt wies an, ausschliesslich im vom Orchestrator vorab angelegten Worktree /home/patrick/Bachelorprojekt/.worktrees/freshness-gate-artifacts-T003075 zu arbeiten, und untersagte explizit einen ticket-scoped agent-lock-Claim (\"KEIN agent-lock im ticket-Scope (T003102)\"). Der erste Write-Tool-Aufruf auf einen Pfad unter diesem Worktree wurde dennoch von scripts/hooks/worktree-write-guard.sh abgelehnt: der Guard erlaubt Schreibzugriffe nur unter Pfaden, die per agent-lock.sh claim branch/ticket IN DIESER SESSION geclaimt wurden — ein vom Orchestrator vorab angelegter Worktree ohne eigenen Claim der Sub-Agenten-Session zaehlt nicht als \"eigener\" Pfad. Geloest durch `bash scripts/agent-lock.sh claim branch \"fix/freshness-gate-artifacts-T003075\" --worktree \"$PWD\" --label dev-flow-plan` vor dem ersten Write — das ist ein BRANCH-Scope-Claim, kein TICKET-Scope-Claim, widerspricht also der Anweisung nicht direkt, aber die Unterscheidung war im Dispatch-Prompt nicht klar genug: der Fehl"
+        },
+        {
+            "id": "T003115",
+            "areas": "scripts/openspec-embed-local.sh",
+            "title": "openspec-embed-local.sh scheitert weiterhin an Port-15432-Kollision bei Plan-Stage-Commits (bekanntes Muster, erneut bestaetigt)",
+            "description": "### Mishap-Fix\n\n**Typ:** drift | **Komponente:** scripts/openspec-embed-local.sh\n\nBeim Plan-Stage-Commit fuer T003075 (2026-08-09) loeste der post-commit-Hook openspec-embed-local.sh aus, welches 3x mit \"Port 15432 wird von einem fremden Prozess belegt (kubectl port-forward svc/shared-db)\" scheiterte, bevor es non-fatal aufgab. Kein neuer Befund — deckt sich mit dem bereits dokumentierten Muster (openspec-embed scheitert an Port 15432, k3d-Forward belegt ihn). Bestaetigt lediglich, dass das Problem in Multi-Session-Umgebungen mit parallelen kubectl-Port-Forwards weiterhin regelmaessig auftritt und bei jedem betroffenen Plan-Stage-Commit sichtbare Fehlermeldungen erzeugt (non-fatal, aber Rauschen im Session-Log)."
+        },
+        {
+            "id": "T003116",
+            "areas": "skills/ticket-ops + skills/dev-flow-plan + scripts/hooks/worktree-write-guard.sh",
+            "title": "Drei Regelwerke widersprechen sich beim agent-lock-Scope — Planungsagenten kommen ohne bewusste Abweichung nicht durch",
+            "description": "### Mishap-Fix\n\n**Typ:** degraded | **Komponente:** skills/ticket-ops + skills/dev-flow-plan + scripts/hooks/worktree-write-guard.sh\n\nBeobachtet 2026-08-09 in einem ticket-ops-Welle-1-Dispatch mit 6 parallelen dev-flow-plan-Agenten. VERIFIZIERT durch Code-Lesung, nicht nur berichtet.\n\nDER WIDERSPRUCH (drei Stellen, paarweise unvereinbar):\n\n(a) ticket-ops Step 3.6 (.claude/skills/references/ticket-ops-procedures.md) schreibt vor:\n    `agent-lock.sh claim ticket <ext-id> --branch <b> --worktree <wt> --label ticket-ops`\n\n(b) T003102 belegt (dort dreimal in einem einzigen Lauf beobachtet), dass genau dieser\n    ticket-scoped Lock danach den ABSCHLUSS blockiert: Subagent, ticket-mcp-Server und\n    post-merge.yml schreiben je unter eigener SID und sehen den Lock der aufrufenden\n    Session als fremd. Der Halter sperrt sich selbst aus.\n\n(c) dev-flow-plan/SKILL.md:217 fordert dieselbe Datei fail-closed als Vorbedingung des\n    Stage-Commits:\n        LOCK_FILE=\"$(git rev-parse --git-common-dir)/agent-locks/ticket__${TICKET_EXT_ID}.json\"\n        [ -f \"$LOCK_FILE\" ] || { echo \"FATAL: kein ticket-scoped agent-lock-Claim ...\"; exit 1; }\n\n(d) scripts/hooks/worktree-write-guard.sh Regel 2 (Zeile "
+        }
+    ],
+    "expected_distinct": [
+        [
+            "T002994",
+            "T002998"
+        ],
+        [
+            "T002909",
+            "T003112"
+        ],
+        [
+            "T002811",
+            "T003097"
+        ]
+    ],
+    "expected_duplicates": [
+        [
+            "T003078",
+            "T003096"
+        ],
+        [
+            "T003077",
+            "T003101"
+        ],
+        [
+            "T002765",
+            "T002911"
+        ],
+        [
+            "T002877",
+            "T002910"
+        ],
+        [
+            "T003077",
+            "T003115"
+        ],
+        [
+            "T002765",
+            "T003113"
+        ],
+        [
+            "T003111",
+            "T003116"
+        ],
+        [
+            "T003001",
+            "T003006"
+        ],
+        [
+            "T003114",
+            "T003116"
+        ]
+    ]
+}

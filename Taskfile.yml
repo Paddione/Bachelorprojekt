@@ -5223,6 +5223,16 @@ tasks:
           echo "ticket-mcp: /usr/local/bin not writable — using pre-installed binary if present"
         fi
 
+  ticket-mcp:test:
+    desc: "Run the ticket-mcp Go test suite"
+    cmds:
+      - |
+        if command -v go >/dev/null 2>&1; then
+          make -C scripts/ticket-mcp/go test
+        else
+          echo "ticket-mcp:test: Go toolchain not found — skipping (non-fatal)"
+        fi
+
   # ─────────────────────────────────────────────
   # Maintenance — periodic cleanups
   # ─────────────────────────────────────────────

@@ -2040,6 +2040,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/agent-lock-claim-help-flag",
+    "file": "tests/spec/agent-skills/agent-lock-claim-help-flag.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/dev-flow-chore-step0-foreign-guard",
     "file": "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
     "category": "agent-skills",
@@ -2286,6 +2292,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-sweep",
+    "file": "tests/spec/ci-cd/branch-reaper-sweep.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/changed-tests-collection-parity",
     "file": "tests/spec/ci-cd/changed-tests-collection-parity.bats",
     "category": "ci-cd",
@@ -2312,6 +2324,12 @@
   {
     "id": "ci-cd/devflow-execute-hardening-t002365",
     "file": "tests/spec/ci-cd/devflow-execute-hardening-t002365.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/docs-content-guards",
+    "file": "tests/spec/ci-cd/docs-content-guards.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2376,6 +2394,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/preflight-multi-ticket-id",
+    "file": "tests/spec/ci-cd/preflight-multi-ticket-id.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/self-hosted-fork-guard",
     "file": "tests/spec/ci-cd/self-hosted-fork-guard.bats",
     "category": "ci-cd",
@@ -2432,6 +2456,12 @@
   {
     "id": "ci-cd/test-inventory-coverage",
     "file": "tests/spec/ci-cd/test-inventory-coverage.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/unknown-scope-names-source",
+    "file": "tests/spec/ci-cd/unknown-scope-names-source.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2532,6 +2562,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/guard-parity",
+    "file": "tests/spec/dev-flow-plan/guard-parity.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-intel-risks-dedupe",
     "file": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats",
     "category": "dev-flow-plan",
@@ -2550,6 +2586,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-lint-rules",
+    "file": "tests/spec/dev-flow-plan/plan-lint-rules.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-lint-task-count",
     "file": "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
     "category": "dev-flow-plan",
@@ -2562,8 +2604,20 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-preflight",
+    "file": "tests/spec/dev-flow-plan/plan-preflight.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-qa-livez-probe",
     "file": "tests/spec/dev-flow-plan/plan-qa-livez-probe.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/plan-qa-parse-and-outcome",
+    "file": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },
@@ -2576,6 +2630,12 @@
   {
     "id": "dev-flow-plan/red-phase-and-handoff-conventions",
     "file": "tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/stage-plan-contract",
+    "file": "tests/spec/dev-flow-plan/stage-plan-contract.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },
@@ -2618,6 +2678,12 @@
   {
     "id": "divergence-guard/main-checkout-foreign-guard",
     "file": "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
+    "id": "divergence-guard/worktree-create-git-op-guard",
+    "file": "tests/spec/divergence-guard/worktree-create-git-op-guard.bats",
     "category": "divergence-guard",
     "kind": "shell"
   },
@@ -3504,6 +3570,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/propose-help",
+    "file": "tests/spec/openspec-workflow/propose-help.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/ticket-file-required",
     "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",
@@ -3668,6 +3740,12 @@
   {
     "id": "repo-hygiene/signal-gaps",
     "file": "tests/spec/repo-hygiene/signal-gaps.bats",
+    "category": "repo-hygiene",
+    "kind": "shell"
+  },
+  {
+    "id": "repo-hygiene/worktree-clean-check-existence",
+    "file": "tests/spec/repo-hygiene/worktree-clean-check-existence.bats",
     "category": "repo-hygiene",
     "kind": "shell"
   },
@@ -3900,6 +3978,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/redesign-struktur",
+    "file": "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/write-token-removed",
     "file": "tests/spec/sdlc-cockpit/write-token-removed.bats",
     "category": "sdlc-cockpit",
@@ -4002,6 +4086,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/auto-triage-type-vocab",
+    "file": "tests/spec/software-factory/auto-triage-type-vocab.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/babysit-prs-live-lock-guard-T003137",
     "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
     "category": "software-factory",
@@ -4026,8 +4116,20 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-model-id-default",
+    "file": "tests/spec/software-factory/factory-model-id-default.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/factory-prep-stdout-json",
     "file": "tests/spec/software-factory/factory-prep-stdout-json.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-result-check",
+    "file": "tests/spec/software-factory/opencode-exec-result-check.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4040,6 +4142,12 @@
   {
     "id": "software-factory/pr-babysit",
     "file": "tests/spec/software-factory/pr-babysit.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/provider-config-baseurl-convention",
+    "file": "tests/spec/software-factory/provider-config-baseurl-convention.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4178,6 +4286,12 @@
   {
     "id": "ticket-system/schema-diaet-dead-columns",
     "file": "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-system/subcommand-help",
+    "file": "tests/spec/ticket-system/subcommand-help.bats",
     "category": "ticket-system",
     "kind": "shell"
   },

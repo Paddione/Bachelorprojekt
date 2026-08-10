@@ -219,7 +219,14 @@ else
   fi
 fi
 
-git worktree remove "$WT" --force >/dev/null 2>&1 || rm -rf "$WT"
+# [T002896] Guard: skip worktree removal if the branch carries a live agent-lock —
+# babysit-prs.sh must not delete a worktree another live session (or a factory
+# candidate re-claimed mid-fix) actively holds. Mirrors scripts/factory/cleanup.sh.
+if bash "${HERE}/../agent-lock.sh" check-branch-live "$BRANCH_NAME" >/dev/null 2>&1; then
+  echo "babysit-prs: branch ${BRANCH_NAME} traegt einen live Agent-Lock — Worktree-Removal uebersprungen (T002896)" >&2
+else
+  git worktree remove "$WT" --force >/dev/null 2>&1 || rm -rf "$WT" 2>/dev/null || true
+fi
 
 if [[ "$FIX_OK" == "true" ]]; then
   post_marker "$NUM" "$((ATTEMPTS + 1))" "$CLASS" "fixed" "$LOGFILE"

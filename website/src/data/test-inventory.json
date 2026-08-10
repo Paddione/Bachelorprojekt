@@ -2988,6 +2988,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/bge-role-routes",
+    "file": "tests/spec/local-llm-proxy/bge-role-routes.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/bge-token-ssot",
     "file": "tests/spec/local-llm-proxy/bge-token-ssot.bats",
     "category": "local-llm-proxy",

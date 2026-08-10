@@ -67,7 +67,7 @@ laufen P1 → P2 → P3. Erst mit P2 wird der Test grün, weil vorher keine Rout
 Der Failing-Test-Step liegt in `tasks.d/p4-tests.md` (Rolle `tests`) — dort steht der rote Lauf
 mit Testrunner-Aufruf.
 
-- [ ] **Final Verification.** Die drei verpflichtenden Gates laufen lassen:
+- [x] **Final Verification.** Die drei verpflichtenden Gates laufen lassen:
 
 ```bash
 task test:changed
@@ -76,7 +76,17 @@ task freshness:check
 ```
 
 - [ ] **Erfolgskriterien am laufenden System prüfen** (nicht CI-fähig, deshalb hier als
-      Abnahme-Schritt und nicht als Test):
+      Abnahme-Schritt und nicht als Test) — **offen, gehört NACH den Merge.**
+
+      Teilweise vorab belegt (2026-08-10, ohne Eingriff in die laufenden Dienste): eine
+      zweite Proxy-Instanz aus diesem Worktree auf Port 18299 beantwortete
+      `POST /v1/embeddings` und `POST /v1/rerank` jeweils mit **200**, und `/v1/models`
+      blieb bge-frei. Das belegt die Verdrahtung in `server.mjs` (Kriterien 1, 2, 6).
+      Offen bleiben die Kriterien, die den installierten Systemdienst betreffen (3, 4, 5):
+      Sie verlangen, dass der Code unter `/home/patrick/Bachelorprojekt` liegt und
+      `llm-proxy.service` / `bge-mcp.service` neu gestartet werden — beides erst nach dem
+      Merge sinnvoll. Bis dahin skippen die beiden BATS-Routen-Tests mit dem Hinweis
+      „laufende Proxy-Instanz kennt … nicht (HTTP 501)".
 
 ```bash
 # Forwards absichtlich anhalten, damit der lokale Pfad allein trägt

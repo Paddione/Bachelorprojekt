@@ -2040,6 +2040,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/agent-lock-claim-help-flag",
+    "file": "tests/spec/agent-skills/agent-lock-claim-help-flag.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/dev-flow-chore-step0-foreign-guard",
     "file": "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
     "category": "agent-skills",

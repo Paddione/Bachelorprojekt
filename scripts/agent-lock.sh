@@ -343,8 +343,27 @@ _reject_arg() {
 }
 
 cmd_claim() {
+  # [T003107] --help was previously read as a scope name and produced --help__.json
+  if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<'HELP'
+Usage: agent-lock.sh claim <scope> <id> [flags]
+
+Flags:
+  --label <l>      Set label
+  --worktree <p>   Set worktree path
+  --branch <b>     Set branch name
+  --ticket <id>    Set ticket reference
+  --force         Force claim
+HELP
+    exit 0
+  fi
+
   cmd_reap 2>/dev/null || true  # [T002341-M3] pre-claim reap: orphaned locks don't block new claim, best-effort
-  SCOPE="$1"; ID="${2:-}"; shift 2 2>/dev/null || shift $#
+  SCOPE="${1:-}"; ID="${2:-}"; shift 2 2>/dev/null || shift $#
+  if [ -z "$SCOPE" ] || [[ "$SCOPE" == -* ]]; then
+    _reject_arg claim "$SCOPE"
+    return 2
+  fi
   LABEL=""; WT=""; BRANCH=""; TICKET=""; FORCE=""
   while [ $# -gt 0 ]; do case "$1" in
     --label) LABEL="$2"; shift 2;; --worktree) WT="$2"; shift 2;;

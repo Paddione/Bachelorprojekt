@@ -3075,6 +3075,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003107": [
+    {
+      "slug": "agent-lock-claim-help",
+      "status": "plan_staged"
+    }
+  ],
   "T003110": [
     {
       "slug": "agent-lock-sid-detection-T003110",

@@ -2058,6 +2058,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/worktree-mid-rebase-guard",
+    "file": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agentic-review",
     "file": "tests/spec/agentic-review.bats",
     "category": "agentic-review",
@@ -3428,6 +3434,12 @@
   {
     "id": "openspec-workflow/archive-atomic-guards",
     "file": "tests/spec/openspec-workflow/archive-atomic-guards.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-workflow/archive-deliverable-guard",
+    "file": "tests/spec/openspec-workflow/archive-deliverable-guard.bats",
     "category": "openspec-workflow",
     "kind": "shell"
   },

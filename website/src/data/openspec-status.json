@@ -2799,6 +2799,12 @@
       "status": "archived"
     }
   ],
+  "T002766": [
+    {
+      "slug": "interactive-rebase-worktree-broken-T002766",
+      "status": "plan_staged"
+    }
+  ],
   "T002768": [
     {
       "slug": "2026-08-09-ticket-plans-schema-doc-T002768",
@@ -2880,6 +2886,12 @@
   "T002811": [
     {
       "slug": "worktree-create-refactor-prefix",
+      "status": "plan_staged"
+    }
+  ],
+  "T002813": [
+    {
+      "slug": "archive-deliverable-guard",
       "status": "plan_staged"
     }
   ],

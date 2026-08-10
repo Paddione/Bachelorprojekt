@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.11...website-v1.263.12) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** add --sweep mode and ticketless --dry-run to branch-reaper [T003180] ([#4188](https://github.com/Paddione/Bachelorprojekt/issues/4188)) ([e10a009](https://github.com/Paddione/Bachelorprojekt/commit/e10a00985046169d78e5e3a89b7a1dda98825a57))
+
 ## [1.263.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.10...website-v1.263.11) (2026-08-10)
 
 

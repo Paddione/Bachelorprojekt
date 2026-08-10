@@ -51,19 +51,24 @@ runtimes:
   # (es laeuft immer nur eines).
   gptoss:
     mode: subagent
-    model: llamacpp-local/gptoss-context
+    model: llamacpp-local/gemma26-throughput
     write_capable: false
-    note: "gpt-oss family: gpt-oss-20b Q8_0, 105472 ctx (measured, not n_ctx_train) [T002545/T002633]"
+    note: "NAME luegt ueber das Modell: faehrt seit T003204 gemma26-throughput (118016 ctx, Port 8092), weil gptoss-context abgeschaltet wurde. Der Name bleibt, weil er die Dispatch-Schnittstelle des Orchestrators ist — Umbenennen ist ein eigener Vorgang [T003204]"
   devstral:
     mode: subagent
-    model: llamacpp-local/devstral-quality
+    model: llamacpp-local/gemma26-factory
     write_capable: false
-    note: "devstral family: Devstral-Small-2 24B IQ4_XS [2026-08-04]"
+    note: "NAME luegt ueber das Modell: faehrt seit T003204 gemma26-factory (177920 ctx, Port 8091), weil devstral-quality in allen Dimensionen dominiert war. Name bleibt als Dispatch-Schnittstelle [T003204]"
   gemma:
     mode: subagent
     model: llamacpp-local/gemma26-factory
     write_capable: false
     note: "gemma family: Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091 (exclusiveGroup chat-gpu) [2026-08-09 T002753]"
+  gemma12:
+    mode: subagent
+    model: llamacpp-local/gemma12-vision
+    write_capable: false
+    note: "gemma12 family: Gemma 4 12B QAT + mmproj-F16, Loadout gemma12-vision auf Port 8089, 262144 ctx — groesster lokaler Kontext und einziges vision-faehiges Loadout. Seit T003204 als Subagent dispatchbar (vorher nur Tab-waehlbar via gemma12-primary)"
   qwen:
     mode: subagent
     model: llamacpp-local/qwen3-coder-30b
@@ -85,14 +90,14 @@ runtimes:
   # den Modellwechsel, deshalb duerfen diese Agenten Subagenten dispatchen.
   gptoss-primary:
     mode: primary
-    model: llamacpp-local/gptoss-context
+    model: llamacpp-local/gemma26-throughput
     write_capable: false
-    note: "Tab-selectable primary on gptoss-context (Port 8098), 105472 ctx measured [T003065]"
+    note: "Tab-selectable primary, seit T003204 auf gemma26-throughput (Port 8092), 118016 ctx — gptoss-context ist abgeschaltet. Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze [T003065/T003204]"
   devstral-primary:
     mode: primary
-    model: llamacpp-local/devstral-quality
+    model: llamacpp-local/gemma26-factory
     write_capable: false
-    note: "Tab-selectable primary on devstral-quality (Port 8099), 32768 ctx, code-quality review [T003065]"
+    note: "Tab-selectable primary, seit T003204 auf gemma26-factory (Port 8091), 177920 ctx, code-quality review — devstral-quality ist abgeschaltet [T003065/T003204]"
   gemma12-primary:
     mode: primary
     model: llamacpp-local/gemma12-vision

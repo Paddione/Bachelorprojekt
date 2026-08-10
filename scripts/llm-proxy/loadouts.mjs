@@ -26,6 +26,13 @@ const LOADOUT_KEYS = new Set([
   'uiConfigFile',
   // T002550: eingebaute llama-Tools (--tools), Werte siehe TOOL_NAMES
   'tools',
+  // T003204: Abschalten OHNE Loeschen. Ohne dieses Feld laesst sich ein
+  // dominiertes Loadout nur entfernen — und Loeschen naehme die gemessenen
+  // `notes` mit. Genau deshalb bleiben dominierte Eintraege sonst jahrelang
+  // stehen: niemand wirft die Begruendung weg, um etwas abzuschalten.
+  // NICHT verwechseln mit `fit.enabled` (llama.cpp --fit) — anderer Ort,
+  // andere Bedeutung.
+  'enabled',
 ]);
 // T002550 — Namen aus `llama-server --help` (b10223). llama.cpp akzeptiert
 // zusaetzlich das Sammelwort 'all'; hier ist es bewusst NICHT gueltig.
@@ -103,6 +110,15 @@ function validateLoadout(l, index, seen) {
   }
 
   if (l.extraArgs != null && !Array.isArray(l.extraArgs)) fail(`${l.slug}: extraArgs muss ein Array sein`);
+
+  // T003204: enabled ist optional (Default true), aber wenn gesetzt, dann streng
+  // boolean. Ein Feld, das still einen Tippfehler schluckt, waere schlimmer als
+  // keins: "false" als STRING ist truthy — das Loadout stuende als abgeschaltet
+  // in der Datei und liefe trotzdem. Das ist der schlimmste Ausgang, weil er wie
+  // Erfolg aussieht.
+  if (l.enabled != null && typeof l.enabled !== 'boolean') {
+    fail(`${l.slug}: enabled muss boolean sein, ist '${typeof l.enabled}'`);
+  }
 
   // T002550: Kommaliste aus TOOL_NAMES. 'all' wird eigens abgefangen, weil es
   // fuer llama.cpp gueltig ist — die Fehlermeldung muss deshalb erklaeren,
@@ -259,6 +275,23 @@ function _portAliveSync(port) {
 }
 
 /**
+ * T003204 — die EINE Stelle, an der die Default-Regel fuer `enabled` steht.
+ *
+ * Bewusst eine Funktion statt verstreuter `l.enabled !== false`-Vergleiche: die
+ * Regel "fehlt das Feld, gilt das Loadout als aktiv" ist die
+ * Rueckwaertskompatibilitaet, an der alle bestehenden Eintraege haengen — keiner
+ * von ihnen traegt das Feld. Steht sie an mehreren Orten, laufen die Kopien
+ * auseinander, und dann verhaelt sich der Auto-Start anders als der explizite
+ * Start. Genau diesen Zustand hat T002616 fuer die Konfliktregel bereits behoben.
+ *
+ * @param {object} loadout
+ * @returns {boolean}
+ */
+export function isLoadoutEnabled(loadout) {
+  return loadout?.enabled !== false;
+}
+
+/**
  * T002616 — die EINE Definition von "Konflikt", geteilt von beiden Startwegen:
  * planAutoStart (Auto-Start ueber die Modellaufloesung) und startLoadout
  * (expliziter Start ueber /admin/loadouts/<slug>/start).
@@ -308,6 +341,10 @@ export function planAutoStart({ doc, model, activeSlugs }) {
   if (typeof model !== 'string' || !model) return { action: 'none' };
   const loadout = findLoadout(doc, model);
   if (!loadout) return { action: 'none' };
+  // T003204: abgeschaltete Loadouts werden nicht implizit gestartet. Ohne diesen
+  // Ausschluss bliebe die Abschaltung halb — der explizite Start waere gesperrt,
+  // der implizite liefe weiter, und der ist der haeufigere Weg.
+  if (!isLoadoutEnabled(loadout)) return { action: 'none' };
   if (activeSlugs.includes(loadout.slug)) return { action: 'none' };
   const conflict = findExclusiveConflict(doc, loadout.slug, activeSlugs);
   if (conflict) {

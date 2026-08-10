@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "slug": "feat-gpu-loadout-consolidation-T003204",
+    "ticket_id": "T003204",
+    "generated_from": "main@1845ed8cd",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".opencode/agent-models.jsonc",
+      "language": "text",
+      "loc": 525,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/llm-proxy/loadouts.mjs",
+      "language": "javascript",
+      "loc": 282,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 518
+    },
+    {
+      "path": "scripts/llm-proxy/loadouts.test.mjs",
+      "language": "javascript",
+      "loc": 203,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 597
+    },
+    {
+      "path": "scripts/llm-proxy/server.mjs",
+      "language": "javascript",
+      "loc": 617,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 183
+    },
+    {
+      "path": "scripts/llm/loadouts.json",
+      "language": "config",
+      "loc": 429,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/migrations/2026-08-10-disable-gptoss-devstral.sql",
+      "language": "text",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/loadout-enabled-flag.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/opencode-agent-model-drift.bats",
+      "language": "bash",
+      "loc": 133,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:63:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "63:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }(...)",
+      "type_text": "63:function fail(msg) { throw new Error(`loadouts.json: ${msg}`); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:65:function validateLoadout(l, index, seen) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "65:function validateLoadout(l, index, seen) {(...)",
+      "type_text": "65:function validateLoadout(l, index, seen) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/loadouts.mjs:215:function _portAliveSync(port) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/loadouts.mjs",
+      "signature": "215:function _portAliveSync(port) {(...)",
+      "type_text": "215:function _portAliveSync(port) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:33:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "33:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "type_text": "33:initBridge().catch((err) => console.error('[mcp-bridge] init failed:', err.message));(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:103:function sendJson(res, status, obj) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "103:function sendJson(res, status, obj) {(...)",
+      "type_text": "103:function sendJson(res, status, obj) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:284:function withSwitchLock(fn) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "284:function withSwitchLock(fn) {(...)",
+      "type_text": "284:function withSwitchLock(fn) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:319:function portInUse(doc, port, exceptSlug) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "319:function portInUse(doc, port, exceptSlug) {(...)",
+      "type_text": "319:function portInUse(doc, port, exceptSlug) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:611:function shutdown(signal) {",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "611:function shutdown(signal) {(...)",
+      "type_text": "611:function shutdown(signal) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/llm-proxy/server.mjs:613:  stopBridge();",
+      "kind": "function",
+      "file": "scripts/llm-proxy/server.mjs",
+      "signature": "613:  stopBridge();(...)",
+      "type_text": "613:  stopBridge();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/opencode-agent-model-drift.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/opencode-agent-model-drift.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

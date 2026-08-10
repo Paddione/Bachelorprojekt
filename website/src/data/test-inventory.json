@@ -3084,6 +3084,12 @@
     "kind": "shell"
   },
   {
+    "id": "local-llm-proxy/loadout-enabled-flag",
+    "file": "tests/spec/local-llm-proxy/loadout-enabled-flag.bats",
+    "category": "local-llm-proxy",
+    "kind": "shell"
+  },
+  {
     "id": "local-llm-proxy/loadout-env-property",
     "file": "tests/spec/local-llm-proxy/loadout-env-property.bats",
     "category": "local-llm-proxy",

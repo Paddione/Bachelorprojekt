@@ -2328,6 +2328,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/docs-content-guards",
+    "file": "tests/spec/ci-cd/docs-content-guards.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/spec/ci-cd/fetch-refspec-forced.bats",
     "category": "ci-cd",

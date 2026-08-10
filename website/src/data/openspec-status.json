@@ -3117,6 +3117,12 @@
       "status": "archived"
     }
   ],
+  "T003139": [
+    {
+      "slug": "commit-scope-openspec",
+      "status": "plan_staged"
+    }
+  ],
   "T003203": [
     {
       "slug": "2026-08-10-fix-brain-ingest-port-T003203",

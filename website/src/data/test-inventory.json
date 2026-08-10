@@ -4176,6 +4176,12 @@
     "kind": "shell"
   },
   {
+    "id": "ticket-system/subcommand-help",
+    "file": "tests/spec/ticket-system/subcommand-help.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
     "id": "ticket-system/update-fields-cli",
     "file": "tests/spec/ticket-system/update-fields-cli.bats",
     "category": "ticket-system",

@@ -22,10 +22,12 @@ BUDGETAPI="website/src/pages/sdlc/api/factory-budget.ts"
 }
 
 @test "D1: read-only consumers subscribe to the store" {
-  for f in "$STRIP" \
-           "website/src/components/sdlc/factory/FactoryPhaseHeatmap.svelte" \
-           "website/src/components/sdlc/factory/FactoryShippedBar.svelte" \
-           "$FLOOR" "$PIPEVIEW" "$DAG"; do
+  # [T003417] FactoryPhaseHeatmap und FactoryShippedBar sind aus dieser Liste
+  # entfernt: der Change "sdlc-dashboard-redesign" löscht sie (REMOVED
+  # Requirement "Alte Analytics-KPIs"). Ohne die Streichung schlug der Test mit
+  # `grep: … No such file or directory` fehl — also an einer fehlenden Datei
+  # statt an einer fehlenden Store-Anbindung.
+  for f in "$STRIP" "$FLOOR" "$PIPEVIEW" "$DAG"; do
     grep -q "factory-floor-store" "$f"
   done
 }
@@ -74,8 +76,17 @@ BUDGETAPI="website/src/pages/sdlc/api/factory-budget.ts"
   [ "$status" -ne 0 ]
 }
 
-@test "D4: shared analytics window filter component exists" {
-  [ -f "website/src/components/sdlc/factory/AnalyticsWindowFilter.svelte" ]
+# [T003417] D4 ist aufgehoben: der Change "sdlc-dashboard-redesign" entfernt
+# AnalyticsWindowFilter zusammen mit den vier Analytics-Komponenten, die ihn als
+# einzige nutzten (REMOVED Requirement "Alte Analytics-KPIs"). Ein geteilter
+# Fensterfilter ohne Konsumenten hat keinen Inhalt mehr, den er teilen könnte.
+# Dass die Komponente wirklich weg ist UND niemand sie mehr importiert, prüft
+# tests/spec/sdlc-cockpit/redesign-struktur.bats.
+@test "D4: der geteilte Analytics-Fensterfilter ist mitsamt seinen Konsumenten entfernt" {
+  # Positiv-Anker: der Pfad, unter dem gesucht wird, existiert überhaupt —
+  # sonst bestünde die Abwesenheitsaussage vakuos.
+  [ -d "website/src/components/sdlc/factory" ]
+  [ ! -f "website/src/components/sdlc/factory/AnalyticsWindowFilter.svelte" ]
 }
 
 @test "D7.3: orphan ViewSwitcher is deleted and unreferenced" {

@@ -219,7 +219,7 @@ const brandWord = config.meta.siteTitle.replace(/\.de$/i, '').toLowerCase();
           const refresh = function() {
       const ctrl = new AbortController();
       const t = setTimeout(function() { ctrl.abort(); }, 3000);
-      fetch('/api/cluster/status', { signal: ctrl.signal })
+      fetch('/sdlc/api/cluster/status', { signal: ctrl.signal })
         .then(function(r) { return r.ok ? r.json() : null; })
         .then(function(s) {
           clearTimeout(t);

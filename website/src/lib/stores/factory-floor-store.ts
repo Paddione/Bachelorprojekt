@@ -52,14 +52,45 @@ export function acquireFloor(): () => void {
   };
 }
 
-export interface FactoryMetricsPayload { brand: string; metrics: unknown[]; activeFeatures: unknown[]; flags: unknown[]; }
+/** Eine Tageszeile aus `tickets.v_factory_metrics`, neuester Tag zuerst. */
+export interface FactoryMetricRow {
+  day: string;
+  features_shipped: number;
+  avg_cycle_time_h: number | null;
+  escalations: number;
+  total_features: number;
+}
+
+export interface FactoryMetricsPayload {
+  brand: string;
+  metrics: FactoryMetricRow[];
+  activeFeatures: unknown[];
+  flags: unknown[];
+}
+
+// [T003459] Der Endpunkt liegt unter /sdlc/api/, NICHT unter /api/. Ein
+// website/src/pages/api/factory-metrics.ts hat es nie gegeben; der Aufruf lief
+// seit dem SDLC-Umzug (T002624) in einen 404. Weil die Konsumenten den Fehler
+// still schluckten, sah es nach "keine Daten vorhanden" statt nach "Route
+// falsch" aus — und war die Begruendung, mit der die Analytics-Komponenten in
+// T003417 als "never worked" geloescht wurden.
+const METRICS_ENDPOINT = '/sdlc/api/factory-metrics';
+
 let metricsCache: FactoryMetricsPayload | null = null;
 let metricsInflight: Promise<FactoryMetricsPayload> | null = null;
+
 export async function getSharedMetrics(force = false): Promise<FactoryMetricsPayload> {
   if (!force && metricsCache) return metricsCache;
   if (!metricsInflight) {
-    metricsInflight = fetch('/api/factory-metrics', { credentials: 'same-origin' })
-      .then((r) => r.json() as Promise<FactoryMetricsPayload>)
+    metricsInflight = fetch(METRICS_ENDPOINT, { credentials: 'same-origin' })
+      .then(async (r) => {
+        // Den Status pruefen, BEVOR der Body gelesen wird: eine Fehlerantwort
+        // traegt `{ error: … }` und wuerde als gueltige Payload durchgehen —
+        // die Kachel zeigte dann dauerhaft leere Werte, ohne dass irgendwo ein
+        // Fehler auftaucht. Genau diese Tarnung hat den 404 so lange verdeckt.
+        if (!r.ok) throw new Error(`${METRICS_ENDPOINT} antwortete mit ${r.status}`);
+        return (await r.json()) as FactoryMetricsPayload;
+      })
       .then((p) => { metricsCache = p; return p; })
       .finally(() => { metricsInflight = null; });
   }

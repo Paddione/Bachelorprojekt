@@ -43,7 +43,7 @@
 
   async function fetchGraph() {
     try {
-      const r = await fetch('/api/tickets/graph');
+      const r = await fetch('/sdlc/api/tickets/graph');
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       graphData = await r.json();
       error = null;

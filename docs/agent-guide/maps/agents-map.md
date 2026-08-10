@@ -36,6 +36,4 @@ Die Registry ist die SSOT: `docs/agent-guide/registry/agents.yaml`.
 | gemma26-vision | primary | llamacpp-local/gemma26-factory | nein | Max context, no subagent dispatch. Vision IS available — gemma26-factory loads mmproj-F16.gguf since T002753 |
 | gptoss | subagent | llamacpp-local/gemma26-throughput | nein | NAME luegt ueber das Modell: faehrt seit T003204 gemma26-throughput (118016 ctx, Port 8092), weil gptoss-context abgeschaltet wurde. Der Name bleibt, weil er die Dispatch-Schnittstelle des Orchestrators ist — Umbenennen ist ein eigener Vorgang [T003204] |
 | gptoss-primary | primary | llamacpp-local/gemma26-throughput | nein | Tab-selectable primary, seit T003204 auf gemma26-throughput (Port 8092), 118016 ctx — gptoss-context ist abgeschaltet. Die Kontextzahl ist laufzeitrelevant: opencode timet Auto-Compact bei 95 % der deklarierten Grenze [T003065/T003204] |
-| orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/qwen) sequentially |
-| qwen | subagent | llamacpp-local/qwen3-coder-30b | nein | qwen family: Qwen3-Coder-30B-A3B UD-Q4_K_XL, Loadout qwen3-coder-30b auf Port 8094 [2026-08-04] |
-| qwen-primary | primary | llamacpp-local/qwen3-coder-30b | nein | Tab-selectable primary on qwen3-coder-30b (Port 8094), 96000 ctx measured [T003065] |
+| orchestrator | primary | opencode-go/deepseek-v4-flash | ja | Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially |

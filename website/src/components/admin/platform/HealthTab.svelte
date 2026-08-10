@@ -24,7 +24,7 @@
 
   async function fetchHealth() {
     try {
-      const r = await fetch('/api/admin/ops/health');
+      const r = await fetch('/sdlc/api/ops/health');
       if (!r.ok) throw new Error('Health fetch failed');
       data = await r.json();
     } catch (e) {

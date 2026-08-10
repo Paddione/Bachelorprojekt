@@ -103,10 +103,10 @@
     loadError = '';
     try {
       const [pRes, eRes, mRes, cRes] = await Promise.all([
-        fetch('/api/admin/ki/providers'),
-        fetch('/api/admin/ki/env-status'),
-        fetch('/api/admin/ki/embeddings'),
-        fetch('/api/admin/ki/catalog'),
+        fetch('/sdlc/api/ki/providers'),
+        fetch('/sdlc/api/ki/env-status'),
+        fetch('/sdlc/api/ki/embeddings'),
+        fetch('/sdlc/api/ki/catalog'),
       ]);
       if (!pRes.ok || !eRes.ok || !mRes.ok || !cRes.ok) throw new Error('Laden fehlgeschlagen');
       const p = await pRes.json();
@@ -144,7 +144,7 @@
     if (editId !== -1 && !form.api_key.trim()) { delete payload.api_key; }
     else { payload.api_key = form.api_key.trim() || null; }
     const isNew = editId === -1;
-    const res = await fetch(isNew ? '/api/admin/ki/providers' : `/api/admin/ki/providers/${editId}`, {
+    const res = await fetch(isNew ? '/sdlc/api/ki/providers' : `/sdlc/api/ki/providers/${editId}`, {
       method: isNew ? 'POST' : 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -161,7 +161,7 @@
   async function changePriority(e: ProviderEntry, delta: number) {
     const next = e.priority + delta;
     if (next < 0) return;
-    const res = await fetch(`/api/admin/ki/providers/${e.id}`, {
+    const res = await fetch(`/sdlc/api/ki/providers/${e.id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ priority: next }),
     });
@@ -174,7 +174,7 @@
   }
 
   async function doDelete(id: number) {
-    const res = await fetch(`/api/admin/ki/providers/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/sdlc/api/ki/providers/${id}`, { method: 'DELETE' });
     confirmingDelete = null;
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -185,7 +185,7 @@
   }
 
   async function saveEmbed(primary: string, fallback: string | null) {
-    const res = await fetch('/api/admin/ki/embeddings', {
+    const res = await fetch('/sdlc/api/ki/embeddings', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ primary, fallback }),
     });

@@ -61,7 +61,7 @@
   async function loadPods() {
     podError = null;
     try {
-      const res = await fetch(`/api/admin/cluster/pods-list?ns=${encodeURIComponent(ns)}`, { credentials: 'same-origin' });
+      const res = await fetch(`/sdlc/api/cluster/pods-list?ns=${encodeURIComponent(ns)}`, { credentials: 'same-origin' });
       const j = await res.json();
       if (!res.ok) { podError = j.error ?? `Fehler ${res.status}`; return; }
       pods = j.pods ?? [];

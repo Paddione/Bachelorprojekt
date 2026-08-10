@@ -21,6 +21,11 @@
 
 set -euo pipefail
 
+# Hilfe-Texte + Vorabgriff (T002843): ticket_usage, ticket_help_wanted,
+# ticket_help_subcommand. Die Texte leben bewusst in scripts/lib/ticket-help.sh,
+# weil diese Datei namentlich auf der s1.ignore-Liste steht [T002267].
+source "$(dirname "${BASH_SOURCE[0]}")/lib/ticket-help.sh"
+
 # Default-Kontext der SDLC-Datenhoheit [T002626, ADR-006 E3].
 # Seit E3 liegt das tickets-Schema lokal; die fleet-Kopie ist eingefroren
 # (SELECT ja, INSERT/UPDATE/DELETE nein). `TICKET_CTX=fleet` bleibt als
@@ -1023,11 +1028,40 @@ cmd_rollup_container() {
 }
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, rollup-container, find-similar" >&2
+  # [T002843] Usage-Block lebt jetzt in scripts/lib/ticket-help.sh. Ein Aufruf
+  # ohne Kommando bleibt ein Fehlaufruf (Exit 1) — ticket-usage-hints.bats
+  # verlaesst sich darauf.
+  ticket_usage >&2
   exit 1
 fi
 cmd="$1"; shift
+
+# [T002843] `help`/`--help`/`-h` auf oberster Ebene: `help <subkommando>` zeigt
+# die Optionsebene, alles andere die Kommandoliste. Exit 0 — eine ausdrueckliche
+# Hilfe-Anfrage ist kein Fehlaufruf.
+case "$cmd" in
+  help|-h|--help)
+    if [[ $# -ge 1 ]]; then
+      ticket_help_subcommand "$1"
+      exit $?
+    fi
+    ticket_usage
+    exit 0
+    ;;
+esac
+
+# [T002843] --help/-h als ERSTES Argument jedes Subkommandos VOR dessen
+# Options-Schleife abfangen (Muster scripts/worktree-create.sh, T002783).
+# Zentral im Dispatcher, damit auch die ausgelagerten Subkommandos
+# (scripts/vda/ticket/*.sh, scripts/lib/ticket-*.sh) denselben Weg nehmen — ein
+# Fix, der nur die Hauptdatei erfasst, liesse sie still unveraendert (T002697).
+# Nur das erste Argument wird geprueft: `--description "… -h …"` bleibt
+# unberuehrt und ein Ticket mit dem Titel `-h` ist kein Hilfeaufruf.
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  ticket_help_subcommand "$cmd"
+  exit $?
+fi
+
 case "$cmd" in
   create)            cmd_create "$@" ;;
   update-status)     cmd_update_status "$@" ;;

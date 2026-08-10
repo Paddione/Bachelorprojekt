@@ -108,6 +108,10 @@ enqueued ist — parallel zum Schreiben des nächsten Partials.
 > Hauptcheckout auszuführen: `git -C <repo-root> status --porcelain` muss leer bleiben.
 
 ```bash
+# Preflight: wurde das Ticket bereits auf main gemergt? [T002279]
+bash scripts/plan-preflight.sh pre-worktree --ticket "$TICKET_EXT_ID"
+# rc-Tabelle: 0 = fortfahren · 1 = bereits gemergt (Ticket done + abbrechen) · 2 = Umgebung reparieren
+
 bash scripts/worktree-create.sh feature/<slug>-T<id> .worktrees/<slug>
 
 # Branch claimen (Session-Koordination [T000510])
@@ -180,9 +184,12 @@ FOR each partial pX (p1, p2, ...):
   │     git push origin feature/<slug>-T<id>
   │
   ├─► Schritt C.2d: Plan stagen (slot_count setzen)
+  │     # --no-hold: Pipeline-Dispatch — das Partial soll SOFORT von der Factory
+  │     # verarbeitet werden. stage-plan verlangt seit T003267 eine explizite
+  │     # Hold-Entscheidung (--hold XOR --no-hold, sonst Exit 1).
   │     bash scripts/ticket.sh stage-plan \
   │       --id "$TICKET_EXT_ID" --branch "feature/<slug>-T<id>" \
-  │       --plan "openspec/changes/<slug>/tasks.md" --partials N
+  │       --plan "openspec/changes/<slug>/tasks.md" --partials N --no-hold
   │
   ├─► Schritt C.2e: Readiness-Flags setzen
   │     ticket-mcp: set_readiness_flag({id, flag:"spec_skizziert", value:true})
@@ -299,6 +306,10 @@ TICKET_UUID=$(echo "$TICKET_RESULT"   | cut -d'|' -f2)
 ```
 ### Schritt 2: Worktree anlegen
 ```bash
+# Preflight: wurde das Ticket bereits auf main gemergt? [T002279]
+bash scripts/plan-preflight.sh pre-worktree --ticket "$TICKET_EXT_ID"
+# rc=0 = fortfahren · rc=1 = bereits gemergt → Ticket done + abbrechen · rc=2 = Umgebung reparieren
+
 # git-crypt-safe: creates the worktree, handles git-crypt
 bash scripts/worktree-create.sh fix/<slug> .worktrees/<slug>
 cd .worktrees/<slug>
@@ -332,7 +343,7 @@ Schreibe einen automatisierten Test, der den Bug reproduziert und fehlschlägt (
 Rufe `superpowers:writing-plans` auf (Claude Code — built-in) oder führe die Plan-Schreib-Schritte
 direkt aus (opencode — das Äquivalent ist in `opencode-flow-plan` inlined; schreibe den Plan nach
 `openspec/changes/<slug>/tasks.md` gemäß den plan-lint Hard Rules in Schritt 3.7).
-Wende das Frontmatter an und trage die Ticket-ID ein. Committe und pushe den Plan.
+Wende das Frontmatter an und trage die Ticket-ID ein. **Erst committen und pushen, DANN stagen [T002673]:** `stage-plan` liest den Plan per `git cat-file -p "${branch}:${plan}"` aus dem Branch-Commit; vor dem Commit steht dort das propose-Skeleton, `touched_files` bliebe leer — seit T003267 bricht `stage-plan` dann mit Exit 1 ab (Override: `--allow-empty-touched`).
 ### Schritt 4.5: Plan stagen (Fix 6)
 **MCP-first** (`ticket-mcp`):
 > `mcp__ticket-mcp__stage_plan({ id: "$TICKET_EXT_ID", branch: "fix/<slug>", plan: "openspec/changes/<slug>/tasks.md", hold: true })`

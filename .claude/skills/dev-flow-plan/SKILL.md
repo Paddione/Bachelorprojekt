@@ -197,36 +197,23 @@ SSOT für Ticket-Anlage, Stage und Embedding: [ticket-stage-procedure](file:///h
 
 Dort steht auch der Ticket-Claim für diesen Schritt (`bash scripts/agent-lock.sh claim ticket "$TICKET_EXT_ID" …`, Session-Koordination [T000510]) — er muss laufen, bevor der Pre-Commit-Guard in Schritt 5 die Lock-Datei liest.
 
-> **`--hold`-Pflicht für interaktive Stage-Calls:** Der Aufruf von `stage-plan` MUSS `--hold` setzen (siehe `ticket-stage-procedure.md`). Dadurch wird `readiness.execution_released=false` gesetzt, was das Ticket vom Factory-Dispatch zurückhält, bis `dev-flow-execute` es explizit freigibt. Ohne `--hold` würde die Factory das Ticket sofort dispatchen können, bevor der Operator die Ausführung freigegeben hat.
+> **`--hold`-Pflicht für interaktive Stage-Calls:** Der Aufruf von `stage-plan` MUSS `--hold` setzen (siehe `ticket-stage-procedure.md`). Dadurch wird `readiness.execution_released=false` gesetzt, was das Ticket vom Factory-Dispatch zurückhält, bis `dev-flow-execute` es explizit freigibt. Seit T003267 verlangt `stage-plan` eine explizite Hold-Entscheidung (`--hold` oder `--no-hold`) — ohne eines der beiden Flags bricht es mit Exit 1 ab.
 
 > **⚠ `stage-plan` läuft NACH dem Commit aus Schritt 5, nicht hier [T002673].** In diesem Schritt werden nur **Ticket angelegt und geclaimt** — der Claim muss vor dem Pre-Commit-Guard liegen, der Stage-Aufruf nicht. Grund: `stage-plan` liest die Plandatei über `git cat-file -p "${branch}:${plan}"` aus dem **Branch-Commit**, nicht aus dem Arbeitsbaum (`scripts/vda/ticket/stage-plan.sh`). Vor dem Commit steht dort noch das `propose`-Skeleton, und die `touched_files`-Ableitung meldet dann `keine Pfade ableitbar` und lässt die Spalte leer — ohne dass es auffällt, weil die Meldung nur auf stderr steht und der Stage trotzdem Erfolg meldet. Die Ableitung selbst funktioniert (`scripts/plan-touched-files.sh` liefert gegen die reale Datei die vollständige Liste). `stage-plan` ist idempotent und vereinigt `touched_files` in SQL, ein späterer Zweitaufruf ist also unschädlich — die richtige Reihenfolge erspart ihn nur.
 ### Schritt 5: Commit & Push, dann stagen — dann STOPP
 **Pre-Commit Guard (PFLICHT — Schritt 5) [T001268]:**
-Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:
-1. **Do not commit on main / Nicht auf main committen:**
-   ```bash
-   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-   [ "$CURRENT_BRANCH" != "main" ] || { echo "FATAL: plan-stage commit auf main ist verboten — nutze einen Worktree-Branch." >&2; exit 1; }
-   ```
-2. **Clean git status / Sauberer Status ist Pflicht:**
-   ```bash
-   [ -z "$(git status --porcelain)" ] || { echo "FATAL: working tree ist nicht sauber — stash oder commit zuerst." >&2; exit 1; }
-   ```
-3. **Branch stimmt mit agent-lock claim überein (T003102 — akzeptiert ticket- UND branch-scoped Claims):**
-   ```bash
-    LOCK_DIR="$(git rev-parse --git-common-dir)/agent-locks"
-    # Lock files live under agent-locks/ in the git common dir.
-    BRANCH_SLUG="$(echo "$CURRENT_BRANCH" | sed 's#/#-#g')"
-    # Prefer ticket-scoped lock; fall back to branch-scoped (T003102 — branch-locks
-    # are valid for plan staging and do not block the later ticket completion by
-    # subagent, ticket-mcp, or post-merge.yml)
-    LOCK_FILE="${LOCK_DIR}/ticket__${TICKET_EXT_ID}.json"
-    [ -f "$LOCK_FILE" ] || LOCK_FILE="${LOCK_DIR}/branch__${BRANCH_SLUG}.json"
-   [ -f "$LOCK_FILE" ] || { echo "FATAL: kein agent-lock-Claim für $TICKET_EXT_ID gefunden (weder ticket__${TICKET_EXT_ID}.json noch branch__${BRANCH_SLUG}.json in $LOCK_DIR) — claim zuerst mit agent-lock.sh claim ticket|branch (siehe Schritt B.1 / Schritt 4.5)." >&2; exit 1; }
-   CLAIMED_BRANCH="$(jq -r '.branch' "$LOCK_FILE" 2>/dev/null)"
-   [ "$CLAIMED_BRANCH" = "$CURRENT_BRANCH" ] || { echo "FATAL: branch mismatch — agent-lock claim = $CLAIMED_BRANCH, HEAD = $CURRENT_BRANCH." >&2; exit 1; }
-   ```
-Erst nach diesen drei Checks darf `git commit` und `git push` laufen. Damit verweigern wir stale plan-stage commits auf `main`.
+Bevor der plan-stage Commit läuft, MUSS der Operator `plan-preflight.sh` aufrufen. Das Skript bündelt die drei Checks, die hier dokumentiert sind, in einen Aufruf — die Umsetzung steht im Skript und in `docs/agent-guide/registry/plan-guards.yaml`, hier bleibt der Vertrag, den der Operator nachvollziehen können muss:
+
+1. **Do not commit on main / Nicht auf main committen:** Plan-stage Commits auf `main` sind verboten — die Guards verweigern sie. Nur ein Worktree-Branch ist zulässig.
+2. **Clean git status / Sauberer Status ist Pflicht:** `git status --porcelain` muss vor dem plan-stage Commit leer sein, sonst bricht der Guard ab.
+3. **Branch stimmt mit dem agent-lock-Claim überein (T003102 — akzeptiert ticket- UND branch-scoped Claims):** geprüft wird `agent-locks/ticket__${TICKET_EXT_ID}.json`, Fallback `agent-locks/branch__${BRANCH_SLUG}.json`; fehlt auch der (`[ -f "$LOCK_FILE" ]` schlägt fehl — kein ticket-scoped agent-lock), bricht der Guard ab.
+
+```bash
+bash scripts/plan-preflight.sh pre-commit --ticket "$TICKET_EXT_ID"
+# rc=0 = alle Checks grün · rc=1 = Guard verletzt · rc=2 = Umgebungsfehler
+```
+
+Erst nach diesem Check darf `git commit` und `git push` laufen. Damit verweigern wir stale plan-stage commits auf `main`.
 ```bash
 # Sicherheitscheck: Branch-Guard [T000321]
 git add openspec/changes/<slug>/
@@ -235,6 +222,9 @@ git push -u origin $(git branch --show-current)
 
 # ERST JETZT stagen [T002673] — stage-plan liest den Plan aus dem Branch-Commit,
 # vorher stünde dort noch das propose-Skeleton und touched_files bliebe leer.
+# Seit T003267 bricht stage-plan bei leerer touched_files-Ableitung hart ab (Exit 1)
+# statt still zu melden; Override: --allow-empty-touched.
+# --hold ist Pflicht: ohne --hold ODER --no-hold beendet sich stage-plan mit Exit 1.
 # --partials N = Anzahl der Partials aus dem `## Partials`-Manifest (1..9, Pflicht).
 bash scripts/ticket.sh stage-plan \
   --id "$TICKET_EXT_ID" \

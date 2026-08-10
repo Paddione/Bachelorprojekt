@@ -89,14 +89,14 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 		},
 	)
 
-	// stage_plan → ticket.sh stage-plan --id --branch --plan [--hold]
+	// stage_plan → ticket.sh stage-plan --id --branch --plan [--hold|--no-hold]
 	s.AddTool(
 		mcp.NewTool("stage_plan",
 			mcp.WithDescription("Stellt ein Ticket in die Kommissionierung (status=plan_staged) mit Branch + Plan-Pfad."),
 			mcp.WithString("id", mcp.Description("external_id z.B. T000123"), mcp.Required()),
 			mcp.WithString("branch", mcp.Description("Feature/Fix-Branch"), mcp.Required()),
 			mcp.WithString("plan", mcp.Description("Plan-Datei-Pfad"), mcp.Required()),
-			mcp.WithBoolean("hold", mcp.Description("Bei true: execution_released=false — Ticket wird NICHT sofort dispatched (default false)")),
+			mcp.WithBoolean("hold", mcp.Description("true => --hold (execution_released=false, Operator gibt später frei); false/weggelassen => --no-hold (Factory greift sofort zu). stage-plan verlangt genau eines der Flags (T003267).")),
 			mcp.WithString("brand", mcp.Description("mentolder oder korczewski (default: mentolder)"),
 				mcp.Enum("mentolder", "korczewski")),
 		),
@@ -106,8 +106,12 @@ func RegisterWorkflowTools(s *server.MCPServer) {
 			branch, _ := a["branch"].(string)
 			plan, _ := a["plan"].(string)
 			args := []string{"stage-plan", "--id", id, "--branch", branch, "--plan", plan}
+			// stage-plan verlangt seit T003267 eine explizite Hold-Entscheidung —
+			// der Wrapper uebersetzt den bool-Parameter immer in genau eines der Flags.
 			if hold, _ := a["hold"].(bool); hold {
 				args = append(args, "--hold")
+			} else {
+				args = append(args, "--no-hold")
 			}
 			return text(runner.RunTicket(args, map[string]string{"BRAND": brandOf(a)}))
 		},

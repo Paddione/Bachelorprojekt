@@ -44,11 +44,12 @@ roles:
 # write_capable: true if the agent permission block has write: "allow".
 runtimes:
   # 2026-08-04: lokale Subagenten heissen nach Modell-FAMILIE (gptoss, devstral,
-  # gemma, qwen) statt nach der historischen Gemma-Nomenklatur (gemma26-1/2,
+  # gemma, gemma12) statt nach der historischen Gemma-Nomenklatur (gemma26-1/2,
   # gemma9-1/2). Letztere zeigten alle auf gptoss-context — der Name log ueber
   # das Modell. Jeder Familien-Subagent serviert sein eigenes Loadout ueber den
-  # llm-proxy (:18235); alle vier Chat-Loadouts teilen exclusiveGroup "chat-gpu"
-  # (es laeuft immer nur eines).
+  # llm-proxy (:18235); alle Chat-Loadouts teilen exclusiveGroup "chat-gpu"
+  # (es laeuft immer nur eines). T003204: die Familie qwen ist abgeschaltet —
+  # ihr Loadout qwen3-coder-30b ist enabled: false in loadouts.json.
   gptoss:
     mode: subagent
     model: llamacpp-local/gemma26-throughput
@@ -69,11 +70,6 @@ runtimes:
     model: llamacpp-local/gemma12-vision
     write_capable: false
     note: "gemma12 family: Gemma 4 12B QAT + mmproj-F16, Loadout gemma12-vision auf Port 8089, 262144 ctx — groesster lokaler Kontext und einziges vision-faehiges Loadout. Seit T003204 als Subagent dispatchbar (vorher nur Tab-waehlbar via gemma12-primary)"
-  qwen:
-    mode: subagent
-    model: llamacpp-local/qwen3-coder-30b
-    write_capable: false
-    note: "qwen family: Qwen3-Coder-30B-A3B UD-Q4_K_XL, Loadout qwen3-coder-30b auf Port 8094 [2026-08-04]"
   gemma26-primary:
     mode: primary
     model: llamacpp-local/gemma26-factory
@@ -108,11 +104,6 @@ runtimes:
     model: llamacpp-local/gemma26-throughput
     write_capable: false
     note: "Tab-selectable primary on gemma26-throughput (Port 8092), 118016 ctx measured, 159-169 tok/s [T003065]"
-  qwen-primary:
-    mode: primary
-    model: llamacpp-local/qwen3-coder-30b
-    write_capable: false
-    note: "Tab-selectable primary on qwen3-coder-30b (Port 8094), 96000 ctx measured [T003065]"
   big-pickle:
     mode: primary
     model: opencode-zen/big-pickle
@@ -147,4 +138,4 @@ runtimes:
     mode: primary
     model: opencode-go/deepseek-v4-flash
     write_capable: true
-    note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/qwen) sequentially"
+    note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially"

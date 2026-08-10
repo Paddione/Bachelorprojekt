@@ -40,7 +40,7 @@
 
   async function fetchGraph() {
     try {
-      const res = await fetch('/api/admin/cluster/graph');
+      const res = await fetch('/sdlc/api/cluster/graph');
       if (!res.ok) {
         errorGraph = `Graph API: ${res.status}`;
         return;
@@ -59,7 +59,7 @@
     try {
       const results = await Promise.allSettled(
         resolvedNamespaces.map(ns =>
-          fetch(`/api/admin/cluster/pods-list?ns=${encodeURIComponent(ns)}&context=${encodeURIComponent(cluster)}`)
+          fetch(`/sdlc/api/cluster/pods-list?ns=${encodeURIComponent(ns)}&context=${encodeURIComponent(cluster)}`)
             .then(r => r.ok ? r.json() as Promise<{ pods: PodEntry[]; namespace: string }> : Promise.reject(new String(r.status)))
         )
       );
@@ -80,7 +80,7 @@
 
   async function fetchWarnings() {
     try {
-      const res = await fetch('/api/admin/cluster/warnings');
+      const res = await fetch('/sdlc/api/cluster/warnings');
       if (res.ok) {
         const data = await res.json();
         warnings = data.warnings ?? [];

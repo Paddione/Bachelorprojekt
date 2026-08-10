@@ -49,7 +49,7 @@
   let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
   async function patch(body: Record<string, unknown>) {
-    await fetch(`/api/admin/tickets/${ticketId}`, {
+    await fetch(`/sdlc/api/tickets/${ticketId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

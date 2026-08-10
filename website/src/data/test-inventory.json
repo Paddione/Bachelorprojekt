@@ -4032,6 +4032,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/opencode-exec-result-check",
+    "file": "tests/spec/software-factory/opencode-exec-result-check.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/orphan-slot-reap",
     "file": "tests/spec/software-factory/orphan-slot-reap.bats",
     "category": "software-factory",

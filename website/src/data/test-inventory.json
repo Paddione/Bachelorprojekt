@@ -4074,6 +4074,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/auto-triage-type-vocab",
+    "file": "tests/spec/software-factory/auto-triage-type-vocab.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/babysit-prs-live-lock-guard-T003137",
     "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
     "category": "software-factory",
@@ -4118,6 +4124,12 @@
   {
     "id": "software-factory/pr-babysit",
     "file": "tests/spec/software-factory/pr-babysit.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/provider-config-baseurl-convention",
+    "file": "tests/spec/software-factory/provider-config-baseurl-convention.bats",
     "category": "software-factory",
     "kind": "shell"
   },

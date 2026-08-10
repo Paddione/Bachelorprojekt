@@ -49,8 +49,19 @@ Auto-Merge wartet auf diese fünf required checks:
 ### Überblick: PR-Checks
 
 ```bash
-gh pr checks --json name,state,link | jq '.[] | select(.state != "SUCCESS")'
+# Gemeinsame Auswertung (Nichtleere zuerst — leere Liste ist `empty`, NICHT grün):
+gh pr checks --json name,state | ci_checks_verdict   # empty|red|pending|green
+
+# Oder explizit mit Nichtleere-Guard:
+gh pr checks --json name,state | jq -e 'length == 0' \
+  && echo "leere Check-Liste — kein Urteil (T003109)" \
+  || gh pr checks --json name,state,link | jq '.[] | select(.state != "SUCCESS")'
 ```
+
+> **Leeres Output ist NICHT „alles grün" (T003109):** ein `all(...)`-Prädikat ist vakuos wahr
+> über der leeren Liste — die Warteschleife liest daraus „keine Checks mehr pending", obwohl der
+> PR nie geprüft wurde. Erst die Nichtleere-Prüfung, dann das Prädikat; die gemeinsame Funktion
+> `ci_checks_verdict` (scripts/lib/ci-checks.sh) kapselt genau diese Reihenfolge.
 
 ### Run-Logs (Volltextsuche)
 

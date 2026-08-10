@@ -26,6 +26,10 @@ GH="gh"; command -v gh-axi >/dev/null 2>&1 && GH="gh-axi"
 
 # shellcheck source=/dev/null
 source "$REPO/scripts/factory/classify-failure.sh"
+# shellcheck source=/dev/null
+source "$REPO/scripts/lib/ci-checks.sh"
+
+MAX_EMPTY_ROUNDS="${MAX_EMPTY_ROUNDS:-2}"
 
 # Print the PR checks that are not SUCCESS (name<TAB>state). Empty = all green.
 _red_or_pending_checks() {
@@ -33,8 +37,8 @@ _red_or_pending_checks() {
     | jq -r '.[] | select(.state != "SUCCESS") | "\(.name)\t\(.state)"' 2>/dev/null || true
 }
 _has_red() {
-  "$GH" pr checks "$PR" --json state 2>/dev/null \
-    | jq -e 'any(.[]; .state == "FAILURE" or .state == "ERROR" or .state == "CANCELLED")' >/dev/null 2>&1
+  verdict="$("$GH" pr checks "$PR" --json name,state 2>/dev/null | ci_checks_verdict)" || true
+  [[ "$verdict" == "red" ]]
 }
 _is_merged() {
   "$GH" pr view "$PR" --json state -q '.state' 2>/dev/null | grep -qi merged
@@ -56,14 +60,24 @@ _queue_automerge() {
 }
 
 attempt=0
+empty_rounds=0
 _queue_automerge   # queue once up front; requeued only after fixes + re-check
 while (( attempt < MAX_CI_ATTEMPTS )); do
   if _is_merged; then _on_merged; exit 0; fi
-  if ! _has_red; then
-    # nothing known-red — wait for pending checks / the merge to land.
-    if [[ -z "$(_red_or_pending_checks)" ]]; then
-      _is_merged && { _on_merged; exit 0; }
+
+  verdict="$("$GH" pr checks "$PR" --json name,state 2>/dev/null | ci_checks_verdict)" || true
+
+  if [[ "$verdict" == "empty" ]]; then
+    empty_rounds=$(( empty_rounds + 1 ))
+    if (( empty_rounds >= MAX_EMPTY_ROUNDS )); then
+      echo "pr-babysit: LEERE Check-Liste gefunden (keine checks). Ein PR mit mergeStateStatus=DIRTY startet keine CI — Rebase benötigt!" >&2
+      exit 2
     fi
+    sleep "$POLL_INTERVAL"; continue
+  fi
+
+  if [[ "$verdict" != "red" ]]; then
+    # green or pending
     sleep "$POLL_INTERVAL"; continue
   fi
 

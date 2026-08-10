@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Step-1.1-Triage-Query dokumentiert den korrekten jq-Parse-Schritt
 

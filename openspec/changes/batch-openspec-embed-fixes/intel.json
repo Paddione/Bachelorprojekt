@@ -1,0 +1,483 @@
+{
+  "meta": {
+    "slug": "batch-openspec-embed-fixes",
+    "ticket_id": "T003491",
+    "generated_from": "main@4951acdd9",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/openspec-embed.mjs",
+      "language": "javascript",
+      "loc": 464,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 336
+    },
+    {
+      "path": "scripts/openspec-embed-local.sh",
+      "language": "bash",
+      "loc": 134,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 666
+    },
+    {
+      "path": "scripts/openspec-embed-lib.sh",
+      "language": "bash",
+      "loc": 40,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 760
+    },
+    {
+      "path": "scripts/openspec.sh",
+      "language": "bash",
+      "loc": 417,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 383
+    },
+    {
+      "path": ".githooks/post-commit",
+      "language": "text",
+      "loc": 14,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/post-commit-embed.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/plan-lint.sh",
+      "language": "bash",
+      "loc": 562,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 238
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5323,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/README.md",
+      "language": "markdown",
+      "loc": 36,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/agent-guide/openspec-workflow.md",
+      "language": "markdown",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/batch-openspec-embed-fixes.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/batch-openspec-embed-fixes/specs/batch-openspec-embed-fixes.md",
+      "language": "markdown",
+      "loc": 92,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:70:function sectionTitleOf(section) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "70:function sectionTitleOf(section) {(...)",
+      "type_text": "70:function sectionTitleOf(section) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:75:function splitByTokenBudget(text, target, overlap) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "75:function splitByTokenBudget(text, target, overlap) {(...)",
+      "type_text": "75:function splitByTokenBudget(text, target, overlap) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:186:function readIfExists(p) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "186:function readIfExists(p) {(...)",
+      "type_text": "186:function readIfExists(p) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:190:function vecLiteral(v) {",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "190:function vecLiteral(v) {(...)",
+      "type_text": "190:function vecLiteral(v) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed.mjs:463:  main();",
+      "kind": "function",
+      "file": "scripts/openspec-embed.mjs",
+      "signature": "463:  main();(...)",
+      "type_text": "463:  main();(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "type_text": "42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:46:probe_embed() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "46:probe_embed() {(...)",
+      "type_text": "46:probe_embed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:9:pf_listener_pid() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "9:pf_listener_pid() {(...)",
+      "type_text": "9:pf_listener_pid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:22:embed_output_is_success() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "22:embed_output_is_success() {(...)",
+      "type_text": "22:embed_output_is_success() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:31:in_rebase() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "31:in_rebase() {(...)",
+      "type_text": "31:in_rebase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:38:parse_pf_local_port() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "38:parse_pf_local_port() {(...)",
+      "type_text": "38:parse_pf_local_port() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:27:die() { echo \"ERROR: $*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "27:die() { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "type_text": "27:die() { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:30:_embed_slug() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "30:_embed_slug() {(...)",
+      "type_text": "30:_embed_slug() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:48:_is_placeholder_file() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "48:_is_placeholder_file() {(...)",
+      "type_text": "48:_is_placeholder_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:65:_propose_state_report() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "65:_propose_state_report() {(...)",
+      "type_text": "65:_propose_state_report() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:82:_seed_if_placeholder() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "82:_seed_if_placeholder() {(...)",
+      "type_text": "82:_seed_if_placeholder() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:93:cmd_propose() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "93:cmd_propose() {(...)",
+      "type_text": "93:cmd_propose() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:207:cmd_apply() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "207:cmd_apply() {(...)",
+      "type_text": "207:cmd_apply() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:223:cmd_archive() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "223:cmd_archive() {(...)",
+      "type_text": "223:cmd_archive() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:309:_check_deliverable_presence() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "309:_check_deliverable_presence() {(...)",
+      "type_text": "309:_check_deliverable_presence() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:346:_merge_delta() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "346:_merge_delta() {(...)",
+      "type_text": "346:_merge_delta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:354:_check_delta() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "354:_check_delta() {(...)",
+      "type_text": "354:_check_delta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:361:cmd_validate() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "361:cmd_validate() {(...)",
+      "type_text": "361:cmd_validate() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:386:_validate_delta_file() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "386:_validate_delta_file() {(...)",
+      "type_text": "386:_validate_delta_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:398:main() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "398:main() {(...)",
+      "type_text": "398:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:14:_load_s1_limits() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "14:_load_s1_limits() {(...)",
+      "type_text": "14:_load_s1_limits() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "type_text": "37:_ext_limit() {  # _ext_limit <path> -> static limit (0 = ungated extension)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:49:_load_s1_ignore() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "49:_load_s1_ignore() {(...)",
+      "type_text": "49:_load_s1_ignore() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "type_text": "60:_is_s1_ignored() {  # _is_s1_ignored <path> -> exit 0 if path matches an s1.ignore entry(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:71:effective_threshold() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "71:effective_threshold() {(...)",
+      "type_text": "71:effective_threshold() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:85:residual_budget() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "85:residual_budget() {(...)",
+      "type_text": "85:residual_budget() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:109:_print_rules() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "109:_print_rules() {(...)",
+      "type_text": "109:_print_rules() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:156:hard() { HARD+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "156:hard() { HARD+=(\"$1\"); }(...)",
+      "type_text": "156:hard() { HARD+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:157:warn() { WARN+=(\"$1\"); }",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "157:warn() { WARN+=(\"$1\"); }(...)",
+      "type_text": "157:warn() { WARN+=(\"$1\"); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:164:fm_field() {  # fm_field <key> -> value (empty if absent)",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "164:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "type_text": "164:fm_field() {  # fm_field <key> -> value (empty if absent)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:288:  _check_intel_completeness() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "288:  _check_intel_completeness() {(...)",
+      "type_text": "288:  _check_intel_completeness() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:378:_structural_file_tokens() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "378:_structural_file_tokens() {(...)",
+      "type_text": "378:_structural_file_tokens() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:533:_json_str() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "533:_json_str() {(...)",
+      "type_text": "533:_json_str() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-lint.sh:543:emit_verdict() {",
+      "kind": "function",
+      "file": "scripts/plan-lint.sh",
+      "signature": "543:emit_verdict() {(...)",
+      "type_text": "543:emit_verdict() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3730:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3730:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3730:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3731:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3731:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3731:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3732:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3732:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3732:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3733:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3733:        _run()  {(...)",
+      "type_text": "3733:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:4924:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4924:        kexec_psql() {(...)",
+      "type_text": "4924:        kexec_psql() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

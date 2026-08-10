@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.259.30](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.29...website-v1.259.30) (2026-08-10)
+
+
+### Bug Fixes
+
+* **ops:** brain-ingest von Port 8093 auf 8100 — 8093 belegt der bge-Rerank-Forward [T003203] ([#4104](https://github.com/Paddione/Bachelorprojekt/issues/4104)) ([bee07d8](https://github.com/Paddione/Bachelorprojekt/commit/bee07d888d8189654c4d762d54d6cc6e321cd947))
+
 ## [1.259.29](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.28...website-v1.259.29) (2026-08-10)
 
 

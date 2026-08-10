@@ -26,7 +26,7 @@ describe('TicketAttachmentsPanel', () => {
       props: { ticketId: 't1', attachments: [baseAttachment] },
     });
     const link = screen.getByRole('link', { name: 'test.pdf' }) as HTMLAnchorElement;
-    expect(link.href).toContain('/api/admin/tickets/t1/attachments/att-1');
+    expect(link.href).toContain('/sdlc/api/tickets/t1/attachments/att-1');
     expect(link.getAttribute('download')).toBe('test.pdf');
   });
 

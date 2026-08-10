@@ -28,7 +28,7 @@
     uploadError = '';
     const form = e.target as HTMLFormElement;
     const fd = new FormData(form);
-    const r = await fetch(`/api/admin/tickets/${ticketId}/attachments`, {
+    const r = await fetch(`/sdlc/api/tickets/${ticketId}/attachments`, {
       method: 'POST',
       body: fd,
     });
@@ -63,7 +63,7 @@
         <li class="flex items-center gap-3">
           {#if a.hasDataUrl}
             <a
-              href={`/api/admin/tickets/${ticketId}/attachments/${a.id}`}
+              href={`/sdlc/api/tickets/${ticketId}/attachments/${a.id}`}
               download={a.filename}
               class="text-gold hover:underline flex-1 truncate"
             >{a.filename}</a>

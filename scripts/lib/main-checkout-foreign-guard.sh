@@ -36,7 +36,16 @@ mc_foreign_activity_detected() {
   # Step 3: Scan all running processes — if any claude/opencode process has its
   # cwd inside the checkout path (and is not our own ancestor), signal foreign.
   local _cwd _cmdline
-  while IFS= read -r _pid; do
+  # `ps -eo pid=` richtet die Spalte rechts aus und polstert auf die Breite von
+  # /proc/sys/kernel/pid_max (7 Zeichen bei den ueblichen 4194304). Ein gepolsterter
+  # Wert macht jeden folgenden Pfad ungueltig — `/proc/   7219/cwd` existiert nicht,
+  # `readlink` scheitert und `continue` verwirft den Prozess ungeprueft. Deshalb hier
+  # kein `IFS= read` (das leere IFS schaltet genau das Trimmen ab, das gebraucht wird);
+  # die Polsterung wird stattdessen an der Quelle entfernt (siehe `tr -d` unten).
+  # Belegt an T003078: auf einer lang laufenden WSL-Instanz sind die PIDs selbst
+  # 7-stellig, also ungepolstert und der Fehler unsichtbar; auf einem frischen
+  # GitHub-Runner mit 4-stelligen PIDs schlug dieselbe Erkennung fehl.
+  while read -r _pid; do
     [[ -z "$_pid" ]] && continue
     [[ -n "${_own_pids[$_pid]:-}" ]] && continue
 
@@ -51,7 +60,7 @@ mc_foreign_activity_detected() {
           ;;
       esac
     fi
-  done < <(ps -eo pid= 2>/dev/null)
+  done < <(ps -eo pid= 2>/dev/null | tr -d '[:blank:]')
 
   return 1  # no foreign activity
 }

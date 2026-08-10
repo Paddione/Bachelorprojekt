@@ -68,27 +68,6 @@ teardown() {
     sleep 0.1
   done
 
-  # --- TEMPORAERE CI-DIAGNOSE [T003078] -----------------------------------------------
-  # Dieser Test faellt ausschliesslich auf dem GitHub-Runner (lokal gruen, auch mit dem
-  # CI-identischen `bats -j`). Die Sonden unten messen jede Vorbedingung der Erkennung
-  # einzeln, damit der CI-Log die Ursache zeigt statt sie erraten zu lassen. Jede Sonde
-  # ist mit `|| true` abgesichert: unter BATS bricht ein Exit != 0 den Test sofort ab,
-  # die Diagnose wuerde sich sonst selbst um ihre Ausgabe bringen.
-  # ENTFERNEN, sobald die Ursache belegt ist.
-  echo "DIAG dirty=[$(git -C "$d" status --porcelain 2>&1 || true)]" || true
-  echo "DIAG d=[$d]" || true
-  echo "DIAG realpath_d=[$(readlink -f "$d" 2>&1 || true)]" || true
-  echo "DIAG proc_cwd=[$(readlink "/proc/$FOREIGN_PID/cwd" 2>&1 || true)]" || true
-  echo "DIAG ps_args=[$(ps -o args= -p "$FOREIGN_PID" 2>&1 || true)]" || true
-  echo "DIAG ps_comm=[$(ps -o comm= -p "$FOREIGN_PID" 2>&1 || true)]" || true
-  echo "DIAG cmdline=[$(tr '\0' ' ' < "/proc/$FOREIGN_PID/cmdline" 2>&1 || true)]" || true
-  echo "DIAG alive=[$(kill -0 "$FOREIGN_PID" 2>&1 && echo yes || echo no)]" || true
-  echo "DIAG in_pslist=[$(ps -eo pid= 2>/dev/null | tr -d ' ' | grep -cx "$FOREIGN_PID" || true)]" || true
-  echo "DIAG own_chain=[$(_p=$$; while [ -n "$_p" ] && [ "$_p" -gt 1 ]; do printf '%s ' "$_p"; _p=$(ps -o ppid= -p "$_p" 2>/dev/null | tr -d ' '); done || true)]" || true
-  echo "DIAG foreign_ppid=[$(ps -o ppid= -p "$FOREIGN_PID" 2>&1 | tr -d ' ' || true)]" || true
-  echo "DIAG bash=[$BASH_VERSION] ps=[$(ps --version 2>&1 | head -1 || true)]" || true
-  # --- ENDE TEMPORAERE CI-DIAGNOSE ----------------------------------------------------
-
   # shellcheck disable=SC1090
   source "$GUARD_LIB"
   run mc_foreign_activity_detected "$d"
@@ -110,6 +89,61 @@ teardown() {
   source "$GUARD_LIB"
   run mc_foreign_activity_detected "$d"
   [ "$status" -ne 0 ]
+}
+
+@test "mc_foreign_activity_detected: erkennt den Fremdprozess auch bei gepolsterter ps-Spalte [T003078]" {
+  # REGRESSION: `ps -eo pid=` richtet die Spalte rechts aus und polstert auf die Breite
+  # von /proc/sys/kernel/pid_max. Blieb die Polsterung im gelesenen Wert stehen, war jeder
+  # daraus gebaute Pfad ungueltig (`/proc/   7219/cwd`) und die Erkennung verwarf JEDEN
+  # Prozess ungeprueft. Ob das auffiel, hing allein an der Maschine: sind die eigenen PIDs
+  # schon so breit wie pid_max (lang laufende Instanz), entsteht keine Polsterung und der
+  # Defekt bleibt unsichtbar — auf einem frischen CI-Runner mit kurzen PIDs schlug er zu.
+  # Dieser Test erzwingt die Polsterung per ps-Stub und ist damit unabhaengig davon, welche
+  # PID-Breite die ausfuehrende Maschine gerade vergibt.
+  local d="${BATS_TEST_TMPDIR}/padded-repo"
+  mkdir -p "$d"
+  git -C "$d" init -q
+  git -C "$d" config user.email t@example.invalid
+  git -C "$d" config user.name Test
+  echo x > "$d/f.txt"
+  git -C "$d" add f.txt
+  git -C "$d" commit -qm base
+  echo "uncommitted change" >> "$d/f.txt"
+
+  # ps-Stub: polstert AUSSCHLIESSLICH die `-eo pid=`-Form auf und delegiert alles andere
+  # an das echte ps (die Funktion braucht auch `-o ppid=` und `-o args=`).
+  local real_ps stub_dir="${BATS_TEST_TMPDIR}/stub-bin"
+  real_ps="$(command -v ps)"
+  mkdir -p "$stub_dir"
+  cat > "$stub_dir/ps" <<STUB
+#!/usr/bin/env bash
+if [ "\$1" = "-eo" ] && [ "\$2" = "pid=" ]; then
+  "$real_ps" -eo pid= | awk '{printf "%12s\n", \$1}'
+  exit 0
+fi
+exec "$real_ps" "\$@"
+STUB
+  chmod +x "$stub_dir/ps"
+  PATH="$stub_dir:$PATH"
+
+  # Anker 1: der Stub greift wirklich — sonst pruefte dieser Test die Polsterung gar nicht
+  # und waere vakuos gruen, sobald der Stub-Pfad einmal nicht mehr zieht.
+  run bash -c 'ps -eo pid= | head -1'
+  [ "$status" -eq 0 ]
+  [[ "$output" == "         "* ]]
+
+  ( cd "$d" && exec -a claude sleep 30 ) &
+  FOREIGN_PID=$!
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    [ "$(readlink "/proc/$FOREIGN_PID/cwd" 2>/dev/null)" = "$d" ] && break
+    sleep 0.1
+  done
+
+  # Anker 2: die eigentliche Zusicherung — trotz Polsterung wird erkannt.
+  # shellcheck disable=SC1090
+  source "$GUARD_LIB"
+  run mc_foreign_activity_detected "$d"
+  [ "$status" -eq 0 ]
 }
 
 # --- Integrations-Ebene: worktree-create.sh laesst den fremden Checkout unangetastet ---

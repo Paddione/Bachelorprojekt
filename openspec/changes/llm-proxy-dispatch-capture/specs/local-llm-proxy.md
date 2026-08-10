@@ -27,6 +27,30 @@ loses only the recordings.
 - **THEN** the client receives the backend's response with the same status and body as it would
   with a reachable database, and no row is written
 
+### Requirement: Recordings are written in batches, never per dispatch
+
+Recordings SHALL be buffered in memory and flushed to the database in batches, at most a few
+seconds apart, using a single database invocation per flush. The proxy SHALL NOT open a database
+invocation per dispatch: the only available access path is
+`kubectl exec -i <pod> -- psql` (`factory_psql` in `scripts/factory/lib.sh`), which costs a process
+spawn per call and must not sit in the request path.
+
+A pending buffer SHALL be flushed on graceful shutdown. Recordings still buffered when the process
+dies unexpectedly are lost; this is accepted, bounded by the flush interval, and SHALL NOT be
+compensated by writing synchronously.
+
+#### Scenario: Many dispatches produce few database invocations
+
+- **GIVEN** twenty dispatches complete within one flush interval
+- **WHEN** the buffer is flushed
+- **THEN** all twenty rows are present and the flush used a single database invocation
+
+#### Scenario: Shutdown flushes what is pending
+
+- **GIVEN** recordings sit in the buffer unflushed
+- **WHEN** the proxy shuts down gracefully
+- **THEN** those recordings are written before the process exits
+
 ### Requirement: Streaming responses are captured without touching the transport
 
 Streaming responses SHALL be captured by a passive collector running alongside the existing pipe.

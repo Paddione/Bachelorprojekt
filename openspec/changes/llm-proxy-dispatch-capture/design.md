@@ -19,8 +19,8 @@ keine Panel-Sanierung.
 
 Die Mitschnitte gehen in eine neue Tabelle `tickets.llm_proxy_request_log`.
 
-**Begründung.** Der Proxy hält über `backends.mjs` bereits eine Verbindung zur tickets-DB — dort
-liegt `llm_proxy_backends`. Ein zweiter Speicher wäre eine zusätzliche Abhängigkeit ohne Gegenwert.
+**Begründung.** Der Proxy spricht über `backends.mjs` bereits mit der tickets-DB — dort liegt
+`llm_proxy_backends`. Ein zweiter Speicher wäre eine zusätzliche Abhängigkeit ohne Gegenwert.
 Entscheidend ist aber der Abfluss: `openspec/specs/sdlc-cockpit.md` verlangt unter *„Realtime-Push
 — LISTEN/NOTIFY-SSE statt Polling"* und *„Database changes reach the cockpit as notifications"*
 ausdrücklich den Push-Weg. Mit einer Tabelle ist der geschenkt; die Infrastruktur dafür steht
@@ -40,6 +40,29 @@ sind.
 
 **Trade-off.** Große Bodies landen in Postgres und werden per TOAST ausgelagert. Deshalb D3
 (Kappung) und die harte Regel, dass Listenabfragen die Body-Spalten nicht anfassen (D5).
+
+### D1a — Geschrieben wird gepuffert und gebündelt, nicht je Dispatch
+
+`capture()` legt die Zeile in einen Speicherpuffer; ein Timer schreibt den Puffer alle 5 Sekunden
+gebündelt in einem einzigen `factory_psql`-Aufruf weg. Beim Herunterfahren wird der Puffer noch
+einmal geleert.
+
+**Begründung.** Der Zugang zur tickets-DB ist kein Client, sondern
+`factory_psql() { kubectl exec -i <pod> -n <ns> -- psql … }` (`scripts/factory/lib.sh`) — pro
+Aufruf ein Bash- **und** ein kubectl-Spawn. `backends.mjs` erträgt das, weil es damit alle 30
+Sekunden einmal die Registry liest. Ein Insert je Dispatch über denselben Weg legte einen
+Prozess-Spawn in den Anfragepfad und schöbe den Body durch stdin von `kubectl exec`. Die Bündelung
+senkt das auf einen Spawn je Fenster, unabhängig vom Durchsatz.
+
+**Verworfen: direkter `pg`-Client im Proxy.** Naheliegend, aber `scripts/openspec-embed.mjs` geht
+genau diesen Weg und ist damit auf dieser Maschine regelmäßig nicht lauffähig — der Post-Commit-
+Hook dieses Vorgangs scheiterte dreimal an der belegten Portweiterleitung 15432. Ein
+langlaufender Dienst würde sich dieses Ausfallmuster einhandeln, ohne etwas zu gewinnen: die
+Bündelung braucht ohnehin keinen dauerhaften Client.
+
+**Trade-off, ausdrücklich in Kauf genommen.** Stürzt der Proxy ab, gehen die Mitschnitte des
+laufenden Fensters verloren — höchstens 5 Sekunden. Für Forensik-Aufzeichnungen ist das
+vertretbar; dies als Requirement zu benennen ist ehrlicher, als es unerwähnt zu lassen.
 
 ### D2 — Ein eigenes Modul statt Einbau in `server.mjs`
 
@@ -107,6 +130,16 @@ sie, bleiben die Spalten `NULL` und das Panel zeigt einen Strich.
 `factory_phase_events`. Bei parallelen Slots ist das eine Vermutung, die falsch sein kann — und ein
 Panel, das eine Vermutung wie eine Tatsache darstellt, ist der Ersatzwert aus D13 in seiner
 schädlichsten Form: er sieht wie eine Messung aus.
+
+**Offen, und deshalb als Probe geplant.** Ob der opencode-Dispatch-Pfad überhaupt eigene Header
+senden kann, ist **nicht belegt**: in `.opencode/agent-models.jsonc` tragen alle Provider
+ausschließlich `"options": { "baseURL": … }`; ein `headers`-Feld kommt dort nirgends vor. Belegt
+ist es nur für MCP-Server (`.opencode/opencode.jsonc:78`) — eine andere Konfigurationsfläche, aus
+der sich nichts über den Provider-Pfad ableiten lässt. Der erste Schritt in `p3` ist deshalb eine
+Machbarkeitsprobe: Header eintragen, Dispatch auslösen, im Proxy nachsehen ob er ankommt. Ergebnis
+und ausgeführter Befehl werden im Ticket festgehalten (Mess-Konvention T002717). Trägt es nicht,
+bleiben die Spalten `NULL` — was der Spec ausdrücklich zulässt — und `p3` setzt die Header nur
+dort, wo der Aufrufer sie kontrolliert. Der übrige Vorgang hängt nicht daran.
 
 **Nebeneffekt.** `extractSlotId()` liest `x-slot-id` seit T002483, aber kein Aufrufer sendet ihn.
 Die Per-Slot-Semaphore in `slot-queue.mjs` bildet ihren Schlüssel deshalb heute immer aus

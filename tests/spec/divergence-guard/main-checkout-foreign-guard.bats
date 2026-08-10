@@ -68,6 +68,27 @@ teardown() {
     sleep 0.1
   done
 
+  # --- TEMPORAERE CI-DIAGNOSE [T003078] -----------------------------------------------
+  # Dieser Test faellt ausschliesslich auf dem GitHub-Runner (lokal gruen, auch mit dem
+  # CI-identischen `bats -j`). Die Sonden unten messen jede Vorbedingung der Erkennung
+  # einzeln, damit der CI-Log die Ursache zeigt statt sie erraten zu lassen. Jede Sonde
+  # ist mit `|| true` abgesichert: unter BATS bricht ein Exit != 0 den Test sofort ab,
+  # die Diagnose wuerde sich sonst selbst um ihre Ausgabe bringen.
+  # ENTFERNEN, sobald die Ursache belegt ist.
+  echo "DIAG dirty=[$(git -C "$d" status --porcelain 2>&1 || true)]" || true
+  echo "DIAG d=[$d]" || true
+  echo "DIAG realpath_d=[$(readlink -f "$d" 2>&1 || true)]" || true
+  echo "DIAG proc_cwd=[$(readlink "/proc/$FOREIGN_PID/cwd" 2>&1 || true)]" || true
+  echo "DIAG ps_args=[$(ps -o args= -p "$FOREIGN_PID" 2>&1 || true)]" || true
+  echo "DIAG ps_comm=[$(ps -o comm= -p "$FOREIGN_PID" 2>&1 || true)]" || true
+  echo "DIAG cmdline=[$(tr '\0' ' ' < "/proc/$FOREIGN_PID/cmdline" 2>&1 || true)]" || true
+  echo "DIAG alive=[$(kill -0 "$FOREIGN_PID" 2>&1 && echo yes || echo no)]" || true
+  echo "DIAG in_pslist=[$(ps -eo pid= 2>/dev/null | tr -d ' ' | grep -cx "$FOREIGN_PID" || true)]" || true
+  echo "DIAG own_chain=[$(_p=$$; while [ -n "$_p" ] && [ "$_p" -gt 1 ]; do printf '%s ' "$_p"; _p=$(ps -o ppid= -p "$_p" 2>/dev/null | tr -d ' '); done || true)]" || true
+  echo "DIAG foreign_ppid=[$(ps -o ppid= -p "$FOREIGN_PID" 2>&1 | tr -d ' ' || true)]" || true
+  echo "DIAG bash=[$BASH_VERSION] ps=[$(ps --version 2>&1 | head -1 || true)]" || true
+  # --- ENDE TEMPORAERE CI-DIAGNOSE ----------------------------------------------------
+
   # shellcheck disable=SC1090
   source "$GUARD_LIB"
   run mc_foreign_activity_detected "$d"

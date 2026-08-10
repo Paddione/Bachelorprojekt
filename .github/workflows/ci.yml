@@ -279,13 +279,15 @@ jobs:
           go-version: 'stable'
           cache: false
 
-      - name: Run ticket-mcp Go tests
-        run: task ticket-mcp:test
-
       - uses: arduino/setup-task@bfe25a35f5c1f609e1d6153197b3b42a04ae054c  # v5.0.0
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # MUSS nach setup-task stehen: der Step ruft `task` auf, und das Binary
+      # existiert erst danach (sonst Exit 127 "task: command not found").
+      - name: Run ticket-mcp Go tests
+        run: task ticket-mcp:test
 
       - name: Install node dependencies
         run: npm ci

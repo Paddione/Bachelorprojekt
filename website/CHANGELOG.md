@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.264.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.264.0...website-v1.264.1) (2026-08-10)
+
+
+### Documentation
+
+* **plans:** add exclusiveGroup readiness semantics to local-llm-proxy [T003202] ([#4208](https://github.com/Paddione/Bachelorprojekt/issues/4208)) ([249f9c3](https://github.com/Paddione/Bachelorprojekt/commit/249f9c3e315862d043bd3e13fd42f64b4d47fef4))
+
 ## [1.264.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.15...website-v1.264.0) (2026-08-10)
 
 

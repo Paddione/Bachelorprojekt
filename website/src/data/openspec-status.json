@@ -2889,6 +2889,12 @@
       "status": "archived"
     }
   ],
+  "T002824": [
+    {
+      "slug": "half-archive-check-edge-case",
+      "status": "plan_staged"
+    }
+  ],
   "T002836": [
     {
       "slug": "2026-08-10-ci-ticketless-changes",

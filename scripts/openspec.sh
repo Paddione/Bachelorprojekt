@@ -22,7 +22,7 @@ set -euo pipefail
 REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "ERROR: openspec.sh must be run from inside a git worktree (cwd is not a git repository)" >&2; exit 1; }
 HERE="$REPO/scripts"
 OPENSPEC_ROOT="${OPENSPEC_ROOT:-$REPO/openspec}"
-TICKET_SH="$REPO/scripts/ticket.sh"
+TICKET_SH="${TICKET_SH:-$REPO/scripts/ticket.sh}"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -222,14 +222,20 @@ cmd_archive() {
   local dir="$OPENSPEC_ROOT/changes/$slug"
   [[ -d "$dir" ]] || die "no such change: $slug"
   if [[ "${TICKET_OFFLINE:-0}" != "1" && -f "$dir/.ticket" ]]; then
-    local st
-    st="$(bash "$TICKET_SH" get --id "$(cat "$dir/.ticket")" 2>/dev/null | grep -o '"status" *: *"[^"]*"' | head -1 | grep -o '"[^"]*"$' | tr -d '"' || true)"
+    local st ticket_json
+    ticket_json="$(bash "$TICKET_SH" get --id "$(cat "$dir/.ticket")" 2>/dev/null)" || true
+    st="$(printf '%s' "$ticket_json" | grep -o '"status" *: *"[^"]*"' | head -1 | grep -o '"[^"]*"$' | tr -d '"' || true)"
     # [T002569] 'archived' ist ein SPAETERER Lifecycle-Zustand als 'done' (das
     # Ticket wurde bereits abgeschlossen und danach ins Archiv verschoben), kein
     # frueherer -- die Erweiterung ist keine Aufweichung des Fail-closed-Guards.
     # Ein leerer oder unbekannter Status faellt weiterhin durch, da er keinem der
     # beiden terminalen Werte entspricht.
     [[ "$st" == "done" || "$st" == "archived" ]] || die "archive refused: ticket status is '${st:-unknown}', expected 'done' or 'archived'"
+    # [T002813] Deliverable-presence guard: cross-checks the ticket's declared
+    # touched_files against the working tree. Graded: advisory on empty/null data,
+    # hard refusal only when ALL declared files are absent (the #3919/#3914 shape
+    # where the archive PR landed before the fix PR carrying the deliverable).
+    _check_deliverable_presence "$ticket_json" "$slug"
   fi
   local dest="$OPENSPEC_ROOT/changes/archive/$(date +%F)-$slug"
   # [T002428] VOR dem Delta-Merge pruefen, nicht danach: `mv "$dir" "$dest"` weiter unten
@@ -278,6 +284,50 @@ cmd_archive() {
   else
     echo "archived: $slug -> $dest (delta merged into SSOT)"
   fi
+}
+
+# [T002813] Cross-checks the ticket's touched_files (from ticket.sh JSON, already
+# captured in cmd_archive) against the actual working tree. Graded:
+#   - empty/null → advisory, return 0 (no data to check against)
+#   - all present  → return 0, silent
+#   - partial match → warning with missing paths, return 0
+#   - none present  → hard refusal (the #3919/#3914 shape: archive PR landed
+#     before the fix PR carrying the deliverable)
+_check_deliverable_presence() {
+  local ticket_json="$1" slug="$2"
+  local touched raw paths total present path
+  touched="$(printf '%s' "$ticket_json" | grep -o '"touched_files" *: *\[[^]]*\]' | grep -o '\[[^]]*\]' || true)"
+  if [ -z "$touched" ]; then
+    echo "WARN: archive $slug: ticket hat kein touched_files — Deliverable-Praesenz nicht maschinell pruefbar (siehe CLAUDE.md M10)." >&2
+    return 0
+  fi
+  paths=()
+  while IFS= read -r raw; do
+    raw="${raw//\"/}"
+    [ "$raw" = "touched_files" ] && continue
+    [ -z "$raw" ] && continue
+    paths+=("$raw")
+  done < <(printf '%s' "$touched" | grep -oE '"[^"]*"')
+  total="${#paths[@]}"
+  present=0
+  local missing=()
+  for path in "${paths[@]}"; do
+    if [[ -e "$REPO/$path" ]]; then
+      present=$((present + 1))
+    else
+      missing+=("$path")
+    fi
+  done
+  if [ "$total" -gt 0 ] && [ "$present" -eq 0 ]; then
+    die "archive refused: keines der deklarierten touched_files des Tickets liegt im Arbeitsbaum — Deliverable fehlt (T002813).
+  touched_files: ${paths[*]}
+  Der Archive-PR duerfte vor dem Fix-PR gelandet sein, der das Deliverable trug
+  (siehe CLAUDE.md M10)."
+  fi
+  if [ "$total" -gt 0 ] && [ "$present" -lt "$total" ]; then
+    echo "WARN: archive $slug: nur ${present}/${total} deklarierte touched_files liegen im Arbeitsbaum vor — pruefen, ob Umbenennungen/Loeschungen beabsichtigt sind. Fehlend: ${missing[*]}" >&2
+  fi
+  return 0
 }
 
 _merge_delta() {

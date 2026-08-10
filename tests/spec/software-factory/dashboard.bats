@@ -59,10 +59,24 @@ DEV_STATUS_PAGE="$BATS_TEST_DIRNAME/../../../website/src/pages/dev-status.astro"
 FACTORY_OBSERVABILITY_COMP="$BATS_TEST_DIRNAME/../../../website/src/components/sdlc/factory/FactoryObservability.svelte"
 FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../../website/src/components/sdlc/factory/factory-chart-colors.ts"
 
-@test "T001433 pipeline: pages/admin/cockpit.astro exists and mounts PipelinePanel" {
+# [T003417] PipelinePanel war eine reine Svelte-Hülle um die Kit-Runtime. Der
+# Change "sdlc-dashboard-redesign" löst sie auf (REMOVED Requirement
+# "PipelinePanel als Schutzschild gegen Kit-Runtime (E22)"); die Kit-Skripte
+# werden jetzt direkt in der Astro-Hülle geladen. Der Testname nannte
+# `pages/admin/cockpit.astro`, geprüft wurde aber schon immer $COCKPIT_PAGE =
+# pages/sdlc/cockpit.astro — der Name stammt aus der Zeit vor dem Seitenumzug
+# und wird hier mitkorrigiert.
+@test "T003417 pipeline: pages/sdlc/cockpit.astro lädt die Kit-Runtime ohne Svelte-Hülle" {
   [ -f "$COCKPIT_PAGE" ]
-  run grep -F "PipelinePanel" "$COCKPIT_PAGE"
+
+  # Positiv-Anker: die Kit-Skripte sind eingebunden — die Funktion, die
+  # PipelinePanel gekapselt hat, existiert also weiterhin.
+  run grep -F "/cockpit/kit/panel.js" "$COCKPIT_PAGE"
   [ "$status" -eq 0 ]
+
+  # Erst dann die Negativ-Aussage: keine Hülle mehr dazwischen.
+  run grep -F "PipelinePanel" "$COCKPIT_PAGE"
+  [ "$status" -ne 0 ]
 }
 
 @test "T001433 pipeline: pipeline.astro is a 301 redirect to /admin/cockpit" {

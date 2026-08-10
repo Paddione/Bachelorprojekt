@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.1...website-v1.263.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 3/8 — Planung und QA [T003479] ([#4156](https://github.com/Paddione/Bachelorprojekt/issues/4156)) ([d47b417](https://github.com/Paddione/Bachelorprojekt/commit/d47b41796c2cfd8ef87a2efc364187653da97bea))
+
 ## [1.263.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.0...website-v1.263.1) (2026-08-10)
 
 

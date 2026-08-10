@@ -57,6 +57,7 @@ bash scripts/agent-lock.sh reap   # killt cwd-tote-Worktree-Prozesse, prunet Wor
 bash scripts/agent-lock.sh list   # "Wer macht was": laufende Claims anderer Sessions
 bash scripts/agent-msg.sh read --unread   # offene Nachrichten paralleler Sessions sichten [T000882]
 git worktree list
+bash scripts/worktree-git-op-guard.sh
 # Stale Worktrees ggf. löschen: git worktree remove <path> --force && git branch -D <branch>
 ```
 ## Schritt 0: Pfad bestimmen

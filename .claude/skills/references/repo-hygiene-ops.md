@@ -54,6 +54,17 @@ Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit
 
 ```bash
 git worktree list
+
+# Erster Vorcheck: unterbrochene git-Operationen. Ein Rebase, der nach der
+# Konfliktlösung nicht --continued wurde, hinterlässt nur gestagete Änderungen
+# und ist für den allowlist-gefilterten --porcelain-Vorcheck unsichtbar:
+# die Konflikte entstehen fast ausschliesslich an Freshness-Generate unter
+# website/src/data/ und docs/code-quality/ — genau den Pfaden, die die
+# Generat-Allowlist entfernt. Der Guard meldet diesen Zustand, repariert aber
+# nichts (ein Rebase in einem fremden Worktree fortzusetzen kann einen falschen
+# Commit auf einem Branch erzeugen, den der Aufrufer nicht besitzt).
+bash scripts/worktree-git-op-guard.sh
+
 # Für jeden Worktree (außer main, außer aktuell gehaltener):
 git -C <path> status --porcelain   # Abweichungen gegen die Allowlist unten prüfen
 git worktree remove <path>

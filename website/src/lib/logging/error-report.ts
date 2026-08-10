@@ -14,7 +14,7 @@ export interface ErrorReport {
  */
 export async function postError(report: ErrorReport): Promise<void> {
   try {
-    const response = await fetch('/api/admin/ops/error-log', {
+    const response = await fetch('/sdlc/api/ops/error-log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
@@ -33,7 +33,7 @@ export async function postError(report: ErrorReport): Promise<void> {
  */
 export async function fetchErrorHistory(sinceHours = 24): Promise<LogEntry[]> {
   try {
-    const response = await fetch(`/api/admin/ops/error-log?since=${sinceHours}h`, {
+    const response = await fetch(`/sdlc/api/ops/error-log?since=${sinceHours}h`, {
       credentials: 'same-origin',
     });
     if (!response.ok) {

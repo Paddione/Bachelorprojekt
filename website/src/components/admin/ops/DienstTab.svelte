@@ -19,7 +19,7 @@
   async function load() {
     try {
       loading = deployments.length === 0;
-      const res = await fetch('/api/admin/ops/deployments/list');
+      const res = await fetch('/sdlc/api/ops/deployments/list');
       if (res.ok) { const j = await res.json(); deployments = j.deployments; error = null; }
       else { const j = await res.json().catch(() => ({})); error = j.error ?? `Fehler ${res.status}`; }
     } catch (e) { error = (e as Error).message; }
@@ -32,7 +32,7 @@
     const { type, deployment: d } = pending;
     try {
       const body = type === 'scale' ? JSON.stringify({ replicas: scaleTarget }) : '{}';
-      const res = await fetch(`/api/admin/ops/deployments/${d.ns}/${d.name}/${type}`, {
+      const res = await fetch(`/sdlc/api/ops/deployments/${d.ns}/${d.name}/${type}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
       });
       const j = await res.json();

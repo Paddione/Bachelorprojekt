@@ -2262,6 +2262,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/actionlint-workflow-gate",
+    "file": "tests/spec/ci-cd/actionlint-workflow-gate.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/arbitration-scoped-kubeconfig",
     "file": "tests/spec/ci-cd/arbitration-scoped-kubeconfig.bats",
     "category": "ci-cd",
@@ -3494,6 +3500,12 @@
   {
     "id": "openspec-embedding/port-forward-identity-T002870",
     "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+    "category": "openspec-embedding",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-embedding/probe-diagnosis",
+    "file": "tests/spec/openspec-embedding/probe-diagnosis.bats",
     "category": "openspec-embedding",
     "kind": "shell"
   },

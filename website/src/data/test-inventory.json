@@ -2598,6 +2598,12 @@
     "kind": "shell"
   },
   {
+    "id": "divergence-guard/branch-prefix-suggestion",
+    "file": "tests/spec/divergence-guard/branch-prefix-suggestion.bats",
+    "category": "divergence-guard",
+    "kind": "shell"
+  },
+  {
     "id": "divergence-guard/main-checkout-foreign-guard",
     "file": "tests/spec/divergence-guard/main-checkout-foreign-guard.bats",
     "category": "divergence-guard",

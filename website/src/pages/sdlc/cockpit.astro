@@ -91,20 +91,13 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
   <script>
     import { browserLogger } from '$lib/browser-logger';
 
-    // Die Cockpit-Kit-Skripte (public/cockpit/kit/*.js) haengen `actionPolicy`
-    // und `data` zur Laufzeit an `window`. Ohne Deklaration braeuchte jeder
-    // Zugriff ein `as any` — was der fail-closed ESLint-Gate abweist.
-    interface ActionPrompt { level: 'named' | 'plain'; target?: string }
-    interface ActionResult { ok: boolean; error?: string }
-    interface CockpitWindow extends Window {
-      actionPolicy?: { confirmationFor(action: string, target?: string): ActionPrompt | null };
-      data?: {
-        performAction(action: string, params: Record<string, string>): Promise<ActionResult>;
-        streamState?(): 'live' | 'polling' | 'disconnected';
-      };
-      cockpitAct?: (action: string, target?: string) => void;
-    }
-    const win = window as unknown as CockpitWindow;
+    // `window.data`, `window.actionPolicy` und `window.cockpitAct` sind in
+    // src/env.d.ts global deklariert (SSOT fuer die Kit-Skripte unter
+    // /cockpit/kit/). Hier NICHT erneut deklarieren: ein zweites Interface
+    // gleichen Namens kollidiert mit der globalen Deklaration (ts(2430)) —
+    // ein Fehler, den nur `astro check` sieht, nicht `pnpm lint`/`build`.
+    // Das optional chaining bleibt trotz nicht-optionaler Typen: laedt ein
+    // Kit-Skript nicht, ist der Wert zur Laufzeit dennoch undefined.
 
     // Mode switching via CommandBar custom events
     document.addEventListener('cockpit-modechange', ((e: CustomEvent) => {
@@ -119,7 +112,7 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
 
     function cockpitAct(action: string, target?: string) {
       try {
-        const prompt = win.actionPolicy?.confirmationFor(action, target);
+        const prompt = window.actionPolicy?.confirmationFor(action, target);
         // `!= null` statt `!== null`: fehlt das Kit-Skript, liefert das optional
         // chaining `undefined` — mit `!== null` liefe der Code dann in einen
         // TypeError auf `prompt.level`, den der catch als "action blocked"
@@ -135,20 +128,20 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
         return;
       }
 
-      win.data?.performAction(action, target ? { target } : {}).then((r) => {
+      window.data?.performAction(action, target ? { target } : {}).then((r) => {
         if (!r.ok && r.error) browserLogger.error('[cockpit] ' + action + ' failed: ' + r.error);
       }).catch((e: unknown) => {
         browserLogger.error({ err: e }, '[cockpit] ' + action + ' error');
       });
     }
 
-    win.cockpitAct = cockpitAct;
+    window.cockpitAct = cockpitAct;
 
     // Stream state indicator
     (function updateHeader() {
       const el = document.getElementById('cockpit-stream-state');
-      if (!el || !win.data?.streamState) return;
-      const state = win.data.streamState();
+      if (!el || !window.data?.streamState) return;
+      const state = window.data.streamState();
       if (state === 'live') {
         el.textContent = '● live';
         el.style.color = 'var(--color-status-ok)';
@@ -183,14 +176,6 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
     flex: 1;
     overflow-y: auto;
     padding: 0;
-  }
-
-  .fokus-phase__placeholder {
-    padding: 3rem 2rem;
-    text-align: center;
-    color: var(--admin-text-mute, #555);
-    font-family: var(--admin-font-mono, monospace);
-    font-size: var(--admin-text-lg, 1.1rem);
   }
 
   .fokus-phase__title {

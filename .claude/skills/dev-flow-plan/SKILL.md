@@ -202,7 +202,11 @@ Dort steht auch der Ticket-Claim für diesen Schritt (`bash scripts/agent-lock.s
 > **⚠ `stage-plan` läuft NACH dem Commit aus Schritt 5, nicht hier [T002673].** In diesem Schritt werden nur **Ticket angelegt und geclaimt** — der Claim muss vor dem Pre-Commit-Guard liegen, der Stage-Aufruf nicht. Grund: `stage-plan` liest die Plandatei über `git cat-file -p "${branch}:${plan}"` aus dem **Branch-Commit**, nicht aus dem Arbeitsbaum (`scripts/vda/ticket/stage-plan.sh`). Vor dem Commit steht dort noch das `propose`-Skeleton, und die `touched_files`-Ableitung meldet dann `keine Pfade ableitbar` und lässt die Spalte leer — ohne dass es auffällt, weil die Meldung nur auf stderr steht und der Stage trotzdem Erfolg meldet. Die Ableitung selbst funktioniert (`scripts/plan-touched-files.sh` liefert gegen die reale Datei die vollständige Liste). `stage-plan` ist idempotent und vereinigt `touched_files` in SQL, ein späterer Zweitaufruf ist also unschädlich — die richtige Reihenfolge erspart ihn nur.
 ### Schritt 5: Commit & Push, dann stagen — dann STOPP
 **Pre-Commit Guard (PFLICHT — Schritt 5) [T001268]:**
-Bevor der plan-stage Commit läuft, MUSS der Operator `plan-preflight.sh` aufrufen. Das Skript bündelt alle drei Checks (nicht-main, clean tree, Lock-Match) und den branch-scoped Fallback [T003102] — ein Einzeiler statt drei Inline-Snippets. Die Warum-Details (T001268: warum nicht main?, T003102: warum branch-scoped Fallback?) stehen im Skript-Kopfkommentar und in `docs/agent-guide/registry/plan-guards.yaml`.
+Bevor der plan-stage Commit läuft, MUSS der Operator `plan-preflight.sh` aufrufen. Das Skript bündelt die drei Checks, die hier dokumentiert sind, in einen Aufruf — die Umsetzung steht im Skript und in `docs/agent-guide/registry/plan-guards.yaml`, hier bleibt der Vertrag, den der Operator nachvollziehen können muss:
+
+1. **Do not commit on main / Nicht auf main committen:** Plan-stage Commits auf `main` sind verboten — die Guards verweigern sie. Nur ein Worktree-Branch ist zulässig.
+2. **Clean git status / Sauberer Status ist Pflicht:** `git status --porcelain` muss vor dem plan-stage Commit leer sein, sonst bricht der Guard ab.
+3. **Branch stimmt mit dem agent-lock-Claim überein (T003102 — akzeptiert ticket- UND branch-scoped Claims):** geprüft wird `agent-locks/ticket__${TICKET_EXT_ID}.json`, Fallback `agent-locks/branch__${BRANCH_SLUG}.json`; fehlt auch der (`[ -f "$LOCK_FILE" ]` schlägt fehl — kein ticket-scoped agent-lock), bricht der Guard ab.
 
 ```bash
 bash scripts/plan-preflight.sh pre-commit --ticket "$TICKET_EXT_ID"

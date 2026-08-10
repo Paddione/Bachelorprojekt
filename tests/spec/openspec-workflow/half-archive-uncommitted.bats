@@ -23,14 +23,14 @@ setup() {
   git init -q -b main
   git config user.email "t@example.com"
   git config user.name "T"
-  mkdir -p openspec/changes openspec/specs
+  mkdir -p "$sandbox/openspec/changes" "$sandbox/openspec/specs"
   echo "# specs" > openspec/specs/README.md
   git add -A && git commit -qm init
 }
 
 _make_half_archive() {
-  mkdir -p openspec/changes/dup openspec/changes/archive/2026-01-01-dup
-  echo x > openspec/changes/dup/proposal.md
+  mkdir -p "$sandbox/openspec/changes/dup" "$sandbox/openspec/changes/archive/2026-01-01-dup"
+  echo x > "$sandbox/openspec/changes/dup/proposal.md"
 }
 
 @test "T002824: half-archive check detects duplicate slug (positive anchor: clean tree passes first)" {
@@ -50,7 +50,7 @@ _make_half_archive() {
   [ -d openspec/changes/dup ]
   run env OPENSPEC_ROOT="$sandbox/openspec" bash "$HALF_ARCHIVE_CHECK"
   [ "$status" -ne 127 ]  # positive anchor: script exists and runs
-  [ -d openspec/changes/dup ]  # still exists — guard only reports
+  [ -d "$sandbox/openspec/changes/dup" ]  # still exists — guard only reports
 }
 
 @test "T002824: agent-lock.sh reap warns (not fails) on a half-archived slug" {

@@ -1024,7 +1024,7 @@ cmd_rollup_container() {
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 <command> [options]" >&2
-  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, rollup-container" >&2
+  echo "Commands: create, update-status, update-fields, set-parent, add-comment, add-pr-link, grill, archive-plan, get-attachments, get, set-touched-files, set-scout-drift, set-pipeline-slot, release-slot, reclaim, touch, enqueue, stage-plan, release-hold, assert-phase-chain, retry-count, unfactory, factory-control, dryrun-mark, dryrun-check, feature-flag, phase, inject, get-injections, plan-meta, lastenheft, list, backfill-id, triage, link-tickets, get-ticket-links, get-timeline, rollup-container, find-similar" >&2
   exit 1
 fi
 cmd="$1"; shift
@@ -1070,6 +1070,7 @@ case "$cmd" in
   get-ticket-links)  cmd_get_ticket_links "$@" ;;
   get-timeline)      cmd_get_timeline "$@" ;;
   rollup-container)  cmd_rollup_container "$@" ;;
+  find-similar)      source "$(dirname "${BASH_SOURCE[0]}")/vda/ticket/find-similar.sh" && cmd_find_similar "$@" ;;
   *)                 echo "Unknown command: $cmd" >&2; exit 1 ;;
 esac
 

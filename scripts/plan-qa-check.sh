@@ -11,6 +11,10 @@ err() { echo "[plan-qa] ERROR: $*" >&2; }
 warn() { echo "[plan-qa] WARNING: $*" >&2; }
 info() { echo "[plan-qa] $*"; }
 
+# Ergebniszeile: genau eine maschinenlesbare Zeile pro Lauf (T003112).
+# SKIPPED und ERROR sind damit weder als PASS noch als inhaltliches FAIL lesbar.
+result() { info "RESULT: $1${2:+ — $2}"; }
+
 cleanup() {
   if [[ -n "${BACKUP_FILE:-}" && -f "$BACKUP_FILE" ]]; then
     rm -f "$BACKUP_FILE"
@@ -100,6 +104,7 @@ build_payload() {
 # weiterhin exit 0 (advisory Charakter, siehe T002595 Task 4).
 PAYLOAD=$(build_payload) || {
   err "Failed to build JSON payload — skipping QA (advisory)."
+  result SKIPPED "Payload not buildable"
   exit 0
 }
 
@@ -117,6 +122,7 @@ fi
 if ! curl -sf --max-time 3 -o /dev/null "${GATEWAY_BASE_URL}/livez"; then
   warn "Gateway ${GATEWAY_BASE_URL} not reachable — skipping QA (advisory)."
   info "Manual check: review the plan against .claude/skills/references/plan-quality-gates.md"
+  result SKIPPED "Gateway not reachable"
   exit 0
 fi
 
@@ -139,6 +145,7 @@ for ((ITER=1; ITER<=MAX_ITERATIONS; ITER++)); do
     --max-time 120 \
     -d "$PAYLOAD" 2>/dev/null) || {
     warn "curl request to gateway failed — skipping QA (advisory)."
+    result SKIPPED "curl request failed"
     exit 0
   }
 
@@ -147,10 +154,12 @@ for ((ITER=1; ITER<=MAX_ITERATIONS; ITER++)); do
 
   if [[ "$HTTP_CODE" != "200" ]]; then
     warn "Gateway returned HTTP ${HTTP_CODE}: $(echo "$BODY" | head -c 500) — skipping QA (advisory)."
+    result SKIPPED "HTTP ${HTTP_CODE}"
     exit 0
   fi
 
-  # Parse JSON response to extract content
+  # Stufe 1: Modell-Content aus dem OpenAI-Envelope ziehen. Scheitert das, ist
+  # der Gateway-Envelope unlesbar — eine Stoerung des Pruefwegs, kein Verdict.
   CONTENT=$(echo "$BODY" | python3 -c "
 import sys, json
 try:
@@ -162,49 +171,88 @@ except Exception as e:
     sys.exit(1)
 " 2>/dev/null) || {
     warn "Failed to parse gateway response — skipping QA (advisory)."
+    result ERROR "Gateway envelope unparseable"
     exit 0
   }
 
-  # Extract verdict from JSON in content
-  VERDICT=$(echo "$CONTENT" | python3 -c "
-import sys, json
-try:
-    data = json.loads(sys.stdin.read())
-    print(data.get('verdict', 'FAIL'))
-except Exception:
-    print('FAIL')
-" 2>/dev/null) || VERDICT="FAIL"
+  # Stufe 2: verdict/missing/suggestions in EINEM Durchgang aus dem Content
+  # extrahieren (T003112). Ein Modell, das seine JSON-Antwort in einen
+  # Markdown-Fence legt oder ihr einen Satz voranstellt, darf den Parse nicht
+  # brechen. Exit 42 = "nicht interpretierbar" (Parse gescheitert ODER verdict
+  # fehlt) — wird NIEMALS still als FAIL verbucht.
+  CONTENT_JSON=$(printf '%s' "$CONTENT" | python3 -c "
+import sys, json, re
 
-  MISSING=$(echo "$CONTENT" | python3 -c "
-import sys, json
-try:
-    data = json.loads(sys.stdin.read())
-    items = data.get('missing', [])
-    for item in items:
-        print(f'- {item}')
-except Exception:
-    print('- Could not parse missing items')
-" 2>/dev/null)
+raw = sys.stdin.read()
 
-  SUGGESTIONS=$(echo "$CONTENT" | python3 -c "
-import sys, json
-try:
-    data = json.loads(sys.stdin.read())
-    print(data.get('suggestions', ''))
-except Exception:
-    print('')
-" 2>/dev/null)
+def parse():
+    # 1) Content als Ganzes
+    try:
+        return json.loads(raw)
+    except Exception:
+        pass
+
+    # 2) Einen Markdown-Fence (optionaler Sprach-Tag json) entfernen
+    m = re.search(r'\x60\x60\x60(?:json)?\s*(.*?)\s*\x60\x60\x60', raw, re.DOTALL)
+    if m:
+        try:
+            return json.loads(m.group(1))
+        except Exception:
+            pass
+
+    # 3) Erstes balanciertes {…}-Objekt isolieren
+    start = raw.find('{')
+    end = raw.rfind('}')
+    if start != -1 and end > start:
+        try:
+            return json.loads(raw[start:end + 1])
+        except Exception:
+            pass
+
+    return None
+
+res = parse()
+if res is not None and isinstance(res, dict) and 'verdict' in res:
+    # JSON-Objekt (kein String) ausgeben; mehrzeilige suggestions/missing
+    # bleiben durch die JSON-Kodierung unbeschadet erhalten.
+    print(json.dumps(res))
+else:
+    sys.exit(42)
+" 2>/dev/null) || {
+    # Content nicht interpretierbar: sofort RESULT: ERROR, kein Append, keine
+    # Folge-Iteration. Ein Auszug des tatsaechlichen Contents (einzeilig
+    # normalisiert) macht den Ausfall untersuchbar.
+    SNIPPET=$(printf '%s' "$CONTENT" | head -c 300 | tr '\n' ' ')
+    result ERROR "Content not interpretable: ${SNIPPET}"
+    exit 0
+  }
+
+  # Feld-Extraktion aus dem geparsten Objekt (kein eval auf Modell-Output).
+  VERDICT=$(echo "$CONTENT_JSON" | jq -r '.verdict // ""')
+  MISSING=$(echo "$CONTENT_JSON" | jq -r '.missing | if type == "array" then map("- " + .) | join("\n") else "" end')
+  SUGGESTIONS=$(echo "$CONTENT_JSON" | jq -r '.suggestions // ""')
 
   if [[ "$VERDICT" == "PASS" ]]; then
     info "PASS — All quality criteria met."
+    result PASS
     rm -f "$BACKUP_FILE"
     exit 0
   fi
 
   info "FAIL — Missing criteria:"
-  echo "$MISSING" | while IFS= read -r line; do info "  $line"; done
+  if [[ -n "$MISSING" ]]; then
+    echo "$MISSING" | while IFS= read -r line; do info "  $line"; done
+  else
+    info "  (Modell hat keine Positionen genannt)"
+  fi
 
   if [[ "$ITER" -lt "$MAX_ITERATIONS" ]]; then
+    if [[ -z "$SUGGESTIONS" ]]; then
+      # FAIL ohne Vorschlaege: nichts anzuhaengen, zweite Iteration ueberspringen.
+      result FAIL "No suggestions provided by model"
+      cp "$BACKUP_FILE" "$PLAN_FILE"
+      exit 1
+    fi
     info "Auto-fix attempt ${ITER}/${MAX_ITERATIONS}: appending suggestions..."
     {
       echo ""
@@ -223,7 +271,12 @@ done
 
 # === FAIL after max iterations ===
 info "FAIL — QA failed after ${MAX_ITERATIONS} iterations. Remaining gaps:"
-echo "$MISSING" | while IFS= read -r line; do info "  $line"; done
+if [[ -n "$MISSING" ]]; then
+  echo "$MISSING" | while IFS= read -r line; do info "  $line"; done
+else
+  info "  (Modell hat keine Positionen genannt)"
+fi
 
+result FAIL "QA failed after ${MAX_ITERATIONS} iterations"
 cp "$BACKUP_FILE" "$PLAN_FILE"
 exit 1

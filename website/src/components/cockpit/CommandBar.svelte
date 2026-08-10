@@ -69,7 +69,7 @@
     // Fetch parallel status for tick countdown
     async function loadParallel() {
       try {
-        const res = await fetch('/api/factory/parallel-status');
+        const res = await fetch('/sdlc/api/factory/parallel-status');
         if (res.ok) {
           const data = await res.json();
           if (data.nextTickAt) nextTickAt = data.nextTickAt;

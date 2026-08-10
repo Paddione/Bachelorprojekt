@@ -1,6 +1,9 @@
 <script lang="ts">
   import PilotLight from '../sdlc/factory/PilotLight.svelte';
   import type { CockpitMode } from './CommandBar.svelte';
+  import { getSharedMetrics } from '../../lib/stores/factory-floor-store';
+  import { deriveMetrics, formatCycleTime } from '../../lib/sdlc/factory-metrics-derive';
+  import type { DerivedMetrics } from '../../lib/sdlc/factory-metrics-derive';
 
   export type Phase = 'triage' | 'planung' | 'bauen' | 'review' | 'deploy' | 'ship';
 
@@ -29,6 +32,23 @@
   } = $props();
 
   let sections = $state<RailSection[]>([]);
+
+  // [T003459] Die Metrik-Sektion zeigte durchgehend '—'. Die Daten liegen in
+  // `tickets.v_factory_metrics` und kommen ueber denselben Store wie im
+  // Insights-Tab; ein zweiter Abruf entsteht nicht, `getSharedMetrics` teilt
+  // Cache und laufende Anfrage. Faellt der Abruf aus, bleibt '—' stehen: die
+  // Rail ist Beiwerk und soll keinen Fehlerdialog aufmachen.
+  let metrics = $state<DerivedMetrics | null>(null);
+  const METRICS_WINDOW_DAYS = 7;
+
+  async function loadMetrics() {
+    try {
+      const payload = await getSharedMetrics();
+      metrics = deriveMetrics(payload.metrics ?? [], METRICS_WINDOW_DAYS);
+    } catch {
+      metrics = null;
+    }
+  }
 
   function buildSections(): RailSection[] {
     switch (mode) {
@@ -143,8 +163,21 @@
             id: 'metrics',
             label: 'Metriken',
             items: [
-              { key: 'throughput', label: 'Durchsatz (7d)', value: '—' },
-              { key: 'avg_time', label: 'Ø Zeit plan→done', value: '—' },
+              {
+                key: 'throughput',
+                label: `Ausgeliefert (${METRICS_WINDOW_DAYS}d)`,
+                value: metrics ? String(metrics.shipped) : '—',
+              },
+              {
+                key: 'avg_time',
+                label: 'Ø Zeit plan→done',
+                value: formatCycleTime(metrics?.avgCycleTimeH ?? null),
+              },
+              {
+                key: 'escalations',
+                label: `Eskalationen (${METRICS_WINDOW_DAYS}d)`,
+                value: metrics ? String(metrics.escalations) : '—',
+              },
             ],
           },
           {
@@ -162,8 +195,14 @@
   // Der `$effect` laeuft auch beim ersten Rendern — ein zusaetzliches `onMount`
   // mit demselben Rumpf war redundant und baute die Sektionen doppelt auf.
   $effect(() => {
-    void mode; void phase; // consume reactive deps
+    void mode; void phase; void metrics; // consume reactive deps
     sections = buildSections();
+  });
+
+  // Nur im Insights-Modus laden — in den anderen Modi zeigt die Rail keine
+  // Kennzahlen aus dieser Quelle, ein Abruf waere dort reiner Netzverkehr.
+  $effect(() => {
+    if (mode === 'insights' && metrics === null) void loadMetrics();
   });
 </script>
 

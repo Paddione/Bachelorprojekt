@@ -32,7 +32,7 @@
     loading = true;
     error = false;
     try {
-      const res = await fetch(`/api/admin/delivery-metrics?window=${window}`, { credentials: 'same-origin' });
+      const res = await fetch(`/sdlc/api/delivery-metrics?window=${window}`, { credentials: 'same-origin' });
       if (!res.ok) { error = true; return; }
       const json = (await res.json()) as ApiResponse;
       data = json;

@@ -7,6 +7,8 @@
   import KiRoutingPanel from './sdlc/factory/KiRoutingPanel.svelte';
   import LlmProxyPanel from './sdlc/factory/LlmProxyPanel.svelte';
   import DependencyGraph from './DependencyGraph.svelte';
+  import InsightsTab from './sdlc/factory/InsightsTab.svelte';
+  import DeliveryHistory from './DeliveryHistory.svelte';
   import AdminTabs from './admin/ui/AdminTabs.svelte';
   import KostenTab from './sdlc/factory/KostenTab.svelte';
   import type { FloorPayload } from '../lib/factory-floor-types';
@@ -70,7 +72,7 @@
   async function loadParallel() {
     try {
       parallelLoading = true;
-      const res = await fetch('/api/factory/parallel-status');
+      const res = await fetch('/sdlc/api/factory/parallel-status');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       parallel = (await res.json()) as ParallelStatus;
       parallelError = null;
@@ -85,7 +87,7 @@
   async function forceTick() {
     try {
       forcing = true;
-      const res = await fetch('/api/factory/force-tick', { method: 'POST' });
+      const res = await fetch('/sdlc/api/factory/force-tick', { method: 'POST' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       await loadParallel();
     } catch (err) {
@@ -189,11 +191,16 @@
   <ControlPanel />
   <div class="control-extras"><FactoryModelSlots /><KiRoutingPanel /><LlmProxyPanel /></div>
 {:else if activeTab === 'analytics'}
+  <!--
+    [T003459] Zeigt wieder Inhalt statt eines Verweises. T003417 ersetzte die
+    vier Analytics-Komponenten hier durch einen Platzhaltertext ("nutze das
+    Cockpit"), obwohl das Delta-Spec jenes Change nur die Cockpit-Seite
+    abdeckte — auf dieser Seite war es ein unspezifizierter Funktionsverlust.
+    InsightsTab liefert dieselben Kennzahlen aus derselben Quelle.
+  -->
   <div class="analytics-tab-wrap">
-    <p style="color: var(--admin-text-mute); padding: 2rem; text-align: center;">
-      Analytics-Ansicht wurde in den neuen Insights-Tab verschoben.
-      <br><small>Bitte das SDLC Cockpit (&uuml;ber Command Bar → Insights) nutzen.</small>
-    </p>
+    <InsightsTab />
+    <DeliveryHistory window="7d" />
   </div>
 {:else if activeTab === 'kosten'}
   <KostenTab />

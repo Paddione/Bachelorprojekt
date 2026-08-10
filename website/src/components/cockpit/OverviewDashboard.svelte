@@ -34,7 +34,7 @@
     error = null;
     try {
       // Aggregate from existing endpoints
-      const res = await fetch('/api/cockpit/portfolio');
+      const res = await fetch('/sdlc/api/cockpit/portfolio');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 

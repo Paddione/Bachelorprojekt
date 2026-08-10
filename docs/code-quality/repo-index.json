@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 893,
+      "file_count": 896,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -3268,7 +3268,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 690,
+      "file_count": 691,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",

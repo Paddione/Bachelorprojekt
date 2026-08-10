@@ -29,6 +29,7 @@ setup() {
 }
 
 @test "ohne --hold/--no-hold → rc=1, Meldung nennt beide Flags" {
+  cd "$TEST_DIR"
   run bash -c "cd '$REPO_ROOT' && $STAGE --id T009999 --branch main --plan test-plan.md --partials 1"
   [ "$status" -eq 1 ]
   grep -qF -- '--hold' <<<"$output"
@@ -36,11 +37,13 @@ setup() {
 }
 
 @test "--partials 0 → rc=2" {
+  cd "$TEST_DIR"
   run bash -c "cd '$REPO_ROOT' && $STAGE --id T009999 --branch main --plan test-plan.md --partials 0 --no-hold"
   [ "$status" -eq 2 ]
 }
 
 @test "unbekanntes Flag → rc=2, Usage nennt --no-hold und --allow-empty-touched" {
+  cd "$TEST_DIR"
   run bash -c "cd '$REPO_ROOT' && $STAGE --id T009999 --branch main --plan test-plan.md --partials 1 --xyz"
   [ "$status" -eq 2 ]
   grep -qF -- '--no-hold' <<<"$output"
@@ -48,6 +51,7 @@ setup() {
 }
 
 @test "Plan nicht committed → rc=1 (vor der DB)" {
+  cd "$TEST_DIR"
   run bash -c "cd '$REPO_ROOT' && $STAGE --id T009999 --branch main --plan nonexistent.md --partials 1 --no-hold"
   [ "$status" -eq 1 ]
 }

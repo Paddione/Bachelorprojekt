@@ -2532,6 +2532,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/guard-parity",
+    "file": "tests/spec/dev-flow-plan/guard-parity.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-intel-risks-dedupe",
     "file": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats",
     "category": "dev-flow-plan",
@@ -2550,6 +2556,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-lint-rules",
+    "file": "tests/spec/dev-flow-plan/plan-lint-rules.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-lint-task-count",
     "file": "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
     "category": "dev-flow-plan",
@@ -2558,6 +2570,12 @@
   {
     "id": "dev-flow-plan/plan-lint-w3-prose-path",
     "file": "tests/spec/dev-flow-plan/plan-lint-w3-prose-path.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/plan-preflight",
+    "file": "tests/spec/dev-flow-plan/plan-preflight.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },
@@ -2576,6 +2594,12 @@
   {
     "id": "dev-flow-plan/red-phase-and-handoff-conventions",
     "file": "tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/stage-plan-contract",
+    "file": "tests/spec/dev-flow-plan/stage-plan-contract.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },

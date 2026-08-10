@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.265.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.0...website-v1.265.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* **mcp:** Mishap-Buffer aggregiert statt zu Einzeltickets zu konvertieren [T003553] ([#4220](https://github.com/Paddione/Bachelorprojekt/issues/4220)) ([d278b1a](https://github.com/Paddione/Bachelorprojekt/commit/d278b1a91cfe6188f138fa8acf3ba1ecbf6f250c))
+
 ## [1.265.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.264.2...website-v1.265.0) (2026-08-10)
 
 

@@ -2040,6 +2040,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/agent-lock-claim-help-flag",
+    "file": "tests/spec/agent-skills/agent-lock-claim-help-flag.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/dev-flow-chore-step0-foreign-guard",
     "file": "tests/spec/agent-skills/dev-flow-chore-step0-foreign-guard.bats",
     "category": "agent-skills",
@@ -2376,6 +2382,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/preflight-multi-ticket-id",
+    "file": "tests/spec/ci-cd/preflight-multi-ticket-id.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/self-hosted-fork-guard",
     "file": "tests/spec/ci-cd/self-hosted-fork-guard.bats",
     "category": "ci-cd",
@@ -2532,6 +2544,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/guard-parity",
+    "file": "tests/spec/dev-flow-plan/guard-parity.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-intel-risks-dedupe",
     "file": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats",
     "category": "dev-flow-plan",
@@ -2550,6 +2568,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-lint-rules",
+    "file": "tests/spec/dev-flow-plan/plan-lint-rules.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-lint-task-count",
     "file": "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
     "category": "dev-flow-plan",
@@ -2558,6 +2582,12 @@
   {
     "id": "dev-flow-plan/plan-lint-w3-prose-path",
     "file": "tests/spec/dev-flow-plan/plan-lint-w3-prose-path.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/plan-preflight",
+    "file": "tests/spec/dev-flow-plan/plan-preflight.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },
@@ -2576,6 +2606,12 @@
   {
     "id": "dev-flow-plan/red-phase-and-handoff-conventions",
     "file": "tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/stage-plan-contract",
+    "file": "tests/spec/dev-flow-plan/stage-plan-contract.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },
@@ -3498,6 +3534,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/propose-help",
+    "file": "tests/spec/openspec-workflow/propose-help.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/ticket-file-required",
     "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",
@@ -3900,6 +3942,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/redesign-struktur",
+    "file": "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/write-token-removed",
     "file": "tests/spec/sdlc-cockpit/write-token-removed.bats",
     "category": "sdlc-cockpit",
@@ -4028,6 +4076,12 @@
   {
     "id": "software-factory/factory-prep-stdout-json",
     "file": "tests/spec/software-factory/factory-prep-stdout-json.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-result-check",
+    "file": "tests/spec/software-factory/opencode-exec-result-check.bats",
     "category": "software-factory",
     "kind": "shell"
   },
@@ -4178,6 +4232,12 @@
   {
     "id": "ticket-system/schema-diaet-dead-columns",
     "file": "tests/spec/ticket-system/schema-diaet-dead-columns.bats",
+    "category": "ticket-system",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-system/subcommand-help",
+    "file": "tests/spec/ticket-system/subcommand-help.bats",
     "category": "ticket-system",
     "kind": "shell"
   },

@@ -208,6 +208,8 @@ s4:
     - "k3d/sealed-secrets-controller.yaml"
     - "k3d/backup-secrets.yaml"
     - "scripts/weekly-dep-schema-audit.sh"
+    # Standalone cron script — registered via crontab, not referenced by project files. [T003486]
+    - "scripts/repo-hygiene-cron.sh"
     # Standalone cron script — registered via crontab, not referenced by project files.
     # One-shot / manual scripts — used ad-hoc, not referenced by Taskfile or docs (T001874).
     - "scripts/provision-dev-vm.sh"

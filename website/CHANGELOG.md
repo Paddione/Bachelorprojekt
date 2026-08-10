@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.261.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.2...website-v1.261.3) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** openspec.sh propose --help vor Guards behandelt [T002908] ([#4137](https://github.com/Paddione/Bachelorprojekt/issues/4137)) ([420dadd](https://github.com/Paddione/Bachelorprojekt/commit/420dadd7a0566934457c7cebaa09c25923597f83))
+
 ## [1.261.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.1...website-v1.261.2) (2026-08-10)
 
 

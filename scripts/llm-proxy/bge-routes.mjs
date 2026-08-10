@@ -151,10 +151,10 @@ export async function defaultStartLoadout(slug, doc, startBudgetMs = LOADOUT_STA
   throw new Error(`loadout:${slug} wurde nicht innerhalb von ${startBudgetMs} ms bereit`);
 }
 
-async function ensureLoadoutUrl(slug, doc, startLoadout, startBudgetMs) {
+async function ensureLoadoutUrl(slug, doc, startLoadout, startBudgetMs, statusFn = unitStatus) {
   const loadout = findLoadout(doc, slug);
   if (!loadout) throw new Error(`loadout:${slug} nicht in loadouts.json`);
-  if (!isLoadoutActive(loadout, unitStatus(slug))) {
+  if (!isLoadoutActive(loadout, statusFn(slug))) {
     await startLoadout(slug, doc, startBudgetMs);
   }
   return `http://127.0.0.1:${loadout.port}`;
@@ -178,6 +178,7 @@ export async function routeRequest({
   startLoadout = defaultStartLoadout,
   timeoutMs = ROLE_TIMEOUT_MS,
   startBudgetMs = LOADOUT_START_BUDGET_MS,
+  unitStatus: statusFn = unitStatus,
 }) {
   const failures = [];
   for (const entry of chain) {
@@ -186,7 +187,7 @@ export async function routeRequest({
     if (entry.kind === 'loadout') {
       name = entry.slug;
       try {
-        baseUrl = await ensureLoadoutUrl(entry.slug, doc, startLoadout, startBudgetMs);
+        baseUrl = await ensureLoadoutUrl(entry.slug, doc, startLoadout, startBudgetMs, statusFn);
       } catch (err) {
         failures.push({ entry: name, reason: err.message });
         continue;

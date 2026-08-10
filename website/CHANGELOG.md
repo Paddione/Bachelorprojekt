@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.260.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.260.0...website-v1.260.1) (2026-08-10)
+
+
+### Documentation
+
+* **skills:** Mess-Konvention — Messungen in Tickets tragen den ausführbaren Befehl [T002717] ([#4122](https://github.com/Paddione/Bachelorprojekt/issues/4122)) ([e492275](https://github.com/Paddione/Bachelorprojekt/commit/e492275b0243755c4e9995e969b15a62bad3f0f4))
+
 ## [1.260.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.32...website-v1.260.0) (2026-08-10)
 
 

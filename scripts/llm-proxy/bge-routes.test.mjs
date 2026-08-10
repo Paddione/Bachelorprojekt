@@ -163,6 +163,7 @@ test('Loadout-Glied startet und bedient dann den Request', async (t) => {
     chain: [{ kind: 'loadout', slug: 'bge-embed-cpu' }],
     doc: { modelRoots: [], defaults: {}, loadouts: [{ slug: 'bge-embed-cpu', port: ok.address().port }] },
     startLoadout: async () => { started = true },
+    unitStatus: () => ({ exists: true, active: 'inactive', sub: 'dead' }),
   })
   assert.equal(started, true)
   assert.equal(result.status, 200)
@@ -182,6 +183,7 @@ test('Loadout startet nicht -> Kette rueckt weiter statt zu verschlucken', async
     ],
     doc: { modelRoots: [], defaults: {}, loadouts: [{ slug: 'bge-embed-cpu', port: 8095 }] },
     startLoadout: async () => { started = true; throw new Error('startet nicht') },
+    unitStatus: () => ({ exists: true, active: 'inactive', sub: 'dead' }),
   })
   assert.equal(started, true)
   assert.equal(result.status, 200)

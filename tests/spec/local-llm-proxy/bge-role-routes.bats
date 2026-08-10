@@ -53,29 +53,6 @@ _require_proxy() {
   fi
 }
 
-# Skippt, wenn die LAUFENDE Instanz die Route nicht kennt.
-#
-# Der Guard oben belegt nur, dass an :18235 UEBERHAUPT ein Proxy antwortet — nicht,
-# dass es der Code unter Test ist. Vor dem Merge bedient den Port regelmaessig die
-# systemd-Instanz aus dem Hauptcheckout (llm-proxy.service, WorkingDirectory=Repo-Wurzel),
-# die diese Routen noch nicht hat und mit 501 antwortet. Ohne diese Unterscheidung misst
-# der Test die INSTALLIERTE VERSION statt den Zustand des Codes — dieselbe Fehlerklasse,
-# die der Kopfkommentar fuer die Runner-Ausstattung nennt (T002716), nur mit der Version
-# als Stoergroesse. Er waere damit strukturell erst NACH dem Merge gruen und als
-# Vor-Merge-Gate wertlos.
-#
-# Bewusst eng gefasst: NUR 501/404 (Route unbekannt) skippen. Jeder andere Nicht-200-Status
-# bleibt ein Fehlschlag — sonst verdeckt der Guard den Fall "Route vorhanden, aber kaputt",
-# und der Test bestuende vakuos, sobald die Implementierung fehlerhaft ist.
-_require_route_known() {
-  local path="$1" payload="$2" code
-  code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
-    -X POST "${PROXY_URL}${path}" -H 'Content-Type: application/json' -d "$payload") || return 0
-  if [ "$code" = "501" ] || [ "$code" = "404" ]; then
-    skip "laufende Proxy-Instanz kennt ${path} nicht (HTTP ${code}) — misst nicht den Code unter Test; nach Merge + 'systemctl --user restart llm-proxy.service' erneut pruefen"
-  fi
-}
-
 # Positiv-Anker: der Proxy antwortet und liefert eine nichtleere Modellliste.
 # Wird von jedem @test aufgerufen, bevor die eigentliche Aussage geprueft wird.
 _assert_proxy_answers() {
@@ -88,7 +65,6 @@ _assert_proxy_answers() {
 
 @test "T003205: POST /v1/embeddings wird ueber die Rolle embed bedient" {
   _require_proxy
-  _require_route_known /v1/embeddings '{"model":"bge-m3","input":["test"]}'
   _assert_proxy_answers
 
   run curl -s -D - -o /dev/null --max-time 60 \
@@ -109,7 +85,6 @@ _assert_proxy_answers() {
 
 @test "T003205: POST /v1/rerank wird ueber die Rolle rerank bedient" {
   _require_proxy
-  _require_route_known /v1/rerank '{"model":"bge-reranker-v2-m3","query":"a","documents":["b","c"]}'
   _assert_proxy_answers
 
   run curl -s -D - -o /dev/null --max-time 60 \

@@ -18,7 +18,12 @@ setup() {
   git -C "$TMP" config user.email "test@example.invalid"
   git -C "$TMP" config user.name "Test Fixture"
   git -C "$TMP" commit -q --allow-empty -m "fixture"
-  cd "$TMP"
+  # [T002726] Fail-closed: a silent cd failure on a restricted /tmp mount
+  # leaves tests running against the ambient (possibly detached-HEAD)
+  # checkout — the exact state the fixture is meant to isolate FROM.
+  # Instead of a cryptic "FATAL: Not on any branch" downstream, fail here
+  # with a diagnostic that names the root cause.
+  cd "$TMP" || { echo "BATS SETUP FATAL: cd '$TMP' failed — /tmp mount may be restricted or full" >&2; return 1; }
 }
 
 teardown() { rm -rf "$TMP"; }

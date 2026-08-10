@@ -1028,6 +1028,11 @@ tasks:
     cmds:
       - task: test:changed
 
+  lint:workflows:
+    desc: "Lint aller GitHub-Actions-Workflows mit gepinntem actionlint (Kontexte, Action-Inputs, Runner-Labels)"
+    cmds:
+      - bash scripts/lint-workflows.sh
+
   test:changed:
     desc: "Run only tests relevant to changed files (smart selection: vitest --changed + domain BATS + quality)"
     cmds:
@@ -1038,7 +1043,7 @@ tasks:
         # sonst Playwright fuer Changes ohne Website-Bezug starten (T002255).
         # freshness:check filtert bewusst NICHT — dort sind diese Pfade der Pruefgegenstand.
         CHANGED=$( (git diff --name-only HEAD origin/main 2>/dev/null || git diff --name-only HEAD 2>/dev/null; git diff --name-only HEAD) | sort -u | bash scripts/filter-generated.sh || true)
-        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false
+        RUN_WEBSITE=false; RUN_MENTOLDER_WEB=false; RUN_K8S=false; RUN_SCRIPTS=false; RUN_FACTORY=false; RUN_SPEC=false; RUN_UNIT=false; RUN_MCP=false; RUN_OPENSPEC=false; RUN_AGENTS=false; RUN_WORKFLOWS=false
         echo "$CHANGED" | grep -qE "^website/" && RUN_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^mentolder-web/" && RUN_MENTOLDER_WEB=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|prod|prod-fleet|prod-mentolder|prod-korczewski|environments/)" && RUN_K8S=true || true
@@ -1053,6 +1058,7 @@ tasks:
         echo "$CHANGED" | grep -qE "^(\.claude/skills/|\.mcp\.json|\.opencode/|tests/spec/mcp-tooling\.bats|scripts/ticket-mcp/)" && RUN_MCP=true || true
         echo "$CHANGED" | grep -qE "^(\.claude/agents/|AGENTS\.md)" && RUN_AGENTS=true || true
         echo "$CHANGED" | grep -qE "^openspec/" && RUN_OPENSPEC=true || true
+        echo "$CHANGED" | grep -qE "^\.github/workflows/" && RUN_WORKFLOWS=true || true
         echo "$CHANGED" | grep -qE "^website/(src|pages|components|layouts|lib)/" && RUN_E2E_WEBSITE=true || true
         echo "$CHANGED" | grep -qE "^brett/(src|app|components|lib)/" && RUN_E2E_BRETT=true || true
         echo "$CHANGED" | grep -qE "^(k3d/|environments/|VideoVault/)" && RUN_E2E_SERVICES=true || true
@@ -1105,6 +1111,7 @@ tasks:
         if [ "$RUN_MCP" = "true" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_UNIT" = "false" ]; then echo "→ MCP tooling guardrail"; task test:mcp-tooling; fi
         if [ "$RUN_AGENTS" = "true" ]; then echo "→ agent library changes: task test:agent-library"; task test:agent-library; fi
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
+        if [ "$RUN_WORKFLOWS" = "true" ]; then echo "→ workflow changes: task lint:workflows"; task lint:workflows; fi
 
         if [ "$RUN_E2E_WEBSITE" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e website changes: task test:e2e:website"; task test:e2e:website; fi
         # [T002375-p4] Erreichbarkeit pruefen, bevor die E2E-Gruppe laeuft. Bei jeder
@@ -1126,7 +1133,7 @@ tasks:
         if [ "$RUN_E2E_BRETT" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e brett changes: task test:e2e:brett"; task test:e2e:brett; fi
         if [ "$RUN_E2E_KORCZEWSKI" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e korczewski changes: task test:e2e:korczewski"; task test:e2e:korczewski; fi
 
-        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
+        if [ "$RUN_WEBSITE" = "false" ] && [ "$RUN_MENTOLDER_WEB" = "false" ] && [ "$RUN_K8S" = "false" ] && [ "$RUN_SCRIPTS" = "false" ] && [ "$RUN_FACTORY" = "false" ] && [ "$RUN_SPEC" = "false" ] && [ "$RUN_UNIT" = "false" ] && [ "$RUN_MCP" = "false" ] && [ "$RUN_AGENTS" = "false" ] && [ "$RUN_OPENSPEC" = "false" ] && [ "$RUN_WORKFLOWS" = "false" ] && [ "$RUN_E2E_WEBSITE" = "false" ] && [ "$RUN_E2E_SERVICES" = "false" ] && [ "$RUN_E2E_BRETT" = "false" ] && [ "$RUN_E2E_KORCZEWSKI" = "false" ]; then
           if command -v pnpm >/dev/null 2>&1 && (cd website && pnpm vitest --version >/dev/null 2>&1); then
             echo "→ no domain-specific changes: vitest --changed"
             (cd website && pnpm vitest run --changed --reporter verbose)

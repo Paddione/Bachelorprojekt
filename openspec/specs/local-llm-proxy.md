@@ -301,10 +301,13 @@ profile (`-np 5`, `-kvu`, larger context pool). Both SHALL use `-fit on` with co
 
 The proxy SHALL answer `GET /health` with the question "can I serve requests",
 not "is my process alive". Readiness is determined by the **enabled backends
-with `priority = 1`** — the local primary path. A lower-priority backend
-(cloud fallback) is reported but SHALL NOT make the proxy ready on its own,
-because it is slower, costs money and sends data off-premises, which the
-platform's GDPR-by-design stance treats as a fallback rather than a substitute.
+with `priority = 1`** — the local primary path. Backends sharing an
+`exclusiveGroup` (where only one member runs at a time, e.g. GPU loadouts on
+shared hardware) are evaluated as a **group**: the group is healthy when at
+least one member is healthy. A lower-priority backend (cloud fallback) is
+reported but SHALL NOT make the proxy ready on its own, because it is slower,
+costs money and sends data off-premises, which the platform's GDPR-by-design
+stance treats as a fallback rather than a substitute.
 
 The response body SHALL name the degraded backends in both the ready and the
 not-ready case, so a caller sees *which* backend is missing rather than only
@@ -334,6 +337,14 @@ not ready.
 - **GIVEN** no enabled backend has `priority = 1`
 - **WHEN** a caller requests `GET /health`
 - **THEN** the proxy responds `503` with `ready: false`
+
+#### Scenario: exclusiveGroup with one healthy member
+
+- **GIVEN** multiple enabled backends with `priority = 1` share the same `exclusiveGroup`
+- **AND** only one member of the group is healthy (the others are not started / unhealthy)
+- **WHEN** a caller requests `GET /health`
+- **THEN** the group is considered healthy (≥1 healthy member)
+- **AND** `ready: true`, the unhealthy siblings appear in `degraded`
 
 ### Requirement: Liveness has its own endpoint
 

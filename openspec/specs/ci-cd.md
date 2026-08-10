@@ -1846,6 +1846,24 @@ A bats run that already failed SHALL keep its own exit code; the guard SHALL NOT
 - **WHEN** `task test:spec` runs
 - **THEN** the task exits non-zero with the bats exit code
 
+### Requirement: FRESHNESS-001 — Test-Inventar discovery ignoriert .gitignore-Einträge
+
+`scripts/build-test-inventory.sh` ermittelt Testdateien über `git ls-files` und `git ls-files --others --exclude-standard`, um ausgeschlossene (`.gitignore`) oder build-erzeugte Artefakte nicht in `test-inventory.json` aufzunehmen.
+
+#### Scenario: Ignorierte Testdateien werden vom Inventar ignoriert
+GIVEN eine Datei unter `tests/spec/` ist durch `.gitignore` ignoriert
+WHEN `scripts/build-test-inventory.sh` ausgeführt wird
+THEN erscheint die ignorierte Datei NICHT in `website/src/data/test-inventory.json`.
+
+### Requirement: FRESHNESS-002 — Post-merge Hook stellt generierte Freshness-Artefakte wieder her
+
+.githooks/post-merge stellt nach dem Ausführen von `freshness:regenerate` alle generierten Freshness-Artefakte (`test-inventory.json`, `repo-index.json` usw.) auf `HEAD` zurück.
+
+#### Scenario: Post-merge hinterlässt sauberen main-Checkout
+GIVEN ein `git pull --ff-only` läuft auf `main`
+WHEN `.githooks/post-merge` beendet ist
+THEN ist der Arbeitsbaum auf `main` vollständig sauber (keine uncommitted diffs auf `test-inventory.json` oder `repo-index.json`).
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -2381,3 +2399,5 @@ läuft wieder nur mit den S1-S4-Gates aus `task quality:check`.
 <!-- merged from change delta ci-cd.md (c9b7eee15cd1) -->
 
 <!-- merged from change delta ci-cd.md (263e2c3094c5) -->
+
+<!-- merged from change delta ci-cd.md (c371dd5892a5) -->

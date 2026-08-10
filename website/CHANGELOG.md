@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.263.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.7...website-v1.263.8) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** plan-qa-check parst Modellantworten robust, RESULT-Zeile je Ausgang [T003112] ([#4169](https://github.com/Paddione/Bachelorprojekt/issues/4169)) ([35d1e8a](https://github.com/Paddione/Bachelorprojekt/commit/35d1e8a75634f0e4009d932e2560c6ff3e0c02a8))
+* **scripts:** worktree-clean-check als ausführbarer Vorcheck statt gepipetem git status [T002932] ([#4170](https://github.com/Paddione/Bachelorprojekt/issues/4170)) ([b0c8c55](https://github.com/Paddione/Bachelorprojekt/commit/b0c8c558cb5e60e536ac0deb2f76f1922099128f))
+
 ## [1.263.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.6...website-v1.263.7) (2026-08-10)
 
 

@@ -76,7 +76,7 @@ unverändert (der Blocker wurde bereits formal erfasst).
 > `psql -t`-Spalten mit `-A -F '|'`. Lange Titel verschoben die Spalten, sodass
 > `desc_len` Titelfragmente und `priority` den `created_at`-Wert enthielt. Die
 > JSON-Ausgabe unten ist spaltenausrichtungsinvariant — das Ergebnis wird mit
-> `jq -r '.result[]'` verarbeitet, nicht mit Split-by-Pipe.
+> `jq -r '.[0].result'` verarbeitet (mcp-postgres liefert `[{"result":"<json-string>"}]` — ein Array mit einem Objekt, dessen `result`-Feld den JSON-String enthält; der zweite Parse-Schritt ist explizit nötig), nicht mit Split-by-Pipe.
 
 > **Das `ORDER BY` steht INNERHALB des Aggregats [T002481].** Mit einem äußeren
 > `ORDER BY` scheitert die Query an einem GROUP-BY-Fehler: `json_agg` aggregiert

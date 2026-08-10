@@ -3027,6 +3027,12 @@
       "status": "archived"
     }
   ],
+  "T003078": [
+    {
+      "slug": "no-unasked-stash-T003078",
+      "status": "plan_staged"
+    }
+  ],
   "T003110": [
     {
       "slug": "agent-lock-sid-detection-T003110",

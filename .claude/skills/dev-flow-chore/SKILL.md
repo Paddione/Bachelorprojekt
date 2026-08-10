@@ -36,10 +36,26 @@ einem Rutsch erledigt und gemergt. Für Features/Fixes stattdessen `dev-flow-pla
 
 ## Schritt 0: Reaper & Pull-First
 
+Bei fremder Aktivität im Haupt-Checkout wird der Sync übersprungen (siehe
+`scripts/lib/main-checkout-foreign-guard.sh`, T003078/T003097) — der lokale
+`main`-Sync ist Hygiene, keine Korrektheitsvoraussetzung für den nachfolgenden
+`worktree-create.sh`-Aufruf, der ohnehin von `origin/main` aus anlegt.
+
 ```bash
 bash scripts/agent-lock.sh reap   # Session-Koordination [T000510]: Zombies/stale Worktrees/tote Locks räumen
 git fetch origin main
-if git diff --quiet HEAD; then git pull --rebase origin main; else git stash && git pull --rebase origin main && git stash pop; fi
+if git diff --quiet HEAD; then
+  git pull --rebase origin main
+else
+  . scripts/lib/main-checkout-foreign-guard.sh
+  if mc_foreign_activity_detected "$(pwd)"; then
+    echo "dev-flow-chore: main checkout ist dirty UND ein fremder Agent-Prozess ist dort aktiv — lokaler main-Sync wird übersprungen. scripts/worktree-create.sh (Schritt 1) erstellt den Worktree direkt von origin/main." >&2
+  else
+    git stash
+    git pull --rebase origin main
+    git stash pop
+  fi
+fi
 ```
 
 ## Schritt 0.5: Wiederkehrend oder einmalig?

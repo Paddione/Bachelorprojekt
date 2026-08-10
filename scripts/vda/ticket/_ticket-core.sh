@@ -156,8 +156,12 @@ _ticket_lock_guard() {
     # Bei Gleichheit der Halter-SID mit der eigenen Session ist es kein fremder
     # Lock → ohne Override durchlassen. Die Harness-UUID ist die einzige stabile
     # Session-Kennung (Unix-SID wechselt pro Bash-Call, T002375-p1).
+    # [T003110] Fragt agent-lock.sh nach der eigenen SID statt sie hier nachzubauen.
+    # Die private Namensliste (CLAUDE_CODE_SESSION_ID, CLAUDE_SESSION_ID) kannte
+    # AGENT_LOCK_SID und OPENCODE_SESSION_ID nicht — dieselbe Duplikations-Falle,
+    # vor der der T002424-Kommentar hier bereits warnt.
     local my_sid holder_sid
-    my_sid="${CLAUDE_CODE_SESSION_ID:-${CLAUDE_SESSION_ID:-}}"
+    my_sid="$(bash "$lock_sh" mine 2>/dev/null)"
     holder_sid="$(printf '%s' "$out" | sed -n 's/.*"owner_sid": *"\([^"]*\)".*/\1/p' | head -1)"
     if [[ -n "$my_sid" && -n "$holder_sid" && "$my_sid" == "$holder_sid" ]]; then
       return 0

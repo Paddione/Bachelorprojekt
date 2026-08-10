@@ -27,10 +27,9 @@ Bei jeder Anfrage in diesem Repo, die etwas verändern will. Nutze diesen Skill 
 ## Schritt −3: Deep Grilling (optional)
 
 Wenn das Feature komplex oder unklar ist, frage den User nach einer Grilling-Session.
-Nutze `lavish` für die Q/A-Session: Erstelle `.lavish/<slug>-grilling.html` mit den Fragen als
-interaktivem Formular (Input-Playbook), öffne es mit `npx -y lavish-axi .lavish/<slug>-grilling.html`
-und poll auf Antworten. Falls durchgeführt, erstelle das Grilling-Ticket via ticket-mcp
-(`create_ticket` mit type=task, title="Grilling: <kurzer-titel>").
+In opencode ist `lavish` nicht verfügbar (`.opencode/opencode.jsonc` deny-Liste);
+Brainstorming und Q/A laufen über strukturierte Frage-Listen im Chat. Falls durchgeführt,
+erstelle das Grilling-Ticket via ticket-mcp (`create_ticket` mit type=task, title="Grilling: <kurzer-titel>").
 
 ## Schritt −2: Main sync (Pull-First)
 
@@ -85,14 +84,13 @@ Frage den User aktiv nach Spec-Notizen, Mockups oder Screenshots. Lese Text- und
 
 #### Schritt A.1.5: Intel-Gathering → Plan Intel Bundle
 
-Befülle `intel.json` mit typisierter Typen-Wahrheit. Quellen:
-- `symbols` / `signature` / `type_text` → codebase-memory MCP
-- `call_graph` → codebase-memory `trace_path`
-- `db_tables` → mcp-postgres (`information_schema.columns`)
-- `api_contracts` → Read der API-Handler + Typen
-- `impact_files` / `s1_*` → `wc -l` + `docs/code-quality/baseline.json`
+Erzeuge `intel.json` deterministisch mit `scripts/plan-intel.sh`:
 
-Validiere lokal mit `jq`. Bei nicht erreichbaren Quellen: `risks[]`-Eintrag setzen.
+```bash
+bash scripts/plan-intel.sh <slug> --target-files <datei1> <datei2> ...
+```
+
+Das Skript sammelt `impact_files` (wc -l, s1-Limits), `symbols` (Funktionen, Typen), `call_graph` und `risks` automatisch. `plan-lint.sh` prüft I1 auf Vollständigkeit und warnt/failt, wenn die Datei fehlt oder target_files nicht abdeckt. Quellen im Fehlerfall manuell: codebase-memory MCP (`search_graph`/`trace_path`) für `symbols`/`call_graph`, mcp-postgres für `db_tables`, `wc -l` + `baseline.json` für `s1`-Budgets.
 
 #### Schritt A.2: Design-Bundle co-lokalisieren (nur UI-Tickets)
 
@@ -100,11 +98,19 @@ Wenn ein Design-Handoff existiert, lege Assets in `openspec/changes/<slug>/asset
 
 #### Schritt A.3: Lavish-Board starten ⚡ empfohlenes Werkzeug — vor Brainstorming
 
-Erstelle `.lavish/<slug>-brainstorm.html` (Sections: Intent, Constraints, Trade-offs, Entscheidungen) und öffne es mit `npx -y lavish-axi .lavish/<slug>-brainstorm.html`. Dieses Board dient als visuelles Arbeitsblatt während des Brainstormings. Lavish ist ein empfohlenes, aber kein verpflichtendes Werkzeug — nur aktivieren, wenn im Scope und User-Consent vorhanden (`opencode.jsonc` → `lavish.enabled`).
+In opencode ist `lavish` nicht verfügbar (`.opencode/opencode.jsonc` deny-Liste).
+Brainstorming läuft über strukturierte Frage-Listen im Chat — notiere Entscheidungen
+direkt im `proposal.md`-Draft.
 
 #### Schritt A.4: Brainstorming ⚡ IMMER
 
-Starte strukturiertes Brainstorming mit dem User. Nutze das `lavish`-Board aus A.3 für visuelle Dokumentation und strukturiertes Feedback. Tracke Fortschritt mit einer Plain-Text-Checkliste. Verwende einen read-only Subagenten (`delegate(prompt, agent)`) für Code-Exploration (Architektur/Code-Pfade).
+Starte strukturiertes Brainstorming mit dem User. Vor dem Brainstorming: **Prior-Art-Suche [T002829]** — prüfe `openspec/specs/` und `tests/spec/` auf bestehende Entscheidungen, die das aktuelle Problem bereits adressieren:
+
+```bash
+grep -rl '<Schlüsselwort>' openspec/specs/ tests/spec/ | head -10
+```
+
+Gefundene Entscheidungen im Change-Proposal zitieren; die Frage heißt dann „bestehende Entscheidung beibehalten oder bewusst ersetzen?", nicht „zum ersten Mal lösen". Nutze das `lavish`-Board aus A.3 für visuelle Dokumentation und strukturiertes Feedback. Tracke Fortschritt mit einer Plain-Text-Checkliste. Verwende einen read-only Subagenten (`delegate(prompt, agent)`) für Code-Exploration (Architektur/Code-Pfade).
 
 #### Schritt A.5: OpenSpec-Change anlegen — AUF MAIN
 
@@ -144,8 +150,12 @@ enqueued ist — parallel zum Schreiben des nächsten Partials.
 #### Schritt B.1: Worktree anlegen
 
 ```bash
-bash scripts/worktree-create.sh feature/<slug> .worktrees/<slug>
-bash scripts/agent-lock.sh claim branch "feature/<slug>" --worktree ".worktrees/<slug>" --label opencode-flow-plan
+# Preflight: wurde das Ticket bereits auf main gemergt? [T002279]
+bash scripts/plan-preflight.sh pre-worktree --ticket "$TICKET_EXT_ID"
+# rc=0 = fortfahren, rc=1 = bereits gemergt (Ticket done + abbrechen), rc=2 = Umgebung reparieren
+
+bash scripts/worktree-create.sh feature/<slug>-T"$TICKET_EXT_ID" .worktrees/<slug>
+bash scripts/agent-lock.sh claim branch "feature/<slug>-T$TICKET_EXT_ID" --worktree ".worktrees/<slug>" --label opencode-flow-plan
 ```
 
 #### Schritt B.2: Proposal-Artefakte in den Worktree verschieben
@@ -162,7 +172,7 @@ cd "${WT}"
 ```bash
 git add openspec/changes/<slug>/
 git commit -m "chore(plans): scaffold <slug> branch [$TICKET_EXT_ID]"
-git push -u origin feature/<slug>
+git push -u origin feature/<slug>-T"$TICKET_EXT_ID"
 ```
 
 ### Phase C: Im Worktree — Pipeline-Plan-Phase (Partial-Dispatch)
@@ -178,22 +188,8 @@ Datei in zwei Partials (D1 — `plan-lint.sh` erzwingt das im Partial-Modus).
 
 | Agent-Modell | Max files/partial | Max steps | Kontext-Fenster |
 |---|---|---|---|
-| gemma26-factory (26B) | 5 | 10 | ~99840 |
-| gemma9-factory (9B) | 2–3 | 5 | ~8192 |
+| gemma26-factory (26B) | 5 | 10 | ~161024 |
 | deepseek-* (Cloud) | 10+ | 50 | 128K–1M |
-
-**Gemma9-spezifische Partial-Sizing-Regeln:**
-- Jedes Partial umfasst **höchstens 2–3 Dateien** und **höchstens 5 Implementierungsschritte**
-- Ein Partial muss **in sich abgeschlossen** sein — der Agent darf keinen externen Kontext
-  aus anderen Partials benötigen
-- **Explizite Verifikation**: Jedes Partial listet eine konkrete Verifikation (z.B.
-  `task test:changed`, `python -c "import ..."`, `curl ...`)
-- **Keine indirekten Abhängigkeiten**: Wenn Partial p3 Datei X ändert, die p1 eingeführt hat,
-  muss p3 die vollständige X-Definition im Prompt enthalten (der 9B-Kontext reicht nicht
-  für werkzeugbasierte Exploration)
-- **Iterativer Fix-Loop**: Wenn ein Partial fehlschlägt → Fehler analysieren → Partial
-  korrigieren → direkt erneut enqueuen. Der Planner beobachtet den Factory-Output und
-  passt die folgenden Partials an
 
 #### Schritt C.2: Pipeline-Loop — Pro Partial: Plan → Stage → Enqueue → Factory
 
@@ -205,17 +201,10 @@ FOR each partial pX (p1, p2, ...):
   │
   ├─► Schritt C.2a: Partial-Plan schreiben
   │     Fan-out Subagent via `delegate(prompt, agent="explore")` — Kontext: proposal.md,
-  │     intel.json-Subset, Quality-Gates. Schreibt `tasks.d/pX-<name>.md`.
-  │
-  │     **Gemma9-Partials**: Jedes Partial braucht ein **Scaffolding-Preamble** am Anfang
-  │     der tasks.d/pX-Datei, das dem Agenten sagt, was er NICHT tun soll (keine
-  │     Exploration, keine Annahmen, nur den Plan ausführen). Format:
-  │     ```
-  │     # pX: <title>
-  │     > **Agent:** gemma9-{1,2} | **Files:** f1.ts, f2.ts | **Steps:** 3-5
-  │     > **Context budget:** 6000 tokens nach System-Prompt
-  │     > **Verify:** `<command>`
-  │     ```
+  │     intel.json-Subset, Quality-Gates. Der Prompt injiziert VERBINDLICH:
+  │     (1) die Referenz `plan-quality-gates.md`, (2) die Ausgabe von
+  │     `bash scripts/plan-lint.sh --rules` als führende Instruktion („gleiche Karten"
+  │     wie Factory und Claude). Schreibt `tasks.d/pX-<name>.md`.
   │
   ├─► Schritt C.2b: tasks.md-Index aktualisieren
   │     Der Orchestrator updated `tasks.md` mit dem neuen Partial-Eintrag im Manifest
@@ -224,14 +213,17 @@ FOR each partial pX (p1, p2, ...):
   ├─► Schritt C.2c: Commit + Push (Partial ist im Branch sichtbar)
   │     git add openspec/changes/<slug>/
   │     git commit -m "chore(plans): add partial pX-<name> for <slug> [$TICKET_EXT_ID]"
-  │     git push origin feature/<slug>
+  │     git push origin feature/<slug>-T"$TICKET_EXT_ID"
   │
   ├─► Schritt C.2d: Plan stagen (plan_staged + slot_count setzen)
+  │     # --no-hold: Pipeline-Dispatch — das Partial soll SOFORT von der Factory
+  │     # verarbeitet werden, waehrend der Planner das naechste Partial schreibt.
+  │     # stage-plan verlangt seit T003267 eine explizite Hold-Entscheidung.
   │     bash scripts/ticket.sh stage-plan \
   │       --id "$TICKET_EXT_ID" \
-  │       --branch "feature/<slug>" \
+  │       --branch "feature/<slug>-T$TICKET_EXT_ID" \
   │       --plan "openspec/changes/<slug>/tasks.md" \
-  │       --partials N
+  │       --partials N --no-hold
   │
   ├─► Schritt C.2e: Readiness-Flags setzen (damit auto-enqueue greift)
   │     ticket-mcp: set_readiness_flag({ id: "$TICKET_EXT_ID", flag: "spec_skizziert", value: true })
@@ -258,7 +250,7 @@ NACH dem letzten Partial (Tests):
   └─► Schritt C.5: Finaler Commit + Push
         git add openspec/changes/<slug>/
         git commit -m "chore(plans): finalize <slug> plan [$TICKET_EXT_ID]"
-        git push origin feature/<slug>
+        git push origin feature/<slug>-T"$TICKET_EXT_ID"
 ```
 
 ### Pipeline-Fluss (visuell)
@@ -291,6 +283,19 @@ Zeit │
 - **Qualitäts-Gate vor Design-Assets:** Jedes synchronisierte SVG vor dem Ablegen prüfen —
   `currentColor` statt `<img>`-Einbettung, keine Stray-Hex-Werte, kein Root-`width/height`,
   Export-Vollständigkeit. Unpassende Assets werden **verworfen**, nicht mitkopiert (T000756).
+- **Rotphasen-Binary-Guard [T002820]:** Verfügbarkeits-`skip` gehört in die Rotphase.
+  `grep -rn '<binary>' .github/workflows/` — 0 Treffer heißt: das Binary ist in CI nicht
+  vorhanden, der Test muss dafür skippen (`skip "binary not in CI"`) und lokal mit dem
+  vorhandenen Binary laufen.
+- **Symptom-vs-Hypothese [T002448-M5]:** Im Fix-Pfad die Bug-Ursache mit minimalem
+  Reproducer oder Log-Evidenz belegen, BEVOR die Lösung entworfen wird.
+- **Stage-Commits heißen `chore(plans):` [T001434]:** Plan-Commits tragen NIEMALS
+  `fix()`- oder `feat()`-Präfixe — Implementierungs-Präfixe wären eine Lüge;
+  `scripts/check-commit-vs-diff.sh` + `.githooks/commit-msg` blockieren sie.
+- **Kein fertig aussehender PR aus dem Plan-Stand [T002816]:** Am Ende von `opencode-flow-plan`
+  ist der Branch gepusht, der Plan committed, das Ticket `plan_staged`, der Lock aktiv —
+  aber es gibt KEINEN PR. Wenn früh ein PR gebraucht wird (z.B. für CI-Feedback):
+  Draft + Titel-Präfix `[plan-only]`.
 
 ### Fix-Pfad
 
@@ -300,32 +305,18 @@ Ein Fix braucht **zwingend einen failing Test**, bevor der Plan geschrieben wird
 hier harte Voraussetzung, nicht Stilfrage. Der Test gehört nach `tests/spec/<spec-slug>.bats`
 (die Spec aus `openspec/specs/`), nicht in eine neue ticket-nummerierte Datei.
 
-- Lege Bug-Ticket an (via ticket-mcp `create_ticket`), schreibe failing Test, erstelle Plan, stage, commit und push.
+- Lege Bug-Ticket an (via ticket-mcp `create_ticket`), schreibe failing Test, erstelle Plan, committe, pushe, DANN stage — und zwar IMMER nach dem Commit, weil `stage-plan` den Plan per `git cat-file -p "${branch}:${plan}"` aus dem Branch-Commit liest (T002673): vor dem Commit steht dort das propose-Skeleton, `touched_files` bliebe leer — seit T003267 bricht `stage-plan` dann hart ab.
 - Hinweis: Erstelle zusätzlich zu `design.md` auch `openspec/changes/<slug>/specs/<parent-ssot-slug>.md` nach der T001304-Delta-Konvention. **Pflicht-Format:** Die Delta-Spec MUSS exakt einen der vier Abschnitts-Header verwenden: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements` oder `## RENAMED Requirements`. Jede Anforderung beginnt mit `### Requirement: <Titel>` und enthält **mindestens einen** `#### Scenario:`-Block im GIVEN/WHEN/THEN-Format. `## ADDED:` / `## MODIFIED:` (ohne "Requirements") und Szenario-lose Requirements werden von `scripts/openspec-validate.test.ts` → `validateTree` abgelehnt und blockieren den CI-Merge.
-- `--hold`-Pflicht für interaktive Stage-Calls: Der Aufruf von `stage-plan` in diesem Schritt
-  MUSS `--hold` setzen. Dadurch wird das Ticket vom Factory-Dispatch zurückgehalten, bis
-  `opencode-flow-execute` es explizit freigibt.
+- `--hold`-Pflicht für interaktive Stage-Calls: Der Aufruf von `stage-plan` im Fix-Pfad MUSS `--hold` setzen. Dadurch wird das Ticket vom Factory-Dispatch zurückgehalten, bis `opencode-flow-execute` es explizit freigibt. Seit T003267 bricht `stage-plan` ohne eines der beiden Flags (`--hold`/`--no-hold`) mit Exit 1 ab.
 
 ### Pre-Commit Guard (PFLICHT vor Commit) [T001268]
 
-Bevor der plan-stage Commit läuft, MUSS der Operator verifizieren:
+Bevor der plan-stage Commit läuft, MUSS der Operator `plan-preflight.sh` aufrufen. Das Skript bündelt alle drei Checks (nicht-main, clean tree, Lock-Match) und den branch-scoped Fallback [T003102] — ein Einzeiler statt drei Inline-Snippets:
 
-1. **Nicht auf main committen:**
-   ```bash
-   CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-   [ "$CURRENT_BRANCH" != "main" ] || { echo "FATAL: plan-stage commit auf main ist verboten" >&2; exit 1; }
-   ```
-2. **Sauberer Status ist Pflicht:**
-   ```bash
-   [ -z "$(git status --porcelain)" ] || { echo "FATAL: working tree ist nicht sauber" >&2; exit 1; }
-   ```
-3. **Branch stimmt mit agent-lock claim überein:**
-   ```bash
-   LOCK_FILE="$(git rev-parse --git-common-dir)/agent-locks/ticket__${TICKET_EXT_ID}.json"
-   [ -f "$LOCK_FILE" ] || { echo "FATAL: kein ticket-scoped agent-lock-Claim für $TICKET_EXT_ID" >&2; exit 1; }
-   CLAIMED_BRANCH="$(jq -r '.branch' "$LOCK_FILE" 2>/dev/null)"
-   [ "$CLAIMED_BRANCH" = "$CURRENT_BRANCH" ] || { echo "FATAL: branch mismatch" >&2; exit 1; }
-   ```
+```bash
+bash scripts/plan-preflight.sh pre-commit --ticket "$TICKET_EXT_ID"
+# rc=0 = alle Checks grün · rc=1 = Guard verletzt · rc=2 = Umgebungsfehler
+```
 
 ## Verwandte Skills
 

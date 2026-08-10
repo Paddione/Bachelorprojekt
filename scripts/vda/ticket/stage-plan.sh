@@ -37,7 +37,7 @@ _exec_sql_with_timeout() {
 }
 
 main() {
-  local id="" branch="" plan="" partials="1" hold=0
+  local id="" branch="" plan="" partials="1" hold="" allow_empty=0 derived plan_tmp
   while [[ $# -gt 0 ]]; do case "$1" in
       --id)       id="$2"; shift 2 ;;
       --branch)   branch="$2"; shift 2 ;;
@@ -49,19 +49,26 @@ main() {
       # Richtungen verdoppelt die Oberflaeche, ohne das Problem kleiner zu machen.
       --plan|--plan-file) plan="$2"; shift 2 ;;
       --partials) partials="$2"; shift 2 ;;
-      --hold)     hold=1; shift ;;
+      --hold)                 hold=1; shift ;;
+      --no-hold)              hold=0; shift ;;
+      --allow-empty-touched)  allow_empty=1; shift ;;
       # Die Fehlermeldung ist der einzige Ort, an dem ein Aufrufer im Fehlerfall
       # ueberhaupt hinsieht — also nennt sie die gueltigen Flags. [T002375-p3]
       *)          echo "Unknown stage-plan option: $1" >&2
-                  echo "  Gueltige Flags: --id <ext-id> --branch <branch> --plan|--plan-file <pfad> --partials <1..9> [--hold]" >&2
+                  echo "  Gueltige Flags: --id <ext-id> --branch <branch> --plan|--plan-file <pfad> --partials <1..9> --hold|--no-hold [--allow-empty-touched]" >&2
                   echo "  --partials ist PFLICHT, auch fuer einen einzelnen, nicht aufgeteilten Plan." >&2
-                  echo "  Ohne --hold ist das Ticket sofort factory-greifbar (stage-plan weckt factory.service)." >&2
+                  echo "  stage-plan verlangt seit T003267 eine explizite Hold-Entscheidung: --hold = Operator gibt spaeter frei, --no-hold = Factory greift sofort zu." >&2
                   exit 2 ;;
     esac; done
   if [[ -z "$id"     ]]; then echo "ERROR: --id is required."     >&2; exit 2; fi
   if [[ -z "$branch" ]]; then echo "ERROR: --branch is required." >&2; exit 2; fi
   if [[ -z "$plan"   ]]; then echo "ERROR: --plan is required."   >&2; exit 2; fi
   case "$partials" in [1-9]) ;; *) echo "ERROR: --partials must be 1..9" >&2; exit 2 ;; esac
+  if [[ -z "$hold" ]]; then
+    echo "ERROR: stage-plan verlangt eine explizite Hold-Entscheidung." >&2
+    echo "  Ohne Flag kein Stage: --hold = Operator gibt spaeter frei, --no-hold = Factory greift sofort zu." >&2
+    exit 1
+  fi
   # [T002471-M6] plan_file muss im Git-Tree von branch oder HEAD sein
   # Der reine -f-Check auf Disk akzeptierte Dateien, die nur im Staging-Bereich lagen,
   # aber nicht committed waren. Die Factory findet sie dann nicht.
@@ -72,23 +79,10 @@ main() {
     echo "  Verwende 'git add' und 'git commit' oder pushe den Branch." >&2
     exit 1
   fi
-  local pod; pod=$(_pgpod)
-  _exec_sql_with_timeout "$pod" -v ext_id="$id" -v partials="$partials" -- status-update <<'EOF'
-UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer
- WHERE external_id = :'ext_id';
-EOF
 
-  # [T002446] touched_files aus dem `## File Structure`-Block des Plans ableiten.
-  # Bisher setzte erst dev-flow-execute Schritt 1.5 die Spalte, und dort konditional
-  # ("Falls der Plan die beruehrten Dateien kennt"). Der Plan kennt sie immer —
-  # `## File Structure` ist plan-lint Hard Rule STRUCT1 — also wird hier geschrieben,
-  # sobald die Information existiert, statt auf einen spaeteren Prosa-Schritt zu hoffen.
-  #
-  # ERGAENZEND, nicht ersetzend: der Implementer beruehrt regelmaessig Dateien, die im Plan
-  # nicht standen, und traegt sie ueber Schritt 1.5 nach. Ein `SET touched_files = <plan>`
-  # wuerde diese Nachtraege bei jedem erneuten stage-plan verwerfen. Die Vereinigung
-  # passiert in SQL, damit sie atomar bleibt.
-  local derived plan_content plan_tmp
+  # [T002446] touched_files aus dem `## File Structure`-Block des Plans ableiten —
+  # JETZT vor dem ersten SQL-Write (T003267 P2.2), damit ein leerer Derivation-Fund
+  # das Ticket nicht halb gestaged zuruecklaesst.
   plan_tmp="$(mktemp)"
   if git cat-file -e "${branch}:${plan}" 2>/dev/null; then
     git cat-file -p "${branch}:${plan}" >"$plan_tmp" 2>/dev/null
@@ -99,6 +93,20 @@ EOF
   fi
   derived="$(bash "$(dirname "${BASH_SOURCE[0]}")/../../plan-touched-files.sh" "$plan_tmp" 2>/dev/null || true)"
   rm -f "$plan_tmp"
+
+  if [[ -z "${derived//[[:space:]]/}" && "$allow_empty" != "1" ]]; then
+    echo "ERROR: keine touched_files aus '${plan}' ableitbar (T002673)." >&2
+    echo "  Plan im Branch-Commit ist noch das propose-Skeleton? Erst committen, dann stagen." >&2
+    echo "  Bewusster Sonderfall ohne File-Structure-Pfade: --allow-empty-touched setzen." >&2
+    exit 1
+  fi
+
+  local pod; pod=$(_pgpod)
+  _exec_sql_with_timeout "$pod" -v ext_id="$id" -v partials="$partials" -- status-update <<'EOF'
+UPDATE tickets.tickets SET status='plan_staged', slot_count = :'partials'::integer
+ WHERE external_id = :'ext_id';
+EOF
+
   if [[ -n "${derived//[[:space:]]/}" ]]; then
     local csv; csv="$(printf '%s' "$derived" | paste -sd, -)"
     _exec_sql "$pod" -v ext_id="$id" -v files="$csv" <<'EOF' >/dev/null
@@ -112,7 +120,7 @@ UPDATE tickets.tickets
 EOF
     echo "touched_files: $(printf '%s\n' "$derived" | grep -c .) Pfad(e) aus dem Plan uebernommen" >&2
   else
-    echo "touched_files: keine Pfade aus '${plan}' ableitbar — Spalte unveraendert" >&2
+    echo "touched_files: --allow-empty-touched — Spalte unveraendert" >&2
   fi
   if [[ "$hold" == "1" ]]; then
     _exec_sql_with_timeout "$pod" -v ext_id="$id" -- hold-flag <<'EOF'

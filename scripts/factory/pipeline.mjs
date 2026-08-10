@@ -319,6 +319,20 @@ if (!isSimple) {
     return { status: 'blocked', reason: 'file-overlap', conflict, released: true }
   }
 
+  // [T003267] Hard rules BEFORE writing: feed plan-lint's canonical rule prose to
+  // the local model so it does not learn the rules from a red linter afterwards.
+  // No Node APIs in this sandbox (see runRunner header) — agent shell-out, fail-open.
+  let planRules = ''
+  try {
+    const rulesOut = await agent(
+      `CRITICAL: Run this EXACT shell command via Bash tool. Return ONLY its raw stdout. No explanation, no commentary.
+Command:
+bash ${REPO}/scripts/plan-lint.sh --rules`,
+      { label: 'plan:rules', phase: 'Plan', model: FACTORY_MODEL },
+    )
+    if (rulesOut) planRules = `\n\n${String(rulesOut).trim()}`
+  } catch { log('plan:rules fetch failed — decompose runs without rule injection') }
+
   const injections = await consumeInjections('plan')
   const plan = await agent(
     `/goal Decompose specification into task list plan.
@@ -330,7 +344,7 @@ if (!isSimple) {
      (create the directory with mkdir -p ${REPO}/openspec/changes/${slug} first).
      Do NOT run the frontmatter hook (openspec tasks have no frontmatter).
 
-     Return JSON { tasks: [...], plan_path: "<absolute path>" }` + injections,
+     Return JSON { tasks: [...], plan_path: "<absolute path>" }` + planRules + injections,
     {
       model: FACTORY_MODEL,
       label: 'plan:decompose',

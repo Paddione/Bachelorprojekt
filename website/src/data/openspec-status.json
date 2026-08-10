@@ -3123,6 +3123,12 @@
       "status": "archived"
     }
   ],
+  "T003267": [
+    {
+      "slug": "cross-harness-plan-guardrails",
+      "status": "plan_staged"
+    }
+  ],
   "T003269": [
     {
       "slug": "factory-prep-stdout-leak",

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/plan-lint.sh — deterministic, fail-closed implementation-plan linter.
-# Usage: scripts/plan-lint.sh [--json] <plan-file>
+# Usage: scripts/plan-lint.sh [--json] <plan-file> | --rules | residual_budget <file>
 # Exit 1 = at least one HARD fail (gate). Exit 0 = pass (warnings allowed).
 # Pure CLI: reads plan markdown + docs/code-quality/baseline.json + live `wc -l`.
 set -euo pipefail
@@ -98,6 +98,33 @@ residual_budget() {
   echo $(( thr - cur ))
 }
 
+# --- rule constants: single source for the check blocks AND --rules prose ---
+F1_KEYS="title ticket_id domains status"
+STRUCT2_RUNNERS_RE='\b(bats|vitest|pytest|jest|mocha|go test|playwright test|node --test)\b'
+STRUCT3_CMDS="test:changed freshness:regenerate freshness:check"
+P1_RE='\b(TBD|TODO|FIXME)\b|\?\?\?|<ausfüllen>|similar to Task [0-9]'
+B1B_SPLIT_RE='split|extract|verkleiner|shrink|aufteil'
+PARTIAL_TOKEN_LIMIT=7000
+
+_print_rules() {
+  cat <<_RULES_EOF
+PLAN-LINT HARD RULES (fail-closed; any violation = exit 1). Write the plan to satisfy ALL of these:
+F1: YAML frontmatter at the very top with non-empty keys: $(IFS=,; echo "${F1_KEYS// /, }").
+F2: 'domains' must be a non-empty YAML list (not '', not [], not null).
+STRUCT1: after the frontmatter: H1 '# <slug> — Implementation Plan', then an H2 section '## File Structure' listing changed/new files.
+STRUCT2: at least one task runs a real test runner (${STRUCT2_RUNNERS_RE}) and expects it to FAIL first. The final 'task test:*' verify does NOT count.
+STRUCT3: the last task lists verbatim: $(for c in $STRUCT3_CMDS; do printf 'task %s; ' "$c"; done)
+STRUCT-PARTIAL: if tasks.d/ exists next to tasks.md, tasks.md needs a '## Partials' manifest table; every referenced partial file must exist; the last row's role is 'tests'.
+D1: no file may appear in the target_files of two partials (disjoint split).
+D2: depends_on may only reference existing partial ids and must be acyclic.
+I1: intel.json must exist in the change dir, be valid JSON with meta/impact_files/symbols, and cover every target_file.
+P1: no open placeholders in prose outside code fences/inline code (regex: ${P1_RE}).
+B1a: any numeric budget claimed for an existing file must EXACTLY equal the computed effective budget (max(extension limit, baseline) - current lines). When unsure, claim no number.
+B1b (warn): if a file's effective budget is <= 0, plan a real split/shrink step (keywords: ${B1B_SPLIT_RE}).
+T002453-C: every tasks.d/ partial stays <= ${PARTIAL_TOKEN_LIMIT} tokens (~$((PARTIAL_TOKEN_LIMIT*4)) chars) - split the slot otherwise.
+_RULES_EOF
+}
+
 # Direct subcommand or self-test hook:
 if [[ "${1:-}" == "residual_budget" ]]; then
   shift
@@ -115,9 +142,11 @@ if [[ "${PLAN_LINT_SELFTEST:-0}" == "1" ]]; then
   exit $?
 fi
 
+if [[ "${1:-}" == "--rules" ]]; then _print_rules; exit 0; fi
+
 JSON=0
 if [[ "${1:-}" == "--json" ]]; then JSON=1; shift; fi
-PLAN="${1:?Usage: plan-lint.sh [--json] <plan-file> | residual_budget <file>}"
+PLAN="${1:?Usage: plan-lint.sh [--json] <plan-file> | --rules | residual_budget <file>}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BASELINE="$REPO_ROOT/docs/code-quality/baseline.json"
@@ -137,7 +166,7 @@ fm_field() {  # fm_field <key> -> value (empty if absent)
 }
 
 # === F1/F2: frontmatter completeness ===
-for key in title ticket_id domains status; do
+for key in $F1_KEYS; do
   [[ -n "$(fm_field "$key")" ]] || hard "F1: frontmatter missing required key '$key'"
 done
 dom="$(fm_field domains | tr -d ' \t\r')"
@@ -297,8 +326,8 @@ if [[ -d "$PLAN_DIR/tasks.d" && "$(basename "$PLAN")" == "tasks.md" ]]; then
       [[ -f "$partial_file" ]] || continue
       chars=$(wc -c < "$partial_file")
       tokens=$(( (chars + 3) / 4 ))
-      if [[ $tokens -gt 7000 ]]; then
-        hard "T002453-C: $(basename "$partial_file") hat ~${tokens} Token (>7000). Slot zu gross — verkleinern oder aufteilen."
+      if [[ $tokens -gt $PARTIAL_TOKEN_LIMIT ]]; then
+        hard "T002453-C: $(basename "$partial_file") hat ~${tokens} Token (>$PARTIAL_TOKEN_LIMIT). Slot zu gross — verkleinern oder aufteilen."
       fi
     done
   fi
@@ -315,7 +344,7 @@ fi
 # node:test-RED-Step an STRUCT2, egal wie gut er ist. Das Gate erzwang damit ein
 # Framework, das das Repo fuer JS gar nicht verwendet.
 if grep -qiE 'expected:? *fail|verify (it|test).*fail|to verify (it|they) fail' "$STRUCT2_FILE"; then
-  if grep -qiE '\b(bats|vitest|pytest|jest|mocha|go test|playwright test|node --test)\b' "$STRUCT2_FILE"; then
+  if grep -qiE "$STRUCT2_RUNNERS_RE" "$STRUCT2_FILE"; then
     :
   else
     hard "STRUCT2: failing-test phrase present but no test-runner invocation (bats/vitest/pytest/node --test/…) — the final 'task test:*' gate does not count as the failing test"
@@ -326,9 +355,9 @@ fi
 
 # === STRUCT3: final verify task lists the three mandatory gate commands ===
 # Per the linter contract: test:changed (NOT test:all), freshness:regenerate, freshness:check.
-grep -qE 'task[[:space:]]+test:changed'         "$PLAN" || hard "STRUCT3: verify task missing 'task test:changed'"
-grep -qE 'task[[:space:]]+freshness:regenerate' "$PLAN" || hard "STRUCT3: verify task missing 'task freshness:regenerate'"
-grep -qE 'task[[:space:]]+freshness:check'      "$PLAN" || hard "STRUCT3: verify task missing 'task freshness:check'"
+for cmd in $STRUCT3_CMDS; do
+  grep -qE "task[[:space:]]+$cmd" "$PLAN" || hard "STRUCT3: verify task missing 'task $cmd'"
+done
 
 # === P1: no open placeholders in the plan body (outside code fences) ===
 # Strip fenced code blocks first so example snippets don't false-positive,
@@ -337,7 +366,7 @@ grep -qE 'task[[:space:]]+freshness:check'      "$PLAN" || hard "STRUCT3: verify
 # not flagged — only an UNQUOTED placeholder left in real prose is a hard fail.
 PLAN_PROSE="$(awk 'BEGIN{inf=0}/^```/{inf=!inf;next}inf==0{print}' "$PLAN")"
 PLAN_PROSE_NOCODE="$(sed 's/`[^`]*`//g' <<<"$PLAN_PROSE")"
-if grep -nE '\b(TBD|TODO|FIXME)\b|\?\?\?|<ausfüllen>|similar to Task [0-9]' <<<"$PLAN_PROSE_NOCODE" >/dev/null; then
+if grep -nE "$P1_RE" <<<"$PLAN_PROSE_NOCODE" >/dev/null; then
   hard "P1: open placeholder found (TBD/TODO/FIXME/???/'similar to Task N')"
 fi
 
@@ -387,7 +416,7 @@ while IFS= read -r path; do
   fi
   if [[ -n "$computed" && "$computed" -le 0 ]]; then
     # B1b: only warn when no split/shrink step is planned for this file.
-    if ! grep -qiE "split|extract|verkleiner|shrink|aufteil" "$PLAN"; then
+    if ! grep -qiE "$B1B_SPLIT_RE" "$PLAN"; then
       warn "B1b: $path residual budget $computed ≤ 0 and no split/shrink step planned"
     fi
   fi

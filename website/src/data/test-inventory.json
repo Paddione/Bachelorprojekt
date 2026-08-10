@@ -3894,6 +3894,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/babysit-prs-live-lock-guard-T003137",
+    "file": "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/brand-is-row-filter-not-namespace",
     "file": "tests/spec/software-factory/brand-is-row-filter-not-namespace.bats",
     "category": "software-factory",

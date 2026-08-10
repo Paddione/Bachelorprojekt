@@ -3456,6 +3456,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/half-archive-uncommitted",
+    "file": "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/ticket-file-required",
     "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",

@@ -64,7 +64,7 @@ teardown() {
 
   # Und es hält nicht an toter Evidenz fest: ist der Prozess beendet, ist er weg.
   kill "$WORKER_PID" 2>/dev/null
-  wait "$WORKER_PID" 2>/dev/null
+  wait "$WORKER_PID" 2>/dev/null || true
   run bash -c "cd '$REPO' && bash '$AGENT_LOCK' activity"
   [ "$status" -eq 0 ]
   ! grep -qF "$WORKER_PID" <<<"$output"

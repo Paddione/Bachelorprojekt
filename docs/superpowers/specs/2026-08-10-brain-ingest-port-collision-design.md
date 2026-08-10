@@ -165,8 +165,11 @@ Nicht Teil dieses Vorgangs:
 
 - **T003202** — der llm-proxy meldet dauerhaft `ready: false`, weil die Readiness-Definition
   (`local-llm-proxy.md:303`) der `exclusiveGroup`-Semantik (`:577`) widerspricht.
-- **Vorgang 2** — Messreihe qwen3-coder gegen gptoss-context, danach Routing-Entscheidung und
-  Abschaltung von `devstral-quality`.
+- **T003204 (Vorgang 2)** — Messreihe qwen3-coder gegen gptoss-context, Routing-Entscheidung,
+  Abschaltung von `devstral-quality` sowie der A/B-Vergleich der **Ingest-Modellwahl**. Das
+  Loadout `brain-ingest` fährt `gpt-oss-20b` mit `parallel: 4` und `reasoning: "auto"`, ohne
+  dass die `notes` das begründen — die Wahl ist geerbt und vermutlich VRAM-getrieben, nicht
+  qualitätsgetrieben. Dieser Vorgang ändert am Modell **nichts**; er verschiebt nur den Port.
 - **Vorgang 3** — bge-embed und bge-rerank in den llm-proxy holen (CPU als `priority=1`,
   Cluster-Gateways als `priority=2`).
 - **Bonsai-Reste** in `scripts/llm-host-setup.sh` und `taskfiles/Taskfile.llm.yml`: Sie

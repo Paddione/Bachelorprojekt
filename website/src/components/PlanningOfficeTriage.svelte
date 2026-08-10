@@ -12,7 +12,7 @@
   async function triageAction(action: 'apply' | 'discard') {
     busy = true;
     try {
-      await fetch(`/api/admin/planungsbuero/${extId}`, {
+      await fetch(`/sdlc/api/planungsbuero/${extId}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ triageAction: action }),

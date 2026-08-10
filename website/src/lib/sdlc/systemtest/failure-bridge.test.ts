@@ -187,7 +187,7 @@ describe.skipIf(!dbAvailable)('openFailureTicket', () => {
     expect(t.rows[0].parent_id).toBeTruthy();
     expect(t.rows[0].description).toContain('Login lands on /portal');
     expect(t.rows[0].description).toContain('Login button stays disabled.');
-    expect(t.rows[0].description).toContain(`/api/admin/evidence/${evidenceId}/replay`);
+    expect(t.rows[0].description).toContain(`/sdlc/api/evidence/${evidenceId}/replay`);
     expect(t.rows[0].description).toContain(`/admin/fragebogen/${f.assignmentId}`);
 
     // The auto-created parent epic is type='project', component='systemtest'

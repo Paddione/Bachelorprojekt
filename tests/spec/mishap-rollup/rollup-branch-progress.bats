@@ -172,4 +172,11 @@ remote_count() {
   [ "$status" -eq 0 ] || { echo "Publish bleibt bei divergiertem Remote haengen"; false; }
   [ "$(remote_tip)" != "$diverged" ] || {
     echo "Remote-Tip unveraendert — der divergierte Stand hat den Push dauerhaft blockiert"; false; }
+  # Der parallele Commit (fremde Datei parallel.txt) muss den Rebuild ueberleben.
+  # Ohne die Trennung von Index (mixed reset) und Worktree wuerde der neue Commit
+  # die fremde Datei als Deletion mitnehmen — der Generator haette Fremdarbeit
+  # stillschweigend zerstoert.
+  git -C "$TR" fetch -q origin "$BR"
+  run git -C "$TR" show "FETCH_HEAD:parallel.txt"
+  [ "$status" -eq 0 ] || { echo "Fremde Datei parallel.txt wurde vom Divergenz-Rebuild verworfen"; false; }
 }

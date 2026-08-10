@@ -119,7 +119,7 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
     const delays = [5_000, 15_000, 45_000];
     for (let attemptN = 0; ; attemptN++) {
       try {
-        const res = await fetch('/api/admin/evidence/upload', {
+        const res = await fetch('/sdlc/api/evidence/upload', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body,
@@ -162,7 +162,7 @@ export function startRecorder(opts: RecorderOpts): RecorderHandle {
       ],
       { type: 'application/json' },
     );
-    navigator.sendBeacon('/api/admin/evidence/upload', blob);
+    navigator.sendBeacon('/sdlc/api/evidence/upload', blob);
   };
   window.addEventListener('pagehide', handlePageHide);
   window.addEventListener('beforeunload', handlePageHide);

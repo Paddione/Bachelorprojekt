@@ -91,6 +91,19 @@ _seed_if_placeholder() {
 }
 
 cmd_propose() {
+  # ── --help (vor allen Guards, T002908) ──────────────────────────────────
+  if [[ "${1:-}" == "--help" ]]; then
+    cat <<'HELP'
+Usage: scripts/openspec.sh propose <slug> --ticket <ext-id>
+  <slug>          change slug, e.g. my-feature
+  --ticket        external ticket id, e.g. T000123 (Pflicht)
+  --target-spec   delta spec name (default: <slug>)
+  --resume        nur fehlende/leere Dateien seeden, befuellte unangetastet
+
+OPENSPEC_ROOT   openspec/ root ueberschreiben (Tests gegen Fixtures)
+HELP
+    return 0
+  fi
   local slug="${1:-}"; shift || true
   local ticket=""
   local target_spec=""

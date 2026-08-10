@@ -26,7 +26,7 @@
   async function loadAssets() {
     loading = true;
     try {
-      const res = await fetch('/api/admin/platform/software');
+      const res = await fetch('/sdlc/api/platform/software');
       if (!res.ok) throw new Error('Failed to fetch assets');
       const data = await res.json();
       assets = data.assets;

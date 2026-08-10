@@ -13,7 +13,7 @@
   async function loadCerts() {
     certsLoading = true; certsError = null;
     try {
-      const res = await fetch('/api/admin/ops/certs');
+      const res = await fetch('/sdlc/api/ops/certs');
       if (res.ok) { certsData = await res.json(); }
       else { const j = await res.json().catch(() => ({})); certsError = j.error ?? `Fehler ${res.status}`; }
     } catch (e) { certsError = (e as Error).message; }

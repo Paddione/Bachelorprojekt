@@ -25,11 +25,25 @@ setup() {
   done
 }
 
-@test "T002462 Die vier D7-Gruppen sind in der Astro-Hülle vorhanden" {
-  for group in "Laufende Epics" "Was Aufmerksamkeit braucht" "Aktive Agenten" "Modell-Server"; do
-    grep -qF "$group" "$ASTRO" \
-      || { echo "Gruppe '$group' fehlt in cockpit.astro"; return 1; }
-  done
+# [T003417] Die Astro-Hülle trägt die Rail-Gruppen nicht mehr. Der Change
+# "sdlc-dashboard-redesign" hebt die D7-Zusicherung "vier feste Gruppen" für die
+# Astro-Seite ausdrücklich auf — siehe MODIFIED Requirement "Layout Engine
+# Surface Organization": "the old spec's four-group immutable list constraint no
+# longer applies". Die Gruppen leben jetzt in CockpitRail.svelte und wechseln mit
+# Modus und Phase; belegt wird das durch die Vitest-Komponententests
+# (website/src/components/cockpit/CockpitRail.test.ts), die jede Phase einzeln
+# rendern. Für cockpit-shell.html (die statische Attrappe unter .lavish/) gilt
+# D7 unverändert weiter — der Test darüber bleibt deshalb bestehen.
+@test "T003417 Die Astro-Hülle delegiert die Rail an die Komponente" {
+  # Positiv-Anker: die Hülle bindet die Rail-Komponente überhaupt ein.
+  grep -qF "CockpitRail" "$ASTRO" \
+    || { echo "cockpit.astro bindet CockpitRail nicht ein"; return 1; }
+
+  # Und reicht ihr den Kontext durch, von dem die Gruppen abhängen.
+  grep -qE 'CockpitRail[^>]*mode=' "$ASTRO" \
+    || { echo "cockpit.astro reicht mode nicht an CockpitRail durch"; return 1; }
+  grep -qE 'CockpitRail[^>]*phase=' "$ASTRO" \
+    || { echo "cockpit.astro reicht phase nicht an CockpitRail durch"; return 1; }
 }
 
 @test "T002462 Es gibt keinen Konfigurationsschlüssel, der die Rail-Gruppen umstellt" {

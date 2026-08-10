@@ -55,7 +55,7 @@
   async function loadData() {
     try {
       loading = true; error = '';
-      const [sRes, rRes] = await Promise.all([fetch('/api/factory-budget'), fetch('/api/factory-budget?recent=true')]);
+      const [sRes, rRes] = await Promise.all([fetch('/sdlc/api/factory-budget'), fetch('/sdlc/api/factory-budget?recent=true')]);
       if (!sRes.ok || !rRes.ok) throw new Error('Fehler beim Laden');
       summary = await sRes.json();
       recentRuns = await rRes.json();
@@ -73,7 +73,7 @@
       saving = true; saveSuccess = false; saveError = '';
       const parsed = parseFloat(limitInput);
       if (isNaN(parsed) || parsed < 0) throw new Error('Ungültiges Limit');
-      const res = await fetch('/api/factory-budget', {
+      const res = await fetch('/sdlc/api/factory-budget', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ limit: parsed })
@@ -93,7 +93,7 @@
     if (!ticketSearchId.trim()) return;
     try {
       searchingTicket = true; ticketSearchError = ''; ticketRows = [];
-      const res = await fetch(`/api/factory-budget?ticketId=${encodeURIComponent(ticketSearchId.trim())}`);
+      const res = await fetch(`/sdlc/api/factory-budget?ticketId=${encodeURIComponent(ticketSearchId.trim())}`);
       if (!res.ok) throw new Error('Ticket nicht gefunden');
       ticketRows = await res.json();
       if (ticketRows.length === 0) ticketSearchError = 'Keine Budgetdaten gefunden.';

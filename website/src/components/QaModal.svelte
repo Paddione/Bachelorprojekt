@@ -40,7 +40,7 @@
     submitting = true;
     error = '';
     try {
-      const res = await fetch('/api/admin/qa-reviews', {
+      const res = await fetch('/sdlc/api/qa-reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

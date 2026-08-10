@@ -61,7 +61,7 @@
   async function load() {
     loading = true;
     try {
-      const r = await fetch('/api/admin/planungsbuero');
+      const r = await fetch('/sdlc/api/planungsbuero');
       if (r.ok) {
         const data = await r.json();
         items = data.items;
@@ -77,7 +77,7 @@
   }
 
   async function patch(extId: string, body: Record<string, unknown>) {
-    await fetch(`/api/admin/planungsbuero/${extId}`, {
+    await fetch(`/sdlc/api/planungsbuero/${extId}`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body),
@@ -97,7 +97,7 @@
   // Toggle the Lastenheft lock. Locking needs >=1 requirement (server-enforced) and
   // forwards the ticket into the autopilot lane → it leaves the Planungsbüro.
   async function toggleLock(it: PlanItem) {
-    const r = await fetch(`/api/admin/planungsbuero/${it.extId}`, {
+    const r = await fetch(`/sdlc/api/planungsbuero/${it.extId}`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ lastenheftLocked: !it.lastenheftLocked }),
@@ -115,7 +115,7 @@
   }
 
   async function promote(it: PlanItem) {
-    const r = await fetch(`/api/planning-office/${it.extId}/promote`, {
+    const r = await fetch(`/sdlc/api/planning-office/${it.extId}/promote`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ override }),
@@ -138,7 +138,7 @@
 
   async function addIdea() {
     if (!newTitle.trim()) return;
-    const r = await fetch('/api/planning-office', {
+    const r = await fetch('/sdlc/api/planning-office', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ title: newTitle.trim(), brand: _brand, effort: newEffort }),

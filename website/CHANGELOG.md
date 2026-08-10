@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.265.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.264.2...website-v1.265.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** Dispatch-Mitschnitt am llm-proxy + Cockpit-Panel [T003277] ([#4209](https://github.com/Paddione/Bachelorprojekt/issues/4209)) ([af949ec](https://github.com/Paddione/Bachelorprojekt/commit/af949ec917589ed50316c1909526d767a2fbddf4))
+
 ## [1.264.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.264.1...website-v1.264.2) (2026-08-10)
 
 

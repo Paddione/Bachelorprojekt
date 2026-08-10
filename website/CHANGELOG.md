@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.263.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.4...website-v1.263.5) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 7/8 — Factory-Budget und Systemtest [T003483] ([#4163](https://github.com/Paddione/Bachelorprojekt/issues/4163)) ([56102f2](https://github.com/Paddione/Bachelorprojekt/commit/56102f2791ffd00c73ec3c012535b6ee22db466f))
+
 ## [1.263.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.3...website-v1.263.4) (2026-08-10)
 
 

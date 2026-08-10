@@ -1,27 +1,33 @@
 <script lang="ts">
-  let traceCount = $state(0);
-  let recording = $state(false);
-  let throughput = $state('—');
-  let avgTime = $state('—');
+  import { onMount } from 'svelte';
+  import { getSharedMetrics } from '../../../lib/stores/factory-floor-store';
+  import { deriveMetrics, formatCycleTime } from '../../../lib/sdlc/factory-metrics-derive';
+  import type { DerivedMetrics } from '../../../lib/sdlc/factory-metrics-derive';
 
+  const WINDOW_DAYS = 7;
+
+  let derived = $state<DerivedMetrics | null>(null);
+  let loadError = $state<string | null>(null);
+  let loading = $state(true);
+
+  // Kein stiller catch: schlaegt der Abruf fehl, wird das ANGEZEIGT statt als
+  // '—' getarnt. Genau diese Tarnung liess den 404 auf /api/factory-metrics
+  // wie "keine Daten vorhanden" aussehen [T003459].
   async function loadMetrics() {
+    loading = true;
+    loadError = null;
     try {
-      // In a real implementation, these would come from dedicated API endpoints
-      // For now, show placeholder values that indicate the architecture is in place
-    } catch {
-      // silent
+      const payload = await getSharedMetrics(true);
+      derived = deriveMetrics(payload.metrics ?? [], WINDOW_DAYS);
+    } catch (e) {
+      loadError = e instanceof Error ? e.message : String(e);
+      derived = null;
+    } finally {
+      loading = false;
     }
   }
 
-  function toggleRecording() {
-    recording = !recording;
-    if (recording) {
-      // Start recording traces
-      traceCount = 0;
-    }
-  }
-
-  $effect(() => { loadMetrics(); });
+  onMount(loadMetrics);
 </script>
 
 <div class="insights">
@@ -30,48 +36,59 @@
 
   <section class="insights__section">
     <h3>Metriken</h3>
-    <div class="insights__grid">
-      <div class="metric-card">
-        <span class="metric-card__label">Durchsatz (7 Tage)</span>
-        <span class="metric-card__value">{throughput}</span>
+    {#if loadError}
+      <p class="insights__error" role="alert" data-testid="metrics-error">
+        Metriken nicht abrufbar: {loadError}
+        <button class="insights__retry" onclick={loadMetrics}>Erneut versuchen</button>
+      </p>
+    {:else}
+      <div class="insights__grid" data-testid="metrics-grid" aria-busy={loading}>
+        <div class="metric-card">
+          <span class="metric-card__label">Ausgeliefert ({WINDOW_DAYS} Tage)</span>
+          <span class="metric-card__value">{derived ? derived.shipped : '—'}</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-card__label">Ø Zeit Planung → Done</span>
+          <span class="metric-card__value">{formatCycleTime(derived?.avgCycleTimeH ?? null)}</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-card__label">Eskalationen ({WINDOW_DAYS} Tage)</span>
+          <span class="metric-card__value">{derived ? derived.escalations : '—'}</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-card__label">Tage mit Daten</span>
+          <span class="metric-card__value">{derived ? `${derived.daysCovered}/${WINDOW_DAYS}` : '—'}</span>
+        </div>
       </div>
-      <div class="metric-card">
-        <span class="metric-card__label">Ø Zeit Planung → Done</span>
-        <span class="metric-card__value">{avgTime}</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-card__label">Offene PRs</span>
-        <span class="metric-card__value">—</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-card__label">Blockierte Tickets</span>
-        <span class="metric-card__value">—</span>
-      </div>
-    </div>
+    {/if}
   </section>
 
   <section class="insights__section">
     <h3>Trace-Recording</h3>
     <p class="insights__subtitle">
-      Zeichnet Agent-Entscheidungen und Factory-Durchl&auml;ufe für Finetuning auf.
-      Die Traces werden in der Ticket-Datenbank persistiert.
+      Soll Agent-Entscheidungen und Factory-Durchl&auml;ufe für Finetuning
+      aufzeichnen und in der Ticket-Datenbank persistieren.
     </p>
 
+    <!--
+      [T003459] Der Schalter ist deaktiviert, nicht entfernt. Er schaltete
+      bisher nur eine lokale Variable um und zeigte dann "Recording laeuft" an,
+      ohne dass irgendetwas aufgezeichnet oder persistiert wurde — eine
+      Zusicherung, die die Oberflaeche nicht einloesen konnte. Ein sichtbar
+      deaktivierter Schalter mit Begruendung ist ehrlicher als ein Knopf, der
+      Aufzeichnung vortaeuscht. Die geplante Datenform bleibt als Zielbild.
+    -->
     <div class="trace-controls">
-      <button
-        class="trace-toggle"
-        class:active={recording}
-        onclick={toggleRecording}
-      >
-        {recording ? '⏹ Recording l\u00e4uft' : '▶ Aufzeichnung starten'}
+      <button class="trace-toggle" disabled data-testid="trace-toggle">
+        ▶ Aufzeichnung starten
       </button>
-      {#if recording}
-        <span class="trace-count">{traceCount} Traces aufgezeichnet</span>
-      {/if}
+      <span class="trace-count" data-testid="trace-status">
+        Noch nicht implementiert — es gibt keinen Endpunkt, der Traces entgegennimmt.
+      </span>
     </div>
 
     <div class="trace-info">
-      <p><strong>Aufgezeichnete Daten:</strong></p>
+      <p><strong>Geplante Datenform:</strong></p>
       <ul>
         <li>Ticket-ID &amp; Agent-Modell</li>
         <li>Phase (scout, design, plan, implement, verify, deploy)</li>
@@ -172,13 +189,40 @@
     transition: background 0.15s;
   }
 
-  .trace-toggle:hover {
+  .trace-toggle:hover:not(:disabled) {
     background: var(--admin-surface-hover);
   }
 
-  .trace-toggle.active {
-    background: oklch(0.62 0.20 25 / 0.15);
-    border-color: oklch(0.62 0.20 25);
+  /* Bewusst deaktiviert [T003459] — sichtbar ausgegraut, damit niemand eine
+     Funktion erwartet, die es noch nicht gibt. */
+  .trace-toggle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .insights__error {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--admin-error, #d77a6e);
+    border-radius: var(--admin-radius-sm, 4px);
+    background: oklch(0.62 0.20 25 / 0.08);
+    color: var(--admin-error, #d77a6e);
+    font-family: var(--admin-font-mono, monospace);
+    font-size: var(--admin-text-sm);
+  }
+
+  .insights__retry {
+    padding: 0.25rem 0.75rem;
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: var(--admin-radius-sm, 4px);
+    color: inherit;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
   }
 
   .trace-count {

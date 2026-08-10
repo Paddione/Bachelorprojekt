@@ -297,6 +297,14 @@ if [ -d "$WT_PATH" ]; then
       exit 4
     fi
   fi
+  # T003215: Prüfe, ob im Ziel-Worktree eine offene git-Operation läuft
+  # (rebase, merge, cherry-pick). Ein Worktree mitten in einem abgebrochenen
+  # Rebase wird sonst stillschweigend zur Wiederverwendung übergeben.
+  # Greift auch bei detached HEAD (Rebase-Zustand), nicht nur bei benannten Branches.
+  if ! bash "$(dirname "$0")/worktree-git-op-guard.sh" --quiet --worktree "$WT_PATH" 2>/dev/null; then
+    echo "worktree-create: Zielpfad $WT_PATH hat eine offene git-Operation — breche ab (T003215)." >&2
+    exit 5
+  fi
 fi
 git worktree remove --force "$WT_PATH" 2>/dev/null || true
 git worktree prune 2>/dev/null || true

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # worktree-git-op-guard.sh — reports interrupted git operations in any registered worktree.
 #
-# Usage: scripts/worktree-git-op-guard.sh [--quiet] [<repo-root>]
+# Usage: scripts/worktree-git-op-guard.sh [--quiet] [--worktree <path>] [<repo-root>]
 #
 # Exit codes: 0 = no finding, 1 = at least one finding, 2 = invocation error.
 #
@@ -14,15 +14,17 @@ set -euo pipefail
 
 quiet=false
 repo_root=""
+single_worktree=""
 
 usage() {
-  echo "Usage: $0 [--quiet] [<repo-root>]" >&2
+  echo "Usage: $0 [--quiet] [--worktree <path>] [<repo-root>]" >&2
   exit 2
 }
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --quiet) quiet=true; shift ;;
+    --worktree) single_worktree="${2:-}"; shift 2 ;;
     --help|-h) usage ;;
     --) shift; break ;;
     -*) usage ;;
@@ -59,6 +61,24 @@ done < <(git -C "$repo_root" worktree list --porcelain)
 if [ ${#worktrees[@]} -eq 0 ]; then
   $quiet || echo "No worktrees found."
   exit 0
+fi
+
+# --worktree <path>: replace the full worktree list with just this one (canonicalised).
+if [ -n "$single_worktree" ]; then
+  if [ ! -d "$single_worktree" ]; then
+    echo "FATAL: --worktree '$single_worktree' is not a directory." >&2
+    exit 2
+  fi
+  resolved="$(cd "$single_worktree" 2>/dev/null && pwd -P)" || {
+    echo "FATAL: --worktree '$single_worktree' cannot be resolved." >&2
+    exit 2
+  }
+  # Check it is a worktree of this repo
+  if ! git -C "$resolved" rev-parse --git-dir >/dev/null 2>&1; then
+    echo "FATAL: --worktree '$single_worktree' is not a git worktree of this repository." >&2
+    exit 2
+  fi
+  worktrees=("$resolved")
 fi
 
 found_count=0

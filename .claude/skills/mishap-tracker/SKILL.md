@@ -1,11 +1,11 @@
 ---
 name: mishap-tracker
-description: 'Use at the END of any runbook or dev-flow skill to file the frictions it accumulated — batches every MISHAP_LOG entry into one aggregate ticket instead of N individual ones, reusing an open "Mishap collection" ticket if one exists. Triggers on mishap, MISHAP_LOG, friction report, "report what went wrong", scripts/hooks/mishap-tracker.sh, and the closing step of dev-flow-plan, dev-flow-execute, dev-flow-chore, infra-ops, incident-response and ticket-ops.'
+description: 'Use at the END of any runbook or dev-flow skill to file the frictions it accumulated — appends every MISHAP_LOG entry to a persistent "Mishap collection" rollup container AND (as of T003120 skipped) still creates individual factory-fix tickets above the threshold. Triggers on mishap, MISHAP_LOG, friction report, "report what went wrong", scripts/hooks/mishap-tracker.sh, and the closing step of dev-flow-plan, dev-flow-execute, dev-flow-chore, infra-ops, incident-response and ticket-ops.'
 ---
 
 # mishap-tracker
 
-Batches all execution mishaps into **one aggregate ticket** rather than creating N individual tickets.
+Appends all execution mishaps to a persistent rollup container **and** creates individual factory-fix tickets when the buffer reaches the threshold (individual ticket creation still active — T003120 Task 3 awaits T002931 merge).
 
 Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 

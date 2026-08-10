@@ -3075,6 +3075,12 @@
       "status": "archived"
     }
   ],
+  "T003103": [
+    {
+      "slug": "preflight-scope-multi-ticket",
+      "status": "plan_staged"
+    }
+  ],
   "T003107": [
     {
       "slug": "2026-08-10-agent-lock-claim-help",

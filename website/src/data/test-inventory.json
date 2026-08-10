@@ -2382,6 +2382,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/preflight-multi-ticket-id",
+    "file": "tests/spec/ci-cd/preflight-multi-ticket-id.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/self-hosted-fork-guard",
     "file": "tests/spec/ci-cd/self-hosted-fork-guard.bats",
     "category": "ci-cd",

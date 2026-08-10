@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.259.28](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.27...website-v1.259.28) (2026-08-10)
+
+
+### Bug Fixes
+
+* **agents:** cwd-independent lock ownership + claim persistence verification + activity visibility [T003110][T002826][T003098] ([#4094](https://github.com/Paddione/Bachelorprojekt/issues/4094)) ([72cd1db](https://github.com/Paddione/Bachelorprojekt/commit/72cd1dbd42ee7724e79ba4eb436d1079d3f36a66))
+* **scripts:** token-based find-similar deduper + ticket-mcp:test CI registration [T003120][T003117] ([#4092](https://github.com/Paddione/Bachelorprojekt/issues/4092)) ([db70bd2](https://github.com/Paddione/Bachelorprojekt/commit/db70bd26a176242a79491745f08ec2769329cb88))
+
 ## [1.259.27](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.259.26...website-v1.259.27) (2026-08-10)
 
 

@@ -79,7 +79,7 @@ einen Cron-Job ein. **STOPP hier.**
 > erzeugt nur IDE-Clutter (jede offene `.worktrees/*`-Kopie erscheint als eigener Ordner) ohne
 > Isolationsgewinn, solange kein anderer Prozess konkurrierend im Haupt-Checkout schreibt. Prüfe das:
 > ```bash
-> bash scripts/agent-lock.sh list   # leer/keine fremde main-checkout- oder branch-Claim?
+> bash scripts/agent-lock.sh activity   # Locks + laufende Prozesse in Worktree-Pfaden [T003098] — list allein zeigt Sessions erst nach ihrem ersten Commit
 > ```
 > Ist die Liste leer (solo, kein konkurrierender Prozess), arbeite **inline im Haupt-Checkout**:
 > ```bash
@@ -87,7 +87,7 @@ einen Cron-Job ein. **STOPP hier.**
 > bash scripts/agent-lock.sh claim main-checkout --branch "chore/<slug>" --label dev-flow-chore
 > ```
 > Der `.githooks/pre-commit`-Mutex blockt konkurrierende Commits anderer Sessions währenddessen.
-> Zeigt `agent-lock.sh list` eine fremde lebende Claim, oder berührt die Chore auch Nicht-Testdateien
+> Zeigt `agent-lock.sh activity` eine fremde lebende Aktivität, oder berührt die Chore auch Nicht-Testdateien
 > (Implementierung + Test zusammen) → regulärer Worktree-Pfad unten.
 
 Regulärer Pfad (Default für alles außer dem Test-only-Kurzpfad oben):

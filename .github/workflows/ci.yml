@@ -284,6 +284,11 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # MUSS nach setup-task stehen: der Step ruft `task` auf, und das Binary
+      # existiert erst danach (sonst Exit 127 "task: command not found").
+      - name: Run ticket-mcp Go tests
+        run: task ticket-mcp:test
+
       - name: Install node dependencies
         run: npm ci
 

@@ -79,8 +79,8 @@ _lock_dir() {
   if [ -n "${AGENT_LOCK_DIR:-}" ]; then printf '%s\n' "$AGENT_LOCK_DIR"; return; fi
   # Anchor on git toplevel, not caller cwd (worktrees have .git as file). [T001384]
   local toplevel common
-  toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || { printf '/tmp/agent-locks\n'; return; }
-  common="$(cd "$toplevel" && git rev-parse --git-common-dir 2>/dev/null)" || { printf '/tmp/agent-locks\n'; return; }
+  toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || { printf '/tmp/agent-locks\n'; echo "AGENT-LOCK: Fallback auf /tmp/agent-locks (kein Git-Repo erkennbar)" >&2; return; }
+  common="$(cd "$toplevel" && git rev-parse --git-common-dir 2>/dev/null)" || { printf '/tmp/agent-locks\n'; echo "AGENT-LOCK: Fallback auf /tmp/agent-locks (git-common-dir nicht lesbar)" >&2; return; }
   case "$common" in /*) : ;; *) common="$(cd "$toplevel/$common" && pwd)";; esac
   printf '%s/agent-locks\n' "$common"
 }
@@ -230,6 +230,32 @@ _reapable() {
   return 1
 }
 
+# 0 = this lock belongs to the caller — either by matching owner_sid, or by
+# matching the caller's worktree (cwd). The cwd-independent path is critical
+# because agent-lock is called from subdirectories within a worktree, where the
+# string-equality check on $PWD against the stored worktree path fails as soon
+# as the cwd is e.g. the scripts/ subdirectory instead of the worktree root.
+# [T003110]
+_lock_is_mine() {  # <lock-file>
+  local f="$1" sid wt
+  sid="$(_lock_field "$f" owner_sid)"
+  # Fast path: exact SID match
+  [ "$sid" = "$(_my_sid)" ] && return 0
+  # Slow path: worktree containment — the cwd (or its git toplevel) falls
+  # within the stored worktree path. Handles subdirectory cd within a worktree.
+  wt="$(_lock_field "$f" worktree)"
+  if [ -n "$wt" ] && [ "$wt" != "-" ]; then
+    local my_toplevel
+    my_toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || my_toplevel="$PWD"
+    # Exact match or prefix match (path containment)
+    if [ "$my_toplevel" = "$wt" ] || [[ "$my_toplevel" = "$wt"/* ]] \
+       || [ "$PWD" = "$wt" ] || [[ "$PWD" = "$wt"/* ]]; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
 _with_lock() {
   local d lf; d="$(_lock_dir)"; mkdir -p "$d" 2>/dev/null || true
   lf="$d/.registry.lock"
@@ -366,7 +392,14 @@ cmd_claim() {
   [ -f "$f" ] && _reapable "$f" && rm -f "$f"
   if [ -f "$f" ]; then
     if [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then
-      CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
+      CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"
+      # [T002826] Verify persistence after write — silent claim failures were
+      # reported as success and left the caller unprotected.
+      if [ -f "$f" ] && [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then
+        return 0
+      fi
+      echo "AGENT-LOCK: fatal — claim refresh wrote $f but verification failed" >&2
+      return 4
     fi
     if [ -n "$FORCE" ]; then
       local _pid; _pid="$(_lock_field "$f" owner_pid)"
@@ -381,13 +414,19 @@ cmd_claim() {
       return 1
     fi
   fi
-  CREATED="$(_now)"; _write_lock "$f"; return 0
+  CREATED="$(_now)"; _write_lock "$f"
+  # [T002826] Verify persistence after write.
+  if [ -f "$f" ] && [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then
+    return 0
+  fi
+  echo "AGENT-LOCK: fatal — claim wrote $f but verification failed" >&2
+  return 4
 }
 
 cmd_refresh() {
   SCOPE="$1"; ID="${2:-}"; local f; f="$(_lock_file "$SCOPE" "$ID")"
   [ -f "$f" ] || return 1
-  [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ] || return 1
+  _lock_is_mine "$f" || return 1
   LABEL="$(_lock_field "$f" label)"; WT="$(_lock_field "$f" worktree)"
   BRANCH="$(_lock_field "$f" branch)"; TICKET="$(_lock_field "$f" ticket)"
   CREATED="$(_lock_field "$f" created_at)"; _write_lock "$f"; return 0
@@ -404,7 +443,7 @@ cmd_release() {
   # berechtigt NICHT: im Betrieb melden alle beteiligten Sessions dieselbe Klasse, der
   # Ownership-Check waere damit wirkungslos. Der Fallback aus T002374 war ein Workaround
   # gegen SID-Drift pro Bash-Call — diese Ursache ist seit T002375-p1 behoben. [T002447]
-  if [ -n "$force" ] || [ "$owner_sid" = "$(_my_sid)" ] \
+  if [ -n "$force" ] || _lock_is_mine "$f" \
      || { [ -n "$owner_sid" ] && ! _sid_alive "$owner_sid"; }; then
     rm -f "$f"; return 0
   fi
@@ -415,16 +454,10 @@ cmd_release() {
 cmd_check() {
   local f; f="$(_lock_file "$1" "${2:-}")"
   if [ ! -f "$f" ] || _reapable "$f"; then echo "free"; return 0; fi
-  # [T002392-M1] SID-Match reicht fuer "mine" — aber bei SID-Drift (keine Harness-
-  # Env, Unix-SID pro Bash-Call wechselnd) erkennt die Session den eigenen Lock nicht.
-  # Zusaetzlich Worktree-Pfad prüfen: wenn der Lock denselben Worktree nennt,
-  # aus dem wir kommen (oder main checkout), ist es unser eigener Lock.
-  if [ "$(_lock_field "$f" owner_sid)" = "$(_my_sid)" ]; then echo "mine"; cat "$f"; return 0; fi
-  local my_wt="${PWD}"
-  local lock_wt="$(_lock_field "$f" worktree)"
-  if [ -n "$lock_wt" ] && [ "$lock_wt" != "-" ] && [ "$lock_wt" = "$my_wt" ]; then
-    echo "mine"; cat "$f"; return 0
-  fi
+  # [T003110] cwd-independent ownership: _lock_is_mine matches by owner_sid OR
+  # worktree path containment, so a lock recognised from a subdirectory (e.g.
+  # scripts/ within the worktree) still reports "mine".
+  if _lock_is_mine "$f"; then echo "mine"; cat "$f"; return 0; fi
   echo "held"; cat "$f"; return 3
 }
 
@@ -474,7 +507,7 @@ cmd_check_and_claim() {
   #    session, don't bother writing.
   local f; f="$(_lock_file "$scope" "$id")"
   if [ -f "$f" ] && ! _reapable "$f"; then
-    if [ "$(_lock_field "$f" owner_sid)" != "$(_my_sid)" ]; then
+    if ! _lock_is_mine "$f"; then
       echo "AGENT-LOCK: $scope/$id bereits $(_holder_msg "$f")" >&2
       return 1
     fi
@@ -604,7 +637,7 @@ _AGENT_LOCK_DIR_SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/agent-lock-guards.sh
 # shellcheck source=scripts/agent-lock-merged.sh
 # shellcheck source=scripts/agent-lock-identity.sh
-for _agent_lock_frag in agent-lock-identity.sh agent-lock-guards.sh agent-lock-merged.sh; do
+for _agent_lock_frag in agent-lock-identity.sh agent-lock-guards.sh agent-lock-merged.sh agent-lock-activity.sh; do
   [ -f "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag" ] || {
     echo "AGENT-LOCK: FATAL — scripts/$_agent_lock_frag fehlt neben $0" >&2; exit 1; }
   . "$_AGENT_LOCK_DIR_SELF/$_agent_lock_frag"
@@ -624,6 +657,7 @@ main() {
     list)    cmd_list "$@";;
     reap)    cmd_reap "$@";;
     mine)    _my_sid;;
+    activity) cmd_activity "$@";;
     guard-precommit)    cmd_guard_precommit "$@";;
     guard-postcheckout) cmd_guard_postcheckout "$@";;
     reclaim-main-checkout) cmd_reclaim_main_checkout "$@";;

@@ -246,13 +246,13 @@ if ! bash "$REPO/scripts/factory/rollup-publish.sh" \
   exit 1
 fi
 
-# ── stage-plan (ohne --hold, damit das Ticket released ist) ─────────────────
+# ── stage-plan (--no-hold, damit das Ticket released ist) ─────────────────
 echo "mishap-rollup: stage-plan ..."
 bash "$WT/scripts/ticket.sh" stage-plan \
   --id "$CONTAINER_ID" \
   --branch "$BRANCH" \
   --plan "$PLAN_PATH" \
-  --partials 1 >/dev/null
+  --partials 1 --no-hold >/dev/null
 
 # ── execution_released=true explizit setzen (idempotent) ────────────────────
 # Der Container startet als triage und bekommt hier plan_staged + FACTORY-PLAN-REF.

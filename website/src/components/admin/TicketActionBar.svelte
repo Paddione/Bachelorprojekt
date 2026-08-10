@@ -40,7 +40,7 @@
 
   async function searchLink() {
     if (linkQuery.trim().length < 2) { linkResults = []; return; }
-    const r = await fetch(`/api/admin/tickets?q=${encodeURIComponent(linkQuery)}&limit=10`);
+    const r = await fetch(`/sdlc/api/tickets?q=${encodeURIComponent(linkQuery)}&limit=10`);
     if (r.ok) {
       const j = await r.json() as { items: ListedTicket[] };
       linkResults = j.items.filter(it => it.id !== ticketId);
@@ -51,7 +51,7 @@
     busy = true; error = '';
     const needsResolution = nextStatus === 'done' || nextStatus === 'archived';
     if (needsResolution && !resolution) { error = 'Resolution erforderlich für done/archived.'; busy = false; return; }
-    const r = await fetch(`/api/admin/tickets/${ticketId}/transition`, {
+    const r = await fetch(`/sdlc/api/tickets/${ticketId}/transition`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         status: nextStatus,
@@ -66,7 +66,7 @@
 
   async function submitComment() {
     busy = true; error = '';
-    const r = await fetch(`/api/admin/tickets/${ticketId}/comments`, {
+    const r = await fetch(`/sdlc/api/tickets/${ticketId}/comments`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ body: commentBody, visibility: commentVisibility }),
     });
@@ -77,7 +77,7 @@
   async function submitLink() {
     busy = true; error = '';
     if (!linkSelectedId) { error = 'Ziel-Ticket wählen.'; busy = false; return; }
-    const r = await fetch(`/api/admin/tickets/${ticketId}/links`, {
+    const r = await fetch(`/sdlc/api/tickets/${ticketId}/links`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         toId: linkSelectedId, kind: linkKind,

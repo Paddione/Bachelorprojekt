@@ -14,7 +14,7 @@
   async function loadAssets() {
     loading = true;
     try {
-      const res = await fetch('/api/admin/platform/hardware');
+      const res = await fetch('/sdlc/api/platform/hardware');
       if (!res.ok) throw new Error('Failed to fetch hardware');
       const data = await res.json();
       assets = data.assets;

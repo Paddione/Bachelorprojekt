@@ -1,5 +1,162 @@
 # Changelog
 
+## [1.264.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.15...website-v1.264.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** quickwin script fixes — plan-touched-files, preflight, backup [T003276] ([#4204](https://github.com/Paddione/Bachelorprojekt/issues/4204)) ([b7f2bf3](https://github.com/Paddione/Bachelorprojekt/commit/b7f2bf32251197b307ab76f984c1e759fd5eadfb))
+
+## [1.263.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.14...website-v1.263.15) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** Modell-ID-Drift beenden und den Routing-Guard endlich aufrufen [T003538] ([#4201](https://github.com/Paddione/Bachelorprojekt/issues/4201)) ([df4a206](https://github.com/Paddione/Bachelorprojekt/commit/df4a2062c227b68109cdd7be24075770f9d997bb))
+
+## [1.263.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.13...website-v1.263.14) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** add --worktree flag to git-op guard and wire into worktree-create reuse path [T003215] ([#4194](https://github.com/Paddione/Bachelorprojekt/issues/4194)) ([ea0894a](https://github.com/Paddione/Bachelorprojekt/commit/ea0894abcab5fcb2e750377962eb87b7d7c031a5))
+
+## [1.263.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.12...website-v1.263.13) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** auto-triage-Pfad heilen — baseUrl-Konvention und Typ-Vokabular [T003492] ([#4184](https://github.com/Paddione/Bachelorprojekt/issues/4184)) ([f85711e](https://github.com/Paddione/Bachelorprojekt/commit/f85711e79de399af3813d18b1e27e0c0f105623b))
+* **test:** remove obsolete docs-content paths and fix topology references [T003142] ([#4185](https://github.com/Paddione/Bachelorprojekt/issues/4185)) ([60d04d2](https://github.com/Paddione/Bachelorprojekt/commit/60d04d2fd19d1d2ba6c6c432d9bd9610861bd38b))
+
+## [1.263.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.11...website-v1.263.12) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** add --sweep mode and ticketless --dry-run to branch-reaper [T003180] ([#4188](https://github.com/Paddione/Bachelorprojekt/issues/4188)) ([e10a009](https://github.com/Paddione/Bachelorprojekt/commit/e10a00985046169d78e5e3a89b7a1dda98825a57))
+
+## [1.263.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.10...website-v1.263.11) (2026-08-10)
+
+
+### Bug Fixes
+
+* **plans:** Vor-Wellen-Stand der 8 OpenSpec-Change-Ordner wiederherstellen [T003489] ([#4182](https://github.com/Paddione/Bachelorprojekt/issues/4182)) ([853f4cb](https://github.com/Paddione/Bachelorprojekt/commit/853f4cb869b83d9a84de42c4d80ed2c8bf167476))
+
+## [1.263.10](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.9...website-v1.263.10) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** abgelehnter Commit-Scope nennt SSOT-Datei und Auflistungsbefehl [T003139] ([#4173](https://github.com/Paddione/Bachelorprojekt/issues/4173)) ([1ece0b0](https://github.com/Paddione/Bachelorprojekt/commit/1ece0b0a6f150c5780f35a1acac2292cec40e1fe))
+
+## [1.263.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.8...website-v1.263.9) (2026-08-10)
+
+
+### Bug Fixes
+
+* **plans:** 13 halb-archivierte OpenSpec-Slugs auf main heilen [T003488] ([#4179](https://github.com/Paddione/Bachelorprojekt/issues/4179)) ([fd1e8fc](https://github.com/Paddione/Bachelorprojekt/commit/fd1e8fc2330ce2d40a97a6b4d6a8df057e4b0d5b))
+
+## [1.263.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.7...website-v1.263.8) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** plan-qa-check parst Modellantworten robust, RESULT-Zeile je Ausgang [T003112] ([#4169](https://github.com/Paddione/Bachelorprojekt/issues/4169)) ([35d1e8a](https://github.com/Paddione/Bachelorprojekt/commit/35d1e8a75634f0e4009d932e2560c6ff3e0c02a8))
+* **scripts:** worktree-clean-check als ausführbarer Vorcheck statt gepipetem git status [T002932] ([#4170](https://github.com/Paddione/Bachelorprojekt/issues/4170)) ([b0c8c55](https://github.com/Paddione/Bachelorprojekt/commit/b0c8c558cb5e60e536ac0deb2f76f1922099128f))
+
+## [1.263.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.6...website-v1.263.7) (2026-08-10)
+
+
+### Bug Fixes
+
+* **ci:** preflight-pr-scope matcht ALLE Ticket-IDs im PR-Titel [T003103] ([#4168](https://github.com/Paddione/Bachelorprojekt/issues/4168)) ([cd2bdaf](https://github.com/Paddione/Bachelorprojekt/commit/cd2bdaf987d3333bee37fb10d2881bd014b0a478))
+
+## [1.263.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.5...website-v1.263.6) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 8/8 — Assistant-Views [T003484] ([#4165](https://github.com/Paddione/Bachelorprojekt/issues/4165)) ([75575af](https://github.com/Paddione/Bachelorprojekt/commit/75575afd31eab79ae02cbaf3580803206ea9445d))
+
+## [1.263.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.4...website-v1.263.5) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 7/8 — Factory-Budget und Systemtest [T003483] ([#4163](https://github.com/Paddione/Bachelorprojekt/issues/4163)) ([56102f2](https://github.com/Paddione/Bachelorprojekt/commit/56102f2791ffd00c73ec3c012535b6ee22db466f))
+
+## [1.263.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.3...website-v1.263.4) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 6/8 — Platform-Tabs und Architektur [T003482] ([#4161](https://github.com/Paddione/Bachelorprojekt/issues/4161)) ([339dfbd](https://github.com/Paddione/Bachelorprojekt/commit/339dfbdd7300db263e7aa9cf2d2859cd345375c0))
+
+## [1.263.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.2...website-v1.263.3) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 4/8 — KI-Konfiguration und Prompts [T003480] ([#4158](https://github.com/Paddione/Bachelorprojekt/issues/4158)) ([7fa4a9e](https://github.com/Paddione/Bachelorprojekt/commit/7fa4a9e5e6ce63f61a92c9af5b8f67a486032b8d))
+
+## [1.263.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.1...website-v1.263.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** SDLC-API-Pfade Etappe 3/8 — Planung und QA [T003479] ([#4156](https://github.com/Paddione/Bachelorprojekt/issues/4156)) ([d47b417](https://github.com/Paddione/Bachelorprojekt/commit/d47b41796c2cfd8ef87a2efc364187653da97bea))
+
+## [1.263.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.0...website-v1.263.1) (2026-08-10)
+
+
+### Bug Fixes
+
+* **website:** Metrik-Endpunkt unter seinem echten Pfad ansprechen [T003459] ([#4151](https://github.com/Paddione/Bachelorprojekt/issues/4151)) ([33f9ba5](https://github.com/Paddione/Bachelorprojekt/commit/33f9ba52672720f2c6758850a55284df03ab6bc3))
+* **website:** SDLC-API-Pfade Etappe 2/8 — Ticket-Interaktion [T003478] ([#4154](https://github.com/Paddione/Bachelorprojekt/issues/4154)) ([eec618e](https://github.com/Paddione/Bachelorprojekt/commit/eec618e122043840dadd8798e2ce8882c765d2c0))
+
+## [1.263.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.262.0...website-v1.263.0) (2026-08-10)
+
+
+### Features
+
+* **website:** SDLC Cockpit redesign — Command Bar + Lifecycle Overview [T003417] ([#4145](https://github.com/Paddione/Bachelorprojekt/issues/4145)) ([15b09b1](https://github.com/Paddione/Bachelorprojekt/commit/15b09b100d54a77b9e77606a32245139c98cf162))
+
+## [1.262.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.5...website-v1.262.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** cross-harness plan guardrails — fail-closed Preflight- und Stage-Guards [T003267] ([#4129](https://github.com/Paddione/Bachelorprojekt/issues/4129)) ([a28e9f9](https://github.com/Paddione/Bachelorprojekt/commit/a28e9f9589aa67c7ef9bee8a42985912f1649414))
+
+## [1.261.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.4...website-v1.261.5) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** agent-lock claim -h/--help gibt Optionsliste statt Muell-Lock [T003107] ([#4138](https://github.com/Paddione/Bachelorprojekt/issues/4138)) ([5f882de](https://github.com/Paddione/Bachelorprojekt/commit/5f882ded2fa4b549fa78f9b86a2258cfc54b73a2))
+
+## [1.261.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.3...website-v1.261.4) (2026-08-10)
+
+
+### Bug Fixes
+
+* **factory:** opencode-exec prueft das Ergebnis statt nur den Exit-Code [T003335] ([#4140](https://github.com/Paddione/Bachelorprojekt/issues/4140)) ([ae340a3](https://github.com/Paddione/Bachelorprojekt/commit/ae340a3a8f69fde548f7c07d3e50a61a5f3d13c8))
+
+## [1.261.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.2...website-v1.261.3) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** openspec.sh propose --help vor Guards behandelt [T002908] ([#4137](https://github.com/Paddione/Bachelorprojekt/issues/4137)) ([420dadd](https://github.com/Paddione/Bachelorprojekt/commit/420dadd7a0566934457c7cebaa09c25923597f83))
+
+## [1.261.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.1...website-v1.261.2) (2026-08-10)
+
+
+### Bug Fixes
+
+* **scripts:** ticket.sh --help/-h auf Kommando- und Optionsebene [T002843] ([#4133](https://github.com/Paddione/Bachelorprojekt/issues/4133)) ([a48aa63](https://github.com/Paddione/Bachelorprojekt/commit/a48aa63f5afbfcb7bdf93c4eb38e730e15a24359))
+
 ## [1.261.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.0...website-v1.261.1) (2026-08-10)
 
 

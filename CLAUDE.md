@@ -242,7 +242,7 @@ PowerShell-Skripte unter `scripts/llm/*.ps1`, die aus WSL bearbeitet werden:
 
 **Jeder nach-Merge entdeckte Fehler wird als `type=bug`-Ticket erfasst** — kein stiller `fix()`-Commit ohne Ticket-Referenz. Die Change Failure Rate (broad proxy: fix()-Rate) wird mit `bash scripts/vda.sh cfr` gemessen, Ziel ≤ 15 % über 8 Wochen; ein ungeticketer `fix()`-Commit zählt als verschleierter Bug und verschlechtert den Proxy-Wert, ohne in der DORA-Auswertung unter `/admin/dora` zu erscheinen.
 
-Ablauf: Bug entdecken → `bash scripts/ticket.sh create --type bug --title "..."` → Branch + PR → nach Merge wird Ticket automatisch `done`.
+Ablauf: Bug entdecken → `bash scripts/ticket.sh create --type bug --title "..." --description "..."` → Branch + PR → nach Merge wird Ticket automatisch `done`.
 
 ### Mess-Konvention [T002717]
 

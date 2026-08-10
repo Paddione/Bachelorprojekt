@@ -149,9 +149,11 @@ cd ${repoRoot}
 bash scripts/ticket.sh stage-plan \\
   --id ${r.ticket_id} \\
   --branch ${r.branch} \\
-  --plan ${r.plan_path}
+  --plan ${r.plan_path} \\
+  --no-hold
 
-Bestätige mit der Ausgabe des Befehls.`,
+Beachte: --no-hold ist headless Batch-Pfad, Plan ist bereits lint-gegatet —
+stage-plan verlangt seit T003267 eine explizite Hold-Entscheidung.`,
     { phase: 'Stage', label: `stage:${r.ticket_id}` }
   )
 ))

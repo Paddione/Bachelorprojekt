@@ -2,7 +2,12 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, isAdmin } from '../../lib/auth';
 import { buildLoginRedirect } from '../../lib/login-redirect';
-import PipelinePanel from '../../components/cockpit/PipelinePanel.svelte';
+import CommandBar from '../../components/cockpit/CommandBar.svelte';
+import OverviewDashboard from '../../components/cockpit/OverviewDashboard.svelte';
+import CockpitRail from '../../components/cockpit/CockpitRail.svelte';
+import FactoryFloor from '../../components/sdlc/FactoryFloor.svelte';
+import PlanningOffice from '../../components/PlanningOffice.svelte';
+import InsightsTab from '../../components/sdlc/factory/InsightsTab.svelte';
 import DispatchLogPanel from '../../components/cockpit/DispatchLogPanel.svelte';
 import { getFloor } from '../../lib/sdlc/factory-floor.ts';
 import { listDispatches } from '../../lib/sdlc/llm-proxy-request-log.ts';
@@ -25,237 +30,127 @@ try { initial = await getFloor(slotsCap); } catch { initial = null; }
 let dispatchInitial: Awaited<ReturnType<typeof listDispatches>>['items'] = [];
 try { dispatchInitial = (await listDispatches({ limit: 50 })).items; } catch { dispatchInitial = []; }
 
-// 'tab' ist ein reservierter Query-Parameter für Cockpit/Pipeline (D-K10-2).
-type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten' | 'parallel';
-const ALLOWED: Tab[] = ['factory', 'planung', 'analytics', 'kosten', 'control', 'abhaengigkeiten', 'parallel'];
-const raw = Astro.url.searchParams.get('tab') ?? '';
-const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
+type CockpitMode = 'overview' | 'fokus' | 'insights';
+type Phase = 'triage' | 'planung' | 'bauen' | 'review' | 'deploy' | 'ship';
+
+const rawMode = Astro.url.searchParams.get('mode') ?? '';
+const ALLOWED_MODES: CockpitMode[] = ['overview', 'fokus', 'insights'];
+const initialMode: CockpitMode = (ALLOWED_MODES.includes(rawMode as CockpitMode) ? rawMode : 'overview') as CockpitMode;
+
+const rawPhase = Astro.url.searchParams.get('phase') ?? '';
+const ALLOWED_PHASES: Phase[] = ['triage', 'planung', 'bauen', 'review', 'deploy', 'ship'];
+const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPhase : 'bauen') as Phase;
 ---
 
 <AdminLayout title="SDLC Cockpit">
   <link rel="stylesheet" href="/cockpit/kit/tokens.css">
   <link rel="stylesheet" href="/cockpit/kit/panel.css">
   <link rel="stylesheet" href="/cockpit/kit/layout.css">
-  {/*
-    [T002466] is:inline ist hier PFLICHT, nicht Stilfrage. Ohne das Attribut
-    zieht Astro das Script in den Bundle-Graph und bricht den Build ab:
-    "references an asset in the public/ directory". Die Kit-Dateien liegen
-    bewusst unter public/ — sie stammen aus .lavish/ (SSOT) und werden statisch
-    ausgeliefert, nicht mitkompiliert. Der Fehler faellt NUR beim Build auf;
-    vitest und `pnpm dev` laufen beide gruen daran vorbei.
-  */}
   <script is:inline src="/cockpit/kit/action-policy.js"></script>
   <script is:inline src="/cockpit/kit/panel.js"></script>
   <script is:inline src="/cockpit/kit/layout.js"></script>
   <script is:inline src="/cockpit/kit/adapter.js"></script>
 
-  <div class="cockpit-header">
-    <h1>SDLC Cockpit</h1>
-    <span data-brand="mentolder" style="font-size:var(--text-xs);color:var(--color-text-tertiary)">{brand}</span>
-    <span id="cockpit-stream-state" class="cockpit-status" style="margin-left:auto;font-size:var(--text-xs);color:var(--color-status-ok)">● live</span>
+  <div class="cockpit" id="cockpit-root">
+    <CommandBar client:load {brand} initialMode={initialMode} />
+
+    <div class="cockpit-body">
+      <CockpitRail client:load mode={initialMode} phase={initialPhase} {brand} />
+
+      <main class="cockpit-main" id="cockpit-main">
+        {initialMode === 'overview' && (
+          <OverviewDashboard client:load />
+        )}
+        {initialMode === 'fokus' && initialPhase === 'bauen' && (
+          <FactoryFloor client:load initial={initial} />
+        )}
+        {initialMode === 'fokus' && initialPhase === 'planung' && (
+          <PlanningOffice client:load {brand} />
+        )}
+        {initialMode === 'fokus' && initialPhase === 'triage' && (
+          <PlanningOffice client:load {brand} />
+        )}
+        {initialMode === 'fokus' && initialPhase === 'review' && (
+          <div class="fokus-phase" data-phase="review">
+            <h2 class="fokus-phase__title">Review</h2>
+            <p class="fokus-phase__info">Offene PRs und CI-Status werden hier angezeigt (kommendes Feature).</p>
+          </div>
+        )}
+        {initialMode === 'fokus' && initialPhase === 'deploy' && (
+          <div class="fokus-phase" data-phase="deploy">
+            <h2 class="fokus-phase__title">Deploy</h2>
+            <p class="fokus-phase__info">Awaiting-Deploy-Tickets und FluxCD-Status (kommendes Feature).</p>
+          </div>
+        )}
+        {initialMode === 'fokus' && initialPhase === 'ship' && (
+          <div class="fokus-phase" data-phase="ship">
+            <h2 class="fokus-phase__title">Ship</h2>
+            <p class="fokus-phase__info">Ausgelieferte Tickets dieser Woche (kommendes Feature).</p>
+          </div>
+        )}
+        {initialMode === 'insights' && (
+          <InsightsTab client:load />
+        )}
+        {initialMode === 'insights' && (
+          <DispatchLogPanel client:load initial={dispatchInitial} />
+        )}
+      </main>
+    </div>
   </div>
 
-  <div class="cockpit-layout">
-    <aside class="cockpit-focus">
-      <div class="cockpit-rail-group">Laufende Epics</div>
-      <div class="cockpit-rail-group">Was Aufmerksamkeit braucht</div>
-      <div class="cockpit-rail-group">Aktive Agenten</div>
-      <div class="cockpit-rail-group">Modell-Server</div>
-
-      <div class="panel panel--rail" data-panel-type="status" data-source="tickets" data-refresh-interval="30000" id="panel-tickets">
-        <div class="panel__head">
-          <span class="panel__title">Tickets</span>
-          <span class="panel__type-badge" data-panel-type="status"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="cockpitAct('ticket_stage_plan')">Plan stagen</button>
-          <button class="panel__action-btn" onclick="cockpitAct('ticket_release_hold')">Freigabe aufheben</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--rail" data-panel-type="status" data-source="agents" data-refresh-interval="30000" id="panel-agents">
-        <div class="panel__head">
-          <span class="panel__title">Agents</span>
-          <span class="panel__type-badge" data-panel-type="status"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn">Aktualisieren</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--rail" data-panel-type="status" data-source="ci" data-refresh-interval="30000" id="panel-ci">
-        <div class="panel__head">
-          <span class="panel__title">CI/CD</span>
-          <span class="panel__type-badge" data-panel-type="status"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn">Aktualisieren</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--rail" data-panel-type="status" data-source="factory" data-refresh-interval="30000" id="panel-factory">
-        <div class="panel__head">
-          <span class="panel__title">Factory</span>
-          <span class="panel__type-badge" data-panel-type="status"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="cockpitAct('factory_tick')">Tick</button>
-          <button class="panel__action-btn" onclick="cockpitAct('factory_enqueue')">Enqueue</button>
-          <button class="panel__action-btn" onclick="cockpitAct('factory_release_slot')">Slot freigeben</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--rail" data-panel-type="status" data-source="models" data-refresh-interval="30000" id="panel-models">
-        <div class="panel__head">
-          <span class="panel__title">Modelle</span>
-          <span class="panel__type-badge" data-panel-type="status"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn">Aktualisieren</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--rail" data-panel-type="strom" data-source="audit" data-refresh-interval="30000" id="panel-audit-rail">
-        <div class="panel__head">
-          <span class="panel__title">Audit-Log</span>
-          <span class="panel__type-badge" data-panel-type="strom"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-audit-rail').refresh()">Aktualisieren</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-    </aside>
-    <main class="cockpit-workspace">
-      <PipelinePanel client:load {initial} {initialTab} {brand} />
-
-      <DispatchLogPanel client:load initial={dispatchInitial} />
-
-      <div class="panel panel--card" data-panel-type="status" data-source="tickets" data-refresh-interval="30000" id="panel-tickets-card">
-        <div class="panel__head">
-          <span class="panel__title">Alle Tickets</span>
-          <span class="panel__type-badge" data-panel-type="status"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-tickets-card').refresh()">Aktualisieren</button>
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-tickets-card').resize('fullscreen')">Vollbild</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--card" data-panel-type="status" data-source="agents" data-refresh-interval="30000" id="panel-agents-card">
-        <div class="panel__head">
-          <span class="panel__title">Agenten im Detail</span>
-          <span class="panel__type-badge" data-panel-type="status"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-agents-card').refresh()">Aktualisieren</button>
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-agents-card').setActionState('locked')">Sperren</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--fullscreen" data-panel-type="strom" data-source="factory" data-refresh-interval="15000" id="panel-factory-log">
-        <div class="panel__head">
-          <span class="panel__title">Factory-Log (Strom)</span>
-          <span class="panel__type-badge" data-panel-type="strom"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-factory-log').refresh()">Neu laden</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--fullscreen" data-panel-type="strom" data-source="audit" data-refresh-interval="15000" id="panel-audit-log">
-        <div class="panel__head">
-          <span class="panel__title">Audit-Log (Strom)</span>
-          <span class="panel__type-badge" data-panel-type="strom"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body"></div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-audit-log').refresh()">Neu laden</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-
-      <div class="panel panel--card" data-panel-type="terminal" data-source="" data-refresh-interval="0" id="panel-terminal">
-        <div class="panel__head">
-          <span class="panel__title">Terminal</span>
-          <span class="panel__type-badge" data-panel-type="terminal"></span>
-          <span class="panel__staleness"></span>
-        </div>
-        <div class="panel__body">
-          <p>Terminal verbindet sich mit Daemon (K2)</p>
-          <p style="font-size:var(--text-xs);color:var(--color-text-tertiary);margin-top:var(--space-2)">Die tmux-Sitzung läuft weiter — beim Wiederverbinden wird sie erneut angedockt.</p>
-        </div>
-        <div class="panel__actions panel__actions--available">
-          <button class="panel__action-btn" onclick="Panel.registry.get('panel-terminal').resize('fullscreen')">Vollbild</button>
-        </div>
-        <div class="panel__context"></div>
-      </div>
-    </main>
-  </div>
   <script>
-    // T002643 Task 9: cockpit action helper — uses the action-policy for
-    // confirmation grading and the adapter for the bundled POST endpoint.
-    // No fetch() directly in the page (E1).
     import { browserLogger } from '$lib/browser-logger';
+
+    // `window.data`, `window.actionPolicy` und `window.cockpitAct` sind in
+    // src/env.d.ts global deklariert (SSOT fuer die Kit-Skripte unter
+    // /cockpit/kit/). Hier NICHT erneut deklarieren: ein zweites Interface
+    // gleichen Namens kollidiert mit der globalen Deklaration (ts(2430)) —
+    // ein Fehler, den nur `astro check` sieht, nicht `pnpm lint`/`build`.
+    // Das optional chaining bleibt trotz nicht-optionaler Typen: laedt ein
+    // Kit-Skript nicht, ist der Wert zur Laufzeit dennoch undefined.
+
+    // Mode switching via CommandBar custom events
+    document.addEventListener('cockpit-modechange', ((e: CustomEvent) => {
+      const { mode } = e.detail;
+      const url = new URL(window.location.href);
+      url.searchParams.set('mode', mode);
+      if (mode !== 'fokus') url.searchParams.delete('phase');
+      history.pushState({}, '', url.toString());
+      // Reload the main content area
+      window.location.reload();
+    }) as EventListener);
 
     function cockpitAct(action: string, target?: string) {
       try {
-        const prompt = window.actionPolicy.confirmationFor(action, target);
-        if (prompt !== null) {
+        const prompt = window.actionPolicy?.confirmationFor(action, target);
+        // `!= null` statt `!== null`: fehlt das Kit-Skript, liefert das optional
+        // chaining `undefined` — mit `!== null` liefe der Code dann in einen
+        // TypeError auf `prompt.level`, den der catch als "action blocked"
+        // meldet. Jede Aktion waere blockiert statt bestaetigungsfrei.
+        if (prompt != null) {
           const msg = prompt.level === 'named'
             ? `${action} auf ${prompt.target} ausführen?`
             : `${action} ausführen?`;
           if (!window.confirm(msg)) return;
         }
       } catch (e) {
-        // confirmationFor throws for irreversible without target —
-        // this button should not have been rendered. Log and abort.
         browserLogger.error('[cockpit] action blocked: ' + (e as Error).message);
         return;
       }
 
-      window.data.performAction(action, target ? { target } : {}).then((r) => {
+      window.data?.performAction(action, target ? { target } : {}).then((r) => {
         if (!r.ok && r.error) browserLogger.error('[cockpit] ' + action + ' failed: ' + r.error);
-      }).catch((e) => {
+      }).catch((e: unknown) => {
         browserLogger.error({ err: e }, '[cockpit] ' + action + ' error');
       });
     }
 
-    // Buttons rufen cockpitAct per globalem onclick auf — explizit
-    // auf window exponieren (Modul-Script, kein is:inline).
     window.cockpitAct = cockpitAct;
 
-    // Header: bind stream state indicator
+    // Stream state indicator
     (function updateHeader() {
       const el = document.getElementById('cockpit-stream-state');
-      if (!el || !window.data || !window.data.streamState) return;
+      if (!el || !window.data?.streamState) return;
       const state = window.data.streamState();
       if (state === 'live') {
         el.textContent = '● live';
@@ -267,8 +162,65 @@ const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
         el.textContent = '● getrennt';
         el.style.color = 'var(--color-status-error)';
       }
-      // Re-check periodically since streamState can change
       setTimeout(updateHeader, 5000);
     })();
   </script>
 </AdminLayout>
+
+<style>
+  .cockpit {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--color-dark, #0b111c);
+    color: var(--color-fg, #eef1f3);
+  }
+
+  .cockpit-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .cockpit-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .fokus-phase__title {
+    font-size: var(--admin-text-lg, 1.1rem);
+    color: var(--admin-text, #ccd6f6);
+    margin: 0 0 1rem;
+    padding: 1.5rem;
+    font-family: var(--admin-font-mono, monospace);
+  }
+
+  .fokus-phase__info {
+    padding: 0 1.5rem;
+    color: var(--admin-text-mute, #555);
+    font-size: var(--admin-text-sm, 0.85rem);
+  }
+
+  .insights-panel {
+    padding: 2rem;
+  }
+
+  .insights-panel h2 {
+    color: var(--admin-text, #ccd6f6);
+  }
+
+  .insights-panel p {
+    color: var(--admin-text-mute, #555);
+  }
+
+  @media (max-width: 767px) {
+    .cockpit-body {
+      flex-direction: column;
+    }
+
+    .cockpit-main {
+      padding-bottom: 0;
+    }
+  }
+</style>

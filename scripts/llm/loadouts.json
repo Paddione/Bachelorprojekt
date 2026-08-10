@@ -358,6 +358,7 @@
     },
     {
       "slug": "qwen3-coder-30b",
+      "enabled": false,
       "label": "Qwen3-Coder-30B-A3B UD-IQ3_XXS (Familientraeger \"qwen\")",
       "model": "qwen3coder30/Qwen3-Coder-30B-A3B-Instruct-UD-IQ3_XXS.gguf",
       "port": 8094,
@@ -390,7 +391,7 @@
         "serversConfig": null
       },
       "extraArgs": [],
-      "notes": "UD-IQ3_XXS, 11,9 GB auf Platte. fitt 64 bei q4_0 KV gibt 96.000 Kontext. Sampling nach Modellkarte: temp 0.7, topP 0.8, topK 20.",
+      "notes": "UD-IQ3_XXS, 11,9 GB auf Platte. fitt 64 bei q4_0 KV gibt 96.000 Kontext. Sampling nach Modellkarte: temp 0.7, topP 0.8, topK 20. ABGESCHALTET seit T003204 (enabled: false): gleicher VRAM-Fussabdruck wie gemma26-factory bei weit aggressiverer Quantisierung (UD-IQ3_XXS statt nativem Format), weniger Kontext (96.000 vs 161.024), gemessen nur 47,9 tok/s unter Konkurrenz, einziger Anspruch 'agentische Tiefe' ohne Messung.",
       "exclusiveGroup": "chat-gpu"
     },
     {

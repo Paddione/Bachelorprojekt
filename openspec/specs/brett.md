@@ -515,6 +515,26 @@ protocol change.
 - **WHEN** the `move` message with the new `facingY` arrives at the other client
 - **THEN** the receiving client applies `facingY` to the figure root rotation using the existing move handler
 
+### Requirement: Toast on session-active Error
+
+When the server sends `{type:'error', reason:'session-active'}`, the client must display a toast notification.
+
+#### Scenario: Admin tries to create session when one exists
+
+```gherkin
+GIVEN a Brett admin sends admin_session_create
+WHEN the server responds with {type:'error', reason:'session-active'}
+THEN a toast notification is shown with "Es läuft bereits eine Sitzung. Bitte beende diese zuerst."
+```
+
+#### Scenario: Other server errors
+
+```gherkin
+GIVEN a Brett admin sends admin_session_create
+WHEN the server responds with {type:'error', reason:'some-other-reason'}
+THEN a toast notification is shown with "Server-Fehler: some-other-reason"
+```
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -842,3 +862,5 @@ The system SHALL expose a `GET /api/codesearch` endpoint (admin-only, query para
 <!-- merged from change delta brett.md (d8bb0594328e) -->
 
 <!-- merged from change delta brett.md (ebcb412a667e) -->
+
+<!-- merged from change delta brett.md (31390b63872d) -->

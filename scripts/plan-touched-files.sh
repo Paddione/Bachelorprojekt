@@ -60,6 +60,20 @@ candidates="$(
   } 2>/dev/null | sed -e 's/[[:space:]]*$//' -e 's/[,;:]$//' -e 's/^`//' -e 's/`$//'
 )"
 
+# [T002765] Zusätzlich: tatsächlich geänderte Dateien aus dem Git-Diff gegen
+# den Merge-Base. Der Plan listet nur, was der Autor bewusst unter "## File
+# Structure" notiert hat — Dateien, die im Laufe der Implementierung
+# hinzukommen (z. B. generierte Artefakte, übergangene Config-Dateien), wären
+# sonst für die Kollisionserkennung unsichtbar und könnten zu einer stillen
+# Überschreibung in einem parallelen Branch führen.
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if MB=$(git -C "$REPO_ROOT" merge-base origin/main HEAD 2>/dev/null); then
+  diff_files="$(git -C "$REPO_ROOT" diff --name-only -z "$MB" HEAD 2>/dev/null | tr '\0' '\n' || true)"
+  if [ -n "$diff_files" ]; then
+    candidates="$candidates"$'\n'"$diff_files"
+  fi
+fi
+
 # Filtern. Die drei Regeln entstanden am realen Bestand, nicht am Reissbrett — ein Lauf gegen
 # die 33 Plaene unter openspec/changes/ foerderte zutage, was Fixtures nicht hergeben:
 #   - blosse Extension-Tokens (`.sh`, `.md`) aus S1-Budget-Tabellen im selben Abschnitt,

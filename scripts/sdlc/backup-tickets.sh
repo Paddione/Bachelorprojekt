@@ -229,8 +229,25 @@ cmd_restore_check() {
     --overrides="$(_helper_overrides "\"cat $latest\"" "$fetchname")" \
     < /dev/null > "$tmp"
 
-  [[ -s "$tmp" ]] || { echo "ERROR: keine Sicherung auf fleet gefunden" >&2; return 1; }
-  openssl enc -d -aes-256-cbc -pbkdf2 -in "$tmp" -out "$tmp.dump" -pass env:SDLC_BACKUP_PASS
+  [[ -s "$tmp" ]] || { echo "ERROR: heruntergeladene Datei ist leer — Download fehlgeschlagen" >&2; return 1; }
+
+  # [T002727] Integritätsprüfung: ein kubectl-attach-Download eines
+  # Binärstroms kann verstümmelt ankommen (z.B. Log-Prefixe, Trunkierung
+  # durch Container-Log-Streaming). Prüfe vor der Entschlüsselung:
+  #   1. Die Datei muss eine sinnvolle Mindestgröße haben (< 100 Bytes ist
+  #      garantiert kein gültiger pg_dump).
+  #   2. Die Entschlüsselung muss erfolgreich sein — openssl gibt bei
+  #      korrupten Daten einen nicht-null Exit-Code.
+  local fsize; fsize="$(wc -c < "$tmp" | tr -d ' ')"
+  if [[ "$fsize" -lt 100 ]]; then
+    echo "ERROR: Download mutmaßlich beschädigt — nur $fsize bytes empfangen (erwartet >100)" >&2
+    return 1
+  fi
+
+  openssl enc -d -aes-256-cbc -pbkdf2 -in "$tmp" -out "$tmp.dump" -pass env:SDLC_BACKUP_PASS || {
+    echo "ERROR: Entschluesselung fehlgeschlagen — Download vermutlich korrupt (kubectl-attach-Problem, T002727)" >&2
+    return 1
+  }
 
   # Die Wegwerf-DB legt der Superuser an: die website-Rolle traegt kein
   # CREATEDB ("permission denied to create database"). Eigentuemer wird

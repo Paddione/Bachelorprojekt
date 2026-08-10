@@ -17,7 +17,7 @@ describe('error-report', () => {
     
     await postError(report);
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/admin/ops/error-log', expect.objectContaining({
+    expect(mockFetch).toHaveBeenCalledWith('/sdlc/api/ops/error-log', expect.objectContaining({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',

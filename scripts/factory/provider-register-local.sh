@@ -24,10 +24,15 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-MODEL_ID="${FACTORY_MODEL_ID:-gemma26-factory}"
+MODEL_ID="${FACTORY_MODEL_ID:-gemma26-throughput}"
 # Immer das vereinheitlichte Gateway, nie ein Backend-Port. Welches Backend
 # dahinter haengt, entscheidet die Registry tickets.llm_proxy_backends.
-GATEWAY_URL="${FACTORY_GATEWAY_URL:-http://127.0.0.1:18235/v1}"
+# [T003492] OHNE '/v1' — die Konsumenten haengen '/v1/chat/completions' selbst an
+# (openspec/specs/software-factory.md: base_url adressiert die Wurzel, "that the
+# callers append /v1/chat/completions to"). Mit '/v1' entstand '.../v1/v1/chat/
+# completions' → HTTP 404, und weil curl ohne --fail laeuft, meldete auto-triage
+# das als "no content in <provider> response" statt als Transportfehler.
+GATEWAY_URL="${FACTORY_GATEWAY_URL:-http://127.0.0.1:18235}"
 
 for b in mentolder korczewski; do
   BRAND="$b" MODEL_ID="$MODEL_ID" GATEWAY_URL="$GATEWAY_URL" \

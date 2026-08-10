@@ -188,6 +188,14 @@ validate_subject() {
         elif _suggestion="$(suggest_scope "$scope")" && [ -n "$_suggestion" ]; then
           echo "    ↳ did you mean '${_suggestion}'?" >&2
         fi
+        # [T003139] Wo die Scopes gepflegt werden und wie man sie auflistet.
+        # Ohne diese zwei Zeilen endet die Ablehnung in einer Sackgasse: der
+        # Aufrufer weiss, DASS sein Scope ungueltig ist, aber weder welche
+        # gueltig sind noch wo er einen ergaenzen wuerde. Der Hinweis steht
+        # bewusst unabhaengig von Alias- und Vorschlagstreffer — gerade der
+        # Fall ohne jeden Treffer braucht ihn am dringendsten.
+        echo "    ↳ Gueltige Scopes: 'scripts/validate-commit-msg.sh scopes' listet sie auf." >&2
+        echo "    ↳ Gepflegt werden sie in commitlint.config.cjs (single source of truth)." >&2
         echo "    ↳ Hinweis: Der CI-PR-Titel-Check (amannn/action-semantic-pull-request) prueft keinen Scope — ein gruener PR-Titel ist keine Garantie fuer diesen Scope." >&2
         return 1
       fi

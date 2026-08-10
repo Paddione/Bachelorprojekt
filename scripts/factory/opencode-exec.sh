@@ -54,8 +54,20 @@ PROMPT="$(printf '%s\n' \
   "## Partials" \
   "${partials_manifest}" \
   "" \
+  "## Required end state (T003335)" \
+  "The run counts as done ONLY if all of these hold when you finish:" \
+  "1. The plan is implemented in this worktree." \
+  "2. The plan's failing test is green." \
+  "3. The work is COMMITTED on ${BRANCH:-the feature branch} with a conventional" \
+  "   commit whose subject carries [${EXT_ID}]." \
+  "4. The commit is PUSHED to origin." \
+  "Do NOT stop after analysing the plan. A run that ends without a commit is a" \
+  "failed run, not a finished one — the executor verifies this and will mark the" \
+  "phase blocked." \
+  "" \
   "Guardrails (opt-in trial, D3):" \
   "- Do NOT merge the PR and do NOT enable auto-merge — stop at the pr-ready gate." \
+  "- Do NOT open a PR either; the caller does that after verifying the result." \
   "- Respect the existing pr-ready / CI gate; never bypass it." \
   "- Empty-return rule (M2/M3): if a dispatched subagent returns an empty/blank" \
   "  final message, switch model on the FIRST empty return — deepseek-flash-direct" \
@@ -68,10 +80,44 @@ PROMPT="$(printf '%s\n' \
 # --- run opencode in the launch worktree, measure duration ---------------------------
 start=$(date +%s)
 run_log="$(mktemp)"
+
+# Stand VOR dem Lauf festhalten — er ist der Bezugspunkt des Ergebnis-Checks unten.
+# `git rev-parse HEAD` schlaegt in einem Verzeichnis ohne Repo fehl; dann bleibt
+# head_before leer und der Check faellt auf den Arbeitsbaum-Vergleich zurueck.
+head_before="$(git -C "$LAUNCH_DIR" rev-parse HEAD 2>/dev/null || true)"
+
 ( cd "$LAUNCH_DIR" && opencode run --agent orchestrator --format json "$PROMPT" ) \
   >"$run_log" 2>&1
 ex=$?
 dur=$(( $(date +%s) - start ))
+
+# --- Ergebnis-Check (T003335) --------------------------------------------------------
+# Bis T003335 stammte `state` ALLEIN aus dem Exit-Code. Ein Orchestrator, der lief und
+# nichts tat, endete mit 0 und wurde als `implement/done` verbucht — beobachtet an
+# T002843 (duration_s=157, exit=0, kein Diff). Der Exit-Code sagt "der Prozess ist
+# sauber zurueckgekehrt", nicht "es ist Arbeit entstanden". Das sind zwei Aussagen.
+#
+# Geprueft wird deshalb das Ergebnis: ein neuer Commit gegenueber head_before, oder
+# — falls der Orchestrator absichtlich uncommittet uebergibt — ein nicht leerer
+# Arbeitsbaum. Beides fehlt => der Lauf hat nichts geleistet.
+#
+# Fail-closed ist hier richtig: ein faelschlich als `done` verbuchtes Ticket verlaesst
+# die Queue und kehrt nie zurueck, waehrend ein faelschlich `blocked` gemeldetes im
+# naechsten Tick erneut dispatcht wird. Der teurere Fehler ist das stille `done`.
+produced_work=false
+if [[ $ex -eq 0 ]]; then
+  head_after="$(git -C "$LAUNCH_DIR" rev-parse HEAD 2>/dev/null || true)"
+  if [[ -n "$head_after" && "$head_after" != "$head_before" ]]; then
+    produced_work=true
+  elif [[ -n "$(git -C "$LAUNCH_DIR" status --porcelain 2>/dev/null)" ]]; then
+    produced_work=true
+  fi
+  if [[ "$produced_work" != true ]]; then
+    ex=6   # kollisionsfrei: 2 Bedienfehler, 127 Kommando fehlt
+    echo "opencode-exec: orchestrator run for $EXT_ID exited 0 but produced NO commit and NO working-tree change — treating as blocked [T003335]" >&2
+  fi
+fi
+
 state=done; [[ $ex -ne 0 ]] && state=blocked
 
 # --- terminal telemetry: one event per partial (deterministic gang-slot mapping) -----
@@ -87,6 +133,9 @@ fi
 
 if [[ $ex -ne 0 ]]; then
   echo "opencode-exec: orchestrator run for $EXT_ID exited $ex (blocked; NO claude fallback)" >&2
+  # Das Run-Log ist die einzige Spur, WARUM der Orchestrator nichts getan hat. Bis
+  # T003335 wurde es bei Exit 0 ungelesen geloescht — und weil ein leerer Lauf damals
+  # als Exit 0 galt, war genau der interessante Fall der einzige ohne Beweismittel.
   tail -n 40 "$run_log" | sed "s/^/[opencode-exec:${EXT_ID}] /" >&2
 fi
 rm -f "$run_log"

@@ -50,7 +50,18 @@ fi
 # Gateway nicht mehr aufloest (routing-check.sh meldete ihn als FEHLT). Der
 # Default ist per FACTORY_MODEL_ID ueberschreibbar, damit ein Modellwechsel
 # nicht wieder an drei Stellen nachgezogen werden muss.
-OPUS_FALLBACK=$'llamacpp\t'"${FACTORY_MODEL_ID:-gemma26-factory}"$'\thttp://127.0.0.1:18235'
+# [T003538] ZWEITER Fall derselben Klasse: der Nachfolger 'gemma26-factory' war ab
+# spaetestens 2026-08-10 ebenfalls tot — das Loadout ist in loadouts.json zwar
+# aktiviert, sein Backend (Port 8091) aber nicht geladen. "Aktiviert" und "geladen"
+# sind verschiedene Dinge; nur Letzteres entscheidet, und es ist offline nicht
+# pruefbar. Weil resolveModel() im llm-proxy eine unbekannte ID STILL auf das erste
+# gesunde Backend umleitet, entsteht dabei nirgends ein Fehler: die Anfrage wird
+# beantwortet, nur von einem anderen Modell — oder vom Cloud-Backend, das dann
+# HTTP 402 ("Insufficient Balance") liefert und wie ein sporadischer Modellfehler
+# aussieht. Der Default zeigt jetzt auf 'gemma26-throughput' (Port 8092, geladen).
+# Dass es zweimal passierte, lag nicht am Wert, sondern daran, dass niemand
+# routing-check.sh aufrief — wakeup.sh tut das seither pro Tick (fail-soft).
+OPUS_FALLBACK=$'llamacpp\t'"${FACTORY_MODEL_ID:-gemma26-throughput}"$'\thttp://127.0.0.1:18235'
 if [[ "$TIER" == "opus" ]]; then
   OPUS_ROW=$(factory_psql -v src="$SOURCE" 2>/dev/null <<'SQL' || true
 SELECT provider||E'\t'||model_id||E'\t'||COALESCE(base_url,'')
@@ -160,4 +171,4 @@ done <<< "$CANDS"
 # regulaere Weg; damit gibt es nur noch eine Stelle, die ein Modell benennen kann.
 echo "route-provider: ALLE Kandidaten fuer source=$SOURCE tier=$TIER belegt oder auf Cooldown." >&2
 echo "  Emergency-Fallback aktiv — pruefe 'bash scripts/factory/reap-provider-slots.sh --dry-run'." >&2
-printf '{"provider":"llamacpp","modelId":"%s","baseUrl":"http://127.0.0.1:18235","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n' "${FACTORY_MODEL_ID:-gemma26-factory}"
+printf '{"provider":"llamacpp","modelId":"%s","baseUrl":"http://127.0.0.1:18235","slotId":null,"ctx":0,"apiKeyEnv":null,"emergency":true}\n' "${FACTORY_MODEL_ID:-gemma26-throughput}"

@@ -3,6 +3,8 @@
 #
 # Usage:
 #   bash scripts/branch-reaper.sh --ticket T002520 [--dry-run] [--remote origin] [--repo .]
+#   bash scripts/branch-reaper.sh --dry-run                            # ticketloser Sweep (lesend)
+#   bash scripts/branch-reaper.sh --sweep [--dry-run] [--remote ...]   # loeschender Sweep
 #
 # Warum es dieses Skript gibt:
 #   `delete_branch_on_merge=true` und `gh pr merge --delete-branch` greifen nur, wenn der
@@ -53,28 +55,47 @@ ALLOWLIST=(
 
 TICKET_ID=""
 DRY_RUN=0
+SWEEP=0
 REMOTE="origin"
 TARGET_REPO="$PWD"
 
 usage() {
-  echo "Usage: branch-reaper.sh --ticket T###### [--dry-run] [--remote <name>] [--repo <pfad>]" >&2
+  echo "Usage: branch-reaper.sh [--ticket T######] [--dry-run] [--sweep] [--remote <name>] [--repo <pfad>]" >&2
+  echo "  --ticket T######   Einzel-Ticket-Lauf (Post-Merge-Pfad)" >&2
+  echo "  --dry-run          Nur anzeigen, nichts loeschen. Ohne --ticket: ticketloser Inspektionsblick ueber ALLE Remote-Branches." >&2
+  echo "  --sweep            Loeschender Sweep ueber ALLE Remote-Branches (braucht KEIN --ticket)" >&2
 }
 
 while [[ $# -gt 0 ]]; do case "$1" in
   --ticket)  TICKET_ID="${2:-}"; shift 2 ;;
   --dry-run) DRY_RUN=1; shift ;;
+  --sweep)   SWEEP=1; shift ;;
   --remote)  REMOTE="${2:-}"; shift 2 ;;
   --repo)    TARGET_REPO="${2:-}"; shift 2 ;;
   -h|--help) usage; exit 0 ;;
   *) echo "FEHLER: unbekanntes Argument '$1'" >&2; usage; exit 2 ;;
 esac; done
 
+# --ticket + --sweep schliessen sich aus: der Einzel-Ticket-Lauf und der
+# Batch-Sweep haben unterschiedliche Auswahl-Logiken und einen gegenlaeufigen
+# Ticket-ID-Vertrag (einmal vom Aufrufer, einmal aus dem Branch-Namen).
+if [ -n "$TICKET_ID" ] && [ "$SWEEP" -eq 1 ]; then
+  echo "FEHLER: --ticket und --sweep schliessen sich gegenseitig aus." >&2
+  exit 2
+fi
+
 # Format-Guard: Die ID landet weiter unten in Vergleichen und in einem Ref-Namen. Eine
 # malformed ID würde dort als Zeichenklasse wirken und könnte nicht gemeinte Branches
 # treffen — dasselbe Muster, das devflow-post-merge-deploy.sh absichert.
+# Der ticketlose Fall ist nur lesend (--dry-run) oder explizit als Sweep erlaubt — beides
+# schreibt keinen Archiv-Tag, es entsteht keine falsche Zuordnung.
 case "$TICKET_ID" in
   T[0-9][0-9][0-9][0-9][0-9][0-9]) : ;;
-  "") echo "FEHLER: --ticket ist erforderlich (Format T######)" >&2; usage; exit 2 ;;
+  "") if [ "$DRY_RUN" -eq 1 ] || [ "$SWEEP" -eq 1 ]; then
+        :  # ticketloser Inspektionsblick oder Sweep — erlaubt
+      else
+        echo "FEHLER: --ticket ist erforderlich (Format T######)" >&2; usage; exit 2
+      fi ;;
   *)  echo "FEHLER: ungueltiges Ticket-ID-Format '$TICKET_ID' (erwartet T######)" >&2; exit 2 ;;
 esac
 
@@ -115,17 +136,30 @@ _diverging_files() {
   done < <(git diff --name-only "$mb" "$ref" 2>/dev/null)
 }
 
-# Kandidaten: Remote-Branches, deren Name die Ticket-ID trägt (case-insensitiv).
+# Kandidaten: Remote-Branches. Im Einzel-Ticket-Modus nur die, deren Name die Ticket-ID
+# trägt (case-insensitiv). Im Sweep-Modus alle — die Ticket-ID wird je Branch aus dem
+# Branch-Namen extrahiert.
 mapfile -t CANDIDATES < <(
-  git ls-remote --heads "$REMOTE" 2>/dev/null \
-    | awk '{print $2}' \
-    | sed 's|^refs/heads/||' \
-    | grep -i -- "$TICKET_ID" \
-    || true
+  if [ -n "$TICKET_ID" ]; then
+    git ls-remote --heads "$REMOTE" 2>/dev/null \
+      | awk '{print $2}' \
+      | sed 's|^refs/heads/||' \
+      | grep -i -- "$TICKET_ID" \
+      || true
+  else
+    git ls-remote --heads "$REMOTE" 2>/dev/null \
+      | awk '{print $2}' \
+      | sed 's|^refs/heads/||' \
+      || true
+  fi
 )
 
 if [ "${#CANDIDATES[@]}" -eq 0 ]; then
-  echo "Keine Remote-Branches mit Ticket-ID $TICKET_ID gefunden."
+  if [ -n "$TICKET_ID" ]; then
+    echo "Keine Remote-Branches mit Ticket-ID $TICKET_ID gefunden."
+  else
+    echo "Keine Remote-Branches gefunden."
+  fi
   exit 0
 fi
 
@@ -136,6 +170,17 @@ for branch in "${CANDIDATES[@]}"; do
   if [ "$branch" = "main" ] || [ "$branch" = "$CURRENT_BRANCH" ]; then
     echo "KEEP $branch — aktueller Branch oder main"
     continue
+  fi
+
+  # Im Sweep-Modus die Ticket-ID je Branch aus dem Branch-Namen ziehen. Trägt der
+  # Branch keine T######-ID im Namen: KEEP — nicht prüfbar, also verschonen.
+  branch_ticket_id="$TICKET_ID"
+  if [ -z "$branch_ticket_id" ]; then
+    branch_ticket_id="$(printf '%s' "$branch" | grep -o 'T[0-9]\{6\}' | head -1 || true)"
+    if [ -z "$branch_ticket_id" ]; then
+      echo "KEEP $branch — keine Ticket-ID im Branch-Namen erkennbar"
+      continue
+    fi
   fi
 
   # (2) offener PR? Exit-Code auswerten, nicht die leere Ausgabe: ein API-Ausfall sieht
@@ -150,7 +195,7 @@ for branch in "${CANDIDATES[@]}"; do
   fi
 
   # (3) Ticket-Status
-  ticket_json="$(bash "$TICKET_SH" get --id "$TICKET_ID" 2>/dev/null || echo '{}')"
+  ticket_json="$(bash "$TICKET_SH" get --id "$branch_ticket_id" 2>/dev/null || echo '{}')"
   status="$(printf '%s' "$ticket_json" \
     | grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' \
     | head -1 | sed 's/.*:[[:space:]]*"//; s/"$//')"

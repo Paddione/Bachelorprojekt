@@ -724,3 +724,190 @@ klarstellen, dass `status` NICHT zu dieser Tabelle gehört.
 - **AND** sie stellt klar, dass `status` nicht zu dieser Tabelle gehört
 
 <!-- merged from change delta agent-skills.md (3b0a50566e91) -->
+
+### Requirement: agent-lock claim answers the help flag instead of locking it
+
+`scripts/agent-lock.sh claim` SHALL recognise `-h` and `--help` as a request for its option
+list and SHALL handle them **before** the first positional argument is taken as the scope
+name. It SHALL print the option list, exit 0, and create no file in `$AGENT_LOCK_DIR`.
+
+Taking `--help` as a scope produces a lock with an empty `id` under the file name
+`--help__.json`. That lock counts as `live`, so `reap` never removes it and it keeps
+polluting the `agent-lock.sh list` overview that `ticket-ops` and the `dev-flow-*` skills
+build their pre-check on. The existing precedent is `scripts/worktree-create.sh`, which
+handles `--help` ahead of all guards (T002783).
+
+The assurance is on the semantics — a lock file comes into being or does not — not on the
+wording of the help text (T002716).
+
+#### Scenario: claim --help prints options and writes no lock
+
+- **GIVEN** `AGENT_LOCK_DIR` points at an empty temporary directory
+- **WHEN** `agent-lock.sh claim --help` runs
+- **THEN** it exits 0, its output names at least one long option
+- **AND** no `*.json` file exists in `AGENT_LOCK_DIR`, in particular no `--help__.json`
+
+#### Scenario: a regular claim in the same directory still writes its lock
+
+- **GIVEN** the same temporary `AGENT_LOCK_DIR`
+- **WHEN** `agent-lock.sh claim ticket T0031070` runs
+- **THEN** it exits 0 and `ticket__T0031070.json` exists in that directory
+
+### Requirement: agent-lock claim rejects an empty or flag-shaped scope
+
+`scripts/agent-lock.sh claim` SHALL reject an empty scope argument and a scope argument
+beginning with `-` as an input error, exiting non-zero and creating no lock file. No lock
+may come into being without a valid scope, including for future flags this change does not
+anticipate.
+
+#### Scenario: empty scope is refused
+
+- **WHEN** `agent-lock.sh claim "" T0031072` runs
+- **THEN** it exits non-zero and no new file appears in `AGENT_LOCK_DIR`
+
+#### Scenario: unknown flag in scope position is refused
+
+- **WHEN** `agent-lock.sh claim --bogus-flag` runs
+- **THEN** it exits non-zero and no `--bogus-flag__.json` appears in `AGENT_LOCK_DIR`
+
+<!-- merged from change delta agent-skills.md (1ae10bcd0b8b) -->
+
+### Requirement: Interrupted git operations in worktrees are surfaced as a finding
+
+The repository SHALL provide a guard that inspects every registered git worktree for an
+interrupted git operation — an in-progress rebase (`rebase-merge` or `rebase-apply`), merge
+(`MERGE_HEAD`) or cherry-pick (`CHERRY_PICK_HEAD`) — and reports each affected worktree.
+
+The guard SHALL resolve the state directory per worktree (not from the caller's own git
+directory), SHALL exit non-zero when at least one worktree is affected so that automation
+fails closed, and SHALL exit zero when no worktree is affected.
+
+The guard SHALL NOT attempt to complete, continue or abort the operation it finds. Repairing a
+foreign worktree's rebase can produce a wrong commit on a branch the caller does not own; the
+guard reports and leaves the decision to the operator.
+
+#### Scenario: Ein Worktree steht mitten in einem Rebase
+
+- **GIVEN** ein Worktree, in dem ein Rebase mit Konflikt begonnen und nicht abgeschlossen wurde
+- **WHEN** der Guard ausgeführt wird
+- **THEN** nennt seine Ausgabe den Pfad dieses Worktrees
+- **AND** endet er mit einem Exit-Code ungleich 0
+
+#### Scenario: Alle Worktrees sind ohne laufende Operation
+
+- **GIVEN** kein Worktree hat eine unterbrochene git-Operation
+- **WHEN** der Guard ausgeführt wird
+- **THEN** endet er mit Exit-Code 0
+
+#### Scenario: Der Guard repariert nichts
+
+- **GIVEN** ein Worktree steht mitten in einem Rebase mit bereits aufgelösten Konflikten
+- **WHEN** der Guard ausgeführt wird
+- **THEN** besteht das Rebase-Zustandsverzeichnis dieses Worktrees danach unverändert fort
+
+### Requirement: The interrupted-operation check precedes the allowlist-filtered cleanliness check
+
+The repo-hygiene worktree procedure in `.claude/skills/references/repo-hygiene-ops.md` SHALL run
+the interrupted-operation guard BEFORE the allowlist-filtered `git status --porcelain` precheck,
+and SHALL state why the ordering is required.
+
+The reason is structural, not stylistic: a rebase that is interrupted after its conflicts were
+resolved and staged leaves only the resolved paths in `git status --porcelain`. The conflicts
+that trigger these rebases are almost exclusively freshness artifacts under `website/src/data/`
+and `docs/code-quality/` — precisely the paths the generat allowlist removes. After filtering,
+the output is empty and the broken worktree is classified as clean. The allowlist-filtered check
+therefore cannot detect this state at all, no matter how carefully it is performed.
+
+#### Scenario: Reihenfolge im Runbook
+
+- **GIVEN** der Abschnitt „Stale Git Worktrees" in `repo-hygiene-ops.md`
+- **WHEN** ein Operator ihn von oben nach unten abarbeitet
+- **THEN** trifft er den Guard-Aufruf vor dem allowlist-gefilterten `--porcelain`-Vorcheck
+- **AND** findet dort die Begründung, dass die Allowlist genau diesen Zustand wegfiltert
+
+#### Scenario: Der Stale-Worktree-Audit der Planungs-Skill ruft den Guard auf
+
+- **GIVEN** der Stale-Worktree-Audit in `.claude/skills/dev-flow-plan/SKILL.md` (Schritt −1)
+- **WHEN** eine Session ihn abarbeitet
+- **THEN** ruft sie den Guard neben `git worktree list` auf
+
+<!-- merged from change delta agent-skills.md (1d6e19c713c0) -->
+
+### Requirement: dev-flow-chore Step 0 must not stash a main checkout a foreign process is using
+
+`dev-flow-chore/SKILL.md` Step 0 (Reaper & Pull-First) MUST NOT run `git stash` on the main
+checkout when a foreign `claude`/`opencode` process has its `cwd` inside the main checkout
+AND the main checkout has uncommitted changes (the same foreign-activity detection as
+`scripts/worktree-create.sh`'s divergence-guard, see `divergence-guard.md`). In that case
+Step 0 skips the local `git pull --rebase origin main` and relies on the subsequent
+`scripts/worktree-create.sh` call to create the worktree from `origin/main` directly — the
+local `main` sync is hygiene, not a correctness requirement for the chore's worktree.
+
+#### Scenario: Foreign session active in the main checkout skips the stash
+
+- **GIVEN** the main checkout has uncommitted changes
+- **AND** a `claude` or `opencode` process other than the current session has its `cwd`
+  inside the main checkout
+- **WHEN** Step 0 of `dev-flow-chore` runs
+- **THEN** it does NOT run `git stash`
+- **AND** the main checkout's working tree is unchanged afterward
+- **AND** the skill proceeds to `scripts/worktree-create.sh` with `origin/main` as base
+
+#### Scenario: Clean main checkout still pulls without stashing (regression guard)
+
+- **GIVEN** the main checkout has no uncommitted changes
+- **WHEN** Step 0 of `dev-flow-chore` runs
+- **THEN** it runs `git pull --rebase origin main` directly, without stashing (unchanged
+  behavior — positive anchor: the skip logic must not suppress the ordinary clean-tree path)
+
+<!-- merged from change delta agent-skills.md (3f9f24b925df) -->
+
+### Requirement: A measurement used as a decision basis in a ticket carries its command
+
+`CLAUDE.md` MUST document a convention requiring that any measurement written into a ticket as
+justification for a decision — in particular a decision to defer or to not do something — is
+accompanied by the executable command that produced it. The convention MUST state that naming the
+match mode, the date or the excluded directories alone is insufficient: the search pattern (and
+therefore the runnable command) is the part that determines the result and MUST be recorded.
+
+The convention MUST be marked explicitly as an editorial rule without an automated runtime guard,
+consistent with the existing M10 deliverable-check convention, and MUST name the reason: whether a
+number is reproducible cannot be decided by a machine at ticket-write time, because verifying it
+requires the repository state at the moment of measurement.
+
+#### Scenario: The convention is present in the root instruction file
+
+- **GIVEN** the repository root file `CLAUDE.md`
+- **WHEN** its content is inspected
+- **THEN** it contains a section that obliges the author of a ticket-borne measurement to record the
+  command that produced it
+- **AND** that section carries the ticket reference `T002717`
+- **AND** that section states that it is an editorial convention rather than an automated guard
+
+#### Scenario: The convention names the pattern as the decisive omission
+
+- **GIVEN** the section described above
+- **WHEN** its content is inspected
+- **THEN** it makes clear that documenting date, match mode or exclusion filters without the search
+  pattern does not make a measurement reproducible
+
+#### Scenario: The guard fails when the convention is removed
+
+- **GIVEN** a copy of `CLAUDE.md` from which the section has been deleted
+- **WHEN** the documentation-convention test runs against that copy
+- **THEN** the test fails
+
+### Requirement: The measurement-convention guard verifies its own subject exists
+
+The BATS guard for the measurement convention MUST contain a positive anchor in the same test: it
+MUST first assert that `CLAUDE.md` exists and is non-empty before asserting the presence of the
+convention text. A guard that only searches for a string would pass vacuously if the file were
+missing or unreadable.
+
+#### Scenario: Positive anchor precedes the content assertion
+
+- **GIVEN** the test file for the measurement convention
+- **WHEN** it runs against a missing or empty `CLAUDE.md`
+- **THEN** it fails on the anchor assertion rather than reporting a passing search
+
+<!-- merged from change delta agent-skills.md (57f9def79a8e) -->

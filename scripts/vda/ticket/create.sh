@@ -2,6 +2,9 @@
 # Sourced by dispatchers.
 
 source "$(dirname "${BASH_SOURCE[0]}")/_ticket-core.sh"
+# [T002843] Hilfe-Vorabgriff (ticket_help_wanted/ticket_help_subcommand) — auch
+# fuer den Standalone-Aufruf (create.sh create …), nicht nur via ticket.sh.
+source "$(dirname "${BASH_SOURCE[0]}")/../../lib/ticket-help.sh"
 
 main() {
   local type="" title="" desc="" brand="" severity="" priority="mittel" status="triage" attention_mode="" is_test="false" areas="" product_id=""
@@ -10,6 +13,8 @@ main() {
   # ticket.sh dispatcher (which already shifts the subcommand off before
   # calling main). [T001582-M2]
   [[ "${1:-}" == "create" ]] && shift
+  # [T002843] --help/-h VOR der Options-Schleife abfangen (Muster T002783).
+  if ticket_help_wanted "$@"; then ticket_help_subcommand create; exit 0; fi
   while [[ $# -gt 0 ]]; do case "$1" in
       --type)           type="$2"; shift 2 ;;
       --title)          title="$2"; shift 2 ;;
@@ -22,7 +27,9 @@ main() {
       --areas)          areas="$2"; shift 2 ;;
       --product-id)     product_id="$2"; shift 2 ;;
       --is-test-data)   is_test="true"; shift ;;
-      *)                echo "Unknown create option: $1" >&2; exit 2 ;;
+      # [T002843] T002697-Hinweis nachgezogen: die uebrigen Subkommandos nennen
+      # den Weg zur erwarteten Form, create.sh nicht.
+      *)                echo "Unknown create option: $1" >&2; echo "  Aufruf ohne Argumente zeigt die erwarteten Flags: ticket.sh create" >&2; exit 2 ;;
     esac; done
   if [[ -z "$type" || -z "$title" || -z "$desc" ]]; then
     echo "ERROR: --type, --title, and --description are required." >&2

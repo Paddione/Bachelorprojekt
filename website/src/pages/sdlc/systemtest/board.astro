@@ -291,7 +291,7 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
 
   async function poll(): Promise<void> {
     try {
-      const r = await fetch('/api/admin/systemtest/board', { credentials: 'same-origin' });
+      const r = await fetch('/sdlc/api/systemtest/board', { credentials: 'same-origin' });
       if (!r.ok) {
         const msg = `Board konnte nicht geladen werden (HTTP ${r.status}).`;
         banner.textContent = msg;

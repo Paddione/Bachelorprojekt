@@ -98,11 +98,13 @@ if ! $GIT push -q -u origin "$BRANCH" ${amend_expected:+--force-with-lease="$BRA
   # dauerhaft blockieren. Ein `git rebase origin/${BRANCH}` scheitert hier aber mit
   # add/add-Konflikt: der eigene amendierte Commit hat die Basis als Parent, und der
   # Remote-Stand enthaelt tasks.md bereits. Stattdessen legen wir den Branch-Pointer
-  # auf den aktuellen Remote-Tip (reset --soft) und committen unseren Plan neu darauf.
-  # Index+Worktree behalten den generierten Stand; fremde Commits bleiben in der
-  # Historie erhalten.
+  # auf den aktuellen Remote-Tip (MIXED reset — der Index folgt dem origin-Baum,
+  # der Worktree behaelt den generierten Stand) und committen unseren Plan neu darauf.
+  # Wichtig: reset OHNE --soft — ein --soft liesse den alten Index stehen und der
+  # neue Commit wuerde fremde Remote-Dateien (z.B. parallel.txt) als Deletion
+  # mitnehmen. Fremde Commits bleiben in der Historie erhalten.
   $GIT fetch -q origin "$BRANCH"
-  if ! $GIT reset -q --soft "origin/${BRANCH}"; then
+  if ! $GIT reset -q "origin/${BRANCH}"; then
     echo "rollup-publish: FEHLER — reset auf origin/${BRANCH} fehlgeschlagen." >&2
     echo "  Der Plan ist lokal committet, aber nicht auf origin: ${CHANGE_DIR}" >&2
     exit 1

@@ -43,17 +43,30 @@ fi
 
 # Extract ticket ID from title if present (format: type(scope): [TXXXXXX] subject)
 # Matches [T123456] or T123456
-TICKET_ID="$(echo "$TITLE" | grep -oP '\[T\d{6}\]|T\d{6}' | tr -d '[]' | head -n 1 || true)"
-if [ -n "$TICKET_ID" ]; then
+TICKET_IDS="$(echo "$TITLE" | grep -oP '\[T\d{6}\]|T\d{6}' | tr -d '[]' | sort -u || true)"
+if [ -n "$TICKET_IDS" ]; then
   # Case-insensitive Vergleich [T001873]: dev-flow-chore erzeugt chore/<slug>-Branches
   # durchgehend in lowercase; die Ticket-ID im PR-Titel ist [T123456] (uppercase).
   BRANCH_LC="$(echo "$CURRENT_BRANCH" | tr '[:upper:]' '[:lower:]')"
-  TICKET_LC="$(echo "$TICKET_ID" | tr '[:upper:]' '[:lower:]')"
-  if [[ "$BRANCH_LC" != *"$TICKET_LC"* ]]; then
-    _suggested_branch="${CURRENT_BRANCH}-${TICKET_LC}"
-    echo "preflight-pr-scope: FATAL: PR title ticket ID '$TICKET_ID' does not match current branch name '$CURRENT_BRANCH'" >&2
-    echo "  Fix: rename the branch to include the ticket ID, e.g.:" >&2
-    echo "    git branch -m '$CURRENT_BRANCH' '$_suggested_branch'" >&2
+  _ticket_match=0
+  while IFS= read -r _id; do
+    _id_lc="$(echo "$_id" | tr '[:upper:]' '[:lower:]')"
+    if [[ "$BRANCH_LC" == *"$_id_lc"* ]]; then
+      _ticket_match=1
+      break
+    fi
+  done <<< "$TICKET_IDS"
+  if [ "$_ticket_match" -eq 0 ]; then
+    _id_list="$(echo "$TICKET_IDS" | awk '{printf "%s%s", sep, $0; sep=", "} END{print ""}')"
+    echo "preflight-pr-scope: FATAL: PR title ticket IDs '$_id_list' does not match current branch name '$CURRENT_BRANCH'" >&2
+    _id_count="$(echo "$TICKET_IDS" | wc -l | tr -d ' ')"
+    if [ "$_id_count" -eq 1 ]; then
+      _suggested_branch="${CURRENT_BRANCH}-$(echo "$TICKET_IDS" | head -n 1)"
+      echo "  Fix: rename the branch to include the ticket ID, e.g.:" >&2
+      echo "    git branch -m '$CURRENT_BRANCH' '$_suggested_branch'" >&2
+    else
+      echo "  Fix: at least one of the ticket IDs must appear in the branch name." >&2
+    fi
     echo "  See T001917 (dev-flow-chore/SKILL.md, Schritt 1): create the ticket BEFORE" >&2
     echo "  naming the branch/worktree slug so this never triggers in the first place." >&2
     exit 1

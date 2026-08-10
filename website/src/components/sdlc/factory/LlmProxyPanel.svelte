@@ -37,8 +37,8 @@
     try {
       loading = true;
       const [stRes, slotRes] = await Promise.all([
-        fetch('/api/admin/llm-proxy/status', { credentials: 'same-origin' }),
-        fetch('/api/factory-model-slots', { credentials: 'same-origin' }),
+        fetch('/sdlc/api/llm-proxy/status', { credentials: 'same-origin' }),
+        fetch('/sdlc/api/factory-model-slots', { credentials: 'same-origin' }),
       ]);
       if (!stRes.ok) throw new Error(`HTTP ${stRes.status}`);
       state = (await stRes.json()) as ProxyState;
@@ -54,7 +54,7 @@
   async function probe() {
     try {
       probing = true;
-      await fetch('/api/admin/llm-proxy/reload', { method: 'POST', credentials: 'same-origin' });
+      await fetch('/sdlc/api/llm-proxy/reload', { method: 'POST', credentials: 'same-origin' });
       await load();
     } finally {
       probing = false;
@@ -62,7 +62,7 @@
   }
 
   async function patchBackend(id: number, patch: Record<string, unknown>) {
-    const res = await fetch(`/api/admin/llm-proxy/backends/${id}`, {
+    const res = await fetch(`/sdlc/api/llm-proxy/backends/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
@@ -75,7 +75,7 @@
   function bump(b: BackendState, delta: number) { patchBackend(b.id, { priority: Math.max(0, b.priority + delta) }); }
 
   async function saveForm() {
-    const url = editId ? `/api/admin/llm-proxy/backends/${editId}` : '/api/admin/llm-proxy/backends';
+    const url = editId ? `/sdlc/api/llm-proxy/backends/${editId}` : '/sdlc/api/llm-proxy/backends';
     const res = await fetch(url, {
       method: editId ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },

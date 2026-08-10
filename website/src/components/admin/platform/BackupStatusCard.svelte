@@ -22,7 +22,7 @@
     loading = true;
     error = null;
     try {
-      const r = await fetch('/api/admin/backup-status');
+      const r = await fetch('/sdlc/api/backup-status');
       if (!r.ok) throw new Error(`Backup-Status nicht verfügbar (${r.status})`);
       const data = await r.json();
       pipelines = data.pipelines ?? [];

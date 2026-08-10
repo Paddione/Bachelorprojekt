@@ -37,7 +37,7 @@
 
     try {
       // 1. fetch NDJSON
-      const r = await fetch(`/api/admin/evidence/${evidenceId}/replay`, {
+      const r = await fetch(`/sdlc/api/evidence/${evidenceId}/replay`, {
         credentials: 'same-origin',
       });
       if (!r.ok) {

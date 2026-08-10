@@ -50,8 +50,8 @@
       isActive: fActive,
     };
     const url = editingId === null
-      ? '/api/admin/prompt-library'
-      : `/api/admin/prompt-library/${editingId}`;
+      ? '/sdlc/api/prompt-library'
+      : `/sdlc/api/prompt-library/${editingId}`;
     const method = editingId === null ? 'POST' : 'PUT';
     try {
       const res = await fetch(url, {
@@ -79,7 +79,7 @@
 
   async function toggleActive(p: Prompt) {
     try {
-      const res = await fetch(`/api/admin/prompt-library/${p.id}`, {
+      const res = await fetch(`/sdlc/api/prompt-library/${p.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -100,7 +100,7 @@
   async function remove(p: Prompt) {
     if (!confirm(`Vorlage „${p.title}“ löschen?`)) return;
     try {
-      const res = await fetch(`/api/admin/prompt-library/${p.id}`, { method: 'DELETE' });
+      const res = await fetch(`/sdlc/api/prompt-library/${p.id}`, { method: 'DELETE' });
       if (res.ok) {
         prompts = prompts.filter(x => x.id !== p.id);
         if (editingId === p.id) resetForm();

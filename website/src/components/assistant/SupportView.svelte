@@ -83,7 +83,7 @@
     try {
       const title = `[${CATEGORY_LABELS[category]}] ${description.trim().slice(0, 80)}${description.length > 80 ? '…' : ''}`;
       const desc = `Kategorie: ${CATEGORY_LABELS[category]}\nE-Mail: ${email.trim()}\nURL: ${window.location.href}\n\n${description.trim()}${files.length > 0 ? `\n\n(${files.length} Screenshot(s) beigefügt — konnten nicht hochgeladen werden.)` : ''}`;
-      const res = await fetch('/api/admin/tickets', {
+      const res = await fetch('/sdlc/api/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,7 +97,7 @@
       if (res.ok) {
         let externalId = '';
         if (data.id) {
-          const detail = await fetch(`/api/admin/tickets/${data.id}`).then(r => r.json()).catch(() => null);
+          const detail = await fetch(`/sdlc/api/tickets/${data.id}`).then(r => r.json()).catch(() => null);
           externalId = detail?.ticket?.externalId ?? '';
         }
         const successMsg = externalId

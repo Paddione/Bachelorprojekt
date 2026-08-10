@@ -295,6 +295,15 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/brain-ingest/SKILL.md`
 
+## Fähigkeit: `wiki-nachschlagen`
+
+- **`mcp:brain-mcp`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Im Brain-Wiki nachschlagen: BM25-Suche und Seiten lesen (brain_search, brain_read).
+  - _Nicht:_ Wiki kompilieren/veröffentlichen — dafür wissens-wiki/brain-ingest.
+  - _Fallback:_ `grep -r <begriff> ~/brain/wiki`
+  - _Rollen:_ `all`
+  - _Tiefe:_ `.claude/skills/references/mcp-tool-guide.md`
+
 ## Fähigkeit: `dokumentations-lookup`
 
 - **`plugin:context7@claude-plugins-official`** — Status `canonical` · Tier `safe`
@@ -336,6 +345,15 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Nicht:_ Ohne vorherige Zustimmung — der Skill hat ein Consent-Gate.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/lavish/SKILL.md`
+
+## Fähigkeit: `web-audit`
+
+- **`skill:web-audit`** — Status `canonical` · Tier `assisted`
+  - _Wann:_ Brand-Seiten semantisch prüfen: axe, Lighthouse und LLM-Triage manuell gegen die Live-Marken.
+  - _Nicht:_ PR-Entscheidungen — der Skill ist bewusst kein Merge-Gate.
+  - _Fallback:_ `task web:audit ENV=<brand> [WEB_AUDIT_ROUTES=...]`
+  - _Rollen:_ `bachelorprojekt-website`, `bachelorprojekt-test`
+  - _Tiefe:_ `.claude/skills/web-audit/SKILL.md`
 
 ## Fähigkeit: `browser-automation`
 
@@ -414,6 +432,17 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/unsloth-buddy/SKILL.md`
 
+## Fähigkeit: `finetune-pipeline`
+
+- **`cli:scripts/finetune`** — Status `canonical` · Tier `assisted`
+  - _Wann:_ Repo-Trainingslauf durchfuehren: Messschritt (measure_corpus.py) vor jeder Modellwahl, Template-Guard vor jedem Training, dann finetune:train/export ueber Taskfile.finetune.yml.
+  - _Nicht:_ Reine Unsloth/TRL-API-Fragen ohne Bezug zu diesem Repo-Subsystem — dafuer modell-finetuning/skill:unsloth-buddy direkt.
+  - _Fallback:_ `unsloth-buddy-Referenzcode manuell adaptieren, wenn Taskfile.finetune.yml nicht verfuegbar ist.`
+  - _Rollen:_ `orchestrator`, `bachelorprojekt-ops`
+  - _Tiefe:_ `.claude/skills/finetune-run/SKILL.md`
+- **`skill:finetune-run`** — Status `suppressed`
+  - _Grund:_ cli:scripts/finetune ist die kanonische Instanz und verlinkt dieses SKILL.md bereits als deep_ref — das Skill wird nicht separat injiziert.
+
 ## Fähigkeit: `huggingface-hub-operationen`
 
 - **`plugin:huggingface-skills@claude-plugins-official`** — Status `canonical` · Tier `safe`
@@ -446,6 +475,15 @@ für einen Agent-Prompt liefert `bash scripts/toolset-context.sh <rolle>`.
   - _Fallback:_ `node scripts/toolset/collect.mjs --unreviewed`
   - _Rollen:_ `orchestrator`
   - _Tiefe:_ `.claude/skills/toolset-curate/SKILL.md`
+
+## Fähigkeit: `werkzeug-discovery`
+
+- **`skill:agentic-resource-lookup`** — Status `canonical` · Tier `safe`
+  - _Wann:_ Externe MCP-Server/Plugins suchen, Live-Schema inspizieren, Urteil festhalten — ohne Installation.
+  - _Nicht:_ Bereits vorhandene Instanzen kuratieren — dafür werkzeug-kuration/toolset-curate.
+  - _Fallback:_ `node scripts/agentic-lookup.mjs find <query>`
+  - _Rollen:_ `orchestrator`
+  - _Tiefe:_ `.claude/skills/agentic-resource-lookup/SKILL.md`
 
 ## Fähigkeit: `gedaechtnis`
 

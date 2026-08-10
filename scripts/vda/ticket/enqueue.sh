@@ -13,9 +13,31 @@ main() {
     esac; done
   if [[ -z "$id" ]]; then echo "ERROR: --id is required." >&2; exit 2; fi
   local pod; pod=$(_pgpod)
-  _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
+
+  # [T003575] Ein bereits gestagtes Ticket NICHT nach backlog demoten.
+  #
+  # queue.sh hat zwei Dispatch-Zweige mit unterschiedlichen Zusatzgates:
+  #   Zweig A: type IN (feature,feat) AND status='backlog'     AND lastenheft_locked=true
+  #   Zweig B: type NOT IN (project,incident) AND status='plan_staged' AND execution_released!=false
+  # Ein gestagtes Ticket erfuellt Zweig B und ist damit bereits dispatchbar. Die
+  # Demotion nach backlog wirft es in Zweig A, der zusaetzlich lastenheft_locked
+  # verlangt — eine Flag, die aus dev-flow-plan stammende Tickets nicht tragen
+  # (COALESCE-Default false). Das Ticket faellt dann aus BEIDEN Zweigen und ist
+  # fuer den Dispatcher unsichtbar. Der Statuswechsel tauscht also die
+  # Torwaechter mit aus; enqueue stammt aus der Zeit, als es nur Zweig A gab.
+  local current_status
+  current_status=$(_exec_sql "$pod" -v ext_id="$id" <<'EOF' | head -1 | tr -d '[:space:]'
+SELECT status FROM tickets.tickets WHERE external_id = :'ext_id';
+EOF
+  )
+  local staged=false
+  if [[ "$current_status" == "plan_staged" ]]; then
+    staged=true
+  else
+    _exec_sql "$pod" -v ext_id="$id" <<'EOF' >/dev/null
 UPDATE tickets.tickets SET status='backlog' WHERE external_id = :'ext_id';
 EOF
+  fi
   if [[ -n "$branch" || -n "$plan" ]]; then
     _exec_sql "$pod" -v ext_id="$id" -v ref="FACTORY-PLAN-REF branch=${branch} plan=${plan}" <<'EOF' >/dev/null
 INSERT INTO tickets.ticket_comments (ticket_id, author_label, body, visibility)
@@ -28,7 +50,11 @@ SELECT t.id, 'factory', :'ref', 'internal'
    );
 EOF
   fi
-  echo "Ticket $id enqueued for the Software Factory (status=backlog)"
+  if [[ "$staged" == true ]]; then
+    echo "Ticket $id ist bereits plan_staged — Status unveraendert gelassen (queue.sh dispatcht gestagte Tickets direkt; eine Demotion nach backlog haette es unsichtbar gemacht)."
+  else
+    echo "Ticket $id enqueued for the Software Factory (status=backlog)"
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

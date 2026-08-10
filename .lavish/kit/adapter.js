@@ -26,6 +26,12 @@ const data = (() => {
     'ticket-status':    { path: '/sdlc/api/cockpit/ticket-status', website: true },
     'audit':            { path: '/sdlc/api/cockpit/audit', website: true },
     'brain':            { path: '/sdlc/api/cockpit/brain', website: true },
+    // T003277 — Dispatch-Mitschnitt. 'dispatches' liefert NUR Kopfdaten; die
+    // Bodies kommen ueber 'dispatch-detail' mit angehaengter id, damit ein
+    // Listenaufruf nicht zweistellige MB zieht.
+    'dispatches':       { path: '/sdlc/api/llm-proxy/requests', website: true },
+    'dispatch-detail':  { path: '/sdlc/api/llm-proxy/requests/', website: true },
+    'cockpit-stream':   { path: '/sdlc/api/cockpit/stream', website: true },
     'epics':            { path: '/api/cockpit/epics', website: false },
     'styles':           { path: '/api/cockpit/styles', website: false },
     'ci':               { path: '/api/cockpit/ci', website: false },
@@ -394,8 +400,11 @@ const data = (() => {
         };
 
         // Named events
+        // 'dispatch' (T003277): der Website-Stream sendet `event: <domain>`
+        // (sdlc/api/cockpit/stream.ts), und der NOTIFY-Trigger des
+        // Mitschnitts traegt die Domaene 'dispatch'.
         const namedEvents = ['agent_update', 'agent_started', 'agent_heartbeat', 'agent_done',
-          'factory_tick', 'gap', 'heartbeat', 'error'];
+          'factory_tick', 'dispatch', 'gap', 'heartbeat', 'error'];
         for (const evt of namedEvents) {
           eventSource.addEventListener(evt, (event) => {
             try {
@@ -510,6 +519,25 @@ const data = (() => {
    *
    * @returns {Promise<{entries?: Array, warnings?: string[], error?: string, fetchedAt: string}>}
    */
+  // ---- Dispatch-Mitschnitt (T003277) ----
+
+  /** Kopfdaten der letzten Mitschnitte. Traegt bewusst keine Bodies. */
+  async function dispatches(opts = {}) {
+    const params = new URLSearchParams();
+    if (opts.limit) params.set('limit', String(opts.limit));
+    if (opts.ticket) params.set('ticket', opts.ticket);
+    const query = params.toString();
+    return fetchEndpoint('dispatches', query ? { query } : {});
+  }
+
+  /** Ein Mitschnitt mit vollem Prompt und voller Antwort. */
+  async function dispatchDetail(id) {
+    return fetchEndpoint('dispatch-detail', { path: String(id) });
+  }
+
+  /** Live-Strom des Cockpits; das Panel filtert auf die Domaene 'dispatch'. */
+  const dispatchStream = createStream('cockpit-stream');
+
   async function styles() {
     // fetchEndpoint hält D12/D13 bereits ein: fetchedAt ist immer gesetzt, und
     // ein Fehler kommt als error-Feld zurück statt als null.
@@ -613,6 +641,9 @@ const data = (() => {
     epics,
     epicChangesSince,
     styles,
+    dispatches,
+    dispatchDetail,
+    dispatchStream,
     brainLinks,
     agentStream,
     factoryStream,

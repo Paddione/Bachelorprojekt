@@ -89,36 +89,35 @@ value SHALL be truncated, and the row SHALL carry `truncated = true` together wi
 - **THEN** the stored body is truncated to the limit, `truncated` is true, and `original_bytes`
   reports the size before truncation
 
-### Requirement: Correlation headers bind a dispatch to its originating work
+### Requirement: The proxy records correlation headers when a caller sends them
 
-The factory dispatch path SHALL send `x-slot-id`, `x-dispatch-ticket` and `x-dispatch-partial`
-with each call it makes through the proxy, and the recorded row SHALL carry those values. When a
-caller omits them — tab-selected opencode work, manual calls — the corresponding columns SHALL
-remain `NULL`. Deriving the correlation by other means, such as matching timestamps against
+The proxy SHALL read `x-slot-id`, `x-dispatch-ticket` and `x-dispatch-partial` from the incoming
+request and store them on the recorded row. When a caller omits them, the corresponding columns
+SHALL remain `NULL`. Deriving the correlation by other means, such as matching timestamps against
 `factory_phase_events`, is not permitted: with parallel slots that is a guess, and a guess
 presented as a recorded fact is worse than an empty column.
 
-Setting `x-slot-id` also activates the per-slot queue isolation in `slot-queue.mjs`, which until
-now keyed every request on `backend.name` alone because no caller ever sent the header.
+**Callers that go through opencode cannot currently supply per-dispatch values.** The opencode
+configuration schema (`https://opencode.ai/config.json`) admits no `headers` field under
+`provider.<name>.options` — the permitted keys are `apiKey`, `baseURL`, `enterpriseUrl`,
+`setCacheKey` and the timeout family. Headers exist only under
+`provider.<name>.models.<model>.headers`, which is static configuration and therefore cannot carry
+a value that changes per dispatch. Since the factory dispatches by spawning opencode
+(`scripts/factory/sandbox-run.sh`), its ticket and partial cannot reach the proxy this way. The
+columns consequently stay `NULL` for that path, which this requirement permits rather than papers
+over. Closing that gap is separate work.
 
-#### Scenario: A factory dispatch carries its ticket and partial into the row
+#### Scenario: A caller that sends the headers is correlated
 
-- **GIVEN** the factory dispatches a partial through the proxy
+- **GIVEN** a request carrying `x-slot-id`, `x-dispatch-ticket` and `x-dispatch-partial`
 - **WHEN** the dispatch is recorded
-- **THEN** the row carries the slot id, the ticket external id and the partial id sent by the
-  caller
+- **THEN** the row carries exactly those values
 
 #### Scenario: A dispatch without correlation headers leaves the columns empty
 
 - **GIVEN** a caller that sends no correlation headers
 - **WHEN** the dispatch is recorded
 - **THEN** the slot, ticket and partial columns are `NULL` and no value is inferred from timing
-
-#### Scenario: Per-slot isolation takes effect once the header is sent
-
-- **GIVEN** two concurrent requests to the same backend carrying different `x-slot-id` values
-- **WHEN** both are enqueued
-- **THEN** each is admitted against its own semaphore rather than queuing behind the other
 
 ### Requirement: Recordings are retained for a bounded window
 

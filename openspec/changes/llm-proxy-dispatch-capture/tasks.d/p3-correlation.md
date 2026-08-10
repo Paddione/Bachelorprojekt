@@ -1,7 +1,34 @@
 # p3 — Korrelations-Header
 
 **Rolle:** implementation
-**Dateien:** `.opencode/agent-models.jsonc`, `scripts/factory/pipeline.mjs`
+**Dateien:** keine — siehe Ergebnis der Machbarkeitsprobe
+
+## Ergebnis der Probe (2026-08-10, Branch-Stand 64f07d0fc)
+
+**Die Probe trägt nicht.** opencode kann pro Dispatch keine eigenen Header senden: das
+Konfigurationsschema (`https://opencode.ai/config.json`, referenziert in
+`.opencode/opencode.jsonc:2`) erlaubt unter `provider.<name>.options` abschließend `apiKey`,
+`baseURL`, `enterpriseUrl`, `setCacheKey` und die Timeout-Familie — kein `headers`, kein
+`additionalProperties`. Header existieren nur unter `provider.<name>.models.<model>.headers`, also
+als **statische** Konfiguration, die keinen wechselnden Wert tragen kann. Da die Factory über
+`scripts/factory/sandbox-run.sh` opencode startet und `pipeline.mjs` selbst keine HTTP-Aufrufe an
+`:18235` macht, erreichen Ticket und Partial den Proxy auf diesem Weg nicht.
+
+Ob `{env:}` in `models.headers` interpoliert wird, blieb offen: der Laufzeitversuch gegen einen
+Echo-Server lief in den Timeout, ohne den Server zu erreichen. Vollständige Messung samt Befehlen
+im Ticket-Kommentar zu T003277.
+
+**Umgesetzt wird daher nur die Leseseite** — sie liegt bereits in p2: der Proxy nimmt die drei
+Header entgegen und schreibt sie in die Zeile. Wer sie sendet, wird korreliert; sonst bleiben die
+Spalten `NULL`. Das Delta-Requirement wurde entsprechend umgeschrieben. Eine geratene Zuordnung
+über Zeitfenster wird nicht gebaut.
+
+**Der in D6 erwartete Nebeneffekt tritt nicht ein:** die Per-Slot-Queue-Isolation bleibt
+wirkungslos, weil weiterhin niemand `x-slot-id` sendet. Der dazu gemeldete Mishap bleibt offen.
+
+---
+
+_Der ursprüngliche Auftrag dieses Partials, zur Nachvollziehbarkeit:_
 
 ## Kontext
 

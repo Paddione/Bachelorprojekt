@@ -121,7 +121,7 @@ jobs:
       # handgepflegte Liste ab jetzt gegen die vorhandenen Dateien.
       # mcp-bridge.test.mjs uses vitest (vi.mock) — run separately from node:test files.
       - name: llm-proxy routing + readiness (always)
-        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
+        run: npx vitest run scripts/llm-proxy/mcp-bridge.test.mjs && node --test scripts/llm-proxy/bge-routes.test.mjs scripts/llm-proxy/discovery-probe-auth.test.mjs scripts/llm-proxy/exclusive-conflict.test.mjs scripts/llm-proxy/fixups.test.mjs scripts/llm-proxy/gpu-lock.test.mjs scripts/llm-proxy/loadouts.test.mjs scripts/llm-proxy/local-only.test.mjs scripts/llm-proxy/models.test.mjs scripts/llm-proxy/request-log.test.mjs scripts/llm-proxy/respond.test.mjs scripts/llm-proxy/runner.test.mjs scripts/llm-proxy/server.test.mjs scripts/llm-proxy/strip-markers.test.mjs
 
       - name: API auth regression gate
         run: |

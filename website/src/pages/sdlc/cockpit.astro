@@ -3,7 +3,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getSession, isAdmin } from '../../lib/auth';
 import { buildLoginRedirect } from '../../lib/login-redirect';
 import PipelinePanel from '../../components/cockpit/PipelinePanel.svelte';
+import DispatchLogPanel from '../../components/cockpit/DispatchLogPanel.svelte';
 import { getFloor } from '../../lib/sdlc/factory-floor.ts';
+import { listDispatches } from '../../lib/sdlc/llm-proxy-request-log.ts';
 
 export const prerender = false;
 
@@ -17,6 +19,11 @@ const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
 
 let initial = null;
 try { initial = await getFloor(slotsCap); } catch { initial = null; }
+
+// T003277 — erste Seite des Dispatch-Mitschnitts serverseitig, damit das Panel
+// nicht leer aufblendet. Danach waechst es per SSE nach.
+let dispatchInitial: Awaited<ReturnType<typeof listDispatches>>['items'] = [];
+try { dispatchInitial = (await listDispatches({ limit: 50 })).items; } catch { dispatchInitial = []; }
 
 // 'tab' ist ein reservierter Query-Parameter für Cockpit/Pipeline (D-K10-2).
 type Tab = 'factory' | 'planung' | 'analytics' | 'kosten' | 'control' | 'abhaengigkeiten' | 'parallel';
@@ -138,6 +145,8 @@ const initialTab: Tab = (ALLOWED.includes(raw as Tab) ? raw : 'factory') as Tab;
     </aside>
     <main class="cockpit-workspace">
       <PipelinePanel client:load {initial} {initialTab} {brand} />
+
+      <DispatchLogPanel client:load initial={dispatchInitial} />
 
       <div class="panel panel--card" data-panel-type="status" data-source="tickets" data-refresh-interval="30000" id="panel-tickets-card">
         <div class="panel__head">

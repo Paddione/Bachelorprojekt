@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.262.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.5...website-v1.262.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** cross-harness plan guardrails — fail-closed Preflight- und Stage-Guards [T003267] ([#4129](https://github.com/Paddione/Bachelorprojekt/issues/4129)) ([a28e9f9](https://github.com/Paddione/Bachelorprojekt/commit/a28e9f9589aa67c7ef9bee8a42985912f1649414))
+
 ## [1.261.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.261.4...website-v1.261.5) (2026-08-10)
 
 

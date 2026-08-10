@@ -2739,6 +2739,12 @@
       "status": "archived"
     }
   ],
+  "T002717": [
+    {
+      "slug": "ticket-messung-mit-befehl",
+      "status": "plan_staged"
+    }
+  ],
   "T002718": [
     {
       "slug": "mishap-t002718",

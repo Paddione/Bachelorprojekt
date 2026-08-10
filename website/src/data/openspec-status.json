@@ -3183,6 +3183,12 @@
       "status": "archived"
     }
   ],
+  "T003539": [
+    {
+      "slug": "batch-git-worktree-integrity-fixes",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

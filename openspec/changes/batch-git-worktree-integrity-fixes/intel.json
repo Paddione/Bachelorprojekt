@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "slug": "batch-git-worktree-integrity-fixes",
+    "ticket_id": "T003539",
+    "generated_from": "main@cdd5f69e8",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/worktree-git-op-guard.sh",
+      "language": "bash",
+      "loc": 136,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 664
+    },
+    {
+      "path": "scripts/worktree-clean-check.sh",
+      "language": "bash",
+      "loc": 50,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 750
+    },
+    {
+      "path": "scripts/hooks/worktree-write-guard.sh",
+      "language": "bash",
+      "loc": 192,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 608
+    },
+    {
+      "path": "scripts/git-stash-net.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/worktree-create.sh",
+      "language": "bash",
+      "loc": 568,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 232
+    },
+    {
+      "path": "scripts/git-worktree-health.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/git-workflow/SKILL.md",
+      "language": "markdown",
+      "loc": 263,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/batch-git-worktree-integrity-fixes.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/batch-git-worktree-integrity-fixes/specs/batch-git-worktree-integrity-fixes.md",
+      "language": "markdown",
+      "loc": 73,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/worktree-git-op-guard.sh:19:usage() {",
+      "kind": "function",
+      "file": "scripts/worktree-git-op-guard.sh",
+      "signature": "19:usage() {(...)",
+      "type_text": "19:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-clean-check.sh:17:usage() {",
+      "kind": "function",
+      "file": "scripts/worktree-clean-check.sh",
+      "signature": "17:usage() {(...)",
+      "type_text": "17:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:41:_allow() { exit 0; }",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "41:_allow() { exit 0; }(...)",
+      "type_text": "41:_allow() { exit 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:85:_field() {  # $1=datei $2=key",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "85:_field() {  # $1=datei $2=key(...)",
+      "type_text": "85:_field() {  # $1=datei $2=key(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:89:_my_sid() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "89:_my_sid() {(...)",
+      "type_text": "89:_my_sid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:106:_abs_wt() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "106:_abs_wt() {(...)",
+      "type_text": "106:_abs_wt() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-create.sh:162:_wc_stash_pop_or_warn() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "162:_wc_stash_pop_or_warn() {(...)",
+      "type_text": "162:_wc_stash_pop_or_warn() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-create.sh:371:_rollback() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "371:_rollback() {(...)",
+      "type_text": "371:_rollback() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

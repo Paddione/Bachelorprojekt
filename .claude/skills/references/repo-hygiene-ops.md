@@ -464,3 +464,145 @@ Issues leben in Postgres, nicht auf GitHub. Falls `gh issue list --state open` e
 
 MCP-first via `factory-mcp` (Health-Guard, Tools, Fallbacks): siehe
 [`mcp-tool-guide.md`](mcp-tool-guide.md) §factory-mcp.
+
+## 6. Proactive Hygiene Recommendations
+
+Nach jedem Durchlauf der Abschnitte 0–5 wird ein **Recommendation-Report** ausgegeben.
+Ziel: nicht nur aufräumen, sondern dem Operator sagen, welche 3 Aktionen den größten
+Hygiene-Gewinn bringen — priorisiert nach Impact.
+
+### 6.1 Hygiene-Metriken erheben
+
+```bash
+# Stale Worktrees (ohne main, ohne aktuell geclaimte)
+git worktree list | grep -v '\[main\]' | wc -l
+
+# Stale Branches (lokal, remote-tracking gone)
+git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
+  | awk '$2 == "[gone]" {print $1}' | wc -l
+
+# Offene PRs nach Status
+gh pr list --state open --json number,title,statusCheckRollup,isDraft,createdAt \
+  --jq 'group_by(if .isDraft then "draft" elif (.statusCheckRollup | length) == 0 then "no-ci" else "ci-ok" end) | map({key: .[0].statusCheckRollup, count: length})'
+
+# Factory-Queue
+mcp__factory-mcp__factory_status({})   # liefert queue_depth + is_running
+```
+
+### 6.2 Aging-Report
+
+Tickets, Worktrees und Branches nach Alter bucketen:
+
+| Alter | Worktrees | Branches | PRs | Bedeutung |
+|-------|-----------|----------|-----|-----------|
+| <1d | N | N | N | Aktiv — nicht anfassen |
+| 1–7d | N | N | N | Normal — prüfen ob gemergt/abandoned |
+| 7–30d | N | N | N | **Aufräumkandidat** — wahrscheinlich vergessen |
+| >30d | N | N | N | **Kritisch** — definitiv vergessen, belegt Resourcen |
+
+```bash
+# Worktree-Alter ermitteln (via letztem Commit-Datum im Worktree):
+for wt in $(git worktree list --porcelain | grep '^worktree ' | grep -v '/main$' | cut -d' ' -f2); do
+  last_commit=$(git -C "$wt" log -1 --format='%ct' 2>/dev/null || echo 0)
+  age_days=$(( ($(date +%s) - last_commit) / 86400 ))
+  echo "$wt: ${age_days}d"
+done
+```
+
+### 6.3 Top-3-Empfehlungen
+
+Aus den Metriken werden die drei wirkungsvollsten Aktionen abgeleitet:
+
+| Rang | Bedingung | Empfehlung |
+|------|-----------|------------|
+| 1 | `>5 stale Worktrees` ODER `>10 [gone]-Branches` | **Massen-Cleanup**: `repo-hygiene` §1+§2 vollständig ausführen. Vorher `bash scripts/agent-lock.sh reap`. Geschätzte Zeit: 2–5 min. |
+| 2 | `≥1 PR mit CI=green, kein Draft, reviewDecision=APPROVED` | **PR mergen**: `gh pr merge --squash --delete-branch`. Ticket schließen nicht vergessen (§3). |
+| 3 | `Factory queue_depth > 3` | **Factory-Health check**: `mcp__factory-mcp__factory_ask({ question: "Sind alle Worker gesund? Gibt es blockierte Jobs?" })`. Ggf. `mcp__factory-mcp__factory_trigger({})`. |
+| 4 | `≥1 Worktree >30d ohne Commit` | **Worktree entsorgen**: `git worktree remove --force` nach Allowlist-Check (§1). |
+| 5 | `≥3 PRs offen vom selben Author` | **PR-Stau**: Author pingen oder PRs bündeln (wenn thematisch verwandt). |
+| 6 | `≥5 Tickets mit attention_mode=needs_human` | **Klärungsrunde fällig**: `ticket-ops` Phase 2 ausführen. |
+
+Die Top 3 werden am Ende jedes `repo-hygiene`-Laufs ausgegeben:
+
+```
+🧹 HYGIENE-EMPFEHLUNGEN (Top 3):
+  1. ⚠ 7 stale Worktrees, 12 [gone]-Branches — Massen-Cleanup empfohlen
+  2. ✅ PR #3921 (CI grün, approved) — mergebereit seit 2d
+  3. 📊 Factory-Queue: 5 wartend, 0 aktiv — Worker-Health prüfen
+
+📊 HYGIENE-METRIKEN:
+  Worktrees: 9 total, 2 aktiv (<1d), 7 stale (>7d)
+  Branches:  14 [gone], 3 gemergt (per --merged)
+  PRs:       4 offen (1 mergeable, 1 draft, 2 CI-failing)
+  Tickets:   23 offen, 6 needs_human
+  Factory:   5 queue, last tick: vor 3h
+```
+
+### 6.4 Aging Alerts (automatische Warnungen)
+
+Diese Warnungen erscheinen im Report, wenn Schwellen überschritten werden:
+
+| Alert | Schwelle | Aktion |
+|-------|----------|--------|
+| 🕐 **Ticket-Aging** | >5 Tickets >30d ohne Status-Update | Review-Empfehlung: sind diese Tickets noch relevant? → `obsolete`? |
+| 🧹 **Worktree-Leak** | >3 Worktrees mit letztem Commit >7d | Wahrscheinlich nach Factory-Run liegen geblieben — Cleanup §1 |
+| 📋 **PR-Stagnation** | PR >5d offen ohne Review | Reviewer pingen oder PR schließen wenn abandoned |
+| ⏱️ **Factory-Stall** | Queue >0, last tick >6h | Factory-Trigger oder Worker-Health-Check |
+
+---
+
+## 7. Scheduling & Trigger Guidance
+
+Wann und wie oft sollte `repo-hygiene` ausgeführt werden?
+
+### 7.1 Empfohlene Trigger
+
+| Trigger | Kadenz | Priorität |
+|---------|--------|-----------|
+| **Post-`ticket-ops` Lauf** | Nach jedem Phase-3-Dispatch | hoch — direkte Folge: Worktrees und Branches entstehen |
+| **Post-`dev-flow-execute` Abschluss** | Nach jedem Merge | mittel — ein toter Branch/Worktree mehr |
+| **Daily Hygiene Sweep** | 1×/Tag (idealerweise morgens) | mittel — verhindert Akkumulation |
+| **Pre-Batch-Dispatch** | Vor Dispatch von >3 Tickets | hoch — stellt sicher, dass genug saubere Worktree-Slots frei sind |
+| **Weekly Deep Clean** | 1×/Woche (z.B. Montag) | niedrig — voller Durchlauf inkl. Aging-Report und verwaiste Remote-Branches |
+
+### 7.2 Ausführungstiefe (Light vs. Full)
+
+Nicht jeder Lauf muss alle 8 Abschnitte abdecken:
+
+| Modus | Abschnitte | Dauer | Wann? |
+|-------|-----------|-------|-------|
+| **Quick** | §0, §5 (Arbeitsbaum + Factory-Queue) | <30s | Nach jedem `ticket-ops`-Dispatch |
+| **Standard** | §0–§3 (Arbeitsbaum, Worktrees, Branches, PRs) | 2–5 min | Daily Sweep, Pre-Batch-Dispatch |
+| **Full** | §0–§7 (alles + Aging-Report + Empfehlungen) | 5–10 min | Weekly Deep Clean |
+
+### 7.3 Automatisierung (Cron)
+
+Für den Daily Sweep kann ein Cron-Job eingerichtet werden:
+
+```bash
+# In crontab -e (läuft als User patrick):
+0 8 * * * bash /home/patrick/Bachelorprojekt/scripts/repo-hygiene-cron.sh standard >> /tmp/repo-hygiene-cron.log 2>&1
+```
+
+Das Cron-Skript (`scripts/repo-hygiene-cron.sh`, seit T003486) ist ein schlanker Wrapper, der:
+1. `git fetch origin main --prune` ausführt
+2. `bash scripts/agent-lock.sh reap` (stale Locks)
+3. Die Hygiene-Metriken (Worktree/Branch/PR-Counts) als JSON nach stdout schreibt
+4. Oberhalb von `STALE_THRESHOLD` stale Artifacts eine Warnung per `ticket.sh add-comment`
+   an das Hygiene-Tracking-Ticket anhängt
+
+> **Es kennt zwei Modi — `standard` (default) und `deep`**, nicht die drei Tiefen aus §7.2.
+> `deep` ergänzt `branch-reaper.sh --dry-run` und zählt dessen Kandidaten mit. Die Zuordnung
+> lautet also: §7.2 *Quick*/*Standard* → `standard`, §7.2 *Full* → `deep`.
+
+### 7.4 Hygiene-Gesundheitsampel
+
+Einfache Status-Übersicht für den Operator:
+
+```
+🟢 GRÜN  — <3 stale Worktrees, <5 [gone]-Branches, kein PR >3d
+🟡 GELB  — 3–5 stale Worktrees ODER 5–10 [gone]-Branches ODER 1 PR >3d
+🔴 ROT   — >5 stale Worktrees ODER >10 [gone]-Branches ODER Factory-Stall >6h
+```
+
+Die Ampel wird am Anfang jedes Quick-Laufs berechnet und bei GELB/ROT im Report ausgegeben.

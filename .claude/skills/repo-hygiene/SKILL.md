@@ -1,6 +1,6 @@
 ---
 name: repo-hygiene
-description: 'Use for the state of the repository itself — stale branches and worktrees, open PRs to merge and close, GitHub issue intake, software factory queue status. Triggers on "clean branches", "merge PRs", "prune worktrees", "stale worktrees", "factory queue status", "close resolved tickets", git worktree remove, gh pr merge. Not for the content of tickets — triage, missing information and parallel-work planning belong to ticket-ops.'
+description: 'Use for the state of the repository itself — stale branches and worktrees, open PRs to merge and close, GitHub issue intake, software factory queue status, proactive hygiene recommendations, and scheduling guidance. Triggers on "clean branches", "merge PRs", "prune worktrees", "stale worktrees", "factory queue status", "close resolved tickets", git worktree remove, gh pr merge, "repo health check", "hygiene recommendations", "what should I clean up". Not for the content of tickets — triage, missing information and parallel-work planning belong to ticket-ops.'
 ---
 
 > **Mishap Tracking:** Führe während dieses Skills ein `MISHAP_LOG` und rufe am Ende
@@ -19,7 +19,7 @@ Der interne Postgres-Tracker `tickets.tickets` ist die SSOT für Issues. DB-Zugr
 
 Die gesamte Housekeeping-Mechanik ist **SSOT** in
 [`repo-hygiene-ops`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/repo-hygiene-ops.md) —
-die sechs Abschnitte der Reihe nach ausführen:
+die acht Abschnitte der Reihe nach ausführen:
 
 0. **Arbeitsbaum & Stashes** — §0
 1. **Stale Git Worktrees** — §1
@@ -27,8 +27,10 @@ die sechs Abschnitte der Reihe nach ausführen:
 3. **PR-Triage → verknüpftes Ticket schließen** — §3
 4. **GitHub-Issue-Intake** (Dedupe-Guard [T001210]) — §4
 5. **Software-Factory-Queue** (MCP-first via `factory-mcp`) — §5
+6. **Proactive Hygiene Recommendations** — §6 (nach jedem Lauf: Top-3-Empfehlungen, Aging-Report)
+7. **Scheduling & Trigger Guidance** — §7 (wann und wie oft Hygiene laufen sollte)
 
-Für Completeness-Triage, Klärungsrunden und Parallelisierungs-Masterplan (Phasen 1–3) →
+Für Completeness-Triage, Klärungsrunden und Parallelisierungs-Masterplan (Phasen 1–4) →
 `ticket-ops`.
 
 ---

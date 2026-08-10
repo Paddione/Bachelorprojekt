@@ -222,11 +222,20 @@ Nur wenn in einem `.worktrees/*`-Worktree gearbeitet wurde:
 
 ```bash
 WORKTREE_PATH="$(git rev-parse --show-toplevel)"
+BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
 MAIN_REPO=$(git worktree list --porcelain | awk '/^worktree/{print $2; exit}')
 
 cd "$MAIN_REPO"
 git worktree remove "$WORKTREE_PATH"
 git worktree prune
+
+# Der Remote-Branch wurde durch `gh pr merge --squash --delete-branch` bereits
+# gelöscht — der lokale Ref bleibt aber übrig, weil der Squash-Commit auf main
+# ein neuer Commit ist und Git den Branch nicht als "merged" erkennen kann.
+# `git branch -d` würde daher fehlschlagen; `-D` ist nötig.
+if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME" 2>/dev/null; then
+  git branch -D "$BRANCH_NAME"
+fi
 ```
 
 Agent-Lock freigeben (`release ticket` + `release branch`, VOR dem Worktree-Remove) —

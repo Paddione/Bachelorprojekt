@@ -117,13 +117,6 @@ function sdlcCounterpart(path: string): string {
 // Einträge. Steht hier eine Datei, die längst sauber ist, schlägt der Test an:
 // eine Ausnahmeliste, die niemand aufräumt, verdeckt sonst neue Fehler.
 const PENDING_FILES: string[] = [
-  // Etappe 5 — Ops-Tabs und Logging [T003481]
-  'src/components/admin/ops/DatenbankTab.svelte',
-  'src/components/admin/ops/DienstTab.svelte',
-  'src/components/admin/ops/DnsZertTab.svelte',
-  'src/components/admin/ops/LogsTab.svelte',
-  'src/components/assistant/LogsSidekickView.svelte',
-  'src/lib/logging/error-report.ts',
   // Etappe 6 — Platform-Tabs und Architektur [T003482]
   'src/components/admin/platform/AssetTicketDrawer.svelte',
   'src/components/admin/platform/BackupStatusCard.svelte',

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 899,
+      "file_count": 900,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -512,6 +512,7 @@
         "tests/spec/local-llm-proxy/bge-loadout-cpu-bound.bats",
         "tests/spec/local-llm-proxy/bge-mcp-upstream-timeout.bats",
         "tests/spec/local-llm-proxy/bge-token-ssot.bats",
+        "tests/spec/local-llm-proxy/brain-ingest-port.bats",
         "tests/spec/local-llm-proxy/embed-bge-fallback.bats",
         "tests/spec/local-llm-proxy/embed-probe-timeout.bats",
         "tests/spec/local-llm-proxy/embed-skip-visibility.bats",
@@ -912,7 +913,7 @@
       "id": "scripts-db",
       "name": "Database scripts (migrations + datamodel)",
       "owner_agent": "bachelorprojekt-db",
-      "file_count": 57,
+      "file_count": 58,
       "files": [
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-korczewski.sql",
         "scripts/datamodel/2026-05-23-audit-phase5-add-fk-indexes-mentolder.sql",
@@ -970,7 +971,8 @@
         "scripts/migrations/2026-08-04-llm-proxy-gemma-qwen-families.sql",
         "scripts/migrations/2026-08-04-provider-config-data-residency.sql",
         "scripts/migrations/2026-08-09-customer-projects-copy.sql",
-        "scripts/migrations/2026-08-09-enable-gemma-backend-proxy-T002640.sql"
+        "scripts/migrations/2026-08-09-enable-gemma-backend-proxy-T002640.sql",
+        "scripts/migrations/2026-08-10-brain-ingest-port.sql"
       ]
     },
     {

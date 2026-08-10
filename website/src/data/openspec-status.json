@@ -3063,6 +3063,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003103": [
+    {
+      "slug": "preflight-scope-multi-ticket",
+      "status": "plan_staged"
+    }
+  ],
   "T003110": [
     {
       "slug": "agent-lock-sid-detection-T003110",

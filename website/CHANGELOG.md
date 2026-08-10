@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.264.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.15...website-v1.264.0) (2026-08-10)
+
+
+### Features
+
+* **scripts:** quickwin script fixes — plan-touched-files, preflight, backup [T003276] ([#4204](https://github.com/Paddione/Bachelorprojekt/issues/4204)) ([b7f2bf3](https://github.com/Paddione/Bachelorprojekt/commit/b7f2bf32251197b307ab76f984c1e759fd5eadfb))
+
 ## [1.263.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.263.14...website-v1.263.15) (2026-08-10)
 
 

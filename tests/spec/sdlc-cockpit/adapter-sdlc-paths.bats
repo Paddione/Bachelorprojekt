@@ -67,15 +67,38 @@ if (entries.length === 0) {
 let errors = [];
 for (const e of entries) {
   const routePath = e.path;
-  let filePath;
-  if (routePath.startsWith('/sdlc/')) {
-    filePath = repo + '/' + routePath.replace('/sdlc/', 'website/src/pages/sdlc/') + '.ts';
-  } else if (routePath.startsWith('/api/')) {
-    filePath = repo + '/' + routePath.replace('/api/', 'website/src/pages/api/') + '.ts';
+  // T003277: Ein Pfad, der auf '/' endet, ist ein PRAEFIX — der Adapter haengt
+  // zur Laufzeit eine id an (fetchEndpoint(..., {path: id})). Dahinter steht
+  // keine statische Datei, sondern eine dynamische Astro-Route '[…].ts'.
+  // Ohne diese Unterscheidung wuerde der Guard 'requests/.ts' suchen und jeden
+  // Detail-Endpunkt fuer immer als fehlend melden.
+  const isDynamicPrefix = routePath.endsWith('/');
+  const bare = isDynamicPrefix ? routePath.slice(0, -1) : routePath;
+  let base;
+  if (bare.startsWith('/sdlc/')) {
+    base = repo + '/' + bare.replace('/sdlc/', 'website/src/pages/sdlc/');
+  } else if (bare.startsWith('/api/')) {
+    base = repo + '/' + bare.replace('/api/', 'website/src/pages/api/');
   } else {
     errors.push('Unbekannter Pfad-Praefix: ' + e.key + ' -> ' + routePath);
     continue;
   }
+
+  if (isDynamicPrefix) {
+    // Das Verzeichnis muss existieren UND mindestens eine dynamische Route
+    // enthalten. Nur "Verzeichnis existiert" waere zu schwach: ein leeres
+    // Verzeichnis wuerde den Guard bestehen lassen.
+    const dynamic = fs.existsSync(base) && fs.statSync(base).isDirectory()
+      ? fs.readdirSync(base).filter(f => /^\[.+\]\.ts$/.test(f))
+      : [];
+    if (dynamic.length === 0) {
+      errors.push('KEINE DYNAMISCHE ROUTE: ' + e.key + ' -> ' + routePath
+        + ' (gesucht: ' + base.replace(repo + '/', '') + '/[…].ts)');
+    }
+    continue;
+  }
+
+  const filePath = base + '.ts';
   if (!fs.existsSync(filePath)) {
     errors.push('KEINE ROUTENDATEI: ' + e.key + ' -> ' + routePath + ' (gesucht: ' + filePath.replace(repo + '/', '') + ')');
   }

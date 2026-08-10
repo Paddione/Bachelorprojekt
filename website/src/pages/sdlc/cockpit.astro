@@ -8,7 +8,9 @@ import CockpitRail from '../../components/cockpit/CockpitRail.svelte';
 import FactoryFloor from '../../components/sdlc/FactoryFloor.svelte';
 import PlanningOffice from '../../components/PlanningOffice.svelte';
 import InsightsTab from '../../components/sdlc/factory/InsightsTab.svelte';
+import DispatchLogPanel from '../../components/cockpit/DispatchLogPanel.svelte';
 import { getFloor } from '../../lib/sdlc/factory-floor.ts';
+import { listDispatches } from '../../lib/sdlc/llm-proxy-request-log.ts';
 
 export const prerender = false;
 
@@ -22,6 +24,11 @@ const slotsCap = parseInt(process.env.FACTORY_GLOBAL_CAP ?? '3', 10);
 
 let initial = null;
 try { initial = await getFloor(slotsCap); } catch { initial = null; }
+
+// T003277 — erste Seite des Dispatch-Mitschnitts serverseitig, damit das Panel
+// nicht leer aufblendet. Danach waechst es per SSE nach.
+let dispatchInitial: Awaited<ReturnType<typeof listDispatches>>['items'] = [];
+try { dispatchInitial = (await listDispatches({ limit: 50 })).items; } catch { dispatchInitial = []; }
 
 type CockpitMode = 'overview' | 'fokus' | 'insights';
 type Phase = 'triage' | 'planung' | 'bauen' | 'review' | 'deploy' | 'ship';
@@ -83,6 +90,9 @@ const initialPhase: Phase = (ALLOWED_PHASES.includes(rawPhase as Phase) ? rawPha
         )}
         {initialMode === 'insights' && (
           <InsightsTab client:load />
+        )}
+        {initialMode === 'insights' && (
+          <DispatchLogPanel client:load initial={dispatchInitial} />
         )}
       </main>
     </div>

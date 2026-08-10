@@ -1,10 +1,8 @@
 // scripts/llm-proxy/server.mjs
 import http from 'node:http';
-import { Readable } from 'node:stream';
 import { startRegistryPoll, getBackends, resolveApiKey } from './backends.mjs';
 import { startDiscovery, resolveModel, aggregateModels, getState, evaluateReadiness } from './discovery.mjs';
 import { applyFixups, sanitizeToolSchemaPatterns, fillMissingArrayItems } from './fixups.mjs';
-import { stripTurnMarkers } from './strip-markers.mjs';
 import { readFileSync, existsSync } from 'node:fs';
 import { readLoadouts, writeLoadouts, findLoadout, DEFAULT_PATH, planAutoStart, findExclusiveConflict, isLoadoutActive, isLoadoutEnabled } from './loadouts.mjs';
 import os from 'node:os';
@@ -15,6 +13,8 @@ import { initBridge, handleMcp, stopBridge } from './mcp-bridge.mjs';
 import { generateUiConfigSeed } from '../llm/ui-config-seed.mjs';
 import { enqueue, inflightOf, extractSlotId } from './slot-queue.mjs';
 import { loadRoles, roleForPath, routeRequest, ROLE_TIMEOUT_MS, LOADOUT_START_BUDGET_MS } from './bge-routes.mjs';
+import { respondBuffered, respondStreamed } from './respond.mjs';
+import { requestLog } from './request-log.mjs';
 
 const PORT = Number(process.env.LLM_PROXY_PORT || 18235);
 const POLL_MS = 30_000;
@@ -130,6 +130,7 @@ async function forwardToBackend(backend, servedModel, subpath, budgetedBody) {
 }
 
 async function proxyV1(req, res, subpath) {
+  const startedAt = Date.now();
   const body = await readBody(req);
   const requestedModel = typeof body.model === 'string' ? body.model.replace(/^[^/]+\//, '') : body.model;
 
@@ -216,42 +217,35 @@ async function proxyV1(req, res, subpath) {
   for (const h of ['content-type', 'cache-control']) {
     const v = upstream.headers.get(h); if (v) passHeaders[h] = v;
   }
+  // Kopfdaten des Mitschnitts (T003277). Die Korrelationsfelder kommen vom
+  // Aufrufer; fehlen sie, bleiben sie leer statt geraten zu werden.
+  const captureMeta = {
+    ts: new Date(startedAt).toISOString(),
+    backend: backend.name,
+    requestedModel: requestedModel ?? null,
+    servedModel,
+    subpath,
+    durationMs: null,
+    queueWaitMs: waitMs,
+    slotId,
+    dispatchTicket: req.headers['x-dispatch-ticket'] ?? null,
+    dispatchPartial: req.headers['x-dispatch-partial'] ?? null,
+    requestBody: JSON.stringify(budgetedBody),
+    expectsSse: budgetedBody?.stream === true,
+  };
+  // capture wird bewusst NICHT awaited: der Mitschnitt darf den Transport
+  // weder verzoegern noch mit einem Fehler beeinflussen.
+  const capture = (rec) => requestLog.capture({ ...rec, durationMs: Date.now() - startedAt });
+
   // T002609: Non-Streaming-Antworten werden gepuffert und vom Turn-Marker
   // befreit, den gemma2-tools.jinja im Klartextpfad im content stehen laesst.
-  // Streaming bleibt der rohe pipe-Pfad unten: dort kann der Marker ueber
+  // Streaming bleibt der rohe pipe-Pfad: dort kann der Marker ueber
   // Chunk-Grenzen zerrissen ankommen, und ein zustandsbehafteter Scanner
   // gehoert nicht in den Pfad, in dem ein Fehler die ganze Queue mitreisst.
   if (upstream.body && budgetedBody?.stream !== true) {
-    const raw = await upstream.text();
-    let out = raw;
-    try {
-      out = JSON.stringify(stripTurnMarkers(JSON.parse(raw)));
-    } catch {
-      // Kein JSON oder abgeschnitten: unveraendert durchreichen. Der Marker
-      // ist ein Schoenheitsfehler, eine verschluckte Antwort waere ein Ausfall.
-    }
-    passHeaders['content-length'] = String(Buffer.byteLength(out));
-    res.writeHead(upstream.status, passHeaders);
-    res.end(out);
-    return;
+    return respondBuffered({ res, upstream, passHeaders, capture, meta: captureMeta });
   }
-  res.writeHead(upstream.status, passHeaders);
-  if (upstream.body) {
-    // Backend kann mitten im Stream wegbrechen (Crash, ECONNRESET) - ein
-    // unbehandeltes 'error'-Event auf dem gepipten Stream killt sonst den
-    // gesamten Prozess (Node-Default fuer EventEmitter ohne Error-Listener).
-    // Bei einer serialisierten Queue waere das besonders teuer: ein Crash
-    // wuerde JEDEN wartenden Request in der Warteschlange mitreissen.
-    const upstreamStream = Readable.fromWeb(upstream.body);
-    upstreamStream.on('error', (err) => {
-      console.error(`[stream-error] ${backend.name}: ${err.message}`);
-      res.destroy();
-    });
-    res.on('error', () => {});
-    upstreamStream.pipe(res);
-  } else {
-    res.end();
-  }
+  return respondStreamed({ res, upstream, passHeaders, backendName: backend.name, capture, meta: captureMeta });
 }
 
 // Loesst den Loadout-Modellpfad gegen die konfigurierten modelRoots auf.
@@ -653,12 +647,18 @@ const server = http.createServer((req, res) => {
 });
 
 await discovery.probeNow();
+// T003277 — Dispatch-Mitschnitt. Der Timer schreibt gebuendelt; ohne ihn
+// bliebe der Puffer bis zum Herunterfahren liegen.
+requestLog.start();
 server.listen(PORT, '127.0.0.1', () => console.log(`[llm-proxy] listening on 127.0.0.1:${PORT}`));
 
 // Graceful shutdown: stop MCP bridge processes on exit
-function shutdown(signal) {
+async function shutdown(signal) {
   console.log(`[llm-proxy] ${signal}: stopping bridge...`);
   stopBridge();
+  // Den Puffer noch leeren, statt die letzten Mitschnitte zu verlieren.
+  // Wirft nie — stop() kapselt den Schreibfehler.
+  await requestLog.stop();
   process.exit(0);
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));

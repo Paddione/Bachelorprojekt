@@ -38,20 +38,42 @@ func findRepoRoot() string {
 	}
 }
 
-var repoRoot = findRepoRoot()
+// initialRepoRoot haelt die Aufloesung vom Programmstart. Sie ist der Fallback,
+// wenn TICKET_MCP_REPO_ROOT zur Laufzeit nicht gesetzt ist.
+var initialRepoRoot = findRepoRoot()
+
+// currentRepoRoot loest die Repo-Wurzel bei JEDEM Aufruf auf, statt den Wert vom
+// Programmstart einzufrieren [T003553]. findRepoRoot() liest TICKET_MCP_REPO_ROOT
+// bereits als hoechste Prioritaet — als Paketvariable ausgewertet wurde die
+// Variable aber nur einmal beim Init gelesen. Damit blieb der in
+// openspec/specs/mishap-tracking.md beschriebene Stub-Mechanismus
+// (TICKET_SH + TICKET_MCP_REPO_ROOT) zur Testlaufzeit wirkungslos: ein Test, der
+// die Variablen setzt, traf weiterhin die echte Repo-Wurzel. Genau deshalb konnte
+// fuer die Szenarien dieses Requirements nie ein Test geschrieben werden.
+//
+// Keine neue Angriffsflaeche: die Variable konnte die Wurzel schon immer setzen
+// (findRepoRoot Zeile 15) — sie wird jetzt nur konsistent ausgewertet. Die
+// Prefix-Pruefung in RunTicket bleibt gegen genau diesen Wert wirksam.
+func currentRepoRoot() string {
+	if env := os.Getenv("TICKET_MCP_REPO_ROOT"); env != "" {
+		return env
+	}
+	return initialRepoRoot
+}
 
 func ticketShPath() string {
 	if env := os.Getenv("TICKET_SH"); env != "" {
 		cleaned := filepath.Clean(env)
-		root := repoRoot
+		root := currentRepoRoot()
 		if root != "" && strings.HasPrefix(cleaned, root) {
 			return cleaned
 		}
 	}
-	return filepath.Join(repoRoot, "scripts", "ticket.sh")
+	return filepath.Join(currentRepoRoot(), "scripts", "ticket.sh")
 }
 
 func RunTicket(args []string, extraEnv map[string]string) (string, error) {
+	repoRoot := currentRepoRoot()
 	ticketSh := ticketShPath()
 	cleaned := filepath.Clean(ticketSh)
 	if !strings.HasPrefix(cleaned, repoRoot) {
@@ -89,5 +111,5 @@ func RunTicket(args []string, extraEnv map[string]string) (string, error) {
 }
 
 func RepoRoot() string {
-	return repoRoot
+	return currentRepoRoot()
 }

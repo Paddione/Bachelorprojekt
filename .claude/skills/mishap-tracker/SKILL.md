@@ -1,11 +1,17 @@
 ---
 name: mishap-tracker
-description: 'Use at the END of any runbook or dev-flow skill to file the frictions it accumulated — appends every MISHAP_LOG entry to a persistent "Mishap collection" rollup container AND (as of T003120 skipped) still creates individual factory-fix tickets above the threshold. Triggers on mishap, MISHAP_LOG, friction report, "report what went wrong", scripts/hooks/mishap-tracker.sh, and the closing step of dev-flow-plan, dev-flow-execute, dev-flow-chore, infra-ops, incident-response and ticket-ops.'
+description: 'Use at the END of any runbook or dev-flow skill to file the frictions it accumulated — appends every MISHAP_LOG entry to a persistent "Mishap collection" rollup container. Non-critical mishaps produce exactly one rollup append, never individual tickets; only incident types (incident, broken, security) create a ticket each. Triggers on mishap, MISHAP_LOG, friction report, "report what went wrong", scripts/hooks/mishap-tracker.sh, and the closing step of dev-flow-plan, dev-flow-execute, dev-flow-chore, infra-ops, incident-response and ticket-ops.'
 ---
 
 # mishap-tracker
 
-Appends all execution mishaps to a persistent rollup container **and** creates individual factory-fix tickets when the buffer reaches the threshold (individual ticket creation still active — T003120 Task 3 awaits T002931 merge).
+Appends all execution mishaps to a persistent rollup container. When the buffer reaches the
+threshold, the entries become **exactly one** comment on that container — no individual
+factory-fix tickets [T003553]. All three drain paths behave identically: threshold, watchdog
+(`FlushStaleBuffer`) and the manual `flush_mishap_buffer`.
+
+Incident types (`incident`, `broken`, `security`) bypass the buffer entirely and still create one
+ticket each via `createIncidentTicket`.
 
 Called as the final step of runbook skills that maintain a `MISHAP_LOG`.
 

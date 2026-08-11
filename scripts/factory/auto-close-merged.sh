@@ -14,6 +14,31 @@ set -euo pipefail
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/lib.sh"
 
+# extract_ticket_ids_from_title <title> — echoes the parent ticket ID (first
+# [T-NNNNNN] tag) followed by the delivered child ticket IDs found inside round
+# parentheses, one per line. Parent first, children in title order,
+# deduplicated. A title without round-bracket IDs yields exactly the parent.
+# [T003797] Batch PR titles carry delivered children in round brackets, e.g.
+#   feat(ci): Batch Fixes (T003109,T002815,T002922) [T003540]
+#   └────────── Kinder ──────────┘  └ Parent ┘
+# The round-bracket content is isolated BEFORE matching T[0-9]{6}, so parens
+# without ticket IDs (fix(ci): …, (endlich) …) never produce false positives.
+extract_ticket_ids_from_title() {
+  local title="${1:-}"
+  local parent children
+  parent=$(printf '%s' "$title" | sed -n 's/.*\[\(T[0-9]\{6\}\)\].*/\1/p' | head -1)
+  [[ -z "$parent" ]] && return 0
+
+  printf '%s\n' "$parent"
+
+  children=$(printf '%s' "$title" | grep -oE '\([^)]*\)' | grep -oE 'T[0-9]{6}' || true)
+  if [[ -n "$children" ]]; then
+    printf '%s\n' "$children" | awk '!seen[$0]++'
+  fi
+}
+
+# Direct execution only; sourcing this file (tests) must not run the poller.
+main() {
 DRY_RUN=false
 while [[ $# -gt 0 ]]; do case "$1" in
   --dry-run) DRY_RUN=true; shift ;;
@@ -82,13 +107,17 @@ if [[ -z "$PRS" ]]; then
   exit 0
 fi
 
-# Extract the first [T-NNNNNN] tag from each title, look up the ticket's
-# current status, and transition non-terminal ones. The tag pattern is
-# `[T-NNNNNN]` (literal `[T` + 6 digits + `]`, e.g. [T123456] or [T001415]).
+# Extract the parent [T-NNNNNN] tag and any delivered children from round
+# brackets, look up each ticket's current status, and transition non-terminal
+# ones. The parent tag is `[T-NNNNNN]` (literal `[T` + 6 digits + `]`, e.g.
+# [T123456] or [T001415]); children are the T-IDs inside round brackets.
 echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
   # Skip if no ticket tag in title
-  ticket=$(printf '%s' "$title" | sed -n 's/.*\[\(T[0-9]\{6\}\)\].*/\1/p' | head -1)
-  [[ -z "$ticket" ]] && continue
+  tickets=$(extract_ticket_ids_from_title "$title")
+  [[ -z "$tickets" ]] && continue
+  # First extracted ID is the parent — used in the PR-level skip messages below
+  # (before the per-ticket loop assigns $ticket).
+  parent_ticket=$(printf '%s\n' "$tickets" | head -1)
 
   # T001580 FIX: Skip plan-only PRs. These are implementation plans that shouldn't
   # auto-close tickets. Decided by FILE CONTENT, not branch name (T002598-M1): the
@@ -98,7 +127,7 @@ echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
   # green merge. Archive branches (chore/archive-*, openspec/*) never carry
   # implementation, so they stay a fast-path skip.
   if printf '%s\n' "$branch" | grep -qE '^chore/archive-|^openspec/'; then
-    echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — SKIP (archive/plan branch)" >&2
+    echo "auto-close-merged [T001580]: $parent_ticket (PR #$pr_num, branch: $branch) — SKIP (archive/plan branch)" >&2
     continue
   fi
   # T003684: The plan-only check used to run ONLY for chore/openspec-* branches.
@@ -107,19 +136,33 @@ echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
   # the factory then never executed it. Verify by file content for EVERY non-archive
   # branch; the api call is cheap and the decision is unambiguous.
   if pr_is_plan_only "$pr_num"; then
-    echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — SKIP (plan-only PR)" >&2
+    echo "auto-close-merged [T001580]: $parent_ticket (PR #$pr_num, branch: $branch) — SKIP (plan-only PR)" >&2
     continue
   fi
 
-  # Check partial plan completeness guard (T002105):
-  # Skip auto-closing multi-partial plans if partial tasks remain unimplemented.
-  if ! bash "$(dirname "${BASH_SOURCE[0]}")/merge-hooks.sh" "$ticket" "$HERE/../.."; then
-    echo "auto-close-merged [T002105]: $ticket (PR #$pr_num, branch: $branch) — SKIP (incomplete multi-partial plan)" >&2
-    continue
-  fi
+  # [T003797] T002105 partial-completeness guard removed. Measured on four
+  # batches it produced three false alarms (T003540 with 93 unchecked boxes on a
+  # complete delivery, T003541 and T003490 with three each) and one false pass
+  # (T003539 with zero unchecked despite P2–P4 never being delivered). The plan
+  # checkboxes are unmaintained and unfit as a decision basis. The guard never
+  # fired anyway: it looks up the change dir by glob `openspec/changes/*<id>*`,
+  # but change slugs are descriptive (batch-git-worktree-integrity) and the
+  # mapping lives in `.ticket`. With the delivered children extracted from the
+  # title, a PR that ships only P1 names only P1's tickets — the guard is
+  # redundant. `scripts/factory/merge-hooks.sh` stays in place, only the wiring
+  # is gone.
+
+  # Close the parent ticket AND its delivered children. Each ticket goes
+  # through the same lookup, resolution derivation, and status check.
+  while IFS= read -r ticket; do
+    [[ -z "$ticket" ]] && continue
 
   # Look up the ticket's current status, type, and title. SQL is read-only.
-  row=$(cat <<SQL | factory_psql 2>/dev/null
+  # [T003797] `|| true` haertet den per-Ticket-Lookup gegen transiente
+  # DB-/Cluster-Ausfaelle: unter `set -euo pipefail` wuerde ein fehlgeschlagener
+  # Lookup den gesamten Batch-Lauf abbrechen und die restlichen Kinder (und PRs)
+  # offen lassen. Leere row → "existiert nicht"-Skip, wie bei unbekannten IDs.
+  row=$(cat <<SQL | factory_psql 2>/dev/null || true
 SELECT status, type, title FROM tickets.tickets WHERE external_id = '$ticket' LIMIT 1;
 SQL
 )
@@ -167,6 +210,12 @@ SQL
   # Single-line transition so the audit grep `ticket.sh update-status --status done` matches verbatim.
   BRAND="$BRAND" bash "$(dirname "${BASH_SOURCE[0]}")/../ticket.sh" update-status --id "$ticket" --status done --resolution "$resolution" || \
     echo "auto-close-merged: $ticket update-status fehlgeschlagen — continue [T001580]" >&2
+  done <<< "$tickets"
 done
 
 echo "auto-close-merged: fertig (BRAND=${BRAND}, DRY_RUN=${DRY_RUN}) [T001580]"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

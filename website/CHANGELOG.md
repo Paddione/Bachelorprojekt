@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.266.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.7...website-v1.266.0) (2026-08-11)
+
+
+### Features
+
+* **ci:** Batch CI/Check-Auswertung Fixes (T003109,T002815,T002827,T003136,T003138,T002922) [T003540] ([#4245](https://github.com/Paddione/Bachelorprojekt/issues/4245)) ([819f6fc](https://github.com/Paddione/Bachelorprojekt/commit/819f6fce3f821e77b4d2a86486ac8c2f9a352fa5))
+
 ## [1.265.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.6...website-v1.265.7) (2026-08-11)
 
 

@@ -2,7 +2,7 @@
 title: Laufzeit-Drift-Guard — Repo-Stand gegen laufenden Stand pruefen
 ticket_id: T003825
 domains: [scripts, tests, agent-skills]
-status: plan_staged
+status: completed
 ---
 
 # runtime-drift-guard — Implementation Plan

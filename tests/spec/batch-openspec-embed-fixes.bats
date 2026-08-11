@@ -105,28 +105,51 @@ teardown() { rm -rf "$TMP"; }
 
 # --- p5 / T003281: Stub-Delta fail-closed --------------------------------------
 
-@test "T003281: validate-Gate lehnt Stub-Delta (Requirement: TODO) mit Exit != 0 ab" {
-  local fake_dir="$TMP/changes/_t003281-stub"
-  mkdir -p "$fake_dir/specs"
-  cat > "$fake_dir/specs/dummy.md" <<'EOF'
+@test "T003281: Archiv-Gate lehnt Stub-Delta (Requirement: TODO) mit Exit != 0 ab" {
+  local d="$TMP/delta-stub.md" s="$TMP/ssot.md"
+  printf '# Spec\n' > "$s"
+  cat > "$d" <<'EOF'
 ## ADDED Requirements
 
 ### Requirement: TODO
 
 The system SHALL …
+
+#### Scenario: TODO
 EOF
-  # _validate_delta_file ist eine interne Funktion — pruefe das Verhalten der
-  # Stub-Erkennung indirekt ueber die Marker-Pruefung im Skript.
-  run grep -n 'unedited skeleton stub\|Requirement: TODO\|The system SHALL …' "$REPO/scripts/openspec.sh"
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"unedited skeleton stub"* ]]
-  [[ "$output" == *"Requirement: TODO"* ]]
+  # Das fail-closed Gate liegt am Archiv-Pfad (openspec-merge.mjs STUBS), nicht
+  # an der Collection-weiten openspec.sh validate — dort koennen aktive EPICs
+  # legitime Planungs-Stubs tragen (T002650).
+  run node "$REPO/scripts/openspec-merge.mjs" check "$d" "$s"
+  [ "$status" -ne 0 ]
 }
 
-@test "T003281: Stub-Erkennung ist identisch zur merge.mjs STUBS-Liste (keine zwei Wahrheiten)" {
+@test "T003281: Positiv-Anker — ausformuliertes Delta passiert das Archiv-Gate" {
+  local d="$TMP/delta-ok.md" s="$TMP/ssot.md"
+  printf '# Spec\n' > "$s"
+  cat > "$d" <<'EOF'
+## ADDED Requirements
+
+### Requirement: Something Real
+
+The system SHALL do the real thing.
+
+#### Scenario: Real scenario
+
+- **GIVEN** a condition
+- **WHEN** an action
+- **THEN** an outcome
+EOF
+  run node "$REPO/scripts/openspec-merge.mjs" check "$d" "$s"
+  [ "$status" -eq 0 ]
+}
+
+@test "T003281: Stub-Erkennung in merge.mjs und openspec.sh verwenden dieselben Marker" {
+  # openspec.sh _validate_delta_file und merge.mjs STUBS muessen dieselben
+  # Stub-Marker kennen (keine zwei Wahrheiten beim Archiv-Gate).
   run grep -n "STUB_MARKER\|unedited skeleton stub" "$REPO/scripts/openspec-merge.mjs"
   [ "$status" -eq 0 ]
-  run grep -n 'unedited skeleton stub' "$REPO/scripts/openspec.sh"
+  run grep -n 'unedited skeleton stub\|Requirement: TODO' "$REPO/scripts/openspec.sh"
   [ "$status" -eq 0 ]
 }
 

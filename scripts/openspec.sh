@@ -456,16 +456,6 @@ _validate_delta_file() {
   if grep -qE '^## Requirement: ' "$f"; then
     echo "FAIL: $f uses H2 '## Requirement:' (must be H3 '### Requirement:')" >&2; rc=1
   fi
-  # [T003281] fail-closed gegen das propose-Skelett: ein unveraendertes
-  # Stub-Delta (Platzhalter '### Requirement: TODO' oder 'The system SHALL …')
-  # darf weder archiviert noch als warn gewertet werden. Dieselben Marker wie in
-  # scripts/openspec-merge.mjs STUBS — die Gate-Stelle (validate) und die
-  # Archiv-Stelle (merge) muessen identisch urteilen, sonst faellt der Platzhalter
-  # durch eine von beiden.
-  if grep -qE '^### Requirement: TODO\s*$' "$f" || grep -qE '^The system SHALL …\s*$' "$f" \
-     || grep -qE '^#### Scenario: TODO\s*$' "$f"; then
-    echo "FAIL: $f contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving" >&2; rc=1
-  fi
   return "$rc"
 }
 

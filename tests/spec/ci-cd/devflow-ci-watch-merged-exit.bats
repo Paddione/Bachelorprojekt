@@ -3,28 +3,12 @@
 # SSOT: openspec/specs/ci-cd.md
 #
 # T002671 (Befund 5): scripts/devflow-ci-watch.sh never checks whether the PR
-# it is polling has already been MERGED. Its only two early-exit preflights
-# guard mergeStateStatus=DIRTY and mergeable=CONFLICTING (both BEFORE CI ever
-# starts); once past those, the `while true` loop's first real action is the
-# BLOCKING call `gh pr checks --watch --interval 15`. Observed during T002628
-# execution: after the PR auto-merged, the poll loop kept running and had to
-# be killed manually — see openspec/changes/devflow-flow-frictions-T002671/proposal.md.
+# it is polling has already been MERGED.
 #
-# The fix adds a `gh pr view --json state` check right after the existing
-# DIRTY/CONFLICTING preflights (still before the loop) and exits 0 immediately
-# (after the same assert-phase-chain call the "all green" path already runs)
-# when state=MERGED — a merged PR's checks were, by branch-protection
-# definition, already green, so re-polling them is pointless AND is exactly
-# what hung.
-#
-# Verification mode: command output (CLAUDE.md Test-Resultats-Konvention) —
-# a fake `gh`/`scripts/ticket.sh` pair on PATH records every subcommand it
-# is invoked with; the assertions check WHICH commands actually ran, not the
-# devflow-ci-watch.sh source text. The blocking call is never really made to
-# hang here (a real hang cannot be asserted in a finite test run) — instead
-# the marker file proves whether the script reaches the blocking call point
-# at all, which is the causal reason a real `gh pr checks --watch` hangs on a
-# closed PR.
+# T003612 (2026-08-11): Drei Bugs, die zusammen eine Falsch-Grün-Meldung erzeugen:
+#   1. `gh pr checks --watch` wird OHNE $PR_URL aufgerufen → watch läuft gegen cwd-PR
+#   2. `git rev-parse HEAD` verwendet cwd-HEAD statt PR-headRefOid → falsches TOTAL_CHECKS
+#   3. Grün-Prüfung ignoriert IN_PROGRESS-Checks → Status "alle grün" obwohl Checks noch laufen
 
 setup() {
   REPO="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
@@ -33,6 +17,11 @@ setup() {
   WORK="$(mktemp -d)"
   export MARKER_DIR="$WORK/markers"
   mkdir -p "$MARKER_DIR" "$WORK/bin" "$WORK/scripts"
+
+  # Default marker files (overridden by individual tests)
+  echo "OPEN" > "$MARKER_DIR/pr-state"
+  echo "" > "$MARKER_DIR/mock-rollup-failures"
+  echo "0" > "$MARKER_DIR/mock-rollup-pending"
 
   # Fake git repo so `git rev-parse HEAD` (only reached on the NOT-merged /
   # RED path) resolves to something.
@@ -49,7 +38,14 @@ esac
 TICKET_EOF
   chmod +x "$WORK/scripts/ticket.sh"
 
-  # $1 selects which fixture state="pr_state_for_test" reports.
+  # Fake gh — driven by marker files under $MARKER_DIR/:
+  #   pr-state              → what `gh pr view --json state` returns
+  #   pr-watch-urls         → records every <url> argument passed to `gh pr checks --watch`
+  #   watch-fail            → if exists, `gh pr checks --watch` exits 1
+  #   mock-head-ref-oid     → what `gh pr view --json headRefOid` returns (default: WORK repo HEAD)
+  #   mock-total-checks     → what `gh api .../check-runs` total_count returns (default: 3)
+  #   mock-rollup-failures  → post-jq output for FAILED_CHECKS (FAILURE/TIMED_OUT match)
+  #   mock-rollup-pending   → post-jq output for PENDING_COUNT (COMPLETED match)
   cat > "$WORK/bin/gh" <<GH_EOF
 #!/usr/bin/env bash
 echo "gh \$*" >> "$MARKER_DIR/gh-calls"
@@ -59,9 +55,41 @@ case "\$args" in
   *"--json mergeStateStatus"*) echo "" ;;
   *"--json mergeable "*|*"--json mergeable") echo "MERGEABLE" ;;
   *"--json state -q .state") cat "$MARKER_DIR/pr-state" 2>/dev/null || echo "OPEN" ;;
-  *"checks --watch"*) touch "$MARKER_DIR/watch-called"; exit 0 ;;
-  *"--json statusCheckRollup"*) echo "" ;;
-  *"check-runs"*"total_count"*) echo "3" ;;
+  *"--json headRefOid -q .headRefOid")
+    if [[ -f "$MARKER_DIR/mock-head-ref-oid" ]]; then
+      cat "$MARKER_DIR/mock-head-ref-oid"
+    else
+      git -C "$WORK" rev-parse HEAD
+    fi
+    ;;
+  *"pr checks"*"--watch"*)
+    touch "$MARKER_DIR/watch-called"
+    for a in \$@; do
+      case "\$a" in
+        https://*|http://*) echo "\$a" >> "$MARKER_DIR/pr-watch-urls" ;;
+      esac
+    done
+    if [[ -f "$MARKER_DIR/watch-fail" ]]; then exit 1; fi
+    exit 0
+    ;;
+  *"--json statusCheckRollup"*)
+    # Route to the correct mock based on the jq query content
+    if [[ "\$args" == *'"FAILURE"'* || "\$args" == *'"TIMED_OUT"'* ]]; then
+      cat "$MARKER_DIR/mock-rollup-failures" 2>/dev/null || true
+    elif [[ "\$args" == *'"COMPLETED"'* || "\$args" == *'COMPLETED'* ]]; then
+      cat "$MARKER_DIR/mock-rollup-pending" 2>/dev/null || echo "0"
+    else
+      # Generic statusCheckRollup query (no specific keyword) — assume empty
+      echo ""
+    fi
+    ;;
+  *"check-runs"*"total_count"*)
+    if [[ -f "$MARKER_DIR/mock-total-checks" ]]; then
+      cat "$MARKER_DIR/mock-total-checks"
+    else
+      echo "3"
+    fi
+    ;;
   *) echo "" ;;
 esac
 GH_EOF
@@ -72,7 +100,7 @@ teardown() {
   rm -rf "$WORK"
 }
 
-# ── Positiv-Anker: the NOT-yet-merged path still reaches the blocking watch call ──#
+# ── Positiv-Anker: NOT-yet-merged path reaches the blocking watch call ──#
 
 @test "T002671: an OPEN (not yet merged) PR still reaches gh pr checks --watch (unchanged happy path)" {
   echo "OPEN" > "$MARKER_DIR/pr-state"
@@ -90,4 +118,48 @@ teardown() {
   [ "$status" -eq 0 ] || { echo "unerwarteter Exit $status: $output"; false; }
   [ ! -f "$MARKER_DIR/watch-called" ] \
     || { echo "gh pr checks --watch WURDE für eine bereits gemergte PR aufgerufen — genau der blockierende Call, an dem der Poll-Loop nach dem Merge haengen blieb"; false; }
+}
+
+# ── T003612: Bug 1 — PR_URL must be passed to `gh pr checks --watch` ────────#
+# expected: FAIL (RED — Zeile 74 ruft `gh pr checks --watch` OHNE $PR_URL)
+
+@test "T003612-a: gh pr checks --watch receives the PR_URL argument (not cwd bare call)" {
+  echo "OPEN" > "$MARKER_DIR/pr-state"
+  run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$SCRIPT" T999999 "https://github.com/x/y/pull/42"
+  [ "$status" -eq 0 ] || { echo "unerwarteter Exit $status: $output"; false; }
+  # The fake gh records the PR URL passed to checks --watch.
+  # Without the fix, no URL is recorded (the call is bare `gh pr checks --watch`).
+  # With the fix, the recorded URL matches the argument.
+  grep -q "https://github.com/x/y/pull/42" "$MARKER_DIR/pr-watch-urls" 2>/dev/null \
+    || { echo "gh pr checks --watch wurde OHNE die PR-URL aufgerufen — cwd-Rückfall, Bug 1"; false; }
+}
+
+# ── T003612: Bug 3 — IN_PROGRESS checks must not report "alle grün" ──────────#
+# Reproduktion: gh pr checks --watch ohne PR_URL schlägt fehl (|| true verschluckt)
+# → FAILED_CHECKS findet keine FAILURE (IN_PROGRESS hat keine conclusion)
+# → Skript meldet fälschlich "alle grün" und exit 0.
+# expected: FAIL (RED — der Bug existiert noch)
+
+@test "T003612-b: IN_PROGRESS checks (status != COMPLETED) MUST NOT trigger false green exit" {
+  echo "OPEN" > "$MARKER_DIR/pr-state"
+
+  # Simulate: `gh pr checks --watch` fails (e.g. cwd has no PR) — caught by || true
+  touch "$MARKER_DIR/watch-fail"
+
+  # FAILED_CHECKS finds no FAILURE/TIMED_OUT — IN_PROGRESS has no conclusion
+  echo -n "" > "$MARKER_DIR/mock-rollup-failures"
+
+  # PENDING_COUNT: after the fix returns 1 (one check IN_PROGRESS);
+  # before the fix this mock is unused (script doesn't query for pending).
+  echo "1" > "$MARKER_DIR/mock-rollup-pending"
+
+  echo "1" > "$MARKER_DIR/mock-total-checks"
+  git -C "$WORK" rev-parse HEAD > "$MARKER_DIR/mock-head-ref-oid"
+
+  run env -C "$WORK" PATH="$WORK/bin:$PATH" bash "$SCRIPT" T999999 "https://github.com/x/y/pull/1"
+
+  # RED phase: script falsely exits 0 with "alle grün" → [ "$status" -ne 0 ] FAILS
+  # GREEN phase: script detects PENDING_COUNT > 0, loops until max attempts, exits 1 → PASSES
+  [ "$status" -ne 0 ] \
+    || { echo "❌ Bug 3 reproduziert: Script meldete 'alle grün' (exit 0) obwohl ein Check noch IN_PROGRESS war"; false; }
 }

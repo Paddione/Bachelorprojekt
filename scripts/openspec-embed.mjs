@@ -283,29 +283,26 @@ export function estimateSlugTokenWorst(slug, repoRoot) {
   }
   files.partials = partials;
   if (files.proposal == null && files.tasks == null && files.spec == null && partials == null) return null;
-  // [T003268] Das Worst-Case-Token-Mass misst die UNGESPLITTETEN Quelldateien,
+  // [T003268] Das Worst-Case-Token-Mass misst die UNGESPLITTETEN Partial-Dateien,
   // nicht die buildChunks-Ausgabe: seit partials token-budgetiert gesplittet
   // werden, waere der Maximal-Chunk sonst immer ~400 Token und der
-  // plan-lint-Diagnose-Pfad (7000-Token-Cap, T002453-C) blind. Pro Quelltyp
-  // zaehlt der volle Dateiinhalt; Partial-Dateien einzeln.
+  // plan-lint-Diagnose-Pfad (7000-Token-Cap, T002453-C) blind. Proposal/tasks/
+  // spec bleiben auf den SPLIT-Chunks (sie werden ohnehin gebudget-splittet —
+  // ein 2500-Token-Proposal ist kein Skip-Fall, T002839). Partials einzeln in
+  // voller Laenge.
   let maxTokens = 0;
   let maxType = null;
-  const sources = [
-    { text: files.proposal != null ? stripFrontmatter(files.proposal).body : null, type: 'proposal' },
-    { text: files.tasks != null ? stripFrontmatter(files.tasks).body : null, type: 'task_section' },
-    { text: files.spec != null ? stripFrontmatter(files.spec).body : null, type: 'spec_section' },
-  ];
+  // proposal/tasks/spec: worst chunk aus dem (gesplitteten) buildChunks-Lauf.
+  const splitChunks = buildChunks({ proposal: files.proposal, tasks: files.tasks, spec: files.spec });
+  for (const c of splitChunks) {
+    const t = approxTokens(c.text);
+    if (t > maxTokens) { maxTokens = t; maxType = c.fileType; }
+  }
+  // partials: volle Dateilaenge je Datei.
   if (files.partials != null) {
     for (const [, content] of Object.entries(files.partials)) {
-      sources.push({ text: content, type: 'partial' });
-    }
-  }
-  for (const s of sources) {
-    if (s.text == null) continue;
-    const t = approxTokens(s.text);
-    if (t > maxTokens) {
-      maxTokens = t;
-      maxType = s.type;
+      const t = approxTokens(content);
+      if (t > maxTokens) { maxTokens = t; maxType = 'partial'; }
     }
   }
   if (maxTokens === 0) return null;

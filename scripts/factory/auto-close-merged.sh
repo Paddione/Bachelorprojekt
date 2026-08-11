@@ -158,7 +158,11 @@ echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
     [[ -z "$ticket" ]] && continue
 
   # Look up the ticket's current status, type, and title. SQL is read-only.
-  row=$(cat <<SQL | factory_psql 2>/dev/null
+  # [T003797] `|| true` haertet den per-Ticket-Lookup gegen transiente
+  # DB-/Cluster-Ausfaelle: unter `set -euo pipefail` wuerde ein fehlgeschlagener
+  # Lookup den gesamten Batch-Lauf abbrechen und die restlichen Kinder (und PRs)
+  # offen lassen. Leere row → "existiert nicht"-Skip, wie bei unbekannten IDs.
+  row=$(cat <<SQL | factory_psql 2>/dev/null || true
 SELECT status, type, title FROM tickets.tickets WHERE external_id = '$ticket' LIMIT 1;
 SQL
 )

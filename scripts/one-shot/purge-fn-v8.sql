@@ -11,6 +11,7 @@
 -- check has_assignments, so subqueries referencing the missing table are skipped.
 --
 -- All other steps are identical to v7.
+-- RUNTIME-CHECK: function=tickets.fn_purge_test_data marker=to_regclass
 
 \set ON_ERROR_STOP on
 BEGIN;

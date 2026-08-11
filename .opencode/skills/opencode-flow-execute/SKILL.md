@@ -182,56 +182,16 @@ Läuft **vor** der Verifikation und lokal **vor** dem Push, reduziert die Last a
 
 ## Schritt 3: Lokale Verifikation
 
-> **[T003003] WICHTIG: Verifikation MUSS synchron im VORDERGRUND laufen.** Kein
-> Hintergrund-`task`-Aufruf mit anschliessendem Polling — die Benachrichtigung
-> ueberlebt einen Sessionwechsel nicht (DREI Agents blockierten darauf am
-> 2026-08-09: Arbeit fertig, aber Push/PR/Merge unterblieben).
-
 Phase-Telemetrie (PFLICHT — das Phase-Chain-Gate erzwingt sie):
 ```
 ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })
-ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "Verifikation (tests + freshness)" })
+ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })
 ```
-
-### Schritt 3.1: Zielgerichtete Tests (im Vordergrund)
-
-Statt `task test:changed` (das bei breitem Plan-Minuten dauert und zum
-Hintergrund-Muster verleitet) fokussierte Suiten direkt aufrufen:
 
 ```bash
-# Variante A: Gerichtete BATS-Suite (schnell, empfohelen)
-# Leite die Testdomaene aus den vom Branch beruehrten Pfaden ab:
-#   scripts/ → tests/spec/scripts*, tests/spec/ticket-system*
-#   skills/  → tests/spec/skills*
-#   .opencode/ → tests/spec/opencode-*
-PLAN_FILES=$(git diff --name-only origin/main...HEAD)
-if echo "$PLAN_FILES" | grep -q '^scripts/'; then
-  bats -r tests/spec/scripts* tests/spec/ticket-system* || exit 1
-elif echo "$PLAN_FILES" | grep -q '^\.opencode/'; then
-  bats -r tests/spec/opencode-* || exit 1
-else
-  task test:changed || exit 1
-fi
-
-# Variante B: task test:changed (vollstaendig, als Fallback)
-# task test:changed || exit 1
+task workspace:validate
+task test:changed && task freshness:regenerate && task freshness:check
 ```
-
-### Schritt 3.2: Freshness (im Vordergrund)
-
-```bash
-task freshness:regenerate && task freshness:check || exit 1
-```
-
-### Schritt 3.3: Workspace-Validierung
-
-```bash
-task workspace:validate || exit 1
-```
-
-> **Kein || true, kein &, kein Hintergrund.** Jeder Befehl blockiert synchron.
-> Der Agent meldet sich ERST nach vollstaendigem Durchlauf zurueck — kein
-> "waiting for background task to complete"-Pattern. [T003003]
 
 Nach grünen Tests:
 ```

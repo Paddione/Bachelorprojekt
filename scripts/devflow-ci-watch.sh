@@ -71,7 +71,7 @@ while true; do
   ./scripts/ticket.sh phase "$TICKET_ID" deploy entered --driver devflow \
     --detail "CI attempt $CI_ATTEMPT/$MAX_CI_ATTEMPTS" 2>/dev/null || true
 
-  gh pr checks --watch --interval 15 2>/dev/null || true
+  gh pr checks "$PR_URL" --watch --interval 15 2>/dev/null || true
 
   if ! FAILED_CHECKS=$(gh pr view "$PR_URL" --json statusCheckRollup \
     -q '.statusCheckRollup[] | select(
@@ -87,10 +87,23 @@ while true; do
     continue
   fi
 
-  TOTAL_CHECKS=$(gh api "repos/Paddione/Bachelorprojekt/commits/$(git rev-parse HEAD)/check-runs" -q '.total_count' 2>/dev/null || echo "0")
+  PR_HEAD_OID=$(gh pr view "$PR_URL" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")
+  TOTAL_CHECKS=$(gh api "repos/Paddione/Bachelorprojekt/commits/${PR_HEAD_OID}/check-runs" -q '.total_count' 2>/dev/null || echo "0")
   if [[ "$TOTAL_CHECKS" -eq 0 ]]; then
     echo "⚠ Keine CI-Checks gefunden (total_count=0) — CI wurde nie gestartet oder läuft noch."
     exit 5
+  fi
+
+  PENDING_COUNT=$(gh pr view "$PR_URL" --json statusCheckRollup \
+    -q '[.statusCheckRollup[] | select(.status != "COMPLETED")] | length' 2>/dev/null || echo "0")
+  if [[ "$PENDING_COUNT" -gt 0 ]]; then
+    if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
+      echo "❌ Nach $MAX_CI_ATTEMPTS Versuchen noch $PENDING_COUNT Checks nicht abgeschlossen — manuelles Eingreifen nötig." >&2
+      exit 1
+    fi
+    echo "⏳ $PENDING_COUNT Checks noch nicht abgeschlossen — warte ..."
+    sleep 30
+    continue
   fi
 
   if [[ -z "$FAILED_CHECKS" ]]; then

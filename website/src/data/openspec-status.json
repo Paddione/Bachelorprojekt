@@ -3249,6 +3249,12 @@
       "status": "archived"
     }
   ],
+  "T003490": [
+    {
+      "slug": "batch-repo-hygiene-ops-fixes",
+      "status": "plan_staged"
+    }
+  ],
   "T003539": [
     {
       "slug": "batch-git-worktree-integrity",

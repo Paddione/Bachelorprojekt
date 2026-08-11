@@ -20,10 +20,46 @@
 
 load '_sf_common'
 
-setup()    { _sf_setup; }
-teardown() { _sf_teardown; }
+REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
+BRIDGE="${REPO_ROOT}/scripts/factory/dispatcher-bridge.sh"
 
-BRIDGE="scripts/factory/dispatcher-bridge.sh"
+# Lokales git-Fixture statt des echten `origin` [T003773].
+#
+# Der erste Entwurf pruefte gegen `origin/main` + CLAUDE.md des echten Repos.
+# Lokal gruen, in CI rot: der Actions-Checkout ist flach, `git show
+# origin/main:CLAUDE.md` schlaegt dort fehl, und damit galt AUCH der gueltige
+# Fall als "nicht ready" — der Test mass die Ausstattung des Runners statt den
+# Zustand des Codes (dev-flow-plan/T002820). Muster uebernommen aus
+# tests/unit/factory-readiness.bats, das denselben Guard schon so testet.
+setup() {
+  _sf_setup
+  WORK="$(mktemp -d "${BATS_TEST_TMPDIR:-/tmp}/readiness-gate.XXXXXX")"
+  BARE="$WORK/origin.git"
+  CLONE="$WORK/clone"
+  git init --quiet --bare "$BARE"
+  git clone --quiet "$BARE" "$CLONE"
+  (
+    cd "$CLONE"
+    git config user.email t@t.test
+    git config user.name test
+    mkdir -p openspec/changes/demo
+    echo "# demo plan" > openspec/changes/demo/tasks.md
+    git add -A
+    git commit --quiet -m "add plan"
+    git branch -M main
+    git push --quiet -u origin main
+  )
+  PLAN_ON_BRANCH="openspec/changes/demo/tasks.md"
+}
+
+teardown() { rm -rf "${WORK:-}"; _sf_teardown; }
+
+# Fuehrt die Bridge im Fixture-Klon aus: der Guard fragt `git ls-remote origin`
+# und `git show origin/<branch>:<plan>` im CWD, greift also aufs Fixture. Das
+# Skript selbst kommt per absolutem Pfad aus dem echten Repo.
+_run_bridge() { # <prep_file>
+  run timeout 120 bash -c "cd '$CLONE' && bash '$BRIDGE' '$1' --dry-run 2>&1"
+}
 
 # Baut ein Prep-File mit genau einer launch-Zeile.
 _prep_file() { # <ext_id> <branch> <plan_path> <worktree_path>
@@ -35,33 +71,22 @@ _prep_file() { # <ext_id> <branch> <plan_path> <worktree_path>
   printf '%s' "$f"
 }
 
-# Der Guard fragt `git ls-remote origin` — ohne erreichbares origin misst der
-# Test die Netzanbindung des Runners statt den Zustand des Codes (dev-flow-plan,
-# T002820). Beide Faelle wuerden dann faelschlich als "nicht ready" gelten und
-# der Positiv-Anker unten waere vakuos gruen.
-_skip_without_origin() {
-  git ls-remote --exit-code origin refs/heads/main >/dev/null 2>&1 \
-    || skip "origin nicht erreichbar — Readiness-Guard nicht pruefbar"
-}
-
 # ── Positiv-Anker (T002356-M1) ──────────────────────────────────#
 # MUSS vor der Negativ-Aussage stehen: ohne ihn bestuende der Test unten auch
 # dann, wenn dispatcher-bridge.sh ueberhaupt nichts mehr launcht.
 @test "T003773: Launch-Zeile mit existierendem Branch UND Plan wird gelauncht" {
-  _skip_without_origin
-  local f; f="$(_prep_file T-READY main CLAUDE.md /tmp)"
+  local f; f="$(_prep_file T-READY main "$PLAN_ON_BRANCH" /tmp)"
 
-  run timeout 120 bash "$BRIDGE" "$f" --dry-run
+  _run_bridge "$f"
   [ "$status" -eq 0 ]
   echo "$output" | grep -qF "would launch pipeline for T-READY"
 }
 
 # ── Negativ-Aussage ─────────────────────────────────────────────#
 @test "T003773: planlose Launch-Zeile (branch/plan_path=\"null\") wird NICHT gelauncht" {
-  _skip_without_origin
   local f; f="$(_prep_file T-NOPLAN null null null)"
 
-  run timeout 120 bash "$BRIDGE" "$f" --dry-run
+  _run_bridge "$f"
   [ "$status" -eq 0 ]
   # Kein Launch — weder echt noch als Dry-Run-Ankuendigung.
   ! echo "$output" | grep -qF "would launch pipeline for T-NOPLAN"
@@ -69,10 +94,9 @@ _skip_without_origin() {
 }
 
 @test "T003773: der Skip nennt den Readiness-Grund, statt still zu verschwinden" {
-  _skip_without_origin
   local f; f="$(_prep_file T-NOPLAN2 null null null)"
 
-  run timeout 120 bash "$BRIDGE" "$f" --dry-run
+  _run_bridge "$f"
   [ "$status" -eq 0 ]
   # Ein stiller Skip ist der Defekt, den T003269 fuer die Prep-Datei schon
   # einmal behoben hat: das Fliessband stand wochenlang ohne Fehlermeldung.
@@ -83,7 +107,7 @@ _skip_without_origin() {
 # ── Zweite Verteidigungslinie: opencode-exec.sh ─────────────────#
 # OPENCODE_BIN wird auf /bin/true gestubbt: fehlt der Guard, startet das Skript
 # sonst einen echten Orchestrator-Lauf aus der Testsuite heraus.
-EXEC="scripts/factory/opencode-exec.sh"
+EXEC="${REPO_ROOT}/scripts/factory/opencode-exec.sh"
 
 # Verankert an EXIT-CODES, nicht am Wortlaut der Meldungen (T002716): Exit 6 =
 # der Orchestrator lief und wurde erst HINTERHER als blocked bewertet (kein
@@ -93,7 +117,7 @@ EXEC="scripts/factory/opencode-exec.sh"
 @test "T003773: opencode-exec startet den Lauf, wenn Branch und Plan gesetzt sind" {
   # Positiv-Anker: Exit 6 belegt, dass der Lauf ERREICHT wurde. Ohne ihn bestuende
   # der Negativtest unten auch bei einem generell kaputten Skript.
-  run env OPENCODE_BIN=/bin/true timeout 60 bash "$EXEC" T-EXEC-OK "$BATS_TEST_TMPDIR" main CLAUDE.md
+  run env OPENCODE_BIN=/bin/true timeout 60 bash "$EXEC" T-EXEC-OK "$BATS_TEST_TMPDIR" main "$PLAN_ON_BRANCH"
   [ "$status" -eq 6 ]
 }
 
@@ -104,10 +128,9 @@ EXEC="scripts/factory/opencode-exec.sh"
 }
 
 @test "T003773: ein Branch ohne die Plan-Datei wird als no_plan_on_branch abgelehnt" {
-  _skip_without_origin
   local f; f="$(_prep_file T-GHOSTPLAN main "openspec/changes/gibt-es-nicht-T003773/tasks.md" /tmp)"
 
-  run timeout 120 bash "$BRIDGE" "$f" --dry-run
+  _run_bridge "$f"
   [ "$status" -eq 0 ]
   ! echo "$output" | grep -qF "would launch pipeline for T-GHOSTPLAN"
 }

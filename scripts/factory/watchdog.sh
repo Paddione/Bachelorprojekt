@@ -137,6 +137,7 @@ WITH tgt AS (
 ), prog AS (
   SELECT max(pe.at) AS last_at
   FROM tickets.factory_phase_events pe JOIN tgt ON pe.ticket_id = tgt.id
+  WHERE pe.state IN ('done', 'partial-done', 'blocked')
 ), cur AS (
   SELECT value, updated_at FROM tickets.factory_control
   WHERE key = :'key' AND brand = :'brand'

@@ -200,7 +200,8 @@ SHALL mit einem **non-NULL `brand`**-Wert geschrieben werden, weil `factory_cont
 `UNIQUE (key, brand)` trägt und Postgres NULL-Werte darin als distinct behandelt — eine
 NULL-Brand-Zeile lässt `ON CONFLICT` nie feuern und würde Duplikate ansammeln. Die
 Fortschreibung SHALL echten Fortschritt von Stillstand unterscheiden: existiert ein
-`tickets.factory_phase_events`-Eintrag, dessen `at` neuer ist als das `updated_at` des
+`tickets.factory_phase_events`-Eintrag mit `state IN ('done', 'partial-done', 'blocked')`,
+dessen `at` neuer ist als das `updated_at` des
 Zählers, SHALL der Zähler auf `1` zurückgesetzt werden; andernfalls SHALL er um `1` erhöht
 werden. `tickets.updated_at` SHALL für diesen Vergleich NICHT verwendet werden, da
 `fn_lifecycle_ts` es bei jedem Zeilen-Write erhöht und ein reiner `touch` damit als

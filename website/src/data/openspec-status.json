@@ -3179,8 +3179,8 @@
   ],
   "T003141": [
     {
-      "slug": "secrets-schema-drift",
-      "status": "plan_staged"
+      "slug": "2026-08-11-secrets-schema-drift",
+      "status": "archived"
     }
   ],
   "T003142": [

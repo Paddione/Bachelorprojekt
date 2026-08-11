@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.270.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.269.2...website-v1.270.0) (2026-08-11)
+
+
+### Features
+
+* **T003873:** paid_amount/paid_at aus v_billing_invoices_with_state statt entfernter Spalten ([#4298](https://github.com/Paddione/Bachelorprojekt/issues/4298)) ([56bce02](https://github.com/Paddione/Bachelorprojekt/commit/56bce02ea7aa1333f285a182afda718b14ce1189))
+
+
+### Bug Fixes
+
+* **website:** CallToAction ohne secondaryHref/Text rendern + openclaw README entfernen [T003873] ([#4300](https://github.com/Paddione/Bachelorprojekt/issues/4300)) ([825b6f9](https://github.com/Paddione/Bachelorprojekt/commit/825b6f9feb25e3e41dc131de6b878c50e4d33fc3))
+
 ## [1.269.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.269.1...website-v1.269.2) (2026-08-11)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.269.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.269.1...website-v1.269.2) (2026-08-11)
+
+
+### Bug Fixes
+
+* **infra:** imagePullPolicy Always auf :latest-Image + sdlc:refresh Task [T003740] ([#4293](https://github.com/Paddione/Bachelorprojekt/issues/4293)) ([3230fb6](https://github.com/Paddione/Bachelorprojekt/commit/3230fb638b5bd35c537b32e6292d2dcf393703ca))
+
 ## [1.269.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.269.0...website-v1.269.1) (2026-08-11)
 
 

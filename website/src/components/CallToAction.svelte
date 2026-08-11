@@ -73,7 +73,9 @@
           <path d="M2 7h10M8 3l4 4-4 4"/>
         </svg>
       </a>
-      <a href={secondaryHref} class="btn btn-ghost">{secondaryText}</a>
+      {#if secondaryText && secondaryHref}
+        <a href={secondaryHref} class="btn btn-ghost">{secondaryText}</a>
+      {/if}
     </div>
   </div>
 </section>

@@ -1908,6 +1908,30 @@
     "kind": "shell"
   },
   {
+    "id": "T003487-1",
+    "file": "tests/spec/factory/watchdog-red-green.bats",
+    "category": "T003487",
+    "kind": "shell"
+  },
+  {
+    "id": "T003487-2",
+    "file": "tests/spec/factory/watchdog-red-green.bats",
+    "category": "T003487",
+    "kind": "shell"
+  },
+  {
+    "id": "T003487-3",
+    "file": "tests/spec/factory/watchdog-red-green.bats",
+    "category": "T003487",
+    "kind": "shell"
+  },
+  {
+    "id": "T003487-4",
+    "file": "tests/spec/factory/watchdog-red-green.bats",
+    "category": "T003487",
+    "kind": "shell"
+  },
+  {
     "id": "active-sessions-hub",
     "file": "tests/spec/active-sessions-hub.bats",
     "category": "active-sessions-hub",

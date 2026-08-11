@@ -3261,6 +3261,12 @@
       "status": "archived"
     }
   ],
+  "T003487": [
+    {
+      "slug": "factory-watchdog-red-green",
+      "status": "plan_staged"
+    }
+  ],
   "T003490": [
     {
       "slug": "2026-08-11-batch-repo-hygiene-ops-fixes",

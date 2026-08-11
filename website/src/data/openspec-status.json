@@ -3021,6 +3021,12 @@
       "status": "archived"
     }
   ],
+  "T002929": [
+    {
+      "slug": "fix-plan-agent-readiness",
+      "status": "plan_staged"
+    }
+  ],
   "T002931": [
     {
       "slug": "2026-08-10-mishap-rollup-loop",

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.268.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.3...website-v1.268.4) (2026-08-11)
+
+
+### Bug Fixes
+
+* **factory:** Readiness-Gate vor dem Launch aufhängen [T003773] ([#4263](https://github.com/Paddione/Bachelorprojekt/issues/4263)) ([e61a684](https://github.com/Paddione/Bachelorprojekt/commit/e61a684e1f5bb92abe62ed4e8095704a8f02521c))
+* **scripts:** openspec-embed Completeness-Gate zaehlt per Slug und wertet Toleranz [T002877] ([#4267](https://github.com/Paddione/Bachelorprojekt/issues/4267)) ([63349e5](https://github.com/Paddione/Bachelorprojekt/commit/63349e569acc7dfa590b7f4015ef188d83b87eb6))
+* **scripts:** pre-push Scope-Basis per fork-point statt stale origin/main [T002827] ([#4249](https://github.com/Paddione/Bachelorprojekt/issues/4249)) ([04a4231](https://github.com/Paddione/Bachelorprojekt/commit/04a4231d161b23646ec30dcb19785f61eacc219e))
+
 ## [1.268.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.2...website-v1.268.3) (2026-08-11)
 
 

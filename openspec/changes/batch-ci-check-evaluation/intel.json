@@ -1,0 +1,339 @@
+{
+  "meta": {
+    "slug": "batch-ci-check-evaluation",
+    "ticket_id": "T003540",
+    "generated_from": "main@fe271dcef",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".agents/skills/git-workflow/SKILL.md",
+      "language": "markdown",
+      "loc": 272,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/git-workflow/SKILL.md",
+      "language": "markdown",
+      "loc": 272,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".githooks/pre-push",
+      "language": "text",
+      "loc": 161,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "language": "config",
+      "loc": 856,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/openspec-archive-change/SKILL.md",
+      "language": "markdown",
+      "loc": 125,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "Taskfile.yml",
+      "language": "config",
+      "loc": 5344,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/ci-cluster-bats.mjs",
+      "language": "javascript",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow-ci-watch.sh",
+      "language": "bash",
+      "loc": 143,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 657
+    },
+    {
+      "path": "scripts/openspec.sh",
+      "language": "bash",
+      "loc": 417,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 383
+    },
+    {
+      "path": "scripts/pre-push-scope-range.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/test-changed.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/batch-ci-check-evaluation.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/archive-freshness-commit.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/cluster-bats-registry.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/devflow-ci-watch-empty-guard.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/pre-push-scope-guard.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd/test-changed-relevance.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": ".githooks/pre-push:23:warn() { printf '⚠  pre-push: %s\\n' \"$*\" >&2; }",
+      "kind": "function",
+      "file": ".githooks/pre-push",
+      "signature": "23:warn() { printf '⚠  pre-push: %s\\n' \"$*\" >&2; }(...)",
+      "type_text": "23:warn() { printf '⚠  pre-push: %s\\n' \"$*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": ".githooks/pre-push:24:err()  { printf '✗  pre-push: %s\\n' \"$*\" >&2; }",
+      "kind": "function",
+      "file": ".githooks/pre-push",
+      "signature": "24:err()  { printf '✗  pre-push: %s\\n' \"$*\" >&2; }(...)",
+      "type_text": "24:err()  { printf '✗  pre-push: %s\\n' \"$*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3737:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3737:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "type_text": "3737:        _step() { echo; echo \"=== CI:LOCAL: $* ===\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3738:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3738:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "type_text": "3738:        _ok()   { echo \"  PASS: $*\"; PASS=$((PASS+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3739:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3739:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "type_text": "3739:        _fail() { echo \"  FAIL: $*\"; FAIL=$((FAIL+1)); }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:3740:        _run()  {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "3740:        _run()  {(...)",
+      "type_text": "3740:        _run()  {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "Taskfile.yml:4931:        kexec_psql() {",
+      "kind": "function",
+      "file": "Taskfile.yml",
+      "signature": "4931:        kexec_psql() {(...)",
+      "type_text": "4931:        kexec_psql() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:27:die() { echo \"ERROR: $*\" >&2; exit 1; }",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "27:die() { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "type_text": "27:die() { echo \"ERROR: $*\" >&2; exit 1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:30:_embed_slug() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "30:_embed_slug() {(...)",
+      "type_text": "30:_embed_slug() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:48:_is_placeholder_file() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "48:_is_placeholder_file() {(...)",
+      "type_text": "48:_is_placeholder_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:65:_propose_state_report() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "65:_propose_state_report() {(...)",
+      "type_text": "65:_propose_state_report() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:82:_seed_if_placeholder() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "82:_seed_if_placeholder() {(...)",
+      "type_text": "82:_seed_if_placeholder() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:93:cmd_propose() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "93:cmd_propose() {(...)",
+      "type_text": "93:cmd_propose() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:207:cmd_apply() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "207:cmd_apply() {(...)",
+      "type_text": "207:cmd_apply() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:223:cmd_archive() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "223:cmd_archive() {(...)",
+      "type_text": "223:cmd_archive() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:309:_check_deliverable_presence() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "309:_check_deliverable_presence() {(...)",
+      "type_text": "309:_check_deliverable_presence() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:346:_merge_delta() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "346:_merge_delta() {(...)",
+      "type_text": "346:_merge_delta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:354:_check_delta() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "354:_check_delta() {(...)",
+      "type_text": "354:_check_delta() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:361:cmd_validate() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "361:cmd_validate() {(...)",
+      "type_text": "361:cmd_validate() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:386:_validate_delta_file() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "386:_validate_delta_file() {(...)",
+      "type_text": "386:_validate_delta_file() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec.sh:398:main() {",
+      "kind": "function",
+      "file": "scripts/openspec.sh",
+      "signature": "398:main() {(...)",
+      "type_text": "398:main() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

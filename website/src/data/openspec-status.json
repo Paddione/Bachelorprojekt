@@ -3237,6 +3237,12 @@
       "status": "archived"
     }
   ],
+  "T003539": [
+    {
+      "slug": "batch-git-worktree-integrity",
+      "status": "plan_staged"
+    }
+  ],
   "T003540": [
     {
       "slug": "batch-ci-check-evaluation",

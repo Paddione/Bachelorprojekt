@@ -65,6 +65,10 @@ git worktree list
 # Commit auf einem Branch erzeugen, den der Aufrufer nicht besitzt).
 bash scripts/worktree-git-op-guard.sh
 
+# Integritäts-Vorcheck des gemeinsamen Objektspeichers (T002994, T002998):
+bash scripts/git-worktree-health.sh objects   # 0 intakt, 1 Befund, 2 nicht prüfbar
+bash scripts/git-worktree-health.sh orphans   # 0 sauber, 1 Orphan(s), 2 nicht prüfbar
+
 # Für jeden Worktree (außer main, außer aktuell gehaltener):
 bash scripts/worktree-clean-check.sh <path>   # 0 sauber, 1 Befund, 2 nicht prüfbar
 git worktree remove <path>

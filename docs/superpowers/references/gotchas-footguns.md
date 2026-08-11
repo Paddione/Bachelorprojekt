@@ -303,3 +303,52 @@ docker restart k3d-mentolder-dev-server-0
 ```
 
 Beide Schritte automatisiert: `task sdlc:cert:check -- --repair` oder direkt `bash scripts/sdlc/kubelet-cert-check.sh --repair`. Der Health-Gate prüft den Zustand automatisch mit.
+
+### Test-Guard misst Darstellung statt Semantik — vier Spielarten (T003104, T003108, T003548, T003230)
+
+Die Konvention T002716 (CLAUDE.md) deckt den Formatfall ab: ein Guard, der das
+Ausgabeformat eines Werkzeugs festschreibt, bricht bei der nächsten Version. Die
+gleiche Fehlerklasse hat vier weitere Spielarten, die je einen eigenen Fehlermodus
+haben. Im Folgenden die belegten Vorgänge — lokal unsichtbar, sichtbar gemacht
+jeweils erst durch CI, Diagnose-Commit oder den vorgeschriebenen RED-Lauf.
+
+**T003548 — Konfiguration statt Laufzeit:** Der Autor hatte die Grenze zwischen
+"aktiviert" und "geladen" im Dateikopf des Tests **selbst notiert** und trotzdem
+auf der Konfigurationsaussage aufgebaut: Der Test prüfte, dass eine Konfiguration
+gesetzt ist, und hakte ab — obwohl der Defekt in der Laufzeit saß und die
+Konfiguration nie geladen wurde. Das Aufschreiben der Abgrenzung ersetzt die
+Prüfung nicht; lokal grün war es, weil niemand den Laufzeitpfad ausführte. Sichtbar
+wurde es allein durch den vorgeschriebenen RED-Lauf. Geholfen hat am Ende nicht ein
+besserer Offline-Test, sondern den vorhandenen Laufzeit-Guard
+(`scripts/llm/routing-check.sh`) überhaupt aufzurufen — er lag ungenutzt im Repo.
+Lehre: Vor dem Abhaken klären, ob die Zusicherung die Größe misst, in der der
+Defekt sitzt. Ein RED-Lauf, der grün ist, ist ein Befund am Test, kein "schon
+erfüllt".
+
+**T003230 — Prozesslisten-Format:** Ein Guard auf `ps -eo pid=` (Prozessliste) war
+lokal grün und rot im CI. Alle vier Vorab-Hypothesen waren falsch; jede Sonde
+meldete den erwarteten Wert. Gefunden wurde die Ursache erst per Diagnose-Commit im
+CI: `ps` polstert rechtsbündig auf die Breite von `pid_max` auf. Eine lang laufende
+WSL-Instanz vergibt bereits 7-stellige PIDs — exakt Feldbreite, also keine
+Polsterung, und der Test bestand. Auf einem frischen Runner (kleine PIDs) wird
+aufgefüllt, der Formatvergleich schlug fehl. Der Test fand das Format vor, statt es
+zu erzwingen. Fix: Format erzwingen (`tr -d '[:blank:]'`, blankes `read -r` ohne
+`IFS=`), statt das vorfinden zu müssen.
+
+**T003108 — Options-Parsing:** `grep -qF '--flag'` schützt nicht vor
+Options-Parsing: `-F` macht das Muster literal, aber das Argument `--flag` wird
+trotzdem als Option geparst. GNU grep endet mit Exit 2 (Werkzeugfehler), nicht 1
+(nicht gefunden) — in einer `if`-Bedingung sind beide ununterscheidbar, der Guard
+kippt also still. Erschwerend: Die Fehlermeldung stammte von `ugrep`, nicht von GNU
+grep — auf dem Entwicklungshost ist `grep` ein ugrep-Alias. Der Meldungstext
+unterscheidet sich damit zwischen lokaler Shell und CI-Runner, was einen Guard auf
+den Meldungstext seinerseits unzuverlässig macht. Fix: nur Exit-Codes prüfen, nie
+den Wortlaut; `-e` oder `--` verwenden, um das Muster zu markieren. Betrifft jeden
+Guard, der ein CLI-Flag im Text sucht.
+
+**T003104 — Dokumentposition:** `grep -n … | head -1` misst die Position des
+ersten Zufallstreffers im ganzen Dokument statt der gemeinten Stelle. Eine
+unverwandte Einfügung oberhalb der gemeinten Regel färbt den Guard rot, ohne dass
+sich das Geprüfte geändert hat — der Test wird zum Drift-Melder für fremde
+Einfügungen. Fix: die Suche auf den Abschnitt eingrenzen (awk-Bereichsmuster,
+sed-Range), statt die dokumentweite Suche mit `head -1` zu beschneiden.

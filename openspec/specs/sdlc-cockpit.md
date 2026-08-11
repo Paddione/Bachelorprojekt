@@ -577,17 +577,6 @@ information is without inferring it from the request time.
 - **WHEN** `GET /health` is requested
 - **THEN** the response carries an ISO 8601 fetch timestamp
 
-### Requirement: Genau eine SDLC-Fläche im Admin-Menü (E1/E2)
-
-Das Admin-Menü SHALL weiterhin genau einen Eintrag auf die SDLC-Fläche führen. Der Eintrag zeigt auf `/admin/cockpit` (statt `/sdlc/cockpit`), um die Spec-Konvention zu erfüllen.
-
-#### Scenario: Cockpit URL is /admin/cockpit
-
-- **GIVEN** the admin sidebar navigation is rendered
-- **WHEN** the cockpit entry is inspected
-- **THEN** it targets `/admin/cockpit`
-- **AND** the old `/sdlc/cockpit` path redirects to `/admin/cockpit`
-
 ### Requirement: Pipeline-Inhalt lebt als Panel im Cockpit
 
 Die Fläche `/admin/cockpit` SHALL den `DevStatusTabs`-Baum durch die Command-Bar + Overview/Fokus-Architektur ersetzen. Der `PipelinePanel`-Wrapper entfällt, da das Unified Panel System Svelte-Komponenten nativ unterstützt.
@@ -1665,3 +1654,5 @@ Siehe `openspec/changes/sdlc-cockpit-design/design.md`, Abschnitt „Getroffene 
 <!-- merged from change delta sdlc-cockpit.md (e03d378ccb4b) -->
 
 <!-- merged from change delta sdlc-cockpit.md (7434b654bde3) -->
+
+<!-- merged from change delta sdlc-cockpit.md (79814a183ad8) -->

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.268.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.0...website-v1.268.1) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** openspec archive staged die regenerierte Status-Map [T003136] ([#4255](https://github.com/Paddione/Bachelorprojekt/issues/4255)) ([32c28e4](https://github.com/Paddione/Bachelorprojekt/commit/32c28e4966aebf826d5f77b957724cd18d40959e))
+
 ## [1.268.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.267.0...website-v1.268.0) (2026-08-11)
 
 

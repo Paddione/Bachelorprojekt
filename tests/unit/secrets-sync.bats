@@ -6,11 +6,21 @@
 # and every environments/sealed-secrets/*.yaml are always in sync.
 #
 # Rules:
-#   1. Every schema secret → must exist in k3d/secrets.yaml
+#   1. Every schema secret → must exist in k3d/secrets.yaml — EXCEPT keys
+#      annotated `dev_absent: true` + `dev_absent_reason` in environments/
+#      schema.yaml, which are deliberately without a dev counterpart.
 #   2. Every k3d/secrets.yaml key → must exist in schema (no orphans)
 #   3. Every required schema secret → must exist in each SealedSecret
 #      (optional secrets with required:false are user-provided and may be
 #       absent from some environments — they are skipped here)
+#
+# Prüfmodus: Output-Verifikation (T002448-M4). Jeder Test führt python3 gegen
+# die echten Dateien aus und prüft dessen Exit-Code und Ausgabe — kein grep auf
+# Implementierungsquellen. Bewusste Abwesenheit wird als dev_absent-Annotation
+# im Schema dokumentiert, NICHT als Allowlist im Test (T003141).
+#
+# Sicherheitshinweis: Diese Datei verarbeitet ausschliesslich Schluessel-NAMEN.
+# Secret-WERTE werden nie gelesen, verglichen oder ausgegeben.
 #
 # Prerequisites: python3, pyyaml
 # No cluster required — pure static analysis.
@@ -30,6 +40,21 @@ import sys, yaml
 with open(sys.argv[1]) as f:
     schema = yaml.safe_load(f)
 for s in schema.get('secrets', []):
+    print(s['name'])
+EOF
+}
+
+# Returns schema keys that MUST exist in k3d/secrets.yaml — every key except
+# those deliberately marked dev_absent (see proposal T003141). dev_absent keys
+# have no dev counterpart by design; the orphan direction (rule 2) stays strict.
+schema_keys_required_in_dev() {
+  python3 - "$SCHEMA" <<'EOF'
+import sys, yaml
+with open(sys.argv[1]) as f:
+    schema = yaml.safe_load(f)
+for s in schema.get('secrets', []):
+    if s.get('dev_absent') is True:
+        continue
     print(s['name'])
 EOF
 }
@@ -85,7 +110,7 @@ EOF
     if ! dev_workspace_keys | grep -qx "$key"; then
       missing+=("$key")
     fi
-  done < <(schema_keys)
+  done < <(schema_keys_required_in_dev)
 
   if [[ ${#missing[@]} -gt 0 ]]; then
     echo "Keys in schema but missing from k3d/secrets.yaml:"

@@ -35,7 +35,14 @@ setup() {
   run bash -c "awk '/^  test:spec:\$/{f=1;next} f && /^  [a-z][a-zA-Z0-9:_-]*:\$/{exit} f' '${REPO_ROOT}/Taskfile.yml' | grep -vE '^\s*#'"
   [ "$status" -eq 0 ]
   [ -n "$output" ]
-  printf '%s\n' "$output" | grep -q 'bats-core/bin/bats'
+  # [T003278] Zwei zulaessige Aufrufformen: das vendierte Binary direkt, oder der
+  # Wrapper scripts/lib/run-bats.sh, der per `exec` an genau dieses Binary delegiert
+  # (Existenz-Guard fuer Testpfade). Die fruehere Assertion verlangte den Literalpfad
+  # 'bats-core/bin/bats' im Taskfile und mass damit die DARSTELLUNG statt der Semantik
+  # (CLAUDE.md, "Semantik statt Darstellung" [T002716]): sie wurde rot, obwohl der Task
+  # weiterhin genau denselben Runner startet. Was dieser Guard wirklich sichern soll —
+  # dass die Auswahl rekursiv bleibt — prueft die Assertion darunter.
+  printf '%s\n' "$output" | grep -qE 'bats-core/bin/bats|run-bats\.sh'
 
   # ... und waehlt die Dateien rekursiv aus. Zwei zulaessige Formen [T002500]:
   # `bats -r tests/spec/` oder eine per `find` erzeugte Liste. Beide erfassen

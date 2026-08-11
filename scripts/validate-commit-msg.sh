@@ -17,6 +17,7 @@
 #
 # Usage:
 #   validate-commit-msg.sh range <base>..<head>   # validate every non-merge commit in range
+#   validate-commit-msg.sh commits <sha...>      # validate explicit SHAs (hook pre-filters via rev-list)
 #   validate-commit-msg.sh head                    # validate just HEAD's subject
 #   validate-commit-msg.sh message <file>          # validate literal subject text from file
 #   validate-commit-msg.sh scopes                  # print every allowed scope, one per line
@@ -205,8 +206,7 @@ validate_subject() {
   return 0
 }
 
-validate_range() {
-  local range="$1"
+validate_commit_lines() {
   local failures=0 checked=0
 
   while IFS=$'\t' read -r sha subject; do
@@ -215,10 +215,10 @@ validate_range() {
     if ! validate_subject "$subject" "$sha"; then
       failures=$((failures + 1))
     fi
-  done < <(git -C "$repo_root" log --no-merges --format='%h%x09%s' "$range" 2>/dev/null)
+  done
 
   if [ "$checked" -eq 0 ]; then
-    echo "validate-commit-msg: no commits in range '$range' (nothing to check)" >&2
+    echo "validate-commit-msg: no commits to check" >&2
     return 0
   fi
 
@@ -231,6 +231,11 @@ validate_range() {
   return 0
 }
 
+validate_range() {
+  local range="$1"
+  git -C "$repo_root" log --no-merges --format='%h%x09%s' "$range" 2>/dev/null | validate_commit_lines
+}
+
 main() {
   local mode="${1:-}"
   case "$mode" in
@@ -238,6 +243,15 @@ main() {
       local range="${2:-}"
       [ -z "$range" ] && { echo "usage: validate-commit-msg.sh range <base>..<head>" >&2; exit 2; }
       validate_range "$range"
+      exit $?
+      ;;
+    commits)
+      shift
+      if [ "$#" -eq 0 ]; then
+        echo "usage: validate-commit-msg.sh commits <sha...>" >&2
+        exit 2
+      fi
+      git -C "$repo_root" show -s --format='%h%x09%s' "$@" 2>/dev/null | validate_commit_lines
       exit $?
       ;;
     head)

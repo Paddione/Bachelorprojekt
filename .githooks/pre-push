@@ -42,21 +42,28 @@ URL="$2"
 _commit_msg_failed=0
 while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
   [[ "$LOCAL_SHA" == "0000000000000000000000000000000000000000" ]] && continue
-  # Immer gegen origin/main validieren, nicht gegen den alten Remote-Branch-Tip
-  # (REMOTE_SHA): nach einem `git rebase origin/main` (der in git-workflow als
-  # Standardweg fuer CONFLICTING-PRs dokumentiert ist) liegt REMOTE_SHA nicht
-  # mehr auf der Ahnenlinie des neuen HEAD - "REMOTE_SHA..LOCAL_SHA" zieht dann
-  # bereits gemergte main-Commits mit rein (die eigene, laengst validierte
-  # Historie) und blockt den Push mit fremden Commit-Messages [T002104-Folgebefund].
-  BASE=$(git rev-parse --verify "origin/main" 2>/dev/null || echo "${REMOTE_SHA:-}")
-  if [[ -z "$BASE" || "$BASE" == "0000000000000000000000000000000000000000" ]]; then
-    BASE=$(git rev-parse --verify "HEAD~1" 2>/dev/null || true)
-  fi
+  # [T002827] Base der Scope-Berechnung: pre-push-scope-base.sh bestimmt den
+  # Punkt, an dem die Branch WIRKLICH von main abging (merge-base --fork-point
+  # ueber die origin/main-Reflog). VORHER stand hier der (womoeglich STALE)
+  # origin/main-Ref-Stand: nach einem `git rebase origin/main` zog
+  # "origin/main..LOCAL_SHA" bereits gemergte main-Commits in die Pruefung und
+  # blockte den Push mit fremden Commit-Messages [T002104-Folgebefund, T002827;
+  # real bei fix/ticket-list-test-data-filter-T002781: ci-cd/mcp-gateway/
+  # e2e-testing/routes-Scopes, seit T002328 ungueltig]. Auch REMOTE_SHA (alter
+  # Remote-Branch-Tip) taugt nach einem Rebase nicht: er liegt nicht mehr auf
+  # der Ahnenlinie des neuen HEAD.
+  BASE="$(bash "$repo_root/scripts/hooks/pre-push-scope-base.sh" "$LOCAL_SHA" "${REMOTE_SHA:-}" 2>/dev/null || true)"
   [[ -z "$BASE" ]] && continue
 
   if [[ "${SKIP_CI_CHECK:-0}" != "1" ]]; then
-    if ! "$repo_root/scripts/validate-commit-msg.sh" range "${BASE}..${LOCAL_SHA}"; then
-      _commit_msg_failed=1
+    # [T002827] Scope-Detection per rev-list (plumbing) statt git-log-Range:
+    # geprueft werden nur die Nicht-ancestor-Commits des Fork-Point-Base.
+    _scope_commits="$(git -C "$repo_root" rev-list --no-merges "$BASE..$LOCAL_SHA" 2>/dev/null || true)"
+    if [[ -n "$_scope_commits" ]]; then
+      # shellcheck disable=SC2086
+      if ! "$repo_root/scripts/validate-commit-msg.sh" commits $_scope_commits; then
+        _commit_msg_failed=1
+      fi
     fi
   fi
 

@@ -146,7 +146,15 @@ EOF
 SELECT 1;
 EOF
 
+  # Leere Registry: dieser Test prueft ausschliesslich das DB-Skip-Verhalten,
+  # nicht den Prozess-Pruefer. Ohne Override wuerde eine laufende Session mit
+  # ersetzter Binary den Exit auf 1 ziehen und das DB-Verhalten ueberdecken.
+  cat > "$TMP/empty-registry.yaml" <<'EOF'
+clients: {}
+EOF
+
   # Kontext, den es garantiert nicht gibt -> DB unerreichbar
+  RUNTIME_DRIFT_REGISTRY="$TMP/empty-registry.yaml" \
   RUNTIME_DRIFT_MIGRATIONS="$TMP" \
   RUNTIME_DRIFT_CTX="kein-solcher-kontext-T003825" run "$GUARD"
   [ "$status" -eq 0 ]

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.265.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.4...website-v1.265.5) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** opencode-exec loest Binary selbst auf [T003275] ([#4233](https://github.com/Paddione/Bachelorprojekt/issues/4233)) ([3093d9d](https://github.com/Paddione/Bachelorprojekt/commit/3093d9dc7175bf0e397bcfe167a40391f56a2f85))
+
 ## [1.265.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.3...website-v1.265.4) (2026-08-11)
 
 

@@ -2985,6 +2985,12 @@
       "status": "archived"
     }
   ],
+  "T002877": [
+    {
+      "slug": "fix-openspec-embed-completeness",
+      "status": "plan_staged"
+    }
+  ],
   "T002886": [
     {
       "slug": "2026-08-10-fix-loadout-model-paths-T002886",

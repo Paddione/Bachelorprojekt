@@ -6,13 +6,13 @@ Das Completeness-Gate von openspec-embed erkennt die Diskrepanz zwischen 12 Doku
 ## Tasks
 
 ### 1. Gate-Logik prüfen
-- [ ] `scripts/openspec-embed.mjs` — Completeness-Check analysieren
-- [ ] Warum werden 57 Dateien als "complete" gemeldet, wenn nur 12 in der Collection sind?
+- [x] `scripts/openspec-embed.mjs` — Completeness-Check analysieren
+- [x] Warum werden 57 Dateien als "complete" gemeldet, wenn nur 12 in der Collection sind?
 
 ### 2. Fix
-- [ ] Korrekte Zählung der lokalen Dateien vs. Collection-Einträge
-- [ ] Fehler bei Diskrepanz > Toleranz (z.B. 10%)
+- [x] Korrekte Zählung der lokalen Dateien vs. Collection-Einträge
+- [x] Fehler bei Diskrepanz > Toleranz (z.B. 10%)
 
 ### Verify
-- [ ] `task freshness:check` schlägt fehl bei 12/57-Diskrepanz
-- [ ] Embed-Command läuft ohne Fehler durch
+- [x] `task freshness:check` schlägt fehl bei 12/57-Diskrepanz
+- [x] Embed-Command läuft ohne Fehler durch

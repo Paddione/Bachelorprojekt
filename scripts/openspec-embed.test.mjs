@@ -14,6 +14,9 @@ import {
   resolveEmbeddingModel,
   defaultEmbed,
   estimateSlugTokenWorst,
+  listLocalActivePlans,
+  computeCoverageGap,
+  completenessGateMessage,
 } from './openspec-embed.mjs';
 
 
@@ -280,6 +283,113 @@ describe('CLI: node scripts/openspec-embed.mjs --count-skipped', () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+});
+
+// T002877 fixture helper: builds a synthetic openspec/changes/ tree with
+// per-slug tasks.md frontmatter so listLocalActivePlans() can be exercised
+// deterministically (status filtering, archive skipping, missing tasks.md).
+function makeStatusFixtureRepo() {
+  const root = mkdtempSync(path.join(tmpdir(), 'openspec-embed-status-'));
+  const changesDir = path.join(root, 'openspec', 'changes');
+
+  function writeSlug(slug, status) {
+    const dir = path.join(changesDir, slug);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      path.join(dir, 'tasks.md'),
+      `---\nticket_id: T000000\nstatus: ${status}\n---\n\n## Tasks\n`,
+    );
+  }
+
+  return { root, changesDir, writeSlug };
+}
+
+describe('listLocalActivePlans', () => {
+  it('returns slugs with status in ACTIVE_STATUSES and skips non-active + archive', () => {
+    const { root, writeSlug } = makeStatusFixtureRepo();
+    try {
+      writeSlug('plan-a', 'planning');
+      writeSlug('plan-b', 'plan_staged');
+      writeSlug('plan-c', 'archived');
+      writeSlug('plan-d', 'done');
+      const archiveDir = path.join(root, 'openspec', 'changes', 'archive', 'old');
+      mkdirSync(archiveDir, { recursive: true });
+      writeFileSync(
+        path.join(archiveDir, 'tasks.md'),
+        `---\nticket_id: T000000\nstatus: planning\n---\n\n## Tasks\n`,
+      );
+
+      const slugs = listLocalActivePlans(root).sort();
+      expect(slugs).toEqual(['plan-a', 'plan-b']);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('returns [] when openspec/changes does not exist', () => {
+    expect(listLocalActivePlans('/nonexistent')).toEqual([]);
+  });
+
+  it('returns [] when no tasks.md exists in any slug dir', () => {
+    const { root, changesDir } = makeStatusFixtureRepo();
+    try {
+      mkdirSync(path.join(changesDir, 'no-tasks-a'), { recursive: true });
+      mkdirSync(path.join(changesDir, 'no-tasks-b'), { recursive: true });
+      expect(listLocalActivePlans(root)).toEqual([]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('computeCoverageGap', () => {
+  it('reports full coverage when every local active plan is indexed', () => {
+    const gap = computeCoverageGap(['a', 'b'], ['a', 'b']);
+    expect(gap.missing).toEqual([]);
+    expect(gap.missingCount).toBe(0);
+    expect(gap.total).toBe(2);
+    expect(gap.coverageRatio).toBe(1);
+  });
+
+  it('reports the missing slugs when only part of the local plans are indexed', () => {
+    const gap = computeCoverageGap(['a', 'b', 'c', 'd'], ['a', 'b']);
+    expect(gap.missing).toEqual(['c', 'd']);
+    expect(gap.missingCount).toBe(2);
+    expect(gap.total).toBe(4);
+    expect(gap.coverageRatio).toBe(0.5);
+  });
+
+  it('reports ratio 0 when there are no local active plans', () => {
+    const gap = computeCoverageGap([], ['a']);
+    expect(gap.missing).toEqual([]);
+    expect(gap.missingCount).toBe(0);
+    expect(gap.total).toBe(0);
+    expect(gap.coverageRatio).toBe(0);
+  });
+});
+
+describe('completenessGateMessage', () => {
+  it('warns and lists the missing slugs when coverage exceeds the tolerance', () => {
+    const msg = completenessGateMessage(computeCoverageGap(['a', 'b', 'c', 'd'], ['a', 'b']), 0.10);
+    expect(msg.startsWith('WARN: completeness gate')).toBe(true);
+    expect(msg).toContain('2/4');
+    expect(msg).toContain('c, d');
+  });
+
+  it('reports OK when every local active plan is covered', () => {
+    const msg = completenessGateMessage(computeCoverageGap(['a', 'b', 'c', 'd'], ['a', 'b', 'c', 'd']), 0.10);
+    expect(msg.startsWith('completeness gate OK')).toBe(true);
+  });
+
+  it('uses the 10% default tolerance when none is given', () => {
+    const msg = completenessGateMessage(computeCoverageGap(['a', 'b', 'c', 'd'], ['a', 'b']));
+    expect(msg.startsWith('WARN:')).toBe(true);
+  });
+
+  it('reports OK with a dedicated message when there are no local active plans', () => {
+    const msg = completenessGateMessage(computeCoverageGap([], []));
+    expect(msg).toBe('completeness gate OK — no local active plans to cover');
   });
 });
 

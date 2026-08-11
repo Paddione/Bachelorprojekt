@@ -6,6 +6,7 @@
 // Slugs nicht automatisch nachgezogen. Fuer Backfill: task openspec:embed:backfill
 // Chunking/frontmatter helpers are pure and duplicated from website/src/lib/chunking.ts
 // (an ESM script cannot import the TS src/ tree).
+// [T002877] Completeness gate: per-slug coverage of local active plans + tolerance (OPENSPEC_EMBED_COVERAGE_TOLERANCE, default 10%).
 
 import pg from 'pg';
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
@@ -52,19 +53,51 @@ export function parsePartialManifest(tasksMd) {
   return rows;
 }
 
-export function countLocalActivePlans(repoRoot) {
+export function listLocalActivePlans(repoRoot) {
   const changesDir = path.join(repoRoot, 'openspec', 'changes');
-  if (!existsSync(changesDir)) return 0;
-  let count = 0;
+  if (!existsSync(changesDir)) return [];
+  const activeSlugs = [];
   for (const slug of readdirSync(changesDir)) {
     if (slug === 'archive') continue;
     const tasksPath = path.join(changesDir, slug, 'tasks.md');
     if (!existsSync(tasksPath)) continue;
     const raw = readFileSync(tasksPath, 'utf8');
     const { frontmatter } = stripFrontmatter(raw);
-    if (ACTIVE_STATUSES.includes(frontmatter.status)) count++;
+    if (ACTIVE_STATUSES.includes(frontmatter.status)) activeSlugs.push(slug);
   }
-  return count;
+  return activeSlugs;
+}
+
+export function countLocalActivePlans(repoRoot) {
+  return listLocalActivePlans(repoRoot).length;
+}
+
+// Pure coverage computation — testable without DB (T002877).
+// localActiveSlugs: slugs of locally active plans (status in ACTIVE_STATUSES)
+// indexedSlugs:     slugs currently present in the specs_plans collection
+export function computeCoverageGap(localActiveSlugs, indexedSlugs) {
+  const indexed = new Set(indexedSlugs);
+  const missing = localActiveSlugs.filter((s) => !indexed.has(s));
+  const total = localActiveSlugs.length;
+  return {
+    missing,
+    missingCount: missing.length,
+    total,
+    coverageRatio: total === 0 ? 0 : (total - missing.length) / total,
+  };
+}
+
+// Builds the completeness-gate log line (T002877). tolerance is a fraction
+// (0.10 = 10 %). Returns a string starting with 'WARN: completeness gate'
+// when the missing share exceeds tolerance, else 'completeness gate OK'.
+export function completenessGateMessage(gap, tolerance = 0.10) {
+  const { total, missingCount, missing } = gap;
+  if (total === 0) return 'completeness gate OK — no local active plans to cover';
+  const pct = Math.round(tolerance * 100);
+  if (gap.coverageRatio < 1 - tolerance) {
+    return `WARN: completeness gate — collection covers ${total - missingCount}/${total} local active plans, missing ${missingCount} (> ${pct}% tolerance, status=${ACTIVE_STATUSES.join('|')}): ${missing.join(', ')}`;
+  }
+  return `completeness gate OK — collection covers ${total - missingCount}/${total} local active plans (missing ${missingCount} within ${pct}% tolerance)`;
 }
 
 function sectionTitleOf(section) {
@@ -360,19 +393,16 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
     }
     await query(`UPDATE knowledge.collections SET last_indexed_at = now() WHERE source = 'specs_plans'`, []);
 
-    // ---- completeness gate: warn if indexed vs local active count mismatch ----
+    // ---- completeness gate: per-slug coverage vs local active plans ----
     try {
-      const idxRes = await query(
-        `SELECT COUNT(*)::int AS cnt FROM knowledge.documents WHERE collection_id = $1`,
+      const slugRes = await query(
+        `SELECT DISTINCT metadata->>'slug' AS slug FROM knowledge.documents WHERE collection_id = $1`,
         [collectionId],
       );
-      const indexedCount = idxRes.rows[0]?.cnt ?? 0;
-      const localCount = countLocalActivePlans(repoRoot);
-      if (indexedCount !== localCount) {
-        log(`WARN: completeness gate — collection has ${indexedCount} docs but ${localCount} local active plans (status=${ACTIVE_STATUSES.join('|')})`);
-      } else {
-        log(`completeness gate OK — ${indexedCount} docs match ${localCount} local active plans`);
-      }
+      const indexedSlugs = slugRes.rows.map((r) => r.slug);
+      const localSlugs = listLocalActivePlans(repoRoot);
+      const tolerance = Number(process.env.OPENSPEC_EMBED_COVERAGE_TOLERANCE ?? 0.10);
+      log(completenessGateMessage(computeCoverageGap(localSlugs, indexedSlugs), tolerance));
     } catch (_) { /* best-effort */ }
 
     log(`indexed slug='${slug}': ${inserted} chunks (model=${model})`);
@@ -405,6 +435,10 @@ async function main() {
         '  --count-skipped         Count documents skipped due to context limit',
         '                           (no DB writes — safe to run anytime)',
         '  --help                  This help',
+        '',
+        'Env:',
+        '  OPENSPEC_EMBED_COVERAGE_TOLERANCE   Max allowed missing-fraction of local active plans',
+        '                                     before the completeness gate fails (default 0.10 = 10%)',
       ].join('\n'));
       process.exit(0);
     }

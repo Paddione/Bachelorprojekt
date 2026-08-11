@@ -94,3 +94,63 @@ teardown() { rm -rf "$TMP"; }
   run grep -n 'ACTIVE_STATUSES' "$REPO/Taskfile.yml"
   [ "$status" -eq 0 ]
 }
+
+# ---- T002877: per-slug coverage statt roher Dokumentenzahl ----
+
+@test "listLocalActivePlans existiert als exportierte Funktion" {
+  run grep -n 'export function listLocalActivePlans' "$REPO/scripts/openspec-embed.mjs"
+  [ "$status" -eq 0 ]
+}
+
+@test "listLocalActivePlans liefert die Slug-Liste statt nur der Zahl" {
+  mkdir -p "$TMP/openspec/changes/plan-a" "$TMP/openspec/changes/plan-b" "$TMP/openspec/changes/plan-c" "$TMP/openspec/changes/archive/old-plan"
+  printf -- '---\ntitle: A\nstatus: planning\n---\n# A\n\nTasks\n' > "$TMP/openspec/changes/plan-a/tasks.md"
+  printf -- '---\ntitle: B\nstatus: plan_staged\n---\n# B\n\nTasks\n' > "$TMP/openspec/changes/plan-b/tasks.md"
+  printf -- '---\ntitle: C\nstatus: archived\n---\n# C\n\nTasks\n' > "$TMP/openspec/changes/plan-c/tasks.md"
+  printf -- '---\ntitle: D\nstatus: planning\n---\n# D\n\nTasks\n' > "$TMP/openspec/changes/archive/old-plan/tasks.md"
+
+  run node --input-type=module -e "
+    import { listLocalActivePlans } from '$REPO/scripts/openspec-embed.mjs';
+    const slugs = listLocalActivePlans('$TMP');
+    console.log(JSON.stringify(slugs.sort()));
+  "
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"[\"plan-a\",\"plan-b\"]"* ]]
+}
+
+@test "computeCoverageGap zaehlt die fehlenden Slugs (T002877 12/57-Fall)" {
+  run node --input-type=module -e "
+    import { computeCoverageGap } from '$REPO/scripts/openspec-embed.mjs';
+    const gap = computeCoverageGap(['a','b','c'], ['a']);
+    console.log(JSON.stringify(gap));
+  "
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"\"missingCount\":2"* ]]
+  [[ "$output" == *"\"missing\":[\"b\",\"c\"]"* ]]
+  [[ "$output" == *"\"coverageRatio\":0.333"* ]]
+}
+
+@test "completenessGateMessage meldet WARN bei Diskrepanz ueber Toleranz" {
+  run node --input-type=module -e "
+    import { computeCoverageGap, completenessGateMessage } from '$REPO/scripts/openspec-embed.mjs';
+    console.log(completenessGateMessage(computeCoverageGap(['a','b','c'], ['a']), 0.10));
+  "
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"WARN: completeness gate"* ]]
+  [[ "$output" == *"b"* ]]
+  [[ "$output" == *"c"* ]]
+}
+
+@test "completenessGateMessage meldet OK innerhalb der Toleranz" {
+  run node --input-type=module -e "
+    import { computeCoverageGap, completenessGateMessage } from '$REPO/scripts/openspec-embed.mjs';
+    console.log(completenessGateMessage(computeCoverageGap(['a','b','c'], ['a','b','c']), 0.10));
+  "
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"completeness gate OK"* ]]
+}
+
+@test "OPENSPEC_EMBED_COVERAGE_TOLERANCE ist im Embed-Skript verdrahtet" {
+  run grep -n 'OPENSPEC_EMBED_COVERAGE_TOLERANCE' "$REPO/scripts/openspec-embed.mjs"
+  [ "$status" -eq 0 ]
+}

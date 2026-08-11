@@ -37,7 +37,10 @@ git -C "$REPO_DIR" fetch origin main --prune 2>/dev/null || true
 
 # ── Step 2: Reap stale agent locks ──────────────────────────────────────
 log "agent-lock reap"
-bash "$HERE/agent-lock.sh" reap 2>/dev/null || true
+# stdout auf stderr umleiten: agent-lock.sh reap meldet u.a. die
+# openspec-half-archive-Check-Zeile auf stdout — die wuerde die JSON-Metrik-
+# Ausgabe (stdout ist Vertrag) verunreinigen. Log-Zeilen gehoeren auf stderr.
+bash "$HERE/agent-lock.sh" reap >&2 2>/dev/null || true
 
 # ── Step 2.5: Factory-Tick-Vorcheck [T003227] ───────────────────────────
 # Läuft gerade ein Factory-Tick, kann er Worktrees/Branches unter dem Lauf verändern
@@ -100,8 +103,11 @@ gone_count=$(git -C "$REPO_DIR" for-each-ref --format='%(refname:short) %(upstre
 gone_count="${gone_count// /}"
 
 # 3c: Remote branches (non-main)
+# grep -v liefert Exit 1, wenn KEINE Zeile durchfaellt (nur main existiert) —
+# unter set -o pipefail wuerde das die ganze Pipeline auf 1 setzen und der
+# Assignment-Exit (set -e) den Cron abbrechen. || true schuetzt dagegen.
 remote_branch_count=$(git -C "$REPO_DIR" ls-remote --heads origin 2>/dev/null \
-  | grep -v 'refs/heads/main$' | wc -l)
+  | grep -v 'refs/heads/main$' | wc -l || true)
 remote_branch_count="${remote_branch_count// /}"
 
 # 3d: Open PRs (use standard gh CLI — gh-axi doesn't support --json)

@@ -272,7 +272,7 @@ GH_EOF
   TMP_LOCK_PID=$!
   sleep 0.2
 
-  run env -C "$WORK" PATH="$WORK/bin:$PATH" REPO_DIR="$FIXTURE" AGENT_LOCK_DIR="$WORK/locks" \
+  run --separate-stderr env -C "$WORK" PATH="$WORK/bin:$PATH" REPO_DIR="$FIXTURE" AGENT_LOCK_DIR="$WORK/locks" \
     bash "$PROJECT_DIR/scripts/repo-hygiene-cron.sh" standard
   kill "$TMP_LOCK_PID" 2>/dev/null || true
   wait "$TMP_LOCK_PID" 2>/dev/null || true

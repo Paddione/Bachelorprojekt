@@ -204,13 +204,31 @@ export function buildChunks(files) {
   }
   if (files.partials != null) {
     for (const [partialId, content] of Object.entries(files.partials)) {
-      out.push({
-        position: pos++,
-        text: content.trim(),
-        sectionTitle: partialId,
-        charOffset: 0,
-        fileType: 'partial',
-      });
+      // [T003268] Partials unterliegen demselben Token-Budget wie proposal/tasks —
+      // legale Partials bis 7000 Token sprengten das Backend-Limit (2048/4096) und
+      // endeten als 400 exceed_context_size. Jede Teil-Datei laeuft durch
+      // splitByTokenBudget; die Manifest-Metadaten-Anreicherung (partialMeta)
+      // adressiert Chunks weiterhin ueber sectionTitle=partialId.
+      const trimmed = content.trim();
+      if (approxTokens(trimmed) <= 400) {
+        out.push({
+          position: pos++,
+          text: trimmed,
+          sectionTitle: partialId,
+          charOffset: 0,
+          fileType: 'partial',
+        });
+      } else {
+        for (const piece of splitByTokenBudget(trimmed, 400, 50)) {
+          out.push({
+            position: pos++,
+            text: piece,
+            sectionTitle: partialId,
+            charOffset: 0,
+            fileType: 'partial',
+          });
+        }
+      }
     }
   }
   return out;

@@ -118,7 +118,9 @@ if [[ -z "$DB_URL" ]]; then
     PF_PID=$!
     FOUND=0
     for _ in $(seq 1 10); do
-      LISTENER_PID="$(pf_listener_pid "$PF_PORT")"
+      # [T003268] wie in der Default-Port-Branch: `|| true` verhindert den stillen
+      # set -e-Abbruch, wenn ss/lsof noch nichts liefert (traeger Lauscher).
+      LISTENER_PID="$(pf_listener_pid "$PF_PORT" || true)"
       if [[ -n "$LISTENER_PID" ]]; then
         if [[ "$LISTENER_PID" == "$PF_PID" ]]; then
           FOUND=1
@@ -143,7 +145,11 @@ if [[ -z "$DB_URL" ]]; then
     PF_PID=$!
     PF_PORT=""
     for _ in $(seq 1 10); do
-      PF_PORT="$(parse_pf_local_port "$(cat "$PF_LOG")")"
+      # [T003268] unter `set -e` bricht eine fehlgeschlagene Kommandosubstitution
+      # den Lauf sofort ab — bei traegem Port-Forward (Log noch leer) endete die
+      # Schleife still mit rc=1 und null Output. `|| true` macht die Iteration
+      # fehlertolerant; die Leerpruefung unten faengt den echten Misserfolg.
+      PF_PORT="$(parse_pf_local_port "$(cat "$PF_LOG")" || true)"
       [[ -n "$PF_PORT" ]] && break
       sleep 1
     done

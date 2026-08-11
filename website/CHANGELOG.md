@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.268.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.267.0...website-v1.268.0) (2026-08-11)
+
+
+### Features
+
+* **tickets:** Batch ticket-ops/ticket-mcp Meta-Fixes (T002937,T003134,T003174,T003176,T003229,T003284,T003546) [T003541] ([#4246](https://github.com/Paddione/Bachelorprojekt/issues/4246)) ([754b976](https://github.com/Paddione/Bachelorprojekt/commit/754b9767dc40e5ca7f85dae19c130dd7506b2fd1))
+
+
+### Bug Fixes
+
+* **tickets:** Ticket-Locks der auftraggebenden Session blockieren Abschluss [T003102] ([#4247](https://github.com/Paddione/Bachelorprojekt/issues/4247)) ([4754e5f](https://github.com/Paddione/Bachelorprojekt/commit/4754e5f61ebe3fd24ae7ca3382ae7dfcc6329eae))
+
 ## [1.267.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.266.0...website-v1.267.0) (2026-08-11)
 
 

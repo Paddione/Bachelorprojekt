@@ -2921,8 +2921,8 @@
   ],
   "T002827": [
     {
-      "slug": "fix-prepush-stale-scope",
-      "status": "plan_staged"
+      "slug": "2026-08-11-fix-prepush-stale-scope",
+      "status": "archived"
     }
   ],
   "T002836": [

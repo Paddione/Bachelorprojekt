@@ -65,6 +65,13 @@ bash scripts/openspec.sh archive "$SLUG"
 
 4. Archivierung committen und via PR mergen (wegen Branch-Protection).
 
+> **T003287: kein SKIP_MAIN_COMMIT_GUARD nötig.** Der pre-commit-Hook
+> (.githooks/pre-commit, T002631) blockiert jeden Commit auf main/master ausser
+> CI-Runnern. Der Archiv-Commit entsteht deshalb auf einem `chore/plan-archive-*`-
+> Branch (unten) und landet per PR in main — der Weg hier ist der sanktionierte
+> Weg OHNE Env-Bypass. `SKIP_MAIN_COMMIT_GUARD=1` bleibt fuer den Notfall reserviert
+> und wird im normalen Archiv-Workflow nicht benoetigt.
+
 > **Der Archiv-Branch MUSS von `origin/main` abzweigen, nicht vom Fix-Branch (T002256).**
 > Schritt 7 läuft, nachdem der Fix-PR gemergt ist, und das Repo nutzt squash-and-merge — der
 > Fix-Branch hängt danach am Pre-Squash-Stand. Ein von ihm abgezweigter Archiv-Branch trägt

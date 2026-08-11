@@ -283,17 +283,32 @@ export function estimateSlugTokenWorst(slug, repoRoot) {
   }
   files.partials = partials;
   if (files.proposal == null && files.tasks == null && files.spec == null && partials == null) return null;
-  const chunks = buildChunks(files);
-  if (chunks.length === 0) return null;
+  // [T003268] Das Worst-Case-Token-Mass misst die UNGESPLITTETEN Quelldateien,
+  // nicht die buildChunks-Ausgabe: seit partials token-budgetiert gesplittet
+  // werden, waere der Maximal-Chunk sonst immer ~400 Token und der
+  // plan-lint-Diagnose-Pfad (7000-Token-Cap, T002453-C) blind. Pro Quelltyp
+  // zaehlt der volle Dateiinhalt; Partial-Dateien einzeln.
   let maxTokens = 0;
   let maxType = null;
-  for (const c of chunks) {
-    const t = approxTokens(c.text);
-    if (t > maxTokens) {
-      maxTokens = t;
-      maxType = c.fileType;
+  const sources = [
+    { text: files.proposal != null ? stripFrontmatter(files.proposal).body : null, type: 'proposal' },
+    { text: files.tasks != null ? stripFrontmatter(files.tasks).body : null, type: 'task_section' },
+    { text: files.spec != null ? stripFrontmatter(files.spec).body : null, type: 'spec_section' },
+  ];
+  if (files.partials != null) {
+    for (const [, content] of Object.entries(files.partials)) {
+      sources.push({ text: content, type: 'partial' });
     }
   }
+  for (const s of sources) {
+    if (s.text == null) continue;
+    const t = approxTokens(s.text);
+    if (t > maxTokens) {
+      maxTokens = t;
+      maxType = s.type;
+    }
+  }
+  if (maxTokens === 0) return null;
   return { tokens: maxTokens, fileType: maxType };
 }
 

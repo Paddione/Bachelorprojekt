@@ -6,9 +6,9 @@ Der Pre-Push-Hook lehnt gültige Pushs nicht mehr ab, weil stale Scope-Commits a
 ## Tasks
 
 ### 1. Scope-Berechnung fixen
-- [ ] `git rev-list origin/main..HEAD` statt `git log` für Scope-Detection
-- [ ] Nicht-ancestor-Commits aus der Scope-Berechnung ausschließen
+- [x] `git rev-list origin/main..HEAD` statt `git log` für Scope-Detection
+- [x] Nicht-ancestor-Commits aus der Scope-Berechnung ausschließen
 
 ### Verify
-- [ ] Push nach Rebase auf main wird akzeptiert
-- [ ] Tatsächlich scope-fremde Commits werden weiterhin abgelehnt
+- [x] Push nach Rebase auf main wird akzeptiert
+- [x] Tatsächlich scope-fremde Commits werden weiterhin abgelehnt

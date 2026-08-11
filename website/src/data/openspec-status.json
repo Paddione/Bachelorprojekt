@@ -3147,6 +3147,12 @@
       "status": "archived"
     }
   ],
+  "T003136": [
+    {
+      "slug": "fix-archive-freshness-gate",
+      "status": "plan_staged"
+    }
+  ],
   "T003137": [
     {
       "slug": "2026-08-10-babysit-prs-live-lock-guard",

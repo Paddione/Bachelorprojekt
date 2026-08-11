@@ -129,6 +129,13 @@ EOF
 SELECT 1;
 EOF
 
+  # Leere Registry: dieser Test prueft ausschliesslich den DB-Pruefer, nicht
+  # den Prozess-Pruefer (siehe Testerlaeuterung im DB-Skip-Test unten).
+  cat > "$TMP/empty-registry.yaml" <<'EOF'
+clients: {}
+EOF
+
+  RUNTIME_DRIFT_REGISTRY="$TMP/empty-registry.yaml" \
   RUNTIME_DRIFT_MIGRATIONS="$TMP" run "$GUARD"
   # Ohne DB-Zugriff: uebersprungen (Status 0). Mit DB-Zugriff: Drift (Status 1).
   # Beides ist zulaessig — unzulaessig waere, den fehlenden Marker zu verschweigen.

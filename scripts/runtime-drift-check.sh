@@ -10,6 +10,15 @@
 # lesbares /proc/<pid>/exe (fremder Benutzer) werden uebersprungen und zaehlen
 # nicht als Drift.
 #
+# Einschraenkungen (bewusst):
+#   - `command:` in der Registry muss ein einzelnes Binary sein (keine Args).
+#     Wrapper/npx/Interpreter (python3, node, bash) zeigen in /proc/<pid>/exe
+#     auf den Interpreter selbst — der wird nicht ersetzt, kein Treffer; ein
+#     ersetztes Skript des Interpreters wird hier NICHT erfasst.
+#   - `marker=` und `function=` in RUNTIME-CHECK-Zeilen sind auf [a-z0-9_]+
+#     beschraenkt, damit die psql-Query nicht aus Dateiinhalten konstruiert
+#     wird (keine Quotes, kein SQL-Injection-Surface).
+#
 # Overrides:
 #   RUNTIME_DRIFT_REGISTRY   mcp.yaml-Registry (default docs/agent-guide/registry/mcp.yaml)
 #   RUNTIME_DRIFT_MIGRATIONS  Verzeichnis mit *.sql-Migrationen (default scripts/one-shot)
@@ -48,7 +57,7 @@ _check_binary() {
     # Drift-Signal: die Binary wurde ersetzt/geloescht, der Prozess laeuft mit
     # der alten Inode. Der Suffix steht NACH dem Pfad — erst abtrennen, dann
     # gegen die registrierte Binary vergleichen.
-    if [[ "$exe" == *" (deleted)"* ]]; then
+    if [[ "$exe" == *" (deleted)" ]]; then
       exe="${exe% (deleted)}"
       if [ "$exe" = "$bin" ] || [[ "$exe" == */"$base" ]]; then
         start="$(ps -o lstart= -p "$pid" 2>/dev/null | sed 's/^ *//')"
@@ -129,7 +138,7 @@ check_db() {
   while IFS= read -r -d '' file; do
     while IFS= read -r line; do
       [[ "$line" == *"RUNTIME-CHECK:"* ]] || continue
-      [[ "$line" =~ function=([a-z_]+)\.([a-z_]+)[[:space:]]+marker=([^ ]+) ]] || continue
+      [[ "$line" =~ function=([a-z_]+)\.([a-z_]+)[[:space:]]+marker=([a-z0-9_]+) ]] || continue
       schema="${BASH_REMATCH[1]}"; fn="${BASH_REMATCH[2]}"; marker="${BASH_REMATCH[3]}"
       if ! _db_has_marker "$pod" "$schema" "$fn" "$marker"; then
         report "DB-Funktion $schema.$fn traegt Marker '$marker' nicht (Migration: $file)"

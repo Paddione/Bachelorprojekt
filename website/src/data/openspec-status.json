@@ -3209,8 +3209,8 @@
   ],
   "T003275": [
     {
-      "slug": "opencode-exec-path-resolution",
-      "status": "plan_staged"
+      "slug": "2026-08-11-opencode-exec-path-resolution",
+      "status": "archived"
     }
   ],
   "T003276": [
@@ -3227,8 +3227,8 @@
   ],
   "T003278": [
     {
-      "slug": "bats-missing-file-exit0",
-      "status": "plan_staged"
+      "slug": "2026-08-11-bats-missing-file-exit0",
+      "status": "archived"
     }
   ],
   "T003417": [

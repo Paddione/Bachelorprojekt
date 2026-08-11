@@ -1,5 +1,43 @@
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs'
 import { join, basename } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+/**
+ * [T003676] Slugs, die von der .ticket-Pflicht ausgenommen sind.
+ *
+ * Die Liste wird aus derselben Datei gelesen, die der BATS-Guard
+ * tests/spec/openspec-workflow/ticket-file-required.bats verwendet — sie wird
+ * hier bewusst NICHT dupliziert. Zwei Kopien liefen mit der Zeit auseinander,
+ * und dann widersprechen sich Gate (dieser Validator, vor dem Merge) und Guard
+ * (BATS, nach dem Merge): der eine liesse einen Change durch, den der andere
+ * ablehnt — genau die Konstellation, die T003676 abstellen soll.
+ *
+ * `openspec-ticket-links-evaluation` ist der Plan-Change des Bewertungsverfahrens
+ * selbst und traegt bewusst kein .ticket; der Guard fuehrt ihn ebenfalls als
+ * Sonderfall neben der Datei.
+ */
+const BACKLOG_SLUGS_FILE = fileURLToPath(
+  new URL('../tests/spec/openspec-workflow/t002573-backlog-slugs.txt', import.meta.url),
+)
+const EVALUATION_SLUG = 'openspec-ticket-links-evaluation'
+
+let backlogSlugsCache: Set<string> | null = null
+
+function ticketExemptSlugs(): Set<string> {
+  if (backlogSlugsCache) return backlogSlugsCache
+  const slugs = new Set<string>([EVALUATION_SLUG])
+  // Fehlt die Datei, bleibt nur der Sonderfall uebrig — die Regel wird dann
+  // strenger, nicht laxer. Ein fehlender Ausnahmekatalog darf das Gate nicht
+  // oeffnen (fail-closed).
+  if (existsSync(BACKLOG_SLUGS_FILE)) {
+    for (const line of readFileSync(BACKLOG_SLUGS_FILE, 'utf-8').split('\n')) {
+      const slug = line.trim()
+      if (slug) slugs.add(slug)
+    }
+  }
+  backlogSlugsCache = slugs
+  return slugs
+}
 
 export interface ValidationResult {
   ok: boolean
@@ -117,14 +155,28 @@ export function validateChange(changeDir: string, specsRoot?: string): ChangeVal
     return { slug, result: { ok: false, errors: [`${slug}: specs/ has no capability .md`], warnings } }
   }
 
-  if (!existsSync(join(changeDir, '.ticket'))) {
-    warnings.push(`${slug}: has no .ticket link`)
-  }
-
   for (const capFile of capFiles) {
     const { errors: fileErrors, warnings: fileWarnings } = validateDeltaFile(join(specsDir, capFile), specsRoot)
     errors.push(...fileErrors)
     warnings.push(...fileWarnings)
+  }
+
+  // [T003676] Fail-closed statt warning. Vorher lief der VERURSACHENDE PR gruen
+  // durch und der fail-closed BATS-Guard schlug erst gegen den bereits gemergten
+  // main-Stand an — danach war jeder ANDERE offene PR blockiert. Die leere Datei
+  // zaehlt wie eine fehlende (der Guard prueft `[ -s ]`), sonst wuerde ein 0-Byte
+  // .ticket das Gate passieren und den Guard trotzdem rot faerben.
+  //
+  // Bewusst NACH der Delta-Pruefung: der fehlende Ticket-Link ist ein formaler
+  // Mangel, ein kaputtes Delta ein inhaltlicher. Stuende er davor, verdeckte er in
+  // errors[0] den eigentlichen Grund, warum ein Change nicht valide ist.
+  if (!ticketExemptSlugs().has(slug)) {
+    const ticketFile = join(changeDir, '.ticket')
+    if (!existsSync(ticketFile)) {
+      errors.push(`${slug}: has no .ticket link`)
+    } else if (readFileSync(ticketFile, 'utf-8').trim() === '') {
+      errors.push(`${slug}: .ticket is empty`)
+    }
   }
 
   return { slug, result: { ok: errors.length === 0, errors, warnings } }

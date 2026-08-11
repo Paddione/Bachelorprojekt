@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.265.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.3...website-v1.265.4) (2026-08-11)
+
+
+### Bug Fixes
+
+* **factory:** worktree pre-create reuse + prep_skip escalation [T003270] ([#4228](https://github.com/Paddione/Bachelorprojekt/issues/4228)) ([18d355f](https://github.com/Paddione/Bachelorprojekt/commit/18d355fd7a616f9c4e4ab6b664124f75fb5f8c30))
+
 ## [1.265.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.2...website-v1.265.3) (2026-08-10)
 
 

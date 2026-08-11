@@ -45,8 +45,14 @@ setup() {
 
 @test "T002272-M2: dev-flow-execute Step 5 requests auto-merge before the CI-watch loop" {
   EXEC_SKILL="$REPO_ROOT/.claude/skills/dev-flow-execute/SKILL.md"
-  merge_line=$(grep -n -- "gh pr merge --auto" "$EXEC_SKILL" | head -1 | cut -d: -f1)
-  watch_line=$(grep -n 'devflow-ci-watch.sh' "$EXEC_SKILL" | head -1 | cut -d: -f1)
+  # [T003796] Suche auf den Bereich Schritt 5..5.5 eingeschraenkt: `gh pr merge --auto`
+  # steht im Dokument 4x (u.a. im Arbeitsteilungs-Kommentar Zeile 54), `devflow-ci-watch.sh`
+  # 3x. Dokumentweites head -1 pickte den Kommentar statt des Step-5-Aufrufs (T003104).
+  local step5 watch_line merge_line
+  step5="$(grep -n '^## Schritt 5: PR erstellen' "$EXEC_SKILL" | head -1 | cut -d: -f1)"
+  [ -n "$step5" ]
+  merge_line=$(awk -v s="$step5" 'NR > s && /gh pr merge --auto/ { print NR; exit }' "$EXEC_SKILL")
+  watch_line=$(awk -v s="$step5" 'NR > s && /devflow-ci-watch\.sh/ { print NR; exit }' "$EXEC_SKILL")
   [ -n "$merge_line" ] && [ -n "$watch_line" ]
   [ "$merge_line" -lt "$watch_line" ]
 }

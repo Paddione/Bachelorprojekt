@@ -91,3 +91,20 @@ STUB
   [ "$status" -eq 0 ]
   [[ "$output" == *"archived: demo"* ]]
 }
+
+@test "T003136: archive staged website/src/data/openspec-status.json (Freshness-Gate)" {
+  # cmd_archive regeneriert die Status-Map NACH dem Move und staged das Ergebnis
+  # selbst — der nachfolgende Archiv-Commit traegt die Datei damit mit, sonst
+  # faellt der Freshness-Gate sie als stale (PR #4083: Archiv-Commit ohne
+  # openspec-status.json, Heilung erst durch nachgeschobenen Regen-Commit).
+  # Das Zielverzeichnis muss existieren, damit openspec-status-map.sh in der
+  # Sandbox ueberhaupt schreiben kann (im echten Repo ist es immer vorhanden).
+  _stub_ticket_status done
+  mkdir -p "${SANDBOX}/website/src/data"
+  run bash -c "cd '$SANDBOX' && bash '$OPENSPEC_SH' archive demo"
+  [ "$status" -eq 0 ]
+  run git -C "$SANDBOX" diff --cached --name-only
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"website/src/data/openspec-status.json"* ]] \
+    || { echo "openspec-status.json NICHT gestaged nach archive: '$output'"; return 1; }
+}

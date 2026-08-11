@@ -353,7 +353,13 @@ ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done
 ```bash
 sed -E -i 's/^status: (active|plan_staged|in_progress)$/status: completed/' "$PLAN_FILE"
 bash scripts/openspec.sh archive "$SLUG"
-git add openspec/changes/
+# [T003136] openspec.sh archive regeneriert website/src/data/openspec-status.json
+# nach dem Move und staged sie bereits selbst (cmd_archive); der explizite
+# Eintrag hier ist Defense-in-Depth und haelt den Skill mit plan-archive-steps.md
+# konsistent. Ohne ihn traegt der Archiv-Commit die Datei nur, wenn der
+# pre-commit-Hook sie auto-staged (SKIP_FRESHNESS_REGEN/--no-verify umgehen das)
+# — PR #4083 fiel genau daran durch den Freshness-Gate.
+git add openspec/changes/ website/src/data/openspec-status.json
 git commit -m "chore(plans): archive $SLUG [$TICKET_ID]"
 ```
 

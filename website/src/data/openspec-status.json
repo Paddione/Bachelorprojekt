@@ -3273,6 +3273,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003765": [
+    {
+      "slug": "auto-close-plan-only-all-branches",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

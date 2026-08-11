@@ -361,6 +361,17 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
     const conn = process.env.SESSIONS_DATABASE_URL || process.env.DATABASE_URL;
     if (!conn) { log('no SESSIONS_DATABASE_URL/DATABASE_URL set; skipping'); return { inserted: 0, dryRun: false }; }
     pool = new pg.Pool({ connectionString: conn });
+    // [T003384] ECONNREFUSED/ECONNRESET beim Pool-Connect ist meist eine
+    // Port-15432-Kollision (k3d-Portforward belegt) — die Ursache benennen statt
+    // einen generischen Verbindungsfehler zu verschlucken.
+    pool.on('error', (err) => {
+      if (err?.code === 'ECONNREFUSED' || err?.code === 'ECONNRESET') {
+        const port = conn.match(/:(\d+)\//)?.[1] ?? '?';
+        log(`WARN: DB-Verbindung auf Port ${port} zurueckgewiesen (${err.code}) — vermutlich Port-Kollision (k3d-Portforward 15432 belegt).`);
+      } else if (err) {
+        log(`WARN: DB-Verbindungsfehler: ${err.code ?? err.message}`);
+      }
+    });
     query = (sql, params) => pool.query(sql, params);
   }
 
@@ -506,6 +517,11 @@ async function main() {
   try {
     await embedSlug({ slug, repoRoot, dryRun });
   } catch (err) {
+    // [T003384] Portkonflikte nicht still schlucken: ECONNREFUSED/ECONNRESET
+    // wird explizit als Verbindungs- bzw. Portproblem attribuiert.
+    if (err?.code === 'ECONNREFUSED' || err?.code === 'ECONNRESET') {
+      console.error(`[openspec-embed] WARN: Embed-Fehler wegen Verbindungsabbruch (${err.code}) — Portkonflikt/Portforward pruefen, nicht "embed failed" pauschal akzeptieren.`);
+    }
     console.error('[openspec-embed] best-effort failure (exit 0):', err?.message ?? err);
   }
   process.exit(0); // best-effort: never break the OpenSpec lifecycle

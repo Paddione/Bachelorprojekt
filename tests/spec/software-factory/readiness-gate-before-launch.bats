@@ -38,12 +38,18 @@ setup() {
   CLONE="$WORK/clone"
   git init --quiet --bare "$BARE"
   git clone --quiet "$BARE" "$CLONE"
+  # Fixture-Pfade absolut anlegen [T002368]: der Guard in
+  # tests/spec/software-factory/ticket-lifecycle.bats verbietet das Anlegen
+  # eines relativen Change-Verzeichnisses in tests/spec/, weil es unter `bats -j`
+  # im echten Repo landen kann. Er greppt den Quelltext und sieht das
+  # umgebende `cd "$CLONE"` nicht — der absolute Pfad macht die Absicht
+  # unabhaengig vom CWD explizit und erfuellt den Guard buchstabengetreu.
+  mkdir -p "$CLONE/openspec/changes/demo"
+  echo "# demo plan" > "$CLONE/openspec/changes/demo/tasks.md"
   (
     cd "$CLONE"
     git config user.email t@t.test
     git config user.name test
-    mkdir -p openspec/changes/demo
-    echo "# demo plan" > openspec/changes/demo/tasks.md
     git add -A
     git commit --quiet -m "add plan"
     git branch -M main

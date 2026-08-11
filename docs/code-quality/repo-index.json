@@ -828,6 +828,7 @@
         "tests/unit/factory-scout-quality.bats",
         "tests/unit/factory/otel-emit.bats",
         "tests/unit/fixtures/openspec/bad-heading/changes/sample-change/specs/sample-capability.md",
+        "tests/unit/fixtures/openspec/valid/changes/sample-change/.ticket",
         "tests/unit/fixtures/openspec/valid/changes/sample-change/proposal.md",
         "tests/unit/fixtures/openspec/valid/changes/sample-change/specs/sample-capability.md",
         "tests/unit/fixtures/openspec/valid/changes/sample-change/tasks.md",

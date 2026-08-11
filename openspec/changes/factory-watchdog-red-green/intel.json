@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "slug": "factory-watchdog-red-green",
+    "ticket_id": "T003487",
+    "generated_from": "main@aafbd4663",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/factory/watchdog.sh",
+      "language": "bash",
+      "loc": 331,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 469
+    },
+    {
+      "path": "openspec/specs/software-factory.md",
+      "language": "markdown",
+      "loc": 5071,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/watchdog.sh:34:_stale_query() {",
+      "kind": "function",
+      "file": "scripts/factory/watchdog.sh",
+      "signature": "34:_stale_query() {(...)",
+      "type_text": "34:_stale_query() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/factory/watchdog.sh:69:_wd_cleanup_worktree() {",
+      "kind": "function",
+      "file": "scripts/factory/watchdog.sh",
+      "signature": "69:_wd_cleanup_worktree() {(...)",
+      "type_text": "69:_wd_cleanup_worktree() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

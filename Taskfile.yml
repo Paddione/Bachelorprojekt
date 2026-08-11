@@ -838,7 +838,7 @@ tasks:
         fi
 
         set +e
-        ./tests/unit/lib/bats-core/bin/bats -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $FILES
+        bash scripts/lib/run-bats.sh -j $(nproc 2>/dev/null || echo 2) --no-parallelize-within-files "${BATS_EXTRA_ARGS[@]}" $FILES
         BATS_STATUS=$?
         bash scripts/spec-tracked-file-guard.sh verify "$GUARD_SNAP"
         GUARD_STATUS=$?

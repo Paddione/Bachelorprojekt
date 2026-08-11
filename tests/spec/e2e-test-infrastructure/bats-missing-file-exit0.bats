@@ -4,8 +4,6 @@
 # Der zentrale Wrapper scripts/lib/run-bats.sh MUSS bei fehlendem Pfad mit
 # Exit != 0 abbrechen (T002716: Semantik statt Darstellung — Exit-Codes pruefen).
 
-load "$BATS_TEST_DIRNAME/../../unit/lib/bats-helpers.bash" 2>/dev/null || true
-
 setup() {
   REPO_ROOT="$(cd "$(dirname "${BATS_TEST_FILENAME}")/../../.." && pwd)"
   WRAPPER="$REPO_ROOT/scripts/lib/run-bats.sh"

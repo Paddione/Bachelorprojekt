@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.268.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.5...website-v1.268.6) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** Batch openspec-embed Fixes (Partial-Chunking, Port-15432, Archiv-Batch, Stub-Gate) [T003491] ([#4274](https://github.com/Paddione/Bachelorprojekt/issues/4274)) ([72f56f7](https://github.com/Paddione/Bachelorprojekt/commit/72f56f709b5da504a504a773d7002c158f5725ca))
+
 ## [1.268.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.4...website-v1.268.5) (2026-08-11)
 
 

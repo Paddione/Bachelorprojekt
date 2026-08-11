@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+bats_require_minimum_version 1.5.0
 # tests/spec/batch-repo-hygiene-ops-fixes.bats — Batch T003490 (repo-hygiene-ops §1-§3 Fixes)
 #
 # Deckt die sechs Defekte der Kind-Tickets ab:
@@ -267,8 +268,12 @@ echo '[]'
 GH_EOF
   chmod +x "$WORK/bin/gh"
 
-  # tick_running=true simulieren: Lock-Datei existiert UND ist gehalten
-  ( flock -x 9; sleep 30 ) 9>/tmp/factory-tick.lock &
+  # tick_running=true simulieren: Lock-Datei existiert UND ist gehalten.
+  # flock -w begrenzt die Wartezeit: hält eine echte Factory den Lock, blockt
+  # der Subshell-Flock nicht endlos. stdout/stderr auf /dev/null: überlebt ein
+  # verwaister Flock-Kindprozess den kill, hält er die Bats-Output-Pipe nicht
+  # offen (sonst hängt die Suite am Testende).
+  ( flock -w 10 -x 9; sleep 30 ) 9>/tmp/factory-tick.lock >/dev/null 2>&1 &
   TMP_LOCK_PID=$!
   sleep 0.2
 

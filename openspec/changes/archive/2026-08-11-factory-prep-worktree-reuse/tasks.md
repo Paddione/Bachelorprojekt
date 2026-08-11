@@ -2,7 +2,7 @@
 title: "factory-prep-worktree-reuse — Implementation Plan"
 ticket_id: T003270
 domains: [factory]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

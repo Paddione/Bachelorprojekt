@@ -643,10 +643,13 @@ SH
   # No-op bei leerem Container: Suche nach Kommentar, der auf den No-op-Pfad hinweist
   run grep -qi "nichts zu tun\|noop\|no-op\|keine .*batches\|nothing to do" "$script"
   [ "$status" -eq 0 ] || { echo "No-op-Hinweis fehlt in mishap-rollup.sh"; false; }
-  # Der No-op-Pfad muss vor der Worktree-Anlage exit 0 geben — prüfe Zeilen-Reihenfolge
+  # Der No-op-Pfad muss vor der Worktree-Anlage exit 0 geben — prüfe Zeilen-Reihenfolge.
+  # [T003796] `exit 0` kommt 5x im Skript vor; das dokumentweite head -1 nimmt den
+  # fruehesten, nicht den des No-op-Zweigs. Der No-op-exit ist der letzte Treffer im
+  # "nichts zu tun"-Zweig (Zeile 77) — per awk der erste nach dem No-op-Hinweis.
   local wt_line noop_exit_line
   wt_line=$(grep -n 'worktree-create\|WORKTREE_CREATE' "$script" | head -1 | cut -d: -f1)
-  noop_exit_line=$(grep -n 'exit 0' "$script" | head -1 | cut -d: -f1)
+  noop_exit_line=$(awk '/keine Content-Kommentare|nichts zu tun/ { found=1 } found && /exit 0/ { print NR; exit }' "$script")
   if [[ -n "$wt_line" && -n "$noop_exit_line" ]]; then
     [ "$noop_exit_line" -lt "$wt_line" ] || skip "No-op-Pfad liegt nicht vor worktree-create (exit 0 ist später)"
   fi

@@ -231,6 +231,15 @@ Tests MÜSSEN die tatsächlichen Ergebnisse/Outputs von Kommandos prüfen (`run`
 
 **Semantik statt Darstellung [T002716]:** Output-Verifikation allein genügt nicht — die Zusicherung muss an der **Semantik** des Outputs hängen (Exit-Code, Vorhandensein eines Werts, Substring ohne Zeilenanker), nicht an dessen **Darstellung**. Ein Guard, der das Ausgabeformat eines Werkzeugs festschreibt (`task --list | grep '^\* llm:'`, Zeilenanker auf Tabellenspalten, der exakte Wortlaut einer Fehlermeldung), bricht, sobald das Werkzeug in einer anderen Version läuft oder die Meldung umformuliert wird — geprüft gehört das Ergebnis, nicht die Formulierung. Das ist lokal prinzipiell unsichtbar, weil dort nur eine Werkzeugversion existiert; rot wird der Test erst in CI, und er meldet dann einen Defekt, den es nicht gibt. Belastbar sind die Fehlersemantik des Werkzeugs (ein toter `includes:`-Pfad lässt `task --list` mit Exit 100 abbrechen — versionsübergreifend) und formatfreie Proben (`grep -qF` ohne Anker). Zweimal in Folge beobachtet: T002700 (`tests/spec/ci-cd/taskfiles-dir-convention.bats`, behoben in PR #3839) und T002701 (der `.dockerignore`-Guard aus T002688, der jeden PR rot färbte).
 
+Die Fehlerklasse umfasst vier Spielarten — jeweils mit Fehlermodus und der Form, die stattdessen trägt:
+
+1. **Dokumentposition [T003104]:** `grep -n … | head -1` misst die Position des ersten Zufallstreffers im ganzen Dokument. Eine unverwandte Einfügung oberhalb der gemeinten Stelle färbt den Guard rot, ohne dass sich das Geprüfte geändert hat. Stattdessen die Suche auf den Abschnitt eingrenzen (awk-Bereichsmuster, sed-Range).
+2. **Options-Parsing [T003108]:** `grep -qF '--flag'` endet mit Exit **2**, nicht 1 — `-F` macht das Muster literal, verhindert aber nicht, dass das Argument als Option geparst wird. In einer `if`-Bedingung sind Werkzeugfehler und "nicht gefunden" ununterscheidbar. `-e` oder `--` verwenden. Betrifft jeden Guard, der ein CLI-Flag im Text sucht.
+3. **Konfiguration statt Laufzeit [T003548]:** Sitzt der Defekt in der Laufzeit, taugt eine Konfigurationsaussage nicht als Stellvertreter. Regel: **ein RED-Lauf, der grün ist, ist ein Befund am Test, kein "schon erfüllt".** Vor dem Abhaken klären, ob die Zusicherung die Größe misst, in der der Defekt sitzt.
+4. **Prozesslisten-Format [T003230]:** `ps -eo pid=` polstert rechtsbündig auf die Breite von `pid_max`. Ein Test, der das Format vorfindet statt es zu erzwingen, hängt an der Uptime der Maschine — lokal grün, auf frischem Runner rot. Format erzwingen (`tr -d '[:blank:]'`, blankes `read -r` ohne `IFS=`).
+
+Langfassungen der Fälle: `docs/superpowers/references/gotchas-footguns.md`.
+
 ### PowerShell-Skripte aus WSL (.ps1) [T002495-M7]
 
 PowerShell-Skripte unter `scripts/llm/*.ps1`, die aus WSL bearbeitet werden:

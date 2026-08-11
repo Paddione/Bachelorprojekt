@@ -68,11 +68,19 @@ REMOVED_COMPONENTS=(
   local orphans=0
   for comp in "${REMOVED_COMPONENTS[@]}"; do
     local name="${comp##*/}"; name="${name%.svelte}"
-    if grep -rF --include='*.svelte' --include='*.astro' --include='*.ts' \
-        "$name" "$REPO_ROOT/website/src" >/dev/null 2>&1; then
+    # Nur IMPORT-STATEMENTS matchen (T003615), nicht den nackten Namen: Ein
+    # Kommentar, der die Komponente historisch erwaehnt ("WICHTIG (wie
+    # PipelinePanel, E22)"), ist kein Import. Gematcht wird eine Zeile, die
+    # `import` + Namen traegt (Import-Name oder Dynamik-Import) oder ein
+    # `from '<pfad>'`, dessen Pfad den Komponentennamen enthaelt — deckt auch
+    # mehrzeilige Imports ab, deren Name in einer Folgezeile steht.
+    if grep -rnE --include='*.svelte' --include='*.astro' --include='*.ts' \
+        "import[[:space:]{(].*$name|from[[:space:]]+['\"][^'\"]*$name" \
+        "$REPO_ROOT/website/src" >/dev/null 2>&1; then
       echo "verwaiste Referenz auf $name:"
-      grep -rlF --include='*.svelte' --include='*.astro' --include='*.ts' \
-        "$name" "$REPO_ROOT/website/src"
+      grep -rlnE --include='*.svelte' --include='*.astro' --include='*.ts' \
+        "import[[:space:]{(].*$name|from[[:space:]]+['\"][^'\"]*$name" \
+        "$REPO_ROOT/website/src"
       orphans=1
     fi
   done

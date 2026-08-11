@@ -449,6 +449,17 @@ _sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout
 }
 
 @test "T002483: response includes x-llm-proxy-slot header when slot present" {
-  run grep -q "x-llm-proxy-slot" "${BATS_TEST_DIRNAME}/../../scripts/llm-proxy/server.mjs"
+  # T003291: Der Guard FUEHRT den Proxy aus und setzt einen echten Request mit
+  # x-slot-id gegen das Fake-Backend ab — kein Source-Grep auf server.mjs. Der
+  # fruehere Grep blieb gruen, wenn der Header in einem nie erreichten Zweig
+  # gesetzt wuerde oder nur in einem Kommentar stuende. Belegt an x-slot-id:
+  # den Eingang setzte KEIN Aufrufer, der Grep-Test bemerkte die
+  # Wirkungslosigkeit nicht (T003291).
+  _start_proxy
+  run curl -sf -D - -o /dev/null \
+    -H 'content-type: application/json' -H 'x-slot-id: 7' \
+    -d '{"model":"m2","messages":[]}' \
+    "http://127.0.0.1:${PROXY_PORT}/v1/chat/completions"
   [ "$status" -eq 0 ]
+  echo "$output" | grep -qi 'x-llm-proxy-slot: 7'
 }

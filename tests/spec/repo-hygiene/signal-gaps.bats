@@ -79,16 +79,17 @@ _section() {
 }
 
 @test "T002823: der Phantomkonflikt-Hinweis steht VOR dem update-branch-Rezept" {
-  # Positiv-Anker: das Nachzieh-Rezept existiert überhaupt.
-  local update_ln
-  update_ln="$(grep -n 'update-branch' "$OPS" | head -1 | cut -d: -f1)"
-  [ -n "$update_ln" ]
+  # [T003796] `update-branch` kommt im Dokument 6x vor — ein unverwandter Treffer
+  # oberhalb des T002823-Abschnitts würde das dokumentweite head -1 auf die falsche
+  # Zeile lenken (T003104). Das Rezept wird deshalb erst NACH dem Hinweis gesucht.
+  local warn_ln update_ln
+  warn_ln="$(grep -n 'T002823' "$OPS" | head -1 | cut -d: -f1)"
+  [ -n "$warn_ln" ]
 
   # Aussage: die Einschränkung kommt vor dem Rezept. Stünde sie danach, läse sich
   # update-branch weiter als der Weg — genau die Fehldiagnose aus T002823.
-  local warn_ln
-  warn_ln="$(grep -n 'T002823' "$OPS" | head -1 | cut -d: -f1)"
-  [ -n "$warn_ln" ]
+  update_ln="$(awk -v w="$warn_ln" 'NR > w && /update-branch/ { print NR; exit }' "$OPS")"
+  [ -n "$update_ln" ]
   [ "$warn_ln" -lt "$update_ln" ]
 }
 

@@ -2082,6 +2082,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/guard-semantics-konvention",
+    "file": "tests/spec/agent-skills/guard-semantics-konvention.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/messung-mit-befehl",
     "file": "tests/spec/agent-skills/messung-mit-befehl.bats",
     "category": "agent-skills",

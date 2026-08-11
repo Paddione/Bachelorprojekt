@@ -137,7 +137,8 @@ const kpis = [
       <!-- Pipeline widget + Inbox preview (T001433) -->
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.5rem;">
         <AdminCard>
-          <a slot="header" href="/admin/cockpit" style="font-family:var(--font-mono); font-size:0.65rem; color:var(--admin-text-disabled); text-transform:uppercase; letter-spacing:0.12em; text-decoration:none;">Cockpit &rarr;</a>
+          {/* T003826: Der "Cockpit →"-Link entfiel — /admin/cockpit wird nach /sdlc/cockpit
+              umgeleitet, und build-target.mjs entfernt /sdlc/-Routen aus dem prod-Manifest. */}
           <PipelineSidekickView client:load onClose={() => {}} />
         </AdminCard>
         <AdminCard>

@@ -10,6 +10,10 @@ ADMIN_FOUNDATION="$BATS_TEST_DIRNAME/../../website/src/styles/admin-foundation.c
 GLOBAL_CSS="$BATS_TEST_DIRNAME/../../website/src/styles/global.css"
 ADMIN_LAYOUT="$BATS_TEST_DIRNAME/../../website/src/layouts/AdminLayout.astro"
 SIDEBAR_NAV="$BATS_TEST_DIRNAME/../../website/src/components/admin/AdminSidebarNav.astro"
+# T003826: Die Nav-Definition liegt seit der SDLC-Bereinigung in einem eigenen Modul, damit
+# der Guard sie importieren und Pfade real auflösen kann. Assertions auf einzelne Einträge
+# greifen deshalb hierher, nicht mehr auf die Astro-Komponente (die nur noch rendert).
+SIDEBAR_ITEMS="$BATS_TEST_DIRNAME/../../website/src/lib/admin/nav-items.ts"
 KORE_CSS="$BATS_TEST_DIRNAME/../../website/public/brand/korczewski/kore-app.css"
 ADMIN_RESPONSIVE="$BATS_TEST_DIRNAME/../../website/src/styles/admin-responsive.css"
 PERF_WEBSITE_YAML="$BATS_TEST_DIRNAME/../../k3d/website.yaml"
@@ -84,13 +88,16 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
 }
 
 # ── T001433: Sidebar ─────────────────────────────────────────────────────────
-@test "T001433 sidebar: AdminSidebarNav has exactly one /admin/cockpit link labelled Cockpit" {
-  run grep -c "href:[[:space:]]*'/admin/cockpit'" "$SIDEBAR_NAV"
+# T003826: Der Cockpit-Eintrag entfiel — /admin/cockpit wird nach /sdlc/cockpit umgeleitet und
+# build-target.mjs entfernt /sdlc/-Routen aus dem prod-Manifest. Der Test prüft jetzt, dass
+# keine dieser Routen mehr im Menü steht. Die inhaltliche Zusicherung über die Pfadauflösung
+# liegt in tests/spec/website-core/admin-nav-no-sdlc-routes.bats.
+@test "T001433 sidebar: Nav-Definition führt keine im prod-Build entfernten SDLC-Routen" {
+  # Positiv-Anker: die Definition ist überhaupt befüllt (T002356-M1).
+  run grep -c "href:[[:space:]]*'/admin/" "$SIDEBAR_ITEMS"
   [ "$output" -ge 1 ]
-  run grep -E "label:[[:space:]]*'Cockpit'" "$SIDEBAR_NAV"
-  [ "$status" -eq 0 ]
-  # No actual /admin/pipeline, /dev-status, or /admin/planungsbuero href in the sidebar nav
-  run grep -E "href:[[:space:]]*'/admin/pipeline'|href:[[:space:]]*'/dev-status'|href:[[:space:]]*'/admin/planungsbuero'" "$SIDEBAR_NAV"
+
+  run grep -E "href:[[:space:]]*'(/admin/cockpit|/admin/pipeline|/dev-status|/admin/planungsbuero)'" "$SIDEBAR_ITEMS"
   [ "$status" -ne 0 ]
 }
 
@@ -414,17 +421,22 @@ MENTOLDER_COLORS_SOURCE="$BATS_TEST_DIRNAME/../../assets/branding/mentolder/colo
   [ "$status" -ne 0 ]
 }
 
-@test "T002059 move: AdminSidebarNav has a /admin/repohealth entry labelled Repo Health" {
-  run grep -Eq "href:[[:space:]]*'/admin/repohealth'" "$SIDEBAR_NAV"
-  [ "$status" -eq 0 ]
-  run grep -Eq "label:[[:space:]]*'Repo Health'" "$SIDEBAR_NAV"
-  [ "$status" -eq 0 ]
+# T003826: Repo Health lag unter /sdlc/repohealth und ist im prod-Build nicht vorhanden;
+# der Eintrag entfiel. GoalsDashboard bleibt aus der Kore-Homepage entfernt (T002059) —
+# das war der eigentliche Gegenstand jenes Tickets und ist vom Menü-Umbau unberührt.
+@test "T002059 move: Nav-Definition führt keinen /admin/repohealth-Eintrag mehr" {
+  # Positiv-Anker: die Definition ist befüllt.
+  run grep -c "href:[[:space:]]*'/admin/" "$SIDEBAR_ITEMS"
+  [ "$output" -ge 1 ]
+
+  run grep -Eq "href:[[:space:]]*'/admin/repohealth'" "$SIDEBAR_ITEMS"
+  [ "$status" -ne 0 ]
 }
 
-@test "T002531 sidebar: AdminSidebarNav has exactly one /admin/cockpit link and no /admin/pipeline link" {
-  run grep -Eq "href:[[:space:]]*'/admin/cockpit'" "$SIDEBAR_NAV"
-  [ "$status" -eq 0 ]
-  run grep -Eq "href:[[:space:]]*'/admin/pipeline'" "$SIDEBAR_NAV"
+@test "T002531 sidebar: Nav-Definition führt weder /admin/cockpit noch /admin/pipeline" {
+  run grep -Eq "href:[[:space:]]*'/admin/cockpit'" "$SIDEBAR_ITEMS"
+  [ "$status" -ne 0 ]
+  run grep -Eq "href:[[:space:]]*'/admin/pipeline'" "$SIDEBAR_ITEMS"
   [ "$status" -ne 0 ]
 }
 

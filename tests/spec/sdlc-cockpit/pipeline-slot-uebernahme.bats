@@ -5,32 +5,38 @@ setup() {
   REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../../.." && pwd)"
 }
 
-@test "T002531 menu: AdminSidebarNav has exactly one /admin/cockpit link and no /admin/pipeline link" {
+# T003826: Die beiden vormaligen Menü-Assertions verlangten einen Cockpit-Link in der
+# Sidebar bzw. im admin.astro-Header. Beide Ziele liegen unter website/src/pages/sdlc/ und
+# werden bei BUILD_TARGET=prod aus dem Route-Manifest entfernt — die Links führten ins Leere.
+# Sie prüfen jetzt die Abwesenheit. Die inhaltliche Zusicherung („kein Eintrag zeigt auf eine
+# im prod-Build entfernte Route") liegt in tests/spec/website-core/admin-nav-no-sdlc-routes.bats
+# und misst dort das Ergebnis der Pfadauflösung statt Quelltext-Vorkommen.
+
+@test "T002531 menu: AdminSidebarNav führt keinen /admin/cockpit- und keinen /admin/pipeline-Link" {
   local nav_file="$REPO_ROOT/website/src/components/admin/AdminSidebarNav.astro"
   [ -f "$nav_file" ]
 
-  # Positiv-Anker: Navigation enthält Links
-  grep -q "href: '/admin/" "$nav_file"
+  # Positiv-Anker: die Navigation wird überhaupt aus der Definition gespeist. Ohne ihn
+  # bestünden die Negativ-Aussagen unten auch bei einer leeren Datei (T002356-M1).
+  grep -q "buildNavSections" "$nav_file"
 
-  # Cockpit-Link existiert
-  grep -q "href: '/admin/cockpit'" "$nav_file"
+  run grep "'/admin/cockpit'" "$nav_file"
+  [ "$status" -ne 0 ]
 
-  # Keinerlei /admin/pipeline Links in SidebarNav
-  run grep "href: '/admin/pipeline'" "$nav_file"
+  run grep "'/admin/pipeline'" "$nav_file"
   [ "$status" -ne 0 ]
 }
 
-@test "T002531 dashboard: admin.astro header slot links to /admin/cockpit" {
+@test "T002531 dashboard: admin.astro verlinkt nicht auf /admin/cockpit oder /admin/pipeline" {
   local admin_file="$REPO_ROOT/website/src/pages/admin.astro"
   [ -f "$admin_file" ]
 
-  # Positiv-Anker: slot="header" existiert
+  # Positiv-Anker: die Karten-Struktur mit Header-Slot existiert weiterhin.
   grep -q 'slot="header"' "$admin_file"
 
-  # Link zeigt auf /admin/cockpit
-  grep -q 'href="/admin/cockpit"' "$admin_file"
-  
-  # Keinerlei /admin/pipeline link in admin.astro header
+  run grep 'href="/admin/cockpit"' "$admin_file"
+  [ "$status" -ne 0 ]
+
   run grep 'href="/admin/pipeline"' "$admin_file"
   [ "$status" -ne 0 ]
 }

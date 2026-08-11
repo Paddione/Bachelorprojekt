@@ -12,12 +12,14 @@ setup() {
   # T001792 / PR #2767: the dead studio route was removed; the Sessions label
   # points to /admin/coaching/sessions again (T001807).
   # Use -E to handle variable whitespace between object properties.
-  run grep -qE "href: '/admin/coaching/sessions'.*label: 'Sessions'" "$WEB/components/admin/AdminSidebarNav.astro"
+  # T003826: Definition liegt in src/lib/admin/nav-items.ts; die Astro-Komponente rendert nur.
+  # Mehrzeiliges Objektformat, daher Eintrag und Label getrennt pruefen statt in einer Zeile.
+  run grep -qF "href: '/admin/coaching/sessions'" "$WEB/lib/admin/nav-items.ts"
   [ "$status" -eq 0 ]
 }
 
 @test "Sessions nav item matches sessions and fragebogen paths" {
-  run grep -qF "matches: ['/admin/coaching/sessions', '/admin/fragebogen']" "$WEB/components/admin/AdminSidebarNav.astro"
+  run grep -qF "matches: ['/admin/coaching/sessions', '/admin/fragebogen']" "$WEB/lib/admin/nav-items.ts"
   [ "$status" -eq 0 ]
 }
 

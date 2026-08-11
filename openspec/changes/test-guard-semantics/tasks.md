@@ -22,8 +22,39 @@ docs/superpowers/references/gotchas-footguns.md         (p1 — Langfassung der 
 tests/spec/openspec-workflow/ticket-file-required.bats  (p2 — Scoping auf PR-Diff; Ist 66 - Baseline 0 -> Budget 734)
 tests/spec/sdlc-cockpit/redesign-struktur.bats          (p2 — Import-Statements statt nacktem String; Ist 106 - Baseline 0 -> Budget 694)
 tests/spec/local-llm-proxy.bats                         (p2 — Request statt Quelltext-Grep; Ist 454 - Baseline 0 -> Budget 346)
-tests/spec/**  (23 Dateien, Liste in p3)                (p3 — Audit, gezielte Reparatur; Budget je Datei in p3)
 tests/spec/agent-skills/guard-semantics-konvention.bats (p4 — neue Datei, Konventions-Guard; Ist 0 - Baseline 0 -> Budget 800)
+```
+
+p3 beruehrt zusaetzlich die folgenden 23 Bestandsdateien (Audit, gezielte Reparatur). Sie stehen
+hier einzeln statt als Glob, weil `plan-touched-files.sh` diese Sektion auswertet und ein Glob dort
+woertlich uebernommen wird — als `touched_files`-Eintrag ist `tests/spec/**` wertlos. Alle liegen
+unter dem 800-Zeilen-Limit fuer `.bats`; die Aenderungen sind lokale Umformulierungen einzelner
+Assertions.
+
+```
+tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats
+tests/spec/agent-skills/worktree-mid-rebase-guard.bats
+tests/spec/ci-cd.bats
+tests/spec/dev-flow-chore-ticket-ops-mishaps.bats
+tests/spec/dev-flow-plan.bats
+tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats
+tests/spec/devflow-selection-archive-hardening.bats
+tests/spec/local-llm-proxy/loadout-env-property.bats
+tests/spec/mcp-gateway/bge-host-routing.bats
+tests/spec/mishap-categorize-erden.bats
+tests/spec/openspec-workflow.bats
+tests/spec/openspec-workflow/half-archive-uncommitted.bats
+tests/spec/react-login-edit-homepage.bats
+tests/spec/repo-hygiene/signal-gaps.bats
+tests/spec/repo-hygiene/worktree-stash-inspection.bats
+tests/spec/sdlc-isolation/e3-poller.bats
+tests/spec/sdlc-isolation/sdlc-up-command.bats
+tests/spec/software-factory/catalog-eval-telemetry.bats
+tests/spec/software-factory/dashboard.bats
+tests/spec/software-factory/pipeline-and-ticket-cli.bats
+tests/spec/software-factory/ticket-lifecycle.bats
+tests/spec/ticket-system.bats
+tests/spec/website-core.bats
 ```
 
 Keine der Dateien hat einen Eintrag in `docs/code-quality/baseline.json`; die wirksame Schwelle ist

@@ -45,6 +45,8 @@ class BrainIndex:
     def __init__(self, wiki_dir: Path):
         self.wiki_dir = wiki_dir
         self.pages: dict[str, dict] = {}  # slug -> {frontmatter, body, path, title, tags}
+        self._built = False  # True after a successful build (see _ensure_fresh)
+        self._mtimes: dict[str, int] = {}  # page path -> mtime_ns snapshot (staleness check)
         self._build_index()
 
     def _parse_frontmatter(self, content: str) -> tuple[dict, str]:
@@ -74,6 +76,7 @@ class BrainIndex:
             sys.stderr.flush()
             return
 
+        self._mtimes = {}
         for fpath in sorted(wiki.rglob("*.md")):
             slug = fpath.stem
             try:
@@ -93,12 +96,40 @@ class BrainIndex:
                 "title": title,
                 "tags": tags,
             }
+            try:
+                self._mtimes[str(fpath)] = fpath.stat().st_mtime_ns
+            except OSError:
+                pass
 
+        self._built = True
         sys.stderr.write(f"[brain-mcp] indexed {len(self.pages)} pages from {wiki}\n")
         sys.stderr.flush()
 
+    def _wiki_changed(self) -> bool:
+        """True if the wiki content changed since the last build (mtime snapshot)."""
+        wiki = Path(self.wiki_dir).expanduser()
+        if not wiki.is_dir():
+            return False
+        current = {str(p): p.stat().st_mtime_ns for p in wiki.rglob("*.md")}
+        return current != self._mtimes
+
+    def _ensure_fresh(self) -> None:
+        """Rebuild the index if the wiki appeared or changed after startup.
+
+        The index is built once in __init__; a server started before the wiki
+        clone (or before an auto-ingest run) would otherwise serve an empty or
+        stale index until restart. Rebuild lazily on the next request instead.
+        """
+        wiki = Path(self.wiki_dir).expanduser()
+        if not wiki.is_dir():
+            return
+        if self._built and not self._wiki_changed():
+            return
+        self._build_index()
+
     def search(self, query: str, top_k: int = 5) -> list[dict]:
         """BM25-ranked search over indexed pages."""
+        self._ensure_fresh()
         if not self.pages:
             return []
 
@@ -196,6 +227,7 @@ class BrainIndex:
 
     def read_page(self, slug: str) -> dict | None:
         """Return full page data for a slug."""
+        self._ensure_fresh()
         if slug not in self.pages:
             return None
         page = self.pages[slug]

@@ -300,3 +300,79 @@ for line in sys.stdin:
     false
   }
 }
+
+@test "brain_search rebuilds the index when the wiki appears after startup" {
+  # Regression: a server started before the wiki clone (or before an
+  # auto-ingest update) served an empty/stale index forever. It must
+  # self-heal on the next request without a restart.
+  local wiki_dir="$BATS_TEST_TMPDIR/late-wiki"
+  local fifo="$BATS_TEST_TMPDIR/server-in.fifo"
+  local out_file="$BATS_TEST_TMPDIR/server.out"
+  rm -rf "$wiki_dir"
+  rm -f "$fifo" "$out_file"
+  mkfifo "$fifo"
+
+  # Start the server against a wiki dir that does not exist yet
+  BRAIN_WIKI_DIR="$wiki_dir" python3 "$SERVER" < "$fifo" > "$out_file" 2>/dev/null &
+  local server_pid=$!
+  exec 9>"$fifo"  # keep the FIFO open so the server stays alive
+
+  local init='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+  printf '%s\n' "$init" >&9
+
+  # Wiki clone arrives after startup, with a searchable page
+  mkdir -p "$wiki_dir"
+  cat > "$wiki_dir/late-page.md" << 'LATEEOF'
+---
+type: note
+tags: [late]
+status: active
+---
+# Late Page
+
+This page mentions SEARCHTERM only after the server started.
+LATEEOF
+
+  local search='{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"brain_search","arguments":{"query":"SEARCHTERM","top_k":5}}}'
+  printf '%s\n' "$search" >&9
+
+  # Auto-ingest adds another page later
+  cat > "$wiki_dir/second-late-page.md" << 'SECONDEOF'
+---
+type: note
+tags: [late]
+status: active
+---
+# Second Late Page
+
+This page also mentions SEARCHTERM and arrives with a later ingest.
+SECONDEOF
+  local search2='{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"brain_search","arguments":{"query":"SEARCHTERM","top_k":5}}}'
+  printf '%s\n' "$search2" >&9
+
+  # Wait for both responses (bounded)
+  local i
+  for i in $(seq 1 50); do
+    if grep -q '"id": *2' "$out_file" 2>/dev/null && grep -q '"id": *3' "$out_file" 2>/dev/null; then
+      break
+    fi
+    sleep 0.1
+  done
+
+  exec 9>&-
+  wait "$server_pid" 2>/dev/null || true
+
+  # First request after the wiki appeared must trigger a rebuild
+  if ! grep '"id": *2' "$out_file" | grep -q 'late-page'; then
+    echo "id=2 did not return late-page:" >&2
+    grep '"id": *2' "$out_file" >&2
+    false
+  fi
+
+  # Request after a later ingest must also see the new page
+  if ! grep '"id": *3' "$out_file" | grep -q 'second-late-page'; then
+    echo "id=3 did not return second-late-page:" >&2
+    grep '"id": *3' "$out_file" >&2
+    false
+  fi
+}

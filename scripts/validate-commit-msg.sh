@@ -239,6 +239,12 @@ validate_range() {
 main() {
   local mode="${1:-}"
   case "$mode" in
+    range)
+      local range="${2:-}"
+      [ -z "$range" ] && { echo "usage: validate-commit-msg.sh range <base>..<head>" >&2; exit 2; }
+      validate_range "$range"
+      exit $?
+      ;;
     commits)
       shift
       if [ "$#" -eq 0 ]; then

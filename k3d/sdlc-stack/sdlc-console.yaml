@@ -54,7 +54,11 @@ spec:
       containers:
         - name: sdlc-console
           image: ghcr.io/paddione/website-sdlc:latest
-          imagePullPolicy: IfNotPresent
+          # T003740: beweglicher Tag :latest — IfNotPresent liesse den Kubelet den
+          # alten Layer lokal liegen und :latest wuerde nie nachgezogen (Stand 44 h
+          # hinter main). Always zieht bei jedem Pod-Neustart die frische :latest;
+          # den Neustart nach einem main-Merge uebernimmt task sdlc:sdlc:refresh.
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

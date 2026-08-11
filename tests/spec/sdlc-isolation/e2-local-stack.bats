@@ -44,6 +44,12 @@ cluster_running() {
   grep -q 'POCKET_ID_FALLBACK_FRONTEND_URL' "${SDLC_STACK}/sdlc-console.yaml"
 }
 
+@test "E2: Console zieht :latest bei jedem Neustart — imagePullPolicy Always (T003740)" {
+  [ -f "${SDLC_STACK}/sdlc-console.yaml" ]
+  grep -q 'imagePullPolicy: Always' "${SDLC_STACK}/sdlc-console.yaml"
+  grep -q 'sdlc:refresh' "${REPO_ROOT}/taskfiles/Taskfile.sdlc.yml"
+}
+
 @test "E2: Auth provider file and test exist" {
   [ -f "${AUTH_DIR}/provider.ts" ]
   [ -f "${AUTH_DIR}/provider.test.ts" ]
@@ -71,14 +77,19 @@ cluster_running() {
 
 @test "E2 DoD: Console responds 200 on sdlc.localhost" {
   if ! cluster_running; then skip "cluster k3d-mentolder-dev not running"; fi
-  run curl -sS -o /dev/null -w '%{http_code}' http://sdlc.localhost
+  # T003036: im sdlc-Build leitet / per 302 auf /sdlc/cockpit um (sdlcRootRedirect).
+  # -L folgt dem Redirect; das Cockpit rendert mit 200.
+  run curl -sS -L -o /dev/null -w '%{http_code}' http://sdlc.localhost
   [ "$output" = "200" ]
 }
 
-@test "E2 DoD: /api/health returns sdlc build target" {
+@test "E2 DoD: BUILD_TARGET=sdlc im Container gesetzt (T003740)" {
   if ! cluster_running; then skip "cluster k3d-mentolder-dev not running"; fi
-  run curl -sS http://sdlc.localhost/api/health
-  echo "$output" | grep -q '"BUILD_TARGET"'
+  # T003740-FOLGEFUND: dieselbe Messung wie im Ticket — /api/health liefert
+  # bewusst kein BUILD_TARGET-Feld (nur ok/commit/builtAt, T002202).
+  run kubectl --context k3d-mentolder-dev exec -n workspace deploy/sdlc-console -- \
+    sh -c 'echo BUILD_TARGET=$BUILD_TARGET'
+  echo "$output" | grep -q 'BUILD_TARGET=sdlc'
 }
 
 @test "E2 DoD: local tickets schema bootstrapped" {

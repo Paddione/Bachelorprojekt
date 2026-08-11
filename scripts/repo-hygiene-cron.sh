@@ -39,6 +39,22 @@ git -C "$REPO_DIR" fetch origin main --prune 2>/dev/null || true
 log "agent-lock reap"
 bash "$HERE/agent-lock.sh" reap 2>/dev/null || true
 
+# ── Step 2.5: Factory-Tick-Vorcheck [T003227] ───────────────────────────
+# Läuft gerade ein Factory-Tick, kann er Worktrees/Branches unter dem Lauf verändern
+# (beobachtet: 5 von 7 Worktrees mutierten während der Messung). Die Worktree-Messung
+# auf veraltetem Stand ist wertlos — die Sektion wird dann übersprungen und als
+# "skipped" ausgewiesen, statt falsche Zahlen zu liefern. Dasselbe Lock-Test-Muster
+# wie scripts/factory/mcp-server.mjs factory_status.
+tick_running() {
+  test -f /tmp/factory-tick.lock || return 1
+  (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/factory-tick.lock
+}
+TICK_RUNNING=0
+if tick_running; then
+  log "factory-tick läuft — Worktree-Sektion wird übersprungen"
+  TICK_RUNNING=1
+fi
+
 # ── Step 3: Collect metrics ─────────────────────────────────────────────
 log "collecting metrics"
 
@@ -48,6 +64,7 @@ mapfile -t wt_paths < <(git -C "$REPO_DIR" worktree list --porcelain 2>/dev/null
 wt_count=0
 wt_gone=0           # worktrees on a branch whose upstream is [gone]
 wt_no_upstream=0    # worktrees whose branch has no upstream configured
+wt_skipped=0        # worktrees not measured because a factory tick is running
 
 for wt in "${wt_paths[@]}"; do
   [ -z "$wt" ] && continue
@@ -56,6 +73,11 @@ for wt in "${wt_paths[@]}"; do
   [[ "$wt" == /tmp/* ]] && continue
 
   wt_count=$((wt_count + 1))
+
+  if [ "$TICK_RUNNING" -eq 1 ]; then
+    wt_skipped=$((wt_skipped + 1))
+    continue
+  fi
 
   branch="$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
   [ -z "$branch" ] && { wt_no_upstream=$((wt_no_upstream + 1)); continue; }
@@ -111,6 +133,7 @@ JSON="$(jq -n \
   --argjson worktrees_total "$wt_count" \
   --argjson worktrees_gone "$wt_gone" \
   --argjson worktrees_no_upstream "$wt_no_upstream" \
+  --argjson worktrees_skipped "$wt_skipped" \
   --argjson branches_gone "$gone_count" \
   --argjson remote_branches "$remote_branch_count" \
   --argjson open_prs "$pr_count" \
@@ -120,7 +143,7 @@ JSON="$(jq -n \
     timestamp: $timestamp,
     mode: $mode,
     metrics: {
-      worktrees: { total: $worktrees_total, gone: $worktrees_gone, no_upstream: $worktrees_no_upstream },
+      worktrees: { total: $worktrees_total, gone: $worktrees_gone, no_upstream: $worktrees_no_upstream, skipped: $worktrees_skipped },
       branches: { gone: $branches_gone, remote_non_main: $remote_branches },
       prs: { open: $open_prs },
       reaper: { candidates: $reaper_candidates }
@@ -144,6 +167,7 @@ if [ "$stale_total" -gt "$STALE_THRESHOLD" ]; then
 | Worktrees (total) | $wt_count |
 | Worktrees on [gone] branches | $wt_gone |
 | Worktrees without upstream | $wt_no_upstream |
+| Worktrees skipped (factory tick) | $wt_skipped |
 | [gone] local branches | $gone_count |
 | Remote branches (non-main) | $remote_branch_count |
 | Open PRs | $pr_count |

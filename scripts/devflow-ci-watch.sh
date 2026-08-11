@@ -73,10 +73,27 @@ while true; do
 
   gh pr checks "$PR_URL" --watch --interval 15 2>/dev/null || true
 
-  if ! FAILED_CHECKS=$(gh pr view "$PR_URL" --json statusCheckRollup \
-    -q '.statusCheckRollup[] | select(
+  # [T003225] headSha-Filter: statusCheckRollup kann Checks VORGÄNGER-Commits mischen
+  # (Re-Runs nach Push). Nur Checks des aktuellen PR-HEAD zählen — fremde head-SHAs
+  # werden ignoriert. Der Filter ist Vorbedingung für jede Auswertung darunter.
+  HEAD_OID="$(gh pr view "$PR_URL" --json headRefOid -q '.headRefOid' 2>/dev/null || echo "")"
+  if [[ -z "$HEAD_OID" ]]; then
+    echo "⚠ gh pr view --json headRefOid fehlgeschlagen — PR-HEAD nicht bestimmbar, Checks können nicht sicher bewertet werden." >&2
+    if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
+      echo "❌ Nach $MAX_CI_ATTEMPTS Versuchen weiterhin keine verlässliche Check-Auskunft von gh — manuelles Eingreifen nötig." >&2
+      exit 1
+    fi
+    sleep 15
+    continue
+  fi
+
+  # [T003224] cancelled ≠ fail: nur echte FAILURE/TIMED_OUT-Conclusions am aktuellen
+  # HEAD zählen als Fehler. Laufende (conclusion="") und abgebrochene (CANCELLED/SKIPPED)
+  # Checks sind KEIN failure — ein aggregierter "fail"-Check, dessen Jobs alle grün oder
+  # cancelled sind, ist kein Codefehler, sondern ein Re-Run-Kandidat.
+  if ! FAILED_CHECKS=$(gh pr view "$PR_URL" --json headRefOid,statusCheckRollup \
+    -q '. as $p | $p.statusCheckRollup[] | select(.headSha == $p.headRefOid) | select(
           (.conclusion // "") == "FAILURE" or (.conclusion // "") == "TIMED_OUT"
-          or (.state // "") == "FAILURE"
         ) | (.name // .context // "unknown") + ": " + (.detailsUrl // .targetUrl // "")'); then
     echo "⚠ gh pr view --json statusCheckRollup fehlgeschlagen (Auth/Schema/Rate-Limit?) — kann Checks nicht sicher bewerten." >&2
     if [[ $CI_ATTEMPT -ge $MAX_CI_ATTEMPTS ]]; then
@@ -94,6 +111,8 @@ while true; do
     exit 5
   fi
 
+  # [T003612] Pending-Check VOR der Grün-Prüfung: laufende Checks sind weder grün
+  # noch rot — erst abwarten, bis alle COMPLETED sind.
   PENDING_COUNT=$(gh pr view "$PR_URL" --json statusCheckRollup \
     -q '[.statusCheckRollup[] | select(.status != "COMPLETED")] | length' 2>/dev/null || echo "0")
   if [[ "$PENDING_COUNT" -gt 0 ]]; then
@@ -104,6 +123,31 @@ while true; do
     echo "⏳ $PENDING_COUNT Checks noch nicht abgeschlossen — warte ..."
     sleep 30
     continue
+  fi
+
+  # [T003224] Gegenprobe auf Run-/Job-Ebene BEVOR über rot/grün entschieden wird:
+  # ein aggregierter "failure"-Check, dessen Jobs alle success/cancelled/skipped sind,
+  # ist KEIN Codefehler (z.B. ein nachträglich abgebrochener Re-Run auf demselben HEAD).
+  # Nur wenn mindestens ein Job conclusion=="failure" hat, gilt der Check als echt rot —
+  # sonst FAILED_CHECKS leeren, damit der Lauf als grün weiterläuft.
+  if [[ -n "$FAILED_CHECKS" ]]; then
+    FAILED_RUN_ID=$(gh run list --branch "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)" \
+      --json databaseId,headSha,status,conclusion \
+      | jq -r --arg head "$HEAD_OID" '[.[] | select(.conclusion == "failure" and .headSha == $head)] | sort_by(.databaseId) | last | .databaseId // empty')
+    if [[ -n "$FAILED_RUN_ID" ]]; then
+      REAL_FAILURES=$(gh api "repos/Paddione/Bachelorprojekt/actions/runs/${FAILED_RUN_ID}/jobs" \
+        --jq '[.jobs[] | select(.conclusion == "failure")] | length' 2>/dev/null || echo "")
+      if [[ "$REAL_FAILURES" =~ ^[0-9]+$ ]] && [ "$REAL_FAILURES" -eq 0 ]; then
+        echo "ℹ Check $FAILED_RUN_ID meldet failure, aber KEIN Job ist failure (cancelled/skipped) — kein Codefehler, weiter beobachten."
+        FAILED_CHECKS=""
+      fi
+    else
+      # Kein failure-Run am aktuellen HEAD gefunden, obwohl das Rollup rot meldet: die
+      # Meldung stammt von einem abgebrochenen/leeren Lauf oder einem fremden HEAD —
+      # beides ist kein echter Codefehler. (Das Rollup wurde bereits auf .headSha gefiltert.)
+      echo "ℹ Rollup meldet rot, aber kein failure-Run am aktuellen HEAD — kein Codefehler, weiter beobachten."
+      FAILED_CHECKS=""
+    fi
   fi
 
   if [[ -z "$FAILED_CHECKS" ]]; then
@@ -123,9 +167,6 @@ while true; do
 
   echo "⚠ Fehlgeschlagene Checks:"
   echo "$FAILED_CHECKS"
-
-  FAILED_RUN_ID=$(gh run list --json databaseId,status,conclusion \
-    | jq -r '[.[] | select(.conclusion == "failure")] | sort_by(.databaseId) | last | .databaseId // empty')
 
   if [[ -n "$FAILED_RUN_ID" ]]; then
     echo "--- CI-Logs (Run $FAILED_RUN_ID) ---"

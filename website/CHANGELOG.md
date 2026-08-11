@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.268.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.8...website-v1.268.9) (2026-08-11)
+
+
+### Tests
+
+* **factory:** Batch Test-Guards messen Semantik statt Darstellung [T003796] ([#4281](https://github.com/Paddione/Bachelorprojekt/issues/4281)) ([569605a](https://github.com/Paddione/Bachelorprojekt/commit/569605a25a7e891ce8f9a667209839fe03b82301))
+
 ## [1.268.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.7...website-v1.268.8) (2026-08-11)
 
 

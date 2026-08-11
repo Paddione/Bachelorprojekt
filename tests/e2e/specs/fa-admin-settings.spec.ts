@@ -67,18 +67,20 @@ test.describe('FA: Admin settings pages', { tag: ['@admin'] }, () => {
   });
 
   // ── Deployment control API ────────────────────────────────────
-  test('GET /api/admin/deployments returns 401/403 without auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/deployments`);
+  // Routen seit dem SDLC-Build-Target-Split (T002624) unter /sdlc/api/*:
+  // GET /sdlc/api/deployments, POST /sdlc/api/ops/deployments/[ns]/[name]/{restart,scale}.
+  test('GET /sdlc/api/deployments returns 401/403 without auth', async ({ request }) => {
+    const res = await request.get(`${BASE}/sdlc/api/deployments`);
     expect([401, 403]).toContain(res.status());
   });
 
-  test('POST /api/admin/deployments/:name/restart returns 401/403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/deployments/website/restart`, { data: {} });
+  test('POST /sdlc/api/ops/deployments/:ns/:name/restart returns 401/403 without auth', async ({ request }) => {
+    const res = await request.post(`${BASE}/sdlc/api/ops/deployments/workspace/website/restart`, { data: {} });
     expect([401, 403]).toContain(res.status());
   });
 
-  test('POST /api/admin/deployments/:name/scale returns 401/403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/deployments/website/scale`, { data: { replicas: 1 } });
+  test('POST /sdlc/api/ops/deployments/:ns/:name/scale returns 401/403 without auth', async ({ request }) => {
+    const res = await request.post(`${BASE}/sdlc/api/ops/deployments/workspace/website/scale`, { data: { replicas: 1 } });
     expect([401, 403]).toContain(res.status());
   });
 });

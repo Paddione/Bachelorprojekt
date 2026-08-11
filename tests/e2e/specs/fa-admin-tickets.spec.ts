@@ -3,7 +3,7 @@
 // PR4/5 — admin /admin/tickets coverage:
 //   1. Filter the index page (status=open + type=bug)
 //   2. Open a freshly minted bug ticket via /admin/tickets/:id
-//   3. Add an internal comment (POST /api/admin/tickets/:id/comments)
+//   3. Add an internal comment (POST /sdlc/api/tickets/:id/comments)
 //   4. Add a public comment → reporter receives an email (Mailpit)
 //   5. Transition the ticket to done with resolution=fixed →
 //      close-mail to reporter (Mailpit subject contains T-ID)
@@ -94,14 +94,14 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
 
       // ── 4. Internal comment ──
       const internalRes = await page.request.post(
-        `${BASE}/api/admin/tickets/${ticketUuid}/comments`,
+        `${BASE}/sdlc/api/tickets/${ticketUuid}/comments`,
         { headers: { 'Content-Type': 'application/json', ...e2eHeaders },
           data: JSON.stringify({ body: 'PR4 internal comment', visibility: 'internal' }) });
       expect(internalRes.ok()).toBeTruthy();
 
       // ── 5. Public comment → reporter mail ──
       const publicRes = await page.request.post(
-        `${BASE}/api/admin/tickets/${ticketUuid}/comments`,
+        `${BASE}/sdlc/api/tickets/${ticketUuid}/comments`,
         { headers: { 'Content-Type': 'application/json', ...e2eHeaders },
           data: JSON.stringify({ body: 'PR4 public reply for the reporter', visibility: 'public' }) });
       expect(publicRes.ok()).toBeTruthy();
@@ -118,7 +118,7 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
 
       // ── 6. Transition to done → close-mail ──
       const transRes = await page.request.post(
-        `${BASE}/api/admin/tickets/${ticketUuid}/transition`,
+        `${BASE}/sdlc/api/tickets/${ticketUuid}/transition`,
         { headers: { 'Content-Type': 'application/json', ...e2eHeaders },
           data: JSON.stringify({ status: 'done', resolution: 'fixed', note: 'PR4 done', noteVisibility: 'internal' }) });
       expect(transRes.ok()).toBeTruthy();
@@ -152,13 +152,13 @@ test.describe('FA-admin-tickets', { tag: ['@admin'] }, () => {
     }
   });
 
-  test('GET /api/admin/tickets returns 403 without auth', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/tickets`);
+  test('GET /sdlc/api/tickets returns 403 without auth', async ({ request }) => {
+    const res = await request.get(`${BASE}/sdlc/api/tickets`);
     expect([401, 403]).toContain(res.status());
   });
 
-  test('POST /api/admin/tickets/:id/transition returns 403 without auth', async ({ request }) => {
-    const res = await request.post(`${BASE}/api/admin/tickets/00000000-0000-0000-0000-000000000000/transition`,
+  test('POST /sdlc/api/tickets/:id/transition returns 403 without auth', async ({ request }) => {
+    const res = await request.post(`${BASE}/sdlc/api/tickets/00000000-0000-0000-0000-000000000000/transition`,
       { headers: { 'Content-Type': 'application/json' },
         data: JSON.stringify({ status: 'done', resolution: 'fixed' }) });
     expect([401, 403]).toContain(res.status());

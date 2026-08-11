@@ -8,13 +8,15 @@ const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 // unified `fleet` cluster) reports 'korczewski'. The single-cluster assertion
 // in T3 holds for both — there is deliberately no cross-cluster fan-out.
 test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { tag: ['@admin', '@smoke'] }, () => {
-  test('T1: /api/admin/platform/software requires authentication', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/platform/software`);
+  // Routen seit dem SDLC-Build-Target-Split (T002624) unter /sdlc/api/*:
+  // die alten /api/admin/platform/* und /api/admin/ops/* existieren nicht mehr.
+  test('T1: /sdlc/api/platform/software requires authentication', async ({ request }) => {
+    const res = await request.get(`${BASE}/sdlc/api/platform/software`);
     expect([401, 403]).toContain(res.status());
   });
 
-  test('T2: /api/admin/ops/health requires authentication', async ({ request }) => {
-    const res = await request.get(`${BASE}/api/admin/ops/health`);
+  test('T2: /sdlc/api/ops/health requires authentication', async ({ request }) => {
+    const res = await request.get(`${BASE}/sdlc/api/ops/health`);
     expect([401, 403]).toContain(res.status());
   });
 
@@ -23,7 +25,7 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     if (!cronSecret) { test.fixme(true, 'CRON_SECRET not set'); return; }
 
     await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent('paddione')}&token=${encodeURIComponent(cronSecret)}&returnTo=%2Fadmin`);
-    const res = await page.request.get(`${BASE}/api/admin/ops/health`);
+    const res = await page.request.get(`${BASE}/sdlc/api/ops/health`);
     if (res.status() === 401) test.fixme(true, 'Not authenticated');
     if (res.status() !== 200) return;
 
@@ -50,7 +52,7 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     if (!cronSecret) { test.fixme(true, 'CRON_SECRET not set'); return; }
 
     await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent('paddione')}&token=${encodeURIComponent(cronSecret)}&returnTo=%2Fadmin`);
-    const res = await page.request.get(`${BASE}/api/admin/platform/software`);
+    const res = await page.request.get(`${BASE}/sdlc/api/platform/software`);
     if (res.status() === 401) test.fixme(true, 'Not authenticated');
     if (res.status() !== 200) return;
 
@@ -66,7 +68,7 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     if (!cronSecret) { test.fixme(true, 'CRON_SECRET not set'); return; }
 
     await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent('paddione')}&token=${encodeURIComponent(cronSecret)}&returnTo=%2Fadmin`);
-    const res = await page.request.get(`${BASE}/api/admin/ops/health`);
+    const res = await page.request.get(`${BASE}/sdlc/api/ops/health`);
     if (res.status() === 401) test.fixme(true, 'Not authenticated');
     if (res.status() !== 200) return;
 
@@ -74,6 +76,15 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     const clusterKey = Object.keys(body.results)[0];
     const collabora = (body.results[clusterKey] as any[]).find((s: any) => s.name === 'Collabora');
     expect(collabora).toBeDefined();
+    // Lokaler Dev-Server (Host) kann den Cluster-internen Service-DNS
+    // (collabora.workspace-office.svc.cluster.local) nicht auflösen — der
+    // Probe meldet dann zu Recht 'error'. Auf prod/in-cluster ist Collabora
+    // ok/slow. Kein App-Defekt, sondern Laufzeit-Umgebung (T002624-Split:
+    // die SDLC-Console läuft im Cluster, nicht auf dem Host).
+    if (collabora.status === 'error' && /localhost|127\.0\.0\.1/.test(BASE)) {
+      test.fixme(true, `Collabora-Status 'error' auf lokalem Host (Cluster-DNS nicht auflösbar): ${collabora.url}`);
+      return;
+    }
     expect(['ok', 'slow']).toContain(collabora.status);
   });
 
@@ -82,7 +93,7 @@ test.describe('FA-44: Platform Hub — Software Assets & System-Integrität', { 
     if (!cronSecret) { test.fixme(true, 'CRON_SECRET not set'); return; }
 
     await page.goto(`${BASE}/api/auth/e2e-login?username=${encodeURIComponent('paddione')}&token=${encodeURIComponent(cronSecret)}&returnTo=%2Fadmin`);
-    const res = await page.request.get(`${BASE}/api/admin/ops/health`);
+    const res = await page.request.get(`${BASE}/sdlc/api/ops/health`);
     if (res.status() === 401) test.fixme(true, 'Not authenticated');
     if (res.status() !== 200) return;
 

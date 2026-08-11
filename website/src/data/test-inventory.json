@@ -4218,6 +4218,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/readiness-gate-before-launch",
+    "file": "tests/spec/software-factory/readiness-gate-before-launch.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/stage-plan-touched-files",
     "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
     "category": "software-factory",

@@ -10,6 +10,11 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
+# check_ticket_readiness [T003773] — Branch/Plan-Gate vor jedem Launch (siehe
+# Aufrufstelle in der Launch-Schleife). Sourcen statt aufrufen, damit der Guard
+# die einzige Implementierung dieser Regel bleibt.
+# shellcheck source=scripts/factory/readiness-check.sh
+source "$HERE/readiness-check.sh"
 PREP_FILE="${1:-}"; shift || true
 DRY_RUN=false
 for arg; do case "$arg" in --dry-run) DRY_RUN=true;; esac; done
@@ -56,6 +61,22 @@ for row in "${launch_rows[@]}"; do
   [[ "$DRY_RUN" == "true" ]] && dry_run_val=true
   attempt="$(echo "$row" | jq -r '.attempt // 1')"
   model_tier="$(echo "$row" | jq -r '.model_tier // "flash"')"
+
+  # Readiness-Gate [T003773] — VOR dem Budget-Guard, damit eine planlose Zeile
+  # weder Budget noch Gang-Slot verbraucht. Der Guard existierte samt Requirement
+  # und Tests, hatte aber ausserhalb tests/unit/factory-readiness.bats keinen
+  # Aufrufer: planlose Tickets liefen mit branch/plan_path="null" durch, und der
+  # LAUNCH_DIR-Fallback unten schickte sie in den HAUPT-CHECKOUT (am 2026-08-11
+  # rebaste und benannte ein Lauf dort den Branch einer fremden Session um).
+  #
+  # KEINE eigene "null"-Normalisierung hier: check_ticket_readiness behandelt den
+  # Literalstring bereits als missing_args. Eine zweite Pruefung waere die
+  # Duplikation, die das Requirement ausdruecklich untersagt.
+  if ! readiness_json="$(check_ticket_readiness "$branch" "$plan_path")"; then
+    readiness_reason="$(printf '%s' "$readiness_json" | jq -r '.reason // "unknown"' 2>/dev/null || echo unknown)"
+    echo "dispatcher-bridge: $ext_id not ready (readiness=$readiness_reason) — skipping launch" >&2
+    continue
+  fi
 
   # Budget guard
   if ! BRAND="$brand" bash "$HERE/budget-guard.sh" "$brand" 2>/dev/null; then

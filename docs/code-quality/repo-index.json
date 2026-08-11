@@ -727,6 +727,7 @@
         "tests/spec/software-factory/pr-babysit.bats",
         "tests/spec/software-factory/provider-config-baseurl-convention.bats",
         "tests/spec/software-factory/queue-test-data-filter.bats",
+        "tests/spec/software-factory/readiness-gate-before-launch.bats",
         "tests/spec/software-factory/retry-and-build-loop.bats",
         "tests/spec/software-factory/scheduling.bats",
         "tests/spec/software-factory/scout-and-routing.bats",

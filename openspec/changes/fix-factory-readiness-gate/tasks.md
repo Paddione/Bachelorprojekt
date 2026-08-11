@@ -60,10 +60,20 @@ source "$HERE/readiness-check.sh"
 readiness_json="$(check_ticket_readiness "$branch" "$plan_path")" || {
   reason="$(printf '%s' "$readiness_json" | jq -r '.reason // "unknown"')"
   echo "dispatcher-bridge: $ext_id not ready (readiness=$reason) — skipping launch" >&2
-  BRAND="$brand" bash "$REPO/scripts/factory/release-slot.sh" "$ext_id" "$brand" 2>/dev/null || true
   continue
 }
 ```
+
+> **Abweichung bei der Umsetzung, bewusst:** Der Plan sah hier zusätzlich einen
+> `release-slot.sh`-Aufruf vor. Die Prüfung der Signatur (die dieser Task
+> ausdrücklich verlangt) ergab, dass `release-slot.sh <provider> [success] [ctx]`
+> einen **Provider-Slot** freigibt, nicht einen Ticket-Slot — `dispatcher-bridge.sh`
+> kennt keinen Provider und keinen Gang-Slot. Der Slot-Claim passiert in
+> `factory-prep.sh` (`schedule.sh` → `release_slot_and_restore`). Der Aufruf
+> entfällt hier deshalb ersatzlos; das Ticket bleibt bis zum Watchdog auf
+> `in_progress`. Das Aufhängen des Guards **auch** in `factory-prep.sh` (mit
+> korrektem Slot-Release und Status-Restore) ist der nächste sinnvolle Schritt und
+> gehört in ein eigenes Ticket — er berührt die Claim-Logik, nicht den Launch.
 
 Bedingungen:
 

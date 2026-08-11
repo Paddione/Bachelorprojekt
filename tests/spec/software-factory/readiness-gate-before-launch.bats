@@ -80,6 +80,29 @@ _skip_without_origin() {
   echo "$output" | grep -qE "not ready|missing_args|no_plan|readiness"
 }
 
+# ── Zweite Verteidigungslinie: opencode-exec.sh ─────────────────#
+# OPENCODE_BIN wird auf /bin/true gestubbt: fehlt der Guard, startet das Skript
+# sonst einen echten Orchestrator-Lauf aus der Testsuite heraus.
+EXEC="scripts/factory/opencode-exec.sh"
+
+# Verankert an EXIT-CODES, nicht am Wortlaut der Meldungen (T002716): Exit 6 =
+# der Orchestrator lief und wurde erst HINTERHER als blocked bewertet (kein
+# Commit, T003335); Exit 7 = wegen fehlendem Branch/Plan gar nicht erst gestartet.
+# Exit 2 waere nicht brauchbar — den belegt bereits "opencode-Binary nicht
+# gefunden" (T003275), beide Faelle waeren im Journal ununterscheidbar.
+@test "T003773: opencode-exec startet den Lauf, wenn Branch und Plan gesetzt sind" {
+  # Positiv-Anker: Exit 6 belegt, dass der Lauf ERREICHT wurde. Ohne ihn bestuende
+  # der Negativtest unten auch bei einem generell kaputten Skript.
+  run env OPENCODE_BIN=/bin/true timeout 60 bash "$EXEC" T-EXEC-OK "$BATS_TEST_TMPDIR" main CLAUDE.md
+  [ "$status" -eq 6 ]
+}
+
+@test "T003773: opencode-exec bricht ohne Branch/Plan ab, statt im Haupt-Checkout zu laufen" {
+  run env OPENCODE_BIN=/bin/true timeout 60 bash "$EXEC" T-EXEC-NOPLAN "$BATS_TEST_TMPDIR" null null
+  [ "$status" -eq 7 ]
+  echo "$output" | grep -qiE "ohne Branch/Plan|no_plan"
+}
+
 @test "T003773: ein Branch ohne die Plan-Datei wird als no_plan_on_branch abgelehnt" {
   _skip_without_origin
   local f; f="$(_prep_file T-GHOSTPLAN main "openspec/changes/gibt-es-nicht-T003773/tasks.md" /tmp)"

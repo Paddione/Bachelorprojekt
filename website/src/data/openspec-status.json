@@ -3291,6 +3291,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003773": [
+    {
+      "slug": "fix-factory-readiness-gate",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

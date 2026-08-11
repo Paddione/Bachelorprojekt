@@ -7,6 +7,13 @@
 # => a blocked event and NO fallback to claude -p (observability over convenience).
 #
 # Usage: opencode-exec.sh <ticket_ext_id> <launch_dir> <branch> <plan_path>
+#
+# Exit-Codes (jede Ursache ihr eigener Code — gleiche Codes machen das Journal
+# unlesbar, siehe T003275):
+#   0  Lauf erfolgreich, Commit vorhanden
+#   2  opencode-Binary nicht gefunden (T003275; bewusst nicht 127)
+#   6  Orchestrator lief, hinterliess aber weder Commit noch Aenderung (T003335)
+#   7  ohne Branch/Plan abgelehnt, Lauf gar nicht erst gestartet (T003773)
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
@@ -42,13 +49,35 @@ mapfile -t partial_ids < <(printf '%s\n' "$partials_manifest" \
   | grep -oiE '\bp[0-9]+\b' | tr 'P' 'p' | awk '!seen[$0]++')
 
 # --- helper: record one implement phase-event (positional ticket.sh phase form) ------
-phase_event() { # <state> <subagent> <partial> <duration_s> <exit>
+phase_event() { # <state> <subagent> <partial> <duration_s> <exit> [reason]
   local detail
-  detail="$(jq -cn --arg s "$2" --arg p "$3" --argjson d "${4:-0}" --argjson e "${5:-0}" \
-    '{executor:"opencode",subagent:$s,partial:$p,duration_s:$d,exit:$e}')"
+  # [T003773] 6. Feld `reason` optional und mit Leer-Default, damit die
+  # bestehenden 5-Argument-Aufrufer unveraendert weiterlaufen.
+  detail="$(jq -cn --arg s "$2" --arg p "$3" --argjson d "${4:-0}" --argjson e "${5:-0}" --arg r "${6:-}" \
+    '{executor:"opencode",subagent:$s,partial:$p,duration_s:$d,exit:$e,reason:$r}')"
   bash "$REPO/scripts/ticket.sh" phase "$EXT_ID" implement "$1" \
     --driver factory --detail "$detail" 2>/dev/null || true
 }
+
+# --- zweite Verteidigungslinie gegen planlose Laeufe [T003773] ----------------------
+# Das Readiness-Gate in dispatcher-bridge.sh faengt diesen Fall bereits ab; dies
+# hier greift, wenn opencode-exec.sh von woanders aufgerufen wird. Der Grund fuer
+# eine zweite Linie: der LAUNCH_DIR-Fallback oben setzt bei fehlendem Worktree auf
+# $REPO — den geteilten Haupt-Checkout. Ein Lauf dort rebaste und benannte am
+# 2026-08-11 den Branch einer fremden Session um (T003773).
+#
+# "null" kommt als LITERALSTRING an: scripts/vda/factory-prep.sh setzt die
+# Bash-Literale branch=null/plan_path=null und reicht sie per `jq --arg` weiter,
+# was daraus einen JSON-String macht. Deshalb reicht `-z` allein nicht.
+[[ "$BRANCH"    == "null" ]] && BRANCH=""
+[[ "$PLAN_PATH" == "null" ]] && PLAN_PATH=""
+if [[ -z "$BRANCH" || -z "$PLAN_PATH" ]]; then
+  phase_event blocked orchestrator all 0 7 no_plan
+  echo "opencode-exec: $EXT_ID ohne Branch/Plan — Abbruch (reason=no_plan) statt Lauf im Haupt-Checkout" >&2
+  # Exit 7, nicht 2: 2 belegt bereits "opencode-Binary nicht gefunden" (T003275).
+  # Gleiche Codes fuer verschiedene Ursachen machen das Journal unlesbar.
+  exit 7
+fi
 
 phase_event entered orchestrator all 0 0
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.269.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.9...website-v1.269.0) (2026-08-11)
+
+
+### Features
+
+* **website:** tote SDLC-Eintraege aus dem Admin-Menue entfernen [T003826] ([#4285](https://github.com/Paddione/Bachelorprojekt/issues/4285)) ([815d51c](https://github.com/Paddione/Bachelorprojekt/commit/815d51c2639390027b93f26593b74ef876b133ea))
+
 ## [1.268.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.8...website-v1.268.9) (2026-08-11)
 
 

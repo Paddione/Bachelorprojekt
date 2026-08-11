@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 946,
+      "file_count": 947,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -676,6 +676,7 @@
         "tests/spec/sdlc-cockpit/document-tokens-only.bats",
         "tests/spec/sdlc-cockpit/endpoint-host-map.bats",
         "tests/spec/sdlc-cockpit/freshness-timestamp.bats",
+        "tests/spec/sdlc-cockpit/imagepullpolicy-always.bats",
         "tests/spec/sdlc-cockpit/k5-epic-canvas.bats",
         "tests/spec/sdlc-cockpit/k9-stil-datenbank.bats",
         "tests/spec/sdlc-cockpit/kit-artifacts-exist.bats",

@@ -3978,6 +3978,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/imagepullpolicy-always",
+    "file": "tests/spec/sdlc-cockpit/imagepullpolicy-always.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/k5-epic-canvas",
     "file": "tests/spec/sdlc-cockpit/k5-epic-canvas.bats",
     "category": "sdlc-cockpit",

@@ -3315,6 +3315,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003740": [
+    {
+      "slug": "fix-sdlc-imagepullpolicy",
+      "status": "plan_staged"
+    }
+  ],
   "T003765": [
     {
       "slug": "auto-close-plan-only-all-branches",

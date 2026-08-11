@@ -31,7 +31,9 @@ teardown() {
 }
 
 # Ein Plan mit Frontmatter und mindestens 10 Zeilen — beides prüft das Skript
-# vor der Gateway-Probe und bricht sonst mit exit 1 ab.
+# vor der Gateway-Probe und bricht sonst mit exit 1 ab. Seit T003381 prüft das
+# Skript die drei Abschluss-Kommandos deterministisch vor dem Gateway-Kontakt —
+# die Fixture muss sie enthalten, sonst endet jeder Lauf im Kriterium-5-Pre-Check.
 mkplan() {
   cat > "$1" <<'PLANEOF'
 ---
@@ -50,6 +52,12 @@ status: active
 ## Task 1: Beispiel
 
 Ein Schritt, damit der Plan die Mindestlänge erreicht.
+
+## Task 2: Abschluss
+
+- `task test:changed`
+- `task freshness:regenerate`
+- `task freshness:check`
 PLANEOF
 }
 

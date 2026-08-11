@@ -3297,6 +3297,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003641": [
+    {
+      "slug": "batch-plan-tooling-fixes",
+      "status": "plan_staged"
+    }
+  ],
   "T003765": [
     {
       "slug": "auto-close-plan-only-all-branches",

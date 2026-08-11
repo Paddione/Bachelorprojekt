@@ -58,9 +58,13 @@ if ! grep -q "^---" "$PLAN_FILE"; then
 fi
 
 # === Prompt ===
+# Kriterium 5 wird [T003381] deterministisch vor dem Gateway-Kontakt geprueft
+# (grep, identisch zu plan-lint STRUCT3) und ist deshalb NICHT mehr Teil der
+# LLM-Kriterienliste — sie bleibt eine 5er-Liste (1,2,3,4,6). Das Wort
+# "Kriterien" und das Kriterium-6-Beispiel bleiben fuer plan-qa-payload.bats (T002595).
 SYSTEM_PROMPT=$(cat <<'EOF'
 Du bist ein Quality-Assurance-Bot für Implementierungspläne in einem Softwareprojekt.
-Du prüfst, ob der Plan die folgenden 6 Kriterien erfüllt.
+Du prüfst, ob der Plan die folgenden 5 Kriterien erfüllt.
 Antworte ausschließlich im folgenden JSON-Format (kein Präfix, kein Suffix, keine Markdown-Codeblöcke):
 
 {
@@ -74,12 +78,31 @@ Kriterien:
 2. Mindestens ein Task enthält einen konkreten Test-Schritt (BATS, Vitest, Playwright oder Verifikationskommando).
 3. Keine offenen Platzhalter: TODO, TBD, FIXME, ???, <ausfüllen> oder ähnliche.
 4. Pro geänderter Datei mit bekannter Zeilenzahl ein S1-Budget-Kommentar (Ist X - Baseline Y -> Budget Z) oder Markierung als neue Datei.
-5. Der letzte Task enthält task test:changed, task freshness:regenerate und task freshness:check als Steps.
-6. Shell-Snippets im Plan sind frei von bekannten Syntax- und Argument-Fallen (z.B. jq --args darf nicht mit Input-Dateien als Positional-Arg kombiniert werden; stattdessen stdin-Umleitung `< file` nutzen).
+5. Shell-Snippets im Plan sind frei von bekannten Syntax- und Argument-Fallen (z.B. jq --args darf nicht mit Input-Dateien als Positional-Arg kombiniert werden; stattdessen stdin-Umleitung `< file` nutzen).
 EOF
 )
 
-USER_PROMPT_PREFIX="Prüfe den folgenden Implementierungsplan gegen die 6 Kriterien und gib PASS/FAIL zurück:"
+# --- Kriterium 5 wird deterministisch geprueft (oben); die LLM-Kriterienliste
+# ist eine 5er-Liste geworden. Der Prefix nennt die verbliebenen Kriterien.
+USER_PROMPT_PREFIX="Prüfe den folgenden Implementierungsplan gegen die Kriterien und gib PASS/FAIL zurück:"
+
+# === Deterministic Kriterium 5 pre-check [T003381] ===
+# plan-lint STRUCT3 (scripts/plan-lint.sh Zeile 358) prueft die drei
+# Abschluss-Kommandos per `grep -qE "task[[:space:]]+$cmd"`. Identische Eingabe
+# darf nicht mehr plan-lint-PASS und plan-qa-FAIL ergeben — dieselbe grep-Regel
+# wird hier VOR dem Gateway-Kontakt ausgefuehrt. Ein Plan, der STRUCT3 verfehlt,
+# kann nicht QA-gruen sein: sofort FAIL, kein LLM-Aufruf.
+MISSING_CMDS=""
+for cmd in test:changed freshness:regenerate freshness:check; do
+  if ! grep -qE "task[[:space:]]+$cmd" "$PLAN_FILE"; then
+    MISSING_CMDS="${MISSING_CMDS:+$MISSING_CMDS, }$cmd"
+  fi
+done
+if [[ -n "$MISSING_CMDS" ]]; then
+  result FAIL "Kriterium 5 (deterministisch): fehlende Abschluss-Kommandos: ${MISSING_CMDS}"
+  exit 1
+fi
+
 
 # === Build payload (offline, no network) ===
 # Als Funktion, damit die Auto-Fix-Loop in Iteration 2+ den nach Append
@@ -233,8 +256,14 @@ else:
   SUGGESTIONS=$(echo "$CONTENT_JSON" | jq -r '.suggestions // ""')
 
   if [[ "$VERDICT" == "PASS" ]]; then
+    # [T003621] PASS-nach-Append-Pfad: nach einer Auto-Fix-Iteration haengt die
+    # '## QA-Ergänzungen'-Sektion am Plan, obwohl die Folge-Iteration gruen ist.
+    # Ein gruener Lauf muss das Artefakt byte-identisch zum Eingang zuruecklassen —
+    # Backup zurueckspielen (die FAIL-Pfade tun das bereits). Der Trapperaeumt
+    # die Backup-Datei anschliessend auf.
+    cp "$BACKUP_FILE" "$PLAN_FILE"
     info "PASS — All quality criteria met."
-    result PASS
+    result PASS "Kriterium 5 deterministisch geprueft (Abschluss-Kommandos vorhanden)"
     rm -f "$BACKUP_FILE"
     exit 0
   fi

@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "slug": "batch-repo-hygiene-ops-fixes",
+    "ticket_id": "T003490",
+    "generated_from": "main@4951acdd9",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/branch-reaper.sh",
+      "language": "bash",
+      "loc": 255,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 545
+    },
+    {
+      "path": ".claude/skills/references/repo-hygiene-ops.md",
+      "language": "markdown",
+      "loc": 685,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/devflow-ci-watch.sh",
+      "language": "bash",
+      "loc": 182,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 618
+    },
+    {
+      "path": "scripts/repo-hygiene-cron.sh",
+      "language": "bash",
+      "loc": 185,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 615
+    },
+    {
+      "path": "tests/spec/batch-repo-hygiene-ops-fixes.bats",
+      "language": "bash",
+      "loc": 284,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/batch-repo-hygiene-ops-fixes/specs/batch-repo-hygiene-ops-fixes.md",
+      "language": "markdown",
+      "loc": 75,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/branch-reaper.sh:59:usage() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "59:usage() {(...)",
+      "type_text": "59:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:92:_allowed() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "92:_allowed() {(...)",
+      "type_text": "92:_allowed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/branch-reaper.sh:107:_diverging_files() {",
+      "kind": "function",
+      "file": "scripts/branch-reaper.sh",
+      "signature": "107:_diverging_files() {(...)",
+      "type_text": "107:_diverging_files() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

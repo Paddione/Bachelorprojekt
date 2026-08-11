@@ -154,9 +154,12 @@
     bash "$repo/scripts/agent-lock.sh" check ticket T002282
   [ "$status" -eq 3 ]
 
-  # Session B versucht den Status-Write — muss abgelehnt werden.
+  # Session B versucht einen NICHT-terminalen Status-Write — muss abgelehnt werden.
+  # [T003102] Der Abschluss (done/archived) ist seit T003102 vom Guard ausgenommen
+  # (Subagent/ticket-mcp/post-merge schliessen im selben Vorgang ab, andere SID);
+  # der Schutz gegen Doppelbearbeitung gilt weiterhin fuer alle anderen Uebergaenge.
   run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t002282-session-b" \
-    bash "$repo/scripts/ticket.sh" update-status --id T002282 --status done
+    bash "$repo/scripts/ticket.sh" update-status --id T002282 --status in_progress
   rm -rf "$ald"
 
   [ "$status" -ne 0 ]
@@ -164,6 +167,38 @@
   # Der Guard muss VOR dem Cluster-Zugriff greifen — _pgpod darf nie laufen.
   [[ "$output" != *"no shared-db pod found"* ]] || {
     echo "Guard griff nicht: der Write lief bis _pgpod durch: $output"; return 1; }
+}
+
+@test "T003102: update-status done (Abschluss) wird trotz fremdem ticket-Lock durchgelassen" {
+  local repo ald
+  repo="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+  ald="$(mktemp -d)"
+
+  unset CLAUDE_CODE_SESSION_ID
+  # Session A haelt den Ticket-Lock (z.B. die auftraggebende ticket-ops-Session).
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t003102-session-a" \
+    bash "$repo/scripts/agent-lock.sh" claim ticket T003102 --label ticket-ops
+  [ "$status" -eq 0 ]
+
+  # Vorbedingung: Session B sieht den Lock als 'held' (fremde SID).
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t003102-session-b" \
+    bash "$repo/scripts/agent-lock.sh" check ticket T003102
+  [ "$status" -eq 3 ]
+
+  # Session B (Subagent/post-merge) schliesst ab — der Guard MUSS durchlassen;
+  # der Write laeuft bis zum Cluster-Zugriff (kein k3d im Test -> _pgpod-Fehler).
+  run env AGENT_LOCK_DIR="$ald" CLAUDE_CODE_SESSION_ID= CLAUDE_SESSION_ID="t003102-session-b" \
+    bash "$repo/scripts/ticket.sh" update-status --id T003102 --status done
+  rm -rf "$ald"
+
+  # Nicht die ABLEHNUNG ("verweigert") darf erscheinen — die T003102-Warnung
+  # ("durchgelassen") ist das erwartete Signal, der Write laeuft weiter.
+  [[ "${output,,}" != *"verweigert"* ]] || {
+    echo "Guard blockte den Abschluss trotz T003102: $output"; return 1; }
+  [[ "${output,,}" == *"durchgelassen"* ]] || {
+    echo "Keine T003102-Warnung (Guard griff nicht wie erwartet): $output"; return 1; }
+  [[ "${output,,}" == *"no shared-db pod found"* || "${output,,}" == *"shared-db"* ]] || {
+    echo "Write kam nicht bis zum Cluster-Zugriff (unerwartet): $output"; return 1; }
 }
 
 # ── [T002307] _pgpod must select a Running shared-db pod ──────────────────────

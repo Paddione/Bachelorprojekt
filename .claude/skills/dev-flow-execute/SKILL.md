@@ -16,7 +16,7 @@ stehen in [dev-flow-execute-phases](file:///home/patrick/Bachelorprojekt/.claude
 
 | Schritt | Leistet | Bricht ab, wenn |
 |---|---|---|
-| **−1 Pre-Flight-Lock** | Ticket atomisch claimen (`agent-lock check-and-claim`), Broadcast an andere Sessions | eine lebende Session das Ticket schon hält |
+| **−1 Pre-Flight-Lock** | Branch claimen (`agent-lock claim branch` — T003102, kein ticket-Scope), Broadcast an andere Sessions | eine lebende Session den Branch schon hält |
 | **0 Main-Sync** | Reaper, ungelesene Agent-Nachrichten, `git pull --rebase` im Haupt-Repo | — |
 | **0 Worktree-Konsistenz** | Branch-Guard [T000321]: gültiger Branch ausgecheckt **und** unter `.worktrees/*` gearbeitet; legt sonst per `scripts/worktree-create.sh` einen an [T001363] | detached HEAD, oder Worktree-Erstellung schlägt fehl |
 | **0.5 Rebase** | `git fetch origin main && git rebase origin/main` | Konflikt — dann manuell lösen |
@@ -255,7 +255,7 @@ Führe danach `dev-flow-e2e` aus, um E2E-Tests gegen die Live-Umgebung zu schrei
 - `main` enthält die gemergten Änderungen (squash commit)
 - Worktree `.worktrees/<slug>` gelöscht, Branch `feature/<slug>` gelöscht
 - Ticket status = `done` (resolution=shipped)
-- Branch-Lock und Ticket-Lock freigegeben
+- Branch-Lock freigegeben
 - Deployed (falls `devflow-post-merge-deploy.sh` Pfad-Treffer)
 **Kreislauf zurück zu `main`** — nächste Arbeit startet mit `dev-flow-plan` von einem frischen `git pull`.
 

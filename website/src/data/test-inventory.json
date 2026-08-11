@@ -1956,6 +1956,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/ticket-lock-closure-T003102",
+    "file": "tests/spec/active-sessions-hub/ticket-lock-closure-T003102.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "admin-actions-schema",
     "file": "tests/local/admin-actions-schema.bats",
     "category": "admin-actions-schema",
@@ -2133,6 +2139,12 @@
     "id": "backup-pipeline",
     "file": "tests/spec/backup-pipeline.bats",
     "category": "backup-pipeline",
+    "kind": "shell"
+  },
+  {
+    "id": "batch-repo-hygiene-ops-fixes",
+    "file": "tests/spec/batch-repo-hygiene-ops-fixes.bats",
+    "category": "batch-repo-hygiene-ops-fixes",
     "kind": "shell"
   },
   {
@@ -2402,6 +2414,12 @@
   {
     "id": "ci-cd/pre-push-artifact-guard",
     "file": "tests/spec/ci-cd/pre-push-artifact-guard.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/pre-push-scope-base",
+    "file": "tests/spec/ci-cd/pre-push-scope-base.bats",
     "category": "ci-cd",
     "kind": "shell"
   },
@@ -2720,6 +2738,12 @@
   {
     "id": "e2e-test-infrastructure",
     "file": "tests/spec/e2e-test-infrastructure.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
+    "id": "e2e-test-infrastructure/bats-missing-file-exit0",
+    "file": "tests/spec/e2e-test-infrastructure/bats-missing-file-exit0.bats",
     "category": "e2e-test-infrastructure",
     "kind": "shell"
   },
@@ -4154,6 +4178,12 @@
   {
     "id": "software-factory/factory-prep-worktree-reuse",
     "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/opencode-exec-binary-resolution",
+    "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
     "category": "software-factory",
     "kind": "shell"
   },

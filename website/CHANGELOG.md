@@ -1,5 +1,73 @@
 # Changelog
 
+## [1.268.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.2...website-v1.268.3) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** repo-hygiene-ops §1-§3 Batch-Fixes (Sweep, gone-Prune, merge-tree, cancelled≠fail, headSha, Tick-Vorcheck) [T003490] ([#4258](https://github.com/Paddione/Bachelorprojekt/issues/4258)) ([df393ee](https://github.com/Paddione/Bachelorprojekt/commit/df393ee79f70ae92994f852f0789240e2008fc5c))
+
+## [1.268.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.1...website-v1.268.2) (2026-08-11)
+
+
+### Bug Fixes
+
+* **factory:** auto-close-merged — plan-only-Skip fuer alle Branch-Familien (T001580,T002598-M1) [T003765] ([#4259](https://github.com/Paddione/Bachelorprojekt/issues/4259)) ([0d8ee00](https://github.com/Paddione/Bachelorprojekt/commit/0d8ee009f458ee8ae81eadd94958bfd299972bfa))
+
+## [1.268.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.0...website-v1.268.1) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** openspec archive staged die regenerierte Status-Map [T003136] ([#4255](https://github.com/Paddione/Bachelorprojekt/issues/4255)) ([32c28e4](https://github.com/Paddione/Bachelorprojekt/commit/32c28e4966aebf826d5f77b957724cd18d40959e))
+
+## [1.268.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.267.0...website-v1.268.0) (2026-08-11)
+
+
+### Features
+
+* **tickets:** Batch ticket-ops/ticket-mcp Meta-Fixes (T002937,T003134,T003174,T003176,T003229,T003284,T003546) [T003541] ([#4246](https://github.com/Paddione/Bachelorprojekt/issues/4246)) ([754b976](https://github.com/Paddione/Bachelorprojekt/commit/754b9767dc40e5ca7f85dae19c130dd7506b2fd1))
+
+
+### Bug Fixes
+
+* **tickets:** Ticket-Locks der auftraggebenden Session blockieren Abschluss [T003102] ([#4247](https://github.com/Paddione/Bachelorprojekt/issues/4247)) ([4754e5f](https://github.com/Paddione/Bachelorprojekt/commit/4754e5f61ebe3fd24ae7ca3382ae7dfcc6329eae))
+
+## [1.267.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.266.0...website-v1.267.0) (2026-08-11)
+
+
+### Features
+
+* **scripts:** Batch Git/Worktree-Integrität — P1 worktree-health (T002994,T002995,T002998) [T003539] ([#4244](https://github.com/Paddione/Bachelorprojekt/issues/4244)) ([5529574](https://github.com/Paddione/Bachelorprojekt/commit/55295749521945b3dead1f41a4b916d41560ac90))
+
+## [1.266.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.7...website-v1.266.0) (2026-08-11)
+
+
+### Features
+
+* **ci:** Batch CI/Check-Auswertung Fixes (T003109,T002815,T002827,T003136,T003138,T002922) [T003540] ([#4245](https://github.com/Paddione/Bachelorprojekt/issues/4245)) ([819f6fc](https://github.com/Paddione/Bachelorprojekt/commit/819f6fce3f821e77b4d2a86486ac8c2f9a352fa5))
+
+## [1.265.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.6...website-v1.265.7) (2026-08-11)
+
+
+### Bug Fixes
+
+* **ci:** devflow-ci-watch.sh — PR_URL an gh pr checks übergeben, headRefOid statt cwd-HEAD, Pending-Check vor Grün-Prüfung [T003612] ([#4242](https://github.com/Paddione/Bachelorprojekt/issues/4242)) ([0369e88](https://github.com/Paddione/Bachelorprojekt/commit/0369e8867aec807baa80aa4893031fbef1b95536))
+
+## [1.265.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.5...website-v1.265.6) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** bats-Wrapper prueft Testpfad-Existenz [T003278] ([#4232](https://github.com/Paddione/Bachelorprojekt/issues/4232)) ([a3fd389](https://github.com/Paddione/Bachelorprojekt/commit/a3fd389dfc8ebc52f9e82900c58f12d8792ed46f))
+
+## [1.265.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.4...website-v1.265.5) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** opencode-exec loest Binary selbst auf [T003275] ([#4233](https://github.com/Paddione/Bachelorprojekt/issues/4233)) ([3093d9d](https://github.com/Paddione/Bachelorprojekt/commit/3093d9dc7175bf0e397bcfe167a40391f56a2f85))
+
 ## [1.265.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.3...website-v1.265.4) (2026-08-11)
 
 

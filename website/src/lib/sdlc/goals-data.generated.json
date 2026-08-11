@@ -12,7 +12,7 @@
     "status": "unknown",
     "measurement": "gh run list --workflow e2e.yml --limit 14 --json conclusion \\\n  | python3 -c \"import json,sys; r=[x['conclusion'] for x in json.load(sys.stdin) if x.get('conclusion')]; print(round(100*sum(1 for c in r if c=='success')/len(r)) if r else 'n/a')\"",
     "source": ".claude/lib/goals.md · G-E2E01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DB09",
@@ -27,7 +27,7 @@
     "status": "unknown",
     "measurement": "db_scalar \"SELECT count(*) FROM pg_stat_statements WHERE mean_exec_time > 1000 AND query NOT ILIKE 'COPY %'\"",
     "source": ".claude/lib/goals.md · G-DB09",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-E2E02",
@@ -42,7 +42,7 @@
     "status": "unknown",
     "measurement": "SELECT COALESCE(sum((xpath('/row/c/text()', query_to_xml(format(\n  'SELECT count(*) AS c FROM %I.%I WHERE is_test_data', c.table_schema, c.table_name),\n  false, true, '')))[1]::text::int), 0)\nFROM information_schema.columns c\nJOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name\nWHERE c.column_name='is_test_data' AND t.table_type='BASE TABLE';",
     "source": ".claude/lib/goals.md · G-E2E02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-OPS01",
@@ -57,7 +57,7 @@
     "status": "unknown",
     "measurement": "python3 -c \"\nimport json,subprocess\nn=0\nfor ns in ('workspace','workspace-korczewski'):\n    d=json.loads(subprocess.check_output(['kubectl','get','pods','-n',ns,'--context','fleet','-o','json']))\n    for p in d['items']:\n        ph=p['status'].get('phase')\n        if ph=='Succeeded': continue\n        cs=p['status'].get('containerStatuses',[])\n        if ph!='Running' or any(not c.get('ready') for c in cs): n+=1\nprint(n)\"",
     "source": ".claude/lib/goals.md · G-OPS01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DB11",
@@ -72,7 +72,7 @@
     "status": "unknown",
     "measurement": "ts=$(kubectl get configmap recovery-verify-status -n workspace --context fleet \\\n  -o jsonpath='{.data.last_success}' 2>/dev/null)\n[ -n \"$ts\" ] && echo $(( ($(date -u +%s) - $(date -u -d \"$ts\" +%s)) / 86400 )) || echo n/a",
     "source": ".claude/lib/goals.md · G-DB11",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SIZE02",
@@ -87,7 +87,7 @@
     "status": "unknown",
     "measurement": "git ls-files VideoVault .opencode | grep -E '\\.(ts|tsx|js|mjs|svelte|sh|py)$' \\\n  | grep -v node_modules \\\n  | while read -r f; do [ -L \"$f\" ] || echo \"$f\"; done \\\n  | xargs wc -l 2>/dev/null | grep -v ' total$' | awk '$1>1000' | wc -l",
     "source": ".claude/lib/goals.md · G-SIZE02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DB01",
@@ -102,7 +102,7 @@
     "status": "unknown",
     "measurement": "WITH fk AS (\n  SELECT c.conrelid AS relid, c.conkey[1] AS col FROM pg_constraint c\n  JOIN pg_class t ON t.oid=c.conrelid JOIN pg_namespace n ON n.oid=t.relnamespace\n  WHERE c.contype='f' AND n.nspname NOT IN ('pg_catalog','information_schema') AND array_length(c.conkey,1)=1),\nidx AS (SELECT i.indrelid AS relid, i.indkey[0] AS col FROM pg_index i)\nSELECT count(*) FROM (SELECT relid,col FROM fk EXCEPT SELECT relid,col FROM idx) x;",
     "source": ".claude/lib/goals.md · G-DB01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DB03",
@@ -117,7 +117,7 @@
     "status": "unknown",
     "measurement": "SELECT\n    (SELECT count(DISTINCT c.table_schema||'.'||c.table_name) FROM information_schema.columns c\n       JOIN information_schema.tables t ON t.table_schema=c.table_schema AND t.table_name=c.table_name\n       WHERE c.column_name='brand' AND c.table_schema NOT IN ('pg_catalog','information_schema') AND t.table_type='BASE TABLE')\n  - (SELECT count(DISTINCT conrelid) FROM pg_constraint\n       WHERE contype='c' AND pg_get_constraintdef(oid) ILIKE '%brand%' AND pg_get_constraintdef(oid) ILIKE '%mentolder%');",
     "source": ".claude/lib/goals.md · G-DB03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DB10",
@@ -132,7 +132,7 @@
     "status": "unknown",
     "measurement": "db_scalar \"SELECT count(*) FROM pg_stat_user_indexes s JOIN pg_index i ON i.indexrelid = s.indexrelid WHERE s.idx_scan = 0 AND i.indisready AND NOT i.indisprimary AND s.indexrelid NOT IN (SELECT conindid FROM pg_constraint WHERE contype='u')\"",
     "source": ".claude/lib/goals.md · G-DB10",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SEC06",
@@ -147,7 +147,7 @@
     "status": "unknown",
     "measurement": "# Messung (lokal):\nbash scripts/trivy-scan.sh --json | jq '.total_critical, .total_high'\n# CI: advisory-only in .github/workflows/ci.yml (Security Scan Job)",
     "source": ".claude/lib/goals.md · G-SEC06",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-FE05",
@@ -162,7 +162,7 @@
     "status": "unknown",
     "measurement": "npx @lhci/cli autorun \\\n  --collect.url=https://web.mentolder.de \\\n  --collect.settings.chromeFlags='--headless --no-sandbox' \\\n  --assert.performance=0.9",
     "source": ".claude/lib/goals.md · G-FE05",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-BRAIN14",
@@ -177,7 +177,7 @@
     "status": "unknown",
     "measurement": "bash scripts/brain-ingest-worklist.sh 2>/dev/null | python3 -c \"\nimport sys, json, hashlib\nstate=json.load(open('$HOME/.brain-ingest-state.json'))\ntodo=0\nfor line in sys.stdin:\n    path=line.split('\\t')[0].strip()\n    if not path: continue\n    st=state.get(path)\n    if not st or hashlib.sha256(open(path,'rb').read()).hexdigest()!=st['hash']: todo+=1\nprint(todo)\"",
     "source": ".claude/lib/goals.md · G-BRAIN14",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-IF01",
@@ -192,7 +192,7 @@
     "status": "unknown",
     "measurement": "python3 scripts/lib/mcp-endpoint-probe.py\n# HG_MCP_REGISTRY überschreibt den Registry-Pfad (für Tests).",
     "source": ".claude/lib/goals.md · G-IF01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-IF02",
@@ -207,7 +207,7 @@
     "status": "unknown",
     "measurement": "# Zählt catch-Blöcke in Schnittstellen-Dateien ohne unmittelbare Fehlerprotokollierung\npython3 -c \"\nimport os, re\nfiles = ['website/src/lib/embeddings.ts', 'website/src/lib/rerank.ts', 'website/src/lib/bge-router.ts']\nif not all(os.path.exists(f) for f in files): print('-'); exit(0)  # Positiv-Anker: Basis muss existieren\nc=0\nfor f in files:\n    for b in re.findall(r'catch\\s*\\([^)]*\\)\\s*\\{([^}]*)\\}', open(f).read(), re.DOTALL):\n        if not re.search(r'(logger\\.|console\\.(error|warn))', b): c+=1\nprint(c)\n\" 2>/dev/null || echo n/a",
     "source": ".claude/lib/goals.md · G-IF02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-IF03",
@@ -222,7 +222,7 @@
     "status": "unknown",
     "measurement": "kubectl get pods -n workspace --context fleet -o json 2>/dev/null \\\n  | python3 -c \"\nimport json, sys, yaml\ntry:\n    pods = json.load(sys.stdin)['items']\n    with open('docs/agent-guide/registry/mcp.yaml') as f:\n        servers = yaml.safe_load(f).get('servers', [])\n    if not pods: sys.exit(0)  # Positiv-Anker: Cluster muss Pods haben\n    # Drift-Check: registrierte Ports vs laufende Container-Ports\n    cluster_ports = set()\n    for p in pods:\n        for c in p['spec'].get('containers', []):\n            for port in c.get('ports', []):\n                cluster_ports.add(port.get('containerPort'))\n    registry_ports = set()\n    for s in servers:\n        env = s.get('env', {})\n        port = env.get('PORT') or env.get('MCP_PORT')\n        if port: registry_ports.add(int(port))\n    # Ports in Registry, die nicht im Cluster laufen\n    drift = len(registry_ports - cluster_ports)\n    print(drift)\nexcept: print('n/a')\n\" 2>/dev/null || echo n/a",
     "source": ".claude/lib/goals.md · G-IF03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-LLM01",
@@ -237,7 +237,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/llm-stack-measure.sh server-availability",
     "source": ".claude/lib/goals.md · G-LLM01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-LLM02",
@@ -252,7 +252,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/llm-stack-measure.sh proxy-readiness",
     "source": ".claude/lib/goals.md · G-LLM02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-LLM03",
@@ -267,7 +267,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/llm-stack-measure.sh model-drift",
     "source": ".claude/lib/goals.md · G-LLM03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-LLM04",
@@ -282,7 +282,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/llm-stack-measure.sh autostart-coverage",
     "source": ".claude/lib/goals.md · G-LLM04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-LLM05",
@@ -297,7 +297,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/llm-stack-measure.sh dead-endpoints",
     "source": ".claude/lib/goals.md · G-LLM05",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-WT01",
@@ -312,7 +312,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/wt-hygiene-measure.sh main-checkout",
     "source": ".claude/lib/goals.md · G-WT01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-WT02",
@@ -327,7 +327,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/wt-hygiene-measure.sh stale-worktrees",
     "source": ".claude/lib/goals.md · G-WT02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-WT03",
@@ -342,7 +342,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/wt-hygiene-measure.sh orphan-locks",
     "source": ".claude/lib/goals.md · G-WT03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-WT04",
@@ -357,7 +357,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/wt-hygiene-measure.sh unsafe-worktrees",
     "source": ".claude/lib/goals.md · G-WT04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-WT05",
@@ -372,7 +372,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/wt-hygiene-measure.sh main-divergence",
     "source": ".claude/lib/goals.md · G-WT05",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-WT06",
@@ -387,7 +387,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/wt-hygiene-measure.sh phantom-scope-locks",
     "source": ".claude/lib/goals.md · G-WT06",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-RH01",
@@ -402,7 +402,7 @@
     "status": "unknown",
     "measurement": "python3 -c \"import json,sys; print(len(json.load(sys.stdin)))\" < docs/code-quality/baseline.json",
     "source": ".claude/lib/goals.md · G-RH01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-RH02",
@@ -417,7 +417,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -r '@ts-ignore|@ts-expect-error' website/src --include='*.ts' | grep -v goals-data.ts | wc -l",
     "source": ".claude/lib/goals.md · G-RH02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-RH04",
@@ -432,7 +432,7 @@
     "status": "unknown",
     "measurement": "git for-each-ref ... refs/remotes/origin | while IFS='",
     "source": ".claude/lib/goals.md · G-RH04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-RH06",
@@ -447,7 +447,7 @@
     "status": "unknown",
     "measurement": "gh-axi issue list --label sentinel --state open --json createdAt",
     "source": ".claude/lib/goals.md · G-RH06",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-RH07",
@@ -462,7 +462,7 @@
     "status": "unknown",
     "measurement": "task freshness:check",
     "source": ".claude/lib/goals.md · G-RH07",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-TEST01",
@@ -477,7 +477,7 @@
     "status": "unknown",
     "measurement": "grep -rniE \"skip [\\\"']\" tests --include=*.bats | grep -ciE \"pending|todo|WP-|disabled\"",
     "source": ".claude/lib/goals.md · G-TEST01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-TEST02",
@@ -492,7 +492,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `website/src`/`mentolder-web/src` fehlen ⇒ n/a; `grep -rnE '\\.only\\b' website/src --include='*.test.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-TEST02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-TEST03",
@@ -507,7 +507,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rnE \"(describe|it|test)\\.(skip|todo)\\b\" website/src --include=\"*.ts\" | wc -l",
     "source": ".claude/lib/goals.md · G-TEST03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-TEST04",
@@ -522,7 +522,7 @@
     "status": "unknown",
     "measurement": "git status --porcelain website/src/data/test-inventory.json | wc -l",
     "source": ".claude/lib/goals.md · G-TEST04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CQ02",
@@ -537,7 +537,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rn ': any|<any>|as any' website/src --include=*.ts --include=*.svelte --include=*.astro | wc -l",
     "source": ".claude/lib/goals.md · G-CQ02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CQ04",
@@ -552,7 +552,7 @@
     "status": "unknown",
     "measurement": "grep -rnE '\\b(FIXME|HACK|XXX)\\b' ... | wc -l",
     "source": ".claude/lib/goals.md · G-CQ04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CQ05",
@@ -567,7 +567,7 @@
     "status": "unknown",
     "measurement": "grep -rnE \"\\bTODO\\b\" --include=*.ts ... website/src scripts tests k3d brett/src | wc -l",
     "source": ".claude/lib/goals.md · G-CQ05",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CQ06",
@@ -582,7 +582,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rnE '@deprecated' website/src | wc -l",
     "source": ".claude/lib/goals.md · G-CQ06",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CQ07",
@@ -597,7 +597,7 @@
     "status": "unknown",
     "measurement": "python3 -c \"..S2-Gate..\" < docs/code-quality/baseline.json",
     "source": ".claude/lib/goals.md · G-CQ07",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CQ09",
@@ -612,7 +612,7 @@
     "status": "unknown",
     "measurement": "python3 -c \"..S3-Gate..\" < docs/code-quality/baseline.json",
     "source": ".claude/lib/goals.md · G-CQ09",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CQ10",
@@ -627,7 +627,7 @@
     "status": "unknown",
     "measurement": "python3 -c \"..S4-Gate..\" < docs/code-quality/baseline.json",
     "source": ".claude/lib/goals.md · G-CQ10",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SIZE03",
@@ -642,7 +642,7 @@
     "status": "unknown",
     "measurement": "wc -l < website/src/lib/website-db.ts",
     "source": ".claude/lib/goals.md · G-SIZE03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-GIT01",
@@ -657,7 +657,7 @@
     "status": "unknown",
     "measurement": "gh pr list --state open --json number,createdAt",
     "source": ".claude/lib/goals.md · G-GIT01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-GIT03",
@@ -672,7 +672,7 @@
     "status": "unknown",
     "measurement": "git ls-files -z | xargs -0 -I{} sh -c 'test -f \"{}\" && wc -c \"{}\"' 2>/dev/null | awk '$1>1048576{c++} END{print c+0}'` — T001902: `.claude/skills/unsloth/references/llms-full.md` entfernt (redundanter, von der Skill selbst nicht referenzierter GitBook-Volldump, überlappend mit `llms-txt.md`/`llms.md`). **Manuelle Entscheidung zu den 2 Nutzer-Assets** (`assets/grilling-brett-admin-panel/Brett Admin Panel.html`, `environments/korczewski/KERN Logo Design.html`): bleiben unangetastet — Löschen ist ohne Nutzerfreigabe riskant, LFS ist repo-weit als defekt dokumentiert (T001348), und beide Dateien machen nur 2 von 6 verbleibenden >1MB-Treffern aus (Target bereits ohne sie erreicht). Keine Gate-Scope-Ausnahme nötig; siehe T001902-Ticketkommentar.",
     "source": ".claude/lib/goals.md · G-GIT03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DEP01",
@@ -687,7 +687,7 @@
     "status": "unknown",
     "measurement": "cd website && pnpm audit --json` → `scripts/lib/pnpm-audit-count.py` (stdin; unparsbare Eingabe = Fehler, nicht 0)",
     "source": ".claude/lib/goals.md · G-DEP01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DEP03",
@@ -702,7 +702,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `website/Dockerfile` fehlt ⇒ n/a; `grep -q \"npm ci\" website/Dockerfile && echo inkonsistent || echo ok",
     "source": ".claude/lib/goals.md · G-DEP03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DEP04",
@@ -717,7 +717,7 @@
     "status": "unknown",
     "measurement": "for p in package.json website/package.json ...; do python3 -c \"..engines..\"; done",
     "source": ".claude/lib/goals.md · G-DEP04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DEP05",
@@ -732,7 +732,7 @@
     "status": "unknown",
     "measurement": "gh pr list --state open --json author,labels | python3 -c \"..renovate..\"",
     "source": ".claude/lib/goals.md · G-DEP05",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DEP02",
@@ -747,7 +747,7 @@
     "status": "unknown",
     "measurement": "cd website && pnpm outdated --format json` → `scripts/lib/pnpm-outdated-majors.py` (stdin; pnpm endet mit Funden als Exit 1 — Ausgabe erfassen, nicht den Pipeline-Status werten)",
     "source": ".claude/lib/goals.md · G-DEP02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-IMG01",
@@ -762,7 +762,7 @@
     "status": "unknown",
     "measurement": "grep -rhE 'image:' k3d/ prod*/ | ... sort -u | awk -F'\\t' '{c[$1]++} END{...}'` (T001766 gefixt: Loki/Promtail-Digests nachgezogen; war Prio B; 2026-07-25: alpine/k8s:1.28.2 → 1.36.2@sha256:... in health-goals-cronjob.yaml)",
     "source": ".claude/lib/goals.md · G-IMG01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-K8S01",
@@ -777,7 +777,7 @@
     "status": "unknown",
     "measurement": "python3 -c \"..resources.limits..\" k3d/*.yaml",
     "source": ".claude/lib/goals.md · G-K8S01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-K8S02",
@@ -792,7 +792,7 @@
     "status": "unknown",
     "measurement": "python3 -c \"..readinessProbe..\" k3d/*.yaml",
     "source": ".claude/lib/goals.md · G-K8S02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-K8S03",
@@ -807,7 +807,7 @@
     "status": "unknown",
     "measurement": "python3 -c \"..securityContext..\" k3d/*.yaml",
     "source": ".claude/lib/goals.md · G-K8S03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-K8S04",
@@ -822,7 +822,7 @@
     "status": "unknown",
     "measurement": "task workspace:validate",
     "source": ".claude/lib/goals.md · G-K8S04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CFG01",
@@ -837,7 +837,7 @@
     "status": "unknown",
     "measurement": "task env:validate:all",
     "source": ".claude/lib/goals.md · G-CFG01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SEC01",
@@ -852,7 +852,7 @@
     "status": "unknown",
     "measurement": "grep -rn 'password.*=.*[^$]' k3d/*.yaml | grep -iv secretKeyRef | wc -l",
     "source": ".claude/lib/goals.md · G-SEC01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SEC02",
@@ -867,7 +867,7 @@
     "status": "unknown",
     "measurement": "bash scripts/git-crypt-guard.sh check-tracked",
     "source": ".claude/lib/goals.md · G-SEC02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SEC03",
@@ -876,13 +876,13 @@
     "priority": "C",
     "direction": "lower",
     "baseline": null,
-    "current": 14,
+    "current": 15,
     "target": 90,
     "unit": "",
     "status": "unknown",
     "measurement": "git log -1 --format='%at' -- environments/sealed-secrets/*.yaml | ...",
     "source": ".claude/lib/goals.md · G-SEC03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SEC04",
@@ -891,13 +891,13 @@
     "priority": "C",
     "direction": "higher",
     "baseline": null,
-    "current": 3608,
+    "current": 3607,
     "target": 30,
     "unit": "",
     "status": "unknown",
     "measurement": "openssl x509 -enddate -noout -in environments/certs/*.pem",
     "source": ".claude/lib/goals.md · G-SEC04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SEC05",
@@ -912,7 +912,7 @@
     "status": "unknown",
     "measurement": "git log -50 --pretty='%G? %ae' main | grep -v freshness-bot | grep -ciE 'github-actions\\[bot\\]",
     "source": ".claude/lib/goals.md · G-SEC05",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SPEC01",
@@ -927,7 +927,7 @@
     "status": "unknown",
     "measurement": "bash scripts/openspec.sh validate",
     "source": ".claude/lib/goals.md · G-SPEC01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SPEC02",
@@ -942,7 +942,7 @@
     "status": "unknown",
     "measurement": "for d in openspec/changes/*/; do ... done",
     "source": ".claude/lib/goals.md · G-SPEC02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-SPEC03",
@@ -951,13 +951,13 @@
     "priority": "C",
     "direction": "lower",
     "baseline": null,
-    "current": 29,
+    "current": 23,
     "target": 0,
     "unit": "",
     "status": "unknown",
     "measurement": "for d in openspec/changes/*/; do [ -f \"$d/.ticket\" ] || m=$((m+1)); done",
     "source": ".claude/lib/goals.md · G-SPEC03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DB06",
@@ -972,7 +972,7 @@
     "status": "unknown",
     "measurement": "db_scalar NOT-EXISTS-Summe (ticket_plans/comments/links → tickets)",
     "source": ".claude/lib/goals.md · G-DB06",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DOC02",
@@ -981,13 +981,13 @@
     "priority": "C",
     "direction": "lower",
     "baseline": null,
-    "current": 246,
+    "current": 266,
     "target": 200,
     "unit": "",
     "status": "unknown",
     "measurement": "Positiv-Anker: `CLAUDE.md` fehlt ⇒ n/a; `wc -l < CLAUDE.md",
     "source": ".claude/lib/goals.md · G-DOC02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DOC03",
@@ -1002,7 +1002,7 @@
     "status": "unknown",
     "measurement": "for d in website brett scripts tests k3d; do ls \"$d\"/README* ... done",
     "source": ".claude/lib/goals.md · G-DOC03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CI01",
@@ -1017,7 +1017,7 @@
     "status": "unknown",
     "measurement": "gh-axi run list --workflow ci.yml --branch main --limit 20 | grep -oE 'completed,(success|failure|cancelled)' | sort | uniq -c` (19/20, 1 cancelled)",
     "source": ".claude/lib/goals.md · G-CI01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CI02",
@@ -1032,7 +1032,7 @@
     "status": "unknown",
     "measurement": "gh-axi run list --workflow ci.yml --branch main --limit 5 | grep -c failure",
     "source": ".claude/lib/goals.md · G-CI02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CI03",
@@ -1047,7 +1047,7 @@
     "status": "unknown",
     "measurement": "gh run list --workflow ci.yml --branch main --limit 20 --json createdAt,updatedAt | python3 -c \"..p95..\"` (T001910: Messscript-Bug in `gh-axi run list --json` behoben, jetzt `gh` direkt)",
     "source": ".claude/lib/goals.md · G-CI03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-CD02",
@@ -1062,7 +1062,7 @@
     "status": "unknown",
     "measurement": "gh-axi run list --workflow post-merge.yml --branch main --limit 15 | ...",
     "source": ".claude/lib/goals.md · G-CD02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DORA01",
@@ -1077,7 +1077,7 @@
     "status": "unknown",
     "measurement": "git log --since=\"4 weeks ago\" --first-parent --oneline main | wc -l",
     "source": ".claude/lib/goals.md · G-DORA01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DORA02",
@@ -1092,7 +1092,7 @@
     "status": "unknown",
     "measurement": "gh-axi api repos/{owner}/{repo}/pulls?...",
     "source": ".claude/lib/goals.md · G-DORA02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DORA03",
@@ -1107,7 +1107,7 @@
     "status": "unknown",
     "measurement": "git log --since=\"8 weeks ago\" --first-parent --oneline main | ...fix()/revert-Rate",
     "source": ".claude/lib/goals.md · G-DORA03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DORA04",
@@ -1122,7 +1122,7 @@
     "status": "unknown",
     "measurement": "git log --since=\"8 weeks ago\" --first-parent --format='%ct %s' main | grep -iE 'revert|hotfix'",
     "source": ".claude/lib/goals.md · G-DORA04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-FE03",
@@ -1137,7 +1137,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rEn 'console\\.(error|warn)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | grep -v 'logger.ts' | grep -v 'error-log-store.ts' | grep -v '\\.test\\.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-FE03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-FE04",
@@ -1152,7 +1152,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `website/src` fehlt ⇒ n/a; `grep -rEn 'console\\.(log|debug|info)' website/src --include='*.ts' --include='*.svelte' --include='*.astro' | grep -v 'browser-logger.ts' | grep -v '\\.test\\.ts' | wc -l",
     "source": ".claude/lib/goals.md · G-FE04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-GIT02",
@@ -1167,7 +1167,7 @@
     "status": "unknown",
     "measurement": "Positiv-Anker: `origin/main`-Ref fehlt ⇒ n/a; `git log --format=%s --no-merges -30 origin/main | grep -vcE '^(feat|fix|chore|...)'",
     "source": ".claude/lib/goals.md · G-GIT02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC02",
@@ -1182,7 +1182,7 @@
     "status": "unknown",
     "measurement": "python3 <<'PY' ... norm/toks/fm/rows ... symmetric_difference",
     "source": ".claude/lib/goals.md · G-AGENTIC02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC03",
@@ -1197,7 +1197,7 @@
     "status": "unknown",
     "measurement": "for f in .claude/agents/*.md; do name==basename && description present",
     "source": ".claude/lib/goals.md · G-AGENTIC03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC04",
@@ -1212,7 +1212,7 @@
     "status": "unknown",
     "measurement": "awk '/test:changed/...' Taskfile.yml | grep -c .claude/agents + AGENTS + agent-library",
     "source": ".claude/lib/goals.md · G-AGENTIC04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC05",
@@ -1227,7 +1227,7 @@
     "status": "unknown",
     "measurement": "comm -3 <(ls agents/...) <(routing from validate.mjs) + <(registry from tools.yaml)",
     "source": ".claude/lib/goals.md · G-AGENTIC05",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC06",
@@ -1242,7 +1242,7 @@
     "status": "unknown",
     "measurement": "claimed - real (Betrag)` via grep claim + `git ls-files -- .claude/skills | grep -c '/SKILL\\.md$'` (nur getrackte — market-cli-Installationen zählen nicht, T001783)",
     "source": ".claude/lib/goals.md · G-AGENTIC06",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC07",
@@ -1257,7 +1257,7 @@
     "status": "unknown",
     "measurement": "for SKILL.md in git ls-files; if description exist && zero refs in CLAUDE.md/AGENTS.md/OVERVIEW.md/other SKILL.md → count` (nur getrackte)",
     "source": ".claude/lib/goals.md · G-AGENTIC07",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC08",
@@ -1272,7 +1272,7 @@
     "status": "unknown",
     "measurement": "grep -rhoP '(?<![A-Za-z0-9_./-])scripts/...\\.(sh|mjs|py)' $(project_owned_skills) + references --include='*.md' | sort -u | test -f",
     "source": ".claude/lib/goals.md · G-AGENTIC08",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC09",
@@ -1287,7 +1287,7 @@
     "status": "unknown",
     "measurement": "for d in $(project_owned_skills); wc -l > 400 → count`; projekteigen = getrackt minus Vendor-Sektion in `OVERVIEW.md`. **Die Schwelle 400 steht operativ nur hier und in `scripts/health-goals-check.sh`** — die BATS-Guards (`agent-skills.bats`, `agentic-tooling-quality-goals.bats`) lesen sie von dort. Wer sie ändert, ändert genau diese zwei Stellen plus die normative Nennung in `openspec/specs/agentic-tooling-quality-goals.md`, sonst nichts; vor T002452 führten vier Stellen die Zahl unabhängig. Genau diese Spec-Nennung fehlte in der Aufzählung und stand deshalb bis T002678 unbemerkt auf dem Altstand 500 samt „Target statt Gate\" (T002678). Fehlt der Vendor-Marker-Block in `OVERVIEW.md`, gilt jeder Skill als projekteigen — das Gate wird dann strenger, nie schwächer. Historie: [T002303, T002452](../../docs/health-goals-history.md)",
     "source": ".claude/lib/goals.md · G-AGENTIC09",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC11",
@@ -1302,7 +1302,7 @@
     "status": "unknown",
     "measurement": "comm -3 <(grep opencode-Liste | extract backtick-names) <(mcp_servers opencode.jsonc)",
     "source": ".claude/lib/goals.md · G-AGENTIC11",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC12",
@@ -1317,7 +1317,7 @@
     "status": "unknown",
     "measurement": "for s in $(mcp_servers .mcp.json); grep -q -- \"$s\" mcp-tool-guide.md",
     "source": ".claude/lib/goals.md · G-AGENTIC12",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC13",
@@ -1332,7 +1332,7 @@
     "status": "unknown",
     "measurement": "grep -rhoE 'mcp__...__|mcp-..._browser_' .claude/skills | gegen registrierte Server",
     "source": ".claude/lib/goals.md · G-AGENTIC13",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC14",
@@ -1347,7 +1347,7 @@
     "status": "unknown",
     "measurement": "python3 <<'PY' ... load both, sig() for common keys, count mismatches",
     "source": ".claude/lib/goals.md · G-AGENTIC14",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC15",
@@ -1362,7 +1362,7 @@
     "status": "unknown",
     "measurement": "grep -rhoE '/opsx[:-][a-z]+' in .claude/ .opencode/ .claude/skills vs valid command set",
     "source": ".claude/lib/goals.md · G-AGENTIC15",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC16",
@@ -1377,7 +1377,7 @@
     "status": "unknown",
     "measurement": "for each .claude/commands/opsx/*.md, compare normalized body with .opencode/opsx-$name.md",
     "source": ".claude/lib/goals.md · G-AGENTIC16",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC17",
@@ -1392,7 +1392,7 @@
     "status": "unknown",
     "measurement": "S4 command_globs gegen Referenzquellen; Config-Guard: ohne Config → 99",
     "source": ".claude/lib/goals.md · G-AGENTIC17",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC01",
@@ -1407,7 +1407,7 @@
     "status": "unknown",
     "measurement": "bash scripts/lib/count-unresolved-agent-tools.sh` — Zählt zwei Schadensfälle: (a) `tools:`-Key existiert, resolvt aber zur leeren Menge; (b) MCP-Eintrag der Form `mcp__<server>__<tool>`, dessen Server nicht unter `clients:` in `mcp.yaml` steht. Ein fehlender `tools:`-Key zählt bewusst 0 (erbt alle Werkzeuge, vergleiche Test `T002221`). Wert am Repo-Bestand ist 0, da nur ein Agent einen `tools:`-Key hat und kein `mcp__*`-Eintrag existiert; das Ziel wirkt als Regressionsbremse gegen kaputte `tools:`-Listen.",
     "source": ".claude/lib/goals.md · G-AGENTIC01",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-AGENTIC10",
@@ -1422,7 +1422,7 @@
     "status": "unknown",
     "measurement": "grep -rlE '^agent: <name>' .claude/skills --include=SKILL.md je Agent",
     "source": ".claude/lib/goals.md · G-AGENTIC10",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DB04",
@@ -1431,13 +1431,13 @@
     "priority": "C",
     "direction": "lower",
     "baseline": null,
-    "current": 387,
+    "current": 411,
     "target": 26,
     "unit": "",
     "status": "unknown",
     "measurement": "db_scalar Backup-Alter (health-goals-check.sh); Regressionswache T001738",
     "source": ".claude/lib/goals.md · G-DB04",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-DB08",
@@ -1452,7 +1452,7 @@
     "status": "unknown",
     "measurement": "db_scalar pg_stat_user_tables seq_scan-Quote (health-goals-check.sh)",
     "source": ".claude/lib/goals.md · G-DB08",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-TEST05",
@@ -1467,7 +1467,7 @@
     "status": "unknown",
     "measurement": "cd website && pnpm vitest run --coverage` (in health-goals-check.sh, ohne --fast)",
     "source": ".claude/lib/goals.md · G-TEST05",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-BRAIN12",
@@ -1482,7 +1482,7 @@
     "status": "unknown",
     "measurement": "bash scripts/brain-ingest-worklist.sh >/dev/null 2>&1 | stderr-Warnungen 'hat 0 Treffer' zählen",
     "source": ".claude/lib/goals.md · G-BRAIN12",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-BRAIN13",
@@ -1497,7 +1497,7 @@
     "status": "unknown",
     "measurement": "paths:-Globs in .github/workflows/brain-merge-hook.yml gegen brain-merge-hook.sh-SRC-Argumente (sym. Diff)",
     "source": ".claude/lib/goals.md · G-BRAIN13",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-BRAIN15",
@@ -1512,7 +1512,7 @@
     "status": "unknown",
     "measurement": "bash templates/brain/scripts/lint-frontmatter.sh templates/brain && bash templates/brain/scripts/lint-wikilinks.sh templates/brain",
     "source": ".claude/lib/goals.md · G-BRAIN15",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-OPS02",
@@ -1527,7 +1527,7 @@
     "status": "unknown",
     "measurement": "kubectl get pods -o json` + Python-Filter `lastState.terminated.finishedAt` < 24h (health-goals-check.sh)",
     "source": ".claude/lib/goals.md · G-OPS02",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   },
   {
     "id": "G-OPS03",
@@ -1536,12 +1536,12 @@
     "priority": "C",
     "direction": "higher",
     "baseline": null,
-    "current": 20,
+    "current": 17,
     "target": 14,
     "unit": "",
     "status": "unknown",
     "measurement": "echo | openssl s_client -servername web.<brand>.de -connect …:443 | openssl x509 -enddate -noout` (health-goals-check.sh, mit Retry gegen Multi-A-Record-Transienten)",
     "source": ".claude/lib/goals.md · G-OPS03",
-    "measured_at": "2026-08-10"
+    "measured_at": "2026-08-11"
   }
 ]

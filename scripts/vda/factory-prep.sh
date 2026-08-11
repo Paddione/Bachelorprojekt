@@ -197,8 +197,20 @@ run_prep() {
       fi
 
       # Session-coordination guard (T000510)
+      # [T003102] Seit ticket-ops und dev-flow-execute branch-scoped claimen,
+      # prueft der Guard BEIDE Scopes: ein ticket-scoped Lock ODER ein
+      # branch-scoped Lock auf einem Branch mit der Ticket-ID im Namen (Konvention
+      # *-<ext-id>, z.B. feature/fix-ticket-lock-subagent-T003102) bedeutet eine
+      # live interaktive Session an diesem Ticket. Nur `check ticket` zu prüfen
+      # liesse die durch den branch-scoped Dispatch geoeffnete Race offen: die
+      # Factory wuerde das Ticket greifen, waehrend der Subagent es bearbeitet.
       local al=0
       bash "${REPO}/scripts/agent-lock.sh" check ticket "${ext_id}" >/dev/null 2>&1; al=$? || true
+      if [[ "${al}" -ne 3 ]]; then
+        # branch-scoped Locks: die Lock-Datei (und damit die list-Zeile) traegt
+        # den Branch-Namen mit der Ticket-ID als Suffix.
+        bash "${REPO}/scripts/agent-lock.sh" list 2>/dev/null | grep -F "${ext_id}" >/dev/null && al=3 || true
+      fi
       if [[ "${al}" -eq 3 ]]; then
         log "Ticket ${ext_id} claimed by live interactive session -> releasing slot"
         release_slot_and_restore "${brand}" "${ext_id}"

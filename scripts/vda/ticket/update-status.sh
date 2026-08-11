@@ -52,7 +52,17 @@ main() {
   local driver="${TICKET_PHASE_DRIVER:-devflow}"
   case "$driver" in factory|devflow) ;; *) driver="devflow" ;; esac
 
-  _ticket_lock_guard "$id" || exit 7
+  # [T003102] Abschluss (done/archived): der ticket-scoped Lock blockt nicht
+  # mehr. Subagent (andere SID), ticket-mcp (eigener Prozess) und der
+  # post-merge-Poller (auto-close-merged.sh) schliessen im selben Vorgang ab,
+  # halten aber nie die SID der auftraggebenden Session. Der Lock schuetzt die
+  # Bearbeitung, nicht die Abschluss-Buchhaltung — der Guard warnt im
+  # closure-Modus statt zu blocken. Nicht-terminale Uebergaenge bleiben voll
+  # geschuetzt (T002282, Schutz gegen Doppelbearbeitung).
+  case "$status" in
+    done|archived) _ticket_lock_guard "$id" closure || exit 7 ;;
+    *)             _ticket_lock_guard "$id" || exit 7 ;;
+  esac
 
   local pod
   pod=$(_pgpod)

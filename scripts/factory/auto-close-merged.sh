@@ -101,14 +101,14 @@ echo "$PRS" | while IFS=$'\t' read -r pr_num title branch; do
     echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — SKIP (archive/plan branch)" >&2
     continue
   fi
-  # chore/openspec-* is ambiguous: it may be a plan-only branch (e.g.
-  # chore/openspec-archive-*) or an execution branch. Verify by file content.
-  if printf '%s\n' "$branch" | grep -qE '^chore/openspec-'; then
-    if pr_is_plan_only "$pr_num"; then
-      echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — SKIP (plan-only PR)" >&2
-      continue
-    fi
-    echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — kein plan-only (Implementierungsdateien) — schließe" >&2
+  # T003684: The plan-only check used to run ONLY for chore/openspec-* branches.
+  # A plan-only PR on any other branch family (e.g. feature/batch-ticket-ops-meta-T003541)
+  # fell through and auto-closed the ticket while its plan was still plan_staged —
+  # the factory then never executed it. Verify by file content for EVERY non-archive
+  # branch; the api call is cheap and the decision is unambiguous.
+  if pr_is_plan_only "$pr_num"; then
+    echo "auto-close-merged [T001580]: $ticket (PR #$pr_num, branch: $branch) — SKIP (plan-only PR)" >&2
+    continue
   fi
 
   # Check partial plan completeness guard (T002105):

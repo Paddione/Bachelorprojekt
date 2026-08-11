@@ -289,6 +289,15 @@ cmd_archive() {
   mv "$dir" "$dest"
   if [[ "${TICKET_OFFLINE:-0}" != "1" ]]; then
     bash "$HERE/openspec-status-map.sh" >/dev/null 2>&1 || true
+    # [T003136] Status-Map-Ergebnis sofort stagen. cmd_archive regeneriert
+    # openspec-status.json zwar nach dem Move, aber der Archiv-Commit des
+    # Aufrufers (opencode-flow-execute Step 7 / plan-archive-steps.md) staged
+    # bisher nur die openspec/changes/-Verschiebung — die JSON blieb unstaged
+    # und der Freshness-Gate meldete sie danach als stale (PR #4083). Das
+    # Staging hier macht das Ergebnis unabhaengig vom pre-commit-Hook
+    # (SKIP_FRESHNESS_REGEN, --no-verify) und vom Flow-Skill. Best-effort wie
+    # der Status-Map-Aufruf selbst.
+    git -C "$REPO" add -- "$REPO/website/src/data/openspec-status.json" >/dev/null 2>&1 || true
   fi
   # Refresh pgvector index via openspec-embed.mjs (best-effort, never aborts).
   _embed_slug "$slug"
@@ -376,11 +385,37 @@ cmd_validate() {
       _validate_delta_file "$capfile" || rc=1
     done
     [[ "$had_cap" -eq 1 ]] || { echo "FAIL: $base specs/ has no capability .md" >&2; rc=1; }
-    [[ -f "$dir/.ticket" ]] || echo "WARN: $base has no .ticket link" >&2
+    # [T003676] fail-closed statt WARN — gleichgezogen mit dem TS-Validator
+    # (scripts/openspec-validate.ts) und dem BATS-Guard ticket-file-required.bats.
+    # Die Ausnahmeliste ist dieselbe Datei, damit die drei Pruefstellen nicht
+    # auseinanderlaufen koennen.
+    if ! _ticket_exempt_slug "$base"; then
+      if [[ ! -f "$dir/.ticket" ]]; then
+        echo "FAIL: $base has no .ticket link" >&2; rc=1
+      elif [[ -z "$(tr -d '[:space:]' < "$dir/.ticket")" ]]; then
+        # Nicht `[ -s ]`: eine Datei mit nur Whitespace ist nicht leer im Sinne von
+        # -s (Groesse > 0), enthaelt aber keinen Ticket-Link. Der TS-Validator prueft
+        # mit .trim() — beide muessen dieselbe Grenze ziehen, sonst laesst der eine
+        # Pfad durch, was der andere ablehnt.
+        echo "FAIL: $base has an empty .ticket" >&2; rc=1
+      fi
+    fi
   done
   shopt -u nullglob
   [[ "$rc" -eq 0 ]] && echo "openspec validate: OK"
   return "$rc"
+}
+
+# [T003676] Slugs ohne .ticket-Pflicht. Liest dieselbe Datei wie der TS-Validator
+# und der BATS-Guard — die Liste wird bewusst nirgends dupliziert, sonst koennten
+# die drei Pruefstellen denselben Change verschieden beurteilen. Fehlt die Datei,
+# bleibt nur der Sonderfall: die Regel wird strenger, nicht laxer (fail-closed).
+_ticket_exempt_slug() {
+  local slug="$1"
+  [[ "$slug" == "openspec-ticket-links-evaluation" ]] && return 0
+  local backlog="$HERE/../tests/spec/openspec-workflow/t002573-backlog-slugs.txt"
+  [[ -f "$backlog" ]] || return 1
+  grep -qxF "$slug" "$backlog"
 }
 
 _validate_delta_file() {

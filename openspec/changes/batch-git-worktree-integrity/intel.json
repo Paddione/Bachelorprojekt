@@ -1,0 +1,427 @@
+{
+  "meta": {
+    "slug": "batch-git-worktree-integrity",
+    "ticket_id": "",
+    "generated_from": "main@98de328d7",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/git-workflow/SKILL.md",
+      "language": "markdown",
+      "loc": 272,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/repo-hygiene-ops.md",
+      "language": "markdown",
+      "loc": 608,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/references/ticket-ops-procedures.md",
+      "language": "markdown",
+      "loc": 560,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".opencode/skills/opencode-git-workflow/SKILL.md",
+      "language": "markdown",
+      "loc": 256,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/agent-lock.sh",
+      "language": "bash",
+      "loc": 694,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 106
+    },
+    {
+      "path": "scripts/git-stash-net.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/git-worktree-health.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/hooks/worktree-write-guard.sh",
+      "language": "bash",
+      "loc": 192,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 608
+    },
+    {
+      "path": "scripts/worktree-clean-check.sh",
+      "language": "bash",
+      "loc": 50,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 750
+    },
+    {
+      "path": "scripts/worktree-create.sh",
+      "language": "bash",
+      "loc": 568,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 232
+    },
+    {
+      "path": "tests/spec/batch-git-worktree-integrity.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": ".claude/skills/references/ticket-ops-procedures.md:144:get_openspec_status() { jq -r --arg id \"$1\" '.[$id] // [] | map(\"\\(.status):\\(.slug)\") | join(\", \")' \"$OMAP_FILE\" 2>/dev/null || echo \"\"; }",
+      "kind": "function",
+      "file": ".claude/skills/references/ticket-ops-procedures.md",
+      "signature": "144:get_openspec_status() { jq -r --arg id \"$1\" '.[$id] // [] | map(\"\\(.status):\\(.slug)\") | join(\", \")' \"$OMAP_FILE\" 2>/dev/null || echo \"\"; }(...)",
+      "type_text": "144:get_openspec_status() { jq -r --arg id \"$1\" '.[$id] // [] | map(\"\\(.status):\\(.slug)\") | join(\", \")' \"$OMAP_FILE\" 2>/dev/null || echo \"\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:26:_now() { date +%s; }",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "26:_now() { date +%s; }(...)",
+      "type_text": "26:_now() { date +%s; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:28:_my_sid() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "28:_my_sid() {(...)",
+      "type_text": "28:_my_sid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:50:_sid_alive() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "50:_sid_alive() {(...)",
+      "type_text": "50:_sid_alive() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:62:_pid_alive() {  # <pid>",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "62:_pid_alive() {  # <pid>(...)",
+      "type_text": "62:_pid_alive() {  # <pid>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:67:_detect_tool() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "67:_detect_tool() {(...)",
+      "type_text": "67:_detect_tool() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:78:_lock_dir() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "78:_lock_dir() {(...)",
+      "type_text": "78:_lock_dir() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:88:_sanitize() { printf '%s' \"$1\" | tr '/ ' '--'; }",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "88:_sanitize() { printf '%s' \"$1\" | tr '/ ' '--'; }(...)",
+      "type_text": "88:_sanitize() { printf '%s' \"$1\" | tr '/ ' '--'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:90:_lock_file() { # <scope> [id]",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "90:_lock_file() { # <scope> [id](...)",
+      "type_text": "90:_lock_file() { # <scope> [id](...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:95:_lock_field() { sed -n \"s/.*\\\"$2\\\": *\\\"\\\\([^\\\"]*\\\\)\\\".*/\\\\1/p\" \"$1\" 2>/dev/null | head -1; }",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "95:_lock_field() { sed -n \"s/.*\\\"$2\\\": *\\\"\\\\([^\\\"]*\\\\)\\\".*/\\\\1/p\" \"$1\" 2>/dev/null | head -1; }(...)",
+      "type_text": "95:_lock_field() { sed -n \"s/.*\\\"$2\\\": *\\\"\\\\([^\\\"]*\\\\)\\\".*/\\\\1/p\" \"$1\" 2>/dev/null | head -1; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:98:_branch_is_live_claimed() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "98:_branch_is_live_claimed() {(...)",
+      "type_text": "98:_branch_is_live_claimed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:111:_reap_log() {  # <lock-file> <reason>",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "111:_reap_log() {  # <lock-file> <reason>(...)",
+      "type_text": "111:_reap_log() {  # <lock-file> <reason>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:128:_unparsable_lock() {  # <lock-file>",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "128:_unparsable_lock() {  # <lock-file>(...)",
+      "type_text": "128:_unparsable_lock() {  # <lock-file>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:138:_reapable() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "138:_reapable() {(...)",
+      "type_text": "138:_reapable() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:239:_lock_is_mine() {  # <lock-file>",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "239:_lock_is_mine() {  # <lock-file>(...)",
+      "type_text": "239:_lock_is_mine() {  # <lock-file>(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:259:_with_lock() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "259:_with_lock() {(...)",
+      "type_text": "259:_with_lock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:271:_write_lock() { # <file>  (reads SCOPE/ID/LABEL/WT/BRANCH/TICKET/CREATED)",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "271:_write_lock() { # <file>  (reads SCOPE/ID/LABEL/WT/BRANCH/TICKET/CREATED)(...)",
+      "type_text": "271:_write_lock() { # <file>  (reads SCOPE/ID/LABEL/WT/BRANCH/TICKET/CREATED)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:291:_holder_msg() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "291:_holder_msg() {(...)",
+      "type_text": "291:_holder_msg() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:300:_git_op_in_progress() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "300:_git_op_in_progress() {(...)",
+      "type_text": "300:_git_op_in_progress() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:318:_self_claim_main_checkout() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "318:_self_claim_main_checkout() {(...)",
+      "type_text": "318:_self_claim_main_checkout() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:332:_reject_arg() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "332:_reject_arg() {(...)",
+      "type_text": "332:_reject_arg() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:345:cmd_claim() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "345:cmd_claim() {(...)",
+      "type_text": "345:cmd_claim() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:445:cmd_refresh() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "445:cmd_refresh() {(...)",
+      "type_text": "445:cmd_refresh() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:456:cmd_release() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "456:cmd_release() {(...)",
+      "type_text": "456:cmd_release() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:473:cmd_check() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "473:cmd_check() {(...)",
+      "type_text": "473:cmd_check() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:487:cmd_check_and_claim() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "487:cmd_check_and_claim() {(...)",
+      "type_text": "487:cmd_check_and_claim() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:544:cmd_check_branch_live() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "544:cmd_check_branch_live() {(...)",
+      "type_text": "544:cmd_check_branch_live() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:555:cmd_list() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "555:cmd_list() {(...)",
+      "type_text": "555:cmd_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:573:cmd_reclaim_main_checkout() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "573:cmd_reclaim_main_checkout() {(...)",
+      "type_text": "573:cmd_reclaim_main_checkout() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:601:cmd_reap() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "601:cmd_reap() {(...)",
+      "type_text": "601:cmd_reap() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/agent-lock.sh:674:main() {",
+      "kind": "function",
+      "file": "scripts/agent-lock.sh",
+      "signature": "674:main() {(...)",
+      "type_text": "674:main() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:41:_allow() { exit 0; }",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "41:_allow() { exit 0; }(...)",
+      "type_text": "41:_allow() { exit 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:85:_field() {  # $1=datei $2=key",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "85:_field() {  # $1=datei $2=key(...)",
+      "type_text": "85:_field() {  # $1=datei $2=key(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:89:_my_sid() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "89:_my_sid() {(...)",
+      "type_text": "89:_my_sid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/hooks/worktree-write-guard.sh:106:_abs_wt() {",
+      "kind": "function",
+      "file": "scripts/hooks/worktree-write-guard.sh",
+      "signature": "106:_abs_wt() {(...)",
+      "type_text": "106:_abs_wt() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-clean-check.sh:17:usage() {",
+      "kind": "function",
+      "file": "scripts/worktree-clean-check.sh",
+      "signature": "17:usage() {(...)",
+      "type_text": "17:usage() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-create.sh:162:_wc_stash_pop_or_warn() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "162:_wc_stash_pop_or_warn() {(...)",
+      "type_text": "162:_wc_stash_pop_or_warn() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-create.sh:371:_rollback() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "371:_rollback() {(...)",
+      "type_text": "371:_rollback() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

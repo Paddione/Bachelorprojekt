@@ -27,21 +27,25 @@ case "$TICKET_STATUS" in
 esac
 ```
 
-### Schritt −1.2: Ticket atomic claimen (check-and-claim) [T002038-M2]
-Verwendet das `check-and-claim` Kommando, das atomisch prüft (kein TOCTOU) und den Claim setzt:
+### Schritt −1.2: Branch atomic claimen [T002038-M2, T003102]
+Verwendet `claim branch` — bewusst NICHT den ticket-Scope: ein ticket-scoped Lock
+der auftraggebenden Session blockt den späteren Abschluss durch Subagent, `ticket-mcp`
+und den post-merge-Poller (drei Prozesse desselben Vorgangs, je eigene SID). Der
+branch-scoped Claim schützt den Worktree, den die Session betritt, blockt den
+Status-Schreibpfad aber nicht. Die Factory sieht ihn über die Ticket-ID im
+Branch-Namen (`factory-prep.sh` prüft beide Scopes). Der Ticket-Status-Check in
+Schritt −1.1 ersetzt den atomaren Status-Check von `check-and-claim`.
 ```bash
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-bash scripts/agent-lock.sh check-and-claim ticket "$TICKET_ID" \
-  --branch "$CURRENT_BRANCH" \
-  --label dev-flow-execute
+bash scripts/agent-lock.sh claim branch "$CURRENT_BRANCH" --worktree "$(pwd)" --label dev-flow-execute
 RET=$?
 case $RET in
-  0) echo "✅ Ticket $TICKET_ID erfolgreich geclaimed." ;;
-  1) echo "🛑 Ticket $TICKET_ID wird bereits von einer anderen Session bearbeitet." >&2
+  0) echo "✅ Branch $CURRENT_BRANCH erfolgreich geclaimed." ;;
+  1) echo "🛑 Branch $CURRENT_BRANCH wird bereits von einer anderen Session bearbeitet." >&2
      echo "   → Mit paralleler Session koordinieren:" >&2
      echo "     bash scripts/agent-msg.sh read --mine --unread" >&2
      exit 1 ;;
-  2) echo "🛑 Ticket $TICKET_ID ist bereits done/merged — Status-Check verweigert Claim." >&2
+  2) echo "🛑 Branch $CURRENT_BRANCH bereits geclaimed — Status-Check verweigert." >&2
      exit 1 ;;
 esac
 ```

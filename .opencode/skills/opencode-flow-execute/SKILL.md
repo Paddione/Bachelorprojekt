@@ -28,11 +28,19 @@ case "$TICKET_STATUS" in
 esac
 ```
 
-### Schritt −1.1: Ticket claimen (atomic check-and-claim) [T002038-M2]
+### Schritt −1.1: Branch claimen [T003102]
+
+> **Branch-scoped statt ticket-scoped (T003102):** ein ticket-scoped Lock der
+> auftraggebenden Session (oder dieser Session) blockt den späteren Abschluss
+> durch Subagent, ticket-mcp und post-merge — drei Prozesse desselben Vorgangs
+> mit je eigener SID. Der branch-scoped Claim schützt den Worktree, den diese
+> Session betritt und ändert, und blockt den Status-Schreibpfad nicht.
+> Die Factory sieht den branch-Lock über die Ticket-ID im Branch-Namen
+> (`factory-prep.sh` prüft beide Scopes) und dispatcht nicht doppelt.
 
 ```bash
-bash scripts/agent-lock.sh check-and-claim ticket "$TICKET_ID" \
-  --branch "$(git branch --show-current)" \
+bash scripts/agent-lock.sh claim branch "$(git branch --show-current)" \
+  --worktree "$(pwd)" \
   --label opencode-flow-execute
 RET=$?
 case $RET in
@@ -92,7 +100,7 @@ PLAN_FILE=$(echo "$PLAN_REF" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
 ## Schritt 1.4: Claim-Verifikation
 
 ```bash
-bash scripts/agent-lock.sh check ticket "$TICKET_ID" | head -1 | grep -q '^mine$' || exit 1
+bash scripts/agent-lock.sh check branch "$(git branch --show-current)" | head -1 | grep -q '^mine$' || exit 1
 ```
 
 ## Schritt 1.5: Ticket auf in_progress setzen
@@ -182,16 +190,56 @@ Läuft **vor** der Verifikation und lokal **vor** dem Push, reduziert die Last a
 
 ## Schritt 3: Lokale Verifikation
 
+> **[T003003] WICHTIG: Verifikation MUSS synchron im VORDERGRUND laufen.** Kein
+> Hintergrund-`task`-Aufruf mit anschliessendem Polling — die Benachrichtigung
+> ueberlebt einen Sessionwechsel nicht (DREI Agents blockierten darauf am
+> 2026-08-09: Arbeit fertig, aber Push/PR/Merge unterblieben).
+
 Phase-Telemetrie (PFLICHT — das Phase-Chain-Gate erzwingt sie):
 ```
 ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "done", driver: "devflow", detail: "Implementierung fertig" })
-ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "task test:changed + freshness" })
+ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "verify", state: "entered", driver: "devflow", detail: "Verifikation (tests + freshness)" })
 ```
 
+### Schritt 3.1: Zielgerichtete Tests (im Vordergrund)
+
+Statt `task test:changed` (das bei breitem Plan-Minuten dauert und zum
+Hintergrund-Muster verleitet) fokussierte Suiten direkt aufrufen:
+
 ```bash
-task workspace:validate
-task test:changed && task freshness:regenerate && task freshness:check
+# Variante A: Gerichtete BATS-Suite (schnell, empfohelen)
+# Leite die Testdomaene aus den vom Branch beruehrten Pfaden ab:
+#   scripts/ → tests/spec/scripts*, tests/spec/ticket-system*
+#   skills/  → tests/spec/skills*
+#   .opencode/ → tests/spec/opencode-*
+PLAN_FILES=$(git diff --name-only origin/main...HEAD)
+if echo "$PLAN_FILES" | grep -q '^scripts/'; then
+  bats -r tests/spec/scripts* tests/spec/ticket-system* || exit 1
+elif echo "$PLAN_FILES" | grep -q '^\.opencode/'; then
+  bats -r tests/spec/opencode-* || exit 1
+else
+  task test:changed || exit 1
+fi
+
+# Variante B: task test:changed (vollstaendig, als Fallback)
+# task test:changed || exit 1
 ```
+
+### Schritt 3.2: Freshness (im Vordergrund)
+
+```bash
+task freshness:regenerate && task freshness:check || exit 1
+```
+
+### Schritt 3.3: Workspace-Validierung
+
+```bash
+task workspace:validate || exit 1
+```
+
+> **Kein || true, kein &, kein Hintergrund.** Jeder Befehl blockiert synchron.
+> Der Agent meldet sich ERST nach vollstaendigem Durchlauf zurueck — kein
+> "waiting for background task to complete"-Pattern. [T003003]
 
 Nach grünen Tests:
 ```
@@ -305,14 +353,20 @@ ticket-mcp: record_phase_event({ id: "$TICKET_ID", phase: "deploy", state: "done
 ```bash
 sed -E -i 's/^status: (active|plan_staged|in_progress)$/status: completed/' "$PLAN_FILE"
 bash scripts/openspec.sh archive "$SLUG"
-git add openspec/changes/
+# [T003136] openspec.sh archive regeneriert website/src/data/openspec-status.json
+# nach dem Move und staged sie bereits selbst (cmd_archive); der explizite
+# Eintrag hier ist Defense-in-Depth und haelt den Skill mit plan-archive-steps.md
+# konsistent. Ohne ihn traegt der Archiv-Commit die Datei nur, wenn der
+# pre-commit-Hook sie auto-staged (SKIP_FRESHNESS_REGEN/--no-verify umgehen das)
+# — PR #4083 fiel genau daran durch den Freshness-Gate.
+git add openspec/changes/ website/src/data/openspec-status.json
 git commit -m "chore(plans): archive $SLUG [$TICKET_ID]"
 ```
 
 ## Schritt 7.5: Worktree bereinigen
 
 ```
-agent-lock.sh release ticket $TICKET_ID && git worktree remove .worktrees/<slug> --force && git branch -D feature/<slug>
+agent-lock.sh release branch "$(git branch --show-current)" && git worktree remove .worktrees/<slug> --force && git branch -D feature/<slug>
 ```
 
 ## Schritt 8: Post-Merge Deploy

@@ -137,7 +137,7 @@ export async function getAllBillingInvoices(params?: {
   const statusFilter = params?.status ? `AND i.status = '${params.status.replace(/'/g,"''")}'` : '';
   const r = await pool.query(
     `SELECT i.*, c.name AS customer_name, c.email AS customer_email
-     FROM billing_invoices i
+     FROM v_billing_invoices_with_state i
      JOIN billing_customers c ON c.id = i.customer_id AND c.brand = $1
      WHERE i.brand = $1 ${statusFilter}
      ORDER BY i.created_at DESC LIMIT $2`,
@@ -151,7 +151,7 @@ export async function getDraftInvoices(): Promise<AdminBillingInvoice[]> {
   const brand = process.env.BRAND || 'mentolder';
   const r = await pool.query(
     `SELECT i.*, c.name AS customer_name, c.email AS customer_email
-     FROM billing_invoices i
+     FROM v_billing_invoices_with_state i
      JOIN billing_customers c ON c.id = i.customer_id AND c.brand = $1
      WHERE i.brand = $1 AND i.status = 'draft'
      ORDER BY i.created_at DESC LIMIT 100`,
@@ -164,7 +164,7 @@ export async function getCustomerInvoices(customerEmail: string): Promise<Billin
   await initBillingTables();
   const brand = process.env.BRAND || 'mentolder';
   const r = await pool.query(
-    `SELECT i.* FROM billing_invoices i
+    `SELECT i.* FROM v_billing_invoices_with_state i
      JOIN billing_customers c ON c.id = i.customer_id AND c.brand = $1
      WHERE i.brand = $1 AND c.email = $2
      ORDER BY i.created_at DESC LIMIT 50`,
@@ -178,7 +178,7 @@ export async function getDraftInvoiceDetail(invoiceId: string): Promise<DraftInv
   const brand = process.env.BRAND || 'mentolder';
   const r = await pool.query(
     `SELECT i.*, c.name AS customer_name, c.email AS customer_email
-     FROM billing_invoices i
+     FROM v_billing_invoices_with_state i
      JOIN billing_customers c ON c.id = i.customer_id AND c.brand = $1
      WHERE i.id = $2 AND i.brand = $1`,
     [brand, invoiceId]

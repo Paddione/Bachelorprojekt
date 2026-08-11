@@ -112,8 +112,12 @@ export async function runDunningDetection(brand: string): Promise<{ generated: n
     paid_amount: number | null;
     customer_id: string;
   }>(
+    // T000375 (View-Migration): paid_amount/dunning_level/last_dunning_at sind
+    // keine Spalten von billing_invoices mehr, sondern werden von
+    // v_billing_invoices_with_state aus billing_invoice_payments bzw.
+    // billing_invoice_dunnings berechnet.
     `SELECT id, number, status, dunning_level, due_date, last_dunning_at, gross_amount, paid_amount, customer_id
-       FROM billing_invoices
+       FROM v_billing_invoices_with_state
       WHERE brand=$1
         AND status IN ('open','partially_paid','overdue','dunning_1','dunning_2')
         AND locked=true`,
@@ -169,11 +173,14 @@ export async function runDunningDetection(brand: string): Promise<{ generated: n
       continue;
     }
 
+    // T000375: dunning_level/last_dunning_at liegen seit der View-Migration in
+    // billing_invoice_dunnings (Zeile oben), nicht mehr auf billing_invoices —
+    // hier wird nur noch der Status fortgeschrieben.
     await pool.query(
       `UPDATE billing_invoices
-          SET status=$2, dunning_level=$3, last_dunning_at=now(), updated_at=now()
+          SET status=$2, updated_at=now()
         WHERE id=$1`,
-      [invoice.id, `dunning_${nextLevel}`, nextLevel]
+      [invoice.id, `dunning_${nextLevel}`]
     );
     await logBillingEvent({
       invoiceId: invoice.id,

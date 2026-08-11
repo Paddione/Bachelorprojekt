@@ -1956,6 +1956,12 @@
     "kind": "shell"
   },
   {
+    "id": "active-sessions-hub/ticket-lock-closure-T003102",
+    "file": "tests/spec/active-sessions-hub/ticket-lock-closure-T003102.bats",
+    "category": "active-sessions-hub",
+    "kind": "shell"
+  },
+  {
     "id": "admin-actions-schema",
     "file": "tests/local/admin-actions-schema.bats",
     "category": "admin-actions-schema",

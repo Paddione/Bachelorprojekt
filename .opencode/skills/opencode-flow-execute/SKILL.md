@@ -28,11 +28,19 @@ case "$TICKET_STATUS" in
 esac
 ```
 
-### Schritt −1.1: Ticket claimen (atomic check-and-claim) [T002038-M2]
+### Schritt −1.1: Branch claimen [T003102]
+
+> **Branch-scoped statt ticket-scoped (T003102):** ein ticket-scoped Lock der
+> auftraggebenden Session (oder dieser Session) blockt den späteren Abschluss
+> durch Subagent, ticket-mcp und post-merge — drei Prozesse desselben Vorgangs
+> mit je eigener SID. Der branch-scoped Claim schützt den Worktree, den diese
+> Session betritt und ändert, und blockt den Status-Schreibpfad nicht.
+> Die Factory sieht den branch-Lock über die Ticket-ID im Branch-Namen
+> (`factory-prep.sh` prüft beide Scopes) und dispatcht nicht doppelt.
 
 ```bash
-bash scripts/agent-lock.sh check-and-claim ticket "$TICKET_ID" \
-  --branch "$(git branch --show-current)" \
+bash scripts/agent-lock.sh claim branch "$(git branch --show-current)" \
+  --worktree "$(pwd)" \
   --label opencode-flow-execute
 RET=$?
 case $RET in
@@ -92,7 +100,7 @@ PLAN_FILE=$(echo "$PLAN_REF" | sed -n 's/.*plan=\([^ ]*\).*/\1/p')
 ## Schritt 1.4: Claim-Verifikation
 
 ```bash
-bash scripts/agent-lock.sh check ticket "$TICKET_ID" | head -1 | grep -q '^mine$' || exit 1
+bash scripts/agent-lock.sh check branch "$(git branch --show-current)" | head -1 | grep -q '^mine$' || exit 1
 ```
 
 ## Schritt 1.5: Ticket auf in_progress setzen
@@ -352,7 +360,7 @@ git commit -m "chore(plans): archive $SLUG [$TICKET_ID]"
 ## Schritt 7.5: Worktree bereinigen
 
 ```
-agent-lock.sh release ticket $TICKET_ID && git worktree remove .worktrees/<slug> --force && git branch -D feature/<slug>
+agent-lock.sh release branch "$(git branch --show-current)" && git worktree remove .worktrees/<slug> --force && git branch -D feature/<slug>
 ```
 
 ## Schritt 8: Post-Merge Deploy

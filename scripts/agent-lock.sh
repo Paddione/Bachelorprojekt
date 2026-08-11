@@ -15,6 +15,48 @@ AGENT_LOCK_GRACE="${AGENT_LOCK_GRACE:-120}"
 # ohne Guard kostete claim-persist.bats Test 4 ~92s lokal / ~310s auf CI-Shard 4.
 AGENT_LOCK_FETCH_TTL="${AGENT_LOCK_FETCH_TTL:-300}"
 
+# [T003102] SCOPE-SEMANTIK — was ein Claim schuetzt und wen er AUSSPERRT.
+#
+#   ticket-scoped  (claim ticket <id>):
+#     * Signal: "an Ticket <id> wird gearbeitet". Dispatch-Gates
+#       (scripts/vda/factory-prep.sh, scripts/factory/watchdog.sh) fragen
+#       `check ticket <id>` vor dem Dispatch ab und ueberspringen gehaltene
+#       Tickets.
+#     * ERZWUNGEN im Status-Schreibpfad: scripts/vda/ticket/_ticket-core.sh
+#       `_ticket_lock_guard` blockt update-status/update-fields bei einem
+#       fremden ticket-Claim (T002282). Das ist der einzige erzwungene Scope.
+#     * FALLE (T003102): der Halter blockt damit den ABSCHLUSS seiner eigenen
+#       Arbeit. Subagent (andere SID), ticket-mcp (eigener Prozess) und der
+#       post-merge-Poller (scripts/factory/auto-close-merged.sh via
+#       github-poller systemd-Timer) schreiben alle im selben Vorgang, keiner
+#       haelt die SID des Claimers — "eine Session = eine SID" haelt nicht.
+#       Seit T003102 blockt `_ticket_lock_guard` den Abschluss
+#       (update-status → done/archived) nicht mehr (closure-Modus), nur noch
+#       nicht-terminale Uebergaenge sind geschuetzt.
+#     * Empfehlung: NUR claimen, wenn DIESE Session den Abschluss selbst
+#       ausfuehrt; nach getaner Arbeit `release ticket <id>`.
+#
+#   branch-scoped  (claim branch <branch>):
+#     * Signal: "im Worktree/Branch <branch> wird gearbeitet" — der
+#       Kollisionsschutz fuer die Dateiarbeit. Respektiert von
+#       worktree-create.sh, babysit-prs.sh (check-branch-live) und dem
+#       worktree-write-guard.
+#     * BLOCKT den Status-Schreibpfad NICHT (`_ticket_lock_guard` prueft nur
+#       den ticket-Scope) — Subagent und post-merge koennen trotzdem
+#       abschliessen. Das Dispatch-Gate in factory-prep.sh sieht einen
+#       branch-Lock ueber die Ticket-ID im Branch-Namen (*-<ext-id>).
+#     * Empfehlung: Standard-Scope fuer Dispatch und Implementierung
+#       (ticket-ops Step 3.6, dev-flow-execute/opencode-flow-execute).
+#
+#   Komponenten, die den ticket-scoped Lock pruefen (T003102-Analyse):
+#     - scripts/vda/ticket/_ticket-core.sh:_ticket_lock_guard — Schreibpfad
+#       (update-status.sh, update-fields.sh), blockt bei fremder SID; seit
+#       T003102 mit closure-Ausnahme fuer done/archived.
+#     - scripts/vda/factory-prep.sh — Dispatch-Gate, ueberspringt gehaltene
+#       Tickets (advisory, gibt Slot frei).
+#     - scripts/factory/watchdog.sh — Orphan-Sweep, haelt in_progress-Tickets
+#       mit Lock als "nicht verwaist".
+
 # Harness-Session-Variablen in Prüfreihenfolge: CLAUDE_CODE_SESSION_ID zuerst. [T002375-p1]
 # [T002671] OPENCODE_SESSION_ID ergaenzt; Sync mit agent-lock-identity.sh halten
 # (diese Kopf-Definition dient als Diagnose-Quelle fuer die Warnmeldung, die

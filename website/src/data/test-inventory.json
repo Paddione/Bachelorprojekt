@@ -2418,6 +2418,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/pre-push-scope-base",
+    "file": "tests/spec/ci-cd/pre-push-scope-base.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/preflight-multi-ticket-id",
     "file": "tests/spec/ci-cd/preflight-multi-ticket-id.bats",
     "category": "ci-cd",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 938,
+      "file_count": 939,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -415,6 +415,7 @@
         "tests/spec/ci-cd/mishap-t002425.bats",
         "tests/spec/ci-cd/pr-refresh-batch.bats",
         "tests/spec/ci-cd/pre-push-artifact-guard.bats",
+        "tests/spec/ci-cd/pre-push-scope-base.bats",
         "tests/spec/ci-cd/preflight-multi-ticket-id.bats",
         "tests/spec/ci-cd/self-hosted-fork-guard.bats",
         "tests/spec/ci-cd/skip-ci-marker-guard.bats",
@@ -3321,7 +3322,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 709,
+      "file_count": 710,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3716,6 +3717,7 @@
         "scripts/hooks/cleanup-tmp.sh",
         "scripts/hooks/inject-plan-context.sh",
         "scripts/hooks/mishap-tracker.sh",
+        "scripts/hooks/pre-push-scope-base.sh",
         "scripts/hooks/precompact-prune.sh",
         "scripts/hooks/worktree-write-guard.sh",
         "scripts/import-users.sh",

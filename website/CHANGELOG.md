@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.269.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.269.0...website-v1.269.1) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** runtime-drift-check guard — gemergte Fixes pruefen [T003825] ([#4288](https://github.com/Paddione/Bachelorprojekt/issues/4288)) ([90a7816](https://github.com/Paddione/Bachelorprojekt/commit/90a78165f927a813f66db6f02bd3b6c7b4cc09fc))
+
 ## [1.269.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.9...website-v1.269.0) (2026-08-11)
 
 

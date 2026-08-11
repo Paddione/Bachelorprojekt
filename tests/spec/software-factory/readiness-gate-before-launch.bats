@@ -74,12 +74,25 @@ _prep_file() { # <ext_id> <branch> <plan_path> <worktree_path>
 # ── Positiv-Anker (T002356-M1) ──────────────────────────────────#
 # MUSS vor der Negativ-Aussage stehen: ohne ihn bestuende der Test unten auch
 # dann, wenn dispatcher-bridge.sh ueberhaupt nichts mehr launcht.
-@test "T003773: Launch-Zeile mit existierendem Branch UND Plan wird gelauncht" {
+#
+# Geprueft wird "die Zeile PASSIERT das Readiness-Gate", nicht "sie wird
+# gelauncht". Der Unterschied ist keine Feinheit: unmittelbar nach dem Gate steht
+# der budget-guard, der ohne erreichbare DB fail-closed blockt. In CI gibt es
+# keine DB, "would launch" kann dort also nie erscheinen — ein Anker darauf misst
+# die Infrastruktur des Runners, nicht den Code (zweiter Fall dieser Art in
+# diesem Ticket, nach der origin/main-Abhaengigkeit; vgl. T002820).
+#
+# Beide moeglichen Folgezeilen belegen dasselbe: das Gate war durchlaessig.
+# Zugleich ist das die Zusicherung, dass das Gate VOR dem budget-guard sitzt —
+# eine planlose Zeile darf den budget-guard gar nicht erst erreichen (Test unten).
+@test "T003773: Zeile mit existierendem Branch UND Plan passiert das Readiness-Gate" {
   local f; f="$(_prep_file T-READY main "$PLAN_ON_BRANCH" /tmp)"
 
   _run_bridge "$f"
   [ "$status" -eq 0 ]
-  echo "$output" | grep -qF "would launch pipeline for T-READY"
+  echo "$output" | grep -F "T-READY" | grep -qE "would launch pipeline|launching pipeline|budget-guard"
+  # Und ausdruecklich NICHT am Readiness-Gate gescheitert:
+  [ "$(printf '%s\n' "$output" | grep -F "T-READY" | grep -c "not ready")" -eq 0 ]
 }
 
 # ── Negativ-Aussage ─────────────────────────────────────────────#
@@ -89,8 +102,11 @@ _prep_file() { # <ext_id> <branch> <plan_path> <worktree_path>
   _run_bridge "$f"
   [ "$status" -eq 0 ]
   # Kein Launch — weder echt noch als Dry-Run-Ankuendigung.
-  ! echo "$output" | grep -qF "would launch pipeline for T-NOPLAN"
-  ! echo "$output" | grep -qF "launching pipeline for T-NOPLAN"
+  [ "$(printf '%s\n' "$output" | grep -cF "would launch pipeline for T-NOPLAN")" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -cF "launching pipeline for T-NOPLAN")" -eq 0 ]
+  # Und der budget-guard wird gar nicht erst erreicht: das Gate sitzt davor, also
+  # verbraucht eine planlose Zeile weder Budget noch Gang-Slot.
+  [ "$(printf '%s\n' "$output" | grep -F "T-NOPLAN" | grep -c "budget-guard")" -eq 0 ]
 }
 
 @test "T003773: der Skip nennt den Readiness-Grund, statt still zu verschwinden" {
@@ -132,5 +148,5 @@ EXEC="${REPO_ROOT}/scripts/factory/opencode-exec.sh"
 
   _run_bridge "$f"
   [ "$status" -eq 0 ]
-  ! echo "$output" | grep -qF "would launch pipeline for T-GHOSTPLAN"
+  [ "$(printf '%s\n' "$output" | grep -cF "would launch pipeline for T-GHOSTPLAN")" -eq 0 ]
 }

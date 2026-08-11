@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 947,
+      "file_count": 948,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -705,6 +705,7 @@
         "tests/spec/secret-rotation-exposure.bats",
         "tests/spec/secret-rotation.bats",
         "tests/spec/secrets-deploy-automation.bats",
+        "tests/spec/secrets-deploy-automation/schema-dev-secrets-sync.bats",
         "tests/spec/security.bats",
         "tests/spec/sessions-server.bats",
         "tests/spec/sidekick-assistant.bats",

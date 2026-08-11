@@ -1,22 +1,32 @@
 #!/usr/bin/env bash
 # scripts/plan-intel.sh — deterministic intel.json generator
-# Usage: scripts/plan-intel.sh <slug> [--target-files <f1,f2,...>] [--out <pfad>]
+# Usage: scripts/plan-intel.sh <slug> [--target-files <f1> [<f2> ...]] [--out <pfad>]
 # Generates a schema-conformant Plan Intel Bundle at openspec/changes/<slug>/intel.json.
 # Deterministic: same inputs produce identical output (git SHA aside).
 set -euo pipefail
 
-SLUG="${1:?Usage: plan-intel.sh <slug> [--target-files <f1,f2,...>] [--out <pfad>]}"
+SLUG="${1:?Usage: plan-intel.sh <slug> [--target-files <f1> [<f2> ...]] [--out <pfad>]}"
 shift
 
 TARGET_FILES=""
 OUT_PATH=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --target-files) shift; TARGET_FILES="$1" ;;
-    --out) shift; OUT_PATH="$1" ;;
+    # [T003623] --target-files ist variadisch: alle folgenden Argumente bis zum
+    # naechsten --Flag werden als Pfade gesammelt und komma-vereinigt — der
+    # Datei-Split unten laeuft bereits `IFS=',' read -ra FILES`.
+    --target-files)
+      shift
+      _paths=""
+      while [[ $# -gt 0 && "$1" != --* ]]; do
+        _paths="${_paths:+$_paths,}$1"
+        shift
+      done
+      TARGET_FILES="$_paths"
+      ;;
+    --out) shift; OUT_PATH="$1"; shift ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
-  shift
 done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

@@ -54,6 +54,9 @@ teardown() {
 
 # Ein Plan mit Frontmatter und mindestens 10 Zeilen — beides prueft das Skript vor
 # dem Gateway-Kontakt und braeche sonst mit exit 1 ab, bevor der Parse-Pfad laeuft.
+# Seit [T003381] prueft das Skript die drei Abschluss-Kommandos deterministisch VOR
+# dem Gateway — die Fixture muss sie enthalten, sonst endet jeder Lauf schon im
+# Pre-Check mit RESULT: FAIL und kein Gateway-Pfad wird erreicht.
 mkplan() {
   cat > "$1" <<'PLANEOF'
 ---
@@ -72,6 +75,12 @@ status: active
 ## Task 1: Beispiel
 
 Ein Schritt, damit der Plan die Mindestlaenge erreicht.
+
+## Task 2: Abschluss
+
+- `task test:changed`
+- `task freshness:regenerate`
+- `task freshness:check`
 PLANEOF
 }
 
@@ -87,6 +96,7 @@ free_port() {
 #   plain  — nacktes JSON-Objekt, verdict PASS (der Fall, den das Skript heute kann)
 #   fenced — dasselbe Objekt in einem ```json-Fence, verdict FAIL mit echtem Befund
 #   prose  — ueberhaupt kein JSON (Modell antwortet in Prosa)
+#   fail_then_pass — Request 1: FAIL mit suggestions, Request 2: PASS (T003621)
 start_fake_gateway() {
   local port="$1" mode="$2"
   python3 - "$port" "$mode" <<'PYEOF' &
@@ -107,8 +117,20 @@ FENCED = (
     + "\n```"
 )
 PROSE = "Ich habe den Plan geprueft und finde ihn insgesamt schluessig."
+FTP = json.dumps({
+    "verdict": "FAIL",
+    "missing": ["Kriterium 1: kein Pfad"],
+    "suggestions": "Konkreten Pfad nennen.",
+})
 
-CONTENT = {"plain": PLAIN, "fenced": FENCED, "prose": PROSE}[MODE]
+STATE = {"n": 0}
+
+
+def content():
+    if MODE != "fail_then_pass":
+        return {"plain": PLAIN, "fenced": FENCED, "prose": PROSE}[MODE]
+    STATE["n"] += 1
+    return FTP if STATE["n"] == 1 else PLAIN
 
 
 class H(BaseHTTPRequestHandler):
@@ -128,7 +150,7 @@ class H(BaseHTTPRequestHandler):
 
     def do_POST(self):
         self.rfile.read(int(self.headers.get("content-length") or 0))
-        self._send(200, json.dumps({"choices": [{"message": {"content": CONTENT}}]}))
+        self._send(200, json.dumps({"choices": [{"message": {"content": content()}}]}))
 
     def log_message(self, *a):
         pass
@@ -247,5 +269,62 @@ PYEOF
     && { echo "REGRESSION: Auto-Fix-Versuch trotz unlesbarer Antwort"; echo "$output"; return 1; }
   [ "$before" = "$after" ] \
     || { echo "REGRESSION: Plandatei wurde bei unlesbarer Antwort veraendert"; echo "$output"; return 1; }
+  return 0
+}
+
+@test "T003621: PASS nach Auto-Fix-Iteration hinterlaesst die Plandatei byte-identisch" {
+  # Request 1 → FAIL mit suggestions (Auto-Fix haengt die QA-Ergaenzungen-Sektion
+  # an), Request 2 → PASS. Vor dem Fix blieb die '## QA-Ergänzungen'-Sektion im
+  # Artefakt zurueck — ein gruener Lauf mutierte die Plandatei.
+  local port; port="$(free_port)"
+  start_fake_gateway "$port" fail_then_pass
+
+  local before after
+  before="$(md5sum < "$PLAN")"
+  GATEWAY_BASE_URL="http://127.0.0.1:${port}" run bash "$QA" "$PLAN"
+  after="$(md5sum < "$PLAN")"
+
+  echo "$output" | grep -Eq 'RESULT:[[:space:]]*PASS' \
+    || { echo "MISSING: Ergebniszeile RESULT: PASS"; echo "$output"; return 1; }
+  [ "$status" -eq 0 ] || { echo "erwartet exit 0 bei PASS, war $status"; echo "$output"; return 1; }
+  [ "$before" = "$after" ] \
+    || { echo "REGRESSION: Plandatei nach PASS nicht byte-identisch zum Eingang"; echo "$output"; return 1; }
+  grep -qF '## QA-Ergänzungen' "$PLAN" \
+    && { echo "REGRESSION: QA-Ergaenzungen-Sektion trotz PASS im Artefakt"; return 1; }
+  return 0
+}
+
+@test "T003381: fehlendes Abschluss-Kommando wird deterministisch ohne Gateway erkannt" {
+  # Kriterium 5 wird vor dem Gateway-Kontakt per grep geprueft (plan-lint STRUCT3
+  # analog). Ein Plan ohne 'task freshness:check' muss RESULT: FAIL liefern und
+  # exit 1 — auch wenn kein Gateway lauscht (deterministisch, offline).
+  local plan_no_cmd="$TMP/plan-no-check.md"
+  sed 's/task freshness:check//' "$PLAN" > "$plan_no_cmd"
+  grep -qF 'task freshness:check' "$plan_no_cmd" && { echo "Fixture kaputt: Kommando noch da"; return 1; }
+
+  local port; port="$(free_port)"
+  GATEWAY_BASE_URL="http://127.0.0.1:${port}" run bash "$QA" "$plan_no_cmd"
+
+  echo "$output" | grep -Eq 'RESULT:[[:space:]]*FAIL' \
+    || { echo "MISSING: deterministisches FAIL"; echo "$output"; return 1; }
+  echo "$output" | grep -qF 'freshness:check' \
+    || { echo "MISSING: fehlendes Kommando wird benannt"; echo "$output"; return 1; }
+  [ "$status" -eq 1 ] || { echo "erwartet exit 1 bei deterministischem FAIL, war $status"; echo "$output"; return 1; }
+  return 0
+}
+
+@test "T003381: Plan mit allen drei Kommandos als Checkbox-Task + Gateway PASS ergibt PASS" {
+  # Kein Widerspruch zu plan-lint: die drei Kommandos als Checkbox-Task im Index
+  # sind STRUCT3-konform — Kriterium 5 darf darueber nicht falsch-positiv faellen.
+  local port; port="$(free_port)"
+  start_fake_gateway "$port" plain
+
+  GATEWAY_BASE_URL="http://127.0.0.1:${port}" run bash "$QA" "$PLAN"
+
+  [ "$status" -eq 0 ] || { echo "erwartet exit 0 bei PASS, war $status"; echo "$output"; return 1; }
+  echo "$output" | grep -Eq 'RESULT:[[:space:]]*PASS' \
+    || { echo "MISSING: RESULT: PASS"; echo "$output"; return 1; }
+  echo "$output" | grep -qiF 'deterministisch' \
+    || { echo "MISSING: Kriterium 5 wird als deterministisch geprueft ausgewiesen"; echo "$output"; return 1; }
   return 0
 }

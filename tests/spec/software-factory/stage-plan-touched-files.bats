@@ -161,6 +161,29 @@ PLAN
   [ -z "$output" ]
 }
 
+@test "T003619: leere File-Structure bleibt leer, auch wenn der Branch einen Diff hat" {
+  # T003619 — der [T002765]-Diff-Beitrag ist ERGAENZUNG, nie Quelle. Vor dem Fix
+  # fuellte der Branch-Diff gegen den Merge-Base das stdout einer leeren
+  # File-Structure (Branch-Commits -> nicht-leerer Diff -> stdout gefuellt,
+  # stderr-Warnung verschwunden). Auf main ist der Diff leer und der Test vakuos
+  # (skip); auf einem Feature-Branch mit eigenen Commits ist er bindend.
+  local mb
+  mb="$(git -C "$REPO_ROOT" merge-base origin/main HEAD 2>/dev/null || true)"
+  if [[ -z "$mb" ]] || [[ -z "$(git -C "$REPO_ROOT" diff --name-only "$mb" HEAD 2>/dev/null)" ]]; then
+    skip "kein Branch-Diff gegen origin/main — Test waere vakuos"
+  fi
+
+  _plan_with_fs "$FIX/empty-branch-diff.md" <<'PLAN'
+Keine Dateien — reine Cluster-Operation.
+PLAN
+
+  run --separate-stderr bash "$DERIVE" "$FIX/empty-branch-diff.md"
+  # exit 0, stderr-Warnung, stdout LEER — der Branch-Diff darf nichts füllen.
+  [ "$status" -eq 0 ]
+  [ -n "$stderr" ]
+  [ -z "$output" ]
+}
+
 @test "T002446: stage-plan ruft den Ableiter auf und schreibt touched_files" {
   # Statischer Nachweis der Verdrahtung. Ohne ihn koennte der Ableiter perfekt
   # funktionieren und trotzdem nie laufen — genau die Luecke, die dieses Ticket behebt.

@@ -156,3 +156,36 @@ _gen() {
   }
 }
 
+@test "T003623: --target-files akzeptiert mehrere leerzeichen-getrennte Pfade" {
+  # Vor dem Fix brach der Generator mit "Unknown option: <zweiter Pfad>" ab, weil
+  # der --target-files-Zweig genau EIN Argument las. opencode-flow-plan Step A.1.5
+  # ruft aber `plan-intel.sh <slug> --target-files <datei1> <datei2> ...` auf.
+  run bash "$REPO/scripts/plan-intel.sh" "$SLUG" \
+    --target-files scripts/plan-intel.sh scripts/plan-qa-check.sh scripts/plan-touched-files.sh
+  [ "$status" -eq 0 ] || { echo "Generator failed: $output"; false; }
+
+  local count
+  count="$(jq '[.impact_files[].path] | index("scripts/plan-intel.sh") != null and index("scripts/plan-qa-check.sh") != null and index("scripts/plan-touched-files.sh") != null' "$INTEL")"
+  [ "$count" = "true" ] || {
+    echo "impact_files enthaelt nicht alle drei Pfade:"
+    jq -c '[.impact_files[].path]' "$INTEL"
+    false
+  }
+}
+
+@test "T003623: Komma-Form bleibt kompatibel (--target-files a,b)" {
+  # Abwaertskompatibilitaet fuer die interne _resolve_target_files-Verdrahtung,
+  # die komma-vereinigt liefert.
+  run bash "$REPO/scripts/plan-intel.sh" "$SLUG" \
+    --target-files scripts/plan-intel.sh,scripts/plan-qa-check.sh
+  [ "$status" -eq 0 ] || { echo "Generator failed: $output"; false; }
+
+  local count
+  count="$(jq '[.impact_files[].path] | index("scripts/plan-intel.sh") != null and index("scripts/plan-qa-check.sh") != null' "$INTEL")"
+  [ "$count" = "true" ] || {
+    echo "Komma-Form: impact_files unvollstaendig:"
+    jq -c '[.impact_files[].path]' "$INTEL"
+    false
+  }
+}
+

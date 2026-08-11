@@ -2,8 +2,9 @@
 // Pfad -> Vollziel (inkl. Query-String, zeichengenau). Alle Treffer werden als 301 (permanent)
 // ausgeliefert (siehe middleware.ts). Dynamische Routen (bugs, meetings/[id], brett/*) sind
 // BEWUSST NICHT enthalten — sie bilden ihr Ziel zur Laufzeit aus Request-Daten.
-// /admin/pipeline steht NICHT in dieser Karte, da REDIRECT_MAP den Query-String nicht durchreicht;
-// die query-erhaltende Weiterleitung von /admin/pipeline erfolgt in pipeline.astro.
+// /admin/pipeline steht in dieser Karte (Zeile unten) und wird ohne Query-String
+// weitergeleitet; die query-erhaltende Weiterleitung erfolgt zusaetzlich in pipeline.astro.
+// (Der Kommentar behauptete bis T003826 das Gegenteil.)
 //
 // ADR-006 Etappe 1 (T002624): Die 12 SDLC-Seiten sind nach /sdlc/ umgezogen.
 // Die Redirects sind befristet — mit Etappe 4 verschwinden die Routen aus dem

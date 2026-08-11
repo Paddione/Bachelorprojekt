@@ -2,7 +2,7 @@
 title: "batch-repo-hygiene-ops-fixes — Implementation Plan"
 ticket_id: T003490
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: T003490

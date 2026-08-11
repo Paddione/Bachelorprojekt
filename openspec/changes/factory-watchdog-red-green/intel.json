@@ -31,6 +31,14 @@
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
+    },
+    {
+      "path": "tests/spec/factory/watchdog-red-green.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
     }
   ],
   "symbols": [

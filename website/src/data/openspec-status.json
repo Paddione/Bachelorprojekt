@@ -2919,6 +2919,12 @@
       "status": "archived"
     }
   ],
+  "T002827": [
+    {
+      "slug": "fix-prepush-stale-scope",
+      "status": "plan_staged"
+    }
+  ],
   "T002836": [
     {
       "slug": "2026-08-10-ci-ticketless-changes",
@@ -3027,6 +3033,12 @@
       "status": "archived"
     }
   ],
+  "T002929": [
+    {
+      "slug": "fix-plan-agent-readiness",
+      "status": "plan_staged"
+    }
+  ],
   "T002931": [
     {
       "slug": "2026-08-10-mishap-rollup-loop",
@@ -3049,6 +3061,12 @@
     {
       "slug": "2026-08-10-fix-k3d-kubelet-cert-T002999",
       "status": "archived"
+    }
+  ],
+  "T003003": [
+    {
+      "slug": "fix-devflow-background-block",
+      "status": "plan_staged"
     }
   ],
   "T003008": [
@@ -3093,6 +3111,12 @@
       "status": "archived"
     }
   ],
+  "T003102": [
+    {
+      "slug": "fix-ticket-lock-subagent",
+      "status": "plan_staged"
+    }
+  ],
   "T003103": [
     {
       "slug": "preflight-scope-multi-ticket",
@@ -3133,6 +3157,12 @@
     {
       "slug": "2026-08-10-mishap-dedupe-konversion",
       "status": "archived"
+    }
+  ],
+  "T003136": [
+    {
+      "slug": "fix-archive-freshness-gate",
+      "status": "plan_staged"
     }
   ],
   "T003137": [
@@ -3201,6 +3231,12 @@
       "status": "archived"
     }
   ],
+  "T003275": [
+    {
+      "slug": "2026-08-11-opencode-exec-path-resolution",
+      "status": "archived"
+    }
+  ],
   "T003276": [
     {
       "slug": "2026-08-10-quickwins-script-fixes",
@@ -3213,15 +3249,63 @@
       "status": "archived"
     }
   ],
+  "T003278": [
+    {
+      "slug": "2026-08-11-bats-missing-file-exit0",
+      "status": "archived"
+    }
+  ],
   "T003417": [
     {
       "slug": "2026-08-10-sdlc-dashboard-redesign",
       "status": "archived"
     }
   ],
+  "T003490": [
+    {
+      "slug": "2026-08-11-batch-repo-hygiene-ops-fixes",
+      "status": "archived"
+    }
+  ],
+  "T003539": [
+    {
+      "slug": "batch-git-worktree-integrity",
+      "status": "plan_staged"
+    }
+  ],
+  "T003540": [
+    {
+      "slug": "batch-ci-check-evaluation",
+      "status": "plan_staged"
+    }
+  ],
+  "T003541": [
+    {
+      "slug": "batch-ticket-ops-meta",
+      "status": "plan_staged"
+    }
+  ],
   "T003553": [
     {
       "slug": "fix-mishap-buffer-no-conversion",
+      "status": "plan_staged"
+    }
+  ],
+  "T003612": [
+    {
+      "slug": "fix-devflow-ciwatch-cwd-head",
+      "status": "plan_staged"
+    }
+  ],
+  "T003765": [
+    {
+      "slug": "auto-close-plan-only-all-branches",
+      "status": "plan_staged"
+    }
+  ],
+  "T003773": [
+    {
+      "slug": "fix-factory-readiness-gate",
       "status": "plan_staged"
     }
   ],

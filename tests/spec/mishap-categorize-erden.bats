@@ -25,11 +25,14 @@ setup() {
 
 @test "T002401: existing categories are fetched before LLM call" {
   [ -f "$SCRIPT" ]
-  # The _fetch_existing_categories call must appear BEFORE the DEEPSEEK_API_KEY check
-  local cat_line
-  cat_line=$(grep -n '_fetch_existing_categories' "$SCRIPT" | head -1 | cut -d: -f1)
-  local api_line
-  api_line=$(grep -n 'DEEPSEEK_API_KEY' "$SCRIPT" | grep -v '^[[:space:]]*#' | head -1 | cut -d: -f1)
+  # The _fetch_existing_categories call must appear BEFORE the DEEPSEEK_API_KEY check.
+  # [T003796] `_fetch_existing_categories` steht 2x im Skript (Funktionsdefinition +
+  # Aufruf), `DEEPSEEK_API_KEY` 3x. Der Funktionsaufruf ist die Zuweisung
+  # `existing_categories=$(_fetch_existing_categories ...)`; gemessen wird er per
+  # awk auf die erste Zeile, die den Aufruf (nicht die Definition) traegt.
+  local cat_line api_line
+  cat_line=$(awk '/_fetch_existing_categories 2>\/dev\/null/ { print NR; exit }' "$SCRIPT")
+  api_line=$(awk '!/^[[:space:]]*#/ && /DEEPSEEK_API_KEY/ { print NR; exit }' "$SCRIPT")
   [ -n "$cat_line" ]
   [ -n "$api_line" ]
   [ "$cat_line" -lt "$api_line" ]

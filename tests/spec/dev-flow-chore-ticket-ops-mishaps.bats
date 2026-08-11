@@ -64,10 +64,15 @@ setup() {
   # not in a later deploy section. Find the line of the "## Schritt 4"
   # header, the line of "## Schritt 5", and the line of the guard
   # reference; the reference must be between those two lines.
+  # [T003796] Guard-Suche auf den Bereich Schritt 4..5 eingeschraenkt statt
+  # dokumentweites head -1: ein frueherer Vorkommen des Begriffs oberhalb von
+  # Schritt 4 wuerde den Guard faelschlich rot faerben (T003104).
   local step4 schritt5 guard
   step4="$(grep -n '^## Schritt 4' "$DEV_FLOW_CHORE_SKILL" | head -1 | cut -d: -f1)"
   schritt5="$(grep -n '^## Schritt 5' "$DEV_FLOW_CHORE_SKILL" | head -1 | cut -d: -f1)"
-  guard="$(grep -nE 'git-crypt-Staging-Guard \[T001210\]' "$DEV_FLOW_CHORE_SKILL" | head -1 | cut -d: -f1)"
+  guard="$(awk -v a="$step4" -v b="$schritt5" \
+    'NR > a && NR < b && /git-crypt-Staging-Guard \[T001210\]/ { print NR; exit }' \
+    "$DEV_FLOW_CHORE_SKILL")"
   [ -n "$step4" ]
   [ -n "$schritt5" ]
   [ -n "$guard" ]
@@ -114,8 +119,11 @@ setup() {
   local step4 ref
   step4="$(grep -nE '^##[[:space:]]+4\.[[:space:]]' "$REPO_HYGIENE_OPS" | head -1 | cut -d: -f1)"
   [ -n "$step4" ]
-  # Look for T001147 (or T001148, the prior mishap bundle) in the file.
-  ref="$(grep -nE 'T001147|T001148' "$REPO_HYGIENE_OPS" | head -1 | cut -d: -f1)"
+  # Look for T001147 (or T001148, the prior mishap bundle) after Step 4 —
+  # [T003796] scoped, not document-wide head -1 (T003104).
+  ref="$(awk -v s="$step4" \
+    'NR > s && /T001147|T001148/ { print NR; exit }' \
+    "$REPO_HYGIENE_OPS")"
   [ -n "$ref" ]
   [ "$ref" -gt "$step4" ]
 }

@@ -3319,7 +3319,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 708,
+      "file_count": 709,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3693,6 +3693,7 @@
         "scripts/gh-branch-protection.sh",
         "scripts/git-crypt-guard.sh",
         "scripts/git-safe-push.sh",
+        "scripts/git-worktree-health.sh",
         "scripts/gpu-lock.sh",
         "scripts/guard-bonsai-overwrite.sh",
         "scripts/guard-pnpm-install.sh",

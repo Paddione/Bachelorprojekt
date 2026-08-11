@@ -45,14 +45,31 @@ test('FA-UNIF-07: Mobile — Tab-Wechsel funktioniert bei 390px', async ({ page 
   await expect(page.locator('.tabs__tab--active')).toContainText('Planung');
 });
 
-test('FA-UNIF-08: Sidebar hat genau einen Cockpit-Eintrag', async ({ page }) => {
+// T003826: Die Sidebar führt KEINEN Cockpit-Eintrag mehr. Die SDLC-Oberflächen liegen unter
+// website/src/pages/sdlc/ und werden bei BUILD_TARGET=prod aus dem Route-Manifest entfernt
+// (build-target.mjs) — ein Eintrag darauf führte in eine Route, die es im Image nicht gibt.
+// Erreichbar sind sie über die lokale SDLC-Console. Der Test prüft daher jetzt die Abwesenheit.
+test('FA-UNIF-08: Sidebar führt keine im prod-Build entfernten SDLC-Routen', async ({ page }) => {
   await page.goto('/admin');
-  const cockpitLinks = page.locator('#admin-sidebar a[href="/admin/cockpit"]');
-  await expect(cockpitLinks).toHaveCount(1);
-  await expect(cockpitLinks.first()).toContainText('Cockpit');
-  await expect(page.locator('#admin-sidebar a[href="/admin/pipeline"]')).toHaveCount(0);
-  await expect(page.locator('#admin-sidebar a[href="/dev-status"]')).toHaveCount(0);
-  await expect(page.locator('#admin-sidebar a[href="/admin/planungsbuero"]')).toHaveCount(0);
+
+  // Positiv-Anker zuerst: ohne ihn bestünden die Count-0-Zusicherungen unten auch dann,
+  // wenn die Sidebar gar nicht gerendert wurde (CLAUDE.md § Positiv-Anker-Pflicht).
+  await expect(page.locator('#admin-sidebar a')).not.toHaveCount(0);
+  await expect(page.locator('#admin-sidebar a[href="/admin/inhalte"]')).toHaveCount(1);
+
+  for (const gone of [
+    '/admin/cockpit',
+    '/admin/pipeline',
+    '/admin/repohealth',
+    '/admin/prompts',
+    '/admin/ki-konfiguration',
+    '/admin/app-catalog',
+    '/admin/systemtest/board',
+    '/dev-status',
+    '/admin/planungsbuero',
+  ]) {
+    await expect(page.locator(`#admin-sidebar a[href="${gone}"]`)).toHaveCount(0);
+  }
 });
 
 test('FA-UNIF-09: Attention strip appears when a workpiece is blocked', async ({ page }) => {

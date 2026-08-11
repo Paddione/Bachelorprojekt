@@ -37,49 +37,18 @@ WEB="$BATS_TEST_DIRNAME/../../website/src"
   [ -f "$ADMIN_SIDEBAR" ]
 }
 
-@test "admin-nav-accordion: AdminSidebarNav has accordion toggle" {
-  run grep -qF "accordion" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-}
-
-@test "admin-nav-accordion: AdminSidebarNav has sidebar-group-btn" {
-  run grep -qF "sidebar-group-btn" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-}
-
-@test "admin-nav-accordion: AdminSidebarNav has accordion-arrow" {
-  run grep -qF "accordion-arrow" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-}
-
-@test "admin-nav-accordion: AdminSidebarNav has collapsed toggle logic" {
-  run grep -qE "is-collapsed|collapsed" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-}
-
-@test "admin-nav-accordion: AdminSidebarNav toggles collapse state on click" {
-  # T002181: `grep -qF "addEventListener.*click"` nahm `.*` als Literal (-F) und
-  # fand nie etwas. Der `|| run …`-Fallback griff nie, weil `run` selbst immer
-  # mit 0 zurückkehrt — die zweite Prüfung war toter Code. Jetzt wird der
-  # Mechanismus wirklich geprüft: Click-Handler UND Zustandsumschaltung.
-  run grep -qE "addEventListener\(['\"]click['\"]" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-  run grep -qE "classList\.toggle\(" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-  # a11y: der Toggle muss seinen Zustand auch bekanntgeben.
-  run grep -qF "aria-expanded" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-}
-
-@test "admin-nav-accordion: AdminSidebarNav has workshop section" {
-  run grep -qF "Werkstatt" "$ADMIN_SIDEBAR" || \
-  run grep -qF "workshop" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-}
-
-@test "admin-nav-accordion: AdminSidebarNav has infrastructure section" {
-  run grep -qF "Infrastruktur" "$ADMIN_SIDEBAR" || \
-  run grep -qF "infrastruktur" "$ADMIN_SIDEBAR" || \
-  run grep -qF "infrastruktur" "$ADMIN_SIDEBAR"
-  [ "$status" -eq 0 ]
-}
+# T003826: Die sieben vormaligen Assertions auf Akkordeon-Steuerelemente
+# (`sidebar-group-btn`, `accordion-arrow`, `is-collapsed`, Click-Listener) und auf die
+# Sektionsnamen „Werkstatt"/„Infrastruktur" sind ersatzlos entfallen. Sie greppten den
+# Quelltext der Komponente und belegten damit die Schreibweise von Zeichenketten, nicht
+# dass Navigation funktioniert (CLAUDE.md § Test-Resultats-Konvention, T002448-M4).
+#
+# Das Sidebar-Akkordeon gibt es nicht mehr: nach dem Entfernen der SDLC-Einträge
+# verbleiben zu wenige Einträge, als dass ein Aufklappen etwas verbergen würde.
+#
+# An ihre Stelle tritt website/src/lib/admin/nav-items.test.ts — der Guard importiert die
+# Nav-Definition samt resolveRedirect() und prüft das ERGEBNIS der Pfadauflösung: kein
+# Eintrag darf über REDIRECT_MAP in einer /sdlc/-Route landen, die build-target.mjs bei
+# BUILD_TARGET=prod aus dem Manifest entfernt.
+#
+# Der Existenz-Test oben bleibt: er prüft die Datei, nicht ihre Formatierung.

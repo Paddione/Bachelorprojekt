@@ -12,12 +12,17 @@ setup() {
 }
 
 @test "sidebar Sessions item points to coaching/sessions and matches sessions and fragebogen" {
-  run grep -qF "href: '/admin/coaching/sessions',   label: 'Sessions',     icon: 'clipboard', matches: ['/admin/coaching/sessions', '/admin/fragebogen']" "$WEB/components/admin/AdminSidebarNav.astro"
+  # T003826: Definition liegt in src/lib/admin/nav-items.ts und ist mehrzeilig formatiert —
+  # ein Match ueber die ganze Zeile traegt dort nicht mehr. Gepruefte Semantik statt Darstellung:
+  # der Eintrag existiert und fuehrt die beiden matches-Pfade (T002716).
+  run grep -qF "href: '/admin/coaching/sessions'" "$WEB/lib/admin/nav-items.ts"
+  [ "$status" -eq 0 ]
+  run grep -qF "matches: ['/admin/coaching/sessions', '/admin/fragebogen']" "$WEB/lib/admin/nav-items.ts"
   [ "$status" -eq 0 ]
 }
 
 @test "sidebar does not reference the removed coaching studio route" {
-  run grep -qF "href: '/admin/coaching/studio'" "$WEB/components/admin/AdminSidebarNav.astro"
+  run grep -qF "href: '/admin/coaching/studio'" "$WEB/lib/admin/nav-items.ts"
   [ "$status" -ne 0 ]
 }
 

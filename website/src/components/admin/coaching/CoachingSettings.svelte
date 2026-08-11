@@ -270,7 +270,9 @@
   </div>
 
   {#if activeTab === 'ki'}
-    <div class="ki-global-hint"><span>Globales KI-Routing (Chat, Tickets, Meetings):</span> <a href="/admin/ki-konfiguration" class="hint-link">KI-Konfiguration →</a></div>
+    <!-- T003826: Link auf /admin/ki-konfiguration entfernt — die Seite liegt unter
+         /sdlc/ und wird im prod-Build aus dem Route-Manifest gefiltert. -->
+    <div class="ki-global-hint"><span>Globales KI-Routing (Chat, Tickets, Meetings) wird in der SDLC-Console gepflegt.</span></div>
     {#if editingProvider}
       <div class="edit-panel">
         <div class="edit-panel-header">

@@ -4536,6 +4536,12 @@
     "kind": "shell"
   },
   {
+    "id": "website-core/admin-nav-no-sdlc-routes",
+    "file": "tests/spec/website-core/admin-nav-no-sdlc-routes.bats",
+    "category": "website-core",
+    "kind": "shell"
+  },
+  {
     "id": "website-core/portrait-derivate-crop",
     "file": "tests/spec/website-core/portrait-derivate-crop.bats",
     "category": "website-core",

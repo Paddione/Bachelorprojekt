@@ -120,16 +120,25 @@ _ticket_offline_refuse_read() {
   return 1
 }
 
-# _ticket_lock_guard <external_id> — Durchsetzung der bisher rein advisory
+# _ticket_lock_guard <external_id> [closure] — Durchsetzung der bisher rein advisory
 # agent-lock.sh-Claims im Schreibpfad. Dispatch-Gates (dispatcher-prep.sh,
 # babysit-prs.sh) fragen den Lock vor dem Dispatch ab,
 # der Status-Write tat es nie — deshalb konnte eine zweite Session den Status
 # eines fremd gelockten Tickets überschreiben (beobachtet bei T002270). [T002282]
 #
+# Zweites Argument "closure" = Abschluss-Übergang (update-status → done/archived):
+# ein fremder ticket-scoped Lock blockt den Abschluss NICHT mehr, sondern wird
+# nur noch gewarnt. [T003102] Subagent (andere SID), ticket-mcp (eigener
+# Prozess) und der post-merge-Poller (auto-close-merged.sh) schliessen im
+# selben Vorgang ab, halten aber nie die SID des ursprünglichen Claimers — der
+# Lock schuetzt die Bearbeitung, nicht die Abschluss-Buchhaltung. Nicht-
+# terminale Übergänge bleiben voll geschuetzt (Schutz gegen Doppelbearbeitung,
+# T002282).
+#
 # TICKET_LOCK_OVERRIDE=1 = expliziter Escape-Hatch für Automationspfade, die
 # bereits vor dem Dispatch gated wurden und selbst keinen Claim halten.
 _ticket_lock_guard() {
-  local id="$1"
+  local id="$1" closure="${2:-}"
   [[ "${TICKET_LOCK_OVERRIDE:-0}" == "1" ]] && return 0
   local lock_sh out rc
   lock_sh="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/agent-lock.sh"
@@ -164,6 +173,20 @@ _ticket_lock_guard() {
     my_sid="$(AGENT_LOCK_SID= bash "$lock_sh" mine 2>/dev/null)"
     holder_sid="$(printf '%s' "$out" | sed -n 's/.*"owner_sid": *"\([^"]*\)".*/\1/p' | head -1)"
     if [[ -n "$my_sid" && -n "$holder_sid" && "$my_sid" == "$holder_sid" ]]; then
+      return 0
+    fi
+    # [T003102] Abschluss-Uebergang: trotz fremdem ticket-Lock durchlassen.
+    # Der Halter ist nicht zwingend eine Fremdsession — Subagent, ticket-mcp
+    # und post-merge-Poller schliessen im selben Vorgang ab, halten aber eine
+    # andere SID. Warnen statt blocken, damit der Halter den Lock freigeben
+    # kann (der Abschluss darf nicht an einem Alt-Lock haengen bleiben).
+    if [[ "$closure" == "closure" ]]; then
+      local holder_label holder_tool
+      holder_label="$(printf '%s' "$out" | sed -n 's/.*"label": *"\([^"]*\)".*/\1/p' | head -1)"
+      holder_tool="$(printf '%s' "$out" | sed -n 's/.*"tool": *"\([^"]*\)".*/\1/p' | head -1)"
+      echo "WARNUNG: Ticket $id ist gesperrt (agent-lock), Abschluss wird trotzdem durchgelassen (T003102 — der Lock schuetzt die Bearbeitung, nicht den Abschluss)." >&2
+      echo "       Halter: tool=${holder_tool:-?}, label=${holder_label:-?}, sid=${holder_sid:-?}" >&2
+      echo "       Bitte den Claim nach getaner Arbeit freigeben: agent-lock.sh release ticket $id" >&2
       return 0
     fi
     # [T002498-M10] Meldung entschärft: der Halter ist nicht zwingend eine fremde

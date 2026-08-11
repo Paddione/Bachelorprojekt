@@ -25,12 +25,17 @@ Bei mehreren staged plans den User via `AskUserQuestion` (Claude Code) oder `que
 
 Vor jeder Git-Operation MUSS das Ticket atomisch geclaimed werden (verhindert die Race
 zwischen dev-flow-execute und der Factory-Pipeline — Claim VOR dem ersten Factory-Check).
-Vollständige Mechanik (Status-Check, `check-and-claim`, Exit-Code-Semantik, Broadcast):
+Vollständige Mechanik (Status-Check, branch-scoped Claim [T003102], Exit-Code-Semantik, Broadcast):
 [ticket-preflight-lock](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-preflight-lock.md).
 ```bash
 TICKET_JSON=$(./scripts/vda.sh ticket get --id "$TICKET_ID" 2>/dev/null || echo '{}')
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-bash scripts/agent-lock.sh check-and-claim ticket "$TICKET_ID" --branch "$CURRENT_BRANCH" --label dev-flow-execute \
+# [T003102] branch-scoped statt ticket-scoped: ein ticket-scoped Lock der
+# auftraggebenden Session blockt den Abschluss durch Subagent/ticket-mcp/
+# post-merge (je eigene SID). Der branch-scoped Claim schuetzt den Worktree,
+# den diese Session betritt, und blockt den Status-Schreibpfad nicht; die
+# Factory sieht ihn ueber die Ticket-ID im Branch-Namen.
+bash scripts/agent-lock.sh claim branch "$CURRENT_BRANCH" --worktree "$(pwd)" --label dev-flow-execute \
   || { echo "🛑 siehe ticket-preflight-lock.md für Exit-Code-Behandlung"; exit 1; }
 bash scripts/agent-msg.sh post "dev-flow-execute startet Arbeit an Ticket $TICKET_ID" --to all
 ```

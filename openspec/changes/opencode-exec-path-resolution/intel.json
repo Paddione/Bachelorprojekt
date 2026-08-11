@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "slug": "opencode-exec-path-resolution",
+    "ticket_id": "T003275",
+    "generated_from": "main@a3af0f6f7",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/factory/opencode-exec.sh",
+      "language": "bash",
+      "loc": 142,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 658
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/factory/opencode-exec.sh:33:phase_event() { # <state> <subagent> <partial> <duration_s> <exit>",
+      "kind": "function",
+      "file": "scripts/factory/opencode-exec.sh",
+      "signature": "33:phase_event() { # <state> <subagent> <partial> <duration_s> <exit>(...)",
+      "type_text": "33:phase_event() { # <state> <subagent> <partial> <duration_s> <exit>(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

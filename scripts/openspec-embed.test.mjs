@@ -113,21 +113,27 @@ describe('buildChunks', () => {
     expect(positions[0]).toBe(0);
   });
 
-  // Regression anchor (already green today): a partial that fits the
-  // plan-lint.sh T002453-C governing limit (7000 tokens, checked separately
-  // from this diagnostic) MUST remain a single fileType='partial' chunk —
-  // openspec-embedding.md's SSOT requirement "Plan-Partials aus tasks.d/
-  // werden als Factory-Slot-Einheit eingebettet" says exactly this. T002839's
-  // fix must NOT start splitting partials to make the 2048-token diagnostic
-  // happy; only chunkProposal() gets the budget split (see above).
-  it('[T002839] keeps an oversized-but-plan-lint-legal partial as one chunk', () => {
-    const bigPartial = '# Partial\n\n' + 'word '.repeat(1700); // ~2125 tokens, < 7000
+  // [T003268] A partial exceeding the token budget is split by the same
+  // splitByTokenBudget mechanism as proposal/tasks — the backend limit (2048
+  // local / 4096 cluster) rejects a single oversized partial chunk with
+  // 400 exceed_context_size. Each piece keeps fileType='partial' +
+  // sectionTitle=partialId so the manifest enrichment (partialMeta) still
+  // addresses it, and positions stay unique/contiguous.
+  it('[T003268] splits a partial that exceeds the token budget into multiple partial chunks', () => {
+    const bigPartial = '# Partial\n\n' + 'word '.repeat(1700); // ~2125 tokens, > 400 budget
     const chunks = buildChunks({ partials: { 'p1-big': bigPartial } });
-    expect(chunks).toHaveLength(1);
-    expect(chunks[0].fileType).toBe('partial');
-    expect(chunks[0].sectionTitle).toBe('p1-big');
-    expect(approxTokens(chunks[0].text)).toBeGreaterThan(2048);
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every((c) => c.fileType === 'partial')).toBe(true);
+    expect(chunks.every((c) => c.sectionTitle === 'p1-big')).toBe(true);
+    // Positions unique + contiguous from the global counter.
+    const positions = chunks.map((c) => c.position);
+    expect(new Set(positions).size).toBe(positions.length);
+    // A small partial stays a single chunk (no needless splitting).
+    const small = buildChunks({ partials: { 'p1-small': '# P\n\nshort' } });
+    expect(small).toHaveLength(1);
+    expect(small[0].fileType).toBe('partial');
   });
+
 });
 
 describe('resolveEmbeddingModel', () => {

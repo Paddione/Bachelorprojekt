@@ -204,13 +204,31 @@ export function buildChunks(files) {
   }
   if (files.partials != null) {
     for (const [partialId, content] of Object.entries(files.partials)) {
-      out.push({
-        position: pos++,
-        text: content.trim(),
-        sectionTitle: partialId,
-        charOffset: 0,
-        fileType: 'partial',
-      });
+      // [T003268] Partials unterliegen demselben Token-Budget wie proposal/tasks —
+      // legale Partials bis 7000 Token sprengten das Backend-Limit (2048/4096) und
+      // endeten als 400 exceed_context_size. Jede Teil-Datei laeuft durch
+      // splitByTokenBudget; die Manifest-Metadaten-Anreicherung (partialMeta)
+      // adressiert Chunks weiterhin ueber sectionTitle=partialId.
+      const trimmed = content.trim();
+      if (approxTokens(trimmed) <= 400) {
+        out.push({
+          position: pos++,
+          text: trimmed,
+          sectionTitle: partialId,
+          charOffset: 0,
+          fileType: 'partial',
+        });
+      } else {
+        for (const piece of splitByTokenBudget(trimmed, 400, 50)) {
+          out.push({
+            position: pos++,
+            text: piece,
+            sectionTitle: partialId,
+            charOffset: 0,
+            fileType: 'partial',
+          });
+        }
+      }
     }
   }
   return out;
@@ -265,17 +283,29 @@ export function estimateSlugTokenWorst(slug, repoRoot) {
   }
   files.partials = partials;
   if (files.proposal == null && files.tasks == null && files.spec == null && partials == null) return null;
-  const chunks = buildChunks(files);
-  if (chunks.length === 0) return null;
+  // [T003268] Das Worst-Case-Token-Mass misst die UNGESPLITTETEN Partial-Dateien,
+  // nicht die buildChunks-Ausgabe: seit partials token-budgetiert gesplittet
+  // werden, waere der Maximal-Chunk sonst immer ~400 Token und der
+  // plan-lint-Diagnose-Pfad (7000-Token-Cap, T002453-C) blind. Proposal/tasks/
+  // spec bleiben auf den SPLIT-Chunks (sie werden ohnehin gebudget-splittet —
+  // ein 2500-Token-Proposal ist kein Skip-Fall, T002839). Partials einzeln in
+  // voller Laenge.
   let maxTokens = 0;
   let maxType = null;
-  for (const c of chunks) {
+  // proposal/tasks/spec: worst chunk aus dem (gesplitteten) buildChunks-Lauf.
+  const splitChunks = buildChunks({ proposal: files.proposal, tasks: files.tasks, spec: files.spec });
+  for (const c of splitChunks) {
     const t = approxTokens(c.text);
-    if (t > maxTokens) {
-      maxTokens = t;
-      maxType = c.fileType;
+    if (t > maxTokens) { maxTokens = t; maxType = c.fileType; }
+  }
+  // partials: volle Dateilaenge je Datei.
+  if (files.partials != null) {
+    for (const [, content] of Object.entries(files.partials)) {
+      const t = approxTokens(content);
+      if (t > maxTokens) { maxTokens = t; maxType = 'partial'; }
     }
   }
+  if (maxTokens === 0) return null;
   return { tokens: maxTokens, fileType: maxType };
 }
 
@@ -343,6 +373,17 @@ export async function embedSlug({ slug, repoRoot, dryRun = false, deps = {} }) {
     const conn = process.env.SESSIONS_DATABASE_URL || process.env.DATABASE_URL;
     if (!conn) { log('no SESSIONS_DATABASE_URL/DATABASE_URL set; skipping'); return { inserted: 0, dryRun: false }; }
     pool = new pg.Pool({ connectionString: conn });
+    // [T003384] ECONNREFUSED/ECONNRESET beim Pool-Connect ist meist eine
+    // Port-15432-Kollision (k3d-Portforward belegt) — die Ursache benennen statt
+    // einen generischen Verbindungsfehler zu verschlucken.
+    pool.on('error', (err) => {
+      if (err?.code === 'ECONNREFUSED' || err?.code === 'ECONNRESET') {
+        const port = conn.match(/:(\d+)\//)?.[1] ?? '?';
+        log(`WARN: DB-Verbindung auf Port ${port} zurueckgewiesen (${err.code}) — vermutlich Port-Kollision (k3d-Portforward 15432 belegt).`);
+      } else if (err) {
+        log(`WARN: DB-Verbindungsfehler: ${err.code ?? err.message}`);
+      }
+    });
     query = (sql, params) => pool.query(sql, params);
   }
 
@@ -488,6 +529,11 @@ async function main() {
   try {
     await embedSlug({ slug, repoRoot, dryRun });
   } catch (err) {
+    // [T003384] Portkonflikte nicht still schlucken: ECONNREFUSED/ECONNRESET
+    // wird explizit als Verbindungs- bzw. Portproblem attribuiert.
+    if (err?.code === 'ECONNREFUSED' || err?.code === 'ECONNRESET') {
+      console.error(`[openspec-embed] WARN: Embed-Fehler wegen Verbindungsabbruch (${err.code}) — Portkonflikt/Portforward pruefen, nicht "embed failed" pauschal akzeptieren.`);
+    }
     console.error('[openspec-embed] best-effort failure (exit 0):', err?.message ?? err);
   }
   process.exit(0); // best-effort: never break the OpenSpec lifecycle

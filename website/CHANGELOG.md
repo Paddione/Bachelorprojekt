@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.267.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.266.0...website-v1.267.0) (2026-08-11)
+
+
+### Features
+
+* **scripts:** Batch Git/Worktree-Integrität — P1 worktree-health (T002994,T002995,T002998) [T003539] ([#4244](https://github.com/Paddione/Bachelorprojekt/issues/4244)) ([5529574](https://github.com/Paddione/Bachelorprojekt/commit/55295749521945b3dead1f41a4b916d41560ac90))
+
 ## [1.266.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.7...website-v1.266.0) (2026-08-11)
 
 

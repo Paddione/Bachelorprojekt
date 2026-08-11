@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.265.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.6...website-v1.265.7) (2026-08-11)
+
+
+### Bug Fixes
+
+* **ci:** devflow-ci-watch.sh — PR_URL an gh pr checks übergeben, headRefOid statt cwd-HEAD, Pending-Check vor Grün-Prüfung [T003612] ([#4242](https://github.com/Paddione/Bachelorprojekt/issues/4242)) ([0369e88](https://github.com/Paddione/Bachelorprojekt/commit/0369e8867aec807baa80aa4893031fbef1b95536))
+
 ## [1.265.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.5...website-v1.265.6) (2026-08-11)
 
 

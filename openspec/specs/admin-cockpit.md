@@ -279,21 +279,36 @@ the admin can see at a glance which tickets have active specifications.
 
 ### Requirement: AdminLayout-Navigation enthält nur freigegebene Routen
 
-The system SHALL include `/admin/arena` as a conditional nav entry in the AdminLayout
-navigation groups and SHALL NOT include `/admin/systemtest` as a nav entry, ensuring that
-the admin sidebar exposes only intentionally released routes.
+The system SHALL expose in the admin sidebar only routes that exist in the production build
+(`BUILD_TARGET=prod`). A nav entry whose `href` is mapped to a `/sdlc/` target by
+`website/src/middleware/redirect-map.ts` SHALL NOT appear, because
+`website/src/integrations/build-target.mjs` removes those routes from the production
+manifest — the entry would resolve to a route absent from the image.
 
-#### Scenario: Arena-Link ist in navGroups vorhanden
+Konkret SHALL die Sidebar keine Einträge auf `/admin/systemtest`, `/admin/cockpit`,
+`/admin/pipeline`, `/admin/repohealth`, `/admin/prompts`, `/admin/ki-konfiguration` und
+`/admin/app-catalog` führen. Der Guard SHALL das Auflösungsergebnis prüfen (führt der `href`
+über die Redirect-Tabelle in eine `/sdlc/`-Route?) und nicht die Schreibweise einzelner
+Klassennamen oder Sektionslabel in der Quelldatei.
 
-- **GIVEN** die `AdminLayout.astro`-Datei ist der aktuelle Stand im Haupt-Branch
-- **WHEN** die navGroups-Konfiguration geprüft wird
-- **THEN** ist `/admin/arena` genau einmal als Eintrag in navGroups enthalten
+#### Scenario: Kein Nav-Eintrag löst auf eine /sdlc/-Route auf
 
-#### Scenario: Systemtest-Route ist nicht in navGroups
+- **GIVEN** die Redirect-Tabelle in `website/src/middleware/redirect-map.ts`
+- **WHEN** jeder nicht-externe `href` der Admin-Sidebar dagegen aufgelöst wird
+- **THEN** trägt kein Auflösungsergebnis das Präfix `/sdlc/`
 
-- **GIVEN** die `AdminLayout.astro`-Datei ist der aktuelle Stand im Haupt-Branch
-- **WHEN** die navGroups-Konfiguration geprüft wird
-- **THEN** kommt der Pfad `/admin/systemtest` keinmal in navGroups vor
+#### Scenario: Guard benennt den Verursacher
+
+- **GIVEN** ein Sidebar-Eintrag zeigt auf einen nach `/sdlc/` umgeleiteten Pfad
+- **WHEN** der Guard läuft
+- **THEN** schlägt er fehl und nennt den betroffenen `href`
+
+#### Scenario: Guard ist unempfindlich gegen Umformatierung
+
+- **GIVEN** die Sidebar-Quelldatei wird umformatiert, ohne dass sich ein `href` ändert
+  (Einrückung, Reihenfolge der Objekt-Schlüssel, Umbenennung eines Sektionslabels)
+- **WHEN** der Guard läuft
+- **THEN** bleibt sein Ergebnis unverändert
 
 ---
 
@@ -393,37 +408,18 @@ exposed in the sidebar navGroups, ensuring they remain reachable from the platfo
 
 ### Requirement: Cockpit Ticket-Expand-Row
 
-The cockpit ticket table SHALL expand a detail area beneath a ticket row when the row (outside
-the title link) is activated, showing the ticket description (rendered), the phase stepper, PR
-and plan links from `ticket_links`, and the latest phase events. The detail data SHALL be fetched
-lazily on first expand (no upfront fetch for the whole list). At most one row SHALL be expanded
-at a time (accordion behavior); the expanded state SHALL NOT be persisted. The existing title
-link behavior (`/admin/tickets/{id}`) SHALL remain unchanged, and no drawer component SHALL be
-reintroduced.
+Die Cockpit-interne Ticketliste behält ihr Akkordeon-Verhalten: es SHALL weiterhin höchstens
+eine Zeile gleichzeitig ausgeklappt sein, und der ausgeklappte Zustand SHALL nicht
+persistiert werden. Dieses Requirement ist von der Entfernung des **Sidebar**-Akkordeons
+nicht berührt — es beschreibt eine andere Oberfläche innerhalb der SDLC-Console.
 
-#### Scenario: Row click expands detail
+#### Scenario: Ticket-Expand bleibt ein Akkordeon
 
-- **GIVEN** the cockpit table shows a ticket with a description and a linked PR
-- **WHEN** the user activates the row (outside the title link)
-- **THEN** an expand area appears beneath the row showing description, phase stepper, PR/plan links, and latest events
+- **GIVEN** die Cockpit-Ticketliste mit einer ausgeklappten Zeile
+- **WHEN** eine zweite Zeile ausgeklappt wird
+- **THEN** ist die erste Zeile wieder eingeklappt
 
-#### Scenario: Lazy fetch on first expand
-
-- **GIVEN** a cockpit table with 20 rows
-- **WHEN** the page loads
-- **THEN** no ticket-detail requests are issued until a row is expanded
-
-#### Scenario: Accordion behavior
-
-- **GIVEN** row A is expanded
-- **WHEN** the user expands row B
-- **THEN** row A collapses and only row B remains expanded
-
-#### Scenario: Title link keeps navigating
-
-- **GIVEN** an expanded or collapsed row
-- **WHEN** the user clicks the ticket title
-- **THEN** the browser navigates to `/admin/tickets/{id}` (no drawer, no expand toggle)
+---
 
 ### Requirement: Cockpit-Toolbar Icon-Buttons
 
@@ -441,6 +437,27 @@ token instead of indigo.
 - **GIVEN** the status filter pills are rendered
 - **WHEN** a pill is active
 - **THEN** its accent color resolves to the Brass token, not indigo
+
+### Requirement: Admin-Sidebar-Struktur ohne Akkordeon
+
+Die Admin-Sidebar SHALL ihre Sektionen dauerhaft sichtbar führen. Nach dem Entfernen der
+SDLC-Einträge verbleiben zu wenige Einträge, als dass ein Aufklapp-Mechanismus etwas
+verbergen würde; das Akkordeon der vormaligen Sektion „Werkstatt" entfällt samt seiner
+Steuerelemente (`sidebar-group-btn`, `accordion-arrow`, `is-collapsed`) und des zugehörigen
+Click-Listeners.
+
+Assertions, die diese Klassennamen oder die Sektionslabel „Werkstatt" und „Infrastruktur"
+per `grep` in der Quelldatei suchen, entfallen ersatzlos. Sie waren Source-Grep-Assertions
+im Sinne von `CLAUDE.md` § Test-Resultats-Konvention (T002448-M4): sie belegten, dass eine
+Zeichenkette in einer Datei steht, nicht dass Navigation funktioniert.
+
+#### Scenario: Alle Einträge sind ohne Interaktion sichtbar
+
+- **GIVEN** die Admin-Sidebar wird frisch geladen
+- **WHEN** keine Interaktion stattgefunden hat
+- **THEN** sind die Einträge aller Sektionen sichtbar, ohne dass ein Aufklappen nötig ist
+
+---
 
 ## Testszenarien
 
@@ -669,11 +686,6 @@ parameter, and SHALL redirect legacy routes: `/dev-status` (preserving the `?tab
 - **WHEN** der Tab „Planung" angeklickt wird
 - **THEN** ändert sich die URL zu `tab=planung` und der Planungs-Tab ist aktiv
 
-#### Scenario: Admin-Sidebar enthält genau einen Pipeline-Eintrag *(E2E)*
-- **GIVEN** ein Nutzer ruft `/admin` auf
-- **WHEN** die Sidebar gerendert wird
-- **THEN** enthält `#admin-sidebar` genau einen Link mit `href="/admin/pipeline"` mit dem Text „Pipeline" und keinen Link mit `href="/dev-status"` oder `href="/admin/planungsbuero"`
-
 #### Scenario: Attention-Strip erscheint bei blockiertem Workpiece *(E2E)*
 - **GIVEN** ein Nutzer ruft `/admin/pipeline?tab=floor` auf
 - **WHEN** ein Workpiece den Status „blocked" hat
@@ -683,6 +695,15 @@ parameter, and SHALL redirect legacy routes: `/dev-status` (preserving the `?tab
 - **GIVEN** ein Nutzer befindet sich auf `/admin/pipeline?tab=planung`
 - **WHEN** das Custom-Event `factory-floor-refreshed` ausgelöst wird
 - **THEN** bleibt die Anzahl der `[data-planning-item]`-Elemente stabil oder ändert sich entsprechend dem neuen Stand
+
+<!-- T003826: Das Szenario "Admin-Sidebar enthält genau einen Pipeline-Eintrag" entfiel.
+     Es verlangte in #admin-sidebar einen Link auf /admin/pipeline — ein Pfad, den
+     redirect-map.ts nach /sdlc/pipeline leitet und den build-target.mjs bei
+     BUILD_TARGET=prod aus dem Manifest entfernt. Der Link existierte zudem schon vor
+     dieser Änderung nicht mehr in AdminSidebarNav.astro. Die Aussagen über die
+     Pipeline-SEITE selbst bleiben unverändert — sie gilt in der SDLC-Console. -->
+
+---
 
 ### Requirement: Readiness-Webhook für Ticket-Abhängigkeiten
 <!-- bats: readiness-webhook.bats -->
@@ -1061,3 +1082,5 @@ active on the session list path.
 - **WHEN** the sidebar renders
 - **THEN** the "Studio" item is marked active
 - **AND** the "Sessions" item is not marked active
+
+<!-- merged from change delta admin-cockpit.md (416bc8ace2a9) -->

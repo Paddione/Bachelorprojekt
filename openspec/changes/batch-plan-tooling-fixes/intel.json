@@ -1,0 +1,251 @@
+{
+  "meta": {
+    "slug": "batch-plan-tooling-fixes",
+    "ticket_id": "T003641",
+    "generated_from": "main@a612b07e4",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/plan-touched-files.sh",
+      "language": "bash",
+      "loc": 114,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 686
+    },
+    {
+      "path": "tests/spec/software-factory/stage-plan-touched-files.bats",
+      "language": "bash",
+      "loc": 185,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/plan-qa-check.sh",
+      "language": "bash",
+      "loc": 282,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 518
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
+      "language": "bash",
+      "loc": 251,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/plan-intel.sh",
+      "language": "bash",
+      "loc": 219,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 581
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats",
+      "language": "bash",
+      "loc": 158,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/batch-plan-tooling-fixes/specs/dev-flow-plan.md",
+      "language": "markdown",
+      "loc": 71,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "openspec/changes/batch-plan-tooling-fixes/specs/quickwins-script-fixes.md",
+      "language": "markdown",
+      "loc": 27,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/software-factory/stage-plan-touched-files.bats:23:setup() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
+      "signature": "23:setup() {(...)",
+      "type_text": "23:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/stage-plan-touched-files.bats:30:_plan_with_fs() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
+      "signature": "30:_plan_with_fs() {(...)",
+      "type_text": "30:_plan_with_fs() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/stage-plan-touched-files.bats:46:_assert_derive_ran() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
+      "signature": "46:_assert_derive_ran() {(...)",
+      "type_text": "46:_assert_derive_ran() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-qa-check.sh:10:err() { echo \"[plan-qa] ERROR: $*\" >&2; }",
+      "kind": "function",
+      "file": "scripts/plan-qa-check.sh",
+      "signature": "10:err() { echo \"[plan-qa] ERROR: $*\" >&2; }(...)",
+      "type_text": "10:err() { echo \"[plan-qa] ERROR: $*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-qa-check.sh:11:warn() { echo \"[plan-qa] WARNING: $*\" >&2; }",
+      "kind": "function",
+      "file": "scripts/plan-qa-check.sh",
+      "signature": "11:warn() { echo \"[plan-qa] WARNING: $*\" >&2; }(...)",
+      "type_text": "11:warn() { echo \"[plan-qa] WARNING: $*\" >&2; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-qa-check.sh:12:info() { echo \"[plan-qa] $*\"; }",
+      "kind": "function",
+      "file": "scripts/plan-qa-check.sh",
+      "signature": "12:info() { echo \"[plan-qa] $*\"; }(...)",
+      "type_text": "12:info() { echo \"[plan-qa] $*\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-qa-check.sh:16:result() { info \"RESULT: $1${2:+ — $2}\"; }",
+      "kind": "function",
+      "file": "scripts/plan-qa-check.sh",
+      "signature": "16:result() { info \"RESULT: $1${2:+ — $2}\"; }(...)",
+      "type_text": "16:result() { info \"RESULT: $1${2:+ — $2}\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-qa-check.sh:18:cleanup() {",
+      "kind": "function",
+      "file": "scripts/plan-qa-check.sh",
+      "signature": "18:cleanup() {(...)",
+      "type_text": "18:cleanup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-qa-check.sh:87:build_payload() {",
+      "kind": "function",
+      "file": "scripts/plan-qa-check.sh",
+      "signature": "87:build_payload() {(...)",
+      "type_text": "87:build_payload() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats:39:setup() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
+      "signature": "39:setup() {(...)",
+      "type_text": "39:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats:48:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
+      "signature": "48:teardown() {(...)",
+      "type_text": "48:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats:57:mkplan() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
+      "signature": "57:mkplan() {(...)",
+      "type_text": "57:mkplan() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats:81:free_port() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
+      "signature": "81:free_port() {(...)",
+      "type_text": "81:free_port() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats:90:start_fake_gateway() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",
+      "signature": "90:start_fake_gateway() {(...)",
+      "type_text": "90:start_fake_gateway() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-intel.sh:25:_resolve_target_files() {",
+      "kind": "function",
+      "file": "scripts/plan-intel.sh",
+      "signature": "25:_resolve_target_files() {(...)",
+      "type_text": "25:_resolve_target_files() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/plan-intel.sh:74:_path_language() {",
+      "kind": "function",
+      "file": "scripts/plan-intel.sh",
+      "signature": "74:_path_language() {(...)",
+      "type_text": "74:_path_language() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats:24:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats",
+      "signature": "24:teardown() {(...)",
+      "type_text": "24:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats:30:_gen() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/plan-intel-risks-dedupe.bats",
+      "signature": "30:_gen() {(...)",
+      "type_text": "30:_gen() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

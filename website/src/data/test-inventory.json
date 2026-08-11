@@ -4158,6 +4158,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/opencode-exec-binary-resolution",
+    "file": "tests/spec/software-factory/opencode-exec-binary-resolution.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-result-check",
     "file": "tests/spec/software-factory/opencode-exec-result-check.bats",
     "category": "software-factory",

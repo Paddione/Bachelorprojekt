@@ -4152,6 +4152,12 @@
     "kind": "shell"
   },
   {
+    "id": "secrets-deploy-automation/schema-dev-secrets-sync",
+    "file": "tests/spec/secrets-deploy-automation/schema-dev-secrets-sync.bats",
+    "category": "secrets-deploy-automation",
+    "kind": "shell"
+  },
+  {
     "id": "security",
     "file": "tests/spec/security.bats",
     "category": "security",

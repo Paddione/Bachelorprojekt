@@ -38,11 +38,7 @@ coaching-json-ingest
 # --- (nur der dedizierte Task `test:art-library`). Daher weiterhin exkludiert.
 test_art_library_manifest
 #
-# --- Currently FAILS offline: 19 Schema-Secrets fehlen in k3d/secrets.yaml +
-# --- 11 Orphans (OIDC-* nicht im Schema). Echter Drift — Triage ob intentional. [T003141]
-secrets-sync
-#
-# --- Currently FAILS offline: stale assertion (test 29 expects a files.* aliasgroup,
+# --- stale assertion (test 29 expects a files.* aliasgroup,
 # --- the config now references cloud.*). A real test-drift to triage separately.
 fleet-dns-cutover
 #

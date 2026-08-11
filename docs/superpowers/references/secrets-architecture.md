@@ -18,6 +18,22 @@ Dieses Dokument beschreibt die Dateitopologie, die Synchronisationsregeln und di
 
 Der CI-Guard (`tests/spec/fleet-operations.bats`) erzwingt diese Regel automatisch bei jedem Build offline, indem er sicherstellt, dass die Fleet-SealedSecrets eine vollständige Obermenge aller Nicht-Legacy-Keys der Legacy-SealedSecrets sind.
 
+## Schema ↔ k3d/secrets.yaml (dev_absent)
+
+`environments/schema.yaml` ist die autoritative Liste aller Secret-Namen. `k3d/secrets.yaml`
+(`workspace-secrets`) ist die reine Dev-Belegung: sie trägt ausschließlich offensichtliche
+Dev-Platzhalterwerte (Muster `dev-<key-in-lowercase>`), niemals echte Credentials.
+
+- Bei Widerspruch gewinnt das Schema. Die einzige zulässige Abweichung ist eine **bewusste
+  Abwesenheit** in Dev, annotiert als `dev_absent: true` + `dev_absent_reason: "<Begründung>"`
+  direkt am Schema-Eintrag — nicht als Allowlist im Test, nicht in der Dev-Datei.
+- `required: true` schließt `dev_absent` aus.
+- Der Test `tests/unit/secrets-sync.bats` erzwingt beide Richtungen: jeden Schema-Key (außer
+  `dev_absent`) in `k3d/secrets.yaml` UND keinen Orphan in der Gegenrichtung.
+- Der Guard `tests/spec/secrets-deploy-automation/schema-dev-secrets-sync.bats` erzwingt, dass
+  `dev_absent`-Annotationen eine nicht-leere Begründung tragen und dass die Legacy-Keycloak-Ära
+  `*_OIDC_SECRET`-Altnamen nicht zurückkehren. [T003141]
+
 ## Kanonische Sektionsstruktur (15 Abschnitte)
 
 Alle vier `.secrets/`-Dateien folgen dieser strikten Reihenfolge:

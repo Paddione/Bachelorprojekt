@@ -3177,6 +3177,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003141": [
+    {
+      "slug": "secrets-schema-drift",
+      "status": "plan_staged"
+    }
+  ],
   "T003142": [
     {
       "slug": "docs-content-test-paths",

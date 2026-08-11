@@ -1,2 +1,6 @@
+# docs/agent-guide/registry/toolset.lock.yaml
+# Leere servers-Map ist ABSICHTLICH: scripts/toolset/probe.mjs ist ein Stub, der
+# bestehende Eintraege nur mergt (keine echten HTTP-Probes), sodass sich der Lock
+# nie selbst fuellen kann. Die tatsaechliche Reachability kuratiert mcp.yaml.
 lock_version: 1
 servers: {}

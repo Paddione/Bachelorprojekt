@@ -16,6 +16,6 @@ load 'test_helper'
 }
 
 @test "opencode-step-uses-local-model" {
-  run grep "model: llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf" .github/workflows/opencode.yml
+  run grep "model: llamacpp-local/gemma26-factory" .github/workflows/opencode.yml
   [ "$status" -eq 0 ]
 }

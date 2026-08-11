@@ -41,7 +41,8 @@ tasks:
         if ! kubectl --context {{.CTX_DEV}} cluster-info --request-timeout=3s >/dev/null 2>&1; then
           echo "⚠  Dev-Cluster ({{.CTX_DEV}}) nicht erreichbar — Tunnel nicht möglich." >&2
           echo "   Fallback: Companion läuft lokal auf http://localhost:$PORT" >&2
-          echo "   Starte den Companion mit: node scripts/companion.js $PORT" >&2
+          echo "   Starte den Companion mit: node <superpowers>/skills/brainstorming/scripts/server.cjs $PORT" >&2
+          echo "   (Pfad im Plugin-Cache — siehe scripts/brainstorm-companion-harden.sh)" >&2
           exit 1
         fi
         echo "Publishing localhost:$PORT as https://brainstorm.$DEV_DOMAIN — leave this terminal open."

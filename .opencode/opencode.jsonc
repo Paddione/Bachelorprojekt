@@ -1,11 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Gemma4 12B QAT (raw llama.cpp port 8091, MTP speculative decoding, ~245k ctx)
-  // ist als Primary-Modell mit dem vollen MCP-Tool-Katalog theoretisch nutzbar —
-  // wechsel via `"model": "llamacpp-mtp/gemma-4-12B-it-qat-UD-Q4_K_XL.gguf"`.
   // DeepSeek V4 Flash (OpenCode Go, 1M ctx) bleibt Default fuer maximale
-  // Kontextkapazitaet und schnelle Prefills. Gemma4 uebernimmt delegierte
-  // Write-Tasks ueber die gemma-4-12b-* Subagenten (agent-models.jsonc).
+  // Kontextkapazitaet und schnelle Prefills. Lokale Arbeit ueber die
+  // Familiensubagenten (gptoss/devstral/gemma/gemma12) und die primaeren
+  // Lokal-Agenten — Modell-/Loadout-Definitionen leben ausschliesslich in
+  // .opencode/agent-models.jsonc (Provider "llamacpp-local", sync nach
+  // ~/.config/opencode/opencode.jsonc via scripts/opencode-sync-agents.sh).
   "model": "opencode-go/deepseek-v4-flash",
   "permission": {
     "read": "allow",

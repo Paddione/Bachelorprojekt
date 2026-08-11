@@ -1,11 +1,11 @@
 # environments/dev.yaml
-# Diese Datei beschreibt NUR die lokale k3d-Umgebung (context: k3d-korczewski,
+# Diese Datei beschreibt NUR die lokale k3d-Umgebung (context: k3d-mentolder-dev,
 # domain: localhost) — KEINEN Cluster-Dev-Stack. Der fleet-gerenderte Dev-Stack
 # (workspace-dev, dev.mentolder.de) laeuft ueber environments/dev-cluster.yaml
 # (T002630): eine lokale Umgebung ohne oeffentliche Domain kann den Cluster-Stack
 # nicht mehr abschalten.
 environment: dev
-context: gekko-hetzner-2-dev
+context: k3d-mentolder-dev
 domain: localhost
 
 env_vars:
@@ -16,7 +16,7 @@ env_vars:
   BRAND_NAME: "KORE"
   WEBSITE_IMAGE: website
   DOCS_IMAGE: korczewski-docs
-  WEBSITE_NAMESPACE: workspace-korczewski-dev
+  WEBSITE_NAMESPACE: workspace
   LLM_ENABLED: "true"
   LLM_RERANK_ENABLED: "true"
   LLM_RERANKER_URL: "http://llm-gateway-rerank.workspace.svc.cluster.local:8081"

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 945,
+      "file_count": 946,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -372,6 +372,7 @@
         "tests/spec/backup-pipeline.bats",
         "tests/spec/batch-openspec-embed-fixes.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes.bats",
+        "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-check.bats",
         "tests/spec/billing-pipeline.bats",
         "tests/spec/brain-auto-memory.bats",
         "tests/spec/brain-foundation.bats",
@@ -3330,7 +3331,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 711,
+      "file_count": 712,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3914,6 +3915,7 @@
         "scripts/resolve-image-digest.sh",
         "scripts/rig_for_mixamo.py",
         "scripts/rigger_server.py",
+        "scripts/runtime-drift-check.sh",
         "scripts/sdlc-cockpit-smoke.mjs",
         "scripts/sdlc-sync-oidc-secret.sh",
         "scripts/sdlc/backup-tickets.sh",

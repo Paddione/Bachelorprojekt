@@ -3225,6 +3225,12 @@
       "status": "archived"
     }
   ],
+  "T003278": [
+    {
+      "slug": "bats-missing-file-exit0",
+      "status": "plan_staged"
+    }
+  ],
   "T003417": [
     {
       "slug": "2026-08-10-sdlc-dashboard-redesign",

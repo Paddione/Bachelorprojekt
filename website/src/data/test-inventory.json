@@ -2724,6 +2724,12 @@
     "kind": "shell"
   },
   {
+    "id": "e2e-test-infrastructure/bats-missing-file-exit0",
+    "file": "tests/spec/e2e-test-infrastructure/bats-missing-file-exit0.bats",
+    "category": "e2e-test-infrastructure",
+    "kind": "shell"
+  },
+  {
     "id": "e2e-test-infrastructure/purge-test-data-missing-table",
     "file": "tests/spec/e2e-test-infrastructure/purge-test-data-missing-table.bats",
     "category": "e2e-test-infrastructure",

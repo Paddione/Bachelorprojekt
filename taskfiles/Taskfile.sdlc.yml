@@ -109,12 +109,6 @@ tasks:
         kubectl --context k3d-mentolder-dev rollout status deployment/bge-embed -n workspace --timeout=300s
         kubectl --context k3d-mentolder-dev rollout status deployment/bge-rerank -n workspace --timeout=300s
 
-  sdlc:refresh:
-    desc: "SDLC-Console neu starten, damit :latest-Pull greift (imagePullPolicy: Always)"
-    cmds:
-      - kubectl --context k3d-mentolder-dev rollout restart deploy/sdlc-console -n workspace
-      - kubectl --context k3d-mentolder-dev rollout status deploy/sdlc-console -n workspace --timeout=300s
-
   sdlc:status:
     desc: "SDLC-Stack Health-Übersicht"
     cmds:
@@ -258,3 +252,35 @@ tasks:
         if [ -f ../.env ]; then set -a; . ../.env; set +a; fi
         export BUILD_TARGET=sdlc
         pnpm dev -- --force
+
+  sdlc:refresh:
+    desc: "SDLC-Console nach einem main-Merge auf die aktuelle :latest nachziehen (T003740)"
+    # T003740: imagePullPolicy Always in k3d/sdlc-stack/sdlc-console.yaml sorgt dafuer,
+    # dass der Kubelet beim Neustart die frische :latest zieht. Mit IfNotPresent bliebe
+    # der alte Layer lokal liegen und ein rollout restart waere wirkungslos. Dieser
+    # Task ist der dokumentierte Handgriff nach einem main-Merge.
+    cmds:
+      - |
+        set -e
+        CTX="${K3D_CTX:-k3d-mentolder-dev}"
+        NS="${WORKSPACE_NAMESPACE:-workspace}"
+        IMAGE="ghcr.io/paddione/website-sdlc:latest"
+        REG_DIGEST="$(docker manifest inspect "${IMAGE}" | grep -m1 digest | awk -F'"' '{print $4}')"
+        POD="$(kubectl --context "$CTX" -n "$NS" get pod -l app=sdlc-console -o jsonpath='{.items[0].metadata.name}')"
+        RUN_IMAGE_ID="$(kubectl --context "$CTX" -n "$NS" get pod "$POD" -o jsonpath='{.status.containerStatuses[0].imageID}')"
+        RUN_DIGEST="$(printf '%s' "$RUN_IMAGE_ID" | sed 's|^[^@]*@||')"
+        echo "Registry :latest Digest: ${REG_DIGEST}"
+        echo "Laufende imageID:        ${RUN_IMAGE_ID}"
+        if [ "${RUN_DIGEST}" = "${REG_DIGEST}" ]; then
+          echo "sdlc-console laeuft bereits auf der aktuellen :latest — kein Neustart noetig."
+        else
+          echo "Abweichung erkannt — rollout restart zieht die frische :latest ..."
+          kubectl --context "$CTX" -n "$NS" rollout restart deploy/sdlc-console
+          kubectl --context "$CTX" -n "$NS" rollout status deploy/sdlc-console --timeout=300s
+        fi
+        BUILD_TARGET="$(kubectl --context "$CTX" -n "$NS" exec deploy/sdlc-console -- sh -c 'echo BUILD_TARGET=$BUILD_TARGET')"
+        echo "${BUILD_TARGET}"
+        case "${BUILD_TARGET}" in
+          *BUILD_TARGET=sdlc*) echo "OK: BUILD_TARGET=sdlc im Container gesetzt." ;;
+          *) echo "FEHLER: BUILD_TARGET nicht gesetzt — Image aelter als T003036." >&2; exit 1 ;;
+        esac

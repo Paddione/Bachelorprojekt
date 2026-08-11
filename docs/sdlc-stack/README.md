@@ -57,6 +57,26 @@ Platzhalter mit lokalen Werten:
 
 DB-Passwörter stammen aus `k3d/secrets.yaml` (dev-Plaintext).
 
+## Nach einem main-Merge nachziehen (T003740)
+
+Der lokale Stack läuft nicht automatisch hinter main her: `sdlc-console`
+referenziert `ghcr.io/paddione/website-sdlc:latest` mit `imagePullPolicy: Always`
+(k3d/sdlc-stack/sdlc-console.yaml, T003740) — der Kubelet zieht die frische
+`:latest` also bei **jedem** Pod-Neustart. Ein laufender Pod startet aber nicht
+von selbst neu. Nach einem main-Merge mit SDLC-Änderungen deshalb:
+
+```bash
+task sdlc:sdlc:refresh
+```
+
+Der Task vergleicht den Digest der laufenden imageID mit dem Registry-Digest von
+`:latest`, startet das Deployment bei Abweichung per `kubectl rollout restart`
+neu (mit `imagePullPolicy: Always` zieht der Neustart die frische `:latest`) und
+prüft abschließend `BUILD_TARGET=sdlc` im Container.
+
+Nachweis (DoD T003740): laufende imageID == Registry-Digest von `:latest`, und
+`BUILD_TARGET` ist im Container gesetzt.
+
 ## Pocket ID Admin-Bootstrap
 
 Der Stack seeded die 16 OIDC-Clients automatisch (`pocket-id-client-seed`).
@@ -67,12 +87,12 @@ zeigt den Setup-Code.
 
 ```bash
 # Console erreichbar
-curl -sS -o /dev/null -w '%{http_code}' http://sdlc.localhost
-# → 200
+curl -sS -L -o /dev/null -w '%{http_code}' http://sdlc.localhost
+# → 200 (302-Redirect auf /sdlc/cockpit wird gefolgt, T003036)
 
 # Health-Check zeigt BUILD_TARGET=sdlc
-curl -s http://sdlc.localhost/api/health | jq .buildTarget
-# → "sdlc"
+kubectl --context k3d-mentolder-dev exec -n workspace deploy/sdlc-console -- sh -c 'echo BUILD_TARGET=$BUILD_TARGET'
+# → BUILD_TARGET=sdlc
 
 # bge antwortet
 kubectl --context k3d-mentolder-dev port-forward -n workspace svc/llm-gateway-embed 8081:8081 &

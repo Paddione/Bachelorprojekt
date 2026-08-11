@@ -48,7 +48,17 @@ export async function recordPayment(p: RecordPaymentInput): Promise<InvoicePayme
       throw new Error(`cannot record payment on status=${inv.status}`);
     }
     const gross = Number(inv.gross_amount);
-    const prevPaid = Number(inv.paid_amount ?? 0);
+    // T000375 (View-Migration): `paid_amount`/`paid_at` sind keine Spalten von
+    // billing_invoices mehr, sondern werden in v_billing_invoices_with_state aus
+    // billing_invoice_payments berechnet. prevPaid kommt deshalb aus der
+    // Payments-Summe statt aus einer (entfernten) Spalte.
+    const paidR = await client.query(
+      `SELECT COALESCE(SUM(amount), 0) AS paid_amount
+         FROM billing_invoice_payments
+        WHERE invoice_id = $1`,
+      [p.invoiceId],
+    );
+    const prevPaid = Number(paidR.rows[0].paid_amount);
     const newPaid  = round2(prevPaid + p.amount);
     if (p.amount > 0 && newPaid > gross + 0.001) {
       await client.query('ROLLBACK');
@@ -69,19 +79,18 @@ export async function recordPayment(p: RecordPaymentInput): Promise<InvoicePayme
     const payRow = ins.rows[0];
 
     let nextStatus: string;
-    let paidAtCol: Date | null;
     if (newPaid >= gross - 0.001 && newPaid > 0) {
-      nextStatus = 'paid'; paidAtCol = new Date(p.paidAt);
+      nextStatus = 'paid';
     } else if (newPaid > 0) {
-      nextStatus = 'partially_paid'; paidAtCol = null;
+      nextStatus = 'partially_paid';
     } else {
-      nextStatus = 'open'; paidAtCol = null;
+      nextStatus = 'open';
     }
     await client.query(
       `UPDATE billing_invoices
-         SET paid_amount=$2, status=$3, paid_at=$4, updated_at=now()
+         SET status=$2, updated_at=now()
        WHERE id=$1`,
-      [p.invoiceId, newPaid, nextStatus, paidAtCol],
+      [p.invoiceId, nextStatus],
     );
 
     const net = Number(inv.net_amount);

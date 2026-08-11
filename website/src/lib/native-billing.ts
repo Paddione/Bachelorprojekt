@@ -159,7 +159,8 @@ export async function createInvoice(params: {
 
 export async function getInvoice(id: string): Promise<Invoice | null> {
   await initBillingTables();
-  const r = await pool.query(`SELECT * FROM billing_invoices WHERE id=$1`, [id]);
+  // T000375: paid_amount/paid_at existieren nur noch in v_billing_invoices_with_state.
+  const r = await pool.query(`SELECT * FROM v_billing_invoices_with_state WHERE id=$1`, [id]);
   return r.rows[0] ? mapInvoice(r.rows[0]) : null;
 }
 

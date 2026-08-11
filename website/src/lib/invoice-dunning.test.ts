@@ -209,7 +209,7 @@ describe('invoice-dunning.runDunningDetection (no-op end-to-end)', () => {
 
     const updateCall = query.mock.calls.find((c) => /UPDATE billing_invoices/.test(c[0] as string));
     expect(updateCall).toBeDefined();
-    expect(updateCall![1]).toEqual(['inv-1', 'dunning_1', 1]);
+    expect(updateCall![1]).toEqual(['inv-1', 'dunning_1']);
 
     expect(logBillingEvent).toHaveBeenCalledWith(expect.objectContaining({
       invoiceId: 'inv-1', action: 'dunning_generated', toStatus: 'dunning_1',

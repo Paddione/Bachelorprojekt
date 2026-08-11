@@ -97,6 +97,7 @@ describe('invoice-payments.recordPayment — transactional error paths', () => {
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, paid_amount: '80' }] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '80' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [] });
     await expect(
       recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-01', amount: 30, method: 'bank', recordedBy: 'admin' }),
@@ -107,6 +108,7 @@ describe('invoice-payments.recordPayment — transactional error paths', () => {
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, paid_amount: '10' }] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '10' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [] });
     await expect(
       recordPayment({
@@ -120,6 +122,7 @@ describe('invoice-payments.recordPayment — transactional error paths', () => {
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow }] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '0' }] }) // payments SUM (T000375)
       .mockRejectedValueOnce(new Error('insert failed')) // INSERT payment fails
       .mockResolvedValueOnce({ rows: [] }); // ROLLBACK (in catch)
     await expect(
@@ -133,6 +136,7 @@ function mockHappyPath(payRow: Record<string, unknown>) {
   clientQ
     .mockResolvedValueOnce({ rows: [] }) // BEGIN
     .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow }] }) // SELECT FOR UPDATE
+    .mockResolvedValueOnce({ rows: [{ paid_amount: '0' }] }) // payments SUM (T000375)
     .mockResolvedValueOnce({ rows: [payRow] }) // INSERT ... RETURNING *
     .mockResolvedValueOnce({ rows: [] }) // UPDATE billing_invoices
     .mockResolvedValueOnce({ rows: [] }); // COMMIT
@@ -155,7 +159,7 @@ describe('invoice-payments.recordPayment — happy paths', () => {
     expect(pay.notes).toBeUndefined();
 
     const updateCall = clientQ.mock.calls.find((c) => String(c[0]).includes('UPDATE billing_invoices'));
-    expect(updateCall![1]).toEqual(['inv-1', 40, 'partially_paid', null]);
+    expect(updateCall![1]).toEqual(['inv-1', 'partially_paid']);
 
     expect(addBooking).toHaveBeenCalledTimes(1);
     expect(addBooking).toHaveBeenCalledWith(expect.objectContaining({
@@ -174,14 +178,14 @@ describe('invoice-payments.recordPayment — happy paths', () => {
     await recordPayment({ invoiceId: 'inv-1', paidAt: '2026-02-10', amount: 100, method: 'bank', recordedBy: 'admin' });
 
     const updateCall = clientQ.mock.calls.find((c) => String(c[0]).includes('UPDATE billing_invoices'));
-    expect(updateCall![1][2]).toBe('paid');
-    expect(updateCall![1][3]).toEqual(new Date('2026-02-10'));
+    expect(updateCall![1][1]).toBe('paid');
   });
 
   it('a negative correction uses category zahlungseingang_korrektur', async () => {
     clientQ
       .mockResolvedValueOnce({ rows: [] }) // BEGIN
       .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, paid_amount: '30' }] }) // SELECT FOR UPDATE
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '30' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{
         id: 3, invoice_id: 'inv-1', brand: 'mentolder',
         paid_at: new Date('2026-02-05T00:00:00Z'), amount: '-30',
@@ -202,6 +206,7 @@ describe('invoice-payments.recordPayment — happy paths', () => {
     clientQ
       .mockResolvedValueOnce({ rows: [] }) // BEGIN
       .mockResolvedValueOnce({ rows: [{ ...baseInvoiceRow, paid_amount: '40' }] }) // SELECT FOR UPDATE
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '40' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{
         id: 4, invoice_id: 'inv-1', brand: 'mentolder',
         paid_at: new Date('2026-02-05T00:00:00Z'), amount: '-40',
@@ -215,7 +220,7 @@ describe('invoice-payments.recordPayment — happy paths', () => {
       method: 'bank', recordedBy: 'admin', notes: 'Storno',
     });
     const updateCall = clientQ.mock.calls.find((c) => String(c[0]).includes('UPDATE billing_invoices'));
-    expect(updateCall![1]).toEqual(['inv-1', 0, 'open', null]);
+    expect(updateCall![1]).toEqual(['inv-1', 'open']);
   });
 
   it('does not swallow the transaction when EÜR booking fails (best-effort, logs error)', async () => {
@@ -246,6 +251,7 @@ describe('invoice-payments.recordPayment — Kursdifferenz (foreign currency)', 
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '0' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{
         id: 6, invoice_id: 'inv-1', brand: 'mentolder',
         paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
@@ -270,6 +276,7 @@ describe('invoice-payments.recordPayment — Kursdifferenz (foreign currency)', 
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '0' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{
         id: 7, invoice_id: 'inv-1', brand: 'mentolder',
         paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
@@ -293,6 +300,7 @@ describe('invoice-payments.recordPayment — Kursdifferenz (foreign currency)', 
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '0' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{
         id: 8, invoice_id: 'inv-1', brand: 'mentolder',
         paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
@@ -313,6 +321,7 @@ describe('invoice-payments.recordPayment — Kursdifferenz (foreign currency)', 
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '0' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{
         id: 9, invoice_id: 'inv-1', brand: 'mentolder',
         paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',
@@ -331,6 +340,7 @@ describe('invoice-payments.recordPayment — Kursdifferenz (foreign currency)', 
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [usdInvoiceRow] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '0' }] }) // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{
         id: 10, invoice_id: 'inv-1', brand: 'mentolder',
         paid_at: new Date('2026-05-15T00:00:00Z'), amount: '1000',

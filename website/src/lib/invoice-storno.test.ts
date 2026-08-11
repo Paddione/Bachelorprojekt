@@ -103,6 +103,7 @@ describe('invoice-storno.createCreditNote', () => {
     clientQ
       .mockResolvedValueOnce({ rows: [] })                                              // BEGIN
       .mockResolvedValueOnce({ rows: [{ ...baseOrigRow, status: 'paid', paid_amount: '119.00' }] })  // SELECT FOR UPDATE
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '119.00' }] })                      // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{ id: 'gs-1', brand: 'mentolder', number: 'GS-2026-0001', status: 'open', customer_id: 'cust-1', issue_date: new Date(), due_date: new Date(), tax_mode: 'regelbesteuerung', net_amount: '-100.00', tax_rate: '19', tax_amount: '-19.00', gross_amount: '-119.00', paid_amount: '0', locked: true, cancels_invoice_id: 'inv-1', kind: 'gutschrift', parent_invoice_id: null, currency: 'EUR', currency_rate: '1', net_amount_eur: '-100.00', gross_amount_ur: '-119.00', supply_type: null, payment_reference: 'GS-2026-0001', notes: null }] }) // INSERT
       .mockResolvedValueOnce({ rows: [] })                                              // SELECT lines
       .mockResolvedValueOnce({ rows: [] })                                              // INSERT line
@@ -126,6 +127,7 @@ describe('invoice-storno.createCreditNote', () => {
     clientQ
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [{ ...baseOrigRow, status: 'open', paid_amount: '0' }] })
+      .mockResolvedValueOnce({ rows: [{ paid_amount: '0' }] })                          // payments SUM (T000375)
       .mockResolvedValueOnce({ rows: [{ id: 'gs-2', brand: 'mentolder', number: 'GS-2026-0002', status: 'open', customer_id: 'cust-1', issue_date: new Date(), due_date: new Date(), tax_mode: 'regelbesteuerung', net_amount: '-100', tax_rate: '19', tax_amount: '-19', gross_amount: '-119', paid_amount: '0', locked: true, cancels_invoice_id: 'inv-1', kind: 'gutschrift', parent_invoice_id: null, currency: 'EUR', currency_rate: '1', net_amount_eur: '-100', gross_amount_eur: '-119', supply_type: null, payment_reference: 'GS-2026-0002', notes: null }] })
       .mockResolvedValueOnce({ rows: [] })  // SELECT lines
       .mockResolvedValueOnce({ rows: [] })  // INSERT line

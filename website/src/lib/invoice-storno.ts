@@ -23,6 +23,15 @@ export async function createCreditNote(invoiceId: string, reason: string, actor?
     if (!orig) { await client.query('ROLLBACK'); return null; }
     if (orig.status === 'draft' || orig.status === 'cancelled') throw new Error('invoice cannot be cancelled');
     if (orig.kind === 'gutschrift') throw new Error('credit note cannot be cancelled again');
+    // T000375 (View-Migration): paid_amount ist keine Spalte von billing_invoices
+    // mehr, sondern ergibt sich aus der Summe der billing_invoice_payments.
+    const paidR = await client.query(
+      `SELECT COALESCE(SUM(amount), 0) AS paid_amount
+         FROM billing_invoice_payments
+        WHERE invoice_id = $1`,
+      [invoiceId]
+    );
+    const origPaid = Number(paidR.rows[0].paid_amount);
 
     const number = await getNextInvoiceNumber(orig.brand, 'gutschrift');
     const issueDate = iso(new Date());
@@ -31,10 +40,10 @@ export async function createCreditNote(invoiceId: string, reason: string, actor?
       `INSERT INTO billing_invoices
          (brand, number, status, customer_id, issue_date, due_date, tax_mode,
           net_amount, tax_rate, tax_amount, gross_amount, notes, payment_reference,
-          paid_amount, locked, cancels_invoice_id, kind, parent_invoice_id,
+          locked, cancels_invoice_id, kind, parent_invoice_id,
           currency, currency_rate, net_amount_eur, gross_amount_eur, supply_type)
        VALUES
-         ($1,$2,'open',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,0,true,$13,'gutschrift',$14,$15,$16,$17,$18,$19)
+         ($1,$2,'open',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,true,$13,'gutschrift',$14,$15,$16,$17,$18,$19)
        RETURNING *`,
       [
         orig.brand,
@@ -77,15 +86,15 @@ export async function createCreditNote(invoiceId: string, reason: string, actor?
     await client.query(`UPDATE billing_invoices SET status='cancelled', updated_at=now() WHERE id=$1`, [orig.id]);
     await client.query('COMMIT');
 
-    if (Number(orig.paid_amount ?? 0) > 0 && Number(orig.gross_amount) !== 0) {
+    if (origPaid > 0 && Number(orig.gross_amount) !== 0) {
       await addBooking({
         brand: orig.brand,
         bookingDate: issueDate,
         type: 'income',
         category: 'storno',
         description: `Storno ${orig.number}`,
-        netAmount: -round2(Number(orig.paid_amount) * Number(orig.net_amount) / Number(orig.gross_amount)),
-        vatAmount: -round2(Number(orig.paid_amount) * Number(orig.tax_amount) / Number(orig.gross_amount)),
+        netAmount: -round2(origPaid * Number(orig.net_amount) / Number(orig.gross_amount)),
+        vatAmount: -round2(origPaid * Number(orig.tax_amount) / Number(orig.gross_amount)),
         invoiceId: credit.id,
         belegnummer: number,
         taxMode: orig.tax_mode,
@@ -134,7 +143,8 @@ export async function createCreditNote(invoiceId: string, reason: string, actor?
 }
 
 export async function generateCreditNotePdf(invoiceId: string): Promise<Buffer | null> {
-  const invR = await pool.query(`SELECT * FROM billing_invoices WHERE id=$1`, [invoiceId]);
+  // T000375: paid_amount/paid_at sind nur noch ueber die View verfuegbar.
+  const invR = await pool.query(`SELECT * FROM v_billing_invoices_with_state WHERE id=$1`, [invoiceId]);
   const inv = invR.rows[0];
   if (!inv) return null;
   const customer = await getCustomerById(inv.brand, inv.customer_id);

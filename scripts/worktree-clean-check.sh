@@ -30,20 +30,43 @@ if [ ! -d "$path" ]; then
   exit 2
 fi
 
-out="$(git -C "$path" status --porcelain 2>&1)" && rc=0 || rc=$?
+# ── _status_once: run git status --porcelain, return residue ────────────────
+_status_once() {
+  local out rc
+  out="$(git -C "$1" status --porcelain 2>&1)" && rc=0 || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "Fehler beim Ausführen von git status in '$1': $out" >&2
+    return 2
+  fi
+  # Allowlist: SSOT ist ALLOWLIST= in scripts/branch-reaper.sh (dieselbe Unterscheidung für
+  # Branches). Die Muster hier sind eine Arbeitskopie des dortigen Ausdrucks — wächst die
+  # Liste dort, muss der Ausdruck hier (und in der Runbook-Referenz §1) nachgezogen werden.
+  printf "%s" "$out" | cut -c4- | grep -vE '^(openspec/changes/|docs/code-quality/|website/src/data/)' | grep -vE '^(\.release-please-manifest\.json|website/CHANGELOG\.md|website/package\.json)$' || true
+}
 
-if [ "$rc" -ne 0 ]; then
-  echo "Fehler beim Ausführen von git status in '$path': $out" >&2
+# ── Zweitmessung (T002995): erster Befund wird durch zweiten Lauf bestätigt ─
+residue1=$(_status_once "$path") && rc1=0 || rc1=$?
+if [ "$rc1" -ne 0 ]; then
+  echo "Fehler beim ersten git status in '$path'" >&2
   exit 2
 fi
 
-# Allowlist: SSOT ist ALLOWLIST= in scripts/branch-reaper.sh (dieselbe Unterscheidung für
-# Branches). Die Muster hier sind eine Arbeitskopie des dortigen Ausdrucks — wächst die
-# Liste dort, muss der Ausdruck hier (und in der Runbook-Referenz §1) nachgezogen werden.
-residue=$(printf "%s" "$out" | cut -c4- | grep -vE '^(openspec/changes/|docs/code-quality/|website/src/data/)' | grep -vE '^(\.release-please-manifest\.json|website/CHANGELOG\.md|website/package\.json)$' || true)
-
-if [ -n "$residue" ]; then
-  printf "%s\n" "$residue"
+if [ -n "$residue1" ]; then
+  sleep 1   # minimale Entkopplung — verhindert denselben Stat-Cache
+  residue2=$(_status_once "$path") && rc2=0 || rc2=$?
+  if [ "$rc2" -ne 0 ]; then
+    echo "Fehler beim zweiten git status in '$path'" >&2
+    exit 2
+  fi
+  if [ -z "$residue2" ]; then
+    echo "Stat-Cache aufgefrischt, keine persistenten Änderungen (T002995)"
+    exit 0
+  fi
+  if [ "$residue1" != "$residue2" ]; then
+    echo "Stat-Cache drift: erster und zweiter Lauf liefern unterschiedliche Residuen — kein verlässlicher Befund" >&2
+    exit 2
+  fi
+  printf "%s\n" "$residue1"
   exit 1
 fi
 

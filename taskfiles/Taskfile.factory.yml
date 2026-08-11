@@ -134,11 +134,11 @@ tasks:
       - bash scripts/factory/usage-report.sh {{.CLI_ARGS}}
 
   disp:korczewski:
-    desc: "Run Software Factory schedule for korczewski brand (convenience wrapper for disp-korczewski.sh)"
+    desc: "Run Software Factory schedule for korczewski brand"
     cmds:
-      - bash scripts/disp-korczewski.sh
+      - BRAND=korczewski bash scripts/factory/schedule.sh
 
   disp:mentolder:
-    desc: "Run Software Factory schedule for mentolder brand (convenience wrapper for disp-mentolder.sh)"
+    desc: "Run Software Factory schedule for mentolder brand"
     cmds:
-      - bash scripts/disp-mentolder.sh
+      - BRAND=mentolder bash scripts/factory/schedule.sh

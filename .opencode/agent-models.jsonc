@@ -39,7 +39,7 @@
           }
         },
         "gemma26-factory": {
-          "name": "Gemma 4 26B A4B IQ4_XS + mmproj, Loadout gemma26-factory auf Port 8091 (np=3, -kvu, q4_0, fitt 128) - exclusiveGroup chat-gpu",
+          "name": "Gemma 4 26B A4B IQ4_XS, Loadout gemma26-factory auf Port 8091 (np=3, -kvu, q4_0, fitt 128) - exclusiveGroup chat-gpu",
           // 161024 ist GEMESSEN (n_ctx_slot im Serverlog, 2026-08-09, b10241, np=3 -kvu
           // q4_0 fitt 128): GEMEINSAMER Pool ueber die drei Slots, nicht je Slot.
           "limit": {
@@ -47,14 +47,16 @@
             "output": 8192
           }
         },
-        // 2026-08-04: Familiensubagenten gemma/qwen brauchten eigene Loadouts.
-        // gemma4 (Gemma 4 12B Q4_K_M, 7,1 GB) und qwen3-coder-30b (Qwen3-Coder
-        // 30B A3B, 11,9 GB UD-IQ3_XXS) lagen auf der Platte. Ports 8090/8094 frei.
+        // 2026-08-04: Familiensubagenten brauchten eigene Loadouts — gemma4
+        // (Port 8090) und qwen3-coder-30b (Port 8094) lagen auf der Platte.
         // Beide teilen exclusiveGroup chat-gpu: es laeuft immer nur eines.
         // T003204: qwen3-coder-30b ist abgeschaltet (enabled: false in
         // loadouts.json) — gleicher VRAM wie gemma26-factory bei aggressiverer
-        // Quantisierung, weniger Kontext, langsamer gemessen. Der Eintrag bleibt
-        // als historische Referenz, wird aber von keinem Agenten mehr referenziert.
+        // Quantisierung, weniger Kontext, langsamer gemessen; kein Agent
+        // referenziert das Modell mehr.
+        // gemma4 faengt seit T002886 (2026-08-09) Gemma 4 26B A4B UD-IQ4_XS
+        // und ist ein Serving-Familientraeger ohne Agenten-Referenz (der gemma-
+        // Agent zeigt auf gemma26-factory).
         "gemma4": {
           "name": "Gemma 4 26B A4B UD-IQ4_XS (Serving, Loadout gemma4 auf Port 8090, np=1, q4_0 KV, gemessen 177.920 ctx) - exclusiveGroup chat-gpu",
           "limit": {
@@ -76,10 +78,6 @@
             "output": 8192
           }
         }
-        // T003204: qwen3-coder-30b ist abgeschaltet (enabled: false in
-        // loadouts.json) — gleicher VRAM wie gemma26-factory bei aggressiverer
-        // Quantisierung, weniger Kontext, langsamer gemessen. Der Eintrag bleibt
-        // als historische Referenz, wird aber von keinem Agenten mehr referenziert.
       }
     },
     "ollama": {
@@ -352,10 +350,11 @@
     // np=3 -kvu q4_0 fitt 128, gemeinsamer Pool).
     // Keinerlei Subagent-Dispatch — rein lokale Arbeit ohne Netzanbindung.
     //
-    // Vision ist JETZT verfuegbar: gemma26-factory laedt mmproj-F16.gguf (Task 3,
-    // T002753). Der Name passt wieder.
+    // Kein Vision: gemma26-factory laedt KEIN mmproj (loadouts.json, notes
+    // "Kein mmproj." — der mmproj-Pfad wurde T002886 entfernt, weil die Datei
+    // am erwarteten Pfad fehlte). Vision gibt es nur auf gemma12-vision (:8089).
     "gemma26-vision": {
-      "description": "Local agent on gemma26-factory with no subagent dispatch \u2014 for long-context work that must stay on-device. Vision IS available: gemma26-factory loads mmproj-F16.gguf since T002753.",
+      "description": "Local agent on gemma26-factory with no subagent dispatch \u2014 for long-context work that must stay on-device. No vision: gemma26-factory loads no mmproj (see loadouts.json); for vision use the gemma12-vision loadout instead.",
       "mode": "primary",
       "model": "llamacpp-local/gemma26-factory",
       "prompt": "{file:./prompts/local-subagent.md}",

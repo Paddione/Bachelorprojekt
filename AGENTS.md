@@ -16,7 +16,7 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `gemma` | `llamacpp-local/gemma26-factory` (Gemma 4 26B A4B IQ4_XS, :8091) | Local work, gemma family |
 | `gemma12` | `llamacpp-local/gemma12-vision` (Gemma 4 12B QAT + mmproj-F16, :8089) | Local work, 262144 ctx — größter lokaler Kontext und einziges vision-fähiges Loadout. Seit T003204 per `task` dispatchbar |
 | `gemma26-primary` | `llamacpp-local/gemma26-factory`, `mode: primary` | Fully-local tab-selectable agent; NOT summonable via `task` |
-| `gemma26-vision` | `llamacpp-local/gemma26-factory`, `mode: primary` | Max local context (161024, measured), no subagent dispatch. **Vision-capable**: gemma26-factory loads mmproj-F16.gguf since T002753 |
+| `gemma26-vision` | `llamacpp-local/gemma26-factory`, `mode: primary` | Max local context (161024, measured), no subagent dispatch. **No vision** — gemma26-factory loads no mmproj (loadouts.json); vision is on `gemma12-vision` only |
 | `gptoss-primary` | `llamacpp-local/gemma26-throughput`, `mode: primary` | Tab-selectable primary, 118016 ctx (:8092) — seit T003204 |
 | `devstral-primary` | `llamacpp-local/gemma26-factory`, `mode: primary` | Tab-selectable primary, 177920 ctx, code-quality review (:8091) — seit T003204 |
 | `gemma12-primary` | `llamacpp-local/gemma12-vision`, `mode: primary` | Tab-selectable primary, 262144 ctx measured. **Vision-capable** via mmproj-F16 (:8089) |

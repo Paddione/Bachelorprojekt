@@ -68,10 +68,19 @@ setup() {
   #     Dieselbe Falle musste spec-dir-convention.bats zweimal nachbessern.
   #   * Diese Datei selbst — sie enthaelt das Muster in ihren Regexen und waere sonst
   #     dauerhaft rot, unabhaengig vom Zustand des Repos.
+  #
+  # Dritte Ausnahme (T003045/T003102, 2026-08-11): quoted grep-Patterns. Eine Zeile
+  # wie `run grep -F 'git branch --show-current' "$EXEC_SKILL"` prueft NUR, dass ein
+  # Skill diese Zeichenkette enthaelt — git wird nicht ausgefuehrt. Der Guard wuerde
+  # sie trotzdem als Verstoss lesen (dieselbe Falle wie Kommentarzeilen, nur als
+  # grep-Argument statt Fliesstext). ticket-lock-closure-T003102.bats:130,132 ist der
+  # Beleg: der Branch-Check im opencode-flow-execute-Skill wird von einem Test
+  # referenziert, nicht von einem Test ausgefuehrt.
   offenders=$(cd "$REPO_ROOT" && grep -rnE 'rev-parse[[:space:]]+--abbrev-ref[[:space:]]+HEAD|branch[[:space:]]+--show-current' \
       tests --include='*.bats' \
     | grep -v "${SELF}" \
     | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' \
+    | grep -vE "grep[[:space:]]+-[a-zA-Z]+[[:space:]]+['\"].*git[[:space:]]+(branch|rev-parse)[[:space:]]+--" \
     | grep -E 'git[[:space:]]+-C[[:space:]]+"?\$REPO_ROOT|git[[:space:]]+(rev-parse|branch)[[:space:]]+--' \
     | cut -d: -f1,2)
 

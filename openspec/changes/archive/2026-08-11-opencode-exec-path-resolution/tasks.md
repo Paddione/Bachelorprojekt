@@ -2,7 +2,7 @@
 title: "opencode-exec-path-resolution — Implementation Plan"
 ticket_id: T003275
 domains: [ci, factory]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

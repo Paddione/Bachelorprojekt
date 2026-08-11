@@ -4425,10 +4425,9 @@
       "id": "openclaw",
       "name": "OpenClaw WSL gateway config",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 2,
+      "file_count": 1,
       "files": [
-        "openclaw/.env.example",
-        "openclaw/README.md"
+        "openclaw/.env.example"
       ]
     },
     {

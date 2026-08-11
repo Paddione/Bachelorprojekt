@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.268.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.2...website-v1.268.3) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** repo-hygiene-ops §1-§3 Batch-Fixes (Sweep, gone-Prune, merge-tree, cancelled≠fail, headSha, Tick-Vorcheck) [T003490] ([#4258](https://github.com/Paddione/Bachelorprojekt/issues/4258)) ([df393ee](https://github.com/Paddione/Bachelorprojekt/commit/df393ee79f70ae92994f852f0789240e2008fc5c))
+
 ## [1.268.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.1...website-v1.268.2) (2026-08-11)
 
 

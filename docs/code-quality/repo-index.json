@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 940,
+      "file_count": 941,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -369,6 +369,7 @@
         "tests/spec/auto-triage-grounding-T002399.bats",
         "tests/spec/background-agents-fallback.bats",
         "tests/spec/backup-pipeline.bats",
+        "tests/spec/batch-openspec-embed-fixes.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes.bats",
         "tests/spec/billing-pipeline.bats",
         "tests/spec/brain-auto-memory.bats",

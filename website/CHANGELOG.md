@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.268.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.4...website-v1.268.5) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** batch plan-tooling fixes — touched-files, qa-check determinism, intel multi-targets [T003641] ([#4271](https://github.com/Paddione/Bachelorprojekt/issues/4271)) ([9693442](https://github.com/Paddione/Bachelorprojekt/commit/9693442175fd3b3ad5adbde5d6b5fff098b43bc4))
+
 ## [1.268.4](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.3...website-v1.268.4) (2026-08-11)
 
 

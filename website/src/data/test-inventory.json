@@ -2142,6 +2142,12 @@
     "kind": "shell"
   },
   {
+    "id": "batch-repo-hygiene-ops-fixes",
+    "file": "tests/spec/batch-repo-hygiene-ops-fixes.bats",
+    "category": "batch-repo-hygiene-ops-fixes",
+    "kind": "shell"
+  },
+  {
     "id": "billing-pipeline",
     "file": "tests/spec/billing-pipeline.bats",
     "category": "billing-pipeline",

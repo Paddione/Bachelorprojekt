@@ -52,6 +52,23 @@ Stashes ansehen — sie sind die Quelle von Arbeit, die nirgendwo sonst auftauch
 
 Pflicht-Vorcheck vor jedem Remove: **Arbeit muss gesichert sein.** Leerer Commit-Bereich allein reicht nicht — ein Worktree kann ungetrackte Änderungen enthalten, die kein `git log` anzeigt.
 
+> **Factory-Tick-Vorcheck [T003227]:** Läuft gerade ein Factory-Tick (`/tmp/factory-tick.lock`
+> gehalten, siehe `factory_status` → `tick_running`), verändert er Worktrees und Branches
+> unter dem Lauf — real beobachtet: 5 von 7 Worktrees mutierten während einer Messung. Der
+> Vorcheck ist derselbe Lock-Test wie in `scripts/factory/mcp-server.mjs`:
+> ```bash
+> tick_running() {
+>   test -f /tmp/factory-tick.lock || return 1
+>   (flock -n 9 2>/dev/null && return 1 || return 0) 9>/tmp/factory-tick.lock
+> }
+> if tick_running; then
+>   echo "Factory-Tick läuft — Worktree-Sektion übersprungen oder Messung unmittelbar vor Remove wiederholen"
+> fi
+> ```
+> Bei laufendem Tick die Worktree-Sektion überspringen **oder** die `--porcelain`-Prüfung
+> unmittelbar vor dem `git worktree remove` wiederholen — die Remove-Entscheidung darf nie
+> auf einem veralteten Messstand basieren.
+
 ```bash
 git worktree list
 
@@ -129,7 +146,22 @@ git branch --merged main | grep -v 'main' | xargs git branch -d   # gemergte lok
 git fetch --prune                                                  # gone remote-tracking refs
 ```
 
-> **`--merged` verfehlt squash-gemergte Branches.** Dieses Repo mergt via squash-and-merge
+> **Reihenfolge: Reaper VOR [gone]-Prune [T003183].** `scripts/branch-reaper.sh` löscht
+> Remote-Branches und erzeugt dabei selbst neue `[gone]`-Upstreams (der lokale Branch überlebt
+> den Remote-Delete). Läuft der `[gone]`-Prune **vor** dem Reaper, bleiben diese Refs bis zum
+> nächsten Lauf liegen. Kanonische Reihenfolge im Sweep:
+> 1. `scripts/branch-reaper.sh --sweep` (oder `--ticket T00XXXX`), dann
+> 2. `git fetch --prune` + der `[gone]`-Block unten.
+>
+> **Archiv-Tag als zweites zulässiges Positiv-Signal [T003183]:** Der Reaper pusht vor jedem
+> Delete den Branch-SHA als `refs/tags/reaped/<branch>`. Ein vorhandener Archiv-Tag belegt,
+> dass der Branch **sicher** abgeräumt wurde (Inhalt ist unter dem Tag erhalten) — das
+> `[gone]`-Delete darf sich dann auf den Tag stützen, ohne den merged-PR-Nachweis zu brauchen:
+> ```bash
+> git rev-parse --verify refs/tags/reaped/<branch>  # vorhanden → git branch -D belegt sicher
+> ```
+>
+> `--merged` verfehlt squash-gemergte Branches. Dieses Repo mergt via squash-and-merge
 > (Dev-Regel 3) — der Branch-Tip ist danach KEIN Ancestor von `main`, `git branch -d` verweigert.
 > Erkennung: Upstream ist **[gone]** (von `gh pr merge --delete-branch` gelöscht) + PR nachweislich
 > gemergt → force-delete:
@@ -137,7 +169,15 @@ git fetch --prune                                                  # gone remote
 > git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
 >   | awk '$2 == "[gone]" {print $1}' \
 >   | while read -r b; do
->       # Exit-Code auswerten, NICHT die leere Ausgabe [T002523-M7]: "gh sagt kein
+>       # Positiv-Signal 1: der Reaper-Archiv-Tag belegt die sichere Ablage — der
+>       # Branch-SHA liegt unter refs/tags/reaped/<b>, ein merged-PR-Nachweis ist dann
+>       # entbehrlich [T003183].
+>       if git rev-parse --verify --quiet "refs/tags/reaped/$b" >/dev/null 2>&1; then
+>         git branch -D "$b"   # safe: Inhalt unter refs/tags/reaped/<b> archiviert
+>         continue
+>       fi
+>       # Positiv-Signal 2: nachweislich gemergter PR. Exit-Code auswerten, NICHT die
+>       # leere Ausgabe [T002523-M7]: "gh sagt kein
 >       # gemergter PR" und "gh konnte nicht antworten" erzeugen beide eine leere
 >       # Ausgabe. Der Fehlerfall saehe sonst aus wie ein gueltiger Messwert. Real
 >       # beobachtet: mitten in einer Schleife ueber 13 Branches brach gh mit
@@ -294,6 +334,20 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 * **CI-Failures:** `gh pr checks <number>` diagnostizieren. Rote PRs nie mergen. Bekannter Flake →
   re-run; sonst PR offen lassen und (falls Ticket vorhanden) auf `in_progress` belassen.
 
+  > **Rot gemeldet ≠ failure: cancelled/skipped gegenprüfen [T003224].** Ein aggregierter
+  > Check (z.B. ein Workflow-Run) meldet `failure`, obwohl alle Jobs success/cancelled sind —
+  > etwa wenn ein Lauf nach grünem Durchlauf abgebrochen oder ein Re-Run gestoppt wurde.
+  > `cancelled`/`skipped` ist kein Codefehler: ein Re-Run genügt, ein Fix-Subagent ist
+  > Fehlalarm. Bei rot gemeldetem Check IMMER auf Job-Ebene gegenprüfen:
+  > ```bash
+  > # Run-ID des roten Checks holen, dann:
+  > gh run view <run> --json jobs -q '.jobs[]|select(.conclusion=="failure")'
+  > # keine Treffer → cancelled/skipped, kein Fehler (Re-Run genügt)
+  > ```
+  > Die Warteschleife (`devflow-ci-watch.sh`) wertet deshalb nur echte
+  > `FAILURE`/`TIMED_OUT`-Conclusions am aktuellen PR-HEAD als rot und verifiziert
+  > `conclusion=="failure"`-Jobs, bevor sie einen Fehler meldet.
+
   > **„no checks reported" ist kein CI-Zustand [T002821]:** `gh pr checks <n>` antwortete an
   > PR #3916 mit „no checks reported on the branch", `gh pr view --json statusCheckRollup`
   > lieferte ein **leeres Array** — während `gh run list --branch <b>` fünf abgeschlossene
@@ -314,15 +368,38 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
   > **Symptom** war bisher nirgends notiert: `gh pr checks` liefert exakt dieselbe Meldung wie
   > bei einem nicht gestarteten Lauf, und `mergeStateStatus` stand auf `UNKNOWN`. Reihenfolge
   > bei leerer Checkliste deshalb: erst `mergeStateStatus` lesen, und bei `UNKNOWN` oder
-  > `DIRTY` lokal probe-mergen — das trennt „Konflikt" von „noch nicht gestartet" eindeutig:
+  > `DIRTY` die Konfliktprobe unten anwenden — das trennt „Konflikt" von „noch nicht
+  > gestartet" eindeutig:
   > ```bash
   > gh pr view <n> --json mergeStateStatus -q '.mergeStateStatus'
-  > git fetch origin main
-  > git merge origin/main --no-commit --no-ff   # danach: git merge --abort
-  > git diff --name-only --diff-filter=U        # nicht leer = echter Konflikt
   > ```
   > `UNKNOWN` bedeutet dabei nur, dass GitHub die Mergebarkeit noch nicht berechnet hat — auch
   > das ist eine fehlende Messung, kein Befund.
+  >
+  > **Konfliktprobe per `git merge-tree` — der Normalfall [T003181].** Primäre Gegenprobe ist
+  > die nicht-invasive Form: sie fasst weder Working Tree noch Index an und funktioniert
+  > deshalb auch in einem dirty Worktree (der Normalfall, denn Freshness-Generate machen jeden
+  > PR-Worktree dauerhaft dirty):
+  > ```bash
+  > git fetch origin main
+  > out=$(git merge-tree --write-tree --name-only origin/main HEAD)
+  > rc=$?
+  > if [ "$rc" -eq 0 ]; then
+  >   echo "konfliktfrei — Tree-SHA: $out"    # Ausgabe = SHA des Merge-Ergebnisses
+  > else
+  >   echo "KONFLIKT in: $out"                # Ausgabe = konfligierende Dateiliste
+  > fi
+  > ```
+  > Exit 0 + Tree-SHA ist **konfliktfrei** (auch wenn der Working Tree dirty ist — ein
+  > Phantomkonflikt aus `merge=ours`-Generate meldet hier sauber, weil die Generate auf main
+  > ohnehin fortgeschrieben werden). Exit ≠ 0 + Dateiliste ist ein **echter** Konflikt.
+  > Der invasive Arbeitsbaum-Merge (`git merge origin/main --no-commit --no-ff` + `git diff
+  > --name-only --diff-filter=U`) bleibt nur für den Fall, in dem Konfliktmarker im Working
+  > Tree sichtbar sein sollen — er ist die Ausnahme, nicht der Primärweg.
+  >
+  > **Veralteten Arbeitsbaum-Merge ersetzen [T003181]:** Der früher dokumentierte
+  > Probe-Merge verändert den Working Tree und muss danach mit `git merge --abort`
+  > zurückgerollt werden; in einem dirty Worktree (Normalfall, s. o.) ist er nicht gangbar.
 
 ### PR-Branch auf `main` nachziehen
 

@@ -1345,6 +1345,11 @@ case "$*" in
     # Keine fehlgeschlagenen Checks
     echo ""
     ;;
+  *"pr view"*"--json headRefOid"*)
+    # [T003225] Der headSha-Filter fragt den PR-HEAD explizit ab — ohne Antwort
+    # bricht das Skript mit Exit 1 statt mit 5 ab (headRefOid leer).
+    echo "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ;;
   *"api"*"check-runs"*)
     # Der zu testende Zustand: null Check-Runs.
     # Das Skript ruft `gh api … -q '.total_count'` auf — der echte gh liefert

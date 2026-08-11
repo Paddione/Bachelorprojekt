@@ -222,7 +222,13 @@ for branch in "${CANDIDATES[@]}"; do
 done
 
 if [ "${#REAP_LIST[@]}" -eq 0 ]; then
-  echo "Nichts zu loeschen."
+  if [ "$SWEEP" -eq 1 ]; then
+    # [T003074] Leerer Sweep-Bestand ist ein gültiger Messwert, kein Fehlschlag —
+    # aber explizit als solcher benannt (kein vakuoses Exit 0 ohne Aussage).
+    echo "keine verwaisten Branches gefunden"
+  else
+    echo "Nichts zu loeschen."
+  fi
   exit 0
 fi
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.268.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.7...website-v1.268.8) (2026-08-11)
+
+
+### Bug Fixes
+
+* **factory:** watchdog prog CTE filters entered events — only done/partial-done/blocked reset attempt counter [T003487] ([#4279](https://github.com/Paddione/Bachelorprojekt/issues/4279)) ([5c60a40](https://github.com/Paddione/Bachelorprojekt/commit/5c60a40f0832ec4d80a60625ed7d4781f8e8246d))
+
 ## [1.268.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.6...website-v1.268.7) (2026-08-11)
 
 

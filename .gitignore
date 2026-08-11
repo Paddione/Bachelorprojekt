@@ -1,7 +1,9 @@
 # ── Lokale Artefakte (nicht versioniert) ────────
+deep.sh
 presentation/
 .taskmaster/state.json
 vitest-junit-report/
+scripts/deep.sh
 # bats junit-Reporte (BATS_JUNIT_DIR, [T003025]) — CI-artefakt, nie committen
 junit-report/
 website-dist/

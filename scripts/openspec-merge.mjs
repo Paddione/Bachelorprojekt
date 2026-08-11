@@ -154,13 +154,35 @@ function main(argv) {
   const positional = argv.filter(a => !a.startsWith('--'))
   const flags = argv.filter(a => a.startsWith('--'))
   const [verb, deltaPath, ssotPath] = positional
-  // 'check' ist 'apply' ohne Schreibvorgang — identische Guards. [T002581]
-  if ((verb !== 'apply' && verb !== 'check') || !deltaPath || !ssotPath) {
-    process.stderr.write('Usage: openspec-merge.mjs <apply|check> <deltaPath> <ssotPath> [--create-new] [--force-new-component]\n')
-    process.exit(2)
-  }
   const createNew = flags.includes('--create-new')
   const forceNewComponent = flags.includes('--force-new-component')
+
+  // [T003140] batch: mehrere (delta, ssot)-Paare in EINEM Node-Prozess — der
+  // Einzel-Archivierungspfad startet pro Delta einen Node (je ~3s); eine
+  // N-Changes-Schleife brach in Default-Command-Timeouts. Die Liste kommt als
+  // JSON-Datei: [{ "delta": "...", "ssot": "...", "create_new": bool,
+  // "force_new_component": bool }].
+  if (verb === 'batch') {
+    const listPath = deltaPath
+    if (!listPath) {
+      process.stderr.write('Usage: openspec-merge.mjs batch <jsonListPath>\n')
+      process.exit(2)
+    }
+    const items = JSON.parse(readFileSync(listPath, 'utf8'))
+    if (!Array.isArray(items)) fail('batch list must be a JSON array')
+    for (const item of items) {
+      const createN = Boolean(item.create_new ?? createNew)
+      const forceN = Boolean(item.force_new_component ?? forceNewComponent)
+      applyDelta(item.delta, item.ssot, new Date().toISOString().slice(0, 10), createN, forceN, item.dry_run === true)
+    }
+    return 0
+  }
+
+  // 'check' ist 'apply' ohne Schreibvorgang — identische Guards. [T002581]
+  if ((verb !== 'apply' && verb !== 'check') || !deltaPath || !ssotPath) {
+    process.stderr.write('Usage: openspec-merge.mjs <apply|check|batch> <deltaPath> <ssotPath> [--create-new] [--force-new-component]\n')
+    process.exit(2)
+  }
   return applyDelta(deltaPath, ssotPath, new Date().toISOString().slice(0, 10), createNew, forceNewComponent, verb === 'check')
 }
 

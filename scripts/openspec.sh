@@ -274,16 +274,45 @@ cmd_archive() {
   # deren Skeleton-Delta nie ausgefuellt wurde. Ohne --no-merge bleibt das
   # fail-closed Verhalten unveraendert.
   if [[ "$no_merge" -ne 1 && -d "$dir/specs" ]]; then
+    # [T003140] Batch-Modus: alle Deltas dieses Changes in EINEM Node-Prozess
+    # pruefen und anwenden, statt je Delta einen Prozess zu starten (~3s je
+    # Delta). Der Zwei-Pass bleibt erhalten (erst pruefen, dann anwenden) —
+    # nur die Prozess-Granularitaet aendert sich. Einzel-Archivierung bleibt
+    # funktional identisch (auch dort laeuft batch mit einer Liste aus einem
+    # Element). Temporäre Liste, wird per EXIT-Trap im Aufrufer aufgeraeumt.
+    local deltas=()
     for capfile in "$dir/specs"/*.md; do
       [[ -e "$capfile" ]] || continue
-      local cap; cap="$(basename "$capfile")"
-      _check_delta "$capfile" "$OPENSPEC_ROOT/specs/$cap" "$create_new" "$force_new"
+      deltas+=("$capfile")
     done
-    for capfile in "$dir/specs"/*.md; do
-      [[ -e "$capfile" ]] || continue
-      local cap; cap="$(basename "$capfile")"
-      _merge_delta "$capfile" "$OPENSPEC_ROOT/specs/$cap" "$create_new" "$force_new"
-    done
+    if [[ ${#deltas[@]} -gt 0 ]]; then
+      local list_file
+      list_file="$(mktemp)"
+      {
+        echo '['
+        local first=1
+        for capfile in "${deltas[@]}"; do
+          local cap; cap="$(basename "$capfile")"
+          [[ $first -eq 0 ]] && echo ','
+          first=0
+          printf '  {"delta": %s, "ssot": %s, "create_new": %s, "force_new_component": %s, "dry_run": true}' \
+            "$(jq -R -s . < <(printf '%s' "$capfile"))" \
+            "$(jq -R -s . < <(printf '%s' "$OPENSPEC_ROOT/specs/$cap"))" \
+            "$([[ -n "$create_new" ]] && echo true || echo false)" \
+            "$([[ -n "$force_new" ]] && echo true || echo false)"
+        done
+        echo
+        echo ']'
+      } > "$list_file"
+      # Pass 1: pruefen (dry-run=true in der Liste), keine SSOT-Mutation.
+      # Fail-closed via set -e.
+      node "$REPO/scripts/openspec-merge.mjs" batch "$list_file"
+      # Pass 2: anwenden — batch liest dieselbe Liste, dry_run auf false.
+      local apply_list; apply_list="$(mktemp)"
+      jq -c 'map(. + {dry_run: false})' "$list_file" > "$apply_list"
+      node "$REPO/scripts/openspec-merge.mjs" batch "$apply_list"
+      rm -f "$list_file" "$apply_list"
+    fi
   fi
   mkdir -p "$(dirname "$dest")"
   mv "$dir" "$dest"
@@ -426,6 +455,16 @@ _validate_delta_file() {
     || { echo "FAIL: $f has no '### Requirement: ' (H3) entry" >&2; rc=1; }
   if grep -qE '^## Requirement: ' "$f"; then
     echo "FAIL: $f uses H2 '## Requirement:' (must be H3 '### Requirement:')" >&2; rc=1
+  fi
+  # [T003281] fail-closed gegen das propose-Skelett: ein unveraendertes
+  # Stub-Delta (Platzhalter '### Requirement: TODO' oder 'The system SHALL …')
+  # darf weder archiviert noch als warn gewertet werden. Dieselben Marker wie in
+  # scripts/openspec-merge.mjs STUBS — die Gate-Stelle (validate) und die
+  # Archiv-Stelle (merge) muessen identisch urteilen, sonst faellt der Platzhalter
+  # durch eine von beiden.
+  if grep -qE '^### Requirement: TODO\s*$' "$f" || grep -qE '^The system SHALL …\s*$' "$f" \
+     || grep -qE '^#### Scenario: TODO\s*$' "$f"; then
+    echo "FAIL: $f contains unedited skeleton stub (TODO / 'The system SHALL …') — edit before archiving" >&2; rc=1
   fi
   return "$rc"
 }

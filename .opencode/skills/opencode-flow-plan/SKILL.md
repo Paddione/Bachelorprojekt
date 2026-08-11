@@ -231,6 +231,31 @@ FOR each partial pX (p1, p2, ...):
   │     ticket-mcp: set_readiness_flag({ id: "$TICKET_EXT_ID", flag: "offene_fragen_geklaert", value: true })
   │     ticket-mcp: set_readiness_flag({ id: "$TICKET_EXT_ID", flag: "aufwand_geschaetzt", value: true })
   │
+  ├─► Schritt C.2e5: Read-After-Write-Verifikation [T002929]
+  │     Die gesetzten Flags muessen per DB-Abfrage BESTAETIGT werden — nicht einfach die
+  │     beabsichtigten Werte behaupten.
+  │
+  │     # Alle 4 DoR-Flags + lastenheft_locked aus der DB lesen:
+  │     DB_READINESS=$(mcp__mcp-postgres__query({
+  │       sql: "SELECT readiness FROM tickets.tickets WHERE external_id = '$TICKET_EXT_ID'"
+  │     }))
+  │     # Erwartete Werte pruefen:
+  │     for flag in spec_skizziert abhaengigkeiten_klar offene_fragen_geklaert aufwand_geschaetzt; do
+  │       val=$(echo "$DB_READINESS" | jq -r ".[0].result | fromjson | .readiness.$flag // false")
+  │       [ "$val" != "true" ] && echo "FEHLER: Readiness-Flag $flag wurde NICHT in die DB geschrieben (Wert: $val)" >&2 && exit 1
+  │     done
+  │     # Status verifizieren:
+  │     DB_STATUS=$(mcp__mcp-postgres__query({
+  │       sql: "SELECT status FROM tickets.tickets WHERE external_id = '$TICKET_EXT_ID'"
+  │     }))
+  │     ACTUAL_STATUS=$(echo "$DB_STATUS" | jq -r ".[0].result | fromjson | .status")
+  │     [ "$ACTUAL_STATUS" != "plan_staged" ] && echo "FEHLER: Ticket-Status wurde NICHT auf plan_staged gesetzt (IST: $ACTUAL_STATUS)" >&2 && exit 1
+  │
+  │     Bei Diskrepanz: process.exit(1) — die Rückmeldung DARF NICHT einfach
+  │     die beabsichtigten Werte durchreichen, sie muss die DB-Wahrheit abbilden.
+  │     [T002929] Fix: Plan-Agenten melden Readiness-Flags falsch (behaupten
+  │     Werte, die sie zu setzen GEDACHT haben, statt die tatsaechlichen DB-Werte).
+  │
   ├─► Schritt C.2f: In Factory enqueuen ⚡
   │     ticket-mcp: enqueue_ticket({ id: "$TICKET_EXT_ID" })
   │     # Factory dispatcher startet jetzt WORK an diesem Partial!

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 941,
+      "file_count": 942,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -708,6 +708,7 @@
         "tests/spec/software-factory/agent-lock-scope-argument.bats",
         "tests/spec/software-factory/auto-triage-type-vocab.bats",
         "tests/spec/software-factory/babysit-prs-live-lock-guard-T003137.bats",
+        "tests/spec/software-factory/batch-closure-title-children.bats",
         "tests/spec/software-factory/brand-is-row-filter-not-namespace.bats",
         "tests/spec/software-factory/canary-and-cleanup.bats",
         "tests/spec/software-factory/catalog-eval-telemetry.bats",

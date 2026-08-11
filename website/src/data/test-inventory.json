@@ -4146,6 +4146,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/batch-closure-title-children",
+    "file": "tests/spec/software-factory/batch-closure-title-children.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/brand-is-row-filter-not-namespace",
     "file": "tests/spec/software-factory/brand-is-row-filter-not-namespace.bats",
     "category": "software-factory",

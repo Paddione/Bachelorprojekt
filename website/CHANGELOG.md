@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.265.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.5...website-v1.265.6) (2026-08-11)
+
+
+### Bug Fixes
+
+* **scripts:** bats-Wrapper prueft Testpfad-Existenz [T003278] ([#4232](https://github.com/Paddione/Bachelorprojekt/issues/4232)) ([a3fd389](https://github.com/Paddione/Bachelorprojekt/commit/a3fd389dfc8ebc52f9e82900c58f12d8792ed46f))
+
 ## [1.265.5](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.265.4...website-v1.265.5) (2026-08-11)
 
 

@@ -3195,6 +3195,12 @@
       "status": "archived"
     }
   ],
+  "T003275": [
+    {
+      "slug": "opencode-exec-path-resolution",
+      "status": "plan_staged"
+    }
+  ],
   "T003276": [
     {
       "slug": "2026-08-10-quickwins-script-fixes",

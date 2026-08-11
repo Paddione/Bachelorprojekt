@@ -15,6 +15,18 @@ EXT_ID="${1:-}"; LAUNCH_DIR="${2:-}"; BRANCH="${3:-}"; PLAN_PATH="${4:-}"
 [[ -z "$EXT_ID" ]] && { echo "opencode-exec: missing ticket ext_id" >&2; exit 2; }
 [[ -n "$LAUNCH_DIR" && -d "$LAUNCH_DIR" ]] || LAUNCH_DIR="$REPO"
 
+# --- opencode-Binary selbst aufloesen (T003275) -------------------------------
+# Der Factory-Lauf laeuft als systemd-User-Service, dessen PATH `~/.npm-global/bin`
+# nicht enthaelt. Interaktiv funktioniert `command -v opencode`, im Dienst nicht —
+# ein nicht auffindbares Binary legte jede Pipeline mit Exit 127 still. Deshalb
+# wird das Binary explizit gesucht (Override > PATH > npm-global) und bei Fehlen
+# mit einem von 127 unterscheidbaren Code und einer Ursachenmeldung abgebrochen.
+OPENCODE_BIN="${OPENCODE_BIN:-$(command -v opencode 2>/dev/null || echo "$HOME/.npm-global/bin/opencode")}"
+if [[ -z "${OPENCODE_BIN}" || ! -x "${OPENCODE_BIN}" ]]; then
+  echo "opencode-exec: opencode-Binary nicht gefunden (gesucht: \$OPENCODE_BIN, command -v opencode, \$HOME/.npm-global/bin/opencode) — Abbruch mit Exit 2 statt 127" >&2
+  exit 2
+fi
+
 # --- load plan body + extract the ## Partials manifest (best-effort) -----------------
 plan_body=""
 if [[ -n "$PLAN_PATH" && -f "$LAUNCH_DIR/$PLAN_PATH" ]]; then
@@ -86,7 +98,7 @@ run_log="$(mktemp)"
 # head_before leer und der Check faellt auf den Arbeitsbaum-Vergleich zurueck.
 head_before="$(git -C "$LAUNCH_DIR" rev-parse HEAD 2>/dev/null || true)"
 
-( cd "$LAUNCH_DIR" && opencode run --agent orchestrator --format json "$PROMPT" ) \
+( cd "$LAUNCH_DIR" && "$OPENCODE_BIN" run --agent orchestrator --format json "$PROMPT" ) \
   >"$run_log" 2>&1
 ex=$?
 dur=$(( $(date +%s) - start ))

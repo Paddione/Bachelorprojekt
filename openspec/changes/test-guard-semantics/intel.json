@@ -1,0 +1,835 @@
+{
+  "meta": {
+    "slug": "test-guard-semantics",
+    "ticket_id": "T003796",
+    "generated_from": "main@7e9a0a34a",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 266,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "docs/superpowers/references/gotchas-footguns.md",
+      "language": "markdown",
+      "loc": 305,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
+      "language": "bash",
+      "loc": 185,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/agent-skills/guard-semantics-konvention.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
+      "language": "bash",
+      "loc": 108,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ci-cd.bats",
+      "language": "bash",
+      "loc": 2091,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
+      "language": "bash",
+      "loc": 121,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-plan.bats",
+      "language": "bash",
+      "loc": 409,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats",
+      "language": "bash",
+      "loc": 86,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/devflow-selection-archive-hardening.bats",
+      "language": "bash",
+      "loc": 187,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy.bats",
+      "language": "bash",
+      "loc": 454,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/local-llm-proxy/loadout-env-property.bats",
+      "language": "bash",
+      "loc": 134,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mcp-gateway/bge-host-routing.bats",
+      "language": "bash",
+      "loc": 86,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/mishap-categorize-erden.bats",
+      "language": "bash",
+      "loc": 88,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-workflow.bats",
+      "language": "bash",
+      "loc": 406,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
+      "language": "bash",
+      "loc": 75,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-workflow/ticket-file-required.bats",
+      "language": "bash",
+      "loc": 66,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/react-login-edit-homepage.bats",
+      "language": "bash",
+      "loc": 211,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/repo-hygiene/signal-gaps.bats",
+      "language": "bash",
+      "loc": 120,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/repo-hygiene/worktree-stash-inspection.bats",
+      "language": "bash",
+      "loc": 139,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+      "language": "bash",
+      "loc": 106,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/e3-poller.bats",
+      "language": "bash",
+      "loc": 135,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/sdlc-up-command.bats",
+      "language": "bash",
+      "loc": 157,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "language": "bash",
+      "loc": 856,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/dashboard.bats",
+      "language": "bash",
+      "loc": 166,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
+      "language": "bash",
+      "loc": 416,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/software-factory/ticket-lifecycle.bats",
+      "language": "bash",
+      "loc": 778,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ticket-system.bats",
+      "language": "bash",
+      "loc": 651,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/website-core.bats",
+      "language": "bash",
+      "loc": 447,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats:29:setup() {",
+      "kind": "function",
+      "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
+      "signature": "29:setup() {(...)",
+      "type_text": "29:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats:39:_step36_block() {",
+      "kind": "function",
+      "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
+      "signature": "39:_step36_block() {(...)",
+      "type_text": "39:_step36_block() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats:44:_precommit_block() {",
+      "kind": "function",
+      "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
+      "signature": "44:_precommit_block() {(...)",
+      "type_text": "44:_precommit_block() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats:106:_run_guard_two_claims_same_wt() {",
+      "kind": "function",
+      "file": "tests/spec/active-sessions-hub/agent-lock-scope-regelwerk.bats",
+      "signature": "106:_run_guard_two_claims_same_wt() {(...)",
+      "type_text": "106:_run_guard_two_claims_same_wt() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats:18:setup() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
+      "signature": "18:setup() {(...)",
+      "type_text": "18:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats:26:_make_fixture() {",
+      "kind": "function",
+      "file": "tests/spec/agent-skills/worktree-mid-rebase-guard.bats",
+      "signature": "26:_make_fixture() {(...)",
+      "type_text": "26:_make_fixture() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:6:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "6:setup() {(...)",
+      "type_text": "6:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:425:_schema_env_vars() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "425:_schema_env_vars() {(...)",
+      "type_text": "425:_schema_env_vars() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:431:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "431:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)(...)",
+      "type_text": "431:_taskfile_envsubst_list() { # $1 = task name (z.B. workspace:deploy)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:446:_website_deploy_list() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "446:_website_deploy_list() {(...)",
+      "type_text": "446:_website_deploy_list() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:454:_render_placeholders() { # $1 = overlay dir",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "454:_render_placeholders() { # $1 = overlay dir(...)",
+      "type_text": "454:_render_placeholders() { # $1 = overlay dir(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:460:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "460:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)(...)",
+      "type_text": "460:_assert_no_config_drift() { # $1 = overlay, $2 = allowlist (newline-separiert)(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1282:flux_render_script() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1282:flux_render_script() {(...)",
+      "type_text": "1282:flux_render_script() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1534:_extract_renovate_step() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1534:_extract_renovate_step() {(...)",
+      "type_text": "1534:_extract_renovate_step() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1546:_write_docker_mock() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1546:_write_docker_mock() {(...)",
+      "type_text": "1546:_write_docker_mock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ci-cd.bats:1555:setup_renovate_mock() {",
+      "kind": "function",
+      "file": "tests/spec/ci-cd.bats",
+      "signature": "1555:setup_renovate_mock() {(...)",
+      "type_text": "1555:setup_renovate_mock() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats:26:setup() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-chore-ticket-ops-mishaps.bats",
+      "signature": "26:setup() {(...)",
+      "type_text": "26:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan.bats:10:setup() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan.bats",
+      "signature": "10:setup() {(...)",
+      "type_text": "10:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan.bats:95:_exec_step2_block() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan.bats",
+      "signature": "95:_exec_step2_block() {(...)",
+      "type_text": "95:_exec_step2_block() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan.bats:166:_wg_guard() { echo \"$REPO/scripts/hooks/worktree-write-guard.sh\"; }",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan.bats",
+      "signature": "166:_wg_guard() { echo \"$REPO/scripts/hooks/worktree-write-guard.sh\"; }(...)",
+      "type_text": "166:_wg_guard() { echo \"$REPO/scripts/hooks/worktree-write-guard.sh\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan.bats:168:_wg_lock() {  # $1=lockdir $2=name $3=owner_sid $4=worktree",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan.bats",
+      "signature": "168:_wg_lock() {  # $1=lockdir $2=name $3=owner_sid $4=worktree(...)",
+      "type_text": "168:_wg_lock() {  # $1=lockdir $2=name $3=owner_sid $4=worktree(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan.bats:184:_wg_run() {  # $1=lockdir $2=sid $3=zielpfad  -> setzt status/output",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan.bats",
+      "signature": "184:_wg_run() {  # $1=lockdir $2=sid $3=zielpfad  -> setzt status/output(...)",
+      "type_text": "184:_wg_run() {  # $1=lockdir $2=sid $3=zielpfad  -> setzt status/output(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/dev-flow-plan/red-phase-and-handoff-conventions.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/devflow-selection-archive-hardening.bats:13:setup() {",
+      "kind": "function",
+      "file": "tests/spec/devflow-selection-archive-hardening.bats",
+      "signature": "13:setup() {(...)",
+      "type_text": "13:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:10:_start_stub() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "10:_start_stub() {(...)",
+      "type_text": "10:_start_stub() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }(...)",
+      "type_text": "31:_free_port() { node -e 'const s=require(\"net\").createServer();s.listen(0,()=>{console.log(s.address().port);s.close();})'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:33:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "33:setup() {(...)",
+      "type_text": "33:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:48:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "48:teardown() {(...)",
+      "type_text": "48:teardown() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:53:_start_proxy() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "53:_start_proxy() {(...)",
+      "type_text": "53:_start_proxy() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:73:_skip_if_no_db() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "73:_skip_if_no_db() {(...)",
+      "type_text": "73:_skip_if_no_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy.bats:162:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy.bats",
+      "signature": "162:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "type_text": "162:_sanitize() {  # $1 = pattern -> sanitisiertes Pattern auf stdout(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/loadout-env-property.bats:18:setup() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/loadout-env-property.bats",
+      "signature": "18:setup() {(...)",
+      "type_text": "18:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/loadout-env-property.bats:24:_start_cmd() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/loadout-env-property.bats",
+      "signature": "24:_start_cmd() {(...)",
+      "type_text": "24:_start_cmd() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/loadout-env-property.bats:36:_validate() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/loadout-env-property.bats",
+      "signature": "36:_validate() {(...)",
+      "type_text": "36:_validate() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/loadout-env-property.bats:44:_doc_with_env() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/loadout-env-property.bats",
+      "signature": "44:_doc_with_env() {(...)",
+      "type_text": "44:_doc_with_env() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/local-llm-proxy/loadout-env-property.bats:54:_start_cmd_doc() {",
+      "kind": "function",
+      "file": "tests/spec/local-llm-proxy/loadout-env-property.bats",
+      "signature": "54:_start_cmd_doc() {(...)",
+      "type_text": "54:_start_cmd_doc() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mcp-gateway/bge-host-routing.bats:21:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mcp-gateway/bge-host-routing.bats",
+      "signature": "21:setup() {(...)",
+      "type_text": "21:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/mishap-categorize-erden.bats:7:setup() {",
+      "kind": "function",
+      "file": "tests/spec/mishap-categorize-erden.bats",
+      "signature": "7:setup() {(...)",
+      "type_text": "7:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow.bats:12:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow.bats",
+      "signature": "12:setup() {(...)",
+      "type_text": "12:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow.bats:116:_merge_setup() {            # copy the read-only SSOT fixture into a writable temp file",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow.bats",
+      "signature": "116:_merge_setup() {            # copy the read-only SSOT fixture into a writable temp file(...)",
+      "type_text": "116:_merge_setup() {            # copy the read-only SSOT fixture into a writable temp file(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow.bats:189:_fake_openspec_root() {   # builds a throwaway <root>/{specs/,config.yaml} tree",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow.bats",
+      "signature": "189:_fake_openspec_root() {   # builds a throwaway <root>/{specs/,config.yaml} tree(...)",
+      "type_text": "189:_fake_openspec_root() {   # builds a throwaway <root>/{specs/,config.yaml} tree(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow.bats:352:_p5_repo() { cd \"$BATS_TEST_DIRNAME/../..\" && pwd; }",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow.bats",
+      "signature": "352:_p5_repo() { cd \"$BATS_TEST_DIRNAME/../..\" && pwd; }(...)",
+      "type_text": "352:_p5_repo() { cd \"$BATS_TEST_DIRNAME/../..\" && pwd; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/half-archive-uncommitted.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/half-archive-uncommitted.bats:31:_make_half_archive() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
+      "signature": "31:_make_half_archive() {(...)",
+      "type_text": "31:_make_half_archive() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/ticket-file-required.bats:15:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
+      "signature": "15:setup() {(...)",
+      "type_text": "15:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-workflow/ticket-file-required.bats:22:_is_backlog_slug() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
+      "signature": "22:_is_backlog_slug() {(...)",
+      "type_text": "22:_is_backlog_slug() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/repo-hygiene/signal-gaps.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/repo-hygiene/signal-gaps.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/repo-hygiene/signal-gaps.bats:26:_section() {",
+      "kind": "function",
+      "file": "tests/spec/repo-hygiene/signal-gaps.bats",
+      "signature": "26:_section() {(...)",
+      "type_text": "26:_section() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/repo-hygiene/worktree-stash-inspection.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/repo-hygiene/worktree-stash-inspection.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/repo-hygiene/worktree-stash-inspection.bats:27:_make_stash_repo() {",
+      "kind": "function",
+      "file": "tests/spec/repo-hygiene/worktree-stash-inspection.bats",
+      "signature": "27:_make_stash_repo() {(...)",
+      "type_text": "27:_make_stash_repo() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-cockpit/redesign-struktur.bats:17:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-cockpit/redesign-struktur.bats",
+      "signature": "17:setup() {(...)",
+      "type_text": "17:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e3-poller.bats:11:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e3-poller.bats",
+      "signature": "11:setup() {(...)",
+      "type_text": "11:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/e3-poller.bats:42:run_poller() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/e3-poller.bats",
+      "signature": "42:run_poller() {(...)",
+      "type_text": "42:run_poller() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/sdlc-isolation/sdlc-up-command.bats:11:setup() {",
+      "kind": "function",
+      "file": "tests/spec/sdlc-isolation/sdlc-up-command.bats",
+      "signature": "11:setup() {(...)",
+      "type_text": "11:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:18:setup()    { _sf_setup; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "18:setup()    { _sf_setup; }(...)",
+      "type_text": "18:setup()    { _sf_setup; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:19:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "19:teardown() { _sf_teardown; }(...)",
+      "type_text": "19:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:126:    function matchGlob(pattern, files) {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "126:    function matchGlob(pattern, files) {(...)",
+      "type_text": "126:    function matchGlob(pattern, files) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:135:    function scoreFixture(touchedFiles, testResults) {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "135:    function scoreFixture(touchedFiles, testResults) {(...)",
+      "type_text": "135:    function scoreFixture(touchedFiles, testResults) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:193:    function matchGlob(pattern, files) {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "193:    function matchGlob(pattern, files) {(...)",
+      "type_text": "193:    function matchGlob(pattern, files) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:226:    function matchGlob(pattern, files) {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "226:    function matchGlob(pattern, files) {(...)",
+      "type_text": "226:    function matchGlob(pattern, files) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:235:    function score(touchedFiles, expectedFiles, testResults) {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "235:    function score(touchedFiles, expectedFiles, testResults) {(...)",
+      "type_text": "235:    function score(touchedFiles, expectedFiles, testResults) {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:554:_pt_capture_stub() {   # $CAP_FILE muss vor dem Aufruf exportiert sein",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "554:_pt_capture_stub() {   # $CAP_FILE muss vor dem Aufruf exportiert sein(...)",
+      "type_text": "554:_pt_capture_stub() {   # $CAP_FILE muss vor dem Aufruf exportiert sein(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/catalog-eval-telemetry.bats:645:_pt_rows_stub() {   # $1 = phase:state-Zeilen, die der exec-Call zurückgibt",
+      "kind": "function",
+      "file": "tests/spec/software-factory/catalog-eval-telemetry.bats",
+      "signature": "645:_pt_rows_stub() {   # $1 = phase:state-Zeilen, die der exec-Call zurückgibt(...)",
+      "type_text": "645:_pt_rows_stub() {   # $1 = phase:state-Zeilen, die der exec-Call zurückgibt(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/dashboard.bats:18:setup()    { _sf_setup; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/dashboard.bats",
+      "signature": "18:setup()    { _sf_setup; }(...)",
+      "type_text": "18:setup()    { _sf_setup; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/dashboard.bats:19:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/dashboard.bats",
+      "signature": "19:teardown() { _sf_teardown; }(...)",
+      "type_text": "19:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/pipeline-and-ticket-cli.bats:18:setup()    { _sf_setup; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
+      "signature": "18:setup()    { _sf_setup; }(...)",
+      "type_text": "18:setup()    { _sf_setup; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/pipeline-and-ticket-cli.bats:19:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/pipeline-and-ticket-cli.bats",
+      "signature": "19:teardown() { _sf_teardown; }(...)",
+      "type_text": "19:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/ticket-lifecycle.bats:18:setup()    { _sf_setup; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/ticket-lifecycle.bats",
+      "signature": "18:setup()    { _sf_setup; }(...)",
+      "type_text": "18:setup()    { _sf_setup; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/ticket-lifecycle.bats:19:teardown() { _sf_teardown; }",
+      "kind": "function",
+      "file": "tests/spec/software-factory/ticket-lifecycle.bats",
+      "signature": "19:teardown() { _sf_teardown; }(...)",
+      "type_text": "19:teardown() { _sf_teardown; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/software-factory/ticket-lifecycle.bats:190:_t002366_stub_dir() {",
+      "kind": "function",
+      "file": "tests/spec/software-factory/ticket-lifecycle.bats",
+      "signature": "190:_t002366_stub_dir() {(...)",
+      "type_text": "190:_t002366_stub_dir() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-system.bats:219:_pgpod_mockdir() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-system.bats",
+      "signature": "219:_pgpod_mockdir() {(...)",
+      "type_text": "219:_pgpod_mockdir() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

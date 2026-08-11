@@ -54,7 +54,7 @@ spec:
       containers:
         - name: sdlc-console
           image: ghcr.io/paddione/website-sdlc:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

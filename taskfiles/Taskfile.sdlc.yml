@@ -109,6 +109,12 @@ tasks:
         kubectl --context k3d-mentolder-dev rollout status deployment/bge-embed -n workspace --timeout=300s
         kubectl --context k3d-mentolder-dev rollout status deployment/bge-rerank -n workspace --timeout=300s
 
+  sdlc:refresh:
+    desc: "SDLC-Console neu starten, damit :latest-Pull greift (imagePullPolicy: Always)"
+    cmds:
+      - kubectl --context k3d-mentolder-dev rollout restart deploy/sdlc-console -n workspace
+      - kubectl --context k3d-mentolder-dev rollout status deploy/sdlc-console -n workspace --timeout=300s
+
   sdlc:status:
     desc: "SDLC-Stack Health-Übersicht"
     cmds:

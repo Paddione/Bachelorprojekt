@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.268.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.1...website-v1.268.2) (2026-08-11)
+
+
+### Bug Fixes
+
+* **factory:** auto-close-merged — plan-only-Skip fuer alle Branch-Familien (T001580,T002598-M1) [T003765] ([#4259](https://github.com/Paddione/Bachelorprojekt/issues/4259)) ([0d8ee00](https://github.com/Paddione/Bachelorprojekt/commit/0d8ee009f458ee8ae81eadd94958bfd299972bfa))
+
 ## [1.268.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.0...website-v1.268.1) (2026-08-11)
 
 

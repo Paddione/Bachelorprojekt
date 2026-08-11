@@ -2,7 +2,7 @@
 title: Readiness-Gate vor dem Factory-Launch aufhängen
 ticket_id: T003773
 domains: [bachelorprojekt-test, bachelorprojekt-infra]
-status: plan_staged
+status: completed
 ---
 
 # Readiness-Gate vor dem Factory-Launch aufhängen — Implementation Plan

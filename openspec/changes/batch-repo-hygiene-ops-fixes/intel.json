@@ -19,15 +19,15 @@
     {
       "path": "scripts/branch-reaper.sh",
       "language": "bash",
-      "loc": 204,
+      "loc": 255,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 596
+      "s1_budget": 545
     },
     {
       "path": ".claude/skills/references/repo-hygiene-ops.md",
       "language": "markdown",
-      "loc": 454,
+      "loc": 685,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null
@@ -35,23 +35,23 @@
     {
       "path": "scripts/devflow-ci-watch.sh",
       "language": "bash",
-      "loc": 143,
+      "loc": 182,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": 657
+      "s1_budget": 618
     },
     {
       "path": "scripts/repo-hygiene-cron.sh",
       "language": "bash",
-      "loc": 0,
+      "loc": 185,
       "s1_limit": 800,
       "s1_baseline": null,
-      "s1_budget": null
+      "s1_budget": 615
     },
     {
       "path": "tests/spec/batch-repo-hygiene-ops-fixes.bats",
       "language": "bash",
-      "loc": 0,
+      "loc": 284,
       "s1_limit": 0,
       "s1_baseline": null,
       "s1_budget": null

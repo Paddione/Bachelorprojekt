@@ -73,3 +73,10 @@ The system SHALL in repo-hygiene-ops.md §1 den Vorcheck auf einen laufenden Fac
 - **WHEN** repo-hygiene die Worktree-Sektion ausführt
 - **THEN** überspringt es die Worktree-Sektion oder wiederholt die --porcelain-Prüfung unmittelbar vor dem Remove
 - **AND** die Entscheidung basiert auf dem zum Entscheidungszeitpunkt gültigen Zustand
+
+#### Scenario: Cron läuft auch bei leerem non-main-Bestand durch (pipefail-Guard)
+
+- **GIVEN** der Remote hat keine non-main-Branches (leerer grep-Bestand, `grep -v` Exit 1)
+- **WHEN** `repo-hygiene-cron.sh standard` unter `set -euo pipefail` läuft
+- **THEN** bricht es nicht an der `remote_branch_count`-Pipeline ab
+- **AND** liefert Exit 0 mit gültiger JSON-Messung (leerer Bestand = Messwert, kein Fehlschlag)

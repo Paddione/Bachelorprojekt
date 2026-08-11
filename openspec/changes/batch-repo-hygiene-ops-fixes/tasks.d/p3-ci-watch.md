@@ -1,10 +1,21 @@
 # p3 — devflow-ci-watch.sh: cancelled≠fail + headSha-Filter (T003224, T003225)
 
+<!-- S1-Budget: scripts/devflow-ci-watch.sh — Ist 182 - Baseline 0 -> Budget 618 frei (Limit 800) -->
+
 ## Ziel
 
 Die gh-Warteschleife in `scripts/devflow-ci-watch.sh` wertet Checks falsch aus:
 - T003224: conclusion=cancelled wird auf "fail" gefaltet (PR grün, Meldung rot)
 - T003225: statusCheckRollup mischt head-SHAs + leere conclusion ist in jq truthy
+
+## Ist-Stand (nach Teil-Implementierung c8e68ba97)
+
+Beide Fixes sind in `scripts/devflow-ci-watch.sh` committet: headSha-Filter
+(`.headSha == $p.headRefOid`) + conclusion-Filter (nur FAILURE/TIMED_OUT) +
+Job-Ebene-Gegenprobe (`gh api runs/.../jobs` → failure-Job-Zählung). Die p5-Tests 6-8
+sind grün. Dieser Partial ist damit im Kern GRÜN — offen ist nur die Verifikation
+gegen die main-Änderung T003109 (`ci_checks_verdict` in `scripts/lib/ci-checks.sh`,
+nicht-invasive Nichtleere-Guard-Alternative) und die End-to-End-Fälle.
 
 ## Steps
 

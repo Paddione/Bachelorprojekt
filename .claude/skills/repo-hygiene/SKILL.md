@@ -35,6 +35,24 @@ Für Completeness-Triage, Klärungsrunden und Parallelisierungs-Masterplan (Phas
 
 ---
 
+## Laufzeit-Drift
+
+Gemergte Fixes laufen nur, wenn sie auf dem laufenden System angekommen sind. Der Guard
+`bash scripts/runtime-drift-check.sh` (T003825) prüft das beim Hygiene-Lauf und listet seine
+Befunde neben den Branch-, Worktree- und Queue-Befunden:
+
+1. **MCP-Prozesse gegen ihre Binaries** — laufende stdio-Server, deren Binary ersetzt wurde
+   (Prozess läuft mit der alten Inode, `/proc/<pid>/exe` zeigt `(deleted)` oder weicht im
+   sha256 ab). Schließt automatisch `factory-mcp` ein (T003071).
+2. **DB-Funktionen gegen ihre Migrationen** — Funktionen, deren `pg_proc.prosrc` den in
+   `scripts/one-shot/*.sql` deklarierten `RUNTIME-CHECK`-Marker nicht trägt.
+
+Der Guard **meldet und greift nicht ein**: das Beenden eines driftenden Prozesses und das
+Einspielen einer Migration bleiben Entscheidungen des Betreibers. Unerreichbare DB oder nicht
+lesbare `/proc/<pid>/exe` (fremder Benutzer) gelten als übersprungen, nicht als Drift.
+
+---
+
 ## Post-Execution: Mishap Report
 
 After completing all steps in this skill, invoke `mishap-tracker` with your accumulated `MISHAP_LOG`. If no mishaps were found, `mishap-tracker` exits cleanly.

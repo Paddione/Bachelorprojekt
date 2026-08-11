@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.268.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.6...website-v1.268.7) (2026-08-11)
+
+
+### Bug Fixes
+
+* **factory:** Batch-PR-Closure extrahiert Kinder + guard entfernt [T003797] ([#4273](https://github.com/Paddione/Bachelorprojekt/issues/4273)) ([00b1356](https://github.com/Paddione/Bachelorprojekt/commit/00b13561786815fd24190345158569e16d741c6c))
+
 ## [1.268.6](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.268.5...website-v1.268.6) (2026-08-11)
 
 

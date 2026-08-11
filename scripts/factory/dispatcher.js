@@ -143,6 +143,7 @@ async function main() {
             dry_run: f.dry_run === true || A.dry_run === true || A.dry_run === 'true',
             branch: f.branch || null,
             plan_path: f.plan_path || null,
+            worktree_path: f.worktree_path || null,
           },
         )
           .then((r) => ({ external_id: f.external_id, brand: f.brand, result: r }))

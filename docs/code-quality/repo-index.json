@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 932,
+      "file_count": 933,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -714,6 +714,7 @@
         "tests/spec/software-factory/enqueue-preserves-plan-staged.bats",
         "tests/spec/software-factory/factory-model-id-default.bats",
         "tests/spec/software-factory/factory-prep-stdout-json.bats",
+        "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
         "tests/spec/software-factory/opencode-exec-result-check.bats",
         "tests/spec/software-factory/orphan-slot-reap.bats",
         "tests/spec/software-factory/partial-deploy-gang.bats",

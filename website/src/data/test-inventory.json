@@ -4152,6 +4152,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-prep-worktree-reuse",
+    "file": "tests/spec/software-factory/factory-prep-worktree-reuse.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/opencode-exec-result-check",
     "file": "tests/spec/software-factory/opencode-exec-result-check.bats",
     "category": "software-factory",

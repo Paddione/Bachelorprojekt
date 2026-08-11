@@ -10,6 +10,10 @@ source "${SCRIPT_DIR}/../factory/guards.sh"
 
 log() { echo "[PREP] $*" >&2; }
 
+# T003270/V4: Anzahl aufeinanderfolgender worktree_failed-SKIPs, nach denen das
+# Ticket via unfactory eskaliert (blocked + needs_human) statt still zu loopen.
+PREP_SKIP_ESCALATE_AT=3
+
 # release_slot_and_restore <brand> <ext_id> [prior_status]
 #
 # Slot freigeben UND den Vorzustand wiederherstellen (T003269).
@@ -82,6 +86,56 @@ run_dry_run() {
   echo "---schedule korczewski---"
   BRAND=korczewski FACTORY_GLOBAL_CAP=3 bash "${REPO}/scripts/factory/schedule.sh"
   echo "PREP STEP END"
+}
+
+# prep_skip_next <brand> <ext_id>
+#
+# T003270/V4 — Inkrementiert den prep_skip-Zaehler fuer das Ticket in
+# tickets.factory_control (Key prep_skip:<ext_id>, gleicher Speicher wie der
+# Watchdog-Zaehler factory_attempt:<ext_id>, T002389). Ab Stand >= 3 wird das
+# Ticket sichtbar eskaliert (ticket.sh unfactory → blocked + needs_human),
+# statt still bei jedem Tick in denselben worktree_failed-SKIP zu laufen.
+# Der Zaehler wird bei erfolgreichem Pre-Create zurueckgesetzt (prep_skip_reset).
+prep_skip_next() {
+  local brand="$1" ext_id="$2"
+  local key="prep_skip:${ext_id}"
+  local current
+  current=$(BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" factory-control get \
+    --key "${key}" --brand "${brand}" 2>/dev/null || echo "0")
+  current=${current:-0}
+  [[ "${current}" =~ ^[0-9]+$ ]] || current=0
+  local next=$(( current + 1 ))
+  BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" factory-control set \
+    --key "${key}" --value "${next}" --set-by factory-prep --brand "${brand}" >/dev/null 2>&1 || true
+  if (( next >= PREP_SKIP_ESCALATE_AT )); then
+    log "ESCALATE reason=prep_skip ticket=${ext_id} attempts=${next} — unfactory (blocked+needs_human)"
+    BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" unfactory \
+      --id "${ext_id}" --attempts "PREP-SKIP-${next}" >/dev/null 2>&1 || true
+  fi
+}
+
+# prep_skip_reset <brand> <ext_id>
+#
+# T003270/V4 — setzt den prep_skip-Zaehler nach einem erfolgreichen Pre-Create
+# auf 0 zurueck, damit nur AUFEINANDERFOLGENDE Fehlversuche eskalieren.
+prep_skip_reset() {
+  local brand="$1" ext_id="$2"
+  BRAND="${brand}" bash "${REPO}/scripts/ticket.sh" factory-control set \
+    --key "prep_skip:${ext_id}" --value "0" --set-by factory-prep --brand "${brand}" >/dev/null 2>&1 || true
+}
+
+# skip_worktree_failed <brand> <ext_id> <reason>
+#
+# T003270/V4 — gemeinsamer worktree_failed-SKIP-Pfad: zaehlt den Fehlversuch,
+# gibt den Slot frei, stellt den Vorzustand wieder her und verzeichnet das
+# Ticket in .skipped. Der Vorzustand ist nach dem Claim nicht mehr aus der DB
+# lesbar, aber ableitbar (plan_ref ⇒ plan_staged, sonst backlog) — siehe
+# release_slot_and_restore.
+skip_worktree_failed() {
+  local brand="$1" ext_id="$2" reason="$3"
+  prep_skip_next "${brand}" "${ext_id}"
+  release_slot_and_restore "${brand}" "${ext_id}" "plan_staged"
+  final_skipped=$(echo "${final_skipped}" | jq -c --arg b "${brand}" --arg r "${reason}" '. + [{"brand":$b,"reason":$r}]')
 }
 
 run_prep() {
@@ -191,18 +245,52 @@ run_prep() {
       # $plan_path doesn't exist in the main checkout (only on the feature branch),
       # the prompt override is correctly flagged as manipulation, and the pipeline
       # exits immediately — leaving the slot held, watchdog reset, cycle repeats.
+      #
+      # [T003270/V1] VOR dem worktree-create-Aufruf pruefen, ob der Ziel-Branch
+      # bereits in einem ANDEREN Worktree ausgecheckt ist (z.B. der permanente
+      # Mishap-Rollup-Worktree haelt chore/mishap-incident-rollup). Ist er das,
+      # wird der bestehende Worktree als worktree_path WEITERVERWENDET statt zu
+      # scheitern — vorausgesetzt (a) keine live Session haelt den Branch und
+      # (b) der Worktree ist sauber. Nur dann ist Wiederverwendung korrekt; ein
+      # dirty oder session-held fremder Stand wird nie in die Implementierung
+      # uebernommen. Das bricht den Endlos-Loop aus T003270.
       wt_path=null
       if [[ "${branch}" != "null" && -n "${branch}" ]]; then
         wt_slug=$(echo "${branch}" | sed -E 's#^(feature|fix|chore)/##')
         wt_path="${REPO}/.worktrees/${wt_slug}-reuse"
-        if ! bash "${REPO}/scripts/worktree-create.sh" "${branch}" "${wt_path}" "origin/${branch}" >/dev/null 2>&1; then
-          log "SKIP reason=worktree_failed ticket=${ext_id} (pre-create at ${wt_path} failed)"
-          # branch != null ⇒ das Ticket hatte einen plan_ref, war also plan_staged.
-          release_slot_and_restore "${brand}" "${ext_id}" "plan_staged"
-          final_skipped=$(echo "${final_skipped}" | jq -c --arg b "${brand}" --arg r "worktree_failed" '. + [{"brand":$b,"reason":$r}]')
-          continue
+
+        # Reuse-Detect: Besitzer-Worktree des Branches per --porcelain finden.
+        local occupied_wt="" _occ_cand=""
+        while IFS= read -r _line; do
+          case "$_line" in
+            worktree\ *) _occ_cand="${_line#worktree }" ;;
+            branch\ refs/heads/"${branch}") occupied_wt="$_occ_cand"; break ;;
+          esac
+        done < <(git worktree list --porcelain 2>/dev/null || true)
+
+        if [[ -n "${occupied_wt}" && "${occupied_wt}" != "${wt_path}" ]]; then
+          if bash "${REPO}/scripts/agent-lock.sh" check-branch-live "${branch}" >/dev/null 2>&1; then
+            log "SKIP reason=worktree_failed ticket=${ext_id} (branch ${branch} held live in ${occupied_wt})"
+            skip_worktree_failed "${brand}" "${ext_id}" "worktree_failed"
+            continue
+          fi
+          if [[ -n "$(git -C "${occupied_wt}" status --porcelain 2>/dev/null)" ]]; then
+            log "SKIP reason=worktree_failed ticket=${ext_id} (branch worktree ${occupied_wt} dirty)"
+            skip_worktree_failed "${brand}" "${ext_id}" "worktree_failed"
+            continue
+          fi
+          wt_path="${occupied_wt}"
+          log "reusing existing worktree for ${ext_id} at ${wt_path}"
+          prep_skip_reset "${brand}" "${ext_id}"
+        else
+          if ! bash "${REPO}/scripts/worktree-create.sh" "${branch}" "${wt_path}" "origin/${branch}" >/dev/null 2>&1; then
+            log "SKIP reason=worktree_failed ticket=${ext_id} (pre-create at ${wt_path} failed)"
+            skip_worktree_failed "${brand}" "${ext_id}" "worktree_failed"
+            continue
+          fi
+          log "pre-created worktree for ${ext_id} at ${wt_path}"
+          prep_skip_reset "${brand}" "${ext_id}"
         fi
-        log "pre-created worktree for ${ext_id} at ${wt_path}"
       fi
 
       final_launch=$(echo "${final_launch}" | jq -c \

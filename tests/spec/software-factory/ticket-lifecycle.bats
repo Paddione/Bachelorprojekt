@@ -716,6 +716,30 @@ SH
   [ "$status" -eq 0 ] || { echo "auto-close-merged.sh recycled Container nicht (plan_staged fehlt)"; false; }
 }
 
+@test "T003765: auto-close-merged prueft plan-only-Inhalt fuer ALLE Branch-Familien" {
+  # Der plan-only-Skip (T001580/T002598-M1) griff frueher nur bei chore/openspec-*.
+  # Ein reiner Plan-PR auf feature/* (z.B. feature/batch-ticket-ops-meta-T003541) fiel
+  # durch und schloss das Ticket, obwohl der Plan nie ausgefuehrt wurde. Der Fix ruft
+  # pr_is_plan_only fuer jede Nicht-Archive-Branch-Familie auf (T003765).
+  local script="$REPO/scripts/factory/auto-close-merged.sh"
+  # Positiv-Anker: die file-content-Funktion existiert und wird im Loop verwendet.
+  run grep -Fq "pr_is_plan_only" "$script"
+  [ "$status" -eq 0 ] || { echo "pr_is_plan_only fehlt in auto-close-merged.sh"; false; }
+  # Der Aufruf darf nicht mehr an eine chore/openspec-Bedingung gebunden sein.
+  # Semantik: der SKIP-Zweig auf plan-only steht AUSSERHALB jedes Branch-Grep.
+  local call_line skip_line
+  call_line=$(grep -nE "pr_is_plan_only \"\\\$pr_num\"" "$script" | head -1 | cut -d: -f1)
+  [ -n "$call_line" ] || { echo "pr_is_plan_only-Aufruf nicht gefunden"; false; }
+  # Vor dem Aufruf darf kein '^chore/openspec-' grep stehen, das den Zweig gate-ed.
+  if [[ -n "$call_line" ]]; then
+    local openpec_gate
+    openpec_gate=$(grep -nE "grep -qE '\^chore/openspec-'" "$script" | cut -d: -f1)
+    for g in $openpec_gate; do
+      [ "$g" -lt "$call_line" ] || { echo "chore/openspec-Gate NACH dem plan-only-Aufruf (Zeile $g > $call_line) — Aufruf ist weiterhin gate-ed"; false; }
+    done
+  fi
+}
+
 @test "T002407-M7f: wakeup.sh ruft mishap-rollup.sh pro Brand auf" {
   local script="$REPO/scripts/factory/wakeup.sh"
   # Nach mishap-flush und vor auto-chore-plan: mishap-rollup.sh pro Brand

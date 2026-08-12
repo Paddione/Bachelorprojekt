@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.270.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.270.0...website-v1.270.1) (2026-08-12)
+
+
+### Bug Fixes
+
+* **security:** resolve secrets drift — dev_absent annotations and dev placeholders [T003141] ([#4304](https://github.com/Paddione/Bachelorprojekt/issues/4304)) ([7f24577](https://github.com/Paddione/Bachelorprojekt/commit/7f245778c0ba48c3e526587f59e7de7638252f8d))
+
 ## [1.270.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.269.2...website-v1.270.0) (2026-08-11)
 
 

@@ -67,10 +67,16 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/navigation-no-dead-lin
 # expected: PASS (gruen — kein Link endet in 404, keine Kette laenger als 1 Hop)
 ```
 
-- [ ] **Final Verification.**
+- [x] **Final Verification.**
 
 ```bash
 task test:changed
 task freshness:regenerate
 task freshness:check
 ```
+
+> test:changed: 4469 Tests gruen, genau 2 Fehlschlaege — vorbestehender
+> T003205-Testdefekt in `bge-role-routes.bats` ($output wird vom Zwischen-run
+> ueberschrieben), in diesem PR mitgefixt (a42484439) und unter laufendem
+> Proxy als 3/3 gruen verifiziert; gesamte `local-llm-proxy`-Spec (151 Tests)
+> gruen. freshness:regenerate + freshness:check gruen.

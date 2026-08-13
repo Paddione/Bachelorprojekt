@@ -20,12 +20,31 @@ git fetch origin main
 if git diff --quiet HEAD; then
   git pull --rebase origin main
 else
-  git stash
+  git stash push -m "wip ${TICKET_EXT_ID}"
   git pull --rebase origin main
-  git stash pop
-  # Konflikte? Dem User anzeigen und klären.
+  bash scripts/git-stash-net.sh pop --by-message "wip ${TICKET_EXT_ID}"
+  # Teil-Pop-Befund (Exit 1)? Eintrag liegt noch im Stash — NICHT als Erfolg
+  # behandeln, Wiederherstellung unten. Kein Treffer (Exit 2) ist ebenfalls
+  # kein Erfolg: git stash list prüfen und den Eintrag zurückspielen.
 fi
 ```
+
+> **Stash-Pop positive Verifikation (T003069/T003070).** Nach dem Pop den eigenen
+> Eintrag (per Nachricht identifiziert) in `git stash list` suchen — er MUSS
+> verschwunden sein. Exit 1 von `scripts/git-stash-net.sh` = Teil-Pop-Befund:
+> `git stash show --stat "stash@{0}"` gegen den Arbeitsbaum halten, fehlende
+> Datei mit `git checkout "stash@{0}" -- <pfad>` zurückholen. Der Eintrag
+> bleibt als Sicherungsnetz liegen.
+
+> **Stash-Disziplin (T003070).** `refs/stash` liegt im gemeinsamen
+> Git-Verzeichnis — der Stash-Stack ist über ALLE Worktrees geteilt, die
+> Indizes `stash@{0}` verschieben sich durch fremde pushes. Bei Parallelarbeit
+> statt eines Stash einen **Wegwerf-Commit auf dem eigenen Branch** verwenden
+> (`git commit -m wip`, später `git reset --soft HEAD~1`). Wo ein Stash nötig
+> bleibt: IMMER mit `-m` und Ticket-ID anlegen
+> (`git stash push -m "wip ${TICKET_EXT_ID}"`) und über die Nachricht auflösen
+> (`bash scripts/git-stash-net.sh pop --by-message ...`), NIE über den Index
+> `stash@{0}`.
 
 > **Branch-Switch + Stash Race (T001974 Mishap 2).** Niemals
 > `git checkout -b <branch> && git stash pop` in einer einzigen Pipeline
@@ -53,6 +72,18 @@ Vollständiger Verify-Block (die vier Befehle, S1-Ratchet, Freshness-Artefakt-Li
 **SSOT** in `.claude/skills/references/verification-block.md`.
 
 Kurzform: `task freshness:regenerate` + `task freshness:check` (CI-Äquivalent, S1-Ratchet).
+
+### Rebase-Freshness-Regel (T003105)
+
+Ein **konfliktfreier** Rebase kann mitcommittete Freshness-Artefakte still verlieren:
+`.gitattributes` markiert sie mit `merge=ours`, und `ours` löst im Rebase zugunsten
+des Rebase-Basis-Zweigs (hier `origin/main`) auf — **ohne** Konfliktmarker, ohne Meldung,
+mit grünem Ergebnis. Ein grüner Rebase belegt die Artefakt-Vollständigkeit deshalb nicht.
+
+Regel: **Nach JEDEM Rebase VOR dem Push `task freshness:check` erneut laufen lassen.**
+Rot? `task freshness:regenerate` und den Regen-Commit anhängen. Das gilt für den
+Rebase in Schritt 0, für den Rebase-Preflight und für jeden `git rebase` /
+`git pull --rebase` im CI-Fix-Loop (Schritt 5).
 
 ---
 

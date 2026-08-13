@@ -2172,6 +2172,12 @@
     "kind": "shell"
   },
   {
+    "id": "batch-git-worktree-integrity",
+    "file": "tests/spec/batch-git-worktree-integrity.bats",
+    "category": "batch-git-worktree-integrity",
+    "kind": "shell"
+  },
+  {
     "id": "batch-openspec-embed-fixes",
     "file": "tests/spec/batch-openspec-embed-fixes.bats",
     "category": "batch-openspec-embed-fixes",

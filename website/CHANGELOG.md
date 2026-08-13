@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.272.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.1...website-v1.272.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* **scripts:** env-resolve respects caller vars + placeholder guard [T004041] ([#4341](https://github.com/Paddione/Bachelorprojekt/issues/4341)) ([44ce745](https://github.com/Paddione/Bachelorprojekt/commit/44ce745d183c506e5b3bb3d8e435df0bcc7195c2))
+
 ## [1.272.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.0...website-v1.272.1) (2026-08-13)
 
 

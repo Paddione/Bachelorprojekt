@@ -87,12 +87,28 @@ _field() {  # $1=datei $2=key
 }
 
 _my_sid() {
-  local v
-  for v in CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID; do
-    [ -n "${!v:-}" ] && { printf '%s\n' "${!v}"; return; }
+  # Spiegel von scripts/agent-lock.sh _my_sid (T003131) — die Prüfreihenfolge MUSS
+  # mit agent-lock.sh übereinstimmen, sonst driftet die SID im Guard gegen die
+  # SID der Claims und EIGENE Claims gelten als fremd (genau die T003131-Falle:
+  # der Guard kannte OPENCODE_SESSION_ID nicht und fiel auf den Unix-SID-Fallback
+  # zurück, der pro Bash-Call driftet).
+  # Harness-stable env wins (Claude Code / opencode expose a session id surviving
+  # bash tool calls); AGENT_LOCK_SID override stays as second layer (CI/unit tests);
+  # per-call Unix-SID is the fallback and the source of the drift bug. [T001268]
+  if [ -n "${AGENT_LOCK_SID:-}" ]; then printf '%s\n' "$AGENT_LOCK_SID"; return; fi
+  local _v
+  for _v in CLAUDE_CODE_SESSION_ID CLAUDE_SESSION_ID OPENCODE_SESSION_ID; do
+    if [ -n "${!_v:-}" ]; then printf '%s\n' "${!_v}"; return; fi
   done
-  [ -n "${AGENT_LOCK_SID:-}" ] && { printf '%s\n' "$AGENT_LOCK_SID"; return; }
-  ps -o sess= -p "$$" 2>/dev/null | tr -d ' '
+  # [T002381-M1] Weder Harness-Env noch AGENT_LOCK_SID gesetzt — der Unix-SID-Fallback
+  # driftet pro Bash-Call. Warnung ausgeben, damit der Operator die Ursache erkennt
+  # und AGENT_LOCK_SID setzen oder die Harness-Variable bereitstellen kann.
+  echo "WARNUNG: worktree-write-guard _my_sid — weder CLAUDE_CODE_SESSION_ID/CLAUDE_SESSION_ID/OPENCODE_SESSION_ID noch AGENT_LOCK_SID gesetzt. SID driftet pro Bash-Call (siehe T001268/T002381/T003131)." >&2
+  local s; s="$(ps -o sess= -p "$$" 2>/dev/null | tr -d ' ')"
+  if [ -n "$s" ]; then printf '%s\n' "$s"; return; fi
+  # fallback: 4th field after the ')' in /proc/self/stat is the session id
+  local stat rest; stat="$(cat /proc/self/stat 2>/dev/null)"; rest="${stat##*) }"
+  set -- $rest; printf '%s\n' "${4:-0}"
 }
 SID="$(_my_sid)"
 
@@ -155,6 +171,11 @@ done
 #     Subagent derselben Session schreibt unter derselben SID und passiert den Guard
 #     legitimerweise. Eine Verengung auf Akteur-Kennung (Parent-SID) würde T002412
 #     umkehren und ist bewusste Gegenentscheidung (T003131).
+#     Grenzziehung [T003102]: eine Session = eine SID. Der Guard unterscheidet
+#     bewusst NICHT zwischen Hauptagent und Subagenten — ein eigener Claim gilt
+#     auch fuer Subagenten der Session, und umgekehrt blockiert ein fremder Claim
+#     auch deren Schreibzugriffe. Wer seine Subagenten abgrenzen will, gibt ihnen
+#     eine eigene SID (AGENT_LOCK_SID).
 if [ "${#MY_WTS[@]}" -gt 0 ]; then
   for mw in "${MY_WTS[@]}"; do
     case "$TARGET" in
@@ -164,7 +185,7 @@ if [ "${#MY_WTS[@]}" -gt 0 ]; then
   {
     echo "WORKTREE-GUARD: Schreibzugriff abgelehnt."
     echo "  Pfad:            $TARGET"
-    echo "  Dieser Session (SID $SID) gehoeren — ggf. ueber Subagenten:"
+    echo "  Claims mit SID $SID (eigene Session UND deren Subagenten) — Besitz aus agent-locks/*.json (owner_sid):"
     for mw in "${MY_WTS[@]}"; do echo "    - $mw"; done
     echo "  Der Pfad liegt ausserhalb — vermutlich im Hauptcheckout oder in einem"
     echo "  fremden Worktree. Ruf denselben Pfad mit einem der Praefixe oben erneut auf."

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.274.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.273.1...website-v1.274.0) (2026-08-13)
+
+
+### Features
+
+* **scripts:** Batch Git/Worktree-Integrität P2-P4 — Stash-Netz + Guard-SID [T003795] ([#4346](https://github.com/Paddione/Bachelorprojekt/issues/4346)) ([572d213](https://github.com/Paddione/Bachelorprojekt/commit/572d21373c74e5019fe4ab2fe43d194c29154a7c))
+
 ## [1.273.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.273.0...website-v1.273.1) (2026-08-13)
 
 

@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 # scripts/factory/sandbox-run.sh — run a factory command inside an isolated sandbox.
-#   sandbox-run.sh <worktree> <command...>               # one-shot mode
-#   sandbox-run.sh --agent <worktree> --slot N -- <cmd>  # agent mode (long-running)
+#   sandbox-run.sh <worktree> <command...>                # one-shot mode
+#   sandbox-run.sh --agent --slot N -- <wt> <cmd>         # agent mode (long-running)
 set -euo pipefail
 REPO="${FACTORY_REPO:-/home/patrick/Bachelorprojekt}"
 SANDBOX_IMAGE="${FACTORY_SANDBOX_IMAGE:-factory-sandbox:local}"
 AGENT_IMAGE="${FACTORY_AGENT_IMAGE:-factory-sandbox-agent:local}"
+PROXY_NAME="factory-sandbox-proxy"
+PROXY_IMAGE="factory-sandbox-proxy:local"
+PROXY_CONF_DIR="/tmp/factory-sandbox-proxy"
+PROXY_CONF="${PROXY_CONF_DIR}/squid.conf"
 AGENT_MODE=false
 SLOT_ID=""
 TICKET_ID="${FACTORY_TICKET_ID:-}"
@@ -62,8 +66,20 @@ egress_allowlist() {
 
 ensure_network() {
   local net="${1:-factory-sandbox-egress}"
-  docker network inspect "$net" >/dev/null 2>&1 || \
-    docker network create "$net" >/dev/null 2>&1 || true
+  if docker network inspect "$net" >/dev/null 2>&1; then
+    # Alt-Netz aus dem fehlerhaften Bestand (angelegt OHNE --internal): neu
+    # anlegen — nur so wird default-deny per Konstruktion wirksam.
+    local internal
+    internal="$(docker network inspect "$net" --format '{{.Internal}}')"
+    if [[ "$internal" != "true" ]]; then
+      docker network disconnect "$net" "$PROXY_NAME" >/dev/null 2>&1 || true
+      docker network rm "$net" >/dev/null 2>&1 || true
+      docker network create --internal "$net" >/dev/null 2>&1 || true
+    fi
+    return 0
+  fi
+  # internal = keine externe Route; der Egress-Proxy ist der einzige Ausgang.
+  docker network create --internal "$net" >/dev/null 2>&1 || true
 }
 
 build_image() {
@@ -74,45 +90,81 @@ build_image() {
   fi
 }
 
-enforce_egress() {
+wait_proxy_ready() {
+  local name="$1"
+  # Squid braucht nach dem Start einen Moment bis der Listener steht — ohne
+  # Wait racen Sandbox-Container gegen den Proxy (connection refused). Der
+  # cache.log ist je Container-Start geleert (siehe Dockerfile), die
+  # "Accepting HTTP"-Zeile ist also der frische Listener-Beleg.
+  local tries=0
+  until docker exec "$name" grep -q 'Accepting HTTP' /var/log/squid/cache.log 2>/dev/null; do
+    tries=$((tries + 1))
+    [[ $tries -lt 30 ]] || break
+    sleep 0.5
+  done
+}
+
+ensure_egress_proxy() {
   local net="$1"
-  # default-deny egress, then allow each host in the allowlist
-  docker run --rm --cap-add=NET_ADMIN --network "$net" alpine:latest sh -c '
-    iptables -I OUTPUT 1 -j DROP
-    '"$(egress_allowlist | while read -r host; do
-      [[ -n "$host" ]] || continue
-      echo "iptables -I OUTPUT 1 -d ${host} -j ACCEPT;"
-    done)"'
-    # DNS: EINE Regel pro Resolver-IP. iptables wertet bei mehreren -d in einer
-    # Regel nur das LETZTE aus — vorher wurden 1.1.1.1/8.8.8.8 still gedroppt.
-    for ns in 1.1.1.1 8.8.8.8 8.8.4.4; do
-      iptables -I OUTPUT 1 -d "$ns" -p udp --dport 53 -j ACCEPT
-      iptables -I OUTPUT 1 -d "$ns" -p tcp --dport 53 -j ACCEPT
-    done
-    iptables -I OUTPUT 1 -d 127.0.0.1 -j ACCEPT
-    echo "egress rules applied to ${net}"
-  ' 2>/dev/null || echo "sandbox-run: egress enforcement failed (non-fatal)" >&2
+  build_image "$PROXY_IMAGE" "${REPO}/scripts/factory/sandbox-proxy.Dockerfile"
+
+  # Squid-Config aus egress_allowlist() generieren — die Funktion bleibt die
+  # EINE Quelle der Allowlist (keine zweite Liste inline).
+  mkdir -p "$PROXY_CONF_DIR"
+  local domains
+  domains="$(egress_allowlist | paste -sd ' ' -)"
+  cat > "$PROXY_CONF" <<EOF
+http_port 3128
+acl allowed_domains dstdomain ${domains}
+acl CONNECT method CONNECT
+acl SSL_ports port 443
+http_access allow CONNECT SSL_ports allowed_domains
+http_access allow allowed_domains
+http_access deny all
+EOF
+
+  if docker container inspect "$PROXY_NAME" >/dev/null 2>&1; then
+    # Idempotent: fehlende Netz-Connects nachziehen (z.B. nach Netz-Neuanlage);
+    # geaenderte Config -> Restart (cmp gegen Snapshot, kein Blind-Restart).
+    docker network connect "$net" "$PROXY_NAME" >/dev/null 2>&1 || true
+    if [[ ! -f "${PROXY_CONF}.running" ]] || ! cmp -s "$PROXY_CONF" "${PROXY_CONF}.running"; then
+      docker restart "$PROXY_NAME" >/dev/null 2>&1 || true
+      cp "$PROXY_CONF" "${PROXY_CONF}.running"
+      wait_proxy_ready "$PROXY_NAME"
+    fi
+    return 0
+  fi
+
+  # WSL-DNS-Workaround (T002250): --dns 1.1.1.1 bekommt der PROXY (er haengt am
+  # Default-Bridge, 1.1.1.1 ist dort erreichbar) — die Sandbox-Container
+  # brauchen ihn nicht: im internalen Netz waere 1.1.1.1 unerreichbar und
+  # wuerde die Proxy-Hostname-Aufloesung (eingebetteter Docker-DNS) brechen.
+  local dns_opts=""
+  if [ -n "${WSL_DISTRO_NAME:-}" ]; then
+    dns_opts="--dns 1.1.1.1"
+  fi
+
+  docker run -d --name "$PROXY_NAME" \
+    ${dns_opts} \
+    --network "$net" \
+    -v "$PROXY_CONF:/etc/squid/squid.conf" \
+    "$PROXY_IMAGE" >/dev/null
+  # Default-Bridge = der EINZIGE externe Pfad; die Sandbox-Netze sind internal.
+  docker network connect bridge "$PROXY_NAME" >/dev/null 2>&1 || true
+  cp "$PROXY_CONF" "${PROXY_CONF}.running"
+  wait_proxy_ready "$PROXY_NAME"
 }
 
 run_docker() {
   local net="${FACTORY_SANDBOX_NET:-factory-sandbox-egress}"
   if $AGENT_MODE; then
     net="factory-sandbox-slot-${SLOT_ID:-0}"
-    ensure_network "$net"
-    # enforce egress on first use of this slot network
-    local marker="/tmp/.sandbox-net-${net}"
-    if [[ ! -f "$marker" ]]; then
-      enforce_egress "$net" && touch "$marker" || true
-    fi
-  else
-    ensure_network "$net"
   fi
+  # Beide Pfade (one-shot UND agent) sichern Netz + Proxy — der One-shot-Pfad
+  # lief vorher ohne jede Egress-Restriktion.
+  ensure_network "$net"
+  ensure_egress_proxy "$net"
   build_image "$IMAGE" "${REPO}/scripts/factory/sandbox.Dockerfile"
-
-  local docker_dns=""
-  if [ -n "${WSL_DISTRO_NAME:-}" ]; then
-    docker_dns="--dns 1.1.1.1"
-  fi
 
   local container_name=""
   local extra_opts=""
@@ -125,12 +177,18 @@ run_docker() {
     extra_opts="--cpus=2 --memory=4g --hostname agent-slot-${SLOT_ID}"
   fi
 
+  # Keine NET_ADMIN- oder sonstige Netz-Capability (T003871): die
+  # Egress-Policy ist strukturell (internal network + Proxy-Allowlist).
   docker run --rm \
     ${container_name:+--name ${container_name}} \
-    ${docker_dns} \
     ${extra_opts} \
     --network "$net" \
-    --cap-add="${AGENT_MODE:+NET_ADMIN}" \
+    -e "HTTP_PROXY=http://${PROXY_NAME}:3128" \
+    -e "HTTPS_PROXY=http://${PROXY_NAME}:3128" \
+    -e "NO_PROXY=localhost,127.0.0.1" \
+    -e "http_proxy=http://${PROXY_NAME}:3128" \
+    -e "https_proxy=http://${PROXY_NAME}:3128" \
+    -e "no_proxy=localhost,127.0.0.1" \
     -v "${WORKTREE}:/work" \
     -v "${tmpdir}:/tmp" \
     -w /work \

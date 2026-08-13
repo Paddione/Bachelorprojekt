@@ -1,6 +1,6 @@
 # Architektur — Living Docs
 
-92 Services · 1921 Abhängigkeitskanten · 289 API-Endpoints
+92 Services · 1921 Abhängigkeitskanten · 291 API-Endpoints
 
 ## Service-Map
 
@@ -2160,6 +2160,7 @@ flowchart TB
 | `/api/admin/coaching/ki-config/models` | GET | 🔐 admin |
 | `/api/admin/coaching/projects` | GET | 🔐 admin |
 | `/api/admin/coaching/projects/{id}` | GET, PATCH | 🔐 admin |
+| `/api/admin/coaching/questionnaire/insights` | POST | 🔐 admin |
 | `/api/admin/coaching/save` | POST | 🔐 admin |
 | `/api/admin/coaching/sessions` | GET, POST | 🔐 admin |
 | `/api/admin/coaching/sessions/{id}` | GET, PATCH, DELETE | 🔐 admin |
@@ -2169,6 +2170,7 @@ flowchart TB
 | `/api/admin/coaching/sessions/{id}/status` | PATCH | 🔐 admin |
 | `/api/admin/coaching/sessions/{id}/steps/{n}` | PATCH | 🔐 admin |
 | `/api/admin/coaching/sessions/{id}/steps/{n}/generate` | POST | 🔐 admin |
+| `/api/admin/coaching/sessions/{id}/summary` | POST | 🔐 admin |
 | `/api/admin/coaching/sessions/{id}/unarchive` | POST | 🔐 admin |
 | `/api/admin/coaching/snippets` | GET, POST | 🔐 admin |
 | `/api/admin/coaching/snippets/{id}` | PATCH, DELETE | 🔐 admin |

@@ -2562,6 +2562,18 @@
     "kind": "shell"
   },
   {
+    "id": "coaching/questionnaire-insights",
+    "file": "tests/spec/coaching/questionnaire-insights.bats",
+    "category": "coaching",
+    "kind": "shell"
+  },
+  {
+    "id": "coaching/session-summaries",
+    "file": "tests/spec/coaching/session-summaries.bats",
+    "category": "coaching",
+    "kind": "shell"
+  },
+  {
     "id": "code-quality",
     "file": "tests/spec/code-quality.bats",
     "category": "code-quality",
@@ -4334,6 +4346,12 @@
   {
     "id": "software-factory/readiness-gate-before-launch",
     "file": "tests/spec/software-factory/readiness-gate-before-launch.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/sandbox-egress",
+    "file": "tests/spec/software-factory/sandbox-egress.bats",
     "category": "software-factory",
     "kind": "shell"
   },

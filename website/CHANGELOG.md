@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.273.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.3...website-v1.273.0) (2026-08-13)
+
+
+### Features
+
+* **website:** Coaching+LLM Insights — Questionnaire-Analyse & Session-Summaries [T003814] ([#4325](https://github.com/Paddione/Bachelorprojekt/issues/4325)) ([5f78495](https://github.com/Paddione/Bachelorprojekt/commit/5f784954518836ad32ad375ebf6d9105fbcbd522))
+
+## [1.272.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.2...website-v1.272.3) (2026-08-13)
+
+
+### Bug Fixes
+
+* **factory:** enforce sandbox egress allowlist structurally (internal nets + squid proxy) [T003871] ([#4322](https://github.com/Paddione/Bachelorprojekt/issues/4322)) ([7ab5fa3](https://github.com/Paddione/Bachelorprojekt/commit/7ab5fa3595d523ad1c4c54b1b2890c013cc72675))
+
 ## [1.272.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.1...website-v1.272.2) (2026-08-13)
 
 

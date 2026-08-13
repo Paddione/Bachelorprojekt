@@ -17,6 +17,8 @@ export interface Session {
   createdAt: Date;
   completedAt: Date | null;
   archivedAt: Date | null;
+  llmSummary: string | null;
+  llmSummaryAt: Date | null;
   steps: SessionStep[];
 }
 
@@ -95,6 +97,8 @@ function rowToSession(row: Record<string, unknown>, steps: SessionStep[] = []): 
     createdAt: row.created_at as Date,
     completedAt: (row.completed_at as Date | null) ?? null,
     archivedAt: (row.archived_at as Date | null) ?? null,
+    llmSummary: (row.llm_summary as string | null) ?? null,
+    llmSummaryAt: (row.llm_summary_at as Date | null) ?? null,
     steps,
   };
 }
@@ -460,4 +464,56 @@ export async function getAuditLog(pool: Pool, sessionId: string, limit = 50): Pr
     payload: row.payload as Record<string, unknown>,
     changedAt: row.changed_at as Date,
   }));
+}
+
+export interface SessionStepContent {
+  stepNumber: number;
+  stepName: string;
+  phase: string;
+  aiResponse: string | null;
+  coachNotes: string | null;
+}
+
+/**
+ * T002653: Inhaltsbasis der Session-Zusammenfassung. Liefert fuer jeden
+ * Schritt die generierte KI-Antwort (ai_response) und die Coaching-Notiz
+ * (coach_notes) — die zwei Quellen, aus denen buildSummaryInput den Prompt
+ * baut. Schritte ohne Eintraege liefern null-Felder und werden dort gefiltert.
+ */
+export async function getSessionStepsContent(pool: Pool, sessionId: string): Promise<SessionStepContent[]> {
+  const r = await pool.query(
+    `SELECT step_number, step_name, phase, ai_response, coach_notes
+       FROM coaching.session_steps WHERE session_id = $1 ORDER BY step_number`,
+    [sessionId],
+  );
+  return r.rows.map(row => ({
+    stepNumber: row.step_number as number,
+    stepName: row.step_name as string,
+    phase: row.phase as string,
+    aiResponse: (row.ai_response as string | null) ?? null,
+    coachNotes: (row.coach_notes as string | null) ?? null,
+  }));
+}
+
+/**
+ * T002653: Persistiert die LLM-Zusammenfassung einer Session und stempelt
+ * llm_summary_at — das Idempotenz-Signal fuer generateSessionSummary.
+ */
+export async function updateSessionSummary(
+  pool: Pool,
+  sessionId: string,
+  summary: string,
+): Promise<{ llmSummary: string; llmSummaryAt: Date } | null> {
+  const r = await pool.query(
+    `UPDATE coaching.sessions
+        SET llm_summary = $2, llm_summary_at = now()
+      WHERE id = $1
+      RETURNING llm_summary, llm_summary_at`,
+    [sessionId, summary],
+  );
+  if (!r.rows[0]) return null;
+  return {
+    llmSummary: r.rows[0].llm_summary as string,
+    llmSummaryAt: r.rows[0].llm_summary_at as Date,
+  };
 }

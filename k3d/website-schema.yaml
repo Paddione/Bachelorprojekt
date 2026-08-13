@@ -315,7 +315,9 @@ data:
         created_by    TEXT NOT NULL,
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
         completed_at  TIMESTAMPTZ,
-        archived_at   TIMESTAMPTZ
+        archived_at   TIMESTAMPTZ,
+        llm_summary   TEXT,
+        llm_summary_at TIMESTAMPTZ
       );
       DO $$
       BEGIN
@@ -325,6 +327,12 @@ data:
       END $$;
       CREATE INDEX IF NOT EXISTS idx_sessions_brand ON coaching.sessions(brand);
       CREATE INDEX IF NOT EXISTS idx_sessions_client ON coaching.sessions(client_id);
+
+      CREATE TABLE IF NOT EXISTS coaching.questionnaire_insights_cache (
+        key         TEXT PRIMARY KEY,
+        payload     JSONB NOT NULL,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
 
       CREATE TABLE IF NOT EXISTS coaching.session_steps (
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1088,7 +1096,9 @@ data:
         created_by    TEXT NOT NULL,
         created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
         completed_at  TIMESTAMPTZ,
-        archived_at   TIMESTAMPTZ
+        archived_at   TIMESTAMPTZ,
+        llm_summary   TEXT,
+        llm_summary_at TIMESTAMPTZ
       );
       DO $$
       BEGIN
@@ -1119,6 +1129,12 @@ data:
       END $$;
       CREATE INDEX IF NOT EXISTS idx_sessions_brand ON coaching.sessions(brand);
       CREATE INDEX IF NOT EXISTS idx_sessions_client ON coaching.sessions(client_id);
+
+      CREATE TABLE IF NOT EXISTS coaching.questionnaire_insights_cache (
+        key         TEXT PRIMARY KEY,
+        payload     JSONB NOT NULL,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
 
       CREATE TABLE IF NOT EXISTS coaching.session_steps (
         id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),

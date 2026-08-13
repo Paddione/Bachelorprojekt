@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T20:58:46.296Z",
+  "generatedAt": "2026-08-13T16:54:42.953Z",
   "endpoints": [
     {
       "path": "/api/admin/agent-push/settings",
@@ -533,6 +533,14 @@
       "file": "website/src/pages/api/admin/coaching/projects/[id].ts"
     },
     {
+      "path": "/api/admin/coaching/questionnaire/insights",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/questionnaire/insights.ts"
+    },
+    {
       "path": "/api/admin/coaching/save",
       "methods": [
         "POST"
@@ -606,6 +614,14 @@
       ],
       "auth": "admin",
       "file": "website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts"
+    },
+    {
+      "path": "/api/admin/coaching/sessions/{id}/summary",
+      "methods": [
+        "POST"
+      ],
+      "auth": "admin",
+      "file": "website/src/pages/api/admin/coaching/sessions/[id]/summary.ts"
     },
     {
       "path": "/api/admin/coaching/sessions/{id}/unarchive",

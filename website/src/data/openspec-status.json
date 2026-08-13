@@ -3423,6 +3423,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003814": [
+    {
+      "slug": "batch-coaching-llm-insights",
+      "status": "plan_staged"
+    }
+  ],
   "T003825": [
     {
       "slug": "2026-08-11-runtime-drift-guard",
@@ -3433,6 +3439,12 @@
     {
       "slug": "2026-08-11-admin-nav-sdlc-cleanup",
       "status": "archived"
+    }
+  ],
+  "T003871": [
+    {
+      "slug": "sandbox-egress",
+      "status": "plan_staged"
     }
   ],
   "T004041": [

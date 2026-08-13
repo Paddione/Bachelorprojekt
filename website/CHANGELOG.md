@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.273.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.273.0...website-v1.273.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **factory:** enforce agent-lock before worktree writes [T003677] ([#4333](https://github.com/Paddione/Bachelorprojekt/issues/4333)) ([ebe1227](https://github.com/Paddione/Bachelorprojekt/commit/ebe12272bf4dfb7cf97fae5673c9dbc0af32a85e))
+
 ## [1.273.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.3...website-v1.273.0) (2026-08-13)
 
 

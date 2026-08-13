@@ -1,6 +1,6 @@
 {
   "generatedFrom": "website/src/pages",
-  "count": 112,
+  "count": 110,
   "routes": [
     {
       "route": "/",
@@ -826,14 +826,6 @@
       "media": false
     },
     {
-      "route": "/sdlc/bugs",
-      "authTier": "public",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
       "route": "/sdlc/cockpit",
       "authTier": "public",
       "brand": "both",
@@ -859,14 +851,6 @@
     },
     {
       "route": "/sdlc/observability",
-      "authTier": "public",
-      "brand": "both",
-      "dynamic": false,
-      "excludeFromSweep": false,
-      "media": false
-    },
-    {
-      "route": "/sdlc/pipeline",
       "authTier": "public",
       "brand": "both",
       "dynamic": false,

@@ -1,4 +1,6 @@
 import { pool, ensureSchemaOnce } from './website-db';
+import { CUSTOMER_STATUSES } from './profile-validation';
+import type { ProfileInput, CustomerStatus } from './profile-validation';
 
 export function ensureCustomerCrmSchema(): Promise<void> {
   return ensureSchemaOnce('customer_crm', async () => {
@@ -33,47 +35,6 @@ export function ensureCustomerCrmSchema(): Promise<void> {
         ON customer_contact_history(keycloak_user_id, created_at DESC);
     `);
   });
-}
-
-export const CONTACT_CHANNELS = ['email', 'phone', 'portal'] as const;
-export const COMM_FREQUENCIES = ['wöchentlich', 'zweiwöchentlich', 'monatlich', 'bei_bedarf'] as const;
-export const CUSTOMER_STATUSES = ['aktiv', 'inaktiv', 'potentiell', 'pausiert', 'abgeschlossen'] as const;
-export const CONTACT_TYPES = ['email', 'phone', 'meeting', 'note'] as const;
-
-type ContactChannel = typeof CONTACT_CHANNELS[number];
-type CommFrequency = typeof COMM_FREQUENCIES[number];
-export type CustomerStatus = typeof CUSTOMER_STATUSES[number];
-export type ContactType = typeof CONTACT_TYPES[number];
-
-export interface ProfileInput {
-  phone?: string;
-  company?: string;
-  address?: string;
-  city?: string;
-  postal_code?: string;
-  country?: string;
-  preferred_contact_channel?: string;
-  communication_frequency?: string;
-  bio?: string;
-}
-
-const MAXLEN: Record<keyof ProfileInput, number> = {
-  phone: 30, company: 100, address: 200, city: 100, postal_code: 10,
-  country: 2, preferred_contact_channel: 20, communication_frequency: 20, bio: 500,
-};
-
-export function validateProfileInput(input: ProfileInput): { ok: true } | { ok: false; error: string } {
-  for (const [k, v] of Object.entries(input)) {
-    if (v === undefined || v === null) continue;
-    if (typeof v !== 'string') return { ok: false, error: `${k}: ungültiger Typ` };
-    const max = MAXLEN[k as keyof ProfileInput];
-    if (max && v.length > max) return { ok: false, error: `${k}: zu lang (max. ${max} Zeichen)` };
-  }
-  if (input.preferred_contact_channel && !CONTACT_CHANNELS.includes(input.preferred_contact_channel as ContactChannel))
-    return { ok: false, error: 'Ungültiger Kontaktkanal.' };
-  if (input.communication_frequency && !COMM_FREQUENCIES.includes(input.communication_frequency as CommFrequency))
-    return { ok: false, error: 'Ungültige Kommunikationsfrequenz.' };
-  return { ok: true };
 }
 
 export interface CustomerProfile {
@@ -188,3 +149,8 @@ export async function collectCustomerDsgvoData(keycloakUserId: string): Promise<
   ]);
   return { profile, contactHistory };
 }
+
+// Re-exports (T003144): validation logic moved to the import-free leaf module
+// profile-validation.ts — this keeps the public API of customer-crm-db.ts unchanged.
+export { CONTACT_CHANNELS, COMM_FREQUENCIES, CUSTOMER_STATUSES, CONTACT_TYPES, validateProfileInput } from './profile-validation';
+export type { ProfileInput, CustomerStatus, ContactType } from './profile-validation';

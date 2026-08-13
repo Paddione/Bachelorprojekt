@@ -2,7 +2,7 @@
 title: Plan: git add-Liste der plan-archive-steps-Referenz deckt openspec/specs/ ab (T004271)
 ticket_id: T004271
 domains: [docs, test]
-status: plan_staged
+status: completed
 pr_number: null
 file_locks: []
 shared_changes: false

@@ -3666,6 +3666,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/propose-tasks-testpath-guard",
+    "file": "tests/spec/openspec-workflow/propose-tasks-testpath-guard.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/ticket-file-required",
     "file": "tests/spec/openspec-workflow/ticket-file-required.bats",
     "category": "openspec-workflow",

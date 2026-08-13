@@ -3369,6 +3369,12 @@
       "status": "archived"
     }
   ],
+  "T003812": [
+    {
+      "slug": "batch-openspec-tooling-fixes",
+      "status": "plan_staged"
+    }
+  ],
   "T003825": [
     {
       "slug": "2026-08-11-runtime-drift-guard",

@@ -159,18 +159,28 @@ fi
 # dann noch im Stash, und ohne Hinweis haelt er sie fuer wiederhergestellt.
 # Rueckgabe immer 0: der Worktree ist trotzdem nutzbar, und ein Abbruch waere
 # hier schaedlicher als die Warnung (der Stash bliebe genauso liegen).
+# [T003069/T003070] Aufloesung ueber die NACHRICHT (scripts/git-stash-net.sh)
+# statt `git stash pop stash@{0}`: refs/stash ist worktree-uebergreifend geteilt,
+# und ein Teil-Pop (post-rewrite-Hook) meldet Erfolg, ohne den Eintrag zu droppen.
+# Die positive Verifikation entscheidet: der eigene Eintrag (per Nachricht
+# identifiziert) MUSS nach dem Pop verschwunden sein.
 _wc_stash_pop_or_warn() {
-  if git stash pop >/dev/null 2>&1; then
-    return 0
-  fi
+  local root="" st=0
+  root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  [ -n "$root" ] || root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  # `|| st=$?` statt `if !`: unter `set -e` faengt die OR-Liste den Fehler ab,
+  # und $? haelt den echten Exit-Code des Skripts (nach einem if waere er 0).
+  bash "$root/scripts/git-stash-net.sh" pop --by-message 'worktree-create-auto-stash' || st=$?
+  [ "$st" -eq 0 ] && return 0
   echo "" >&2
   echo "⚠  worktree-create: DEINE UNCOMMITTETEN AENDERUNGEN LIEGEN NOCH IM STASH." >&2
-  echo "   Der automatische 'git stash pop' ist fehlgeschlagen — meist ein Konflikt" >&2
-  echo "   mit inzwischen gemergten main-Aenderungen. Der neue Worktree ist nutzbar," >&2
-  echo "   aber der Haupt-Checkout hat deine Aenderungen NICHT zurueck." >&2
+  echo "   Die nachrichtenbasierte Aufloesung ist NICHT vollstaendig durchgelaufen" >&2
+  echo "   (Teil-Pop oder Eintrag verschwunden). Der neue Worktree ist nutzbar," >&2
+  echo "   aber der Haupt-Checkout hat deine Aenderungen MOEGLICHERWEISE nicht zurueck." >&2
   echo "" >&2
-  echo "   Zurueckholen:  git stash apply stash@{0}    # 'worktree-create-auto-stash'" >&2
-  echo "   Auflisten:     git stash list" >&2
+  echo "   Wiederholen:    bash scripts/git-stash-net.sh pop --by-message worktree-create-auto-stash" >&2
+  echo "   Auflisten:      git stash list" >&2
+  echo "   Einzelne Datei: git checkout \"stash@{0}\" -- <pfad>" >&2
   echo "" >&2
   return 0
 }

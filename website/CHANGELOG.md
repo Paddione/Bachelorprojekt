@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.272.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.2...website-v1.272.0) (2026-08-13)
+
+
+### Features
+
+* **scripts:** complete MCP introspection triage data [T003811] ([#4323](https://github.com/Paddione/Bachelorprojekt/issues/4323)) ([99c30f8](https://github.com/Paddione/Bachelorprojekt/commit/99c30f8c0db411709d876e5dfff4cf9c90553f50))
+
+
+### Bug Fixes
+
+* **website:** SDLC-Navigation: tote Redirects entfernt, /sdlc/tickets → Cockpit [T003737] ([#4331](https://github.com/Paddione/Bachelorprojekt/issues/4331)) ([b16e0ac](https://github.com/Paddione/Bachelorprojekt/commit/b16e0acfa8fef8fb342c9c0af688df87a2f99b5b))
+
+
+### Tests
+
+* **plans:** pin archive state of T003813 batch children [T003813] ([#4329](https://github.com/Paddione/Bachelorprojekt/issues/4329)) ([12d6a43](https://github.com/Paddione/Bachelorprojekt/commit/12d6a43007dd367e67bb62ceac0e0c7d842e7807))
+
 ## [1.271.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.1...website-v1.271.2) (2026-08-13)
 
 

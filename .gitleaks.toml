@@ -59,6 +59,13 @@
     # ein Guard, der staendig falsch anschlaegt, verbirgt genau das, was er
     # zeigen soll.
     ".gitleaks.toml",
+    # [Plan-Archive-Welle 2026-08-14] Lokale Dev-Dateien im Repo-Root, beide
+    # gitignored (verifiziert per git check-ignore) und untracked — sie koennen
+    # nie in einen Commit gelangen. Enthalten echte lokale API-Keys fuer
+    # Scripting (deep.sh ruft DeepSeek/OpenAI-API lokal auf); der Hook scannt
+    # den Arbeitsbaum mit --no-git und wuerde sonst jeden Commit blockieren.
+    "(?i)^\\.env$",
+    "(?i)^deep\\.sh$",
   ]
 
 # ── Standard rules ─────────────────────────────────────────────────────

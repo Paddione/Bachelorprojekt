@@ -4344,6 +4344,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/sandbox-egress",
+    "file": "tests/spec/software-factory/sandbox-egress.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/stage-plan-touched-files",
     "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
     "category": "software-factory",

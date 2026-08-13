@@ -3435,6 +3435,12 @@
       "status": "archived"
     }
   ],
+  "T003871": [
+    {
+      "slug": "sandbox-egress",
+      "status": "plan_staged"
+    }
+  ],
   "T004041": [
     {
       "slug": "fix-env-resolve-website-digest",

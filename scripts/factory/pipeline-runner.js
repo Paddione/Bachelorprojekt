@@ -7,6 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync, execSync } from 'child_process';
 
 const D = await import('./pipeline-decompose.cjs');
@@ -19,7 +20,14 @@ const { resolveTaskSource } = await import('./task-source.cjs');
 const otelEmit = await import('./otel-emit.cjs');
 const evalCtxModule = await import('./eval-context.cjs');
 
-const REPO = '/home/patrick/Bachelorprojekt';
+// [T003677-FIX] REPO war hart auf '/home/patrick/Bachelorprojekt' kodiert und
+// brach jeden host-side Spawn in fremden Checkouts (CI-Runner, Worktrees):
+// agent-lock.sh & Co. liefen dort ins ENOENT, die lock-claim/lock-check/lock-release
+// Kommandos antworteten ok:false/state:error. Aufloesung jetzt: FACTORY_REPO-Override
+// (Konvention wie mcp-server.mjs/qa-lens.mjs), sonst Ableitung aus der eigenen
+// Dateilage — auf dem Produktionshost identisch zum bisherigen Pfad.
+const REPO = process.env.FACTORY_REPO
+  || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /**
  * Strip Markdown code fences from an LLM response before JSON.parse.
@@ -618,6 +626,58 @@ async function main() {
         '--brand', String(brand || 'mentolder')
       ], { stdio: 'ignore', timeout: 15000, env: { ...process.env, BRAND: brand || 'mentolder' } });
     } catch {}
+
+  } else if (command === 'lock-check') {
+    // T003677 (P2 pre-check): ask agent-lock.sh whether another live session
+    // holds a branch-scope lock on the target branch. agent-lock.sh check
+    // prints "free" (exit 0) when no live claim exists, "mine" (exit 0) when
+    // the claim belongs to this session, and "held" (exit 3) otherwise.
+    const { branch } = payload;
+    try {
+      const out = execFileSync('bash', [path.join(REPO, 'scripts/agent-lock.sh'), 'check', 'branch', String(branch)],
+        { encoding: 'utf8', timeout: 60000 }).trim();
+      console.log(JSON.stringify({ state: out.split('\n')[0] || 'free' }));
+    } catch (e) {
+      if (e.status === 3) {
+        const first = String(e.stdout || '').trim().split('\n')[0] || 'held';
+        console.log(JSON.stringify({ state: first }));
+      } else {
+        console.log(JSON.stringify({ state: 'error', detail: String(e.stderr || e.message || e).trim().split('\n')[0] || 'lock-check failed' }));
+      }
+    }
+
+  } else if (command === 'lock-claim') {
+    // T003677 (P1): claim the branch-scope agent-lock before any write into
+    // the shared worktree. Idempotent for the same SID: a repeat call refreshes
+    // the heartbeat (TTL 1800s) instead of failing — the same command therefore
+    // serves as claim, refresh and conflict detector. A live foreign claim makes
+    // agent-lock.sh exit 1 with a stderr message; the caller must defer then.
+    const { branch, worktree, ticket_id } = payload;
+    try {
+      execFileSync('bash', [path.join(REPO, 'scripts/agent-lock.sh'), 'claim', 'branch', String(branch),
+        '--worktree', String(worktree || ''), '--label', 'factory-pipeline',
+        '--ticket', String(ticket_id || '')],
+        { encoding: 'utf8', timeout: 60000 });
+      console.log(JSON.stringify({ ok: true }));
+    } catch (e) {
+      const detail = String(e.stderr || e.message || e).trim().split('\n')[0] || 'lock claim failed';
+      console.log(JSON.stringify({ ok: false, detail }));
+    }
+
+  } else if (command === 'lock-release') {
+    // T003677: release the branch lock. Runs in the finally block BEFORE
+    // cleanup.sh — cleanup skips worktree/branch removal while a live claim
+    // exists (T002896), so the release must come first. SID-checked inside
+    // agent-lock.sh: a foreign claim is never released without --force.
+    const { branch } = payload;
+    try {
+      execFileSync('bash', [path.join(REPO, 'scripts/agent-lock.sh'), 'release', 'branch', String(branch)],
+        { encoding: 'utf8', timeout: 60000 });
+      console.log(JSON.stringify({ released: true }));
+    } catch (e) {
+      const detail = String(e.stderr || e.message || e).trim().split('\n')[0] || 'lock release failed';
+      console.log(JSON.stringify({ released: false, detail }));
+    }
   }
 }
 

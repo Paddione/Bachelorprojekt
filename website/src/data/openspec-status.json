@@ -3351,6 +3351,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003677": [
+    {
+      "slug": "fix-factory-lock-worktree-safety",
+      "status": "plan_staged"
+    }
+  ],
   "T003737": [
     {
       "slug": "fix-sdlc-navigation-redirects",

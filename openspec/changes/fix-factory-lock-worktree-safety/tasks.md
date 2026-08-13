@@ -58,14 +58,14 @@ gesetzt wurde. Positiv-Anker: Lock-Datei existiert vor dem git-Commit.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Factory-Schreibzugriff ohne vorherigen Lock.
+- [x] **Failing-Test-Step (RED).** Factory-Schreibzugriff ohne vorherigen Lock.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/factory-claims-lock-before-write.bats
 # expected: FAIL (rot — Factory schreibt ohne Lock)
 ```
 
-- [ ] **Fix-Step (GREEN).** Lock wird vor Schreibzugriff gesetzt.
+- [x] **Fix-Step (GREEN).** Lock wird vor Schreibzugriff gesetzt.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/factory-claims-lock-before-write.bats

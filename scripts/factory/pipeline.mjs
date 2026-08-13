@@ -45,6 +45,36 @@ Return the stdout verbatim. If the command fails, return the stderr string.`
   return result ? result.trim() : ''
 }
 
+// Agent-lock integration (T003677). Root cause (T003664): the factory wrote
+// into a shared worktree for ~40 minutes WITHOUT claiming a branch-scope
+// agent-lock; a parallel session's fix was swept into an unrelated factory
+// commit by `git add -A`. The write path now (P1) claims the lock in
+// setupWorktree before the first git operation, (P2) pre-checks the branch
+// before entering an existing worktree, refreshes the TTL-1800s heartbeat at
+// the implement/deploy boundaries, and releases the lock in the finally block
+// BEFORE cleanup.sh — cleanup skips worktree/branch removal while a live claim
+// exists (T002896). agent-lock.sh itself is unchanged: claim/check/release
+// already provide own-refresh, held-detection and SID-checked release.
+async function lockClaim(agentFn, branch, worktree, ticketId) {
+  try {
+    const out = await runRunner(agentFn, 'lock-claim', { branch, worktree, ticket_id: ticketId || '' })
+    const parsed = JSON.parse(out || '{}')
+    return { ok: parsed.ok === true, detail: String(parsed.detail || '') }
+  } catch { return { ok: false, detail: 'lock-claim runner failed' } }
+}
+
+async function lockCheck(agentFn, branch) {
+  try {
+    const out = await runRunner(agentFn, 'lock-check', { branch })
+    const parsed = JSON.parse(out || '{}')
+    return { state: String(parsed.state || 'free'), detail: String(parsed.detail || '') }
+  } catch { return { state: 'error', detail: 'lock-check runner failed' } }
+}
+
+async function lockRelease(agentFn, branch) {
+  try { await runRunner(agentFn, 'lock-release', { branch }) } catch { /* best-effort */ }
+}
+
 async function runTaskVerifyLoop(agentFn, t, maxLoop, WORK_WT, WORK_BRANCH, slug, pipelineSlot) {
   const taskCtx = await runRunner(agentFn, 'task-context', { slug })
   for (let i = 0; i < maxLoop; i++) {
@@ -67,6 +97,14 @@ async function runTaskVerifyLoop(agentFn, t, maxLoop, WORK_WT, WORK_BRANCH, slug
 // branch, and the right answer is to release the slot and let a later tick pick the
 // ticket up again. [T002327]
 async function setupWorktree(agentFn, REPO, WORK_BRANCH, WORK_WT, ticket_id, label) {
+  // [T003677] P2 pre-check: another session may hold a live branch-scope lock
+  // without a worktree (e.g. mid-planning). worktree-create.sh only detects
+  // "branch in use" via git worktree list — a lock without worktree slips past
+  // it. Check first, defer on a foreign lock; never enter a held branch.
+  const pre = await lockCheck(agentFn, WORK_BRANCH)
+  if (pre.state !== 'free') {
+    return { ok: false, reason: 'branch-locked', detail: `lock-check=${pre.state}${pre.detail ? ': ' + pre.detail : ''}` }
+  }
   const wtSetup = await agentFn(
     `Liveness: \`bash ${REPO}/scripts/ticket.sh touch --id ${ticket_id}\`.
      From ${REPO}, create the isolated worktree:
@@ -76,7 +114,18 @@ async function setupWorktree(agentFn, REPO, WORK_BRANCH, WORK_WT, ticket_id, lab
     { label: `${label}:worktree-setup`, phase: 'Implement', model: FACTORY_MODEL },
   )
   const s = String(wtSetup ?? '')
-  if (/ready on/.test(s)) return { ok: true }
+  if (/ready on/.test(s)) {
+    // [T003677] P1 claim AFTER worktree-create: claiming before would make
+    // worktree-create.sh's own T002896 guard (live lock on the target branch
+    // → exit 4) self-block the creation. Claiming now also closes the window
+    // where a concurrent session could grab the branch between create and
+    // claim: their claim would fail our claim, and we defer instead of racing.
+    const claim = await lockClaim(agentFn, WORK_BRANCH, WORK_WT, ticket_id)
+    if (!claim.ok) {
+      return { ok: false, reason: 'branch-locked', detail: `lock-claim denied: ${claim.detail || 'foreign holder'}` }
+    }
+    return { ok: true }
+  }
   if (/branch in use/.test(s)) return { ok: false, reason: 'branch-in-use', detail: s.slice(0, 400) }
   return { ok: false, detail: s.slice(0, 400) }
 }
@@ -167,15 +216,15 @@ if (A.batch_mode === true && Array.isArray(A.sub_features)) {
   await phaseEvent('implement', 'entered', `Batch: ${A.sub_features.length} sub-features`)
 
   const bwt = await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'impl:batch')
-  if (!bwt.ok && bwt.reason === 'branch-in-use') {
-    log(`Branch ${WORK_BRANCH} is held by another worktree — deferring batch ${A.ticket_id}`)
+  if (!bwt.ok && (bwt.reason === 'branch-in-use' || bwt.reason === 'branch-locked')) {
+    log(`Branch ${WORK_BRANCH} is ${bwt.reason === 'branch-locked' ? 'locked' : 'held by another worktree'} — deferring batch ${A.ticket_id}`)
     await agent(
       `Release the slot and leave the ticket status untouched:
        bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}`,
       { label: 'impl:batch-defer-branch-in-use', phase: 'Implement', model: FACTORY_MODEL },
     )
-    await phaseEvent('implement', 'deferred', 'branch-in-use: ' + String(bwt.detail || '').slice(0, 120))
-    return { status: 'deferred', reason: 'branch-in-use', detail: bwt.detail, released: true }
+    await phaseEvent('implement', 'deferred', bwt.reason + ': ' + String(bwt.detail || '').slice(0, 120))
+    return { status: 'deferred', reason: bwt.reason, detail: bwt.detail, released: true }
   }
   if (!bwt.ok) {
     await agent(
@@ -389,15 +438,15 @@ if (REUSE) {
   // old ordering that path did not exist yet, readPartials returned nothing.
   if (!A.batch_mode) {
     const rwt = await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'reuse')
-    if (!rwt.ok && rwt.reason === 'branch-in-use') {
-      log(`Branch ${WORK_BRANCH} is held by another worktree — deferring ${A.ticket_id}`)
+    if (!rwt.ok && (rwt.reason === 'branch-in-use' || rwt.reason === 'branch-locked')) {
+      log(`Branch ${WORK_BRANCH} is ${rwt.reason === 'branch-locked' ? 'locked' : 'held by another worktree'} — deferring ${A.ticket_id}`)
       await agent(
         `Release the slot and leave the ticket status untouched:
          bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}`,
         { label: 'reuse:defer-branch-in-use', phase: 'Plan', model: FACTORY_MODEL },
       )
-      await phaseEvent('plan', 'deferred', 'branch-in-use: ' + String(rwt.detail || '').slice(0, 120))
-      return { status: 'deferred', reason: 'branch-in-use', detail: rwt.detail, released: true }
+      await phaseEvent('plan', 'deferred', rwt.reason + ': ' + String(rwt.detail || '').slice(0, 120))
+      return { status: 'deferred', reason: rwt.reason, detail: rwt.detail, released: true }
     }
     if (!rwt.ok) {
       await agent(
@@ -456,15 +505,15 @@ if (tasks && tasks.length && !A.batch_mode) {
   const iwt = wtReady
     ? { ok: true }
     : await setupWorktree(agent, REPO, WORK_BRANCH, WORK_WT, A.ticket_id, 'impl')
-  if (!iwt.ok && iwt.reason === 'branch-in-use') {
-    log(`Branch ${WORK_BRANCH} is held by another worktree — deferring ${A.ticket_id}`)
+  if (!iwt.ok && (iwt.reason === 'branch-in-use' || iwt.reason === 'branch-locked')) {
+    log(`Branch ${WORK_BRANCH} is ${iwt.reason === 'branch-locked' ? 'locked' : 'held by another worktree'} — deferring ${A.ticket_id}`)
     await agent(
       `Release the slot and leave the ticket status untouched:
        bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}`,
       { label: 'impl:defer-branch-in-use', phase: 'Implement', model: FACTORY_MODEL },
     )
-    await phaseEvent('implement', 'deferred', 'branch-in-use: ' + String(iwt.detail || '').slice(0, 120))
-    return { status: 'deferred', reason: 'branch-in-use', detail: iwt.detail, released: true }
+    await phaseEvent('implement', 'deferred', iwt.reason + ': ' + String(iwt.detail || '').slice(0, 120))
+    return { status: 'deferred', reason: iwt.reason, detail: iwt.detail, released: true }
   }
   if (!iwt.ok) {
     await agent(
@@ -480,6 +529,21 @@ if (tasks && tasks.length && !A.batch_mode) {
   const taskCtx = await runRunner(agent, 'task-context', { slug: safeSlug })
   const pipelineSlot = await resolvePipelineSlot(agent, A.ticket_id, brand)
   if (pipelineSlot) log(`Pipeline slot: ${pipelineSlot}`)
+
+  // [T003677] Heartbeat refresh before the implement loop. The claim TTL is
+  // 1800s; plan/verify phases can run longer. If the lock was reaped in the
+  // meantime and another session claimed the branch, writing must stop here —
+  // fail-closed defer, never a second writer.
+  const implLock = await lockClaim(agent, WORK_BRANCH, WORK_WT, A.ticket_id)
+  if (!implLock.ok) {
+    await agent(
+      `Release the slot and leave the ticket status untouched:
+       bash ${REPO}/scripts/ticket.sh release-slot --id ${A.ticket_id}`,
+      { label: 'impl:defer-lock-refresh', phase: 'Implement', model: FACTORY_MODEL },
+    )
+    await phaseEvent('implement', 'deferred', 'branch-locked: ' + (implLock.detail || 'lock refresh denied').slice(0, 120))
+    return { status: 'deferred', reason: 'branch-locked', detail: implLock.detail, released: true }
+  }
   for (const t of tasks) {
     const injections = await consumeInjections('implement')
     const baseImplPrompt = t.prompt /* partial fan-out prompt (T002074) */ ||
@@ -635,6 +699,14 @@ phase('Deploy')
 await phaseEvent('deploy', 'entered', 'PR erstellt · CI watch')
 // Gate the PR on the pr-ready event: without it, only push the branch (no PR).
 if (!DRY_RUN) {
+  // [T003677] Heartbeat refresh before the Deploy phase: the verify phase
+  // (multi-tier LLM review) can exceed the 1800s claim TTL. Deploy pushes from
+  // the worktree — a second writer on the branch means stop, not race.
+  const deployLock = await lockClaim(agent, WORK_BRANCH, WORK_WT, A.ticket_id)
+  if (!deployLock.ok) {
+    await phaseEvent('deploy', 'deferred', 'branch-locked: ' + (deployLock.detail || 'lock refresh denied').slice(0, 120))
+    return { status: 'deferred', reason: 'branch-locked', detail: deployLock.detail, released: true }
+  }
   const gate = JSON.parse((await runRunner(agent, 'pr-gate', { ticket_id: A.ticket_id, brand })) || '{}')
   if (!gate.pr_ready) {
     await agent(`cd ${WORK_WT} && git push -u origin ${WORK_BRANCH}`, { label: 'deploy:branch-push', phase: 'Deploy', model: FACTORY_MODEL })
@@ -727,6 +799,11 @@ return { status: deployStatus, reason: deployReason, pr: deploy, reviews: review
 
 } finally {
   // eslint-disable-next-line no-unsafe-finally
+  // [T003677] Release the branch lock BEFORE cleanup.sh: cleanup skips
+  // worktree/branch removal while a live claim exists (T002896). Releasing
+  // first makes the cleanup actually clean up; releasing after would leave
+  // the worktree behind on every factory run. No-op when no claim exists.
+  try { await lockRelease(agent, WORK_BRANCH) } catch (_) {}
   try { await agent(`bash ${REPO}/scripts/factory/cleanup.sh --branch '${WORK_BRANCH}' --worktree '${WORK_WT}'`, { label: 'cleanup', model: FACTORY_MODEL }) } catch (_) {}
 }
 }

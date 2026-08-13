@@ -247,37 +247,12 @@ collision. Naming the state is what makes the regression visible.
 
 ### Requirement: Single Entry Point for the Local SDLC Stack
 
-The repository SHALL provide a task `sdlc:up` that brings the local SDLC stack from a cold
-machine to a verified running state in one invocation, and a task `sdlc:down` that shuts it
-down again.
-
-`sdlc:up` SHALL orchestrate the existing tasks rather than reimplement them, in the order
-cluster → stack → llm-proxy → health gate, and SHALL terminate with a non-zero exit status if
-any stage fails.
-
-Rationale: die Einzelschritte existieren bereits; was fehlte, war die Reihenfolge und die
-Verifikation. Ein `sdlc:up`, das seine Bausteine dupliziert, würde bei jeder Änderung an
-`sdlc:deploy` auseinanderlaufen.
-
 #### Scenario: Cold start brings the stack up
 
-- **GIVEN** no k3d cluster `mentolder-dev` exists and the llm-proxy is not running
-- **WHEN** the operator runs `task sdlc:up`
-- **THEN** the cluster is created, the SDLC stack is deployed, the llm-proxy is started
-- **AND** the command exits 0 only after the health gate reports every component ready
-
-#### Scenario: Repeated invocation is idempotent
-
-- **GIVEN** the SDLC stack is already running and healthy
-- **WHEN** the operator runs `task sdlc:up` a second time
-- **THEN** the command does not fail on the already-existing cluster
-- **AND** it exits 0 without recreating or restarting the cluster
-
-#### Scenario: Shutdown reverses the startup order
-
-- **GIVEN** the SDLC stack is running
-- **WHEN** the operator runs `task sdlc:down`
-- **THEN** the llm-proxy is stopped before the cluster is deleted
+| | Before | After |
+|---|---|---|
+| Steps | cluster → stack → llm-proxy → health gate | cluster → stack → llm-proxy → **default chat loadout** → health gate |
+| Exit semantics | Exit 0 only after the health gate reports every component ready | unchanged — now including the chat loadout |
 
 ### Requirement: The `dev:` Task Namespace Stays Reserved for the Staging Stack
 
@@ -298,26 +273,17 @@ gleiches Präfix, zwei verschiedene Systeme, gleicher Kontext.
 
 ### Requirement: Health Gate Reports Diagnosable Failure
 
-`sdlc:up` SHALL verify readiness through a health gate that names the component that failed
-and the observed state, rather than reporting a generic failure or reporting success on a
-partially started stack.
-
-The health gate SHALL check that the cluster context is reachable, that the deployments
-`shared-db`, `pocket-id`, `sdlc-console`, `bge-embed` and `bge-rerank` are available, and that
-the llm-proxy answers its status probe.
-
-#### Scenario: A failed component is named
-
-- **GIVEN** the cluster is up but the deployment `pocket-id` never becomes available
-- **WHEN** the operator runs `task sdlc:up`
-- **THEN** the command exits non-zero
-- **AND** the output names `pocket-id` and its observed state
+| | Before | After |
+|---|---|---|
+| llm-proxy check | `/livez` only (liveness: process answering) | `/livez` **plus** `GET /health` readiness poll (ready only when a priority-1 backend group is healthy) **plus** `GET /admin/loadouts/status` (configured chat loadout running + healthy) |
+| Failure naming | names the component and observed state | unchanged — readiness failures additionally name the `degraded` backends from the `/health` response |
 
 #### Scenario: A partially started stack is not reported as success
 
-- **GIVEN** one of the checked components is not ready
-- **WHEN** the health gate runs
-- **THEN** it exits non-zero
+| | Before | After |
+|---|---|---|
+| Case | one of the checked components is not ready | additionally: proxy answers `/livez` but `/health` returns 503 (`ready: false`) or the chat loadout is not `running`+`healthy` |
+| Result | gate exits non-zero | gate exits non-zero and names `llm-proxy` / the loadout slug |
 
 ### Requirement: The Astro Dev Server Is a Separate, Blocking Task
 
@@ -600,3 +566,65 @@ sampling parameters, and a ready-to-use `loadouts.json` block.
   `loadouts.json` without further research
 
 <!-- merged from change delta sdlc-isolation.md (dff6908ef21e) -->
+
+### Requirement: sdlc:up starts the local chat loadout before the health gate
+
+`sdlc:up` SHALL start the configured local chat loadout after the llm-proxy
+is running and before the health gate runs. The loadout SHALL be selected via
+the environment variable `SDLC_LLM_LOADOUT`, defaulting to
+`gemma26-throughput`. Starting SHALL be idempotent: a loadout that is already
+running and healthy SHALL NOT be restarted. A loadout belonging to an
+`exclusiveGroup` that another running loadout occupies SHALL fail with a
+non-zero exit status and name the conflicting loadout, SHALL NOT stop the
+conflicting loadout, and SHALL NOT be auto-started by the health gate.
+
+Rationale: without an explicit start, the proxy only auto-starts loadouts on
+the first matching request (T002336/T002616); a freshly started stack would
+answer 404/503 until that first request. All chat loadouts share
+`exclusiveGroup: chat-gpu` — at most one can run, so exactly one configurable
+default is started, not every loadout.
+
+#### Scenario: Stopped loadout is started and reported healthy
+
+- **GIVEN** the llm-proxy is running and the configured chat loadout is stopped
+- **WHEN** the operator runs `task sdlc:up`
+- **THEN** the loadout is started via the proxy admin API
+- **AND** the health gate reports it as `running` and `healthy`
+- **AND** the command exits 0 only after the loadout is healthy
+
+#### Scenario: Repeated invocation is idempotent
+
+- **GIVEN** the configured chat loadout is already running and healthy
+- **WHEN** the operator runs `task sdlc:up` a second time
+- **THEN** the loadout is not restarted and the command exits 0
+
+#### Scenario: Conflicting exclusiveGroup loadout is named, not stopped
+
+- **GIVEN** another loadout of the same `exclusiveGroup` (e.g. `chat-gpu`) is running
+- **WHEN** the operator runs `task sdlc:up`
+- **THEN** the command exits non-zero and names the conflicting loadout
+- **AND** the conflicting loadout keeps running
+
+### Requirement: sdlc:down stops the chat loadout before the proxy
+
+`sdlc:down` SHALL stop the configured chat loadout before stopping the
+llm-proxy. Stopping SHALL be best-effort: if the proxy is already unreachable
+or the loadout is not running, the shutdown SHALL still complete successfully.
+
+Rationale: loadout units are managed via `systemd-run` and outlive the proxy
+process; stopping the proxy first would strand the llama-server on its port.
+
+#### Scenario: Shutdown stops the loadout before the proxy
+
+- **GIVEN** the SDLC stack is running with the chat loadout healthy
+- **WHEN** the operator runs `task sdlc:down`
+- **THEN** the loadout is stopped before the llm-proxy is stopped
+- **AND** the cluster is deleted afterwards
+
+#### Scenario: Shutdown tolerates an already-stopped loadout
+
+- **GIVEN** the SDLC stack is running but the chat loadout is already stopped
+- **WHEN** the operator runs `task sdlc:down`
+- **THEN** the shutdown completes without error
+
+<!-- merged from change delta sdlc-isolation.md (e1ee564c40bd) -->

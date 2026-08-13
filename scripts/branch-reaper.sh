@@ -25,6 +25,10 @@
 # Ausgabe (der Vertrag, auf den tests/spec/ci-cd/branch-reaper.bats zugreift):
 #   REAP <branch>            — Kandidat, wird ohne --dry-run gelöscht
 #   KEEP <branch> — <grund>  — verschont, mit Begründung
+#   DELETED <branch> …       — Remote-Branch gelöscht; bei SHA-Gleichheit wird der lokale
+#                              Ref mitentfernt und das in derselben Zeile vermerkt
+#   KEEP local <branch> …    — lokaler Ref verschont (abweichende SHA oder nicht löschbar),
+#                              der Remote-Teil wurde trotzdem gelöscht [T003182]
 #
 # Sicherheitsnetz:
 #   Vor jedem Delete wird der Branch-SHA als refs/tags/reaped/<branch> gepusht. Schlägt der
@@ -237,6 +241,33 @@ if [ "$DRY_RUN" -eq 1 ]; then
   exit 0
 fi
 
+# [T003182] Lokalen Branch-Ref nach erfolgreichem Remote-Delete mitentfernen — aber nur,
+# wenn er auf denselben SHA zeigt wie der geloeschte Remote-Branch. Abweichende SHA heisst:
+# der lokale Branch traegt Arbeit, die nie auf dem Remote war — die darf NIEMALS weg. Ebenso
+# verschont: ein Ref, der nicht loeschbar ist (z.B. in einem Worktree ausgecheckt, dann
+# schlaegt `git branch -D` fehl). Das Scheitern des Delete ist kein Fehler des Laufs, sondern
+# ein dokumentierter KEEP-Fall.
+_reap_local_ref() {
+  local branch="$1" sha="$2" local_sha
+  local_sha="$(git rev-parse --verify --quiet "$branch" 2>/dev/null || echo "")"
+  if [ -z "$local_sha" ]; then
+    # Kein lokaler Ref — bestehende Meldung unveraendert, nichts weiter zu tun.
+    echo "DELETED $branch (archiviert als refs/tags/reaped/$branch)"
+    return 0
+  fi
+  if [ "$local_sha" != "$sha" ]; then
+    echo "DELETED $branch (archiviert als refs/tags/reaped/$branch)"
+    echo "KEEP local $branch — lokaler Ref weicht vom Archiv-SHA ab, nicht geloescht"
+    return 0
+  fi
+  if git branch -D "$branch" >/dev/null 2>&1; then
+    echo "DELETED $branch (archiviert als refs/tags/reaped/$branch, lokaler Ref entfernt)"
+  else
+    echo "DELETED $branch (archiviert als refs/tags/reaped/$branch)"
+    echo "KEEP local $branch — lokaler Ref nicht entfernbar (z.B. in einem Worktree ausgecheckt)"
+  fi
+}
+
 for branch in "${REAP_LIST[@]}"; do
   sha="$(git rev-parse "$REMOTE/$branch" 2>/dev/null || echo "")"
   if [ -z "$sha" ]; then
@@ -248,7 +279,7 @@ for branch in "${REAP_LIST[@]}"; do
     continue
   fi
   if git push "$REMOTE" --delete "$branch" 2>/dev/null; then
-    echo "DELETED $branch (archiviert als refs/tags/reaped/$branch)"
+    _reap_local_ref "$branch" "$sha"
   else
     echo "KEEP $branch — Delete fehlgeschlagen (Archiv-Tag liegt bereits vor)"
   fi

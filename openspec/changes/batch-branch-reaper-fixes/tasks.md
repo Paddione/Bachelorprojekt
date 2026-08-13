@@ -17,8 +17,8 @@ _Ticket: T003794 — Batch: branch-reaper.sh Fixes_
 ## File Structure
 
 ```
-scripts/branch-reaper.sh              # Hauptdatei — alle 4 Kinder
-tests/spec/repo-hygiene/branch-reaper/ # Guards
+scripts/branch-reaper.sh              # Hauptdatei — Fix T003182 (lokaler Ref nach Remote-Delete)
+tests/spec/ci-cd/branch-reaper-local-ref.bats # Guards (T002416: Verzeichnis pro SSOT-Spec — ci-cd)
 ```
 
 ## Child Tickets
@@ -36,31 +36,42 @@ tests/spec/repo-hygiene/branch-reaper/ # Guards
 
 **Datei:** `scripts/branch-reaper.sh`
 
-Vier Fixes in einer Datei:
-1. Lokalen Branch nach Remote-Loeschung ebenfalls entfernen
-2. Reuse-Worktree-Pfade in Allowlist aufnehmen
-3. Tag- und Branch-Pushes im Sweep buendeln (pre-push-Hook nur 1x statt Nx)
-4. Filter flexibilisieren fuer §2-Sweep
+Nur Fix 1 ist offene Arbeit (T003182); die Teile 2–4 sind obsolet bzw. bereits gemergt:
+1. **Lokalen Branch nach Remote-Loeschung ebenfalls entfernen** — IMPLEMENTIERT (T003182):
+   lokalen Ref mitloeschen, wenn er auf denselben SHA zeigt wie der Archiv-Tag; abweichende
+   SHA oder fehlschlagendes `git branch -D` verschonen den Ref mit `KEEP local <branch>`.
+2. Reuse-Worktree-Pfade in Allowlist (T003387) — ÜBERSPRUNGEN, Ticket done/obsolete.
+3. Tag- und Branch-Pushes buendeln (T003542) — ÜBERSPRUNGEN, Ticket done/obsolete.
+4. Filter flexibilisieren (T003074) — ÜBERSPRUNGEN, bereits auf main (PR #4188/#4258).
 
 ### P2: Guard-Tests
 
-**Datei:** `tests/spec/repo-hygiene/branch-reaper/`
+**Datei:** `tests/spec/ci-cd/branch-reaper-local-ref.bats` (T002416: Verzeichnis pro
+SSOT-Spec aus `openspec/specs/` — branch-reaper lebt in `openspec/specs/ci-cd.md`, also
+`tests/spec/ci-cd/` statt des urspruenglich geplanten `tests/spec/repo-hygiene/`)
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).**
+- [x] **Failing-Test-Step (RED).**
 
 ```bash
-tests/unit/lib/bats-core/bin/bats tests/spec/repo-hygiene/branch-reaper/
-# expected: FAIL (rot — Fixes noch nicht implementiert)
+tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper-local-ref.bats
+# expected: FAIL (rot — Fix noch nicht implementiert) — 3/3 rot am Ist-Stand bestaetigt
 ```
 
-- [ ] **Fix-Step (GREEN).**
+- [x] **Fix-Step (GREEN).**
 
-- [ ] **Final Verification.**
+```bash
+tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper-local-ref.bats
+tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper.bats tests/spec/ci-cd/branch-reaper-sweep.bats
+```
+
+- [x] **Final Verification.**
 
 ```bash
 task test:changed
-task freshness:regenerate
+task test:spec:changed
+task freshness:regenerate   # Artefakte committen, dann freshness:check
 task freshness:check
+task openspec:validate
 ```

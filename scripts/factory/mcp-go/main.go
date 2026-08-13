@@ -89,7 +89,9 @@ func resolveLLM() (baseURL, model, slotID, apiKeyEnv string, ctx int) {
 }
 
 func openspecURL() string {
-	return envOr("OPENSPEC_SEARCH_URL", "http://website.website.svc.cluster.local:4321")
+	// T003232: lokaler Default statt Cluster-interner DNS — factory-mcp laeuft
+	// lokal auf 127.0.0.1:13003, der OpenSpec-Suchdienst auf localhost:4321.
+	return envOr("OPENSPEC_SEARCH_URL", "http://localhost:4321")
 }
 
 // ---------- MCP / JSON-RPC 2.0 plumbing ----------
@@ -493,6 +495,11 @@ Available factory state (read-only via separate tools):
 Keep replies under 200 words. Respond in the same language as the question.
 IMPORTANT: Do not output chain-of-thought or reasoning blocks. Provide the final answer only.`
 
+// factoryAskTimeout: T003803. Muss UNTER dem Request-Timeout des MCP-Clients
+// (~60s) liegen — sonst bricht der Client mit -32001 ab, bevor der Server
+// antwortet. 45s decken den LLM-Roundtrip (inkl. Slot-Reserve) ab.
+const factoryAskTimeout = 45 * time.Second
+
 func toolFactoryAsk(question string) (string, bool, error) {
 	q := strings.TrimSpace(question)
 	if q == "" {
@@ -525,7 +532,7 @@ func toolFactoryAsk(question string) (string, bool, error) {
 		body["chat_template_kwargs"] = map[string]any{"enable_thinking": false}
 	}
 	bb, _ := json.Marshal(body)
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), factoryAskTimeout)
 	defer cancel()
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, llmBase+"/chat/completions", bytes.NewReader(bb))
 	req.Header.Set("Content-Type", "application/json")

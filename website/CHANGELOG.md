@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.272.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.0...website-v1.272.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **website:** SDLC-Auth-Gates leiten über /login?returnTo um [T003746] ([#4338](https://github.com/Paddione/Bachelorprojekt/issues/4338)) ([5fe5569](https://github.com/Paddione/Bachelorprojekt/commit/5fe5569ceb690faabfcc7154924915b7091a47a2))
+
 ## [1.272.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.2...website-v1.272.0) (2026-08-13)
 
 

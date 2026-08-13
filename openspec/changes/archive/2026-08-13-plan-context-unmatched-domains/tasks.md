@@ -2,7 +2,7 @@
 title: "plan-context-unmatched-domains — Implementation Plan"
 ticket_id: T002614
 domains: [plan-authoring]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

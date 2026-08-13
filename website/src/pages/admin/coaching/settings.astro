@@ -2,6 +2,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
 import CoachingSettings from '../../../components/admin/coaching/CoachingSettings.svelte';
+import QuestionnaireInsights from '../../../components/admin/coaching/QuestionnaireInsights.svelte';
 import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
 import { listKiProviders, type KiConfig } from '../../../lib/coaching-ki-config-db';
 import { listStepTemplates, type StepTemplate } from '../../../lib/coaching-templates-db';
@@ -31,5 +32,6 @@ try {
     </nav>
 <AdminPageHeader title="Coaching-Einstellungen" />
     <CoachingSettings client:load {initialProviders} {initialTemplates} />
+    <QuestionnaireInsights />
   </div>
 </AdminLayout>

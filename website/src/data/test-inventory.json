@@ -4122,6 +4122,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-isolation/llm-up-health",
+    "file": "tests/spec/sdlc-isolation/llm-up-health.bats",
+    "category": "sdlc-isolation",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-isolation/sdlc-up-command",
     "file": "tests/spec/sdlc-isolation/sdlc-up-command.bats",
     "category": "sdlc-isolation",

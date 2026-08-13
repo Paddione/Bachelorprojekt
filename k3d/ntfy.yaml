@@ -5,7 +5,7 @@ metadata:
   namespace: workspace
 type: Opaque
 stringData:
-  NTFY_TOKEN_OPEncode: "tk_opencode_dev_token_32chars_ab"
+  NTFY_TOKEN_OPENCODE: "tk_opencode_dev_token_32chars_ab"
   NTFY_TOKEN_AGY: "tk_agy_dev_token_32chars_ab12345"
 ---
 apiVersion: apps/v1
@@ -45,7 +45,7 @@ spec:
                 behind-proxy: true
                 EOF
                 printf 'dev\ndev\n' | ntfy user add --role=admin opencode || true
-                ntfy token add opencode "${NTFY_TOKEN_OPEncode}" || true
+                ntfy token add opencode "${NTFY_TOKEN_OPENCODE}" || true
                 printf 'dev\ndev\n' | ntfy user add --role=admin agy || true
                 ntfy token add agy "${NTFY_TOKEN_AGY}" || true
                 echo "ntfy-init: done"
@@ -58,11 +58,11 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           env:
-            - name: NTFY_TOKEN_OPEncode
+            - name: NTFY_TOKEN_OPENCODE
               valueFrom:
                 secretKeyRef:
                   name: ntfy-tokens
-                  key: NTFY_TOKEN_OPEncode
+                  key: NTFY_TOKEN_OPENCODE
             - name: NTFY_TOKEN_AGY
               valueFrom:
                 secretKeyRef:

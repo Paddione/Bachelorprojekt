@@ -1280,7 +1280,7 @@ secrets:
     description: "SSH authorized_keys list (newline-separated) for sish — anyone who can publish a dev tunnel."
 
   # ── Agent Push Notification Secrets (T000991) ────────────────────────────────
-  - name: NTFY_TOKEN_OPEncode
+  - name: NTFY_TOKEN_OPENCODE
     required: false
     generate: false
     default_dev: "tk_opencode_dev_token_32chars_ab"

@@ -662,8 +662,20 @@ cmd_reap() {
     _fetch_age=$(( $(date +%s) - $(stat -c %Y "$_fetch_marker" 2>/dev/null || echo 0) ))
   fi
   if [ "${AGENT_LOCK_FETCH_TTL:-300}" -eq 0 ] || [ ! -f "$_fetch_marker" ] || [ "$_fetch_age" -ge "${AGENT_LOCK_FETCH_TTL:-300}" ]; then
-    git fetch --prune origin 2>/dev/null || true
+    # [T004013] Der Marker-Zyklus bleibt unveraendert (die T002502-Guard-Tests
+    # pruefen genau ihn), aber der eigentliche Netz-Fetch entfaellt im CI-Runner:
+    # dort laeuft ein ephemerer shallow Checkout ohne lokale Feature-Branches —
+    # Schritt 2c hat dort nichts zu tun. Der Fetch dort kostete 70-90s pro Lauf
+    # (cold refs, ~5000 Remote-Refs) und schlug am 13.08. mit 405s pathologisch
+    # auf Shard 1 der Factory-Suite durch (T002374-M2 in ci-cd.bats).
     touch "$_fetch_marker" 2>/dev/null || true
+    if [ "${GITHUB_ACTIONS:-}" = "true" ] || [ "${CI:-}" = "true" ]; then
+      :
+    elif command -v timeout >/dev/null 2>&1; then
+      timeout "${AGENT_LOCK_FETCH_TIMEOUT:-60}" git fetch --prune origin 2>/dev/null || true
+    else
+      git fetch --prune origin 2>/dev/null || true
+    fi
   fi
   # 2c) delete local branches that were squash-merged into main (upstream gone)
   for br in $(git branch --merged main 2>/dev/null | sed 's/^[* ]*//' | grep -v '^main$'); do

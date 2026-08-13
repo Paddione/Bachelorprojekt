@@ -2083,6 +2083,12 @@ MOCKEOF
 
 @test "T002374-M2: agent-lock.sh release mit --force ueberschreibt SID-Mismatch" {
   AGENT_LOCK_DIR="$(mktemp -d)"; export AGENT_LOCK_DIR
+  # [T004013] Frisches Lock-Dir ohne .last-fetch-Marker laesst den pre-claim-reap
+  # in cmd_claim einen echten `git fetch --prune origin` fahren (~5000 Remote-Refs
+  # gegen den shallow CI-Checkout): 70-90s pro Lauf, am 13.08. pathologisch 405s
+  # auf Shard 1. Der Marker unterbindet den Netz-Fetch — die SID-Mismatch-Logik
+  # dieses Tests braucht ihn nicht (gleiche Konvention wie active-sessions-hub.bats).
+  touch "$AGENT_LOCK_DIR/.last-fetch"
   export AGENT_LOCK_FAKE_ALIVE="session-A-orch"
   export AGENT_LOCK_SID="session-A-orch"
   bash "$BATS_TEST_DIRNAME/../../scripts/agent-lock.sh" claim ticket T002374-m2 --label test-delegate

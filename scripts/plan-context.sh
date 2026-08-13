@@ -5,8 +5,47 @@
 # Usage:
 #   scripts/plan-context.sh <role>
 #   scripts/plan-context.sh <role> --with-openspec [<file>...]
+#   scripts/plan-context.sh --vocab   # print the union domain vocabulary (tokens)
 # Output: markdown block ready to wrap in <active-plans>...</active-plans>
 set -euo pipefail
+
+# Hardcoded role → domain-allowlist. SSOT: AGENTS.md lines 7-18
+# (Agent Routing table). Keep in sync manually.
+# Special marker "__ALL__" disables filtering (orchestrator / fail-soft
+# for unknown roles). Empty string is the unknown-role signal.
+_role_allowlist() {
+    case "$1" in
+        bachelorprojekt-website)   echo "website frontend design ui svelte astro css brett" ;;
+        bachelorprojekt-ops)       echo "ops llm k8s observability monitoring" ;;
+        bachelorprojekt-infra)     echo "infra deploy deployment k3d kustomize prod environments taskfile" ;;
+        bachelorprojekt-test)      echo "test tests testing bats playwright factory qa devflow plan-authoring ticket-mcp ticket-ops scripts ci-cd ci dev-tooling" ;;
+        bachelorprojekt-db)        echo "db postgres tracking timeline database" ;;
+        bachelorprojekt-security)  echo "security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
+        orchestrator)              echo "__ALL__" ;;
+        *)
+            printf 'WARN: unknown role "%s" — including all proposals as fail-soft\n' "$1" >&2
+            echo "__ALL__"
+            ;;
+    esac
+}
+
+# Union of every role's allowlist plus the role names themselves —
+# the shared domain vocabulary. Excludes orchestrator/__ALL__. Used by
+# --vocab and by the dead-domains WARN (anchor check). SSOT: _role_allowlist.
+_domain_roles() {
+    printf '%s\n' "bachelorprojekt-website" "bachelorprojekt-ops" "bachelorprojekt-infra" \
+        "bachelorprojekt-test" "bachelorprojekt-db" "bachelorprojekt-security"
+}
+
+_vocabulary_union() {
+    local role
+    {
+        for role in $(_domain_roles); do
+            echo "$role"
+            _role_allowlist "$role"
+        done
+    } | tr ' ' '\n' | grep -v '^$' | sort -u | paste -sd ' ' -
+}
 
 FULL=0
 args=("$@")
@@ -19,6 +58,12 @@ for arg in "${args[@]}"; do
     fi
 done
 set -- "${new_args[@]}"
+# --vocab: print the union domain vocabulary as a token list (SSOT for
+# corpus guards). Must precede the ROLE requirement — checked first.
+if [[ "${1:-}" == "--vocab" ]]; then
+    _vocabulary_union
+    exit 0
+fi
 ROLE="${1:?Usage: plan-context.sh <role> [--with-openspec [<file>...]]}"
 shift
 WITH_OPENSPEC=0
@@ -35,26 +80,6 @@ done
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 CHANGES_DIR="$REPO_ROOT/openspec/changes"
-
-# Hardcoded role → domain-allowlist. SSOT: AGENTS.md lines 7-18
-# (Agent Routing table). Keep in sync manually.
-# Special marker "__ALL__" disables filtering (orchestrator / fail-soft
-# for unknown roles). Empty string is the unknown-role signal.
-_role_allowlist() {
-    case "$1" in
-        bachelorprojekt-website)   echo "website frontend design ui svelte astro css brett" ;;
-        bachelorprojekt-ops)       echo "ops llm k8s observability monitoring" ;;
-        bachelorprojekt-infra)     echo "infra deploy k3d kustomize prod environments taskfile" ;;
-        bachelorprojekt-test)      echo "test tests bats playwright factory qa" ;;
-        bachelorprojekt-db)        echo "db postgres tracking timeline database" ;;
-        bachelorprojekt-security)  echo "security secrets keycloak oidc sealed-secret dsgvo credentials" ;;
-        orchestrator)              echo "__ALL__" ;;
-        *)
-            printf 'WARN: unknown role "%s" — including all proposals as fail-soft\n' "$1" >&2
-            echo "__ALL__"
-            ;;
-    esac
-}
 
 # Parse the YAML frontmatter `domains:` field from a proposal (or its
 # adjacent tasks.md as a fallback). Returns space-separated domain
@@ -81,6 +106,8 @@ _parse_yaml_domains() {
 }
 
 allowlist="$(_role_allowlist "$ROLE")"
+# Union-Vokabular einmal pro Lauf (WARN-Ankerprüfung).
+VOCAB_UNION="$(_vocabulary_union)"
 found=0
 
 for proposal_file in "$CHANGES_DIR"/*/proposal.md; do
@@ -95,13 +122,34 @@ for proposal_file in "$CHANGES_DIR"/*/proposal.md; do
         [[ "$allowlist" != "__ALL__" ]] && continue
     elif [[ "$allowlist" != "__ALL__" && -n "$allowlist" ]]; then
         # Schnittmenge proposal.domains ∩ allowlist prüfen.
+        # Selbst-Match: ein Token, das exakt $ROLE ist, matcht immer.
         match=0
         for d in $proposal_domains; do
+            if [[ "$d" == "$ROLE" ]]; then
+                match=1
+                break
+            fi
             case " $allowlist " in
                 *" $d "*) match=1; break ;;
             esac
         done
-        [[ "$match" -eq 1 ]] || continue
+        if [[ "$match" -eq 0 ]]; then
+            # Fail-loud: still exkludierte Proposals ohne jeglichen Anker in
+            # der Vokabular-Union warnen — Slash-Token sind Pfad-Verweise und
+            # zählen nie als Anker. (__ALL__-Läufe erreichen diesen Zweig nicht.)
+            anchored=0
+            for d in $proposal_domains; do
+                [[ "$d" == */* ]] && continue
+                case " $VOCAB_UNION " in
+                    *" $d "*) anchored=1; break ;;
+                esac
+            done
+            if [[ "$anchored" -eq 0 ]]; then
+                printf 'WARN: proposal %s has domains [%s] matching no role allowlist — excluded for every role\n' \
+                    "$slug" "$proposal_domains" >&2
+            fi
+            continue
+        fi
     fi
     # allowlist == __ALL__ (orchestrator / unknown-role fail-soft) → kein Filter.
 
@@ -173,7 +221,7 @@ fi
 
 # Optional: semantic neighbours via /api/openspec/search (fallback: grep-only).
 if [[ -n "$SEMANTIC_QUERY" ]]; then
-    base="${OPENSPEC_SEARCH_URL:-http://website.website.svc.cluster.local:4321}"
+    base="${OPENSPEC_SEARCH_URL:-http://localhost:4321}"
     resp="$(curl -fsS --max-time 5 -G "$base/api/openspec/search" \
               --data-urlencode "q=$SEMANTIC_QUERY" --data-urlencode "limit=3" 2>/dev/null || true)"
     if [[ -n "$resp" ]]; then

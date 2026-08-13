@@ -2,7 +2,8 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/ui/AdminPageHeader.svelte';
 import PromptLibraryManager from '../../components/admin/PromptLibraryManager.svelte';
-import { getSession, isAdmin, getLoginUrl } from '../../lib/auth';
+import { getSession, isAdmin } from '../../lib/auth';
+import { buildLoginRedirect } from '../../lib/login-redirect';
 import { pool } from '../../lib/website-db';
 import { listPrompts } from '../../lib/prompt-library-db';
 import { logger } from '../../lib/logger';
@@ -10,7 +11,7 @@ import { logger } from '../../lib/logger';
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!session) return Astro.redirect(buildLoginRedirect(Astro.url));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 let prompts: Awaited<ReturnType<typeof listPrompts>> = [];

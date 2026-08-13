@@ -3351,6 +3351,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003737": [
+    {
+      "slug": "fix-sdlc-navigation-redirects",
+      "status": "plan_staged"
+    }
+  ],
   "T003740": [
     {
       "slug": "2026-08-11-fix-sdlc-imagepullpolicy",

@@ -627,7 +627,7 @@ async function main() {
     const { branch } = payload;
     try {
       const out = execFileSync('bash', [path.join(REPO, 'scripts/agent-lock.sh'), 'check', 'branch', String(branch)],
-        { encoding: 'utf8', timeout: 15000 }).trim();
+        { encoding: 'utf8', timeout: 60000 }).trim();
       console.log(JSON.stringify({ state: out.split('\n')[0] || 'free' }));
     } catch (e) {
       if (e.status === 3) {
@@ -649,7 +649,7 @@ async function main() {
       execFileSync('bash', [path.join(REPO, 'scripts/agent-lock.sh'), 'claim', 'branch', String(branch),
         '--worktree', String(worktree || ''), '--label', 'factory-pipeline',
         '--ticket', String(ticket_id || '')],
-        { encoding: 'utf8', timeout: 15000 });
+        { encoding: 'utf8', timeout: 60000 });
       console.log(JSON.stringify({ ok: true }));
     } catch (e) {
       const detail = String(e.stderr || e.message || e).trim().split('\n')[0] || 'lock claim failed';
@@ -664,7 +664,7 @@ async function main() {
     const { branch } = payload;
     try {
       execFileSync('bash', [path.join(REPO, 'scripts/agent-lock.sh'), 'release', 'branch', String(branch)],
-        { encoding: 'utf8', timeout: 15000 });
+        { encoding: 'utf8', timeout: 60000 });
       console.log(JSON.stringify({ released: true }));
     } catch (e) {
       const detail = String(e.stderr || e.message || e).trim().split('\n')[0] || 'lock release failed';

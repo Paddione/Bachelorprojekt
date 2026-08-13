@@ -4248,6 +4248,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/factory-claims-lock-before-write",
+    "file": "tests/spec/software-factory/factory-claims-lock-before-write.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/factory-model-id-default",
     "file": "tests/spec/software-factory/factory-model-id-default.bats",
     "category": "software-factory",

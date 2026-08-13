@@ -8,8 +8,10 @@ setup() {
 @test "T002706: website overlay pins image by digest in rendered manifest" {
   local out_dir
   out_dir="$(mktemp -d)"
-  export WEBSITE_IMAGE_DIGEST="sha256:1111111111111111111111111111111111111111111111111111111111111111"
-  export BRETT_IMAGE_DIGEST="sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  # T004041: Fixture-Digests statt Placeholder — der Renderer ist fail-closed
+  # gegen sha256:1111.../2222..., ein Render mit Placeholder wuerde abbrechen.
+  export WEBSITE_IMAGE_DIGEST="sha256:565e7cecafd4d792620b4c68a168046481567dec53c4f61545f62f3edd1c7d41"
+  export BRETT_IMAGE_DIGEST="sha256:9090909090909090909090909090909090909090909090909090909090909090"
 
   bash "$RENDER_SCRIPT" --out "$out_dir"
 
@@ -31,13 +33,15 @@ setup() {
 @test "T002706: brett overlay pins image by digest in rendered manifest" {
   local out_dir
   out_dir="$(mktemp -d)"
-  export WEBSITE_IMAGE_DIGEST="sha256:1111111111111111111111111111111111111111111111111111111111111111"
-  export BRETT_IMAGE_DIGEST="sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  # T004041: Fixture-Digests statt Placeholder — der Renderer ist fail-closed
+  # gegen sha256:1111.../2222..., ein Render mit Placeholder wuerde abbrechen.
+  export WEBSITE_IMAGE_DIGEST="sha256:565e7cecafd4d792620b4c68a168046481567dec53c4f61545f62f3edd1c7d41"
+  export BRETT_IMAGE_DIGEST="sha256:9090909090909090909090909090909090909090909090909090909090909090"
 
   bash "$RENDER_SCRIPT" --out "$out_dir"
 
   # Verify BRETT digest reaches rendered mentolder manifest
-  run grep -q "sha256:2222222222222222222222222222222222222222222222222222222222222222" "$out_dir/mentolder/mentolder.yaml"
+  run grep -q "sha256:9090909090909090909090909090909090909090909090909090909090909090" "$out_dir/mentolder/mentolder.yaml"
   [ "$status" -eq 0 ]
 
   rm -rf "$out_dir"

@@ -1,6 +1,7 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { getSession, isAdmin } from '../../../lib/auth';
+import { buildLoginRedirect } from '../../../lib/login-redirect';
 import { getTicketDetail, getTicketTimeline } from '../../../lib/tickets/admin';
 import TicketDetailSections from '../../../components/admin/TicketDetailSections.astro';
 import TicketActionBar from '../../../components/admin/TicketActionBar.svelte';
@@ -30,7 +31,7 @@ import DorPanel from '../../../components/admin/DorPanel.svelte';
 import { logger } from '../../../lib/logger';
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!session) return Astro.redirect(buildLoginRedirect(Astro.url));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 959,
+      "file_count": 960,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -690,6 +690,7 @@
         "tests/spec/sdlc-cockpit/layout-buildfree.bats",
         "tests/spec/sdlc-cockpit/layout-kit-asset-wiring.bats",
         "tests/spec/sdlc-cockpit/layout-rail-fixed.bats",
+        "tests/spec/sdlc-cockpit/login-redirect-all-pages.bats",
         "tests/spec/sdlc-cockpit/navigation-no-dead-links.bats",
         "tests/spec/sdlc-cockpit/no-direct-fetch.bats",
         "tests/spec/sdlc-cockpit/no-silent-fallback.bats",

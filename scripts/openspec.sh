@@ -140,6 +140,9 @@ HELP
   # Seed a plan-lint-PASS tasks.md skeleton so the plan author only fills in
   # the body, not the frontmatter + section shape + verify-task gates. See
   # T001242 (Mishap 2). Quoted heredoc → no shell expansion inside the fences.
+  # [T003812] delta_spec_name vor dem Heredoc, damit der Testpfad-Seed die
+  # T002416-Verzeichnis-Form traegt (Parent-SSOT-Slug statt Change-Slug).
+  local delta_spec_name="${target_spec:-$slug}"
   local _tasks_skeleton
   _tasks_skeleton="$(cat <<OUTER_EOF
 ---
@@ -172,7 +175,8 @@ _Ticket: ${ticket}_
 
 \`\`\`bash
 # Example: run the BATS test the author will add in their first task
-tests/unit/lib/bats-core/bin/bats tests/spec/$slug.bats
+# (eigene Datei unter tests/spec/<spec-slug>/<kurz-slug>.bats, T002416)
+tests/unit/lib/bats-core/bin/bats tests/spec/${delta_spec_name}/
 # expected: FAIL (red — the fix is not yet implemented)
 \`\`\`
 
@@ -190,7 +194,6 @@ OUTER_EOF
 )"
 
   _seed_if_placeholder "$dir/tasks.md" "$resume" "$_tasks_skeleton"
-  local delta_spec_name="${target_spec:-$slug}"
   _seed_if_placeholder "$dir/specs/$delta_spec_name.md" "$resume" \
     "$(printf '## ADDED Requirements\n\n### Requirement: TODO\n\nThe system SHALL …\n\n#### Scenario: TODO\n\n- **GIVEN** …\n- **WHEN** …\n- **THEN** …')"
   echo "$ticket" > "$dir/.ticket"

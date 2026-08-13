@@ -43,16 +43,16 @@ Behandelt Tooling-Fixes rund um openspec.sh, plan-touched-files.sh und plan-pref
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).**
+- [x] **Failing-Test-Step (RED).**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/openspec-workflow/
 # expected: FAIL (rot — Tooling-Fixes noch nicht implementiert)
 ```
 
-- [ ] **Fix-Step (GREEN).**
+- [x] **Fix-Step (GREEN).**
 
-- [ ] **Final Verification.**
+- [x] **Final Verification.**
 
 ```bash
 task test:changed

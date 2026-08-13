@@ -48,16 +48,21 @@ tests/spec/                           # Guards
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).**
+- [x] **Failing-Test-Step (RED).** — `tests/spec/batch-git-worktree-integrity.bats`: 5/6 rot
+      (T003069/T003070 Exit 127 — git-stash-net.sh fehlte; T003105 merge=ours fehlte;
+      T003131 beide rot — SID-Drift im Guard).
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/repo-hygiene/
 # expected: FAIL (rot — P2-P4 noch nicht implementiert)
 ```
 
-- [ ] **Fix-Step (GREEN).**
+- [x] **Fix-Step (GREEN).** — 6/6 ok nach Implementierung (git-stash-net.sh,
+      worktree-create.sh, beide Skills, worktree-write-guard.sh).
 
-- [ ] **Final Verification.**
+- [x] **Final Verification.** — Regression grün: repo-hygiene/, agent-lock-*.bats,
+      worktree-*.bats (exit 0), stash-restore-visible, agent-lock-scope-regelwerk,
+      freshness-regen-rebase-guard, harness-workflow-split.
 
 ```bash
 task test:changed

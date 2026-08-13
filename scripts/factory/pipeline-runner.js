@@ -7,6 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync, execSync } from 'child_process';
 
 const D = await import('./pipeline-decompose.cjs');
@@ -19,7 +20,14 @@ const { resolveTaskSource } = await import('./task-source.cjs');
 const otelEmit = await import('./otel-emit.cjs');
 const evalCtxModule = await import('./eval-context.cjs');
 
-const REPO = '/home/patrick/Bachelorprojekt';
+// [T003677-FIX] REPO war hart auf '/home/patrick/Bachelorprojekt' kodiert und
+// brach jeden host-side Spawn in fremden Checkouts (CI-Runner, Worktrees):
+// agent-lock.sh & Co. liefen dort ins ENOENT, die lock-claim/lock-check/lock-release
+// Kommandos antworteten ok:false/state:error. Aufloesung jetzt: FACTORY_REPO-Override
+// (Konvention wie mcp-server.mjs/qa-lens.mjs), sonst Ableitung aus der eigenen
+// Dateilage — auf dem Produktionshost identisch zum bisherigen Pfad.
+const REPO = process.env.FACTORY_REPO
+  || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /**
  * Strip Markdown code fences from an LLM response before JSON.parse.

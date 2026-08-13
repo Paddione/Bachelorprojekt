@@ -54,6 +54,13 @@ setup() {
   rm -rf "$CHANGE_DIR"
   mkdir -p "$CHANGE_DIR"
   cp -r "$FIXTURE_SRC/." "$CHANGE_DIR/"
+  # [T003677-CI] Das Fixture traegt eine .ticket-Datei (T002420) und ein valides
+  # specs/-Delta, damit der ganzbaumige OpenSpec-Validator (openspec-workflow.bats,
+  # "validator ignores specs under openspec/specs/archive/") den transienten
+  # Fixture-Ordner nicht als kaputten Change meldet. Beide Dateien laufen unter
+  # bats -j PARALLEL; ohne .ticket fiel der Validator-Test im Parallelbetrieb rot
+  # ("tcc-fixture-<pid>: has no .ticket link"). Das Fixture MUSS deshalb
+  # validator-sauber bleiben — neue Fixture-Dateien bitte nur in gleicher Form.
 }
 
 teardown() {

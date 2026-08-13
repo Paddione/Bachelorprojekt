@@ -72,7 +72,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/factory-claims-loc
 # expected: PASS (gruen — Lock existiert vor jedem Schreibzugriff)
 ```
 
-- [ ] **Final Verification.**
+- [x] **Final Verification.**
 
 ```bash
 task test:changed

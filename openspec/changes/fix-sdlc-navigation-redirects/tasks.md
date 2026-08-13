@@ -53,7 +53,7 @@ Guard-Test: Sammelt alle href- und redirect-Ziele aus `website/src/components/sd
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).** Guard-Test laeuft und findet 404-Ziele.
+- [x] **Failing-Test-Step (RED).** Guard-Test laeuft und findet 404-Ziele.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/navigation-no-dead-links.bats

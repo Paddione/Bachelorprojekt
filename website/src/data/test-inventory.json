@@ -2352,6 +2352,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/branch-reaper-local-ref",
+    "file": "tests/spec/ci-cd/branch-reaper-local-ref.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/branch-reaper-sweep",
     "file": "tests/spec/ci-cd/branch-reaper-sweep.bats",
     "category": "ci-cd",

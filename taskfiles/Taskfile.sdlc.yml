@@ -211,7 +211,7 @@ tasks:
   # ── T002655: sdlc:up / sdlc:down / sdlc:dev ─────────────────────────────
 
   sdlc:up:
-    desc: "SDLC-Stack komplett starten: Cluster → Stack → llm-proxy → Health-Gate"
+    desc: "SDLC-Stack komplett starten: Cluster → Stack → llm-proxy → Loadout → Health-Gate"
     cmds:
       # Idempotent: Cluster nur anlegen, wenn er fehlt.
       # Die if-Form wird in mvdan/sh und bash gleich ausgewertet
@@ -232,11 +232,19 @@ tasks:
         else
           task llm:proxy:start
         fi
+      # Chat-Loadout idempotent starten, bevor der Health-Gate es prueft
+      # (T002656) — der Proxy startet Loadouts sonst erst on-demand.
+      - scripts/sdlc/llm-up.sh
       - scripts/sdlc/health-gate.sh --timeout 120
 
   sdlc:down:
-    desc: "SDLC-Stack herunterfahren: llm-proxy → Cluster"
+    desc: "SDLC-Stack herunterfahren: Loadout → llm-proxy → Cluster"
     cmds:
+      # Loadout stoppen, SOLANGE der Proxy noch lebt (T002656) — die
+      # systemd-run-Loadout-Units ueberleben den Proxy-Prozess sonst.
+      # Best-effort: `|| true`, damit ein nicht erreichbarer Proxy den
+      # Shutdown nicht blockiert.
+      - scripts/sdlc/llm-up.sh down || true
       - task llm:proxy:stop
       # sdlc:cluster:delete is idempotent — k3d cluster delete does not fail
       # when the cluster does not exist. We still catch the edge case where k3d

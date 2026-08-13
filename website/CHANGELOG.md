@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.271.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.1...website-v1.271.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* **plan-context:** domain vocabulary, self-match, --vocab, dead-domain WARN [T002614] ([#4315](https://github.com/Paddione/Bachelorprojekt/issues/4315)) ([9b7cc66](https://github.com/Paddione/Bachelorprojekt/commit/9b7cc663aaa2a03b7543bd1123a8306b432d69bf))
+
 ## [1.271.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.0...website-v1.271.1) (2026-08-13)
 
 

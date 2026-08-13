@@ -4062,6 +4062,12 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/navigation-no-dead-links",
+    "file": "tests/spec/sdlc-cockpit/navigation-no-dead-links.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/no-direct-fetch",
     "file": "tests/spec/sdlc-cockpit/no-direct-fetch.bats",
     "category": "sdlc-cockpit",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 967,
+      "file_count": 968,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -628,6 +628,7 @@
         "tests/spec/openspec-workflow/design-location-guard.bats",
         "tests/spec/openspec-workflow/half-archive-guard.bats",
         "tests/spec/openspec-workflow/half-archive-uncommitted.bats",
+        "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats",
         "tests/spec/openspec-workflow/propose-help.bats",
         "tests/spec/openspec-workflow/propose-tasks-testpath-guard.bats",
         "tests/spec/openspec-workflow/t002573-backlog-slugs.txt",

@@ -3393,6 +3393,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003813": [
+    {
+      "slug": "batch-openspec-archive-consistency",
+      "status": "plan_staged"
+    }
+  ],
   "T003825": [
     {
       "slug": "2026-08-11-runtime-drift-guard",

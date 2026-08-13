@@ -134,7 +134,7 @@
 </tr>
 <tr>
 <td>Client-Secret</td>
-<td>aus Secret <code>workspace-secrets</code> (Key: <code>NEXTCLOUD_OIDC_SECRET</code>)</td>
+<td>aus Secret <code>workspace-secrets</code> (Key: <code>POCKET_ID_NEXTCLOUD_SECRET</code>)</td>
 </tr>
 <tr>
 <td>Auto-Redirect</td>
@@ -364,7 +364,7 @@ kubectl exec -n workspace deploy/nextcloud -c nextcloud -- \
 <h3>OIDC-Login schlägt fehl</h3>
 <ul>
 <li><code>user_oidc</code>-App in Nextcloud aktiviert? <code>task workspace:post-setup</code> erneut ausführen</li>
-<li>Keycloak-Client <code>nextcloud</code> vorhanden und Secret korrekt? Secret unter <code>workspace-secrets</code> Key <code>NEXTCLOUD_OIDC_SECRET</code> prüfen</li>
+<li>Keycloak-Client <code>nextcloud</code> vorhanden und Secret korrekt? Secret unter <code>workspace-secrets</code> Key <code>POCKET_ID_NEXTCLOUD_SECRET</code> prüfen</li>
 <li>Keycloak-Pod läuft: <code>kubectl get pods -n workspace | grep keycloak</code></li>
 <li>Provider-URL erreichbar: <code>http://keycloak:8080/realms/workspace/.well-known/openid-configuration</code></li>
 </ul>

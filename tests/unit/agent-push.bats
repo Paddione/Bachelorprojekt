@@ -9,7 +9,7 @@ setup() {
   export AGENT_PUSH_LOG="$TEST_DIR/agent-push.log"
   
   export NTFY_BASE_URL="http://mock-ntfy"
-  export NTFY_TOKEN_OPEncode="tk_opencode_dev_token_32chars_ab"
+  export NTFY_TOKEN_OPENCODE="tk_opencode_dev_token_32chars_ab"
   export NTFY_TOKEN_AGY="tk_agy_dev_token_32chars_ab12345"
   export AGENT_PUSH_API="http://mock-api"
   export AGENT_PUSH_TOKEN="dev-agent-push-token-1234567890"

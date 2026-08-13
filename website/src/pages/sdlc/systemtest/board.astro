@@ -242,7 +242,7 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
     // v1: open ticket detail in a new tab. Replay drawer wiring is deferred.
     const open = () => {
       if (!row.ticket_id) return;
-      window.open(`/admin/tickets/${encodeURIComponent(row.ticket_id)}`, '_blank', 'noopener');
+      window.open(`/sdlc/tickets/${encodeURIComponent(row.ticket_id)}`, '_blank', 'noopener');
     };
     card.addEventListener('click', open);
     card.addEventListener('keydown', (e) => {

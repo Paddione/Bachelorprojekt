@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.271.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.270.2...website-v1.271.0) (2026-08-13)
+
+
+### Features
+
+* **scripts:** dev-up llm-proxy loadout start + health gate [T002656] ([#4316](https://github.com/Paddione/Bachelorprojekt/issues/4316)) ([37393c3](https://github.com/Paddione/Bachelorprojekt/commit/37393c3a7d73cc0a3af7533b12585dc394b31b6f))
+
+
+### Bug Fixes
+
+* **website:** isolate profile validation into import-free module [T003144] ([#4314](https://github.com/Paddione/Bachelorprojekt/issues/4314)) ([adcc297](https://github.com/Paddione/Bachelorprojekt/commit/adcc29714812c8a88af49ee17a463fc774e2f73a))
+
 ## [1.270.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.270.1...website-v1.270.2) (2026-08-13)
 
 

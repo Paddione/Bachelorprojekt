@@ -118,7 +118,7 @@ check_processes() {
 _db_pod() {
   command -v kubectl >/dev/null 2>&1 || return 1
   kubectl get pod -n "$DB_NS" --context "$DB_CTX" --request-timeout=5s \
-    -l app=shared-db -o name 2>/dev/null | head -1
+    -l 'app in (shared-db,shared-db-dev)' -o name 2>/dev/null | head -1
 }
 
 _db_has_marker() {

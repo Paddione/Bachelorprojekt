@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.275.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.274.0...website-v1.275.0) (2026-08-13)
+
+
+### Features
+
+* **factory:** Batch Pipeline-Robustheit — Retry-Limit gegen Exit-6-Livelocks + FACTORY_CTX-Default [T003810] ([#4348](https://github.com/Paddione/Bachelorprojekt/issues/4348)) ([17e54f9](https://github.com/Paddione/Bachelorprojekt/commit/17e54f996917c83ebba7a8ad96e42c9451d797f5))
+
 ## [1.274.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.273.1...website-v1.274.0) (2026-08-13)
 
 

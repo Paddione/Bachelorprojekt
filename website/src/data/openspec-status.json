@@ -3393,6 +3393,12 @@
       "status": "archived"
     }
   ],
+  "T003795": [
+    {
+      "slug": "batch-git-worktree-integrity-p2",
+      "status": "plan_staged"
+    }
+  ],
   "T003796": [
     {
       "slug": "2026-08-11-test-guard-semantics",

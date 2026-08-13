@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 960,
+      "file_count": 961,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -744,6 +744,7 @@
         "tests/spec/software-factory/queue-test-data-filter.bats",
         "tests/spec/software-factory/readiness-gate-before-launch.bats",
         "tests/spec/software-factory/retry-and-build-loop.bats",
+        "tests/spec/software-factory/sandbox-egress.bats",
         "tests/spec/software-factory/scheduling.bats",
         "tests/spec/software-factory/scout-and-routing.bats",
         "tests/spec/software-factory/slot-mapping.bats",
@@ -3344,7 +3345,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 713,
+      "file_count": 714,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3667,6 +3668,7 @@
         "scripts/factory/run-pipeline.test.ts",
         "scripts/factory/sandbox-agent.Dockerfile",
         "scripts/factory/sandbox-job.yaml",
+        "scripts/factory/sandbox-proxy.Dockerfile",
         "scripts/factory/sandbox-run.sh",
         "scripts/factory/sandbox.Dockerfile",
         "scripts/factory/schedule.sh",

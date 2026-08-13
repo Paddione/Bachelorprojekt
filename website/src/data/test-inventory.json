@@ -4356,6 +4356,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/retry-limit",
+    "file": "tests/spec/software-factory/retry-limit.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/sandbox-egress",
     "file": "tests/spec/software-factory/sandbox-egress.bats",
     "category": "software-factory",

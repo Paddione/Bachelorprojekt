@@ -2640,6 +2640,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/domains-vocabulary",
+    "file": "tests/spec/dev-flow-plan/domains-vocabulary.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/guard-parity",
     "file": "tests/spec/dev-flow-plan/guard-parity.bats",
     "category": "dev-flow-plan",

@@ -3411,6 +3411,12 @@
       "status": "archived"
     }
   ],
+  "T003810": [
+    {
+      "slug": "batch-factory-pipeline-robustness",
+      "status": "plan_staged"
+    }
+  ],
   "T003811": [
     {
       "slug": "2026-08-13-batch-mcp-introspection",

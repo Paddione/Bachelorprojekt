@@ -3011,8 +3011,8 @@
   ],
   "T002880": [
     {
-      "slug": "reflector-annotations",
-      "status": "plan_staged"
+      "slug": "2026-08-14-reflector-annotations",
+      "status": "archived"
     }
   ],
   "T002886": [
@@ -3209,8 +3209,8 @@
   ],
   "T003144": [
     {
-      "slug": "portal-profile-bats",
-      "status": "plan_staged"
+      "slug": "2026-08-14-portal-profile-bats",
+      "status": "archived"
     }
   ],
   "T003180": [
@@ -3287,8 +3287,8 @@
   ],
   "T003285": [
     {
-      "slug": "purge-test-data-bats-T003285",
-      "status": "plan_staged"
+      "slug": "2026-08-14-purge-test-data-bats-T003285",
+      "status": "archived"
     }
   ],
   "T003417": [
@@ -3317,8 +3317,8 @@
   ],
   "T003539": [
     {
-      "slug": "batch-git-worktree-integrity",
-      "status": "plan_staged"
+      "slug": "2026-08-14-batch-git-worktree-integrity",
+      "status": "archived"
     }
   ],
   "T003540": [
@@ -3353,14 +3353,14 @@
   ],
   "T003677": [
     {
-      "slug": "fix-factory-lock-worktree-safety",
-      "status": "plan_staged"
+      "slug": "2026-08-14-fix-factory-lock-worktree-safety",
+      "status": "archived"
     }
   ],
   "T003737": [
     {
-      "slug": "fix-sdlc-navigation-redirects",
-      "status": "plan_staged"
+      "slug": "2026-08-14-fix-sdlc-navigation-redirects",
+      "status": "archived"
     }
   ],
   "T003740": [
@@ -3395,8 +3395,8 @@
   ],
   "T003795": [
     {
-      "slug": "batch-git-worktree-integrity-p2",
-      "status": "plan_staged"
+      "slug": "2026-08-14-batch-git-worktree-integrity-p2",
+      "status": "archived"
     }
   ],
   "T003796": [
@@ -3413,8 +3413,8 @@
   ],
   "T003810": [
     {
-      "slug": "batch-factory-pipeline-robustness",
-      "status": "plan_staged"
+      "slug": "2026-08-14-batch-factory-pipeline-robustness",
+      "status": "archived"
     }
   ],
   "T003811": [
@@ -3425,20 +3425,20 @@
   ],
   "T003812": [
     {
-      "slug": "batch-openspec-tooling-fixes",
-      "status": "plan_staged"
+      "slug": "2026-08-14-batch-openspec-tooling-fixes",
+      "status": "archived"
     }
   ],
   "T003813": [
     {
-      "slug": "batch-openspec-archive-consistency",
-      "status": "plan_staged"
+      "slug": "2026-08-14-batch-openspec-archive-consistency",
+      "status": "archived"
     }
   ],
   "T003814": [
     {
-      "slug": "batch-coaching-llm-insights",
-      "status": "plan_staged"
+      "slug": "2026-08-14-batch-coaching-llm-insights",
+      "status": "archived"
     }
   ],
   "T003825": [
@@ -3455,14 +3455,14 @@
   ],
   "T003871": [
     {
-      "slug": "sandbox-egress",
-      "status": "plan_staged"
+      "slug": "2026-08-14-sandbox-egress",
+      "status": "archived"
     }
   ],
   "T004041": [
     {
-      "slug": "fix-env-resolve-website-digest",
-      "status": "plan_staged"
+      "slug": "2026-08-14-fix-env-resolve-website-digest",
+      "status": "archived"
     }
   ],
   "TBD": [

@@ -2,16 +2,15 @@
 // Pfad -> Vollziel (inkl. Query-String, zeichengenau). Alle Treffer werden als 301 (permanent)
 // ausgeliefert (siehe middleware.ts). Dynamische Routen (bugs, meetings/[id], brett/*) sind
 // BEWUSST NICHT enthalten — sie bilden ihr Ziel zur Laufzeit aus Request-Daten.
-// /admin/pipeline steht in dieser Karte (Zeile unten) und wird ohne Query-String
-// weitergeleitet; die query-erhaltende Weiterleitung erfolgt zusaetzlich in pipeline.astro.
-// (Der Kommentar behauptete bis T003826 das Gegenteil.)
 //
-// ADR-006 Etappe 1 (T002624): Die 12 SDLC-Seiten sind nach /sdlc/ umgezogen.
-// Die Redirects sind befristet — mit Etappe 4 verschwinden die Routen aus dem
-// Produktions-Image und die Einträge laufen ins Leere.
+// ADR-006 Etappe 1 (T002624): Die 12 SDLC-Seiten sind nach /sdlc/ umgezogen, Etappe 4
+// (T002627) ist abgeschlossen. Die Karte lebt nur noch fuer Ziele, die im sdlc-Build
+// existieren. /admin/pipeline wurde entfernt (T003737): die Seite war ein reiner
+// Rueckwaerts-Redirect auf /admin/cockpit, und die Middleware gibt Query-Strings nicht
+// weiter — der Kommentar behauptete bis T003826 fälschlich das Gegenteil. /admin/tickets
+// zeigt auf das Cockpit, wo die Ticketliste seit T000752 lebt.
 export const REDIRECT_MAP: Record<string, string> = {
   '/admin/cockpit': '/sdlc/cockpit',
-  '/admin/pipeline': '/sdlc/pipeline',
   '/admin/observability': '/sdlc/observability',
   '/admin/repohealth': '/sdlc/repohealth',
   '/admin/software-history': '/sdlc/software-history',
@@ -21,7 +20,7 @@ export const REDIRECT_MAP: Record<string, string> = {
   '/admin/prompts': '/sdlc/prompts',
   '/admin/ki-konfiguration': '/sdlc/ki-konfiguration',
   '/admin/systemtest/board': '/sdlc/systemtest/board',
-  '/admin/tickets': '/sdlc/tickets',
+  '/admin/tickets': '/sdlc/cockpit',
   '/admin/startseite': '/admin/inhalte?tab=website&section=startseite',
   '/admin/uebermich': '/admin/inhalte?tab=website&section=uebermich',
   '/admin/referenzen': '/admin/inhalte?tab=website&section=referenzen',

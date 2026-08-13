@@ -13,7 +13,8 @@
 // dynamic value is set via createElement + textContent / setAttribute.
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../../components/admin/ui/AdminPageHeader.svelte';
-import { getSession, getLoginUrl, isAdmin } from '../../../lib/auth';
+import { getSession, isAdmin } from '../../../lib/auth';
+import { buildLoginRedirect } from '../../../lib/login-redirect';
 import { isSystemtestLoopEnabled } from '../../../lib/systemtest/feature-flag';
 import { listQTemplates } from '../../../lib/questionnaire-db';
 
@@ -24,7 +25,7 @@ import { listQTemplates } from '../../../lib/questionnaire-db';
 // kanban as a fully Svelte tree (e.g. for the rrweb replay drawer).
 
 const session = await getSession(Astro.request.headers.get('cookie'));
-if (!session) return Astro.redirect(getLoginUrl(Astro.url.pathname));
+if (!session) return Astro.redirect(buildLoginRedirect(Astro.url));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 // Task 10: gate the kanban behind the master SYSTEMTEST_LOOP_ENABLED flag.
@@ -242,7 +243,7 @@ const COLUMNS: Array<{ key: string; title: string; hint: string }> = [
     // v1: open ticket detail in a new tab. Replay drawer wiring is deferred.
     const open = () => {
       if (!row.ticket_id) return;
-      window.open(`/admin/tickets/${encodeURIComponent(row.ticket_id)}`, '_blank', 'noopener');
+      window.open(`/sdlc/tickets/${encodeURIComponent(row.ticket_id)}`, '_blank', 'noopener');
     };
     card.addEventListener('click', open);
     card.addEventListener('keydown', (e) => {

@@ -50,8 +50,15 @@ main() {
     -v lim="$limit" <<EOF
 SELECT COALESCE(json_agg(row ORDER BY row.created_at ${order_dir}), '[]')
 FROM (
+  -- T003406/T003811: Triage-Projektion. Die Felder der missing[]-Berechnung
+  -- (component, areas, depends_on, readiness) und der Planungs-Einordnung
+  -- (effort, planning_rank, desc_len, updated_at) muessen ohne Umweg ueber
+  -- rohes SQL aus list/export lesbar sein. Additiv — bestehende Konsumenten
+  -- (health-goals-update.sh, ticket-mcp-markdown) greifen per Key zu.
   SELECT external_id, title, status, type, priority, severity,
-         attention_mode, created_at::date AS created_at
+         attention_mode, component, areas, depends_on, readiness,
+         effort, planning_rank, length(description) AS desc_len,
+         created_at::date AS created_at, updated_at
   FROM tickets.tickets
   WHERE $where
   ORDER BY created_at ${order_dir}

@@ -171,8 +171,8 @@ test.describe('FA-58: Admin-Menü & SDLC Cockpit', { tag: ['@admin', '@factory']
     await expect(page.locator('.tabs__tab--active')).toContainText('Planung');
   });
 
-  test('T11: /admin/pipeline rendert das SDLC Cockpit', async ({ page }) => {
-    await page.goto(`${BASE}/admin/pipeline`, { waitUntil: 'domcontentloaded' });
+  test('T11: /sdlc/cockpit rendert das SDLC Cockpit (Pipeline-Slot)', async ({ page }) => {
+    await page.goto(`${BASE}/sdlc/cockpit`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { name: 'SDLC Cockpit' })).toBeVisible();
     await expect(page.locator('#panel-pipeline')).toBeVisible();
   });

@@ -207,3 +207,73 @@ print('OK')
   [ "$status" -eq 0 ]
   echo "$output" | grep -qx 'OK'
 }
+
+# ── [T004024] Seed-Rotation der LPT-Startpartition ──────────────────────────
+#
+# Ohne Seed landet die schwerste Datei per LPT immer in Bucket 1 — bei
+# diff-gescopten Laeufen (PR/Merge-Delta) ist Shard 1 damit strukturell der
+# Tail. Der Seed (CI: HEAD-SHA) rotiert die Startbucket-Wahl, ohne die Balance
+# zu veraendern. Die Erwartungswerte der Seeds sind gegen die Hash-Funktion
+# verifiziert — bricht die Rotation, fallen beide Seeds auf Bucket 1 zurueck
+# und der letzte Test wird rot.
+
+@test "T004024: --seed ist deterministisch (zwei Laeufe, identisches Ergebnis)" {
+  input="$(_all_spec_files)"
+  a=$(printf '%s\n' "$input" | bash "$SHARD_SH" --shard 2 --of 4 --seed 3f2a9c1d8e0b)
+  b=$(printf '%s\n' "$input" | bash "$SHARD_SH" --shard 2 --of 4 --seed 3f2a9c1d8e0b)
+  [ -n "$a" ]
+  [ "$a" = "$b" ]
+}
+
+@test "T004024: ohne --seed partitioniert exakt wie bisher (Seed '' = kein Seed)" {
+  # Abwaertskompatibilitaet: leere Seeds muessen Offsets von 0 ergeben und damit
+  # das Verhalten von vor T004024 bitgleich reproduzieren.
+  input="$(_all_spec_files)"
+  a=$(printf '%s\n' "$input" | bash "$SHARD_SH" --shard 1 --of 4)
+  b=$(printf '%s\n' "$input" | bash "$SHARD_SH" --shard 1 --of 4 --seed "")
+  [ -n "$a" ]
+  [ "$a" = "$b" ]
+}
+
+@test "T004024: der Seed rotiert die schwerste Datei ueber die Buckets" {
+  # Kontrollierte Eingabe mit einer dominanten Datei (Gewicht 100 vs. 1).
+  # Positiv-Anker zuerst: OHNE Seed liegt heavy.bats allein auf Shard 1 —
+  # genau der Zustand, den T004024 rotiert. Verifizierte Erwartungen:
+  #   Seed 000000000000 → heavy.bats auf Shard 4
+  #   Seed 3f2a9c1d8e0b → heavy.bats auf Shard 3
+  input=$'heavy.bats\nsmall-a.bats\nsmall-b.bats\nsmall-c.bats'
+  wf="$(mktemp)"
+  printf '100\theavy.bats\n1\tsmall-a.bats\n1\tsmall-b.bats\n1\tsmall-c.bats\n' > "$wf"
+
+  no_seed=$(printf '%s\n' "$input" | bash "$SHARD_SH" --shard 1 --of 4 --weights "$wf")
+  [ "$no_seed" = "heavy.bats" ] \
+    || { echo "ohne Seed: erwartet heavy.bats allein auf Shard 1, bekam: [$no_seed]"; false; }
+
+  s1=$(printf '%s\n' "$input" | bash "$SHARD_SH" --shard 4 --of 4 --weights "$wf" --seed 000000000000)
+  [ "$s1" = "heavy.bats" ] \
+    || { echo "Seed 000000000000: erwartet heavy.bats auf Shard 4, bekam: [$s1]"; false; }
+
+  s2=$(printf '%s\n' "$input" | bash "$SHARD_SH" --shard 3 --of 4 --weights "$wf" --seed 3f2a9c1d8e0b)
+  [ "$s2" = "heavy.bats" ] \
+    || { echo "Seed 3f2a9c1d8e0b: erwartet heavy.bats auf Shard 3, bekam: [$s2]"; false; }
+
+  rm -f "$wf"
+}
+
+@test "T004024: --verify funktioniert mit --seed und meldet ihn" {
+  run bash -c "cd '$REPO_ROOT' && find tests/spec -name '*.bats' -type f | bash '$SHARD_SH' --verify --of 4 --seed 3f2a9c1d8e0b"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q '^spec-shard: OK'
+  echo "$output" | grep -q 'Seed: 3f2a9c1d8e0b'
+}
+
+@test "T004024: Taskfile reicht einen Seed aus der HEAD-SHA an spec-shard.sh durch" {
+  # Statischer Guard wie die ci.yml-Struktur-Tests oben: die Aussage "CI nutzt
+  # die Rotation" manifestiert sich ausschliesslich im Taskfile-Text.
+  run bash -c "
+    grep -q 'SPEC_SHARD_SEED=.*git rev-parse HEAD' '$REPO_ROOT/Taskfile.yml' \
+      && grep -q -- '--seed \"\${SPEC_SHARD_SEED:-}\"' '$REPO_ROOT/Taskfile.yml'
+  "
+  [ "$status" -eq 0 ] \
+    || { echo "Taskfile reicht keinen HEAD-SHA-Seed an spec-shard.sh durch"; false; }
+}

@@ -5,7 +5,6 @@ import { resolveRedirect, REDIRECT_MAP } from './redirect-map';
 // ADR-006 Etappe 1 (T002624): die 12 SDLC-Seiten sind nach /sdlc/ umgezogen.
 const CASES: ReadonlyArray<readonly [string, string]> = [
   ['/admin/cockpit',                  '/sdlc/cockpit'],
-  ['/admin/pipeline',                 '/sdlc/pipeline'],
   ['/admin/observability',            '/sdlc/observability'],
   ['/admin/repohealth',               '/sdlc/repohealth'],
   ['/admin/software-history',         '/sdlc/software-history'],
@@ -15,7 +14,7 @@ const CASES: ReadonlyArray<readonly [string, string]> = [
   ['/admin/prompts',                  '/sdlc/prompts'],
   ['/admin/ki-konfiguration',         '/sdlc/ki-konfiguration'],
   ['/admin/systemtest/board',         '/sdlc/systemtest/board'],
-  ['/admin/tickets',                  '/sdlc/tickets'],
+  ['/admin/tickets',                  '/sdlc/cockpit'],
   ['/admin/startseite',               '/admin/inhalte?tab=website&section=startseite'],
   ['/admin/uebermich',                '/admin/inhalte?tab=website&section=uebermich'],
   ['/admin/referenzen',               '/admin/inhalte?tab=website&section=referenzen'],
@@ -43,13 +42,13 @@ describe('resolveRedirect', () => {
     expect(resolveRedirect(from)).toBe(to);
   });
 
-  it('enthaelt genau 32 Eintraege und keine Zusatz-Keys', () => {
+  it('enthaelt genau 31 Eintraege und keine Zusatz-Keys', () => {
     expect(Object.keys(REDIRECT_MAP).sort()).toEqual(CASES.map(([p]) => p).sort());
   });
 
   it('leitet eine umgezogene SDLC-Seite weiter', () => {
     expect(resolveRedirect('/admin/cockpit')).toBe('/sdlc/cockpit');
-    expect(resolveRedirect('/admin/tickets')).toBe('/sdlc/tickets');
+    expect(resolveRedirect('/admin/tickets')).toBe('/sdlc/cockpit');
   });
 
   it('leitet eine Geschaeftsseite NICHT weiter', () => {

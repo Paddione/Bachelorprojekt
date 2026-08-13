@@ -7,6 +7,14 @@
 #   Gap 2: questionnaire_templates leak from fa-fragebogen
 #   Gap 3: /api/admin/testdata/purge.ts lacks CRON_SECRET auth
 #
+# PRUEFMODUS: Statischer Kontrakt-Grep auf die neueste purge-fn-v*.sql
+# (und purge.ts) — Querschnittskonventionen, deren Ergebnis sich im
+# Quelltext manifestiert (T002448-M4-Ausnahme; gap1-gap4 pruefen die
+# Migrationsdatei, nicht die DB-Laufzeit). Der Cluster-Test selbst ist
+# Skip-by-Design (T002922); der Marker-Kontrakt aus T003825 wird hier
+# CI-registriert (gap4), damit ein stiller Marker-Verlust bei kuenftigen
+# Funktions-Bumps auffaellt (T003285).
+#
 # Runs entirely offline — no database required.
 # ═══════════════════════════════════════════════════════════════════
 
@@ -69,4 +77,17 @@ PROJECT_DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")/../.." && pwd)"
   local f="$PROJECT_DIR/website/src/pages/sdlc/api/testdata/purge.ts"
   [ -f "$f" ] || fail "purge.ts not found"
   grep -q "CRON_SECRET" "$f"
+}
+
+# ── Gap 4: RUNTIME-CHECK-Marker-Kontrakt (T003825/T003285) ─────────
+
+@test "gap4: latest purge-fn migration carries the RUNTIME-CHECK marker matching its function" {
+  local latest
+  latest=$(ls -1 "$PROJECT_DIR/scripts/one-shot/"purge-fn-v*.sql 2>/dev/null | sort -V | tail -1)
+  [ -n "$latest" ] || fail "no purge-fn-v*.sql found"
+  local marker fn_line fn
+  marker=$(grep -m1 -- '-- RUNTIME-CHECK:' "$latest") || fail "no RUNTIME-CHECK marker in $latest"
+  fn_line=$(grep -m1 'CREATE OR REPLACE FUNCTION' "$latest") || fail "no CREATE OR REPLACE FUNCTION in $latest"
+  fn=$(printf '%s' "$fn_line" | sed -E 's/.*FUNCTION ([a-z_]+)\.([a-z_]+).*/\1.\2/')
+  grep -q "function=${fn} " <<<"$marker"
 }

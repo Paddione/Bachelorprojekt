@@ -1,5 +1,51 @@
 # Changelog
 
+## [1.272.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.1...website-v1.272.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* **scripts:** env-resolve respects caller vars + placeholder guard [T004041] ([#4341](https://github.com/Paddione/Bachelorprojekt/issues/4341)) ([44ce745](https://github.com/Paddione/Bachelorprojekt/commit/44ce745d183c506e5b3bb3d8e435df0bcc7195c2))
+
+## [1.272.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.0...website-v1.272.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **website:** SDLC-Auth-Gates leiten über /login?returnTo um [T003746] ([#4338](https://github.com/Paddione/Bachelorprojekt/issues/4338)) ([5fe5569](https://github.com/Paddione/Bachelorprojekt/commit/5fe5569ceb690faabfcc7154924915b7091a47a2))
+
+## [1.272.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.2...website-v1.272.0) (2026-08-13)
+
+
+### Features
+
+* **scripts:** complete MCP introspection triage data [T003811] ([#4323](https://github.com/Paddione/Bachelorprojekt/issues/4323)) ([99c30f8](https://github.com/Paddione/Bachelorprojekt/commit/99c30f8c0db411709d876e5dfff4cf9c90553f50))
+
+
+### Bug Fixes
+
+* **website:** SDLC-Navigation: tote Redirects entfernt, /sdlc/tickets → Cockpit [T003737] ([#4331](https://github.com/Paddione/Bachelorprojekt/issues/4331)) ([b16e0ac](https://github.com/Paddione/Bachelorprojekt/commit/b16e0acfa8fef8fb342c9c0af688df87a2f99b5b))
+
+
+### Tests
+
+* **plans:** pin archive state of T003813 batch children [T003813] ([#4329](https://github.com/Paddione/Bachelorprojekt/issues/4329)) ([12d6a43](https://github.com/Paddione/Bachelorprojekt/commit/12d6a43007dd367e67bb62ceac0e0c7d842e7807))
+
+## [1.271.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.1...website-v1.271.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* **plan-context:** domain vocabulary, self-match, --vocab, dead-domain WARN [T002614] ([#4315](https://github.com/Paddione/Bachelorprojekt/issues/4315)) ([9b7cc66](https://github.com/Paddione/Bachelorprojekt/commit/9b7cc663aaa2a03b7543bd1123a8306b432d69bf))
+
+## [1.271.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.0...website-v1.271.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **scripts:** branch-reaper loescht lokalen Ref nach Remote-Delete [T003794] ([#4324](https://github.com/Paddione/Bachelorprojekt/issues/4324)) ([82cb4da](https://github.com/Paddione/Bachelorprojekt/commit/82cb4da4e0cc222ae2dfc35e1b7308d99dc1e1ea))
+* **scripts:** tasks.md-Skelett-Testpfad in T002416-Verzeichnis-Form [T003812] ([#4319](https://github.com/Paddione/Bachelorprojekt/issues/4319)) ([f826533](https://github.com/Paddione/Bachelorprojekt/commit/f826533c48907de617446914f68d161e589a041e))
+
 ## [1.271.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.270.2...website-v1.271.0) (2026-08-13)
 
 

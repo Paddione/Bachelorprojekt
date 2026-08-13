@@ -2,7 +2,7 @@
 title: "batch-branch-reaper-fixes — Implementation Plan"
 ticket_id: T003794
 domains: [scripts]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -7,6 +7,14 @@
 #   FACTORY_CTX         kubectl context (default: k3d-mentolder-dev)
 #   FACTORY_DRY_RESOLVE if set, callers print resolved ctx+ns and exit 0
 
+# [T003544] FACTORY_CTX-Default auf Top-Level statt erst in
+# factory_resolve_data_ns: Wer lib.sh nur sourct und den Wert ausliest, sieht
+# bereits einen gueltigen Kontext — vorher war er leer, bis factory_resolve
+# lief, und ein `factory_pgpod` mit leeren Variablen verleitete zum Raten des
+# Kontexts. Spiegelt scripts/ticket.sh und scripts/vda/ticket/_ticket-core.sh
+# (CTX-Default dort) — die drei Stellen zusammen aendern.
+FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}"
+
 # factory_resolve_data_ns — resolves the namespace/context of the SDLC DATABASE.
 #
 # [T002689] Die Brand geht hier BEWUSST NICHT in den Namespace ein. `brand` ist
@@ -32,10 +40,9 @@ factory_resolve_data_ns() {
     *) echo '{"error":"unknown BRAND (use mentolder|korczewski)"}' >&2; exit 2 ;;
   esac
   FACTORY_NS="${FACTORY_NS:-workspace}"
-  # Default-Kontext seit E3/T002626 (ADR-006): die SDLC-Daten liegen lokal.
-  # Spiegelt scripts/ticket.sh und scripts/vda/ticket/_ticket-core.sh — die drei
-  # Stellen zusammen aendern. FACTORY_CTX bleibt als Override gueltig.
-  FACTORY_CTX="${FACTORY_CTX:-k3d-mentolder-dev}"
+  # Default-Kontext steht seit T003544 auf Top-Level (beim Source sichtbar);
+  # hier bleibt nur die Korrektur der Namespace-Wahl je Kontext. FACTORY_CTX
+  # bleibt als Override gueltig.
 
   # Namespace je Kontext — dieselbe Korrektur wie in scripts/ticket.sh [T002626]:
   # der SDLC-Cluster betreibt seine Datenbank in `workspace`, nicht in

@@ -54,16 +54,18 @@ endlos zu wiederholen.
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).**
+- [x] **Failing-Test-Step (RED).**
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/retry-limit.bats
-# expected: FAIL (rot — Retry-Limit noch nicht implementiert)
+# expected: FAIL (rot — Retry-Limit noch nicht implementiert) — war rot: 3 von 4 Tests fehlten
 ```
 
-- [ ] **Fix-Step (GREEN).**
+- [x] **Fix-Step (GREEN).** P1 in scripts/factory/opencode-exec.sh (Exit-6-Pfad; pipeline.js
+  existiert nicht mehr, seit #3450/T002393 durch pipeline.mjs ersetzt), P2 in
+  scripts/factory/lib.sh (FACTORY_CTX-Default auf Top-Level). 4/4 Tests gruen.
 
-- [ ] **Final Verification.**
+- [x] **Final Verification.**
 
 ```bash
 task test:changed

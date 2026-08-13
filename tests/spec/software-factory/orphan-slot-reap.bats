@@ -14,6 +14,16 @@
 
 load '_sf_common'
 
+# [T003810/P2] Live-DB-Opt-in: TICKET_TEST_DB_OK=1 hebt den BATS-Sentinel-Kontext
+# (bats-no-cluster-t002224) auf, damit seed_test_feature und die ticket.sh-
+# Aufrufe des Watchdogs gegen die echte Dev-DB laufen (dasselbe Muster wie
+# retry-limit.bats). Der fruehere Skip-Guard "FACTORY_CTX gesetzt" gruendete auf
+# dem lib.sh-Zustand VOR T003544 (Default erst in factory_resolve_data_ns);
+# seit dem Top-Level-Default ist FACTORY_CTX beim Source bereits gesetzt und der
+# Guard wirkungslos — der Skip haengt jetzt an der Pod-Erreichbarkeit
+# (_skip_if_no_db), nicht an einer Variablenbelegung.
+setup_file() { export TICKET_TEST_DB_OK=1; }
+
 # factory-test-fixtures traegt die Endung .sh und ist damit nicht ueber `load`
 # erreichbar (bats sucht .bash); die Bestandstests sourcen es ebenso direkt.
 setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }
@@ -95,7 +105,7 @@ _osr_toplevel_local() {
   # expected: FAIL bis der Waisen-Sweep in watchdog.sh existiert.
   # RED-Beweis: heute raeumt kein Sweep einen Slot, dessen Ticket nicht
   # in_progress ist — pipeline_slot bleibt auf 1 stehen.
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-a.txt")
   _osr_make_orphan "$brand" "$ext" 1
@@ -112,7 +122,7 @@ _osr_toplevel_local() {
   # expected: FAIL bis der Sweep existiert.
   # Abgrenzung zum Stale-Sweep: der setzt zusaetzlich den Status zurueck. Bei
   # einem Waisen ist der Status bereits korrekt; nur der Slot ist falsch.
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-b.txt")
   _osr_make_orphan "$brand" "$ext" 2
@@ -129,7 +139,7 @@ _osr_toplevel_local() {
   # POSITIV-ANKER [T002356-M1]: Ohne ihn bestuende "das laufende Ticket behaelt
   # seinen Slot" auch dann, wenn der Sweep gar nichts tut. Erst der gueltige Fall
   # (Waise verschwindet), dann die Negativ-Aussage (das laufende bleibt).
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   orphan=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-c.txt")
   running=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-d.txt")
@@ -155,7 +165,7 @@ _osr_toplevel_local() {
   # ueberlebt den Lauf mit Karenzzeit und wird im zweiten Lauf ohne sie geraeumt.
   # Der zweite Lauf ist der Positiv-Anker [T002356-M1] — ohne ihn bestuende der
   # Test auch, wenn der Sweep ueberhaupt nicht existierte.
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-e.txt")
   _osr_make_orphan "$brand" "$ext" 3
@@ -180,7 +190,7 @@ _osr_toplevel_local() {
   # RED-Beweis: `local` ausserhalb einer Funktion ist unter `set -euo pipefail`
   # ein Fehler; das Skript endet mit Exit 1, sobald die Stale-Liste nicht leer
   # ist. Bei leerer Liste laeuft es durch — deshalb faellt es sonst nie auf.
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-f.txt")
   # Direktes UPDATE statt `slots.sh claim`: dessen Subkommando schreibt
@@ -210,7 +220,7 @@ _osr_toplevel_local() {
   # mit `>/dev/null 2>&1` zu verschlucken.
   # RED-Beweis: ein Ticket im Waisen-Zustand steht in der Queue, kann nie
   # geclaimt werden und erzeugt heute keinerlei Ausgabe.
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   ext=$(seed_test_feature "$brand" "tests/fixtures/osr-$$-g.txt")
   _osr_make_orphan "$brand" "$ext" 1
@@ -219,6 +229,10 @@ _osr_toplevel_local() {
   # keinen Claim-Versuch — und der Test pruefte die Meldung, die er erwartet,
   # niemals. Genau dieser Zustand (backlog + locked + Slot) ist der aus T002482.
   _osr_psql "$brand" "UPDATE tickets.tickets SET readiness = COALESCE(readiness,'{}'::jsonb) || '{\"lastenheft_locked\":true}'::jsonb WHERE external_id='${ext}';"
+  # [T003810/P2] seed_test_feature markiert die Zeile is_test_data=true, und
+  # queue.sh blendet Testdaten aus (T002830) — der Positiv-Anker unten koennte
+  # damit nie feuern. Der Test simuliert ein ECHTES Waisen-Ticket: Flag loeschen.
+  _osr_psql "$brand" "UPDATE tickets.tickets SET is_test_data=false WHERE external_id='${ext}';"
 
   # Positiv-Anker [T002356-M1]: der Kandidat steht wirklich in der Queue. Ohne
   # ihn bestuende ein leerer Lauf als "keine WARN-Zeile noetig" durch.
@@ -226,8 +240,18 @@ _osr_toplevel_local() {
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" | tail -1 | jq -e --arg e "$ext" 'any(.[]; .external_id == $e)'
 
-  run env BRAND="$brand" FACTORY_GLOBAL_CAP=3 bash scripts/factory/schedule.sh
+  # [T003810/P2] Kapazitaets-Umgebung: schedule.sh bricht bei erschöpftem
+  # GLOBAL_CAP (Summe der in_progress-Slots BEIDER Brands) bzw. free==0 vor dem
+  # Claim-Versuch ab. In der geteilten Dev-DB haelt die laufende Factory reale
+  # in_progress-Slots (T003533/T003795/T003810 belegen derzeit 1-3), wodurch
+  # beide Defaults (3) ausgeschoepft waeren und der WARN-Pfad nie erreicht
+  # wuerde. Die Kapazitaet muss nur groesser als die belegten Slots sein — das
+  # Szenario selbst (Waisen-Ticket kann nicht geclaimt werden) bleibt identisch.
+  run env BRAND="$brand" FACTORY_GLOBAL_CAP=8 FACTORY_SLOTS_PER_BRAND=8 bash scripts/factory/schedule.sh
   [ "$status" -eq 0 ]
+  # Flag zurueck, damit fn_purge_test_data die Fixture trotzdem raeumt
+  # (is_test_data=false oben war nur fuer die Queue-Sichtbarkeit).
+  _osr_psql "$brand" "UPDATE tickets.tickets SET is_test_data=true WHERE external_id='${ext}';"
 
   # Meldung auf die WARN-Zeile eingegrenzt: ein ungefilterter Vergleich gegen
   # $output koennte allein durch den Worktree-Pfad in einer Usage-Zeile passen.

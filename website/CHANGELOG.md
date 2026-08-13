@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.271.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.271.0...website-v1.271.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **scripts:** branch-reaper loescht lokalen Ref nach Remote-Delete [T003794] ([#4324](https://github.com/Paddione/Bachelorprojekt/issues/4324)) ([82cb4da](https://github.com/Paddione/Bachelorprojekt/commit/82cb4da4e0cc222ae2dfc35e1b7308d99dc1e1ea))
+* **scripts:** tasks.md-Skelett-Testpfad in T002416-Verzeichnis-Form [T003812] ([#4319](https://github.com/Paddione/Bachelorprojekt/issues/4319)) ([f826533](https://github.com/Paddione/Bachelorprojekt/commit/f826533c48907de617446914f68d161e589a041e))
+
 ## [1.271.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.270.2...website-v1.271.0) (2026-08-13)
 
 

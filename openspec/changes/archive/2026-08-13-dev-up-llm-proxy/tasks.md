@@ -2,7 +2,7 @@
 title: "dev-up-llm-proxy — Implementation Plan"
 ticket_id: T002656
 domains: [infra, test]
-status: plan_staged
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -320,6 +320,11 @@ FLUX_CLUSTER_DIR="${PROJECT_DIR}/flux/clusters/fleet"
   out="$(mktemp -d)"
   export SMTP_PORT=587 SMTP_HOST=smtp.example.org SMTP_USER=x POCKET_ID_SMTP_TLS=starttls
   export POCKET_ID_FRONTEND_URL=https://auth.example POCKET_ID_URL=http://pocket-id:1411 POCKET_ID_DOMAIN=id.example
+  # T004041: Fixture-Digests — der Renderer ist fail-closed gegen die
+  # Placeholder-Digests (sha256:1111.../2222...), ein Render ohne Caller-Digest
+  # wuerde am Guard abbrechen.
+  export WEBSITE_IMAGE_DIGEST="sha256:565e7cecafd4d792620b4c68a168046481567dec53c4f61545f62f3edd1c7d41"
+  export BRETT_IMAGE_DIGEST="sha256:9090909090909090909090909090909090909090909090909090909090909090"
   run bash "$FLUX_RENDER" --out "$out"
   rm -rf "$out"
   [ "$status" -eq 0 ]
@@ -379,6 +384,11 @@ print('parsed:', vals)
   out="$(mktemp -d)"
   export SMTP_PORT=587 SMTP_HOST=smtp.example.org SMTP_USER=x POCKET_ID_SMTP_TLS=starttls
   export POCKET_ID_FRONTEND_URL=https://auth.example POCKET_ID_URL=http://pocket-id:1411 POCKET_ID_DOMAIN=id.example
+  # T004041: Fixture-Digests — der Renderer ist fail-closed gegen die
+  # Placeholder-Digests (sha256:1111.../2222...), ein Render ohne Caller-Digest
+  # wuerde am Guard abbrechen.
+  export WEBSITE_IMAGE_DIGEST="sha256:565e7cecafd4d792620b4c68a168046481567dec53c4f61545f62f3edd1c7d41"
+  export BRETT_IMAGE_DIGEST="sha256:9090909090909090909090909090909090909090909090909090909090909090"
   # Contract (p1): `flux-render-artifact.sh --out <dir>` renders every component tree
   # offline (kustomize|sed|envsubst|sed) without cluster/secret access.
   run bash "$FLUX_RENDER" --out "$out"

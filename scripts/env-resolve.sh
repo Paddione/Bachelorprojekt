@@ -67,6 +67,12 @@ is_dev = env_file.get("environment") == "dev"
 
 
 def emit(name, value):
+    # Caller-set variables win (T004041): variables already exported by the
+    # caller (e.g. WEBSITE_IMAGE_DIGEST from render-fleet-artifact.yml) are
+    # never clobbered with env-file values. Uniform for convenience vars,
+    # env_vars and setup_vars.
+    if name in os.environ:
+        return
     # Always export convenience vars (empty ok); skip env/setup vars
     # with no value to match the original shell-script behaviour.
     print(f"export {name}={shlex.quote(str(value))}")

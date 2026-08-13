@@ -247,3 +247,21 @@ YAML
   [ "$status" -eq 0 ]
   [ "$output" = "fleet|staging.example.test|prod-fleet/staging|workspace-staging|website-staging|staging" ]
 }
+
+@test "T004041: caller-set env vars are not clobbered by env-resolve" {
+  # Regression (T004041): render-fleet-artifact.yml setzt WEBSITE_IMAGE_DIGEST
+  # als Env, bevor flux-render-artifact.sh env-resolve.sh sourced — env-resolve
+  # ueberschrieb den echten Wert mit dem Placeholder aus environments/*.yaml.
+  # Caller-gesetzte Variablen muessen gewinnen.
+  run bash -c "export PROD_DOMAIN=caller.example; source '$SCRIPT' prod '$ENV_DIR' >/dev/null && echo \"\$PROD_DOMAIN\""
+  [ "$status" -eq 0 ]
+  [ "$output" = "caller.example" ]
+}
+
+@test "T004041: caller-set setup_vars are not clobbered by env-resolve" {
+  # Gleiche Semantik fuer setup_vars: KC_USER1_USERNAME ist in prod.yaml auf
+  # alice gesetzt — ein Caller-Wert darf nicht ueberschrieben werden.
+  run bash -c "export KC_USER1_USERNAME=bob; source '$SCRIPT' prod '$ENV_DIR' >/dev/null && echo \"\$KC_USER1_USERNAME\""
+  [ "$status" -eq 0 ]
+  [ "$output" = "bob" ]
+}

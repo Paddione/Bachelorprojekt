@@ -1,6 +1,6 @@
 # API Surface Map
 
-> Generated at 2026-08-03T20:58:46.296Z
+> Generated at 2026-08-13T16:54:42.953Z
 
 | Path | Methods | Auth | File |
 |------|---------|------|------|
@@ -69,6 +69,7 @@
 | `/api/admin/coaching/ki-config/models` | GET | 🔐 admin | `website/src/pages/api/admin/coaching/ki-config/models.ts` |
 | `/api/admin/coaching/projects` | GET | 🔐 admin | `website/src/pages/api/admin/coaching/projects/index.ts` |
 | `/api/admin/coaching/projects/{id}` | GET, PATCH | 🔐 admin | `website/src/pages/api/admin/coaching/projects/[id].ts` |
+| `/api/admin/coaching/questionnaire/insights` | POST | 🔐 admin | `website/src/pages/api/admin/coaching/questionnaire/insights.ts` |
 | `/api/admin/coaching/save` | POST | 🔐 admin | `website/src/pages/api/admin/coaching/save.ts` |
 | `/api/admin/coaching/sessions` | GET, POST | 🔐 admin | `website/src/pages/api/admin/coaching/sessions/index.ts` |
 | `/api/admin/coaching/sessions/{id}` | GET, PATCH, DELETE | 🔐 admin | `website/src/pages/api/admin/coaching/sessions/[id]/index.ts` |
@@ -78,6 +79,7 @@
 | `/api/admin/coaching/sessions/{id}/status` | PATCH | 🔐 admin | `website/src/pages/api/admin/coaching/sessions/[id]/status.ts` |
 | `/api/admin/coaching/sessions/{id}/steps/{n}` | PATCH | 🔐 admin | `website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/index.ts` |
 | `/api/admin/coaching/sessions/{id}/steps/{n}/generate` | POST | 🔐 admin | `website/src/pages/api/admin/coaching/sessions/[id]/steps/[n]/generate.ts` |
+| `/api/admin/coaching/sessions/{id}/summary` | POST | 🔐 admin | `website/src/pages/api/admin/coaching/sessions/[id]/summary.ts` |
 | `/api/admin/coaching/sessions/{id}/unarchive` | POST | 🔐 admin | `website/src/pages/api/admin/coaching/sessions/[id]/unarchive.ts` |
 | `/api/admin/coaching/snippets` | GET, POST | 🔐 admin | `website/src/pages/api/admin/coaching/snippets/index.ts` |
 | `/api/admin/coaching/snippets/{id}` | PATCH, DELETE | 🔐 admin | `website/src/pages/api/admin/coaching/snippets/[id].ts` |

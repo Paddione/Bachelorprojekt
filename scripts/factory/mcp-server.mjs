@@ -60,7 +60,7 @@ server.tool('openspec_find_similar',
     limit: z.number().optional().describe('Default 5'),
     status: z.string().optional().describe('Filter: planning | plan_staged | archived') },
   async ({ query, limit, status }) => {
-    const base = process.env.OPENSPEC_SEARCH_URL || 'http://website.website.svc.cluster.local:4321'
+    const base = process.env.OPENSPEC_SEARCH_URL || 'http://localhost:4321'
     const u = new URL(`${base}/api/openspec/search`)
     u.searchParams.set('q', query)
     if (limit) u.searchParams.set('limit', String(limit))

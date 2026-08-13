@@ -221,7 +221,7 @@ fi
 
 # Optional: semantic neighbours via /api/openspec/search (fallback: grep-only).
 if [[ -n "$SEMANTIC_QUERY" ]]; then
-    base="${OPENSPEC_SEARCH_URL:-http://website.website.svc.cluster.local:4321}"
+    base="${OPENSPEC_SEARCH_URL:-http://localhost:4321}"
     resp="$(curl -fsS --max-time 5 -G "$base/api/openspec/search" \
               --data-urlencode "q=$SEMANTIC_QUERY" --data-urlencode "limit=3" 2>/dev/null || true)"
     if [[ -n "$resp" ]]; then

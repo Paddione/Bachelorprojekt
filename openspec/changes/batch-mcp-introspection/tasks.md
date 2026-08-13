@@ -34,19 +34,19 @@ tests/spec/ticket-mcp/                 # Guards
 
 ## Verify (RED → GREEN)
 
-- [ ] **Failing-Test-Step (RED).**
+- [x] **Failing-Test-Step (RED).** 6 von 9 Guards rot (T003803 x2, T003232 x3, T003406 x1); T003804-Guards gruen (kein Code-Gap), Positiv-Anker gruen.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/ticket-mcp/
 # expected: FAIL (rot — Introspektion noch unvollstaendig)
 ```
 
-- [ ] **Fix-Step (GREEN).**
+- [x] **Fix-Step (GREEN).** 9/9 Guards gruen: list.sh-Projektion (component, areas, depends_on, readiness, effort, planning_rank, desc_len, updated_at), URL-Defaults lokal (mcp-go/main.go, mcp-server.mjs, plan-context.sh), factoryAskTimeout=45s.
 
-- [ ] **Final Verification.**
+- [x] **Final Verification.**
 
 ```bash
-task test:changed
+task test:changed        # gruen bis auf Fremdbefund T002677-Vitest-Suite (403-Mocks) — Bug-Ticket T003963
 task freshness:regenerate
-task freshness:check
+task freshness:check     # gruen
 ```

@@ -3696,6 +3696,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/plan-archive-git-add-coverage",
+    "file": "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/propose-help",
     "file": "tests/spec/openspec-workflow/propose-help.bats",
     "category": "openspec-workflow",

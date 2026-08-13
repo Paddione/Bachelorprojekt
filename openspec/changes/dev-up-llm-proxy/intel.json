@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "slug": "dev-up-llm-proxy",
+    "ticket_id": "T002656",
+    "generated_from": "main@b2635814e",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/sdlc/health-gate.sh",
+      "language": "bash",
+      "loc": 123,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 677
+    },
+    {
+      "path": "scripts/sdlc/llm-up.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "taskfiles/Taskfile.sdlc.yml",
+      "language": "config",
+      "loc": 286,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/sdlc-isolation/llm-up-health.bats",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/sdlc/health-gate.sh:26:ts() { date -u '+%H:%M:%S'; }",
+      "kind": "function",
+      "file": "scripts/sdlc/health-gate.sh",
+      "signature": "26:ts() { date -u '+%H:%M:%S'; }(...)",
+      "type_text": "26:ts() { date -u '+%H:%M:%S'; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/health-gate.sh:28:fail() {",
+      "kind": "function",
+      "file": "scripts/sdlc/health-gate.sh",
+      "signature": "28:fail() {(...)",
+      "type_text": "28:fail() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/sdlc/health-gate.sh:35:pass() {",
+      "kind": "function",
+      "file": "scripts/sdlc/health-gate.sh",
+      "signature": "35:pass() {(...)",
+      "type_text": "35:pass() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -2640,6 +2640,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/domains-vocabulary",
+    "file": "tests/spec/dev-flow-plan/domains-vocabulary.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/guard-parity",
     "file": "tests/spec/dev-flow-plan/guard-parity.bats",
     "category": "dev-flow-plan",
@@ -3624,6 +3630,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/archive-consistency",
+    "file": "tests/spec/openspec-workflow/archive-consistency.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/archive-deliverable-guard",
     "file": "tests/spec/openspec-workflow/archive-deliverable-guard.bats",
     "category": "openspec-workflow",
@@ -4050,6 +4062,18 @@
     "kind": "shell"
   },
   {
+    "id": "sdlc-cockpit/login-redirect-all-pages",
+    "file": "tests/spec/sdlc-cockpit/login-redirect-all-pages.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
+    "id": "sdlc-cockpit/navigation-no-dead-links",
+    "file": "tests/spec/sdlc-cockpit/navigation-no-dead-links.bats",
+    "category": "sdlc-cockpit",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/no-direct-fetch",
     "file": "tests/spec/sdlc-cockpit/no-direct-fetch.bats",
     "category": "sdlc-cockpit",
@@ -4418,6 +4442,30 @@
   {
     "id": "ticket-mcp",
     "file": "tests/spec/ticket-mcp.bats",
+    "category": "ticket-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-mcp/factory-ask-timeout",
+    "file": "tests/spec/ticket-mcp/factory-ask-timeout.bats",
+    "category": "ticket-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-mcp/openspec-search-url-default",
+    "file": "tests/spec/ticket-mcp/openspec-search-url-default.bats",
+    "category": "ticket-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-mcp/phase-events-at-column",
+    "file": "tests/spec/ticket-mcp/phase-events-at-column.bats",
+    "category": "ticket-mcp",
+    "kind": "shell"
+  },
+  {
+    "id": "ticket-mcp/triage-projection",
+    "file": "tests/spec/ticket-mcp/triage-projection.bats",
     "category": "ticket-mcp",
     "kind": "shell"
   },

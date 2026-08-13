@@ -24,6 +24,15 @@ setup() {
   export POCKET_ID_FRONTEND_URL=https://auth.example POCKET_ID_URL=http://pocket-id:1411
   export POCKET_ID_DOMAIN=id.example
 
+  # T004041: Fixture-Digests statt env-file-Placeholder. Der Renderer ist seit
+  # T004041 fail-closed gegen die Placeholder-Digests (sha256:1111.../2222...)
+  # — ein Offline-Render OHNE Caller-Digest wuerde am Guard abbrechen. Zugleich
+  # machen echte Caller-Digests die Pinning-Tests unten zu echten
+  # Regressions-Tests: clobbert env-resolve die Caller-Werte, landet der
+  # Placeholder im Artefakt und der Guard faengt ihn.
+  export WEBSITE_IMAGE_DIGEST="sha256:565e7cecafd4d792620b4c68a168046481567dec53c4f61545f62f3edd1c7d41"
+  export BRETT_IMAGE_DIGEST="sha256:9090909090909090909090909090909090909090909090909090909090909090"
+
   RENDER_OUT="$(mktemp -d)"
 }
 
@@ -122,4 +131,35 @@ $(_image_refs_for 'workspace-brett')"
     echo "$movable" >&2
     return 1
   fi
+}
+
+@test "T004041: caller-provided website digest survives into the rendered artifact" {
+  # Regressions-Test (T004041): render-fleet-artifact.yml setzt den echten Digest
+  # als Env, flux-render-artifact.sh sourced danach env-resolve.sh — env-resolve
+  # ueberschrieb den Caller-Wert mit dem Placeholder sha256:1111... aus
+  # environments/fleet-*.yaml. Der Caller-Digest muss das Artefakt erreichen.
+  _render
+  [ "$status" -eq 0 ]
+
+  local manifest="${RENDER_OUT}/website-mentolder/website-mentolder.yaml"
+  [ -f "$manifest" ]
+
+  # Positiv-Anker: der Caller-Digest steht im gerenderten Deployment.
+  grep -q "ghcr.io/paddione/website@sha256:565e7cecafd4d792620b4c68a168046481567dec53c4f61545f62f3edd1c7d41" "$manifest"
+  # Negativ-Aussage: der Placeholder erreicht das Artefakt nicht.
+  ! grep -q "sha256:1111111111111111111111111111111111111111111111111111111111111111" "$manifest"
+}
+
+@test "T004041: renderer aborts when a placeholder digest would reach the artifact" {
+  # Fail-closed-Guard: ein Placeholder-Digest (Caller-set oder aus der
+  # env-Datei) darf nie in einem Artefakt landen — er pinnt ein nicht
+  # existierendes Image und versetzt jede Brand in ImagePullBackOff.
+  local out
+  out="$(mktemp -d)"
+  export WEBSITE_IMAGE_DIGEST="sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  export BRETT_IMAGE_DIGEST="sha256:2222222222222222222222222222222222222222222222222222222222222222"
+  run bash "$FLUX_RENDER" --out "$out"
+  rm -rf "$out"
+  [ "$status" -ne 0 ]
+  [[ "$output" == *"placeholder digest"* ]]
 }

@@ -77,15 +77,12 @@ setup() {
   [ "$status" -ne 0 ]
 }
 
-@test "T002531 redirect: pipeline.astro redirects query-preserving to /admin/cockpit" {
+@test "T003737 redirect: pipeline.astro entfernt — kein Rueckwaerts-Redirect mehr" {
   local pipe_file="$REPO_ROOT/website/src/pages/sdlc/pipeline.astro"
-  # Positiv-Anker: pipeline.astro existiert
-  [ -f "$pipe_file" ]
+  # Positiv-Anker: das Cockpit (Zielfunktion des Redirects) existiert weiter
+  [ -f "$REPO_ROOT/website/src/pages/sdlc/cockpit.astro" ]
 
-  # redirect auf /admin/cockpit mit query
-  grep -q "Astro.redirect" "$pipe_file" && grep -q "/admin/cockpit" "$pipe_file"
-
-  # DevStatusTabs nicht mehr importiert
-  run grep "DevStatusTabs" "$pipe_file"
-  [ "$status" -ne 0 ]
+  # Der reine Rueckwaerts-Redirect-Stub ist entfernt (T003737); die Middleware
+  # gibt Query-Strings nicht weiter, die Seite war funktional ein Umweg.
+  [ ! -f "$pipe_file" ]
 }

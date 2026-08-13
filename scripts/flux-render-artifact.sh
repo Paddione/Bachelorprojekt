@@ -44,9 +44,13 @@ OUT_DIR="$(cd "${OUT_DIR}" && pwd)"
 # artifact.yml) setzt WEBSITE_IMAGE_TAG aus dem Build-SHA, der Break-glass-Pfad und
 # der Dev-Modus brauchen einen sicheren Fallback.
 : "${WEBSITE_IMAGE_TAG:=latest}"
-: "${WEBSITE_IMAGE_DIGEST:=}"
-: "${BRETT_IMAGE_DIGEST:=}"
-export WEBSITE_IMAGE_TAG WEBSITE_IMAGE_DIGEST BRETT_IMAGE_DIGEST
+# T004041: Kein leeres :=-Export fuer WEBSITE_IMAGE_DIGEST/BRETT_IMAGE_DIGEST —
+# env-resolve.sh liefert sie in den Subshells aus environments/fleet-*.yaml.
+# Ein leerer Export wuerde nach dem Caller-Respect-Fix (T004041) als
+# "Caller-Wert" gelten und die env-file-Placeholder unterdruecken, sodass das
+# Image auf `@` endete. Der Placeholder-Guard unten faengt stattdessen die
+# Placeholder selbst fail-closed.
+export WEBSITE_IMAGE_TAG
 
 # T002174: environments/schema.yaml ist die autoritative Spezifikation und definiert für
 # einzelne optionale Variablen ein Verhalten im leeren Fall. Der Taskfile-Render-Pfad
@@ -372,5 +376,23 @@ if [ "$VALIDATION_FAILED" -ne 0 ]; then
   exit 1
 fi
 echo "flux-render: validation gate passed."
+
+# T004041: FAIL-CLOSED — die Placeholder-Digests (sha256:1111.../2222...) sind
+# nur der dokumentierte Offline-Fallback in environments/fleet-*.yaml, aber nie
+# ein gueltiges Artefakt: sie pinnen ein nicht existierendes Image und
+# versetzen jede Brand in ImagePullBackOff. CI setzt die echten Digests via
+# scripts/resolve-image-digest.sh (render-fleet-artifact.yml) — wer offline
+# rendert, exportiert sie selbst.
+PLACEHOLDER_HITS="$(grep -rl \
+  -e 'sha256:1111111111111111111111111111111111111111111111111111111111111111' \
+  -e 'sha256:2222222222222222222222222222222222222222222222222222222222222222' \
+  "${OUT_DIR}" 2>/dev/null || true)"
+if [ -n "$PLACEHOLDER_HITS" ]; then
+  echo "ERROR: placeholder digest found in rendered artifact:" >&2
+  echo "$PLACEHOLDER_HITS" >&2
+  echo "       CI sets the real digests via scripts/resolve-image-digest.sh;" >&2
+  echo "       offline renders must export WEBSITE_IMAGE_DIGEST/BRETT_IMAGE_DIGEST." >&2
+  exit 1
+fi
 
 echo "Successfully rendered Flux OCI artifact tree to ${OUT_DIR}"

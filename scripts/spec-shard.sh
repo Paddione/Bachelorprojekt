@@ -23,9 +23,21 @@
 # waeren die Ergebnisse nicht bitgleich, liefen Dateien doppelt oder — schlimmer —
 # gar nicht, und der Lauf saehe trotzdem gruen aus.
 #
+# --seed rotiert die Startbucket-Wahl [T004024]. Ohne Seed landet die eine
+# schwerste Datei per LPT immer in Bucket 1 — bei diff-gescopten Laeufen (PR /
+# Merge-Delta) ist Shard 1 damit strukturell der Tail (gemessen PR #4332: 4m50s
+# vs 1m26s, dominiert von einer einzigen Datei). Mit Seed starten alle Buckets
+# mit winzigen, deterministisch aus dem Seed gehashten Offsets (< 1e-9), sodass
+# die schwerste Datei je nach Commit auf einem anderen Shard landet. Die Offsets
+# sind so klein, dass die Balance unveraendert bleibt; die Rotation ist rein
+# kosmetisch — sie verkuerzt keine Wanduhr, verteilt aber den Tail ueber die
+# Zeit auf alle Shards. CI reicht die HEAD-SHA als Seed durch (Taskfile.yml),
+# damit alle Matrix-Legs desselben Commits identisch partitionieren.
+#
 # Usage:
 #   find tests/spec -name '*.bats' | bash scripts/spec-shard.sh --shard 2 --of 4
 #   find tests/spec -name '*.bats' | bash scripts/spec-shard.sh --verify --of 4
+#   find tests/spec -name '*.bats' | bash scripts/spec-shard.sh --shard 1 --of 4 --seed "$(git rev-parse HEAD | cut -c1-12)"
 
 set -euo pipefail
 
@@ -33,12 +45,14 @@ SHARD=""
 TOTAL=""
 VERIFY=false
 WEIGHTS_FILE=""
+SEED=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --shard) SHARD="${2:-}"; shift 2 ;;
     --of)    TOTAL="${2:-}"; shift 2 ;;
     --weights) WEIGHTS_FILE="${2:-}"; shift 2 ;;
+    --seed)  SEED="${2:-}"; shift 2 ;;
     --verify) VERIFY=true; shift ;;
     -h|--help)
       grep '^# ' "$0" | sed 's/^# \{0,1\}//'
@@ -106,11 +120,30 @@ RESOLVED=$(
 # bei Bucket-Gleichstand der niedrigste Index — beides rein deterministisch.
 # Zeilenformat: <bucket>\t<gewicht>\t<pfad> (Gewicht bleibt fuer --verify
 # erhalten und wird nicht nur fuer die Sortierung benutzt).
+#
+# [T004024] Seed-Offsets: mit --seed starten die Buckets mit winzigen, aus dem
+# Seed-String gehashten Startlasten ((s+i) % total / 1e9). Fuer i = 1..total
+# ist genau ein Rest 0 — die erste (schwerste) Datei landet damit deterministisch
+# in einem vom Seed abhaengigen Bucket statt immer in Bucket 1. Leerer Seed
+# ergibt Offsets von 0 und damit exakt das alte Verhalten. Der Hash ist bewusst
+# POSIX-awk (tolower/substr/index auf Hex-Ziffern), kein strtonum (gawk-only).
 PARTITION=$(
   printf '%s\n' "$RESOLVED" \
     | LC_ALL=C sort -k1,1nr -k2,2 \
-    | awk -v total="$TOTAL" '
-        BEGIN { FS = "\t"; for (i = 1; i <= total; i++) load[i] = 0 }
+    | awk -v total="$TOTAL" -v seed="$SEED" '
+        BEGIN {
+          FS = "\t"
+          for (i = 1; i <= total; i++) load[i] = 0
+          if (length(seed) > 0) {
+            s = 0
+            for (j = 1; j <= length(seed); j++) {
+              c = index("0123456789abcdef", tolower(substr(seed, j, 1)))
+              if (c == 0) c = 1
+              s = (s * 31 + c) % 1000003
+            }
+            for (i = 1; i <= total; i++) load[i] = ((s + i) % total) / 1000000000
+          }
+        }
         {
           best = 1
           for (i = 2; i <= total; i++) if (load[i] < load[best]) best = i
@@ -146,6 +179,7 @@ if $VERIFY; then
 
   echo "spec-shard: OK — $in_count Dateien restlos und ueberschneidungsfrei auf $TOTAL Shards verteilt"
   echo "spec-shard: Gewichtsquelle: ${WEIGHTS_FILE:-@test-Anzahl (kein Manifest)}"
+  echo "spec-shard: Seed: ${SEED:-<keiner>}"
   max_load=0
   min_load=""
   for i in $(seq 1 "$TOTAL"); do

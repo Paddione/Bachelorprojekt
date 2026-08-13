@@ -96,13 +96,18 @@ _assert_proxy_answers() {
     -H 'Content-Type: application/json' \
     -d '{"model":"bge-m3","input":["test"]}'
   [ "$status" -eq 0 ]
+  # T003737-Begleitfix: $output in lokaler Variable sichern — das Zwischen-run
+  # (HTTP-Zeile) ueberschreibt $output sonst, und der Header-Grep prueft nur
+  # noch die Statuszeile (Test konnte lokal nie gruen werden; CI skippt ohne
+  # Proxy, der Defekt war dort unsichtbar).
+  local resp="$output"
 
   # Semantik statt Darstellung (T002716): geprueft wird der Statuscode und die
   # ANWESENHEIT eines nichtleeren Upstream-Headers, nicht dessen Wortlaut.
-  run bash -c "printf '%s' '$output' | grep -i '^HTTP/' | tail -1"
+  run bash -c "printf '%s' '$resp' | grep -i '^HTTP/' | tail -1"
   [[ "$output" == *" 200"* ]]
 
-  run bash -c "printf '%s' '$output' | grep -i '^x-llm-proxy-bge-upstream:' | tr -d '\r' | cut -d' ' -f2-"
+  run bash -c "printf '%s' '$resp' | grep -i '^x-llm-proxy-bge-upstream:' | tr -d '\r' | cut -d' ' -f2-"
   [ "$status" -eq 0 ]
   [ -n "$output" ]
 }
@@ -117,11 +122,13 @@ _assert_proxy_answers() {
     -H 'Content-Type: application/json' \
     -d '{"model":"bge-reranker-v2-m3","query":"a","documents":["b","c"]}'
   [ "$status" -eq 0 ]
+  # T003737-Begleitfix: wie im embed-Test — $output vor dem Zwischen-run sichern.
+  local resp="$output"
 
-  run bash -c "printf '%s' '$output' | grep -i '^HTTP/' | tail -1"
+  run bash -c "printf '%s' '$resp' | grep -i '^HTTP/' | tail -1"
   [[ "$output" == *" 200"* ]]
 
-  run bash -c "printf '%s' '$output' | grep -i '^x-llm-proxy-bge-upstream:' | tr -d '\r' | cut -d' ' -f2-"
+  run bash -c "printf '%s' '$resp' | grep -i '^x-llm-proxy-bge-upstream:' | tr -d '\r' | cut -d' ' -f2-"
   [ "$status" -eq 0 ]
   [ -n "$output" ]
 }

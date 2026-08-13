@@ -806,7 +806,11 @@ tasks:
         # schlimmer waere als ein roter Test.
         FILES=$(find tests/spec -name '*.bats' -type f | LC_ALL=C sort)
         if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
-          FILES=$(printf '%s\n' "$FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS")
+          # [T004024] Seed aus HEAD-SHA: alle Matrix-Legs desselben Commits
+          # partitionieren identisch, aber die schwerste Datei rotiert je nach
+          # Commit ueber die Shards (statt immer auf Shard 1 zu landen).
+          SPEC_SHARD_SEED="$(git rev-parse HEAD 2>/dev/null | cut -c1-12 || true)"
+          FILES=$(printf '%s\n' "$FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS" --seed "${SPEC_SHARD_SEED:-}")
           echo "→ Shard ${SPEC_SHARD}/${SPEC_SHARDS}: $(printf '%s' "$FILES" | grep -c .) Dateien"
         fi
         # Leere Auswahl ist ein Fehler, kein No-op. Ein still gruener Leerlauf saehe
@@ -908,7 +912,10 @@ tasks:
         # aendert ein PR ci.yml/Taskfile.yml oder ein geteiltes Harness, faellt
         # find-changed-tests.sh fail-closed auf die volle Suite zurueck (~400s).
         if [ "${SPEC_SHARDS:-1}" -gt 1 ]; then
-          CHANGED_FILES=$(printf '%s\n' "$CHANGED_FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS")
+          # [T004024] Seed wie in test:spec — gleicher Commit, gleiche Partition;
+          # die schwerste geaenderte Datei rotiert ueber die Shards.
+          SPEC_SHARD_SEED="$(git rev-parse HEAD 2>/dev/null | cut -c1-12 || true)"
+          CHANGED_FILES=$(printf '%s\n' "$CHANGED_FILES" | bash scripts/spec-shard.sh --shard "${SPEC_SHARD:?SPEC_SHARD fehlt}" --of "$SPEC_SHARDS" --seed "${SPEC_SHARD_SEED:-}")
           # Anders als bei test:spec ist ein leerer Shard hier legitim: eine
           # diff-gescopte Auswahl kann weniger Dateien haben als es Shards gibt.
           if [ "$(printf '%s' "$CHANGED_FILES" | grep -c .)" -eq 0 ]; then

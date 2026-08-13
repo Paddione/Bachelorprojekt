@@ -50,11 +50,6 @@ task-oracle-fastpath
 # --- Requires postgres (skips offline):
 qa-dal
 #
-# --- Currently FAILS offline: website/src/lib/customer-crm-db.ts importiert transitiv
-# --- content-bundle.ts, das die Vite-only API import.meta.glob nutzt → TypeError unter
-# --- plain tsx/node. Kein Live-DB-Problem, wie die alte Begruendung behauptete. [T003144]
-portal-profile-update
-#
 # --- Requires kubectl kustomize (CronJob validation — needs cluster context):
 newsletter-scheduled-publish
 #

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.270.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.270.1...website-v1.270.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* **infra:** remove dead reflector annotations from wildcard certs [T002880] ([#4311](https://github.com/Paddione/Bachelorprojekt/issues/4311)) ([783bf5d](https://github.com/Paddione/Bachelorprojekt/commit/783bf5dcb12827f1d6e9b688e7d9b7c682f4d0b3))
+
 ## [1.270.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.270.0...website-v1.270.1) (2026-08-12)
 
 

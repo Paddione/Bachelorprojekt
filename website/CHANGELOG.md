@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.272.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.2...website-v1.272.3) (2026-08-13)
+
+
+### Bug Fixes
+
+* **factory:** enforce sandbox egress allowlist structurally (internal nets + squid proxy) [T003871] ([#4322](https://github.com/Paddione/Bachelorprojekt/issues/4322)) ([7ab5fa3](https://github.com/Paddione/Bachelorprojekt/commit/7ab5fa3595d523ad1c4c54b1b2890c013cc72675))
+
 ## [1.272.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.272.1...website-v1.272.2) (2026-08-13)
 
 

@@ -172,6 +172,43 @@ else
   done
 fi
 
+# --- Retry-Limit (T003810): drei No-Commit-Runden ohne Implementierung stoppen --------
+# Der Ergebnis-Check oben hat ex=6 gesetzt, wenn der Orchestrator weder Commit
+# noch Arbeitsbaum-Aenderung hinterliess. So ein Lauf bedeutet: mit dem aktuellen
+# Setup ist der Plan nicht umsetzbar. Weil dieser Pfad nur ein blocked-Phase-
+# Event schreibt (kein Statuswechsel), wuerde der naechste Tick dasselbe Ticket
+# erneut dispatchen — beobachtet an T003625 (3x exit 6 ohne Implementierung).
+#
+# Der Zaehler ist tickets.retry_count (ticket.sh retry-count): Schreiber ist
+# dieser Pfad (incr bei exit 6, reset bei Commit), Leser factory-floor.ts
+# (Anzeige "retry erschoepft"). Nach 3 aufeinanderfolgenden No-Commit-Runden
+# geht das Ticket nach `planning` zurueck (Plan ist nicht umsetzbar) und der
+# Slot wird freigegeben — statt endlos zu wiederholen.
+if [[ "$produced_work" == true ]]; then
+  bash "$REPO/scripts/ticket.sh" retry-count reset --id "$EXT_ID" >/dev/null 2>&1 || true
+elif [[ $ex -eq 6 ]]; then
+  retries="$(bash "$REPO/scripts/ticket.sh" retry-count incr --id "$EXT_ID" 2>/dev/null | tail -1 || true)"
+  retries="$(printf '%s' "$retries" | tr -cd '0-9')"
+  if [[ -n "$retries" && "$retries" -ge 3 ]]; then
+    echo "opencode-exec: $EXT_ID — 3 aufeinanderfolgende Laeufe ohne Implementierungs-Commit (exit 6) — Ticket auf planning zurueckgesetzt, Slot freigegeben" >&2
+    bash "$REPO/scripts/ticket.sh" update-status --id "$EXT_ID" --status planning >/dev/null 2>&1 || true
+    bash "$REPO/scripts/ticket.sh" release-slot --id "$EXT_ID" >/dev/null 2>&1 || true
+    bash "$REPO/scripts/ticket.sh" add-comment --id "$EXT_ID" \
+      --body "Factory: 3 aufeinanderfolgende Laeufe ohne Implementierungs-Commit (exit 6) — Plan ist mit dem aktuellen Setup nicht umsetzbar. Ticket auf planning zurueckgesetzt, Slot freigegeben." >/dev/null 2>&1 || true
+    bash "$REPO/scripts/ticket.sh" retry-count reset --id "$EXT_ID" >/dev/null 2>&1 || true
+    # Worktree freigeben (best-effort). exit 6 bedeutet per Definition: nichts
+    # geaendert — der Force-Remove ist hier gefahrlos. Schlaegt er fehl (kein
+    # registrierter Worktree), raeumt der Watchdog spaeter auf.
+    if [[ "$LAUNCH_DIR" != "$REPO" ]]; then
+      if git -C "$REPO" worktree remove --force "$LAUNCH_DIR" 2>/dev/null; then
+        git -C "$REPO" worktree prune 2>/dev/null || true
+      else
+        echo "opencode-exec: worktree cleanup for $LAUNCH_DIR failed — watchdog will reap" >&2
+      fi
+    fi
+  fi
+fi
+
 if [[ $ex -ne 0 ]]; then
   echo "opencode-exec: orchestrator run for $EXT_ID exited $ex (blocked; NO claude fallback)" >&2
   # Das Run-Log ist die einzige Spur, WARUM der Orchestrator nichts getan hat. Bis

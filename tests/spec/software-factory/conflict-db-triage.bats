@@ -15,6 +15,16 @@
 
 load '_sf_common'
 
+# [T003810/P2] Live-DB-Opt-in fuer den Seed-Test FA-SF-04: TICKET_TEST_DB_OK=1
+# hebt den BATS-Sentinel-Kontext (bats-no-cluster-t002224) auf, damit
+# seed_test_feature gegen die echte Dev-DB laeuft (dasselbe Muster wie
+# retry-limit.bats). Der fruehere Skip-Guard "FACTORY_CTX gesetzt" gruendete auf
+# dem lib.sh-Zustand VOR T003544 (Default erst in factory_resolve_data_ns);
+# seit dem Top-Level-Default ist FACTORY_CTX beim Source bereits gesetzt und der
+# Guard wirkungslos — der Skip haengt jetzt an der Pod-Erreichbarkeit
+# (_skip_if_no_db), nicht an einer Variablenbelegung.
+setup_file() { export TICKET_TEST_DB_OK=1; }
+
 setup()    { _sf_setup; }
 teardown() { _sf_teardown; }
 
@@ -74,9 +84,7 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-04: conflict-check detects in-flight task tickets" {
-  if [[ -z "${FACTORY_CTX:-}" ]]; then
-    skip "FACTORY_CTX not set (live-seed test skipped)"
-  fi
+  _skip_if_no_db
   source tests/lib/factory-test-fixtures.sh
 
   # Seed a feature ticket first
@@ -86,7 +94,10 @@ teardown() { _sf_teardown; }
   ext_id=$(seed_test_feature "$brand" "$file")
 
   # Update it to be type='task' and status='in_progress' to simulate in-flight human work
-  local ns="${FACTORY_NS:-workspace-korczewski-dev}"
+  # [T003810/P2] Namespace-Default folgt lib.sh/k3d-Ausnahme (T002626): die
+  # SDLC-DB liegt im k3d-Dev-Cluster in `workspace`, nicht in
+  # `workspace-korczewski-dev` (das war die Abbildung aus der Zwei-Cluster-Zeit).
+  local ns="${FACTORY_NS:-workspace}"
   local pod
   pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running -o name | head -1)
   kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \

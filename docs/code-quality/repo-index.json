@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 965,
+      "file_count": 966,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -371,6 +371,7 @@
         "tests/spec/auto-triage-grounding-T002399.bats",
         "tests/spec/background-agents-fallback.bats",
         "tests/spec/backup-pipeline.bats",
+        "tests/spec/batch-git-worktree-integrity.bats",
         "tests/spec/batch-openspec-embed-fixes.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes.bats",
         "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-check.bats",
@@ -3359,7 +3360,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 714,
+      "file_count": 715,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3735,6 +3736,7 @@
         "scripts/gh-branch-protection.sh",
         "scripts/git-crypt-guard.sh",
         "scripts/git-safe-push.sh",
+        "scripts/git-stash-net.sh",
         "scripts/git-worktree-health.sh",
         "scripts/gpu-lock.sh",
         "scripts/guard-bonsai-overwrite.sh",

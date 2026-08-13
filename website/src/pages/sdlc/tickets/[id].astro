@@ -35,14 +35,14 @@ if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const BRAND = process.env.BRAND_ID ?? process.env.BRAND ?? 'mentolder';
 const { id } = Astro.params;
-if (!id) return Astro.redirect('/admin/tickets');
+if (!id) return Astro.redirect('/sdlc/cockpit');
 
 const [ticket, timeline] = await Promise.all([
   getTicketDetail(BRAND, id),
   getTicketTimeline(BRAND, id),
 ]);
 
-if (!ticket) return Astro.redirect('/admin/tickets');
+if (!ticket) return Astro.redirect('/sdlc/cockpit');
 
 const openspecProposals = (openspecStatusMap as Record<string, Array<{ slug: string; status: string }>>)[ticket.externalId ?? ''] ?? [];
 
@@ -102,7 +102,7 @@ function fmtDateTime(d: Date | string | null): string {
 
       {/* Breadcrumb */}
       <nav class="text-sm mb-6 flex items-center gap-2">
-        <a href="/admin/tickets" class="text-muted hover:text-gold transition-colors">Tickets</a>
+        <a href="/sdlc/cockpit" class="text-muted hover:text-gold transition-colors">Tickets</a>
         <span class="text-muted/30 select-none">›</span>
         <span class="font-mono text-xs bg-gold/10 text-gold px-2 py-0.5 rounded">{ticket.externalId ?? ticket.id.slice(0, 8)}</span>
       </nav>
@@ -261,7 +261,7 @@ function fmtDateTime(d: Date | string | null): string {
                 <div>
                   <dt class="text-[10px] text-muted/70 uppercase tracking-widest mb-0.5">Parent</dt>
                   <dd>
-                    <a href={`/admin/tickets/${ticket.parentId}`} class="text-gold hover:underline">
+                    <a href={`/sdlc/tickets/${ticket.parentId}`} class="text-gold hover:underline">
                       Parent öffnen
                     </a>
                   </dd>

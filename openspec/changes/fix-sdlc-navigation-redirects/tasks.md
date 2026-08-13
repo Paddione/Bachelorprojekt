@@ -60,7 +60,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/navigation-no-dead-lin
 # expected: FAIL (rot — /sdlc/tickets ist 404, Redirects erzeugen Ketten)
 ```
 
-- [ ] **Fix-Step (GREEN).** Alle Redirects und Links korrigiert.
+- [x] **Fix-Step (GREEN).** Alle Redirects und Links korrigiert.
 
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/sdlc-cockpit/navigation-no-dead-links.bats

@@ -79,11 +79,12 @@ FACTORY_CHART_COLORS="$BATS_TEST_DIRNAME/../../../website/src/components/sdlc/fa
   [ "$status" -ne 0 ]
 }
 
-@test "T001433 pipeline: pipeline.astro is a 301 redirect to /admin/cockpit" {
-  run grep -F "Astro.redirect" "$PIPELINE_PAGE"
-  [ "$status" -eq 0 ]
-  run grep -F "/admin/cockpit" "$PIPELINE_PAGE"
-  [ "$status" -eq 0 ]
+@test "T003737 pipeline: pipeline.astro entfernt — Rueckwaerts-Redirect abgebaut" {
+  # Positiv-Anker: das Cockpit (Zielfunktion des Redirects) existiert weiter
+  [ -f "$COCKPIT_PAGE" ]
+
+  # Der reine Rueckwaerts-Redirect-Stub ist entfernt (T003737)
+  [ ! -f "$PIPELINE_PAGE" ]
 }
 
 @test "T001433 pipeline: dev-status.astro is a 301 redirect to /admin/cockpit" {

@@ -1,8 +1,0 @@
----
-// Legacy flat bug list — superseded by /admin/tickets, which supports the
-// grouping fields (component, parent_id, thesis_tag, tags) the new
-// failure-bridge populates. Permanent redirect so old bookmarks and the
-// API resolve/archive POST handlers (still backed by `tickets.tickets`)
-// keep working transparently.
-return Astro.redirect(`/admin/tickets${Astro.url.search}`, 301);
----

@@ -3630,6 +3630,12 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-workflow/archive-consistency",
+    "file": "tests/spec/openspec-workflow/archive-consistency.bats",
+    "category": "openspec-workflow",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-workflow/archive-deliverable-guard",
     "file": "tests/spec/openspec-workflow/archive-deliverable-guard.bats",
     "category": "openspec-workflow",

@@ -3417,6 +3417,12 @@
       "status": "plan_staged"
     }
   ],
+  "T003814": [
+    {
+      "slug": "batch-coaching-llm-insights",
+      "status": "plan_staged"
+    }
+  ],
   "T003825": [
     {
       "slug": "2026-08-11-runtime-drift-guard",

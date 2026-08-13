@@ -3,14 +3,10 @@ kind: Certificate
 metadata:
   name: workspace-wildcard
   namespace: workspace
+# TLS-Secret-Kopien (website, coturn, workspace-office) pflegt der tls-sync
+# CronJob (prod/reflector.yaml) — kein Reflector-Controller im Cluster.
 spec:
   secretName: ${TLS_SECRET_NAME}
-  secretTemplate:
-    annotations:
-      reflector.v1.emberstack.eu/reflection-allowed: "true"
-      reflector.v1.emberstack.eu/reflection-allowed-namespaces: "coturn,workspace-office,website"
-      reflector.v1.emberstack.eu/reflection-auto-enabled: "true"
-      reflector.v1.emberstack.eu/reflection-auto-namespaces: "coturn,workspace-office,website"
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer

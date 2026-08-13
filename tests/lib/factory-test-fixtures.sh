@@ -38,6 +38,34 @@ seed_test_feature() {
   echo "$ext_id"
 }
 
+# ensure_purge_fn_current <pod> <ns> <ctx> — self-heal the purge function against
+# the repo's newest one-shot migration (T003285). Parses the RUNTIME-CHECK line
+# of the newest purge-fn-v*.sql (same contract as scripts/runtime-drift-check.sh)
+# and applies the file only when pg_proc.prosrc lacks the marker — so the teardown
+# path works with the repo state, not with whatever manual deploy state the DB
+# happens to be in. A failing apply returns 1 so the purge fails visibly instead
+# of silently purging nothing.
+ensure_purge_fn_current() {
+  local pod="$1" ns="$2" ctx="$3"
+  local latest marker_line fn_line schema fn marker out
+  latest="$(ls -1 "$_FIXTURE_REPO_ROOT/scripts/one-shot/"purge-fn-v*.sql 2>/dev/null | sort -V | tail -1)"
+  [[ -n "$latest" ]] || return 0   # no migration file — nothing to self-heal with
+  marker_line="$(grep -m1 -- '-- RUNTIME-CHECK:' "$latest" 2>/dev/null || true)"
+  [[ -n "$marker_line" ]] || return 0   # no marker contract — not a drift-checked object
+  # Regex identisch zu scripts/runtime-drift-check.sh (marker/function auf
+  # [a-z0-9_]+ beschraenkt — die psql-Query wird nicht aus Dateiinhalten
+  # konstruiert, kein SQL-Injection-Surface).
+  [[ "$marker_line" =~ function=([a-z_]+)\.([a-z_]+)[[:space:]]+marker=([a-z0-9_]+) ]] || return 0
+  schema="${BASH_REMATCH[1]}"; fn="${BASH_REMATCH[2]}"; marker="${BASH_REMATCH[3]}"
+  out="$(kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
+    psql -U postgres -d website -qtAc \
+    "SELECT prosrc LIKE '%${marker}%' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = '${schema}' AND p.proname = '${fn}';" 2>/dev/null)"
+  [[ "$out" == "t" ]] && return 0
+  echo "self-heal: applying $latest to ${schema}.${fn} (Marker '$marker' fehlt in pg_proc)" >&2
+  kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
+    psql -U postgres -d website < "$latest"
+}
+
 # purge_factory_test_data <brand> — reap all is_test_data=true rows on that brand
 purge_factory_test_data() {
   local brand="$1"
@@ -62,6 +90,11 @@ purge_factory_test_data() {
     [[ -n "$pod" ]] && { ns="$candidate_ns"; break; }
   done
   [[ -z "$pod" ]] && { echo "no shared-db pod in $ns" >&2; return 1; }
+  # Selbstheilung vor dem Purge-Aufruf (T003285): fehlt der Marker der neuesten
+  # Migration in der DB-Funktion, wird sie eingespielt — der Teardown arbeitet mit
+  # dem Repo-Stand statt mit dem zufaelligen Deploy-Zustand der DB. Ein fehl-
+  # schlagender Apply laesst den Purge sichtbar scheitern.
+  ensure_purge_fn_current "$pod" "$ns" "$ctx" || return 1
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
     psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null
 }

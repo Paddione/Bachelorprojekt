@@ -1074,7 +1074,13 @@ tasks:
           fi
         fi
         if [ "$RUN_K8S" = "true" ]; then echo "→ k8s changes: task test:manifests"; task test:manifests; fi
-        
+
+        # Laufzeit-Drift-Guard (T003825): meldet DB-Funktionen/MCP-Binaries, die
+        # nicht dem Repo-Stand entsprechen — lokal exit 1 faerbt den Testlauf hart
+        # rot, ohne Cluster skippt das Skript selbst (exit 0, CI-safe). [T003285]
+        echo "→ runtime drift check (skips without cluster)"
+        bash scripts/runtime-drift-check.sh
+
         JOBS=$(nproc 2>/dev/null || echo 2)
         if [ "$RUN_SCRIPTS" = "true" ] || [ "$RUN_UNIT" = "true" ]; then
           echo "→ running changed unit tests in parallel"

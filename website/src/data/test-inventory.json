@@ -2916,6 +2916,12 @@
     "kind": "shell"
   },
   {
+    "id": "fleet-operations/reflector-annotations",
+    "file": "tests/spec/fleet-operations/reflector-annotations.bats",
+    "category": "fleet-operations",
+    "kind": "shell"
+  },
+  {
     "id": "fleet-operations/wg-gpu-pod-cidr",
     "file": "tests/spec/fleet-operations/wg-gpu-pod-cidr.bats",
     "category": "fleet-operations",

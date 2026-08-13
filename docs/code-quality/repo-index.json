@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 948,
+      "file_count": 949,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -494,6 +494,7 @@
         "tests/spec/fleet-operations/firewall-program-match.bats",
         "tests/spec/fleet-operations/membership-drift.bats",
         "tests/spec/fleet-operations/powershell-ascii-only.bats",
+        "tests/spec/fleet-operations/reflector-annotations.bats",
         "tests/spec/fleet-operations/wg-gpu-pod-cidr.bats",
         "tests/spec/flux-artifact-versioning/flux-artifact-versioning.bats",
         "tests/spec/flux-render-security/bootstrap-envsubst.bats",

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.16](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.15...website-v1.276.16) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** plan-preflight evaluates staged set instead of clean tree [T005114] ([#4431](https://github.com/Paddione/Bachelorprojekt/issues/4431)) ([503c4bf](https://github.com/Paddione/Bachelorprojekt/commit/503c4bf718e41458426f158710af954ba867a594))
+
 ## [1.276.15](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.14...website-v1.276.15) (2026-08-14)
 
 

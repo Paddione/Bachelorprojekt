@@ -2529,6 +2529,12 @@
       "status": "archived"
     }
   ],
+  "T002629": [
+    {
+      "slug": "modell-registry-training-grounds",
+      "status": "plan_staged"
+    }
+  ],
   "T002630": [
     {
       "slug": "2026-08-10-cluster-dev-node-gekko2",

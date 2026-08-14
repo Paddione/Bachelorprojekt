@@ -1,0 +1,6 @@
+# Fake-Key im Format des Alibaba Cloud Intl Token Plans ("sk-sp-…").
+# Rein synthetisch — Positiv-Anker für den Guard-Test in ../alibaba-token-key-guard.bats.
+# Dieser Pfad liegt unter tests/spec/security/fixtures/ und ist damit über die
+# gitleaks-Allowlist (tests/.*fixtures/.*) vom Repo-Scan ausgenommen; der Test
+# kopiert die Datei nach $BATS_TEST_TMPDIR und scannt sie dort gezielt.
+apiKey = "sk-sp-K9xR2mQ7vW4nL8pT3jH5dF6gB1cS9eZ2yU8iA4oX7kM0wE3rT5hJ6qN1lV2bC8pD4fG9sA3zY7uI6oP0xW5e"

@@ -22,8 +22,15 @@ export const PATCH: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({ error: 'startUrl erforderlich' }), { status: 400 });
   }
 
-  try { new URL(body.startUrl); } catch {
+  let parsedUrl: URL;
+  try { parsedUrl = new URL(body.startUrl); } catch {
     return new Response(JSON.stringify({ error: 'startUrl ist keine gültige URL' }), { status: 400 });
+  }
+
+  // T005900: javascript:/data:/… sind parsebar, aber kein Link-Schema für einen
+  // Crawl-Ausgangspunkt — nur http/https persistieren (Stored-XSS-Vektor).
+  if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+    return new Response(JSON.stringify({ error: 'startUrl muss http/https sein' }), { status: 400 });
   }
 
   const config: CrawlConfig = {

@@ -126,12 +126,28 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-24: a seeded backlog feature appears in the queue JSON" {
+  # [T005029] queue.sh filtert seit T002830 `is_test_data = false` — SF-TEST-Fixtures
+  # duerfen nie im Dispatch-Pfad landen. Die urspruengliche Erwartung (SF-TEST-Feature
+  # erscheint in der Queue) bildete den Filter nicht ab und war damit dauerhaft rot.
+  # POSITIV-ANKER [T002356-M1]: ein is_test_data=false-Feature MUSS erscheinen —
+  # belegt, dass queue.sh backlog-Features ueberhaupt listet. seed_real_feature ist die
+  # Fixture-Helferin aus tests/lib/factory-test-fixtures.sh (Implementierung dieses
+  # Tickets); ohne sie schlaegt der Test mit status 127 fehl.
   _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
-  ext=$(seed_test_feature "$brand" "tests/fixtures/sf-test-queue-$$-a.txt")
+  ext=$(seed_real_feature "$brand" "tests/fixtures/sf-test-queue-$$-a.txt")
   run env BRAND="$brand" bash scripts/factory/queue.sh
   [ "$status" -eq 0 ]
   echo "$output" | jq -e --arg e "$ext" 'any(.[]; .external_id == $e)'
+  # NEGATIV-ANKER: SF-TEST-Fixtures (is_test_data=true) erscheinen NIE in der Queue.
+  sfx=$(seed_test_feature "$brand" "tests/fixtures/sf-test-queue-$$-b.txt")
+  run env BRAND="$brand" bash scripts/factory/queue.sh
+  [ "$status" -eq 0 ]
+  if echo "$output" | jq -e --arg e "$sfx" 'any(.[]; .external_id == $e)'; then
+    echo "SF-TEST fixture leaked into queue candidates: $sfx" >&2
+    return 1
+  fi
+  purge_real_feature "$brand" "$ext"
 }
 
 # ── FA-SF-25-schedule ───────────────────────────────────────────#
@@ -143,25 +159,36 @@ teardown() { _sf_teardown; }
 }
 
 @test "FA-SF-25: two disjoint backlog features both get scheduled with slots" {
+  # [T005029] schedule.sh leitet seine Kandidaten aus queue.sh ab — der
+  # is_test_data-Filter (T002830) schloss SF-TEST-Fixtures aus, die Tests erwarteten
+  # sie trotzdem. Umgestellt auf is_test_data=false-Features (seed_real_feature).
   _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
-  e1=$(seed_test_feature "$brand" "tests/fixtures/sf-test-sched-$$-a.txt")
-  e2=$(seed_test_feature "$brand" "tests/fixtures/sf-test-sched-$$-b.txt")
+  e1=$(seed_real_feature "$brand" "tests/fixtures/sf-test-sched-$$-a.txt")
+  e2=$(seed_real_feature "$brand" "tests/fixtures/sf-test-sched-$$-b.txt")
   run env BRAND="$brand" FACTORY_GLOBAL_CAP=3 bash scripts/factory/schedule.sh
   [ "$status" -eq 0 ]
   echo "$output" | jq -e --arg e "$e1" 'any(.[]; .external_id == $e and (.slot|type=="number"))'
   echo "$output" | jq -e --arg e "$e2" 'any(.[]; .external_id == $e)'
+  purge_real_feature "$brand" "$e1"
+  purge_real_feature "$brand" "$e2"
 }
 
 @test "FA-SF-25: global cap of 1 schedules at most one feature" {
+  # [T005029] Vorher vakuos gruen: SF-TEST-Fixtures sind durch den queue.sh-Filter
+  # unsichtbar, die leere Kandidatenliste erfuellt `0 <= 1` trivial. POSITIV-ANKER
+  # [T002356-M1]: mindestens ein is_test_data=false-Feature muss kandidieren.
   _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
-  seed_test_feature "$brand" "tests/fixtures/sf-test-cap-$$-a.txt" >/dev/null
-  seed_test_feature "$brand" "tests/fixtures/sf-test-cap-$$-b.txt" >/dev/null
+  r1=$(seed_real_feature "$brand" "tests/fixtures/sf-test-cap-$$-a.txt")
+  r2=$(seed_real_feature "$brand" "tests/fixtures/sf-test-cap-$$-b.txt")
   run env BRAND="$brand" FACTORY_GLOBAL_CAP=1 bash scripts/factory/schedule.sh
   [ "$status" -eq 0 ]
   count=$(echo "$output" | jq 'length')
+  [ "$count" -ge 1 ]
   [ "$count" -le 1 ]
+  purge_real_feature "$brand" "$r1"
+  purge_real_feature "$brand" "$r2"
 }
 
 # ── FA-SF-26-watchdog ───────────────────────────────────────────#
@@ -191,11 +218,20 @@ teardown() { _sf_teardown; }
   # Backdating bliebe wirkungslos und die Stale-Liste leer — dann liefe der
   # Watchdog ohne Arbeit durch und der Test bestuende vakuos. ORPHAN_MIN=999
   # blendet den Waisen-Sweep aus (Isolation, Spiegel von orphan-slot-reap.bats).
+  # [T005029] BATS 1.x merged stderr in $output; eine Redirection wie
+  # `run … 2>/dev/null` wirkt dort NICHT: sie liegt auf dem run-Aufruf, waehrend
+  # BATS intern `output="$( { "$@"; } 2>&1 )"` erfasst und das `2>&1` die
+  # Redirection ueberschreibt. Der Watchdog schreibt bei Tickets ohne phase
+  # events INFRA-/Counter-Warnungen auf stderr (T002361/T002389) — sie landen
+  # also im $output. Output-Vertrag des Skripts: `echo "$escalated"` ist die
+  # letzte Ausgabe, alle Warnungen stehen davor — die letzte Zeile ist
+  # deterministisch das JSON-Array.
   run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ORPHAN_SLOT_MIN=999 \
     bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war.
-  echo "$output" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
+  local escalated_json="$(printf '%s\n' "$output" | tail -n 1)"
+  echo "$escalated_json" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
   # Confirm status=triage and pipeline_slot cleared.
   st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
   [ "$st" = "triage" ]
@@ -224,11 +260,15 @@ teardown() { _sf_teardown; }
   BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh add-comment --id "$ext" \
     --body "FACTORY-PLAN-REF branch=feature/sf-test-wd-$$ plan=openspec/changes/sf-test-wd-$$/tasks.md" >/dev/null
   # Schwellwert 0 statt Zurueckdatieren [T002620] — siehe Test oben.
+  # [T005029] Kein `2>/dev/null` am run-Aufruf: BATS 1.x merged stderr in
+  # $output und ueberschreibt die Redirection mit seinem internen `2>&1` —
+  # siehe Kommentar im Watchdog-Test darueber. Die letzte Zeile ist das JSON.
   run env BRAND="$brand" FACTORY_STALE_MIN=0 FACTORY_ORPHAN_SLOT_MIN=999 \
     bash scripts/factory/watchdog.sh
   [ "$status" -eq 0 ]
   # POSITIV-ANKER [T002356-M1]: belegt, dass die Stale-Liste NICHT leer war.
-  echo "$output" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
+  local escalated_json="$(printf '%s\n' "$output" | tail -n 1)"
+  echo "$escalated_json" | jq -e --arg e "$ext" 'any(.[]; . == $e)'
   st=$(BRAND="$brand" TICKET_CTX="$FACTORY_CTX" bash scripts/ticket.sh get --id "$ext" | jq -r '.status')
   [ "$st" = "backlog" ]
 }

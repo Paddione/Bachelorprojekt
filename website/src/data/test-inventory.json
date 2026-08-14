@@ -2400,6 +2400,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/brainstorm-firewall-namespace",
+    "file": "tests/spec/ci-cd/brainstorm-firewall-namespace.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/branch-allowlist-ssot",
     "file": "tests/spec/ci-cd/branch-allowlist-ssot.bats",
     "category": "ci-cd",

@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1006,
+      "file_count": 1007,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -409,6 +409,7 @@
         "tests/spec/ci-cd/arbitration-scoped-kubeconfig.bats",
         "tests/spec/ci-cd/automerge-run-scope.bats",
         "tests/spec/ci-cd/bats-no-live-branch-assertion.bats",
+        "tests/spec/ci-cd/brainstorm-firewall-namespace.bats",
         "tests/spec/ci-cd/branch-allowlist-ssot.bats",
         "tests/spec/ci-cd/branch-reaper-local-ref.bats",
         "tests/spec/ci-cd/branch-reaper-sweep.bats",

@@ -3396,7 +3396,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 730,
+      "file_count": 731,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3956,6 +3956,7 @@
         "scripts/openspec-half-archive-check.sh",
         "scripts/openspec-header-inject.sh",
         "scripts/openspec-main-staging-guard.sh",
+        "scripts/openspec-merge-truncation.test.ts",
         "scripts/openspec-merge.mjs",
         "scripts/openspec-merge.test.ts",
         "scripts/openspec-status-map.sh",

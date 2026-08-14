@@ -3365,7 +3365,7 @@
       "id": "scripts-infra",
       "name": "Operational + build scripts",
       "owner_agent": "bachelorprojekt-infra",
-      "file_count": 718,
+      "file_count": 719,
       "files": [
         "scripts/README.md",
         "scripts/add-whiteboard-library.py",
@@ -3777,6 +3777,7 @@
         "scripts/knowledge/ingest-markdown.mjs",
         "scripts/knowledge/ingest-prs.mjs",
         "scripts/knowledge/ingest-web.mjs",
+        "scripts/knowledge/kalibrierung-retrieval.mjs",
         "scripts/knowledge/lib-context-pinned.mjs",
         "scripts/knowledge/lib-context-retrieve.mjs",
         "scripts/knowledge/lib-knowledge-pg.d.ts",

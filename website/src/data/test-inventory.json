@@ -2406,6 +2406,12 @@
     "kind": "shell"
   },
   {
+    "id": "ci-cd/cfr-trend-window",
+    "file": "tests/spec/ci-cd/cfr-trend-window.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
     "id": "ci-cd/changed-tests-collection-parity",
     "file": "tests/spec/ci-cd/changed-tests-collection-parity.bats",
     "category": "ci-cd",
@@ -2450,6 +2456,12 @@
   {
     "id": "ci-cd/fetch-refspec-forced",
     "file": "tests/spec/ci-cd/fetch-refspec-forced.bats",
+    "category": "ci-cd",
+    "kind": "shell"
+  },
+  {
+    "id": "ci-cd/fix-ticket-commit-guard",
+    "file": "tests/spec/ci-cd/fix-ticket-commit-guard.bats",
     "category": "ci-cd",
     "kind": "shell"
   },

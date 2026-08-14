@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.276.28](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.27...website-v1.276.28) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** enforce dependency blocker gate in schedule.sh [T005306] ([#4472](https://github.com/Paddione/Bachelorprojekt/issues/4472)) ([9be8510](https://github.com/Paddione/Bachelorprojekt/commit/9be85103ea4eba46631f8ccf883aa274d9a5fca5))
+
+
+### Tests
+
+* **mcp:** real-DB-Regressionstest für Rollup-Container-Erkennung [T004893] ([#4473](https://github.com/Paddione/Bachelorprojekt/issues/4473)) ([7c1a9ae](https://github.com/Paddione/Bachelorprojekt/commit/7c1a9ae7ed3880f92e2a34506cc24c9f06c6e2e2))
+
 ## [1.276.27](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.26...website-v1.276.27) (2026-08-14)
 
 

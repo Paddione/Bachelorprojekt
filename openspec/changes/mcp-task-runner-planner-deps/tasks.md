@@ -52,12 +52,12 @@ openspec/changes/mcp-task-runner-planner-deps/specs/mcp-task-runner.md  # EXISTS
 **Interfaces:**
 - Produces: `func Parse(taskfilePath string) (Graph, error)` — Signatur unverändert; `type Graph map[string][]string` unverändert. Verbraucher: `mcp-task-runner/main.go` (`plan_tasks`, `get_task_graph`) und `planner_test`.
 
-- [ ] **Step 1: Failing Test bestätigen (Rotphase)**
+- [x] **Step 1: Failing Test bestätigen (Rotphase)**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/mcp-task-runner/planner-sees-real-deps.bats`
 expected: FAIL — Assertion `[ "$(echo "$groups" | jq 'length')" -eq 2 ]` schlägt fehl (aktuell 1 Gruppe), Fehlermeldung verweist auf `planner-sees-real-deps.bats, line 35`.
 
-- [ ] **Step 2: yaml.v3 als Dependency hinzufügen**
+- [x] **Step 2: yaml.v3 als Dependency hinzufügen**
 
 Run:
 ```bash
@@ -65,7 +65,7 @@ cd mcp-task-runner && go get gopkg.in/yaml.v3@latest && go mod tidy
 ```
 Expected: `go.mod`/`go.sum` enthalten `gopkg.in/yaml.v3`.
 
-- [ ] **Step 3: parser.go ersetzen**
+- [x] **Step 3: parser.go ersetzen**
 
 Vollständiger Dateiinhalt (ersetzt `taskEntry`/`taskListOutput` mit deps-Feld):
 
@@ -267,12 +267,12 @@ func toStringSlice(v any) []string {
 }
 ```
 
-- [ ] **Step 4: Kompilieren und Vet**
+- [x] **Step 4: Kompilieren und Vet**
 
 Run: `cd mcp-task-runner && go build ./... && go vet ./...`
 Expected: beide ohne Ausgabe, Exit 0.
 
-- [ ] **Step 5: parser_test.go auf On-Disk-YAML-Fixtures umstellen**
+- [x] **Step 5: parser_test.go auf On-Disk-YAML-Fixtures umstellen**
 
 Vollständiger Dateiinhalt (ersetzt die fake JSON mit deps-Feld):
 
@@ -413,17 +413,17 @@ func TestParseRootMissing(t *testing.T) {
 }
 ```
 
-- [ ] **Step 6: Unit-Tests laufen lassen**
+- [x] **Step 6: Unit-Tests laufen lassen**
 
 Run: `cd mcp-task-runner && go test ./...`
 Expected: PASS, alle sechs Tests.
 
-- [ ] **Step 7: Binary neu bauen und installieren**
+- [x] **Step 7: Binary neu bauen und installieren**
 
 Run: `task test:spec:build-mcp-runner`
 Expected: `mcp-task-runner: installed fresh build to /usr/local/bin` (oder sudo-Variante).
 
-- [ ] **Step 7.5: Fixture-JSON in tests/spec/mcp-task-runner.bats um ein location-Feld ergänzen**
+- [x] **Step 7.5: Fixture-JSON in tests/spec/mcp-task-runner.bats um ein location-Feld ergänzen**
 
 Der neue Parser liest je Task `location.taskfile` — das Fixture-JSON ohne Feld würde `Parse` mit einem Lesefehler abbrechen lassen. Die Fixture bleibt deps-frei; die Fake-Aufgaben zeigen auf die im setup() erzeugte FAKE_DIR-Taskfile (enthält nur `noop`, also bleiben beide Fake-Aufgaben deps-los — MCP-TASK-RUNNER-002 bleibt grün).
 
@@ -456,12 +456,12 @@ FAKESCRIPT
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/mcp-task-runner.bats`
 Expected: PASS — MCP-TASK-RUNNER-001..004 weiterhin grün (Fixture ohne location wäre rot: Parse-Fehler bei 002).
 
-- [ ] **Step 8: BATS-Integrationstest grün**
+- [x] **Step 8: BATS-Integrationstest grün**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/mcp-task-runner/planner-sees-real-deps.bats`
 Expected: PASS — `plan_tasks` liefert 2 Gruppen (build vor push) gegen den echten Taskfile-Graphen.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add mcp-task-runner/planner/parser.go mcp-task-runner/planner/parser_test.go mcp-task-runner/go.mod mcp-task-runner/go.sum tests/spec/mcp-task-runner.bats
@@ -476,17 +476,17 @@ git commit -m "fix(mcp): read planner deps from Taskfile YAML sources [T005596]"
 - Verify: `tests/spec/mcp-task-runner/*` (beide Formen, T002696), `openspec/changes/mcp-task-runner-planner-deps/`
 - Modify: `website/src/data/test-inventory.json` (generiert)
 
-- [ ] **Step 1: Komplette mcp-task-runner-Spec-Suite (beide Formen)**
+- [x] **Step 1: Komplette mcp-task-runner-Spec-Suite (beide Formen)**
 
 Run: `tests/unit/lib/bats-core/bin/bats -r tests/spec/mcp-task-runner*`
 Expected: PASS — Fixture-Tests (MCP-TASK-RUNNER-001..004) und die neuen Guards/Integrationstests grün.
 
-- [ ] **Step 2: OpenSpec-Validierung**
+- [x] **Step 2: OpenSpec-Validierung**
 
 Run: `task openspec:validate`
 Expected: Exit 0.
 
-- [ ] **Step 3: Test-Inventar regenerieren und committen**
+- [x] **Step 3: Test-Inventar regenerieren und committen**
 
 Run: `task test:inventory`
 Expected: `website/src/data/test-inventory.json` enthält `tests/spec/mcp-task-runner/planner-sees-real-deps.bats`; dann:
@@ -495,12 +495,12 @@ git add website/src/data/test-inventory.json
 git commit -m "chore: regenerate test inventory [T005596]"
 ```
 
-- [ ] **Step 4: CI-äquivalente Tests**
+- [x] **Step 4: CI-äquivalente Tests**
 
 Run: `task test:changed`
 Expected: Exit 0 (keine k8s-Manifeste berührt — keine E2E-Gruppe).
 
-- [ ] **Step 5: Freshness**
+- [x] **Step 5: Freshness**
 
 Run:
 ```bash
@@ -510,7 +510,7 @@ task freshness:check
 ```
 Expected: `freshness:check` Exit 0; regenerierte Artefakte sind committet (`git show --stat HEAD` prüfen).
 
-- [ ] **Step 6: Abschluss-Commit**
+- [x] **Step 6: Abschluss-Commit**
 
 ```bash
 git add openspec/changes/mcp-task-runner-planner-deps/

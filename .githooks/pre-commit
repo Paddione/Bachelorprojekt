@@ -163,7 +163,7 @@ if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
         fi
         _has_ticket=0
         _has_type=0
-        [[ "$_bn" =~ ^feature/|^fix/|^chore/|^docs/ ]] && _has_type=1
+        [[ "$_bn" =~ ^feature/|^fix/|^chore/|^docs/|^feat/batch- ]] && _has_type=1
         [[ "$_bn" =~ T[0-9]{6,} ]] && _has_ticket=1
         if [ "$_exempt" -eq 0 ] && { [ "$_has_type" -eq 0 ] || [ "$_has_ticket" -eq 0 ]; }; then
           echo "✗  pre-commit: branch '$_bn' does not follow naming convention." >&2
@@ -175,7 +175,7 @@ if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
           # Guard `[[ =~ T[0-9]{6,} ]]` ohne `nocasematch` laeuft und damit
           # case-sensitiv ist. Das bleibt so gewollt — nur erklaert wird es jetzt.
           [ "$_has_type" -eq 0 ] && \
-            echo "  ✗ kein gueltiges Typ-Praefix. Erlaubt: feature/ fix/ chore/ docs/" >&2
+            echo "  ✗ kein gueltiges Typ-Praefix. Erlaubt: feature/ fix/ chore/ docs/ feat/batch-*" >&2
           [ "$_has_ticket" -eq 0 ] && \
             echo "  ✗ keine Ticket-ID gefunden. Sie muss GROSS geschrieben sein: T002338, nicht t002338." >&2
            echo "  Fix: git branch -m $(git rev-parse --abbrev-ref HEAD) $(git rev-parse --abbrev-ref HEAD | sed 's/t[0-9]\{6,\}/T&/')"

@@ -3495,6 +3495,12 @@
       "status": "archived"
     }
   ],
+  "T004295": [
+    {
+      "slug": "batch-worktree-guard-tooling-fixes",
+      "status": "plan_staged"
+    }
+  ],
   "T004296": [
     {
       "slug": "2026-08-14-batch-local-test-runner-fixes",

@@ -19,6 +19,11 @@ kopieren, sondern verlinken.
 > die Website. Filter: `scripts/filter-generated.sh`; er liest ausschließlich das
 > Git-Attribut, führt also **keine** eigene Pfadliste.
 
+> **SDLC-Stack löst kein Prod-Deploy aus (T003982).** `k3d/sdlc-stack/**` wird vor der
+> Selektion aus `$CHANGED` entfernt — der Stack existiert nur auf dem lokalen k3d-Dev-
+> Cluster. `grep -E` kann kein Lookahead, deshalb läuft der Ausschluss als vorgeschalteter
+> `sed`-Filter in `scripts/devflow-post-merge-deploy.sh`.
+
 ### Prod-Deploy (nach Merge — beide Brands auf fleet)
 
 | Geänderte Dateipfade | Weg |
@@ -27,13 +32,14 @@ kopieren, sondern verlinken.
 | `brett/**` | `.github/workflows/build-brett.yml`. Break-Glass: `task feature:brett`. |
 | `docs/**` | `.github/workflows/build-docs.yml`. Break-Glass: `task docs:deploy`. |
 | `k3d/**`, `prod*/**`, `prod-fleet/**`, `environments/**` | Flux reconciled das OCI-Artefakt. Break-Glass: `task feature:deploy` (kein Registry-Login nötig). |
+| `k3d/sdlc-stack/**` | **kein Deploy** — rein lokaler Stack (k3d-Dev-Cluster), existiert nicht auf fleet; wird vor dem `k3d/**`-Match aus `$CHANGED` gefiltert (T003982) |
 | `linguist-generated`-Pfade | **kein Deploy** — aus der Selektion gefiltert |
 | Mehrere Bereiche | Alle zutreffenden Wege |
 
 **Auto-Detection (implementiert in `scripts/devflow-post-merge-deploy.sh`, Schritt 8):**
 ```bash
 MERGE_COMMIT=$(git log origin/main -1 --format="%H")
-CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh)
+CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh | sed '/^k3d\/sdlc-stack\//d')
 echo "$CHANGED" | grep -qE '^website/'  && echo "→ build-website.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^brett/'    && echo "→ build-brett.yml (kein lokaler Build)"
 echo "$CHANGED" | grep -qE '^docs/'     && echo "→ build-docs.yml (kein lokaler Build)"

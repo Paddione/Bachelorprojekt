@@ -35,7 +35,10 @@ echo "Referenzierte Ticket-IDs im Merge-Commit: ${TICKET_IDS:-keine}"
 # Selektion nehmen: website/src/data/openspec-status.json & Co. liegen im Merge-Diff jedes
 # Changes mit OpenSpec-Artefakt und loesten sonst einen Deploy ohne Website-Bezug aus
 # (T002255). SSOT des Routings: .claude/skills/references/deploy-routing.md
-CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" | bash scripts/filter-generated.sh)
+# T003982: k3d/sdlc-stack/ existiert nur auf dem lokalen k3d-Dev-Cluster, nicht auf
+# fleet. grep -E hat kein Lookahead, deshalb VOR dem DEPLOY_K8S-Match (Zeile 48) filtern.
+CHANGED=$(git diff-tree --no-commit-id -r --name-only "$MERGE_COMMIT" \
+  | bash scripts/filter-generated.sh | sed '/^k3d\/sdlc-stack\//d')
 
 DEPLOY_WEBSITE=false
 DEPLOY_BRETT=false

@@ -206,7 +206,7 @@ This ensures that Infrastructure and Dev workflows correctly identify these as "
 4. CI must be green before merge.
 5. Validate manifests before committing: `task workspace:validate`.
 6. After modifying Kubernetes manifests, run the relevant test(s): `./tests/runner.sh local <TEST-ID>`.
-7. Branch naming: `feature/*`, `fix/*`, `chore/*`.
+7. Branch naming: feature/*, fix/*, chore/* (Factory-Batch-Ausnahme: feat/batch-*)
 
 ## Gotchas & Footguns
 

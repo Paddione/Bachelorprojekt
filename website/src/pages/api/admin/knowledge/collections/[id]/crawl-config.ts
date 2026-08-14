@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getSession, isAdmin } from '../../../../../../lib/auth';
 import { getCollection, updateCrawlConfig, type CrawlConfig } from '../../../../../../lib/knowledge-db';
-import { isValidHttpUrl } from '../../../../../../lib/knowledge-url';
+import { safeHttpUrl } from '../../../../../../lib/safe-url';
 
 export const PATCH: APIRoute = async ({ request, params }) => {
   const session = await getSession(request.headers.get('cookie'));
@@ -23,7 +23,10 @@ export const PATCH: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({ error: 'startUrl erforderlich' }), { status: 400 });
   }
 
-  if (!isValidHttpUrl(body.startUrl)) {
+  // T005900/T005901: javascript:/data:/… sind parsebar, aber kein Link-Schema für
+  // einen Crawl-Ausgangspunkt — nur http/https persistieren (Stored-XSS-Vektor).
+  // geteilter Helper safeHttpUrl (safe-url.ts) als SSOT für Client und Server.
+  if (!safeHttpUrl(body.startUrl)) {
     return new Response(JSON.stringify({ error: 'startUrl muss eine http(s)-URL sein' }), { status: 400 });
   }
 

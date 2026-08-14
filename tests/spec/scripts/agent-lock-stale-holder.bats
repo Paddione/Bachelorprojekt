@@ -22,7 +22,7 @@ teardown() {
   # Fixture wie der T005029-Vorfall: lebende (non-numerische) SID, frischer
   # Heartbeat, aber toter owner_pid; Worktree existiert und Branch matcht.
   cat > "${AGENT_LOCK_DIR}/ticket__T999999.json" <<EOF
-{"scope":"ticket","id":"T999999","owner_sid":"dead-session-fixture-uuid","owner_pid":999999,"tool":"claude","label":"dev-flow-plan","worktree":"${REPO_ROOT}/.worktrees/ticket-lock-stale-pass","branch":"fix/ticket-lock-stale-pass-T005560","ticket":"","host":"x","created_at":"${NOW}","heartbeat_at":"${NOW}"}
+{"scope":"ticket","id":"T999999","owner_sid":"dead-session-fixture-uuid","owner_pid":"999999","tool":"claude","label":"dev-flow-plan","worktree":"${REPO_ROOT}/.worktrees/ticket-lock-stale-pass","branch":"fix/ticket-lock-stale-pass-T005560","ticket":"","host":"x","created_at":"${NOW}","heartbeat_at":"${NOW}"}
 EOF
 
   # Positiv-Anker (T002356-M1): der Lock ist vorhanden und NICHT reapable —

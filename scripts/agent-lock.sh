@@ -519,6 +519,10 @@ cmd_check() {
   # worktree path containment, so a lock recognised from a subdirectory (e.g.
   # scripts/ within the worktree) still reports "mine".
   if _lock_is_mine "$f"; then echo "mine"; cat "$f"; return 0; fi
+  # [T005560] Toter Halter = kein Schutz gegen Doppelarbeit: advisory rc=4,
+  # Lock bleibt bestehen (Reap-Entscheidung bleibt bei _reapable).
+  local _hp; _hp="$(_lock_field "$f" owner_pid)"
+  if [ -n "$_hp" ] && ! _pid_alive "$_hp"; then echo "held-stale"; cat "$f"; return 4; fi
   echo "held"; cat "$f"; return 3
 }
 

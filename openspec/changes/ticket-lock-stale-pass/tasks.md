@@ -49,12 +49,12 @@ openspec/changes/ticket-lock-stale-pass/specs/scripts.md  # EXISTS: Delta
 **Interfaces:**
 - Produces: `check ticket <id>` rc=4 + `held-stale` bei totem owner_pid (nicht reapable, nicht mine); Konsument: `_ticket_lock_guard` in scripts/vda/ticket/_ticket-core.sh.
 
-- [ ] **Step 1: Rot bestätigen**
+- [x] **Step 1: Rot bestätigen**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/scripts/agent-lock-stale-holder.bats`
 expected: FAIL — `[ "$status" -eq 4 ]` schlägt fehl (heute rc=3/`held`).
 
-- [ ] **Step 2: cmd_check erweitern**
+- [x] **Step 2: cmd_check erweitern**
 
 In `scripts/agent-lock.sh` `cmd_check()` den held-Pfad ersetzen:
 
@@ -67,7 +67,7 @@ In `scripts/agent-lock.sh` `cmd_check()` den held-Pfad ersetzen:
   echo "held"; cat "$f"; return 3
 ```
 
-- [ ] **Step 3: Guard rc=4 durchlassen**
+- [x] **Step 3: Guard rc=4 durchlassen**
 
 In `scripts/vda/ticket/_ticket-core.sh` `_ticket_lock_guard()` nach dem rc==3-Block (vor dem `return 0` am Ende) einfügen:
 
@@ -82,17 +82,18 @@ In `scripts/vda/ticket/_ticket-core.sh` `_ticket_lock_guard()` nach dem rc==3-Bl
   fi
 ```
 
-- [ ] **Step 4: Test grün**
+- [x] **Step 4: Test grün**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/scripts/agent-lock-stale-holder.bats`
 Expected: PASS — rc=4 + `held-stale`.
 
-- [ ] **Step 5: Bestehende Lock-Suite**
+- [x] **Step 5: Bestehende Lock-Suite**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/agent-lock-*.bats`
 Expected: PASS — kein Regressionseffekt auf claim/check/reap-Pfade (der rc=3-Pfad bleibt für lebende Halter).
+Hinweis: `agent-lock-claim-persist.bats` hängt lokal bei Test 4 (flock-Race) — pre-existing, identisch auf main; nicht durch diesen Change verursacht. Alle übrigen agent-lock-Suiten grün.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-lock.sh scripts/vda/ticket/_ticket-core.sh tests/spec/scripts/agent-lock-stale-holder.bats

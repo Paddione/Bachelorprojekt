@@ -206,6 +206,14 @@ _ticket_lock_guard() {
     echo "       Falls der Halter diese Session ist, gezielt durchlassen: TICKET_LOCK_OVERRIDE=1 (deaktiviert den Schutz auch gegen echte Fremdsessions)" >&2
     return 7
   fi
+  if [[ $rc -eq 4 ]]; then
+    # [T005560] Halter ist nachweislich tot — warnen und durchlassen.
+    local holder_label holder_tool
+    holder_label="$(printf '%s' "$out" | sed -n 's/.*"label": *"\([^"]*\)".*/\1/p' | head -1)"
+    holder_tool="$(printf '%s' "$out" | sed -n 's/.*"tool": *"\([^"]*\)".*/\1/p' | head -1)"
+    echo "WARNUNG: Ticket $id hat einen Stale-Lock (Halter-PID tot, tool=${holder_tool:-?}, label=${holder_label:-?}) — Schreibvorgang durchgelassen." >&2
+    return 0
+  fi
   return 0
 }
 

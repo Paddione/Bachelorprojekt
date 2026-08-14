@@ -1006,6 +1006,14 @@ tasks:
           echo "backfill: $slug (status=$st)"
           node scripts/openspec-embed.mjs --slug "$slug" {{.CLI_ARGS}}
         done
+  context:retrieve:
+    desc: "S1-Retrieval (T002658): budgetierter Kontextblock aus Pinned-Set + Vektor-Retrieval. Usage: task context:retrieve -- --task-prompt '…' --role bachelorprojekt-<x> [--budget N] [--limit N] [--corpora a,b]"
+    cmds:
+      - node scripts/context-retrieve.mjs {{.CLI_ARGS}}
+  context:retrieve:explain:
+    desc: "S1-Retrieval mit Diagnose-JSON (Scores, Kandidatenzahl, Token-Bilanz, mode). Usage: task context:retrieve:explain -- --task-prompt '…' --role bachelorprojekt-<x> [--budget N] [--limit N]"
+    cmds:
+      - node scripts/context-retrieve.mjs {{.CLI_ARGS}} --json
   openspec:validate:
     desc: "Validate the openspec/ tree (same as test:openspec)."
     cmds:

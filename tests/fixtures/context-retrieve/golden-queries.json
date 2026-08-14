@@ -1,0 +1,66 @@
+[
+  {
+    "task": "Sealed-Secrets fuer die Fleet-Kluster verwalten und rotieren (build_secret_manifest, dockerconfigjson, Ausgabedatei)",
+    "expect": { "slug": "flux-bootstrap-secrets-ssot-T002254", "sectionTitle": "Task 3 — GREEN: Sealer um Typ, dockerconfigjson und Ausgabedatei erweitern" }
+  },
+  {
+    "task": "Sandbox-Ausfuehrung von Factory-Skripten: default-deny-Netzwerkzugriff, Squid-Proxy-Image fuer Egress",
+    "expect": { "slug": "sandbox-egress", "sectionTitle": "Task 2: `scripts/factory/sandbox-run.sh` — strukturelle default-deny-Egress-Policy" }
+  },
+  {
+    "task": "Agent-Lock: tote Locks per Reap aufraeumen, Regel 0b an die Heartbeat-TTL koppeln",
+    "expect": { "slug": "agent-lock-reap-rule0b-ttl", "sectionTitle": "2. GREEN: Regel 0b an die Heartbeat-TTL koppeln" }
+  },
+  {
+    "task": "Test-Inventar: Ausgabepfad umlenkbar machen und Fail-closed-Guard gegen nicht regeneriertes JSON",
+    "expect": { "slug": "test-inventory-coverage", "sectionTitle": "Task 4 — Fail-closed-Guard" }
+  },
+  {
+    "task": "Epic-Tickets im Planungsbuero: type=project erfassen und Lastenheft als Gate vor der Freigabe",
+    "expect": { "slug": "epic-lastenheft-gate", "sectionTitle": "Task 1 (p1) — Planungsbüro erfasst `type='project'`" }
+  },
+  {
+    "task": "Unsloth-Trainingsumgebung: Sequenzlaengen-Messung vor der Modellwahl, Machbarkeitsmatrix erstellen",
+    "expect": { "slug": "unsloth-training-env", "sectionTitle": "1a — Längenverteilung und Machbarkeitsmatrix" }
+  },
+  {
+    "task": "Schema-Diaet: ungenutzte und konstant belegte Spalten aus der Ticket-DB entfernen, Migration erstellen",
+    "expect": { "slug": "schema-diaet-T002331", "sectionTitle": "12. Neue DB-Migration erstellen" }
+  },
+  {
+    "task": "Merge-Arbitration: Kollisionserkennung ueber mehrere offene Pull Requests, Cluster-Schema einfrieren",
+    "expect": { "slug": "merge-arbitration", "sectionTitle": "1. Cluster-Schema einfrieren" }
+  },
+  {
+    "task": "Portrait-Derivate: Crop-Offset und Seitenverhaeltnis 4:5 in der Generierung korrigieren",
+    "expect": { "slug": "portrait-derivate-crop", "sectionTitle": "Crop-Offset y=340 statt 0, Generator existiert nicht)" }
+  },
+  {
+    "task": "ticket.sh: Brand aus dem Kube-Context ableiten statt aus dem Freitext-Scan, --resolve-ns-only Flag",
+    "expect": { "slug": "ticket-sh-brand-derivation", "sectionTitle": "Task 2 — Freitext-Scan aus `scripts/ticket.sh` entfernen, `--resolve-ns-only` Testhook einbauen" }
+  },
+  {
+    "task": "Nach dem Merge gemergte Branches automatisch entfernen: branch-reaper.sh und post-merge.yml Job",
+    "expect": { "slug": "post-merge-branch-reaper", "sectionTitle": "Task 3 — Job `reap-branches` in post-merge.yml" }
+  },
+  {
+    "task": "Runtime-Drift-Guard: MCP-Prozesse gegen ihre Binaries pruefen, DB-Funktionen gegen Migrationen",
+    "expect": { "slug": "runtime-drift-guard", "sectionTitle": "Task 2 — Pruefer 1: MCP-Prozesse gegen ihre Binaries (p1-guard)" }
+  },
+  {
+    "task": "Guards per grep auf Verzeichnisse eingrenzen: scope-helpers.sh mit Exit-Code-Kontrakt",
+    "expect": { "slug": "grep-guard-scoping", "sectionTitle": "Task 1 — Helper mit Exit-Code-Kontrakt (RED → GREEN)" }
+  },
+  {
+    "task": "Testdaten aus der Ticket-DB purgen: fn_purge_test_data absichern, to_regclass-Marker, Selbstheilung",
+    "expect": { "slug": "purge-test-data-bats-T003285", "sectionTitle": "Task 2: Selbstheilung des Purge-Pfads in der Fixture (dauerhafter Fix)" }
+  },
+  {
+    "task": "E2E-Smoke-Test Kontaktformular: Submission muss funktionieren, Root-Cause-Analyse im website-Pfad",
+    "expect": { "slug": "fix-e2e-kontaktformular", "sectionTitle": "Requirement: E2E-CONTACT-FORM — Kontaktformular-Submission muss funktionieren" }
+  },
+  {
+    "task": "Website-Datenbank vom Ticket-System trennen: Stage-1-Extraktion mit Re-Export, keine Import-Zyklen",
+    "expect": { "slug": "website-db-split", "sectionTitle": "Requirement: REQ-WEBSITE-DB-SPLIT-001 — Stage 1 Extraction With Re-Export Compatibility" }
+  }
+]

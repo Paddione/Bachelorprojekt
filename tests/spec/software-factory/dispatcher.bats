@@ -15,7 +15,21 @@
 
 load '_sf_common'
 
-setup()    { _sf_setup; }
+# [T003810/P2] Live-DB-Opt-in: TICKET_TEST_DB_OK=1 hebt den BATS-Sentinel-Kontext
+# (bats-no-cluster-t002224) auf, damit seed_test_feature und conflict-check.sh
+# gegen die echte Dev-DB laufen (dasselbe Muster wie orphan-slot-reap.bats).
+# Der fruehere Skip-Guard "FACTORY_CTX gesetzt" gruendete auf dem lib.sh-Zustand
+# VOR T003544 (Default erst in factory_resolve_data_ns); seit dem
+# Top-Level-Default ist FACTORY_CTX beim Source bereits gesetzt und der Guard
+# wirkungslos — der Skip haengt jetzt an der Pod-Erreichbarkeit
+# (_skip_if_no_db), nicht an einer Variablenbelegung.
+setup_file() { export TICKET_TEST_DB_OK=1; }
+
+# factory-test-fixtures traegt die Endung .sh und ist damit nicht ueber `load`
+# erreichbar (bats sucht .bash); Vorlage: orphan-slot-reap.bats. Ohne diesen
+# Source scheitert jeder Live-Test, der `seed_test_feature` aufruft, mit
+# "command not found" (status 127).
+setup()    { _sf_setup; source tests/lib/factory-test-fixtures.sh; }
 teardown() { _sf_teardown; }
 
 # ── FA-SF-30-dispatcher-contract ────────────────────────────────#
@@ -289,12 +303,34 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
 # FA-SF-34: directory-prefix conflict heuristic regression.
 #   - two website/src/pages/ features stay PARALLEL (no conflict)
 #   - two k3d/ features in the same dir SERIALIZE (conflict via prefix branch)
+#
+# Die Seeds werden vor dem Conflict-Check auf status='in_progress' gesetzt:
+# conflict-check.sh filtert bewusst auf ('in_progress','in_review') (T002418,
+# FA-SF-45) — ein backlog-Ticket zaehlt nicht als Kollident, weil schedule.sh
+# das vorherige Ticket vor dem naechsten Check bereits geclaimt hat. Ohne das
+# Status-Update prueften die Tests nur den Statusfilter, nicht die
+# Konflikt-Heuristik (der Parallel-Test bestuende vakuos).
+#
+# Zustand direkt per psql setzen statt `slots.sh claim` (T002619): dessen
+# Subkommando schreibt pipeline_slot_meta, eine Spalte, die in prod fehlt —
+# dasselbe Muster wie FA-SF-26 in scheduling.bats.
+_sf_mark_inprogress() {
+  local ext="$1" ns="${FACTORY_NS:-workspace}" pod
+  pod=$(kubectl get pod -n "$ns" --context "$FACTORY_CTX" \
+    -l 'app in (shared-db, shared-db-dev)' --field-selector status.phase=Running \
+    -o name 2>/dev/null | head -1)
+  [[ -n "$pod" ]] || return 1
+  kubectl exec -i "$pod" -n "$ns" --context "$FACTORY_CTX" -c postgres -- \
+    psql -U website -d website -qtAc \
+    "UPDATE tickets.tickets SET status='in_progress' WHERE external_id='$ext';" >/dev/null
+}
 
 @test "FA-SF-34: two website/src/pages features do NOT conflict (stay parallel)" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   local existing
   existing=$(seed_test_feature "$brand" "website/src/pages/foo.astro")
+  _sf_mark_inprogress "$existing"
   run env BRAND="$brand" FACTORY_CTX="$FACTORY_CTX" \
     bash scripts/factory/conflict-check.sh "T999998" "website/src/pages/bar.astro"
   [ "$status" -eq 0 ]
@@ -302,10 +338,11 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
 }
 
 @test "FA-SF-34: two k3d/ features in same dir DO conflict (serialize)" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   local existing
   existing=$(seed_test_feature "$brand" "k3d/website.yaml")
+  _sf_mark_inprogress "$existing"
   run env BRAND="$brand" FACTORY_CTX="$FACTORY_CTX" \
     bash scripts/factory/conflict-check.sh "T999997" "k3d/brett.yaml"
   [ "$status" -eq 1 ]
@@ -313,10 +350,11 @@ _cf() { source scripts/factory/classify-failure.sh; classify_failure "$TMPLOG"; 
 }
 
 @test "FA-SF-34: exact-overlap base branch still conflicts (regression on @>)" {
-  [ -n "${FACTORY_CTX:-}" ] || skip "no dev cluster context set"
+  _skip_if_no_db
   local brand="${TEST_BRAND:-korczewski}"
   local existing
   existing=$(seed_test_feature "$brand" "website/src/lib/shared.ts")
+  _sf_mark_inprogress "$existing"
   run env BRAND="$brand" FACTORY_CTX="$FACTORY_CTX" \
     bash scripts/factory/conflict-check.sh "T999996" "website/src/lib/shared.ts"
   [ "$status" -eq 1 ]

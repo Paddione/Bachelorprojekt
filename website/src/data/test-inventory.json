@@ -3630,6 +3630,24 @@
     "kind": "shell"
   },
   {
+    "id": "openspec-pgvector/context-retrieve-cli",
+    "file": "tests/spec/openspec-pgvector/context-retrieve-cli.bats",
+    "category": "openspec-pgvector",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-pgvector/context-retrieve-fallback",
+    "file": "tests/spec/openspec-pgvector/context-retrieve-fallback.bats",
+    "category": "openspec-pgvector",
+    "kind": "shell"
+  },
+  {
+    "id": "openspec-pgvector/context-retrieve-recall",
+    "file": "tests/spec/openspec-pgvector/context-retrieve-recall.bats",
+    "category": "openspec-pgvector",
+    "kind": "shell"
+  },
+  {
     "id": "openspec-ticket-links-evaluation",
     "file": "tests/spec/openspec-ticket-links-evaluation.bats",
     "category": "openspec-ticket-links-evaluation",

@@ -1,0 +1,115 @@
+{
+  "meta": {
+    "slug": "runtime-drift-auto-kill",
+    "ticket_id": "T004897",
+    "generated_from": "main@975b3295a",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/runtime-drift-check.sh",
+      "language": "bash",
+      "loc": 160,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 640
+    },
+    {
+      "path": "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill.bats",
+      "language": "bash",
+      "loc": 78,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:37:report() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "37:report() {(...)",
+      "type_text": "37:report() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:45:_check_binary() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "45:_check_binary() {(...)",
+      "type_text": "45:_check_binary() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:84:check_processes() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "84:check_processes() {(...)",
+      "type_text": "84:check_processes() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:118:_db_pod() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "118:_db_pod() {(...)",
+      "type_text": "118:_db_pod() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:125:_db_has_marker() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "125:_db_has_marker() {(...)",
+      "type_text": "125:_db_has_marker() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/runtime-drift-check.sh:134:check_db() {",
+      "kind": "function",
+      "file": "scripts/runtime-drift-check.sh",
+      "signature": "134:check_db() {(...)",
+      "type_text": "134:check_db() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill.bats:16:setup() {",
+      "kind": "function",
+      "file": "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill.bats",
+      "signature": "16:setup() {(...)",
+      "type_text": "16:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill.bats:22:teardown() {",
+      "kind": "function",
+      "file": "tests/spec/batch-repo-hygiene-ops-fixes/runtime-drift-auto-kill.bats",
+      "signature": "22:teardown() {(...)",
+      "type_text": "22:teardown() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

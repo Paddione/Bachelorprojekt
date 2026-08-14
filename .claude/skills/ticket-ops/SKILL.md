@@ -83,6 +83,8 @@ Beinahe-Duplikate. Gilt in Phase 1 bei der Klassifikation **und** im Issue-Intak
 
 **M5: Agent-Lock-Prüfung in DoR (T002469):** Vor der Einplanung eines Tickets den Agent-Lock-Status prüfen: `bash scripts/agent-lock.sh check ticket <id>` → `held` bedeutet, eine andere Session arbeitet aktiv daran. Solche Tickets in `in_progress` lassen und NICHT in den Masterplan aufnehmen. Die DoR-Prüfung in Phase 1 liest den agent-lock-Status und setzt `attention_mode=auto` bei live-claimed Tickets.
 
+**Claim-Timing-Regel (T004602):** Der branch-scoped Claim im Dispatch wird bei unplanned Tickets erst NACH der `dev-flow-plan`-Proposal-Phase (Phase A im Haupt-Checkout) gehalten, da ein aktiver Worktree-Claim sonst Write-Tools im Haupt-Checkout blockiert; Details in [`ticket-ops-procedures`](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ticket-ops-procedures.md) Step 3.6 `[T004602]`.
+
 **M2: mcp-postgres Fallback (T002469):** Wenn `mcp__mcp-postgres__query` nicht erreichbar ist (curl-Probe 000), auf den `kubectl exec` psql-Fallback ausweichen. Der Fallback ist in `scripts/ticket.sh` via `BRAND`-Routing dokumentiert. Vor jedem Bulk-Triage-Lauf die Erreichbarkeit mit `curl -s -o /dev/null -w '%{http_code}' localhost:13001/health` prüfen.
 
 **Laufende Arbeit nicht anfassen:** Tickets in `in_progress`, die auf einen lebenden Plan-Branch

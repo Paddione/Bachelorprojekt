@@ -3513,6 +3513,12 @@
       "status": "archived"
     }
   ],
+  "T004602": [
+    {
+      "slug": "ticket-ops-claim-timing",
+      "status": "plan_staged"
+    }
+  ],
   "T004604": [
     {
       "slug": "worktree-real-path-check",

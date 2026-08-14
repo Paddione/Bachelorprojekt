@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "slug": "ticket-ops-claim-timing",
+    "ticket_id": "",
+    "generated_from": "main@fe4edc32b",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/references/ticket-ops-procedures.md",
+      "language": "markdown",
+      "loc": 560,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": ".claude/skills/ticket-ops/SKILL.md",
+      "language": "markdown",
+      "loc": 191,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
+      "language": "bash",
+      "loc": 42,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": ".claude/skills/references/ticket-ops-procedures.md:144:get_openspec_status() { jq -r --arg id \"$1\" '.[$id] // [] | map(\"\\(.status):\\(.slug)\") | join(\", \")' \"$OMAP_FILE\" 2>/dev/null || echo \"\"; }",
+      "kind": "function",
+      "file": ".claude/skills/references/ticket-ops-procedures.md",
+      "signature": "144:get_openspec_status() { jq -r --arg id \"$1\" '.[$id] // [] | map(\"\\(.status):\\(.slug)\") | join(\", \")' \"$OMAP_FILE\" 2>/dev/null || echo \"\"; }(...)",
+      "type_text": "144:get_openspec_status() { jq -r --arg id \"$1\" '.[$id] // [] | map(\"\\(.status):\\(.slug)\") | join(\", \")' \"$OMAP_FILE\" 2>/dev/null || echo \"\"; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/ticket-ops-claim-phase-a-T004602.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/ticket-ops-claim-phase-a-T004602.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

@@ -6,12 +6,13 @@ const BASE = process.env.KORCZEWSKI_URL?.replace(/\/$/, '') ?? 'https://web.korc
 // per worker. Each describe block calls `guard(request)` in beforeAll.
 let reachable: boolean | null = null;
 async function guard(request: APIRequestContext) {
-  if (reachable !== null) return;
-  try {
-    const res = await request.get(BASE, { timeout: 10_000, maxRedirects: 0 });
-    reachable = res.status() < 500;
-  } catch {
-    reachable = false;
+  if (reachable === null) {
+    try {
+      const res = await request.get(BASE, { timeout: 10_000, maxRedirects: 0 });
+      reachable = res.status() < 500;
+    } catch {
+      reachable = false;
+    }
   }
   if (!reachable) test.skip(true, `${BASE} unreachable — skipping korczewski suite`);
 }

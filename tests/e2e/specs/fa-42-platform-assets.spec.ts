@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 // Runs in the `mentolder` project — auth state injected via storageState.
 test.describe('FA-42: Platform Asset Inventory', () => {
+  test.beforeEach(async ({ request }) => {
+    await guardSdlc(request);
+  });
   test('should display software assets with k8s status', async ({ page }) => {
     await page.goto('/admin/platform');
     

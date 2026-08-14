@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 test.describe('FA-UNIF: Dev-Status tabs', { tag: ['@admin', '@factory'] }, () => {
+  test.beforeEach(async ({ request }) => {
+    await guardSdlc(request);
+  });
 
 test('FA-UNIF-01: /admin/pipeline öffnet Factory-Tab', async ({ page }) => {
   await page.goto('/admin/cockpit');

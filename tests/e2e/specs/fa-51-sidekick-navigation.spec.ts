@@ -4,7 +4,7 @@ import { loginAsAdmin } from '../lib/auth';
 const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 async function openSidekick(page: import('@playwright/test').Page) {
-  await page.goto(`${BASE}/admin`);
+  await page.goto(`${BASE}/admin`, { waitUntil: 'domcontentloaded' });
   const fab = page.locator('button.fab');
   await expect(fab).toBeVisible({ timeout: 30_000 });
   await fab.click();

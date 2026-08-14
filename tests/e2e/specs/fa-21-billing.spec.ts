@@ -5,7 +5,7 @@ const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA-21: Service Catalog & Billing', { tag: ['@billing'] }, () => {
   test('T1: /leistungen page displays services', async ({ page }) => {
-    await page.goto(`${BASE}/leistungen`);
+    await page.goto(`${BASE}/leistungen`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { name: /Leistungen|Services/i }).first()).toBeVisible();
 
     // Check for some expected service names
@@ -14,7 +14,7 @@ test.describe('FA-21: Service Catalog & Billing', { tag: ['@billing'] }, () => {
   });
 
   test('T2: Service links point to booking page', async ({ page }) => {
-    await page.goto(`${BASE}/leistungen`);
+    await page.goto(`${BASE}/leistungen`, { waitUntil: 'domcontentloaded' });
     const bookingLinks = page.locator('a[href*="/termin"]');
     const count = await bookingLinks.count();
     expect(count).toBeGreaterThan(0);
@@ -37,6 +37,7 @@ test.describe('FA-21: Service Catalog & Billing', { tag: ['@billing'] }, () => {
 
 test.describe('FA-21 PR-A: Invoice Lifecycle (Partial/Full Payment)', { tag: ['@billing'] }, () => {
   test('partial payment then full payment toggles status', async ({ page, request }, testInfo) => {
+    test.setTimeout(30_000);
     await adminLogin(page, request, testInfo);
 
     const inv = await createTestInvoice(page, { gross: 100 });

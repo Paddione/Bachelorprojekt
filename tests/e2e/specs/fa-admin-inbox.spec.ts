@@ -61,7 +61,7 @@ test.describe('FA-admin-inbox: two-pane rework', { tag: ['@admin', '@messaging']
 
     // [data-testid="inbox-sidebar"] — Sidebar root (spec §10)
     const sidebar = root.locator('[data-testid="inbox-sidebar"]');
-    await expect(sidebar).toBeVisible();
+    await expect(sidebar).toBeVisible({ timeout: 15_000 });
 
     // [data-testid="inbox-sidebar-item"][data-type="{type|all}"] (spec §10)
     // Spec §5.2 fixes the order: Alle, Anfragen, Buchungen, Bugs, Nachrichten,

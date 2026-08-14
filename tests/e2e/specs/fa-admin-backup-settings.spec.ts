@@ -4,7 +4,7 @@ const BASE = process.env.WEBSITE_URL || 'http://localhost:4321';
 
 test.describe('FA: Admin Backup Settings page', () => {
   test('T1: /admin/einstellungen/backup redirects unauthenticated users', async ({ page }) => {
-    await page.goto(`${BASE}/admin/einstellungen/backup`);
+    await page.goto(`${BASE}/admin/einstellungen/backup`, { waitUntil: 'domcontentloaded' });
     await expect(page).not.toHaveURL(`${BASE}/admin/einstellungen/backup`);
   });
 

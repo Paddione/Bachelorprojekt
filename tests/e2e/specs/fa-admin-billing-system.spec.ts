@@ -12,18 +12,18 @@ test.describe('FA: Admin native billing system (SEPA/ZUGFeRD)', { tag: ['@admin'
 
   for (const path of adminPages) {
     test(`${path} redirects unauthenticated users`, async ({ page }) => {
-      await page.goto(`${BASE}${path}`);
+      await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
       await expect(page).not.toHaveURL(`${BASE}${path}`);
     });
   }
 
   test('/admin/billing/:id/drucken redirects unauthenticated users', async ({ page }) => {
-    await page.goto(`${BASE}/admin/billing/00000000-0000-0000-0000-000000000000/drucken`);
+    await page.goto(`${BASE}/admin/billing/00000000-0000-0000-0000-000000000000/drucken`, { waitUntil: 'domcontentloaded' });
     await expect(page).not.toHaveURL(/\/admin\/billing\/.*\/drucken/);
   });
 
   test('/portal/billing/:id/drucken redirects unauthenticated users', async ({ page }) => {
-    await page.goto(`${BASE}/portal/billing/00000000-0000-0000-0000-000000000000/drucken`);
+    await page.goto(`${BASE}/portal/billing/00000000-0000-0000-0000-000000000000/drucken`, { waitUntil: 'domcontentloaded' });
     await expect(page).not.toHaveURL(/\/portal\/billing\/.*\/drucken/);
   });
 

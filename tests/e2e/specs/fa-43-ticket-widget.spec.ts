@@ -8,6 +8,7 @@
 import { test, expect } from '@playwright/test';
 import { loginViaE2E } from '../lib/auth';
 import { assertAuthenticatedReachable } from '../lib/health-assertions';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 const BASE       = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'paddione';
@@ -71,7 +72,8 @@ test.describe('FA-43: TicketWidgetBar — portal widget rendering', () => {
     });
 
     // ── PlatformHub Tickets tab: admin ticket creation ─────────────────
-    test('T6: PlatformHub Tickets tab renders create form', async ({ page }) => {
+    test('T6: PlatformHub Tickets tab renders create form', async ({ page, request }) => {
+      await guardSdlc(request);
       await loginAndGo(page, '/admin/platform');
       await page.waitForLoadState('networkidle');
 

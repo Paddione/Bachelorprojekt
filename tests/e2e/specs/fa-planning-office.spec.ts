@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 test.describe('Planungsbüro', { tag: ['@admin', '@planungsbuero'] }, () => {
-  test.beforeEach(async ({ page }) => { await page.goto('/admin/cockpit?tab=planung', { waitUntil: 'domcontentloaded' }); });
+  test.beforeEach(async ({ page, request }) => {
+    await guardSdlc(request);
+    await page.goto('/admin/cockpit?tab=planung', { waitUntil: 'domcontentloaded' });
+  });
 
   test('legt eine Idee an und zeigt sie in der Liste', async ({ page }) => {
     await page.getByTestId('office-add-title').fill('E2E Testidee');

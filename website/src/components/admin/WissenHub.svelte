@@ -73,7 +73,7 @@
     btn.textContent = 'Starte…';
     const r = await fetch(`/api/admin/knowledge/collections/${id}/crawl`, { method: 'POST' });
     const j = await r.json().catch(() => ({}));
-    if (r.ok) {
+    if (r.ok || r.status === 409) {
       crawlingIds = new Set([...crawlingIds, id]);
       pollCrawl(id);
     } else {
@@ -167,7 +167,13 @@
           {/each}
           {#each collections as col (col.id)}
             <tr>
-              <td>{col.name}</td>
+              <td>
+                {col.name}
+                {#if col.source === 'web_crawl' && (col.crawl_config?.startUrl || (col as any).crawlConfig?.startUrl)}
+                  {@const url = col.crawl_config?.startUrl || (col as any).crawlConfig?.startUrl}
+                  <br /><a href={url} target="_blank" rel="noopener" class="crawl-url-link" style="font-size: 0.8em; color: var(--admin-primary, #c9a84c);">{url}</a>
+                {/if}
+              </td>
               <td><code>{col.source}</code></td>
               <td>{col.brand ?? '—'}</td>
               <td>{col.chunk_count}</td>

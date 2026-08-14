@@ -13,8 +13,9 @@ import (
 )
 
 // TestSigkillEscalation pins the cancel semantics (T005592): SIGTERM via
-// cmd.Cancel at context cancellation; SIGKILL via exec.WaitDelay, so a task
-// that ignores SIGTERM cannot outlive the escalation window.
+// cmd.Cancel at context cancellation; SIGKILL via time.AfterFunc after
+// sigkillDelay, so a task that ignores SIGTERM cannot outlive the
+// escalation window (WaitDelay remains the backstop).
 func TestSigkillEscalation(t *testing.T) {
 	old := sigkillDelay
 	sigkillDelay = 200 * time.Millisecond

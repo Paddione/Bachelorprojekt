@@ -77,7 +77,21 @@ func RunTask(ctx context.Context, task, env, taskfilePath string) (Result, error
 		taskArgs = append(taskArgs, "ENV="+env)
 	}
 	cmd := exec.CommandContext(ctx, "task", taskArgs...)
-	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
+	// Eigene Prozessgruppe: Kinder des Tasks erben sie, damit Cancel die
+	// ganze Gruppe signalisieren kann (T005592).
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		// Cancel kann vor Start feuern (ctx bereits beendet) — dann ist
+		// cmd.Process noch nil; ein Signal an -1 wäre fatal.
+		if cmd.Process == nil {
+			return nil
+		}
+		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
+		time.AfterFunc(sigkillDelay, func() {
+			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		})
+		return nil
+	}
 	cmd.WaitDelay = sigkillDelay
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {

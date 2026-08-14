@@ -3597,6 +3597,12 @@
       "status": "archived"
     }
   ],
+  "T005306": [
+    {
+      "slug": "schedule-blocker-gate",
+      "status": "plan_staged"
+    }
+  ],
   "T005307": [
     {
       "slug": "2026-08-14-cfr-gates",

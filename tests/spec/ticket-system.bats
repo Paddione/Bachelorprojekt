@@ -649,3 +649,25 @@ TYPE_VOCAB_TS="website/src/lib/tickets/migrate-type-vocabulary.ts"
   [ "$status" -eq 0 ] || { echo "MISSING LIKE 'FACTORY-PLAN-REF % branch=%' in Pattern 4b of reconcile-ticket-status.sh"; false; }
 }
 
+
+# ── [T003072] Terminal-Guard-Reparatur: ungültiges done ist ausnehmbar ────────#
+# Ein per Fehleingabe als done angelegtes Ticket (resolution IS NULL, kein
+# Lebenszyklus: created_at == updated_at) ist maschinell von einem gültigen
+# Abschluss unterscheidbar — der Guard muss diesen Fall ausnehmen statt ihn zu
+# zementieren. Beide Write-Pfade (shell + TS) müssen die Ausnahme spiegeln.
+
+@test "T003072: update-status.sh exempiert ungültiges done (resolution IS NULL, kein Lebenszyklus)" {
+  run grep -Fq "resolution IS NULL" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ] || { echo "MISSING: resolution IS NULL-Bedingung in update-status.sh"; false; }
+  run grep -Fq "created_at = updated_at" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ] || { echo "MISSING: created_at = updated_at-Bedingung in update-status.sh"; false; }
+  run grep -Fqi "invalid done" scripts/vda/ticket/update-status.sh
+  [ "$status" -eq 0 ] || { echo "MISSING: sichtbarer invalid-done-Hinweis in update-status.sh"; false; }
+}
+
+@test "T003072: transition.ts spiegelt die Ausnahme (beide Write-Pfade einig, T002230-Muster)" {
+  run grep -Fq "resolution IS NULL" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ] || { echo "MISSING: resolution IS NULL-Bedingung in transition.ts"; false; }
+  run grep -Fq "created_at" website/src/lib/tickets/transition.ts
+  [ "$status" -eq 0 ] || { echo "MISSING: created_at-Bezug in transition.ts"; false; }
+}

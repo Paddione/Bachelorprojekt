@@ -242,4 +242,31 @@ describe('transitionTicket', () => {
       m.transitionTicket('T000102', { status: 'done', resolution: 'fixed', actor: { label: 'admin' } }),
     ).rejects.toThrow(/Cannot transition from 'archived'/);
   });
+
+  // ── [T003072] Invalid done repair transition ────────────────────────────
+
+  it('allows repairing an invalid done ticket with no resolution and created_at == updated_at (T003072)', async () => {
+    const m = await loadModule();
+    const now = new Date();
+    queueAndReject.push({ rows: [], rowCount: 0 }); // BEGIN
+    queueAndReject.push({ rows: [], rowCount: 0 }); // set_config user_label
+    queueAndReject.push({
+      rows: [{
+        id: 'uuid-invalid-done', external_id: 'T003025', type: 'fix', status: 'done', resolution: null,
+        created_at: now, updated_at: now,
+        reporter_email: null, brand: 'mentolder',
+      }],
+      rowCount: 1,
+    });
+    queueAndReject.push({
+      rows: [{
+        id: 'uuid-invalid-done', external_id: 'T003025', type: 'fix', status: 'in_progress', resolution: null,
+        reporter_email: null, brand: 'mentolder',
+      }],
+      rowCount: 1,
+    });
+    queueAndReject.push({ rows: [], rowCount: 0 }); // COMMIT
+    const out = await m.transitionTicket('T003025', { status: 'in_progress', actor: { label: 'admin' } });
+    expect(out.status).toBe('in_progress');
+  });
 });

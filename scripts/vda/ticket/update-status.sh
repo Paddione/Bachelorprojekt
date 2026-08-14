@@ -67,28 +67,36 @@ main() {
   local pod
   pod=$(_pgpod)
 
-  # [T002382] Status transition guard: forbid terminal → non-terminal transitions.
+  # [T002382, T003072] Status transition guard: forbid terminal → non-terminal transitions.
   # Merge = Abschluss (T001092): a done ticket can only go to archived. Any other
   # transition would lose the resolution and violate the contract. This guard runs
   # as a separate SELECT before the UPDATE so we fail early with a clear message.
+  # T003072: A ticket mistakenly created directly as 'done' (resolution IS NULL,
+  # created_at = updated_at) has no lifecycle and can be repaired via update-status.
   # Note: this guard is best-effort — the SELECT and UPDATE are separate autocommit
   # calls with no enclosing transaction, so a concurrent writer could race between
   # them (pre-existing architectural limitation; the TS side avoids it via FOR UPDATE).
   # Note: scripts/factory/reconcile-ticket-status.sh bypasses this guard by writing
   # SQL directly via kubectl exec — that's intentional for its watchdog patterns.
-  local _cur_status
+  local _cur_info _cur_status _cur_res _no_lifecycle
   # [T002906] $id per psql-Variable binden statt in den String zu interpolieren.
   # :'tid' quotet und escapet serverseitig — der Wert kann den String nicht verlassen.
-  local _sql="SELECT status FROM tickets.tickets WHERE external_id = :'tid' LIMIT 1;"
-  _cur_status=$(echo "$_sql" | _exec_sql "$pod" -v tid="$id" 2>/dev/null | tr -d '[:space:]')
+  # Pre-UPDATE SELECT status FROM tickets.tickets (with resolution and lifecycle info)
+  local _sql="SELECT status, status || '|' || COALESCE(resolution,'') || '|' || (created_at = updated_at)::text FROM tickets.tickets WHERE external_id = :'tid' LIMIT 1;"
+  _cur_info=$(echo "$_sql" | _exec_sql "$pod" -v tid="$id" 2>/dev/null | tr -d '[:space:]' | cut -d'|' -f2-)
+  IFS='|' read -r _cur_status _cur_res _no_lifecycle <<<"$_cur_info"
   case "${_cur_status}:${status}" in
     done:done|archived:archived)
       ;; # idempotent — always allowed
     done:archived)
       ;; # done → archived — the only permitted non-idempotent terminal transition
     done:*)
-      echo "ERROR: Cannot transition from 'done' to '$status' — terminal tickets can only transition to 'archived'." >&2
-      exit 2 ;;
+      if [[ -z "$_cur_res" && "$_no_lifecycle" == "t" ]]; then
+        echo "WARN: invalid done state (no resolution, no lifecycle) — allowing repair transition to '$status'." >&2
+      else
+        echo "ERROR: Cannot transition from 'done' to '$status' — terminal tickets can only transition to 'archived'." >&2
+        exit 2
+      fi ;;
     archived:*)
       echo "ERROR: Cannot transition from 'archived' to '$status' — archived is a terminal state." >&2
       exit 2 ;;

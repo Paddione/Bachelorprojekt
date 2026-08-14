@@ -3111,6 +3111,12 @@
       "status": "archived"
     }
   ],
+  "T003072": [
+    {
+      "slug": "terminal-guard-invalid-done-repair",
+      "status": "plan_staged"
+    }
+  ],
   "T003075": [
     {
       "slug": "2026-08-10-freshness-gate-artifacts",

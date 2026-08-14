@@ -66,18 +66,27 @@ export async function transitionTicket(
     await client.query(`SELECT set_config('app.user_label', $1, true)`, [p.actor.label]);
 
     const cur = await client.query(
-      `SELECT id, external_id, type, status, reporter_email, brand
+      `SELECT id, external_id, type, status, resolution, created_at, updated_at, reporter_email, brand
          FROM tickets.tickets WHERE id = $1 FOR UPDATE`,
       [ticketId]
     );
     if (cur.rowCount === 0) throw new Error(`ticket ${ticketId} not found`);
     const before = cur.rows[0];
 
-    // [T002382] Status transition guard: forbid terminal → non-terminal transitions.
+    // [T002382, T003072] Status transition guard: forbid terminal → non-terminal transitions.
     // Merge = Abschluss (T001092): a done ticket can only go to archived. This mirrors
     // the guard in scripts/vda/ticket/update-status.sh (bash side).
+    // T003072: A ticket mistakenly created directly as 'done' (resolution IS NULL,
+    // created_at = updated_at) has no lifecycle and can be repaired.
     const b4 = before.status as string;
-    if (b4 === 'done' && p.status !== 'done' && p.status !== 'archived') {
+    const invalidDone =
+      b4 === 'done' &&
+      before.resolution == null &&
+      before.created_at instanceof Date &&
+      before.updated_at instanceof Date &&
+      before.created_at.getTime() === before.updated_at.getTime();
+
+    if (b4 === 'done' && p.status !== 'done' && p.status !== 'archived' && !invalidDone) {
       throw new Error(`Cannot transition from 'done' to '${p.status}' — terminal tickets can only transition to 'archived'`);
     }
     if (b4 === 'archived' && p.status !== 'archived') {

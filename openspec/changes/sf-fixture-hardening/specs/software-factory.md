@@ -23,3 +23,9 @@ The teardown path SHALL keep its call site exit-neutral while no longer discardi
 ### Requirement: guard skip only when verified offline
 
 The system SHALL fail — not skip — the `scheduling-cleanup-guard` test when the database is reachable but the create path produced no row, so a broken create path cannot turn the guard green-by-skip.
+
+#### Scenario: reachable database with empty create fails the test
+
+- **GIVEN** a reachable database pod
+- **WHEN** `ticket.sh create` fails to produce an external ID
+- **THEN** the test fails instead of skipping

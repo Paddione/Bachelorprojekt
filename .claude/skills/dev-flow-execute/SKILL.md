@@ -51,9 +51,11 @@ bash scripts/ticket.sh release-hold --id "$TICKET_ID" || true
 
 ## Schritt 2: Implementierung an frischen Implementer-Subagenten delegieren
 
-> **Arbeitsteilung (T002365, aus T002351-M3):** Implementer bis `gh pr merge --auto` → **ENDE**,
-> Bericht zurück. Orchestrator: CI-Watch (5.5); Exit 3/4 per `SendMessage` an den Implementer
-> zurück, nicht neu spawnen — sonst liefe die CI-Überwachung als Hintergrund-Monitor [T001969].
+> **Arbeitsteilung (T002365, aus T002351-M3):** Implementer bis PR-Erstellung → **ENDE**,
+> Bericht zurück — OHNE Auto-Merge-Anforderung (der Auto-Merge-Befehl liegt im Code-Review-Gate,
+> Schritt 3.8). Orchestrator: Review-Gate (3.8), CI-Watch (5.5); Exit 3/4 per `SendMessage` an
+> den Implementer zurück, nicht neu spawnen — sonst liefe die CI-Überwachung als
+> Hintergrund-Monitor [T001969].
 
 Live-Floor-Telemetrie (best-effort): Implementer-Subagent wird gespawnt — **MCP-first**:
 > `mcp__ticket-mcp__record_phase_event({ id: "$TICKET_ID", phase: "implement", state: "entered", driver: "devflow", detail: "Subagent gestartet · agent_id=$IMPLEMENTER_AGENT_ID" })`
@@ -84,10 +86,12 @@ Spawne den Subagenten, provisioniert gemäß [subagent-provisioning](file:///hom
    - Bei Kompilier-/Testfehlern: diagnostiziere und fixe systematisch (Logs lesen, Fehler eingrenzen, Hypothese testen, fixen, Re-Test).
   - **PFLICHT vor PR-Erstellung — Freshness-Artefakte regenerieren und committen** (sonst schlägt CI mit "stale artifact" fehl; `executing-plans` → `finishing-a-development-branch` überspringt diesen Schritt). Befehle + Artefakt-Pfadliste (SSOT): [verification-block](file:///home/patrick/Bachelorprojekt/.claude/skills/references/verification-block.md) — der Subagent MUSS die Datei lesen und den `git add`-Block daraus verwenden.
   - **Hintergrund-Monitore für lange Test-Runs verboten [T001969 Mishap 1].** Während der Verifikation (lange `task test:changed`/`gh run watch`/CI-Polls) **keine** Background-Tasks starten, auf deren Output der Subagent in einer Monitor-Schleife wartet ("I'll wait for the monitor"). Stattdessen synchron mit explizitem Timeout ausführen: `timeout 600 task test:changed` und auf das Resultat warten. Bei Stop-Events: Arbeit fortsetzen oder an den Orchestrator eskalieren — nicht auf einen Monitor-Loop warten.
-  - Erstelle einen PR und fordere Auto-Merge an (`gh pr merge --auto --squash` — KEIN `--delete-branch`, der Branch wird erst nach dem OpenSpec-Archiv gelöscht, T004612; Schritt 5).
-  - **ENDE (T002365):** Melde Ergebnis zurück — CI-Fix-Schleife (5.5), Merge-Wait, Ticket-Abschluss und
-    Plan-Archivierung laufen im Orchestrator. **Der Worktree wird NICHT von dir entfernt** (T002352-M1),
-    das ist Orchestrator-Aufgabe (Schritt 7.5). Notification abwarten, dann bei Schritt 5.5 weiter — nicht Schritt 8.
+  - Erstelle einen PR (OHNE Auto-Merge-Anforderung — die erfolgt erst nach bestandenem
+    Code-Review-Gate durch den Orchestrator, Schritt 3.8).
+  - **ENDE (T002365):** Melde Ergebnis zurück — Review-Gate (3.8), CI-Fix-Schleife (5.5),
+    Merge-Wait, Ticket-Abschluss und Plan-Archivierung laufen im Orchestrator. **Der Worktree
+    wird NICHT von dir entfernt** (T002352-M1), das ist Orchestrator-Aufgabe (Schritt 7.5).
+    Der Orchestrator fährt nach deiner Rückmeldung bei Schritt 3.8 fort — nicht Schritt 8.
 
 ### Wenn keine Delegation möglich ist [T002698]
 

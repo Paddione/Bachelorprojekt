@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.12...website-v1.276.13) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** openspec-embed slug literal in embed_output_is_success match [T004829] ([#4420](https://github.com/Paddione/Bachelorprojekt/issues/4420)) ([e25bd8f](https://github.com/Paddione/Bachelorprojekt/commit/e25bd8f607b0e881be875d2b55e95040e1bcc0a8))
+
 ## [1.276.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.11...website-v1.276.12) (2026-08-14)
 
 

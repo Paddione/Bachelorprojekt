@@ -17,6 +17,13 @@
 # since T002830, so only real features surface in the queue/schedule candidate
 # list (FA-SF-24/25). They are reaped by purge_real_feature (hard DELETE) — NOT
 # by fn_purge_test_data(), which reaps only is_test_data=true rows.
+#
+# [T005309] seed_real_feature registers every created external_id in
+# $BATS_FILE_TMPDIR/sf-seeded-ids (eine Zeile pro ID); der gemeinsame
+# _sf_teardown purgt alle registrierten IDs nach jedem Test, unabhaengig vom
+# Testausgang — eine fehlgeschlagene Assertion (errexit) hinterlaesst so keinen
+# Ghost-Seed. purge_real_feature loescht nur SF-REAL- betitelte Zeilen (--force
+# uebergeht den Guard fuer test-eigene Fixtures ohne SF-REAL-Titel).
 
 # Resolve the repo root from this file's location so the fixture works
 # regardless of the BATS working directory.
@@ -52,6 +59,8 @@ seed_test_feature() {
 # --is-test-data-Flag beim ticket.sh create; Title-Praefix SF-REAL- macht
 # unaufgeraeumte Reste von SF-TEST-Fixtures unterscheidbar. Cleanup ausschliesslich
 # ueber purge_real_feature (hartes DELETE), nicht ueber fn_purge_test_data().
+# [T005309] Registriert die neue external_id in $BATS_FILE_TMPDIR/sf-seeded-ids
+# (sofern BATS_FILE_TMPDIR gesetzt ist) — der gemeinsame _sf_teardown purgt sie.
 #
 # Zusaetzlich zum is_test_data=false-Flag braucht die Queue-Lane fuer
 # backlog-Features readiness.lastenheft_locked=true (AI-ready-Gate der
@@ -74,6 +83,14 @@ seed_real_feature() {
     --type feature --brand "$brand" --title "$title" \
     --description "factory fixture" --priority mittel --status backlog)
   ext_id="${result%%|*}"
+  # [T005309] Registrierung SOFORT nach dem Anlegen (vor plan-meta/lastenheft):
+  # schlaegt ein spaeterer Seed-Schritt fehl und errexit bricht den Test ab,
+  # purgt _sf_teardown die Zeile trotzdem (Registry-Datei, eine ID pro Zeile).
+  # Fehlt BATS_FILE_TMPDIR (Nicht-BATS-Aufruf), entfaellt die Registrierung
+  # stillschweigend — kein Absturz ausserhalb eines bats-Laufs.
+  if [[ -n "$ext_id" && -n "${BATS_FILE_TMPDIR:-}" ]]; then
+    echo "$ext_id" >> "$BATS_FILE_TMPDIR/sf-seeded-ids"
+  fi
   BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" \
     plan-meta set --id "$ext_id" --requirements 'factory fixture' >/dev/null
   BRAND="$brand" TICKET_CTX="$ctx" bash "$_FIXTURE_REPO_ROOT/scripts/ticket.sh" \
@@ -145,14 +162,25 @@ purge_factory_test_data() {
     psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null
 }
 
-# purge_real_feature <brand> <ext_id> — hard DELETE of one real (is_test_data=false)
-# seeded feature row. [T005029] fn_purge_test_data() raeumt nur is_test_data=true-
-# Zeilen, deshalb loescht der Real-Feature-Cleanup direkt. Pod-/Namespace-Aufloesung
-# wie purge_factory_test_data ([T002689] Brand waehlt ZEILEN, nicht den Ort;
-# [T002781] shared-db liegt in 'workspace', nicht '-dev'); Prod-Guard wie
-# seed_real_feature — ein DELETE auf fleet ist nicht rueckholbar. Idempotent:
-# fehlt die Zeile, loescht das DELETE 0 Zeilen mit Exit 0.
+# purge_real_feature [--force] <brand> <ext_id> — hard DELETE of one real
+# (is_test_data=false) seeded feature row. [T005029] fn_purge_test_data() raeumt
+# nur is_test_data=true-Zeilen, deshalb loescht der Real-Feature-Cleanup direkt.
+# Pod-/Namespace-Aufloesung wie purge_factory_test_data ([T002689] Brand waehlt
+# ZEILEN, nicht den Ort; [T002781] shared-db liegt in 'workspace', nicht '-dev');
+# Prod-Guard wie seed_real_feature — ein DELETE auf fleet ist nicht rueckholbar.
+#
+# [T005309] Titel-Guard: geloescht wird nur, wenn der Titel mit 'SF-REAL-' beginnt
+# — eine falsch uebergebene ID kann so nie ein echtes Ticket hart loeschen.
+# Rueckgabe ist unterscheidbar: 0 = geloescht ODER Zeile existierte schon nicht
+# mehr (idempotent), 4 = Guard verweigert (Zeile existiert, Titel ohne SF-REAL-).
+# --force (erstes Argument) uebergeht den Guard — ausschliesslich fuer das
+# Eigenaufraeumen von Test-Fixtures ohne SF-REAL-Titel.
 purge_real_feature() {
+  local force=0
+  if [[ "${1:-}" == "--force" ]]; then
+    force=1
+    shift
+  fi
   local brand="$1" ext_id="$2"
   local ctx="${FACTORY_CTX:-k3d-mentolder-dev}" ns
   if [[ "$ctx" == "fleet" && -z "${FACTORY_ALLOW_PROD_SEED:-}" ]]; then
@@ -171,6 +199,23 @@ purge_real_feature() {
     [[ -n "$pod" ]] && { ns="$candidate_ns"; break; }
   done
   [[ -z "$pod" ]] && { echo "no shared-db pod in $ns" >&2; return 1; }
+  # [T005309] SELECT vorab macht 0-Zeilen-Idempotenz von Guard-Verweigerung
+  # unterscheidbar; der DELETE traegt den Guard zusaetzlich in der WHERE-Klausel.
+  # < /dev/null an beiden exec-Aufrufen: kubectl exec -i liest den Shell-Stdin
+  # und draent damit einen while-read-Loop ueber einer Datei (beobachtet im
+  # _sf_teardown-Purge: nur die erste registrierte ID wurde gepurged, der Rest
+  # der Registry-Datei landete als EOF-verlorenes Stdin im exec).
+  local title
+  title=$(kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
+    psql -U postgres -d website -qtAc "SELECT title FROM tickets.tickets WHERE external_id='$ext_id';" 2>/dev/null < /dev/null | tr -d '[:space:]')
+  [[ -n "$title" ]] || return 0   # idempotent: Zeile existiert nicht mehr
+  if [[ "$force" != 1 && "$title" != SF-REAL-* ]]; then
+    echo "purge_real_feature: refuses non-SF-REAL title for $ext_id (title: ${title:0:60}…)" >&2
+    return 4
+  fi
+  local guard_sql="AND title LIKE 'SF-REAL-%'"
+  [[ "$force" == 1 ]] && guard_sql=""
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
-    psql -U postgres -d website -qtAc "DELETE FROM tickets.tickets WHERE external_id='$ext_id';" >/dev/null
+    psql -U postgres -d website -qtAc "DELETE FROM tickets.tickets WHERE external_id='$ext_id' ${guard_sql};" >/dev/null < /dev/null
+  return 0
 }

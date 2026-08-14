@@ -147,7 +147,8 @@ teardown() { _sf_teardown; }
     echo "SF-TEST fixture leaked into queue candidates: $sfx" >&2
     return 1
   fi
-  purge_real_feature "$brand" "$ext"
+  # [T005309] Kein Body-Purge: _sf_teardown purgt registrierte Real-Feature-Seeds
+  # (sf-seeded-ids) auch bei fehlgeschlagener Assertion — kein Ghost-Seed mehr.
 }
 
 # ── FA-SF-25-schedule ───────────────────────────────────────────#
@@ -168,10 +169,10 @@ teardown() { _sf_teardown; }
   e2=$(seed_real_feature "$brand" "tests/fixtures/sf-test-sched-$$-b.txt")
   run env BRAND="$brand" FACTORY_GLOBAL_CAP=3 bash scripts/factory/schedule.sh
   [ "$status" -eq 0 ]
+  # [T005309] Assertions filtern auf die gesehenen eigenen IDs (e1/e2) — keine
+  # globale Kandidatenzahl. Cleanup uebernimmt _sf_teardown (Registry).
   echo "$output" | jq -e --arg e "$e1" 'any(.[]; .external_id == $e and (.slot|type=="number"))'
-  echo "$output" | jq -e --arg e "$e2" 'any(.[]; .external_id == $e)'
-  purge_real_feature "$brand" "$e1"
-  purge_real_feature "$brand" "$e2"
+  echo "$output" | jq -e --arg e "$e2" 'any(.[]; .external_id == $e and (.slot|type=="number"))'
 }
 
 @test "FA-SF-25: global cap of 1 schedules at most one feature" {
@@ -184,11 +185,15 @@ teardown() { _sf_teardown; }
   r2=$(seed_real_feature "$brand" "tests/fixtures/sf-test-cap-$$-b.txt")
   run env BRAND="$brand" FACTORY_GLOBAL_CAP=1 bash scripts/factory/schedule.sh
   [ "$status" -eq 0 ]
+  # [T005309] Globaler Cap-Test: die Zaehl-Aussage gilt fuer die Kandidatenmenge
+  # insgesamt, nicht fuer die eigenen IDs — ein Filter auf r1/r2 wuerde die
+  # Cap-Semantik verfaelschen. Dokumentierte Vorbedingung: saubere Dev-DB (keine
+  # fremden echten Backlog-Features mit hoeherem Rank). _sf_teardown purgt alle
+  # registrierten Seeds nach jedem Test, Ghost-Seeds aus Fehllauefen entstehen
+  # damit nicht mehr.
   count=$(echo "$output" | jq 'length')
   [ "$count" -ge 1 ]
   [ "$count" -le 1 ]
-  purge_real_feature "$brand" "$r1"
-  purge_real_feature "$brand" "$r2"
 }
 
 # ── FA-SF-26-watchdog ───────────────────────────────────────────#

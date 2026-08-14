@@ -7,6 +7,12 @@
 # Ghost-Seeds (status=in_progress) in der Dev-DB. Dieser Guard friert ein: Seeds werden
 # registriert, im teardown gepurged, und purge weigert sich bei Nicht-SF-REAL-Titeln.
 
+# [T003810/P2] Live-DB-Opt-in (dasselbe Muster wie scheduling.bats): ohne
+# TICKET_TEST_DB_OK=1 repointet _ticket-core.sh unter BATS CTX auf den Sentinel
+# "bats-no-cluster-t002224" — ticket.sh create liefe leer und Test 3 skippte
+# statt zu messen (T005309/T003548-Wächter).
+setup_file() { export TICKET_TEST_DB_OK=1; }
+
 setup() {
   load '_sf_common.bash'
   _sf_setup
@@ -31,7 +37,8 @@ teardown() {
     || { echo "registry file missing after seed" >&2; purge_real_feature "$brand" "$ext"; return 1; }
   grep -qxF "$ext" "$BATS_FILE_TMPDIR/sf-seeded-ids" \
     || { echo "seeded id not registered" >&2; purge_real_feature "$brand" "$ext"; return 1; }
-  # Aufräumen über den neuen Teardown-Pfad ist hier noch nicht grün — manuell purgen.
+  # Zusätzlich manuell purgen — der Teardown purgt registrierte IDs ebenfalls;
+  # die Doppel-Löschung ist idempotent (0 Zeilen, Exit 0).
   purge_real_feature "$brand" "$ext"
 }
 
@@ -64,10 +71,15 @@ teardown() {
   # Positiv-Anker: das Ticket existiert vor dem purge-Versuch.
   bash "$REPO/scripts/ticket.sh" get --id "$created" >/dev/null 2>&1 \
     || { echo "ticket $created not found before purge" >&2; return 1; }
-  # Der Guard-Aufruf darf NICHTS löschen (Titel ohne SF-REAL-).
-  purge_real_feature "$brand" "$created"
+  # Der Guard-Aufruf darf NICHTS löschen (Titel ohne SF-REAL-) und muss das
+  # unterscheidbar melden (exit != 0; run statt nacktem Aufruf, damit errexit
+  # den Test nicht vor der Assertion abbricht).
+  run purge_real_feature "$brand" "$created"
+  [ "$status" -ne 0 ] || { echo "purge succeeded despite non-SF-REAL title — guard missing" >&2; return 1; }
   bash "$REPO/scripts/ticket.sh" get --id "$created" >/dev/null 2>&1 \
     || { echo "non-SF-REAL ticket was deleted — guard missing" >&2; return 1; }
   # Aufräumen: eigenes Ticket hart entfernen (Test-Fixture, is_test_data=true).
-  purge_real_feature --force "$brand" "$created" 2>/dev/null || true
+  # --force übergeht den Titel-Guard — genau der Zweck des Flags.
+  run purge_real_feature --force "$brand" "$created"
+  [ "$status" -eq 0 ] || { echo "purge --force failed for own fixture" >&2; return 1; }
 }

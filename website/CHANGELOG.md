@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.44](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.43...website-v1.276.44) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** collector Erfolgsfilter auf verify/done umstellen [T006282] ([#4524](https://github.com/Paddione/Bachelorprojekt/issues/4524)) ([7f58e46](https://github.com/Paddione/Bachelorprojekt/commit/7f58e46fd2f4549967f1ec600db49fc366bf79d5))
+
 ## [1.276.43](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.42...website-v1.276.43) (2026-08-14)
 
 

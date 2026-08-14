@@ -24,8 +24,20 @@ teardown() {
   _sf_teardown
 }
 
+# [T005898/Review PR #4472] Capacity-Pre-Check: der Test assertet in_progress-Übergänge
+# unter FACTORY_GLOBAL_CAP=3 — ein belegter Slot-Pool (fremde echte Kandidaten, laufende
+# Factory-Ticks) verfälscht die Assertions. Bedingter Skip, kein Dauer-Skip (T003548).
+_skip_if_pool_busy() {
+  local used
+  used=$(env BRAND="${TEST_BRAND:-korczewski}" bash "${REPO}/scripts/factory/slots.sh" count 2>/dev/null | tail -1)
+  if [ -n "$used" ] && [ "$used" -gt 0 ]; then
+    skip "slot pool occupied ($used) — foreign candidates would falsify the assertions"
+  fi
+}
+
 @test "schedule.sh holds back a ticket with an open blocker" {
   _skip_if_no_db
+  _skip_if_pool_busy
   local brand="${TEST_BRAND:-korczewski}"
 
   # Blocker A bleibt offen (nicht done).

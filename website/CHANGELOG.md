@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.276.35](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.34...website-v1.276.35) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** resolve archived/dangling blockers and log every hold in schedule.sh [T005898] ([#4497](https://github.com/Paddione/Bachelorprojekt/issues/4497)) ([2ea605a](https://github.com/Paddione/Bachelorprojekt/commit/2ea605a7aa99f64cef66d39146db6289aa50cbbf))
+
+## [1.276.34](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.33...website-v1.276.34) (2026-08-14)
+
+
+### Bug Fixes
+
+* **website:** allowlist http(s) scheme for WissenHub crawl startUrl [T005901] ([#4489](https://github.com/Paddione/Bachelorprojekt/issues/4489)) ([2090572](https://github.com/Paddione/Bachelorprojekt/commit/2090572123f11a3875ef11a854261d109e78301c))
+
 ## [1.276.33](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.32...website-v1.276.33) (2026-08-14)
 
 

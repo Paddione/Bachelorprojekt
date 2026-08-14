@@ -5223,3 +5223,5 @@ The system SHALL enforce authentication on all coaching-session pages and API en
 <!-- merged from change delta software-factory.md (882bc89de07a) -->
 
 <!-- merged from change delta software-factory.md (7ae592b0d6aa) -->
+
+<!-- merged from change delta software-factory.md (3255aac9f11c) -->

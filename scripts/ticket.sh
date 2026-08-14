@@ -830,10 +830,12 @@ EOF
   echo "plan-meta updated for $id"
 }
 
-# "a,b,c" -> "'a','b','c'" (single-quote each, escape embedded quotes)
+# "a,b,c" -> "'a','b','c'" (single-quote each, escape embedded quotes, trim whitespace)
 _csv_to_quoted() {
   local IFS=','; local out=""; local item
   for item in $1; do
+    item="${item#"${item%%[![:space:]]*}"}"
+    item="${item%"${item##*[![:space:]]}"}"
     item="${item//\'/\'\'}"
     out+="${out:+,}'$item'"
   done

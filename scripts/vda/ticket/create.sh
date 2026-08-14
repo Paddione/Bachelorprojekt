@@ -96,7 +96,7 @@ main() {
     -v areas="$areas" \
     -v parent="$parent_uuid" <<'EOF'
 INSERT INTO tickets.tickets (type, brand, title, description, status, severity, priority, attention_mode, is_test_data, areas, parent_id)
-VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', COALESCE(NULLIF(:'attn', ''), 'auto'), :'is_test'::boolean, CASE WHEN :'areas'='' THEN NULL ELSE string_to_array(:'areas',',') END, NULLIF(:'parent', '')::uuid)
+VALUES (:'type', :'brand', :'title', :'desc', :'status', NULLIF(:'sev', ''), :'prio', COALESCE(NULLIF(:'attn', ''), 'auto'), :'is_test'::boolean, CASE WHEN :'areas'='' THEN NULL ELSE regexp_split_to_array(btrim(:'areas'), '\s*,\s*') END, NULLIF(:'parent', '')::uuid)
 RETURNING external_id || '|' || id;
 EOF
 )

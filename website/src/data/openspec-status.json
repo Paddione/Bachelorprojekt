@@ -3651,6 +3651,12 @@
       "status": "plan_staged"
     }
   ],
+  "T005564": [
+    {
+      "slug": "archive-status-sed-planning",
+      "status": "plan_staged"
+    }
+  ],
   "T005592": [
     {
       "slug": "2026-08-14-mcp-task-runner-cancel-escalation",

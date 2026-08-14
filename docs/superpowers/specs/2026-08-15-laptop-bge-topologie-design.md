@@ -1,6 +1,6 @@
 ---
 ticket_id: T006143
-plan_ref: null
+plan_ref: docs/superpowers/plans/2026-08-15-laptop-bge-topologie.md
 status: active
 date: 2026-08-15
 ---

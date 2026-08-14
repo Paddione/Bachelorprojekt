@@ -4506,6 +4506,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/ssot-staged-task-requirement",
+    "file": "tests/spec/software-factory/ssot-staged-task-requirement.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/stage-plan-touched-files",
     "file": "tests/spec/software-factory/stage-plan-touched-files.bats",
     "category": "software-factory",

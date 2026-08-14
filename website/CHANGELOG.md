@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.14](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.13...website-v1.276.14) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** rollup-container ephemeral lifecycle [T004898] ([#4423](https://github.com/Paddione/Bachelorprojekt/issues/4423)) ([f0ab042](https://github.com/Paddione/Bachelorprojekt/commit/f0ab042029927c7f60a8883f1b171c2a5719262d))
+
 ## [1.276.13](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.12...website-v1.276.13) (2026-08-14)
 
 

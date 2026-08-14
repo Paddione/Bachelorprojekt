@@ -1,3 +1,5 @@
+## ADDED Requirements
+
 ### Requirement: plan-lint validates commit-scope prescriptions against the named-scope allowlist
 
 Plans SHALL only prescribe conventional-commit headers with a valid scope. Because the

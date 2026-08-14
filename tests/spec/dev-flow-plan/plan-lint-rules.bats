@@ -16,7 +16,7 @@ setup() {
 @test "--rules nennt jede Hard-Rule-ID" {
   run bash "$LINT" --rules
   # Jede ID als grep -qF (keine Zeilenanker, kein Format-Regex — T002716)
-  for id in F1 F2 STRUCT1 STRUCT2 STRUCT3 STRUCT-PARTIAL D1 D2 I1 P1 B1a B1b T002453-C; do
+  for id in F1 F2 STRUCT1 STRUCT2 STRUCT3 STRUCT-PARTIAL D1 D2 I1 P1 P2 B1a B1b T002453-C; do
     grep -qF "$id" <<<"$output"
   done
 }

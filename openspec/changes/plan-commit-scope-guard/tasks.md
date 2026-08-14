@@ -15,7 +15,7 @@ depends_on_plans: []
 _Ticket: T004896_
 
 Plan-Anweisungen: Pläne dürfen nur gültige Commit-Scopes vorschreiben (Mishap T004896: T004829s
-Plan schrieb `fix(openspec-embed):` vor, der commit-msg-Hook lehnte zur Commit-Zeit ab). Dieser
+Plan schrieb fix mit Scope `openspec-embed` vor, der commit-msg-Hook lehnte zur Commit-Zeit ab). Dieser
 Plan selbst ist P2-konform formuliert — der ungültige Scope-Name `openspec-embed` erscheint hier
 nur ohne Conventional-Commit-Präfix; das Test-Fixture mit der vollen Form entsteht erst im
 BATS-Test (keine Plan-Datei).

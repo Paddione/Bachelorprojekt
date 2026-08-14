@@ -20,6 +20,26 @@ set -uo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
 
+resolve_guard() {
+  local script_rel="$1"
+  local target="$repo_root/$script_rel"
+  if [ ! -f "$target" ]; then
+    local common_dir
+    common_dir="$(git rev-parse --git-common-dir 2>/dev/null || true)"
+    if [ -n "$common_dir" ]; then
+      case "$common_dir" in
+        /*) target="$common_dir/../$script_rel" ;;
+        *)  target="$(cd "$repo_root/$common_dir/.." 2>/dev/null && pwd || true)/$script_rel" ;;
+      esac
+    fi
+  fi
+  if [ ! -f "$target" ]; then
+    echo "pre-push: script not found: $script_rel (neither in worktree nor main checkout)" >&2
+    exit 1
+  fi
+  echo "$target"
+}
+
 warn() { printf '⚠  pre-push: %s\n' "$*" >&2; }
 err()  { printf '✗  pre-push: %s\n' "$*" >&2; }
 
@@ -52,7 +72,7 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
   # e2e-testing/routes-Scopes, seit T002328 ungueltig]. Auch REMOTE_SHA (alter
   # Remote-Branch-Tip) taugt nach einem Rebase nicht: er liegt nicht mehr auf
   # der Ahnenlinie des neuen HEAD.
-  BASE="$(bash "$repo_root/scripts/hooks/pre-push-scope-base.sh" "$LOCAL_SHA" "${REMOTE_SHA:-}" 2>/dev/null || true)"
+  BASE="$(bash "$(resolve_guard "scripts/hooks/pre-push-scope-base.sh")" "$LOCAL_SHA" "${REMOTE_SHA:-}" 2>/dev/null || true)"
   [[ -z "$BASE" ]] && continue
 
   if [[ "${SKIP_CI_CHECK:-0}" != "1" ]]; then
@@ -61,7 +81,7 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
     _scope_commits="$(git -C "$repo_root" rev-list --no-merges "$BASE..$LOCAL_SHA" 2>/dev/null || true)"
     if [[ -n "$_scope_commits" ]]; then
       # shellcheck disable=SC2086
-      if ! "$repo_root/scripts/validate-commit-msg.sh" commits $_scope_commits; then
+      if ! "$(resolve_guard "scripts/validate-commit-msg.sh")" commits $_scope_commits; then
         _commit_msg_failed=1
       fi
     fi
@@ -110,7 +130,7 @@ while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
   # fehlte (real bei PR #3794, CI fiel darueber). Die Pruefung selbst liegt in
   # einem eigenen Skript, weil sie dort gegen ein temporaeres Git-Repo testbar
   # ist; Guard: tests/spec/ci-cd/pre-push-artifact-guard.bats
-  MISSING_ARTIFACTS=$(bash "$repo_root/scripts/hooks/check-freshness-artifacts.sh" "$BASE" "$LOCAL_SHA" 2>/dev/null || true)
+  MISSING_ARTIFACTS=$(bash "$(resolve_guard "scripts/hooks/check-freshness-artifacts.sh")" "$BASE" "$LOCAL_SHA" 2>/dev/null || true)
   if [[ -n "$MISSING_ARTIFACTS" ]]; then
     # Only warn if freshness:regenerate would actually produce a diff — fehlt ein
     # Artefakt im Push, ist es womoeglich schlicht schon aktuell.
@@ -147,8 +167,9 @@ fi
 # This is advisory (not blocking) because the pre-commit hook already enforces branch naming.
 # Exemptions come from scripts/lib/branch-allowlist.sh — same SSOT the pre-commit hook and
 # worktree-create.sh read, so a persistent ticketless branch draws no false warning [T002817].
-[ -f "$repo_root/scripts/lib/branch-allowlist.sh" ] \
-  && . "$repo_root/scripts/lib/branch-allowlist.sh"
+_allowlist_script="$(resolve_guard "scripts/lib/branch-allowlist.sh")"
+[ -f "$_allowlist_script" ] \
+  && . "$_allowlist_script"
 _push_branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 if [[ -n "$_push_branch" && "$_push_branch" != "main" && "$_push_branch" != "develop" ]]; then
   case "$_push_branch" in

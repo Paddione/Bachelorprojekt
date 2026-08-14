@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.7...website-v1.276.8) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** retry transiente Embed-Backend-Fehler im Wrapper [T004608] ([#4401](https://github.com/Paddione/Bachelorprojekt/issues/4401)) ([2af2037](https://github.com/Paddione/Bachelorprojekt/commit/2af2037e69bfa5e1d7d42239382b30ac977606b6))
+
 ## [1.276.7](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.6...website-v1.276.7) (2026-08-14)
 
 

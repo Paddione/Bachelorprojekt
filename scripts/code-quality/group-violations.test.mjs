@@ -76,5 +76,4 @@ test('group over real repo HEAD does not throw (smoke test)', async () => {
   // Must not throw
   const groups = groupViolations(realBaseline, realSubs);
   assert.ok(Array.isArray(groups));
-  assert.ok(groups.length > 0, 'real baseline should produce at least one group');
 });

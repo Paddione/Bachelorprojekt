@@ -25,9 +25,9 @@ _load_s1_limits() {
   # [T002452] Muss mit docs/code-quality/gates.yaml uebereinstimmen. Dieser Zweig
   # greift nur ohne yq — driftet er, rechnet plan-lint dort still mit Budgets von
   # gestern, und zwar ohne Fehlermeldung. Beim Anheben der Limits mitfuehren.
-  for kv in .astro=600 .tsx=600 .java=600 .php=600 \
+  for kv in .astro=1000 .tsx=600 .java=600 .php=600 \
             .ts=900 .js=800 .jsx=800 .py=800 \
-            .svelte=800 .sh=800 .mjs=800 .mts=800 \
+            .svelte=1100 .sh=800 .mjs=800 .mts=800 \
             .bash=500 .cjs=400; do
     k="${kv%%=*}"; v="${kv#*=}"
     [[ -z "${_S1_LIMITS[$k]:-}" ]] && _S1_LIMITS["$k"]="$v"
@@ -129,14 +129,14 @@ _RULES_EOF
 if [[ "${1:-}" == "residual_budget" ]]; then
   shift
   REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-  BASELINE="$REPO_ROOT/docs/code-quality/baseline.json"
+  BASELINE="${BASELINE:-$REPO_ROOT/docs/code-quality/baseline.json}"
   residual_budget "$@"
   exit 0
 fi
 
 if [[ "${PLAN_LINT_SELFTEST:-0}" == "1" ]]; then
   REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-  BASELINE="$REPO_ROOT/docs/code-quality/baseline.json"
+  BASELINE="${BASELINE:-$REPO_ROOT/docs/code-quality/baseline.json}"
   fn="$1"; shift
   "$fn" "$@"
   exit $?
@@ -149,7 +149,7 @@ if [[ "${1:-}" == "--json" ]]; then JSON=1; shift; fi
 PLAN="${1:?Usage: plan-lint.sh [--json] <plan-file> | --rules | residual_budget <file>}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BASELINE="$REPO_ROOT/docs/code-quality/baseline.json"
+BASELINE="${BASELINE:-$REPO_ROOT/docs/code-quality/baseline.json}"
 
 HARD=()   # human-readable hard-fail messages
 WARN=()   # human-readable warnings

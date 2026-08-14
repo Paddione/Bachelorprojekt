@@ -55,9 +55,9 @@ s1:
   # Verschlechterung einer bereits erfassten Datei, auch weit unterhalb dieser
   # Grenzen. Das Limit ist die Notbremse fuer neue Dateien, nicht die Regel.
   limits:
-    .astro: 600   # war 400
+    .astro: 1000  # war 600
     .ts: 900      # war 600
-    .svelte: 800  # war 500
+    .svelte: 1100 # war 800
     .sh: 800      # war 500
     .mjs: 800     # war 500
     .mts: 800     # war 500

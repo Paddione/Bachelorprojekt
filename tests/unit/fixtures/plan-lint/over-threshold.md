@@ -9,20 +9,23 @@ status: active
 
 **Goal:** Demonstrate a B1b warning (still exit 0).
 
-Die Zieldatei ist bewusst eine **baselined** Datei [T002452]. Bei einer solchen gilt
-`effective_threshold = max(limit, baseline.metric) = metric`, das Restbudget ist also
-strukturell 0 — unabhaengig davon, wie die Limits in `docs/code-quality/gates.yaml`
-stehen. Vorher zeigte diese Fixture auf `k3d/talk-transcriber/app.py` (648 Zeilen gegen
-das statische `.py`-Limit 600); sie wurde rot, sobald jemand dieses Limit anhob. Ein
-Anker, der von einer Konfigurationszahl abhaengt, prueft die Konfiguration statt B1b.
+Die Zieldatei ist ein synthetischer Gate-Fixture unter
+`scripts/code-quality/fixtures/plan-lint/` — 850 Zeilen gegen das statische
+`.sh`-Limit 800, Restbudget -50. Er liegt im Scan-Ignore (`scan.ignore_globs`
+in `docs/code-quality/gates.yaml`), damit check.mjs ihn nicht selbst als
+S1-Verstoß meldet; plan-lint misst ihn trotzdem, weil plan-lint nur
+`s1.ignore` kennt. Der B1b-Anker haengt am `.sh`-Limit: wird es ueber 850
+angehoben, ist die Fixture um entsprechend mehr Zeilen zu verlaengern
+(Marge mitverfolgen, nicht blind kopieren).
 
 ## File Structure
 
 | File | Ist | Budget |
 |------|-----|--------|
-| `website/src/components/inbox/InboxApp.svelte` | 954 | 0 |
+| `scripts/code-quality/fixtures/plan-lint/over-threshold-target.sh` | 850 | -50 |
 
 ## Task 1: Edit
+- Edit `scripts/code-quality/fixtures/plan-lint/over-threshold-target.sh`
 
 - [ ] **Step 1: Write the failing test**
 

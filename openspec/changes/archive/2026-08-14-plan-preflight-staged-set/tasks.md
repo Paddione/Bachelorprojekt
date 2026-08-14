@@ -2,7 +2,7 @@
 title: "plan-preflight-staged-set — Implementation Plan"
 ticket_id: T005114
 domains: [scripts, skills]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

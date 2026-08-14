@@ -2,14 +2,16 @@
 
 ### Requirement: MODIFIED delta truncation is detected at merge time
 
-The openspec delta merger SHALL detect when a MODIFIED requirement delta carries fewer
-scenarios than the requirement it replaces in the SSOT. A MODIFIED delta is a full
-replacement text — a delta that drops scenarios without stating their removal is almost
+The openspec delta merger SHALL detect when a requirement delta that replaces an existing
+SSOT requirement carries fewer scenarios than the requirement it replaces. Such a delta is
+a full replacement text — dropping scenarios without stating their removal is almost
 always an authoring error (observed loss: PR #4440 deleted six scenarios from
 `software-factory.md`). The merger SHALL warn on stderr and fail the merge when the
-scenario count of a MODIFIED delta is lower than the SSOT requirement's count, unless the
-caller passes an explicit `allowShrink` flag for deliberate consolidations. ADDED and
-RENAMED operations are unaffected.
+scenario count of a replacing delta is lower than the SSOT requirement's count, unless the
+caller passes an explicit `allowShrink` flag for deliberate consolidations. This applies
+to the explicit MODIFIED operation and to an ADDED delta whose requirement already exists
+in the SSOT (auto-converted to a MODIFIED replacement). A genuine ADDED of a new
+requirement and RENAMED operations are unaffected.
 
 #### Scenario: truncating MODIFIED delta fails without allowShrink
 
@@ -29,3 +31,9 @@ RENAMED operations are unaffected.
 - **GIVEN** a MODIFIED delta that deliberately reduces the scenario count
 - **WHEN** `applyDelta` merges it with the explicit allow-shrink flag
 - **THEN** the merge succeeds and the warning is still emitted
+
+#### Scenario: ADDED delta against an existing requirement is guarded too
+
+- **GIVEN** an ADDED delta whose requirement already exists in the SSOT and carries fewer scenarios than the SSOT requirement
+- **WHEN** `applyDelta` auto-converts it to a MODIFIED replacement without an allow-shrink flag
+- **THEN** the merge fails, a warning is written to stderr, and the SSOT is left unchanged

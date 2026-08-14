@@ -70,6 +70,26 @@ function endOfRequirements(lines) {
   return i
 }
 
+// T005310: Trunkierungs-Guard. Ein Delta, das ein existierendes SSOT-Requirement
+// per full-block replacement ersetzt und dabei weniger `#### Scenario:`-Zeilen
+// trägt als der Bestand, löscht Szenarien stillschweigend (beobachteter Schaden:
+// PR #4440, 591 → 586). Gilt für den expliziten MODIFIED-Zweig UND den
+// ADDED→MODIFIED-Auto-Convert (derselbe Ersetzungsmechanismus, Review-Befund
+// IMPORTANT 1). Ohne allowShrink fail() — der Aufrufer schreibt nichts, die SSOT
+// bleibt unverändert; bewusste Konsolidierungen brauchen das Flag explizit.
+function assertNoTruncation(deltaName, item, lines, hit, allowShrink) {
+  const ssotBlock = lines.slice(hit.start, hit.end).join('\n')
+  const countScenarios = t => (t.match(/^#### Scenario: .*$/gm) || []).length
+  const deltaCount = countScenarios(item.lines.join('\n'))
+  const ssotCount = countScenarios(ssotBlock)
+  if (deltaCount < ssotCount) {
+    process.stderr.write(`WARN: ${deltaName}: MODIFIED '${item.name}' truncates scenarios (${ssotCount} → ${deltaCount})\n`)
+    if (!allowShrink) {
+      fail(`${deltaName}: MODIFIED '${item.name}' truncates scenarios (${ssotCount} → ${deltaCount}). Pass --allow-shrink to accept the reduction, or fix the delta to carry all scenarios.`)
+    }
+  }
+}
+
 // dryRun führt jeden Guard aus, schreibt aber nichts — weder die --create-new-
 // Skeleton-SSOT noch das Merge-Ergebnis. [T002581] Nur so kann cmd_archive alle
 // Deltas eines Change vorab prüfen, bevor der erste Schreibvorgang stattfindet.
@@ -129,6 +149,11 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
         // SSOT (e.g. the change directly edited the SSOT AND wrote a delta). Warn
         // loudly so the plan-phase lesson is visible, but do not abort the archive.
         process.stderr.write(`WARN: ${deltaName}: ADDED target '${item.name}' already exists in ${basename(ssotPath)} — auto-converting to MODIFIED\n`)
+        // T005310: Der Auto-Convert ist derselbe full-block replacement wie ein
+        // expliziter MODIFIED — der Trunkierungs-Guard gilt hier ebenso
+        // (Review-Befund: ADDED-Delta mit trunkierendem Inhalt merged zuvor
+        // stillschweigend mit exit 0 und verlor ein Szenario).
+        assertNoTruncation(deltaName, item, lines, hit, allowShrink)
         lines.splice(hit.start, hit.end - hit.start, ...item.lines)
         continue
       }
@@ -136,20 +161,7 @@ export function applyDelta(deltaPath, ssotPath, today = new Date().toISOString()
       lines.splice(at, 0, '', ...item.lines)
     } else if (item.op === 'MODIFIED') {
       if (!hit) fail(`${deltaName}: MODIFIED target '${item.name}' not found in ${basename(ssotPath)}`)
-      // T005310: Trunkierungs-Guard — ein Delta mit weniger Szenarien als das
-      // SSOT-Requirement ersetzt den Bestand stillschweigend (beobachteter
-      // Schaden: PR #4440 löschte sechs Szenarien, 591 → 586). Ohne explizites
-      // allowShrink bricht der Merge ab, die SSOT bleibt unverändert.
-      const ssotBlock = lines.slice(hit.start, hit.end).join('\n')
-      const countScenarios = t => (t.match(/^#### Scenario: .*$/gm) || []).length
-      const deltaCount = countScenarios(item.lines.join('\n'))
-      const ssotCount = countScenarios(ssotBlock)
-      if (deltaCount < ssotCount) {
-        process.stderr.write(`WARN: ${deltaName}: MODIFIED '${item.name}' truncates scenarios (${ssotCount} → ${deltaCount})\n`)
-        if (!allowShrink) {
-          fail(`${deltaName}: MODIFIED '${item.name}' truncates scenarios (${ssotCount} → ${deltaCount}). Pass --allow-shrink to accept the reduction, or fix the delta to carry all scenarios.`)
-        }
-      }
+      assertNoTruncation(deltaName, item, lines, hit, allowShrink)
       lines.splice(hit.start, hit.end - hit.start, ...item.lines)
     } else if (item.op === 'REMOVED') {
       if (!hit) fail(`${deltaName}: REMOVED target '${item.name}' not found in ${basename(ssotPath)}`)
@@ -200,7 +212,7 @@ function main(argv) {
     for (const item of items) {
       const createN = Boolean(item.create_new ?? createNew)
       const forceN = Boolean(item.force_new_component ?? forceNewComponent)
-      applyDelta(item.delta, item.ssot, new Date().toISOString().slice(0, 10), createN, forceN, item.dry_run === true, item.allow_shrink === true)
+      applyDelta(item.delta, item.ssot, new Date().toISOString().slice(0, 10), createN, forceN, item.dry_run === true, Boolean(item.allow_shrink ?? allowShrink))
     }
     return 0
   }

@@ -48,7 +48,7 @@ Plugin.
    ```bash
    task finetune:traces ROWS_JSON=<mcp-postgres-export.json> OUT=<jsonl>
    ```
-   Nur erfolgreiche Ticket-Laeufe (verify/pass) werden uebernommen; Secret-Muster werden
+   Nur erfolgreiche Ticket-Laeufe (verify/done) werden uebernommen; Secret-Muster werden
    redigiert. `ROWS_JSON` kommt aus einem vorgeschalteten `mcp__mcp-postgres__query`-Aufruf
    (siehe `.claude/skills/references/mcp-tool-guide.md`) — dieses Skript baut selbst keine
    DB-Verbindung auf.

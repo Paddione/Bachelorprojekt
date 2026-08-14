@@ -2,7 +2,7 @@
 title: "embed-local-retry — Implementation Plan"
 ticket_id: T004608
 domains: [openspec]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

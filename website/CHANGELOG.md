@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.21](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.20...website-v1.276.21) (2026-08-14)
+
+
+### Bug Fixes
+
+* **test:** Seed-Registry + Teardown-Purge für SF-REAL-Seeds [T005309] ([#4447](https://github.com/Paddione/Bachelorprojekt/issues/4447)) ([424991f](https://github.com/Paddione/Bachelorprojekt/commit/424991f231aa9a747f4b5195e17e845f00f2db13))
+
 ## [1.276.20](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.19...website-v1.276.20) (2026-08-14)
 
 

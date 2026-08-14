@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "slug": "worktree-real-path-check",
+    "ticket_id": "",
+    "generated_from": "main@fe4edc32b",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/lib/worktree-real-path.sh",
+      "language": "bash",
+      "loc": 0,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "scripts/worktree-create.sh",
+      "language": "bash",
+      "loc": 578,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 222
+    },
+    {
+      "path": "tests/spec/worktree-create-real-path-T004604.bats",
+      "language": "bash",
+      "loc": 83,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/worktree-create.sh:167:_wc_stash_pop_or_warn() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "167:_wc_stash_pop_or_warn() {(...)",
+      "type_text": "167:_wc_stash_pop_or_warn() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/worktree-create.sh:381:_rollback() {",
+      "kind": "function",
+      "file": "scripts/worktree-create.sh",
+      "signature": "381:_rollback() {(...)",
+      "type_text": "381:_rollback() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/worktree-create-real-path-T004604.bats:19:setup() {",
+      "kind": "function",
+      "file": "tests/spec/worktree-create-real-path-T004604.bats",
+      "signature": "19:setup() {(...)",
+      "type_text": "19:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

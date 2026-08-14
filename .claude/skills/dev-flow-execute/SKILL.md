@@ -160,13 +160,27 @@ Falls neue Admin-Seiten hinzugefügt wurden:
 bash scripts/admin-menu-gate.sh
 ```
 
-## Schritt 3.8: Code Review Gate (Mandatory)
+## Schritt 3.8: Code-Review-Gate (Orchestrator, PFLICHT vor Auto-Merge)
 
-Vor dem PR-Merge muss eine unabhängige Überprüfung stattfinden.
+**Orchestrator-Schritt, nicht Implementer** — die unabhängige Prüfung braucht einen anderen
+Kontext als den Implementer (Self-Attestation ist kein Review, T005307). Ohne bestandenes
+Gate gibt es keinen Auto-Merge: fail-closed im Prozess.
+
 1. Rufe das Skill **`requesting-code-review`** auf (Claude Code — built-in; opencode: nutze
    `pr-review-toolkit:review-pr` oder delegiere an einen Review-Subagenten via `delegate()`),
    um die Änderungen zu auditieren.
-2. Behebe alle gefundenen Probleme und stelle sicher, dass der Reviewer "Approved" gibt, bevor du fortfährst.
+2. Findings gehen per `SendMessage` an den **bereits gespawnten** Implementer zurück (Muster
+   Exit 3/4 aus T002365 — kein neuer Spawn, Doppel-Push-Risiko aus T001408); nach dessen Push
+   erneut reviewen.
+3. Erst wenn der Reviewer "Approved" gegeben hat, fordere den Auto-Merge an:
+
+```bash
+# Auto-Merge sofort anfordern — GitHub merged selbstständig, sobald Required Checks grün sind.
+# KEIN --delete-branch (T004612): Schritt 7 (Plan-/OpenSpec-Archiv) braucht den Branch noch —
+# gelöscht wird er erst in Schritt 7.5, NACH der Archivierung. delete_branch_on_merge ist
+# repo-seitig deaktiviert; verwaiste Branches räumt branch-reaper.sh ab.
+(cd "$MAIN_REPO" && gh pr merge --auto --squash)
+```
 
 ## Schritt 4: Dev-Iteration (optional)
 
@@ -184,21 +198,13 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 
 > **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren.
 > Proposal-Commits auf Feature-Branches triggern den Auto-Merge-Flow und können das Ticket
-> vorzeitig schließen (Merge = Abschluss, T001092). Auto-Merge erst enable, wenn mindestens ein
-> Implementierungs-Commit auf dem Branch liegt. Zu diesem Zeitpunkt (Schritt 5) ist der
-> Implementierungs-Commit bereits gepusht, also ist die Voraussetzung erfüllt.
-
-```bash
-# Auto-Merge sofort anfordern — GitHub merged selbstständig, sobald Required Checks grün sind.
-# KEIN --delete-branch (T004612): Schritt 7 (Plan-/OpenSpec-Archiv) braucht den Branch noch —
-# gelöscht wird er erst in Schritt 7.5, NACH der Archivierung. delete_branch_on_merge ist
-# repo-seitig deaktiviert; verwaiste Branches räumt branch-reaper.sh ab.
-(cd "$MAIN_REPO" && gh pr merge --auto --squash)
-```
+> vorzeitig schließen (Merge = Abschluss, T001092). Der Auto-Merge wird erst im
+> Code-Review-Gate angefordert (Schritt 3.8) — zu dem Zeitpunkt liegt der
+> Implementierungs-Commit bereits auf dem Branch, die Voraussetzung ist also erfüllt.
 
 ## Schritt 5.5: CI/CD-Fix-Schleife (Orchestrator-Zuständigkeit, T002365)
 
-**Orchestrator-Schritt, nicht Implementer** — der läuft daher nie als Hintergrund-Monitor [T001969 Mishap 1, T002351-M3]. Nach der Implementer-Rückmeldung überwacht der Orchestrator CI — Auto-Merge ist bereits angefordert (Schritt 5) und greift, sobald die Required Checks grün sind. Details/Required-Check-Liste: [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
+**Orchestrator-Schritt, nicht Implementer** — der läuft daher nie als Hintergrund-Monitor [T001969 Mishap 1, T002351-M3]. Nach der Implementer-Rückmeldung überwacht der Orchestrator CI — Auto-Merge ist bereits angefordert (Schritt 3.8, nach bestandenem Review-Gate) und greift, sobald die Required Checks grün sind. Details/Required-Check-Liste: [ci-fix-loop](file:///home/patrick/Bachelorprojekt/.claude/skills/references/ci-fix-loop.md).
 ```bash
 PR_URL=$(gh pr view --json url -q '.url')
 bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$PR_URL"
@@ -214,7 +220,7 @@ Bei roten Checks: Logs aus dem Skript-Output als Prompt-Kontext an einen `sonnet
 **Fail-closed Phase-Chain-Gate (T001444) — PFLICHT vor dem Merge, KEIN `|| true`:**
 Prüft, dass `plan:done`, `implement:entered` und `verify:done` vorliegen. Bei FAIL
 zuerst backfillen (insb. `verify done` nach grünem `task test:changed`), dann mergen.
-(Auto-Merge wurde bereits in Schritt 5 angefordert — hier läuft nur noch das Gate.)
+(Auto-Merge wurde bereits in Schritt 3.8 angefordert — hier läuft nur noch das Gate.)
 ```bash
 ./scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
 ```

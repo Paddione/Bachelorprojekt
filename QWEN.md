@@ -238,7 +238,7 @@ Before responding, check signals and delegate to the named domain agent:
 - **Agent coordination** — `scripts/agent-lock.sh` (claim/release/reap), `scripts/agent-msg.sh` (messaging)
 - **Agent routing maps** — generated grep-able maps in `docs/agent-guide/maps/`: `goals-map.md` (intention → path → tier → guardrails), `tools-map.md`, `danger-map.md`. Regenerate via `task agent-guide:maps`.
 - **Brain Wiki** — knowledge base ingested from openspec, runbooks, ADRs (`scripts/brain-ingest.sh`)
-- **gh-axi** — preferred GitHub CLI wrapper (use `gh-axi` instead of `gh`). Reference: `.claude/skills/references/gh-axi.md`
+- **gh-axi** — preferred GitHub CLI wrapper for display/read flows (use `gh-axi` instead of `gh`). Machine parsing (`--json`/`-q`/`--jq`), polling and mutations → `gh` directly (T004612). Reference: `.claude/skills/references/gh-axi.md`
 
 ## CI/CD
 

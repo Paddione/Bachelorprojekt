@@ -258,7 +258,7 @@ bash scripts/admin-menu-gate.sh
 Vor dem PR-Merge muss eine unabhängige Überprüfung stattfinden:
 
 ```bash
-delegate(prompt: "Review this PR's changes for bugs, security issues, and style. PR: $(gh-axi pr view --json url -q '.url')", agent: "explore")
+delegate(prompt: "Review this PR's changes for bugs, security issues, and style. PR: $(gh pr view --json url -q '.url')", agent: "explore")
 ```
 
 Behebe alle gefundenen Probleme und stelle sicher, dass der Reviewer "Approved" gibt, bevor du fortfährst.
@@ -269,7 +269,7 @@ Delegate to `opencode-git-workflow` Steps 2–6:
 
 ```bash
 bash scripts/preflight-pr-scope.sh "<type>(<scope>): <subject> [$TICKET_ID]"
-gh-axi pr create --title "<type>(<scope>): <subject> [$TICKET_ID]" --body "..."
+gh pr create --title "<type>(<scope>): <subject> [$TICKET_ID]" --body "..."
 ```
 
 > **⚠️ M1-Lesson (T001899):** Auto-Merge **nicht** vor dem ersten Implementierungs-Push aktivieren.
@@ -283,7 +283,7 @@ Nachdem der PR gepusht ist, überwache CI und behebe Fehler — Auto-Merge ist b
 (Schritt 5) und greift, sobald die Required Checks grün sind.
 
 ```bash
-bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$(gh-axi pr view --json url -q '.url')"
+bash scripts/devflow-ci-watch.sh "$TICKET_ID" "$(gh pr view --json url -q '.url')"
 ```
 
 `devflow-ci-watch.sh` prüft `mergeStateStatus` bereits **vor** dem CI-Poll-Loop und rebased bei
@@ -308,19 +308,21 @@ bash scripts/ticket.sh assert-phase-chain --id "$TICKET_ID"
 
 Dann Auto-Merge anfordern:
 ```bash
-(cd "$MAIN_REPO" && gh-axi pr merge --auto --squash --delete-branch)
+# KEIN --delete-branch (T004612): Schritt 7 (OpenSpec-Archiv) läuft nach dem Merge
+# und braucht den Branch noch; gelöscht wird er im Cleanup NACH der Archivierung.
+(cd "$MAIN_REPO" && gh pr merge --auto --squash)
 ```
 
 ## Schritt 6.4: Auf Merge warten
 
-`gh-axi pr merge --auto` kehrt sofort zurück — Merge passiert asynchron:
+`gh pr merge --auto` kehrt sofort zurück — Merge passiert asynchron:
 
 ```bash
-PR_NUM=$(gh-axi pr view --json number -q '.number')
+PR_NUM=$(gh pr view --json number -q '.number')
 MAX_MERGE_WAIT_MIN="${MAX_MERGE_WAIT_MIN:-15}"
 WAIT_START=$(date +%s)
 while true; do
-  MERGE_STATE=$(gh-axi pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
+  MERGE_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus,state -q '.state + "|" + .mergeStateStatus' 2>/dev/null || echo "UNKNOWN|UNKNOWN")
   STATE="${MERGE_STATE%%|*}"
   case "$STATE" in
     MERGED) break ;;

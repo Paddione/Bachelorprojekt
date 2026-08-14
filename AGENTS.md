@@ -122,7 +122,7 @@ Dispatch: `bash scripts/plan-context.sh <role> --with-openspec` → prepend as `
 Also prepend the curated toolset: `bash scripts/toolset-context.sh <role>` → wrap as `<toolset>`.
 It renders every tool the role may use from `docs/agent-guide/registry/capabilities.yaml`, with
 `use_when` / `avoid_when` / `fallback` / deep reference, so a subagent reaches for the canonical
-path (`gh-axi`, not `gh`) instead of guessing. Harness-neutral — plain bash plus `node -e`.
+path (`gh-axi` for display; `gh` for `--json`/polling/mutations — T004612) instead of guessing. Harness-neutral — plain bash plus `node -e`.
 
 > ⚠ `toolset-context.sh` is **fail-closed** on an unknown role: non-zero exit, no output. It
 > deliberately differs from `plan-context.sh`, whose silent `__ALL__` fallback disables the role

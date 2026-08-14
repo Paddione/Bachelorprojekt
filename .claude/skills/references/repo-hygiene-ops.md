@@ -163,8 +163,8 @@ git fetch --prune                                                  # gone remote
 >
 > `--merged` verfehlt squash-gemergte Branches. Dieses Repo mergt via squash-and-merge
 > (Dev-Regel 3) — der Branch-Tip ist danach KEIN Ancestor von `main`, `git branch -d` verweigert.
-> Erkennung: Upstream ist **[gone]** (von `gh pr merge --delete-branch` gelöscht) + PR nachweislich
-> gemergt → force-delete:
+> Erkennung: Upstream ist **[gone]** (seit T004612 vom Reaper bzw. Schritt 7.5 gelöscht — der
+> Merge-Flow löscht nicht mehr) + PR nachweislich gemergt → force-delete:
 > ```bash
 > git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
 >   | awk '$2 == "[gone]" {print $1}' \
@@ -285,7 +285,9 @@ TICKET_ID=$(printf '%s %s' "$TITLE" "$BRANCH" | grep -oiE 'T[0-9]{6}' | head -1 
 
 * **Merge (mergeable, CI grün, kein Draft):**
   ```bash
-  gh pr merge <number> --squash --delete-branch
+  # KEIN --delete-branch (T004612): das OpenSpec-Archiv läuft nach dem Merge und braucht
+  # den Branch noch; Verwaiste räumt branch-reaper.sh ab.
+  gh pr merge <number> --squash
   ```
   > **Exit 1 nach Squash-Merge ist KEIN Fehler** (`not possible to fast-forward` — der PR ist
   > trotzdem gemergt). **Immer per Timestamp verifizieren, nie per Exit-Code:**
@@ -597,7 +599,7 @@ Aus den Metriken werden die drei wirkungsvollsten Aktionen abgeleitet:
 | Rang | Bedingung | Empfehlung |
 |------|-----------|------------|
 | 1 | `>5 stale Worktrees` ODER `>10 [gone]-Branches` | **Massen-Cleanup**: `repo-hygiene` §1+§2 vollständig ausführen. Vorher `bash scripts/agent-lock.sh reap`. Geschätzte Zeit: 2–5 min. |
-| 2 | `≥1 PR mit CI=green, kein Draft, reviewDecision=APPROVED` | **PR mergen**: `gh pr merge --squash --delete-branch`. Ticket schließen nicht vergessen (§3). |
+| 2 | `≥1 PR mit CI=green, kein Draft, reviewDecision=APPROVED` | **PR mergen**: `gh pr merge --squash` (kein `--delete-branch` — Archiv läuft nach dem Merge, T004612). Ticket schließen nicht vergessen (§3). |
 | 3 | `Factory queue_depth > 3` | **Factory-Health check**: `mcp__factory-mcp__factory_ask({ question: "Sind alle Worker gesund? Gibt es blockierte Jobs?" })`. Ggf. `mcp__factory-mcp__factory_trigger({})`. |
 | 4 | `≥1 Worktree >30d ohne Commit` | **Worktree entsorgen**: `git worktree remove --force` nach Allowlist-Check (§1). |
 | 5 | `≥3 PRs offen vom selben Author` | **PR-Stau**: Author pingen oder PRs bündeln (wenn thematisch verwandt). |

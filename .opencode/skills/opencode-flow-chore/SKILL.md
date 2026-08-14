@@ -71,7 +71,8 @@ Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
 ## Schritt 5: Merge wenn CI grün
 
 ```bash
-(cd "$MAIN_REPO" && gh-axi pr merge --auto --squash --delete-branch)
+# KEIN --delete-branch (T004612): Löschung erfolgt explizit in Schritt 6 nach dem Merge.
+(cd "$MAIN_REPO" && gh pr merge --auto --squash)
 ```
 
 ## Schritt 6: Worktree & Branch bereinigen
@@ -79,6 +80,7 @@ Delegate to **`opencode-git-workflow` Steps 2–6** (SSOT):
 Lock-Release, dann:
 ```bash
 git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug>
+git push origin --delete chore/<slug>
 ```
 
 ## Schritt 7: Deploy (falls nötig)

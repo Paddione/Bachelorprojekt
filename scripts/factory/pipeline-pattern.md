@@ -307,7 +307,7 @@ phase('Deploy')
 await agent(`
   Create PR from feature branch, merge via squash-and-merge, deploy:
   1. gh pr create --title "${args.title}" --body "🤖 Generated with [Claude Code](https://claude.com/claude-code)"
-  2. gh pr merge --squash --delete-branch
+  2. gh pr merge --squash  # KEIN --delete-branch: das OpenSpec-Archiv läuft nach dem Merge (T004612)
   3. Determine correct deploy task (use task-oracle.sh) and execute
   4. Update ticket status to 'done'
   5. Write Lessons-Learned using the template

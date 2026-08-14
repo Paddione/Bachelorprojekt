@@ -158,16 +158,16 @@ Rufe `commit-commands:commit-push-pr` auf (Claude Code slash-command) oder führ
 ## Schritt 5: Merge wenn CI grün
 
 **`git-workflow` Schritt 5–6** (SSOT): CI-Fix-Loop bis grün, dann aus dem Haupt-Repo
-`gh pr merge --auto --squash --delete-branch`.
+`gh pr merge --auto --squash` (kein `--delete-branch` — Löschung in Schritt 6, T004612).
 
 ## Schritt 6: Worktree & Branch bereinigen
 
 **`git-workflow` Schritt 7** (SSOT): Lock-Release
 ([session-coordination](file:///home/patrick/Bachelorprojekt/.claude/skills/references/session-coordination.md)),
-dann `git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug>` im Haupt-Repo.
+dann `git worktree remove .worktrees/<slug> --force && git branch -D chore/<slug> && git push origin --delete chore/<slug>` im Haupt-Repo.
 
 Beim Test-only-Kurzpfad (Schritt 1) gibt es keinen Worktree zu entfernen — nur
-`bash scripts/agent-lock.sh release main-checkout` und `git checkout main && git branch -D chore/<slug>`.
+`bash scripts/agent-lock.sh release main-checkout`, `git checkout main`, dann `git branch -D chore/<slug>` und `git push origin --delete chore/<slug>`.
 
 ## Schritt 7: Deploy (falls nötig)
 

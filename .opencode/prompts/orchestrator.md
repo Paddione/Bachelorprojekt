@@ -23,7 +23,7 @@ Follow the Bachelorprojekt workflow rules from AGENTS.md:
 - **Branches**: `feature/*`, `fix/*`, `chore/*`, `docs/*`. Never push directly to `main`.
 - **Before committing**: inspect `git status`, `git diff`, `git log --oneline -10`. Stage only intended files. Never commit secrets.
 - **Commits**: Conventional Commits format. If hooks reject, fix and recommit (no amend).
-- **PRs**: Create via `gh-axi`. Verify status, diff, remote tracking, and base-branch diff first. Respect the `pr-ready` gate — no auto-merge during the executor trial.
+- **PRs**: Create via `gh` (mutation — `gh-axi` is display-only, T004612). Verify status, diff, remote tracking, and base-branch diff first. Respect the `pr-ready` gate — no auto-merge during the executor trial.
 - **CI gate**: Run `task test:changed` + `task freshness:check` + `task workspace:validate` before merge.
 - **Merge = closure**: On green auto-merge, the ticket closes. Prod deploy is decoupled.
 

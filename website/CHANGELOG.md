@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.275.2...website-v1.276.0) (2026-08-14)
+
+
+### Features
+
+* **context-retrieve:** S1 Retrieval-Schicht (Embedding + Reranking) [T002658] ([#4361](https://github.com/Paddione/Bachelorprojekt/issues/4361)) ([832f407](https://github.com/Paddione/Bachelorprojekt/commit/832f407ed327780992e031221a9a88127e65b676))
+
 ## [1.275.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.275.1...website-v1.275.2) (2026-08-14)
 
 

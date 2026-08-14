@@ -3522,6 +3522,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-task-runner/planner-sees-real-deps",
+    "file": "tests/spec/mcp-task-runner/planner-sees-real-deps.bats",
+    "category": "mcp-task-runner",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-tooling",
     "file": "tests/spec/mcp-tooling.bats",
     "category": "mcp-tooling",

@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "slug": "embed-completeness-slug-scope",
+    "ticket_id": "",
+    "generated_from": "main@ef5366c88",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": "scripts/openspec-embed-lib.sh",
+      "language": "bash",
+      "loc": 40,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 760
+    },
+    {
+      "path": "scripts/openspec-embed-local.sh",
+      "language": "bash",
+      "loc": 178,
+      "s1_limit": 800,
+      "s1_baseline": null,
+      "s1_budget": 622
+    },
+    {
+      "path": ".githooks/post-commit-embed",
+      "language": "text",
+      "loc": 76,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+      "language": "bash",
+      "loc": 201,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:9:pf_listener_pid() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "9:pf_listener_pid() {(...)",
+      "type_text": "9:pf_listener_pid() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:22:embed_output_is_success() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "22:embed_output_is_success() {(...)",
+      "type_text": "22:embed_output_is_success() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:31:in_rebase() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "31:in_rebase() {(...)",
+      "type_text": "31:in_rebase() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-lib.sh:38:parse_pf_local_port() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-lib.sh",
+      "signature": "38:parse_pf_local_port() {(...)",
+      "type_text": "38:parse_pf_local_port() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "type_text": "42:cleanup() { [[ -n \"$PF_PID\" ]] && kill \"$PF_PID\" 2>/dev/null || true; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:55:probe_embed() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "55:probe_embed() {(...)",
+      "type_text": "55:probe_embed() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "scripts/openspec-embed-local.sh:70:probe_diagnosis() {",
+      "kind": "function",
+      "file": "scripts/openspec-embed-local.sh",
+      "signature": "70:probe_diagnosis() {(...)",
+      "type_text": "70:probe_diagnosis() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats:18:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+      "signature": "18:setup() {(...)",
+      "type_text": "18:setup() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats:25:start_decoy_listener() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+      "signature": "25:start_decoy_listener() {(...)",
+      "type_text": "25:start_decoy_listener() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats:148:setup_hook_repo() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+      "signature": "148:setup_hook_repo() {(...)",
+      "type_text": "148:setup_hook_repo() {(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats:159:pf_listener_pid() { :; }",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+      "signature": "159:pf_listener_pid() { :; }(...)",
+      "type_text": "159:pf_listener_pid() { :; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats:160:embed_output_is_success() { return 0; }",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+      "signature": "160:embed_output_is_success() { return 0; }(...)",
+      "type_text": "160:embed_output_is_success() { return 0; }(...)",
+      "source": "grep"
+    },
+    {
+      "qualified_name": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats:161:in_rebase() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-embedding/port-forward-identity-T002870.bats",
+      "signature": "161:in_rebase() {(...)",
+      "type_text": "161:in_rebase() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

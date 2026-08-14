@@ -4506,6 +4506,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/scheduling-cleanup-guard",
+    "file": "tests/spec/software-factory/scheduling-cleanup-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/ssot-staged-task-requirement",
     "file": "tests/spec/software-factory/ssot-staged-task-requirement.bats",
     "category": "software-factory",

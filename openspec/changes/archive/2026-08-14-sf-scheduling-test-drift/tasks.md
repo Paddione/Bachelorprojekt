@@ -2,7 +2,7 @@
 title: "sf-scheduling-test-drift — Implementation Plan"
 ticket_id: T005029
 domains: [infra, ops, test]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

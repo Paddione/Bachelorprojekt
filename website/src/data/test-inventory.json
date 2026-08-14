@@ -2202,6 +2202,36 @@
     "kind": "shell"
   },
   {
+    "id": "batch-worktree-guard-tooling-fixes/archive-plan-gitshow-fallback",
+    "file": "tests/spec/batch-worktree-guard-tooling-fixes/archive-plan-gitshow-fallback.bats",
+    "category": "batch-worktree-guard-tooling-fixes",
+    "kind": "shell"
+  },
+  {
+    "id": "batch-worktree-guard-tooling-fixes/deploy-route-sdlc-exclusion",
+    "file": "tests/spec/batch-worktree-guard-tooling-fixes/deploy-route-sdlc-exclusion.bats",
+    "category": "batch-worktree-guard-tooling-fixes",
+    "kind": "shell"
+  },
+  {
+    "id": "batch-worktree-guard-tooling-fixes/embed-connect-timeout",
+    "file": "tests/spec/batch-worktree-guard-tooling-fixes/embed-connect-timeout.bats",
+    "category": "batch-worktree-guard-tooling-fixes",
+    "kind": "shell"
+  },
+  {
+    "id": "batch-worktree-guard-tooling-fixes/precommit-accepts-batch-branches",
+    "file": "tests/spec/batch-worktree-guard-tooling-fixes/precommit-accepts-batch-branches.bats",
+    "category": "batch-worktree-guard-tooling-fixes",
+    "kind": "shell"
+  },
+  {
+    "id": "batch-worktree-guard-tooling-fixes/write-guard-suffix-normalization",
+    "file": "tests/spec/batch-worktree-guard-tooling-fixes/write-guard-suffix-normalization.bats",
+    "category": "batch-worktree-guard-tooling-fixes",
+    "kind": "shell"
+  },
+  {
     "id": "billing-pipeline",
     "file": "tests/spec/billing-pipeline.bats",
     "category": "billing-pipeline",

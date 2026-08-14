@@ -2,7 +2,7 @@
 title: "Batch: Worktree-/Guard-Tooling-Fixes"
 ticket_id: T004295
 domains: [scripts, git-workflow, ticket-mcp, repo/hooks]
-status: active
+status: completed
 ---
 
 # batch-worktree-guard-tooling-fixes — Implementation Plan

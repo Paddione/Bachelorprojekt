@@ -22,6 +22,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 
 resolve_guard() {
   local script_rel="$1"
+  local optional="${2:-0}"
   local target="$repo_root/$script_rel"
   if [ ! -f "$target" ]; then
     local common_dir
@@ -34,6 +35,9 @@ resolve_guard() {
     fi
   fi
   if [ ! -f "$target" ]; then
+    if [ "$optional" = "1" ] || [ "$optional" = "true" ]; then
+      return 1
+    fi
     echo "pre-push: script not found: $script_rel (neither in worktree nor main checkout)" >&2
     exit 1
   fi
@@ -167,8 +171,8 @@ fi
 # This is advisory (not blocking) because the pre-commit hook already enforces branch naming.
 # Exemptions come from scripts/lib/branch-allowlist.sh — same SSOT the pre-commit hook and
 # worktree-create.sh read, so a persistent ticketless branch draws no false warning [T002817].
-_allowlist_script="$(resolve_guard "scripts/lib/branch-allowlist.sh")"
-[ -f "$_allowlist_script" ] \
+_allowlist_script="$(resolve_guard "scripts/lib/branch-allowlist.sh" 1 2>/dev/null || true)"
+[ -n "$_allowlist_script" ] && [ -f "$_allowlist_script" ] \
   && . "$_allowlist_script"
 _push_branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 if [[ -n "$_push_branch" && "$_push_branch" != "main" && "$_push_branch" != "develop" ]]; then

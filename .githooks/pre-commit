@@ -6,6 +6,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 
 resolve_guard() {
   local script_rel="$1"
+  local optional="${2:-0}"
   local target="$repo_root/$script_rel"
   if [ ! -f "$target" ]; then
     local common_dir
@@ -18,6 +19,9 @@ resolve_guard() {
     fi
   fi
   if [ ! -f "$target" ]; then
+    if [ "$optional" = "1" ] || [ "$optional" = "true" ]; then
+      return 1
+    fi
     echo "pre-commit: script not found: $script_rel (neither in worktree nor main checkout)" >&2
     exit 1
   fi
@@ -170,8 +174,8 @@ if [ "${SKIP_BRANCH_CHECK:-0}" != "1" ]; then
   # Bedingt sourcen: fehlt die Datei, bleibt branch_is_ticketless undefiniert, die
   # Abfrage unten ist falsch und der Guard verhaelt sich exakt wie vor T002817.
   # Ein fehlendes SSOT kann so nie einen unerlaubten Branch durchlassen.
-  _allowlist_script="$(resolve_guard "scripts/lib/branch-allowlist.sh")"
-  [ -f "$_allowlist_script" ] \
+  _allowlist_script="$(resolve_guard "scripts/lib/branch-allowlist.sh" 1 2>/dev/null || true)"
+  [ -n "$_allowlist_script" ] && [ -f "$_allowlist_script" ] \
     && . "$_allowlist_script"
   _bn="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
   if [ -n "$_bn" ]; then

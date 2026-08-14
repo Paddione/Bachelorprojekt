@@ -3588,12 +3588,6 @@
     "kind": "shell"
   },
   {
-    "id": "mishap-rollup/rollup-branch-progress",
-    "file": "tests/spec/mishap-rollup/rollup-branch-progress.bats",
-    "category": "mishap-rollup",
-    "kind": "shell"
-  },
-  {
     "id": "mishap-rollup/rollup-container-empty-list-selfheal",
     "file": "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
     "category": "mishap-rollup",

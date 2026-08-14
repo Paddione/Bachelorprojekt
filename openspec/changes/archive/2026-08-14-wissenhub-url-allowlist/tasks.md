@@ -2,7 +2,7 @@
 title: WissenHub: http(s)-Allowlist für startUrl — Implementation Plan
 ticket_id: T005901
 domains: [website, docs, db]
-status: active
+status: completed
 pr_number: null
 file_locks: []
 shared_changes: false

@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
  
 ### Requirement: Usage semantics schema validation in check runner
 

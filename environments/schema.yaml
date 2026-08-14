@@ -1423,6 +1423,22 @@ setup_vars:
   - name: WG_MESH_TERMINAL_PUBLIC_KEY
     required: false
     description: "wg-mesh public key for the WSL host running ttyd (terminal-sidekick, T001565)"
+  # Laptops/Tablet (T006143) — pk-l-1 (Laptop, bge-Embedding) und pk-tablet (bge-Rerank).
+  # Home-NAT-Geraete, wg_ips 192.168.100.11/.12, Keepalive 25 (vgl. wsl2-gpu-mentolder).
+  - name: WG_MESH_PKL1_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for pk-l-1 (Laptop, bge-Embedding)"
+  - name: WG_MESH_PKL1_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for pk-l-1 (Laptop, bge-Embedding)"
+  - name: WG_MESH_PKT_PRIVATE_KEY
+    required: false
+    sealed: true
+    description: "wg-mesh private key for pk-tablet (bge-Rerank)"
+  - name: WG_MESH_PKT_PUBLIC_KEY
+    required: false
+    description: "wg-mesh public key for pk-tablet (bge-Rerank)"
 
   # ── Proxmox hypervisor SSH keys ─────────────────────────────────────────────
   # Root SSH keys for the three Proxmox host nodes. Private keys are sealed;

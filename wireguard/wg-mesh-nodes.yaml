@@ -144,6 +144,24 @@ mentolder:
       public_key: "TZhEWsDku+wccV0wAIHa9V8bK5Ru+tAUkc0uPk4C+00="
       keepalive: 25
 
+  # Laptops/Tablet (Home-NAT, Intel Iris, LM Studio + llama-server) — T006143
+  # bringen bge-Embedding (pk-l-1) und bge-Rerank (pk-tablet) als Erstglieder
+  # der llm-proxy-Ketten. Endpoint leer: wie dev-vm initiieren sie outbound.
+  laptops:
+    - name: pk-l-1
+      endpoint: ""        # Home-NAT (FritzBox), PersistentKeepalive — initiates outbound
+      wg_ip: "192.168.100.11"
+      schema_key: WG_MESH_PKL1
+      public_key: "Uweq+Au4TQ05gn4HUKFYJNoWVdV3Kp19RmngJO4ozzU="
+      keepalive: 25
+
+    - name: pk-tablet
+      endpoint: ""        # Home-NAT (FritzBox), PersistentKeepalive — initiates outbound
+      wg_ip: "192.168.100.12"
+      schema_key: WG_MESH_PKT
+      public_key: "rW9Ac8GHNrg7gsC7DIXHFJhJ8YUYhlDb2zCeX2jUzlo="
+      keepalive: 25
+
 korczewski:
   wg_subnet: "10.13.14.0/24"
   listen_port: 51820

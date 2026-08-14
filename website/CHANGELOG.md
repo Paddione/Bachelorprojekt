@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.17](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.16...website-v1.276.17) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** worktree-clean-check respects agent-lock claims [T005115] ([#4434](https://github.com/Paddione/Bachelorprojekt/issues/4434)) ([4649ac8](https://github.com/Paddione/Bachelorprojekt/commit/4649ac8f50774b846178ce3c7cd2cea843da2254))
+
 ## [1.276.16](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.15...website-v1.276.16) (2026-08-14)
 
 

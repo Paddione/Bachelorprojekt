@@ -3507,6 +3507,12 @@
       "status": "archived"
     }
   ],
+  "T004608": [
+    {
+      "slug": "embed-local-retry",
+      "status": "plan_staged"
+    }
+  ],
   "T004610": [
     {
       "slug": "2026-08-14-factory-dispatch-branch-lock-gate",

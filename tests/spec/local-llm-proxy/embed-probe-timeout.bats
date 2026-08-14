@@ -19,6 +19,7 @@
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
   WRAPPER="${REPO_ROOT}/scripts/openspec-embed-local.sh"
+  export OPENSPEC_EMBED_RETRY_DELAY=0
 
   # Langsamer HTTP-Server: antwortet erst nach 5s mit 200 auf POST
   # /v1/embeddings — deutlich ueber dem alten 3s-Probe-Timeout, deutlich

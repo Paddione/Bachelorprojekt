@@ -3639,6 +3639,12 @@
       "status": "archived"
     }
   ],
+  "T005563": [
+    {
+      "slug": "vda-frontmatter-yaml",
+      "status": "plan_staged"
+    }
+  ],
   "T005592": [
     {
       "slug": "2026-08-14-mcp-task-runner-cancel-escalation",

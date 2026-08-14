@@ -426,8 +426,12 @@ EOF
   run awk '/^---$/{n++;next} n==1{print}' "$TMP/v-yaml-list-repair.md"
   echo "$output" | grep -qE '^domains: \[factory\]$' \
     || { echo "domains nicht in Flow-Form: $(echo "$output" | grep domains)" >&2; return 1; }
-  echo "$output" | grep -qE '^  - ' \
-    && { echo "YAML-List-Rest unter domains hinterlassen" >&2; return 1; }
-  echo "$output" | grep -qE '^domains: \[website|^domains: \[test' \
-    && { echo "Repair hat Domains geraten statt List-Form zu lesen" >&2; return 1; }
+  if echo "$output" | grep -qE '^  - '; then
+    echo "YAML-List-Rest unter domains hinterlassen" >&2
+    return 1
+  fi
+  if echo "$output" | grep -qE '^domains: \[website|^domains: \[test'; then
+    echo "Repair hat Domains geraten statt List-Form zu lesen" >&2
+    return 1
+  fi
 }

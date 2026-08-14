@@ -130,9 +130,58 @@ _derive_ticket_id() {
 # value of KEY inside the frontmatter block (first pair of ---); empty if absent
 _fm_field() {
     awk -v key="$1" '
-        BEGIN{f=0}
-        /^---$/{f++; next}
-        f==1 && $0 ~ "^"key":" { sub("^"key":[ \t]*","",$0); print; exit }
+        BEGIN{f=0; in_list=0; count=0}
+        /^---$/{
+            f++;
+            if (f==2) {
+                if (in_list) {
+                    printf "["
+                    for (i=0; i<count; i++) printf "%s%s", (i>0?", ":""), items[i]
+                    printf "]\n"
+                    in_list=0
+                }
+                exit
+            }
+            next
+        }
+        f==1 {
+            if (in_list) {
+                if ($0 ~ /^[ \t]*-[ \t]*/) {
+                    val=$0
+                    sub(/^[ \t]*-[ \t]*/, "", val)
+                    sub(/[ \t\r]*$/, "", val)
+                    sub(/^['\''"]/, "", val); sub(/['\''"]$/, "", val)
+                    if (val != "") items[count++] = val
+                    next
+                } else {
+                    printf "["
+                    for (i=0; i<count; i++) printf "%s%s", (i>0?", ":""), items[i]
+                    printf "]\n"
+                    in_list=0
+                    exit
+                }
+            }
+            if ($0 ~ ("^" key ":")) {
+                line=$0
+                sub("^" key ":[ \t]*", "", line)
+                sub(/[ \t\r]*$/, "", line)
+                if (line != "") {
+                    print line
+                    in_list=0
+                    exit
+                } else {
+                    in_list=1
+                    next
+                }
+            }
+        }
+        END {
+            if (in_list && f < 2) {
+                printf "["
+                for (i=0; i<count; i++) printf "%s%s", (i>0?", ":""), items[i]
+                printf "]\n"
+            }
+        }
     ' "$FILE" | tr -d '\r'
 }
 
@@ -206,6 +255,15 @@ st_raw="$(_fm_field status | tr -d ' \t\r')"
 fl_raw="$(_fm_field file_locks | tr -d ' \t\r')"
 tid_raw="$(_fm_field ticket_id | tr -d ' \t\r')"
 
+# Check if domains was provided in list form (inline is empty, but list items present)
+dom_inline="$(awk 'BEGIN{f=0}/^---$/{f++;next}f==1 && /^domains:/{sub("^domains:[ \t]*","",$0);sub(/[ \t\r]*$/,"");print;exit}' "$FILE")"
+dom_flow=""
+needs_domains_convert=0
+if [[ -z "$dom_inline" && -n "$dom_raw" && "$dom_raw" != "[]" && "$dom_raw" != "null" ]]; then
+    dom_flow="$(_fm_field domains)"
+    needs_domains_convert=1
+fi
+
 needs_domains=0
 case "$dom_raw" in ""|"[]"|"null") needs_domains=1 ;; esac
 needs_status=0
@@ -219,7 +277,7 @@ tid_derived="$(_derive_ticket_id)"
 needs_ticket=0
 case "$tid_raw" in ""|"null") [[ -n "$tid_derived" ]] && needs_ticket=1 ;; esac
 
-if [[ "$needs_domains" -eq 0 && "$needs_status" -eq 0 && "$needs_batch" -eq 0 && "$needs_ticket" -eq 0 ]]; then
+if [[ "$needs_domains" -eq 0 && "$needs_status" -eq 0 && "$needs_batch" -eq 0 && "$needs_ticket" -eq 0 && "$needs_domains_convert" -eq 0 ]]; then
     echo "Frontmatter already complete in $FILE — nothing to do."
     exit 0
 fi
@@ -232,8 +290,9 @@ derived_yaml="$(_domains_to_yaml "$derived")"
 tmpfile="$(mktemp)"
 awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
     -v needs_st="$needs_status" -v needs_batch="$needs_batch" \
-    -v tid="$tid_derived" -v needs_ticket="$needs_ticket" '
-    BEGIN { infm=0; dom_seen=0; st_seen=0; batch_seen=0; tid_seen=0 }
+    -v tid="$tid_derived" -v needs_ticket="$needs_ticket" \
+    -v dom_flow="$dom_flow" '
+    BEGIN { infm=0; dom_seen=0; st_seen=0; batch_seen=0; tid_seen=0; skip_dom_list=0 }
     { sub(/\r$/,"") }
     NR==1 && $0=="---" { print; infm=1; next }
     infm==1 && $0=="---" {
@@ -246,9 +305,12 @@ awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
             print "batch_id: null"
             print "parent_feature: null"
             print "depends_on_plans: []"
-}
-        
+        }
         print; infm=0; next
+    }
+    infm==1 && skip_dom_list==1 {
+        if ($0 ~ /^[ \t]*-/) next
+        skip_dom_list=0
     }
     infm==1 && $0 ~ /^ticket_id:/ {
         tid_seen=1
@@ -257,7 +319,14 @@ awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
     }
     infm==1 && $0 ~ /^domains:/ {
         dom_seen=1
-        if (needs_dom==1) { print "domains: " derived } else { print }
+        if (needs_dom==1) {
+            print "domains: " derived
+        } else if (dom_flow != "") {
+            print "domains: " dom_flow
+        } else {
+            print
+        }
+        skip_dom_list=1
         next
     }
     infm==1 && $0 ~ /^status:/ {
@@ -269,4 +338,4 @@ awk -v derived="$derived_yaml" -v needs_dom="$needs_domains" \
     { print }
 ' "$FILE" > "$tmpfile"
 mv "$tmpfile" "$FILE"
-echo "Repaired frontmatter in $FILE (domains=$derived_yaml needs_status=$needs_status needs_batch=$needs_batch)"
+echo "Repaired frontmatter in $FILE (domains=${dom_flow:-$derived_yaml} needs_status=$needs_status needs_batch=$needs_batch)"

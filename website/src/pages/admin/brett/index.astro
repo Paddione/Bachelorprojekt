@@ -7,6 +7,5 @@ if (!session) return Astro.redirect(getLoginUrl('/admin/brett'));
 if (!isAdmin(session)) return Astro.redirect('/admin');
 
 const brettDomain = process.env.BRETT_DOMAIN ?? 'brett.localhost';
-const proto = brettDomain.includes('localhost') ? 'http' : 'https';
-return Astro.redirect(`${proto}://${brettDomain}/?admin=1`);
+return Astro.redirect(`${brettDomain.includes('localhost') ? 'http' : 'https'}://${brettDomain}/?admin=1`);
 ---

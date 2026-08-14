@@ -4140,6 +4140,12 @@
     "kind": "shell"
   },
   {
+    "id": "scripts/agent-lock-stale-holder",
+    "file": "tests/spec/scripts/agent-lock-stale-holder.bats",
+    "category": "scripts",
+    "kind": "shell"
+  },
+  {
     "id": "sdlc-cockpit/action-inventory",
     "file": "tests/spec/sdlc-cockpit/action-inventory.bats",
     "category": "sdlc-cockpit",

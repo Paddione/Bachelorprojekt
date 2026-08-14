@@ -112,6 +112,14 @@ if [[ $SELF_TEST -eq 1 ]]; then
   assert_blocks "refactor(plan-only)"  "refactor(scripts): consolidate guards"    "openspec/changes/cleanup/tasks.md"
   assert_blocks "perf(plan-only)"      "perf(db): index tickets table"            "openspec/changes/perf-index/tasks.md"
 
+  # Block cases — the T004611 pattern (unintended package.json drift)
+  assert_blocks "fix(package-json-drift)"  "fix(infra): chain middleware sequence"    "website/src/middleware.ts .opencode/package.json"
+  assert_blocks "fix(package-lock-drift)"  "fix(infra): chain middleware sequence"    "website/src/middleware.ts .opencode/package-lock.json"
+
+  # Allow cases — explicit dependency update
+  assert_allows "chore(deps-package-json)" "chore(deps): update @opencode-ai/plugin"  ".opencode/package.json .opencode/package-lock.json"
+  assert_allows "fix(plugins-package-json)" "fix(plugins): pin @opencode-ai/plugin"   ".opencode/package.json"
+
   # Edge case: production code in a non-standard path still counts as impl
   assert_allows "fix(kustomize)"       "fix(infra): tweak configmap"              "k3d/configmap-domains.yaml"
   # Edge case: amend without staged changes (no-op commit) — should not block
@@ -121,7 +129,7 @@ if [[ $SELF_TEST -eq 1 ]]; then
     echo "check-commit-vs-diff: self-test FAILED" >&2
     exit 1
   fi
-  echo "check-commit-vs-diff: self-test passed (15 cases)"
+  echo "check-commit-vs-diff: self-test passed (19 cases)"
   exit 0
 fi
 
@@ -147,6 +155,37 @@ else
   STAGED_FILES="$(git -C "$REPO_ROOT" diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)"
 fi
 [[ -n "$STAGED_FILES" ]] || exit 0  # empty commit (e.g. amend with --allow-empty) — nothing to check
+
+# --- Detect unintended package.json drift (T004611 pattern) ---
+# Subagent dispatches can inadvertently run npm install in .opencode/ and
+# modify package.json / package-lock.json. An implementation commit
+# (fix/feat/refactor/perf) may only touch these files if it explicitly declares
+# a plugin/dependency update (e.g. fix(plugins): or fix(deps):).
+if echo "$STAGED_FILES" | grep -qE '(^|/)\.opencode/package(-lock)?\.json$'; then
+  if ! echo "$SUBJECT" | grep -qE '^(fix|feat|refactor|perf)(!)?\((plugins|deps)\):\s'; then
+    cat >&2 <<EOF
+✗  check-commit-vs-diff: implementation commit contains unintended .opencode/package.json modification
+
+Subject:    $SUBJECT
+Staged:     $(echo "$STAGED_FILES" | tr '\n' ' ' | sed 's/ $//')
+
+This is the T004611 pattern — an implementation commit ('fix:' / 'feat:' /
+'refactor:' / 'perf:') touches .opencode/package.json or package-lock.json
+without declaring a dependency update in the subject scope.
+
+If this is an intentional dependency update, use an explicit prefix:
+  chore(deps): …  for dependency updates
+  fix(plugins): … for plugin fixes or pin updates
+  build(deps): …  for build/dependency updates
+
+If this is unintended noise from a subagent dispatch, unstage the files:
+  git checkout -- .opencode/package.json .opencode/package-lock.json
+
+To bypass (emergency only): SKIP_COMMIT_VS_DIFF=1 git commit ...
+EOF
+    exit 1
+  fi
+fi
 
 # Files that are NOT production-code-bearing: test/spec/plan artifacts.
 # Everything that survives this filter is "real" code that proves the

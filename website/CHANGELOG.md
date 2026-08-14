@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.3](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.2...website-v1.276.3) (2026-08-14)
+
+
+### Bug Fixes
+
+* **infra:** Hauptcheckout-Staging-Guard fuer neue OpenSpec-Slugs [T003980] ([#4369](https://github.com/Paddione/Bachelorprojekt/issues/4369)) ([9d96f41](https://github.com/Paddione/Bachelorprojekt/commit/9d96f41277c3887b6883e3adc0e4cc8edddcb7f4))
+
 ## [1.276.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.1...website-v1.276.2) (2026-08-14)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.36](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.35...website-v1.276.36) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** trim whitespace in areas csv conversion [T004894] ([#4504](https://github.com/Paddione/Bachelorprojekt/issues/4504)) ([ae6c5f4](https://github.com/Paddione/Bachelorprojekt/commit/ae6c5f4ccf6264b2f34659bddc94ee443e77334d))
+
 ## [1.276.35](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.34...website-v1.276.35) (2026-08-14)
 
 

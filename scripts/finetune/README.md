@@ -85,7 +85,7 @@ laufenden Factory-Slots gehoert nicht in einen Trainingslauf.
 vorgeschalteten `mcp__mcp-postgres__query`-Aufruf gegen `tickets.factory_phase_events`
 (siehe `.claude/skills/references/mcp-tool-guide.md`), als JSON-Datei via `--rows-json`
 uebergeben (`--fixture` ist der identische Pfad fuer Tests). Nur Ticket-Laeufe mit einem
-`verify`/`pass`-Event werden uebernommen; bekannte Secret-Muster im `detail`-Feld werden vor
+`verify`/`done`-Event werden uebernommen; bekannte Secret-Muster im `detail`-Feld werden vor
 dem Schreiben redigiert.
 
 ## Trainingsartefakte

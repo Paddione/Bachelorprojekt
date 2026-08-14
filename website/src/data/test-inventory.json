@@ -3576,6 +3576,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/container-create-description",
+    "file": "tests/spec/mishap-rollup/container-create-description.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/container-finds-blocked-status",
     "file": "tests/spec/mishap-rollup/container-finds-blocked-status.bats",
     "category": "mishap-rollup",
@@ -3584,6 +3590,12 @@
   {
     "id": "mishap-rollup/container-resolution-and-unattended-worktree",
     "file": "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
+    "id": "mishap-rollup/generator-cycle-artifacts",
+    "file": "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
     "category": "mishap-rollup",
     "kind": "shell"
   },

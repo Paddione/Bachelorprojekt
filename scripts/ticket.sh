@@ -1034,7 +1034,7 @@ cmd_rollup_container() {
   ext_id=$(bash "$(dirname "${BASH_SOURCE[0]}")/ticket.sh" create \
     --type chore --brand "$brand" \
     --title "$ROLLUP_TITLE" \
-    --description "Fortlaufende Sammlung nicht-kritischer Mishaps. Dieses Ticket bleibt dauerhaft offen." \
+    --description "Fortlaufende Sammlung nicht-kritischer Mishaps. Der Container wird nach Verarbeitung seines Batches geschlossen." \
     --status triage --severity minor 2>&1)
   echo "$ext_id"
 }

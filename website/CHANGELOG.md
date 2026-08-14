@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.20](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.19...website-v1.276.20) (2026-08-14)
+
+
+### Bug Fixes
+
+* **ci:** CFR-Trend-Fenster + Fix-Commit-Ticket-Guard [T005307] ([#4444](https://github.com/Paddione/Bachelorprojekt/issues/4444)) ([c420c3e](https://github.com/Paddione/Bachelorprojekt/commit/c420c3ec9020fdb7816235413350b93de3c786b0))
+
 ## [1.276.19](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.18...website-v1.276.19) (2026-08-14)
 
 

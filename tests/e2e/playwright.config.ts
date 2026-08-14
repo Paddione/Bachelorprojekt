@@ -1,5 +1,5 @@
-import { defineConfig, devices } from '@playwright/test';
-import { execSync } from 'child_process';
+import { defineConfig, devices, webkit } from '@playwright/test';
+import * as fs from 'fs';
 
 const websiteURL = process.env.WEBSITE_URL || 'http://localhost:4321';
 
@@ -7,8 +7,7 @@ const websiteURL = process.env.WEBSITE_URL || 'http://localhost:4321';
 // skip the project entirely instead of failing every test with "binary not found".
 let webkitInstalled = false;
 try {
-  execSync('npx playwright install --list webkit 2>/dev/null', { stdio: 'ignore', timeout: 5_000 });
-  webkitInstalled = true;
+  webkitInstalled = fs.existsSync(webkit.executablePath());
 } catch { /* webkit not available */ }
 
 export default defineConfig({

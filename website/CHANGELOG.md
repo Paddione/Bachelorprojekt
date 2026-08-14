@@ -1,5 +1,66 @@
 # Changelog
 
+## [1.276.30](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.29...website-v1.276.30) (2026-08-14)
+
+
+### Documentation
+
+* restore harness-stable session-identity scenarios [T005676] ([#4482](https://github.com/Paddione/Bachelorprojekt/issues/4482)) ([20a4195](https://github.com/Paddione/Bachelorprojekt/commit/20a4195374cd51a6505bc94bf24e89fb71b7a7ca))
+
+## [1.276.29](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.28...website-v1.276.29) (2026-08-14)
+
+
+### Bug Fixes
+
+* **infra:** resolve brainstorm cross-include firewall call [T005899] ([#4479](https://github.com/Paddione/Bachelorprojekt/issues/4479)) ([a8307ae](https://github.com/Paddione/Bachelorprojekt/commit/a8307ae0347c3d96ec56ff730be7dceaecbd2822))
+
+## [1.276.28](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.27...website-v1.276.28) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** enforce dependency blocker gate in schedule.sh [T005306] ([#4472](https://github.com/Paddione/Bachelorprojekt/issues/4472)) ([9be8510](https://github.com/Paddione/Bachelorprojekt/commit/9be85103ea4eba46631f8ccf883aa274d9a5fca5))
+
+
+### Tests
+
+* **mcp:** real-DB-Regressionstest für Rollup-Container-Erkennung [T004893] ([#4473](https://github.com/Paddione/Bachelorprojekt/issues/4473)) ([7c1a9ae](https://github.com/Paddione/Bachelorprojekt/commit/7c1a9ae7ed3880f92e2a34506cc24c9f06c6e2e2))
+
+## [1.276.27](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.26...website-v1.276.27) (2026-08-14)
+
+
+### Bug Fixes
+
+* **test:** resolve flakiness, timeouts, storageState and guards [T005595] ([#4466](https://github.com/Paddione/Bachelorprojekt/issues/4466)) ([655998b](https://github.com/Paddione/Bachelorprojekt/commit/655998bb48f6e190f3020847463fff30fe001abd))
+
+## [1.276.26](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.25...website-v1.276.26) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** allow Phase-A proposal paths on main in worktree write guard [T005559] ([#4467](https://github.com/Paddione/Bachelorprojekt/issues/4467)) ([b2ccb57](https://github.com/Paddione/Bachelorprojekt/commit/b2ccb57fff63b692337965df00e3e82b64e9822f))
+
+## [1.276.25](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.24...website-v1.276.25) (2026-08-14)
+
+
+### Bug Fixes
+
+* **mcp:** escalate task cancel to process-group SIGKILL [T005592] ([#4460](https://github.com/Paddione/Bachelorprojekt/issues/4460)) ([b7531d8](https://github.com/Paddione/Bachelorprojekt/commit/b7531d863b4176fc116fe69accff268de53ac3a2))
+
+## [1.276.24](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.23...website-v1.276.24) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** MODIFIED truncation guard for openspec merge [T005310] ([#4454](https://github.com/Paddione/Bachelorprojekt/issues/4454)) ([cf8feb2](https://github.com/Paddione/Bachelorprojekt/commit/cf8feb234064abe02690d2ec058c94fcedeceecb))
+
+## [1.276.23](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.22...website-v1.276.23) (2026-08-14)
+
+
+### Bug Fixes
+
+* **mcp:** planner reads deps from Taskfile YAML sources [T005596] ([#4458](https://github.com/Paddione/Bachelorprojekt/issues/4458)) ([75c7e10](https://github.com/Paddione/Bachelorprojekt/commit/75c7e10d46f78d103a932c182896727a07928aa1))
+
 ## [1.276.22](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.21...website-v1.276.22) (2026-08-14)
 
 

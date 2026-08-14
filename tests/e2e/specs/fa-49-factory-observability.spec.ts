@@ -1,9 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 const BASE = process.env.WEBSITE_URL ?? 'https://web.mentolder.de';
 const HAS_ADMIN_AUTH = !!process.env.E2E_ADMIN_PASS;
 
 test.describe('FA-49: Factory Observability Dashboard', { tag: ['@admin', '@factory'] }, () => {
+  test.beforeEach(async ({ request }) => {
+    await guardSdlc(request);
+  });
   test('T1: /admin/factory-observability loads with KPI cards for admin', async ({ page }) => {
     test.skip(!HAS_ADMIN_AUTH, 'E2E_ADMIN_PASS not set — skipping admin UI test');
     await page.goto('/admin/factory-observability');

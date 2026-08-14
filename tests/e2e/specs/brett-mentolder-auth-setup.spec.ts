@@ -36,6 +36,7 @@ setup.setTimeout(120_000);
 
 setup('authenticate mentolder brett admin', async ({ page, request }, testInfo) => {
   ensureAuthDir();
+  fs.writeFileSync(ADMIN_STATE, JSON.stringify({ cookies: [], origins: [] }));
 
   // Verify brett health endpoint is reachable before login
   await assertReachable(request, `${BRETT_URL}/healthz`, { label: 'brett healthz' }, testInfo);

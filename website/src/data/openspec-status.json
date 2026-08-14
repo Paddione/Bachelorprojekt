@@ -3561,6 +3561,12 @@
       "status": "archived"
     }
   ],
+  "T004893": [
+    {
+      "slug": "2026-08-14-mishap-container-detect-real-db",
+      "status": "archived"
+    }
+  ],
   "T004898": [
     {
       "slug": "2026-08-14-rollup-container-ephemeral",
@@ -3597,6 +3603,12 @@
       "status": "archived"
     }
   ],
+  "T005306": [
+    {
+      "slug": "2026-08-14-schedule-blocker-gate",
+      "status": "archived"
+    }
+  ],
   "T005307": [
     {
       "slug": "2026-08-14-cfr-gates",
@@ -3613,6 +3625,42 @@
     {
       "slug": "2026-08-14-scheduling-cleanup-teardown",
       "status": "archived"
+    }
+  ],
+  "T005310": [
+    {
+      "slug": "2026-08-14-archive-truncation-guard",
+      "status": "archived"
+    }
+  ],
+  "T005559": [
+    {
+      "slug": "2026-08-14-worktree-write-guard-phase-a-allowlist",
+      "status": "archived"
+    }
+  ],
+  "T005592": [
+    {
+      "slug": "2026-08-14-mcp-task-runner-cancel-escalation",
+      "status": "archived"
+    }
+  ],
+  "T005596": [
+    {
+      "slug": "2026-08-14-mcp-task-runner-planner-deps",
+      "status": "archived"
+    }
+  ],
+  "T005676": [
+    {
+      "slug": "2026-08-14-ssot-truncation-restores",
+      "status": "archived"
+    }
+  ],
+  "T005899": [
+    {
+      "slug": "brainstorm-firewall-namespace",
+      "status": "plan_staged"
     }
   ],
   "TBD": [

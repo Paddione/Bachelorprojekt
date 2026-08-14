@@ -9,12 +9,15 @@
 The system SHALL provide a `plan_tasks` MCP tool that accepts a list of `{task, env}` pairs and returns an execution plan organised into parallel groups.
 
 The plan SHALL be derived by:
-- Parsing the project's `Taskfile.yml` via `task --list-all --json` to extract the dependency graph (DAG)
+- Listing the project's tasks via `task --list-all --json` to obtain the task universe (task names and their source-file locations)
+- Extracting the dependency edges (DAG) from the Taskfile YAML sources, resolving `includes:` namespaces declared in the root Taskfile
 - Applying Kahn's topological sort to the requested tasks
 - Placing tasks with no inter-dependency in the same parallel group
 - Placing tasks from different brands (env) on the same level into the same parallel group
 
 The system SHALL return `ErrCyclicDependency` if the requested tasks form a cycle.
+
+The system SHALL fail with an error naming the unreadable or unparseable source file rather than silently returning an edge-less graph.
 
 #### Scenario: same-brand independent tasks form one group
 
@@ -33,6 +36,12 @@ The system SHALL return `ErrCyclicDependency` if the requested tasks form a cycl
 - **GIVEN** a Taskfile where task A depends on B and B depends on A
 - **WHEN** the caller invokes `plan_tasks` with both tasks
 - **THEN** the tool returns an error referencing the cycle
+
+#### Scenario: dependency edges declared in include-namespaced taskfiles are honoured
+
+- **GIVEN** a root Taskfile that includes a taskfile under the namespace `assets`, and a task `website:build` whose `deps` reference `assets:sync`
+- **WHEN** the caller invokes `plan_tasks` with `website:build` and `assets:sync` for the same brand
+- **THEN** the returned plan contains two groups, `assets:sync` first and `website:build` second
 
 ## Requirements
 
@@ -131,10 +140,17 @@ The tool SHALL:
 The system SHALL provide a `cancel_task` MCP tool that cancels a running asynchronous job by its `job_id`.
 
 The tool SHALL:
-- Send `SIGTERM` to the task process of a running job
+- Send `SIGTERM` to the task process group of a running job
+- Escalate to `SIGKILL` against the same process group when the task has not exited within 5 seconds after `SIGTERM`, so that child processes of the task are terminated as well
 - Return `{cancelled: true, job_id}` when the job was running and cancellation was requested
 - Return `{cancelled: false, job_id, reason: "already done"}` when the job has already finished or been cancelled
 - Return a job-not-found error for unknown `job_id` values
+
+#### Scenario: task ignoring SIGTERM is killed after the escalation window
+
+- **GIVEN** a running async job whose task process ignores `SIGTERM` and keeps child processes running
+- **WHEN** the caller invokes `cancel_task` with that job's id
+- **THEN** the task process group receives `SIGTERM` and is killed with `SIGKILL` within approximately 5 seconds, and the underlying `run_task` execution returns instead of hanging until the children exit
 
 #### Scenario: cancelling an unknown job reports not found
 
@@ -206,3 +222,7 @@ The instrumentation SHALL apply to every execution path, including asynchronous 
 - **GIVEN** the OTel Collector is reachable on `localhost:4317`
 - **WHEN** a task is executed
 - **THEN** a span appears in Grafana Tempo with the expected attributes
+
+<!-- merged from change delta mcp-task-runner.md (bcd02a43b942) -->
+
+<!-- merged from change delta mcp-task-runner.md (23c31fa05de6) -->

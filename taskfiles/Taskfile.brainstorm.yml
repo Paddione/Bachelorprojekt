@@ -59,7 +59,7 @@ tasks:
   firewall:open:
     desc: "[brainstorm] Apply DEV_SSH_ALLOWLIST CIDRs as ufw allow rules for tcp/2222 on $DEV_NODE (delegates to dev:firewall:open)"
     cmds:
-      - task: dev:firewall:open
+      - task: :dev:firewall:open
 
   collab:
     desc: "[brainstorm] Apply the collab patch, then publish a local port + print the SSO link for gekko. Usage: task brainstorm:collab -- <localport>"

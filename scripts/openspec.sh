@@ -229,10 +229,12 @@ cmd_archive() {
   local create_new=""
   local force_new=""
   local no_merge=0
+  local allow_shrink=""
   while [[ $# -gt 0 ]]; do case "$1" in
     --create-new) create_new="--create-new"; shift ;;
     --force-new-component) force_new="--force-new-component"; shift ;;
     --no-merge) no_merge=1; shift ;;
+    --allow-shrink) allow_shrink="--allow-shrink"; shift ;;
     *) die "Unknown archive option: $1" ;;
   esac; done
   local dir="$OPENSPEC_ROOT/changes/$slug"
@@ -298,11 +300,12 @@ cmd_archive() {
           local cap; cap="$(basename "$capfile")"
           [[ $first -eq 0 ]] && echo ','
           first=0
-          printf '  {"delta": %s, "ssot": %s, "create_new": %s, "force_new_component": %s, "dry_run": true}' \
+          printf '  {"delta": %s, "ssot": %s, "create_new": %s, "force_new_component": %s, "allow_shrink": %s, "dry_run": true}' \
             "$(jq -R -s . < <(printf '%s' "$capfile"))" \
             "$(jq -R -s . < <(printf '%s' "$OPENSPEC_ROOT/specs/$cap"))" \
             "$([[ -n "$create_new" ]] && echo true || echo false)" \
-            "$([[ -n "$force_new" ]] && echo true || echo false)"
+            "$([[ -n "$force_new" ]] && echo true || echo false)" \
+            "$([[ -n "$allow_shrink" ]] && echo true || echo false)"
         done
         echo
         echo ']'
@@ -385,18 +388,19 @@ _check_deliverable_presence() {
 }
 
 _merge_delta() {
-  local delta="$1" ssot="$2" create_new="${3:-}" force_new="${4:-}"
+  local delta="$1" ssot="$2" create_new="${3:-}" force_new="${4:-}" allow_shrink="${5:-}"
   # Operation-aware merge (ADDED/MODIFIED/REMOVED/RENAMED). Fail-closed: a missing
-  # target, a RENAMED without **Renamed-to:**, or a skeleton stub exits non-zero
-  # and aborts the archive (set -e) before the SSOT can be corrupted.
-  node "$REPO/scripts/openspec-merge.mjs" apply "$delta" "$ssot" $create_new $force_new
+  # target, a RENAMED without **Renamed-to:**, a skeleton stub, or a truncating
+  # MODIFIED without --allow-shrink (T005310) exits non-zero and aborts the
+  # archive (set -e) before the SSOT can be corrupted.
+  node "$REPO/scripts/openspec-merge.mjs" apply "$delta" "$ssot" $create_new $force_new $allow_shrink
 }
 
 _check_delta() {
-  local delta="$1" ssot="$2" create_new="${3:-}" force_new="${4:-}"
+  local delta="$1" ssot="$2" create_new="${3:-}" force_new="${4:-}" allow_shrink="${5:-}"
   # Trockenlauf mit denselben Guards wie _merge_delta, ohne jeden Schreibvorgang.
   # Fail-closed via set -e: bricht hier etwas ab, hat noch keine SSOT sich geaendert.
-  node "$REPO/scripts/openspec-merge.mjs" check "$delta" "$ssot" $create_new $force_new
+  node "$REPO/scripts/openspec-merge.mjs" check "$delta" "$ssot" $create_new $force_new $allow_shrink
 }
 
 cmd_validate() {
@@ -481,4 +485,9 @@ main() {
 #                           SSOT (fuer Prozess-Notizen wie mishap-*-Bundles, deren
 #                           Skeleton-Delta nie ausgefuellt wurde). Ohne dieses Flag
 #                           greift der fail-closed Stub-/Target-Guard weiterhin.
+#   --allow-shrink          MODIFIED-Delta mit WENIGER Szenarien als das SSOT-
+#                           Requirement trotzdem mergen (bewusste Konsolidierung).
+#                           Ohne das Flag bricht die Archivierung mit Warnung ab
+#                           (T005310 — Trunkierung loeschte in PR #4440 sechs
+#                           Szenarien).
 main "$@"

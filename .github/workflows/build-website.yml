@@ -177,6 +177,8 @@ jobs:
           curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
             | bash -s -- 5.4.3 /usr/local/bin
           mkdir -p ~/.kube
+          umask 077
+          chmod 700 ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
@@ -336,6 +338,8 @@ jobs:
           curl -sSL "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" \
             | bash -s -- 5.4.3 /usr/local/bin
           mkdir -p ~/.kube
+          umask 077
+          chmod 700 ~/.kube
           echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 

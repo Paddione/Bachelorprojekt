@@ -47,23 +47,37 @@ for c in "${candidates[@]}"; do
 
   # Dependency blocker gate (TDR-2): skip tickets whose depends_on predecessors
   # are not all done. Queries the DB directly via factory_psql.
+  # [T005306] Die Query referenzierte d.external_id, aber das Subquery-Alias d
+  # liefert nur dep_id (unnest(depends_on)) — die Query scheiterte still (stderr
+  # verworfen, set +e) und der Gate fiel fail-open: Tickets mit offenen Blockern
+  # wurden geplant. Korrektur: d.dep_id. Zusaetzlich war der COALESCE-Fallback
+  # wirkungslos (json_build_object ist nie NULL): bei 0 Zeilen (keine depends_on)
+  # kam {'blocked': true, 'blockers': null} heraus — Kandidaten ohne Abhaengigkeit
+  # wurden faelschlich geblockt. bool_or/FILTER liefern immer ein belastbares
+  # Ergebnis. Fehler-Sichtbarkeit wie T002386/T002610: stderr wird mitgefasst,
+  # und ein Query-Fehler skippt den Kandidaten sichtbar (fail-closed) statt den
+  # Gate lautlos zu ueberspringen.
   set +e
-  blocker_json=$(cat <<SQL | BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" factory_psql 2>/dev/null
-SELECT COALESCE(json_build_object(
-  'blocked', true,
-  'blockers', json_agg(d.external_id)
-), '{"blocked":false,"blockers":[]}'::json)
+  blocker_out=$(cat <<SQL | BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" factory_psql 2>&1
+SELECT json_build_object(
+  'blocked', COALESCE(bool_or(t.status IS DISTINCT FROM 'done'), false),
+  'blockers', COALESCE(json_agg(d.dep_id) FILTER (WHERE t.status IS DISTINCT FROM 'done'), '[]'::json)
+)
 FROM (
   SELECT unnest(depends_on) AS dep_id
   FROM tickets.tickets WHERE external_id = '${ext_id}'
 ) d
 LEFT JOIN tickets.tickets t ON t.external_id = d.dep_id
-WHERE t.status IS DISTINCT FROM 'done'
 SQL
 )
+  blocker_rc=$?
   set -e
-  if [[ -n "$blocker_json" ]] && echo "$blocker_json" | jq -e '.blocked == true' >/dev/null 2>&1; then
-    blockers=$(echo "$blocker_json" | jq -r '.blockers | join(", ")')
+  if [[ "$blocker_rc" -ne 0 ]] || ! echo "$blocker_out" | jq -e 'has("blocked")' >/dev/null 2>&1; then
+    echo "schedule: ERROR dependency-blocker query failed for ${ext_id} — skipping candidate fail-closed [T005306]: ${blocker_out}" >&2
+    continue
+  fi
+  if echo "$blocker_out" | jq -e '.blocked == true' >/dev/null 2>&1; then
+    blockers=$(echo "$blocker_out" | jq -r '.blockers | join(", ")')
     continue
   fi
 

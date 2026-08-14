@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { guardSdlc } from '../lib/sdlc-guard';
 
 test.use({ viewport: { width: 375, height: 812 } });
 
 test.describe('FA-MOBILE: Factory Floor mobile parity', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, request }) => {
+    await guardSdlc(request);
     await page.goto('/admin/cockpit?tab=factory', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('[data-testid="factory-floor"]', { timeout: 45_000 });
   });

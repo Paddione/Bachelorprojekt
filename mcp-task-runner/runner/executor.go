@@ -20,6 +20,11 @@ import (
 // argPattern matches safe argument values: alphanumeric, underscore, colon, dot, hyphen, slash.
 var argPattern = regexp.MustCompile(`^[A-Za-z0-9_:.\-/]+$`)
 
+// sigkillDelay is the escalation window (T005592): after context cancellation
+// sends SIGTERM via cmd.Cancel, exec.CommandContext kills the child with SIGKILL
+// once WaitDelay elapses without exit. Package var so tests can shrink it.
+var sigkillDelay = 5 * time.Second
+
 // validateArg rejects empty values, values starting with '-', and values containing characters
 // outside the safe set. This prevents argv flag-smuggling attacks.
 func validateArg(value string) error {
@@ -73,7 +78,7 @@ func RunTask(ctx context.Context, task, env, taskfilePath string) (Result, error
 	}
 	cmd := exec.CommandContext(ctx, "task", taskArgs...)
 	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
-	cmd.WaitDelay = 5 * time.Second
+	cmd.WaitDelay = sigkillDelay
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
 		return Result{Task: task, Env: env, ExitCode: 1}, fmt.Errorf("stdout pipe: %w", err)

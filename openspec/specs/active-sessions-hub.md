@@ -582,3 +582,5 @@ reference) SHALL state that an empty claim list does not prove that nobody is wo
 - **THEN** it exits 0 and does not report its own process as activity
 
 <!-- merged from change delta active-sessions-hub.md (e173512e42ee) -->
+
+<!-- merged from change delta active-sessions-hub.md (20d01d7e00a7) -->

@@ -581,6 +581,7 @@
         "tests/spec/mcp-gateway/client-env-check.bats",
         "tests/spec/mcp-gateway/mcp-sync-drift-no-secret-leak.bats",
         "tests/spec/mcp-gateway/opencode-env-placeholder.bats",
+        "tests/spec/mcp-gateway/qwen-token-expansion.bats",
         "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
         "tests/spec/mcp-skill-integration.bats",
         "tests/spec/mcp-task-runner.bats",

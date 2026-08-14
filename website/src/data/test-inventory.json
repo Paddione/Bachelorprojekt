@@ -3420,6 +3420,12 @@
     "kind": "shell"
   },
   {
+    "id": "mcp-gateway/qwen-token-expansion",
+    "file": "tests/spec/mcp-gateway/qwen-token-expansion.bats",
+    "category": "mcp-gateway",
+    "kind": "shell"
+  },
+  {
     "id": "mcp-gateway/watchdog-tunnel-liveness",
     "file": "tests/spec/mcp-gateway/watchdog-tunnel-liveness.bats",
     "category": "mcp-gateway",

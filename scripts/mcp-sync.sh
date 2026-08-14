@@ -17,9 +17,11 @@ OUT_DIR="${MCP_OUT_DIR:-$REPO}"
 
 CLAUDE_TARGET="$OUT_DIR/.mcp.json"
 OPENCODE_TARGET="$OUT_DIR/.opencode/opencode.jsonc"
-# AGY_TARGET bleibt an $HOME gebunden: die Datei liegt konstruktionsbedingt
-# ausserhalb des Repos. Ein Test isoliert sie ueber HOME, nicht ueber MCP_OUT_DIR.
+# AGY_TARGET und QWEN_TARGET bleiben an $HOME gebunden: die Dateien liegen
+# konstruktionsbedingt ausserhalb des Repos. Ein Test isoliert sie ueber HOME,
+# nicht ueber MCP_OUT_DIR.
 AGY_TARGET="${HOME}/.gemini/config/mcp_config.json"
+QWEN_TARGET="${HOME}/.qwen/settings.json"
 LLAMACPP_TARGET="$OUT_DIR/scripts/llm/mcp-servers.json"
 
 # render_opencode_jsonc erhaelt alles ausserhalb des "mcp"-Blocks, indem es die
@@ -39,17 +41,23 @@ render_claude_json() {
     const reg = yaml.parse(fs.readFileSync('$REGISTRY', 'utf8'));
     const clients = reg.clients;
     const out = { mcpServers: {} };
+    // [T004272] Server mit \${VAR} in Headers werden uebersprungen: Qwen Code
+    // liest .mcp.json mit Vorrang vor ~/.qwen/settings.json, expandiert \${VAR}
+    // aber nicht — der Literal-String fuehrt zu HTTP 401. Diese Server gehoeren
+    // in die nicht-getrackten Harness-Configs (~/.claude/settings.json fuer
+    // Claude Code, ~/.qwen/settings.json fuer Qwen Code) mit aufgeloestem Token.
+    const PLACEHOLDER = /\\$\\{[A-Za-z_][A-Za-z0-9_]*\\}/;
+    const hasPlaceholder = (headers) => {
+      if (!headers) return false;
+      return Object.values(headers).some(v => PLACEHOLDER.test(String(v)));
+    };
     for (const name of Object.keys(clients).sort()) {
       const c = clients[name];
       if (!c.harness || !c.harness.claude_code) continue;
+      if (hasPlaceholder(c.headers)) continue;
       const h = c.harness.claude_code;
       if (c.transport === 'http') {
         out.mcpServers[name] = { type: 'http', url: c.endpoint };
-        // headers wird VERBATIM emittiert -- \${VAR} bleibt unexpandiert stehen,
-        // damit kein Secret in eine getrackte Datei geraet. Expandiert wird erst
-        // vom Harness beim Laden. Clients ohne headers bleiben byte-identisch;
-        // ein leeres headers:{} wuerde check fuer jeden unbeteiligten Server
-        // als Drift melden.
         if (c.headers) out.mcpServers[name].headers = c.headers;
       } else {
         const server = {};
@@ -91,7 +99,7 @@ render_agy_json() {
         const eq = line.indexOf('=');
         if (eq < 1 || line.trimStart().startsWith('#')) continue;
         const key = line.slice(0, eq).trim();
-        if (!/^[A-Za-z_][A-Za-z0-9_]*\$/.test(key)) continue;
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
         let val = line.slice(eq + 1).trim();
         if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === '\'' || val[0] === '\"')) {
           val = val.slice(1, -1);
@@ -249,6 +257,83 @@ render_opencode_jsonc() {
   "
 }
 
+# render_qwen_json — Qwen Code (T004272)
+# Qwen Code expandiert ${VAR} in settings.json-headers NICHT — es sendet den
+# Literal-String, der Zielserver antwortet 401. Dieselbe Loesung wie agy
+# (T002704): Token zur Sync-Zeit aufloesen. Die Datei liegt unter $HOME,
+# ausserhalb jeder Versionierung; chmod 600 in cmd_render schuetzt den Token.
+render_qwen_json() {
+  node -e "
+    const fs = require('fs'), yaml = require('yaml'), os = require('os'), path = require('path');
+    const reg = yaml.parse(fs.readFileSync('$REGISTRY', 'utf8'));
+    const clients = reg.clients;
+    const out = { mcpServers: {} };
+
+    // Token-Aufloesung identisch zu render_agy_json: Umgebung first, dann
+    // ~/.config/bge-mcp/server.env als Fallback.
+    const envFileVars = {};
+    try {
+      const envFile = path.join(os.homedir(), '.config', 'bge-mcp', 'server.env');
+      for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {
+        const eq = line.indexOf('=');
+        if (eq < 1 || line.trimStart().startsWith('#')) continue;
+        const key = line.slice(0, eq).trim();
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
+        let val = line.slice(eq + 1).trim();
+        if (val.length > 1 && val[0] === val[val.length - 1] && (val[0] === '\'' || val[0] === '\"')) {
+          val = val.slice(1, -1);
+        }
+        envFileVars[key] = val;
+      }
+    } catch { /* keine server.env — dann bleibt nur die Umgebung */ }
+
+    const PLACEHOLDER = new RegExp('[' + String.fromCharCode(36) + ']\\{([A-Za-z_][A-Za-z0-9_]*)\\}', 'g');
+    const unresolved = new Set();
+    const resolveValue = (raw) => String(raw).replace(PLACEHOLDER, (whole, varName) => {
+      const value = process.env[varName] !== undefined && process.env[varName] !== ''
+        ? process.env[varName]
+        : envFileVars[varName];
+      if (value === undefined || value === '') { unresolved.add(varName); return whole; }
+      return value;
+    });
+    const resolveHeaders = (headers) => {
+      const outHeaders = {};
+      for (const [k, v] of Object.entries(headers)) outHeaders[k] = resolveValue(v);
+      return outHeaders;
+    };
+
+    for (const name of Object.keys(clients).sort()) {
+      const c = clients[name];
+      if (!c.harness || !c.harness.qwen_code) continue;
+      const h = c.harness.qwen_code;
+      if (c.transport === 'http') {
+        const server = { httpUrl: h.httpUrl || c.endpoint };
+        if (c.headers) server.headers = resolveHeaders(c.headers);
+        out.mcpServers[name] = server;
+      } else {
+        const server = {};
+        if (h.command) server.command = h.command;
+        if (h.args && h.args.length) server.args = h.args;
+        if (h.env) server.env = h.env;
+        out.mcpServers[name] = server;
+      }
+    }
+    if (unresolved.size) {
+      process.stderr.write(
+        'mcp-sync: WARN: qwen-Header nicht aufloesbar: ' + [...unresolved].sort().join(', ') +
+        ' — weder in der Umgebung noch in ~/.config/bge-mcp/server.env. ' +
+        'Der Platzhalter bleibt stehen; Qwen Code wird den Server mit HTTP 401 verwerfen.\\n'
+      );
+    }
+
+    // Merge in existing settings to preserve non-MCP config
+    let settings = {};
+    try { settings = JSON.parse(fs.readFileSync('$QWEN_TARGET', 'utf8')); } catch {}
+    settings.mcpServers = out.mcpServers;
+    fs.writeFileSync('/dev/stdout', JSON.stringify(settings, null, 2) + '\n');
+  "
+}
+
 diff_or_drift() {
   local label="$1" expected="$2" actual="$3"
   if ! diff -q "$expected" "$actual" >/dev/null 2>&1; then
@@ -290,6 +375,18 @@ cmd_render() {
     echo "mcp-sync: render: $AGY_TARGET dir missing — skipped" >&2
   fi
 
+  if [ -d "$(dirname "$QWEN_TARGET")" ]; then
+    echo "mcp-sync: render: writing $QWEN_TARGET"
+    # [T004272] Qwen Code expandiert ${VAR} in Headers NICHT — Token wird zur
+    # Sync-Zeit aufgeloest (wie agy, T002704). Die Datei liegt unter $HOME und
+    # traegt jetzt einen Klartext-Token; chmod 600 schuetzt ihn.
+    ( umask 077; render_qwen_json > "${QWEN_TARGET}.tmp" )
+    mv "${QWEN_TARGET}.tmp" "$QWEN_TARGET"
+    chmod 600 "$QWEN_TARGET"
+  else
+    echo "mcp-sync: render: $QWEN_TARGET dir missing — skipped" >&2
+  fi
+
   echo "mcp-sync: render: writing $LLAMACPP_TARGET"
   render_llamacpp_json > "${LLAMACPP_TARGET}.tmp"
   mv "${LLAMACPP_TARGET}.tmp" "$LLAMACPP_TARGET"
@@ -313,6 +410,13 @@ cmd_check() {
     diff_or_drift "mcp_config.json" "$tmpd/agy.json" "$AGY_TARGET" || exit_code=1
   else
     echo "SKIP: $AGY_TARGET not present — skipped (exit 0 based on repo files)"
+  fi
+
+  if [ -f "$QWEN_TARGET" ]; then
+    render_qwen_json > "$tmpd/qwen.json"
+    diff_or_drift "settings.json (qwen)" "$tmpd/qwen.json" "$QWEN_TARGET" || exit_code=1
+  else
+    echo "SKIP: $QWEN_TARGET not present — skipped (exit 0 based on repo files)"
   fi
 
   render_llamacpp_json > "$tmpd/llamacpp.json"

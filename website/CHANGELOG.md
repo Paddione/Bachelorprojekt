@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.43](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.42...website-v1.276.43) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** auto-kill deleted-binary processes in runtime drift check [T004897] ([#4516](https://github.com/Paddione/Bachelorprojekt/issues/4516)) ([ac4a416](https://github.com/Paddione/Bachelorprojekt/commit/ac4a416e250fc83c9a497fcd9d96f4477bea3840))
+
 ## [1.276.42](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.41...website-v1.276.42) (2026-08-14)
 
 

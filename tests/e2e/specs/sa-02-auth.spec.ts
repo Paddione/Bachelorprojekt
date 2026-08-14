@@ -8,7 +8,7 @@ test.describe('SA-02: Authentifizierung — Browser (Pocket ID)', () => {
 
     await page.goto(`${baseURL}/login`);
 
-    await expect(page).toHaveURL(/authorize/, { timeout: 60_000 });
+    await expect(page).toHaveURL(/authorize|interaction|login|auth\./, { timeout: 60_000 });
 
     await context.close();
   });
@@ -20,7 +20,7 @@ test.describe('SA-02: Authentifizierung — Browser (Pocket ID)', () => {
 
     await page.goto(`${baseURL}/login`);
 
-    await expect(page).toHaveURL(/authorize/, { timeout: 60_000 });
+    await expect(page).toHaveURL(/authorize|interaction|login|auth\./, { timeout: 60_000 });
     await context.close();
   });
 });

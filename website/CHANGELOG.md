@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.45](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.44...website-v1.276.45) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** pass through stale ticket-lock holders [T005560] ([#4523](https://github.com/Paddione/Bachelorprojekt/issues/4523)) ([9b84405](https://github.com/Paddione/Bachelorprojekt/commit/9b84405b67659619596fedb553249e0cae2c38fd))
+
 ## [1.276.44](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.43...website-v1.276.44) (2026-08-14)
 
 

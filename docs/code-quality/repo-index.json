@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 994,
+      "file_count": 995,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -468,6 +468,7 @@
         "tests/spec/dev-flow-plan/plan-lint-rules.bats",
         "tests/spec/dev-flow-plan/plan-lint-task-count.bats",
         "tests/spec/dev-flow-plan/plan-lint-w3-prose-path.bats",
+        "tests/spec/dev-flow-plan/plan-preflight-staged-set.bats",
         "tests/spec/dev-flow-plan/plan-preflight.bats",
         "tests/spec/dev-flow-plan/plan-qa-livez-probe.bats",
         "tests/spec/dev-flow-plan/plan-qa-parse-and-outcome.bats",

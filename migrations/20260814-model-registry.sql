@@ -50,3 +50,9 @@ CREATE TABLE IF NOT EXISTS model_registry.deployment_config (
 -- Namen zusammen mit IF NOT EXISTS (syntax error at or near "."). Der Index
 -- landet automatisch im Schema der Tabelle (model_registry).
 CREATE INDEX IF NOT EXISTS eval_scores_role_idx ON model_registry.eval_scores(role);
+
+-- Zugriff fuer den Website-User (Skripte verbinden als website):
+GRANT USAGE ON SCHEMA model_registry TO website;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA model_registry TO website;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA model_registry TO website;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA model_registry TO website;

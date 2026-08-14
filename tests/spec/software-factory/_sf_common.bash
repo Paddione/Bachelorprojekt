@@ -128,7 +128,7 @@ _sf_teardown() {
     local _seed_id
     for _seed_id in "${_seed_ids[@]}"; do
       [[ -n "$_seed_id" ]] || continue
-      purge_real_feature "$_seed_brand" "$_seed_id" >/dev/null 2>&1 || true
+      purge_real_feature "$_seed_brand" "$_seed_id" >/dev/null || true
     done
     rm -f "$BATS_FILE_TMPDIR/sf-seeded-ids" 2>/dev/null || true
   fi

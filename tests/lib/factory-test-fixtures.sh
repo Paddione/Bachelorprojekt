@@ -122,7 +122,7 @@ ensure_purge_fn_current() {
   schema="${BASH_REMATCH[1]}"; fn="${BASH_REMATCH[2]}"; marker="${BASH_REMATCH[3]}"
   out="$(kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
     psql -U postgres -d website -qtAc \
-    "SELECT prosrc LIKE '%${marker}%' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = '${schema}' AND p.proname = '${fn}';" 2>/dev/null)"
+    "SELECT prosrc LIKE '%${marker}%' FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname = '${schema}' AND p.proname = '${fn}';" < /dev/null 2>/dev/null)"
   [[ "$out" == "t" ]] && return 0
   echo "self-heal: applying $latest to ${schema}.${fn} (Marker '$marker' fehlt in pg_proc)" >&2
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
@@ -159,7 +159,7 @@ purge_factory_test_data() {
   # schlagender Apply laesst den Purge sichtbar scheitern.
   ensure_purge_fn_current "$pod" "$ns" "$ctx" || return 1
   kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
-    psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null
+    psql -U postgres -d website -qtAc "SELECT tickets.fn_purge_test_data();" >/dev/null < /dev/null
 }
 
 # purge_real_feature [--force] <brand> <ext_id> — hard DELETE of one real
@@ -205,9 +205,22 @@ purge_real_feature() {
   # und draent damit einen while-read-Loop ueber einer Datei (beobachtet im
   # _sf_teardown-Purge: nur die erste registrierte ID wurde gepurged, der Rest
   # der Registry-Datei landete als EOF-verlorenes Stdin im exec).
-  local title
+  local title select_rc stderr_file
+  # [T005591] Execute-rc prüfen: ein fehlgeschlagener kubectl-exec (z.B. transient)
+  # muss nicht idempotent 0 sein, sondern observable error — sonst entgeht ein
+  # Ghost-Seed ohne Spur. stderr_temp_datei + PIPESTATUS erreichen das.
+  stderr_file=$(mktemp)
+  set -o pipefail
   title=$(kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
-    psql -U postgres -d website -qtAc "SELECT title FROM tickets.tickets WHERE external_id='$ext_id';" 2>/dev/null < /dev/null | tr -d '[:space:]')
+    psql -U postgres -d website -qtAc "SELECT title FROM tickets.tickets WHERE external_id='$ext_id';" < /dev/null 2>"$stderr_file" | tr -d '[:space:]')
+  select_rc=$?
+  set +o pipefail
+  cat "$stderr_file" | sed 's/^/[purge-exec] /' >&2
+  rm -f "$stderr_file"
+  if [[ $select_rc -ne 0 ]]; then
+    echo "purge_real_feature: exec failed (rc=$select_rc) for $ext_id — row state unknown" >&2
+    return 1
+  fi
   [[ -n "$title" ]] || return 0   # idempotent: Zeile existiert nicht mehr
   if [[ "$force" != 1 && "$title" != SF-REAL-* ]]; then
     echo "purge_real_feature: refuses non-SF-REAL title for $ext_id (title: ${title:0:60}…)" >&2

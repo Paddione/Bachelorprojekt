@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.12](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.11...website-v1.276.12) (2026-08-14)
+
+
+### Bug Fixes
+
+* **security:** alibaba token-plan key via opencode auth statt plaintext [T004808] ([#4417](https://github.com/Paddione/Bachelorprojekt/issues/4417)) ([7caaf66](https://github.com/Paddione/Bachelorprojekt/commit/7caaf66123a9af5c1fc9e0daced7312a2a477345))
+
 ## [1.276.11](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.10...website-v1.276.11) (2026-08-14)
 
 

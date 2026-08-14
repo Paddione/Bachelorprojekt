@@ -2802,6 +2802,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/worktree-remove-claim-guard",
+    "file": "tests/spec/dev-flow-plan/worktree-remove-claim-guard.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "devflow-selection-archive-hardening",
     "file": "tests/spec/devflow-selection-archive-hardening.bats",
     "category": "devflow-selection-archive-hardening",

@@ -13,6 +13,7 @@
 # Ausgabe, die in dieser Form "sauber" bedeutet, also Freigabe zum Entfernen. Die Trennung
 # von 1 (Befund) und 2 (nicht prüfbar) hält genau diese beiden Fälle auseinander.
 set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
   echo "Usage: $0 <path>" >&2
@@ -44,6 +45,29 @@ _status_once() {
   printf "%s" "$out" | cut -c4- | grep -vE '^(openspec/changes/|docs/code-quality/|website/src/data/)' | grep -vE '^(\.release-please-manifest\.json|website/CHANGELOG\.md|website/package\.json)$' || true
 }
 
+# ── Claim-Guard [T005115]: aktiver fremder branch-Claim blockiert das Entfernen ─
+# Der dokumentierte Fremd-Remove-Pfad (dev-flow-plan Schritt −1) prüfte bisher nur
+# dirty-Worktrees — ein sauberer Worktree kann aber trotzdem belegt sein (laufender
+# Rollup/Lauf hält einen agent-lock branch-Claim). agent-lock.sh check branch liefert
+# "free"/"mine" (rc 0) oder "held" (rc 3); rc 0 und der nicht-prüfbare Fall (kein
+# Branch, detached HEAD) lassen den bisherigen Kontrakt unverändert.
+_claim_guard() {
+  local branch lock_out lock_rc
+  branch="$(git -C "$1" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  [ -n "$branch" ] && [ "$branch" != "HEAD" ] || return 0
+  # cwd = Repo-Root (nicht der gepruefte Pfad): "mine" entscheidet sich ueber die
+  # Worktree-Containment des cwd (agent-lock.sh _lock_is_mine, T003110) — liefe
+  # der Check aus dem geprueften Worktree selbst, stuende dort jeder Fremd-Claim
+  # als "mine" und der Guard waere blind (T005115-Fixture).
+  lock_out="$(cd "$HERE/.." && bash "$HERE/agent-lock.sh" check branch "$branch" 2>&1)" && lock_rc=0 || lock_rc=$?
+  if [ "$lock_rc" -eq 3 ]; then
+    echo "Befund: Worktree '$1' hat einen aktiven branch-Claim (agent-lock):" >&2
+    printf '%s\n' "$lock_out" >&2
+    return 1
+  fi
+  return 0
+}
+
 # ── Zweitmessung (T002995): erster Befund wird durch zweiten Lauf bestätigt ─
 residue1=$(_status_once "$path") && rc1=0 || rc1=$?
 if [ "$rc1" -ne 0 ]; then
@@ -60,6 +84,7 @@ if [ -n "$residue1" ]; then
   fi
   if [ -z "$residue2" ]; then
     echo "Stat-Cache aufgefrischt, keine persistenten Änderungen (T002995)"
+    _claim_guard "$path" || exit 1
     exit 0
   fi
   if [ "$residue1" != "$residue2" ]; then
@@ -69,5 +94,7 @@ if [ -n "$residue1" ]; then
   printf "%s\n" "$residue1"
   exit 1
 fi
+
+_claim_guard "$path" || exit 1
 
 exit 0

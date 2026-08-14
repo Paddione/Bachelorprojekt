@@ -18,8 +18,8 @@ _Ticket: T005115_
 
 | Datei | Ist | Budget |
 |---|---|---|
-| `scripts/worktree-clean-check.sh` | 73 | 727 |
-| `scripts/factory/mishap-rollup.sh` | 279 | 521 |
+| `scripts/worktree-clean-check.sh` | 100 | 700 |
+| `scripts/factory/mishap-rollup.sh` | 290 | 510 |
 | `.claude/skills/dev-flow-plan/SKILL.md` | groß | nur Schritt-−1-Block anpassen |
 | `tests/spec/dev-flow-plan/worktree-remove-claim-guard.bats` | neu | neu |
 | `openspec/changes/worktree-remove-claim-guard/{proposal,tasks}.md` | neu | Plan-Artefakte |

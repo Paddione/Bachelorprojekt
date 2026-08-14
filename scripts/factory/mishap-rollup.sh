@@ -93,7 +93,13 @@ echo "mishap-rollup: ${BATCH_COUNT} Batch-Kommentare gefunden"
 # origin liegen, bis der PR gemergt und der Change archiviert ist; der naechste
 # Zyklus bekommt einen eigenen Worktree unter eigenem Slug. Ein stale Worktree
 # von einem abgebrochenen Lauf wird vom trap des naechsten Laufs entfernt.
-cleanup_wt() { git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true; }
+cleanup_wt() {
+  # [T005115] Claim zuerst freigeben (best-effort), dann den Worktree entfernen —
+  # der Claim-Guard von worktree-clean-check.sh blockiert Fremd-Removes nur, wenn
+  # der Lock noch lebt; das eigene Cleanup darf den Lock nie stehen lassen.
+  bash "$REPO/scripts/agent-lock.sh" release branch "$BRANCH" >/dev/null 2>&1 || true
+  git -C "$REPO" worktree remove --force "$WT" >/dev/null 2>&1 || true
+}
 trap cleanup_wt EXIT
 
 # Worktree ggf. anlegen. worktree-create.sh behandelt beide Faelle:
@@ -113,6 +119,11 @@ if ! git -C "$REPO" worktree list 2>/dev/null | grep -qF "$WT"; then
     exit 1
   }
 fi
+
+# [T005115] Zyklus-Branch claimen: der Claim-Guard von worktree-clean-check.sh
+# blockiert Fremd-Removes, solange dieser Lauf lebt. Best-effort — ein
+# fehlgeschlagener Claim (z.B. bereits fremd gehalten) bricht den Rollup nicht ab.
+bash "$REPO/scripts/agent-lock.sh" claim branch "$BRANCH" --worktree "$WT" --label mishap-rollup >/dev/null 2>&1 || true
 
 cd "$WT"
 

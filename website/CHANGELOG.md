@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.25](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.24...website-v1.276.25) (2026-08-14)
+
+
+### Bug Fixes
+
+* **mcp:** escalate task cancel to process-group SIGKILL [T005592] ([#4460](https://github.com/Paddione/Bachelorprojekt/issues/4460)) ([b7531d8](https://github.com/Paddione/Bachelorprojekt/commit/b7531d863b4176fc116fe69accff268de53ac3a2))
+
 ## [1.276.24](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.23...website-v1.276.24) (2026-08-14)
 
 

@@ -2,7 +2,7 @@
 title: "factory-dispatch-branch-lock-gate — Implementation Plan"
 ticket_id: T004610
 domains: [factory]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

@@ -4368,6 +4368,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/dispatch-branch-lock-gate",
+    "file": "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/enqueue-preserves-plan-staged",
     "file": "tests/spec/software-factory/enqueue-preserves-plan-staged.bats",
     "category": "software-factory",

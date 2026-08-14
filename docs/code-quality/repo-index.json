@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 983,
+      "file_count": 984,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -748,6 +748,7 @@
         "tests/spec/software-factory/conflict-gate.bats",
         "tests/spec/software-factory/dashboard.bats",
         "tests/spec/software-factory/db-pod-phase-guard.bats",
+        "tests/spec/software-factory/dispatch-branch-lock-gate.bats",
         "tests/spec/software-factory/dispatcher.bats",
         "tests/spec/software-factory/enqueue-preserves-plan-staged.bats",
         "tests/spec/software-factory/factory-claims-lock-before-write.bats",

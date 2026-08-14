@@ -79,6 +79,14 @@ if [[ -z "$BRANCH" || -z "$PLAN_PATH" ]]; then
   exit 7
 fi
 
+# --- Doppel-Dispatch-Guard [T004610] -----------------------------------------------
+# shellcheck source=scripts/factory/readiness-check.sh
+source "$HERE/readiness-check.sh"
+if ! check_branch_lock "$BRANCH" >/dev/null 2>&1; then
+  echo "opencode-exec: $EXT_ID Branch $BRANCH ist geclaimt — kein Launch" >&2
+  exit 7
+fi
+
 phase_event entered orchestrator all 0 0
 
 # --- build the orchestrator prompt (manifest as a data arg — NO shell expansion) -----

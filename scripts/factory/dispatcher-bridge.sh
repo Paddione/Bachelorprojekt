@@ -78,6 +78,13 @@ for row in "${launch_rows[@]}"; do
     continue
   fi
 
+  # Doppel-Dispatch-Guard [T004610] — branch-scoped geclaimter Branch wird uebersprungen
+  if ! lock_json="$(check_branch_lock "$branch")"; then
+    lock_reason="$(printf '%s' "$lock_json" | jq -r '.reason // "unknown"' 2>/dev/null || echo unknown)"
+    echo "dispatcher-bridge: $ext_id not ready (readiness=$lock_reason) — skipping launch" >&2
+    continue
+  fi
+
   # Budget guard
   if ! BRAND="$brand" bash "$HERE/budget-guard.sh" "$brand" 2>/dev/null; then
     echo "dispatcher-bridge: budget-guard blocked $ext_id ($brand)" >&2

@@ -3,56 +3,49 @@
     "gate": "S1",
     "path": "website/src/components/assistant/QuestionnaireView.svelte",
     "metric": 1001,
-    "detail": "1001 lines > 500 limit (.svelte)",
-    "frozen_at": "224a9e077"
+    "detail": "1001 lines > 800 limit (.svelte)",
+    "frozen_at": "e23dcebed"
   },
   "S1:website/src/components/inbox/InboxApp.svelte": {
     "gate": "S1",
     "path": "website/src/components/inbox/InboxApp.svelte",
     "metric": 954,
-    "detail": "954 lines > 500 limit (.svelte)",
-    "frozen_at": "224a9e077"
+    "detail": "954 lines > 800 limit (.svelte)",
+    "frozen_at": "e23dcebed"
   },
   "S1:website/src/components/inbox/InboxDetail.svelte": {
     "gate": "S1",
     "path": "website/src/components/inbox/InboxDetail.svelte",
     "metric": 837,
-    "detail": "837 lines > 500 limit (.svelte)",
-    "frozen_at": "224a9e077"
-  },
-  "S1:website/src/lib/helpContent.ts": {
-    "gate": "S1",
-    "path": "website/src/lib/helpContent.ts",
-    "metric": 902,
-    "detail": "902 lines > 600 limit (.ts)",
-    "frozen_at": "224a9e077"
+    "detail": "837 lines > 800 limit (.svelte)",
+    "frozen_at": "e23dcebed"
   },
   "S1:website/src/pages/admin/[clientId].astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/[clientId].astro",
     "metric": 745,
-    "detail": "745 lines > 400 limit (.astro)",
-    "frozen_at": "224a9e077"
+    "detail": "745 lines > 600 limit (.astro)",
+    "frozen_at": "e23dcebed"
   },
   "S1:website/src/pages/admin/fragebogen/[assignmentId].astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/fragebogen/[assignmentId].astro",
     "metric": 625,
-    "detail": "625 lines > 400 limit (.astro)",
-    "frozen_at": "224a9e077"
+    "detail": "625 lines > 600 limit (.astro)",
+    "frozen_at": "e23dcebed"
   },
   "S1:website/src/pages/admin/projekte/[id].astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/projekte/[id].astro",
     "metric": 923,
-    "detail": "923 lines > 400 limit (.astro)",
-    "frozen_at": "224a9e077"
+    "detail": "923 lines > 600 limit (.astro)",
+    "frozen_at": "e23dcebed"
   },
   "S1:website/src/pages/admin/termine.astro": {
     "gate": "S1",
     "path": "website/src/pages/admin/termine.astro",
     "metric": 772,
-    "detail": "772 lines > 400 limit (.astro)",
-    "frozen_at": "224a9e077"
+    "detail": "772 lines > 600 limit (.astro)",
+    "frozen_at": "e23dcebed"
   }
 }

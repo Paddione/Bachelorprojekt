@@ -71,6 +71,9 @@ s1:
     .php: 600     # war 400
   ignore:
     - "website/src/lib/system-test-seed-data.ts"
+    # helpContent.ts is a static copy/dictionary catalog defining contextual help text
+    # and action checklists for portal and admin routes. Static text catalog.
+    - "website/src/lib/helpContent.ts"
     # pipeline.js is a single monolithic Claude Code Workflow script: the harness
     # forbids top-level imports-before-`meta` and dynamic import(), so it cannot be
     # safely split into modules (see T000460). It is a sanctioned exception to the

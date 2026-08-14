@@ -17,12 +17,33 @@ if [[ -z "$repo_root" ]]; then
   exit 0  # not a git repo (e.g. initialising) — nothing to do
 fi
 
+resolve_guard() {
+  local script_rel="$1"
+  local target="$repo_root/$script_rel"
+  if [ ! -f "$target" ]; then
+    local common_dir
+    common_dir="$(git rev-parse --git-common-dir 2>/dev/null || true)"
+    if [ -n "$common_dir" ]; then
+      case "$common_dir" in
+        /*) target="$common_dir/../$script_rel" ;;
+        *)  target="$(cd "$repo_root/$common_dir/.." 2>/dev/null && pwd || true)/$script_rel" ;;
+      esac
+    fi
+  fi
+  if [ ! -f "$target" ]; then
+    echo "commit-msg: guard script not found: $script_rel (neither in worktree nor main checkout)" >&2
+    exit 1
+  fi
+  echo "$target"
+}
+
 if [[ "${SKIP_COMMIT_VS_DIFF:-0}" == "1" ]]; then
   echo "⚠  commit-msg: SKIP_COMMIT_VS_DIFF=1 — bypassing check-commit-vs-diff" >&2
   exit 0
 fi
 
-if ! bash "$repo_root/scripts/check-commit-vs-diff.sh" "$1"; then
+guard_commit_vs_diff="$(resolve_guard "scripts/check-commit-vs-diff.sh")"
+if ! bash "$guard_commit_vs_diff" "$1"; then
   echo "" >&2
   echo "💡 Hint: use 'test(red):' for RED-only test commits or" >&2
   echo "         'chore(plan):' for plan-only commits." >&2
@@ -34,7 +55,8 @@ fi
 # Fix()-Commits brauchen eine Ticket-ID (G-DORA03) — ungetickte fixes sind
 # verschleierte Bugs und verfaelschen die CFR-Messung (T005307).
 # Bypass (nur im Notfall): SKIP_FIX_TICKET_GUARD=1 git commit ...
-if ! bash "$repo_root/scripts/check-fix-ticket-guard.sh" "$1"; then
+guard_fix_ticket="$(resolve_guard "scripts/check-fix-ticket-guard.sh")"
+if ! bash "$guard_fix_ticket" "$1"; then
   echo "" >&2
   echo "💡 Hint: bash scripts/ticket.sh create --type fix ... — Ticket anlegen," >&2
   echo "         dann die Ticket-ID in die Commit-Message aufnehmen (git commit --amend)." >&2
@@ -55,7 +77,8 @@ if [[ "${SKIP_COMMIT_MSG_LINT:-0}" == "1" ]]; then
   exit 0
 fi
 
-if ! bash "$repo_root/scripts/validate-commit-msg.sh" message "$1"; then
+guard_validate_commit="$(resolve_guard "scripts/validate-commit-msg.sh")"
+if ! bash "$guard_validate_commit" message "$1"; then
   echo "" >&2
   echo "💡 Erlaubte Scopes: bash scripts/validate-commit-msg.sh scopes" >&2
   echo "   Ticket-Scopes (T000123) und Health-Goal-Scopes (G-SIZE02) sind immer gueltig." >&2

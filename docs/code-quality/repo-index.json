@@ -530,6 +530,7 @@
         "tests/spec/g-fe02-bundle-budget.bats",
         "tests/spec/g-fe03-structured-logger.bats",
         "tests/spec/g-size02-large-files.bats",
+        "tests/spec/githooks-worktree-fallback.bats",
         "tests/spec/grilling-flow.bats",
         "tests/spec/harness-workflow-split.bats",
         "tests/spec/health-goal-latest-image-exclusions.bats",

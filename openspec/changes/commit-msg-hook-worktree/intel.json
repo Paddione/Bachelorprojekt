@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "slug": "commit-msg-hook-worktree",
+    "ticket_id": "",
+    "generated_from": "main@6f22baecd",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".githooks/commit-msg",
+      "language": "text",
+      "loc": 65,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/githooks-worktree-fallback.bats",
+      "language": "bash",
+      "loc": 88,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/githooks-worktree-fallback.bats:18:setup() {",
+      "kind": "function",
+      "file": "tests/spec/githooks-worktree-fallback.bats",
+      "signature": "18:setup() {(...)",
+      "type_text": "18:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

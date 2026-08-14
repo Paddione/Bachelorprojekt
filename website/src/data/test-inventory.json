@@ -3120,6 +3120,12 @@
     "kind": "shell"
   },
   {
+    "id": "githooks-worktree-fallback",
+    "file": "tests/spec/githooks-worktree-fallback.bats",
+    "category": "githooks-worktree-fallback",
+    "kind": "shell"
+  },
+  {
     "id": "grilling-flow",
     "file": "tests/spec/grilling-flow.bats",
     "category": "grilling-flow",

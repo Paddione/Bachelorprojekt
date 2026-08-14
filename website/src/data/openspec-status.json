@@ -3507,6 +3507,12 @@
       "status": "archived"
     }
   ],
+  "T004610": [
+    {
+      "slug": "factory-dispatch-branch-lock-gate",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

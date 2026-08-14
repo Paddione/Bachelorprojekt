@@ -42,7 +42,7 @@ openspec/changes/factory-dispatch-branch-lock-gate/        — proposal + delta 
 
 ## Tasks
 
-### Task 1: Rot-Phase verifizieren (failing Test)
+### Task 1: Rot-Phase verifizieren (failing Test) [x]
 
 `tests/spec/software-factory/dispatch-branch-lock-gate.bats` liegt bereits vor (4 Tests).
 Rot-Status bestätigen — der Defekt MUSS nachweisbar sein, bevor der Fix gebaut wird
@@ -55,7 +55,7 @@ Rot-Status bestätigen — der Defekt MUSS nachweisbar sein, bevor der Fix gebau
 4. Beide Positiv-Anker (Test 1, Test 4) sind GRÜN — das Gate ist grundsätzlich durchlässig,
    der Test misst also den fehlenden Lock-Check, nicht ein kaputtes Skript.
 
-### Task 2: `check_branch_lock()` in readiness-check.sh ergänzen
+### Task 2: `check_branch_lock()` in readiness-check.sh ergänzen [x]
 
 `scripts/factory/readiness-check.sh`, neben `check_ticket_readiness`:
 
@@ -70,7 +70,7 @@ Rot-Status bestätigen — der Defekt MUSS nachweisbar sein, bevor der Fix gebau
    aus der Umgebung erben — kein eigenes Setzen (Test-Override-Pfad, agent-lock.sh Kopf).
 3. **Kein** Ticket-Status-Wechsel, **kein** Slot-Release im Guard — reiner Gate-Check.
 
-### Task 3: dispatcher-bridge.sh — Guard nach check_ticket_readiness
+### Task 3: dispatcher-bridge.sh — Guard nach check_ticket_readiness [x]
 
 `scripts/factory/dispatcher-bridge.sh`, direkt nach dem `check_ticket_readiness`-Block
 (Zeile ~75, VOR dem Budget-Guard):
@@ -82,7 +82,7 @@ Rot-Status bestätigen — der Defekt MUSS nachweisbar sein, bevor der Fix gebau
 3. Kein `update-status blocked`, kein Slot-Release — das Ticket bleibt `plan_staged` und
    wird vom nächsten Tick erneut geprüft, sobald der Lock frei ist.
 
-### Task 4: opencode-exec.sh — Guard vor dem Orchestrator-Spawn
+### Task 4: opencode-exec.sh — Guard vor dem Orchestrator-Spawn [x]
 
 `scripts/factory/opencode-exec.sh`, VOR dem `opencode run --agent orchestrator`-Spawn
 (Zeile ~130):
@@ -94,7 +94,7 @@ Rot-Status bestätigen — der Defekt MUSS nachweisbar sein, bevor der Fix gebau
 3. **Kein** `phase_event blocked` beim Lock-Skip (das Ticket ist nicht blockiert — es läuft
    ja parallel; kein Rauschen im Factory-Journal). Nur die stderr-Zeile.
 
-### Task 5: Grün-Phase — eigenen Testlauf bestehen
+### Task 5: Grün-Phase — eigenen Testlauf bestehen [x]
 
 1. `bash tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/dispatch-branch-lock-gate.bats`
 2. Erwartung: ALLE 4 Tests grün (Test 2 + 3 jetzt grün durch Task 2–4, Positiv-Anker bleiben grün).

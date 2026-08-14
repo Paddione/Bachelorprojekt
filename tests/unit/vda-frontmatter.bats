@@ -369,3 +369,65 @@ EOF
   run bash "$VDA" frontmatter --validate "$TMP/v-no-domains.md"
   [ "$status" -eq 1 ]
 }
+
+# ── T005563: YAML-List-Form von domains (T005308) ─────────────────────────
+# Beobachtet bei T005308: tasks.md trug gueltiges YAML in List-Form
+# (`domains:\n  - factory`), plan-lint meldete trotzdem F1/F2, und der
+# danach obligatorische `vda.sh frontmatter`-Repair schrieb geratene
+# Flow-Form-Domains (`domains: [website, test]`) mit dem List-Rest als
+# losem Folgeblock darunter. Der Repair MUSS die List-Form lesen und in
+# Flow-Form ueberfuehren statt neu zu raten.
+
+# ── T005563: YAML-List-Form von domains (T005308) ─────────────────────────
+# Beobachtet bei T005308: tasks.md trug gueltiges YAML in List-Form
+# (`domains:\n  - factory`), plan-lint meldete trotzdem F1/F2, und der
+# danach obligatorische `vda.sh frontmatter`-Repair schrieb geratene
+# Flow-Form-Domains (`domains: [website, test]`) mit dem List-Rest als
+# losem Folgeblock darunter. Der Repair MUSS die List-Form lesen und in
+# Flow-Form ueberfuehren statt neu zu raten.
+
+@test "T005563: frontmatter --validate akzeptiert domains als YAML-Liste" {
+  cat > "$TMP/v-yaml-list.md" <<'EOF'
+---
+title: List Domains
+ticket_id: T005563
+domains:
+  - factory
+  - test
+status: active
+---
+
+# List Domains
+
+Touches scripts/factory/ scheduling and tests.
+EOF
+  run bash "$VDA" frontmatter --validate "$TMP/v-yaml-list.md"
+  [ "$status" -eq 0 ]
+}
+
+@test "T005563: frontmatter-Repair konvertiert domains-Liste nach Flow-Form ohne Raterei" {
+  cat > "$TMP/v-yaml-list-repair.md" <<'EOF'
+---
+title: List Domains
+ticket_id: T005563
+domains:
+  - factory
+status: active
+---
+
+# List Domains
+
+Touches scripts/factory/ scheduling.
+EOF
+  run bash "$VDA" frontmatter "$TMP/v-yaml-list-repair.md"
+  [ "$status" -eq 0 ]
+  # Der Repair muss die List-Form korrekt lesen (factory) und in Flow-Form schreiben —
+  # nicht raten und nicht den List-Rest als losen Block hinterlassen.
+  run awk '/^---$/{n++;next} n==1{print}' "$TMP/v-yaml-list-repair.md"
+  echo "$output" | grep -qE '^domains: \[factory\]$' \
+    || { echo "domains nicht in Flow-Form: $(echo "$output" | grep domains)" >&2; return 1; }
+  echo "$output" | grep -qE '^  - ' \
+    && { echo "YAML-List-Rest unter domains hinterlassen" >&2; return 1; }
+  echo "$output" | grep -qE '^domains: \[website|^domains: \[test' \
+    && { echo "Repair hat Domains geraten statt List-Form zu lesen" >&2; return 1; }
+}

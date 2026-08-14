@@ -1,7 +1,7 @@
 ---
 title: "stub-delta-pr-gate — Implementation Plan"
 ticket_id: T004592
-domains: [openspec]
+domains: [plan-authoring, test]
 status: active
 file_locks: []
 shared_changes: false

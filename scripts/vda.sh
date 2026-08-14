@@ -79,6 +79,17 @@ main() {
         exit 0
       fi
       python3 -c "print(f'CFR breit (fix()-Proxy): {$F/$T*100:.1f}% ({$F} fix / {$T} total) — Target: ≤15%')"
+      # Trend-Messung (T005307): festes internes 4-Wochen-Fenster, unabhaengig
+      # von CFR_WINDOW — nur so bleibt die Trend-Messung ueber Zeit vergleichbar.
+      # Gleicher Algorithmus wie die breite Messung (first-parent main, fix()-Proxy).
+      LOG4W=$(git log --since="4 weeks ago" --first-parent --oneline main 2>/dev/null || true)
+      T4W=$(echo "$LOG4W" | wc -l | tr -d ' ')
+      F4W=$(echo "$LOG4W" | grep -ciE '^[0-9a-f]+ fix\(' || true)
+      if [[ "$T4W" -eq 0 ]]; then
+        echo "CFR 4w (Trend): n/a (keine Merges im Fenster)"
+      else
+        python3 -c "print(f'CFR 4w (Trend): {$F4W/$T4W*100:.1f}% ({$F4W} fix / {$T4W} total)')"
+      fi
       ;;
     help|--help|-h)
       show_help

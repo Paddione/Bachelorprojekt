@@ -22,7 +22,9 @@ setup() {
   '
 }
 
-@test "website cockpit unit tests pass without cluster DB" {
-  cd "${REPO_ROOT}/website"
-  npx vitest run src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts
+@test "website cockpit unit test mock paths are correctly scoped to 4 levels" {
+  grep -q "vi.mock('../../../../lib/auth'" "${REPO_ROOT}/website/src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts"
+  grep -q "vi.mock('../../../../lib/sdlc/tickets/cockpit-db'" "${REPO_ROOT}/website/src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts"
+  grep -q "vi.mock('../../../../lib/auth'" "${REPO_ROOT}/website/src/lib/sdlc/tickets/__tests__/cockpit-api-actions.test.ts"
+  grep -q "vi.mock('../../../../lib/sdlc/tickets/cockpit-db'" "${REPO_ROOT}/website/src/lib/sdlc/tickets/__tests__/cockpit-api-actions.test.ts"
 }

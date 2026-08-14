@@ -24,5 +24,5 @@ setup() {
 
 @test "website cockpit unit tests pass without cluster DB" {
   cd "${REPO_ROOT}/website"
-  node node_modules/vitest/vitest.mjs run src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts
+  npx vitest run src/lib/sdlc/tickets/__tests__/cockpit-api.test.ts
 }

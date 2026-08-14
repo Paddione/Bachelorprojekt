@@ -2,7 +2,7 @@
 title: "mishap-container-detect-real-db — Implementation Plan"
 ticket_id: T004893
 domains: [tests]
-status: active
+status: completed
 ---
 
 # mishap-container-detect-real-db — Implementation Plan

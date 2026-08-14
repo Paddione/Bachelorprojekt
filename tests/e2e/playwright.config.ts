@@ -236,6 +236,7 @@ export default defineConfig({
         '**/brett-ground-annotations.spec.ts',// anchors/zones/lines incl. leiter-only gate (opens its own contexts)
         '**/brett-figure-ownership.spec.ts',  // figure_type_set/admin_assign_figure/lobby settings (opens its own contexts)
         '**/fa-27-brett.spec.ts',     // T002068: data API tests (authenticated subset)
+        '**/fa-60-realtime-ws.spec.ts', // FA-60: realtime WS /sync liveness (T003163 OIDC login)
       ],
       use: {
         ...devices['Desktop Chrome'],

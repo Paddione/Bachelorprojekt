@@ -24,7 +24,7 @@ Dieser Change baut den Count-Vergleich in den Merge-Punkt ein: trunkierendes MOD
 - `scripts/openspec-merge-truncation.test.ts` — neue Vitest-Datei, 3 Cases (Task 1, RED)
 - `scripts/openspec.sh` — CLI-Option `--allow-shrink` durchreichen (Task 3)
 
-## Task 1 — RED: Trunkierungs-Test-Cases schreiben und rot nachweisen
+## Task 1 — RED: Trunkierungs-Test-Cases schreiben und rot nachweisen — DONE (Branch-Commit b91804aea, rot nachgewiesen)
 
 1. `scripts/openspec-merge-truncation.test.ts` anlegen (TMPDIR-Fixtures nach dem Muster von
    `openspec-merge.test.ts`): SSOT mit Requirement + 3 Szenarien; trunkierendes Delta (1
@@ -38,7 +38,7 @@ Dieser Change baut den Count-Vergleich in den Merge-Punkt ein: trunkierendes MOD
    automatisch erfasst wird, Registrierung im selben Zug ergänzen, sonst läuft der Guard
    nie in CI).
 
-## Task 2 — GREEN: Count-Vergleich in applyDelta
+## Task 2 — GREEN: Count-Vergleich in applyDelta — DONE (7. Parameter allowShrink, MODIFIED-Count-Guard, Requirement-Zählungs-Warnung; 3 Cases grün, Suite grün)
 
 1. Im MODIFIED-Pfad von `applyDelta` (scripts/openspec-merge.mjs): vor dem Ersetzen die
    Anzahl der `#### Scenario:`-Zeilen im Delta-Block gegen die im SSOT-Requirement
@@ -52,7 +52,7 @@ Dieser Change baut den Count-Vergleich in den Merge-Punkt ein: trunkierendes MOD
 3. Alle drei Cases grün fahren; die bestehende Suite `openspec-merge.test.ts` darf nicht
    rot werden (Regressionslauf).
 
-## Task 3 — CLI-Durchreichung in scripts/openspec.sh
+## Task 3 — CLI-Durchreichung in scripts/openspec.sh — DONE (--allow-shrink in cmd_archive, batch-Liste, _merge_delta/_check_delta, openspec-merge.mjs-CLI, Hilfe-Text; E2E verifiziert)
 
 `archive`-Aufruf: Option `--allow-shrink` akzeptieren und als allowShrink-Parameter an
 applyDelta durchreichen. Default bleibt false — bewusste Konsolidierungen brauchen das

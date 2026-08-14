@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -88,6 +88,10 @@ describe('applyDelta truncation guard', () => {
   it('fails on a truncating MODIFIED delta without allowShrink', () => {
     const deltaPath = join(root, 'delta.md');
     writeFileSync(deltaPath, TRUNCATING_DELTA);
+    // Gleiches Fixture-Muster wie openspec-merge.test.ts: Vitest 4 mockt
+    // process.exit selbst (Message 'process.exit unexpectedly called with "1"'),
+    // das explizite spyOn stellt die exakte 'process.exit(1)'-Message her.
+    vi.spyOn(process, 'exit').mockImplementationOnce(() => { throw new Error('process.exit(1)') });
     expect(() => applyDelta(deltaPath, ssotPath, '2026-08-14', false, false, false, false))
       .toThrow('process.exit(1)');
   });

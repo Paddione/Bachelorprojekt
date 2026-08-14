@@ -15,14 +15,17 @@ setup() {
 #!/bin/bash
 LOG_FILE="$TMPD/psql-calls.log"
 echo "\$*" >> "\$LOG_FILE"
+# SQL kommt seit T004445 ueber stdin (psql :'var' ersetzt nur bei stdin/-f)
+STDIN_SQL="\$(cat)"
+[ -n "\$STDIN_SQL" ] && echo "\$STDIN_SQL" >> "\$LOG_FILE"
 
 TA=""
 CMD=""
-for arg in "\$@"; do
+for arg in "\$@" "\$STDIN_SQL"; do
   [ "\$arg" = "-t" ] && TA="\$TA-t"
   [ "\$arg" = "-A" ] && TA="\$TA-A"
 done
-for arg in "\$@"; do
+for arg in "\$@" "\$STDIN_SQL"; do
   case "\$arg" in
     *insert_adapter*) CMD="insert_adapter" ;;
     *get_adapter*)    CMD="get_adapter" ;;
@@ -99,8 +102,10 @@ teardown() {
   run bash "$CLI" register my-adapter gemma-4-9b-it --quant Q8_0
   [ "$status" -eq 0 ]
   grep -q "insert_adapter" "$TMPD/psql-calls.log"
-  grep -q "'my-adapter'" "$TMPD/psql-calls.log"
-  grep -q "'Q8_0'" "$TMPD/psql-calls.log"
+  # Werte als psql-Variablen (injection-sicher, T004445)
+  grep -q "name=my-adapter" "$TMPD/psql-calls.log"
+  grep -q "base_model=gemma-4-9b-it" "$TMPD/psql-calls.log"
+  grep -q "quant=Q8_0" "$TMPD/psql-calls.log"
 }
 
 @test "register mit Provenienz ruft upsert_provenance auf" {
@@ -108,10 +113,10 @@ teardown() {
   run bash "$CLI" register my-adapter gemma-4-9b-it --corpus "wiki" --lora-rank 16 --lora-alpha 32 --git-commit "abc1234"
   [ "$status" -eq 0 ]
   grep -q "upsert_provenance" "$TMPD/psql-calls.log"
-  grep -q "wiki" "$TMPD/psql-calls.log"
-  grep -q "16" "$TMPD/psql-calls.log"
-  grep -q "32" "$TMPD/psql-calls.log"
-  grep -q "abc1234" "$TMPD/psql-calls.log"
+  grep -q "corpus=wiki" "$TMPD/psql-calls.log"
+  grep -q "rank=16" "$TMPD/psql-calls.log"
+  grep -q "alpha=32" "$TMPD/psql-calls.log"
+  grep -q "git_commit=abc1234" "$TMPD/psql-calls.log"
 }
 
 @test "eval ohne --dry-run: Score landet in upsert_eval_score-Aufruf" {
@@ -146,7 +151,8 @@ teardown() {
   run bash "$CLI" list --role scout --min-score 0.7
   [ "$status" -eq 0 ]
   grep -q "list_adapters" "$TMPD/psql-calls.log"
-  grep -q "'scout'" "$TMPD/psql-calls.log"
+  grep -q "role=scout" "$TMPD/psql-calls.log"
+  grep -q "min_score=0.7" "$TMPD/psql-calls.log"
   [[ "$output" == *"name"* ]]
 }
 

@@ -7,8 +7,11 @@
 
 set -euo pipefail
 
+# --- Basis-Pfade (VOR der ersten Nutzung berechnen — CWD-unabhängig, T004445 Review-Fix) ---
+FINETUNE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # --- Defaults ---
-TESTSET="scripts/finetune/testsets/agent-actions.jsonl"
+TESTSET="$FINETUNE_DIR/testsets/agent-actions.jsonl"
 ENDPOINT="http://127.0.0.1:18235/v1"
 MODEL=""
 DB_URL=""
@@ -27,8 +30,15 @@ Options:
   --model <slug>     Modell-Slug am Endpunkt (Default: <adapter>-Name)
   --db-url <url>     MODEL_REGISTRY_DB_URL setzen
   --dry-run          Keine DB-Schreibzugriffe
+  --help             Zeige Hilfe
 EOF
-    exit 1
+    exit "${1:-1}"
+}
+
+# Rollen-Whitelist (T004445 Review-Fix: Tippfehler statt stiller Speicherung)
+VALID_ROLES=" scout review-lens commit-msg triage "
+validate_role() {
+    [[ "$VALID_ROLES" == *" $1 "* ]]
 }
 
 registry_psql() {
@@ -51,7 +61,7 @@ while [[ $# -gt 0 ]]; do
         --model) MODEL="$2"; shift 2 ;;
         --db-url) DB_URL="$2"; shift 2 ;;
         --dry-run) DRY_RUN=true; shift ;;
-        --help) usage ;;
+        --help) usage 0 ;;
         *) echo "Unknown option: $1" >&2; usage ;;
     esac
 done
@@ -59,18 +69,18 @@ done
 # Validierung Pflichtfelder
 [[ -z "${ADAPTER:-}" ]] && { echo "Error: --adapter is required" >&2; usage; }
 [[ -z "${ROLE:-}" ]] && { echo "Error: --role is required" >&2; usage; }
+validate_role "$ROLE" || { echo "Error: invalid role '$ROLE' — erlaubt: scout|review-lens|commit-msg|triage" >&2; usage; }
 [[ -z "${MODEL:-}" ]] && MODEL="$ADAPTER"
 export MODEL_REGISTRY_DB_URL="${DB_URL:-${MODEL_REGISTRY_DB_URL:-}}"
 
 # 1. Testset Validierung
-python3 scripts/finetune/eval_scoring.py validate-testset "$TESTSET" || {
+python3 "$FINETUNE_DIR/eval_scoring.py" validate-testset "$TESTSET" || {
     echo "Error: Testset validation failed" >&2
     exit 1
 }
 
 # 2. Generierungs-Schritt (Python Heredoc)
 # Erzeugt den Report als JSON auf stdout. Analog zu gen_fixtures.py.
-FINETUNE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY_OUT="$(mktemp)"
 set +e
 python3 - "$TESTSET" "$ENDPOINT" "$MODEL" "$ADAPTER" "$ROLE" "$DRY_RUN" "$FINETUNE_DIR" >"$PY_OUT" <<'PYEOF'
@@ -195,9 +205,13 @@ fi
 
 # 3. DB-Update (wenn nicht --dry-run)
 if [[ "$DRY_RUN" == "false" ]]; then
-    # a. insert_adapter
-    # Wir nutzen 'unknown' als base_model, da p3 die Provenienz später setzt
-    ADAPTER_ID=$(registry_psql -t -A -c "SELECT model_registry.insert_adapter('$ADAPTER', 'unknown', NULL);") || {
+    # a. insert_adapter — get-or-create (existierende Metadaten bleiben erhalten).
+    # Werte als psql-Variablen (:'var'), SQL ueber stdin: psql ersetzt :'var'
+    # NUR bei stdin/-f, nicht bei -c (T004445 Review-Fix). Quoting macht psql.
+    ADAPTER_ID=$(registry_psql -t -A -v adapter="$ADAPTER" <<'SQL'
+SELECT model_registry.insert_adapter(:'adapter', 'unknown', NULL);
+SQL
+    ) || {
         echo "Error: DB update (insert_adapter) failed" >&2
         exit 1
     }
@@ -205,11 +219,14 @@ if [[ "$DRY_RUN" == "false" ]]; then
     # b. upsert_eval_score
     # Wir extrahieren den Score aus dem JSON Report
     SCORE=$(echo "$REPORT" | python3 -c "import sys, json; print(json.load(sys.stdin)['score'])")
-    
-    registry_psql -c "SELECT model_registry.upsert_eval_score('$ADAPTER_ID', '$ROLE', $SCORE, 'eval-harness-1');" || {
+
+    if ! registry_psql -v adapter_id="$ADAPTER_ID" -v role="$ROLE" -v score="$SCORE" <<'SQL'
+SELECT model_registry.upsert_eval_score(:'adapter_id'::int, :'role', :'score'::float, 'eval-harness-1');
+SQL
+    then
         echo "Error: DB update (upsert_eval_score) failed" >&2
         exit 1
-    }
+    fi
 fi
 
 echo "$REPORT"

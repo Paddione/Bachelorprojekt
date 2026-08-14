@@ -70,30 +70,33 @@ cmd_register() {
     # Handle DB URL
     export MODEL_REGISTRY_DB_URL="${db_url:-${MODEL_REGISTRY_DB_URL:-}}"
 
-    # 1. Insert Adapter
-    # Achtung: ${quant:+'$quant'} expandiert in bash NICHT rueckwärts — der
-    # Wortlaut waere wörtlich '$quant'. Deshalb explizit vorbereiten.
-    local sql_quant="NULL"
-    [[ -n "$quant" ]] && sql_quant="'$quant'"
+    # 1. Insert Adapter — Werte als psql-Variablen, SQL ueber stdin (psql
+    # ersetzt :'var' nur bei stdin/-f, nicht bei -c; T004445 Review-Fix).
+    # NULLIF(:'quant','') => NULL bei ungesetztem --quant.
     local adapter_id
-    adapter_id=$(registry_psql -t -A -c "SELECT model_registry.insert_adapter('$name', '$base_model', $sql_quant);" || { echo "DB error during adapter insertion" >&2; exit 1; })
+    adapter_id=$(registry_psql -t -A \
+      -v name="$name" -v base_model="$base_model" -v quant="${quant:-}" <<'SQL' || { echo "DB error during adapter insertion" >&2; exit 1; }
+SELECT model_registry.insert_adapter(:'name', :'base_model', NULLIF(:'quant',''));
+SQL
+    )
 
     if [[ -z "$adapter_id" ]]; then
         echo "Error: Failed to get adapter ID." >&2
         exit 1
     fi
 
-    # 2. Provenance (if any)
+    # 2. Provenance (if any) — ebenfalls über psql-Variablen
     if [[ -n "$corpus" || -n "$lora_rank" || -n "$lora_alpha" || -n "$git_commit" || -n "$training_config" ]]; then
-        # Prepare values: use NULL if not set
-        local sql_corpus="${corpus:+'$corpus'}"
-        local sql_rank="${lora_rank:-NULL}"
-        local sql_alpha="${lora_alpha:-NULL}"
-        local sql_git="${git_commit:+'$git_commit'}"
-        local sql_config="${training_config:+'$training_config'::jsonb}"
-        
-        # Fallback for empty string or NULL logic in SQL
-        registry_psql -c "SELECT model_registry.upsert_provenance($adapter_id, ${sql_corpus:-NULL}, $sql_rank, $sql_alpha, ${sql_git:-NULL}, ${sql_config:-NULL});" || { echo "DB error during provenance upsert" >&2; exit 1; }
+        if ! registry_psql \
+          -v adapter_id="$adapter_id" \
+          -v corpus="${corpus:-}" -v rank="${lora_rank:-}" -v alpha="${lora_alpha:-}" \
+          -v git_commit="${git_commit:-}" -v config="${training_config:-}" <<'SQL'
+SELECT model_registry.upsert_provenance(:'adapter_id'::int, NULLIF(:'corpus',''), NULLIF(:'rank','')::int, NULLIF(:'alpha','')::int, NULLIF(:'git_commit',''), NULLIF(:'config','')::jsonb);
+SQL
+        then
+            echo "DB error during provenance upsert" >&2
+            exit 1
+        fi
     fi
 
     echo "Registered adapter $name (id=$adapter_id, base_model=$base_model, quant=${quant:-NULL})"
@@ -162,10 +165,14 @@ cmd_list() {
 
     export MODEL_REGISTRY_DB_URL="${db_url:-${MODEL_REGISTRY_DB_URL:-}}"
 
-    local sql_role="${role:+'$role'}"
-    local sql_score="${min_score:-NULL}"
-
-    registry_psql -c "SELECT * FROM model_registry.list_adapters($sql_role, $sql_score);"
+    # Filter als psql-Variablen (injection-sicher; NULLIF => ungesetzte Filter = NULL)
+    if ! registry_psql -v role="${role:-}" -v min_score="${min_score:-}" <<'SQL'
+SELECT * FROM model_registry.list_adapters(NULLIF(:'role',''), NULLIF(:'min_score','')::float);
+SQL
+    then
+        echo "Error: DB query (list_adapters) failed" >&2
+        exit 1
+    fi
 }
 
 cmd_export_loadout() {
@@ -182,9 +189,12 @@ cmd_export_loadout() {
 
     export MODEL_REGISTRY_DB_URL="${db_url:-${MODEL_REGISTRY_DB_URL:-}}"
 
-    # Get data in clean format
+    # Get data in clean format — Adapter-Name als psql-Variable (injection-sicher)
     local data
-    data=$(registry_psql -t -A -F'|' -c "SELECT id, name, base_model, quantization, vram_mb, max_context, throughput_toks, load_time_ms, best_score, best_role FROM model_registry.get_adapter('$adapter');" || { echo "Error: Could not fetch adapter data" >&2; exit 1; })
+    data=$(registry_psql -t -A -F'|' -v adapter="$adapter" <<'SQL' || { echo "Error: Could not fetch adapter data" >&2; exit 1; }
+SELECT id, name, base_model, quantization, vram_mb, max_context, throughput_toks, load_time_ms, best_score, best_role FROM model_registry.get_adapter(:'adapter');
+SQL
+    )
 
     if [[ -z "$data" ]]; then
         echo "Error: Adapter '$adapter' not found." >&2

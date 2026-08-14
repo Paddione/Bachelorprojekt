@@ -16,6 +16,7 @@ setup() {
 
   # Create a minimal Taskfile so --taskfile flag is satisfied
   FAKE_DIR="$(mktemp -d)"
+  export FAKE_DIR
   cat > "${FAKE_DIR}/Taskfile.yml" <<'YAML'
 version: '3'
 tasks:
@@ -25,13 +26,19 @@ tasks:
       - echo ok
 YAML
 
+  # List-JSON at setup time: the planner reads location.taskfile per task
+  # (T005596 — deps come from the YAML sources, the JSON carries no deps).
+  cat > "${FAKE_DIR}/list.json" <<JSON
+{"tasks":[{"name":"workspace:deploy","desc":"Deploy","deps":[],"location":{"taskfile":"${FAKE_DIR}/Taskfile.yml"}},{"name":"workspace:post-setup","desc":"Post setup","deps":["workspace:deploy"],"location":{"taskfile":"${FAKE_DIR}/Taskfile.yml"}}]}
+JSON
+
   # Create a fake `task` binary: returns valid JSON for --json, echoes args otherwise
   mkdir -p "${FAKE_DIR}/bin"
   cat > "${FAKE_DIR}/bin/task" <<'FAKESCRIPT'
 #!/bin/bash
 for arg in "$@"; do
   if [[ "$arg" == "--json" ]]; then
-    echo '{"tasks":[{"name":"workspace:deploy","desc":"Deploy","deps":[]},{"name":"workspace:post-setup","desc":"Post setup","deps":["workspace:deploy"]}]}'
+    cat "$FAKE_DIR/list.json"
     exit 0
   fi
 done

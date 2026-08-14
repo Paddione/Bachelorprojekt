@@ -4794,6 +4794,12 @@
     "kind": "shell"
   },
   {
+    "id": "worktree-create-real-path-T004604",
+    "file": "tests/spec/worktree-create-real-path-T004604.bats",
+    "category": "worktree-create-real-path-T004604",
+    "kind": "shell"
+  },
+  {
     "id": "worktree-divergence-guard-T002387",
     "file": "tests/spec/worktree-divergence-guard-T002387.bats",
     "category": "worktree-divergence-guard-T002387",

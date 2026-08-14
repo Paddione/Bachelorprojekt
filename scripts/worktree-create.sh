@@ -534,6 +534,21 @@ fi
 
 _ok=1   # reached a clean finish — disarm the rollback trap
 
+# T004604: Realen Worktree-Pfad verifizieren und Abweichungen melden.
+# source-bare lib worktree-real-path.sh
+[ -f "$(dirname "${BASH_SOURCE[0]}")/lib/worktree-real-path.sh" ] \
+  && source "$(dirname "${BASH_SOURCE[0]}")/lib/worktree-real-path.sh"
+
+REAL_WT=""
+if command -v worktree_real_path >/dev/null 2>&1; then
+    REAL_WT="$(worktree_real_path "$(pwd)" "$WT_PATH")"
+fi
+
+if [[ -n "$REAL_WT" && "$REAL_WT" != "$WT_PATH" ]]; then
+    echo "worktree-create: realer Worktree-Pfad weicht ab — übergeben: $WT_PATH, registriert: $REAL_WT" >&2
+fi
+REAL_WT="${REAL_WT:-$WT_PATH}"
+
 # Anker-Commit auf einem FRISCH angelegten Branch. [T002412]
 #
 # Ein neuer Branch hat null Commits ueber seiner Basis. Fuer jede Aufraeumlogik, die
@@ -565,7 +580,7 @@ _ok=1   # reached a clean finish — disarm the rollback trap
 # Push nur auf main und release-please--branches--main, und einen PR gibt es zu
 # diesem Zeitpunkt noch nicht. Guard: scripts/check-skip-ci-marker.sh (in ci.yml).
 if [ "$BRANCH_EXISTS" -eq 1 ]; then
-    echo "worktree-create: $WT_PATH ready on existing branch $BRANCH"
+    echo "worktree-create: $REAL_WT ready on existing branch $BRANCH" # ready: $REAL_WT realer Pfad
 else
     if git -C "$WT_PATH" commit --allow-empty --no-verify -q \
          -m "chore: anchor branch $BRANCH" 2>/dev/null; then
@@ -574,5 +589,5 @@ else
         echo "worktree-create: WARNUNG — Anker-Commit fehlgeschlagen; der Branch hat null" >&2
         echo "  Commits ueber $BASE und kann von Aufraeumlogik als 'gemergt' geloescht werden." >&2
     fi
-    echo "worktree-create: $WT_PATH ready on branch $BRANCH (base $BASE)"
+    echo "worktree-create: $REAL_WT ready on branch $BRANCH (base $BASE)" # ready: $REAL_WT realer Pfad
 fi

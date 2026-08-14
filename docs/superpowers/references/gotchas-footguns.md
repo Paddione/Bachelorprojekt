@@ -25,6 +25,7 @@ Non-obvious repo behaviors that silently break things or hit the wrong cluster. 
 19. [skip-worktree: git status schweigt, pull scheitert](#skip-worktree-git-status-schweigt-pull-scheitert-t002712) — stille Blockade im Hauptcheckout
 20. [Assertions dürfen nur an der geprüften Sache scheitern](#assertions-durfen-nur-an-der-gepruften-sache-scheitern-t002834t002850t002878) — Helper-Funktionen ohne `return 0`, mutierende Freshness-Checks, feste `sleep`-Wartezeiten
 21. [Kubelet-Serving-Zertifikat nach Docker-IP-Tausch (T002999)](#kubelet-serving-zertifikat-nach-docker-ip-tausch-t002999) — "tls: failed to verify certificate" betrifft nicht die DB, sondern das Kubelet
+22. [Taskfile deps & Includes (T005899)](#taskfile-deps--includes-t005899) — deps laufen parallel, nicht seriell; Cross-Include-Aufrufe brauchen führenden Doppelpunkt
 
 ---
 
@@ -352,3 +353,8 @@ unverwandte Einfügung oberhalb der gemeinten Regel färbt den Guard rot, ohne d
 sich das Geprüfte geändert hat — der Test wird zum Drift-Melder für fremde
 Einfügungen. Fix: die Suche auf den Abschnitt eingrenzen (awk-Bereichsmuster,
 sed-Range), statt die dokumentweite Suche mit `head -1` zu beschneiden.
+
+### Taskfile deps & Includes (T005899)
+
+- **`deps:` laufen parallel, nicht seriell.** go-task führt mehrere Abhängigkeiten eines Tasks gleichzeitig aus (Doku: „Dependencies run in parallel"); die deklarierte Listenreihenfolge garantiert keine Ausführungsreihenfolge (empirisch: 5 Läufe eines 4-deps-Tasks → 5 verschiedene Reihenfolgen). Serielle Ketten sind per Design nur über `cmds: - task:` möglich („Call Tasks Serially"). Wer Sequencing braucht, deklariert **keine** deps — das hat 2026-08-14 den geplanten Refactor T005604/T005787 gekippt, weil `feature:deploy`-artige Ketten als deps zu „verify vor deploy"-Risiko geführt hätten.
+- **Cross-Include-Aufrufe aus included Taskfiles brauchen den führenden Doppelpunkt.** Ein `task: dev:firewall:open` in einem include-namespaced Taskfile wird relativ zum eigenen Namespace aufgelöst (`brainstorm:dev:firewall:open` → „does not exist"). Root-Adressierung: `task: :dev:firewall:open` (führender Doppelpunkt). War der Defekt hinter `brainstorm:firewall:open` (T005899).

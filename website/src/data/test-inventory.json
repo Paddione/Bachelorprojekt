@@ -4536,6 +4536,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/schedule-blocker-gate",
+    "file": "tests/spec/software-factory/schedule-blocker-gate.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "software-factory/scheduling-cleanup-guard",
     "file": "tests/spec/software-factory/scheduling-cleanup-guard.bats",
     "category": "software-factory",

@@ -30,7 +30,11 @@ teardown() {
 _skip_if_pool_busy() {
   local used
   used=$(env BRAND="${TEST_BRAND:-korczewski}" bash "${REPO}/scripts/factory/slots.sh" count 2>/dev/null | tail -1)
-  if [ -n "$used" ] && [ "$used" -gt 0 ]; then
+  # [T006031] Fail-closed (Review PR #4497): ein nicht-numerisches count-Ergebnis
+  # (Fehler, DB down, leer) heisst "unbekannter Pool" — skip statt gegen einen
+  # moeglicherweise belegten Pool zu laufen und die Assertions zu verfaelschen.
+  [[ "$used" =~ ^[0-9]+$ ]] || skip "slot count unavailable"
+  if [ "$used" -gt 0 ]; then
     skip "slot pool occupied ($used) — foreign candidates would falsify the assertions"
   fi
 }

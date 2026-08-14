@@ -28,7 +28,11 @@ teardown() {
 _skip_if_pool_busy() {
   local used
   used=$(env BRAND="${TEST_BRAND:-korczewski}" bash "${REPO}/scripts/factory/slots.sh" count 2>/dev/null | tail -1)
-  if [ -n "$used" ] && [ "$used" -gt 0 ]; then
+  # [T006031] Fail-closed (Review PR #4497): ein nicht-numerisches count-Ergebnis
+  # (Fehler, DB down, leer) heisst "unbekannter Pool" — skip statt gegen einen
+  # moeglicherweise belegten Pool zu laufen und die Assertions zu verfaelschen.
+  [[ "$used" =~ ^[0-9]+$ ]] || skip "slot count unavailable"
+  if [ "$used" -gt 0 ]; then
     skip "slot pool occupied ($used) — foreign candidates would falsify the assertions"
   fi
 }
@@ -105,7 +109,11 @@ _skip_if_pool_busy() {
   c_status=$(bash "$REPO/scripts/ticket.sh" get --id "$c" 2>/dev/null | jq -r '.status // empty')
   [ "$c_status" = "in_progress" ] || { echo "unblocked candidate $c not claimed" >&2; return 1; }
   # Negativ-Aussage (RED heute): der Block von B muss eine WARN mit der Blocker-ID tragen.
-  if ! echo "$output" | grep -q "WARN" || ! echo "$output" | grep -q "$a"; then
+  # [T006031] Zeilengebunden (Review PR #4497): nur die "open blockers:"-Zeile zaehlt,
+  # und dort muss die Blocker-ID stehen. Die alten unqualifizierten Greps liessen den
+  # Test gruen, obwohl die Block-WARN fehlte — "WARN" matchte jede WARN-Zeile, "$a" war
+  # ueber das Plan-JSON (A selbst wird im selben Lauf geclaimed) erfuellbar.
+  if ! echo "$output" | grep "open blockers:" | grep -qF "$a"; then
     echo "block of $b emitted no WARN with blocker $a — silent hold" >&2
     return 1
   fi

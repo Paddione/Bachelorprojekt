@@ -1,12 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // DeepSeek V4 Flash (OpenCode Go, 1M ctx) bleibt Default fuer maximale
-  // Kontextkapazitaet und schnelle Prefills. Lokale Arbeit ueber die
-  // Familiensubagenten (gptoss/devstral/gemma/gemma12) und die primaeren
-  // Lokal-Agenten — Modell-/Loadout-Definitionen leben ausschliesslich in
-  // .opencode/agent-models.jsonc (Provider "llamacpp-local", sync nach
-  // ~/.config/opencode/opencode.jsonc via scripts/opencode-sync-agents.sh).
-  "model": "opencode-go/deepseek-v4-flash",
+  // Alibaba Intl Token Plan (qwen3.8-max via token-plan) als Standard — Fallback
+  // Kette: alibaba-intl/qwen3.8-max (default) → opencode-go/deepseek-v4-flash (Go-Sub) →
+  // deepseek/deepseek-v4-flash (direkte API). Falls der Token Plan ausfällt oder
+  // abgelaufen ist, rutscht opencode automatisch auf DeepSeek zurück.
+  "model": "alibaba-intl/qwen3.8-max",
   "permission": {
     "read": "allow",
     "edit": "allow",

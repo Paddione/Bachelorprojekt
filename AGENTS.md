@@ -27,6 +27,7 @@ opencode reads its agents from `.opencode/agent-models.jsonc` — NOT `.agents/a
 | `deepseek-flash` | `opencode-go/deepseek-v4-flash`, `mode: all`, write-capable | Parallel throughput, up to 3 at a time; tab-selectable AND task-dispatchable |
 | `deepseek-pro-direct` | `deepseek/deepseek-v4-pro` (direct API), `mode: all`, write-capable | Same model as `deepseek-pro`, bypassing the OpenCode Go gateway when that gateway is the problem |
 | `deepseek-flash-direct` | `deepseek/deepseek-v4-flash` (direct API), `mode: all`, write-capable | Same model as `deepseek-flash`, bypassing the OpenCode Go gateway when that gateway is the problem |
+| `alibaba-primary` | `alibaba-intl/qwen3.8-max` (Alibaba Cloud Intl Token Plan, 131072 ctx), `mode: primary` | PRIMARY: Qwen3.8 Max via Alibaba Cloud Intl Token Plan — tab-selectable singleagent, replaces deepseek-v4-flash as the default model [T004396] |
 | `explore` / `general` | built-in | Read-only exploration / research |
 
 Dispatch:

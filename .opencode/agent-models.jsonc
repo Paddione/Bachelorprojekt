@@ -80,16 +80,38 @@
         }
       }
     },
+    // Ollama (local) — nach Gemma/Ollama ziehen per `ollama pull <model>`
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama (local)",
       "options": {
         "baseURL": "http://127.0.0.1:11434/v1"
       },
-      // No models pulled yet (`ollama list` is empty). Add an entry here per
-      // model after `ollama pull <model>` - opencode has no model auto-discovery
-      // for OpenAI-compatible providers yet (github.com/anomalyco/opencode#6231).
       "models": {}
+    },
+
+    // ── Alibaba Cloud International (Token Plan) ───────────────────────
+    // OpenAI-compatible Endpoint für Qwen/Claude Modelle via Alibaba MaaS.
+    // API-Key: sk-sp-H.HHIHP.RTMh.MEUCID2HdR5jagyJmgArzQBJ8RP5rHTa4NIS5ZpEqf_s-zqsAiEAtPWMVMHcXWqx8RuWvmJSZXl48U2zj6qeQeDGTG0OYbQ
+    // baseURL: https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1
+    "alibaba-intl": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Alibaba Cloud International (Token Plan, MaaS)",
+      "options": {
+        "apiKey": "sk-sp-H.HHIHP.RTMh.MEUCID2HdR5jagyJmgArzQBJ8RP5rHTa4NIS5ZpEqf_s-zqsAiEAtPWMVMHcXWqx8RuWvmJSZXl48U2zj6qeQeDGTG0OYbQ",
+        "baseURL": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
+      },
+      "models": {
+        // Model-ID vom Token Plan — abgefragt via /compatible-mode/v1/models.
+        // Erreichbar über compatible-mode (OpenAI-Format), nicht DashScope-native.
+        "qwen3.8-max": {
+          "name": "Qwen3.8 Max (Alibaba Intl Token Plan, via compatible-mode)",
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        }
+      }
     },
 
     // OpenCode Zen/Go: "opencode-go" statt "opencode" (Zen) - Subscription-Tier
@@ -522,6 +544,19 @@
           "deepseek-flash-direct": "allow"
         }
       }
+    },
+    // ── Alibaba Cloud International (Token Plan) ───────────────────────
+    // PRIMARY: Qwen3.8-Max via Alibaba Intl Token Plan — replaces deepseek-v4-flash
+    // as the top-level orchestrator model until/unless replaced by something else.
+    "alibaba-primary": {
+      "description": "PRIMARY: Qwen3.8 Max on Alibaba Cloud Intl Token Plan (131072 ctx). Tab-selectable singleagent — replaces opencode-go/deepseek-v4-flash as the default. Runs through token-plan endpoint (compatible-mode OpenAI format). Can dispatch any subagent.",
+      "mode": "primary",
+      "model": "alibaba-intl/qwen3.8-max",
+      "prompt": "{file:./prompts/local-subagent.md}",
+      "color": "#FF6900",
+      "temperature": 0.3,
+      "steps": 50,
+      "permission": { "edit": "allow", "write": "deny", "bash": "allow", "task": "allow" }
     },
     // Big Pickle auf OpenCode Zen — als primaerer (Tab-waehlbarer) Agent bis das
     // Free-Kontingent verbraucht ist, danach auf die deepseek-Primaries wechseln.

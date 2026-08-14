@@ -139,3 +139,8 @@ runtimes:
     model: opencode-go/deepseek-v4-flash
     write_capable: true
     note: "Primary orchestrator, dispatches the local family subagents (gptoss/devstral/gemma/gemma12) sequentially"
+  alibaba-primary:
+    mode: primary
+    model: alibaba-intl/qwen3.8-max
+    write_capable: false
+    note: "PRIMARY: Qwen3.8 Max on Alibaba Cloud Intl Token Plan (131072 ctx), tab-selectable singleagent via compatible-mode endpoint; replaces deepseek-v4-flash as the default model [T004396]"

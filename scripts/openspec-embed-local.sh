@@ -171,7 +171,7 @@ for attempt in $(seq 1 "$TOTAL_ATTEMPTS"); do
   # Credentials-sicher loggen (URLs rausfiltern)
   printf '%s\n' "$OUT" | grep -v '://' >&2 || true
 
-  if embed_output_is_success "$OUT"; then
+  if embed_output_is_success "$OUT" "$SLUG"; then
     # Gesamtlage nach erfolgreichem Embedding zeigen
     COUNT_OUT="$(SESSIONS_DATABASE_URL="$DB_URL" LLM_EMBED_URL="$EMBED_URL" LLM_ENABLED=true \
       OPENSPEC_EMBED_REPO="$EMBED_REPO" \

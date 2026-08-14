@@ -54,14 +54,14 @@ den unveränderten `scripts/branch-reaper.sh` rot ist — das ist die Rot-Phase 
 - Test: `tests/spec/ci-cd/branch-reaper-freshness-regen.bats` (existiert, unverändert)
 - Modify: keine
 
-- [ ] **Step 1: Testlauf gegen den aktuellen Stand**
+- [x] **Step 1: Testlauf gegen den aktuellen Stand**
 
 Run:
 ```bash
 tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper-freshness-regen.bats
 ```
 
-- [ ] **Step 2: Rotes Ergebnis bestätigen**
+- [x] **Step 2: Rotes Ergebnis bestätigen**
 
 Expected: FAIL. Mindestens die Tests 1 und 2 („Positiv-Anker: gemergter freshness-regen-Branch
 wird REAP-Kandidat", „geschlossener (unmergter) freshness-regen-Branch wird REAP-Kandidat")
@@ -82,7 +82,7 @@ Test prüfen, NICHT weiter implementieren.
 - Konsumiert: bestehende Helfer `_diverging_files` und `_allowed` (unverändert), bestehende Variablen `branch`, `REMOTE`, `ALLOWLIST`.
 - Produziert: das Flag `freshness_decided` (0/1), nur innerhalb der Branch-Schleife verwendet; neue KEEP-Meldungen mit den Präfixen des bestehenden Output-Vertrags.
 
-- [ ] **Step 1: Ticket-ID-Extraktion um den Freshness-Zweig erweitern**
+- [x] **Step 1: Ticket-ID-Extraktion um den Freshness-Zweig erweitern**
 
 Ersetze den Block „Im Sweep-Modus die Ticket-ID je Branch …" (ab `branch_ticket_id="$TICKET_ID"` bis zum schließenden `fi` der `[ -z "$branch_ticket_id" ]`-Abfrage) durch:
 
@@ -117,7 +117,7 @@ Ersetze den Block „Im Sweep-Modus die Ticket-ID je Branch …" (ab `branch_tic
   fi
 ```
 
-- [ ] **Step 2: Ticket-Status-Block hinter das Freshness-Flag hängen**
+- [x] **Step 2: Ticket-Status-Block hinter das Freshness-Flag hängen**
 
 Umschließe den bestehenden Block „(3) Ticket-Status" (von `# (3) Ticket-Status` bis zum
 schließenden `esac`) mit:
@@ -134,12 +134,12 @@ MERGED/CLOSED-Freshness-PR liefert `gh pr list --state open` `[]`, und der Blob-
 `origin/main` + `ALLOWLIST` entscheidet über die Abweichung. Der KEEP-Fall „abweichende Datei
 ausserhalb der Allowlist" bleibt damit für Freshness-Branches aktiv.
 
-- [ ] **Step 3: Syntax-Check**
+- [x] **Step 3: Syntax-Check**
 
 Run: `bash -n scripts/branch-reaper.sh`
 Expected: Exit 0.
 
-- [ ] **Step 4: Testlauf — neuer Test grün**
+- [x] **Step 4: Testlauf — neuer Test grün**
 
 Run:
 ```bash
@@ -154,7 +154,7 @@ tests/unit/lib/bats-core/bin/bats tests/spec/ci-cd/branch-reaper.bats tests/spec
 Expected: PASS — insbesondere `branch-reaper-sweep.bats` Test „ein Branch ohne Ticket-ID im
 Namen wird im Sweep nicht geloescht" (chore/ohne-ticket bleibt KEEP).
 
-- [ ] **Step 5: Realitäts-Check gegen origin (lesend, Dry-Run)**
+- [x] **Step 5: Realitäts-Check gegen origin (lesend, Dry-Run)**
 
 Run (im Hauptcheckout oder Worktree mit `--repo` auf dem Hauptcheckout, ausschliesslich
 lesend):

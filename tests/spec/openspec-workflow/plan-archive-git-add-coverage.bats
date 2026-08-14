@@ -66,3 +66,18 @@ ARCHIVE_MUTATION_PATHS=(
       || { echo "git add-Liste deckt den vom Archiv-Verb mutierten Pfad '$p' nicht ab" >&2; return 1; }
   done
 }
+
+# ── T005564: Status-Sed-Muster deckt 'planning' ab ────────────────────────
+# Hintergrund (T005564): Das sed-Muster in Schritt 7 der Referenz
+# (active|plan_staged|in_progress) deckt den Status 'planning' nicht ab, der
+# bei Fix-Plaenen ohne /opsx:apply der Ist-Zustand ist (beobachtet bei
+# T005307: Frontmatter wurde erst NACH dem archive-plan-Lauf im Archiv-Ordner
+# korrigiert; die Postgres-Kopie trug weiterhin planning). Querschnitts-Guard
+# analog zu T004271: kein Laufzeitverhalten, das sed-Muster IST die Prozedur.
+
+@test "T005564: das Status-Sed-Muster deckt 'planning' ab" {
+  [ -f "$REF" ] || { echo "Referenz fehlt: $REF" >&2; return 1; }
+  run grep -E 'sed -E -i.*status: \(active\|plan_staged\|in_progress\)' "$REF"
+  [ "$status" -eq 0 ] || { echo "kein Status-Sed-Muster in $REF gefunden" >&2; return 1; }
+  echo "$output" | grep -qF 'planning' || { echo "Status-Sed-Muster ohne 'planning'-Alternative" >&2; return 1; }
+}

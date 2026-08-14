@@ -44,7 +44,7 @@ Fail-closed wie bisher: nicht lesbares/parsebares YAML → Fehler mit Dateipfad 
 | `tests/spec/mcp-task-runner/planner-sees-real-deps.bats` | Failing Test: plan_tasks gegen den **echten** Taskfile-Graphen → 2 Gruppen |
 | `openspec/specs/mcp-task-runner.md` | plan_tasks-Requirement: Datenquelle korrigieren (YAML-Quellen statt deps im JSON) |
 
-Nicht angefasst: `runner/`, `telemetry/`, `scheduler.go`-Logik, BATS-Fixtures für die übrigen Tools.
+Nicht angefasst: `runner/`, `telemetry/`, `scheduler.go`-Logik. Die BATS-Fixtures werden **minimal** angepasst (location-Feld im Fake-JSON, deps-frei bleibend) — der neue fail-closed-Parser bricht sonst bei leerem `location.taskfile` ab.
 
 ### Teststrategie
 

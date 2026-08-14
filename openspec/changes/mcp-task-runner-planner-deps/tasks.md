@@ -28,7 +28,7 @@ depends_on_plans: []
 - Fail-closed: unlesbare oder unparsebare YAML-Quelle → Fehler mit Dateipfad; kein stilles kantenloses Ergebnis.
 - `.go`-Dateien sind nicht in `docs/code-quality/gates.yaml` `s1.limits` gelistet → kein S1-Zeilenbudget; `parser.go` trotzdem fokussiert halten (Ist 45, geplant ≈ 170).
 - BATS-Runner: `tests/unit/lib/bats-core/bin/bats` (vendored), nie globales `bats`.
-- Die Fake-JSON-Fixtures in `tests/spec/mcp-task-runner.bats` bleiben unverändert — sie prüfen die Tool-Oberfläche, nicht die Datenquelle.
+- Die Fake-JSON-Fixtures in `tests/spec/mcp-task-runner.bats` bleiben deps-frei (sie prüfen die Tool-Oberfläche), bekommen aber ein `location`-Feld: der neue Parser liest je Task die Quelldatei, ein leeres `location.taskfile` wäre ein Parse-Fehler (fail-closed) und bräche MCP-TASK-RUNNER-002.
 
 ## File Structure
 
@@ -423,6 +423,39 @@ Expected: PASS, alle sechs Tests.
 Run: `task test:spec:build-mcp-runner`
 Expected: `mcp-task-runner: installed fresh build to /usr/local/bin` (oder sudo-Variante).
 
+- [ ] **Step 7.5: Fixture-JSON in tests/spec/mcp-task-runner.bats um ein location-Feld ergänzen**
+
+Der neue Parser liest je Task `location.taskfile` — das Fixture-JSON ohne Feld würde `Parse` mit einem Lesefehler abbrechen lassen. Die Fixture bleibt deps-frei; die Fake-Aufgaben zeigen auf die im setup() erzeugte FAKE_DIR-Taskfile (enthält nur `noop`, also bleiben beide Fake-Aufgaben deps-los — MCP-TASK-RUNNER-002 bleibt grün).
+
+In `setup()`: das Listen-JSON bei Setup-Zeit schreiben (unquoted heredoc, damit `${FAKE_DIR}` expandiert) und `export FAKE_DIR` ergänzen; das Fake-`task`-Skript liest es aus:
+
+```bash
+setup() {
+  ...
+  export FAKE_DIR
+
+  cat > "${FAKE_DIR}/list.json" <<JSON
+{"tasks":[{"name":"workspace:deploy","desc":"Deploy","deps":[],"location":{"taskfile":"${FAKE_DIR}/Taskfile.yml"}},{"name":"workspace:post-setup","desc":"Post setup","deps":["workspace:deploy"],"location":{"taskfile":"${FAKE_DIR}/Taskfile.yml"}}]}
+JSON
+
+  cat > "${FAKE_DIR}/bin/task" <<'FAKESCRIPT'
+#!/bin/bash
+for arg in "$@"; do
+  if [[ "$arg" == "--json" ]]; then
+    cat "$FAKE_DIR/list.json"
+    exit 0
+  fi
+done
+echo "running: $*"
+exit 0
+FAKESCRIPT
+  ...
+}
+```
+
+Run: `tests/unit/lib/bats-core/bin/bats tests/spec/mcp-task-runner.bats`
+Expected: PASS — MCP-TASK-RUNNER-001..004 weiterhin grün (Fixture ohne location wäre rot: Parse-Fehler bei 002).
+
 - [ ] **Step 8: BATS-Integrationstest grün**
 
 Run: `tests/unit/lib/bats-core/bin/bats tests/spec/mcp-task-runner/planner-sees-real-deps.bats`
@@ -431,7 +464,7 @@ Expected: PASS — `plan_tasks` liefert 2 Gruppen (build vor push) gegen den ech
 - [ ] **Step 9: Commit**
 
 ```bash
-git add mcp-task-runner/planner/parser.go mcp-task-runner/planner/parser_test.go mcp-task-runner/go.mod mcp-task-runner/go.sum
+git add mcp-task-runner/planner/parser.go mcp-task-runner/planner/parser_test.go mcp-task-runner/go.mod mcp-task-runner/go.sum tests/spec/mcp-task-runner.bats
 git commit -m "fix(mcp): read planner deps from Taskfile YAML sources [T005596]"
 ```
 

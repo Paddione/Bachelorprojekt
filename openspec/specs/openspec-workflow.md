@@ -927,6 +927,26 @@ cannot recur.
 - **THEN** it verifies that `openspec/specs/` is covered and fails if the
   archive verb mutates a path group the reference does not stage
 
+### Requirement: Stub-Deltas failen den PR-Gate
+
+The change validator (`scripts/openspec-validate.ts`) SHALL report unedited skeleton stubs
+in delta specs — a `### Requirement: TODO`, a `#### Scenario: TODO`, or an unexpanded
+`The system SHALL …` line — as **errors**, not warnings, so that `validateChange` returns
+`ok=false` and the `test:openspec` CI job fails the PR that carries such a delta. A fully
+written-out delta SHALL keep validating as `ok=true`.
+
+#### Scenario: Stub-Delta blockiert den Merge
+
+- **GIVEN** a PR whose change delta contains an unedited `### Requirement: TODO` stub
+- **WHEN** `validateChange` runs against that change (CI job `test:openspec`)
+- **THEN** the result is `ok=false` with an error naming the stub; the PR cannot merge
+
+#### Scenario: Ausformuliertes Delta bleibt grün
+
+- **GIVEN** a change delta with fully written requirements and scenarios (no TODO stubs)
+- **WHEN** `validateChange` runs against that change
+- **THEN** the result is `ok=true` without stub errors
+
 ## Testszenarien
 
 <!-- merged from BATS unit tests and Playwright e2e tests -->
@@ -1515,3 +1535,5 @@ The system SHALL set the environment variable `OPENSPEC_TELEMETRY=0` in every wo
 <!-- merged from change delta openspec-workflow.md (e7eb3534e9c2) -->
 
 <!-- merged from change delta openspec-workflow.md (7b3bf83d0c92) -->
+
+<!-- merged from change delta openspec-workflow.md (5cad24851fdd) -->

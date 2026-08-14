@@ -3509,8 +3509,8 @@
   ],
   "T004592": [
     {
-      "slug": "stub-delta-pr-gate",
-      "status": "plan_staged"
+      "slug": "2026-08-14-stub-delta-pr-gate",
+      "status": "archived"
     }
   ],
   "T004598": [
@@ -3521,14 +3521,14 @@
   ],
   "T004602": [
     {
-      "slug": "ticket-ops-claim-timing",
-      "status": "plan_staged"
+      "slug": "2026-08-14-ticket-ops-claim-timing",
+      "status": "archived"
     }
   ],
   "T004604": [
     {
-      "slug": "worktree-real-path-check",
-      "status": "plan_staged"
+      "slug": "2026-08-14-worktree-real-path-check",
+      "status": "archived"
     }
   ],
   "T004608": [
@@ -3545,8 +3545,8 @@
   ],
   "T004611": [
     {
-      "slug": "package-json-drift-guard",
-      "status": "plan_staged"
+      "slug": "2026-08-14-package-json-drift-guard",
+      "status": "archived"
     }
   ],
   "TBD": [

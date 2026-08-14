@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.275.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.275.1...website-v1.275.2) (2026-08-14)
+
+
+### Bug Fixes
+
+* **mcp:** bge-mcp auth for Qwen Code [T004272] ([#4358](https://github.com/Paddione/Bachelorprojekt/issues/4358)) ([343ea80](https://github.com/Paddione/Bachelorprojekt/commit/343ea8032b5fc473d21e01e7a7fd9516f39f7a6b))
+
 ## [1.275.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.275.0...website-v1.275.1) (2026-08-13)
 
 

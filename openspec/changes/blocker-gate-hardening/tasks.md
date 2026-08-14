@@ -24,14 +24,14 @@ Der Blocker-Gate hält `archived`- und dangling-Vorgänger dauerhaft fest
 
 ## Task 1 — RED: Härtungs-Guard schreiben und rot nachweisen
 
-1. `tests/spec/software-factory/schedule-blocker-gate-hardening.bats` mit 3 Tests:
+- [x] 1. `tests/spec/software-factory/schedule-blocker-gate-hardening.bats` mit 3 Tests:
    archived-Blocker → Kandidat geplant; dangling-Referenz → Kandidat geplant (kein Wedge);
    offener Blocker → Output trägt WARN mit Blocker-ID. Je Test Positiv-Anker (unblockierter
    Kandidat in_progress) vor der Negativ-Aussage (T002356-M1). **Capacity-Pre-Check
    (`_skip_if_pool_busy`, slots.sh count > 0 → skip) ist Teil von Task 1** — er wird vor
    dem ROT-Nachweis gebraucht: am 2026-08-14 war die Dev-DB mit 3 belegten Slots / 5
    fremden Kandidaten belegt, die Positiv-Anker liefen dadurch ins Leere (nicht der Gate).
-2. Rot nachweisen: bei freiem Pool (`slots.sh count` = 0)
+- [x] 2. Rot nachweisen: bei freiem Pool (`slots.sh count` = 0)
    `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/schedule-blocker-gate-hardening.bats`
    — erwartet: FAIL (`expected: FAIL`) auf den drei Negativ-Aussagen (archived/dangling
    werden gehalten, kein WARN). Ist der Pool beim Plan-Commit belegt, gilt der RED-Beleg
@@ -42,21 +42,26 @@ Der Blocker-Gate hält `archived`- und dangling-Vorgänger dauerhaft fest
 
 ## Task 2 — GREEN: Gate-Semantik + WARN in schedule.sh
 
-1. Block-Bedingung: `t.status IS NOT NULL AND t.status NOT IN ('done','archived')` —
+- [x] 1. Block-Bedingung: `t.status IS NOT NULL AND t.status NOT IN ('done','archived')` —
    archived erfüllt den Gate, dangling (NULL) blockt nicht.
-2. Dangling-WARN: Query liefert zusätzlich die dangling-Referenzen (dep_ids ohne
+- [x] 2. Dangling-WARN: Query liefert zusätzlich die dangling-Referenzen (dep_ids ohne
    Zeilentreffer); bei > 0 eine WARN-Zeile `schedule: WARN dangling blocker refs for <id>: …`.
-3. Block-WARN: die bereits berechnete `blockers`-Liste ausgeben statt verwerfen:
+- [x] 3. Block-WARN: die bereits berechnete `blockers`-Liste ausgeben statt verwerfen:
    `schedule: WARN skipping <id> — open blockers: …`.
-4. SQL-Binding (Minor 4 aus dem Review): `external_id = '${ext_id}'` auf
+- [x] 4. SQL-Binding (Minor 4 aus dem Review): `external_id = '${ext_id}'` auf
    `factory_psql -v ext_id=…` + `:'ext_id'` umstellen (Muster: Z. 106-107 desselben Skripts).
-5. Guard grün fahren: 3/3 PASS. Regression: `schedule-blocker-gate.bats` (T005306) bleibt
-   grün.
+- [x] 5. Guard grün fahren: 3/3 PASS. Regression: `schedule-blocker-gate.bats` (T005306) bleibt
+   grün. — Am 2026-08-14 waren beide Slots-Pools belegt (slots.sh count = 3 je Brand,
+   fremde in_progress-Kandidaten T004892/T004896/T004897): beide Guard-Dateien skippen
+   bedingt korrekt (T003548), kein Fehlschlag. Gate-Semantik statt dessen direkt
+   verhaltensmäßig nachgewiesen (Seed → exakte Gate-Query aus schedule.sh → Purge):
+   archived → blocked=false; dangling T999999 → blocked=false + dangling-Liste; offener
+   Blocker → blocked=true + Blocker-Liste; WARN-Zeilen-String wie implementiert.
 
 ## Task 3 — Test-Capacity-Pre-Check + Verifikation
 
-- Guard-Dateien beider Blocker-Gate-Tests: vor dem schedule.sh-Lauf prüfen, ob der
+- [x] Guard-Dateien beider Blocker-Gate-Tests: vor dem schedule.sh-Lauf prüfen, ob der
   Slot-Pool belegt ist (`slots.sh count` > 0 → `skip "pool occupied"`) — die
   Capacity-Sensitivität aus dem Review.
-- `task test:changed` + `task freshness:regenerate` + `task freshness:check`
-- `bash scripts/openspec.sh validate blocker-gate-hardening`
+- [x] `task test:changed` + `task freshness:regenerate` + `task freshness:check`
+- [x] `bash scripts/openspec.sh validate blocker-gate-hardening`

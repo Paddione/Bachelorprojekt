@@ -58,14 +58,21 @@ for c in "${candidates[@]}"; do
   # und ein Query-Fehler skippt den Kandidaten sichtbar (fail-closed) statt den
   # Gate lautlos zu ueberspringen.
   set +e
-  blocker_out=$(cat <<SQL | BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" factory_psql 2>&1
+  # [T005898] Gate-Semantik (Review PR #4472): `IS DISTINCT FROM 'done'` hielt
+  # `archived`- und dangling-Vorgaenger (LEFT JOIN NULL) dauerhaft fest. Korrektur:
+  # nur ein existierender Vorgaenger mit Status ausserhalb done/archived blockt;
+  # dangling (t.external_id IS NULL) erfuellt den Gate. Die Query liefert zusaetzlich
+  # die dangling-Referenzen, damit der Wedge sichtbar wird. SQL-Binding wie Z. 106-107
+  # (-v ext_id + :'ext_id') statt String-Interpolation.
+  blocker_out=$(cat <<SQL | BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" factory_psql -v ext_id="$ext_id" 2>&1
 SELECT json_build_object(
-  'blocked', COALESCE(bool_or(t.status IS DISTINCT FROM 'done'), false),
-  'blockers', COALESCE(json_agg(d.dep_id) FILTER (WHERE t.status IS DISTINCT FROM 'done'), '[]'::json)
+  'blocked', COALESCE(bool_or(t.status IS NOT NULL AND t.status NOT IN ('done','archived')), false),
+  'blockers', COALESCE(json_agg(d.dep_id) FILTER (WHERE t.status IS NOT NULL AND t.status NOT IN ('done','archived')), '[]'::json),
+  'dangling', COALESCE(json_agg(d.dep_id) FILTER (WHERE t.external_id IS NULL), '[]'::json)
 )
 FROM (
   SELECT unnest(depends_on) AS dep_id
-  FROM tickets.tickets WHERE external_id = '${ext_id}'
+  FROM tickets.tickets WHERE external_id = :'ext_id'
 ) d
 LEFT JOIN tickets.tickets t ON t.external_id = d.dep_id
 SQL
@@ -76,8 +83,17 @@ SQL
     echo "schedule: ERROR dependency-blocker query failed for ${ext_id} — skipping candidate fail-closed [T005306]: ${blocker_out}" >&2
     continue
   fi
+  # [T005898] Dangling-Vorgaenger blocken nicht, sind aber ein Befund: sichtbar
+  # machen statt still schlucken (Wedge ohne Sichtbarkeit war der Ausgangspunkt).
+  dangling=$(echo "$blocker_out" | jq -r '.dangling // [] | join(", ")')
+  if [[ -n "$dangling" ]]; then
+    echo "schedule: WARN dangling blocker refs for ${ext_id}: ${dangling}" >&2
+  fi
+  # [T005898] Die berechnete blockers-Liste wurde still verworfen — jeder Block
+  # emittiert jetzt eine WARN mit der Blocker-Liste.
   if echo "$blocker_out" | jq -e '.blocked == true' >/dev/null 2>&1; then
     blockers=$(echo "$blocker_out" | jq -r '.blockers | join(", ")')
+    echo "schedule: WARN skipping ${ext_id} — open blockers: ${blockers}" >&2
     continue
   fi
 

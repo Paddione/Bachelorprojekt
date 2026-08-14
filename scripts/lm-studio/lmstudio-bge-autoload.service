@@ -1,0 +1,18 @@
+# scripts/lm-studio/lmstudio-bge-autoload.service
+# systemd-USER-Service (oneshot): laedt bge-m3 in LM Studio nach, falls es
+# entladen wurde (GUI-Default-TTL 1h Idle, manuelles unload, Neustart).
+# Die eigentliche Logik liegt in lmstudio-bge-autoload.sh — diese Unit ist
+# nur der systemd-Aufhaenger, damit der Timer sie im User-Kontext startet.
+#
+# Symlink zum Aktivieren:
+#   ln -sf $PWD/scripts/lm-studio/lmstudio-bge-autoload.service ~/.config/systemd/user/
+#   ln -sf $PWD/scripts/lm-studio/lmstudio-bge-autoload.timer ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now lmstudio-bge-autoload.timer
+
+[Unit]
+Description=LM Studio: bge-m3 nachladen, falls entladen (TTL/Neustart)
+
+[Service]
+Type=oneshot
+ExecStart=/home/patrick/Bachelorprojekt/scripts/lm-studio/lmstudio-bge-autoload.sh

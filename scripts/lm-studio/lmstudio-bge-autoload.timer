@@ -1,0 +1,23 @@
+# scripts/lm-studio/lmstudio-bge-autoload.timer
+# systemd-USER-Timer: stoesst lmstudio-bge-autoload.service alle 3 Minuten an.
+#
+# WARUM EIN TIMER STATT EINES START-HOOKS
+# LM Studio laeuft als GUI-App (DISPLAY=:0, WSLg) und startet nicht ueber
+# systemd — es gibt also keinen Unit-Lifecycle, an den sich ein
+# `ExecStartPost` haengen liesse. Der Timer deckt stattdessen JEDEN Fall ab:
+# LM-Studio-Neustart, TTL-Entladung (1h Idle), manuelles unload. Das Skript
+# ist idempotent; laeuft LM Studio nicht, beendet es sich still.
+#
+# Persistent=true: verpasste Laeufe (z. B. Rechner aus) werden nachgeholt.
+
+[Unit]
+Description=Timer: bge-m3 in LM Studio geladen halten
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=3min
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

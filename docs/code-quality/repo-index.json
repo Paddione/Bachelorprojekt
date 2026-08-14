@@ -620,6 +620,7 @@
         "tests/spec/mishap-rollup/container-create-description.bats",
         "tests/spec/mishap-rollup/container-finds-blocked-status.bats",
         "tests/spec/mishap-rollup/container-resolution-and-unattended-worktree.bats",
+        "tests/spec/mishap-rollup/container-resolution-real-db.bats",
         "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
         "tests/spec/mishap-rollup/rollup-container-empty-list-selfheal.bats",
         "tests/spec/mishap-rollup/rollup-cycle-push.bats",

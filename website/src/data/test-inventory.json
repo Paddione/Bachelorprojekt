@@ -3642,6 +3642,12 @@
     "kind": "shell"
   },
   {
+    "id": "mishap-rollup/container-resolution-real-db",
+    "file": "tests/spec/mishap-rollup/container-resolution-real-db.bats",
+    "category": "mishap-rollup",
+    "kind": "shell"
+  },
+  {
     "id": "mishap-rollup/generator-cycle-artifacts",
     "file": "tests/spec/mishap-rollup/generator-cycle-artifacts.bats",
     "category": "mishap-rollup",

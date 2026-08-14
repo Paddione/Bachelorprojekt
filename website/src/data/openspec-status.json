@@ -3573,6 +3573,12 @@
       "status": "archived"
     }
   ],
+  "T005114": [
+    {
+      "slug": "plan-preflight-staged-set",
+      "status": "plan_staged"
+    }
+  ],
   "TBD": [
     {
       "slug": "2026-06-21-secrets-deploy-automation",

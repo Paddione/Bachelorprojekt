@@ -146,7 +146,7 @@ teardown() { rm -rf "$TMP"; }
   cp "$REPO/.gitleaks.toml" "$SB/.gitleaks.toml" 2>/dev/null || true
   sed 's|^TICKETLESS_BRANCHES=.*|TICKETLESS_BRANCHES="chore/probe-shared-source"|' \
     "$LIB" > "$SB/scripts/lib/branch-allowlist.sh"
-  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh guard-bonsai-overwrite.sh openspec-half-archive-check.sh; do
+  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh guard-bonsai-overwrite.sh openspec-half-archive-check.sh openspec-main-staging-guard.sh; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$SB/scripts/$s"; chmod +x "$SB/scripts/$s"
   done
   export FRESHNESS_HOOK_DISABLED=1 SKIP_BONSAI_GUARD=1

@@ -33,7 +33,7 @@ setup() {
   # Vorgelagerte Hook-Abschnitte neutralisieren: sie rufen Repo-Skripte auf, die
   # fuer diesen Guard ohne Belang sind. Stubs statt Kopien, damit der Test nicht
   # an fremden Guards scheitert und deren Aenderungen ihn nicht rot faerben.
-  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh guard-bonsai-overwrite.sh openspec-half-archive-check.sh; do
+  for s in agent-lock.sh agent-collision.sh git-crypt-guard.sh guard-bonsai-overwrite.sh openspec-half-archive-check.sh openspec-main-staging-guard.sh; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$SANDBOX/scripts/$s"
     chmod +x "$SANDBOX/scripts/$s"
   done

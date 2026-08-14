@@ -52,6 +52,12 @@ if ! bash "$repo_root/scripts/openspec-half-archive-check.sh"; then
   exit 1
 fi
 
+# --- openspec main-staging guard: kein neuer Change-Slug im Hauptcheckout [T003980] ---
+if ! bash "$repo_root/scripts/openspec-main-staging-guard.sh"; then
+  echo "ERROR: refusing commit — OpenSpec-Staging im Hauptcheckout (siehe oben)." >&2
+  exit 1
+fi
+
 # --- freshness: auto-regenerate generated artifacts before commit [T000581] ---
 # Prevents CI freshness failures by capturing every regen-produced file in
 # the same commit (see T001388). Keep this list in sync with `task

@@ -205,10 +205,22 @@ cmd_archive_plan() {
   # Same three-stage fallback as scripts/vda/ticket/stage-plan.sh (T002263): a
   # plan committed only on the worktree's feature branch is invisible to a
   # plain filesystem check when this runs from the main checkout, even though
-  # the branch ref is visible (worktrees share one .git).
+  # the branch ref is visible (worktrees share one .git). If the file
+  # only exists in the branch, it is read via `git show "${branch}:${plan_file}"` (T004269).
   if [[ ! -s "$plan_file" ]] && ! git cat-file -e "${branch}:${plan_file}" 2>/dev/null; then
     echo "ERROR: plan file does not exist or is empty: $plan_file" >&2
     exit 1
+  fi
+
+  local plan_content
+  if [[ -s "$plan_file" ]]; then
+    plan_content=$(cat "$plan_file")
+  else
+    # Branch-only-Plan (T004269): Datei fehlt im Aufrufer-cwd, Blob existiert im Branch.
+    plan_content=$(git show "${branch}:${plan_file}") || {
+      echo "ERROR: plan file not readable on filesystem or branch: $plan_file" >&2
+      exit 1
+    }
   fi
 
   local pod
@@ -234,7 +246,7 @@ EOF
   {
     printf "INSERT INTO tickets.ticket_plans (ticket_id, slug, branch, content, pr_number)\nVALUES (\n  '%s',\n  '%s',\n  '%s',\n  \$plan\$" \
       "$uuid" "$slug" "$branch"
-    cat "$plan_file"
+    printf '%s' "$plan_content"
     printf "\$plan\$,\n  %s\n);\n" "$pr_sql"
   } > "$tmpfile"
 

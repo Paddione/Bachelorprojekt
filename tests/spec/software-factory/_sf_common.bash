@@ -109,5 +109,28 @@ _sf_setup() {
 }
 
 _sf_teardown() {
+  # [T005309] Registrierte Real-Feature-Seeds purgen, bevor BATS das File-Tmpdir
+  # aufraeumt: der Purge steht hier statt am Testende, damit eine fehlgeschlagene
+  # Assertion (errexit) keinen Ghost-Seed (status=in_progress) hinterlaesst.
+  # Fixture-Datei defensiv laden — Dateien ohne Fixture-Bezug sourcen sie selbst
+  # nicht und bleiben unveraendert. Der Teardown darf den Exit-Code nie
+  # verfaelschen (|| true auf jedem Schritt).
+  if [[ -f "${BATS_FILE_TMPDIR:-/nonexistent}/sf-seeded-ids" ]]; then
+    local _fx="${REPO_ROOT:-.}/tests/lib/factory-test-fixtures.sh"
+    source "$_fx" 2>/dev/null || true
+    local _seed_brand="${TEST_BRAND:-korczewski}"
+    # [T005309] Registry VOR der Schleife in ein Array lesen (mapfile): der
+    # Loop-Body (kubectl exec -i in purge_real_feature) draent sonst den
+    # Datei-Stdin des while-read — nur die erste registrierte ID wuerde je
+    # gepurged, der Rest bliebe als Ghost-Seed stehen.
+    local -a _seed_ids
+    mapfile -t _seed_ids < "$BATS_FILE_TMPDIR/sf-seeded-ids"
+    local _seed_id
+    for _seed_id in "${_seed_ids[@]}"; do
+      [[ -n "$_seed_id" ]] || continue
+      purge_real_feature "$_seed_brand" "$_seed_id" >/dev/null 2>&1 || true
+    done
+    rm -f "$BATS_FILE_TMPDIR/sf-seeded-ids" 2>/dev/null || true
+  fi
   rm -rf "${_CLEANUP_PATHS[@]}" 2>/dev/null || true
 }

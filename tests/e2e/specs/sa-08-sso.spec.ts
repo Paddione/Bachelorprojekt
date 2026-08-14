@@ -1,4 +1,5 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
+import { oidcLoginAvailable, loginViaOIDC } from '../lib/oidc';
 
 const PROD_DOMAIN = process.env.PROD_DOMAIN;
 const KC_URL = process.env.TEST_KC_URL
@@ -7,8 +8,6 @@ const NC_URL = process.env.TEST_NC_URL
   || (process.env.NC_DOMAIN ? `https://${process.env.NC_DOMAIN}`
       : PROD_DOMAIN ? `https://files.${PROD_DOMAIN}`
       : 'http://files.localhost');
-const KC_USER = process.env.MM_TEST_USER || 'testuser1';
-const KC_PASS = process.env.MM_TEST_PASS || 'Testpassword123!';
 
 // Tracks whether T16 successfully logged into Nextcloud; T17/T19 skip if not.
 let ncLoginSucceeded = false;
@@ -16,6 +15,10 @@ let ncLoginSucceeded = false;
 test.describe.serial('SA-08: SSO-Integration — Browser', () => {
   let context: BrowserContext;
   let page: Page;
+
+  // The OIDC login (Pocket ID SPA redirects) + Nextcloud SSO roundtrip far
+  // exceed the config default of 10s.
+  test.setTimeout(180_000);
 
   test.beforeAll(async ({ browser }) => {
     // Shared context so Keycloak session cookie persists across tests
@@ -28,23 +31,28 @@ test.describe.serial('SA-08: SSO-Integration — Browser', () => {
   });
 
   test('T15: Pocket ID Login page loads', async () => {
-    test.fixme(true, 'Pocket ID has no password form — needs one-time access code flow (T003163)');
     await page.goto(`${KC_URL}/login`);
     await expect(page).toHaveURL(/auth\./, { timeout: 60_000 });
   });
 
   test('T16: Nextcloud SSO-Login (Pocket-ID-Session)', async () => {
     test.fixme(!NC_URL, 'TEST_NC_URL nicht gesetzt');
-    test.fixme(true, 'Pocket ID has no password form — needs passkey/one-time-code auth (T003163)');
+    test.fixme(!oidcLoginAvailable(), 'OIDC-Login-Mechanismus nicht verfügbar (kubectl / POCKET_ID_OTAC_URL)');
+    // Log in once at Pocket ID via one-time access code (T003163), then let
+    // Nextcloud's oidc_login app complete the authorization-code flow.
+    await loginViaOIDC(page);
+    await page.goto(NC_URL, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForURL(/^(?!.*\/login)/, { timeout: 60_000 });
+    ncLoginSucceeded = true;
   });
 
   test('T17: Talk SSO — Konversation öffnen nach Nextcloud-SSO', async () => {
     test.fixme(!NC_URL, 'TEST_NC_URL nicht gesetzt');
-    test.fixme(true, 'Pocket ID has no password form — needs passkey/one-time-code auth (T003163)');
+    test.fixme(true, 'Talk-UI-Durchklicken ausstehend — setzt NC-SSO (T16) und Talk-App voraus');
   });
 
   test('T19: Cross-Service SSO (Pocket ID → Nextcloud)', async () => {
     test.fixme(!NC_URL, 'TEST_NC_URL nicht gesetzt');
-    test.fixme(true, 'Pocket ID has no password form — needs passkey/one-time-code auth (T003163)');
+    test.fixme(true, 'Cross-Service-Flow ausstehend — setzt NC-SSO (T16) voraus');
   });
 });

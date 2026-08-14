@@ -3645,6 +3645,12 @@
       "status": "archived"
     }
   ],
+  "T005561": [
+    {
+      "slug": "test-changed-db-isolation",
+      "status": "plan_staged"
+    }
+  ],
   "T005563": [
     {
       "slug": "vda-frontmatter-yaml",

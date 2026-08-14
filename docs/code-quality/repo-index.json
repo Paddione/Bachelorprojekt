@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1012,
+      "file_count": 1013,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -800,6 +800,7 @@
         "tests/spec/software-factory/unparsable-lock-reap.bats",
         "tests/spec/software-factory/update-status-id-allowlist-T002906.bats",
         "tests/spec/software-factory/wakeup.bats",
+        "tests/spec/software-factory/watchdog-parallel-isolation.bats",
         "tests/spec/studio-sessions-reorganize.bats",
         "tests/spec/t001269-mishap-bundle-skills-dev-flow-execute-repo-worktree-state-ticket-mcp.bats",
         "tests/spec/t001353-mishap-bundle-ci-tickets.bats",

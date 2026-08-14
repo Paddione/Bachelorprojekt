@@ -4614,6 +4614,12 @@
     "kind": "shell"
   },
   {
+    "id": "software-factory/watchdog-parallel-isolation",
+    "file": "tests/spec/software-factory/watchdog-parallel-isolation.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
     "id": "studio-sessions-reorganize",
     "file": "tests/spec/studio-sessions-reorganize.bats",
     "category": "studio-sessions-reorganize",

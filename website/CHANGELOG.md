@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.0...website-v1.276.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** convert raw tool call syntax in factory_ask [T003987] ([#4366](https://github.com/Paddione/Bachelorprojekt/issues/4366)) ([5f5af17](https://github.com/Paddione/Bachelorprojekt/commit/5f5af17796d26a0bdc9e8553eab479650cdbcf1f))
+
 ## [1.276.0](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.275.2...website-v1.276.0) (2026-08-14)
 
 

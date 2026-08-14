@@ -1,5 +1,6 @@
 <script lang="ts">
   import AdminModal from './ui/AdminModal.svelte';
+  import { safeHttpUrl } from '../../lib/safe-url';
 
   let {
     onCreated,
@@ -46,18 +47,15 @@
   async function submit() {
     busy = true; error = null; info = null;
     try {
-      let parsedUrl: URL;
-      try { parsedUrl = new URL(startUrl.trim()); } catch {
-        error = 'Bitte eine gültige URL eingeben (z.B. https://example.com).';
-        return;
-      }
-      if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
-        error = 'Nur http:// und https:// URLs sind erlaubt.';
+      // T005900: ein gemeinsamer Guard — nur http/https ergeben einen Link
+      const parsedUrl = safeHttpUrl(startUrl.trim());
+      if (!parsedUrl) {
+        error = 'Bitte eine gültige http:// oder https:// URL eingeben (z.B. https://example.com).';
         return;
       }
 
       const crawlConfig = {
-        startUrl:       parsedUrl.href,
+        startUrl:       parsedUrl,
         maxDepth:       Number(maxDepth) || 3,
         maxPages:       Number(maxPages) || 200,
         includePattern: includePattern.trim() || undefined,

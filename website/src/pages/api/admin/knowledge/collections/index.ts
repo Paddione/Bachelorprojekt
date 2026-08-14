@@ -29,15 +29,25 @@ export const POST: APIRoute = async ({ request }) => {
   const source = body.source === 'web_crawl' ? 'web_crawl' : 'custom';
 
   if (source === 'web_crawl') {
-    if (!body.crawlConfig?.startUrl?.trim()) {
+    const rawStart = body.crawlConfig?.startUrl;
+    if (typeof rawStart !== 'string' || !rawStart.trim()) {
       return new Response(
         JSON.stringify({ error: 'crawlConfig.startUrl erforderlich für web_crawl' }),
         { status: 400 },
       );
     }
-    try { new URL(body.crawlConfig.startUrl); } catch {
+    let parsedUrl: URL;
+    try { parsedUrl = new URL(rawStart.trim()); } catch {
       return new Response(
         JSON.stringify({ error: 'crawlConfig.startUrl ist keine gültige URL' }),
+        { status: 400 },
+      );
+    }
+    // T005900: javascript:/data:/… sind parsebar, aber kein Link-Schema für einen
+    // Crawl-Ausgangspunkt — nur http/https persistieren (Stored-XSS-Vektor).
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      return new Response(
+        JSON.stringify({ error: 'crawlConfig.startUrl muss http/https sein' }),
         { status: 400 },
       );
     }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.9](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.8...website-v1.276.9) (2026-08-14)
+
+
+### Bug Fixes
+
+* **scripts:** slug-scoped completeness-gate WARN in embed success check [T004598] ([#4405](https://github.com/Paddione/Bachelorprojekt/issues/4405)) ([d748e73](https://github.com/Paddione/Bachelorprojekt/commit/d748e738cc4b7f164bc4c37287f915056d515a2c))
+
 ## [1.276.8](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.7...website-v1.276.8) (2026-08-14)
 
 

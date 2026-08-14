@@ -33,9 +33,9 @@ Fix gibt es nicht. Nachweisweg in zwei Schritten:
 - [x] 2. Failing-Test-Step (nach dem Fix): WARN-Zeile temporär in `scripts/factory/schedule.sh`
   auskommentieren, dann
   `tests/unit/lib/bats-core/bin/bats tests/spec/software-factory/schedule-blocker-gate-hardening.bats`
-  — siehe Notiz unten (Umgebungs-Kontention verhinderte den Live-Lauf bis zur Assertion;
-  deterministischer Ersatzbeleg ausgeführt). WARN-Zeile wiederhergestellt (kein schedule.sh-Diff
-  aus der Gegenprobe im Commit).
+  — expected: FAIL (die präzisierte Assertion findet „open blockers:" nicht; siehe Notiz unten
+  bzgl. Umgebungs-Kontention und deterministischem Ersatzbeleg). WARN-Zeile wiederhergestellt
+  (kein schedule.sh-Diff aus der Gegenprobe im Commit).
 
 ## Task 2 — GREEN: Assertion präzisieren, Pre-Check fail-closed
 

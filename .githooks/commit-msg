@@ -31,6 +31,18 @@ if ! bash "$repo_root/scripts/check-commit-vs-diff.sh" "$1"; then
   exit 1
 fi
 
+# Fix()-Commits brauchen eine Ticket-ID (G-DORA03) — ungetickte fixes sind
+# verschleierte Bugs und verfaelschen die CFR-Messung (T005307).
+# Bypass (nur im Notfall): SKIP_FIX_TICKET_GUARD=1 git commit ...
+if ! bash "$repo_root/scripts/check-fix-ticket-guard.sh" "$1"; then
+  echo "" >&2
+  echo "💡 Hint: bash scripts/ticket.sh create --type fix ... — Ticket anlegen," >&2
+  echo "         dann die Ticket-ID in die Commit-Message aufnehmen (git commit --amend)." >&2
+  echo "" >&2
+  echo "No commit was created — commit-msg hook rejected the message (fix-ticket guard)." >&2
+  exit 1
+fi
+
 # Conventional-Commit-Header hier pruefen, nicht erst im pre-push [T002115].
 # pre-push validiert den ganzen Range und blockiert damit erst, wenn die Commits
 # schon stehen — ein unbekannter Scope kostet dann ein `git commit --amend` oder

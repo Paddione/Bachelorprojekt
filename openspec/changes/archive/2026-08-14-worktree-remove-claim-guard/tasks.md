@@ -2,7 +2,7 @@
 title: "worktree-remove-claim-guard — Implementation Plan"
 ticket_id: T005115
 domains: [scripts, skills, factory]
-status: active
+status: completed
 file_locks: []
 shared_changes: false
 batch_id: null

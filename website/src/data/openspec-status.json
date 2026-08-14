@@ -3573,6 +3573,12 @@
       "status": "plan_staged"
     }
   ],
+  "T004896": [
+    {
+      "slug": "plan-commit-scope-guard",
+      "status": "plan_staged"
+    }
+  ],
   "T004897": [
     {
       "slug": "runtime-drift-auto-kill",
@@ -3669,9 +3675,21 @@
       "status": "plan_staged"
     }
   ],
+  "T005565": [
+    {
+      "slug": "review-gate-enforce",
+      "status": "plan_staged"
+    }
+  ],
   "T005567": [
     {
       "slug": "commit-msg-hook-worktree",
+      "status": "plan_staged"
+    }
+  ],
+  "T005591": [
+    {
+      "slug": "sf-fixture-hardening",
       "status": "plan_staged"
     }
   ],

@@ -2124,6 +2124,12 @@
     "kind": "shell"
   },
   {
+    "id": "agent-skills/review-gate-before-auto-merge",
+    "file": "tests/spec/agent-skills/review-gate-before-auto-merge.bats",
+    "category": "agent-skills",
+    "kind": "shell"
+  },
+  {
     "id": "agent-skills/skill-path-references",
     "file": "tests/spec/agent-skills/skill-path-references.bats",
     "category": "agent-skills",
@@ -2762,6 +2768,12 @@
   {
     "id": "dev-flow-plan/guard-parity",
     "file": "tests/spec/dev-flow-plan/guard-parity.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
+    "id": "dev-flow-plan/plan-commit-scope-guard",
+    "file": "tests/spec/dev-flow-plan/plan-commit-scope-guard.bats",
     "category": "dev-flow-plan",
     "kind": "shell"
   },
@@ -4592,6 +4604,12 @@
   {
     "id": "software-factory/scheduling-cleanup-guard",
     "file": "tests/spec/software-factory/scheduling-cleanup-guard.bats",
+    "category": "software-factory",
+    "kind": "shell"
+  },
+  {
+    "id": "software-factory/sf-fixture-observability",
+    "file": "tests/spec/software-factory/sf-fixture-observability.bats",
     "category": "software-factory",
     "kind": "shell"
   },

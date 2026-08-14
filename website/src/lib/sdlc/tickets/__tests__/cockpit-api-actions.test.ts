@@ -7,12 +7,12 @@ const mocks = vi.hoisted(() => ({
   setFeatureAction: vi.fn(),
 }));
 
-vi.mock('../../../lib/auth', () => ({
+vi.mock('../../../../lib/auth', () => ({
   getSession: mocks.getSession,
   isAdmin: mocks.isAdmin,
 }));
 
-vi.mock('../../../lib/tickets/cockpit-db', () => ({
+vi.mock('../../../../lib/sdlc/tickets/cockpit-db', () => ({
   setFeatureAction: mocks.setFeatureAction,
   BrandMismatchError: class BrandMismatchError extends Error { constructor(m?: string) { super(m); this.name = 'BrandMismatchError'; } },
 }));

@@ -43,17 +43,29 @@ export function cyclesToViolations(graphId, graphPath, cycles) {
  *  baseline, the exact silent-pass this gate exists to prevent. The only
  *  tolerated non-zero exit is madge finding cycles, which still emits its JSON
  *  array on stdout; that path is parsed and returned normally. */
+function resolveMadgeBinary(repoRoot) {
+  const candidates = [
+    join(repoRoot, 'node_modules', '.bin', 'madge'),
+    join(process.cwd(), 'node_modules', '.bin', 'madge'),
+  ];
+  for (const c of candidates) {
+    if (existsSync(c)) return c;
+  }
+  return 'madge';
+}
+
 function madgeCycles(repoRoot, tsconfig) {
   const dir = join(repoRoot, dirname(tsconfig));
   // Pre-flight: a missing graph dir is a config/checkout error, not "clean".
   if (!existsSync(dir)) {
     throw new Error(`S2: graph dir missing for ${tsconfig} (looked in ${dir})`);
   }
+  const madgeBin = resolveMadgeBinary(repoRoot);
   try {
     // stderr is piped (not ignored) so a genuine failure's diagnostic is
     // available on err.stderr for the thrown Error below.
     const out = execFileSync(
-      join(repoRoot, 'node_modules', '.bin', 'madge'),
+      madgeBin,
       ['--circular', '--json', '--extensions', 'ts,tsx', '.'],
       { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
     );

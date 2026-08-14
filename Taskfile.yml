@@ -1128,7 +1128,13 @@ tasks:
         if [ "$RUN_OPENSPEC" = "true" ]; then echo "→ openspec changes: task test:openspec"; task test:openspec; fi
         if [ "$RUN_WORKFLOWS" = "true" ]; then echo "→ workflow changes: task lint:workflows"; task lint:workflows; fi
 
-        if [ "$RUN_E2E_WEBSITE" = "true" ] && command -v npx >/dev/null 2>&1; then echo "→ e2e website changes: task test:e2e:website"; task test:e2e:website; fi
+        if [ "$RUN_E2E_WEBSITE" = "true" ] && command -v npx >/dev/null 2>&1; then
+          if (exec 3<>/dev/tcp/127.0.0.1/4321) 2>/dev/null; then
+            echo "→ e2e website changes: task test:e2e:website"; task test:e2e:website
+          else
+            echo "→ e2e website uebersprungen: localhost:4321 antwortet nicht. Kein PR-Blocker — CI fuehrt diese Gruppe fuer PRs ohnehin nicht aus."
+          fi
+        fi
         # [T002375-p4] Erreichbarkeit pruefen, bevor die E2E-Gruppe laeuft. Bei jeder
         # k3d/-Aenderung lief sie bisher bedingungslos und schlug ohne Dev-Stack mit 13
         # ERR_CONNECTION_REFUSED fehl. Entscheidend: CI fuehrt fuer PRs nur

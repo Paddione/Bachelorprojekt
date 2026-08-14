@@ -27,12 +27,12 @@ const mocks = vi.hoisted(() => ({
   setFeatureAction: vi.fn(),
 }));
 
-vi.mock('../../../lib/auth', () => ({
+vi.mock('../../../../lib/auth', () => ({
   getSession: mocks.getSession,
   isAdmin: mocks.isAdmin,
 }));
 
-vi.mock('../../../lib/tickets/cockpit-db', () => ({
+vi.mock('../../../../lib/sdlc/tickets/cockpit-db', () => ({
   getPortfolio: mocks.getPortfolio,
   getFeatureTickets: mocks.getFeatureTickets,
   updatePlanningRanks: mocks.updatePlanningRanks,

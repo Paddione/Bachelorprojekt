@@ -6,6 +6,11 @@
 # .claude/skills/references/mcp-tool-guide.md); fuer den Test liefert --fixture bereits
 # abgerufene Zeilen, damit kein Live-Cluster/DB-Zugriff noetig ist (dieselbe Fixture-Form
 # dokumentiert die erwartete Zeilenstruktur fuer den echten DB-Pfad).
+#
+# State-Werte im Fixture folgen der Aufnahme-Mechanik (record_phase_event: entered|done|blocked,
+# vgl. software-factory REQ-SF-EXECUTOR-002). Erfolgssignal ist ein verify/done-Event
+# (Messung 2026-08-15: 408x done, 266x entered, 0x pass); verify/entered gilt als
+# nicht abgeschlossen (T006282).
 
 setup() {
   REPO_ROOT="$(cd "${BATS_TEST_DIRNAME}/../../.." && pwd)"
@@ -17,9 +22,9 @@ setup() {
   cat > "$FIXTURE" <<'JSON'
 [
   {"ticket_id": 1, "external_id": "T009001", "title": "Erfolgreicher Lauf", "phase": "implement", "state": "done", "detail": "wrote scripts/foo.sh", "at": "2026-01-01T10:00:00Z"},
-  {"ticket_id": 1, "external_id": "T009001", "title": "Erfolgreicher Lauf", "phase": "verify", "state": "pass", "detail": "tests green, token ghp_abcdefghijklmnopqrstuvwxyz012345", "at": "2026-01-01T10:05:00Z"},
-  {"ticket_id": 2, "external_id": "T009002", "title": "Gescheiterter Lauf", "phase": "implement", "state": "done", "detail": "wrote scripts/bar.sh", "at": "2026-01-02T10:00:00Z"},
-  {"ticket_id": 2, "external_id": "T009002", "title": "Gescheiterter Lauf", "phase": "verify", "state": "fail", "detail": "tests red", "at": "2026-01-02T10:05:00Z"}
+  {"ticket_id": 1, "external_id": "T009001", "title": "Erfolgreicher Lauf", "phase": "verify", "state": "done", "detail": "tests green, token ghp_abcdefghijklmnopqrstuvwxyz012345", "at": "2026-01-01T10:05:00Z"},
+  {"ticket_id": 2, "external_id": "T009002", "title": "Nicht abgeschlossener Lauf", "phase": "implement", "state": "done", "detail": "wrote scripts/bar.sh", "at": "2026-01-02T10:00:00Z"},
+  {"ticket_id": 2, "external_id": "T009002", "title": "Nicht abgeschlossener Lauf", "phase": "verify", "state": "entered", "detail": "verify nie abgeschlossen", "at": "2026-01-02T10:05:00Z"}
 ]
 JSON
 }
@@ -33,8 +38,8 @@ JSON
   run grep -c "Erfolgreicher Lauf" "$OUT"
   [ "$output" -eq 1 ]
 
-  # Negativ-Aussage: der gescheiterte Lauf ist NICHT enthalten.
-  run grep -c "Gescheiterter Lauf" "$OUT"
+  # Negativ-Aussage: der nicht abgeschlossene Lauf ist NICHT enthalten.
+  run grep -c "Nicht abgeschlossener Lauf" "$OUT"
   [ "$output" -eq 0 ]
 }
 

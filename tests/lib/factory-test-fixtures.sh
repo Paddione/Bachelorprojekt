@@ -205,9 +205,22 @@ purge_real_feature() {
   # und draent damit einen while-read-Loop ueber einer Datei (beobachtet im
   # _sf_teardown-Purge: nur die erste registrierte ID wurde gepurged, der Rest
   # der Registry-Datei landete als EOF-verlorenes Stdin im exec).
-  local title
+  local title select_rc stderr_file
+  # [T005591] Execute-rc prüfen: ein fehlgeschlagener kubectl-exec (z.B. transient)
+  # muss nicht idempotent 0 sein, sondern observable error — sonst entgeht ein
+  # Ghost-Seed ohne Spur. stderr_temp_datei + PIPESTATUS erreichen das.
+  stderr_file=$(mktemp)
+  set -o pipefail
   title=$(kubectl exec -i "$pod" -n "$ns" --context "$ctx" -c postgres -- \
-    psql -U postgres -d website -qtAc "SELECT title FROM tickets.tickets WHERE external_id='$ext_id';" 2>/dev/null < /dev/null | tr -d '[:space:]')
+    psql -U postgres -d website -qtAc "SELECT title FROM tickets.tickets WHERE external_id='$ext_id';" < /dev/null 2>"$stderr_file" | tr -d '[:space:]')
+  select_rc=$?
+  set +o pipefail
+  cat "$stderr_file" | sed 's/^/[purge-exec] /' >&2
+  rm -f "$stderr_file"
+  if [[ $select_rc -ne 0 ]]; then
+    echo "purge_real_feature: exec failed (rc=$select_rc) for $ext_id — row state unknown" >&2
+    return 1
+  fi
   [[ -n "$title" ]] || return 0   # idempotent: Zeile existiert nicht mehr
   if [[ "$force" != 1 && "$title" != SF-REAL-* ]]; then
     echo "purge_real_feature: refuses non-SF-REAL title for $ext_id (title: ${title:0:60}…)" >&2

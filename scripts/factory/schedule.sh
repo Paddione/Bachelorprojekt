@@ -62,8 +62,8 @@ for c in "${candidates[@]}"; do
   # `archived`- und dangling-Vorgaenger (LEFT JOIN NULL) dauerhaft fest. Korrektur:
   # nur ein existierender Vorgaenger mit Status ausserhalb done/archived blockt;
   # dangling (t.external_id IS NULL) erfuellt den Gate. Die Query liefert zusaetzlich
-  # die dangling-Referenzen, damit der Wedge sichtbar wird. SQL-Binding wie Z. 106-107
-  # (-v ext_id + :'ext_id') statt String-Interpolation.
+  # die dangling-Referenzen, damit der Wedge sichtbar wird. SQL-Binding wie im
+  # Query-Aufruf unten (-v ext_id="$ext_id" + :'ext_id') statt String-Interpolation.
   blocker_out=$(cat <<SQL | BRAND="$BRAND" FACTORY_CTX="$FACTORY_CTX" factory_psql -v ext_id="$ext_id" 2>&1
 SELECT json_build_object(
   'blocked', COALESCE(bool_or(t.status IS NOT NULL AND t.status NOT IN ('done','archived')), false),
@@ -144,8 +144,9 @@ SQL
   # Kommandosubstitution und stdout ins Nichts. Umgekehrt notiert landet beides
   # im Nichts — genau der behobene Defekt.
   #
-  # Der Aufruf bleibt bewusst EINZEILIG: tests/unit/factory-blocked.bats:40
-  # prueft `grep -q "slots.sh.*claim"`, matcht also zeilenweise. Ein
+  # Der Aufruf bleibt bewusst EINZEILIG: der Static-Guard `static: schedule.sh claims
+  # slots` in tests/unit/factory-blocked.bats prueft `grep -q "slots.sh.*claim"`,
+  # matcht also zeilenweise. Ein
   # Zeilenumbruch vor `claim-gang` faellt beim Lesen nicht auf, macht diesen
   # Bestandstest aber rot.
   set +e

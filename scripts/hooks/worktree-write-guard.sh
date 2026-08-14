@@ -119,11 +119,19 @@ SID="$(_my_sid)"
 # gespeicherter Pfad nie, und weil ein gesetztes MY_WT jeden Pfad ausserhalb
 # ablehnt, blockiert der Guard dann JEDEN Schreibzugriff der Session — der Notausgang
 # bleibt die einzige Möglichkeit weiterzuarbeiten. [T002412]
+# T003991: Lock-Pfad kann -T<id>-Suffix tragen, realer Worktree liegt ohne.
+# Drift-Quelle: worktree-create.sh
 _abs_wt() {
+  local wt
   case "$1" in
-    /*) printf '%s\n' "$1" ;;
-    *)  printf '%s\n' "$MAIN_ROOT/${1#./}" ;;
+    /*) wt="$1" ;;
+    *)  wt="$MAIN_ROOT/${1#./}" ;;
   esac
+  if [ ! -d "$wt" ] && [[ "$wt" =~ -T[0-9]{6,}$ ]]; then
+    local stripped="${wt%-T*}"
+    [ -d "$stripped" ] && wt="$stripped"
+  fi
+  printf '%s\n' "$wt"
 }
 
 MY_WTS=()

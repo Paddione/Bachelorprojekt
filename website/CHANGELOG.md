@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.42](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.41...website-v1.276.42) (2026-08-14)
+
+
+### Bug Fixes
+
+* **skills:** enforce review gate before auto-merge [T005565] ([#4514](https://github.com/Paddione/Bachelorprojekt/issues/4514)) ([eebe663](https://github.com/Paddione/Bachelorprojekt/commit/eebe663652cc5736754b97418e347c9b8ab64d24))
+
 ## [1.276.41](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.40...website-v1.276.41) (2026-08-14)
 
 

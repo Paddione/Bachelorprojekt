@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "slug": "archive-status-sed-planning",
+    "ticket_id": "",
+    "generated_from": "main@6f22baecd",
+    "domains": [
+      "plan-authoring",
+      "dev-tooling",
+      "factory"
+    ],
+    "intel_sources": [
+      "grep",
+      "plan-lint",
+      "wc",
+      "-l"
+    ]
+  },
+  "impact_files": [
+    {
+      "path": ".claude/skills/references/plan-archive-steps.md",
+      "language": "markdown",
+      "loc": 135,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    },
+    {
+      "path": "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats",
+      "language": "bash",
+      "loc": 83,
+      "s1_limit": 0,
+      "s1_baseline": null,
+      "s1_budget": null
+    }
+  ],
+  "symbols": [
+    {
+      "qualified_name": "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats:39:setup() {",
+      "kind": "function",
+      "file": "tests/spec/openspec-workflow/plan-archive-git-add-coverage.bats",
+      "signature": "39:setup() {(...)",
+      "type_text": "39:setup() {(...)",
+      "source": "grep"
+    }
+  ],
+  "call_graph": {
+    "entrypoints": [],
+    "edges": []
+  },
+  "db_tables": [],
+  "api_contracts": [],
+  "external_types": [],
+  "risks": [
+    {
+      "note": "codebase-memory and LSP were not queried for this bundle — symbols/call_graph come from grep and may be incomplete.",
+      "severity": "warn"
+    }
+  ]
+}

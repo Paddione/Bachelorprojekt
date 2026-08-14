@@ -14,7 +14,7 @@ BRANCH="feature/<slug>" # oder fix/<slug>
 PR_NUM=$(gh pr view --json number -q '.number' 2>/dev/null || echo "")
 
 # 1. Plan-Frontmatter auf completed setzen, BEVOR der Inhalt archiviert wird:
-sed -E -i 's/^status: (active|plan_staged|in_progress)$/status: completed/' "$PLAN_FILE"
+sed -E -i 's/^status: (active|plan_staged|in_progress|planning)$/status: completed/' "$PLAN_FILE"
 ```
 
 2. tasks.md → postgres (`tickets.ticket_plans`) — **Skript-first**:

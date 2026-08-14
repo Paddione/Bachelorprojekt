@@ -33,9 +33,9 @@ setup() {
   [ "$status" -eq 0 ]
   [ -f "$archive_ref" ]
 
-  # The fix must match all active states in a single regex:
-  # sed -E -i 's/^status: (active|plan_staged|in_progress)$/status: completed/'
-  run grep -E 'sed -E -i '\''s/\^status: \(active\|plan_staged\|in_progress\)\$/status: completed/'\''' "$archive_ref"
+  # The fix must match all active states in a single regex (including planning, T005564):
+  # sed -E -i 's/^status: (active|plan_staged|in_progress|planning)$/status: completed/'
+  run grep -E 'sed -E -i '\''s/\^status: \(active\|plan_staged\|in_progress(\|planning)?\)\$/status: completed/'\''' "$archive_ref"
   [ "$status" -eq 0 ]
 }
 

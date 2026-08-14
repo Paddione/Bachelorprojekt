@@ -5,7 +5,7 @@
       "id": "tests",
       "name": "Test suites (BATS + Playwright + vitest)",
       "owner_agent": "bachelorprojekt-test",
-      "file_count": 1014,
+      "file_count": 1015,
       "files": [
         "tests/.gitignore",
         "tests/README.md",
@@ -793,6 +793,7 @@
         "tests/spec/software-factory/scheduling-cleanup-guard.bats",
         "tests/spec/software-factory/scheduling.bats",
         "tests/spec/software-factory/scout-and-routing.bats",
+        "tests/spec/software-factory/sf-fixture-observability.bats",
         "tests/spec/software-factory/slot-mapping.bats",
         "tests/spec/software-factory/ssot-staged-task-requirement.bats",
         "tests/spec/software-factory/stage-plan-touched-files.bats",

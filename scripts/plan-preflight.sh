@@ -36,8 +36,16 @@ cmd_pre_commit() {
     || fail "detached HEAD — plan-stage braucht einen Branch; Abhilfe: git checkout <feature-branch>."
   [ "$branch" != "main" ] \
     || fail "HEAD ist 'main' — plan-stage Commits auf main sind verboten; Abhilfe: bash scripts/worktree-create.sh <slug> und dort committen."
-  [ -z "$(git status --porcelain)" ] \
-    || fail "working tree ist nicht sauber — Abhilfe: erst 'git stash' oder 'git add … && git commit', dann plan-preflight erneut ausfuehren."
+  # Staged-Set-Pflicht [T005114]: geprueft wird das Staged-Set — das, was der
+  # plan-stage Commit tatsaechlich enthaelt — nicht der gesamte Working-Tree.
+  # Erlaubt: Pfade unter tests/ und openspec/changes/ sowie exakt
+  # website/src/data/openspec-status.json und website/src/data/test-inventory.json.
+  # Unstaged/untracked ist fuer den Commit irrelevant und wird nicht geprueft.
+  local staged foreign
+  staged="$(git diff --cached --name-only)"
+  foreign="$(printf '%s\n' "$staged" | grep -v -E '^(tests/|openspec/changes/|website/src/data/openspec-status\.json$|website/src/data/test-inventory\.json$)' || true)"
+  [ -z "$foreign" ] \
+    || fail "Fremd-Datei im Staged-Set: $(printf '%s' "$foreign" | tr '\n' ' ') — Abhilfe: 'git restore --staged <pfad>' und nur Plan-Artefakte stagen (tests/, openspec/changes/, website/src/data/openspec-status.json, website/src/data/test-inventory.json)."
 
   command -v jq >/dev/null 2>&1 \
     || envfail "jq fehlt (wird fuer das .branch-Feld der Lock-Datei gebraucht) — Abhilfe: sudo apt-get install -y jq."

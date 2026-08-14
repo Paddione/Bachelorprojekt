@@ -2754,6 +2754,12 @@
     "kind": "shell"
   },
   {
+    "id": "dev-flow-plan/plan-preflight-staged-set",
+    "file": "tests/spec/dev-flow-plan/plan-preflight-staged-set.bats",
+    "category": "dev-flow-plan",
+    "kind": "shell"
+  },
+  {
     "id": "dev-flow-plan/plan-qa-livez-probe",
     "file": "tests/spec/dev-flow-plan/plan-qa-livez-probe.bats",
     "category": "dev-flow-plan",

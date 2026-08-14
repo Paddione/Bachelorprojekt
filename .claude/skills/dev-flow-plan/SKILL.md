@@ -205,7 +205,7 @@ Dort steht auch der Ticket-Claim für diesen Schritt (`bash scripts/agent-lock.s
 Bevor der plan-stage Commit läuft, MUSS der Operator `plan-preflight.sh` aufrufen. Das Skript bündelt die drei Checks, die hier dokumentiert sind, in einen Aufruf — die Umsetzung steht im Skript und in `docs/agent-guide/registry/plan-guards.yaml`, hier bleibt der Vertrag, den der Operator nachvollziehen können muss:
 
 1. **Do not commit on main / Nicht auf main committen:** Plan-stage Commits auf `main` sind verboten — die Guards verweigern sie. Nur ein Worktree-Branch ist zulässig.
-2. **Clean git status / Sauberer Status ist Pflicht:** `git status --porcelain` muss vor dem plan-stage Commit leer sein, sonst bricht der Guard ab.
+2. **Staged-Set-Pflicht / Nur Plan-Artefakte stagen [T005114]:** der Guard wertet `git diff --cached --name-only` aus; erlaubt sind Pfade unter `tests/` und `openspec/changes/` sowie exakt `website/src/data/openspec-status.json` und `website/src/data/test-inventory.json`. Andere gestagte Dateien brechen den Guard ab (Abhilfe: `git restore --staged <pfad>` und nur Plan-Artefakte stagen). Unstaged/untracked wird nicht mehr geprüft — für den Commit zählt nur das Staged-Set.
 3. **Branch stimmt mit dem agent-lock-Claim überein (T003102 — akzeptiert ticket- UND branch-scoped Claims):** geprüft wird `agent-locks/ticket__${TICKET_EXT_ID}.json`, Fallback `agent-locks/branch__${BRANCH_SLUG}.json`; fehlt auch der (`[ -f "$LOCK_FILE" ]` schlägt fehl — kein ticket-scoped agent-lock), bricht der Guard ab.
 
 ```bash

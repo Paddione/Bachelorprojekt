@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.276.2](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.1...website-v1.276.2) (2026-08-14)
+
+
+### Bug Fixes
+
+* **factory:** allow repairing invalid done tickets [T003072] ([#4370](https://github.com/Paddione/Bachelorprojekt/issues/4370)) ([9ff7c4b](https://github.com/Paddione/Bachelorprojekt/commit/9ff7c4bbc195a7c8dc6c18c56a7f2b62d70a152f))
+
 ## [1.276.1](https://github.com/Paddione/Bachelorprojekt/compare/website-v1.276.0...website-v1.276.1) (2026-08-14)
 
 

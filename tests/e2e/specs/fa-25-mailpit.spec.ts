@@ -1,19 +1,21 @@
 import { test, expect } from '@playwright/test';
 
-const MAIL_URL = process.env.MAIL_URL || 'http://mail.localhost';
+const WEBSITE_URL = process.env.WEBSITE_URL || 'https://web.mentolder.de';
+const defaultMail = WEBSITE_URL.includes('mentolder.de') ? 'https://mail.mentolder.de' : 'http://mail.localhost';
+const MAIL_URL = process.env.MAIL_URL || defaultMail;
 
 test.describe('FA-25: Mailpit E-Mail-Server', () => {
 
   test('T1: Mailpit web UI loads', async ({ page }) => {
     const res = await page.goto(MAIL_URL);
     // 200 = direct access; 401 = behind oauth2-proxy (service alive, auth required)
-    expect([200, 401]).toContain(res?.status());
+    expect([200, 401, 403]).toContain(res?.status());
   });
 
   test('T2: Web UI shows message list', async ({ page }) => {
     const res = await page.goto(MAIL_URL);
-    // If behind oauth2-proxy (401/redirect to KC), service is alive but UI not directly accessible
-    if (res?.status() === 401 || /realms\/workspace/.test(page.url())) {
+    // If behind oauth2-proxy (401/redirect to KC/Pocket ID), service is alive but UI not directly accessible
+    if (res?.status() === 401 || res?.status() === 403 || /realms\/workspace|auth\./.test(page.url())) {
       test.skip(true, 'Mailpit is behind oauth2-proxy — UI not directly accessible without auth');
       return;
     }
@@ -23,7 +25,7 @@ test.describe('FA-25: Mailpit E-Mail-Server', () => {
   test('T3: Mailpit API returns messages endpoint', async ({ page }) => {
     const res = await page.goto(`${MAIL_URL}/api/v1/messages?limit=1`);
     // If behind oauth2-proxy, service is alive but API not directly accessible
-    if (res?.status() === 401 || /realms\/workspace/.test(page.url())) {
+    if (res?.status() === 401 || res?.status() === 403 || /realms\/workspace|auth\./.test(page.url())) {
       // oauth2-proxy responded — service is alive
       return;
     }

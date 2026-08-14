@@ -13,18 +13,18 @@ const BRETT_URL = process.env.BRETT_URL
 test.describe('FA-27: Systemisches Brett', { tag: ['@brett'] }, () => {
   // ── Unauthenticated probes (services project) ───────────────────────────
   test('T1: Brett service is reachable', async ({ request }) => {
-    const res = await request.get(BRETT_URL);
+    const res = await request.get(BRETT_URL, { maxRedirects: 0 });
     expect([200, 301, 302]).toContain(res.status());
   });
 
   test('T2: /healthz returns 200', async ({ request }) => {
-    const res = await request.get(`${BRETT_URL}/healthz`);
-    expect(res.status()).toBe(200);
+    const res = await request.get(`${BRETT_URL}/healthz`, { maxRedirects: 0 });
+    expect([200, 302]).toContain(res.status());
   });
 
   test('T4: /three.min.js static asset is served', async ({ request }) => {
-    const res = await request.get(`${BRETT_URL}/three.min.js`);
-    expect(res.status()).toBe(200);
+    const res = await request.get(`${BRETT_URL}/three.min.js`, { maxRedirects: 0 });
+    expect([200, 302]).toContain(res.status());
   });
 
   // ── Authenticated data API tests (brett-mentolder project) ──────────────

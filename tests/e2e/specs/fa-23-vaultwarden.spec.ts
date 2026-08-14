@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-const VAULT_URL = process.env.VAULT_URL || 'http://vault.localhost';
+const WEBSITE_URL = process.env.WEBSITE_URL || 'https://web.mentolder.de';
+const defaultVault = WEBSITE_URL.includes('mentolder.de') ? 'https://vault.mentolder.de' : 'http://vault.localhost';
+const VAULT_URL = process.env.VAULT_URL || defaultVault;
 
 test.describe('FA-23: Vaultwarden Passwort-Manager', () => {
 
